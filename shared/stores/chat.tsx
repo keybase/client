@@ -11,13 +11,10 @@ import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import type * as Router2 from '@/constants/router'
 import type {RefreshReason} from '@/stores/chat-shared'
-import {ProviderScreen} from '@/stores/convostate'
-import type {GetOptionsRet, RouteDef} from '@/constants/types/router'
 import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
-import {clearChatStores, chatStores} from '@/stores/convostate'
+import {clearChatStores, chatStores} from '@/stores/convo-registry'
 import {flushInboxRowUpdates} from '@/stores/inbox-rows'
-import type {StaticScreenProps} from '@react-navigation/core'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {isPhone} from '@/constants/platform'
 import {getModalStack, getTab, getVisibleScreen, navigateToInbox} from '@/constants/router'
@@ -213,12 +210,6 @@ export type State = Store & {
       items: ReadonlyArray<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
     ) => void
   }
-  getBackCount: (conversationIDKey: T.Chat.ConversationIDKey) => number
-  getBadgeHiddenCount: (ids: ReadonlySet<T.Chat.ConversationIDKey>) => {
-    badgeCount: number
-    hiddenCount: number
-  }
-  getUnreadIndicies: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => Map<number, number>
 }
 
 // Only get the untrusted conversations out
@@ -1249,112 +1240,8 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
   return {
     ...initialStore,
     dispatch,
-    getBackCount: conversationIDKey => {
-      let count = 0
-      chatStores.forEach(s => {
-        const {id, badge} = s.getState()
-        // only show sum of badges that aren't for the current conversation
-        if (id !== conversationIDKey) {
-          count += badge
-        }
-      })
-      return count
-    },
-    getBadgeHiddenCount: ids => {
-      let badgeCount = 0
-      let hiddenCount = 0
-      ids.forEach(id => {
-        const store = chatStores.get(id)
-        if (store) {
-          badgeCount -= store.getState().badge
-          hiddenCount -= 1
-        }
-      })
-      return {badgeCount, hiddenCount}
-    },
-    getUnreadIndicies: ids => {
-      const unreadIndices: Map<number, number> = new Map()
-      ids.forEach((cur, idx) => {
-        if (!cur) return
-        const store = chatStores.get(cur)
-        if (store) {
-          const badge = store.getState().badge
-          if (badge > 0) {
-            unreadIndices.set(idx, badge)
-          }
-        }
-      })
-      return unreadIndices
-    },
   }
 })
-
-// See constants/router.tsx IsExactlyRecord for explanation
-type IsExactlyRecord<T> = string extends keyof T ? true : false
-
-type NavigatorParamsFromProps<P> =
-  P extends Record<string, unknown>
-    ? IsExactlyRecord<P> extends true
-      ? undefined
-      : keyof P extends never
-        ? undefined
-        : P
-    : undefined
-
-type AddConversationIDKey<P> =
-  P extends Record<string, unknown>
-    ? Omit<P, 'conversationIDKey'> & {conversationIDKey?: T.Chat.ConversationIDKey}
-    : {conversationIDKey?: T.Chat.ConversationIDKey}
-
-type LazyInnerComponent<COM extends React.LazyExoticComponent<any>> =
-  COM extends React.LazyExoticComponent<infer Inner> ? Inner : never
-
-type ChatScreenParams<COM extends React.LazyExoticComponent<any>> = NavigatorParamsFromProps<
-  AddConversationIDKey<React.ComponentProps<LazyInnerComponent<COM>>>
->
-
-type ChatScreenProps<COM extends React.LazyExoticComponent<any>> = StaticScreenProps<ChatScreenParams<COM>>
-type ChatScreenComponent<COM extends React.LazyExoticComponent<any>> = (
-  p: ChatScreenProps<COM>
-) => React.ReactElement
-
-export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
-  Component: COM,
-  options?: {
-    getOptions?: GetOptionsRet | ((props: ChatScreenProps<COM>) => GetOptionsRet)
-    skipProvider?: boolean
-    canBeNullConvoID?: boolean
-  }
-): RouteDef<ChatScreenComponent<COM>, ChatScreenParams<COM>> {
-  const getOptionsOption = options?.getOptions
-  const getOptions =
-    typeof getOptionsOption === 'function'
-      ? (p: ChatScreenProps<COM>) =>
-          // getOptions can run before params are materialized on the route object.
-          getOptionsOption({
-            ...p,
-            route: {
-              ...p.route,
-              params: ((p.route as {params?: ChatScreenParams<COM>}).params ?? {}) as ChatScreenParams<COM>,
-            },
-          })
-      : getOptionsOption
-  return {
-    ...options,
-    getOptions,
-    screen: function Screen(p: ChatScreenProps<COM>) {
-      const Comp = Component as any
-      const params = ((p.route as {params?: ChatScreenParams<COM>}).params ?? {}) as ChatScreenParams<COM>
-      return options?.skipProvider ? (
-        <Comp {...params} />
-      ) : (
-        <ProviderScreen rp={p} canBeNull={options?.canBeNullConvoID}>
-          <Comp {...params} />
-        </ProviderScreen>
-      )
-    },
-  }
-}
 
 export * from '@/stores/inbox-rows'
 export type {RefreshReason} from '@/stores/chat-shared'

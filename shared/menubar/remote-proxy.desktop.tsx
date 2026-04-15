@@ -2,6 +2,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
+import {chatStores} from '@/stores/convo-registry'
 import type {ConvoState as ConvoStateType} from '@/stores/convostate'
 import {useConfigState} from '@/stores/config'
 import * as T from '@/constants/types'
@@ -148,7 +149,7 @@ const useWidgetConversationList = (
 
       const unsubs = widgetList.map(widget => {
         ConvoState.getConvoState(widget.convID)
-        return ConvoState.chatStores.get(widget.convID)?.subscribe((state, oldState) => {
+        return chatStores.get(widget.convID)?.subscribe((state, oldState) => {
           if (convoDiff(state, oldState)) {
             onStoreChange()
           }

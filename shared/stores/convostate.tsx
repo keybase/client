@@ -42,12 +42,12 @@ import KB2 from '@/util/electron'
 import {NotifyPopup} from '@/util/misc'
 import {hexToUint8Array} from '@/util/uint8array'
 import {clearChatTimeCache} from '@/util/timestamp'
-import {registerDebugClear} from '@/util/debug'
 import * as Config from '@/constants/config'
 import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual} from '@/constants/utils'
 import {queueInboxRowUpdate} from './inbox-rows'
 import * as Strings from '@/constants/strings'
+import {chatStores, clearChatStores, convoUIStores} from './convo-registry'
 
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -3494,23 +3494,6 @@ const createConvoUISlice =
       },
     },
   })
-
-export const chatStores: Map<T.Chat.ConversationIDKey, MadeStore> = __DEV__
-  ? ((globalThis.__hmr_chatStores ??= new Map()) as Map<T.Chat.ConversationIDKey, MadeStore>)
-  : new Map()
-
-export const convoUIStores: Map<T.Chat.ConversationIDKey, MadeUIStore> = __DEV__
-  ? (((globalThis as any).__hmr_convoUIStores ??= new Map()) as Map<T.Chat.ConversationIDKey, MadeUIStore>)
-  : new Map()
-
-export const clearChatStores = () => {
-  chatStores.clear()
-  convoUIStores.clear()
-}
-
-registerDebugClear(() => {
-  clearChatStores()
-})
 
 const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const existing = chatStores.get(id)

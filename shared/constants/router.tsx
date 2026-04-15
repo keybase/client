@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import * as T from './types'
-import type * as ConvoStateType from '@/stores/convostate'
+import type * as ConvoRegistryType from '@/stores/convo-registry'
 import * as Tabs from './tabs'
 import {
   StackActions,
@@ -352,7 +352,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
     const {participants, teamname, highlightMessageID} = p
     if (teamname || !participants) return
 
-    const {chatStores} = require('@/stores/convostate') as typeof ConvoStateType
+    const {chatStores} = require('@/stores/convo-registry') as typeof ConvoRegistryType
     const toFind = [...participants].sort().join(',')
     const toFindN = participants.length
     for (const cs of chatStores.values()) {

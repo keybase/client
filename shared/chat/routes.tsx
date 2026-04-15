@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Chat from '@/stores/chat'
+import {makeChatScreen} from './make-chat-screen'
 import * as FS from '@/constants/fs'
 import type * as T from '@/constants/types'
 import chatNewChat from '../team-building/page'
@@ -140,7 +141,7 @@ const SendToChatHeaderLeft = ({canBack}: {canBack?: boolean}) => {
 }
 
 export const newRoutes = defineRouteMap({
-  chatConversation: Chat.makeChatScreen(Convo, {
+  chatConversation: makeChatScreen(Convo, {
     canBeNullConvoID: true,
     getOptions: p => ({
       ...headerNavigationOptions(p.route),
@@ -152,14 +153,14 @@ export const newRoutes = defineRouteMap({
   },
   chatRoot: Chat.isSplit
     ? {
-        ...Chat.makeChatScreen(React.lazy(async () => import('./inbox-and-conversation')), {
+        ...makeChatScreen(React.lazy(async () => import('./inbox-and-conversation')), {
           getOptions: inboxAndConvoGetOptions,
           skipProvider: true,
         }),
         initialParams: emptyChatRootRouteParams,
       }
     : {
-        ...Chat.makeChatScreen(React.lazy(async () => import('./inbox')), {
+        ...makeChatScreen(React.lazy(async () => import('./inbox')), {
           getOptions: inboxGetOptions,
           skipProvider: true,
         }),
@@ -168,7 +169,7 @@ export const newRoutes = defineRouteMap({
 })
 
 export const newModalRoutes = defineRouteMap({
-  chatAddToChannel: Chat.makeChatScreen(
+  chatAddToChannel: makeChatScreen(
     React.lazy(async () => import('./conversation/info-panel/add-to-channel')),
     {
       getOptions: ({route}) => ({
@@ -177,7 +178,7 @@ export const newModalRoutes = defineRouteMap({
       }),
     }
   ),
-  chatAttachmentFullscreen: Chat.makeChatScreen(
+  chatAttachmentFullscreen: makeChatScreen(
     React.lazy(async () => import('./conversation/attachment-fullscreen/screen')),
     {
       getOptions: {
@@ -195,12 +196,12 @@ export const newModalRoutes = defineRouteMap({
       },
     }
   ),
-  chatAttachmentGetTitles: Chat.makeChatScreen(
+  chatAttachmentGetTitles: makeChatScreen(
     React.lazy(async () => import('./conversation/attachment-get-titles')),
     {getOptions: {modalStyle: {height: 660, maxHeight: 660}}}
   ),
   chatBlockingModal: {
-    ...Chat.makeChatScreen(
+    ...makeChatScreen(
       React.lazy(async () => import('./blocking/block-modal')),
       {
         getOptions: {
@@ -212,36 +213,36 @@ export const newModalRoutes = defineRouteMap({
     ),
     initialParams: emptyChatBlockingRouteParams,
   },
-  chatChooseEmoji: Chat.makeChatScreen(
+  chatChooseEmoji: makeChatScreen(
     React.lazy(async () => import('./emoji-picker/container')),
     {
       getOptions: {headerShown: false},
     }
   ),
-  chatConfirmNavigateExternal: Chat.makeChatScreen(
+  chatConfirmNavigateExternal: makeChatScreen(
     React.lazy(async () => import('./punycode-link-warning')),
     {skipProvider: true}
   ),
-  chatConfirmRemoveBot: Chat.makeChatScreen(
+  chatConfirmRemoveBot: makeChatScreen(
     React.lazy(async () => import('./conversation/bot/confirm')),
     {canBeNullConvoID: true}
   ),
-  chatCreateChannel: Chat.makeChatScreen(
+  chatCreateChannel: makeChatScreen(
     React.lazy(async () => import('./create-channel')),
     {skipProvider: true}
   ),
-  chatDeleteHistoryWarning: Chat.makeChatScreen(React.lazy(async () => import('./delete-history-warning'))),
-  chatForwardMsgPick: Chat.makeChatScreen(
+  chatDeleteHistoryWarning: makeChatScreen(React.lazy(async () => import('./delete-history-warning'))),
+  chatForwardMsgPick: makeChatScreen(
     React.lazy(async () => import('./conversation/fwd-msg')),
     {
       getOptions: {headerTitle: () => <FwdMsgHeaderTitle />},
     }
   ),
-  chatInfoPanel: Chat.makeChatScreen(
+  chatInfoPanel: makeChatScreen(
     React.lazy(async () => import('./conversation/info-panel')),
     {getOptions: C.isMobile ? undefined : {modalStyle: {height: '80%', width: '80%'}}}
   ),
-  chatInstallBot: Chat.makeChatScreen(
+  chatInstallBot: makeChatScreen(
     React.lazy(async () => import('./conversation/bot/install')),
     {
       getOptions: {
@@ -252,22 +253,22 @@ export const newModalRoutes = defineRouteMap({
       skipProvider: true,
     }
   ),
-  chatInstallBotPick: Chat.makeChatScreen(
+  chatInstallBotPick: makeChatScreen(
     React.lazy(async () => import('./conversation/bot/team-picker')),
     {getOptions: {title: 'Add to team or chat'}, skipProvider: true}
   ),
-  chatLocationPreview: Chat.makeChatScreen(
+  chatLocationPreview: makeChatScreen(
     React.lazy(async () => import('./conversation/input-area/location-popup')),
     {getOptions: {title: 'Location'}}
   ),
-  chatMessagePopup: Chat.makeChatScreen(
+  chatMessagePopup: makeChatScreen(
     React.lazy(async () => {
       const {MessagePopupModal} = await import('./conversation/messages/message-popup')
       return {default: MessagePopupModal}
     })
   ),
   chatNewChat,
-  chatPDF: Chat.makeChatScreen(
+  chatPDF: makeChatScreen(
     React.lazy(async () => import('./pdf')),
     {
       getOptions: p => ({
@@ -279,7 +280,7 @@ export const newModalRoutes = defineRouteMap({
     }
   ),
   chatSearchBots: {
-    ...Chat.makeChatScreen(
+    ...makeChatScreen(
       React.lazy(async () => import('./conversation/bot/search')),
       {
         canBeNullConvoID: true,
@@ -288,7 +289,7 @@ export const newModalRoutes = defineRouteMap({
     ),
     initialParams: emptyChatSearchBotsRouteParams,
   },
-  chatSendToChat: Chat.makeChatScreen(
+  chatSendToChat: makeChatScreen(
     React.lazy(async () => import('./send-to-chat')),
     {
       getOptions: ({route}) => ({
@@ -299,10 +300,10 @@ export const newModalRoutes = defineRouteMap({
     }
   ),
   chatShowNewTeamDialog: {
-    ...Chat.makeChatScreen(React.lazy(async () => import('./new-team-dialog-container'))),
+    ...makeChatScreen(React.lazy(async () => import('./new-team-dialog-container'))),
     initialParams: emptyChatShowNewTeamDialogRouteParams,
   },
-  chatUnfurlMapPopup: Chat.makeChatScreen(
+  chatUnfurlMapPopup: makeChatScreen(
     React.lazy(async () => import('./conversation/messages/text/unfurl/unfurl-list/map-popup')),
     {getOptions: {title: 'Location'}}
   ),

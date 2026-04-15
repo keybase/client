@@ -16,6 +16,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
 
   const chatState = Chat.useChatState(
     C.useShallow(s => ({
+      badgeStateVersion: s.badgeStateVersion,
       inboxHasLoaded: s.inboxHasLoaded,
       inboxLayout: s.inboxLayout,
       inboxRefresh: s.dispatch.inboxRefresh,
@@ -25,6 +26,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     }))
   )
   const {
+    badgeStateVersion,
     inboxHasLoaded,
     inboxLayout,
     inboxRefresh,
@@ -177,11 +179,20 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     return inboxRows.map(r => (r.type === 'big' ? r.conversationIDKey : ''))
   }, [inboxRows])
 
-  const unreadIndices = Chat.useChatState(
-    C.useShallow(s => {
-      return s.getUnreadIndicies(bigConvIds)
+  const unreadIndices = React.useMemo(() => {
+    void badgeStateVersion
+    const next: Map<number, number> = new Map()
+    bigConvIds.forEach((conversationIDKey, idx) => {
+      if (!conversationIDKey) {
+        return
+      }
+      const badge = ConvoState.getConvoState(conversationIDKey).badge
+      if (badge > 0) {
+        next.set(idx, badge)
+      }
     })
-  )
+    return next
+  }, [badgeStateVersion, bigConvIds])
 
   let unreadTotal = 0
   unreadIndices.forEach(count => {
