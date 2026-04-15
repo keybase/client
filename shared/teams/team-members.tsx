@@ -4,7 +4,7 @@ import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 
 export const useLoadTeamMembers = (teamID: T.Teams.TeamID, enabled = true) => {
-  const lastRequestedTeamIDRef = React.useRef<T.Teams.TeamID | undefined>()
+  const lastRequestedTeamIDRef = React.useRef<T.Teams.TeamID | undefined>(undefined)
   const getMembers = useTeamsState(s => s.dispatch.getMembers)
   const missing = useTeamsState(s => enabled && !!teamID && !s.teamIDToMembers.has(teamID))
 
@@ -27,5 +27,4 @@ export const useLoadTeamMembers = (teamID: T.Teams.TeamID, enabled = true) => {
   }, [enabled, getMembers, missing, teamID])
 }
 
-export const useTeamMembers = (teamID: T.Teams.TeamID) =>
-  useTeamsState(s => s.teamIDToMembers.get(teamID))
+export const useTeamMembers = (teamID: T.Teams.TeamID) => useTeamsState(s => s.teamIDToMembers.get(teamID))
