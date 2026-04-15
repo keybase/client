@@ -189,6 +189,8 @@ export const newTeamWizardEmptyState = {
 
 export const emptyErrorInEditMember = {error: '', teamID: T.Teams.noTeamID, username: ''}
 
+const inflightMemberLoads = new Map<T.Teams.TeamID, Promise<void>>()
+
 export const initialCanUserPerform = Object.freeze<T.Teams.TeamOperations>({
   changeOpenTeam: false,
   changeTarsDisabled: false,
@@ -1451,26 +1453,39 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       ignorePromise(f())
     },
     getMembers: async (teamID: T.Teams.TeamID) => {
-      try {
-        const res = await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({
-          id: teamID,
-        })
-        const members = rpcDetailsToMemberInfos(res ?? [])
-        set(s => {
-          s.teamIDToMembers.set(teamID, members)
-        })
-        useUsersState.getState().dispatch.updates(
-          [...members.values()].map(m => ({
-            info: {fullname: m.fullName},
-            name: m.username,
-          }))
-        )
-      } catch (error) {
-        if (error instanceof RPCError) {
-          logger.error(`Error updating members for ${teamID}: ${error.desc}`)
-        }
+      if (!teamID || teamID === T.Teams.noTeamID || teamID === T.Teams.newTeamWizardTeamID) {
+        logger.warn(`bail on invalid team ID ${teamID}`)
+        return
       }
-      return
+      const inflight = inflightMemberLoads.get(teamID)
+      if (inflight) {
+        return inflight
+      }
+      const promise = (async () => {
+        try {
+          const res = await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({
+            id: teamID,
+          })
+          const members = rpcDetailsToMemberInfos(res ?? [])
+          set(s => {
+            s.teamIDToMembers.set(teamID, members)
+          })
+          useUsersState.getState().dispatch.updates(
+            [...members.values()].map(m => ({
+              info: {fullname: m.fullName},
+              name: m.username,
+            }))
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`Error updating members for ${teamID}: ${error.desc}`)
+          }
+        } finally {
+          inflightMemberLoads.delete(teamID)
+        }
+      })()
+      inflightMemberLoads.set(teamID, promise)
+      return promise
     },
     getTeamRetentionPolicy: teamID => {
       const f = async () => {
@@ -1924,11 +1939,18 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         case 'chat.1.NotifyChat.ChatSetTeamRetention': {
           const {convs, teamID} = action.payload.params
           const first = convs?.[0]
-          const teamRetentionPolicy = first?.teamRetention
-            ? Util.serviceRetentionPolicyToRetentionPolicy(first.teamRetention)
-            : Util.makeRetentionPolicy()
+          if (!first?.teamRetention) {
+            logger.warn(
+              `Got ChatSetTeamRetention with incomplete data for ${teamID}; refetching team retention policy`
+            )
+            get().dispatch.getTeamRetentionPolicy(teamID)
+            break
+          }
           set(s => {
-            s.teamIDToRetentionPolicy.set(teamID, teamRetentionPolicy)
+            s.teamIDToRetentionPolicy.set(
+              teamID,
+              Util.serviceRetentionPolicyToRetentionPolicy(first.teamRetention)
+            )
           })
           break
         }
