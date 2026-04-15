@@ -34,17 +34,15 @@ const useLoadDataForChannelPage = (
 ) => {
   const prevSelectedTabRef = React.useRef(selectedTab)
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
-  const unboxRows = Chat.useChatState(s => s.dispatch.unboxRows)
   useLoadTeamMembers(teamID, ['bots', 'members', 'settings'].includes(selectedTab))
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'members') {
       if (meta.conversationIDKey === 'EMPTY') {
-        unboxRows([conversationIDKey])
+        ConvoState.unboxRows([conversationIDKey])
       }
       getBlockState(participants)
     }
   }, [
-    unboxRows,
     getBlockState,
     selectedTab,
     conversationIDKey,

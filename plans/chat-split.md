@@ -27,6 +27,7 @@ These cleanup steps are already done:
 - route subscriptions now call convo-owned selection handling directly; `chat.tsx` no longer owns route selection
 - `metasReceived` now applies convo meta updates from `convostate`
 - first-layout inbox hydration moved out of `chat.updateInboxLayout`
+- `ensureWidgetMetas`, meta queueing, and `unboxRows` now live in `convostate`
 
 This means the remaining work is about removing the actual `chat -> convo` logic, not import barrels.
 
@@ -38,22 +39,7 @@ This means the remaining work is about removing the actual `chat -> convo` logic
 
 ## Remaining `chat -> convo` Logic Buckets
 
-### 1. Convo Hydration / Bootstrap
-
-These are chat-global flows that currently materialize or mutate convo state:
-
-- `ensureWidgetMetas`
-- `queueMetaToRequest`
-- `queueMetaHandle`
-- `unboxRows`
-
-Desired end state:
-
-- `chat` owns inbox/global source data
-- convo hydration and trusted/untrusted materialization move to convo ownership
-- `chat` no longer pushes metadata into convo stores
-
-### 2. Create Conversation Flow
+### 1. Create Conversation Flow
 
 `createConversation` currently:
 
@@ -67,7 +53,7 @@ Desired end state:
 - conversation-creation flow lives with the feature or pending-convo ownership
 - `chat.tsx` does not navigate threads or write pending convo state
 
-### 3. Engine Notification Fanout
+### 2. Engine Notification Fanout
 
 Most of `onEngineIncomingImpl` is a dispatcher into specific convo stores.
 
@@ -97,7 +83,7 @@ Desired end state:
 - convo-targeted notifications are handled by convo-owned entrypoints
 - `chat.tsx` only handles truly global notifications
 
-### 4. Badge / Unread Ownership
+### 3. Badge / Unread Ownership
 
 This is last because it is the riskiest ownership decision.
 
@@ -115,10 +101,9 @@ Do not decide this early. Resolve simpler buckets first.
 
 ## Recommended Order
 
-1. Convo hydration / bootstrap
-2. Create conversation flow
-3. Engine notification fanout
-4. Badge / unread ownership
+1. Create conversation flow
+2. Engine notification fanout
+3. Badge / unread ownership
 
 ## Acceptance Criteria
 

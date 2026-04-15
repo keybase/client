@@ -21,7 +21,6 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       inboxLayout: s.inboxLayout,
       inboxRefresh: s.dispatch.inboxRefresh,
       inboxRetriedOnCurrentEmpty: s.inboxRetriedOnCurrentEmpty,
-      queueMetaToRequest: s.dispatch.queueMetaToRequest,
       setInboxRetriedOnCurrentEmpty: s.dispatch.setInboxRetriedOnCurrentEmpty,
     }))
   )
@@ -31,7 +30,6 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     inboxLayout,
     inboxRefresh,
     inboxRetriedOnCurrentEmpty,
-    queueMetaToRequest,
     setInboxRetriedOnCurrentEmpty,
   } = chatState
   const [inboxNumSmallRows, setInboxNumSmallRowsState] = React.useState(5)
@@ -221,7 +219,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     isSearching,
     neverLoaded: !inboxHasLoaded,
     onNewChat: appendNewChatBuilder,
-    onUntrustedInboxVisible: queueMetaToRequest,
+    onUntrustedInboxVisible: ConvoState.queueMetaToRequest,
     rows: inboxRows,
     selectedConversationIDKey,
     setInboxNumSmallRows,

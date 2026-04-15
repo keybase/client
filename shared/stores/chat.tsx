@@ -12,7 +12,12 @@ import type {RefreshReason} from '@/stores/chat-shared'
 import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {chatStores} from '@/stores/convo-registry'
-import {hydrateInboxLayout, metasReceived as convoMetasReceived} from '@/stores/convostate'
+import {
+  ensureWidgetMetas as ensureConvoWidgetMetas,
+  hydrateInboxLayout,
+  metasReceived as convoMetasReceived,
+  unboxRows as convoUnboxRows,
+} from '@/stores/convostate'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {isPhone} from '@/constants/platform'
 import {navigateToInbox} from '@/constants/router'
@@ -179,7 +184,6 @@ export type State = Store & {
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
     dismissBlockButtons: (teamID: T.RPCGen.TeamID) => void
     dismissBlockButtonsIfPresent: (teamID: T.RPCGen.TeamID) => void
-    ensureWidgetMetas: () => void
     inboxRefresh: (reason: RefreshReason) => void
     setInboxRetriedOnCurrentEmpty: (retried: boolean) => void
     loadStaticConfig: () => void
@@ -191,11 +195,8 @@ export type State = Store & {
     onGetInboxUnverifiedConvs: (action: EngineGen.EngineAction<'chat.1.chatUi.chatInboxUnverified'>) => void
     onIncomingInboxUIItem: (inboxUIItem?: T.RPCChat.InboxUIItem) => void
     onTeamBuildingFinished: (users: ReadonlySet<T.TB.User>) => void
-    queueMetaToRequest: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => void
-    queueMetaHandle: () => void
     resetState: () => void
     setMaybeMentionInfo: (name: string, info: T.RPCChat.UIMaybeMentionInfo) => void
-    unboxRows: (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: boolean) => void
     updateInboxLayout: (layout: string) => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
     updatedGregor: (
@@ -204,15 +205,8 @@ export type State = Store & {
   }
 }
 
-// Only get the untrusted conversations out
-const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
-  ids.filter(id => storeRegistry.getConvoState(id).meta.trustedState === 'untrusted')
-
 // generic chat store
 export const useChatState = Z.createZustand<State>('chat', (set, get) => {
-  // We keep a set of conversations to unbox
-  let metaQueue = new Set<T.Chat.ConversationIDKey>()
-
   const requestInboxLayout = async (reason: RefreshReason) => {
     const {username} = useCurrentUserState.getState()
     const {loggedIn} = useConfigState.getState()
@@ -334,22 +328,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       if (get().blockButtonsMap.has(teamID)) {
         get().dispatch.dismissBlockButtons(teamID)
       }
-    },
-    ensureWidgetMetas: () => {
-      const {inboxLayout} = get()
-      if (!inboxLayout?.widgetList) {
-        return
-      }
-      const missing = inboxLayout.widgetList.reduce<Array<T.Chat.ConversationIDKey>>((l, v) => {
-        if (!storeRegistry.getConvoState(v.convID).isMetaGood()) {
-          l.push(v.convID)
-        }
-        return l
-      }, [])
-      if (missing.length === 0) {
-        return
-      }
-      get().dispatch.unboxRows(missing, true)
     },
     inboxRefresh: reason => {
       ignorePromise(requestInboxLayout(reason))
@@ -485,7 +463,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             convoMetasReceived(metas, removals)
           }
 
-          get().dispatch.unboxRows(
+          convoUnboxRows(
             items.filter(i => i.shouldUnbox).map(i => T.Chat.stringToConversationIDKey(i.conv.convID)),
             true
           )
@@ -520,7 +498,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           logger.info(
             `onChatThreadStale: dispatching thread reload actions for ${conversationIDKeys.length} convs of type ${key}`
           )
-          get().dispatch.unboxRows(conversationIDKeys, true)
+          convoUnboxRows(conversationIDKeys, true)
           if (T.RPCChat.StaleUpdateType[key] === T.RPCChat.StaleUpdateType.clear) {
             conversationIDKeys.forEach(convID => {
               // For the selected conversation, skip immediate clear — the deferred
@@ -613,11 +591,11 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         case 'chat.1.NotifyChat.ChatSubteamRename': {
           const {convs} = action.payload.params
           const conversationIDKeys = (convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID))
-          get().dispatch.unboxRows(conversationIDKeys, true)
+          convoUnboxRows(conversationIDKeys, true)
           break
         }
         case 'chat.1.NotifyChat.ChatTLFFinalize':
-          get().dispatch.unboxRows([T.Chat.conversationIDToKey(action.payload.params.convID)])
+          convoUnboxRows([T.Chat.conversationIDToKey(action.payload.params.convID)])
           break
         case 'chat.1.NotifyChat.ChatIdentifyUpdate': {
           // Some participants are broken/fixed now
@@ -641,7 +619,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         case 'chat.1.chatUi.chatInboxLayout':
           get().dispatch.updateInboxLayout(action.payload.params.layout)
           get().dispatch.maybeChangeSelectedConv()
-          get().dispatch.ensureWidgetMetas()
+          ensureConvoWidgetMetas(get().inboxLayout?.widgetList)
           break
         case 'chat.1.NotifyChat.ChatInboxStale':
           get().dispatch.inboxRefresh('inboxStale')
@@ -699,7 +677,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
               break
             }
             case T.RPCChat.ChatActivityType.membersUpdate:
-              get().dispatch.unboxRows([T.Chat.conversationIDToKey(activity.membersUpdate.convID)], true)
+              convoUnboxRows([T.Chat.conversationIDToKey(activity.membersUpdate.convID)], true)
               break
             case T.RPCChat.ChatActivityType.setAppNotificationSettings: {
               const {setAppNotificationSettings} = activity
@@ -927,36 +905,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       }
       ignorePromise(f())
     },
-    queueMetaHandle: () => {
-      // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
-      const f = async () => {
-        const maxToUnboxAtATime = 10
-        const ar = [...metaQueue]
-        const maybeUnbox = ar.slice(0, maxToUnboxAtATime)
-        metaQueue = new Set(ar.slice(maxToUnboxAtATime))
-        const conversationIDKeys = untrustedConversationIDKeys(maybeUnbox)
-        if (conversationIDKeys.length) {
-          get().dispatch.unboxRows(conversationIDKeys)
-        }
-        if (metaQueue.size && conversationIDKeys.length) {
-          await timeoutPromise(100)
-        }
-        if (metaQueue.size) {
-          get().dispatch.queueMetaHandle()
-        }
-      }
-      ignorePromise(f())
-    },
-    queueMetaToRequest: ids => {
-      const prevSize = metaQueue.size
-      untrustedConversationIDKeys(ids).forEach(k => metaQueue.add(k))
-      if (metaQueue.size > prevSize) {
-        // only unboxMore if something changed
-        get().dispatch.queueMetaHandle()
-      } else {
-        logger.info('skipping meta queue run, queue unchanged')
-      }
-    },
     resetState: () => {
       set(s => ({
         ...s,
@@ -975,44 +923,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         const {maybeMentionMap} = s
         maybeMentionMap.set(name, T.castDraft(info))
       })
-    },
-    unboxRows: (ids, force) => {
-      // We want to unbox rows that have scroll into view
-      const f = async () => {
-        if (!useConfigState.getState().loggedIn) {
-          return
-        }
-
-        // Get valid keys that we aren't already loading or have loaded
-        const conversationIDKeys = ids.reduce((arr: Array<string>, id) => {
-          if (id && T.Chat.isValidConversationIDKey(id)) {
-            const cs = storeRegistry.getConvoState(id)
-            const trustedState = cs.meta.trustedState
-            if (force || (trustedState !== 'requesting' && trustedState !== 'trusted')) {
-              arr.push(id)
-              cs.dispatch.updateMeta({trustedState: 'requesting'})
-            }
-          }
-          return arr
-        }, [])
-
-        if (!conversationIDKeys.length) {
-          return
-        }
-        logger.info(
-          `unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`
-        )
-        try {
-          await T.RPCChat.localRequestInboxUnboxRpcPromise({
-            convIDs: conversationIDKeys.map(k => T.Chat.keyToConversationID(k)),
-          })
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.info(`unboxRows: failed ${error.desc}`)
-          }
-        }
-      }
-      ignorePromise(f())
     },
     updateInboxLayout: str => {
       set(s => {

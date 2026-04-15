@@ -44,9 +44,10 @@ import KB2 from '@/util/electron'
 import {NotifyPopup} from '@/util/misc'
 import {hexToUint8Array} from '@/util/uint8array'
 import {clearChatTimeCache} from '@/util/timestamp'
+import {registerExternalResetter} from '@/util/zustand'
 import * as Config from '@/constants/config'
 import {isMobile} from '@/constants/platform'
-import {enumKeys, ignorePromise, shallowEqual} from '@/constants/utils'
+import {enumKeys, ignorePromise, shallowEqual, timeoutPromise} from '@/constants/utils'
 import {flushInboxRowUpdates, queueInboxRowUpdate} from './inbox-rows'
 import * as Strings from '@/constants/strings'
 import {chatStores, clearChatStores, convoUIStores} from './convo-registry'
@@ -258,7 +259,6 @@ export interface ConvoState extends ConvoStore {
       chatInboxLayoutSmallTeamsFirstConvID: () => T.Chat.ConversationIDKey | undefined
       chatInboxRefresh: (reason: RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
-      chatUnboxRows: (convIDs: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => void
     }
     dismissBottomBanner: () => void
     dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
@@ -430,9 +430,6 @@ const stubDefer: ConvoState['dispatch']['defer'] = {
   chatMetasReceived: () => {
     throw new Error('convostate defer not initialized')
   },
-  chatUnboxRows: () => {
-    throw new Error('convostate defer not initialized')
-  },
 }
 
 let convoDeferImpl: ConvoState['dispatch']['defer'] | undefined = __DEV__
@@ -476,7 +473,7 @@ export const onRouteChanged = (prev: T.Immutable<Router2.NavState>, next: T.Immu
       if (!(wasChat && isChat && wasID === isID && (!isID || getConvoState(isID).loaded))) {
         const deselectAction = () => {
           if (wasChat && wasID && T.Chat.isValidConversationIDKey(wasID)) {
-            getConvoState(wasID).dispatch.defer.chatUnboxRows([wasID], true)
+            unboxRows([wasID], true)
             // needed?
             // getConvoState(wasID).dispatch.clearOrangeLine('deselected')
           }
@@ -546,6 +543,109 @@ export const hydrateInboxLayout = (layout: T.RPCChat.UIInboxLayout) => {
   })
   // Flush inbox row updates synchronously to prevent flash of empty content
   flushInboxRowUpdates()
+}
+
+let metaQueue: Set<T.Chat.ConversationIDKey> = __DEV__
+  ? (((globalThis as {__hmr_convoMetaQueue?: Set<T.Chat.ConversationIDKey>}).__hmr_convoMetaQueue ??=
+      new Set()) as Set<T.Chat.ConversationIDKey>)
+  : new Set()
+
+const clearMetaQueue = () => {
+  metaQueue.clear()
+}
+
+registerExternalResetter('convo-meta-queue', clearMetaQueue)
+
+const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
+  ids.filter(id => getConvoState(id).meta.trustedState === 'untrusted')
+
+export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: boolean) => {
+  const f = async () => {
+    if (!useConfigState.getState().loggedIn) {
+      return
+    }
+
+    const conversationIDKeys = ids.reduce<Array<string>>((arr, id) => {
+      if (id && T.Chat.isValidConversationIDKey(id)) {
+        const cs = getConvoState(id)
+        const trustedState = cs.meta.trustedState
+        if (force || (trustedState !== 'requesting' && trustedState !== 'trusted')) {
+          arr.push(id)
+          cs.dispatch.updateMeta({trustedState: 'requesting'})
+        }
+      }
+      return arr
+    }, [])
+
+    if (!conversationIDKeys.length) {
+      return
+    }
+    logger.info(`unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`)
+    try {
+      await T.RPCChat.localRequestInboxUnboxRpcPromise({
+        convIDs: conversationIDKeys.map(k => T.Chat.keyToConversationID(k)),
+      })
+    } catch (error) {
+      if (error instanceof RPCError) {
+        logger.info(`unboxRows: failed ${error.desc}`)
+      }
+    }
+  }
+  ignorePromise(f())
+}
+
+export const queueMetaHandle = () => {
+  const f = async () => {
+    const maxToUnboxAtATime = 10
+    const ar = [...metaQueue]
+    const maybeUnbox = ar.slice(0, maxToUnboxAtATime)
+    metaQueue = new Set(ar.slice(maxToUnboxAtATime))
+    if (__DEV__) {
+      ;(globalThis as {__hmr_convoMetaQueue?: Set<T.Chat.ConversationIDKey>}).__hmr_convoMetaQueue = metaQueue
+    }
+    const conversationIDKeys = untrustedConversationIDKeys(maybeUnbox)
+    if (conversationIDKeys.length) {
+      unboxRows(conversationIDKeys)
+    }
+    if (metaQueue.size && conversationIDKeys.length) {
+      await timeoutPromise(100)
+    }
+    if (metaQueue.size) {
+      queueMetaHandle()
+    }
+  }
+  ignorePromise(f())
+}
+
+export const queueMetaToRequest = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => {
+  const prevSize = metaQueue.size
+  untrustedConversationIDKeys(ids).forEach(k => metaQueue.add(k))
+  if (__DEV__) {
+    ;(globalThis as {__hmr_convoMetaQueue?: Set<T.Chat.ConversationIDKey>}).__hmr_convoMetaQueue = metaQueue
+  }
+  if (metaQueue.size > prevSize) {
+    queueMetaHandle()
+  } else {
+    logger.info('skipping meta queue run, queue unchanged')
+  }
+}
+
+export const ensureWidgetMetas = (
+  widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined
+) => {
+  if (!widgetList) {
+    return
+  }
+  const missing = widgetList.reduce<Array<T.Chat.ConversationIDKey>>((l, v) => {
+    if (!getConvoState(v.convID).isMetaGood()) {
+      l.push(v.convID)
+    }
+    return l
+  }, [])
+  if (missing.length === 0) {
+    return
+  }
+  unboxRows(missing, true)
 }
 
 const formatTextForQuoting = (text: string) =>
@@ -2903,7 +3003,7 @@ const createSlice =
 
         const participantInfo = get().participants
         const force = !get().isMetaGood() || participantInfo.all.length === 0
-        get().dispatch.defer.chatUnboxRows([conversationIDKey], force)
+        unboxRows([conversationIDKey], force)
         set(s => {
           s.threadLoadStatus = T.RPCChat.UIChatThreadStatusTyp.none
         })

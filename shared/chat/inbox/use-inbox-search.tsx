@@ -4,7 +4,6 @@ import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {RPCError} from '@/util/errors'
 import {isMobile} from '@/constants/platform'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 
@@ -260,7 +259,7 @@ export function useInboxSearch(): InboxSearchController {
             return arr
           }, [])
           if (missingMetas.length > 0) {
-            Chat.useChatState.getState().dispatch.unboxRows(missingMetas, true)
+            ConvoState.unboxRows(missingMetas, true)
           }
         }
 
@@ -316,7 +315,7 @@ export function useInboxSearch(): InboxSearchController {
           if (
             ConvoState.getConvoState(result.conversationIDKey).meta.conversationIDKey === T.Chat.noConversationIDKey
           ) {
-            Chat.useChatState.getState().dispatch.unboxRows([result.conversationIDKey], true)
+            ConvoState.unboxRows([result.conversationIDKey], true)
           }
         }
 

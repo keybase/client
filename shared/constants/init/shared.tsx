@@ -176,7 +176,6 @@ export const initSharedSubscriptions = () => {
       storeRegistry.getState('chat').inboxLayout?.smallTeams?.[0]?.convID,
     chatInboxRefresh: reason => storeRegistry.getState('chat').dispatch.inboxRefresh(reason),
     chatMetasReceived: metas => convoMetasReceived(metas),
-    chatUnboxRows: (convIDs, force) => storeRegistry.getState('chat').dispatch.unboxRows(convIDs, force),
   })
   _sharedUnsubs.push(
     useConfigState.subscribe((s, old) => {
