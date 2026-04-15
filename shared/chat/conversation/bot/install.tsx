@@ -10,8 +10,77 @@ import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useFeaturedBot} from '@/util/featured-bots'
+import type {RPCError} from '@/util/errors'
 
 const RestrictedItem = '---RESTRICTED---'
+
+const uiParticipantsToParticipantInfo = (
+  uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
+): T.Chat.ParticipantInfo => {
+  const participantInfo = {all: new Array<string>(), contactName: new Map(), name: new Array<string>()}
+  uiParticipants.forEach(part => {
+    const {assertion, contactName, inConvName} = part
+    participantInfo.all.push(assertion)
+    if (inConvName) {
+      participantInfo.name.push(assertion)
+    }
+    if (contactName) {
+      participantInfo.contactName.set(assertion, contactName)
+    }
+  })
+  return participantInfo
+}
+
+export const useRefreshBotMembershipOnSuccess = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  teamID: T.Teams.TeamID,
+  waitingKey: string,
+  error: RPCError | undefined,
+  shouldRefreshMembership: boolean,
+  onSuccess: () => void
+) => {
+  const waiting = C.Waiting.useAnyWaiting(waitingKey)
+  const wasWaitingRef = React.useRef(waiting)
+  const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
+  const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
+  const setParticipants = Chat.useChatContext(s => s.dispatch.setParticipants)
+
+  React.useEffect(() => {
+    if (!waiting && wasWaitingRef.current && !error) {
+      if (!shouldRefreshMembership) {
+        onSuccess()
+      } else {
+        previewConversationByID(
+          [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+          preview => {
+            setParticipants(uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
+            if (teamID) {
+              C.ignorePromise(getMembers(teamID))
+            }
+            onSuccess()
+          },
+          () => {
+            if (teamID) {
+              C.ignorePromise(getMembers(teamID))
+            }
+            onSuccess()
+          }
+        )
+      }
+    }
+    wasWaitingRef.current = waiting
+  }, [
+    conversationIDKey,
+    error,
+    getMembers,
+    onSuccess,
+    previewConversationByID,
+    setParticipants,
+    shouldRefreshMembership,
+    teamID,
+    waiting,
+  ])
+}
 
 export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, teamID?: T.Teams.TeamID) => {
   const cleanInConvIDKey = T.Chat.isValidConversationIDKey(inConvIDKey ?? '') ? inConvIDKey : undefined
@@ -126,10 +195,12 @@ const InstallBotPopup = (props: Props) => {
 
   const {channelMetas} = useAllChannelMetas(teamID)
   const error = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+  const mutationError = C.Waiting.useAnyErrors(C.waitingKeyChatBotAdd)
   // dispatch
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
   const addBotMember = Chat.useChatContext(s => s.dispatch.addBotMember)
+  const [pendingMutation, setPendingMutation] = React.useState<'add' | 'edit' | undefined>()
   const onLearn = () => {
     openURL('https://book.keybase.io/docs/chat/restricted-bots')
   }
@@ -137,6 +208,7 @@ const InstallBotPopup = (props: Props) => {
     if (!conversationIDKey) {
       return
     }
+    setPendingMutation('add')
     addBotMember(botUsername, installWithCommands, installWithMentions, installWithRestrict, installInConvs)
   }
   const editBotSettings = Chat.useChatContext(s => s.dispatch.editBotSettings)
@@ -144,6 +216,7 @@ const InstallBotPopup = (props: Props) => {
     if (!conversationIDKey) {
       return
     }
+    setPendingMutation('edit')
     editBotSettings(botUsername, installWithCommands, installWithMentions, installInConvs)
   }
   const navigateAppend = C.Router2.navigateAppend
@@ -172,6 +245,17 @@ const InstallBotPopup = (props: Props) => {
       }
     }
   }, [refreshBotRoleInConv, refreshBotSettings, conversationIDKey, inTeam, botUsername])
+  useRefreshBotMembershipOnSuccess(
+    conversationIDKey,
+    teamID,
+    C.waitingKeyChatBotAdd,
+    mutationError,
+    pendingMutation === 'add',
+    () => {
+      setPendingMutation(undefined)
+      clearModals()
+    }
+  )
   const noCommands = !commands?.commands
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()

@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import type * as T from '@/constants/types'
-import {useBotConversationIDKey} from './install'
+import {useBotConversationIDKey, useRefreshBotMembershipOnSuccess} from './install'
 
 type Props = {
   botUsername: string
@@ -10,16 +10,26 @@ type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
 }
 
-const ConfirmBotRemoveImpl = (props: {botUsername: string}) => {
-  const {botUsername} = props
+const ConfirmBotRemoveImpl = (props: {botUsername: string; teamID: T.Teams.TeamID}) => {
+  const {botUsername, teamID} = props
   const clearModals = C.Router2.clearModals
+  const error = C.Waiting.useAnyErrors(C.waitingKeyChatBotRemove)
   const removeBotMember = Chat.useChatContext(s => s.dispatch.removeBotMember)
+  const conversationIDKey = Chat.useChatContext(s => s.id)
   const onClose = () => {
     clearModals()
   }
   const onRemove = () => {
     removeBotMember(botUsername)
   }
+  useRefreshBotMembershipOnSuccess(
+    conversationIDKey,
+    teamID,
+    C.waitingKeyChatBotRemove,
+    error,
+    true,
+    clearModals
+  )
   return (
     <Kb.ConfirmModal
       prompt={`Are you sure you want to uninstall ${botUsername}?`}
@@ -37,7 +47,7 @@ const ConfirmBotRemove = (props: Props) => {
   const conversationIDKey = useBotConversationIDKey(props.conversationIDKey, teamID)
   return conversationIDKey ? (
     <Chat.ChatProvider id={conversationIDKey}>
-      <ConfirmBotRemoveImpl botUsername={botUsername} />
+      <ConfirmBotRemoveImpl botUsername={botUsername} teamID={teamID ?? T.Teams.noTeamID} />
     </Chat.ChatProvider>
   ) : null
 }

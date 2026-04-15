@@ -14,7 +14,6 @@ import {
   getModalStack,
   navToThread,
   setChatRootParams,
-  type PreviewConversationParams,
 } from '@/constants/router'
 import {isIOS} from '@/constants/platform'
 import {updateImmer} from '@/constants/utils'
@@ -257,7 +256,6 @@ export interface ConvoState extends ConvoStore {
       chatInboxRefresh: (reason: RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       chatUnboxRows: (convIDs: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => void
-      teamsGetMembers: (teamID: T.RPCGen.TeamID) => Promise<void>
       usersGetBio: (username: string) => void
     }
     dismissBottomBanner: () => void
@@ -437,9 +435,6 @@ const stubDefer: ConvoState['dispatch']['defer'] = {
   chatUnboxRows: () => {
     throw new Error('convostate defer not initialized')
   },
-  teamsGetMembers: () => {
-    throw new Error('convostate defer not initialized')
-  },
   usersGetBio: () => {
     throw new Error('convostate defer not initialized')
   },
@@ -520,10 +515,6 @@ const createSlice =
     const getCurrentUser = () => {
       const s = useCurrentUserState.getState()
       return {devicename: s.deviceName, username: s.username}
-    }
-
-    const closeBotModal = () => {
-      clearModals()
     }
 
     const downloadAttachment = async (downloadToCache: boolean, ordinal: T.Chat.Ordinal) => {
@@ -1458,17 +1449,6 @@ const createSlice =
       return participantInfo
     }
 
-    const reloadBotMembershipState = async () => {
-      const {meta} = get()
-      const preview = await T.RPCChat.localPreviewConversationByIDLocalRpcPromise({
-        convID: get().getConvID(),
-      })
-      get().dispatch.setParticipants(uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
-      if (meta.teamname) {
-        await get().dispatch.defer.teamsGetMembers(meta.teamID)
-      }
-    }
-
     const dispatch: ConvoState['dispatch'] = {
       addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
         const f = async () => {
@@ -1482,8 +1462,6 @@ const createSlice =
               },
               Strings.waitingKeyChatBotAdd
             )
-            await reloadBotMembershipState()
-            closeBotModal()
           } catch (error) {
             if (error instanceof RPCError) {
               logger.info('addBotMember: failed to add bot member: ' + error.message)
@@ -1709,7 +1687,6 @@ const createSlice =
             }
             return
           }
-          closeBotModal()
         }
         ignorePromise(f())
       },
@@ -2800,8 +2777,6 @@ const createSlice =
               {convID, username},
               Strings.waitingKeyChatBotRemove
             )
-            await reloadBotMembershipState()
-            closeBotModal()
           } catch (error) {
             if (error instanceof RPCError) {
               logger.info('removeBotMember: failed to remove bot member: ' + error.message)
@@ -2868,17 +2843,6 @@ const createSlice =
           }
         }
 
-        const ensureSelectedTeamLoaded = () => {
-          const selectedConversation = Common.getSelectedConversation()
-          const {meta, isMetaGood} = getConvoState(selectedConversation)
-          if (isMetaGood()) {
-            const {teamID, teamname} = meta
-            if (teamname) {
-              ignorePromise(get().dispatch.defer.teamsGetMembers(teamID))
-            }
-          }
-        }
-        ensureSelectedTeamLoaded()
         const participantInfo = get().participants
         const force = !get().isMetaGood() || participantInfo.all.length === 0
         get().dispatch.defer.chatUnboxRows([conversationIDKey], force)
