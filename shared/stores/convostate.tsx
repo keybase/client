@@ -51,6 +51,7 @@ import * as Strings from '@/constants/strings'
 
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useUsersState} from '@/stores/users'
 import {getUsernameToShow} from '@/chat/conversation/messages/separator-utils'
 import type {RefreshReason} from '@/stores/chat'
 
@@ -256,7 +257,6 @@ export interface ConvoState extends ConvoStore {
       chatInboxRefresh: (reason: RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       chatUnboxRows: (convIDs: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => void
-      usersGetBio: (username: string) => void
     }
     dismissBottomBanner: () => void
     dismissBlockButtons: (teamID: T.RPCGen.TeamID) => void
@@ -433,9 +433,6 @@ const stubDefer: ConvoState['dispatch']['defer'] = {
     throw new Error('convostate defer not initialized')
   },
   chatUnboxRows: () => {
-    throw new Error('convostate defer not initialized')
-  },
-  usersGetBio: () => {
     throw new Error('convostate defer not initialized')
   },
 }
@@ -2839,7 +2836,7 @@ const createSlice =
               return
             }
 
-            get().dispatch.defer.usersGetBio(username)
+            useUsersState.getState().dispatch.getBio(username)
           }
         }
 
