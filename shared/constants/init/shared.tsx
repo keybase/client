@@ -46,7 +46,6 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
-import {useFSState} from '@/stores/fs'
 import {useFollowerState} from '@/stores/followers'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useProvisionState} from '@/stores/provision'
@@ -547,12 +546,7 @@ export const initSharedSubscriptions = () => {
       }
 
       // Clear "just signed up email" when you leave the people tab after signup
-      if (
-        prev &&
-        Util.getTab(prev) === Tabs.peopleTab &&
-        next &&
-        Util.getTab(next) !== Tabs.peopleTab
-      ) {
+      if (prev && Util.getTab(prev) === Tabs.peopleTab && next && Util.getTab(next) !== Tabs.peopleTab) {
         clearSignupEmail()
       }
 
@@ -607,7 +601,9 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         const {badgeState} = action.payload.params
         useModalHeaderState
           .getState()
-          .dispatch.setDeviceBadges(new Set([...(badgeState.newDevices ?? []), ...(badgeState.revokedDevices ?? [])]))
+          .dispatch.setDeviceBadges(
+            new Set([...(badgeState.newDevices ?? []), ...(badgeState.revokedDevices ?? [])])
+          )
 
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)

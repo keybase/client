@@ -1,7 +1,6 @@
 import * as Z from '@/util/zustand'
 import type * as EngineGen from '@/constants/rpc'
 import type * as T from '@/constants/types'
-import {isMobile} from '@/constants/platform'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '@/constants/tabs'
 import {useCurrentUserState} from '@/stores/current-user'
