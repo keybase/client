@@ -1,5 +1,6 @@
 import type * as T from '@/constants/types'
 import {registerDebugClear} from '@/util/debug'
+import {registerExternalResetter} from '@/util/zustand'
 import type {StoreApi, UseBoundStore} from 'zustand'
 import type {ConvoState, ConvoUIState} from '@/stores/convostate'
 
@@ -22,3 +23,5 @@ export const clearChatStores = () => {
 registerDebugClear(() => {
   clearChatStores()
 })
+
+registerExternalResetter('convo-registry', clearChatStores)

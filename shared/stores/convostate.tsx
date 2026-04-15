@@ -4,6 +4,7 @@ import * as TeamsUtil from '@/constants/teams'
 import * as PlatformSpecific from '@/util/platform-specific'
 import {
   clearModals,
+  getTab,
   navigateAppend,
   navigateToInbox,
   navigateUp,
@@ -15,6 +16,7 @@ import {
   navToThread,
   setChatRootParams,
 } from '@/constants/router'
+import type * as Router2 from '@/constants/router'
 import {isIOS} from '@/constants/platform'
 import {updateImmer} from '@/constants/utils'
 import * as T from '@/constants/types'
@@ -45,7 +47,7 @@ import {clearChatTimeCache} from '@/util/timestamp'
 import * as Config from '@/constants/config'
 import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual} from '@/constants/utils'
-import {queueInboxRowUpdate} from './inbox-rows'
+import {flushInboxRowUpdates, queueInboxRowUpdate} from './inbox-rows'
 import * as Strings from '@/constants/strings'
 import {chatStores, clearChatStores, convoUIStores} from './convo-registry'
 
@@ -450,6 +452,100 @@ export const setConvoDefer = (impl: ConvoState['dispatch']['defer']) => {
       },
     })
   }
+}
+
+export const onRouteChanged = (prev: T.Immutable<Router2.NavState>, next: T.Immutable<Router2.NavState>) => {
+  const wasModal = prev && getModalStack(prev).length > 0
+  const isModal = next && getModalStack(next).length > 0
+  // ignore if changes involve a modal
+  if (!wasModal && !isModal) {
+    const p = getVisibleScreen(prev)
+    const n = getVisibleScreen(next)
+    const wasChat = p?.name === Common.threadRouteName
+    const isChat = n?.name === Common.threadRouteName
+    // nothing to do with chat
+    if (wasChat || isChat) {
+      const pParams = p?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
+      const nParams = n?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
+      const wasID = pParams?.conversationIDKey
+      const isID = nParams?.conversationIDKey
+
+      logger.info('maybeChangeChatSelection ', {isChat, isID, wasChat, wasID})
+
+      // same? ignore
+      if (!(wasChat && isChat && wasID === isID && (!isID || getConvoState(isID).loaded))) {
+        const deselectAction = () => {
+          if (wasChat && wasID && T.Chat.isValidConversationIDKey(wasID)) {
+            getConvoState(wasID).dispatch.defer.chatUnboxRows([wasID], true)
+            // needed?
+            // getConvoState(wasID).dispatch.clearOrangeLine('deselected')
+          }
+        }
+
+        // still chatting? just select new one
+        if (wasChat && isChat && isID && T.Chat.isValidConversationIDKey(isID)) {
+          deselectAction()
+          getConvoState(isID).dispatch.selectedConversation()
+        } else if (wasChat && !isChat) {
+          // leaving a chat
+          deselectAction()
+        } else if (isChat && isID && T.Chat.isValidConversationIDKey(isID)) {
+          // going into a chat
+          deselectAction()
+          getConvoState(isID).dispatch.selectedConversation()
+        }
+      }
+    }
+  }
+
+  if (getTab(prev) !== Tabs.chatTab && getTab(next) === Tabs.chatTab) {
+    const n = getVisibleScreen(next)
+    const nParams = n?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
+    const isID = nParams?.conversationIDKey
+    isID && getConvoState(isID).dispatch.tabSelected()
+  }
+}
+
+export const metasReceived = (
+  metas: ReadonlyArray<T.Chat.ConversationMeta>,
+  removals?: ReadonlyArray<T.Chat.ConversationIDKey>
+) => {
+  removals?.forEach(r => {
+    getConvoState(r).dispatch.setMeta()
+  })
+  metas.forEach(m => {
+    const {meta: oldMeta, dispatch, isMetaGood} = getConvoState(m.conversationIDKey)
+    if (isMetaGood()) {
+      dispatch.updateMeta(Meta.updateMeta(oldMeta, m))
+    } else {
+      dispatch.setMeta(m)
+    }
+  })
+}
+
+export const hydrateInboxLayout = (layout: T.RPCChat.UIInboxLayout) => {
+  layout.smallTeams?.forEach(t => {
+    const cs = getConvoState(t.convID)
+    cs.dispatch.updateFromUIInboxLayout({
+      ...t,
+      layoutName: t.name || '',
+      snippet: t.snippet ?? undefined,
+      teamname: t.isTeam ? t.name || '' : '',
+      time: t.time || 0,
+    })
+  })
+  layout.bigTeams?.forEach(t => {
+    if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
+      const cs = getConvoState(t.channel.convID)
+      cs.dispatch.updateFromUIInboxLayout({
+        ...t.channel,
+        snippet: undefined,
+        time: undefined,
+      })
+    }
+  })
+  // Flush inbox row updates synchronously to prevent flash of empty content
+  flushInboxRowUpdates()
 }
 
 const formatTextForQuoting = (text: string) =>

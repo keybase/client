@@ -431,7 +431,8 @@ export const previewConversation = (p: PreviewConversationParams) => {
       })
       const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
       if (meta) {
-        storeRegistry.getState('chat').dispatch.metasReceived([meta])
+        const {metasReceived} = require('@/stores/convostate') as typeof import('@/stores/convostate')
+        metasReceived([meta])
       }
 
       storeRegistry

@@ -22,6 +22,11 @@ These cleanup steps are already done:
 - convo hooks/helpers are imported from `@/stores/convostate` directly
 - `makeChatScreen` moved out of `chat.tsx` into `shared/chat/make-chat-screen.tsx`
 - aggregate reader helpers moved out of `chat.tsx`; callers now scan convo state directly
+- `chat.resetState` now resets only chat-global state; convo registry teardown is composed by global store reset
+- `inboxSyncedClear` convo clearing is no longer hidden inside `chat.inboxRefresh`
+- route subscriptions now call convo-owned selection handling directly; `chat.tsx` no longer owns route selection
+- `metasReceived` now applies convo meta updates from `convostate`
+- first-layout inbox hydration moved out of `chat.updateInboxLayout`
 
 This means the remaining work is about removing the actual `chat -> convo` logic, not import barrels.
 
@@ -33,38 +38,10 @@ This means the remaining work is about removing the actual `chat -> convo` logic
 
 ## Remaining `chat -> convo` Logic Buckets
 
-### 1. Global Reset / Clear Fanout
-
-These are global chat actions that currently clear per-convo state:
-
-- `clearMetas`
-- `inboxRefresh(... 'inboxSyncedClear')` message clearing
-- `resetState -> clearChatStores()`
-
-Desired end state:
-
-- `chat.resetState` resets only chat-global state
-- convo reset/clear is invoked separately from the owning layer
-- full chat teardown is composed by the caller, not hidden inside `chat.tsx`
-
-### 2. Route-Selection Side Effects
-
-These are router-driven actions currently fired by `chat.onRouteChanged`:
-
-- `selectedConversation`
-- `tabSelected`
-
-Desired end state:
-
-- route subscriptions call convo-owned selection helpers directly
-- `chat.tsx` does not decide active convo state
-
-### 3. Convo Hydration / Bootstrap
+### 1. Convo Hydration / Bootstrap
 
 These are chat-global flows that currently materialize or mutate convo state:
 
-- `metasReceived`
-- `updateInboxLayout` first-load hydration
 - `ensureWidgetMetas`
 - `queueMetaToRequest`
 - `queueMetaHandle`
@@ -76,7 +53,7 @@ Desired end state:
 - convo hydration and trusted/untrusted materialization move to convo ownership
 - `chat` no longer pushes metadata into convo stores
 
-### 4. Create Conversation Flow
+### 2. Create Conversation Flow
 
 `createConversation` currently:
 
@@ -90,7 +67,7 @@ Desired end state:
 - conversation-creation flow lives with the feature or pending-convo ownership
 - `chat.tsx` does not navigate threads or write pending convo state
 
-### 5. Engine Notification Fanout
+### 3. Engine Notification Fanout
 
 Most of `onEngineIncomingImpl` is a dispatcher into specific convo stores.
 
@@ -120,7 +97,7 @@ Desired end state:
 - convo-targeted notifications are handled by convo-owned entrypoints
 - `chat.tsx` only handles truly global notifications
 
-### 6. Badge / Unread Ownership
+### 4. Badge / Unread Ownership
 
 This is last because it is the riskiest ownership decision.
 
@@ -138,12 +115,10 @@ Do not decide this early. Resolve simpler buckets first.
 
 ## Recommended Order
 
-1. Global reset / clear fanout
-2. Route-selection side effects
-3. Convo hydration / bootstrap
-4. Create conversation flow
-5. Engine notification fanout
-6. Badge / unread ownership
+1. Convo hydration / bootstrap
+2. Create conversation flow
+3. Engine notification fanout
+4. Badge / unread ownership
 
 ## Acceptance Criteria
 

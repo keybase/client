@@ -4,20 +4,18 @@ import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
-import * as Tabs from '@/constants/tabs'
 import * as TeamConstants from '@/constants/teams'
 import * as Z from '@/util/zustand'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
-import type * as Router2 from '@/constants/router'
 import type {RefreshReason} from '@/stores/chat-shared'
 import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
-import {clearChatStores, chatStores} from '@/stores/convo-registry'
-import {flushInboxRowUpdates} from '@/stores/inbox-rows'
+import {chatStores} from '@/stores/convo-registry'
+import {hydrateInboxLayout, metasReceived as convoMetasReceived} from '@/stores/convostate'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {isPhone} from '@/constants/platform'
-import {getModalStack, getTab, getVisibleScreen, navigateToInbox} from '@/constants/router'
+import {navigateToInbox} from '@/constants/router'
 import {storeRegistry} from '@/stores/store-registry'
 import {uint8ArrayToString} from '@/util/uint8array'
 import {useConfigState} from '@/stores/config'
@@ -178,7 +176,6 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
-    clearMetas: () => void
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
     dismissBlockButtons: (teamID: T.RPCGen.TeamID) => void
     dismissBlockButtonsIfPresent: (teamID: T.RPCGen.TeamID) => void
@@ -187,17 +184,12 @@ export type State = Store & {
     setInboxRetriedOnCurrentEmpty: (retried: boolean) => void
     loadStaticConfig: () => void
     maybeChangeSelectedConv: () => void
-    metasReceived: (
-      metas: ReadonlyArray<T.Chat.ConversationMeta>,
-      removals?: ReadonlyArray<T.Chat.ConversationIDKey> // convs to remove
-    ) => void
     onChatThreadStale: (action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatThreadsStale'>) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     onChatInboxSynced: (action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatInboxSynced'>) => void
     onGetInboxConvsUnboxed: (action: EngineGen.EngineAction<'chat.1.chatUi.chatInboxConversation'>) => void
     onGetInboxUnverifiedConvs: (action: EngineGen.EngineAction<'chat.1.chatUi.chatInboxUnverified'>) => void
     onIncomingInboxUIItem: (inboxUIItem?: T.RPCChat.InboxUIItem) => void
-    onRouteChanged: (prev: T.Immutable<Router2.NavState>, next: T.Immutable<Router2.NavState>) => void
     onTeamBuildingFinished: (users: ReadonlySet<T.TB.User>) => void
     queueMetaToRequest: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => void
     queueMetaHandle: () => void
@@ -221,6 +213,21 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
   // We keep a set of conversations to unbox
   let metaQueue = new Set<T.Chat.ConversationIDKey>()
 
+  const requestInboxLayout = async (reason: RefreshReason) => {
+    const {username} = useCurrentUserState.getState()
+    const {loggedIn} = useConfigState.getState()
+    if (!loggedIn || !username) {
+      return
+    }
+
+    logger.info(`Inbox refresh due to ${reason}`)
+    const reselectMode =
+      get().inboxHasLoaded || isPhone
+        ? T.RPCChat.InboxLayoutReselectMode.default
+        : T.RPCChat.InboxLayoutReselectMode.force
+    await T.RPCChat.localRequestInboxLayoutRpcPromise({reselectMode})
+  }
+
   const dispatch: State['dispatch'] = {
     badgesUpdated: b => {
       if (!b) return
@@ -241,11 +248,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
       })
-    },
-    clearMetas: () => {
-      for (const [, cs] of chatStores) {
-        cs.getState().dispatch.setMeta()
-      }
     },
     createConversation: (participants, highlightMessageID) => {
       // TODO This will break if you try to make 2 new conversations at the same time because there is
@@ -275,7 +277,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           } else {
             const meta = Meta.inboxUIItemToConversationMeta(uiConv)
             if (meta) {
-              get().dispatch.metasReceived([meta])
+              convoMetasReceived([meta])
             }
 
             const participantInfo: T.Chat.ParticipantInfo = Common.uiParticipantsToParticipantInfo(
@@ -350,31 +352,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       get().dispatch.unboxRows(missing, true)
     },
     inboxRefresh: reason => {
-      const f = async () => {
-        const {username} = useCurrentUserState.getState()
-        const {loggedIn} = useConfigState.getState()
-        if (!loggedIn || !username) {
-          return
-        }
-        const clearExistingMetas = reason === 'inboxSyncedClear'
-        const clearExistingMessages = reason === 'inboxSyncedClear'
-
-        logger.info(`Inbox refresh due to ${reason}`)
-        const reselectMode =
-          get().inboxHasLoaded || isPhone
-            ? T.RPCChat.InboxLayoutReselectMode.default
-            : T.RPCChat.InboxLayoutReselectMode.force
-        await T.RPCChat.localRequestInboxLayoutRpcPromise({reselectMode})
-        if (clearExistingMetas) {
-          get().dispatch.clearMetas()
-        }
-        if (clearExistingMessages) {
-          for (const [, cs] of chatStores) {
-            cs.getState().dispatch.messagesClear()
-          }
-        }
-      }
-      ignorePromise(f())
+      ignorePromise(requestInboxLayout(reason))
     },
     loadStaticConfig: () => {
       if (get().staticConfig) {
@@ -467,30 +445,25 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         storeRegistry.getConvoState(newConvID).dispatch.navigateToThread('findNewestConversation')
       }
     },
-    metasReceived: (metas, removals) => {
-      removals?.forEach(r => {
-        storeRegistry.getConvoState(r).dispatch.setMeta()
-      })
-      metas.forEach(m => {
-        const {meta: oldMeta, dispatch, isMetaGood} = storeRegistry.getConvoState(m.conversationIDKey)
-        if (isMetaGood()) {
-          dispatch.updateMeta(Meta.updateMeta(oldMeta, m))
-        } else {
-          dispatch.setMeta(m)
-        }
-      })
-    },
     onChatInboxSynced: action => {
       const {syncRes} = action.payload.params
       const {clear} = useWaitingState.getState().dispatch
-      const {inboxRefresh} = get().dispatch
       clear(S.waitingKeyChatInboxSyncStarted)
 
       switch (syncRes.syncType) {
         // Just clear it all
-        case T.RPCChat.SyncInboxResType.clear:
-          inboxRefresh('inboxSyncedClear')
+        case T.RPCChat.SyncInboxResType.clear: {
+          const f = async () => {
+            await requestInboxLayout('inboxSyncedClear')
+            for (const [, cs] of chatStores) {
+              const {dispatch} = cs.getState()
+              dispatch.setMeta()
+              dispatch.messagesClear()
+            }
+          }
+          ignorePromise(f())
           break
+        }
         // We're up to date
         case T.RPCChat.SyncInboxResType.current:
           break
@@ -509,7 +482,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           const removals = syncRes.incremental.removals?.map(T.Chat.stringToConversationIDKey)
           // Update new untrusted
           if (metas.length || removals?.length) {
-            get().dispatch.metasReceived(metas, removals)
+            convoMetasReceived(metas, removals)
           }
 
           get().dispatch.unboxRows(
@@ -613,7 +586,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           const {conv} = action.payload.params
           if (conv) {
             const meta = Meta.inboxUIItemToConversationMeta(conv)
-            meta && get().dispatch.metasReceived([meta])
+            meta && convoMetasReceived([meta])
           }
           break
         }
@@ -906,7 +879,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         )
       }
       if (metas.length > 0) {
-        get().dispatch.metasReceived(metas)
+        convoMetasReceived(metas)
       }
     },
     onGetInboxUnverifiedConvs: action => {
@@ -920,7 +893,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         return arr
       }, [])
       // Check if some of our existing stored metas might no longer be valid
-      get().dispatch.metasReceived(metas)
+      convoMetasReceived(metas)
     },
     onIncomingInboxUIItem: conv => {
       if (!conv) return
@@ -940,80 +913,8 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       )
 
       if (meta) {
-        get().dispatch.metasReceived([meta])
+        convoMetasReceived([meta])
       }
-    },
-    onRouteChanged: (prev, next) => {
-      const maybeChangeChatSelection = () => {
-        const wasModal = prev && getModalStack(prev).length > 0
-        const isModal = next && getModalStack(next).length > 0
-        // ignore if changes involve a modal
-        if (wasModal || isModal) {
-          return
-        }
-        const p = getVisibleScreen(prev)
-        const n = getVisibleScreen(next)
-        const wasChat = p?.name === Common.threadRouteName
-        const isChat = n?.name === Common.threadRouteName
-        // nothing to do with chat
-        if (!wasChat && !isChat) {
-          return
-        }
-        const pParams = p?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
-        const nParams = n?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
-        const wasID = pParams?.conversationIDKey
-        const isID = nParams?.conversationIDKey
-
-        logger.info('maybeChangeChatSelection ', {isChat, isID, wasChat, wasID})
-
-        // same? ignore
-        if (wasChat && isChat && wasID === isID) {
-          // if we've never loaded anything, keep going so we load it
-          if (!isID || storeRegistry.getConvoState(isID).loaded) {
-            return
-          }
-        }
-
-        // deselect if there was one
-        const deselectAction = () => {
-          if (wasChat && wasID && T.Chat.isValidConversationIDKey(wasID)) {
-            get().dispatch.unboxRows([wasID], true)
-            // needed?
-            // storeRegistry.getConvoState(wasID).dispatch.clearOrangeLine('deselected')
-          }
-        }
-
-        // still chatting? just select new one
-        if (wasChat && isChat && isID && T.Chat.isValidConversationIDKey(isID)) {
-          deselectAction()
-          storeRegistry.getConvoState(isID).dispatch.selectedConversation()
-          return
-        }
-
-        // leaving a chat
-        if (wasChat && !isChat) {
-          deselectAction()
-          return
-        }
-
-        // going into a chat
-        if (isChat && isID && T.Chat.isValidConversationIDKey(isID)) {
-          deselectAction()
-          storeRegistry.getConvoState(isID).dispatch.selectedConversation()
-          return
-        }
-      }
-
-      const maybeChatTabSelected = () => {
-        if (getTab(prev) !== Tabs.chatTab && getTab(next) === Tabs.chatTab) {
-          const n = getVisibleScreen(next)
-          const nParams = n?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
-          const isID = nParams?.conversationIDKey
-          isID && storeRegistry.getConvoState(isID).dispatch.tabSelected()
-        }
-      }
-      maybeChangeChatSelection()
-      maybeChatTabSelected()
     },
     onTeamBuildingFinished: users => {
       const f = async () => {
@@ -1063,8 +964,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         dispatch: s.dispatch,
         staticConfig: s.staticConfig,
       }))
-      // also blow away convoState
-      clearChatStores()
     },
     setInboxRetriedOnCurrentEmpty: retried => {
       set(s => {
@@ -1139,30 +1038,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             s.inboxRetriedOnCurrentEmpty = false
           }
           if (!inboxHasLoaded) {
-            // on first layout, initialize any drafts and muted status
-            // After the first layout, any other updates will come in the form of meta updates.
-            layout.smallTeams?.forEach(t => {
-              const cs = storeRegistry.getConvoState(t.convID)
-              cs.dispatch.updateFromUIInboxLayout({
-                ...t,
-                layoutName: t.name || '',
-                snippet: t.snippet ?? undefined,
-                teamname: t.isTeam ? t.name || '' : '',
-                time: t.time || 0,
-              })
-            })
-            layout.bigTeams?.forEach(t => {
-              if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {
-                const cs = storeRegistry.getConvoState(t.channel.convID)
-                cs.dispatch.updateFromUIInboxLayout({
-                  ...t.channel,
-                  snippet: undefined,
-                  time: undefined,
-                })
-              }
-            })
-            // Flush inbox row updates synchronously to prevent flash of empty content
-            flushInboxRowUpdates()
+            hydrateInboxLayout(layout)
           }
         } catch (e) {
           logger.info('failed to JSON parse inbox layout: ' + e)

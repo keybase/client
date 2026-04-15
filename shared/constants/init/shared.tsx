@@ -49,7 +49,7 @@ import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useTeamsState} from '@/stores/teams'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
-import {setConvoDefer} from '@/stores/convostate'
+import {metasReceived as convoMetasReceived, onRouteChanged as onConvoRouteChanged, setConvoDefer} from '@/stores/convostate'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 
@@ -175,7 +175,7 @@ export const initSharedSubscriptions = () => {
     chatInboxLayoutSmallTeamsFirstConvID: () =>
       storeRegistry.getState('chat').inboxLayout?.smallTeams?.[0]?.convID,
     chatInboxRefresh: reason => storeRegistry.getState('chat').dispatch.inboxRefresh(reason),
-    chatMetasReceived: metas => storeRegistry.getState('chat').dispatch.metasReceived(metas),
+    chatMetasReceived: metas => convoMetasReceived(metas),
     chatUnboxRows: (convIDs, force) => storeRegistry.getState('chat').dispatch.unboxRows(convIDs, force),
   })
   _sharedUnsubs.push(
@@ -426,7 +426,7 @@ export const initSharedSubscriptions = () => {
         storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
       }
 
-      storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
+      onConvoRouteChanged(prev, next)
     })
   )
   initTeamBuildingCallbacks()
