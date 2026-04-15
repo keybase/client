@@ -189,18 +189,6 @@ export const newTeamWizardEmptyState = {
 
 export const emptyErrorInEditMember = {error: '', teamID: T.Teams.noTeamID, username: ''}
 
-const inflightMemberLoads = new Map<T.Teams.TeamID, Promise<void>>()
-const queuedMemberReloads = new Set<T.Teams.TeamID>()
-let memberLoadGeneration = 0
-
-const clearMemberLoadTracking = () => {
-  memberLoadGeneration += 1
-  inflightMemberLoads.clear()
-  queuedMemberReloads.clear()
-}
-
-Z.registerExternalResetter('teams-member-loads', clearMemberLoadTracking)
-
 export const initialCanUserPerform = Object.freeze<T.Teams.TeamOperations>({
   changeOpenTeam: false,
   changeTarsDisabled: false,
@@ -1008,6 +996,18 @@ export type State = Store & {
 }
 
 export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
+  let inflightMemberLoads = new Map<T.Teams.TeamID, Promise<void>>()
+  let queuedMemberReloads = new Set<T.Teams.TeamID>()
+  let memberLoadGeneration = 0
+  const clearMemberLoadTracking = () => {
+    memberLoadGeneration += 1
+    inflightMemberLoads = new Map()
+    queuedMemberReloads = new Set()
+  }
+  const resetState = () => {
+    clearMemberLoadTracking()
+    set({...initialStore, dispatch}, true)
+  }
   const dispatch: State['dispatch'] = {
     addMembersWizardPushMembers: members => {
       const f = async () => {
@@ -2168,7 +2168,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         s.errorInEmailInvite.malformed = new Set()
       })
     },
-    resetState: Z.defaultReset,
+    resetState,
     resetTeamMetaStale: () => {
       set(s => {
         s.teamMetaStale = true
