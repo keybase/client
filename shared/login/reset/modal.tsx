@@ -123,12 +123,7 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
 
   return (
     <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileOverlay}>
-      <Kb.Box2
-        direction="vertical"
-        fullHeight={true}
-        fullWidth={true}
-        style={styles.mobileModal}
-      >
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.mobileModal}>
         {content}
       </Kb.Box2>
     </Kb.Box2>
@@ -140,21 +135,15 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {
       ...Kb.Styles.globalStyles.flexOne,
     },
-    isElectron: {
-      minHeight: 220,
-    },
+    isElectron: {minHeight: 220},
   }),
+  desktopCover: {backgroundColor: Kb.Styles.globalColors.black_20},
+  desktopModal: {width: 420},
   header: {
     borderBottomColor: Kb.Styles.globalColors.black_10,
     borderBottomWidth: 1,
     borderStyle: 'solid' as const,
     minHeight: 48,
-  },
-  desktopCover: {
-    backgroundColor: Kb.Styles.globalColors.black_20,
-  },
-  desktopModal: {
-    width: 420,
   },
   mobileModal: {
     ...Kb.Styles.globalStyles.fillAbsolute,
