@@ -82,6 +82,34 @@ test('enterResetPipeline exposes a submit handler for the confirm screen and sta
   expect(mockStartProvision).toHaveBeenCalledWith('alice', true)
 })
 
+test('enterResetPipeline responds and starts the reset flow for non-complete prompts', async () => {
+  const result = jest.fn()
+
+  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(listener => {
+    listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
+      {
+        prompt: {
+          t: T.RPCGen.ResetPromptType.enterNoDevices,
+        },
+      } as any,
+      {result} as any
+    )
+    return undefined as any
+  })
+
+  enterResetPipeline({username: 'alice'})
+  await Promise.resolve()
+
+  expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.nothing)
+  expect(mockNavigateAppend).toHaveBeenCalledWith(
+    {
+      name: 'recoverPasswordPromptResetAccount',
+      params: {skipPassword: true, username: 'alice'},
+    },
+    true
+  )
+})
+
 test('submitResetPrompt sends cancel responses back to the login flow', async () => {
   const result = jest.fn()
 

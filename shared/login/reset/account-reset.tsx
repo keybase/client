@@ -46,6 +46,7 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
         navigateAppend({name: 'resetConfirm', params: {hasWallet, resetKey}}, true)
       } else {
         logger.info('Starting account reset process')
+        response.result(T.RPCGen.ResetPromptResponse.nothing)
         startAccountReset(true, username)
       }
     }
