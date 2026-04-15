@@ -997,11 +997,13 @@ export type State = Store & {
 
 export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
   let inflightMemberLoads = new Map<T.Teams.TeamID, Promise<void>>()
+  let inflightMemberLoadTokens = new Map<T.Teams.TeamID, symbol>()
   let queuedMemberReloads = new Set<T.Teams.TeamID>()
   let memberLoadGeneration = 0
   const clearMemberLoadTracking = () => {
     memberLoadGeneration += 1
     inflightMemberLoads = new Map()
+    inflightMemberLoadTokens = new Map()
     queuedMemberReloads = new Set()
   }
   const resetState = () => {
@@ -1488,8 +1490,8 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
         return get().dispatch.getMembers(teamID)
       }
-      let promise: Promise<void>
-      promise = (async () => {
+      const requestToken = Symbol(String(teamID))
+      const promise = (async () => {
         try {
           const res = await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({
             id: teamID,
@@ -1512,12 +1514,14 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             logger.error(`Error updating members for ${teamID}: ${error.desc}`)
           }
         } finally {
-          if (inflightMemberLoads.get(teamID) === promise) {
+          if (inflightMemberLoadTokens.get(teamID) === requestToken) {
             inflightMemberLoads.delete(teamID)
+            inflightMemberLoadTokens.delete(teamID)
           }
         }
       })()
       inflightMemberLoads.set(teamID, promise)
+      inflightMemberLoadTokens.set(teamID, requestToken)
       return promise
     },
     getTeamRetentionPolicy: teamID => {
