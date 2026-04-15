@@ -2,6 +2,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
+import type {ConvoState as ConvoStateType} from '@/stores/convostate'
 import {useConfigState} from '@/stores/config'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -46,7 +47,7 @@ const toRemoteTlfUpdate = (t: T.FS.TlfUpdate, uploads: T.FS.Uploads): RemoteTlfU
   writer: t.writer,
 })
 
-const convoDiff = (a: Chat.ConvoState, b: Chat.ConvoState) => {
+const convoDiff = (a: ConvoStateType, b: ConvoStateType) => {
   if (a === b) return false
 
   if (a.meta !== b.meta) {
@@ -74,7 +75,7 @@ const convoDiff = (a: Chat.ConvoState, b: Chat.ConvoState) => {
 
 const toRemoteConversation = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  conversation: Chat.ConvoState
+  conversation: ConvoStateType
 ): Conversation | undefined => {
   if (!conversation.isMetaGood()) {
     return undefined

@@ -1,4 +1,4 @@
-import type * as Chat from '@/stores/chat'
+import type {ConvoState} from '@/stores/convostate'
 import {useTeamsState} from '@/stores/teams'
 import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
@@ -33,8 +33,8 @@ export const useTeamHumans = (teamID: T.Teams.TeamID) => {
 }
 
 export const useHumans = (
-  participantInfo: Chat.ConvoState['participants'],
-  meta: Chat.ConvoState['meta']
+  participantInfo: ConvoState['participants'],
+  meta: ConvoState['meta']
 ) => {
   const {teamType, teamID} = meta
   const {bots, teamHumanCount} = useTeamHumans(teamID)

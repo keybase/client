@@ -19,7 +19,7 @@ import {useTeamsState} from '@/stores/teams'
 import {useTrackerState} from '@/stores/tracker'
 import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
-import type {ConvoUIState} from '@/stores/convostate'
+import type {ConvoState as ConvoStateType, ConvoUIState} from '@/stores/convostate'
 
 export type Props = {
   isCenteredHighlight?: boolean
@@ -64,7 +64,7 @@ type AuthorProps = {
 }
 
 type RowActions = Pick<
-  ConvoState['dispatch'],
+  ConvoStateType['dispatch'],
   'messageDelete' | 'messageRetry' | 'replyJump' | 'toggleMessageReaction'
 > &
   Pick<ConvoUIState['dispatch'], 'setEditing' | 'setReplyTo'>
@@ -97,7 +97,7 @@ const emptyAuthorData: FlatAuthorData = {
 }
 
 const getRowActions = (
-  dispatch: ConvoState['dispatch'],
+  dispatch: ConvoStateType['dispatch'],
   uiDispatch: Pick<ConvoUIState['dispatch'], 'setEditing' | 'setReplyTo'>
 ): RowActions => {
   const {messageDelete, messageRetry, replyJump, toggleMessageReaction} = dispatch
@@ -194,8 +194,8 @@ function AuthorSection(p: AuthorProps) {
 
 const getAuthorData = (
   message: T.Chat.Message,
-  meta: ConvoState['meta'],
-  participants: ConvoState['participants'],
+  meta: ConvoStateType['meta'],
+  participants: ConvoStateType['participants'],
   showUsername: string
 ): FlatAuthorData => {
   if (!showUsername) {
@@ -255,14 +255,14 @@ const getCommonMessageData = ({
   unfurlPrompt,
   you,
 }: {
-  accountsInfoMap: ConvoState['accountsInfoMap']
+  accountsInfoMap: ConvoStateType['accountsInfoMap']
   editing: T.Chat.Ordinal
   isCenteredHighlight?: boolean
   message: T.Chat.Message
-  messageCenterOrdinal: ConvoState['messageCenterOrdinal']
+  messageCenterOrdinal: ConvoStateType['messageCenterOrdinal']
   ordinal: T.Chat.Ordinal
-  paymentStatusMap: ConvoState['paymentStatusMap']
-  unfurlPrompt: ConvoState['unfurlPrompt']
+  paymentStatusMap: ConvoStateType['paymentStatusMap']
+  unfurlPrompt: ConvoStateType['unfurlPrompt']
   you: string
 }) => {
   const {submitState, author, id, botUsername} = message
@@ -461,7 +461,7 @@ type WrapperMessageProps = {
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
 const hasSuccessfulInlinePayments = (
-  paymentStatusMap: ConvoState['paymentStatusMap'],
+  paymentStatusMap: ConvoStateType['paymentStatusMap'],
   message: T.Chat.Message
 ): boolean => {
   if (message.type !== 'text' || !message.inlinePaymentIDs) {
