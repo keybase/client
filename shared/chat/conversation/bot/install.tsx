@@ -47,6 +47,19 @@ export const useRefreshBotMembershipOnSuccess = (
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
   const setParticipants = Chat.useChatContext(s => s.dispatch.setParticipants)
   const teamIDToRefresh = teamID && teamID !== T.Teams.noTeamID ? teamID : undefined
+  const refreshTeamMembers = React.useEffectEvent(() => {
+    if (!teamIDToRefresh) {
+      return
+    }
+    C.ignorePromise(
+      (async () => {
+        if (updatedBotMember) {
+          await C.timeoutPromise(1500)
+        }
+        await getMembers(teamIDToRefresh, true)
+      })()
+    )
+  })
 
   React.useEffect(() => {
     if (!waiting && wasWaitingRef.current && !error) {
@@ -62,18 +75,14 @@ export const useRefreshBotMembershipOnSuccess = (
             if (teamIDToRefresh && updatedBotMember) {
               updateCachedBotMember(teamIDToRefresh, updatedBotMember.username, updatedBotMember.role)
             }
-            if (teamIDToRefresh) {
-              C.ignorePromise(getMembers(teamIDToRefresh, true))
-            }
+            refreshTeamMembers()
             onSuccess()
           },
           () => {
             if (teamIDToRefresh && updatedBotMember) {
               updateCachedBotMember(teamIDToRefresh, updatedBotMember.username, updatedBotMember.role)
             }
-            if (teamIDToRefresh) {
-              C.ignorePromise(getMembers(teamIDToRefresh, true))
-            }
+            refreshTeamMembers()
             onSuccess()
           }
         )
@@ -86,6 +95,7 @@ export const useRefreshBotMembershipOnSuccess = (
     getMembers,
     onSuccess,
     previewConversationByID,
+    refreshTeamMembers,
     setParticipants,
     shouldRefreshMembership,
     teamIDToRefresh,
