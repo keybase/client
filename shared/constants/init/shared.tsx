@@ -166,18 +166,12 @@ export const initTeamBuildingCallbacks = () => {
   }
 }
 
-export const initChat2Callbacks = () => {
+export const initChatRetentionCallbacks = () => {
   const currentState = useChatState.getState()
   useChatState.setState({
     dispatch: {
       ...currentState.dispatch,
       defer: {
-        onGetTeamsTeamIDToMembers: (teamID: T.Teams.TeamID) => {
-          return storeRegistry.getState('teams').teamIDToMembers.get(teamID)
-        },
-        onTeamsGetMembers: async (teamID: T.Teams.TeamID) => {
-          return storeRegistry.getState('teams').dispatch.getMembers(teamID)
-        },
         onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
           storeRegistry.getState('teams').dispatch.updateTeamRetentionPolicy(metas)
         },
@@ -455,7 +449,7 @@ export const initSharedSubscriptions = () => {
     })
   )
 
-  initChat2Callbacks()
+  initChatRetentionCallbacks()
   initTeamBuildingCallbacks()
 }
 

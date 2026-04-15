@@ -54,28 +54,27 @@ export const getMessageKey = (message: T.Chat.Message) =>
 export const getBotsAndParticipants = (
   meta: T.Immutable<T.Chat.ConversationMeta>,
   participantInfo: T.Immutable<T.Chat.ParticipantInfo>,
+  teamMembers?: ReadonlyMap<string, T.Teams.MemberInfo>,
   sort?: boolean
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
-  const teamMembers =
-    useChatState.getState().dispatch.defer.onGetTeamsTeamIDToMembers(meta.teamID) ??
-    new Map<string, T.Teams.MemberInfo>()
+  const members = teamMembers ?? new Map<string, T.Teams.MemberInfo>()
   let bots: Array<string> = []
   if (isAdhocTeam) {
     bots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
   } else {
-    bots = [...teamMembers.values()]
+    bots = [...members.values()]
       .filter(
         p =>
-          TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p.username, 'restrictedbot') ||
-          TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p.username, 'bot')
+          TeamConstants.userIsRoleInTeamWithInfo(members, p.username, 'restrictedbot') ||
+          TeamConstants.userIsRoleInTeamWithInfo(members, p.username, 'bot')
       )
       .map(p => p.username)
       .sort((l, r) => l.localeCompare(r))
   }
   let participants: ReadonlyArray<string> = participantInfo.all
   if (meta.channelname === 'general') {
-    participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
+    participants = [...members.values()].reduce<Array<string>>((l, mi) => {
       l.push(mi.username)
       return l
     }, [])
@@ -84,8 +83,8 @@ export const getBotsAndParticipants = (
   participants = sort
     ? participants
         .map(p => ({
-          isAdmin: !isAdhocTeam ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
-          isOwner: !isAdhocTeam ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
+          isAdmin: !isAdhocTeam ? TeamConstants.userIsRoleInTeamWithInfo(members, p, 'admin') : false,
+          isOwner: !isAdhocTeam ? TeamConstants.userIsRoleInTeamWithInfo(members, p, 'owner') : false,
           username: p,
         }))
         .sort((l, r) => {
@@ -219,10 +218,6 @@ export type State = Store & {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
     defer: {
-      onGetTeamsTeamIDToMembers: (
-        teamID: T.Teams.TeamID
-      ) => ReadonlyMap<string, T.Teams.MemberInfo> | undefined
-      onTeamsGetMembers: (teamID: T.Teams.TeamID) => Promise<void>
       onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
     }
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
@@ -367,12 +362,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       ignorePromise(f())
     },
     defer: {
-      onGetTeamsTeamIDToMembers: (_teamID: T.Teams.TeamID) => {
-        throw new Error('onGetTeamsTeamIDToMembers not properly initialized')
-      },
-      onTeamsGetMembers: (_teamID: T.Teams.TeamID) => {
-        throw new Error('onTeamsGetMembers not properly initialized')
-      },
       onTeamsUpdateTeamRetentionPolicy: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
         throw new Error('onTeamsUpdateTeamRetentionPolicy not properly initialized')
       },
@@ -523,15 +512,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           dispatch.setMeta(m)
         }
       })
-
-      const selectedConversation = Common.getSelectedConversation()
-      const {isMetaGood, meta} = storeRegistry.getConvoState(selectedConversation)
-      if (isMetaGood()) {
-        const {teamID} = meta
-        if (!get().dispatch.defer.onGetTeamsTeamIDToMembers(teamID) && meta.teamname) {
-          ignorePromise(get().dispatch.defer.onTeamsGetMembers(teamID))
-        }
-      }
     },
     onChatInboxSynced: action => {
       const {syncRes} = action.payload.params

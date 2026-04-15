@@ -21,7 +21,6 @@ import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {fixCrop} from '@/util/crop'
 import {getTBStore} from '@/stores/team-building'
-import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
@@ -863,7 +862,6 @@ export type State = Store & {
         fromTeamBuilder?: boolean
       }
     ) => void
-    createNewTeamFromConversation: (conversationIDKey: T.Chat.ConversationIDKey, teamname: string) => void
     deleteChannelConfirmed: (teamID: T.Teams.TeamID, conversationIDKey: T.Chat.ConversationIDKey) => void
     deleteMultiChannelsConfirmed: (teamID: T.Teams.TeamID, channels: Array<T.Chat.ConversationIDKey>) => void
     deleteTeam: (teamID: T.Teams.TeamID) => void
@@ -1284,17 +1282,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         } catch {}
       }
       ignorePromise(f())
-    },
-    createNewTeamFromConversation: (conversationIDKey, teamname) => {
-      const me = useCurrentUserState.getState().username
-      const participantInfo = storeRegistry.getConvoState(conversationIDKey).participants
-      // exclude bots from the newly created team, they can be added back later.
-      const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
-      const users = participants.map(assertion => ({
-        assertion,
-        role: assertion === me ? ('admin' as const) : ('writer' as const),
-      }))
-      get().dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
     },
     deleteChannelConfirmed: (teamID, conversationIDKey) => {
       const f = async () => {

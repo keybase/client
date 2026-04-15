@@ -16,6 +16,7 @@ import BotRow from '../team/rows/bot-row/bot'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
 import {useUsersState} from '@/stores/users'
+import {useLoadTeamMembers} from '@/teams/team-members'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID
@@ -31,26 +32,23 @@ const useLoadDataForChannelPage = (
   participants: ReadonlyArray<string>
 ) => {
   const prevSelectedTabRef = React.useRef(selectedTab)
-  const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
   const unboxRows = Chat.useChatState(s => s.dispatch.unboxRows)
+  useLoadTeamMembers(teamID, ['bots', 'members', 'settings'].includes(selectedTab))
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'members') {
       if (meta.conversationIDKey === 'EMPTY') {
         unboxRows([conversationIDKey])
       }
-      C.ignorePromise(getMembers(teamID))
       getBlockState(participants)
     }
   }, [
     unboxRows,
     getBlockState,
-    getMembers,
     selectedTab,
     conversationIDKey,
     meta.conversationIDKey,
     participants,
-    teamID,
   ])
 
   React.useEffect(() => {
@@ -120,13 +118,13 @@ const Channel = (props: OwnProps) => {
   const providedTab = props.selectedTab
 
   const meta = Chat.useConvoState(conversationIDKey, s => s.meta)
+  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
   const {bots, participants: _participants} = Chat.useConvoState(
     conversationIDKey,
-    C.useDeep(s => Chat.getBotsAndParticipants(meta, s.participants, true /* sort */))
+    C.useDeep(s => Chat.getBotsAndParticipants(meta, s.participants, teamMembers, true /* sort */))
   )
   const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
-  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
   useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants)
   const participants = useChannelParticipants(teamID, conversationIDKey)

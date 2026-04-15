@@ -1,9 +1,8 @@
 import type * as Chat from '@/stores/chat'
 import {useTeamsState} from '@/stores/teams'
-import * as React from 'react'
 import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
-import * as C from '@/constants'
+import {useLoadTeamMembers} from '@/teams/team-members'
 
 export const infoPanelWidthElectron = 320
 const infoPanelWidthPhone = Styles.dimensionWidth
@@ -22,12 +21,7 @@ export function infoPanelWidth() {
 const isBot = (type: T.Teams.TeamRoleType) => type === 'bot' || type === 'restrictedbot'
 
 export const useTeamHumans = (teamID: T.Teams.TeamID) => {
-  const [lastTID, setLastTID] = React.useState('')
-  const getMembers = useTeamsState(s => s.dispatch.getMembers)
-  if (lastTID !== teamID) {
-    setLastTID(teamID)
-    C.ignorePromise(getMembers(teamID))
-  }
+  useLoadTeamMembers(teamID, !!teamID)
   const teamMembers = useTeamsState(s => s.teamIDToMembers.get(teamID))
   const bots = (() => {
     const ret = new Set<string>()
