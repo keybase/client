@@ -34,21 +34,8 @@ test('badgeApp derives the widget badge from key state', () => {
   expect(store.getState().widgetBadge).toBe('regular')
 })
 
-test('badge engine updates badge counts and favorites loading', () => {
+test('badge engine updates badge counts', () => {
   const store = useNotifState
-  const onFavoritesLoad = jest.fn()
-  store.setState(
-    {
-      ...store.getState(),
-      dispatch: {
-        ...store.getState().dispatch,
-        defer: {
-          onFavoritesLoad,
-        },
-      },
-    },
-    true
-  )
 
   const badgeState = {
     bigTeamBadgeCount: 4,
@@ -73,7 +60,6 @@ test('badge engine updates badge counts and favorites loading', () => {
     type: 'keybase.1.NotifyBadges.badgeState',
   } as any)
 
-  expect(onFavoritesLoad).toHaveBeenCalledTimes(1)
   expect(store.getState().mobileAppBadgeCount).toBe(7)
   expect(store.getState().desktopAppBadgeCount).toBe(22)
   expect(store.getState().navBadges.get(Tabs.peopleTab)).toBe(2)

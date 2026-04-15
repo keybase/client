@@ -28,22 +28,11 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    defer: {
-      onFavoritesLoad?: () => void
-    }
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: () => void
     badgeApp: (key: NotificationKeys, on: boolean) => void
     setBadgeCounts: (counts: Map<Tabs.Tab, number>) => void
   }
-}
-
-let lastFsBadges = {newTlfs: 0, rekeysNeeded: 0}
-const shouldTriggerTlfLoad = (bs: T.RPCGen.BadgeState) => {
-  const {newTlfs, rekeysNeeded} = bs
-  const same = newTlfs === lastFsBadges.newTlfs && rekeysNeeded === lastFsBadges.rekeysNeeded
-  lastFsBadges = {newTlfs, rekeysNeeded}
-  return !same
 }
 
 const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
@@ -102,19 +91,11 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
         updateWidgetBadge(s)
       })
     },
-    defer: {
-      onFavoritesLoad: () => {
-        throw new Error('onFavoritesLoad not implemented')
-      },
-    },
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case 'keybase.1.NotifyBadges.badgeState': {
           const badgeState = action.payload.params.badgeState
           const counts = badgeStateToBadgeCounts(badgeState)
-          if (!isMobile && shouldTriggerTlfLoad(badgeState)) {
-            get().dispatch.defer.onFavoritesLoad?.()
-          }
           if (counts) {
             get().dispatch.setBadgeCounts(counts)
           }

@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import * as Constants from '../../constants/fs'
+import {isMobile} from '../../constants/platform'
 import * as T from '../../constants/types'
 import {useCurrentUserState} from '../current-user'
 import {makeEditID, resetBannerType, useFSState} from '../fs'
@@ -92,4 +93,33 @@ test('resetBannerType distinguishes between self resets, other resets, and no re
     },
   } as any)
   expect(resetBannerType(useFSState.getState(), path)).toBe(T.FS.ResetBannerNoOthersType.None)
+})
+
+test('badge engine refreshes favorites when fs badge counters change', () => {
+  const store = useFSState
+  const favoritesLoad = jest.fn()
+  store.setState(
+    {
+      ...store.getState(),
+      dispatch: {
+        ...store.getState().dispatch,
+        favoritesLoad,
+      },
+    },
+    true
+  )
+
+  const action = {
+    payload: {params: {badgeState: {newTlfs: 1, rekeysNeeded: 0}}},
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any
+
+  store.getState().dispatch.onEngineIncomingImpl(action)
+  store.getState().dispatch.onEngineIncomingImpl(action)
+  store.getState().dispatch.onEngineIncomingImpl({
+    payload: {params: {badgeState: {newTlfs: 1, rekeysNeeded: 2}}},
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any)
+
+  expect(favoritesLoad).toHaveBeenCalledTimes(isMobile ? 0 : 2)
 })

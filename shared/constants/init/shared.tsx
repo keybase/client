@@ -49,7 +49,6 @@ import {useDarkModeState} from '@/stores/darkmode'
 import {useFSState} from '@/stores/fs'
 import {useFollowerState} from '@/stores/followers'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {useNotifState} from '@/stores/notifications'
 import {useProvisionState} from '@/stores/provision'
 import {usePushState} from '@/stores/push'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
@@ -252,39 +251,6 @@ export const initTeamsCallbacks = () => {
         },
         onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
           storeRegistry.getState('users').dispatch.updates(updates)
-        },
-      },
-    },
-  })
-}
-
-export const initFSCallbacks = () => {
-  const currentState = useFSState.getState()
-  useFSState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onBadgeApp: (key: 'kbfsUploading' | 'outOfSpace', on: boolean) => {
-          useNotifState.getState().dispatch.badgeApp(key, on)
-        },
-        onSetBadgeCounts: (counts: Map<Tabs.Tab, number>) => {
-          useNotifState.getState().dispatch.setBadgeCounts(counts)
-        },
-      },
-    },
-  })
-}
-
-export const initNotificationsCallbacks = () => {
-  const currentState = useNotifState.getState()
-  useNotifState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onFavoritesLoad: () => {
-          useFSState.getState().dispatch.favoritesLoad()
         },
       },
     },
@@ -617,8 +583,6 @@ export const initSharedSubscriptions = () => {
   initChat2Callbacks()
   initTeamBuildingCallbacks()
   initTeamsCallbacks()
-  initFSCallbacks()
-  initNotificationsCallbacks()
   initPushCallbacks()
   initRecoverPasswordCallbacks()
   initTracker2Callbacks()
@@ -647,6 +611,9 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
 
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
+
+        const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
+        useFSState.getState().dispatch.onEngineIncomingImpl(action)
 
         const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
         useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
