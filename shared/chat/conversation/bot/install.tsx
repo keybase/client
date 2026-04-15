@@ -199,6 +199,7 @@ const InstallBotPopup = (props: Props) => {
     if (!conversationIDKey) {
       return
     }
+    dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
     setPendingMutation('add')
     addBotMember(botUsername, installWithCommands, installWithMentions, installWithRestrict, installInConvs)
   }
@@ -207,6 +208,7 @@ const InstallBotPopup = (props: Props) => {
     if (!conversationIDKey) {
       return
     }
+    dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
     setPendingMutation('edit')
     editBotSettings(botUsername, installWithCommands, installWithMentions, installInConvs)
   }
@@ -254,13 +256,17 @@ const InstallBotPopup = (props: Props) => {
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const loadBotPublicCommands = C.useRPC(T.RPCChat.localListPublicBotCommandsLocalRpcPromise)
   const botPublicCommandsRequestIDRef = React.useRef(0)
+  const clearedWaitingForBotRef = React.useRef<string>()
   React.useEffect(() => {
     setBotPublicCommands(undefined)
   }, [botUsername])
   React.useEffect(() => {
-    if (!mutationWaiting) {
+    if (!mutationWaiting && clearedWaitingForBotRef.current !== botUsername) {
+      clearedWaitingForBotRef.current = botUsername
       dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
     }
+  }, [botUsername, dispatchClearWaiting, mutationWaiting])
+  React.useEffect(() => {
     botPublicCommandsRequestIDRef.current += 1
     if (commandsFromMeta.length > 0) {
       return
@@ -287,7 +293,7 @@ const InstallBotPopup = (props: Props) => {
         botPublicCommandsRequestIDRef.current += 1
       }
     }
-  }, [botUsername, commandsFromMeta.length, dispatchClearWaiting, loadBotPublicCommands, mutationWaiting])
+  }, [botUsername, commandsFromMeta.length, loadBotPublicCommands])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>

@@ -32,16 +32,29 @@ const useLoadDataForChannelPage = (
   participants: ReadonlyArray<string>
 ) => {
   const prevSelectedTabRef = React.useRef(selectedTab)
+  const prevParticipantsRef = React.useRef(participants)
+  const loadedBlockStateForConvRef = React.useRef(false)
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
   const unboxRows = Chat.useChatState(s => s.dispatch.unboxRows)
   useLoadTeamMembers(teamID, ['bots', 'members', 'settings'].includes(selectedTab))
   React.useEffect(() => {
-    if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'members') {
+    loadedBlockStateForConvRef.current = false
+  }, [conversationIDKey])
+  React.useEffect(() => {
+    const participantsChanged =
+      participants.length !== prevParticipantsRef.current.length ||
+      participants.some((participant, index) => participant !== prevParticipantsRef.current[index])
+    if (
+      selectedTab === 'members' &&
+      (!loadedBlockStateForConvRef.current || selectedTab !== prevSelectedTabRef.current || participantsChanged)
+    ) {
       if (meta.conversationIDKey === 'EMPTY') {
         unboxRows([conversationIDKey])
       }
       getBlockState(participants)
+      loadedBlockStateForConvRef.current = true
     }
+    prevParticipantsRef.current = participants
   }, [
     unboxRows,
     getBlockState,
@@ -129,7 +142,6 @@ const Channel = (props: OwnProps) => {
   const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
-  useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants)
   const channelParticipants = useChannelParticipants(teamID, conversationIDKey)
   const generalMembersLoading = meta.channelname === 'general' && !teamMembers
   const participants =
@@ -138,6 +150,7 @@ const Channel = (props: OwnProps) => {
         ? _participants
         : channelParticipants
       : channelParticipants
+  useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, participants)
 
   // Make the actual sections (consider farming this out into another function or file)
   const headerSection: Section = {
