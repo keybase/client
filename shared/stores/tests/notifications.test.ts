@@ -69,3 +69,47 @@ test('badge engine updates badge counts', () => {
   expect(store.getState().navBadges.get(Tabs.teamsTab)).toBe(8)
   expect(store.getState().navBadges.get(Tabs.settingsTab)).toBe(3)
 })
+
+test('stale badgeState events do not regress badge counts', () => {
+  const store = useNotifState
+
+  store.getState().dispatch.onEngineIncomingImpl({
+    payload: {
+      params: {
+        badgeState: {
+          bigTeamBadgeCount: 4,
+          homeTodoItems: 2,
+          inboxVers: 2,
+          newTeamAccessRequestCount: 0,
+          smallTeamBadgeCount: 3,
+          unverifiedEmails: 1,
+          unverifiedPhones: 2,
+        },
+      },
+    },
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any)
+
+  store.getState().dispatch.onEngineIncomingImpl({
+    payload: {
+      params: {
+        badgeState: {
+          bigTeamBadgeCount: 1,
+          homeTodoItems: 1,
+          inboxVers: 1,
+          newTeamAccessRequestCount: 0,
+          smallTeamBadgeCount: 1,
+          unverifiedEmails: 0,
+          unverifiedPhones: 0,
+        },
+      },
+    },
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any)
+
+  expect(store.getState().badgeVersion).toBe(2)
+  expect(store.getState().mobileAppBadgeCount).toBe(7)
+  expect(store.getState().navBadges.get(Tabs.chatTab)).toBe(7)
+  expect(store.getState().navBadges.get(Tabs.peopleTab)).toBe(2)
+  expect(store.getState().navBadges.get(Tabs.settingsTab)).toBe(3)
+})

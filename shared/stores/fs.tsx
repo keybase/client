@@ -1487,7 +1487,11 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case 'keybase.1.NotifyBadges.badgeState':
-          if (!isMobile && shouldReloadFavoritesFromBadgeState(action.payload.params.badgeState)) {
+          if (
+            !isMobile &&
+            shouldRunBackgroundFSRPC() &&
+            shouldReloadFavoritesFromBadgeState(action.payload.params.badgeState)
+          ) {
             get().dispatch.favoritesLoad()
           }
           break

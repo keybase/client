@@ -35,7 +35,7 @@ export type State = Store & {
 }
 
 const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
-  const {inboxVers, unverifiedEmails, unverifiedPhones} = bs
+  const {unverifiedEmails, unverifiedPhones} = bs
   const deletedTeams = bs.deletedTeams ?? []
   const newDevices = bs.newDevices ?? []
   const newGitRepoGlobalUniqueIDs = bs.newGitRepoGlobalUniqueIDs ?? []
@@ -44,10 +44,6 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
   const revokedDevices = bs.revokedDevices ?? []
   const teamsWithResetUsers = bs.teamsWithResetUsers ?? []
   const wotUpdates = /*bs.wotUpdates ?? */ new Map<string, T.RPCGen.WotUpdate>()
-
-  if (useNotifState.getState().badgeVersion >= inboxVers) {
-    return undefined
-  }
 
   const counts = new Map<Tabs.Tab, number>()
 
@@ -94,10 +90,14 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
       switch (action.type) {
         case 'keybase.1.NotifyBadges.badgeState': {
           const badgeState = action.payload.params.badgeState
-          const counts = badgeStateToBadgeCounts(badgeState)
-          if (counts) {
-            get().dispatch.setBadgeCounts(counts)
+          if (get().badgeVersion >= badgeState.inboxVers) {
+            break
           }
+          set(s => {
+            s.badgeVersion = badgeState.inboxVers
+          })
+          const counts = badgeStateToBadgeCounts(badgeState)
+          get().dispatch.setBadgeCounts(counts)
           break
         }
         default:
