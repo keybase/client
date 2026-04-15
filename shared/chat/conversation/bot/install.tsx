@@ -32,7 +32,7 @@ const uiParticipantsToParticipantInfo = (
 }
 
 export const useRefreshBotMembershipOnSuccess = (
-  conversationIDKey: T.Chat.ConversationIDKey,
+  conversationIDKey: T.Chat.ConversationIDKey | undefined,
   teamID: T.Teams.TeamID,
   waitingKey: string,
   error: RPCError | undefined,
@@ -48,6 +48,8 @@ export const useRefreshBotMembershipOnSuccess = (
   React.useEffect(() => {
     if (!waiting && wasWaitingRef.current && !error) {
       if (!shouldRefreshMembership) {
+        onSuccess()
+      } else if (!conversationIDKey) {
         onSuccess()
       } else {
         previewConversationByID(
