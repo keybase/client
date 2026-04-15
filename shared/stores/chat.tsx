@@ -9,7 +9,6 @@ import * as TeamConstants from '@/constants/teams'
 import * as Z from '@/util/zustand'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
-import type {State as DaemonState} from '@/stores/daemon'
 import type * as Router2 from '@/constants/router'
 import {ProviderScreen} from '@/stores/convostate'
 import type {GetOptionsRet, RouteDef} from '@/constants/types/router'
@@ -32,6 +31,8 @@ import {storeRegistry} from '@/stores/store-registry'
 import {uint8ArrayToString} from '@/util/uint8array'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useDaemonState} from '@/stores/daemon'
+import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 
 const defaultTopReacjis = [
@@ -227,14 +228,11 @@ export type State = Store & {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
     defer: {
-      onGetDaemonState: () => Pick<DaemonState, 'dispatch' | 'handshakeVersion'>
       onGetTeamsTeamIDToMembers: (
         teamID: T.Teams.TeamID
       ) => ReadonlyMap<string, T.Teams.MemberInfo> | undefined
-      onGetUsersInfoMap: () => ReadonlyMap<string, T.Users.UserInfo>
       onTeamsGetMembers: (teamID: T.Teams.TeamID) => Promise<void>
       onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
-      onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
     }
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
     ensureWidgetMetas: () => void
@@ -387,23 +385,14 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       ignorePromise(f())
     },
     defer: {
-      onGetDaemonState: () => {
-        throw new Error('onGetDaemonState not properly initialized')
-      },
       onGetTeamsTeamIDToMembers: (_teamID: T.Teams.TeamID) => {
         throw new Error('onGetTeamsTeamIDToMembers not properly initialized')
-      },
-      onGetUsersInfoMap: () => {
-        throw new Error('onGetUsersInfoMap not properly initialized')
       },
       onTeamsGetMembers: (_teamID: T.Teams.TeamID) => {
         throw new Error('onTeamsGetMembers not properly initialized')
       },
       onTeamsUpdateTeamRetentionPolicy: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
         throw new Error('onTeamsUpdateTeamRetentionPolicy not properly initialized')
-      },
-      onUsersUpdates: (_updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
-        throw new Error('onUsersUpdates not properly initialized')
       },
     },
     ensureWidgetMetas: () => {
@@ -453,7 +442,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       if (get().staticConfig) {
         return
       }
-      const {handshakeVersion, dispatch} = get().dispatch.defer.onGetDaemonState()
+      const {handshakeVersion, dispatch} = useDaemonState.getState()
       const f = async () => {
         const name = 'chat.loadStatic'
         dispatch.wait(name, handshakeVersion, true)
@@ -748,7 +737,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           const usernames = update.CanonicalName.split(',')
           const broken = (update.breaks.breaks || []).map(b => b.user.username)
           const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
-          get().dispatch.defer.onUsersUpdates(updates)
+          useUsersState.getState().dispatch.updates(updates)
           break
         }
         case 'chat.1.chatUi.chatInboxUnverified':
@@ -969,7 +958,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
     },
     onGetInboxConvsUnboxed: action => {
       // TODO not reactive
-      const infoMap = get().dispatch.defer.onGetUsersInfoMap()
+      const {infoMap} = useUsersState.getState()
       const {convs} = action.payload.params
       const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
       const metas: Array<T.Chat.ConversationMeta> = []
@@ -995,7 +984,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         })
       })
       if (Object.keys(usernameToFullname).length > 0) {
-        get().dispatch.defer.onUsersUpdates(
+        useUsersState.getState().dispatch.updates(
           Object.keys(usernameToFullname).map(name => ({
             info: {fullname: usernameToFullname[name]},
             name,
@@ -1029,7 +1018,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         return map
       }, {})
 
-      get().dispatch.defer.onUsersUpdates(
+      useUsersState.getState().dispatch.updates(
         Object.keys(usernameToFullname).map(name => ({
           info: {fullname: usernameToFullname[name]},
           name,

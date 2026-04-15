@@ -47,12 +47,9 @@ import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useProvisionState} from '@/stores/provision'
-import {usePushState} from '@/stores/push'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useState as useRecoverPasswordState} from '@/stores/recover-password'
 import {useTeamsState} from '@/stores/teams'
-import {useTrackerState} from '@/stores/tracker'
-import {useUsersState} from '@/stores/users'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
 import {setConvoDefer} from '@/stores/convostate'
@@ -124,20 +121,8 @@ export const initTeamBuildingCallbacks = () => {
     onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => {
       useTeamsState.getState().dispatch.addMembersWizardPushMembers(members)
     },
-    onGetSettingsContactsImportEnabled: () => {
-      return useSettingsContactsState.getState().importEnabled
-    },
-    onGetSettingsContactsUserCountryCode: () => {
-      return useSettingsContactsState.getState().userCountryCode
-    },
     onShowUserProfile: (username: string) => {
       navToProfile(username)
-    },
-    onUsersGetBlockState: (usernames: ReadonlyArray<string>) => {
-      useUsersState.getState().dispatch.getBlockState(usernames)
-    },
-    onUsersUpdates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
-      useUsersState.getState().dispatch.updates(infos)
     },
   }
 
@@ -193,24 +178,14 @@ export const initChat2Callbacks = () => {
     dispatch: {
       ...currentState.dispatch,
       defer: {
-        onGetDaemonState: () => {
-          const daemonState = storeRegistry.getState('daemon')
-          return {dispatch: daemonState.dispatch, handshakeVersion: daemonState.handshakeVersion}
-        },
         onGetTeamsTeamIDToMembers: (teamID: T.Teams.TeamID) => {
           return storeRegistry.getState('teams').teamIDToMembers.get(teamID)
-        },
-        onGetUsersInfoMap: () => {
-          return storeRegistry.getState('users').infoMap
         },
         onTeamsGetMembers: async (teamID: T.Teams.TeamID) => {
           return storeRegistry.getState('teams').dispatch.getMembers(teamID)
         },
         onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
           storeRegistry.getState('teams').dispatch.updateTeamRetentionPolicy(metas)
-        },
-        onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
-          storeRegistry.getState('users').dispatch.updates(updates)
         },
       },
     },
@@ -232,24 +207,6 @@ export const initTeamsCallbacks = () => {
         ) => {
           storeRegistry.getState('chat').dispatch.previewConversation(p)
         },
-        onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
-          storeRegistry.getState('users').dispatch.updates(updates)
-        },
-      },
-    },
-  })
-}
-
-export const initPushCallbacks = () => {
-  const currentState = usePushState.getState()
-  usePushState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onGetDaemonHandshakeState: () => {
-          return useDaemonState.getState().handshakeState
-        },
       },
     },
   })
@@ -264,21 +221,6 @@ export const initRecoverPasswordCallbacks = () => {
         ...currentState.dispatch.defer,
         onProvisionCancel: (ignoreWarning?: boolean) => {
           useProvisionState.getState().dispatch.dynamic.cancel?.(ignoreWarning)
-        },
-      },
-    },
-  })
-}
-
-export const initTracker2Callbacks = () => {
-  const currentState = useTrackerState.getState()
-  useTrackerState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
-          useUsersState.getState().dispatch.updates(updates)
         },
       },
     },
@@ -557,9 +499,7 @@ export const initSharedSubscriptions = () => {
   initChat2Callbacks()
   initTeamBuildingCallbacks()
   initTeamsCallbacks()
-  initPushCallbacks()
   initRecoverPasswordCallbacks()
-  initTracker2Callbacks()
 }
 
 // This is to defer loading stores we don't need immediately.

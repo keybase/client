@@ -3,6 +3,7 @@ import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '@/constants/
 import {emitDeepLink} from '@/router-v2/linking'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useDaemonState} from '@/stores/daemon'
 import {useLogoutState} from '@/stores/logout'
 import {useWaitingState} from '@/stores/waiting'
 import * as Z from '@/util/zustand'
@@ -113,11 +114,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       set(s => {
         s.pendingPushNotification = undefined
       })
-    },
-    defer: {
-      onGetDaemonHandshakeState: () => {
-        throw new Error('onGetDaemonHandshakeState not implemented')
-      },
     },
     deleteToken: version => {
       const f = async () => {
@@ -328,7 +324,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
         if (
           p.show &&
           useConfigState.getState().loggedIn &&
-          get().dispatch.defer.onGetDaemonHandshakeState?.() === 'done' &&
+          useDaemonState.getState().handshakeState === 'done' &&
           !get().justSignedUp &&
           !get().hasPermissions
         ) {

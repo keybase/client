@@ -11,9 +11,6 @@ type Store = T.Immutable<{
 
 export type State = Store & {
   dispatch: {
-    defer: {
-      onGetDaemonHandshakeState?: () => T.Config.DaemonHandshakeState
-    }
     checkPermissions: () => Promise<boolean>
     clearPendingPushNotification: () => void
     deleteToken: (version: number) => void

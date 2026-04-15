@@ -98,6 +98,37 @@ These stores are not automatic no-touch zones, but they need a stronger reason b
 
 They contain global caches, notification-driven state, navigation coordination, or app/session state that does not belong to a single screen.
 
+## Replacing `init/shared.tsx` Plumbing
+
+Common Keybase cleanup pattern:
+
+- A store defines `dispatch.defer.onSomething`
+- `shared/constants/init/shared.tsx` fills that callback with a direct call into another store
+- The callback exists only to bridge one Zustand store to another
+
+Good direct-import targets:
+
+- `users`
+- `daemon`
+- `settings-contacts`
+
+These are good targets when they are leaf-like for the call path you are changing.
+
+Recent examples:
+
+- `team-building` now imports `useUsersState` and `useSettingsContactsState` directly instead of receiving `onUsersUpdates`, `onUsersGetBlockState`, `onGetSettingsContactsImportEnabled`, and `onGetSettingsContactsUserCountryCode` from `shared/constants/init/shared.tsx`
+- `chat` now imports `useUsersState` and `useDaemonState` directly for user cache updates and static-config handshake coordination instead of using `onUsersUpdates`, `onGetUsersInfoMap`, and `onGetDaemonState`
+- `teams` and `tracker` now call `useUsersState` directly instead of routing through `onUsersUpdates`
+- `push.native` now reads `useDaemonState.getState().handshakeState` directly instead of using `onGetDaemonHandshakeState`
+
+Checklist for this pattern:
+
+- Confirm the target store does not import the caller back
+- Check platform files and dynamic `require(...)` before assuming no cycle
+- Replace all live call sites before deleting the `defer` field
+- Remove the matching type entries, default throwers, init wiring, no-op init helpers, and stale tests
+- Keep `shared/constants/init/shared.tsx` for real bootstrap coordination, not simple store-to-store forwarding
+
 ## Route Param Patterns In This Repo
 
 Common navigation shape:

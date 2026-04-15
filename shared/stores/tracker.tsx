@@ -8,6 +8,7 @@ import {RPCError} from '@/util/errors'
 import {mapGetEnsureValue} from '@/util/map'
 import {navigateAppend, navigateUp} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useUsersState} from '@/stores/users'
 
 export const noDetails: T.Tracker.Details = {
   assertions: new Map(),
@@ -163,9 +164,7 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    defer: {
-      onUsersUpdates?: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
-    }
+    defer: {}
     changeFollow: (guiID: string, follow: boolean) => void
     closeTracker: (guiID: string) => void
     getProofSuggestions: () => void
@@ -231,11 +230,7 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         s.showTrackerSet.delete(username)
       })
     },
-    defer: {
-      onUsersUpdates: () => {
-        throw new Error('onUsersUpdates not implemented')
-      },
-    },
+    defer: {},
     getProofSuggestions: () => {
       const f = async () => {
         try {
@@ -327,9 +322,9 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
             d.followersCount = d.followers.size
           })
           if (fs.users) {
-            get().dispatch.defer.onUsersUpdates?.(
-              fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username}))
-            )
+            useUsersState
+              .getState()
+              .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -353,9 +348,9 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
             d.followingCount = d.following.size
           })
           if (fs.users) {
-            get().dispatch.defer.onUsersUpdates?.(
-              fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username}))
-            )
+            useUsersState
+              .getState()
+              .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -447,7 +442,7 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         )
         d.hidFromFollowers = hidFromFollowers
       })
-      username && get().dispatch.defer.onUsersUpdates?.([{info: {fullname: card.fullName}, name: username}])
+      username && useUsersState.getState().dispatch.updates([{info: {fullname: card.fullName}, name: username}])
     },
     notifyReset: guiID => {
       set(s => {
