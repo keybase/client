@@ -15,9 +15,6 @@ const ResetModal = () => {
       endTime: s.badgeState?.resetState.endTime ?? 0,
     }))
   )
-  React.useEffect(() => {
-    logger.info('ResetModal visibility state', {active, endTime})
-  }, [active, endTime])
   return active ? <ResetModalImpl endTime={endTime} /> : null
 }
 
@@ -61,21 +58,24 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
       : `This account will reset in ${formatDurationForAutoreset(timeLeft)}.`
 
   return (
-    <Kb.SafeAreaView
-      style={{
-        backgroundColor: Kb.Styles.globalColors.white,
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-      }}
-    >
-      <>
+    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.overlay}>
+      <Kb.Box2
+        direction="vertical"
+        fullHeight={Kb.Styles.isMobile}
+        fullWidth={Kb.Styles.isMobile}
+        style={styles.modal}
+      >
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
-          <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} style={Kb.Styles.globalStyles.flexOne}>
+          <Kb.Box2
+            direction="horizontal"
+            alignItems="center"
+            fullHeight={true}
+            style={Kb.Styles.globalStyles.flexOne}
+          >
             <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
-            <Kb.Text type={Kb.Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>Account reset initiated</Kb.Text>
+            <Kb.Text type={Kb.Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+              Account reset initiated
+            </Kb.Text>
             <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
           </Kb.Box2>
         </Kb.Box2>
@@ -84,12 +84,11 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
             <Kb.BannerParagraph bannerColor="red" content={error} />
           </Kb.Banner>
         ) : null}
-        <Kb.Box2 fullWidth={true} direction="vertical">
+        <Kb.Box2 fullWidth={true} direction="vertical" style={styles.body}>
           <Kb.Box2
             gap="small"
             direction="vertical"
             fullWidth={true}
-            fullHeight={true}
             style={styles.textContainer}
             centerChildren={true}
           >
@@ -115,18 +114,40 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
             label="Cancel account reset"
           />
         </Kb.Box2>
-      </>
-    </Kb.SafeAreaView>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  body: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.globalStyles.flexOne,
+    },
+    isElectron: {
+      minHeight: 220,
+    },
+  }),
   header: {
     borderBottomColor: Kb.Styles.globalColors.black_10,
     borderBottomWidth: 1,
     borderStyle: 'solid' as const,
     minHeight: 48,
   },
+  modal: Kb.Styles.platformStyles({
+    common: {
+      backgroundColor: Kb.Styles.globalColors.white,
+    },
+    isElectron: {
+      ...Kb.Styles.desktopStyles.boxShadow,
+      borderRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+      width: 420,
+    },
+    isMobile: {
+      ...Kb.Styles.globalStyles.fillAbsolute,
+    },
+  }),
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
@@ -141,6 +162,18 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       overflow: 'hidden',
     },
   }),
+  overlay: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.globalStyles.fillAbsolute,
+      zIndex: 1000,
+    },
+    isElectron: {
+      backgroundColor: Kb.Styles.globalColors.black_20,
+    },
+    isMobile: {
+      backgroundColor: Kb.Styles.globalColors.white,
+    },
+  }),
   skullIcon: {
     height: 48,
     width: 48,
@@ -151,6 +184,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       paddingRight: Kb.Styles.globalMargins.small,
     },
     isElectron: {
+      ...Kb.Styles.globalStyles.flexOne,
       paddingBottom: Kb.Styles.globalMargins.xlarge,
       paddingTop: Kb.Styles.globalMargins.xlarge,
     },
