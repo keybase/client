@@ -1,5 +1,5 @@
-import * as Chat from '@/stores/chat'
 import type * as T from '@/constants/types'
+import {previewConversation} from '@/constants/router'
 import Text from '../text'
 import type {StylesTextCrossPlatform} from '../text.shared'
 
@@ -12,7 +12,6 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {name, convID, style, allowFontScaling} = ownProps
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onClick = () =>
     previewConversation({
       channelname: name,

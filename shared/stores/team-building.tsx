@@ -10,7 +10,7 @@ import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from '@/constants/strings'
-import {navigateUp, getModalStack} from '@/constants/router'
+import {navigateUp, getModalStack, navToProfile} from '@/constants/router'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useUsersState} from '@/stores/users'
 export {allServices, selfToUser} from '@/constants/team-building'
@@ -50,7 +50,6 @@ export type State = Store & {
       onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
       onFinishedTeamBuildingChat: (users: ReadonlySet<T.TB.User>) => void
       onFinishedTeamBuildingCrypto: (users: ReadonlySet<T.TB.User>) => void
-      onShowUserProfile: (username: string) => void
     }
     fetchUserRecs: () => void
     finishTeamBuilding: () => void
@@ -270,7 +269,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
               // we want the first item
               for (const user of teamSoFar) {
                 const username = user.serviceMap.keybase || user.id
-                get().dispatch.defer.onShowUserProfile(username)
+                navToProfile(username)
                 break
               }
             }, 100)
@@ -304,9 +303,6 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       },
       onFinishedTeamBuildingCrypto: (_users: ReadonlySet<T.TB.User>) => {
         throw new Error('onFinishedTeamBuildingCrypto not properly initialized')
-      },
-      onShowUserProfile: (_username: string) => {
-        throw new Error('onShowUserProfile not properly initialized')
       },
     },
     fetchUserRecs: () => {

@@ -3,8 +3,6 @@ import * as T from '../types'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as Tabs from '@/constants/tabs'
-import {navToProfile} from '@/constants/router'
-
 declare global {
   var __hmr_startupOnce: boolean | undefined
 
@@ -48,7 +46,6 @@ import {useFollowerState} from '@/stores/followers'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useProvisionState} from '@/stores/provision'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
-import {useState as useRecoverPasswordState} from '@/stores/recover-password'
 import {useTeamsState} from '@/stores/teams'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
@@ -121,9 +118,6 @@ export const initTeamBuildingCallbacks = () => {
     onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => {
       useTeamsState.getState().dispatch.addMembersWizardPushMembers(members)
     },
-    onShowUserProfile: (username: string) => {
-      navToProfile(username)
-    },
   }
 
   const namespaces: Array<T.TB.AllowedNamespace> = ['chat', 'crypto', 'teams', 'people']
@@ -192,41 +186,6 @@ export const initChat2Callbacks = () => {
   })
 }
 
-export const initTeamsCallbacks = () => {
-  const currentState = useTeamsState.getState()
-  useTeamsState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onChatNavigateToInbox: (allowSwitchTab?: boolean) => {
-          storeRegistry.getState('chat').dispatch.navigateToInbox(allowSwitchTab)
-        },
-        onChatPreviewConversation: (
-          p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
-        ) => {
-          storeRegistry.getState('chat').dispatch.previewConversation(p)
-        },
-      },
-    },
-  })
-}
-
-export const initRecoverPasswordCallbacks = () => {
-  const currentState = useRecoverPasswordState.getState()
-  useRecoverPasswordState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onProvisionCancel: (ignoreWarning?: boolean) => {
-          useProvisionState.getState().dispatch.dynamic.cancel?.(ignoreWarning)
-        },
-      },
-    },
-  })
-}
-
 export const initSharedSubscriptions = () => {
   // HMR cleanup: unsubscribe old store subscriptions before re-subscribing
   for (const unsub of _sharedUnsubs) unsub()
@@ -238,8 +197,8 @@ export const initSharedSubscriptions = () => {
       storeRegistry.getState('chat').inboxLayout?.smallTeams?.[0]?.convID,
     chatInboxRefresh: reason => storeRegistry.getState('chat').dispatch.inboxRefresh(reason),
     chatMetasReceived: metas => storeRegistry.getState('chat').dispatch.metasReceived(metas),
-    chatNavigateToInbox: () => storeRegistry.getState('chat').dispatch.navigateToInbox(),
-    chatPreviewConversation: p => storeRegistry.getState('chat').dispatch.previewConversation(p),
+    chatNavigateToInbox: Util.navigateToInbox,
+    chatPreviewConversation: Util.previewConversation,
     chatUnboxRows: (convIDs, force) => storeRegistry.getState('chat').dispatch.unboxRows(convIDs, force),
     teamsGetMembers: async teamID => storeRegistry.getState('teams').dispatch.getMembers(teamID),
     usersGetBio: username => storeRegistry.getState('users').dispatch.getBio(username),
@@ -498,8 +457,6 @@ export const initSharedSubscriptions = () => {
 
   initChat2Callbacks()
   initTeamBuildingCallbacks()
-  initTeamsCallbacks()
-  initRecoverPasswordCallbacks()
 }
 
 // This is to defer loading stores we don't need immediately.

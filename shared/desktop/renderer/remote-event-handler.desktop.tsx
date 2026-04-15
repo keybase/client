@@ -4,7 +4,7 @@ import * as Crypto from '@/constants/crypto'
 import * as Tabs from '@/constants/tabs'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
-import {navigateAppend, switchTab} from '@/constants/router'
+import {navigateAppend, previewConversation, switchTab} from '@/constants/router'
 import {storeRegistry} from '@/stores/store-registry'
 import {onEngineConnected, onEngineDisconnected} from '@/constants/init/index.desktop'
 import {emitDeepLink} from '@/router-v2/linking'
@@ -196,9 +196,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.previewConversation:
-      storeRegistry
-        .getState('chat')
-        .dispatch.previewConversation({participants: [action.payload.participant], reason: 'tracker'})
+      previewConversation({participants: [action.payload.participant], reason: 'tracker'})
       break
   }
 }

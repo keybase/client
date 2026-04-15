@@ -5,9 +5,11 @@ import type * as EngineGen from '@/constants/rpc'
 import {
   clearModals,
   navigateAppend,
+  navigateToInbox,
   navigateUp,
   navUpToScreen,
   navToProfile,
+  previewConversation,
 } from '@/constants/router'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
@@ -21,7 +23,6 @@ import {fixCrop} from '@/util/crop'
 import {getTBStore} from '@/stores/team-building'
 import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
-import {type useChatState} from '@/stores/chat'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import * as Util from '@/constants/teams'
@@ -830,12 +831,6 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    defer: {
-      onChatNavigateToInbox?: (allowSwitchTab?: boolean) => void
-      onChatPreviewConversation?: (
-        p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
-      ) => void
-    }
     addMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
     addMembersWizardRemoveMember: (assertion: string) => void
     addMembersWizardSetDefaultChannels: (
@@ -1273,8 +1268,8 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
 
           if (fromChat) {
             clearModals()
-            get().dispatch.defer.onChatNavigateToInbox?.()
-            get().dispatch.defer.onChatPreviewConversation?.({
+            navigateToInbox()
+            previewConversation({
               channelname: 'general',
               reason: 'convertAdHoc',
               teamname,
@@ -1300,19 +1295,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         role: assertion === me ? ('admin' as const) : ('writer' as const),
       }))
       get().dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
-    },
-    defer: {
-      onChatNavigateToInbox: (_allowSwitchTab?: boolean) => {
-        throw new Error('onChatNavigateToInbox not implemented')
-      },
-      onChatPreviewConversation: (_p: {
-        channelname?: string
-        conversationIDKey?: T.Chat.ConversationIDKey
-        reason?: string
-        teamname?: string
-      }) => {
-        throw new Error('onChatPreviewConversation not implemented')
-      },
     },
     deleteChannelConfirmed: (teamID, conversationIDKey) => {
       const f = async () => {

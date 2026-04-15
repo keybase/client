@@ -1,5 +1,6 @@
 import type * as React from 'react'
-import type * as T from './types'
+import * as T from './types'
+import type * as ConvoStateType from '@/stores/convostate'
 import * as Tabs from './tabs'
 import {
   StackActions,
@@ -11,17 +12,16 @@ import {
   type NavigationState,
 } from '@react-navigation/core'
 import type {StaticScreenProps} from '@react-navigation/core'
-import type {
-  NavigateAppendType,
-  RouteKeys,
-  RootParamList as KBRootParamList,
-} from '@/router-v2/route-params'
+import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {GetOptionsRet, RouteDef} from './types/router'
 import {isSplit} from './chat/layout'
 import {isMobile} from './platform'
-import {shallowEqual} from './utils'
+import {ignorePromise, shallowEqual} from './utils'
 import {registerDebugClear} from '@/util/debug'
 import {makeUUID} from '@/util/uuid'
+import {storeRegistry} from '@/stores/store-registry'
+import * as Meta from './chat/meta'
+import {RPCError} from '@/util/errors'
 
 // Detects the unconstrained Record<string,unknown> index-signature type.
 // We can't use bidirectional assignability ([Record] extends [T] && [T] extends [Record])
@@ -318,6 +318,148 @@ export const navToProfile = (username: string) => {
   navigateAppend({name: 'profile', params: {username}})
 }
 
+// prettier-ignore
+export type PreviewReason =
+  | 'appLink' | 'channelHeader' | 'convertAdHoc' | 'files' | 'forward' | 'fromAReset'
+  | 'journeyCardPopular' | 'manageView' | 'memberView' | 'messageLink' | 'newChannel'
+  | 'profile' | 'requestedPayment' | 'resetChatWithoutThem' | 'search' | 'sentPayment'
+  | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
+
+export type PreviewConversationParams = {
+  participants?: ReadonlyArray<string>
+  teamname?: string
+  channelname?: string
+  conversationIDKey?: T.Chat.ConversationIDKey
+  highlightMessageID?: T.Chat.MessageID
+  reason: PreviewReason
+}
+
+export const navigateToInbox = (allowSwitchTab = true) => {
+  // Components can call this during render sometimes, so always defer.
+  setTimeout(() => {
+    if (getTab() !== Tabs.chatTab) {
+      if (allowSwitchTab) {
+        switchTab(Tabs.chatTab)
+      }
+      return
+    }
+    navUpToScreen('chatRoot')
+  }, 1)
+}
+
+export const previewConversation = (p: PreviewConversationParams) => {
+  const previewConversationPersonMakesAConversation = () => {
+    const {participants, teamname, highlightMessageID} = p
+    if (teamname || !participants) return
+
+    const {chatStores} = require('@/stores/convostate') as typeof ConvoStateType
+    const toFind = [...participants].sort().join(',')
+    const toFindN = participants.length
+    for (const cs of chatStores.values()) {
+      const names = cs.getState().participants.name
+      if (names.length !== toFindN) continue
+      const participantSet = [...names].sort().join(',')
+      if (participantSet === toFind) {
+        storeRegistry
+          .getConvoState(cs.getState().id)
+          .dispatch.navigateToThread('justCreated', highlightMessageID)
+        return
+      }
+    }
+
+    storeRegistry
+      .getConvoState(T.Chat.pendingWaitingConversationIDKey)
+      .dispatch.navigateToThread('justCreated')
+    storeRegistry.getState('chat').dispatch.createConversation(participants, highlightMessageID)
+  }
+
+  const previewConversationTeam = async () => {
+    const {conversationIDKey, highlightMessageID, teamname, reason} = p
+    if (conversationIDKey) {
+      if (
+        reason === 'messageLink' ||
+        reason === 'teamMention' ||
+        reason === 'channelHeader' ||
+        reason === 'manageView'
+      ) {
+        await T.RPCChat.localPreviewConversationByIDLocalRpcPromise({
+          convID: T.Chat.keyToConversationID(conversationIDKey),
+        })
+      }
+
+      storeRegistry
+        .getConvoState(conversationIDKey)
+        .dispatch.navigateToThread('previewResolved', highlightMessageID)
+      return
+    }
+
+    if (!teamname) {
+      return
+    }
+
+    const channelname = p.channelname || 'general'
+    try {
+      const results = await T.RPCChat.localFindConversationsLocalRpcPromise({
+        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+        membersType: T.RPCChat.ConversationMembersType.team,
+        oneChatPerTLF: true,
+        tlfName: teamname,
+        topicName: channelname,
+        topicType: T.RPCChat.TopicType.chat,
+        visibility: T.RPCGen.TLFVisibility.private,
+      })
+      const resultMetas = (results.uiConversations || [])
+        .map(row => Meta.inboxUIItemToConversationMeta(row))
+        .filter(Boolean)
+
+      const first = resultMetas[0]
+      if (!first) {
+        if (reason === 'appLink') {
+          navigateAppend({
+            name: 'keybaseLinkError',
+            params: {
+              error:
+                "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists.",
+            },
+          })
+        }
+        return
+      }
+
+      const results2 = await T.RPCChat.localPreviewConversationByIDLocalRpcPromise({
+        convID: T.Chat.keyToConversationID(first.conversationIDKey),
+      })
+      const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
+      if (meta) {
+        storeRegistry.getState('chat').dispatch.metasReceived([meta])
+      }
+
+      storeRegistry
+        .getConvoState(first.conversationIDKey)
+        .dispatch.navigateToThread('previewResolved', highlightMessageID)
+    } catch (error) {
+      if (
+        error instanceof RPCError &&
+        error.code === T.RPCGen.StatusCode.scteamnotfound &&
+        reason === 'appLink'
+      ) {
+        navigateAppend({
+          name: 'keybaseLinkError',
+          params: {
+            error:
+              "We couldn't find this team. Please check that you're a member of the team and the channel exists.",
+          },
+        })
+        return
+      }
+      throw error
+    }
+  }
+
+  previewConversationPersonMakesAConversation()
+  ignorePromise(previewConversationTeam())
+}
+
 export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['chatRoot']>>) => {
   const n = _getNavigator()
   if (!n || !isSplit) return
@@ -381,10 +523,7 @@ type ThreadNavParams = {
   threadSearch?: {query?: string}
 }
 
-export const navToThread = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  navParams?: ThreadNavParams
-) => {
+export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: ThreadNavParams) => {
   DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
   const n = _getNavigator()
   if (!n) return

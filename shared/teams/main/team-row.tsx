@@ -1,6 +1,5 @@
 import './team-row.css'
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import TeamMenu from '../team/menu-container'
@@ -32,7 +31,7 @@ const TeamRow = function TeamRow(props: Props) {
 
   const activity = <Activity level={activityLevel} />
 
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onChat = () => previewConversation({reason: 'teamRow', teamname: teamMeta.teamname})
 
   const makePopup = (p: Kb.Popup2Parms) => {

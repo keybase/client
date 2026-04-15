@@ -25,7 +25,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const dismissJourneycard = Chat.useChatContext(s => s.dispatch.dismissJourneycard)
   const _onDismiss = (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) =>
     dismissJourneycard(cardType, ordinal)
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const _onGoToChannel = (channelname: string, teamname: string) =>
     previewConversation({channelname, reason: 'journeyCardPopular', teamname})
   const manageChatChannels = Teams.useTeamsState(s => s.dispatch.manageChatChannels)

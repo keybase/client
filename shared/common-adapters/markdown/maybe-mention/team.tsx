@@ -36,7 +36,7 @@ const TeamMention = (ownProps: OwnProps) => {
   const publicAdmins = mentionInfo?.publicAdmins || noAdmins
   const resolved = !!mentionInfo
 
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
   const clearModals = C.Router2.clearModals
   const navigateAppend = C.Router2.navigateAppend

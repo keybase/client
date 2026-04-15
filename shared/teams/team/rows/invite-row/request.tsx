@@ -234,7 +234,7 @@ const Container = (ownProps: OwnProps) => {
   const letIn = (sendNotification: boolean, role: T.Teams.TeamRoleType) => {
     addToTeam(teamID, [{assertion: username, role}], sendNotification)
   }
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamInvite'})
   }

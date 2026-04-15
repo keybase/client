@@ -617,7 +617,7 @@ export const TeamMemberHeader = (props: Props) => {
     }))
   )
   const yourUsername = useCurrentUserState(s => s.username)
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onChat = () => previewConversation({participants: [username], reason: 'memberView'})
   const onViewProfile = () => navToProfile(username)
   const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})

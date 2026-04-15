@@ -84,7 +84,7 @@ const ChannelMemberRow = (props: Props) => {
   const onSelect = (selected: boolean) => {
     channelSetMemberSelected(conversationIDKey, username, selected)
   }
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onChat = () => {
     username && previewConversation({participants: [username], reason: 'teamMember'})
   }

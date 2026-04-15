@@ -1,8 +1,7 @@
 import logger from '@/logger'
 import * as T from '@/constants/types'
-import {navigateAppend, navToProfile, navToThread, switchTab} from './router'
+import {navigateAppend, navToProfile, navToThread, previewConversation, switchTab} from './router'
 import * as Tabs from './tabs'
-import {useChatState} from '@/stores/chat'
 import {useTeamsState} from '@/stores/teams'
 
 const prefix = 'keybase://'
@@ -113,7 +112,6 @@ const handleKeybaseLink = (link: string) => {
           }
 
           const highlightMessageID = T.Chat.numberToMessageID(_highlightMessageID)
-          const {previewConversation} = useChatState.getState().dispatch
           previewConversation({
             channelname,
             highlightMessageID,
@@ -127,7 +125,6 @@ const handleKeybaseLink = (link: string) => {
             logger.warn(`invalid chat message id: ${highlightMessageID}`)
             return
           }
-          const {previewConversation} = useChatState.getState().dispatch
           previewConversation({
             highlightMessageID: T.Chat.numberToMessageID(highlightMessageID),
             participants: parts[1]!.split(','),

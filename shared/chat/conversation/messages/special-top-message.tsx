@@ -22,7 +22,7 @@ const ErrorMessage = () => {
     createConversation(allowedUsers)
   }
 
-  const navigateToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
+  const navigateToInbox = C.Router2.navigateToInbox
   const _onBack = () => {
     navigateToInbox()
   }

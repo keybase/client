@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -174,7 +173,7 @@ const Header = ({info}: ExternalTeamProps) => {
 }
 
 const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem: boolean}) => {
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onChat = () => previewConversation({participants: [member.username], reason: 'teamMember'})
   const roleString = Teams.teamRoleByEnum[member.role]
   return (

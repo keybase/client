@@ -20,12 +20,10 @@ import type {StaticScreenProps} from '@react-navigation/core'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {isPhone} from '@/constants/platform'
 import {
-  navigateAppend,
-  navUpToScreen,
-  switchTab,
   getModalStack,
   getTab,
   getVisibleScreen,
+  navigateToInbox,
 } from '@/constants/router'
 import {storeRegistry} from '@/stores/store-registry'
 import {uint8ArrayToString} from '@/util/uint8array'
@@ -176,13 +174,6 @@ export const isBigTeam = (state: State, teamID: string): boolean => {
   return (bigTeams || []).some(v => v.state === T.RPCChat.UIInboxBigTeamRowTyp.label && v.label.id === teamID)
 }
 
-// prettier-ignore
-type PreviewReason =
-  | 'appLink' | 'channelHeader' | 'convertAdHoc' | 'files' | 'forward' | 'fromAReset'
-  | 'journeyCardPopular' | 'manageView' | 'memberView' | 'messageLink' | 'newChannel'
-  | 'profile' | 'requestedPayment' | 'resetChatWithoutThem' | 'search' | 'sentPayment'
-  | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
-
 type Store = T.Immutable<{
   badgeStateVersion: number
   smallTeamBadgeCount: number
@@ -244,7 +235,6 @@ export type State = Store & {
       metas: ReadonlyArray<T.Chat.ConversationMeta>,
       removals?: ReadonlyArray<T.Chat.ConversationIDKey> // convs to remove
     ) => void
-    navigateToInbox: (allowSwitchTab?: boolean) => void
     onChatThreadStale: (action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatThreadsStale'>) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     onChatInboxSynced: (action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatInboxSynced'>) => void
@@ -253,14 +243,6 @@ export type State = Store & {
     onIncomingInboxUIItem: (inboxUIItem?: T.RPCChat.InboxUIItem) => void
     onRouteChanged: (prev: T.Immutable<Router2.NavState>, next: T.Immutable<Router2.NavState>) => void
     onTeamBuildingFinished: (users: ReadonlySet<T.TB.User>) => void
-    previewConversation: (p: {
-      participants?: ReadonlyArray<string>
-      teamname?: string
-      channelname?: string
-      conversationIDKey?: T.Chat.ConversationIDKey // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
-      highlightMessageID?: T.Chat.MessageID
-      reason: PreviewReason
-    }) => void
     queueMetaToRequest: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => void
     queueMetaHandle: () => void
     resetState: () => void
@@ -500,7 +482,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       if (!newConvID) {
         if (!existingValid && isPhone) {
           logger.info(`maybeChangeSelectedConv: no new and no valid, so go to inbox`)
-          get().dispatch.navigateToInbox(false)
+          navigateToInbox(false)
         }
         return
       }
@@ -508,7 +490,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       if (selectedConversation !== oldConvID) {
         if (!existingValid && isPhone) {
           logger.info(`maybeChangeSelectedConv: no new and no valid, so go to inbox`)
-          get().dispatch.navigateToInbox(false)
+          navigateToInbox(false)
         }
         return
       }
@@ -517,7 +499,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         // on mobile just head back to the inbox if we have something selected
         if (T.Chat.isValidConversationIDKey(selectedConversation)) {
           logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
-          get().dispatch.navigateToInbox(false)
+          navigateToInbox(false)
           return
         }
         logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
@@ -550,20 +532,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           ignorePromise(get().dispatch.defer.onTeamsGetMembers(teamID))
         }
       }
-    },
-    navigateToInbox: (allowSwitchTab = true) => {
-      // components can call us during render sometimes so always defer
-      setTimeout(() => {
-        if (getTab() !== Tabs.chatTab) {
-          // Not on chat tab — switching lands on chatRoot (the tab's initial route).
-          // Don't call navUpToScreen which would push chatRoot onto the wrong tab's stack.
-          if (allowSwitchTab) {
-            switchTab(Tabs.chatTab)
-          }
-          return
-        }
-        navUpToScreen('chatRoot')
-      }, 1)
     },
     onChatInboxSynced: action => {
       const {syncRes} = action.payload.params
@@ -1111,122 +1079,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         get().dispatch.createConversation([...users].map(u => u.id))
       }
       ignorePromise(f())
-    },
-    previewConversation: p => {
-      // We always make adhoc convos and never preview it
-      const previewConversationPersonMakesAConversation = () => {
-        const {participants, teamname, highlightMessageID} = p
-        if (teamname) return
-        if (!participants) return
-        const toFind = [...participants].sort().join(',')
-        const toFindN = participants.length
-        for (const cs of chatStores.values()) {
-          const names = cs.getState().participants.name
-          if (names.length !== toFindN) continue
-          const p = [...names].sort().join(',')
-          if (p === toFind) {
-            storeRegistry
-              .getConvoState(cs.getState().id)
-              .dispatch.navigateToThread('justCreated', highlightMessageID)
-            return
-          }
-        }
-
-        storeRegistry
-          .getConvoState(T.Chat.pendingWaitingConversationIDKey)
-          .dispatch.navigateToThread('justCreated')
-        get().dispatch.createConversation(participants, highlightMessageID)
-      }
-
-      // We preview channels
-      const previewConversationTeam = async () => {
-        const {conversationIDKey, highlightMessageID, teamname, reason} = p
-        if (conversationIDKey) {
-          if (
-            reason === 'messageLink' ||
-            reason === 'teamMention' ||
-            reason === 'channelHeader' ||
-            reason === 'manageView'
-          ) {
-            // Add preview channel to inbox
-            await T.RPCChat.localPreviewConversationByIDLocalRpcPromise({
-              convID: T.Chat.keyToConversationID(conversationIDKey),
-            })
-          }
-
-          storeRegistry
-            .getConvoState(conversationIDKey)
-            .dispatch.navigateToThread('previewResolved', highlightMessageID)
-          return
-        }
-
-        if (!teamname) {
-          return
-        }
-
-        const channelname = p.channelname || 'general'
-        try {
-          const results = await T.RPCChat.localFindConversationsLocalRpcPromise({
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-            membersType: T.RPCChat.ConversationMembersType.team,
-            oneChatPerTLF: true,
-            tlfName: teamname,
-            topicName: channelname,
-            topicType: T.RPCChat.TopicType.chat,
-            visibility: T.RPCGen.TLFVisibility.private,
-          })
-          const resultMetas = (results.uiConversations || [])
-            .map(row => Meta.inboxUIItemToConversationMeta(row))
-            .filter(Boolean)
-
-          const first = resultMetas[0]
-          if (!first) {
-            if (p.reason === 'appLink') {
-              navigateAppend({
-                name: 'keybaseLinkError',
-                params: {
-                  error:
-                    "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists.",
-                },
-              })
-              return
-            } else {
-              return
-            }
-          }
-
-          const results2 = await T.RPCChat.localPreviewConversationByIDLocalRpcPromise({
-            convID: T.Chat.keyToConversationID(first.conversationIDKey),
-          })
-          const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
-          if (meta) {
-            get().dispatch.metasReceived([meta])
-          }
-
-          storeRegistry
-            .getConvoState(first.conversationIDKey)
-            .dispatch.navigateToThread('previewResolved', highlightMessageID)
-        } catch (error) {
-          if (
-            error instanceof RPCError &&
-            error.code === T.RPCGen.StatusCode.scteamnotfound &&
-            reason === 'appLink'
-          ) {
-            navigateAppend({
-              name: 'keybaseLinkError',
-              params: {
-                error:
-                  "We couldn't find this team. Please check that you're a member of the team and the channel exists.",
-              },
-            })
-            return
-          } else {
-            throw error
-          }
-        }
-      }
-      previewConversationPersonMakesAConversation()
-      ignorePromise(previewConversationTeam())
     },
     queueMetaHandle: () => {
       // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible

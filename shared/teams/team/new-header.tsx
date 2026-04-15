@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
@@ -109,9 +108,9 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return <TeamMenu attachTo={attachTo} onHidden={hidePopup} teamID={teamID} visible={true} />
-    }
+    const {attachTo, hidePopup} = p
+    return <TeamMenu attachTo={attachTo} onHidden={hidePopup} teamID={teamID} visible={true} />
+  }
   const {showPopup: tmshowPopup, popupAnchor: tmpopupAnchor, popup: tmpopup} = Kb.usePopup2(makePopup)
 
   const avatar = (
@@ -297,11 +296,10 @@ const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
     startAddMembersWizard(teamID)
     addMembersWizardPushMembers([{assertion: yourUsername, role: 'writer'}])
   }
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onChat = () => previewConversation({reason: 'teamHeader', teamname: meta.teamname})
   const onEditAvatar = yourOperations.editTeamDescription
-    ? () =>
-        nav.safeNavigateAppend({name: 'profileEditAvatar', params: {sendChatNotification: true, teamID}})
+    ? () => nav.safeNavigateAppend({name: 'profileEditAvatar', params: {sendChatNotification: true, teamID}})
     : undefined
   const onEditDescription = yourOperations.editTeamDescription
     ? () => nav.safeNavigateAppend({name: 'teamEditTeamInfo', params: {teamID}})

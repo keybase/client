@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FS from '@/stores/fs'
@@ -45,7 +44,7 @@ const PeopleResult = function PeopleResult(props: ResultProps) {
     keybaseUsername && navigateAppend({name: 'chatBlockingModal', params: {username: keybaseUsername}})
   }
 
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onChat = () => {
     navigateUp()
     previewConversation({participants: [decoratedUsername], reason: 'search'})

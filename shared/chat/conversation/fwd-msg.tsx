@@ -75,7 +75,7 @@ const TeamPicker = (props: Props) => {
     }
   }
 
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onSubmit = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault()
     event?.stopPropagation()

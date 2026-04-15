@@ -1,12 +1,11 @@
-import * as Chat from '@/stores/chat'
 import type * as React from 'react'
+import {previewConversation} from '@/constants/router'
 import {useTBContext} from '@/stores/team-building'
 import * as Kb from '@/common-adapters'
 import CommonResult, {type ResultProps} from './common-result'
 
 const YouResult = function YouResult(props: ResultProps) {
   const cancelTeamBuilding = useTBContext(s => s.dispatch.cancelTeamBuilding)
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const onSelfChat = () => {
     cancelTeamBuilding()
     // wait till modal is gone else we can thrash

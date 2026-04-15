@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
@@ -13,10 +12,10 @@ export default (p: Props) => {
   const [errorText, setErrorText] = React.useState('')
   const teamname = Teams.useTeamsState(s => Teams.getTeamNameFromID(s, teamID) ?? '')
   const navigateUp = C.Router2.navigateUp
+  const previewConversation = C.Router2.previewConversation
   const onBack = navigateUp
   const [channelname, onChannelnameChange] = React.useState('')
   const [description, onDescriptionChange] = React.useState('')
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
   const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
 
   const onSubmit = () => {
