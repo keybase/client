@@ -4,7 +4,6 @@ import type * as T from '@/constants/types'
 import {isMobile} from '@/constants/platform'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '@/constants/tabs'
-import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
@@ -110,27 +109,8 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case 'keybase.1.NotifyAudit.rootAuditError':
-          useConfigState
-            .getState()
-            .dispatch.setGlobalError(
-              new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
-            )
-
-          break
-        case 'keybase.1.NotifyAudit.boxAuditError':
-          useConfigState
-            .getState()
-            .dispatch.setGlobalError(
-              new Error(
-                `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
-              )
-            )
-          break
         case 'keybase.1.NotifyBadges.badgeState': {
           const badgeState = action.payload.params.badgeState
-          useConfigState.getState().dispatch.setBadgeState(badgeState)
-
           const counts = badgeStateToBadgeCounts(badgeState)
           if (!isMobile && shouldTriggerTlfLoad(badgeState)) {
             get().dispatch.defer.onFavoritesLoad?.()

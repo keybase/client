@@ -680,13 +680,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useFSState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case 'keybase.1.NotifyAudit.rootAuditError':
-    case 'keybase.1.NotifyAudit.boxAuditError':
-      {
-        const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
-        useNotifState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
     case 'keybase.1.homeUI.homeUIRefresh':
       {
         const {usePeopleState} = require('@/stores/people') as typeof UsePeopleStateType

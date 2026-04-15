@@ -519,6 +519,22 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     },
     onEngineIncoming: action => {
       switch (action.type) {
+        case 'keybase.1.NotifyAudit.rootAuditError':
+          get()
+            .dispatch.setGlobalError(
+              new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
+            )
+          break
+        case 'keybase.1.NotifyAudit.boxAuditError':
+          get().dispatch.setGlobalError(
+            new Error(
+              `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
+            )
+          )
+          break
+        case 'keybase.1.NotifyBadges.badgeState':
+          get().dispatch.setBadgeState(action.payload.params.badgeState)
+          break
         case 'keybase.1.gregorUI.pushState': {
           const {state} = action.payload.params
           setGregorPushState(state)

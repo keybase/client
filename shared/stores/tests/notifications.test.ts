@@ -1,7 +1,6 @@
 /// <reference types="jest" />
 import * as Tabs from '@/constants/tabs'
 import {resetAllStores} from '@/util/zustand'
-import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
 import {useNotifState} from '../notifications'
 
@@ -35,7 +34,7 @@ test('badgeApp derives the widget badge from key state', () => {
   expect(store.getState().widgetBadge).toBe('regular')
 })
 
-test('badge engine updates fan out into config and badge counts', () => {
+test('badge engine updates badge counts and favorites loading', () => {
   const store = useNotifState
   const onFavoritesLoad = jest.fn()
   store.setState(
@@ -74,7 +73,6 @@ test('badge engine updates fan out into config and badge counts', () => {
     type: 'keybase.1.NotifyBadges.badgeState',
   } as any)
 
-  expect(useConfigState.getState().badgeState).toEqual(badgeState)
   expect(onFavoritesLoad).toHaveBeenCalledTimes(1)
   expect(store.getState().mobileAppBadgeCount).toBe(7)
   expect(store.getState().desktopAppBadgeCount).toBe(22)
