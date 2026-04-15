@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 
