@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-import * as React from 'react'
+import type * as React from 'react'
 import {cleanup, render} from '@testing-library/react'
 import * as T from '@/constants/types'
 
@@ -100,9 +100,6 @@ describe('ConfirmReset', () => {
     beforeRemove?.()
 
     expect(mockSubmitResetPrompt).toHaveBeenCalledTimes(1)
-    expect(mockSubmitResetPrompt).toHaveBeenCalledWith(
-      'reset-1',
-      T.RPCGen.ResetPromptResponse.nothing
-    )
+    expect(mockSubmitResetPrompt).toHaveBeenCalledWith('reset-1', T.RPCGen.ResetPromptResponse.nothing)
   })
 })
