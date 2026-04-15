@@ -57,63 +57,79 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
       ? 'This account is eligible to be reset.'
       : `This account will reset in ${formatDurationForAutoreset(timeLeft)}.`
 
+  const content = (
+    <>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
+        <Kb.Box2
+          direction="horizontal"
+          alignItems="center"
+          fullHeight={true}
+          style={Kb.Styles.globalStyles.flexOne}
+        >
+          <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
+          <Kb.Text type={Kb.Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+            Account reset initiated
+          </Kb.Text>
+          <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
+        </Kb.Box2>
+      </Kb.Box2>
+      {error ? (
+        <Kb.Banner color="red" key="errors">
+          <Kb.BannerParagraph bannerColor="red" content={error} />
+        </Kb.Banner>
+      ) : null}
+      <Kb.Box2 fullWidth={true} direction="vertical" style={styles.body}>
+        <Kb.Box2
+          gap="small"
+          direction="vertical"
+          fullWidth={true}
+          style={styles.textContainer}
+          centerChildren={true}
+        >
+          <Kb.ImageIcon
+            type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
+            style={styles.skullIcon}
+          />
+          <Kb.Text type="Body" center={true}>
+            {msg}
+          </Kb.Text>
+          <Kb.Text type="Body" center={true}>
+            {"But... it looks like you're already logged in. Congrats! You should cancel the reset, since "}
+            clearly you have access to your devices.
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.WaitingButton
+          type="Danger"
+          fullWidth={true}
+          onClick={onCancelReset}
+          waitingKey={C.waitingKeyAutoresetCancel}
+          label="Cancel account reset"
+        />
+      </Kb.Box2>
+    </>
+  )
+
+  if (!Kb.Styles.isMobile) {
+    return (
+      <Kb.Popup onHidden={() => {}} style={styles.desktopCover}>
+        <Kb.Box2 direction="vertical" style={styles.desktopModal}>
+          {content}
+        </Kb.Box2>
+      </Kb.Popup>
+    )
+  }
+
   return (
-    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.overlay}>
+    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileOverlay}>
       <Kb.Box2
         direction="vertical"
-        fullHeight={Kb.Styles.isMobile}
-        fullWidth={Kb.Styles.isMobile}
-        style={styles.modal}
+        fullHeight={true}
+        fullWidth={true}
+        style={styles.mobileModal}
       >
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
-          <Kb.Box2
-            direction="horizontal"
-            alignItems="center"
-            fullHeight={true}
-            style={Kb.Styles.globalStyles.flexOne}
-          >
-            <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
-            <Kb.Text type={Kb.Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
-              Account reset initiated
-            </Kb.Text>
-            <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
-          </Kb.Box2>
-        </Kb.Box2>
-        {error ? (
-          <Kb.Banner color="red" key="errors">
-            <Kb.BannerParagraph bannerColor="red" content={error} />
-          </Kb.Banner>
-        ) : null}
-        <Kb.Box2 fullWidth={true} direction="vertical" style={styles.body}>
-          <Kb.Box2
-            gap="small"
-            direction="vertical"
-            fullWidth={true}
-            style={styles.textContainer}
-            centerChildren={true}
-          >
-            <Kb.ImageIcon
-              type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
-              style={styles.skullIcon}
-            />
-            <Kb.Text type="Body" center={true}>
-              {msg}
-            </Kb.Text>
-            <Kb.Text type="Body" center={true}>
-              {"But... it looks like you're already logged in. Congrats! You should cancel the reset, since "}
-              clearly you have access to your devices.
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.Box2>
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.WaitingButton
-            type="Danger"
-            fullWidth={true}
-            onClick={onCancelReset}
-            waitingKey={C.waitingKeyAutoresetCancel}
-            label="Cancel account reset"
-          />
-        </Kb.Box2>
+        {content}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -134,20 +150,21 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     borderStyle: 'solid' as const,
     minHeight: 48,
   },
-  modal: Kb.Styles.platformStyles({
-    common: {
-      backgroundColor: Kb.Styles.globalColors.white,
-    },
-    isElectron: {
-      ...Kb.Styles.desktopStyles.boxShadow,
-      borderRadius: Kb.Styles.borderRadius,
-      overflow: 'hidden',
-      width: 420,
-    },
-    isMobile: {
-      ...Kb.Styles.globalStyles.fillAbsolute,
-    },
-  }),
+  desktopCover: {
+    backgroundColor: Kb.Styles.globalColors.black_20,
+  },
+  desktopModal: {
+    width: 420,
+  },
+  mobileModal: {
+    ...Kb.Styles.globalStyles.fillAbsolute,
+    backgroundColor: Kb.Styles.globalColors.white,
+  },
+  mobileOverlay: {
+    ...Kb.Styles.globalStyles.fillAbsolute,
+    backgroundColor: Kb.Styles.globalColors.white,
+    zIndex: 1000,
+  },
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
@@ -160,18 +177,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       borderBottomLeftRadius: Kb.Styles.borderRadius,
       borderBottomRightRadius: Kb.Styles.borderRadius,
       overflow: 'hidden',
-    },
-  }),
-  overlay: Kb.Styles.platformStyles({
-    common: {
-      ...Kb.Styles.globalStyles.fillAbsolute,
-      zIndex: 1000,
-    },
-    isElectron: {
-      backgroundColor: Kb.Styles.globalColors.black_20,
-    },
-    isMobile: {
-      backgroundColor: Kb.Styles.globalColors.white,
     },
   }),
   skullIcon: {
