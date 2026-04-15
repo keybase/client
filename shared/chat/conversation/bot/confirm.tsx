@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useBotConversationIDKey, useRefreshBotMembershipOnSuccess} from './install'
 
 type Props = {
