@@ -49,7 +49,12 @@ import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useTeamsState} from '@/stores/teams'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
-import {metasReceived as convoMetasReceived, onRouteChanged as onConvoRouteChanged, setConvoDefer} from '@/stores/convostate'
+import {
+  metasReceived as convoMetasReceived,
+  onRouteChanged as onConvoRouteChanged,
+  onTeamBuildingFinished as onConvoTeamBuildingFinished,
+  setConvoDefer,
+} from '@/stores/convostate'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 
@@ -133,7 +138,7 @@ export const initTeamBuildingCallbacks = () => {
           ...(namespace === 'chat'
             ? {
                 onFinishedTeamBuildingChat: users => {
-                  storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(users)
+                  onConvoTeamBuildingFinished(users)
                 },
               }
             : {}),

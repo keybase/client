@@ -28,6 +28,7 @@ These cleanup steps are already done:
 - `metasReceived` now applies convo meta updates from `convostate`
 - first-layout inbox hydration moved out of `chat.updateInboxLayout`
 - `ensureWidgetMetas`, meta queueing, and `unboxRows` now live in `convostate`
+- conversation creation and team-building handoff now live in `convostate`
 
 This means the remaining work is about removing the actual `chat -> convo` logic, not import barrels.
 
@@ -39,21 +40,7 @@ This means the remaining work is about removing the actual `chat -> convo` logic
 
 ## Remaining `chat -> convo` Logic Buckets
 
-### 1. Create Conversation Flow
-
-`createConversation` currently:
-
-- performs the RPC
-- seeds participants/meta
-- navigates pending/new convo state
-- populates pending error convo state
-
-Desired end state:
-
-- conversation-creation flow lives with the feature or pending-convo ownership
-- `chat.tsx` does not navigate threads or write pending convo state
-
-### 2. Engine Notification Fanout
+### 1. Engine Notification Fanout
 
 Most of `onEngineIncomingImpl` is a dispatcher into specific convo stores.
 
@@ -83,7 +70,7 @@ Desired end state:
 - convo-targeted notifications are handled by convo-owned entrypoints
 - `chat.tsx` only handles truly global notifications
 
-### 3. Badge / Unread Ownership
+### 2. Badge / Unread Ownership
 
 This is last because it is the riskiest ownership decision.
 
@@ -101,9 +88,8 @@ Do not decide this early. Resolve simpler buckets first.
 
 ## Recommended Order
 
-1. Create conversation flow
-2. Engine notification fanout
-3. Badge / unread ownership
+1. Engine notification fanout
+2. Badge / unread ownership
 
 ## Acceptance Criteria
 

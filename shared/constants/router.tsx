@@ -370,7 +370,8 @@ export const previewConversation = (p: PreviewConversationParams) => {
     storeRegistry
       .getConvoState(T.Chat.pendingWaitingConversationIDKey)
       .dispatch.navigateToThread('justCreated')
-    storeRegistry.getState('chat').dispatch.createConversation(participants, highlightMessageID)
+    const {createConversation} = require('@/stores/convostate') as typeof import('@/stores/convostate')
+    createConversation(participants, highlightMessageID)
   }
 
   const previewConversationTeam = async () => {

@@ -648,6 +648,90 @@ export const ensureWidgetMetas = (
   unboxRows(missing, true)
 }
 
+export const createConversation = (
+  participants: ReadonlyArray<string>,
+  highlightMessageID?: T.Chat.MessageID
+) => {
+  // TODO This will break if you try to make 2 new conversations at the same time because there is
+  // only one pending conversation state.
+  // The fix involves being able to make multiple pending conversations.
+  const f = async () => {
+    const username = useCurrentUserState.getState().username
+    if (!username) {
+      logger.error('Making a convo while logged out?')
+      return
+    }
+    try {
+      const result = await T.RPCChat.localNewConversationLocalRpcPromise(
+        {
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          membersType: T.RPCChat.ConversationMembersType.impteamnative,
+          tlfName: [...new Set([username, ...participants])].join(','),
+          tlfVisibility: T.RPCGen.TLFVisibility.private,
+          topicType: T.RPCChat.TopicType.chat,
+        },
+        Strings.waitingKeyChatCreating
+      )
+      const {conv, uiConv} = result
+      const conversationIDKey = T.Chat.conversationIDToKey(conv.info.id)
+      if (!conversationIDKey) {
+        logger.warn("Couldn't make a new conversation?")
+        return
+      }
+
+      const meta = Meta.inboxUIItemToConversationMeta(uiConv)
+      if (meta) {
+        metasReceived([meta])
+      }
+
+      const participantInfo: T.Chat.ParticipantInfo = Common.uiParticipantsToParticipantInfo(
+        uiConv.participants ?? []
+      )
+      if (participantInfo.all.length > 0) {
+        getConvoState(T.Chat.stringToConversationIDKey(uiConv.convID)).dispatch.setParticipants(participantInfo)
+      }
+      getConvoState(conversationIDKey).dispatch.navigateToThread('justCreated', highlightMessageID)
+      getConvoState(conversationIDKey).dispatch.defer.chatInboxRefresh('joinedAConversation')
+    } catch (error) {
+      if (error instanceof RPCError) {
+        const f = error.fields as Array<{key?: string}> | undefined
+        const errUsernames = f?.filter(elem => elem.key === 'usernames') as
+          | undefined
+          | Array<{key: string; value: string}>
+        let disallowedUsers: Array<string> = []
+        if (errUsernames?.length) {
+          const {value} = errUsernames[0] ?? {value: ''}
+          disallowedUsers = value.split(',')
+        }
+        const allowedUsers = participants.filter(x => !disallowedUsers.includes(x))
+        getConvoState(T.Chat.pendingErrorConversationIDKey).dispatch.navigateToThread(
+          'justCreated',
+          highlightMessageID,
+          undefined,
+          undefined,
+          {
+            allowedUsers,
+            code: error.code,
+            disallowedUsers,
+            message: error.desc,
+          }
+        )
+      }
+    }
+  }
+  ignorePromise(f())
+}
+
+export const onTeamBuildingFinished = (users: ReadonlySet<T.TB.User>) => {
+  const f = async () => {
+    // need to let the modal hide first else its thrashy
+    await timeoutPromise(500)
+    getConvoState(T.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+    createConversation([...users].map(u => u.id))
+  }
+  ignorePromise(f())
+}
+
 const formatTextForQuoting = (text: string) =>
   text
     .split('\n')

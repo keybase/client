@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -17,10 +16,9 @@ import {useCurrentUserState} from '@/stores/current-user'
 
 const ErrorMessage = () => {
   const createConversationError = useChatThreadRouteParams()?.createConversationError
-  const createConversation = Chat.useChatState(s => s.dispatch.createConversation)
 
   const _onCreateWithoutThem = (allowedUsers: ReadonlyArray<string>) => {
-    createConversation(allowedUsers)
+    ConvoState.createConversation(allowedUsers)
   }
 
   const navigateToInbox = C.Router2.navigateToInbox
