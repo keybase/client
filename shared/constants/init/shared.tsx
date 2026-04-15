@@ -3,8 +3,6 @@ import * as T from '../types'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as Tabs from '@/constants/tabs'
-import {navToProfile} from '@/constants/router'
-
 declare global {
   var __hmr_startupOnce: boolean | undefined
 
@@ -120,9 +118,6 @@ export const initTeamBuildingCallbacks = () => {
   const commonCallbacks = {
     onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => {
       useTeamsState.getState().dispatch.addMembersWizardPushMembers(members)
-    },
-    onShowUserProfile: (username: string) => {
-      navToProfile(username)
     },
   }
 
