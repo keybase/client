@@ -1,4 +1,5 @@
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import {useTeamsState} from '@/stores/teams'
 import type * as T from '@/constants/types'
@@ -8,7 +9,7 @@ type OwnProps = {message: T.Chat.MessageSystemNewChannel}
 
 function SystemNewChannelContainer(p: OwnProps) {
   const {message} = p
-  const teamID = Chat.useChatContext(s => s.meta.teamID)
+  const teamID = ConvoState.useChatContext(s => s.meta.teamID)
   const manageChatChannels = useTeamsState(s => s.dispatch.manageChatChannels)
   const onManageChannels = () => {
     manageChatChannels(teamID)

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import {getConvoState} from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
@@ -14,7 +15,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 
 export const HeaderAreaRight = () => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const pendingWaiting =
     conversationIDKey === Chat.pendingWaitingConversationIDKey ||
     conversationIDKey === Chat.pendingErrorConversationIDKey
@@ -38,9 +39,9 @@ export const HeaderAreaRight = () => {
   //   </>
   // ) : null
 
-  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
   const onShowInfoPanel = () => showInfoPanel(true, undefined)
-  const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const toggleThreadSearch = ConvoState.useChatContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = () => {
     // fix a race with the keyboard going away and coming back quickly
     Keyboard.dismiss()
@@ -68,8 +69,8 @@ enum HeaderType {
 }
 
 const HeaderBranchContainer = function HeaderBranchContainer() {
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const type = Chat.useChatContext(s => {
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const type = ConvoState.useChatContext(s => {
     const meta = s.meta
     const teamName = meta.teamname
     if (teamName) {
@@ -110,9 +111,9 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
           headerLeft: (props: HeaderBackButtonProps) => {
             const {labelStyle, ...rest} = props
             return (
-              <Chat.ChatProvider id={conversationIDKey}>
+              <ConvoState.ChatProvider id={conversationIDKey}>
                 <BadgeHeaderLeftArray {...rest} />
-              </Chat.ChatProvider>
+              </ConvoState.ChatProvider>
             )
           },
         }
@@ -141,15 +142,15 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
         }
       : {
           headerRight: () => (
-            <Chat.ChatProvider id={conversationIDKey}>
+            <ConvoState.ChatProvider id={conversationIDKey}>
               <HeaderAreaRight />
-            </Chat.ChatProvider>
+            </ConvoState.ChatProvider>
           ),
         }),
     headerTitle: () => (
-      <Chat.ChatProvider id={conversationIDKey}>
+      <ConvoState.ChatProvider id={conversationIDKey}>
         <HeaderBranchContainer />
-      </Chat.ChatProvider>
+      </ConvoState.ChatProvider>
     ),
   }
 }
@@ -157,7 +158,7 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
 export const useBackBadge = () => {
   const visiblePath = C.Router2.getVisiblePath()
   const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const badgeNumber = Chat.useChatState(s => s.getBackCount(conversationIDKey))
   if (!onTopOfInbox) return 0
   return badgeNumber
@@ -167,8 +168,8 @@ const shhIconColor = Kb.Styles.globalColors.black_20
 const shhIconFontSize = 24
 
 const ShhIcon = function ShhIcon() {
-  const isMuted = Chat.useChatContext(s => s.meta.isMuted)
-  const mute = Chat.useChatContext(s => s.dispatch.mute)
+  const isMuted = ConvoState.useChatContext(s => s.meta.isMuted)
+  const mute = ConvoState.useChatContext(s => s.dispatch.mute)
   const unMuteConversation = () => {
     mute(false)
   }
@@ -191,7 +192,7 @@ const useMaxWidthStyle = () => {
 }
 
 const ChannelHeader = () => {
-  const {channelname, smallTeam, teamname, teamID} = Chat.useChatContext(
+  const {channelname, smallTeam, teamname, teamID} = ConvoState.useChatContext(
     C.useShallow(s => {
       const meta = s.meta
       const {channelname, teamname, teamType, teamID} = meta
@@ -241,8 +242,8 @@ const emptyArray = new Array<string>()
 const UsernameHeader = () => {
   const you = useCurrentUserState(s => s.username)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const {participants, theirFullname} = Chat.useChatContext(
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const {participants, theirFullname} = ConvoState.useChatContext(
     C.useShallow(s => {
       const meta = s.meta
       const participants = meta.teamname ? emptyArray : participantInfo.name
@@ -290,8 +291,8 @@ const UsernameHeader = () => {
 }
 
 const PhoneOrEmailHeader = () => {
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const meta = Chat.useChatContext(s => s.meta)
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const meta = ConvoState.useChatContext(s => s.meta)
   const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)

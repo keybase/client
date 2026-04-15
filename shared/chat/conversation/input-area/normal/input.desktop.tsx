@@ -1,4 +1,5 @@
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -312,7 +313,7 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
 }
 
 const GiphyButton = function GiphyButton() {
-  const toggleGiphyPrefill = Chat.useChatUIContext(s => s.dispatch.toggleGiphyPrefill)
+  const toggleGiphyPrefill = ConvoState.useChatUIContext(s => s.dispatch.toggleGiphyPrefill)
   const onGiphyToggle = toggleGiphyPrefill
 
   return (
@@ -331,7 +332,7 @@ const FileButton = function FileButton(p: {
 }) {
   const {setHtmlInputRef} = p
   const htmlInputRef = React.useRef<HTMLInputElement | null>(null)
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const pickFile = () => {
     const paths = htmlInputRef.current?.files ? fileListToPaths(htmlInputRef.current.files) : undefined
     const pathAndOutboxIDs = paths?.reduce<Array<{path: string}>>((arr, path: string) => {
@@ -389,7 +390,7 @@ const useKeyboard = (p: UseKeyboardProps) => {
   const {htmlInputRef, focusInput, isEditing, onKeyDown, onCancelEditing} = p
   const {onChangeText, onEditLastMessage, showReplyPreview} = p
   const lastText = React.useRef('')
-  const setReplyTo = Chat.useChatUIContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = ConvoState.useChatUIContext(s => s.dispatch.setReplyTo)
   const {scrollDown, scrollUp} = React.useContext(ScrollContext)
   const onCancelReply = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))
@@ -518,7 +519,7 @@ const PlatformInput = function PlatformInput(p: Props) {
   const focusInput = () => {
     inputRef.current?.focus()
   }
-  const setEditing = Chat.useChatUIContext(s => s.dispatch.setEditing)
+  const setEditing = ConvoState.useChatUIContext(s => s.dispatch.setEditing)
   const onEditLastMessage = () => {
     setEditing('last')
   }

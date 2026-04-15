@@ -1,6 +1,7 @@
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -85,7 +86,7 @@ const EmptyRow = (props: Props) => {
   const you = useCurrentUserState(s => s.username)
   const onSecondaryAction = useSecondaryAction(props)
   const addToTeam = Teams.useTeamsState(s => s.dispatch.addToTeam)
-  const joinConversation = Chat.useConvoState(
+  const joinConversation = ConvoState.useConvoState(
     conversationIDKey ?? Chat.noConversationIDKey,
     s => s.dispatch.joinConversation
   )

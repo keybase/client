@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -183,11 +184,11 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   React.useEffect(() => {
     if (!canDirectNav || hasNavigatedRef.current) return
     hasNavigatedRef.current = true
-    const {dispatch} = Chat.getConvoState(selectedConversationIDKey)
-    text && Chat.getConvoUIState(selectedConversationIDKey).dispatch.injectIntoInput(text)
+    const {dispatch} = ConvoState.getConvoState(selectedConversationIDKey)
+    text && ConvoState.getConvoUIState(selectedConversationIDKey).dispatch.injectIntoInput(text)
     dispatch.navigateToThread('extension')
     if (sendPaths.length > 0) {
-      const meta = Chat.getConvoState(selectedConversationIDKey).meta
+      const meta = ConvoState.getConvoState(selectedConversationIDKey).meta
       const tlfName = meta.conversationIDKey === selectedConversationIDKey ? meta.tlfname : ''
       navigateAppend({
         name: 'chatAttachmentGetTitles',

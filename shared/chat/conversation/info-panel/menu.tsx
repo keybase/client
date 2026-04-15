@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import type * as React from 'react'
@@ -29,8 +30,8 @@ const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
   const {isSmallTeam, pteamID} = p
   const username = useCurrentUserState(s => s.username)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const meta = Chat.useChatContext(s => s.meta)
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const meta = ConvoState.useChatContext(s => s.meta)
   const teamMeta = Teams.useTeamsState(s => (pteamID ? Teams.getTeamMeta(s, pteamID) : undefined))
   const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
@@ -102,7 +103,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const onAddPeople = () => {
     teamID && startAddMembersWizard(teamID)
   }
-  const chatNavigateAppend = Chat.useChatNavigateAppend()
+  const chatNavigateAppend = ConvoState.useChatNavigateAppend()
   const routerNavigateAppend = C.Router2.navigateAppend
   const onBlockConv = () => {
     chatNavigateAppend(conversationIDKey => ({
@@ -116,20 +117,20 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     }))
   }
 
-  const onJoinChannel = Chat.useChatContext(s => s.dispatch.joinConversation)
-  const onLeaveChannel = Chat.useChatContext(s => s.dispatch.leaveConversation)
+  const onJoinChannel = ConvoState.useChatContext(s => s.dispatch.joinConversation)
+  const onLeaveChannel = ConvoState.useChatContext(s => s.dispatch.leaveConversation)
   const onLeaveTeam = () => teamID && chatNavigateAppend(() => ({name: 'teamReallyLeaveTeam', params: {teamID}}))
   const onManageChannels = () => {
     manageChatChannels(teamID)
     addTeamWithChosenChannels(teamID)
   }
   const clearModals = C.Router2.clearModals
-  const markTeamAsRead = Chat.useChatContext(s => s.dispatch.markTeamAsRead)
+  const markTeamAsRead = ConvoState.useChatContext(s => s.dispatch.markTeamAsRead)
   const onMarkAsRead = () => {
     clearModals()
     markTeamAsRead(teamID)
   }
-  const setMarkAsUnread = Chat.useChatContext(s => s.dispatch.setMarkAsUnread)
+  const setMarkAsUnread = ConvoState.useChatContext(s => s.dispatch.setMarkAsUnread)
   const onMarkAsUnread = () => {
     clearModals()
     setMarkAsUnread()
@@ -138,11 +139,11 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     clearModals()
     chatNavigateAppend(() => ({name: 'team', params: {teamID}}))
   }
-  const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
+  const hideConversation = ConvoState.useChatContext(s => s.dispatch.hideConversation)
   const onHideConv = () => {
     hideConversation(true)
   }
-  const onMuteConv = Chat.useChatContext(s => s.dispatch.mute)
+  const onMuteConv = ConvoState.useChatContext(s => s.dispatch.mute)
   const onUnhideConv = () => {
     hideConversation(false)
   }
@@ -209,7 +210,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     ),
   } as const
 
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const hideItem = (() => {
     if (!conversationIDKey) {
       return null
@@ -396,8 +397,8 @@ type AdhocHeaderProps = {
 }
 
 const AdhocHeader = (props: AdhocHeaderProps) => {
-  const meta = Chat.useChatContext(s => s.meta)
-  const participants = Chat.useChatContext(s => s.participants)
+  const meta = ConvoState.useChatContext(s => s.meta)
+  const participants = ConvoState.useChatContext(s => s.participants)
   const {channelHumans} = InfoPanelCommon.useHumans(participants, meta)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>

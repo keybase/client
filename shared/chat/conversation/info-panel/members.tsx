@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -30,9 +31,9 @@ type Item =
 type Section = Kb.SectionType<Item>
 
 const MembersTab = (props: Props) => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const infoMap = useUsersState(s => s.infoMap)
-  const {channelname, teamID, teamname} = Chat.useChatContext(
+  const {channelname, teamID, teamname} = ConvoState.useChatContext(
     C.useShallow(s => {
       const {meta} = s
       const {teamID, channelname, teamname} = meta
@@ -44,8 +45,8 @@ const MembersTab = (props: Props) => {
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && !teamMembers
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const participants = Chat.useChatContext(
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const participants = ConvoState.useChatContext(
     C.useShallow(s => Chat.getBotsAndParticipants(s.meta, s.participants, teamMembers).participants)
   )
   const [lastTeamName, setLastTeamName] = React.useState('')

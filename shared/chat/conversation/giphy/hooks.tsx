@@ -1,8 +1,8 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 
 export const useHooks = () => {
-  const giphy = Chat.useChatUIContext(s => s.giphyResult)
-  const onClick = Chat.useChatContext(s => s.dispatch.giphySend)
+  const giphy = ConvoState.useChatUIContext(s => s.giphyResult)
+  const onClick = ConvoState.useChatContext(s => s.dispatch.giphySend)
   return {
     galleryURL: giphy?.galleryUrl ?? '',
     onClick,

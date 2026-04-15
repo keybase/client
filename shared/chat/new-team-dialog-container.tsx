@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import {CreateNewTeam} from '../teams/new-team'
 import {useTeamsState} from '@/stores/teams'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -10,7 +10,7 @@ const NewTeamDialog = () => {
   const onCancel = () => {
     navigateUp()
   }
-  const participantInfo = Chat.useChatContext(s => s.participants)
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
   const username = useCurrentUserState(s => s.username)
   const createNewTeam = useTeamsState(s => s.dispatch.createNewTeam)
   const onSubmit = (teamname: string) => {

@@ -1,11 +1,11 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 const Preview = () => {
-  const meta = Chat.useChatContext(s => s.meta)
-  const onJoinChannel = Chat.useChatContext(s => s.dispatch.joinConversation)
-  const onLeaveChannel = Chat.useChatContext(s => s.dispatch.leaveConversation)
+  const meta = ConvoState.useChatContext(s => s.meta)
+  const onJoinChannel = ConvoState.useChatContext(s => s.dispatch.joinConversation)
+  const onLeaveChannel = ConvoState.useChatContext(s => s.dispatch.leaveConversation)
   const {channelname} = meta
   const [clicked, setClicked] = React.useState<undefined | 'join' | 'leave'>(undefined)
 

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import CommandMarkdown from '../../command-markdown'
@@ -25,8 +26,8 @@ const useHintText = (p: {
 }) => {
   const {minWriterRole, isExploding, isEditing, cannotWrite} = p
   const username = useCurrentUserState(s => s.username)
-  const {teamType, teamname, channelname} = Chat.useChatContext(s => s.meta)
-  const participantInfoName = Chat.useChatContext(s => s.participants.name)
+  const {teamType, teamname, channelname} = ConvoState.useChatContext(s => s.meta)
+  const participantInfoName = ConvoState.useChatContext(s => s.participants.name)
   if (Kb.Styles.isMobile && isExploding) {
     return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   }
@@ -69,11 +70,11 @@ const useHintText = (p: {
 }
 
 const Input = function Input() {
-  const showGiphySearch = Chat.useChatUIContext(s => s.giphyWindow)
-  const showCommandMarkdown = Chat.useChatContext(s => !!s.commandMarkdown)
-  const showCommandStatus = Chat.useChatUIContext(s => !!s.commandStatus)
-  const replyTo = Chat.useChatUIContext(s => s.replyTo)
-  const showReplyTo = Chat.useChatContext(s => !!s.messageMap.get(replyTo)?.id)
+  const showGiphySearch = ConvoState.useChatUIContext(s => s.giphyWindow)
+  const showCommandMarkdown = ConvoState.useChatContext(s => !!s.commandMarkdown)
+  const showCommandStatus = ConvoState.useChatUIContext(s => !!s.commandStatus)
+  const replyTo = ConvoState.useChatUIContext(s => s.replyTo)
+  const showReplyTo = ConvoState.useChatContext(s => !!s.messageMap.get(replyTo)?.id)
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
       {showReplyTo && <ReplyPreview />}
@@ -113,14 +114,14 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
   const params = getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)
   const infoPanelShowing = !!(params && typeof params === 'object' && 'infoPanel' in params && params.infoPanel)
-  const uiData = Chat.useChatUIContext(
+  const uiData = ConvoState.useChatUIContext(
     C.useShallow(s => ({
       editOrdinal: s.editing,
       replyTo: s.replyTo,
       unsentText: s.unsentText,
     }))
   )
-  const data = Chat.useChatContext(
+  const data = ConvoState.useChatContext(
     C.useShallow(s => {
       const {meta, id: conversationIDKey, messageMap} = s
       const {sendMessage, jumpToRecent, setExplodingMode} = s.dispatch
@@ -149,8 +150,8 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const {suggestBotCommandsUpdateStatus, showReplyPreview} = data
   const {editOrdinal, unsentText} = uiData
   const isEditing = !!editOrdinal
-  const setEditing = Chat.useChatUIContext(s => s.dispatch.setEditing)
-  const updateUnsentText = Chat.useChatUIContext(s => s.dispatch.injectIntoInput)
+  const setEditing = ConvoState.useChatUIContext(s => s.dispatch.setEditing)
+  const updateUnsentText = ConvoState.useChatUIContext(s => s.dispatch.injectIntoInput)
 
   const [explodingModeSeconds, setExplodingModeSeconds] = React.useState(explodingModeSecondsRaw)
   const isExploding = explodingModeSeconds !== 0
@@ -177,7 +178,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     if (!text) return
     injectText('', true)
     sendMessage(text)
-    const cs = Chat.getConvoState(conversationIDKey)
+    const cs = ConvoState.getConvoState(conversationIDKey)
     if (cs.messageCenterOrdinal) {
       cs.dispatch.toggleThreadSearch(true)
       jumpToRecent()

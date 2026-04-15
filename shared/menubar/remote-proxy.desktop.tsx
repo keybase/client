@@ -1,6 +1,7 @@
 // A mirror of the remote menubar windows.
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import {useConfigState} from '@/stores/config'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -125,7 +126,7 @@ const getWidgetConversationSnapshot = (
 
   const conversations: Array<Conversation> = []
   for (const widget of widgetList) {
-    const conversation = toRemoteConversation(widget.convID, Chat.getConvoState(widget.convID))
+    const conversation = toRemoteConversation(widget.convID, ConvoState.getConvoState(widget.convID))
     if (conversation) {
       conversations.push(conversation)
     }
@@ -145,8 +146,8 @@ const useWidgetConversationList = (
       }
 
       const unsubs = widgetList.map(widget => {
-        Chat.getConvoState(widget.convID)
-        return Chat.chatStores.get(widget.convID)?.subscribe((state, oldState) => {
+        ConvoState.getConvoState(widget.convID)
+        return ConvoState.chatStores.get(widget.convID)?.subscribe((state, oldState) => {
           if (convoDiff(state, oldState)) {
             onStoreChange()
           }

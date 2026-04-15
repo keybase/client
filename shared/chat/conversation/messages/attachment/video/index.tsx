@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
 import VideoImpl from './videoimpl'
 import {
@@ -23,7 +24,7 @@ type Props = {
 function Video(p: Props) {
   const {message, ordinal, showPopup} = p
   const {isCollapsed, submitState, title, transferProgress, transferState} = message
-  const attachmentPreviewSelect = Chat.useChatContext(s => s.dispatch.attachmentPreviewSelect)
+  const attachmentPreviewSelect = ConvoState.useChatContext(s => s.dispatch.attachmentPreviewSelect)
   const fileName = getAttachmentDisplayFileName(message)
   const showTitle = !!title
   const openFullscreen = () => {

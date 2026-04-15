@@ -1,21 +1,22 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
 import {useFSState} from '@/stores/fs'
 
 const blankMessage = Chat.makeMessageAttachment({})
 export const useData = (initialOrdinal: T.Chat.Ordinal) => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const [ordinal, setOrdinal] = React.useState(initialOrdinal)
 
-  const message: T.Chat.MessageAttachment = Chat.useChatContext(s => {
+  const message: T.Chat.MessageAttachment = ConvoState.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : blankMessage
   })
 
-  const loadNextAttachment = Chat.useChatContext(s => s.dispatch.loadNextAttachment)
+  const loadNextAttachment = ConvoState.useChatContext(s => s.dispatch.loadNextAttachment)
   const onSwitchAttachment = (backInTime: boolean) => {
     const f = async () => {
       if (conversationIDKey !== blankMessage.conversationIDKey) {
@@ -37,8 +38,8 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
     s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
   )
   const navigateUp = C.Router2.navigateUp
-  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
-  const attachmentDownload = Chat.useChatContext(s => s.dispatch.attachmentDownload)
+  const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
+  const attachmentDownload = ConvoState.useChatContext(s => s.dispatch.attachmentDownload)
   const {downloadPath, fileURL: path, fullHeight, fullWidth, fileType} = message
   const {previewHeight, previewURL: previewPath, previewWidth, title, transferProgress} = message
   const {height: clampedHeight, width: clampedWidth} = Chat.clampImageSize(

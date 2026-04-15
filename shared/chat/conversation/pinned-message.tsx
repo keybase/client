@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
@@ -7,7 +8,7 @@ import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const PinnedMessage = function PinnedMessage() {
-  const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = Chat.useChatContext(
+  const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = ConvoState.useChatContext(
     C.useShallow(s => {
       const {meta, dispatch, id: conversationIDKey} = s
       const teamname = meta.teamname

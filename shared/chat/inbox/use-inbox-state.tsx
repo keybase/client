@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
@@ -86,13 +87,13 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     if (prevIsFocusedRef.current === isFocused) return
     prevIsFocusedRef.current = isFocused
     if (C.isMobile && isFocused && Chat.isSplit) {
-      Chat.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
+      ConvoState.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
     }
   }, [isFocused])
 
   C.useOnMountOnce(() => {
     if (!C.isMobile) {
-      Chat.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
+      ConvoState.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
     }
     if (!C.isPhone && !inboxHasLoaded) {
       inboxRefresh('componentNeverLoaded')

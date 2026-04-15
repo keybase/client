@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import type {StylesCrossPlatform} from '@/styles'
 import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
@@ -107,7 +108,7 @@ type NewReactionButtonProps = {
 export function NewReactionButton(p: NewReactionButtonProps) {
   const ordinal = useOrdinal()
   const isDarkMode = useColorScheme() === 'dark'
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const onOpenEmojiPicker = () => {
     navigateAppend(conversationIDKey => ({
       name: 'chatChooseEmoji',

@@ -10,6 +10,7 @@ import * as Z from '@/util/zustand'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import type * as Router2 from '@/constants/router'
+import type {RefreshReason} from '@/stores/chat-shared'
 import {ProviderScreen} from '@/stores/convostate'
 import type {GetOptionsRet, RouteDef} from '@/constants/types/router'
 import {RPCError} from '@/util/errors'
@@ -182,25 +183,13 @@ const initialStore: Store = {
   userReacjis: defaultUserReacjis,
 }
 
-export type RefreshReason =
-  | 'bootstrap'
-  | 'componentNeverLoaded'
-  | 'inboxSyncedCurrentButEmpty'
-  | 'inboxStale'
-  | 'inboxSyncedClear'
-  | 'inboxSyncedUnknown'
-  | 'joinedAConversation'
-  | 'leftAConversation'
-  | 'teamTypeChanged'
-  | 'maybeKickedFromTeam'
-  | 'widgetRefresh'
-  | 'shareConfigSearch'
-
 export type State = Store & {
   dispatch: {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
+    dismissBlockButtons: (teamID: T.RPCGen.TeamID) => void
+    dismissBlockButtonsIfPresent: (teamID: T.RPCGen.TeamID) => void
     ensureWidgetMetas: () => void
     inboxRefresh: (reason: RefreshReason) => void
     setInboxRetriedOnCurrentEmpty: (retried: boolean) => void
@@ -270,6 +259,23 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
     clearMetas: () => {
       for (const [, cs] of chatStores) {
         cs.getState().dispatch.setMeta()
+      }
+    },
+    dismissBlockButtons: teamID => {
+      const f = async () => {
+        try {
+          await T.RPCGen.userDismissBlockButtonsRpcPromise({tlfID: teamID})
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`Couldn't dismiss block buttons: ${error.message}`)
+          }
+        }
+      }
+      ignorePromise(f())
+    },
+    dismissBlockButtonsIfPresent: teamID => {
+      if (get().blockButtonsMap.has(teamID)) {
+        get().dispatch.dismissBlockButtons(teamID)
       }
     },
     createConversation: (participants, highlightMessageID) => {
@@ -1355,8 +1361,8 @@ export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
   }
 }
 
-export * from '@/stores/convostate'
 export * from '@/stores/inbox-rows'
+export type {RefreshReason} from '@/stores/chat-shared'
 export * from '@/constants/chat/common'
 export * from '@/constants/chat/meta'
 export * from '@/constants/chat/message'

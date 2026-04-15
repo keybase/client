@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import {openSMS as _openSMS} from '@/util/misc'
@@ -12,7 +12,7 @@ const installMessage = `I sent you encrypted messages on Keybase. You can instal
 
 const Invite = () => {
   const linkUrlProps = Kb.useClickURL('https://keybase.io/app')
-  const participantInfo = Chat.useChatContext(s => s.participants)
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
   const participantInfoAll = participantInfo.all
   const users = participantInfoAll.filter(p => p.includes('@'))
 
@@ -33,7 +33,7 @@ const Invite = () => {
 
   const usernameToContactName = participantInfo.contactName
 
-  const onDismiss = Chat.useChatContext(s => s.dispatch.dismissBottomBanner)
+  const onDismiss = ConvoState.useChatContext(s => s.dispatch.dismissBottomBanner)
 
   const theirName =
     users.length === 1
@@ -93,7 +93,7 @@ const Invite = () => {
 const Broken = () => {
   const following = useFollowerState(s => s.following)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = Chat.useChatContext(s => s.participants)
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
   const users = participantInfo.all.filter(p => following.has(p) && infoMap.get(p)?.broken)
   return <Kb.ProofBrokenBanner users={users} />
 }
@@ -101,9 +101,9 @@ const Broken = () => {
 const BannerContainer = function BannerContainer() {
   const following = useFollowerState(s => s.following)
   const infoMap = useUsersState(s => s.infoMap)
-  const dismissed = Chat.useChatContext(s => s.dismissedInviteBanners)
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const type = Chat.useChatContext(s => {
+  const dismissed = ConvoState.useChatContext(s => s.dismissedInviteBanners)
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const type = ConvoState.useChatContext(s => {
     const teamType = s.meta.teamType
     if (teamType !== 'adhoc') {
       return 'none'

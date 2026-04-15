@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
@@ -118,9 +119,9 @@ const Channel = (props: OwnProps) => {
   const conversationIDKey = props.conversationIDKey
   const providedTab = props.selectedTab
 
-  const meta = Chat.useConvoState(conversationIDKey, s => s.meta)
+  const meta = ConvoState.useConvoState(conversationIDKey, s => s.meta)
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
-  const {bots, participants: _participants} = Chat.useConvoState(
+  const {bots, participants: _participants} = ConvoState.useConvoState(
     conversationIDKey,
     C.useDeep(s =>
       Chat.getBotsAndParticipants(meta, s.participants, teamMembers ?? emptyMapForUseSelector, true /* sort */)

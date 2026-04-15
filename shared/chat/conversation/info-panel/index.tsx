@@ -1,4 +1,5 @@
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
@@ -17,8 +18,8 @@ type Props = {
 
 const InfoPanelConnector = (ownProps: Props) => {
   const initialTab = ownProps.tab
-  const conversationIDKey = Chat.useChatContext(s => s.id)
-  const meta = Chat.useConvoState(conversationIDKey, s => s.meta)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const meta = ConvoState.useConvoState(conversationIDKey, s => s.meta)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
   const yourRole = Teams.useTeamsState(s => Teams.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
@@ -28,8 +29,8 @@ const InfoPanelConnector = (ownProps: Props) => {
   const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab ?? 'members')
   const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
-  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
-  const clearAttachmentView = Chat.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
+  const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
+  const clearAttachmentView = ConvoState.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
   React.useEffect(() => {
     return () => {
       // Only call showInfoPanel(false) on mobile where the panel is a separate route.

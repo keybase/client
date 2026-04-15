@@ -1,6 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
 import {useBotConversationIDKey, useRefreshBotMembershipOnSuccess} from './install'
 
@@ -14,8 +15,8 @@ const ConfirmBotRemoveImpl = (props: {botUsername: string; teamID?: T.Teams.Team
   const {botUsername, teamID} = props
   const clearModals = C.Router2.clearModals
   const error = C.Waiting.useAnyErrors(C.waitingKeyChatBotRemove)
-  const removeBotMember = Chat.useChatContext(s => s.dispatch.removeBotMember)
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const removeBotMember = ConvoState.useChatContext(s => s.dispatch.removeBotMember)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const onClose = () => {
     clearModals()
   }
@@ -47,9 +48,9 @@ const ConfirmBotRemove = (props: Props) => {
   const {teamID, botUsername} = props
   const conversationIDKey = useBotConversationIDKey(props.conversationIDKey, teamID)
   return conversationIDKey ? (
-    <Chat.ChatProvider id={conversationIDKey}>
+    <ConvoState.ChatProvider id={conversationIDKey}>
       <ConfirmBotRemoveImpl botUsername={botUsername} teamID={teamID} />
-    </Chat.ChatProvider>
+    </ConvoState.ChatProvider>
   ) : null
 }
 

@@ -1,4 +1,5 @@
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {Portal} from '@/common-adapters/portal.native'
@@ -364,7 +365,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     setStaged(false)
     setShowAudioSend(false)
   }
-  const setCommandStatusInfo = Chat.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
+  const setCommandStatusInfo = ConvoState.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
 
   const startRecording = () => {
     const checkPerms = async () => {
@@ -420,7 +421,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     return
   }
 
-  const sendAudioRecording = Chat.useChatContext(s => s.dispatch.sendAudioRecording)
+  const sendAudioRecording = ConvoState.useChatContext(s => s.dispatch.sendAudioRecording)
 
   const sendRecording = () => {
     const impl = async () => {

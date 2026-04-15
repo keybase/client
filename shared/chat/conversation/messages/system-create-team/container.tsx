@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
@@ -10,7 +11,7 @@ type OwnProps = {message: T.Chat.MessageSystemCreateTeam}
 
 function SystemCreateTeamContainer(p: OwnProps) {
   const {creator} = p.message
-  const {showInfoPanel, teamID, teamname} = Chat.useChatContext(
+  const {showInfoPanel, teamID, teamname} = ConvoState.useChatContext(
     C.useShallow(s => {
       const {teamID, teamname} = s.meta
       const {showInfoPanel} = s.dispatch

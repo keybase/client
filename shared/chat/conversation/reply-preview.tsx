@@ -1,10 +1,11 @@
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 
 const ReplyPreview = () => {
-  const rordinal = Chat.useChatUIContext(s => s.replyTo)
-  const message = Chat.useChatContext(s => {
+  const rordinal = ConvoState.useChatUIContext(s => s.replyTo)
+  const message = ConvoState.useChatContext(s => {
     return rordinal ? s.messageMap.get(rordinal) : null
   })
   let text = ''
@@ -30,7 +31,7 @@ const ReplyPreview = () => {
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
   const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 80) : null
-  const setReplyTo = Chat.useChatUIContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = ConvoState.useChatUIContext(s => s.dispatch.setReplyTo)
   const onCancel = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))
   }

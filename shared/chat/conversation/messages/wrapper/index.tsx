@@ -1,4 +1,5 @@
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import {chatDebugEnabled} from '@/constants/chat/debug'
 import logger from '@/logger'
 import {PerfProfiler} from '@/perf/react-profiler'
@@ -92,7 +93,7 @@ const renderMessageRow = (type: T.Chat.RenderMessageType, p: Props): React.React
 
 export const MessageRow = function MessageRow(p: Props) {
   const {ordinal} = p
-  const type = Chat.useChatContext(s => s.messageTypeMap.get(ordinal) ?? 'text')
+  const type = ConvoState.useChatContext(s => s.messageTypeMap.get(ordinal) ?? 'text')
   const content = renderMessageRow(type, p)
   if (!content) {
     if (type === 'deleted') {

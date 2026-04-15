@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -13,9 +14,9 @@ type Props = {ordinal: T.Chat.Ordinal}
 type PickerState = 'picker' | 'title'
 
 const TeamPicker = (props: Props) => {
-  const srcConvID = Chat.useChatContext(s => s.id)
+  const srcConvID = ConvoState.useChatContext(s => s.id)
   const ordinal = props.ordinal
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+  const message = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
   const dstConvIDRef = React.useRef<Uint8Array | undefined>(undefined)

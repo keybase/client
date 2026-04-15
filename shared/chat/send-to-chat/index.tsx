@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -35,8 +36,8 @@ export const MobileSendToChat = (props: Props) => {
   const clearModals = C.Router2.clearModals
   const fileContext = useFSState(s => s.fileContext)
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
-    const {dispatch} = Chat.getConvoState(conversationIDKey)
-    text && Chat.getConvoUIState(conversationIDKey).dispatch.injectIntoInput(text)
+    const {dispatch} = ConvoState.getConvoState(conversationIDKey)
+    text && ConvoState.getConvoUIState(conversationIDKey).dispatch.injectIntoInput(text)
     if (sendPaths?.length) {
       navigateAppend({
         name: 'chatAttachmentGetTitles',
@@ -74,7 +75,7 @@ const DesktopSendToChat = (props: Props) => {
     setConvName(convname)
   }
   const onSend = () => {
-    const {dispatch} = Chat.getConvoState(conversationIDKey)
+    const {dispatch} = ConvoState.getConvoState(conversationIDKey)
     sendPaths.forEach(path =>
       dispatch.attachmentsUpload(
         [{path: T.FS.pathToString(path)}],
@@ -83,7 +84,7 @@ const DesktopSendToChat = (props: Props) => {
       )
     )
     clearModals()
-    Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
+    ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
   }
   return (
     <DesktopSendToChatRender

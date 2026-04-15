@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {MessageContext, useOrdinal} from '../ids-context'
@@ -360,12 +361,12 @@ const getEditCancelRetryData = (
 // Combined selector hook that fetches all common wrapper data in a single subscription.
 export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
   const you = useCurrentUserState(s => s.username)
-  const editing = Chat.useChatUIContext(s => s.editing)
-  const uiDispatch = Chat.useChatUIContext(
+  const editing = ConvoState.useChatUIContext(s => s.editing)
+  const uiDispatch = ConvoState.useChatUIContext(
     C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
   )
 
-  return Chat.useChatContext(
+  return ConvoState.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal) ?? missingMessage
       const commonData = getCommonMessageData({
@@ -391,12 +392,12 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
 
 const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
   const you = useCurrentUserState(s => s.username)
-  const editing = Chat.useChatUIContext(s => s.editing)
-  const uiDispatch = Chat.useChatUIContext(
+  const editing = ConvoState.useChatUIContext(s => s.editing)
+  const uiDispatch = ConvoState.useChatUIContext(
     C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
   )
 
-  return Chat.useChatContext(
+  return ConvoState.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal) ?? missingMessage
       const commonData = getCommonMessageData({

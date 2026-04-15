@@ -1,9 +1,9 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 
 function LeftContainer() {
-  const meta = Chat.useChatContext(s => s.meta)
+  const meta = ConvoState.useChatContext(s => s.meta)
   const {channelname, teamType, teamname} = meta
   const isBigTeam = teamType === 'big'
 

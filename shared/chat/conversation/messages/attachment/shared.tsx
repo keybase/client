@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -79,7 +80,7 @@ export const TransferIcon = (p: {
       default:
     }
   }
-  const download = Chat.useChatContext(s =>
+  const download = ConvoState.useChatContext(s =>
     C.isMobile ? s.dispatch.messageAttachmentNativeSave : s.dispatch.attachmentDownload
   )
   const onDownload = () => {
@@ -234,7 +235,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const useCollapseAction = (ordinal: T.Chat.Ordinal) => {
-  const toggleMessageCollapse = Chat.useChatContext(s => s.dispatch.toggleMessageCollapse)
+  const toggleMessageCollapse = ConvoState.useChatContext(s => s.dispatch.toggleMessageCollapse)
   const onCollapse = () => {
     toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
   }

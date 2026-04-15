@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import CoinFlipError from './errors'
@@ -10,7 +11,7 @@ import {pluralize} from '@/util/string'
 
 function CoinFlipContainer() {
   const ordinal = useOrdinal()
-  const {isSendError, text, flipGameID, sendMessage} = Chat.useChatContext(
+  const {isSendError, text, flipGameID, sendMessage} = ConvoState.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal)
       const isSendError = message?.type === 'text' ? !!message.errorReason : false
@@ -20,7 +21,7 @@ function CoinFlipContainer() {
       return {flipGameID, isSendError, message, sendMessage, text}
     })
   )
-  const status = Chat.useChatContext(s => s.flipStatusMap.get(flipGameID))
+  const status = ConvoState.useChatContext(s => s.flipStatusMap.get(flipGameID))
   const onFlipAgain = () => {
     text && sendMessage(text.stringValue())
   }

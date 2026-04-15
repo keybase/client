@@ -1,8 +1,8 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 
 const MakeTeam = () => {
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const onShowNewTeamDialog = () =>
     navigateAppend(conversationIDKey => ({name: 'chatShowNewTeamDialog', params: {conversationIDKey}}))
   return (

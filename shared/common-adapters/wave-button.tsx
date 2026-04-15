@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import {Box2} from './box'
 import Icon from './icon'
@@ -35,15 +36,15 @@ const getWaveWaitingKey = (recipient: string) => {
 }
 
 const WaveButton = (props: Props) => {
-  const hasContext = Chat.useHasContext()
+  const hasContext = ConvoState.useHasContext()
   if (props.username) {
     if (hasContext) {
       return <WaveButtonImpl {...props} />
     } else {
       return (
-        <Chat.ChatProvider key="wave" id="" canBeNull={true}>
+        <ConvoState.ChatProvider key="wave" id="" canBeNull={true}>
           <WaveButtonImpl {...props} />
-        </Chat.ChatProvider>
+        </ConvoState.ChatProvider>
       )
     }
   }
@@ -61,7 +62,7 @@ const WaveButtonImpl = (props: Props) => {
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = C.Waiting.useAnyWaiting(waitingKey)
   const username = useCurrentUserState(s => s.username)
-  const sendMessage = Chat.useChatContext(s => s.dispatch.sendMessage)
+  const sendMessage = ConvoState.useChatContext(s => s.dispatch.sendMessage)
   const createConversation = C.useRPC(T.RPCChat.localNewConversationLocalRpcPromise)
   const onWave = () => {
     if (props.username) {

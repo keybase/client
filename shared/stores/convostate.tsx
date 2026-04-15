@@ -53,7 +53,8 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {getUsernameToShow} from '@/chat/conversation/messages/separator-utils'
-import type {RefreshReason} from '@/stores/chat'
+import type {RefreshReason} from '@/stores/chat-shared'
+import {storeRegistry} from '@/stores/store-registry'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -252,14 +253,12 @@ export interface ConvoState extends ConvoStore {
     channelSuggestionsTriggered: () => void
     clearAttachmentView: () => void
     defer: {
-      chatBlockButtonsMapHas: (teamID: T.RPCGen.TeamID) => boolean
       chatInboxLayoutSmallTeamsFirstConvID: () => T.Chat.ConversationIDKey | undefined
       chatInboxRefresh: (reason: RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
       chatUnboxRows: (convIDs: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => void
     }
     dismissBottomBanner: () => void
-    dismissBlockButtons: (teamID: T.RPCGen.TeamID) => void
     dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
     editBotSettings: (
       username: string,
@@ -420,9 +419,6 @@ export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
 
 const stubDefer: ConvoState['dispatch']['defer'] = {
-  chatBlockButtonsMapHas: () => {
-    throw new Error('convostate defer not initialized')
-  },
   chatInboxLayoutSmallTeamsFirstConvID: () => {
     throw new Error('convostate defer not initialized')
   },
@@ -1417,9 +1413,7 @@ const createSlice =
         }
 
         // If there are block buttons on this conversation, clear them.
-        if (get().dispatch.defer.chatBlockButtonsMapHas(meta.teamID)) {
-          get().dispatch.dismissBlockButtons(meta.teamID)
-        }
+        storeRegistry.getState('chat').dispatch.dismissBlockButtonsIfPresent(meta.teamID)
 
         // Do some logging to track down the root cause of a bug causing
         // messages to not send. Do this after creating the objects above to
@@ -1619,18 +1613,6 @@ const createSlice =
         })
       },
       defer,
-      dismissBlockButtons: teamID => {
-        const f = async () => {
-          try {
-            await T.RPCGen.userDismissBlockButtonsRpcPromise({tlfID: teamID})
-          } catch (error) {
-            if (error instanceof RPCError) {
-              logger.error(`Couldn't dismiss block buttons: ${error.message}`)
-            }
-          }
-        }
-        ignorePromise(f())
-      },
       dismissBottomBanner: () => {
         set(s => {
           s.dismissedInviteBanners = true

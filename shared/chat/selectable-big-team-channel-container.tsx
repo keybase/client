@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import SelectableBigTeamChannel from './selectable-big-team-channel'
 
 type OwnProps = {
@@ -11,9 +11,9 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
-  const showBold = Chat.useChatContext(s => s.unread > 0)
-  const showBadge = Chat.useChatContext(s => s.badge > 0)
-  const _meta = Chat.useChatContext(s => s.meta)
+  const showBold = ConvoState.useChatContext(s => s.unread > 0)
+  const showBadge = ConvoState.useChatContext(s => s.badge > 0)
+  const _meta = ConvoState.useChatContext(s => s.meta)
   let teamname = _meta.teamname
   let channelname = _meta.channelname
   if (!teamname) {

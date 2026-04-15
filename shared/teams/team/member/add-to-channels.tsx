@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
@@ -31,7 +32,7 @@ const getChannelsForList = (
     .map(c => c.conversationIDKey)
     .filter(convIDKey => {
       // TODO not reactive
-      const participants = Chat.getConvoState(convIDKey).participants.all
+      const participants = ConvoState.getConvoState(convIDKey).participants.all
       // At least one person is not in the channel
       return usernames.some(member => !participants.includes(member))
     })
@@ -70,7 +71,7 @@ const AddToChannels = function AddToChannels(props: Props) {
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => {
       // TODO not reactive
-      const p = Chat.getConvoState(c.conversationIDKey).participants
+      const p = ConvoState.getConvoState(c.conversationIDKey).participants
       return {
         channelMeta: c,
         numMembers: p.name.length || p.all.length || 0,
@@ -462,7 +463,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
   const {channelMeta, mode, selected, onSelect: _onSelect, reloadChannels, usernames, rowHeight} = p
   const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
-  const participants = Chat.useConvoState(conversationIDKey, s => {
+  const participants = ConvoState.useConvoState(conversationIDKey, s => {
     const {name, all} = s.participants
     return name.length ? name : all
   })

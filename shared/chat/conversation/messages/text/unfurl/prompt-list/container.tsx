@@ -1,11 +1,12 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import Prompt from './prompt'
 
 function UnfurlPromptListContainer({messageID}: {messageID: T.Chat.MessageID}) {
-  const {unfurlResolvePrompt, promptDomains} = Chat.useChatContext(
+  const {unfurlResolvePrompt, promptDomains} = ConvoState.useChatContext(
     C.useShallow(s => {
       const unfurlResolvePrompt = s.dispatch.unfurlResolvePrompt
       const promptDomains = s.unfurlPrompt.get(messageID)

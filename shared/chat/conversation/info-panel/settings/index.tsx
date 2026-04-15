@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
@@ -14,7 +15,7 @@ type SettingsPanelProps = {isPreview: boolean}
 const SettingsPanel = (props: SettingsPanelProps) => {
   const {isPreview} = props
   const username = useCurrentUserState(s => s.username)
-  const meta = Chat.useChatContext(s => s.meta)
+  const meta = ConvoState.useChatContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
   const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
   const ignored = status === T.RPCChat.ConversationStatus.ignored
@@ -33,17 +34,17 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }
 
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
-  const participantInfo = Chat.useChatContext(s => s.participants)
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
   const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.name).filter(
     u => u !== username && !Chat.isAssertion(u)
   )
 
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const onShowClearConversationDialog = () => {
     navigateAppend(conversationIDKey => ({name: 'chatDeleteHistoryWarning', params: {conversationIDKey}}))
   }
 
-  const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
+  const hideConversation = ConvoState.useChatContext(s => s.dispatch.hideConversation)
   const onHideConv = () => hideConversation(true)
   const onUnhideConv = () => hideConversation(false)
   const onShowBlockConversationDialog = () => {
@@ -62,7 +63,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     }
   }
 
-  const leaveConversation = Chat.useChatContext(s => s.dispatch.leaveConversation)
+  const leaveConversation = ConvoState.useChatContext(s => s.dispatch.leaveConversation)
   const onLeaveConversation = () => {
     leaveConversation()
   }
@@ -75,7 +76,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }
 
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   return (
     <Kb.ScrollView>
       <Kb.Box2

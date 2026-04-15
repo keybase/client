@@ -1,22 +1,23 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 
 const BlockButtons = () => {
   const navigateAppend = C.Router2.navigateAppend
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
 
-  const team = Chat.useChatContext(s => s.meta.teamname)
-  const teamID = Chat.useChatContext(s => s.meta.teamID)
+  const team = ConvoState.useChatContext(s => s.meta.teamname)
+  const teamID = ConvoState.useChatContext(s => s.meta.teamID)
   const blockButtonInfo = Chat.useChatState(s => {
     const blockButtonsMap = s.blockButtonsMap
     return teamID ? blockButtonsMap.get(teamID) : undefined
   })
-  const participantInfo = Chat.useChatContext(s => s.participants)
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
   const currentUser = useCurrentUserState(s => s.username)
-  const dismissBlockButtons = Chat.useChatContext(s => s.dispatch.dismissBlockButtons)
+  const dismissBlockButtons = Chat.useChatState(s => s.dispatch.dismissBlockButtons)
   if (!blockButtonInfo) {
     return null
   }

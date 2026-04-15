@@ -1,5 +1,6 @@
 // Debug utilities for chat
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
@@ -19,7 +20,7 @@ registerDebugClear(() => {
 
 const chatDebugDump = chatDebugEnabled
   ? (conversationIDKey: T.Chat.ConversationIDKey) => {
-      const cs = Chat.getConvoState(conversationIDKey)
+      const cs = ConvoState.getConvoState(conversationIDKey)
       logger.error('[CHATDEBUG] os: ', cs.messageOrdinals)
       // logger.error('[CHATDEBUG] orange: ', cs.orangeAboveOrdinal)
       const m = cs.meta

@@ -1,8 +1,8 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 
 const CommandMarkdown = () => {
-  const md = Chat.useChatContext(s => s.commandMarkdown)
+  const md = ConvoState.useChatContext(s => s.commandMarkdown)
   const body = md?.body ?? ''
   const title = md?.title ?? undefined
   return (

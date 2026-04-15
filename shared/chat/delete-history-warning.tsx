@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 
 const DeleteHistoryWarning = () => {
   const navigateUp = C.Router2.navigateUp
@@ -8,7 +8,7 @@ const DeleteHistoryWarning = () => {
     navigateUp()
   }
   const clearModals = C.Router2.clearModals
-  const messageDeleteHistory = Chat.useChatContext(s => s.dispatch.messageDeleteHistory)
+  const messageDeleteHistory = ConvoState.useChatContext(s => s.dispatch.messageDeleteHistory)
   const onDeleteHistory = () => {
     clearModals()
     messageDeleteHistory()

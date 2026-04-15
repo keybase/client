@@ -172,7 +172,6 @@ export const initSharedSubscriptions = () => {
   _sharedUnsubs.length = 0
 
   setConvoDefer({
-    chatBlockButtonsMapHas: teamID => storeRegistry.getState('chat').blockButtonsMap.has(teamID),
     chatInboxLayoutSmallTeamsFirstConvID: () =>
       storeRegistry.getState('chat').inboxLayout?.smallTeams?.[0]?.convID,
     chatInboxRefresh: reason => storeRegistry.getState('chat').dispatch.inboxRefresh(reason),

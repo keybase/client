@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import {useConfigState} from '@/stores/config'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -23,7 +24,7 @@ const emptyMessage = Chat.makeMessageText({})
 
 const PopText = (ownProps: OwnProps) => {
   const {ordinal, attachTo, mode, onHidden, position, style, visible} = ownProps
-  const message = Chat.useChatContext(s => {
+  const message = ConvoState.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const message = m ?? emptyMessage
     return message
@@ -64,7 +65,7 @@ const PopText = (ownProps: OwnProps) => {
   })()
 
   const yourMessage = author === you
-  const {isTeam, messageReplyPrivately, numPart, teamType} = Chat.useChatContext(
+  const {isTeam, messageReplyPrivately, numPart, teamType} = ConvoState.useChatContext(
     C.useShallow(s => {
       const {teamType, teamname} = s.meta
       const isTeam = !!teamname

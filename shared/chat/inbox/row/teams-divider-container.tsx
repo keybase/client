@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import type {ChatInboxRowItem} from '../rowitem'
 import TeamsDivider from './teams-divider'
@@ -31,7 +32,7 @@ const TeamsDividerContainer = React.memo(function TeamsDividerContainer(props: P
     void badgeStateVersion // we need to trigger on this also
     let total = 0
     for (const conversationIDKey of visibleSmallConvIDs) {
-      total += Chat.getConvoState(conversationIDKey).badge
+      total += ConvoState.getConvoState(conversationIDKey).badge
     }
     return total
   }, [badgeStateVersion, visibleSmallConvIDs])

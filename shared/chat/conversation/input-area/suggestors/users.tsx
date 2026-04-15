@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
@@ -139,7 +140,7 @@ const getTeams = (layout?: T.RPCChat.UIInboxLayout) => {
 
 const useDataUsers = () => {
   const infoMap = useUsersState(s => s.infoMap)
-  const {participantInfo, teamID, teamType} = Chat.useChatContext(
+  const {participantInfo, teamID, teamType} = ConvoState.useChatContext(
     C.useShallow(s => ({participantInfo: s.participants, teamID: s.meta.teamID, teamType: s.meta.teamType}))
   )
   const teamMembers = useTeamMembers(teamID)

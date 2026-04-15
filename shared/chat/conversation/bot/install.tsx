@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as ChatCommon from '@/constants/chat/common'
 import * as Meta from '@/constants/chat/meta'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
@@ -28,7 +29,7 @@ export const useRefreshBotMembershipOnSuccess = (
   const wasWaitingRef = React.useRef(waiting)
   const updateCachedBotMember = Teams.useTeamsState(s => s.dispatch.updateCachedBotMember)
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
-  const setParticipants = Chat.useChatContext(s => s.dispatch.setParticipants)
+  const setParticipants = ConvoState.useChatContext(s => s.dispatch.setParticipants)
   const teamIDToRefresh = teamID && teamID !== T.Teams.noTeamID ? teamID : undefined
 
   React.useEffect(() => {
@@ -125,9 +126,9 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   if (!conversationIDKey) return null
   return (
-    <Chat.ChatProvider id={conversationIDKey}>
+    <ConvoState.ChatProvider id={conversationIDKey}>
       <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
-    </Chat.ChatProvider>
+    </ConvoState.ChatProvider>
   )
 }
 
@@ -151,7 +152,7 @@ const InstallBotPopup = (props: Props) => {
   const [disableDone, setDisableDone] = React.useState(false)
   const [botPublicCommands, setBotPublicCommands] = React.useState<T.Chat.BotPublicCommands | undefined>()
 
-  const meta = Chat.useChatContext(s => s.meta)
+  const meta = ConvoState.useChatContext(s => s.meta)
   const commandsFromMeta = (
     meta.botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
       ? meta.botCommands.custom.commands || blankCommands
@@ -165,7 +166,7 @@ const InstallBotPopup = (props: Props) => {
       : botPublicCommands
 
   const featured = useFeaturedBot(botUsername)
-  const teamRole = Chat.useChatContext(s => s.botTeamRoleMap.get(botUsername))
+  const teamRole = ConvoState.useChatContext(s => s.botTeamRoleMap.get(botUsername))
   const inTeam = teamRole !== undefined ? !!teamRole : undefined
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
@@ -173,7 +174,7 @@ const InstallBotPopup = (props: Props) => {
   const readOnly = Teams.useTeamsState(s =>
     meta.teamname ? !Teams.getCanPerformByID(s, meta.teamID).manageBots : false
   )
-  const settings = Chat.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
+  const settings = ConvoState.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined
   let teamID: T.Teams.TeamID = T.Teams.noTeamID
   let refreshTeamID: T.Teams.TeamID | undefined
@@ -189,7 +190,7 @@ const InstallBotPopup = (props: Props) => {
   // dispatch
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
-  const addBotMember = Chat.useChatContext(s => s.dispatch.addBotMember)
+  const addBotMember = ConvoState.useChatContext(s => s.dispatch.addBotMember)
   const [pendingMutation, setPendingMutation] = React.useState<'add' | 'edit' | undefined>()
   const onLearn = () => {
     openURL('https://book.keybase.io/docs/chat/restricted-bots')
@@ -201,7 +202,7 @@ const InstallBotPopup = (props: Props) => {
     setPendingMutation('add')
     addBotMember(botUsername, installWithCommands, installWithMentions, installWithRestrict, installInConvs)
   }
-  const editBotSettings = Chat.useChatContext(s => s.dispatch.editBotSettings)
+  const editBotSettings = ConvoState.useChatContext(s => s.dispatch.editBotSettings)
   const onEdit = () => {
     if (!conversationIDKey) {
       return
@@ -223,8 +224,8 @@ const InstallBotPopup = (props: Props) => {
     navigateAppend({name: 'feedback', params: {}})
   }
 
-  const refreshBotSettings = Chat.useChatContext(s => s.dispatch.refreshBotSettings)
-  const refreshBotRoleInConv = Chat.useChatContext(s => s.dispatch.refreshBotRoleInConv)
+  const refreshBotSettings = ConvoState.useChatContext(s => s.dispatch.refreshBotSettings)
+  const refreshBotRoleInConv = ConvoState.useChatContext(s => s.dispatch.refreshBotRoleInConv)
 
   // lifecycle
   React.useEffect(() => {

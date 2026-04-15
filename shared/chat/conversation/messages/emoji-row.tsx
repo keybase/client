@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
@@ -30,10 +31,10 @@ const useTopReacjis = () =>
 function EmojiRowContainer(p: OwnProps) {
   const {className, hasUnfurls, messageType, onReact: onReactProp, onReply: onReplyProp, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
-  const setReplyTo = Chat.useChatUIContext(s => s.dispatch.setReplyTo)
-  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const setReplyTo = ConvoState.useChatUIContext(s => s.dispatch.setReplyTo)
+  const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
   const emojis = useTopReacjis()
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const _onForward = () => {
     navigateAppend(conversationIDKey => ({
       name: 'chatForwardMsgPick',

@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import InfoPanelMenu from './menu'
@@ -8,11 +8,11 @@ import AddPeople from './add-people'
 const gearIconSize = Kb.Styles.isMobile ? 24 : 16
 
 const TeamHeader = () => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
-  const meta = Chat.useChatContext(s => s.meta)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const meta = ConvoState.useChatContext(s => s.meta)
   const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
-  const participants = Chat.useChatContext(s => s.participants)
-  const onJoinChannel = Chat.useChatContext(s => s.dispatch.joinConversation)
+  const participants = ConvoState.useChatContext(s => s.participants)
+  const onJoinChannel = ConvoState.useChatContext(s => s.dispatch.joinConversation)
   const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
 
   const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
@@ -28,7 +28,7 @@ const TeamHeader = () => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <Chat.ChatProvider id={conversationIDKey}>
+      <ConvoState.ChatProvider id={conversationIDKey}>
         <InfoPanelMenu
           attachTo={attachTo}
           floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
@@ -37,7 +37,7 @@ const TeamHeader = () => {
           isSmallTeam={isSmallTeam}
           visible={true}
         />
-      </Chat.ChatProvider>
+      </ConvoState.ChatProvider>
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
@@ -139,7 +139,7 @@ const TeamHeader = () => {
 }
 
 export const AdhocHeader = () => {
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const onShowNewTeamDialog = () => {
     navigateAppend(conversationIDKey => ({
       name: 'chatShowNewTeamDialog',
