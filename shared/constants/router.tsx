@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type * as T from './types'
+import * as T from './types'
 import type * as ConvoStateType from '@/stores/convostate'
 import * as Tabs from './tabs'
 import {
@@ -12,11 +12,7 @@ import {
   type NavigationState,
 } from '@react-navigation/core'
 import type {StaticScreenProps} from '@react-navigation/core'
-import type {
-  NavigateAppendType,
-  RouteKeys,
-  RootParamList as KBRootParamList,
-} from '@/router-v2/route-params'
+import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {GetOptionsRet, RouteDef} from './types/router'
 import {isSplit} from './chat/layout'
 import {isMobile} from './platform'
@@ -450,7 +446,8 @@ export const previewConversation = (p: PreviewConversationParams) => {
         navigateAppend({
           name: 'keybaseLinkError',
           params: {
-            error: "We couldn't find this team. Please check that you're a member of the team and the channel exists.",
+            error:
+              "We couldn't find this team. Please check that you're a member of the team and the channel exists.",
           },
         })
         return
@@ -526,10 +523,7 @@ type ThreadNavParams = {
   threadSearch?: {query?: string}
 }
 
-export const navToThread = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  navParams?: ThreadNavParams
-) => {
+export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: ThreadNavParams) => {
   DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
   const n = _getNavigator()
   if (!n) return
