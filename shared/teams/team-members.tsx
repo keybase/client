@@ -6,25 +6,33 @@ import * as React from 'react'
 export const useLoadTeamMembers = (teamID: T.Teams.TeamID, enabled = true) => {
   const lastRequestedTeamIDRef = React.useRef<T.Teams.TeamID | undefined>(undefined)
   const getMembers = useTeamsState(s => s.dispatch.getMembers)
-  const missing = useTeamsState(s => enabled && !!teamID && !s.teamIDToMembers.has(teamID))
+  const loadableTeamID =
+    teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
+  const missing = useTeamsState(s => enabled && !!loadableTeamID && !s.teamIDToMembers.has(loadableTeamID))
 
   React.useEffect(() => {
-    if (!enabled || !teamID) {
+    if (!enabled || !loadableTeamID) {
       lastRequestedTeamIDRef.current = undefined
       return
     }
     if (!missing) {
-      if (lastRequestedTeamIDRef.current === teamID) {
+      if (lastRequestedTeamIDRef.current === loadableTeamID) {
         lastRequestedTeamIDRef.current = undefined
       }
       return
     }
-    if (lastRequestedTeamIDRef.current === teamID) {
+    if (lastRequestedTeamIDRef.current === loadableTeamID) {
       return
     }
-    lastRequestedTeamIDRef.current = teamID
-    C.ignorePromise(getMembers(teamID))
-  }, [enabled, getMembers, missing, teamID])
+    lastRequestedTeamIDRef.current = loadableTeamID
+    C.ignorePromise(
+      getMembers(loadableTeamID).finally(() => {
+        if (lastRequestedTeamIDRef.current === loadableTeamID) {
+          lastRequestedTeamIDRef.current = undefined
+        }
+      })
+    )
+  }, [enabled, getMembers, loadableTeamID, missing])
 }
 
 export const useTeamMembers = (teamID: T.Teams.TeamID) => useTeamsState(s => s.teamIDToMembers.get(teamID))

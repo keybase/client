@@ -1922,16 +1922,13 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           break
         }
         case 'chat.1.NotifyChat.ChatSetTeamRetention': {
-          const first = action.payload.params.convs?.[0]
-          if (!first) {
-            logger.warn('Got ChatSetTeamRetention with no convs; aborting. Local copy may be out of date')
-            break
-          }
-          const teamRetentionPolicy = first.teamRetention
+          const {convs, teamID} = action.payload.params
+          const first = convs?.[0]
+          const teamRetentionPolicy = first?.teamRetention
             ? Util.serviceRetentionPolicyToRetentionPolicy(first.teamRetention)
             : Util.makeRetentionPolicy()
           set(s => {
-            s.teamIDToRetentionPolicy.set(first.tlfID, teamRetentionPolicy)
+            s.teamIDToRetentionPolicy.set(teamID, teamRetentionPolicy)
           })
           break
         }

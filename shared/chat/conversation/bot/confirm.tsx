@@ -10,7 +10,7 @@ type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
 }
 
-const ConfirmBotRemoveImpl = (props: {botUsername: string; teamID: T.Teams.TeamID}) => {
+const ConfirmBotRemoveImpl = (props: {botUsername: string; teamID?: T.Teams.TeamID}) => {
   const {botUsername, teamID} = props
   const clearModals = C.Router2.clearModals
   const error = C.Waiting.useAnyErrors(C.waitingKeyChatBotRemove)
@@ -47,7 +47,7 @@ const ConfirmBotRemove = (props: Props) => {
   const conversationIDKey = useBotConversationIDKey(props.conversationIDKey, teamID)
   return conversationIDKey ? (
     <Chat.ChatProvider id={conversationIDKey}>
-      <ConfirmBotRemoveImpl botUsername={botUsername} teamID={teamID ?? T.Teams.noTeamID} />
+      <ConfirmBotRemoveImpl botUsername={botUsername} teamID={teamID} />
     </Chat.ChatProvider>
   ) : null
 }

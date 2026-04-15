@@ -33,7 +33,7 @@ const uiParticipantsToParticipantInfo = (
 
 export const useRefreshBotMembershipOnSuccess = (
   conversationIDKey: T.Chat.ConversationIDKey | undefined,
-  teamID: T.Teams.TeamID,
+  teamID: T.Teams.TeamID | undefined,
   waitingKey: string,
   error: RPCError | undefined,
   shouldRefreshMembership: boolean,
@@ -44,6 +44,7 @@ export const useRefreshBotMembershipOnSuccess = (
   const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
   const setParticipants = Chat.useChatContext(s => s.dispatch.setParticipants)
+  const teamIDToRefresh = teamID && teamID !== T.Teams.noTeamID ? teamID : undefined
 
   React.useEffect(() => {
     if (!waiting && wasWaitingRef.current && !error) {
@@ -56,14 +57,14 @@ export const useRefreshBotMembershipOnSuccess = (
           [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
           preview => {
             setParticipants(uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
-            if (teamID) {
-              C.ignorePromise(getMembers(teamID))
+            if (teamIDToRefresh) {
+              C.ignorePromise(getMembers(teamIDToRefresh))
             }
             onSuccess()
           },
           () => {
-            if (teamID) {
-              C.ignorePromise(getMembers(teamID))
+            if (teamIDToRefresh) {
+              C.ignorePromise(getMembers(teamIDToRefresh))
             }
             onSuccess()
           }
@@ -79,7 +80,7 @@ export const useRefreshBotMembershipOnSuccess = (
     previewConversationByID,
     setParticipants,
     shouldRefreshMembership,
-    teamID,
+    teamIDToRefresh,
     waiting,
   ])
 }
@@ -190,8 +191,10 @@ const InstallBotPopup = (props: Props) => {
   const settings = Chat.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined
   let teamID: T.Teams.TeamID = T.Teams.noTeamID
+  let refreshTeamID: T.Teams.TeamID | undefined
   if (meta.teamname) {
     teamID = meta.teamID
+    refreshTeamID = meta.teamID
     teamname = meta.teamname
   }
 
@@ -249,7 +252,7 @@ const InstallBotPopup = (props: Props) => {
   }, [refreshBotRoleInConv, refreshBotSettings, conversationIDKey, inTeam, botUsername])
   useRefreshBotMembershipOnSuccess(
     conversationIDKey,
-    teamID,
+    refreshTeamID,
     C.waitingKeyChatBotAdd,
     mutationError,
     pendingMutation === 'add',
