@@ -8,12 +8,14 @@ import * as Z from '@/util/zustand'
 import {NotifyPopup} from '@/util/misc'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
+import {isMobile} from '@/constants/platform'
 import {tlfToPreferredOrder} from '@/util/kbfs'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
 import {navigateAppend, navigateUp} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useNotifState} from '@/stores/notifications'
 import * as Constants from '@/constants/fs'
 import {makeUUID} from '@/util/uuid'
 
@@ -365,8 +367,6 @@ export type State = Store & {
       refreshMountDirsDesktop?: () => void
       setSfmiBannerDismissedDesktop?: (dismissed: boolean) => void
       uploadFromDragAndDropDesktop?: (parentPath: T.FS.Path, localPaths: Array<string>) => void
-      onBadgeApp?: (key: 'kbfsUploading' | 'outOfSpace', on: boolean) => void
-      onSetBadgeCounts?: (counts: Map<Tabs.Tab, number>) => void
     }
     editError: (editID: T.FS.EditID, error: string) => void
     editSuccess: (editID: T.FS.EditID) => void
@@ -525,6 +525,16 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
   // reducer and happens before this.
   let waitForKbfsDaemonInProgress = false
+  let lastFavoritesBadgeState = {newTlfs: 0, rekeysNeeded: 0}
+
+  const shouldReloadFavoritesFromBadgeState = (badgeState: T.RPCGen.BadgeState) => {
+    const {newTlfs, rekeysNeeded} = badgeState
+    const same =
+      newTlfs === lastFavoritesBadgeState.newTlfs &&
+      rekeysNeeded === lastFavoritesBadgeState.rekeysNeeded
+    lastFavoritesBadgeState = {newTlfs, rekeysNeeded}
+    return !same
+  }
 
   const getUploadIconForFilesTab = () => {
     switch (get().badge) {
@@ -697,12 +707,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       afterKbfsDaemonRpcStatusChanged: undefined,
       finishedDownloadWithIntentMobile: undefined,
       finishedRegularDownloadMobile: undefined,
-      onBadgeApp: () => {
-        throw new Error('onBadgeApp not implemented')
-      },
-      onSetBadgeCounts: () => {
-        throw new Error('onSetBadgeCounts not implemented')
-      },
       openAndUploadDesktop: undefined,
       openFilesFromWidgetDesktop: undefined,
       openLocalPathInSystemFileManagerDesktop: undefined,
@@ -908,7 +912,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             })
             const counts = new Map<Tabs.Tab, number>()
             counts.set(Tabs.fsTab, Constants.computeBadgeNumberForAll(get().tlfs))
-            get().dispatch.defer.onSetBadgeCounts?.(counts)
+            useNotifState.getState().dispatch.setBadgeCounts(counts)
           }
         } catch (e) {
           errorToActionOrThrow(e)
@@ -1482,6 +1486,15 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
+        case 'keybase.1.NotifyBadges.badgeState':
+          if (
+            !isMobile &&
+            shouldRunBackgroundFSRPC() &&
+            shouldReloadFavoritesFromBadgeState(action.payload.params.badgeState)
+          ) {
+            get().dispatch.favoritesLoad()
+          }
+          break
         case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
           get().dispatch.syncStatusChanged(action.payload.params.status)
           break
@@ -1585,7 +1598,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
               break
             }
-            get().dispatch.defer.onBadgeApp?.('kbfsUploading', true)
+            useNotifState.getState().dispatch.badgeApp('kbfsUploading', true)
             await timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
           }
         } finally {
@@ -1593,7 +1606,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             pollJournalStatusPolling = false
           }
           shouldRefreshDaemonStatus = isCurrentAsyncGeneration(generation)
-          get().dispatch.defer.onBadgeApp?.('kbfsUploading', false)
+          useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
         }
         if (!shouldRefreshDaemonStatus) {
           return
@@ -1609,6 +1622,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     resetState: () => {
       asyncGeneration++
+      lastFavoritesBadgeState = {newTlfs: 0, rekeysNeeded: 0}
       pollJournalStatusPolling = false
       waitForKbfsDaemonInProgress = false
       unsubscribeAll()
@@ -1797,7 +1811,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
               body: 'You are out of disk space. Some folders could not be synced.',
               sound: true,
             })
-            get().dispatch.defer.onBadgeApp?.('outOfSpace', status.outOfSyncSpace)
+            useNotifState.getState().dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
             break
           }
           case T.FS.DiskSpaceStatus.Warning:

@@ -1,6 +1,8 @@
 /// <reference types="jest" />
 import * as Constants from '../../constants/fs'
+import {isMobile} from '../../constants/platform'
 import * as T from '../../constants/types'
+import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
 import {makeEditID, resetBannerType, useFSState} from '../fs'
 
@@ -15,10 +17,12 @@ const bootstrapCurrentUser = () => {
 
 beforeEach(() => {
   bootstrapCurrentUser()
+  useConfigState.setState({loggedIn: false, userSwitching: false} as any)
   useFSState.getState().dispatch.resetState()
 })
 
 afterEach(() => {
+  useConfigState.setState({loggedIn: false, userSwitching: false} as any)
   useFSState.getState().dispatch.resetState()
 })
 
@@ -92,4 +96,62 @@ test('resetBannerType distinguishes between self resets, other resets, and no re
     },
   } as any)
   expect(resetBannerType(useFSState.getState(), path)).toBe(T.FS.ResetBannerNoOthersType.None)
+})
+
+test('badge engine refreshes favorites when fs badge counters change', () => {
+  const store = useFSState
+  const favoritesLoad = jest.fn()
+  useConfigState.setState({loggedIn: true, userSwitching: false} as any)
+  store.setState(
+    {
+      ...store.getState(),
+      dispatch: {
+        ...store.getState().dispatch,
+        favoritesLoad,
+      },
+    },
+    true
+  )
+
+  const action = {
+    payload: {params: {badgeState: {newTlfs: 1, rekeysNeeded: 0}}},
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any
+
+  store.getState().dispatch.onEngineIncomingImpl(action)
+  store.getState().dispatch.onEngineIncomingImpl(action)
+  store.getState().dispatch.onEngineIncomingImpl({
+    payload: {params: {badgeState: {newTlfs: 1, rekeysNeeded: 2}}},
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any)
+
+  expect(favoritesLoad).toHaveBeenCalledTimes(isMobile ? 0 : 2)
+})
+
+test('pre-login badge events do not consume the first eligible favorites refresh', () => {
+  const store = useFSState
+  const favoritesLoad = jest.fn()
+  store.setState(
+    {
+      ...store.getState(),
+      dispatch: {
+        ...store.getState().dispatch,
+        favoritesLoad,
+      },
+    },
+    true
+  )
+
+  const action = {
+    payload: {params: {badgeState: {newTlfs: 1, rekeysNeeded: 0}}},
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any
+
+  useConfigState.setState({loggedIn: false, userSwitching: false} as any)
+  store.getState().dispatch.onEngineIncomingImpl(action)
+
+  useConfigState.setState({loggedIn: true, userSwitching: false} as any)
+  store.getState().dispatch.onEngineIncomingImpl(action)
+
+  expect(favoritesLoad).toHaveBeenCalledTimes(isMobile ? 0 : 1)
 })

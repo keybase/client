@@ -46,10 +46,8 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
-import {useFSState} from '@/stores/fs'
 import {useFollowerState} from '@/stores/followers'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {useNotifState} from '@/stores/notifications'
 import {useProvisionState} from '@/stores/provision'
 import {usePushState} from '@/stores/push'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
@@ -252,39 +250,6 @@ export const initTeamsCallbacks = () => {
         },
         onUsersUpdates: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
           storeRegistry.getState('users').dispatch.updates(updates)
-        },
-      },
-    },
-  })
-}
-
-export const initFSCallbacks = () => {
-  const currentState = useFSState.getState()
-  useFSState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onBadgeApp: (key: 'kbfsUploading' | 'outOfSpace', on: boolean) => {
-          useNotifState.getState().dispatch.badgeApp(key, on)
-        },
-        onSetBadgeCounts: (counts: Map<Tabs.Tab, number>) => {
-          useNotifState.getState().dispatch.setBadgeCounts(counts)
-        },
-      },
-    },
-  })
-}
-
-export const initNotificationsCallbacks = () => {
-  const currentState = useNotifState.getState()
-  useNotifState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onFavoritesLoad: () => {
-          useFSState.getState().dispatch.favoritesLoad()
         },
       },
     },
@@ -581,12 +546,7 @@ export const initSharedSubscriptions = () => {
       }
 
       // Clear "just signed up email" when you leave the people tab after signup
-      if (
-        prev &&
-        Util.getTab(prev) === Tabs.peopleTab &&
-        next &&
-        Util.getTab(next) !== Tabs.peopleTab
-      ) {
+      if (prev && Util.getTab(prev) === Tabs.peopleTab && next && Util.getTab(next) !== Tabs.peopleTab) {
         clearSignupEmail()
       }
 
@@ -617,8 +577,6 @@ export const initSharedSubscriptions = () => {
   initChat2Callbacks()
   initTeamBuildingCallbacks()
   initTeamsCallbacks()
-  initFSCallbacks()
-  initNotificationsCallbacks()
   initPushCallbacks()
   initRecoverPasswordCallbacks()
   initTracker2Callbacks()
@@ -643,10 +601,15 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         const {badgeState} = action.payload.params
         useModalHeaderState
           .getState()
-          .dispatch.setDeviceBadges(new Set([...(badgeState.newDevices ?? []), ...(badgeState.revokedDevices ?? [])]))
+          .dispatch.setDeviceBadges(
+            new Set([...(badgeState.newDevices ?? []), ...(badgeState.revokedDevices ?? [])])
+          )
 
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
+
+        const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
+        useFSState.getState().dispatch.onEngineIncomingImpl(action)
 
         const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
         useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
@@ -678,13 +641,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
         useFSState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.NotifyAudit.rootAuditError':
-    case 'keybase.1.NotifyAudit.boxAuditError':
-      {
-        const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
-        useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case 'keybase.1.homeUI.homeUIRefresh':

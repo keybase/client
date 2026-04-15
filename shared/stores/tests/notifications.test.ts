@@ -1,7 +1,6 @@
 /// <reference types="jest" />
 import * as Tabs from '@/constants/tabs'
 import {resetAllStores} from '@/util/zustand'
-import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
 import {useNotifState} from '../notifications'
 
@@ -35,21 +34,8 @@ test('badgeApp derives the widget badge from key state', () => {
   expect(store.getState().widgetBadge).toBe('regular')
 })
 
-test('badge engine updates fan out into config and badge counts', () => {
+test('badge engine updates badge counts', () => {
   const store = useNotifState
-  const onFavoritesLoad = jest.fn()
-  store.setState(
-    {
-      ...store.getState(),
-      dispatch: {
-        ...store.getState().dispatch,
-        defer: {
-          onFavoritesLoad,
-        },
-      },
-    },
-    true
-  )
 
   const badgeState = {
     bigTeamBadgeCount: 4,
@@ -74,8 +60,6 @@ test('badge engine updates fan out into config and badge counts', () => {
     type: 'keybase.1.NotifyBadges.badgeState',
   } as any)
 
-  expect(useConfigState.getState().badgeState).toEqual(badgeState)
-  expect(onFavoritesLoad).toHaveBeenCalledTimes(1)
   expect(store.getState().mobileAppBadgeCount).toBe(7)
   expect(store.getState().desktopAppBadgeCount).toBe(22)
   expect(store.getState().navBadges.get(Tabs.peopleTab)).toBe(2)
@@ -83,5 +67,49 @@ test('badge engine updates fan out into config and badge counts', () => {
   expect(store.getState().navBadges.get(Tabs.chatTab)).toBe(7)
   expect(store.getState().navBadges.get(Tabs.gitTab)).toBe(1)
   expect(store.getState().navBadges.get(Tabs.teamsTab)).toBe(8)
+  expect(store.getState().navBadges.get(Tabs.settingsTab)).toBe(3)
+})
+
+test('stale badgeState events do not regress badge counts', () => {
+  const store = useNotifState
+
+  store.getState().dispatch.onEngineIncomingImpl({
+    payload: {
+      params: {
+        badgeState: {
+          bigTeamBadgeCount: 4,
+          homeTodoItems: 2,
+          inboxVers: 2,
+          newTeamAccessRequestCount: 0,
+          smallTeamBadgeCount: 3,
+          unverifiedEmails: 1,
+          unverifiedPhones: 2,
+        },
+      },
+    },
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any)
+
+  store.getState().dispatch.onEngineIncomingImpl({
+    payload: {
+      params: {
+        badgeState: {
+          bigTeamBadgeCount: 1,
+          homeTodoItems: 1,
+          inboxVers: 1,
+          newTeamAccessRequestCount: 0,
+          smallTeamBadgeCount: 1,
+          unverifiedEmails: 0,
+          unverifiedPhones: 0,
+        },
+      },
+    },
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any)
+
+  expect(store.getState().badgeVersion).toBe(2)
+  expect(store.getState().mobileAppBadgeCount).toBe(7)
+  expect(store.getState().navBadges.get(Tabs.chatTab)).toBe(7)
+  expect(store.getState().navBadges.get(Tabs.peopleTab)).toBe(2)
   expect(store.getState().navBadges.get(Tabs.settingsTab)).toBe(3)
 })

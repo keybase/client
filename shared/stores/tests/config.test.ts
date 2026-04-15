@@ -93,6 +93,33 @@ test('setOutOfDate merges fields and setGlobalError normalizes unknown input', (
   expect(state.globalError?.message).toBe('Unknown error: "boom"')
 })
 
+test('onEngineIncoming owns audit errors and badge state', () => {
+  const {dispatch} = useConfigState.getState()
+  const badgeState = {inboxVers: 7} as any
+
+  dispatch.onEngineIncoming({
+    payload: {params: {badgeState}},
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any)
+  expect(useConfigState.getState().badgeState).toEqual(badgeState)
+
+  dispatch.onEngineIncoming({
+    payload: {params: {message: 'root bad'}},
+    type: 'keybase.1.NotifyAudit.rootAuditError',
+  } as any)
+  expect(useConfigState.getState().globalError?.message).toBe(
+    'Keybase is buggy, please report this: root bad'
+  )
+
+  dispatch.onEngineIncoming({
+    payload: {params: {message: 'box bad'}},
+    type: 'keybase.1.NotifyAudit.boxAuditError',
+  } as any)
+  expect(useConfigState.getState().globalError?.message).toBe(
+    'Keybase had a problem loading a team, please report this with `keybase log send`: box bad'
+  )
+})
+
 test('custom resetState preserves the fields config intentionally carries across resets', () => {
   const {dispatch} = useConfigState.getState()
 

@@ -1,10 +1,8 @@
 import * as Z from '@/util/zustand'
 import type * as EngineGen from '@/constants/rpc'
 import type * as T from '@/constants/types'
-import {isMobile} from '@/constants/platform'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '@/constants/tabs'
-import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
@@ -29,9 +27,6 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    defer: {
-      onFavoritesLoad?: () => void
-    }
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: () => void
     badgeApp: (key: NotificationKeys, on: boolean) => void
@@ -39,16 +34,8 @@ export type State = Store & {
   }
 }
 
-let lastFsBadges = {newTlfs: 0, rekeysNeeded: 0}
-const shouldTriggerTlfLoad = (bs: T.RPCGen.BadgeState) => {
-  const {newTlfs, rekeysNeeded} = bs
-  const same = newTlfs === lastFsBadges.newTlfs && rekeysNeeded === lastFsBadges.rekeysNeeded
-  lastFsBadges = {newTlfs, rekeysNeeded}
-  return !same
-}
-
 const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
-  const {inboxVers, unverifiedEmails, unverifiedPhones} = bs
+  const {unverifiedEmails, unverifiedPhones} = bs
   const deletedTeams = bs.deletedTeams ?? []
   const newDevices = bs.newDevices ?? []
   const newGitRepoGlobalUniqueIDs = bs.newGitRepoGlobalUniqueIDs ?? []
@@ -57,10 +44,6 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
   const revokedDevices = bs.revokedDevices ?? []
   const teamsWithResetUsers = bs.teamsWithResetUsers ?? []
   const wotUpdates = /*bs.wotUpdates ?? */ new Map<string, T.RPCGen.WotUpdate>()
-
-  if (useNotifState.getState().badgeVersion >= inboxVers) {
-    return undefined
-  }
 
   const counts = new Map<Tabs.Tab, number>()
 
@@ -103,41 +86,18 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
         updateWidgetBadge(s)
       })
     },
-    defer: {
-      onFavoritesLoad: () => {
-        throw new Error('onFavoritesLoad not implemented')
-      },
-    },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case 'keybase.1.NotifyAudit.rootAuditError':
-          useConfigState
-            .getState()
-            .dispatch.setGlobalError(
-              new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
-            )
-
-          break
-        case 'keybase.1.NotifyAudit.boxAuditError':
-          useConfigState
-            .getState()
-            .dispatch.setGlobalError(
-              new Error(
-                `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
-              )
-            )
-          break
         case 'keybase.1.NotifyBadges.badgeState': {
           const badgeState = action.payload.params.badgeState
-          useConfigState.getState().dispatch.setBadgeState(badgeState)
-
+          if (get().badgeVersion >= badgeState.inboxVers) {
+            break
+          }
+          set(s => {
+            s.badgeVersion = badgeState.inboxVers
+          })
           const counts = badgeStateToBadgeCounts(badgeState)
-          if (!isMobile && shouldTriggerTlfLoad(badgeState)) {
-            get().dispatch.defer.onFavoritesLoad?.()
-          }
-          if (counts) {
-            get().dispatch.setBadgeCounts(counts)
-          }
+          get().dispatch.setBadgeCounts(counts)
           break
         }
         default:
