@@ -1464,12 +1464,11 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           return inflight
         }
         queuedMemberReloads.add(teamID)
-        return inflight.finally(() => {
-          if (!queuedMemberReloads.delete(teamID)) {
-            return
-          }
-          return get().dispatch.getMembers(teamID)
-        })
+        await inflight
+        if (!queuedMemberReloads.delete(teamID)) {
+          return
+        }
+        return get().dispatch.getMembers(teamID)
       }
       const promise = (async () => {
         try {
