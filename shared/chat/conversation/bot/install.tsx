@@ -168,18 +168,17 @@ const InstallBotPopup = (props: Props) => {
   const [botPublicCommands, setBotPublicCommands] = React.useState<T.Chat.BotPublicCommands | undefined>()
 
   const meta = Chat.useChatContext(s => s.meta)
-  const commands = (() => {
-    const {botCommands} = meta
-    const commands = (
-      botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
-        ? botCommands.custom.commands || blankCommands
-        : blankCommands
-    )
-      .filter(c => c.username === botUsername)
-      .map(c => c.name)
-    const convCommands = {commands, loadError: false} satisfies T.Chat.BotPublicCommands
-    return commands.length > 0 ? convCommands : botPublicCommands
-  })()
+  const commandsFromMeta = (
+    meta.botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
+      ? meta.botCommands.custom.commands || blankCommands
+      : blankCommands
+  )
+    .filter(c => c.username === botUsername)
+    .map(c => c.name)
+  const commands =
+    commandsFromMeta.length > 0
+      ? ({commands: commandsFromMeta, loadError: false} satisfies T.Chat.BotPublicCommands)
+      : botPublicCommands
 
   const featured = useFeaturedBot(botUsername)
   const teamRole = Chat.useChatContext(s => s.botTeamRoleMap.get(botUsername))
@@ -266,19 +265,19 @@ const InstallBotPopup = (props: Props) => {
       clearModals()
     }
   )
-  const noCommands = !commands?.commands
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const loadBotPublicCommands = C.useRPC(T.RPCChat.localListPublicBotCommandsLocalRpcPromise)
   const botPublicCommandsRequestIDRef = React.useRef(0)
   React.useEffect(() => {
+    setBotPublicCommands(undefined)
+  }, [botUsername])
+  React.useEffect(() => {
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
     botPublicCommandsRequestIDRef.current += 1
-    if (!noCommands) {
-      setBotPublicCommands(undefined)
+    if (commandsFromMeta.length > 0) {
       return
     }
-    setBotPublicCommands(undefined)
     const requestID = botPublicCommandsRequestIDRef.current
     loadBotPublicCommands(
       [{username: botUsername}],
@@ -301,7 +300,7 @@ const InstallBotPopup = (props: Props) => {
         botPublicCommandsRequestIDRef.current += 1
       }
     }
-  }, [botUsername, dispatchClearWaiting, loadBotPublicCommands, noCommands])
+  }, [botUsername, commandsFromMeta.length, dispatchClearWaiting, loadBotPublicCommands])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
