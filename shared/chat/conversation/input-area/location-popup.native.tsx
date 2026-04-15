@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import {useConfigState} from '@/stores/config'
@@ -12,7 +11,13 @@ import {requestLocationPermission} from '@/util/platform-specific'
 import * as ExpoLocation from 'expo-location'
 import {ignorePromise} from '@/constants/utils'
 
-const LocationButton = (props: {disabled: boolean; label: string; onClick: () => void; subLabel?: string; primary?: boolean}) => (
+const LocationButton = (props: {
+  disabled: boolean
+  label: string
+  onClick: () => void
+  subLabel?: string
+  primary?: boolean
+}) => (
   <Kb.Button
     disabled={props.disabled}
     fullWidth={true}
@@ -22,8 +27,17 @@ const LocationButton = (props: {disabled: boolean; label: string; onClick: () =>
     style={styles.liveButton}
   >
     <Kb.Box2 direction="vertical" centerChildren={true}>
-      <Kb.Text type="BodySemibold" style={props.primary ? styles.liveButtonLabelPrimary : styles.liveButtonLabel}>{props.label}</Kb.Text>
-      {!!props.subLabel && <Kb.Text type="BodyTiny" style={props.primary ? styles.liveButtonLabelPrimary : styles.accuracy}>{props.subLabel}</Kb.Text>}
+      <Kb.Text
+        type="BodySemibold"
+        style={props.primary ? styles.liveButtonLabelPrimary : styles.liveButtonLabel}
+      >
+        {props.label}
+      </Kb.Text>
+      {!!props.subLabel && (
+        <Kb.Text type="BodyTiny" style={props.primary ? styles.liveButtonLabelPrimary : styles.accuracy}>
+          {props.subLabel}
+        </Kb.Text>
+      )}
     </Kb.Box2>
   </Kb.Button>
 )
@@ -121,12 +135,33 @@ const LocationPopup = () => {
         <LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />
       )}
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            <LocationButton disabled={locationDenied} label="Share location for 15 minutes" onClick={() => onLocationShare('15m')} subLabel="Live location" />
-            <LocationButton disabled={locationDenied} label="Share location for 1 hour" onClick={() => onLocationShare('1h')} subLabel="Live location" />
-            <LocationButton disabled={locationDenied} label="Share location for 8 hours" onClick={() => onLocationShare('8h')} subLabel="Live location" />
-            <LocationButton disabled={locationDenied} label="Send current location" onClick={() => onLocationShare('')} subLabel={mapLoaded ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined} primary={true} />
-          </Kb.Box2>
+        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+          <LocationButton
+            disabled={locationDenied}
+            label="Share location for 15 minutes"
+            onClick={() => onLocationShare('15m')}
+            subLabel="Live location"
+          />
+          <LocationButton
+            disabled={locationDenied}
+            label="Share location for 1 hour"
+            onClick={() => onLocationShare('1h')}
+            subLabel="Live location"
+          />
+          <LocationButton
+            disabled={locationDenied}
+            label="Share location for 8 hours"
+            onClick={() => onLocationShare('8h')}
+            subLabel="Live location"
+          />
+          <LocationButton
+            disabled={locationDenied}
+            label="Send current location"
+            onClick={() => onLocationShare('')}
+            subLabel={mapLoaded ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined}
+            primary={true}
+          />
+        </Kb.Box2>
       </Kb.Box2>
     </>
   )

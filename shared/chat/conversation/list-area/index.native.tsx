@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
@@ -135,12 +134,7 @@ const ConversationList = function ConversationList() {
     if (!ordinal) {
       return null
     }
-    return (
-      <MessageRow
-        isCenteredHighlight={centeredHighlightOrdinal === ordinal}
-        ordinal={ordinal}
-      />
-    )
+    return <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
   }
 
   const numOrdinals = messageOrdinals.length

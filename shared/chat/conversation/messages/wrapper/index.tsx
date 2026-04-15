@@ -1,4 +1,3 @@
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import {chatDebugEnabled} from '@/constants/chat/debug'
 import logger from '@/logger'
@@ -104,9 +103,5 @@ export const MessageRow = function MessageRow(p: Props) {
     }
     return null
   }
-  return (
-    <PerfProfiler id={`Msg-${type}`}>
-      {content}
-    </PerfProfiler>
-  )
+  return <PerfProfiler id={`Msg-${type}`}>{content}</PerfProfiler>
 }

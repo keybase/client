@@ -19,7 +19,7 @@ import {useTeamsState} from '@/stores/teams'
 import {useTrackerState} from '@/stores/tracker'
 import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
-import type {ConvoState, ConvoUIState} from '@/stores/convostate'
+import type {ConvoUIState} from '@/stores/convostate'
 
 export type Props = {
   isCenteredHighlight?: boolean

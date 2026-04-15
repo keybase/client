@@ -1,5 +1,4 @@
 // Debug utilities for chat
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import type * as T from '@/constants/types'

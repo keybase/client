@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Hooks from './hooks'
@@ -45,12 +44,9 @@ const useScrolling = (p: {
   const {messageOrdinals, centeredOrdinal, loaded} = p
   const numOrdinals = messageOrdinals.length
   const loadNewerMessagesDueToScroll = ConvoState.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
-  const loadNewerMessages = C.useThrottledCallback(
-    () => {
-      loadNewerMessagesDueToScroll(numOrdinals)
-    },
-    200
-  )
+  const loadNewerMessages = C.useThrottledCallback(() => {
+    loadNewerMessagesDueToScroll(numOrdinals)
+  }, 200)
   // if we scroll up try and keep the position
   const scrollBottomOffsetRef = React.useRef<number | undefined>(undefined)
 
@@ -387,10 +383,7 @@ const useItems = (p: {
         )}
       >
         <Separator trailingItem={ordinal} />
-        <MessageRow
-          isCenteredHighlight={centeredHighlightOrdinal === ordinal}
-          ordinal={ordinal}
-        />
+        <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
       </div>
     )
   }

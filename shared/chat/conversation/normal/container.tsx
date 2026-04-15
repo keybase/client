@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import {useConfigState} from '@/stores/config'
 import * as React from 'react'
@@ -20,9 +19,7 @@ const useOrangeLine = () => {
     const f = async () => {
       const store = ConvoState.getConvoState(id)
       const convID = store.getConvID()
-      const readMsgID = useSavedReadMsgID
-        ? savedReadMsgID
-        : store.meta.readMsgID
+      const readMsgID = useSavedReadMsgID ? savedReadMsgID : store.meta.readMsgID
       const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
         convID,
         identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,

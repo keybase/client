@@ -20,12 +20,7 @@ import {flushInboxRowUpdates} from '@/stores/inbox-rows'
 import type {StaticScreenProps} from '@react-navigation/core'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {isPhone} from '@/constants/platform'
-import {
-  getModalStack,
-  getTab,
-  getVisibleScreen,
-  navigateToInbox,
-} from '@/constants/router'
+import {getModalStack, getTab, getVisibleScreen, navigateToInbox} from '@/constants/router'
 import {storeRegistry} from '@/stores/store-registry'
 import {uint8ArrayToString} from '@/util/uint8array'
 import {useConfigState} from '@/stores/config'
@@ -261,23 +256,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         cs.getState().dispatch.setMeta()
       }
     },
-    dismissBlockButtons: teamID => {
-      const f = async () => {
-        try {
-          await T.RPCGen.userDismissBlockButtonsRpcPromise({tlfID: teamID})
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.error(`Couldn't dismiss block buttons: ${error.message}`)
-          }
-        }
-      }
-      ignorePromise(f())
-    },
-    dismissBlockButtonsIfPresent: teamID => {
-      if (get().blockButtonsMap.has(teamID)) {
-        get().dispatch.dismissBlockButtons(teamID)
-      }
-    },
     createConversation: (participants, highlightMessageID) => {
       // TODO This will break if you try to make 2 new conversations at the same time because there is
       // only one pending conversation state.
@@ -346,6 +324,23 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
       }
       ignorePromise(f())
+    },
+    dismissBlockButtons: teamID => {
+      const f = async () => {
+        try {
+          await T.RPCGen.userDismissBlockButtonsRpcPromise({tlfID: teamID})
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`Couldn't dismiss block buttons: ${error.message}`)
+          }
+        }
+      }
+      ignorePromise(f())
+    },
+    dismissBlockButtonsIfPresent: teamID => {
+      if (get().blockButtonsMap.has(teamID)) {
+        get().dispatch.dismissBlockButtons(teamID)
+      }
     },
     ensureWidgetMetas: () => {
       const {inboxLayout} = get()

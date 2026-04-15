@@ -1,4 +1,3 @@
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import {useTeamsState} from '@/stores/teams'
 import type * as T from '@/constants/types'

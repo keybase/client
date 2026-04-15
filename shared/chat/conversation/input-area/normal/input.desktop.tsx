@@ -1,4 +1,3 @@
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -113,8 +112,7 @@ export function Input(p: InputLowLevelProps) {
 
       if (rowsMax) {
         heightStyles.maxHeight =
-          rowsMax *
-          (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20)
+          rowsMax * (textStyle.lineHeight === undefined ? 20 : maybeParseInt(textStyle.lineHeight, 10) || 20)
       }
 
       const paddingStyles = padding ? Kb.Styles.padding(Kb.Styles.globalMargins[padding]) : {}
@@ -327,9 +325,7 @@ const fileListToPaths = (f: FileList): Array<string> => {
   return Array.from(f).map(f => getPathForFile?.(f) ?? '')
 }
 
-const FileButton = function FileButton(p: {
-  setHtmlInputRef: (i: HTMLInputElement | null) => void
-}) {
+const FileButton = function FileButton(p: {setHtmlInputRef: (i: HTMLInputElement | null) => void}) {
   const {setHtmlInputRef} = p
   const htmlInputRef = React.useRef<HTMLInputElement | null>(null)
   const navigateAppend = ConvoState.useChatNavigateAppend()

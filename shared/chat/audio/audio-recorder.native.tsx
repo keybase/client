@@ -1,4 +1,3 @@
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -703,10 +702,16 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
 
   return (
     <>
-      <Kb.Box2Animated direction="vertical" style={[styles.cancelHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}>
+      <Kb.Box2Animated
+        direction="vertical"
+        style={[styles.cancelHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}
+      >
         <Kb.Icon sizeType="Tiny" type={'iconfont-arrow-left'} />
       </Kb.Box2Animated>
-      <Kb.Box2Animated direction="vertical" style={[styles.cancelHintStyle, closeStyle as Kb.Styles._StylesCrossPlatform]}>
+      <Kb.Box2Animated
+        direction="vertical"
+        style={[styles.cancelHintStyle, closeStyle as Kb.Styles._StylesCrossPlatform]}
+      >
         <Kb.Icon sizeType="Tiny" type={'iconfont-close'} color={Kb.Styles.globalColors.black_20} />
       </Kb.Box2Animated>
       <AnimatedText

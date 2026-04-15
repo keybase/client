@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import type {StylesCrossPlatform} from '@/styles'
 import {useOrdinal} from './ids-context'

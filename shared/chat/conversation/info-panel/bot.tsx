@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
@@ -91,7 +90,12 @@ export const Bot = (props: BotProps) => {
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
       {description !== '' && (
-        <Kb.Text type="BodySmall" lineClamp={1} style={secondaryColor ? {color: secondaryColor} : undefined} onClick={() => onClick(botUsername)}>
+        <Kb.Text
+          type="BodySmall"
+          lineClamp={1}
+          style={secondaryColor ? {color: secondaryColor} : undefined}
+          onClick={() => onClick(botUsername)}
+        >
           {description}
         </Kb.Text>
       )}

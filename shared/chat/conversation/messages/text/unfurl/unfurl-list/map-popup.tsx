@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters/index'
 import type * as T from '@/constants/types'
@@ -41,18 +40,18 @@ const UnfurlMapPopup = (props: Props) => {
     <>
       <LocationMap mapSrc={mapSrc} height={height} width={width} />
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            <Kb.Button fullWidth={true} onClick={onViewURL} label="View on Google Maps" type="Default" />
-            {isAuthor && isLiveLocation && (
-              <Kb.Button
-                fullWidth={true}
-                onClick={onStopSharing}
-                label="Stop sharing your location"
-                type="Danger"
-                mode="Secondary"
-              />
-            )}
-          </Kb.Box2>
+        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+          <Kb.Button fullWidth={true} onClick={onViewURL} label="View on Google Maps" type="Default" />
+          {isAuthor && isLiveLocation && (
+            <Kb.Button
+              fullWidth={true}
+              onClick={onStopSharing}
+              label="Stop sharing your location"
+              type="Danger"
+              mode="Secondary"
+            />
+          )}
+        </Kb.Box2>
       </Kb.Box2>
     </>
   )

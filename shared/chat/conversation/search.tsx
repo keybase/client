@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Message from '@/constants/chat/message'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import type * as Styles from '@/styles'
 import * as T from '@/constants/types'
@@ -272,9 +271,7 @@ const useCommon = (ownProps: OwnProps) => {
     return () => {
       searchOrdinalRef.current += 1
       clearPendingFlush()
-      C.ignorePromise(
-        T.RPCChat.localCancelActiveSearchRpcPromise().catch(() => {})
-      )
+      C.ignorePromise(T.RPCChat.localCancelActiveSearchRpcPromise().catch(() => {}))
     }
   }, [])
 
@@ -380,7 +377,13 @@ const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
   const noResults = status === 'done' && hits.length === 0
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={style}>
-      <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.outerContainer} fullWidth={true} gap="tiny">
+      <Kb.Box2
+        direction="horizontal"
+        justifyContent="space-between"
+        style={styles.outerContainer}
+        fullWidth={true}
+        gap="tiny"
+      >
         <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
           <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true}>
             <Kb.Input3

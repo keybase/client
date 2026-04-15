@@ -1,4 +1,3 @@
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -16,7 +15,8 @@ const BigTeamChannel = (props: Props) => {
   const row = useInboxRowBig(conversationIDKey)
   const {channelname, isMuted, hasBadge, hasDraft, hasUnread, isError, snippetDecoration} = row
 
-  const onSelectConversation = () => ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxBig')
+  const onSelectConversation = () =>
+    ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxBig')
 
   let outboxTooltip: string | undefined
   let outboxIcon: React.ReactNode = null

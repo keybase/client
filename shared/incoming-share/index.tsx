@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -233,7 +232,11 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
           <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
         </Kb.Box2>
       </Kb.Box2>
-      {footer ? <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>{footer.content}</Kb.Box2> : null}
+      {footer ? (
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+          {footer.content}
+        </Kb.Box2>
+      ) : null}
     </>
   )
 }

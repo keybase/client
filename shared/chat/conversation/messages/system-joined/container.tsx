@@ -1,4 +1,3 @@
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -46,13 +45,7 @@ const MultiUserJoinedNotice = (p: {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start" relative={true}>
       <UserNotice>
-        <Kb.Box2
-          direction="horizontal"
-          gap="xtiny"
-          fullWidth={true}
-          alignSelf="flex-start"
-          relative={true}
-        >
+        <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} alignSelf="flex-start" relative={true}>
           <Kb.Text type="Body">•</Kb.Text>
           <Kb.Text type="BodySmall" lineClamp={2} title={who.join(', ')}>
             {getAddedUsernames(who)}
