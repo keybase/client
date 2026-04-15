@@ -23,6 +23,7 @@ import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {type useChatState} from '@/stores/chat'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useUsersState} from '@/stores/users'
 import * as Util from '@/constants/teams'
 import {getTab} from '@/constants/router'
 
@@ -834,7 +835,6 @@ export type State = Store & {
       onChatPreviewConversation?: (
         p: Parameters<ReturnType<typeof useChatState.getState>['dispatch']['previewConversation']>[0]
       ) => void
-      onUsersUpdates?: (updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
     }
     addMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
     addMembersWizardRemoveMember: (assertion: string) => void
@@ -1313,9 +1313,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }) => {
         throw new Error('onChatPreviewConversation not implemented')
       },
-      onUsersUpdates: (_updates: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
-        throw new Error('onUsersUpdates not implemented')
-      },
     },
     deleteChannelConfirmed: (teamID, conversationIDKey) => {
       const f = async () => {
@@ -1494,7 +1491,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         set(s => {
           s.teamIDToMembers.set(teamID, members)
         })
-        get().dispatch.defer.onUsersUpdates?.(
+        useUsersState.getState().dispatch.updates(
           [...members.values()].map(m => ({
             info: {fullname: m.fullName},
             name: m.username,

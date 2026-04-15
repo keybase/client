@@ -11,6 +11,7 @@ import {validateEmailAddress} from '@/util/email-address'
 import {registerDebugClear} from '@/util/debug'
 import {searchWaitingKey} from '@/constants/strings'
 import {navigateUp, getModalStack} from '@/constants/router'
+import {useUsersState} from '@/stores/users'
 export {allServices, selfToUser} from '@/constants/team-building'
 export {searchWaitingKey} from '@/constants/strings'
 
@@ -51,8 +52,6 @@ export type State = Store & {
       onGetSettingsContactsImportEnabled: () => boolean | undefined
       onGetSettingsContactsUserCountryCode: () => string | undefined
       onShowUserProfile: (username: string) => void
-      onUsersGetBlockState: (usernames: ReadonlyArray<string>) => void
-      onUsersUpdates: (infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => void
     }
     fetchUserRecs: () => void
     finishTeamBuilding: () => void
@@ -316,12 +315,6 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       onShowUserProfile: (_username: string) => {
         throw new Error('onShowUserProfile not properly initialized')
       },
-      onUsersGetBlockState: (_usernames: ReadonlyArray<string>) => {
-        throw new Error('onUsersGetBlockState not properly initialized')
-      },
-      onUsersUpdates: (_infos: ReadonlyArray<{name: string; info: Partial<T.Users.UserInfo>}>) => {
-        throw new Error('onUsersUpdates not properly initialized')
-      },
     },
     fetchUserRecs: () => {
       const includeContacts = get().namespace === 'chat'
@@ -458,9 +451,9 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
             blocks.push(keybase)
           }
         }
-        get().dispatch.defer.onUsersUpdates(updates)
+        useUsersState.getState().dispatch.updates(updates)
         if (blocks.length) {
-          get().dispatch.defer.onUsersGetBlockState(blocks)
+          useUsersState.getState().dispatch.getBlockState(blocks)
         }
       }
       ignorePromise(f())
