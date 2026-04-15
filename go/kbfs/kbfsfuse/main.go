@@ -18,6 +18,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/keybase/client/go/kbfs/libfsdriver"
 	"github.com/keybase/client/go/kbfs/libfuse"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/libkb"
@@ -52,7 +53,7 @@ Defaults:
 func getUsageString(ctx libkbfs.Context) string {
 	remoteUsageStr := libkbfs.GetRemoteUsageString()
 	localUsageStr := libkbfs.GetLocalUsageString()
-	platformUsageStr := libfuse.GetPlatformUsageString()
+	platformUsageStr := libfsdriver.GetPlatformUsageString()
 	defaultUsageStr := libkbfs.GetDefaultsUsageString(ctx)
 	return fmt.Sprintf(usageFormatStr,
 		remoteUsageStr, platformUsageStr,
@@ -63,7 +64,7 @@ func start() *libfs.Error {
 	ctx := env.NewContextWithPerfLog(libkb.KBFSPerfLogFileName)
 
 	kbfsParams := libkbfs.AddFlags(flag.CommandLine, ctx)
-	platformParams := libfuse.AddPlatformFlags(flag.CommandLine)
+	platformParams := libfsdriver.AddPlatformFlags(flag.CommandLine)
 
 	flag.Parse()
 
@@ -105,7 +106,7 @@ func start() *libfs.Error {
 	logger.EnableBufferedLogging()
 	defer logger.Shutdown()
 
-	options := libfuse.StartOptions{
+	options := libfsdriver.StartOptions{
 		KbfsParams:        *kbfsParams,
 		PlatformParams:    *platformParams,
 		RuntimeDir:        *runtimeDir,
@@ -116,7 +117,7 @@ func start() *libfs.Error {
 		MountPoint:        mountDir,
 	}
 
-	return libfuse.Start(options, ctx)
+	return libfsdriver.Start(options, ctx)
 }
 
 func main() {

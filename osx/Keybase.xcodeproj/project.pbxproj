@@ -35,6 +35,7 @@
 		00DAF5C01B2F8969000D7F9A /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00DAF5BE1B2F885D000D7F9A /* Social.framework */; };
 		00E1CEEF1C44313B00ED3A35 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E1CEEE1C44313B00ED3A35 /* Media.xcassets */; };
 		00E1CEF01C44313B00ED3A35 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00E1CEEE1C44313B00ED3A35 /* Media.xcassets */; };
+		A1B2C3D4E5F60718293A4B01 /* KeybaseFSKitExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B04 /* KeybaseFSKitExtension.swift */; };
 		503740A121DB05F7001C0893 /* fs.m in Sources */ = {isa = PBXBuildFile; fileRef = 503740A021DB05F7001C0893 /* fs.m */; };
 		5AAE4172EC33DA8F19F8A42E /* Pods_Installer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69A6ACE60F73339BC6D789BA /* Pods_Installer.framework */; };
 		A41AA4F5D9C9A73A57136523 /* libPods-keybase.Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 647177609208B611C8346C28 /* libPods-keybase.Helper.a */; };
@@ -160,6 +161,10 @@
 		00CC43561A3A9E6C006118A9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		00DAF5BE1B2F885D000D7F9A /* Social.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Social.framework; path = System/Library/Frameworks/Social.framework; sourceTree = SDKROOT; };
 		00E1CEEE1C44313B00ED3A35 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B02 /* KeybaseFSKit.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KeybaseFSKit.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F60718293A4B03 /* FSKit.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = FSKit.entitlements; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B04 /* KeybaseFSKitExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeybaseFSKitExtension.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B05 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		10F5D4AFBFC1E22180FEFFCD /* Pods-Installer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Installer.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Installer/Pods-Installer.debug.xcconfig"; sourceTree = "<group>"; };
 		274108FC21CC410600B9C9F1 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
@@ -230,6 +235,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				5AAE4172EC33DA8F19F8A42E /* Pods_Installer.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F60718293A4B0B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -336,8 +348,27 @@
 				009E13671B27B39300C72B28 /* Action */,
 				001C6B381B24F8630048F086 /* Share */,
 				004624B21B2917AB00E218AC /* FinderSync */,
+				A1B2C3D4E5F60718293A4B06 /* FSKit */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F60718293A4B06 /* FSKit */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F60718293A4B04 /* KeybaseFSKitExtension.swift */,
+				A1B2C3D4E5F60718293A4B07 /* Supporting Files */,
+			);
+			path = ../FSKit;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F60718293A4B07 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F60718293A4B05 /* Info.plist */,
+				A1B2C3D4E5F60718293A4B03 /* FSKit.entitlements */,
+			);
+			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 		009E13671B27B39300C72B28 /* Action */ = {
@@ -395,6 +426,7 @@
 				00AA750F1B27635D0069A6CC /* Tests.xctest */,
 				009E13661B27B39300C72B28 /* Action.appex */,
 				004624B11B2917AB00E218AC /* FinderSync.appex */,
+				A1B2C3D4E5F60718293A4B02 /* KeybaseFSKit.appex */,
 				0036081C1C442ED200B3300E /* KeybaseStatus.app */,
 			);
 			name = Products;
@@ -596,6 +628,23 @@
 			productReference = 00CC43491A3A9E6C006118A9 /* Keybase.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A1B2C3D4E5F60718293A4B08 /* KeybaseFSKit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1B2C3D4E5F60718293A4B09 /* Build configuration list for PBXNativeTarget "KeybaseFSKit" */;
+			buildPhases = (
+				A1B2C3D4E5F60718293A4B0A /* Sources */,
+				A1B2C3D4E5F60718293A4B0B /* Frameworks */,
+				A1B2C3D4E5F60718293A4B0C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KeybaseFSKit;
+			productName = KeybaseFSKit;
+			productReference = A1B2C3D4E5F60718293A4B02 /* KeybaseFSKit.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -690,6 +739,18 @@
 							};
 						};
 					};
+					A1B2C3D4E5F60718293A4B08 = {
+						CreatedOnToolsVersion = 16.0;
+						DevelopmentTeam = 99229SGT5K;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.Mac = {
+								enabled = 1;
+							};
+							com.apple.Keychain = {
+								enabled = 1;
+							};
+						};
+					};
 				};
 			};
 			buildConfigurationList = 00CC43441A3A9E6C006118A9 /* Build configuration list for PBXProject "Keybase" */;
@@ -712,6 +773,7 @@
 				001C6B361B24F8630048F086 /* Share */,
 				009E13651B27B39300C72B28 /* Action */,
 				004624B01B2917AB00E218AC /* FinderSync */,
+				A1B2C3D4E5F60718293A4B08 /* KeybaseFSKit */,
 				00AA750E1B27635D0069A6CC /* Tests */,
 			);
 		};
@@ -766,6 +828,13 @@
 				001392751B06B18A0082DEA8 /* Fuse.icns in Resources */,
 				00E1CEEF1C44313B00ED3A35 /* Media.xcassets in Resources */,
 				0005BCA01C445AFB0062EF1D /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F60718293A4B0C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -997,6 +1066,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A1B2C3D4E5F60718293A4B0A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D4E5F60718293A4B01 /* KeybaseFSKitExtension.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1153,6 +1230,46 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		A1B2C3D4E5F60718293A4B0D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = FSKit/FSKit.entitlements;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = FSKit/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "keybase.Keybase.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = KeybaseFSKit;
+				PROVISIONING_PROFILE = "";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A1B2C3D4E5F60718293A4B0E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = FSKit/FSKit.entitlements;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = FSKit/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "keybase.Keybase.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = KeybaseFSKit;
+				PROVISIONING_PROFILE = "";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -1503,6 +1620,15 @@
 			buildConfigurations = (
 				00CC43671A3A9E6C006118A9 /* Debug */,
 				00CC43681A3A9E6C006118A9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1B2C3D4E5F60718293A4B09 /* Build configuration list for PBXNativeTarget "KeybaseFSKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1B2C3D4E5F60718293A4B0D /* Debug */,
+				A1B2C3D4E5F60718293A4B0E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -33,7 +33,7 @@ func NewCmdFuseStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				Usage: "Bundle version",
 			},
 		},
-		Usage: "Status for fuse, including for installing or updating",
+		Usage: "Status for the macOS filesystem driver (FSKit)",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)

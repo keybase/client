@@ -46,7 +46,11 @@ const fuseStatusToActions =
       return
     }
 
-    if (status.kextStarted) {
+    const driverActive =
+      status.installStatus === T.RPCGen.InstallStatus.installed &&
+      (status.kextStarted || (status.mountInfos?.length ?? 0) > 0)
+
+    if (driverActive) {
       useFSState.getState().dispatch.setDriverStatus({
         ...Constants.emptyDriverStatusEnabled,
         dokanOutdated: status.installAction === T.RPCGen.InstallAction.upgrade,
@@ -56,7 +60,7 @@ const fuseStatusToActions =
       useFSState.getState().dispatch.setDriverStatus(Constants.emptyDriverStatusDisabled)
     }
 
-    if (status.kextStarted && previousStatusType === T.FS.DriverStatusType.Disabled) {
+    if (driverActive && previousStatusType === T.FS.DriverStatusType.Disabled) {
       useFSState
         .getState()
         .dispatch.dynamic.openPathInSystemFileManagerDesktop?.(T.FS.stringToPath('/keybase'))

@@ -10,7 +10,7 @@
 ### Build the Installer
 
 You probably want to bump the version of the installer in both the "Bundle version" (CFBundleVersion)
-and the "Bundle version string, short" (CFBundleShortVersionString) in [Installer/Info.plist](/osx/Installer/Info.plist). If you updated KBFuse, bump those versions too.
+and the "Bundle version string, short" (CFBundleShortVersionString) in [Installer/Info.plist](/osx/Installer/Info.plist). If you updated the FSKit module, bump those versions too.
 
 Install the developer certificate chain by cloning the
 `keybase://team/keybase.keymasters/apple-dev` repo, and installing the
@@ -52,6 +52,6 @@ Upload the build KeybaseInstaller-x.y.z-darwin.tgz to the s3://prerelease.keybas
 Update the scripts that reference the older version such to include this version:
 
 * [packaging/desktop/package_darwin.sh](/packaging/desktop/package_darwin.sh)
-* [packaging/desktop/kbfuse.sh](/packaging/desktop/kbfuse.sh)
+* [packaging/desktop/fskit.sh](/packaging/desktop/fskit.sh)
 
 The installer is bundled into the Keybase.app, in `Keybase.app/Contents/Resources/KeybaseInstaller.app`.

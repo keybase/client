@@ -24,6 +24,10 @@
 	<string>5.0.6</string>
 	<key>KBFuseVersion</key>
 	<string>5.0.6</string>
+	<key>FSKitBuild</key>
+	<string>1.0.0</string>
+	<key>FSKitVersion</key>
+	<string>1.0.0</string>
 	<key>KBHelperBuild</key>
 	<string>1.0.47</string>
 	<key>KBHelperVersion</key>

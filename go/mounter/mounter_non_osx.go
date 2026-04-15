@@ -10,7 +10,7 @@ import (
 	"fmt"
 )
 
-// IsMounted returns true if directory is mounted (by kbfuse)
+// IsMounted returns true if directory is mounted by a KBFS filesystem driver.
 func IsMounted(dir string, log Log) (bool, error) {
 	return false, fmt.Errorf("IsMounted unsupported on this platform")
 }
