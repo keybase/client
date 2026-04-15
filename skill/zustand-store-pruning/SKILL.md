@@ -82,6 +82,33 @@ Prefer reloading in components instead of keeping a store cache when:
 - The cache only saves a small RPC but forces unrelated screens to coordinate through global state
 - The notification path only exists to keep that convenience cache warm
 
+Prefer direct store imports instead of `shared/constants/init/shared.tsx` callback plumbing when:
+
+- A store's `dispatch.defer.*` callback exists only to forward to another Zustand store
+- The target store is leaf-like and does not import the calling store back
+- The callback does not need platform-specific override behavior
+- The callback does not exist to break a real import cycle
+
+Keep init-time callback plumbing when:
+
+- The direct import would introduce a store cycle or make one more likely
+- The callback is intentionally abstracting a platform split or runtime override
+- The callback bundles several stores behind one bootstrap seam that still matters
+
+For Keybase repo cleanup, this usually means:
+
+- If `chat`, `teams`, `tracker`, `team-building`, `push`, or similar stores are only calling into leaf stores like `users`, `daemon`, or `settings-contacts`, prefer `useLeafStore.getState()` directly
+- Treat `shared/constants/init/shared.tsx` as a smell when it is only wiring one store method straight into another
+- After replacing the direct call sites, delete the matching `defer` field types, default throwers, init wiring, dead imports, and any now-empty init helper
+
+Concerns to check before making this change:
+
+- Search both directions with `rg` to confirm the target store does not already import the caller
+- Check `store-registry.tsx`, dynamic `require(...)`, and platform-split files before assuming a store is leaf-safe
+- Preserve bootstrap-only behavior that is still real; do not remove an init helper if it still wires unrelated callbacks
+- Update tests and desktop/native stubs that may still reference the old `defer` field
+- Keep the remaining `defer` surface coherent; if a store's `defer` object becomes empty, remove the field rather than leaving dead scaffolding behind
+
 For listener-driven multi-step flows, separate callback plumbing from UI state:
 
 - If `incomingCallMap` or `customResponseIncomingCallMap` only need to keep live response handlers across navigation, move banners, form state, and selections out of the feature store first
@@ -115,6 +142,13 @@ For each field and action, label it:
 - `unsure`
 
 Do this before writing code. If several fields move together, migrate that whole screen flow in one pass.
+
+Also label cross-store callback seams:
+
+- `keep-init-plumbing`
+- `replace-direct-import`
+
+Use `replace-direct-import` when a `dispatch.defer.*` field only forwards to a leaf-like store and there is no import-cycle risk.
 
 ### 3. Move screen-owned RPCs into components
 
@@ -169,6 +203,14 @@ After consumers move off the store:
 - Remove unused notification plumbing only if behavior is preserved
 - Keep reset behavior coherent for whatever remains
 - Preserve public store names unless there is a strong reason to rename them
+
+After removing init callback plumbing:
+
+- Delete the matching `dispatch.defer` type entries
+- Delete the matching default throw implementations
+- Delete `shared/constants/init/shared.tsx` wiring for those callbacks
+- Delete now-empty init helpers and their startup calls
+- Delete stale imports left behind in both the store and `shared.tsx`
 
 If nothing meaningful remains after moving screen-owned data out, delete the store entirely instead of leaving a one-field convenience cache behind.
 
