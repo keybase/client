@@ -28,7 +28,6 @@ const ConfirmReset = ({route}: Props) => {
         <Kb.HeaderLeftButton
           onPress={() => {
             resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
-            navigation.goBack()
           }}
         />
       ),
