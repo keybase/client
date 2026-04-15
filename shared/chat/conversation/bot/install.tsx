@@ -37,11 +37,13 @@ export const useRefreshBotMembershipOnSuccess = (
   waitingKey: string,
   error: RPCError | undefined,
   shouldRefreshMembership: boolean,
+  updatedBotMember: {role?: 'bot' | 'restrictedbot'; username: string} | undefined,
   onSuccess: () => void
 ) => {
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
   const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
+  const updateCachedBotMember = Teams.useTeamsState(s => s.dispatch.updateCachedBotMember)
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
   const setParticipants = Chat.useChatContext(s => s.dispatch.setParticipants)
   const teamIDToRefresh = teamID && teamID !== T.Teams.noTeamID ? teamID : undefined
@@ -57,12 +59,18 @@ export const useRefreshBotMembershipOnSuccess = (
           [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
           preview => {
             setParticipants(uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
+            if (teamIDToRefresh && updatedBotMember) {
+              updateCachedBotMember(teamIDToRefresh, updatedBotMember.username, updatedBotMember.role)
+            }
             if (teamIDToRefresh) {
               C.ignorePromise(getMembers(teamIDToRefresh, true))
             }
             onSuccess()
           },
           () => {
+            if (teamIDToRefresh && updatedBotMember) {
+              updateCachedBotMember(teamIDToRefresh, updatedBotMember.username, updatedBotMember.role)
+            }
             if (teamIDToRefresh) {
               C.ignorePromise(getMembers(teamIDToRefresh, true))
             }
@@ -81,6 +89,8 @@ export const useRefreshBotMembershipOnSuccess = (
     setParticipants,
     shouldRefreshMembership,
     teamIDToRefresh,
+    updateCachedBotMember,
+    updatedBotMember,
     waiting,
   ])
 }
@@ -256,6 +266,9 @@ const InstallBotPopup = (props: Props) => {
     C.waitingKeyChatBotAdd,
     mutationError,
     pendingMutation === 'add',
+    pendingMutation === 'add'
+      ? {role: installWithRestrict ? 'restrictedbot' : 'bot', username: botUsername}
+      : undefined,
     () => {
       setPendingMutation(undefined)
       clearModals()

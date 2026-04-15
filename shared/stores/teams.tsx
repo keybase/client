@@ -979,6 +979,11 @@ export type State = Store & {
       conversationIDKey: T.Chat.ConversationIDKey,
       newChannelName: string
     ) => Promise<void>
+    updateCachedBotMember: (
+      teamID: T.Teams.TeamID,
+      username: string,
+      role?: 'bot' | 'restrictedbot'
+    ) => void
     updateTopic: (
       teamID: T.Teams.TeamID,
       conversationIDKey: T.Chat.ConversationIDKey,
@@ -2559,6 +2564,34 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       try {
         await T.RPCChat.localPostMetadataRpcPromise(param, S.waitingKeyTeamsUpdateChannelName(teamID))
       } catch {}
+    },
+    updateCachedBotMember: (teamID, username, role) => {
+      if (!teamID || teamID === T.Teams.noTeamID || teamID === T.Teams.newTeamWizardTeamID) {
+        return
+      }
+      set(s => {
+        const infoFromUsers = useUsersState.getState().infoMap.get(username)
+        const updateMembers = (members?: Map<string, T.Teams.MemberInfo>) => {
+          if (!members) {
+            return
+          }
+          if (!role) {
+            members.delete(username)
+            return
+          }
+          const existing = members.get(username)
+          members.set(username, {
+            fullName: existing?.fullName ?? infoFromUsers?.fullname ?? '',
+            joinTime: existing?.joinTime,
+            needsPUK: existing?.needsPUK ?? false,
+            status: existing?.status ?? 'active',
+            type: role,
+            username,
+          })
+        }
+        updateMembers(s.teamIDToMembers.get(teamID))
+        updateMembers(s.teamDetails.get(teamID)?.members)
+      })
     },
     updateTopic: async (teamID, conversationIDKey, newTopic) => {
       const param = {

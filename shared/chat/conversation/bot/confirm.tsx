@@ -28,6 +28,7 @@ const ConfirmBotRemoveImpl = (props: {botUsername: string; teamID?: T.Teams.Team
     C.waitingKeyChatBotRemove,
     error,
     true,
+    {username: botUsername},
     clearModals
   )
   return (
