@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/stores/autoreset'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import LoginContainer from '../login/forms/container'
 import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
 import {type ProvisionRouteError, useProvisionState} from '@/stores/provision'
+import {startAccountReset} from '@/login/reset/account-reset'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <LoginContainer onBack={p.onBack}>
@@ -41,7 +41,6 @@ type Props = {
 const RenderError = ({route}: Props) => {
   const error = route.params.error
   const username = useProvisionState(s => s.username)
-  const startAccountReset = AutoReset.useAutoResetState(s => s.dispatch.startAccountReset)
   const _onAccountReset = (username: string) => {
     startAccountReset(false, username)
   }

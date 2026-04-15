@@ -3,28 +3,29 @@ import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import * as C from '@/constants'
-import * as AutoReset from '@/stores/autoreset'
+import {useConfigState} from '@/stores/config'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {enterResetPipeline} from './account-reset'
 import {formatDurationForAutoreset as formatDuration} from '@/util/timestamp'
 
-type Props = {pipelineStarted: boolean; username: string}
+type Props = {endTime?: number; pipelineStarted: boolean; username: string}
 
 const formatTimeLeft = (endTime: number) => {
   return formatDuration(endTime - Date.now())
 }
 
-const Waiting = ({pipelineStarted, username}: Props) => {
-  const endTime = AutoReset.useAutoResetState(s => s.endTime)
+const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
+  const badgeEndTime = useConfigState(s => s.badgeState?.resetState.endTime ?? 0)
+  const endTime = badgeEndTime || routeEndTime || 0
   const [formattedTime, setFormattedTime] = React.useState('a bit')
   const [hasSentAgain, setHasSentAgain] = React.useState(false)
   const [sendAgainSuccess, setSendAgainSuccess] = React.useState(false)
   const nav = useSafeNavigation()
   const onClose = () => nav.safeNavigateAppend('login', true)
-  const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
   const onSendAgain = () => {
     setHasSentAgain(true)
     setSendAgainSuccess(false)
-    resetAccount(username)
+    enterResetPipeline({username})
   }
   const _sendAgainWaiting = C.Waiting.useAnyWaiting(C.waitingKeyAutoresetEnterPipeline)
   const sendAgainWaiting = hasSentAgain && _sendAgainWaiting

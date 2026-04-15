@@ -82,6 +82,15 @@ Prefer reloading in components instead of keeping a store cache when:
 - The cache only saves a small RPC but forces unrelated screens to coordinate through global state
 - The notification path only exists to keep that convenience cache warm
 
+For listener-driven multi-step flows, separate callback plumbing from UI state:
+
+- If `incomingCallMap` or `customResponseIncomingCallMap` only need to keep live response handlers across navigation, move banners, form state, and selections out of the feature store first
+- Keep those live handlers in a dedicated transient handle module such as `shared/stores/flow-handles.tsx`, not in a feature store field or a per-feature singleton map
+- Model the shared handle module after existing `dispatch.dynamic.*` patterns: use an `owner` plus `slot` for named handlers, and keyed one-shot registrations for cases like confirm screens that need an opaque token in route params
+- Add thin feature-local wrappers next to the flow, for example `registerResetPrompt` or `submitResetPrompt`, so most call sites stay typed and readable
+- Register the module's `clearAll` with the shared reset plumbing so `resetAllStores()` clears these runtime handles too
+- Do not put screen data, waiting state, validation errors, or caches into the transient handle module. It is only for live callbacks or resolvers that must survive route changes
+
 ## Refactor Workflow
 
 ### 1. Pick one store and map consumers

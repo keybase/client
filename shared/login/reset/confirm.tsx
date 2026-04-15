@@ -1,23 +1,53 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/stores/autoreset'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useNavigation} from '@react-navigation/native'
+import {submitResetPrompt} from './account-reset'
 
-type Props = {route: {params: {hasWallet: boolean}}}
+type Props = {route: {params: {hasWallet: boolean; resetKey: string}}}
 
 const ConfirmReset = ({route}: Props) => {
-  const {hasWallet} = route.params
-  const error = AutoReset.useAutoResetState(s => s.error)
-  const submitResetPrompt = AutoReset.useAutoResetState(s => s.dispatch.dynamic.submitResetPrompt)
+  const {hasWallet, resetKey} = route.params
+  const navigation = useNavigation()
+  const resolvedRef = React.useRef(false)
+  const resolvePrompt = React.useCallback(
+    (action: T.RPCGen.ResetPromptResponse) => {
+      if (resolvedRef.current) {
+        return
+      }
+      resolvedRef.current = true
+      submitResetPrompt(resetKey, action)
+    },
+    [resetKey]
+  )
+
+  React.useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <Kb.HeaderLeftButton
+          onPress={() => {
+            resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
+          }}
+        />
+      ),
+    })
+  }, [navigation, resolvePrompt])
+
+  React.useEffect(() => {
+    return navigation.addListener('beforeRemove', () => {
+      resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
+    })
+  }, [navigation, resolvePrompt])
+
   const onContinue = () => {
-    submitResetPrompt?.(T.RPCGen.ResetPromptResponse.confirmReset)
+    resolvePrompt(T.RPCGen.ResetPromptResponse.confirmReset)
   }
   const onCancelReset = () => {
-    submitResetPrompt?.(T.RPCGen.ResetPromptResponse.cancelReset)
+    resolvePrompt(T.RPCGen.ResetPromptResponse.cancelReset)
   }
   const onClose = () => {
-    submitResetPrompt?.(T.RPCGen.ResetPromptResponse.nothing)
+    resolvePrompt(T.RPCGen.ResetPromptResponse.nothing)
   }
 
   const [checks, setChecks] = React.useState({
@@ -35,11 +65,6 @@ const ConfirmReset = ({route}: Props) => {
 
   return (
     <>
-      {error ? (
-        <Kb.Banner color="red" key="errors">
-          <Kb.BannerParagraph bannerColor="red" content={error} />
-        </Kb.Banner>
-      ) : null}
       <Kb.Box2
         direction="vertical"
         fullWidth={true}

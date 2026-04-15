@@ -1,11 +1,12 @@
 import * as C from '@/constants'
-import * as AutoReset from '@/stores/autoreset'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {SignupScreen} from '@/signup/common'
 import type {ButtonType} from '@/common-adapters/button'
 import {useState as useRecoverState} from '@/stores/recover-password'
+import {enterResetPipeline} from '@/login/reset/account-reset'
 
 export type Props = {
   resetPassword?: boolean
@@ -15,8 +16,7 @@ export type Props = {
 
 const PromptReset = (props: Props) => {
   const nav = useSafeNavigation()
-  const error = AutoReset.useAutoResetState(s => s.error)
-  const resetAccount = AutoReset.useAutoResetState(s => s.dispatch.resetAccount)
+  const [error, setError] = React.useState('')
   const {resetPassword, skipPassword, username} = props
 
   const submitResetPassword = useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
@@ -32,7 +32,7 @@ const PromptReset = (props: Props) => {
       submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
     }
     if (skipPassword) {
-      resetAccount(username)
+      enterResetPipeline({onError: setError, username})
     } else {
       nav.safeNavigateAppend({name: 'resetKnowPassword', params: {username}}, true)
     }
