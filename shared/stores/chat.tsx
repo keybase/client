@@ -148,23 +148,6 @@ export const zoomImage = (width: number, height: number, maxThumbSize: number) =
   }
 }
 
-const uiParticipantsToParticipantInfo = (
-  uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
-): T.Chat.ParticipantInfo => {
-  const participantInfo = {all: new Array<string>(), contactName: new Map(), name: new Array<string>()}
-  uiParticipants.forEach(part => {
-    const {assertion, contactName, inConvName} = part
-    participantInfo.all.push(assertion)
-    if (inConvName) {
-      participantInfo.name.push(assertion)
-    }
-    if (contactName) {
-      participantInfo.contactName.set(assertion, contactName)
-    }
-  })
-  return participantInfo
-}
-
 /**
  * Returns true if the team is big and you're a member
  */
@@ -320,7 +303,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
               get().dispatch.metasReceived([meta])
             }
 
-            const participantInfo: T.Chat.ParticipantInfo = uiParticipantsToParticipantInfo(
+            const participantInfo: T.Chat.ParticipantInfo = Common.uiParticipantsToParticipantInfo(
               uiConv.participants ?? []
             )
             if (participantInfo.all.length > 0) {
@@ -624,7 +607,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             if (participants) {
               storeRegistry
                 .getConvoState(conversationIDKey)
-                .dispatch.setParticipants(uiParticipantsToParticipantInfo(participants))
+                .dispatch.setParticipants(Common.uiParticipantsToParticipantInfo(participants))
             }
           })
           break
@@ -907,7 +890,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         if (meta) {
           metas.push(meta)
         }
-        const participantInfo: T.Chat.ParticipantInfo = uiParticipantsToParticipantInfo(
+        const participantInfo: T.Chat.ParticipantInfo = Common.uiParticipantsToParticipantInfo(
           inboxUIItem.participants ?? []
         )
         if (participantInfo.all.length > 0) {

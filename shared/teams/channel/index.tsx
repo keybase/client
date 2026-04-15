@@ -133,10 +133,10 @@ const Channel = (props: OwnProps) => {
   const channelParticipants = useChannelParticipants(teamID, conversationIDKey)
   const generalMembersLoading = meta.channelname === 'general' && !teamMembers
   const participants =
-    meta.channelname === 'general' && teamMembers
-      ? [...teamMembers.values()]
-          .filter(member => member.type !== 'bot' && member.type !== 'restrictedbot')
-          .map(member => member.username)
+    meta.channelname === 'general'
+      ? teamMembers
+        ? _participants
+        : channelParticipants
       : channelParticipants
 
   // Make the actual sections (consider farming this out into another function or file)

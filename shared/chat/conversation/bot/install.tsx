@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as ChatCommon from '@/constants/chat/common'
 import * as Meta from '@/constants/chat/meta'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
@@ -13,23 +14,6 @@ import {useFeaturedBot} from '@/util/featured-bots'
 import type {RPCError} from '@/util/errors'
 
 const RestrictedItem = '---RESTRICTED---'
-
-const uiParticipantsToParticipantInfo = (
-  uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
-): T.Chat.ParticipantInfo => {
-  const participantInfo = {all: new Array<string>(), contactName: new Map(), name: new Array<string>()}
-  uiParticipants.forEach(part => {
-    const {assertion, contactName, inConvName} = part
-    participantInfo.all.push(assertion)
-    if (inConvName) {
-      participantInfo.name.push(assertion)
-    }
-    if (contactName) {
-      participantInfo.contactName.set(assertion, contactName)
-    }
-  })
-  return participantInfo
-}
 
 export const useRefreshBotMembershipOnSuccess = (
   conversationIDKey: T.Chat.ConversationIDKey | undefined,
@@ -57,7 +41,7 @@ export const useRefreshBotMembershipOnSuccess = (
         previewConversationByID(
           [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
           preview => {
-            setParticipants(uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
+            setParticipants(ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
             if (teamIDToRefresh && updatedBotMember) {
               updateCachedBotMember(teamIDToRefresh, updatedBotMember.username, updatedBotMember.role)
             }

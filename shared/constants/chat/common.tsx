@@ -63,3 +63,20 @@ export const allMessageTypes: Set<T.Chat.MessageType> = new Set([
 
 export const generateOutboxID = () =>
   Uint8Array.from([...Array<number>(8)], () => Math.floor(Math.random() * 256))
+
+export const uiParticipantsToParticipantInfo = (
+  uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
+): T.Chat.ParticipantInfo => {
+  const participantInfo = {all: new Array<string>(), contactName: new Map(), name: new Array<string>()}
+  uiParticipants.forEach(part => {
+    const {assertion, contactName, inConvName} = part
+    participantInfo.all.push(assertion)
+    if (inConvName) {
+      participantInfo.name.push(assertion)
+    }
+    if (contactName) {
+      participantInfo.contactName.set(assertion, contactName)
+    }
+  })
+  return participantInfo
+}
