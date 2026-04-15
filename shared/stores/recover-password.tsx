@@ -8,6 +8,7 @@ import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {clearModals, navigateAppend, navigateUp} from '@/constants/router'
 import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
+import {useProvisionState} from '@/stores/provision'
 
 type Store = T.Immutable<{
   resetEmailSent?: boolean
@@ -19,9 +20,6 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    defer: {
-      onProvisionCancel?: (ignoreWarning?: boolean) => void
-    }
     dynamic: {
       cancel?: () => void
       submitDeviceSelect?: (deviceID?: T.Devices.DeviceID) => void
@@ -37,11 +35,6 @@ export type State = Store & {
 
 export const useState = Z.createZustand<State>('recover-password', (set, get) => {
   const dispatch: State['dispatch'] = {
-    defer: {
-      onProvisionCancel: () => {
-        throw new Error('onProvisionCancel not implemented')
-      },
-    },
     dynamic: {
       cancel: undefined,
       submitDeviceSelect: undefined,
@@ -63,7 +56,7 @@ export const useState = Z.createZustand<State>('recover-password', (set, get) =>
     startRecoverPassword: p => {
       const f = async () => {
         if (p.abortProvisioning) {
-          get().dispatch.defer.onProvisionCancel?.()
+          useProvisionState.getState().dispatch.dynamic.cancel?.()
         }
         let hadError = false
         try {

@@ -44,9 +44,7 @@ import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {useProvisionState} from '@/stores/provision'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
-import {useState as useRecoverPasswordState} from '@/stores/recover-password'
 import {useTeamsState} from '@/stores/teams'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
@@ -181,21 +179,6 @@ export const initChat2Callbacks = () => {
         },
         onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
           storeRegistry.getState('teams').dispatch.updateTeamRetentionPolicy(metas)
-        },
-      },
-    },
-  })
-}
-
-export const initRecoverPasswordCallbacks = () => {
-  const currentState = useRecoverPasswordState.getState()
-  useRecoverPasswordState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        ...currentState.dispatch.defer,
-        onProvisionCancel: (ignoreWarning?: boolean) => {
-          useProvisionState.getState().dispatch.dynamic.cancel?.(ignoreWarning)
         },
       },
     },
@@ -473,7 +456,6 @@ export const initSharedSubscriptions = () => {
 
   initChat2Callbacks()
   initTeamBuildingCallbacks()
-  initRecoverPasswordCallbacks()
 }
 
 // This is to defer loading stores we don't need immediately.
