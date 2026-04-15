@@ -166,20 +166,6 @@ export const initTeamBuildingCallbacks = () => {
   }
 }
 
-export const initChatRetentionCallbacks = () => {
-  const currentState = useChatState.getState()
-  useChatState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
-          storeRegistry.getState('teams').dispatch.updateTeamRetentionPolicy(metas)
-        },
-      },
-    },
-  })
-}
-
 export const initSharedSubscriptions = () => {
   // HMR cleanup: unsubscribe old store subscriptions before re-subscribing
   for (const unsub of _sharedUnsubs) unsub()
@@ -448,8 +434,6 @@ export const initSharedSubscriptions = () => {
       storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
     })
   )
-
-  initChatRetentionCallbacks()
   initTeamBuildingCallbacks()
 }
 
@@ -489,6 +473,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.chatUi.chatShowManageChannels':
     case 'keybase.1.NotifyTeam.teamMetadataUpdate':
     case 'chat.1.NotifyChat.ChatWelcomeMessageLoaded':
+    case 'chat.1.NotifyChat.ChatSetTeamRetention':
     case 'keybase.1.NotifyTeam.teamTreeMembershipsPartial':
     case 'keybase.1.NotifyTeam.teamTreeMembershipsDone':
     case 'keybase.1.NotifyTeam.teamRoleMapChanged':
@@ -582,7 +567,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.NotifyChat.NewChatActivity':
     case 'chat.1.NotifyChat.ChatTypingUpdate':
     case 'chat.1.NotifyChat.ChatSetConvRetention':
-    case 'chat.1.NotifyChat.ChatSetTeamRetention':
       {
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)

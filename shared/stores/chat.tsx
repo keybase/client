@@ -217,9 +217,6 @@ export type State = Store & {
   dispatch: {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     clearMetas: () => void
-    defer: {
-      onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
-    }
     createConversation: (participants: ReadonlyArray<string>, highlightMessageID?: T.Chat.MessageID) => void
     ensureWidgetMetas: () => void
     inboxRefresh: (reason: RefreshReason) => void
@@ -360,11 +357,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    defer: {
-      onTeamsUpdateTeamRetentionPolicy: (_metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
-        throw new Error('onTeamsUpdateTeamRetentionPolicy not properly initialized')
-      },
     },
     ensureWidgetMetas: () => {
       const {inboxLayout} = get()
@@ -872,7 +864,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
                 cs.dispatch.setMeta(meta)
               }
             })
-            get().dispatch.defer.onTeamsUpdateTeamRetentionPolicy(metas)
           } else {
             logger.error(
               'got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'

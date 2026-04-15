@@ -987,7 +987,6 @@ export type State = Store & {
       sendChatNotification: boolean,
       crop?: T.RPCGen.ImageCropRect
     ) => void
-    updateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
   }
 }
 
@@ -1922,6 +1921,20 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           get().dispatch.loadedWelcomeMessage(teamID, message)
           break
         }
+        case 'chat.1.NotifyChat.ChatSetTeamRetention': {
+          const first = action.payload.params.convs?.[0]
+          if (!first) {
+            logger.warn('Got ChatSetTeamRetention with no convs; aborting. Local copy may be out of date')
+            break
+          }
+          const teamRetentionPolicy = first.teamRetention
+            ? Util.serviceRetentionPolicyToRetentionPolicy(first.teamRetention)
+            : Util.makeRetentionPolicy()
+          set(s => {
+            s.teamIDToRetentionPolicy.set(first.tlfID, teamRetentionPolicy)
+          })
+          break
+        }
         case 'keybase.1.NotifyTeam.teamTreeMembershipsPartial': {
           const {membership} = action.payload.params
           get().dispatch.notifyTreeMembershipsPartial(membership)
@@ -2518,17 +2531,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       try {
         await T.RPCChat.localPostMetadataRpcPromise(param, S.waitingKeyTeamsUpdateChannelName(teamID))
       } catch {}
-    },
-    updateTeamRetentionPolicy: metas => {
-      const first = metas[0]
-      if (!first) {
-        logger.warn('Got updateTeamRetentionPolicy with no convs; aborting. Local copy may be out of date')
-        return
-      }
-      const {teamRetentionPolicy, teamID} = first
-      set(s => {
-        s.teamIDToRetentionPolicy.set(teamID, teamRetentionPolicy)
-      })
     },
     updateTopic: async (teamID, conversationIDKey, newTopic) => {
       const param = {
