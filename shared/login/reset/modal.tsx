@@ -15,6 +15,9 @@ const ResetModal = () => {
       endTime: s.badgeState?.resetState.endTime ?? 0,
     }))
   )
+  React.useEffect(() => {
+    logger.info('ResetModal visibility state', {active, endTime})
+  }, [active, endTime])
   return active ? <ResetModalImpl endTime={endTime} /> : null
 }
 

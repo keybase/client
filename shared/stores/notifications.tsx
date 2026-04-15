@@ -6,6 +6,7 @@ import isEqual from 'lodash/isEqual'
 import * as Tabs from '@/constants/tabs'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import logger from '@/logger'
 
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
 export type NotificationKeys = 'kbfsUploading' | 'outOfSpace'
@@ -129,6 +130,11 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
           break
         case 'keybase.1.NotifyBadges.badgeState': {
           const badgeState = action.payload.params.badgeState
+          logger.info('NotifyBadges.badgeState', {
+            inboxVers: badgeState.inboxVers,
+            resetActive: badgeState.resetState.active,
+            resetEndTime: badgeState.resetState.endTime,
+          })
           useConfigState.getState().dispatch.setBadgeState(badgeState)
 
           const counts = badgeStateToBadgeCounts(badgeState)

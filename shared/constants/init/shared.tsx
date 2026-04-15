@@ -102,6 +102,7 @@ export const onEngineConnected = () => {
             team: true, teambot: false, tracking: true, users: true, wallet: false,
           },
         })
+        logger.info('Configured daemon notifications', {badges: true})
       } catch (error) {
         if (error) {
           logger.warn('error in toggling notifications: ', error)
