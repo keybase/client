@@ -184,6 +184,7 @@ const InstallBotPopup = (props: Props) => {
   }
 
   const {channelMetas} = useAllChannelMetas(teamID)
+  const mutationWaiting = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const error = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const mutationError = C.Waiting.useAnyErrors(C.waitingKeyChatBotAdd)
   // dispatch
@@ -257,7 +258,9 @@ const InstallBotPopup = (props: Props) => {
     setBotPublicCommands(undefined)
   }, [botUsername])
   React.useEffect(() => {
-    dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+    if (!mutationWaiting) {
+      dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+    }
     botPublicCommandsRequestIDRef.current += 1
     if (commandsFromMeta.length > 0) {
       return
@@ -284,7 +287,7 @@ const InstallBotPopup = (props: Props) => {
         botPublicCommandsRequestIDRef.current += 1
       }
     }
-  }, [botUsername, commandsFromMeta.length, dispatchClearWaiting, loadBotPublicCommands])
+  }, [botUsername, commandsFromMeta.length, dispatchClearWaiting, loadBotPublicCommands, mutationWaiting])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
