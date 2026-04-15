@@ -8,6 +8,14 @@ type KeyedHandleEntry = {
 }
 
 const makeNamedKey = (owner: string, slot: string) => `${owner}:${slot}`
+
+// Runtime registry for live listener callbacks that must survive route changes.
+//
+// This is intentionally not a Zustand store: nothing subscribes to these values as UI state.
+// Use it for transient handlers that back multi-step RPC flows, especially when a screen needs
+// to carry an opaque token through navigation and resolve the callback later.
+//
+// Keep only live handlers here. Do not store banners, form state, waiting state, or caches.
 const keyed = new Map<string, KeyedHandleEntry>()
 const named = new Map<string, Handle>()
 let nextID = 0
@@ -63,7 +71,8 @@ export const setNamed = (owner: string, slot: string, handle?: Handle) => {
 export const clearAll = () => {
   keyed.clear()
   named.clear()
-  nextID = 0
 }
 
+// Keep the token counter monotonic for the process lifetime. Reusing old IDs after a global reset
+// can collide with stale route params that still carry a previously issued opaque token.
 registerExternalResetter('flow-handles', clearAll)
