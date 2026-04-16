@@ -50,10 +50,12 @@ import {useTeamsState} from '@/stores/teams'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
 import {
+  handleConvoEngineIncoming,
   metasReceived as convoMetasReceived,
   onRouteChanged as onConvoRouteChanged,
   onTeamBuildingFinished as onConvoTeamBuildingFinished,
   setConvoDefer,
+  syncBadgeState,
 } from '@/stores/convostate'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
@@ -438,6 +440,16 @@ export const initSharedSubscriptions = () => {
 
 // This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
+  const routeConvoEngineIncoming = (engineAction: EngineGen.Actions) => {
+    const result = handleConvoEngineIncoming(engineAction, useChatState.getState().staticConfig)
+    if (result.inboxUIItem) {
+      useChatState.getState().dispatch.onIncomingInboxUIItem(result.inboxUIItem)
+    }
+    if (result.userReacjis) {
+      useChatState.getState().dispatch.updateUserReacjis(result.userReacjis)
+    }
+  }
+
   switch (action.type) {
     case 'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged':
     case 'chat.1.NotifyChat.ChatArchiveComplete':
@@ -450,6 +462,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'keybase.1.NotifyBadges.badgeState':
       {
         const {badgeState} = action.payload.params
+        syncBadgeState(badgeState)
         useModalHeaderState
           .getState()
           .dispatch.setDeviceBadges(
@@ -472,7 +485,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.chatUi.chatShowManageChannels':
     case 'keybase.1.NotifyTeam.teamMetadataUpdate':
     case 'chat.1.NotifyChat.ChatWelcomeMessageLoaded':
-    case 'chat.1.NotifyChat.ChatSetTeamRetention':
     case 'keybase.1.NotifyTeam.teamTreeMembershipsPartial':
     case 'keybase.1.NotifyTeam.teamTreeMembershipsDone':
     case 'keybase.1.NotifyTeam.teamRoleMapChanged':
@@ -485,6 +497,13 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case 'chat.1.NotifyChat.ChatSetTeamRetention':
+      {
+        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
+        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+        routeConvoEngineIncoming(action)
       }
       break
     case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
@@ -550,12 +569,17 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.chatUi.chatBotCommandsUpdateStatus':
     case 'chat.1.chatUi.chatGiphySearchResults':
     case 'chat.1.NotifyChat.ChatParticipantsInfo':
-    case 'chat.1.chatUi.chatMaybeMentionUpdate':
     case 'chat.1.NotifyChat.ChatConvUpdate':
     case 'chat.1.chatUi.chatCoinFlipStatus':
     case 'chat.1.NotifyChat.ChatThreadsStale':
     case 'chat.1.NotifyChat.ChatSubteamRename':
     case 'chat.1.NotifyChat.ChatTLFFinalize':
+    case 'chat.1.NotifyChat.NewChatActivity':
+    case 'chat.1.NotifyChat.ChatTypingUpdate':
+    case 'chat.1.NotifyChat.ChatSetConvRetention':
+      routeConvoEngineIncoming(action)
+      break
+    case 'chat.1.chatUi.chatMaybeMentionUpdate':
     case 'chat.1.NotifyChat.ChatIdentifyUpdate':
     case 'chat.1.chatUi.chatInboxUnverified':
     case 'chat.1.NotifyChat.ChatInboxSyncStarted':
@@ -563,9 +587,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.chatUi.chatInboxLayout':
     case 'chat.1.NotifyChat.ChatInboxStale':
     case 'chat.1.chatUi.chatInboxConversation':
-    case 'chat.1.NotifyChat.NewChatActivity':
-    case 'chat.1.NotifyChat.ChatTypingUpdate':
-    case 'chat.1.NotifyChat.ChatSetConvRetention':
       {
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)

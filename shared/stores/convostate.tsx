@@ -1016,6 +1016,16 @@ export const handleConvoEngineIncoming = (
   staticConfig?: T.Immutable<T.Chat.StaticConfig>
 ): ConvoEngineIncomingResult => {
   switch (action.type) {
+    case 'chat.1.NotifyChat.ChatConvUpdate': {
+      const {conv} = action.payload.params
+      if (conv) {
+        const meta = Meta.inboxUIItemToConversationMeta(conv)
+        if (meta) {
+          metasReceived([meta])
+        }
+      }
+      return handledConvoEngineIncoming()
+    }
     case 'chat.1.chatUi.chatInboxFailed':
     case 'chat.1.NotifyChat.ChatSetConvSettings':
     case 'chat.1.NotifyChat.ChatAttachmentUploadStart':

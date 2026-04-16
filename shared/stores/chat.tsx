@@ -13,13 +13,11 @@ import {bodyToJSON} from '@/constants/rpc-utils'
 import {
   clearConversationsForInboxSync,
   ensureWidgetMetas as ensureConvoWidgetMetas,
-  handleConvoEngineIncoming,
   hydrateInboxConversations,
   hydrateInboxLayout,
   loadSelectedConversationIfStale,
   metasReceived as convoMetasReceived,
   maybeChangeSelectedConversation,
-  syncBadgeState,
   syncGregorExplodingModes,
   unboxRows as convoUnboxRows,
 } from '@/stores/convostate'
@@ -222,7 +220,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
 
   const dispatch: State['dispatch'] = {
     badgesUpdated: b => {
-      syncBadgeState(b)
       if (!b) {
         return
       }
@@ -343,30 +340,10 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       }
     },
     onEngineIncomingImpl: action => {
-      const convoResult = handleConvoEngineIncoming(action, get().staticConfig)
-      if (convoResult.handled) {
-        if (convoResult.inboxUIItem) {
-          get().dispatch.onIncomingInboxUIItem(convoResult.inboxUIItem)
-        }
-        if (convoResult.userReacjis) {
-          get().dispatch.updateUserReacjis(convoResult.userReacjis)
-        }
-        return
-      }
       switch (action.type) {
         case 'chat.1.chatUi.chatMaybeMentionUpdate': {
           const {teamName, channel, info} = action.payload.params
           get().dispatch.setMaybeMentionInfo(getTeamMentionName(teamName, channel), info)
-          break
-        }
-        case 'chat.1.NotifyChat.ChatConvUpdate': {
-          const {conv} = action.payload.params
-          if (conv) {
-            const meta = Meta.inboxUIItemToConversationMeta(conv)
-            if (meta) {
-              convoMetasReceived([meta])
-            }
-          }
           break
         }
         case 'chat.1.NotifyChat.ChatIdentifyUpdate': {
