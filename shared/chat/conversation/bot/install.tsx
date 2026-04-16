@@ -97,7 +97,7 @@ export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, 
         if (!meta) {
           return
         }
-          ConvoState.metasReceived([meta])
+        ConvoState.metasReceived([meta])
         setConversationIDKey(meta.conversationIDKey)
       },
       () => {}
