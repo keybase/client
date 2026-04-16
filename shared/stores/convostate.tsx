@@ -55,7 +55,6 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {getUsernameToShow} from '@/chat/conversation/messages/separator-utils'
-import type {RefreshReason} from '@/stores/chat-shared'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -255,7 +254,7 @@ export interface ConvoState extends ConvoStore {
     clearAttachmentView: () => void
     defer: {
       chatInboxLayoutSmallTeamsFirstConvID: () => T.Chat.ConversationIDKey | undefined
-      chatInboxRefresh: (reason: RefreshReason) => void
+      chatInboxRefresh: (reason: T.Chat.RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
     }
     dismissBottomBanner: () => void
@@ -866,7 +865,7 @@ export const onInboxLayoutChanged = (
 
 export const onChatInboxSynced = async (
   action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatInboxSynced'>,
-  refreshInbox: (reason: RefreshReason) => void | Promise<void>
+  refreshInbox: (reason: T.Chat.RefreshReason) => void | Promise<void>
 ) => {
   const {syncRes} = action.payload.params
 
