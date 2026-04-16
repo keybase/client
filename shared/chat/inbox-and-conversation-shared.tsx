@@ -1,6 +1,7 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -37,13 +38,13 @@ export function InboxAndConversationShell(props: Props) {
       seenValidCIDRef.current = selectNextConvo
       // need to defer , not sure why, shouldn't be
       setTimeout(() => {
-        Chat.getConvoState(selectNextConvo).dispatch.navigateToThread('findNewestConversationFromLayout')
+        ConvoState.getConvoState(selectNextConvo).dispatch.navigateToThread('findNewestConversationFromLayout')
       }, 100)
     }
   }, [selectNextConvo])
 
   return (
-    <Chat.ChatProvider id={conversationIDKey} canBeNull={true}>
+    <ConvoState.ChatProvider id={conversationIDKey} canBeNull={true}>
       <Kb.KeyboardAvoidingView2>
         <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} relative={true}>
           {props.leftPane}
@@ -57,7 +58,7 @@ export function InboxAndConversationShell(props: Props) {
           ) : null}
         </Kb.Box2>
       </Kb.KeyboardAvoidingView2>
-    </Chat.ChatProvider>
+    </ConvoState.ChatProvider>
   )
 }
 

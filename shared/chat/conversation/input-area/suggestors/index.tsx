@@ -1,5 +1,5 @@
 import * as Channels from './channels'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Kb from '@/common-adapters'
@@ -392,7 +392,7 @@ type PopupProps = {
 }
 const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
-  const conversationIdKey = Chat.useChatContext(s => s.id)
+  const conversationIdKey = ConvoState.useChatContext(s => s.id)
 
   const attachRef = inputRef as React.RefObject<Kb.MeasureRef | null>
 
@@ -409,9 +409,9 @@ const Popup = (p: PopupProps) => {
       style={suggestionOverlayStyle}
     >
       {Kb.Styles.isMobile ? (
-        <Chat.ChatProvider id={conversationIdKey}>
+        <ConvoState.ChatProvider id={conversationIdKey}>
           <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
-        </Chat.ChatProvider>
+        </ConvoState.ChatProvider>
       ) : (
         children
       )}

@@ -1,5 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
+import type {ConvoState as ConvoStateType} from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import * as Common from './common'
@@ -42,7 +44,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<ChannelType>) => {
 
 const noChannel: Array<{channelname: string}> = []
 const getChannelSuggestions = (
-  s: Chat.ConvoState,
+  s: ConvoStateType,
   teamname: string,
   teamMeta: Teams.State['teamMeta']
 ) => {
@@ -79,8 +81,8 @@ const getChannelSuggestions = (
 }
 
 const useDataSource = (filter: string) => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
-  const meta = Chat.useChatContext(s => s.meta)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const meta = ConvoState.useChatContext(s => s.meta)
   const {teamID} = meta
 
   const suggestChannelsLoading = C.Waiting.useAnyWaiting([
@@ -88,7 +90,7 @@ const useDataSource = (filter: string) => {
     C.waitingKeyChatMutualTeams(conversationIDKey),
   ])
   const teamMeta = Teams.useTeamsState(s => s.teamMeta)
-  return Chat.useChatContext(
+  return ConvoState.useChatContext(
     C.useDeep(s => {
       const fil = filter.toLowerCase()
       // don't include 'small' here to ditch the single #general suggestion

@@ -1,14 +1,14 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from './user-notice'
 
 const SystemProfileResetNotice = () => {
-  const meta = Chat.useChatContext(s => s.meta)
+  const meta = ConvoState.useChatContext(s => s.meta)
   const prevConversationIDKey = meta.supersedes
   const username = meta.wasFinalizedBy || ''
   const _onOpenOlderConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {
-    Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpToReset')
+    ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpToReset')
   }
   const onOpenOlderConversation = () => {
     prevConversationIDKey && _onOpenOlderConversation(prevConversationIDKey)

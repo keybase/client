@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -13,7 +13,7 @@ type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
 function SystemAddedToTeamContainer(p: OwnProps) {
   const {message} = p
   const {addee, adder, author, bulkAdds, role: _role, timestamp} = message
-  const {teamID, teamname, teamType, showInfoPanel} = Chat.useChatContext(
+  const {teamID, teamname, teamType, showInfoPanel} = ConvoState.useChatContext(
     C.useShallow(s => ({
       showInfoPanel: s.dispatch.showInfoPanel,
       teamID: s.meta.teamID,
@@ -34,7 +34,7 @@ function SystemAddedToTeamContainer(p: OwnProps) {
     showInfoPanel(true, 'settings')
   }
 
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const onViewBot = () => {
     navigateAppend(conversationIDKey => ({
       name: 'chatInstallBot',

@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from '.'
@@ -39,8 +39,8 @@ function LongPressable(props: Props) {
     translation: Reanimated.SharedValue<number>
   ) => <ReplyIcon progress={translation} />
 
-  const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
-  const setReplyTo = Chat.useChatUIContext(s => s.dispatch.setReplyTo)
+  const toggleThreadSearch = ConvoState.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const setReplyTo = ConvoState.useChatUIContext(s => s.dispatch.setReplyTo)
   const ordinal = useOrdinal()
   const {focusInput} = React.useContext(FocusContext)
   const onSwipeLeft = () => {

@@ -1,4 +1,5 @@
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type {AllowedColors} from '@/common-adapters/text.shared'
 import SelectableSmallTeam from './selectable-small-team'
@@ -37,12 +38,12 @@ const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const _hasBadge = Chat.useChatContext(s => s.badge > 0)
-  const _hasUnread = Chat.useChatContext(s => s.unread > 0)
-  const _meta = Chat.useChatContext(s => s.meta)
-  const _participantInfo = Chat.useChatContext(s => s.participants)
+  const _hasBadge = ConvoState.useChatContext(s => s.badge > 0)
+  const _hasUnread = ConvoState.useChatContext(s => s.unread > 0)
+  const _meta = ConvoState.useChatContext(s => s.meta)
+  const _participantInfo = ConvoState.useChatContext(s => s.participants)
   const _username = useCurrentUserState(s => s.username)
-  const isMuted = Chat.useChatContext(s => s.meta.isMuted)
+  const isMuted = ConvoState.useChatContext(s => s.meta.isMuted)
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const styles = getRowStyles(isSelected, _hasUnread)
   const participantNeedToRekey = _meta.rekeyers.size > 0

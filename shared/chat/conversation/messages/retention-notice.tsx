@@ -1,5 +1,5 @@
 import type * as T from '@/constants/types'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 
@@ -40,12 +40,12 @@ function makeRetentionNotice(
 }
 
 function RetentionNoticeContainer() {
-  const meta = Chat.useChatContext(s => s.meta)
+  const meta = ConvoState.useChatContext(s => s.meta)
   const {teamType, retentionPolicy: policy, teamRetentionPolicy: teamPolicy} = meta
   const canChange = Teams.useTeamsState(s => {
     return meta.teamType !== 'adhoc' ? Teams.getCanPerformByID(s, meta.teamID).setRetentionPolicy : true
   })
-  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
   const onChange = () => showInfoPanel(true, 'settings')
   const explanation = makeRetentionNotice(policy, teamPolicy, teamType) ?? undefined
 

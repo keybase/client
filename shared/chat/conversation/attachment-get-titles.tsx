@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -40,8 +41,8 @@ const Container = (ownProps: OwnProps) => {
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.Router2.navigateUp
-  const navigateToThread = Chat.useChatContext(s => s.dispatch.navigateToThread)
-  const attachmentUploadCanceled = Chat.useChatContext(s => s.dispatch.attachmentUploadCanceled)
+  const navigateToThread = ConvoState.useChatContext(s => s.dispatch.navigateToThread)
+  const attachmentUploadCanceled = ConvoState.useChatContext(s => s.dispatch.attachmentUploadCanceled)
   const onCancel = () => {
     attachmentUploadCanceled(
       pathAndOutboxIDs.reduce((l: Array<T.RPCChat.OutboxID>, {outboxID}) => {
@@ -54,8 +55,8 @@ const Container = (ownProps: OwnProps) => {
     navigateUp()
   }
   const clearModals = C.Router2.clearModals
-  const attachmentsUpload = Chat.useChatContext(s => s.dispatch.attachmentsUpload)
-  const attachFromDragAndDrop = Chat.useChatContext(s => s.dispatch.attachFromDragAndDrop)
+  const attachmentsUpload = ConvoState.useChatContext(s => s.dispatch.attachmentsUpload)
+  const attachFromDragAndDrop = ConvoState.useChatContext(s => s.dispatch.attachFromDragAndDrop)
 
   const _onSubmit = (titles: Array<string>, spoiler: boolean) => {
     tlfName || noDragDrop

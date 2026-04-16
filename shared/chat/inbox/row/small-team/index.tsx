@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from '../sizes'
@@ -34,7 +35,7 @@ const SmallTeam = (p: Props) => {
     : (p.onSelectConversation ??
         (() => {
           setOpenedRow(Chat.noConversationIDKey)
-          Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSmall')
+          ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSmall')
         }))
 
   const backgroundColor = isSelected
@@ -192,9 +193,9 @@ const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: 
   const makePopup = (mp: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = mp
     return (
-      <Chat.ChatProvider id={conversationIDKey}>
+      <ConvoState.ChatProvider id={conversationIDKey}>
         <TeamMenu visible={true} attachTo={attachTo} onHidden={hidePopup} hasHeader={true} isSmallTeam={true} />
-      </Chat.ChatProvider>
+      </ConvoState.ChatProvider>
     )
   }
   const {showingPopup, showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
@@ -327,7 +328,7 @@ const BottomLine = (p: BottomLineProps) => {
 
   const you = useCurrentUserState(s => s.username)
   const {hasUnread, draft: _draft, hasResetUsers, participantNeedToRekey, youAreReset, youNeedToRekey, trustedState, hasId} =
-    Chat.useChatContext(
+    ConvoState.useChatContext(
       C.useShallow(s => {
         const {membershipType, rekeyers, resetParticipants, trustedState} = s.meta
         return {

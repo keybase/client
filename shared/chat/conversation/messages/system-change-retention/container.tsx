@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
@@ -13,7 +13,7 @@ function SystemChangeRetentionContainer(p: OwnProps) {
   const {message} = p
   const {isInherit, isTeam, membersType, policy, user} = message
   const you = useCurrentUserState(s => s.username)
-  const {teamType, teamname, showInfoPanel} = Chat.useChatContext(
+  const {teamType, teamname, showInfoPanel} = ConvoState.useChatContext(
     C.useShallow(s => ({
       showInfoPanel: s.dispatch.showInfoPanel,
       teamType: s.meta.teamType,

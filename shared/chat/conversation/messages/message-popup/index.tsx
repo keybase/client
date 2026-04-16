@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import AttachmentMessage from './attachment'
@@ -19,7 +19,7 @@ type Props = {
 
 function MessagePopup(p: Props) {
   const {ordinal, attachTo, onHidden, position, style, visible, mode} = p
-  const type = Chat.useChatContext(s => s.messageMap.get(ordinal)?.type)
+  const type = ConvoState.useChatContext(s => s.messageMap.get(ordinal)?.type)
   switch (type) {
     case 'text':
     case 'setChannelname':
@@ -118,12 +118,12 @@ export const useMessagePopup = (p: {
   shouldShow?: () => boolean
   style?: Kb.Styles.StylesCrossPlatform
 }) => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const {ordinal, shouldShow, style} = p
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (shouldShow?.() ?? true) ? (
-      <Chat.ChatProvider id={conversationIDKey}>
+      <ConvoState.ChatProvider id={conversationIDKey}>
         <MessagePopup
           ordinal={ordinal}
           key="popup"
@@ -134,7 +134,7 @@ export const useMessagePopup = (p: {
           style={style}
           visible={true}
         />
-      </Chat.ChatProvider>
+      </ConvoState.ChatProvider>
     ) : null
   }
   return Kb.usePopup2(makePopup)

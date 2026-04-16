@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Message from '@/constants/chat/message'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import type * as Styles from '@/styles'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -20,7 +20,7 @@ type SearchState = {
 const useCommon = (ownProps: OwnProps) => {
   const {style} = ownProps
   const initialQuery = useThreadSearchRoute()?.query ?? ''
-  const {conversationIDKey, loadMessagesCentered, toggleThreadSearch} = Chat.useChatContext(
+  const {conversationIDKey, loadMessagesCentered, toggleThreadSearch} = ConvoState.useChatContext(
     C.useShallow(s => ({
       conversationIDKey: s.id,
       loadMessagesCentered: s.dispatch.loadMessagesCentered,
@@ -72,7 +72,7 @@ const useCommon = (ownProps: OwnProps) => {
 
     const {deviceName, username} = useCurrentUserState.getState()
     const getLastOrdinal = () =>
-      Chat.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+      ConvoState.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const updateIfCurrent = (updater: (state: SearchState) => SearchState) => {
       if (searchOrdinalRef.current !== requestOrdinal) {
         return
@@ -168,7 +168,7 @@ const useCommon = (ownProps: OwnProps) => {
             opts: {
               afterContext: 0,
               beforeContext: 0,
-              convID: Chat.getConvoState(conversationIDKey).getConvID(),
+              convID: ConvoState.getConvoState(conversationIDKey).getConvID(),
               isRegex: false,
               matchMentions: false,
               maxBots: 0,
@@ -271,9 +271,7 @@ const useCommon = (ownProps: OwnProps) => {
     return () => {
       searchOrdinalRef.current += 1
       clearPendingFlush()
-      C.ignorePromise(
-        T.RPCChat.localCancelActiveSearchRpcPromise().catch(() => {})
-      )
+      C.ignorePromise(T.RPCChat.localCancelActiveSearchRpcPromise().catch(() => {}))
     }
   }, [])
 
@@ -379,7 +377,13 @@ const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
   const noResults = status === 'done' && hits.length === 0
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={style}>
-      <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.outerContainer} fullWidth={true} gap="tiny">
+      <Kb.Box2
+        direction="horizontal"
+        justifyContent="space-between"
+        style={styles.outerContainer}
+        fullWidth={true}
+        gap="tiny"
+      >
         <Kb.Box2 direction="horizontal" justifyContent="space-between" style={styles.inputContainer}>
           <Kb.Box2 direction="horizontal" gap="xtiny" flex={1} centerChildren={true}>
             <Kb.Input3

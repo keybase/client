@@ -1,5 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import {zoomImage} from '@/constants/chat/helpers'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import * as T from '@/constants/types'
@@ -435,8 +436,8 @@ export const useAttachmentSections = (
     T.RPCChat.GalleryItemTyp.media
   )
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
-  const loadAttachmentView = Chat.useChatContext(s => s.dispatch.loadAttachmentView)
-  const loadMessagesCentered = Chat.useChatContext(s => s.dispatch.loadMessagesCentered)
+  const loadAttachmentView = ConvoState.useChatContext(s => s.dispatch.loadAttachmentView)
+  const loadMessagesCentered = ConvoState.useChatContext(s => s.dispatch.loadMessagesCentered)
   const clearModals = C.Router2.clearModals
 
   const jumpToAttachment = (messageID: T.Chat.MessageID) => {
@@ -463,7 +464,7 @@ export const useAttachmentSections = (
     }
   }, [lastSAV, loadAttachmentView, loadImmediately, selectedAttachmentView])
 
-  const attachmentView = Chat.useChatContext(s => s.attachmentViewMap)
+  const attachmentView = ConvoState.useChatContext(s => s.attachmentViewMap)
   const attachmentInfo = attachmentView.get(selectedAttachmentView)
   const fromMsgID = attachmentInfo ? getFromMsgID(attachmentInfo) : undefined
 
@@ -477,11 +478,11 @@ export const useAttachmentSections = (
     loadAttachmentView(selectedAttachmentView)
   }
 
-  const attachmentPreviewSelect = Chat.useChatContext(s => s.dispatch.attachmentPreviewSelect)
+  const attachmentPreviewSelect = ConvoState.useChatContext(s => s.dispatch.attachmentPreviewSelect)
   const onMediaClick = (message: T.Chat.MessageAttachment) => attachmentPreviewSelect(message.ordinal)
 
-  const attachmentDownload = Chat.useChatContext(s => s.dispatch.attachmentDownload)
-  const messageAttachmentNativeShare = Chat.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
+  const attachmentDownload = ConvoState.useChatContext(s => s.dispatch.attachmentDownload)
+  const messageAttachmentNativeShare = ConvoState.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
 
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
     if (Kb.Styles.isMobile) {
@@ -581,7 +582,7 @@ export const useAttachmentSections = (
                 maxMediaThumbSize,
                 width: thumb.width,
               },
-              sizing: Chat.zoomImage(thumb.width, thumb.height, maxMediaThumbSize),
+              sizing: zoomImage(thumb.width, thumb.height, maxMediaThumbSize),
               thumb,
             }))
             const dataChunked = useFlexWrap ? [dataUnchunked] : chunk(dataUnchunked, rowSize)

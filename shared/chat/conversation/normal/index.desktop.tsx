@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import {PerfProfiler} from '@/perf/react-profiler'
@@ -22,7 +22,7 @@ const Offline = () => (
 )
 
 const LoadingLine = () => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const showLoader = C.Waiting.useAnyWaiting([
     C.waitingKeyChatThreadLoad(conversationIDKey),
     C.waitingKeyChatInboxSyncStarted,
@@ -31,8 +31,8 @@ const LoadingLine = () => {
 }
 
 const Conversation = function Conversation() {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const onAttach = (paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({path: p}))
     navigateAppend(conversationIDKey => ({
@@ -41,16 +41,16 @@ const Conversation = function Conversation() {
     }))
   }
   const showThreadSearch = !!useThreadSearchRoute()
-  const cannotWrite = Chat.useChatContext(s => s.meta.cannotWrite)
-  const threadLoadedOffline = Chat.useChatContext(s => s.meta.offline)
-  const dragAndDropRejectReason = Chat.useChatContext(s => {
+  const cannotWrite = ConvoState.useChatContext(s => s.meta.cannotWrite)
+  const threadLoadedOffline = ConvoState.useChatContext(s => s.meta.offline)
+  const dragAndDropRejectReason = ConvoState.useChatContext(s => {
     const meta = s.meta
     const {cannotWrite, minWriterRole} = meta
     return cannotWrite
       ? `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
       : undefined
   })
-  const attachmentPasted = Chat.useChatContext(s => s.dispatch.attachmentPasted)
+  const attachmentPasted = ConvoState.useChatContext(s => s.dispatch.attachmentPasted)
   const onPaste = (e: React.SyntheticEvent) => {
     readImageFromClipboard(e)
       .then(clipboardData => {
@@ -60,7 +60,7 @@ const Conversation = function Conversation() {
       })
       .catch(() => {})
   }
-  const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const toggleThreadSearch = ConvoState.useChatContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = () => {
     toggleThreadSearch()
   }

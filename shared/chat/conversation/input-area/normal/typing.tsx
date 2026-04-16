@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 
 const Names = (props: {names?: ReadonlySet<string>}) => {
@@ -44,8 +44,8 @@ const Names = (props: {names?: ReadonlySet<string>}) => {
 const emptySet = new Set<string>()
 
 const Typing = function Typing() {
-  const showGiphySearch = Chat.useChatUIContext(s => s.giphyWindow)
-  const names = Chat.useChatContext(
+  const showGiphySearch = ConvoState.useChatUIContext(s => s.giphyWindow)
+  const names = ConvoState.useChatContext(
     C.useShallow(s => {
       const names = s.typing
       if (!C.isMobile) return names

@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useConfigState} from '@/stores/config'
@@ -10,11 +10,11 @@ const empty = {
 }
 
 const Container = () => {
-  const info = Chat.useChatUIContext(s => s.commandStatus)
+  const info = ConvoState.useChatUIContext(s => s.commandStatus)
   const _info = info || empty
 
   const onOpenAppSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
-  const setCommandStatusInfo = Chat.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
+  const setCommandStatusInfo = ConvoState.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
   const onCancel = () => {
     setCommandStatusInfo()
   }

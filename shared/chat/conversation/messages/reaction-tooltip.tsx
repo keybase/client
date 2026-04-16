@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import ReactButton from './react-button'
@@ -32,14 +33,14 @@ type Section = {
 const ReactionTooltip = (p: OwnProps) => {
   const {ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
-  const reactions = Chat.useChatContext(s => {
+  const reactions = ConvoState.useChatContext(s => {
     const message = s.messageMap.get(ordinal)
     return message && Chat.isMessageWithReactions(message) ? message.reactions : undefined
   })
   const usersInfo = useUsersState(s => (reactions ? s.infoMap : emptyUsersInfo))
-  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
 
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const onAddReaction = () => {
     onHidden()
     navigateAppend(conversationIDKey => ({
@@ -70,7 +71,7 @@ const ReactionTooltip = (p: OwnProps) => {
     reactionsToShow = reactionsToShow.filter(r => r.emoji === emoji)
   }
   const insets = Kb.useSafeAreaInsets()
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const messageContext = {isHighlighted: false, ordinal}
   if (!visible) {
     return null
@@ -114,7 +115,7 @@ const ReactionTooltip = (p: OwnProps) => {
       style={styles.overlay}
     >
       {/* need context since this uses a portal... */}
-      <Chat.ChatProvider id={conversationIDKey}>
+      <ConvoState.ChatProvider id={conversationIDKey}>
         <MessageContext value={messageContext}>
           <Kb.Box2
             onMouseLeave={onMouseLeave}
@@ -153,7 +154,7 @@ const ReactionTooltip = (p: OwnProps) => {
             )}
           </Kb.Box2>
         </MessageContext>
-      </Chat.ChatProvider>
+      </ConvoState.ChatProvider>
     </Kb.Popup>
   )
 }

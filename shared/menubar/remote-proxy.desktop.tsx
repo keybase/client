@@ -1,6 +1,9 @@
 // A mirror of the remote menubar windows.
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
+import {chatStores} from '@/stores/convo-registry'
+import type {ConvoState as ConvoStateType} from '@/stores/convostate'
 import {useConfigState} from '@/stores/config'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -45,7 +48,7 @@ const toRemoteTlfUpdate = (t: T.FS.TlfUpdate, uploads: T.FS.Uploads): RemoteTlfU
   writer: t.writer,
 })
 
-const convoDiff = (a: Chat.ConvoState, b: Chat.ConvoState) => {
+const convoDiff = (a: ConvoStateType, b: ConvoStateType) => {
   if (a === b) return false
 
   if (a.meta !== b.meta) {
@@ -73,7 +76,7 @@ const convoDiff = (a: Chat.ConvoState, b: Chat.ConvoState) => {
 
 const toRemoteConversation = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  conversation: Chat.ConvoState
+  conversation: ConvoStateType
 ): Conversation | undefined => {
   if (!conversation.isMetaGood()) {
     return undefined
@@ -125,7 +128,7 @@ const getWidgetConversationSnapshot = (
 
   const conversations: Array<Conversation> = []
   for (const widget of widgetList) {
-    const conversation = toRemoteConversation(widget.convID, Chat.getConvoState(widget.convID))
+    const conversation = toRemoteConversation(widget.convID, ConvoState.getConvoState(widget.convID))
     if (conversation) {
       conversations.push(conversation)
     }
@@ -145,8 +148,8 @@ const useWidgetConversationList = (
       }
 
       const unsubs = widgetList.map(widget => {
-        Chat.getConvoState(widget.convID)
-        return Chat.chatStores.get(widget.convID)?.subscribe((state, oldState) => {
+        ConvoState.getConvoState(widget.convID)
+        return chatStores.get(widget.convID)?.subscribe((state, oldState) => {
           if (convoDiff(state, oldState)) {
             onStoreChange()
           }
@@ -178,20 +181,19 @@ function useEnsureWidgetData(
   loggedIn: boolean,
   inboxHasLoaded: boolean,
   widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined,
-  inboxRefresh: (reason: Chat.RefreshReason) => void,
-  ensureWidgetMetas: () => void
+  inboxRefresh: (reason: Chat.RefreshReason) => Promise<void>
 ) {
   React.useEffect(() => {
     if (loggedIn && inboxHasLoaded && !widgetList) {
-      inboxRefresh('widgetRefresh')
+      C.ignorePromise(inboxRefresh('widgetRefresh'))
     }
   }, [loggedIn, inboxHasLoaded, widgetList, inboxRefresh])
 
   React.useEffect(() => {
     if (widgetList) {
-      ensureWidgetMetas()
+      ConvoState.ensureWidgetMetas(widgetList)
     }
-  }, [widgetList, ensureWidgetMetas])
+  }, [widgetList])
 }
 
 function useMenubarRemoteProps(): Props {
@@ -209,15 +211,14 @@ function useMenubarRemoteProps(): Props {
     })
   )
   const navBadgesMap = useNotifState(s => s.navBadges)
-  const {widgetList, inboxHasLoaded, inboxRefresh, ensureWidgetMetas} = Chat.useChatState(
+  const {widgetList, inboxHasLoaded, inboxRefresh} = Chat.useChatState(
     C.useShallow(s => ({
-      ensureWidgetMetas: s.dispatch.ensureWidgetMetas,
       inboxHasLoaded: s.inboxHasLoaded,
       inboxRefresh: s.dispatch.inboxRefresh,
       widgetList: s.inboxLayout?.widgetList ?? undefined,
     }))
   )
-  useEnsureWidgetData(loggedIn, inboxHasLoaded, widgetList, inboxRefresh, ensureWidgetMetas)
+  useEnsureWidgetData(loggedIn, inboxHasLoaded, widgetList, inboxRefresh)
   const conversationsToSend = useWidgetConversationList(widgetList)
   const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus

@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
 import * as Kb from '@/common-adapters'
@@ -42,7 +42,7 @@ const useScrolling = (p: {
 }) => {
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
-  const loadOlderMessages = Chat.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+  const loadOlderMessages = ConvoState.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
   const [scrollToBottom] = React.useState(() => () => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   })
@@ -102,7 +102,7 @@ const ConversationList = function ConversationList() {
     </Kb.Text>
   ) : null
 
-  const listData = Chat.useChatContext(
+  const listData = ConvoState.useChatContext(
     C.useShallow(s => {
       const {id: conversationIDKey, loaded, messageCenterOrdinal} = s
       const centeredOrdinal = messageCenterOrdinal?.ordinal ?? T.Chat.numberToOrdinal(-1)
@@ -134,12 +134,7 @@ const ConversationList = function ConversationList() {
     if (!ordinal) {
       return null
     }
-    return (
-      <MessageRow
-        isCenteredHighlight={centeredHighlightOrdinal === ordinal}
-        ordinal={ordinal}
-      />
-    )
+    return <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
   }
 
   const numOrdinals = messageOrdinals.length
@@ -149,7 +144,7 @@ const ConversationList = function ConversationList() {
       if (!ordinal) {
         return 'null'
       }
-      const convoState = Chat.getConvoState(conversationIDKey)
+      const convoState = ConvoState.getConvoState(conversationIDKey)
       return convoState.rowRecycleTypeMap.get(ordinal) ?? convoState.messageTypeMap.get(ordinal) ?? 'text'
     },
     [conversationIDKey]

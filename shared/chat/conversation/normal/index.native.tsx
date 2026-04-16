@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import {PortalHost} from '@/common-adapters/portal.native'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -22,7 +22,7 @@ const Offline = () => (
 )
 
 const LoadingLine = () => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const showLoader = C.Waiting.useAnyWaiting([
     C.waitingKeyChatThreadLoad(conversationIDKey),
     C.waitingKeyChatInboxSyncStarted,
@@ -36,7 +36,7 @@ const Conversation = function Conversation() {
     setMaxInputArea(e.nativeEvent.layout.height)
   }
 
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   logger.info(`Conversation: rendering convID: ${conversationIDKey}`)
 
   const innerComponent = (
@@ -69,7 +69,7 @@ const Conversation = function Conversation() {
         paddingBottom: Kb.Styles.isTablet ? 0 : insets.bottom,
       }
 
-  const threadLoadedOffline = Chat.useChatContext(s => s.meta.offline)
+  const threadLoadedOffline = ConvoState.useChatContext(s => s.meta.offline)
 
   const content = (
     <Kb.Box2

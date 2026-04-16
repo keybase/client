@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as S from '@/constants/strings'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import {useTeamsState} from '@/stores/teams'
 import {useUsersState} from '@/stores/users'
 
@@ -165,7 +165,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
       () => {}
     )
   }
-  const setConversationStatus = Chat.useChatContext(s => s.dispatch.blockConversation)
+  const setConversationStatus = ConvoState.useChatContext(s => s.dispatch.blockConversation)
   const setUserBlocks = (newBlocks: NewBlocksMap) => {
     // Convert our state block array to action payload.
     const blocks = [...newBlocks.entries()]

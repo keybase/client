@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error'
@@ -8,7 +9,7 @@ import Rekey from './rekey/container'
 import type {ThreadSearchRouteProps} from './thread-search-route'
 
 const Conversation = function Conversation(_: ThreadSearchRouteProps) {
-  const type = Chat.useChatContext(s => {
+  const type = ConvoState.useChatContext(s => {
     const meta = s.meta
     switch (s.id) {
       case Chat.noConversationIDKey:

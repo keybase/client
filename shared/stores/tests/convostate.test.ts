@@ -4,33 +4,39 @@ import * as Meta from '../../constants/chat/meta'
 import * as Message from '../../constants/chat/message'
 import * as T from '../../constants/types'
 import HiddenString from '../../util/hidden-string'
+import {resetAllStores} from '../../util/zustand'
 import {useCurrentUserState} from '../current-user'
 import {
   createConvoStoreForTesting,
   createConvoStoresForTesting,
   type ConvoState,
   type ConvoUIState,
+  getConvoState,
+  syncBadgeState,
 } from '../convostate'
 
 jest.mock('../inbox-rows', () => ({
   queueInboxRowUpdate: jest.fn(),
 }))
 
+beforeEach(() => {
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'test-device',
+    uid: 'uid',
+    username: 'alice',
+  })
+})
+
 afterEach(() => {
   jest.restoreAllMocks()
+  resetAllStores()
 })
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const ordinal = T.Chat.numberToOrdinal(10)
 const msgID = T.Chat.numberToMessageID(101)
 const outboxID = T.Chat.stringToOutboxID('outbox-1')
-
-useCurrentUserState.getState().dispatch.setBootstrap({
-  deviceID: 'device-id',
-  deviceName: 'test-device',
-  uid: 'uid',
-  username: 'alice',
-})
 
 const makeReaction = (username: string, timestamp: number): T.Chat.ReactionDesc => ({
   decorated: ':+1:',
@@ -766,6 +772,49 @@ test('local setters update participants, reply target, and badge', () => {
   expect(store.getState().participants).toEqual(participants)
   expect(uiStore.getState().replyTo).toBe(ordinal)
   expect(store.getState().badge).toBe(3)
+})
+
+test('syncBadgeState updates listed conversations and clears missing badges', () => {
+  const firstConvID = T.Chat.conversationIDToKey(new Uint8Array([9, 8, 7, 6]))
+  const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([6, 7, 8, 9]))
+  const store = getConvoState(firstConvID)
+  const otherStore = getConvoState(otherConvID)
+
+  store.dispatch.badgesUpdated(3)
+  store.dispatch.unreadUpdated(4)
+  otherStore.dispatch.badgesUpdated(2)
+  otherStore.dispatch.unreadUpdated(5)
+
+  syncBadgeState({
+    bigTeamBadgeCount: 0,
+    conversations: [
+      {
+        badgeCount: 1,
+        convID: T.Chat.keyToConversationID(otherConvID),
+        unreadMessages: 6,
+      },
+    ],
+    homeTodoItems: 0,
+    inboxVers: 0,
+    newDevices: null,
+    newFollowers: 0,
+    newGitRepoGlobalUniqueIDs: [],
+    newTeamAccessRequestCount: 0,
+    newTeams: [],
+    newTlfs: 0,
+    rekeysNeeded: 0,
+    resetState: {active: false, endTime: 0},
+    revokedDevices: null,
+    smallTeamBadgeCount: 1,
+    teamsWithResetUsers: null,
+    unverifiedEmails: 0,
+    unverifiedPhones: 0,
+  } as any)
+
+  expect(getConvoState(firstConvID).badge).toBe(0)
+  expect(getConvoState(firstConvID).unread).toBe(4)
+  expect(getConvoState(otherConvID).badge).toBe(1)
+  expect(getConvoState(otherConvID).unread).toBe(6)
 })
 
 test('toggleThreadSearch removes center highlight when opening search', () => {

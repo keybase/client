@@ -1,5 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import {getBotsAndParticipants} from '@/constants/chat/helpers'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
@@ -35,7 +36,6 @@ const useLoadDataForChannelPage = (
   const prevParticipantsRef = React.useRef(participants)
   const loadedBlockStateForConvRef = React.useRef(false)
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
-  const unboxRows = Chat.useChatState(s => s.dispatch.unboxRows)
   useLoadTeamMembers(teamID, ['bots', 'members', 'settings'].includes(selectedTab))
   React.useEffect(() => {
     loadedBlockStateForConvRef.current = false
@@ -49,14 +49,13 @@ const useLoadDataForChannelPage = (
       (!loadedBlockStateForConvRef.current || selectedTab !== prevSelectedTabRef.current || participantsChanged)
     ) {
       if (meta.conversationIDKey === 'EMPTY') {
-        unboxRows([conversationIDKey])
+        ConvoState.unboxRows([conversationIDKey])
       }
       getBlockState(participants)
       loadedBlockStateForConvRef.current = true
     }
     prevParticipantsRef.current = participants
   }, [
-    unboxRows,
     getBlockState,
     selectedTab,
     conversationIDKey,
@@ -131,12 +130,12 @@ const Channel = (props: OwnProps) => {
   const conversationIDKey = props.conversationIDKey
   const providedTab = props.selectedTab
 
-  const meta = Chat.useConvoState(conversationIDKey, s => s.meta)
+  const meta = ConvoState.useConvoState(conversationIDKey, s => s.meta)
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
-  const {bots, participants: _participants} = Chat.useConvoState(
+  const {bots, participants: _participants} = ConvoState.useConvoState(
     conversationIDKey,
     C.useDeep(s =>
-      Chat.getBotsAndParticipants(meta, s.participants, teamMembers ?? emptyMapForUseSelector, true /* sort */)
+      getBotsAndParticipants(meta, s.participants, teamMembers ?? emptyMapForUseSelector, true /* sort */)
     )
   )
   const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))

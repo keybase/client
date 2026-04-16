@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -107,7 +108,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     const fullSection = section as Section
     const realIndex = index + fullSection.indexOffset
     return (
-      <Chat.ChatProvider id={Chat.noConversationIDKey} key={index} canBeNull={true}>
+      <ConvoState.ChatProvider id={Chat.noConversationIDKey} key={index} canBeNull={true}>
         <Bot
           {...item.bot}
           onClick={onInstallBot}
@@ -115,7 +116,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
           hideHover={true}
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
         />
-      </Chat.ChatProvider>
+      </ConvoState.ChatProvider>
     )
   }
 
@@ -232,7 +233,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     const numHits = item.type === 'text' ? item.numHits : undefined
     const realIndex = index + section.indexOffset
     return item.sizeType === 'big' ? (
-      <Chat.ChatProvider id={item.conversationIDKey}>
+      <ConvoState.ChatProvider id={item.conversationIDKey}>
         <SelectableBigTeamChannel
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
           name={item.name}
@@ -240,9 +241,9 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
           maxSearchHits={inboxSearchMaxTextMessages}
           onSelectConversation={() => section.onSelect(item, realIndex)}
         />
-      </Chat.ChatProvider>
+      </ConvoState.ChatProvider>
     ) : (
-      <Chat.ChatProvider id={item.conversationIDKey}>
+      <ConvoState.ChatProvider id={item.conversationIDKey}>
         <SelectableSmallTeam
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
           name={item.name}
@@ -250,7 +251,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
           maxSearchHits={inboxSearchMaxTextMessages}
           onSelectConversation={() => section.onSelect(item, realIndex)}
         />
-      </Chat.ChatProvider>
+      </ConvoState.ChatProvider>
     )
   }
 

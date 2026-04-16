@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import {useConfigState} from '@/stores/config'
 import * as React from 'react'
 import Normal from '.'
@@ -10,18 +10,16 @@ import {useLoadTeamMembers} from '@/teams/team-members'
 
 const useOrangeLine = () => {
   const [orangeLine, setOrangeLine] = React.useState(T.Chat.numberToOrdinal(0))
-  const id = Chat.useChatContext(s => s.id)
+  const id = ConvoState.useChatContext(s => s.id)
   // Snapshot readMsgID during render (synchronous, before any effects like markThreadAsRead)
   // This ensures we capture the read position before the Go service processes mark-as-read
-  const savedReadMsgID = React.useMemo(() => Chat.getConvoState(id).meta.readMsgID, [id])
+  const savedReadMsgID = React.useMemo(() => ConvoState.getConvoState(id).meta.readMsgID, [id])
 
   const loadOrangeLine = React.useEffectEvent((useSavedReadMsgID?: boolean) => {
     const f = async () => {
-      const store = Chat.getConvoState(id)
+      const store = ConvoState.getConvoState(id)
       const convID = store.getConvID()
-      const readMsgID = useSavedReadMsgID
-        ? savedReadMsgID
-        : store.meta.readMsgID
+      const readMsgID = useSavedReadMsgID ? savedReadMsgID : store.meta.readMsgID
       const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
         convID,
         identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -32,7 +30,7 @@ const useOrangeLine = () => {
     C.ignorePromise(f())
   })
 
-  const loaded = Chat.useChatContext(s => s.loaded)
+  const loaded = ConvoState.useChatContext(s => s.loaded)
 
   // Fire when conversation changes or messages finish loading
   // Wait for loaded so the Go service has messages in its local cache
@@ -44,7 +42,7 @@ const useOrangeLine = () => {
     }
   }, [id, loaded])
 
-  const {markedAsUnread, maxVisibleMsgID} = Chat.useChatContext(
+  const {markedAsUnread, maxVisibleMsgID} = ConvoState.useChatContext(
     C.useShallow(s => {
       const {maxVisibleMsgID} = s.meta
       const {markedAsUnread} = s
@@ -85,7 +83,7 @@ const useOrangeLine = () => {
 }
 
 const NormalWrapper = function NormalWrapper() {
-  const {teamID, teamType} = Chat.useChatContext(s => s.meta)
+  const {teamID, teamType} = ConvoState.useChatContext(s => s.meta)
   useLoadTeamMembers(teamID, teamType !== 'adhoc')
   const orangeLine = useOrangeLine()
   return (

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import {zoomImage} from '@/constants/chat/helpers'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
@@ -7,7 +8,7 @@ import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const PinnedMessage = function PinnedMessage() {
-  const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = Chat.useChatContext(
+  const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = ConvoState.useChatContext(
     C.useShallow(s => {
       const {meta, dispatch, id: conversationIDKey} = s
       const teamname = meta.teamname
@@ -59,7 +60,7 @@ const PinnedMessage = function PinnedMessage() {
   if (!text) {
     return null
   }
-  const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 30) : undefined
+  const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 30) : undefined
   const pin = (
     <Kb.ClickableBox className="hover_container" onClick={onClick} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">

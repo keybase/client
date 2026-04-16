@@ -1,5 +1,7 @@
 import * as C from '@/constants'
+import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
@@ -13,16 +15,16 @@ const emptyJourney = Chat.makeMessageJourneycard({})
 
 const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {ordinal} = ownProps
-  const m = Chat.useChatContext(s => s.messageMap.get(ordinal))
+  const m = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'journeycard' ? m : emptyJourney
-  const conv = Chat.useChatContext(s => s.meta)
+  const conv = ConvoState.useChatContext(s => s.meta)
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const canShowcase = Teams.useTeamsState(s => Teams.canShowcase(s, teamID))
-  const isBigTeam = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
+  const isBigTeam = Chat.useChatState(s => getIsBigTeam(s.inboxLayout, teamID))
   const navigateAppend = C.Router2.navigateAppend
   const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({name: 'team', params: {teamID}})
-  const dismissJourneycard = Chat.useChatContext(s => s.dispatch.dismissJourneycard)
+  const dismissJourneycard = ConvoState.useChatContext(s => s.dispatch.dismissJourneycard)
   const _onDismiss = (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) =>
     dismissJourneycard(cardType, ordinal)
   const previewConversation = C.Router2.previewConversation
@@ -42,7 +44,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const onGoToChannel = (channelName: string) => _onGoToChannel(channelName, teamname)
   const onPublishTeam = () => _onPublishTeam(teamID)
 
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const {cardType} = message
   let textComponent: React.ReactNode
   let image: Kb.IconType | undefined

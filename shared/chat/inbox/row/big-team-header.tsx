@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as RowSizes from './sizes'
@@ -20,7 +20,7 @@ const BigTeamHeader = (props: Props) => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <Chat.ChatProvider id="" canBeNull={true}>
+      <ConvoState.ChatProvider id="" canBeNull={true}>
         <TeamMenu
           attachTo={attachTo}
           visible={true}
@@ -29,7 +29,7 @@ const BigTeamHeader = (props: Props) => {
           hasHeader={true}
           isSmallTeam={false}
         />
-      </Chat.ChatProvider>
+      </ConvoState.ChatProvider>
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)

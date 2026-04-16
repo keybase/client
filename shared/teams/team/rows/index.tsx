@@ -1,6 +1,8 @@
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
+import {isBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
@@ -191,7 +193,7 @@ export const useChannelsSections = (
   teamID: T.Teams.TeamID,
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
-  const isBig = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
+  const isBig = Chat.useChatState(s => isBigTeam(s.inboxLayout, teamID))
   const channels = Teams.useTeamsState(s => s.channelInfo.get(teamID))
   const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
 
@@ -284,7 +286,6 @@ export const useSubteamsSections = (
 const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState<T.Chat.ConversationIDKey | undefined>()
   const findGeneralConvIDFromTeamID = C.useRPC(T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise)
-  const metasReceived = Chat.useChatState(s => s.dispatch.metasReceived)
   const requestIDRef = React.useRef(0)
 
   React.useEffect(() => {
@@ -307,7 +308,7 @@ const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
         if (!meta) {
           return
         }
-        metasReceived([meta])
+        ConvoState.metasReceived([meta])
         setConversationIDKey(meta.conversationIDKey)
       },
       () => {}
@@ -317,7 +318,7 @@ const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
         requestIDRef.current += 1
       }
     }
-  }, [conversationIDKey, findGeneralConvIDFromTeamID, metasReceived, teamID])
+  }, [conversationIDKey, findGeneralConvIDFromTeamID, teamID])
   return conversationIDKey
 }
 

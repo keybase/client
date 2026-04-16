@@ -1,6 +1,7 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 
@@ -9,7 +10,7 @@ export const useChannelParticipants = (
   teamID: T.Teams.TeamID,
   conversationIDKey: T.Chat.ConversationIDKey
 ) => {
-  const participants = Chat.useConvoState(conversationIDKey, s => s.participants.all)
+  const participants = ConvoState.useConvoState(conversationIDKey, s => s.participants.all)
   const teamMembers = Teams.useTeamsState(s => s.teamDetails.get(teamID)?.members)
   return participants.filter(username => {
         const maybeMember = teamMembers?.get(username)

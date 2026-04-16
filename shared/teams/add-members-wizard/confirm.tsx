@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
@@ -46,7 +47,7 @@ const AddMembersConfirm = () => {
   const {isInTeam, isSubteam, newTeamWizErr} = teamsState
   const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = addMembersWizard
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
-  const isBigTeam = Chat.useChatState(s => (fromNewTeamWizard ? false : Chat.isBigTeam(s, teamID)))
+  const isBigTeam = Chat.useChatState(s => (fromNewTeamWizard ? false : getIsBigTeam(s.inboxLayout, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
 
   // TODO: consider useMemoing these

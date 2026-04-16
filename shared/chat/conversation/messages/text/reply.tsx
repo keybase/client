@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Chat from '@/stores/chat'
+import {zoomImage} from '@/constants/chat/helpers'
 import {useIsHighlighted} from '../ids-context'
 import type * as T from '@/constants/types'
 
@@ -38,7 +38,7 @@ const ReplyImage = () => {
   if (!imageURL) return null
   const imageHeight = replyTo.previewHeight
   const imageWidth = replyTo.previewWidth
-  const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 80) : undefined
+  const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 80) : undefined
   return (
     <Kb.Box2 direction="vertical" relative={true} overflow="hidden">
       <Kb.Box2 direction="vertical" style={sizing?.margins}>
