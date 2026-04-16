@@ -60,7 +60,6 @@ export type State = Store & {
   dispatch: {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     dismissBlockButtons: (teamID: T.RPCGen.TeamID) => void
-    dismissBlockButtonsIfPresent: (teamID: T.RPCGen.TeamID) => void
     inboxRefresh: (reason: RefreshReason) => Promise<void>
     setInboxRetriedOnCurrentEmpty: (retried: boolean) => void
     loadStaticConfig: () => void
@@ -115,11 +114,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    dismissBlockButtonsIfPresent: teamID => {
-      if (get().blockButtonsMap.has(teamID)) {
-        get().dispatch.dismissBlockButtons(teamID)
-      }
     },
     inboxRefresh: async reason => requestInboxLayout(reason),
     loadStaticConfig: () => {

@@ -56,7 +56,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {getUsernameToShow} from '@/chat/conversation/messages/separator-utils'
 import type {RefreshReason} from '@/stores/chat-shared'
-import {storeRegistry} from '@/stores/store-registry'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -2292,9 +2291,6 @@ const createSlice =
         } catch {
           logger.info('error')
         }
-
-        // If there are block buttons on this conversation, clear them.
-        storeRegistry.getState('chat').dispatch.dismissBlockButtonsIfPresent(meta.teamID)
 
         // Do some logging to track down the root cause of a bug causing
         // messages to not send. Do this after creating the objects above to
