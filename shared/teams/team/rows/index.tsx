@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
@@ -284,7 +285,6 @@ export const useSubteamsSections = (
 const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState<T.Chat.ConversationIDKey | undefined>()
   const findGeneralConvIDFromTeamID = C.useRPC(T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise)
-  const metasReceived = Chat.useChatState(s => s.dispatch.metasReceived)
   const requestIDRef = React.useRef(0)
 
   React.useEffect(() => {
@@ -307,7 +307,7 @@ const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
         if (!meta) {
           return
         }
-        metasReceived([meta])
+        ConvoState.metasReceived([meta])
         setConversationIDKey(meta.conversationIDKey)
       },
       () => {}

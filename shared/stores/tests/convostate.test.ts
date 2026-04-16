@@ -776,10 +776,10 @@ test('syncBadgeState updates listed conversations and clears missing badges', ()
   const store = getConvoState(firstConvID)
   const otherStore = getConvoState(otherConvID)
 
-  store.getState().dispatch.badgesUpdated(3)
-  store.getState().dispatch.unreadUpdated(4)
-  otherStore.getState().dispatch.badgesUpdated(2)
-  otherStore.getState().dispatch.unreadUpdated(5)
+  store.dispatch.badgesUpdated(3)
+  store.dispatch.unreadUpdated(4)
+  otherStore.dispatch.badgesUpdated(2)
+  otherStore.dispatch.unreadUpdated(5)
 
   syncBadgeState({
     bigTeamBadgeCount: 0,
@@ -807,10 +807,10 @@ test('syncBadgeState updates listed conversations and clears missing badges', ()
     unverifiedPhones: 0,
   } as any)
 
-  expect(store.getState().badge).toBe(0)
-  expect(store.getState().unread).toBe(4)
-  expect(otherStore.getState().badge).toBe(1)
-  expect(otherStore.getState().unread).toBe(6)
+  expect(store.badge).toBe(0)
+  expect(store.unread).toBe(4)
+  expect(otherStore.badge).toBe(1)
+  expect(otherStore.unread).toBe(6)
 })
 
 test('toggleThreadSearch removes center highlight when opening search', () => {
