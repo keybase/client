@@ -31,7 +31,6 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     inboxRetriedOnCurrentEmpty,
     setInboxRetriedOnCurrentEmpty,
   } = chatState
-  const inboxRowsVersion = useInboxRowsState(s => s.version)
   const [inboxNumSmallRows, setInboxNumSmallRowsState] = React.useState(5)
   const [smallTeamsExpanded, setSmallTeamsExpanded] = React.useState(false)
   const inboxNumSmallRowsLoadVersionRef = React.useRef(0)
@@ -96,13 +95,13 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       ConvoState.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
     }
     if (!C.isPhone && !inboxHasLoaded) {
-      inboxRefresh('componentNeverLoaded')
+      C.ignorePromise(inboxRefresh('componentNeverLoaded'))
     }
   })
 
   C.Router2.useSafeFocusEffect(() => {
     if (!inboxHasLoaded) {
-      inboxRefresh('componentNeverLoaded')
+      C.ignorePromise(inboxRefresh('componentNeverLoaded'))
     }
   })
 
@@ -110,7 +109,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     const ready = loggedIn && !!username
     const shouldRetry = !inboxHasLoaded && ready && (!C.isMobile || isFocused)
     if (shouldRetry) {
-      inboxRefresh('componentNeverLoaded')
+      C.ignorePromise(inboxRefresh('componentNeverLoaded'))
     }
   }, [inboxHasLoaded, inboxRefresh, isFocused, loggedIn, username])
 
@@ -124,27 +123,29 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     }
     const loadVersion = inboxNumSmallRowsLoadVersionRef.current + 1
     inboxNumSmallRowsLoadVersionRef.current = loadVersion
-    loadInboxNumSmallRows(
-      [{path: 'ui.inboxSmallRows'}],
-      rows => {
-        if (
-          inboxNumSmallRowsLoadVersionRef.current !== loadVersion ||
-          inboxNumSmallRowsUserChangedRef.current
-        ) {
-          return
+    C.ignorePromise(
+      loadInboxNumSmallRows(
+        [{path: 'ui.inboxSmallRows'}],
+        rows => {
+          if (
+            inboxNumSmallRowsLoadVersionRef.current !== loadVersion ||
+            inboxNumSmallRowsUserChangedRef.current
+          ) {
+            return
+          }
+          inboxNumSmallRowsLoadedRef.current = true
+          const count = rows.i ?? -1
+          if (count > 0) {
+            setInboxNumSmallRowsState(count)
+          }
+        },
+        () => {
+          if (inboxNumSmallRowsLoadVersionRef.current !== loadVersion) {
+            return
+          }
+          inboxNumSmallRowsLoadedRef.current = true
         }
-        inboxNumSmallRowsLoadedRef.current = true
-        const count = rows.i ?? -1
-        if (count > 0) {
-          setInboxNumSmallRowsState(count)
-        }
-      },
-      () => {
-        if (inboxNumSmallRowsLoadVersionRef.current !== loadVersion) {
-          return
-        }
-        inboxNumSmallRowsLoadedRef.current = true
-      }
+      )
     )
     return () => {
       if (inboxNumSmallRowsLoadVersionRef.current === loadVersion) {
@@ -159,7 +160,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       return
     }
     setInboxRetriedOnCurrentEmpty(true)
-    inboxRefresh('inboxSyncedCurrentButEmpty')
+    C.ignorePromise(inboxRefresh('inboxSyncedCurrentButEmpty'))
   }, [
     inboxHasLoaded,
     inboxRefresh,
@@ -177,20 +178,21 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     return inboxRows.map(r => (r.type === 'big' ? r.conversationIDKey : ''))
   }, [inboxRows])
 
-  const unreadIndices = React.useMemo(() => {
-    void inboxRowsVersion
-    const next: Map<number, number> = new Map()
-    bigConvIds.forEach((conversationIDKey, idx) => {
-      if (!conversationIDKey) {
-        return
-      }
-      const badge = ConvoState.getConvoState(conversationIDKey).badge
-      if (badge > 0) {
-        next.set(idx, badge)
-      }
-    })
-    return next
-  }, [bigConvIds, inboxRowsVersion])
+  const unreadIndices = useInboxRowsState(
+    React.useCallback(s => {
+      const next: Map<number, number> = new Map()
+      bigConvIds.forEach((conversationIDKey, idx) => {
+        if (!conversationIDKey) {
+          return
+        }
+        const badge = s.rowsBig.get(conversationIDKey)?.badgeCount ?? 0
+        if (badge > 0) {
+          next.set(idx, badge)
+        }
+      })
+      return next
+    }, [bigConvIds])
+  )
 
   let unreadTotal = 0
   unreadIndices.forEach(count => {

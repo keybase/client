@@ -181,11 +181,11 @@ function useEnsureWidgetData(
   loggedIn: boolean,
   inboxHasLoaded: boolean,
   widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined,
-  inboxRefresh: (reason: Chat.RefreshReason) => void
+  inboxRefresh: (reason: Chat.RefreshReason) => Promise<void>
 ) {
   React.useEffect(() => {
     if (loggedIn && inboxHasLoaded && !widgetList) {
-      inboxRefresh('widgetRefresh')
+      C.ignorePromise(inboxRefresh('widgetRefresh'))
     }
   }, [loggedIn, inboxHasLoaded, widgetList, inboxRefresh])
 

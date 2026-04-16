@@ -6,6 +6,7 @@ import {useCurrentUserState} from './current-user'
 import {shallowEqual} from '@/constants/utils'
 
 export type InboxRowBig = {
+  badgeCount: number
   channelname: string
   hasBadge: boolean
   hasDraft: boolean
@@ -13,9 +14,11 @@ export type InboxRowBig = {
   isError: boolean
   isMuted: boolean
   snippetDecoration: number
+  unreadCount: number
 }
 
 export type InboxRowSmall = {
+  badgeCount: number
   draft: string
   hasBadge: boolean
   hasResetUsers: boolean
@@ -30,26 +33,47 @@ export type InboxRowSmall = {
   teamDisplayName: string
   timestamp: number
   typingSnippet: string
+  unreadCount: number
   youAreReset: boolean
   youNeedToRekey: boolean
 }
 
 const defaultInboxRowBig = {
-  channelname: '', hasBadge: false, hasDraft: false, hasUnread: false,
-  isError: false, isMuted: false, snippetDecoration: 0,
+  badgeCount: 0,
+  channelname: '',
+  hasBadge: false,
+  hasDraft: false,
+  hasUnread: false,
+  isError: false,
+  isMuted: false,
+  snippetDecoration: 0,
+  unreadCount: 0,
 } satisfies InboxRowBig
 
 const defaultInboxRowSmall: InboxRowSmall = {
-  draft: '', hasBadge: false, hasResetUsers: false, hasUnread: false,
-  isDecryptingSnippet: true, isLocked: false, isMuted: false, participantNeedToRekey: false,
-  participants: [], snippet: '', snippetDecoration: T.RPCChat.SnippetDecoration.none,
-  teamDisplayName: '', timestamp: 0, typingSnippet: '', youAreReset: false, youNeedToRekey: false,
+  badgeCount: 0,
+  draft: '',
+  hasBadge: false,
+  hasResetUsers: false,
+  hasUnread: false,
+  isDecryptingSnippet: true,
+  isLocked: false,
+  isMuted: false,
+  participantNeedToRekey: false,
+  participants: [],
+  snippet: '',
+  snippetDecoration: T.RPCChat.SnippetDecoration.none,
+  teamDisplayName: '',
+  timestamp: 0,
+  typingSnippet: '',
+  unreadCount: 0,
+  youAreReset: false,
+  youNeedToRekey: false,
 }
 
 type State = T.Immutable<{
   rowsBig: Map<string, InboxRowBig>
   rowsSmall: Map<string, InboxRowSmall>
-  version: number
   dispatch: {
     resetState: () => void
   }
@@ -59,7 +83,6 @@ export const useInboxRowsState = Z.createZustand<State>('inboxRows', () => ({
   dispatch: {resetState: Z.defaultReset},
   rowsBig: new Map(),
   rowsSmall: new Map(),
-  version: 0,
 }))
 
 // Batched update queue
@@ -104,7 +127,6 @@ export const flushInboxRowUpdates = () => {
 
   const {getConvoState} = require('./convostate') as {getConvoState: typeof GetConvoStateT}
   useInboxRowsState.setState(s => {
-    s.version += 1
     for (const id of ids) {
       const cs = getConvoState(id)
       const m = cs.meta
@@ -114,6 +136,7 @@ export const flushInboxRowUpdates = () => {
         s.rowsBig.set(id, {...defaultInboxRowBig})
       }
       const big = s.rowsBig.get(id)!
+      big.badgeCount = cs.badge
       big.channelname = m.channelname
       big.hasBadge = cs.badge > 0
       big.hasDraft = !!m.draft
@@ -121,12 +144,14 @@ export const flushInboxRowUpdates = () => {
       big.isError = m.trustedState === 'error'
       big.isMuted = m.isMuted
       big.snippetDecoration = bigSnippetDecoration(m.snippetDecoration)
+      big.unreadCount = cs.unread
 
       // Small — ensure entry exists
       if (!s.rowsSmall.has(id)) {
         s.rowsSmall.set(id, {...defaultInboxRowSmall, participants: [] as string[]})
       }
       const small = s.rowsSmall.get(id)!
+      small.badgeCount = cs.badge
       const snippet = m.snippetDecorated ?? ''
       small.draft = m.draft || ''
       small.hasBadge = cs.badge > 0
@@ -147,6 +172,7 @@ export const flushInboxRowUpdates = () => {
       small.teamDisplayName = m.teamname ? m.teamname.split('#')[0] ?? '' : ''
       small.timestamp = m.timestamp || 0
       small.typingSnippet = buildTypingSnippet(cs.typing)
+      small.unreadCount = cs.unread
       small.youAreReset = m.membershipType === 'youAreReset'
       small.youNeedToRekey = m.rekeyers.has(you)
     }

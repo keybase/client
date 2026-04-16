@@ -73,7 +73,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.inboxRefresh: {
-      storeRegistry.getState('chat').dispatch.inboxRefresh('widgetRefresh')
+      ignorePromise(storeRegistry.getState('chat').dispatch.inboxRefresh('widgetRefresh'))
       break
     }
     case RemoteGen.engineConnection: {
