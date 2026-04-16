@@ -807,10 +807,10 @@ test('syncBadgeState updates listed conversations and clears missing badges', ()
     unverifiedPhones: 0,
   } as any)
 
-  expect(store.badge).toBe(0)
-  expect(store.unread).toBe(4)
-  expect(otherStore.badge).toBe(1)
-  expect(otherStore.unread).toBe(6)
+  expect(getConvoState(firstConvID).badge).toBe(0)
+  expect(getConvoState(firstConvID).unread).toBe(4)
+  expect(getConvoState(otherConvID).badge).toBe(1)
+  expect(getConvoState(otherConvID).unread).toBe(6)
 })
 
 test('toggleThreadSearch removes center highlight when opening search', () => {
