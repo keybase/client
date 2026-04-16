@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import {clampImageSize} from '@/constants/chat/helpers'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'

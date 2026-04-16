@@ -189,7 +189,9 @@ export const initSharedSubscriptions = () => {
   setConvoDefer({
     chatInboxLayoutSmallTeamsFirstConvID: () =>
       storeRegistry.getState('chat').inboxLayout?.smallTeams?.[0]?.convID,
-    chatInboxRefresh: reason => storeRegistry.getState('chat').dispatch.inboxRefresh(reason),
+    chatInboxRefresh: reason => {
+      ignorePromise(storeRegistry.getState('chat').dispatch.inboxRefresh(reason))
+    },
     chatMetasReceived: metas => convoMetasReceived(metas),
   })
   _sharedUnsubs.push(
@@ -231,7 +233,7 @@ export const initSharedSubscriptions = () => {
             // mounts behind a pushed conversation do not pay inbox startup cost.
             if (!isPhone && useCurrentUserState.getState().username) {
               const {inboxRefresh} = useChatState.getState().dispatch
-              inboxRefresh('bootstrap')
+              ignorePromise(inboxRefresh('bootstrap'))
             }
           }
 
@@ -625,7 +627,9 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break
     case 'chat.1.NotifyChat.ChatInboxSynced':
       useWaitingState.getState().dispatch.clear(S.waitingKeyChatInboxSyncStarted)
-      ignorePromise(onChatInboxSynced(action, reason => useChatState.getState().dispatch.inboxRefresh(reason)))
+      ignorePromise(
+        onChatInboxSynced(action, async reason => useChatState.getState().dispatch.inboxRefresh(reason))
+      )
       break
     case 'chat.1.chatUi.chatInboxLayout': {
       const {inboxHasLoaded, dispatch} = useChatState.getState()

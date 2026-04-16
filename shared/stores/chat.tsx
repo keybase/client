@@ -121,7 +121,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         get().dispatch.dismissBlockButtons(teamID)
       }
     },
-    inboxRefresh: reason => requestInboxLayout(reason),
+    inboxRefresh: async reason => requestInboxLayout(reason),
     loadStaticConfig: () => {
       if (get().staticConfig) {
         return
@@ -185,7 +185,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           break
         }
         case 'chat.1.NotifyChat.ChatInboxStale':
-          get().dispatch.inboxRefresh('inboxStale')
+          ignorePromise(get().dispatch.inboxRefresh('inboxStale'))
           break
         case 'keybase.1.NotifyBadges.badgeState': {
           const {badgeState} = action.payload.params

@@ -682,20 +682,17 @@ const useConvoMetaQueueState = Z.createZustand<ConvoMetaQueueState>('convo-meta-
     },
     queueMetaToRequest: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => {
       const nextIDs = untrustedConversationIDKeys(ids)
-      let changed = false
+      const changed = nextIDs.some(k => !get().pending.has(k))
+      if (!changed) {
+        logger.info('skipping meta queue run, queue unchanged')
+        return
+      }
       set(s => {
         const pending = new Set(s.pending)
         nextIDs.forEach(k => pending.add(k))
-        changed = pending.size > s.pending.size
-        if (changed) {
-          s.pending = pending
-        }
+        s.pending = pending
       })
-      if (changed) {
-        get().dispatch.queueMetaHandle()
-      } else {
-        logger.info('skipping meta queue run, queue unchanged')
-      }
+      get().dispatch.queueMetaHandle()
     },
     resetState: () => {
       set(s => {
@@ -711,6 +708,7 @@ const useConvoMetaQueueState = Z.createZustand<ConvoMetaQueueState>('convo-meta-
 }))
 
 async function runMetaQueueWorker(generation: number) {
+  let shouldQueueNextRun = false
   try {
     while (true) {
       if (useConvoMetaQueueState.getState().generation !== generation) {
@@ -747,18 +745,18 @@ async function runMetaQueueWorker(generation: number) {
     }
   } finally {
     const current = useConvoMetaQueueState.getState()
-    if (current.generation !== generation) {
-      return
+    if (current.generation === generation) {
+      useConvoMetaQueueState.setState(s => {
+        if (s.generation === generation) {
+          s.inFlight = false
+        }
+      })
+      const next = useConvoMetaQueueState.getState()
+      shouldQueueNextRun = next.generation === generation && next.pending.size > 0
     }
-    useConvoMetaQueueState.setState(s => {
-      if (s.generation === generation) {
-        s.inFlight = false
-      }
-    })
-    const next = useConvoMetaQueueState.getState()
-    if (next.generation === generation && next.pending.size > 0) {
-      next.dispatch.queueMetaHandle()
-    }
+  }
+  if (shouldQueueNextRun) {
+    useConvoMetaQueueState.getState().dispatch.queueMetaHandle()
   }
 }
 
