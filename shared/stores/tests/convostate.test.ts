@@ -10,6 +10,8 @@ import {
   createConvoStoresForTesting,
   type ConvoState,
   type ConvoUIState,
+  getConvoState,
+  syncBadgeState,
 } from '../convostate'
 
 jest.mock('../inbox-rows', () => ({
@@ -766,6 +768,49 @@ test('local setters update participants, reply target, and badge', () => {
   expect(store.getState().participants).toEqual(participants)
   expect(uiStore.getState().replyTo).toBe(ordinal)
   expect(store.getState().badge).toBe(3)
+})
+
+test('syncBadgeState updates listed conversations and clears missing badges', () => {
+  const firstConvID = T.Chat.conversationIDToKey(new Uint8Array([9, 8, 7, 6]))
+  const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([6, 7, 8, 9]))
+  const store = getConvoState(firstConvID)
+  const otherStore = getConvoState(otherConvID)
+
+  store.getState().dispatch.badgesUpdated(3)
+  store.getState().dispatch.unreadUpdated(4)
+  otherStore.getState().dispatch.badgesUpdated(2)
+  otherStore.getState().dispatch.unreadUpdated(5)
+
+  syncBadgeState({
+    bigTeamBadgeCount: 0,
+    conversations: [
+      {
+        badgeCount: 1,
+        convID: T.Chat.keyToConversationID(otherConvID),
+        unreadMessages: 6,
+      },
+    ],
+    homeTodoItems: 0,
+    inboxVers: 0,
+    newDevices: null,
+    newFollowers: 0,
+    newGitRepoGlobalUniqueIDs: [],
+    newTeamAccessRequestCount: 0,
+    newTeams: [],
+    newTlfs: 0,
+    rekeysNeeded: 0,
+    resetState: {active: false, endTime: 0},
+    revokedDevices: null,
+    smallTeamBadgeCount: 1,
+    teamsWithResetUsers: null,
+    unverifiedEmails: 0,
+    unverifiedPhones: 0,
+  } as any)
+
+  expect(store.getState().badge).toBe(0)
+  expect(store.getState().unread).toBe(4)
+  expect(otherStore.getState().badge).toBe(1)
+  expect(otherStore.getState().unread).toBe(6)
 })
 
 test('toggleThreadSearch removes center highlight when opening search', () => {

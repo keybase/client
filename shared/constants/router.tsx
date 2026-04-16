@@ -1,6 +1,7 @@
 import type * as React from 'react'
 import * as T from './types'
 import type * as ConvoRegistryType from '@/stores/convo-registry'
+import type * as ConvoStateType from '@/stores/convostate'
 import * as Tabs from './tabs'
 import {
   StackActions,
@@ -370,7 +371,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
     storeRegistry
       .getConvoState(T.Chat.pendingWaitingConversationIDKey)
       .dispatch.navigateToThread('justCreated')
-    const {createConversation} = require('@/stores/convostate') as typeof import('@/stores/convostate')
+    const {createConversation} = require('@/stores/convostate') as typeof ConvoStateType
     createConversation(participants, highlightMessageID)
   }
 
@@ -432,7 +433,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
       })
       const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
       if (meta) {
-        const {metasReceived} = require('@/stores/convostate') as typeof import('@/stores/convostate')
+        const {metasReceived} = require('@/stores/convostate') as typeof ConvoStateType
         metasReceived([meta])
       }
 

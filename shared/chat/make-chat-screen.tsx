@@ -2,7 +2,7 @@ import type {GetOptionsRet, RouteDef} from '@/constants/types/router'
 import type * as T from '@/constants/types'
 import {ProviderScreen} from '@/stores/convostate'
 import type {StaticScreenProps} from '@react-navigation/core'
-import * as React from 'react'
+import type {ComponentProps, LazyExoticComponent, ReactElement} from 'react'
 
 // See constants/router.tsx IsExactlyRecord for explanation
 type IsExactlyRecord<T> = string extends keyof T ? true : false
@@ -21,19 +21,19 @@ type AddConversationIDKey<P> =
     ? Omit<P, 'conversationIDKey'> & {conversationIDKey?: T.Chat.ConversationIDKey}
     : {conversationIDKey?: T.Chat.ConversationIDKey}
 
-type LazyInnerComponent<COM extends React.LazyExoticComponent<any>> =
-  COM extends React.LazyExoticComponent<infer Inner> ? Inner : never
+type LazyInnerComponent<COM extends LazyExoticComponent<any>> =
+  COM extends LazyExoticComponent<infer Inner> ? Inner : never
 
-type ChatScreenParams<COM extends React.LazyExoticComponent<any>> = NavigatorParamsFromProps<
-  AddConversationIDKey<React.ComponentProps<LazyInnerComponent<COM>>>
+type ChatScreenParams<COM extends LazyExoticComponent<any>> = NavigatorParamsFromProps<
+  AddConversationIDKey<ComponentProps<LazyInnerComponent<COM>>>
 >
 
-type ChatScreenProps<COM extends React.LazyExoticComponent<any>> = StaticScreenProps<ChatScreenParams<COM>>
-type ChatScreenComponent<COM extends React.LazyExoticComponent<any>> = (
+type ChatScreenProps<COM extends LazyExoticComponent<any>> = StaticScreenProps<ChatScreenParams<COM>>
+type ChatScreenComponent<COM extends LazyExoticComponent<any>> = (
   p: ChatScreenProps<COM>
-) => React.ReactElement
+) => ReactElement
 
-export function makeChatScreen<COM extends React.LazyExoticComponent<any>>(
+export function makeChatScreen<COM extends LazyExoticComponent<any>>(
   Component: COM,
   options?: {
     getOptions?: GetOptionsRet | ((props: ChatScreenProps<COM>) => GetOptionsRet)

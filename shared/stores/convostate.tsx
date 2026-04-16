@@ -50,7 +50,7 @@ import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual, timeoutPromise} from '@/constants/utils'
 import {flushInboxRowUpdates, queueInboxRowUpdate} from './inbox-rows'
 import * as Strings from '@/constants/strings'
-import {chatStores, clearChatStores, convoUIStores} from './convo-registry'
+import {chatStores, convoUIStores} from './convo-registry'
 
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -616,6 +616,14 @@ export const hydrateInboxConversations = (inboxUIItems: ReadonlyArray<T.RPCChat.
   }
 }
 
+export const clearConversationsForInboxSync = () => {
+  for (const store of chatStores.values()) {
+    const {dispatch} = store.getState()
+    dispatch.setMeta()
+    dispatch.messagesClear()
+  }
+}
+
 let metaQueue: Set<T.Chat.ConversationIDKey> = __DEV__
   ? (((globalThis as {__hmr_convoMetaQueue?: Set<T.Chat.ConversationIDKey>}).__hmr_convoMetaQueue ??=
       new Set()) as Set<T.Chat.ConversationIDKey>)
@@ -702,7 +710,7 @@ export const queueMetaToRequest = (ids: ReadonlyArray<T.Chat.ConversationIDKey>)
 }
 
 export const ensureWidgetMetas = (
-  widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined
+  widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | null | undefined
 ) => {
   if (!widgetList) {
     return
@@ -746,6 +754,26 @@ export const syncGregorExplodingModes = (
     } catch (error) {
       logger.info('Error parsing exploding' + error)
     }
+  })
+}
+
+export const syncBadgeState = (badgeState?: T.RPCGen.BadgeState) => {
+  if (!badgeState) {
+    return
+  }
+  const badgedConvIDs = new Set(
+    badgeState.conversations?.map(conversation => T.Chat.conversationIDToKey(conversation.convID)) ?? []
+  )
+  for (const [conversationIDKey, store] of chatStores) {
+    if (!badgedConvIDs.has(conversationIDKey) && store.getState().badge > 0) {
+      store.getState().dispatch.badgesUpdated(0)
+    }
+  }
+  badgeState.conversations?.forEach(conversation => {
+    const conversationIDKey = T.Chat.conversationIDToKey(conversation.convID)
+    const {dispatch} = getConvoState(conversationIDKey)
+    dispatch.badgesUpdated(conversation.badgeCount)
+    dispatch.unreadUpdated(conversation.unreadMessages)
   })
 }
 
@@ -805,7 +833,7 @@ const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
 
 const onNewChatActivity = (
   activity: NewChatActivity,
-  staticConfig?: T.Chat.StaticConfig
+  staticConfig?: T.Immutable<T.Chat.StaticConfig>
 ): ConvoEngineIncomingResult => {
   switch (activity.activityType) {
     case T.RPCChat.ChatActivityType.incomingMessage: {
@@ -916,7 +944,7 @@ const onNewChatActivity = (
 
 export const handleConvoEngineIncoming = (
   action: EngineGen.Actions,
-  staticConfig?: T.Chat.StaticConfig
+  staticConfig?: T.Immutable<T.Chat.StaticConfig>
 ): ConvoEngineIncomingResult => {
   switch (action.type) {
     case 'chat.1.chatUi.chatInboxFailed':
@@ -4076,7 +4104,6 @@ const createSlice =
   }
 
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
-type MadeUIStore = UseBoundStore<StoreApi<ConvoUIState>>
 
 const createConvoUISlice =
   (

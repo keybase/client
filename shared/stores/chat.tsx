@@ -1,4 +1,3 @@
-import * as Common from '@/constants/chat/common'
 import type * as EngineGen from '@/constants/rpc'
 import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
@@ -11,8 +10,8 @@ import logger from '@/logger'
 import type {RefreshReason} from '@/stores/chat-shared'
 import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
-import {chatStores} from '@/stores/convo-registry'
 import {
+  clearConversationsForInboxSync,
   ensureWidgetMetas as ensureConvoWidgetMetas,
   handleConvoEngineIncoming,
   hydrateInboxConversations,
@@ -20,12 +19,12 @@ import {
   loadSelectedConversationIfStale,
   metasReceived as convoMetasReceived,
   maybeChangeSelectedConversation,
+  syncBadgeState,
   syncGregorExplodingModes,
   unboxRows as convoUnboxRows,
 } from '@/stores/convostate'
 import {ignorePromise} from '@/constants/utils'
 import {isPhone} from '@/constants/platform'
-import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
@@ -223,18 +222,10 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
 
   const dispatch: State['dispatch'] = {
     badgesUpdated: b => {
-      if (!b) return
-      const badgedConvIDs = new Set(b.conversations?.map(c => T.Chat.conversationIDToKey(c.convID)) ?? [])
-      for (const [id, cs] of chatStores) {
-        if (!badgedConvIDs.has(id) && cs.getState().badge > 0) {
-          cs.getState().dispatch.badgesUpdated(0)
-        }
+      syncBadgeState(b)
+      if (!b) {
+        return
       }
-      b.conversations?.forEach(c => {
-        const id = T.Chat.conversationIDToKey(c.convID)
-        storeRegistry.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
-        storeRegistry.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
-      })
       const {bigTeamBadgeCount, smallTeamBadgeCount} = b
       set(s => {
         s.badgeStateVersion += 1
@@ -318,11 +309,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         case T.RPCChat.SyncInboxResType.clear: {
           const f = async () => {
             await requestInboxLayout('inboxSyncedClear')
-            for (const [, cs] of chatStores) {
-              const {dispatch} = cs.getState()
-              dispatch.setMeta()
-              dispatch.messagesClear()
-            }
+            clearConversationsForInboxSync()
           }
           ignorePromise(f())
           break
@@ -352,7 +339,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           break
         }
         default:
-          inboxRefresh('inboxSyncedUnknown')
+          get().dispatch.inboxRefresh('inboxSyncedUnknown')
       }
     },
     onEngineIncomingImpl: action => {

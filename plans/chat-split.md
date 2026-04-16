@@ -31,6 +31,7 @@ These cleanup steps are already done:
 - conversation creation and team-building handoff now live in `convostate`
 - convo-targeted engine notifications now route through `convostate.handleConvoEngineIncoming`; `chat.onEngineIncomingImpl` keeps only global branches
 - service-driven convo reselect, stale selected-thread reload, inbox conversation hydration, and exploding-mode gregor sync now live in `convostate`
+- badge / unread application and inbox-sync clear fanout now live in `convostate`; `chat.tsx` keeps only aggregate badge totals/versioning
 
 This means the remaining work is about removing the actual `chat -> convo` logic, not import barrels.
 
@@ -79,23 +80,25 @@ Desired end state:
 
 ### 2. Badge / Unread Ownership
 
-This is last because it is the riskiest ownership decision.
+Status:
 
-Current state:
+- done; `convostate.syncBadgeState` now owns per-convo badge/unread application, while `chat.tsx` keeps only global badge counters
+
+This was last because it was the riskiest ownership decision.
+
+Resolved state:
 
 - global badge totals live in `chat`
-- per-convo badge/unread also get updated from `chat`
+- per-convo badge/unread get updated from `convostate`
 
-Possible end states:
+Chosen end state:
 
-- derive per-convo badge/unread from global inbox/badge data
-- or move per-convo badge ownership fully to convo state
-
-Do not decide this early. Resolve simpler buckets first.
+- per-convo badge ownership remains in convo state
+- badge-state payload fanout is convo-owned instead of chat-owned
 
 ## Recommended Order
 
-1. Badge / unread ownership
+1. Split complete
 
 ## Acceptance Criteria
 
