@@ -45,6 +45,8 @@ import {errorToActionOrThrow} from '@/stores/fs'
 import * as ScreenCapture from 'expo-screen-capture'
 import * as Styles from '@/styles'
 import {getSecureFlagSetting} from '@/constants/platform.native'
+import * as Contacts from 'expo-contacts'
+import {syncContactsToServer} from '@/util/contacts.native'
 
 const finishedRegularDownloadIDs = new Set<string>()
 
@@ -233,9 +235,23 @@ const onChatClearWatch = async () => {
 export const onEngineIncoming = (action: EngineGen.Actions) => {
   _onEngineIncoming(action)
   switch (action.type) {
-    case 'chat.1.chatUi.triggerContactSync':
-      useSettingsContactsState.getState().dispatch.manageContactsCache()
+    case 'chat.1.chatUi.triggerContactSync': {
+      const syncContacts = async () => {
+        const {importEnabled, permissionStatus, dispatch} = useSettingsContactsState.getState()
+        if (!importEnabled) {
+          return
+        }
+        const status =
+          permissionStatus === 'unknown' ? (await Contacts.getPermissionsAsync()).status : permissionStatus
+        if (status !== 'granted') {
+          return
+        }
+        const result = await syncContactsToServer()
+        dispatch.notifySyncSucceeded(result.defaultCountryCode)
+      }
+      ignorePromise(syncContacts().catch(error => logger.error('Error syncing contacts:', error)))
       break
+    }
     case 'keybase.1.logUi.log': {
       const {params} = action.payload
       const {level, text} = params

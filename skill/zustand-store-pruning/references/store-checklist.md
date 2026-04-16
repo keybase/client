@@ -14,7 +14,7 @@ Status:
   Notes: moved inbox search state/RPC orchestration into `shared/chat/inbox/search-state.tsx`; moved location preview coordinate state out of `shared/stores/chat.tsx`; pending create-conversation error flow now lives in chat route params instead of the chat store; moved derived inbox rows/floating-button state out of `shared/stores/chat.tsx` and into `shared/chat/inbox/use-inbox-state.tsx`; moved inbox presentation state and `ui.inboxSmallRows` persistence into the inbox hook; removed dead trusted-inbox state from the chat store; moved payment status caching from `shared/stores/chat.tsx` into `shared/stores/convostate.tsx`.
 - [ ] `push`
   Files: `shared/stores/push.desktop.tsx`, `shared/stores/push.native.tsx`, `shared/stores/push.d.ts`
-- [ ] `settings-contacts`
+- [x] `settings-contacts`
   Files: `shared/stores/settings-contacts.desktop.tsx`, `shared/stores/settings-contacts.native.tsx`, `shared/stores/settings-contacts.d.ts`
 
 ## Notes

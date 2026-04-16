@@ -3,25 +3,20 @@ import type {UseBoundStore, StoreApi} from 'zustand'
 type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
 
 type Store = T.Immutable<{
-  alreadyOnKeybase: Array<T.RPCGen.ProcessedContact>
   importEnabled?: boolean
-  importError: string
-  importPromptDismissed: boolean
-  importedCount?: number
   // OS permissions. 'undetermined' -> we can show the prompt; 'unknown' -> we haven't checked
   permissionStatus: PermissionStatus
+  syncGeneration: number
   userCountryCode?: string
-  waitingToShowJoinedModal: boolean
 }>
 
 export type State = Store & {
   dispatch: {
-    importContactsLater: () => void
-    editContactImportEnabled: (enable: boolean, fromSettings?: boolean) => void
-    loadContactPermissions: () => void
-    loadContactImportEnabled: () => void
-    manageContactsCache: () => void
-    requestPermissions: (thenToggleImportOn?: boolean, fromSettings?: boolean) => void
+    editContactImportEnabled: (enable: boolean) => Promise<void>
+    loadContactPermissions: () => Promise<PermissionStatus>
+    loadContactImportEnabled: () => Promise<void>
+    notifySyncSucceeded: (userCountryCode?: string) => void
+    requestPermissions: () => Promise<PermissionStatus>
     resetState: () => void
   }
 }

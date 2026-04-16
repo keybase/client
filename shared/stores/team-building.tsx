@@ -27,8 +27,10 @@ type Store = T.Immutable<{
   userRecs?: Array<T.TB.User>
   selectedRole: T.Teams.TeamRoleType
   sendNotification: boolean
+  contactsImportPromptDismissed: boolean
 }>
 export const initialStore: Store = {
+  contactsImportPromptDismissed: false,
   error: '',
   namespace: 'invalid',
   searchLimit: 11,
@@ -51,6 +53,7 @@ export type State = Store & {
       onFinishedTeamBuildingChat: (users: ReadonlySet<T.TB.User>) => void
       onFinishedTeamBuildingCrypto: (users: ReadonlySet<T.TB.User>) => void
     }
+    dismissContactsImportPrompt: () => void
     fetchUserRecs: () => void
     finishTeamBuilding: () => void
     finishedTeamBuilding: () => void
@@ -304,6 +307,11 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       onFinishedTeamBuildingCrypto: (_users: ReadonlySet<T.TB.User>) => {
         throw new Error('onFinishedTeamBuildingCrypto not properly initialized')
       },
+    },
+    dismissContactsImportPrompt: () => {
+      set(s => {
+        s.contactsImportPromptDismissed = true
+      })
     },
     fetchUserRecs: () => {
       const includeContacts = get().namespace === 'chat'

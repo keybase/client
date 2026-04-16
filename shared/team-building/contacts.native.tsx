@@ -2,57 +2,61 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import logger from '@/logger'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useTBContext} from '@/stores/team-building'
+import {syncContactsToServer} from '@/util/contacts.native'
 
 const useContactsProps = () => {
   const {
     contactsImported,
     contactsPermissionStatus,
     editContactImportEnabled,
-    importContactsLater,
-    isImportPromptDismissed,
     loadContactImportEnabled,
-    numContactsImported,
+    notifySyncSucceeded,
     requestPermissions,
+    syncGeneration,
   } = useSettingsContactsState(
     C.useShallow(s => ({
       contactsImported: s.importEnabled,
       contactsPermissionStatus: s.permissionStatus,
       editContactImportEnabled: s.dispatch.editContactImportEnabled,
-      importContactsLater: s.dispatch.importContactsLater,
-      isImportPromptDismissed: s.importPromptDismissed,
       loadContactImportEnabled: s.dispatch.loadContactImportEnabled,
-      numContactsImported: s.importedCount || 0,
+      notifySyncSucceeded: s.dispatch.notifySyncSucceeded,
       requestPermissions: s.dispatch.requestPermissions,
+      syncGeneration: s.syncGeneration,
+    }))
+  )
+  const {dismissContactsImportPrompt, isImportPromptDismissed} = useTBContext(
+    C.useShallow(s => ({
+      dismissContactsImportPrompt: s.dispatch.dismissContactsImportPrompt,
+      isImportPromptDismissed: s.contactsImportPromptDismissed,
     }))
   )
 
-  const onAskForContactsLater = importContactsLater
-  const onLoadContactsSetting = loadContactImportEnabled
-
-  const onImportContactsPermissionsGranted = () => {
-    editContactImportEnabled(true, false)
-  }
-  const onImportContactsPermissionsNotGranted = () => {
-    requestPermissions(true, false)
-  }
-
-  const onImportContacts =
-    contactsPermissionStatus === 'denied'
-      ? undefined
-      : contactsPermissionStatus === 'granted'
-        ? onImportContactsPermissionsGranted
-        : onImportContactsPermissionsNotGranted
+  const onImportContacts = React.useCallback(async () => {
+    try {
+      const status =
+        contactsPermissionStatus === 'granted' ? contactsPermissionStatus : await requestPermissions()
+      if (status !== 'granted') {
+        return
+      }
+      await editContactImportEnabled(true)
+      const result = await syncContactsToServer()
+      notifySyncSucceeded(result.defaultCountryCode)
+    } catch (error) {
+      logger.error('Error importing contacts from team building:', error)
+    }
+  }, [contactsPermissionStatus, editContactImportEnabled, notifySyncSucceeded, requestPermissions])
 
   return {
     contactsImported,
     contactsPermissionStatus,
     isImportPromptDismissed,
-    numContactsImported,
-    onAskForContactsLater,
+    onAskForContactsLater: dismissContactsImportPrompt,
     onImportContacts,
-    onLoadContactsSetting,
+    onLoadContactsSetting: loadContactImportEnabled,
+    syncGeneration,
   }
 }
 
@@ -66,42 +70,35 @@ export const ContactsBanner = (props: {
     contactsImported,
     contactsPermissionStatus,
     isImportPromptDismissed,
-    numContactsImported,
     onAskForContactsLater,
     onImportContacts,
     onLoadContactsSetting,
+    syncGeneration,
   } = useContactsProps()
 
   const fetchUserRecs = useTBContext(s => s.dispatch.fetchUserRecs)
-  const onRedoRecs = fetchUserRecs
-  const prevNumContactsImportedRef = React.useRef(numContactsImported)
+  const prevSyncGenerationRef = React.useRef(syncGeneration)
 
-  // Redo search if # of imported contacts changes
   React.useEffect(() => {
-    if (prevNumContactsImportedRef.current !== numContactsImported) {
-      prevNumContactsImportedRef.current = numContactsImported
+    if (prevSyncGenerationRef.current !== syncGeneration) {
+      prevSyncGenerationRef.current = syncGeneration
       onRedoSearch()
-      onRedoRecs()
+      fetchUserRecs()
     }
-  }, [numContactsImported, onRedoSearch, onRedoRecs])
+  }, [fetchUserRecs, onRedoSearch, syncGeneration])
 
-  // Ensure that we know whether contacts are loaded, and if not, that we load
-  // the current config setting.
   React.useEffect(() => {
     if (contactsImported === undefined) {
-      onLoadContactsSetting()
+      onLoadContactsSetting().catch(() => {})
     }
   }, [contactsImported, onLoadContactsSetting])
 
-  // If we've imported contacts already, or the user has dismissed the message,
-  // then there's nothing for us to do.
   if (
     contactsImported === undefined ||
     selectedService !== 'keybase' ||
     contactsImported ||
     isImportPromptDismissed ||
-    contactsPermissionStatus === 'denied' ||
-    !onImportContacts
+    contactsPermissionStatus === 'denied'
   )
     return null
 
@@ -138,7 +135,6 @@ export const ContactsImportButton = () => {
   const {contactsImported, contactsPermissionStatus, isImportPromptDismissed, onImportContacts} =
     useContactsProps()
 
-  // If we've imported contacts already, then there's nothing for us to do.
   if (
     contactsImported === undefined ||
     contactsImported ||
