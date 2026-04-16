@@ -4,6 +4,7 @@ import * as Meta from '../../constants/chat/meta'
 import * as Message from '../../constants/chat/message'
 import * as T from '../../constants/types'
 import HiddenString from '../../util/hidden-string'
+import {resetAllStores} from '../../util/zustand'
 import {useCurrentUserState} from '../current-user'
 import {
   createConvoStoreForTesting,
@@ -18,21 +19,24 @@ jest.mock('../inbox-rows', () => ({
   queueInboxRowUpdate: jest.fn(),
 }))
 
+beforeEach(() => {
+  useCurrentUserState.getState().dispatch.setBootstrap({
+    deviceID: 'device-id',
+    deviceName: 'test-device',
+    uid: 'uid',
+    username: 'alice',
+  })
+})
+
 afterEach(() => {
   jest.restoreAllMocks()
+  resetAllStores()
 })
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const ordinal = T.Chat.numberToOrdinal(10)
 const msgID = T.Chat.numberToMessageID(101)
 const outboxID = T.Chat.stringToOutboxID('outbox-1')
-
-useCurrentUserState.getState().dispatch.setBootstrap({
-  deviceID: 'device-id',
-  deviceName: 'test-device',
-  uid: 'uid',
-  username: 'alice',
-})
 
 const makeReaction = (username: string, timestamp: number): T.Chat.ReactionDesc => ({
   decorated: ':+1:',

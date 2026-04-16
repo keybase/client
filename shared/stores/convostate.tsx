@@ -44,7 +44,6 @@ import KB2 from '@/util/electron'
 import {NotifyPopup} from '@/util/misc'
 import {hexToUint8Array, uint8ArrayToString} from '@/util/uint8array'
 import {clearChatTimeCache} from '@/util/timestamp'
-import {registerExternalResetter} from '@/util/zustand'
 import * as Config from '@/constants/config'
 import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual, timeoutPromise} from '@/constants/utils'
@@ -624,19 +623,117 @@ export const clearConversationsForInboxSync = () => {
   }
 }
 
-let metaQueue: Set<T.Chat.ConversationIDKey> = __DEV__
-  ? (((globalThis as {__hmr_convoMetaQueue?: Set<T.Chat.ConversationIDKey>}).__hmr_convoMetaQueue ??=
-      new Set()) as Set<T.Chat.ConversationIDKey>)
-  : new Set()
-
-const clearMetaQueue = () => {
-  metaQueue.clear()
-}
-
-registerExternalResetter('convo-meta-queue', clearMetaQueue)
-
 const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) =>
   ids.filter(id => getConvoState(id).meta.trustedState === 'untrusted')
+
+type ConvoMetaQueueState = T.Immutable<{
+  generation: number
+  inFlight: boolean
+  pending: ReadonlySet<T.Chat.ConversationIDKey>
+  dispatch: {
+    queueMetaHandle: () => void
+    queueMetaToRequest: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => void
+    resetState: () => void
+  }
+}>
+
+const useConvoMetaQueueState = Z.createZustand<ConvoMetaQueueState>('convo-meta-queue', (set, get) => ({
+  dispatch: {
+    queueMetaHandle: () => {
+      const {generation, inFlight, pending} = get()
+      if (inFlight || pending.size === 0) {
+        return
+      }
+      set(s => {
+        if (s.generation === generation && !s.inFlight && s.pending.size > 0) {
+          s.inFlight = true
+        }
+      })
+      if (get().generation === generation && get().inFlight) {
+        ignorePromise(runMetaQueueWorker(generation))
+      }
+    },
+    queueMetaToRequest: (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => {
+      const nextIDs = untrustedConversationIDKeys(ids)
+      let changed = false
+      set(s => {
+        const pending = new Set(s.pending)
+        nextIDs.forEach(k => pending.add(k))
+        changed = pending.size > s.pending.size
+        if (changed) {
+          s.pending = pending
+        }
+      })
+      if (changed) {
+        get().dispatch.queueMetaHandle()
+      } else {
+        logger.info('skipping meta queue run, queue unchanged')
+      }
+    },
+    resetState: () => {
+      set(s => {
+        s.generation += 1
+        s.inFlight = false
+        s.pending = new Set()
+      })
+    },
+  },
+  generation: 0,
+  inFlight: false,
+  pending: new Set(),
+}))
+
+async function runMetaQueueWorker(generation: number) {
+  try {
+    while (true) {
+      if (useConvoMetaQueueState.getState().generation !== generation) {
+        return
+      }
+
+      const maxToUnboxAtATime = 10
+      let maybeUnbox: Array<T.Chat.ConversationIDKey> = []
+      useConvoMetaQueueState.setState(s => {
+        if (s.generation !== generation) {
+          return
+        }
+        const pending = [...s.pending]
+        maybeUnbox = pending.slice(0, maxToUnboxAtATime)
+        s.pending = new Set(pending.slice(maxToUnboxAtATime))
+      })
+
+      if (!maybeUnbox.length) {
+        return
+      }
+
+      const conversationIDKeys = untrustedConversationIDKeys(maybeUnbox)
+      if (conversationIDKeys.length) {
+        unboxRows(conversationIDKeys)
+      }
+
+      const current = useConvoMetaQueueState.getState()
+      if (current.generation !== generation || current.pending.size === 0) {
+        return
+      }
+      if (conversationIDKeys.length) {
+        await timeoutPromise(100)
+      }
+    }
+  } finally {
+    const current = useConvoMetaQueueState.getState()
+    if (current.generation !== generation) {
+      return
+    }
+    useConvoMetaQueueState.setState(s => {
+      if (s.generation === generation) {
+        s.inFlight = false
+      }
+    })
+    const next = useConvoMetaQueueState.getState()
+    if (next.generation === generation && next.pending.size > 0) {
+      next.dispatch.queueMetaHandle()
+    }
+  }
+}
 
 export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: boolean) => {
   const f = async () => {
@@ -674,39 +771,11 @@ export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: 
 }
 
 export const queueMetaHandle = () => {
-  const f = async () => {
-    const maxToUnboxAtATime = 10
-    const ar = [...metaQueue]
-    const maybeUnbox = ar.slice(0, maxToUnboxAtATime)
-    metaQueue = new Set(ar.slice(maxToUnboxAtATime))
-    if (__DEV__) {
-      ;(globalThis as {__hmr_convoMetaQueue?: Set<T.Chat.ConversationIDKey>}).__hmr_convoMetaQueue = metaQueue
-    }
-    const conversationIDKeys = untrustedConversationIDKeys(maybeUnbox)
-    if (conversationIDKeys.length) {
-      unboxRows(conversationIDKeys)
-    }
-    if (metaQueue.size && conversationIDKeys.length) {
-      await timeoutPromise(100)
-    }
-    if (metaQueue.size) {
-      queueMetaHandle()
-    }
-  }
-  ignorePromise(f())
+  useConvoMetaQueueState.getState().dispatch.queueMetaHandle()
 }
 
 export const queueMetaToRequest = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => {
-  const prevSize = metaQueue.size
-  untrustedConversationIDKeys(ids).forEach(k => metaQueue.add(k))
-  if (__DEV__) {
-    ;(globalThis as {__hmr_convoMetaQueue?: Set<T.Chat.ConversationIDKey>}).__hmr_convoMetaQueue = metaQueue
-  }
-  if (metaQueue.size > prevSize) {
-    queueMetaHandle()
-  } else {
-    logger.info('skipping meta queue run, queue unchanged')
-  }
+  useConvoMetaQueueState.getState().dispatch.queueMetaToRequest(ids)
 }
 
 export const ensureWidgetMetas = (
