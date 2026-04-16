@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as ChatCommon from '@/constants/chat/common'
 import * as Meta from '@/constants/chat/meta'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
@@ -108,7 +107,7 @@ export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, 
         requestIDRef.current += 1
       }
     }
-  }, [cleanInConvIDKey, findGeneralConvIDFromTeamID, metasReceived, teamID])
+  }, [cleanInConvIDKey, findGeneralConvIDFromTeamID, teamID])
   return conversationIDKey
 }
 

@@ -317,7 +317,7 @@ const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
         requestIDRef.current += 1
       }
     }
-  }, [conversationIDKey, findGeneralConvIDFromTeamID, metasReceived, teamID])
+  }, [conversationIDKey, findGeneralConvIDFromTeamID, teamID])
   return conversationIDKey
 }
 
