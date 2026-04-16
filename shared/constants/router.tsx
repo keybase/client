@@ -22,6 +22,7 @@ import {registerDebugClear} from '@/util/debug'
 import {makeUUID} from '@/util/uuid'
 import {storeRegistry} from '@/stores/store-registry'
 import * as Meta from './chat/meta'
+import * as Strings from './strings'
 import {RPCError} from '@/util/errors'
 
 // Detects the unconstrained Record<string,unknown> index-signature type.
@@ -346,6 +347,24 @@ export const navigateToInbox = (allowSwitchTab = true) => {
     }
     navUpToScreen('chatRoot')
   }, 1)
+}
+
+export const leaveConversation = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  navToInbox = true
+) => {
+  ignorePromise(
+    T.RPCChat.localLeaveConversationLocalRpcPromise(
+      {convID: T.Chat.keyToConversationID(conversationIDKey)},
+      Strings.waitingKeyChatLeaveConversation
+    )
+  )
+  clearModals()
+  if (!navToInbox) {
+    return
+  }
+  navUpToScreen('chatRoot')
+  switchTab(Tabs.chatTab)
 }
 
 export const previewConversation = (p: PreviewConversationParams) => {

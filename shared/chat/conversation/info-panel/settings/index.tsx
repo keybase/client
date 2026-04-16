@@ -64,9 +64,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     }
   }
 
-  const leaveConversation = ConvoState.useChatContext(s => s.dispatch.leaveConversation)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const onLeaveConversation = () => {
-    leaveConversation()
+    C.Router2.leaveConversation(conversationIDKey)
   }
 
   const onArchive = () => {
@@ -77,7 +77,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }
 
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   return (
     <Kb.ScrollView>
       <Kb.Box2

@@ -8,9 +8,7 @@ import {
   navigateAppend,
   navigateToInbox,
   navigateUp,
-  navUpToScreen,
   previewConversation,
-  switchTab,
   getVisibleScreen,
   getModalStack,
   navToThread,
@@ -253,7 +251,6 @@ export interface ConvoState extends ConvoStore {
     channelSuggestionsTriggered: () => void
     clearAttachmentView: () => void
     defer: {
-      chatInboxLayoutSmallTeamsFirstConvID: () => T.Chat.ConversationIDKey | undefined
       chatInboxRefresh: (reason: T.Chat.RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
     }
@@ -269,7 +266,6 @@ export interface ConvoState extends ConvoStore {
     hideConversation: (hide: boolean) => void
     joinConversation: () => void
     jumpToRecent: () => void
-    leaveConversation: (navToInbox?: boolean) => void
     loadAttachmentView: (viewType: T.RPCChat.GalleryItemTyp, fromMsgID?: T.Chat.MessageID) => void
     loadMessagesCentered: (
       messageID: T.Chat.MessageID,
@@ -418,9 +414,6 @@ export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
 
 const stubDefer: ConvoState['dispatch']['defer'] = {
-  chatInboxLayoutSmallTeamsFirstConvID: () => {
-    throw new Error('convostate defer not initialized')
-  },
   chatInboxRefresh: () => {
     throw new Error('convostate defer not initialized')
   },
@@ -2577,31 +2570,6 @@ const createSlice =
           s.validatedOrdinalRange = undefined
         })
         get().dispatch.loadMoreMessages({reason: 'jump to recent'})
-      },
-      leaveConversation: (navToInbox = true) => {
-        const f = async () => {
-          await T.RPCChat.localLeaveConversationLocalRpcPromise(
-            {convID: get().getConvID()},
-            Strings.waitingKeyChatLeaveConversation
-          )
-        }
-        ignorePromise(f())
-        clearModals()
-        if (navToInbox) {
-          navUpToScreen('chatRoot')
-          switchTab(Tabs.chatTab)
-          if (!isMobile) {
-            const vs = getVisibleScreen()
-            const params = vs?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
-            if (params?.conversationIDKey === get().id) {
-              // select a convo
-              const next = get().dispatch.defer.chatInboxLayoutSmallTeamsFirstConvID()
-              if (next) {
-                getConvoState(next).dispatch.navigateToThread('findNewestConversationFromLayout')
-              }
-            }
-          }
-        }
       },
       loadAttachmentView: (viewType, fromMsgID) => {
         set(s => {

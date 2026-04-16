@@ -24,24 +24,30 @@ export function InboxAndConversationShell(props: Props) {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
   const infoPanel = props.infoPanel
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
-  const seenValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
+  const lastValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
+  const lastAutoSelectedCIDRef = React.useRef('')
   const selectNextConvo = Chat.useChatState(s => {
-    if (seenValidCIDRef.current) {
+    if (validConvoID) {
       return null
     }
     const first = s.inboxLayout?.smallTeams?.[0]
-    return first?.convID
+    return first?.convID === lastValidCIDRef.current ? null : first?.convID
   })
 
   React.useEffect(() => {
-    if (selectNextConvo && seenValidCIDRef.current !== selectNextConvo) {
-      seenValidCIDRef.current = selectNextConvo
+    if (validConvoID) {
+      lastValidCIDRef.current = conversationIDKey
+      lastAutoSelectedCIDRef.current = ''
+      return
+    }
+    if (selectNextConvo && lastAutoSelectedCIDRef.current !== selectNextConvo) {
+      lastAutoSelectedCIDRef.current = selectNextConvo
       // need to defer , not sure why, shouldn't be
       setTimeout(() => {
         ConvoState.getConvoState(selectNextConvo).dispatch.navigateToThread('findNewestConversationFromLayout')
       }, 100)
     }
-  }, [selectNextConvo])
+  }, [conversationIDKey, selectNextConvo, validConvoID])
 
   return (
     <ConvoState.ChatProvider id={conversationIDKey} canBeNull={true}>
