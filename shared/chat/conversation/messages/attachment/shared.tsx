@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import {clampImageSize} from '@/constants/chat/helpers'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -174,7 +174,7 @@ export const getAttachmentPreviewSize = (
 ) => {
   const {fileURL, previewHeight, previewWidth} = message
   let {previewURL} = message
-  let {height, width} = Chat.clampImageSize(previewWidth, previewHeight, maxWidth, maxHeight)
+  let {height, width} = clampImageSize(previewWidth, previewHeight, maxWidth, maxHeight)
   // This is mostly a sanity check and also allows us to handle HEIC even though the go side doesn't
   // understand.
   if (useSquareFallback && (height === 0 || width === 0)) {

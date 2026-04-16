@@ -2,6 +2,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
+import {chatStores} from '@/stores/convo-registry'
 import type {ConvoState as ConvoStateType} from '@/stores/convostate'
 import {useConfigState} from '@/stores/config'
 import * as T from '@/constants/types'
@@ -148,7 +149,7 @@ const useWidgetConversationList = (
 
       const unsubs = widgetList.map(widget => {
         ConvoState.getConvoState(widget.convID)
-        return ConvoState.chatStores.get(widget.convID)?.subscribe((state, oldState) => {
+        return chatStores.get(widget.convID)?.subscribe((state, oldState) => {
           if (convoDiff(state, oldState)) {
             onStoreChange()
           }
@@ -180,20 +181,19 @@ function useEnsureWidgetData(
   loggedIn: boolean,
   inboxHasLoaded: boolean,
   widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined,
-  inboxRefresh: (reason: Chat.RefreshReason) => void,
-  ensureWidgetMetas: () => void
+  inboxRefresh: (reason: Chat.RefreshReason) => Promise<void>
 ) {
   React.useEffect(() => {
     if (loggedIn && inboxHasLoaded && !widgetList) {
-      inboxRefresh('widgetRefresh')
+      C.ignorePromise(inboxRefresh('widgetRefresh'))
     }
   }, [loggedIn, inboxHasLoaded, widgetList, inboxRefresh])
 
   React.useEffect(() => {
     if (widgetList) {
-      ensureWidgetMetas()
+      ConvoState.ensureWidgetMetas(widgetList)
     }
-  }, [widgetList, ensureWidgetMetas])
+  }, [widgetList])
 }
 
 function useMenubarRemoteProps(): Props {
@@ -211,15 +211,14 @@ function useMenubarRemoteProps(): Props {
     })
   )
   const navBadgesMap = useNotifState(s => s.navBadges)
-  const {widgetList, inboxHasLoaded, inboxRefresh, ensureWidgetMetas} = Chat.useChatState(
+  const {widgetList, inboxHasLoaded, inboxRefresh} = Chat.useChatState(
     C.useShallow(s => ({
-      ensureWidgetMetas: s.dispatch.ensureWidgetMetas,
       inboxHasLoaded: s.inboxHasLoaded,
       inboxRefresh: s.dispatch.inboxRefresh,
       widgetList: s.inboxLayout?.widgetList ?? undefined,
     }))
   )
-  useEnsureWidgetData(loggedIn, inboxHasLoaded, widgetList, inboxRefresh, ensureWidgetMetas)
+  useEnsureWidgetData(loggedIn, inboxHasLoaded, widgetList, inboxRefresh)
   const conversationsToSend = useWidgetConversationList(widgetList)
   const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus

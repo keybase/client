@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
@@ -47,7 +47,7 @@ const MembersTab = (props: Props) => {
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   const participantInfo = ConvoState.useChatContext(s => s.participants)
   const participants = ConvoState.useChatContext(
-    C.useShallow(s => Chat.getBotsAndParticipants(s.meta, s.participants, teamMembers).participants)
+    C.useShallow(s => getBotsAndParticipants(s.meta, s.participants, teamMembers).participants)
   )
   const [lastTeamName, setLastTeamName] = React.useState('')
   React.useEffect(() => {

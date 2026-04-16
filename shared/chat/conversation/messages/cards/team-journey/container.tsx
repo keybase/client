@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
@@ -20,7 +21,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const canShowcase = Teams.useTeamsState(s => Teams.canShowcase(s, teamID))
-  const isBigTeam = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
+  const isBigTeam = Chat.useChatState(s => getIsBigTeam(s.inboxLayout, teamID))
   const navigateAppend = C.Router2.navigateAppend
   const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({name: 'team', params: {teamID}})
   const dismissJourneycard = ConvoState.useChatContext(s => s.dispatch.dismissJourneycard)

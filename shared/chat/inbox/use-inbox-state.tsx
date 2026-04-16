@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useInboxRowsState} from '@/stores/inbox-rows'
 import {useIsFocused} from '@react-navigation/core'
 import {buildInboxRows} from './rows'
 
@@ -20,7 +21,6 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       inboxLayout: s.inboxLayout,
       inboxRefresh: s.dispatch.inboxRefresh,
       inboxRetriedOnCurrentEmpty: s.inboxRetriedOnCurrentEmpty,
-      queueMetaToRequest: s.dispatch.queueMetaToRequest,
       setInboxRetriedOnCurrentEmpty: s.dispatch.setInboxRetriedOnCurrentEmpty,
     }))
   )
@@ -29,7 +29,6 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     inboxLayout,
     inboxRefresh,
     inboxRetriedOnCurrentEmpty,
-    queueMetaToRequest,
     setInboxRetriedOnCurrentEmpty,
   } = chatState
   const [inboxNumSmallRows, setInboxNumSmallRowsState] = React.useState(5)
@@ -96,13 +95,13 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       ConvoState.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
     }
     if (!C.isPhone && !inboxHasLoaded) {
-      inboxRefresh('componentNeverLoaded')
+      C.ignorePromise(inboxRefresh('componentNeverLoaded'))
     }
   })
 
   C.Router2.useSafeFocusEffect(() => {
     if (!inboxHasLoaded) {
-      inboxRefresh('componentNeverLoaded')
+      C.ignorePromise(inboxRefresh('componentNeverLoaded'))
     }
   })
 
@@ -110,7 +109,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     const ready = loggedIn && !!username
     const shouldRetry = !inboxHasLoaded && ready && (!C.isMobile || isFocused)
     if (shouldRetry) {
-      inboxRefresh('componentNeverLoaded')
+      C.ignorePromise(inboxRefresh('componentNeverLoaded'))
     }
   }, [inboxHasLoaded, inboxRefresh, isFocused, loggedIn, username])
 
@@ -159,7 +158,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       return
     }
     setInboxRetriedOnCurrentEmpty(true)
-    inboxRefresh('inboxSyncedCurrentButEmpty')
+    C.ignorePromise(inboxRefresh('inboxSyncedCurrentButEmpty'))
   }, [
     inboxHasLoaded,
     inboxRefresh,
@@ -177,11 +176,23 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     return inboxRows.map(r => (r.type === 'big' ? r.conversationIDKey : ''))
   }, [inboxRows])
 
-  const unreadIndices = Chat.useChatState(
-    C.useShallow(s => {
-      return s.getUnreadIndicies(bigConvIds)
-    })
+  const unreadBadges = useInboxRowsState(
+    C.useShallow(s =>
+      bigConvIds.map(conversationIDKey =>
+        conversationIDKey ? (s.rowsBig.get(conversationIDKey)?.badgeCount ?? 0) : 0
+      )
+    )
   )
+
+  const unreadIndices = React.useMemo(() => {
+    const next: Map<number, number> = new Map()
+    unreadBadges.forEach((badge, idx) => {
+      if (badge > 0) {
+        next.set(idx, badge)
+      }
+    })
+    return next
+  }, [unreadBadges])
 
   let unreadTotal = 0
   unreadIndices.forEach(count => {
@@ -210,7 +221,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     isSearching,
     neverLoaded: !inboxHasLoaded,
     onNewChat: appendNewChatBuilder,
-    onUntrustedInboxVisible: queueMetaToRequest,
+    onUntrustedInboxVisible: ConvoState.queueMetaToRequest,
     rows: inboxRows,
     selectedConversationIDKey,
     setInboxNumSmallRows,

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import {isBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
@@ -213,7 +214,7 @@ const Container = (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
   const {teamname} = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
   const _notifLabel = Chat.useChatState(s =>
-    Chat.isBigTeam(s, teamID) ? `Announce them in #general` : `Announce them in team chat`
+    isBigTeam(s.inboxLayout, teamID) ? `Announce them in #general` : `Announce them in team chat`
   )
   const disabledReasonsForRolePicker = Teams.useTeamsState(s =>
     Teams.getDisabledReasonsForRolePicker(s, teamID, username)

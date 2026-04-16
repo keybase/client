@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as ChatCommon from '@/constants/chat/common'
 import * as Meta from '@/constants/chat/meta'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
@@ -76,7 +75,6 @@ export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, 
   const cleanInConvIDKey = T.Chat.isValidConversationIDKey(inConvIDKey ?? '') ? inConvIDKey : undefined
   const [conversationIDKey, setConversationIDKey] = React.useState(cleanInConvIDKey)
   const findGeneralConvIDFromTeamID = C.useRPC(T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise)
-  const metasReceived = Chat.useChatState(s => s.dispatch.metasReceived)
   const requestIDRef = React.useRef(0)
 
   React.useEffect(() => {
@@ -99,7 +97,7 @@ export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, 
         if (!meta) {
           return
         }
-        metasReceived([meta])
+        ConvoState.metasReceived([meta])
         setConversationIDKey(meta.conversationIDKey)
       },
       () => {}
@@ -109,7 +107,7 @@ export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, 
         requestIDRef.current += 1
       }
     }
-  }, [cleanInConvIDKey, findGeneralConvIDFromTeamID, metasReceived, teamID])
+  }, [cleanInConvIDKey, findGeneralConvIDFromTeamID, teamID])
   return conversationIDKey
 }
 

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {getTeamMentionName} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
 import {useTeamsState} from '@/stores/teams'
@@ -24,7 +25,7 @@ const noAdmins: Array<string> = []
 const TeamMention = (ownProps: OwnProps) => {
   const {allowFontScaling, name, channel, style} = ownProps
   const maybeMentionInfo = Chat.useChatState(s =>
-    s.maybeMentionMap.get(Chat.getTeamMentionName(name, channel))
+    s.maybeMentionMap.get(getTeamMentionName(name, channel))
   )
   const mentionInfo =
     maybeMentionInfo?.status === T.RPCChat.UIMaybeMentionStatus.team ? maybeMentionInfo.team : null

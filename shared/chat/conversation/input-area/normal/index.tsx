@@ -228,7 +228,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   React.useEffect(() => {
     const rows = [loadIDOnUnloadRef.current]
     return () => {
-      Chat.useChatState.getState().dispatch.unboxRows(rows)
+      ConvoState.unboxRows(rows)
     }
   }, [loadIDOnUnloadRef])
 

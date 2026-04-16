@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -17,10 +16,9 @@ import {useCurrentUserState} from '@/stores/current-user'
 
 const ErrorMessage = () => {
   const createConversationError = useChatThreadRouteParams()?.createConversationError
-  const createConversation = Chat.useChatState(s => s.dispatch.createConversation)
 
   const _onCreateWithoutThem = (allowedUsers: ReadonlyArray<string>) => {
-    createConversation(allowedUsers)
+    ConvoState.createConversation(allowedUsers)
   }
 
   const navigateToInbox = C.Router2.navigateToInbox
@@ -120,9 +118,9 @@ function SpecialTopMessage() {
       const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
       const loadMoreType = s.moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
       const pendingState =
-        s.id === Chat.pendingWaitingConversationIDKey
+        s.id === T.Chat.pendingWaitingConversationIDKey
           ? 'waiting'
-          : s.id === Chat.pendingErrorConversationIDKey
+          : s.id === T.Chat.pendingErrorConversationIDKey
             ? 'error'
             : 'done'
 
@@ -132,7 +130,7 @@ function SpecialTopMessage() {
       const isSelfConversation = teamType === 'adhoc' && partNum === 1 && partAll.includes(username)
       const showTeamOffer =
         hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && partNum > 2
-      const hasOlderResetConversation = supersedes !== Chat.noConversationIDKey
+      const hasOlderResetConversation = supersedes !== T.Chat.noConversationIDKey
       // don't show default header in the case of the retention notice being visible
       const showRetentionNotice =
         retentionPolicy.type !== 'retain' &&

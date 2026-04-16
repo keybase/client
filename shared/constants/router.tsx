@@ -1,5 +1,6 @@
 import type * as React from 'react'
 import * as T from './types'
+import type * as ConvoRegistryType from '@/stores/convo-registry'
 import type * as ConvoStateType from '@/stores/convostate'
 import * as Tabs from './tabs'
 import {
@@ -352,7 +353,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
     const {participants, teamname, highlightMessageID} = p
     if (teamname || !participants) return
 
-    const {chatStores} = require('@/stores/convostate') as typeof ConvoStateType
+    const {chatStores} = require('@/stores/convo-registry') as typeof ConvoRegistryType
     const toFind = [...participants].sort().join(',')
     const toFindN = participants.length
     for (const cs of chatStores.values()) {
@@ -370,7 +371,8 @@ export const previewConversation = (p: PreviewConversationParams) => {
     storeRegistry
       .getConvoState(T.Chat.pendingWaitingConversationIDKey)
       .dispatch.navigateToThread('justCreated')
-    storeRegistry.getState('chat').dispatch.createConversation(participants, highlightMessageID)
+    const {createConversation} = require('@/stores/convostate') as typeof ConvoStateType
+    createConversation(participants, highlightMessageID)
   }
 
   const previewConversationTeam = async () => {
@@ -431,7 +433,8 @@ export const previewConversation = (p: PreviewConversationParams) => {
       })
       const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
       if (meta) {
-        storeRegistry.getState('chat').dispatch.metasReceived([meta])
+        const {metasReceived} = require('@/stores/convostate') as typeof ConvoStateType
+        metasReceived([meta])
       }
 
       storeRegistry
