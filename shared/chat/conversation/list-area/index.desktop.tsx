@@ -58,7 +58,6 @@ const useScrolling = (p: {
   const isScrollingRef = React.useRef(false)
   const ignoreOnScrollRef = React.useRef(false)
   const lockedToBottomRef = React.useRef(true)
-  const [lockedToBottom, setLockedToBottom] = React.useState(true)
   // so we can turn pointer events on / off
   const pointerWrapperRef = React.useRef<HTMLDivElement | null>(null)
   const setPointerWrapperRef = (r: HTMLDivElement | null) => {
@@ -71,13 +70,6 @@ const useScrolling = (p: {
   const [isLockedToBottom] = React.useState(() => () => {
     return lockedToBottomRef.current
   })
-
-  const updateLockedToBottom = (next: boolean) => {
-    if (lockedToBottomRef.current !== next) {
-      lockedToBottomRef.current = next
-      setLockedToBottom(next)
-    }
-  }
 
   const adjustScrollAndIgnoreOnScroll = (fn: () => void) => {
     ignoreOnScrollRef.current = true
@@ -100,7 +92,7 @@ const useScrolling = (p: {
   })
 
   const [scrollToBottomSync] = React.useState(() => () => {
-    updateLockedToBottom(true)
+    lockedToBottomRef.current = true
     const list = listRef.current
     if (list) {
       adjustScrollAndIgnoreOnScroll(() => {
@@ -148,7 +140,7 @@ const useScrolling = (p: {
   })
 
   const [scrollUp] = React.useState(() => () => {
-    updateLockedToBottom(false)
+    lockedToBottomRef.current = false
     const list = listRef.current
     list &&
       adjustScrollAndIgnoreOnScroll(() => {
@@ -178,7 +170,8 @@ const useScrolling = (p: {
           const list = listRef.current
           // are we locked on the bottom? only lock if we have latest messages
           if (list && !centeredOrdinal && containsLatestMessageRef.current) {
-            updateLockedToBottom(list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlopBottom)
+            lockedToBottomRef.current =
+              list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlopBottom
           }
         }
       }, 200)
@@ -221,7 +214,7 @@ const useScrolling = (p: {
       return
     }
     // quickly set to false to assume we're not locked. if we are the throttled one will set it to true
-    updateLockedToBottom(false)
+    lockedToBottomRef.current = false
     checkForLoadMoreThrottled()
     onScrollThrottledRef.current()
   })
@@ -284,7 +277,7 @@ const useScrolling = (p: {
     const list = listRef.current
     // no items? don't be locked
     if (!ordinalsLength) {
-      updateLockedToBottom(false)
+      lockedToBottomRef.current = false
       return
     }
 
@@ -328,10 +321,10 @@ const useScrolling = (p: {
     if (!wasLoaded || !loaded || !changed) return
 
     if (centeredOrdinal) {
-      updateLockedToBottom(false)
+      lockedToBottomRef.current = false
       scrollToCentered()
     } else if (containsLatestMessage) {
-      updateLockedToBottom(true)
+      lockedToBottomRef.current = true
       scrollToBottom()
     }
   }, [centeredOrdinal, loaded, containsLatestMessage, scrollToCentered, scrollToBottom])
@@ -364,7 +357,7 @@ const useScrolling = (p: {
     }
   }, [editingOrdinal, messageOrdinals, listRef])
 
-  return {didFirstLoad, isLockedToBottom, lockedToBottom, scrollToBottom, setListRef, setPointerWrapperRef}
+  return {didFirstLoad, isLockedToBottom, scrollToBottom, setListRef, setPointerWrapperRef}
 }
 
 const useItems = (p: {
@@ -501,8 +494,7 @@ const ThreadWrapper = function ThreadWrapper() {
   const _setListRef = (r: HTMLDivElement | null) => {
     listRef.current = r
   }
-  const {isLockedToBottom, lockedToBottom, scrollToBottom, setListRef, didFirstLoad, setPointerWrapperRef} =
-    useScrolling({
+  const {isLockedToBottom, scrollToBottom, setListRef, didFirstLoad, setPointerWrapperRef} = useScrolling({
     centeredOrdinal,
     containsLatestMessage,
     listRef,
@@ -511,11 +503,7 @@ const ThreadWrapper = function ThreadWrapper() {
     setListRef: _setListRef,
   })
 
-  const jumpToRecent = Hooks.useJumpToRecent(
-    scrollToBottom,
-    messageOrdinals.length,
-    !lockedToBottom || !containsLatestMessage
-  )
+  const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
   const onCopyCapture = (e: React.BaseSyntheticEvent) => {
     // Copy text only, not HTML/styling. We use virtualText on texts to make uncopyable text
     e.preventDefault()

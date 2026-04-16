@@ -20,11 +20,7 @@ export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => 
   return {markInitiallyLoadedThreadAsRead}
 }
 
-export const useJumpToRecent = (
-  scrollToBottom: () => void,
-  numOrdinals: number,
-  showOverride?: boolean
-) => {
+export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number) => {
   const data = ConvoState.useChatContext(
     C.useShallow(s => {
       const {loaded, moreToLoadForward} = s
@@ -40,6 +36,5 @@ export const useJumpToRecent = (
     toggleThreadSearch(true)
   }
 
-  const shouldShow = showOverride ?? moreToLoadForward
-  return loaded && shouldShow && numOrdinals > 0 && <JumpToRecent onClick={onJump} />
+  return loaded && moreToLoadForward && numOrdinals > 0 && <JumpToRecent onClick={onJump} />
 }
