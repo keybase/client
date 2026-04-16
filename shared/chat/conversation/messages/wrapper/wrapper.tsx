@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {getMessageKey} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
@@ -322,7 +323,7 @@ const getCommonMessageData = ({
     hasUnfurlList,
     hasUnfurlPrompts,
     isEditing: editing === ordinal,
-    messageKey: isExplodingMessage ? Chat.getMessageKey(message) : '',
+    messageKey: isExplodingMessage ? getMessageKey(message) : '',
     reactions,
     replyTo,
     sendIndicatorFailed:

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {isAssertion} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
@@ -36,7 +37,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const participantInfo = ConvoState.useChatContext(s => s.participants)
   const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.name).filter(
-    u => u !== username && !Chat.isAssertion(u)
+    u => u !== username && !isAssertion(u)
   )
 
   const navigateAppend = ConvoState.useChatNavigateAppend()

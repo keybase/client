@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {isAssertion} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
@@ -23,7 +24,7 @@ const BlockButtons = () => {
   }
   const adder = blockButtonInfo.adder
   const others = (team ? participantInfo.all : participantInfo.name).filter(
-    person => person !== currentUser && person !== adder && !Chat.isAssertion(person)
+    person => person !== currentUser && person !== adder && !isAssertion(person)
   )
 
   const onViewProfile = () => navToProfile(adder)

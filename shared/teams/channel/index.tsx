@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
@@ -122,7 +122,7 @@ const Channel = (props: OwnProps) => {
   const {bots, participants: _participants} = ConvoState.useConvoState(
     conversationIDKey,
     C.useDeep(s =>
-      Chat.getBotsAndParticipants(meta, s.participants, teamMembers ?? emptyMapForUseSelector, true /* sort */)
+      getBotsAndParticipants(meta, s.participants, teamMembers ?? emptyMapForUseSelector, true /* sort */)
     )
   )
   const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))

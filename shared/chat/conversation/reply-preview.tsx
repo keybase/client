@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat'
+import {zoomImage} from '@/constants/chat/helpers'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -30,7 +30,7 @@ const ReplyPreview = () => {
   const imageURL = attachment?.previewURL
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
-  const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 80) : null
+  const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 80) : null
   const setReplyTo = ConvoState.useChatUIContext(s => s.dispatch.setReplyTo)
   const onCancel = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))

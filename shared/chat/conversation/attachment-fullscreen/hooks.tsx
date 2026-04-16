@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import {clampImageSize} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
@@ -42,7 +43,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   const attachmentDownload = ConvoState.useChatContext(s => s.dispatch.attachmentDownload)
   const {downloadPath, fileURL: path, fullHeight, fullWidth, fileType} = message
   const {previewHeight, previewURL: previewPath, previewWidth, title, transferProgress} = message
-  const {height: clampedHeight, width: clampedWidth} = Chat.clampImageSize(
+  const {height: clampedHeight, width: clampedWidth} = clampImageSize(
     previewWidth,
     previewHeight,
     maxWidth,

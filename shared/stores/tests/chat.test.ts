@@ -1,15 +1,5 @@
 /// <reference types="jest" />
-import {
-  clampImageSize,
-  getTeamMentionName,
-  isAssertion,
-  useChatState,
-  zoomImage,
-} from '../chat'
-
-afterEach(() => {
-  useChatState.getState().dispatch.resetState()
-})
+import {clampImageSize, getTeamMentionName, isAssertion, zoomImage} from '@/constants/chat/helpers'
 
 test('chat helper utilities derive stable defaults and formatting', () => {
   expect(getTeamMentionName('acme', 'general')).toBe('acme#general')

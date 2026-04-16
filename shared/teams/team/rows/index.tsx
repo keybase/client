@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
+import {isBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
@@ -192,7 +193,7 @@ export const useChannelsSections = (
   teamID: T.Teams.TeamID,
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
-  const isBig = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
+  const isBig = Chat.useChatState(s => isBigTeam(s.inboxLayout, teamID))
   const channels = Teams.useTeamsState(s => s.channelInfo.get(teamID))
   const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
 

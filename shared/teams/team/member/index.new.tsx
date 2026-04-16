@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {isBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/stores/teams'
@@ -425,7 +426,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     }))
   )
   const isMe = props.username === useCurrentUserState(s => s.username)
-  const isSmallTeam = !Chat.useChatState(s => Chat.isBigTeam(s, props.node.teamID))
+  const isSmallTeam = !Chat.useChatState(s => isBigTeam(s.inboxLayout, props.node.teamID))
   const onChangeRole = (role: T.Teams.TeamRoleType) => {
     setRole(role)
     editMembership(props.node.teamID, [props.username], role)
