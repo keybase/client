@@ -34,14 +34,17 @@ These cleanup steps are already done:
 - service-driven convo reselect, stale selected-thread reload, inbox conversation hydration, and exploding-mode gregor sync now live in `convostate`
 - badge / unread application and inbox-sync clear fanout now live in `convostate`; `chat.tsx` keeps only aggregate badge totals/versioning
 - init-time badge routing now sends per-convo badge/unread fanout directly to `convostate`; `chat.dispatch.badgesUpdated` keeps only global badge counters
+- inbox sync/layout routing now enters through init-time convo-owned handlers; `chat.tsx` keeps only global inbox layout state and refresh triggers
+- exploding-mode gregor fanout now routes outside `chat.tsx`; `chat.tsx` no longer imports `convostate`
 
-What is still true on this branch:
+Current branch result:
 
 - `chat.tsx` no longer reaches into convo stores directly with `getConvoState(...)`
 - `chat.tsx` no longer iterates convo registries directly
-- `chat.tsx` still imports and orchestrates several convo-owned entrypoints from `convostate`
+- `chat.tsx` no longer imports `convostate`
+- convo-targeted routing now lives outside `chat.tsx`
 
-This means the remaining work is about removing the last `chat -> convostate` orchestration layer, not import barrels or direct registry access.
+The split goal is now met on this branch.
 
 ## Non-Goals
 
@@ -110,19 +113,8 @@ Chosen end state:
 
 Status:
 
-- partially done; most of the convo work has moved into `convostate`
-- still not fully split because `chat.tsx` continues to orchestrate several convo-owned helpers during inbox sync and layout handling
-
-Residual `chat.tsx` call sites:
-
-- `clearConversationsForInboxSync`
-- `loadSelectedConversationIfStale`
-- `metasReceived`
-- `unboxRows`
-- `maybeChangeSelectedConversation`
-- `ensureWidgetMetas`
-- `hydrateInboxConversations`
-- `hydrateInboxLayout`
+- done for the inbox/layout ownership boundary; init-time routing now sends inbox sync/layout convo work into `convostate`
+- `chat.tsx` keeps only inbox layout state parsing/storage and global refresh triggers
 
 Desired end state:
 
@@ -133,19 +125,23 @@ Desired end state:
 
 Status:
 
-- the strict architectural goal is not met yet even though the direct-registry and direct-`getConvoState` cleanup is done
+- none; the acceptance criteria below are now satisfied on this branch
 
 Reason:
 
-- `chat.tsx` still imports a broad convo API surface and coordinates convo behavior indirectly
-- the split is therefore functionally close, but not yet a true standalone global chat store
+- `chat.tsx` no longer imports or dispatches convo-owned helpers
+- remaining follow-up work, if any, is ordinary cleanup rather than split-boundary work
 
 ## Recommended Order
 
 1. Done: move convo-targeted engine entrypoint ownership fully out of `chat.tsx`
 2. Done: move badge-state fanout ownership fully out of `chat.tsx`
-3. Move inbox sync/layout convo orchestration behind convo-owned entrypoints
-4. Re-check whether `chat.tsx` still needs any import from `convostate` beyond narrow data types, and delete the remaining coupling
+3. Done: move inbox sync/layout convo orchestration behind convo-owned entrypoints
+4. Done: remove the last remaining `chat.tsx -> convostate` helper coupling
+
+Result:
+
+1. Split complete
 
 ## Acceptance Criteria
 

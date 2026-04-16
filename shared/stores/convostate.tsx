@@ -521,6 +521,38 @@ export const metasReceived = (
   })
 }
 
+const updateInboxParticipants = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIItem>) => {
+  inboxUIItems.forEach(inboxUIItem => {
+    const participantInfo: T.Chat.ParticipantInfo = Common.uiParticipantsToParticipantInfo(
+      inboxUIItem.participants ?? []
+    )
+    if (participantInfo.all.length > 0) {
+      getConvoState(T.Chat.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(participantInfo)
+    }
+  })
+}
+
+const updateInboxUserInfo = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIItem>) => {
+  const usernameToFullname = inboxUIItems.reduce<{[username: string]: string}>((map, inboxUIItem) => {
+    inboxUIItem.participants?.forEach(part => {
+      if (part.fullName) {
+        map[part.assertion] = part.fullName
+      }
+    })
+    return map
+  }, {})
+  const usernames = Object.keys(usernameToFullname)
+  if (usernames.length === 0) {
+    return
+  }
+  useUsersState.getState().dispatch.updates(
+    usernames.map(name => ({
+      info: {fullname: usernameToFullname[name]},
+      name,
+    }))
+  )
+}
+
 export const maybeChangeSelectedConversation = (inboxLayout?: T.RPCChat.UIInboxLayout) => {
   const newConvID = inboxLayout?.reselectInfo?.newConvID
   const oldConvID = inboxLayout?.reselectInfo?.oldConvID
@@ -603,13 +635,8 @@ export const hydrateInboxConversations = (inboxUIItems: ReadonlyArray<T.RPCChat.
     if (meta) {
       metas.push(meta)
     }
-    const participantInfo: T.Chat.ParticipantInfo = Common.uiParticipantsToParticipantInfo(
-      inboxUIItem.participants ?? []
-    )
-    if (participantInfo.all.length > 0) {
-      getConvoState(T.Chat.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(participantInfo)
-    }
   })
+  updateInboxParticipants(inboxUIItems)
   if (metas.length > 0) {
     metasReceived(metas)
   }
@@ -794,6 +821,89 @@ export const ensureWidgetMetas = (
     return
   }
   unboxRows(missing, true)
+}
+
+export const onIncomingInboxUIItem = (inboxUIItem?: T.RPCChat.InboxUIItem) => {
+  if (!inboxUIItem) {
+    return
+  }
+  updateInboxUserInfo([inboxUIItem])
+  hydrateInboxConversations([inboxUIItem])
+}
+
+export const onGetInboxConvsUnboxed = (
+  action: EngineGen.EngineAction<'chat.1.chatUi.chatInboxConversation'>
+) => {
+  const {convs} = action.payload.params
+  const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
+  updateInboxUserInfo(inboxUIItems)
+  hydrateInboxConversations(inboxUIItems)
+}
+
+export const onGetInboxUnverifiedConvs = (
+  action: EngineGen.EngineAction<'chat.1.chatUi.chatInboxUnverified'>
+) => {
+  const {inbox} = action.payload.params
+  const result = JSON.parse(inbox) as T.RPCChat.UnverifiedInboxUIItems
+  const items: ReadonlyArray<T.RPCChat.UnverifiedInboxUIItem> = result.items ?? []
+  const metas = items.reduce<Array<T.Chat.ConversationMeta>>((arr, item) => {
+    const meta = Meta.unverifiedInboxUIItemToConversationMeta(item)
+    if (meta) {
+      arr.push(meta)
+    }
+    return arr
+  }, [])
+  metasReceived(metas)
+}
+
+export const onInboxLayoutChanged = (
+  inboxLayout: T.RPCChat.UIInboxLayout,
+  hadInboxLoaded: boolean
+) => {
+  maybeChangeSelectedConversation(inboxLayout)
+  ensureWidgetMetas(inboxLayout.widgetList)
+  if (!hadInboxLoaded) {
+    hydrateInboxLayout(inboxLayout)
+  }
+}
+
+export const onChatInboxSynced = async (
+  action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatInboxSynced'>,
+  refreshInbox: (reason: RefreshReason) => void | Promise<void>
+) => {
+  const {syncRes} = action.payload.params
+
+  switch (syncRes.syncType) {
+    case T.RPCChat.SyncInboxResType.clear:
+      await refreshInbox('inboxSyncedClear')
+      clearConversationsForInboxSync()
+      return
+    case T.RPCChat.SyncInboxResType.current:
+      return
+    case T.RPCChat.SyncInboxResType.incremental: {
+      const items = syncRes.incremental.items || []
+      const metas = items.reduce<Array<T.Chat.ConversationMeta>>((arr, item) => {
+        const meta = Meta.unverifiedInboxUIItemToConversationMeta(item.conv)
+        if (meta) {
+          arr.push(meta)
+        }
+        return arr
+      }, [])
+      loadSelectedConversationIfStale(metas)
+      const removals = syncRes.incremental.removals?.map(T.Chat.stringToConversationIDKey)
+      if (metas.length || removals?.length) {
+        metasReceived(metas, removals)
+      }
+
+      unboxRows(
+        items.filter(item => item.shouldUnbox).map(item => T.Chat.stringToConversationIDKey(item.conv.convID)),
+        true
+      )
+      return
+    }
+    default:
+      await refreshInbox('inboxSyncedUnknown')
+  }
 }
 
 export const syncGregorExplodingModes = (
