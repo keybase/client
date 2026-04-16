@@ -499,7 +499,9 @@ export const onRouteChanged = (prev: T.Immutable<Router2.NavState>, next: T.Immu
     const n = getVisibleScreen(next)
     const nParams = n?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
     const isID = nParams?.conversationIDKey
-    isID && getConvoState(isID).dispatch.tabSelected()
+    if (isID) {
+      getConvoState(isID).dispatch.tabSelected()
+    }
   }
 }
 
@@ -646,6 +648,291 @@ export const ensureWidgetMetas = (
     return
   }
   unboxRows(missing, true)
+}
+
+type ConvoEngineIncomingResult = {
+  handled: boolean
+  inboxUIItem?: T.RPCChat.InboxUIItem
+  userReacjis?: T.RPCGen.UserReacjis
+}
+
+type NewChatActivity = EngineGen.EngineAction<'chat.1.NotifyChat.NewChatActivity'>['payload']['params']['activity']
+type ThreadStaleUpdates =
+  EngineGen.EngineAction<'chat.1.NotifyChat.ChatThreadsStale'>['payload']['params']['updates']
+
+const handledConvoEngineIncoming = (result: Omit<ConvoEngineIncomingResult, 'handled'> = {}) => ({
+  ...result,
+  handled: true,
+})
+
+const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
+  const keys = ['clear', 'newactivity'] as const
+  if (__DEV__) {
+    if (keys.length * 2 !== Object.keys(T.RPCChat.StaleUpdateType).length) {
+      throw new Error('onChatThreadsStale invalid enum')
+    }
+  }
+  const selectedConversation = Common.getSelectedConversation()
+  const shouldLoadMore = (updates ?? []).some(u => T.Chat.conversationIDToKey(u.convID) === selectedConversation)
+  keys.forEach(key => {
+    const conversationIDKeys = (updates ?? []).reduce<Array<T.Chat.ConversationIDKey>>((arr, u) => {
+      const conversationIDKey = T.Chat.conversationIDToKey(u.convID)
+      if (u.updateType === T.RPCChat.StaleUpdateType[key]) {
+        arr.push(conversationIDKey)
+      }
+      return arr
+    }, [])
+    if (conversationIDKeys.length === 0) {
+      return
+    }
+    logger.info(
+      `onChatThreadsStale: dispatching thread reload actions for ${conversationIDKeys.length} convs of type ${key}`
+    )
+    unboxRows(conversationIDKeys, true)
+    if (T.RPCChat.StaleUpdateType[key] === T.RPCChat.StaleUpdateType.clear) {
+      conversationIDKeys.forEach(conversationIDKey => {
+        // For the selected conversation, skip immediate clear. The deferred atomic
+        // clear+add in loadMoreMessages avoids a blank flash there.
+        if (conversationIDKey !== selectedConversation) {
+          getConvoState(conversationIDKey).dispatch.messagesClear()
+        }
+      })
+    }
+  })
+  if (shouldLoadMore) {
+    getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+  }
+}
+
+const onNewChatActivity = (
+  activity: NewChatActivity,
+  staticConfig?: T.Chat.StaticConfig
+): ConvoEngineIncomingResult => {
+  switch (activity.activityType) {
+    case T.RPCChat.ChatActivityType.incomingMessage: {
+      const {incomingMessage} = activity
+      const conversationIDKey = T.Chat.conversationIDToKey(incomingMessage.convID)
+      getConvoState(conversationIDKey).dispatch.onIncomingMessage(incomingMessage)
+      return handledConvoEngineIncoming({inboxUIItem: incomingMessage.conv ?? undefined})
+    }
+    case T.RPCChat.ChatActivityType.setStatus:
+      return handledConvoEngineIncoming({inboxUIItem: activity.setStatus.conv ?? undefined})
+    case T.RPCChat.ChatActivityType.readMessage:
+      return handledConvoEngineIncoming({inboxUIItem: activity.readMessage.conv ?? undefined})
+    case T.RPCChat.ChatActivityType.newConversation:
+      return handledConvoEngineIncoming({inboxUIItem: activity.newConversation.conv ?? undefined})
+    case T.RPCChat.ChatActivityType.failedMessage: {
+      const {failedMessage} = activity
+      const inboxUIItem = failedMessage.conv ?? undefined
+      const {outboxRecords} = failedMessage
+      if (!outboxRecords) {
+        return handledConvoEngineIncoming({inboxUIItem})
+      }
+      for (const outboxRecord of outboxRecords) {
+        const s = outboxRecord.state
+        if (s.state !== T.RPCChat.OutboxStateType.error) {
+          return handledConvoEngineIncoming({inboxUIItem})
+        }
+        const {error} = s
+        const conversationIDKey = T.Chat.conversationIDToKey(outboxRecord.convID)
+        const outboxID = T.Chat.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
+        // This is temp until fixed by CORE-7112. We get this error but not the call
+        // to let us show the red banner.
+        const reason = Message.rpcErrorToString(error)
+        getConvoState(conversationIDKey).dispatch.onMessageErrored(outboxID, reason, error.typ)
+
+        if (error.typ === T.RPCChat.OutboxErrorType.identify) {
+          const match = error.message.match(/"(.*)"/)
+          const tempForceRedBox = match?.[1]
+          if (tempForceRedBox) {
+            useUsersState.getState().dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
+          }
+        }
+      }
+      return handledConvoEngineIncoming({inboxUIItem})
+    }
+    case T.RPCChat.ChatActivityType.membersUpdate:
+      unboxRows([T.Chat.conversationIDToKey(activity.membersUpdate.convID)], true)
+      return handledConvoEngineIncoming()
+    case T.RPCChat.ChatActivityType.setAppNotificationSettings: {
+      const {setAppNotificationSettings} = activity
+      const conversationIDKey = T.Chat.conversationIDToKey(setAppNotificationSettings.convID)
+      const settings = setAppNotificationSettings.settings
+      const cs = getConvoState(conversationIDKey)
+      if (cs.isMetaGood()) {
+        cs.dispatch.updateMeta(Meta.parseNotificationSettings(settings))
+      }
+      return handledConvoEngineIncoming()
+    }
+    case T.RPCChat.ChatActivityType.expunge: {
+      const {expunge} = activity
+      const conversationIDKey = T.Chat.conversationIDToKey(expunge.convID)
+      const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || Common.allMessageTypes
+      getConvoState(conversationIDKey).dispatch.messagesWereDeleted({
+        deletableMessageTypes,
+        upToMessageID: T.Chat.numberToMessageID(expunge.expunge.upto),
+      })
+      return handledConvoEngineIncoming()
+    }
+    case T.RPCChat.ChatActivityType.ephemeralPurge: {
+      const {ephemeralPurge} = activity
+      const conversationIDKey = T.Chat.conversationIDToKey(ephemeralPurge.convID)
+      const messageIDs = ephemeralPurge.msgs?.reduce<Array<T.Chat.MessageID>>((arr, msg) => {
+        const msgID = Message.getMessageID(msg)
+        if (msgID) {
+          arr.push(msgID)
+        }
+        return arr
+      }, [])
+      if (messageIDs) {
+        getConvoState(conversationIDKey).dispatch.messagesExploded(messageIDs)
+      }
+      return handledConvoEngineIncoming()
+    }
+    case T.RPCChat.ChatActivityType.reactionUpdate: {
+      const {reactionUpdate} = activity
+      const conversationIDKey = T.Chat.conversationIDToKey(reactionUpdate.convID)
+      if (!reactionUpdate.reactionUpdates || reactionUpdate.reactionUpdates.length === 0) {
+        logger.warn(`Got ReactionUpdateNotif with no reactionUpdates for convID=${conversationIDKey}`)
+        return handledConvoEngineIncoming()
+      }
+      const updates = reactionUpdate.reactionUpdates.map(ru => ({
+        reactions: Message.reactionMapToReactions(ru.reactions),
+        targetMsgID: T.Chat.numberToMessageID(ru.targetMsgID),
+      }))
+      logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
+      getConvoState(conversationIDKey).dispatch.updateReactions(updates)
+      return handledConvoEngineIncoming({userReacjis: reactionUpdate.userReacjis})
+    }
+    case T.RPCChat.ChatActivityType.messagesUpdated: {
+      const {messagesUpdated} = activity
+      const conversationIDKey = T.Chat.conversationIDToKey(messagesUpdated.convID)
+      getConvoState(conversationIDKey).dispatch.onMessagesUpdated(messagesUpdated)
+      return handledConvoEngineIncoming()
+    }
+    default:
+      return {handled: false}
+  }
+}
+
+export const handleConvoEngineIncoming = (
+  action: EngineGen.Actions,
+  staticConfig?: T.Chat.StaticConfig
+): ConvoEngineIncomingResult => {
+  switch (action.type) {
+    case 'chat.1.chatUi.chatInboxFailed':
+    case 'chat.1.NotifyChat.ChatSetConvSettings':
+    case 'chat.1.NotifyChat.ChatAttachmentUploadStart':
+    case 'chat.1.NotifyChat.ChatPromptUnfurl':
+    case 'chat.1.NotifyChat.ChatPaymentInfo':
+    case 'chat.1.NotifyChat.ChatRequestInfo':
+    case 'chat.1.NotifyChat.ChatAttachmentDownloadProgress':
+    case 'chat.1.NotifyChat.ChatAttachmentDownloadComplete':
+    case 'chat.1.NotifyChat.ChatAttachmentUploadProgress': {
+      const conversationIDKey = T.Chat.conversationIDToKey(action.payload.params.convID)
+      getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
+      return handledConvoEngineIncoming()
+    }
+    case 'chat.1.chatUi.chatCommandMarkdown':
+    case 'chat.1.chatUi.chatGiphyToggleResultWindow':
+    case 'chat.1.chatUi.chatCommandStatus':
+    case 'chat.1.chatUi.chatBotCommandsUpdateStatus':
+    case 'chat.1.chatUi.chatGiphySearchResults': {
+      const conversationIDKey = T.Chat.stringToConversationIDKey(action.payload.params.convID)
+      getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
+      return handledConvoEngineIncoming()
+    }
+    case 'chat.1.NotifyChat.ChatParticipantsInfo': {
+      const {participants: participantMap} = action.payload.params
+      Object.keys(participantMap ?? {}).forEach(convIDStr => {
+        const participants = participantMap?.[convIDStr]
+        if (participants) {
+          getConvoState(T.Chat.stringToConversationIDKey(convIDStr)).dispatch.setParticipants(
+            Common.uiParticipantsToParticipantInfo(participants)
+          )
+        }
+      })
+      return handledConvoEngineIncoming()
+    }
+    case 'chat.1.chatUi.chatCoinFlipStatus': {
+      const {statuses} = action.payload.params
+      const statusesByConvo = new Map<T.Chat.ConversationIDKey, Array<T.RPCChat.UICoinFlipStatus>>()
+      statuses?.forEach(status => {
+        const conversationIDKey = T.Chat.stringToConversationIDKey(status.convID)
+        const convoStatuses = statusesByConvo.get(conversationIDKey)
+        if (convoStatuses) {
+          convoStatuses.push(status)
+        } else {
+          statusesByConvo.set(conversationIDKey, [status])
+        }
+      })
+      statusesByConvo.forEach((convoStatuses, conversationIDKey) => {
+        getConvoState(conversationIDKey).dispatch.updateCoinFlipStatuses(convoStatuses)
+      })
+      return handledConvoEngineIncoming()
+    }
+    case 'chat.1.NotifyChat.ChatThreadsStale':
+      onChatThreadsStale(action.payload.params.updates)
+      return handledConvoEngineIncoming()
+    case 'chat.1.NotifyChat.ChatSubteamRename':
+      unboxRows((action.payload.params.convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID)), true)
+      return handledConvoEngineIncoming()
+    case 'chat.1.NotifyChat.ChatTLFFinalize':
+      unboxRows([T.Chat.conversationIDToKey(action.payload.params.convID)])
+      return handledConvoEngineIncoming()
+    case 'chat.1.NotifyChat.NewChatActivity':
+      return onNewChatActivity(action.payload.params.activity, staticConfig)
+    case 'chat.1.NotifyChat.ChatTypingUpdate': {
+      const {typingUpdates} = action.payload.params
+      typingUpdates?.forEach(update => {
+        getConvoState(T.Chat.conversationIDToKey(update.convID)).dispatch.setTyping(
+          new Set(update.typers?.map(typer => typer.username))
+        )
+      })
+      return handledConvoEngineIncoming()
+    }
+    case 'chat.1.NotifyChat.ChatSetConvRetention': {
+      const {conv, convID} = action.payload.params
+      if (!conv) {
+        logger.warn('onChatSetConvRetention: no conv given')
+        return handledConvoEngineIncoming()
+      }
+      const meta = Meta.inboxUIItemToConversationMeta(conv)
+      if (!meta) {
+        logger.warn(`onChatSetConvRetention: no meta found for ${convID.toString()}`)
+        return handledConvoEngineIncoming()
+      }
+      const cs = getConvoState(meta.conversationIDKey)
+      if (cs.isMetaGood()) {
+        cs.dispatch.setMeta(meta)
+      }
+      return handledConvoEngineIncoming()
+    }
+    case 'chat.1.NotifyChat.ChatSetTeamRetention': {
+      const metas = (action.payload.params.convs ?? []).reduce<Array<T.Chat.ConversationMeta>>((l, c) => {
+        const meta = Meta.inboxUIItemToConversationMeta(c)
+        if (meta) {
+          l.push(meta)
+        }
+        return l
+      }, [])
+      if (metas.length === 0) {
+        logger.error(
+          'got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
+        )
+        return handledConvoEngineIncoming()
+      }
+      metas.forEach(meta => {
+        const cs = getConvoState(meta.conversationIDKey)
+        if (cs.isMetaGood()) {
+          cs.dispatch.setMeta(meta)
+        }
+      })
+      return handledConvoEngineIncoming()
+    }
+    default:
+      return {handled: false}
+  }
 }
 
 export const createConversation = (

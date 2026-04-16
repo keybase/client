@@ -29,6 +29,7 @@ These cleanup steps are already done:
 - first-layout inbox hydration moved out of `chat.updateInboxLayout`
 - `ensureWidgetMetas`, meta queueing, and `unboxRows` now live in `convostate`
 - conversation creation and team-building handoff now live in `convostate`
+- convo-targeted engine notifications now route through `convostate.handleConvoEngineIncoming`; `chat.onEngineIncomingImpl` keeps only global branches
 
 This means the remaining work is about removing the actual `chat -> convo` logic, not import barrels.
 
@@ -41,6 +42,16 @@ This means the remaining work is about removing the actual `chat -> convo` logic
 ## Remaining `chat -> convo` Logic Buckets
 
 ### 1. Engine Notification Fanout
+
+Status:
+
+- done for `onEngineIncomingImpl`; convo-targeted engine actions now dispatch from `convostate`
+
+Remaining direct `chat -> convo` calls outside that engine switch:
+
+- selected-convo navigation / reload helpers
+- inbox conversation hydration that still sets convo participants from `chat`
+- gregor exploding-mode fanout
 
 Most of `onEngineIncomingImpl` is a dispatcher into specific convo stores.
 
@@ -88,7 +99,7 @@ Do not decide this early. Resolve simpler buckets first.
 
 ## Recommended Order
 
-1. Engine notification fanout
+1. Residual non-engine `chat -> convo` fanout
 2. Badge / unread ownership
 
 ## Acceptance Criteria

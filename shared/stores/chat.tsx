@@ -14,6 +14,7 @@ import {bodyToJSON} from '@/constants/rpc-utils'
 import {chatStores} from '@/stores/convo-registry'
 import {
   ensureWidgetMetas as ensureConvoWidgetMetas,
+  handleConvoEngineIncoming,
   hydrateInboxLayout,
   metasReceived as convoMetasReceived,
   unboxRows as convoUnboxRows,
@@ -187,7 +188,6 @@ export type State = Store & {
     setInboxRetriedOnCurrentEmpty: (retried: boolean) => void
     loadStaticConfig: () => void
     maybeChangeSelectedConv: () => void
-    onChatThreadStale: (action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatThreadsStale'>) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     onChatInboxSynced: (action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatInboxSynced'>) => void
     onGetInboxConvsUnboxed: (action: EngineGen.EngineAction<'chat.1.chatUi.chatInboxConversation'>) => void
@@ -402,88 +402,18 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           inboxRefresh('inboxSyncedUnknown')
       }
     },
-    onChatThreadStale: action => {
-      const {updates} = action.payload.params
-      const keys = ['clear', 'newactivity'] as const
-      if (__DEV__) {
-        if (keys.length * 2 !== Object.keys(T.RPCChat.StaleUpdateType).length) {
-          throw new Error('onChatThreadStale invalid enum')
-        }
-      }
-      const selectedConversation = Common.getSelectedConversation()
-      const shouldLoadMore = (updates || []).some(
-        u => T.Chat.conversationIDToKey(u.convID) === selectedConversation
-      )
-      keys.forEach(key => {
-        const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
-          const cid = T.Chat.conversationIDToKey(u.convID)
-          if (u.updateType === T.RPCChat.StaleUpdateType[key]) {
-            arr.push(cid)
-          }
-          return arr
-        }, [])
-        // load the inbox instead
-        if (conversationIDKeys.length > 0) {
-          logger.info(
-            `onChatThreadStale: dispatching thread reload actions for ${conversationIDKeys.length} convs of type ${key}`
-          )
-          convoUnboxRows(conversationIDKeys, true)
-          if (T.RPCChat.StaleUpdateType[key] === T.RPCChat.StaleUpdateType.clear) {
-            conversationIDKeys.forEach(convID => {
-              // For the selected conversation, skip immediate clear — the deferred
-              // atomic clear+add in loadMoreMessages avoids a blank flash
-              if (convID !== selectedConversation) {
-                storeRegistry.getConvoState(convID).dispatch.messagesClear()
-              }
-            })
-          }
-        }
-      })
-      if (shouldLoadMore) {
-        storeRegistry.getConvoState(selectedConversation).dispatch.loadMoreMessages({
-          reason: 'got stale',
-        })
-      }
-    },
     onEngineIncomingImpl: action => {
+      const convoResult = handleConvoEngineIncoming(action, get().staticConfig)
+      if (convoResult.handled) {
+        if (convoResult.inboxUIItem) {
+          get().dispatch.onIncomingInboxUIItem(convoResult.inboxUIItem)
+        }
+        if (convoResult.userReacjis) {
+          get().dispatch.updateUserReacjis(convoResult.userReacjis)
+        }
+        return
+      }
       switch (action.type) {
-        case 'chat.1.chatUi.chatInboxFailed': // fallthrough
-        case 'chat.1.NotifyChat.ChatSetConvSettings': // fallthrough
-        case 'chat.1.NotifyChat.ChatAttachmentUploadStart': // fallthrough
-        case 'chat.1.NotifyChat.ChatPromptUnfurl': // fallthrough
-        case 'chat.1.NotifyChat.ChatPaymentInfo': // fallthrough
-        case 'chat.1.NotifyChat.ChatRequestInfo': // fallthrough
-        case 'chat.1.NotifyChat.ChatAttachmentDownloadProgress': //fallthrough
-        case 'chat.1.NotifyChat.ChatAttachmentDownloadComplete': //fallthrough
-        case 'chat.1.NotifyChat.ChatAttachmentUploadProgress': {
-          const {convID} = action.payload.params
-          const conversationIDKey = T.Chat.conversationIDToKey(convID)
-          storeRegistry.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
-          break
-        }
-        case 'chat.1.chatUi.chatCommandMarkdown': //fallthrough
-        case 'chat.1.chatUi.chatGiphyToggleResultWindow': // fallthrough
-        case 'chat.1.chatUi.chatCommandStatus': // fallthrough
-        case 'chat.1.chatUi.chatBotCommandsUpdateStatus': //fallthrough
-        case 'chat.1.chatUi.chatGiphySearchResults': {
-          const {convID} = action.payload.params
-          const conversationIDKey = T.Chat.stringToConversationIDKey(convID)
-          storeRegistry.getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
-          break
-        }
-        case 'chat.1.NotifyChat.ChatParticipantsInfo': {
-          const {participants: participantMap} = action.payload.params
-          Object.keys(participantMap ?? {}).forEach(convIDStr => {
-            const participants = participantMap?.[convIDStr]
-            const conversationIDKey = T.Chat.stringToConversationIDKey(convIDStr)
-            if (participants) {
-              storeRegistry
-                .getConvoState(conversationIDKey)
-                .dispatch.setParticipants(Common.uiParticipantsToParticipantInfo(participants))
-            }
-          })
-          break
-        }
         case 'chat.1.chatUi.chatMaybeMentionUpdate': {
           const {teamName, channel, info} = action.payload.params
           get().dispatch.setMaybeMentionInfo(getTeamMentionName(teamName, channel), info)
@@ -493,39 +423,12 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           const {conv} = action.payload.params
           if (conv) {
             const meta = Meta.inboxUIItemToConversationMeta(conv)
-            meta && convoMetasReceived([meta])
+            if (meta) {
+              convoMetasReceived([meta])
+            }
           }
           break
         }
-        case 'chat.1.chatUi.chatCoinFlipStatus': {
-          const {statuses} = action.payload.params
-          const statusesByConvo = new Map<T.Chat.ConversationIDKey, Array<T.RPCChat.UICoinFlipStatus>>()
-          statuses?.forEach(status => {
-            const conversationIDKey = T.Chat.stringToConversationIDKey(status.convID)
-            const convoStatuses = statusesByConvo.get(conversationIDKey)
-            if (convoStatuses) {
-              convoStatuses.push(status)
-            } else {
-              statusesByConvo.set(conversationIDKey, [status])
-            }
-          })
-          statusesByConvo.forEach((convoStatuses, conversationIDKey) => {
-            storeRegistry.getConvoState(conversationIDKey).dispatch.updateCoinFlipStatuses(convoStatuses)
-          })
-          break
-        }
-        case 'chat.1.NotifyChat.ChatThreadsStale':
-          get().dispatch.onChatThreadStale(action)
-          break
-        case 'chat.1.NotifyChat.ChatSubteamRename': {
-          const {convs} = action.payload.params
-          const conversationIDKeys = (convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID))
-          convoUnboxRows(conversationIDKeys, true)
-          break
-        }
-        case 'chat.1.NotifyChat.ChatTLFFinalize':
-          convoUnboxRows([T.Chat.conversationIDToKey(action.payload.params.convID)])
-          break
         case 'chat.1.NotifyChat.ChatIdentifyUpdate': {
           // Some participants are broken/fixed now
           const {update} = action.payload.params
@@ -556,176 +459,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         case 'chat.1.chatUi.chatInboxConversation':
           get().dispatch.onGetInboxConvsUnboxed(action)
           break
-        case 'chat.1.NotifyChat.NewChatActivity': {
-          const {activity} = action.payload.params
-          switch (activity.activityType) {
-            case T.RPCChat.ChatActivityType.incomingMessage: {
-              const {incomingMessage} = activity
-              const conversationIDKey = T.Chat.conversationIDToKey(incomingMessage.convID)
-              storeRegistry.getConvoState(conversationIDKey).dispatch.onIncomingMessage(incomingMessage)
-              get().dispatch.onIncomingInboxUIItem(incomingMessage.conv ?? undefined)
-              break
-            }
-            case T.RPCChat.ChatActivityType.setStatus:
-              get().dispatch.onIncomingInboxUIItem(activity.setStatus.conv ?? undefined)
-              break
-            case T.RPCChat.ChatActivityType.readMessage:
-              get().dispatch.onIncomingInboxUIItem(activity.readMessage.conv ?? undefined)
-              break
-            case T.RPCChat.ChatActivityType.newConversation:
-              get().dispatch.onIncomingInboxUIItem(activity.newConversation.conv ?? undefined)
-              break
-            case T.RPCChat.ChatActivityType.failedMessage: {
-              const {failedMessage} = activity
-              get().dispatch.onIncomingInboxUIItem(failedMessage.conv ?? undefined)
-              const {outboxRecords} = failedMessage
-              if (!outboxRecords) return
-              for (const outboxRecord of outboxRecords) {
-                const s = outboxRecord.state
-                if (s.state !== T.RPCChat.OutboxStateType.error) return
-                const {error} = s
-                const conversationIDKey = T.Chat.conversationIDToKey(outboxRecord.convID)
-                const outboxID = T.Chat.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
-                // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
-                const reason = Message.rpcErrorToString(error)
-                storeRegistry
-                  .getConvoState(conversationIDKey)
-                  .dispatch.onMessageErrored(outboxID, reason, error.typ)
-
-                if (error.typ === T.RPCChat.OutboxErrorType.identify) {
-                  // Find out the user who failed identify
-                  const match = error.message.match(/"(.*)"/)
-                  const tempForceRedBox = match?.[1]
-                  if (tempForceRedBox) {
-                    storeRegistry
-                      .getState('users')
-                      .dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
-                  }
-                }
-              }
-              break
-            }
-            case T.RPCChat.ChatActivityType.membersUpdate:
-              convoUnboxRows([T.Chat.conversationIDToKey(activity.membersUpdate.convID)], true)
-              break
-            case T.RPCChat.ChatActivityType.setAppNotificationSettings: {
-              const {setAppNotificationSettings} = activity
-              const conversationIDKey = T.Chat.conversationIDToKey(setAppNotificationSettings.convID)
-              const settings = setAppNotificationSettings.settings
-              const cs = storeRegistry.getConvoState(conversationIDKey)
-              if (cs.isMetaGood()) {
-                cs.dispatch.updateMeta(Meta.parseNotificationSettings(settings))
-              }
-              break
-            }
-            case T.RPCChat.ChatActivityType.expunge: {
-              // Get actions to update messagemap / metamap when retention policy expunge happens
-              const {expunge} = activity
-              const conversationIDKey = T.Chat.conversationIDToKey(expunge.convID)
-              const staticConfig = get().staticConfig
-              // The types here are askew. It confuses frontend MessageType with protocol MessageType.
-              // Placeholder is an example where it doesn't make sense.
-              const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || Common.allMessageTypes
-              storeRegistry.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({
-                deletableMessageTypes,
-                upToMessageID: T.Chat.numberToMessageID(expunge.expunge.upto),
-              })
-              break
-            }
-            case T.RPCChat.ChatActivityType.ephemeralPurge: {
-              const {ephemeralPurge} = activity
-              // Get actions to update messagemap / metamap when ephemeral messages expire
-              const conversationIDKey = T.Chat.conversationIDToKey(ephemeralPurge.convID)
-              const messageIDs = ephemeralPurge.msgs?.reduce<Array<T.Chat.MessageID>>((arr, msg) => {
-                const msgID = Message.getMessageID(msg)
-                if (msgID) {
-                  arr.push(msgID)
-                }
-                return arr
-              }, [])
-
-              !!messageIDs &&
-                storeRegistry.getConvoState(conversationIDKey).dispatch.messagesExploded(messageIDs)
-              break
-            }
-            case T.RPCChat.ChatActivityType.reactionUpdate: {
-              // Get actions to update the messagemap when reactions are updated
-              const {reactionUpdate} = activity
-              const conversationIDKey = T.Chat.conversationIDToKey(reactionUpdate.convID)
-              if (!reactionUpdate.reactionUpdates || reactionUpdate.reactionUpdates.length === 0) {
-                logger.warn(`Got ReactionUpdateNotif with no reactionUpdates for convID=${conversationIDKey}`)
-                break
-              }
-              const updates = reactionUpdate.reactionUpdates.map(ru => ({
-                reactions: Message.reactionMapToReactions(ru.reactions),
-                targetMsgID: T.Chat.numberToMessageID(ru.targetMsgID),
-              }))
-              logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
-              storeRegistry.getConvoState(conversationIDKey).dispatch.updateReactions(updates)
-              get().dispatch.updateUserReacjis(reactionUpdate.userReacjis)
-              break
-            }
-            case T.RPCChat.ChatActivityType.messagesUpdated: {
-              const {messagesUpdated} = activity
-              const conversationIDKey = T.Chat.conversationIDToKey(messagesUpdated.convID)
-              storeRegistry.getConvoState(conversationIDKey).dispatch.onMessagesUpdated(messagesUpdated)
-              break
-            }
-            default:
-          }
-          break
-        }
-        case 'chat.1.NotifyChat.ChatTypingUpdate': {
-          const {typingUpdates} = action.payload.params
-          typingUpdates?.forEach(u => {
-            storeRegistry
-              .getConvoState(T.Chat.conversationIDToKey(u.convID))
-              .dispatch.setTyping(new Set(u.typers?.map(t => t.username)))
-          })
-          break
-        }
-        case 'chat.1.NotifyChat.ChatSetConvRetention': {
-          const {conv, convID} = action.payload.params
-          if (!conv) {
-            logger.warn('onChatSetConvRetention: no conv given')
-            return
-          }
-          const meta = Meta.inboxUIItemToConversationMeta(conv)
-          if (!meta) {
-            logger.warn(`onChatSetConvRetention: no meta found for ${convID.toString()}`)
-            return
-          }
-          const cs = storeRegistry.getConvoState(meta.conversationIDKey)
-          // only insert if the convo is already in the inbox
-          if (cs.isMetaGood()) {
-            cs.dispatch.setMeta(meta)
-          }
-          break
-        }
-        case 'chat.1.NotifyChat.ChatSetTeamRetention': {
-          const {convs} = action.payload.params
-          const metas = (convs ?? []).reduce<Array<T.Chat.ConversationMeta>>((l, c) => {
-            const meta = Meta.inboxUIItemToConversationMeta(c)
-            if (meta) {
-              l.push(meta)
-            }
-            return l
-          }, [])
-          if (metas.length) {
-            metas.forEach(meta => {
-              const cs = storeRegistry.getConvoState(meta.conversationIDKey)
-              // only insert if the convo is already in the inbox
-              if (cs.isMetaGood()) {
-                cs.dispatch.setMeta(meta)
-              }
-            })
-          } else {
-            logger.error(
-              'got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
-            )
-          }
-          break
-        }
         case 'keybase.1.NotifyBadges.badgeState': {
           const {badgeState} = action.payload.params
           get().dispatch.badgesUpdated(badgeState)
@@ -736,7 +469,9 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           const items = state.items || []
           const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(
             (arr, {md, item}) => {
-              md && item && arr.push({item, md})
+              if (md && item) {
+                arr.push({item, md})
+              }
               return arr
             },
             []
@@ -796,7 +531,9 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       // We get a subset of meta information from the cache even in the untrusted payload
       const metas = items.reduce<Array<T.Chat.ConversationMeta>>((arr, item) => {
         const m = Meta.unverifiedInboxUIItemToConversationMeta(item)
-        m && arr.push(m)
+        if (m) {
+          arr.push(m)
+        }
         return arr
       }, [])
       // Check if some of our existing stored metas might no longer be valid
