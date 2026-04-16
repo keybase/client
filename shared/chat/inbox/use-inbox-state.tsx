@@ -176,21 +176,23 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     return inboxRows.map(r => (r.type === 'big' ? r.conversationIDKey : ''))
   }, [inboxRows])
 
-  const unreadIndices = useInboxRowsState(
-    React.useCallback(s => {
-      const next: Map<number, number> = new Map()
-      bigConvIds.forEach((conversationIDKey, idx) => {
-        if (!conversationIDKey) {
-          return
-        }
-        const badge = s.rowsBig.get(conversationIDKey)?.badgeCount ?? 0
-        if (badge > 0) {
-          next.set(idx, badge)
-        }
-      })
-      return next
-    }, [bigConvIds])
+  const unreadBadges = useInboxRowsState(
+    C.useShallow(s =>
+      bigConvIds.map(conversationIDKey =>
+        conversationIDKey ? (s.rowsBig.get(conversationIDKey)?.badgeCount ?? 0) : 0
+      )
+    )
   )
+
+  const unreadIndices = React.useMemo(() => {
+    const next: Map<number, number> = new Map()
+    unreadBadges.forEach((badge, idx) => {
+      if (badge > 0) {
+        next.set(idx, badge)
+      }
+    })
+    return next
+  }, [unreadBadges])
 
   let unreadTotal = 0
   unreadIndices.forEach(count => {
