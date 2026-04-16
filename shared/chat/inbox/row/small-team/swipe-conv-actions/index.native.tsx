@@ -1,4 +1,5 @@
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
@@ -60,7 +61,7 @@ function SwipeConvActions(p: Props) {
   const {children, onPress} = p
 
   const isMuted = Chat.useInboxRowSmall(conversationIDKey).isMuted
-  const cs = Chat.getConvoState(conversationIDKey)
+  const cs = ConvoState.getConvoState(conversationIDKey)
   const setMarkAsUnread = cs.dispatch.setMarkAsUnread
   const mute = cs.dispatch.mute
   const hideConversation = cs.dispatch.hideConversation

@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -35,8 +35,8 @@ type Section = Kb.SectionType<Item>
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
-  const settings = Chat.useChatContext(s => s.botSettings.get(username))
-  const editBotSettings = Chat.useChatContext(s => s.dispatch.editBotSettings)
+  const settings = ConvoState.useChatContext(s => s.botSettings.get(username))
+  const editBotSettings = ConvoState.useChatContext(s => s.dispatch.editBotSettings)
   return (
     <Kb.WaitingButton
       disabled={!settings}
@@ -77,7 +77,7 @@ export const Bot = (props: BotProps) => {
   const {ownerTeam, ownerUser} = props
   const {onClick, firstItem, isSelected} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
-  const refreshBotSettings = Chat.useChatContext(s => s.dispatch.refreshBotSettings)
+  const refreshBotSettings = ConvoState.useChatContext(s => s.dispatch.refreshBotSettings)
   const primaryColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black
   const secondaryColor = isSelected ? Kb.Styles.globalColors.white : undefined
   React.useEffect(() => {
@@ -90,7 +90,12 @@ export const Bot = (props: BotProps) => {
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
       {description !== '' && (
-        <Kb.Text type="BodySmall" lineClamp={1} style={secondaryColor ? {color: secondaryColor} : undefined} onClick={() => onClick(botUsername)}>
+        <Kb.Text
+          type="BodySmall"
+          lineClamp={1}
+          style={secondaryColor ? {color: secondaryColor} : undefined}
+          onClick={() => onClick(botUsername)}
+        >
           {description}
         </Kb.Text>
       )}
@@ -181,9 +186,9 @@ type Props = {
 }
 
 const BotTab = (props: Props) => {
-  const meta = Chat.useChatContext(s => s.meta)
+  const meta = ConvoState.useChatContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
   let canManageBots = false
   if (teamname) {
@@ -192,7 +197,7 @@ const BotTab = (props: Props) => {
     canManageBots = true
   }
   const adhocTeam = teamType === 'adhoc'
-  const participantInfo = Chat.useChatContext(s => s.participants)
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
   const participantsAll = participantInfo.all
 
@@ -245,7 +250,7 @@ const BotTab = (props: Props) => {
 
   const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const onBotAdd = () => {
     navigateAppend(conversationIDKey => ({name: 'chatSearchBots', params: {conversationIDKey}}))
   }

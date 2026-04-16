@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
@@ -26,7 +26,7 @@ const AddAliasModal = (props: Props) => {
   const [emoji, setEmoji] = React.useState<ChosenEmoji | undefined>(undefined)
   const [alias, setAlias] = React.useState('')
   const [error, setError] = React.useState<undefined | string>(undefined)
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
 
   const aliasInputRef = React.useRef<AliasRef>(null)
   const onChoose = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
@@ -143,7 +143,7 @@ const ChooseEmoji = Kb.Styles.isMobile
       }
 
       const navigateAppend = C.Router2.navigateAppend
-      const conversationIDKey = Chat.useChatContext(s => s.id)
+      const conversationIDKey = ConvoState.useChatContext(s => s.id)
       const openEmojiPicker = () =>
         navigateAppend({
           name: 'chatChooseEmoji',
@@ -160,25 +160,25 @@ const ChooseEmoji = Kb.Styles.isMobile
   : (props: ChooseEmojiProps) => {
       const {onChoose} = props
       const makePopup = (p: Kb.Popup2Parms) => {
-          const {attachTo, hidePopup} = p
-          return (
-            <Kb.Popup
-              attachTo={attachTo}
-              containerStyle={{paddingTop: Kb.Styles.globalMargins.tiny}}
-              position="bottom left"
-              onHidden={hidePopup}
-              propagateOutsideClicks={false}
-            >
-              <EmojiPickerDesktop
-                hideFrequentEmoji={true}
-                small={false}
-                onPickAction={onChoose}
-                onDidPick={hidePopup}
-                onlyTeamCustomEmoji={true}
-              />
-            </Kb.Popup>
-          )
-        }
+        const {attachTo, hidePopup} = p
+        return (
+          <Kb.Popup
+            attachTo={attachTo}
+            containerStyle={{paddingTop: Kb.Styles.globalMargins.tiny}}
+            position="bottom left"
+            onHidden={hidePopup}
+            propagateOutsideClicks={false}
+          >
+            <EmojiPickerDesktop
+              hideFrequentEmoji={true}
+              small={false}
+              onPickAction={onChoose}
+              onDidPick={hidePopup}
+              onlyTeamCustomEmoji={true}
+            />
+          </Kb.Popup>
+        )
+      }
       const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
       return (
         <>

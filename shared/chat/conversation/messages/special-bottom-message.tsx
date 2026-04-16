@@ -1,10 +1,11 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import OldProfileReset from './system-old-profile-reset-notice/container'
 import ResetUser from './reset-user'
 
 function BottomMessageContainer() {
-  const {showSuperseded, showResetParticipants} = Chat.useChatContext(
+  const {showSuperseded, showResetParticipants} = ConvoState.useChatContext(
     C.useShallow(s => {
       const meta = s.meta
       const showResetParticipants = meta.resetParticipants.size !== 0

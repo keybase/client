@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import JumpToRecent from './jump-to-recent'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
@@ -13,14 +14,14 @@ export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => 
       return
     }
     // Force mark as read since this is triggered by navigation (user action)
-    Chat.getConvoState(conversationIDKey).dispatch.markThreadAsRead(true)
+    ConvoState.getConvoState(conversationIDKey).dispatch.markThreadAsRead(true)
   }
 
   return {markInitiallyLoadedThreadAsRead}
 }
 
 export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number) => {
-  const data = Chat.useChatContext(
+  const data = ConvoState.useChatContext(
     C.useShallow(s => {
       const {loaded, moreToLoadForward} = s
       const {jumpToRecent, toggleThreadSearch} = s.dispatch

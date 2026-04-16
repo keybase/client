@@ -1,0 +1,13 @@
+export type RefreshReason =
+  | 'bootstrap'
+  | 'componentNeverLoaded'
+  | 'inboxSyncedCurrentButEmpty'
+  | 'inboxStale'
+  | 'inboxSyncedClear'
+  | 'inboxSyncedUnknown'
+  | 'joinedAConversation'
+  | 'leftAConversation'
+  | 'teamTypeChanged'
+  | 'maybeKickedFromTeam'
+  | 'widgetRefresh'
+  | 'shareConfigSearch'

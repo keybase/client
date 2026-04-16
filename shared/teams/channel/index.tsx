@@ -1,5 +1,6 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import {getBotsAndParticipants} from '@/constants/chat/helpers'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
@@ -16,6 +17,7 @@ import BotRow from '../team/rows/bot-row/bot'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
 import {useUsersState} from '@/stores/users'
+import {useLoadTeamMembers} from '@/teams/team-members'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID
@@ -31,26 +33,34 @@ const useLoadDataForChannelPage = (
   participants: ReadonlyArray<string>
 ) => {
   const prevSelectedTabRef = React.useRef(selectedTab)
-  const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
+  const prevParticipantsRef = React.useRef(participants)
+  const loadedBlockStateForConvRef = React.useRef(false)
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
-  const unboxRows = Chat.useChatState(s => s.dispatch.unboxRows)
+  useLoadTeamMembers(teamID, ['bots', 'members', 'settings'].includes(selectedTab))
   React.useEffect(() => {
-    if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'members') {
+    loadedBlockStateForConvRef.current = false
+  }, [conversationIDKey])
+  React.useEffect(() => {
+    const participantsChanged =
+      participants.length !== prevParticipantsRef.current.length ||
+      participants.some((participant, index) => participant !== prevParticipantsRef.current[index])
+    if (
+      selectedTab === 'members' &&
+      (!loadedBlockStateForConvRef.current || selectedTab !== prevSelectedTabRef.current || participantsChanged)
+    ) {
       if (meta.conversationIDKey === 'EMPTY') {
-        unboxRows([conversationIDKey])
+        ConvoState.unboxRows([conversationIDKey])
       }
-      C.ignorePromise(getMembers(teamID))
       getBlockState(participants)
+      loadedBlockStateForConvRef.current = true
     }
+    prevParticipantsRef.current = participants
   }, [
-    unboxRows,
     getBlockState,
-    getMembers,
     selectedTab,
     conversationIDKey,
     meta.conversationIDKey,
     participants,
-    teamID,
   ])
 
   React.useEffect(() => {
@@ -101,6 +111,7 @@ type Item =
   | {type: 'load-more'}
   | {type: 'header-section'}
   | {type: 'headerSection'}
+  | {type: 'membersLoading'}
   | {type: 'membersSection'; username: string}
   | {type: 'membersEmpty'}
   | {type: 'membersFew'}
@@ -119,17 +130,26 @@ const Channel = (props: OwnProps) => {
   const conversationIDKey = props.conversationIDKey
   const providedTab = props.selectedTab
 
-  const meta = Chat.useConvoState(conversationIDKey, s => s.meta)
-  const {bots, participants: _participants} = Chat.useConvoState(
+  const meta = ConvoState.useConvoState(conversationIDKey, s => s.meta)
+  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const {bots, participants: _participants} = ConvoState.useConvoState(
     conversationIDKey,
-    C.useDeep(s => Chat.getBotsAndParticipants(meta, s.participants, true /* sort */))
+    C.useDeep(s =>
+      getBotsAndParticipants(meta, s.participants, teamMembers ?? emptyMapForUseSelector, true /* sort */)
+    )
   )
   const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
-  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
-  useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants)
-  const participants = useChannelParticipants(teamID, conversationIDKey)
+  const channelParticipants = useChannelParticipants(teamID, conversationIDKey)
+  const generalMembersLoading = meta.channelname === 'general' && !teamMembers
+  const participants =
+    meta.channelname === 'general'
+      ? teamMembers
+        ? _participants
+        : channelParticipants
+      : channelParticipants
+  useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, participants)
 
   // Make the actual sections (consider farming this out into another function or file)
   const headerSection: Section = {
@@ -158,7 +178,9 @@ const Channel = (props: OwnProps) => {
   switch (selectedTab) {
     case 'members': {
       sections.push({
-        data: participants.map(p => ({type: 'membersSection', username: p})),
+        data: generalMembersLoading
+          ? [{type: 'membersLoading'}]
+          : participants.map(p => ({type: 'membersSection', username: p})),
         renderItem: ({index, item}: {index: number; item: Item}) =>
           item.type === 'membersSection' ? (
             <ChannelMemberRow
@@ -168,11 +190,13 @@ const Channel = (props: OwnProps) => {
               firstItem={index === 0}
               isGeneral={meta.channelname === 'general'}
             />
+          ) : item.type === 'membersLoading' ? (
+            <Kb.ProgressIndicator type="Large" />
           ) : null,
-        title: `Members (${participants.length})`,
+        title: generalMembersLoading ? 'Members' : `Members (${participants.length})`,
       } as const)
 
-      if (participants.length === 0) {
+      if (!generalMembersLoading && participants.length === 0) {
         sections.push({
           data: [{type: 'membersEmpty'}],
           renderItem: () => (
@@ -197,12 +221,12 @@ const Channel = (props: OwnProps) => {
       break
     }
     case 'bots': {
-      const botsInTeamNotInConv = [...teamMembers.values()]
+      const botsInTeamNotInConv = [...(teamMembers ?? emptyMapForUseSelector).values()]
         .map(p => p.username)
         .filter(
           p =>
-            Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'restrictedbot') ||
-            Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'bot')
+            Teams.userIsRoleInTeamWithInfo(teamMembers ?? emptyMapForUseSelector, p, 'restrictedbot') ||
+            Teams.userIsRoleInTeamWithInfo(teamMembers ?? emptyMapForUseSelector, p, 'bot')
         )
         .filter(p => !bots.includes(p))
         .sort((l, r) => l.localeCompare(r))

@@ -4,7 +4,7 @@ import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {RPCError} from '@/util/errors'
 import {isMobile} from '@/constants/platform'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 
 export const inboxSearchMaxTextMessages = 25
@@ -253,13 +253,13 @@ export function useInboxSearch(): InboxSearchController {
           }))
 
           const missingMetas = results.reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
-            if (!Chat.getConvoState(r.conversationIDKey).isMetaGood()) {
+            if (!ConvoState.getConvoState(r.conversationIDKey).isMetaGood()) {
               arr.push(r.conversationIDKey)
             }
             return arr
           }, [])
           if (missingMetas.length > 0) {
-            Chat.useChatState.getState().dispatch.unboxRows(missingMetas, true)
+            ConvoState.unboxRows(missingMetas, true)
           }
         }
 
@@ -313,9 +313,9 @@ export function useInboxSearch(): InboxSearchController {
           })
 
           if (
-            Chat.getConvoState(result.conversationIDKey).meta.conversationIDKey === T.Chat.noConversationIDKey
+            ConvoState.getConvoState(result.conversationIDKey).meta.conversationIDKey === T.Chat.noConversationIDKey
           ) {
-            Chat.useChatState.getState().dispatch.unboxRows([result.conversationIDKey], true)
+            ConvoState.unboxRows([result.conversationIDKey], true)
           }
         }
 
@@ -447,14 +447,14 @@ export function useInboxSearch(): InboxSearchController {
       }
 
       if (query) {
-        Chat.getConvoState(conversationIDKey).dispatch.navigateToThread(
+        ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread(
           'inboxSearch',
           undefined,
           undefined,
           query
         )
       } else {
-        Chat.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSearch')
+        ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSearch')
         clearSearch()
       }
     },

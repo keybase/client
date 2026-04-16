@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Chat from '@/stores/chat'
+import {makeChatScreen} from '@/chat/make-chat-screen'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import {ModalTitle} from './common'
@@ -191,7 +191,7 @@ export const newRoutes = defineRouteMap({
     React.lazy(async () => import('./team')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
-  teamChannel: Chat.makeChatScreen(
+  teamChannel: makeChatScreen(
     React.lazy(async () => import('./channel')),
     {getOptions: {headerShadowVisible: false, headerTitle: ''}}
   ),
@@ -225,7 +225,7 @@ export const newModalRoutes = defineRouteMap({
   teamAddEmoji: C.makeScreen(React.lazy(async () => import('./emojis/add-emoji')), {
     getOptions: {headerLeft: Kb.Styles.isMobile ? () => <HeaderLeftButton mode="cancel" /> : undefined, title: 'Add emoji'},
   }),
-  teamAddEmojiAlias: Chat.makeChatScreen(React.lazy(async () => import('./emojis/add-alias')), {
+  teamAddEmojiAlias: makeChatScreen(React.lazy(async () => import('./emojis/add-alias')), {
     getOptions: {headerLeft: Kb.Styles.isMobile ? () => <HeaderLeftButton mode="cancel" /> : undefined, title: 'Add an alias'},
   }),
   teamAddToChannels: C.makeScreen(React.lazy(async () => import('./team/member/add-to-channels')), {

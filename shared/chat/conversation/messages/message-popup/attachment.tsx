@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import type * as React from 'react'
 import type * as T from '@/constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '@/styles'
@@ -21,7 +22,7 @@ const emptyMessage = Chat.makeMessageAttachment({})
 
 const PopAttach = (ownProps: OwnProps) => {
   const {ordinal, attachTo, mode, onHidden, position, style, visible} = ownProps
-  const message = Chat.useChatContext(s => {
+  const message = ConvoState.useChatContext(s => {
     const m = s.messageMap.get(ordinal)
     const message = m?.type === 'attachment' ? m : emptyMessage
     return message
@@ -36,7 +37,7 @@ const PopAttach = (ownProps: OwnProps) => {
     messageAttachmentNativeSave,
     messageAttachmentNativeShare,
     showInfoPanel,
-  } = Chat.useChatContext(
+  } = ConvoState.useChatContext(
     C.useShallow(s => {
       const {
         attachmentDownload,

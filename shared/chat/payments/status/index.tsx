@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import PaymentStatusError from './error'
 import Text from '@/common-adapters/text'
 import {Box2} from '@/common-adapters/box'
@@ -80,12 +80,7 @@ const PaymentStatus = (props: Props) => {
     >
       {' '}
       <Kb.Text type="BodyExtrabold" allowFontScaling={!!props.allowFontScaling} style={styles[props.status]}>
-        {props.text}{' '}
-        <Kb.Icon
-          type={getIcon(props.status)}
-          fontSize={12}
-          color={statusColor(props.status)}
-        />
+        {props.text} <Kb.Icon type={getIcon(props.status)} fontSize={12} color={statusColor(props.status)} />
       </Kb.Text>{' '}
     </Kb.Text>
   )
@@ -182,12 +177,14 @@ const reduceStatus = (status: string): Status => {
 function PaymentStatusContainer(p: OwnProps) {
   const {error, paymentID, text, allowFontScaling} = p
   const ordinal = useOrdinal()
-  const paymentInfo = Chat.useChatContext(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
+  const paymentInfo = ConvoState.useChatContext(s =>
+    paymentID ? s.paymentStatusMap.get(paymentID) : undefined
+  )
   const status = error ? 'error' : (paymentInfo?.status ?? 'pending')
 
   const you = useCurrentUserState(s => s.username)
   // TODO remove
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+  const message = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
   const author = message?.author
   const allowPopup =
     status === 'completed' || status === 'pending' || status === 'claimable' || author === you

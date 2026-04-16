@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
 import VideoImpl from './videoimpl'
 import {
@@ -23,7 +23,7 @@ type Props = {
 function Video(p: Props) {
   const {message, ordinal, showPopup} = p
   const {isCollapsed, submitState, title, transferProgress, transferState} = message
-  const attachmentPreviewSelect = Chat.useChatContext(s => s.dispatch.attachmentPreviewSelect)
+  const attachmentPreviewSelect = ConvoState.useChatContext(s => s.dispatch.attachmentPreviewSelect)
   const fileName = getAttachmentDisplayFileName(message)
   const showTitle = !!title
   const openFullscreen = () => {
@@ -33,12 +33,13 @@ function Video(p: Props) {
   const containerStyle = styles.container
   const collapseIcon = useCollapseIcon(ordinal, isCollapsed, false)
 
-  const filename = Kb.Styles.isMobile || !fileName ? null : (
-    <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="xtiny">
-      <Kb.Text type="BodySmall">{fileName}</Kb.Text>
-      {collapseIcon}
-    </Kb.Box2>
-  )
+  const filename =
+    Kb.Styles.isMobile || !fileName ? null : (
+      <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="xtiny">
+        <Kb.Text type="BodySmall">{fileName}</Kb.Text>
+        {collapseIcon}
+      </Kb.Box2>
+    )
 
   const toastTargetRef = React.useRef<Kb.MeasureRef | null>(null)
 
@@ -54,7 +55,7 @@ function Video(p: Props) {
       >
         <Kb.Box2
           direction="vertical"
-        relative={true}
+          relative={true}
           style={styles.contentContainer}
           alignSelf="flex-start"
           alignItems="center"
@@ -70,13 +71,23 @@ function Video(p: Props) {
           {showTitle ? <Title message={message} /> : null}
           <Transferring transferState={transferState} ratio={transferProgress} />
         </Kb.Box2>
-        <TransferIcon message={message} ordinal={ordinal} style={Kb.Styles.isMobile ? styles.transferIcon : undefined} />
+        <TransferIcon
+          message={message}
+          ordinal={ordinal}
+          style={Kb.Styles.isMobile ? styles.transferIcon : undefined}
+        />
       </Kb.Box2>
     </>
   )
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={containerStyle} alignItems="flex-start">
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      relative={true}
+      style={containerStyle}
+      alignItems="flex-start"
+    >
       {isCollapsed ? <Collapsed isCollapsed={isCollapsed} ordinal={ordinal} /> : content}
     </Kb.Box2>
   )

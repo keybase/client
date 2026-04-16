@@ -1,12 +1,12 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import {navToProfile} from '@/constants/router'
 
 const ResetUser = () => {
-  const meta = Chat.useChatContext(s => s.meta)
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const resetChatWithoutThem = Chat.useChatContext(s => s.dispatch.resetChatWithoutThem)
-  const resetLetThemIn = Chat.useChatContext(s => s.dispatch.resetLetThemIn)
+  const meta = ConvoState.useChatContext(s => s.meta)
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const resetChatWithoutThem = ConvoState.useChatContext(s => s.dispatch.resetChatWithoutThem)
+  const resetLetThemIn = ConvoState.useChatContext(s => s.dispatch.resetLetThemIn)
   const _participants = participantInfo.all
   const _resetParticipants = meta.resetParticipants
   const _viewProfile = navToProfile

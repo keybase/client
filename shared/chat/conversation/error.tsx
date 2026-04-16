@@ -1,8 +1,8 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 
 const ConversationError = () => {
-  const text = Chat.useChatContext(s => s.meta.snippet ?? '')
+  const text = ConvoState.useChatContext(s => s.meta.snippet ?? '')
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
       <Kb.Text type="Header">There was an error loading this conversation.</Kb.Text>

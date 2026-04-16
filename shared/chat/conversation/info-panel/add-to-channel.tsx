@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
@@ -15,7 +15,7 @@ type Props = {teamID: T.Teams.TeamID}
 const AddToChannel = (props: Props) => {
   const {teamID} = props
   const nav = useSafeNavigation()
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
 
   const [toAdd, setToAdd] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
@@ -80,9 +80,24 @@ const AddToChannel = (props: Props) => {
       title: `Add to #${channelname}`,
     })
     return () => {
-      useModalHeaderState.setState({actionEnabled: false, actionWaiting: false, onAction: undefined, title: ''})
+      useModalHeaderState.setState({
+        actionEnabled: false,
+        actionWaiting: false,
+        onAction: undefined,
+        title: '',
+      })
     }
-  }, [channelname, teamID, toAdd, toAdd.size, waiting, addToChannel, conversationIDKey, loadTeamChannelList, nav])
+  }, [
+    channelname,
+    teamID,
+    toAdd,
+    toAdd.size,
+    waiting,
+    addToChannel,
+    conversationIDKey,
+    loadTeamChannelList,
+    nav,
+  ])
 
   return (
     <>
@@ -154,21 +169,16 @@ const AddToChannel = (props: Props) => {
       </Kb.Box2>
       {Kb.Styles.isMobile ? null : (
         <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-            <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-              <Kb.Button
-                type="Dim"
-                label="Cancel"
-                onClick={onClose}
-                style={Kb.Styles.globalStyles.flexOne}
-              />
-              <Kb.Button
-                label={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
-                onClick={onAdd}
-                disabled={!toAdd.size}
-                style={Kb.Styles.globalStyles.flexOne}
-                waiting={waiting}
-              />
-            </Kb.Box2>
+          <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+            <Kb.Button type="Dim" label="Cancel" onClick={onClose} style={Kb.Styles.globalStyles.flexOne} />
+            <Kb.Button
+              label={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
+              onClick={onAdd}
+              disabled={!toAdd.size}
+              style={Kb.Styles.globalStyles.flexOne}
+              waiting={waiting}
+            />
+          </Kb.Box2>
         </Kb.Box2>
       )}
     </>

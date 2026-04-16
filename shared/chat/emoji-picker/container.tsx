@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -34,8 +35,8 @@ type RoutableProps = {
 const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
   const topReacjis = Chat.useChatState(s => s.userReacjis.topReacjis)
   const [filter, setFilter] = React.useState('')
-  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const onChoose = (emoji: string, renderableEmoji: RenderableEmoji) => {
     if (conversationIDKey !== Chat.noConversationIDKey && onPickAddToMessageOrdinal) {
       toggleMessageReaction(onPickAddToMessageOrdinal, emoji)
@@ -68,7 +69,7 @@ const useSkinTone = () => {
 }
 
 const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const {emojiGroups: customEmojiGroups, loading: waiting} = useUserEmoji({
     conversationIDKey,
     disabled,
@@ -78,7 +79,7 @@ const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) =>
 }
 
 const useCanManageEmoji = () => {
-  const canManageEmoji = Chat.useChatContext(s => {
+  const canManageEmoji = ConvoState.useChatContext(s => {
     const meta = s.meta
     // TODO not reactive
     return !meta.teamname || Teams.getCanPerformByID(Teams.useTeamsState.getState(), meta.teamID).manageEmojis
@@ -97,7 +98,7 @@ const WrapperMobile = (props: Props) => {
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const navigateUp = C.Router2.navigateUp
   const onCancel = navigateUp
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const addEmoji = () =>
     navigateAppend(conversationIDKey => ({
       name: 'teamAddEmoji',
@@ -165,7 +166,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   const [hoveredEmoji, setHoveredEmoji] = React.useState(emojiData.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const canManageEmoji = useCanManageEmoji()
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const addEmoji = () => {
     onDidPick?.()
     navigateAppend(conversationIDKey => ({

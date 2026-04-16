@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type * as React from 'react'
@@ -16,11 +16,11 @@ type OwnProps = {
 
 const JourneyCard = (ownProps: OwnProps) => {
   const {ordinal, attachTo, mode, onHidden, style, visible, position} = ownProps
-  const cardType = Chat.useChatContext(
+  const cardType = ConvoState.useChatContext(
     s => s.messageMap.get(ordinal)?.cardType ?? T.RPCChat.JourneycardType.unused
   )
 
-  const dismissJourneycard = Chat.useChatContext(s => s.dispatch.dismissJourneycard)
+  const dismissJourneycard = ConvoState.useChatContext(s => s.dispatch.dismissJourneycard)
   const onDismiss = () => {
     dismissJourneycard(cardType, ordinal)
   }

@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import NewChatButton from './inbox/new-chat-button'
@@ -15,9 +16,9 @@ type ChatRootRoute = RouteProp<{chatRoot: ChatRootRouteParams}, 'chatRoot'>
 const Header = () => {
   const {params} = useRoute<ChatRootRoute>()
   return (
-    <Chat.ChatProvider canBeNull={true} id={params.conversationIDKey ?? Chat.noConversationIDKey}>
+    <ConvoState.ChatProvider canBeNull={true} id={params.conversationIDKey ?? Chat.noConversationIDKey}>
       <Header2 />
-    </Chat.ChatProvider>
+    </ConvoState.ChatProvider>
   )
 }
 
@@ -25,7 +26,7 @@ const Header2 = () => {
   const {params} = useRoute<ChatRootRoute>()
   const username = useCurrentUserState(s => s.username)
   const infoPanelShowing = !!params.infoPanel
-  const data = Chat.useChatContext(
+  const data = ConvoState.useChatContext(
     C.useShallow(s => {
       const {meta, id, dispatch} = s
       const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta

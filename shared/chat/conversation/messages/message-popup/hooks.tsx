@@ -1,6 +1,7 @@
 import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -45,19 +46,19 @@ const getConversationLabel = (
 }
 
 export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
-  const message = Chat.useChatContext(s => {
+  const message = ConvoState.useChatContext(s => {
     return s.messageMap.get(ordinal) ?? emptyText
   })
   const isAttach = message.type === 'attachment'
   const {author, id, deviceName, timestamp, deviceRevokedAt} = message
-  const meta = Chat.useChatContext(s => s.meta)
+  const meta = ConvoState.useChatContext(s => s.meta)
   const {teamID, teamname} = meta
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const toggleMessageReaction = Chat.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onReact = (emoji: string) => {
     toggleMessageReaction(ordinal, emoji)
   }
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const _onAddReaction = () => {
     navigateAppend(conversationIDKey => ({
       name: 'chatChooseEmoji',
@@ -108,13 +109,13 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     {icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'},
   ] as const
 
-  const {messageDelete, pinMessage, setMarkAsUnread} = Chat.useChatContext(
+  const {messageDelete, pinMessage, setMarkAsUnread} = ConvoState.useChatContext(
     C.useShallow(s => {
       const {messageDelete, pinMessage, setMarkAsUnread} = s.dispatch
       return {messageDelete, pinMessage, setMarkAsUnread}
     })
   )
-  const {setEditing, setReplyTo} = Chat.useChatUIContext(
+  const {setEditing, setReplyTo} = ConvoState.useChatUIContext(
     C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
   )
 
@@ -269,7 +270,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
 }
 
 export const useHeader = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
-  const message = Chat.useChatContext(s => {
+  const message = ConvoState.useChatContext(s => {
     return s.messageMap.get(ordinal) ?? emptyText
   })
   const you = useCurrentUserState(s => s.username)

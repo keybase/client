@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -13,7 +14,7 @@ const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordi
   const ordinal = Kb.Styles.isMobile ? leadingItem : trailingItem
   const orangeOrdinal = React.useContext(OrangeLineContext)
 
-  return Chat.useChatContext(
+  return ConvoState.useChatContext(
     C.useShallow(s => {
       const previous = s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0)
       const m = s.messageMap.get(ordinal) ?? missingMessage

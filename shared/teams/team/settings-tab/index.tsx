@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
+import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
@@ -354,7 +355,7 @@ const Container = (ownProps: OwnProps) => {
   const settings = teamDetails.settings
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
   const ignoreAccessRequests = teamDetails.settings.tarsDisabled
-  const isBigTeam = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
+  const isBigTeam = Chat.useChatState(s => getIsBigTeam(s.inboxLayout, teamID))
   const openTeam = settings.open
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname

@@ -21,7 +21,6 @@ import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {fixCrop} from '@/util/crop'
 import {getTBStore} from '@/stores/team-building'
-import {storeRegistry} from '@/stores/store-registry'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
@@ -863,7 +862,6 @@ export type State = Store & {
         fromTeamBuilder?: boolean
       }
     ) => void
-    createNewTeamFromConversation: (conversationIDKey: T.Chat.ConversationIDKey, teamname: string) => void
     deleteChannelConfirmed: (teamID: T.Teams.TeamID, conversationIDKey: T.Chat.ConversationIDKey) => void
     deleteMultiChannelsConfirmed: (teamID: T.Teams.TeamID, channels: Array<T.Chat.ConversationIDKey>) => void
     deleteTeam: (teamID: T.Teams.TeamID) => void
@@ -872,7 +870,7 @@ export type State = Store & {
     finishNewTeamWizard: () => void
     finishedAddMembersWizard: () => void
     getActivityForTeams: () => void
-    getMembers: (teamID: T.Teams.TeamID) => Promise<void>
+    getMembers: (teamID: T.Teams.TeamID, forceReload?: boolean) => Promise<void>
     getTeamRetentionPolicy: (teamID: T.Teams.TeamID) => void
     getTeams: (subscribe?: boolean, forceReload?: boolean) => void
     ignoreRequest: (teamID: T.Teams.TeamID, teamname: string, username: string) => void
@@ -973,6 +971,11 @@ export type State = Store & {
     teamSeen: (teamID: T.Teams.TeamID) => void
     unsubscribeTeamDetails: (teamID: T.Teams.TeamID) => void
     unsubscribeTeamList: () => void
+    updateCachedBotMember: (
+      teamID: T.Teams.TeamID,
+      username: string,
+      role?: 'bot' | 'restrictedbot'
+    ) => void
     updateChannelName: (
       teamID: T.Teams.TeamID,
       conversationIDKey: T.Chat.ConversationIDKey,
@@ -989,11 +992,24 @@ export type State = Store & {
       sendChatNotification: boolean,
       crop?: T.RPCGen.ImageCropRect
     ) => void
-    updateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
   }
 }
 
 export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
+  let inflightMemberLoads = new Map<T.Teams.TeamID, Promise<void>>()
+  let inflightMemberLoadTokens = new Map<T.Teams.TeamID, symbol>()
+  let queuedMemberReloads = new Set<T.Teams.TeamID>()
+  let memberLoadGeneration = 0
+  const clearMemberLoadTracking = () => {
+    memberLoadGeneration += 1
+    inflightMemberLoads = new Map()
+    inflightMemberLoadTokens = new Map()
+    queuedMemberReloads = new Set()
+  }
+  const resetState = () => {
+    clearMemberLoadTracking()
+    set({...initialStore, dispatch}, true)
+  }
   const dispatch: State['dispatch'] = {
     addMembersWizardPushMembers: members => {
       const f = async () => {
@@ -1285,17 +1301,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    createNewTeamFromConversation: (conversationIDKey, teamname) => {
-      const me = useCurrentUserState.getState().username
-      const participantInfo = storeRegistry.getConvoState(conversationIDKey).participants
-      // exclude bots from the newly created team, they can be added back later.
-      const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
-      const users = participants.map(assertion => ({
-        assertion,
-        role: assertion === me ? ('admin' as const) : ('writer' as const),
-      }))
-      get().dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
-    },
     deleteChannelConfirmed: (teamID, conversationIDKey) => {
       const f = async () => {
         // channelName is only needed for confirmation, so since we handle
@@ -1464,27 +1469,60 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    getMembers: async (teamID: T.Teams.TeamID) => {
-      try {
-        const res = await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({
-          id: teamID,
-        })
-        const members = rpcDetailsToMemberInfos(res ?? [])
-        set(s => {
-          s.teamIDToMembers.set(teamID, members)
-        })
-        useUsersState.getState().dispatch.updates(
-          [...members.values()].map(m => ({
-            info: {fullname: m.fullName},
-            name: m.username,
-          }))
-        )
-      } catch (error) {
-        if (error instanceof RPCError) {
-          logger.error(`Error updating members for ${teamID}: ${error.desc}`)
-        }
+    getMembers: async (teamID: T.Teams.TeamID, forceReload = false) => {
+      if (!teamID || teamID === T.Teams.noTeamID || teamID === T.Teams.newTeamWizardTeamID) {
+        logger.warn(`bail on invalid team ID ${teamID}`)
+        return
       }
-      return
+      const generation = memberLoadGeneration
+      const inflight = inflightMemberLoads.get(teamID)
+      if (inflight) {
+        if (!forceReload) {
+          return inflight
+        }
+        queuedMemberReloads.add(teamID)
+        await inflight
+        if (generation !== memberLoadGeneration) {
+          return
+        }
+        if (!queuedMemberReloads.delete(teamID)) {
+          return
+        }
+        return get().dispatch.getMembers(teamID)
+      }
+      const requestToken = Symbol(String(teamID))
+      const promise = (async () => {
+        try {
+          const res = await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({
+            id: teamID,
+          })
+          if (generation !== memberLoadGeneration) {
+            return
+          }
+          const members = rpcDetailsToMemberInfos(res ?? [])
+          set(s => {
+            s.teamIDToMembers.set(teamID, members)
+          })
+          useUsersState.getState().dispatch.updates(
+            [...members.values()].map(m => ({
+              info: {fullname: m.fullName},
+              name: m.username,
+            }))
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`Error updating members for ${teamID}: ${error.desc}`)
+          }
+        } finally {
+          if (inflightMemberLoadTokens.get(teamID) === requestToken) {
+            inflightMemberLoads.delete(teamID)
+            inflightMemberLoadTokens.delete(teamID)
+          }
+        }
+      })()
+      inflightMemberLoads.set(teamID, promise)
+      inflightMemberLoadTokens.set(teamID, requestToken)
+      return promise
     },
     getTeamRetentionPolicy: teamID => {
       const f = async () => {
@@ -1935,6 +1973,24 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           get().dispatch.loadedWelcomeMessage(teamID, message)
           break
         }
+        case 'chat.1.NotifyChat.ChatSetTeamRetention': {
+          const {convs, teamID} = action.payload.params
+          const first = convs?.[0]
+          if (!first?.teamRetention) {
+            logger.warn(
+              `Got ChatSetTeamRetention with incomplete data for ${teamID}; refetching team retention policy`
+            )
+            get().dispatch.getTeamRetentionPolicy(teamID)
+            break
+          }
+          set(s => {
+            s.teamIDToRetentionPolicy.set(
+              teamID,
+              Util.serviceRetentionPolicyToRetentionPolicy(first.teamRetention)
+            )
+          })
+          break
+        }
         case 'keybase.1.NotifyTeam.teamTreeMembershipsPartial': {
           const {membership} = action.payload.params
           get().dispatch.notifyTreeMembershipsPartial(membership)
@@ -2116,7 +2172,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         s.errorInEmailInvite.malformed = new Set()
       })
     },
-    resetState: Z.defaultReset,
+    resetState,
     resetTeamMetaStale: () => {
       set(s => {
         s.teamMetaStale = true
@@ -2473,7 +2529,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       navigateAppend('teamAddToTeamFromWhere')
     },
     teamChangedByID: c => {
-      const {teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = c
+      const {changes, teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = c
       // Any of the Seqnos can be 0, which means that it was unknown at the source
       // at the time when this notification was generated.
       const version = get().teamVersion.get(teamID)
@@ -2493,6 +2549,9 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       })
       if (shouldLoad) {
         get().dispatch.loadTeam(teamID)
+      }
+      if (changes.membershipChanged && get().teamIDToMembers.has(teamID)) {
+        ignorePromise(get().dispatch.getMembers(teamID, true))
       }
     },
     teamSeen: teamID => {
@@ -2519,6 +2578,34 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       })
     },
+    updateCachedBotMember: (teamID, username, role) => {
+      if (!teamID || teamID === T.Teams.noTeamID || teamID === T.Teams.newTeamWizardTeamID) {
+        return
+      }
+      set(s => {
+        const infoFromUsers = useUsersState.getState().infoMap.get(username)
+        const updateMembers = (members?: Map<string, T.Teams.MemberInfo>) => {
+          if (!members) {
+            return
+          }
+          if (!role) {
+            members.delete(username)
+            return
+          }
+          const existing = members.get(username)
+          members.set(username, {
+            fullName: existing?.fullName ?? infoFromUsers?.fullname ?? '',
+            joinTime: existing?.joinTime,
+            needsPUK: existing?.needsPUK ?? false,
+            status: existing?.status ?? 'active',
+            type: role,
+            username,
+          })
+        }
+        updateMembers(s.teamIDToMembers.get(teamID))
+        updateMembers(s.teamDetails.get(teamID)?.members)
+      })
+    },
     updateChannelName: async (teamID, conversationIDKey, newChannelName) => {
       const param = {
         channelName: newChannelName,
@@ -2531,17 +2618,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       try {
         await T.RPCChat.localPostMetadataRpcPromise(param, S.waitingKeyTeamsUpdateChannelName(teamID))
       } catch {}
-    },
-    updateTeamRetentionPolicy: metas => {
-      const first = metas[0]
-      if (!first) {
-        logger.warn('Got updateTeamRetentionPolicy with no convs; aborting. Local copy may be out of date')
-        return
-      }
-      const {teamRetentionPolicy, teamID} = first
-      set(s => {
-        s.teamIDToRetentionPolicy.set(teamID, teamRetentionPolicy)
-      })
     },
     updateTopic: async (teamID, conversationIDKey, newTopic) => {
       const param = {

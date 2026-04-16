@@ -1,10 +1,11 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
-import {useTeamsState} from '@/stores/teams'
+import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import {useUsersState} from '@/stores/users'
+import {useTeamMembers} from '@/teams/team-members'
 
 export const transformer = (
   input: {
@@ -139,27 +140,22 @@ const getTeams = (layout?: T.RPCChat.UIInboxLayout) => {
 
 const useDataUsers = () => {
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  return Chat.useChatContext(
-    C.useDeep(s => {
-      const {teamID, teamType} = s.meta
-      // TODO not reactive
-      const teamMembers = useTeamsState.getState().teamIDToMembers.get(teamID)
-      const usernames = teamMembers
-        ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
-        : participantInfo.all
-      const suggestions = usernames.map(username => ({
-        fullName: infoMap.get(username)?.fullname || '',
-        username,
-      }))
-      if (teamType !== 'adhoc') {
-        const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
-        suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
-      }
-      // TODO this will thrash on every store change, TODO fix
-      return suggestions
-    })
+  const {participantInfo, teamID, teamType} = ConvoState.useChatContext(
+    C.useShallow(s => ({participantInfo: s.participants, teamID: s.meta.teamID, teamType: s.meta.teamType}))
   )
+  const teamMembers = useTeamMembers(teamID)
+  const usernames = teamMembers
+    ? [...teamMembers.values()].map(member => member.username).sort((a, b) => a.localeCompare(b))
+    : participantInfo.all
+  const suggestions = usernames.map(username => ({
+    fullName: infoMap.get(username)?.fullname || '',
+    username,
+  }))
+  if (teamType !== 'adhoc') {
+    const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
+    suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
+  }
+  return suggestions
 }
 
 const useDataTeams = () => {

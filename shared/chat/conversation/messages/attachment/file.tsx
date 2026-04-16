@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as CryptoRoutes from '@/constants/crypto'
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
 import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import captialize from 'lodash/capitalize'
@@ -19,7 +20,7 @@ type OwnProps = {
 
 function FileContainer(p: OwnProps) {
   const {isEditing, message, ordinal} = p
-  const {attachmentDownload, messageAttachmentNativeShare} = Chat.useChatContext(
+  const {attachmentDownload, messageAttachmentNativeShare} = ConvoState.useChatContext(
     C.useShallow(s => ({
       attachmentDownload: s.dispatch.attachmentDownload,
       messageAttachmentNativeShare: s.dispatch.messageAttachmentNativeShare,

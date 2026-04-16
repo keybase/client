@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AudioRecorder from '@/chat/audio/audio-recorder.native'
@@ -235,7 +235,7 @@ const Buttons = function Buttons(p: ButtonsProps) {
     updatePickerMap(pickKey, undefined)
   }, [emojiStr, insertText, lastEmoji, updatePickerMap])
 
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const openEmojiPicker = () => {
     navigateAppend(conversationIDKey => ({
       name: 'chatChooseEmoji',
@@ -351,9 +351,9 @@ type ChatFilePickerProps = {
 }
 const ChatFilePicker = (p: ChatFilePickerProps) => {
   const {attachTo, showingPopup, hidePopup} = p
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const filePickerError = useConfigState(s => s.dispatch.filePickerError)
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed' | 'file', location: string) => {
     const f = async () => {
       const handleSelection = (result: ImagePicker.ImagePickerResult) => {
@@ -576,7 +576,7 @@ const PlatformInput = (p: Props) => {
     ourShowMenu('exploding')
   }
 
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const navigateAppend = ConvoState.useChatNavigateAppend()
   const onPasteImage = (uri: Array<string>) => {
     try {
       const pathAndOutboxIDs = uri.map(path => ({path}))

@@ -1,4 +1,6 @@
 import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
+import type {ConvoState as ConvoStateType} from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import MarkdownMemo from '@/wallets/markdown-memo'
@@ -45,7 +47,7 @@ type OwnProps = {
 }
 
 const getRequestMessageInfo = (
-  accountsInfoMap: Chat.ConvoState['accountsInfoMap'],
+  accountsInfoMap: ConvoStateType['accountsInfoMap'],
   message: T.Chat.MessageRequestPayment
 ) => {
   const maybeRequestInfo = accountsInfoMap.get(message.id)
@@ -62,7 +64,7 @@ const getRequestMessageInfo = (
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const you = useCurrentUserState(s => s.username)
-  const accountsInfoMap = Chat.useChatContext(s => s.accountsInfoMap)
+  const accountsInfoMap = ConvoState.useChatContext(s => s.accountsInfoMap)
 
   const stateProps = (() => {
     const youAreSender = ownProps.message.author === you

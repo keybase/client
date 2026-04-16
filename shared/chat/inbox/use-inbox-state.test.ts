@@ -2,12 +2,11 @@
 /// <reference types="jest" />
 
 type MockChatState = {
+  badgeStateVersion: number
   dispatch: {
     inboxRefresh: jest.Mock
-    queueMetaToRequest: jest.Mock
     setInboxRetriedOnCurrentEmpty: jest.Mock
   }
-  getUnreadIndicies: () => Map<number, number>
   inboxHasLoaded: boolean
   inboxLayout: undefined
   inboxRetriedOnCurrentEmpty: boolean
@@ -42,15 +41,20 @@ jest.mock('@/constants', () => {
 })
 
 jest.mock('@/stores/chat', () => ({
-  getConvoState: () => ({
-    dispatch: {
-      tabSelected: jest.fn(),
-    },
-  }),
   getSelectedConversation: () => '',
   isSplit: false,
   noConversationIDKey: '',
   useChatState: <T>(selector: (state: MockChatState) => T) => selector(mockChatState),
+}))
+
+jest.mock('@/stores/convostate', () => ({
+  getConvoState: () => ({
+    badge: 0,
+    dispatch: {
+      tabSelected: jest.fn(),
+    },
+  }),
+  queueMetaToRequest: jest.fn(),
 }))
 
 jest.mock('@/stores/config', () => ({
@@ -74,21 +78,18 @@ import {useInboxState} from './use-inbox-state'
 
 let mockLoadInboxNumSmallRows: jest.Mock
 let mockInboxRefresh: jest.Mock
-let mockQueueMetaToRequest: jest.Mock
 let mockSetInboxRetriedOnCurrentEmpty: jest.Mock
 
 beforeEach(() => {
   mockLoadInboxNumSmallRows = jest.fn()
   mockInboxRefresh = jest.fn()
-  mockQueueMetaToRequest = jest.fn()
   mockSetInboxRetriedOnCurrentEmpty = jest.fn()
   mockChatState = {
+    badgeStateVersion: 0,
     dispatch: {
       inboxRefresh: mockInboxRefresh,
-      queueMetaToRequest: mockQueueMetaToRequest,
       setInboxRetriedOnCurrentEmpty: mockSetInboxRetriedOnCurrentEmpty,
     },
-    getUnreadIndicies: () => new Map<number, number>(),
     inboxHasLoaded: true,
     inboxLayout: undefined,
     inboxRetriedOnCurrentEmpty: true,

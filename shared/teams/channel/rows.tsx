@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -35,7 +35,7 @@ const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
   const infoMap = useUsersState(s => s.infoMap)
   const setUserBlocks = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
-  const participantInfo = Chat.useConvoState(conversationIDKey, s => s.participants)
+  const participantInfo = ConvoState.useConvoState(conversationIDKey, s => s.participants)
   const teamsState = Teams.useTeamsState(
     C.useShallow(s => ({
       channelSelectedMembers: s.channelSelectedMembers.get(conversationIDKey),

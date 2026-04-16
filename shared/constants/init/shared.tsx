@@ -1,5 +1,6 @@
 import type * as EngineGen from '@/constants/rpc'
 import * as T from '../types'
+import * as S from '@/constants/strings'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import * as Tabs from '@/constants/tabs'
@@ -47,9 +48,23 @@ import {useModalHeaderState} from '@/stores/modal-header'
 import {useProvisionState} from '@/stores/provision'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useTeamsState} from '@/stores/teams'
+import {useWaitingState} from '@/stores/waiting'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
-import {setConvoDefer} from '@/stores/convostate'
+import {
+  onChatInboxSynced,
+  onGetInboxConvsUnboxed,
+  onGetInboxUnverifiedConvs,
+  onInboxLayoutChanged,
+  onIncomingInboxUIItem,
+  handleConvoEngineIncoming,
+  metasReceived as convoMetasReceived,
+  onRouteChanged as onConvoRouteChanged,
+  onTeamBuildingFinished as onConvoTeamBuildingFinished,
+  setConvoDefer,
+  syncBadgeState,
+  syncGregorExplodingModes,
+} from '@/stores/convostate'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 
@@ -133,7 +148,7 @@ export const initTeamBuildingCallbacks = () => {
           ...(namespace === 'chat'
             ? {
                 onFinishedTeamBuildingChat: users => {
-                  storeRegistry.getState('chat').dispatch.onTeamBuildingFinished(users)
+                  onConvoTeamBuildingFinished(users)
                 },
               }
             : {}),
@@ -166,42 +181,18 @@ export const initTeamBuildingCallbacks = () => {
   }
 }
 
-export const initChat2Callbacks = () => {
-  const currentState = useChatState.getState()
-  useChatState.setState({
-    dispatch: {
-      ...currentState.dispatch,
-      defer: {
-        onGetTeamsTeamIDToMembers: (teamID: T.Teams.TeamID) => {
-          return storeRegistry.getState('teams').teamIDToMembers.get(teamID)
-        },
-        onTeamsGetMembers: async (teamID: T.Teams.TeamID) => {
-          return storeRegistry.getState('teams').dispatch.getMembers(teamID)
-        },
-        onTeamsUpdateTeamRetentionPolicy: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
-          storeRegistry.getState('teams').dispatch.updateTeamRetentionPolicy(metas)
-        },
-      },
-    },
-  })
-}
-
 export const initSharedSubscriptions = () => {
   // HMR cleanup: unsubscribe old store subscriptions before re-subscribing
   for (const unsub of _sharedUnsubs) unsub()
   _sharedUnsubs.length = 0
 
   setConvoDefer({
-    chatBlockButtonsMapHas: teamID => storeRegistry.getState('chat').blockButtonsMap.has(teamID),
     chatInboxLayoutSmallTeamsFirstConvID: () =>
       storeRegistry.getState('chat').inboxLayout?.smallTeams?.[0]?.convID,
-    chatInboxRefresh: reason => storeRegistry.getState('chat').dispatch.inboxRefresh(reason),
-    chatMetasReceived: metas => storeRegistry.getState('chat').dispatch.metasReceived(metas),
-    chatNavigateToInbox: Util.navigateToInbox,
-    chatPreviewConversation: Util.previewConversation,
-    chatUnboxRows: (convIDs, force) => storeRegistry.getState('chat').dispatch.unboxRows(convIDs, force),
-    teamsGetMembers: async teamID => storeRegistry.getState('teams').dispatch.getMembers(teamID),
-    usersGetBio: username => storeRegistry.getState('users').dispatch.getBio(username),
+    chatInboxRefresh: reason => {
+      ignorePromise(storeRegistry.getState('chat').dispatch.inboxRefresh(reason))
+    },
+    chatMetasReceived: metas => convoMetasReceived(metas),
   })
   _sharedUnsubs.push(
     useConfigState.subscribe((s, old) => {
@@ -242,7 +233,7 @@ export const initSharedSubscriptions = () => {
             // mounts behind a pushed conversation do not pay inbox startup cost.
             if (!isPhone && useCurrentUserState.getState().username) {
               const {inboxRefresh} = useChatState.getState().dispatch
-              inboxRefresh('bootstrap')
+              ignorePromise(inboxRefresh('bootstrap'))
             }
           }
 
@@ -451,16 +442,24 @@ export const initSharedSubscriptions = () => {
         storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
       }
 
-      storeRegistry.getState('chat').dispatch.onRouteChanged(prev, next)
+      onConvoRouteChanged(prev, next)
     })
   )
-
-  initChat2Callbacks()
   initTeamBuildingCallbacks()
 }
 
 // This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
+  const routeConvoEngineIncoming = (engineAction: EngineGen.Actions) => {
+    const result = handleConvoEngineIncoming(engineAction, useChatState.getState().staticConfig)
+    if (result.inboxUIItem) {
+      onIncomingInboxUIItem(result.inboxUIItem)
+    }
+    if (result.userReacjis) {
+      useChatState.getState().dispatch.updateUserReacjis(result.userReacjis)
+    }
+  }
+
   switch (action.type) {
     case 'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged':
     case 'chat.1.NotifyChat.ChatArchiveComplete':
@@ -473,6 +472,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'keybase.1.NotifyBadges.badgeState':
       {
         const {badgeState} = action.payload.params
+        syncBadgeState(badgeState)
         useModalHeaderState
           .getState()
           .dispatch.setDeviceBadges(
@@ -501,12 +501,41 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'keybase.1.NotifyTeam.teamChangedByID':
     case 'keybase.1.NotifyTeam.teamDeleted':
     case 'keybase.1.NotifyTeam.teamExit':
-    case 'keybase.1.gregorUI.pushState':
       {
         const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
         useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case 'keybase.1.gregorUI.pushState': {
+      const {state} = action.payload.params
+      const items = state.items || []
+      const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(
+        (arr, {md, item}) => {
+          if (md && item) {
+            arr.push({item, md})
+          }
+          return arr
+        },
+        []
+      )
+      if (goodState.length !== items.length) {
+        logger.warn('Lost some messages in filtering out nonNull gregor items')
+      }
+      syncGregorExplodingModes(goodState)
+
+      const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
+      useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+      const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
+      useChatState.getState().dispatch.onEngineIncomingImpl(action)
+      break
+    }
+    case 'chat.1.NotifyChat.ChatSetTeamRetention':
+      {
+        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
+        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+        routeConvoEngineIncoming(action)
       }
       break
     case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
@@ -572,27 +601,47 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.chatUi.chatBotCommandsUpdateStatus':
     case 'chat.1.chatUi.chatGiphySearchResults':
     case 'chat.1.NotifyChat.ChatParticipantsInfo':
-    case 'chat.1.chatUi.chatMaybeMentionUpdate':
     case 'chat.1.NotifyChat.ChatConvUpdate':
     case 'chat.1.chatUi.chatCoinFlipStatus':
     case 'chat.1.NotifyChat.ChatThreadsStale':
     case 'chat.1.NotifyChat.ChatSubteamRename':
     case 'chat.1.NotifyChat.ChatTLFFinalize':
-    case 'chat.1.NotifyChat.ChatIdentifyUpdate':
-    case 'chat.1.chatUi.chatInboxUnverified':
-    case 'chat.1.NotifyChat.ChatInboxSyncStarted':
-    case 'chat.1.NotifyChat.ChatInboxSynced':
-    case 'chat.1.chatUi.chatInboxLayout':
-    case 'chat.1.NotifyChat.ChatInboxStale':
-    case 'chat.1.chatUi.chatInboxConversation':
     case 'chat.1.NotifyChat.NewChatActivity':
     case 'chat.1.NotifyChat.ChatTypingUpdate':
     case 'chat.1.NotifyChat.ChatSetConvRetention':
-    case 'chat.1.NotifyChat.ChatSetTeamRetention':
+      routeConvoEngineIncoming(action)
+      break
+    case 'chat.1.chatUi.chatMaybeMentionUpdate':
+    case 'chat.1.NotifyChat.ChatIdentifyUpdate':
+    case 'chat.1.NotifyChat.ChatInboxStale':
       {
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
+      break
+    case 'chat.1.chatUi.chatInboxUnverified':
+      onGetInboxUnverifiedConvs(action)
+      break
+    case 'chat.1.NotifyChat.ChatInboxSyncStarted':
+      useWaitingState.getState().dispatch.increment(S.waitingKeyChatInboxSyncStarted)
+      break
+    case 'chat.1.NotifyChat.ChatInboxSynced':
+      useWaitingState.getState().dispatch.clear(S.waitingKeyChatInboxSyncStarted)
+      ignorePromise(
+        onChatInboxSynced(action, async reason => useChatState.getState().dispatch.inboxRefresh(reason))
+      )
+      break
+    case 'chat.1.chatUi.chatInboxLayout': {
+      const {inboxHasLoaded, dispatch} = useChatState.getState()
+      dispatch.updateInboxLayout(action.payload.params.layout)
+      const {inboxLayout} = useChatState.getState()
+      if (inboxLayout) {
+        onInboxLayoutChanged(inboxLayout, inboxHasLoaded)
+      }
+      break
+    }
+    case 'chat.1.chatUi.chatInboxConversation':
+      onGetInboxConvsUnboxed(action)
       break
     case 'keybase.1.NotifyService.handleKeybaseLink':
       {
