@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useInboxRowsState} from '@/stores/inbox-rows'
 import {useIsFocused} from '@react-navigation/core'
 import {buildInboxRows} from './rows'
 
@@ -16,7 +17,6 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
 
   const chatState = Chat.useChatState(
     C.useShallow(s => ({
-      badgeStateVersion: s.badgeStateVersion,
       inboxHasLoaded: s.inboxHasLoaded,
       inboxLayout: s.inboxLayout,
       inboxRefresh: s.dispatch.inboxRefresh,
@@ -25,13 +25,13 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     }))
   )
   const {
-    badgeStateVersion,
     inboxHasLoaded,
     inboxLayout,
     inboxRefresh,
     inboxRetriedOnCurrentEmpty,
     setInboxRetriedOnCurrentEmpty,
   } = chatState
+  const inboxRowsVersion = useInboxRowsState(s => s.version)
   const [inboxNumSmallRows, setInboxNumSmallRowsState] = React.useState(5)
   const [smallTeamsExpanded, setSmallTeamsExpanded] = React.useState(false)
   const inboxNumSmallRowsLoadVersionRef = React.useRef(0)
@@ -178,7 +178,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
   }, [inboxRows])
 
   const unreadIndices = React.useMemo(() => {
-    void badgeStateVersion
+    void inboxRowsVersion
     const next: Map<number, number> = new Map()
     bigConvIds.forEach((conversationIDKey, idx) => {
       if (!conversationIDKey) {
@@ -190,7 +190,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       }
     })
     return next
-  }, [badgeStateVersion, bigConvIds])
+  }, [bigConvIds, inboxRowsVersion])
 
   let unreadTotal = 0
   unreadIndices.forEach(count => {

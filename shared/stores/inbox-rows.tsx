@@ -49,6 +49,7 @@ const defaultInboxRowSmall: InboxRowSmall = {
 type State = T.Immutable<{
   rowsBig: Map<string, InboxRowBig>
   rowsSmall: Map<string, InboxRowSmall>
+  version: number
   dispatch: {
     resetState: () => void
   }
@@ -58,6 +59,7 @@ export const useInboxRowsState = Z.createZustand<State>('inboxRows', () => ({
   dispatch: {resetState: Z.defaultReset},
   rowsBig: new Map(),
   rowsSmall: new Map(),
+  version: 0,
 }))
 
 // Batched update queue
@@ -102,6 +104,7 @@ export const flushInboxRowUpdates = () => {
 
   const {getConvoState} = require('./convostate') as {getConvoState: typeof GetConvoStateT}
   useInboxRowsState.setState(s => {
+    s.version += 1
     for (const id of ids) {
       const cs = getConvoState(id)
       const m = cs.meta
