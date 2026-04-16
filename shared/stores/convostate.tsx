@@ -712,7 +712,7 @@ async function runMetaQueueWorker(generation: number) {
   try {
     while (true) {
       if (useConvoMetaQueueState.getState().generation !== generation) {
-        return
+        break
       }
 
       const maxToUnboxAtATime = 10
@@ -727,7 +727,7 @@ async function runMetaQueueWorker(generation: number) {
       })
 
       if (!maybeUnbox.length) {
-        return
+        break
       }
 
       const conversationIDKeys = untrustedConversationIDKeys(maybeUnbox)
@@ -737,7 +737,7 @@ async function runMetaQueueWorker(generation: number) {
 
       const current = useConvoMetaQueueState.getState()
       if (current.generation !== generation || current.pending.size === 0) {
-        return
+        break
       }
       if (conversationIDKeys.length) {
         await timeoutPromise(100)
