@@ -123,29 +123,27 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
     }
     const loadVersion = inboxNumSmallRowsLoadVersionRef.current + 1
     inboxNumSmallRowsLoadVersionRef.current = loadVersion
-    C.ignorePromise(
-      loadInboxNumSmallRows(
-        [{path: 'ui.inboxSmallRows'}],
-        rows => {
-          if (
-            inboxNumSmallRowsLoadVersionRef.current !== loadVersion ||
-            inboxNumSmallRowsUserChangedRef.current
-          ) {
-            return
-          }
-          inboxNumSmallRowsLoadedRef.current = true
-          const count = rows.i ?? -1
-          if (count > 0) {
-            setInboxNumSmallRowsState(count)
-          }
-        },
-        () => {
-          if (inboxNumSmallRowsLoadVersionRef.current !== loadVersion) {
-            return
-          }
-          inboxNumSmallRowsLoadedRef.current = true
+    loadInboxNumSmallRows(
+      [{path: 'ui.inboxSmallRows'}],
+      rows => {
+        if (
+          inboxNumSmallRowsLoadVersionRef.current !== loadVersion ||
+          inboxNumSmallRowsUserChangedRef.current
+        ) {
+          return
         }
-      )
+        inboxNumSmallRowsLoadedRef.current = true
+        const count = rows.i ?? -1
+        if (count > 0) {
+          setInboxNumSmallRowsState(count)
+        }
+      },
+      () => {
+        if (inboxNumSmallRowsLoadVersionRef.current !== loadVersion) {
+          return
+        }
+        inboxNumSmallRowsLoadedRef.current = true
+      }
     )
     return () => {
       if (inboxNumSmallRowsLoadVersionRef.current === loadVersion) {
