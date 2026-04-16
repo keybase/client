@@ -15,15 +15,17 @@ import {chatStores} from '@/stores/convo-registry'
 import {
   ensureWidgetMetas as ensureConvoWidgetMetas,
   handleConvoEngineIncoming,
+  hydrateInboxConversations,
   hydrateInboxLayout,
+  loadSelectedConversationIfStale,
   metasReceived as convoMetasReceived,
+  maybeChangeSelectedConversation,
+  syncGregorExplodingModes,
   unboxRows as convoUnboxRows,
 } from '@/stores/convostate'
 import {ignorePromise} from '@/constants/utils'
 import {isPhone} from '@/constants/platform'
-import {navigateToInbox} from '@/constants/router'
 import {storeRegistry} from '@/stores/store-registry'
-import {uint8ArrayToString} from '@/util/uint8array'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
@@ -187,7 +189,6 @@ export type State = Store & {
     inboxRefresh: (reason: RefreshReason) => void
     setInboxRetriedOnCurrentEmpty: (retried: boolean) => void
     loadStaticConfig: () => void
-    maybeChangeSelectedConv: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     onChatInboxSynced: (action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatInboxSynced'>) => void
     onGetInboxConvsUnboxed: (action: EngineGen.EngineAction<'chat.1.chatUi.chatInboxConversation'>) => void
@@ -307,51 +308,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       }
       ignorePromise(f())
     },
-    maybeChangeSelectedConv: () => {
-      const {inboxLayout} = get()
-      const newConvID = inboxLayout?.reselectInfo?.newConvID
-      const oldConvID = inboxLayout?.reselectInfo?.oldConvID
-
-      const selectedConversation = Common.getSelectedConversation()
-
-      if (!newConvID && !oldConvID) {
-        return
-      }
-
-      const existingValid = T.Chat.isValidConversationIDKey(selectedConversation)
-      // no new id, just take the opportunity to resolve
-      if (!newConvID) {
-        if (!existingValid && isPhone) {
-          logger.info(`maybeChangeSelectedConv: no new and no valid, so go to inbox`)
-          navigateToInbox(false)
-        }
-        return
-      }
-      // not matching?
-      if (selectedConversation !== oldConvID) {
-        if (!existingValid && isPhone) {
-          logger.info(`maybeChangeSelectedConv: no new and no valid, so go to inbox`)
-          navigateToInbox(false)
-        }
-        return
-      }
-      // matching
-      if (isPhone) {
-        // on mobile just head back to the inbox if we have something selected
-        if (T.Chat.isValidConversationIDKey(selectedConversation)) {
-          logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
-          navigateToInbox(false)
-          return
-        }
-        logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
-        return
-      } else {
-        logger.info(
-          `maybeChangeSelectedConv: selecting new conv: new:${newConvID} old:${oldConvID} prevselected ${selectedConversation}`
-        )
-        storeRegistry.getConvoState(newConvID).dispatch.navigateToThread('findNewestConversation')
-      }
-    },
     onChatInboxSynced: action => {
       const {syncRes} = action.payload.params
       const {clear} = useWaitingState.getState().dispatch
@@ -377,15 +333,12 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         // We got some new messages appended
         case T.RPCChat.SyncInboxResType.incremental: {
           const items = syncRes.incremental.items || []
-          const selectedConversation = Common.getSelectedConversation()
           const metas = items.reduce<Array<T.Chat.ConversationMeta>>((arr, i) => {
             const meta = Meta.unverifiedInboxUIItemToConversationMeta(i.conv)
             if (meta) arr.push(meta)
             return arr
           }, [])
-          if (metas.some(m => m.conversationIDKey === selectedConversation)) {
-            storeRegistry.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
-          }
+          loadSelectedConversationIfStale(metas)
           const removals = syncRes.incremental.removals?.map(T.Chat.stringToConversationIDKey)
           // Update new untrusted
           if (metas.length || removals?.length) {
@@ -450,7 +403,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           break
         case 'chat.1.chatUi.chatInboxLayout':
           get().dispatch.updateInboxLayout(action.payload.params.layout)
-          get().dispatch.maybeChangeSelectedConv()
+          maybeChangeSelectedConversation(get().inboxLayout)
           ensureConvoWidgetMetas(get().inboxLayout?.widgetList)
           break
         case 'chat.1.NotifyChat.ChatInboxStale':
@@ -490,21 +443,8 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       const {infoMap} = useUsersState.getState()
       const {convs} = action.payload.params
       const inboxUIItems = JSON.parse(convs) as Array<T.RPCChat.InboxUIItem>
-      const metas: Array<T.Chat.ConversationMeta> = []
       const usernameToFullname: {[username: string]: string} = {}
       inboxUIItems.forEach(inboxUIItem => {
-        const meta = Meta.inboxUIItemToConversationMeta(inboxUIItem)
-        if (meta) {
-          metas.push(meta)
-        }
-        const participantInfo: T.Chat.ParticipantInfo = Common.uiParticipantsToParticipantInfo(
-          inboxUIItem.participants ?? []
-        )
-        if (participantInfo.all.length > 0) {
-          storeRegistry
-            .getConvoState(T.Chat.stringToConversationIDKey(inboxUIItem.convID))
-            .dispatch.setParticipants(participantInfo)
-        }
         inboxUIItem.participants?.forEach((part: T.RPCChat.UIParticipant) => {
           const {assertion, fullName} = part
           if (!infoMap.get(assertion) && fullName) {
@@ -520,9 +460,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           }))
         )
       }
-      if (metas.length > 0) {
-        convoMetasReceived(metas)
-      }
+      hydrateInboxConversations(inboxUIItems)
     },
     onGetInboxUnverifiedConvs: action => {
       const {inbox} = action.payload.params
@@ -620,33 +558,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       })
     },
     updatedGregor: items => {
-      const explodingItems = items.filter(i =>
-        i.item.category.startsWith(Common.explodingModeGregorKeyPrefix)
-      )
-      if (!explodingItems.length) {
-        // No conversations have exploding modes, clear out what is set
-        for (const s of chatStores.values()) {
-          s.getState().dispatch.setExplodingMode(0, true)
-        }
-      } else {
-        // logger.info('Got push state with some exploding modes')
-        explodingItems.forEach(i => {
-          try {
-            const {category, body} = i.item
-            const secondsString = uint8ArrayToString(body)
-            const seconds = parseInt(secondsString, 10)
-            if (isNaN(seconds)) {
-              logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
-              return
-            }
-            const _conversationIDKey = category.substring(Common.explodingModeGregorKeyPrefix.length)
-            const conversationIDKey = T.Chat.stringToConversationIDKey(_conversationIDKey)
-            storeRegistry.getConvoState(conversationIDKey).dispatch.setExplodingMode(seconds, true)
-          } catch (e) {
-            logger.info('Error parsing exploding' + e)
-          }
-        })
-      }
+      syncGregorExplodingModes(items)
 
       set(s => {
         const blockButtons = items.some(i => i.item.category.startsWith(blockButtonsGregorPrefix))

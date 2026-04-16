@@ -42,7 +42,7 @@ import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import * as Platform from '@/constants/platform'
 import KB2 from '@/util/electron'
 import {NotifyPopup} from '@/util/misc'
-import {hexToUint8Array} from '@/util/uint8array'
+import {hexToUint8Array, uint8ArrayToString} from '@/util/uint8array'
 import {clearChatTimeCache} from '@/util/timestamp'
 import {registerExternalResetter} from '@/util/zustand'
 import * as Config from '@/constants/config'
@@ -522,6 +522,56 @@ export const metasReceived = (
   })
 }
 
+export const maybeChangeSelectedConversation = (inboxLayout?: T.RPCChat.UIInboxLayout) => {
+  const newConvID = inboxLayout?.reselectInfo?.newConvID
+  const oldConvID = inboxLayout?.reselectInfo?.oldConvID
+
+  const selectedConversation = Common.getSelectedConversation()
+
+  if (!newConvID && !oldConvID) {
+    return
+  }
+
+  const existingValid = T.Chat.isValidConversationIDKey(selectedConversation)
+  if (!newConvID) {
+    if (!existingValid && isMobile) {
+      logger.info(`maybeChangeSelectedConversation: no new and no valid, so go to inbox`)
+      navigateToInbox(false)
+    }
+    return
+  }
+
+  if (selectedConversation !== oldConvID) {
+    if (!existingValid && isMobile) {
+      logger.info(`maybeChangeSelectedConversation: no new and no valid, so go to inbox`)
+      navigateToInbox(false)
+    }
+    return
+  }
+
+  if (isMobile) {
+    if (T.Chat.isValidConversationIDKey(selectedConversation)) {
+      logger.info(`maybeChangeSelectedConversation: mobile: navigating up on conv change`)
+      navigateToInbox(false)
+      return
+    }
+    logger.info(`maybeChangeSelectedConversation: mobile: ignoring conv change, no conv selected`)
+    return
+  }
+
+  logger.info(
+    `maybeChangeSelectedConversation: selecting new conv: new:${newConvID} old:${oldConvID} prevselected ${selectedConversation}`
+  )
+  getConvoState(newConvID).dispatch.navigateToThread('findNewestConversation')
+}
+
+export const loadSelectedConversationIfStale = (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
+  const selectedConversation = Common.getSelectedConversation()
+  if (metas.some(meta => meta.conversationIDKey === selectedConversation)) {
+    getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+  }
+}
+
 export const hydrateInboxLayout = (layout: T.RPCChat.UIInboxLayout) => {
   layout.smallTeams?.forEach(t => {
     const cs = getConvoState(t.convID)
@@ -545,6 +595,25 @@ export const hydrateInboxLayout = (layout: T.RPCChat.UIInboxLayout) => {
   })
   // Flush inbox row updates synchronously to prevent flash of empty content
   flushInboxRowUpdates()
+}
+
+export const hydrateInboxConversations = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIItem>) => {
+  const metas: Array<T.Chat.ConversationMeta> = []
+  inboxUIItems.forEach(inboxUIItem => {
+    const meta = Meta.inboxUIItemToConversationMeta(inboxUIItem)
+    if (meta) {
+      metas.push(meta)
+    }
+    const participantInfo: T.Chat.ParticipantInfo = Common.uiParticipantsToParticipantInfo(
+      inboxUIItem.participants ?? []
+    )
+    if (participantInfo.all.length > 0) {
+      getConvoState(T.Chat.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(participantInfo)
+    }
+  })
+  if (metas.length > 0) {
+    metasReceived(metas)
+  }
 }
 
 let metaQueue: Set<T.Chat.ConversationIDKey> = __DEV__
@@ -648,6 +717,36 @@ export const ensureWidgetMetas = (
     return
   }
   unboxRows(missing, true)
+}
+
+export const syncGregorExplodingModes = (
+  items: ReadonlyArray<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
+) => {
+  const explodingItems = items.filter(i => i.item.category.startsWith(Common.explodingModeGregorKeyPrefix))
+  if (!explodingItems.length) {
+    for (const store of chatStores.values()) {
+      store.getState().dispatch.setExplodingMode(0, true)
+    }
+    return
+  }
+
+  explodingItems.forEach(i => {
+    try {
+      const {category, body} = i.item
+      const secondsString = uint8ArrayToString(body)
+      const seconds = parseInt(secondsString, 10)
+      if (isNaN(seconds)) {
+        logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
+        return
+      }
+      const conversationIDKey = T.Chat.stringToConversationIDKey(
+        category.substring(Common.explodingModeGregorKeyPrefix.length)
+      )
+      getConvoState(conversationIDKey).dispatch.setExplodingMode(seconds, true)
+    } catch (error) {
+      logger.info('Error parsing exploding' + error)
+    }
+  })
 }
 
 type ConvoEngineIncomingResult = {
