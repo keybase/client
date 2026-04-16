@@ -2,6 +2,8 @@ import type * as React from 'react'
 import * as T from './types'
 import type * as ConvoRegistryType from '@/stores/convo-registry'
 import type * as ConvoStateType from '@/stores/convostate'
+import type * as UseChatStateType from '@/stores/chat'
+import type * as UseCurrentUserStateType from '@/stores/current-user'
 import * as Tabs from './tabs'
 import {
   StackActions,
@@ -15,7 +17,7 @@ import {
 import type {StaticScreenProps} from '@react-navigation/core'
 import type {NavigateAppendType, RouteKeys, RootParamList as KBRootParamList} from '@/router-v2/route-params'
 import type {GetOptionsRet, RouteDef} from './types/router'
-import {isSplit} from './chat/layout'
+import {isSplit, threadRouteName} from './chat/layout'
 import {isMobile} from './platform'
 import {ignorePromise, shallowEqual} from './utils'
 import {registerDebugClear} from '@/util/debug'
@@ -23,6 +25,7 @@ import {makeUUID} from '@/util/uuid'
 import {storeRegistry} from '@/stores/store-registry'
 import * as Meta from './chat/meta'
 import * as Strings from './strings'
+import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 
 // Detects the unconstrained Record<string,unknown> index-signature type.
@@ -65,6 +68,23 @@ export type Navigator = NavigationContainerRef<KBRootParamList>
 
 const DEBUG_NAV = __DEV__ && (false as boolean)
 const rootNonModalRouteNames = new Set<string>(['chatConversation'])
+
+const uiParticipantsToParticipantInfo = (
+  uiParticipants: ReadonlyArray<T.RPCChat.UIParticipant>
+): T.Chat.ParticipantInfo => {
+  const participantInfo = {all: new Array<string>(), contactName: new Map(), name: new Array<string>()}
+  uiParticipants.forEach(part => {
+    const {assertion, contactName, inConvName} = part
+    participantInfo.all.push(assertion)
+    if (inConvName) {
+      participantInfo.name.push(assertion)
+    }
+    if (contactName) {
+      participantInfo.contactName.set(assertion, contactName)
+    }
+  })
+  return participantInfo
+}
 
 export const getRootState = (): NavState | undefined => {
   if (!navigationRef.isReady()) return
@@ -367,6 +387,79 @@ export const leaveConversation = (
   switchTab(Tabs.chatTab)
 }
 
+export const createConversation = (
+  participants: ReadonlyArray<string>,
+  highlightMessageID?: T.Chat.MessageID
+) => {
+  // TODO This will break if you try to make 2 new conversations at the same time because there is
+  // only one pending conversation state.
+  // The fix involves being able to make multiple pending conversations.
+  const f = async () => {
+    const {useCurrentUserState} = require('@/stores/current-user') as typeof UseCurrentUserStateType
+    const username = useCurrentUserState.getState().username
+    if (!username) {
+      logger.error('Making a convo while logged out?')
+      return
+    }
+
+    try {
+      const result = await T.RPCChat.localNewConversationLocalRpcPromise(
+        {
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          membersType: T.RPCChat.ConversationMembersType.impteamnative,
+          tlfName: [...new Set([username, ...participants])].join(','),
+          tlfVisibility: T.RPCGen.TLFVisibility.private,
+          topicType: T.RPCChat.TopicType.chat,
+        },
+        Strings.waitingKeyChatCreating
+      )
+      const {conv, uiConv} = result
+      const conversationIDKey = T.Chat.conversationIDToKey(conv.info.id)
+      if (!conversationIDKey) {
+        logger.warn("Couldn't make a new conversation?")
+        return
+      }
+
+      const {metasReceived} = require('@/stores/convostate') as typeof ConvoStateType
+      const meta = Meta.inboxUIItemToConversationMeta(uiConv)
+      if (meta) {
+        metasReceived([meta])
+      }
+
+      const participantInfo = uiParticipantsToParticipantInfo(uiConv.participants ?? [])
+      if (participantInfo.all.length > 0) {
+        storeRegistry.getConvoState(conversationIDKey).dispatch.setParticipants(participantInfo)
+      }
+
+      navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
+
+      const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
+      ignorePromise(useChatState.getState().dispatch.inboxRefresh('joinedAConversation'))
+    } catch (error) {
+      if (error instanceof RPCError) {
+        const fields = error.fields as Array<{key?: string}> | undefined
+        const errUsernames = fields?.filter(elem => elem.key === 'usernames') as
+          | undefined
+          | Array<{key: string; value: string}>
+        let disallowedUsers: Array<string> = []
+        if (errUsernames?.length) {
+          const {value} = errUsernames[0] ?? {value: ''}
+          disallowedUsers = value.split(',')
+        }
+        const allowedUsers = participants.filter(x => !disallowedUsers.includes(x))
+        navigateToThread(T.Chat.pendingErrorConversationIDKey, 'justCreated', highlightMessageID, undefined, {
+          allowedUsers,
+          code: error.code,
+          disallowedUsers,
+          message: error.desc,
+        })
+      }
+    }
+  }
+
+  ignorePromise(f())
+}
+
 export const previewConversation = (p: PreviewConversationParams) => {
   const previewConversationPersonMakesAConversation = () => {
     const {participants, teamname, highlightMessageID} = p
@@ -380,17 +473,12 @@ export const previewConversation = (p: PreviewConversationParams) => {
       if (names.length !== toFindN) continue
       const participantSet = [...names].sort().join(',')
       if (participantSet === toFind) {
-        storeRegistry
-          .getConvoState(cs.getState().id)
-          .dispatch.navigateToThread('justCreated', highlightMessageID)
+        navigateToThread(cs.getState().id, 'justCreated', highlightMessageID)
         return
       }
     }
 
-    storeRegistry
-      .getConvoState(T.Chat.pendingWaitingConversationIDKey)
-      .dispatch.navigateToThread('justCreated')
-    const {createConversation} = require('@/stores/convostate') as typeof ConvoStateType
+    navigateToThread(T.Chat.pendingWaitingConversationIDKey, 'justCreated')
     createConversation(participants, highlightMessageID)
   }
 
@@ -408,9 +496,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
         })
       }
 
-      storeRegistry
-        .getConvoState(conversationIDKey)
-        .dispatch.navigateToThread('previewResolved', highlightMessageID)
+      navigateToThread(conversationIDKey, 'previewResolved', highlightMessageID)
       return
     }
 
@@ -456,9 +542,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
         metasReceived([meta])
       }
 
-      storeRegistry
-        .getConvoState(first.conversationIDKey)
-        .dispatch.navigateToThread('previewResolved', highlightMessageID)
+      navigateToThread(first.conversationIDKey, 'previewResolved', highlightMessageID)
     } catch (error) {
       if (
         error instanceof RPCError &&
@@ -545,7 +629,36 @@ type ThreadNavParams = {
   threadSearch?: {query?: string}
 }
 
-export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: ThreadNavParams) => {
+export type NavigateToThreadReason =
+  | 'focused'
+  | 'clearSelected'
+  | 'desktopNotification'
+  | 'createdMessagePrivately'
+  | 'extension'
+  | 'files'
+  | 'findNewestConversation'
+  | 'findNewestConversationFromLayout'
+  | 'inboxBig'
+  | 'inboxFilterArrow'
+  | 'inboxFilterChanged'
+  | 'inboxSmall'
+  | 'inboxNewConversation'
+  | 'inboxSearch'
+  | 'jumpFromReset'
+  | 'jumpToReset'
+  | 'justCreated'
+  | 'manageView'
+  | 'previewResolved'
+  | 'push'
+  | 'savedLastState'
+  | 'startFoundExisting'
+  | 'teamChat'
+  | 'addedToChannel'
+  | 'navChanged'
+  | 'misc'
+  | 'teamMention'
+
+const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: ThreadNavParams) => {
   DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
   const n = _getNavigator()
   if (!n) return
@@ -581,6 +694,52 @@ export const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navPara
       ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
       target: rs.key,
     })
+  }
+}
+
+export const navigateToThread = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  reason: NavigateToThreadReason,
+  highlightMessageID?: T.Chat.MessageID,
+  threadSearchQuery?: string,
+  createConversationError?: T.Chat.CreateConversationError
+) => {
+  storeRegistry.getConvoState(conversationIDKey).dispatch.prepareToNavigateToThread(highlightMessageID)
+
+  if (reason === 'navChanged') {
+    return
+  }
+
+  const visible = getVisibleScreen()
+  const params = visible?.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
+  const visibleConvo = params?.conversationIDKey
+  const visibleRouteName = visible?.name
+
+  if (visibleRouteName !== threadRouteName && reason === 'findNewestConversation') {
+    return
+  }
+
+  const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
+  const navParams = {createConversationError, threadSearch}
+  if (isSplit) {
+    navToThread(conversationIDKey, navParams)
+  } else if (reason === 'push' || reason === 'savedLastState') {
+    navToThread(conversationIDKey, navParams)
+  } else {
+    const replace =
+      visibleRouteName === threadRouteName && !T.Chat.isValidConversationIDKey(visibleConvo ?? '')
+    const modalPath = getModalStack()
+    if (modalPath.length > 0) {
+      clearModals()
+    }
+
+    navigateAppend(
+      {
+        name: threadRouteName,
+        params: {conversationIDKey, createConversationError, threadSearch},
+      },
+      replace
+    )
   }
 }
 

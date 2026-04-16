@@ -4,14 +4,15 @@ import * as TeamsUtil from '@/constants/teams'
 import * as PlatformSpecific from '@/util/platform-specific'
 import {
   clearModals,
+  createConversation,
   getTab,
   navigateAppend,
   navigateToInbox,
+  navigateToThread as routerNavigateToThread,
   navigateUp,
   previewConversation,
   getVisibleScreen,
   getModalStack,
-  navToThread,
   setChatRootParams,
 } from '@/constants/router'
 import type * as Router2 from '@/constants/router'
@@ -62,35 +63,6 @@ const noParticipantInfo: T.Chat.ParticipantInfo = {
   name: [],
 }
 
-type NavReason =
-  | 'focused' // nav focus changed
-  | 'clearSelected' // deselect
-  | 'desktopNotification' // clicked notification
-  | 'createdMessagePrivately' // messaging privately and maybe made it
-  | 'extension' // from a notification from iOS share extension
-  | 'files' // from the Files tab
-  | 'findNewestConversation' // find a new chat to select (from service)
-  | 'findNewestConversationFromLayout' // find a small chat to select (from js)
-  | 'inboxBig' // inbox row
-  | 'inboxFilterArrow' // arrow keys in inbox filter
-  | 'inboxFilterChanged' // inbox filter made first one selected
-  | 'inboxSmall' // inbox row
-  | 'inboxNewConversation' // new conversation row
-  | 'inboxSearch' // selected from inbox seaech
-  | 'jumpFromReset' // from older reset convo
-  | 'jumpToReset' // going to an older reset convo
-  | 'justCreated' // just made it and select it
-  | 'manageView' // clicked from manage screen
-  | 'previewResolved' // did a preview and are now selecting it
-  | 'push' // from a push
-  | 'savedLastState' // last seen chat tab
-  | 'startFoundExisting' // starting a conversation and found one already
-  | 'teamChat' // from team
-  | 'addedToChannel' // just added people to this channel
-  | 'navChanged' // the nav state changed
-  | 'misc' // misc
-  | 'teamMention' // from team mention
-
 type LoadMoreReason =
   | 'jumpAttachment'
   | 'foregrounding'
@@ -100,7 +72,7 @@ type LoadMoreReason =
   | 'scroll forward'
   | 'scroll back'
   | 'tab selected'
-  | NavReason
+  | Router2.NavigateToThreadReason
 
 type ConvoStore = T.Immutable<{
   id: T.Chat.ConversationIDKey
@@ -292,14 +264,8 @@ export interface ConvoState extends ConvoStore {
       ordinals?: ReadonlyArray<T.Chat.Ordinal>
     }) => void
     mute: (m: boolean) => void
-    navigateToThread: (
-      reason: NavReason,
-      highlightMessageID?: T.Chat.MessageID,
-      pushBody?: string,
-      threadSearchQuery?: string,
-      createConversationError?: T.Chat.CreateConversationError
-    ) => void
     openFolder: () => void
+    prepareToNavigateToThread: (highlightMessageID?: T.Chat.MessageID) => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     onIncomingMessage: (incoming: T.RPCChat.IncomingMessage) => void
     onMessageErrored: (outboxID: T.Chat.OutboxID, reason: string, errorTyp?: number) => void
@@ -584,7 +550,7 @@ export const maybeChangeSelectedConversation = (inboxLayout?: T.RPCChat.UIInboxL
   logger.info(
     `maybeChangeSelectedConversation: selecting new conv: new:${newConvID} old:${oldConvID} prevselected ${selectedConversation}`
   )
-  getConvoState(newConvID).dispatch.navigateToThread('findNewestConversation')
+  routerNavigateToThread(newConvID, 'findNewestConversation')
 }
 
 export const loadSelectedConversationIfStale = (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
@@ -1240,85 +1206,11 @@ export const handleConvoEngineIncoming = (
   }
 }
 
-export const createConversation = (
-  participants: ReadonlyArray<string>,
-  highlightMessageID?: T.Chat.MessageID
-) => {
-  // TODO This will break if you try to make 2 new conversations at the same time because there is
-  // only one pending conversation state.
-  // The fix involves being able to make multiple pending conversations.
-  const f = async () => {
-    const username = useCurrentUserState.getState().username
-    if (!username) {
-      logger.error('Making a convo while logged out?')
-      return
-    }
-    try {
-      const result = await T.RPCChat.localNewConversationLocalRpcPromise(
-        {
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          membersType: T.RPCChat.ConversationMembersType.impteamnative,
-          tlfName: [...new Set([username, ...participants])].join(','),
-          tlfVisibility: T.RPCGen.TLFVisibility.private,
-          topicType: T.RPCChat.TopicType.chat,
-        },
-        Strings.waitingKeyChatCreating
-      )
-      const {conv, uiConv} = result
-      const conversationIDKey = T.Chat.conversationIDToKey(conv.info.id)
-      if (!conversationIDKey) {
-        logger.warn("Couldn't make a new conversation?")
-        return
-      }
-
-      const meta = Meta.inboxUIItemToConversationMeta(uiConv)
-      if (meta) {
-        metasReceived([meta])
-      }
-
-      const participantInfo: T.Chat.ParticipantInfo = Common.uiParticipantsToParticipantInfo(
-        uiConv.participants ?? []
-      )
-      if (participantInfo.all.length > 0) {
-        getConvoState(T.Chat.stringToConversationIDKey(uiConv.convID)).dispatch.setParticipants(participantInfo)
-      }
-      getConvoState(conversationIDKey).dispatch.navigateToThread('justCreated', highlightMessageID)
-      getConvoState(conversationIDKey).dispatch.defer.chatInboxRefresh('joinedAConversation')
-    } catch (error) {
-      if (error instanceof RPCError) {
-        const f = error.fields as Array<{key?: string}> | undefined
-        const errUsernames = f?.filter(elem => elem.key === 'usernames') as
-          | undefined
-          | Array<{key: string; value: string}>
-        let disallowedUsers: Array<string> = []
-        if (errUsernames?.length) {
-          const {value} = errUsernames[0] ?? {value: ''}
-          disallowedUsers = value.split(',')
-        }
-        const allowedUsers = participants.filter(x => !disallowedUsers.includes(x))
-        getConvoState(T.Chat.pendingErrorConversationIDKey).dispatch.navigateToThread(
-          'justCreated',
-          highlightMessageID,
-          undefined,
-          undefined,
-          {
-            allowedUsers,
-            code: error.code,
-            disallowedUsers,
-            message: error.desc,
-          }
-        )
-      }
-    }
-  }
-  ignorePromise(f())
-}
-
 export const onTeamBuildingFinished = (users: ReadonlySet<T.TB.User>) => {
   const f = async () => {
     // need to let the modal hide first else its thrashy
     await timeoutPromise(500)
-    getConvoState(T.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+    routerNavigateToThread(T.Chat.pendingWaitingConversationIDKey, 'justCreated')
     createConversation([...users].map(u => u.id))
   }
   ignorePromise(f())
@@ -1628,7 +1520,7 @@ const createSlice =
       const onClick = () => {
         useConfigState.getState().dispatch.showMain()
         navigateToInbox()
-        get().dispatch.navigateToThread('desktopNotification')
+        routerNavigateToThread(get().id, 'desktopNotification')
       }
       const onClose = () => {}
       logger.info('invoking NotifyPopup for chat notification')
@@ -3158,7 +3050,7 @@ const createSlice =
           const text = formatTextForQuoting(message.text.stringValue())
           getConvoUIState(newThreadCID).dispatch.injectIntoInput(text)
           get().dispatch.defer.chatMetasReceived([meta])
-          getConvoState(newThreadCID).dispatch.navigateToThread('createdMessagePrivately')
+          routerNavigateToThread(newThreadCID, 'createdMessagePrivately')
         }
         ignorePromise(f())
       },
@@ -3265,13 +3157,7 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      navigateToThread: (
-        _reason,
-        highlightMessageID,
-        _pushBody,
-        threadSearchQuery,
-        createConversationError
-      ) => {
+      prepareToNavigateToThread: highlightMessageID => {
         set(s => {
           // force loaded if we're an error
           if (s.id === T.Chat.pendingErrorConversationIDKey) {
@@ -3279,53 +3165,6 @@ const createSlice =
           }
           s.pendingJumpMessageID = highlightMessageID
         })
-
-        const updateNav = () => {
-          const reason = _reason
-          if (reason === 'navChanged') {
-            return
-          }
-          const conversationIDKey = get().id
-          const visible = getVisibleScreen()
-          const params = visible?.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
-          const visibleConvo = params?.conversationIDKey
-          const visibleRouteName = visible?.name
-
-          if (visibleRouteName !== Common.threadRouteName && reason === 'findNewestConversation') {
-            // service is telling us to change our selection but we're not looking, ignore
-            return
-          }
-
-          // we select the chat tab and change the params
-          const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
-          const navParams = {createConversationError, threadSearch}
-          if (Common.isSplit) {
-            navToThread(conversationIDKey, navParams)
-            // immediately switch stack to an inbox | thread stack
-          } else if (reason === 'push' || reason === 'savedLastState') {
-            navToThread(conversationIDKey, navParams)
-            return
-          } else {
-            // replace if looking at the pending / waiting screen
-            const replace =
-              visibleRouteName === Common.threadRouteName &&
-              !T.Chat.isValidConversationIDKey(visibleConvo ?? '')
-            // note: we don't switch tabs on non split
-            const modalPath = getModalStack()
-            if (modalPath.length > 0) {
-              clearModals()
-            }
-
-            navigateAppend(
-              {
-                name: Common.threadRouteName,
-                params: {conversationIDKey, createConversationError, threadSearch},
-              },
-              replace
-            )
-          }
-        }
-        updateNav()
       },
       onEngineIncoming: action => {
         switch (action.type) {

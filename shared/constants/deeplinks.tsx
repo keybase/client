@@ -1,6 +1,6 @@
 import logger from '@/logger'
 import * as T from '@/constants/types'
-import {navigateAppend, navToProfile, navToThread, previewConversation, switchTab} from './router'
+import {navigateAppend, navigateToThread, navToProfile, previewConversation, switchTab} from './router'
 import * as Tabs from './tabs'
 import {useTeamsState} from '@/stores/teams'
 
@@ -60,7 +60,7 @@ const handleKeybaseLink = (link: string) => {
   switch (parts[0]) {
     case 'convid':
       if (parts[1]) {
-        navToThread(parts[1])
+        navigateToThread(parts[1], 'push')
         return
       }
       break

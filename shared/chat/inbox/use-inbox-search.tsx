@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 import logger from '@/logger'
@@ -447,14 +448,9 @@ export function useInboxSearch(): InboxSearchController {
       }
 
       if (query) {
-        ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread(
-          'inboxSearch',
-          undefined,
-          undefined,
-          query
-        )
+        C.Router2.navigateToThread(conversationIDKey, 'inboxSearch', undefined, query)
       } else {
-        ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSearch')
+        C.Router2.navigateToThread(conversationIDKey, 'inboxSearch')
         clearSearch()
       }
     },

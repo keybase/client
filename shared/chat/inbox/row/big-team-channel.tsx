@@ -1,4 +1,4 @@
-import * as ConvoState from '@/stores/convostate'
+import * as C from '@/constants'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
@@ -15,8 +15,7 @@ const BigTeamChannel = (props: Props) => {
   const row = useInboxRowBig(conversationIDKey)
   const {channelname, isMuted, hasBadge, hasDraft, hasUnread, isError, snippetDecoration} = row
 
-  const onSelectConversation = () =>
-    ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxBig')
+  const onSelectConversation = () => C.Router2.navigateToThread(conversationIDKey, 'inboxBig')
 
   let outboxTooltip: string | undefined
   let outboxIcon: React.ReactNode = null

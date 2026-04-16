@@ -35,7 +35,7 @@ const SmallTeam = (p: Props) => {
     : (p.onSelectConversation ??
         (() => {
           setOpenedRow(Chat.noConversationIDKey)
-          ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread('inboxSmall')
+          C.Router2.navigateToThread(conversationIDKey, 'inboxSmall')
         }))
 
   const backgroundColor = isSelected

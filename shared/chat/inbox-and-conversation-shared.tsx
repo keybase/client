@@ -44,7 +44,7 @@ export function InboxAndConversationShell(props: Props) {
       lastAutoSelectedCIDRef.current = selectNextConvo
       // need to defer , not sure why, shouldn't be
       setTimeout(() => {
-        ConvoState.getConvoState(selectNextConvo).dispatch.navigateToThread('findNewestConversationFromLayout')
+        C.Router2.navigateToThread(selectNextConvo, 'findNewestConversationFromLayout')
       }, 100)
     }
   }, [conversationIDKey, selectNextConvo, validConvoID])

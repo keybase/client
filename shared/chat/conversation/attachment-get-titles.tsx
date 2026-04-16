@@ -41,7 +41,7 @@ const Container = (ownProps: OwnProps) => {
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.Router2.navigateUp
-  const navigateToThread = ConvoState.useChatContext(s => s.dispatch.navigateToThread)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const attachmentUploadCanceled = ConvoState.useChatContext(s => s.dispatch.attachmentUploadCanceled)
   const onCancel = () => {
     attachmentUploadCanceled(
@@ -65,7 +65,7 @@ const Container = (ownProps: OwnProps) => {
     clearModals()
 
     if (selectConversationWithReason) {
-      navigateToThread(selectConversationWithReason)
+      C.Router2.navigateToThread(conversationIDKey, selectConversationWithReason)
     }
   }
   const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}) => {
