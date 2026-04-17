@@ -9,7 +9,6 @@ import NativeEmoji from './emoji/native-emoji'
 import * as Styles from '@/styles'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {storeRegistry} from '@/stores/store-registry'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const Kb = {
@@ -86,7 +85,7 @@ const WaveButtonImpl = (props: Props) => {
             logger.warn("WaveButton: couldn't resolve wave conversation")
             return
           }
-          storeRegistry.getConvoState(conversationIDKey).dispatch.sendMessage(':wave:')
+          ConvoState.getConvoState(conversationIDKey).dispatch.sendMessage(':wave:')
         },
         error => {
           logger.warn('Could not send in WaveButton', error.message)

@@ -22,7 +22,6 @@ import {isMobile} from './platform'
 import {ignorePromise, shallowEqual} from './utils'
 import {registerDebugClear} from '@/util/debug'
 import {makeUUID} from '@/util/uuid'
-import {storeRegistry} from '@/stores/store-registry'
 import * as Meta from './chat/meta'
 import * as Strings from './strings'
 import logger from '@/logger'
@@ -84,6 +83,11 @@ const uiParticipantsToParticipantInfo = (
     }
   })
   return participantInfo
+}
+
+const getConvoState = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const {getConvoState} = require('@/stores/convostate') as typeof ConvoStateType
+  return getConvoState(conversationIDKey)
 }
 
 export const getRootState = (): NavState | undefined => {
@@ -435,7 +439,7 @@ export const createConversation = (
 
       const participantInfo = uiParticipantsToParticipantInfo(uiConv.participants ?? [])
       if (participantInfo.all.length > 0) {
-        storeRegistry.getConvoState(conversationIDKey).dispatch.setParticipants(participantInfo)
+        getConvoState(conversationIDKey).dispatch.setParticipants(participantInfo)
       }
 
       navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
@@ -711,7 +715,7 @@ export const navigateToThread = (
   threadSearchQuery?: string,
   createConversationError?: T.Chat.CreateConversationError
 ) => {
-  storeRegistry.getConvoState(conversationIDKey).dispatch.prepareToNavigateToThread(highlightMessageID)
+  getConvoState(conversationIDKey).dispatch.prepareToNavigateToThread(highlightMessageID)
 
   if (reason === 'navChanged') {
     return

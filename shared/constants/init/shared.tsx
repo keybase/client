@@ -33,7 +33,6 @@ import {getSelectedConversation} from '@/constants/chat/common'
 import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
 import {isMobile, isPhone, serverConfigFileName} from '../platform'
-import {storeRegistry} from '@/stores/store-registry'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
@@ -41,14 +40,20 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
+import {useFSState} from '@/stores/fs'
 import {useModalHeaderState} from '@/stores/modal-header'
+import {usePeopleState} from '@/stores/people'
 import {useProvisionState} from '@/stores/provision'
+import {useSettingsEmailState} from '@/stores/settings-email'
+import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useTeamsState} from '@/stores/teams'
+import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
 import {
+  getConvoState,
   onChatInboxSynced,
   onGetInboxConvsUnboxed,
   onGetInboxUnverifiedConvs,
@@ -88,7 +93,7 @@ export const onEngineConnected = () => {
     ignorePromise(registerUIs())
   }
   useConfigState.getState().dispatch.onEngineConnected()
-  storeRegistry.getState('daemon').dispatch.startHandshake()
+  useDaemonState.getState().dispatch.startHandshake()
   {
     const notifyCtl = async () => {
       try {
@@ -118,7 +123,7 @@ export const onEngineDisconnected = () => {
     await logger.dump()
   }
   ignorePromise(f())
-  storeRegistry.getState('daemon').dispatch.setError(new Error('Disconnected'))
+  useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
 }
 
 export const initSharedSubscriptions = () => {
@@ -180,45 +185,41 @@ export const initSharedSubscriptions = () => {
         // Re-get info about our account if you log in/we're done handshaking/became reachable
         if (s.gregorReachable === T.RPCGen.Reachable.yes) {
           // not in waiting state
-          if (storeRegistry.getState('daemon').handshakeWaiters.size === 0) {
-            ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
+          if (useDaemonState.getState().handshakeWaiters.size === 0) {
+            ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
           }
-          storeRegistry.getState('teams').dispatch.eagerLoadTeams()
+          useTeamsState.getState().dispatch.eagerLoadTeams()
         }
       }
 
       if (s.installerRanCount !== old.installerRanCount) {
-        storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
+        useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
       }
 
       if (s.loggedIn !== old.loggedIn) {
         if (s.loggedIn) {
-          ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
-          storeRegistry.getState('fs').dispatch.checkKbfsDaemonRpcStatus()
+          ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
+          useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
         } else {
           clearSignupEmail()
           clearSignupDeviceNameDraft()
         }
-        storeRegistry
-          .getState('daemon')
-          .dispatch.loadDaemonAccounts(
-            s.configuredAccounts.length,
-            s.loggedIn,
-            useConfigState.getState().dispatch.refreshAccounts
-          )
+        useDaemonState.getState().dispatch.loadDaemonAccounts(
+          s.configuredAccounts.length,
+          s.loggedIn,
+          useConfigState.getState().dispatch.refreshAccounts
+        )
         if (!s.loggedInCausedbyStartup) {
           ignorePromise(useConfigState.getState().dispatch.refreshAccounts())
         }
       }
 
       if (s.revokedTrigger !== old.revokedTrigger) {
-        storeRegistry
-          .getState('daemon')
-          .dispatch.loadDaemonAccounts(
-            s.configuredAccounts.length,
-            s.loggedIn,
-            useConfigState.getState().dispatch.refreshAccounts
-          )
+        useDaemonState.getState().dispatch.loadDaemonAccounts(
+          s.configuredAccounts.length,
+          s.loggedIn,
+          useConfigState.getState().dispatch.refreshAccounts
+        )
       }
 
       if (s.configuredAccounts !== old.configuredAccounts) {
@@ -227,12 +228,12 @@ export const initSharedSubscriptions = () => {
           name: account.username,
         }))
         if (updates.length > 0) {
-          storeRegistry.getState('users').dispatch.updates(updates)
+          useUsersState.getState().dispatch.updates(updates)
         }
       }
 
       if (s.active !== old.active) {
-        const cs = storeRegistry.getConvoState(getSelectedConversation())
+        const cs = getConvoState(getSelectedConversation())
         cs.dispatch.markThreadAsRead()
       }
     })
@@ -242,7 +243,7 @@ export const initSharedSubscriptions = () => {
     useDaemonState.subscribe((s, old) => {
       if (s.handshakeVersion !== old.handshakeVersion) {
         useDarkModeState.getState().dispatch.loadDarkPrefs()
-        storeRegistry.getState('chat').dispatch.loadStaticConfig()
+        useChatState.getState().dispatch.loadStaticConfig()
         const configState = useConfigState.getState()
         s.dispatch.loadDaemonAccounts(
           configState.configuredAccounts.length,
@@ -270,7 +271,7 @@ export const initSharedSubscriptions = () => {
             configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
           }
 
-          storeRegistry.getState('chat').dispatch.updateUserReacjis(userReacjis)
+          useChatState.getState().dispatch.updateUserReacjis(userReacjis)
         }
       }
 
@@ -332,16 +333,16 @@ export const initSharedSubscriptions = () => {
         Util.getTab(prev) === Tabs.fsTab &&
         next &&
         Util.getTab(next) !== Tabs.fsTab &&
-        storeRegistry.getState('fs').criticalUpdate
+        useFSState.getState().criticalUpdate
       ) {
-        const {dispatch} = storeRegistry.getState('fs')
+        const {dispatch} = useFSState.getState()
         dispatch.setCriticalUpdate(false)
       }
       const fsRrouteNames = ['fsRoot', 'barePreview']
       const wasScreen = fsRrouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
       const isScreen = fsRrouteNames.includes(Util.getVisibleScreen(next)?.name ?? '')
       if (wasScreen !== isScreen) {
-        const {dispatch} = storeRegistry.getState('fs')
+        const {dispatch} = useFSState.getState()
         if (wasScreen) {
           dispatch.userOut()
         } else {
@@ -355,11 +356,11 @@ export const initSharedSubscriptions = () => {
       }
 
       if (prev && Util.getTab(prev) === Tabs.peopleTab && next && Util.getTab(next) !== Tabs.peopleTab) {
-        storeRegistry.getState('people').dispatch.markViewed()
+        usePeopleState.getState().dispatch.markViewed()
       }
 
       if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
-        storeRegistry.getState('teams').dispatch.clearNavBadges()
+        useTeamsState.getState().dispatch.clearNavBadges()
       }
 
       // Clear "check your inbox" in settings when you leave the settings tab
@@ -368,9 +369,9 @@ export const initSharedSubscriptions = () => {
         Util.getTab(prev) === Tabs.settingsTab &&
         next &&
         Util.getTab(next) !== Tabs.settingsTab &&
-        storeRegistry.getState('settings-email').addedEmail
+        useSettingsEmailState.getState().addedEmail
       ) {
-        storeRegistry.getState('settings-email').dispatch.resetAddedEmail()
+        useSettingsEmailState.getState().dispatch.resetAddedEmail()
       }
 
       onConvoRouteChanged(prev, next)
@@ -486,7 +487,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         const emailAddress = action.payload.params.emailAddress
         if (emailAddress) {
-          storeRegistry.getState('settings-email').dispatch.notifyEmailVerified(emailAddress)
+          useSettingsEmailState.getState().dispatch.notifyEmailVerified(emailAddress)
         }
         clearSignupEmail()
       }
@@ -506,14 +507,12 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break
     case 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged': {
       const {list} = action.payload.params
-      storeRegistry
-        .getState('settings-phone')
-        .dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+      useSettingsPhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
       break
     }
     case 'keybase.1.NotifyEmailAddress.emailsChanged': {
       const list = action.payload.params.list ?? []
-      storeRegistry.getState('settings-email').dispatch.notifyEmailAddressEmailsChanged(list)
+      useSettingsEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
       break
     }
     case 'chat.1.chatUi.chatInboxFailed':
