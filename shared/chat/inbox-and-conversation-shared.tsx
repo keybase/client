@@ -12,6 +12,7 @@ import type {ThreadSearchRouteProps} from './conversation/thread-search-route'
 export type InboxAndConversationProps = ThreadSearchRouteProps & {
   conversationIDKey?: T.Chat.ConversationIDKey
   infoPanel?: {tab?: Panel}
+  refreshInbox?: T.Chat.ChatRootInboxRefresh
 }
 
 export type ChatRootRouteParams = InboxAndConversationProps

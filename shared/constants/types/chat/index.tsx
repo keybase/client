@@ -109,12 +109,18 @@ export type RefreshReason =
   | 'inboxStale'
   | 'inboxSyncedClear'
   | 'inboxSyncedUnknown'
+  | 'navigatedToInbox'
   | 'joinedAConversation'
   | 'leftAConversation'
   | 'teamTypeChanged'
   | 'maybeKickedFromTeam'
   | 'widgetRefresh'
   | 'shareConfigSearch'
+
+export type ChatRootInboxRefresh = {
+  nonce: string
+  reason: RefreshReason
+}
 
 export type BotPublicCommands = T.Immutable<{
   loadError: boolean

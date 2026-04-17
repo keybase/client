@@ -187,9 +187,6 @@ export const initSharedSubscriptions = () => {
   _sharedUnsubs.length = 0
 
   setConvoDefer({
-    chatInboxRefresh: reason => {
-      ignorePromise(storeRegistry.getState('chat').dispatch.inboxRefresh(reason))
-    },
     chatMetasReceived: metas => convoMetasReceived(metas),
   })
   _sharedUnsubs.push(

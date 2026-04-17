@@ -356,15 +356,21 @@ export type PreviewConversationParams = {
   reason: PreviewReason
 }
 
-export const navigateToInbox = (allowSwitchTab = true) => {
+export const navigateToInbox = (
+  allowSwitchTab = true,
+  refreshReason: T.Chat.RefreshReason = 'navigatedToInbox'
+) => {
   // Components can call this during render sometimes, so always defer.
   setTimeout(() => {
+    const refreshInbox = {nonce: makeUUID(), reason: refreshReason}
     if (getTab() !== Tabs.chatTab) {
       if (allowSwitchTab) {
+        setChatRootParams({refreshInbox})
         switchTab(Tabs.chatTab)
       }
       return
     }
+    setChatRootParams({refreshInbox})
     navUpToScreen('chatRoot')
   }, 1)
 }
@@ -383,8 +389,7 @@ export const leaveConversation = (
   if (!navToInbox) {
     return
   }
-  navUpToScreen('chatRoot')
-  switchTab(Tabs.chatTab)
+  navigateToInbox(true, 'leftAConversation')
 }
 
 export const createConversation = (
@@ -568,7 +573,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
 
 export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['chatRoot']>>) => {
   const n = _getNavigator()
-  if (!n || !isSplit) return
+  if (!n) return
   const rs = getRootState()
   const tabNavState = rs?.routes?.[0]?.state
   if (!tabNavState?.key) return

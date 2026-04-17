@@ -223,7 +223,6 @@ export interface ConvoState extends ConvoStore {
     channelSuggestionsTriggered: () => void
     clearAttachmentView: () => void
     defer: {
-      chatInboxRefresh: (reason: T.Chat.RefreshReason) => void
       chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
     }
     dismissBottomBanner: () => void
@@ -380,9 +379,6 @@ export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
 
 const stubDefer: ConvoState['dispatch']['defer'] = {
-  chatInboxRefresh: () => {
-    throw new Error('convostate defer not initialized')
-  },
   chatMetasReceived: () => {
     throw new Error('convostate defer not initialized')
   },
@@ -2723,8 +2719,7 @@ const createSlice =
               logger.warn(`loadMoreMessages: error: ${error.desc}`)
               // no longer in team
               if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
-                get().dispatch.defer.chatInboxRefresh('maybeKickedFromTeam')
-                navigateToInbox()
+                navigateToInbox(true, 'maybeKickedFromTeam')
               }
               if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
                 // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
