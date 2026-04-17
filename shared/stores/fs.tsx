@@ -545,8 +545,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   const shouldReloadFavoritesFromBadgeState = (badgeState: T.RPCGen.BadgeState) => {
     const {newTlfs, rekeysNeeded} = badgeState
     const same =
-      newTlfs === lastFavoritesBadgeState.newTlfs &&
-      rekeysNeeded === lastFavoritesBadgeState.rekeysNeeded
+      newTlfs === lastFavoritesBadgeState.newTlfs && rekeysNeeded === lastFavoritesBadgeState.rekeysNeeded
     lastFavoritesBadgeState = {newTlfs, rekeysNeeded}
     return !same
   }
@@ -616,11 +615,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     clearSubscriptions()
   }
 
-  const subscribeAndLoad = (
-    sub: {id: string},
-    topic: T.RPCGen.SubscriptionTopic,
-    load: () => void
-  ) => {
+  const subscribeAndLoad = (sub: {id: string}, topic: T.RPCGen.SubscriptionTopic, load: () => void) => {
     const oldID = sub.id
     sub.id = makeUUID()
     if (get().kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
@@ -631,6 +626,20 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
+    afterKbfsDaemonRpcStatusChanged: () => {
+      const f = async () => {
+        await afterKbfsDaemonRpcStatusChangedInPlatform()
+        if (isMobile) {
+          return
+        }
+        const {kbfsDaemonStatus, dispatch} = get()
+        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
+          dispatch.refreshDriverStatusDesktop()
+        }
+        dispatch.refreshMountDirsDesktop()
+      }
+      ignorePromise(f())
+    },
     cancelDownload: downloadID => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID})
@@ -660,20 +669,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         if (newStatus === T.FS.KbfsDaemonRpcStatus.Waiting) {
           waitForKbfsDaemon()
         }
-      }
-      ignorePromise(f())
-    },
-    afterKbfsDaemonRpcStatusChanged: () => {
-      const f = async () => {
-        await afterKbfsDaemonRpcStatusChangedInPlatform()
-        if (isMobile) {
-          return
-        }
-        const {kbfsDaemonStatus, dispatch} = get()
-        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-          dispatch.refreshDriverStatusDesktop()
-        }
-        dispatch.refreshMountDirsDesktop()
       }
       ignorePromise(f())
     },
@@ -715,9 +710,10 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             } catch (error) {
               if (
                 error instanceof RPCError &&
-                [T.RPCGen.StatusCode.scsimplefsnameexists, T.RPCGen.StatusCode.scsimplefsdirnotempty].includes(
-                  error.code
-                )
+                [
+                  T.RPCGen.StatusCode.scsimplefsnameexists,
+                  T.RPCGen.StatusCode.scsimplefsdirnotempty,
+                ].includes(error.code)
               ) {
                 get().dispatch.editError(editID, error.desc || 'name exists')
                 return
@@ -800,30 +796,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    finishedDownloadWithIntentMobile: (downloadID, downloadIntent, mimeType) => {
-      const f = async () => {
-        const {downloads, dispatch} = get()
-        const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
-        if (downloadState === Constants.emptyDownloadState) {
-          logger.warn('missing download', downloadID)
-          return
-        }
-        if (downloadState.error) {
-          dispatch.redbar(downloadState.error)
-          dispatch.dismissDownload(downloadID)
-          return
-        }
-        try {
-          await finishedDownloadWithIntentInPlatform(downloadState, downloadIntent, mimeType)
-          if (downloadIntent !== T.FS.DownloadIntent.None) {
-            dispatch.dismissDownload(downloadID)
-          }
-        } catch (err) {
-          errorToActionOrThrow(err)
-        }
-      }
-      ignorePromise(f())
-    },
     driverDisable: () => {
       const f = async () => {
         const {dispatch, sfmi} = get()
@@ -883,22 +855,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         }
       })
     },
-    finishedRegularDownloadMobile: (downloadID, mimeType) => {
-      const f = async () => {
-        const {downloads} = get()
-        const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
-        const downloadInfo = downloads.info.get(downloadID) || Constants.emptyDownloadInfo
-        if (downloadState === Constants.emptyDownloadState || downloadInfo === Constants.emptyDownloadInfo) {
-          logger.warn('missing download', downloadID)
-          return
-        }
-        if (downloadState.error) {
-          return
-        }
-        await finishedRegularDownloadInPlatform(downloadID, downloadState, downloadInfo, mimeType)
-      }
-      ignorePromise(f())
-    },
     editError: (editID, error) => {
       set(s => {
         const edit = s.edits.get(editID)
@@ -919,7 +875,10 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           const visibility = T.FS.getVisibilityFromElems(elems)
           if (!visibility) return
           const name = elems[2] ?? ''
-          s.tlfs[visibility].set(name, T.castDraft({...(s.tlfs[visibility].get(name) || Constants.unknownTlf), isIgnored}))
+          s.tlfs[visibility].set(
+            name,
+            T.castDraft({...(s.tlfs[visibility].get(name) || Constants.unknownTlf), isIgnored})
+          )
         })
       }
       const f = async () => {
@@ -1009,6 +968,46 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           path: Constants.pathToRPCPath(localViewTlfPath),
         })
         get().dispatch.favoritesLoad()
+      }
+      ignorePromise(f())
+    },
+    finishedDownloadWithIntentMobile: (downloadID, downloadIntent, mimeType) => {
+      const f = async () => {
+        const {downloads, dispatch} = get()
+        const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
+        if (downloadState === Constants.emptyDownloadState) {
+          logger.warn('missing download', downloadID)
+          return
+        }
+        if (downloadState.error) {
+          dispatch.redbar(downloadState.error)
+          dispatch.dismissDownload(downloadID)
+          return
+        }
+        try {
+          await finishedDownloadWithIntentInPlatform(downloadState, downloadIntent, mimeType)
+          if (downloadIntent !== T.FS.DownloadIntent.None) {
+            dispatch.dismissDownload(downloadID)
+          }
+        } catch (err) {
+          errorToActionOrThrow(err)
+        }
+      }
+      ignorePromise(f())
+    },
+    finishedRegularDownloadMobile: (downloadID, mimeType) => {
+      const f = async () => {
+        const {downloads} = get()
+        const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
+        const downloadInfo = downloads.info.get(downloadID) || Constants.emptyDownloadInfo
+        if (downloadState === Constants.emptyDownloadState || downloadInfo === Constants.emptyDownloadInfo) {
+          logger.warn('missing download', downloadID)
+          return
+        }
+        if (downloadState.error) {
+          return
+        }
+        await finishedRegularDownloadInPlatform(downloadID, downloadState, downloadInfo, mimeType)
       }
       ignorePromise(f())
     },
@@ -1171,9 +1170,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       subscribeAndLoad(fsBadgeSub, T.RPCGen.SubscriptionTopic.filesTabBadge, () =>
         get().dispatch.loadFilesTabBadge()
       )
-      subscribeAndLoad(settingsSub, T.RPCGen.SubscriptionTopic.settings, () =>
-        get().dispatch.loadSettings()
-      )
+      subscribeAndLoad(settingsSub, T.RPCGen.SubscriptionTopic.settings, () => get().dispatch.loadSettings())
       subscribeAndLoad(uploadStatusSub, T.RPCGen.SubscriptionTopic.uploadStatus, () =>
         get().dispatch.loadUploadStatus()
       )
@@ -1481,10 +1478,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             ? [
                 {
                   dest: Constants.pathToRPCPath(
-                    T.FS.pathConcat(
-                      destinationParentPath,
-                      T.FS.getPathName(source.path)
-                    )
+                    T.FS.pathConcat(destinationParentPath, T.FS.getPathName(source.path))
                   ),
                   opID: makeUUID(),
                   overwriteExistingFiles: false,
@@ -1593,46 +1587,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         default:
       }
     },
-    openAndUploadDesktop: (type, parentPath) => {
-      const f = async () => {
-        try {
-          const localPaths = await selectFilesToUploadInPlatform(type, parentPath)
-          localPaths.forEach(localPath => get().dispatch.upload(parentPath, localPath))
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-      }
-      ignorePromise(f())
-    },
-    openFilesFromWidgetDesktop: path => {
-      showMain()
-      if (path) {
-        Constants.navToPath(path)
-      } else {
-        navigateAppend(Tabs.fsTab)
-      }
-    },
-    openLocalPathInSystemFileManagerDesktop: localPath => {
-      const f = async () => {
-        try {
-          await openLocalPathInSystemFileManagerInPlatform(localPath)
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-      }
-      ignorePromise(f())
-    },
-    openPathInSystemFileManagerDesktop: path => {
-      const f = async () => {
-        const {sfmi, pathItems} = get()
-        try {
-          await openPathInSystemFileManagerInPlatform(path, pathItems, sfmi.driverStatus, sfmi.directMountDir)
-        } catch (e) {
-          errorToActionOrThrow(e, path)
-        }
-      }
-      ignorePromise(f())
-    },
     onPathChange: (cid, path, topics) => {
       if (cid !== clientID) {
         return
@@ -1679,6 +1633,46 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             break
           case T.RPCGen.SubscriptionTopic.overallSyncStatus:
             break
+        }
+      }
+      ignorePromise(f())
+    },
+    openAndUploadDesktop: (type, parentPath) => {
+      const f = async () => {
+        try {
+          const localPaths = await selectFilesToUploadInPlatform(type, parentPath)
+          localPaths.forEach(localPath => get().dispatch.upload(parentPath, localPath))
+        } catch (e) {
+          errorToActionOrThrow(e)
+        }
+      }
+      ignorePromise(f())
+    },
+    openFilesFromWidgetDesktop: path => {
+      showMain()
+      if (path) {
+        Constants.navToPath(path)
+      } else {
+        navigateAppend(Tabs.fsTab)
+      }
+    },
+    openLocalPathInSystemFileManagerDesktop: localPath => {
+      const f = async () => {
+        try {
+          await openLocalPathInSystemFileManagerInPlatform(localPath)
+        } catch (e) {
+          errorToActionOrThrow(e)
+        }
+      }
+      ignorePromise(f())
+    },
+    openPathInSystemFileManagerDesktop: path => {
+      const f = async () => {
+        const {sfmi, pathItems} = get()
+        try {
+          await openPathInSystemFileManagerInPlatform(path, pathItems, sfmi.driverStatus, sfmi.directMountDir)
+        } catch (e) {
+          errorToActionOrThrow(e, path)
         }
       }
       ignorePromise(f())
