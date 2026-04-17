@@ -1,9 +1,10 @@
 import type * as React from 'react'
-import type {ConversationIDKey} from '@/constants/types/chat'
+import type {ChatRootInboxRefresh, ConversationIDKey} from '@/constants/types/chat'
 import type {InboxSearchController} from './use-inbox-search'
 
 type Props = {
   conversationIDKey?: ConversationIDKey
+  refreshInbox?: ChatRootInboxRefresh
   search?: InboxSearchController
 }
 

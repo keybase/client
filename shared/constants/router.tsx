@@ -380,10 +380,12 @@ export const leaveConversation = (
   navToInbox = true
 ) => {
   ignorePromise(
-    T.RPCChat.localLeaveConversationLocalRpcPromise(
-      {convID: T.Chat.keyToConversationID(conversationIDKey)},
-      Strings.waitingKeyChatLeaveConversation
-    )
+    (async () => {
+      await T.RPCChat.localLeaveConversationLocalRpcPromise(
+        {convID: T.Chat.keyToConversationID(conversationIDKey)},
+        Strings.waitingKeyChatLeaveConversation
+      )
+    })()
   )
   clearModals()
   if (!navToInbox) {

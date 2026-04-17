@@ -3,7 +3,6 @@
 import * as TeamsUtil from '@/constants/teams'
 import * as PlatformSpecific from '@/util/platform-specific'
 import {
-  clearModals,
   createConversation,
   getTab,
   navigateAppend,
@@ -3122,15 +3121,6 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      prepareToNavigateToThread: highlightMessageID => {
-        set(s => {
-          // force loaded if we're an error
-          if (s.id === T.Chat.pendingErrorConversationIDKey) {
-            s.loaded = true
-          }
-          s.pendingJumpMessageID = highlightMessageID
-        })
-      },
       onEngineIncoming: action => {
         switch (action.type) {
           case 'chat.1.NotifyChat.ChatAttachmentDownloadComplete': {
@@ -3199,6 +3189,15 @@ const createSlice =
           }
           default:
         }
+      },
+      prepareToNavigateToThread: highlightMessageID => {
+        set(s => {
+          // force loaded if we're an error
+          if (s.id === T.Chat.pendingErrorConversationIDKey) {
+            s.loaded = true
+          }
+          s.pendingJumpMessageID = highlightMessageID
+        })
       },
       onIncomingMessage: incoming => {
         const {message: cMsg} = incoming

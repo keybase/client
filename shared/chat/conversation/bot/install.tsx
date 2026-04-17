@@ -255,7 +255,7 @@ const InstallBotPopup = (props: Props) => {
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   const loadBotPublicCommands = C.useRPC(T.RPCChat.localListPublicBotCommandsLocalRpcPromise)
   const botPublicCommandsRequestIDRef = React.useRef(0)
-  const clearedWaitingForBotRef = React.useRef<string>()
+  const clearedWaitingForBotRef = React.useRef<string | undefined>(undefined)
   React.useEffect(() => {
     setBotPublicCommands(undefined)
   }, [botUsername])
