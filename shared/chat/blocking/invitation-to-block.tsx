@@ -23,6 +23,13 @@ const BlockButtons = () => {
     !!currentUser && [...(s.messageOrdinals ?? [])].some(ordinal => s.messageMap.get(ordinal)?.author === currentUser)
   )
   const dismissBlockButtons = Chat.useChatState(s => s.dispatch.dismissBlockButtons)
+
+  React.useEffect(() => {
+    if (hasOwnMessage && blockButtonInfo && teamID) {
+      dismissBlockButtons(teamID)
+    }
+  }, [blockButtonInfo, dismissBlockButtons, hasOwnMessage, teamID])
+
   if (!blockButtonInfo) {
     return null
   }
@@ -45,12 +52,6 @@ const BlockButtons = () => {
       },
     })
   const onDismiss = () => dismissBlockButtons(teamID)
-
-  React.useEffect(() => {
-    if (hasOwnMessage) {
-      dismissBlockButtons(teamID)
-    }
-  }, [dismissBlockButtons, hasOwnMessage, teamID])
 
   const buttonRow = (
     <Kb.ButtonBar

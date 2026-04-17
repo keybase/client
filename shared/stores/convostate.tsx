@@ -3190,15 +3190,6 @@ const createSlice =
           default:
         }
       },
-      prepareToNavigateToThread: highlightMessageID => {
-        set(s => {
-          // force loaded if we're an error
-          if (s.id === T.Chat.pendingErrorConversationIDKey) {
-            s.loaded = true
-          }
-          s.pendingJumpMessageID = highlightMessageID
-        })
-      },
       onIncomingMessage: incoming => {
         const {message: cMsg} = incoming
         const {username, devicename} = getCurrentUser()
@@ -3268,6 +3259,15 @@ const createSlice =
           // A normal message
           messagesAdd([message], {incomingMessage: true, why: 'incoming general'})
         }
+      },
+      prepareToNavigateToThread: highlightMessageID => {
+        set(s => {
+          // force loaded if we're an error
+          if (s.id === T.Chat.pendingErrorConversationIDKey) {
+            s.loaded = true
+          }
+          s.pendingJumpMessageID = highlightMessageID
+        })
       },
       onMessageErrored: (outboxID, reason, errorTyp) => {
         set(s => {
