@@ -451,7 +451,9 @@ const updateInboxParticipants = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIIt
       inboxUIItem.participants ?? []
     )
     if (participantInfo.all.length > 0) {
-      getConvoState(T.Chat.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(participantInfo)
+      getConvoState(T.Chat.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(
+        participantInfo
+      )
     }
   })
 }
@@ -705,7 +707,9 @@ export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: 
     if (!conversationIDKeys.length) {
       return
     }
-    logger.info(`unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`)
+    logger.info(
+      `unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`
+    )
     try {
       await T.RPCChat.localRequestInboxUnboxRpcPromise({
         convIDs: conversationIDKeys.map(k => T.Chat.keyToConversationID(k)),
@@ -778,10 +782,7 @@ export const onGetInboxUnverifiedConvs = (
   metasReceived(metas)
 }
 
-export const onInboxLayoutChanged = (
-  inboxLayout: T.RPCChat.UIInboxLayout,
-  hadInboxLoaded: boolean
-) => {
+export const onInboxLayoutChanged = (inboxLayout: T.RPCChat.UIInboxLayout, hadInboxLoaded: boolean) => {
   maybeChangeSelectedConversation(inboxLayout)
   ensureWidgetMetas(inboxLayout.widgetList)
   if (!hadInboxLoaded) {
@@ -818,7 +819,9 @@ export const onChatInboxSynced = async (
       }
 
       unboxRows(
-        items.filter(item => item.shouldUnbox).map(item => T.Chat.stringToConversationIDKey(item.conv.convID)),
+        items
+          .filter(item => item.shouldUnbox)
+          .map(item => T.Chat.stringToConversationIDKey(item.conv.convID)),
         true
       )
       return
@@ -884,7 +887,8 @@ type ConvoEngineIncomingResult = {
   userReacjis?: T.RPCGen.UserReacjis
 }
 
-type NewChatActivity = EngineGen.EngineAction<'chat.1.NotifyChat.NewChatActivity'>['payload']['params']['activity']
+type NewChatActivity =
+  EngineGen.EngineAction<'chat.1.NotifyChat.NewChatActivity'>['payload']['params']['activity']
 type ThreadStaleUpdates =
   EngineGen.EngineAction<'chat.1.NotifyChat.ChatThreadsStale'>['payload']['params']['updates']
 
@@ -901,7 +905,9 @@ const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
     }
   }
   const selectedConversation = Common.getSelectedConversation()
-  const shouldLoadMore = (updates ?? []).some(u => T.Chat.conversationIDToKey(u.convID) === selectedConversation)
+  const shouldLoadMore = (updates ?? []).some(
+    u => T.Chat.conversationIDToKey(u.convID) === selectedConversation
+  )
   keys.forEach(key => {
     const conversationIDKeys = (updates ?? []).reduce<Array<T.Chat.ConversationIDKey>>((arr, u) => {
       const conversationIDKey = T.Chat.conversationIDToKey(u.convID)
@@ -1113,7 +1119,10 @@ export const handleConvoEngineIncoming = (
       onChatThreadsStale(action.payload.params.updates)
       return handledConvoEngineIncoming()
     case 'chat.1.NotifyChat.ChatSubteamRename':
-      unboxRows((action.payload.params.convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID)), true)
+      unboxRows(
+        (action.payload.params.convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID)),
+        true
+      )
       return handledConvoEngineIncoming()
     case 'chat.1.NotifyChat.ChatTLFFinalize':
       unboxRows([T.Chat.conversationIDToKey(action.payload.params.convID)])
@@ -3260,15 +3269,6 @@ const createSlice =
           messagesAdd([message], {incomingMessage: true, why: 'incoming general'})
         }
       },
-      prepareToNavigateToThread: highlightMessageID => {
-        set(s => {
-          // force loaded if we're an error
-          if (s.id === T.Chat.pendingErrorConversationIDKey) {
-            s.loaded = true
-          }
-          s.pendingJumpMessageID = highlightMessageID
-        })
-      },
       onMessageErrored: (outboxID, reason, errorTyp) => {
         set(s => {
           const ordinal = s.pendingOutboxToOrdinal.get(outboxID)
@@ -3328,6 +3328,15 @@ const createSlice =
           }
         }
         ignorePromise(f())
+      },
+      prepareToNavigateToThread: highlightMessageID => {
+        set(s => {
+          // force loaded if we're an error
+          if (s.id === T.Chat.pendingErrorConversationIDKey) {
+            s.loaded = true
+          }
+          s.pendingJumpMessageID = highlightMessageID
+        })
       },
       refreshBotRoleInConv: username => {
         const f = async () => {
