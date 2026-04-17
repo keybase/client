@@ -2739,6 +2739,7 @@ func (o UICoinFlipParticipant) DeepCopy() UICoinFlipParticipant {
 
 type UICoinFlipStatus struct {
 	GameID                  FlipGameIDStr           `codec:"gameID" json:"gameID"`
+	ConvID                  ConvIDStr               `codec:"convID" json:"convID"`
 	Phase                   UICoinFlipPhase         `codec:"phase" json:"phase"`
 	ProgressText            string                  `codec:"progressText" json:"progressText"`
 	ResultText              string                  `codec:"resultText" json:"resultText"`
@@ -2752,6 +2753,7 @@ type UICoinFlipStatus struct {
 func (o UICoinFlipStatus) DeepCopy() UICoinFlipStatus {
 	return UICoinFlipStatus{
 		GameID:                  o.GameID.DeepCopy(),
+		ConvID:                  o.ConvID.DeepCopy(),
 		Phase:                   o.Phase.DeepCopy(),
 		ProgressText:            o.ProgressText,
 		ResultText:              o.ResultText,

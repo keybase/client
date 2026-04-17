@@ -1930,6 +1930,10 @@
           "name": "gameID"
         },
         {
+          "type": "ConvIDStr",
+          "name": "convID"
+        },
+        {
           "type": "UICoinFlipPhase",
           "name": "phase"
         },
