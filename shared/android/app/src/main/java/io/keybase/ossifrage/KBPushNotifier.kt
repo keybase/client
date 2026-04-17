@@ -119,6 +119,9 @@ class KBPushNotifier internal constructor(private val context: Context, private 
             bundle.putBoolean("userInteraction", true)
             bundle.putString("type", "chat.newmessage")
             bundle.putString("convID", chatNotification.convID)
+            if (chatNotification.uid.isNotEmpty()) {
+                bundle.putString("uid", chatNotification.uid)
+            }
             val pending_intent = buildPendingIntent(bundle)
             val convData = ConvData(chatNotification.convID, chatNotification.tlfName ?: "", chatNotification.message.id)
             val builder = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
@@ -236,7 +239,10 @@ class KBPushNotifier internal constructor(private val context: Context, private 
     }
 
     override fun localNotification(ident: String, title: String, msg: String, badgeCount: Long, soundName: String, convID: String,
-                                   typ: String) {
+                                   typ: String, uid: String) {
+        if (uid.isNotEmpty()) {
+            bundle.putString("uid", uid)
+        }
         genericNotification(ident, title, msg, bundle, KeybasePushNotificationListenerService.GENERAL_CHANNEL_ID)
     }
 

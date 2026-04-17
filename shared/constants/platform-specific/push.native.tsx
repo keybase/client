@@ -19,6 +19,7 @@ type DataCommon = {
 type DataReadMessage = DataCommon & {
   type: 'chat.readmessage'
   b: string | number
+  i?: string
 }
 type DataNewMessage = DataCommon & {
   type: 'chat.newmessage'
@@ -98,6 +99,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
         const badges = typeof data.b === 'string' ? parseInt(data.b) : data.b
         return {
           badges,
+          forUid: data.i,
           type: 'chat.readmessage',
         } as const
       }

@@ -5,7 +5,7 @@ import UserNotifications
 class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
   func localNotification(
     _ ident: String?, title: String?, msg: String?, badgeCount: Int, soundName: String?,
-    convID: String?, typ: String?
+    convID: String?, typ: String?, uid: String?
   ) {
     let content = UNMutableNotificationContent()
     if let soundName = soundName {
@@ -14,7 +14,11 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
     content.badge = (badgeCount >= 0) ? NSNumber(value: badgeCount) : nil
     content.title = title ?? ""
     content.body = msg ?? ""
-    content.userInfo = ["convID": convID ?? "", "type": typ ?? ""]
+    var userInfo: [String: Any] = ["convID": convID ?? "", "type": typ ?? ""]
+    if let uid = uid, !uid.isEmpty {
+      userInfo["uid"] = uid
+    }
+    content.userInfo = userInfo
     let request = UNNotificationRequest(
       identifier: ident ?? UUID().uuidString, content: content, trigger: nil)
     UNUserNotificationCenter.current().add(request) { error in
@@ -41,8 +45,16 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
     }
     let title = notification.title
     NSLog("PushNotifier display: title=%@", title ?? "")
+
+    let soundName: String? = notification.soundName?.isEmpty == false ? notification.soundName : nil
+    let uid: String? = notification.uid.isEmpty ? nil : notification.uid
     localNotification(
-      ident, title: title, msg: msg, badgeCount: notification.badgeCount,
-      soundName: notification.soundName, convID: notification.convID, typ: "chat.newmessage")
+      ident, title: title, msg: msg,
+      badgeCount: notification.badgeCount,
+      soundName: soundName,
+      convID: notification.convID,
+      typ: "chat.newmessage",
+      uid: uid
+    )
   }
 }
