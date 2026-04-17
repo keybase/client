@@ -118,7 +118,8 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   }
 
   const onJoinChannel = ConvoState.useChatContext(s => s.dispatch.joinConversation)
-  const onLeaveChannel = ConvoState.useChatContext(s => s.dispatch.leaveConversation)
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const onLeaveChannel = () => C.Router2.leaveConversation(conversationIDKey)
   const onLeaveTeam = () => teamID && chatNavigateAppend(() => ({name: 'teamReallyLeaveTeam', params: {teamID}}))
   const onManageChannels = () => {
     manageChatChannels(teamID)
@@ -210,7 +211,6 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     ),
   } as const
 
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const hideItem = (() => {
     if (!conversationIDKey) {
       return null

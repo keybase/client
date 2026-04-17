@@ -8,9 +8,20 @@ import {ModalTitle} from './common'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import contactRestricted from '../team-building/contact-restricted.page'
 import teamsTeamBuilder from '../team-building/page'
+import {TeamBuilderScreen} from '../team-building/page'
 import {useModalHeaderState} from '@/stores/modal-header'
 import teamsRootGetOptions from './get-options'
 import {defineRouteMap} from '@/constants/types/router'
+
+const TeamsTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
+  <TeamBuilderScreen
+    {...p}
+    onComplete={users => {
+      const members = [...users].map(user => ({assertion: user.id, role: 'writer'} as const))
+      Teams.useTeamsState.getState().dispatch.addMembersWizardPushMembers(members)
+    }}
+  />
+)
 
 const AddToChannelsHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const title = useModalHeaderState(s => s.title)
@@ -345,5 +356,8 @@ export const newModalRoutes = defineRouteMap({
       headerTitle: () => <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" />,
     },
   }),
-  teamsTeamBuilder,
+  teamsTeamBuilder: {
+    ...teamsTeamBuilder,
+    screen: TeamsTeamBuilderScreen,
+  },
 })

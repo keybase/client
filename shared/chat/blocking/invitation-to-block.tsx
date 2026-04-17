@@ -3,6 +3,7 @@ import {isAssertion} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 
@@ -18,7 +19,17 @@ const BlockButtons = () => {
   })
   const participantInfo = ConvoState.useChatContext(s => s.participants)
   const currentUser = useCurrentUserState(s => s.username)
+  const hasOwnMessage = ConvoState.useChatContext(s =>
+    !!currentUser && [...(s.messageOrdinals ?? [])].some(ordinal => s.messageMap.get(ordinal)?.author === currentUser)
+  )
   const dismissBlockButtons = Chat.useChatState(s => s.dispatch.dismissBlockButtons)
+
+  React.useEffect(() => {
+    if (hasOwnMessage && blockButtonInfo && teamID) {
+      dismissBlockButtons(teamID)
+    }
+  }, [blockButtonInfo, dismissBlockButtons, hasOwnMessage, teamID])
+
   if (!blockButtonInfo) {
     return null
   }

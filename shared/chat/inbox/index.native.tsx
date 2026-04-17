@@ -53,22 +53,27 @@ const NoChats = (props: {onNewChat: () => void}) => (
 
 type InboxProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
+  refreshInbox?: T.Chat.ChatRootInboxRefresh
   search?: InboxSearchController
 }
 
 type ControlledInboxProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
+  refreshInbox?: T.Chat.ChatRootInboxRefresh
   search: InboxSearchController
 }
 
-function InboxWithSearch(props: {conversationIDKey?: T.Chat.ConversationIDKey}) {
+function InboxWithSearch(props: {
+  conversationIDKey?: T.Chat.ConversationIDKey
+  refreshInbox?: T.Chat.ChatRootInboxRefresh
+}) {
   const search = useInboxSearch()
-  return <InboxBody conversationIDKey={props.conversationIDKey} search={search} />
+  return <InboxBody conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} search={search} />
 }
 
 function InboxBody(p: ControlledInboxProps) {
   const {search} = p
-  const inbox = useInboxState(p.conversationIDKey, search.isSearching)
+  const inbox = useInboxState(p.conversationIDKey, search.isSearching, p.refreshInbox)
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
@@ -200,9 +205,9 @@ function InboxBody(p: ControlledInboxProps) {
 
 function Inbox(props: InboxProps) {
   return props.search ? (
-    <InboxBody conversationIDKey={props.conversationIDKey} search={props.search} />
+    <InboxBody conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} search={props.search} />
   ) : (
-    <InboxWithSearch conversationIDKey={props.conversationIDKey} />
+    <InboxWithSearch conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} />
   )
 }
 

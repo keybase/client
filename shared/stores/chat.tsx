@@ -5,7 +5,6 @@ import * as Z from '@/util/zustand'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import {getTeamMentionName} from '@/constants/chat/helpers'
-import type {RefreshReason} from '@/stores/chat-shared'
 import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {ignorePromise} from '@/constants/utils'
@@ -60,8 +59,7 @@ export type State = Store & {
   dispatch: {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     dismissBlockButtons: (teamID: T.RPCGen.TeamID) => void
-    dismissBlockButtonsIfPresent: (teamID: T.RPCGen.TeamID) => void
-    inboxRefresh: (reason: RefreshReason) => Promise<void>
+    inboxRefresh: (reason: T.Chat.RefreshReason) => Promise<void>
     setInboxRetriedOnCurrentEmpty: (retried: boolean) => void
     loadStaticConfig: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
@@ -77,7 +75,7 @@ export type State = Store & {
 
 // generic chat store
 export const useChatState = Z.createZustand<State>('chat', (set, get) => {
-  const requestInboxLayout = async (reason: RefreshReason) => {
+  const requestInboxLayout = async (reason: T.Chat.RefreshReason) => {
     const {username} = useCurrentUserState.getState()
     const {loggedIn} = useConfigState.getState()
     if (!loggedIn || !username) {
@@ -115,11 +113,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    dismissBlockButtonsIfPresent: teamID => {
-      if (get().blockButtonsMap.has(teamID)) {
-        get().dispatch.dismissBlockButtons(teamID)
-      }
     },
     inboxRefresh: async reason => requestInboxLayout(reason),
     loadStaticConfig: () => {
@@ -306,7 +299,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
 })
 
 export * from '@/stores/inbox-rows'
-export type {RefreshReason} from '@/stores/chat-shared'
+export type {RefreshReason} from '@/constants/types/chat'
 export * from '@/constants/chat/common'
 export * from '@/constants/chat/meta'
 export * from '@/constants/chat/message'

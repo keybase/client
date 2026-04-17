@@ -1,11 +1,12 @@
+import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 const Preview = () => {
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const meta = ConvoState.useChatContext(s => s.meta)
   const onJoinChannel = ConvoState.useChatContext(s => s.dispatch.joinConversation)
-  const onLeaveChannel = ConvoState.useChatContext(s => s.dispatch.leaveConversation)
   const {channelname} = meta
   const [clicked, setClicked] = React.useState<undefined | 'join' | 'leave'>(undefined)
 
@@ -14,7 +15,7 @@ const Preview = () => {
     if (join) {
       onJoinChannel()
     } else {
-      onLeaveChannel()
+      C.Router2.leaveConversation(conversationIDKey)
     }
   }
 

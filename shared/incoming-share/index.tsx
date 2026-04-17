@@ -183,9 +183,8 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   React.useEffect(() => {
     if (!canDirectNav || hasNavigatedRef.current) return
     hasNavigatedRef.current = true
-    const {dispatch} = ConvoState.getConvoState(selectedConversationIDKey)
     text && ConvoState.getConvoUIState(selectedConversationIDKey).dispatch.injectIntoInput(text)
-    dispatch.navigateToThread('extension')
+    C.Router2.navigateToThread(selectedConversationIDKey, 'extension')
     if (sendPaths.length > 0) {
       const meta = ConvoState.getConvoState(selectedConversationIDKey).meta
       const tlfName = meta.conversationIDKey === selectedConversationIDKey ? meta.tlfname : ''

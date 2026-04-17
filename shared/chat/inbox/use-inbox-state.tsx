@@ -9,7 +9,11 @@ import {useInboxRowsState} from '@/stores/inbox-rows'
 import {useIsFocused} from '@react-navigation/core'
 import {buildInboxRows} from './rows'
 
-export function useInboxState(conversationIDKey?: string, isSearching = false) {
+export function useInboxState(
+  conversationIDKey?: string,
+  isSearching = false,
+  refreshInbox?: T.Chat.ChatRootInboxRefresh
+) {
   const isFocused = useIsFocused()
   const loggedIn = useConfigState(s => s.loggedIn)
   const username = useCurrentUserState(s => s.username)
@@ -82,6 +86,7 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
 
   // Handle focus changes on mobile
   const prevIsFocusedRef = React.useRef(isFocused)
+  const handledRefreshNonceRef = React.useRef('')
   React.useEffect(() => {
     if (prevIsFocusedRef.current === isFocused) return
     prevIsFocusedRef.current = isFocused
@@ -98,6 +103,16 @@ export function useInboxState(conversationIDKey?: string, isSearching = false) {
       C.ignorePromise(inboxRefresh('componentNeverLoaded'))
     }
   })
+
+  React.useEffect(() => {
+    const ready = loggedIn && !!username && (!C.isMobile || isFocused)
+    if (!ready || !refreshInbox || handledRefreshNonceRef.current === refreshInbox.nonce) {
+      return
+    }
+    handledRefreshNonceRef.current = refreshInbox.nonce
+    C.ignorePromise(inboxRefresh(refreshInbox.reason))
+    C.Router2.setChatRootParams({refreshInbox: undefined})
+  }, [inboxRefresh, isFocused, loggedIn, refreshInbox, username])
 
   C.Router2.useSafeFocusEffect(() => {
     if (!inboxHasLoaded) {

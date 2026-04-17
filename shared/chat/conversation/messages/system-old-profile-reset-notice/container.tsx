@@ -1,6 +1,6 @@
 import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
-import {previewConversation} from '@/constants/router'
+import {navigateToThread, previewConversation} from '@/constants/router'
 import {Text} from '@/common-adapters'
 import UserNotice from '../user-notice'
 
@@ -11,7 +11,7 @@ const SystemOldProfileResetNotice = () => {
   const nextConversationIDKey = meta.supersededBy
   const username = meta.wasFinalizedBy || ''
   const onOpenConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {
-    ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpFromReset')
+    navigateToThread(conversationIDKey, 'jumpFromReset')
   }
   const startConversation = (participants: ReadonlyArray<string>) => {
     previewConversation({participants, reason: 'fromAReset'})

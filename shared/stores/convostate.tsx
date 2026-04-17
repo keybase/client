@@ -3,17 +3,15 @@
 import * as TeamsUtil from '@/constants/teams'
 import * as PlatformSpecific from '@/util/platform-specific'
 import {
-  clearModals,
+  createConversation,
   getTab,
   navigateAppend,
   navigateToInbox,
+  navigateToThread as routerNavigateToThread,
   navigateUp,
-  navUpToScreen,
   previewConversation,
-  switchTab,
   getVisibleScreen,
   getModalStack,
-  navToThread,
   setChatRootParams,
 } from '@/constants/router'
 import type * as Router2 from '@/constants/router'
@@ -55,8 +53,6 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {getUsernameToShow} from '@/chat/conversation/messages/separator-utils'
-import type {RefreshReason} from '@/stores/chat-shared'
-import {storeRegistry} from '@/stores/store-registry'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -65,35 +61,6 @@ const noParticipantInfo: T.Chat.ParticipantInfo = {
   contactName: new Map(),
   name: [],
 }
-
-type NavReason =
-  | 'focused' // nav focus changed
-  | 'clearSelected' // deselect
-  | 'desktopNotification' // clicked notification
-  | 'createdMessagePrivately' // messaging privately and maybe made it
-  | 'extension' // from a notification from iOS share extension
-  | 'files' // from the Files tab
-  | 'findNewestConversation' // find a new chat to select (from service)
-  | 'findNewestConversationFromLayout' // find a small chat to select (from js)
-  | 'inboxBig' // inbox row
-  | 'inboxFilterArrow' // arrow keys in inbox filter
-  | 'inboxFilterChanged' // inbox filter made first one selected
-  | 'inboxSmall' // inbox row
-  | 'inboxNewConversation' // new conversation row
-  | 'inboxSearch' // selected from inbox seaech
-  | 'jumpFromReset' // from older reset convo
-  | 'jumpToReset' // going to an older reset convo
-  | 'justCreated' // just made it and select it
-  | 'manageView' // clicked from manage screen
-  | 'previewResolved' // did a preview and are now selecting it
-  | 'push' // from a push
-  | 'savedLastState' // last seen chat tab
-  | 'startFoundExisting' // starting a conversation and found one already
-  | 'teamChat' // from team
-  | 'addedToChannel' // just added people to this channel
-  | 'navChanged' // the nav state changed
-  | 'misc' // misc
-  | 'teamMention' // from team mention
 
 type LoadMoreReason =
   | 'jumpAttachment'
@@ -104,7 +71,7 @@ type LoadMoreReason =
   | 'scroll forward'
   | 'scroll back'
   | 'tab selected'
-  | NavReason
+  | Router2.NavigateToThreadReason
 
 type ConvoStore = T.Immutable<{
   id: T.Chat.ConversationIDKey
@@ -254,11 +221,6 @@ export interface ConvoState extends ConvoStore {
     botCommandsUpdateStatus: (b: T.RPCChat.UIBotCommandsUpdateStatus) => void
     channelSuggestionsTriggered: () => void
     clearAttachmentView: () => void
-    defer: {
-      chatInboxLayoutSmallTeamsFirstConvID: () => T.Chat.ConversationIDKey | undefined
-      chatInboxRefresh: (reason: RefreshReason) => void
-      chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
-    }
     dismissBottomBanner: () => void
     dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
     editBotSettings: (
@@ -271,7 +233,6 @@ export interface ConvoState extends ConvoStore {
     hideConversation: (hide: boolean) => void
     joinConversation: () => void
     jumpToRecent: () => void
-    leaveConversation: (navToInbox?: boolean) => void
     loadAttachmentView: (viewType: T.RPCChat.GalleryItemTyp, fromMsgID?: T.Chat.MessageID) => void
     loadMessagesCentered: (
       messageID: T.Chat.MessageID,
@@ -298,14 +259,8 @@ export interface ConvoState extends ConvoStore {
       ordinals?: ReadonlyArray<T.Chat.Ordinal>
     }) => void
     mute: (m: boolean) => void
-    navigateToThread: (
-      reason: NavReason,
-      highlightMessageID?: T.Chat.MessageID,
-      pushBody?: string,
-      threadSearchQuery?: string,
-      createConversationError?: T.Chat.CreateConversationError
-    ) => void
     openFolder: () => void
+    prepareToNavigateToThread: (highlightMessageID?: T.Chat.MessageID) => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     onIncomingMessage: (incoming: T.RPCChat.IncomingMessage) => void
     onMessageErrored: (outboxID: T.Chat.OutboxID, reason: string, errorTyp?: number) => void
@@ -419,37 +374,6 @@ type ScrollDirection = 'none' | 'back' | 'forward'
 export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
 
-const stubDefer: ConvoState['dispatch']['defer'] = {
-  chatInboxLayoutSmallTeamsFirstConvID: () => {
-    throw new Error('convostate defer not initialized')
-  },
-  chatInboxRefresh: () => {
-    throw new Error('convostate defer not initialized')
-  },
-  chatMetasReceived: () => {
-    throw new Error('convostate defer not initialized')
-  },
-}
-
-let convoDeferImpl: ConvoState['dispatch']['defer'] | undefined = __DEV__
-  ? (globalThis.__hmr_convoDeferImpl as ConvoState['dispatch']['defer'] | undefined)
-  : undefined
-
-export const setConvoDefer = (impl: ConvoState['dispatch']['defer']) => {
-  convoDeferImpl = impl
-  if (__DEV__) globalThis.__hmr_convoDeferImpl = impl
-  for (const store of chatStores.values()) {
-    const s = store.getState()
-    store.setState({
-      ...s,
-      dispatch: {
-        ...s.dispatch,
-        defer: impl,
-      },
-    })
-  }
-}
-
 export const onRouteChanged = (prev: T.Immutable<Router2.NavState>, next: T.Immutable<Router2.NavState>) => {
   const wasModal = prev && getModalStack(prev).length > 0
   const isModal = next && getModalStack(next).length > 0
@@ -527,7 +451,9 @@ const updateInboxParticipants = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIIt
       inboxUIItem.participants ?? []
     )
     if (participantInfo.all.length > 0) {
-      getConvoState(T.Chat.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(participantInfo)
+      getConvoState(T.Chat.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(
+        participantInfo
+      )
     }
   })
 }
@@ -593,7 +519,7 @@ export const maybeChangeSelectedConversation = (inboxLayout?: T.RPCChat.UIInboxL
   logger.info(
     `maybeChangeSelectedConversation: selecting new conv: new:${newConvID} old:${oldConvID} prevselected ${selectedConversation}`
   )
-  getConvoState(newConvID).dispatch.navigateToThread('findNewestConversation')
+  routerNavigateToThread(newConvID, 'findNewestConversation')
 }
 
 export const loadSelectedConversationIfStale = (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
@@ -781,7 +707,9 @@ export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: 
     if (!conversationIDKeys.length) {
       return
     }
-    logger.info(`unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`)
+    logger.info(
+      `unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`
+    )
     try {
       await T.RPCChat.localRequestInboxUnboxRpcPromise({
         convIDs: conversationIDKeys.map(k => T.Chat.keyToConversationID(k)),
@@ -854,10 +782,7 @@ export const onGetInboxUnverifiedConvs = (
   metasReceived(metas)
 }
 
-export const onInboxLayoutChanged = (
-  inboxLayout: T.RPCChat.UIInboxLayout,
-  hadInboxLoaded: boolean
-) => {
+export const onInboxLayoutChanged = (inboxLayout: T.RPCChat.UIInboxLayout, hadInboxLoaded: boolean) => {
   maybeChangeSelectedConversation(inboxLayout)
   ensureWidgetMetas(inboxLayout.widgetList)
   if (!hadInboxLoaded) {
@@ -867,7 +792,7 @@ export const onInboxLayoutChanged = (
 
 export const onChatInboxSynced = async (
   action: EngineGen.EngineAction<'chat.1.NotifyChat.ChatInboxSynced'>,
-  refreshInbox: (reason: RefreshReason) => void | Promise<void>
+  refreshInbox: (reason: T.Chat.RefreshReason) => void | Promise<void>
 ) => {
   const {syncRes} = action.payload.params
 
@@ -894,7 +819,9 @@ export const onChatInboxSynced = async (
       }
 
       unboxRows(
-        items.filter(item => item.shouldUnbox).map(item => T.Chat.stringToConversationIDKey(item.conv.convID)),
+        items
+          .filter(item => item.shouldUnbox)
+          .map(item => T.Chat.stringToConversationIDKey(item.conv.convID)),
         true
       )
       return
@@ -960,7 +887,8 @@ type ConvoEngineIncomingResult = {
   userReacjis?: T.RPCGen.UserReacjis
 }
 
-type NewChatActivity = EngineGen.EngineAction<'chat.1.NotifyChat.NewChatActivity'>['payload']['params']['activity']
+type NewChatActivity =
+  EngineGen.EngineAction<'chat.1.NotifyChat.NewChatActivity'>['payload']['params']['activity']
 type ThreadStaleUpdates =
   EngineGen.EngineAction<'chat.1.NotifyChat.ChatThreadsStale'>['payload']['params']['updates']
 
@@ -977,7 +905,9 @@ const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
     }
   }
   const selectedConversation = Common.getSelectedConversation()
-  const shouldLoadMore = (updates ?? []).some(u => T.Chat.conversationIDToKey(u.convID) === selectedConversation)
+  const shouldLoadMore = (updates ?? []).some(
+    u => T.Chat.conversationIDToKey(u.convID) === selectedConversation
+  )
   keys.forEach(key => {
     const conversationIDKeys = (updates ?? []).reduce<Array<T.Chat.ConversationIDKey>>((arr, u) => {
       const conversationIDKey = T.Chat.conversationIDToKey(u.convID)
@@ -1189,7 +1119,10 @@ export const handleConvoEngineIncoming = (
       onChatThreadsStale(action.payload.params.updates)
       return handledConvoEngineIncoming()
     case 'chat.1.NotifyChat.ChatSubteamRename':
-      unboxRows((action.payload.params.convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID)), true)
+      unboxRows(
+        (action.payload.params.convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID)),
+        true
+      )
       return handledConvoEngineIncoming()
     case 'chat.1.NotifyChat.ChatTLFFinalize':
       unboxRows([T.Chat.conversationIDToKey(action.payload.params.convID)])
@@ -1249,85 +1182,11 @@ export const handleConvoEngineIncoming = (
   }
 }
 
-export const createConversation = (
-  participants: ReadonlyArray<string>,
-  highlightMessageID?: T.Chat.MessageID
-) => {
-  // TODO This will break if you try to make 2 new conversations at the same time because there is
-  // only one pending conversation state.
-  // The fix involves being able to make multiple pending conversations.
-  const f = async () => {
-    const username = useCurrentUserState.getState().username
-    if (!username) {
-      logger.error('Making a convo while logged out?')
-      return
-    }
-    try {
-      const result = await T.RPCChat.localNewConversationLocalRpcPromise(
-        {
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          membersType: T.RPCChat.ConversationMembersType.impteamnative,
-          tlfName: [...new Set([username, ...participants])].join(','),
-          tlfVisibility: T.RPCGen.TLFVisibility.private,
-          topicType: T.RPCChat.TopicType.chat,
-        },
-        Strings.waitingKeyChatCreating
-      )
-      const {conv, uiConv} = result
-      const conversationIDKey = T.Chat.conversationIDToKey(conv.info.id)
-      if (!conversationIDKey) {
-        logger.warn("Couldn't make a new conversation?")
-        return
-      }
-
-      const meta = Meta.inboxUIItemToConversationMeta(uiConv)
-      if (meta) {
-        metasReceived([meta])
-      }
-
-      const participantInfo: T.Chat.ParticipantInfo = Common.uiParticipantsToParticipantInfo(
-        uiConv.participants ?? []
-      )
-      if (participantInfo.all.length > 0) {
-        getConvoState(T.Chat.stringToConversationIDKey(uiConv.convID)).dispatch.setParticipants(participantInfo)
-      }
-      getConvoState(conversationIDKey).dispatch.navigateToThread('justCreated', highlightMessageID)
-      getConvoState(conversationIDKey).dispatch.defer.chatInboxRefresh('joinedAConversation')
-    } catch (error) {
-      if (error instanceof RPCError) {
-        const f = error.fields as Array<{key?: string}> | undefined
-        const errUsernames = f?.filter(elem => elem.key === 'usernames') as
-          | undefined
-          | Array<{key: string; value: string}>
-        let disallowedUsers: Array<string> = []
-        if (errUsernames?.length) {
-          const {value} = errUsernames[0] ?? {value: ''}
-          disallowedUsers = value.split(',')
-        }
-        const allowedUsers = participants.filter(x => !disallowedUsers.includes(x))
-        getConvoState(T.Chat.pendingErrorConversationIDKey).dispatch.navigateToThread(
-          'justCreated',
-          highlightMessageID,
-          undefined,
-          undefined,
-          {
-            allowedUsers,
-            code: error.code,
-            disallowedUsers,
-            message: error.desc,
-          }
-        )
-      }
-    }
-  }
-  ignorePromise(f())
-}
-
 export const onTeamBuildingFinished = (users: ReadonlySet<T.TB.User>) => {
   const f = async () => {
     // need to let the modal hide first else its thrashy
     await timeoutPromise(500)
-    getConvoState(T.Chat.pendingWaitingConversationIDKey).dispatch.navigateToThread('justCreated')
+    routerNavigateToThread(T.Chat.pendingWaitingConversationIDKey, 'justCreated')
     createConversation([...users].map(u => u.id))
   }
   ignorePromise(f())
@@ -1383,7 +1242,6 @@ const createSlice =
     getLinkedUIState: () => ConvoUIState = () => getConvoUIState(id)
   ): Z.ImmerStateCreator<ConvoState> =>
   (set, get) => {
-    const defer = convoDeferImpl ?? stubDefer
     const getUI = getLinkedUIState
     const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const getCurrentUser = () => {
@@ -1637,7 +1495,7 @@ const createSlice =
       const onClick = () => {
         useConfigState.getState().dispatch.showMain()
         navigateToInbox()
-        get().dispatch.navigateToThread('desktopNotification')
+        routerNavigateToThread(get().id, 'desktopNotification')
       }
       const onClose = () => {}
       logger.info('invoking NotifyPopup for chat notification')
@@ -2293,9 +2151,6 @@ const createSlice =
           logger.info('error')
         }
 
-        // If there are block buttons on this conversation, clear them.
-        storeRegistry.getState('chat').dispatch.dismissBlockButtonsIfPresent(meta.teamID)
-
         // Do some logging to track down the root cause of a bug causing
         // messages to not send. Do this after creating the objects above to
         // narrow down the places where the action can possibly stop.
@@ -2493,7 +2348,6 @@ const createSlice =
           s.attachmentViewMap = new Map()
         })
       },
-      defer,
       dismissBottomBanner: () => {
         set(s => {
           s.dismissedInviteBanners = true
@@ -2582,31 +2436,6 @@ const createSlice =
           s.validatedOrdinalRange = undefined
         })
         get().dispatch.loadMoreMessages({reason: 'jump to recent'})
-      },
-      leaveConversation: (navToInbox = true) => {
-        const f = async () => {
-          await T.RPCChat.localLeaveConversationLocalRpcPromise(
-            {convID: get().getConvID()},
-            Strings.waitingKeyChatLeaveConversation
-          )
-        }
-        ignorePromise(f())
-        clearModals()
-        if (navToInbox) {
-          navUpToScreen('chatRoot')
-          switchTab(Tabs.chatTab)
-          if (!isMobile) {
-            const vs = getVisibleScreen()
-            const params = vs?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
-            if (params?.conversationIDKey === get().id) {
-              // select a convo
-              const next = get().dispatch.defer.chatInboxLayoutSmallTeamsFirstConvID()
-              if (next) {
-                getConvoState(next).dispatch.navigateToThread('findNewestConversationFromLayout')
-              }
-            }
-          }
-        }
       },
       loadAttachmentView: (viewType, fromMsgID) => {
         set(s => {
@@ -2868,8 +2697,7 @@ const createSlice =
               logger.warn(`loadMoreMessages: error: ${error.desc}`)
               // no longer in team
               if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
-                get().dispatch.defer.chatInboxRefresh('maybeKickedFromTeam')
-                navigateToInbox()
+                navigateToInbox(true, 'maybeKickedFromTeam')
               }
               if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
                 // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
@@ -3194,8 +3022,8 @@ const createSlice =
 
           const text = formatTextForQuoting(message.text.stringValue())
           getConvoUIState(newThreadCID).dispatch.injectIntoInput(text)
-          get().dispatch.defer.chatMetasReceived([meta])
-          getConvoState(newThreadCID).dispatch.navigateToThread('createdMessagePrivately')
+          metasReceived([meta])
+          routerNavigateToThread(newThreadCID, 'createdMessagePrivately')
         }
         ignorePromise(f())
       },
@@ -3301,68 +3129,6 @@ const createSlice =
           })
         }
         ignorePromise(f())
-      },
-      navigateToThread: (
-        _reason,
-        highlightMessageID,
-        _pushBody,
-        threadSearchQuery,
-        createConversationError
-      ) => {
-        set(s => {
-          // force loaded if we're an error
-          if (s.id === T.Chat.pendingErrorConversationIDKey) {
-            s.loaded = true
-          }
-          s.pendingJumpMessageID = highlightMessageID
-        })
-
-        const updateNav = () => {
-          const reason = _reason
-          if (reason === 'navChanged') {
-            return
-          }
-          const conversationIDKey = get().id
-          const visible = getVisibleScreen()
-          const params = visible?.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
-          const visibleConvo = params?.conversationIDKey
-          const visibleRouteName = visible?.name
-
-          if (visibleRouteName !== Common.threadRouteName && reason === 'findNewestConversation') {
-            // service is telling us to change our selection but we're not looking, ignore
-            return
-          }
-
-          // we select the chat tab and change the params
-          const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
-          const navParams = {createConversationError, threadSearch}
-          if (Common.isSplit) {
-            navToThread(conversationIDKey, navParams)
-            // immediately switch stack to an inbox | thread stack
-          } else if (reason === 'push' || reason === 'savedLastState') {
-            navToThread(conversationIDKey, navParams)
-            return
-          } else {
-            // replace if looking at the pending / waiting screen
-            const replace =
-              visibleRouteName === Common.threadRouteName &&
-              !T.Chat.isValidConversationIDKey(visibleConvo ?? '')
-            // note: we don't switch tabs on non split
-            const modalPath = getModalStack()
-            if (modalPath.length > 0) {
-              clearModals()
-            }
-
-            navigateAppend(
-              {
-                name: Common.threadRouteName,
-                params: {conversationIDKey, createConversationError, threadSearch},
-              },
-              replace
-            )
-          }
-        }
-        updateNav()
       },
       onEngineIncoming: action => {
         switch (action.type) {
@@ -3562,6 +3328,15 @@ const createSlice =
           }
         }
         ignorePromise(f())
+      },
+      prepareToNavigateToThread: highlightMessageID => {
+        set(s => {
+          // force loaded if we're an error
+          if (s.id === T.Chat.pendingErrorConversationIDKey) {
+            s.loaded = true
+          }
+          s.pendingJumpMessageID = highlightMessageID
+        })
       },
       refreshBotRoleInConv: username => {
         const f = async () => {

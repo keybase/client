@@ -18,7 +18,7 @@ const ErrorMessage = () => {
   const createConversationError = useChatThreadRouteParams()?.createConversationError
 
   const _onCreateWithoutThem = (allowedUsers: ReadonlyArray<string>) => {
-    ConvoState.createConversation(allowedUsers)
+    C.Router2.createConversation(allowedUsers)
   }
 
   const navigateToInbox = C.Router2.navigateToInbox

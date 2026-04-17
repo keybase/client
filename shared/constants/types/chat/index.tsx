@@ -102,6 +102,26 @@ export type BlockButtonsInfo = {
   adder: string
 }
 
+export type RefreshReason =
+  | 'bootstrap'
+  | 'componentNeverLoaded'
+  | 'inboxSyncedCurrentButEmpty'
+  | 'inboxStale'
+  | 'inboxSyncedClear'
+  | 'inboxSyncedUnknown'
+  | 'navigatedToInbox'
+  | 'joinedAConversation'
+  | 'leftAConversation'
+  | 'teamTypeChanged'
+  | 'maybeKickedFromTeam'
+  | 'widgetRefresh'
+  | 'shareConfigSearch'
+
+export type ChatRootInboxRefresh = {
+  nonce: string
+  reason: RefreshReason
+}
+
 export type BotPublicCommands = T.Immutable<{
   loadError: boolean
   commands: Array<string>

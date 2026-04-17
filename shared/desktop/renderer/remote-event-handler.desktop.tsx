@@ -4,14 +4,16 @@ import * as Crypto from '@/constants/crypto'
 import * as Tabs from '@/constants/tabs'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
-import {navigateAppend, previewConversation, switchTab} from '@/constants/router'
-import {storeRegistry} from '@/stores/store-registry'
+import {navigateAppend, navigateToThread, previewConversation, switchTab} from '@/constants/router'
 import {onEngineConnected, onEngineDisconnected} from '@/constants/init/index.desktop'
 import {emitDeepLink} from '@/router-v2/linking'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import type HiddenString from '@/util/hidden-string'
+import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
+import {useFSState} from '@/stores/fs'
 import {usePinentryState} from '@/stores/pinentry'
+import {useTrackerState} from '@/stores/tracker'
 import logger from '@/logger'
 import {makeUUID} from '@/util/uuid'
 
@@ -69,11 +71,11 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     case RemoteGen.openChatFromWidget: {
       useConfigState.getState().dispatch.showMain()
-      storeRegistry.getConvoState(action.payload.conversationIDKey).dispatch.navigateToThread('inboxSmall')
+      navigateToThread(action.payload.conversationIDKey, 'inboxSmall')
       break
     }
     case RemoteGen.inboxRefresh: {
-      ignorePromise(storeRegistry.getState('chat').dispatch.inboxRefresh('widgetRefresh'))
+      ignorePromise(useChatState.getState().dispatch.inboxRefresh('widgetRefresh'))
       break
     }
     case RemoteGen.engineConnection: {
@@ -90,15 +92,15 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.setCriticalUpdate: {
-      storeRegistry.getState('fs').dispatch.setCriticalUpdate(action.payload.critical)
+      useFSState.getState().dispatch.setCriticalUpdate(action.payload.critical)
       break
     }
     case RemoteGen.userFileEditsLoad: {
-      storeRegistry.getState('fs').dispatch.userFileEditsLoad()
+      useFSState.getState().dispatch.userFileEditsLoad()
       break
     }
     case RemoteGen.openFilesFromWidget: {
-      storeRegistry.getState('fs').dispatch.defer.openFilesFromWidgetDesktop?.(action.payload.path)
+      useFSState.getState().dispatch.defer.openFilesFromWidgetDesktop?.(action.payload.path)
       break
     }
     case RemoteGen.saltpackFileOpen: {
@@ -114,7 +116,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.openPathInSystemFileManager: {
-      storeRegistry.getState('fs').dispatch.defer.openPathInSystemFileManagerDesktop?.(action.payload.path)
+      useFSState.getState().dispatch.defer.openPathInSystemFileManagerDesktop?.(action.payload.path)
       break
     }
     case RemoteGen.unlockFoldersSubmitPaperKey: {
@@ -142,19 +144,19 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.trackerChangeFollow: {
-      storeRegistry.getState('tracker').dispatch.changeFollow(action.payload.guiID, action.payload.follow)
+      useTrackerState.getState().dispatch.changeFollow(action.payload.guiID, action.payload.follow)
       break
     }
     case RemoteGen.trackerIgnore: {
-      storeRegistry.getState('tracker').dispatch.ignore(action.payload.guiID)
+      useTrackerState.getState().dispatch.ignore(action.payload.guiID)
       break
     }
     case RemoteGen.trackerCloseTracker: {
-      storeRegistry.getState('tracker').dispatch.closeTracker(action.payload.guiID)
+      useTrackerState.getState().dispatch.closeTracker(action.payload.guiID)
       break
     }
     case RemoteGen.trackerLoad: {
-      storeRegistry.getState('tracker').dispatch.load(action.payload)
+      useTrackerState.getState().dispatch.load(action.payload)
       break
     }
     case RemoteGen.link:

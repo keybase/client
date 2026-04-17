@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as Crypto from '@/constants/crypto'
 import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
 import cryptoTeamBuilder from '../team-building/page'
+import {TeamBuilderScreen} from '../team-building/page'
 import type {StaticScreenProps} from '@react-navigation/core'
 import {defineRouteMap} from '@/constants/types/router'
 import type {
@@ -72,16 +73,29 @@ const VerifyOutputScreen = React.lazy(async () => {
   }
 })
 
-const CryptoTeamBuilderScreen = React.lazy(async () => {
-  const {default: teamBuilder} = await import('../team-building/page')
-  const TeamBuilderScreen = teamBuilder.screen
-  return {
-    default: (p: StaticScreenProps<CryptoTeamBuilderRouteParams>) => {
-      const {teamBuilderNonce: _teamBuilderNonce, teamBuilderUsers: _teamBuilderUsers, ...params} = p.route.params
-      return <TeamBuilderScreen {...p} route={{...p.route, params}} />
-    },
-  }
-})
+const CryptoTeamBuilderScreen = (p: StaticScreenProps<CryptoTeamBuilderRouteParams>) => {
+  const {teamBuilderNonce, teamBuilderUsers: _teamBuilderUsers, ...params} = p.route.params
+  return (
+    <TeamBuilderScreen
+      {...p}
+      route={{...p.route, params}}
+      onComplete={users => {
+        const nextTeamBuilderUsers = [...users].map(({serviceId, username}) => ({serviceId, username}))
+        C.Router2.clearModals()
+        C.Router2.navigateAppend(
+          {
+            name: Crypto.encryptTab,
+            params: {
+              teamBuilderNonce,
+              teamBuilderUsers: nextTeamBuilderUsers,
+            },
+          },
+          true
+        )
+      }}
+    />
+  )
+}
 
 export const newRoutes = defineRouteMap({
   [Crypto.decryptTab]: {

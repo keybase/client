@@ -1,4 +1,5 @@
 import * as ConvoState from '@/stores/convostate'
+import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from './user-notice'
@@ -8,7 +9,7 @@ const SystemProfileResetNotice = () => {
   const prevConversationIDKey = meta.supersedes
   const username = meta.wasFinalizedBy || ''
   const _onOpenOlderConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {
-    ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread('jumpToReset')
+    C.Router2.navigateToThread(conversationIDKey, 'jumpToReset')
   }
   const onOpenOlderConversation = () => {
     prevConversationIDKey && _onOpenOlderConversation(prevConversationIDKey)

@@ -12,7 +12,9 @@ export default function InboxAndConversationNative(props: InboxAndConversationPr
       {headerPortal}
       <InboxAndConversationShell
         {...props}
-        leftPane={<Inbox conversationIDKey={props.conversationIDKey} search={search} />}
+        leftPane={
+          <Inbox conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} search={search} />
+        }
       />
     </>
   )

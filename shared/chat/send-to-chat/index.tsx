@@ -36,7 +36,6 @@ export const MobileSendToChat = (props: Props) => {
   const clearModals = C.Router2.clearModals
   const fileContext = useFSState(s => s.fileContext)
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
-    const {dispatch} = ConvoState.getConvoState(conversationIDKey)
     text && ConvoState.getConvoUIState(conversationIDKey).dispatch.injectIntoInput(text)
     if (sendPaths?.length) {
       navigateAppend({
@@ -53,7 +52,7 @@ export const MobileSendToChat = (props: Props) => {
       })
     } else {
       clearModals()
-      dispatch.navigateToThread(isFromShareExtension ? 'extension' : 'files')
+      C.Router2.navigateToThread(conversationIDKey, isFromShareExtension ? 'extension' : 'files')
     }
   }
   return <ConversationList {...props} onSelect={onSelect} />
@@ -84,7 +83,7 @@ const DesktopSendToChat = (props: Props) => {
       )
     )
     clearModals()
-    ConvoState.getConvoState(conversationIDKey).dispatch.navigateToThread('files')
+    C.Router2.navigateToThread(conversationIDKey, 'files')
   }
   return (
     <DesktopSendToChatRender

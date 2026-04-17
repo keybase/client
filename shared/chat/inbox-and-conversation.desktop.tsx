@@ -10,7 +10,7 @@ export default function InboxAndConversationDesktop(props: InboxAndConversationP
   const headerPortal = useInboxHeaderPortal(search)
   const leftPane = (
     <Kb.Box2 direction="vertical" fullHeight={true} style={styles.inboxPane}>
-      <Inbox conversationIDKey={props.conversationIDKey} search={search} />
+      <Inbox conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} search={search} />
     </Kb.Box2>
   )
 
