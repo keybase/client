@@ -14,11 +14,7 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
     content.badge = (badgeCount >= 0) ? NSNumber(value: badgeCount) : nil
     content.title = title ?? ""
     content.body = msg ?? ""
-    var userInfo: [String: Any] = ["convID": convID ?? "", "type": typ ?? ""]
-    if let uid = uid, !uid.isEmpty {
-      userInfo["uid"] = uid
-    }
-    content.userInfo = userInfo
+    content.userInfo = ["convID": convID ?? "", "type": typ ?? "", "uid": uid ?? ""]
     let request = UNNotificationRequest(
       identifier: ident ?? UUID().uuidString, content: content, trigger: nil)
     UNUserNotificationCenter.current().add(request) { error in
