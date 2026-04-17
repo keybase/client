@@ -6,6 +6,7 @@ import {makeChatScreen} from './make-chat-screen'
 import * as FS from '@/constants/fs'
 import type * as T from '@/constants/types'
 import chatNewChat from '../team-building/page'
+import {TeamBuilderScreen} from '../team-building/page'
 import {headerNavigationOptions} from './conversation/header-area'
 import {useConfigState} from '@/stores/config'
 import {useModalHeaderState} from '@/stores/modal-header'
@@ -15,6 +16,7 @@ import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
 import {defineRouteMap} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
 import type {ChatRootRouteParams} from './inbox-and-conversation'
+import {onTeamBuildingFinished} from '@/stores/convostate'
 const Convo = React.lazy(async () => import('./conversation/container'))
 
 type ChatBlockingRouteParams = {
@@ -39,6 +41,10 @@ const emptyChatBlockingRouteParams: ChatBlockingRouteParams = {}
 const emptyChatSearchBotsRouteParams: ChatSearchBotsRouteParams = {}
 const emptyChatShowNewTeamDialogRouteParams: ChatShowNewTeamDialogRouteParams = {}
 const emptyChatRootRouteParams: ChatRootRouteParams = {}
+
+const ChatTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
+  <TeamBuilderScreen {...p} onComplete={onTeamBuildingFinished} />
+)
 
 const PDFShareButton = ({url}: {url?: string}) => {
   const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
@@ -267,7 +273,10 @@ export const newModalRoutes = defineRouteMap({
       return {default: MessagePopupModal}
     })
   ),
-  chatNewChat,
+  chatNewChat: {
+    ...chatNewChat,
+    screen: ChatTeamBuilderScreen,
+  },
   chatPDF: makeChatScreen(
     React.lazy(async () => import('./pdf')),
     {

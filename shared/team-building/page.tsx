@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import {ModalTitle as TeamsModalTitle} from '../teams/common'
+import type {TeamBuilderRouteParams} from './container'
 import {TBProvider, useTBContext} from '@/stores/team-building'
 import {useModalHeaderState} from '@/stores/modal-header'
 
@@ -50,27 +51,30 @@ const TBHeaderRight = ({
 const HeaderRightUpdater = ({
   namespace,
   goButtonLabel,
+  onFinishTeamBuilding,
 }: {
   namespace: T.TB.AllowedNamespace
   goButtonLabel?: string
+  onFinishTeamBuilding?: () => void
 }) => {
   const navigation = useNavigation()
   const hasTeamSoFar = useTBContext(s => s.teamSoFar.size > 0)
-  const finishTeamBuilding = useTBContext(s => s.dispatch.finishTeamBuilding)
-  const finishedTeamBuilding = useTBContext(s => s.dispatch.finishedTeamBuilding)
   React.useEffect(() => {
     if (!Kb.Styles.isMobile) return
     if (namespace !== 'teams' && namespace !== 'chat' && namespace !== 'crypto') return
-    const onFinish = namespace === 'teams' ? finishTeamBuilding : finishedTeamBuilding
+    const enabled = hasTeamSoFar && !!onFinishTeamBuilding
+    if (!onFinishTeamBuilding) {
+      useModalHeaderState.setState({actionEnabled: false, onAction: undefined})
+    }
     if (Kb.Styles.isIOS) {
       const label = namespace === 'teams' ? 'Add' : (goButtonLabel ?? 'Start')
       navigation.setOptions({
-        unstable_headerRightItems: hasTeamSoFar
-          ? () => [{label, onPress: onFinish, type: 'button' as const}]
+        unstable_headerRightItems: enabled
+          ? () => [{label, onPress: onFinishTeamBuilding, type: 'button' as const}]
           : () => [],
       } as object)
     } else {
-      useModalHeaderState.setState({actionEnabled: hasTeamSoFar, onAction: onFinish})
+      useModalHeaderState.setState({actionEnabled: enabled, onAction: onFinishTeamBuilding})
     }
     return () => {
       if (Kb.Styles.isIOS) {
@@ -79,19 +83,32 @@ const HeaderRightUpdater = ({
         useModalHeaderState.setState({actionEnabled: false, onAction: undefined})
       }
     }
-  }, [namespace, hasTeamSoFar, finishTeamBuilding, finishedTeamBuilding, goButtonLabel, navigation])
+  }, [namespace, hasTeamSoFar, goButtonLabel, navigation, onFinishTeamBuilding])
   return null
 }
 
 // Calls resetState when the screen is removed (e.g. default cancel button pressed)
-const CancelOnRemove = () => {
+const CancelOnRemove = ({
+  skipResetOnRemoveRef,
+}: {
+  skipResetOnRemoveRef: React.MutableRefObject<boolean>
+}) => {
   const navigation = useNavigation()
   const resetState = useTBContext(s => s.dispatch.resetState)
-  React.useEffect(() => navigation.addListener('beforeRemove', resetState), [navigation, resetState])
+  React.useEffect(
+    () =>
+      navigation.addListener('beforeRemove', () => {
+        if (skipResetOnRemoveRef.current) return
+        resetState()
+      }),
+    [navigation, resetState, skipResetOnRemoveRef]
+  )
   return null
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({hide: {opacity: 0}}) as const)
+
+type OwnProps = StaticScreenProps<TeamBuilderRouteParams>
 
 const getOptions = ({route}: OwnProps) => {
   const namespace = route.params.namespace
@@ -142,17 +159,58 @@ const getOptions = ({route}: OwnProps) => {
 }
 
 const Building = React.lazy(async () => import('./container'))
-type OwnProps = StaticScreenProps<React.ComponentProps<typeof Building>>
+export type TeamBuilderScreenProps = StaticScreenProps<TeamBuilderRouteParams> & {
+  onComplete?: (users: ReadonlySet<T.TB.User>) => void
+}
 
-const Screen = (p: OwnProps) => (
+const ScreenBody = ({
+  onComplete,
+  routeParams,
+}: {
+  onComplete?: (users: ReadonlySet<T.TB.User>) => void
+  routeParams: TeamBuilderRouteParams
+}) => {
+  const {goButtonLabel, namespace} = routeParams
+  const teamSoFar = useTBContext(s => s.teamSoFar)
+  const closeTeamBuilding = useTBContext(s => s.dispatch.closeTeamBuilding)
+  const finishedTeamBuilding = useTBContext(s => s.dispatch.finishedTeamBuilding)
+  const skipResetOnRemoveRef = React.useRef(false)
+
+  const onFinishTeamBuilding = React.useCallback(() => {
+    if (!teamSoFar.size) return
+    const users = new Set(teamSoFar)
+    skipResetOnRemoveRef.current = true
+    finishedTeamBuilding()
+    closeTeamBuilding()
+    onComplete?.(users)
+    setTimeout(() => {
+      skipResetOnRemoveRef.current = false
+    }, 0)
+  }, [closeTeamBuilding, finishedTeamBuilding, onComplete, teamSoFar])
+
+  return (
+    <>
+      <CancelOnRemove skipResetOnRemoveRef={skipResetOnRemoveRef} />
+      <HeaderRightUpdater
+        namespace={namespace}
+        goButtonLabel={goButtonLabel}
+        onFinishTeamBuilding={onFinishTeamBuilding}
+      />
+      <Building
+        {...routeParams}
+        onFinishTeamBuilding={onFinishTeamBuilding}
+      />
+    </>
+  )
+}
+
+export const TeamBuilderScreen = (p: TeamBuilderScreenProps) => (
   <TBProvider namespace={p.route.params.namespace}>
-    <CancelOnRemove />
-    <HeaderRightUpdater namespace={p.route.params.namespace} goButtonLabel={p.route.params.goButtonLabel} />
-    <Building {...p.route.params} />
+    <ScreenBody routeParams={p.route.params} onComplete={p.onComplete} />
   </TBProvider>
 )
 
 export default {
   getOptions,
-  screen: Screen,
+  screen: TeamBuilderScreen,
 }

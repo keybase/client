@@ -53,6 +53,8 @@ const findUserById = (users: ReadonlyArray<T.TB.User> | undefined, userId: strin
 const shouldShowContactsBanner = (filterServices: ReadonlyArray<T.TB.ServiceIdWithContact> | undefined) =>
   Kb.Styles.isMobile && (!filterServices || filterServices.includes('phone'))
 
+const noop = () => {}
+
 const useTeamBuildingData = (searchString: string, selectedService: T.TB.ServiceIdWithContact) => {
   const {searchResults, error, rawTeamSoFar, userRecs} = TB.useTBContext(
     C.useShallow(s => ({
@@ -72,6 +74,7 @@ const useTeamBuildingData = (searchString: string, selectedService: T.TB.Service
 }
 
 const useTeamBuildingActions = ({
+  onFinishTeamBuilding,
   namespace,
   searchString,
   selectedService,
@@ -82,6 +85,7 @@ const useTeamBuildingActions = ({
   setSearchString,
   setSelectedService,
 }: {
+  onFinishTeamBuilding?: () => void
   namespace: T.TB.AllowedNamespace
   searchString: string
   selectedService: T.TB.ServiceIdWithContact
@@ -97,8 +101,6 @@ const useTeamBuildingActions = ({
     cancelTeamBuilding,
     dispatchSearch,
     fetchUserRecs,
-    finishTeamBuilding,
-    finishedTeamBuilding,
     removeUsersFromTeamSoFar,
   } = TB.useTBContext(
     C.useShallow(s => ({
@@ -106,8 +108,6 @@ const useTeamBuildingActions = ({
       cancelTeamBuilding: s.dispatch.cancelTeamBuilding,
       dispatchSearch: s.dispatch.search,
       fetchUserRecs: s.dispatch.fetchUserRecs,
-      finishTeamBuilding: s.dispatch.finishTeamBuilding,
-      finishedTeamBuilding: s.dispatch.finishedTeamBuilding,
       removeUsersFromTeamSoFar: s.dispatch.removeUsersFromTeamSoFar,
     }))
   )
@@ -157,7 +157,7 @@ const useTeamBuildingActions = ({
     onAdd,
     onChangeService,
     onChangeText,
-    onFinishTeamBuilding: namespace === 'teams' ? finishTeamBuilding : finishedTeamBuilding,
+    onFinishTeamBuilding: onFinishTeamBuilding ?? noop,
     onRemove: (userId: string) => {
       removeUsersFromTeamSoFar([userId])
     },
@@ -175,11 +175,18 @@ type OwnProps = {
   teamID?: string
   filterServices?: Array<T.TB.ServiceIdWithContact>
   goButtonLabel?: T.TB.GoButtonLabel
+  onFinishTeamBuilding?: () => void
   title?: string
   recommendedHideYourself?: boolean
 }
 
-const TeamBuilding = ({namespace, teamID, filterServices, goButtonLabel = 'Start'}: OwnProps) => {
+const TeamBuilding = ({
+  namespace,
+  teamID,
+  filterServices,
+  goButtonLabel = 'Start',
+  onFinishTeamBuilding: onFinishTeamBuildingProp,
+}: OwnProps) => {
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
   const [enterInputCounter, setEnterInputCounter] = React.useState(0)
   const [highlightedIndex, setHighlightedIndex] = React.useState(0)
@@ -205,12 +212,13 @@ const TeamBuilding = ({namespace, teamID, filterServices, goButtonLabel = 'Start
     onAdd,
     onChangeService,
     onChangeText,
-    onFinishTeamBuilding,
+    onFinishTeamBuilding: finishTeamBuilding,
     onRemove,
     onSearchForMore,
     search,
   } = useTeamBuildingActions({
     namespace,
+    onFinishTeamBuilding: onFinishTeamBuildingProp,
     searchString,
     selectedService,
     setFocusInputCounter,
@@ -287,7 +295,7 @@ const TeamBuilding = ({namespace, teamID, filterServices, goButtonLabel = 'Start
             teamSoFar={teamSoFar}
             onChangeText={onChangeText}
             onSearchForMore={onSearchForMore}
-            onFinishTeamBuilding={onFinishTeamBuilding}
+            onFinishTeamBuilding={finishTeamBuilding}
           />
           {waitingForCreate && (
             <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
@@ -304,7 +312,7 @@ const TeamBuilding = ({namespace, teamID, filterServices, goButtonLabel = 'Start
       onDownArrowKeyDown={onDownArrowKeyDown}
       onUpArrowKeyDown={onUpArrowKeyDown}
       onEnterKeyDown={onEnterKeyDown}
-      onFinishTeamBuilding={onFinishTeamBuilding}
+      onFinishTeamBuilding={finishTeamBuilding}
       onRemove={onRemove}
       teamSoFar={teamSoFar}
       searchString={searchString}

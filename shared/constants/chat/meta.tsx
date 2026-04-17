@@ -4,8 +4,13 @@ import * as T from '@/constants/types'
 import * as Teams from '@/constants/teams'
 import * as Message from './message'
 import {base64ToUint8Array, uint8ArrayToHex} from '@/util/uint8array'
-import {storeRegistry} from '@/stores/store-registry'
+import type * as ConvoStateType from '@/stores/convostate'
 import {useCurrentUserState} from '@/stores/current-user'
+
+const getConvoState = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const {getConvoState} = require('@/stores/convostate') as typeof ConvoStateType
+  return getConvoState(conversationIDKey)
+}
 
 const conversationMemberStatusToMembershipType = (m: T.RPCChat.ConversationMemberStatus) => {
   switch (m) {
@@ -267,7 +272,7 @@ export const inboxUIItemToConversationMeta = (
     const username = useCurrentUserState.getState().username
     const devicename = useCurrentUserState.getState().deviceName
     const getLastOrdinal = () =>
-      storeRegistry.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+      getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const message = Message.uiMessageToMessage(
       conversationIDKey,
       i.pinnedMsg.message,
