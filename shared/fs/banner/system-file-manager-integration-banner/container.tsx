@@ -3,23 +3,34 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
-import {useFSState} from '@/stores/fs'
+import {errorToActionOrThrow, useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
+import {ignorePromise} from '@/constants/utils'
+import {setSfmiBannerDismissedDesktop as setSfmiBannerDismissedInPlatform} from '@/stores/fs-platform'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {alwaysShow?: boolean}
 
 const SFMIContainer = (op: OwnProps) => {
-  const {driverStatus, driverEnable, driverDisable, setSfmiBannerDismissedDesktop, settings} = useFSState(
+  const {driverStatus, driverEnable, driverDisable, settings} = useFSState(
     C.useShallow(s => ({
       driverDisable: s.dispatch.driverDisable,
       driverEnable: s.dispatch.driverEnable,
       driverStatus: s.sfmi.driverStatus,
-      setSfmiBannerDismissedDesktop: s.dispatch.setSfmiBannerDismissedDesktop,
       settings: s.settings,
     }))
   )
   const onDisable = () => driverDisable()
-  const onDismiss = () => setSfmiBannerDismissedDesktop(true)
+  const onDismiss = () => {
+    const f = async () => {
+      try {
+        await setSfmiBannerDismissedInPlatform(true)
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    ignorePromise(f())
+  }
   const onEnable = driverEnable
   const alwaysShow = op.alwaysShow
 
@@ -229,12 +240,7 @@ const DokanOutdated = (props: {driverStatus: T.FS.DriverStatus; onDisable: () =>
 
 type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
-  const {displayingMountDir, openLocalPathInSystemFileManagerDesktop} = useFSState(
-    C.useShallow(s => ({
-      displayingMountDir: s.sfmi.preferredMountDirs[0] ?? '',
-      openLocalPathInSystemFileManagerDesktop: s.dispatch.openLocalPathInSystemFileManagerDesktop,
-    }))
-  )
+  const displayingMountDir = useFSState(s => s.sfmi.preferredMountDirs[0] ?? '')
   const open = displayingMountDir
     ? () => openLocalPathInSystemFileManagerDesktop(displayingMountDir)
     : undefined

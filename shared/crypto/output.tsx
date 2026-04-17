@@ -5,9 +5,9 @@ import * as React from 'react'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import type {CommonState} from './helpers'
 import {pickFiles} from '@/util/misc'
-import {useFSState} from '@/stores/fs'
 import * as FS from '@/constants/fs'
 import {copyToClipboard} from '@/util/storeless-actions'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type CryptoOutputProps = {
   actionLabel: string
@@ -158,9 +158,6 @@ export const CryptoOutputActionsBar = ({
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
   const actionsDisabled = waiting || !state.outputValid
 
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.openLocalPathInSystemFileManagerDesktop
-  )
   const onShowInFinder = () => {
     openLocalPathInSystemFileManagerDesktop(state.output)
   }
@@ -296,9 +293,6 @@ export const CryptoOutput = ({
   outputTextType,
   state,
 }: CryptoOutputProps) => {
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.openLocalPathInSystemFileManagerDesktop
-  )
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
   const actionsDisabled = waiting || !state.outputValid
 

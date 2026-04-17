@@ -4,7 +4,11 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import logger from '@/logger'
 import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
+import {errorToActionOrThrow, useFSState} from '@/stores/fs'
+import {
+  finishedDownloadWithIntentMobile as finishedDownloadWithIntentInPlatform,
+  finishedRegularDownloadMobile as finishedRegularDownloadInPlatform,
+} from '@/stores/fs-platform'
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
 
@@ -182,11 +186,11 @@ export const useFsWatchDownloadForMobile = C.isMobile
       const dlInfo = useFsDownloadInfo(downloadID)
       useFsFileContext(dlInfo.path)
 
-      const {dlState, finishedDownloadWithIntentMobile, finishedRegularDownloadMobile} = useFSState(
+      const {dismissDownload, dlState, redbar} = useFSState(
         C.useShallow(s => ({
+          dismissDownload: s.dispatch.dismissDownload,
           dlState: s.downloads.state.get(downloadID) || FS.emptyDownloadState,
-          finishedDownloadWithIntentMobile: s.dispatch.finishedDownloadWithIntentMobile,
-          finishedRegularDownloadMobile: s.dispatch.finishedRegularDownloadMobile,
+          redbar: s.dispatch.redbar,
         }))
       )
       const finished = dlState !== FS.emptyDownloadState && !FS.downloadIsOngoing(dlState)
@@ -203,15 +207,32 @@ export const useFsWatchDownloadForMobile = C.isMobile
           setJustDoneWithIntent(false)
           return
         }
-        if (downloadIntent === T.FS.DownloadIntent.None) {
-          finishedRegularDownloadMobile(downloadID, mimeType)
-          return
+        const f = async () => {
+          if (downloadIntent === T.FS.DownloadIntent.None) {
+            await finishedRegularDownloadInPlatform(downloadID, dlState, dlInfo, mimeType)
+            return
+          }
+          if (dlState.error) {
+            redbar(dlState.error)
+            dismissDownload(downloadID)
+            return
+          }
+          try {
+            await finishedDownloadWithIntentInPlatform(dlState, downloadIntent, mimeType)
+            if (downloadIntent !== T.FS.DownloadIntent.None) {
+              dismissDownload(downloadID)
+            }
+            setJustDoneWithIntent(true)
+          } catch (err) {
+            errorToActionOrThrow(err)
+          }
         }
-        finishedDownloadWithIntentMobile(downloadID, downloadIntent, mimeType)
-        setJustDoneWithIntent(true)
+        C.ignorePromise(f())
       }, [
-        finishedRegularDownloadMobile,
-        finishedDownloadWithIntentMobile,
+        dismissDownload,
+        dlInfo,
+        dlState,
+        redbar,
         finished,
         mimeType,
         downloadID,

@@ -5,6 +5,7 @@ import {PathItemAction, LastModifiedLine, ItemIcon, type ClickableProps} from '.
 import {hasShare} from '../common/path-item-action/layout'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
+import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -15,11 +16,10 @@ const Share = (p: ClickableProps) => {
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const {pathItem, sfmiEnabled, _download, openPathInSystemFileManagerDesktop, fileContext} = useFSState(
+  const {pathItem, sfmiEnabled, _download, fileContext} = useFSState(
     C.useShallow(s => ({
       _download: s.dispatch.download,
       fileContext: s.fileContext.get(path) || FS.emptyFileContext,
-      openPathInSystemFileManagerDesktop: s.dispatch.openPathInSystemFileManagerDesktop,
       pathItem: FS.getPathItem(s.pathItems, path),
       sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
     }))

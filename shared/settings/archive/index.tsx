@@ -5,8 +5,8 @@ import * as Kb from '@/common-adapters'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
 import {useArchiveState} from '@/stores/archive'
 import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
 import {showShareActionSheet} from '@/util/platform-specific'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 function ChatJob(p: {index: number; id: string}) {
   const {id, index} = p
@@ -36,10 +36,9 @@ function ChatJob(p: {index: number; id: string}) {
     resumeChat([{identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset, jobID: id}], () => {}, () => {})
   }
 
-  const openFinder = useFSState(s => s.dispatch.openLocalPathInSystemFileManagerDesktop)
   const onShowFinder = () => {
     if (!job) return
-    openFinder(job.outPath)
+    openLocalPathInSystemFileManagerDesktop(job.outPath)
   }
 
   const onShare = () => {
@@ -165,12 +164,11 @@ function KBFSJob(p: {index: number; id: string}) {
     )
   })
 
-  const openFinder = useFSState(s => s.dispatch.openLocalPathInSystemFileManagerDesktop)
   const onShowFinder = () => {
     if (Kb.Styles.isMobile || !job) {
       return
     }
-    openFinder(job.zipFilePath)
+    openLocalPathInSystemFileManagerDesktop(job.zipFilePath)
   }
 
   const onShare = () => {

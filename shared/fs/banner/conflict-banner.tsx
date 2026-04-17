@@ -4,6 +4,7 @@ import * as T from '@/constants/types'
 import {openURL as openUrl} from '@/util/misc'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
+import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {
   path: T.FS.Path
@@ -27,10 +28,6 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const onStartResolving = () => {
     startManualConflictResolution(path)
   }
-
-  const openPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.openPathInSystemFileManagerDesktop
-  )
 
   const openInSystemFileManager = (path: T.FS.Path) => {
     openPathInSystemFileManagerDesktop(path)

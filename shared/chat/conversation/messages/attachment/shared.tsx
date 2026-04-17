@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {sharedStyles} from '../shared-styles'
-import {useFSState} from '@/stores/fs'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
@@ -87,9 +87,8 @@ export const TransferIcon = (p: {
     download(ordinal)
   }
 
-  const openFinder = useFSState(s => s.dispatch.openLocalPathInSystemFileManagerDesktop)
   const onFinder = () => {
-    downloadPath && openFinder(downloadPath)
+    downloadPath && openLocalPathInSystemFileManagerDesktop(downloadPath)
   }
 
   switch (state) {

@@ -2,8 +2,13 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as Styles from '@/styles'
-import {useFSState} from '@/stores/fs'
+import {errorToActionOrThrow, useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
+import {
+  pickAndUploadMobile as pickAndUploadInPlatform,
+  pickDocumentsMobile as pickDocumentsInPlatform,
+  selectFilesToUploadDesktop as selectFilesToUploadInPlatform,
+} from '@/stores/fs-platform'
 
 type OwnProps = {
   path: T.FS.Path
@@ -68,35 +73,85 @@ const UploadButton = (props: UploadButtonProps) => {
 
 const Container = (ownProps: OwnProps) => {
   const _pathItem = useFSState(s => FS.getPathItem(s.pathItems, ownProps.path))
-  const openAndUploadDesktop = useFSState(s => s.dispatch.openAndUploadDesktop)
-  const pickAndUploadMobile = useFSState(s => s.dispatch.pickAndUploadMobile)
-  const pickDocumentsMobile = useFSState(s => s.dispatch.pickDocumentsMobile)
+  const upload = useFSState(s => s.dispatch.upload)
   const _openAndUploadBoth = () => {
-    openAndUploadDesktop(T.FS.OpenDialogType.Both, ownProps.path)
+    const f = async () => {
+      try {
+        const localPaths = await selectFilesToUploadInPlatform(T.FS.OpenDialogType.Both, ownProps.path)
+        localPaths.forEach(localPath => upload(ownProps.path, localPath))
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    C.ignorePromise(f())
   }
   const openAndUploadBoth = C.isDarwin ? _openAndUploadBoth : undefined
   const _openAndUploadDirectory = () => {
-    openAndUploadDesktop(T.FS.OpenDialogType.Directory, ownProps.path)
+    const f = async () => {
+      try {
+        const localPaths = await selectFilesToUploadInPlatform(T.FS.OpenDialogType.Directory, ownProps.path)
+        localPaths.forEach(localPath => upload(ownProps.path, localPath))
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    C.ignorePromise(f())
   }
   const openAndUploadDirectory = C.isElectron && !C.isDarwin ? _openAndUploadDirectory : undefined
   const _openAndUploadFile = () => {
-    openAndUploadDesktop(T.FS.OpenDialogType.File, ownProps.path)
+    const f = async () => {
+      try {
+        const localPaths = await selectFilesToUploadInPlatform(T.FS.OpenDialogType.File, ownProps.path)
+        localPaths.forEach(localPath => upload(ownProps.path, localPath))
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    C.ignorePromise(f())
   }
   const openAndUploadFile = C.isElectron && !C.isDarwin ? _openAndUploadFile : undefined
   const _pickAndUploadMixed = () => {
-    pickAndUploadMobile(T.FS.MobilePickType.Mixed, ownProps.path)
+    const f = async () => {
+      try {
+        await pickAndUploadInPlatform(T.FS.MobilePickType.Mixed, ownProps.path, upload)
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    C.ignorePromise(f())
   }
   const pickAndUploadMixed = C.isMobile ? _pickAndUploadMixed : undefined
   const _pickAndUploadPhoto = () => {
-    pickAndUploadMobile(T.FS.MobilePickType.Photo, ownProps.path)
+    const f = async () => {
+      try {
+        await pickAndUploadInPlatform(T.FS.MobilePickType.Photo, ownProps.path, upload)
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    C.ignorePromise(f())
   }
   const pickAndUploadPhoto = C.isAndroid ? _pickAndUploadPhoto : undefined
   const _pickAndUploadVideo = () => {
-    pickAndUploadMobile(T.FS.MobilePickType.Video, ownProps.path)
+    const f = async () => {
+      try {
+        await pickAndUploadInPlatform(T.FS.MobilePickType.Video, ownProps.path, upload)
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    C.ignorePromise(f())
   }
   const pickAndUploadVideo = C.isAndroid ? _pickAndUploadVideo : undefined
   const _pickAndUploadFileMobile = () => {
-    pickDocumentsMobile(ownProps.path)
+    const f = async () => {
+      try {
+        await pickDocumentsInPlatform(ownProps.path, upload)
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    C.ignorePromise(f())
   }
   const pickAndUploadFileMobile = C.isMobile ? _pickAndUploadFileMobile : undefined
 

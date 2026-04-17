@@ -6,7 +6,7 @@ import type * as T from '@/constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '@/styles'
 import {useItems, useHeader} from './hooks'
 import * as Kb from '@/common-adapters'
-import {useFSState} from '@/stores/fs'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -85,9 +85,6 @@ const PopAttach = (ownProps: OwnProps) => {
   }
   const onShareAttachment = C.isMobile ? _onShareAttachment : undefined
 
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.openLocalPathInSystemFileManagerDesktop
-  )
   const _onShowInFinder = () => {
     downloadPath && openLocalPathInSystemFileManagerDesktop(downloadPath)
   }

@@ -18,25 +18,16 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useNotifState} from '@/stores/notifications'
 import * as Constants from '@/constants/fs'
 import {makeUUID} from '@/util/uuid'
-import {showMain} from '@/util/storeless-actions'
 import {
   afterDriverDisableDesktop as afterDriverDisableInPlatform,
   afterDriverDisablingDesktop as afterDriverDisablingInPlatform,
   afterDriverEnabledDesktop as afterDriverEnabledInPlatform,
   afterKbfsDaemonRpcStatusChangedMobile as afterKbfsDaemonRpcStatusChangedInPlatform,
-  finishedDownloadWithIntentMobile as finishedDownloadWithIntentInPlatform,
-  finishedRegularDownloadMobile as finishedRegularDownloadInPlatform,
   fuseStatusToDriverStatus,
-  openLocalPathInSystemFileManagerDesktop as openLocalPathInSystemFileManagerInPlatform,
   openPathInSystemFileManagerDesktop as openPathInSystemFileManagerInPlatform,
-  openSecurityPreferencesDesktop as openSecurityPreferencesInPlatform,
-  pickAndUploadMobile as pickAndUploadInPlatform,
-  pickDocumentsMobile as pickDocumentsInPlatform,
   refreshDriverStatusDesktop as refreshDriverStatusInPlatform,
   refreshMountDirsDesktop as refreshMountDirsInPlatform,
-  selectFilesToUploadDesktop as selectFilesToUploadInPlatform,
   setSfmiBannerDismissedDesktop as setSfmiBannerDismissedInPlatform,
-  uploadFromDragAndDropDesktop as uploadFromDragAndDropInPlatform,
 } from './fs-platform'
 
 export * from '@/constants/fs'
@@ -370,12 +361,6 @@ export type State = Store & {
     editSuccess: (editID: T.FS.EditID) => void
     favoriteIgnore: (path: T.FS.Path) => void
     favoritesLoad: () => void
-    finishedDownloadWithIntentMobile: (
-      downloadID: string,
-      downloadIntent: T.FS.DownloadIntent,
-      mimeType: string
-    ) => void
-    finishedRegularDownloadMobile: (downloadID: string, mimeType: string) => void
     finishManualConflictResolution: (localViewTlfPath: T.FS.Path) => void
     folderListLoad: (path: T.FS.Path, recursive: boolean) => void
     getOnlineStatus: () => void
@@ -402,19 +387,12 @@ export type State = Store & {
     ) => void
     onChangedFocus: (appFocused: boolean) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    openAndUploadDesktop: (type: T.FS.OpenDialogType, parentPath: T.FS.Path) => void
-    openFilesFromWidgetDesktop: (path?: T.FS.Path) => void
-    openLocalPathInSystemFileManagerDesktop: (localPath: string) => void
-    openPathInSystemFileManagerDesktop: (path: T.FS.Path) => void
     onPathChange: (
       clientID: string,
       path: string,
       topics: ReadonlyArray<T.RPCGen.PathSubscriptionTopic>
     ) => void
     onSubscriptionNotify: (clientID: string, topic: T.RPCGen.SubscriptionTopic) => void
-    openSecurityPreferencesDesktop: () => void
-    pickAndUploadMobile: (type: T.FS.MobilePickType, parentPath: T.FS.Path) => void
-    pickDocumentsMobile: (parentPath: T.FS.Path) => void
     pollJournalStatus: () => void
     redbar: (error: string) => void
     refreshDriverStatusDesktop: () => void
@@ -427,7 +405,6 @@ export type State = Store & {
     setEditName: (editID: T.FS.EditID, name: string) => void
     setPathItemActionMenuDownload: (downloadID?: string, intent?: T.FS.DownloadIntent) => void
     setPreferredMountDirs: (preferredMountDirs: ReadonlyArray<string>) => void
-    setSfmiBannerDismissedDesktop: (dismissed: boolean) => void
     setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     setSpaceAvailableNotificationThreshold: (spaceAvailableNotificationThreshold: number) => void
     setTlfSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
@@ -441,7 +418,6 @@ export type State = Store & {
     syncStatusChanged: (status: T.RPCGen.FolderSyncStatus) => void
     unsubscribe: (subscriptionID: string) => void
     upload: (parentPath: T.FS.Path, localPath: string) => void
-    uploadFromDragAndDropDesktop: (parentPath: T.FS.Path, localPaths: Array<string>) => void
     userIn: () => void
     userOut: () => void
     userFileEditsLoad: () => void
@@ -625,6 +601,17 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     }
   }
 
+  const _setSfmiBannerDismissedDesktop = (dismissed: boolean) => {
+    const f = async () => {
+      try {
+        await setSfmiBannerDismissedInPlatform(dismissed)
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    ignorePromise(f())
+  }
+
   const dispatch: State['dispatch'] = {
     afterKbfsDaemonRpcStatusChanged: () => {
       const f = async () => {
@@ -799,7 +786,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     driverDisable: () => {
       const f = async () => {
         const {dispatch, sfmi} = get()
-        dispatch.setSfmiBannerDismissedDesktop(false)
+        _setSfmiBannerDismissedDesktop(false)
         const result = await afterDriverDisableInPlatform(sfmi.driverStatus)
         if (result === 'disabling') {
           dispatch.driverDisabling()
@@ -830,7 +817,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       })
       const f = async () => {
         const {dispatch} = get()
-        dispatch.setSfmiBannerDismissedDesktop(false)
+        _setSfmiBannerDismissedDesktop(false)
         try {
           const result = await afterDriverEnabledInPlatform(!!isRetry)
           if (result === 'kextPermissionError' || result === 'kextPermissionErrorRetry') {
@@ -968,46 +955,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           path: Constants.pathToRPCPath(localViewTlfPath),
         })
         get().dispatch.favoritesLoad()
-      }
-      ignorePromise(f())
-    },
-    finishedDownloadWithIntentMobile: (downloadID, downloadIntent, mimeType) => {
-      const f = async () => {
-        const {downloads, dispatch} = get()
-        const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
-        if (downloadState === Constants.emptyDownloadState) {
-          logger.warn('missing download', downloadID)
-          return
-        }
-        if (downloadState.error) {
-          dispatch.redbar(downloadState.error)
-          dispatch.dismissDownload(downloadID)
-          return
-        }
-        try {
-          await finishedDownloadWithIntentInPlatform(downloadState, downloadIntent, mimeType)
-          if (downloadIntent !== T.FS.DownloadIntent.None) {
-            dispatch.dismissDownload(downloadID)
-          }
-        } catch (err) {
-          errorToActionOrThrow(err)
-        }
-      }
-      ignorePromise(f())
-    },
-    finishedRegularDownloadMobile: (downloadID, mimeType) => {
-      const f = async () => {
-        const {downloads} = get()
-        const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
-        const downloadInfo = downloads.info.get(downloadID) || Constants.emptyDownloadInfo
-        if (downloadState === Constants.emptyDownloadState || downloadInfo === Constants.emptyDownloadInfo) {
-          logger.warn('missing download', downloadID)
-          return
-        }
-        if (downloadState.error) {
-          return
-        }
-        await finishedRegularDownloadInPlatform(downloadID, downloadState, downloadInfo, mimeType)
       }
       ignorePromise(f())
     },
@@ -1637,76 +1584,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    openAndUploadDesktop: (type, parentPath) => {
-      const f = async () => {
-        try {
-          const localPaths = await selectFilesToUploadInPlatform(type, parentPath)
-          localPaths.forEach(localPath => get().dispatch.upload(parentPath, localPath))
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-      }
-      ignorePromise(f())
-    },
-    openFilesFromWidgetDesktop: path => {
-      showMain()
-      if (path) {
-        Constants.navToPath(path)
-      } else {
-        navigateAppend(Tabs.fsTab)
-      }
-    },
-    openLocalPathInSystemFileManagerDesktop: localPath => {
-      const f = async () => {
-        try {
-          await openLocalPathInSystemFileManagerInPlatform(localPath)
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-      }
-      ignorePromise(f())
-    },
-    openPathInSystemFileManagerDesktop: path => {
-      const f = async () => {
-        const {sfmi, pathItems} = get()
-        try {
-          await openPathInSystemFileManagerInPlatform(path, pathItems, sfmi.driverStatus, sfmi.directMountDir)
-        } catch (e) {
-          errorToActionOrThrow(e, path)
-        }
-      }
-      ignorePromise(f())
-    },
-    openSecurityPreferencesDesktop: () => {
-      const f = async () => {
-        try {
-          await openSecurityPreferencesInPlatform()
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-      }
-      ignorePromise(f())
-    },
-    pickAndUploadMobile: (type, parentPath) => {
-      const f = async () => {
-        try {
-          await pickAndUploadInPlatform(type, parentPath, get().dispatch.upload)
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-      }
-      ignorePromise(f())
-    },
-    pickDocumentsMobile: parentPath => {
-      const f = async () => {
-        try {
-          await pickDocumentsInPlatform(parentPath, get().dispatch.upload)
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-      }
-      ignorePromise(f())
-    },
     pollJournalStatus: () => {
       if (pollJournalStatusPolling || !shouldRunBackgroundFSRPC()) {
         return
@@ -1773,7 +1650,18 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           const status = await refreshDriverStatusInPlatform()
           get().dispatch.setDriverStatus(fuseStatusToDriverStatus(status))
           if (status?.kextStarted && previousType === T.FS.DriverStatusType.Disabled) {
-            get().dispatch.openPathInSystemFileManagerDesktop(T.FS.stringToPath('/keybase'))
+            const path = T.FS.stringToPath('/keybase')
+            const {sfmi, pathItems} = get()
+            try {
+              await openPathInSystemFileManagerInPlatform(
+                path,
+                pathItems,
+                sfmi.driverStatus,
+                sfmi.directMountDir
+              )
+            } catch (e) {
+              errorToActionOrThrow(e, path)
+            }
           }
         } catch (e) {
           errorToActionOrThrow(e)
@@ -1860,16 +1748,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       set(s => {
         s.sfmi.preferredMountDirs = T.castDraft(preferredMountDirs)
       })
-    },
-    setSfmiBannerDismissedDesktop: dismissed => {
-      const f = async () => {
-        try {
-          await setSfmiBannerDismissedInPlatform(dismissed)
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-      }
-      ignorePromise(f())
     },
     setSorting: (path, sortSetting) => {
       set(s => {
@@ -2043,17 +1921,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           })
         } catch (err) {
           errorToActionOrThrow(err)
-        }
-      }
-      ignorePromise(f())
-    },
-    uploadFromDragAndDropDesktop: (parentPath, localPaths) => {
-      const f = async () => {
-        try {
-          const nextLocalPaths = await uploadFromDragAndDropInPlatform(localPaths)
-          nextLocalPaths.forEach(localPath => get().dispatch.upload(parentPath, localPath))
-        } catch (e) {
-          errorToActionOrThrow(e)
         }
       }
       ignorePromise(f())

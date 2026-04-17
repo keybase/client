@@ -17,6 +17,8 @@ import {useTrackerState} from '@/stores/tracker'
 import logger from '@/logger'
 import {makeUUID} from '@/util/uuid'
 import {dumpLogs, showMain} from '@/util/storeless-actions'
+import * as FSConstants from '@/constants/fs'
+import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 const handleSaltPackOpen = (_path: string | HiddenString) => {
   const path = typeof _path === 'string' ? _path : _path.stringValue()
@@ -101,7 +103,12 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.openFilesFromWidget: {
-      useFSState.getState().dispatch.openFilesFromWidgetDesktop(action.payload.path)
+      showMain()
+      if (action.payload.path) {
+        FSConstants.navToPath(action.payload.path)
+      } else {
+        navigateAppend(Tabs.fsTab)
+      }
       break
     }
     case RemoteGen.saltpackFileOpen: {
@@ -117,7 +124,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.openPathInSystemFileManager: {
-      useFSState.getState().dispatch.openPathInSystemFileManagerDesktop(action.payload.path)
+      openPathInSystemFileManagerDesktop(action.payload.path)
       break
     }
     case RemoteGen.unlockFoldersSubmitPaperKey: {

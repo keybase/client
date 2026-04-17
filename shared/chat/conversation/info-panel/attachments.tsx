@@ -10,6 +10,7 @@ import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp
 import {infoPanelWidth} from './common'
 import {useMessagePopup} from '../messages/message-popup'
 import {useFSState} from '@/stores/fs'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -492,9 +493,6 @@ export const useAttachmentSections = (
     }
   }
 
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.openLocalPathInSystemFileManagerDesktop
-  )
   const onShowInFinder = (message: T.Chat.MessageAttachment) =>
     message.downloadPath && openLocalPathInSystemFileManagerDesktop(message.downloadPath)
 
