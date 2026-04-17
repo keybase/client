@@ -201,24 +201,36 @@ export const useFsWatchDownloadForMobile = C.isMobile
       )
 
       const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
+      const handledIntentKeyRef = React.useRef<string>('')
 
       React.useEffect(() => {
-        if (!downloadID || !downloadIntent || !finished || !mimeType) {
+        setJustDoneWithIntent(false)
+      }, [downloadID, downloadIntent])
+
+      React.useEffect(() => {
+        if (!downloadID || downloadIntent === undefined || !finished || !mimeType) {
           setJustDoneWithIntent(false)
+          return
+        }
+        const handledIntentKey = `${downloadID}:${downloadIntent}`
+        if (handledIntentKeyRef.current === handledIntentKey) {
           return
         }
         const f = async () => {
           if (downloadIntent === T.FS.DownloadIntent.None) {
             await finishedRegularDownloadInPlatform(downloadID, dlState, dlInfo, mimeType)
+            handledIntentKeyRef.current = handledIntentKey
             return
           }
           if (dlState.error) {
+            handledIntentKeyRef.current = handledIntentKey
             redbar(dlState.error)
             dismissDownload(downloadID)
             return
           }
           try {
             await finishedDownloadWithIntentInPlatform(dlState, downloadIntent, mimeType)
+            handledIntentKeyRef.current = handledIntentKey
             dismissDownload(downloadID)
             setJustDoneWithIntent(true)
           } catch (err) {
