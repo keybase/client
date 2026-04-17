@@ -1,4 +1,4 @@
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import {errorToActionOrThrow, useFSState} from '@/stores/fs'
 import {
