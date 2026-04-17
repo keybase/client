@@ -46,13 +46,7 @@ export type State = Store & {
     cancelTeamBuilding: () => void
     changeSendNotification: (sendNotification: boolean) => void
     closeTeamBuilding: () => void
-    defer: {
-      onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
-      onFinishedTeamBuildingChat: (users: ReadonlySet<T.TB.User>) => void
-      onFinishedTeamBuildingCrypto: (users: ReadonlySet<T.TB.User>) => void
-    }
     fetchUserRecs: () => void
-    finishTeamBuilding: () => void
     finishedTeamBuilding: () => void
     removeUsersFromTeamSoFar: (users: Array<T.TB.UserID>) => void
     resetState: () => void
@@ -252,6 +246,17 @@ const interestingPersonToUser = (person: T.RPCGen.InterestingPerson): T.TB.User 
 }
 
 const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
+  const resetStatePreservingSelection = () => {
+    const {namespace, selectedRole, sendNotification, teamSoFar} = get()
+    set(() => ({
+      ...initialStore,
+      namespace,
+      selectedRole,
+      sendNotification,
+      teamSoFar,
+    }))
+  }
+
   const dispatch: State['dispatch'] = {
     addUsersToTeamSoFar: users => {
       set(s => {
@@ -294,17 +299,6 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         navigateUp()
       }
     },
-    defer: {
-      onAddMembersWizardPushMembers: (_members: Array<T.Teams.AddingMember>) => {
-        throw new Error('onAddMembersWizardPushMembers not properly initialized')
-      },
-      onFinishedTeamBuildingChat: (_users: ReadonlySet<T.TB.User>) => {
-        throw new Error('onFinishedTeamBuildingChat not properly initialized')
-      },
-      onFinishedTeamBuildingCrypto: (_users: ReadonlySet<T.TB.User>) => {
-        throw new Error('onFinishedTeamBuildingCrypto not properly initialized')
-      },
-    },
     fetchUserRecs: () => {
       const includeContacts = get().namespace === 'chat'
       const f = async () => {
@@ -335,47 +329,8 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       }
       ignorePromise(f())
     },
-    finishTeamBuilding: () => {
-      set(s => {
-        s.error = ''
-      })
-      const {namespace, selectedRole, sendNotification, teamSoFar} = get()
-      if (namespace !== 'teams') {
-        get().dispatch.closeTeamBuilding()
-        return
-      }
-      const members = [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'} as const))
-      get().dispatch.closeTeamBuilding()
-      get().dispatch.defer.onAddMembersWizardPushMembers(members)
-      set(() => ({
-        ...initialStore,
-        namespace,
-        selectedRole,
-        sendNotification,
-        teamSoFar,
-      }))
-    },
     finishedTeamBuilding: () => {
-      const {teamSoFar, selectedRole, sendNotification, namespace} = get()
-      set(() => ({
-        ...initialStore,
-        namespace,
-        selectedRole,
-        sendNotification,
-        teamSoFar,
-      }))
-      switch (namespace) {
-        case 'crypto': {
-          get().dispatch.defer.onFinishedTeamBuildingCrypto(teamSoFar)
-          break
-        }
-        case 'chat': {
-          get().dispatch.defer.onFinishedTeamBuildingChat(teamSoFar)
-          break
-        }
-        default:
-      }
-      get().dispatch.closeTeamBuilding()
+      resetStatePreservingSelection()
     },
     removeUsersFromTeamSoFar: users => {
       set(s => {

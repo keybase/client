@@ -28,9 +28,8 @@ import type * as UseTeamsStateType from '@/stores/teams'
 import type * as UseTracker2StateType from '@/stores/tracker'
 import type * as UnlockFoldersType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
-import {createTBStore, getTBStore} from '@/stores/team-building'
+import {getTBStore} from '@/stores/team-building'
 import {getSelectedConversation} from '@/constants/chat/common'
-import * as CryptoRoutes from '@/constants/crypto'
 import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
 import {isMobile, isPhone, serverConfigFileName} from '../platform'
@@ -57,7 +56,6 @@ import {
   onIncomingInboxUIItem,
   handleConvoEngineIncoming,
   onRouteChanged as onConvoRouteChanged,
-  onTeamBuildingFinished as onConvoTeamBuildingFinished,
   syncBadgeState,
   syncGregorExplodingModes,
 } from '@/stores/convostate'
@@ -121,60 +119,6 @@ export const onEngineDisconnected = () => {
   }
   ignorePromise(f())
   storeRegistry.getState('daemon').dispatch.setError(new Error('Disconnected'))
-}
-
-// Initialize team building callbacks. Not ideal but keeping all the existing logic for now.
-export const initTeamBuildingCallbacks = () => {
-  const commonCallbacks = {
-    onAddMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => {
-      useTeamsState.getState().dispatch.addMembersWizardPushMembers(members)
-    },
-  }
-
-  const namespaces: Array<T.TB.AllowedNamespace> = ['chat', 'crypto', 'teams', 'people']
-  for (const namespace of namespaces) {
-    const store = createTBStore(namespace)
-    const currentState = store.getState()
-    store.setState({
-      dispatch: {
-        ...currentState.dispatch,
-        defer: {
-          ...currentState.dispatch.defer,
-          ...commonCallbacks,
-          ...(namespace === 'chat'
-            ? {
-                onFinishedTeamBuildingChat: users => {
-                  onConvoTeamBuildingFinished(users)
-                },
-              }
-            : {}),
-          ...(namespace === 'crypto'
-            ? {
-                onFinishedTeamBuildingCrypto: users => {
-                  const visible = Util.getVisibleScreen()
-                  const visibleParams =
-                    visible?.name === 'cryptoTeamBuilder'
-                      ? (visible.params as {teamBuilderNonce?: string} | undefined)
-                      : undefined
-                  const teamBuilderUsers = [...users].map(({serviceId, username}) => ({serviceId, username}))
-                  Util.clearModals()
-                  Util.navigateAppend(
-                    {
-                      name: CryptoRoutes.encryptTab,
-                      params: {
-                        teamBuilderNonce: visibleParams?.teamBuilderNonce,
-                        teamBuilderUsers,
-                      },
-                    },
-                    true
-                  )
-                },
-              }
-            : {}),
-        },
-      },
-    })
-  }
 }
 
 export const initSharedSubscriptions = () => {
@@ -432,7 +376,6 @@ export const initSharedSubscriptions = () => {
       onConvoRouteChanged(prev, next)
     })
   )
-  initTeamBuildingCallbacks()
 }
 
 // This is to defer loading stores we don't need immediately.
