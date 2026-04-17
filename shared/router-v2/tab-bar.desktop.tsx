@@ -19,6 +19,7 @@ import {useFSState} from '@/stores/fs'
 import {useNotifState} from '@/stores/notifications'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
+import {dumpLogs} from '@/util/storeless-actions'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -45,11 +46,6 @@ const Header = () => {
 
   const logoutToLoggedOutFlow = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
   const onHelp = () => openURL('https://book.keybase.io')
-  const {dumpLogs} = useConfigState(
-    C.useShallow(s => ({
-      dumpLogs: s.dispatch.dumpLogs,
-    }))
-  )
   const onQuit = () => {
     if (!__DEV__) {
       if (isLinux) {

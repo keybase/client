@@ -8,7 +8,6 @@ import type * as T from '@/constants/types'
 import chatNewChat from '../team-building/page'
 import {TeamBuilderScreen} from '../team-building/page'
 import {headerNavigationOptions} from './conversation/header-area'
-import {useConfigState} from '@/stores/config'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {ModalTitle} from '@/teams/common'
 import inboxGetOptions from './inbox/get-options'
@@ -17,6 +16,7 @@ import {defineRouteMap} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
 import type {ChatRootRouteParams} from './inbox-and-conversation'
 import {onTeamBuildingFinished} from '@/stores/convostate'
+import {showShareActionSheet} from '@/util/storeless-actions'
 const Convo = React.lazy(async () => import('./conversation/container'))
 
 type ChatBlockingRouteParams = {
@@ -47,9 +47,8 @@ const ChatTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
 )
 
 const PDFShareButton = ({url}: {url?: string}) => {
-  const showShareActionSheet = useConfigState(s => s.dispatch.showShareActionSheet)
   return (
-    <Kb.Icon type="iconfont-share" onClick={() => showShareActionSheet?.(url ?? '', '', 'application/pdf')} />
+    <Kb.Icon type="iconfont-share" onClick={() => showShareActionSheet(url ?? '', '', 'application/pdf')} />
   )
 }
 

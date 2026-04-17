@@ -7,7 +7,7 @@ import type {CommonState} from './helpers'
 import {pickFiles} from '@/util/misc'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/constants/fs'
-import {useConfigState} from '@/stores/config'
+import {copyToClipboard} from '@/util/storeless-actions'
 
 type CryptoOutputProps = {
   actionLabel: string
@@ -172,7 +172,6 @@ export const CryptoOutputActionsBar = ({
     previewConversation({participants: [username], reason: 'search'})
   }
 
-  const copyToClipboard = useConfigState(s => s.dispatch.copyToClipboard)
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showingToast, setShowingToast] = React.useState(false)
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)

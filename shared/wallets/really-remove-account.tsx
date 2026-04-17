@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import WalletPopup from './wallet-popup'
 import {loadAccountsWaitingKey} from '@/constants/strings'
-import {useConfigState} from '@/stores/config'
+import {copyToClipboard} from '@/util/storeless-actions'
 
 type OwnProps = {
   accountID: string
@@ -17,8 +17,6 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const [showingToast, setShowToast] = React.useState(false)
   const attachmentRef = React.useRef<Kb.MeasureRef | null>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
-
-  const copyToClipboard = useConfigState(s => s.dispatch.copyToClipboard)
 
   const [sk, setSK] = React.useState('')
   const loading = !sk

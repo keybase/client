@@ -10,6 +10,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {requestLocationPermission} from '@/util/platform-specific'
 import * as ExpoLocation from 'expo-location'
 import {ignorePromise} from '@/constants/utils'
+import {openAppSettings} from '@/util/storeless-actions'
 
 const LocationButton = (props: {
   disabled: boolean
@@ -105,7 +106,6 @@ const LocationPopup = () => {
   const onClose = () => {
     clearModals()
   }
-  const onSettings = useConfigState(s => s.dispatch.openAppSettings)
   const sendMessage = ConvoState.useChatContext(s => s.dispatch.sendMessage)
   const onLocationShare = (duration: string) => {
     onClose()
@@ -129,7 +129,7 @@ const LocationPopup = () => {
           <Kb.Text center={true} type="Body" style={styles.deniedText}>
             Enable location for Keybase to see your current position.
           </Kb.Text>
-          <Kb.Button label="Open settings" onClick={onSettings} />
+          <Kb.Button label="Open settings" onClick={openAppSettings} />
         </Kb.Box2>
       ) : (
         <LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />

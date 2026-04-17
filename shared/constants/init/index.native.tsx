@@ -33,6 +33,7 @@ import {getConvoState, getConvoUIState} from '@/stores/convostate'
 import {requestLocationPermission} from '@/util/platform-specific/index.native'
 import * as ScreenCapture from 'expo-screen-capture'
 import {getSecureFlagSetting} from '@/constants/platform.native'
+import {persistRoute} from '@/util/storeless-actions'
 
 const loadStartupDetails = async () => {
   logger.info('[Startup] loadStartupDetails: starting')
@@ -254,7 +255,7 @@ export const initPlatformListener = () => {
       case 'background':
         appFocused = false
         logState = T.RPCGen.MobileAppState.background
-        useConfigState.getState().dispatch.persistRoute(false, true)
+        persistRoute(false, true, () => useConfigState.getState().startup.loaded)
         break
       case 'inactive':
         appFocused = false
@@ -352,7 +353,7 @@ export const initPlatformListener = () => {
     const next = s.navState
     const prev = old.navState
     if (next === prev) return
-    useConfigState.getState().dispatch.persistRoute(false, false)
+    persistRoute(false, false, () => useConfigState.getState().startup.loaded)
 
     if (!calledShareListenersRegistered && logState().loggedIn) {
       calledShareListenersRegistered = true

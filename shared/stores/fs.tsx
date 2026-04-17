@@ -18,6 +18,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useNotifState} from '@/stores/notifications'
 import * as Constants from '@/constants/fs'
 import {makeUUID} from '@/util/uuid'
+import {showMain} from '@/util/storeless-actions'
 import {
   afterDriverDisableDesktop as afterDriverDisableInPlatform,
   afterDriverDisablingDesktop as afterDriverDisablingInPlatform,
@@ -1604,7 +1605,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       ignorePromise(f())
     },
     openFilesFromWidgetDesktop: path => {
-      useConfigState.getState().dispatch.showMain()
+      showMain()
       if (path) {
         Constants.navToPath(path)
       } else {

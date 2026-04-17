@@ -19,6 +19,7 @@ import {useDarkModeState} from '@/stores/darkmode'
 import {initPlatformListener, onEngineIncoming} from '@/constants/init/index.desktop'
 import {eventFromRemoteWindows} from './remote-event-handler.desktop'
 import type {default as NewMainType} from '../../app/main.desktop'
+import {dumpLogs} from '@/util/storeless-actions'
 setServiceDecoration(ServiceDecoration)
 
 const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
@@ -86,9 +87,7 @@ const setupApp = async () => {
 
   // After a delay dump logs in case some startup stuff happened
   setTimeout(() => {
-    useConfigState
-      .getState()
-      .dispatch.dumpLogs('startup')
+    dumpLogs('startup')
       .then(() => {})
       .catch(() => {})
   }, 5 * 1000)

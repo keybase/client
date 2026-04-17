@@ -1,15 +1,14 @@
 import * as Kb from '@/common-adapters'
-import {useConfigState} from '@/stores/config'
+import {openAppSettings} from '@/util/storeless-actions'
 
 const QRScanNotAuthorized = () => {
-  const onOpenSettings = useConfigState(s => s.dispatch.openAppSettings)
   return (
     <Kb.Box2 direction="vertical" justifyContent="center" flex={1} style={styles.container} gap="tiny">
       <Kb.Icon type="iconfont-camera" color={Kb.Styles.globalColors.white_40} />
       <Kb.Text center={true} type="BodyTiny" style={styles.text}>
         You need to allow access to the camera.
       </Kb.Text>
-      <Kb.Text center={true} type="BodyTiny" onClick={onOpenSettings} style={styles.text} underline={true}>
+      <Kb.Text center={true} type="BodyTiny" onClick={openAppSettings} style={styles.text} underline={true}>
         Open settings
       </Kb.Text>
     </Kb.Box2>

@@ -1,6 +1,5 @@
 import type * as React from 'react'
 import * as C from '@/constants'
-import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as T from '@/constants/types'
 import {openURL as openUrl} from '@/util/misc'
@@ -11,6 +10,7 @@ import {useColorScheme} from 'react-native'
 import * as Tracker from '@/stores/tracker'
 import {useTrackerState} from '@/stores/tracker'
 import {navToProfile} from '@/constants/router'
+import {copyToClipboard} from '@/util/storeless-actions'
 
 type OwnProps = {
   isSuggestion?: boolean
@@ -402,7 +402,6 @@ const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
 
 const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
   const {value, color} = p
-  const copyToClipboard = useConfigState(s => s.dispatch.copyToClipboard)
   const onCopyAddress = () => {
     copyToClipboard(value)
   }

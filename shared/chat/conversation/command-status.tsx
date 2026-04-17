@@ -1,7 +1,7 @@
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useConfigState} from '@/stores/config'
+import {openAppSettings} from '@/util/storeless-actions'
 
 const empty = {
   actions: [],
@@ -13,7 +13,6 @@ const Container = () => {
   const info = ConvoState.useChatUIContext(s => s.commandStatus)
   const _info = info || empty
 
-  const onOpenAppSettings = useConfigState(s => s.dispatch.openAppSettings)
   const setCommandStatusInfo = ConvoState.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
   const onCancel = () => {
     setCommandStatusInfo()
@@ -24,7 +23,7 @@ const Container = () => {
         case T.RPCChat.UICommandStatusActionTyp.appsettings:
           return {
             displayText: 'View App Settings',
-            onClick: () => onOpenAppSettings?.(),
+            onClick: openAppSettings,
           }
         default:
           return {

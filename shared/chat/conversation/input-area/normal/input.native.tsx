@@ -27,7 +27,7 @@ import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-pick
 import {onHWKeyPressed, registerPasteImage, removeOnHWKeyPressed} from 'react-native-kb'
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {standardTransformer} from '../suggestors/common'
-import {useConfigState} from '@/stores/config'
+import {filePickerError} from '@/util/storeless-actions'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 import {useSuggestors} from '../suggestors'
 
@@ -352,7 +352,6 @@ type ChatFilePickerProps = {
 const ChatFilePicker = (p: ChatFilePickerProps) => {
   const {attachTo, showingPopup, hidePopup} = p
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const filePickerError = useConfigState(s => s.dispatch.filePickerError)
   const navigateAppend = ConvoState.useChatNavigateAppend()
   const launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed' | 'file', location: string) => {
     const f = async () => {

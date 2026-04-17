@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
+import {openAppStore} from '@/util/storeless-actions'
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
@@ -55,7 +56,6 @@ const OutOfDate = () => {
     }
   }, [])
 
-  const onOpenAppStore = useConfigState(s => s.dispatch.openAppStore)
   const critical = C.isMobile ? mobileCritical : outOfDate.critical
   const message = C.isMobile ? mobileMessage : outOfDate.message
 
@@ -67,7 +67,7 @@ const OutOfDate = () => {
       <Kb.Box2 direction="vertical" style={styles.messageContainer} fullWidth={true}>
         <Kb.Markdown>{message}</Kb.Markdown>
       </Kb.Box2>
-      {Kb.Styles.isMobile && <Kb.Button label="Update" onClick={onOpenAppStore} />}
+      {Kb.Styles.isMobile && <Kb.Button label="Update" onClick={openAppStore} />}
     </Kb.Box2>
   )
 }

@@ -18,18 +18,10 @@ import {skipAppFocusActions} from '@/local-debug.desktop'
 import {NotifyPopup} from '@/util/misc'
 import {noKBFSFailReason} from '@/constants/config'
 import {initSharedSubscriptions, _onEngineIncoming, onEngineConnected as onSharedEngineConnected} from './shared'
+import {dumpLogs} from '@/util/storeless-actions'
 
-const {activeChanged, requestWindowsStartService, ctlQuit, dumpNodeLogger} = KB2.functions
+const {activeChanged, requestWindowsStartService} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin} = KB2.functions
-
-const dumpLogs = async (reason?: string) => {
-  await logger.dump()
-  await (dumpNodeLogger?.() ?? Promise.resolve([]))
-  // quit as soon as possible
-  if (reason === 'quitting through menu') {
-    ctlQuit?.()
-  }
-}
 
 const maybePauseVideos = () => {
   const {appFocused} = useConfigState.getState()

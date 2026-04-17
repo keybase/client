@@ -3,7 +3,6 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/stores/teams'
-import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
 import ReactionItem from './reactionitem'
@@ -11,6 +10,7 @@ import MessagePopupHeader from './header'
 import ExplodingPopupHeader from './exploding-header'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import {navToProfile} from '@/constants/router'
+import {copyToClipboard} from '@/util/storeless-actions'
 
 const emptyText = Chat.makeMessageText({})
 
@@ -101,7 +101,6 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     : []
 
   const convLabel = getConversationLabel(participantInfo, meta, true)
-  const copyToClipboard = useConfigState(s => s.dispatch.copyToClipboard)
   const onCopyLink = () => {
     copyToClipboard(linkFromConvAndMessage(convLabel, id))
   }

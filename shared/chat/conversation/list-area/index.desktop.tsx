@@ -16,7 +16,7 @@ import {FocusContext, ScrollContext} from '../normal/context'
 import shallowEqual from '@/util/shallow-equal'
 import useResizeObserver from '@/util/use-resize-observer.desktop'
 import useIntersectionObserver from '@/util/use-intersection-observer'
-import {useConfigState} from '@/stores/config'
+import {copyToClipboard} from '@/util/storeless-actions'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -489,7 +489,6 @@ const ThreadWrapper = function ThreadWrapper() {
   )
   const {conversationIDKey, centeredHighlightOrdinal, centeredOrdinal} = data
   const {containsLatestMessage, messageOrdinals, loaded} = data
-  const copyToClipboard = useConfigState(s => s.dispatch.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const _setListRef = (r: HTMLDivElement | null) => {
     listRef.current = r

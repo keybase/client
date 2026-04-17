@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
-import {useConfigState} from '@/stores/config'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -9,6 +8,7 @@ import type {Position, StylesCrossPlatform} from '@/styles'
 import {useItems, useHeader} from './hooks'
 import {openURL} from '@/util/misc'
 import {useCurrentUserState} from '@/stores/current-user'
+import {copyToClipboard} from '@/util/storeless-actions'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -77,7 +77,6 @@ const PopText = (ownProps: OwnProps) => {
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const canReplyPrivately = ['small', 'big'].includes(teamType) || numPart > 2
   const navigateAppend = C.Router2.navigateAppend
-  const copyToClipboard = useConfigState(s => s.dispatch.copyToClipboard)
   const onCopy = () => {
     text && copyToClipboard(text)
   }
