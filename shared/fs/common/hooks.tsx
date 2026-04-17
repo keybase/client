@@ -219,9 +219,7 @@ export const useFsWatchDownloadForMobile = C.isMobile
           }
           try {
             await finishedDownloadWithIntentInPlatform(dlState, downloadIntent, mimeType)
-            if (downloadIntent !== T.FS.DownloadIntent.None) {
-              dismissDownload(downloadID)
-            }
+            dismissDownload(downloadID)
             setJustDoneWithIntent(true)
           } catch (err) {
             errorToActionOrThrow(err)
