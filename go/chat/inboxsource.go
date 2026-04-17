@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -1267,7 +1268,7 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 		}
 		return res
 	}
-	convName := utils.SearchableRemoteConversationName(conv, username)
+	convName := strings.ToLower(utils.SearchableRemoteConversationName(conv, username))
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
 		convToks = []string{convName}
@@ -1298,6 +1299,18 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 	return res
 }
 
+func tokenizeSearchQuery(query string) (queryToks []string) {
+	query = strings.ToLower(query)
+	for _, tok := range strings.FieldsFunc(query, func(r rune) bool {
+		return r == ',' || unicode.IsSpace(r)
+	}) {
+		if len(tok) > 0 {
+			queryToks = append(queryToks, tok)
+		}
+	}
+	return queryToks
+}
+
 func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int,
 	emptyMode types.InboxSourceSearchEmptyMode,
 ) (res []types.RemoteConversation, err error) {
@@ -1309,17 +1322,7 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 	if err != nil {
 		return res, err
 	}
-	// normalize the search query to lowercase
-	query = strings.ToLower(query)
-	var queryToks []string
-	for _, t := range strings.FieldsFunc(query, func(r rune) bool {
-		return r == ',' || r == ' '
-	}) {
-		tok := strings.Trim(t, " ")
-		if len(tok) > 0 {
-			queryToks = append(queryToks, tok)
-		}
-	}
+	queryToks := tokenizeSearchQuery(query)
 	var hits []convSearchHit
 	for _, conv := range convs {
 		if conv.Conv.GetTopicType() != chat1.TopicType_CHAT ||
