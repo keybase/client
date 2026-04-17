@@ -13,8 +13,6 @@ declare global {
 
   var __hmr_oneTimeInitDone: boolean | undefined
 
-  var __hmr_convoDeferImpl: unknown
-
   var __hmr_chatStores: Map<unknown, unknown> | undefined
 
   var __hmr_TBstores: Map<unknown, unknown> | undefined
@@ -58,10 +56,8 @@ import {
   onInboxLayoutChanged,
   onIncomingInboxUIItem,
   handleConvoEngineIncoming,
-  metasReceived as convoMetasReceived,
   onRouteChanged as onConvoRouteChanged,
   onTeamBuildingFinished as onConvoTeamBuildingFinished,
-  setConvoDefer,
   syncBadgeState,
   syncGregorExplodingModes,
 } from '@/stores/convostate'
@@ -185,10 +181,6 @@ export const initSharedSubscriptions = () => {
   // HMR cleanup: unsubscribe old store subscriptions before re-subscribing
   for (const unsub of _sharedUnsubs) unsub()
   _sharedUnsubs.length = 0
-
-  setConvoDefer({
-    chatMetasReceived: metas => convoMetasReceived(metas),
-  })
   _sharedUnsubs.push(
     useConfigState.subscribe((s, old) => {
       if (s.loadOnStartPhase !== old.loadOnStartPhase) {

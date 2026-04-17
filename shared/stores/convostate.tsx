@@ -222,9 +222,6 @@ export interface ConvoState extends ConvoStore {
     botCommandsUpdateStatus: (b: T.RPCChat.UIBotCommandsUpdateStatus) => void
     channelSuggestionsTriggered: () => void
     clearAttachmentView: () => void
-    defer: {
-      chatMetasReceived: (metas: ReadonlyArray<T.Chat.ConversationMeta>) => void
-    }
     dismissBottomBanner: () => void
     dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
     editBotSettings: (
@@ -377,31 +374,6 @@ const messageIDToOrdinal = (
 type ScrollDirection = 'none' | 'back' | 'forward'
 export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
-
-const stubDefer: ConvoState['dispatch']['defer'] = {
-  chatMetasReceived: () => {
-    throw new Error('convostate defer not initialized')
-  },
-}
-
-let convoDeferImpl: ConvoState['dispatch']['defer'] | undefined = __DEV__
-  ? (globalThis.__hmr_convoDeferImpl as ConvoState['dispatch']['defer'] | undefined)
-  : undefined
-
-export const setConvoDefer = (impl: ConvoState['dispatch']['defer']) => {
-  convoDeferImpl = impl
-  if (__DEV__) globalThis.__hmr_convoDeferImpl = impl
-  for (const store of chatStores.values()) {
-    const s = store.getState()
-    store.setState({
-      ...s,
-      dispatch: {
-        ...s.dispatch,
-        defer: impl,
-      },
-    })
-  }
-}
 
 export const onRouteChanged = (prev: T.Immutable<Router2.NavState>, next: T.Immutable<Router2.NavState>) => {
   const wasModal = prev && getModalStack(prev).length > 0
@@ -1262,7 +1234,6 @@ const createSlice =
     getLinkedUIState: () => ConvoUIState = () => getConvoUIState(id)
   ): Z.ImmerStateCreator<ConvoState> =>
   (set, get) => {
-    const defer = convoDeferImpl ?? stubDefer
     const getUI = getLinkedUIState
     const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const getCurrentUser = () => {
@@ -2369,7 +2340,6 @@ const createSlice =
           s.attachmentViewMap = new Map()
         })
       },
-      defer,
       dismissBottomBanner: () => {
         set(s => {
           s.dismissedInviteBanners = true
@@ -3044,7 +3014,7 @@ const createSlice =
 
           const text = formatTextForQuoting(message.text.stringValue())
           getConvoUIState(newThreadCID).dispatch.injectIntoInput(text)
-          get().dispatch.defer.chatMetasReceived([meta])
+          metasReceived([meta])
           routerNavigateToThread(newThreadCID, 'createdMessagePrivately')
         }
         ignorePromise(f())
