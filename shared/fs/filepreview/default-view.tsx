@@ -28,7 +28,7 @@ const Container = (ownProps: OwnProps) => {
     _download(path, 'download')
   }
   const showInSystemFileManager = () => {
-    openPathInSystemFileManagerDesktop?.(path)
+    openPathInSystemFileManagerDesktop(path)
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>

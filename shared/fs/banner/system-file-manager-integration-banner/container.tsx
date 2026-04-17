@@ -19,7 +19,7 @@ const SFMIContainer = (op: OwnProps) => {
     }))
   )
   const onDisable = () => driverDisable()
-  const onDismiss = () => setSfmiBannerDismissedDesktop?.(true)
+  const onDismiss = () => setSfmiBannerDismissedDesktop(true)
   const onEnable = driverEnable
   const alwaysShow = op.alwaysShow
 
@@ -236,7 +236,7 @@ const JustEnabled = ({onDismiss}: JustEnabledProps) => {
     }))
   )
   const open = displayingMountDir
-    ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
+    ? () => openLocalPathInSystemFileManagerDesktop(displayingMountDir)
     : undefined
   return (
     <Banner

@@ -5,7 +5,7 @@ const RefreshDriverStatusOnMount = () => {
   const refreshDriverStatusDesktop = useFSState(s => s.dispatch.refreshDriverStatusDesktop)
 
   React.useEffect(() => {
-    refreshDriverStatusDesktop?.()
+    refreshDriverStatusDesktop()
   }, [refreshDriverStatusDesktop])
 
   return null

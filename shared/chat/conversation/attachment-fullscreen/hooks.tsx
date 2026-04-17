@@ -61,7 +61,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
       }
 
   const onShowInFinder = downloadPath
-    ? () => openLocalPathInSystemFileManagerDesktop?.(downloadPath)
+    ? () => openLocalPathInSystemFileManagerDesktop(downloadPath)
     : undefined
 
   const progress = transferProgress

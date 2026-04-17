@@ -36,7 +36,7 @@ const Desktop = () => {
       openLocalPathInSystemFileManagerDesktop: s.dispatch.openLocalPathInSystemFileManagerDesktop,
     }))
   )
-  const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
+  const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop(C.downloadFolder)
   return downloadIDs.length ? (
     <>
       <Kb.Divider />

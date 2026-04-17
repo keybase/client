@@ -352,6 +352,7 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
+    afterKbfsDaemonRpcStatusChanged: () => void
     cancelDownload: (downloadID: string) => void
     checkKbfsDaemonRpcStatus: () => void
     commitEdit: (editID: T.FS.EditID) => void
@@ -365,9 +366,9 @@ export type State = Store & {
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
-    afterKbfsDaemonRpcStatusChanged: () => void
     editError: (editID: T.FS.EditID, error: string) => void
     editSuccess: (editID: T.FS.EditID) => void
+    favoriteIgnore: (path: T.FS.Path) => void
     favoritesLoad: () => void
     finishedDownloadWithIntentMobile: (
       downloadID: string,
@@ -375,7 +376,6 @@ export type State = Store & {
       mimeType: string
     ) => void
     finishedRegularDownloadMobile: (downloadID: string, mimeType: string) => void
-    favoriteIgnore: (path: T.FS.Path) => void
     finishManualConflictResolution: (localViewTlfPath: T.FS.Path) => void
     folderListLoad: (path: T.FS.Path, recursive: boolean) => void
     getOnlineStatus: () => void
@@ -406,13 +406,13 @@ export type State = Store & {
     openFilesFromWidgetDesktop: (path?: T.FS.Path) => void
     openLocalPathInSystemFileManagerDesktop: (localPath: string) => void
     openPathInSystemFileManagerDesktop: (path: T.FS.Path) => void
-    openSecurityPreferencesDesktop: () => void
     onPathChange: (
       clientID: string,
       path: string,
       topics: ReadonlyArray<T.RPCGen.PathSubscriptionTopic>
     ) => void
     onSubscriptionNotify: (clientID: string, topic: T.RPCGen.SubscriptionTopic) => void
+    openSecurityPreferencesDesktop: () => void
     pickAndUploadMobile: (type: T.FS.MobilePickType, parentPath: T.FS.Path) => void
     pickDocumentsMobile: (parentPath: T.FS.Path) => void
     pollJournalStatus: () => void
@@ -663,6 +663,20 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
+    afterKbfsDaemonRpcStatusChanged: () => {
+      const f = async () => {
+        await afterKbfsDaemonRpcStatusChangedInPlatform()
+        if (isMobile) {
+          return
+        }
+        const {kbfsDaemonStatus, dispatch} = get()
+        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
+          dispatch.refreshDriverStatusDesktop()
+        }
+        dispatch.refreshMountDirsDesktop()
+      }
+      ignorePromise(f())
+    },
     commitEdit: editID => {
       const edit = get().edits.get(editID)
       if (!edit) {
@@ -712,20 +726,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
               return
             }
         }
-      }
-      ignorePromise(f())
-    },
-    afterKbfsDaemonRpcStatusChanged: () => {
-      const f = async () => {
-        await afterKbfsDaemonRpcStatusChangedInPlatform()
-        if (isMobile) {
-          return
-        }
-        const {kbfsDaemonStatus, dispatch} = get()
-        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-          dispatch.refreshDriverStatusDesktop()
-        }
-        dispatch.refreshMountDirsDesktop()
       }
       ignorePromise(f())
     },
@@ -824,22 +824,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    finishedRegularDownloadMobile: (downloadID, mimeType) => {
-      const f = async () => {
-        const {downloads} = get()
-        const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
-        const downloadInfo = downloads.info.get(downloadID) || Constants.emptyDownloadInfo
-        if (downloadState === Constants.emptyDownloadState || downloadInfo === Constants.emptyDownloadInfo) {
-          logger.warn('missing download', downloadID)
-          return
-        }
-        if (downloadState.error) {
-          return
-        }
-        await finishedRegularDownloadInPlatform(downloadID, downloadState, downloadInfo, mimeType)
-      }
-      ignorePromise(f())
-    },
     driverDisable: () => {
       const f = async () => {
         const {dispatch, sfmi} = get()
@@ -898,6 +882,22 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           s.sfmi.driverStatus.isEnabling = false
         }
       })
+    },
+    finishedRegularDownloadMobile: (downloadID, mimeType) => {
+      const f = async () => {
+        const {downloads} = get()
+        const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
+        const downloadInfo = downloads.info.get(downloadID) || Constants.emptyDownloadInfo
+        if (downloadState === Constants.emptyDownloadState || downloadInfo === Constants.emptyDownloadInfo) {
+          logger.warn('missing download', downloadID)
+          return
+        }
+        if (downloadState.error) {
+          return
+        }
+        await finishedRegularDownloadInPlatform(downloadID, downloadState, downloadInfo, mimeType)
+      }
+      ignorePromise(f())
     },
     editError: (editID, error) => {
       set(s => {
@@ -1633,16 +1633,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    openSecurityPreferencesDesktop: () => {
-      const f = async () => {
-        try {
-          await openSecurityPreferencesInPlatform()
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-      }
-      ignorePromise(f())
-    },
     onPathChange: (cid, path, topics) => {
       if (cid !== clientID) {
         return
@@ -1689,6 +1679,16 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             break
           case T.RPCGen.SubscriptionTopic.overallSyncStatus:
             break
+        }
+      }
+      ignorePromise(f())
+    },
+    openSecurityPreferencesDesktop: () => {
+      const f = async () => {
+        try {
+          await openSecurityPreferencesInPlatform()
+        } catch (e) {
+          errorToActionOrThrow(e)
         }
       }
       ignorePromise(f())

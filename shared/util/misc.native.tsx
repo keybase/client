@@ -1,5 +1,4 @@
 import {navigateAppend} from '@/constants/router'
-import {useConfigState} from '@/stores/config'
 import {isIOS} from '@/constants/platform.native'
 import {pickDocumentsAsync} from './expo-document-picker.native'
 import {launchImageLibraryAsync, type ImageInfo} from './expo-image-picker.native'

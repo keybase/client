@@ -162,7 +162,7 @@ export const CryptoOutputActionsBar = ({
     s => s.dispatch.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
-    openLocalPathInSystemFileManagerDesktop?.(state.output)
+    openLocalPathInSystemFileManagerDesktop(state.output)
   }
 
   const navigateUp = C.Router2.navigateUp
@@ -342,7 +342,7 @@ export const CryptoOutput = ({
           <Kb.Text
             type="BodyPrimaryLink"
             style={Kb.Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
-            onClick={() => state.output && openLocalPathInSystemFileManagerDesktop?.(state.output)}
+            onClick={() => state.output && openLocalPathInSystemFileManagerDesktop(state.output)}
           >
             {state.output}
           </Kb.Text>

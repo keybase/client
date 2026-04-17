@@ -33,7 +33,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   )
 
   const openInSystemFileManager = (path: T.FS.Path) => {
-    openPathInSystemFileManagerDesktop?.(path)
+    openPathInSystemFileManagerDesktop(path)
   }
 
   const conflictState = _tlf.conflictState

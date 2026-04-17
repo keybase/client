@@ -39,7 +39,7 @@ function ChatJob(p: {index: number; id: string}) {
   const openFinder = useFSState(s => s.dispatch.openLocalPathInSystemFileManagerDesktop)
   const onShowFinder = () => {
     if (!job) return
-    openFinder?.(job.outPath)
+    openFinder(job.outPath)
   }
 
   const onShare = () => {
@@ -170,7 +170,7 @@ function KBFSJob(p: {index: number; id: string}) {
     if (Kb.Styles.isMobile || !job) {
       return
     }
-    openFinder?.(job.zipFilePath)
+    openFinder(job.zipFilePath)
   }
 
   const onShare = () => {

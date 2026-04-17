@@ -204,10 +204,10 @@ export const useFsWatchDownloadForMobile = C.isMobile
           return
         }
         if (downloadIntent === T.FS.DownloadIntent.None) {
-          finishedRegularDownloadMobile?.(downloadID, mimeType)
+          finishedRegularDownloadMobile(downloadID, mimeType)
           return
         }
-        finishedDownloadWithIntentMobile?.(downloadID, downloadIntent, mimeType)
+        finishedDownloadWithIntentMobile(downloadID, downloadIntent, mimeType)
         setJustDoneWithIntent(true)
       }, [
         finishedRegularDownloadMobile,

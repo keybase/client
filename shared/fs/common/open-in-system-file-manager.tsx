@@ -10,7 +10,7 @@ function OpenInSystemFileManager({path}: Props) {
   const openPathInSystemFileManagerDesktop = useFSState(
     s => s.dispatch.openPathInSystemFileManagerDesktop
   )
-  const openInSystemFileManager = () => openPathInSystemFileManagerDesktop?.(path)
+  const openInSystemFileManager = () => openPathInSystemFileManagerDesktop(path)
   return (
     <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
       <Kb.Icon

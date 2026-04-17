@@ -60,7 +60,7 @@ function FileContainer(p: OwnProps) {
     s => s.dispatch.openLocalPathInSystemFileManagerDesktop
   )
   const _onShowInFinder = () => {
-    downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
+    downloadPath && openLocalPathInSystemFileManagerDesktop(downloadPath)
   }
 
   const onDownload = () => {

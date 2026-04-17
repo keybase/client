@@ -68,7 +68,7 @@ const FinderIntegration = () => {
   }
   const displayingMountDir = preferredMountDirs[0] || ''
   const openMount = displayingMountDir
-    ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
+    ? () => openLocalPathInSystemFileManagerDesktop(displayingMountDir)
     : undefined
   const disable = driverDisable
 

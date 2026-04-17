@@ -78,7 +78,7 @@ function DragAndDrop(p: {
 }) {
   const {children, path, rejectReason} = p
   const uploadFromDragAndDrop = useFSState(s => s.dispatch.uploadFromDragAndDropDesktop)
-  const onAttach = (localPaths: Array<string>) => uploadFromDragAndDrop?.(path, localPaths)
+  const onAttach = (localPaths: Array<string>) => uploadFromDragAndDrop(path, localPaths)
   return (
     <Kb.DragAndDrop
       allowFolders={true}

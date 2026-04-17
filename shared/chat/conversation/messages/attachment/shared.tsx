@@ -89,7 +89,7 @@ export const TransferIcon = (p: {
 
   const openFinder = useFSState(s => s.dispatch.openLocalPathInSystemFileManagerDesktop)
   const onFinder = () => {
-    downloadPath && openFinder?.(downloadPath)
+    downloadPath && openFinder(downloadPath)
   }
 
   switch (state) {

@@ -151,7 +151,7 @@ export const openSecurityPreferencesDesktop = async () => {
 }
 
 export const selectFilesToUploadDesktop = async (type: T.FS.OpenDialogType, parentPath: T.FS.Path) =>
-  (await (selectFilesToUploadDialog?.(type, parentPath ?? undefined) ?? Promise.resolve([]))) ?? []
+  await (selectFilesToUploadDialog?.(type, parentPath) ?? Promise.resolve([]))
 
 export const uploadFromDragAndDropDesktop = async (localPaths: Array<string>) => {
   if (isDarwin && darwinCopyToKBFSTempUploadFile) {

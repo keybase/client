@@ -42,7 +42,7 @@ const Download = (props: Props) => {
     }))
   )
   const open = dlState.localPath
-    ? () => openLocalPathInSystemFileManagerDesktop?.(dlState.localPath)
+    ? () => openLocalPathInSystemFileManagerDesktop(dlState.localPath)
     : () => {}
   const dismiss = () => dismissDownload(props.downloadID)
   const cancel = () => cancelDownload(props.downloadID)

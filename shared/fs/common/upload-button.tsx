@@ -72,31 +72,31 @@ const Container = (ownProps: OwnProps) => {
   const pickAndUploadMobile = useFSState(s => s.dispatch.pickAndUploadMobile)
   const pickDocumentsMobile = useFSState(s => s.dispatch.pickDocumentsMobile)
   const _openAndUploadBoth = () => {
-    openAndUploadDesktop?.(T.FS.OpenDialogType.Both, ownProps.path)
+    openAndUploadDesktop(T.FS.OpenDialogType.Both, ownProps.path)
   }
   const openAndUploadBoth = C.isDarwin ? _openAndUploadBoth : undefined
   const _openAndUploadDirectory = () => {
-    openAndUploadDesktop?.(T.FS.OpenDialogType.Directory, ownProps.path)
+    openAndUploadDesktop(T.FS.OpenDialogType.Directory, ownProps.path)
   }
   const openAndUploadDirectory = C.isElectron && !C.isDarwin ? _openAndUploadDirectory : undefined
   const _openAndUploadFile = () => {
-    openAndUploadDesktop?.(T.FS.OpenDialogType.File, ownProps.path)
+    openAndUploadDesktop(T.FS.OpenDialogType.File, ownProps.path)
   }
   const openAndUploadFile = C.isElectron && !C.isDarwin ? _openAndUploadFile : undefined
   const _pickAndUploadMixed = () => {
-    pickAndUploadMobile?.(T.FS.MobilePickType.Mixed, ownProps.path)
+    pickAndUploadMobile(T.FS.MobilePickType.Mixed, ownProps.path)
   }
   const pickAndUploadMixed = C.isMobile ? _pickAndUploadMixed : undefined
   const _pickAndUploadPhoto = () => {
-    pickAndUploadMobile?.(T.FS.MobilePickType.Photo, ownProps.path)
+    pickAndUploadMobile(T.FS.MobilePickType.Photo, ownProps.path)
   }
   const pickAndUploadPhoto = C.isAndroid ? _pickAndUploadPhoto : undefined
   const _pickAndUploadVideo = () => {
-    pickAndUploadMobile?.(T.FS.MobilePickType.Video, ownProps.path)
+    pickAndUploadMobile(T.FS.MobilePickType.Video, ownProps.path)
   }
   const pickAndUploadVideo = C.isAndroid ? _pickAndUploadVideo : undefined
   const _pickAndUploadFileMobile = () => {
-    pickDocumentsMobile?.(ownProps.path)
+    pickDocumentsMobile(ownProps.path)
   }
   const pickAndUploadFileMobile = C.isMobile ? _pickAndUploadFileMobile : undefined
 

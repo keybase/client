@@ -89,7 +89,7 @@ const PopAttach = (ownProps: OwnProps) => {
     s => s.dispatch.openLocalPathInSystemFileManagerDesktop
   )
   const _onShowInFinder = () => {
-    downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
+    downloadPath && openLocalPathInSystemFileManagerDesktop(downloadPath)
   }
   const onShowInFinder = !C.isMobile && message.downloadPath ? _onShowInFinder : undefined
 

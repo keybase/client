@@ -8,7 +8,7 @@ const InstallSecurityPrefs = () => {
   const driverStatus = useFSState(s => s.sfmi.driverStatus)
   const openSecurityPreferencesDesktop = useFSState(s => s.dispatch.openSecurityPreferencesDesktop)
   const onCancel = C.Router2.navigateUp
-  const openSecurityPrefs = () => openSecurityPreferencesDesktop?.()
+  const openSecurityPrefs = () => openSecurityPreferencesDesktop()
 
   const autoCancelledRef = React.useRef(false)
   React.useEffect(() => {

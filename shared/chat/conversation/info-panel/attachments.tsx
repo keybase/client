@@ -496,7 +496,7 @@ export const useAttachmentSections = (
     s => s.dispatch.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = (message: T.Chat.MessageAttachment) =>
-    message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
+    message.downloadPath && openLocalPathInSystemFileManagerDesktop(message.downloadPath)
 
   const avSection = {
     data: [{type: 'avselector'}] as const,

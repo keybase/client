@@ -18,7 +18,7 @@ const AudioAttachment = ({message}: {message: T.Chat.MessageAttachment}) => {
     s => s.dispatch.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
-    message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
+    message.downloadPath && openLocalPathInSystemFileManagerDesktop(message.downloadPath)
   }
   const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
   const showInFinder = !!message.downloadPath && !Kb.Styles.isMobile

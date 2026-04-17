@@ -32,9 +32,9 @@ const Container = (op: OwnProps) => {
       const pathItem = FS.getPathItem(s.pathItems, path)
       const pathItemActionMenu = s.pathItemActionMenu
       const fileContext = s.fileContext.get(path) || FS.emptyFileContext
+      const {openPathInSystemFileManagerDesktop} = s.dispatch
       const {cancelDownload, download, newFolderRow, startRename} = s.dispatch
       const {favoriteIgnore, dismissDownload} = s.dispatch
-      const {openPathInSystemFileManagerDesktop} = s.dispatch.defer
       const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
       return {
         cancelDownload,
@@ -110,7 +110,7 @@ const Container = (op: OwnProps) => {
           {
             icon: 'iconfont-finder',
             onClick: hideAndCancelAfter(() => {
-              openPathInSystemFileManagerDesktop?.(path)
+              openPathInSystemFileManagerDesktop(path)
             }),
             title: 'Show in ' + C.fileUIName,
           },

@@ -103,20 +103,23 @@ export const openPathInSystemFileManagerDesktop = async (
   _directMountDir: string
 ) => {}
 
-export const refreshDriverStatusDesktop = async () => undefined
+export const refreshDriverStatusDesktop = () => Promise.resolve(undefined)
 
-export const refreshMountDirsDesktop = async () => ({directMountDir: '', preferredMountDirs: [] as string[]})
+export const refreshMountDirsDesktop = () =>
+  Promise.resolve({directMountDir: '', preferredMountDirs: [] as string[]})
 
 export const setSfmiBannerDismissedDesktop = async (_dismissed: boolean) => {}
 
-export const afterDriverEnabledDesktop = async (_isRetry: boolean) => 'noop'
+export const afterDriverEnabledDesktop = (_isRetry: boolean) => Promise.resolve('noop' as const)
 
-export const afterDriverDisableDesktop = async (_driverStatus: T.FS.DriverStatus) => 'noop'
+export const afterDriverDisableDesktop = (_driverStatus: T.FS.DriverStatus) =>
+  Promise.resolve('noop' as const)
 
 export const afterDriverDisablingDesktop = async (_driverStatus: T.FS.DriverStatus) => {}
 
 export const openSecurityPreferencesDesktop = async () => {}
 
-export const selectFilesToUploadDesktop = async (_type: T.FS.OpenDialogType, _parentPath: T.FS.Path) => [] as string[]
+export const selectFilesToUploadDesktop = (_type: T.FS.OpenDialogType, _parentPath: T.FS.Path) =>
+  Promise.resolve([] as string[])
 
-export const uploadFromDragAndDropDesktop = async (localPaths: Array<string>) => localPaths
+export const uploadFromDragAndDropDesktop = (localPaths: Array<string>) => Promise.resolve(localPaths)

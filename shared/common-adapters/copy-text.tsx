@@ -63,7 +63,7 @@ const CopyText = (props: Props) => {
   const popupAnchor = React.useRef<MeasureRef | null>(null)
   const doCopy = (t: string) => {
     if (shareSheet) {
-      showShareActionSheet?.('', t, 'text/plain')
+      showShareActionSheet('', t, 'text/plain')
     } else {
       setShowingToast(true)
       copyToClipboard(t)
@@ -92,7 +92,7 @@ const CopyText = (props: Props) => {
         loadText()
       } else {
         if (shareSheet) {
-          showShareActionSheet?.('', text, 'text/plain')
+          showShareActionSheet('', text, 'text/plain')
         } else {
           setShowingToast(true)
           copyToClipboard(text)
