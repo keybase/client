@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
 import {consumeKeyed, registerKeyed} from '@/stores/flow-handles'
-import {storeRegistry} from '@/stores/store-registry'
+import {useProvisionState} from '@/stores/provision'
 import {RPCError} from '@/util/errors'
 
 type EnterResetPipelineParams = {
@@ -38,7 +38,7 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
         const resetKey = registerResetPrompt((action: T.RPCGen.ResetPromptResponse) => {
           response.result(action)
           if (action === T.RPCGen.ResetPromptResponse.confirmReset) {
-            storeRegistry.getState('provision').dispatch.startProvision(username, true)
+            useProvisionState.getState().dispatch.startProvision(username, true)
           } else {
             navUpToScreen('login')
           }

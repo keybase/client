@@ -13,8 +13,8 @@ jest.mock('@/constants/router', () => {
   }
 })
 
-jest.mock('@/stores/store-registry', () => ({
-  storeRegistry: {
+jest.mock('@/stores/provision', () => ({
+  useProvisionState: {
     getState: jest.fn(() => ({
       dispatch: {
         startProvision: mockStartProvision,
