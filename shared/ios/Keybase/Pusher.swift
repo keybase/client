@@ -40,9 +40,9 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
       msg = message.serverMessage
     }
     let title = notification.title
-    NSLog("PushNotifier display: title=%@", title ?? "")
+    NSLog("PushNotifier display: title=%@", title)
 
-    let soundName: String? = notification.soundName?.isEmpty == false ? notification.soundName : nil
+    let soundName: String? = notification.soundName.isEmpty ? nil : notification.soundName
     let uid: String? = notification.uid.isEmpty ? nil : notification.uid
     localNotification(
       ident, title: title, msg: msg,
