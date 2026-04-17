@@ -36,7 +36,7 @@ function ChatJob(p: {index: number; id: string}) {
     resumeChat([{identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset, jobID: id}], () => {}, () => {})
   }
 
-  const openFinder = useFSState(s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop)
+  const openFinder = useFSState(s => s.dispatch.openLocalPathInSystemFileManagerDesktop)
   const onShowFinder = () => {
     if (!job) return
     openFinder?.(job.outPath)
@@ -165,7 +165,7 @@ function KBFSJob(p: {index: number; id: string}) {
     )
   })
 
-  const openFinder = useFSState(s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop)
+  const openFinder = useFSState(s => s.dispatch.openLocalPathInSystemFileManagerDesktop)
   const onShowFinder = () => {
     if (Kb.Styles.isMobile || !job) {
       return

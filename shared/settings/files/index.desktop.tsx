@@ -58,7 +58,7 @@ const FinderIntegration = () => {
       C.useShallow(s => ({
         driverDisable: s.dispatch.driverDisable,
         driverStatus: s.sfmi.driverStatus,
-        openLocalPathInSystemFileManagerDesktop: s.dispatch.defer.openLocalPathInSystemFileManagerDesktop,
+        openLocalPathInSystemFileManagerDesktop: s.dispatch.openLocalPathInSystemFileManagerDesktop,
         preferredMountDirs: s.sfmi.preferredMountDirs,
       }))
     )

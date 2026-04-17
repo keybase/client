@@ -8,7 +8,7 @@ type Props = {path: T.FS.Path}
 
 function OpenInSystemFileManager({path}: Props) {
   const openPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openPathInSystemFileManagerDesktop
+    s => s.dispatch.openPathInSystemFileManagerDesktop
   )
   const openInSystemFileManager = () => openPathInSystemFileManagerDesktop?.(path)
   return (

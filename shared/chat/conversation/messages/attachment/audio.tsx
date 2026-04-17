@@ -15,7 +15,7 @@ const AudioAttachment = ({message}: {message: T.Chat.MessageAttachment}) => {
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = messageAttachmentHasProgress(message)
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
     message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)

@@ -11,7 +11,6 @@ export type {WritableDraft} from 'immer'
 
 type HasReset = {
   dispatch: {
-    defer?: Record<string, unknown>
     resetDeleteMe?: boolean
     resetState: (isDebug?: boolean) => void
   }
@@ -61,14 +60,8 @@ export const createZustand = <T extends HasReset>(
   let resetFunc: (isDebug?: boolean) => void
   if (hasDefaultReset) {
     resetFunc = () => {
-      const currentDefer = store.getState().dispatch.defer
-      const hasInitialDefer = Object.hasOwn(initialDispatch, 'defer')
-      const nextDispatch =
-        hasInitialDefer || currentDefer !== undefined
-          ? {...initialDispatch, defer: currentDefer}
-          : initialDispatch
       // eslint-disable-next-line
-      store.setState({...initialState, dispatch: nextDispatch} as any, true)
+      store.setState({...initialState, dispatch: initialDispatch} as any, true)
     }
     unsafeISD['resetState'] = wrapErrors(resetFunc, 'resetState')
   } else {

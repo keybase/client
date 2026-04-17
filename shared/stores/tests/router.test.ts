@@ -21,17 +21,11 @@ test('setNavState stores the provided navigation state', () => {
   expect(useRouterState.getState().navState).toBe(navState)
 })
 
-test('resetState preserves navState and defer callbacks', () => {
+test('resetState preserves navState', () => {
   useRouterState.getState().dispatch.setNavState(makeNavState('two'))
   const navState = useRouterState.getState().navState
-  const tabLongPress = (tab: string) => tab
-
-  useRouterState.setState(s => {
-    s.dispatch.defer.tabLongPress = tabLongPress
-  })
 
   useRouterState.getState().dispatch.resetState()
 
   expect(useRouterState.getState().navState).toBe(navState)
-  expect(useRouterState.getState().dispatch.defer.tabLongPress).toBe(tabLongPress)
 })

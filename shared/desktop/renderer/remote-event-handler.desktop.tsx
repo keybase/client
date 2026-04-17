@@ -100,7 +100,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.openFilesFromWidget: {
-      useFSState.getState().dispatch.defer.openFilesFromWidgetDesktop?.(action.payload.path)
+      useFSState.getState().dispatch.openFilesFromWidgetDesktop(action.payload.path)
       break
     }
     case RemoteGen.saltpackFileOpen: {
@@ -116,7 +116,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.openPathInSystemFileManager: {
-      useFSState.getState().dispatch.defer.openPathInSystemFileManagerDesktop?.(action.payload.path)
+      useFSState.getState().dispatch.openPathInSystemFileManagerDesktop(action.payload.path)
       break
     }
     case RemoteGen.unlockFoldersSubmitPaperKey: {

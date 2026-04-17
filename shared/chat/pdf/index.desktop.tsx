@@ -12,7 +12,7 @@ const ChatPDF = (props: Props) => {
   const title = message?.title || message?.fileName || 'PDF'
   const url = message?.fileURL
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.openLocalPathInSystemFileManagerDesktop
   )
 
   const attachmentDownload = ConvoState.useChatContext(s => s.dispatch.attachmentDownload)

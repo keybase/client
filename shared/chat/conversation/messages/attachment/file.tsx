@@ -57,7 +57,7 @@ function FileContainer(p: OwnProps) {
     )
   }
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.openLocalPathInSystemFileManagerDesktop
   )
   const _onShowInFinder = () => {
     downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)

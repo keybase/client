@@ -68,9 +68,9 @@ const UploadButton = (props: UploadButtonProps) => {
 
 const Container = (ownProps: OwnProps) => {
   const _pathItem = useFSState(s => FS.getPathItem(s.pathItems, ownProps.path))
-  const openAndUploadDesktop = useFSState(s => s.dispatch.defer.openAndUploadDesktop)
-  const pickAndUploadMobile = useFSState(s => s.dispatch.defer.pickAndUploadMobile)
-  const pickDocumentsMobile = useFSState(s => s.dispatch.defer.pickDocumentsMobile)
+  const openAndUploadDesktop = useFSState(s => s.dispatch.openAndUploadDesktop)
+  const pickAndUploadMobile = useFSState(s => s.dispatch.pickAndUploadMobile)
+  const pickDocumentsMobile = useFSState(s => s.dispatch.pickDocumentsMobile)
   const _openAndUploadBoth = () => {
     openAndUploadDesktop?.(T.FS.OpenDialogType.Both, ownProps.path)
   }

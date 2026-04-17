@@ -61,8 +61,8 @@ const CopyText = (props: Props) => {
   }, [withReveal, text, loadText])
 
   const popupAnchor = React.useRef<MeasureRef | null>(null)
-  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
-  const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
+  const copyToClipboard = useConfigState(s => s.dispatch.copyToClipboard)
+  const showShareActionSheet = useConfigState(s => s.dispatch.showShareActionSheet)
   const doCopy = (t: string) => {
     if (shareSheet) {
       showShareActionSheet?.('', t, 'text/plain')

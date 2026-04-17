@@ -185,8 +185,8 @@ export const useFsWatchDownloadForMobile = C.isMobile
       const {dlState, finishedDownloadWithIntentMobile, finishedRegularDownloadMobile} = useFSState(
         C.useShallow(s => ({
           dlState: s.downloads.state.get(downloadID) || FS.emptyDownloadState,
-          finishedDownloadWithIntentMobile: s.dispatch.defer.finishedDownloadWithIntentMobile,
-          finishedRegularDownloadMobile: s.dispatch.defer.finishedRegularDownloadMobile,
+          finishedDownloadWithIntentMobile: s.dispatch.finishedDownloadWithIntentMobile,
+          finishedRegularDownloadMobile: s.dispatch.finishedRegularDownloadMobile,
         }))
       )
       const finished = dlState !== FS.emptyDownloadState && !FS.downloadIsOngoing(dlState)

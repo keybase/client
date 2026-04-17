@@ -36,7 +36,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   }
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.openLocalPathInSystemFileManagerDesktop
   )
   const navigateUp = C.Router2.navigateUp
   const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)

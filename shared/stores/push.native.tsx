@@ -250,14 +250,14 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
           const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
           if (shownPushPrompt) {
             // we've already shown the prompt, take them to settings
-            useConfigState.getState().dispatch.defer.openAppSettings?.()
+            useConfigState.getState().dispatch.openAppSettings()
             get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
             return
           }
         }
         const {increment, decrement} = useWaitingState.getState().dispatch
         try {
-          useConfigState.getState().dispatch.defer.openAppSettings?.()
+          useConfigState.getState().dispatch.openAppSettings()
           increment(S.waitingKeyPushPermissionsRequesting)
           await requestPermissionsFromNative()
           const permissions = await checkPermissionsFromNative()

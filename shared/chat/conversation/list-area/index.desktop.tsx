@@ -489,7 +489,7 @@ const ThreadWrapper = function ThreadWrapper() {
   )
   const {conversationIDKey, centeredHighlightOrdinal, centeredOrdinal} = data
   const {containsLatestMessage, messageOrdinals, loaded} = data
-  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const _setListRef = (r: HTMLDivElement | null) => {
     listRef.current = r

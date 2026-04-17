@@ -77,7 +77,7 @@ function DragAndDrop(p: {
   rejectReason?: string
 }) {
   const {children, path, rejectReason} = p
-  const uploadFromDragAndDrop = useFSState(s => s.dispatch.defer.uploadFromDragAndDropDesktop)
+  const uploadFromDragAndDrop = useFSState(s => s.dispatch.uploadFromDragAndDropDesktop)
   const onAttach = (localPaths: Array<string>) => uploadFromDragAndDrop?.(path, localPaths)
   return (
     <Kb.DragAndDrop

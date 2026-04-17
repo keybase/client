@@ -55,7 +55,7 @@ const OutOfDate = () => {
     }
   }, [])
 
-  const onOpenAppStore = useConfigState(s => s.dispatch.defer.openAppStore)
+  const onOpenAppStore = useConfigState(s => s.dispatch.openAppStore)
   const critical = C.isMobile ? mobileCritical : outOfDate.critical
   const message = C.isMobile ? mobileMessage : outOfDate.message
 

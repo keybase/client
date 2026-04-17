@@ -71,7 +71,7 @@ const ManageContactsBanner = () => {
       status: s.permissionStatus,
     }))
   )
-  const onOpenAppSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
+  const onOpenAppSettings = useConfigState(s => s.dispatch.openAppSettings)
   const {appendNewChatBuilder, navigateAppend, switchTab} = C.Router2
   const onStartChat = () => {
     switchTab(C.Tabs.chatTab)

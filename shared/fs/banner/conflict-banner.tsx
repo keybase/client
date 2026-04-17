@@ -29,7 +29,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   }
 
   const openPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openPathInSystemFileManagerDesktop
+    s => s.dispatch.openPathInSystemFileManagerDesktop
   )
 
   const openInSystemFileManager = (path: T.FS.Path) => {

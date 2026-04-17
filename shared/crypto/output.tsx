@@ -159,7 +159,7 @@ export const CryptoOutputActionsBar = ({
   const actionsDisabled = waiting || !state.outputValid
 
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.openLocalPathInSystemFileManagerDesktop
   )
   const onShowInFinder = () => {
     openLocalPathInSystemFileManagerDesktop?.(state.output)
@@ -172,7 +172,7 @@ export const CryptoOutputActionsBar = ({
     previewConversation({participants: [username], reason: 'search'})
   }
 
-  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.copyToClipboard)
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showingToast, setShowingToast] = React.useState(false)
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)
@@ -298,7 +298,7 @@ export const CryptoOutput = ({
   state,
 }: CryptoOutputProps) => {
   const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
+    s => s.dispatch.openLocalPathInSystemFileManagerDesktop
   )
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
   const actionsDisabled = waiting || !state.outputValid

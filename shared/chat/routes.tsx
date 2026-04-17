@@ -47,7 +47,7 @@ const ChatTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
 )
 
 const PDFShareButton = ({url}: {url?: string}) => {
-  const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
+  const showShareActionSheet = useConfigState(s => s.dispatch.showShareActionSheet)
   return (
     <Kb.Icon type="iconfont-share" onClick={() => showShareActionSheet?.(url ?? '', '', 'application/pdf')} />
   )

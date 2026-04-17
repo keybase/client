@@ -13,7 +13,7 @@ const Container = () => {
   const info = ConvoState.useChatUIContext(s => s.commandStatus)
   const _info = info || empty
 
-  const onOpenAppSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
+  const onOpenAppSettings = useConfigState(s => s.dispatch.openAppSettings)
   const setCommandStatusInfo = ConvoState.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
   const onCancel = () => {
     setCommandStatusInfo()

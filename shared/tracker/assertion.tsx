@@ -402,7 +402,7 @@ const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
 
 const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
   const {value, color} = p
-  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
+  const copyToClipboard = useConfigState(s => s.dispatch.copyToClipboard)
   const onCopyAddress = () => {
     copyToClipboard(value)
   }

@@ -13,6 +13,17 @@ import {defaultUseNativeFrame, isMobile} from '@/constants/platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
 import {navigateAppend} from '@/constants/router'
+import {
+  copyToClipboard as copyToClipboardInPlatform,
+  dumpLogs as dumpLogsInPlatform,
+  filePickerError as filePickerErrorInPlatform,
+  onEngineConnected as onEngineConnectedInPlatform,
+  openAppSettings as openAppSettingsInPlatform,
+  openAppStore as openAppStoreInPlatform,
+  persistRoute as persistRouteInPlatform,
+  showMain as showMainInPlatform,
+  showShareActionSheet as showShareActionSheetInPlatform,
+} from './config-platform'
 
 export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
 
@@ -146,22 +157,9 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    defer: {
-      copyToClipboard: (s: string) => void
-      dumpLogsNative?: (reason: string) => Promise<void>
-      onFilePickerError?: (error: Error) => void
-      openAppSettings?: () => void
-      openAppStore?: () => void
-      onEngineConnectedDesktop?: () => void
-      onEngineIncomingDesktop?: (action: EngineGen.Actions) => void
-      onEngineIncomingNative?: (action: EngineGen.Actions) => void
-      persistRoute?: (clear: boolean, immediate: boolean) => void
-      setNavigatorExistsNative?: () => void
-      showMainNative?: () => void
-      showShareActionSheet?: (filePath: string, message: string, mimeType: string) => void
-    }
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
+    copyToClipboard: (s: string) => void
     dumpLogs: (reason: string) => Promise<void>
     filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
@@ -179,7 +177,10 @@ export type State = Store & {
     onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     osNetworkStatusChanged: (online: boolean, type: ConnectionType, isInit?: boolean) => void
+    openAppSettings: () => void
+    openAppStore: () => void
     openUnlockFolders: (devices: ReadonlyArray<T.RPCGen.Device>) => void
+    persistRoute: (clear: boolean, immediate: boolean) => void
     powerMonitorEvent: (event: string) => void
     resetState: (isDebug?: boolean) => void
     remoteWindowNeedsProps: (component: string, params: string) => void
@@ -206,6 +207,7 @@ export type State = Store & {
     setUseNativeFrame: (use: boolean) => void
     setUserSwitching: (sw: boolean) => void
     showMain: () => void
+    showShareActionSheet: (filePath: string, message: string, mimeType: string) => void
     toggleRuntimeStats: () => void
     updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
     updateWindowState: (ws: Omit<Store['windowState'], 'isMaximized'>) => void
@@ -287,27 +289,14 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       }
       ignorePromise(f())
     },
-    defer: {
-      copyToClipboard: () => {
-        throw new Error('copyToClipboard not implemented?????')
-      },
-      dumpLogsNative: undefined,
-      onEngineConnectedDesktop: undefined,
-      onEngineIncomingDesktop: undefined,
-      onEngineIncomingNative: undefined,
-      onFilePickerError: undefined,
-      openAppSettings: undefined,
-      openAppStore: undefined,
-      persistRoute: undefined,
-      setNavigatorExistsNative: undefined,
-      showMainNative: undefined,
-      showShareActionSheet: undefined,
+    copyToClipboard: text => {
+      copyToClipboardInPlatform(text)
     },
     dumpLogs: async reason => {
-      await get().dispatch.defer.dumpLogsNative?.(reason)
+      await dumpLogsInPlatform(reason)
     },
     filePickerError: error => {
-      get().dispatch.defer.onFilePickerError?.(error)
+      filePickerErrorInPlatform(error)
     },
     initAppUpdateLoop: () => {
       const f = async () => {
@@ -514,7 +503,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       }
       ignorePromise(registerForGregorNotifications())
 
-      get().dispatch.defer.onEngineConnectedDesktop?.()
+      onEngineConnectedInPlatform()
       get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
     },
     onEngineIncoming: action => {
@@ -574,6 +563,12 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         default:
       }
     },
+    openAppSettings: () => {
+      openAppSettingsInPlatform()
+    },
+    openAppStore: () => {
+      openAppStoreInPlatform()
+    },
     openUnlockFolders: devices => {
       set(s => {
         s.unlockFoldersDevices = devices.map(({name, type, deviceID}) => ({
@@ -613,6 +608,9 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         }
       }
       ignorePromise(updateFS())
+    },
+    persistRoute: (clear, immediate) => {
+      persistRouteInPlatform(clear, immediate, () => get().startup.loaded)
     },
     powerMonitorEvent: event => {
       const f = async () => {
@@ -860,7 +858,10 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       })
     },
     showMain: () => {
-      get().dispatch.defer.showMainNative?.()
+      showMainInPlatform()
+    },
+    showShareActionSheet: (filePath, message, mimeType) => {
+      showShareActionSheetInPlatform(filePath, message, mimeType)
     },
     toggleRuntimeStats: () => {
       const f = async () => {
