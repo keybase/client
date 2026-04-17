@@ -10,6 +10,7 @@ import {getRootLayout, getShareLayout} from './layout'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
+import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
@@ -34,7 +35,6 @@ const Container = (op: OwnProps) => {
       const fileContext = s.fileContext.get(path) || FS.emptyFileContext
       const {cancelDownload, download, newFolderRow, startRename} = s.dispatch
       const {favoriteIgnore, dismissDownload} = s.dispatch
-      const {openPathInSystemFileManagerDesktop} = s.dispatch.defer
       const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
       return {
         cancelDownload,
@@ -43,7 +43,6 @@ const Container = (op: OwnProps) => {
         favoriteIgnore,
         fileContext,
         newFolderRow,
-        openPathInSystemFileManagerDesktop,
         pathItem,
         pathItemActionMenu,
         sfmiEnabled,
@@ -53,7 +52,7 @@ const Container = (op: OwnProps) => {
   )
 
   const {pathItem, pathItemActionMenu, fileContext, cancelDownload} = data
-  const {download, newFolderRow, openPathInSystemFileManagerDesktop} = data
+  const {download, newFolderRow} = data
   const {sfmiEnabled, favoriteIgnore, dismissDownload, startRename} = data
 
   const {downloadID, downloadIntent} = pathItemActionMenu
@@ -110,7 +109,7 @@ const Container = (op: OwnProps) => {
           {
             icon: 'iconfont-finder',
             onClick: hideAndCancelAfter(() => {
-              openPathInSystemFileManagerDesktop?.(path)
+              openPathInSystemFileManagerDesktop(path)
             }),
             title: 'Show in ' + C.fileUIName,
           },

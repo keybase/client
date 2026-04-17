@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useConfigState} from '@/stores/config'
+import {openAppSettings} from '@/util/storeless-actions'
 
 /**
  * Popup explaining that Keybase doesn't have contact permissions with a link to
@@ -11,8 +11,6 @@ import {useConfigState} from '@/stores/config'
  * popup.
  */
 const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: () => void}) => {
-  const onOpenSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
-
   const [showingPopup, setShowingPopup] = React.useState(noAccess)
   React.useEffect(() => {
     setShowingPopup(noAccess)
@@ -35,7 +33,7 @@ const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: (
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          <Kb.Button label="Open phone settings" onClick={onOpenSettings} fullWidth={true} />
+          <Kb.Button label="Open phone settings" onClick={openAppSettings} fullWidth={true} />
           <Kb.Button label="Close" type="Dim" onClick={onClosePopup} fullWidth={true} />
         </Kb.Box2>
       </Kb.Box2>

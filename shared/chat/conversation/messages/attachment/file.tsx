@@ -8,8 +8,8 @@ import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {getEditStyle, ShowToastAfterSaving} from './shared'
-import {useFSState} from '@/stores/fs'
 import {makeUUID} from '@/util/uuid'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {
   isEditing: boolean
@@ -56,11 +56,8 @@ function FileContainer(p: OwnProps) {
       true
     )
   }
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
-  )
   const _onShowInFinder = () => {
-    downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
+    downloadPath && openLocalPathInSystemFileManagerDesktop(downloadPath)
   }
 
   const onDownload = () => {

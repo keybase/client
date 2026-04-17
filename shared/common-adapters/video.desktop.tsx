@@ -3,6 +3,21 @@ import type {Props} from './video'
 import * as Styles from '@/styles'
 import {useCheckURL} from './video.shared'
 
+const normalizeURL = (url: string) => {
+  const isWindowsPath = /^[a-zA-Z]:[\\/]/.test(url)
+  if (url.startsWith('/') || isWindowsPath) {
+    let path = url.replace(/\\/g, '/')
+    if (isWindowsPath && !path.startsWith('/')) {
+      path = '/' + path
+    }
+    return encodeURI(`file://${path}`).replace(/#/g, '%23')
+  }
+  if (url.startsWith('file://') && (url.includes(' ') || url.includes('#'))) {
+    return encodeURI(url).replace(/#/g, '%23')
+  }
+  return url
+}
+
 const Video = (props: Props) => {
   const {onUrlError} = props
 
@@ -22,7 +37,7 @@ const Video = (props: Props) => {
     }
   }
 
-  const url = encodeURI(props.url)
+  const url = normalizeURL(props.url)
   const content = (
     <div style={Styles.castStyleDesktop(Styles.collapseStyles([styles.container, props.style]))}>
       <video

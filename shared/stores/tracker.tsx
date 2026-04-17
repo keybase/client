@@ -164,7 +164,6 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    defer: {}
     changeFollow: (guiID: string, follow: boolean) => void
     closeTracker: (guiID: string) => void
     getProofSuggestions: () => void
@@ -230,7 +229,6 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         s.showTrackerSet.delete(username)
       })
     },
-    defer: {},
     getProofSuggestions: () => {
       const f = async () => {
         try {

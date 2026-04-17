@@ -45,7 +45,7 @@ const isAllowedFilePath = (url: string, allowFile?: boolean) => {
 }
 
 const urlIsOK = (url: string, allowFile?: boolean) =>
-  hasAllowedChars(url) && (isAllowedHostURL(url) || isAllowedFilePath(url, allowFile))
+  isAllowedHostURL(url) || (hasAllowedChars(url) && isAllowedFilePath(url, allowFile))
 
 export const useCheckURL = (children: React.ReactElement, url: string, allowFile?: boolean) => {
   const ok = urlIsOK(url, allowFile)

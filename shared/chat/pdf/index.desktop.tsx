@@ -3,22 +3,19 @@ import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from '.'
-import {useFSState} from '@/stores/fs'
 import {useModalHeaderState} from '@/stores/modal-header'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 const ChatPDF = (props: Props) => {
   const {ordinal} = props
   const message = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
   const title = message?.title || message?.fileName || 'PDF'
   const url = message?.fileURL
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
-  )
 
   const attachmentDownload = ConvoState.useChatContext(s => s.dispatch.attachmentDownload)
   const onDownload = () => {
     message && attachmentDownload(message.ordinal)
-    openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
+    openLocalPathInSystemFileManagerDesktop(C.downloadFolder)
   }
 
   React.useEffect(() => {

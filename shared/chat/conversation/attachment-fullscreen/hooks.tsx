@@ -5,7 +5,7 @@ import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
-import {useFSState} from '@/stores/fs'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 const blankMessage = Chat.makeMessageAttachment({})
 export const useData = (initialOrdinal: T.Chat.Ordinal) => {
@@ -35,9 +35,6 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
     onSwitchAttachment(true)
   }
 
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
-  )
   const navigateUp = C.Router2.navigateUp
   const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
   const attachmentDownload = ConvoState.useChatContext(s => s.dispatch.attachmentDownload)
@@ -61,7 +58,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
       }
 
   const onShowInFinder = downloadPath
-    ? () => openLocalPathInSystemFileManagerDesktop?.(downloadPath)
+    ? () => openLocalPathInSystemFileManagerDesktop(downloadPath)
     : undefined
 
   const progress = transferProgress

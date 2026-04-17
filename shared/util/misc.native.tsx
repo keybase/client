@@ -1,5 +1,4 @@
 import {navigateAppend} from '@/constants/router'
-import {useConfigState} from '@/stores/config'
 import {isIOS} from '@/constants/platform.native'
 import {pickDocumentsAsync} from './expo-document-picker.native'
 import {launchImageLibraryAsync, type ImageInfo} from './expo-image-picker.native'
@@ -7,6 +6,7 @@ import type {OpenDialogOptions, SaveDialogOptions} from './electron.desktop'
 import * as SMS from 'expo-sms'
 import {Linking} from 'react-native'
 import {addNotificationRequest, clearLocalLogs as clearLocalLogsNative} from 'react-native-kb'
+import {filePickerError} from '@/util/storeless-actions'
 
 type NotifyPopupOpts = {body?: string; sound?: boolean}
 
@@ -46,7 +46,7 @@ export const editAvatar = () => {
         navigateAppend({name: 'profileEditAvatar', params: {image: first}})
       }
     } catch (error) {
-      useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
+      filePickerError(new Error(String(error)))
     }
   }
   void f()

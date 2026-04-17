@@ -18,6 +18,17 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useNotifState} from '@/stores/notifications'
 import * as Constants from '@/constants/fs'
 import {makeUUID} from '@/util/uuid'
+import {
+  afterDriverDisableDesktop as afterDriverDisableInPlatform,
+  afterDriverDisablingDesktop as afterDriverDisablingInPlatform,
+  afterDriverEnabledDesktop as afterDriverEnabledInPlatform,
+  afterKbfsDaemonRpcStatusChangedMobile as afterKbfsDaemonRpcStatusChangedInPlatform,
+  fuseStatusToDriverStatus,
+  openPathInSystemFileManagerDesktop as openPathInSystemFileManagerInPlatform,
+  refreshDriverStatusDesktop as refreshDriverStatusInPlatform,
+  refreshMountDirsDesktop as refreshMountDirsInPlatform,
+  setSfmiBannerDismissedDesktop as setSfmiBannerDismissedInPlatform,
+} from './fs-platform'
 
 export * from '@/constants/fs'
 
@@ -332,6 +343,7 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
+    afterKbfsDaemonRpcStatusChanged: () => void
     cancelDownload: (downloadID: string) => void
     checkKbfsDaemonRpcStatus: () => void
     commitEdit: (editID: T.FS.EditID) => void
@@ -345,33 +357,10 @@ export type State = Store & {
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
-    defer: {
-      afterDriverDisable?: () => void
-      afterDriverDisabling?: () => void
-      afterDriverEnabled?: (isRetry: boolean) => void
-      afterKbfsDaemonRpcStatusChanged?: () => void
-      finishedDownloadWithIntentMobile?: (
-        downloadID: string,
-        downloadIntent: T.FS.DownloadIntent,
-        mimeType: string
-      ) => void
-      finishedRegularDownloadMobile?: (downloadID: string, mimeType: string) => void
-      openFilesFromWidgetDesktop?: (path: T.FS.Path) => void
-      openAndUploadDesktop?: (type: T.FS.OpenDialogType, parentPath: T.FS.Path) => void
-      pickAndUploadMobile?: (type: T.FS.MobilePickType, parentPath: T.FS.Path) => void
-      pickDocumentsMobile?: (parentPath: T.FS.Path) => void
-      openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
-      openPathInSystemFileManagerDesktop?: (path: T.FS.Path) => void
-      openSecurityPreferencesDesktop?: () => void
-      refreshDriverStatusDesktop?: () => void
-      refreshMountDirsDesktop?: () => void
-      setSfmiBannerDismissedDesktop?: (dismissed: boolean) => void
-      uploadFromDragAndDropDesktop?: (parentPath: T.FS.Path, localPaths: Array<string>) => void
-    }
     editError: (editID: T.FS.EditID, error: string) => void
     editSuccess: (editID: T.FS.EditID) => void
-    favoritesLoad: () => void
     favoriteIgnore: (path: T.FS.Path) => void
+    favoritesLoad: () => void
     finishManualConflictResolution: (localViewTlfPath: T.FS.Path) => void
     folderListLoad: (path: T.FS.Path, recursive: boolean) => void
     getOnlineStatus: () => void
@@ -406,6 +395,8 @@ export type State = Store & {
     onSubscriptionNotify: (clientID: string, topic: T.RPCGen.SubscriptionTopic) => void
     pollJournalStatus: () => void
     redbar: (error: string) => void
+    refreshDriverStatusDesktop: () => void
+    refreshMountDirsDesktop: () => void
     resetState: () => void
     setCriticalUpdate: (u: boolean) => void
     setDebugLevel: (level: string) => void
@@ -530,8 +521,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   const shouldReloadFavoritesFromBadgeState = (badgeState: T.RPCGen.BadgeState) => {
     const {newTlfs, rekeysNeeded} = badgeState
     const same =
-      newTlfs === lastFavoritesBadgeState.newTlfs &&
-      rekeysNeeded === lastFavoritesBadgeState.rekeysNeeded
+      newTlfs === lastFavoritesBadgeState.newTlfs && rekeysNeeded === lastFavoritesBadgeState.rekeysNeeded
     lastFavoritesBadgeState = {newTlfs, rekeysNeeded}
     return !same
   }
@@ -601,11 +591,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     clearSubscriptions()
   }
 
-  const subscribeAndLoad = (
-    sub: {id: string},
-    topic: T.RPCGen.SubscriptionTopic,
-    load: () => void
-  ) => {
+  const subscribeAndLoad = (sub: {id: string}, topic: T.RPCGen.SubscriptionTopic, load: () => void) => {
     const oldID = sub.id
     sub.id = makeUUID()
     if (get().kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
@@ -615,7 +601,32 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     }
   }
 
+  const _setSfmiBannerDismissedDesktop = (dismissed: boolean) => {
+    const f = async () => {
+      try {
+        await setSfmiBannerDismissedInPlatform(dismissed)
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    ignorePromise(f())
+  }
+
   const dispatch: State['dispatch'] = {
+    afterKbfsDaemonRpcStatusChanged: () => {
+      const f = async () => {
+        await afterKbfsDaemonRpcStatusChangedInPlatform()
+        if (isMobile) {
+          return
+        }
+        const {kbfsDaemonStatus, dispatch} = get()
+        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
+          dispatch.refreshDriverStatusDesktop()
+        }
+        dispatch.refreshMountDirsDesktop()
+      }
+      ignorePromise(f())
+    },
     cancelDownload: downloadID => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID})
@@ -686,9 +697,10 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             } catch (error) {
               if (
                 error instanceof RPCError &&
-                [T.RPCGen.StatusCode.scsimplefsnameexists, T.RPCGen.StatusCode.scsimplefsdirnotempty].includes(
-                  error.code
-                )
+                [
+                  T.RPCGen.StatusCode.scsimplefsnameexists,
+                  T.RPCGen.StatusCode.scsimplefsdirnotempty,
+                ].includes(error.code)
               ) {
                 get().dispatch.editError(editID, error.desc || 'name exists')
                 return
@@ -699,25 +711,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    defer: {
-      afterDriverDisable: undefined,
-      afterDriverDisabling: undefined,
-      afterDriverEnabled: undefined,
-      afterKbfsDaemonRpcStatusChanged: undefined,
-      finishedDownloadWithIntentMobile: undefined,
-      finishedRegularDownloadMobile: undefined,
-      openAndUploadDesktop: undefined,
-      openFilesFromWidgetDesktop: undefined,
-      openLocalPathInSystemFileManagerDesktop: undefined,
-      openPathInSystemFileManagerDesktop: undefined,
-      openSecurityPreferencesDesktop: undefined,
-      pickAndUploadMobile: undefined,
-      pickDocumentsMobile: undefined,
-      refreshDriverStatusDesktop: undefined,
-      refreshMountDirsDesktop: undefined,
-      setSfmiBannerDismissedDesktop: undefined,
-      uploadFromDragAndDropDesktop: undefined,
     },
     deleteFile: path => {
       const f = async () => {
@@ -791,7 +784,17 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       ignorePromise(f())
     },
     driverDisable: () => {
-      get().dispatch.defer.afterDriverDisable?.()
+      const f = async () => {
+        const {dispatch, sfmi} = get()
+        _setSfmiBannerDismissedDesktop(false)
+        const result = await afterDriverDisableInPlatform(sfmi.driverStatus)
+        if (result === 'disabling') {
+          dispatch.driverDisabling()
+        } else if (result === 'refresh') {
+          dispatch.refreshDriverStatusDesktop()
+        }
+      }
+      ignorePromise(f())
     },
     driverDisabling: () => {
       set(s => {
@@ -799,7 +802,12 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           s.sfmi.driverStatus.isDisabling = true
         }
       })
-      get().dispatch.defer.afterDriverDisabling?.()
+      const f = async () => {
+        const {dispatch, sfmi} = get()
+        await afterDriverDisablingInPlatform(sfmi.driverStatus)
+        dispatch.refreshDriverStatusDesktop()
+      }
+      ignorePromise(f())
     },
     driverEnable: isRetry => {
       set(s => {
@@ -807,7 +815,24 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           s.sfmi.driverStatus.isEnabling = true
         }
       })
-      get().dispatch.defer.afterDriverEnabled?.(!!isRetry)
+      const f = async () => {
+        const {dispatch} = get()
+        _setSfmiBannerDismissedDesktop(false)
+        try {
+          const result = await afterDriverEnabledInPlatform(!!isRetry)
+          if (result === 'kextPermissionError' || result === 'kextPermissionErrorRetry') {
+            dispatch.driverKextPermissionError()
+            if (result === 'kextPermissionError') {
+              navigateAppend('kextPermission')
+            }
+            return
+          }
+          dispatch.refreshDriverStatusDesktop()
+        } catch (e) {
+          errorToActionOrThrow(e)
+        }
+      }
+      ignorePromise(f())
     },
     driverKextPermissionError: () => {
       set(s => {
@@ -837,7 +862,10 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           const visibility = T.FS.getVisibilityFromElems(elems)
           if (!visibility) return
           const name = elems[2] ?? ''
-          s.tlfs[visibility].set(name, T.castDraft({...(s.tlfs[visibility].get(name) || Constants.unknownTlf), isIgnored}))
+          s.tlfs[visibility].set(
+            name,
+            T.castDraft({...(s.tlfs[visibility].get(name) || Constants.unknownTlf), isIgnored})
+          )
         })
       }
       const f = async () => {
@@ -1089,9 +1117,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       subscribeAndLoad(fsBadgeSub, T.RPCGen.SubscriptionTopic.filesTabBadge, () =>
         get().dispatch.loadFilesTabBadge()
       )
-      subscribeAndLoad(settingsSub, T.RPCGen.SubscriptionTopic.settings, () =>
-        get().dispatch.loadSettings()
-      )
+      subscribeAndLoad(settingsSub, T.RPCGen.SubscriptionTopic.settings, () => get().dispatch.loadSettings())
       subscribeAndLoad(uploadStatusSub, T.RPCGen.SubscriptionTopic.uploadStatus, () =>
         get().dispatch.loadUploadStatus()
       )
@@ -1099,7 +1125,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         get().dispatch.pollJournalStatus()
       )
       // how this works isn't great. This function gets called way early before we set this
-      get().dispatch.defer.afterKbfsDaemonRpcStatusChanged?.()
+      get().dispatch.afterKbfsDaemonRpcStatusChanged()
     },
     letResetUserBackIn: (id, username) => {
       const f = async () => {
@@ -1399,10 +1425,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             ? [
                 {
                   dest: Constants.pathToRPCPath(
-                    T.FS.pathConcat(
-                      destinationParentPath,
-                      T.FS.getPathName(source.path)
-                    )
+                    T.FS.pathConcat(destinationParentPath, T.FS.getPathName(source.path))
                   ),
                   opID: makeUUID(),
                   overwriteExistingFiles: false,
@@ -1620,6 +1643,48 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         s.errors.push(error)
       })
     },
+    refreshDriverStatusDesktop: () => {
+      const f = async () => {
+        try {
+          const previousType = get().sfmi.driverStatus.type
+          const status = await refreshDriverStatusInPlatform()
+          get().dispatch.setDriverStatus(fuseStatusToDriverStatus(status))
+          if (status?.kextStarted && previousType === T.FS.DriverStatusType.Disabled) {
+            const path = T.FS.stringToPath('/keybase')
+            const {sfmi, pathItems} = get()
+            try {
+              await openPathInSystemFileManagerInPlatform(
+                path,
+                pathItems,
+                sfmi.driverStatus,
+                sfmi.directMountDir
+              )
+            } catch (e) {
+              errorToActionOrThrow(e, path)
+            }
+          }
+        } catch (e) {
+          errorToActionOrThrow(e)
+        }
+      }
+      ignorePromise(f())
+    },
+    refreshMountDirsDesktop: () => {
+      const f = async () => {
+        const {sfmi, dispatch} = get()
+        if (sfmi.driverStatus.type !== T.FS.DriverStatusType.Enabled) {
+          return
+        }
+        try {
+          const {directMountDir, preferredMountDirs} = await refreshMountDirsInPlatform()
+          dispatch.setDirectMountDir(directMountDir)
+          dispatch.setPreferredMountDirs(preferredMountDirs)
+        } catch (e) {
+          errorToActionOrThrow(e)
+        }
+      }
+      ignorePromise(f())
+    },
     resetState: () => {
       asyncGeneration++
       lastFavoritesBadgeState = {newTlfs: 0, rekeysNeeded: 0}
@@ -1652,7 +1717,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       set(s => {
         s.sfmi.driverStatus = driverStatus
       })
-      get().dispatch.defer.refreshMountDirsDesktop?.()
+      get().dispatch.refreshMountDirsDesktop()
     },
     setEditName: (editID, name) => {
       set(s => {

@@ -8,6 +8,7 @@ import RefreshSettings from './refresh-settings'
 import useFiles from './hooks'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 type Props = ReturnType<typeof useFiles>
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
@@ -53,22 +54,20 @@ const SyncNotificationSetting = (
 }
 
 const FinderIntegration = () => {
-  const {driverStatus, preferredMountDirs, driverDisable, openLocalPathInSystemFileManagerDesktop} =
-    useFSState(
-      C.useShallow(s => ({
-        driverDisable: s.dispatch.driverDisable,
-        driverStatus: s.sfmi.driverStatus,
-        openLocalPathInSystemFileManagerDesktop: s.dispatch.defer.openLocalPathInSystemFileManagerDesktop,
-        preferredMountDirs: s.sfmi.preferredMountDirs,
-      }))
-    )
+  const {driverStatus, preferredMountDirs, driverDisable} = useFSState(
+    C.useShallow(s => ({
+      driverDisable: s.dispatch.driverDisable,
+      driverStatus: s.sfmi.driverStatus,
+      preferredMountDirs: s.sfmi.preferredMountDirs,
+    }))
+  )
   const navigateAppend = C.Router2.navigateAppend
   const onShowKextPermissionPopup = () => {
     navigateAppend('kextPermission')
   }
   const displayingMountDir = preferredMountDirs[0] || ''
   const openMount = displayingMountDir
-    ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
+    ? () => openLocalPathInSystemFileManagerDesktop(displayingMountDir)
     : undefined
   const disable = driverDisable
 

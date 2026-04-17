@@ -4,7 +4,11 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import logger from '@/logger'
 import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
+import {errorToActionOrThrow, useFSState} from '@/stores/fs'
+import {
+  finishedDownloadWithIntentMobile as finishedDownloadWithIntentInPlatform,
+  finishedRegularDownloadMobile as finishedRegularDownloadInPlatform,
+} from '@/stores/fs-platform'
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
 
@@ -182,11 +186,11 @@ export const useFsWatchDownloadForMobile = C.isMobile
       const dlInfo = useFsDownloadInfo(downloadID)
       useFsFileContext(dlInfo.path)
 
-      const {dlState, finishedDownloadWithIntentMobile, finishedRegularDownloadMobile} = useFSState(
+      const {dismissDownload, dlState, redbar} = useFSState(
         C.useShallow(s => ({
+          dismissDownload: s.dispatch.dismissDownload,
           dlState: s.downloads.state.get(downloadID) || FS.emptyDownloadState,
-          finishedDownloadWithIntentMobile: s.dispatch.defer.finishedDownloadWithIntentMobile,
-          finishedRegularDownloadMobile: s.dispatch.defer.finishedRegularDownloadMobile,
+          redbar: s.dispatch.redbar,
         }))
       )
       const finished = dlState !== FS.emptyDownloadState && !FS.downloadIsOngoing(dlState)
@@ -197,21 +201,48 @@ export const useFsWatchDownloadForMobile = C.isMobile
       )
 
       const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
+      const handledIntentKeyRef = React.useRef<string>('')
 
       React.useEffect(() => {
-        if (!downloadID || !downloadIntent || !finished || !mimeType) {
+        setJustDoneWithIntent(false)
+      }, [downloadID, downloadIntent])
+
+      React.useEffect(() => {
+        if (!downloadID || downloadIntent === undefined || !finished || !mimeType) {
           setJustDoneWithIntent(false)
           return
         }
-        if (downloadIntent === T.FS.DownloadIntent.None) {
-          finishedRegularDownloadMobile?.(downloadID, mimeType)
+        const handledIntentKey = `${downloadID}:${downloadIntent}`
+        if (handledIntentKeyRef.current === handledIntentKey) {
           return
         }
-        finishedDownloadWithIntentMobile?.(downloadID, downloadIntent, mimeType)
-        setJustDoneWithIntent(true)
+        const f = async () => {
+          if (downloadIntent === T.FS.DownloadIntent.None) {
+            await finishedRegularDownloadInPlatform(downloadID, dlState, dlInfo, mimeType)
+            handledIntentKeyRef.current = handledIntentKey
+            return
+          }
+          if (dlState.error) {
+            handledIntentKeyRef.current = handledIntentKey
+            redbar(dlState.error)
+            dismissDownload(downloadID)
+            return
+          }
+          try {
+            await finishedDownloadWithIntentInPlatform(dlState, downloadIntent, mimeType)
+            handledIntentKeyRef.current = handledIntentKey
+            dismissDownload(downloadID)
+            setJustDoneWithIntent(true)
+          } catch (err) {
+            errorToActionOrThrow(err)
+          }
+        }
+        C.ignorePromise(f())
       }, [
-        finishedRegularDownloadMobile,
-        finishedDownloadWithIntentMobile,
+        dismissDownload,
+        dlInfo,
+        dlState,
+        redbar,
         finished,
         mimeType,
         downloadID,

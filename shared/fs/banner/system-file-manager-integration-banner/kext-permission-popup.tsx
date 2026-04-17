@@ -2,13 +2,22 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useFSState} from '@/stores/fs'
+import {errorToActionOrThrow, useFSState} from '@/stores/fs'
+import {openSecurityPreferencesDesktop as openSecurityPreferencesInPlatform} from '@/stores/fs-platform'
 
 const InstallSecurityPrefs = () => {
   const driverStatus = useFSState(s => s.sfmi.driverStatus)
-  const openSecurityPreferencesDesktop = useFSState(s => s.dispatch.defer.openSecurityPreferencesDesktop)
   const onCancel = C.Router2.navigateUp
-  const openSecurityPrefs = () => openSecurityPreferencesDesktop?.()
+  const openSecurityPrefs = () => {
+    const f = async () => {
+      try {
+        await openSecurityPreferencesInPlatform()
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    C.ignorePromise(f())
+  }
 
   const autoCancelledRef = React.useRef(false)
   React.useEffect(() => {

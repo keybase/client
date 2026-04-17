@@ -12,35 +12,16 @@ import KB2 from '@/util/electron.desktop'
 import logger from '@/logger'
 import type {RPCError} from '@/util/errors'
 import {getEngine} from '@/engine'
-import {isLinux, isWindows, isDarwin, pathSep} from '@/constants/platform.desktop'
+import {isLinux, isWindows} from '@/constants/platform.desktop'
 import {kbfsNotification} from '@/util/platform-specific/kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import {NotifyPopup} from '@/util/misc'
 import {noKBFSFailReason} from '@/constants/config'
 import {initSharedSubscriptions, _onEngineIncoming, onEngineConnected as onSharedEngineConnected} from './shared'
-import {wrapErrors} from '@/util/debug'
-import * as Constants from '@/constants/fs'
-import * as Tabs from '@/constants/tabs'
-import * as Path from '@/util/path'
-import {uint8ArrayToHex} from '@/util/uint8array'
-import {navigateAppend} from '@/constants/router'
-import {errorToActionOrThrow} from '@/stores/fs'
-import {ExitCodeFuseKextPermissionError} from '@/constants/values'
+import {dumpLogs} from '@/util/storeless-actions'
 
-const {showMainWindow, activeChanged, requestWindowsStartService, ctlQuit, dumpNodeLogger} = KB2.functions
-const {quitApp, exitApp, setOpenAtLogin, copyToClipboard} = KB2.functions
-const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
-const {darwinCopyToKBFSTempUploadFile, relaunchApp, uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions
-const {windowsCheckMountFromOtherDokanInstall, installCachedDokan, uninstallDokan} = KB2.functions
-
-const dumpLogs = async (reason?: string) => {
-  await logger.dump()
-  await (dumpNodeLogger?.() ?? Promise.resolve([]))
-  // quit as soon as possible
-  if (reason === 'quitting through menu') {
-    ctlQuit?.()
-  }
-}
+const {activeChanged, requestWindowsStartService} = KB2.functions
+const {quitApp, exitApp, setOpenAtLogin} = KB2.functions
 
 const maybePauseVideos = () => {
   const {appFocused} = useConfigState.getState()
@@ -148,123 +129,6 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
   }
 }
 
-// _openPathInSystemFileManagerPromise opens `openPath` in system file manager.
-// If isFolder is true, it just opens it. Otherwise, it shows it in its parent
-// folder. This function does not check if the file exists, or try to convert
-// KBFS paths. Caller should take care of those.
-const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: boolean): Promise<void> =>
-  openPathInFinder?.(openPath, isFolder)
-
-const escapeBackslash = isWindows
-  ? (pathElem: string): string =>
-      pathElem
-        .replace(/‰/g, '‰2030')
-        .replace(/([<>:"/\\|?*])/g, (_, c: Uint8Array) => '‰' + uint8ArrayToHex(c))
-  : (pathElem: string): string => pathElem
-
-const _rebaseKbfsPathToMountLocation = (kbfsPath: T.FS.Path, mountLocation: string) =>
-  Path.join(mountLocation, T.FS.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(pathSep))
-
-const fuseStatusToUninstallExecPath = isWindows
-  ? (status: T.RPCGen.FuseStatus) => {
-      const field = status.status.fields?.find(({key}) => key === 'uninstallString')
-      return field?.value
-    }
-  : () => undefined
-
-const fuseStatusToActions =
-  (previousStatusType: T.FS.DriverStatusType) => (status: T.RPCGen.FuseStatus | undefined) => {
-    if (!status) {
-      useFSState.getState().dispatch.setDriverStatus(Constants.defaultDriverStatus)
-      return
-    }
-
-    if (status.kextStarted) {
-      useFSState.getState().dispatch.setDriverStatus({
-        ...Constants.emptyDriverStatusEnabled,
-        dokanOutdated: status.installAction === T.RPCGen.InstallAction.upgrade,
-        dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
-      })
-    } else {
-      useFSState.getState().dispatch.setDriverStatus(Constants.emptyDriverStatusDisabled)
-    }
-
-    if (status.kextStarted && previousStatusType === T.FS.DriverStatusType.Disabled) {
-      useFSState
-        .getState()
-        .dispatch.defer.openPathInSystemFileManagerDesktop?.(T.FS.stringToPath('/keybase'))
-    }
-  }
-
-const fuseInstallResultIsKextPermissionError = (result: T.RPCGen.InstallResult): boolean =>
-  result.componentResults?.findIndex(
-    c => c.name === 'fuse' && c.exitCode === ExitCodeFuseKextPermissionError
-  ) !== -1
-
-const driverEnableFuse = async (isRetry: boolean) => {
-  const result = await T.RPCGen.installInstallFuseRpcPromise()
-  if (fuseInstallResultIsKextPermissionError(result)) {
-    useFSState.getState().dispatch.driverKextPermissionError()
-    if (!isRetry) {
-      navigateAppend('kextPermission')
-    }
-  } else {
-    await T.RPCGen.installInstallKBFSRpcPromise() // restarts kbfsfuse
-    await T.RPCGen.kbfsMountWaitForMountsRpcPromise()
-    useFSState.getState().dispatch.defer.refreshDriverStatusDesktop?.()
-  }
-}
-
-const uninstallKBFSConfirm = async () => {
-  const remove = await (uninstallKBFSDialog?.() ?? Promise.resolve(false))
-  if (remove) {
-    useFSState.getState().dispatch.driverDisabling()
-  }
-}
-
-const uninstallKBFS = async () =>
-  T.RPCGen.installUninstallKBFSRpcPromise().then(() => {
-    // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-    relaunchApp?.()
-    exitApp?.(0)
-  })
-
-const uninstallDokanConfirm = async () => {
-  const driverStatus = useFSState.getState().sfmi.driverStatus
-  if (driverStatus.type !== T.FS.DriverStatusType.Enabled) {
-    return
-  }
-  if (!driverStatus.dokanUninstallExecPath) {
-    await uninstallDokanDialog?.()
-    useFSState.getState().dispatch.defer.refreshDriverStatusDesktop?.()
-    return
-  }
-  useFSState.getState().dispatch.driverDisabling()
-}
-
-const onUninstallDokan = async () => {
-  const driverStatus = useFSState.getState().sfmi.driverStatus
-  if (driverStatus.type !== T.FS.DriverStatusType.Enabled) return
-  const execPath: string = driverStatus.dokanUninstallExecPath || ''
-  logger.info('Invoking dokan uninstaller', execPath)
-  try {
-    await uninstallDokan?.(execPath)
-  } catch {}
-  useFSState.getState().dispatch.defer.refreshDriverStatusDesktop?.()
-}
-
-// Invoking the cached installer package has to happen from the topmost process
-// or it won't be visible to the user. The service also does this to support command line
-// operations.
-const onInstallCachedDokan = async () => {
-  try {
-    await installCachedDokan?.()
-    useFSState.getState().dispatch.defer.refreshDriverStatusDesktop?.()
-  } catch (e) {
-    errorToActionOrThrow(e)
-  }
-}
-
 const _platformUnsubs: Array<() => void> = __DEV__
   ? (globalThis.__hmr_platformUnsubs ??= [])
   : []
@@ -277,19 +141,6 @@ export const initPlatformListener = () => {
   // HMR cleanup: unsubscribe old store subscriptions before re-subscribing
   for (const unsub of _platformUnsubs) unsub()
   _platformUnsubs.length = 0
-
-  useConfigState.setState(s => {
-    s.dispatch.defer.dumpLogsNative = dumpLogs
-    s.dispatch.defer.showMainNative = wrapErrors(() => showMainWindow?.())
-    s.dispatch.defer.copyToClipboard = wrapErrors((s: string) => copyToClipboard?.(s))
-    s.dispatch.defer.onEngineConnectedDesktop = wrapErrors(() => {
-      // Introduce ourselves to the service
-      const f = async () => {
-        await T.RPCGen.configHelloIAmRpcPromise({details: KB2.constants.helloDetails})
-      }
-      ignorePromise(f())
-    })
-  })
 
   _platformUnsubs.push(useConfigState.subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
@@ -427,174 +278,9 @@ export const initPlatformListener = () => {
       }
     }
   })
-
-  useFSState.setState(s => {
-    s.dispatch.defer.uploadFromDragAndDropDesktop = wrapErrors(
-      (parentPath: T.FS.Path, localPaths: string[]) => {
-        const {upload} = useFSState.getState().dispatch
-        const f = async () => {
-          if (isDarwin && darwinCopyToKBFSTempUploadFile) {
-            const dir = await T.RPCGen.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
-            const lp = await Promise.all(
-              localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(dir, localPath))
-            )
-            lp.forEach(localPath => upload(parentPath, localPath))
-          } else {
-            localPaths.forEach(localPath => upload(parentPath, localPath))
-          }
-        }
-        ignorePromise(f())
-      }
-    )
-
-    s.dispatch.defer.openLocalPathInSystemFileManagerDesktop = wrapErrors((localPath: string) => {
-      const f = async () => {
-        try {
-          if (getPathType) {
-            const pathType = await getPathType(localPath)
-            await _openPathInSystemFileManagerPromise(localPath, pathType === 'directory')
-          }
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-      }
-      ignorePromise(f())
-    })
-
-    s.dispatch.defer.openPathInSystemFileManagerDesktop = wrapErrors((path: T.FS.Path) => {
-      const f = async () => {
-        const {sfmi, pathItems} = useFSState.getState()
-        return sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled && sfmi.directMountDir
-          ? _openPathInSystemFileManagerPromise(
-              _rebaseKbfsPathToMountLocation(path, sfmi.directMountDir),
-              ![T.FS.PathKind.InGroupTlf, T.FS.PathKind.InTeamTlf].includes(Constants.parsePath(path).kind) ||
-                Constants.getPathItem(pathItems, path).type === T.FS.PathType.Folder
-            ).catch((e: unknown) => errorToActionOrThrow(e, path))
-          : new Promise<void>((resolve, reject) => {
-              if (sfmi.driverStatus.type !== T.FS.DriverStatusType.Enabled) {
-                // This usually indicates a developer error as
-                // openPathInSystemFileManager shouldn't be used when FUSE integration
-                // is not enabled. So just blackbar to encourage a log send.
-                reject(new Error('FUSE integration is not enabled'))
-              } else {
-                logger.warn('empty directMountDir') // if this happens it might be a race?
-                resolve()
-              }
-            })
-      }
-      ignorePromise(f())
-    })
-
-    s.dispatch.defer.refreshDriverStatusDesktop = wrapErrors(() => {
-      const f = async () => {
-        let status = await T.RPCGen.installFuseStatusRpcPromise({
-          bundleVersion: '',
-        })
-        if (isWindows && status.installStatus !== T.RPCGen.InstallStatus.installed) {
-          const m = await T.RPCGen.kbfsMountGetCurrentMountDirRpcPromise()
-          status = await (windowsCheckMountFromOtherDokanInstall?.(m, status) ?? Promise.resolve(status))
-        }
-        fuseStatusToActions(useFSState.getState().sfmi.driverStatus.type)(status)
-      }
-      ignorePromise(f())
-    })
-
-    s.dispatch.defer.refreshMountDirsDesktop = wrapErrors(() => {
-      const f = async () => {
-        const {sfmi, dispatch} = useFSState.getState()
-        const driverStatus = sfmi.driverStatus
-        if (driverStatus.type !== T.FS.DriverStatusType.Enabled) {
-          return
-        }
-        const directMountDir = await T.RPCGen.kbfsMountGetCurrentMountDirRpcPromise()
-        const preferredMountDirs = await T.RPCGen.kbfsMountGetPreferredMountDirsRpcPromise()
-        dispatch.setDirectMountDir(directMountDir)
-        dispatch.setPreferredMountDirs(preferredMountDirs || [])
-      }
-      ignorePromise(f())
-    })
-
-    s.dispatch.defer.setSfmiBannerDismissedDesktop = wrapErrors((dismissed: boolean) => {
-      const f = async () => {
-        await T.RPCGen.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed})
-      }
-      ignorePromise(f())
-    })
-
-    s.dispatch.defer.afterDriverEnabled = wrapErrors((isRetry: boolean) => {
-      const f = async () => {
-        useFSState.getState().dispatch.defer.setSfmiBannerDismissedDesktop?.(false)
-        if (isWindows) {
-          await onInstallCachedDokan()
-        } else {
-          await driverEnableFuse(isRetry)
-        }
-      }
-      ignorePromise(f())
-    })
-
-    s.dispatch.defer.afterDriverDisable = wrapErrors(() => {
-      const f = async () => {
-        useFSState.getState().dispatch.defer.setSfmiBannerDismissedDesktop?.(false)
-        if (isWindows) {
-          await uninstallDokanConfirm()
-        } else {
-          await uninstallKBFSConfirm()
-        }
-      }
-      ignorePromise(f())
-    })
-
-    s.dispatch.defer.afterDriverDisabling = wrapErrors(() => {
-      const f = async () => {
-        if (isWindows) {
-          await onUninstallDokan()
-        } else {
-          await uninstallKBFS()
-        }
-      }
-      ignorePromise(f())
-    })
-
-    s.dispatch.defer.openSecurityPreferencesDesktop = wrapErrors(() => {
-      const f = async () => {
-        await openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
-      }
-      ignorePromise(f())
-    })
-
-    s.dispatch.defer.openFilesFromWidgetDesktop = wrapErrors((path: T.FS.Path) => {
-      useConfigState.getState().dispatch.showMain()
-      if (path) {
-        Constants.navToPath(path)
-      } else {
-        navigateAppend(Tabs.fsTab)
-      }
-    })
-
-    s.dispatch.defer.openAndUploadDesktop = wrapErrors(
-      (type: T.FS.OpenDialogType, parentPath: T.FS.Path) => {
-        const f = async () => {
-          const localPaths = await (selectFilesToUploadDialog?.(type, parentPath ?? undefined) ??
-            Promise.resolve([]))
-          localPaths.forEach(localPath => useFSState.getState().dispatch.upload(parentPath, localPath))
-        }
-        ignorePromise(f())
-      }
-    )
-
-    if (!isLinux) {
-      s.dispatch.defer.afterKbfsDaemonRpcStatusChanged = wrapErrors(() => {
-        const {kbfsDaemonStatus, dispatch} = useFSState.getState()
-        if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-          dispatch.defer.refreshDriverStatusDesktop?.()
-        }
-        dispatch.defer.refreshMountDirsDesktop?.()
-      })
-      // force call as it could have happened already
-      s.dispatch.defer.afterKbfsDaemonRpcStatusChanged()
-    }
-  })
+  if (!isLinux) {
+    useFSState.getState().dispatch.afterKbfsDaemonRpcStatusChanged()
+  }
 
   initSharedSubscriptions()
 }

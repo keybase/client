@@ -45,6 +45,7 @@ import {clearChatTimeCache} from '@/util/timestamp'
 import * as Config from '@/constants/config'
 import {isMobile} from '@/constants/platform'
 import {enumKeys, ignorePromise, shallowEqual, timeoutPromise} from '@/constants/utils'
+import {persistRoute, showMain} from '@/util/storeless-actions'
 import {flushInboxRowUpdates, queueInboxRowUpdate} from './inbox-rows'
 import * as Strings from '@/constants/strings'
 import {chatStores, convoUIStores} from './convo-registry'
@@ -1493,7 +1494,7 @@ const createSlice =
       }
 
       const onClick = () => {
-        useConfigState.getState().dispatch.showMain()
+        showMain()
         navigateToInbox()
         routerNavigateToThread(get().id, 'desktopNotification')
       }
@@ -2316,7 +2317,7 @@ const createSlice =
       blockConversation: reportUser => {
         const f = async () => {
           navigateToInbox()
-          useConfigState.getState().dispatch.defer.persistRoute?.(false, false)
+          persistRoute(false, false, () => useConfigState.getState().startup.loaded)
           await T.RPCChat.localSetConversationStatusLocalRpcPromise({
             conversationID: get().getConvID(),
             identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,

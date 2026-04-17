@@ -1,5 +1,5 @@
 // links all the stores together, stores never import this
-import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '../utils'
+import {ignorePromise, neverThrowPromiseFunc} from '../utils'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
@@ -7,23 +7,18 @@ import {useFSState} from '@/stores/fs'
 import {useRouterState} from '@/stores/router'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import * as T from '@/constants/types'
-import * as Clipboard from 'expo-clipboard'
 import type * as EngineGen from '@/constants/rpc'
 import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
-import * as Tabs from '@/constants/tabs'
+import type * as Tabs from '@/constants/tabs'
 import * as NetInfo from '@react-native-community/netinfo'
 import {NotifyPopup} from '@/util/misc'
 import logger from '@/logger'
-import {Alert, Linking} from 'react-native'
+import {Linking} from 'react-native'
 import {isAndroid} from '@/constants/platform.native'
-import {wrapErrors} from '@/util/debug'
-import {getTab, getVisiblePath, logState} from '@/constants/router'
-import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
-import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
+import {logState} from '@/constants/router'
 import {setupAudioMode} from '@/util/audio.native'
 import {
-  androidAddCompleteDownload,
   fsCacheDir,
   fsDownloadDir,
   androidAppColorSchemeChanged,
@@ -35,18 +30,10 @@ import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {noConversationIDKey} from '../types/chat/common'
 import {getSelectedConversation} from '../chat/common'
 import {getConvoState, getConvoUIState} from '@/stores/convostate'
-import {
-  requestLocationPermission,
-  saveAttachmentToCameraRoll,
-  showShareActionSheet,
-} from '@/util/platform-specific/index.native'
-import * as FS from '@/constants/fs'
-import {errorToActionOrThrow} from '@/stores/fs'
+import {requestLocationPermission} from '@/util/platform-specific/index.native'
 import * as ScreenCapture from 'expo-screen-capture'
-import * as Styles from '@/styles'
 import {getSecureFlagSetting} from '@/constants/platform.native'
-
-const finishedRegularDownloadIDs = new Set<string>()
+import {persistRoute} from '@/util/storeless-actions'
 
 const loadStartupDetails = async () => {
   logger.info('[Startup] loadStartupDetails: starting')
@@ -256,63 +243,6 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
 }
 
 export const initPlatformListener = () => {
-  let _lastPersist = ''
-  useConfigState.setState(s => {
-    s.dispatch.defer.persistRoute = wrapErrors((clear: boolean, immediate: boolean) => {
-      const doClear = async () => {
-        try {
-          await T.RPCGen.configGuiSetValueRpcPromise({
-            path: 'ui.routeState2',
-            value: {isNull: false, s: ''},
-          })
-        } catch {}
-      }
-      const doPersist = async () => {
-        if (!useConfigState.getState().startup.loaded) {
-          return
-        }
-        let param = {}
-        let routeName = Tabs.peopleTab
-        const cur = getTab()
-        if (cur) {
-          routeName = cur
-        }
-        const ap = getVisiblePath()
-        ap.some((r: ReturnType<typeof getVisiblePath>[number]) => {
-          if (r.name === 'chatConversation') {
-            const rParams = r.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
-            param = {selectedConversationIDKey: rParams?.conversationIDKey}
-            return true
-          }
-          return false
-        })
-        const s = JSON.stringify({param, routeName})
-        // don't keep rewriting
-        if (_lastPersist === s) {
-          return
-        }
-        _lastPersist = s
-
-        try {
-          await T.RPCGen.configGuiSetValueRpcPromise({
-            path: 'ui.routeState2',
-            value: {isNull: false, s},
-          })
-        } catch {}
-      }
-      const run = clear ? doClear : doPersist
-      if (immediate) {
-        ignorePromise(run())
-      } else {
-        const f = async () => {
-          await timeoutPromise(1000)
-          await run()
-        }
-        ignorePromise(f())
-      }
-    })
-  })
-
   useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     let appFocused: boolean
@@ -325,7 +255,7 @@ export const initPlatformListener = () => {
       case 'background':
         appFocused = false
         logState = T.RPCGen.MobileAppState.background
-        useConfigState.getState().dispatch.defer.persistRoute?.(false, true)
+        persistRoute(false, true, () => useConfigState.getState().startup.loaded)
         break
       case 'inactive':
         appFocused = false
@@ -344,14 +274,6 @@ export const initPlatformListener = () => {
       dispatch.loadMoreMessages({reason: 'foregrounding'})
       dispatch.markThreadAsRead()
     }
-  })
-
-  useConfigState.setState(s => {
-    s.dispatch.defer.copyToClipboard = wrapErrors((s: string) => {
-      Clipboard.setStringAsync(s)
-        .then(() => {})
-        .catch(() => {})
-    })
   })
 
   const configureAndroidCacheDir = () => {
@@ -385,19 +307,6 @@ export const initPlatformListener = () => {
     }
   })
 
-  useConfigState.setState(s => {
-    s.dispatch.defer.onFilePickerError = wrapErrors((error: Error) => {
-      Alert.alert('Error', String(error))
-    })
-    s.dispatch.defer.openAppStore = wrapErrors(() => {
-      Linking.openURL(
-        isAndroid
-          ? 'http://play.google.com/store/apps/details?id=io.keybase.ossifrage'
-          : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
-      ).catch(() => {})
-    })
-  })
-
   useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
@@ -419,17 +328,6 @@ export const initPlatformListener = () => {
       }
     }
     ignorePromise(f())
-  })
-
-  useConfigState.setState(s => {
-    s.dispatch.defer.showShareActionSheet = wrapErrors(
-      (filePath: string, message: string, mimeType: string) => {
-        const f = async () => {
-          await showShareActionSheet({filePath, message, mimeType})
-        }
-        ignorePromise(f())
-      }
-    )
   })
 
   useConfigState.subscribe((s, old) => {
@@ -455,7 +353,7 @@ export const initPlatformListener = () => {
     const next = s.navState
     const prev = old.navState
     if (next === prev) return
-    useConfigState.getState().dispatch.defer.persistRoute?.(false, false)
+    persistRoute(false, false, () => useConfigState.getState().startup.loaded)
 
     if (!calledShareListenersRegistered && logState().loggedIn) {
       calledShareListenersRegistered = true
@@ -499,141 +397,8 @@ export const initPlatformListener = () => {
     }
   }
 
-  useConfigState.setState(s => {
-    s.dispatch.defer.openAppSettings = wrapErrors(() => {
-      ignorePromise(Linking.openSettings())
-    })
-  })
-
-  useFSState.setState(s => {
-    s.dispatch.defer.pickAndUploadMobile = wrapErrors(
-      (type: T.FS.MobilePickType, parentPath: T.FS.Path) => {
-        if (type === T.FS.MobilePickType.File) return
-        const f = async () => {
-          try {
-            const result = await launchImageLibraryAsync(type, true, true)
-            if (result.canceled) return
-            for (const asset of result.assets) {
-              useFSState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(asset.uri))
-            }
-          } catch (e) {
-            errorToActionOrThrow(e)
-          }
-        }
-        ignorePromise(f())
-      }
-    )
-
-    s.dispatch.defer.pickDocumentsMobile = wrapErrors((parentPath: T.FS.Path) => {
-      const f = async () => {
-        try {
-          const result = await pickDocumentsAsync(true)
-          if (result.canceled) return
-          result.assets.map(r =>
-            useFSState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(r.uri))
-          )
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-      }
-      ignorePromise(f())
-    })
-
-    s.dispatch.defer.finishedDownloadWithIntentMobile = wrapErrors(
-      (downloadID: string, downloadIntent: T.FS.DownloadIntent, mimeType: string) => {
-        const f = async () => {
-          const {downloads, dispatch} = useFSState.getState()
-          const downloadState = downloads.state.get(downloadID) || FS.emptyDownloadState
-          if (downloadState === FS.emptyDownloadState) {
-            logger.warn('missing download', downloadID)
-            return
-          }
-          const dismissDownload = dispatch.dismissDownload
-          if (downloadState.error) {
-            dispatch.redbar(downloadState.error)
-            dismissDownload(downloadID)
-            return
-          }
-          const {localPath} = downloadState
-          try {
-            switch (downloadIntent) {
-              case T.FS.DownloadIntent.CameraRoll:
-                await saveAttachmentToCameraRoll(localPath, mimeType)
-                dismissDownload(downloadID)
-                return
-              case T.FS.DownloadIntent.Share:
-                await showShareActionSheet({filePath: localPath, mimeType})
-                dismissDownload(downloadID)
-                return
-              case T.FS.DownloadIntent.None:
-                return
-              default:
-                return
-            }
-          } catch (err) {
-            errorToActionOrThrow(err)
-          }
-        }
-        ignorePromise(f())
-      }
-    )
-  })
-
   if (isAndroid) {
-    useFSState.setState(s => {
-      s.dispatch.defer.afterKbfsDaemonRpcStatusChanged = wrapErrors(() => {
-        const f = async () => {
-          await T.RPCGen.SimpleFSSimpleFSConfigureDownloadRpcPromise({
-            // Android's cache dir is (when I tried) [app]/cache but Go side uses
-            // [app]/.cache by default, which can't be used for sharing to other apps.
-            cacheDirOverride: fsCacheDir,
-            downloadDirOverride: fsDownloadDir,
-          })
-        }
-        ignorePromise(f())
-      })
-      // needs to be called, TODO could make this better
-      s.dispatch.defer.afterKbfsDaemonRpcStatusChanged()
-
-      s.dispatch.defer.finishedRegularDownloadMobile = wrapErrors(
-        (downloadID: string, mimeType: string) => {
-          const f = async () => {
-            // This is fired from a hook and can happen more than once per downloadID.
-            // So just deduplicate them here. This is small enough and won't happen
-            // constantly, so don't worry about clearing them.
-            if (finishedRegularDownloadIDs.has(downloadID)) {
-              return
-            }
-            finishedRegularDownloadIDs.add(downloadID)
-
-            const {downloads} = useFSState.getState()
-
-            const downloadState = downloads.state.get(downloadID) || FS.emptyDownloadState
-            const downloadInfo = downloads.info.get(downloadID) || FS.emptyDownloadInfo
-            if (downloadState === FS.emptyDownloadState || downloadInfo === FS.emptyDownloadInfo) {
-              logger.warn('missing download', downloadID)
-              return
-            }
-            if (downloadState.error) {
-              return
-            }
-            try {
-              await androidAddCompleteDownload({
-                description: `Keybase downloaded ${downloadInfo.filename}`,
-                mime: mimeType,
-                path: downloadState.localPath,
-                showNotification: true,
-                title: downloadInfo.filename,
-              })
-            } catch {
-              logger.warn('Failed to addCompleteDownload')
-            }
-            // No need to dismiss here as the download wrapper does it for Android.
-          }
-          ignorePromise(f())
-        }
-      )
-    })
+    useFSState.getState().dispatch.afterKbfsDaemonRpcStatusChanged()
   }
 
   initSharedSubscriptions()

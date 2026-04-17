@@ -13,6 +13,9 @@ import {defaultUseNativeFrame, isMobile} from '@/constants/platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
 import {navigateAppend} from '@/constants/router'
+import {
+  onEngineConnected as onEngineConnectedInPlatform,
+} from '@/util/storeless-actions'
 
 export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
 
@@ -146,24 +149,8 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    defer: {
-      copyToClipboard: (s: string) => void
-      dumpLogsNative?: (reason: string) => Promise<void>
-      onFilePickerError?: (error: Error) => void
-      openAppSettings?: () => void
-      openAppStore?: () => void
-      onEngineConnectedDesktop?: () => void
-      onEngineIncomingDesktop?: (action: EngineGen.Actions) => void
-      onEngineIncomingNative?: (action: EngineGen.Actions) => void
-      persistRoute?: (clear: boolean, immediate: boolean) => void
-      setNavigatorExistsNative?: () => void
-      showMainNative?: () => void
-      showShareActionSheet?: (filePath: string, message: string, mimeType: string) => void
-    }
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
-    dumpLogs: (reason: string) => Promise<void>
-    filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
     initNotifySound: () => void
     initForceSmallNav: () => void
@@ -205,7 +192,6 @@ export type State = Store & {
     setUpdating: () => void
     setUseNativeFrame: (use: boolean) => void
     setUserSwitching: (sw: boolean) => void
-    showMain: () => void
     toggleRuntimeStats: () => void
     updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
     updateWindowState: (ws: Omit<Store['windowState'], 'isMaximized'>) => void
@@ -286,28 +272,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         await _checkForUpdate()
       }
       ignorePromise(f())
-    },
-    defer: {
-      copyToClipboard: () => {
-        throw new Error('copyToClipboard not implemented?????')
-      },
-      dumpLogsNative: undefined,
-      onEngineConnectedDesktop: undefined,
-      onEngineIncomingDesktop: undefined,
-      onEngineIncomingNative: undefined,
-      onFilePickerError: undefined,
-      openAppSettings: undefined,
-      openAppStore: undefined,
-      persistRoute: undefined,
-      setNavigatorExistsNative: undefined,
-      showMainNative: undefined,
-      showShareActionSheet: undefined,
-    },
-    dumpLogs: async reason => {
-      await get().dispatch.defer.dumpLogsNative?.(reason)
-    },
-    filePickerError: error => {
-      get().dispatch.defer.onFilePickerError?.(error)
     },
     initAppUpdateLoop: () => {
       const f = async () => {
@@ -514,7 +478,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       }
       ignorePromise(registerForGregorNotifications())
 
-      get().dispatch.defer.onEngineConnectedDesktop?.()
+      onEngineConnectedInPlatform()
       get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
     },
     onEngineIncoming: action => {
@@ -858,9 +822,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       set(s => {
         s.userSwitching = sw
       })
-    },
-    showMain: () => {
-      get().dispatch.defer.showMainNative?.()
     },
     toggleRuntimeStats: () => {
       const f = async () => {

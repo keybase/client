@@ -11,8 +11,9 @@ import Root from './root'
 import Rows from './rows/rows-container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {useFSState} from '@/stores/fs'
+import {errorToActionOrThrow, useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
+import {uploadFromDragAndDropDesktop as uploadFromDragAndDropInPlatform} from '@/stores/fs-platform'
 
 type OwnProps = {
   lastClosedPublicBannerTlf?: string
@@ -77,8 +78,18 @@ function DragAndDrop(p: {
   rejectReason?: string
 }) {
   const {children, path, rejectReason} = p
-  const uploadFromDragAndDrop = useFSState(s => s.dispatch.defer.uploadFromDragAndDropDesktop)
-  const onAttach = (localPaths: Array<string>) => uploadFromDragAndDrop?.(path, localPaths)
+  const upload = useFSState(s => s.dispatch.upload)
+  const onAttach = (localPaths: Array<string>) => {
+    const f = async () => {
+      try {
+        const nextLocalPaths = await uploadFromDragAndDropInPlatform(localPaths)
+        nextLocalPaths.forEach(localPath => upload(path, localPath))
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    C.ignorePromise(f())
+  }
   return (
     <Kb.DragAndDrop
       allowFolders={true}

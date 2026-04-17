@@ -14,9 +14,6 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    defer: {
-      tabLongPress?: (tab: string) => void
-    }
     resetState: () => void
     setNavState: (ns: Util.NavState) => void
   }
@@ -24,9 +21,6 @@ export type State = Store & {
 
 export const useRouterState = Z.createZustand<State>('router', (set, get) => {
   const dispatch: State['dispatch'] = {
-    defer: {
-      tabLongPress: undefined,
-    },
     resetState: () => {
       set(s => ({
         ...s,

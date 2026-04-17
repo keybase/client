@@ -5,9 +5,9 @@ import * as React from 'react'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import type {CommonState} from './helpers'
 import {pickFiles} from '@/util/misc'
-import {useFSState} from '@/stores/fs'
 import * as FS from '@/constants/fs'
-import {useConfigState} from '@/stores/config'
+import {copyToClipboard} from '@/util/storeless-actions'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type CryptoOutputProps = {
   actionLabel: string
@@ -158,11 +158,8 @@ export const CryptoOutputActionsBar = ({
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
   const actionsDisabled = waiting || !state.outputValid
 
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
-  )
   const onShowInFinder = () => {
-    openLocalPathInSystemFileManagerDesktop?.(state.output)
+    openLocalPathInSystemFileManagerDesktop(state.output)
   }
 
   const navigateUp = C.Router2.navigateUp
@@ -172,7 +169,6 @@ export const CryptoOutputActionsBar = ({
     previewConversation({participants: [username], reason: 'search'})
   }
 
-  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showingToast, setShowingToast] = React.useState(false)
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)
@@ -297,9 +293,6 @@ export const CryptoOutput = ({
   outputTextType,
   state,
 }: CryptoOutputProps) => {
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
-  )
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyCrypto)
   const actionsDisabled = waiting || !state.outputValid
 
@@ -343,7 +336,7 @@ export const CryptoOutput = ({
           <Kb.Text
             type="BodyPrimaryLink"
             style={Kb.Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
-            onClick={() => state.output && openLocalPathInSystemFileManagerDesktop?.(state.output)}
+            onClick={() => state.output && openLocalPathInSystemFileManagerDesktop(state.output)}
           >
             {state.output}
           </Kb.Text>

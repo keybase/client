@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {SettingsSection} from './account'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {settingsFeedbackTab} from '@/constants/settings'
-import {useConfigState} from '@/stores/config'
+import {openAppSettings} from '@/util/storeless-actions'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
@@ -71,7 +71,6 @@ const ManageContactsBanner = () => {
       status: s.permissionStatus,
     }))
   )
-  const onOpenAppSettings = useConfigState(s => s.dispatch.defer.openAppSettings)
   const {appendNewChatBuilder, navigateAppend, switchTab} = C.Router2
   const onStartChat = () => {
     switchTab(C.Tabs.chatTab)
@@ -100,7 +99,7 @@ const ManageContactsBanner = () => {
               contactsImported
                 ? "Contact importing is paused because Keybase doesn't have permission to access your contacts. "
                 : "Keybase doesn't have permission to access your contacts. ",
-              {onClick: onOpenAppSettings, text: 'Enable in settings'},
+              {onClick: openAppSettings, text: 'Enable in settings'},
               '.',
             ]}
           />

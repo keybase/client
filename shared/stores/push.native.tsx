@@ -19,6 +19,7 @@ import {
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
 import {type Store, type State} from '@/stores/push'
+import {openAppSettings} from '@/util/storeless-actions'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 
@@ -250,14 +251,14 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
           const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
           if (shownPushPrompt) {
             // we've already shown the prompt, take them to settings
-            useConfigState.getState().dispatch.defer.openAppSettings?.()
+            openAppSettings()
             get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
             return
           }
         }
         const {increment, decrement} = useWaitingState.getState().dispatch
         try {
-          useConfigState.getState().dispatch.defer.openAppSettings?.()
+          openAppSettings()
           increment(S.waitingKeyPushPermissionsRequesting)
           await requestPermissionsFromNative()
           const permissions = await checkPermissionsFromNative()

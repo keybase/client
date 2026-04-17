@@ -176,6 +176,10 @@ Use `React.useState`, `React.useEffect`, and existing screen hooks. In plain `.t
 
 If a helper hook, pure helper, or constant is only used by one component or one file, define it in that file instead of creating a sibling module. Split code out only when it is shared across files or the extracted boundary is meaningfully clearer than simple colocation.
 
+If a store action or utility candidate is only used by one component or one file, move the code directly into that caller instead of creating a new util or leaving an imperative `dispatch.*` method on the store. Only extract a shared util when multiple files need the same behavior.
+
+When pruning imperative `dispatch.*` helpers, check the caller count first. A single-caller helper should usually be inlined into that caller. A helper with several unrelated callers can move to `shared/util/*` or a small file-local helper module if it still needs store access.
+
 If a component reads multiple adjacent values from the same remaining store, prefer one selector with `C.useShallow(...)` over several subscriptions.
 
 ### 5. Move navigation-owned data into params

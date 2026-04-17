@@ -2,7 +2,7 @@ import * as Chat from '@/stores/chat'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import AudioPlayer from '@/chat/audio/audio-player'
-import {useFSState} from '@/stores/fs'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 const messageAttachmentHasProgress = (message: T.Chat.MessageAttachment) => {
   return (
@@ -14,11 +14,8 @@ const messageAttachmentHasProgress = (message: T.Chat.MessageAttachment) => {
 const AudioAttachment = ({message}: {message: T.Chat.MessageAttachment}) => {
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = messageAttachmentHasProgress(message)
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
-  )
   const onShowInFinder = () => {
-    message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
+    message.downloadPath && openLocalPathInSystemFileManagerDesktop(message.downloadPath)
   }
   const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
   const showInFinder = !!message.downloadPath && !Kb.Styles.isMobile

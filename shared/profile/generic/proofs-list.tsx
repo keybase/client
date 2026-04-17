@@ -8,7 +8,6 @@ import {useTrackerState} from '@/stores/tracker'
 import Modal from '../modal'
 import {SiteIcon} from './shared'
 import {normalizeProofUsername} from '../proof-utils'
-import {useConfigState} from '@/stores/config'
 import {openURL as openUrl} from '@/util/misc'
 import {subtitle} from '@/util/platforms'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -16,6 +15,7 @@ import {ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {navToProfile} from '@/constants/router'
+import {copyToClipboard} from '@/util/storeless-actions'
 
 type ProveGenericParams = {
   buttonLabel: string
@@ -110,7 +110,6 @@ const Container = ({platform, reason = 'profile'}: Props) => {
   const currentUsername = useCurrentUserState(s => s.username)
   const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
   const proofSuggestions = useTrackerState(s => s.proofSuggestions)
-  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
   const registerCryptoAddress = C.useRPC(T.RPCGen.cryptocurrencyRegisterAddressRpcPromise)
   const isDarkMode = useColorScheme() === 'dark'
   const {clearModals, navigateAppend, navigateUp} = C.Router2

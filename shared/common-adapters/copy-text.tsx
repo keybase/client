@@ -9,7 +9,7 @@ import {useTimeout} from './use-timers'
 import * as Styles from '@/styles'
 import logger from '@/logger'
 import type {MeasureRef} from './measure-ref'
-import {useConfigState} from '@/stores/config'
+import {copyToClipboard, showShareActionSheet} from '@/util/storeless-actions'
 
 const Kb = {
   Box2,
@@ -61,11 +61,9 @@ const CopyText = (props: Props) => {
   }, [withReveal, text, loadText])
 
   const popupAnchor = React.useRef<MeasureRef | null>(null)
-  const copyToClipboard = useConfigState(s => s.dispatch.defer.copyToClipboard)
-  const showShareActionSheet = useConfigState(s => s.dispatch.defer.showShareActionSheet)
   const doCopy = (t: string) => {
     if (shareSheet) {
-      showShareActionSheet?.('', t, 'text/plain')
+      showShareActionSheet('', t, 'text/plain')
     } else {
       setShowingToast(true)
       copyToClipboard(t)
@@ -94,7 +92,7 @@ const CopyText = (props: Props) => {
         loadText()
       } else {
         if (shareSheet) {
-          showShareActionSheet?.('', text, 'text/plain')
+          showShareActionSheet('', text, 'text/plain')
         } else {
           setShowingToast(true)
           copyToClipboard(text)
@@ -106,7 +104,7 @@ const CopyText = (props: Props) => {
         setRequestedCopy(false)
       }
     }
-  }, [requestedCopy, text, loadText, shareSheet, showShareActionSheet, copyToClipboard, onCopy, hideOnCopy])
+  }, [requestedCopy, text, loadText, shareSheet, onCopy, hideOnCopy])
 
   const reveal = () => {
     if (!props.text && props.loadText) {

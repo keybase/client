@@ -9,7 +9,7 @@ import chunk from 'lodash/chunk'
 import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp'
 import {infoPanelWidth} from './common'
 import {useMessagePopup} from '../messages/message-popup'
-import {useFSState} from '@/stores/fs'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -307,10 +307,7 @@ const LinkTitle = (p: {title: string; url?: string}) => {
     <Kb.Text
       type="BodySmallPrimaryLink"
       {...urlProps}
-      style={Kb.Styles.collapseStyles([
-        styles.linkStyle,
-        {color: Kb.Styles.globalColors.blueDark},
-      ])}
+      style={Kb.Styles.collapseStyles([styles.linkStyle, {color: Kb.Styles.globalColors.blueDark}])}
     >
       {p.title}
     </Kb.Text>
@@ -432,9 +429,7 @@ export const useAttachmentSections = (
   loadImmediately: boolean,
   useFlexWrap: boolean
 ): {sections: Array<Section>} => {
-  const [selectedAttachmentView, onSelectAttachmentView] = React.useState(
-    T.RPCChat.GalleryItemTyp.media
-  )
+  const [selectedAttachmentView, onSelectAttachmentView] = React.useState(T.RPCChat.GalleryItemTyp.media)
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
   const loadAttachmentView = ConvoState.useChatContext(s => s.dispatch.loadAttachmentView)
   const loadMessagesCentered = ConvoState.useChatContext(s => s.dispatch.loadMessagesCentered)
@@ -492,11 +487,8 @@ export const useAttachmentSections = (
     }
   }
 
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.defer.openLocalPathInSystemFileManagerDesktop
-  )
   const onShowInFinder = (message: T.Chat.MessageAttachment) =>
-    message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
+    message.downloadPath && openLocalPathInSystemFileManagerDesktop(message.downloadPath)
 
   const avSection = {
     data: [{type: 'avselector'}] as const,
@@ -714,9 +706,7 @@ export const useAttachmentSections = (
                         {item.snippet}
                       </Kb.Markdown>
                     </Kb.Box2>
-                    {!!item.title && (
-                      <LinkTitle title={item.title} url={item.url} />
-                    )}
+                    {!!item.title && <LinkTitle title={item.title} url={item.url} />}
                     <Kb.Divider />
                   </Kb.Box2>
                 </Kb.ClickableBox2>
