@@ -53,6 +53,8 @@ const findUserById = (users: ReadonlyArray<T.TB.User> | undefined, userId: strin
 const shouldShowContactsBanner = (filterServices: ReadonlyArray<T.TB.ServiceIdWithContact> | undefined) =>
   Kb.Styles.isMobile && (!filterServices || filterServices.includes('phone'))
 
+const noop = () => {}
+
 const useTeamBuildingData = (searchString: string, selectedService: T.TB.ServiceIdWithContact) => {
   const {searchResults, error, rawTeamSoFar, userRecs} = TB.useTBContext(
     C.useShallow(s => ({
@@ -155,7 +157,7 @@ const useTeamBuildingActions = ({
     onAdd,
     onChangeService,
     onChangeText,
-    onFinishTeamBuilding: onFinishTeamBuilding ?? (() => {}),
+    onFinishTeamBuilding: onFinishTeamBuilding ?? noop,
     onRemove: (userId: string) => {
       removeUsersFromTeamSoFar([userId])
     },
@@ -183,7 +185,7 @@ const TeamBuilding = ({
   teamID,
   filterServices,
   goButtonLabel = 'Start',
-  onFinishTeamBuilding,
+  onFinishTeamBuilding: onFinishTeamBuildingProp,
 }: OwnProps) => {
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
   const [enterInputCounter, setEnterInputCounter] = React.useState(0)
@@ -210,13 +212,13 @@ const TeamBuilding = ({
     onAdd,
     onChangeService,
     onChangeText,
-    onFinishTeamBuilding,
+    onFinishTeamBuilding: finishTeamBuilding,
     onRemove,
     onSearchForMore,
     search,
   } = useTeamBuildingActions({
-    onFinishTeamBuilding,
     namespace,
+    onFinishTeamBuilding: onFinishTeamBuildingProp,
     searchString,
     selectedService,
     setFocusInputCounter,
@@ -293,7 +295,7 @@ const TeamBuilding = ({
             teamSoFar={teamSoFar}
             onChangeText={onChangeText}
             onSearchForMore={onSearchForMore}
-            onFinishTeamBuilding={onFinishTeamBuilding}
+            onFinishTeamBuilding={finishTeamBuilding}
           />
           {waitingForCreate && (
             <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
@@ -310,7 +312,7 @@ const TeamBuilding = ({
       onDownArrowKeyDown={onDownArrowKeyDown}
       onUpArrowKeyDown={onUpArrowKeyDown}
       onEnterKeyDown={onEnterKeyDown}
-      onFinishTeamBuilding={onFinishTeamBuilding}
+      onFinishTeamBuilding={finishTeamBuilding}
       onRemove={onRemove}
       teamSoFar={teamSoFar}
       searchString={searchString}
