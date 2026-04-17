@@ -610,7 +610,7 @@ func (m *FlipManager) formatError(ctx context.Context, rawErr error) chat1.UICoi
 }
 
 func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGameID,
-	update *flip.GameSummary, convID chat1.ConversationID, force bool,
+	update *flip.GameSummary, statusConvID chat1.ConversationID, resultConvID chat1.ConversationID, force bool,
 ) (status chat1.UICoinFlipStatus) {
 	defer m.queueDirtyGameID(ctx, gameID, force)
 	if update.Err != nil {
@@ -622,7 +622,7 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 		formatted := m.formatError(ctx, update.Err)
 		status = chat1.UICoinFlipStatus{
 			GameID:       gameID.FlipGameIDStr(),
-			ConvID:       convID.ConvIDStr(),
+			ConvID:       statusConvID.ConvIDStr(),
 			Phase:        chat1.UICoinFlipPhase_ERROR,
 			ProgressText: fmt.Sprintf("Something went wrong: %s", update.Err),
 			Participants: parts,
@@ -633,10 +633,10 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 	}
 	status = chat1.UICoinFlipStatus{
 		GameID: gameID.FlipGameIDStr(),
-		ConvID: convID.ConvIDStr(),
+		ConvID: statusConvID.ConvIDStr(),
 		Phase:  chat1.UICoinFlipPhase_COMPLETE,
 	}
-	m.addResult(ctx, &status, update.Result, convID)
+	m.addResult(ctx, &status, update.Result, resultConvID)
 	for _, p := range update.Players {
 		m.addParticipant(ctx, &status, flip.CommitmentUpdate{
 			User:       p.Device,
@@ -1382,10 +1382,10 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 				}
 			}
 			m.Debug(ctx, "loadGame: game had no action after pausing, sending error")
-			job.resCh <- m.handleSummaryUpdate(ctx, job.gameID, summary, hmi.ConvID, true)
+			job.resCh <- m.handleSummaryUpdate(ctx, job.gameID, summary, hmi.ConvID, flipConvID, true)
 		}(globals.BackgroundChatCtx(ctx, m.G()), summary)
 	} else {
-		job.resCh <- m.handleSummaryUpdate(ctx, job.gameID, summary, hmi.ConvID, true)
+		job.resCh <- m.handleSummaryUpdate(ctx, job.gameID, summary, hmi.ConvID, flipConvID, true)
 	}
 	return nil
 }
