@@ -73,7 +73,7 @@ export const finishedRegularDownloadMobile = async (
   downloadInfo: T.FS.DownloadInfo,
   mimeType: string
 ) => {
-  if (!isAndroid || finishedRegularDownloadIDs.has(downloadID)) {
+  if (!isAndroid || downloadState.error || !downloadState.localPath || finishedRegularDownloadIDs.has(downloadID)) {
     return
   }
   finishedRegularDownloadIDs.add(downloadID)
