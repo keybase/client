@@ -205,6 +205,7 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                             chatNotif.isGroupConversation = false
                             chatNotif.tlfName = ""
                             chatNotif.title = bundle.getString("title", "")
+                            chatNotif.uid = targetUID
 
                             notifier.displayChatNotification(chatNotif)
                             seenChatNotifications.add(n.convID + n.messageId)
@@ -244,13 +245,18 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
 
                 "chat.readmessage" -> {
                     val convID = bundle.getString("c")
+                    val targetUID = bundle.getString("i", "")
                     // Clear the cache of msgs for this conv id
                     if (msgCache.containsKey(convID)) {
                         msgCache[convID] = SmallMsgRingBuffer()
                     }
-                    // Cancel any push notifications.
-                    val notificationManager = NotificationManagerCompat.from(applicationContext)
-                    notificationManager.cancelAll()
+                    // Only cancel notifications if this read receipt is for the active
+                    // account. A receipt from another logged-in account must not clear
+                    // the active account's notification tray.
+                    if (targetUID.isEmpty() || targetUID == Keybase.currentUID()) {
+                        val notificationManager = NotificationManagerCompat.from(applicationContext)
+                        notificationManager.cancelAll()
+                    }
                     val emitBundle = bundle.clone() as Bundle
                     KbModule.emitPushNotification(emitBundle)
                 }

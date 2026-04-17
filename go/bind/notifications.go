@@ -98,6 +98,10 @@ type ChatNotification struct {
 	BadgeCount          int
 	// Title is the notification title, e.g. "username@keybase"
 	Title string
+	// Uid is the UID of the account this notification belongs to.
+	// Included in the local notification's userInfo so that a notification
+	// tap can switch to the correct account if a different one is active.
+	Uid string
 }
 
 func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body string) (err error) {
@@ -224,6 +228,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		SoundName:           soundName,
 		BadgeCount:          badgeCount,
 		Title:               title,
+		Uid:                 uid.String(),
 	}
 	kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: title=%s", chatNotification.Title)
 

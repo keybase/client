@@ -6,6 +6,7 @@ export type TokenType = 'apple' | 'appledev' | 'androidplay'
 export type PushNotification =
   | {
       badges: number
+      forUid?: string
       type: 'chat.readmessage'
     }
   | {

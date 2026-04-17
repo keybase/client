@@ -85,8 +85,17 @@ func log(format string, args ...interface{}) {
 	}
 }
 
+// CurrentUID returns the UID of the currently active account, or empty string if not logged in.
+// Used by the Android push listener to gate notification actions on the active account.
+func CurrentUID() string {
+	if kbCtx == nil {
+		return ""
+	}
+	return kbCtx.Env.GetUID().String()
+}
+
 type PushNotifier interface {
-	LocalNotification(ident string, title string, msg string, badgeCount int, soundName string, convID string, typ string)
+	LocalNotification(ident string, title string, msg string, badgeCount int, soundName string, convID string, typ string, uid string)
 	DisplayChatNotification(notification *ChatNotification)
 }
 
@@ -734,7 +743,7 @@ func pushPendingMessageFailure(obrs []chat1.OutboxRecord, pusher PushNotifier) {
 			kbCtx.Log.Debug("pushPendingMessageFailure: pushing convID: %s", obr.ConvID)
 			pusher.LocalNotification("failedpending", "",
 				"Heads up! Your message hasn't sent yet, tap here to retry.",
-				-1, "default", obr.ConvID.String(), "chat.failedpending")
+				-1, "default", obr.ConvID.String(), "chat.failedpending", "")
 			return
 		}
 	}
