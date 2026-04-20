@@ -5,12 +5,13 @@ import * as T from '@/constants/types'
 import EmailPhoneRow from './email-phone-row'
 import {openURL} from '@/util/misc'
 import {loadSettings} from '../load-settings'
-import {useNavigation} from '@react-navigation/native'
+import {useNavigation, type NavigationProp} from '@react-navigation/native'
 import {useIsFocused} from '@react-navigation/core'
 import {usePWState} from '@/stores/settings-password'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import {settingsPasswordTab} from '@/constants/settings'
+import {settingsAccountTab, settingsPasswordTab} from '@/constants/settings'
+import type {SettingsAccountRouteParams} from '../routes'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
@@ -175,11 +176,13 @@ const DeleteAccount = () => {
   )
 }
 
-type Props = {route: {params?: {addedEmailBannerEmail?: string}}}
+type Props = {route: {params?: SettingsAccountRouteParams}}
 
 const AccountSettings = ({route}: Props) => {
   const addedEmailFromRoute = route.params?.addedEmailBannerEmail
-  const navigation = useNavigation()
+  const navigation = useNavigation<
+    NavigationProp<Record<typeof settingsAccountTab, SettingsAccountRouteParams | undefined>, typeof settingsAccountTab>
+  >()
   const isFocused = useIsFocused()
   const emails = useSettingsEmailState(s => s.emails)
   const [addedEmail, setAddedEmail] = React.useState(addedEmailFromRoute ?? '')

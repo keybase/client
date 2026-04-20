@@ -8,7 +8,7 @@ const useNotifications = (notificationSettings: UseNotificationSettingsResult) =
   const showEmailSection = useSettingsEmailState(s => s.emails.size > 0)
   const navigateAppend = C.Router2.navigateAppend
   const onClickYourAccount = () => {
-    navigateAppend({name: settingsAccountTab, params: {}})
+    navigateAppend(settingsAccountTab)
   }
 
   return {

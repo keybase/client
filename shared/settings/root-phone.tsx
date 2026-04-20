@@ -106,7 +106,7 @@ function SettingsNav() {
         {
           badgeNumber: badgeNumbers.get(C.Tabs.settingsTab),
           onClick: () => {
-            navigateAppend({name: Settings.settingsAccountTab, params: {}})
+            navigateAppend(Settings.settingsAccountTab)
           },
           text: 'Account',
         },

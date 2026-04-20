@@ -5,11 +5,15 @@ import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
 import * as Settings from '@/constants/settings'
-import {defineRouteMap} from '@/constants/types/router'
+import {defineRouteMap, withRouteParams} from '@/constants/types/router'
 import {usePushState} from '@/stores/push'
 import {usePWState} from '@/stores/settings-password'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import type {Props as FeedbackRouteParams} from './feedback/container'
+
+export type SettingsAccountRouteParams = {
+  addedEmailBannerEmail?: string
+}
 
 const PushPromptSkipButton = () => {
   const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
@@ -86,10 +90,10 @@ export const sharedNewRoutes = defineRouteMap({
     getOptions: {title: 'About'},
     screen: React.lazy(async () => import('./about')),
   },
-  [Settings.settingsAccountTab]: {
+  [Settings.settingsAccountTab]: withRouteParams<SettingsAccountRouteParams | undefined>({
     getOptions: {title: 'Your account'},
     screen: React.lazy(async () => import('./account')),
-  },
+  }),
   [Settings.settingsAdvancedTab]: {
     getOptions: C.isMobile ? {title: 'Advanced'} : undefined,
     screen: React.lazy(async () => import('./advanced')),

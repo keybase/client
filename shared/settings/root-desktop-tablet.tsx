@@ -9,6 +9,7 @@ import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-na
 import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
 import {settingsDesktopTabRoutes} from './routes'
 import {settingsAccountTab} from '@/constants/settings'
+import type {SettingsAccountRouteParams} from './routes'
 
 function LeftTabNavigator({
   initialRouteName,
@@ -72,7 +73,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 type NavType = NavigatorTypeBagBase & {
-  ParamList: {[K in keyof typeof settingsDesktopTabRoutes]: undefined}
+  ParamList: {
+    [K in keyof typeof settingsDesktopTabRoutes]: K extends typeof settingsAccountTab
+      ? SettingsAccountRouteParams | undefined
+      : undefined
+  }
 }
 
 export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as () => TypedNavigator<NavType>
