@@ -3,18 +3,17 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
-import {useState as useRecoverState} from '@/stores/recover-password'
+import {startRecoverPassword} from '@/login/recover-password/flow'
 import {useProvisionState} from '@/stores/provision'
 
 const Password = () => {
   const error = useProvisionState(s => s.error)
-  const resetEmailSent = useRecoverState(s => s.resetEmailSent)
   const username = useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const navigateUp = C.Router2.navigateUp
-  const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
+  const [resetEmailSent, setResetEmailSent] = React.useState(false)
   const _onForgotPassword = () => {
-    startRecoverPassword({abortProvisioning: true, username})
+    startRecoverPassword({abortProvisioning: true, onResetEmailSent: () => setResetEmailSent(true), username})
   }
   const onBack = () => {
     navigateUp()
@@ -23,13 +22,6 @@ const Password = () => {
   const onSubmit = (password: string) => !waiting && _onSubmit?.(password)
   const [password, setPassword] = React.useState('')
   const _onSubmitClick = () => onSubmit(password)
-  const resetState = useRecoverState(s => s.dispatch.resetState)
-  React.useEffect(
-    () => () => {
-      resetState()
-    },
-    [resetState]
-  )
 
   return (
     <SignupScreen

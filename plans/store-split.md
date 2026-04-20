@@ -13,7 +13,7 @@ Recommended implementation order:
 - [x] `settings-email`
 - [x] `settings-phone`
 - [x] `people`
-- [ ] `recover-password`
+- [x] `recover-password`
 - [ ] `settings-password`
 - [ ] `tracker`
 - [ ] `team-building`

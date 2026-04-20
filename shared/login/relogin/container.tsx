@@ -3,7 +3,7 @@ import * as React from 'react'
 import {useConfigState} from '@/stores/config'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
-import {useState as useRecoverState} from '@/stores/recover-password'
+import {startRecoverPassword} from '@/login/recover-password/flow'
 import useRequestAutoInvite from '@/signup/use-request-auto-invite'
 import {useProvisionState} from '@/stores/provision'
 
@@ -13,7 +13,6 @@ const ReloginContainer = () => {
   const _users = useConfigState(s => s.configuredAccounts)
   const perror = useConfigState(s => s.loginError)
   const pselectedUser = useConfigState(s => s.defaultUsername)
-  const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
   const onForgotPassword = (username: string) => {
     startRecoverPassword({username})
   }
