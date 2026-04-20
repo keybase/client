@@ -22,7 +22,6 @@ import type * as UseChatStateType from '@/stores/chat'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UsePinentryStateType from '@/stores/pinentry'
-import type * as UseSettingsPasswordStateType from '@/stores/settings-password'
 import type * as UseTeamsStateType from '@/stores/teams'
 import type * as UseTracker2StateType from '@/stores/tracker'
 import type * as UnlockFoldersType from '@/stores/unlock-folders'
@@ -495,13 +494,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         const {usePinentryState} = require('@/stores/pinentry') as typeof UsePinentryStateType
         usePinentryState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.NotifyUsers.passwordChanged':
-      {
-        const randomPW = action.payload.params.state === T.RPCGen.PassphraseState.random
-        const {usePWState} = require('@/stores/settings-password') as typeof UseSettingsPasswordStateType
-        usePWState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
       }
       break
     case 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged': {

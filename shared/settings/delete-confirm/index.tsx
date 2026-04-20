@@ -3,8 +3,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useDeleteAccount} from '../use-delete-account'
-import {usePWState} from '@/stores/settings-password'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useRandomPWState} from '../use-random-pw'
 
 type CheckboxesProps = {
   checkData: boolean
@@ -36,7 +36,8 @@ const Checkboxes = (props: CheckboxesProps) => (
 )
 
 const DeleteConfirm = () => {
-  const hasPassword = usePWState(s => !s.randomPW)
+  const {loaded: randomPWLoaded, randomPW} = useRandomPWState()
+  const hasPassword = !randomPW
   const deleteAccountForever = useDeleteAccount()
   const username = useCurrentUserState(s => s.username)
   const [checkData, setCheckData] = React.useState(false)
@@ -79,7 +80,7 @@ const DeleteConfirm = () => {
       }
       onCancel={onCancel}
       onConfirm={onDeleteForever}
-      onConfirmDeactivated={!checkUsername || !checkData || !checkTeams}
+      onConfirmDeactivated={!randomPWLoaded || !checkUsername || !checkData || !checkTeams}
       prompt="Permanently delete your account?"
     />
   )

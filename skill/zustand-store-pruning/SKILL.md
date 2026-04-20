@@ -1,11 +1,13 @@
 ---
 name: zustand-store-pruning
-description: Use when refactoring Keybase Zustand stores in `shared/stores` to remove screen-local or route-owned state, keep only truly global or cross-screen data in the store, move one-off RPC calls into components with `C.useRPC`, and split the work into safe stacked commits.
+description: Use when refactoring Keybase Zustand stores in `shared/stores` to remove screen-local or route-owned state, keep only truly global or cross-screen data in the store, prefer querying the Go service layer over frontend convenience caches, move one-off RPC calls into components with `C.useRPC`, and split the work into safe stacked commits.
 ---
 
 # Pruning Zustand Stores
 
 Use this skill for store-by-store cleanup in the Keybase client. The goal is to shrink `shared/stores/*` down to state that is genuinely global, notification-driven, or shared across unrelated screens.
+
+The Go service is the source of truth for a lot of this repo's state. Prefer querying the service from the owning feature over mirroring that data in Zustand. If a store exists mainly to warm a frontend cache and avoid a few extra local RPCs, that is usually a sign the store should go away.
 
 Do not silently drop behavior. If a field or action is ambiguous, state the tradeoff and keep the behavior intact.
 
@@ -48,6 +50,8 @@ Before keeping a cache just because several screens read it, ask whether reloadi
 
 Default assumption for this repo: RPCs usually hit a local service, so treat most reads as cheap unless you have evidence otherwise. Do not keep a Zustand cache just to avoid a small number of local RPCs.
 
+Prefer reducing frontend bookkeeping. If a piece of state only mirrors what the service already knows, and the UI can query it on mount or refresh, delete the mirror instead of maintaining another store, notification path, and invalidation story in React.
+
 Move it to component state if it is:
 
 - Form input text, local validation errors, banners, or submit progress
@@ -57,6 +61,8 @@ Move it to component state if it is:
 - Reset on every screen entry and not meaningful elsewhere
 
 Notification-fed UI does not automatically make state global. If a notification only updates a transient banner or screen-local status, keep the trigger where it already lands but move the rendered UI state into the owning screen unless multiple unrelated entry points truly need to read it.
+
+Notification-fed data does not automatically justify a store-backed cache either. If mounted UI can subscribe with `useEngineActionListener(...)` and cheaply reload on mount, prefer that over keeping a small Zustand cache warm in the background.
 
 Prefer the typed engine listener layer over store plumbing when:
 
@@ -106,6 +112,13 @@ Prefer reloading in components instead of keeping a store cache when:
 - The cache only saves a small RPC but forces unrelated screens to coordinate through global state
 - The notification path only exists to keep that convenience cache warm
 - You do not have a concrete reason that the cache must survive navigation or serve multiple unrelated entry points
+
+Prefer a shared feature hook instead of a store when:
+
+- Several screens in one feature need the same cheap service-backed metadata
+- The data does not need to survive while every consumer is unmounted
+- Mounted consumers can listen for updates with `useEngineActionListener(...)`
+- The alternative store would mainly exist as a convenience cache
 
 Prefer direct store imports instead of `shared/constants/init/shared.tsx` callback plumbing when:
 

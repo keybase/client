@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useRequestLogout} from './use-request-logout'
-import {usePWState} from '@/stores/settings-password'
+import {useRandomPWState} from './use-random-pw'
 
 type Props = {
   error: string
@@ -209,7 +209,7 @@ export const useSubmitNewPassword = (thenLogout: boolean) => {
 }
 
 const Container = () => {
-  const randomPW = usePWState(s => s.randomPW)
+  const {randomPW} = useRandomPWState()
   const saveLabel = randomPW ? 'Create password' : 'Save'
   const {error, onSave, waitingForResponse} = useSubmitNewPassword(false)
 

@@ -9,11 +9,11 @@ import {loadSettings} from '../load-settings'
 import {useNavigation, type NavigationProp} from '@react-navigation/native'
 import {useIsFocused} from '@react-navigation/core'
 import {useConfigState} from '@/stores/config'
-import {usePWState} from '@/stores/settings-password'
 import {makePhoneError, useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {type settingsAccountTab, settingsPasswordTab} from '@/constants/settings'
 import type {SettingsAccountRouteParams} from '../routes'
+import {useRandomPWState} from '../use-random-pw'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
@@ -83,12 +83,12 @@ const EmailPhone = ({onEmailVerificationSuccess}: {onEmailVerificationSuccess: (
   )
 }
 
-const Password = () => {
+const Password = ({randomPW}: {randomPW?: boolean}) => {
   const navigateAppend = C.Router2.navigateAppend
   const onSetPassword = () => {
     navigateAppend({name: settingsPasswordTab, params: {}})
   }
-  const hasPassword = usePWState(s => !s.randomPW)
+  const hasPassword = !randomPW
   let passwordLabel: string
   if (hasPassword) {
     passwordLabel = Kb.Styles.isMobile ? 'Change' : 'Change password'
@@ -189,11 +189,7 @@ const AccountSettings = ({route}: Props) => {
   const deletePhoneNumber = C.useRPC(T.RPCGen.phoneNumbersDeletePhoneNumberRpcPromise)
   const [addedEmail, setAddedEmail] = React.useState(addedEmailFromRoute ?? '')
   const [addedPhone, setAddedPhone] = React.useState(addedPhoneFromRoute)
-  const {loadHasRandomPw} = usePWState(
-    C.useShallow(s => ({
-      loadHasRandomPw: s.dispatch.loadHasRandomPw,
-    }))
-  )
+  const {randomPW, reload: reloadRandomPW} = useRandomPWState()
   const {navigateAppend, switchTab} = C.Router2
   const _onClearSupersededPhoneNumber = (phone: string) => {
     deletePhoneNumber(
@@ -239,7 +235,7 @@ const AccountSettings = ({route}: Props) => {
   const onClearAddedPhone = () => setAddedPhone(false)
   const onReload = () => {
     loadSettings()
-    loadHasRandomPw()
+    reloadRandomPW()
   }
   const onStartPhoneConversation = () => {
     switchTab(C.Tabs.chatTab)
@@ -294,7 +290,7 @@ const AccountSettings = ({route}: Props) => {
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
           <EmailPhone onEmailVerificationSuccess={setAddedEmail} />
           <Kb.Divider />
-          <Password />
+          <Password randomPW={randomPW} />
           <Kb.Divider />
           <WebAuthTokenLogin />
           <Kb.Divider />

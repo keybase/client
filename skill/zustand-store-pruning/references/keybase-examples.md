@@ -56,14 +56,12 @@ Likely local:
 - `hasPGPKeyOnServer`
 - `rememberPassword` if only the password screen uses it
 
-Maybe keep if used elsewhere or notification-backed:
-
-- `randomPW`
-
 Good target shape:
 
-- Run load and submit RPCs from the screen with `C.useRPC`
-- Keep only truly shared password metadata if another part of the app consumes it
+- Delete the dedicated store if `randomPW` is only a convenience cache for cheap local-service data
+- Run the initial passphrase-state load from the owning settings UI or a shared settings-local hook
+- Use `useEngineActionListener('keybase.1.NotifyUsers.passwordChanged', ...)` for mounted updates instead of `init/shared.tsx` -> store plumbing
+- Do not keep a frontend cache only to avoid repeated `userLoadPassphraseState` calls
 
 ### `shared/stores/people.tsx`
 

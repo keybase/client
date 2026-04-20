@@ -7,9 +7,9 @@ import {newRoutes as walletsRoutes} from '../wallets/routes'
 import * as Settings from '@/constants/settings'
 import {defineRouteMap} from '@/constants/types/router'
 import {usePushState} from '@/stores/push'
-import {usePWState} from '@/stores/settings-password'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import type {Props as FeedbackRouteParams} from './feedback/container'
+import {useRandomPWState} from './use-random-pw'
 
 export type SettingsAccountRouteParams = {
   addedEmailBannerEmail?: string
@@ -34,7 +34,8 @@ const PushPromptSkipButton = () => {
 }
 
 const PasswordHeaderTitle = () => {
-  const hasRandomPW = usePWState(s => !!s.randomPW)
+  const {randomPW} = useRandomPWState()
+  const hasRandomPW = !!randomPW
   return <Kb.Text type="BodyBig">{hasRandomPW ? 'Set a password' : 'Change password'}</Kb.Text>
 }
 
