@@ -12,12 +12,17 @@ import {useTrackerState} from '@/stores/tracker'
 import {navToProfile} from '@/constants/router'
 import {copyToClipboard} from '@/util/storeless-actions'
 
-type OwnProps = {
-  isSuggestion?: boolean
-  suggestion?: T.Tracker.Assertion
-  username: string
-  assertionKey: string
-}
+type OwnProps =
+  | {
+      isSuggestion: true
+      suggestion: T.Tracker.Assertion
+      username: string
+    }
+  | {
+      isSuggestion?: false
+      username: string
+      assertionKey: string
+    }
 
 const notAUserAssertion = {
   assertionKey: '',
@@ -47,7 +52,7 @@ const Container = (ownProps: OwnProps) => {
       let stellarHidden = false
       let notAUser = false as boolean
       if (ownProps.isSuggestion) {
-        val = ownProps.suggestion || Tracker.noAssertion
+        val = ownProps.suggestion
       } else {
         const d = s.getDetails(ownProps.username)
         if (isYours && d.stellarHidden) {
@@ -122,7 +127,7 @@ const Container = (ownProps: OwnProps) => {
 
   const onShowProof = notAUser || !proofURL ? undefined : openProof
   const onShowSite = notAUser || !siteURL ? undefined : openSite
-  const isSuggestion = !!ownProps.isSuggestion
+  const isSuggestion = ownProps.isSuggestion === true
 
   const {header, items} = (() => {
     if (!isYours || isSuggestion) {

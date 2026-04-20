@@ -25,6 +25,9 @@ const rpcRowColorToColor = (color: T.RPCGen.Identify3RowColor): T.Tracker.Assert
       return 'yellow'
     case T.RPCGen.Identify3RowColor.orange:
       return 'orange'
+    default:
+      logger.warn(`Unexpected proof suggestion color: ${color}`)
+      return 'gray'
   }
 }
 

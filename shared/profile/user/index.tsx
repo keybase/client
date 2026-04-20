@@ -143,7 +143,6 @@ const Proofs = (p: BioTeamProofsProps) => {
           isSuggestion={true}
           key={s.assertionKey}
           username={p.username}
-          assertionKey={s.assertionKey}
           suggestion={s}
         />
       )),
