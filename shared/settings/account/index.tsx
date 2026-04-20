@@ -1,10 +1,12 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import * as T from '@/constants/types'
-import type * as React from 'react'
 import EmailPhoneRow from './email-phone-row'
 import {openURL} from '@/util/misc'
 import {loadSettings} from '../load-settings'
+import {useNavigation} from '@react-navigation/native'
+import {useIsFocused} from '@react-navigation/core'
 import {usePWState} from '@/stores/settings-password'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
@@ -32,7 +34,7 @@ const AddButton = (props: AddButtonProps) => (
   />
 )
 
-const EmailPhone = () => {
+const EmailPhone = ({onEmailVerificationSuccess}: {onEmailVerificationSuccess: (email: string) => void}) => {
   const navigateAppend = C.Router2.navigateAppend
   const _emails = useSettingsEmailState(s => s.emails)
   const _phones = useSettingsPhoneState(s => s.phones)
@@ -70,7 +72,11 @@ const EmailPhone = () => {
       {!!contactKeys.length && (
         <Kb.Box2 direction="vertical" style={styles.contactRows} fullWidth={true}>
           {contactKeys.map(ck => (
-            <EmailPhoneRow contactKey={ck} key={ck} />
+            <EmailPhoneRow
+              contactKey={ck}
+              key={ck}
+              onEmailVerificationSuccess={onEmailVerificationSuccess}
+            />
           ))}
         </Kb.Box2>
       )}
@@ -169,13 +175,14 @@ const DeleteAccount = () => {
   )
 }
 
-const AccountSettings = () => {
-  const {addedEmail, resetAddedEmail} = useSettingsEmailState(
-    C.useShallow(s => ({
-      addedEmail: s.addedEmail,
-      resetAddedEmail: s.dispatch.resetAddedEmail,
-    }))
-  )
+type Props = {route: {params?: {addedEmailBannerEmail?: string}}}
+
+const AccountSettings = ({route}: Props) => {
+  const addedEmailFromRoute = route.params?.addedEmailBannerEmail
+  const navigation = useNavigation()
+  const isFocused = useIsFocused()
+  const emails = useSettingsEmailState(s => s.emails)
+  const [addedEmail, setAddedEmail] = React.useState(addedEmailFromRoute ?? '')
   const {
     _phones,
     addedPhone,
@@ -198,7 +205,29 @@ const AccountSettings = () => {
   const _onClearSupersededPhoneNumber = (phone: string) => {
     editPhone(phone, true)
   }
-  const onClearAddedEmail = resetAddedEmail
+  React.useEffect(() => {
+    if (!addedEmailFromRoute) {
+      return
+    }
+    setAddedEmail(addedEmailFromRoute)
+    navigation.setParams({addedEmailBannerEmail: undefined})
+  }, [addedEmailFromRoute, navigation])
+  React.useEffect(() => {
+    if (isFocused) {
+      return
+    }
+    setAddedEmail('')
+  }, [isFocused])
+  React.useEffect(() => {
+    if (!addedEmail) {
+      return
+    }
+    const addedEmailRow = emails.get(addedEmail)
+    if (!addedEmailRow || addedEmailRow.isVerified) {
+      setAddedEmail('')
+    }
+  }, [addedEmail, emails])
+  const onClearAddedEmail = () => setAddedEmail('')
   const onClearAddedPhone = clearAddedPhone
   const onReload = () => {
     loadSettings()
@@ -255,7 +284,7 @@ const AccountSettings = () => {
           </Kb.Banner>
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-          <EmailPhone />
+          <EmailPhone onEmailVerificationSuccess={setAddedEmail} />
           <Kb.Divider />
           <Password />
           <Kb.Divider />

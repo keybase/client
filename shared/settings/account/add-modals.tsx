@@ -9,6 +9,7 @@ import {useAddPhoneNumber, usePhoneVerification} from '@/signup/phone-number/use
 import {useAddEmail} from './use-add-email'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
+import {settingsAccountTab} from '@/constants/settings'
 
 export const Email = () => {
   const nav = useSafeNavigation()
@@ -22,6 +23,7 @@ export const Email = () => {
   const {clearError, error: emailError, submitEmail, waiting} = useAddEmail()
 
   const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
 
   // clean on edit
   React.useEffect(() => {
@@ -36,8 +38,12 @@ export const Email = () => {
       return
     }
     setSubmittedEmail(emailTrimmed)
-    submitEmail(emailTrimmed, searchable, () => {
+    submitEmail(emailTrimmed, searchable, addedEmail => {
       clearModals()
+      // Wait for the modal reset so replace=true updates the account route instead of duplicating it.
+      setTimeout(() => {
+        navigateAppend({name: settingsAccountTab, params: {addedEmailBannerEmail: addedEmail}}, true)
+      }, 0)
     })
   }
   return (

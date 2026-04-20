@@ -389,17 +389,6 @@ export const initSharedSubscriptions = () => {
         useTeamsState.getState().dispatch.clearNavBadges()
       }
 
-      // Clear "check your inbox" in settings when you leave the settings tab
-      if (
-        prev &&
-        Util.getTab(prev) === Tabs.settingsTab &&
-        next &&
-        Util.getTab(next) !== Tabs.settingsTab &&
-        useSettingsEmailState.getState().addedEmail
-      ) {
-        useSettingsEmailState.getState().dispatch.resetAddedEmail()
-      }
-
       onConvoRouteChanged(prev, next)
     })
   )

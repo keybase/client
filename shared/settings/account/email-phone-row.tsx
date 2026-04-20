@@ -20,8 +20,8 @@ const Badge = (p: {backgroundColor: string; menuItem?: boolean}) => (
   />
 )
 
-const EmailPhoneRow = (p: {contactKey: string}) => {
-  const props = useData(p.contactKey)
+const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (email: string) => void}) => {
+  const props = useData(p.contactKey, p.onEmailVerificationSuccess)
   const {address, onDelete, onMakePrimary, onToggleSearchable, onVerify, moreThanOneEmail} = props
   const {primary, searchable, superseded, type, verified, lastVerifyEmailDate} = props
 
@@ -196,7 +196,7 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const useData = (contactKey: string) => {
+const useData = (contactKey: string, onEmailVerificationSuccess: (email: string) => void) => {
   const _emailRow = useSettingsEmailState(s => s.emails.get(contactKey) ?? null)
   const _phoneRow = useSettingsPhoneState(s => s.phones?.get(contactKey) || null)
   const moreThanOneEmail = useSettingsEmailState(s => s.emails.size > 1)
@@ -222,7 +222,7 @@ const useData = (contactKey: string) => {
         editEmail({email: contactKey, makePrimary: true})
       },
       onVerify: () => {
-        editEmail({email: contactKey, verify: true})
+        editEmail({email: contactKey, onSuccess: () => onEmailVerificationSuccess(contactKey), verify: true})
       },
     },
     phone: {

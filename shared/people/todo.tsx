@@ -116,7 +116,7 @@ const SettingsAccountTask = ({
   const {navigateAppend, switchTab} = useRouterNavigation()
   const onConfirm = () => {
     switchTab(C.Tabs.settingsTab)
-    navigateAppend(settingsAccountTab)
+    navigateAppend({name: settingsAccountTab, params: {}})
     destination && navigateAppend(destination)
   }
   return <BasicTask {...props} dismissTodoType={dismissTodoType} onConfirm={onConfirm} />
@@ -214,13 +214,12 @@ const GitRepoTask = (props: TodoOwnProps) => {
 const VerifyAllEmailTask = (props: TodoOwnProps) => {
   const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = (email: string) => {
-    editEmail({email, verify: true})
-    props.setResentEmail(email)
+    editEmail({email, onSuccess: () => props.setResentEmail(email), verify: true})
   }
   const {navigateAppend, switchTab} = useRouterNavigation()
   const onManage = () => {
     switchTab(C.Tabs.settingsTab)
-    navigateAppend(settingsAccountTab)
+    navigateAppend({name: settingsAccountTab, params: {}})
   }
 
   const meta = props.metadata?.type === 'email' ? props.metadata : undefined
@@ -255,7 +254,7 @@ const VerifyAllPhoneNumberTask = (props: TodoOwnProps) => {
   }
   const onManage = () => {
     switchTab(C.Tabs.settingsTab)
-    navigateAppend(settingsAccountTab)
+    navigateAppend({name: settingsAccountTab, params: {}})
   }
   const buttons: Array<TaskButton> = [
     ...(props.metadata
@@ -284,7 +283,7 @@ const LegacyEmailVisibilityTask = (props: TodoOwnProps) => {
   const {navigateAppend, switchTab} = useRouterNavigation()
   const onConfirm = (email: string) => {
     switchTab(C.Tabs.settingsTab)
-    navigateAppend(settingsAccountTab)
+    navigateAppend({name: settingsAccountTab, params: {}})
     editEmail({email, makeSearchable: true})
   }
   const onDismiss = useOnSkipTodo(props.skipTodo, 'legacyEmailVisibility')

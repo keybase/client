@@ -23,15 +23,4 @@ test('email change notifications populate the email map and verification updates
   useSettingsEmailState.getState().dispatch.notifyEmailVerified('alice@example.com')
 
   expect(useSettingsEmailState.getState().emails.get('alice@example.com')?.isVerified).toBe(true)
-  expect(useSettingsEmailState.getState().addedEmail).toBe('')
-})
-
-test('setAddedEmail stages the banner state until reset', () => {
-  useSettingsEmailState.getState().dispatch.setAddedEmail('alice@example.com')
-
-  expect(useSettingsEmailState.getState().addedEmail).toBe('alice@example.com')
-
-  useSettingsEmailState.getState().dispatch.resetAddedEmail()
-
-  expect(useSettingsEmailState.getState().addedEmail).toBe('')
 })
