@@ -88,7 +88,7 @@ export const useProofSuggestions = (enabled = true) => {
     }
 
     ignorePromise(load())
-  }, [enabled, uid])
+  }, [enabled])
 
   React.useEffect(() => {
     reload()

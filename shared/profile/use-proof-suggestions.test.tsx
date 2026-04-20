@@ -21,6 +21,13 @@ const makeSuggestion = (key: string, belowFold = false): T.RPCGen.ProofSuggestio
     profileText: `${key}-user`,
   }) as never
 
+const makeResponse = (
+  suggestions: Array<T.RPCGen.ProofSuggestion>
+): T.RPCGen.ProofSuggestionsRes => ({
+  showMore: false,
+  suggestions,
+})
+
 afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
@@ -37,8 +44,8 @@ test('loads suggestions on mount and reloads only for the current user', async (
 
   const loadSuggestions = jest
     .spyOn(T.RPCGen, 'userProofSuggestionsRpcPromise')
-    .mockResolvedValueOnce({suggestions: [makeSuggestion('github')]})
-    .mockResolvedValueOnce({suggestions: [makeSuggestion('twitter', true)]})
+    .mockResolvedValueOnce(makeResponse([makeSuggestion('github')]))
+    .mockResolvedValueOnce(makeResponse([makeSuggestion('twitter', true)]))
 
   const {result} = renderHook(() => useProofSuggestions())
 
@@ -73,7 +80,7 @@ test('newer reloads beat stale proof suggestion results', async () => {
     username: 'alice',
   })
 
-  const pending: Array<(value: {suggestions: Array<T.RPCGen.ProofSuggestion>}) => void> = []
+  const pending: Array<(value: T.RPCGen.ProofSuggestionsRes) => void> = []
   const loadSuggestions = jest.spyOn(T.RPCGen, 'userProofSuggestionsRpcPromise').mockImplementation(
     async () =>
       new Promise(resolve => {
@@ -95,8 +102,8 @@ test('newer reloads beat stale proof suggestion results', async () => {
   await waitFor(() => expect(loadSuggestions).toHaveBeenCalledTimes(2))
 
   act(() => {
-    pending[0]?.({suggestions: [makeSuggestion('github')]})
-    pending[1]?.({suggestions: [makeSuggestion('reddit')]})
+    pending[0]?.(makeResponse([makeSuggestion('github')]))
+    pending[1]?.(makeResponse([makeSuggestion('reddit')]))
   })
 
   await waitFor(() => expect(result.current.proofSuggestions[0]?.assertionKey).toBe('reddit'))
