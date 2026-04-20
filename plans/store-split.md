@@ -6,7 +6,11 @@ Optimize for store reduction, not store proliferation. Avoid splitting `modal-he
 
 For this repo, assume most RPCs hit a local service and are cheap. Default toward reloading in the owning component instead of keeping a convenience cache unless the data truly needs to survive navigation or serve unrelated entry points.
 
+Bias toward less frontend bookkeeping. If the Go service already owns a piece of data and the UI can cheaply query it on mount or refresh, prefer doing that over mirroring it in Zustand. A store that exists only to cache service-layer data and avoid a few additional local RPCs is not justified here.
+
 Cross-cutting rule: when an engine action is only a screen-local refresh or prompt nudge, prefer the typed engine listener layer over a one-field store or an `init/shared.tsx` forwarding shim.
+
+Cross-cutting rule: do not replace a removed Zustand store with module-local mutable state. No feature-local cache singletons, in-flight dedupe registries, or other hidden module-scope coordination objects that recreate store behavior in disguise. If multiple mounted descendants in one route need the same loaded value, prefer a route-owned screen component or feature-local provider.
 
 Recommended implementation order:
 
@@ -14,9 +18,9 @@ Recommended implementation order:
 - [x] `settings-phone`
 - [x] `people`
 - [x] `recover-password`
-- [ ] `settings-password`
+- [x] `settings-password`
 - [ ] `tracker`
-- [ ] `team-building`
+- [x] `team-building`
 - [ ] `modal-header` only for param/local-state extraction, not store splitting
 
 ## Key Changes
@@ -135,7 +139,7 @@ Public/API impact:
 - Reduce `useModalHeaderState.setState(...)` writes opportunistically.
 - Do not introduce new tiny stores as replacements.
 
-### 6. Re-evaluate `settings-password` as a merge candidate only if there is a real home
+### 6. Delete `settings-password` instead of keeping a convenience cache
 
 Current shape:
 
@@ -144,13 +148,25 @@ Current shape:
 
 Planned change:
 
-- Do not localize this to one screen.
-- Merge it only if there is an obviously correct account/session store with the same lifecycle.
-- Otherwise leave it as an intentionally retained tiny notification-backed cache.
+- Delete `shared/stores/settings-password.tsx`; do not keep a dedicated store just to cache `randomPW`.
+- Move the initial load into the owning settings UI via a shared settings-local hook or equivalent feature code.
+- Use the typed engine listener layer for mounted updates only, and rely on load-on-mount or explicit refresh instead of keeping a warmed global cache.
+- Do not retain frontend bookkeeping only to avoid repeated `userLoadPassphraseState` calls to the local service.
+- Do not use a module-local cache or singleton dedupe layer for `randomPW`.
+- For the password modal specifically, prefer a single route owner for the loaded value:
+  - let the password screen own the `randomPW` load and set its own header title/options
+  - if several mounted descendants in the same route need the value, share it through a feature-local provider rather than module scope
+
+Result:
+
+- Deleted `shared/stores/settings-password.tsx`.
+- Replaced it with settings-local mounted logic that queries the service and listens for `NotifyUsers.passwordChanged` via the typed engine listener layer.
 
 Public/API impact:
 
-- None unless a clear merge target emerges.
+- Remove `usePWState`.
+- Remove `init/shared.tsx` wiring that only forwards `NotifyUsers.passwordChanged` into that store.
+- Update settings consumers to own their own load/unknown state.
 
 ### 7. Split `tracker` by behavior only where it reduces real store coupling
 
@@ -189,6 +205,11 @@ Planned change:
   - `selectedRole`
   - `sendNotification`
   - shared session search results/recommendations if multiple subtrees still need them
+
+Result:
+
+- Removed duplicated provider state for `selectedService`, `searchQuery`, and `searchLimit`.
+- Kept the provider for shared builder session state and shared search results.
 
 Public/API impact:
 
@@ -231,6 +252,7 @@ Critical scenarios:
 ## Assumptions And Defaults
 
 - Prefer route params or local feature state over creating new one-field stores.
+- Never use module-local mutable caches/singletons as a substitute for a removed store.
 - Prefer the typed engine listener layer over store plumbing when an engine event only nudges mounted feature UI and can be safely missed while unmounted.
 - Keep notification-backed shared caches unless they are clearly just convenience state for one screen.
 - `modal-header` is not a restructuring target beyond extracting route-owned or screen-owned values.

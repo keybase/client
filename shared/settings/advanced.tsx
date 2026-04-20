@@ -4,7 +4,6 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import {ProxySettings} from './proxy'
 import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/settings'
-import {usePWState} from '@/stores/settings-password'
 import {useFSState} from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
@@ -12,6 +11,7 @@ import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {pprofDir} from '@/constants/platform'
 import {clearLocalLogs} from '@/util/misc'
 import {useWaitingState} from '@/stores/waiting'
+import {useRandomPWState} from './use-random-pw'
 
 let initialUseNativeFrame: boolean | undefined
 
@@ -103,16 +103,17 @@ const UseNativeFrame = () => {
 
 const LockdownCheckbox = (p: {
   hasRandomPW: boolean
+  loaded: boolean
   lockdownModeEnabled?: boolean
   setLockdownMode: (enabled: boolean) => void
   settingLockdownMode: boolean
 }) => {
-  const {hasRandomPW, lockdownModeEnabled, setLockdownMode, settingLockdownMode} = p
+  const {hasRandomPW, loaded, lockdownModeEnabled, setLockdownMode, settingLockdownMode} = p
   const onChangeLockdownMode = setLockdownMode
   const readMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/lockdown/index')
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
   const checked = hasRandomPW || !!lockdownModeEnabled
-  const disabled = hasRandomPW || settingLockdownMode
+  const disabled = !loaded || hasRandomPW || settingLockdownMode
   return (
     <Kb.Checkbox
       checked={checked}
@@ -144,12 +145,8 @@ let disableSpellCheckInitialValue: boolean | undefined
 
 const Advanced = () => {
   const settingLockdownMode = C.Waiting.useAnyWaiting(C.waitingKeySettingsSetLockdownMode)
-  const {hasRandomPW, loadHasRandomPw} = usePWState(
-    C.useShallow(s => ({
-      hasRandomPW: !!s.randomPW,
-      loadHasRandomPw: s.dispatch.loadHasRandomPw,
-    }))
-  )
+  const {loaded: randomPWLoaded, randomPW} = useRandomPWState()
+  const hasRandomPW = !!randomPW
   const {onSetOpenAtLogin, openAtLogin} = useShellState(
     C.useShallow(s => ({
       onSetOpenAtLogin: s.dispatch.setOpenAtLogin,
@@ -233,9 +230,8 @@ const Advanced = () => {
   }
 
   React.useEffect(() => {
-    loadHasRandomPw()
     loadLockdownMode()
-  }, [loadHasRandomPw, loadLockdownMode])
+  }, [loadLockdownMode])
 
   return (
     <Kb.KeyboardAvoidingView2>
@@ -245,6 +241,7 @@ const Advanced = () => {
             {settingLockdownMode && <Kb.ProgressIndicator />}
             <LockdownCheckbox
               hasRandomPW={hasRandomPW}
+              loaded={randomPWLoaded}
               lockdownModeEnabled={lockdownModeEnabled}
               setLockdownMode={setLockdownMode}
               settingLockdownMode={settingLockdownMode}
@@ -254,7 +251,7 @@ const Advanced = () => {
                 {setLockdownModeError}
               </Kb.Text>
             )}
-            {!hasRandomPW && (
+            {randomPWLoaded && !hasRandomPW && (
               <Kb.Checkbox
                 checked={!!rememberPassword}
                 disabled={rememberPassword === undefined}

@@ -21,9 +21,6 @@ type Store = T.Immutable<{
   error: string
   teamSoFar: Set<T.TB.User>
   searchResults: T.TB.SearchResults
-  searchQuery: T.TB.Query
-  selectedService: T.TB.ServiceIdWithContact
-  searchLimit: number
   userRecs?: Array<T.TB.User>
   selectedRole: T.Teams.TeamRoleType
   sendNotification: boolean
@@ -31,11 +28,8 @@ type Store = T.Immutable<{
 export const initialStore: Store = {
   error: '',
   namespace: 'invalid',
-  searchLimit: 11,
-  searchQuery: '',
   searchResults: new Map(),
   selectedRole: 'writer',
-  selectedService: 'keybase',
   sendNotification: true,
   teamSoFar: new Set(),
 }
@@ -351,13 +345,10 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       }))
     },
     search: (query, service, includeContacts, limit) => {
-      set(s => {
-        s.searchLimit = limit ?? 11
-        s.searchQuery = query.trim()
-        s.selectedService = service
-      })
+      const searchQuery = query.trim()
+      const selectedService = service
+      const searchLimit = limit ?? 11
       const f = async () => {
-        const {searchQuery, selectedService, searchLimit} = get()
         // We can only ask the api for at most 100 results
         if (searchLimit > 100) {
           logger.info('ignoring search request with a limit over 100')

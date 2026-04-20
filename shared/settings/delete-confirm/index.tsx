@@ -3,8 +3,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useDeleteAccount} from '../use-delete-account'
-import {usePWState} from '@/stores/settings-password'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useRandomPWState} from '../use-random-pw'
 
 type CheckboxesProps = {
   checkData: boolean
@@ -36,7 +36,8 @@ const Checkboxes = (props: CheckboxesProps) => (
 )
 
 const DeleteConfirm = () => {
-  const hasPassword = usePWState(s => !s.randomPW)
+  const {randomPW, reload} = useRandomPWState()
+  const needsMobilePassphraseCheck = Kb.Styles.isMobile && randomPW !== true
   const deleteAccountForever = useDeleteAccount()
   const username = useCurrentUserState(s => s.username)
   const [checkData, setCheckData] = React.useState(false)
@@ -50,7 +51,7 @@ const DeleteConfirm = () => {
       // dont do this in a preflight test
       return
     }
-    if (Kb.Styles.isMobile && hasPassword) {
+    if (needsMobilePassphraseCheck) {
       navigateAppend({name: 'checkPassphraseBeforeDeleteAccount', params: {}})
     } else {
       deleteAccountForever()
@@ -61,14 +62,26 @@ const DeleteConfirm = () => {
     <Kb.ConfirmModal
       confirmText="Yes, permanently delete it"
       content={
-        <Checkboxes
-          checkData={checkData}
-          checkTeams={checkTeams}
-          checkUsername={checkUsername}
-          onCheckData={setCheckData}
-          onCheckTeams={setCheckTeams}
-          onCheckUsername={setCheckUsername}
-        />
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          {randomPW === undefined ? (
+            <Kb.Box2 direction="vertical" gap="xtiny" style={styles.randomPWStatus} fullWidth={true}>
+              <Kb.Text type="BodySmall">
+                Still checking whether this account has a password. You can continue, or retry the check.
+              </Kb.Text>
+              <Kb.Text type="BodySmallPrimaryLink" onClick={reload}>
+                Retry password check
+              </Kb.Text>
+            </Kb.Box2>
+          ) : null}
+          <Checkboxes
+            checkData={checkData}
+            checkTeams={checkTeams}
+            checkUsername={checkUsername}
+            onCheckData={setCheckData}
+            onCheckTeams={setCheckTeams}
+            onCheckUsername={setCheckUsername}
+          />
+        </Kb.Box2>
       }
       description="This cannot be undone. By deleting this account, you agree that:"
       header={
@@ -91,6 +104,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       padding: Kb.Styles.globalMargins.mediumLarge,
     },
   }),
+  randomPWStatus: {
+    padding: Kb.Styles.globalMargins.small,
+    paddingBottom: 0,
+  },
 }))
 
 export default DeleteConfirm

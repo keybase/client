@@ -7,7 +7,6 @@ import {newRoutes as walletsRoutes} from '../wallets/routes'
 import * as Settings from '@/constants/settings'
 import {defineRouteMap} from '@/constants/types/router'
 import {usePushState} from '@/stores/push'
-import {usePWState} from '@/stores/settings-password'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import type {Props as FeedbackRouteParams} from './feedback/container'
 
@@ -31,11 +30,6 @@ const PushPromptSkipButton = () => {
       </Kb.Text>
     </Kb.ClickableBox>
   )
-}
-
-const PasswordHeaderTitle = () => {
-  const hasRandomPW = usePWState(s => !!s.randomPW)
-  return <Kb.Text type="BodyBig">{hasRandomPW ? 'Set a password' : 'Change password'}</Kb.Text>
 }
 
 const CheckPassphraseCancelButton = () => {
@@ -161,7 +155,7 @@ const sharedNewModalRoutes = {
     getOptions: C.isMobile ? undefined : {title: 'Do you know your password?'},
   }),
   [Settings.settingsPasswordTab]: C.makeScreen(React.lazy(async () => import('./password')), {
-    getOptions: {headerTitle: () => <PasswordHeaderTitle />},
+    getOptions: {title: 'Password'},
   }),
   archiveModal: C.makeScreen(React.lazy(async () => import('./archive/modal')), {
     getOptions: {title: 'Backup'},

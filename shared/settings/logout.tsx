@@ -6,22 +6,15 @@ import * as Kb from '@/common-adapters'
 import {UpdatePassword, useSubmitNewPassword} from './password'
 import {useRequestLogout} from './use-request-logout'
 import {usePasswordCheck} from './use-password-check'
-import {usePWState} from '@/stores/settings-password'
+import {useRandomPWState} from './use-random-pw'
 
 const LogoutContainer = () => {
   const {checkPassword, checkPasswordIsCorrect, reset} = usePasswordCheck()
-  const {hasRandomPW, loadHasRandomPw} = usePWState(
-    C.useShallow(s => ({
-      hasRandomPW: s.randomPW,
-      loadHasRandomPw: s.dispatch.loadHasRandomPw,
-    }))
-  )
+  const {randomPW: hasRandomPW} = useRandomPWState()
   const {error, onSave, waitingForResponse} = useSubmitNewPassword(true)
   const [hasPGPKeyOnServer, setHasPGPKeyOnServer] = React.useState<boolean | undefined>(undefined)
   const loadPgpSettings = C.useRPC(T.RPCGen.accountHasServerKeysRpcPromise)
   const requestLogout = useRequestLogout()
-
-  const onBootstrap = loadHasRandomPw
   const onCheckPassword = checkPassword
 
   const _onLogout = () => {
@@ -34,10 +27,6 @@ const LogoutContainer = () => {
   const [loggingOut, setLoggingOut] = React.useState(false)
   const [password, setPassword] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(false)
-
-  React.useEffect(() => {
-    onBootstrap()
-  }, [onBootstrap])
 
   React.useEffect(
     () => () => {
