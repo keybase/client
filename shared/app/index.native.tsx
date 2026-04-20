@@ -1,6 +1,7 @@
 /// <reference types="webpack-env" />
 import * as C from '@/constants'
 import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Main from './main.native'
@@ -35,7 +36,7 @@ const useDarkHookup = () => {
   const initedRef = React.useRef(false)
   const appStateRef = React.useRef('active')
   const setSystemDarkMode = DarkMode.useDarkModeState(s => s.dispatch.setSystemDarkMode)
-  const setMobileAppState = useConfigState(s => s.dispatch.setMobileAppState)
+  const setMobileAppState = useShellState(s => s.dispatch.setMobileAppState)
   const setSystemSupported = DarkMode.useDarkModeState(s => s.dispatch.setSystemSupported)
   const setDarkModePreference = DarkMode.useDarkModeState(s => s.dispatch.setDarkModePreference)
 

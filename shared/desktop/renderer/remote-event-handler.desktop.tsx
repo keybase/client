@@ -13,7 +13,9 @@ import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
 import {useFSState} from '@/stores/fs'
 import {usePinentryState} from '@/stores/pinentry'
+import {useShellState} from '@/stores/shell'
 import {useTrackerState} from '@/stores/tracker'
+import {useUnlockFoldersState} from '@/unlock-folders/store'
 import logger from '@/logger'
 import {makeUUID} from '@/util/uuid'
 import {dumpLogs, showMain} from '@/util/storeless-actions'
@@ -130,13 +132,11 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
     case RemoteGen.unlockFoldersSubmitPaperKey: {
       T.RPCGen.loginPaperKeySubmitRpcPromise({paperPhrase: action.payload.paperKey}, 'unlock-folders:waiting')
         .then(() => {
-          useConfigState.getState().dispatch.openUnlockFolders([])
+          useUnlockFoldersState.getState().dispatch.close()
         })
         .catch((e: unknown) => {
           if (!(e instanceof RPCError)) return
-          useConfigState.setState(s => {
-            s.unlockFoldersError = e.desc
-          })
+          useUnlockFoldersState.getState().dispatch.setPaperKeyError(e.desc)
         })
       break
     }
@@ -144,7 +144,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       T.RPCGen.rekeyRekeyStatusFinishRpcPromise()
         .then(() => {})
         .catch(() => {})
-      useConfigState.getState().dispatch.openUnlockFolders([])
+      useUnlockFoldersState.getState().dispatch.close()
       break
     }
     case RemoteGen.stop: {
@@ -191,12 +191,10 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
         .dispatch.remoteWindowNeedsProps(action.payload.component, action.payload.param)
       break
     case RemoteGen.updateWindowMaxState:
-      useConfigState.setState(s => {
-        s.windowState.isMaximized = action.payload.max
-      })
+      useShellState.getState().dispatch.setWindowMaximized(action.payload.max)
       break
     case RemoteGen.updateWindowState:
-      useConfigState.getState().dispatch.updateWindowState(action.payload.windowState)
+      useShellState.getState().dispatch.updateWindowState(action.payload.windowState)
       break
     case RemoteGen.updateWindowShown: {
       const win = action.payload.component

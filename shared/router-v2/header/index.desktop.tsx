@@ -4,6 +4,7 @@ import * as Platform from '@/constants/platform'
 import SyncingFolders from './syncing-folders'
 import KB2 from '@/util/electron.desktop'
 import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import type {NativeStackHeaderProps} from '@react-navigation/native-stack'
 
@@ -324,9 +325,9 @@ type HeaderProps = Omit<Props, 'back' | 'loggedIn' | 'useNativeFrame' | 'isMaxim
 
 function DesktopHeaderWrapper(p: HeaderProps) {
   const {options: _options, back, style, params, navigation} = p
-  const useNativeFrame = useConfigState(s => s.useNativeFrame)
+  const useNativeFrame = useShellState(s => s.useNativeFrame)
   const loggedIn = useConfigState(s => s.loggedIn)
-  const isMaximized = useConfigState(s => s.windowState.isMaximized)
+  const isMaximized = useShellState(s => s.windowState.isMaximized)
   const {headerMode, title, headerTitle, headerRightActions, subHeader} = _options
   const {headerRight, headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} =
     _options

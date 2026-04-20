@@ -1,6 +1,6 @@
 import * as T from '../types'
 import {getVisibleScreen} from '@/constants/router'
-import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
 import {isSplit, threadRouteName} from './layout'
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
@@ -28,7 +28,7 @@ export const isUserActivelyLookingAtThisThread = (conversationIDKey: T.Chat.Conv
       (maybeVisibleScreen === undefined ? undefined : maybeVisibleScreen.name) === threadRouteName
   }
 
-  const {appFocused, active: userActive} = useConfigState.getState()
+  const {appFocused, active: userActive} = useShellState.getState()
 
   return (
     appFocused && // app focused?

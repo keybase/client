@@ -15,6 +15,7 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useLogoutState} from '@/stores/logout'
 import {usePushState} from '@/stores/push'
+import {useShellState} from '@/stores/shell'
 
 type DataCommon = {
   userInteraction: boolean
@@ -172,7 +173,7 @@ const getStartupDetailsFromInitialPush = async () => {
 
 export const initPushListener = () => {
   // Permissions
-  useConfigState.subscribe((s, old) => {
+  useShellState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     // Only recheck on foreground, not background
     if (s.mobileAppState !== 'active') {

@@ -1,17 +1,13 @@
 /// <reference types="jest" />
-import {defaultUseNativeFrame} from '../../constants/platform'
 import {noConversationIDKey} from '../../constants/types/chat/common'
 import {useConfigState} from '../config'
 
 const resetConfigState = () => {
   const {dispatch} = useConfigState.getState()
   useConfigState.setState({
-    appFocused: true,
     configuredAccounts: [],
     defaultUsername: '',
-    forceSmallNav: false,
     globalError: undefined,
-    mobileAppState: 'unknown',
     outOfDate: {
       critical: false,
       message: '',
@@ -25,7 +21,6 @@ const resetConfigState = () => {
       link: '',
       loaded: false,
     },
-    useNativeFrame: defaultUseNativeFrame,
     userSwitching: false,
   } as any)
   dispatch.resetState()
@@ -126,9 +121,7 @@ test('custom resetState preserves the fields config intentionally carries across
   dispatch.setAccounts([{hasStoredSecret: true, username: 'alice'}])
   dispatch.setDefaultUsername('alice')
   useConfigState.setState({
-    forceSmallNav: true,
     globalError: new Error('transient'),
-    mobileAppState: 'active',
     userSwitching: true,
   } as any)
 
@@ -137,8 +130,6 @@ test('custom resetState preserves the fields config intentionally carries across
   const state = useConfigState.getState()
   expect(state.configuredAccounts).toEqual([{hasStoredSecret: true, username: 'alice'}])
   expect(state.defaultUsername).toBe('alice')
-  expect(state.forceSmallNav).toBe(true)
-  expect(state.mobileAppState).toBe('active')
   expect(state.userSwitching).toBe(true)
   expect(state.globalError).toBeUndefined()
 })

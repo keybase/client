@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {useColorScheme} from 'react-native'
-import {useConfigState} from '@/stores/config'
 import type {ProxyProps} from './main2.desktop'
+import {useUnlockFoldersState} from './store'
 
 const windowOpts = {height: 300, width: 500}
 
@@ -23,8 +23,8 @@ function UnlockFolders(p: ProxyProps) {
 }
 
 const UnlockRemoteProxy = () => {
-  const devices = useConfigState(s => s.unlockFoldersDevices)
-  const paperKeyError = useConfigState(s => s.unlockFoldersError)
+  const devices = useUnlockFoldersState(s => s.devices)
+  const paperKeyError = useUnlockFoldersState(s => s.paperKeyError)
   const waiting = C.Waiting.useAnyWaiting('unlock-folders:waiting')
   const isDarkMode = useColorScheme() === 'dark'
   if (devices.length) {
