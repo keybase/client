@@ -51,6 +51,7 @@ import * as Strings from '@/constants/strings'
 import {chatStores, convoUIStores} from './convo-registry'
 
 import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {getUsernameToShow} from '@/chat/conversation/messages/separator-utils'
@@ -1500,7 +1501,7 @@ const createSlice =
       }
       const onClose = () => {}
       logger.info('invoking NotifyPopup for chat notification')
-      const sound = useConfigState.getState().notifySound
+      const sound = useShellState.getState().notifySound
 
       const cleanBody = body.replaceAll(/!>(.*?)<!/g, '•••')
 

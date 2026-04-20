@@ -7,6 +7,7 @@ import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/set
 import {usePWState} from '@/stores/settings-password'
 import {useFSState} from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {pprofDir} from '@/constants/platform'
 import {clearLocalLogs} from '@/util/misc'
@@ -73,7 +74,7 @@ const useLockdownMode = () => {
 }
 
 const UseNativeFrame = () => {
-  const {onChangeUseNativeFrame, useNativeFrame} = useConfigState(
+  const {onChangeUseNativeFrame, useNativeFrame} = useShellState(
     C.useShallow(s => ({
       onChangeUseNativeFrame: s.dispatch.setUseNativeFrame,
       useNativeFrame: s.useNativeFrame,
@@ -149,7 +150,7 @@ const Advanced = () => {
       loadHasRandomPw: s.dispatch.loadHasRandomPw,
     }))
   )
-  const {onSetOpenAtLogin, openAtLogin} = useConfigState(
+  const {onSetOpenAtLogin, openAtLogin} = useShellState(
     C.useShallow(s => ({
       onSetOpenAtLogin: s.dispatch.setOpenAtLogin,
       openAtLogin: s.openAtLogin,

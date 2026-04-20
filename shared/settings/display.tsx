@@ -3,12 +3,13 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
 import * as DarkMode from '@/stores/darkmode'
 
 const Display = () => {
   const allowAnimatedEmojis = useConfigState(s => s.allowAnimatedEmojis)
-  const forceSmallNav = useConfigState(s => s.forceSmallNav)
-  const setForceSmallNav = useConfigState(s => s.dispatch.setForceSmallNav)
+  const forceSmallNav = useShellState(s => s.forceSmallNav)
+  const setForceSmallNav = useShellState(s => s.dispatch.setForceSmallNav)
   const toggleForceSmallNav = () => {
     setForceSmallNav(!forceSmallNav)
   }

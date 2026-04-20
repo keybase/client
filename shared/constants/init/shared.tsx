@@ -44,6 +44,7 @@ import {useFSState} from '@/stores/fs'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {usePeopleState} from '@/stores/people'
 import {useProvisionState} from '@/stores/provision'
+import {useShellState} from '@/stores/shell'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
@@ -232,6 +233,11 @@ export const initSharedSubscriptions = () => {
         }
       }
 
+    })
+  )
+
+  _sharedUnsubs.push(
+    useShellState.subscribe((s, old) => {
       if (s.active !== old.active) {
         const cs = getConvoState(getSelectedConversation())
         cs.dispatch.markThreadAsRead()

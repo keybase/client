@@ -7,6 +7,7 @@ import Group from './group'
 import {loadSettings} from './load-settings'
 import useNotificationSettings from './notifications/use-notification-settings'
 import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
 
 const emptyList = new Array<string>()
 
@@ -434,7 +435,7 @@ const Links = () => {
 }
 
 const Sound = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
-  const {onToggleSound, sound} = useConfigState(
+  const {onToggleSound, sound} = useShellState(
     C.useShallow(s => ({
       onToggleSound: s.dispatch.setNotifySound,
       sound: s.notifySound,

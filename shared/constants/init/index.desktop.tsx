@@ -2,9 +2,9 @@
 import * as Chat from '@/stores/chat'
 import {ignorePromise} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
-import * as ConfigConstants from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useFSState} from '@/stores/fs'
+import {openAtLoginKey, useShellState} from '@/stores/shell'
 import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
 import InputMonitor from '@/util/platform-specific/input-monitor.desktop'
@@ -24,7 +24,7 @@ const {activeChanged, requestWindowsStartService} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin} = KB2.functions
 
 const maybePauseVideos = () => {
-  const {appFocused} = useConfigState.getState()
+  const {appFocused} = useShellState.getState()
   const videos = document.querySelectorAll('video')
   const allVideos = Array.from(videos)
 
@@ -142,16 +142,18 @@ export const initPlatformListener = () => {
   for (const unsub of _platformUnsubs) unsub()
   _platformUnsubs.length = 0
 
-  _platformUnsubs.push(useConfigState.subscribe((s, old) => {
+  _platformUnsubs.push(useShellState.subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
     useFSState.getState().dispatch.onChangedFocus(s.appFocused)
   }))
 
   _platformUnsubs.push(useConfigState.subscribe((s, old) => {
     if (s.loggedIn !== old.loggedIn) {
-      s.dispatch.osNetworkStatusChanged(navigator.onLine, 'notavailable', true)
+      useShellState.getState().dispatch.osNetworkStatusChanged(navigator.onLine, 'notavailable', true)
     }
+  }))
 
+  _platformUnsubs.push(useShellState.subscribe((s, old) => {
     if (s.appFocused !== old.appFocused) {
       maybePauseVideos()
     }
@@ -164,7 +166,7 @@ export const initPlatformListener = () => {
           return
         } else {
           await T.RPCGen.configGuiSetValueRpcPromise({
-            path: ConfigConstants.openAtLoginKey,
+            path: openAtLoginKey,
             value: {b: openAtLogin, isNull: false},
           })
         }
@@ -198,7 +200,7 @@ export const initPlatformListener = () => {
         if (skipAppFocusActions) {
           console.log('Skipping app focus actions!')
         } else {
-          useConfigState.getState().dispatch.changedFocus(appFocused)
+          useShellState.getState().dispatch.changedFocus(appFocused)
         }
       }
       window.addEventListener('focus', () => handle(true))
@@ -208,16 +210,16 @@ export const initPlatformListener = () => {
 
     const setupReachabilityWatcher = () => {
       window.addEventListener('online', () =>
-        useConfigState.getState().dispatch.osNetworkStatusChanged(true, 'notavailable')
+        useShellState.getState().dispatch.osNetworkStatusChanged(true, 'notavailable')
       )
       window.addEventListener('offline', () =>
-        useConfigState.getState().dispatch.osNetworkStatusChanged(false, 'notavailable')
+        useShellState.getState().dispatch.osNetworkStatusChanged(false, 'notavailable')
       )
     }
     setupReachabilityWatcher()
 
     if (isLinux) {
-      useConfigState.getState().dispatch.initUseNativeFrame()
+      useShellState.getState().dispatch.initUseNativeFrame()
     }
 
     const initializeInputMonitor = () => {
@@ -226,7 +228,7 @@ export const initPlatformListener = () => {
         if (skipAppFocusActions) {
           console.log('Skipping app focus actions!')
         } else {
-          useConfigState.getState().dispatch.setActive(userActive)
+          useShellState.getState().dispatch.setActive(userActive)
           // let node thread save file
           activeChanged?.(Date.now(), userActive)
         }

@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
-import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
 import * as React from 'react'
 import Normal from '.'
 import * as T from '@/constants/types'
@@ -61,7 +61,7 @@ const useOrangeLine = () => {
 
   // just use the rpc for orange line if we're not active
   // if we are active we want to keep whatever state we had so it is maintained
-  const active = useConfigState(s => s.active)
+  const active = useShellState(s => s.active)
   React.useEffect(() => {
     if (!active) {
       loadOrangeLine()
@@ -69,7 +69,7 @@ const useOrangeLine = () => {
   }, [maxVisibleMsgID, active])
 
   // mobile backgrounded us
-  const mobileAppState = useConfigState(s => s.mobileAppState)
+  const mobileAppState = useShellState(s => s.mobileAppState)
   const lastMobileAppStateRef = React.useRef(mobileAppState)
   React.useEffect(() => {
     if (mobileAppState !== lastMobileAppStateRef.current) {

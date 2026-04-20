@@ -1,4 +1,3 @@
-import type * as NetInfo from '@react-native-community/netinfo'
 import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {waitingKeyConfigLogin, waitingKeyConfigLoginAsOther} from '@/constants/strings'
@@ -9,7 +8,7 @@ import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import type {Tab} from '@/constants/tabs'
 import {RPCError, convertToError, isErrorTransient, niceError} from '@/util/errors'
-import {defaultUseNativeFrame, isMobile} from '@/constants/platform'
+import {isMobile} from '@/constants/platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
 import {navigateAppend} from '@/constants/router'
@@ -17,19 +16,14 @@ import {
   onEngineConnected as onEngineConnectedInPlatform,
 } from '@/util/storeless-actions'
 
-export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
-
 type Store = T.Immutable<{
-  active: boolean
   allowAnimatedEmojis: boolean
   androidShare?:
     | {type: T.RPCGen.IncomingShareType.file; urls: Array<string>}
     | {type: T.RPCGen.IncomingShareType.text; text: string}
-  appFocused: boolean
   badgeState?: T.RPCGen.BadgeState
   configuredAccounts: Array<T.Config.ConfiguredAccount>
   defaultUsername: string
-  forceSmallNav: boolean
   globalError?: Error | RPCError
   gregorReachable?: T.RPCGen.Reachable
   gregorPushState: Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>
@@ -51,10 +45,6 @@ type Store = T.Immutable<{
     | 'connectedToDaemonForFirstTime'
     | 'reloggedIn'
     | 'startupOrReloginButNotInARush'
-  mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
-  networkStatus?: {online: boolean; type: ConnectionType; isInit?: boolean}
-  notifySound: boolean
-  openAtLogin: boolean
   outOfDate: T.Config.OutOfDate
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   revokedTrigger: number
@@ -66,30 +56,16 @@ type Store = T.Immutable<{
     link: string
     tab?: Tab
   }
-  useNativeFrame: boolean
   userSwitching: boolean
   windowShownCount: Map<string, number>
-  windowState: {
-    dockHidden: boolean
-    height: number
-    isFullScreen: boolean
-    isMaximized: boolean
-    width: number
-    windowHidden: boolean
-    x: number
-    y: number
-  }
 }>
 
 const initialStore: Store = {
-  active: true,
   allowAnimatedEmojis: true,
   androidShare: undefined,
-  appFocused: true,
   badgeState: undefined,
   configuredAccounts: [],
   defaultUsername: '',
-  forceSmallNav: false,
   globalError: undefined,
   gregorPushState: [],
   gregorReachable: undefined,
@@ -106,10 +82,6 @@ const initialStore: Store = {
   loggedIn: false,
   loggedInCausedbyStartup: false,
   loginError: undefined,
-  mobileAppState: 'unknown',
-  networkStatus: undefined,
-  notifySound: false,
-  openAtLogin: true,
   outOfDate: {
     critical: false,
     message: '',
@@ -124,30 +96,14 @@ const initialStore: Store = {
     link: '',
     loaded: false,
   },
-  useNativeFrame: defaultUseNativeFrame,
   userSwitching: false,
   windowShownCount: new Map(),
-  windowState: {
-    dockHidden: false,
-    height: 800,
-    isFullScreen: false,
-    isMaximized: false,
-    width: 600,
-    windowHidden: false,
-    x: 0,
-    y: 0,
-  },
 }
 
 export type State = Store & {
   dispatch: {
-    changedFocus: (f: boolean) => void
     checkForUpdate: () => void
     initAppUpdateLoop: () => void
-    initNotifySound: () => void
-    initForceSmallNav: () => void
-    initOpenAtLogin: () => void
-    initUseNativeFrame: () => void
     installerRan: () => void
     loadIsOnline: () => void
     loadOnStart: (phase: State['loadOnStartPhase']) => void
@@ -157,7 +113,6 @@ export type State = Store & {
     logoutAndTryToLogInAs: (username: string) => void
     onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
-    osNetworkStatusChanged: (online: boolean, type: ConnectionType, isInit?: boolean) => void
     powerMonitorEvent: (event: string) => void
     resetState: (isDebug?: boolean) => void
     remoteWindowNeedsProps: (component: string, params: string) => void
@@ -165,37 +120,25 @@ export type State = Store & {
     revoke: (deviceName: string, wasCurrentDevice: boolean) => void
     refreshAccounts: () => Promise<void>
     setAccounts: (a: Store['configuredAccounts']) => void
-    setActive: (a: boolean) => void
     setAndroidShare: (s: Store['androidShare']) => void
     setBadgeState: (b: State['badgeState']) => void
     setDefaultUsername: (u: string) => void
-    setForceSmallNav: (f: boolean) => void
     setGlobalError: (e?: unknown) => void
+    setGregorReachable: (r: Store['gregorReachable']) => void
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
     setLoggedIn: (l: boolean, causedByStartup: boolean, fromMenubar?: boolean) => void
-    setMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
-    setNotifySound: (n: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
-    setOpenAtLogin: (open: boolean) => void
     setOutOfDate: (outOfDate: T.Config.OutOfDate) => void
     setUpdating: () => void
-    setUseNativeFrame: (use: boolean) => void
     setUserSwitching: (sw: boolean) => void
     toggleRuntimeStats: () => void
     updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
-    updateWindowState: (ws: Omit<Store['windowState'], 'isMaximized'>) => void
   }
 }
 
-export const openAtLoginKey = 'openAtLogin'
 export const useConfigState = Z.createZustand<State>('config', (set, get) => {
-  const nativeFrameKey = 'useNativeFrame'
-  const notifySoundKey = 'notifySound'
-  const forceSmallNavKey = 'ui.forceSmallNav'
-  const windowStateKey = 'windowState'
-
   const _checkForUpdate = async () => {
     try {
       const {status, message} = await T.RPCGen.configGetUpdateInfoRpcPromise()
@@ -252,12 +195,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
-    changedFocus: f => {
-      if (get().appFocused === f) return
-      set(s => {
-        s.appFocused = f
-      })
-    },
     checkForUpdate: () => {
       const f = async () => {
         await _checkForUpdate()
@@ -272,58 +209,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           } catch {}
           await timeoutPromise(3_600_000) // 1 hr
         }
-      }
-      ignorePromise(f())
-    },
-    initForceSmallNav: () => {
-      const f = async () => {
-        try {
-          const val = await T.RPCGen.configGuiGetValueRpcPromise({path: forceSmallNavKey})
-          const forceSmallNav = val.b
-          if (typeof forceSmallNav === 'boolean') {
-            set(s => {
-              s.forceSmallNav = forceSmallNav
-            })
-          }
-        } catch {}
-      }
-      ignorePromise(f())
-    },
-    initNotifySound: () => {
-      const f = async () => {
-        try {
-          const val = await T.RPCGen.configGuiGetValueRpcPromise({path: notifySoundKey})
-          const notifySound = val.b
-          if (typeof notifySound === 'boolean') {
-            set(s => {
-              s.notifySound = notifySound
-            })
-          }
-        } catch {}
-      }
-      ignorePromise(f())
-    },
-    initOpenAtLogin: () => {
-      const f = async () => {
-        try {
-          const val = await T.RPCGen.configGuiGetValueRpcPromise({path: openAtLoginKey})
-          const openAtLogin = val.b
-          if (typeof openAtLogin === 'boolean') {
-            get().dispatch.setOpenAtLogin(openAtLogin)
-          }
-        } catch {}
-      }
-      ignorePromise(f())
-    },
-    initUseNativeFrame: () => {
-      const f = async () => {
-        try {
-          const val = await T.RPCGen.configGuiGetValueRpcPromise({path: nativeFrameKey})
-          const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
-          set(s => {
-            s.useNativeFrame = useNativeFrame
-          })
-        } catch {}
       }
       ignorePromise(f())
     },
@@ -451,7 +336,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       const startReachability = async () => {
         try {
           const reachability = await T.RPCGen.reachabilityStartReachabilityRpcPromise()
-          setGregorReachable(reachability.reachable)
+          get().dispatch.setGregorReachable(reachability.reachable)
         } catch (err) {
           logger.warn('error bootstrapping reachability: ', err)
         }
@@ -523,42 +408,11 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         }
         case 'keybase.1.reachability.reachabilityChanged':
           if (get().loggedIn) {
-            setGregorReachable(action.payload.params.reachability.reachable)
+            get().dispatch.setGregorReachable(action.payload.params.reachability.reachable)
           }
           break
         default:
       }
-    },
-    osNetworkStatusChanged: (online: boolean, type: ConnectionType, isInit?: boolean) => {
-      const old = get().networkStatus
-      if (old?.online === online && old.type === type && old.isInit === isInit) return
-      set(s => {
-        if (!s.networkStatus) {
-          s.networkStatus = {isInit, online, type}
-        } else {
-          s.networkStatus.isInit = isInit
-          s.networkStatus.online = online
-          s.networkStatus.type = type
-        }
-      })
-      const updateGregor = async () => {
-        const reachability = await T.RPCGen.reachabilityCheckReachabilityRpcPromise()
-        setGregorReachable(reachability.reachable)
-      }
-      ignorePromise(updateGregor())
-
-      const updateFS = async () => {
-        if (isInit) return
-        try {
-          await T.RPCGen.SimpleFSSimpleFSCheckReachabilityRpcPromise()
-        } catch (error) {
-          if (!(error instanceof RPCError)) {
-            return
-          }
-          logger.warn(`failed to check KBFS reachability: ${error.message}`)
-        }
-      }
-      ignorePromise(updateFS())
     },
     powerMonitorEvent: event => {
       const f = async () => {
@@ -606,14 +460,10 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       if (isDebug) return
       set(s => ({
         ...initialStore,
-        appFocused: s.appFocused,
         configuredAccounts: s.configuredAccounts,
         defaultUsername: s.defaultUsername,
         dispatch: s.dispatch,
-        forceSmallNav: s.forceSmallNav,
-        mobileAppState: s.mobileAppState,
         startup: {loaded: s.startup.loaded},
-        useNativeFrame: s.useNativeFrame,
         userSwitching: s.userSwitching,
       }))
     },
@@ -636,11 +486,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         }
       })
     },
-    setActive: a => {
-      set(s => {
-        s.active = a
-      })
-    },
     setAndroidShare: share => {
       set(s => {
         s.androidShare = T.castDraft(share)
@@ -656,21 +501,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       set(s => {
         s.defaultUsername = u
       })
-    },
-    setForceSmallNav: force => {
-      const f = async () => {
-        await T.RPCGen.configGuiSetValueRpcPromise({
-          path: forceSmallNavKey,
-          value: {
-            b: force,
-            isNull: false,
-          },
-        })
-        set(s => {
-          s.forceSmallNav = force
-        })
-      }
-      ignorePromise(f())
     },
     setGlobalError: _e => {
       if (_e) {
@@ -688,6 +518,9 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           s.globalError = undefined
         })
       }
+    },
+    setGregorReachable: r => {
+      setGregorReachable(r)
     },
     setHTTPSrvInfo: (address, token) => {
       set(s => {
@@ -740,31 +573,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       // hidden and the user can see and respond to the error.
       get().dispatch.setUserSwitching(false)
     },
-    setMobileAppState: nextAppState => {
-      if (get().mobileAppState === nextAppState) return
-      set(s => {
-        s.mobileAppState = nextAppState
-      })
-    },
-    setNotifySound: n => {
-      set(s => {
-        s.notifySound = n
-      })
-      ignorePromise(
-        T.RPCGen.configGuiSetValueRpcPromise({
-          path: notifySoundKey,
-          value: {
-            b: n,
-            isNull: false,
-          },
-        })
-      )
-    },
-    setOpenAtLogin: open => {
-      set(s => {
-        s.openAtLogin = open
-      })
-    },
     setOutOfDate: outOfDate => {
       set(s => {
         Object.assign(s.outOfDate, outOfDate)
@@ -785,20 +593,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       set(s => {
         s.outOfDate.updating = true
       })
-    },
-    setUseNativeFrame: use => {
-      set(s => {
-        s.useNativeFrame = use
-      })
-      ignorePromise(
-        T.RPCGen.configGuiSetValueRpcPromise({
-          path: nativeFrameKey,
-          value: {
-            b: use,
-            isNull: false,
-          },
-        })
-      )
     },
     setUserSwitching: sw => {
       set(s => {
@@ -822,24 +616,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         } catch {}
       }
       ignorePromise(f())
-    },
-    updateWindowState: ws => {
-      const old = get().windowState
-      const next = {...old, ...ws}
-      if (isEqual(old, next)) return
-      set(s => {
-        s.windowState = next
-      })
-
-      ignorePromise(
-        T.RPCGen.configGuiSetValueRpcPromise({
-          path: windowStateKey,
-          value: {
-            isNull: false,
-            s: JSON.stringify(next),
-          },
-        })
-      )
     },
   }
   return {

@@ -18,6 +18,7 @@ import {useTrackerState} from '@/stores/tracker'
 import {useFSState} from '@/stores/fs'
 import {useNotifState} from '@/stores/notifications'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useShellState} from '@/stores/shell'
 import {navToProfile} from '@/constants/router'
 import {dumpLogs} from '@/util/storeless-actions'
 
@@ -175,7 +176,7 @@ function TabBar(props: Props) {
   Kb.useHotKey(hotKeys, onHotKey)
 
   const onSelectTab = Common.useSubnavTabAction(navigation, state)
-  const forceSmallNav = useConfigState(s => s.forceSmallNav)
+  const forceSmallNav = useShellState(s => s.forceSmallNav)
 
   return username ? (
     <Kb.Box2

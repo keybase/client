@@ -13,6 +13,7 @@ import {initDesktopStyles} from '@/styles/index.desktop'
 import {isWindows} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
 import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useDarkModeState} from '@/stores/darkmode'
@@ -72,9 +73,9 @@ const setupApp = async () => {
   // issuing RPCs on a renderer reload.
   await appStartedUp?.()
 
-  useConfigState.getState().dispatch.initNotifySound()
-  useConfigState.getState().dispatch.initForceSmallNav()
-  useConfigState.getState().dispatch.initOpenAtLogin()
+  useShellState.getState().dispatch.initNotifySound()
+  useShellState.getState().dispatch.initForceSmallNav()
+  useShellState.getState().dispatch.initOpenAtLogin()
   useConfigState.getState().dispatch.initAppUpdateLoop()
   eng.listenersAreReady()
 

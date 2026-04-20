@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
 import {RPCError} from '@/util/errors'
 import {isMobile} from '@/constants/platform'
 import * as ConvoState from '@/stores/convostate'
@@ -151,7 +151,7 @@ export type InboxSearchController = {
 }
 
 export function useInboxSearch(): InboxSearchController {
-  const mobileAppState = useConfigState(s => s.mobileAppState)
+  const mobileAppState = useShellState(s => s.mobileAppState)
   const [isSearching, setIsSearching] = React.useState(false)
   const [searchInfo, setSearchInfo] = React.useState(makeInboxSearchInfo)
   const activeSearchIDRef = React.useRef(0)

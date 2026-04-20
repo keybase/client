@@ -5,6 +5,7 @@ import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFSState} from '@/stores/fs'
 import {useRouterState} from '@/stores/router'
+import {useShellState} from '@/stores/shell'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
@@ -243,7 +244,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
 }
 
 export const initPlatformListener = () => {
-  useConfigState.subscribe((s, old) => {
+  useShellState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     let appFocused: boolean
     let logState: T.RPCGen.MobileAppState
@@ -311,12 +312,16 @@ export const initPlatformListener = () => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
       const {type} = await NetInfo.fetch()
-      s.dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type, true)
+      useShellState.getState().dispatch.osNetworkStatusChanged(
+        type !== NetInfo.NetInfoStateType.none,
+        type,
+        true
+      )
     }
     ignorePromise(f())
   })
 
-  useConfigState.subscribe((s, old) => {
+  useShellState.subscribe((s, old) => {
     if (s.networkStatus === old.networkStatus) return
     const type = s.networkStatus?.type
     if (!type) return
@@ -330,7 +335,7 @@ export const initPlatformListener = () => {
     ignorePromise(f())
   })
 
-  useConfigState.subscribe((s, old) => {
+  useShellState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     if (s.mobileAppState === 'active') {
       // only reload on foreground
@@ -382,7 +387,7 @@ export const initPlatformListener = () => {
   initPushListener()
 
   NetInfo.addEventListener(({type}) => {
-    useConfigState.getState().dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
+    useShellState.getState().dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
   })
 
   const initAudioModes = () => {

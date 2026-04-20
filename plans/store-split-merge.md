@@ -14,7 +14,7 @@ Reduce hidden cross-store coupling without merging `config` and `daemon`.
 ## Checklist
 
 - [x] Extract `unlock-folders` out of `config` into a dedicated feature-local runtime store.
-- [ ] Split app-shell/UI state out of `config`.
+- [x] Split app-shell/UI state out of `config`.
 - [ ] Clean up the `daemon` / `config` account-refresh seam.
 - [ ] Remove dead init-time forwarding from `shared/constants/init/shared.tsx` after each extraction.
 
@@ -28,7 +28,7 @@ Reduce hidden cross-store coupling without merging `config` and `daemon`.
 
 ### App Shell / Prefs
 
-Extract these from `config` into a shell/prefs store:
+Ownership now lives in `shared/stores/shell.tsx`:
 
 - `active`
 - `appFocused`
