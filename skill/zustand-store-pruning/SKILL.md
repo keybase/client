@@ -104,7 +104,14 @@ Keep RPC logic in the store if:
 - It fans results out to multiple screens
 - It maintains a shared cache that survives navigation
 
-Do not introduce module-level mutable state to preserve store behavior. If a refactor needs ephemeral bookkeeping that is private to one store, keep it inside the store closure or model it explicitly in store state. Module scope is acceptable for stable constants, pure helpers, and imports, not mutable coordination state.
+Do not introduce module-level mutable state to preserve store behavior. This includes feature-local caches, in-flight dedupe singletons, listener registries, or other hidden module-scope coordination that recreates a store in disguise. If a refactor needs ephemeral bookkeeping that is private to one store, keep it inside the store closure or model it explicitly in store state. Module scope is acceptable for stable constants, pure helpers, and imports, not mutable coordination state.
+
+When pruning a store, do not replace it with a module-local cache. Prefer one of these instead:
+
+- Keep the data local to the owning screen or modal
+- Move explicit entry context through route params
+- Use a feature-local provider when multiple mounted descendants in one route need to share a loaded value
+- Keep the real store if the data genuinely needs cross-route or background lifetime
 
 Prefer reloading in components instead of keeping a store cache when:
 

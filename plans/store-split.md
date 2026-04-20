@@ -10,6 +10,8 @@ Bias toward less frontend bookkeeping. If the Go service already owns a piece of
 
 Cross-cutting rule: when an engine action is only a screen-local refresh or prompt nudge, prefer the typed engine listener layer over a one-field store or an `init/shared.tsx` forwarding shim.
 
+Cross-cutting rule: do not replace a removed Zustand store with module-local mutable state. No feature-local cache singletons, in-flight dedupe registries, or other hidden module-scope coordination objects that recreate store behavior in disguise. If multiple mounted descendants in one route need the same loaded value, prefer a route-owned screen component or feature-local provider.
+
 Recommended implementation order:
 
 - [x] `settings-email`
@@ -150,6 +152,10 @@ Planned change:
 - Move the initial load into the owning settings UI via a shared settings-local hook or equivalent feature code.
 - Use the typed engine listener layer for mounted updates only, and rely on load-on-mount or explicit refresh instead of keeping a warmed global cache.
 - Do not retain frontend bookkeeping only to avoid repeated `userLoadPassphraseState` calls to the local service.
+- Do not use a module-local cache or singleton dedupe layer for `randomPW`.
+- For the password modal specifically, prefer a single route owner for the loaded value:
+  - let the password screen own the `randomPW` load and set its own header title/options
+  - if several mounted descendants in the same route need the value, share it through a feature-local provider rather than module scope
 
 Result:
 
@@ -246,6 +252,7 @@ Critical scenarios:
 ## Assumptions And Defaults
 
 - Prefer route params or local feature state over creating new one-field stores.
+- Never use module-local mutable caches/singletons as a substitute for a removed store.
 - Prefer the typed engine listener layer over store plumbing when an engine event only nudges mounted feature UI and can be safely missed while unmounted.
 - Keep notification-backed shared caches unless they are clearly just convenience state for one screen.
 - `modal-header` is not a restructuring target beyond extracting route-owned or screen-owned values.
