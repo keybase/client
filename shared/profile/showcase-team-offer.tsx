@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import {useTeamsSubscribe} from '@/teams/subscriber'
-import {useCurrentUserState} from '@/stores/current-user'
 
 const Container = () => {
   const waiting = C.useWaitingState(s => s.counts)

@@ -170,7 +170,7 @@ const Proofs = (p: BioTeamProofsProps) => {
         assertion={a}
         notAUser={p.notAUser}
         onRefresh={p.onReload}
-        stellarHidden={p.stellarHidden}
+        stellarHidden={!!p.stellarHidden}
         username={p.username}
       />
     )),
@@ -470,7 +470,7 @@ const User = (props: {username: string}) => {
             notAUser={p.notAUser}
             onReload={p.onReload}
             state={p.state}
-            stellarHidden={p.stellarHidden}
+            stellarHidden={!!p.stellarHidden}
             teamShowcase={p.teamShowcase}
             fullName={p.fullName}
             title={p.title}

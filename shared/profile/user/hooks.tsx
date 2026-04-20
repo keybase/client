@@ -137,7 +137,7 @@ const useUserData = (username: string) => {
   //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
   //   )
   // }
-  const _onReload = (username: string, isYou: boolean, state: T.Tracker.DetailsState) => {
+  const _onReload = (isYou: boolean, state: T.Tracker.DetailsState) => {
     if (state !== 'valid' && !isYou) {
       // Might be a Keybase user or not, launch non-user profile fetch.
       loadNonUserProfile()
@@ -218,7 +218,7 @@ const useUserData = (username: string) => {
     //   stateProps.vouchShowButton && !stateProps.vouchDisableButton
     //     ? () => _onIKnowThem(stateProps.username, stateProps.guiID)
     //     : undefined,
-    onReload: () => _onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
+    onReload: () => _onReload(stateProps.userIsYou, stateProps.state),
     reason: stateProps.reason,
     sbsAvatarUrl: stateProps.sbsAvatarUrl,
     sbsDescription: stateProps.sbsDescription,

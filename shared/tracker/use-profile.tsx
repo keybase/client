@@ -108,7 +108,7 @@ export const useTrackerProfile = (username: string, options?: Options) => {
           siteIconDarkmode: res.siteIconDarkmode || [],
           siteIconFull: res.siteIconFull || [],
           siteIconFullDarkmode: res.siteIconFullDarkmode || [],
-          siteURL: res.service?.serviceUrl || '',
+          siteURL: '',
         }
         if (res.service) {
           setNonUserDetails(prev => ({...prev, ...common, ...res.service}))

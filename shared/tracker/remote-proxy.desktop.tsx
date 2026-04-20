@@ -1,5 +1,5 @@
 // A mirror of the remote tracker windows.
-import type * as React from 'react'
+import * as React from 'react'
 import * as T from '@/constants/types'
 import {generateGUIID, ignorePromise} from '@/constants/utils'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
@@ -58,7 +58,7 @@ const cloneDetails = (details: T.Tracker.Details): T.Tracker.Details => ({
   webOfTrustEntries: [...(details.webOfTrustEntries ?? [])],
 })
 
-const rpcResultToStatus = (result: T.RPCGen.Identify3ResultType) => {
+const rpcResultToStatus = (result: T.RPCGen.Identify3ResultType): T.Tracker.DetailsState => {
   switch (result) {
     case T.RPCGen.Identify3ResultType.ok:
       return 'valid'
@@ -67,6 +67,7 @@ const rpcResultToStatus = (result: T.RPCGen.Identify3ResultType) => {
     case T.RPCGen.Identify3ResultType.needsUpgrade:
       return 'needsUpgrade'
     case T.RPCGen.Identify3ResultType.canceled:
+    default:
       return 'error'
   }
 }
@@ -89,15 +90,17 @@ const updateResult = (
   const newReason =
     reason ||
     (result === 'broken' && `Some of ${username}'s proofs have changed since you last followed them.`)
-  if (!details.resetBrokeTrack || details.reason.length === 0) {
-    details.reason = newReason || details.reason
+  const nextDetails = {
+    ...details,
+    reason:
+      !details.resetBrokeTrack || details.reason.length === 0
+        ? newReason || details.reason
+        : details.reason,
+    resetBrokeTrack: result === 'valid' ? false : details.resetBrokeTrack,
+    state: result,
   }
-  if (result === 'valid') {
-    details.resetBrokeTrack = false
-  }
-  details.state = result
   const usernameToDetails = new Map(state.usernameToDetails)
-  usernameToDetails.set(username, details)
+  usernameToDetails.set(username, nextDetails)
   return {...state, usernameToDetails}
 }
 
@@ -165,12 +168,14 @@ const RemoteTrackers = () => {
       const usernameToDetails = new Map(prev.usernameToDetails)
       forceDisplay && showTrackerSet.add(assertion)
       const details = cloneDetails(usernameToDetails.get(assertion) ?? makeDetails(assertion))
-      details.assertions = new Map()
-      details.guiID = guiID
-      details.reason = reason
-      details.state = 'checking'
-      details.username = assertion
-      usernameToDetails.set(assertion, details)
+      usernameToDetails.set(assertion, {
+        ...details,
+        assertions: new Map(),
+        guiID,
+        reason,
+        state: 'checking',
+        username: assertion,
+      })
       return {showTrackerSet, usernameToDetails}
     })
 
@@ -253,15 +258,15 @@ const RemoteTrackers = () => {
     if (!popupStateRef.current.usernameToDetails.has(username)) {
       return
     }
-      load({
-        assertion: username,
-        forceDisplay: false,
-        fromDaemon: false,
-        guiID: generateGUIID(),
-        ignoreCache: true,
-        inTracker: true,
-        reason: '',
-      })
+    load({
+      assertion: username,
+      forceDisplay: false,
+      fromDaemon: false,
+      guiID: generateGUIID(),
+      ignoreCache: true,
+      inTracker: true,
+      reason: '',
+    })
   })
 
   useEngineActionListener('keybase.1.identify3Ui.identify3Result', action => {
@@ -296,19 +301,21 @@ const RemoteTrackers = () => {
           return
         }
         const details = cloneDetails(current)
+        let blocked = details.blocked
+        let hidFromFollowers = details.hidFromFollowers
         let localChange = false
         blockStates?.forEach(blockState => {
           if (blockState.blockType === T.RPCGen.UserBlockType.chat) {
-            details.blocked = blockState.blocked
+            blocked = blockState.blocked
             localChange = true
           } else if (blockState.blockType === T.RPCGen.UserBlockType.follow) {
-            details.hidFromFollowers = blockState.blocked
+            hidFromFollowers = blockState.blocked
             localChange = true
           }
         })
         if (localChange) {
           changed = true
-          usernameToDetails.set(username, details)
+          usernameToDetails.set(username, {...details, blocked, hidFromFollowers})
         }
       })
       return changed ? {...prev, usernameToDetails} : prev
@@ -327,9 +334,11 @@ const RemoteTrackers = () => {
         return prev
       }
       const details = cloneDetails(current)
-      details.assertions.set(`${row.key}:${row.value}`, rpcAssertionToAssertion(row))
+      const assertion = rpcAssertionToAssertion(row)
+      const assertions = new Map(details.assertions ?? [])
+      assertions.set(assertion.assertionKey, assertion)
       const usernameToDetails = new Map(prev.usernameToDetails)
-      usernameToDetails.set(username, details)
+      usernameToDetails.set(username, {...details, assertions})
       return {...prev, usernameToDetails}
     })
   })
@@ -346,10 +355,12 @@ const RemoteTrackers = () => {
         return prev
       }
       const details = cloneDetails(current)
-      details.resetBrokeTrack = true
-      details.reason = `${username} reset their account since you last followed them.`
       const usernameToDetails = new Map(prev.usernameToDetails)
-      usernameToDetails.set(username, details)
+      usernameToDetails.set(username, {
+        ...details,
+        reason: `${username} reset their account since you last followed them.`,
+        resetBrokeTrack: true,
+      })
       return {...prev, usernameToDetails}
     })
   })
@@ -366,24 +377,26 @@ const RemoteTrackers = () => {
         return prev
       }
       const details = cloneDetails(current)
-      details.bio = card.bio
-      details.blocked = card.blocked
-      details.followersCount = card.unverifiedNumFollowers
-      details.followingCount = card.unverifiedNumFollowing
-      details.fullname = card.fullName
-      details.hidFromFollowers = card.hidFromFollowers
-      details.location = card.location
-      details.stellarHidden = card.stellarHidden
-      details.teamShowcase =
-        card.teamShowcase?.map(t => ({
-          description: t.description,
-          isOpen: t.open,
-          membersCount: t.numMembers,
-          name: t.fqName,
-          publicAdmins: t.publicAdmins ?? [],
-        })) ?? []
       const usernameToDetails = new Map(prev.usernameToDetails)
-      usernameToDetails.set(username, details)
+      usernameToDetails.set(username, {
+        ...details,
+        bio: card.bio,
+        blocked: card.blocked,
+        followersCount: card.unverifiedNumFollowers,
+        followingCount: card.unverifiedNumFollowing,
+        fullname: card.fullName,
+        hidFromFollowers: card.hidFromFollowers,
+        location: card.location,
+        stellarHidden: card.stellarHidden,
+        teamShowcase:
+          card.teamShowcase?.map(t => ({
+            description: t.description,
+            isOpen: t.open,
+            membersCount: t.numMembers,
+            name: t.fqName,
+            publicAdmins: t.publicAdmins ?? [],
+          })) ?? [],
+      })
       return {...prev, usernameToDetails}
     })
   })
@@ -400,9 +413,8 @@ const RemoteTrackers = () => {
         return prev
       }
       const details = cloneDetails(current)
-      details.numAssertionsExpected = summary.numProofsToCheck
       const usernameToDetails = new Map(prev.usernameToDetails)
-      usernameToDetails.set(username, details)
+      usernameToDetails.set(username, {...details, numAssertionsExpected: summary.numProofsToCheck})
       return {...prev, usernameToDetails}
     })
   })
