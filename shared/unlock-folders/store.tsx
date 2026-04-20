@@ -26,14 +26,9 @@ export type State = Store & {
   }
 }
 
-export const useUnlockFoldersState = Z.createZustand<State>('unlock-folders', set => {
+export const useUnlockFoldersState = Z.createZustand<State>('unlock-folders', (set, get) => {
   const dispatch: State['dispatch'] = {
-    close: () => {
-      set(s => {
-        s.devices = []
-        s.paperKeyError = ''
-      })
-    },
+    close: () => get().dispatch.resetState(),
     open: devices => {
       set(s => {
         s.devices = devices.map(({name, type, deviceID}) => ({
