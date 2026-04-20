@@ -32,7 +32,7 @@ test('loads passphrase state on mount and can reload on demand', async () => {
 test('notification updates beat stale load results', async () => {
   let resolveLoad: ((state: T.RPCGen.PassphraseState) => void) | undefined
   const loadPassphraseState = jest.spyOn(T.RPCGen, 'userLoadPassphraseStateRpcPromise').mockImplementation(
-    () =>
+    async () =>
       new Promise<T.RPCGen.PassphraseState>(resolve => {
         resolveLoad = resolve
       })
