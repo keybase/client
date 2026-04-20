@@ -3,11 +3,11 @@ import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useNavigation} from '@react-navigation/native'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/constants/settings'
 import * as FS from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
-import {useModalHeaderState} from '@/stores/modal-header'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
@@ -126,6 +126,17 @@ export const getContentDescriptionText = (items: ReadonlyArray<T.RPCGen.Incoming
   return name || `1 ${incomingShareTypeToString(item.type, false, false)}`
 }
 
+const IncomingShareHeaderTitle = ({title}: {title?: string}) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+    {title ? (
+      <Kb.Text type="BodyTiny" lineClamp={1}>
+        {title}
+      </Kb.Text>
+    ) : null}
+    <Kb.Text type="BodyBig">Share to...</Kb.Text>
+  </Kb.Box2>
+)
+
 const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>) => {
   const navigateAppend = C.Router2.navigateAppend
   const saveInFiles = () => {
@@ -159,6 +170,7 @@ type IncomingShareWithSelectionProps = IncomingShareProps & {
 
 const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   const navigateAppend = C.Router2.navigateAppend
+  const navigation = useNavigation()
   const useOriginalValue = useConfigState(s => s.incomingShareUseOriginal)
   const {sendPaths, text} = props.incomingShareItems.reduce(
     ({sendPaths, text}, item) => {
@@ -202,19 +214,23 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
     }
   }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend])
 
-  const clearModals = C.Router2.clearModals
   const footer = useFooter(props.incomingShareItems)
+  const contentDescription = getContentDescriptionText(props.incomingShareItems)
 
   React.useEffect(() => {
-    useModalHeaderState.setState({
-      data: props.incomingShareItems,
-      onAction: clearModals,
-      title: getContentDescriptionText(props.incomingShareItems),
+    navigation.setOptions({
+      headerRight: props.incomingShareItems.length
+        ? () => <OriginalOrCompressedButton incomingShareItems={props.incomingShareItems} />
+        : undefined,
+      headerTitle: () => <IncomingShareHeaderTitle title={contentDescription} />,
     })
     return () => {
-      useModalHeaderState.setState({data: undefined, onAction: undefined, title: ''})
+      navigation.setOptions({
+        headerRight: undefined,
+        headerTitle: () => <IncomingShareHeaderTitle />,
+      })
     }
-  }, [props.incomingShareItems, clearModals])
+  }, [contentDescription, navigation, props.incomingShareItems])
 
   if (canDirectNav) {
     return (

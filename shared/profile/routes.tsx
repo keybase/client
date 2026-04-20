@@ -4,7 +4,6 @@ import * as C from '@/constants'
 import * as Teams from '@/stores/teams'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {ModalTitle} from '@/teams/common'
-import {useModalHeaderState} from '@/stores/modal-header'
 import {defineRouteMap} from '@/constants/types/router'
 
 const Title = React.lazy(async () => import('./search'))
@@ -37,8 +36,15 @@ const EditAvatarHeaderRight = ({wizard}: {wizard?: boolean}) => {
 }
 const skipButtonStyle = {minWidth: 60}
 
-const EditAvatarHeaderTitle = ({teamID, wizard}: {teamID?: string; wizard?: boolean}) => {
-  const hasImage = useModalHeaderState(s => s.editAvatarHasImage)
+const EditAvatarHeaderTitle = ({
+  hasImage,
+  teamID,
+  wizard,
+}: {
+  hasImage?: boolean
+  teamID?: string
+  wizard?: boolean
+}) => {
   if (teamID) {
     const title = hasImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
     if (Kb.Styles.isMobile) {
@@ -88,7 +94,11 @@ export const newModalRoutes = defineRouteMap({
       ),
       headerRight: () => <EditAvatarHeaderRight wizard={route.params.wizard} />,
       headerTitle: () => (
-        <EditAvatarHeaderTitle teamID={route.params.teamID} wizard={route.params.wizard} />
+        <EditAvatarHeaderTitle
+          hasImage={!!route.params.image}
+          teamID={route.params.teamID}
+          wizard={route.params.wizard}
+        />
       ),
     }),
   }),

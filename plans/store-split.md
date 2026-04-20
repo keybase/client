@@ -21,7 +21,7 @@ Recommended implementation order:
 - [x] `settings-password`
 - [x] `tracker`
 - [x] `team-building`
-- [ ] `modal-header` only for param/local-state extraction, not store splitting
+- [x] `modal-header` only for param/local-state extraction, not store splitting
 
 ## Key Changes
 
@@ -138,6 +138,12 @@ Public/API impact:
 
 - Reduce `useModalHeaderState.setState(...)` writes opportunistically.
 - Do not introduce new tiny stores as replacements.
+
+Result:
+
+- Moved `incoming-share` header title, payload-driven action UI, and compression gear wiring into route-local `navigation.setOptions(...)`.
+- Moved the edit-avatar "has image" header state into the owning screen and deleted the corresponding `modal-header` field.
+- Moved screen-local chat PDF and forward-message titles out of the store and into route-local navigation options.
 
 ### 6. Delete `settings-password` instead of keeping a convenience cache
 

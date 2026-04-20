@@ -52,16 +52,6 @@ const PDFShareButton = ({url}: {url?: string}) => {
   )
 }
 
-const PDFHeaderTitle = () => {
-  const title = useModalHeaderState(s => s.title)
-  return <Kb.Text type="BodyBig">{title || 'PDF'}</Kb.Text>
-}
-
-const FwdMsgHeaderTitle = () => {
-  const title = useModalHeaderState(s => s.title)
-  return <>{title || 'Forward to team or chat'}</>
-}
-
 const BotInstallHeaderTitle = () => {
   const subScreen = useModalHeaderState(s => s.botSubScreen)
   return <>{subScreen === 'channels' ? 'Channels' : ''}</>
@@ -240,7 +230,7 @@ export const newModalRoutes = defineRouteMap({
   chatForwardMsgPick: makeChatScreen(
     React.lazy(async () => import('./conversation/fwd-msg')),
     {
-      getOptions: {headerTitle: () => <FwdMsgHeaderTitle />},
+      getOptions: {title: 'Forward to team or chat'},
     }
   ),
   chatInfoPanel: makeChatScreen(
@@ -281,7 +271,7 @@ export const newModalRoutes = defineRouteMap({
     {
       getOptions: p => ({
         headerRight: C.isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
-        headerTitle: () => <PDFHeaderTitle />,
+        title: 'PDF',
         modalStyle: {height: '80%', maxHeight: '80%', width: '80%'},
         overlayStyle: {alignSelf: 'stretch'},
       }),
