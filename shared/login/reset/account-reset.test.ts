@@ -38,6 +38,8 @@ afterEach(() => {
   resetAllStores()
 })
 
+const flush = async () => new Promise<void>(resolve => setImmediate(resolve))
+
 test('startAccountReset navigates into the reset flow', () => {
   startAccountReset(true, 'alice')
 
@@ -52,8 +54,9 @@ test('startAccountReset navigates into the reset flow', () => {
 
 test('enterResetPipeline exposes a submit handler for the confirm screen and starts provision on confirm', async () => {
   const result = jest.fn()
+  let finishListener = () => {}
 
-  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(listener => {
+  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(async listener => {
     listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
       {
         prompt: {
@@ -63,23 +66,31 @@ test('enterResetPipeline exposes a submit handler for the confirm screen and sta
       } as any,
       {result} as any
     )
+    await new Promise<void>(resolve => {
+      finishListener = resolve
+    })
     return undefined as any
   })
 
-  enterResetPipeline({username: 'alice'})
-  await Promise.resolve()
+  try {
+    enterResetPipeline({username: 'alice'})
+    await flush()
 
-  const resetKey = mockNavigateAppend.mock.calls[mockNavigateAppend.mock.calls.length - 1]?.[0]?.params
-    ?.resetKey as string
-  expect(mockNavigateAppend).toHaveBeenCalledWith(
-    {name: 'resetConfirm', params: {hasWallet: true, resetKey}},
-    true
-  )
+    const resetKey = mockNavigateAppend.mock.calls[mockNavigateAppend.mock.calls.length - 1]?.[0]?.params
+      ?.resetKey as string
+    expect(mockNavigateAppend).toHaveBeenCalledWith(
+      {name: 'resetConfirm', params: {hasWallet: true, resetKey}},
+      true
+    )
 
-  submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.confirmReset)
+    submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.confirmReset)
 
-  expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.confirmReset)
-  expect(mockStartProvision).toHaveBeenCalledWith('alice', true)
+    expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.confirmReset)
+    expect(mockStartProvision).toHaveBeenCalledWith('alice', true)
+  } finally {
+    finishListener()
+    await flush()
+  }
 })
 
 test('enterResetPipeline responds and starts the reset flow for non-complete prompts', async () => {
@@ -112,8 +123,9 @@ test('enterResetPipeline responds and starts the reset flow for non-complete pro
 
 test('submitResetPrompt sends cancel responses back to the login flow', async () => {
   const result = jest.fn()
+  let finishListener = () => {}
 
-  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(listener => {
+  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(async listener => {
     listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
       {
         prompt: {
@@ -123,23 +135,32 @@ test('submitResetPrompt sends cancel responses back to the login flow', async ()
       } as any,
       {result} as any
     )
+    await new Promise<void>(resolve => {
+      finishListener = resolve
+    })
     return undefined as any
   })
 
-  enterResetPipeline({username: 'alice'})
-  await Promise.resolve()
-  const resetKey = mockNavigateAppend.mock.calls[mockNavigateAppend.mock.calls.length - 1]?.[0]?.params
-    ?.resetKey as string
-  submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.cancelReset)
+  try {
+    enterResetPipeline({username: 'alice'})
+    await flush()
+    const resetKey = mockNavigateAppend.mock.calls[mockNavigateAppend.mock.calls.length - 1]?.[0]?.params
+      ?.resetKey as string
+    submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.cancelReset)
 
-  expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.cancelReset)
-  expect(mockNavUpToScreen).toHaveBeenCalledWith('login')
+    expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.cancelReset)
+    expect(mockNavUpToScreen).toHaveBeenCalledWith('login')
+  } finally {
+    finishListener()
+    await flush()
+  }
 })
 
 test('submitResetPrompt sends nothing responses back to the login flow', async () => {
   const result = jest.fn()
+  let finishListener = () => {}
 
-  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(listener => {
+  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(async listener => {
     listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
       {
         prompt: {
@@ -149,17 +170,25 @@ test('submitResetPrompt sends nothing responses back to the login flow', async (
       } as any,
       {result} as any
     )
+    await new Promise<void>(resolve => {
+      finishListener = resolve
+    })
     return undefined as any
   })
 
-  enterResetPipeline({username: 'alice'})
-  await Promise.resolve()
-  const resetKey = mockNavigateAppend.mock.calls[mockNavigateAppend.mock.calls.length - 1]?.[0]?.params
-    ?.resetKey as string
-  submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.nothing)
+  try {
+    enterResetPipeline({username: 'alice'})
+    await flush()
+    const resetKey = mockNavigateAppend.mock.calls[mockNavigateAppend.mock.calls.length - 1]?.[0]?.params
+      ?.resetKey as string
+    submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.nothing)
 
-  expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.nothing)
-  expect(mockNavUpToScreen).toHaveBeenCalledWith('login')
+    expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.nothing)
+    expect(mockNavUpToScreen).toHaveBeenCalledWith('login')
+  } finally {
+    finishListener()
+    await flush()
+  }
 })
 
 test('enterResetPipeline disposes an unconsumed reset prompt when the listener exits', async () => {
@@ -183,12 +212,12 @@ test('enterResetPipeline disposes an unconsumed reset prompt when the listener e
   })
 
   enterResetPipeline({username: 'alice'})
-  await Promise.resolve()
+  await flush()
 
   const resetKey = mockNavigateAppend.mock.calls[mockNavigateAppend.mock.calls.length - 1]?.[0]?.params
     ?.resetKey as string
   finishListener()
-  await Promise.resolve()
+  await flush()
 
   submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.confirmReset)
 
