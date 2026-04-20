@@ -231,7 +231,7 @@ const ArchiveModal = (p: Props) => {
     setTimeout(() => {
       switchTab(C.Tabs.settingsTab)
       setTimeout(() => {
-        navigateAppend(settingsArchiveTab)
+        navigateAppend({name: settingsArchiveTab, params: {}})
       }, 200)
     }, 200)
   }

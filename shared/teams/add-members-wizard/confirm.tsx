@@ -201,8 +201,8 @@ const AddMoreMembers = () => {
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
       const onAddKeybase = () => appendNewTeamBuilder(teamID)
-      const onAddContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
-      const onAddPhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
+      const onAddContacts = () => nav.safeNavigateAppend({name: 'teamAddToTeamContacts', params: {}})
+      const onAddPhone = () => nav.safeNavigateAppend({name: 'teamAddToTeamPhone', params: {}})
       const onAddEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {}})
       return (
         <Kb.FloatingMenu

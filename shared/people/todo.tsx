@@ -117,7 +117,7 @@ const SettingsAccountTask = ({
   const onConfirm = () => {
     switchTab(C.Tabs.settingsTab)
     navigateAppend({name: settingsAccountTab, params: {}})
-    destination && navigateAppend(destination)
+    destination && navigateAppend({name: destination, params: {}})
   }
   return <BasicTask {...props} dismissTodoType={dismissTodoType} onConfirm={onConfirm} />
 }

@@ -64,7 +64,7 @@ const Header = () => {
 
   const {navigateAppend, switchTab} = C.Router2
   const onSettings = () => switchTab(Tabs.settingsTab)
-  const onSignOut = () => navigateAppend(settingsLogOutTab)
+  const onSignOut = () => navigateAppend({name: settingsLogOutTab, params: {}})
   const onAddAccount = () => {
     logoutToLoggedOutFlow()
   }
@@ -171,7 +171,7 @@ function TabBar(props: Props) {
   const {navigation, state} = props
   const username = useCurrentUserState(s => s.username)
   const onHotKey = (cmd: string) => {
-    navigation.navigate(keysMap[cmd] as Tabs.Tab)
+    navigation.navigate({name: keysMap[cmd] as Tabs.Tab, params: {}})
   }
   Kb.useHotKey(hotKeys, onHotKey)
 

@@ -109,7 +109,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       if (action.payload.path) {
         FSConstants.navToPath(action.payload.path)
       } else {
-        navigateAppend(Tabs.fsTab)
+        switchTab(Tabs.fsTab)
       }
       break
     }

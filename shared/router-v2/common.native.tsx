@@ -1,9 +1,9 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {TabActions, type NavigationContainerRef} from '@react-navigation/core'
+import {TabActions} from '@react-navigation/core'
 import type {HeaderOptions} from '@react-navigation/elements'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
-import type {NavState} from '@/constants/router'
+import type {NavState, Navigator} from '@/constants/router'
 
 export const headerDefaultStyle = {
   get backgroundColor() {
@@ -85,7 +85,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export const useSubnavTabAction = (navigation: NavigationContainerRef<object>, state: NavState) => {
+export const useSubnavTabAction = (navigation: Navigator, state: NavState) => {
   const onSelectTab = (tab: string) => {
     const routes = state && 'routes' in state ? state.routes : undefined
     const route = routes?.find((r: {name?: string; key?: string}) => r.name === tab)

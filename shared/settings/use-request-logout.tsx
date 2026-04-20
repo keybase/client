@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import {navigateAppend} from '@/constants/router'
+import {navigateAppend, switchTab} from '@/constants/router'
 import {settingsPasswordTab} from '@/constants/settings'
 import * as T from '@/constants/types'
 import {isMobile} from '@/constants/platform'
@@ -8,10 +8,10 @@ import {useLogoutState} from '@/stores/logout'
 
 const navigateToLogoutPassword = () => {
   if (isMobile) {
-    navigateAppend(settingsPasswordTab)
+    navigateAppend({name: settingsPasswordTab, params: {}})
   } else {
-    navigateAppend(Tabs.settingsTab)
-    navigateAppend(settingsPasswordTab)
+    switchTab(Tabs.settingsTab)
+    navigateAppend({name: settingsPasswordTab, params: {}})
   }
 }
 

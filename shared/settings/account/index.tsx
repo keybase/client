@@ -84,7 +84,7 @@ const EmailPhone = ({onEmailVerificationSuccess}: {onEmailVerificationSuccess: (
 const Password = () => {
   const navigateAppend = C.Router2.navigateAppend
   const onSetPassword = () => {
-    navigateAppend(settingsPasswordTab)
+    navigateAppend({name: settingsPasswordTab, params: {}})
   }
   const hasPassword = usePWState(s => !s.randomPW)
   let passwordLabel: string

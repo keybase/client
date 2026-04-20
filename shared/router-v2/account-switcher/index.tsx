@@ -36,7 +36,7 @@ const Container = () => {
   const onSelectAccountLoggedOut = useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
   const navigateAppend = C.Router2.navigateAppend
   const onSignOut = () => {
-    navigateAppend(settingsLogOutTab)
+    navigateAppend({name: settingsLogOutTab, params: {}})
   }
 
   const accountRows = prepareAccountRows(_accountRows, you)

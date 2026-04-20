@@ -215,9 +215,10 @@ const ReloadContainer = (ownProps: OwnProps) => {
   }
 
   const navigateAppend = C.Router2.navigateAppend
+  const switchTab = C.Router2.switchTab
   const _onFeedback = (loggedIn: boolean) => {
     if (loggedIn) {
-      navigateAppend(C.Tabs.settingsTab)
+      switchTab(C.Tabs.settingsTab)
       navigateAppend({name: settingsFeedbackTab, params: {}})
     } else {
       navigateAppend({name: 'feedback', params: {}})

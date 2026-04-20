@@ -71,7 +71,7 @@ function SettingsNav() {
         {
           icon: 'iconfont-nav-2-crypto',
           onClick: () => {
-            navigateAppend(Settings.settingsCryptoTab)
+            navigateAppend({name: Settings.settingsCryptoTab, params: {}})
           },
           text: 'Crypto',
         },
@@ -79,7 +79,7 @@ function SettingsNav() {
           badgeNumber: badgeNumbers.get(C.Tabs.devicesTab),
           icon: 'iconfont-nav-2-devices',
           onClick: () => {
-            navigateAppend(Settings.settingsDevicesTab)
+            navigateAppend({name: Settings.settingsDevicesTab, params: {}})
           },
           text: 'Devices',
         },
@@ -94,7 +94,7 @@ function SettingsNav() {
         {
           icon: 'iconfont-nav-2-wallets',
           onClick: () => {
-            navigateAppend(Settings.settingsWalletsTab)
+            navigateAppend({name: Settings.settingsWalletsTab, params: {}})
           },
           text: 'Wallet',
         },
@@ -112,25 +112,25 @@ function SettingsNav() {
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsAdvancedTab)
+            navigateAppend({name: Settings.settingsAdvancedTab, params: {}})
           },
           text: 'Advanced',
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsArchiveTab)
+            navigateAppend({name: Settings.settingsArchiveTab, params: {}})
           },
           text: 'Backup',
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsChatTab)
+            navigateAppend({name: Settings.settingsChatTab, params: {}})
           },
           text: 'Chat',
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsDisplayTab)
+            navigateAppend({name: Settings.settingsDisplayTab, params: {}})
           },
           text: 'Display',
         },
@@ -142,20 +142,20 @@ function SettingsNav() {
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsFsTab)
+            navigateAppend({name: Settings.settingsFsTab, params: {}})
           },
           text: 'Files',
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsContactsTab)
+            navigateAppend({name: Settings.settingsContactsTab, params: {}})
           },
           text: contactsLabel,
         },
         {
           badgeNumber: badgeNotifications ? 1 : 0,
           onClick: () => {
-            navigateAppend(Settings.settingsNotificationsTab)
+            navigateAppend({name: Settings.settingsNotificationsTab, params: {}})
           },
           text: 'Notifications',
         },
@@ -163,7 +163,7 @@ function SettingsNav() {
           ? [
               {
                 onClick: () => {
-                  navigateAppend(Settings.settingsScreenprotectorTab)
+                  navigateAppend({name: Settings.settingsScreenprotectorTab, params: {}})
                 },
                 text: 'Screen protector',
               } as const,
@@ -176,13 +176,13 @@ function SettingsNav() {
       data: [
         {
           onClick: () => {
-            navigateAppend(Settings.settingsAboutTab)
+            navigateAppend({name: Settings.settingsAboutTab, params: {}})
           },
           text: 'About',
         },
         {
           onClick: () => {
-            navigateAppend(Settings.settingsLogOutTab)
+            navigateAppend({name: Settings.settingsLogOutTab, params: {}})
           },
           text: 'Sign out',
           textColor: Kb.Styles.globalColors.red,
