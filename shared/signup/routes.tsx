@@ -15,7 +15,7 @@ const EmailSkipButton = () => {
       type="BodyBigLink"
       onClick={() => {
         setSignupEmail(C.noEmail)
-        showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
+        showPushPrompt ? navigateAppend({name: 'settingsPushPrompt', params: {}}, true) : clearModals()
       }}
     >
       Skip
@@ -29,7 +29,7 @@ const PhoneSkipButton = () => {
     <Kb.Text
       type="BodyBigLink"
       onClick={() => {
-        navigateAppend('signupEnterEmail', true)
+        navigateAppend({name: 'signupEnterEmail', params: {}}, true)
       }}
     >
       Skip

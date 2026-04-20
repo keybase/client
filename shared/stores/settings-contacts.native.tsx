@@ -223,7 +223,7 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
               s.waitingToShowJoinedModal = false
             })
             if (resolved.length) {
-              navigateAppend('settingsContactsJoined')
+              navigateAppend({name: 'settingsContactsJoined', params: {}})
             }
           }
         } catch (_error) {

@@ -220,7 +220,7 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
                     response.result({phrase: good, secret: null as unknown as Uint8Array})
                   })
                 })
-                navigateAppend('codePage')
+                navigateAppend({name: 'codePage', params: {}})
               },
               'keybase.1.provisionUi.chooseDeviceType': (_params, response) => {
                 const {type} = get().codePageOtherDevice
@@ -330,7 +330,7 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
 
                 // we ignore the return as we never autosubmit, but we want things to increment
                 shouldAutoSubmit(!!previousErr, {type: 'promptSecret'})
-                navigateAppend('codePage')
+                navigateAppend({name: 'codePage', params: {}})
               },
               'keybase.1.provisionUi.PromptNewDeviceName': (params, response) => {
                 if (isCanceled(response)) return
@@ -352,7 +352,7 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
                   console.log('Provision: auto submit device name')
                   get().dispatch.dynamic.setDeviceName?.(get().deviceName)
                 } else {
-                  navigateAppend('setPublicName')
+                  navigateAppend({name: 'setPublicName', params: {}})
                 }
               },
               'keybase.1.provisionUi.chooseDevice': (params, response) => {
@@ -378,7 +378,7 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
                   console.log('Provision: auto submit passphrase')
                   get().dispatch.dynamic.submitDeviceSelect?.(get().codePageOtherDevice.name)
                 } else {
-                  navigateAppend('selectOtherDevice')
+                  navigateAppend({name: 'selectOtherDevice', params: {}})
                 }
               },
               'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
@@ -408,10 +408,10 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
                 } else {
                   switch (type) {
                     case T.RPCGen.PassphraseType.passPhrase:
-                      navigateAppend('password')
+                      navigateAppend({name: 'password', params: {}})
                       break
                     case T.RPCGen.PassphraseType.paperKey:
-                      navigateAppend('paperkey')
+                      navigateAppend({name: 'paperkey', params: {}})
                       break
                     default:
                       throw new Error('Got confused about password entry. Please send a log to us!')

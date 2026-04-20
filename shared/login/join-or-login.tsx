@@ -29,7 +29,7 @@ const Intro = () => {
     requestAutoInvite()
   }
   const showProxySettings = () => {
-    navigateAppend('proxySettingsModal')
+    navigateAppend({name: 'proxySettingsModal', params: {}})
   }
   const [showing, setShowing] = React.useState(true)
   Kb.useInterval(checkIsOnline, showing ? 5000 : undefined)

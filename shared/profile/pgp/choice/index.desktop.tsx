@@ -67,7 +67,7 @@ export default function Choice() {
     setStepSafe({kind: 'info'})
   }
   const onShowImport = () => {
-    navigateAppend('profileImport')
+    navigateAppend({name: 'profileImport', params: {}})
   }
 
   const onUpdate = (next: Partial<GeneratePgpArgs>) => {

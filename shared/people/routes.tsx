@@ -10,7 +10,7 @@ import {defineRouteMap} from '@/constants/types/router'
 const HeaderAvatar = () => {
   const myUsername = useCurrentUserState(s => s.username)
   const navigateAppend = C.Router2.navigateAppend
-  const onClick = () => navigateAppend('accountSwitcher')
+  const onClick = () => navigateAppend({name: 'accountSwitcher', params: {}})
   return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
 }
 
@@ -29,7 +29,7 @@ const AccountSignOutButton = () => {
   return (
     <Kb.Text
       type="BodyBigLink"
-      onClick={() => navigateAppend(settingsLogOutTab)}
+      onClick={() => navigateAppend({name: settingsLogOutTab, params: {}})}
       style={{color: Kb.Styles.globalColors.red, padding: 8}}
     >
       Sign out

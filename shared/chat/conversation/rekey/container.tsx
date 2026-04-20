@@ -12,7 +12,7 @@ const Container = () => {
   const onBack = C.Router2.navigateUp
   const navigateAppend = C.Router2.navigateAppend
   const onEnterPaperkey = () => {
-    navigateAppend('chatEnterPaperkey')
+    navigateAppend({name: 'chatEnterPaperkey', params: {}})
   }
   const rekeyShowPendingRekeyStatus = C.useRPC(T.RPCGen.rekeyShowPendingRekeyStatusRpcPromise)
   const onRekey = () => {

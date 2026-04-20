@@ -823,7 +823,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           if (result === 'kextPermissionError' || result === 'kextPermissionErrorRetry') {
             dispatch.driverKextPermissionError()
             if (result === 'kextPermissionError') {
-              navigateAppend('kextPermission')
+              navigateAppend({name: 'kextPermission', params: {}})
             }
             return
           }

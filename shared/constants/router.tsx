@@ -38,11 +38,11 @@ type IsExactlyRecord<T> = string extends keyof T ? true : false
 type NavigatorParamsFromProps<P> =
   P extends Record<string, unknown>
     ? IsExactlyRecord<P> extends true
-      ? undefined
+      ? {}
       : keyof P extends never
-        ? undefined
+        ? {}
         : P
-    : undefined
+    : {}
 
 type LazyInnerComponent<COM extends React.LazyExoticComponent<any>> =
   COM extends React.LazyExoticComponent<infer Inner> ? Inner : never
@@ -289,15 +289,9 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
   if (!ns) {
     return
   }
-  let routeName: string | undefined
-  let params: object | undefined
-  if (typeof path === 'string') {
-    routeName = path
-  } else {
-    const nextPath = path as {name: string | number | symbol; params?: object}
-    routeName = typeof nextPath.name === 'string' ? nextPath.name : String(nextPath.name)
-    params = nextPath.params
-  }
+  const nextPath = path as {name: string | number | symbol; params: object}
+  const routeName = typeof nextPath.name === 'string' ? nextPath.name : String(nextPath.name)
+  const params = nextPath.params
   if (!routeName) {
     DEBUG_NAV && console.log('[Nav] navigateAppend no routeName bail', routeName)
     return

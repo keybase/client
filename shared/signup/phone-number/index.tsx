@@ -76,7 +76,7 @@ const ConnectedEnterPhoneNumber = () => {
   const navigateAppend = C.Router2.navigateAppend
   const {clearError, error, submitPhoneNumber, waiting} = useAddPhoneNumber()
   const onSkip = () => {
-    navigateAppend('signupEnterEmail', true)
+    navigateAppend({name: 'signupEnterEmail', params: {}}, true)
   }
 
   const [phoneNumber, onChangePhoneNumber] = React.useState('')

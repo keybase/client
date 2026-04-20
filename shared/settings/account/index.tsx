@@ -45,10 +45,10 @@ const EmailPhone = ({onEmailVerificationSuccess}: {onEmailVerificationSuccess: (
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsLoadSettings)
   const readMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/chat/phones-and-emails')
   const onAddEmail = () => {
-    navigateAppend('settingsAddEmail')
+    navigateAppend({name: 'settingsAddEmail', params: {}})
   }
   const onAddPhone = () => {
-    navigateAppend('settingsAddPhone')
+    navigateAppend({name: 'settingsAddPhone', params: {}})
   }
   return (
     <SettingsSection>
@@ -145,7 +145,7 @@ const WebAuthTokenLogin = () => {
 const DeleteAccount = () => {
   const navigateAppend = C.Router2.navigateAppend
   const onDeleteAccount = () => {
-    navigateAppend('deleteConfirm')
+    navigateAppend({name: 'deleteConfirm', params: {}})
   }
   return (
     <SettingsSection>
@@ -245,7 +245,7 @@ const AccountSettings = ({route}: Props) => {
   const onClearSupersededPhoneNumber = () => supersededKey && _onClearSupersededPhoneNumber(supersededKey)
   const supersededPhoneNumber = _supersededPhoneNumber ? _supersededPhoneNumber.displayNumber : undefined
   const onAddPhone = () => {
-    navigateAppend('settingsAddPhone')
+    navigateAppend({name: 'settingsAddPhone', params: {}})
   }
 
   return (

@@ -51,7 +51,7 @@ const DeleteConfirm = () => {
       return
     }
     if (Kb.Styles.isMobile && hasPassword) {
-      navigateAppend('checkPassphraseBeforeDeleteAccount')
+      navigateAppend({name: 'checkPassphraseBeforeDeleteAccount', params: {}})
     } else {
       deleteAccountForever()
     }

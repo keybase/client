@@ -234,7 +234,7 @@ const Container = ({platform, reason = 'profile'}: Props) => {
         setStepSafe({error: '', kind: 'enterUsername', platform: service, username: ''})
         return
       case 'pgp':
-        navigateAppend('profilePgp')
+        navigateAppend({name: 'profilePgp', params: {}})
         return
       default:
         break

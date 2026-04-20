@@ -44,7 +44,7 @@ export default function AddDevice(ownProps: OwnProps) {
   const onAddPaperKey = () => {
     if (!canAddPaperKeyRef.current) return
     canAddPaperKeyRef.current = false
-    navigateAppend('devicePaperKey')
+    navigateAppend({name: 'devicePaperKey', params: {}})
     setTimeout(() => {
       canAddPaperKeyRef.current = true
     }, 1000)
