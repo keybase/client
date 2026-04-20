@@ -4,7 +4,6 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {openURL} from '@/util/misc'
-import {useTrackerState} from '@/stores/tracker'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
@@ -78,14 +77,7 @@ function ConnectedRow(ownProps: OwnProps) {
     )
   }
 
-  const showTracker = useTrackerState(s => s.dispatch.showTracker)
-  const openUserTracker = (username: string) => {
-    if (C.isMobile) {
-      navToProfile(username)
-    } else {
-      showTracker(username)
-    }
-  }
+  const openUserProfile = (username: string) => navToProfile(username)
 
   const onBrowseGitRepo = () =>
     _onBrowseGitRepo(
@@ -193,7 +185,7 @@ function ConnectedRow(ownProps: OwnProps) {
                       underline={true}
                       colorFollowing={true}
                       usernames={lastEditUser}
-                      onUsernameClicked={() => openUserTracker(lastEditUser)}
+                      onUsernameClicked={() => openUserProfile(lastEditUser)}
                     />
                   </Kb.Box2>
                 )}

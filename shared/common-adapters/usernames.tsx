@@ -4,7 +4,6 @@ import Text from './text'
 import {backgroundModeIsNegative} from './text.shared'
 import type {TextType, Background, StylesTextCrossPlatform, AllowedColors, LineClampType, TextTypeBold} from './text.shared'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
-import {useTrackerState} from '@/stores/tracker'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -94,7 +93,7 @@ function Username(p: UsernameProps) {
   if (onUsernameClicked === 'tracker') {
     onClicked = (evt?: React.BaseSyntheticEvent) => {
       evt?.stopPropagation()
-      useTrackerState.getState().dispatch.showTracker(username)
+      navToProfile(username)
     }
   } else if (onUsernameClicked === 'profile') {
     onClicked = (evt?: React.BaseSyntheticEvent) => {

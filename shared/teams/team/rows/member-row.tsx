@@ -4,7 +4,6 @@ import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useTrackerState} from '@/stores/tracker'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 
@@ -18,7 +17,6 @@ export type Props = {
   onOpenProfile: () => void
   onReAddToTeam: () => void
   onRemoveFromTeam: () => void
-  onShowTracker: () => void
   roleType: T.Teams.TeamRoleType
   status: T.Teams.MemberStatus
   teamID: T.Teams.TeamID
@@ -329,14 +327,6 @@ const Container = (ownProps: OwnProps) => {
   const onRemoveFromTeam = () => {
     removeMember(teamID, username)
   }
-  const showTracker = useTrackerState(s => s.dispatch.showTracker)
-  const onShowTracker = () => {
-    if (C.isMobile) {
-      navToProfile(username)
-    } else {
-      showTracker(username)
-    }
-  }
   const props = {
     firstItem,
     fullName: fullName,
@@ -347,7 +337,6 @@ const Container = (ownProps: OwnProps) => {
     onOpenProfile: onOpenProfile,
     onReAddToTeam: onReAddToTeam,
     onRemoveFromTeam: onRemoveFromTeam,
-    onShowTracker: onShowTracker,
     roleType: roleType,
     status: status,
     teamID: teamID,

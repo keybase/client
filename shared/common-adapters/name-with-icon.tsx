@@ -12,7 +12,6 @@ import ImageIcon from './image-icon'
 import Text from './text'
 import type {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} from './text.shared'
 import ConnectedUsernames from './usernames'
-import {useTrackerState} from '@/stores/tracker'
 import {useFollowerState} from '@/stores/followers'
 import {navToProfile} from '@/constants/router'
 
@@ -426,10 +425,6 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
       navigateAppend({name: 'team', params: {teamID}})
     }
   }
-  const showTracker = useTrackerState(s => s.dispatch.showTracker)
-  const onOpenTracker = () => {
-    username && showTracker(username)
-  }
   const onOpenUserProfile = () => {
     username && navToProfile(username)
   }
@@ -438,11 +433,7 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
   let clickType: NameWithIconProps['clickType'] = 'onClick'
   switch (onClick) {
     case 'tracker': {
-      if (!C.isMobile) {
-        if (username) {
-          functionOnClick = onOpenTracker
-        }
-      } else if (username) {
+      if (username) {
         functionOnClick = onOpenUserProfile
       } else if (teamID) {
         functionOnClick = onOpenTeamProfile
