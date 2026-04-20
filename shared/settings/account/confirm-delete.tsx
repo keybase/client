@@ -1,6 +1,9 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import * as T from '@/constants/types'
+import logger from '@/logger'
+import {makePhoneError} from '@/stores/settings-phone'
 import * as PhoneUtil from '@/util/phone-numbers'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useSettingsEmailState} from '@/stores/settings-email'
@@ -22,14 +25,24 @@ const DeleteModal = (props: OwnProps) => {
   const onCancel = () => nav.safeNavigateUp()
   const deletePhoneNumber = C.useRPC(T.RPCGen.phoneNumbersDeletePhoneNumberRpcPromise)
   const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
+  const [error, setError] = React.useState('')
   const onConfirm = () => {
     if (itemType === 'phone') {
-      deletePhoneNumber([{phoneNumber: itemAddress}], () => {}, () => {})
+      setError('')
+      deletePhoneNumber(
+        [{phoneNumber: itemAddress}],
+        () => {
+          nav.safeNavigateUp()
+        },
+        error_ => {
+          logger.warn('Error deleting phone number', error_)
+          setError(makePhoneError(error_))
+        }
+      )
     } else {
       editEmail({delete: true, email: itemAddress})
+      nav.safeNavigateUp()
     }
-
-    nav.safeNavigateUp()
   }
 
   const icon =
@@ -74,6 +87,7 @@ const DeleteModal = (props: OwnProps) => {
       icon={icon}
       prompt={prompt}
       description={description}
+      error={error}
       onCancel={onCancel}
       onConfirm={onConfirm}
       confirmText="Yes, delete"

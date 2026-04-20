@@ -3,12 +3,14 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import EmailPhoneRow from './email-phone-row'
+import logger from '@/logger'
 import {openURL} from '@/util/misc'
 import {loadSettings} from '../load-settings'
 import {useNavigation, type NavigationProp} from '@react-navigation/native'
 import {useIsFocused} from '@react-navigation/core'
+import {useConfigState} from '@/stores/config'
 import {usePWState} from '@/stores/settings-password'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {makePhoneError, useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {type settingsAccountTab, settingsPasswordTab} from '@/constants/settings'
 import type {SettingsAccountRouteParams} from '../routes'
@@ -183,6 +185,7 @@ const AccountSettings = ({route}: Props) => {
   const isFocused = useIsFocused()
   const emails = useSettingsEmailState(s => s.emails)
   const phones = useSettingsPhoneState(s => s.phones)
+  const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
   const deletePhoneNumber = C.useRPC(T.RPCGen.phoneNumbersDeletePhoneNumberRpcPromise)
   const [addedEmail, setAddedEmail] = React.useState(addedEmailFromRoute ?? '')
   const [addedPhone, setAddedPhone] = React.useState(addedPhoneFromRoute)
@@ -196,7 +199,10 @@ const AccountSettings = ({route}: Props) => {
     deletePhoneNumber(
       [{phoneNumber: phone}],
       () => {},
-      () => {}
+      error => {
+        logger.warn('Error deleting superseded phone number', error)
+        setGlobalError(new Error(makePhoneError(error)))
+      }
     )
   }
   React.useEffect(() => {
