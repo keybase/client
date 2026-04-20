@@ -58,6 +58,28 @@ Move it to component state if it is:
 
 Notification-fed UI does not automatically make state global. If a notification only updates a transient banner or screen-local status, keep the trigger where it already lands but move the rendered UI state into the owning screen unless multiple unrelated entry points truly need to read it.
 
+Prefer the typed engine listener layer over store plumbing when:
+
+- An engine action is only a screen-local refresh, prompt, or UI nudge
+- The owning UI can safely miss the event while unmounted because it reloads on focus/mount
+- No durable shared cache or badge state needs to be updated for other screens
+
+Keep store-owned `onEngineIncomingImpl` handling when:
+
+- The action updates shared caches, unread counts, badge counts, or other durable background state
+- The effect must be retained while the screen is unmounted
+- Multiple unrelated features need the same derived state
+
+For this repo, the preferred shape is:
+
+```tsx
+useEngineActionListener('keybase.1.homeUI.homeUIRefresh', () => {
+  reload(false, true)
+})
+```
+
+and let `shared/constants/init/shared.tsx` remain the single engine entrypoint that fans out to both global stores and typed feature listeners.
+
 Move it to route params if it is:
 
 - Data screen A already knows and screen B only needs for that navigation
@@ -133,6 +155,7 @@ Look for:
 - Components calling `dispatch.*`
 - Notification handlers keeping the store in sync
 - Navigation calls that could carry explicit params instead
+- Engine actions that only poke one mounted feature through a store-owned `onEngineIncomingImpl`
 
 ### 2. Build a keep-or-move table
 
@@ -150,8 +173,10 @@ Also label cross-store callback seams:
 
 - `keep-init-plumbing`
 - `replace-direct-import`
+- `replace-engine-bridge`
 
 Use `replace-direct-import` when a `dispatch.defer.*` field only forwards to a leaf-like store and there is no import-cycle risk.
+Use `replace-engine-bridge` when a store field or action exists only to bounce an engine event into one mounted feature.
 
 ### 3. Move screen-owned RPCs into components
 
@@ -176,6 +201,8 @@ Keep waiting keys when they drive UI. If the store only existed to wrap that RPC
 ### 4. Move per-screen flow state into components
 
 Use `React.useState`, `React.useEffect`, and existing screen hooks. In plain `.tsx` files, use `Kb.*` components rather than raw DOM elements.
+
+When the only remaining engine dependency is a mounted-screen reaction, subscribe in the component with the typed engine listener layer and keep navigation lifecycle in focus/blur hooks rather than `init/shared.tsx`.
 
 If a helper hook, pure helper, or constant is only used by one component or one file, define it in that file instead of creating a sibling module. Split code out only when it is shared across files or the extracted boundary is meaningfully clearer than simple colocation.
 

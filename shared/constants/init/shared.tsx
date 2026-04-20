@@ -21,13 +21,13 @@ import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseChatStateType from '@/stores/chat'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
-import type * as UsePeopleStateType from '@/stores/people'
 import type * as UsePinentryStateType from '@/stores/pinentry'
 import type * as UseSettingsPasswordStateType from '@/stores/settings-password'
 import type * as UseTeamsStateType from '@/stores/teams'
 import type * as UseTracker2StateType from '@/stores/tracker'
 import type * as UnlockFoldersType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
+import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {getTBStore} from '@/stores/team-building'
 import {getSelectedConversation} from '@/constants/chat/common'
 import {emitDeepLink} from '@/router-v2/linking'
@@ -42,7 +42,6 @@ import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
 import {useFSState} from '@/stores/fs'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {usePeopleState} from '@/stores/people'
 import {useProvisionState} from '@/stores/provision'
 import {useShellState} from '@/stores/shell'
 import {useSettingsEmailState} from '@/stores/settings-email'
@@ -376,15 +375,6 @@ export const initSharedSubscriptions = () => {
         }
       }
 
-      // Clear "just signed up email" when you leave the people tab after signup
-      if (prev && Util.getTab(prev) === Tabs.peopleTab && next && Util.getTab(next) !== Tabs.peopleTab) {
-        clearSignupEmail()
-      }
-
-      if (prev && Util.getTab(prev) === Tabs.peopleTab && next && Util.getTab(next) !== Tabs.peopleTab) {
-        usePeopleState.getState().dispatch.markViewed()
-      }
-
       if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
         useTeamsState.getState().dispatch.clearNavBadges()
       }
@@ -490,12 +480,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
         useFSState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.homeUI.homeUIRefresh':
-      {
-        const {usePeopleState} = require('@/stores/people') as typeof UsePeopleStateType
-        usePeopleState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case 'keybase.1.NotifyEmailAddress.emailAddressVerified':
@@ -657,4 +641,5 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     default:
   }
   useConfigState.getState().dispatch.onEngineIncoming(action)
+  notifyEngineActionListeners(action)
 }

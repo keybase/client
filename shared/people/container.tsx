@@ -1,21 +1,23 @@
 import * as C from '@/constants'
-import {ignorePromise} from '@/constants/utils'
+import {ignorePromise, RPCError, isNetworkErr} from '@/constants/utils'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
+import {useNavigation} from '@react-navigation/native'
 import {isMobile} from '@/constants/platform'
 import type {DebouncedFunc} from 'lodash'
 import debounce from 'lodash/debounce'
 import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'
+import logger from '@/logger'
 import People from '.'
 import * as T from '@/constants/types'
+import {useEngineActionListener} from '@/engine/action-listener'
 import {useFollowerState} from '@/stores/followers'
-import {usePeopleState} from '@/stores/people'
 import {useCurrentUserState} from '@/stores/current-user'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import {navToProfile} from '@/constants/router'
-import {useSignupEmail} from './signup-email'
+import {clearSignupEmail, useSignupEmail} from './signup-email'
 
 const getPeopleDataWaitingKey = 'getPeopleData'
 const waitToRefresh = 1000 * 60 * 5
@@ -24,6 +26,24 @@ const defaultNumFollowSuggestions = 10
 const maxDate = (times: Array<number>) => new Date(Math.max(...times))
 const todoTypeEnumToType = invert(T.RPCGen.HomeScreenTodoType) as {
   [K in T.People.TodoTypeEnum]: T.People.TodoType
+}
+
+const markViewed = () => {
+  const f = async () => {
+    try {
+      await T.RPCGen.homeHomeMarkViewedRpcPromise()
+    } catch (error) {
+      if (!(error instanceof RPCError)) {
+        throw error
+      }
+      if (isNetworkErr(error.code)) {
+        logger.warn('Network error calling homeMarkViewed')
+      } else {
+        throw error
+      }
+    }
+  }
+  ignorePromise(f())
 }
 
 const todoTypeToInstructions: {[K in T.People.TodoType]: string} = {
@@ -396,12 +416,11 @@ const PeopleReloadable = () => {
     setResentEmail,
     skipTodo,
   } = usePeoplePageState()
-  const refreshCount = usePeopleState(s => s.refreshCount)
+  const navigation = useNavigation()
   const username = useCurrentUserState(s => s.username)
   const signupEmail = useSignupEmail()
   const waiting = C.Waiting.useAnyWaiting(getPeopleDataWaitingKey)
   const lastRefreshRef = React.useRef(0)
-  const lastSeenRefreshRef = React.useRef(refreshCount)
   const didInitialLoadRef = React.useRef(false)
 
   const getData = React.useEffectEvent((markViewed = true, force = false) => {
@@ -411,13 +430,6 @@ const PeopleReloadable = () => {
       loadPeople(markViewed, 10)
     }
   })
-
-  React.useEffect(() => {
-    if (refreshCount !== lastSeenRefreshRef.current) {
-      lastSeenRefreshRef.current = refreshCount
-      getData(false, true)
-    }
-  }, [refreshCount])
 
   React.useEffect(() => {
     if (!didInitialLoadRef.current) {
@@ -431,6 +443,16 @@ const PeopleReloadable = () => {
   const onReload = (isRetry?: boolean) => getData(false, isRetry === true || !followSuggestions.length)
 
   C.Router2.useSafeFocusEffect(onReload)
+  useEngineActionListener('keybase.1.homeUI.homeUIRefresh', () => {
+    getData(false, true)
+  })
+
+  React.useEffect(() => {
+    return navigation.addListener('blur', () => {
+      clearSignupEmail()
+      markViewed()
+    })
+  }, [navigation])
 
   return (
     <Kb.Reloadable onReload={onReload} reloadOnMount={false} waitingKeys={getPeopleDataWaitingKey}>

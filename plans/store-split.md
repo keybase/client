@@ -6,11 +6,13 @@ Optimize for store reduction, not store proliferation. Avoid splitting `modal-he
 
 For this repo, assume most RPCs hit a local service and are cheap. Default toward reloading in the owning component instead of keeping a convenience cache unless the data truly needs to survive navigation or serve unrelated entry points.
 
+Cross-cutting rule: when an engine action is only a screen-local refresh or prompt nudge, prefer the typed engine listener layer over a one-field store or an `init/shared.tsx` forwarding shim.
+
 Recommended implementation order:
 
 - [x] `settings-email`
 - [x] `settings-phone`
-- [ ] `people`
+- [x] `people`
 - [ ] `recover-password`
 - [ ] `settings-password`
 - [ ] `tracker`
@@ -71,7 +73,7 @@ Current shape:
 Planned change:
 
 - Remove `refreshCount` from Zustand.
-- Subscribe the People feature directly to `homeUIRefresh`, or move the refresh trigger to a People-local helper module if direct wiring is cleaner.
+- Subscribe the People feature directly to `homeUIRefresh` via the typed engine listener layer.
 - Move `markViewed` into the People feature layer.
 - Delete `shared/stores/people.tsx` if nothing durable remains.
 
@@ -79,6 +81,10 @@ Public/API impact:
 
 - Remove init wiring that only forwards `homeUIRefresh` into the People store.
 - Update People feature code to own its own refresh/mark-viewed behavior.
+
+Cross-cutting impact:
+
+- Add a typed engine action listener primitive so later store-pruning passes can move ephemeral engine nudges straight into feature code.
 
 ### 4. Delete `recover-password` store by moving callbacks to `flow-handles`
 
@@ -222,6 +228,7 @@ Critical scenarios:
 ## Assumptions And Defaults
 
 - Prefer route params or local feature state over creating new one-field stores.
+- Prefer the typed engine listener layer over store plumbing when an engine event only nudges mounted feature UI and can be safely missed while unmounted.
 - Keep notification-backed shared caches unless they are clearly just convenience state for one screen.
 - `modal-header` is not a restructuring target beyond extracting route-owned or screen-owned values.
 - `settings-password` may remain unchanged if there is no clean merge target.
