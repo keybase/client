@@ -71,6 +71,39 @@ import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__ ? (globalThis.__hmr_startupOnce ?? false) : false
 
 const _sharedUnsubs: Array<() => void> = __DEV__ ? (globalThis.__hmr_sharedUnsubs ??= []) : []
+const getAccountsWaitKey = 'config.getAccounts'
+
+const loadConfiguredAccountsForBootstrap = () => {
+  const configState = useConfigState.getState()
+  if (configState.configuredAccounts.length) {
+    return
+  }
+
+  const version = useDaemonState.getState().handshakeVersion
+  const handshakeWait = !configState.loggedIn
+  const refreshAccounts = configState.dispatch.refreshAccounts
+  const {wait} = useDaemonState.getState().dispatch
+
+  const f = async () => {
+    try {
+      if (handshakeWait) {
+        wait(getAccountsWaitKey, version, true)
+      }
+
+      await refreshAccounts()
+
+      if (handshakeWait && useDaemonState.getState().handshakeWaiters.get(getAccountsWaitKey)) {
+        wait(getAccountsWaitKey, version, false)
+      }
+    } catch {
+      if (handshakeWait && useDaemonState.getState().handshakeWaiters.get(getAccountsWaitKey)) {
+        wait(getAccountsWaitKey, version, false, "Can't get accounts")
+      }
+    }
+  }
+
+  ignorePromise(f())
+}
 
 export const onEngineConnected = () => {
   {
@@ -205,22 +238,14 @@ export const initSharedSubscriptions = () => {
           clearSignupEmail()
           clearSignupDeviceNameDraft()
         }
-        useDaemonState.getState().dispatch.loadDaemonAccounts(
-          s.configuredAccounts.length,
-          s.loggedIn,
-          useConfigState.getState().dispatch.refreshAccounts
-        )
+        loadConfiguredAccountsForBootstrap()
         if (!s.loggedInCausedbyStartup) {
           ignorePromise(useConfigState.getState().dispatch.refreshAccounts())
         }
       }
 
       if (s.revokedTrigger !== old.revokedTrigger) {
-        useDaemonState.getState().dispatch.loadDaemonAccounts(
-          s.configuredAccounts.length,
-          s.loggedIn,
-          useConfigState.getState().dispatch.refreshAccounts
-        )
+        loadConfiguredAccountsForBootstrap()
       }
 
       if (s.configuredAccounts !== old.configuredAccounts) {
@@ -250,12 +275,7 @@ export const initSharedSubscriptions = () => {
       if (s.handshakeVersion !== old.handshakeVersion) {
         useDarkModeState.getState().dispatch.loadDarkPrefs()
         useChatState.getState().dispatch.loadStaticConfig()
-        const configState = useConfigState.getState()
-        s.dispatch.loadDaemonAccounts(
-          configState.configuredAccounts.length,
-          configState.loggedIn,
-          useConfigState.getState().dispatch.refreshAccounts
-        )
+        loadConfiguredAccountsForBootstrap()
       }
 
       if (s.bootstrapStatus !== old.bootstrapStatus) {

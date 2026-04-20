@@ -4,10 +4,6 @@ import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {maxHandshakeTries} from '@/constants/values'
 
-// Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
-// normally this wouldn't be worth it but this is startup
-const getAccountsWaitKey = 'config.getAccounts'
-
 type Store = T.Immutable<{
   bootstrapStatus?: T.RPCGen.BootstrapStatus
   error?: Error
@@ -30,11 +26,6 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    loadDaemonAccounts: (
-      configuredAccountsLength: number,
-      loggedIn: boolean,
-      refreshAccounts: () => Promise<void>
-    ) => void
     loadDaemonBootstrapStatus: () => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
@@ -115,48 +106,6 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
     daemonHandshakeDone: () => {
       get().dispatch.setState('done')
     },
-    loadDaemonAccounts: (
-      configuredAccountsLength: number,
-      loggedIn: boolean,
-      refreshAccounts: () => Promise<void>
-    ) => {
-      const f = async () => {
-        const version = get().handshakeVersion
-        if (configuredAccountsLength) {
-          // bail on already loaded
-          return
-        }
-
-        // did we beat getBootstrapStatus?
-        const handshakeWait = !loggedIn
-
-        const {wait} = get().dispatch
-        try {
-          if (handshakeWait) {
-            wait(getAccountsWaitKey, version, true)
-          }
-
-          await refreshAccounts()
-
-          if (handshakeWait) {
-            // someone dismissed this already?
-            const {handshakeWaiters} = get()
-            if (handshakeWaiters.get(getAccountsWaitKey)) {
-              wait(getAccountsWaitKey, version, false)
-            }
-          }
-        } catch {
-          if (handshakeWait) {
-            // someone dismissed this already?
-            const {handshakeWaiters} = get()
-            if (handshakeWaiters.get(getAccountsWaitKey)) {
-              wait(getAccountsWaitKey, version, false, "Can't get accounts")
-            }
-          }
-        }
-      }
-      ignorePromise(f())
-    },
     // set to true so we reget status when we're reachable again
     loadDaemonBootstrapStatus: async () => {
       const version = get().handshakeVersion
@@ -179,8 +128,8 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
       // if we're logged in act like getAccounts is done already
       if (s.loggedIn) {
         const {handshakeWaiters} = get()
-        if (handshakeWaiters.get(getAccountsWaitKey)) {
-          wait(getAccountsWaitKey, version, false)
+        if (handshakeWaiters.get('config.getAccounts')) {
+          wait('config.getAccounts', version, false)
         }
       }
     },
