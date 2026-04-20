@@ -409,7 +409,7 @@ const getAdapterProps = (
 }
 
 export type ConnectedNameWithIconProps = {
-  onClick?: 'tracker' | 'profile' | NameWithIconProps['onClick']
+  onClick?: 'profile' | NameWithIconProps['onClick']
 } & Omit<NameWithIconProps, 'onClick'>
 
 type OwnProps = ConnectedNameWithIconProps
@@ -432,14 +432,6 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
   let functionOnClick: NameWithIconProps['onClick']
   let clickType: NameWithIconProps['clickType'] = 'onClick'
   switch (onClick) {
-    case 'tracker': {
-      if (username) {
-        functionOnClick = onOpenUserProfile
-      } else if (teamID) {
-        functionOnClick = onOpenTeamProfile
-      }
-      break
-    }
     case 'profile': {
       if (username) {
         functionOnClick = onOpenUserProfile

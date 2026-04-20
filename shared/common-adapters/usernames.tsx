@@ -29,7 +29,7 @@ export type Props = {
   joinerStyle?: StylesTextCrossPlatform
   lineClamp?: LineClampType
   notFollowingColorOverride?: AllowedColors
-  onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile'
+  onUsernameClicked?: ((username: string) => void) | 'profile'
   prefix?: string
   selectable?: boolean
   showAnd?: boolean
@@ -67,7 +67,7 @@ type UsernameProps = {
   joinerStyle?: StylesTextCrossPlatform
   lineClamp?: LineClampType
   notFollowingColorOverride?: AllowedColors
-  onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile'
+  onUsernameClicked?: ((username: string) => void) | 'profile'
   selectable?: boolean
   underline?: boolean
   showAnd: boolean
@@ -90,12 +90,7 @@ function Username(p: UsernameProps) {
   const broken = useUsersState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
 
   let onClicked: undefined | ((evt?: React.BaseSyntheticEvent) => void)
-  if (onUsernameClicked === 'tracker') {
-    onClicked = (evt?: React.BaseSyntheticEvent) => {
-      evt?.stopPropagation()
-      navToProfile(username)
-    }
-  } else if (onUsernameClicked === 'profile') {
+  if (onUsernameClicked === 'profile') {
     onClicked = (evt?: React.BaseSyntheticEvent) => {
       evt?.stopPropagation()
       navToProfile(username)
@@ -185,7 +180,7 @@ type UsernamesTextProps = {
   inlineGrammar?: boolean
   joinerStyle?: StylesTextCrossPlatform
   notFollowingColorOverride?: AllowedColors
-  onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile' | undefined
+  onUsernameClicked?: ((username: string) => void) | 'profile' | undefined
   selectable?: boolean
   inline?: boolean
   type: TextType
