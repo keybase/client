@@ -139,6 +139,9 @@ For listener-driven multi-step flows, separate callback plumbing from UI state:
 - If `incomingCallMap` or `customResponseIncomingCallMap` only need to keep live response handlers across navigation, move banners, form state, and selections out of the feature store first
 - Keep those live handlers in a dedicated transient handle module such as `shared/stores/flow-handles.tsx`, not in a feature store field or a per-feature singleton map
 - Model the shared handle module after existing `dispatch.dynamic.*` patterns: use an `owner` plus `slot` for named handlers, and keyed one-shot registrations for cases like confirm screens that need an opaque token in route params
+- Prefer scoped registrations that return a disposer, and keep that disposer next to the registration site. Call it in `finally`, effect cleanup, or other owner teardown paths instead of reconstructing cleanup later from owner/slot strings.
+- Clear named handlers when the flow step or RPC finishes. Do not rely on an `active`/stale guard alone, because leaving closures in the registry retains response objects and can leak memory. If an older flow can finish after a newer one starts, the disposer must be token- or generation-scoped so the old `finally` does not clear the new handlers.
+- For keyed handlers, also keep a disposer and call it if the owning route or flow exits without consuming the token. Consuming the token should remain one-shot, and disposer cleanup after consume should be a no-op.
 - Add thin feature-local wrappers next to the flow, for example `registerResetPrompt` or `submitResetPrompt`, so most call sites stay typed and readable
 - Register the module's `clearAll` with the shared reset plumbing so `resetAllStores()` clears these runtime handles too
 - Do not put screen data, waiting state, validation errors, or caches into the transient handle module. It is only for live callbacks or resolvers that must survive route changes

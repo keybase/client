@@ -103,6 +103,9 @@ Planned change:
   - submit paper key
   - submit password
   - submit reset password
+- Use scoped `flow-handles` registrations that return disposers and keep those disposers local to the flow owner.
+- Clear those named handlers when each step or the listener finishes; do not rely only on an inactive guard, and use generation-safe cleanup so an older flow cannot wipe handlers from a newer restart.
+- Dispose keyed handlers too if the owning route or listener exits before the token is consumed.
 - Move `resetEmailSent` into route params or local screen state.
 - Move orchestration into a recover-password feature module, not a store.
 - Update screens to read explicit params/handlers rather than selecting `dispatch.dynamic.*`.

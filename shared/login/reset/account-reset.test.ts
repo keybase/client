@@ -161,3 +161,37 @@ test('submitResetPrompt sends nothing responses back to the login flow', async (
   expect(result).toHaveBeenCalledWith(T.RPCGen.ResetPromptResponse.nothing)
   expect(mockNavUpToScreen).toHaveBeenCalledWith('login')
 })
+
+test('enterResetPipeline disposes an unconsumed reset prompt when the listener exits', async () => {
+  const result = jest.fn()
+  let finishListener = () => {}
+
+  jest.spyOn(T.RPCGen, 'accountEnterResetPipelineRpcListener').mockImplementation(async listener => {
+    listener.customResponseIncomingCallMap?.['keybase.1.loginUi.promptResetAccount']?.(
+      {
+        prompt: {
+          complete: {hasWallet: false},
+          t: T.RPCGen.ResetPromptType.complete,
+        },
+      } as any,
+      {result} as any
+    )
+    await new Promise<void>(resolve => {
+      finishListener = resolve
+    })
+    return undefined as any
+  })
+
+  enterResetPipeline({username: 'alice'})
+  await Promise.resolve()
+
+  const resetKey = mockNavigateAppend.mock.calls[mockNavigateAppend.mock.calls.length - 1]?.[0]?.params
+    ?.resetKey as string
+  finishListener()
+  await Promise.resolve()
+
+  submitResetPrompt(resetKey, T.RPCGen.ResetPromptResponse.confirmReset)
+
+  expect(result).not.toHaveBeenCalled()
+  expect(mockStartProvision).not.toHaveBeenCalled()
+})

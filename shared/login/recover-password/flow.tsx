@@ -5,7 +5,7 @@ import {ignorePromise, wrapErrors} from '@/constants/utils'
 import logger from '@/logger'
 import {startAccountReset} from '@/login/reset/account-reset'
 import {useConfigState} from '@/stores/config'
-import {callNamed, clearNamed, clearOwner, setNamed} from '@/stores/flow-handles'
+import {callNamed, clearOwner, setNamedScoped} from '@/stores/flow-handles'
 import {useProvisionState} from '@/stores/provision'
 import {rpcDeviceToDevice} from '@/constants/rpc-utils'
 import {RPCError} from '@/util/errors'
@@ -27,24 +27,8 @@ const slots = {
   submitPassword: 'submitPassword',
   submitResetPassword: 'submitResetPassword',
 } as const
-
-const clearSlots = (...slotNames: ReadonlyArray<(typeof slots)[keyof typeof slots]>) => {
-  slotNames.forEach(slot => clearNamed(owner, slot))
-}
-
-const setHandle = (active: () => boolean, slot: (typeof slots)[keyof typeof slots], handle?: (...args: Array<any>) => void) => {
-  setNamed(
-    owner,
-    slot,
-    handle
-      ? (...args: Array<any>) => {
-          if (active()) {
-            handle(...args)
-          }
-        }
-      : undefined
-  )
-}
+type Slot = (typeof slots)[keyof typeof slots]
+type ScopedHandle = ReturnType<typeof setNamedScoped>
 
 export const cancelRecoverPassword = () => callNamed(owner, slots.cancel)
 export const submitRecoverPasswordDeviceSelect = (deviceID?: T.Devices.DeviceID) =>
@@ -70,7 +54,29 @@ export const startRecoverPassword = ({
     }
     let active = true
     let hadError = false
+    const handles = new Map<Slot, ScopedHandle>()
     const isActive = () => active
+    const clearSlots = (...slotNames: ReadonlyArray<Slot>) => {
+      slotNames.forEach(slot => {
+        const handle = handles.get(slot)
+        if (handle) {
+          handle.dispose()
+          handles.delete(slot)
+        }
+      })
+    }
+    const setHandle = (slot: Slot, handle?: (...args: Array<any>) => void) => {
+      if (!handle) {
+        clearSlots(slot)
+        return
+      }
+      const scoped = setNamedScoped(owner, slot, (...args: Array<any>) => {
+        if (isActive()) {
+          handle(...args)
+        }
+      })
+      handles.set(slot, scoped)
+    }
     try {
       await T.RPCGen.loginRecoverPassphraseRpcListener({
         customResponseIncomingCallMap: {
@@ -82,9 +88,8 @@ export const startRecoverPassword = ({
               response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
               navigateUp()
             })
-            setHandle(isActive, slots.cancel, cancel)
+            setHandle(slots.cancel, cancel)
             setHandle(
-              isActive,
               slots.submitDeviceSelect,
               wrapErrors((deviceID?: T.Devices.DeviceID) => {
                 clear()
@@ -96,7 +101,6 @@ export const startRecoverPassword = ({
               })
             )
             setHandle(
-              isActive,
               slots.submitNoDevice,
               wrapErrors(() => {
                 clear()
@@ -111,7 +115,6 @@ export const startRecoverPassword = ({
               navigateAppend({name: 'recoverPasswordPromptResetPassword', params: {username}})
               const clear = () => clearSlots(slots.cancel, slots.submitResetPassword)
               setHandle(
-                isActive,
                 slots.submitResetPassword,
                 wrapErrors((action: T.RPCGen.ResetPromptResponse) => {
                   clear()
@@ -121,7 +124,6 @@ export const startRecoverPassword = ({
                 })
               )
               setHandle(
-                isActive,
                 slots.cancel,
                 wrapErrors(() => {
                   clear()
@@ -138,7 +140,6 @@ export const startRecoverPassword = ({
             if (params.pinentry.type === T.RPCGen.PassphraseType.paperKey) {
               const clear = () => clearSlots(slots.cancel, slots.submitPaperKey)
               setHandle(
-                isActive,
                 slots.cancel,
                 wrapErrors(() => {
                   clear()
@@ -147,7 +148,6 @@ export const startRecoverPassword = ({
                 })
               )
               setHandle(
-                isActive,
                 slots.submitPaperKey,
                 wrapErrors((passphrase: string) => {
                   clear()
@@ -164,7 +164,6 @@ export const startRecoverPassword = ({
             } else {
               const clear = () => clearSlots(slots.cancel, slots.submitPassword)
               setHandle(
-                isActive,
                 slots.cancel,
                 wrapErrors(() => {
                   clear()
@@ -172,7 +171,6 @@ export const startRecoverPassword = ({
                 })
               )
               setHandle(
-                isActive,
                 slots.submitPassword,
                 wrapErrors((passphrase: string) => {
                   clear()
@@ -224,6 +222,14 @@ export const startRecoverPassword = ({
         )
       }
     } finally {
+      clearSlots(
+        slots.cancel,
+        slots.submitDeviceSelect,
+        slots.submitNoDevice,
+        slots.submitPaperKey,
+        slots.submitPassword,
+        slots.submitResetPassword
+      )
       active = false
     }
     logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
