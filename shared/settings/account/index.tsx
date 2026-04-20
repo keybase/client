@@ -10,7 +10,7 @@ import {useIsFocused} from '@react-navigation/core'
 import {usePWState} from '@/stores/settings-password'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import {settingsAccountTab, settingsPasswordTab} from '@/constants/settings'
+import {type settingsAccountTab, settingsPasswordTab} from '@/constants/settings'
 import type {SettingsAccountRouteParams} from '../routes'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
@@ -173,9 +173,13 @@ type Props = {route: {params?: SettingsAccountRouteParams}}
 const AccountSettings = ({route}: Props) => {
   const addedEmailFromRoute = route.params?.addedEmailBannerEmail
   const addedPhoneFromRoute = !!route.params?.addedPhoneBanner
-  const navigation = useNavigation<
-    NavigationProp<Record<typeof settingsAccountTab, SettingsAccountRouteParams | undefined>, typeof settingsAccountTab>
-  >()
+  const navigation =
+    useNavigation<
+      NavigationProp<
+        Record<typeof settingsAccountTab, SettingsAccountRouteParams | undefined>,
+        typeof settingsAccountTab
+      >
+    >()
   const isFocused = useIsFocused()
   const emails = useSettingsEmailState(s => s.emails)
   const phones = useSettingsPhoneState(s => s.phones)
@@ -189,7 +193,11 @@ const AccountSettings = ({route}: Props) => {
   )
   const {navigateAppend, switchTab} = C.Router2
   const _onClearSupersededPhoneNumber = (phone: string) => {
-    deletePhoneNumber([{phoneNumber: phone}], () => {}, () => {})
+    deletePhoneNumber(
+      [{phoneNumber: phone}],
+      () => {},
+      () => {}
+    )
   }
   React.useEffect(() => {
     if (!addedEmailFromRoute) {
