@@ -4,26 +4,25 @@ import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import FollowButton from './follow-button'
 import ChatButton from '@/chat/chat-button'
-import {useTrackerState} from '@/stores/tracker'
 import * as FS from '@/stores/fs'
-import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useFeaturedBot} from '@/util/featured-bots'
 
-type OwnProps = {username: string}
+type OwnProps = {
+  blocked: boolean
+  followThem: boolean
+  followsYou: boolean
+  guiID: string
+  hidFromFollowers: boolean
+  onReload: () => void
+  state: T.Tracker.DetailsState
+  username: string
+}
 
 const Container = (ownProps: OwnProps) => {
-  const username = ownProps.username
-  const d = useTrackerState(s => s.getDetails(username))
-  const followThem = useFollowerState(s => s.following.has(username))
-  const followsYou = useFollowerState(s => s.followers.has(username))
+  const {blocked, followThem, followsYou, guiID, hidFromFollowers, onReload, state, username} = ownProps
   const isBot = !!useFeaturedBot(username)
-
-  const _guiID = d.guiID
   const _you = useCurrentUserState(s => s.username)
-  const blocked = d.blocked
-  const hidFromFollowers = d.hidFromFollowers
-  const state = d.state
 
   const navigateAppend = C.Router2.navigateAppend
   const _onAddToTeam = (username: string) => navigateAppend({name: 'profileAddToTeam', params: {username}})
@@ -31,8 +30,10 @@ const Container = (ownProps: OwnProps) => {
     FS.navToPath(T.FS.stringToPath(`/keybase/public/${username}`))
   const _onEditProfile = () => navigateAppend({name: 'profileEdit', params: {}})
 
-  const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
-  const _onFollow = changeFollow
+  const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
+  const _onFollow = (follow: boolean) => {
+    followUser([{follow, guiID}, C.waitingKeyTracker], onReload, () => {})
+  }
   const _onInstallBot = (username: string) => {
     navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
   }
@@ -40,20 +41,15 @@ const Container = (ownProps: OwnProps) => {
     navigateAppend({name: 'chatBlockingModal', params: {username}})
   const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
     FS.navToPath(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
-  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
-  const _onReload = (username: string) => {
-    loadProfile(username)
-  }
-  const onAccept = () => _onFollow(_guiID, true)
+  const onAccept = () => _onFollow(true)
   const onAddToTeam = () => _onAddToTeam(username)
   const onBrowsePublicFolder = () => _onBrowsePublicFolder(username)
   const onEditProfile = _you === username ? _onEditProfile : undefined
-  const onFollow = () => _onFollow(_guiID, true)
+  const onFollow = () => _onFollow(true)
   const onInstallBot = () => _onInstallBot(username)
   const onManageBlocking = () => _onManageBlocking(username)
   const onOpenPrivateFolder = () => _onOpenPrivateFolder(_you, username)
-  const onReload = () => _onReload(username)
-  const onUnfollow = () => _onFollow(_guiID, false)
+  const onUnfollow = () => _onFollow(false)
 
   if (blocked) {
     return (

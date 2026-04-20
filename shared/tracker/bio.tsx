@@ -1,56 +1,34 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useTrackerState} from '@/stores/tracker'
-import {useFollowerState} from '@/stores/followers'
-
-type OwnProps = {
+type Props = {
+  bio?: string
+  blocked: boolean
+  followThem: boolean
+  followersCount?: number
+  followingCount?: number
+  followsYou: boolean
+  fullname?: string
+  hidFromFollowers: boolean
   inTracker: boolean
+  location?: string
+  sbsDescription?: string
   username: string
 }
 
-const Container = (ownProps: OwnProps) => {
-  const {inTracker, username} = ownProps
-  const stateProps = useTrackerState(
-    C.useShallow(s => {
-      const d = s.getDetails(username)
-      const common = {
-        blocked: d.blocked,
-        followThem: undefined,
-        followersCount: undefined,
-        followingCount: undefined,
-        followsYou: undefined,
-        hidFromFollowers: d.hidFromFollowers,
-        location: undefined,
-        sbsDescription: undefined,
-      }
-
-      if (d.state === 'notAUserYet') {
-        const nonUser = s.getNonUserDetails(username)
-        return {
-          ...common,
-          bio: nonUser.bio,
-          followThem: false,
-          followsYou: false,
-          fullname: nonUser.fullName,
-          sbsDescription: nonUser.description,
-        }
-      } else {
-        return {
-          ...common,
-          bio: d.bio,
-          followersCount: d.followersCount,
-          followingCount: d.followingCount,
-          fullname: d.fullname,
-          location: d.location,
-        }
-      }
-    })
-  )
-  const {bio, followersCount, followingCount, fullname, location, blocked, hidFromFollowers, sbsDescription} =
-    stateProps
-  const followThem = useFollowerState(s => s.following.has(username))
-  const followsYou = useFollowerState(s => s.followers.has(username))
-
+const Container = (props: Props) => {
+  const {
+    bio,
+    blocked,
+    followThem,
+    followersCount,
+    followingCount,
+    followsYou,
+    fullname,
+    hidFromFollowers,
+    inTracker,
+    location,
+    sbsDescription,
+    username,
+  } = props
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
       <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">

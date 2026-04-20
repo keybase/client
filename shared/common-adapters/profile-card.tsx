@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import * as Platforms from '@/util/platforms'
-import * as Tracker from '@/stores/tracker'
 import type * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {Box2} from './box'
@@ -20,9 +19,10 @@ import WithTooltip from './with-tooltip'
 import DelayedMounting from './delayed-mounting'
 import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
 import type ChatButtonType from '../chat/chat-button'
-import {useTrackerState} from '@/stores/tracker'
 import type {MeasureRef} from './measure-ref'
 import {navToProfile} from '@/constants/router'
+import {useTrackerProfile} from '@/tracker/use-profile'
+import {noAssertion} from '@/tracker/model'
 
 const positionFallbacks = ['top center', 'bottom center'] as const
 
@@ -89,7 +89,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
       centerChildren={true}
     >
       {serviceIdsShowing.map(serviceId => {
-        const assertion = services.get(serviceId) || Tracker.noAssertion
+        const assertion = services.get(serviceId) || noAssertion
         return (
           <Kb.WithTooltip
             key={serviceId}
@@ -135,7 +135,7 @@ const ProfileCard = ({
   username,
 }: Props) => {
   const {default: ChatButton} = require('../chat/chat-button') as {default: typeof ChatButtonType}
-  const userDetails = useTrackerState(s => s.getDetails(username))
+  const {details: userDetails, loadProfile} = useTrackerProfile(username)
   const followThem = useFollowerState(s => s.following.has(username))
   const followsYou = useFollowerState(s => s.followers.has(username))
   const isSelf = useCurrentUserState(s => s.username === username)
@@ -159,10 +159,6 @@ const ProfileCard = ({
     bio: userDetailsBio,
     fullname: userDetailsFullname,
   } = userDetails
-  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
-  React.useEffect(() => {
-    userDetailsState === 'unknown' && loadProfile(username)
-  }, [loadProfile, username, userDetailsState])
   // signal layout change when it happens, to prevent popup cutoff.
   React.useEffect(() => {
     onLayoutChange?.()
@@ -175,8 +171,9 @@ const ProfileCard = ({
     showFollowButton,
   ])
 
-  const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
-  const _changeFollow = (follow: boolean) => changeFollow(userDetails.guiID, follow)
+  const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
+  const _changeFollow = (follow: boolean) =>
+    followUser([{follow, guiID: userDetails.guiID}, C.waitingKeyTracker], () => loadProfile(false), () => {})
 
   const openProfile = () => {
     navToProfile(username)

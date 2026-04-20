@@ -4,25 +4,14 @@ import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import {useTeamsSubscribe} from '@/teams/subscriber'
-import {useTrackerState} from '@/stores/tracker'
 import {useCurrentUserState} from '@/stores/current-user'
 
 const Container = () => {
   const waiting = C.useWaitingState(s => s.counts)
-  const you = useCurrentUserState(s => s.username)
   const teamMeta = Teams.useTeamsState(s => s.teamMeta)
 
   const onPromote = Teams.useTeamsState(s => s.dispatch.setMemberPublicity)
   const teams = Teams.sortTeamsByName(teamMeta)
-
-  // Reload tracker profile when modal closes to reflect any showcase changes
-  React.useEffect(() => {
-    return () => {
-      setTimeout(() => {
-        useTrackerState.getState().dispatch.loadProfile(you)
-      }, 500)
-    }
-  }, [you])
 
   useTeamsSubscribe()
   return (

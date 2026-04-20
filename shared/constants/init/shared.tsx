@@ -23,7 +23,6 @@ import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UsePinentryStateType from '@/stores/pinentry'
 import type * as UseTeamsStateType from '@/stores/teams'
-import type * as UseTracker2StateType from '@/stores/tracker'
 import type * as UnlockFoldersType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
@@ -583,8 +582,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'keybase.1.NotifyTracking.trackingChanged': {
       const {isTracking, username} = action.payload.params
       useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
-      const {useTrackerState} = require('@/stores/tracker') as typeof UseTracker2StateType
-      useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
       break
     }
     case 'keybase.1.NotifyTracking.trackingInfo': {
@@ -600,18 +597,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       dispatch.replace(followers, following)
       break
     }
-    case 'keybase.1.identify3Ui.identify3Result':
-    case 'keybase.1.identify3Ui.identify3ShowTracker':
-    case 'keybase.1.NotifyUsers.userChanged':
     case 'keybase.1.NotifyTracking.notifyUserBlocked':
-    case 'keybase.1.identify3Ui.identify3UpdateRow':
-    case 'keybase.1.identify3Ui.identify3UserReset':
-    case 'keybase.1.identify3Ui.identify3UpdateUserCard':
-    case 'keybase.1.identify3Ui.identify3Summary':
-      {
-        const {useTrackerState} = require('@/stores/tracker') as typeof UseTracker2StateType
-        useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
-      }
       {
         const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
         useUsersState.getState().dispatch.onEngineIncomingImpl(action)

@@ -32,9 +32,9 @@ Keep store-owned engine handling when any of these are true:
 ## Candidate Audit Order
 
 - [x] `people`
-- [ ] `tracker` transient identify/session events
-  - Re-check `identify3ShowTracker` and `showTrackerSet` first
-  - Keep durable profile caches in the store unless a later refactor proves otherwise
+- [x] `tracker` transient identify/session events
+  - `identify3ShowTracker` and related identify session updates now subscribe from the desktop tracker proxy instead of `init/shared.tsx`
+  - The tracker store was removed; desktop popup state now lives in the proxy and profile screens reload from service-backed hooks instead of keeping a durable tracker cache warm
 - [ ] `pinentry`
   - Evaluate whether the prompt ownership can move to a feature-local listener plus flow handles
   - Keep the current store if the response/session lifecycle still needs a global owner

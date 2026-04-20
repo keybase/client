@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
 import {useColorScheme} from 'react-native'
-import {useTrackerState} from '@/stores/tracker'
 import Modal from '../modal'
 import {SiteIcon} from './shared'
 import {normalizeProofUsername} from '../proof-utils'
@@ -109,7 +108,6 @@ type Step =
 
 const Container = ({platform, reason = 'profile'}: Props) => {
   const currentUsername = useCurrentUserState(s => s.username)
-  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
   const {proofSuggestions} = useProofSuggestions()
   const registerCryptoAddress = C.useRPC(T.RPCGen.cryptocurrencyRegisterAddressRpcPromise)
   const isDarkMode = useColorScheme() === 'dark'
@@ -168,8 +166,6 @@ const Container = ({platform, reason = 'profile'}: Props) => {
     }
   }, [])
 
-  const loadCurrentProfile = () => loadProfile(currentUsername, false)
-
   const closeModal = () => {
     cancelSession()
     navigateUp()
@@ -179,7 +175,6 @@ const Container = ({platform, reason = 'profile'}: Props) => {
     cancelSession()
     clearModals()
     navToProfile(currentUsername)
-    loadCurrentProfile()
   }
 
   const checkProofAndNavigate = async (
