@@ -7,7 +7,6 @@ import {
   useNavigationBuilder,
   TabRouter,
   createNavigatorFactory,
-  type NavigationContainerRef,
 } from '@react-navigation/core'
 import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
 import {routeMapToScreenElements} from '@/router-v2/routes'
@@ -59,10 +58,7 @@ function LeftTabNavigator({
   })
 
   const selectedTab = state.routes[state.index]?.name ?? ''
-  const onSelectTab = Common.useSubnavTabAction(
-    navigation as unknown as NavigationContainerRef<object>,
-    state
-  )
+  const onSelectTab = Common.useSubnavTabAction(navigation, state)
 
   return (
     <NavigationContent>
@@ -95,7 +91,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 type NavType = NavigatorTypeBagBase & {
   ParamList: {
-    [key in keyof typeof cryptoSubRoutes]: undefined
+    [key in keyof typeof cryptoSubRoutes]: {}
   }
 }
 

@@ -307,7 +307,7 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
 
   if (replace) {
     if (visible?.name === routeName) {
-      params && n.dispatch(CommonActions.setParams(params))
+      n.dispatch(CommonActions.setParams(params))
       return
     } else {
       n.dispatch(StackActions.replace(routeName, params))
@@ -588,12 +588,7 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   const currentChatRoot = chatStackRoutes?.[0]
   const updatedRoutes = tabRoutes.map((route, i) => {
     if (i !== chatTabIndex) return route
-    const currentParams =
-      currentChatRoot?.name === 'chatRoot' &&
-      currentChatRoot.params &&
-      typeof currentChatRoot.params === 'object'
-        ? currentChatRoot.params
-        : undefined
+    const currentParams = currentChatRoot?.name === 'chatRoot' ? currentChatRoot.params : undefined
     return {
       ...route,
       state: {
