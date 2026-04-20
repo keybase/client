@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
+import {useNavigation} from '@react-navigation/native'
 import {useRequestLogout} from './use-request-logout'
 import {useRandomPWState} from './use-random-pw'
 
@@ -210,8 +211,14 @@ export const useSubmitNewPassword = (thenLogout: boolean) => {
 
 const Container = () => {
   const {randomPW} = useRandomPWState()
+  const navigation = useNavigation()
   const saveLabel = randomPW ? 'Create password' : 'Save'
   const {error, onSave, waitingForResponse} = useSubmitNewPassword(false)
+  const title = randomPW === undefined ? 'Password' : randomPW ? 'Set a password' : 'Change password'
+
+  React.useEffect(() => {
+    navigation.setOptions({title})
+  }, [navigation, title])
 
   const [hasPGPKeyOnServer, setHasPGPKeyOnServer] = React.useState<boolean | undefined>(undefined)
   const loadPgpSettings = C.useRPC(T.RPCGen.accountHasServerKeysRpcPromise)
