@@ -10,7 +10,7 @@ import {useIsFocused} from '@react-navigation/core'
 import {usePWState} from '@/stores/settings-password'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import {settingsAccountTab, settingsPasswordTab} from '@/constants/settings'
+import {type settingsAccountTab, settingsPasswordTab} from '@/constants/settings'
 import type {SettingsAccountRouteParams} from '../routes'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
@@ -62,22 +62,14 @@ const EmailPhone = ({onEmailVerificationSuccess}: {onEmailVerificationSuccess: (
           find you by phone number or email.{' '}
           <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
-            <Kb.Icon
-              type="iconfont-open-browser"
-              sizeType="Tiny"
-              color={Kb.Styles.globalColors.blueDark}
-            />
+            <Kb.Icon type="iconfont-open-browser" sizeType="Tiny" color={Kb.Styles.globalColors.blueDark} />
           </Kb.Text>
         </Kb.Text>
       </Kb.Box2>
       {!!contactKeys.length && (
         <Kb.Box2 direction="vertical" style={styles.contactRows} fullWidth={true}>
           {contactKeys.map(ck => (
-            <EmailPhoneRow
-              contactKey={ck}
-              key={ck}
-              onEmailVerificationSuccess={onEmailVerificationSuccess}
-            />
+            <EmailPhoneRow contactKey={ck} key={ck} onEmailVerificationSuccess={onEmailVerificationSuccess} />
           ))}
         </Kb.Box2>
       )}
@@ -180,18 +172,17 @@ type Props = {route: {params?: SettingsAccountRouteParams}}
 
 const AccountSettings = ({route}: Props) => {
   const addedEmailFromRoute = route.params?.addedEmailBannerEmail
-  const navigation = useNavigation<
-    NavigationProp<Record<typeof settingsAccountTab, SettingsAccountRouteParams | undefined>, typeof settingsAccountTab>
-  >()
+  const navigation =
+    useNavigation<
+      NavigationProp<
+        Record<typeof settingsAccountTab, SettingsAccountRouteParams | undefined>,
+        typeof settingsAccountTab
+      >
+    >()
   const isFocused = useIsFocused()
   const emails = useSettingsEmailState(s => s.emails)
   const [addedEmail, setAddedEmail] = React.useState(addedEmailFromRoute ?? '')
-  const {
-    _phones,
-    addedPhone,
-    clearAddedPhone,
-    editPhone,
-  } = useSettingsPhoneState(
+  const {_phones, addedPhone, clearAddedPhone, editPhone} = useSettingsPhoneState(
     C.useShallow(s => ({
       _phones: s.phones,
       addedPhone: s.addedPhone,
