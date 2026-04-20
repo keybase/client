@@ -5,8 +5,8 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {SignupScreen} from '@/signup/common'
 import type {ButtonType} from '@/common-adapters/button'
-import {useState as useRecoverState} from '@/stores/recover-password'
 import {enterResetPipeline} from '@/login/reset/account-reset'
+import {startRecoverPassword, submitRecoverPasswordReset} from './flow'
 
 export type Props = {
   resetPassword?: boolean
@@ -19,9 +19,6 @@ const PromptReset = (props: Props) => {
   const [error, setError] = React.useState('')
   const {resetPassword, skipPassword, username} = props
 
-  const submitResetPassword = useRecoverState(s => s.dispatch.dynamic.submitResetPassword)
-  const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
-
   const onContinue = () => {
     // dont do this in preflight
     if (C.androidIsTestDevice) {
@@ -29,7 +26,7 @@ const PromptReset = (props: Props) => {
       return
     }
     if (resetPassword) {
-      submitResetPassword?.(T.RPCGen.ResetPromptResponse.confirmReset)
+      submitRecoverPasswordReset(T.RPCGen.ResetPromptResponse.confirmReset)
     }
     if (skipPassword) {
       enterResetPipeline({onError: setError, username})

@@ -3,21 +3,19 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
-import {useState as useRecoverState} from '@/stores/recover-password'
+import {cancelRecoverPassword, submitRecoverPasswordPaperKey} from './flow'
 
 type Props = {route: {params: {error?: string}}}
 
 const PaperKey = ({route}: Props) => {
   const {error} = route.params
-  const cancel = useRecoverState(s => s.dispatch.dynamic.cancel)
-  const submitPaperKey = useRecoverState(s => s.dispatch.dynamic.submitPaperKey)
   const onBack = () => {
-    cancel?.()
+    cancelRecoverPassword()
   }
   const [paperKey, setPaperKey] = React.useState('')
   const onSubmit = () => {
     if (paperKey) {
-      submitPaperKey?.(paperKey)
+      submitRecoverPasswordPaperKey(paperKey)
     }
   }
 

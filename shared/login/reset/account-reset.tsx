@@ -3,7 +3,7 @@ import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
-import {consumeKeyed, registerKeyed} from '@/stores/flow-handles'
+import {consumeKeyed, registerKeyedScoped} from '@/stores/flow-handles'
 import {useProvisionState} from '@/stores/provision'
 import {RPCError} from '@/util/errors'
 
@@ -17,7 +17,7 @@ const resetOwner = 'reset'
 const resetPromptSlot = 'submitResetPrompt'
 
 const registerResetPrompt = (handle: (action: T.RPCGen.ResetPromptResponse) => void) =>
-  registerKeyed(resetOwner, resetPromptSlot, handle)
+  registerKeyedScoped(resetOwner, resetPromptSlot, handle)
 
 export const startAccountReset = (skipPassword: boolean, username: string) => {
   navigateAppend({name: 'recoverPasswordPromptResetAccount', params: {skipPassword, username}}, true)
@@ -26,6 +26,7 @@ export const startAccountReset = (skipPassword: boolean, username: string) => {
 export const enterResetPipeline = ({onError, password = '', username}: EnterResetPipelineParams) => {
   onError?.('')
   const f = async () => {
+    const pendingDisposers = new Set<() => void>()
     const promptReset = (
       params: T.RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'],
       response: {
@@ -35,7 +36,9 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
       if (params.prompt.t === T.RPCGen.ResetPromptType.complete) {
         const {hasWallet} = params.prompt.complete
         logger.info('Showing final reset screen')
-        const resetKey = registerResetPrompt((action: T.RPCGen.ResetPromptResponse) => {
+        let disposeRegistration = () => {}
+        const registration = registerResetPrompt((action: T.RPCGen.ResetPromptResponse) => {
+          pendingDisposers.delete(disposeRegistration)
           response.result(action)
           if (action === T.RPCGen.ResetPromptResponse.confirmReset) {
             useProvisionState.getState().dispatch.startProvision(username, true)
@@ -43,7 +46,9 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
             navUpToScreen('login')
           }
         })
-        navigateAppend({name: 'resetConfirm', params: {hasWallet, resetKey}}, true)
+        disposeRegistration = registration.dispose
+        pendingDisposers.add(disposeRegistration)
+        navigateAppend({name: 'resetConfirm', params: {hasWallet, resetKey: registration.key}}, true)
       } else {
         logger.info('Starting account reset process')
         response.result(T.RPCGen.ResetPromptResponse.nothing)
@@ -76,6 +81,9 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
       }
       logger.warn('Error resetting account:', error)
       onError?.(error.desc)
+    } finally {
+      pendingDisposers.forEach(dispose => dispose())
+      pendingDisposers.clear()
     }
   }
   ignorePromise(f())
