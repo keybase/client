@@ -14,6 +14,7 @@ import {copyToClipboard} from '@/util/storeless-actions'
 
 type OwnProps = {
   isSuggestion?: boolean
+  suggestion?: T.Tracker.Assertion
   username: string
   assertionKey: string
 }
@@ -46,7 +47,7 @@ const Container = (ownProps: OwnProps) => {
       let stellarHidden = false
       let notAUser = false as boolean
       if (ownProps.isSuggestion) {
-        val = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || Tracker.noAssertion
+        val = ownProps.suggestion || Tracker.noAssertion
       } else {
         const d = s.getDetails(ownProps.username)
         if (isYours && d.stellarHidden) {

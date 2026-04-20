@@ -42,7 +42,7 @@ export type Props = {
   reason: string
   sbsAvatarUrl?: string
   state: T.Tracker.DetailsState
-  suggestionKeys?: ReadonlyArray<string>
+  suggestions?: ReadonlyArray<T.Tracker.Assertion>
   userIsYou: boolean
   username: string
   name: string
@@ -138,8 +138,14 @@ const Proofs = (p: BioTeamProofsProps) => {
   if (p.assertionKeys) {
     assertions = [
       ...p.assertionKeys.map(a => <Assertion key={a} username={p.username} assertionKey={a} />),
-      ...(p.suggestionKeys || []).map(s => (
-        <Assertion isSuggestion={true} key={s} username={p.username} assertionKey={s} />
+      ...(p.suggestions || []).map(s => (
+        <Assertion
+          isSuggestion={true}
+          key={s.assertionKey}
+          username={p.username}
+          assertionKey={s.assertionKey}
+          suggestion={s}
+        />
       )),
     ]
   } else {
@@ -223,7 +229,7 @@ export type BioTeamProofsProps = {
   backgroundColorType: BackgroundColorType
   onEditAvatar?: (e?: React.BaseSyntheticEvent) => void
   notAUser: boolean
-  suggestionKeys?: ReadonlyArray<string>
+  suggestions?: ReadonlyArray<T.Tracker.Assertion>
   username: string
   reason: string
   name: string
@@ -400,7 +406,7 @@ const User = (props: {username: string}) => {
             serviceIcon={p.serviceIcon}
             reason={p.reason}
             sbsAvatarUrl={p.sbsAvatarUrl}
-            suggestionKeys={p.suggestionKeys}
+            suggestions={p.suggestions}
             onEditAvatar={p.onEditAvatar}
             notAUser={p.notAUser}
             fullName={p.fullName}
@@ -425,7 +431,7 @@ const User = (props: {username: string}) => {
     ] as const,
     [
       p.onAddIdentity, p.assertionKeys, p.backgroundColorType, p.username, p.name,
-      p.service, p.serviceIcon, p.reason, p.sbsAvatarUrl, p.suggestionKeys,
+      p.service, p.serviceIcon, p.reason, p.sbsAvatarUrl, p.suggestions,
       p.onEditAvatar, p.notAUser, p.fullName, p.title, chunks,
     ]
   )

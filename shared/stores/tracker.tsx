@@ -116,29 +116,6 @@ export const rpcAssertionToAssertion = (row: T.RPCGen.Identify3Row): T.Tracker.A
   wotProof: row.wotProof ?? undefined,
 })
 
-const rpcSuggestionToAssertion = (s: T.RPCGen.ProofSuggestion): T.Tracker.Assertion => {
-  const ourKey = s.key === 'web' ? 'dnsOrGenericWebSite' : s.key
-  return {
-    ...noAssertion,
-    // we have a special case where we want to differentiate between a dns or web proof, so we have a special pseudo type we use
-    assertionKey: ourKey,
-    belowFold: s.belowFold,
-    color: 'gray',
-    metas: (s.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})),
-    pickerSubtext: s.pickerSubtext,
-    pickerText: s.pickerText,
-    proofURL: '',
-    siteIcon: s.profileIcon || [],
-    siteIconDarkmode: s.profileIconDarkmode || [],
-    siteIconFull: s.pickerIcon || [],
-    siteIconFullDarkmode: s.pickerIconDarkmode || [],
-    siteURL: '',
-    state: 'suggestion',
-    type: ourKey,
-    value: s.profileText,
-  }
-}
-
 const guiIDToUsername = (state: State, guiID: string) => {
   const det = [...state.usernameToDetails.values()].find(d => d.guiID === guiID)
   return det ? det.username : null
@@ -151,12 +128,10 @@ export const showableWotEntry = (entry: T.Tracker.WebOfTrustEntry): boolean =>
 type Store = T.Immutable<{
   showTrackerSet: Set<string>
   usernameToDetails: Map<string, T.Tracker.Details>
-  proofSuggestions: Array<T.Tracker.Assertion>
   usernameToNonUserDetails: Map<string, T.Tracker.NonUserDetails>
 }>
 
 const initialStore: Store = {
-  proofSuggestions: [],
   showTrackerSet: new Set(),
   usernameToDetails: new Map(),
   usernameToNonUserDetails: new Map(),
@@ -166,7 +141,6 @@ export type State = Store & {
   dispatch: {
     changeFollow: (guiID: string, follow: boolean) => void
     closeTracker: (guiID: string) => void
-    getProofSuggestions: () => void
     ignore: (guiID: string) => void
     load: (p: {
       assertion: string
@@ -228,24 +202,6 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
         logger.info(`Closing tracker for assertion: ${username}`)
         s.showTrackerSet.delete(username)
       })
-    },
-    getProofSuggestions: () => {
-      const f = async () => {
-        try {
-          const {suggestions} = await T.RPCGen.userProofSuggestionsRpcPromise(
-            undefined,
-            S.waitingKeyTrackerProfileLoad
-          )
-          set(s => {
-            s.proofSuggestions = T.castDraft(suggestions?.map(rpcSuggestionToAssertion)) ?? []
-          })
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.error(`Error loading proof suggestions: ${error.message}`)
-          }
-        }
-      }
-      ignorePromise(f())
     },
     ignore: guiID => {
       const f = async () => {
@@ -547,7 +503,6 @@ export const useTrackerState = Z.createZustand<State>('tracker', (set, get) => {
             inTracker: false,
             reason: '',
           })
-          get().dispatch.getProofSuggestions()
           break
         }
         // This allows the server to send us a notification to *remove* (not add)

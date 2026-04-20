@@ -16,6 +16,7 @@ import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {navToProfile} from '@/constants/router'
 import {copyToClipboard} from '@/util/storeless-actions'
+import {useProofSuggestions} from '../use-proof-suggestions'
 
 type ProveGenericParams = {
   buttonLabel: string
@@ -109,7 +110,7 @@ type Step =
 const Container = ({platform, reason = 'profile'}: Props) => {
   const currentUsername = useCurrentUserState(s => s.username)
   const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
-  const proofSuggestions = useTrackerState(s => s.proofSuggestions)
+  const {proofSuggestions} = useProofSuggestions()
   const registerCryptoAddress = C.useRPC(T.RPCGen.cryptocurrencyRegisterAddressRpcPromise)
   const isDarkMode = useColorScheme() === 'dark'
   const {clearModals, navigateAppend, navigateUp} = C.Router2

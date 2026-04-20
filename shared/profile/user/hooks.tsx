@@ -6,6 +6,7 @@ import {useTrackerState} from '@/stores/tracker'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
 import {editAvatar} from '@/util/misc'
+import {useProofSuggestions} from '../use-proof-suggestions'
 
 const headerBackgroundColorType = (
   state: T.Tracker.DetailsState,
@@ -30,26 +31,23 @@ const headerBackgroundColorType = (
 const useUserData = (username: string) => {
   const myName = useCurrentUserState(s => s.username)
   const userIsYou = username === myName
+  const {proofSuggestions, reload: reloadProofSuggestions} = useProofSuggestions(userIsYou)
   const trackerState = useTrackerState(
     C.useShallow(s => {
-      const _suggestionKeys = userIsYou ? s.proofSuggestions : undefined
       return {
-        _suggestionKeys,
         d: s.getDetails(username),
-        getProofSuggestions: s.dispatch.getProofSuggestions,
         loadNonUserProfile: s.dispatch.loadNonUserProfile,
         loadProfile: s.dispatch.loadProfile,
         nonUserDetails: s.getNonUserDetails(username),
       }
     })
   )
-  const {d, getProofSuggestions, loadProfile, loadNonUserProfile, nonUserDetails, _suggestionKeys} =
-    trackerState
+  const {d, loadProfile, loadNonUserProfile, nonUserDetails} = trackerState
   const notAUser = d.state === 'notAUserYet'
 
   const commonProps = {
     _assertions: undefined,
-    _suggestionKeys: undefined,
+    _suggestions: undefined,
     blocked: d.blocked,
     followThem: false,
     followers: undefined,
@@ -86,7 +84,7 @@ const useUserData = (username: string) => {
       return {
         ...commonProps,
         _assertions: d.assertions,
-        _suggestionKeys,
+        _suggestions: proofSuggestions,
         backgroundColorType: headerBackgroundColorType(d.state, followThem),
         followThem,
         followers,
@@ -142,7 +140,7 @@ const useUserData = (username: string) => {
       loadProfile(username)
 
       if (isYou) {
-        getProofSuggestions()
+        reloadProofSuggestions()
       }
     }
   }
@@ -155,7 +153,7 @@ const useUserData = (username: string) => {
   }
 
   let allowOnAddIdentity = false
-  if (stateProps.userIsYou && stateProps._suggestionKeys?.some(s => s.belowFold)) {
+  if (stateProps.userIsYou && stateProps._suggestions?.some(s => s.belowFold)) {
     allowOnAddIdentity = true
   }
 
@@ -199,9 +197,7 @@ const useUserData = (username: string) => {
     service: stateProps.service,
     serviceIcon: stateProps.serviceIcon,
     state: stateProps.state,
-    suggestionKeys: stateProps._suggestionKeys
-      ? stateProps._suggestionKeys.filter(s => !s.belowFold).map(s => s.assertionKey)
-      : undefined,
+    suggestions: stateProps._suggestions ? stateProps._suggestions.filter(s => !s.belowFold) : undefined,
     title: stateProps.title,
     userIsYou: stateProps.userIsYou,
     username: stateProps.username,

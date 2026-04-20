@@ -17,7 +17,7 @@ Recommended implementation order:
 - [x] `people`
 - [x] `recover-password`
 - [x] `settings-password`
-- [ ] `tracker`
+- [x] `tracker`
 - [x] `team-building`
 - [ ] `modal-header` only for param/local-state extraction, not store splitting
 
@@ -176,9 +176,15 @@ Planned change:
   - move `proofSuggestions` closer to profile/proofs UI if it is not broadly shared
 - Keep follow/ignore/load orchestration with the cache until a later pass proves a narrower owner.
 
+Result:
+
+- Moved `proofSuggestions` out of `shared/stores/tracker.tsx` into a profile-local hook that reloads on mount and on mounted `NotifyUsers.userChanged`.
+- Updated profile consumers to pass suggestion assertions explicitly instead of reading them from the tracker store.
+- Kept `showTrackerSet` in the tracker store for now because desktop remote tracker windows still need a cross-feature session owner.
+
 Public/API impact:
 
-- Preserve existing read APIs until cache extraction is complete.
+- Remove tracker-store APIs related to proof suggestions.
 - Prefer thin feature helpers over exposing more transient state from the store.
 
 ### 8. Prune only the duplicated or screen-owned parts of `team-building`
