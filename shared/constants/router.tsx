@@ -38,11 +38,11 @@ type IsExactlyRecord<T> = string extends keyof T ? true : false
 type NavigatorParamsFromProps<P> =
   P extends Record<string, unknown>
     ? IsExactlyRecord<P> extends true
-      ? undefined
+      ? {}
       : keyof P extends never
-        ? undefined
+        ? {}
         : P
-    : undefined
+    : {}
 
 type LazyInnerComponent<COM extends React.LazyExoticComponent<any>> =
   COM extends React.LazyExoticComponent<infer Inner> ? Inner : never
@@ -289,15 +289,9 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
   if (!ns) {
     return
   }
-  let routeName: string | undefined
-  let params: object | undefined
-  if (typeof path === 'string') {
-    routeName = path
-  } else {
-    const nextPath = path as {name: string | number | symbol; params?: object}
-    routeName = typeof nextPath.name === 'string' ? nextPath.name : String(nextPath.name)
-    params = nextPath.params
-  }
+  const nextPath = path as {name: string | number | symbol; params: object}
+  const routeName = typeof nextPath.name === 'string' ? nextPath.name : String(nextPath.name)
+  const params = nextPath.params
   if (!routeName) {
     DEBUG_NAV && console.log('[Nav] navigateAppend no routeName bail', routeName)
     return
@@ -313,7 +307,7 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
 
   if (replace) {
     if (visible?.name === routeName) {
-      params && n.dispatch(CommonActions.setParams(params))
+      n.dispatch(CommonActions.setParams(params))
       return
     } else {
       n.dispatch(StackActions.replace(routeName, params))
@@ -594,12 +588,7 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   const currentChatRoot = chatStackRoutes?.[0]
   const updatedRoutes = tabRoutes.map((route, i) => {
     if (i !== chatTabIndex) return route
-    const currentParams =
-      currentChatRoot?.name === 'chatRoot' &&
-      currentChatRoot.params &&
-      typeof currentChatRoot.params === 'object'
-        ? currentChatRoot.params
-        : undefined
+    const currentParams = currentChatRoot?.name === 'chatRoot' ? currentChatRoot.params : undefined
     return {
       ...route,
       state: {

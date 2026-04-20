@@ -35,7 +35,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
 
   const setMemberPublicity = Teams.useTeamsState(s => s.dispatch.setMemberPublicity)
   const _onPublishTeam = (teamID: string) => {
-    navigateAppend('profileShowcaseTeamOffer')
+    navigateAppend({name: 'profileShowcaseTeamOffer', params: {}})
     setMemberPublicity(teamID, true)
   }
   const onAuthorClick = () => _onAuthorClick(teamID)

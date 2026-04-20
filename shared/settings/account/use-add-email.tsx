@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {useSettingsEmailState} from '@/stores/settings-email'
 import type {RPCError} from '@/util/errors'
 import {isValidEmail} from '@/util/simple-validators'
 
@@ -22,7 +21,6 @@ const makeAddEmailError = (err: RPCError): string => {
 
 export const useAddEmail = () => {
   const addEmail = C.useRPC(T.RPCGen.emailsAddEmailRpcPromise)
-  const setAddedEmail = useSettingsEmailState(s => s.dispatch.setAddedEmail)
   const waiting = C.Waiting.useAnyWaiting(C.addEmailWaitingKey)
   const [error, setError] = React.useState('')
 
@@ -49,7 +47,6 @@ export const useAddEmail = () => {
         C.addEmailWaitingKey,
       ],
       () => {
-        setAddedEmail(email)
         onSuccess(email)
       },
       error_ => {

@@ -1,14 +1,19 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import * as T from '@/constants/types'
-import type * as React from 'react'
 import EmailPhoneRow from './email-phone-row'
+import logger from '@/logger'
 import {openURL} from '@/util/misc'
 import {loadSettings} from '../load-settings'
+import {useNavigation, type NavigationProp} from '@react-navigation/native'
+import {useIsFocused} from '@react-navigation/core'
+import {useConfigState} from '@/stores/config'
 import {usePWState} from '@/stores/settings-password'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
+import {makePhoneError, useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import {settingsPasswordTab} from '@/constants/settings'
+import {type settingsAccountTab, settingsPasswordTab} from '@/constants/settings'
+import type {SettingsAccountRouteParams} from '../routes'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
@@ -32,7 +37,7 @@ const AddButton = (props: AddButtonProps) => (
   />
 )
 
-const EmailPhone = () => {
+const EmailPhone = ({onEmailVerificationSuccess}: {onEmailVerificationSuccess: (email: string) => void}) => {
   const navigateAppend = C.Router2.navigateAppend
   const _emails = useSettingsEmailState(s => s.emails)
   const _phones = useSettingsPhoneState(s => s.phones)
@@ -42,10 +47,10 @@ const EmailPhone = () => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsLoadSettings)
   const readMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/chat/phones-and-emails')
   const onAddEmail = () => {
-    navigateAppend('settingsAddEmail')
+    navigateAppend({name: 'settingsAddEmail', params: {}})
   }
   const onAddPhone = () => {
-    navigateAppend('settingsAddPhone')
+    navigateAppend({name: 'settingsAddPhone', params: {}})
   }
   return (
     <SettingsSection>
@@ -59,18 +64,14 @@ const EmailPhone = () => {
           find you by phone number or email.{' '}
           <Kb.Text type="BodySmallPrimaryLink" {...readMoreUrlProps}>
             Read more{' '}
-            <Kb.Icon
-              type="iconfont-open-browser"
-              sizeType="Tiny"
-              color={Kb.Styles.globalColors.blueDark}
-            />
+            <Kb.Icon type="iconfont-open-browser" sizeType="Tiny" color={Kb.Styles.globalColors.blueDark} />
           </Kb.Text>
         </Kb.Text>
       </Kb.Box2>
       {!!contactKeys.length && (
         <Kb.Box2 direction="vertical" style={styles.contactRows} fullWidth={true}>
           {contactKeys.map(ck => (
-            <EmailPhoneRow contactKey={ck} key={ck} />
+            <EmailPhoneRow contactKey={ck} key={ck} onEmailVerificationSuccess={onEmailVerificationSuccess} />
           ))}
         </Kb.Box2>
       )}
@@ -85,7 +86,7 @@ const EmailPhone = () => {
 const Password = () => {
   const navigateAppend = C.Router2.navigateAppend
   const onSetPassword = () => {
-    navigateAppend(settingsPasswordTab)
+    navigateAppend({name: settingsPasswordTab, params: {}})
   }
   const hasPassword = usePWState(s => !s.randomPW)
   let passwordLabel: string
@@ -146,7 +147,7 @@ const WebAuthTokenLogin = () => {
 const DeleteAccount = () => {
   const navigateAppend = C.Router2.navigateAppend
   const onDeleteAccount = () => {
-    navigateAppend('deleteConfirm')
+    navigateAppend({name: 'deleteConfirm', params: {}})
   }
   return (
     <SettingsSection>
@@ -169,26 +170,25 @@ const DeleteAccount = () => {
   )
 }
 
-const AccountSettings = () => {
-  const {addedEmail, resetAddedEmail} = useSettingsEmailState(
-    C.useShallow(s => ({
-      addedEmail: s.addedEmail,
-      resetAddedEmail: s.dispatch.resetAddedEmail,
-    }))
-  )
-  const {
-    _phones,
-    addedPhone,
-    clearAddedPhone,
-    editPhone,
-  } = useSettingsPhoneState(
-    C.useShallow(s => ({
-      _phones: s.phones,
-      addedPhone: s.addedPhone,
-      clearAddedPhone: s.dispatch.clearAddedPhone,
-      editPhone: s.dispatch.editPhone,
-    }))
-  )
+type Props = {route: {params?: SettingsAccountRouteParams}}
+
+const AccountSettings = ({route}: Props) => {
+  const addedEmailFromRoute = route.params?.addedEmailBannerEmail
+  const addedPhoneFromRoute = !!route.params?.addedPhoneBanner
+  const navigation =
+    useNavigation<
+      NavigationProp<
+        Record<typeof settingsAccountTab, SettingsAccountRouteParams | undefined>,
+        typeof settingsAccountTab
+      >
+    >()
+  const isFocused = useIsFocused()
+  const emails = useSettingsEmailState(s => s.emails)
+  const phones = useSettingsPhoneState(s => s.phones)
+  const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
+  const deletePhoneNumber = C.useRPC(T.RPCGen.phoneNumbersDeletePhoneNumberRpcPromise)
+  const [addedEmail, setAddedEmail] = React.useState(addedEmailFromRoute ?? '')
+  const [addedPhone, setAddedPhone] = React.useState(addedPhoneFromRoute)
   const {loadHasRandomPw} = usePWState(
     C.useShallow(s => ({
       loadHasRandomPw: s.dispatch.loadHasRandomPw,
@@ -196,10 +196,47 @@ const AccountSettings = () => {
   )
   const {navigateAppend, switchTab} = C.Router2
   const _onClearSupersededPhoneNumber = (phone: string) => {
-    editPhone(phone, true)
+    deletePhoneNumber(
+      [{phoneNumber: phone}],
+      () => {},
+      error => {
+        logger.warn('Error deleting superseded phone number', error)
+        setGlobalError(new Error(makePhoneError(error)))
+      }
+    )
   }
-  const onClearAddedEmail = resetAddedEmail
-  const onClearAddedPhone = clearAddedPhone
+  React.useEffect(() => {
+    if (!addedEmailFromRoute) {
+      return
+    }
+    setAddedEmail(addedEmailFromRoute)
+    navigation.setParams({addedEmailBannerEmail: undefined})
+  }, [addedEmailFromRoute, navigation])
+  React.useEffect(() => {
+    if (!addedPhoneFromRoute) {
+      return
+    }
+    setAddedPhone(true)
+    navigation.setParams({addedPhoneBanner: undefined})
+  }, [addedPhoneFromRoute, navigation])
+  React.useEffect(() => {
+    if (isFocused) {
+      return
+    }
+    setAddedEmail('')
+    setAddedPhone(false)
+  }, [isFocused])
+  React.useEffect(() => {
+    if (!addedEmail) {
+      return
+    }
+    const addedEmailRow = emails.get(addedEmail)
+    if (!addedEmailRow || addedEmailRow.isVerified) {
+      setAddedEmail('')
+    }
+  }, [addedEmail, emails])
+  const onClearAddedEmail = () => setAddedEmail('')
+  const onClearAddedPhone = () => setAddedPhone(false)
   const onReload = () => {
     loadSettings()
     loadHasRandomPw()
@@ -207,14 +244,14 @@ const AccountSettings = () => {
   const onStartPhoneConversation = () => {
     switchTab(C.Tabs.chatTab)
     navigateAppend({name: 'chatNewChat', params: {namespace: 'chat'}})
-    clearAddedPhone()
+    setAddedPhone(false)
   }
-  const _supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)
+  const _supersededPhoneNumber = phones && [...phones.values()].find(p => p.superseded)
   const supersededKey = _supersededPhoneNumber?.e164
   const onClearSupersededPhoneNumber = () => supersededKey && _onClearSupersededPhoneNumber(supersededKey)
   const supersededPhoneNumber = _supersededPhoneNumber ? _supersededPhoneNumber.displayNumber : undefined
   const onAddPhone = () => {
-    navigateAppend('settingsAddPhone')
+    navigateAppend({name: 'settingsAddPhone', params: {}})
   }
 
   return (
@@ -255,7 +292,7 @@ const AccountSettings = () => {
           </Kb.Banner>
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-          <EmailPhone />
+          <EmailPhone onEmailVerificationSuccess={setAddedEmail} />
           <Kb.Divider />
           <Password />
           <Kb.Divider />

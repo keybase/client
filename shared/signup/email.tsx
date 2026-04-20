@@ -17,13 +17,13 @@ const ConnectedEnterEmail = () => {
 
   const onSkip = () => {
     _onSkip()
-    _showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
+    _showPushPrompt ? navigateAppend({name: 'settingsPushPrompt', params: {}}, true) : clearModals()
   }
 
   const onCreate = (email: string, searchable: boolean) => {
     submitEmail(email, searchable, addedEmail => {
       setSignupEmail(addedEmail)
-      _showPushPrompt ? navigateAppend('settingsPushPrompt', true) : clearModals()
+      _showPushPrompt ? navigateAppend({name: 'settingsPushPrompt', params: {}}, true) : clearModals()
     })
   }
 

@@ -12,8 +12,8 @@ const AddFromWhere = () => {
   const createTeamError = Teams.useTeamsState(s => (newTeam ? s.newTeamWizard.error : undefined))
   const appendNewTeamBuilder = C.Router2.appendNewTeamBuilder
   const onContinueKeybase = () => appendNewTeamBuilder(teamID)
-  const onContinuePhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
-  const onContinueContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
+  const onContinuePhone = () => nav.safeNavigateAppend({name: 'teamAddToTeamPhone', params: {}})
+  const onContinueContacts = () => nav.safeNavigateAppend({name: 'teamAddToTeamContacts', params: {}})
   const onContinueEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {}})
 
   return (

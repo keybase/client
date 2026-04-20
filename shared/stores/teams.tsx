@@ -1064,7 +1064,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           }
         })
 
-        navigateAppend('teamAddToTeamConfirm')
+        navigateAppend({name: 'teamAddToTeamConfirm', params: {}})
       }
       ignorePromise(f())
     },
@@ -1718,9 +1718,9 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       })
 
       if (subteamOf) {
-        navigateAppend('teamWizard2TeamInfo')
+        navigateAppend({name: 'teamWizard2TeamInfo', params: {}})
       } else {
-        navigateAppend('teamWizard1TeamPurpose')
+        navigateAppend({name: 'teamWizard1TeamPurpose', params: {}})
       }
     },
     leaveTeam: (teamname, permanent, context) => {
@@ -2384,7 +2384,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           const parentTeamMeta = getTeamMeta(get(), parentTeamID ?? '')
           // If it's just you, don't show the subteam members screen empty
           if (parentTeamMeta.memberCount > 1) {
-            navigateAppend('teamWizardSubteamMembers')
+            navigateAppend({name: 'teamWizardSubteamMembers', params: {}})
             return
           } else {
             get().dispatch.startAddMembersWizard(T.Teams.newTeamWizardTeamID)
@@ -2396,10 +2396,10 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           get().dispatch.startAddMembersWizard(T.Teams.newTeamWizardTeamID)
           return
         case 'project':
-          navigateAppend('teamWizard5Channels')
+          navigateAppend({name: 'teamWizard5Channels', params: {}})
           return
         case 'community':
-          navigateAppend('teamWizard4TeamSize')
+          navigateAppend({name: 'teamWizard4TeamSize', params: {}})
           return
       }
     },
@@ -2407,7 +2407,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       set(s => {
         s.newTeamWizard.channels = channels
       })
-      navigateAppend('teamWizard6Subteams')
+      navigateAppend({name: 'teamWizard6Subteams', params: {}})
     },
     setTeamWizardNameDescription: p => {
       set(s => {
@@ -2431,7 +2431,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           teamID: T.Teams.newTeamWizardTeamID,
         })
       })
-      navigateAppend('teamAddToTeamConfirm')
+      navigateAppend({name: 'teamAddToTeamConfirm', params: {}})
     },
     setTeamWizardSubteams: subteams => {
       set(s => {
@@ -2444,7 +2444,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         s.newTeamWizard.isBig = isBig
       })
       if (isBig) {
-        navigateAppend('teamWizard5Channels')
+        navigateAppend({name: 'teamWizard5Channels', params: {}})
       } else {
         get().dispatch.startAddMembersWizard(T.Teams.newTeamWizardTeamID)
       }
@@ -2453,7 +2453,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       set(s => {
         s.newTeamWizard.teamType = teamType
       })
-      navigateAppend('teamWizard2TeamInfo')
+      navigateAppend({name: 'teamWizard2TeamInfo', params: {}})
     },
     setTeamsWithChosenChannels: teamsWithChosenChannels => {
       set(s => {
@@ -2526,7 +2526,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       set(s => {
         s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, teamID})
       })
-      navigateAppend('teamAddToTeamFromWhere')
+      navigateAppend({name: 'teamAddToTeamFromWhere', params: {}})
     },
     teamChangedByID: c => {
       const {changes, teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = c

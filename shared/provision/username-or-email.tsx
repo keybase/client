@@ -47,7 +47,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const navigateUp = C.Router2.navigateUp
   const onBack = useSafeSubmit(navigateUp, hasError)
   const navigateAppend = C.Router2.navigateAppend
-  const onForgotUsername = () => navigateAppend('forgotUsername')
+  const onForgotUsername = () => navigateAppend({name: 'forgotUsername', params: {}})
   const requestAutoInvite = useRequestAutoInvite()
   const _setUsername = useProvisionState(s => s.dispatch.dynamic.setUsername)
   const _onSubmit = (username: string) => {

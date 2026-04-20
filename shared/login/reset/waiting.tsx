@@ -21,7 +21,7 @@ const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
   const [hasSentAgain, setHasSentAgain] = React.useState(false)
   const [sendAgainSuccess, setSendAgainSuccess] = React.useState(false)
   const nav = useSafeNavigation()
-  const onClose = () => nav.safeNavigateAppend('login', true)
+  const onClose = () => nav.safeNavigateAppend({name: 'login', params: {}}, true)
   const onSendAgain = () => {
     setHasSentAgain(true)
     setSendAgainSuccess(false)

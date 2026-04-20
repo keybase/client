@@ -15,12 +15,10 @@ type Writeable<T> = {-readonly [P in keyof T]: T[P]}
 type EmailRow = Writeable<T.RPCGen.Email>
 
 type Store = T.Immutable<{
-  addedEmail: string // show banner with dismiss on account settings
   emails: Map<string, EmailRow>
 }>
 
 const initialStore: Store = {
-  addedEmail: '',
   emails: new Map(),
 }
 
@@ -31,17 +29,16 @@ export type State = Store & {
       delete?: boolean
       makePrimary?: boolean
       makeSearchable?: boolean
+      onSuccess?: () => void
       verify?: boolean
     }) => void
     notifyEmailAddressEmailsChanged: (list: ReadonlyArray<T.RPCChat.Keybase1.Email>) => void
     notifyEmailVerified: (email: string) => void
-    resetAddedEmail: () => void
     resetState: () => void
-    setAddedEmail: (email: string) => void
   }
 }
 
-export const useSettingsEmailState = Z.createZustand<State>('settings-email', (set, get) => {
+export const useSettingsEmailState = Z.createZustand<State>('settings-email', set => {
   const dispatch: State['dispatch'] = {
     editEmail: p => {
       const f = async () => {
@@ -49,10 +46,6 @@ export const useSettingsEmailState = Z.createZustand<State>('settings-email', (s
         // TODO: handle errors
         if (p.delete) {
           await T.RPCGen.emailsDeleteEmailRpcPromise({email: p.email})
-          if (get().addedEmail === p.email) {
-            get().dispatch.resetAddedEmail()
-            return
-          }
           return
         }
         if (p.makePrimary) {
@@ -62,7 +55,6 @@ export const useSettingsEmailState = Z.createZustand<State>('settings-email', (s
         if (p.verify) {
           await T.RPCGen.emailsSendVerificationEmailRpcPromise({email: p.email})
           set(s => {
-            s.addedEmail = p.email
             const old = s.emails.get(p.email) ?? {
               ...makeEmailRow(),
               email: p.email,
@@ -71,6 +63,8 @@ export const useSettingsEmailState = Z.createZustand<State>('settings-email', (s
             old.lastVerifyEmailDate = new Date().getTime() / 1000
             s.emails.set(p.email, old)
           })
+          p.onSuccess?.()
+          return
         }
         if (p.makeSearchable !== undefined) {
           await T.RPCGen.emailsSetVisibilityEmailRpcPromise({
@@ -98,20 +92,9 @@ export const useSettingsEmailState = Z.createZustand<State>('settings-email', (s
         } else {
           logger.warn('emailVerified on unknown email?')
         }
-        s.addedEmail = ''
-      })
-    },
-    resetAddedEmail: () => {
-      set(s => {
-        s.addedEmail = ''
       })
     },
     resetState: Z.defaultReset,
-    setAddedEmail: email => {
-      set(s => {
-        s.addedEmail = email
-      })
-    },
   }
   return {
     ...initialStore,

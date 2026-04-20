@@ -29,7 +29,7 @@ const Container = (ownProps: OwnProps) => {
   const _onAddToTeam = (username: string) => navigateAppend({name: 'profileAddToTeam', params: {username}})
   const _onBrowsePublicFolder = (username: string) =>
     FS.navToPath(T.FS.stringToPath(`/keybase/public/${username}`))
-  const _onEditProfile = () => navigateAppend('profileEdit')
+  const _onEditProfile = () => navigateAppend({name: 'profileEdit', params: {}})
 
   const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
   const _onFollow = changeFollow

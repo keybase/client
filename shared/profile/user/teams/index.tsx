@@ -27,7 +27,7 @@ const Container = (ownProps: OwnProps) => {
   const teamShowcase = d.teamShowcase || noTeams
   const {clearModals, navigateAppend} = C.Router2
   const _onEdit = () => {
-    navigateAppend('profileShowcaseTeamOffer')
+    navigateAppend({name: 'profileShowcaseTeamOffer', params: {}})
   }
   const onJoinTeam = (teamname: string) => navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
   const onViewTeam = (teamname: string) => {

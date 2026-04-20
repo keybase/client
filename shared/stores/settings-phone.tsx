@@ -50,58 +50,29 @@ export type PhoneRow = {
 }
 
 type Store = T.Immutable<{
-  addedPhone: boolean
   phones?: Map<string, PhoneRow>
 }>
 
 const initialStore: Store = {
-  addedPhone: false,
   phones: undefined,
 }
 
 export type State = Store & {
   dispatch: {
-    clearAddedPhone: () => void
-    editPhone: (phone: string, del?: boolean, setSearchable?: boolean) => void
     notifyPhoneNumberPhoneNumbersChanged: (list?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
     resetState: () => void
-    setAddedPhone: (added: boolean) => void
     setNumbers: (phoneNumbers?: ReadonlyArray<T.RPCChat.Keybase1.UserPhoneNumber>) => void
   }
 }
 
 export const useSettingsPhoneState = Z.createZustand<State>('settings-phone', set => {
   const dispatch: State['dispatch'] = {
-    clearAddedPhone: () => {
-      set(s => {
-        s.addedPhone = false
-      })
-    },
-    editPhone: (phoneNumber, del, setSearchable) => {
-      const f = async () => {
-        if (del) {
-          await RPCGen.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber})
-        }
-        if (setSearchable !== undefined) {
-          await RPCGen.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
-            phoneNumber,
-            visibility: setSearchable ? RPCGen.IdentityVisibility.public : RPCGen.IdentityVisibility.private,
-          })
-        }
-      }
-      void f()
-    },
     notifyPhoneNumberPhoneNumbersChanged: list => {
       set(s => {
         s.phones = new Map((list ?? []).map(row => [row.phoneNumber, toPhoneRow(row)]))
       })
     },
     resetState: Z.defaultReset,
-    setAddedPhone: added => {
-      set(s => {
-        s.addedPhone = added
-      })
-    },
     setNumbers: phoneNumbers => {
       set(s => {
         s.phones = phoneNumbers?.reduce((map, row) => {

@@ -1,6 +1,7 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {TabActions, type NavigationContainerRef} from '@react-navigation/core'
+import type {ParamListBase} from '@react-navigation/native'
 import type {HeaderOptions} from '@react-navigation/elements'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import type {NavState} from '@/constants/router'
@@ -85,7 +86,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export const useSubnavTabAction = (navigation: NavigationContainerRef<object>, state: NavState) => {
+type SubnavNavigation = Pick<NavigationContainerRef<ParamListBase>, 'dispatch' | 'emit'>
+
+export const useSubnavTabAction = (navigation: SubnavNavigation, state: NavState) => {
   const onSelectTab = (tab: string) => {
     const routes = state && 'routes' in state ? state.routes : undefined
     const route = routes?.find((r: {name?: string; key?: string}) => r.name === tab)

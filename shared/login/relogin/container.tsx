@@ -19,7 +19,7 @@ const ReloginContainer = () => {
   }
   const navigateAppend = C.Router2.navigateAppend
   const onFeedback = () => {
-    navigateAppend('signupSendFeedbackLoggedOut')
+    navigateAppend({name: 'signupSendFeedbackLoggedOut', params: {}})
   }
   const onLogin = useConfigState(s => s.dispatch.login)
   const requestAutoInvite = useRequestAutoInvite()

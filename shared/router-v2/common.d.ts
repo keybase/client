@@ -1,5 +1,6 @@
-import type {NavigationContainerRef} from '@react-navigation/core'
 import type {NavState} from '@/constants/router'
+import type {ParamListBase} from '@react-navigation/native'
+import type {NavigationContainerRef} from '@react-navigation/core'
 import type * as Styles from '@/styles'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 export const tabBarStyle: Styles.StylesCrossPlatform
@@ -16,7 +17,9 @@ export const defaultNavigationOptions: NativeStackNavigationOptions & {
   headerTitleContainerStyle?: Styles.StylesCrossPlatform
 }
 
+type SubnavNavigation = Pick<NavigationContainerRef<ParamListBase>, 'dispatch' | 'emit'>
+
 export function useSubnavTabAction(
-  navigation: NavigationContainerRef<object>,
+  navigation: SubnavNavigation,
   state: NavState
 ): (t: string) => void

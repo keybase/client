@@ -37,13 +37,13 @@ const Container = (ownProps: OwnProps) => {
       case T.RPCGen.AppLinkType.files:
         switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.fsTab)
         if (C.isMobile) {
-          navigateAppend(Settings.settingsFsTab)
+          navigateAppend({name: Settings.settingsFsTab, params: {}})
         }
         break
       case T.RPCGen.AppLinkType.wallet:
         switchTab(C.Tabs.settingsTab)
         if (C.isMobile) {
-          navigateAppend(Settings.settingsWalletsTab)
+          navigateAppend({name: Settings.settingsWalletsTab, params: {}})
         }
         break
       case T.RPCGen.AppLinkType.git:
@@ -55,7 +55,7 @@ const Container = (ownProps: OwnProps) => {
       case T.RPCGen.AppLinkType.devices:
         switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.devicesTab)
         if (C.isMobile) {
-          navigateAppend(Settings.settingsDevicesTab)
+          navigateAppend({name: Settings.settingsDevicesTab, params: {}})
         }
         break
       case T.RPCGen.AppLinkType.settings:

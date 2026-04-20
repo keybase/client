@@ -16,40 +16,36 @@ type _ExtractParams<T> = {
     ? U extends (args: infer V) => any
       ? V extends {route: {params: infer W}}
         ? W
-        : undefined
-      : undefined
-    : undefined
+        : V extends {route: {params?: infer W}}
+          ? W
+          : {}
+      : {}
+    : {}
 }
 
 type Tabs = {
-  'tabs.chatTab': undefined
-  'tabs.cryptoTab': undefined
-  'tabs.devicesTab': undefined
-  'tabs.folderTab': undefined
-  'tabs.loginTab': undefined
-  'tabs.peopleTab': undefined
-  'tabs.searchTab': undefined
-  'tabs.settingsTab': undefined
-  'tabs.teamsTab': undefined
-  'tabs.gitTab': undefined
-  'tabs.fsTab': undefined
-  'tabs.walletsTab': undefined
+  'tabs.chatTab': {}
+  'tabs.cryptoTab': {}
+  'tabs.devicesTab': {}
+  'tabs.folderTab': {}
+  'tabs.loginTab': {}
+  'tabs.peopleTab': {}
+  'tabs.searchTab': {}
+  'tabs.settingsTab': {}
+  'tabs.teamsTab': {}
+  'tabs.gitTab': {}
+  'tabs.fsTab': {}
+  'tabs.walletsTab': {}
 }
 
 type _AllScreens = typeof routes & typeof modalRoutes & typeof loggedOutRoutes
 
 export type RootParamList = _ExtractParams<_AllScreens> &
-  Tabs & {loading: undefined; loggedOut: undefined; loggedIn: undefined}
+  Tabs & {loading: {}; loggedOut: {}; loggedIn: {}}
 
 export type RouteKeys = keyof RootParamList
-export type NoParamRouteKeys = {
-  [K in RouteKeys]: RootParamList[K] extends undefined ? K : never
-}[RouteKeys]
-export type ParamRouteKeys = Exclude<RouteKeys, NoParamRouteKeys>
 export type NavigateAppendArg<RouteName extends RouteKeys> = RouteName extends RouteName
-  ? RootParamList[RouteName] extends undefined
-    ? RouteName
-    : {name: RouteName; params: RootParamList[RouteName]}
+  ? {name: RouteName; params: RootParamList[RouteName]}
   : never
 export type NavigateAppendType = NavigateAppendArg<RouteKeys>
 export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>

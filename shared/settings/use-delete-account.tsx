@@ -24,7 +24,7 @@ export const useDeleteAccount = () => {
       () => {
         setJustDeletedSelf(username)
         clearModals()
-        navigateAppend(C.Tabs.loginTab)
+        navigateAppend({name: C.Tabs.loginTab, params: {}})
       },
       error => {
         logger.warn('Error deleting account', error)

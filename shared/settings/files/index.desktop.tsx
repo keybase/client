@@ -63,7 +63,7 @@ const FinderIntegration = () => {
   )
   const navigateAppend = C.Router2.navigateAppend
   const onShowKextPermissionPopup = () => {
-    navigateAppend('kextPermission')
+    navigateAppend({name: 'kextPermission', params: {}})
   }
   const displayingMountDir = preferredMountDirs[0] || ''
   const openMount = displayingMountDir

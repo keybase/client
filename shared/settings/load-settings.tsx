@@ -23,7 +23,7 @@ export const loadSettings = () => {
     }
     maybeLoadAppLinkOnce = true
     switchTab(Tabs.settingsTab)
-    navigateAppend('settingsAddPhone')
+    navigateAppend({name: 'settingsAddPhone', params: {}})
   }
 
   const f = async () => {

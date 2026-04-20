@@ -11,6 +11,11 @@ import {usePWState} from '@/stores/settings-password'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import type {Props as FeedbackRouteParams} from './feedback/container'
 
+export type SettingsAccountRouteParams = {
+  addedEmailBannerEmail?: string
+  addedPhoneBanner?: boolean
+}
+
 const PushPromptSkipButton = () => {
   const rejectPermissions = usePushState(s => s.dispatch.rejectPermissions)
   const clearModals = C.Router2.clearModals
