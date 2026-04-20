@@ -13,6 +13,7 @@ import type {Props as FeedbackRouteParams} from './feedback/container'
 
 export type SettingsAccountRouteParams = {
   addedEmailBannerEmail?: string
+  addedPhoneBanner?: boolean
 }
 
 const PushPromptSkipButton = () => {

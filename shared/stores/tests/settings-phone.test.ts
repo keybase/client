@@ -41,10 +41,17 @@ test('setNumbers keeps the first non-superseded row for a phone number', () => {
   expect(row?.verified).toBe(false)
 })
 
-test('setAddedPhone and clearAddedPhone only update the success banner state', () => {
-  useSettingsPhoneState.getState().dispatch.setAddedPhone(true)
-  expect(useSettingsPhoneState.getState().addedPhone).toBe(true)
+test('resetState clears the cached phone numbers', () => {
+  useSettingsPhoneState.getState().dispatch.setNumbers([
+    {
+      phoneNumber: '+15555550123',
+      superseded: false,
+      verified: false,
+      visibility: T.RPCGen.IdentityVisibility.private,
+    } as any,
+  ])
 
-  useSettingsPhoneState.getState().dispatch.clearAddedPhone()
-  expect(useSettingsPhoneState.getState().addedPhone).toBe(false)
+  useSettingsPhoneState.getState().dispatch.resetState()
+
+  expect(useSettingsPhoneState.getState().phones).toBeUndefined()
 })

@@ -46,6 +46,8 @@ Keep it in the store if it is:
 
 Before keeping a cache just because several screens read it, ask whether reloading is good enough. For Keybase daemon-backed data, many RPCs are local and cheap, so a component-level reload on screen entry is often preferable to preserving store state.
 
+Default assumption for this repo: RPCs usually hit a local service, so treat most reads as cheap unless you have evidence otherwise. Do not keep a Zustand cache just to avoid a small number of local RPCs.
+
 Move it to component state if it is:
 
 - Form input text, local validation errors, banners, or submit progress
@@ -81,6 +83,7 @@ Prefer reloading in components instead of keeping a store cache when:
 - The data comes from the local service and reload latency is acceptable
 - The cache only saves a small RPC but forces unrelated screens to coordinate through global state
 - The notification path only exists to keep that convenience cache warm
+- You do not have a concrete reason that the cache must survive navigation or serve multiple unrelated entry points
 
 Prefer direct store imports instead of `shared/constants/init/shared.tsx` callback plumbing when:
 
@@ -178,7 +181,7 @@ If a helper hook, pure helper, or constant is only used by one component or one 
 
 If a store action or utility candidate is only used by one component or one file, move the code directly into that caller instead of creating a new util or leaving an imperative `dispatch.*` method on the store. Only extract a shared util when multiple files need the same behavior.
 
-When pruning imperative `dispatch.*` helpers, check the caller count first. A single-caller helper should usually be inlined into that caller. A helper with several unrelated callers can move to `shared/util/*` or a small file-local helper module if it still needs store access.
+When pruning imperative `dispatch.*` helpers, check the caller count first. A single-caller helper should usually be inlined into that caller. Even with several callers in one feature, prefer colocated `C.useRPC` calls over introducing a wrapper hook unless the shared abstraction is pulling its weight. A helper with several unrelated callers can move to `shared/util/*` or a small file-local helper module if it still needs store access.
 
 If a component reads multiple adjacent values from the same remaining store, prefer one selector with `C.useShallow(...)` over several subscriptions.
 

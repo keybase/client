@@ -7,7 +7,6 @@ import {EnterPhoneNumberBody} from '@/signup/phone-number'
 import VerifyBody from '@/signup/phone-number/verify-body'
 import {useAddPhoneNumber, usePhoneVerification} from '@/signup/phone-number/use-verification'
 import {useAddEmail} from './use-add-email'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 import {settingsAccountTab} from '@/constants/settings'
 
@@ -191,13 +190,16 @@ type VerifyPhoneProps = {
 export const VerifyPhone = ({initialResend, phoneNumber}: VerifyPhoneProps) => {
   const [code, onChangeCode] = React.useState('')
 
-  const setAddedPhone = useSettingsPhoneState(s => s.dispatch.setAddedPhone)
   const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
   const {error, resendVerificationForPhone, verifyPhoneNumber} = usePhoneVerification({
     initialResend,
     onSuccess: () => {
-      setAddedPhone(true)
       clearModals()
+      // Wait for the modal reset so replace=true updates the account route instead of duplicating it.
+      setTimeout(() => {
+        navigateAppend({name: settingsAccountTab, params: {addedPhoneBanner: true}}, true)
+      }, 0)
     },
     phoneNumber,
   })

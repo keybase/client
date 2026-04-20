@@ -4,10 +4,12 @@
 
 Optimize for store reduction, not store proliferation. Avoid splitting `modal-header` into several tiny stores. If a `modal-header` field can move to route params or feature-local screen state, do that; otherwise leave it alone for now.
 
+For this repo, assume most RPCs hit a local service and are cheap. Default toward reloading in the owning component instead of keeping a convenience cache unless the data truly needs to survive navigation or serve unrelated entry points.
+
 Recommended implementation order:
 
 - [x] `settings-email`
-- [ ] `settings-phone`
+- [x] `settings-phone`
 - [ ] `people`
 - [ ] `recover-password`
 - [ ] `settings-password`
@@ -225,3 +227,4 @@ Critical scenarios:
 - `settings-password` may remain unchanged if there is no clean merge target.
 - `team-building` remains a feature-scoped provider; only duplicated screen-owned fields should move out.
 - Delete dead store APIs in the same commit that removes their last caller.
+- Prefer colocated `C.useRPC` calls over convenience wrapper hooks when the RPC belongs to one feature and the abstraction is only saving a few lines.

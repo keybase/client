@@ -207,8 +207,7 @@ const useData = (contactKey: string, onEmailVerificationSuccess: (email: string)
   const _onMakeSearchable = () => {
     editEmail({email: contactKey, makeSearchable: true})
   }
-
-  const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
+  const setVisibilityPhoneNumber = C.useRPC(T.RPCGen.phoneNumbersSetVisibilityPhoneNumberRpcPromise)
   const navigateAppend = C.Router2.navigateAppend
 
   const dispatchProps = {
@@ -229,7 +228,18 @@ const useData = (contactKey: string, onEmailVerificationSuccess: (email: string)
       _onDelete: (address: string, searchable: boolean) =>
         navigateAppend({name: 'settingsDeleteAddress', params: {address, searchable, type: 'phone'}}),
       _onToggleSearchable: (setSearchable: boolean) => {
-        editPhone(contactKey, undefined, setSearchable)
+        setVisibilityPhoneNumber(
+          [
+            {
+              phoneNumber: contactKey,
+              visibility: setSearchable
+                ? T.RPCGen.IdentityVisibility.public
+                : T.RPCGen.IdentityVisibility.private,
+            },
+          ],
+          () => {},
+          () => {}
+        )
       },
       _onVerify: (phoneNumber: string) => {
         navigateAppend({name: 'settingsVerifyPhone', params: {initialResend: true, phoneNumber}})

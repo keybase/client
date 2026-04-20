@@ -10,7 +10,7 @@ import {useIsFocused} from '@react-navigation/core'
 import {usePWState} from '@/stores/settings-password'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import {type settingsAccountTab, settingsPasswordTab} from '@/constants/settings'
+import {settingsAccountTab, settingsPasswordTab} from '@/constants/settings'
 import type {SettingsAccountRouteParams} from '../routes'
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
@@ -172,24 +172,16 @@ type Props = {route: {params?: SettingsAccountRouteParams}}
 
 const AccountSettings = ({route}: Props) => {
   const addedEmailFromRoute = route.params?.addedEmailBannerEmail
-  const navigation =
-    useNavigation<
-      NavigationProp<
-        Record<typeof settingsAccountTab, SettingsAccountRouteParams | undefined>,
-        typeof settingsAccountTab
-      >
-    >()
+  const addedPhoneFromRoute = !!route.params?.addedPhoneBanner
+  const navigation = useNavigation<
+    NavigationProp<Record<typeof settingsAccountTab, SettingsAccountRouteParams | undefined>, typeof settingsAccountTab>
+  >()
   const isFocused = useIsFocused()
   const emails = useSettingsEmailState(s => s.emails)
+  const phones = useSettingsPhoneState(s => s.phones)
+  const deletePhoneNumber = C.useRPC(T.RPCGen.phoneNumbersDeletePhoneNumberRpcPromise)
   const [addedEmail, setAddedEmail] = React.useState(addedEmailFromRoute ?? '')
-  const {_phones, addedPhone, clearAddedPhone, editPhone} = useSettingsPhoneState(
-    C.useShallow(s => ({
-      _phones: s.phones,
-      addedPhone: s.addedPhone,
-      clearAddedPhone: s.dispatch.clearAddedPhone,
-      editPhone: s.dispatch.editPhone,
-    }))
-  )
+  const [addedPhone, setAddedPhone] = React.useState(addedPhoneFromRoute)
   const {loadHasRandomPw} = usePWState(
     C.useShallow(s => ({
       loadHasRandomPw: s.dispatch.loadHasRandomPw,
@@ -197,7 +189,7 @@ const AccountSettings = ({route}: Props) => {
   )
   const {navigateAppend, switchTab} = C.Router2
   const _onClearSupersededPhoneNumber = (phone: string) => {
-    editPhone(phone, true)
+    deletePhoneNumber([{phoneNumber: phone}], () => {}, () => {})
   }
   React.useEffect(() => {
     if (!addedEmailFromRoute) {
@@ -207,10 +199,18 @@ const AccountSettings = ({route}: Props) => {
     navigation.setParams({addedEmailBannerEmail: undefined})
   }, [addedEmailFromRoute, navigation])
   React.useEffect(() => {
+    if (!addedPhoneFromRoute) {
+      return
+    }
+    setAddedPhone(true)
+    navigation.setParams({addedPhoneBanner: undefined})
+  }, [addedPhoneFromRoute, navigation])
+  React.useEffect(() => {
     if (isFocused) {
       return
     }
     setAddedEmail('')
+    setAddedPhone(false)
   }, [isFocused])
   React.useEffect(() => {
     if (!addedEmail) {
@@ -222,7 +222,7 @@ const AccountSettings = ({route}: Props) => {
     }
   }, [addedEmail, emails])
   const onClearAddedEmail = () => setAddedEmail('')
-  const onClearAddedPhone = clearAddedPhone
+  const onClearAddedPhone = () => setAddedPhone(false)
   const onReload = () => {
     loadSettings()
     loadHasRandomPw()
@@ -230,9 +230,9 @@ const AccountSettings = ({route}: Props) => {
   const onStartPhoneConversation = () => {
     switchTab(C.Tabs.chatTab)
     navigateAppend({name: 'chatNewChat', params: {namespace: 'chat'}})
-    clearAddedPhone()
+    setAddedPhone(false)
   }
-  const _supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)
+  const _supersededPhoneNumber = phones && [...phones.values()].find(p => p.superseded)
   const supersededKey = _supersededPhoneNumber?.e164
   const onClearSupersededPhoneNumber = () => supersededKey && _onClearSupersededPhoneNumber(supersededKey)
   const supersededPhoneNumber = _supersededPhoneNumber ? _supersededPhoneNumber.displayNumber : undefined

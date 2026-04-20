@@ -1,7 +1,8 @@
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import * as PhoneUtil from '@/util/phone-numbers'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
 
 type OwnProps = {
@@ -19,11 +20,11 @@ const DeleteModal = (props: OwnProps) => {
   const lastEmail = props.lastEmail ?? false
 
   const onCancel = () => nav.safeNavigateUp()
-  const editPhone = useSettingsPhoneState(s => s.dispatch.editPhone)
+  const deletePhoneNumber = C.useRPC(T.RPCGen.phoneNumbersDeletePhoneNumberRpcPromise)
   const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
   const onConfirm = () => {
     if (itemType === 'phone') {
-      editPhone(itemAddress, true)
+      deletePhoneNumber([{phoneNumber: itemAddress}], () => {}, () => {})
     } else {
       editEmail({delete: true, email: itemAddress})
     }
