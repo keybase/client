@@ -5,7 +5,7 @@ import {newRoutes as devicesRoutes} from '../devices/routes'
 import {newRoutes as gitRoutes} from '../git/routes'
 import {newRoutes as walletsRoutes} from '../wallets/routes'
 import * as Settings from '@/constants/settings'
-import {defineRouteMap, withRouteParams} from '@/constants/types/router'
+import {defineRouteMap} from '@/constants/types/router'
 import {usePushState} from '@/stores/push'
 import {usePWState} from '@/stores/settings-password'
 import {e164ToDisplay} from '@/util/phone-numbers'
@@ -90,10 +90,10 @@ export const sharedNewRoutes = defineRouteMap({
     getOptions: {title: 'About'},
     screen: React.lazy(async () => import('./about')),
   },
-  [Settings.settingsAccountTab]: withRouteParams<SettingsAccountRouteParams | undefined>({
+  [Settings.settingsAccountTab]: {
     getOptions: {title: 'Your account'},
     screen: React.lazy(async () => import('./account')),
-  }),
+  },
   [Settings.settingsAdvancedTab]: {
     getOptions: C.isMobile ? {title: 'Advanced'} : undefined,
     screen: React.lazy(async () => import('./advanced')),

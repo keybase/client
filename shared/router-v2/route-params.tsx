@@ -16,6 +16,8 @@ type _ExtractParams<T> = {
     ? U extends (args: infer V) => any
       ? V extends {route: {params: infer W}}
         ? W
+        : V extends {route: {params?: infer W}}
+          ? W | undefined
         : undefined
       : undefined
     : undefined
