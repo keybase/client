@@ -26,7 +26,7 @@ const rpcRowColorToColor = (color: T.RPCGen.Identify3RowColor): T.Tracker.Assert
     case T.RPCGen.Identify3RowColor.orange:
       return 'orange'
     default:
-      logger.warn(`Unexpected proof suggestion color: ${color}`)
+      logger.warn(`Unexpected proof suggestion color: ${color as any}`)
       return 'gray'
   }
 }
@@ -74,7 +74,10 @@ export const useProofSuggestions = (enabled = true) => {
 
     const load = async () => {
       try {
-        const {suggestions} = await T.RPCGen.userProofSuggestionsRpcPromise(undefined, waitingKeyTrackerProfileLoad)
+        const {suggestions} = await T.RPCGen.userProofSuggestionsRpcPromise(
+          undefined,
+          waitingKeyTrackerProfileLoad
+        )
         if (requestVersionRef.current !== version) {
           return
         }

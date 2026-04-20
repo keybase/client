@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import Mention, {type OwnProps} from './mention'
 import {useFollowerState} from '@/stores/followers'

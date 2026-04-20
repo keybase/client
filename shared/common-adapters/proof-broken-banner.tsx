@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import {Banner, BannerParagraph} from './banner'
 import {navToProfile} from '@/constants/router'
 
@@ -28,8 +27,8 @@ const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
                   ...(index === length - 1
                     ? [{onClick: () => onClickUsername(user), text: user}]
                     : index === length - 2
-                    ? [{onClick: () => onClickUsername(user), text: user}, ', and ']
-                    : [{onClick: () => onClickUsername(user), text: user}, ', ']),
+                      ? [{onClick: () => onClickUsername(user), text: user}, ', and ']
+                      : [{onClick: () => onClickUsername(user), text: user}, ', ']),
                 ],
                 []
               )),
