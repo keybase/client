@@ -4,13 +4,13 @@ import DeviceList from './device-list.desktop'
 import DragHeader from '../desktop/remote/drag-header.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
-import type {State as ConfigStore} from '@/stores/config'
+import type {UnlockFolderDevice} from './store'
 
 type Phase = 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success'
 
 export type Props = {
   phase: Phase
-  devices: ConfigStore['unlockFoldersDevices']
+  devices: ReadonlyArray<UnlockFolderDevice>
   onClose: () => void
   toPaperKeyInput: () => void
   onBackFromPaperKey: () => void

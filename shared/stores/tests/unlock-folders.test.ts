@@ -1,14 +1,14 @@
 /// <reference types="jest" />
 import {onUnlockFoldersEngineIncoming} from '../unlock-folders'
 
-const mockOpenUnlockFolders = jest.fn()
+const mockOpen = jest.fn()
 const mockCreateSession = jest.fn()
 
-jest.mock('@/stores/config', () => ({
-  useConfigState: {
+jest.mock('@/unlock-folders/store', () => ({
+  useUnlockFoldersState: {
     getState: () => ({
       dispatch: {
-        openUnlockFolders: mockOpenUnlockFolders,
+        open: mockOpen,
       },
     }),
   },
@@ -23,10 +23,10 @@ jest.mock('@/engine/require', () => ({
 afterEach(() => {
   jest.restoreAllMocks()
   mockCreateSession.mockReset()
-  mockOpenUnlockFolders.mockReset()
+  mockOpen.mockReset()
 })
 
-test('rekey refresh actions forward the device list to config', () => {
+test('rekey refresh actions forward the device list to the unlock folders store', () => {
   onUnlockFoldersEngineIncoming({
     payload: {
       params: {
@@ -38,7 +38,7 @@ test('rekey refresh actions forward the device list to config', () => {
     type: 'keybase.1.rekeyUI.refresh',
   } as any)
 
-  expect(mockOpenUnlockFolders).toHaveBeenCalledWith([{deviceID: 'device-1', name: 'device-1', type: 'desktop'}])
+  expect(mockOpen).toHaveBeenCalledWith([{deviceID: 'device-1', name: 'device-1', type: 'desktop'}])
 })
 
 test('delegateRekeyUI creates a dangling session and returns its id', () => {

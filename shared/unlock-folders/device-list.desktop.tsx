@@ -1,13 +1,12 @@
 import * as Kb from '@/common-adapters'
-import type {State as ConfigStore} from '@/stores/config'
+import type {UnlockFolderDevice} from './store'
 
 export type Props = {
-  devices: ConfigStore['unlockFoldersDevices']
+  devices: ReadonlyArray<UnlockFolderDevice>
   toPaperKeyInput: () => void
 }
-type Device = ConfigStore['unlockFoldersDevices'][0]
 
-const DeviceRow = ({device}: {device: Device}) => {
+const DeviceRow = ({device}: {device: UnlockFolderDevice}) => {
   const icon = (
     {
       backup: 'icon-paper-key-32',

@@ -4,11 +4,11 @@ import * as RemoteGen from '../constants/remote-actions'
 import UnlockFolders from './index.desktop'
 import loadRemoteComponent from '../desktop/remote/component-loader.desktop'
 import {RemoteDarkModeSync} from '../desktop/remote/remote-component.desktop'
-import type {State as ConfigStore} from '@/stores/config'
+import type {UnlockFolderDevice} from './store'
 
 export type ProxyProps = {
   darkMode: boolean
-  devices: ConfigStore['unlockFoldersDevices']
+  devices: ReadonlyArray<UnlockFolderDevice>
   paperKeyError: string
   waiting: boolean
 }

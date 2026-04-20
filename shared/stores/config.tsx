@@ -66,12 +66,6 @@ type Store = T.Immutable<{
     link: string
     tab?: Tab
   }
-  unlockFoldersDevices: Array<{
-    type: T.Devices.DeviceType
-    name: string
-    deviceID: T.Devices.DeviceID
-  }>
-  unlockFoldersError: string
   useNativeFrame: boolean
   userSwitching: boolean
   windowShownCount: Map<string, number>
@@ -130,8 +124,6 @@ const initialStore: Store = {
     link: '',
     loaded: false,
   },
-  unlockFoldersDevices: [],
-  unlockFoldersError: '',
   useNativeFrame: defaultUseNativeFrame,
   userSwitching: false,
   windowShownCount: new Map(),
@@ -166,7 +158,6 @@ export type State = Store & {
     onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     osNetworkStatusChanged: (online: boolean, type: ConnectionType, isInit?: boolean) => void
-    openUnlockFolders: (devices: ReadonlyArray<T.RPCGen.Device>) => void
     powerMonitorEvent: (event: string) => void
     resetState: (isDebug?: boolean) => void
     remoteWindowNeedsProps: (component: string, params: string) => void
@@ -537,15 +528,6 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
           break
         default:
       }
-    },
-    openUnlockFolders: devices => {
-      set(s => {
-        s.unlockFoldersDevices = devices.map(({name, type, deviceID}) => ({
-          deviceID,
-          name,
-          type: T.Devices.stringToDeviceType(type),
-        }))
-      })
     },
     osNetworkStatusChanged: (online: boolean, type: ConnectionType, isInit?: boolean) => {
       const old = get().networkStatus
