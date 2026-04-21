@@ -8,7 +8,7 @@ import {useModalHeaderState} from '@/stores/modal-header'
 import type {Contact} from '../common/contacts-list.native'
 import {addMembersToWizard, type AddMembersWizard} from './state'
 
-const AddContacts = ({route}: {route: {params: {wizard: AddMembersWizard}}}) => {
+const AddContacts = ({wizard}: {wizard: AddMembersWizard}) => {
   const navigateUp = C.Router2.navigateUp
   const navigateAppend = C.Router2.navigateAppend
   const onBack = () => navigateUp()
@@ -45,7 +45,7 @@ const AddContacts = ({route}: {route: {params: {wizard: AddMembersWizard}}}) => 
           if (r?.length) {
             const f = async () => {
               const wizard = await addMembersToWizard(
-                route.params.wizard,
+                wizard,
                 r.map(m => ({
                   ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
                   role: 'writer',
@@ -70,7 +70,7 @@ const AddContacts = ({route}: {route: {params: {wizard: AddMembersWizard}}}) => 
     return () => {
       useModalHeaderState.setState({actionEnabled: false, actionWaiting: false, onAction: undefined, title: ''})
     }
-  }, [waiting, selectedEmails, selectedPhones, toAssertionsRPC, navigateAppend, noneSelected, route.params.wizard])
+  }, [waiting, selectedEmails, selectedPhones, toAssertionsRPC, navigateAppend, noneSelected, wizard])
 
   return (
     <>

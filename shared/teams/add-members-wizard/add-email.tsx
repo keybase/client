@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import {addMembersToWizard, type AddMembersWizard} from './state'
 
 type Props = {
-  route: {params: {wizard: AddMembersWizard}}
+  wizard: AddMembersWizard
   errorMessage?: string
 }
 
@@ -30,7 +30,7 @@ const AddEmail = (props: Props) => {
         }
         const f = async () => {
           const wizard = await addMembersToWizard(
-            props.route.params.wizard,
+            props.wizard,
             r.map(m => ({
               ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
               role: 'writer',

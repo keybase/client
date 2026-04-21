@@ -4,6 +4,8 @@ import type * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import * as C from '@/constants'
 import {type NewTeamWizard} from './state'
+import {useNavigation} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
 type Props = {
   initialChannels?: ReadonlyArray<string>
@@ -88,17 +90,22 @@ export const CreateChannelsModal = (props: Props) => {
 }
 
 type WizardProps = {
-  navigation: {setParams: (params: {wizard: NewTeamWizard}) => void}
-  route: {params: {wizard: NewTeamWizard}}
+  wizard: NewTeamWizard
 }
 
-const WizardCreateChannels = ({navigation, route}: WizardProps) => {
+type TeamWizard5ChannelsParamList = {
+  teamWizard5Channels: {wizard: NewTeamWizard}
+}
+
+const WizardCreateChannels = ({wizard: initialWizard}: WizardProps) => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<TeamWizard5ChannelsParamList, 'teamWizard5Channels'>>()
   const navigateAppend = C.Router2.navigateAppend
   return (
     <CreateChannelsModal
-      initialChannels={route.params.wizard.channels ?? ['hellos', 'random', '']}
+      initialChannels={initialWizard.channels ?? ['hellos', 'random', '']}
       onSubmitChannels={channels => {
-        const wizard = {...route.params.wizard, channels}
+        const wizard = {...initialWizard, channels}
         navigation.setParams({wizard})
         navigateAppend({name: 'teamWizard6Subteams', params: {wizard}})
       }}

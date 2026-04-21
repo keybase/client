@@ -9,6 +9,7 @@ import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatManageChannelsBadge, useChatTeam} from '../team-hooks'
+import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 
 export type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -96,7 +97,11 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const routerNavigateAppend = C.Router2.navigateAppend
   const canAddPeople = yourOperations.manageMembers
   const onAddPeople = () => {
-    teamID && routerNavigateAppend({name: 'teamAddToTeamFromWhere', params: {teamID}})
+    teamID &&
+      routerNavigateAppend({
+        name: 'teamAddToTeamFromWhere',
+        params: {wizard: makeAddMembersWizard(teamID)},
+      })
   }
   const chatNavigateAppend = ConvoState.useChatNavigateAppend()
   const onBlockConv = () => {

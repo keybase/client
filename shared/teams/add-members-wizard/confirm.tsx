@@ -15,6 +15,8 @@ import logger from '@/logger'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {createNewTeamFromWizard} from '../new-team/wizard/state'
 import {RPCError} from '@/util/errors'
+import {useNavigation} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import {
   removeWizardMember,
   setWizardDefaultChannels,
@@ -34,8 +36,17 @@ const disabledRolesSubteam = {
   owner: 'Subteams cannot have owners.',
 }
 
-const AddMembersConfirm = ({navigation, route}: Props) => {
-  const [wizard, setWizard] = React.useState(route.params.wizard)
+type TeamAddToTeamConfirmParamList = {
+  teamAddToTeamConfirm: {wizard: AddMembersWizard}
+}
+
+const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<TeamAddToTeamConfirmParamList, 'teamAddToTeamConfirm'>>()
+  const [wizard, setWizard] = React.useState(initialWizard)
+  React.useEffect(() => {
+    setWizard(initialWizard)
+  }, [initialWizard])
   const updateWizard = React.useCallback(
     (nextWizard: AddMembersWizard) => {
       setWizard(nextWizard)
@@ -594,8 +605,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 type Props = {
-  navigation: {setParams: (params: {wizard: AddMembersWizard}) => void}
-  route: {params: {wizard: AddMembersWizard}}
+  wizard: AddMembersWizard
 }
 
 export default AddMembersConfirm

@@ -6,12 +6,11 @@ import {type AddMembersWizard} from './state'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
-  route: {params: {wizard: AddMembersWizard}}
+  wizard: AddMembersWizard
 }
 
-const AddFromWhere = ({route}: Props) => {
+const AddFromWhere = ({wizard}: Props) => {
   const nav = useSafeNavigation()
-  const {wizard} = route.params
   const isNewTeam = wizard.teamID === T.Teams.newTeamWizardTeamID
   const navigateAppend = C.Router2.navigateAppend
   const createTeamError = isNewTeam ? wizard.newTeamWizard?.error : undefined

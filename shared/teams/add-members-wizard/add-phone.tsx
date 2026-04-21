@@ -8,7 +8,7 @@ import {addMembersToWizard, type AddMembersWizard} from './state'
 
 const waitingKey = 'phoneLookup'
 
-const AddPhone = ({route}: {route: {params: {wizard: AddMembersWizard}}}) => {
+const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
   const [error, setError] = React.useState('')
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
@@ -30,7 +30,7 @@ const AddPhone = ({route}: {route: {params: {wizard: AddMembersWizard}}}) => {
         }
         const f = async () => {
           const wizard = await addMembersToWizard(
-            route.params.wizard,
+            wizard,
             r.map(m => ({
               ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
               role: 'writer',

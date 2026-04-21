@@ -7,6 +7,8 @@ import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
 import {type NewTeamWizard} from './state'
+import {useNavigation} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
 const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
   switch (status) {
@@ -25,12 +27,16 @@ const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
 const cannotJoinAsOwner = {admin: `Users can't join open teams as admins`}
 
 type Props = {
-  navigation: {setParams: (params: {wizard: NewTeamWizard}) => void}
-  route: {params: {wizard: NewTeamWizard}}
+  wizard: NewTeamWizard
 }
 
-const NewTeamInfo = ({navigation, route}: Props) => {
-  const teamWizardState = route.params.wizard
+type TeamWizard2TeamInfoParamList = {
+  teamWizard2TeamInfo: {wizard: NewTeamWizard}
+}
+
+const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<TeamWizard2TeamInfoParamList, 'teamWizard2TeamInfo'>>()
   const parentName = Teams.useTeamsState(s =>
     teamWizardState.parentTeamID ? Teams.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
   )

@@ -8,18 +8,26 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useModalHeaderState} from '@/stores/modal-header'
 import * as C from '@/constants'
 import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
+import {useNavigation} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
 type Props = {
-  navigation: {setParams: (params: {wizard: NewTeamWizard}) => void}
-  route: {params: {wizard: NewTeamWizard}}
+  wizard: NewTeamWizard
 }
 
-const AddSubteamMembers = ({navigation, route}: Props) => {
+type TeamWizardSubteamMembersParamList = {
+  teamWizardSubteamMembers: {wizard: NewTeamWizard}
+}
+
+const AddSubteamMembers = ({wizard: wizardState}: Props) => {
+  const navigation =
+    useNavigation<
+      NativeStackNavigationProp<TeamWizardSubteamMembersParamList, 'teamWizardSubteamMembers'>
+    >()
   const [selectedMembers, setSelectedMembers] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()
   const navigateAppend = C.Router2.navigateAppend
-  const wizardState = route.params.wizard
   const onContinue = () => {
     const wizard = newTeamWizardToAddMembersWizard(wizardState, {
       addingMembers: [...selectedMembers].map(assertion => ({assertion, role: 'writer'})),

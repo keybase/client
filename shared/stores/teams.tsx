@@ -1795,11 +1795,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       sawSubteamsBanner && get().dispatch.setTeamSawSubteamsBanner()
       get().dispatch.setNewTeamRequests(newTeamRequests)
     },
-    prepareAddMembersWizard: teamID => {
-      set(s => {
-        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, teamID})
-      })
-    },
     reAddToTeam: (teamID, username) => {
       const f = async () => {
         try {

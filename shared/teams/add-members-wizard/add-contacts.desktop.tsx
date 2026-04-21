@@ -1,4 +1,4 @@
 import type {AddMembersWizard} from './state'
 
-const AddContacts = (_: {route: {params: {wizard: AddMembersWizard}}}) => null
+const AddContacts = (_: {wizard: AddMembersWizard}) => null
 export default AddContacts
