@@ -1,4 +1,4 @@
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 
 export type UnlockFolderDevice = T.Immutable<{
