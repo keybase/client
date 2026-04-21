@@ -5,12 +5,13 @@ import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
 import type {Props} from '.'
+import {useChatTeam} from '../conversation/team-hooks'
 
 export default (p: Props) => {
   const teamID = p.teamID
   const navToChatOnSuccess = p.navToChatOnSuccess ?? true
   const [errorText, setErrorText] = React.useState('')
-  const teamname = Teams.useTeamsState(s => Teams.getTeamNameFromID(s, teamID) ?? '')
+  const {teamname} = useChatTeam(teamID)
   const navigateUp = C.Router2.navigateUp
   const previewConversation = C.Router2.previewConversation
   const onBack = navigateUp

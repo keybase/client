@@ -41,7 +41,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [ ] `chat/conversation/info-panel/*`
 - [x] `chat/conversation/messages/*` team-role / bot / admin checks
 - [ ] `chat/create-channel/*`
-- [ ] `chat/conversation/input-area/suggestors/channels.tsx`
+- [x] `chat/conversation/input-area/suggestors/channels.tsx`
 
 ### Store fallout after Chunk 1
 

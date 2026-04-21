@@ -25,6 +25,11 @@ type ChatTeamChannelsState = {
   teamname: string
 }
 
+type ChatTeamNamesState = {
+  loading: boolean
+  teamnames: ReadonlyMap<T.Teams.TeamID, string>
+}
+
 export type ChatTeam = ChatTeamState & {
   reload: () => Promise<void>
 }
@@ -37,8 +42,13 @@ export type ChatTeamChannels = ChatTeamChannelsState & {
   reload: () => Promise<void>
 }
 
+export type ChatTeamNames = ChatTeamNamesState & {
+  reload: () => Promise<void>
+}
+
 const emptyMembers = new Map<string, T.Teams.MemberInfo>()
 const emptyChannels = new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()
+const emptyTeamnames = new Map<T.Teams.TeamID, string>()
 
 const emptyChatTeamState: ChatTeamState = {
   description: '',
@@ -59,8 +69,16 @@ const emptyChatTeamChannelsState: ChatTeamChannelsState = {
   teamname: '',
 }
 
+const emptyChatTeamNamesState: ChatTeamNamesState = {
+  loading: false,
+  teamnames: emptyTeamnames,
+}
+
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
+
+const parseTeamIDsKey = (teamIDsKey: string): Array<T.Teams.TeamID> =>
+  teamIDsKey ? teamIDsKey.split(',').map(teamID => teamID as T.Teams.TeamID) : []
 
 const roleAndDetailsFromMap = (
   map: T.RPCGen.TeamRoleMapAndVersion,
@@ -292,6 +310,82 @@ const useChatTeamChannelsRaw = (
   return {...state, reload}
 }
 
+const useChatTeamNamesRaw = (
+  teamIDs: ReadonlyArray<T.Teams.TeamID>,
+  enabled = true
+): ChatTeamNames => {
+  const teamIDsKey = [...new Set(teamIDs.map(loadableTeamID).filter((teamID): teamID is T.Teams.TeamID => !!teamID))]
+    .sort()
+    .join(',')
+  const validTeamIDs = React.useMemo(() => parseTeamIDsKey(teamIDsKey), [teamIDsKey])
+  const [state, setState] = React.useState<ChatTeamNamesState>(emptyChatTeamNamesState)
+  const requestVersionRef = React.useRef(0)
+
+  const reload = React.useCallback(async () => {
+    if (!enabled || !teamIDsKey) {
+      setState(emptyChatTeamNamesState)
+      return
+    }
+    const requestVersion = ++requestVersionRef.current
+    setState(prev => ({...prev, loading: true}))
+    try {
+      const annotatedTeams = await Promise.all(
+        validTeamIDs.map(async teamID => ({
+          teamID,
+          teamname: (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name ?? '',
+        }))
+      )
+      if (requestVersion !== requestVersionRef.current) {
+        return
+      }
+      setState({
+        loading: false,
+        teamnames: annotatedTeams.reduce((teamnames, {teamID, teamname}) => {
+          if (teamname) {
+            teamnames.set(teamID, teamname)
+          }
+          return teamnames
+        }, new Map<T.Teams.TeamID, string>()),
+      })
+    } catch (error) {
+      if (requestVersion !== requestVersionRef.current) {
+        return
+      }
+      logger.warn(`Failed to load chat team names for ${teamIDsKey}`, error)
+      setState(prev => ({...prev, loading: false}))
+    }
+  }, [enabled, teamIDsKey, validTeamIDs])
+
+  React.useEffect(() => {
+    void reload()
+  }, [reload])
+  C.Router2.useSafeFocusEffect(() => {
+    void reload()
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
+    if (enabled && teamIDsKey) {
+      void reload()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
+    if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
+      void reload()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
+    if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
+      void reload()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
+    if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
+      void reload()
+    }
+  })
+
+  return {...state, reload}
+}
+
 type ChatTeamContextValue = {
   members: ChatTeamMembers
   team: ChatTeam
@@ -335,3 +429,6 @@ export const useChatTeamChannels = (
   teamID: T.Teams.TeamID,
   teamname?: string
 ): ChatTeamChannels => useChatTeamChannelsRaw(teamID, teamname)
+
+export const useChatTeamNames = (teamIDs: ReadonlyArray<T.Teams.TeamID>): ChatTeamNames =>
+  useChatTeamNamesRaw(teamIDs)
