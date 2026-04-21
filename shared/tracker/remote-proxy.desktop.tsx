@@ -72,12 +72,7 @@ const rpcResultToStatus = (result: T.RPCGen.Identify3ResultType): T.Tracker.Deta
   }
 }
 
-const updateResult = (
-  state: PopupState,
-  guiID: string,
-  result: T.Tracker.DetailsState,
-  reason?: string
-) => {
+const updateResult = (state: PopupState, guiID: string, result: T.Tracker.DetailsState, reason?: string) => {
   const username = guiIDToUsername(state, guiID)
   if (!username) {
     return state
@@ -93,9 +88,7 @@ const updateResult = (
   const nextDetails = {
     ...details,
     reason:
-      !details.resetBrokeTrack || details.reason.length === 0
-        ? newReason || details.reason
-        : details.reason,
+      !details.resetBrokeTrack || details.reason.length === 0 ? newReason || details.reason : details.reason,
     resetBrokeTrack: result === 'valid' ? false : details.resetBrokeTrack,
     state: result,
   }
@@ -308,7 +301,7 @@ const RemoteTrackers = () => {
           if (blockState.blockType === T.RPCGen.UserBlockType.chat) {
             blocked = blockState.blocked
             localChange = true
-          } else if (blockState.blockType === T.RPCGen.UserBlockType.follow) {
+          } else {
             hidFromFollowers = blockState.blocked
             localChange = true
           }

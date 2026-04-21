@@ -32,7 +32,12 @@ const useUserData = (username: string) => {
   const myName = useCurrentUserState(s => s.username)
   const userIsYou = username === myName
   const {proofSuggestions, reload: reloadProofSuggestions} = useProofSuggestions(userIsYou)
-  const {details: d, loadNonUserProfile, loadProfile, nonUserDetails} = useTrackerProfile(username, {
+  const {
+    details: d,
+    loadNonUserProfile,
+    loadProfile,
+    nonUserDetails,
+  } = useTrackerProfile(username, {
     reloadOnFocus: true,
   })
   const notAUser = d.state === 'notAUserYet'
@@ -45,9 +50,9 @@ const useUserData = (username: string) => {
     followThem: false,
     followers: undefined,
     followersCount: 0,
-    followsYou: false,
     following: undefined,
     followingCount: 0,
+    followsYou: false,
     fullName: '',
     guiID: d.guiID,
     hidFromFollowers: d.hidFromFollowers,
@@ -88,9 +93,9 @@ const useUserData = (username: string) => {
         followThem,
         followers,
         followersCount,
-        followsYou,
         following,
         followingCount,
+        followsYou,
         fullName: d.fullname,
         guiID: d.guiID,
         hidFromFollowers: d.hidFromFollowers,
@@ -196,15 +201,15 @@ const useUserData = (username: string) => {
 
   return {
     assertions,
-    bio: stateProps.bio,
     backgroundColorType: stateProps.backgroundColorType,
+    bio: stateProps.bio,
     blocked: stateProps.blocked,
     followThem: stateProps.followThem,
     followers: stateProps.followers ? [...stateProps.followers] : undefined,
     followersCount: stateProps.followersCount,
-    followsYou: stateProps.followsYou,
     following: stateProps.following ? [...stateProps.following] : undefined,
     followingCount: stateProps.followingCount,
+    followsYou: stateProps.followsYou,
     fullName: stateProps.fullName,
     guiID: stateProps.guiID,
     hidFromFollowers: stateProps.hidFromFollowers,

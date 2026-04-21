@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as React from 'react'
+import type * as React from 'react'
 import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useFollowerState} from '@/stores/followers'
@@ -27,9 +27,18 @@ export const FollowButton = (props: FollowProps) => {
 
   const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
 
-  const onFollow = () => followUser([{follow: true, guiID}, C.waitingKeyTracker], () => loadProfile(false), () => {})
+  const onFollow = () =>
+    followUser(
+      [{follow: true, guiID}, C.waitingKeyTracker],
+      () => loadProfile(false),
+      () => {}
+    )
   const onUnfollow = () =>
-    followUser([{follow: false, guiID}, C.waitingKeyTracker], () => loadProfile(false), () => {})
+    followUser(
+      [{follow: false, guiID}, C.waitingKeyTracker],
+      () => loadProfile(false),
+      () => {}
+    )
 
   const waitingKey = [getFollowWaitingKey(username), C.waitingKeyTrackerProfileLoad]
 

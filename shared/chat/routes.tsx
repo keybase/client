@@ -148,17 +148,23 @@ export const newRoutes = defineRouteMap({
   },
   chatRoot: Chat.isSplit
     ? {
-        ...makeChatScreen(React.lazy(async () => import('./inbox-and-conversation')), {
-          getOptions: inboxAndConvoGetOptions,
-          skipProvider: true,
-        }),
+        ...makeChatScreen(
+          React.lazy(async () => import('./inbox-and-conversation')),
+          {
+            getOptions: inboxAndConvoGetOptions,
+            skipProvider: true,
+          }
+        ),
         initialParams: emptyChatRootRouteParams,
       }
     : {
-        ...makeChatScreen(React.lazy(async () => import('./inbox')), {
-          getOptions: inboxGetOptions,
-          skipProvider: true,
-        }),
+        ...makeChatScreen(
+          React.lazy(async () => import('./inbox')),
+          {
+            getOptions: inboxGetOptions,
+            skipProvider: true,
+          }
+        ),
         initialParams: emptyChatRootRouteParams,
       },
 })
@@ -271,9 +277,9 @@ export const newModalRoutes = defineRouteMap({
     {
       getOptions: p => ({
         headerRight: C.isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
-        title: 'PDF',
         modalStyle: {height: '80%', maxHeight: '80%', width: '80%'},
         overlayStyle: {alignSelf: 'stretch'},
+        title: 'PDF',
       }),
     }
   ),
