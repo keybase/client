@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import {bodyToJSON} from '@/constants/rpc-utils'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import * as ConvoState from '@/stores/convostate'
@@ -30,6 +31,13 @@ type ChatTeamNamesState = {
   teamnames: ReadonlyMap<T.Teams.TeamID, string>
 }
 
+type ChatManageChannelsBadgeState = {
+  loading: boolean
+  showBadge: boolean
+}
+
+const chosenChannelsGregorKey = 'chosenChannelsForTeam'
+
 export type ChatTeam = ChatTeamState & {
   reload: () => Promise<void>
 }
@@ -43,6 +51,11 @@ export type ChatTeamChannels = ChatTeamChannelsState & {
 }
 
 export type ChatTeamNames = ChatTeamNamesState & {
+  reload: () => Promise<void>
+}
+
+export type ChatManageChannelsBadge = ChatManageChannelsBadgeState & {
+  dismiss: () => Promise<void>
   reload: () => Promise<void>
 }
 
@@ -74,11 +87,24 @@ const emptyChatTeamNamesState: ChatTeamNamesState = {
   teamnames: emptyTeamnames,
 }
 
+const emptyChatManageChannelsBadgeState: ChatManageChannelsBadgeState = {
+  loading: false,
+  showBadge: false,
+}
+
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
 
 const parseTeamIDsKey = (teamIDsKey: string): Array<T.Teams.TeamID> =>
   teamIDsKey ? teamIDsKey.split(',').map(teamID => teamID as T.Teams.TeamID) : []
+
+const getChosenChannelsTeams = (
+  items: ReadonlyArray<{item?: T.RPCGen.Gregor1.Item | null}> | undefined
+): Set<string> => {
+  const chosenChannels = items?.find(item => item.item?.category === chosenChannelsGregorKey)
+  const parsed = bodyToJSON(chosenChannels?.item?.body)
+  return new Set(Array.isArray(parsed) ? parsed.filter((teamname): teamname is string => typeof teamname === 'string') : [])
+}
 
 const roleAndDetailsFromMap = (
   map: T.RPCGen.TeamRoleMapAndVersion,
@@ -432,3 +458,78 @@ export const useChatTeamChannels = (
 
 export const useChatTeamNames = (teamIDs: ReadonlyArray<T.Teams.TeamID>): ChatTeamNames =>
   useChatTeamNamesRaw(teamIDs)
+
+export const useChatManageChannelsBadge = (
+  teamID: T.Teams.TeamID,
+  teamname: string
+): ChatManageChannelsBadge => {
+  const validTeamID = loadableTeamID(teamID)
+  const [state, setState] = React.useState<ChatManageChannelsBadgeState>(emptyChatManageChannelsBadgeState)
+  const requestVersionRef = React.useRef(0)
+
+  const reload = React.useCallback(async () => {
+    if (!validTeamID || !teamname) {
+      setState(emptyChatManageChannelsBadgeState)
+      return
+    }
+    const requestVersion = ++requestVersionRef.current
+    setState(prev => ({...prev, loading: true}))
+    try {
+      const pushState = await T.RPCGen.gregorGetStateRpcPromise()
+      if (requestVersion !== requestVersionRef.current) {
+        return
+      }
+      setState({
+        loading: false,
+        showBadge: !getChosenChannelsTeams(pushState.items).has(teamname),
+      })
+    } catch (error) {
+      if (requestVersion !== requestVersionRef.current) {
+        return
+      }
+      logger.warn(`Failed to load chosen channel state for ${teamname}`, error)
+      setState(prev => ({...prev, loading: false}))
+    }
+  }, [teamname, validTeamID])
+
+  const dismiss = React.useCallback(async () => {
+    if (!validTeamID || !teamname) {
+      setState(emptyChatManageChannelsBadgeState)
+      return
+    }
+    try {
+      const pushState = await T.RPCGen.gregorGetStateRpcPromise()
+      const teams = getChosenChannelsTeams(pushState.items)
+      if (!teams.has(teamname)) {
+        teams.add(teamname)
+        await T.RPCGen.gregorUpdateCategoryRpcPromise({
+          body: JSON.stringify([...teams]),
+          category: chosenChannelsGregorKey,
+          dtime: {offset: 0, time: 0},
+        })
+      }
+      setState({loading: false, showBadge: false})
+    } catch (error) {
+      logger.warn(`Failed to update chosen channel state for ${teamname}`, error)
+      void reload()
+    }
+  }, [reload, teamname, validTeamID])
+
+  React.useEffect(() => {
+    void reload()
+  }, [reload])
+  C.Router2.useSafeFocusEffect(() => {
+    void reload()
+  })
+  useEngineActionListener('keybase.1.gregorUI.pushState', action => {
+    if (!validTeamID || !teamname) {
+      return
+    }
+    setState({
+      loading: false,
+      showBadge: !getChosenChannelsTeams(action.payload.params.state.items).has(teamname),
+    })
+  })
+
+  return {...state, dismiss, reload}
+}

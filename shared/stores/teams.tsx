@@ -240,9 +240,6 @@ export const userInTeamNotBotWithInfo = (
   return !isBot(memb.type)
 }
 
-export const isTeamWithChosenChannels = (state: State, teamname: string): boolean =>
-  state.teamsWithChosenChannels.has(teamname)
-
 export const getRole = (state: State, teamID: T.Teams.TeamID): T.Teams.MaybeTeamRoleType =>
   state.teamRoleMap.roles.get(teamID)?.role || 'none'
 
@@ -437,7 +434,6 @@ export const isSubteam = (maybeTeamname: string) => {
 // How many public admins should we display on a showcased team card at once?
 export const publicAdminsLimit = 6
 
-export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
 export const newRequestsGregorPrefix = 'team.request_access:'
 export const newRequestsGregorKey = (teamID: T.Teams.TeamID) => `${newRequestsGregorPrefix}${teamID}`
 
@@ -771,7 +767,6 @@ type Store = T.Immutable<{
   teamnames: Set<T.Teams.Teamname> // TODO remove
   teamMetaStale: boolean // if we've received an update since we last loaded team list
   teamMeta: Map<T.Teams.TeamID, T.Teams.TeamMeta>
-  teamsWithChosenChannels: Set<T.Teams.Teamname>
   teamRoleMap: T.Teams.TeamRoleMap
   sawChatBanner: boolean
   sawSubteamsBanner: boolean
@@ -824,7 +819,6 @@ const initialStore: Store = {
   teamSelectedMembers: new Map(),
   teamVersion: new Map(),
   teamnames: new Set(),
-  teamsWithChosenChannels: new Set(),
   treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
 
@@ -836,7 +830,6 @@ export type State = Store & {
       toAdd?: ReadonlyArray<T.Teams.ChannelNameID>,
       toRemove?: T.Teams.ChannelNameID
     ) => void
-    addTeamWithChosenChannels: (teamID: T.Teams.TeamID) => void
     addToTeam: (
       teamID: T.Teams.TeamID,
       users: Array<{assertion: string; role: T.Teams.TeamRoleType}>,
@@ -956,7 +949,6 @@ export type State = Store & {
     setTeamWizardSubteams: (subteams: Array<string>) => void
     setTeamWizardTeamSize: (isBig: boolean) => void
     setTeamWizardTeamType: (teamType: T.Teams.TeamWizardTeamType) => void
-    setTeamsWithChosenChannels: (teamsWithChosenChannels: Set<T.Teams.TeamID>) => void
     setWelcomeMessage: (teamID: T.Teams.TeamID, message: T.RPCChat.WelcomeMessage) => void
     showTeamByName: (
       teamname: string,
@@ -1095,69 +1087,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           addToChannels.splice(maybeRemoveIdx, 1)
         }
       })
-    },
-    addTeamWithChosenChannels: teamID => {
-      const f = async () => {
-        const existingTeams = get().teamsWithChosenChannels
-        const teamname = getTeamNameFromID(get(), teamID)
-        if (!teamname) {
-          logger.warn('No team name in store for teamID:', teamID)
-          return
-        }
-        if (get().teamsWithChosenChannels.has(teamname)) {
-          // we've already dismissed for this team and we already know about it, bail
-          return
-        }
-        const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
-        try {
-          const pushState = await T.RPCGen.gregorGetStateRpcPromise(undefined, S.waitingKeyTeamsTeam(teamID))
-          const item = pushState.items?.find(i => i.item?.category === chosenChannelsGregorKey)
-          let teams: Array<string> = []
-          let msgID: Uint8Array | undefined
-          if (item?.item?.body) {
-            const body = item.item.body
-            msgID = item.md?.msgID
-            teams = bodyToJSON(body) as Array<string>
-          } else {
-            logger.info(
-              `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
-                pushState.items?.length || 0
-              }`
-            )
-          }
-          if (existingTeams.size > teams.length) {
-            // Bad - we don't have an accurate view of things. Log and bail
-            logger.warn(
-              `${logPrefix} Existing list longer than list in gregor state, got list with length ${teams.length} when we have ${existingTeams.size} already. Bailing on update.`
-            )
-            return
-          }
-          teams.push(teamname)
-          // make sure there're no dupes
-          teams = [...new Set(teams)]
-
-          const dtime = {offset: 0, time: 0}
-          // update if exists, else create
-          if (msgID) {
-            logger.info(`${logPrefix} Updating teamsWithChosenChannels`)
-          } else {
-            logger.info(`${logPrefix} Creating teamsWithChosenChannels`)
-          }
-          await T.RPCGen.gregorUpdateCategoryRpcPromise(
-            {
-              body: JSON.stringify(teams),
-              category: chosenChannelsGregorKey,
-              dtime,
-            },
-            teams.map(t => S.waitingKeyTeamsTeam(getTeamID(get(), t)))
-          )
-        } catch (err) {
-          // failure getting the push state, don't bother the user with an error
-          // and don't try to move forward updating the state
-          logger.error(`${logPrefix} error fetching gregor state: ${String(err)}`)
-        }
-      }
-      ignorePromise(f())
     },
     addToTeam: (teamID, users, sendChatNotification, fromTeamBuilder) => {
       set(s => {
@@ -2059,12 +1988,8 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
     onGregorPushState: items => {
       const sawChatBanner = items.some(i => i.item.category === 'sawChatBanner')
       const sawSubteamsBanner = items.some(i => i.item.category === 'sawSubteamsBanner')
-      let chosenChannels: undefined | (typeof items)[0]
       const newTeamRequests = new Map<T.Teams.TeamID, Set<string>>()
       items.forEach(i => {
-        if (i.item.category === chosenChannelsGregorKey) {
-          chosenChannels = i
-        }
         if (i.item.category.startsWith(newRequestsGregorPrefix)) {
           const body = bodyToJSON(i.item.body) as undefined | {id: T.Teams.TeamID; username: string}
           if (body) {
@@ -2077,9 +2002,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       sawChatBanner && get().dispatch.setTeamSawChatBanner()
       sawSubteamsBanner && get().dispatch.setTeamSawSubteamsBanner()
       get().dispatch.setNewTeamRequests(newTeamRequests)
-      get().dispatch.setTeamsWithChosenChannels(
-        new Set<T.Teams.Teamname>(bodyToJSON(chosenChannels?.item.body) as Array<string>)
-      )
     },
     reAddToTeam: (teamID, username) => {
       const f = async () => {
@@ -2454,11 +2376,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         s.newTeamWizard.teamType = teamType
       })
       navigateAppend({name: 'teamWizard2TeamInfo', params: {}})
-    },
-    setTeamsWithChosenChannels: teamsWithChosenChannels => {
-      set(s => {
-        s.teamsWithChosenChannels = teamsWithChosenChannels
-      })
     },
     setWelcomeMessage: (teamID, message) => {
       set(s => {

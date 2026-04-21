@@ -7,10 +7,9 @@ import type * as React from 'react'
 import * as T from '@/constants/types'
 import * as InfoPanelCommon from './common'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
-import {TeamsSubscriberMountOnly} from '@/teams/subscriber'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useChatTeam} from '../team-hooks'
+import {useChatManageChannelsBadge, useChatTeam} from '../team-hooks'
 
 export type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -91,8 +90,10 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
 
   const {yourOperations} = useChatTeam(teamID, teamname)
-  const addTeamWithChosenChannels = Teams.useTeamsState(s => s.dispatch.addTeamWithChosenChannels)
-  const badgeSubscribe = Teams.useTeamsState(s => !Teams.isTeamWithChosenChannels(s, teamname))
+  const {dismiss: dismissManageChannelsBadge, showBadge: badgeSubscribe} = useChatManageChannelsBadge(
+    teamID,
+    teamname
+  )
   const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
   const canAddPeople = yourOperations.manageMembers
   const onAddPeople = () => {
@@ -118,7 +119,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const onLeaveTeam = () => teamID && chatNavigateAppend(() => ({name: 'teamReallyLeaveTeam', params: {teamID}}))
   const onManageChannels = () => {
     routerNavigateAppend({name: 'teamAddToChannels', params: {teamID}})
-    addTeamWithChosenChannels(teamID)
+    void dismissManageChannelsBadge()
   }
   const clearModals = C.Router2.clearModals
   const markTeamAsRead = ConvoState.useChatContext(s => s.dispatch.markTeamAsRead)
@@ -370,19 +371,16 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   ) : null
 
   return (
-    <>
-      <TeamsSubscriberMountOnly />
-      <Kb.FloatingMenu
-        attachTo={attachTo}
-        containerStyle={floatingMenuContainerStyle}
-        visible={visible}
-        items={items}
-        header={header}
-        onHidden={onHidden}
-        position="bottom left"
-        closeOnSelect={true}
-      />
-    </>
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      containerStyle={floatingMenuContainerStyle}
+      visible={visible}
+      items={items}
+      header={header}
+      onHidden={onHidden}
+      position="bottom left"
+      closeOnSelect={true}
+    />
   )
 }
 
