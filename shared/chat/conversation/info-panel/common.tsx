@@ -23,10 +23,10 @@ export const useTeamHumans = (teamID: T.Teams.TeamID) => {
   const {members: teamMembers} = useChatTeamMembers(teamID)
   const bots = (() => {
     const ret = new Set<string>()
-    teamMembers?.forEach(({type}, username) => isBot(type) && ret.add(username))
+    teamMembers.forEach(({type}, username) => isBot(type) && ret.add(username))
     return ret
   })()
-  const teamHumanCount = (teamMembers?.size ?? 0) - bots.size
+  const teamHumanCount = teamMembers.size - bots.size
   return {bots, teamHumanCount}
 }
 

@@ -99,7 +99,7 @@ const parseTeamIDsKey = (teamIDsKey: string): Array<T.Teams.TeamID> =>
   teamIDsKey ? teamIDsKey.split(',').map(teamID => teamID as T.Teams.TeamID) : []
 
 const getChosenChannelsTeams = (
-  items: ReadonlyArray<{item?: T.RPCGen.Gregor1.Item | null}> | undefined
+  items: ReadonlyArray<{item?: T.RPCGen.Gregor1.Item | null}> | null | undefined
 ): Set<string> => {
   const chosenChannels = items?.find(item => item.item?.category === chosenChannelsGregorKey)
   const parsed = bodyToJSON(chosenChannels?.item?.body)
@@ -128,7 +128,7 @@ const annotatedTeamToChatTeamState = (
   description: annotatedTeam.showcase.description ?? '',
   loading: false,
   role: roleAndDetails?.role ?? 'none',
-  teamname: annotatedTeam.name ?? '',
+  teamname: annotatedTeam.name,
   yourOperations: Teams.deriveCanPerform(roleAndDetails),
 })
 
@@ -358,7 +358,7 @@ const useChatTeamNamesRaw = (
       const annotatedTeams = await Promise.all(
         validTeamIDs.map(async teamID => ({
           teamID,
-          teamname: (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name ?? '',
+          teamname: (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name,
         }))
       )
       if (requestVersion !== requestVersionRef.current) {
@@ -430,10 +430,11 @@ export const ChatTeamProvider = (props: React.PropsWithChildren) => {
   )
   const outer = React.useContext(ChatTeamContext)
   const enabled = teamType !== 'adhoc' && !!loadableTeamID(teamID)
-  const sameAsOuter = outer?.teamID === teamID
+  const sameAsOuter = !!outer && outer.teamID === teamID
   const team = useChatTeamRaw(teamID, teamname, enabled && !sameAsOuter)
   const members = useChatTeamMembersRaw(teamID, enabled && !sameAsOuter)
-  const value = sameAsOuter && outer ? outer : {members, team, teamID}
+  const value: ChatTeamContextValue =
+    outer && outer.teamID === teamID ? outer : {members, team, teamID}
   return <ChatTeamContext.Provider value={value}>{children}</ChatTeamContext.Provider>
 }
 

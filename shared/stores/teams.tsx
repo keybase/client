@@ -2208,6 +2208,11 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         s.newTeamRequests = newTeamRequests
       })
     },
+    prepareAddMembersWizard: teamID => {
+      set(s => {
+        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, teamID})
+      })
+    },
     setPublicity: (teamID, settings) => {
       const f = async () => {
         const teamMeta = getTeamMeta(get(), teamID)
@@ -2265,11 +2270,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    prepareAddMembersWizard: teamID => {
-      set(s => {
-        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, teamID})
-      })
     },
     setTeamRetentionPolicy: (teamID, policy) => {
       const f = async () => {

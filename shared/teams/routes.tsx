@@ -269,9 +269,9 @@ export const newModalRoutes = defineRouteMap({
   }),
   teamAddToTeamFromWhere: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-from-where')), {
     getOptions: ({route}) => ({
-      headerLeft: () => <AddFromWhereHeaderLeft teamID={route.params?.teamID} />,
-      headerRight: () => <AddFromWhereHeaderRight teamID={route.params?.teamID} />,
-      headerTitle: () => <AddFromWhereHeaderTitle teamID={route.params?.teamID} />,
+      headerLeft: () => <AddFromWhereHeaderLeft teamID={route.params.teamID} />,
+      headerRight: () => <AddFromWhereHeaderRight teamID={route.params.teamID} />,
+      headerTitle: () => <AddFromWhereHeaderTitle teamID={route.params.teamID} />,
       modalStyle: {height: 560},
     }),
   }),

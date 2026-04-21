@@ -16,7 +16,7 @@ const TeamHeader = () => {
   const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
 
   const {yourOperations} = useChatTeam(teamID, teamname)
-  const admin = yourOperations?.manageMembers ?? false
+  const admin = yourOperations.manageMembers
   const isPreview = membershipType === 'youArePreviewing'
   const isSmallTeam = !!teamname && !!channelname && teamType !== 'big'
   let title = teamname

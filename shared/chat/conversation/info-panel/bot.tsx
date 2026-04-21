@@ -191,12 +191,7 @@ const BotTab = (props: Props) => {
   const {teamID, teamname, teamType, botAliases} = meta
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const {yourOperations} = useChatTeam(teamID, teamname)
-  let canManageBots = false
-  if (teamname) {
-    canManageBots = yourOperations?.manageBots ?? false
-  } else {
-    canManageBots = true
-  }
+  const canManageBots = teamname ? yourOperations.manageBots : true
   const adhocTeam = teamType === 'adhoc'
   const participantInfo = ConvoState.useChatContext(s => s.participants)
   const {members: teamMembers} = useChatTeamMembers(teamID)
@@ -205,7 +200,7 @@ const BotTab = (props: Props) => {
   let botUsernames: Array<string> = []
   if (adhocTeam) {
     botUsernames = participantsAll.filter(p => !participantInfo.name.includes(p))
-  } else if (teamMembers) {
+  } else {
     botUsernames = [...teamMembers.values()]
       .filter(
         p =>
@@ -222,7 +217,7 @@ const BotTab = (props: Props) => {
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
-        !(!adhocTeam && teamMembers && Teams.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
+        (adhocTeam || !Teams.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
     )
     .map((bot, index) => ({...bot, index, type: 'featuredBot'}))
   const infoMap = useUsersState(s => s.infoMap)
