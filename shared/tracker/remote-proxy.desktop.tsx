@@ -288,29 +288,26 @@ const RemoteTrackers = () => {
       }
       const usernameToDetails = new Map(prev.usernameToDetails)
       let changed = false
-      Object.entries(blocks ?? {}).forEach(([username, blockStates]) => {
+      for (const [username, blockStates] of Object.entries(blocks ?? {})) {
         const current = usernameToDetails.get(username)
         if (!current) {
-          return
+          continue
         }
         const details = cloneDetails(current)
         let blocked = details.blocked
         let hidFromFollowers = details.hidFromFollowers
-        let localChange = false
-        blockStates?.forEach(blockState => {
+        for (const blockState of blockStates ?? []) {
           if (blockState.blockType === T.RPCGen.UserBlockType.chat) {
             blocked = blockState.blocked
-            localChange = true
           } else {
             hidFromFollowers = blockState.blocked
-            localChange = true
           }
-        })
-        if (localChange) {
+        }
+        if (blocked !== details.blocked || hidFromFollowers !== details.hidFromFollowers) {
           changed = true
           usernameToDetails.set(username, {...details, blocked, hidFromFollowers})
         }
-      })
+      }
       return changed ? {...prev, usernameToDetails} : prev
     })
   })
