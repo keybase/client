@@ -1,14 +1,14 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {usePhoneNumberList} from '../common'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
+import {addMembersToWizard, type AddMembersWizard} from './state'
 
 const waitingKey = 'phoneLookup'
 
-const AddPhone = () => {
+const AddPhone = ({route}: {route: {params: {wizard: AddMembersWizard}}}) => {
   const [error, setError] = React.useState('')
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
@@ -18,22 +18,28 @@ const AddPhone = () => {
   const defaultCountry = useDefaultPhoneCountry()
 
   const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
-  const addMembersWizardPushMembers = useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
+  const navigateAppend = C.Router2.navigateAppend
   const onContinue = () => {
     setError('')
     emailsToAssertionsRPC(
       [{emails: '', phoneNumbers: phoneNumbers.map(pn => pn.phoneNumber)}, waitingKey],
-      r =>
-        r?.length
-          ? addMembersWizardPushMembers(
-              r.map(m => ({
-                ...(m.foundUser
-                  ? {assertion: m.username, resolvedFrom: m.assertion}
-                  : {assertion: m.assertion}),
-                role: 'writer',
-              }))
-            )
-          : setError('You must enter at least one valid phone number.'),
+      r => {
+        if (!r?.length) {
+          setError('You must enter at least one valid phone number.')
+          return
+        }
+        const f = async () => {
+          const wizard = await addMembersToWizard(
+            route.params.wizard,
+            r.map(m => ({
+              ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
+              role: 'writer',
+            }))
+          )
+          navigateAppend({name: 'teamAddToTeamConfirm', params: {wizard}}, true)
+        }
+        C.ignorePromise(f())
+      },
       err => setError(err.message)
     )
   }

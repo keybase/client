@@ -1,15 +1,16 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import ContactsList, {useContacts, EnableContactsPopup} from '../common/contacts-list.native'
 import {useModalHeaderState} from '@/stores/modal-header'
 import type {Contact} from '../common/contacts-list.native'
+import {addMembersToWizard, type AddMembersWizard} from './state'
 
-const AddContacts = () => {
+const AddContacts = ({route}: {route: {params: {wizard: AddMembersWizard}}}) => {
   const navigateUp = C.Router2.navigateUp
+  const navigateAppend = C.Router2.navigateAppend
   const onBack = () => navigateUp()
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
@@ -30,8 +31,6 @@ const AddContacts = () => {
   const [waiting, setWaiting] = React.useState(false)
   const toAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
 
-  const addMembersWizardPushMembers = useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
-
   const noneSelected = selectedPhones.size + selectedEmails.size === 0
 
   React.useEffect(() => {
@@ -44,14 +43,17 @@ const AddContacts = () => {
         [{emails: [...selectedEmails].join(','), phoneNumbers: [...selectedPhones]}],
         r => {
           if (r?.length) {
-            addMembersWizardPushMembers(
-              r.map(m => ({
-                ...(m.foundUser
-                  ? {assertion: m.username, resolvedFrom: m.assertion}
-                  : {assertion: m.assertion}),
-                role: 'writer',
-              }))
-            )
+            const f = async () => {
+              const wizard = await addMembersToWizard(
+                route.params.wizard,
+                r.map(m => ({
+                  ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
+                  role: 'writer',
+                }))
+              )
+              navigateAppend({name: 'teamAddToTeamConfirm', params: {wizard}}, true)
+            }
+            C.ignorePromise(f())
           }
         },
         err => {
@@ -68,7 +70,7 @@ const AddContacts = () => {
     return () => {
       useModalHeaderState.setState({actionEnabled: false, actionWaiting: false, onAction: undefined, title: ''})
     }
-  }, [waiting, selectedEmails, selectedPhones, toAssertionsRPC, addMembersWizardPushMembers, noneSelected])
+  }, [waiting, selectedEmails, selectedPhones, toAssertionsRPC, navigateAppend, noneSelected, route.params.wizard])
 
   return (
     <>

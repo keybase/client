@@ -1,7 +1,13 @@
 /// <reference types="jest" />
 import {resetAllStores} from '@/util/zustand'
 import type * as T from '@/constants/types'
-import {addMembersWizardEmptyState, useTeamsState} from '../teams'
+import {useTeamsState} from '../teams'
+import {
+  makeAddMembersWizard,
+  removeWizardMember,
+  setWizardIndividualRole,
+  setWizardRole,
+} from '@/teams/add-members-wizard/state'
 
 const parentTeamID = 'team-parent' as T.Teams.TeamID
 
@@ -38,27 +44,20 @@ test('channel and member selection can add, remove, and clear all choices', () =
 })
 
 test('add members role updates synchronize top-level and per-member roles', () => {
-  useTeamsState.setState({
-    addMembersWizard: {
-      ...addMembersWizardEmptyState,
-      addingMembers: [
-        {assertion: 'alice', role: 'writer'},
-        {assertion: 'bob', role: 'writer'},
-      ],
-      teamID: parentTeamID,
-    },
-  } as never)
+  let wizard = makeAddMembersWizard(parentTeamID, {
+    addingMembers: [
+      {assertion: 'alice', role: 'writer'},
+      {assertion: 'bob', role: 'writer'},
+    ],
+  })
 
-  const state = useTeamsState.getState()
-  state.dispatch.setAddMembersWizardRole('admin')
-  expect(useTeamsState.getState().addMembersWizard.role).toBe('admin')
-  expect(useTeamsState.getState().addMembersWizard.addingMembers.map(m => m.role)).toEqual(['admin', 'admin'])
+  wizard = setWizardRole(wizard, 'admin')
+  expect(wizard.role).toBe('admin')
+  expect(wizard.addingMembers.map(m => m.role)).toEqual(['admin', 'admin'])
 
-  state.dispatch.setAddMembersWizardIndividualRole('bob', 'reader')
-  expect(useTeamsState.getState().addMembersWizard.addingMembers.find(m => m.assertion === 'bob')?.role).toBe(
-    'reader'
-  )
+  wizard = setWizardIndividualRole(wizard, 'bob', 'reader')
+  expect(wizard.addingMembers.find(m => m.assertion === 'bob')?.role).toBe('reader')
 
-  state.dispatch.addMembersWizardRemoveMember('alice')
-  expect(useTeamsState.getState().addMembersWizard.addingMembers.map(m => m.assertion)).toEqual(['bob'])
+  wizard = removeWizardMember(wizard, 'alice')
+  expect(wizard.addingMembers.map(m => m.assertion)).toEqual(['bob'])
 })

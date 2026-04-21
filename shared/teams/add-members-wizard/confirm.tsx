@@ -3,7 +3,6 @@ import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {assertionToDisplay} from '@/common-adapters/usernames'
@@ -14,6 +13,13 @@ import {ChannelsWidget} from '../common'
 import {pluralize} from '@/util/string'
 import logger from '@/logger'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {
+  removeWizardMember,
+  setWizardDefaultChannels,
+  setWizardIndividualRole,
+  setWizardRole,
+  type AddMembersWizard,
+} from './state'
 
 type DisabledRoles = React.ComponentProps<typeof FloatingRolePicker>['disabledRoles']
 const disabledRolesForNonKeybasePlural = {
@@ -26,27 +32,32 @@ const disabledRolesSubteam = {
   owner: 'Subteams cannot have owners.',
 }
 
-const AddMembersConfirm = () => {
-  const teamsState = useTeamsState(
+const AddMembersConfirm = ({navigation, route}: Props) => {
+  const [wizard, setWizard] = React.useState(route.params.wizard)
+  const updateWizard = React.useCallback(
+    (nextWizard: AddMembersWizard) => {
+      setWizard(nextWizard)
+      navigation.setParams({wizard: nextWizard})
+    },
+    [navigation]
+  )
+  const teamsState = Teams.useTeamsState(
     C.useShallow(s => {
-      const teamID = s.addMembersWizard.teamID
+      const teamID = wizard.teamID
       const isInTeam = Teams.getRole(s, teamID) !== 'none'
       const isSubteam = Teams.getTeamMeta(s, teamID).teamname.includes('.')
-      const newTeamWizErr = teamID === T.Teams.newTeamWizardTeamID ? s.newTeamWizard.error : undefined
       return {
-        addMembersWizard: s.addMembersWizard,
         finishNewTeamWizard: s.dispatch.finishNewTeamWizard,
         finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
         isInTeam,
         isSubteam,
-        newTeamWizErr,
       }
     })
   )
-  const {addMembersWizard, finishedAddMembersWizard, finishNewTeamWizard} = teamsState
-  const {isInTeam, isSubteam, newTeamWizErr} = teamsState
-  const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = addMembersWizard
+  const {finishedAddMembersWizard, finishNewTeamWizard, isInTeam, isSubteam} = teamsState
+  const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = wizard
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
+  const newTeamWizErr = Teams.useTeamsState(s => (fromNewTeamWizard ? s.newTeamWizard.error : undefined))
   const isBigTeam = Chat.useChatState(s => (fromNewTeamWizard ? false : getIsBigTeam(s.inboxLayout, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
 
@@ -70,7 +81,7 @@ const AddMembersConfirm = () => {
   const addMembers = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
 
   const onComplete = fromNewTeamWizard
-    ? () => finishNewTeamWizard()
+    ? () => finishNewTeamWizard(addingMembers)
     : () => {
         setWaiting(true)
         addMembers(
@@ -104,16 +115,24 @@ const AddMembersConfirm = () => {
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="small">
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          <AddingMembers disabledRoles={disabledRoles} />
+          <AddingMembers
+            disabledRoles={disabledRoles}
+            updateWizard={updateWizard}
+            wizard={wizard}
+          />
           <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between">
-            <AddMoreMembers />
+            <AddMoreMembers wizard={wizard} />
             <RoleSelector
               memberCount={addingMembers.length}
               disabledRoles={anyNonKeybase ? disabledRolesForNonKeybasePlural : disabledRoles}
+              updateWizard={updateWizard}
+              wizard={wizard}
             />
           </Kb.Box2>
         </Kb.Box2>
-        {isBigTeam && someKeybaseUsers && isInTeam && <DefaultChannels teamID={teamID} />}
+        {isBigTeam && someKeybaseUsers && isInTeam && (
+          <DefaultChannels teamID={teamID} updateWizard={updateWizard} wizard={wizard} />
+        )}
         {onlyEmails && (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
@@ -194,16 +213,25 @@ const AlreadyInTeam = ({assertions}: {assertions: ReadonlyArray<string>}) => {
   )
 }
 
-const AddMoreMembers = () => {
+const AddMoreMembers = ({wizard}: {wizard: AddMembersWizard}) => {
   const nav = useSafeNavigation()
-  const appendNewTeamBuilder = C.Router2.appendNewTeamBuilder
-  const teamID = useTeamsState(s => s.addMembersWizard.teamID)
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
-      const onAddKeybase = () => appendNewTeamBuilder(teamID)
-      const onAddContacts = () => nav.safeNavigateAppend({name: 'teamAddToTeamContacts', params: {}})
-      const onAddPhone = () => nav.safeNavigateAppend({name: 'teamAddToTeamPhone', params: {}})
-      const onAddEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {}})
+      const onAddKeybase = () =>
+        nav.safeNavigateAppend({
+          name: 'teamsTeamBuilder',
+          params: {
+            addMembersWizard: wizard,
+            filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
+            goButtonLabel: 'Add',
+            namespace: 'teams',
+            teamID: wizard.teamID,
+            title: '',
+          },
+        })
+      const onAddContacts = () => nav.safeNavigateAppend({name: 'teamAddToTeamContacts', params: {wizard}})
+      const onAddPhone = () => nav.safeNavigateAppend({name: 'teamAddToTeamPhone', params: {wizard}})
+      const onAddEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {wizard}})
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
@@ -233,20 +261,17 @@ type RoleType = T.Teams.AddingMemberTeamRoleType | 'setIndividually'
 type RoleSelectorProps = {
   disabledRoles: DisabledRoles
   memberCount: number
+  updateWizard: (wizard: AddMembersWizard) => void
+  wizard: AddMembersWizard
 }
-const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
+const RoleSelector = ({disabledRoles, memberCount, updateWizard, wizard}: RoleSelectorProps) => {
   const [showingMenu, setShowingMenu] = React.useState(false)
-  const {setAddMembersWizardRole, storeRole} = useTeamsState(
-    C.useShallow(s => ({
-      setAddMembersWizardRole: s.dispatch.setAddMembersWizardRole,
-      storeRole: s.addMembersWizard.role,
-    }))
-  )
+  const storeRole = wizard.role
   const [role, setRole] = React.useState<RoleType>(storeRole)
   const onConfirmRole = (newRole: RoleType) => {
     setRole(newRole)
     setShowingMenu(false)
-    setAddMembersWizardRole(newRole)
+    updateWizard(setWizardRole(wizard, newRole))
   }
   return (
     <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
@@ -274,8 +299,16 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
   )
 }
 
-const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
-  const addingMembers = useTeamsState(s => s.addMembersWizard.addingMembers)
+const AddingMembers = ({
+  disabledRoles,
+  updateWizard,
+  wizard,
+}: {
+  disabledRoles: DisabledRoles
+  updateWizard: (wizard: AddMembersWizard) => void
+  wizard: AddMembersWizard
+}) => {
+  const {addingMembers} = wizard
   const [expanded, setExpanded] = React.useState(false)
   const showDivider = Kb.Styles.isMobile && addingMembers.length > 4
   const aboveDivider = C.isMobile ? addingMembers.slice(0, 4) : addingMembers
@@ -294,6 +327,8 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
           {...toAdd}
           lastMember={addingMembers.length === 1}
           disabledRoles={disabledRoles}
+          updateWizard={updateWizard}
+          wizard={wizard}
         />
       ))}
       {showDivider && (
@@ -312,7 +347,13 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
       )}
       {expanded &&
         belowDivider.map(toAdd => (
-          <AddingMember key={toAdd.assertion} {...toAdd} disabledRoles={disabledRoles} />
+          <AddingMember
+            key={toAdd.assertion}
+            {...toAdd}
+            disabledRoles={disabledRoles}
+            updateWizard={updateWizard}
+            wizard={wizard}
+          />
         ))}
     </Kb.Box2>
   )
@@ -326,27 +367,27 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
   return <Kb.ScrollView style={styles.addingMembers}>{content}</Kb.ScrollView>
 }
 
-const AddingMember = (props: T.Teams.AddingMember & {disabledRoles: DisabledRoles; lastMember?: boolean}) => {
-  const {addMembersWizardRemoveMember, individualRole, role, setAddMembersWizardIndividualRole} =
-    useTeamsState(
-      C.useShallow(s => {
-        const role = s.addMembersWizard.role
-        return {
-          addMembersWizardRemoveMember: s.dispatch.addMembersWizardRemoveMember,
-          individualRole:
-            s.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ??
-            (role === 'setIndividually' ? 'writer' : role),
-          role,
-          setAddMembersWizardIndividualRole: s.dispatch.setAddMembersWizardIndividualRole,
-        }
-      })
-    )
-  const navUpToScreen = C.Router2.navUpToScreen
+const AddingMember = (
+  props: T.Teams.AddingMember & {
+    disabledRoles: DisabledRoles
+    lastMember?: boolean
+    updateWizard: (wizard: AddMembersWizard) => void
+    wizard: AddMembersWizard
+  }
+) => {
+  const navigateAppend = C.Router2.navigateAppend
+  const {wizard, updateWizard} = props
+  const role = wizard.role
+  const individualRole =
+    wizard.addingMembers.find(member => member.assertion === props.assertion)?.role ??
+    (role === 'setIndividually' ? 'writer' : role)
   const onRemove = () => {
-    addMembersWizardRemoveMember(props.assertion)
+    const nextWizard = removeWizardMember(wizard, props.assertion)
     if (props.lastMember) {
-      navUpToScreen('teamAddToTeamFromWhere')
+      navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: nextWizard}}, true)
+      return
     }
+    updateWizard(nextWizard)
   }
   const isPhoneEmail = props.assertion.endsWith('@phone') || props.assertion.endsWith('@email')
   const showDropdown = role === 'setIndividually'
@@ -360,7 +401,7 @@ const AddingMember = (props: T.Teams.AddingMember & {disabledRoles: DisabledRole
   const onConfirmRole = (newRole: typeof rolePickerRole) => {
     setRole(newRole)
     setShowingMenu(false)
-    setAddMembersWizardIndividualRole(props.assertion, newRole)
+    updateWizard(setWizardIndividualRole(wizard, props.assertion, newRole))
   }
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember} justifyContent="space-between">
@@ -403,21 +444,24 @@ const AddingMember = (props: T.Teams.AddingMember & {disabledRoles: DisabledRole
   )
 }
 
-const DefaultChannels = ({teamID}: {teamID: T.Teams.TeamID}) => {
+const DefaultChannels = ({
+  teamID,
+  updateWizard,
+  wizard,
+}: {
+  teamID: T.Teams.TeamID
+  updateWizard: (wizard: AddMembersWizard) => void
+  wizard: AddMembersWizard
+}) => {
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
-  const {addMembersWizardSetDefaultChannels, addToChannels, allKeybaseUsers} = useTeamsState(
-    C.useShallow(s => ({
-      addMembersWizardSetDefaultChannels: s.dispatch.addMembersWizardSetDefaultChannels,
-      addToChannels: s.addMembersWizard.addToChannels,
-      allKeybaseUsers: !s.addMembersWizard.addingMembers.some(member => member.assertion.includes('@')),
-    }))
-  )
-  const onChangeFromDefault = () => addMembersWizardSetDefaultChannels([])
+  const addToChannels = wizard.addToChannels
+  const allKeybaseUsers = !wizard.addingMembers.some(member => member.assertion.includes('@'))
+  const onChangeFromDefault = () => updateWizard(setWizardDefaultChannels(wizard, []))
   const onAdd = (toAdd: ReadonlyArray<T.Teams.ChannelNameID>) => {
-      addMembersWizardSetDefaultChannels(toAdd)
+      updateWizard(setWizardDefaultChannels(wizard, toAdd))
     }
   const onRemove = (toRemove: T.Teams.ChannelNameID) => {
-      addMembersWizardSetDefaultChannels(undefined, toRemove)
+      updateWizard(setWizardDefaultChannels(wizard, undefined, toRemove))
     }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
@@ -523,5 +567,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
 }))
+
+type Props = {
+  navigation: {setParams: (params: {wizard: AddMembersWizard}) => void}
+  route: {params: {wizard: AddMembersWizard}}
+}
 
 export default AddMembersConfirm

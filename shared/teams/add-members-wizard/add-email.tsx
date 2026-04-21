@@ -1,10 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {addMembersToWizard, type AddMembersWizard} from './state'
 
 type Props = {
+  route: {params: {wizard: AddMembersWizard}}
   errorMessage?: string
 }
 
@@ -15,24 +16,30 @@ const AddEmail = (props: Props) => {
   const [error, setError] = React.useState('')
   const disabled = invitees.length < 1
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const addMembersWizardPushMembers = useTeamsState(s => s.dispatch.addMembersWizardPushMembers)
+  const navigateAppend = C.Router2.navigateAppend
 
   const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
   const onContinue = () => {
     setError('')
     emailsToAssertionsRPC(
       [{emails: invitees}, waitingKey],
-      r =>
-        r?.length
-          ? addMembersWizardPushMembers(
-              r.map(m => ({
-                ...(m.foundUser
-                  ? {assertion: m.username, resolvedFrom: m.assertion}
-                  : {assertion: m.assertion}),
-                role: 'writer',
-              }))
-            )
-          : setError('You must enter at least one valid email address.'),
+      r => {
+        if (!r?.length) {
+          setError('You must enter at least one valid email address.')
+          return
+        }
+        const f = async () => {
+          const wizard = await addMembersToWizard(
+            props.route.params.wizard,
+            r.map(m => ({
+              ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
+              role: 'writer',
+            }))
+          )
+          navigateAppend({name: 'teamAddToTeamConfirm', params: {wizard}}, true)
+        }
+        C.ignorePromise(f())
+      },
       err => setError(err.message)
     )
   }

@@ -3,31 +3,35 @@ import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import {type AddMembersWizard} from './state'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
-  route: {params?: {teamID?: T.Teams.TeamID}}
+  route: {params: {wizard: AddMembersWizard}}
 }
 
 const AddFromWhere = ({route}: Props) => {
   const nav = useSafeNavigation()
-  const storeTeamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
-  const prepareAddMembersWizard = Teams.useTeamsState(s => s.dispatch.prepareAddMembersWizard)
-  const teamID = route.params?.teamID ?? storeTeamID
-  const newTeam = teamID === T.Teams.newTeamWizardTeamID
+  const {wizard} = route.params
+  const isNewTeam = wizard.teamID === T.Teams.newTeamWizardTeamID
+  const navigateAppend = C.Router2.navigateAppend
   // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
-  const createTeamError = Teams.useTeamsState(s => (newTeam ? s.newTeamWizard.error : undefined))
-  React.useEffect(() => {
-    const routeTeamID = route.params?.teamID
-    if (routeTeamID && routeTeamID !== storeTeamID) {
-      prepareAddMembersWizard(routeTeamID)
-    }
-  }, [prepareAddMembersWizard, route.params?.teamID, storeTeamID])
-  const appendNewTeamBuilder = C.Router2.appendNewTeamBuilder
-  const onContinueKeybase = () => appendNewTeamBuilder(teamID)
-  const onContinuePhone = () => nav.safeNavigateAppend({name: 'teamAddToTeamPhone', params: {}})
-  const onContinueContacts = () => nav.safeNavigateAppend({name: 'teamAddToTeamContacts', params: {}})
-  const onContinueEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {}})
+  const createTeamError = Teams.useTeamsState(s => (isNewTeam ? s.newTeamWizard.error : undefined))
+  const onContinueKeybase = () =>
+    navigateAppend({
+      name: 'teamsTeamBuilder',
+      params: {
+        addMembersWizard: wizard,
+        filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
+        goButtonLabel: 'Add',
+        namespace: 'teams',
+        teamID: wizard.teamID,
+        title: '',
+      },
+    })
+  const onContinuePhone = () => nav.safeNavigateAppend({name: 'teamAddToTeamPhone', params: {wizard}})
+  const onContinueContacts = () => nav.safeNavigateAppend({name: 'teamAddToTeamContacts', params: {wizard}})
+  const onContinueEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {wizard}})
 
   return (
     <>
@@ -43,7 +47,7 @@ const AddFromWhere = ({route}: Props) => {
         fullWidth={true}
       >
         <Kb.Text type="Body">
-          {newTeam ? 'Where will your first team members come from?' : 'How would you like to add people?'}
+          {isNewTeam ? 'Where will your first team members come from?' : 'How would you like to add people?'}
         </Kb.Text>
         <Kb.RichButton
           icon="icon-teams-add-search-64"
