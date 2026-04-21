@@ -1,4 +1,4 @@
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 
 export type UnlockFolderDevice = T.Immutable<{
@@ -20,7 +20,7 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     close: () => void
-    open: (devices: ReadonlyArray<T.RPCGen.Device>) => void
+    open: (devices: ReadonlyArray<UnlockFolderDevice>) => void
     resetState: () => void
     setPaperKeyError: (paperKeyError: string) => void
   }
@@ -31,11 +31,7 @@ export const useUnlockFoldersState = Z.createZustand<State>('unlock-folders', (s
     close: () => get().dispatch.resetState(),
     open: devices => {
       set(s => {
-        s.devices = devices.map(({name, type, deviceID}) => ({
-          deviceID,
-          name,
-          type: T.Devices.stringToDeviceType(type),
-        }))
+        s.devices = [...devices]
         s.paperKeyError = ''
       })
     },
