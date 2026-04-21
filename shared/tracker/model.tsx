@@ -175,14 +175,16 @@ export const updateTrackerDetailsBlocked = (
   }
 
   if (blocker === prev.username && next.followers) {
+    const followers = new Set(next.followers)
     for (const [username, blockStates] of Object.entries(blocks ?? {})) {
       for (const blockState of blockStates ?? []) {
         if (blockState.blockType === T.RPCGen.UserBlockType.follow && blockState.blocked) {
-          next.followers.delete(username)
+          followers.delete(username)
         }
       }
     }
-    next.followersCount = next.followers.size
+    next.followers = followers
+    next.followersCount = followers.size
   }
 
   for (const blockState of userBlocks ?? []) {
