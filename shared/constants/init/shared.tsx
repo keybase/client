@@ -22,7 +22,6 @@ import type * as UseChatStateType from '@/stores/chat'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UseTeamsStateType from '@/stores/teams'
-import type * as UnlockFoldersType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {getTBStore} from '@/stores/team-building'
@@ -600,13 +599,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
         useUsersState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.rekeyUI.refresh':
-    case 'keybase.1.rekeyUI.delegateRekeyUI':
-      {
-        const {onUnlockFoldersEngineIncoming} = require('@/stores/unlock-folders') as typeof UnlockFoldersType
-        onUnlockFoldersEngineIncoming(action)
       }
       break
     default:

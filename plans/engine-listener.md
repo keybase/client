@@ -41,8 +41,9 @@ Keep store-owned engine handling when any of these are true:
   - Removed the dedicated `pinentry` store and the `init/shared.tsx` forwarding shim
 - [ ] `archive`
   - Re-check whether archive progress/jobs truly need store persistence or can become screen-owned reload state
-- [ ] `unlock-folders`
-  - Compare existing direct engine handling against the new listener layer and decide whether unification adds value
+- [x] `unlock-folders`
+  - The desktop unlock-folders proxy now subscribes to `rekeyUI.refresh` and `delegateRekeyUI` via the engine listener layer instead of `init/shared.tsx`
+  - Kept the proxy-local Zustand state for window props/error flow; the migration removes global forwarding without changing the desktop popup behavior
 
 ## Explicit Non-Targets For Now
 

@@ -1,18 +1,8 @@
 /// <reference types="jest" />
-import {onUnlockFoldersEngineIncoming} from '../unlock-folders'
+import {handleUnlockFoldersEngineAction} from './engine-actions.desktop'
 
 const mockOpen = jest.fn()
 const mockCreateSession = jest.fn()
-
-jest.mock('@/unlock-folders/store', () => ({
-  useUnlockFoldersState: {
-    getState: () => ({
-      dispatch: {
-        open: mockOpen,
-      },
-    }),
-  },
-}))
 
 jest.mock('@/engine/require', () => ({
   getEngine: () => ({
@@ -26,17 +16,20 @@ afterEach(() => {
   mockOpen.mockReset()
 })
 
-test('rekey refresh actions forward the device list to the unlock folders store', () => {
-  onUnlockFoldersEngineIncoming({
-    payload: {
-      params: {
-        problemSetDevices: {
-          devices: [{deviceID: 'device-1', name: 'device-1', type: 'desktop'}],
+test('rekey refresh actions forward the device list to unlock folders', () => {
+  handleUnlockFoldersEngineAction(
+    {
+      payload: {
+        params: {
+          problemSetDevices: {
+            devices: [{deviceID: 'device-1', name: 'device-1', type: 'desktop'}],
+          },
         },
       },
-    },
-    type: 'keybase.1.rekeyUI.refresh',
-  } as any)
+      type: 'keybase.1.rekeyUI.refresh',
+    } as any,
+    mockOpen
+  )
 
   expect(mockOpen).toHaveBeenCalledWith([{deviceID: 'device-1', name: 'device-1', type: 'desktop'}])
 })
@@ -45,10 +38,13 @@ test('delegateRekeyUI creates a dangling session and returns its id', () => {
   const response = {result: jest.fn()}
   mockCreateSession.mockReturnValue({id: 42})
 
-  onUnlockFoldersEngineIncoming({
-    payload: {response},
-    type: 'keybase.1.rekeyUI.delegateRekeyUI',
-  } as any)
+  handleUnlockFoldersEngineAction(
+    {
+      payload: {response},
+      type: 'keybase.1.rekeyUI.delegateRekeyUI',
+    } as any,
+    mockOpen
+  )
 
   expect(mockCreateSession).toHaveBeenCalledWith(
     expect.objectContaining({
