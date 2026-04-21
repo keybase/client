@@ -42,9 +42,9 @@ const MembersTab = (props: Props) => {
     })
   )
 
-  const {members: teamMembers} = useChatTeamMembers(teamID)
+  const {loading: loadingTeamMembers, members: teamMembers} = useChatTeamMembers(teamID)
   const isGeneral = channelname === 'general'
-  const showAuditingBanner = isGeneral && !teamMembers
+  const showAuditingBanner = isGeneral && loadingTeamMembers
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   const participantInfo = ConvoState.useChatContext(s => s.participants)
   const participants = ConvoState.useChatContext(
@@ -71,13 +71,11 @@ const MembersTab = (props: Props) => {
         ({
           fullname:
             (infoMap.get(p) || {fullname: ''}).fullname ||
-            teamMembers?.get(p)?.fullName ||
+            teamMembers.get(p)?.fullName ||
             participantInfo.contactName.get(p) ||
             '',
-          isAdmin:
-            teamname && teamMembers ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
-          isOwner:
-            teamname && teamMembers ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
+          isAdmin: teamname ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
+          isOwner: teamname ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
           key: `user-${p}`,
           type: 'member',
           username: p,

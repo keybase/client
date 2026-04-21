@@ -892,17 +892,11 @@ export type State = Store & {
       addMembers?: boolean
     ) => void
     startAddMembersWizard: (teamID: T.Teams.TeamID) => void
-    teamChangedByID: (
-      c: EngineGen.ParamsOf<'keybase.1.NotifyTeam.teamChangedByID'>
-    ) => void
+    teamChangedByID: (c: EngineGen.ParamsOf<'keybase.1.NotifyTeam.teamChangedByID'>) => void
     teamSeen: (teamID: T.Teams.TeamID) => void
     unsubscribeTeamDetails: (teamID: T.Teams.TeamID) => void
     unsubscribeTeamList: () => void
-    updateCachedBotMember: (
-      teamID: T.Teams.TeamID,
-      username: string,
-      role?: 'bot' | 'restrictedbot'
-    ) => void
+    updateCachedBotMember: (teamID: T.Teams.TeamID, username: string, role?: 'bot' | 'restrictedbot') => void
     updateChannelName: (
       teamID: T.Teams.TeamID,
       conversationIDKey: T.Chat.ConversationIDKey,
@@ -1173,16 +1167,13 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       const f = async () => {
         try {
           const results = await T.RPCChat.localGetLastActiveForTeamsRpcPromise()
-          const teams = Object.entries(results.teams ?? {}).reduce(
-            (res, [teamID, status]) => {
-              if (status === T.RPCChat.LastActiveStatus.none) {
-                return res
-              }
-              res.set(teamID, lastActiveStatusToActivityLevel[status])
+          const teams = Object.entries(results.teams ?? {}).reduce((res, [teamID, status]) => {
+            if (status === T.RPCChat.LastActiveStatus.none) {
               return res
-            },
-            new Map<T.Teams.TeamID, T.Teams.ActivityLevel>()
-          )
+            }
+            res.set(teamID, lastActiveStatusToActivityLevel[status])
+            return res
+          }, new Map<T.Teams.TeamID, T.Teams.ActivityLevel>())
           const channels = Object.entries(results.channels ?? {}).reduce(
             (res, [conversationIDKey, status]) => {
               if (status === T.RPCChat.LastActiveStatus.none) {
@@ -1537,7 +1528,8 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
                 description: inboxUIItem.headline,
               })
               return res
-            }, new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()) ?? new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()
+            }, new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()) ??
+            new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()
 
           // ensure we refresh participants, but don't fail the saga if this somehow fails
           try {
@@ -1802,6 +1794,11 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       sawChatBanner && get().dispatch.setTeamSawChatBanner()
       sawSubteamsBanner && get().dispatch.setTeamSawSubteamsBanner()
       get().dispatch.setNewTeamRequests(newTeamRequests)
+    },
+    prepareAddMembersWizard: teamID => {
+      set(s => {
+        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, teamID})
+      })
     },
     reAddToTeam: (teamID, username) => {
       const f = async () => {

@@ -37,7 +37,9 @@ const AddToChannel = (props: Props) => {
   const [error, setError] = React.useState('')
   const addToChannel = C.useRPC(T.RPCChat.localBulkAddToConvRpcPromise)
 
-  const onClose = () => nav.safeNavigateUp()
+  const onClose = React.useCallback(() => {
+    nav.safeNavigateUp()
+  }, [nav])
   const onAdd = React.useCallback(() => {
     setWaiting(true)
     addToChannel(

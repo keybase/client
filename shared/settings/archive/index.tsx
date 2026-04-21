@@ -123,6 +123,7 @@ const updateChatProgress = (
 const useArchiveJobs = () => {
   const [chatJobs, setChatJobs] = React.useState<Map<string, ChatArchiveJob>>(() => new Map())
   const [kbfsJobs, setKBFSJobs] = React.useState<Map<string, KBFSArchiveJob>>(() => new Map())
+  const chatJobsRef = React.useRef(chatJobs)
   const chatLoadVersionRef = React.useRef(0)
   const kbfsLoadVersionRef = React.useRef(0)
 
@@ -132,6 +133,7 @@ const useArchiveJobs = () => {
     if (loadVersion !== chatLoadVersionRef.current) {
       return
     }
+    chatJobsRef.current = nextChatJobs
     setChatJobs(nextChatJobs)
   })
 
@@ -159,13 +161,10 @@ const useArchiveJobs = () => {
   })
 
   useEngineActionListener('chat.1.NotifyChat.ChatArchiveProgress', action => {
-    let shouldReload = false
-    setChatJobs(chatJobs => {
-      const next = updateChatProgress(chatJobs, action.payload.params)
-      shouldReload = next.reload
-      return next.chatJobs
-    })
-    if (shouldReload) {
+    const next = updateChatProgress(chatJobsRef.current, action.payload.params)
+    chatJobsRef.current = next.chatJobs
+    setChatJobs(next.chatJobs)
+    if (next.reload) {
       C.ignorePromise(loadChat())
     }
   })

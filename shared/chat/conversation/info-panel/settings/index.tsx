@@ -8,7 +8,7 @@ import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import RetentionPicker from '@/teams/team/settings-tab/retention'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useChatTeam, useChatTeamMembers} from '../team-hooks'
+import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
 type SettingsPanelProps = {isPreview: boolean}
@@ -24,8 +24,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 
   const spinnerForLeave = C.Waiting.useAnyWaiting(C.waitingKeyChatLeaveConversation)
 
-  const canDeleteHistory =
-    teamname && yourOperations ? yourOperations.deleteChatHistory && !meta.cannotWrite : true
+  const canDeleteHistory = teamname ? yourOperations.deleteChatHistory && !meta.cannotWrite : true
 
   let entityType: EntityType
   if (teamname && channelname) {
@@ -36,7 +35,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 
   const {members: teamMembers} = useChatTeamMembers(teamID)
   const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.name).filter(
+  const membersForBlock = (teamMembers.size ? [...teamMembers.keys()] : participantInfo.name).filter(
     u => u !== username && !isAssertion(u)
   )
 
