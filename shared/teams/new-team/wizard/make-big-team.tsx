@@ -1,9 +1,26 @@
 import * as Kb from '@/common-adapters'
-import {useTeamsState} from '@/stores/teams'
+import * as C from '@/constants'
+import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
 
-const MakeBigTeam = () => {
-  const setTeamWizardTeamSize = useTeamsState(s => s.dispatch.setTeamWizardTeamSize)
-  const onSubmit = (isBig: boolean) => setTeamWizardTeamSize(isBig)
+type Props = {
+  navigation: {setParams: (params: {wizard: NewTeamWizard}) => void}
+  route: {params: {wizard: NewTeamWizard}}
+}
+
+const MakeBigTeam = ({navigation, route}: Props) => {
+  const navigateAppend = C.Router2.navigateAppend
+  const onSubmit = (isBig: boolean) => {
+    const wizard = {...route.params.wizard, isBig}
+    navigation.setParams({wizard})
+    if (isBig) {
+      navigateAppend({name: 'teamWizard5Channels', params: {wizard}})
+    } else {
+      navigateAppend({
+        name: 'teamAddToTeamFromWhere',
+        params: {wizard: newTeamWizardToAddMembersWizard(wizard)},
+      })
+    }
+  }
 
   return (
     <>

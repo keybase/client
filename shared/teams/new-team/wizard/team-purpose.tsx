@@ -1,10 +1,21 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useTeamsState} from '@/stores/teams'
+import {makeNewTeamWizard, type NewTeamWizard} from './state'
+import * as C from '@/constants'
 
-const TeamPurpose = () => {
-  const setTeamWizardTeamType = useTeamsState(s => s.dispatch.setTeamWizardTeamType)
-  const onSubmit = (teamType: T.Teams.TeamWizardTeamType) => setTeamWizardTeamType(teamType)
+type Props = {
+  navigation: {setParams: (params: {wizard: NewTeamWizard}) => void}
+  route: {params: {wizard?: NewTeamWizard}}
+}
+
+const TeamPurpose = ({navigation, route}: Props) => {
+  const navigateAppend = C.Router2.navigateAppend
+  const wizard = route.params.wizard ?? makeNewTeamWizard()
+  const onSubmit = (teamType: T.Teams.TeamWizardTeamType) => {
+    const nextWizard = {...wizard, teamType}
+    navigation.setParams({wizard: nextWizard})
+    navigateAppend({name: 'teamWizard2TeamInfo', params: {wizard: nextWizard}})
+  }
 
   return (
     <>

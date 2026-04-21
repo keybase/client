@@ -4,7 +4,9 @@ import * as T from '@/constants/types'
 export type AddMembersWizard = Pick<
   T.Teams.AddMembersWizardState,
   'addToChannels' | 'addingMembers' | 'membersAlreadyInTeam' | 'role' | 'teamID'
->
+> & {
+  newTeamWizard?: T.Teams.NewTeamWizardState
+}
 
 const emptyAddMembersWizard = Object.freeze<Omit<AddMembersWizard, 'teamID'>>({
   addToChannels: undefined,

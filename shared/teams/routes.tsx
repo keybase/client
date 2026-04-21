@@ -13,6 +13,8 @@ import {TeamBuilderScreen} from '../team-building/page'
 import {useModalHeaderState} from '@/stores/modal-header'
 import teamsRootGetOptions from './get-options'
 import {defineRouteMap} from '@/constants/types/router'
+import {createNewTeamFromWizard, type NewTeamWizard} from './new-team/wizard/state'
+import {RPCError} from '@/util/errors'
 
 const TeamsTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
   <TeamBuilderScreen
@@ -68,7 +70,7 @@ const SubteamMembersHeaderRight = () => {
 }
 
 const AddContactsHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => (
-  <ModalTitle teamID={wizard.teamID} title="Add members" />
+  <ModalTitle teamID={wizard.teamID} title="Add members" newTeamWizard={wizard.newTeamWizard} />
 )
 
 const AddContactsHeaderRight = () => {
@@ -98,11 +100,11 @@ const AddContactsHeaderRight = () => {
 }
 
 const WizardEmailHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => (
-  <ModalTitle teamID={wizard.teamID} title="Email list" />
+  <ModalTitle teamID={wizard.teamID} title="Email list" newTeamWizard={wizard.newTeamWizard} />
 )
 
 const WizardPhoneHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => (
-  <ModalTitle teamID={wizard.teamID} title="Phone list" />
+  <ModalTitle teamID={wizard.teamID} title="Phone list" newTeamWizard={wizard.newTeamWizard} />
 )
 
 const TeamInfoHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
@@ -114,7 +116,7 @@ const TeamInfoHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
 const ConfirmHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => {
   const count = wizard.addingMembers.length
   const noun = count === 1 ? 'person' : 'people'
-  return <ModalTitle teamID={wizard.teamID} title={`Inviting ${count} ${noun}`} />
+  return <ModalTitle teamID={wizard.teamID} title={`Inviting ${count} ${noun}`} newTeamWizard={wizard.newTeamWizard} />
 }
 
 const ConfirmHeaderLeft = ({wizard}: {wizard: AddMembersWizard}) => {
@@ -147,13 +149,46 @@ const AddFromWhereHeaderLeft = ({wizard}: {wizard: AddMembersWizard}) => {
 }
 
 const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
-  const finishNewTeamWizard = Teams.useTeamsState(s => s.dispatch.finishNewTeamWizard)
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsCreation)
+  const onSkip = () => {
+    if (!wizard.newTeamWizard) {
+      return
+    }
+    const cleanWizard = {
+      ...wizard,
+      newTeamWizard: {...wizard.newTeamWizard, error: undefined},
+    }
+    navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: cleanWizard}}, true)
+    const f = async () => {
+      try {
+        const teamID = await createNewTeamFromWizard(cleanWizard.newTeamWizard, cleanWizard.addingMembers)
+        navigateAppend({name: 'team', params: {teamID}})
+        clearModals()
+      } catch (err) {
+        const errorMessage = err instanceof RPCError ? err.desc : String(err)
+        navigateAppend(
+          {
+            name: 'teamAddToTeamFromWhere',
+            params: {
+              wizard: {
+                ...wizard,
+                newTeamWizard: {...wizard.newTeamWizard, error: errorMessage},
+              },
+            },
+          },
+          true
+        )
+      }
+    }
+    C.ignorePromise(f())
+  }
   if (Kb.Styles.isMobile) {
     return waiting ? (
       <Kb.ProgressIndicator />
     ) : (
-      <Kb.Text type="BodyBigLink" onClick={() => finishNewTeamWizard(wizard.addingMembers)}>Skip</Kb.Text>
+      <Kb.Text type="BodyBigLink" onClick={onSkip}>Skip</Kb.Text>
     )
   }
   return (
@@ -161,7 +196,7 @@ const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
       mode="Secondary"
       label="Skip"
       small={true}
-      onClick={() => finishNewTeamWizard(wizard.addingMembers)}
+      onClick={onSkip}
       waiting={waiting}
     />
   )
@@ -175,6 +210,7 @@ const AddFromWhereHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => (
   <ModalTitle
     title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'}
     teamID={wizard.teamID}
+    newTeamWizard={wizard.newTeamWizard}
   />
 )
 
@@ -182,20 +218,14 @@ const JoinTeamHeaderTitle = ({success}: {success?: boolean}) => <>{success ? 'Re
 
 const JoinTeamHeaderLeft = ({success}: {success?: boolean}) => (success ? null : <HeaderLeftButton />)
 
-const NewTeamInfoHeaderTitle = () => {
-  const {teamType, parentTeamID} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      parentTeamID: s.newTeamWizard.parentTeamID,
-      teamType: s.newTeamWizard.teamType,
-    }))
-  )
-  const title = teamType === 'subteam' ? 'Create a subteam' : 'Enter team info'
-  const teamID = parentTeamID ?? T.Teams.newTeamWizardTeamID
-  return <ModalTitle teamID={teamID} title={title} />
+const NewTeamInfoHeaderTitle = ({wizard}: {wizard: NewTeamWizard}) => {
+  const title = wizard.teamType === 'subteam' ? 'Create a subteam' : 'Enter team info'
+  const teamID = wizard.parentTeamID ?? T.Teams.newTeamWizardTeamID
+  return <ModalTitle teamID={teamID} title={title} newTeamWizard={wizard} />
 }
 
-const NewTeamInfoHeaderLeft = () => {
-  const isSubteam = Teams.useTeamsState(s => s.newTeamWizard.teamType === 'subteam')
+const NewTeamInfoHeaderLeft = ({wizard}: {wizard: NewTeamWizard}) => {
+  const isSubteam = wizard.teamType === 'subteam'
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
   if (isSubteam) {
@@ -342,38 +372,46 @@ export const newModalRoutes = defineRouteMap({
     getOptions: {modalStyle: {height: 480, width: 560}, title: 'Rename subteam'},
   }),
   teamWizard1TeamPurpose: C.makeScreen(React.lazy(async () => import('./new-team/wizard/team-purpose')), {
-    getOptions: {headerTitle: () => <ModalTitle teamID={T.Teams.noTeamID} title="New team" />},
+    getOptions: ({route}) => ({
+      headerTitle: () => <ModalTitle teamID={T.Teams.noTeamID} title="New team" newTeamWizard={route.params.wizard} />,
+    }),
   }),
   teamWizard2TeamInfo: C.makeScreen(React.lazy(async () => import('./new-team/wizard/new-team-info')), {
-    getOptions: {
-      headerLeft: () => <NewTeamInfoHeaderLeft />,
-      headerTitle: () => <NewTeamInfoHeaderTitle />,
-    },
+    getOptions: ({route}) => ({
+      headerLeft: () => <NewTeamInfoHeaderLeft wizard={route.params.wizard} />,
+      headerTitle: () => <NewTeamInfoHeaderTitle wizard={route.params.wizard} />,
+    }),
   }),
   teamWizard4TeamSize: C.makeScreen(React.lazy(async () => import('./new-team/wizard/make-big-team')), {
-    getOptions: {
+    getOptions: ({route}) => ({
       headerLeft: HeaderLeftButton,
-      headerTitle: () => <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Make it a big team?" />,
-    },
+      headerTitle: () => (
+        <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Make it a big team?" newTeamWizard={route.params.wizard} />
+      ),
+    }),
   }),
   teamWizard5Channels: C.makeScreen(React.lazy(async () => import('./new-team/wizard/create-channels')), {
-    getOptions: {
+    getOptions: ({route}) => ({
       headerLeft: HeaderLeftButton,
-      headerTitle: () => <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Create channels" />,
-    },
+      headerTitle: () => (
+        <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Create channels" newTeamWizard={route.params.wizard} />
+      ),
+    }),
   }),
   teamWizard6Subteams: C.makeScreen(React.lazy(async () => import('./new-team/wizard/create-subteams')), {
-    getOptions: {
+    getOptions: ({route}) => ({
       headerLeft: HeaderLeftButton,
-      headerTitle: () => <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Create subteams" />,
-    },
+      headerTitle: () => (
+        <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Create subteams" newTeamWizard={route.params.wizard} />
+      ),
+    }),
   }),
   teamWizardSubteamMembers: C.makeScreen(React.lazy(async () => import('./new-team/wizard/add-subteam-members')), {
-    getOptions: {
+    getOptions: ({route}) => ({
       headerLeft: HeaderLeftButton,
       headerRight: () => <SubteamMembersHeaderRight />,
-      headerTitle: () => <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" />,
-    },
+      headerTitle: () => <ModalTitle teamID={T.Teams.newTeamWizardTeamID} title="Add members" newTeamWizard={route.params.wizard} />,
+    }),
   }),
   teamsTeamBuilder: {
     ...teamsTeamBuilder,

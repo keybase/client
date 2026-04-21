@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {type AddMembersWizard} from './state'
@@ -15,8 +14,7 @@ const AddFromWhere = ({route}: Props) => {
   const {wizard} = route.params
   const isNewTeam = wizard.teamID === T.Teams.newTeamWizardTeamID
   const navigateAppend = C.Router2.navigateAppend
-  // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
-  const createTeamError = Teams.useTeamsState(s => (isNewTeam ? s.newTeamWizard.error : undefined))
+  const createTeamError = isNewTeam ? wizard.newTeamWizard?.error : undefined
   const onContinueKeybase = () =>
     navigateAppend({
       name: 'teamsTeamBuilder',

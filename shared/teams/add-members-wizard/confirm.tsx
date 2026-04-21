@@ -13,6 +13,8 @@ import {ChannelsWidget} from '../common'
 import {pluralize} from '@/util/string'
 import logger from '@/logger'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {createNewTeamFromWizard} from '../new-team/wizard/state'
+import {RPCError} from '@/util/errors'
 import {
   removeWizardMember,
   setWizardDefaultChannels,
@@ -47,17 +49,16 @@ const AddMembersConfirm = ({navigation, route}: Props) => {
       const isInTeam = Teams.getRole(s, teamID) !== 'none'
       const isSubteam = Teams.getTeamMeta(s, teamID).teamname.includes('.')
       return {
-        finishNewTeamWizard: s.dispatch.finishNewTeamWizard,
         finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
         isInTeam,
         isSubteam,
       }
     })
   )
-  const {finishedAddMembersWizard, finishNewTeamWizard, isInTeam, isSubteam} = teamsState
+  const {finishedAddMembersWizard, isInTeam, isSubteam} = teamsState
   const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = wizard
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
-  const newTeamWizErr = Teams.useTeamsState(s => (fromNewTeamWizard ? s.newTeamWizard.error : undefined))
+  const newTeamWizard = wizard.newTeamWizard
   const isBigTeam = Chat.useChatState(s => (fromNewTeamWizard ? false : getIsBigTeam(s.inboxLayout, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
 
@@ -74,14 +75,38 @@ const AddMembersConfirm = ({navigation, route}: Props) => {
 
   const [_waiting, setWaiting] = React.useState(false)
   const [_error, setError] = React.useState('')
-  const error = _error || newTeamWizErr
+  const error = _error || newTeamWizard?.error
   const newTeamWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsCreation)
   const waiting = _waiting || newTeamWaiting
 
   const addMembers = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
 
   const onComplete = fromNewTeamWizard
-    ? () => finishNewTeamWizard(addingMembers)
+    ? () => {
+        if (!newTeamWizard) {
+          return
+        }
+        updateWizard({
+          ...wizard,
+          newTeamWizard: {...newTeamWizard, error: undefined},
+        })
+        setWaiting(true)
+        const f = async () => {
+          try {
+            const teamID = await createNewTeamFromWizard({...newTeamWizard, error: undefined}, addingMembers)
+            C.Router2.navigateAppend({name: 'team', params: {teamID}})
+            C.Router2.clearModals()
+          } catch (err) {
+            setWaiting(false)
+            const errorMessage = err instanceof RPCError ? err.desc : String(err)
+            updateWizard({
+              ...wizard,
+              newTeamWizard: {...newTeamWizard, error: errorMessage},
+            })
+          }
+        }
+        C.ignorePromise(f())
+      }
     : () => {
         setWaiting(true)
         addMembers(

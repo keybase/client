@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import type {Props} from '.'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {fixCrop} from '@/util/crop'
+import {getNextRouteAfterAvatar} from '@/teams/new-team/wizard/state'
 
 type TeamProps = {
   createdTeam?: boolean
@@ -57,6 +58,7 @@ export default (ownProps: Props): Ret => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
   }, [dispatchClearWaiting])
   const navigateUp = C.Router2.navigateUp
+  const navigateAppend = C.Router2.navigateAppend
   const onBack = () => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
     navigateUp()
@@ -83,13 +85,41 @@ export default (ownProps: Props): Ret => {
     const filename = Kb.Styles.unnormalizePath(_filename)
     uploadAvatar([{crop: fixCrop(crop), filename}, C.waitingKeyProfileUploadAvatar], () => navigateUp(), () => {})
   }
-  const setTeamWizardAvatar = Teams.useTeamsState(s => s.dispatch.setTeamWizardAvatar)
+  const parentTeamMemberCount = Teams.useTeamsState(s =>
+    ownProps.newTeamWizard?.parentTeamID ? Teams.getTeamMeta(s, ownProps.newTeamWizard.parentTeamID).memberCount : 0
+  )
   const onSaveWizardAvatar = (_filename: string, crop?: T.Teams.AvatarCrop) => {
+    if (!ownProps.newTeamWizard) {
+      return
+    }
     const filename = Kb.Styles.unnormalizePath(_filename)
-    setTeamWizardAvatar(crop, filename)
+    const wizard = {
+      ...ownProps.newTeamWizard,
+      avatarCrop: crop,
+      avatarFilename: filename,
+    }
+    navigateAppend(
+      {
+        name: 'profileEditAvatar',
+        params: {...ownProps, newTeamWizard: wizard},
+      },
+      true
+    )
+    navigateAppend(getNextRouteAfterAvatar(wizard, parentTeamMemberCount))
   }
   const onSkip = () => {
-    setTeamWizardAvatar()
+    const wizard = ownProps.newTeamWizard
+    if (!wizard) {
+      return
+    }
+    navigateAppend(
+      {
+        name: 'profileEditAvatar',
+        params: {...ownProps, newTeamWizard: wizard},
+      },
+      true
+    )
+    navigateAppend(getNextRouteAfterAvatar(wizard, parentTeamMemberCount))
   }
 
   let error = ''

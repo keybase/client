@@ -3,10 +3,10 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
 import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
+import {type NewTeamWizard} from './state'
 
 const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
   switch (status) {
@@ -24,9 +24,14 @@ const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
 
 const cannotJoinAsOwner = {admin: `Users can't join open teams as admins`}
 
-const NewTeamInfo = () => {
-  const teamWizardState = useTeamsState(s => s.newTeamWizard)
-  const parentName = useTeamsState(s =>
+type Props = {
+  navigation: {setParams: (params: {wizard: NewTeamWizard}) => void}
+  route: {params: {wizard: NewTeamWizard}}
+}
+
+const NewTeamInfo = ({navigation, route}: Props) => {
+  const teamWizardState = route.params.wizard
+  const parentName = Teams.useTeamsState(s =>
     teamWizardState.parentTeamID ? Teams.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
   )
 
@@ -83,17 +88,30 @@ const NewTeamInfo = () => {
 
   const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
 
-  const setTeamWizardNameDescription = useTeamsState(s => s.dispatch.setTeamWizardNameDescription)
+  const navigateAppend = C.Router2.navigateAppend
 
-  const onContinue = () =>
-    setTeamWizardNameDescription({
+  const onContinue = () => {
+    const wizard = {
+      ...teamWizardState,
       addYourself,
       description,
-      openTeam,
+      error: undefined,
+      name: teamname,
+      open: openTeam,
       openTeamJoinRole: realRole,
       profileShowcase: showcase,
-      teamname,
+    }
+    navigation.setParams({wizard})
+    navigateAppend({
+      name: 'profileEditAvatar',
+      params: {
+        createdTeam: true,
+        newTeamWizard: wizard,
+        teamID: T.Teams.newTeamWizardTeamID,
+        wizard: true,
+      },
     })
+  }
 
   return (
     <>
