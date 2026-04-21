@@ -36,9 +36,9 @@ Keep store-owned engine handling when any of these are true:
   - `identify3ShowTracker` and related identify session updates now subscribe from the desktop tracker proxy instead of `init/shared.tsx`
   - The tracker store was removed; desktop popup state now lives in the proxy and profile screens reload from service-backed hooks instead of keeping a durable tracker cache warm
   - Follow-up cleanup keeps proxy-owned popup details immutable and fixes the TypeScript fallout from removing the store-backed tracker cache
-- [ ] `pinentry`
-  - Evaluate whether the prompt ownership can move to a feature-local listener plus flow handles
-  - Keep the current store if the response/session lifecycle still needs a global owner
+- [x] `pinentry`
+  - The desktop proxy now listens to `keybase.1.secretUi.getPassphrase` directly, owns the prompt state locally, and registers submit/cancel handlers for the remote window path
+  - Removed the dedicated `pinentry` store and the `init/shared.tsx` forwarding shim
 - [ ] `archive`
   - Re-check whether archive progress/jobs truly need store persistence or can become screen-owned reload state
 - [ ] `unlock-folders`

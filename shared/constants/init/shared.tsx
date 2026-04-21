@@ -21,7 +21,6 @@ import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseChatStateType from '@/stores/chat'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
-import type * as UsePinentryStateType from '@/stores/pinentry'
 import type * as UseTeamsStateType from '@/stores/teams'
 import type * as UnlockFoldersType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
@@ -487,12 +486,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
           useSettingsEmailState.getState().dispatch.notifyEmailVerified(emailAddress)
         }
         clearSignupEmail()
-      }
-      break
-    case 'keybase.1.secretUi.getPassphrase':
-      {
-        const {usePinentryState} = require('@/stores/pinentry') as typeof UsePinentryStateType
-        usePinentryState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged': {
