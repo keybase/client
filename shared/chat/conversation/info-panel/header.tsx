@@ -1,9 +1,9 @@
 import * as ConvoState from '@/stores/convostate'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import InfoPanelMenu from './menu'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
+import {ChatTeamProvider, useChatTeam} from '../team-hooks'
 
 const gearIconSize = Kb.Styles.isMobile ? 24 : 16
 
@@ -15,7 +15,7 @@ const TeamHeader = () => {
   const onJoinChannel = ConvoState.useChatContext(s => s.dispatch.joinConversation)
   const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
 
-  const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
+  const {yourOperations} = useChatTeam(teamID, teamname)
   const admin = yourOperations?.manageMembers ?? false
   const isPreview = membershipType === 'youArePreviewing'
   const isSmallTeam = !!teamname && !!channelname && teamType !== 'big'
@@ -29,14 +29,16 @@ const TeamHeader = () => {
     const {attachTo, hidePopup} = p
     return (
       <ConvoState.ChatProvider id={conversationIDKey}>
-        <InfoPanelMenu
-          attachTo={attachTo}
-          floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-          onHidden={hidePopup}
-          hasHeader={false}
-          isSmallTeam={isSmallTeam}
-          visible={true}
-        />
+        <ChatTeamProvider>
+          <InfoPanelMenu
+            attachTo={attachTo}
+            floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+            onHidden={hidePopup}
+            hasHeader={false}
+            isSmallTeam={isSmallTeam}
+            visible={true}
+          />
+        </ChatTeamProvider>
       </ConvoState.ChatProvider>
     )
   }

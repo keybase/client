@@ -6,6 +6,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 import {useUsersState} from '@/stores/users'
+import {useChatTeam, useChatTeamMembers} from '../team-hooks'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -189,7 +190,7 @@ const BotTab = (props: Props) => {
   const meta = ConvoState.useChatContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
+  const {yourOperations} = useChatTeam(teamID, teamname)
   let canManageBots = false
   if (teamname) {
     canManageBots = yourOperations?.manageBots ?? false
@@ -198,7 +199,7 @@ const BotTab = (props: Props) => {
   }
   const adhocTeam = teamType === 'adhoc'
   const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const {members: teamMembers} = useChatTeamMembers(teamID)
   const participantsAll = participantInfo.all
 
   let botUsernames: Array<string> = []

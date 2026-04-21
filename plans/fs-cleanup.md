@@ -20,6 +20,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - Keep route-owned UI state out of the global store
 - Prefer direct router calls and local `C.useRPC(...)` usage over FS-store wrapper actions when the result only affects the mounted screen
 - Keep behavior intact while changing ownership of state
+- Slice-by-slice migrations must preserve current functionality; if a mounted FS view previously updated live while visible, move that refresh/subscription behavior into the new hook/provider/listener in the same slice instead of deferring it
 
 ## Chunk 1: Define Path / TLF Data Hooks
 

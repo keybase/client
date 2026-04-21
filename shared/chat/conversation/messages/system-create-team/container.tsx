@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import type * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useChatTeam} from '../../team-hooks'
 
 type OwnProps = {message: T.Chat.MessageSystemCreateTeam}
 
@@ -17,7 +18,7 @@ function SystemCreateTeamContainer(p: OwnProps) {
       return {showInfoPanel, teamID, teamname}
     })
   )
-  const role = Teams.useTeamsState(s => Teams.getRole(s, teamID))
+  const {role} = useChatTeam(teamID, teamname)
   const you = useCurrentUserState(s => s.username)
   const isAdmin = Teams.isAdmin(role) || Teams.isOwner(role)
   const team = teamname

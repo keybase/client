@@ -1,8 +1,7 @@
 import type {ConvoState} from '@/stores/convostate'
-import {useTeamsState} from '@/stores/teams'
 import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
-import {useLoadTeamMembers} from '@/teams/team-members'
+import {useChatTeamMembers} from '../team-hooks'
 
 export const infoPanelWidthElectron = 320
 const infoPanelWidthPhone = Styles.dimensionWidth
@@ -21,8 +20,7 @@ export function infoPanelWidth() {
 const isBot = (type: T.Teams.TeamRoleType) => type === 'bot' || type === 'restrictedbot'
 
 export const useTeamHumans = (teamID: T.Teams.TeamID) => {
-  useLoadTeamMembers(teamID, !!teamID)
-  const teamMembers = useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const {members: teamMembers} = useChatTeamMembers(teamID)
   const bots = (() => {
     const ret = new Set<string>()
     teamMembers?.forEach(({type}, username) => isBot(type) && ret.add(username))

@@ -3,12 +3,12 @@ import {isAssertion} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import RetentionPicker from '@/teams/team/settings-tab/retention'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useChatTeam, useChatTeamMembers} from '../team-hooks'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
 type SettingsPanelProps = {isPreview: boolean}
@@ -18,7 +18,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const username = useCurrentUserState(s => s.username)
   const meta = ConvoState.useChatContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
-  const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
+  const {yourOperations} = useChatTeam(teamID, teamname)
   const ignored = status === T.RPCChat.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
 
@@ -34,7 +34,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     entityType = 'adhoc'
   }
 
-  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const {members: teamMembers} = useChatTeamMembers(teamID)
   const participantInfo = ConvoState.useChatContext(s => s.participants)
   const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.name).filter(
     u => u !== username && !isAssertion(u)

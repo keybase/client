@@ -20,25 +20,26 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - Prefer route params and local state over global wizard or modal state
 - Prefer direct navigation from callers over teams-store navigation wrapper actions
 - Keep behavior intact while changing ownership of state
+- Slice-by-slice migrations must preserve current functionality; if mounted UI previously updated live while visible, move that update path into the new hook/provider/listener in the same slice instead of deferring it
 
 ## Chunk 1: Define Chat-Facing Data Hooks
 
-- [ ] Introduce a small chat-safe service layer for mounted consumers
+- [x] Introduce a small chat-safe service layer for mounted consumers
   - `useChatTeam(teamID, teamname?)`
   - `useChatTeamMembers(teamID)`
   - `useChatTeamChannels(teamID, teamname?)`
-- [ ] Make these hooks own reload-on-mount/focus behavior instead of relying on warmed store caches
-- [ ] Keep outputs narrow and purpose-built for chat consumers
+- [x] Make these hooks own reload-on-mount/focus behavior instead of relying on warmed store caches
+- [x] Keep outputs narrow and purpose-built for chat consumers
   - permissions / role for current user
   - member role lookup
   - current team metadata needed by chat
   - channel metadata for channel-management UI
-- [ ] Do not add a new hidden module-level cache; if multiple mounted descendants need shared data on one route, use a feature-local provider
+- [x] Do not add a new hidden module-level cache; if multiple mounted descendants need shared data on one route, use a feature-local provider
 
 ### Target chat callers for Chunk 1
 
 - [ ] `chat/conversation/info-panel/*`
-- [ ] `chat/conversation/messages/*` team-role / bot / admin checks
+- [x] `chat/conversation/messages/*` team-role / bot / admin checks
 - [ ] `chat/create-channel/*`
 - [ ] `chat/conversation/input-area/suggestors/channels.tsx`
 

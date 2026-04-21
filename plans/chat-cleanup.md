@@ -19,6 +19,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - Prefer feature hooks and local state over a chat-wide convenience cache
 - Prefer mounted-screen reloads and typed engine listeners over background cache maintenance where the UI can safely miss events while unmounted
 - Keep behavior intact while changing ownership of state
+- Slice-by-slice migrations must preserve current functionality; if mounted UI previously updated live while visible, move that update path into the new hook/provider/listener in the same slice instead of deferring it
 
 ## Chunk 1: Split Inbox Layout Ownership From The Global Chat Store
 

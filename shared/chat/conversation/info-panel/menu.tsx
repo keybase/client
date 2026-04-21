@@ -10,6 +10,7 @@ import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {TeamsSubscriberMountOnly} from '@/teams/subscriber'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useChatTeam} from '../team-hooks'
 
 export type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -32,7 +33,7 @@ const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
   const infoMap = useUsersState(s => s.infoMap)
   const participantInfo = ConvoState.useChatContext(s => s.participants)
   const meta = ConvoState.useChatContext(s => s.meta)
-  const teamMeta = Teams.useTeamsState(s => (pteamID ? Teams.getTeamMeta(s, pteamID) : undefined))
+  const {teamname: loadedTeamname} = useChatTeam(pteamID ?? T.Teams.noTeamID)
   const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
 
@@ -74,7 +75,7 @@ const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
     }
   } else if (pteamID) {
     const teamID = pteamID
-    const teamname = teamMeta?.teamname ?? ''
+    const teamname = loadedTeamname
     return {...common, teamID, teamname}
   }
   return {...common}
@@ -89,17 +90,11 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const {teamname, teamID, channelname, isInChannel, ignored, fullname} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
 
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => ({
-      addTeamWithChosenChannels: s.dispatch.addTeamWithChosenChannels,
-      badgeSubscribe: !Teams.isTeamWithChosenChannels(s, teamname),
-      canAddPeople: Teams.getCanPerformByID(s, teamID).manageMembers,
-      manageChatChannels: s.dispatch.manageChatChannels,
-      startAddMembersWizard: s.dispatch.startAddMembersWizard,
-    }))
-  )
-  const {addTeamWithChosenChannels, badgeSubscribe, canAddPeople} = teamsState
-  const {manageChatChannels, startAddMembersWizard} = teamsState
+  const {yourOperations} = useChatTeam(teamID, teamname)
+  const addTeamWithChosenChannels = Teams.useTeamsState(s => s.dispatch.addTeamWithChosenChannels)
+  const badgeSubscribe = Teams.useTeamsState(s => !Teams.isTeamWithChosenChannels(s, teamname))
+  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const canAddPeople = yourOperations.manageMembers
   const onAddPeople = () => {
     teamID && startAddMembersWizard(teamID)
   }
@@ -122,7 +117,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const onLeaveChannel = () => C.Router2.leaveConversation(conversationIDKey)
   const onLeaveTeam = () => teamID && chatNavigateAppend(() => ({name: 'teamReallyLeaveTeam', params: {teamID}}))
   const onManageChannels = () => {
-    manageChatChannels(teamID)
+    routerNavigateAppend({name: 'teamAddToChannels', params: {teamID}})
     addTeamWithChosenChannels(teamID)
   }
   const clearModals = C.Router2.clearModals
