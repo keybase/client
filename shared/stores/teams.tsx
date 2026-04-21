@@ -2196,6 +2196,11 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       })
     },
+    prepareAddMembersWizard: teamID => {
+      set(s => {
+        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, teamID})
+      })
+    },
     setNewTeamInfo: (deletedTeams, newTeams, teamIDToResetUsers) => {
       set(s => {
         s.deletedTeams = T.castDraft(deletedTeams)
@@ -2206,11 +2211,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
     setNewTeamRequests: newTeamRequests => {
       set(s => {
         s.newTeamRequests = newTeamRequests
-      })
-    },
-    prepareAddMembersWizard: teamID => {
-      set(s => {
-        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, teamID})
       })
     },
     setPublicity: (teamID, settings) => {

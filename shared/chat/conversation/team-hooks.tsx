@@ -430,11 +430,10 @@ export const ChatTeamProvider = (props: React.PropsWithChildren) => {
   )
   const outer = React.useContext(ChatTeamContext)
   const enabled = teamType !== 'adhoc' && !!loadableTeamID(teamID)
-  const sameAsOuter = !!outer && outer.teamID === teamID
+  const sameAsOuter = outer?.teamID === teamID
   const team = useChatTeamRaw(teamID, teamname, enabled && !sameAsOuter)
   const members = useChatTeamMembersRaw(teamID, enabled && !sameAsOuter)
-  const value: ChatTeamContextValue =
-    outer && outer.teamID === teamID ? outer : {members, team, teamID}
+  const value: ChatTeamContextValue = sameAsOuter ? outer! : {members, team, teamID}
   return <ChatTeamContext.Provider value={value}>{children}</ChatTeamContext.Provider>
 }
 
