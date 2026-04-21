@@ -8,69 +8,23 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {navigateAppend, navigateUp} from '@/constants/router'
-import {makeDetails, noNonUserDetails, rpcAssertionToAssertion} from './model'
+import {
+  identifyResultToDetailsState,
+  makeDetails,
+  noNonUserDetails,
+  updateTrackerDetailsBlocked,
+  updateTrackerDetailsReset,
+  updateTrackerDetailsResult,
+  updateTrackerDetailsRow,
+  updateTrackerDetailsSummary,
+  updateTrackerDetailsUserCard,
+} from './model'
 
 type Options = {
   reloadOnFocus?: boolean
 }
 
 const makeNonUserDetails = (): T.Tracker.NonUserDetails => ({...noNonUserDetails})
-
-const updateResult = (
-  prev: T.Tracker.Details,
-  result: T.Tracker.DetailsState,
-  reason?: string
-): T.Tracker.Details => {
-  const newReason =
-    reason ||
-    (result === 'broken' && `Some of ${prev.username}'s proofs have changed since you last followed them.`)
-  const next = {...prev}
-  if (!next.resetBrokeTrack || next.reason.length === 0) {
-    next.reason = newReason || next.reason
-  }
-  if (result === 'valid') {
-    next.resetBrokeTrack = false
-  }
-  next.state = result
-  return next
-}
-
-const updateBlocked = (
-  prev: T.Tracker.Details,
-  blockedSummary: T.RPCGen.UserBlockedSummary
-): T.Tracker.Details => {
-  const {blocker, blocks} = blockedSummary
-  const userBlocks = blocks?.[prev.username]
-  if (!userBlocks?.length && blocker !== prev.username) {
-    return prev
-  }
-
-  const next = {
-    ...prev,
-    followers: prev.followers ? new Set(prev.followers) : prev.followers,
-  }
-
-  if (blocker === prev.username && next.followers) {
-    Object.entries(blocks ?? {}).forEach(([username, blockStates]) => {
-      blockStates?.forEach(blockState => {
-        if (blockState.blockType === T.RPCGen.UserBlockType.follow && blockState.blocked) {
-          next.followers?.delete(username)
-        }
-      })
-    })
-    next.followersCount = next.followers.size
-  }
-
-  userBlocks?.forEach(blockState => {
-    if (blockState.blockType === T.RPCGen.UserBlockType.chat) {
-      next.blocked = blockState.blocked
-    } else {
-      next.hidFromFollowers = blockState.blocked
-    }
-  })
-
-  return next
-}
 
 export const useTrackerProfile = (username: string, options?: Options) => {
   const currentUser = useCurrentUserState(
@@ -260,18 +214,7 @@ export const useTrackerProfile = (username: string, options?: Options) => {
     if (guiID !== detailsRef.current.guiID) {
       return
     }
-    setDetails(prev =>
-      updateResult(
-        prev,
-        result === T.RPCGen.Identify3ResultType.ok
-          ? 'valid'
-          : result === T.RPCGen.Identify3ResultType.broken
-            ? 'broken'
-            : result === T.RPCGen.Identify3ResultType.needsUpgrade
-              ? 'needsUpgrade'
-              : 'error'
-      )
-    )
+    setDetails(prev => updateTrackerDetailsResult(prev, identifyResultToDetailsState(result)))
   })
 
   useEngineActionListener('keybase.1.NotifyUsers.userChanged', action => {
@@ -281,7 +224,7 @@ export const useTrackerProfile = (username: string, options?: Options) => {
   })
 
   useEngineActionListener('keybase.1.NotifyTracking.notifyUserBlocked', action => {
-    setDetails(prev => updateBlocked(prev, action.payload.params.b))
+    setDetails(prev => updateTrackerDetailsBlocked(prev, action.payload.params.b))
   })
 
   useEngineActionListener('keybase.1.identify3Ui.identify3UpdateRow', action => {
@@ -289,23 +232,14 @@ export const useTrackerProfile = (username: string, options?: Options) => {
     if (row.guiID !== detailsRef.current.guiID) {
       return
     }
-    setDetails(prev => {
-      const assertions = new Map(prev.assertions ?? [])
-      const assertion = rpcAssertionToAssertion(row)
-      assertions.set(assertion.assertionKey, assertion)
-      return {...prev, assertions}
-    })
+    setDetails(prev => updateTrackerDetailsRow(prev, row))
   })
 
   useEngineActionListener('keybase.1.identify3Ui.identify3UserReset', action => {
     if (action.payload.params.guiID !== detailsRef.current.guiID) {
       return
     }
-    setDetails(prev => ({
-      ...prev,
-      reason: `${prev.username} reset their account since you last followed them.`,
-      resetBrokeTrack: true,
-    }))
+    setDetails(prev => updateTrackerDetailsReset(prev))
   })
 
   useEngineActionListener('keybase.1.identify3Ui.identify3UpdateUserCard', action => {
@@ -313,25 +247,7 @@ export const useTrackerProfile = (username: string, options?: Options) => {
     if (guiID !== detailsRef.current.guiID) {
       return
     }
-    setDetails(prev => ({
-      ...prev,
-      bio: card.bio,
-      blocked: card.blocked,
-      followersCount: card.unverifiedNumFollowers,
-      followingCount: card.unverifiedNumFollowing,
-      fullname: card.fullName,
-      hidFromFollowers: card.hidFromFollowers,
-      location: card.location,
-      stellarHidden: card.stellarHidden,
-      teamShowcase:
-        card.teamShowcase?.map(t => ({
-          description: t.description,
-          isOpen: t.open,
-          membersCount: t.numMembers,
-          name: t.fqName,
-          publicAdmins: t.publicAdmins ?? [],
-        })) ?? [],
-    }))
+    setDetails(prev => updateTrackerDetailsUserCard(prev, card))
     useUsersState.getState().dispatch.updates([{info: {fullname: card.fullName}, name: username}])
   })
 
@@ -340,7 +256,7 @@ export const useTrackerProfile = (username: string, options?: Options) => {
     if (summary.guiID !== detailsRef.current.guiID) {
       return
     }
-    setDetails(prev => ({...prev, numAssertionsExpected: summary.numProofsToCheck}))
+    setDetails(prev => updateTrackerDetailsSummary(prev, summary))
   })
 
   return {
