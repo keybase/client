@@ -132,8 +132,9 @@ const ConfirmHeaderLeft = () => {
   )
 }
 
-const AddFromWhereHeaderLeft = () => {
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+const AddFromWhereHeaderLeft = ({teamID: routeTeamID}: {teamID?: T.Teams.TeamID}) => {
+  const storeTeamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  const teamID = routeTeamID ?? storeTeamID
   const newTeam = teamID === T.Teams.newTeamWizardTeamID
   const cancelAddMembersWizard = Teams.useTeamsState(s => s.dispatch.cancelAddMembersWizard)
   const navigateUp = C.Router2.navigateUp
@@ -156,14 +157,16 @@ const AddFromWhereSkip = () => {
   return <Kb.Button mode="Secondary" label="Skip" small={true} onClick={finishNewTeamWizard} waiting={waiting} />
 }
 
-const AddFromWhereHeaderRight = () => {
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+const AddFromWhereHeaderRight = ({teamID: routeTeamID}: {teamID?: T.Teams.TeamID}) => {
+  const storeTeamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  const teamID = routeTeamID ?? storeTeamID
   const newTeam = teamID === T.Teams.newTeamWizardTeamID
   return newTeam ? <AddFromWhereSkip /> : null
 }
 
-const AddFromWhereHeaderTitle = () => {
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+const AddFromWhereHeaderTitle = ({teamID: routeTeamID}: {teamID?: T.Teams.TeamID}) => {
+  const storeTeamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  const teamID = routeTeamID ?? storeTeamID
   return <ModalTitle title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'} teamID={teamID} />
 }
 
@@ -265,12 +268,12 @@ export const newModalRoutes = defineRouteMap({
     getOptions: {headerLeft: HeaderLeftButton, headerTitle: () => <WizardEmailHeaderTitle />, modalStyle: {height: 560}},
   }),
   teamAddToTeamFromWhere: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-from-where')), {
-    getOptions: {
-      headerLeft: () => <AddFromWhereHeaderLeft />,
-      headerRight: () => <AddFromWhereHeaderRight />,
-      headerTitle: () => <AddFromWhereHeaderTitle />,
+    getOptions: ({route}) => ({
+      headerLeft: () => <AddFromWhereHeaderLeft teamID={route.params?.teamID} />,
+      headerRight: () => <AddFromWhereHeaderRight teamID={route.params?.teamID} />,
+      headerTitle: () => <AddFromWhereHeaderTitle teamID={route.params?.teamID} />,
       modalStyle: {height: 560},
-    },
+    }),
   }),
   teamAddToTeamPhone: C.makeScreen(React.lazy(async () => import('./add-members-wizard/add-phone')), {
     getOptions: {headerLeft: HeaderLeftButton, headerTitle: () => <WizardPhoneHeaderTitle />, modalStyle: {height: 560}},

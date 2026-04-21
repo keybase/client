@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
 import type * as React from 'react'
 import * as T from '@/constants/types'
 import * as InfoPanelCommon from './common'
@@ -94,13 +93,12 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     teamID,
     teamname
   )
-  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const routerNavigateAppend = C.Router2.navigateAppend
   const canAddPeople = yourOperations.manageMembers
   const onAddPeople = () => {
-    teamID && startAddMembersWizard(teamID)
+    teamID && routerNavigateAppend({name: 'teamAddToTeamFromWhere', params: {teamID}})
   }
   const chatNavigateAppend = ConvoState.useChatNavigateAppend()
-  const routerNavigateAppend = C.Router2.navigateAppend
   const onBlockConv = () => {
     chatNavigateAppend(conversationIDKey => ({
       name: 'chatBlockingModal',

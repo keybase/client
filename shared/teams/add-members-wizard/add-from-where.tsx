@@ -1,15 +1,28 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
+import * as React from 'react'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
-const AddFromWhere = () => {
+type Props = {
+  route: {params?: {teamID?: T.Teams.TeamID}}
+}
+
+const AddFromWhere = ({route}: Props) => {
   const nav = useSafeNavigation()
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
-  const newTeam: boolean = teamID === T.Teams.newTeamWizardTeamID
+  const storeTeamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
+  const prepareAddMembersWizard = Teams.useTeamsState(s => s.dispatch.prepareAddMembersWizard)
+  const teamID = route.params?.teamID ?? storeTeamID
+  const newTeam = teamID === T.Teams.newTeamWizardTeamID
   // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
   const createTeamError = Teams.useTeamsState(s => (newTeam ? s.newTeamWizard.error : undefined))
+  React.useEffect(() => {
+    const routeTeamID = route.params?.teamID
+    if (routeTeamID && routeTeamID !== storeTeamID) {
+      prepareAddMembersWizard(routeTeamID)
+    }
+  }, [prepareAddMembersWizard, route.params?.teamID, storeTeamID])
   const appendNewTeamBuilder = C.Router2.appendNewTeamBuilder
   const onContinueKeybase = () => appendNewTeamBuilder(teamID)
   const onContinuePhone = () => nav.safeNavigateAppend({name: 'teamAddToTeamPhone', params: {}})

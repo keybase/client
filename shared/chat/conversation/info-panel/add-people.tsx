@@ -1,5 +1,5 @@
+import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 
 type Props = {
@@ -10,10 +10,9 @@ type Props = {
 const AddPeople = (p: Props) => {
   const {isGeneralChannel, isAdmin} = p
   const teamID = ConvoState.useChatContext(s => s.meta.teamID)
-  const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
   const navigateAppend = ConvoState.useChatNavigateAppend()
   const onAddPeople = () => {
-    startAddMembersWizard(teamID)
+    teamID && C.Router2.navigateAppend({name: 'teamAddToTeamFromWhere', params: {teamID}})
   }
   const onAddToChannel = () => {
     navigateAppend(conversationIDKey => ({name: 'chatAddToChannel', params: {conversationIDKey, teamID}}))

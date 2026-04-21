@@ -931,6 +931,7 @@ export type State = Store & {
     ) => void
     setNewTeamRequests: (newTeamRequests: Map<T.Teams.TeamID, Set<string>>) => void
     setPublicity: (teamID: T.Teams.TeamID, settings: T.Teams.PublicitySettings) => void
+    prepareAddMembersWizard: (teamID: T.Teams.TeamID) => void
     setTeamRetentionPolicy: (teamID: T.Teams.TeamID, policy: T.Retention.RetentionPolicy) => void
     setTeamRoleMapLatestKnownVersion: (version: number) => void
     setTeamSawChatBanner: () => void
@@ -2265,6 +2266,11 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
+    prepareAddMembersWizard: teamID => {
+      set(s => {
+        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, teamID})
+      })
+    },
     setTeamRetentionPolicy: (teamID, policy) => {
       const f = async () => {
         try {
@@ -2440,9 +2446,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       ignorePromise(f())
     },
     startAddMembersWizard: teamID => {
-      set(s => {
-        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, teamID})
-      })
+      get().dispatch.prepareAddMembersWizard(teamID)
       navigateAppend({name: 'teamAddToTeamFromWhere', params: {}})
     },
     teamChangedByID: c => {

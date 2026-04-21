@@ -38,7 +38,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ### Target chat callers for Chunk 1
 
-- [ ] `chat/conversation/info-panel/*`
+- [x] `chat/conversation/info-panel/*`
 - [x] `chat/conversation/messages/*` team-role / bot / admin checks
 - [x] `chat/create-channel/*`
 - [x] `chat/conversation/input-area/suggestors/channels.tsx`

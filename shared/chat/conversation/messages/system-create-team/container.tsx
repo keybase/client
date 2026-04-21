@@ -57,8 +57,8 @@ const ManageComponent = (props: {isAdmin: boolean; onViewTeam: () => void}) => {
 }
 const AddInvite = (props: {teamID: string; isAdmin: boolean}) => {
   const {teamID, isAdmin} = props
-  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const onAddInvite = () => startAddMembersWizard(teamID)
+  const navigateAppend = C.Router2.navigateAppend
+  const onAddInvite = () => teamID && navigateAppend({name: 'teamAddToTeamFromWhere', params: {teamID}})
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (isAdmin) {
     return (
