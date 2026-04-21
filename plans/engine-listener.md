@@ -39,8 +39,9 @@ Keep store-owned engine handling when any of these are true:
 - [x] `pinentry`
   - The desktop proxy now listens to `keybase.1.secretUi.getPassphrase` directly, owns the prompt state locally, and registers submit/cancel handlers for the remote window path
   - Removed the dedicated `pinentry` store and the `init/shared.tsx` forwarding shim
-- [ ] `archive`
-  - Re-check whether archive progress/jobs truly need store persistence or can become screen-owned reload state
+- [x] `archive`
+  - The settings archive screen now owns chat/KBFS job state locally, reloads on focus, and subscribes directly to archive engine actions while mounted
+  - Removed the dedicated `archive` store, the `init/shared.tsx` forwarding shim, and the store-only archive listener test
 - [x] `unlock-folders`
   - The desktop unlock-folders proxy now subscribes to `rekeyUI.refresh` and `delegateRekeyUI` via the engine listener layer instead of `init/shared.tsx`
   - Kept the proxy-local Zustand state for window props/error flow; the migration removes global forwarding without changing the desktop popup behavior

@@ -17,7 +17,6 @@ declare global {
 
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
-import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseChatStateType from '@/stores/chat'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
@@ -393,14 +392,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
   }
 
   switch (action.type) {
-    case 'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged':
-    case 'chat.1.NotifyChat.ChatArchiveComplete':
-    case 'chat.1.NotifyChat.ChatArchiveProgress':
-      {
-        const {useArchiveState} = require('@/stores/archive') as typeof UseArchiveStateType
-        useArchiveState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
     case 'keybase.1.NotifyBadges.badgeState':
       {
         const {badgeState} = action.payload.params

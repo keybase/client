@@ -6,7 +6,6 @@ import {pathToRPCPath} from '@/constants/fs'
 import {fsCacheDir, isAndroid} from '@/constants/platform'
 import {pickSave} from '@/util/misc'
 import * as FsCommon from '@/fs/common'
-import {useArchiveState} from '@/stores/archive'
 import {settingsArchiveTab} from '@/constants/settings'
 import {useCurrentUserState} from '@/stores/current-user'
 import {getConvoState} from '@/stores/convostate'
@@ -96,7 +95,6 @@ const ArchiveModal = (p: Props) => {
     React.useState<ArchiveAllFilesResponseWaiter>({state: 'idle'})
   const [archiveAllGitResponseWaiter, setArchiveAllGitResponseWaiter] =
     React.useState<ArchiveAllGitResponseWaiter>({state: 'idle'})
-  const load = useArchiveState(s => s.dispatch.load)
   const startChatArchive = C.useRPC(T.RPCChat.localArchiveChatRpcPromise)
   const startArchiveAllFiles = C.useRPC(T.RPCGen.SimpleFSSimpleFSArchiveAllFilesRpcPromise)
   const startArchiveAllGitRepos = C.useRPC(T.RPCGen.SimpleFSSimpleFSArchiveAllGitReposRpcPromise)
@@ -125,9 +123,7 @@ const ArchiveModal = (p: Props) => {
             },
           },
         ],
-        () => {
-          load()
-        },
+        () => {},
         () => {}
       )
     }
