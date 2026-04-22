@@ -10,6 +10,7 @@ import {TeamSelectionProvider} from '../common/selection-state'
 import TeamTabs from './tabs'
 import NewTeamHeader from './new-header'
 import Settings from './settings-tab'
+import {LoadedTeamProvider, useLoadedTeam} from './use-loaded-team'
 import {
   useMembersSections,
   useBotSections,
@@ -76,7 +77,7 @@ const useTabsState = (
   return [selectedTab, setSelectedTab]
 }
 
-const Team = (props: Props) => {
+const TeamBody = (props: Props) => {
   const teamID = props.teamID
   const initialTab = props.initialTab
   const navigation = useNavigation()
@@ -84,9 +85,7 @@ const Team = (props: Props) => {
   const [invitesCollapsed, setInvitesCollapsed] = React.useState(false)
   const [subteamFilter, setSubteamFilter] = React.useState('')
 
-  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID)) ?? Teams.emptyTeamDetails
-  const teamMeta = Teams.useTeamsState(C.useDeep(s => Teams.getTeamMeta(s, teamID)))
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
+  const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
   const teamSeen = Teams.useTeamsState(s => s.dispatch.teamSeen)
 
   React.useEffect(() => {
@@ -221,6 +220,12 @@ const Team = (props: Props) => {
     </TeamSelectionProvider>
   )
 }
+
+const Team = (props: Props) => (
+  <LoadedTeamProvider teamID={props.teamID}>
+    <TeamBody {...props} />
+  </LoadedTeamProvider>
+)
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {

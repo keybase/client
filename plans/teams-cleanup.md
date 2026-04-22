@@ -106,6 +106,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 - [ ] Replace team list reads with a route-owned `useTeamsList(...)` loader
 - [ ] Replace team details reads with a route-owned `useTeam(teamID)` loader
+  - [x] Move team shell consumers (`team/index`, `team/tabs`, `team/new-header`, `team/settings-tab`, `team/menu-container`, `team-info`) onto a route-owned `useLoadedTeam(teamID)` hook/provider
 - [ ] Replace welcome message, retention policy, members, activity, and team tree reads with feature hooks local to the owning screens
 - [ ] Reload on focus/mount instead of maintaining store subscriptions
 - [ ] Replace teams-store navigation wrapper actions with direct router calls where the caller already knows the target

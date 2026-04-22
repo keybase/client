@@ -10,6 +10,7 @@ import {pluralize} from '@/util/string'
 import RetentionPicker from './retention'
 import DefaultChannels from './default-channels'
 import isEqual from 'lodash/isEqual'
+import {useLoadedTeam} from '../use-loaded-team'
 
 type Props = {
   allowOpenTrigger: number
@@ -25,11 +26,8 @@ type Props = {
   savePublicity: (settings: T.Teams.PublicitySettings) => void
   showOpenTeamWarning: (isOpenTeam: boolean, teamname: string) => void
   teamID: T.Teams.TeamID
-  yourOperations: T.Teams.TeamOperations
-  waitingForWelcomeMessage: boolean
-  welcomeMessage?: T.RPCChat.WelcomeMessageDisplay
-  loadWelcomeMessage: () => void
   teamname: string
+  yourOperations: T.Teams.TeamOperations
 }
 
 const SetMemberShowcase = (props: {
@@ -333,22 +331,8 @@ export type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => {
-      const teamMeta = Teams.getTeamMeta(s, teamID)
-      const teamDetails = s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails
-      return {
-        _loadWelcomeMessage: s.dispatch.loadWelcomeMessage,
-        setPublicity: s.dispatch.setPublicity,
-        teamDetails,
-        teamMeta,
-        welcomeMessage: s.teamIDToWelcomeMessage.get(teamID),
-        yourOperations: Teams.getCanPerformByID(s, teamID),
-      }
-    })
-  )
-  const {_loadWelcomeMessage, setPublicity, teamDetails} = teamsState
-  const {teamMeta, welcomeMessage, yourOperations} = teamsState
+  const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
+  const setPublicity = Teams.useTeamsState(s => s.dispatch.setPublicity)
   const publicityAnyMember = teamMeta.allowPromote
   const publicityMember = teamMeta.showcasing
   const publicityTeam = teamDetails.settings.teamShowcased
@@ -359,15 +343,10 @@ const Container = (ownProps: OwnProps) => {
   const openTeam = settings.open
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname
-  const waitingForWelcomeMessage = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoadWelcomeMessage(teamID))
   const error = C.Waiting.useAnyErrors([
-    C.waitingKeyTeamsLoadWelcomeMessage(teamID),
     C.waitingKeyTeamsSetMemberPublicity(teamID),
     C.waitingKeyTeamsSetRetentionPolicy(teamID),
   ])?.message
-  const loadWelcomeMessage = () => {
-    _loadWelcomeMessage(teamID)
-  }
   const navigateAppend = C.Router2.navigateAppend
   const _savePublicity = (settings: T.Teams.PublicitySettings) => {
     setPublicity(teamID, settings)
@@ -395,7 +374,6 @@ const Container = (ownProps: OwnProps) => {
       error={error}
       ignoreAccessRequests={ignoreAccessRequests}
       isBigTeam={isBigTeam}
-      loadWelcomeMessage={loadWelcomeMessage}
       openTeam={openTeam}
       openTeamRole={openTeamRole}
       publicityAnyMember={publicityAnyMember}
@@ -405,8 +383,6 @@ const Container = (ownProps: OwnProps) => {
       showOpenTeamWarning={showOpenTeamWarning}
       teamID={teamID}
       teamname={teamname}
-      waitingForWelcomeMessage={waitingForWelcomeMessage}
-      welcomeMessage={welcomeMessage}
       yourOperations={yourOperations}
     />
   )

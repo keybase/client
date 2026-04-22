@@ -10,6 +10,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useTeamsState} from '@/stores/teams'
 import {makeAddMembersWizard} from '../add-members-wizard/state'
+import {useLoadedTeam} from './use-loaded-team'
 
 const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
@@ -94,17 +95,9 @@ const roleDisplay = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID} = props
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => ({
-      activityLevel: s.activityLevels.teams.get(teamID) || 'none',
-      details: s.teamDetails.get(teamID),
-      justFinishedAddWizard: s.addMembersWizard.justFinished,
-      meta: Teams.getTeamMeta(s, teamID),
-      yourOperations: Teams.getCanPerformByID(s, teamID),
-    }))
-  )
-  const {activityLevel, details, justFinishedAddWizard} = teamsState
-  const {meta, yourOperations} = teamsState
+  const {teamDetails: details, teamMeta: meta, yourOperations} = useLoadedTeam(teamID)
+  const activityLevel = Teams.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
+  const justFinishedAddWizard = Teams.useTeamsState(s => s.addMembersWizard.justFinished)
   useActivityLevels()
 
   const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)
@@ -186,7 +179,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const bottomDescriptorsAndButtons = (
     <>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Kb.Styles.isPhone}>
-        {!!details?.description && (
+        {!!details.description && (
           <Kb.Text
             type="Body"
             lineClamp={3}
