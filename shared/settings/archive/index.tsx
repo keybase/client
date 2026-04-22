@@ -3,122 +3,27 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {formatTimeForConversationList, formatTimeForChat, formatTimeForPopup} from '@/util/timestamp'
+import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
 import * as FS from '@/stores/fs'
 import {showShareActionSheet} from '@/util/platform-specific'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-
-type ChatArchiveJob = {
-  id: string
-  context: string
-  started: string
-  progress: number
-  outPath: string
-  error?: string
-  status: T.RPCChat.ArchiveChatJobStatus
-}
-
-type KBFSJobPhase = 'Queued' | 'Indexing' | 'Indexed' | 'Copying' | 'Copied' | 'Zipping' | 'Done'
-
-type KBFSArchiveJob = {
-  id: string
-  started: Date
-  phase: KBFSJobPhase
-  kbfsPath: string
-  gitRepo?: string
-  kbfsRevision: number
-  zipFilePath: string
-  bytesTotal: number
-  bytesCopied: number
-  bytesZipped: number
-  error?: string
-  errorNextRetry?: Date
-}
-
-const mapKBFSJobs = (status: T.RPCGen.SimpleFSArchiveStatus) =>
-  new Map(
-    (status.jobs ?? []).map(job => [
-      job.desc.jobID,
-      {
-        bytesCopied: job.bytesCopied,
-        bytesTotal: job.bytesTotal,
-        bytesZipped: job.bytesZipped,
-        error: job.error?.error,
-        errorNextRetry: job.error?.nextRetry,
-        gitRepo: job.desc.gitRepo,
-        id: job.desc.jobID,
-        kbfsPath: job.desc.kbfsPathWithRevision.path,
-        kbfsRevision:
-          job.desc.kbfsPathWithRevision.archivedParam.KBFSArchivedType === T.RPCGen.KBFSArchivedType.revision
-            ? job.desc.kbfsPathWithRevision.archivedParam.revision
-            : 0,
-        phase: {
-          [T.RPCGen.SimpleFSArchiveJobPhase.queued]: 'Queued',
-          [T.RPCGen.SimpleFSArchiveJobPhase.indexing]: 'Indexing',
-          [T.RPCGen.SimpleFSArchiveJobPhase.indexed]: 'Indexed',
-          [T.RPCGen.SimpleFSArchiveJobPhase.copying]: 'Copying',
-          [T.RPCGen.SimpleFSArchiveJobPhase.copied]: 'Copied',
-          [T.RPCGen.SimpleFSArchiveJobPhase.zipping]: 'Zipping',
-          [T.RPCGen.SimpleFSArchiveJobPhase.done]: 'Done',
-        }[job.phase],
-        started: new Date(job.desc.startTime),
-        zipFilePath: job.desc.zipFilePath,
-      } as KBFSArchiveJob,
-    ])
-  )
+import {
+  type ChatArchiveJob,
+  type KBFSArchiveJob,
+  mapChatJobs,
+  mapKBFSJobs,
+  updateChatProgress,
+} from './job-state'
 
 const loadChatJobs = async () => {
   const res = await T.RPCChat.localArchiveChatListRpcPromise({
     identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
   })
-  const chatJobs = new Map<string, ChatArchiveJob>()
-  res.jobs?.forEach(job => {
-    const id = job.request.jobID
-    let context = ''
-    if (!job.request.query?.name && !job.request.query?.topicName && !job.request.query?.convIDs?.length) {
-      context = '<all chat>'
-    } else if (job.matchingConvs?.length) {
-      const conv = job.matchingConvs.find(mc => mc.name)
-      context = conv?.name ?? ''
-      if (conv?.channel) {
-        context += `#${conv.channel}`
-      }
-    } else {
-      context = '<pending>'
-    }
-    chatJobs.set(id, {
-      context,
-      error: job.err,
-      id,
-      outPath: `${job.request.outputPath}.tar.gzip`,
-      progress: job.messagesTotal ? job.messagesComplete / job.messagesTotal : 0,
-      started: formatTimeForPopup(job.startedAt),
-      status: job.status,
-    })
-  })
-  return chatJobs
+  return mapChatJobs(res.jobs)
 }
 
 const loadKBFSJobs = async () =>
   mapKBFSJobs(await T.RPCGen.SimpleFSSimpleFSGetArchiveStatusRpcPromise())
-
-const updateChatProgress = (
-  chatJobs: Map<string, ChatArchiveJob>,
-  p: {jobID: string; messagesComplete: number; messagesTotal: number}
-) => {
-  const job = chatJobs.get(p.jobID)
-  if (!job) {
-    return {chatJobs, reload: true}
-  }
-  return {
-    chatJobs: new Map(chatJobs).set(p.jobID, {
-      ...job,
-      progress: p.messagesTotal ? p.messagesComplete / p.messagesTotal : 0,
-      status: T.RPCChat.ArchiveChatJobStatus.running,
-    }),
-    reload: false,
-  }
-}
 
 const useArchiveJobs = () => {
   const [chatJobs, setChatJobs] = React.useState<Map<string, ChatArchiveJob>>(() => new Map())
@@ -373,7 +278,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
 
   return (
     <Kb.ListItem
-      firstItem={index === -1}
+      firstItem={index === 0}
       type="Small"
       body={
         <Kb.Box2
