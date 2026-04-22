@@ -17,7 +17,7 @@ const AddFromWhere = ({teamID: routeTeamID}: Props) => {
   const newTeam = teamID === T.Teams.newTeamWizardTeamID
   // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
   const createTeamError = Teams.useTeamsState(s => (newTeam ? s.newTeamWizard.error : undefined))
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (routeTeamID && routeTeamID !== storeTeamID) {
       prepareAddMembersWizard(routeTeamID)
     }
