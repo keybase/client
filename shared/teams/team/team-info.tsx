@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {renameTeam} from '@/teams/actions'
 import {useLoadedTeam} from './use-loaded-team'
 
 type Props = {teamID: T.Teams.TeamID}
@@ -23,6 +22,7 @@ const TeamInfo = (props: Props) => {
 
   const saveDisabled = (description === teamDetails.description && newName === _leafName) || newName.length < 3
   const waiting = C.Waiting.useAnyWaiting([C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsRename])
+  const renameTeamRPC = C.useRPC(T.RPCGen.teamsTeamRenameRpcPromise)
   const editTeamDescription = C.useRPC(T.RPCGen.teamsSetTeamShowcaseRpcPromise)
 
   const errors = {
@@ -32,7 +32,17 @@ const TeamInfo = (props: Props) => {
 
   const onSave = () => {
     if (newName !== _leafName) {
-      renameTeam(teamname, parentTeamNameWithDot + newName)
+      renameTeamRPC(
+        [
+          {
+            newName: {parts: (parentTeamNameWithDot + newName).split('.')},
+            prevName: {parts: teamname.split('.')},
+          },
+          C.waitingKeyTeamsRename,
+        ],
+        () => {},
+        () => {}
+      )
     }
     if (description !== teamDetails.description) {
       setDescError('')
