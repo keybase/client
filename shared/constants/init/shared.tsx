@@ -41,7 +41,6 @@ import {useShellState} from '@/stores/shell'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
-import {useTeamsState} from '@/stores/teams'
 import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 import {useRouterState} from '@/stores/router'
@@ -60,6 +59,7 @@ import {
 } from '@/stores/convostate'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
+import {clearNavBadges} from '@/teams/actions'
 
 let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__ ? (globalThis.__hmr_startupOnce ?? false) : false
 
@@ -363,7 +363,7 @@ export const initSharedSubscriptions = () => {
       }
 
       if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
-        useTeamsState.getState().dispatch.clearNavBadges()
+        clearNavBadges()
       }
 
       onConvoRouteChanged(prev, next)

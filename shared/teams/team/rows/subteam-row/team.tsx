@@ -3,7 +3,7 @@ import type * as T from '@/constants/types'
 import TeamRow from '@/teams/main/team-row'
 import {useActivityLevels} from '@/teams/common'
 import {useNotifState} from '@/stores/notifications'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import {useTeamsListMap} from '@/teams/use-teams-list'
 
 type Props = {

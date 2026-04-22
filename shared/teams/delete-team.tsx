@@ -5,7 +5,7 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import noop from 'lodash/noop'
-import {useTeamsState} from '@/stores/teams'
+import {deleteTeam} from './actions'
 import {useLoadedTeam} from './team/use-loaded-team'
 import {useTeamsList} from './use-teams-list'
 
@@ -26,7 +26,6 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const navigateUp = C.Router2.navigateUp
   const _onBack = navigateUp
   const onBack = deleteWaiting ? noop : _onBack
-  const deleteTeam = useTeamsState(s => s.dispatch.deleteTeam)
   const _onDelete = () => {
     deleteTeam(teamID)
   }

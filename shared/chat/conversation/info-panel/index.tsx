@@ -1,7 +1,7 @@
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {navigateToInbox} from '@/constants/router'
 import {AdhocHeader, TeamHeader} from './header'

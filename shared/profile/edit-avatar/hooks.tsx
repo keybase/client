@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {Props} from '.'
@@ -8,6 +7,7 @@ import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {fixCrop} from '@/util/crop'
 import {getNextRouteAfterAvatar} from '@/teams/new-team/wizard/state'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {uploadTeamAvatar} from '@/teams/actions'
 
 type TeamProps = {
   createdTeam?: boolean
@@ -72,7 +72,6 @@ export default (ownProps: Props): Ret => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
     clearModals()
   }
-  const uploadTeamAvatar = Teams.useTeamsState(s => s.dispatch.uploadTeamAvatar)
   const onSaveTeamAvatar = (
     _filename: string,
     teamname: string,

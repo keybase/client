@@ -4,8 +4,8 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as S from '@/constants/strings'
 import * as ConvoState from '@/stores/convostate'
-import {useTeamsState} from '@/stores/teams'
 import {useUsersState} from '@/stores/users'
+import {leaveTeam} from '@/teams/actions'
 
 // Type for extra RouteProp passed to block modal sometimes when launching the
 // modal from specific places from the app.
@@ -141,7 +141,6 @@ const Container = function BlockModal(ownProps: OwnProps) {
   const loadingWaiting = C.Waiting.useAnyWaiting(C.waitingKeyUsersGetUserBlocks)
 
   const navigateUp = C.Router2.navigateUp
-  const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
   const reportUserRPC = C.useRPC(T.RPCGen.userReportUserRpcPromise)
   const setUserBlocksRPC = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
   const leaveTeamAndBlock = (teamname: string) => {

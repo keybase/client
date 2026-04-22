@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as C from '@/constants'
 import {isBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
-import * as Teams from '@/stores/teams'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -12,6 +11,7 @@ import {formatTimeRelativeToNow} from '@/util/timestamp'
 import MenuHeader from '../menu-header.new'
 import {navToProfile} from '@/constants/router'
 import {useLoadedTeam} from '../../use-loaded-team'
+import {ignoreRequest, removeMember} from '@/teams/actions'
 
 const positionFallbacks = ['left center', 'top left'] as const
 
@@ -236,9 +236,6 @@ const Container = (ownProps: OwnProps) => {
     teamname,
   })
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, username))
-  const removeMember = Teams.useTeamsState(s => s.dispatch.removeMember)
-  const ignoreRequest = Teams.useTeamsState(s => s.dispatch.ignoreRequest)
-
   const _onIgnoreRequest = (teamname: string) => {
     if (reset) {
       removeMember(teamID, username)

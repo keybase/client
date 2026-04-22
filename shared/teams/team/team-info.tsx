@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {renameTeam} from '@/teams/actions'
 import {useLoadedTeam} from './use-loaded-team'
 
 type Props = {teamID: T.Teams.TeamID}
@@ -30,7 +30,6 @@ const TeamInfo = (props: Props) => {
     rename: C.Waiting.useAnyErrors(C.waitingKeyTeamsRename)?.message,
   }
 
-  const renameTeam = Teams.useTeamsState(s => s.dispatch.renameTeam)
   const onSave = () => {
     if (newName !== _leafName) {
       renameTeam(teamname, parentTeamNameWithDot + newName)

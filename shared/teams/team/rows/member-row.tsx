@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
 import {useTeamSelectionState} from '../../common/selection-state'
@@ -8,6 +8,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {useLoadedTeam} from '../use-loaded-team'
+import {reAddToTeam, removeMember} from '@/teams/actions'
 
 export type Props = {
   firstItem: boolean
@@ -283,12 +284,6 @@ const Container = (ownProps: OwnProps) => {
   const {teamDetails, yourOperations} = useLoadedTeam(teamID)
   const members = teamDetails.members
   const youCanManageMembers = yourOperations.manageMembers
-  const {reAddToTeam, removeMember} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      reAddToTeam: s.dispatch.reAddToTeam,
-      removeMember: s.dispatch.removeMember,
-    }))
-  )
   const info = members.get(username) || blankInfo
 
   const you = useCurrentUserState(s => s.username)

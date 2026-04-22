@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import TeamMenu from './menu-container'
 import {pluralize} from '@/util/string'
@@ -9,6 +8,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {makeAddMembersWizard} from '../add-members-wizard/state'
 import {useLoadedTeam} from './use-loaded-team'
+import {setMemberPublicity} from '@/teams/actions'
 
 const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const nav = useSafeNavigation()
@@ -33,7 +33,6 @@ type FeatureTeamCardProps = {
   onDismiss: () => void
 }
 const FeatureTeamCard = ({teamID, onDismiss}: FeatureTeamCardProps) => {
-  const setMemberPublicity = Teams.useTeamsState(s => s.dispatch.setMemberPublicity)
   const onFeature = () => setMemberPublicity(teamID, true)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsSetMemberPublicity(teamID))
   return (

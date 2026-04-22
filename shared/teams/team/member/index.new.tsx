@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import {isBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import {useCurrentUserState} from '@/stores/current-user'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -18,6 +18,7 @@ import {navToProfile} from '@/constants/router'
 import {getRolePickerDisabledReasons, isLastOwnerInTeamMembers} from '@/teams/role-picker-utils'
 import {useLoadedTeam} from '../use-loaded-team'
 import {useTeamsList} from '@/teams/use-teams-list'
+import {removeMember} from '@/teams/actions'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -519,7 +520,6 @@ const NodeInRow = (props: NodeInRowProps) => {
 
   const [role, setRole] = React.useState<T.Teams.TeamRoleType>(props.node.role)
   const [open, setOpen] = React.useState(false)
-  const removeMember = Teams.useTeamsState(s => s.dispatch.removeMember)
   const disabledRoles = getRolePickerDisabledReasons({
     canManageMembers: yourOperations.manageMembers,
     currentUsername,

@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import {isMobile} from '@/constants/platform'
 import {clearModals, navigateAppend, navigateToInbox, previewConversation} from '@/constants/router'
 import logger from '@/logger'
-import {useTeamsState} from '@/stores/teams'
+import {addToTeam} from './actions'
 
 type UsersToAdd = Array<{assertion: string; role: T.Teams.TeamRoleType}>
 
@@ -24,7 +24,7 @@ export const createNewTeamAndNavigate = async (
       S.waitingKeyTeamsCreation
     )
     if (options?.usersToAdd?.length) {
-      useTeamsState.getState().dispatch.addToTeam(teamID, options.usersToAdd, false)
+      addToTeam(teamID, options.usersToAdd, false)
     }
 
     if (options?.fromChat) {

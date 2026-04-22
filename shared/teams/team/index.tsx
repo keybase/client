@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
@@ -23,6 +22,7 @@ import {
   type Section,
   type Item,
 } from './rows'
+import {teamSeen} from '@/teams/actions'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -99,7 +99,6 @@ const TeamBody = (props: Props) => {
   }, [navigation])
 
   const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
-  const teamSeen = Teams.useTeamsState(s => s.dispatch.teamSeen)
 
   React.useEffect(() => {
     setInvitesCollapsed(false)

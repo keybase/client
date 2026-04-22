@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 
 type LoadedTeam = {

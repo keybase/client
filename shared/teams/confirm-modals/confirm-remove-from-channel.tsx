@@ -2,7 +2,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import {useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {useSafeNavigation} from '@/util/safe-navigation'
 

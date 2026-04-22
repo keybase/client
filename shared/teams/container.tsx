@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import {useNotifState} from '@/stores/notifications'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'

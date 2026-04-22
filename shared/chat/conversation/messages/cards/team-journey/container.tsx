@@ -3,11 +3,11 @@ import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {useChatTeam} from '@/chat/conversation/team-hooks'
 import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
+import {setMemberPublicity} from '@/teams/actions'
 
 type Action = {label: string; onClick: () => void} | 'wave'
 type OwnProps = {ordinal: T.Chat.Ordinal}
@@ -35,7 +35,6 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const _onManageChannels = (teamID: string) =>
     navigateAppend({name: 'teamAddToChannels', params: {teamID}})
 
-  const setMemberPublicity = Teams.useTeamsState(s => s.dispatch.setMemberPublicity)
   const _onPublishTeam = (teamID: string) => {
     navigateAppend({name: 'profileShowcaseTeamOffer', params: {}})
     setMemberPublicity(teamID, true)

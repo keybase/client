@@ -118,13 +118,13 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [x] Replace channel list reads with a route-owned `useLoadedTeamChannels(teamID, teamname?)` loader/provider
   - [x] Move `teams/team/index.tsx`, `teams/team/rows/channel-row/*`, `teams/common/selection-popup.tsx`, and `teams/channel/*` channel-header/list consumers off `channelInfo` reads
   - [x] Stop calling `loadTeamChannelList` from the team/channel route shells and channel edit/delete/remove flows that now rely on route reloads
-- [ ] Replace welcome message, retention policy, members, activity, and team tree reads with feature hooks local to the owning screens
+- [x] Replace welcome message, retention policy, members, activity, and team tree reads with feature hooks local to the owning screens
   - [x] Move activity-level reads in teams root/team/channel screens onto a route-local `ActivityLevelsProvider` instead of the teams store cache
   - [x] Move team retention policy load/save in `teams/team/settings-tab/retention` onto a local RPC-backed hook with mount/focus reloads
   - [x] Move mounted channel route member/detail consumers and current-team row consumers onto `useLoadedTeam(teamID)` when they only need the active route's team data
   - [x] Move `teams/team/member/index.new.tsx` team-tree memberships and last-activity reads off the teams store onto a route-local loader plus engine listeners
   - [x] Move chat member loads and standalone team-name lookups off `teamIDToMembers` / `teamNameToID` / `teamnames` store caches onto local feature hooks and `useTeamsList()`
-- [ ] Reload on focus/mount instead of maintaining store subscriptions
+- [x] Reload on focus/mount instead of maintaining store subscriptions
   - [x] Remove the legacy team-route list/details subscriptions now that `useLoadedTeam(...)`, `useLoadedTeamChannels(...)`, and `useTeamsList()` own mounted reloads
   - [x] Remove the remaining popup-only `teams/subscriber.tsx` path by gating `useLoadedTeam(...)` with the mounted popup state
   - [x] Delete the dead teams-store list/details/channel cache state plus the leftover bootstrap `getTeams()` reloads now that route-local hooks own mounted loads
@@ -164,7 +164,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [x] Stop treating `teams` as a background cache owner
 - [x] Move badge-derived team adornment state (`deletedTeams`, `newTeams`, `teamIDToResetUsers`) out of `stores/teams.tsx` into `stores/notifications.tsx`
 - [x] Move gregor-derived per-team access request state (`newTeamRequests`) out of `stores/teams.tsx` into `stores/notifications.tsx`
-- [ ] Convert mounted-screen-only reactions to direct listeners plus reload
+- [x] Convert mounted-screen-only reactions to direct listeners plus reload
   - [x] `chat.1.chatUi.chatShowManageChannels`
   - [x] `keybase.1.NotifyTeam.teamDeleted`
   - [x] `keybase.1.NotifyTeam.teamExit`
@@ -186,16 +186,17 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ## Chunk 5: Decide What, If Anything, Stays In Zustand
 
-- [ ] Review what remains in `shared/stores/teams.tsx`
+- [x] Review what remains in `shared/stores/teams.tsx`
 - [x] Replace the remaining profile `teamRoleMap` reads with `useTeamsList()`-derived role/membership data
-- [ ] Delete dead selectors, helpers, and tests
+- [x] Delete dead selectors, helpers, and tests
   - [x] Delete dead teams-store list/details/channel cache helpers after moving mounted consumers onto route-local loaders
 - [x] Delete dead teams-store retention/activity cache leftovers after the route-local migrations (`teamIDToRetentionPolicy`, `activityLevels`)
 - [x] Delete the dead `teamIDToMembers` cache path plus its leftover bot-install/store-refresh plumbing now that chat team member hooks own mounted reloads
 - [x] Trim dead teams-store helper exports that were only supporting removed caches or selectors
 - [x] Trim dead teams-store engine fanout for actions that now only mounted chat consumers handle (`badgeState`, `teamMetadataUpdate`, `teamChangedByID`)
-- [ ] If only a tiny action layer remains, move it into feature hooks and remove the store entirely
-- [ ] If something must remain, document exactly why it needs app-wide lifetime
+- [x] If only a tiny action layer remains, move it into feature hooks and remove the store entirely
+- [x] If something must remain, document exactly why it needs app-wide lifetime
+  - [x] Nothing remains; `shared/stores/teams.tsx` was deleted and the small action layer moved to `shared/teams/actions.tsx`
 
 ### Likely removals at the end
 
@@ -215,4 +216,4 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [ ] Team wizard and add-members flows work without global store state
 - [ ] Navigation flows previously using teams-store dispatch still work with direct router calls
 - [ ] Engine-driven mounted-screen nudges still react while visible
-- [ ] No new module-level mutable cache is introduced as a replacement for Zustand
+- [x] No new module-level mutable cache is introduced as a replacement for Zustand

@@ -1,6 +1,6 @@
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Style from '@/styles'
 import type * as T from '@/constants/types'
