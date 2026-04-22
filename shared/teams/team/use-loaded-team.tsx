@@ -17,12 +17,17 @@ type LoadedTeamContextValue = LoadedTeam & {
   teamID: T.Teams.TeamID
 }
 
+type LoadedTeamState = Omit<LoadedTeam, 'reload'> & {
+  loadedTeamID?: T.Teams.TeamID
+}
+
 const LoadedTeamContext = React.createContext<LoadedTeamContextValue | null>(null)
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
 
-const emptyLoadedTeamState = (teamID?: T.Teams.TeamID) => ({
+const emptyLoadedTeamState = (teamID?: T.Teams.TeamID): LoadedTeamState => ({
+  loadedTeamID: teamID,
   loading: false,
   teamDetails: Teams.emptyTeamDetails,
   teamMeta: teamID ? Teams.makeTeamMeta({id: teamID}) : Teams.emptyTeamMeta,
@@ -61,9 +66,7 @@ const annotatedTeamToMeta = (
 
 const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam => {
   const validTeamID = loadableTeamID(teamID)
-  const [state, setState] = React.useState<Omit<LoadedTeam, 'reload'>>({
-    ...emptyLoadedTeamState(validTeamID),
-  })
+  const [state, setState] = React.useState<LoadedTeamState>(() => emptyLoadedTeamState(validTeamID))
   const requestVersionRef = React.useRef(0)
   const clearState = React.useCallback(
     (nextTeamID?: T.Teams.TeamID) => {
@@ -90,6 +93,7 @@ const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam =>
       }
       const roleAndDetails = roleAndDetailsFromMap(roleMap, validTeamID)
       setState({
+        loadedTeamID: validTeamID,
         loading: false,
         teamDetails: Teams.annotatedTeamToDetails(annotatedTeam),
         teamMeta: annotatedTeamToMeta(validTeamID, annotatedTeam, roleAndDetails),
@@ -103,6 +107,9 @@ const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam =>
       setState(prev => ({...prev, loading: false}))
     }
   }, [clearState, enabled, validTeamID])
+
+  const visibleState =
+    enabled && state.loadedTeamID !== validTeamID ? emptyLoadedTeamState(validTeamID) : state
 
   React.useEffect(() => {
     void reload()
@@ -138,7 +145,7 @@ const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam =>
     }
   })
 
-  return {...state, reload}
+  return {...visibleState, reload}
 }
 
 export const LoadedTeamProvider = (props: React.PropsWithChildren<{teamID: T.Teams.TeamID}>) => {

@@ -15,9 +15,9 @@ export const useChannelParticipants = (
     teamDetails: {members: teamMembers},
   } = useLoadedTeam(teamID)
   return participants.filter(username => {
-        const maybeMember = teamMembers.get(username)
-        return maybeMember && maybeMember.type !== 'bot' && maybeMember.type !== 'restrictedbot'
-      })
+    const maybeMember = teamMembers.get(username)
+    return maybeMember && maybeMember.type !== 'bot' && maybeMember.type !== 'restrictedbot'
+  })
 }
 
 export const useAllChannelMetas = (
@@ -32,58 +32,74 @@ export const useAllChannelMetas = (
   const {
     teamMeta: {teamname},
   } = useLoadedTeam(teamID)
-  const [channelMetas, setChannelMetas] = React.useState(
-    new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>()
-  )
-
+  const emptyChannelMetas = React.useMemo(() => new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>(), [])
+  const [channelMetas, setChannelMetas] = React.useState(emptyChannelMetas)
   const [loadingChannels, setLoadingChannels] = React.useState(true)
+  const requestVersionRef = React.useRef(0)
+  const requestTeamIDRef = React.useRef(teamID)
+  const loadedTeamIDRef = React.useRef(teamID)
 
-  const getConversationsRef = React.useRef(getConversations)
-  const teamnameRef = React.useRef(teamname)
-  const teamIDRef = React.useRef(teamID)
   React.useEffect(() => {
-    getConversationsRef.current = getConversations
-    teamnameRef.current = teamname
-    teamIDRef.current = teamID
-  }, [getConversations, teamname, teamID])
+    if (requestTeamIDRef.current !== teamID) {
+      requestTeamIDRef.current = teamID
+      requestVersionRef.current++
+    }
+  }, [teamID])
 
-  const [reloadChannels] = React.useState(() => async () =>
+  const reloadChannels = React.useCallback(
+    async () =>
       new Promise<void>((resolve, reject) => {
+        if (!teamname) {
+          loadedTeamIDRef.current = teamID
+          setChannelMetas(emptyChannelMetas)
+          setLoadingChannels(true)
+          resolve()
+          return
+        }
+        const requestVersion = ++requestVersionRef.current
         setLoadingChannels(true)
-        getConversationsRef.current(
+        getConversations(
           [
             {
               membersType: T.RPCChat.ConversationMembersType.team,
-              tlfName: teamnameRef.current,
+              tlfName: teamname,
               topicType: T.RPCChat.TopicType.chat,
             },
-            C.waitingKeyTeamsGetChannels(teamIDRef.current),
+            C.waitingKeyTeamsGetChannels(teamID),
           ],
           ({convs}) => {
-            resolve()
-            if (convs) {
-              setChannelMetas(
-                new Map(
-                  convs
-                    .map(conv => Chat.inboxUIItemToConversationMeta(conv))
-                    .reduce((arr, a) => {
-                      if (a) {
-                        arr.push([a.conversationIDKey, a])
-                      }
-                      return arr
-                    }, new Array<[string, T.Chat.ConversationMeta]>())
-                )
-              )
+            if (requestVersion !== requestVersionRef.current) {
+              resolve()
+              return
             }
-
+            loadedTeamIDRef.current = teamID
+            setChannelMetas(
+              new Map(
+                (convs ?? [])
+                  .map(conv => Chat.inboxUIItemToConversationMeta(conv))
+                  .reduce((arr, a) => {
+                    if (a) {
+                      arr.push([a.conversationIDKey, a])
+                    }
+                    return arr
+                  }, new Array<[string, T.Chat.ConversationMeta]>())
+              )
+            )
             setLoadingChannels(false)
+            resolve()
           },
           error => {
+            if (requestVersion !== requestVersionRef.current) {
+              resolve()
+              return
+            }
+            loadedTeamIDRef.current = teamID
             setLoadingChannels(false)
             reject(error)
           }
         )
-      })
+      }),
+    [emptyChannelMetas, getConversations, teamID, teamname]
   )
 
   React.useEffect(() => {
@@ -94,5 +110,8 @@ export const useAllChannelMetas = (
     }
   }, [reloadChannels, dontCallRPC])
 
-  return {channelMetas, loadingChannels, reloadChannels}
+  const visibleChannelMetas = loadedTeamIDRef.current === teamID ? channelMetas : emptyChannelMetas
+  const visibleLoadingChannels = loadedTeamIDRef.current === teamID ? loadingChannels : true
+
+  return {channelMetas: visibleChannelMetas, loadingChannels: visibleLoadingChannels, reloadChannels}
 }

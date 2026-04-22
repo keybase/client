@@ -15,12 +15,21 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
   const [defaultChannels, setDefaultChannels] = React.useState<Array<T.Teams.ChannelNameID>>([])
   const [defaultChannelsWaiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState<RPCError | undefined>()
+  const requestVersionRef = React.useRef(0)
+  const requestTeamIDRef = React.useRef(teamID)
+  const loadedTeamIDRef = React.useRef(teamID)
 
-  const reloadDefaultChannels = () => {
+  const reloadDefaultChannels = React.useCallback(() => {
+    const requestVersion = ++requestVersionRef.current
+    setError(undefined)
     setWaiting(true)
     getDefaultChannelsRPC(
       [{teamID}],
       result => {
+        if (requestVersion !== requestVersionRef.current) {
+          return
+        }
+        loadedTeamIDRef.current = teamID
         setDefaultChannels([
           {channelname: 'general', conversationIDKey: 'unused'},
           ...(result.convs || []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
@@ -28,16 +37,36 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
         setWaiting(false)
       },
       err => {
+        if (requestVersion !== requestVersionRef.current) {
+          return
+        }
+        loadedTeamIDRef.current = teamID
         setError(err)
         setWaiting(false)
       }
     )
-  }
+  }, [getDefaultChannelsRPC, teamID])
+
+  React.useEffect(() => {
+    if (requestTeamIDRef.current !== teamID) {
+      requestTeamIDRef.current = teamID
+      requestVersionRef.current++
+    }
+  }, [teamID])
 
   // Initialize
   React.useEffect(reloadDefaultChannels, [reloadDefaultChannels])
 
-  return {defaultChannels, defaultChannelsWaiting, error, reloadDefaultChannels}
+  const visibleDefaultChannels = loadedTeamIDRef.current === teamID ? defaultChannels : []
+  const visibleDefaultChannelsWaiting = loadedTeamIDRef.current === teamID ? defaultChannelsWaiting : true
+  const visibleError = loadedTeamIDRef.current === teamID ? error : undefined
+
+  return {
+    defaultChannels: visibleDefaultChannels,
+    defaultChannelsWaiting: visibleDefaultChannelsWaiting,
+    error: visibleError,
+    reloadDefaultChannels,
+  }
 }
 
 const DefaultChannels = (props: Props) => {
