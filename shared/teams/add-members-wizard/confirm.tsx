@@ -304,6 +304,9 @@ const RoleSelector = ({disabledRoles, memberCount, updateWizard, wizard}: RoleSe
   const [showingMenu, setShowingMenu] = React.useState(false)
   const storeRole = wizard.role
   const [role, setRole] = React.useState<RoleType>(storeRole)
+  React.useEffect(() => {
+    setRole(storeRole)
+  }, [storeRole])
   const onConfirmRole = (newRole: RoleType) => {
     setRole(newRole)
     setShowingMenu(false)
