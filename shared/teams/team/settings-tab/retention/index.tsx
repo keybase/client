@@ -428,15 +428,21 @@ const policyToExplanation = (
 }
 
 const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
-  const [teamPolicy, setTeamPolicy] = React.useState<T.Retention.RetentionPolicy | undefined>(undefined)
+  type TeamRetentionState = {
+    loadedTeamID?: T.Teams.TeamID
+    teamPolicy?: T.Retention.RetentionPolicy
+  }
+
+  const [state, setState] = React.useState<TeamRetentionState>({loadedTeamID: teamID, teamPolicy: undefined})
   const requestVersionRef = React.useRef(0)
   const requestTeamIDRef = React.useRef(teamID)
-  const loadedTeamIDRef = React.useRef(teamID)
 
   const setTeamRetentionPolicy = React.useCallback((policy?: T.RPCChat.RetentionPolicy | null) => {
     const nextPolicy = Teams.serviceRetentionPolicyToRetentionPolicy(policy)
-    loadedTeamIDRef.current = teamID
-    setTeamPolicy(nextPolicy.type === 'inherit' ? Teams.retentionPolicies.policyRetain : nextPolicy)
+    setState({
+      loadedTeamID: teamID,
+      teamPolicy: nextPolicy.type === 'inherit' ? Teams.retentionPolicies.policyRetain : nextPolicy,
+    })
   }, [teamID])
 
   const reload = React.useCallback(async () => {
@@ -454,7 +460,6 @@ const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
       if (requestVersion !== requestVersionRef.current) {
         return
       }
-      loadedTeamIDRef.current = teamID
       setTeamRetentionPolicy(undefined)
     }
   }, [setTeamRetentionPolicy, teamID])
@@ -486,11 +491,12 @@ const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
     setTeamRetentionPolicy(first.teamRetention)
   })
 
-  const visibleTeamPolicy = loadedTeamIDRef.current === teamID ? teamPolicy : undefined
+  const visibleState =
+    state.loadedTeamID === teamID ? state : {loadedTeamID: teamID, teamPolicy: undefined}
 
   return {
-    loading: !visibleTeamPolicy,
-    teamPolicy: visibleTeamPolicy,
+    loading: !visibleState.teamPolicy,
+    teamPolicy: visibleState.teamPolicy,
   }
 }
 

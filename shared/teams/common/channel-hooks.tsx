@@ -28,16 +28,24 @@ export const useAllChannelMetas = (
   loadingChannels: boolean
   reloadChannels: () => Promise<void>
 } => {
+  type ChannelMetasState = {
+    channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
+    loadedTeamID?: T.Teams.TeamID
+    loadingChannels: boolean
+  }
+
   const getConversations = C.useRPC(T.RPCChat.localGetTLFConversationsLocalRpcPromise)
   const {
     teamMeta: {teamname},
   } = useLoadedTeam(teamID)
   const emptyChannelMetas = React.useMemo(() => new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>(), [])
-  const [channelMetas, setChannelMetas] = React.useState(emptyChannelMetas)
-  const [loadingChannels, setLoadingChannels] = React.useState(true)
+  const [state, setState] = React.useState<ChannelMetasState>(() => ({
+    channelMetas: emptyChannelMetas,
+    loadedTeamID: teamID,
+    loadingChannels: true,
+  }))
   const requestVersionRef = React.useRef(0)
   const requestTeamIDRef = React.useRef(teamID)
-  const loadedTeamIDRef = React.useRef(teamID)
 
   React.useEffect(() => {
     if (requestTeamIDRef.current !== teamID) {
@@ -50,14 +58,12 @@ export const useAllChannelMetas = (
     async () =>
       new Promise<void>((resolve, reject) => {
         if (!teamname) {
-          loadedTeamIDRef.current = teamID
-          setChannelMetas(emptyChannelMetas)
-          setLoadingChannels(true)
+          setState({channelMetas: emptyChannelMetas, loadedTeamID: teamID, loadingChannels: true})
           resolve()
           return
         }
         const requestVersion = ++requestVersionRef.current
-        setLoadingChannels(true)
+        setState(prev => ({...prev, loadingChannels: true}))
         getConversations(
           [
             {
@@ -72,9 +78,8 @@ export const useAllChannelMetas = (
               resolve()
               return
             }
-            loadedTeamIDRef.current = teamID
-            setChannelMetas(
-              new Map(
+            setState({
+              channelMetas: new Map(
                 (convs ?? [])
                   .map(conv => Chat.inboxUIItemToConversationMeta(conv))
                   .reduce((arr, a) => {
@@ -83,9 +88,10 @@ export const useAllChannelMetas = (
                     }
                     return arr
                   }, new Array<[string, T.Chat.ConversationMeta]>())
-              )
-            )
-            setLoadingChannels(false)
+              ),
+              loadedTeamID: teamID,
+              loadingChannels: false,
+            })
             resolve()
           },
           error => {
@@ -93,8 +99,7 @@ export const useAllChannelMetas = (
               resolve()
               return
             }
-            loadedTeamIDRef.current = teamID
-            setLoadingChannels(false)
+            setState(prev => ({...prev, loadedTeamID: teamID, loadingChannels: false}))
             reject(error)
           }
         )
@@ -110,8 +115,14 @@ export const useAllChannelMetas = (
     }
   }, [reloadChannels, dontCallRPC])
 
-  const visibleChannelMetas = loadedTeamIDRef.current === teamID ? channelMetas : emptyChannelMetas
-  const visibleLoadingChannels = loadedTeamIDRef.current === teamID ? loadingChannels : true
+  const visibleState =
+    state.loadedTeamID === teamID
+      ? state
+      : {channelMetas: emptyChannelMetas, loadedTeamID: teamID, loadingChannels: true}
 
-  return {channelMetas: visibleChannelMetas, loadingChannels: visibleLoadingChannels, reloadChannels}
+  return {
+    channelMetas: visibleState.channelMetas,
+    loadingChannels: visibleState.loadingChannels,
+    reloadChannels,
+  }
 }

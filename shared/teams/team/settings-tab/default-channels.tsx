@@ -11,38 +11,47 @@ type Props = {
 }
 
 export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
+  type DefaultChannelsState = {
+    defaultChannels: Array<T.Teams.ChannelNameID>
+    error?: RPCError
+    loadedTeamID?: T.Teams.TeamID
+    waiting: boolean
+  }
+
   const getDefaultChannelsRPC = C.useRPC(T.RPCChat.localGetDefaultTeamChannelsLocalRpcPromise)
-  const [defaultChannels, setDefaultChannels] = React.useState<Array<T.Teams.ChannelNameID>>([])
-  const [defaultChannelsWaiting, setWaiting] = React.useState(false)
-  const [error, setError] = React.useState<RPCError | undefined>()
+  const [state, setState] = React.useState<DefaultChannelsState>({
+    defaultChannels: [],
+    error: undefined,
+    loadedTeamID: teamID,
+    waiting: false,
+  })
   const requestVersionRef = React.useRef(0)
   const requestTeamIDRef = React.useRef(teamID)
-  const loadedTeamIDRef = React.useRef(teamID)
 
   const reloadDefaultChannels = React.useCallback(() => {
     const requestVersion = ++requestVersionRef.current
-    setError(undefined)
-    setWaiting(true)
+    setState(prev => ({...prev, error: undefined, waiting: true}))
     getDefaultChannelsRPC(
       [{teamID}],
       result => {
         if (requestVersion !== requestVersionRef.current) {
           return
         }
-        loadedTeamIDRef.current = teamID
-        setDefaultChannels([
-          {channelname: 'general', conversationIDKey: 'unused'},
-          ...(result.convs || []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
-        ])
-        setWaiting(false)
+        setState({
+          defaultChannels: [
+            {channelname: 'general', conversationIDKey: 'unused'},
+            ...(result.convs || []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
+          ],
+          error: undefined,
+          loadedTeamID: teamID,
+          waiting: false,
+        })
       },
       err => {
         if (requestVersion !== requestVersionRef.current) {
           return
         }
-        loadedTeamIDRef.current = teamID
-        setError(err)
-        setWaiting(false)
+        setState(prev => ({...prev, error: err, loadedTeamID: teamID, waiting: false}))
       }
     )
   }, [getDefaultChannelsRPC, teamID])
@@ -57,14 +66,20 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
   // Initialize
   React.useEffect(reloadDefaultChannels, [reloadDefaultChannels])
 
-  const visibleDefaultChannels = loadedTeamIDRef.current === teamID ? defaultChannels : []
-  const visibleDefaultChannelsWaiting = loadedTeamIDRef.current === teamID ? defaultChannelsWaiting : true
-  const visibleError = loadedTeamIDRef.current === teamID ? error : undefined
+  const visibleState =
+    state.loadedTeamID === teamID
+      ? state
+      : {
+          defaultChannels: [] as Array<T.Teams.ChannelNameID>,
+          error: undefined,
+          loadedTeamID: teamID,
+          waiting: true,
+        }
 
   return {
-    defaultChannels: visibleDefaultChannels,
-    defaultChannelsWaiting: visibleDefaultChannelsWaiting,
-    error: visibleError,
+    defaultChannels: visibleState.defaultChannels,
+    defaultChannelsWaiting: visibleState.waiting,
+    error: visibleState.error,
     reloadDefaultChannels,
   }
 }
