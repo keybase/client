@@ -10,6 +10,7 @@ import {ModalTitle} from '@/teams/common'
 import useHooks from './hooks'
 
 const AvatarUploadWrapper = (p: Props) => {
+  const {newTeamWizard} = p
   const props = useHooks(p)
   const {image, error: _error, onSave: _onSave, teamID, type, wizard, waitingKey} = props
   const [selectedImage, setSelectedImage] = React.useState(image)
@@ -131,14 +132,14 @@ const AvatarUploadWrapper = (p: Props) => {
         if (teamID) {
           const title = hasImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
           if (Kb.Styles.isMobile) {
-            return <ModalTitle teamID={teamID} title={title} />
+            return <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />
           }
           return <Kb.Text type="BodyBig">{title}</Kb.Text>
         }
         return <Kb.Text type="BodyBig">Upload an avatar</Kb.Text>
       },
     })
-  }, [navigation, selectedImage, teamID, wizard])
+  }, [navigation, newTeamWizard, selectedImage, teamID, wizard])
 
   if (type === 'team') {
     return (

@@ -16,7 +16,7 @@ import invert from 'lodash/invert'
 import logger from '@/logger'
 import {openSMS} from '@/util/misc'
 import {RPCError, logError} from '@/util/errors'
-import {isMobile, isPhone} from '@/constants/platform'
+import {isMobile} from '@/constants/platform'
 import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {fixCrop} from '@/util/crop'
@@ -26,6 +26,8 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import * as Util from '@/constants/teams'
 import {getTab} from '@/constants/router'
+import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
+import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 
 export {
   baseRetentionPolicies,
@@ -167,7 +169,7 @@ export const initialTeamSettings = Object.freeze({
   open: false,
 })
 
-export const addMembersWizardEmptyState: State['addMembersWizard'] = {
+const addMembersWizardEmptyState: State['addMembersWizard'] = {
   addToChannels: undefined,
   addingMembers: [],
   justFinished: false,
@@ -176,18 +178,7 @@ export const addMembersWizardEmptyState: State['addMembersWizard'] = {
   teamID: T.Teams.noTeamID,
 }
 
-export const newTeamWizardEmptyState = {
-  addYourself: true,
-  description: '',
-  isBig: false,
-  name: '',
-  open: false,
-  openTeamJoinRole: 'reader' as const,
-  profileShowcase: false,
-  teamType: 'other' as const,
-} satisfies State['newTeamWizard']
-
-export const emptyErrorInEditMember = {error: '', teamID: T.Teams.noTeamID, username: ''}
+const emptyErrorInEditMember = {error: '', teamID: T.Teams.noTeamID, username: ''}
 
 export const initialCanUserPerform = Object.freeze<T.Teams.TeamOperations>({
   changeOpenTeam: false,
@@ -459,17 +450,7 @@ export const emptyTeamMeta = Object.freeze<T.Teams.TeamMeta>({
 
 export const makeTeamMeta = (td: Partial<T.Teams.TeamMeta>): T.Teams.TeamMeta => ({...emptyTeamMeta, ...td})
 
-export const getTeamMeta = (state: State, teamID: T.Teams.TeamID) =>
-  teamID === T.Teams.newTeamWizardTeamID
-    ? makeTeamMeta({
-        id: teamID,
-        isMember: true,
-        isOpen: state.newTeamWizard.open,
-        memberCount: 0,
-        showcasing: state.newTeamWizard.profileShowcase,
-        teamname: state.newTeamWizard.name === '' ? 'New team' : state.newTeamWizard.name,
-      })
-    : (state.teamMeta.get(teamID) ?? emptyTeamMeta)
+export const getTeamMeta = (state: State, teamID: T.Teams.TeamID) => state.teamMeta.get(teamID) ?? emptyTeamMeta
 
 export const getTeamMemberLastActivity = (
   state: State,
@@ -673,26 +654,6 @@ export const ratchetTeamVersion = (newVersion: T.Teams.TeamVersion, oldVersion?:
       }
     : newVersion
 
-export const dedupAddingMembers = (
-  _existing: ReadonlyArray<T.Teams.AddingMember>,
-  toAdds: ReadonlyArray<T.Teams.AddingMember>
-) => {
-  const existing = [..._existing]
-  for (const toAdd of toAdds) {
-    if (!existing.find(m => m.assertion === toAdd.assertion)) {
-      existing.unshift(toAdd)
-    }
-  }
-  return existing
-}
-
-export const coerceAssertionRole = (mem: T.Teams.AddingMember): T.Teams.AddingMember => {
-  if (mem.assertion.includes('@') && ['admin', 'owner'].includes(mem.role)) {
-    return {...mem, role: 'writer'}
-  }
-  return mem
-}
-
 export const lastActiveStatusToActivityLevel: {
   [key in T.RPCChat.LastActiveStatus]: T.Teams.ActivityLevel
 } = {
@@ -775,7 +736,6 @@ type Store = T.Immutable<{
   teamSelectedChannels: Map<T.Teams.TeamID, Set<string>>
   teamSelectedMembers: Map<T.Teams.TeamID, Set<string>>
   teamAccessRequestsPending: Set<T.Teams.Teamname>
-  newTeamWizard: T.Teams.NewTeamWizardState
   addMembersWizard: T.Teams.AddMembersWizardState
   teamVersion: Map<T.Teams.TeamID, T.Teams.TeamVersion>
   teamIDToMembers: Map<T.Teams.TeamID, Map<string, T.Teams.MemberInfo>> // Used by chat sidebar until team loading gets easier
@@ -796,7 +756,6 @@ const initialStore: Store = {
   errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
   newTeamRequests: new Map(),
-  newTeamWizard: newTeamWizardEmptyState,
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -824,19 +783,12 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    addMembersWizardPushMembers: (members: Array<T.Teams.AddingMember>) => void
-    addMembersWizardRemoveMember: (assertion: string) => void
-    addMembersWizardSetDefaultChannels: (
-      toAdd?: ReadonlyArray<T.Teams.ChannelNameID>,
-      toRemove?: T.Teams.ChannelNameID
-    ) => void
     addToTeam: (
       teamID: T.Teams.TeamID,
       users: Array<{assertion: string; role: T.Teams.TeamRoleType}>,
       sendChatNotification: boolean,
       fromTeamBuilder?: boolean
     ) => void
-    cancelAddMembersWizard: () => void
     channelSetMemberSelected: (
       conversationIDKey: T.Chat.ConversationIDKey,
       username: string,
@@ -860,7 +812,6 @@ export type State = Store & {
     deleteTeam: (teamID: T.Teams.TeamID) => void
     eagerLoadTeams: () => void
     editMembership: (teamID: T.Teams.TeamID, usernames: Array<string>, role: T.Teams.TeamRoleType) => void
-    finishNewTeamWizard: () => void
     finishedAddMembersWizard: () => void
     getActivityForTeams: () => void
     getMembers: (teamID: T.Teams.TeamID, forceReload?: boolean) => Promise<void>
@@ -908,8 +859,6 @@ export type State = Store & {
       oldChannelState: T.Teams.ChannelMembershipState,
       newChannelState: T.Teams.ChannelMembershipState
     ) => void
-    setAddMembersWizardIndividualRole: (assertion: string, role: T.Teams.AddingMemberTeamRoleType) => void
-    setAddMembersWizardRole: (role: T.Teams.AddingMemberTeamRoleType | 'setIndividually') => void
     setChannelSelected: (
       teamID: T.Teams.TeamID,
       channel: string,
@@ -931,25 +880,10 @@ export type State = Store & {
     ) => void
     setNewTeamRequests: (newTeamRequests: Map<T.Teams.TeamID, Set<string>>) => void
     setPublicity: (teamID: T.Teams.TeamID, settings: T.Teams.PublicitySettings) => void
-    prepareAddMembersWizard: (teamID: T.Teams.TeamID) => void
     setTeamRetentionPolicy: (teamID: T.Teams.TeamID, policy: T.Retention.RetentionPolicy) => void
     setTeamRoleMapLatestKnownVersion: (version: number) => void
     setTeamSawChatBanner: () => void
     setTeamSawSubteamsBanner: () => void
-    setTeamWizardAvatar: (crop?: T.Teams.AvatarCrop, filename?: string) => void
-    setTeamWizardChannels: (channels: Array<string>) => void
-    setTeamWizardNameDescription: (p: {
-      teamname: string
-      description: string
-      openTeam: boolean
-      openTeamJoinRole: T.Teams.TeamRoleType
-      profileShowcase: boolean
-      addYourself: boolean
-    }) => void
-    setTeamWizardSubteamMembers: (members: Array<string>) => void
-    setTeamWizardSubteams: (subteams: Array<string>) => void
-    setTeamWizardTeamSize: (isBig: boolean) => void
-    setTeamWizardTeamType: (teamType: T.Teams.TeamWizardTeamType) => void
     setWelcomeMessage: (teamID: T.Teams.TeamID, message: T.RPCChat.WelcomeMessage) => void
     showTeamByName: (
       teamname: string,
@@ -998,91 +932,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
     set({...initialStore, dispatch}, true)
   }
   const dispatch: State['dispatch'] = {
-    addMembersWizardPushMembers: members => {
-      const f = async () => {
-        // Call FindAssertionsInTeamNoResolve RPC and pass the results along with the
-        // members to addMembersWizardSetMembers action.
-        const {teamID} = get().addMembersWizard
-        const assertions = members
-          .filter(member => member.assertion.includes('@') || !!member.resolvedFrom)
-          .map(({assertion}) => assertion)
-
-        const existingAssertions =
-          teamID === T.Teams.newTeamWizardTeamID
-            ? []
-            : await T.RPCGen.teamsFindAssertionsInTeamNoResolveRpcPromise({
-                assertions,
-                teamID,
-              })
-
-        set(s => {
-          const assertionsInTeam = new Set(existingAssertions ?? [])
-          // Set `membersAlreadyInTeam` first. It's only shown for last add, so
-          // just overwrite the list.
-          //
-          // Prefer to show "resolvedFrom" which will contain the original assertion
-          // that user tried to add (e.g. phone number or email) in case it resolved
-          // to a user that's already in the team.
-          s.addMembersWizard.membersAlreadyInTeam = members
-            .filter(m => assertionsInTeam.has(m.assertion))
-            .map(m => m.resolvedFrom ?? m.assertion)
-          // - Filter out all members that are already in team as team members or
-          //   team invites.
-          // - De-duplicate with current addingMembers list
-          // - Coerce assertion role (ensures it's no higher than 'writer' for
-          //   non-usernames).
-          const filteredMembers = members.filter(m => !assertionsInTeam.has(m.assertion))
-          s.addMembersWizard.addingMembers = dedupAddingMembers(
-            s.addMembersWizard.addingMembers,
-            filteredMembers.map(coerceAssertionRole)
-          )
-          // Check if after adding the new batch of members we are not violating the
-          // "only Keybase users can be added as admins" contract.
-          if (
-            ['admin', 'owner'].includes(s.addMembersWizard.role) &&
-            filteredMembers.some(m => m.assertion.includes('@'))
-          ) {
-            if (isPhone) {
-              s.addMembersWizard.role = 'writer'
-              s.addMembersWizard.addingMembers.forEach(member => (member.role = 'writer'))
-            } else {
-              s.addMembersWizard.role = 'setIndividually'
-            }
-          }
-        })
-
-        navigateAppend({name: 'teamAddToTeamConfirm', params: {}})
-      }
-      ignorePromise(f())
-    },
-    addMembersWizardRemoveMember: assertion => {
-      set(s => {
-        const idx = s.addMembersWizard.addingMembers.findIndex(member => member.assertion === assertion)
-        if (idx >= 0) {
-          s.addMembersWizard.addingMembers.splice(idx, 1)
-        }
-      })
-    },
-    addMembersWizardSetDefaultChannels: (toAdd, toRemove) => {
-      set(s => {
-        if (!s.addMembersWizard.addToChannels) {
-          // we're definitely setting these manually now
-          s.addMembersWizard.addToChannels = []
-        }
-        const addToChannels = s.addMembersWizard.addToChannels
-        toAdd?.forEach(channel => {
-          if (!addToChannels.find(dc => dc.conversationIDKey === channel.conversationIDKey)) {
-            addToChannels.push(channel)
-          }
-        })
-        const maybeRemoveIdx =
-          (toRemove && addToChannels.findIndex(dc => dc.conversationIDKey === toRemove.conversationIDKey)) ??
-          -1
-        if (maybeRemoveIdx >= 0) {
-          addToChannels.splice(maybeRemoveIdx, 1)
-        }
-      })
-    },
     addToTeam: (teamID, users, sendChatNotification, fromTeamBuilder) => {
       set(s => {
         s.errorInAddToTeam = ''
@@ -1148,12 +997,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    cancelAddMembersWizard: () => {
-      set(s => {
-        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState})
-      })
-      clearModals()
     },
     channelSetMemberSelected: (conversationIDKey, username, selected, clearAll) => {
       set(s => {
@@ -1308,45 +1151,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
                 s.errorInEditMember.username = usernames[0] ?? ''
                 s.errorInEditMember.teamID = teamID
               }
-            }
-          })
-        }
-      }
-      ignorePromise(f())
-    },
-    finishNewTeamWizard: () => {
-      set(s => {
-        s.newTeamWizard.error = undefined
-      })
-      const f = async () => {
-        const {name, description, open, openTeamJoinRole, profileShowcase, addYourself} = get().newTeamWizard
-        const {avatarFilename, avatarCrop, channels, subteams} = get().newTeamWizard
-        const teamInfo: T.RPCGen.TeamCreateFancyInfo = {
-          avatar: avatarFilename ? {avatarFilename, crop: avatarCrop?.crop} : null,
-          chatChannels: channels,
-          description,
-          joinSubteam: addYourself,
-          name,
-          openSettings: {joinAs: T.RPCGen.TeamRole[openTeamJoinRole], open},
-          profileShowcase,
-          subteams,
-          users: get().addMembersWizard.addingMembers.map(member => ({
-            assertion: member.assertion,
-            role: T.RPCGen.TeamRole[member.role],
-          })),
-        }
-        try {
-          const teamID = await T.RPCGen.teamsTeamCreateFancyRpcPromise({teamInfo}, S.waitingKeyTeamsCreation)
-          set(s => {
-            s.newTeamWizard = T.castDraft(newTeamWizardEmptyState)
-            s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, justFinished: true})
-          })
-          navigateAppend({name: 'team', params: {teamID}})
-          clearModals()
-        } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              s.newTeamWizard.error = error.desc
             }
           })
         }
@@ -1630,18 +1434,13 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       ignorePromise(f())
     },
     launchNewTeamWizardOrModal: subteamOf => {
-      set(s => {
-        s.newTeamWizard = T.castDraft({
-          ...newTeamWizardEmptyState,
-          parentTeamID: subteamOf,
-          teamType: 'subteam',
-        })
-      })
-
       if (subteamOf) {
-        navigateAppend({name: 'teamWizard2TeamInfo', params: {}})
+        navigateAppend({
+          name: 'teamWizard2TeamInfo',
+          params: {wizard: makeNewTeamWizard({parentTeamID: subteamOf, teamType: 'subteam'})},
+        })
       } else {
-        navigateAppend({name: 'teamWizard1TeamPurpose', params: {}})
+        navigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}})
       }
     },
     leaveTeam: (teamname, permanent, context) => {
@@ -1996,11 +1795,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       sawSubteamsBanner && get().dispatch.setTeamSawSubteamsBanner()
       get().dispatch.setNewTeamRequests(newTeamRequests)
     },
-    prepareAddMembersWizard: teamID => {
-      set(s => {
-        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, teamID})
-      })
-    },
     reAddToTeam: (teamID, username) => {
       const f = async () => {
         try {
@@ -2124,25 +1918,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    setAddMembersWizardIndividualRole: (assertion, role) => {
-      set(s => {
-        const maybeMember = s.addMembersWizard.addingMembers.find(m => m.assertion === assertion)
-        if (maybeMember) {
-          maybeMember.role = role
-        }
-      })
-    },
-    setAddMembersWizardRole: role => {
-      set(s => {
-        s.addMembersWizard.role = role
-        if (role !== 'setIndividually') {
-          // keep roles stored with indiv members in sync with top level one
-          s.addMembersWizard.addingMembers.forEach(member => {
-            member.role = role
-          })
-        }
-      })
     },
     setChannelSelected: (teamID, channel, selected, clearAll) => {
       set(s => {
@@ -2293,88 +2068,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         s.sawSubteamsBanner = true
       })
     },
-    setTeamWizardAvatar: (crop, filename) => {
-      set(s => {
-        s.newTeamWizard.avatarCrop = crop
-        s.newTeamWizard.avatarFilename = filename
-      })
-      switch (get().newTeamWizard.teamType) {
-        case 'subteam': {
-          const parentTeamID = get().newTeamWizard.parentTeamID
-          const parentTeamMeta = getTeamMeta(get(), parentTeamID ?? '')
-          // If it's just you, don't show the subteam members screen empty
-          if (parentTeamMeta.memberCount > 1) {
-            navigateAppend({name: 'teamWizardSubteamMembers', params: {}})
-            return
-          } else {
-            get().dispatch.startAddMembersWizard(T.Teams.newTeamWizardTeamID)
-            return
-          }
-        }
-        case 'friends':
-        case 'other':
-          get().dispatch.startAddMembersWizard(T.Teams.newTeamWizardTeamID)
-          return
-        case 'project':
-          navigateAppend({name: 'teamWizard5Channels', params: {}})
-          return
-        case 'community':
-          navigateAppend({name: 'teamWizard4TeamSize', params: {}})
-          return
-      }
-    },
-    setTeamWizardChannels: channels => {
-      set(s => {
-        s.newTeamWizard.channels = channels
-      })
-      navigateAppend({name: 'teamWizard6Subteams', params: {}})
-    },
-    setTeamWizardNameDescription: p => {
-      set(s => {
-        s.newTeamWizard.name = p.teamname
-        s.newTeamWizard.description = p.description
-        s.newTeamWizard.open = p.openTeam
-        s.newTeamWizard.openTeamJoinRole = p.openTeamJoinRole
-        s.newTeamWizard.profileShowcase = p.profileShowcase
-        s.newTeamWizard.addYourself = p.addYourself
-      })
-      navigateAppend({
-        name: 'profileEditAvatar',
-        params: {createdTeam: true, teamID: T.Teams.newTeamWizardTeamID, wizard: true},
-      })
-    },
-    setTeamWizardSubteamMembers: members => {
-      set(s => {
-        s.addMembersWizard = T.castDraft({
-          ...addMembersWizardEmptyState,
-          addingMembers: members.map(m => ({assertion: m, role: 'writer'})),
-          teamID: T.Teams.newTeamWizardTeamID,
-        })
-      })
-      navigateAppend({name: 'teamAddToTeamConfirm', params: {}})
-    },
-    setTeamWizardSubteams: subteams => {
-      set(s => {
-        s.newTeamWizard.subteams = subteams
-      })
-      get().dispatch.startAddMembersWizard(T.Teams.newTeamWizardTeamID)
-    },
-    setTeamWizardTeamSize: isBig => {
-      set(s => {
-        s.newTeamWizard.isBig = isBig
-      })
-      if (isBig) {
-        navigateAppend({name: 'teamWizard5Channels', params: {}})
-      } else {
-        get().dispatch.startAddMembersWizard(T.Teams.newTeamWizardTeamID)
-      }
-    },
-    setTeamWizardTeamType: teamType => {
-      set(s => {
-        s.newTeamWizard.teamType = teamType
-      })
-      navigateAppend({name: 'teamWizard2TeamInfo', params: {}})
-    },
     setWelcomeMessage: (teamID, message) => {
       set(s => {
         s.errorInEditWelcomeMessage = ''
@@ -2438,8 +2131,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       ignorePromise(f())
     },
     startAddMembersWizard: teamID => {
-      get().dispatch.prepareAddMembersWizard(teamID)
-      navigateAppend({name: 'teamAddToTeamFromWhere', params: {}})
+      navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
     },
     teamChangedByID: c => {
       const {changes, teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = c

@@ -6,6 +6,7 @@ import UserNotice from '../user-notice'
 import type * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from '../../team-hooks'
+import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 
 type OwnProps = {message: T.Chat.MessageSystemCreateTeam}
 
@@ -55,10 +56,13 @@ const ManageComponent = (props: {isAdmin: boolean; onViewTeam: () => void}) => {
     return null
   }
 }
-const AddInvite = (props: {teamID: string; isAdmin: boolean}) => {
+const AddInvite = (props: {teamID: T.Teams.TeamID; isAdmin: boolean}) => {
   const {teamID, isAdmin} = props
   const navigateAppend = C.Router2.navigateAppend
-  const onAddInvite = () => teamID && navigateAppend({name: 'teamAddToTeamFromWhere', params: {teamID}})
+  const onAddInvite = () => {
+    teamID &&
+      navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
+  }
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (isAdmin) {
     return (

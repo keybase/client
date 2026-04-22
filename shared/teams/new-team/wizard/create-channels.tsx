@@ -1,10 +1,14 @@
 import * as React from 'react'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
+import * as C from '@/constants'
+import {type NewTeamWizard} from './state'
+import {useNavigation} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
 type Props = {
+  initialChannels?: ReadonlyArray<string>
   onSubmitChannels?: (channels: Array<string>) => void
   teamID?: T.Teams.TeamID
   waiting?: boolean
@@ -13,13 +17,9 @@ type Props = {
 
 const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
 
-const CreateChannel = () => {
-  return <CreateChannelsModal />
-}
-
 export const CreateChannelsModal = (props: Props) => {
   const {onSubmitChannels, waiting} = props
-  const initialChannels = useTeamsState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
+  const initialChannels = props.initialChannels ?? ['hellos', 'random', '']
 
   const [channels, setChannels] = React.useState([...initialChannels])
   const setChannel = (i: number, value: string) => {
@@ -35,9 +35,7 @@ export const CreateChannelsModal = (props: Props) => {
   }
 
   const filteredChannels = channels.filter(c => c.trim())
-  const setTeamWizardChannels = useTeamsState(s => s.dispatch.setTeamWizardChannels)
-  const onContinue = () =>
-    onSubmitChannels ? onSubmitChannels(filteredChannels) : setTeamWizardChannels(filteredChannels)
+  const onContinue = () => onSubmitChannels?.(filteredChannels)
   const numChannels = filteredChannels.length
   // numChannels does not include the #general channel, so take it into account for tha label.
   const continueLabel = onSubmitChannels
@@ -88,6 +86,30 @@ export const CreateChannelsModal = (props: Props) => {
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>{submitButton}</Kb.Box2>
     </>
+  )
+}
+
+type WizardProps = {
+  wizard: NewTeamWizard
+}
+
+type TeamWizard5ChannelsParamList = {
+  teamWizard5Channels: {wizard: NewTeamWizard}
+}
+
+const WizardCreateChannels = ({wizard: initialWizard}: WizardProps) => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<TeamWizard5ChannelsParamList, 'teamWizard5Channels'>>()
+  const navigateAppend = C.Router2.navigateAppend
+  return (
+    <CreateChannelsModal
+      initialChannels={initialWizard.channels ?? ['hellos', 'random', '']}
+      onSubmitChannels={channels => {
+        const wizard = {...initialWizard, channels}
+        navigation.setParams({wizard})
+        navigateAppend({name: 'teamWizard6Subteams', params: {wizard}})
+      }}
+    />
   )
 }
 
@@ -152,4 +174,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default CreateChannel
+export default WizardCreateChannels

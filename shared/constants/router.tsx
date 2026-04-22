@@ -116,6 +116,31 @@ export const _getNavigator = () => {
   return navigationRef.isReady() ? navigationRef : undefined
 }
 
+const getActiveStackState = (navState?: T.Immutable<NavState>): T.Immutable<NavState> | undefined => {
+  const rs = navState || getRootState()
+  const findActiveStackState = (
+    state: T.Immutable<NavState> | undefined,
+    depth: number
+  ): T.Immutable<NavState> | undefined => {
+    if (!state?.routes || state.index === undefined) {
+      return undefined
+    }
+    if (depth === 0) {
+      const topModal = (state.routes.slice(1) as Array<Route>)
+        .filter(route => !rootNonModalRouteNames.has(route.name))
+        .at(-1)
+      if (topModal) {
+        return findActiveStackState(topModal.state, depth + 1) ?? state
+      }
+      const loggedInRoute = state.routes[0] as Route | undefined
+      return findActiveStackState(loggedInRoute?.state, depth + 1) ?? (state.type === 'stack' ? state : undefined)
+    }
+    const childRoute = state.routes[state.index] as Route | undefined
+    return findActiveStackState(childRoute?.state, depth + 1) ?? (state.type === 'stack' ? state : undefined)
+  }
+  return findActiveStackState(rs, 0)
+}
+
 // Public API
 // gives you loggedin/tab/stackitems + modals
 export const getVisiblePath = (navState?: T.Immutable<NavState>, _inludeModals?: boolean) => {
@@ -272,11 +297,56 @@ export const popStack = () => {
   n?.dispatch(StackActions.popToTop())
 }
 
-export const navUpToScreen = (name: RouteKeys) => {
-  DEBUG_NAV && console.log('[Nav] navUpToScreen', {name})
+export function navUpToScreen(name: RouteKeys): void
+export function navUpToScreen(path: NavigateAppendType, replaceIfMissing?: boolean): void
+export function navUpToScreen(nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing = false) {
+  DEBUG_NAV && console.log('[Nav] navUpToScreen', {nameOrPath, replaceIfMissing})
   const n = _getNavigator()
   if (!n) return
-  n.dispatch(StackActions.popTo(typeof name === 'string' ? name : String(name)))
+  const activeStackState = getActiveStackState()
+  const activeStackKey = activeStackState?.key
+  if (typeof nameOrPath === 'string') {
+    const action = StackActions.popTo(nameOrPath)
+    n.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
+    return
+  }
+
+  const routeName = nameOrPath.name
+  const params = nameOrPath.params as object
+
+  const activeStackRoutes = activeStackState?.routes as Array<Route> | undefined
+  let routeIndex = -1
+  if (activeStackRoutes) {
+    for (let i = activeStackRoutes.length - 1; i >= 0; i--) {
+      if (activeStackRoutes[i]?.name === routeName) {
+        routeIndex = i
+        break
+      }
+    }
+  }
+  if (routeIndex >= 0 && activeStackState) {
+    const nextRoutes = activeStackRoutes!.slice(0, routeIndex + 1).map((route, index) =>
+      index === routeIndex ? {...route, params} : route
+    )
+    n.dispatch({
+      ...CommonActions.reset({
+        ...activeStackState,
+        index: routeIndex,
+        routes: nextRoutes,
+      } as Parameters<typeof CommonActions.reset>[0]),
+      target: activeStackKey,
+    })
+    return
+  }
+
+  if (replaceIfMissing) {
+    const action = StackActions.replace(routeName, params)
+    n.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
+    return
+  }
+
+  const action = StackActions.popTo(routeName)
+  n.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
 }
 
 export function navigateAppend(path: NavigateAppendType, replace?: boolean) {

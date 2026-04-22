@@ -7,6 +7,7 @@
 - When a component reads multiple adjacent values from the same store hook, prefer a consolidated selector with `C.useShallow(...)` instead of multiple separate subscriptions.
 - Keep types accurate. Do not use casts or misleading annotations to mask a real type mismatch just to get around an issue; fix the type or fix the implementation.
 - Do not add new exported functions, types, or constants unless they are required outside the file. Prefer file-local helpers for one-off implementation details and tests.
+- Under `shared/`, non-test TypeScript source files should use the `.tsx` extension.
 - Do not edit lockfiles by hand. They are generated artifacts. If you cannot regenerate one locally, leave it unchanged.
 - Components must not mutate Zustand stores directly with `useXState.setState`, `getState()`-based writes, or similar ad hoc store mutation. If a component needs to affect store state, route it through a store dispatch action or move the state out of the store.
 - When a Zustand store already uses `resetState: Z.defaultReset`, prefer calling `dispatch.resetState()` for full resets instead of manually reassigning each initial field in another dispatch action.

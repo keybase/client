@@ -55,17 +55,17 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ## Chunk 2: Remove Teams Route / Modal UI State
 
-- [ ] Move `newTeamWizard` state into the team wizard route stack
-- [ ] Move `addMembersWizard` state into the add-members route stack
+- [x] Move `newTeamWizard` state into the team wizard route stack
+- [x] Move `addMembersWizard` state into the add-members route stack
 - [ ] Move `teamSelectedChannels`, `teamSelectedMembers`, and `channelSelectedMembers` into the owning screens / popups
 - [ ] Move `errorInAddToTeam`, `errorInEditMember`, `errorInEditWelcomeMessage`, `errorInEmailInvite`, and `teamNameToLoadingInvites` into local screen state
 - [ ] Replace store-owned submit actions with `C.useRPC(...)` at the owning screens where possible
 
 ### Files likely to move together
 
-- [ ] `teams/routes.tsx`
-- [ ] `teams/new-team/wizard/*`
-- [ ] `teams/add-members-wizard/*`
+- [x] `teams/routes.tsx`
+- [x] `teams/new-team/wizard/*`
+- [x] `teams/add-members-wizard/*`
 - [ ] `teams/common/selection-popup.tsx`
 - [ ] `teams/confirm-modals/*`
 - [ ] `teams/invite-by-email.tsx`
