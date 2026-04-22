@@ -1,20 +1,33 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
+import {type AddMembersWizard} from './state'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
-const AddFromWhere = () => {
+type Props = {
+  wizard: AddMembersWizard
+}
+
+const AddFromWhere = ({wizard}: Props) => {
   const nav = useSafeNavigation()
-  const teamID = Teams.useTeamsState(s => s.addMembersWizard.teamID)
-  const newTeam: boolean = teamID === T.Teams.newTeamWizardTeamID
-  // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
-  const createTeamError = Teams.useTeamsState(s => (newTeam ? s.newTeamWizard.error : undefined))
-  const appendNewTeamBuilder = C.Router2.appendNewTeamBuilder
-  const onContinueKeybase = () => appendNewTeamBuilder(teamID)
-  const onContinuePhone = () => nav.safeNavigateAppend({name: 'teamAddToTeamPhone', params: {}})
-  const onContinueContacts = () => nav.safeNavigateAppend({name: 'teamAddToTeamContacts', params: {}})
-  const onContinueEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {}})
+  const isNewTeam = wizard.teamID === T.Teams.newTeamWizardTeamID
+  const navigateAppend = C.Router2.navigateAppend
+  const createTeamError = isNewTeam ? wizard.newTeamWizard?.error : undefined
+  const onContinueKeybase = () =>
+    navigateAppend({
+      name: 'teamsTeamBuilder',
+      params: {
+        addMembersWizard: wizard,
+        filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
+        goButtonLabel: 'Add',
+        namespace: 'teams',
+        teamID: wizard.teamID,
+        title: '',
+      },
+    })
+  const onContinuePhone = () => nav.safeNavigateAppend({name: 'teamAddToTeamPhone', params: {wizard}})
+  const onContinueContacts = () => nav.safeNavigateAppend({name: 'teamAddToTeamContacts', params: {wizard}})
+  const onContinueEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {wizard}})
 
   return (
     <>
@@ -30,7 +43,7 @@ const AddFromWhere = () => {
         fullWidth={true}
       >
         <Kb.Text type="Body">
-          {newTeam ? 'Where will your first team members come from?' : 'How would you like to add people?'}
+          {isNewTeam ? 'Where will your first team members come from?' : 'How would you like to add people?'}
         </Kb.Text>
         <Kb.RichButton
           icon="icon-teams-add-search-64"

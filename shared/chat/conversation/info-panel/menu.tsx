@@ -2,14 +2,14 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
 import type * as React from 'react'
 import * as T from '@/constants/types'
 import * as InfoPanelCommon from './common'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
-import {TeamsSubscriberMountOnly} from '@/teams/subscriber'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useChatManageChannelsBadge, useChatTeam} from '../team-hooks'
+import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 
 export type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -32,7 +32,7 @@ const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
   const infoMap = useUsersState(s => s.infoMap)
   const participantInfo = ConvoState.useChatContext(s => s.participants)
   const meta = ConvoState.useChatContext(s => s.meta)
-  const teamMeta = Teams.useTeamsState(s => (pteamID ? Teams.getTeamMeta(s, pteamID) : undefined))
+  const {teamname: loadedTeamname} = useChatTeam(pteamID ?? T.Teams.noTeamID)
   const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
 
@@ -74,7 +74,7 @@ const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
     }
   } else if (pteamID) {
     const teamID = pteamID
-    const teamname = teamMeta?.teamname ?? ''
+    const teamname = loadedTeamname
     return {...common, teamID, teamname}
   }
   return {...common}
@@ -89,22 +89,21 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const {teamname, teamID, channelname, isInChannel, ignored, fullname} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
 
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => ({
-      addTeamWithChosenChannels: s.dispatch.addTeamWithChosenChannels,
-      badgeSubscribe: !Teams.isTeamWithChosenChannels(s, teamname),
-      canAddPeople: Teams.getCanPerformByID(s, teamID).manageMembers,
-      manageChatChannels: s.dispatch.manageChatChannels,
-      startAddMembersWizard: s.dispatch.startAddMembersWizard,
-    }))
+  const {yourOperations} = useChatTeam(teamID, teamname)
+  const {dismiss: dismissManageChannelsBadge, showBadge: badgeSubscribe} = useChatManageChannelsBadge(
+    teamID,
+    teamname
   )
-  const {addTeamWithChosenChannels, badgeSubscribe, canAddPeople} = teamsState
-  const {manageChatChannels, startAddMembersWizard} = teamsState
+  const routerNavigateAppend = C.Router2.navigateAppend
+  const canAddPeople = yourOperations.manageMembers
   const onAddPeople = () => {
-    teamID && startAddMembersWizard(teamID)
+    teamID &&
+      routerNavigateAppend({
+        name: 'teamAddToTeamFromWhere',
+        params: {wizard: makeAddMembersWizard(teamID)},
+      })
   }
   const chatNavigateAppend = ConvoState.useChatNavigateAppend()
-  const routerNavigateAppend = C.Router2.navigateAppend
   const onBlockConv = () => {
     chatNavigateAppend(conversationIDKey => ({
       name: 'chatBlockingModal',
@@ -122,8 +121,8 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const onLeaveChannel = () => C.Router2.leaveConversation(conversationIDKey)
   const onLeaveTeam = () => teamID && chatNavigateAppend(() => ({name: 'teamReallyLeaveTeam', params: {teamID}}))
   const onManageChannels = () => {
-    manageChatChannels(teamID)
-    addTeamWithChosenChannels(teamID)
+    routerNavigateAppend({name: 'teamAddToChannels', params: {teamID}})
+    void dismissManageChannelsBadge()
   }
   const clearModals = C.Router2.clearModals
   const markTeamAsRead = ConvoState.useChatContext(s => s.dispatch.markTeamAsRead)
@@ -375,19 +374,16 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   ) : null
 
   return (
-    <>
-      <TeamsSubscriberMountOnly />
-      <Kb.FloatingMenu
-        attachTo={attachTo}
-        containerStyle={floatingMenuContainerStyle}
-        visible={visible}
-        items={items}
-        header={header}
-        onHidden={onHidden}
-        position="bottom left"
-        closeOnSelect={true}
-      />
-    </>
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      containerStyle={floatingMenuContainerStyle}
+      visible={visible}
+      items={items}
+      header={header}
+      onHidden={onHidden}
+      position="bottom left"
+      closeOnSelect={true}
+    />
   )
 }
 

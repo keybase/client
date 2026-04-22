@@ -1,7 +1,7 @@
 import type * as T from '@/constants/types'
 import * as ConvoState from '@/stores/convostate'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
+import {useChatTeam} from '../team-hooks'
 
 // Parses retention policies into a string suitable for display at the top of a conversation
 function makeRetentionNotice(
@@ -42,9 +42,8 @@ function makeRetentionNotice(
 function RetentionNoticeContainer() {
   const meta = ConvoState.useChatContext(s => s.meta)
   const {teamType, retentionPolicy: policy, teamRetentionPolicy: teamPolicy} = meta
-  const canChange = Teams.useTeamsState(s => {
-    return meta.teamType !== 'adhoc' ? Teams.getCanPerformByID(s, meta.teamID).setRetentionPolicy : true
-  })
+  const {yourOperations} = useChatTeam(meta.teamID, meta.teamname)
+  const canChange = meta.teamType !== 'adhoc' ? yourOperations.setRetentionPolicy : true
   const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
   const onChange = () => showInfoPanel(true, 'settings')
   const explanation = makeRetentionNotice(policy, teamPolicy, teamType) ?? undefined

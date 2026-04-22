@@ -1,13 +1,27 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
-import {useTeamsState} from '@/stores/teams'
+import * as C from '@/constants'
+import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
+import {useNavigation} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
 const cleanSubteamName = (name: string) => name.replace(/[^0-9a-zA-Z_]/, '')
 
-const CreateSubteams = () => {
-  const teamname = useTeamsState(s => s.newTeamWizard.name)
-  const initialSubteams = useTeamsState(s => s.newTeamWizard.subteams) ?? ['', '', '']
+type Props = {
+  wizard: NewTeamWizard
+}
+
+type TeamWizard6SubteamsParamList = {
+  teamWizard6Subteams: {wizard: NewTeamWizard}
+}
+
+const CreateSubteams = ({wizard: wizardState}: Props) => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<TeamWizard6SubteamsParamList, 'teamWizard6Subteams'>>()
+  const navigateAppend = C.Router2.navigateAppend
+  const teamname = wizardState.name
+  const initialSubteams = wizardState.subteams ?? ['', '', '']
 
   const [subteams, setSubteams] = React.useState([...initialSubteams])
 
@@ -23,8 +37,14 @@ const CreateSubteams = () => {
     setSubteams(prev => [...prev, ''])
   }
 
-  const setTeamWizardSubteams = useTeamsState(s => s.dispatch.setTeamWizardSubteams)
-  const onContinue = () => setTeamWizardSubteams(subteams.filter(s => !!s))
+  const onContinue = () => {
+    const wizard = {...wizardState, subteams: subteams.filter(Boolean)}
+    navigation.setParams({wizard})
+    navigateAppend({
+      name: 'teamAddToTeamFromWhere',
+      params: {wizard: newTeamWizardToAddMembersWizard(wizard)},
+    })
+  }
 
   const numSubteams = subteams.filter(c => !!c.trim()).length
   const continueLabel = numSubteams

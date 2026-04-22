@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
 import * as RowSizes from './sizes'
 import type * as T from '@/constants/types'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
+import {useChatManageChannelsBadge} from '@/chat/conversation/team-hooks'
 
 type Props = {
   teamname: string
@@ -13,7 +13,7 @@ type Props = {
 
 const BigTeamHeader = (props: Props) => {
   const {teamID, teamname} = props
-  const badgeSubscribe = Teams.useTeamsState(s => !Teams.isTeamWithChosenChannels(s, teamname))
+  const {showBadge: badgeSubscribe} = useChatManageChannelsBadge(teamID, teamname)
   const navigateAppend = C.Router2.navigateAppend
   const onClick = () => navigateAppend({name: 'team', params: {teamID}})
 
