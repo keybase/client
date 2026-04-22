@@ -1,6 +1,6 @@
 import * as Z from '@/util/zustand'
 import type * as EngineGen from '@/constants/rpc'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '@/constants/tabs'
 import {mapGetEnsureValue} from '@/util/map'
@@ -26,8 +26,8 @@ const initialStore: Store = {
   desktopAppBadgeCount: 0,
   keyState: new Map(),
   mobileAppBadgeCount: 0,
-  newTeams: new Set(),
   navBadges: new Map(),
+  newTeams: new Set(),
   teamIDToResetUsers: new Map(),
   widgetBadge: 'regular',
 }
@@ -77,7 +77,7 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
 const badgeStateToTeamIDToResetUsers = (bs: T.RPCGen.BadgeState) => {
   const teamIDToResetUsers = new Map<T.Teams.TeamID, Set<string>>()
   bs.teamsWithResetUsers?.forEach(entry => {
-    if (!entry?.teamID || !entry?.username) {
+    if (!entry.teamID || !entry.username) {
       return
     }
     const existing = mapGetEnsureValue(teamIDToResetUsers, entry.teamID, new Set<string>())
@@ -114,7 +114,7 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
           }
           set(s => {
             s.badgeVersion = badgeState.inboxVers
-            s.deletedTeams = badgeState.deletedTeams ?? []
+            s.deletedTeams = T.castDraft(badgeState.deletedTeams ?? [])
             s.newTeams = new Set(badgeState.newTeams ?? [])
             s.teamIDToResetUsers = badgeStateToTeamIDToResetUsers(badgeState)
           })
