@@ -142,7 +142,7 @@ export const useTrackerProfile = (username: string, options?: Options) => {
           }
           setDetails(prev => ({
             ...prev,
-            followers: new Set(fs.users?.map(f => f.username)),
+            followers: new Set((fs.users ?? []).map(f => f.username)),
             followersCount: fs.users?.length ?? 0,
           }))
           if (fs.users) {
@@ -169,7 +169,7 @@ export const useTrackerProfile = (username: string, options?: Options) => {
           }
           setDetails(prev => ({
             ...prev,
-            following: new Set(fs.users?.map(f => f.username)),
+            following: new Set((fs.users ?? []).map(f => f.username)),
             followingCount: fs.users?.length ?? 0,
           }))
           if (fs.users) {

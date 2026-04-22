@@ -26,21 +26,22 @@ export const FollowButton = (props: FollowProps) => {
   const {guiID} = userDetails
 
   const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
+  const followWaitingKey = getFollowWaitingKey(username)
 
   const onFollow = () =>
     followUser(
-      [{follow: true, guiID}, C.waitingKeyTracker],
+      [{follow: true, guiID}, followWaitingKey],
       () => loadProfile(false),
       () => {}
     )
   const onUnfollow = () =>
     followUser(
-      [{follow: false, guiID}, C.waitingKeyTracker],
+      [{follow: false, guiID}, followWaitingKey],
       () => loadProfile(false),
       () => {}
     )
 
-  const waitingKey = [getFollowWaitingKey(username), C.waitingKeyTrackerProfileLoad]
+  const waitingKey = [followWaitingKey, C.waitingKeyTrackerProfileLoad]
 
   return (
     <UnconnectedFollowButton
