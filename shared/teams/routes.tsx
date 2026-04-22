@@ -164,7 +164,7 @@ const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
     navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: cleanWizard}}, true)
     const f = async () => {
       try {
-        const teamID = await createNewTeamFromWizard(cleanWizard.newTeamWizard, cleanWizard.addingMembers)
+        const teamID = await createNewTeamFromWizard(newTeamWizard, cleanWizard.addingMembers)
         navigateAppend({name: 'team', params: {teamID}})
         clearModals()
       } catch (err) {
