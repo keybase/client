@@ -305,22 +305,14 @@ export function navUpToScreen(nameOrPath: RouteKeys | NavigateAppendType, replac
   if (!n) return
   const activeStackState = getActiveStackState()
   const activeStackKey = activeStackState?.key
-  const target =
-    typeof nameOrPath === 'string'
-      ? undefined
-      : ({name: nameOrPath.name, params: nameOrPath.params} as {name: RouteKeys; params: object})
-  const routeName =
-    typeof nameOrPath === 'string'
-      ? nameOrPath
-      : typeof nameOrPath.name === 'string'
-        ? nameOrPath.name
-        : String(nameOrPath.name)
-
-  if (!target?.params) {
-    const action = StackActions.popTo(routeName)
+  if (typeof nameOrPath === 'string') {
+    const action = StackActions.popTo(nameOrPath)
     n.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
     return
   }
+
+  const routeName = nameOrPath.name
+  const params = nameOrPath.params as object
 
   const activeStackRoutes = activeStackState?.routes as Array<Route> | undefined
   let routeIndex = -1
@@ -334,7 +326,7 @@ export function navUpToScreen(nameOrPath: RouteKeys | NavigateAppendType, replac
   }
   if (routeIndex >= 0 && activeStackState) {
     const nextRoutes = activeStackRoutes!.slice(0, routeIndex + 1).map((route, index) =>
-      index === routeIndex ? {...route, params: target.params} : route
+      index === routeIndex ? {...route, params} : route
     )
     n.dispatch({
       ...CommonActions.reset({
@@ -348,7 +340,7 @@ export function navUpToScreen(nameOrPath: RouteKeys | NavigateAppendType, replac
   }
 
   if (replaceIfMissing) {
-    const action = StackActions.replace(routeName, target.params)
+    const action = StackActions.replace(routeName, params)
     n.dispatch(activeStackKey ? {...action, target: activeStackKey} : action)
     return
   }
