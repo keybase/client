@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {Activity, useChannelParticipants} from '@/teams/common'
+import {Activity, useActivityLevels, useChannelParticipants} from '@/teams/common'
 import {useTeamSelectionState} from '@/teams/common/selection-state'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {pluralize} from '@/util/string'
@@ -20,10 +20,11 @@ const ChannelRow = (props: ChannelRowProps) => {
   const selected = selectedChannels.has(channel.conversationIDKey)
   const {teamDetails, yourOperations: canPerform} = useLoadedTeam(teamID)
   const canDelete = canPerform.deleteChannel && !isGeneral
+  const {channels: activityByChannel} = useActivityLevels()
 
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
   const hasAllMembers = teamDetails.members.size === numParticipants
-  const activityLevel = useTeamsState(s => s.activityLevels.channels.get(channel.conversationIDKey) || 'none')
+  const activityLevel = activityByChannel.get(channel.conversationIDKey) || 'none'
 
   const nav = useSafeNavigation()
   const onSelect = (newSelected: boolean) => {

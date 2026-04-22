@@ -1,7 +1,8 @@
+import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import logger from '@/logger'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
@@ -18,6 +19,99 @@ type Props = {
   style?: Kb.Styles.StylesCrossPlatform
   iconOnly?: boolean
 }
+
+type ActivityLevels = {
+  channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.ActivityLevel>
+  loaded: boolean
+  loading: boolean
+  reload: () => Promise<void>
+  teams: ReadonlyMap<T.Teams.TeamID, T.Teams.ActivityLevel>
+}
+
+const ActivityLevelsContext = React.createContext<ActivityLevels | null>(null)
+
+const emptyChannelActivityLevels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.ActivityLevel> = new Map()
+const emptyTeamActivityLevels: ReadonlyMap<T.Teams.TeamID, T.Teams.ActivityLevel> = new Map()
+
+const lastActiveStatusToActivityLevel = {
+  [T.RPCChat.LastActiveStatus.active]: 'active',
+  [T.RPCChat.LastActiveStatus.none]: 'none',
+  [T.RPCChat.LastActiveStatus.recently]: 'recently',
+} as const satisfies Record<T.RPCChat.LastActiveStatus, T.Teams.ActivityLevel>
+
+const emptyLoadedActivityLevelsState = (): Omit<ActivityLevels, 'reload'> => ({
+  channels: emptyChannelActivityLevels,
+  loaded: false,
+  loading: false,
+  teams: emptyTeamActivityLevels,
+})
+
+const useActivityLevelsRaw = (enabled = true): ActivityLevels => {
+  const [state, setState] = React.useState<Omit<ActivityLevels, 'reload'>>(emptyLoadedActivityLevelsState)
+  const requestVersionRef = React.useRef(0)
+
+  const reload = React.useCallback(async () => {
+    if (!enabled) {
+      setState(emptyLoadedActivityLevelsState())
+      return
+    }
+    const requestVersion = ++requestVersionRef.current
+    setState(prev => ({...prev, loading: true}))
+    try {
+      const results = await T.RPCChat.localGetLastActiveForTeamsRpcPromise()
+      if (requestVersion !== requestVersionRef.current) {
+        return
+      }
+      const teams = Object.entries(results.teams ?? {}).reduce((res, [teamID, status]) => {
+        if (status === T.RPCChat.LastActiveStatus.none) {
+          return res
+        }
+        res.set(teamID, lastActiveStatusToActivityLevel[status])
+        return res
+      }, new Map<T.Teams.TeamID, T.Teams.ActivityLevel>())
+      const channels = Object.entries(results.channels ?? {}).reduce((res, [conversationIDKey, status]) => {
+        if (status === T.RPCChat.LastActiveStatus.none) {
+          return res
+        }
+        res.set(conversationIDKey, lastActiveStatusToActivityLevel[status])
+        return res
+      }, new Map<T.Chat.ConversationIDKey, T.Teams.ActivityLevel>())
+      setState({
+        channels,
+        loaded: true,
+        loading: false,
+        teams,
+      })
+    } catch (error) {
+      if (requestVersion !== requestVersionRef.current) {
+        return
+      }
+      logger.warn('Failed to load activity levels', error)
+      setState(prev => ({...prev, loading: false}))
+    }
+  }, [enabled])
+
+  React.useEffect(() => {
+    if (enabled) {
+      void reload()
+    }
+  }, [enabled, reload])
+
+  C.Router2.useSafeFocusEffect(() => {
+    if (enabled) {
+      void reload()
+    }
+  })
+
+  return {...state, reload}
+}
+
+export const ActivityLevelsProvider = (props: React.PropsWithChildren) => {
+  const {children} = props
+  const value = useActivityLevelsRaw()
+  return <ActivityLevelsContext.Provider value={value}>{children}</ActivityLevelsContext.Provider>
+}
+
 const Activity = (p: Props) => {
   const {level, style, iconOnly = false} = p
   return level === 'none' ? null : (
@@ -81,21 +175,10 @@ export const ModalTitle = ({title, teamID, newTeamWizard}: ModalTitleProps) => {
   )
 }
 
-/**
- * Ensure activity levels are loaded
- * @param forceLoad force a reload even if they're already loaded.
- */
-export const useActivityLevels = (forceLoad?: boolean) => {
-  const activityLevelsLoaded = useTeamsState(s => s.activityLevels.loaded)
-  const getActivityForTeams = useTeamsState(s => s.dispatch.getActivityForTeams)
-  // keep whether we've triggered a load so we only do it once.
-  const triggeredLoad = React.useRef(false)
-  React.useEffect(() => {
-    if ((!activityLevelsLoaded || forceLoad) && !triggeredLoad.current) {
-      getActivityForTeams()
-      triggeredLoad.current = true
-    }
-  }, [getActivityForTeams, activityLevelsLoaded, forceLoad])
+export const useActivityLevels = (): ActivityLevels => {
+  const context = React.useContext(ActivityLevelsContext)
+  const raw = useActivityLevelsRaw(!context)
+  return context ?? raw
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

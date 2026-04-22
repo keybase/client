@@ -172,9 +172,6 @@ const AddToChannels = function AddToChannels(props: Props) {
     }
   }
 
-  // channel rows use activity levels
-  Common.useActivityLevels()
-
   // TODO: alternate title when there aren't channels yet?
   const title =
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
@@ -233,7 +230,7 @@ const AddToChannels = function AddToChannels(props: Props) {
   }, [mode, waiting, selected, submit, usernames, nav, numSelected, title])
 
   return (
-    <>
+    <Common.ActivityLevelsProvider>
       {loadingChannels && !channelMetas.size ? (
         <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
           <Kb.ProgressIndicator type="Large" />
@@ -264,7 +261,7 @@ const AddToChannels = function AddToChannels(props: Props) {
         </Kb.Box2>
       )}
       {desktopFooter}
-    </>
+    </Common.ActivityLevelsProvider>
   )
 }
 
@@ -463,13 +460,12 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
   const {channelMeta, mode, selected, onSelect: _onSelect, reloadChannels, usernames, rowHeight} = p
   const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
+  const {channels: activityByChannel} = Common.useActivityLevels()
   const participants = ConvoState.useConvoState(conversationIDKey, s => {
     const {name, all} = s.participants
     return name.length ? name : all
   })
-  const activityLevel = Teams.useTeamsState(
-    s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
-  )
+  const activityLevel = activityByChannel.get(channelMeta.conversationIDKey) || 'none'
   const allInChannel = usernames.every(member => participants.includes(member))
   const previewConversation = C.Router2.previewConversation
   const onPreviewChannel = () =>

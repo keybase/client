@@ -59,12 +59,12 @@ type Props = {
 
 const Connected = ({filter = '', sort = 'role'}: Props) => {
   const {reload, teams} = useTeamsList()
+  const activityLevels = useActivityLevels()
   const data = Teams.useTeamsState(
     C.useShallow(s => {
-      const {deletedTeams, activityLevels} = s
+      const {deletedTeams} = s
       const {newTeamRequests, newTeams, teamIDToResetUsers} = s
       return {
-        activityLevels,
         deletedTeams,
         newTeamRequests,
         newTeams,
@@ -72,7 +72,7 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
       }
     })
   )
-  const {activityLevels, deletedTeams, newTeamRequests, newTeams} = data
+  const {deletedTeams, newTeamRequests, newTeams} = data
   const {teamIDToResetUsers} = data
 
   const orderedTeams = orderTeams(teams, newTeamRequests, teamIDToResetUsers, newTeams, sort, activityLevels, filter)
@@ -83,9 +83,6 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
     isNew: newTeams.has(teamMeta.id),
     teamMeta,
   }))
-
-  // reload activity levels
-  useActivityLevels(true)
 
   const nav = useSafeNavigation()
   const navigation = useNavigation<NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>>()

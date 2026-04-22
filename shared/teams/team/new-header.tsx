@@ -99,9 +99,9 @@ const roleDisplay = {
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID} = props
   const {teamDetails: details, teamMeta: meta, yourOperations} = useLoadedTeam(teamID)
-  const activityLevel = Teams.useTeamsState(s => s.activityLevels.teams.get(teamID) || 'none')
+  const {teams: activityByTeam} = useActivityLevels()
+  const activityLevel = activityByTeam.get(teamID) || 'none'
   const justFinishedAddWizard = Teams.useTeamsState(s => s.addMembersWizard.justFinished)
-  useActivityLevels()
 
   const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)
   const makePopup = (p: Kb.Popup2Parms) => {

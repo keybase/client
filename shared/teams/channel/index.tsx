@@ -10,7 +10,7 @@ import {
   useAttachmentSections,
   type Item as AttachmentItem,
 } from '../../chat/conversation/info-panel/attachments'
-import {SelectionPopup, useChannelParticipants} from '../common'
+import {SelectionPopup, useChannelParticipants, ActivityLevelsProvider} from '../common'
 import {ChannelSelectionProvider} from '../common/selection-state'
 import ChannelTabs, {type TabKey} from './tabs'
 import ChannelHeader from './header'
@@ -294,7 +294,9 @@ const ChannelBody = (props: OwnProps) => {
 
 const Channel = (props: OwnProps) => (
   <LoadedTeamProvider teamID={props.teamID}>
-    <ChannelBody {...props} />
+    <ActivityLevelsProvider>
+      <ChannelBody {...props} />
+    </ActivityLevelsProvider>
   </LoadedTeamProvider>
 )
 

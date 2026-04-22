@@ -4,7 +4,7 @@ import * as React from 'react'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
-import {Activity, useChannelParticipants} from '../common'
+import {Activity, useActivityLevels, useChannelParticipants} from '../common'
 import {useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -38,6 +38,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
   const canDelete = !!channelInfo && yourOperations.deleteChannel && channelname !== 'general'
   const canEdit = !!channelInfo && yourOperations.editChannelDescription
+  const {channels: activityByChannel} = useActivityLevels()
 
   const editChannelProps = {
     channelname: channelname,
@@ -50,7 +51,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const onAddMembers = () =>
     nav.safeNavigateAppend({name: 'chatAddToChannel', params: {conversationIDKey, teamID}})
   const onNavToTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
-  const activityLevel = useTeamsState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
+  const activityLevel = activityByChannel.get(conversationIDKey) || 'none'
   const newMemberCount = useRecentJoins(conversationIDKey)
 
   const previewConversation = C.Router2.previewConversation
