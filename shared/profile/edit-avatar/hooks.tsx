@@ -7,6 +7,7 @@ import type {Props} from '.'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
 import {fixCrop} from '@/util/crop'
 import {getNextRouteAfterAvatar} from '@/teams/new-team/wizard/state'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 type TeamProps = {
   createdTeam?: boolean
@@ -51,7 +52,10 @@ export default (ownProps: Props): Ret => {
   const sperror = C.Waiting.useAnyErrors(C.waitingKeyProfileUploadAvatar)
   const sendChatNotification = ownProps.sendChatNotification ?? false
   const submitting = C.Waiting.useAnyWaiting(C.waitingKeyProfileUploadAvatar)
-  const teamname = Teams.useTeamsState(s => (teamID ? Teams.getTeamNameFromID(s, teamID) : undefined) ?? '')
+  const {teamMeta} = useLoadedTeam(teamID ?? T.Teams.noTeamID, !!teamID)
+  const teamname = teamMeta.teamname
+  const parentTeamID = ownProps.newTeamWizard?.parentTeamID ?? T.Teams.noTeamID
+  const {teamMeta: parentTeamMeta} = useLoadedTeam(parentTeamID, parentTeamID !== T.Teams.noTeamID)
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   React.useEffect(() => {
@@ -85,9 +89,7 @@ export default (ownProps: Props): Ret => {
     const filename = Kb.Styles.unnormalizePath(_filename)
     uploadAvatar([{crop: fixCrop(crop), filename}, C.waitingKeyProfileUploadAvatar], () => navigateUp(), () => {})
   }
-  const parentTeamMemberCount = Teams.useTeamsState(s =>
-    ownProps.newTeamWizard?.parentTeamID ? Teams.getTeamMeta(s, ownProps.newTeamWizard.parentTeamID).memberCount : 0
-  )
+  const parentTeamMemberCount = parentTeamMeta.memberCount
   const onSaveWizardAvatar = (_filename: string, crop?: T.Teams.AvatarCrop) => {
     if (!ownProps.newTeamWizard) {
       return

@@ -17,6 +17,7 @@ import {createNewTeamFromWizard} from '../new-team/wizard/state'
 import {RPCError} from '@/util/errors'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import {useLoadedTeam} from '../team/use-loaded-team'
 import {
   removeWizardMember,
   setWizardDefaultChannels,
@@ -50,6 +51,7 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
   const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = wizard
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
   const newTeamWizard = wizard.newTeamWizard
+  const {teamMeta} = useLoadedTeam(teamID, !fromNewTeamWizard)
   const updateWizard = React.useCallback(
     (nextWizard: AddMembersWizard) => {
       setWizard(nextWizard)
@@ -57,19 +59,13 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
     },
     [navigation]
   )
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => {
-      const teamID = wizard.teamID
-      const isInTeam = Teams.getRole(s, teamID) !== 'none'
-      return {
-        finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
-        isInTeam,
-        teamMetaIsSubteam: Teams.getTeamMeta(s, teamID).teamname.includes('.'),
-      }
-    })
+  const {finishedAddMembersWizard, isInTeam} = Teams.useTeamsState(
+    C.useShallow(s => ({
+      finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
+      isInTeam: Teams.getRole(s, teamID) !== 'none',
+    }))
   )
-  const {finishedAddMembersWizard, isInTeam, teamMetaIsSubteam} = teamsState
-  const isSubteam = fromNewTeamWizard ? newTeamWizard?.teamType === 'subteam' : teamMetaIsSubteam
+  const isSubteam = fromNewTeamWizard ? newTeamWizard?.teamType === 'subteam' : teamMeta.teamname.includes('.')
   const isBigTeam = Chat.useChatState(s => (fromNewTeamWizard ? false : getIsBigTeam(s.inboxLayout, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
 
