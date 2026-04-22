@@ -6,6 +6,7 @@ import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import * as Kb from '@/common-adapters'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import logger from '@/logger'
+import {useTeamsList} from '@/teams/use-teams-list'
 
 const getOwnerDisabledReason = (
   selected: Set<string>,
@@ -54,8 +55,8 @@ type OwnProps = {username: string}
 const Container = (ownProps: OwnProps) => {
   const {username: them} = ownProps
   const roles = Teams.useTeamsState(s => s.teamRoleMap.roles)
-  const teams = Teams.useTeamsState(s => s.teamMeta)
-  const teamNameToID = Teams.useTeamsState(s => s.teamNameToID)
+  const {teams} = useTeamsList()
+  const teamNameToID = React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsProfileAddList)
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
@@ -69,7 +70,7 @@ const Container = (ownProps: OwnProps) => {
   const submitRequestID = React.useRef(0)
 
   // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
-  const _teamNameToRole = [...teams.values()].reduce(
+  const _teamNameToRole = teams.reduce(
     (res, curr) => res.set(curr.teamname, roles.get(curr.id)?.role || 'none'),
     new Map<string, T.Teams.MaybeTeamRoleType>()
   )

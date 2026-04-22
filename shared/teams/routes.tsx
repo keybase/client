@@ -16,6 +16,7 @@ import teamsRootGetOptions from './get-options'
 import {defineRouteMap} from '@/constants/types/router'
 import {createNewTeamFromWizard, type NewTeamWizard} from './new-team/wizard/state'
 import {RPCError} from '@/util/errors'
+import {useLoadedTeam} from './team/use-loaded-team'
 
 const TeamsTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
   <TeamBuilderScreen
@@ -114,7 +115,9 @@ const WizardPhoneHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => (
 )
 
 const TeamInfoHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
-  const teamname = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname)
+  const {
+    teamMeta: {teamname},
+  } = useLoadedTeam(teamID)
   const isSubteam = teamname.includes('.')
   return <ModalTitle teamID={teamID} title={isSubteam ? 'Edit subteam info' : 'Edit team info'} />
 }

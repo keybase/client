@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import OpenMeta from './openmeta'
 import {default as TeamInfo, type Props as TIProps} from './teaminfo'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useTeamsList} from '@/teams/use-teams-list'
 
 type OwnProps = {
   teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
@@ -15,16 +16,15 @@ const noTeams = new Array<T.Tracker.TeamShowcase>()
 
 const Container = (ownProps: OwnProps) => {
   const _isYou = useCurrentUserState(s => s.username === ownProps.username)
-  const teamsState = useTeamsState(
+  const {showTeamByName, _roles} = useTeamsState(
     C.useShallow(s => ({
       _roles: s.teamRoleMap.roles,
-      _teamNameToID: s.teamNameToID,
-      _youAreInTeams: s.teamnames.size > 0,
       showTeamByName: s.dispatch.showTeamByName,
     }))
   )
-  const {showTeamByName, _roles} = teamsState
-  const {_teamNameToID, _youAreInTeams} = teamsState
+  const {teams} = useTeamsList()
+  const _teamNameToID = React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
+  const _youAreInTeams = teams.length > 0
   const teamShowcase = ownProps.teamShowcase || noTeams
   const {clearModals, navigateAppend} = C.Router2
   const _onEdit = () => {
@@ -33,6 +33,11 @@ const Container = (ownProps: OwnProps) => {
   const onJoinTeam = (teamname: string) => navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
   const onViewTeam = (teamname: string) => {
     clearModals()
+    const teamID = _teamNameToID.get(teamname)
+    if (teamID) {
+      navigateAppend({name: 'team', params: {teamID}})
+      return
+    }
     showTeamByName(teamname)
   }
   const onEdit = _isYou && _youAreInTeams ? _onEdit : undefined

@@ -104,7 +104,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ## Chunk 3: Remove Teams Screen Convenience Caches
 
-- [ ] Replace team list reads with a route-owned `useTeamsList(...)` loader
+- [x] Replace team list reads with a route-owned `useTeamsList(...)` loader
   - [x] Move teams-root header filter sizing in `teams/get-options.tsx` onto `useTeamsList()`
   - [x] Add a team-route `LoadedTeamsListProvider` so mounted descendants share one `useTeamsList()` reload instead of reading `teamMeta` from the store
   - [x] Move team-route subteam filtering/rows and the kick-out confirmation modal off direct `teamMeta` store reads onto `useTeamsList()`
@@ -131,8 +131,8 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [x] `teams/team/index.tsx`
 - [x] `teams/team/settings-tab/*`
 - [x] `teams/team/member/*`
-- [ ] `teams/team/rows/*`
-- [ ] `teams/channel/*`
+- [x] `teams/team/rows/*`
+- [x] `teams/channel/*`
 - [x] `profile/showcase-team-offer.tsx`
 - [x] `settings/chat.tsx`
 

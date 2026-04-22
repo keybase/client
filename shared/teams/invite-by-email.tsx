@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {FloatingRolePicker} from './role-picker'
 import capitalize from 'lodash/capitalize'
+import {useLoadedTeam} from './team/use-loaded-team'
 
 type OwnProps = {teamID: string}
 
@@ -15,7 +15,9 @@ const malformedEmailErrorMessage = (malformed: ReadonlyArray<string>) =>
 
 const Container = (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
-  const {teamname} = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const {
+    teamMeta: {teamname},
+  } = useLoadedTeam(teamID)
   const name = teamname
   const waitingKey = C.waitingKeyTeamsAddToTeamByEmail(teamname) || ''
   const inviteToTeamByEmail = C.useRPC(T.RPCGen.teamsTeamAddEmailsBulkRpcPromise)
