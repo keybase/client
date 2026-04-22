@@ -6,13 +6,19 @@ import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as T from '@/constants/types'
 
+type TeamsList = {
+  reload: () => void
+  teams: ReadonlyArray<T.Teams.TeamMeta>
+}
+
 const emptyTeams: ReadonlyArray<T.Teams.TeamMeta> = []
+const TeamsListContext = React.createContext<TeamsList | null>(null)
 
 const teamListToArray = (list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>) => {
   return [...Teams.teamListToMeta(list).values()]
 }
 
-export const useTeamsList = () => {
+const useTeamsListRaw = (enabled = true): TeamsList => {
   const username = useCurrentUserState(s => s.username)
   const loggedIn = useConfigState(s => s.loggedIn)
   const loadTeamsRPC = C.useRPC(T.RPCGen.teamsTeamListUnverifiedRpcPromise)
@@ -21,7 +27,7 @@ export const useTeamsList = () => {
   const hasFocusedSinceMountRef = React.useRef(false)
 
   const reload = React.useCallback(() => {
-    if (!username || !loggedIn) {
+    if (!enabled || !username || !loggedIn) {
       requestVersionRef.current++
       setTeams(emptyTeams)
       return
@@ -51,6 +57,9 @@ export const useTeamsList = () => {
   }, [reload])
 
   C.Router2.useSafeFocusEffect(() => {
+    if (!enabled) {
+      return
+    }
     if (hasFocusedSinceMountRef.current) {
       reload()
     } else {
@@ -59,4 +68,20 @@ export const useTeamsList = () => {
   })
 
   return {reload, teams}
+}
+
+export const LoadedTeamsListProvider = (props: React.PropsWithChildren) => {
+  const value = useTeamsListRaw()
+  return <TeamsListContext.Provider value={value}>{props.children}</TeamsListContext.Provider>
+}
+
+export const useTeamsList = (): TeamsList => {
+  const context = React.useContext(TeamsListContext)
+  const raw = useTeamsListRaw(!context)
+  return context ?? raw
+}
+
+export const useTeamsListMap = () => {
+  const {teams} = useTeamsList()
+  return React.useMemo(() => new Map(teams.map(team => [team.id, team] as const)), [teams])
 }

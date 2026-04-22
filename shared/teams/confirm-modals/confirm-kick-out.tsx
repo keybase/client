@@ -1,10 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useLoadedTeam} from '../team/use-loaded-team'
+import {useTeamsListMap} from '../use-teams-list'
 
 type Props = {
   members: string[]
@@ -16,13 +17,14 @@ const ConfirmKickOut = (props: Props) => {
   const [subteamsToo, setSubteamsToo] = React.useState(false)
   const [kickedVisible, setKickedVisible] = React.useState(false)
   const removeMemberRPC = C.useRPC(T.RPCGen.teamsTeamRemoveMemberRpcPromise)
-
-  const _subteamIDs = useTeamsState(s => s.teamDetails.get(teamID)?.subteams) ?? new Set<string>()
-  const subteamIDs = Array.from(_subteamIDs)
-  const subteams = useTeamsState(
-    C.useShallow(s => subteamIDs.map(id => Teams.getTeamMeta(s, id).teamname))
+  const {reload, teamDetails, teamMeta} = useLoadedTeam(teamID)
+  const teamMetaByID = useTeamsListMap()
+  const subteamIDs = React.useMemo(() => Array.from(teamDetails.subteams), [teamDetails.subteams])
+  const subteams = React.useMemo(
+    () => subteamIDs.map(id => teamMetaByID.get(id)?.teamname ?? '').filter(Boolean),
+    [subteamIDs, teamMetaByID]
   )
-  const teamname = useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname)
+  const teamname = teamMeta.teamname
   const waitingKeys = ([] as string[]).concat.apply(
     members.map(member => C.waitingKeyTeamsRemoveMember(teamID, member)),
     members.map(member => subteamIDs.map(subteamID => C.waitingKeyTeamsRemoveMember(subteamID, member)))
@@ -31,7 +33,6 @@ const ConfirmKickOut = (props: Props) => {
   const waitingError = C.Waiting.useAnyErrors(waitingKeys)
   const nav = useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
-  const loadTeam = useTeamsState(s => s.dispatch.loadTeam)
   const removeMember = React.useCallback(
     async (targetTeamID: T.Teams.TeamID, username: string) =>
       await new Promise<void>((resolve, reject) => {
@@ -64,10 +65,10 @@ const ConfirmKickOut = (props: Props) => {
           }
         }
       }
-      loadTeam(teamID)
+      await reload()
     }
     C.ignorePromise(f())
-  }, [loadTeam, members, removeMember, subteamIDs, subteamsToo, teamID])
+  }, [members, reload, removeMember, subteamIDs, subteamsToo, teamID])
 
   const wasWaitingRef = React.useRef(waiting)
   const navigateUp = C.Router2.navigateUp

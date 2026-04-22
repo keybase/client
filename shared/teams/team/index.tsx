@@ -8,6 +8,7 @@ import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
 import {SelectionPopup, useActivityLevels} from '../common'
 import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {TeamSelectionProvider} from '../common/selection-state'
+import {LoadedTeamsListProvider} from '../use-teams-list'
 import TeamTabs from './tabs'
 import NewTeamHeader from './new-header'
 import Settings from './settings-tab'
@@ -226,7 +227,9 @@ const TeamWithChannelsProvider = (props: Props) => {
 
 const Team = (props: Props) => (
   <LoadedTeamProvider teamID={props.teamID}>
-    <TeamWithChannelsProvider {...props} />
+    <LoadedTeamsListProvider>
+      <TeamWithChannelsProvider {...props} />
+    </LoadedTeamsListProvider>
   </LoadedTeamProvider>
 )
 

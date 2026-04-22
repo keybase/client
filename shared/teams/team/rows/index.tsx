@@ -18,6 +18,7 @@ import {SubteamAddRow, SubteamInfoRow, SubteamTeamRow} from './subteam-row'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import {useEmojiState} from '../../emojis/use-emoji'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useTeamsListMap} from '@/teams/use-teams-list'
 
 type Requests = Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>
 
@@ -251,10 +252,10 @@ export const useSubteamsSections = (
   subteamFilter: string,
   setSubteamFilter: React.Dispatch<React.SetStateAction<string>>
 ): Array<Section> => {
-  const teamMeta = Teams.useTeamsState(s => s.teamMeta)
+  const teamMetaByID = useTeamsListMap()
   const filterLC = subteamFilter.toLowerCase().trim()
   const subteams = [...details.subteams]
-    .filter(subteamID => !filterLC || teamMeta.get(subteamID)?.teamname.toLowerCase().includes(filterLC))
+    .filter(subteamID => !filterLC || teamMetaByID.get(subteamID)?.teamname.toLowerCase().includes(filterLC))
     .sort()
   const sections: Array<Section> = []
 
@@ -269,7 +270,7 @@ export const useSubteamsSections = (
   sections.push({
     data: subteams.map(s => ({id: s, type: 'subteams'})),
     renderItem: ({item}: {item: Item}) =>
-      item.type === 'subteams' ? <SubteamTeamRow teamID={item.id} /> : null,
+      item.type === 'subteams' ? <SubteamTeamRow teamID={item.id} teamMeta={teamMetaByID.get(item.id)} /> : null,
   } as const)
 
   if (details.subteams.size) {

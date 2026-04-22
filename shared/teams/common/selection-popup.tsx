@@ -9,6 +9,7 @@ import * as T from '@/constants/types'
 import {FloatingRolePicker} from '../role-picker'
 import {useLoadedTeamChannels} from './use-loaded-team-channels'
 import {useChannelSelectionState, useTeamSelectionState} from './selection-state'
+import {useLoadedTeam} from '../team/use-loaded-team'
 import {pluralize} from '@/util/string'
 
 type UnselectableTab = string
@@ -232,13 +233,11 @@ function allSameOrNull<T>(arr: T[]): T | null {
   return (arr.some(r => r !== first) ? null : first) ?? null
 }
 const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: string[]}) => {
-  const {disabledReasons, teamDetails} = useTeamsState(
-    C.useShallow(s => ({
-      disabledReasons: Teams.getDisabledReasonsForRolePicker(s, teamID, members),
-      teamDetails: s.teamDetails.get(teamID),
-    }))
-  )
-  const roles = members.map(username => teamDetails?.members.get(username)?.type)
+  const {
+    teamDetails: {members: teamMembers},
+  } = useLoadedTeam(teamID)
+  const disabledReasons = useTeamsState(s => Teams.getDisabledReasonsForRolePicker(s, teamID, members))
+  const roles = members.map(username => teamMembers.get(username)?.type)
   const currentRole = allSameOrNull(roles) ?? undefined
 
   const [showingPicker, setShowingPicker] = React.useState(false)

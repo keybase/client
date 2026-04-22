@@ -9,6 +9,7 @@ import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import {formatTimeRelativeToNow} from '@/util/timestamp'
 import MenuHeader from '../menu-header.new'
 import {navToProfile} from '@/constants/router'
+import {useLoadedTeam} from '../../use-loaded-team'
 
 const positionFallbacks = ['left center', 'top left'] as const
 
@@ -216,7 +217,9 @@ const RequestRowStateWrapper = (props: RowProps & ExtraProps) => {
 
 const Container = (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
-  const {teamname} = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const {
+    teamMeta: {teamname},
+  } = useLoadedTeam(teamID)
   const _notifLabel = Chat.useChatState(s =>
     isBigTeam(s.inboxLayout, teamID) ? `Announce them in #general` : `Announce them in team chat`
   )

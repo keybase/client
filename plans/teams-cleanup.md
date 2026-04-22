@@ -106,9 +106,12 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 - [ ] Replace team list reads with a route-owned `useTeamsList(...)` loader
   - [x] Move teams-root header filter sizing in `teams/get-options.tsx` onto `useTeamsList()`
+  - [x] Add a team-route `LoadedTeamsListProvider` so mounted descendants share one `useTeamsList()` reload instead of reading `teamMeta` from the store
+  - [x] Move team-route subteam filtering/rows and the kick-out confirmation modal off direct `teamMeta` store reads onto `useTeamsList()`
 - [ ] Replace team details reads with a route-owned `useTeam(teamID)` loader
   - [x] Move team shell consumers (`team/index`, `team/tabs`, `team/new-header`, `team/settings-tab`, `team/menu-container`, `team-info`) onto a route-owned `useLoadedTeam(teamID)` hook/provider
   - [x] Move current-team modal/screen consumers (`delete-team`, `edit-team-description`, `new-team/wizard/add-subteam-members`, `invite-by-contact/team-invite-by-contacts.native`, `confirm-modals/really-leave-team`) onto `useLoadedTeam(teamID)`
+  - [x] Move team-route helpers and row actions (`common/activity`, `common/channel-hooks`, `common/selection-popup`, `team/rows/invite-row/request`, `confirm-modals/confirm-kick-out`) off direct `teamMeta` / `teamDetails` reads where route loaders already exist
 - [x] Replace channel list reads with a route-owned `useLoadedTeamChannels(teamID, teamname?)` loader/provider
   - [x] Move `teams/team/index.tsx`, `teams/team/rows/channel-row/*`, `teams/common/selection-popup.tsx`, and `teams/channel/*` channel-header/list consumers off `channelInfo` reads
   - [x] Stop calling `loadTeamChannelList` from the team/channel route shells and channel edit/delete/remove flows that now rely on route reloads

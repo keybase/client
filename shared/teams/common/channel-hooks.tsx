@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
+import {useLoadedTeam} from '../team/use-loaded-team'
 
 // Filter bots out using team role info, isolate to only when related state changes
 export const useChannelParticipants = (
@@ -11,7 +11,9 @@ export const useChannelParticipants = (
   conversationIDKey: T.Chat.ConversationIDKey
 ) => {
   const participants = ConvoState.useConvoState(conversationIDKey, s => s.participants.all)
-  const teamMembers = Teams.useTeamsState(s => s.teamDetails.get(teamID)?.members)
+  const {
+    teamDetails: {members: teamMembers},
+  } = useLoadedTeam(teamID)
   return participants.filter(username => {
         const maybeMember = teamMembers?.get(username)
         return maybeMember && maybeMember.type !== 'bot' && maybeMember.type !== 'restrictedbot'
@@ -27,8 +29,9 @@ export const useAllChannelMetas = (
   reloadChannels: () => Promise<void>
 } => {
   const getConversations = C.useRPC(T.RPCChat.localGetTLFConversationsLocalRpcPromise)
-
-  const teamname = Teams.useTeamsState(s => Teams.getTeamNameFromID(s, teamID) ?? '')
+  const {
+    teamMeta: {teamname},
+  } = useLoadedTeam(teamID)
   const [channelMetas, setChannelMetas] = React.useState(
     new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>()
   )

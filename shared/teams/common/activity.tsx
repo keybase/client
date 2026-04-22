@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-campfire-burning',
@@ -45,7 +45,8 @@ const Activity = (p: Props) => {
 type MTProps = {title: string; teamID: T.Teams.TeamID}
 type ModalTitleProps = MTProps & {newTeamWizard?: T.Teams.NewTeamWizardState}
 export const ModalTitle = ({title, teamID, newTeamWizard}: ModalTitleProps) => {
-  const teamname = useTeamsState(state => Teams.getTeamMeta(state, teamID).teamname)
+  const {teamMeta} = useLoadedTeam(teamID)
+  const teamname = teamMeta.teamname
   const isNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
   const displayTeamname = isNewTeamWizard ? (newTeamWizard?.name || 'New team') : teamname
   const avatarFilepath = isNewTeamWizard ? newTeamWizard?.avatarFilename : undefined
