@@ -50,7 +50,7 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
         }
       }
     )
-  }, [loadTeamsRPC, loggedIn, username])
+  }, [enabled, loadTeamsRPC, loggedIn, username])
 
   React.useEffect(() => {
     reload()

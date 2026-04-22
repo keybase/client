@@ -15,7 +15,7 @@ export const useChannelParticipants = (
     teamDetails: {members: teamMembers},
   } = useLoadedTeam(teamID)
   return participants.filter(username => {
-        const maybeMember = teamMembers?.get(username)
+        const maybeMember = teamMembers.get(username)
         return maybeMember && maybeMember.type !== 'bot' && maybeMember.type !== 'restrictedbot'
       })
 }
