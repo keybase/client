@@ -31,7 +31,7 @@ const TeamsTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
           C.Router2.navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard}}, true)
         } catch (err) {
           TB.getTBStore('teams').dispatch.setError(err instanceof Error ? err.message : String(err))
-          C.Router2.navigateAppend({name: 'teamsTeamBuilder', params: p.route.params})
+          C.Router2.navigateAppend({name: 'teamsTeamBuilder', params: p.route.params}, true)
         }
       }
       C.ignorePromise(f())
