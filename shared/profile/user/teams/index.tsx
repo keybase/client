@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import OpenMeta from './openmeta'
 import {default as TeamInfo, type Props as TIProps} from './teaminfo'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useTeamsList} from '@/teams/use-teams-list'
+import {useTeamsList, useTeamsListNameToIDMap} from '@/teams/use-teams-list'
 import {showTeamByName} from '@/teams/team-page-actions'
 
 type OwnProps = {
@@ -16,31 +16,28 @@ type OwnProps = {
 const noTeams = new Array<T.Tracker.TeamShowcase>()
 
 const Container = (ownProps: OwnProps) => {
-  const _isYou = useCurrentUserState(s => s.username === ownProps.username)
+  const isYou = useCurrentUserState(s => s.username === ownProps.username)
   const {teams} = useTeamsList()
-  const _teamNameToID = React.useMemo(
-    () => new Map(teams.map(team => [team.teamname, team.id] as const)),
-    [teams]
-  )
+  const teamNameToID = useTeamsListNameToIDMap()
   const teamNames = React.useMemo(() => new Set(teams.map(team => team.teamname)), [teams])
-  const _youAreInTeams = teams.length > 0
+  const youAreInTeams = teams.length > 0
   const teamShowcase = ownProps.teamShowcase || noTeams
   const {clearModals, navigateAppend} = C.Router2
-  const _onEdit = () => {
+  const onEditTeams = () => {
     navigateAppend({name: 'profileShowcaseTeamOffer', params: {}})
   }
   const onJoinTeam = (teamname: string) =>
     navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
   const onViewTeam = (teamname: string) => {
     clearModals()
-    const teamID = _teamNameToID.get(teamname)
+    const teamID = teamNameToID.get(teamname)
     if (teamID) {
       navigateAppend({name: 'team', params: {teamID}})
       return
     }
     void showTeamByName(teamname)
   }
-  const onEdit = _isYou && _youAreInTeams ? _onEdit : undefined
+  const onEdit = isYou && youAreInTeams ? onEditTeams : undefined
   return onEdit || teamShowcase.length > 0 ? (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.showcases}>
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>

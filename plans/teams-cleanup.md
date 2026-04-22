@@ -188,6 +188,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 - [x] Review what remains in `shared/stores/teams.tsx`
 - [x] Replace the remaining profile `teamRoleMap` reads with `useTeamsList()`-derived role/membership data
+- [x] Route remaining profile team-name lookups through `useTeamsListNameToIDMap()` instead of rebuilding local maps
 - [x] Delete dead selectors, helpers, and tests
   - [x] Delete dead teams-store list/details/channel cache helpers after moving mounted consumers onto route-local loaders
 - [x] Delete dead teams-store retention/activity cache leftovers after the route-local migrations (`teamIDToRetentionPolicy`, `activityLevels`)
