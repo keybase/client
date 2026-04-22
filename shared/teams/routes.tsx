@@ -122,12 +122,11 @@ const ConfirmHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => {
 const ConfirmHeaderLeft = ({wizard}: {wizard: AddMembersWizard}) => {
   const newTeam = wizard.teamID === T.Teams.newTeamWizardTeamID
   const clearModals = C.Router2.clearModals
-  const navigateAppend = C.Router2.navigateAppend
   if (newTeam) {
     return (
       <Kb.Icon
         type="iconfont-arrow-left"
-        onClick={() => navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard}}, true)}
+        onClick={() => C.Router2.navUpToScreen({name: 'teamAddToTeamFromWhere', params: {wizard}}, true)}
       />
     )
   }

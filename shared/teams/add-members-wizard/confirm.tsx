@@ -411,7 +411,6 @@ const AddingMember = (
     wizard: AddMembersWizard
   }
 ) => {
-  const navigateAppend = C.Router2.navigateAppend
   const {wizard, updateWizard} = props
   const role = wizard.role
   const individualRole =
@@ -420,7 +419,7 @@ const AddingMember = (
   const onRemove = () => {
     const nextWizard = removeWizardMember(wizard, props.assertion)
     if (props.lastMember) {
-      navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: nextWizard}}, true)
+      C.Router2.navUpToScreen({name: 'teamAddToTeamFromWhere', params: {wizard: nextWizard}}, true)
       return
     }
     updateWizard(nextWizard)
