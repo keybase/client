@@ -18,6 +18,7 @@ import {registerDebugClear} from '@/util/debug'
 import {useDaemonState} from '@/stores/daemon'
 import {useCurrentUserState} from '@/stores/current-user'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
+import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
 
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import {makeLayout} from './screen-layout.desktop'
@@ -50,11 +51,13 @@ for (const tab of Tabs.desktopTabs) {
 
 function AppTabsInner() {
   return (
-    <Tab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
-      {Tabs.desktopTabs.map(tab => (
-        <Tab.Screen key={tab} name={tab} component={tabComponents[tab]!} />
-      ))}
-    </Tab.Navigator>
+    <LoadedTeamsListProvider>
+      <Tab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
+        {Tabs.desktopTabs.map(tab => (
+          <Tab.Screen key={tab} name={tab} component={tabComponents[tab]!} />
+        ))}
+      </Tab.Navigator>
+    </LoadedTeamsListProvider>
   )
 }
 

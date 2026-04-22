@@ -27,6 +27,7 @@ import {handleAppLink} from '@/constants/deeplinks'
 import {useDaemonState} from '@/stores/daemon'
 import {useNotifState} from '@/stores/notifications'
 import {usePushState} from '@/stores/push'
+import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
 import {colors} from '@/styles/colors'
 
 const isLiquidGlassSupported = _isLiquidGlassSupported as boolean
@@ -193,16 +194,18 @@ function AppTabs() {
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
 
   return (
-    <Tab.Navigator backBehavior="none">
-      {tabs.map(tab => (
-        <Tab.Screen
-          key={tab}
-          name={tab}
-          component={tabComponents[tab]!}
-          options={appTabsScreenOptions(tab, navBadges, hasPermissions, isDarkMode)}
-        />
-      ))}
-    </Tab.Navigator>
+    <LoadedTeamsListProvider>
+      <Tab.Navigator backBehavior="none">
+        {tabs.map(tab => (
+          <Tab.Screen
+            key={tab}
+            name={tab}
+            component={tabComponents[tab]!}
+            options={appTabsScreenOptions(tab, navBadges, hasPermissions, isDarkMode)}
+          />
+        ))}
+      </Tab.Navigator>
+    </LoadedTeamsListProvider>
   )
 }
 

@@ -14,6 +14,7 @@ type TeamsList = {
 
 const emptyTeams: ReadonlyArray<T.Teams.TeamMeta> = []
 const TeamsListContext = React.createContext<TeamsList | null>(null)
+const teamsListReloadStaleMs = 5 * 60_000
 
 const teamListToArray = (list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>) => {
   return [...Teams.teamListToMeta(list).values()]
@@ -26,36 +27,63 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
   const [teams, setTeams] = React.useState<ReadonlyArray<T.Teams.TeamMeta>>(emptyTeams)
   const requestVersionRef = React.useRef(0)
   const hasFocusedSinceMountRef = React.useRef(false)
+  const inFlightRef = React.useRef<Promise<void> | undefined>(undefined)
+  const loadedAtRef = React.useRef(0)
 
-  const reload = React.useCallback(() => {
+  const loadTeams = React.useEffectEvent(async (force: boolean) => {
     if (!enabled || !username || !loggedIn) {
       requestVersionRef.current++
+      loadedAtRef.current = 0
       setTeams(emptyTeams)
       return
     }
+    if (!force && loadedAtRef.current && Date.now() - loadedAtRef.current < teamsListReloadStaleMs) {
+      return
+    }
+    if (inFlightRef.current) {
+      await inFlightRef.current
+      return
+    }
     const requestVersion = ++requestVersionRef.current
-    loadTeamsRPC(
-      [{includeImplicitTeams: false, userAssertion: username}, C.waitingKeyTeamsLoaded],
-      result => {
-        if (requestVersion !== requestVersionRef.current) {
-          return
+    const request = new Promise<void>(resolve => {
+      loadTeamsRPC(
+        [{includeImplicitTeams: false, userAssertion: username}, C.waitingKeyTeamsLoaded],
+        result => {
+          if (requestVersion === requestVersionRef.current) {
+            loadedAtRef.current = Date.now()
+            setTeams(teamListToArray(result.teams ?? []))
+          }
+          resolve()
+        },
+        error => {
+          if (requestVersion === requestVersionRef.current && error.code !== T.RPCGen.StatusCode.scapinetworkerror) {
+            logger.warn('Failed to load teams list', error)
+          }
+          resolve()
         }
-        setTeams(teamListToArray(result.teams ?? []))
-      },
-      error => {
-        if (requestVersion !== requestVersionRef.current) {
-          return
-        }
-        if (error.code !== T.RPCGen.StatusCode.scapinetworkerror) {
-          logger.warn('Failed to load teams list', error)
-        }
+      )
+    })
+    inFlightRef.current = request
+    try {
+      await request
+    } finally {
+      if (inFlightRef.current === request) {
+        inFlightRef.current = undefined
       }
-    )
-  }, [enabled, loadTeamsRPC, loggedIn, username])
+    }
+  })
+
+  const reload = React.useCallback(() => {
+    void loadTeams(true)
+  }, [loadTeams])
+
+  const loadIfStale = React.useCallback(() => {
+    void loadTeams(false)
+  }, [loadTeams])
 
   React.useEffect(() => {
-    reload()
-  }, [reload])
+    loadIfStale()
+  }, [enabled, loadIfStale, loggedIn, username])
 
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
@@ -63,11 +91,11 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
         return
       }
       if (hasFocusedSinceMountRef.current) {
-        reload()
+        loadIfStale()
       } else {
         hasFocusedSinceMountRef.current = true
       }
-    }, [enabled, reload])
+    }, [enabled, loadIfStale])
   )
 
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {

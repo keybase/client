@@ -7,7 +7,6 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {SelectionPopup, ActivityLevelsProvider} from '../common'
 import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {TeamSelectionProvider} from '../common/selection-state'
-import {LoadedTeamsListProvider} from '../use-teams-list'
 import TeamTabs from './tabs'
 import NewTeamHeader from './new-header'
 import Settings from './settings-tab'
@@ -254,11 +253,9 @@ const Team = (props: Props) => {
   useNavigateAwayOnDeletedTeam(props.teamID)
   return (
     <LoadedTeamProvider teamID={props.teamID}>
-      <LoadedTeamsListProvider>
-        <ActivityLevelsProvider>
-          <TeamWithChannelsProvider {...props} />
-        </ActivityLevelsProvider>
-      </LoadedTeamsListProvider>
+      <ActivityLevelsProvider>
+        <TeamWithChannelsProvider {...props} />
+      </ActivityLevelsProvider>
     </LoadedTeamProvider>
   )
 }
