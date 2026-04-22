@@ -6,7 +6,7 @@ import Normal from '.'
 import * as T from '@/constants/types'
 import {FocusProvider, ScrollProvider} from './context'
 import {OrangeLineContext} from '../orange-line-context'
-import {useLoadTeamMembers} from '@/teams/team-members'
+import {ChatTeamProvider} from '../team-hooks'
 
 const useOrangeLine = () => {
   const [orangeLine, setOrangeLine] = React.useState(T.Chat.numberToOrdinal(0))
@@ -83,16 +83,16 @@ const useOrangeLine = () => {
 }
 
 const NormalWrapper = function NormalWrapper() {
-  const {teamID, teamType} = ConvoState.useChatContext(s => s.meta)
-  useLoadTeamMembers(teamID, teamType !== 'adhoc')
   const orangeLine = useOrangeLine()
   return (
     <OrangeLineContext value={orangeLine}>
-      <FocusProvider>
-        <ScrollProvider>
-          <Normal />
-        </ScrollProvider>
-      </FocusProvider>
+      <ChatTeamProvider>
+        <FocusProvider>
+          <ScrollProvider>
+            <Normal />
+          </ScrollProvider>
+        </FocusProvider>
+      </ChatTeamProvider>
     </OrangeLineContext>
   )
 }

@@ -12,7 +12,6 @@ import type HiddenString from '@/util/hidden-string'
 import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
 import {useFSState} from '@/stores/fs'
-import {usePinentryState} from '@/stores/pinentry'
 import {useShellState} from '@/stores/shell'
 import {useUnlockFoldersState} from '@/unlock-folders/store'
 import logger from '@/logger'
@@ -20,6 +19,7 @@ import {makeUUID} from '@/util/uuid'
 import {dumpLogs, showMain} from '@/util/storeless-actions'
 import * as FSConstants from '@/constants/fs'
 import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {handlePinentryPopupRemoteAction} from '@/pinentry/desktop-popup-handles'
 import {handleTrackerPopupRemoteAction} from '@/tracker/desktop-popup-handles'
 
 const handleSaltPackOpen = (_path: string | HiddenString) => {
@@ -118,11 +118,11 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.pinentryOnCancel: {
-      usePinentryState.getState().dispatch.dynamic.onCancel?.()
+      handlePinentryPopupRemoteAction(action)
       break
     }
     case RemoteGen.pinentryOnSubmit: {
-      usePinentryState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
+      handlePinentryPopupRemoteAction(action)
       break
     }
     case RemoteGen.openPathInSystemFileManager: {

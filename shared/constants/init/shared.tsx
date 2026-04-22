@@ -17,13 +17,10 @@ declare global {
 
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
-import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseChatStateType from '@/stores/chat'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
-import type * as UsePinentryStateType from '@/stores/pinentry'
 import type * as UseTeamsStateType from '@/stores/teams'
-import type * as UnlockFoldersType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {getTBStore} from '@/stores/team-building'
@@ -395,14 +392,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
   }
 
   switch (action.type) {
-    case 'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged':
-    case 'chat.1.NotifyChat.ChatArchiveComplete':
-    case 'chat.1.NotifyChat.ChatArchiveProgress':
-      {
-        const {useArchiveState} = require('@/stores/archive') as typeof UseArchiveStateType
-        useArchiveState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
     case 'keybase.1.NotifyBadges.badgeState':
       {
         const {badgeState} = action.payload.params
@@ -487,12 +476,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
           useSettingsEmailState.getState().dispatch.notifyEmailVerified(emailAddress)
         }
         clearSignupEmail()
-      }
-      break
-    case 'keybase.1.secretUi.getPassphrase':
-      {
-        const {usePinentryState} = require('@/stores/pinentry') as typeof UsePinentryStateType
-        usePinentryState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged': {
@@ -607,13 +590,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
         useUsersState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.rekeyUI.refresh':
-    case 'keybase.1.rekeyUI.delegateRekeyUI':
-      {
-        const {onUnlockFoldersEngineIncoming} = require('@/stores/unlock-folders') as typeof UnlockFoldersType
-        onUnlockFoldersEngineIncoming(action)
       }
       break
     default:

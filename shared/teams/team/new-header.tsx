@@ -9,6 +9,7 @@ import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useTeamsState} from '@/stores/teams'
+import {makeAddMembersWizard} from '../add-members-wizard/state'
 
 const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
@@ -282,19 +283,23 @@ export default HeaderTitle
 
 const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const nav = useSafeNavigation()
-  const {addMembersWizardPushMembers, meta, startAddMembersWizard, yourOperations} = Teams.useTeamsState(
+  const {meta, yourOperations} = Teams.useTeamsState(
     C.useShallow(s => ({
-      addMembersWizardPushMembers: s.dispatch.addMembersWizardPushMembers,
       meta: Teams.getTeamMeta(s, teamID),
-      startAddMembersWizard: s.dispatch.startAddMembersWizard,
       yourOperations: Teams.getCanPerformByID(s, teamID),
     }))
   )
   const yourUsername = useCurrentUserState(s => s.username)
 
   const onAddSelf = () => {
-    startAddMembersWizard(teamID)
-    addMembersWizardPushMembers([{assertion: yourUsername, role: 'writer'}])
+    nav.safeNavigateAppend({
+      name: 'teamAddToTeamConfirm',
+      params: {
+        wizard: makeAddMembersWizard(teamID, {
+          addingMembers: [{assertion: yourUsername, role: 'writer'}],
+        }),
+      },
+    })
   }
   const previewConversation = C.Router2.previewConversation
   const onChat = () => previewConversation({reason: 'teamHeader', teamname: meta.teamname})

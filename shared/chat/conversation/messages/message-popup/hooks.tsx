@@ -2,7 +2,6 @@ import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
-import * as Teams from '@/stores/teams'
 import {useCurrentUserState} from '@/stores/current-user'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
 import ReactionItem from './reactionitem'
@@ -11,25 +10,9 @@ import ExplodingPopupHeader from './exploding-header'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import {navToProfile} from '@/constants/router'
 import {copyToClipboard} from '@/util/storeless-actions'
+import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
 
 const emptyText = Chat.makeMessageText({})
-
-const messageAuthorIsBot = (
-  state: Teams.State,
-  metaTeamID: string,
-  metaTeamname: string,
-  metaTeamType: T.Chat.TeamType,
-  messageAuthor: string,
-  participantInfo: T.Chat.ParticipantInfo
-) => {
-  const teamID = metaTeamID
-  return metaTeamname
-    ? Teams.userIsRoleInTeam(state, teamID, messageAuthor, 'restrictedbot') ||
-        Teams.userIsRoleInTeam(state, teamID, messageAuthor, 'bot')
-    : metaTeamType === 'adhoc' && participantInfo.name.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !participantInfo.name.includes(messageAuthor) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
-}
 
 const getConversationLabel = (
   participantInfo: T.Chat.ParticipantInfo,
@@ -71,9 +54,15 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   }
   const onAddReaction = C.isMobile ? _onAddReaction : undefined
 
-  const authorIsBot = Teams.useTeamsState(s =>
-    messageAuthorIsBot(s, meta.teamID, meta.teamname, meta.teamType, author, participantInfo)
-  )
+  const {members: teamMembers} = useChatTeamMembers(teamID)
+  const {yourOperations} = useChatTeam(teamID, teamname)
+  const authorRoleInTeam = teamMembers.get(author)?.type
+  const authorIsBot =
+    teamname && teamMembers.size
+      ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
+      : meta.teamType === 'adhoc' && participantInfo.name.length > 0
+        ? !participantInfo.name.includes(author)
+        : false
   const _onInstallBot = () => {
     navigateAppend(() => ({name: 'chatInstallBotPick', params: {botUsername: author}}))
   }
@@ -157,7 +146,6 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     : []
 
   const isTeam = !!teamname
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const canPinMessage = (!isTeam || yourOperations.pinMessage) && !message.exploded
   const _onPinMessage = () => {
     pinMessage(id)
@@ -180,9 +168,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     clearModals()
   }
 
-  const canDeleteHistory = Teams.useTeamsState(
-    s => meta.teamType === 'adhoc' || Teams.getCanPerformByID(s, teamID).deleteChatHistory
-  )
+  const canDeleteHistory = meta.teamType === 'adhoc' || yourOperations.deleteChatHistory
   const canExplodeNow =
     message.exploding && (yourMessage || canDeleteHistory) && message.isDeleteable && !message.exploded
   const _onExplodeNow = () => {
@@ -219,8 +205,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const _onKick = () => {
     navigateAppend(() => ({name: 'teamReallyRemoveMember', params: {members: [author], teamID}}))
   }
-  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
-  const authorInTeam = teamMembers?.has(author) ?? true
+  const authorInTeam = teamMembers.size ? teamMembers.has(author) : true
   const onKick = isDeleteable && !!teamID && !yourMessage && authorInTeam ? _onKick : undefined
   const itemKick = onKick
     ? ([

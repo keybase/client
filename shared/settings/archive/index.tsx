@@ -2,31 +2,95 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import {useEngineActionListener} from '@/engine/action-listener'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
-import {useArchiveState} from '@/stores/archive'
 import * as FS from '@/stores/fs'
 import {showShareActionSheet} from '@/util/platform-specific'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {
+  type ChatArchiveJob,
+  type KBFSArchiveJob,
+  mapChatJobs,
+  mapKBFSJobs,
+  updateChatProgress,
+} from './job-state'
 
-function ChatJob(p: {index: number; id: string}) {
-  const {id, index} = p
-  const {job, load} = useArchiveState(
-    C.useShallow(s => ({
-      job: s.chatJobs.get(id),
-      load: s.dispatch.load,
-    }))
-  )
+const loadChatJobs = async () => {
+  const res = await T.RPCChat.localArchiveChatListRpcPromise({
+    identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
+  })
+  return mapChatJobs(res.jobs)
+}
+
+const loadKBFSJobs = async () =>
+  mapKBFSJobs(await T.RPCGen.SimpleFSSimpleFSGetArchiveStatusRpcPromise())
+
+const useArchiveJobs = () => {
+  const [chatJobs, setChatJobs] = React.useState<Map<string, ChatArchiveJob>>(() => new Map())
+  const [kbfsJobs, setKBFSJobs] = React.useState<Map<string, KBFSArchiveJob>>(() => new Map())
+  const chatJobsRef = React.useRef(chatJobs)
+  const chatLoadVersionRef = React.useRef(0)
+  const kbfsLoadVersionRef = React.useRef(0)
+
+  const loadChat = React.useEffectEvent(async () => {
+    const loadVersion = ++chatLoadVersionRef.current
+    const nextChatJobs = await loadChatJobs()
+    if (loadVersion !== chatLoadVersionRef.current) {
+      return
+    }
+    chatJobsRef.current = nextChatJobs
+    setChatJobs(nextChatJobs)
+  })
+
+  const loadKBFS = React.useEffectEvent(async () => {
+    const loadVersion = ++kbfsLoadVersionRef.current
+    const nextKBFSJobs = await loadKBFSJobs()
+    if (loadVersion !== kbfsLoadVersionRef.current) {
+      return
+    }
+    setKBFSJobs(nextKBFSJobs)
+  })
+
+  const load = React.useEffectEvent(() => {
+    C.ignorePromise(loadChat())
+    C.ignorePromise(loadKBFS())
+  })
+
+  useEngineActionListener('keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged', action => {
+    kbfsLoadVersionRef.current++
+    setKBFSJobs(mapKBFSJobs(action.payload.params.status))
+  })
+
+  useEngineActionListener('chat.1.NotifyChat.ChatArchiveComplete', () => {
+    C.ignorePromise(loadChat())
+  })
+
+  useEngineActionListener('chat.1.NotifyChat.ChatArchiveProgress', action => {
+    const next = updateChatProgress(chatJobsRef.current, action.payload.params)
+    chatJobsRef.current = next.chatJobs
+    setChatJobs(next.chatJobs)
+    if (next.reload) {
+      C.ignorePromise(loadChat())
+    }
+  })
+
+  return {chatJobs, kbfsJobs, load, loadChat}
+}
+
+function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise<void>}) {
+  const {index, job, loadChat} = p
+  const {id} = job
   const cancelChat = C.useRPC(T.RPCChat.localArchiveChatDeleteRpcPromise)
   const pauseChat = C.useRPC(T.RPCChat.localArchiveChatPauseRpcPromise)
   const resumeChat = C.useRPC(T.RPCChat.localArchiveChatResumeRpcPromise)
 
-  const errorStr = job?.error ?? ''
+  const errorStr = job.error ?? ''
 
   const onPause = () => {
     pauseChat(
       [{identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset, jobID: id}],
       () => {
-        load()
+        C.ignorePromise(loadChat())
       },
       () => {}
     )
@@ -37,12 +101,11 @@ function ChatJob(p: {index: number; id: string}) {
   }
 
   const onShowFinder = () => {
-    if (!job) return
     openLocalPathInSystemFileManagerDesktop(job.outPath)
   }
 
   const onShare = () => {
-    if (!job?.outPath) return
+    if (!job.outPath) return
     showShareActionSheet({
       filePath: job.outPath,
       mimeType: 'application/zip',
@@ -55,13 +118,12 @@ function ChatJob(p: {index: number; id: string}) {
     cancelChat(
       [{deleteOutputPath: true, identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset, jobID: id}],
       () => {
-        load()
+        C.ignorePromise(loadChat())
       },
       () => {}
     )
   }
 
-  if (!job) return null
   const {started, progress, outPath, context, status} = job
   const done = status === T.RPCChat.ArchiveChatJobStatus.complete
   const sub = Kb.Styles.isMobile ? (
@@ -78,7 +140,7 @@ function ChatJob(p: {index: number; id: string}) {
   if (done) {
     actions = (
       <Kb.Box2 direction="vertical" style={styles.action}>
-        <Kb.Text type="BodySmall">{started.toLocaleString()}</Kb.Text>
+        <Kb.Text type="BodySmall">{started}</Kb.Text>
         {Kb.Styles.isMobile ? (
           <Kb.Text type="BodyPrimaryLink" onClick={onShare}>
             Share
@@ -148,9 +210,9 @@ function ChatJob(p: {index: number; id: string}) {
   )
 }
 
-function KBFSJob(p: {index: number; id: string}) {
-  const {id, index} = p
-  const job = useArchiveState(s => s.kbfsJobs.get(id))
+function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
+  const {index, job} = p
+  const {id} = job
   const [currentTLFRevision, setCurrentTLFRevision] = React.useState(0)
   const cancelOrDismissKBFS = C.useRPC(T.RPCGen.SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise)
   const loadKBFSJobFreshness = C.useRPC(T.RPCGen.SimpleFSSimpleFSGetArchiveJobFreshnessRpcPromise)
@@ -165,14 +227,14 @@ function KBFSJob(p: {index: number; id: string}) {
   })
 
   const onShowFinder = () => {
-    if (Kb.Styles.isMobile || !job) {
+    if (Kb.Styles.isMobile) {
       return
     }
     openLocalPathInSystemFileManagerDesktop(job.zipFilePath)
   }
 
   const onShare = () => {
-    if (!Kb.Styles.isMobile || !job) {
+    if (!Kb.Styles.isMobile) {
       return
     }
     showShareActionSheet({filePath: job.zipFilePath, mimeType: 'application/zip'})
@@ -199,9 +261,6 @@ function KBFSJob(p: {index: number; id: string}) {
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
-  if (!job) {
-    return null
-  }
   const progress = job.bytesTotal
     ? (job.bytesCopied * 0.8 + job.bytesZipped * 0.2) / job.bytesTotal
     : job.phase === 'Zipping'
@@ -219,7 +278,7 @@ function KBFSJob(p: {index: number; id: string}) {
 
   return (
     <Kb.ListItem
-      firstItem={index === -1}
+      firstItem={index === 0}
       type="Small"
       body={
         <Kb.Box2
@@ -317,43 +376,34 @@ function KBFSJob(p: {index: number; id: string}) {
 }
 
 const Archive = () => {
-  const archiveState = useArchiveState(
-    C.useShallow(s => {
-      let showClear = false
-      for (const job of s.chatJobs.values()) {
-        if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
-          showClear = true
-          break
-        }
-      }
-      if (!showClear) {
-        for (const job of s.kbfsJobs.values()) {
-          if (job.phase === 'Done') {
-            showClear = true
-            break
-          }
-        }
-      }
-      return {
-        chatJobMap: s.chatJobs,
-        kbfsJobMap: s.kbfsJobs,
-        load: s.dispatch.load,
-        showClear,
-      }
-    })
-  )
-  const {chatJobMap, kbfsJobMap, load, showClear} = archiveState
+  const {chatJobs, kbfsJobs, load, loadChat} = useArchiveJobs()
   const navigateAppend = C.Router2.navigateAppend
 
   C.Router2.useSafeFocusEffect(() => {
     load()
   })
 
+  let showClear = false
+  for (const job of chatJobs.values()) {
+    if (job.status === T.RPCChat.ArchiveChatJobStatus.complete) {
+      showClear = true
+      break
+    }
+  }
+  if (!showClear) {
+    for (const job of kbfsJobs.values()) {
+      if (job.phase === 'Done') {
+        showClear = true
+        break
+      }
+    }
+  }
+
   const clearCompleted = () => {
     C.ignorePromise(
       (async () => {
         await Promise.allSettled([
-          ...[...chatJobMap.values()].flatMap(job =>
+          ...[...chatJobs.values()].flatMap(job =>
             job.status === T.RPCChat.ArchiveChatJobStatus.complete
               ? [
                   T.RPCChat.localArchiveChatDeleteRpcPromise({
@@ -364,7 +414,7 @@ const Archive = () => {
                 ]
               : []
           ),
-          ...[...kbfsJobMap.values()].flatMap(job =>
+          ...[...kbfsJobs.values()].flatMap(job =>
             job.phase === 'Done'
               ? [T.RPCGen.SimpleFSSimpleFSArchiveCancelOrDismissJobRpcPromise({jobID: job.id})]
               : []
@@ -385,8 +435,8 @@ const Archive = () => {
     navigateAppend({name: 'archiveModal', params: {type: 'gitAll'}})
   }
 
-  const chatJobs = [...chatJobMap.keys()]
-  const kbfsJobs = [...kbfsJobMap.keys()]
+  const chatJobsList = [...chatJobs.values()]
+  const kbfsJobsList = [...kbfsJobs.values()]
 
   return (
     <Kb.ScrollView style={styles.scroll}>
@@ -420,13 +470,13 @@ const Archive = () => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           <Kb.Text type="Header">Active backup jobs</Kb.Text>
-          {chatJobs.length + kbfsJobs.length ? (
+          {chatJobsList.length + kbfsJobsList.length ? (
             <Kb.Box2 direction="vertical" flex={1} style={styles.jobs} fullWidth={true}>
-              {chatJobs.map((id, idx) => (
-                <ChatJob id={id} key={id} index={idx} />
+              {chatJobsList.map((job, idx) => (
+                <ChatJob job={job} key={job.id} index={idx} loadChat={loadChat} />
               ))}
-              {kbfsJobs.map((id, idx) => (
-                <KBFSJob id={id} key={id} index={idx + chatJobs.length} />
+              {kbfsJobsList.map((job, idx) => (
+                <KBFSJob job={job} key={job.id} index={idx + chatJobsList.length} />
               ))}
               {showClear ? (
                 <Kb.Button

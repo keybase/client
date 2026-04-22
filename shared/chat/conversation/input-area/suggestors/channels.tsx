@@ -3,9 +3,9 @@ import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import type {ConvoState as ConvoStateType} from '@/stores/convostate'
 import * as T from '@/constants/types'
-import * as Teams from '@/stores/teams'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
+import {useChatTeamNames} from '../../team-hooks'
 
 export const transformer = (
   {channelname, teamname}: {channelname: string; teamname?: string},
@@ -46,12 +46,16 @@ const noChannel: Array<{channelname: string}> = []
 const getChannelSuggestions = (
   s: ConvoStateType,
   teamname: string,
-  teamMeta: Teams.State['teamMeta']
+  mutualTeamnamesByID: ReadonlyMap<T.Teams.TeamID, string>
 ) => {
   if (!teamname) {
     // this is an impteam, so get mutual teams from state
-    const mutualTeams = s.mutualTeams.map(teamID => teamMeta.get(teamID)?.teamname)
-    if (!mutualTeams.length) {
+    const mutualTeams = new Set(
+      s.mutualTeams
+        .map(teamID => mutualTeamnamesByID.get(teamID))
+        .filter((maybeTeamname): maybeTeamname is string => !!maybeTeamname)
+    )
+    if (!mutualTeams.size) {
       return noChannel
     }
     // TODO not reactive
@@ -59,7 +63,7 @@ const getChannelSuggestions = (
       Array<{channelname: string; teamname: string}>
     >((arr, t) => {
       t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel &&
-        mutualTeams.includes(t.channel.teamname) &&
+        mutualTeams.has(t.channel.teamname) &&
         arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
       return arr
     }, [])
@@ -83,24 +87,25 @@ const getChannelSuggestions = (
 const useDataSource = (filter: string) => {
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const meta = ConvoState.useChatContext(s => s.meta)
+  const mutualTeams = ConvoState.useChatContext(s => s.mutualTeams)
+  const {teamnames: mutualTeamnamesByID, loading: loadingMutualTeamnames} = useChatTeamNames(mutualTeams)
   const {teamID} = meta
 
   const suggestChannelsLoading = C.Waiting.useAnyWaiting([
     C.waitingKeyTeamsGetChannels(teamID),
     C.waitingKeyChatMutualTeams(conversationIDKey),
   ])
-  const teamMeta = Teams.useTeamsState(s => s.teamMeta)
   return ConvoState.useChatContext(
     C.useDeep(s => {
       const fil = filter.toLowerCase()
       // don't include 'small' here to ditch the single #general suggestion
       const teamname = meta.teamType === 'big' ? meta.teamname : ''
-      const suggestChannels = getChannelSuggestions(s, teamname, teamMeta)
+      const suggestChannels = getChannelSuggestions(s, teamname, mutualTeamnamesByID)
 
       // TODO this will thrash always
       return {
         items: suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
-        loading: suggestChannelsLoading,
+        loading: suggestChannelsLoading || loadingMutualTeamnames,
       }
     })
   )
