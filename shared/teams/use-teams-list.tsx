@@ -75,11 +75,11 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
 
   const reload = React.useCallback(() => {
     void loadTeams(true)
-  }, [loadTeams])
+  }, [])
 
   const loadIfStale = React.useCallback(() => {
     void loadTeams(false)
-  }, [loadTeams])
+  }, [])
 
   React.useEffect(() => {
     loadIfStale()
