@@ -24,7 +24,6 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import * as Util from '@/constants/teams'
-import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 
 export {
   baseRetentionPolicies,
@@ -160,15 +159,6 @@ export const initialTeamSettings = Object.freeze({
   joinAs: T.RPCGen.TeamRole.reader,
   open: false,
 })
-
-const addMembersWizardEmptyState: State['addMembersWizard'] = {
-  addToChannels: undefined,
-  addingMembers: [],
-  justFinished: false,
-  membersAlreadyInTeam: [],
-  role: 'writer',
-  teamID: T.Teams.noTeamID,
-}
 
 export const initialCanUserPerform = Object.freeze<T.Teams.TeamOperations>({
   changeOpenTeam: false,
@@ -668,14 +658,12 @@ type Store = T.Immutable<{
   teamMeta: Map<T.Teams.TeamID, T.Teams.TeamMeta>
   teamRoleMap: T.Teams.TeamRoleMap
   teamDetails: Map<T.Teams.TeamID, T.Teams.TeamDetails>
-  addMembersWizard: T.Teams.AddMembersWizardState
   teamIDToMembers: Map<T.Teams.TeamID, Map<string, T.Teams.MemberInfo>> // Used by chat sidebar until team loading gets easier
   teamIDToRetentionPolicy: Map<T.Teams.TeamID, T.Retention.RetentionPolicy>
 }>
 
 const initialStore: Store = {
   activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
-  addMembersWizard: addMembersWizardEmptyState,
   channelInfo: new Map(),
   newTeamRequests: new Map(),
   teamDetails: new Map(),
@@ -708,7 +696,6 @@ export type State = Store & {
     ) => void
     deleteChannelConfirmed: (teamID: T.Teams.TeamID, conversationIDKey: T.Chat.ConversationIDKey) => void
     deleteTeam: (teamID: T.Teams.TeamID) => void
-    finishedAddMembersWizard: () => void
     getActivityForTeams: () => void
     getMembers: (teamID: T.Teams.TeamID, forceReload?: boolean) => Promise<void>
     getTeamRetentionPolicy: (teamID: T.Teams.TeamID) => void
@@ -731,7 +718,6 @@ export type State = Store & {
       oldChannelState: T.Teams.ChannelMembershipState,
       newChannelState: T.Teams.ChannelMembershipState
     ) => void
-    setJustFinishedAddMembersWizard: (justFinished: boolean) => void
     setMemberPublicity: (teamID: T.Teams.TeamID, showcase: boolean) => void
     setNewTeamRequests: (newTeamRequests: Map<T.Teams.TeamID, Set<string>>) => void
     setTeamRetentionPolicy: (teamID: T.Teams.TeamID, policy: T.Retention.RetentionPolicy) => void
@@ -742,7 +728,6 @@ export type State = Store & {
       join?: boolean,
       addMembers?: boolean
     ) => void
-    startAddMembersWizard: (teamID: T.Teams.TeamID) => void
     teamChangedByID: (c: EngineGen.ParamsOf<'keybase.1.NotifyTeam.teamChangedByID'>) => void
     teamSeen: (teamID: T.Teams.TeamID) => void
     updateCachedBotMember: (teamID: T.Teams.TeamID, username: string, role?: 'bot' | 'restrictedbot') => void
@@ -921,12 +906,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    finishedAddMembersWizard: () => {
-      set(s => {
-        s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, justFinished: true})
-      })
-      clearModals()
     },
     getActivityForTeams: () => {
       const f = async () => {
@@ -1366,11 +1345,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    setJustFinishedAddMembersWizard: justFinished => {
-      set(s => {
-        s.addMembersWizard.justFinished = justFinished
-      })
-    },
     setMemberPublicity: (teamID, showcase) => {
       const f = async () => {
         try {
@@ -1454,9 +1428,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    startAddMembersWizard: teamID => {
-      navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
     },
     teamChangedByID: c => {
       const {changes, teamID} = c

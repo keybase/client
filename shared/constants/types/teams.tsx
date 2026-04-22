@@ -205,7 +205,6 @@ export type AddMembersWizardState = {
   // the team because they are already in it. This state only holds the list of
   // redundant assertions from the last "Add people" action.
   membersAlreadyInTeam: Array<string>
-  justFinished: boolean
   role: AddingMemberTeamRoleType | 'setIndividually'
   teamID: TeamID
 }

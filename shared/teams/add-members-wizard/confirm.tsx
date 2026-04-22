@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {assertionToDisplay} from '@/common-adapters/usernames'
@@ -52,18 +51,13 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
   const newTeamWizard = wizard.newTeamWizard
   const {teamMeta} = useLoadedTeam(teamID, !fromNewTeamWizard)
+  const isInTeam = teamMeta.role !== 'none'
   const updateWizard = React.useCallback(
     (nextWizard: AddMembersWizard) => {
       setWizard(nextWizard)
       navigation.setParams({wizard: nextWizard})
     },
     [navigation]
-  )
-  const {finishedAddMembersWizard, isInTeam} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
-      isInTeam: Teams.getRole(s, teamID) !== 'none',
-    }))
   )
   const isSubteam = fromNewTeamWizard ? newTeamWizard?.teamType === 'subteam' : teamMeta.teamname.includes('.')
   const isBigTeam = Chat.useChatState(s => (fromNewTeamWizard ? false : getIsBigTeam(s.inboxLayout, teamID)))
@@ -101,7 +95,7 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
         const f = async () => {
           try {
             const teamID = await createNewTeamFromWizard({...newTeamWizard, error: undefined}, addingMembers)
-            C.Router2.navigateAppend({name: 'team', params: {teamID}})
+            C.Router2.navigateAppend({name: 'team', params: {justFinishedAddWizard: true, teamID}})
             C.Router2.clearModals()
           } catch (err) {
             setWaiting(false)
@@ -133,7 +127,8 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
           ],
           _ => {
             // TODO handle users not added?
-            finishedAddMembersWizard()
+            C.Router2.navUpToScreen({name: 'team', params: {justFinishedAddWizard: true, teamID}}, true)
+            C.Router2.clearModals()
           },
           err => {
             setWaiting(false)

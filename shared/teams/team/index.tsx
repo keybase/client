@@ -27,6 +27,7 @@ import {
 type Props = {
   teamID: T.Teams.TeamID
   initialTab?: T.Teams.TabKey
+  justFinishedAddWizard?: boolean
   selectedChannels?: Array<T.Chat.ConversationIDKey>
   selectedMembers?: Array<string>
 }
@@ -93,6 +94,9 @@ const TeamBody = (props: Props) => {
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
   const [invitesCollapsed, setInvitesCollapsed] = React.useState(false)
   const [subteamFilter, setSubteamFilter] = React.useState('')
+  const clearJustFinishedAddWizard = React.useCallback(() => {
+    navigation.setParams({justFinishedAddWizard: undefined})
+  }, [navigation])
 
   const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
   const teamSeen = Teams.useTeamsState(s => s.dispatch.teamSeen)
@@ -104,6 +108,13 @@ const TeamBody = (props: Props) => {
 
   C.Router2.useSafeFocusEffect(() => {
     return () => teamSeen(teamID)
+  })
+  C.Router2.useSafeFocusEffect(() => {
+    return () => {
+      if (props.justFinishedAddWizard) {
+        clearJustFinishedAddWizard()
+      }
+    }
   })
 
   const {channels, loading: loadingChannels} = useLoadedTeamChannels(teamID, teamMeta.teamname)
@@ -139,7 +150,11 @@ const TeamBody = (props: Props) => {
     data: [{type: 'header'}, {type: 'tabs'}],
     renderItem: ({item}: {item: Item}) =>
       item.type === 'header' ? (
-        <NewTeamHeader teamID={teamID} />
+        <NewTeamHeader
+          teamID={teamID}
+          justFinishedAddWizard={!!props.justFinishedAddWizard}
+          onClearJustFinishedAddWizard={clearJustFinishedAddWizard}
+        />
       ) : item.type === 'tabs' ? (
         <TeamTabs teamID={teamID} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
       ) : null,

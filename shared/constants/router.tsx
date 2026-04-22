@@ -828,7 +828,8 @@ export const appendNewChatBuilder = () => {
   navigateAppend({name: 'chatNewChat', params: {namespace: 'chat', title: 'New chat'}})
 }
 
-// Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
+// Unless you're within the add members wizard you probably should navigate to
+// `teamAddToTeamFromWhere` first instead of opening the team builder directly.
 export const appendNewTeamBuilder = (teamID: T.Teams.TeamID) => {
   navigateAppend({
     name: 'teamsTeamBuilder',

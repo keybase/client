@@ -29,22 +29,13 @@ const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
     />
   )
 }
-type FeatureTeamCardProps = {teamID: T.Teams.TeamID}
-const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
-  const {setJustFinishedAddMembersWizard, setMemberPublicity} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      setJustFinishedAddMembersWizard: s.dispatch.setJustFinishedAddMembersWizard,
-      setMemberPublicity: s.dispatch.setMemberPublicity,
-    }))
-  )
+type FeatureTeamCardProps = {
+  teamID: T.Teams.TeamID
+  onDismiss: () => void
+}
+const FeatureTeamCard = ({teamID, onDismiss}: FeatureTeamCardProps) => {
+  const setMemberPublicity = Teams.useTeamsState(s => s.dispatch.setMemberPublicity)
   const onFeature = () => setMemberPublicity(teamID, true)
-  const onNoThanks = () => {
-    setJustFinishedAddMembersWizard(false)
-  }
-  // Automatically dismisses this when the user navigates away
-  React.useEffect(() => {
-    return () => setJustFinishedAddMembersWizard(false)
-  }, [setJustFinishedAddMembersWizard])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsSetMemberPublicity(teamID))
   return (
     <Kb.Box2
@@ -73,7 +64,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
         <Kb.Button
           label="Later"
           type="Dim"
-          onClick={onNoThanks}
+          onClick={onDismiss}
           small={true}
           style={Kb.Styles.globalStyles.flexOne}
         />
@@ -84,6 +75,8 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
 
 type HeaderTitleProps = {
   teamID: T.Teams.TeamID
+  justFinishedAddWizard: boolean
+  onClearJustFinishedAddMembersWizard: () => void
 }
 
 const roleDisplay = {
@@ -101,7 +94,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamDetails: details, teamMeta: meta, yourOperations} = useLoadedTeam(teamID)
   const {teams: activityByTeam} = useActivityLevels()
   const activityLevel = activityByTeam.get(teamID) || 'none'
-  const justFinishedAddWizard = Teams.useTeamsState(s => s.addMembersWizard.justFinished)
 
   const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)
   const makePopup = (p: Kb.Popup2Parms) => {
@@ -216,8 +208,11 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   )
 
   const addInviteAndLinkBox =
-    justFinishedAddWizard && !meta.showcasing ? (
-      <FeatureTeamCard teamID={props.teamID} />
+    props.justFinishedAddWizard && !meta.showcasing ? (
+      <FeatureTeamCard
+        teamID={props.teamID}
+        onDismiss={props.onClearJustFinishedAddMembersWizard}
+      />
     ) : (
       <Kb.Box2
         direction="vertical"

@@ -66,6 +66,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 - [x] Move `newTeamWizard` state into the team wizard route stack
 - [x] Move `addMembersWizard` state into the add-members route stack
+  - [x] Remove the leftover `addMembersWizard.justFinished` store flag by carrying the post-invite UI state on the team route instead
 - [x] Move `teamSelectedChannels`, `teamSelectedMembers`, and `channelSelectedMembers` into the owning screens / popups
 - [x] Move `errorInEmailInvite` and `teamNameToLoadingInvites` into local invite screen state
 - [x] Move `errorInAddToTeam`, `errorInEditMember`, and `errorInEditWelcomeMessage` into local screen state
