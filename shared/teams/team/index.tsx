@@ -3,8 +3,10 @@ import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import {useNavigation} from '@react-navigation/native'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
 import {SelectionPopup, useActivityLevels} from '../common'
+import {TeamSelectionProvider} from '../common/selection-state'
 import TeamTabs from './tabs'
 import NewTeamHeader from './new-header'
 import Settings from './settings-tab'
@@ -22,6 +24,8 @@ import {
 type Props = {
   teamID: T.Teams.TeamID
   initialTab?: T.Teams.TabKey
+  selectedChannels?: Array<T.Chat.ConversationIDKey>
+  selectedMembers?: Array<string>
 }
 
 // keep track during session
@@ -75,6 +79,7 @@ const useTabsState = (
 const Team = (props: Props) => {
   const teamID = props.teamID
   const initialTab = props.initialTab
+  const navigation = useNavigation()
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
   const [invitesCollapsed, setInvitesCollapsed] = React.useState(false)
   const [subteamFilter, setSubteamFilter] = React.useState('')
@@ -96,6 +101,33 @@ const Team = (props: Props) => {
   useTeamsSubscribe()
   useTeamDetailsSubscribe(teamID)
   useActivityLevels()
+
+  React.useEffect(() => {
+    if (!props.selectedMembers?.length) {
+      return
+    }
+    const membersLoaded = teamMeta.memberCount === 0 || teamDetails.members.size > 0
+    if (!membersLoaded) {
+      return
+    }
+    const nextSelectedMembers = props.selectedMembers.filter(username => teamDetails.members.has(username))
+    if (nextSelectedMembers.length !== props.selectedMembers.length) {
+      navigation.setParams({selectedMembers: nextSelectedMembers.length ? nextSelectedMembers : undefined})
+    }
+  }, [navigation, props.selectedMembers, teamDetails.members, teamMeta.memberCount])
+
+  const channels = Teams.useTeamsState(s => s.channelInfo.get(teamID))
+  React.useEffect(() => {
+    if (!props.selectedChannels?.length || !channels) {
+      return
+    }
+    const nextSelectedChannels = props.selectedChannels.filter(conversationIDKey =>
+      channels.has(conversationIDKey)
+    )
+    if (nextSelectedChannels.length !== props.selectedChannels.length) {
+      navigation.setParams({selectedChannels: nextSelectedChannels.length ? nextSelectedChannels : undefined})
+    }
+  }, [channels, navigation, props.selectedChannels])
 
   // Sections
   const headerSection = {
@@ -157,29 +189,36 @@ const Team = (props: Props) => {
   }
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      fullHeight={true}
-      flex={1}
-      style={styles.container}
-      relative={true}
+    <TeamSelectionProvider
+      selectedMembers={props.selectedMembers}
+      selectedChannels={props.selectedChannels}
+      onSelectedMembersChange={selectedMembers => navigation.setParams({selectedMembers})}
+      onSelectedChannelsChange={selectedChannels => navigation.setParams({selectedChannels})}
     >
-      <Kb.SectionList
-        renderSectionHeader={renderSectionHeader}
-        stickySectionHeadersEnabled={Kb.Styles.isMobile}
-        sections={sections}
-        contentContainerStyle={styles.listContentContainer}
-        style={styles.list}
-        getItemHeight={getItemHeight}
-      />
-      <SelectionPopup
-        selectedTab={
-          selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
-        }
-        teamID={teamID}
-      />
-    </Kb.Box2>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        fullHeight={true}
+        flex={1}
+        style={styles.container}
+        relative={true}
+      >
+        <Kb.SectionList
+          renderSectionHeader={renderSectionHeader}
+          stickySectionHeadersEnabled={Kb.Styles.isMobile}
+          sections={sections}
+          contentContainerStyle={styles.listContentContainer}
+          style={styles.list}
+          getItemHeight={getItemHeight}
+        />
+        <SelectionPopup
+          selectedTab={
+            selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
+          }
+          teamID={teamID}
+        />
+      </Kb.Box2>
+    </TeamSelectionProvider>
   )
 }
 

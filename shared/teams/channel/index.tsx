@@ -5,11 +5,13 @@ import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import {useNavigation} from '@react-navigation/native'
 import {
   useAttachmentSections,
   type Item as AttachmentItem,
 } from '../../chat/conversation/info-panel/attachments'
 import {SelectionPopup, useChannelParticipants} from '../common'
+import {ChannelSelectionProvider} from '../common/selection-state'
 import ChannelTabs, {type TabKey} from './tabs'
 import ChannelHeader from './header'
 import ChannelMemberRow from './rows'
@@ -23,6 +25,7 @@ export type OwnProps = {
   teamID: T.Teams.TeamID
   conversationIDKey: T.Chat.ConversationIDKey
   selectedTab?: TabKey
+  selectedMembers?: Array<string>
 }
 
 const useLoadDataForChannelPage = (
@@ -129,6 +132,7 @@ const Channel = (props: OwnProps) => {
   const teamID = props.teamID
   const conversationIDKey = props.conversationIDKey
   const providedTab = props.selectedTab
+  const navigation = useNavigation()
 
   const meta = ConvoState.useConvoState(conversationIDKey, s => s.meta)
   const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
@@ -150,6 +154,20 @@ const Channel = (props: OwnProps) => {
         : channelParticipants
       : channelParticipants
   useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, participants)
+
+  React.useEffect(() => {
+    if (!props.selectedMembers?.length) {
+      return
+    }
+    if (meta.channelname === 'general' && !teamMembers) {
+      return
+    }
+    const channelParticipantsSet = new Set(participants)
+    const nextSelectedMembers = props.selectedMembers.filter(username => channelParticipantsSet.has(username))
+    if (nextSelectedMembers.length !== props.selectedMembers.length) {
+      navigation.setParams({selectedMembers: nextSelectedMembers.length ? nextSelectedMembers : undefined})
+    }
+  }, [meta.channelname, navigation, participants, props.selectedMembers, teamMembers])
 
   // Make the actual sections (consider farming this out into another function or file)
   const headerSection: Section = {
@@ -264,17 +282,26 @@ const Channel = (props: OwnProps) => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
-      <Kb.SectionList
-        renderSectionHeader={({section}) =>
-          section.title ? <Kb.SectionDivider label={section.title} /> : null
-        }
-        stickySectionHeadersEnabled={Kb.Styles.isMobile}
-        sections={sections}
-        contentContainerStyle={styles.listContentContainer}
-      />
-      <SelectionPopup selectedTab={selectedTab === 'members' ? 'channelMembers' : ''} teamID={teamID} />
-    </Kb.Box2>
+    <ChannelSelectionProvider
+      selectedMembers={props.selectedMembers}
+      onSelectedMembersChange={selectedMembers => navigation.setParams({selectedMembers})}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
+        <Kb.SectionList
+          renderSectionHeader={({section}) =>
+            section.title ? <Kb.SectionDivider label={section.title} /> : null
+          }
+          stickySectionHeadersEnabled={Kb.Styles.isMobile}
+          sections={sections}
+          contentContainerStyle={styles.listContentContainer}
+        />
+        <SelectionPopup
+          selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
+          teamID={teamID}
+          conversationIDKey={conversationIDKey}
+        />
+      </Kb.Box2>
+    </ChannelSelectionProvider>
   )
 }
 

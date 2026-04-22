@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
+import {useTeamSelectionState} from '../../common/selection-state'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
@@ -78,14 +79,12 @@ export const TeamMemberRow = (props: Props) => {
   const teamID = props.teamID
 
   const nav = useSafeNavigation()
-  const teamSelectedMembers = Teams.useTeamsState(s => s.teamSelectedMembers.get(teamID))
-  const anySelected = !!teamSelectedMembers?.size
-  const selected = !!teamSelectedMembers?.has(props.username)
-
-  const setMemberSelected = Teams.useTeamsState(s => s.dispatch.setMemberSelected)
+  const {selectedMembers: teamSelectedMembers, setMemberSelected} = useTeamSelectionState()
+  const anySelected = !!teamSelectedMembers.size
+  const selected = teamSelectedMembers.has(props.username)
 
   const onSelect = (selected: boolean) => {
-    setMemberSelected(teamID, props.username, selected)
+    setMemberSelected(props.username, selected)
   }
 
   const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK

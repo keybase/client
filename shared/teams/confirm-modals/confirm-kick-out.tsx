@@ -30,14 +30,10 @@ const ConfirmKickOut = (props: Props) => {
   const waiting = C.Waiting.useAnyWaiting(...waitingKeys)
   const nav = useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
-
-  const setMemberSelected = useTeamsState(s => s.dispatch.setMemberSelected)
   const removeMember = useTeamsState(s => s.dispatch.removeMember)
   const loadTeam = useTeamsState(s => s.dispatch.loadTeam)
   // TODO(Y2K-1592): do this in one RPC
   const onRemove = () => {
-    setMemberSelected(teamID, '', false, true)
-
     members.forEach(member => removeMember(teamID, member))
     if (subteamsToo) {
       subteamIDs.forEach(subteamID => members.forEach(member => removeMember(subteamID, member)))

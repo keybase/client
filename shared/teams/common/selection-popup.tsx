@@ -7,6 +7,7 @@ import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {FloatingRolePicker} from '../role-picker'
+import {useChannelSelectionState, useTeamSelectionState} from './selection-state'
 import {pluralize} from '@/util/string'
 
 type UnselectableTab = string
@@ -38,14 +39,6 @@ type Props = TeamProps | ChannelProps | UnselectableProps
 const isChannel = (props: Props): props is ChannelProps => ['channelMembers'].includes(props.selectedTab)
 const isTeam = (props: Props): props is TeamProps =>
   ['teamChannels', 'teamMembers'].includes(props.selectedTab)
-
-const getChannelSelectedCount = (props: ChannelProps) => {
-  const {conversationIDKey, selectedTab} = props
-  switch (selectedTab) {
-    default:
-      return useTeamsState.getState().channelSelectedMembers.get(conversationIDKey)?.size ?? 0
-  }
-}
 
 // In order for Selection Popup to show in a tab
 // the respective tab needs to be added to this map
@@ -129,29 +122,16 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
 
 const TeamSelectionPopup = (props: TeamProps) => {
   const {selectedTab, teamID} = props
-
-  const teamsState = useTeamsState(
-    C.useShallow(s => {
-      const selectedCount =
-        selectedTab === 'teamChannels'
-          ? (s.teamSelectedChannels.get(teamID)?.size ?? 0)
-          : (s.teamSelectedMembers.get(teamID)?.size ?? 0)
-      return {
-        selectedCount,
-        setChannelSelected: s.dispatch.setChannelSelected,
-        setMemberSelected: s.dispatch.setMemberSelected,
-      }
-    })
-  )
-  const {selectedCount, setChannelSelected, setMemberSelected} = teamsState
+  const {clearSelectedChannels, clearSelectedMembers, selectedChannels, selectedMembers} = useTeamSelectionState()
+  const selectedCount = selectedTab === 'teamChannels' ? selectedChannels.size : selectedMembers.size
 
   const onCancel = () => {
     switch (selectedTab) {
       case 'teamChannels':
-        setChannelSelected(teamID, '', false, true)
+        clearSelectedChannels()
         return
       case 'teamMembers':
-        setMemberSelected(teamID, '', false, true)
+        clearSelectedMembers()
         return
     }
   }
@@ -171,13 +151,13 @@ const TeamSelectionPopup = (props: TeamProps) => {
 
 const ChannelSelectionPopup = (props: ChannelProps) => {
   const {conversationIDKey, selectedTab, teamID} = props
-  const selectedCount = getChannelSelectedCount(props)
-  const channelSetMemberSelected = useTeamsState(s => s.dispatch.channelSetMemberSelected)
+  const {clearSelectedMembers, selectedMembers} = useChannelSelectionState()
+  const selectedCount = selectedMembers.size
   const onCancel = () => {
     switch (selectedTab) {
       // eslint-disable-next-line
       case 'channelMembers':
-        channelSetMemberSelected(conversationIDKey, '', false, true)
+        clearSelectedMembers()
         return
     }
   }
@@ -208,14 +188,14 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
   </Kb.Box2>
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
-  const membersSet = useTeamsState(s => s.teamSelectedMembers.get(teamID))
+  const {selectedMembers} = useTeamSelectionState()
   const isBigTeam = Chat.useChatState(s => getIsBigTeam(s.inboxLayout, teamID))
   const navigateAppend = C.Router2.navigateAppend
-  if (!membersSet) {
+  if (!selectedMembers.size) {
     // we shouldn't be rendered
     return null
   }
-  const members = [...membersSet]
+  const members = [...selectedMembers]
 
   // Members tab functions
   const onAddToChannel = () =>
@@ -244,7 +224,6 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   )
 }
 
-const emptySetForUseSelector = new Set<string>()
 function allSameOrNull<T>(arr: T[]): T | null {
   if (arr.length === 0) {
     return null
@@ -304,9 +283,14 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
 }
 
 const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
+  const {selectedChannels} = useTeamSelectionState()
   // Channels tab functions
   const navigateAppend = C.Router2.navigateAppend
-  const onDelete = () => navigateAppend({name: 'teamDeleteChannel', params: {teamID}})
+  const onDelete = () =>
+    navigateAppend({
+      name: 'teamDeleteChannel',
+      params: {conversationIDKeys: [...selectedChannels], teamID},
+    })
 
   return (
     <ActionsWrapper>
@@ -315,20 +299,16 @@ const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
   )
 }
 const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps) => {
-  const {channelInfo, membersSet} = useTeamsState(
-    C.useShallow(s => ({
-      channelInfo: Teams.getTeamChannelInfo(s, teamID, conversationIDKey),
-      membersSet: s.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector,
-    }))
-  )
+  const channelInfo = useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const {selectedMembers} = useChannelSelectionState()
   const {channelname} = channelInfo
   const navigateAppend = C.Router2.navigateAppend
 
-  if (!membersSet.size) {
+  if (!selectedMembers.size) {
     // we shouldn't be rendered
     return null
   }
-  const members = [...membersSet]
+  const members = [...selectedMembers]
 
   // Members tab functions
   const onAddToChannel = () =>

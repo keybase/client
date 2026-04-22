@@ -712,7 +712,6 @@ export const maybeGetMostRecentValidInviteLink = (inviteLinks: ReadonlyArray<T.T
 type Store = T.Immutable<{
   activityLevels: T.Teams.ActivityLevels
   channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
-  channelSelectedMembers: Map<T.Chat.ConversationIDKey, Set<string>>
   deletedTeams: Array<T.RPCGen.DeletedTeamInfo>
   errorInAddToTeam: string
   errorInEditMember: {error: string; teamID: T.Teams.TeamID; username: string}
@@ -733,8 +732,6 @@ type Store = T.Immutable<{
   sawSubteamsBanner: boolean
   teamDetails: Map<T.Teams.TeamID, T.Teams.TeamDetails>
   teamDetailsSubscriptionCount: Map<T.Teams.TeamID, number> // >0 if we are eagerly reloading a team
-  teamSelectedChannels: Map<T.Teams.TeamID, Set<string>>
-  teamSelectedMembers: Map<T.Teams.TeamID, Set<string>>
   teamAccessRequestsPending: Set<T.Teams.Teamname>
   addMembersWizard: T.Teams.AddMembersWizardState
   teamVersion: Map<T.Teams.TeamID, T.Teams.TeamVersion>
@@ -749,7 +746,6 @@ const initialStore: Store = {
   activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
   addMembersWizard: addMembersWizardEmptyState,
   channelInfo: new Map(),
-  channelSelectedMembers: new Map(),
   deletedTeams: [],
   errorInAddToTeam: '',
   errorInEditMember: emptyErrorInEditMember,
@@ -774,8 +770,6 @@ const initialStore: Store = {
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
-  teamSelectedChannels: new Map(),
-  teamSelectedMembers: new Map(),
   teamVersion: new Map(),
   teamnames: new Set(),
   treeLoaderTeamIDToSparseMemberInfos: new Map(),
@@ -788,12 +782,6 @@ export type State = Store & {
       users: Array<{assertion: string; role: T.Teams.TeamRoleType}>,
       sendChatNotification: boolean,
       fromTeamBuilder?: boolean
-    ) => void
-    channelSetMemberSelected: (
-      conversationIDKey: T.Chat.ConversationIDKey,
-      username: string,
-      selected: boolean,
-      clearAll?: boolean
     ) => void
     checkRequestedAccess: (teamname: string) => void
     clearNavBadges: () => void
@@ -859,20 +847,8 @@ export type State = Store & {
       oldChannelState: T.Teams.ChannelMembershipState,
       newChannelState: T.Teams.ChannelMembershipState
     ) => void
-    setChannelSelected: (
-      teamID: T.Teams.TeamID,
-      channel: string,
-      selected: boolean,
-      clearAll?: boolean
-    ) => void
     setJustFinishedAddMembersWizard: (justFinished: boolean) => void
     setMemberPublicity: (teamID: T.Teams.TeamID, showcase: boolean) => void
-    setMemberSelected: (
-      teamID: T.Teams.TeamID,
-      username: string,
-      selected: boolean,
-      clearAll?: boolean
-    ) => void
     setNewTeamInfo: (
       deletedTeams: ReadonlyArray<T.RPCGen.DeletedTeamInfo>,
       newTeams: Set<T.Teams.TeamID>,
@@ -997,20 +973,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    channelSetMemberSelected: (conversationIDKey, username, selected, clearAll) => {
-      set(s => {
-        if (clearAll) {
-          s.channelSelectedMembers.delete(conversationIDKey)
-        } else {
-          const membersSelected = mapGetEnsureValue(s.channelSelectedMembers, conversationIDKey, new Set())
-          if (selected) {
-            membersSelected.add(username)
-          } else {
-            membersSelected.delete(username)
-          }
-        }
-      })
     },
     checkRequestedAccess: _teamname => {
       // we never use teamname?
@@ -1919,20 +1881,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    setChannelSelected: (teamID, channel, selected, clearAll) => {
-      set(s => {
-        if (clearAll) {
-          s.teamSelectedChannels.delete(teamID)
-        } else {
-          const channelsSelected = mapGetEnsureValue(s.teamSelectedChannels, teamID, new Set())
-          if (selected) {
-            channelsSelected.add(channel)
-          } else {
-            channelsSelected.delete(channel)
-          }
-        }
-      })
-    },
     setJustFinishedAddMembersWizard: justFinished => {
       set(s => {
         s.addMembersWizard.justFinished = justFinished
@@ -1953,20 +1901,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    setMemberSelected: (teamID, username, selected, clearAll) => {
-      set(s => {
-        if (clearAll) {
-          s.teamSelectedMembers.delete(teamID)
-        } else {
-          const membersSelected = mapGetEnsureValue(s.teamSelectedMembers, teamID, new Set())
-          if (selected) {
-            membersSelected.add(username)
-          } else {
-            membersSelected.delete(username)
-          }
-        }
-      })
     },
     setNewTeamInfo: (deletedTeams, newTeams, teamIDToResetUsers) => {
       set(s => {

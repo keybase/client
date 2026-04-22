@@ -26,7 +26,6 @@ const ConfirmRemoveFromChannel = (props: Props) => {
   const onCancel = () => nav.safeNavigateUp()
 
   const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
-  const channelSetMemberSelected = useTeamsState(s => s.dispatch.channelSetMemberSelected)
   const removeFromChannel = C.useRPC(T.RPCChat.localRemoveFromConversationLocalRpcPromise)
 
   const onRemove = () => {
@@ -36,7 +35,6 @@ const ConfirmRemoveFromChannel = (props: Props) => {
       [{convID: T.Chat.keyToConversationID(conversationIDKey), usernames: members}],
       _ => {
         setWaiting(false)
-        channelSetMemberSelected(conversationIDKey, '', false, true)
         nav.safeNavigateUp()
         loadTeamChannelList(teamID)
       },

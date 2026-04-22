@@ -1,6 +1,7 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {Activity, useChannelParticipants} from '@/teams/common'
+import {useTeamSelectionState} from '@/teams/common/selection-state'
 import {pluralize} from '@/util/string'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as Teams from '@/stores/teams'
@@ -15,7 +16,8 @@ const ChannelRow = (props: ChannelRowProps) => {
   const channel = useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
   const isGeneral = channel.channelname === 'general'
 
-  const selected = useTeamsState(s => !!s.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey))
+  const {selectedChannels, setChannelSelected} = useTeamSelectionState()
+  const selected = selectedChannels.has(channel.conversationIDKey)
   const canPerform = useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const canDelete = canPerform.deleteChannel && !isGeneral
 
@@ -25,9 +27,8 @@ const ChannelRow = (props: ChannelRowProps) => {
   const activityLevel = useTeamsState(s => s.activityLevels.channels.get(channel.conversationIDKey) || 'none')
 
   const nav = useSafeNavigation()
-  const setChannelSelected = useTeamsState(s => s.dispatch.setChannelSelected)
   const onSelect = (newSelected: boolean) => {
-    setChannelSelected(teamID, channel.conversationIDKey, newSelected)
+    setChannelSelected(channel.conversationIDKey, newSelected)
   }
 
   const onEditChannel = () => {

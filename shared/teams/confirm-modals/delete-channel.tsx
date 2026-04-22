@@ -7,8 +7,8 @@ import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 type Props = {
+  conversationIDKeys?: Array<T.Chat.ConversationIDKey>
   teamID: T.Teams.TeamID
-  // undefined means use the currently selected channels in the store (under the channel tab of the team page)
   conversationIDKey?: T.Chat.ConversationIDKey
 }
 
@@ -22,11 +22,9 @@ const Header = () => (
 const DeleteChannel = (props: Props) => {
   const teamID = props.teamID
   const routePropChannel = props.conversationIDKey
-  const storeSelectedChannels = useTeamsState(s => s.teamSelectedChannels.get(teamID))
 
-  // When the channels get deleted, the values in the store are gone but we should keep displaying the same thing.
   const [channelIDs] = React.useState(
-    routePropChannel ? [routePropChannel] : storeSelectedChannels ? [...storeSelectedChannels] : []
+    routePropChannel ? [routePropChannel] : props.conversationIDKeys ?? []
   )
 
   const {channelMetas} = useAllChannelMetas(teamID)
@@ -50,13 +48,10 @@ const DeleteChannel = (props: Props) => {
       numOtherChans
     )}`
   }
-
-  const setChannelSelected = useTeamsState(s => s.dispatch.setChannelSelected)
   const deleteMultiChannelsConfirmed = useTeamsState(s => s.dispatch.deleteMultiChannelsConfirmed)
 
   const onDelete = () => {
     deleteMultiChannelsConfirmed(teamID, Array.from(channelIDs.values()))
-    setChannelSelected(teamID, '', false, true)
   }
 
   const navigateUp = C.Router2.navigateUp
