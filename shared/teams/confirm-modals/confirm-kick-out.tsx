@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
@@ -33,8 +33,8 @@ const ConfirmKickOut = (props: Props) => {
   const onCancel = () => nav.safeNavigateUp()
   const loadTeam = useTeamsState(s => s.dispatch.loadTeam)
   const removeMember = React.useCallback(
-    (targetTeamID: T.Teams.TeamID, username: string) =>
-      new Promise<void>((resolve, reject) => {
+    async (targetTeamID: T.Teams.TeamID, username: string) =>
+      await new Promise<void>((resolve, reject) => {
         removeMemberRPC(
           [
             {

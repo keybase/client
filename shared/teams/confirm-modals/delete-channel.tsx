@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useTeamsState} from '@/stores/teams'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
@@ -55,8 +55,8 @@ const DeleteChannel = (props: Props) => {
   const clearModals = C.Router2.clearModals
 
   const deleteChannel = React.useCallback(
-    (conversationIDKey: T.Chat.ConversationIDKey) =>
-      new Promise<void>((resolve, reject) => {
+    async (conversationIDKey: T.Chat.ConversationIDKey) =>
+      await new Promise<void>((resolve, reject) => {
         deleteChannelRPC(
           [
             {

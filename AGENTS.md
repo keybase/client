@@ -6,6 +6,7 @@
 - If a mount guard is truly needed, set the ref to `true` inside the effect body and set it to `false` in cleanup. Never rely on `useRef(true)` alone across the component lifetime, because Strict Mode remounts can leave the guard stuck `false` and silently drop async results.
 - When a component reads multiple adjacent values from the same store hook, prefer a consolidated selector with `C.useShallow(...)` instead of multiple separate subscriptions.
 - Keep types accurate. Do not use casts or misleading annotations to mask a real type mismatch just to get around an issue; fix the type or fix the implementation.
+- When importing `@/constants/types` as `T`, check whether the file uses `T.*` as values, not just types. If you add calls like `T.RPCGen.*`, `T.Chat.*`, `T.Teams.*`, or any other runtime `T.*` access, do not keep `import type * as T ...`; switch it to a value import.
 - Do not add new exported functions, types, or constants unless they are required outside the file. Prefer file-local helpers for one-off implementation details and tests.
 - Under `shared/`, non-test TypeScript source files should use the `.tsx` extension.
 - Do not edit lockfiles by hand. They are generated artifacts. If you cannot regenerate one locally, leave it unchanged.

@@ -4,7 +4,7 @@ import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeSubmit} from '@/util/safe-submit'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useTeamsSubscribe, useTeamDetailsSubscribeMountOnly} from '@/teams/subscriber'
 import LastOwnerDialog from './last-owner'
 
@@ -125,8 +125,8 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const error = C.Waiting.useAnyErrors(waitingKey)
   const navigateUp = C.Router2.navigateUp
   const navigateAppend = C.Router2.navigateAppend
+  const navUpToScreen = C.Router2.navUpToScreen
   const clearModals = C.Router2.clearModals
-  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const onDeleteTeam = () => {
     navigateUp()
     navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
