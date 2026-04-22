@@ -3,6 +3,7 @@ import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/stores/teams'
+import {useEngineActionListener} from '@/engine/action-listener'
 import * as React from 'react'
 import * as T from '@/constants/types'
 
@@ -64,6 +65,32 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
       reload()
     } else {
       hasFocusedSinceMountRef.current = true
+    }
+  })
+
+  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
+    if (enabled) {
+      reload()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', () => {
+    if (enabled) {
+      reload()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', () => {
+    if (enabled) {
+      reload()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', () => {
+    if (enabled) {
+      reload()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamExit', () => {
+    if (enabled) {
+      reload()
     }
   })
 

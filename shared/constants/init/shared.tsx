@@ -216,7 +216,7 @@ export const initSharedSubscriptions = () => {
           if (useDaemonState.getState().handshakeWaiters.size === 0) {
             ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
           }
-          useTeamsState.getState().dispatch.eagerLoadTeams()
+          useTeamsState.getState().dispatch.getTeams(true)
         }
       }
 

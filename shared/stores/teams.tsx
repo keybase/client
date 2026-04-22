@@ -626,16 +626,6 @@ export const getCanPerform = (state: State, teamname: T.Teams.Teamname): T.Teams
 export const getCanPerformByID = (state: State, teamID: T.Teams.TeamID): T.Teams.TeamOperations =>
   deriveCanPerform(state.teamRoleMap.roles.get(teamID))
 
-// Don't allow version to roll back
-export const ratchetTeamVersion = (newVersion: T.Teams.TeamVersion, oldVersion?: T.Teams.TeamVersion) =>
-  oldVersion
-    ? {
-        latestHiddenSeqno: Math.max(newVersion.latestHiddenSeqno, oldVersion.latestHiddenSeqno),
-        latestOffchainSeqno: Math.max(newVersion.latestOffchainSeqno, oldVersion.latestOffchainSeqno),
-        latestSeqno: Math.max(newVersion.latestSeqno, oldVersion.latestSeqno),
-      }
-    : newVersion
-
 export const lastActiveStatusToActivityLevel: {
   [key in T.RPCChat.LastActiveStatus]: T.Teams.ActivityLevel
 } = {
@@ -676,15 +666,12 @@ type Store = T.Immutable<{
   channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
   newTeamRequests: Map<T.Teams.TeamID, Set<string>>
   teamNameToID: Map<T.Teams.Teamname, string>
-  teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamnames: Set<T.Teams.Teamname> // TODO remove
   teamMetaStale: boolean // if we've received an update since we last loaded team list
   teamMeta: Map<T.Teams.TeamID, T.Teams.TeamMeta>
   teamRoleMap: T.Teams.TeamRoleMap
   teamDetails: Map<T.Teams.TeamID, T.Teams.TeamDetails>
-  teamDetailsSubscriptionCount: Map<T.Teams.TeamID, number> // >0 if we are eagerly reloading a team
   addMembersWizard: T.Teams.AddMembersWizardState
-  teamVersion: Map<T.Teams.TeamID, T.Teams.TeamVersion>
   teamIDToMembers: Map<T.Teams.TeamID, Map<string, T.Teams.MemberInfo>> // Used by chat sidebar until team loading gets easier
   teamIDToRetentionPolicy: Map<T.Teams.TeamID, T.Retention.RetentionPolicy>
 }>
@@ -695,15 +682,12 @@ const initialStore: Store = {
   channelInfo: new Map(),
   newTeamRequests: new Map(),
   teamDetails: new Map(),
-  teamDetailsSubscriptionCount: new Map(),
   teamIDToMembers: new Map(),
   teamIDToRetentionPolicy: new Map(),
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
-  teamMetaSubscribeCount: 0,
   teamNameToID: new Map(),
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
-  teamVersion: new Map(),
   teamnames: new Set(),
 }
 
@@ -728,16 +712,15 @@ export type State = Store & {
     ) => void
     deleteChannelConfirmed: (teamID: T.Teams.TeamID, conversationIDKey: T.Chat.ConversationIDKey) => void
     deleteTeam: (teamID: T.Teams.TeamID) => void
-    eagerLoadTeams: () => void
     finishedAddMembersWizard: () => void
     getActivityForTeams: () => void
     getMembers: (teamID: T.Teams.TeamID, forceReload?: boolean) => Promise<void>
     getTeamRetentionPolicy: (teamID: T.Teams.TeamID) => void
-    getTeams: (subscribe?: boolean, forceReload?: boolean) => void
+    getTeams: (forceReload?: boolean) => void
     ignoreRequest: (teamID: T.Teams.TeamID, teamname: string, username: string) => void
     launchNewTeamWizardOrModal: (subteamOf?: T.Teams.TeamID) => void
     leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
-    loadTeam: (teamID: T.Teams.TeamID, _subscribe?: boolean) => void
+    loadTeam: (teamID: T.Teams.TeamID) => void
     loadTeamChannelList: (teamID: T.Teams.TeamID) => void
     manageChatChannels: (teamID: T.Teams.TeamID) => void
     notifyTeamTeamRoleMapChanged: (newVersion: number) => void
@@ -749,7 +732,6 @@ export type State = Store & {
     removePendingInvite: (teamID: T.Teams.TeamID, inviteID: string) => void
     renameTeam: (oldName: string, newName: string) => void
     resetState: () => void
-    resetTeamMetaStale: () => void
     saveChannelMembership: (
       teamID: T.Teams.TeamID,
       oldChannelState: T.Teams.ChannelMembershipState,
@@ -769,8 +751,6 @@ export type State = Store & {
     startAddMembersWizard: (teamID: T.Teams.TeamID) => void
     teamChangedByID: (c: EngineGen.ParamsOf<'keybase.1.NotifyTeam.teamChangedByID'>) => void
     teamSeen: (teamID: T.Teams.TeamID) => void
-    unsubscribeTeamDetails: (teamID: T.Teams.TeamID) => void
-    unsubscribeTeamList: () => void
     updateCachedBotMember: (teamID: T.Teams.TeamID, username: string, role?: 'bot' | 'restrictedbot') => void
     updateChannelName: (
       teamID: T.Teams.TeamID,
@@ -948,14 +928,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    eagerLoadTeams: () => {
-      if (get().teamMetaSubscribeCount > 0) {
-        logger.info('eagerly reloading')
-        get().dispatch.getTeams()
-      } else {
-        logger.info('skipping')
-      }
-    },
     finishedAddMembersWizard: () => {
       set(s => {
         s.addMembersWizard = T.castDraft({...addMembersWizardEmptyState, justFinished: true})
@@ -1073,13 +1045,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    getTeams: (subscribe, forceReload) => {
-      if (subscribe) {
-        set(s => {
-          s.teamMetaSubscribeCount++
-        })
-      }
-
+    getTeams: forceReload => {
       const f = async () => {
         const username = useCurrentUserState.getState().username
         const loggedIn = useConfigState.getState().loggedIn
@@ -1153,7 +1119,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           logger.info(`leaveTeam: left ${teamname} successfully`)
           clearModals()
           navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
-          get().dispatch.getTeams()
+          get().dispatch.getTeams(true)
         } catch (error) {
           if (error instanceof RPCError) {
             // handled through waiting store
@@ -1163,22 +1129,10 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    loadTeam: (teamID, subscribe) => {
-      set(s => {
-        if (subscribe) {
-          s.teamDetailsSubscriptionCount.set(teamID, (s.teamDetailsSubscriptionCount.get(teamID) ?? 0) + 1)
-        }
-      })
+    loadTeam: teamID => {
       const f = async () => {
         if (!teamID || teamID === T.Teams.noTeamID) {
           logger.warn(`bail on invalid team ID ${teamID}`)
-          return
-        }
-
-        // If we're already subscribed to team details for this team ID, we're already up to date
-        const subscriptions = get().teamDetailsSubscriptionCount.get(teamID) ?? 0
-        if (subscribe && subscriptions > 1) {
-          logger.info('bail on already subscribed')
           return
         }
         try {
@@ -1271,8 +1225,9 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           break
         }
         case 'keybase.1.NotifyTeam.teamMetadataUpdate':
-          get().dispatch.eagerLoadTeams()
-          get().dispatch.resetTeamMetaStale()
+          set(s => {
+            s.teamMetaStale = true
+          })
           break
         case 'chat.1.NotifyChat.ChatSetTeamRetention': {
           const {convs, teamID} = action.payload.params
@@ -1430,11 +1385,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       ignorePromise(f())
     },
     resetState,
-    resetTeamMetaStale: () => {
-      set(s => {
-        s.teamMetaStale = true
-      })
-    },
     saveChannelMembership: (teamID, oldChannelState, newChannelState) => {
       const f = async () => {
         const waitingKey = S.waitingKeyTeamsTeam(teamID)
@@ -1474,7 +1424,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             S.waitingKeyTeamsTeam(teamID),
             S.waitingKeyTeamsSetMemberPublicity(teamID),
           ])
-          get().dispatch.getTeams(false)
+          get().dispatch.getTeams(true)
         } catch (error) {
           if (error instanceof RPCError) {
             logger.info(error.message)
@@ -1555,27 +1505,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
     },
     teamChangedByID: c => {
-      const {changes, teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = c
-      // Any of the Seqnos can be 0, which means that it was unknown at the source
-      // at the time when this notification was generated.
-      const version = get().teamVersion.get(teamID)
-      let versionChanged = true
-      if (version) {
-        versionChanged =
-          latestHiddenSeqno > version.latestHiddenSeqno ||
-          latestOffchainSeqno > version.latestOffchainSeqno ||
-          latestSeqno > version.latestSeqno
-      }
-      const shouldLoad = versionChanged && !!get().teamDetailsSubscriptionCount.get(teamID)
-      set(s => {
-        s.teamVersion.set(
-          teamID,
-          ratchetTeamVersion({latestHiddenSeqno, latestOffchainSeqno, latestSeqno}, s.teamVersion.get(teamID))
-        )
-      })
-      if (shouldLoad) {
-        get().dispatch.loadTeam(teamID)
-      }
+      const {changes, teamID} = c
       if (changes.membershipChanged && get().teamIDToMembers.has(teamID)) {
         ignorePromise(get().dispatch.getMembers(teamID, true))
       }
@@ -1591,18 +1521,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    unsubscribeTeamDetails: teamID => {
-      set(s => {
-        s.teamDetailsSubscriptionCount.set(teamID, (s.teamDetailsSubscriptionCount.get(teamID) ?? 1) - 1)
-      })
-    },
-    unsubscribeTeamList: () => {
-      set(s => {
-        if (s.teamMetaSubscribeCount > 0) {
-          s.teamMetaSubscribeCount--
-        }
-      })
     },
     updateCachedBotMember: (teamID, username, role) => {
       if (!teamID || teamID === T.Teams.noTeamID || teamID === T.Teams.newTeamWizardTeamID) {
