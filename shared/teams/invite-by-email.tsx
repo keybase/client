@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -74,17 +74,12 @@ const Container = (ownProps: OwnProps) => {
         <Kb.Text style={styles.header} type="Header">
           Invite by email
         </Kb.Text>
-        <Kb.Box2
-          direction="horizontal"
-          alignItems="center"
-          style={{margin: Kb.Styles.globalMargins.tiny}}
-        >
+        <Kb.Box2 direction="horizontal" alignItems="center" style={{margin: Kb.Styles.globalMargins.tiny}}>
           <Kb.Text style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
             Add these team members to {name} as:
           </Kb.Text>
           <FloatingRolePicker
             presetRole={role}
-
             onConfirm={onConfirmRolePicker}
             onCancel={onCancelRolePicker}
             position="bottom center"
