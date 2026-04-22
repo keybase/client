@@ -51,7 +51,7 @@ const Container = (ownProps: OwnProps) => {
       name: 'profileRevoke',
       params: {
         icon: siteIconFull,
-        kid: assertion.kid,
+        kid: assertion.kid || undefined,
         platform: type as T.More.PlatformsExpandedType,
         platformHandle: value,
         proofId: sigID,

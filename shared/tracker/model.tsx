@@ -122,7 +122,7 @@ export const rpcAssertionToAssertion = (row: T.RPCGen.Identify3Row): T.Tracker.A
   ...noAssertion,
   assertionKey: `${row.key}:${row.value}`,
   color: rpcRowColorToColor(row.color),
-  kid: row.kid || ',',
+  kid: row.kid ?? '',
   metas: (row.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})),
   priority: row.priority,
   proofURL: row.proofURL,

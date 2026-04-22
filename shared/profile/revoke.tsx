@@ -37,7 +37,7 @@ const RevokeProof = (ownProps: OwnProps) => {
     }
     if (platform === 'pgp') {
       if (!kid) {
-        clearModals()
+        setErrorMessage('This PGP key cannot be dropped because its key ID is missing.')
         return
       }
       revokeKey([{keyID: kid}, C.waitingKeyProfile], onSuccess, error => {
