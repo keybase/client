@@ -6,6 +6,7 @@ import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
+import {useEngineActionListener} from '@/engine/action-listener'
 import {
   useAttachmentSections,
   type Item as AttachmentItem,
@@ -120,6 +121,20 @@ type Item =
   | AttachmentItem
 
 type Section = Kb.SectionType<Item>
+
+const useNavigateAwayOnDeletedTeam = (teamID: T.Teams.TeamID) => {
+  const navUpToScreen = C.Router2.navUpToScreen
+  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
+    if (action.payload.params.teamID === teamID) {
+      navUpToScreen('teamsRoot')
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
+    if (action.payload.params.teamID === teamID) {
+      navUpToScreen('teamsRoot')
+    }
+  })
+}
 
 const ChannelBody = (props: OwnProps) => {
   const teamID = props.teamID
@@ -292,13 +307,16 @@ const ChannelBody = (props: OwnProps) => {
   )
 }
 
-const Channel = (props: OwnProps) => (
-  <LoadedTeamProvider teamID={props.teamID}>
-    <ActivityLevelsProvider>
-      <ChannelBody {...props} />
-    </ActivityLevelsProvider>
-  </LoadedTeamProvider>
-)
+const Channel = (props: OwnProps) => {
+  useNavigateAwayOnDeletedTeam(props.teamID)
+  return (
+    <LoadedTeamProvider teamID={props.teamID}>
+      <ActivityLevelsProvider>
+        <ChannelBody {...props} />
+      </ActivityLevelsProvider>
+    </LoadedTeamProvider>
+  )
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

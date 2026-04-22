@@ -24,7 +24,6 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import * as Util from '@/constants/teams'
-import {getTab} from '@/constants/router'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 
 export {
@@ -718,7 +717,6 @@ export type State = Store & {
     leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
     loadTeam: (teamID: T.Teams.TeamID) => void
     loadTeamChannelList: (teamID: T.Teams.TeamID) => void
-    manageChatChannels: (teamID: T.Teams.TeamID) => void
     notifyTeamTeamRoleMapChanged: (newVersion: number) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     onGregorPushState: (gs: Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>) => void
@@ -1186,9 +1184,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    manageChatChannels: teamID => {
-      navigateAppend({name: 'teamAddToChannels', params: {teamID}})
-    },
     notifyTeamTeamRoleMapChanged: (newVersion: number) => {
       const loadedVersion = get().teamRoleMap.loadedVersion
       logger.info(`Got teamRoleMapChanged with version ${newVersion}, loadedVersion is ${loadedVersion}`)
@@ -1199,12 +1194,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case 'chat.1.chatUi.chatShowManageChannels': {
-          const {teamname} = action.payload.params
-          const teamID = get().teamNameToID.get(teamname) ?? T.Teams.noTeamID
-          get().dispatch.manageChatChannels(teamID)
-          break
-        }
         case 'chat.1.NotifyChat.ChatSetTeamRetention': {
           const {convs, teamID} = action.payload.params
           const first = convs?.[0]
@@ -1230,17 +1219,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
         case 'keybase.1.NotifyTeam.teamChangedByID':
           get().dispatch.teamChangedByID(action.payload.params)
-          break
-        case 'keybase.1.NotifyTeam.teamDeleted':
-          // likely wrong?
-          if (getTab()) {
-            navUpToScreen('teamsRoot')
-          }
-          break
-        case 'keybase.1.NotifyTeam.teamExit':
-          if (getTab()) {
-            navUpToScreen('teamsRoot')
-          }
           break
         case 'keybase.1.gregorUI.pushState': {
           const {state} = action.payload.params

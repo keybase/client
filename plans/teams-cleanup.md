@@ -161,9 +161,9 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [ ] Stop treating `teams` as a background cache owner
 - [x] Move badge-derived team adornment state (`deletedTeams`, `newTeams`, `teamIDToResetUsers`) out of `stores/teams.tsx` into `stores/notifications.tsx`
 - [ ] Convert mounted-screen-only reactions to direct listeners plus reload
-  - [ ] `chat.1.chatUi.chatShowManageChannels`
-  - [ ] `keybase.1.NotifyTeam.teamDeleted`
-  - [ ] `keybase.1.NotifyTeam.teamExit`
+  - [x] `chat.1.chatUi.chatShowManageChannels`
+  - [x] `keybase.1.NotifyTeam.teamDeleted`
+  - [x] `keybase.1.NotifyTeam.teamExit`
   - [x] `chat.1.NotifyChat.ChatWelcomeMessageLoaded`
 - [ ] Re-evaluate remaining teams engine handlers after earlier chunks land
 - [x] Delete dead subscription-count bookkeeping once no screen depends on warmed caches

@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
+import {useEngineActionListener} from '@/engine/action-listener'
 import {SelectionPopup, ActivityLevelsProvider} from '../common'
 import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {TeamSelectionProvider} from '../common/selection-state'
@@ -69,6 +70,20 @@ const useTabsState = (
     }
   }, [teamID, defaultSelectedTab, dispatchClearWaiting])
   return [selectedTab, setSelectedTab]
+}
+
+const useNavigateAwayOnDeletedTeam = (teamID: T.Teams.TeamID) => {
+  const navUpToScreen = C.Router2.navUpToScreen
+  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
+    if (action.payload.params.teamID === teamID) {
+      navUpToScreen('teamsRoot')
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
+    if (action.payload.params.teamID === teamID) {
+      navUpToScreen('teamsRoot')
+    }
+  })
 }
 
 const TeamBody = (props: Props) => {
@@ -221,15 +236,18 @@ const TeamWithChannelsProvider = (props: Props) => {
   )
 }
 
-const Team = (props: Props) => (
-  <LoadedTeamProvider teamID={props.teamID}>
-    <LoadedTeamsListProvider>
-      <ActivityLevelsProvider>
-        <TeamWithChannelsProvider {...props} />
-      </ActivityLevelsProvider>
-    </LoadedTeamsListProvider>
-  </LoadedTeamProvider>
-)
+const Team = (props: Props) => {
+  useNavigateAwayOnDeletedTeam(props.teamID)
+  return (
+    <LoadedTeamProvider teamID={props.teamID}>
+      <LoadedTeamsListProvider>
+        <ActivityLevelsProvider>
+          <TeamWithChannelsProvider {...props} />
+        </ActivityLevelsProvider>
+      </LoadedTeamsListProvider>
+    </LoadedTeamProvider>
+  )
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {

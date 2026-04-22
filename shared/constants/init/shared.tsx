@@ -415,12 +415,9 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case 'chat.1.chatUi.chatShowManageChannels':
     case 'keybase.1.NotifyTeam.teamMetadataUpdate':
     case 'keybase.1.NotifyTeam.teamRoleMapChanged':
     case 'keybase.1.NotifyTeam.teamChangedByID':
-    case 'keybase.1.NotifyTeam.teamDeleted':
-    case 'keybase.1.NotifyTeam.teamExit':
       {
         const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
         useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
