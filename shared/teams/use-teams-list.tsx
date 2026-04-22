@@ -57,16 +57,18 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
     reload()
   }, [reload])
 
-  C.Router2.useSafeFocusEffect(() => {
-    if (!enabled) {
-      return
-    }
-    if (hasFocusedSinceMountRef.current) {
-      reload()
-    } else {
-      hasFocusedSinceMountRef.current = true
-    }
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      if (!enabled) {
+        return
+      }
+      if (hasFocusedSinceMountRef.current) {
+        reload()
+      } else {
+        hasFocusedSinceMountRef.current = true
+      }
+    }, [enabled, reload])
+  )
 
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
     if (enabled) {

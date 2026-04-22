@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import OpenMeta from './openmeta'
 import {default as TeamInfo, type Props as TIProps} from './teaminfo'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useTeamsList, useTeamsListNameToIDMap} from '@/teams/use-teams-list'
+import {useTeamsList} from '@/teams/use-teams-list'
 import {showTeamByName} from '@/teams/team-page-actions'
 
 type OwnProps = {
@@ -18,7 +18,7 @@ const noTeams = new Array<T.Tracker.TeamShowcase>()
 const Container = (ownProps: OwnProps) => {
   const isYou = useCurrentUserState(s => s.username === ownProps.username)
   const {teams} = useTeamsList()
-  const teamNameToID = useTeamsListNameToIDMap()
+  const teamNameToID = React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
   const teamNames = React.useMemo(() => new Set(teams.map(team => team.teamname)), [teams])
   const youAreInTeams = teams.length > 0
   const teamShowcase = ownProps.teamShowcase || noTeams
