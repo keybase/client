@@ -153,12 +153,13 @@ const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
   const navigateAppend = C.Router2.navigateAppend
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsCreation)
   const onSkip = () => {
-    if (!wizard.newTeamWizard) {
+    const newTeamWizard = wizard.newTeamWizard
+    if (!newTeamWizard) {
       return
     }
-    const cleanWizard = {
+    const cleanWizard: AddMembersWizard = {
       ...wizard,
-      newTeamWizard: {...wizard.newTeamWizard, error: undefined},
+      newTeamWizard: {...newTeamWizard, error: undefined},
     }
     navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: cleanWizard}}, true)
     const f = async () => {
@@ -168,15 +169,14 @@ const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
         clearModals()
       } catch (err) {
         const errorMessage = err instanceof RPCError ? err.desc : String(err)
+        const erroredWizard: AddMembersWizard = {
+          ...wizard,
+          newTeamWizard: {...newTeamWizard, error: errorMessage},
+        }
         navigateAppend(
           {
             name: 'teamAddToTeamFromWhere',
-            params: {
-              wizard: {
-                ...wizard,
-                newTeamWizard: {...wizard.newTeamWizard, error: errorMessage},
-              },
-            },
+            params: {wizard: erroredWizard},
           },
           true
         )

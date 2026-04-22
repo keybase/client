@@ -29,14 +29,14 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
           return
         }
         const f = async () => {
-          const wizard = await addMembersToWizard(
+          const nextWizard = await addMembersToWizard(
             wizard,
             r.map(m => ({
               ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
               role: 'writer',
             }))
           )
-          navigateAppend({name: 'teamAddToTeamConfirm', params: {wizard}}, true)
+          navigateAppend({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
         }
         C.ignorePromise(f())
       },

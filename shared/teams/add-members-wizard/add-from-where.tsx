@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import * as T from '@/constants/types'
 import {type AddMembersWizard} from './state'
 import {useSafeNavigation} from '@/util/safe-navigation'

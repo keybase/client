@@ -28,7 +28,7 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()
   const navigateAppend = C.Router2.navigateAppend
-  const onContinue = () => {
+  const onContinue = React.useCallback(() => {
     const wizard = newTeamWizardToAddMembersWizard(wizardState, {
       addingMembers: [...selectedMembers].map(assertion => ({assertion, role: 'writer'})),
     })
@@ -37,7 +37,7 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
       name: selectedMembers.size ? 'teamAddToTeamConfirm' : 'teamAddToTeamFromWhere',
       params: {wizard},
     })
-  }
+  }, [navigateAppend, navigation, selectedMembers, wizardState])
 
   const yourUsername = useCurrentUserState(s => s.username)
   const parentTeamID = wizardState.parentTeamID ?? T.Teams.noTeamID
