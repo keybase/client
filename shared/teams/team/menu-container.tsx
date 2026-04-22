@@ -2,11 +2,11 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import * as FS from '@/constants/fs'
-import * as Teams from '@/stores/teams'
 import capitalize from 'lodash/capitalize'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {useLoadedTeam} from './use-loaded-team'
+import {makeAddMembersWizard} from '../add-members-wizard/state'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -88,11 +88,10 @@ const Container = (ownProps: OwnProps) => {
   const ownerCount = [...teamDetails.members.values()].filter(member => member.type === 'owner').length
   const canLeaveTeam = role !== 'none' && !(role === 'owner' && ownerCount <= 1)
   const canViewFolder = !yourOperations.joinTeam
-  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const onAddOrInvitePeople = () => {
-    startAddMembersWizard(teamID)
-  }
   const navigateAppend = C.Router2.navigateAppend
+  const onAddOrInvitePeople = () => {
+    navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
+  }
   const onDeleteTeam = () => {
     navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
   }

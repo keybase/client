@@ -3,6 +3,7 @@ import type * as T from '@/constants/types'
 import {formatPhoneNumber} from '@/util/phone-numbers'
 import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
+import {useLoadedTeam} from '../../use-loaded-team'
 
 export type Props = {
   isKeybaseUser?: boolean
@@ -82,8 +83,8 @@ const labelledInviteRegex = /^(.+?) \((.+)\)$/
 // TODO: when removing flags.teamsRedesign, move this into the component itself
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = useTeamsState(s => s.teamDetails.get(teamID))
-  const _invites = teamDetails?.invites
+  const {teamDetails} = useLoadedTeam(teamID)
+  const _invites = teamDetails.invites
 
   const removePendingInvite = useTeamsState(s => s.dispatch.removePendingInvite)
   const _onCancelInvite = (inviteID: string) => {

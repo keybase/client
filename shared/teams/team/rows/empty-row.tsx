@@ -2,11 +2,13 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
+import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
+import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
+import {useLoadedTeam} from '../use-loaded-team'
 
 type Props = {
   type: 'channelsEmpty' | 'channelsFew' | 'members' | 'subteams'
@@ -31,8 +33,6 @@ const buttonLabel = {
 const useSecondaryAction = (props: Props) => {
   const {teamID, conversationIDKey} = props
   const nav = useSafeNavigation()
-  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const launchNewTeamWizardOrModal = Teams.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onSecondaryAction = () => {
     switch (props.type) {
       case 'members':
@@ -42,11 +42,17 @@ const useSecondaryAction = (props: Props) => {
             params: {conversationIDKey: conversationIDKey, teamID},
           })
         } else {
-          startAddMembersWizard(teamID)
+          nav.safeNavigateAppend({
+            name: 'teamAddToTeamFromWhere',
+            params: {wizard: makeAddMembersWizard(teamID)},
+          })
         }
         break
       case 'subteams':
-        launchNewTeamWizardOrModal(teamID)
+        nav.safeNavigateAppend({
+          name: 'teamWizard2TeamInfo',
+          params: {wizard: makeNewTeamWizard({parentTeamID: teamID, teamType: 'subteam'})},
+        })
         break
       case 'channelsFew':
         nav.safeNavigateAppend({name: 'chatCreateChannel', params: {teamID}})
@@ -82,7 +88,7 @@ Make it a big team by creating chat channels.`
 
 const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
-  const teamMeta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
+  const {teamMeta} = useLoadedTeam(teamID)
   const notIn = teamMeta.role === 'none' || props.notChannelMember
   const you = useCurrentUserState(s => s.username)
   const onSecondaryAction = useSecondaryAction(props)

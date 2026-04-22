@@ -7,6 +7,7 @@ import {useTeamSelectionState} from '../../common/selection-state'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
+import {useLoadedTeam} from '../use-loaded-team'
 
 export type Props = {
   firstItem: boolean
@@ -279,17 +280,14 @@ const blankInfo = Teams.initialMemberInfo
 
 const Container = (ownProps: OwnProps) => {
   const {teamID, firstItem, username} = ownProps
-  const {members, reAddToTeam, removeMember, youCanManageMembers} = Teams.useTeamsState(
-    C.useShallow(s => {
-      const details = s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails
-      const {members} = details
-      const m = Teams.getTeamMeta(s, teamID)
-      const {teamname} = m
-      const youCanManageMembers = Teams.getCanPerform(s, teamname).manageMembers
-      const {dispatch} = s
-      const {removeMember, reAddToTeam} = dispatch
-      return {members, reAddToTeam, removeMember, youCanManageMembers}
-    })
+  const {teamDetails, yourOperations} = useLoadedTeam(teamID)
+  const members = teamDetails.members
+  const youCanManageMembers = yourOperations.manageMembers
+  const {reAddToTeam, removeMember} = Teams.useTeamsState(
+    C.useShallow(s => ({
+      reAddToTeam: s.dispatch.reAddToTeam,
+      removeMember: s.dispatch.removeMember,
+    }))
   )
   const info = members.get(username) || blankInfo
 

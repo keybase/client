@@ -3,6 +3,7 @@ import type * as T from '@/constants/types'
 import {HeaderRightActions} from './main/header'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useTeamsState} from '@/stores/teams'
+import {makeNewTeamWizard} from './new-team/wizard/state'
 import {useNavigation, useRoute} from '@react-navigation/native'
 import type {RouteProp} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
@@ -15,9 +16,9 @@ type TeamsRootParamList = {teamsRoot: TeamsRootParams}
 
 const useHeaderActions = () => {
   const nav = useSafeNavigation()
-  const launchNewTeamWizardOrModal = useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
-    onCreateTeam: () => launchNewTeamWizardOrModal(),
+    onCreateTeam: () =>
+      nav.safeNavigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}}),
     onJoinTeam: () => nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}}),
   }
 }

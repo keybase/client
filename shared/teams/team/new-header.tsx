@@ -13,8 +13,12 @@ import {makeAddMembersWizard} from '../add-members-wizard/state'
 import {useLoadedTeam} from './use-loaded-team'
 
 const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
-  const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const onAdd = () => startAddMembersWizard(teamID)
+  const nav = useSafeNavigation()
+  const onAdd = () =>
+    nav.safeNavigateAppend({
+      name: 'teamAddToTeamFromWhere',
+      params: {wizard: makeAddMembersWizard(teamID)},
+    })
   return (
     <Kb.Button
       label="Add/Invite people"
@@ -276,12 +280,7 @@ export default HeaderTitle
 
 const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const nav = useSafeNavigation()
-  const {meta, yourOperations} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      meta: Teams.getTeamMeta(s, teamID),
-      yourOperations: Teams.getCanPerformByID(s, teamID),
-    }))
-  )
+  const {teamMeta: meta, yourOperations} = useLoadedTeam(teamID)
   const yourUsername = useCurrentUserState(s => s.username)
 
   const onAddSelf = () => {

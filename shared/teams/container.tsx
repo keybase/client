@@ -6,6 +6,7 @@ import Main from './main'
 import {useActivityLevels} from './common'
 import {useTeamsList} from './use-teams-list'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {makeNewTeamWizard} from './new-team/wizard/state'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
@@ -60,13 +61,11 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
   const {reload, teams} = useTeamsList()
   const data = Teams.useTeamsState(
     C.useShallow(s => {
-      const {deletedTeams, activityLevels, dispatch} = s
+      const {deletedTeams, activityLevels} = s
       const {newTeamRequests, newTeams, teamIDToResetUsers} = s
-      const {launchNewTeamWizardOrModal} = dispatch
       return {
         activityLevels,
         deletedTeams,
-        launchNewTeamWizardOrModal,
         newTeamRequests,
         newTeams,
         teamIDToResetUsers,
@@ -74,7 +73,7 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
     })
   )
   const {activityLevels, deletedTeams, newTeamRequests, newTeams} = data
-  const {launchNewTeamWizardOrModal, teamIDToResetUsers} = data
+  const {teamIDToResetUsers} = data
 
   const orderedTeams = orderTeams(teams, newTeamRequests, teamIDToResetUsers, newTeams, sort, activityLevels, filter)
   const teamItems = orderedTeams.map(teamMeta => ({
@@ -90,7 +89,8 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
 
   const nav = useSafeNavigation()
   const navigation = useNavigation<NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>>()
-  const onCreateTeam = () => launchNewTeamWizardOrModal()
+  const onCreateTeam = () =>
+    nav.safeNavigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}})
   const onJoinTeam = () => nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}})
 
   return (

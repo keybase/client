@@ -8,6 +8,7 @@ import MenuHeader from '../team/rows/menu-header.new'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
+import {useLoadedTeam} from '../team/use-loaded-team'
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -39,13 +40,8 @@ const ChannelMemberRow = (props: Props) => {
   const participantInfo = ConvoState.useConvoState(conversationIDKey, s => s.participants)
   const {selectedMembers: channelSelectedMembers, setMemberSelected: channelSetMemberSelected} =
     useChannelSelectionState()
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => ({
-      teamMemberInfo: s.teamDetails.get(teamID)?.members.get(username) ?? Teams.initialMemberInfo,
-      yourOperations: Teams.getCanPerformByID(s, teamID),
-    }))
-  )
-  const {teamMemberInfo, yourOperations} = teamsState
+  const {teamDetails, yourOperations} = useLoadedTeam(teamID)
+  const teamMemberInfo = teamDetails.members.get(username) ?? Teams.initialMemberInfo
   const you = useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'

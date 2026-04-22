@@ -1,7 +1,8 @@
 import * as React from 'react'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import {useSafeNavigation} from '@/util/safe-navigation'
+import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 
 type Props = {
   setSubteamFilter: React.Dispatch<React.SetStateAction<string>>
@@ -10,8 +11,12 @@ type Props = {
 }
 
 const AddSubteam = ({setSubteamFilter, subteamFilter, teamID}: Props) => {
-  const launchNewTeamWizardOrModal = useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
-  const onCreateSubteam = () => launchNewTeamWizardOrModal(teamID)
+  const nav = useSafeNavigation()
+  const onCreateSubteam = () =>
+    nav.safeNavigateAppend({
+      name: 'teamWizard2TeamInfo',
+      params: {wizard: makeNewTeamWizard({parentTeamID: teamID, teamType: 'subteam'})},
+    })
   const onChangeFilter = (filter: string) => setSubteamFilter(filter)
   // clear filter on unmount
   React.useEffect(
