@@ -3,6 +3,7 @@ import {bodyToJSON} from '@/constants/rpc-utils'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import * as ConvoState from '@/stores/convostate'
+import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/stores/teams'
 import logger from '@/logger'
 import * as React from 'react'
@@ -34,6 +35,12 @@ type ChatTeamNamesState = {
 type ChatManageChannelsBadgeState = {
   loading: boolean
   showBadge: boolean
+}
+
+type ChosenChannelsStoreState = {
+  loaded: boolean
+  loading: boolean
+  teamnames: ReadonlySet<string>
 }
 
 const chosenChannelsGregorKey = 'chosenChannelsForTeam'
@@ -87,9 +94,11 @@ const emptyChatTeamNamesState: ChatTeamNamesState = {
   teamnames: emptyTeamnames,
 }
 
-const emptyChatManageChannelsBadgeState: ChatManageChannelsBadgeState = {
+const emptyChosenChannelsTeamnames = new Set<string>()
+const emptyChosenChannelsStoreState: ChosenChannelsStoreState = {
+  loaded: false,
   loading: false,
-  showBadge: false,
+  teamnames: emptyChosenChannelsTeamnames,
 }
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
@@ -104,6 +113,184 @@ const getChosenChannelsTeams = (
   const chosenChannels = items?.find(item => item.item?.category === chosenChannelsGregorKey)
   const parsed = bodyToJSON(chosenChannels?.item?.body)
   return new Set(Array.isArray(parsed) ? parsed.filter((teamname): teamname is string => typeof teamname === 'string') : [])
+}
+
+const areStringSetsEqual = (left: ReadonlySet<string>, right: ReadonlySet<string>) => {
+  if (left.size !== right.size) {
+    return false
+  }
+  for (const value of left) {
+    if (!right.has(value)) {
+      return false
+    }
+  }
+  return true
+}
+
+let chosenChannelsStoreState = emptyChosenChannelsStoreState
+let chosenChannelsInFlight: Promise<void> | undefined
+let chosenChannelsLoadedAt = 0
+const chosenChannelsListeners = new Set<() => void>()
+const chosenChannelsReloadStaleMs = 30_000
+
+const subscribeChosenChannelsStore = (listener: () => void) => {
+  chosenChannelsListeners.add(listener)
+  return () => {
+    chosenChannelsListeners.delete(listener)
+  }
+}
+
+const notifyChosenChannelsStore = () => {
+  chosenChannelsListeners.forEach(listener => listener())
+}
+
+const setChosenChannelsStoreState = (nextState: ChosenChannelsStoreState) => {
+  if (
+    chosenChannelsStoreState.loaded === nextState.loaded &&
+    chosenChannelsStoreState.loading === nextState.loading &&
+    areStringSetsEqual(chosenChannelsStoreState.teamnames, nextState.teamnames)
+  ) {
+    return
+  }
+  chosenChannelsStoreState = nextState
+  if (nextState.loaded) {
+    chosenChannelsLoadedAt = Date.now()
+  }
+  notifyChosenChannelsStore()
+}
+
+const setChosenChannelsStoreFromItems = (
+  items: ReadonlyArray<{item?: T.RPCGen.Gregor1.Item | null}> | null | undefined
+) => {
+  setChosenChannelsStoreState({
+    loaded: true,
+    loading: false,
+    teamnames: getChosenChannelsTeams(items),
+  })
+}
+
+const getChosenChannelsStoreState = () => chosenChannelsStoreState
+
+const resetChosenChannelsStore = () => {
+  chosenChannelsStoreState = emptyChosenChannelsStoreState
+  chosenChannelsInFlight = undefined
+  chosenChannelsLoadedAt = 0
+}
+
+const loadChosenChannelsStore = async (force = false) => {
+  if (chosenChannelsInFlight) {
+    return chosenChannelsInFlight
+  }
+  const isFresh =
+    chosenChannelsStoreState.loaded && Date.now() - chosenChannelsLoadedAt < chosenChannelsReloadStaleMs
+  if (!force && isFresh) {
+    return
+  }
+  setChosenChannelsStoreState({
+    ...chosenChannelsStoreState,
+    loading: true,
+  })
+  const request = (async () => {
+    try {
+      const pushState = await T.RPCGen.gregorGetStateRpcPromise()
+      setChosenChannelsStoreFromItems(pushState.items)
+    } catch (error) {
+      logger.warn('Failed to load chosen channel state', error)
+      setChosenChannelsStoreState({
+        ...chosenChannelsStoreState,
+        loading: false,
+      })
+    } finally {
+      if (chosenChannelsInFlight === request) {
+        chosenChannelsInFlight = undefined
+      }
+    }
+  })()
+  chosenChannelsInFlight = request
+  return request
+}
+
+const setChosenChannelsTeamDismissed = (teamname: string) => {
+  if (!teamname) {
+    return
+  }
+  const nextTeamnames = new Set(chosenChannelsStoreState.teamnames)
+  nextTeamnames.add(teamname)
+  setChosenChannelsStoreState({
+    loaded: true,
+    loading: false,
+    teamnames: nextTeamnames,
+  })
+}
+
+let chatTeamnameVersion = 0
+const chatTeamnameCache = new Map<T.Teams.TeamID, string>()
+const chatTeamnameRequests = new Map<T.Teams.TeamID, Promise<string>>()
+const chatTeamnameVersions = new Map<T.Teams.TeamID, number>()
+
+const resetChatTeamnameCache = () => {
+  chatTeamnameVersion += 1
+  chatTeamnameCache.clear()
+  chatTeamnameRequests.clear()
+  chatTeamnameVersions.clear()
+}
+
+const invalidateChatTeamname = (teamID: T.Teams.TeamID) => {
+  chatTeamnameVersion += 1
+  chatTeamnameCache.delete(teamID)
+  chatTeamnameRequests.delete(teamID)
+  chatTeamnameVersions.set(teamID, chatTeamnameVersion)
+}
+
+const invalidateChatTeamnames = (teamIDs: ReadonlyArray<T.Teams.TeamID>) => {
+  teamIDs.forEach(invalidateChatTeamname)
+}
+
+const getCachedChatTeamnames = (teamIDs: ReadonlyArray<T.Teams.TeamID>) =>
+  teamIDs.reduce((teamnames, teamID) => {
+    const teamname = chatTeamnameCache.get(teamID)
+    if (teamname) {
+      teamnames.set(teamID, teamname)
+    }
+    return teamnames
+  }, new Map<T.Teams.TeamID, string>())
+
+const loadChatTeamname = async (teamID: T.Teams.TeamID) => {
+  const cachedTeamname = chatTeamnameCache.get(teamID)
+  if (cachedTeamname) {
+    return cachedTeamname
+  }
+  const existing = chatTeamnameRequests.get(teamID)
+  if (existing) {
+    return existing
+  }
+  const version = chatTeamnameVersions.get(teamID) ?? 0
+  const request = (async () => {
+    try {
+      const teamname = (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name
+      if (teamname && (chatTeamnameVersions.get(teamID) ?? 0) === version) {
+        chatTeamnameCache.set(teamID, teamname)
+      }
+      return teamname
+    } finally {
+      if (chatTeamnameRequests.get(teamID) === request) {
+        chatTeamnameRequests.delete(teamID)
+      }
+    }
+  })()
+  chatTeamnameRequests.set(teamID, request)
+  return request
+}
+
+let chatTeamHooksUsername = ''
+
+const ensureChatTeamHooksUser = (username: string) => {
+  if (chatTeamHooksUsername === username) {
+    return
+  }
+  chatTeamHooksUsername = username
+  resetChosenChannelsStore()
+  resetChatTeamnameCache()
 }
 
 const roleAndDetailsFromMap = (
@@ -340,6 +527,8 @@ const useChatTeamNamesRaw = (
   teamIDs: ReadonlyArray<T.Teams.TeamID>,
   enabled = true
 ): ChatTeamNames => {
+  const username = useCurrentUserState(s => s.username)
+  ensureChatTeamHooksUser(username)
   const teamIDsKey = [...new Set(teamIDs.map(loadableTeamID).filter((teamID): teamID is T.Teams.TeamID => !!teamID))]
     .sort()
     .join(',')
@@ -353,32 +542,28 @@ const useChatTeamNamesRaw = (
       return
     }
     const requestVersion = ++requestVersionRef.current
-    setState(prev => ({...prev, loading: true}))
+    const cachedTeamnames = getCachedChatTeamnames(validTeamIDs)
+    const missingTeamIDs = validTeamIDs.filter(teamID => !cachedTeamnames.has(teamID))
+    if (!missingTeamIDs.length) {
+      setState({loading: false, teamnames: cachedTeamnames})
+      return
+    }
+    setState({loading: true, teamnames: cachedTeamnames})
     try {
-      const annotatedTeams = await Promise.all(
-        validTeamIDs.map(async teamID => ({
-          teamID,
-          teamname: (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name,
-        }))
-      )
+      await Promise.all(missingTeamIDs.map(loadChatTeamname))
       if (requestVersion !== requestVersionRef.current) {
         return
       }
       setState({
         loading: false,
-        teamnames: annotatedTeams.reduce((teamnames, {teamID, teamname}) => {
-          if (teamname) {
-            teamnames.set(teamID, teamname)
-          }
-          return teamnames
-        }, new Map<T.Teams.TeamID, string>()),
+        teamnames: getCachedChatTeamnames(validTeamIDs),
       })
     } catch (error) {
       if (requestVersion !== requestVersionRef.current) {
         return
       }
       logger.warn(`Failed to load chat team names for ${teamIDsKey}`, error)
-      setState(prev => ({...prev, loading: false}))
+      setState({loading: false, teamnames: getCachedChatTeamnames(validTeamIDs)})
     }
   }, [enabled, teamIDsKey, validTeamIDs])
 
@@ -390,22 +575,34 @@ const useChatTeamNamesRaw = (
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
     if (enabled && teamIDsKey) {
+      invalidateChatTeamnames(validTeamIDs)
       void reload()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
     if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
+      invalidateChatTeamname(action.payload.params.teamID)
       void reload()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
-      void reload()
+      invalidateChatTeamname(action.payload.params.teamID)
+      setState(prev => {
+        const teamnames = new Map(prev.teamnames)
+        teamnames.delete(action.payload.params.teamID)
+        return {loading: false, teamnames}
+      })
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
-      void reload()
+      invalidateChatTeamname(action.payload.params.teamID)
+      setState(prev => {
+        const teamnames = new Map(prev.teamnames)
+        teamnames.delete(action.payload.params.teamID)
+        return {loading: false, teamnames}
+      })
     }
   })
 
@@ -463,72 +660,64 @@ export const useChatManageChannelsBadge = (
   teamID: T.Teams.TeamID,
   teamname: string
 ): ChatManageChannelsBadge => {
+  const username = useCurrentUserState(s => s.username)
+  ensureChatTeamHooksUser(username)
   const validTeamID = loadableTeamID(teamID)
-  const [state, setState] = React.useState<ChatManageChannelsBadgeState>(emptyChatManageChannelsBadgeState)
-  const requestVersionRef = React.useRef(0)
+  const chosenChannelsState = React.useSyncExternalStore(
+    subscribeChosenChannelsStore,
+    getChosenChannelsStoreState,
+    getChosenChannelsStoreState
+  )
+  const showBadge =
+    !!validTeamID && !!teamname && chosenChannelsState.loaded ? !chosenChannelsState.teamnames.has(teamname) : false
+  const state = {
+    loading: !!validTeamID && !!teamname && chosenChannelsState.loading,
+    showBadge,
+  }
 
   const reload = React.useCallback(async () => {
     if (!validTeamID || !teamname) {
-      setState(emptyChatManageChannelsBadgeState)
       return
     }
-    const requestVersion = ++requestVersionRef.current
-    setState(prev => ({...prev, loading: true}))
-    try {
-      const pushState = await T.RPCGen.gregorGetStateRpcPromise()
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      setState({
-        loading: false,
-        showBadge: !getChosenChannelsTeams(pushState.items).has(teamname),
-      })
-    } catch (error) {
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      logger.warn(`Failed to load chosen channel state for ${teamname}`, error)
-      setState(prev => ({...prev, loading: false}))
-    }
+    await loadChosenChannelsStore(true)
   }, [teamname, validTeamID])
 
   const dismiss = React.useCallback(async () => {
     if (!validTeamID || !teamname) {
-      setState(emptyChatManageChannelsBadgeState)
       return
     }
+    await loadChosenChannelsStore(true)
+    const chosenChannels = new Set(getChosenChannelsStoreState().teamnames)
+    if (chosenChannels.has(teamname)) {
+      return
+    }
+    chosenChannels.add(teamname)
+    setChosenChannelsTeamDismissed(teamname)
     try {
-      const pushState = await T.RPCGen.gregorGetStateRpcPromise()
-      const teams = getChosenChannelsTeams(pushState.items)
-      if (!teams.has(teamname)) {
-        teams.add(teamname)
-        await T.RPCGen.gregorUpdateCategoryRpcPromise({
-          body: JSON.stringify([...teams]),
-          category: chosenChannelsGregorKey,
-          dtime: {offset: 0, time: 0},
-        })
-      }
-      setState({loading: false, showBadge: false})
+      await T.RPCGen.gregorUpdateCategoryRpcPromise({
+        body: JSON.stringify([...chosenChannels]),
+        category: chosenChannelsGregorKey,
+        dtime: {offset: 0, time: 0},
+      })
     } catch (error) {
       logger.warn(`Failed to update chosen channel state for ${teamname}`, error)
-      void reload()
+      await loadChosenChannelsStore(true)
     }
-  }, [reload, teamname, validTeamID])
+  }, [teamname, validTeamID])
 
   React.useEffect(() => {
-    void reload()
-  }, [reload])
-  C.Router2.useSafeFocusEffect(() => {
-    void reload()
-  })
-  useEngineActionListener('keybase.1.gregorUI.pushState', action => {
     if (!validTeamID || !teamname) {
       return
     }
-    setState({
-      loading: false,
-      showBadge: !getChosenChannelsTeams(action.payload.params.state.items).has(teamname),
-    })
+    void loadChosenChannelsStore()
+  }, [teamname, validTeamID])
+  C.Router2.useSafeFocusEffect(() => {
+    if (validTeamID && teamname) {
+      void loadChosenChannelsStore()
+    }
+  })
+  useEngineActionListener('keybase.1.gregorUI.pushState', action => {
+    setChosenChannelsStoreFromItems(action.payload.params.state.items)
   })
 
   return {...state, dismiss, reload}
