@@ -1,7 +1,6 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
-import {useTeamsState} from '@/stores/teams'
 import Avatar from './avatar'
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
@@ -14,6 +13,7 @@ import type {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} fro
 import ConnectedUsernames from './usernames'
 import {useFollowerState} from '@/stores/followers'
 import {navToProfile} from '@/constants/router'
+import {useTeamsListNameToIDMap} from '@/teams/use-teams-list'
 
 type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 
@@ -416,7 +416,8 @@ type OwnProps = ConnectedNameWithIconProps
 
 const ConnectedNameWithIcon = (p: OwnProps) => {
   const {onClick, username, teamname, ...props} = p
-  const teamID = useTeamsState(s => s.teamNameToID.get(teamname ?? ''))
+  const teamNameToID = useTeamsListNameToIDMap()
+  const teamID = teamname ? teamNameToID.get(teamname) : undefined
   const clearModals = C.Router2.clearModals
   const navigateAppend = C.Router2.navigateAppend
   const onOpenTeamProfile = () => {

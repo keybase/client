@@ -85,3 +85,8 @@ export const useTeamsListMap = () => {
   const {teams} = useTeamsList()
   return React.useMemo(() => new Map(teams.map(team => [team.id, team] as const)), [teams])
 }
+
+export const useTeamsListNameToIDMap = () => {
+  const {teams} = useTeamsList()
+  return React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
+}

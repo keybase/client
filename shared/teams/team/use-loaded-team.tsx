@@ -141,9 +141,9 @@ export const LoadedTeamProvider = (props: React.PropsWithChildren<{teamID: T.Tea
   return <LoadedTeamContext.Provider value={value}>{children}</LoadedTeamContext.Provider>
 }
 
-export const useLoadedTeam = (teamID: T.Teams.TeamID): LoadedTeam => {
+export const useLoadedTeam = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam => {
   const context = React.useContext(LoadedTeamContext)
   const useContextValue = context?.teamID === teamID
-  const raw = useLoadedTeamRaw(teamID, !useContextValue)
+  const raw = useLoadedTeamRaw(teamID, enabled && !useContextValue)
   return useContextValue ? context : raw
 }
