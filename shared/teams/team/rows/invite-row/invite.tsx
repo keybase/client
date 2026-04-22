@@ -84,14 +84,14 @@ const labelledInviteRegex = /^(.+?) \((.+)\)$/
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const {teamDetails} = useLoadedTeam(teamID)
-  const _invites = teamDetails.invites
+  const invites = teamDetails.invites
 
   const removePendingInvite = useTeamsState(s => s.dispatch.removePendingInvite)
   const _onCancelInvite = (inviteID: string) => {
     removePendingInvite(teamID, inviteID)
   }
 
-  const user = [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || Teams.emptyInviteInfo
+  const user = [...invites].find(invite => invite.id === ownProps.id) || Teams.emptyInviteInfo
 
   let label: string = ''
   let subLabel: undefined | string

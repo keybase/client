@@ -8,7 +8,6 @@ import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useTeamsState} from '@/stores/teams'
 import {makeAddMembersWizard} from '../add-members-wizard/state'
 import {useLoadedTeam} from './use-loaded-team'
 
