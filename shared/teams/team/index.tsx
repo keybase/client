@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
-import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
 import {SelectionPopup, ActivityLevelsProvider} from '../common'
 import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {TeamSelectionProvider} from '../common/selection-state'
@@ -92,8 +91,6 @@ const TeamBody = (props: Props) => {
     return () => teamSeen(teamID)
   })
 
-  useTeamsSubscribe()
-  useTeamDetailsSubscribe(teamID)
   const {channels, loading: loadingChannels} = useLoadedTeamChannels(teamID, teamMeta.teamname)
 
   React.useEffect(() => {

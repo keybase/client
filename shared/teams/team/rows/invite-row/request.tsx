@@ -3,9 +3,11 @@ import * as C from '@/constants'
 import {isBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
+import {useCurrentUserState} from '@/stores/current-user'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
+import {getRolePickerDisabledReasons} from '@/teams/role-picker-utils'
 import {formatTimeRelativeToNow} from '@/util/timestamp'
 import MenuHeader from '../menu-header.new'
 import {navToProfile} from '@/constants/router'
@@ -217,15 +219,22 @@ const RequestRowStateWrapper = (props: RowProps & ExtraProps) => {
 
 const Container = (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
+  const currentUsername = useCurrentUserState(s => s.username)
   const {
+    teamDetails,
     teamMeta: {teamname},
+    yourOperations,
   } = useLoadedTeam(teamID)
   const _notifLabel = Chat.useChatState(s =>
     isBigTeam(s.inboxLayout, teamID) ? `Announce them in #general` : `Announce them in team chat`
   )
-  const disabledReasonsForRolePicker = Teams.useTeamsState(s =>
-    Teams.getDisabledReasonsForRolePicker(s, teamID, username)
-  )
+  const disabledReasonsForRolePicker = getRolePickerDisabledReasons({
+    canManageMembers: yourOperations.manageMembers,
+    currentUsername,
+    members: teamDetails.members,
+    membersToModify: username,
+    teamname,
+  })
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, username))
   const removeMember = Teams.useTeamsState(s => s.dispatch.removeMember)
   const ignoreRequest = Teams.useTeamsState(s => s.dispatch.ignoreRequest)

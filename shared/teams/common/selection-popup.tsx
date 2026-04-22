@@ -2,11 +2,11 @@ import * as C from '@/constants'
 import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import {useCurrentUserState} from '@/stores/current-user'
 import {FloatingRolePicker} from '../role-picker'
+import {getRolePickerDisabledReasons} from '../role-picker-utils'
 import {useLoadedTeamChannels} from './use-loaded-team-channels'
 import {useChannelSelectionState, useTeamSelectionState} from './selection-state'
 import {useLoadedTeam} from '../team/use-loaded-team'
@@ -233,10 +233,19 @@ function allSameOrNull<T>(arr: T[]): T | null {
   return (arr.some(r => r !== first) ? null : first) ?? null
 }
 const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: string[]}) => {
+  const currentUsername = useCurrentUserState(s => s.username)
   const {
     teamDetails: {members: teamMembers},
+    teamMeta: {teamname},
+    yourOperations,
   } = useLoadedTeam(teamID)
-  const disabledReasons = useTeamsState(s => Teams.getDisabledReasonsForRolePicker(s, teamID, members))
+  const disabledReasons = getRolePickerDisabledReasons({
+    canManageMembers: yourOperations.manageMembers,
+    currentUsername,
+    members: teamMembers,
+    membersToModify: members,
+    teamname,
+  })
   const roles = members.map(username => teamMembers.get(username)?.type)
   const currentRole = allSameOrNull(roles) ?? undefined
 

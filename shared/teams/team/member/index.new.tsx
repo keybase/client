@@ -13,9 +13,9 @@ import {formatTimeForTeamMember, formatTimeRelativeToNow} from '@/util/timestamp
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {navToProfile} from '@/constants/router'
+import {getRolePickerDisabledReasons, isLastOwnerInTeamMembers} from '@/teams/role-picker-utils'
 import {useLoadedTeam} from '../use-loaded-team'
 import {useTeamsList} from '@/teams/use-teams-list'
 
@@ -33,7 +33,6 @@ type TeamTreeRowNotIn = {
   teamname: string
   memberCount?: number
   joinTime?: number
-  canAdminister: boolean
 }
 type TeamTreeRowIn = {
   lastActivity?: number
@@ -80,7 +79,6 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
   const loadTeamTreeMemberships = C.useRPC(T.RPCGen.teamsLoadTeamTreeMembershipsAsyncRpcPromise)
   const {teams} = useTeamsList()
   const teamMetas = new Map(teams.map(team => [team.id, team] as const))
-  const roleMap = Teams.useTeamsState(s => s.teamRoleMap.roles)
   const [state, setState] = React.useState(makeEmptyTeamTreeMembershipState)
   const hasFocusedSinceMountRef = React.useRef(false)
 
@@ -205,9 +203,7 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
         continue
       }
 
-      const ops = Teams.deriveCanPerform(roleMap.get(teamID))
       const row = {
-        canAdminister: ops.manageMembers,
         joinTime: sparseMemberInfo.joinTime,
         lastActivity: state.lastActivity.get(teamID),
         // memberCount should always be populated because the TeamList, which is synced
@@ -377,12 +373,17 @@ type NodeNotInRowProps = {
   username: string
 }
 const NodeNotInRow = (props: NodeNotInRowProps) => {
-  useTeamDetailsSubscribe(props.node.teamID)
+  const currentUsername = useCurrentUserState(s => s.username)
+  const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(props.node.teamID)
   const nav = useSafeNavigation()
   const onAddWaitingKey = C.waitingKeyTeamsAddMember(props.node.teamID, props.username)
-  const disabledRoles = Teams.useTeamsState(s =>
-    Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
-  )
+  const disabledRoles = getRolePickerDisabledReasons({
+    canManageMembers: yourOperations.manageMembers,
+    currentUsername,
+    members: teamDetails.members,
+    membersToModify: props.username,
+    teamname: teamMeta.teamname,
+  })
   const addToTeam = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
   const [error, setError] = React.useState('')
   const navigateAppend = C.Router2.navigateAppend
@@ -461,7 +462,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
           </Kb.Box2>
         </Kb.Box2>
 
-        {props.node.canAdminister && (
+        {yourOperations.manageMembers && (
           <Kb.Box2 direction="vertical" alignSelf="center" gap="xtiny" alignItems="flex-end">
             <FloatingRolePicker
               onConfirm={role => {
@@ -508,11 +509,12 @@ type NodeInRowProps = {
   setExpanded: (b: boolean) => void
 }
 const NodeInRow = (props: NodeInRowProps) => {
+  const currentUsername = useCurrentUserState(s => s.username)
+  const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(props.node.teamID)
   const {channelMetas, loadingChannels} = useAllChannelMetas(
     props.node.teamID,
     !props.expanded /* dontCallRPC */
   )
-  useTeamDetailsSubscribe(props.node.teamID)
 
   const nav = useSafeNavigation()
   const onAddToChannels = () =>
@@ -534,15 +536,17 @@ const NodeInRow = (props: NodeInRowProps) => {
 
   const [role, setRole] = React.useState<T.Teams.TeamRoleType>(props.node.role)
   const [open, setOpen] = React.useState(false)
-  const {amLastOwner, disabledRoles, myRole, removeMember} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      amLastOwner: Teams.isLastOwner(s, props.node.teamID),
-      disabledRoles: Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username),
-      myRole: Teams.getRole(s, props.node.teamID),
-      removeMember: s.dispatch.removeMember,
-    }))
-  )
-  const isMe = props.username === useCurrentUserState(s => s.username)
+  const removeMember = Teams.useTeamsState(s => s.dispatch.removeMember)
+  const disabledRoles = getRolePickerDisabledReasons({
+    canManageMembers: yourOperations.manageMembers,
+    currentUsername,
+    members: teamDetails.members,
+    membersToModify: props.username,
+    teamname: teamMeta.teamname,
+  })
+  const myRole = teamMeta.role
+  const amLastOwner = myRole === 'owner' && isLastOwnerInTeamMembers(teamDetails.members, currentUsername)
+  const isMe = props.username === currentUsername
   const isSmallTeam = !Chat.useChatState(s => isBigTeam(s.inboxLayout, props.node.teamID))
   const editMembership = C.useRPC(T.RPCGen.teamsTeamEditMembersRpcPromise)
   const [error, setError] = React.useState('')
@@ -584,7 +588,8 @@ const NodeInRow = (props: NodeInRowProps) => {
         .map(([_, {channelname}]) => channelname)
         .join(', #')
 
-  const rolePicker = props.node.canAdminister ? (
+  const canAdminister = yourOperations.manageMembers
+  const rolePicker = canAdminister ? (
     <RoleButton
       containerStyle={Kb.Styles.collapseStyles([styles.roleButton, expanded && styles.roleButtonExpanded])}
       loading={changingRole}
@@ -595,7 +600,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     <></>
   )
 
-  const cantKickOut = props.node.canAdminister && props.node.role === 'owner' && myRole !== 'admin'
+  const cantKickOut = canAdminister && props.node.role === 'owner' && myRole !== 'admin'
 
   return (
     <>
@@ -690,7 +695,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     </Kb.Text>
                   </Kb.Box2>
                 )}
-                {expanded && (props.node.canAdminister || isMe) && (
+                {expanded && (canAdminister || isMe) && (
                   <Kb.Box2
                     direction="horizontal"
                     gap="tiny"
