@@ -188,6 +188,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [ ] Review what remains in `shared/stores/teams.tsx`
 - [x] Replace the remaining profile `teamRoleMap` reads with `useTeamsList()`-derived role/membership data
 - [ ] Delete dead selectors, helpers, and tests
+- [x] Delete dead teams-store retention/activity cache leftovers after the route-local migrations (`teamIDToRetentionPolicy`, `activityLevels`)
 - [ ] If only a tiny action layer remains, move it into feature hooks and remove the store entirely
 - [ ] If something must remain, document exactly why it needs app-wide lifetime
 

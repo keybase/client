@@ -342,9 +342,6 @@ export const getTeamID = (state: State, teamname: T.Teams.Teamname) =>
 export const getTeamNameFromID = (state: State, teamID: T.Teams.TeamID) =>
   state.teamMeta.get(teamID)?.teamname
 
-export const getTeamRetentionPolicyByID = (state: State, teamID: T.Teams.TeamID) =>
-  state.teamIDToRetentionPolicy.get(teamID)
-
 /**
  *  Gets the number of channels you're subscribed to on a team
  */
@@ -609,14 +606,6 @@ export const getCanPerform = (state: State, teamname: T.Teams.Teamname): T.Teams
 export const getCanPerformByID = (state: State, teamID: T.Teams.TeamID): T.Teams.TeamOperations =>
   deriveCanPerform(state.teamRoleMap.roles.get(teamID))
 
-export const lastActiveStatusToActivityLevel: {
-  [key in T.RPCChat.LastActiveStatus]: T.Teams.ActivityLevel
-} = {
-  [T.RPCChat.LastActiveStatus.active]: 'active',
-  [T.RPCChat.LastActiveStatus.none]: 'none',
-  [T.RPCChat.LastActiveStatus.recentlyActive]: 'recently',
-}
-
 export const stringifyPeople = (people: string[]): string => {
   switch (people.length) {
     case 0:
@@ -645,7 +634,6 @@ export const maybeGetMostRecentValidInviteLink = (inviteLinks: ReadonlyArray<T.T
   inviteLinks.find(inviteLink => inviteLink.isValid)
 
 type Store = T.Immutable<{
-  activityLevels: T.Teams.ActivityLevels
   channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
   teamNameToID: Map<T.Teams.Teamname, string>
   teamnames: Set<T.Teams.Teamname> // TODO remove
@@ -653,15 +641,12 @@ type Store = T.Immutable<{
   teamRoleMap: T.Teams.TeamRoleMap
   teamDetails: Map<T.Teams.TeamID, T.Teams.TeamDetails>
   teamIDToMembers: Map<T.Teams.TeamID, Map<string, T.Teams.MemberInfo>> // Used by chat sidebar until team loading gets easier
-  teamIDToRetentionPolicy: Map<T.Teams.TeamID, T.Retention.RetentionPolicy>
 }>
 
 const initialStore: Store = {
-  activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
   channelInfo: new Map(),
   teamDetails: new Map(),
   teamIDToMembers: new Map(),
-  teamIDToRetentionPolicy: new Map(),
   teamMeta: new Map(),
   teamNameToID: new Map(),
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
@@ -679,9 +664,7 @@ export type State = Store & {
     clearNavBadges: () => void
     deleteChannelConfirmed: (teamID: T.Teams.TeamID, conversationIDKey: T.Chat.ConversationIDKey) => void
     deleteTeam: (teamID: T.Teams.TeamID) => void
-    getActivityForTeams: () => void
     getMembers: (teamID: T.Teams.TeamID, forceReload?: boolean) => Promise<void>
-    getTeamRetentionPolicy: (teamID: T.Teams.TeamID) => void
     getTeams: (forceReload?: boolean) => void
     ignoreRequest: (teamID: T.Teams.TeamID, teamname: string, username: string) => void
     leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
@@ -701,7 +684,6 @@ export type State = Store & {
       newChannelState: T.Teams.ChannelMembershipState
     ) => void
     setMemberPublicity: (teamID: T.Teams.TeamID, showcase: boolean) => void
-    setTeamRetentionPolicy: (teamID: T.Teams.TeamID, policy: T.Retention.RetentionPolicy) => void
     setTeamRoleMapLatestKnownVersion: (version: number) => void
     teamChangedByID: (c: EngineGen.ParamsOf<'keybase.1.NotifyTeam.teamChangedByID'>) => void
     teamSeen: (teamID: T.Teams.TeamID) => void
@@ -849,37 +831,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    getActivityForTeams: () => {
-      const f = async () => {
-        try {
-          const results = await T.RPCChat.localGetLastActiveForTeamsRpcPromise()
-          const teams = Object.entries(results.teams ?? {}).reduce((res, [teamID, status]) => {
-            if (status === T.RPCChat.LastActiveStatus.none) {
-              return res
-            }
-            res.set(teamID, lastActiveStatusToActivityLevel[status])
-            return res
-          }, new Map<T.Teams.TeamID, T.Teams.ActivityLevel>())
-          const channels = Object.entries(results.channels ?? {}).reduce(
-            (res, [conversationIDKey, status]) => {
-              if (status === T.RPCChat.LastActiveStatus.none) {
-                return res
-              }
-              res.set(conversationIDKey, lastActiveStatusToActivityLevel[status])
-              return res
-            },
-            new Map<T.Chat.ConversationIDKey, T.Teams.ActivityLevel>()
-          )
-          set(s => {
-            s.activityLevels = {channels, loaded: true, teams}
-          })
-        } catch (e) {
-          logger.warn(e)
-        }
-        return
-      }
-      ignorePromise(f())
-    },
     getMembers: async (teamID: T.Teams.TeamID, forceReload = false) => {
       if (!teamID || teamID === T.Teams.noTeamID || teamID === T.Teams.newTeamWizardTeamID) {
         logger.warn(`bail on invalid team ID ${teamID}`)
@@ -934,31 +885,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       inflightMemberLoads.set(teamID, promise)
       inflightMemberLoadTokens.set(teamID, requestToken)
       return promise
-    },
-    getTeamRetentionPolicy: teamID => {
-      const f = async () => {
-        let retentionPolicy = Util.makeRetentionPolicy()
-        try {
-          const policy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
-            {teamID},
-            S.waitingKeyTeamsTeam(teamID)
-          )
-          try {
-            retentionPolicy = Util.serviceRetentionPolicyToRetentionPolicy(policy)
-            if (retentionPolicy.type === 'inherit') {
-              throw new Error(`RPC returned retention policy of type 'inherit' for team policy`)
-            }
-          } catch (error) {
-            if (error instanceof RPCError) {
-              logger.error(error.message)
-            }
-          }
-        } catch {}
-        set(s => {
-          s.teamIDToRetentionPolicy.set(teamID, retentionPolicy)
-        })
-      }
-      ignorePromise(f())
     },
     getTeams: _forceReload => {
       const f = async () => {
@@ -1115,24 +1041,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case 'chat.1.NotifyChat.ChatSetTeamRetention': {
-          const {convs, teamID} = action.payload.params
-          const first = convs?.[0]
-          if (!first?.teamRetention) {
-            logger.warn(
-              `Got ChatSetTeamRetention with incomplete data for ${teamID}; refetching team retention policy`
-            )
-            get().dispatch.getTeamRetentionPolicy(teamID)
-            break
-          }
-          set(s => {
-            s.teamIDToRetentionPolicy.set(
-              teamID,
-              Util.serviceRetentionPolicyToRetentionPolicy(first.teamRetention)
-            )
-          })
-          break
-        }
         case 'keybase.1.NotifyTeam.teamRoleMapChanged': {
           const {newVersion} = action.payload.params
           get().dispatch.notifyTeamTeamRoleMapChanged(newVersion)
@@ -1268,21 +1176,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         } catch (error) {
           if (error instanceof RPCError) {
             logger.info(error.message)
-          }
-        }
-      }
-      ignorePromise(f())
-    },
-    setTeamRetentionPolicy: (teamID, policy) => {
-      const f = async () => {
-        try {
-          const servicePolicy = Util.retentionPolicyToServiceRetentionPolicy(policy)
-          await T.RPCChat.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
-            S.waitingKeyTeamsSetRetentionPolicy(teamID),
-          ])
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.error(error.message)
           }
         }
       }
