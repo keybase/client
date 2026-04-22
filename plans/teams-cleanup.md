@@ -118,7 +118,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [ ] `teams/team/member/*`
 - [ ] `teams/team/rows/*`
 - [ ] `teams/channel/*`
-- [ ] `profile/showcase-team-offer.tsx`
+- [x] `profile/showcase-team-offer.tsx`
 - [x] `settings/chat.tsx`
 
 ### Store fallout after Chunk 3
