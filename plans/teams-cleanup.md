@@ -129,7 +129,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 - [x] `teams/container.tsx`
 - [x] `teams/team/index.tsx`
-- [ ] `teams/team/settings-tab/*`
+- [x] `teams/team/settings-tab/*`
 - [x] `teams/team/member/*`
 - [ ] `teams/team/rows/*`
 - [ ] `teams/channel/*`

@@ -810,7 +810,6 @@ export type State = Store & {
       teamIDToResetUsers: Map<T.Teams.TeamID, Set<string>>
     ) => void
     setNewTeamRequests: (newTeamRequests: Map<T.Teams.TeamID, Set<string>>) => void
-    setPublicity: (teamID: T.Teams.TeamID, settings: T.Teams.PublicitySettings) => void
     setTeamRetentionPolicy: (teamID: T.Teams.TeamID, policy: T.Retention.RetentionPolicy) => void
     setTeamRoleMapLatestKnownVersion: (version: number) => void
     setTeamSawChatBanner: () => void
@@ -1716,64 +1715,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       set(s => {
         s.newTeamRequests = newTeamRequests
       })
-    },
-    setPublicity: (teamID, settings) => {
-      const f = async () => {
-        const teamMeta = getTeamMeta(get(), teamID)
-        const teamSettings = (get().teamDetails.get(teamID) ?? emptyTeamDetails).settings
-        const ignoreAccessRequests = teamSettings.tarsDisabled
-        const openTeam = teamSettings.open
-        const openTeamRole = teamSettings.openJoinAs
-        const publicityAnyMember = teamMeta.allowPromote
-        const publicityMember = teamMeta.showcasing
-        const publicityTeam = teamSettings.teamShowcased
-
-        if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
-          try {
-            await T.RPCGen.teamsTeamSetSettingsRpcPromise({
-              settings: {joinAs: T.RPCGen.TeamRole[settings.openTeamRole], open: settings.openTeam},
-              teamID,
-            })
-          } catch (payload) {
-            useConfigState.getState().dispatch.setGlobalError(payload)
-          }
-        }
-        if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
-          try {
-            await T.RPCGen.teamsSetTarsDisabledRpcPromise({disabled: settings.ignoreAccessRequests, teamID})
-          } catch (payload) {
-            useConfigState.getState().dispatch.setGlobalError(payload)
-          }
-        }
-        if (publicityAnyMember !== settings.publicityAnyMember) {
-          try {
-            await T.RPCGen.teamsSetTeamShowcaseRpcPromise({
-              anyMemberShowcase: settings.publicityAnyMember,
-              teamID,
-            })
-          } catch (payload) {
-            useConfigState.getState().dispatch.setGlobalError(payload)
-          }
-        }
-        if (publicityMember !== settings.publicityMember) {
-          try {
-            await T.RPCGen.teamsSetTeamMemberShowcaseRpcPromise({
-              isShowcased: settings.publicityMember,
-              teamID,
-            })
-          } catch (payload) {
-            useConfigState.getState().dispatch.setGlobalError(payload)
-          }
-        }
-        if (publicityTeam !== settings.publicityTeam) {
-          try {
-            await T.RPCGen.teamsSetTeamShowcaseRpcPromise({isShowcased: settings.publicityTeam, teamID})
-          } catch (payload) {
-            useConfigState.getState().dispatch.setGlobalError(payload)
-          }
-        }
-      }
-      ignorePromise(f())
     },
     setTeamRetentionPolicy: (teamID, policy) => {
       const f = async () => {

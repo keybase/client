@@ -2,15 +2,17 @@ import * as React from 'react'
 import * as C from '@/constants'
 import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
-import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import {useConfigState} from '@/stores/config'
 import {FloatingRolePicker} from '@/teams/role-picker'
 import {pluralize} from '@/util/string'
+import type {RPCError} from '@/util/errors'
 import RetentionPicker from './retention'
 import DefaultChannels from './default-channels'
 import isEqual from 'lodash/isEqual'
 import {useLoadedTeam} from '../use-loaded-team'
+import {useSettingsTabState} from './use-settings'
 
 type Props = {
   allowOpenTrigger: number
@@ -323,7 +325,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   teamPadding: {paddingTop: Kb.Styles.globalMargins.small},
 }))
 
-import {useSettingsTabState} from './use-settings'
+const callRPC = <ARGS extends Array<any>, RET>(
+  submit: (args: ARGS, setResult: (result: RET) => void, setError: (error: RPCError) => void) => void,
+  args: ARGS
+) => new Promise<RET>((resolve, reject) => submit(args, resolve, reject))
 
 export type OwnProps = {
   teamID: T.Teams.TeamID
@@ -331,8 +336,12 @@ export type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
-  const setPublicity = Teams.useTeamsState(s => s.dispatch.setPublicity)
+  const {reload, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
+  const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
+  const setTeamSettingsRPC = C.useRPC(T.RPCGen.teamsTeamSetSettingsRpcPromise)
+  const setTarsDisabledRPC = C.useRPC(T.RPCGen.teamsSetTarsDisabledRpcPromise)
+  const setTeamShowcaseRPC = C.useRPC(T.RPCGen.teamsSetTeamShowcaseRpcPromise)
+  const setTeamMemberShowcaseRPC = C.useRPC(T.RPCGen.teamsSetTeamMemberShowcaseRpcPromise)
   const publicityAnyMember = teamMeta.allowPromote
   const publicityMember = teamMeta.showcasing
   const publicityTeam = teamDetails.settings.teamShowcased
@@ -348,17 +357,65 @@ const Container = (ownProps: OwnProps) => {
     C.waitingKeyTeamsSetRetentionPolicy(teamID),
   ])?.message
   const navigateAppend = C.Router2.navigateAppend
-  const _savePublicity = (settings: T.Teams.PublicitySettings) => {
-    setPublicity(teamID, settings)
-  }
   const showOpenTeamWarning = (isOpenTeam: boolean, teamname: string) => {
     navigateAppend({name: 'openTeamWarning', params: {isOpenTeam, teamname}})
   }
   const allowOpenTrigger = useSettingsTabState(s => s.allowOpenTrigger)
 
-  const savePublicity = (settings: T.Teams.PublicitySettings) => {
-    _savePublicity(settings)
-  }
+  const savePublicity = React.useCallback(
+    (settings: T.Teams.PublicitySettings) => {
+      void (async () => {
+        try {
+          let changed = false
+          if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
+            changed = true
+            await callRPC(setTeamSettingsRPC, [
+              {
+                settings: {joinAs: T.RPCGen.TeamRole[settings.openTeamRole], open: settings.openTeam},
+                teamID,
+              },
+            ])
+          }
+          if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
+            changed = true
+            await callRPC(setTarsDisabledRPC, [{disabled: settings.ignoreAccessRequests, teamID}])
+          }
+          if (publicityAnyMember !== settings.publicityAnyMember) {
+            changed = true
+            await callRPC(setTeamShowcaseRPC, [{anyMemberShowcase: settings.publicityAnyMember, teamID}])
+          }
+          if (publicityMember !== settings.publicityMember) {
+            changed = true
+            await callRPC(setTeamMemberShowcaseRPC, [{isShowcased: settings.publicityMember, teamID}])
+          }
+          if (publicityTeam !== settings.publicityTeam) {
+            changed = true
+            await callRPC(setTeamShowcaseRPC, [{isShowcased: settings.publicityTeam, teamID}])
+          }
+          if (changed) {
+            await reload()
+          }
+        } catch (error) {
+          setGlobalError(error)
+        }
+      })()
+    },
+    [
+      ignoreAccessRequests,
+      openTeam,
+      openTeamRole,
+      publicityAnyMember,
+      publicityMember,
+      publicityTeam,
+      reload,
+      setGlobalError,
+      setTarsDisabledRPC,
+      setTeamMemberShowcaseRPC,
+      setTeamSettingsRPC,
+      setTeamShowcaseRPC,
+      teamID,
+    ]
+  )
 
   // reset if incoming props change on us
   const [key, setKey] = React.useState(0)
