@@ -79,11 +79,6 @@ const emptyChatTeamState: ChatTeamState = {
   yourOperations: Teams.initialCanUserPerform,
 }
 
-const emptyChatTeamMembersState: ChatTeamMembersState = {
-  loading: false,
-  members: emptyMembers,
-}
-
 const emptyChatTeamChannelsState: ChatTeamChannelsState = {
   channels: emptyChannels,
   loading: false,
@@ -113,7 +108,9 @@ const getChosenChannelsTeams = (
 ): Set<string> => {
   const chosenChannels = items?.find(item => item.item?.category === chosenChannelsGregorKey)
   const parsed = bodyToJSON(chosenChannels?.item?.body)
-  return new Set(Array.isArray(parsed) ? parsed.filter((teamname): teamname is string => typeof teamname === 'string') : [])
+  return new Set(
+    Array.isArray(parsed) ? parsed.filter((teamname): teamname is string => typeof teamname === 'string') : []
+  )
 }
 
 const areStringSetsEqual = (left: ReadonlySet<string>, right: ReadonlySet<string>) => {
@@ -390,10 +387,7 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
   return {...state, reload}
 }
 
-const useChatTeamMembersRaw = (
-  teamID: T.Teams.TeamID,
-  enabled = true
-): ChatTeamMembers => {
+const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeamMembers => {
   const validTeamID = loadableTeamID(teamID)
   useLoadTeamMembers(teamID, enabled)
   const {getMembers, loadedMembers} = Teams.useTeamsState(
@@ -439,7 +433,8 @@ const useChatTeamChannelsRaw = (
     const requestVersion = ++requestVersionRef.current
     setState(prev => ({...prev, loading: true, teamname: prev.teamname || teamname || ''}))
     try {
-      const resolvedTeamname = teamname || (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID})).name
+      const resolvedTeamname =
+        teamname || (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID})).name
       const {convs} = await T.RPCChat.localGetTLFConversationsLocalRpcPromise({
         membersType: T.RPCChat.ConversationMembersType.team,
         tlfName: resolvedTeamname,
@@ -498,13 +493,12 @@ const useChatTeamChannelsRaw = (
   return {...state, reload}
 }
 
-const useChatTeamNamesRaw = (
-  teamIDs: ReadonlyArray<T.Teams.TeamID>,
-  enabled = true
-): ChatTeamNames => {
+const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = true): ChatTeamNames => {
   const username = useCurrentUserState(s => s.username)
   ensureChatTeamHooksUser(username)
-  const teamIDsKey = [...new Set(teamIDs.map(loadableTeamID).filter((teamID): teamID is T.Teams.TeamID => !!teamID))]
+  const teamIDsKey = [
+    ...new Set(teamIDs.map(loadableTeamID).filter((teamID): teamID is T.Teams.TeamID => !!teamID)),
+  ]
     .sort()
     .join(',')
   const validTeamIDs = React.useMemo(() => parseTeamIDsKey(teamIDsKey), [teamIDsKey])
@@ -623,10 +617,8 @@ export const useChatTeamMembers = (teamID: T.Teams.TeamID): ChatTeamMembers => {
   return useContextValue ? context.members : raw
 }
 
-export const useChatTeamChannels = (
-  teamID: T.Teams.TeamID,
-  teamname?: string
-): ChatTeamChannels => useChatTeamChannelsRaw(teamID, teamname)
+export const useChatTeamChannels = (teamID: T.Teams.TeamID, teamname?: string): ChatTeamChannels =>
+  useChatTeamChannelsRaw(teamID, teamname)
 
 export const useChatTeamNames = (teamIDs: ReadonlyArray<T.Teams.TeamID>): ChatTeamNames =>
   useChatTeamNamesRaw(teamIDs)
@@ -644,7 +636,9 @@ export const useChatManageChannelsBadge = (
     getChosenChannelsStoreState
   )
   const showBadge =
-    !!validTeamID && !!teamname && chosenChannelsState.loaded ? !chosenChannelsState.teamnames.has(teamname) : false
+    !!validTeamID && !!teamname && chosenChannelsState.loaded
+      ? !chosenChannelsState.teamnames.has(teamname)
+      : false
   const state = {
     loading: !!validTeamID && !!teamname && chosenChannelsState.loading,
     showBadge,

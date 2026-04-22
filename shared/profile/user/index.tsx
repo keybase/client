@@ -338,7 +338,13 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
           colorTypeToStyle(props.backgroundColorType),
         ])}
       />
-      <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} justifyContent="space-around" style={styles.bioAndProofs}>
+      <Kb.Box2
+        key="bioTeam"
+        direction="horizontal"
+        fullWidth={true}
+        justifyContent="space-around"
+        style={styles.bioAndProofs}
+      >
         <BioLayout {...props} />
         <Kb.Box2 direction="vertical" style={styles.proofs}>
           <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
@@ -358,10 +364,8 @@ type Tab = 'followers' | 'following'
 const User = (props: {username: string}) => {
   const p = useUserData(props.username)
   const insetTop = Kb.useSafeAreaInsets().top
-  const {username, onReload} = p
-  const [selectedTab, setSelectedTab] = React.useState<Tab>(
-    usernameSelectedTab.get(p.username) ?? 'followers'
-  )
+  const {username} = p
+  const [selectedTab, setSelectedTab] = React.useState<Tab>(usernameSelectedTab.get(username) ?? 'followers')
   const [width, setWidth] = React.useState(Kb.Styles.dimensionWidth)
 
   const changeTab = React.useCallback(
@@ -428,68 +432,104 @@ const User = (props: {username: string}) => {
         />
       )
     },
-    [p.notAUser, loadingFollowing, loadingFollowers, p.followersCount, p.followingCount, changeTab, selectedTab]
+    [
+      p.notAUser,
+      loadingFollowing,
+      loadingFollowers,
+      p.followersCount,
+      p.followingCount,
+      changeTab,
+      selectedTab,
+    ]
   )
 
   const sections: Array<Section> = React.useMemo(
-    () => [
-      {
-        data: [{type: 'bioTeamProofs'}],
-        renderItem: () => (
-          <BioTeamProofs
-            onAddIdentity={p.onAddIdentity}
-            assertions={p.assertions}
-            backgroundColorType={p.backgroundColorType}
-            bio={p.bio}
-            blocked={p.blocked}
-            followThem={p.followThem}
-            followers={p.followers}
-            followersCount={p.followersCount}
-            followsYou={p.followsYou}
-            followingCount={p.followingCount}
-            guiID={p.guiID}
-            hidFromFollowers={p.hidFromFollowers}
-            username={p.username}
-            name={p.name}
-            location={p.location}
-            service={p.service}
-            serviceIcon={p.serviceIcon}
-            reason={p.reason}
-            sbsAvatarUrl={p.sbsAvatarUrl}
-            sbsDescription={p.sbsDescription}
-            suggestions={p.suggestions}
-            onEditAvatar={p.onEditAvatar}
-            notAUser={p.notAUser}
-            onReload={p.onReload}
-            state={p.state}
-            stellarHidden={!!p.stellarHidden}
-            teamShowcase={p.teamShowcase}
-            fullName={p.fullName}
-            title={p.title}
-          />
-        ),
-      } as const,
-      {
-        data: chunks,
-        renderItem: ({item, index}: {item: Item; index: number}) => {
-          if (item.type === 'bioTeamProofs') return null
-          if (item.type === 'friend') {
-            return <FriendRow key={'friend' + index} usernames={item.usernames} itemWidth={item.itemWidth} />
-          }
-          return p.notAUser ? null : (
-            <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
-              <Kb.Text type="BodySmall">{item.text}</Kb.Text>
-            </Kb.Box2>
-          )
+    () =>
+      [
+        {
+          data: [{type: 'bioTeamProofs'}],
+          renderItem: () => (
+            <BioTeamProofs
+              onAddIdentity={p.onAddIdentity}
+              assertions={p.assertions}
+              backgroundColorType={p.backgroundColorType}
+              bio={p.bio}
+              blocked={p.blocked}
+              followThem={p.followThem}
+              followers={p.followers}
+              followersCount={p.followersCount}
+              followsYou={p.followsYou}
+              followingCount={p.followingCount}
+              guiID={p.guiID}
+              hidFromFollowers={p.hidFromFollowers}
+              username={p.username}
+              name={p.name}
+              location={p.location}
+              service={p.service}
+              serviceIcon={p.serviceIcon}
+              reason={p.reason}
+              sbsAvatarUrl={p.sbsAvatarUrl}
+              sbsDescription={p.sbsDescription}
+              suggestions={p.suggestions}
+              onEditAvatar={p.onEditAvatar}
+              notAUser={p.notAUser}
+              onReload={p.onReload}
+              state={p.state}
+              stellarHidden={!!p.stellarHidden}
+              teamShowcase={p.teamShowcase}
+              fullName={p.fullName}
+              title={p.title}
+            />
+          ),
+        } as const,
+        {
+          data: chunks,
+          renderItem: ({item, index}: {item: Item; index: number}) => {
+            if (item.type === 'bioTeamProofs') return null
+            if (item.type === 'friend') {
+              return (
+                <FriendRow key={'friend' + index} usernames={item.usernames} itemWidth={item.itemWidth} />
+              )
+            }
+            return p.notAUser ? null : (
+              <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
+                <Kb.Text type="BodySmall">{item.text}</Kb.Text>
+              </Kb.Box2>
+            )
+          },
         },
-      },
-    ] as const,
+      ] as const,
     [
-      p.onAddIdentity, p.assertions, p.backgroundColorType, p.bio, p.blocked, p.followThem, p.followers,
-      p.followersCount, p.followsYou, p.followingCount, p.fullName, p.guiID, p.hidFromFollowers, p.location,
-      p.name, p.notAUser, p.onEditAvatar, p.onReload, p.reason, p.sbsAvatarUrl, p.sbsDescription,
-      p.service, p.serviceIcon, p.state, p.stellarHidden, p.suggestions, p.teamShowcase, p.title,
-      p.username, chunks,
+      p.onAddIdentity,
+      p.assertions,
+      p.backgroundColorType,
+      p.bio,
+      p.blocked,
+      p.followThem,
+      p.followers,
+      p.followersCount,
+      p.followsYou,
+      p.followingCount,
+      p.fullName,
+      p.guiID,
+      p.hidFromFollowers,
+      p.location,
+      p.name,
+      p.notAUser,
+      p.onEditAvatar,
+      p.onReload,
+      p.reason,
+      p.sbsAvatarUrl,
+      p.sbsDescription,
+      p.service,
+      p.serviceIcon,
+      p.state,
+      p.stellarHidden,
+      p.suggestions,
+      p.teamShowcase,
+      p.title,
+      p.username,
+      chunks,
     ]
   )
 
