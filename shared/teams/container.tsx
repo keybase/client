@@ -3,8 +3,8 @@ import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import Main from './main'
-import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
+import {useTeamsList} from './use-teams-list'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
@@ -17,7 +17,7 @@ type TeamsRootParamList = {
 }
 
 const orderTeams = (
-  teams: ReadonlyMap<string, T.Teams.TeamMeta>,
+  teams: ReadonlyArray<T.Teams.TeamMeta>,
   newRequests: T.Immutable<Teams.State['newTeamRequests']>,
   teamIDToResetUsers: T.Immutable<Teams.State['teamIDToResetUsers']>,
   newTeams: T.Immutable<Teams.State['newTeams']>,
@@ -27,8 +27,8 @@ const orderTeams = (
 ): Array<T.Teams.TeamMeta> => {
   const filterLC = filter.toLowerCase().trim()
   const teamsFiltered = filter
-    ? [...teams.values()].filter(meta => meta.teamname.toLowerCase().includes(filterLC))
-    : [...teams.values()]
+    ? teams.filter(meta => meta.teamname.toLowerCase().includes(filterLC))
+    : [...teams]
   return teamsFiltered.sort((a, b) => {
     const sizeDiff =
       Teams.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, b.id) -
@@ -57,31 +57,34 @@ type Props = {
 }
 
 const Connected = ({filter = '', sort = 'role'}: Props) => {
+  const {reload, teams} = useTeamsList()
   const data = Teams.useTeamsState(
     C.useShallow(s => {
-      const {deletedTeams, activityLevels, teamMeta, dispatch} = s
+      const {deletedTeams, activityLevels, dispatch} = s
       const {newTeamRequests, newTeams, teamIDToResetUsers} = s
-      const {getTeams, launchNewTeamWizardOrModal} = dispatch
+      const {launchNewTeamWizardOrModal} = dispatch
       return {
         activityLevels,
         deletedTeams,
-        getTeams,
         launchNewTeamWizardOrModal,
         newTeamRequests,
         newTeams,
         teamIDToResetUsers,
-        teamMeta,
       }
     })
   )
   const {activityLevels, deletedTeams, newTeamRequests, newTeams} = data
-  const {teamIDToResetUsers, teamMeta: _teams} = data
-  const {getTeams, launchNewTeamWizardOrModal} = data
+  const {launchNewTeamWizardOrModal, teamIDToResetUsers} = data
 
-  const teams = orderTeams(_teams, newTeamRequests, teamIDToResetUsers, newTeams, sort, activityLevels, filter)
+  const orderedTeams = orderTeams(teams, newTeamRequests, teamIDToResetUsers, newTeams, sort, activityLevels, filter)
+  const teamItems = orderedTeams.map(teamMeta => ({
+    activityLevel: activityLevels.teams.get(teamMeta.id) || 'none',
+    badgeCount: Teams.getTeamRowBadgeCount(newTeamRequests, teamIDToResetUsers, teamMeta.id),
+    id: teamMeta.id,
+    isNew: newTeams.has(teamMeta.id),
+    teamMeta,
+  }))
 
-  // subscribe to teams changes
-  useTeamsSubscribe()
   // reload activity levels
   useActivityLevels(true)
 
@@ -91,14 +94,14 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
   const onJoinTeam = () => nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}})
 
   return (
-    <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={getTeams}>
+    <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={reload}>
       <Main
         onCreateTeam={onCreateTeam}
         onJoinTeam={onJoinTeam}
         deletedTeams={deletedTeams}
         onChangeSort={sortOrder => navigation.setParams({filter, sort: sortOrder})}
         sortOrder={sort}
-        teams={teams}
+        teams={teamItems}
       />
     </Kb.Reloadable>
   )

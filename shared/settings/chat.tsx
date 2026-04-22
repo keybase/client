@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import Group from './group'
@@ -8,6 +7,7 @@ import {loadSettings} from './load-settings'
 import useNotificationSettings from './notifications/use-notification-settings'
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
+import {useTeamsList} from '@/teams/use-teams-list'
 
 const emptyList = new Array<string>()
 
@@ -126,8 +126,8 @@ const useUnfurlSettings = () => {
 
 const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsState) => {
   const {contactSettingsRefresh, contactSettingsSaved, error, settings} = useContactSettings()
-  const _teamMeta = Teams.useTeamsState(s => s.teamMeta)
-  const teamMeta = Teams.sortTeamsByName(_teamMeta)
+  const {teams} = useTeamsList()
+  const teamMeta = [...teams].sort((a, b) => a.teamname.localeCompare(b.teamname))
   const _contactSettingsEnabled = settings?.enabled
   const _contactSettingsIndirectFollowees = settings?.allowFolloweeDegrees === 2
   const _contactSettingsTeams = settings?.teams

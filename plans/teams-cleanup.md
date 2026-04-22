@@ -112,14 +112,14 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ### Teams screens to convert
 
-- [ ] `teams/container.tsx`
+- [x] `teams/container.tsx`
 - [ ] `teams/team/index.tsx`
 - [ ] `teams/team/settings-tab/*`
 - [ ] `teams/team/member/*`
 - [ ] `teams/team/rows/*`
 - [ ] `teams/channel/*`
 - [ ] `profile/showcase-team-offer.tsx`
-- [ ] `settings/chat.tsx`
+- [x] `settings/chat.tsx`
 
 ### Store fallout after Chunk 3
 
