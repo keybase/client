@@ -73,6 +73,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
   - [x] Delete the dead `errorInEditWelcomeMessage` store path
   - [x] Move `errorInAddToTeam` into the remaining add-member UI
 - [x] Replace invite-by-email and invite-by-contact submit actions with `C.useRPC(...)`
+- [x] Delete the leftover invite-submit store actions plus the dead welcome-message cache
 - [x] Replace remaining store-owned submit actions with `C.useRPC(...)` at the owning screens where possible
   - [x] Replace `editMembership` submit actions in `teams/common/selection-popup.tsx` and `teams/team/member/index.new.tsx`
   - [x] Replace route-owned `addToTeam` submit actions in `teams/team/member/index.new.tsx`, `teams/team/rows/invite-row/request.tsx`, and `teams/team/rows/empty-row.tsx`
@@ -159,10 +160,10 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [ ] Stop treating `teams` as a background cache owner
 - [x] Move badge-derived team adornment state (`deletedTeams`, `newTeams`, `teamIDToResetUsers`) out of `stores/teams.tsx` into `stores/notifications.tsx`
 - [ ] Convert mounted-screen-only reactions to direct listeners plus reload
-  - `chat.1.chatUi.chatShowManageChannels`
-  - `keybase.1.NotifyTeam.teamDeleted`
-  - `keybase.1.NotifyTeam.teamExit`
-  - `chat.1.NotifyChat.ChatWelcomeMessageLoaded`
+  - [ ] `chat.1.chatUi.chatShowManageChannels`
+  - [ ] `keybase.1.NotifyTeam.teamDeleted`
+  - [ ] `keybase.1.NotifyTeam.teamExit`
+  - [x] `chat.1.NotifyChat.ChatWelcomeMessageLoaded`
 - [ ] Re-evaluate remaining teams engine handlers after earlier chunks land
 - [ ] Delete subscription-count and stale-bit bookkeeping once no screen depends on warmed caches
 - [x] Delete dead teams-store bookkeeping that no screen reads (`sawChatBanner`, `sawSubteamsBanner`, `teamAccessRequestsPending`)
@@ -179,6 +180,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 ## Chunk 5: Decide What, If Anything, Stays In Zustand
 
 - [ ] Review what remains in `shared/stores/teams.tsx`
+- [x] Replace the remaining profile `teamRoleMap` reads with `useTeamsList()`-derived role/membership data
 - [ ] Delete dead selectors, helpers, and tests
 - [ ] If only a tiny action layer remains, move it into feature hooks and remove the store entirely
 - [ ] If something must remain, document exactly why it needs app-wide lifetime

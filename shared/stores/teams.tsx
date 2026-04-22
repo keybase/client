@@ -14,7 +14,6 @@ import {
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import logger from '@/logger'
-import {openSMS} from '@/util/misc'
 import {RPCError, logError} from '@/util/errors'
 import {isMobile} from '@/constants/platform'
 import {mapGetEnsureValue} from '@/util/map'
@@ -86,11 +85,6 @@ export const emptyInviteInfo = Object.freeze<T.Teams.InviteInfo>({
   phone: '',
   role: 'writer',
   username: '',
-})
-
-export const emptyEmailInviteError = Object.freeze({
-  malformed: new Set<string>(),
-  message: '',
 })
 
 const emptyTeamChannelInfo = {
@@ -680,10 +674,7 @@ export const maybeGetMostRecentValidInviteLink = (inviteLinks: ReadonlyArray<T.T
 type Store = T.Immutable<{
   activityLevels: T.Teams.ActivityLevels
   channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
-  errorInEmailInvite: T.Teams.EmailInviteError
   newTeamRequests: Map<T.Teams.TeamID, Set<string>>
-  teamIDToWelcomeMessage: Map<T.Teams.TeamID, T.RPCChat.WelcomeMessageDisplay>
-  teamNameToLoadingInvites: Map<T.Teams.Teamname, Map<string, boolean>>
   teamNameToID: Map<T.Teams.Teamname, string>
   teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamnames: Set<T.Teams.Teamname> // TODO remove
@@ -702,18 +693,15 @@ const initialStore: Store = {
   activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
   addMembersWizard: addMembersWizardEmptyState,
   channelInfo: new Map(),
-  errorInEmailInvite: emptyEmailInviteError,
   newTeamRequests: new Map(),
   teamDetails: new Map(),
   teamDetailsSubscriptionCount: new Map(),
   teamIDToMembers: new Map(),
   teamIDToRetentionPolicy: new Map(),
-  teamIDToWelcomeMessage: new Map(),
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
   teamMetaSubscribeCount: 0,
   teamNameToID: new Map(),
-  teamNameToLoadingInvites: new Map(),
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamVersion: new Map(),
   teamnames: new Set(),
@@ -747,27 +735,10 @@ export type State = Store & {
     getTeamRetentionPolicy: (teamID: T.Teams.TeamID) => void
     getTeams: (subscribe?: boolean, forceReload?: boolean) => void
     ignoreRequest: (teamID: T.Teams.TeamID, teamname: string, username: string) => void
-    inviteToTeamByEmail: (
-      invitees: string,
-      role: T.Teams.TeamRoleType,
-      teamID: T.Teams.TeamID,
-      teamname: string,
-      loadingKey?: string
-    ) => void
-    inviteToTeamByPhone: (
-      teamID: T.Teams.TeamID,
-      teamname: string,
-      role: T.Teams.TeamRoleType,
-      phoneNumber: string,
-      fullName: string,
-      loadingKey?: string
-    ) => void
     launchNewTeamWizardOrModal: (subteamOf?: T.Teams.TeamID) => void
     leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
     loadTeam: (teamID: T.Teams.TeamID, _subscribe?: boolean) => void
     loadTeamChannelList: (teamID: T.Teams.TeamID) => void
-    loadWelcomeMessage: (teamID: T.Teams.TeamID) => void
-    loadedWelcomeMessage: (teamID: T.Teams.TeamID, message: T.RPCChat.WelcomeMessageDisplay) => void
     manageChatChannels: (teamID: T.Teams.TeamID) => void
     notifyTeamTeamRoleMapChanged: (newVersion: number) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
@@ -777,7 +748,6 @@ export type State = Store & {
     removeMember: (teamID: T.Teams.TeamID, username: string) => void
     removePendingInvite: (teamID: T.Teams.TeamID, inviteID: string) => void
     renameTeam: (oldName: string, newName: string) => void
-    resetErrorInEmailInvite: () => void
     resetState: () => void
     resetTeamMetaStale: () => void
     saveChannelMembership: (
@@ -1162,106 +1132,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    inviteToTeamByEmail: (invitees, role, teamID, teamname, loadingKey) => {
-      const f = async () => {
-        if (loadingKey) {
-          set(s => {
-            const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
-            oldLoadingInvites.set(loadingKey, true)
-            s.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
-          })
-        }
-        try {
-          const res = await T.RPCGen.teamsTeamAddEmailsBulkRpcPromise(
-            {
-              emails: invitees,
-              name: teamname,
-              role: T.RPCGen.TeamRole[role],
-            },
-            [S.waitingKeyTeamsTeam(teamID), S.waitingKeyTeamsAddToTeamByEmail(teamname)]
-          )
-          if (res.malformed && res.malformed.length > 0) {
-            const malformed = res.malformed
-            logger.warn(`teamInviteByEmail: Unable to parse ${malformed.length} email addresses`)
-            set(s => {
-              s.errorInEmailInvite.malformed = new Set(malformed)
-              s.errorInEmailInvite.message = isMobile
-                ? `Error parsing email: ${malformed[0]}`
-                : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`
-            })
-          } else {
-            // no malformed emails, assume everything went swimmingly
-            get().dispatch.resetErrorInEmailInvite()
-            if (!isMobile) {
-              // mobile does not nav away
-              clearModals()
-            }
-          }
-        } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              // other error. display messages and leave all emails in input box
-              s.errorInEmailInvite.malformed = new Set()
-              s.errorInEmailInvite.message = error.desc
-            }
-          })
-        } finally {
-          if (loadingKey) {
-            set(s => {
-              const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
-              oldLoadingInvites.set(loadingKey, false)
-              s.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
-            })
-          }
-        }
-      }
-      ignorePromise(f())
-    },
-    inviteToTeamByPhone: (teamID, teamname, role, phoneNumber, fullName, loadingKey) => {
-      const f = async () => {
-        const generateSMSBody = (teamname: string, seitan: string): string => {
-          // seitan is 18chars
-          // message sans teamname is 118chars. Teamname can be 33 chars before we truncate to 25 and pre-ellipsize
-          let team: string
-          const teamOrSubteam = teamname.includes('.') ? 'subteam' : 'team'
-          if (teamname.length <= 33) {
-            team = `${teamname} ${teamOrSubteam}`
-          } else {
-            team = `..${teamname.substring(teamname.length - 30)} subteam`
-          }
-          return `Join the ${team} on Keybase. Copy this message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\ninstall: keybase.io/_/go`
-        }
-        if (loadingKey) {
-          set(s => {
-            const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
-            oldLoadingInvites.set(loadingKey, true)
-          })
-        }
-        try {
-          const seitan = await T.RPCGen.teamsTeamCreateSeitanTokenV2RpcPromise(
-            {
-              label: {sms: {f: fullName || '', n: phoneNumber} as T.RPCGen.SeitanKeyLabelSms, t: 1},
-              role: T.RPCGen.TeamRole[role],
-              teamname,
-            },
-            S.waitingKeyTeamsTeam(teamID)
-          )
-          /* Open SMS */
-          const bodyText = generateSMSBody(teamname, seitan)
-          await openSMS([phoneNumber], bodyText)
-        } catch (err) {
-          logger.info('Error sending SMS', err)
-        } finally {
-          if (loadingKey) {
-            set(s => {
-              const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
-              oldLoadingInvites.set(loadingKey, false)
-            })
-          }
-        }
-      }
-      ignorePromise(f())
-    },
     launchNewTeamWizardOrModal: subteamOf => {
       if (subteamOf) {
         navigateAppend({
@@ -1381,29 +1251,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    loadWelcomeMessage: teamID => {
-      const f = async () => {
-        try {
-          const message = await T.RPCChat.localGetWelcomeMessageRpcPromise(
-            {teamID},
-            S.waitingKeyTeamsLoadWelcomeMessage(teamID)
-          )
-          set(s => {
-            s.teamIDToWelcomeMessage.set(teamID, message)
-          })
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.error(error)
-          }
-        }
-      }
-      ignorePromise(f())
-    },
-    loadedWelcomeMessage: (teamID, message) => {
-      set(s => {
-        s.teamIDToWelcomeMessage.set(teamID, message)
-      })
-    },
     manageChatChannels: teamID => {
       navigateAppend({name: 'teamAddToChannels', params: {teamID}})
     },
@@ -1427,11 +1274,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           get().dispatch.eagerLoadTeams()
           get().dispatch.resetTeamMetaStale()
           break
-        case 'chat.1.NotifyChat.ChatWelcomeMessageLoaded': {
-          const {teamID, message} = action.payload.params
-          get().dispatch.loadedWelcomeMessage(teamID, message)
-          break
-        }
         case 'chat.1.NotifyChat.ChatSetTeamRetention': {
           const {convs, teamID} = action.payload.params
           const first = convs?.[0]
@@ -1586,12 +1428,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    resetErrorInEmailInvite: () => {
-      set(s => {
-        s.errorInEmailInvite.message = ''
-        s.errorInEmailInvite.malformed = new Set()
-      })
     },
     resetState,
     resetTeamMetaStale: () => {

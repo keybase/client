@@ -17,14 +17,10 @@ const noTeams = new Array<T.Tracker.TeamShowcase>()
 
 const Container = (ownProps: OwnProps) => {
   const _isYou = useCurrentUserState(s => s.username === ownProps.username)
-  const {showTeamByName, _roles} = useTeamsState(
-    C.useShallow(s => ({
-      _roles: s.teamRoleMap.roles,
-      showTeamByName: s.dispatch.showTeamByName,
-    }))
-  )
+  const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
   const {teams} = useTeamsList()
   const _teamNameToID = React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
+  const teamNames = React.useMemo(() => new Set(teams.map(team => team.teamname)), [teams])
   const _youAreInTeams = teams.length > 0
   const teamShowcase = ownProps.teamShowcase || noTeams
   const {clearModals, navigateAppend} = C.Router2
@@ -42,20 +38,6 @@ const Container = (ownProps: OwnProps) => {
     showTeamByName(teamname)
   }
   const onEdit = _isYou && _youAreInTeams ? _onEdit : undefined
-  const teamMeta = teamShowcase.reduce<{
-    [key: string]: {
-      inTeam: boolean
-      teamID: T.Teams.TeamID
-    }
-  }>((map, t) => {
-    const teamID = _teamNameToID.get(t.name) || T.Teams.noTeamID
-    map[t.name] = {
-      inTeam: !!((_roles.get(teamID)?.role || 'none') !== 'none'),
-      teamID,
-    }
-    return map
-  }, {})
-
   return onEdit || teamShowcase.length > 0 ? (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.showcases}>
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
@@ -69,7 +51,7 @@ const Container = (ownProps: OwnProps) => {
           {...t}
           onJoinTeam={onJoinTeam}
           onViewTeam={() => onViewTeam(t.name)}
-          inTeam={teamMeta[t.name]?.inTeam ?? false}
+          inTeam={teamNames.has(t.name)}
         />
       ))}
     </Kb.Box2>
