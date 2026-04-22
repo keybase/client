@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useConfigState} from '@/stores/config'
 import {FloatingRolePicker} from '@/teams/role-picker'
@@ -325,7 +325,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   teamPadding: {paddingTop: Kb.Styles.globalMargins.small},
 }))
 
-const callRPC = <ARGS extends Array<any>, RET>(
+const callRPC = async <ARGS extends Array<any>, RET>(
   submit: (args: ARGS, setResult: (result: RET) => void, setError: (error: RPCError) => void) => void,
   args: ARGS
 ) => new Promise<RET>((resolve, reject) => submit(args, resolve, reject))
