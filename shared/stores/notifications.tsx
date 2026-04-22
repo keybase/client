@@ -1,8 +1,10 @@
 import * as Z from '@/util/zustand'
 import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
+import {bodyToJSON} from '@/constants/rpc-utils'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '@/constants/tabs'
+import logger from '@/logger'
 import {mapGetEnsureValue} from '@/util/map'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -15,6 +17,7 @@ type Store = T.Immutable<{
   desktopAppBadgeCount: number
   keyState: Map<NotificationKeys, boolean>
   mobileAppBadgeCount: number
+  newTeamRequests: Map<T.Teams.TeamID, Set<string>>
   newTeams: Set<T.Teams.TeamID>
   navBadges: Map<Tabs.Tab, number>
   teamIDToResetUsers: Map<T.Teams.TeamID, Set<string>>
@@ -26,6 +29,7 @@ const initialStore: Store = {
   desktopAppBadgeCount: 0,
   keyState: new Map(),
   mobileAppBadgeCount: 0,
+  newTeamRequests: new Map(),
   navBadges: new Map(),
   newTeams: new Set(),
   teamIDToResetUsers: new Map(),
@@ -85,6 +89,27 @@ const badgeStateToTeamIDToResetUsers = (bs: T.RPCGen.BadgeState) => {
   })
   return teamIDToResetUsers
 }
+
+const newRequestsGregorPrefix = 'team.request_access:'
+
+const gregorItemsToNewTeamRequests = (
+  items: Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
+) => {
+  const newTeamRequests = new Map<T.Teams.TeamID, Set<string>>()
+  items.forEach(({item}) => {
+    if (!item.category.startsWith(newRequestsGregorPrefix)) {
+      return
+    }
+    const request = bodyToJSON(item.body) as undefined | {id: T.Teams.TeamID; username: string}
+    if (!request) {
+      return
+    }
+    const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set<string>())
+    requests.add(request.username)
+  })
+  return newTeamRequests
+}
+
 export const useNotifState = Z.createZustand<State>('notifications', (set, get) => {
   const updateWidgetBadge = (s: Z.WritableDraft<State>) => {
     let widgetBadge: BadgeType = 'regular'
@@ -120,6 +145,26 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
           })
           const counts = badgeStateToBadgeCounts(badgeState)
           get().dispatch.setBadgeCounts(counts)
+          break
+        }
+        case 'keybase.1.gregorUI.pushState': {
+          const {state} = action.payload.params
+          const items = state.items || []
+          const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(
+            (arr, {md, item}) => {
+              if (md && item) {
+                arr.push({item, md})
+              }
+              return arr
+            },
+            []
+          )
+          if (goodState.length !== items.length) {
+            logger.warn('Lost some messages in filtering out nonNull gregor items')
+          }
+          set(s => {
+            s.newTeamRequests = gregorItemsToNewTeamRequests(goodState)
+          })
           break
         }
         default:

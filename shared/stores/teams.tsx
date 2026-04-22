@@ -13,8 +13,6 @@ import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import logger from '@/logger'
 import {RPCError, logError} from '@/util/errors'
-import {mapGetEnsureValue} from '@/util/map'
-import {bodyToJSON} from '@/constants/rpc-utils'
 import {fixCrop} from '@/util/crop'
 import {getTBStore} from '@/stores/team-building'
 import {useConfigState} from '@/stores/config'
@@ -399,8 +397,8 @@ export const isSubteam = (maybeTeamname: string) => {
 // How many public admins should we display on a showcased team card at once?
 export const publicAdminsLimit = 6
 
-export const newRequestsGregorPrefix = 'team.request_access:'
-export const newRequestsGregorKey = (teamID: T.Teams.TeamID) => `${newRequestsGregorPrefix}${teamID}`
+const newRequestsGregorPrefix = 'team.request_access:'
+const newRequestsGregorKey = (teamID: T.Teams.TeamID) => `${newRequestsGregorPrefix}${teamID}`
 
 // Merge new teamMeta objs into old ones, removing any old teams that are not in the new map
 export const mergeTeamMeta = (oldMap: State['teamMeta'], newMap: State['teamMeta']) => {
@@ -649,7 +647,6 @@ export const maybeGetMostRecentValidInviteLink = (inviteLinks: ReadonlyArray<T.T
 type Store = T.Immutable<{
   activityLevels: T.Teams.ActivityLevels
   channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
-  newTeamRequests: Map<T.Teams.TeamID, Set<string>>
   teamNameToID: Map<T.Teams.Teamname, string>
   teamnames: Set<T.Teams.Teamname> // TODO remove
   teamMeta: Map<T.Teams.TeamID, T.Teams.TeamMeta>
@@ -662,7 +659,6 @@ type Store = T.Immutable<{
 const initialStore: Store = {
   activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
   channelInfo: new Map(),
-  newTeamRequests: new Map(),
   teamDetails: new Map(),
   teamIDToMembers: new Map(),
   teamIDToRetentionPolicy: new Map(),
@@ -693,7 +689,6 @@ export type State = Store & {
     loadTeamChannelList: (teamID: T.Teams.TeamID) => void
     notifyTeamTeamRoleMapChanged: (newVersion: number) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    onGregorPushState: (gs: Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>) => void
     reAddToTeam: (teamID: T.Teams.TeamID, username: string) => void
     refreshTeamRoleMap: () => void
     removeMember: (teamID: T.Teams.TeamID, username: string) => void
@@ -706,7 +701,6 @@ export type State = Store & {
       newChannelState: T.Teams.ChannelMembershipState
     ) => void
     setMemberPublicity: (teamID: T.Teams.TeamID, showcase: boolean) => void
-    setNewTeamRequests: (newTeamRequests: Map<T.Teams.TeamID, Set<string>>) => void
     setTeamRetentionPolicy: (teamID: T.Teams.TeamID, policy: T.Retention.RetentionPolicy) => void
     setTeamRoleMapLatestKnownVersion: (version: number) => void
     teamChangedByID: (c: EngineGen.ParamsOf<'keybase.1.NotifyTeam.teamChangedByID'>) => void
@@ -1147,38 +1141,8 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         case 'keybase.1.NotifyTeam.teamChangedByID':
           get().dispatch.teamChangedByID(action.payload.params)
           break
-        case 'keybase.1.gregorUI.pushState': {
-          const {state} = action.payload.params
-          const items = state.items || []
-          const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(
-            (arr, {md, item}) => {
-              md && item && arr.push({item, md})
-              return arr
-            },
-            []
-          )
-          if (goodState.length !== items.length) {
-            logger.warn('Lost some messages in filtering out nonNull gregor items')
-          }
-          get().dispatch.onGregorPushState(goodState)
-          break
-        }
         default:
       }
-    },
-    onGregorPushState: items => {
-      const newTeamRequests = new Map<T.Teams.TeamID, Set<string>>()
-      items.forEach(i => {
-        if (i.item.category.startsWith(newRequestsGregorPrefix)) {
-          const body = bodyToJSON(i.item.body) as undefined | {id: T.Teams.TeamID; username: string}
-          if (body) {
-            const request = body
-            const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
-            requests.add(request.username)
-          }
-        }
-      })
-      get().dispatch.setNewTeamRequests(newTeamRequests)
     },
     reAddToTeam: (teamID, username) => {
       const f = async () => {
@@ -1308,11 +1272,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    setNewTeamRequests: newTeamRequests => {
-      set(s => {
-        s.newTeamRequests = newTeamRequests
-      })
     },
     setTeamRetentionPolicy: (teamID, policy) => {
       const f = async () => {

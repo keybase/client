@@ -15,14 +15,10 @@ const SubteamTeamRow = ({teamID, teamMeta: providedTeamMeta}: Props) => {
   const teamMetaByID = useTeamsListMap()
   const teamMeta = providedTeamMeta ?? teamMetaByID.get(teamID) ?? Teams.makeTeamMeta({id: teamID})
   const {teams: activityByTeam} = useActivityLevels()
-  const {newTeamRequests} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      newTeamRequests: s.newTeamRequests,
-    }))
-  )
-  const {isNew, teamIDToResetUsers} = useNotifState(
+  const {isNew, newTeamRequests, teamIDToResetUsers} = useNotifState(
     C.useShallow(s => ({
       isNew: s.newTeams.has(teamID),
+      newTeamRequests: s.newTeamRequests,
       teamIDToResetUsers: s.teamIDToResetUsers,
     }))
   )

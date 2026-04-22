@@ -119,3 +119,44 @@ test('stale badgeState events do not regress badge counts', () => {
   expect(store.getState().newTeams.size).toBe(0)
   expect(store.getState().teamIDToResetUsers.size).toBe(0)
 })
+
+test('gregor push state populates per-team access requests', () => {
+  const store = useNotifState
+  const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value))
+
+  store.getState().dispatch.onEngineIncomingImpl({
+    payload: {
+      params: {
+        state: {
+          items: [
+            {
+              item: {
+                body: encode({id: 'team-1', username: 'alice'}),
+                category: 'team.request_access:team-1',
+              },
+              md: {},
+            },
+            {
+              item: {
+                body: encode({id: 'team-1', username: 'bob'}),
+                category: 'team.request_access:team-1',
+              },
+              md: {},
+            },
+            {
+              item: {
+                body: encode({id: 'team-2', username: 'charlie'}),
+                category: 'team.request_access:team-2',
+              },
+              md: {},
+            },
+          ],
+        },
+      },
+    },
+    type: 'keybase.1.gregorUI.pushState',
+  } as any)
+
+  expect(store.getState().newTeamRequests.get('team-1')).toEqual(new Set(['alice', 'bob']))
+  expect(store.getState().newTeamRequests.get('team-2')).toEqual(new Set(['charlie']))
+})

@@ -442,8 +442,8 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       }
       syncGregorExplodingModes(goodState)
 
-      const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
-      useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+      const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
+      useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
       useChatState.getState().dispatch.onEngineIncomingImpl(action)
       break

@@ -61,15 +61,11 @@ type Props = {
 const Connected = ({filter = '', sort = 'role'}: Props) => {
   const {reload, teams} = useTeamsList()
   const activityLevels = useActivityLevels()
-  const {newTeamRequests} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      newTeamRequests: s.newTeamRequests,
-    }))
-  )
-  const {deletedTeams, newTeams, teamIDToResetUsers} = useNotifState(
+  const {deletedTeams, newTeamRequests, newTeams, teamIDToResetUsers} = useNotifState(
     C.useShallow(s => {
       return {
         deletedTeams: s.deletedTeams,
+        newTeamRequests: s.newTeamRequests,
         newTeams: s.newTeams,
         teamIDToResetUsers: s.teamIDToResetUsers,
       }

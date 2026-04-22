@@ -162,6 +162,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 - [ ] Stop treating `teams` as a background cache owner
 - [x] Move badge-derived team adornment state (`deletedTeams`, `newTeams`, `teamIDToResetUsers`) out of `stores/teams.tsx` into `stores/notifications.tsx`
+- [x] Move gregor-derived per-team access request state (`newTeamRequests`) out of `stores/teams.tsx` into `stores/notifications.tsx`
 - [ ] Convert mounted-screen-only reactions to direct listeners plus reload
   - [x] `chat.1.chatUi.chatShowManageChannels`
   - [x] `keybase.1.NotifyTeam.teamDeleted`
@@ -174,6 +175,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ### Store fallout after Chunk 4
 
+- `newTeamRequests`
 - `teamMetaSubscribeCount`
 - `teamDetailsSubscriptionCount`
 - `teamMetaStale`
