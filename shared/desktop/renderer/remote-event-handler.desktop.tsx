@@ -19,8 +19,46 @@ import {makeUUID} from '@/util/uuid'
 import {dumpLogs, showMain} from '@/util/storeless-actions'
 import * as FSConstants from '@/constants/fs'
 import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {dispatchPinentryRemoteAction} from '@/pinentry/remote-actions.desktop'
-import {handleTrackerPopupRemoteAction} from '@/tracker/desktop-popup-handles'
+
+type RemoteActionOwner = 'pinentry' | 'tracker'
+
+type OwnerActionMap = {
+  pinentry: RemoteGen.PinentryOnCancelPayload | RemoteGen.PinentryOnSubmitPayload
+  tracker:
+    | RemoteGen.TrackerChangeFollowPayload
+    | RemoteGen.TrackerCloseTrackerPayload
+    | RemoteGen.TrackerIgnorePayload
+    | RemoteGen.TrackerLoadPayload
+}
+
+type OwnerEntry = {
+  handler: (action: OwnerActionMap[RemoteActionOwner]) => void
+  token: number
+}
+
+// Mounted remote owners register here so renderer-local remote actions can be
+// delegated without per-feature singletons or window event plumbing.
+const ownerHandlers = new Map<RemoteActionOwner, OwnerEntry>()
+let nextOwnerToken = 0
+
+const dispatchRemoteActionToOwner = <K extends RemoteActionOwner>(owner: K, action: OwnerActionMap[K]) => {
+  const entry = ownerHandlers.get(owner)
+  ;(entry?.handler as ((action: OwnerActionMap[K]) => void) | undefined)?.(action)
+}
+
+export const registerRemoteActionHandler = <K extends RemoteActionOwner>(
+  owner: K,
+  handler: (action: OwnerActionMap[K]) => void
+) => {
+  nextOwnerToken += 1
+  const token = nextOwnerToken
+  ownerHandlers.set(owner, {handler: handler as OwnerEntry['handler'], token})
+  return () => {
+    if (ownerHandlers.get(owner)?.token === token) {
+      ownerHandlers.delete(owner)
+    }
+  }
+}
 
 const handleSaltPackOpen = (_path: string | HiddenString) => {
   const path = typeof _path === 'string' ? _path : _path.stringValue()
@@ -118,11 +156,11 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.pinentryOnCancel: {
-      dispatchPinentryRemoteAction(action)
+      dispatchRemoteActionToOwner('pinentry', action)
       break
     }
     case RemoteGen.pinentryOnSubmit: {
-      dispatchPinentryRemoteAction(action)
+      dispatchRemoteActionToOwner('pinentry', action)
       break
     }
     case RemoteGen.openPathInSystemFileManager: {
@@ -155,7 +193,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
     case RemoteGen.trackerIgnore:
     case RemoteGen.trackerCloseTracker:
     case RemoteGen.trackerLoad: {
-      handleTrackerPopupRemoteAction(action)
+      dispatchRemoteActionToOwner('tracker', action)
       break
     }
     case RemoteGen.link:

@@ -178,8 +178,6 @@ const Channel = (props: OwnProps) => {
       ) : item.type === 'headerTabs' ? (
         <ChannelTabs
           admin={yourOperations.manageMembers}
-          teamID={teamID}
-          conversationIDKey={conversationIDKey}
           selectedTab={selectedTab}
           setSelectedTab={setSelectedTab}
         />

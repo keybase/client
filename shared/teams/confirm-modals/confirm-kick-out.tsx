@@ -14,8 +14,8 @@ type Props = {
 const ConfirmKickOut = (props: Props) => {
   const {members, teamID} = props
   const [subteamsToo, setSubteamsToo] = React.useState(false)
-
   const [kickedVisible, setKickedVisible] = React.useState(false)
+  const removeMemberRPC = C.useRPC(T.RPCGen.teamsTeamRemoveMemberRpcPromise)
 
   const _subteamIDs = useTeamsState(s => s.teamDetails.get(teamID)?.subteams) ?? new Set<string>()
   const subteamIDs = Array.from(_subteamIDs)
@@ -28,18 +28,46 @@ const ConfirmKickOut = (props: Props) => {
     members.map(member => subteamIDs.map(subteamID => C.waitingKeyTeamsRemoveMember(subteamID, member)))
   )
   const waiting = C.Waiting.useAnyWaiting(...waitingKeys)
+  const waitingError = C.Waiting.useAnyErrors(waitingKeys)
   const nav = useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
-  const removeMember = useTeamsState(s => s.dispatch.removeMember)
   const loadTeam = useTeamsState(s => s.dispatch.loadTeam)
-  // TODO(Y2K-1592): do this in one RPC
-  const onRemove = () => {
-    members.forEach(member => removeMember(teamID, member))
-    if (subteamsToo) {
-      subteamIDs.forEach(subteamID => members.forEach(member => removeMember(subteamID, member)))
+  const removeMember = React.useCallback(
+    (targetTeamID: T.Teams.TeamID, username: string) =>
+      new Promise<void>((resolve, reject) => {
+        removeMemberRPC(
+          [
+            {
+              member: {
+                assertion: {assertion: username, removeFromSubtree: false},
+                type: T.RPCGen.TeamMemberToRemoveType.assertion,
+              },
+              teamID: targetTeamID,
+            },
+            [C.waitingKeyTeamsTeam(targetTeamID), C.waitingKeyTeamsRemoveMember(targetTeamID, username)],
+          ],
+          () => resolve(),
+          reject
+        )
+      }),
+    [removeMemberRPC]
+  )
+  const onRemove = React.useCallback(() => {
+    const f = async () => {
+      for (const member of members) {
+        await removeMember(teamID, member)
+      }
+      if (subteamsToo) {
+        for (const subteamID of subteamIDs) {
+          for (const member of members) {
+            await removeMember(subteamID, member)
+          }
+        }
+      }
+      loadTeam(teamID)
     }
-    loadTeam(teamID)
-  }
+    C.ignorePromise(f())
+  }, [loadTeam, members, removeMember, subteamIDs, subteamsToo, teamID])
 
   const wasWaitingRef = React.useRef(waiting)
   const navigateUp = C.Router2.navigateUp
@@ -105,6 +133,7 @@ const ConfirmKickOut = (props: Props) => {
           <Kb.SimpleToast visible={kickedVisible} text="Kicked" iconType="iconfont-check" />
         </Kb.Box2>
       }
+      error={waitingError?.message ?? ''}
       onCancel={onCancel}
       onConfirm={kickedVisible ? undefined : onRemove}
       confirmText="Kick out"

@@ -8,12 +8,7 @@ import type {Tab as TabType} from '@/common-adapters/tabs'
 
 type TeamTabsProps = {
   admin: boolean
-  error?: string
   isBig: boolean
-  loading: boolean
-  newRequests: number
-  numInvites: number
-  numRequests: number
   numSubteams: number
   resetUserCount: number
   selectedTab?: T.Teams.TabKey
@@ -59,7 +54,6 @@ const TeamTabs = (props: TeamTabsProps) => {
           tabContent
         )}
       </Kb.Box2>
-      {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
     </Kb.Box2>
   )
 }
@@ -99,36 +93,21 @@ const Container = (ownProps: OwnProps) => {
       const teamMeta = Teams.getTeamMeta(s, teamID)
       const resetUserCount = Teams.getTeamResetUsers(s, teamMeta.teamname).size
       return {
-        error: s.errorInAddToTeam,
-        newTeamRequests: s.newTeamRequests,
         resetUserCount,
         teamDetails: s.teamDetails.get(teamID),
-        teamMeta,
         yourOperations: Teams.getCanPerformByID(s, teamID),
       }
     })
   )
-  const {error, newTeamRequests, resetUserCount, teamDetails} = teamsState
-  const {teamMeta, yourOperations} = teamsState
+  const {resetUserCount, teamDetails, yourOperations} = teamsState
 
   const admin = yourOperations.manageMembers
   const isBig = Chat.useChatState(s => isBigTeam(s.inboxLayout, teamID))
-  const loading = C.Waiting.useAnyWaiting([
-    C.waitingKeyTeamsTeam(teamID),
-    C.waitingKeyTeamsTeamTars(teamMeta.teamname),
-  ])
-  const numInvites = teamDetails?.invites.size ?? 0
-  const numRequests = teamDetails?.requests.size ?? 0
   const numSubteams = teamDetails?.subteams.size ?? 0
   const showSubteams = yourOperations.manageSubteams
   const props = {
     admin: admin,
-    error: error,
     isBig: isBig,
-    loading: loading,
-    newRequests: newTeamRequests.get(ownProps.teamID)?.size ?? 0,
-    numInvites: numInvites,
-    numRequests: numRequests,
     numSubteams: numSubteams,
     resetUserCount: resetUserCount,
     selectedTab: selectedTab,

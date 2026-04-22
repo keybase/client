@@ -1,5 +1,6 @@
 // A mirror of the remote tracker windows.
 import * as React from 'react'
+import * as RemoteGen from '@/constants/remote-actions'
 import * as T from '@/constants/types'
 import {generateGUIID, ignorePromise} from '@/constants/utils'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
@@ -22,7 +23,7 @@ import {
   updateTrackerDetailsSummary,
   updateTrackerDetailsUserCard,
 } from './model'
-import {registerTrackerPopupHandlers} from './desktop-popup-handles'
+import {registerRemoteActionHandler} from '@/desktop/renderer/remote-event-handler.desktop'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 
@@ -39,15 +40,7 @@ type PopupState = {
   usernameToDetails: Map<string, T.Tracker.Details>
 }
 
-type LoadPayload = {
-  assertion: string
-  forceDisplay?: boolean
-  fromDaemon?: boolean
-  guiID: string
-  ignoreCache?: boolean
-  inTracker: boolean
-  reason: string
-}
+type LoadPayload = RemoteGen.TrackerLoadPayload['payload']
 
 const initialPopupState = (): PopupState => ({
   showTrackerSet: new Set(),
@@ -213,11 +206,21 @@ const RemoteTrackers = () => {
 
   React.useEffect(
     () =>
-      registerTrackerPopupHandlers({
-        changeFollow,
-        closeTracker,
-        ignore,
-        load,
+      registerRemoteActionHandler('tracker', action => {
+        switch (action.type) {
+          case RemoteGen.trackerChangeFollow:
+            changeFollow(action.payload.guiID, action.payload.follow)
+            break
+          case RemoteGen.trackerIgnore:
+            ignore(action.payload.guiID)
+            break
+          case RemoteGen.trackerCloseTracker:
+            closeTracker(action.payload.guiID)
+            break
+          case RemoteGen.trackerLoad:
+            load(action.payload)
+            break
+        }
       }),
     [changeFollow, closeTracker, ignore, load]
   )

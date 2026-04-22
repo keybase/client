@@ -11,7 +11,7 @@ import {useColorScheme} from 'react-native'
 import * as React from 'react'
 import {useConfigState} from '@/stores/config'
 import type {ProxyProps} from './main2.desktop'
-import {usePinentryRemoteAction} from './remote-actions.desktop'
+import {registerRemoteActionHandler} from '@/desktop/renderer/remote-event-handler.desktop'
 
 const windowOpts = {height: 230, width: 440}
 type PopupState = {
@@ -58,16 +58,20 @@ const PinentryProxy = () => {
     setPopupState(initialPopupState())
   }, [])
 
-  usePinentryRemoteAction(action => {
-    switch (action.type) {
-      case RemoteGen.pinentryOnCancel:
-        handlersRef.current.cancel?.()
-        break
-      case RemoteGen.pinentryOnSubmit:
-        handlersRef.current.submit?.(action.payload.password)
-        break
-    }
-  })
+  React.useEffect(
+    () =>
+      registerRemoteActionHandler('pinentry', action => {
+        switch (action.type) {
+          case RemoteGen.pinentryOnCancel:
+            handlersRef.current.cancel?.()
+            break
+          case RemoteGen.pinentryOnSubmit:
+            handlersRef.current.submit?.(action.payload.password)
+            break
+        }
+      }),
+    []
+  )
 
   React.useEffect(() => {
     if (!loggedIn) {

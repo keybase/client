@@ -26,6 +26,7 @@ const DeleteChannel = (props: Props) => {
   const [channelIDs] = React.useState(
     routePropChannel ? [routePropChannel] : props.conversationIDKeys ?? []
   )
+  const deleteChannelRPC = C.useRPC(T.RPCChat.localDeleteConversationLocalRpcPromise)
 
   const {channelMetas} = useAllChannelMetas(teamID)
   const channelnames: string[] = []
@@ -48,11 +49,39 @@ const DeleteChannel = (props: Props) => {
       numOtherChans
     )}`
   }
-  const deleteMultiChannelsConfirmed = useTeamsState(s => s.dispatch.deleteMultiChannelsConfirmed)
+  const waitingKey = C.waitingKeyTeamsDeleteChannel(teamID)
+  const waitingError = C.Waiting.useAnyErrors(waitingKey)
+  const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const clearModals = C.Router2.clearModals
 
-  const onDelete = () => {
-    deleteMultiChannelsConfirmed(teamID, Array.from(channelIDs.values()))
-  }
+  const deleteChannel = React.useCallback(
+    (conversationIDKey: T.Chat.ConversationIDKey) =>
+      new Promise<void>((resolve, reject) => {
+        deleteChannelRPC(
+          [
+            {
+              channelName: '',
+              confirmed: true,
+              convID: T.Chat.keyToConversationID(conversationIDKey),
+            },
+            waitingKey,
+          ],
+          () => resolve(),
+          reject
+        )
+      }),
+    [deleteChannelRPC, waitingKey]
+  )
+  const onDelete = React.useCallback(() => {
+    const f = async () => {
+      for (const channelID of channelIDs) {
+        await deleteChannel(channelID)
+      }
+      loadTeamChannelList(teamID)
+      clearModals()
+    }
+    C.ignorePromise(f())
+  }, [channelIDs, clearModals, deleteChannel, loadTeamChannelList, teamID])
 
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
@@ -63,6 +92,7 @@ const DeleteChannel = (props: Props) => {
     <Kb.ConfirmModal
       confirmText={`Delete ${pluralize('channel', channelnames.length)}`}
       description="This cannot be undone. All messages in the channel will be lost."
+      error={waitingError?.message ?? ''}
       header={<Header />}
       onConfirm={onDelete}
       onCancel={onCancel}
@@ -71,7 +101,7 @@ const DeleteChannel = (props: Props) => {
           Delete {deleteMsg}?
         </Kb.Text>
       }
-      waitingKey={C.waitingKeyTeamsDeleteChannel(teamID)}
+      waitingKey={waitingKey}
     />
   )
 }

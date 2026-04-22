@@ -50,9 +50,9 @@ If state truly needs app-wide lifetime, keep it in an explicit store and documen
 
 ### 3. Tracker Remote Popup Bridge
 
-- [ ] `shared/tracker/desktop-popup-handles.tsx`
-- [ ] integration in `shared/tracker/remote-proxy.desktop.tsx`
-- [ ] integration in `shared/desktop/renderer/remote-event-handler.desktop.tsx`
+- [x] `shared/tracker/desktop-popup-handles.tsx`
+- [x] integration in `shared/tracker/remote-proxy.desktop.tsx`
+- [x] integration in `shared/desktop/renderer/remote-event-handler.desktop.tsx`
 - Current module-level mutable state to remove:
   - `handlers`
 - Current hidden-store behaviors:
@@ -102,10 +102,10 @@ If state truly needs app-wide lifetime, keep it in an explicit store and documen
 
 ## Chunk 3: Remove Tracker Singleton Routing
 
-- [ ] Delete `shared/tracker/desktop-popup-handles.tsx`
-- [ ] Rework remote action routing so tracker follow/ignore/close/load reaches an explicit mounted owner
-- [ ] Keep popup state and remote-action handling owned by the tracker popup feature
-- [ ] Replace singleton-specific tests with owner-scoped behavior tests
+- [x] Delete `shared/tracker/desktop-popup-handles.tsx`
+- [x] Rework remote action routing so tracker follow/ignore/close/load reaches an explicit mounted owner
+- [x] Keep popup state and remote-action handling owned by the tracker popup feature
+- [x] Replace singleton-specific tests with owner-scoped behavior tests
 
 ### Design constraint for Chunk 3
 

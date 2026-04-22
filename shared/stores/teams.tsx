@@ -711,7 +711,6 @@ type Store = T.Immutable<{
   activityLevels: T.Teams.ActivityLevels
   channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
   deletedTeams: Array<T.RPCGen.DeletedTeamInfo>
-  errorInAddToTeam: string
   errorInEmailInvite: T.Teams.EmailInviteError
   newTeamRequests: Map<T.Teams.TeamID, Set<string>>
   newTeams: Set<T.Teams.TeamID>
@@ -743,7 +742,6 @@ const initialStore: Store = {
   addMembersWizard: addMembersWizardEmptyState,
   channelInfo: new Map(),
   deletedTeams: [],
-  errorInAddToTeam: '',
   errorInEmailInvite: emptyEmailInviteError,
   newTeamRequests: new Map(),
   newTeams: new Set(),
@@ -790,7 +788,6 @@ export type State = Store & {
       }
     ) => void
     deleteChannelConfirmed: (teamID: T.Teams.TeamID, conversationIDKey: T.Chat.ConversationIDKey) => void
-    deleteMultiChannelsConfirmed: (teamID: T.Teams.TeamID, channels: Array<T.Chat.ConversationIDKey>) => void
     deleteTeam: (teamID: T.Teams.TeamID) => void
     eagerLoadTeams: () => void
     finishedAddMembersWizard: () => void
@@ -901,9 +898,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
   }
   const dispatch: State['dispatch'] = {
     addToTeam: (teamID, users, sendChatNotification, fromTeamBuilder) => {
-      set(s => {
-        s.errorInAddToTeam = ''
-      })
       const f = async () => {
         try {
           const res = await T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise(
@@ -930,9 +924,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             return
           }
 
-          set(s => {
-            s.errorInAddToTeam = ''
-          })
           if (fromTeamBuilder) {
             getTBStore('teams').dispatch.finishedTeamBuilding()
           }
@@ -955,12 +946,11 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           }
 
           const msg = error.desc
-          set(s => {
-            s.errorInAddToTeam = msg
-          })
           // TODO this should not error on member already in team
           if (fromTeamBuilder) {
             getTBStore('teams').dispatch.setError(msg)
+          } else {
+            logger.error(`addToTeam failed for ${teamID}: ${msg}`)
           }
         }
       }
@@ -1034,23 +1024,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           },
           S.waitingKeyTeamsTeam(teamID)
         )
-        get().dispatch.loadTeamChannelList(teamID)
-        clearModals()
-      }
-      ignorePromise(f())
-    },
-    deleteMultiChannelsConfirmed: (teamID, channels) => {
-      const f = async () => {
-        for (const conversationIDKey of channels) {
-          await T.RPCChat.localDeleteConversationLocalRpcPromise(
-            {
-              channelName: '',
-              confirmed: true,
-              convID: T.Chat.keyToConversationID(conversationIDKey),
-            },
-            S.waitingKeyTeamsDeleteChannel(teamID)
-          )
-        }
         get().dispatch.loadTeamChannelList(teamID)
         clearModals()
       }

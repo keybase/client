@@ -117,19 +117,31 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const {settings, members} = useTeamsState(s => s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails)
   const open = settings.open
   const lastOwner = useTeamsState(s => Teams.isLastOwner(s, teamID))
+  const getTeams = useTeamsState(s => s.dispatch.getTeams)
+  const leaveTeamRPC = C.useRPC(T.RPCGen.teamsTeamLeaveRpcPromise)
   const stillLoadingTeam = !members
-  const leaving = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLeaveTeam(teamname))
-  const error = C.Waiting.useAnyErrors(C.waitingKeyTeamsLeaveTeam(teamname))
+  const waitingKey = C.waitingKeyTeamsLeaveTeam(teamname)
+  const leaving = C.Waiting.useAnyWaiting(waitingKey)
+  const error = C.Waiting.useAnyErrors(waitingKey)
   const navigateUp = C.Router2.navigateUp
   const navigateAppend = C.Router2.navigateAppend
+  const clearModals = C.Router2.clearModals
+  const navUpToScreen = C.useRouterState(s => s.dispatch.navUpToScreen)
   const onDeleteTeam = () => {
     navigateUp()
     navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
   }
-  const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
   const _onLeave = (permanent: boolean) => {
-      leaveTeam(teamname, permanent, 'teams')
-    }
+    leaveTeamRPC(
+      [{name: teamname, permanent}, waitingKey],
+      () => {
+        clearModals()
+        navUpToScreen('teamsRoot')
+        getTeams()
+      },
+      () => {}
+    )
+  }
   const _onBack = navigateUp
   const onBack = leaving ? () => {} : _onBack
   const onLeave = useSafeSubmit(_onLeave, !leaving)

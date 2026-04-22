@@ -68,15 +68,15 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [x] Move `addMembersWizard` state into the add-members route stack
 - [x] Move `teamSelectedChannels`, `teamSelectedMembers`, and `channelSelectedMembers` into the owning screens / popups
 - [x] Move `errorInEmailInvite` and `teamNameToLoadingInvites` into local invite screen state
-- [ ] Move `errorInAddToTeam`, `errorInEditMember`, and `errorInEditWelcomeMessage` into local screen state
+- [x] Move `errorInAddToTeam`, `errorInEditMember`, and `errorInEditWelcomeMessage` into local screen state
   - [x] Move `errorInEditMember` into the owning member/edit-role UI
   - [x] Delete the dead `errorInEditWelcomeMessage` store path
-  - [ ] Move `errorInAddToTeam` into the remaining add-member UI
+  - [x] Move `errorInAddToTeam` into the remaining add-member UI
 - [x] Replace invite-by-email and invite-by-contact submit actions with `C.useRPC(...)`
-- [ ] Replace remaining store-owned submit actions with `C.useRPC(...)` at the owning screens where possible
+- [x] Replace remaining store-owned submit actions with `C.useRPC(...)` at the owning screens where possible
   - [x] Replace `editMembership` submit actions in `teams/common/selection-popup.tsx` and `teams/team/member/index.new.tsx`
   - [x] Replace route-owned `addToTeam` submit actions in `teams/team/member/index.new.tsx`, `teams/team/rows/invite-row/request.tsx`, and `teams/team/rows/empty-row.tsx`
-  - [ ] Replace remaining confirm-modal submit actions
+  - [x] Replace remaining confirm-modal submit actions
 
 ### Files likely to move together
 
@@ -84,7 +84,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [x] `teams/new-team/wizard/*`
 - [x] `teams/add-members-wizard/*`
 - [x] `teams/common/selection-popup.tsx`
-- [ ] `teams/confirm-modals/*`
+- [x] `teams/confirm-modals/*`
 - [x] `teams/invite-by-email.tsx`
 - [x] `teams/invite-by-contact/*`
 
