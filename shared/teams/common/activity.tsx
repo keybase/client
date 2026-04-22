@@ -33,11 +33,17 @@ const ActivityLevelsContext = React.createContext<ActivityLevels | null>(null)
 const emptyChannelActivityLevels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.ActivityLevel> = new Map()
 const emptyTeamActivityLevels: ReadonlyMap<T.Teams.TeamID, T.Teams.ActivityLevel> = new Map()
 
-const lastActiveStatusToActivityLevel = {
-  [T.RPCChat.LastActiveStatus.active]: 'active',
-  [T.RPCChat.LastActiveStatus.none]: 'none',
-  [T.RPCChat.LastActiveStatus.recently]: 'recently',
-} as const satisfies Record<T.RPCChat.LastActiveStatus, T.Teams.ActivityLevel>
+const lastActiveStatusToActivityLevel = (status: T.RPCChat.LastActiveStatus): T.Teams.ActivityLevel => {
+  switch (status) {
+    case T.RPCChat.LastActiveStatus.active:
+      return 'active'
+    case T.RPCChat.LastActiveStatus.recentlyActive:
+      return 'recently'
+    case T.RPCChat.LastActiveStatus.none:
+    default:
+      return 'none'
+  }
+}
 
 const emptyLoadedActivityLevelsState = (): Omit<ActivityLevels, 'reload'> => ({
   channels: emptyChannelActivityLevels,
@@ -66,14 +72,14 @@ const useActivityLevelsRaw = (enabled = true): ActivityLevels => {
         if (status === T.RPCChat.LastActiveStatus.none) {
           return res
         }
-        res.set(teamID, lastActiveStatusToActivityLevel[status])
+        res.set(teamID, lastActiveStatusToActivityLevel(status))
         return res
       }, new Map<T.Teams.TeamID, T.Teams.ActivityLevel>())
       const channels = Object.entries(results.channels ?? {}).reduce((res, [conversationIDKey, status]) => {
         if (status === T.RPCChat.LastActiveStatus.none) {
           return res
         }
-        res.set(conversationIDKey, lastActiveStatusToActivityLevel[status])
+        res.set(conversationIDKey, lastActiveStatusToActivityLevel(status))
         return res
       }, new Map<T.Chat.ConversationIDKey, T.Teams.ActivityLevel>())
       setState({
