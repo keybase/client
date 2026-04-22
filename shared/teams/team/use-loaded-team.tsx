@@ -65,10 +65,17 @@ const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam =>
     ...emptyLoadedTeamState(validTeamID),
   })
   const requestVersionRef = React.useRef(0)
+  const clearState = React.useCallback(
+    (nextTeamID?: T.Teams.TeamID) => {
+      requestVersionRef.current++
+      setState(emptyLoadedTeamState(nextTeamID))
+    },
+    [setState]
+  )
 
   const reload = React.useCallback(async () => {
     if (!enabled || !validTeamID) {
-      setState(emptyLoadedTeamState())
+      clearState()
       return
     }
     const requestVersion = ++requestVersionRef.current
@@ -95,7 +102,7 @@ const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam =>
       logger.warn(`Failed to load team data for ${validTeamID}`, error)
       setState(prev => ({...prev, loading: false}))
     }
-  }, [enabled, validTeamID])
+  }, [clearState, enabled, validTeamID])
 
   React.useEffect(() => {
     void reload()
@@ -122,12 +129,12 @@ const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam =>
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      setState(emptyLoadedTeamState(validTeamID))
+      clearState(validTeamID)
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      setState(emptyLoadedTeamState(validTeamID))
+      clearState(validTeamID)
     }
   })
 

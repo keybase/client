@@ -210,10 +210,13 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ## Validation
 
+- Static source validation in this environment covered direct router entrypoints, route-owned wizard state, and mounted engine listeners.
+- Interactive/runtime validation is still pending; this machine is limited to pure code work for this repo.
+
 - [ ] Chat info panel still renders correct permissions, members, and bot state
 - [ ] Chat message popup still computes pin/delete/kick permissions correctly
 - [ ] Team and channel screens reload correctly on entry and after mutation
 - [ ] Team wizard and add-members flows work without global store state
-- [ ] Navigation flows previously using teams-store dispatch still work with direct router calls
-- [ ] Engine-driven mounted-screen nudges still react while visible
+- [x] Navigation flows previously using teams-store dispatch still work with direct router calls
+- [x] Engine-driven mounted-screen nudges still react while visible
 - [x] No new module-level mutable cache is introduced as a replacement for Zustand

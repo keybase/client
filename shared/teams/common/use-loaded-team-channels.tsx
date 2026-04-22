@@ -44,10 +44,17 @@ const useLoadedTeamChannelsRaw = (
     emptyLoadedTeamChannelsState(enabled && !!validTeamID)
   )
   const requestVersionRef = React.useRef(0)
+  const clearState = React.useCallback(
+    (loading = false) => {
+      requestVersionRef.current++
+      setState(emptyLoadedTeamChannelsState(loading))
+    },
+    [setState]
+  )
 
   const reload = React.useCallback(async () => {
     if (!enabled || !validTeamID) {
-      setState(emptyLoadedTeamChannelsState())
+      clearState()
       return
     }
     const requestVersion = ++requestVersionRef.current
@@ -96,7 +103,7 @@ const useLoadedTeamChannelsRaw = (
       logger.warn(`Failed to load team channels for ${validTeamID}`, error)
       setState(prev => ({...prev, loading: false}))
     }
-  }, [enabled, providedTeamname, validTeamID])
+  }, [clearState, enabled, providedTeamname, validTeamID])
 
   React.useEffect(() => {
     void reload()
@@ -113,12 +120,12 @@ const useLoadedTeamChannelsRaw = (
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      setState(emptyLoadedTeamChannelsState())
+      clearState()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      setState(emptyLoadedTeamChannelsState())
+      clearState()
     }
   })
 

@@ -168,10 +168,14 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
     teamname: teamname ?? '',
   }))
   const requestVersionRef = React.useRef(0)
+  const clearState = React.useCallback(() => {
+    requestVersionRef.current++
+    setState({...emptyChatTeamState, teamname: teamname ?? ''})
+  }, [teamname])
 
   const reload = React.useCallback(async () => {
     if (!enabled || !validTeamID) {
-      setState({...emptyChatTeamState, teamname: teamname ?? ''})
+      clearState()
       return
     }
     const requestVersion = ++requestVersionRef.current
@@ -192,7 +196,7 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
       logger.warn(`Failed to load chat team metadata for ${validTeamID}`, error)
       setState(prev => ({...prev, loading: false, teamname: prev.teamname || teamname || ''}))
     }
-  }, [enabled, teamname, validTeamID])
+  }, [clearState, enabled, teamname, validTeamID])
 
   React.useEffect(() => {
     void reload()
@@ -217,12 +221,12 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      setState({...emptyChatTeamState, teamname: teamname ?? ''})
+      clearState()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      setState({...emptyChatTeamState, teamname: teamname ?? ''})
+      clearState()
     }
   })
 
@@ -233,10 +237,14 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
   const validTeamID = loadableTeamID(teamID)
   const [state, setState] = React.useState<ChatTeamMembersState>(emptyChatTeamMembersState)
   const requestVersionRef = React.useRef(0)
+  const clearState = React.useCallback(() => {
+    requestVersionRef.current++
+    setState(emptyChatTeamMembersState)
+  }, [])
 
   const reload = React.useCallback(async () => {
     if (!enabled || !validTeamID) {
-      setState(emptyChatTeamMembersState)
+      clearState()
       return
     }
     const requestVersion = ++requestVersionRef.current
@@ -262,7 +270,7 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
       logger.warn(`Failed to reload chat team members for ${validTeamID}`, error)
       setState(prev => ({...prev, loading: false}))
     }
-  }, [enabled, validTeamID])
+  }, [clearState, enabled, validTeamID])
 
   React.useEffect(() => {
     void reload()
@@ -277,12 +285,12 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      setState(emptyChatTeamMembersState)
+      clearState()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      setState(emptyChatTeamMembersState)
+      clearState()
     }
   })
 
@@ -300,10 +308,14 @@ const useChatTeamChannelsRaw = (
     teamname: teamname ?? '',
   }))
   const requestVersionRef = React.useRef(0)
+  const clearState = React.useCallback(() => {
+    requestVersionRef.current++
+    setState({...emptyChatTeamChannelsState, teamname: teamname ?? ''})
+  }, [teamname])
 
   const reload = React.useCallback(async () => {
     if (!enabled || !validTeamID) {
-      setState({...emptyChatTeamChannelsState, teamname: teamname ?? ''})
+      clearState()
       return
     }
     const requestVersion = ++requestVersionRef.current
@@ -337,7 +349,7 @@ const useChatTeamChannelsRaw = (
       logger.warn(`Failed to load chat channels for ${validTeamID}`, error)
       setState(prev => ({...prev, loading: false}))
     }
-  }, [enabled, teamname, validTeamID])
+  }, [clearState, enabled, teamname, validTeamID])
 
   React.useEffect(() => {
     void reload()
@@ -357,12 +369,12 @@ const useChatTeamChannelsRaw = (
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      setState({...emptyChatTeamChannelsState, teamname: teamname ?? ''})
+      clearState()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      setState({...emptyChatTeamChannelsState, teamname: teamname ?? ''})
+      clearState()
     }
   })
 
@@ -379,10 +391,14 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
   const validTeamIDs = React.useMemo(() => parseTeamIDsKey(teamIDsKey), [teamIDsKey])
   const [state, setState] = React.useState<ChatTeamNamesState>(emptyChatTeamNamesState)
   const requestVersionRef = React.useRef(0)
+  const clearState = React.useCallback(() => {
+    requestVersionRef.current++
+    setState(emptyChatTeamNamesState)
+  }, [])
 
   const reload = React.useCallback(async () => {
     if (!enabled || !teamIDsKey || !username) {
-      setState(emptyChatTeamNamesState)
+      clearState()
       return
     }
     const requestVersion = ++requestVersionRef.current
@@ -419,7 +435,7 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
       logger.warn(`Failed to load chat team names for ${teamIDsKey}`, error)
       setState(prev => ({loading: false, teamnames: new Map(prev.teamnames)}))
     }
-  }, [enabled, teamIDsKey, username, validTeamIDs])
+  }, [clearState, enabled, teamIDsKey, username, validTeamIDs])
 
   React.useEffect(() => {
     void reload()
@@ -439,6 +455,7 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
+      requestVersionRef.current++
       setState(prev => {
         const teamnames = new Map(prev.teamnames)
         teamnames.delete(action.payload.params.teamID)
@@ -448,6 +465,7 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && validTeamIDs.includes(action.payload.params.teamID)) {
+      requestVersionRef.current++
       setState(prev => {
         const teamnames = new Map(prev.teamnames)
         teamnames.delete(action.payload.params.teamID)
