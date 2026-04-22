@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import {isBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as Teams from '@/stores/teams'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import {formatTimeRelativeToNow} from '@/util/timestamp'
@@ -45,39 +45,39 @@ export const TeamRequestRow = (props: Props) => {
   const denyWord = reset ? 'Remove' : 'Deny'
 
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          header={
-            <MenuHeader
-              username={username}
-              fullName={fullName ? fullName : undefined}
-              label={
-                reset ? 'Reset their account' : `Requested to join ${formatTimeRelativeToNow(ctime * 1000)}`
-              }
-            />
-          }
-          items={[
-            'Divider',
-            {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
-            {icon: 'iconfont-check', onClick: props.onAccept, title: approveWord},
-            {
-              danger: true,
-              icon: 'iconfont-block',
-              onClick: props.onIgnoreRequest,
-              subTitle: `They won't be notified`,
-              title: denyWord,
-            },
-          ]}
-          visible={true}
-          onHidden={hidePopup}
-          closeOnSelect={true}
-          attachTo={attachTo}
-          position="bottom left"
-          positionFallbacks={positionFallbacks}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        header={
+          <MenuHeader
+            username={username}
+            fullName={fullName ? fullName : undefined}
+            label={
+              reset ? 'Reset their account' : `Requested to join ${formatTimeRelativeToNow(ctime * 1000)}`
+            }
+          />
+        }
+        items={[
+          'Divider',
+          {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
+          {icon: 'iconfont-check', onClick: props.onAccept, title: approveWord},
+          {
+            danger: true,
+            icon: 'iconfont-block',
+            onClick: props.onIgnoreRequest,
+            subTitle: `They won't be notified`,
+            title: denyWord,
+          },
+        ]}
+        visible={true}
+        onHidden={hidePopup}
+        closeOnSelect={true}
+        attachTo={attachTo}
+        position="bottom left"
+        positionFallbacks={positionFallbacks}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
@@ -118,7 +118,6 @@ export const TeamRequestRow = (props: Props) => {
       action={
         <Kb.Box2 direction="horizontal">
           <FloatingRolePicker
-
             footerComponent={props.footerComponent}
             onConfirm={props.onConfirmRolePicker}
             onCancel={props.onCancelRolePicker}
@@ -183,11 +182,7 @@ type OwnProps = {
 
 type ExtraProps = {
   _notifLabel: string
-  letIn: (
-    sendNotification: boolean,
-    role: T.Teams.TeamRoleType,
-    onError: (message: string) => void
-  ) => void
+  letIn: (sendNotification: boolean, role: T.Teams.TeamRoleType, onError: (message: string) => void) => void
 }
 
 const RequestRowStateWrapper = (props: RowProps & ExtraProps) => {

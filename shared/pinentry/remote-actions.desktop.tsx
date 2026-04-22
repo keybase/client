@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as RemoteGen from '@/constants/remote-actions'
+import type * as RemoteGen from '@/constants/remote-actions'
 
 type PinentryRemoteAction = RemoteGen.PinentryOnCancelPayload | RemoteGen.PinentryOnSubmitPayload
 
@@ -9,7 +9,9 @@ export const dispatchPinentryRemoteAction = (action: PinentryRemoteAction) => {
   if (typeof window === 'undefined') {
     return false
   }
-  return window.dispatchEvent(new CustomEvent<PinentryRemoteAction>(pinentryRemoteActionEvent, {detail: action}))
+  return window.dispatchEvent(
+    new CustomEvent<PinentryRemoteAction>(pinentryRemoteActionEvent, {detail: action})
+  )
 }
 
 export const subscribeToPinentryRemoteAction = (listener: (action: PinentryRemoteAction) => void) => {

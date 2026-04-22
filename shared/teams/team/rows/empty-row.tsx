@@ -1,4 +1,4 @@
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
@@ -137,7 +137,14 @@ const EmptyRow = (props: Props) => {
   const teamOrChannel = props.conversationIDKey ? 'channel' : 'team'
   const teamOrChannelName = props.conversationIDKey ? 'This channel' : teamMeta.teamname
   return (
-    <Kb.Box2 direction="vertical" gap="small" alignItems="center" style={styles.container} fullWidth={true} justifyContent="flex-start">
+    <Kb.Box2
+      direction="vertical"
+      gap="small"
+      alignItems="center"
+      style={styles.container}
+      fullWidth={true}
+      justifyContent="flex-start"
+    >
       <Kb.Box2 direction="horizontal">
         <Kb.ImageIcon type={icon[props.type]} style={styles.iconHeight} />
       </Kb.Box2>

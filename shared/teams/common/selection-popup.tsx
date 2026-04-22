@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {FloatingRolePicker} from '../role-picker'
 import {useChannelSelectionState, useTeamSelectionState} from './selection-state'
 import {pluralize} from '@/util/string'
@@ -64,12 +64,10 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   // This is a bit of a hack to work around the floating box displaying above modals on mobile.
   // Probably it's not worth thinking about the root problem until we're on nav 5.
   const [focused, setFocused] = React.useState(true)
-  C.Router2.useSafeFocusEffect(
-    () => {
-      setFocused(true)
-      return () => setFocused(false)
-    }
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    setFocused(true)
+    return () => setFocused(false)
+  })
 
   // For boosting the list to scroll not behind the popup on mobile
   const [height, setHeight] = React.useState(0)
@@ -122,7 +120,8 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
 
 const TeamSelectionPopup = (props: TeamProps) => {
   const {selectedTab, teamID} = props
-  const {clearSelectedChannels, clearSelectedMembers, selectedChannels, selectedMembers} = useTeamSelectionState()
+  const {clearSelectedChannels, clearSelectedMembers, selectedChannels, selectedMembers} =
+    useTeamSelectionState()
   const selectedCount = selectedTab === 'teamChannels' ? selectedChannels.size : selectedMembers.size
 
   const onCancel = () => {
