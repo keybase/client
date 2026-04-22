@@ -1,9 +1,9 @@
 PODS:
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
-  - EXConstants (55.0.14):
+  - EXConstants (55.0.15):
     - ExpoModulesCore
-  - Expo (55.0.15):
+  - Expo (55.0.17):
     - boost
     - DoubleConversion
     - ExpoModulesCore
@@ -34,12 +34,14 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - ExpoAsset (55.0.15):
+  - ExpoAsset (55.0.16):
     - ExpoModulesCore
-  - ExpoAudio (55.0.13):
+  - ExpoAudio (55.0.14):
     - ExpoModulesCore
-  - ExpoCamera (55.0.15):
+  - ExpoCamera (55.0.16):
     - ExpoModulesCore
+  - ExpoCameraBarcodeScanning (55.0.16):
+    - ExpoCamera
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
   - ExpoClipboard (55.0.13):
@@ -50,20 +52,20 @@ PODS:
     - ExpoModulesCore
   - ExpoDomWebView (55.0.5):
     - ExpoModulesCore
-  - ExpoFileSystem (55.0.16):
+  - ExpoFileSystem (55.0.17):
     - ExpoModulesCore
   - ExpoFont (55.0.6):
     - ExpoModulesCore
   - ExpoHaptics (55.0.14):
     - ExpoModulesCore
-  - ExpoImage (55.0.8):
+  - ExpoImage (55.0.9):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.21.0)
     - SDWebImageAVIFCoder (~> 0.11.0)
     - SDWebImageSVGCoder (~> 1.7.0)
     - SDWebImageWebPCoder (~> 0.14.6)
-  - ExpoImagePicker (55.0.18):
+  - ExpoImagePicker (55.0.19):
     - ExpoModulesCore
   - ExpoKeepAwake (55.0.6):
     - ExpoModulesCore
@@ -71,14 +73,14 @@ PODS:
     - ExpoModulesCore
   - ExpoLocation (55.1.8):
     - ExpoModulesCore
-  - ExpoLogBox (55.0.10):
+  - ExpoLogBox (55.0.11):
     - React-Core
   - ExpoMailComposer (55.0.13):
     - ExpoModulesCore
-  - ExpoMediaLibrary (55.0.14):
+  - ExpoMediaLibrary (55.0.15):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (55.0.22):
+  - ExpoModulesCore (55.0.23):
     - boost
     - DoubleConversion
     - ExpoModulesJSI
@@ -109,7 +111,7 @@ PODS:
     - RNWorklets
     - SocketRocket
     - Yoga
-  - ExpoModulesJSI (55.0.22):
+  - ExpoModulesJSI (55.0.23):
     - hermes-engine
     - React-Core
     - React-runtimescheduler
@@ -118,7 +120,7 @@ PODS:
     - ExpoModulesCore
   - ExpoSMS (55.0.13):
     - ExpoModulesCore
-  - ExpoTaskManager (55.0.14):
+  - ExpoTaskManager (55.0.15):
     - ExpoModulesCore
     - UMAppLoader
   - ExpoVideo (55.0.15):
@@ -2119,7 +2121,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-keyboard-controller (1.21.5):
+  - react-native-keyboard-controller (1.21.6):
     - boost
     - DoubleConversion
     - fast_float
@@ -2137,7 +2139,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.21.5)
+    - react-native-keyboard-controller/common (= 1.21.6)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -2148,7 +2150,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-keyboard-controller/common (1.21.5):
+  - react-native-keyboard-controller/common (1.21.6):
     - boost
     - DoubleConversion
     - fast_float
@@ -3213,7 +3215,7 @@ PODS:
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.7.1)
-  - UMAppLoader (55.0.4)
+  - UMAppLoader (55.0.5)
   - Yoga (0.0.0)
   - ZXingObjC/Core (3.6.9)
   - ZXingObjC/OneD (3.6.9):
@@ -3229,6 +3231,7 @@ DEPENDENCIES:
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
   - ExpoAudio (from `../node_modules/expo-audio/ios`)
   - ExpoCamera (from `../node_modules/expo-camera/ios`)
+  - ExpoCameraBarcodeScanning (from `../node_modules/expo-camera/ios`)
   - ExpoClipboard (from `../node_modules/expo-clipboard/ios`)
   - ExpoContacts (from `../node_modules/expo-contacts/ios`)
   - ExpoDocumentPicker (from `../node_modules/expo-document-picker/ios`)
@@ -3370,6 +3373,8 @@ EXTERNAL SOURCES:
   ExpoAudio:
     :path: "../node_modules/expo-audio/ios"
   ExpoCamera:
+    :path: "../node_modules/expo-camera/ios"
+  ExpoCameraBarcodeScanning:
     :path: "../node_modules/expo-camera/ios"
   ExpoClipboard:
     :path: "../node_modules/expo-clipboard/ios"
@@ -3598,31 +3603,32 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
-  EXConstants: bfe4ae4e5d882e2e0b130e049665d0af4f4cc1b8
-  Expo: d57311f70b1a65d9fd054036bf8749e58e4ecd49
-  ExpoAsset: dc4f25f84886120f82b23233bba563ea7afa88f5
-  ExpoAudio: effd4eb58abee67050f79e8764fe1078daea39c8
-  ExpoCamera: 5f6ae5fd7365ceb741168a71eeaa5b65e556c672
+  EXConstants: 5caf448ff399f60be9d1053e77aed32e39411900
+  Expo: d44f616c129ab8c83c66c0099fd355d08a734ede
+  ExpoAsset: f56ed740b6a127da2bfd90832cf688ae309d4410
+  ExpoAudio: a826903abdeba843cde8602bd1c077d808b31f1d
+  ExpoCamera: 0ed88db61b7dc54712a98b8baaf415a3be88b76b
+  ExpoCameraBarcodeScanning: 1a003bdf373e94e82164b054f440efb2d10f2f38
   ExpoClipboard: 5d1b0cd2686406f21e616f2d9b3431259dee2e6a
   ExpoContacts: f893ee6893bfcbb8bcd0be12a0c8472a8ea7b9c3
   ExpoDocumentPicker: be59b82799ae30811e3f37a7521d6622baa63a19
   ExpoDomWebView: 2b2fbd9a07de8790569257cbf9dfdaa31cf95c70
-  ExpoFileSystem: 310d367cccbd30b9bda13c5865fe3d8d581dcf2a
+  ExpoFileSystem: a0e4a5a09c9c4f84338289b273a172609452dec9
   ExpoFont: cdd7a1d574a376fa003c713eff49e0a4df8672c7
   ExpoHaptics: 679f09dc37d5981e619bc197732007a3334e80b8
-  ExpoImage: ef931bba1fd3e907c2262216d17eb21095c9ac2b
-  ExpoImagePicker: ce50d0bf7d27d1a822b08a84bea9bfc0b3924557
+  ExpoImage: bd9e9c5bc4eff7a6883339be305f8b0bb5a0cf1c
+  ExpoImagePicker: 6d8e97db8aa1fcdd357c0ed1e7365cf30100a0fe
   ExpoKeepAwake: a1baf9810a2dee1905aa9bdd336852598f7220e9
   ExpoLocalization: c5cd7fa65c797d3a2f1adbd1fd4c601c524fd677
   ExpoLocation: ba5fff1510a7f123abf620fc2242db2fc87eba0f
-  ExpoLogBox: a3de999775d423ac9cb85d24bd47628e5392761f
+  ExpoLogBox: 617da77cbc083627692b2ea050a3666808aef2cd
   ExpoMailComposer: bb63854e80400563d4a1537f1c9fadf7c8e70ab1
-  ExpoMediaLibrary: d6b22096da42dea0b5a68fd3eef96761bbf592c4
-  ExpoModulesCore: dabdee4a8ff65794a7099878f022ea9453138877
-  ExpoModulesJSI: 936d7b87f07a959f739ac5127ccafeeb8d36ccb8
+  ExpoMediaLibrary: 4f73cc006973a250134ae1b2ab311fde399c0b6a
+  ExpoModulesCore: ef9482b6b2f0de2bad0b047f5394501aa8a41ed5
+  ExpoModulesJSI: bd01f4d433a586cbb8a24316ddf914bd4af5cb44
   ExpoScreenCapture: bcbb78db8311c51553ce6178c43e52bef0654c2a
   ExpoSMS: cd74cf9d83be085384481c47bfe7240baba70cb6
-  ExpoTaskManager: cd4cb9405637f52e26c8a54c1cfe7b974bc9ac2d
+  ExpoTaskManager: 7c2660c3c0bd0ed863e1536e59e11b71ac1490c6
   ExpoVideo: 434d1e32486309359b8eff4880d636fd8c0c0ba1
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: 82d1d7996af4c5850242966eb81e73f9a6dfab1e
@@ -3673,7 +3679,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 0b0d3c3074187e72d8a6e8cacce120cb24581565
   React-microtasksnativemodule: 175741856a8f6a31e20b973cb784db023256b259
   react-native-kb: 47269c30b862f82a1556f88cc6f00dbee91a9a98
-  react-native-keyboard-controller: d639be66fcdcb95d69de1e3f08bb650cf42f88a6
+  react-native-keyboard-controller: 1caa8b8c3fc43060344286f17d17cbf649e7e598
   react-native-netinfo: 9fad4eedfec9840a10e73ac4591ea1158523309b
   react-native-safe-area-context: eda63a662750758c1fdd7e719c9f1026c8d161cb
   react-native-webview: 83c663c5bdf1357d3e7c00986260cb888ea0e328
@@ -3721,7 +3727,7 @@ SPEC CHECKSUMS:
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  UMAppLoader: 6f70977c93a7033f0dc7cf2f0de9b49ce006f7bd
+  UMAppLoader: 045699ef1cc6afda399a5c78bde728f23bcce213
   Yoga: c7fcecd3a5864321db161a74cf2cd735f800c119
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
