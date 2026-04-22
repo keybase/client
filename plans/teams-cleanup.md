@@ -1,5 +1,7 @@
 # Teams Store Cleanup
 
+Reference skill: `skill/zustand-store-pruning/SKILL.md`
+
 ## Summary
 
 Shrink `shared/stores/teams.tsx` aggressively by removing service-backed convenience caches and route-owned UI state.
@@ -58,8 +60,10 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [x] Move `newTeamWizard` state into the team wizard route stack
 - [x] Move `addMembersWizard` state into the add-members route stack
 - [x] Move `teamSelectedChannels`, `teamSelectedMembers`, and `channelSelectedMembers` into the owning screens / popups
-- [ ] Move `errorInAddToTeam`, `errorInEditMember`, `errorInEditWelcomeMessage`, `errorInEmailInvite`, and `teamNameToLoadingInvites` into local screen state
-- [ ] Replace store-owned submit actions with `C.useRPC(...)` at the owning screens where possible
+- [x] Move `errorInEmailInvite` and `teamNameToLoadingInvites` into local invite screen state
+- [ ] Move `errorInAddToTeam`, `errorInEditMember`, and `errorInEditWelcomeMessage` into local screen state
+- [x] Replace invite-by-email and invite-by-contact submit actions with `C.useRPC(...)`
+- [ ] Replace remaining store-owned submit actions with `C.useRPC(...)` at the owning screens where possible
 
 ### Files likely to move together
 
@@ -68,8 +72,8 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [x] `teams/add-members-wizard/*`
 - [x] `teams/common/selection-popup.tsx`
 - [ ] `teams/confirm-modals/*`
-- [ ] `teams/invite-by-email.tsx`
-- [ ] `teams/invite-by-contact/*`
+- [x] `teams/invite-by-email.tsx`
+- [x] `teams/invite-by-contact/*`
 
 ### Store fallout after Chunk 2
 

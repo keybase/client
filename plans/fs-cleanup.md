@@ -1,5 +1,7 @@
 # FS Store Cleanup
 
+Reference skill: `skill/zustand-store-pruning/SKILL.md`
+
 ## Summary
 
 Shrink `shared/stores/fs.tsx` by moving path-owned view data, path action state, edit state, and service-backed convenience caches out of Zustand where mounted screens can load directly from the service.

@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
@@ -5,6 +6,8 @@ import useContacts, {type Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
 import {useTeamDetailsSubscribe} from '../subscriber'
 import {getE164} from '@/util/phone-numbers'
+import {openSMS} from '@/util/misc'
+import logger from '@/logger'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.
@@ -42,6 +45,22 @@ type Props = {
   teamID: T.Teams.TeamID
 }
 
+const malformedEmailErrorMessage = (malformed: ReadonlyArray<string>) =>
+  C.isMobile
+    ? `Error parsing email: ${malformed[0]}`
+    : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`
+
+const generateSMSBody = (teamname: string, seitan: string): string => {
+  let team: string
+  const teamOrSubteam = teamname.includes('.') ? 'subteam' : 'team'
+  if (teamname.length <= 33) {
+    team = `${teamname} ${teamOrSubteam}`
+  } else {
+    team = `..${teamname.substring(teamname.length - 30)} subteam`
+  }
+  return `Join the ${team} on Keybase. Copy this message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\ninstall: keybase.io/_/go`
+}
+
 const TeamInviteByContact = (props: Props) => {
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
@@ -51,45 +70,114 @@ const TeamInviteByContact = (props: Props) => {
   useTeamDetailsSubscribe(teamID)
 
   const [selectedRole, setSelectedRole] = React.useState('writer' as T.Teams.TeamRoleType)
+  const [inviteErrorMessage, setInviteErrorMessage] = React.useState('')
+  const [loadingInvites, setLoadingInvites] = React.useState<Set<string>>(new Set())
+  const inviteToTeamByEmail = C.useRPC(T.RPCGen.teamsTeamAddEmailsBulkRpcPromise)
+  const inviteToTeamByPhone = C.useRPC(T.RPCGen.teamsTeamCreateSeitanTokenV2RpcPromise)
+  const removePendingInvite = C.useRPC(T.RPCGen.teamsTeamRemoveMemberRpcPromise)
 
-  const loadingInvites = Teams.useTeamsState(s => s.teamNameToLoadingInvites.get(teamname))
-  const resetErrorInEmailInvite = Teams.useTeamsState(s => s.dispatch.resetErrorInEmailInvite)
-  React.useEffect(() => {
-    return () => {
-      resetErrorInEmailInvite()
-    }
-  }, [resetErrorInEmailInvite])
+  const updateLoadingInvite = (loadingKey: string, isLoading: boolean) => {
+    setLoadingInvites(prev => {
+      const next = new Set(prev)
+      if (isLoading) {
+        next.add(loadingKey)
+      } else {
+        next.delete(loadingKey)
+      }
+      return next
+    })
+  }
 
   const onRoleChange = (role: T.Teams.TeamRoleType) => {
-      setSelectedRole(role)
-    }
-  const inviteToTeamByEmail = Teams.useTeamsState(s => s.dispatch.inviteToTeamByEmail)
-  const inviteToTeamByPhone = Teams.useTeamsState(s => s.dispatch.inviteToTeamByPhone)
+    setSelectedRole(role)
+  }
 
   const onInviteContact = (contact: Contact) => {
-      resetErrorInEmailInvite()
-      switch (contact.type) {
-        case 'email':
-          inviteToTeamByEmail(contact.value, selectedRole, teamID, teamname, contact.value)
-          break
-        case 'phone':
-          inviteToTeamByPhone(
-            teamID,
-            teamname,
-            selectedRole,
-            contact.valueFormatted || contact.value,
-            contact.name,
-            contact.value
-          )
-          break
-      }
+    setInviteErrorMessage('')
+    updateLoadingInvite(contact.value, true)
+    switch (contact.type) {
+      case 'email':
+        inviteToTeamByEmail(
+          [
+            {
+              emails: contact.value,
+              name: teamname,
+              role: T.RPCGen.TeamRole[selectedRole],
+            },
+            [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsAddToTeamByEmail(teamname)],
+          ],
+          res => {
+            const malformed = res.malformed ?? []
+            if (malformed.length > 0) {
+              setInviteErrorMessage(malformedEmailErrorMessage(malformed))
+            }
+            updateLoadingInvite(contact.value, false)
+          },
+          error => {
+            setInviteErrorMessage(error.desc)
+            updateLoadingInvite(contact.value, false)
+          }
+        )
+        break
+      case 'phone':
+        inviteToTeamByPhone(
+          [
+            {
+              label: {
+                sms: {
+                  f: contact.name || '',
+                  n: contact.valueFormatted || contact.value,
+                } as T.RPCGen.SeitanKeyLabelSms,
+                t: 1,
+              },
+              role: T.RPCGen.TeamRole[selectedRole],
+              teamname,
+            },
+            C.waitingKeyTeamsTeam(teamID),
+          ],
+          seitan => {
+            C.ignorePromise(
+              (async () => {
+                try {
+                  await openSMS([contact.valueFormatted || contact.value], generateSMSBody(teamname, seitan))
+                } catch (error) {
+                  logger.info('Error sending SMS', error)
+                  setInviteErrorMessage('Failed to open SMS composer.')
+                } finally {
+                  updateLoadingInvite(contact.value, false)
+                }
+              })()
+            )
+          },
+          error => {
+            setInviteErrorMessage(error.desc)
+            updateLoadingInvite(contact.value, false)
+          }
+        )
+        break
     }
+  }
 
-  const removePendingInvite = Teams.useTeamsState(s => s.dispatch.removePendingInvite)
   const onCancelInvite = (inviteID: string) => {
-      resetErrorInEmailInvite()
-      removePendingInvite(teamID, inviteID)
-    }
+    setInviteErrorMessage('')
+    updateLoadingInvite(inviteID, true)
+    removePendingInvite(
+      [
+        {
+          member: {inviteid: {inviteID}, type: T.RPCGen.TeamMemberToRemoveType.inviteid},
+          teamID,
+        },
+        [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsRemoveMember(teamID, inviteID)],
+      ],
+      () => {
+        updateLoadingInvite(inviteID, false)
+      },
+      error => {
+        setInviteErrorMessage(error.desc)
+        updateLoadingInvite(inviteID, false)
+      }
+    )
+  }
 
   // ----
 
@@ -103,7 +191,7 @@ const TeamInviteByContact = (props: Props) => {
     // `loadingKey` is inviteID when invite already (so loading is canceling the
     // invite), or contact.value when loading is adding an invite.
     const loadingKey = inviteID || contact.value
-    const loading = loadingInvites?.get(loadingKey) ?? false
+    const loading = loadingInvites.has(loadingKey)
 
     const onClick = inviteID ? () => onCancelInvite(inviteID) : () => onInviteContact(contact)
 
@@ -118,7 +206,7 @@ const TeamInviteByContact = (props: Props) => {
 
   return (
     <InviteByContact
-      errorMessage={errorMessage}
+      errorMessage={errorMessage || inviteErrorMessage}
       listItems={listItems}
       onRoleChange={onRoleChange}
       selectedRole={selectedRole}

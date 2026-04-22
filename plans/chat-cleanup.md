@@ -1,5 +1,7 @@
 # Chat Store Cleanup
 
+Reference skill: `skill/zustand-store-pruning/SKILL.md`
+
 ## Summary
 
 Shrink `shared/stores/chat.tsx` by moving service-backed convenience state and feature-local UI caches out of Zustand, while leaving `shared/stores/convostate.tsx` and `shared/stores/inbox-rows.tsx` alone for now.
