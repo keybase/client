@@ -1,7 +1,6 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import {Activity, useActivityLevels, useChannelParticipants} from '../common'
@@ -71,8 +70,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
-  const deleteChannelConfirmed = useTeamsState(s => s.dispatch.deleteChannelConfirmed)
-
   const menuItems: Array<Kb.MenuItem> = [
     // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
     // It's included in the other place this menu appears.
@@ -82,7 +79,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             danger: true,
             onClick: () => {
               nav.safeNavigateUp()
-              deleteChannelConfirmed(teamID, conversationIDKey)
+              nav.safeNavigateAppend({name: 'teamDeleteChannel', params: {conversationIDKey, teamID}})
             },
             title: 'Delete channel',
           },

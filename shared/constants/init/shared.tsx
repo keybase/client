@@ -182,10 +182,6 @@ export const initSharedSubscriptions = () => {
             }
           }
 
-          const updateTeams = () => {
-            useTeamsState.getState().dispatch.getTeams()
-          }
-
           const updateSettings = () => {
             useSettingsContactsState.getState().dispatch.loadContactImportEnabled()
           }
@@ -201,7 +197,6 @@ export const initSharedSubscriptions = () => {
 
           getFollowerInfo()
           ignorePromise(updateServerConfig())
-          updateTeams()
           updateSettings()
           updateChat()
         }
@@ -214,7 +209,6 @@ export const initSharedSubscriptions = () => {
           if (useDaemonState.getState().handshakeWaiters.size === 0) {
             ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
           }
-          useTeamsState.getState().dispatch.getTeams(true)
         }
       }
 

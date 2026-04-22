@@ -5,7 +5,6 @@ import {useTeamSelectionState} from '@/teams/common/selection-state'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {pluralize} from '@/util/string'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useTeamsState} from '@/stores/teams'
 
 type ChannelRowProps = {
   channel: T.Teams.TeamChannelInfo
@@ -62,10 +61,11 @@ const ChannelRow = (props: ChannelRowProps) => {
     })
   }
 
-  const deleteChannelConfirmed = useTeamsState(s => s.dispatch.deleteChannelConfirmed)
-
   const onDeleteChannel = () => {
-    deleteChannelConfirmed(teamID, channel.conversationIDKey)
+    nav.safeNavigateAppend({
+      name: 'teamDeleteChannel',
+      params: {conversationIDKey: channel.conversationIDKey, teamID},
+    })
   }
   const checkCircle = (
     <Kb.CheckCircle

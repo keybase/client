@@ -15,7 +15,6 @@ import {RPCError, logError} from '@/util/errors'
 import {fixCrop} from '@/util/crop'
 import {getTBStore} from '@/stores/team-building'
 import {useConfigState} from '@/stores/config'
-import {useCurrentUserState} from '@/stores/current-user'
 import * as Util from '@/constants/teams'
 
 export {
@@ -74,18 +73,6 @@ export const emptyInviteInfo = Object.freeze<T.Teams.InviteInfo>({
   role: 'writer',
   username: '',
 })
-
-const emptyTeamChannelInfo = {
-  channelname: '',
-  conversationIDKey: '', // would be noConversationIDKey but causes import cycle
-  description: '',
-} satisfies T.Teams.TeamChannelInfo
-
-export const getTeamChannelInfo = (
-  state: State,
-  teamID: T.Teams.TeamID,
-  conversationIDKey: T.Chat.ConversationIDKey
-) => state.channelInfo.get(teamID)?.get(conversationIDKey) ?? emptyTeamChannelInfo
 
 /* eslint-disable sort-keys */
 const teamRoleToCompare = {
@@ -164,9 +151,6 @@ export const userInTeamNotBotWithInfo = (
   return !isBot(memb.type)
 }
 
-export const getTeamNameFromID = (state: State, teamID: T.Teams.TeamID) =>
-  state.teamMeta.get(teamID)?.teamname
-
 /**
  *  Gets the number of channels you're subscribed to on a team
  */
@@ -210,15 +194,6 @@ export const publicAdminsLimit = 6
 const newRequestsGregorPrefix = 'team.request_access:'
 const newRequestsGregorKey = (teamID: T.Teams.TeamID) => `${newRequestsGregorPrefix}${teamID}`
 
-// Merge new teamMeta objs into old ones, removing any old teams that are not in the new map
-export const mergeTeamMeta = (oldMap: State['teamMeta'], newMap: State['teamMeta']) => {
-  const ret = new Map(newMap)
-  for (const [teamID, teamMeta] of newMap.entries()) {
-    ret.set(teamID, {...oldMap.get(teamID), ...teamMeta})
-  }
-  return ret
-}
-
 export const emptyTeamMeta = Object.freeze<T.Teams.TeamMeta>({
   allowPromote: false,
   id: T.Teams.noTeamID,
@@ -231,8 +206,6 @@ export const emptyTeamMeta = Object.freeze<T.Teams.TeamMeta>({
 })
 
 export const makeTeamMeta = (td: Partial<T.Teams.TeamMeta>): T.Teams.TeamMeta => ({...emptyTeamMeta, ...td})
-
-export const getTeamMeta = (state: State, teamID: T.Teams.TeamID) => state.teamMeta.get(teamID) ?? emptyTeamMeta
 
 export const teamListToMeta = (
   list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>
@@ -423,19 +396,7 @@ export const stringifyPeople = (people: string[]): string => {
   }
 }
 
-type Store = T.Immutable<{
-  channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
-  teamMeta: Map<T.Teams.TeamID, T.Teams.TeamMeta>
-  teamDetails: Map<T.Teams.TeamID, T.Teams.TeamDetails>
-}>
-
-const initialStore: Store = {
-  channelInfo: new Map(),
-  teamDetails: new Map(),
-  teamMeta: new Map(),
-}
-
-export type State = Store & {
+export type State = {
   dispatch: {
     addToTeam: (
       teamID: T.Teams.TeamID,
@@ -444,13 +405,9 @@ export type State = Store & {
       fromTeamBuilder?: boolean
     ) => void
     clearNavBadges: () => void
-    deleteChannelConfirmed: (teamID: T.Teams.TeamID, conversationIDKey: T.Chat.ConversationIDKey) => void
     deleteTeam: (teamID: T.Teams.TeamID) => void
-    getTeams: (forceReload?: boolean) => void
     ignoreRequest: (teamID: T.Teams.TeamID, teamname: string, username: string) => void
     leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
-    loadTeam: (teamID: T.Teams.TeamID) => void
-    loadTeamChannelList: (teamID: T.Teams.TeamID) => void
     reAddToTeam: (teamID: T.Teams.TeamID, username: string) => void
     removeMember: (teamID: T.Teams.TeamID, username: string) => void
     removePendingInvite: (teamID: T.Teams.TeamID, inviteID: string) => void
@@ -463,16 +420,6 @@ export type State = Store & {
     ) => void
     setMemberPublicity: (teamID: T.Teams.TeamID, showcase: boolean) => void
     teamSeen: (teamID: T.Teams.TeamID) => void
-    updateChannelName: (
-      teamID: T.Teams.TeamID,
-      conversationIDKey: T.Chat.ConversationIDKey,
-      newChannelName: string
-    ) => Promise<void>
-    updateTopic: (
-      teamID: T.Teams.TeamID,
-      conversationIDKey: T.Chat.ConversationIDKey,
-      newTopic: string
-    ) => Promise<void>
     uploadTeamAvatar: (
       teamname: string,
       filename: string,
@@ -482,9 +429,9 @@ export type State = Store & {
   }
 }
 
-export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
+export const useTeamsState = Z.createZustand<State>('teams', set => {
   const resetState = () => {
-    set({...initialStore, dispatch}, true)
+    set({dispatch}, true)
   }
   const dispatch: State['dispatch'] = {
     addToTeam: (teamID, users, sendChatNotification, fromTeamBuilder) => {
@@ -557,23 +504,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    deleteChannelConfirmed: (teamID, conversationIDKey) => {
-      const f = async () => {
-        // channelName is only needed for confirmation, so since we handle
-        // confirmation ourselves we don't need to plumb it through.
-        await T.RPCChat.localDeleteConversationLocalRpcPromise(
-          {
-            channelName: '',
-            confirmed: true,
-            convID: T.Chat.keyToConversationID(conversationIDKey),
-          },
-          S.waitingKeyTeamsTeam(teamID)
-        )
-        get().dispatch.loadTeamChannelList(teamID)
-        clearModals()
-      }
-      ignorePromise(f())
-    },
     deleteTeam: teamID => {
       const f = async () => {
         try {
@@ -590,35 +520,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           if (error instanceof RPCError) {
             // handled through waiting store
             logger.warn('error:', error.message)
-          }
-        }
-      }
-      ignorePromise(f())
-    },
-    getTeams: _forceReload => {
-      const f = async () => {
-        const username = useCurrentUserState.getState().username
-        const loggedIn = useConfigState.getState().loggedIn
-        if (!username || !loggedIn) {
-          logger.warn('getTeams while logged out')
-          return
-        }
-        try {
-          const results = await T.RPCGen.teamsTeamListUnverifiedRpcPromise(
-            {includeImplicitTeams: false, userAssertion: username},
-            S.waitingKeyTeamsLoaded
-          )
-          const teams: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo> = results.teams || []
-          set(s => {
-            s.teamMeta = mergeTeamMeta(s.teamMeta, teamListToMeta(teams))
-          })
-        } catch (error) {
-          if (error instanceof RPCError) {
-            if (error.code === T.RPCGen.StatusCode.scapinetworkerror) {
-              // Ignore API errors due to offline
-            } else {
-              logger.error(error)
-            }
           }
         }
       }
@@ -646,88 +547,11 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           logger.info(`leaveTeam: left ${teamname} successfully`)
           clearModals()
           navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
-          get().dispatch.getTeams(true)
         } catch (error) {
           if (error instanceof RPCError) {
             // handled through waiting store
             logger.warn('error:', error.message)
           }
-        }
-      }
-      ignorePromise(f())
-    },
-    loadTeam: teamID => {
-      const f = async () => {
-        if (!teamID || teamID === T.Teams.noTeamID) {
-          logger.warn(`bail on invalid team ID ${teamID}`)
-          return
-        }
-        try {
-          const team = await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})
-          set(s => {
-            const maybeMeta = s.teamMeta.get(teamID)
-            if (maybeMeta && maybeMeta.teamname !== team.name) {
-              if (team.name.includes('.')) {
-                // subteam name changed. store loaded name
-                maybeMeta.teamname = team.name
-              } else {
-                // bad. teamlist lied to us about the teamname
-                throw new Error('Team name mismatch! Please report this error.')
-              }
-            }
-            const details = annotatedTeamToDetails(team)
-            s.teamDetails.set(teamID, T.castDraft(details))
-          })
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.error(error.message)
-          }
-        }
-      }
-      ignorePromise(f())
-    },
-    loadTeamChannelList: teamID => {
-      const f = async () => {
-        const teamname = getTeamMeta(get(), teamID).teamname
-        if (!teamname) {
-          logger.warn('bailing on no teamMeta')
-          return
-        }
-        try {
-          const {convs} = await T.RPCChat.localGetTLFConversationsLocalRpcPromise({
-            membersType: T.RPCChat.ConversationMembersType.team,
-            tlfName: teamname,
-            topicType: T.RPCChat.TopicType.chat,
-          })
-          const channels =
-            convs?.reduce((res, inboxUIItem) => {
-              const conversationIDKey = T.Chat.stringToConversationIDKey(inboxUIItem.convID)
-              res.set(conversationIDKey, {
-                channelname: inboxUIItem.channel,
-                conversationIDKey,
-                description: inboxUIItem.headline,
-              })
-              return res
-            }, new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()) ??
-            new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()
-
-          // ensure we refresh participants, but don't fail the saga if this somehow fails
-          try {
-            for (const c of channels.values()) {
-              ignorePromise(
-                T.RPCChat.localRefreshParticipantsRpcPromise({
-                  convID: T.Chat.keyToConversationID(c.conversationIDKey),
-                })
-              )
-            }
-          } catch (e) {
-            logger.error('this should never happen', e)
-          }
-          set(s => {
-            s.channelInfo.set(teamID, channels)
-          })
-        } catch (err) {
-          logger.warn(err)
         }
       }
       ignorePromise(f())
@@ -834,7 +658,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             S.waitingKeyTeamsTeam(teamID),
             S.waitingKeyTeamsSetMemberPublicity(teamID),
           ])
-          get().dispatch.getTeams(true)
         } catch (error) {
           if (error instanceof RPCError) {
             logger.info(error.message)
@@ -855,31 +678,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    updateChannelName: async (teamID, conversationIDKey, newChannelName) => {
-      const param = {
-        channelName: newChannelName,
-        conversationID: T.Chat.keyToConversationID(conversationIDKey),
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        tlfName: getTeamNameFromID(get(), teamID) ?? '',
-        tlfPublic: false,
-      }
-
-      try {
-        await T.RPCChat.localPostMetadataRpcPromise(param, S.waitingKeyTeamsUpdateChannelName(teamID))
-      } catch {}
-    },
-    updateTopic: async (teamID, conversationIDKey, newTopic) => {
-      const param = {
-        conversationID: T.Chat.keyToConversationID(conversationIDKey),
-        headline: newTopic,
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        tlfName: getTeamNameFromID(get(), teamID) ?? '',
-        tlfPublic: false,
-      }
-      try {
-        await T.RPCChat.localPostHeadlineRpcPromise(param, S.waitingKeyTeamsUpdateChannelName(teamID))
-      } catch {}
-    },
     uploadTeamAvatar: (teamname, filename, sendChatNotification, crop) => {
       const f = async () => {
         try {
@@ -899,7 +697,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
     },
   }
   return {
-    ...initialStore,
     dispatch,
   }
 })

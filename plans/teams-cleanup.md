@@ -127,6 +127,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [ ] Reload on focus/mount instead of maintaining store subscriptions
   - [x] Remove the legacy team-route list/details subscriptions now that `useLoadedTeam(...)`, `useLoadedTeamChannels(...)`, and `useTeamsList()` own mounted reloads
   - [x] Remove the remaining popup-only `teams/subscriber.tsx` path by gating `useLoadedTeam(...)` with the mounted popup state
+  - [x] Delete the dead teams-store list/details/channel cache state plus the leftover bootstrap `getTeams()` reloads now that route-local hooks own mounted loads
 - [x] Replace teams-store navigation wrapper actions with direct router calls where the caller already knows the target
   - [x] Replace teams-screen create-team, create-subteam, and add-members entrypoints with direct `navigateAppend(...)` calls instead of teams-store wrappers
   - [x] Replace chat/git/people create-team entrypoints with direct `navigateAppend(...)` calls instead of `launchNewTeamWizardOrModal`
@@ -160,7 +161,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ## Chunk 4: Remove Notification-Driven Teams Cache Maintenance
 
-- [ ] Stop treating `teams` as a background cache owner
+- [x] Stop treating `teams` as a background cache owner
 - [x] Move badge-derived team adornment state (`deletedTeams`, `newTeams`, `teamIDToResetUsers`) out of `stores/teams.tsx` into `stores/notifications.tsx`
 - [x] Move gregor-derived per-team access request state (`newTeamRequests`) out of `stores/teams.tsx` into `stores/notifications.tsx`
 - [ ] Convert mounted-screen-only reactions to direct listeners plus reload
@@ -188,6 +189,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [ ] Review what remains in `shared/stores/teams.tsx`
 - [x] Replace the remaining profile `teamRoleMap` reads with `useTeamsList()`-derived role/membership data
 - [ ] Delete dead selectors, helpers, and tests
+  - [x] Delete dead teams-store list/details/channel cache helpers after moving mounted consumers onto route-local loaders
 - [x] Delete dead teams-store retention/activity cache leftovers after the route-local migrations (`teamIDToRetentionPolicy`, `activityLevels`)
 - [x] Delete the dead `teamIDToMembers` cache path plus its leftover bot-install/store-refresh plumbing now that chat team member hooks own mounted reloads
 - [x] Trim dead teams-store helper exports that were only supporting removed caches or selectors
