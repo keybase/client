@@ -114,6 +114,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
   - [x] Stop calling `loadTeamChannelList` from the team/channel route shells and channel edit/delete/remove flows that now rely on route reloads
 - [ ] Replace welcome message, retention policy, members, activity, and team tree reads with feature hooks local to the owning screens
   - [x] Move mounted channel route member/detail consumers and current-team row consumers onto `useLoadedTeam(teamID)` when they only need the active route's team data
+  - [x] Move `teams/team/member/index.new.tsx` team-tree memberships and last-activity reads off the teams store onto a route-local loader plus engine listeners
 - [ ] Reload on focus/mount instead of maintaining store subscriptions
 - [ ] Replace teams-store navigation wrapper actions with direct router calls where the caller already knows the target
   - [x] Replace teams-screen create-team, create-subteam, and add-members entrypoints with direct `navigateAppend(...)` calls instead of teams-store wrappers

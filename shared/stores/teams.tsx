@@ -450,12 +450,6 @@ export const makeTeamMeta = (td: Partial<T.Teams.TeamMeta>): T.Teams.TeamMeta =>
 
 export const getTeamMeta = (state: State, teamID: T.Teams.TeamID) => state.teamMeta.get(teamID) ?? emptyTeamMeta
 
-export const getTeamMemberLastActivity = (
-  state: State,
-  teamID: T.Teams.TeamID,
-  username: string
-): number | null => state.teamMemberToLastActivity.get(teamID)?.get(username) ?? null
-
 export const teamListToMeta = (
   list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>
 ): Map<T.Teams.TeamID, T.Teams.TeamMeta> => {
@@ -675,26 +669,6 @@ export const stringifyPeople = (people: string[]): string => {
   }
 }
 
-export const consumeTeamTreeMembershipValue = (
-  value: T.RPCGen.TeamTreeMembershipValue
-): T.Teams.TreeloaderSparseMemberInfo => {
-  return {
-    joinTime: value.joinTime ?? undefined,
-    type: Util.teamRoleByEnum[value.role],
-  }
-}
-
-// maybeGetSparseMemberInfo first looks in the details, which should be kept up-to-date, then looks
-// in the treeloader-powered map (which can go stale) as a backup. If it returns null, it means we
-// don't know the answer (yet). If it returns type='none', that means the user is not in the team.
-export const maybeGetSparseMemberInfo = (state: State, teamID: string, username: string) => {
-  const details = useTeamsState.getState().teamDetails.get(teamID)
-  if (details) {
-    return details.members.get(username) ?? {type: 'none'}
-  }
-  return state.treeLoaderTeamIDToSparseMemberInfos.get(teamID)?.get(username)
-}
-
 export const countValidInviteLinks = (inviteLinks: ReadonlyArray<T.Teams.InviteLink>): number => {
   return inviteLinks.reduce((t, inviteLink) => {
     if (inviteLink.isValid) {
@@ -732,9 +706,6 @@ type Store = T.Immutable<{
   teamVersion: Map<T.Teams.TeamID, T.Teams.TeamVersion>
   teamIDToMembers: Map<T.Teams.TeamID, Map<string, T.Teams.MemberInfo>> // Used by chat sidebar until team loading gets easier
   teamIDToRetentionPolicy: Map<T.Teams.TeamID, T.Retention.RetentionPolicy>
-  treeLoaderTeamIDToSparseMemberInfos: Map<T.Teams.TeamID, Map<string, T.Teams.TreeloaderSparseMemberInfo>>
-  teamMemberToTreeMemberships: Map<T.Teams.TeamID, Map<string, T.Teams.TeamTreeMemberships>>
-  teamMemberToLastActivity: Map<T.Teams.TeamID, Map<string, number>>
 }>
 
 const initialStore: Store = {
@@ -754,8 +725,6 @@ const initialStore: Store = {
   teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
   teamIDToWelcomeMessage: new Map(),
-  teamMemberToLastActivity: new Map(),
-  teamMemberToTreeMemberships: new Map(),
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
   teamMetaSubscribeCount: 0,
@@ -764,7 +733,6 @@ const initialStore: Store = {
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamVersion: new Map(),
   teamnames: new Set(),
-  treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
 
 export type State = Store & {
@@ -815,12 +783,9 @@ export type State = Store & {
     leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
     loadTeam: (teamID: T.Teams.TeamID, _subscribe?: boolean) => void
     loadTeamChannelList: (teamID: T.Teams.TeamID) => void
-    loadTeamTree: (teamID: T.Teams.TeamID, username: string) => void
     loadWelcomeMessage: (teamID: T.Teams.TeamID) => void
     loadedWelcomeMessage: (teamID: T.Teams.TeamID, message: T.RPCChat.WelcomeMessageDisplay) => void
     manageChatChannels: (teamID: T.Teams.TeamID) => void
-    notifyTreeMembershipsDone: (result: T.RPCChat.Keybase1.TeamTreeMembershipsDoneResult) => void
-    notifyTreeMembershipsPartial: (membership: T.RPCChat.Keybase1.TeamTreeMembership) => void
     notifyTeamTeamRoleMapChanged: (newVersion: number) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     onGregorPushState: (gs: Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>) => void
@@ -1453,13 +1418,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    loadTeamTree: (teamID, username) => {
-      // See protocol/avdl/keybase1/teams.avdl:loadTeamTreeAsync for a description of this RPC.
-      const f = async () => {
-        await T.RPCGen.teamsLoadTeamTreeMembershipsAsyncRpcPromise({teamID, username})
-      }
-      ignorePromise(f())
-    },
     loadWelcomeMessage: teamID => {
       const f = async () => {
         try {
@@ -1494,90 +1452,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       get().dispatch.setTeamRoleMapLatestKnownVersion(newVersion)
     },
-    notifyTreeMembershipsDone: (result: T.RPCChat.Keybase1.TeamTreeMembershipsDoneResult) => {
-      const {guid, targetTeamID, targetUsername, expectedCount} = result
-      set(s => {
-        const usernameMemberships = mapGetEnsureValue(s.teamMemberToTreeMemberships, targetTeamID, new Map())
-        let memberships = usernameMemberships.get(targetUsername)
-        if (memberships && guid < memberships.guid) {
-          // noop
-          return
-        }
-        if (!memberships || guid > memberships.guid) {
-          // start over
-          memberships = {
-            guid,
-            memberships: [],
-            targetTeamID,
-            targetUsername,
-          }
-          usernameMemberships.set(targetUsername, memberships)
-        }
-        memberships.expectedCount = expectedCount
-      })
-    },
-    notifyTreeMembershipsPartial: membership => {
-      const {guid, targetTeamID, targetUsername} = membership
-      set(s => {
-        const usernameMemberships = mapGetEnsureValue(s.teamMemberToTreeMemberships, targetTeamID, new Map())
-        let memberships = usernameMemberships.get(targetUsername)
-        if (memberships && guid < memberships.guid) {
-          // noop
-          return
-        }
-        if (!memberships || guid > memberships.guid) {
-          // start over
-          memberships = {
-            guid,
-            memberships: [],
-            targetTeamID,
-            targetUsername,
-          }
-          usernameMemberships.set(targetUsername, memberships)
-        }
-        memberships.memberships.push(membership)
-        if (T.RPCGen.TeamTreeMembershipStatus.ok === membership.result.s) {
-          const value = membership.result.ok
-          const sparseMemberInfos = mapGetEnsureValue(
-            s.treeLoaderTeamIDToSparseMemberInfos,
-            value.teamID,
-            new Map()
-          )
-          sparseMemberInfos.set(targetUsername, consumeTeamTreeMembershipValue(value))
-        }
-      })
-
-      const f = async () => {
-        if (T.RPCGen.TeamTreeMembershipStatus.ok !== membership.result.s) {
-          return
-        }
-        const teamID = membership.result.ok.teamID
-        const username = membership.targetUsername
-        const waitingKey = S.waitingKeyTeamsLoadTeamTreeActivity(teamID, username)
-        try {
-          const _activityMap = await T.RPCChat.localGetLastActiveAtMultiLocalRpcPromise(
-            {teamIDs: [teamID], username},
-            waitingKey
-          )
-          const activityMap = new Map(Object.entries(_activityMap ?? {}))
-          set(s => {
-            activityMap.forEach((lastActivity, teamID) => {
-              if (!s.teamMemberToLastActivity.has(teamID)) {
-                s.teamMemberToLastActivity.set(teamID, new Map())
-              }
-              s.teamMemberToLastActivity.get(teamID)?.set(username, lastActivity)
-            })
-          })
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.info(
-              `loadTeamTreeActivity: unable to get activity for ${teamID}:${username}: ${error.message}`
-            )
-          }
-        }
-      }
-      ignorePromise(f())
-    },
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case 'chat.1.chatUi.chatShowManageChannels': {
@@ -1611,16 +1485,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
               Util.serviceRetentionPolicyToRetentionPolicy(first.teamRetention)
             )
           })
-          break
-        }
-        case 'keybase.1.NotifyTeam.teamTreeMembershipsPartial': {
-          const {membership} = action.payload.params
-          get().dispatch.notifyTreeMembershipsPartial(membership)
-          break
-        }
-        case 'keybase.1.NotifyTeam.teamTreeMembershipsDone': {
-          const {result} = action.payload.params
-          get().dispatch.notifyTreeMembershipsDone(result)
           break
         }
         case 'keybase.1.NotifyTeam.teamRoleMapChanged': {
