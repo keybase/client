@@ -12,8 +12,15 @@ type TeamsList = {
   teams: ReadonlyArray<T.Teams.TeamMeta>
 }
 
+type TeamsRoleMap = {
+  loadIfStale: () => Promise<void>
+  reload: () => Promise<void>
+  roleMap: T.RPCGen.TeamRoleMapAndVersion
+}
+
 const emptyTeams: ReadonlyArray<T.Teams.TeamMeta> = []
-const TeamsListContext = React.createContext<TeamsList | null>(null)
+const emptyTeamRoleMap = Object.freeze<T.RPCGen.TeamRoleMapAndVersion>({teams: undefined, version: 0})
+const TeamsListContext = React.createContext<{teamsList: TeamsList; teamsRoleMap: TeamsRoleMap} | null>(null)
 const teamsListReloadStaleMs = 5 * 60_000
 
 const teamListToArray = (list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>) => {
@@ -127,15 +134,128 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
   return {reload, teams}
 }
 
+const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
+  const username = useCurrentUserState(s => s.username)
+  const loggedIn = useConfigState(s => s.loggedIn)
+  const loadRoleMapRPC = C.useRPC(T.RPCGen.teamsGetTeamRoleMapRpcPromise)
+  const [roleMap, setRoleMap] = React.useState<T.RPCGen.TeamRoleMapAndVersion>(emptyTeamRoleMap)
+  const requestVersionRef = React.useRef(0)
+  const hasFocusedSinceMountRef = React.useRef(false)
+  const inFlightRef = React.useRef<Promise<void> | undefined>(undefined)
+  const loadedAtRef = React.useRef(0)
+
+  const loadRoleMap = React.useEffectEvent(async (force: boolean) => {
+    if (!enabled || !loggedIn || !username) {
+      requestVersionRef.current++
+      loadedAtRef.current = 0
+      setRoleMap(emptyTeamRoleMap)
+      return
+    }
+    if (!force && loadedAtRef.current && Date.now() - loadedAtRef.current < teamsListReloadStaleMs) {
+      return
+    }
+    if (inFlightRef.current) {
+      await inFlightRef.current
+      return
+    }
+    const requestVersion = ++requestVersionRef.current
+    const request = new Promise<void>(resolve => {
+      loadRoleMapRPC(
+        [{}],
+        result => {
+          if (requestVersion === requestVersionRef.current) {
+            loadedAtRef.current = Date.now()
+            setRoleMap(result)
+          }
+          resolve()
+        },
+        error => {
+          if (requestVersion === requestVersionRef.current && error.code !== T.RPCGen.StatusCode.scapinetworkerror) {
+            logger.warn('Failed to load teams role map', error)
+          }
+          resolve()
+        }
+      )
+    })
+    inFlightRef.current = request
+    try {
+      await request
+    } finally {
+      if (inFlightRef.current === request) {
+        inFlightRef.current = undefined
+      }
+    }
+  })
+
+  const reload = React.useCallback(async () => {
+    await loadRoleMap(true)
+  }, [])
+
+  const loadIfStale = React.useCallback(async () => {
+    await loadRoleMap(false)
+  }, [])
+
+  React.useEffect(() => {
+    void loadIfStale()
+  }, [enabled, loadIfStale, loggedIn, username])
+
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      if (!enabled) {
+        return
+      }
+      if (hasFocusedSinceMountRef.current) {
+        void loadIfStale()
+      } else {
+        hasFocusedSinceMountRef.current = true
+      }
+    }, [enabled, loadIfStale])
+  )
+
+  useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', () => {
+    if (enabled) {
+      void reload()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', () => {
+    if (enabled) {
+      void reload()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', () => {
+    if (enabled) {
+      void reload()
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamExit', () => {
+    if (enabled) {
+      void reload()
+    }
+  })
+
+  return {loadIfStale, reload, roleMap}
+}
+
 export const LoadedTeamsListProvider = (props: React.PropsWithChildren) => {
-  const value = useTeamsListRaw()
+  const teamsList = useTeamsListRaw()
+  const teamsRoleMap = useTeamsRoleMapRaw()
+  const value = React.useMemo(
+    () => ({teamsList, teamsRoleMap}),
+    [teamsList.reload, teamsList.teams, teamsRoleMap.loadIfStale, teamsRoleMap.reload, teamsRoleMap.roleMap]
+  )
   return <TeamsListContext.Provider value={value}>{props.children}</TeamsListContext.Provider>
 }
 
 export const useTeamsList = (): TeamsList => {
   const context = React.useContext(TeamsListContext)
   const raw = useTeamsListRaw(!context)
-  return context ?? raw
+  return context?.teamsList ?? raw
+}
+
+export const useTeamsRoleMap = (): TeamsRoleMap => {
+  const context = React.useContext(TeamsListContext)
+  const raw = useTeamsRoleMapRaw(!context)
+  return context?.teamsRoleMap ?? raw
 }
 
 export const useTeamsListMap = () => {

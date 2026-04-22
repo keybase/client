@@ -8,6 +8,7 @@ import {useUsersState} from '@/stores/users'
 import * as Teams from '@/constants/teams'
 import logger from '@/logger'
 import * as React from 'react'
+import {useTeamsRoleMap} from '@/teams/use-teams-list'
 
 type ChatTeamState = {
   allowPromote: boolean
@@ -178,6 +179,7 @@ const annotatedTeamToChatTeamState = (
 
 const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = true): ChatTeam => {
   const validTeamID = loadableTeamID(teamID)
+  const {loadIfStale: loadRoleMapIfStale, roleMap} = useTeamsRoleMap()
   const [state, setState] = React.useState<ChatTeamStateInternal>(() => ({
     ...emptyChatTeamState,
     loadedTeamID: validTeamID,
@@ -197,15 +199,15 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
     const requestVersion = ++requestVersionRef.current
     setState(prev => ({...prev, loading: true, teamname: prev.teamname || teamname || ''}))
     try {
-      const [annotatedTeam, roleMap] = await Promise.all([
+      const [annotatedTeam] = await Promise.all([
         T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID}),
-        T.RPCGen.teamsGetTeamRoleMapRpcPromise(),
+        loadRoleMapIfStale(),
       ])
       if (requestVersion !== requestVersionRef.current) {
         return
       }
       setState({
-        ...annotatedTeamToChatTeamState(annotatedTeam, roleAndDetailsFromMap(roleMap, validTeamID)),
+        ...annotatedTeamToChatTeamState(annotatedTeam, undefined),
         loadedTeamID: validTeamID,
       })
     } catch (error) {
@@ -215,12 +217,14 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
       logger.warn(`Failed to load chat team metadata for ${validTeamID}`, error)
       setState(prev => ({...prev, loading: false, teamname: prev.teamname || teamname || ''}))
     }
-  }, [clearState, enabled, teamname, validTeamID])
+  }, [clearState, enabled, loadRoleMapIfStale, teamname, validTeamID])
 
   const visibleState =
     enabled && state.loadedTeamID !== validTeamID
       ? {...emptyChatTeamState, loadedTeamID: validTeamID, teamname: teamname ?? ''}
       : state
+  const roleAndDetails = roleAndDetailsFromMap(roleMap, validTeamID ?? T.Teams.noTeamID)
+  const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
 
   React.useEffect(() => {
     void reload()
@@ -256,7 +260,7 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
     }
   })
 
-  return {...visibleState, reload}
+  return {...visibleState, reload, role: roleAndDetails?.role ?? 'none', yourOperations}
 }
 
 const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeamMembers => {
