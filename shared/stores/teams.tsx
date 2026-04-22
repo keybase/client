@@ -666,7 +666,6 @@ type Store = T.Immutable<{
   newTeamRequests: Map<T.Teams.TeamID, Set<string>>
   teamNameToID: Map<T.Teams.Teamname, string>
   teamnames: Set<T.Teams.Teamname> // TODO remove
-  teamMetaStale: boolean // if we've received an update since we last loaded team list
   teamMeta: Map<T.Teams.TeamID, T.Teams.TeamMeta>
   teamRoleMap: T.Teams.TeamRoleMap
   teamDetails: Map<T.Teams.TeamID, T.Teams.TeamDetails>
@@ -684,7 +683,6 @@ const initialStore: Store = {
   teamIDToMembers: new Map(),
   teamIDToRetentionPolicy: new Map(),
   teamMeta: new Map(),
-  teamMetaStale: true, // start out true, we have not loaded
   teamNameToID: new Map(),
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamnames: new Set(),
@@ -1043,16 +1041,12 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    getTeams: forceReload => {
+    getTeams: _forceReload => {
       const f = async () => {
         const username = useCurrentUserState.getState().username
         const loggedIn = useConfigState.getState().loggedIn
         if (!username || !loggedIn) {
           logger.warn('getTeams while logged out')
-          return
-        }
-        if (!forceReload && !get().teamMetaStale) {
-          // bail
           return
         }
         try {
@@ -1071,7 +1065,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             s.teamNameToID = teamNameToID
             s.teamnames = new Set<string>(teamnames)
             s.teamMeta = mergeTeamMeta(s.teamMeta, teamListToMeta(teams))
-            s.teamMetaStale = false
           })
         } catch (error) {
           if (error instanceof RPCError) {
@@ -1212,11 +1205,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           get().dispatch.manageChatChannels(teamID)
           break
         }
-        case 'keybase.1.NotifyTeam.teamMetadataUpdate':
-          set(s => {
-            s.teamMetaStale = true
-          })
-          break
         case 'chat.1.NotifyChat.ChatSetTeamRetention': {
           const {convs, teamID} = action.payload.params
           const first = convs?.[0]
