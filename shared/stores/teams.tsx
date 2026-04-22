@@ -178,8 +178,6 @@ const addMembersWizardEmptyState: State['addMembersWizard'] = {
   teamID: T.Teams.noTeamID,
 }
 
-const emptyErrorInEditMember = {error: '', teamID: T.Teams.noTeamID, username: ''}
-
 export const initialCanUserPerform = Object.freeze<T.Teams.TeamOperations>({
   changeOpenTeam: false,
   changeTarsDisabled: false,
@@ -714,8 +712,6 @@ type Store = T.Immutable<{
   channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
   deletedTeams: Array<T.RPCGen.DeletedTeamInfo>
   errorInAddToTeam: string
-  errorInEditMember: {error: string; teamID: T.Teams.TeamID; username: string}
-  errorInEditWelcomeMessage: string
   errorInEmailInvite: T.Teams.EmailInviteError
   newTeamRequests: Map<T.Teams.TeamID, Set<string>>
   newTeams: Set<T.Teams.TeamID>
@@ -748,8 +744,6 @@ const initialStore: Store = {
   channelInfo: new Map(),
   deletedTeams: [],
   errorInAddToTeam: '',
-  errorInEditMember: emptyErrorInEditMember,
-  errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
   newTeamRequests: new Map(),
   newTeams: new Set(),
@@ -799,7 +793,6 @@ export type State = Store & {
     deleteMultiChannelsConfirmed: (teamID: T.Teams.TeamID, channels: Array<T.Chat.ConversationIDKey>) => void
     deleteTeam: (teamID: T.Teams.TeamID) => void
     eagerLoadTeams: () => void
-    editMembership: (teamID: T.Teams.TeamID, usernames: Array<string>, role: T.Teams.TeamRoleType) => void
     finishedAddMembersWizard: () => void
     getActivityForTeams: () => void
     getMembers: (teamID: T.Teams.TeamID, forceReload?: boolean) => Promise<void>
@@ -860,7 +853,6 @@ export type State = Store & {
     setTeamRoleMapLatestKnownVersion: (version: number) => void
     setTeamSawChatBanner: () => void
     setTeamSawSubteamsBanner: () => void
-    setWelcomeMessage: (teamID: T.Teams.TeamID, message: T.RPCChat.WelcomeMessage) => void
     showTeamByName: (
       teamname: string,
       initialTab?: T.Teams.TabKey,
@@ -1092,32 +1084,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       } else {
         logger.info('skipping')
       }
-    },
-    editMembership: (teamID, usernames, r) => {
-      const f = async () => {
-        const role = T.RPCGen.TeamRole[r]
-        try {
-          await T.RPCGen.teamsTeamEditMembersRpcPromise(
-            {
-              teamID,
-              users: usernames.map(assertion => ({assertion, role})),
-            },
-            [S.waitingKeyTeamsTeam(teamID), S.waitingKeyTeamsEditMembership(teamID, ...usernames)]
-          )
-        } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              if (usernames.length === 1) {
-                // error is shown in the member page
-                s.errorInEditMember.error = error.message
-                s.errorInEditMember.username = usernames[0] ?? ''
-                s.errorInEditMember.teamID = teamID
-              }
-            }
-          })
-        }
-      }
-      ignorePromise(f())
     },
     finishedAddMembersWizard: () => {
       set(s => {
@@ -2001,25 +1967,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       set(s => {
         s.sawSubteamsBanner = true
       })
-    },
-    setWelcomeMessage: (teamID, message) => {
-      set(s => {
-        s.errorInEditWelcomeMessage = ''
-      })
-      const f = async () => {
-        try {
-          await T.RPCChat.localSetWelcomeMessageRpcPromise({message, teamID})
-          get().dispatch.loadWelcomeMessage(teamID)
-        } catch (error) {
-          set(s => {
-            if (error instanceof RPCError) {
-              logger.error(error)
-              s.errorInEditWelcomeMessage = error.desc
-            }
-          })
-        }
-      }
-      ignorePromise(f())
     },
     showTeamByName: (teamname, initialTab, join, addMembers) => {
       const f = async () => {

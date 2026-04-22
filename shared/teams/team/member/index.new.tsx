@@ -286,14 +286,41 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   useTeamDetailsSubscribe(props.node.teamID)
   const nav = useSafeNavigation()
   const onAddWaitingKey = C.waitingKeyTeamsAddMember(props.node.teamID, props.username)
-  const {addToTeam, disabledRoles} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      addToTeam: s.dispatch.addToTeam,
-      disabledRoles: Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username),
-    }))
+  const disabledRoles = Teams.useTeamsState(s =>
+    Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
+  const addToTeam = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const [error, setError] = React.useState('')
+  const navigateAppend = C.Router2.navigateAppend
   const onAdd = (role: T.Teams.TeamRoleType) => {
-    addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
+    setError('')
+    addToTeam(
+      [
+        {
+          sendChatNotification: true,
+          teamID: props.node.teamID,
+          users: [{assertion: props.username, role: T.RPCGen.TeamRole[role]}],
+        },
+        [C.waitingKeyTeamsTeam(props.node.teamID), onAddWaitingKey],
+      ],
+      res => {
+        const usernames = res.notAdded?.map(user => user.username) ?? []
+        if (usernames.length) {
+          navigateAppend({name: 'contactRestricted', params: {source: 'teamAddSomeFailed', usernames}})
+        }
+      },
+      err => {
+        if (err.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
+          const users = (err.fields as Array<{key?: string; value?: string} | undefined> | undefined)
+            ?.filter(field => field?.key === 'usernames')
+            .map(field => field?.value)
+          const usernames = users?.[0]?.split(',') ?? []
+          navigateAppend({name: 'contactRestricted', params: {source: 'teamAddAllFailed', usernames}})
+          return
+        }
+        setError(err.message)
+      }
+    )
   }
   const openTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID: props.node.teamID}})
   const [open, setOpen] = React.useState(false)
@@ -341,7 +368,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
         </Kb.Box2>
 
         {props.node.canAdminister && (
-          <Kb.Box2 direction="horizontal" alignSelf="center">
+          <Kb.Box2 direction="vertical" alignSelf="center" gap="xtiny" alignItems="flex-end">
             <FloatingRolePicker
               onConfirm={role => {
                 onAdd(role)
@@ -359,6 +386,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
                 waitingKey={onAddWaitingKey}
               />
             </FloatingRolePicker>
+            {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
           </Kb.Box2>
         )}
       </Kb.Box2>
@@ -416,22 +444,41 @@ const NodeInRow = (props: NodeInRowProps) => {
 
   const [role, setRole] = React.useState<T.Teams.TeamRoleType>(props.node.role)
   const [open, setOpen] = React.useState(false)
-  const {amLastOwner, disabledRoles, editMembership, myRole, removeMember} = Teams.useTeamsState(
+  const {amLastOwner, disabledRoles, myRole, removeMember} = Teams.useTeamsState(
     C.useShallow(s => ({
       amLastOwner: Teams.isLastOwner(s, props.node.teamID),
       disabledRoles: Teams.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username),
-      editMembership: s.dispatch.editMembership,
       myRole: Teams.getRole(s, props.node.teamID),
       removeMember: s.dispatch.removeMember,
     }))
   )
   const isMe = props.username === useCurrentUserState(s => s.username)
   const isSmallTeam = !Chat.useChatState(s => isBigTeam(s.inboxLayout, props.node.teamID))
-  const onChangeRole = (role: T.Teams.TeamRoleType) => {
-    setRole(role)
-    editMembership(props.node.teamID, [props.username], role)
+  const editMembership = C.useRPC(T.RPCGen.teamsTeamEditMembersRpcPromise)
+  const [error, setError] = React.useState('')
+  const onChangeRole = (nextRole: T.Teams.TeamRoleType) => {
+    const previousRole = role
+    setError('')
+    setRole(nextRole)
+    editMembership(
+      [
+        {
+          teamID: props.node.teamID,
+          users: [{assertion: props.username, role: T.RPCGen.TeamRole[nextRole]}],
+        },
+        [
+          C.waitingKeyTeamsTeam(props.node.teamID),
+          C.waitingKeyTeamsEditMembership(props.node.teamID, props.username),
+        ],
+      ],
+      () => {},
+      err => {
+        setRole(previousRole)
+        setError(err.message)
+      }
+    )
     setOpen(false)
-    if (['reader, writer'].includes(role) && props.isParentTeamMe) {
+    if (['reader', 'writer'].includes(nextRole) && props.isParentTeamMe) {
       nav.safeNavigateUp()
     }
   }
@@ -591,6 +638,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     )}
                   </Kb.Box2>
                 )}
+                {expanded && !!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
               </Kb.Box2>
             </Kb.Box2>
             {!Kb.Styles.isPhone && (

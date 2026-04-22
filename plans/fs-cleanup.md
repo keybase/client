@@ -21,6 +21,12 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - Prefer feature hooks such as `useFsPath(...)`, `useFsTlf(...)`, and `useFsChildren(...)` over raw store selectors
 - Keep route-owned UI state out of the global store
 - Prefer direct router calls and local `C.useRPC(...)` usage over FS-store wrapper actions when the result only affects the mounted screen
+- Do not introduce module-level mutable state as a replacement for Zustand
+  - no module-level caches
+  - no module-level listener registries
+  - no module-level in-flight request maps
+  - no module-level `useSyncExternalStore(...)` stores backed by module variables
+  - if a route needs shared loaded data, use a feature-local provider instead
 - Keep behavior intact while changing ownership of state
 - Slice-by-slice migrations must preserve current functionality; if a mounted FS view previously updated live while visible, move that refresh/subscription behavior into the new hook/provider/listener in the same slice instead of deferring it
 

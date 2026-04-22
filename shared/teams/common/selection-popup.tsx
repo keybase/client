@@ -232,10 +232,9 @@ function allSameOrNull<T>(arr: T[]): T | null {
   return (arr.some(r => r !== first) ? null : first) ?? null
 }
 const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: string[]}) => {
-  const {disabledReasons, editMembership, teamDetails} = useTeamsState(
+  const {disabledReasons, teamDetails} = useTeamsState(
     C.useShallow(s => ({
       disabledReasons: Teams.getDisabledReasonsForRolePicker(s, teamID, members),
-      editMembership: s.dispatch.editMembership,
       teamDetails: s.teamDetails.get(teamID),
     }))
   )
@@ -243,6 +242,8 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
   const currentRole = allSameOrNull(roles) ?? undefined
 
   const [showingPicker, setShowingPicker] = React.useState(false)
+  const [error, setError] = React.useState('')
+  const editMembership = C.useRPC(T.RPCGen.teamsTeamEditMembersRpcPromise)
 
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsEditMembership(teamID, ...members))
   const teamWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsTeam(teamID))
@@ -257,28 +258,46 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
   }, [showingPicker, teamWaiting])
 
   const disableButton = disabledReasons.admin !== undefined
-  const onChangeRoles = (role: T.Teams.TeamRoleType) => editMembership(teamID, members, role)
+  const onChangeRoles = (role: T.Teams.TeamRoleType) => {
+    setError('')
+    editMembership(
+      [
+        {
+          teamID,
+          users: members.map(assertion => ({assertion, role: T.RPCGen.TeamRole[role]})),
+        },
+        [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsEditMembership(teamID, ...members)],
+      ],
+      () => {},
+      err => {
+        setError(err.message)
+      }
+    )
+  }
 
   return (
-    <FloatingRolePicker
-      presetRole={currentRole}
-      onConfirm={onChangeRoles}
-      onCancel={() => setShowingPicker(false)}
-      position="top center"
-      open={showingPicker}
-      disabledRoles={disabledReasons}
-      // TODO waiting should actually understand we submitted but haven't seen teamLoaded yet, but that requires more plumbing
-      waiting={waiting}
-    >
-      <Kb.Button
-        label="Edit role"
-        mode="Secondary"
-        disabled={disableButton}
-        onClick={() => setShowingPicker(!showingPicker)}
-        fullWidth={Kb.Styles.isPhone}
-        tooltip={disableButton ? disabledReasons.admin : undefined}
-      />
-    </FloatingRolePicker>
+    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={Kb.Styles.isPhone}>
+      <FloatingRolePicker
+        presetRole={currentRole}
+        onConfirm={onChangeRoles}
+        onCancel={() => setShowingPicker(false)}
+        position="top center"
+        open={showingPicker}
+        disabledRoles={disabledReasons}
+        // TODO waiting should actually understand we submitted but haven't seen teamLoaded yet, but that requires more plumbing
+        waiting={waiting}
+      >
+        <Kb.Button
+          label="Edit role"
+          mode="Secondary"
+          disabled={disableButton}
+          onClick={() => setShowingPicker(!showingPicker)}
+          fullWidth={Kb.Styles.isPhone}
+          tooltip={disableButton ? disabledReasons.admin : undefined}
+        />
+      </FloatingRolePicker>
+      {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
+    </Kb.Box2>
   )
 }
 

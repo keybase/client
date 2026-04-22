@@ -19,7 +19,7 @@ import {makeUUID} from '@/util/uuid'
 import {dumpLogs, showMain} from '@/util/storeless-actions'
 import * as FSConstants from '@/constants/fs'
 import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {handlePinentryPopupRemoteAction} from '@/pinentry/desktop-popup-handles'
+import {dispatchPinentryRemoteAction} from '@/pinentry/remote-actions.desktop'
 import {handleTrackerPopupRemoteAction} from '@/tracker/desktop-popup-handles'
 
 const handleSaltPackOpen = (_path: string | HiddenString) => {
@@ -118,11 +118,11 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.pinentryOnCancel: {
-      handlePinentryPopupRemoteAction(action)
+      dispatchPinentryRemoteAction(action)
       break
     }
     case RemoteGen.pinentryOnSubmit: {
-      handlePinentryPopupRemoteAction(action)
+      dispatchPinentryRemoteAction(action)
       break
     }
     case RemoteGen.openPathInSystemFileManager: {

@@ -15,6 +15,7 @@ const positionFallbacks = ['left center', 'top left'] as const
 export type RowProps = {
   ctime: number
   disabledReasonsForRolePicker: T.Teams.DisabledReasonsForRolePicker
+  error?: string
   firstItem: boolean
   fullName: string
   onChat: () => void
@@ -110,6 +111,7 @@ export const TeamRequestRow = (props: Props) => {
                 </Kb.Text>
               )}
             </Kb.Box2>
+            {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
           </Kb.Box2>
         </Kb.Box2>
       }
@@ -181,18 +183,24 @@ type OwnProps = {
 
 type ExtraProps = {
   _notifLabel: string
-  letIn: (sendNotification: boolean, role: T.Teams.TeamRoleType) => void
+  letIn: (
+    sendNotification: boolean,
+    role: T.Teams.TeamRoleType,
+    onError: (message: string) => void
+  ) => void
 }
 
 const RequestRowStateWrapper = (props: RowProps & ExtraProps) => {
   const [rolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [sendNotification, setSendNotification] = React.useState(true)
+  const [error, setError] = React.useState('')
 
   const {_notifLabel, letIn, ...rest} = props
 
   return (
     <TeamRequestRow
       {...rest}
+      error={error}
       onAccept={() => setRolePickerOpen(true)}
       isRolePickerOpen={rolePickerOpen}
       onCancelRolePicker={() => setRolePickerOpen(false)}
@@ -204,7 +212,8 @@ const RequestRowStateWrapper = (props: RowProps & ExtraProps) => {
       }
       onConfirmRolePicker={role => {
         setRolePickerOpen(false)
-        letIn(!props.reset && sendNotification, role)
+        setError('')
+        letIn(!props.reset && sendNotification, role, setError)
       }}
     />
   )
@@ -231,9 +240,40 @@ const Container = (ownProps: OwnProps) => {
     }
   }
 
-  const addToTeam = Teams.useTeamsState(s => s.dispatch.addToTeam)
-  const letIn = (sendNotification: boolean, role: T.Teams.TeamRoleType) => {
-    addToTeam(teamID, [{assertion: username, role}], sendNotification)
+  const addToTeam = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const navigateAppend = C.Router2.navigateAppend
+  const letIn = (
+    sendNotification: boolean,
+    role: T.Teams.TeamRoleType,
+    onError: (message: string) => void
+  ) => {
+    addToTeam(
+      [
+        {
+          sendChatNotification: sendNotification,
+          teamID,
+          users: [{assertion: username, role: T.RPCGen.TeamRole[role]}],
+        },
+        [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsAddMember(teamID, username)],
+      ],
+      res => {
+        const usernames = res.notAdded?.map(user => user.username) ?? []
+        if (usernames.length) {
+          navigateAppend({name: 'contactRestricted', params: {source: 'teamAddSomeFailed', usernames}})
+        }
+      },
+      err => {
+        if (err.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
+          const users = (err.fields as Array<{key?: string; value?: string} | undefined> | undefined)
+            ?.filter(field => field?.key === 'usernames')
+            .map(field => field?.value)
+          const usernames = users?.[0]?.split(',') ?? []
+          navigateAppend({name: 'contactRestricted', params: {source: 'teamAddAllFailed', usernames}})
+          return
+        }
+        onError(err.message)
+      }
+    )
   }
   const previewConversation = C.Router2.previewConversation
   const onChat = () => {

@@ -21,6 +21,13 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - Prefer feature hooks such as `useTeam(...)`, `useTeamMembers(...)`, and `useTeamChannels(...)` over store selectors
 - Prefer route params and local state over global wizard or modal state
 - Prefer direct navigation from callers over teams-store navigation wrapper actions
+- Do not introduce module-level mutable state as a replacement for Zustand
+  - no module-level caches
+  - no module-level listener registries
+  - no module-level in-flight request maps
+  - no module-level popup handler singletons
+  - no module-level `useSyncExternalStore(...)` stores backed by module variables
+  - if multiple mounted descendants need shared loaded data on one route, use a feature-local provider instead
 - Keep behavior intact while changing ownership of state
 - Slice-by-slice migrations must preserve current functionality; if mounted UI previously updated live while visible, move that update path into the new hook/provider/listener in the same slice instead of deferring it
 
@@ -62,8 +69,14 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [x] Move `teamSelectedChannels`, `teamSelectedMembers`, and `channelSelectedMembers` into the owning screens / popups
 - [x] Move `errorInEmailInvite` and `teamNameToLoadingInvites` into local invite screen state
 - [ ] Move `errorInAddToTeam`, `errorInEditMember`, and `errorInEditWelcomeMessage` into local screen state
+  - [x] Move `errorInEditMember` into the owning member/edit-role UI
+  - [x] Delete the dead `errorInEditWelcomeMessage` store path
+  - [ ] Move `errorInAddToTeam` into the remaining add-member UI
 - [x] Replace invite-by-email and invite-by-contact submit actions with `C.useRPC(...)`
 - [ ] Replace remaining store-owned submit actions with `C.useRPC(...)` at the owning screens where possible
+  - [x] Replace `editMembership` submit actions in `teams/common/selection-popup.tsx` and `teams/team/member/index.new.tsx`
+  - [x] Replace route-owned `addToTeam` submit actions in `teams/team/member/index.new.tsx`, `teams/team/rows/invite-row/request.tsx`, and `teams/team/rows/empty-row.tsx`
+  - [ ] Replace remaining confirm-modal submit actions
 
 ### Files likely to move together
 

@@ -20,6 +20,12 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - Do not preserve a Zustand cache just to avoid a small number of local chat RPCs
 - Prefer feature hooks and local state over a chat-wide convenience cache
 - Prefer mounted-screen reloads and typed engine listeners over background cache maintenance where the UI can safely miss events while unmounted
+- Do not introduce module-level mutable state as a replacement for Zustand
+  - no module-level caches
+  - no module-level listener registries
+  - no module-level in-flight request maps
+  - no module-level `useSyncExternalStore(...)` stores backed by module variables
+  - if several mounted descendants need shared state on one route, use a feature-local provider instead
 - Keep behavior intact while changing ownership of state
 - Slice-by-slice migrations must preserve current functionality; if mounted UI previously updated live while visible, move that update path into the new hook/provider/listener in the same slice instead of deferring it
 
