@@ -1,12 +1,10 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
-import {useTeamsSubscribe, useTeamDetailsSubscribeMountOnly} from '@/teams/subscriber'
 import LastOwnerDialog from './last-owner'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 export type Props = {
   error: string
@@ -42,7 +40,6 @@ const ReallyLeaveTeam = (props: Props) => {
   )
   const [leavePermanently, setLeavePermanently] = React.useState(false)
   const onLeave = () => props.onLeave(leavePermanently)
-  useTeamsSubscribe()
   return (
     <Kb.ConfirmModal
       error={props.error}
@@ -113,13 +110,13 @@ type OwnProps = {teamID: T.Teams.TeamID}
 
 const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID
-  const {teamname} = useTeamsState(s => Teams.getTeamMeta(s, teamID))
-  const {settings, members} = useTeamsState(s => s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails)
-  const open = settings.open
-  const lastOwner = useTeamsState(s => Teams.isLastOwner(s, teamID))
-  const getTeams = useTeamsState(s => s.dispatch.getTeams)
+  const {loading, teamDetails, teamMeta} = useLoadedTeam(teamID)
+  const teamname = teamMeta.teamname
+  const open = teamDetails.settings.open
+  const lastOwner =
+    teamMeta.role === 'owner' && [...teamDetails.members.values()].filter(member => member.type === 'owner').length < 2
   const leaveTeamRPC = C.useRPC(T.RPCGen.teamsTeamLeaveRpcPromise)
-  const stillLoadingTeam = !members
+  const stillLoadingTeam = loading
   const waitingKey = C.waitingKeyTeamsLeaveTeam(teamname)
   const leaving = C.Waiting.useAnyWaiting(waitingKey)
   const error = C.Waiting.useAnyErrors(waitingKey)
@@ -132,21 +129,22 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
     navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
   }
   const _onLeave = (permanent: boolean) => {
+    if (!teamname) {
+      return
+    }
     leaveTeamRPC(
       [{name: teamname, permanent}, waitingKey],
       () => {
         clearModals()
         navUpToScreen('teamsRoot')
-        getTeams()
       },
       () => {}
     )
   }
   const _onBack = navigateUp
   const onBack = leaving ? () => {} : _onBack
-  const onLeave = useSafeSubmit(_onLeave, !leaving)
+  const onLeave = useSafeSubmit(_onLeave, !leaving && !loading && !!teamname)
 
-  useTeamDetailsSubscribeMountOnly(teamID)
   return lastOwner ? (
     <LastOwnerDialog
       onBack={onBack}

@@ -4,22 +4,22 @@ import {useSafeSubmit} from '@/util/safe-submit'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
-import {useTeamDetailsSubscribe} from './subscriber'
 import noop from 'lodash/noop'
-import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
+import {useLoadedTeam} from './team/use-loaded-team'
+import {useTeamsList} from './use-teams-list'
 
 type OwnProps = {teamID: T.Teams.TeamID}
 
 const DeleteTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID
-  const {teamname} = useTeamsState(s => Teams.getTeamMeta(s, teamID))
-  const teamDetails = useTeamsState(s => s.teamDetails.get(teamID))
+  const {loading, teamDetails, teamMeta} = useLoadedTeam(teamID)
+  const {teams} = useTeamsList()
+  const teamname = teamMeta.teamname
   const deleteWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsDeleteTeam(teamID))
-  const teamMetas = useTeamsState(s => s.teamMeta)
-  const subteamNames = teamDetails?.subteams.size
+  const subteamNames = teamDetails.subteams.size
     ? [...teamDetails.subteams]
-        .map(subteamID => teamMetas.get(subteamID)?.teamname ?? '')
+        .map(subteamID => teams.find(team => team.id === subteamID)?.teamname ?? '')
         .filter(name => !!name)
     : undefined
 
@@ -59,7 +59,17 @@ const DeleteTeamContainer = (op: OwnProps) => {
       dispatchClearWaiting(C.waitingKeyTeamsDeleteTeam(teamID))
     }
   }, [dispatchClearWaiting, teamID])
-  useTeamDetailsSubscribe(teamID)
+
+  if (loading) {
+    return (
+      <Kb.ConfirmModal
+        header={<Header teamname={teamname} />}
+        prompt="Loading team info..."
+        content={<Kb.ProgressIndicator type="Large" />}
+        onCancel={onBack}
+      />
+    )
+  }
 
   if (subteamNames) {
     return (

@@ -4,10 +4,10 @@ import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import useContacts, {type Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
-import {useTeamDetailsSubscribe} from '../subscriber'
 import {getE164} from '@/util/phone-numbers'
 import {openSMS} from '@/util/misc'
 import logger from '@/logger'
+import {useLoadedTeam} from '../team/use-loaded-team'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.
@@ -64,10 +64,10 @@ const generateSMSBody = (teamname: string, seitan: string): string => {
 const TeamInviteByContact = (props: Props) => {
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
-  const teamname = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname)
-  const invites = Teams.useTeamsState(s => s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails).invites
-
-  useTeamDetailsSubscribe(teamID)
+  const {
+    teamDetails: {invites},
+    teamMeta: {teamname},
+  } = useLoadedTeam(teamID)
 
   const [selectedRole, setSelectedRole] = React.useState('writer' as T.Teams.TeamRoleType)
   const [inviteErrorMessage, setInviteErrorMessage] = React.useState('')
