@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import {useTeamsState} from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import OpenMeta from './openmeta'
 import {default as TeamInfo, type Props as TIProps} from './teaminfo'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useTeamsList} from '@/teams/use-teams-list'
+import {showTeamByName} from '@/teams/team-page-actions'
 
 type OwnProps = {
   teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
@@ -17,7 +17,6 @@ const noTeams = new Array<T.Tracker.TeamShowcase>()
 
 const Container = (ownProps: OwnProps) => {
   const _isYou = useCurrentUserState(s => s.username === ownProps.username)
-  const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
   const {teams} = useTeamsList()
   const _teamNameToID = React.useMemo(
     () => new Map(teams.map(team => [team.teamname, team.id] as const)),
@@ -39,7 +38,7 @@ const Container = (ownProps: OwnProps) => {
       navigateAppend({name: 'team', params: {teamID}})
       return
     }
-    showTeamByName(teamname)
+    void showTeamByName(teamname)
   }
   const onEdit = _isYou && _youAreInTeams ? _onEdit : undefined
   return onEdit || teamShowcase.length > 0 ? (

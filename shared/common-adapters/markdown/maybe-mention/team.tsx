@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import {getTeamMentionName} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as T from '@/constants/types'
-import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import Text from '@/common-adapters/text'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
@@ -10,6 +9,7 @@ import {Box2} from '@/common-adapters/box'
 import * as Styles from '@/styles'
 import TeamInfo from '@/profile/user/teams/teaminfo'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
+import {showTeamByName} from '@/teams/team-page-actions'
 
 const Kb = {Box2, Styles, Text}
 
@@ -38,12 +38,11 @@ const TeamMention = (ownProps: OwnProps) => {
   const resolved = !!mentionInfo
 
   const previewConversation = C.Router2.previewConversation
-  const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
   const clearModals = C.Router2.clearModals
   const navigateAppend = C.Router2.navigateAppend
   const _onViewTeam = (teamname: string) => {
     clearModals()
-    showTeamByName(teamname)
+    void showTeamByName(teamname)
   }
   const onJoinTeam = (teamname: string) =>
     navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})

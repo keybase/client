@@ -5,17 +5,14 @@ import type * as EngineGen from '@/constants/rpc'
 import {
   clearModals,
   navigateAppend,
-  navigateToInbox,
   navigateUp,
   navUpToScreen,
   navToProfile,
-  previewConversation,
 } from '@/constants/router'
 import * as Z from '@/util/zustand'
 import invert from 'lodash/invert'
 import logger from '@/logger'
 import {RPCError, logError} from '@/util/errors'
-import {isMobile} from '@/constants/platform'
 import {mapGetEnsureValue} from '@/util/map'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {fixCrop} from '@/util/crop'
@@ -684,16 +681,6 @@ export type State = Store & {
       fromTeamBuilder?: boolean
     ) => void
     clearNavBadges: () => void
-    createNewTeam: (
-      teamname: string,
-      joinSubteam: boolean,
-      fromChat?: boolean,
-      thenAddMembers?: {
-        users: Array<{assertion: string; role: T.Teams.TeamRoleType}>
-        sendChatNotification: boolean
-        fromTeamBuilder?: boolean
-      }
-    ) => void
     deleteChannelConfirmed: (teamID: T.Teams.TeamID, conversationIDKey: T.Chat.ConversationIDKey) => void
     deleteTeam: (teamID: T.Teams.TeamID) => void
     getActivityForTeams: () => void
@@ -722,12 +709,6 @@ export type State = Store & {
     setNewTeamRequests: (newTeamRequests: Map<T.Teams.TeamID, Set<string>>) => void
     setTeamRetentionPolicy: (teamID: T.Teams.TeamID, policy: T.Retention.RetentionPolicy) => void
     setTeamRoleMapLatestKnownVersion: (version: number) => void
-    showTeamByName: (
-      teamname: string,
-      initialTab?: T.Teams.TabKey,
-      join?: boolean,
-      addMembers?: boolean
-    ) => void
     teamChangedByID: (c: EngineGen.ParamsOf<'keybase.1.NotifyTeam.teamChangedByID'>) => void
     teamSeen: (teamID: T.Teams.TeamID) => void
     updateCachedBotMember: (teamID: T.Teams.TeamID, username: string, role?: 'bot' | 'restrictedbot') => void
@@ -833,39 +814,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         } catch (err) {
           logError(err)
         }
-      }
-      ignorePromise(f())
-    },
-    createNewTeam: (teamname, joinSubteam, fromChat, thenAddMembers) => {
-      const f = async () => {
-        try {
-          const {teamID} = await T.RPCGen.teamsTeamCreateRpcPromise(
-            {joinSubteam, name: teamname},
-            S.waitingKeyTeamsCreation
-          )
-          set(s => {
-            s.teamNameToID.set(teamname, teamID)
-          })
-          if (thenAddMembers) {
-            get().dispatch.addToTeam(teamID, thenAddMembers.users, false)
-          }
-
-          if (fromChat) {
-            clearModals()
-            navigateToInbox()
-            previewConversation({
-              channelname: 'general',
-              reason: 'convertAdHoc',
-              teamname,
-            })
-          } else {
-            clearModals()
-            navigateAppend({name: 'team', params: {teamID}})
-            if (isMobile) {
-              navigateAppend({name: 'profileEditAvatar', params: {createdTeam: true, teamID}})
-            }
-          }
-        } catch {}
       }
       ignorePromise(f())
     },
@@ -1385,49 +1333,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       set(s => {
         s.teamRoleMap.latestKnownVersion = version
       })
-    },
-    showTeamByName: (teamname, initialTab, join, addMembers) => {
-      const f = async () => {
-        let teamID: string
-        try {
-          teamID = await T.RPCGen.teamsGetTeamIDRpcPromise({teamName: teamname})
-        } catch (err) {
-          logger.info(`team="${teamname}" cannot be loaded:`, err)
-          // navigate to team page for team we're not in
-          logger.info(`showing external team page, join=${join}`)
-          navigateAppend({name: 'teamExternalTeam', params: {teamname}})
-          if (join) {
-            navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
-          }
-          return
-        }
-
-        if (addMembers) {
-          // Check if we have the right role to be adding members, otherwise don't
-          // show the team builder.
-          try {
-            // Get (hopefully fresh) role map. The app might have just started so it's
-            // not enough to just look in the react store.
-            const map = await T.RPCGen.teamsGetTeamRoleMapRpcPromise()
-            const role = map.teams?.[teamID]?.role || map.teams?.[teamID]?.implicitRole
-            if (role !== T.RPCGen.TeamRole.admin && role !== T.RPCGen.TeamRole.owner) {
-              logger.info(`ignoring team="${teamname}" with addMember, user is not an admin but role=${role}`)
-              return
-            }
-          } catch (err) {
-            logger.info(`team="${teamname}" failed to check if user is an admin:`, err)
-            return
-          }
-        }
-        navigateAppend({name: 'team', params: {initialTab, teamID}})
-        if (addMembers) {
-          navigateAppend({
-            name: 'teamsTeamBuilder',
-            params: {namespace: 'teams', teamID, title: ''},
-          })
-        }
-      }
-      ignorePromise(f())
     },
     teamChangedByID: c => {
       const {changes, teamID} = c

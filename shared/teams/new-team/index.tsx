@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {openURL as openUrl} from '@/util/misc'
 import upperFirst from 'lodash/upperFirst'
 import {useLoadedTeam} from '../team/use-loaded-team'
+import {createNewTeamAndNavigate} from '@/teams/team-page-actions'
 
 const openSubteamInfo = () => openUrl('https://book.keybase.io/docs/teams/design')
 
@@ -128,9 +128,8 @@ const Container = (ownProps: OwnProps) => {
   const onCancel = () => {
     navigateUp()
   }
-  const createNewTeam = Teams.useTeamsState(s => s.dispatch.createNewTeam)
   const onSubmit = (teamname: string, joinSubteam: boolean) => {
-    createNewTeam(teamname, joinSubteam)
+    void createNewTeamAndNavigate(teamname, joinSubteam)
   }
   const props = {
     baseTeam,

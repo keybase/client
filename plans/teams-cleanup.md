@@ -127,9 +127,10 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [ ] Reload on focus/mount instead of maintaining store subscriptions
   - [x] Remove the legacy team-route list/details subscriptions now that `useLoadedTeam(...)`, `useLoadedTeamChannels(...)`, and `useTeamsList()` own mounted reloads
   - [x] Remove the remaining popup-only `teams/subscriber.tsx` path by gating `useLoadedTeam(...)` with the mounted popup state
-- [ ] Replace teams-store navigation wrapper actions with direct router calls where the caller already knows the target
+- [x] Replace teams-store navigation wrapper actions with direct router calls where the caller already knows the target
   - [x] Replace teams-screen create-team, create-subteam, and add-members entrypoints with direct `navigateAppend(...)` calls instead of teams-store wrappers
   - [x] Replace chat/git/people create-team entrypoints with direct `navigateAppend(...)` calls instead of `launchNewTeamWizardOrModal`
+  - [x] Move the remaining create-team / show-team navigation helpers out of `stores/teams.tsx` and into feature-local team route helpers
 
 ### Teams screens to convert
 

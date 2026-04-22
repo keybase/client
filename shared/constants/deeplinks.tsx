@@ -2,7 +2,7 @@ import logger from '@/logger'
 import * as T from '@/constants/types'
 import {navigateAppend, navigateToThread, navToProfile, previewConversation, switchTab} from './router'
 import * as Tabs from './tabs'
-import {useTeamsState} from '@/stores/teams'
+import {showTeamByName} from '@/teams/team-page-actions'
 
 const prefix = 'keybase://'
 export const linkFromConvAndMessage = (conv: string, messageID: number) =>
@@ -31,14 +31,11 @@ const validTeamnamePart = (s: string): boolean => {
 const validTeamname = (s: string) => s.split('.').every(validTeamnamePart)
 
 const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
-  useTeamsState
-    .getState()
-    .dispatch.showTeamByName(
-      teamname,
-      action === 'manage_settings' ? 'settings' : undefined,
-      action === 'join' ? true : undefined,
-      action === 'add_or_invite' ? true : undefined
-    )
+  void showTeamByName(teamname, {
+    addMembers: action === 'add_or_invite' ? true : undefined,
+    initialTab: action === 'manage_settings' ? 'settings' : undefined,
+    join: action === 'join' ? true : undefined,
+  })
 }
 
 // Fallback handler for keybase:// URL patterns not yet handled by the linking config.
