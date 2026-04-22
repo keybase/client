@@ -3,6 +3,7 @@ import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 import {useTeamsList} from '@/teams/use-teams-list'
 
 type OwnProps = {isTeam: boolean}
@@ -44,11 +45,11 @@ const Container = (ownProps: OwnProps) => {
       )
     }
   }
-  const launchNewTeamWizardOrModal = Teams.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = C.Router2.switchTab
+  const navigateAppend = C.Router2.navigateAppend
   const onNewTeam = () => {
     switchTab(C.Tabs.teamsTab)
-    launchNewTeamWizardOrModal()
+    navigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}})
   }
 
   const [name, setName] = React.useState('')

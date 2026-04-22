@@ -26,7 +26,6 @@ import {useUsersState} from '@/stores/users'
 import * as Util from '@/constants/teams'
 import {getTab} from '@/constants/router'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
-import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 
 export {
   baseRetentionPolicies,
@@ -718,7 +717,6 @@ export type State = Store & {
     getTeamRetentionPolicy: (teamID: T.Teams.TeamID) => void
     getTeams: (forceReload?: boolean) => void
     ignoreRequest: (teamID: T.Teams.TeamID, teamname: string, username: string) => void
-    launchNewTeamWizardOrModal: (subteamOf?: T.Teams.TeamID) => void
     leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
     loadTeam: (teamID: T.Teams.TeamID) => void
     loadTeamChannelList: (teamID: T.Teams.TeamID) => void
@@ -1097,16 +1095,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         } catch {}
       }
       ignorePromise(f())
-    },
-    launchNewTeamWizardOrModal: subteamOf => {
-      if (subteamOf) {
-        navigateAppend({
-          name: 'teamWizard2TeamInfo',
-          params: {wizard: makeNewTeamWizard({parentTeamID: subteamOf, teamType: 'subteam'})},
-        })
-      } else {
-        navigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}})
-      }
     },
     leaveTeam: (teamname, permanent, context) => {
       const f = async () => {

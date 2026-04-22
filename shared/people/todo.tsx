@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import {editAvatar, openURL} from '@/util/misc'
 import type * as T from '@/constants/types'
@@ -11,6 +10,7 @@ import {settingsAccountTab, settingsGitTab} from '@/constants/settings'
 import type {AppTab} from '@/constants/tabs'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
+import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 
 const todoTypes: {[K in T.People.TodoType]: T.People.TodoType} = {
   addEmail: 'addEmail',
@@ -169,14 +169,13 @@ const PaperKeyTask = (props: TodoOwnProps) => (
 )
 
 const TeamTask = (props: TodoOwnProps) => {
-  const launchNewTeamWizardOrModal = useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   return (
     <BasicTask
       {...props}
       dismissTodoType="team"
       onConfirm={() => {
         C.Router2.switchTab(C.Tabs.teamsTab)
-        launchNewTeamWizardOrModal()
+        C.Router2.navigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}})
       }}
     />
   )

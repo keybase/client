@@ -128,6 +128,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
   - [x] Remove the remaining popup-only `teams/subscriber.tsx` path by gating `useLoadedTeam(...)` with the mounted popup state
 - [ ] Replace teams-store navigation wrapper actions with direct router calls where the caller already knows the target
   - [x] Replace teams-screen create-team, create-subteam, and add-members entrypoints with direct `navigateAppend(...)` calls instead of teams-store wrappers
+  - [x] Replace chat/git/people create-team entrypoints with direct `navigateAppend(...)` calls instead of `launchNewTeamWizardOrModal`
 
 ### Teams screens to convert
 
