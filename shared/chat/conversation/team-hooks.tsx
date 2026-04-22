@@ -225,9 +225,11 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
   React.useEffect(() => {
     void reload()
   }, [reload])
-  C.Router2.useSafeFocusEffect(() => {
-    void reload()
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      void reload()
+    }, [reload])
+  )
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
     if (enabled) {
       void reload()
@@ -307,9 +309,11 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
   React.useEffect(() => {
     void reload()
   }, [reload])
-  C.Router2.useSafeFocusEffect(() => {
-    void reload()
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      void reload()
+    }, [reload])
+  )
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
       void reload()
@@ -392,9 +396,11 @@ const useChatTeamChannelsRaw = (
   React.useEffect(() => {
     void reload()
   }, [reload])
-  C.Router2.useSafeFocusEffect(() => {
-    void reload()
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      void reload()
+    }, [reload])
+  )
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
     if (enabled) {
       void reload()
@@ -478,9 +484,11 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
   React.useEffect(() => {
     void reload()
   }, [reload])
-  C.Router2.useSafeFocusEffect(() => {
-    void reload()
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      void reload()
+    }, [reload])
+  )
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
     if (enabled && teamIDsKey) {
       void reload()
@@ -687,11 +695,13 @@ export const useChatManageChannelsBadge = (
   React.useEffect(() => {
     void loadIfStale()
   }, [loadIfStale])
-  C.Router2.useSafeFocusEffect(() => {
-    if (validTeamID && teamname) {
-      void loadIfStale()
-    }
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      if (validTeamID && teamname) {
+        void loadIfStale()
+      }
+    }, [loadIfStale, teamname, validTeamID])
+  )
   useEngineActionListener('keybase.1.gregorUI.pushState', action => {
     if (validTeamID && teamname) {
       setChosenChannelsFromItems(action.payload.params.state.items)
