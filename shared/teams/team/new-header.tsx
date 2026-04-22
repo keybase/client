@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import TeamMenu from './menu-container'
@@ -76,7 +75,7 @@ const FeatureTeamCard = ({teamID, onDismiss}: FeatureTeamCardProps) => {
 type HeaderTitleProps = {
   teamID: T.Teams.TeamID
   justFinishedAddWizard: boolean
-  onClearJustFinishedAddMembersWizard: () => void
+  onClearJustFinishedAddWizard: () => void
 }
 
 const roleDisplay = {
@@ -211,7 +210,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     props.justFinishedAddWizard && !meta.showcasing ? (
       <FeatureTeamCard
         teamID={props.teamID}
-        onDismiss={props.onClearJustFinishedAddMembersWizard}
+        onDismiss={props.onClearJustFinishedAddWizard}
       />
     ) : (
       <Kb.Box2
