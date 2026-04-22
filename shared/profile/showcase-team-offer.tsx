@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useTeamsList} from '@/teams/use-teams-list'
 import {useConfigState} from '@/stores/config'
 
