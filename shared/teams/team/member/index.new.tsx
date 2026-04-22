@@ -158,13 +158,16 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
         return prev
       }
       const nextMemberships =
-        prev.guid === undefined || membership.guid > prev.guid ? [membership] : [...prev.memberships, membership]
-      const nextSparseMemberInfos =
         prev.guid === undefined || membership.guid > prev.guid
-          ? new Map()
-          : new Map(prev.sparseMemberInfos)
+          ? [membership]
+          : [...prev.memberships, membership]
+      const nextSparseMemberInfos =
+        prev.guid === undefined || membership.guid > prev.guid ? new Map() : new Map(prev.sparseMemberInfos)
       if (membership.result.s === T.RPCGen.TeamTreeMembershipStatus.ok) {
-        nextSparseMemberInfos.set(membership.result.ok.teamID, consumeTeamTreeMembershipValue(membership.result.ok))
+        nextSparseMemberInfos.set(
+          membership.result.ok.teamID,
+          consumeTeamTreeMembershipValue(membership.result.ok)
+        )
       }
       return {
         ...prev,
@@ -671,19 +674,12 @@ const NodeInRow = (props: NodeInRowProps) => {
                       sizeType="Small"
                       color={Kb.Styles.globalColors.black_20}
                     />
-                    <LastActivity
-                      lastActivity={props.node.lastActivity}
-                      loading={loadingActivity}
-                    />
+                    <LastActivity lastActivity={props.node.lastActivity} loading={loadingActivity} />
                   </Kb.Box2>
                 )}
                 {expanded && !isSmallTeam && (
                   <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" fullWidth={true}>
-                    <Kb.Icon
-                      type="iconfont-hash"
-                      sizeType="Small"
-                      color={Kb.Styles.globalColors.black_20}
-                    />
+                    <Kb.Icon type="iconfont-hash" sizeType="Small" color={Kb.Styles.globalColors.black_20} />
                     <Kb.Text
                       type="BodySmall"
                       style={Kb.Styles.globalStyles.flexOne}
@@ -719,7 +715,11 @@ const NodeInRow = (props: NodeInRowProps) => {
                         small={true}
                         waitingKey={onKickOutWaitingKey}
                       >
-                        <Kb.Icon type={isMe ? 'iconfont-team-leave' : 'iconfont-block'} sizeType="Small" color={Kb.Styles.globalColors.redDark} />
+                        <Kb.Icon
+                          type={isMe ? 'iconfont-team-leave' : 'iconfont-block'}
+                          sizeType="Small"
+                          color={Kb.Styles.globalColors.redDark}
+                        />
                       </Kb.WaitingButton>
                     )}
                   </Kb.Box2>
@@ -752,7 +752,7 @@ export const TeamMemberHeader = (props: Props) => {
   const onViewProfile = () => navToProfile(username)
   const onViewTeam = () => nav.safeNavigateAppend({name: 'team', params: {teamID}})
 
-  const member = teamDetails?.members.get(username)
+  const member = teamDetails.members.get(username)
   if (!member) {
     if (!leaving) {
       // loading? should never happen.
@@ -822,18 +822,18 @@ const BlockDropdown = (props: {username: string}) => {
   const {username} = props
   const nav = useSafeNavigation()
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const onBlock = () => nav.safeNavigateAppend({name: 'chatBlockingModal', params: {username}})
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          closeOnSelect={true}
-          items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    const onBlock = () => nav.safeNavigateAppend({name: 'chatBlockingModal', params: {username}})
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        closeOnSelect={true}
+        items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
+      />
+    )
+  }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
   return (
     <>
