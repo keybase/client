@@ -200,14 +200,16 @@ const loadChosenChannelsStore = async (force = false) => {
         ...chosenChannelsStoreState,
         loading: false,
       })
-    } finally {
-      if (chosenChannelsInFlight === request) {
-        chosenChannelsInFlight = undefined
-      }
     }
   })()
   chosenChannelsInFlight = request
-  return request
+  try {
+    return await request
+  } finally {
+    if (chosenChannelsInFlight === request) {
+      chosenChannelsInFlight = undefined
+    }
+  }
 }
 
 const setChosenChannelsTeamDismissed = (teamname: string) => {
@@ -266,20 +268,20 @@ const loadChatTeamname = async (teamID: T.Teams.TeamID) => {
   }
   const version = chatTeamnameVersions.get(teamID) ?? 0
   const request = (async () => {
-    try {
-      const teamname = (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name
-      if (teamname && (chatTeamnameVersions.get(teamID) ?? 0) === version) {
-        chatTeamnameCache.set(teamID, teamname)
-      }
-      return teamname
-    } finally {
-      if (chatTeamnameRequests.get(teamID) === request) {
-        chatTeamnameRequests.delete(teamID)
-      }
+    const teamname = (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name
+    if (teamname && (chatTeamnameVersions.get(teamID) ?? 0) === version) {
+      chatTeamnameCache.set(teamID, teamname)
     }
+    return teamname
   })()
   chatTeamnameRequests.set(teamID, request)
-  return request
+  try {
+    return await request
+  } finally {
+    if (chatTeamnameRequests.get(teamID) === request) {
+      chatTeamnameRequests.delete(teamID)
+    }
+  }
 }
 
 let chatTeamHooksUsername = ''
