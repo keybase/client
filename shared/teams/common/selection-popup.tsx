@@ -7,6 +7,7 @@ import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {FloatingRolePicker} from '../role-picker'
+import {useLoadedTeamChannels} from './use-loaded-team-channels'
 import {useChannelSelectionState, useTeamSelectionState} from './selection-state'
 import {pluralize} from '@/util/string'
 
@@ -317,9 +318,10 @@ const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
   )
 }
 const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps) => {
-  const channelInfo = useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const {channels} = useLoadedTeamChannels(teamID)
+  const channelInfo = channels.get(conversationIDKey)
   const {selectedMembers} = useChannelSelectionState()
-  const {channelname} = channelInfo
+  const channelname = channelInfo?.channelname ?? ''
   const navigateAppend = C.Router2.navigateAppend
 
   if (!selectedMembers.size) {
@@ -346,7 +348,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
         fullWidth={Kb.Styles.isPhone}
       />
       <EditRoleButton teamID={teamID} members={members} />
-      {channelname !== 'general' && (
+      {!!channelInfo && channelname !== 'general' && (
         <Kb.Button
           label="Remove from channel"
           type="Danger"

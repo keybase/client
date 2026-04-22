@@ -107,6 +107,9 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [ ] Replace team list reads with a route-owned `useTeamsList(...)` loader
 - [ ] Replace team details reads with a route-owned `useTeam(teamID)` loader
   - [x] Move team shell consumers (`team/index`, `team/tabs`, `team/new-header`, `team/settings-tab`, `team/menu-container`, `team-info`) onto a route-owned `useLoadedTeam(teamID)` hook/provider
+- [x] Replace channel list reads with a route-owned `useLoadedTeamChannels(teamID, teamname?)` loader/provider
+  - [x] Move `teams/team/index.tsx`, `teams/team/rows/channel-row/*`, `teams/common/selection-popup.tsx`, and `teams/channel/*` channel-header/list consumers off `channelInfo` reads
+  - [x] Stop calling `loadTeamChannelList` from the team/channel route shells and channel edit/delete/remove flows that now rely on route reloads
 - [ ] Replace welcome message, retention policy, members, activity, and team tree reads with feature hooks local to the owning screens
 - [ ] Reload on focus/mount instead of maintaining store subscriptions
 - [ ] Replace teams-store navigation wrapper actions with direct router calls where the caller already knows the target

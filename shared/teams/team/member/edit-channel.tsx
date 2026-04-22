@@ -28,8 +28,6 @@ const EditChannel = (props: Props) => {
   const updateChannelName = useTeamsState(s => s.dispatch.updateChannelName)
   const updateTopic = useTeamsState(s => s.dispatch.updateTopic)
 
-  const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
-
   const onSave = () => {
     const ps = [
       ...(oldName !== name ? [updateChannelName(teamID, conversationIDKey, name)] : []),
@@ -38,7 +36,6 @@ const EditChannel = (props: Props) => {
     Promise.all(ps)
       .then(() => {
         nav.safeNavigateUp()
-        loadTeamChannelList(teamID)
       })
       .catch(() => {})
   }
@@ -71,13 +68,13 @@ const EditChannel = (props: Props) => {
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.Button
-            label="Save"
-            onClick={onSave}
-            fullWidth={true}
-            disabled={oldName === name && description === oldDescription}
-            waiting={waiting}
-          />
+        <Kb.Button
+          label="Save"
+          onClick={onSave}
+          fullWidth={true}
+          disabled={oldName === name && description === oldDescription}
+          waiting={waiting}
+        />
       </Kb.Box2>
     </>
   )

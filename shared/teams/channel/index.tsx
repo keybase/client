@@ -18,6 +18,7 @@ import ChannelMemberRow from './rows'
 import BotRow from '../team/rows/bot-row/bot'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
+import {LoadedTeamChannelsProvider} from '../common/use-loaded-team-channels'
 import {useUsersState} from '@/stores/users'
 import {useLoadTeamMembers} from '@/teams/team-members'
 
@@ -69,11 +70,6 @@ const useLoadDataForChannelPage = (
   React.useEffect(() => {
     prevSelectedTabRef.current = selectedTab
   }, [selectedTab])
-
-  const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
-  React.useEffect(() => {
-    loadTeamChannelList(teamID)
-  }, [loadTeamChannelList, teamID])
 }
 
 // keep track during session
@@ -280,26 +276,28 @@ const Channel = (props: OwnProps) => {
   }
 
   return (
-    <ChannelSelectionProvider
-      selectedMembers={props.selectedMembers}
-      onSelectedMembersChange={selectedMembers => navigation.setParams({selectedMembers})}
-    >
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
-        <Kb.SectionList
-          renderSectionHeader={({section}) =>
-            section.title ? <Kb.SectionDivider label={section.title} /> : null
-          }
-          stickySectionHeadersEnabled={Kb.Styles.isMobile}
-          sections={sections}
-          contentContainerStyle={styles.listContentContainer}
-        />
-        <SelectionPopup
-          selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
-          teamID={teamID}
-          conversationIDKey={conversationIDKey}
-        />
-      </Kb.Box2>
-    </ChannelSelectionProvider>
+    <LoadedTeamChannelsProvider teamID={teamID} teamname={meta.teamname}>
+      <ChannelSelectionProvider
+        selectedMembers={props.selectedMembers}
+        onSelectedMembersChange={selectedMembers => navigation.setParams({selectedMembers})}
+      >
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
+          <Kb.SectionList
+            renderSectionHeader={({section}) =>
+              section.title ? <Kb.SectionDivider label={section.title} /> : null
+            }
+            stickySectionHeadersEnabled={Kb.Styles.isMobile}
+            sections={sections}
+            contentContainerStyle={styles.listContentContainer}
+          />
+          <SelectionPopup
+            selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
+            teamID={teamID}
+            conversationIDKey={conversationIDKey}
+          />
+        </Kb.Box2>
+      </ChannelSelectionProvider>
+    </LoadedTeamChannelsProvider>
   )
 }
 

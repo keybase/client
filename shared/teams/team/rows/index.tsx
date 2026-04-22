@@ -191,11 +191,11 @@ export const useInvitesSections = (
 }
 export const useChannelsSections = (
   teamID: T.Teams.TeamID,
-  yourOperations: T.Teams.TeamOperations
+  yourOperations: T.Teams.TeamOperations,
+  channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>,
+  loading: boolean
 ): Array<Section> => {
   const isBig = Chat.useChatState(s => isBigTeam(s.inboxLayout, teamID))
-  const channels = Teams.useTeamsState(s => s.channelInfo.get(teamID))
-  const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
 
   if (!isBig) {
     return [
@@ -205,10 +205,10 @@ export const useChannelsSections = (
       } as const,
     ]
   }
-  if (!channels) {
+  if (loading) {
     return [{data: [{type: 'channel-loading'}], renderItem: () => <LoadingRow />} as const]
   }
-  const createRow = canCreate
+  const createRow = yourOperations.createChannel
     ? [{data: [{type: 'channel-add'}], renderItem: () => <ChannelHeaderRow teamID={teamID} />} as const]
     : []
 
@@ -227,7 +227,7 @@ export const useChannelsSections = (
         ),
       renderItem: ({item}: {item: Item}) =>
         item.type === 'channel-channels' ? (
-          <ChannelRow teamID={teamID} conversationIDKey={item.c.conversationIDKey} />
+          <ChannelRow teamID={teamID} channel={item.c} />
         ) : null,
     },
     channels.size < 5 && yourOperations.createChannel

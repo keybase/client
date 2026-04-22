@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {useTeamsState} from '@/stores/teams'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
@@ -51,7 +50,6 @@ const DeleteChannel = (props: Props) => {
   }
   const waitingKey = C.waitingKeyTeamsDeleteChannel(teamID)
   const waitingError = C.Waiting.useAnyErrors(waitingKey)
-  const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
   const clearModals = C.Router2.clearModals
 
   const deleteChannel = React.useCallback(
@@ -77,11 +75,10 @@ const DeleteChannel = (props: Props) => {
       for (const channelID of channelIDs) {
         await deleteChannel(channelID)
       }
-      loadTeamChannelList(teamID)
       clearModals()
     }
     C.ignorePromise(f())
-  }, [channelIDs, clearModals, deleteChannel, loadTeamChannelList, teamID])
+  }, [channelIDs, clearModals, deleteChannel])
 
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {

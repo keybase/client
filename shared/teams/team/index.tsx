@@ -6,6 +6,7 @@ import type * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
 import {SelectionPopup, useActivityLevels} from '../common'
+import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {TeamSelectionProvider} from '../common/selection-state'
 import TeamTabs from './tabs'
 import NewTeamHeader from './new-header'
@@ -44,7 +45,6 @@ const useTabsState = (
   teamID: T.Teams.TeamID,
   providedTab?: T.Teams.TabKey
 ): [T.Teams.TabKey, (t: T.Teams.TabKey) => void] => {
-  const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
   const defaultSelectedTab = lastSelectedTabs.get(teamID) ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<T.Teams.TabKey>(defaultSelectedTab)
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
@@ -52,9 +52,6 @@ const useTabsState = (
     lastSelectedTabs.set(teamID, t)
     if (selectedTab !== 'settings' && t === 'settings') {
       dispatchClearWaiting(getSettingsErrorWaitingKeys(teamID))
-    }
-    if (selectedTab !== 'channels' && t === 'channels') {
-      loadTeamChannelList(teamID)
     }
     _setSelectedTab(t)
   }
@@ -68,12 +65,9 @@ const useTabsState = (
       if (defaultSelectedTab === 'settings') {
         dispatchClearWaiting(getSettingsErrorWaitingKeys(teamID))
       }
-      if (defaultSelectedTab === 'channels') {
-        loadTeamChannelList(teamID)
-      }
       _setSelectedTab(defaultSelectedTab)
     }
-  }, [teamID, defaultSelectedTab, dispatchClearWaiting, loadTeamChannelList])
+  }, [teamID, defaultSelectedTab, dispatchClearWaiting])
   return [selectedTab, setSelectedTab]
 }
 
@@ -100,6 +94,7 @@ const TeamBody = (props: Props) => {
   useTeamsSubscribe()
   useTeamDetailsSubscribe(teamID)
   useActivityLevels()
+  const {channels, loading: loadingChannels} = useLoadedTeamChannels(teamID, teamMeta.teamname)
 
   React.useEffect(() => {
     if (!props.selectedMembers?.length) {
@@ -115,9 +110,8 @@ const TeamBody = (props: Props) => {
     }
   }, [navigation, props.selectedMembers, teamDetails.members, teamMeta.memberCount])
 
-  const channels = Teams.useTeamsState(s => s.channelInfo.get(teamID))
   React.useEffect(() => {
-    if (!props.selectedChannels?.length || !channels) {
+    if (!props.selectedChannels?.length || !channels.size) {
       return
     }
     const nextSelectedChannels = props.selectedChannels.filter(conversationIDKey =>
@@ -143,7 +137,7 @@ const TeamBody = (props: Props) => {
   const membersSections = useMembersSections(teamID, teamMeta, teamDetails, yourOperations)
   const botSections = useBotSections(teamID, teamMeta, teamDetails, yourOperations)
   const invitesSections = useInvitesSections(teamID, teamDetails, invitesCollapsed, setInvitesCollapsed)
-  const channelsSections = useChannelsSections(teamID, yourOperations)
+  const channelsSections = useChannelsSections(teamID, yourOperations, channels, loadingChannels)
   const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations, subteamFilter, setSubteamFilter)
   const emojiSections = useEmojiSections(teamID, selectedTab === 'emoji')
 
@@ -221,9 +215,18 @@ const TeamBody = (props: Props) => {
   )
 }
 
+const TeamWithChannelsProvider = (props: Props) => {
+  const {teamMeta} = useLoadedTeam(props.teamID)
+  return (
+    <LoadedTeamChannelsProvider teamID={props.teamID} teamname={teamMeta.teamname}>
+      <TeamBody {...props} />
+    </LoadedTeamChannelsProvider>
+  )
+}
+
 const Team = (props: Props) => (
   <LoadedTeamProvider teamID={props.teamID}>
-    <TeamBody {...props} />
+    <TeamWithChannelsProvider {...props} />
   </LoadedTeamProvider>
 )
 

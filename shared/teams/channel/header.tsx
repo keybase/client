@@ -1,11 +1,12 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
 import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import {Activity, useChannelParticipants} from '../common'
+import {useLoadedTeamChannels} from '../common/use-loaded-team-channels'
+import {useLoadedTeam} from '../team/use-loaded-team'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 const useRecentJoins = (conversationIDKey: T.Chat.ConversationIDKey) => {
@@ -29,12 +30,14 @@ type HeaderTitleProps = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
-  const teamname = useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname)
-  const channelInfo = useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
-  const {channelname, description} = channelInfo
+  const {teamMeta, yourOperations} = useLoadedTeam(teamID)
+  const {channels} = useLoadedTeamChannels(teamID, teamMeta.teamname)
+  const channelInfo = channels.get(conversationIDKey)
+  const channelname = channelInfo?.channelname ?? ''
+  const description = channelInfo?.description ?? ''
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
-  const yourOperations = useTeamsState(s => Teams.getCanPerformByID(s, teamID))
-  const canDelete = yourOperations.deleteChannel && channelname !== 'general'
+  const canDelete = !!channelInfo && yourOperations.deleteChannel && channelname !== 'general'
+  const canEdit = !!channelInfo && yourOperations.editChannelDescription
 
   const editChannelProps = {
     channelname: channelname,
@@ -56,9 +59,9 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const topDescriptors = (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" style={styles.flexShrink}>
       <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" style={styles.flexShrink}>
-        <Kb.Avatar teamname={teamname} size={16} style={styles.alignSelfFlexStart} />
+        <Kb.Avatar teamname={teamMeta.teamname} size={16} style={styles.alignSelfFlexStart} />
         <Kb.Text className="hover-underline" type="BodySmallSemibold" onClick={onNavToTeam}>
-          {teamname}
+          {teamMeta.teamname}
         </Kb.Text>
       </Kb.Box2>
       <Kb.Text type="Header" lineClamp={1} style={styles.header}>
@@ -70,34 +73,34 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const deleteChannelConfirmed = useTeamsState(s => s.dispatch.deleteChannelConfirmed)
 
   const menuItems: Array<Kb.MenuItem> = [
-      // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
-      // It's included in the other place this menu appears.
-      ...(canDelete
-        ? [
-            {
-              danger: true,
-              onClick: () => {
-                nav.safeNavigateUp()
-                deleteChannelConfirmed(teamID, conversationIDKey)
-              },
-              title: 'Delete channel',
+    // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
+    // It's included in the other place this menu appears.
+    ...(canDelete
+      ? [
+          {
+            danger: true,
+            onClick: () => {
+              nav.safeNavigateUp()
+              deleteChannelConfirmed(teamID, conversationIDKey)
             },
-          ]
-        : []),
-    ]
+            title: 'Delete channel',
+          },
+        ]
+      : []),
+  ]
 
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={menuItems}
-          onHidden={hidePopup}
-          visible={true}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={hidePopup}
+        visible={true}
+      />
+    )
+  }
 
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
@@ -120,7 +123,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
           {yourOperations.chat && <Kb.Button label="View" onClick={onChat} small={true} />}
-          {yourOperations.editChannelDescription && (
+          {canEdit && (
             <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
           )}
           {!Kb.Styles.isMobile && (
