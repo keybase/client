@@ -157,6 +157,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 ## Chunk 4: Remove Notification-Driven Teams Cache Maintenance
 
 - [ ] Stop treating `teams` as a background cache owner
+- [x] Move badge-derived team adornment state (`deletedTeams`, `newTeams`, `teamIDToResetUsers`) out of `stores/teams.tsx` into `stores/notifications.tsx`
 - [ ] Convert mounted-screen-only reactions to direct listeners plus reload
   - `chat.1.chatUi.chatShowManageChannels`
   - `keybase.1.NotifyTeam.teamDeleted`
@@ -164,6 +165,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
   - `chat.1.NotifyChat.ChatWelcomeMessageLoaded`
 - [ ] Re-evaluate remaining teams engine handlers after earlier chunks land
 - [ ] Delete subscription-count and stale-bit bookkeeping once no screen depends on warmed caches
+- [x] Delete dead teams-store bookkeeping that no screen reads (`sawChatBanner`, `sawSubteamsBanner`, `teamAccessRequestsPending`)
 
 ### Store fallout after Chunk 4
 

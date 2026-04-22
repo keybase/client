@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Teams from '@/stores/teams'
+import {useNotifState} from '@/stores/notifications'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import Main from './main'
@@ -19,9 +20,9 @@ type TeamsRootParamList = {
 
 const orderTeams = (
   teams: ReadonlyArray<T.Teams.TeamMeta>,
-  newRequests: T.Immutable<Teams.State['newTeamRequests']>,
-  teamIDToResetUsers: T.Immutable<Teams.State['teamIDToResetUsers']>,
-  newTeams: T.Immutable<Teams.State['newTeams']>,
+  newRequests: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>,
+  teamIDToResetUsers: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>,
+  newTeams: ReadonlySet<T.Teams.TeamID>,
   sortOrder: T.Immutable<T.Teams.TeamListSort>,
   activityLevels: T.Immutable<T.Teams.ActivityLevels>,
   filter: string
@@ -60,20 +61,20 @@ type Props = {
 const Connected = ({filter = '', sort = 'role'}: Props) => {
   const {reload, teams} = useTeamsList()
   const activityLevels = useActivityLevels()
-  const data = Teams.useTeamsState(
+  const {newTeamRequests} = Teams.useTeamsState(
+    C.useShallow(s => ({
+      newTeamRequests: s.newTeamRequests,
+    }))
+  )
+  const {deletedTeams, newTeams, teamIDToResetUsers} = useNotifState(
     C.useShallow(s => {
-      const {deletedTeams} = s
-      const {newTeamRequests, newTeams, teamIDToResetUsers} = s
       return {
-        deletedTeams,
-        newTeamRequests,
-        newTeams,
-        teamIDToResetUsers,
+        deletedTeams: s.deletedTeams,
+        newTeams: s.newTeams,
+        teamIDToResetUsers: s.teamIDToResetUsers,
       }
     })
   )
-  const {deletedTeams, newTeamRequests, newTeams} = data
-  const {teamIDToResetUsers} = data
 
   const orderedTeams = orderTeams(teams, newTeamRequests, teamIDToResetUsers, newTeams, sort, activityLevels, filter)
   const teamItems = orderedTeams.map(teamMeta => ({

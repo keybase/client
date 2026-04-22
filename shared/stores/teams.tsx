@@ -389,9 +389,6 @@ export const isInTeam = (state: State, teamname: T.Teams.Teamname): boolean =>
 export const isInSomeTeam = (state: State): boolean =>
   [...state.teamRoleMap.roles.values()].some(rd => rd.role !== 'none')
 
-export const getTeamResetUsers = (state: State, teamID: T.Teams.TeamID): ReadonlySet<string> =>
-  state.teamIDToResetUsers.get(teamID) ?? new Set()
-
 // Sorts teamnames canonically.
 export function sortTeamnames(a: string, b: string) {
   const aName = a.toUpperCase()
@@ -568,11 +565,10 @@ export const annotatedTeamToDetails = (t: T.RPCGen.AnnotatedTeam): T.Teams.TeamD
   }
 }
 
-// Keep in sync with constants/notifications#badgeStateToBadgeCounts
 // Don't count new team because those are shown with a 'NEW' meta instead of badge
 export const getTeamRowBadgeCount = (
-  newTeamRequests: Store['newTeamRequests'],
-  teamIDToResetUsers: Store['teamIDToResetUsers'],
+  newTeamRequests: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>,
+  teamIDToResetUsers: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>,
   teamID: T.Teams.TeamID
 ) => {
   return (newTeamRequests.get(teamID)?.size ?? 0) + (teamIDToResetUsers.get(teamID)?.size ?? 0)
@@ -684,11 +680,8 @@ export const maybeGetMostRecentValidInviteLink = (inviteLinks: ReadonlyArray<T.T
 type Store = T.Immutable<{
   activityLevels: T.Teams.ActivityLevels
   channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
-  deletedTeams: Array<T.RPCGen.DeletedTeamInfo>
   errorInEmailInvite: T.Teams.EmailInviteError
   newTeamRequests: Map<T.Teams.TeamID, Set<string>>
-  newTeams: Set<T.Teams.TeamID>
-  teamIDToResetUsers: Map<T.Teams.TeamID, Set<string>>
   teamIDToWelcomeMessage: Map<T.Teams.TeamID, T.RPCChat.WelcomeMessageDisplay>
   teamNameToLoadingInvites: Map<T.Teams.Teamname, Map<string, boolean>>
   teamNameToID: Map<T.Teams.Teamname, string>
@@ -697,11 +690,8 @@ type Store = T.Immutable<{
   teamMetaStale: boolean // if we've received an update since we last loaded team list
   teamMeta: Map<T.Teams.TeamID, T.Teams.TeamMeta>
   teamRoleMap: T.Teams.TeamRoleMap
-  sawChatBanner: boolean
-  sawSubteamsBanner: boolean
   teamDetails: Map<T.Teams.TeamID, T.Teams.TeamDetails>
   teamDetailsSubscriptionCount: Map<T.Teams.TeamID, number> // >0 if we are eagerly reloading a team
-  teamAccessRequestsPending: Set<T.Teams.Teamname>
   addMembersWizard: T.Teams.AddMembersWizardState
   teamVersion: Map<T.Teams.TeamID, T.Teams.TeamVersion>
   teamIDToMembers: Map<T.Teams.TeamID, Map<string, T.Teams.MemberInfo>> // Used by chat sidebar until team loading gets easier
@@ -712,17 +702,11 @@ const initialStore: Store = {
   activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
   addMembersWizard: addMembersWizardEmptyState,
   channelInfo: new Map(),
-  deletedTeams: [],
   errorInEmailInvite: emptyEmailInviteError,
   newTeamRequests: new Map(),
-  newTeams: new Set(),
-  sawChatBanner: false,
-  sawSubteamsBanner: false,
-  teamAccessRequestsPending: new Set(),
   teamDetails: new Map(),
   teamDetailsSubscriptionCount: new Map(),
   teamIDToMembers: new Map(),
-  teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
   teamIDToWelcomeMessage: new Map(),
   teamMeta: new Map(),
@@ -743,7 +727,6 @@ export type State = Store & {
       sendChatNotification: boolean,
       fromTeamBuilder?: boolean
     ) => void
-    checkRequestedAccess: (teamname: string) => void
     clearNavBadges: () => void
     createNewTeam: (
       teamname: string,
@@ -804,16 +787,9 @@ export type State = Store & {
     ) => void
     setJustFinishedAddMembersWizard: (justFinished: boolean) => void
     setMemberPublicity: (teamID: T.Teams.TeamID, showcase: boolean) => void
-    setNewTeamInfo: (
-      deletedTeams: ReadonlyArray<T.RPCGen.DeletedTeamInfo>,
-      newTeams: Set<T.Teams.TeamID>,
-      teamIDToResetUsers: Map<T.Teams.TeamID, Set<string>>
-    ) => void
     setNewTeamRequests: (newTeamRequests: Map<T.Teams.TeamID, Set<string>>) => void
     setTeamRetentionPolicy: (teamID: T.Teams.TeamID, policy: T.Retention.RetentionPolicy) => void
     setTeamRoleMapLatestKnownVersion: (version: number) => void
-    setTeamSawChatBanner: () => void
-    setTeamSawSubteamsBanner: () => void
     showTeamByName: (
       teamname: string,
       initialTab?: T.Teams.TabKey,
@@ -917,18 +893,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             logger.error(`addToTeam failed for ${teamID}: ${msg}`)
           }
         }
-      }
-      ignorePromise(f())
-    },
-    checkRequestedAccess: _teamname => {
-      // we never use teamname?
-      const f = async () => {
-        const result = await T.RPCGen.teamsTeamListMyAccessRequestsRpcPromise({})
-        set(s => {
-          s.teamAccessRequestsPending = new Set<T.Teams.Teamname>(
-            result?.map(row => row.parts?.join('.') ?? '')
-          )
-        })
       }
       ignorePromise(f())
     },
@@ -1505,23 +1469,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             navUpToScreen('teamsRoot')
           }
           break
-        case 'keybase.1.NotifyBadges.badgeState': {
-          const {badgeState} = action.payload.params
-          const loggedIn = useConfigState.getState().loggedIn
-          if (loggedIn) {
-            const deletedTeams = badgeState.deletedTeams || []
-            const newTeams = new Set<string>(badgeState.newTeams || [])
-            const teamsWithResetUsers: ReadonlyArray<T.RPCGen.TeamMemberOutReset> =
-              badgeState.teamsWithResetUsers || []
-            const teamsWithResetUsersMap = new Map<T.Teams.TeamID, Set<string>>()
-            teamsWithResetUsers.forEach(entry => {
-              const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
-              existing.add(entry.username)
-            })
-            get().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
-          }
-          break
-        }
         case 'keybase.1.gregorUI.pushState': {
           const {state} = action.payload.params
           const items = state.items || []
@@ -1542,8 +1489,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
     },
     onGregorPushState: items => {
-      const sawChatBanner = items.some(i => i.item.category === 'sawChatBanner')
-      const sawSubteamsBanner = items.some(i => i.item.category === 'sawSubteamsBanner')
       const newTeamRequests = new Map<T.Teams.TeamID, Set<string>>()
       items.forEach(i => {
         if (i.item.category.startsWith(newRequestsGregorPrefix)) {
@@ -1555,8 +1500,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           }
         }
       })
-      sawChatBanner && get().dispatch.setTeamSawChatBanner()
-      sawSubteamsBanner && get().dispatch.setTeamSawSubteamsBanner()
       get().dispatch.setNewTeamRequests(newTeamRequests)
     },
     reAddToTeam: (teamID, username) => {
@@ -1704,13 +1647,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    setNewTeamInfo: (deletedTeams, newTeams, teamIDToResetUsers) => {
-      set(s => {
-        s.deletedTeams = T.castDraft(deletedTeams)
-        s.newTeams = newTeams
-        s.teamIDToResetUsers = teamIDToResetUsers
-      })
-    },
     setNewTeamRequests: newTeamRequests => {
       set(s => {
         s.newTeamRequests = newTeamRequests
@@ -1734,16 +1670,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
     setTeamRoleMapLatestKnownVersion: version => {
       set(s => {
         s.teamRoleMap.latestKnownVersion = version
-      })
-    },
-    setTeamSawChatBanner: () => {
-      set(s => {
-        s.sawChatBanner = true
-      })
-    },
-    setTeamSawSubteamsBanner: () => {
-      set(s => {
-        s.sawSubteamsBanner = true
       })
     },
     showTeamByName: (teamname, initialTab, join, addMembers) => {

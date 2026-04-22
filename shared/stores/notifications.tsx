@@ -3,6 +3,7 @@ import type * as EngineGen from '@/constants/rpc'
 import type * as T from '@/constants/types'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '@/constants/tabs'
+import {mapGetEnsureValue} from '@/util/map'
 import {useCurrentUserState} from '@/stores/current-user'
 
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
@@ -10,18 +11,24 @@ export type NotificationKeys = 'kbfsUploading' | 'outOfSpace'
 
 type Store = T.Immutable<{
   badgeVersion: number
+  deletedTeams: ReadonlyArray<T.RPCGen.DeletedTeamInfo>
   desktopAppBadgeCount: number
   keyState: Map<NotificationKeys, boolean>
   mobileAppBadgeCount: number
+  newTeams: Set<T.Teams.TeamID>
   navBadges: Map<Tabs.Tab, number>
+  teamIDToResetUsers: Map<T.Teams.TeamID, Set<string>>
   widgetBadge: BadgeType
 }>
 const initialStore: Store = {
   badgeVersion: -1,
+  deletedTeams: [],
   desktopAppBadgeCount: 0,
   keyState: new Map(),
   mobileAppBadgeCount: 0,
+  newTeams: new Set(),
   navBadges: new Map(),
+  teamIDToResetUsers: new Map(),
   widgetBadge: 'regular',
 }
 
@@ -66,6 +73,18 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
 
   return counts
 }
+
+const badgeStateToTeamIDToResetUsers = (bs: T.RPCGen.BadgeState) => {
+  const teamIDToResetUsers = new Map<T.Teams.TeamID, Set<string>>()
+  bs.teamsWithResetUsers?.forEach(entry => {
+    if (!entry?.teamID || !entry?.username) {
+      return
+    }
+    const existing = mapGetEnsureValue(teamIDToResetUsers, entry.teamID, new Set<string>())
+    existing.add(entry.username)
+  })
+  return teamIDToResetUsers
+}
 export const useNotifState = Z.createZustand<State>('notifications', (set, get) => {
   const updateWidgetBadge = (s: Z.WritableDraft<State>) => {
     let widgetBadge: BadgeType = 'regular'
@@ -95,6 +114,9 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
           }
           set(s => {
             s.badgeVersion = badgeState.inboxVers
+            s.deletedTeams = badgeState.deletedTeams ?? []
+            s.newTeams = new Set(badgeState.newTeams ?? [])
+            s.teamIDToResetUsers = badgeStateToTeamIDToResetUsers(badgeState)
           })
           const counts = badgeStateToBadgeCounts(badgeState)
           get().dispatch.setBadgeCounts(counts)

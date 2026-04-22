@@ -39,7 +39,7 @@ test('badge engine updates badge counts', () => {
 
   const badgeState = {
     bigTeamBadgeCount: 4,
-    deletedTeams: ['deleted-team'],
+    deletedTeams: [{teamName: 'deleted-team'}],
     homeTodoItems: 2,
     inboxVers: 1,
     newDevices: ['other-device'],
@@ -50,7 +50,7 @@ test('badge engine updates badge counts', () => {
     rekeysNeeded: 0,
     revokedDevices: ['device-id'],
     smallTeamBadgeCount: 3,
-    teamsWithResetUsers: ['reset-team'],
+    teamsWithResetUsers: [{teamID: 'team-1', username: 'bob'}],
     unverifiedEmails: 1,
     unverifiedPhones: 2,
   } as any
@@ -68,6 +68,9 @@ test('badge engine updates badge counts', () => {
   expect(store.getState().navBadges.get(Tabs.gitTab)).toBe(1)
   expect(store.getState().navBadges.get(Tabs.teamsTab)).toBe(8)
   expect(store.getState().navBadges.get(Tabs.settingsTab)).toBe(3)
+  expect(store.getState().deletedTeams).toEqual([{teamName: 'deleted-team'}])
+  expect(store.getState().newTeams.has('team-1')).toBe(true)
+  expect(store.getState().teamIDToResetUsers.get('team-1')).toEqual(new Set(['bob']))
 })
 
 test('stale badgeState events do not regress badge counts', () => {
@@ -112,4 +115,7 @@ test('stale badgeState events do not regress badge counts', () => {
   expect(store.getState().navBadges.get(Tabs.chatTab)).toBe(7)
   expect(store.getState().navBadges.get(Tabs.peopleTab)).toBe(2)
   expect(store.getState().navBadges.get(Tabs.settingsTab)).toBe(3)
+  expect(store.getState().deletedTeams).toEqual([])
+  expect(store.getState().newTeams.size).toBe(0)
+  expect(store.getState().teamIDToResetUsers.size).toBe(0)
 })
