@@ -17,11 +17,11 @@ type DebounceOptions = {
 
 const normalizeWait = (wait?: number) => Math.max(0, wait ?? 0)
 
-export const useDebouncedCallback = <T extends AnyFunction>(
+export function useDebouncedCallback<T extends AnyFunction>(
   func: T,
   wait?: number,
   options?: DebounceOptions
-): DebouncedState<T> => {
+): DebouncedState<T> {
   const funcRef = React.useRef(func)
   funcRef.current = func
 
@@ -128,11 +128,11 @@ export const useDebouncedCallback = <T extends AnyFunction>(
   return debounced
 }
 
-export const useThrottledCallback = <T extends AnyFunction>(
+export function useThrottledCallback<T extends AnyFunction>(
   func: T,
   wait: number,
   options?: DebounceOptions
-): DebouncedState<T> => {
+): DebouncedState<T> {
   const funcRef = React.useRef(func)
   funcRef.current = func
 

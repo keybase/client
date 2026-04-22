@@ -12,15 +12,15 @@ import type HiddenString from '@/util/hidden-string'
 import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
 import {useFSState} from '@/stores/fs'
-import {usePinentryState} from '@/stores/pinentry'
 import {useShellState} from '@/stores/shell'
-import {useTrackerState} from '@/stores/tracker'
 import {useUnlockFoldersState} from '@/unlock-folders/store'
 import logger from '@/logger'
 import {makeUUID} from '@/util/uuid'
 import {dumpLogs, showMain} from '@/util/storeless-actions'
 import * as FSConstants from '@/constants/fs'
 import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {handlePinentryPopupRemoteAction} from '@/pinentry/desktop-popup-handles'
+import {handleTrackerPopupRemoteAction} from '@/tracker/desktop-popup-handles'
 
 const handleSaltPackOpen = (_path: string | HiddenString) => {
   const path = typeof _path === 'string' ? _path : _path.stringValue()
@@ -118,11 +118,11 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.pinentryOnCancel: {
-      usePinentryState.getState().dispatch.dynamic.onCancel?.()
+      handlePinentryPopupRemoteAction(action)
       break
     }
     case RemoteGen.pinentryOnSubmit: {
-      usePinentryState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
+      handlePinentryPopupRemoteAction(action)
       break
     }
     case RemoteGen.openPathInSystemFileManager: {
@@ -151,20 +151,11 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       ignorePromise(T.RPCGen.ctlStopRpcPromise({exitCode: action.payload.exitCode}))
       break
     }
-    case RemoteGen.trackerChangeFollow: {
-      useTrackerState.getState().dispatch.changeFollow(action.payload.guiID, action.payload.follow)
-      break
-    }
-    case RemoteGen.trackerIgnore: {
-      useTrackerState.getState().dispatch.ignore(action.payload.guiID)
-      break
-    }
-    case RemoteGen.trackerCloseTracker: {
-      useTrackerState.getState().dispatch.closeTracker(action.payload.guiID)
-      break
-    }
+    case RemoteGen.trackerChangeFollow:
+    case RemoteGen.trackerIgnore:
+    case RemoteGen.trackerCloseTracker:
     case RemoteGen.trackerLoad: {
-      useTrackerState.getState().dispatch.load(action.payload)
+      handleTrackerPopupRemoteAction(action)
       break
     }
     case RemoteGen.link:

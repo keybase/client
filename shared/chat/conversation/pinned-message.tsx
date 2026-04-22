@@ -2,23 +2,23 @@ import * as C from '@/constants'
 import {zoomImage} from '@/constants/chat/helpers'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useChatTeam} from './team-hooks'
 
 const PinnedMessage = function PinnedMessage() {
-  const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = ConvoState.useChatContext(
+  const {conversationIDKey, teamID, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = ConvoState.useChatContext(
     C.useShallow(s => {
       const {meta, dispatch, id: conversationIDKey} = s
-      const teamname = meta.teamname
+      const {teamID, teamname} = meta
       const pinnedMsg = meta.pinnedMsg
       const {pinMessage, replyJump, ignorePinnedMessage: onIgnore} = dispatch
-      return {conversationIDKey, onIgnore, pinMessage, pinnedMsg, replyJump, teamname}
+      return {conversationIDKey, onIgnore, pinMessage, pinnedMsg, replyJump, teamID, teamname}
     })
   )
   const you = useCurrentUserState(s => s.username)
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerform(s, teamname))
+  const {yourOperations} = useChatTeam(teamID, teamname)
   const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))
   const {message, pinnerUsername} = pinnedMsg ?? {}
   const {id: messageID, author, type} = message ?? {}

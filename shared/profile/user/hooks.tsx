@@ -2,11 +2,11 @@ import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {type BackgroundColorType} from '.'
 import {useColorScheme} from 'react-native'
-import {useTrackerState} from '@/stores/tracker'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
 import {editAvatar} from '@/util/misc'
 import {useProofSuggestions} from '../use-proof-suggestions'
+import {useTrackerProfile} from '@/tracker/use-profile'
 
 const headerBackgroundColorType = (
   state: T.Tracker.DetailsState,
@@ -32,42 +32,45 @@ const useUserData = (username: string) => {
   const myName = useCurrentUserState(s => s.username)
   const userIsYou = username === myName
   const {proofSuggestions, reload: reloadProofSuggestions} = useProofSuggestions(userIsYou)
-  const trackerState = useTrackerState(
-    C.useShallow(s => {
-      return {
-        d: s.getDetails(username),
-        loadNonUserProfile: s.dispatch.loadNonUserProfile,
-        loadProfile: s.dispatch.loadProfile,
-        nonUserDetails: s.getNonUserDetails(username),
-      }
-    })
-  )
-  const {d, loadProfile, loadNonUserProfile, nonUserDetails} = trackerState
+  const {
+    details: d,
+    loadNonUserProfile,
+    loadProfile,
+    nonUserDetails,
+  } = useTrackerProfile(username, {
+    reloadOnFocus: true,
+  })
   const notAUser = d.state === 'notAUserYet'
 
   const commonProps = {
     _assertions: undefined,
     _suggestions: undefined,
+    bio: undefined,
     blocked: d.blocked,
     followThem: false,
     followers: undefined,
     followersCount: 0,
     following: undefined,
     followingCount: 0,
+    followsYou: false,
     fullName: '',
     guiID: d.guiID,
     hidFromFollowers: d.hidFromFollowers,
+    location: undefined,
     myName,
     name: '',
     reason: d.reason,
+    sbsDescription: undefined,
     service: '',
     state: d.state,
+    stellarHidden: d.stellarHidden,
+    teamShowcase: d.teamShowcase,
     userIsYou,
     username,
   }
 
   const followThem = useFollowerState(s => s.following.has(username))
-  // const followsYou = useFollowerState(s => s.followers.has(username))
+  const followsYou = useFollowerState(s => s.followers.has(username))
   // const mutualFollow = followThem && followsYou
 
   const isDarkMode = useColorScheme() === 'dark'
@@ -86,11 +89,17 @@ const useUserData = (username: string) => {
         _assertions: d.assertions,
         _suggestions: proofSuggestions,
         backgroundColorType: headerBackgroundColorType(d.state, followThem),
+        bio: d.bio,
         followThem,
         followers,
         followersCount,
         following,
         followingCount,
+        followsYou,
+        fullName: d.fullname,
+        guiID: d.guiID,
+        hidFromFollowers: d.hidFromFollowers,
+        location: d.location,
         reason,
         sbsAvatarUrl: undefined,
         serviceIcon: undefined,
@@ -113,8 +122,10 @@ const useUserData = (username: string) => {
         ...commonProps,
         backgroundColorType: headerBackgroundColorType(d.state, false),
         fullName: nonUserDetails.fullName,
+        guiID: d.guiID,
         name,
         sbsAvatarUrl: nonUserDetails.pictureUrl || undefined,
+        sbsDescription: nonUserDetails.description,
         service,
         serviceIcon: isDarkMode ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull,
         title,
@@ -131,13 +142,13 @@ const useUserData = (username: string) => {
   //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
   //   )
   // }
-  const _onReload = (username: string, isYou: boolean, state: T.Tracker.DetailsState) => {
+  const _onReload = (isYou: boolean, state: T.Tracker.DetailsState) => {
     if (state !== 'valid' && !isYou) {
       // Might be a Keybase user or not, launch non-user profile fetch.
-      loadNonUserProfile(username)
+      loadNonUserProfile()
     }
     if (state !== 'notAUserYet') {
-      loadProfile(username)
+      loadProfile()
 
       if (isYou) {
         reloadProofSuggestions()
@@ -157,31 +168,52 @@ const useUserData = (username: string) => {
     allowOnAddIdentity = true
   }
 
-  let assertionKeys =
+  const assertions =
     notAUser && !!stateProps.service
-      ? [stateProps.username]
+      ? stateProps.service === 'phone' || stateProps.service === 'email'
+        ? []
+        : [
+            {
+              assertionKey: stateProps.username,
+              belowFold: false,
+              color: 'gray' as const,
+              kid: '',
+              metas: [{color: 'gray' as const, label: 'PENDING'}],
+              pickerSubtext: '',
+              pickerText: '',
+              priority: 0,
+              proofURL: '',
+              sigID: '0',
+              siteIcon: nonUserDetails.siteIcon,
+              siteIconDarkmode: nonUserDetails.siteIconDarkmode,
+              siteIconFull: nonUserDetails.siteIconFull,
+              siteIconFullDarkmode: nonUserDetails.siteIconFullDarkmode,
+              siteURL: nonUserDetails.siteURL,
+              state: 'checking' as const,
+              timestamp: 0,
+              type: nonUserDetails.assertionKey,
+              value: nonUserDetails.assertionValue,
+            },
+          ]
       : stateProps._assertions
-        ? [...stateProps._assertions.entries()].sort((a, b) => a[1].priority - b[1].priority).map(e => e[0])
+        ? [...stateProps._assertions.values()].sort((a, b) => a.priority - b.priority)
         : undefined
 
-  // For 'phone' or 'email' profiles do not display placeholder assertions.
-  const service = stateProps.service
-  const impTofu = notAUser && (service === 'phone' || service === 'email')
-  if (impTofu) {
-    assertionKeys = []
-  }
-
   return {
-    assertionKeys,
+    assertions,
     backgroundColorType: stateProps.backgroundColorType,
+    bio: stateProps.bio,
     blocked: stateProps.blocked,
     followThem: stateProps.followThem,
     followers: stateProps.followers ? [...stateProps.followers] : undefined,
     followersCount: stateProps.followersCount,
     following: stateProps.following ? [...stateProps.following] : undefined,
     followingCount: stateProps.followingCount,
+    followsYou: stateProps.followsYou,
     fullName: stateProps.fullName,
+    guiID: stateProps.guiID,
     hidFromFollowers: stateProps.hidFromFollowers,
+    location: stateProps.location,
     name: stateProps.name,
     notAUser,
     onAddIdentity: allowOnAddIdentity ? onAddIdentity : undefined,
@@ -191,13 +223,16 @@ const useUserData = (username: string) => {
     //   stateProps.vouchShowButton && !stateProps.vouchDisableButton
     //     ? () => _onIKnowThem(stateProps.username, stateProps.guiID)
     //     : undefined,
-    onReload: () => _onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
+    onReload: () => _onReload(stateProps.userIsYou, stateProps.state),
     reason: stateProps.reason,
     sbsAvatarUrl: stateProps.sbsAvatarUrl,
+    sbsDescription: stateProps.sbsDescription,
     service: stateProps.service,
     serviceIcon: stateProps.serviceIcon,
     state: stateProps.state,
+    stellarHidden: stateProps.stellarHidden,
     suggestions: stateProps._suggestions ? stateProps._suggestions.filter(s => !s.belowFold) : undefined,
+    teamShowcase: stateProps.teamShowcase,
     title: stateProps.title,
     userIsYou: stateProps.userIsYou,
     username: stateProps.username,

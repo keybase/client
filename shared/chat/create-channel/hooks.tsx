@@ -1,22 +1,21 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
 import type {Props} from '.'
+import {useChatTeam} from '../conversation/team-hooks'
 
 export default (p: Props) => {
   const teamID = p.teamID
   const navToChatOnSuccess = p.navToChatOnSuccess ?? true
   const [errorText, setErrorText] = React.useState('')
-  const teamname = Teams.useTeamsState(s => Teams.getTeamNameFromID(s, teamID) ?? '')
+  const {teamname} = useChatTeam(teamID)
   const navigateUp = C.Router2.navigateUp
   const previewConversation = C.Router2.previewConversation
   const onBack = navigateUp
   const [channelname, onChannelnameChange] = React.useState('')
   const [description, onDescriptionChange] = React.useState('')
-  const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
 
   const onSubmit = () => {
     if (!channelname) {
@@ -59,7 +58,6 @@ export default (p: Props) => {
             C.waitingKeyTeamsCreateChannel(teamID)
           )
         }
-        loadTeamChannelList(teamID)
         onBack()
         if (navToChatOnSuccess) {
           previewConversation({channelname, conversationIDKey, reason: 'newChannel', teamname})

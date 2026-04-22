@@ -1,14 +1,27 @@
 import type * as EngineGen from '@/constants/rpc'
-import logger from '@/logger'
+import * as T from '@/constants/types'
 import {getEngine} from '@/engine/require'
-import {useUnlockFoldersState} from '@/unlock-folders/store'
+import logger from '@/logger'
+import type {UnlockFolderDevice} from './store'
 
-export const onUnlockFoldersEngineIncoming = (action: EngineGen.Actions) => {
+const rpcDevicesToUnlockFolderDevices = (devices: ReadonlyArray<T.RPCGen.Device>): Array<UnlockFolderDevice> =>
+  devices.map(({name, type, deviceID}) => ({
+    deviceID,
+    name,
+    type: T.Devices.stringToDeviceType(type),
+  }))
+
+export const handleUnlockFoldersEngineAction = (
+  action:
+    | EngineGen.ActionOf<'keybase.1.rekeyUI.delegateRekeyUI'>
+    | EngineGen.ActionOf<'keybase.1.rekeyUI.refresh'>,
+  open: (devices: ReadonlyArray<UnlockFolderDevice>) => void
+) => {
   switch (action.type) {
     case 'keybase.1.rekeyUI.refresh': {
       const {problemSetDevices} = action.payload.params
       logger.info('Asked for rekey')
-      useUnlockFoldersState.getState().dispatch.open(problemSetDevices.devices ?? [])
+      open(rpcDevicesToUnlockFolderDevices(problemSetDevices.devices ?? []))
       break
     }
     case 'keybase.1.rekeyUI.delegateRekeyUI': {
@@ -17,7 +30,7 @@ export const onUnlockFoldersEngineIncoming = (action: EngineGen.Actions) => {
         dangling: true,
         incomingCallMap: {
           'keybase.1.rekeyUI.refresh': ({problemSetDevices}) => {
-            useUnlockFoldersState.getState().dispatch.open(problemSetDevices.devices ?? [])
+            open(rpcDevicesToUnlockFolderDevices(problemSetDevices.devices ?? []))
           },
           'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
         },
@@ -26,7 +39,5 @@ export const onUnlockFoldersEngineIncoming = (action: EngineGen.Actions) => {
       response.result(session.id)
       break
     }
-    default:
-      break
   }
 }

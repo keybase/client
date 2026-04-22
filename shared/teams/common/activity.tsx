@@ -43,17 +43,19 @@ const Activity = (p: Props) => {
 }
 
 type MTProps = {title: string; teamID: T.Teams.TeamID}
-export const ModalTitle = ({title, teamID}: MTProps) => {
+type ModalTitleProps = MTProps & {newTeamWizard?: T.Teams.NewTeamWizardState}
+export const ModalTitle = ({title, teamID, newTeamWizard}: ModalTitleProps) => {
   const teamname = useTeamsState(state => Teams.getTeamMeta(state, teamID).teamname)
-  const avatarFilepath = useTeamsState(state => state.newTeamWizard.avatarFilename)
-  const avatarCrop = useTeamsState(state => state.newTeamWizard.avatarCrop)
   const isNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
+  const displayTeamname = isNewTeamWizard ? (newTeamWizard?.name || 'New team') : teamname
+  const avatarFilepath = isNewTeamWizard ? newTeamWizard?.avatarFilename : undefined
+  const avatarCrop = isNewTeamWizard ? newTeamWizard?.avatarCrop : undefined
 
   return Kb.Styles.isMobile ? (
     <Kb.Box2 direction="vertical" alignItems="center">
-      {!!teamname && (
+      {!!displayTeamname && (
         <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
-          {teamname}
+          {displayTeamname}
         </Kb.Text>
       )}
       <Kb.Text type="BodyBig">{title}</Kb.Text>
@@ -62,7 +64,7 @@ export const ModalTitle = ({title, teamID}: MTProps) => {
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
       <Kb.Avatar
         size={32}
-        teamname={teamname === 'New team' ? '' : teamname}
+        teamname={displayTeamname === 'New team' ? '' : displayTeamname}
         style={styles.avatar}
         isTeam={true}
         imageOverrideUrl={isNewTeamWizard ? avatarFilepath : undefined}
@@ -70,7 +72,7 @@ export const ModalTitle = ({title, teamID}: MTProps) => {
       />
       <Kb.Box2 direction="vertical" alignItems="center">
         <Kb.Text type="BodySmall" lineClamp={1}>
-          {teamname}
+          {displayTeamname}
         </Kb.Text>
         <Kb.Text type="Header">{title}</Kb.Text>
       </Kb.Box2>

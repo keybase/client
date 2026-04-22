@@ -5,7 +5,6 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {settingsLogOutTab} from '@/constants/settings'
-import {useTrackerState} from '@/stores/tracker'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
@@ -19,7 +18,7 @@ const Container = () => {
   const _fullnames = useUsersState(s => s.infoMap)
   const _accountRows = useConfigState(s => s.configuredAccounts)
   const you = useCurrentUserState(s => s.username)
-  const fullname = useTrackerState(s => s.getDetails(you).fullname ?? '')
+  const fullname = _fullnames.get(you)?.fullname ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyConfigLogin)
   const onLoginAsAnotherUser = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
   const navigateUp = C.Router2.navigateUp

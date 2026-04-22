@@ -11,6 +11,7 @@ import BotsList from './bot'
 import AttachmentsList from './attachments'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '@/common-adapters/tabs'
+import {ChatTeamProvider, useChatTeam} from '../team-hooks'
 
 type Props = {
   tab?: 'settings' | 'members' | 'attachments' | 'bots'
@@ -21,10 +22,10 @@ const InfoPanelConnector = (ownProps: Props) => {
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const meta = ConvoState.useConvoState(conversationIDKey, s => s.meta)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
-  const yourRole = Teams.useTeamsState(s => Teams.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname
   const teamname = meta.teamname
+  const {role: yourRole} = useChatTeam(meta.teamID, teamname)
 
   const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab ?? 'members')
   const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
@@ -126,6 +127,8 @@ const InfoPanelConnector = (ownProps: Props) => {
     default:
       sectionList = null
   }
+  sectionList = <ChatTeamProvider>{sectionList}</ChatTeamProvider>
+
   if (Kb.Styles.isTablet) {
     // Use a View to make the left border.
     return (

@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import {useNavigation} from '@react-navigation/native'
 import type {Props} from '.'
-import {useModalHeaderState} from '@/stores/modal-header'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 const ChatPDF = (props: Props) => {
@@ -11,6 +11,7 @@ const ChatPDF = (props: Props) => {
   const message = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
   const title = message?.title || message?.fileName || 'PDF'
   const url = message?.fileURL
+  const navigation = useNavigation()
 
   const attachmentDownload = ConvoState.useChatContext(s => s.dispatch.attachmentDownload)
   const onDownload = () => {
@@ -19,11 +20,8 @@ const ChatPDF = (props: Props) => {
   }
 
   React.useEffect(() => {
-    useModalHeaderState.setState({title})
-    return () => {
-      useModalHeaderState.setState({title: ''})
-    }
-  }, [title])
+    navigation.setOptions({title})
+  }, [navigation, title])
 
   return (
     <>

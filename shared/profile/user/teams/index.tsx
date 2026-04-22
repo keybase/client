@@ -4,15 +4,16 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import OpenMeta from './openmeta'
 import {default as TeamInfo, type Props as TIProps} from './teaminfo'
-import {useTrackerState} from '@/stores/tracker'
 import {useCurrentUserState} from '@/stores/current-user'
 
-type OwnProps = {username: string}
+type OwnProps = {
+  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
+  username: string
+}
 
 const noTeams = new Array<T.Tracker.TeamShowcase>()
 
 const Container = (ownProps: OwnProps) => {
-  const d = useTrackerState(s => s.getDetails(ownProps.username))
   const _isYou = useCurrentUserState(s => s.username === ownProps.username)
   const teamsState = useTeamsState(
     C.useShallow(s => ({
@@ -24,7 +25,7 @@ const Container = (ownProps: OwnProps) => {
   )
   const {showTeamByName, _roles} = teamsState
   const {_teamNameToID, _youAreInTeams} = teamsState
-  const teamShowcase = d.teamShowcase || noTeams
+  const teamShowcase = ownProps.teamShowcase || noTeams
   const {clearModals, navigateAppend} = C.Router2
   const _onEdit = () => {
     navigateAppend({name: 'profileShowcaseTeamOffer', params: {}})

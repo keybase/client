@@ -8,9 +8,7 @@ type Store = {
   botInTeam: boolean
   botReadOnly: boolean
   botSubScreen: '' | 'install' | 'channels'
-  data: unknown
   deviceBadges: Set<T.Devices.DeviceID>
-  editAvatarHasImage: boolean
   folderViewFilter: string | undefined
   onAction: (() => void) | undefined
   title: string
@@ -22,9 +20,7 @@ const initialStore: Store = {
   botInTeam: false,
   botReadOnly: false,
   botSubScreen: '',
-  data: undefined,
   deviceBadges: new Set(),
-  editAvatarHasImage: false,
   folderViewFilter: undefined,
   onAction: undefined,
   title: '',

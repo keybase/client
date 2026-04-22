@@ -30,8 +30,8 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const previewConversation = C.Router2.previewConversation
   const _onGoToChannel = (channelname: string, teamname: string) =>
     previewConversation({channelname, reason: 'journeyCardPopular', teamname})
-  const manageChatChannels = Teams.useTeamsState(s => s.dispatch.manageChatChannels)
-  const _onManageChannels = (teamID: string) => manageChatChannels(teamID)
+  const _onManageChannels = (teamID: string) =>
+    navigateAppend({name: 'teamAddToChannels', params: {teamID}})
 
   const setMemberPublicity = Teams.useTeamsState(s => s.dispatch.setMemberPublicity)
   const _onPublishTeam = (teamID: string) => {

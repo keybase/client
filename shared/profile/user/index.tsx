@@ -25,7 +25,8 @@ type Item =
 type Section = Kb.SectionType<Item>
 
 export type Props = {
-  assertionKeys?: ReadonlyArray<string>
+  assertions?: ReadonlyArray<T.Tracker.Assertion>
+  bio?: string
   backgroundColorType: BackgroundColorType
   blocked: boolean
   followThem: boolean
@@ -33,7 +34,10 @@ export type Props = {
   followersCount?: number
   following?: ReadonlyArray<string>
   followingCount?: number
+  followsYou: boolean
+  guiID: string
   hidFromFollowers: boolean
+  location?: string
   notAUser: boolean
   onAddIdentity?: () => void
   onBack: () => void
@@ -41,8 +45,11 @@ export type Props = {
   onEditAvatar?: (e?: React.BaseSyntheticEvent) => void
   reason: string
   sbsAvatarUrl?: string
+  sbsDescription?: string
   state: T.Tracker.DetailsState
+  stellarHidden: boolean
   suggestions?: ReadonlyArray<T.Tracker.Assertion>
+  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
   userIsYou: boolean
   username: string
   name: string
@@ -97,8 +104,30 @@ const BioLayout = (p: BioTeamProofsProps) => (
       withProfileCardPopup={false}
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-      <Bio inTracker={false} username={p.username} />
-      <Actions username={p.username} />
+      <Bio
+        bio={p.bio}
+        blocked={p.blocked}
+        followThem={p.followThem}
+        followersCount={p.followersCount}
+        followingCount={p.followingCount}
+        followsYou={p.followsYou}
+        fullname={p.fullName}
+        hidFromFollowers={p.hidFromFollowers}
+        inTracker={false}
+        location={p.location}
+        sbsDescription={p.sbsDescription}
+        username={p.username}
+      />
+      <Actions
+        blocked={p.blocked}
+        followThem={p.followThem}
+        followsYou={p.followsYou}
+        guiID={p.guiID}
+        hidFromFollowers={p.hidFromFollowers}
+        onReload={p.onReload}
+        state={p.state}
+        username={p.username}
+      />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -134,22 +163,27 @@ const ProveIt = (p: BioTeamProofsProps) => {
 }
 
 const Proofs = (p: BioTeamProofsProps) => {
-  let assertions: React.ReactNode
-  if (p.assertionKeys) {
-    assertions = [
-      ...p.assertionKeys.map(a => <Assertion key={a} username={p.username} assertionKey={a} />),
-      ...(p.suggestions || []).map(s => (
-        <Assertion
-          isSuggestion={true}
-          key={s.assertionKey}
-          username={p.username}
-          suggestion={s}
-        />
-      )),
-    ]
-  } else {
-    assertions = null
-  }
+  const assertions = [
+    ...(p.assertions || []).map(a => (
+      <Assertion
+        key={a.assertionKey}
+        assertion={a}
+        notAUser={p.notAUser}
+        onRefresh={p.onReload}
+        stellarHidden={!!p.stellarHidden}
+        username={p.username}
+      />
+    )),
+    ...(p.suggestions || []).map(s => (
+      <Assertion
+        assertion={s}
+        isSuggestion={true}
+        key={s.assertionKey}
+        onRefresh={p.onReload}
+        username={p.username}
+      />
+    )),
+  ]
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -224,17 +258,32 @@ function FriendRow(p: FriendRowProps) {
 
 export type BioTeamProofsProps = {
   onAddIdentity?: () => void
-  assertionKeys?: ReadonlyArray<string>
+  assertions?: ReadonlyArray<T.Tracker.Assertion>
   backgroundColorType: BackgroundColorType
+  bio?: string
+  blocked: boolean
+  followThem: boolean
+  followers?: ReadonlyArray<string>
+  followersCount?: number
+  followsYou: boolean
+  followingCount?: number
+  guiID: string
+  hidFromFollowers: boolean
   onEditAvatar?: (e?: React.BaseSyntheticEvent) => void
   notAUser: boolean
+  onReload: () => void
   suggestions?: ReadonlyArray<T.Tracker.Assertion>
   username: string
   reason: string
   name: string
+  location?: string
   sbsAvatarUrl?: string
+  sbsDescription?: string
   service: string
   serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon>
+  state: T.Tracker.DetailsState
+  stellarHidden: boolean
+  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
   fullName?: string
   title: string
 }
@@ -274,7 +323,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
       </Kb.Box2>
       <BioLayout {...props} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
-        <Teams username={props.username} />
+        <Teams teamShowcase={props.teamShowcase} username={props.username} />
         <Proofs {...props} />
         {addIdentity}
       </Kb.Box2>
@@ -295,7 +344,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
           <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
             {props.reason}
           </Kb.Text>
-          <Teams username={props.username} />
+          <Teams teamShowcase={props.teamShowcase} username={props.username} />
           <Proofs {...props} />
           {addIdentity}
         </Kb.Box2>
@@ -397,17 +446,32 @@ const User = (props: {username: string}) => {
         renderItem: () => (
           <BioTeamProofs
             onAddIdentity={p.onAddIdentity}
-            assertionKeys={p.assertionKeys}
+            assertions={p.assertions}
             backgroundColorType={p.backgroundColorType}
+            bio={p.bio}
+            blocked={p.blocked}
+            followThem={p.followThem}
+            followers={p.followers}
+            followersCount={p.followersCount}
+            followsYou={p.followsYou}
+            followingCount={p.followingCount}
+            guiID={p.guiID}
+            hidFromFollowers={p.hidFromFollowers}
             username={p.username}
             name={p.name}
+            location={p.location}
             service={p.service}
             serviceIcon={p.serviceIcon}
             reason={p.reason}
             sbsAvatarUrl={p.sbsAvatarUrl}
+            sbsDescription={p.sbsDescription}
             suggestions={p.suggestions}
             onEditAvatar={p.onEditAvatar}
             notAUser={p.notAUser}
+            onReload={p.onReload}
+            state={p.state}
+            stellarHidden={!!p.stellarHidden}
+            teamShowcase={p.teamShowcase}
             fullName={p.fullName}
             title={p.title}
           />
@@ -429,9 +493,11 @@ const User = (props: {username: string}) => {
       },
     ] as const,
     [
-      p.onAddIdentity, p.assertionKeys, p.backgroundColorType, p.username, p.name,
-      p.service, p.serviceIcon, p.reason, p.sbsAvatarUrl, p.suggestions,
-      p.onEditAvatar, p.notAUser, p.fullName, p.title, chunks,
+      p.onAddIdentity, p.assertions, p.backgroundColorType, p.bio, p.blocked, p.followThem, p.followers,
+      p.followersCount, p.followsYou, p.followingCount, p.fullName, p.guiID, p.hidFromFollowers, p.location,
+      p.name, p.notAUser, p.onEditAvatar, p.onReload, p.reason, p.sbsAvatarUrl, p.sbsDescription,
+      p.service, p.serviceIcon, p.state, p.stellarHidden, p.suggestions, p.teamShowcase, p.title,
+      p.username, chunks,
     ]
   )
 

@@ -2,19 +2,21 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {type Props} from '.'
+import {useNavigation} from '@react-navigation/native'
 import {launchImageLibraryAsync, type ImageInfo} from '@/util/expo-image-picker.native'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {CropZoom, type CropZoomRefType} from 'react-native-zoom-toolkit'
-import {useModalHeaderState} from '@/stores/modal-header'
+import {ModalTitle} from '@/teams/common'
 import useHooks from './hooks'
 
 const AvatarUploadWrapper = (p: Props) => {
+  const {newTeamWizard} = p
   const props = useHooks(p)
-  const {image, error: _error, onSave: _onSave, type} = props
-  const {wizard, waitingKey} = props
+  const {image, error: _error, onSave: _onSave, teamID, type, wizard, waitingKey} = props
   const [selectedImage, setSelectedImage] = React.useState(image)
   const [imageError, setImageError] = React.useState('')
   const nav = useSafeNavigation()
+  const navigation = useNavigation()
   const navUp = () => nav.safeNavigateUp()
 
   const onChooseNewAvatar = () => {
@@ -124,13 +126,20 @@ const AvatarUploadWrapper = (p: Props) => {
   }
 
   React.useEffect(() => {
-    if (type === 'team') {
-      useModalHeaderState.setState({editAvatarHasImage: !!selectedImage})
-    }
-    return () => {
-      useModalHeaderState.setState({editAvatarHasImage: false})
-    }
-  }, [type, selectedImage])
+    const hasImage = !!selectedImage
+    navigation.setOptions({
+      headerTitle: () => {
+        if (teamID) {
+          const title = hasImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
+          if (Kb.Styles.isMobile) {
+            return <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />
+          }
+          return <Kb.Text type="BodyBig">{title}</Kb.Text>
+        }
+        return <Kb.Text type="BodyBig">Upload an avatar</Kb.Text>
+      },
+    })
+  }, [navigation, newTeamWizard, selectedImage, teamID, wizard])
 
   if (type === 'team') {
     return (
