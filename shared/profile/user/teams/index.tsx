@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import {useTeamsState} from '@/stores/teams'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import OpenMeta from './openmeta'
 import {default as TeamInfo, type Props as TIProps} from './teaminfo'
@@ -19,7 +19,10 @@ const Container = (ownProps: OwnProps) => {
   const _isYou = useCurrentUserState(s => s.username === ownProps.username)
   const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
   const {teams} = useTeamsList()
-  const _teamNameToID = React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
+  const _teamNameToID = React.useMemo(
+    () => new Map(teams.map(team => [team.teamname, team.id] as const)),
+    [teams]
+  )
   const teamNames = React.useMemo(() => new Set(teams.map(team => team.teamname)), [teams])
   const _youAreInTeams = teams.length > 0
   const teamShowcase = ownProps.teamShowcase || noTeams
@@ -27,7 +30,8 @@ const Container = (ownProps: OwnProps) => {
   const _onEdit = () => {
     navigateAppend({name: 'profileShowcaseTeamOffer', params: {}})
   }
-  const onJoinTeam = (teamname: string) => navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
+  const onJoinTeam = (teamname: string) =>
+    navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
   const onViewTeam = (teamname: string) => {
     clearModals()
     const teamID = _teamNameToID.get(teamname)
