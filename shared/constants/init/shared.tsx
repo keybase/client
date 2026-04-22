@@ -20,7 +20,6 @@ declare global {
 import type * as UseChatStateType from '@/stores/chat'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
-import type * as UseTeamsStateType from '@/stores/teams'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {getTBStore} from '@/stores/team-building'
@@ -185,7 +184,6 @@ export const initSharedSubscriptions = () => {
 
           const updateTeams = () => {
             useTeamsState.getState().dispatch.getTeams()
-            useTeamsState.getState().dispatch.refreshTeamRoleMap()
           }
 
           const updateSettings = () => {
@@ -421,8 +419,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break
     case 'keybase.1.NotifyTeam.teamRoleMapChanged':
       {
-        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
-        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
@@ -452,8 +448,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     }
     case 'chat.1.NotifyChat.ChatSetTeamRetention':
       {
-        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
-        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
         routeConvoEngineIncoming(action)
       }
       break

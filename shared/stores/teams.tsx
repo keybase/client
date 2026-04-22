@@ -1,7 +1,6 @@
 import * as S from '@/constants/strings'
 import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
-import type * as EngineGen from '@/constants/rpc'
 import {
   clearModals,
   navigateAppend,
@@ -117,27 +116,6 @@ export const compareActivityLevels = (
   return activityLevelToCompare[b || 'none'] - activityLevelToCompare[a || 'none']
 }
 
-export const rpcTeamRoleMapAndVersionToTeamRoleMap = (
-  m: T.RPCGen.TeamRoleMapAndVersion
-): T.Teams.TeamRoleMap => {
-  const ret: T.Teams.TeamRoleMap = {
-    latestKnownVersion: m.version,
-    loadedVersion: m.version,
-    roles: new Map<T.Teams.TeamID, T.Teams.TeamRoleAndDetails>(),
-  }
-  for (const key in m.teams) {
-    const value = m.teams[key]
-    if (value) {
-      ret.roles.set(key, {
-        implicitAdmin:
-          value.implicitRole === T.RPCGen.TeamRole.admin || value.implicitRole === T.RPCGen.TeamRole.owner,
-        role: Util.teamRoleByEnum[value.role],
-      })
-    }
-  }
-  return ret
-}
-
 export const typeToLabel = {
   admin: 'Admin',
   bot: 'Bot',
@@ -186,13 +164,6 @@ export const userInTeamNotBotWithInfo = (
   return !isBot(memb.type)
 }
 
-export const getRole = (state: State, teamID: T.Teams.TeamID): T.Teams.MaybeTeamRoleType =>
-  state.teamRoleMap.roles.get(teamID)?.role || 'none'
-
-
-export const getTeamID = (state: State, teamname: T.Teams.Teamname) =>
-  state.teamNameToID.get(teamname) || T.Teams.noTeamID
-
 export const getTeamNameFromID = (state: State, teamID: T.Teams.TeamID) =>
   state.teamMeta.get(teamID)?.teamname
 
@@ -220,9 +191,6 @@ export function sortTeamnames(a: string, b: string) {
     return 0
   }
 }
-
-export const sortTeamsByName = (teamMeta: ReadonlyMap<T.Teams.TeamID, T.Teams.TeamMeta>) =>
-  [...teamMeta.values()].sort((a, b) => sortTeamnames(a.teamname, b.teamname))
 
 export const isAdmin = (type: T.Teams.MaybeTeamRoleType) => type === 'admin'
 export const isOwner = (type: T.Teams.MaybeTeamRoleType) => type === 'owner'
@@ -393,11 +361,6 @@ export const getTeamRowBadgeCount = (
   return (newTeamRequests.get(teamID)?.size ?? 0) + (teamIDToResetUsers.get(teamID)?.size ?? 0)
 }
 
-export const canShowcase = (state: State, teamID: T.Teams.TeamID) => {
-  const role = getRole(state, teamID)
-  return getTeamMeta(state, teamID).allowPromote || role === 'admin' || role === 'owner'
-}
-
 const _canUserPerformCache: {[key: string]: T.Teams.TeamOperations} = {}
 const _canUserPerformCacheKey = (t: T.Teams.TeamRoleAndDetails) => t.role + t.implicitAdmin
 export const deriveCanPerform = (roleAndDetails?: T.Teams.TeamRoleAndDetails): T.Teams.TeamOperations => {
@@ -445,12 +408,6 @@ export const deriveCanPerform = (roleAndDetails?: T.Teams.TeamRoleAndDetails): T
   return canPerform
 }
 
-export const getCanPerform = (state: State, teamname: T.Teams.Teamname): T.Teams.TeamOperations =>
-  getCanPerformByID(state, getTeamID(state, teamname))
-
-export const getCanPerformByID = (state: State, teamID: T.Teams.TeamID): T.Teams.TeamOperations =>
-  deriveCanPerform(state.teamRoleMap.roles.get(teamID))
-
 export const stringifyPeople = (people: string[]): string => {
   switch (people.length) {
     case 0:
@@ -468,9 +425,7 @@ export const stringifyPeople = (people: string[]): string => {
 
 type Store = T.Immutable<{
   channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
-  teamNameToID: Map<T.Teams.Teamname, string>
   teamMeta: Map<T.Teams.TeamID, T.Teams.TeamMeta>
-  teamRoleMap: T.Teams.TeamRoleMap
   teamDetails: Map<T.Teams.TeamID, T.Teams.TeamDetails>
 }>
 
@@ -478,8 +433,6 @@ const initialStore: Store = {
   channelInfo: new Map(),
   teamDetails: new Map(),
   teamMeta: new Map(),
-  teamNameToID: new Map(),
-  teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
 }
 
 export type State = Store & {
@@ -498,10 +451,7 @@ export type State = Store & {
     leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
     loadTeam: (teamID: T.Teams.TeamID) => void
     loadTeamChannelList: (teamID: T.Teams.TeamID) => void
-    notifyTeamTeamRoleMapChanged: (newVersion: number) => void
-    onEngineIncomingImpl: (action: EngineGen.Actions) => void
     reAddToTeam: (teamID: T.Teams.TeamID, username: string) => void
-    refreshTeamRoleMap: () => void
     removeMember: (teamID: T.Teams.TeamID, username: string) => void
     removePendingInvite: (teamID: T.Teams.TeamID, inviteID: string) => void
     renameTeam: (oldName: string, newName: string) => void
@@ -512,7 +462,6 @@ export type State = Store & {
       newChannelState: T.Teams.ChannelMembershipState
     ) => void
     setMemberPublicity: (teamID: T.Teams.TeamID, showcase: boolean) => void
-    setTeamRoleMapLatestKnownVersion: (version: number) => void
     teamSeen: (teamID: T.Teams.TeamID) => void
     updateChannelName: (
       teamID: T.Teams.TeamID,
@@ -660,12 +609,7 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             S.waitingKeyTeamsLoaded
           )
           const teams: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo> = results.teams || []
-          const teamNameToID = new Map<string, T.Teams.TeamID>()
-          teams.forEach(team => {
-            teamNameToID.set(team.fqName, team.teamID)
-          })
           set(s => {
-            s.teamNameToID = teamNameToID
             s.teamMeta = mergeTeamMeta(s.teamMeta, teamListToMeta(teams))
           })
         } catch (error) {
@@ -788,24 +732,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    notifyTeamTeamRoleMapChanged: (newVersion: number) => {
-      const loadedVersion = get().teamRoleMap.loadedVersion
-      logger.info(`Got teamRoleMapChanged with version ${newVersion}, loadedVersion is ${loadedVersion}`)
-      if (loadedVersion < newVersion) {
-        get().dispatch.refreshTeamRoleMap()
-      }
-      get().dispatch.setTeamRoleMapLatestKnownVersion(newVersion)
-    },
-    onEngineIncomingImpl: action => {
-      switch (action.type) {
-        case 'keybase.1.NotifyTeam.teamRoleMapChanged': {
-          const {newVersion} = action.payload.params
-          get().dispatch.notifyTeamTeamRoleMapChanged(newVersion)
-          break
-        }
-        default:
-      }
-    },
     reAddToTeam: (teamID, username) => {
       const f = async () => {
         try {
@@ -821,24 +747,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
               navToProfile(username)
             }
           }
-        }
-      }
-      ignorePromise(f())
-    },
-    refreshTeamRoleMap: () => {
-      const f = async () => {
-        try {
-          const _map = await T.RPCGen.teamsGetTeamRoleMapRpcPromise()
-          const map = rpcTeamRoleMapAndVersionToTeamRoleMap(_map)
-          set(s => {
-            s.teamRoleMap = {
-              latestKnownVersion: Math.max(map.latestKnownVersion, s.teamRoleMap.latestKnownVersion),
-              loadedVersion: map.loadedVersion,
-              roles: map.roles,
-            }
-          })
-        } catch {
-          logger.info(`Failed to refresh TeamRoleMap; service will retry`)
         }
       }
       ignorePromise(f())
@@ -934,11 +842,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    setTeamRoleMapLatestKnownVersion: version => {
-      set(s => {
-        s.teamRoleMap.latestKnownVersion = version
-      })
     },
     teamSeen: teamID => {
       const f = async () => {

@@ -168,7 +168,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
   - [x] `keybase.1.NotifyTeam.teamDeleted`
   - [x] `keybase.1.NotifyTeam.teamExit`
   - [x] `chat.1.NotifyChat.ChatWelcomeMessageLoaded`
-- [ ] Re-evaluate remaining teams engine handlers after earlier chunks land
+- [x] Re-evaluate remaining teams engine handlers after earlier chunks land
 - [x] Delete dead subscription-count bookkeeping once no screen depends on warmed caches
 - [x] Delete the remaining stale-bit bookkeeping once no screen depends on warmed caches
 - [x] Delete dead teams-store bookkeeping that no screen reads (`sawChatBanner`, `sawSubteamsBanner`, `teamAccessRequestsPending`)

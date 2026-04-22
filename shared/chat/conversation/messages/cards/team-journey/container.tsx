@@ -5,6 +5,7 @@ import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
+import {useChatTeam} from '@/chat/conversation/team-hooks'
 import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
@@ -20,7 +21,8 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const conv = ConvoState.useChatContext(s => s.meta)
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
-  const canShowcase = Teams.useTeamsState(s => Teams.canShowcase(s, teamID))
+  const {allowPromote, role} = useChatTeam(teamID, teamname)
+  const canShowcase = allowPromote || role === 'admin' || role === 'owner'
   const isBigTeam = Chat.useChatState(s => getIsBigTeam(s.inboxLayout, teamID))
   const navigateAppend = C.Router2.navigateAppend
   const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({name: 'team', params: {teamID}})

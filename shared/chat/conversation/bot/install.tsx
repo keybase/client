@@ -3,10 +3,10 @@ import * as ChatCommon from '@/constants/chat/common'
 import * as Meta from '@/constants/chat/meta'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import {useModalHeaderState} from '@/stores/modal-header'
 import ChannelPicker from './channel-picker'
+import {useChatTeam} from '../team-hooks'
 import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
@@ -156,9 +156,8 @@ const InstallBotPopup = (props: Props) => {
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
 
-  const readOnly = Teams.useTeamsState(s =>
-    meta.teamname ? !Teams.getCanPerformByID(s, meta.teamID).manageBots : false
-  )
+  const {yourOperations} = useChatTeam(meta.teamID, meta.teamname)
+  const readOnly = meta.teamname ? !yourOperations.manageBots : false
   const settings = ConvoState.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined
   let teamID: T.Teams.TeamID = T.Teams.noTeamID

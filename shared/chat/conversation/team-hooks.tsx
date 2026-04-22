@@ -10,6 +10,7 @@ import logger from '@/logger'
 import * as React from 'react'
 
 type ChatTeamState = {
+  allowPromote: boolean
   description: string
   loading: boolean
   role: T.Teams.MaybeTeamRoleType
@@ -72,6 +73,7 @@ const emptyChannels = new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
 const emptyTeamnames = new Map<T.Teams.TeamID, string>()
 
 const emptyChatTeamState: ChatTeamState = {
+  allowPromote: false,
   description: '',
   loading: false,
   role: 'none',
@@ -317,6 +319,7 @@ const annotatedTeamToChatTeamState = (
   annotatedTeam: T.RPCGen.AnnotatedTeam,
   roleAndDetails: T.Teams.TeamRoleAndDetails | undefined
 ): ChatTeamState => ({
+  allowPromote: annotatedTeam.showcase.anyMemberShowcase,
   description: annotatedTeam.showcase.description ?? '',
   loading: false,
   role: roleAndDetails?.role ?? 'none',
