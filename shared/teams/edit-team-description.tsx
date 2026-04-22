@@ -13,7 +13,7 @@ const EditTeamDescription = (props: Props) => {
   const teamname = teamMeta.teamname
   const waitingKey = C.waitingKeyTeamsTeam(teamID)
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const origDescription = teamDetails.description ?? ''
+  const origDescription = teamDetails.description
   const editTeamDescription = C.useRPC(T.RPCGen.teamsSetTeamShowcaseRpcPromise)
   const userEditedRef = React.useRef(false)
 
