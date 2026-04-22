@@ -189,6 +189,9 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [x] Replace the remaining profile `teamRoleMap` reads with `useTeamsList()`-derived role/membership data
 - [ ] Delete dead selectors, helpers, and tests
 - [x] Delete dead teams-store retention/activity cache leftovers after the route-local migrations (`teamIDToRetentionPolicy`, `activityLevels`)
+- [x] Delete the dead `teamIDToMembers` cache path plus its leftover bot-install/store-refresh plumbing now that chat team member hooks own mounted reloads
+- [x] Trim dead teams-store helper exports that were only supporting removed caches or selectors
+- [x] Trim dead teams-store engine fanout for actions that now only mounted chat consumers handle (`badgeState`, `teamMetadataUpdate`, `teamChangedByID`)
 - [ ] If only a tiny action layer remains, move it into feature hooks and remove the store entirely
 - [ ] If something must remain, document exactly why it needs app-wide lifetime
 

@@ -408,16 +408,18 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
         useFSState.getState().dispatch.onEngineIncomingImpl(action)
 
-        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
-        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
-
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case 'keybase.1.NotifyTeam.teamMetadataUpdate':
-    case 'keybase.1.NotifyTeam.teamRoleMapChanged':
     case 'keybase.1.NotifyTeam.teamChangedByID':
+      {
+        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
+        useChatState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case 'keybase.1.NotifyTeam.teamRoleMapChanged':
       {
         const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
         useTeamsState.getState().dispatch.onEngineIncomingImpl(action)

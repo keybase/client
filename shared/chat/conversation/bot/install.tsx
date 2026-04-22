@@ -17,19 +17,15 @@ const RestrictedItem = '---RESTRICTED---'
 
 export const useRefreshBotMembershipOnSuccess = (
   conversationIDKey: T.Chat.ConversationIDKey | undefined,
-  teamID: T.Teams.TeamID | undefined,
   waitingKey: string,
   error: RPCError | undefined,
   shouldRefreshMembership: boolean,
-  updatedBotMember: {role?: 'bot' | 'restrictedbot'; username: string} | undefined,
   onSuccess: () => void
 ) => {
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
-  const updateCachedBotMember = Teams.useTeamsState(s => s.dispatch.updateCachedBotMember)
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
   const setParticipants = ConvoState.useChatContext(s => s.dispatch.setParticipants)
-  const teamIDToRefresh = teamID && teamID !== T.Teams.noTeamID ? teamID : undefined
 
   React.useEffect(() => {
     if (!waiting && wasWaitingRef.current && !error) {
@@ -42,15 +38,9 @@ export const useRefreshBotMembershipOnSuccess = (
           [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
           preview => {
             setParticipants(ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
-            if (teamIDToRefresh && updatedBotMember) {
-              updateCachedBotMember(teamIDToRefresh, updatedBotMember.username, updatedBotMember.role)
-            }
             onSuccess()
           },
           () => {
-            if (teamIDToRefresh && updatedBotMember) {
-              updateCachedBotMember(teamIDToRefresh, updatedBotMember.username, updatedBotMember.role)
-            }
             onSuccess()
           }
         )
@@ -64,9 +54,6 @@ export const useRefreshBotMembershipOnSuccess = (
     previewConversationByID,
     setParticipants,
     shouldRefreshMembership,
-    teamIDToRefresh,
-    updateCachedBotMember,
-    updatedBotMember,
     waiting,
   ])
 }
@@ -239,13 +226,9 @@ const InstallBotPopup = (props: Props) => {
   }, [refreshBotRoleInConv, refreshBotSettings, conversationIDKey, inTeam, botUsername])
   useRefreshBotMembershipOnSuccess(
     conversationIDKey,
-    refreshTeamID,
     C.waitingKeyChatBotAdd,
     mutationError,
     pendingMutation === 'add',
-    pendingMutation === 'add'
-      ? {role: installWithRestrict ? 'restrictedbot' : 'bot', username: botUsername}
-      : undefined,
     () => {
       setPendingMutation(undefined)
       clearModals()

@@ -17,7 +17,6 @@ import {fixCrop} from '@/util/crop'
 import {getTBStore} from '@/stores/team-building'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useUsersState} from '@/stores/users'
 import * as Util from '@/constants/teams'
 
 export {
@@ -35,8 +34,6 @@ export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 export const rpcMemberStatusToStatus = invert(T.RPCGen.TeamMemberStatus) as unknown as {
   [K in keyof typeof T.RPCGen.TeamMemberStatus as (typeof T.RPCGen.TeamMemberStatus)[K]]: K
 }
-
-export const addToTeamSearchKey = 'addToTeamSearch'
 
 export const initialMemberInfo = Object.freeze<T.Teams.MemberInfo>({
   fullName: '',
@@ -150,11 +147,6 @@ export const typeToLabel = {
   writer: 'Writer',
 } satisfies T.Teams.TypeMap
 
-export const initialTeamSettings = Object.freeze({
-  joinAs: T.RPCGen.TeamRole.reader,
-  open: false,
-})
-
 export const initialCanUserPerform = Object.freeze<T.Teams.TeamOperations>({
   changeOpenTeam: false,
   changeTarsDisabled: false,
@@ -182,18 +174,6 @@ export const initialCanUserPerform = Object.freeze<T.Teams.TeamOperations>({
   setTeamShowcase: false,
 })
 
-export const userIsRoleInTeam = (
-  state: State,
-  teamID: T.Teams.TeamID,
-  username: string,
-  role: T.Teams.TeamRoleType
-): boolean => {
-  return Util.userIsRoleInTeamWithInfo(
-    state.teamIDToMembers.get(teamID) || new Map<string, T.Teams.MemberInfo>(),
-    username,
-    role
-  )
-}
 export const isBot = (type: T.Teams.TeamRoleType) => type === 'bot' || type === 'restrictedbot'
 export const userInTeamNotBotWithInfo = (
   memberInfo: ReadonlyMap<string, T.Teams.MemberInfo>,
@@ -209,132 +189,6 @@ export const userInTeamNotBotWithInfo = (
 export const getRole = (state: State, teamID: T.Teams.TeamID): T.Teams.MaybeTeamRoleType =>
   state.teamRoleMap.roles.get(teamID)?.role || 'none'
 
-export const getRoleByName = (state: State, teamname: string): T.Teams.MaybeTeamRoleType =>
-  getRole(state, getTeamID(state, teamname))
-
-export const isLastOwner = (state: State, teamID: T.Teams.TeamID): boolean =>
-  isOwner(getRole(state, teamID)) && !isMultiOwnerTeam(state, teamID)
-
-const subteamsCannotHaveOwners = {owner: 'Subteams cannot have owners.'}
-const onlyOwnersCanTurnTeamMembersIntoOwners = {owner: 'Only owners can turn team members into owners.'}
-const roleChangeSub = {
-  admin: 'You must be at least an admin to make role changes.',
-  owner: 'Subteams cannot have owners.',
-  reader: 'You must be at least an admin to make role changes.',
-  writer: 'You must be at least an admin to make role changes.',
-}
-const roleChangeNotSub = {
-  admin: 'You must be at least an admin to make role changes.',
-  owner: 'You must be at least an admin to make role changes.',
-  reader: 'You must be at least an admin to make role changes.',
-  writer: 'You must be at least an admin to make role changes.',
-}
-
-const anotherRoleChangeSub = {
-  admin: `Only owners can change another owner's role`,
-  owner: 'Subteams cannot have owners.',
-  reader: `Only owners can change another owner's role`,
-  writer: `Only owners can change another owner's role`,
-}
-const anotherRoleChangeNotSub = {
-  admin: `Only owners can change another owner's role`,
-  owner: `Only owners can change another owner's role`,
-  reader: `Only owners can change another owner's role`,
-  writer: `Only owners can change another owner's role`,
-}
-
-const notOwnerSub = {owner: 'Subteams cannot have owners.'}
-const notOwnerNotSub = {owner: `Only owners can turn members into owners`}
-const emptyObj = {}
-const noRemoveLastOwner = {
-  admin: `You can't demote a team's last owner`,
-  reader: `You can't demote a team's last owner`,
-  writer: `You can't demote a team's last owner`,
-}
-
-export const getDisabledReasonsForRolePicker = (
-  state: State,
-  teamID: T.Teams.TeamID,
-  membersToModify?: string | string[]
-): T.Teams.DisabledReasonsForRolePicker => {
-  const canManageMembers = getCanPerformByID(state, teamID).manageMembers
-  const teamMeta = getTeamMeta(state, teamID)
-  const teamDetails = useTeamsState.getState().teamDetails.get(teamID)
-  const members: ReadonlyMap<string, T.Teams.MemberInfo> =
-    teamDetails?.members || state.teamIDToMembers.get(teamID) || new Map<string, T.Teams.MemberInfo>()
-  const teamname = teamMeta.teamname
-  let theyAreOwner = false
-  if (typeof membersToModify === 'string') {
-    const member = members.get(membersToModify)
-    theyAreOwner = member?.type === 'owner'
-  } else if (Array.isArray(membersToModify)) {
-    theyAreOwner = membersToModify.some(username => members.get(username)?.type === 'owner')
-  }
-
-  const myUsername = useCurrentUserState.getState().username
-  const you = members.get(myUsername)
-  // Fallback to the lowest role, although this shouldn't happen
-  const yourRole = you?.type ?? 'reader'
-
-  if (canManageMembers) {
-    // If you're an implicit admin, the tests below will fail for you, but you can still change roles.
-    if (isSubteam(teamname)) {
-      return subteamsCannotHaveOwners
-    }
-    if (yourRole !== 'owner') {
-      return theyAreOwner
-        ? isSubteam(teamname)
-          ? anotherRoleChangeSub
-          : anotherRoleChangeNotSub
-        : onlyOwnersCanTurnTeamMembersIntoOwners
-    }
-    const modifyingSelf =
-      membersToModify === myUsername ||
-      (Array.isArray(membersToModify) && membersToModify.includes(myUsername))
-    let noOtherOwners = true as boolean
-    members.forEach(({type}, name) => {
-      if (name !== myUsername && type === 'owner') {
-        if (typeof membersToModify === 'string' || !membersToModify?.includes(name)) {
-          noOtherOwners = false
-        }
-      }
-    })
-
-    if (modifyingSelf && noOtherOwners) {
-      return noRemoveLastOwner
-    }
-    return emptyObj
-  }
-
-  // We shouldn't get here, but in case we do this is correct.
-  if (yourRole !== 'owner' && yourRole !== 'admin') {
-    return isSubteam(teamname) ? roleChangeSub : roleChangeNotSub
-  }
-
-  // We shouldn't get here, but in case we do this is correct.
-  if (theyAreOwner && yourRole !== 'owner') {
-    return isSubteam(teamname) ? anotherRoleChangeSub : anotherRoleChangeNotSub
-  }
-
-  // We shouldn't get here, but in case we do this is correct.
-  if (yourRole !== 'owner') {
-    return isSubteam(teamname) ? notOwnerSub : notOwnerNotSub
-  }
-
-  return {}
-}
-
-const isMultiOwnerTeam = (state: State, teamID: T.Teams.TeamID): boolean => {
-  let countOfOwners = 0
-  const allTeamMembers = state.teamDetails.get(teamID)?.members || new Map<string, T.Teams.MemberInfo>()
-  const moreThanOneOwner = [...allTeamMembers.values()].some(tm => {
-    if (isOwner(tm.type)) {
-      countOfOwners++
-    }
-    return countOfOwners > 1
-  })
-  return moreThanOneOwner
-}
 
 export const getTeamID = (state: State, teamname: T.Teams.Teamname) =>
   state.teamNameToID.get(teamname) || T.Teams.noTeamID
@@ -353,15 +207,6 @@ export const initialPublicitySettings = Object.freeze<T.Teams._PublicitySettings
   member: false,
   team: false,
 })
-
-// Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
-// since that may contain subteams you're not a member of.
-
-export const isInTeam = (state: State, teamname: T.Teams.Teamname): boolean =>
-  getRoleByName(state, teamname) !== 'none'
-
-export const isInSomeTeam = (state: State): boolean =>
-  [...state.teamRoleMap.roles.values()].some(rd => rd.role !== 'none')
 
 // Sorts teamnames canonically.
 export function sortTeamnames(a: string, b: string) {
@@ -621,36 +466,20 @@ export const stringifyPeople = (people: string[]): string => {
   }
 }
 
-export const countValidInviteLinks = (inviteLinks: ReadonlyArray<T.Teams.InviteLink>): number => {
-  return inviteLinks.reduce((t, inviteLink) => {
-    if (inviteLink.isValid) {
-      return t + 1
-    }
-    return t
-  }, 0)
-}
-
-export const maybeGetMostRecentValidInviteLink = (inviteLinks: ReadonlyArray<T.Teams.InviteLink>) =>
-  inviteLinks.find(inviteLink => inviteLink.isValid)
-
 type Store = T.Immutable<{
   channelInfo: Map<T.Teams.TeamID, Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>>
   teamNameToID: Map<T.Teams.Teamname, string>
-  teamnames: Set<T.Teams.Teamname> // TODO remove
   teamMeta: Map<T.Teams.TeamID, T.Teams.TeamMeta>
   teamRoleMap: T.Teams.TeamRoleMap
   teamDetails: Map<T.Teams.TeamID, T.Teams.TeamDetails>
-  teamIDToMembers: Map<T.Teams.TeamID, Map<string, T.Teams.MemberInfo>> // Used by chat sidebar until team loading gets easier
 }>
 
 const initialStore: Store = {
   channelInfo: new Map(),
   teamDetails: new Map(),
-  teamIDToMembers: new Map(),
   teamMeta: new Map(),
   teamNameToID: new Map(),
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
-  teamnames: new Set(),
 }
 
 export type State = Store & {
@@ -664,7 +493,6 @@ export type State = Store & {
     clearNavBadges: () => void
     deleteChannelConfirmed: (teamID: T.Teams.TeamID, conversationIDKey: T.Chat.ConversationIDKey) => void
     deleteTeam: (teamID: T.Teams.TeamID) => void
-    getMembers: (teamID: T.Teams.TeamID, forceReload?: boolean) => Promise<void>
     getTeams: (forceReload?: boolean) => void
     ignoreRequest: (teamID: T.Teams.TeamID, teamname: string, username: string) => void
     leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
@@ -685,9 +513,7 @@ export type State = Store & {
     ) => void
     setMemberPublicity: (teamID: T.Teams.TeamID, showcase: boolean) => void
     setTeamRoleMapLatestKnownVersion: (version: number) => void
-    teamChangedByID: (c: EngineGen.ParamsOf<'keybase.1.NotifyTeam.teamChangedByID'>) => void
     teamSeen: (teamID: T.Teams.TeamID) => void
-    updateCachedBotMember: (teamID: T.Teams.TeamID, username: string, role?: 'bot' | 'restrictedbot') => void
     updateChannelName: (
       teamID: T.Teams.TeamID,
       conversationIDKey: T.Chat.ConversationIDKey,
@@ -708,18 +534,7 @@ export type State = Store & {
 }
 
 export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
-  let inflightMemberLoads = new Map<T.Teams.TeamID, Promise<void>>()
-  let inflightMemberLoadTokens = new Map<T.Teams.TeamID, symbol>()
-  let queuedMemberReloads = new Set<T.Teams.TeamID>()
-  let memberLoadGeneration = 0
-  const clearMemberLoadTracking = () => {
-    memberLoadGeneration += 1
-    inflightMemberLoads = new Map()
-    inflightMemberLoadTokens = new Map()
-    queuedMemberReloads = new Set()
-  }
   const resetState = () => {
-    clearMemberLoadTracking()
     set({...initialStore, dispatch}, true)
   }
   const dispatch: State['dispatch'] = {
@@ -831,61 +646,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
       }
       ignorePromise(f())
     },
-    getMembers: async (teamID: T.Teams.TeamID, forceReload = false) => {
-      if (!teamID || teamID === T.Teams.noTeamID || teamID === T.Teams.newTeamWizardTeamID) {
-        logger.warn(`bail on invalid team ID ${teamID}`)
-        return
-      }
-      const generation = memberLoadGeneration
-      const inflight = inflightMemberLoads.get(teamID)
-      if (inflight) {
-        if (!forceReload) {
-          return inflight
-        }
-        queuedMemberReloads.add(teamID)
-        await inflight
-        if (generation !== memberLoadGeneration) {
-          return
-        }
-        if (!queuedMemberReloads.delete(teamID)) {
-          return
-        }
-        return get().dispatch.getMembers(teamID)
-      }
-      const requestToken = Symbol(String(teamID))
-      const promise = (async () => {
-        try {
-          const res = await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({
-            id: teamID,
-          })
-          if (generation !== memberLoadGeneration) {
-            return
-          }
-          const members = rpcDetailsToMemberInfos(res ?? [])
-          set(s => {
-            s.teamIDToMembers.set(teamID, members)
-          })
-          useUsersState.getState().dispatch.updates(
-            [...members.values()].map(m => ({
-              info: {fullname: m.fullName},
-              name: m.username,
-            }))
-          )
-        } catch (error) {
-          if (error instanceof RPCError) {
-            logger.error(`Error updating members for ${teamID}: ${error.desc}`)
-          }
-        } finally {
-          if (inflightMemberLoadTokens.get(teamID) === requestToken) {
-            inflightMemberLoads.delete(teamID)
-            inflightMemberLoadTokens.delete(teamID)
-          }
-        }
-      })()
-      inflightMemberLoads.set(teamID, promise)
-      inflightMemberLoadTokens.set(teamID, requestToken)
-      return promise
-    },
     getTeams: _forceReload => {
       const f = async () => {
         const username = useCurrentUserState.getState().username
@@ -900,15 +660,12 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
             S.waitingKeyTeamsLoaded
           )
           const teams: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo> = results.teams || []
-          const teamnames: Array<string> = []
           const teamNameToID = new Map<string, T.Teams.TeamID>()
           teams.forEach(team => {
-            teamnames.push(team.fqName)
             teamNameToID.set(team.fqName, team.teamID)
           })
           set(s => {
             s.teamNameToID = teamNameToID
-            s.teamnames = new Set<string>(teamnames)
             s.teamMeta = mergeTeamMeta(s.teamMeta, teamListToMeta(teams))
           })
         } catch (error) {
@@ -1046,9 +803,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
           get().dispatch.notifyTeamTeamRoleMapChanged(newVersion)
           break
         }
-        case 'keybase.1.NotifyTeam.teamChangedByID':
-          get().dispatch.teamChangedByID(action.payload.params)
-          break
         default:
       }
     },
@@ -1186,12 +940,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         s.teamRoleMap.latestKnownVersion = version
       })
     },
-    teamChangedByID: c => {
-      const {changes, teamID} = c
-      if (changes.membershipChanged && get().teamIDToMembers.has(teamID)) {
-        ignorePromise(get().dispatch.getMembers(teamID, true))
-      }
-    },
     teamSeen: teamID => {
       const f = async () => {
         try {
@@ -1203,34 +951,6 @@ export const useTeamsState = Z.createZustand<State>('teams', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    updateCachedBotMember: (teamID, username, role) => {
-      if (!teamID || teamID === T.Teams.noTeamID || teamID === T.Teams.newTeamWizardTeamID) {
-        return
-      }
-      set(s => {
-        const infoFromUsers = useUsersState.getState().infoMap.get(username)
-        const updateMembers = (members?: Map<string, T.Teams.MemberInfo>) => {
-          if (!members) {
-            return
-          }
-          if (!role) {
-            members.delete(username)
-            return
-          }
-          const existing = members.get(username)
-          members.set(username, {
-            fullName: existing?.fullName ?? infoFromUsers?.fullname ?? '',
-            joinTime: existing?.joinTime,
-            needsPUK: existing?.needsPUK ?? false,
-            status: existing?.status ?? 'active',
-            type: role,
-            username,
-          })
-        }
-        updateMembers(s.teamIDToMembers.get(teamID))
-        updateMembers(s.teamDetails.get(teamID)?.members)
-      })
     },
     updateChannelName: async (teamID, conversationIDKey, newChannelName) => {
       const param = {
