@@ -16,7 +16,7 @@ const AddEmail = (props: Props) => {
   const [error, setError] = React.useState('')
   const disabled = invitees.length < 1
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
-  const navigateAppend = C.Router2.navigateAppend
+  const navUpToScreen = C.Router2.navUpToScreen
 
   const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
   const onContinue = () => {
@@ -29,14 +29,18 @@ const AddEmail = (props: Props) => {
           return
         }
         const f = async () => {
-          const wizard = await addMembersToWizard(
-            props.wizard,
-            r.map(m => ({
-              ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
-              role: 'writer',
-            }))
-          )
-          navigateAppend({name: 'teamAddToTeamConfirm', params: {wizard}}, true)
+          try {
+            const wizard = await addMembersToWizard(
+              props.wizard,
+              r.map(m => ({
+                ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
+                role: 'writer',
+              }))
+            )
+            navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard}}, true)
+          } catch (err) {
+            setError(err instanceof Error ? err.message : String(err))
+          }
         }
         C.ignorePromise(f())
       },

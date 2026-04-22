@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import {makeChatScreen} from '@/chat/make-chat-screen'
 import * as T from '@/constants/types'
 import * as Teams from '@/stores/teams'
+import * as TB from '@/stores/team-building'
 import {addMembersToWizard, makeAddMembersWizard, type AddMembersWizard} from './add-members-wizard/state'
 import {ModalTitle} from './common'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
@@ -22,11 +23,16 @@ const TeamsTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
     onComplete={users => {
       const currentWizard = p.route.params.addMembersWizard ?? makeAddMembersWizard(p.route.params.teamID ?? T.Teams.noTeamID)
       const f = async () => {
-        const wizard = await addMembersToWizard(
-          currentWizard,
-          [...users].map(user => ({assertion: user.id, role: 'writer'} as const))
-        )
-        C.Router2.navigateAppend({name: 'teamAddToTeamConfirm', params: {wizard}})
+        try {
+          const wizard = await addMembersToWizard(
+            currentWizard,
+            [...users].map(user => ({assertion: user.id, role: 'writer'} as const))
+          )
+          C.Router2.navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard}}, true)
+        } catch (err) {
+          TB.getTBStore('teams').dispatch.setError(err instanceof Error ? err.message : String(err))
+          C.Router2.navigateAppend({name: 'teamsTeamBuilder', params: p.route.params})
+        }
       }
       C.ignorePromise(f())
     }}

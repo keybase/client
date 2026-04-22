@@ -47,6 +47,9 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
   React.useEffect(() => {
     setWizard(initialWizard)
   }, [initialWizard])
+  const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = wizard
+  const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
+  const newTeamWizard = wizard.newTeamWizard
   const updateWizard = React.useCallback(
     (nextWizard: AddMembersWizard) => {
       setWizard(nextWizard)
@@ -58,18 +61,15 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
     C.useShallow(s => {
       const teamID = wizard.teamID
       const isInTeam = Teams.getRole(s, teamID) !== 'none'
-      const isSubteam = Teams.getTeamMeta(s, teamID).teamname.includes('.')
       return {
         finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
         isInTeam,
-        isSubteam,
+        teamMetaIsSubteam: Teams.getTeamMeta(s, teamID).teamname.includes('.'),
       }
     })
   )
-  const {finishedAddMembersWizard, isInTeam, isSubteam} = teamsState
-  const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = wizard
-  const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
-  const newTeamWizard = wizard.newTeamWizard
+  const {finishedAddMembersWizard, isInTeam, teamMetaIsSubteam} = teamsState
+  const isSubteam = fromNewTeamWizard ? newTeamWizard?.teamType === 'subteam' : teamMetaIsSubteam
   const isBigTeam = Chat.useChatState(s => (fromNewTeamWizard ? false : getIsBigTeam(s.inboxLayout, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
 

@@ -18,7 +18,7 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
   const defaultCountry = useDefaultPhoneCountry()
 
   const emailsToAssertionsRPC = C.useRPC(T.RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
-  const navigateAppend = C.Router2.navigateAppend
+  const navUpToScreen = C.Router2.navUpToScreen
   const onContinue = () => {
     setError('')
     emailsToAssertionsRPC(
@@ -29,14 +29,18 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
           return
         }
         const f = async () => {
-          const nextWizard = await addMembersToWizard(
-            wizard,
-            r.map(m => ({
-              ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
-              role: 'writer',
-            }))
-          )
-          navigateAppend({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
+          try {
+            const nextWizard = await addMembersToWizard(
+              wizard,
+              r.map(m => ({
+                ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
+                role: 'writer',
+              }))
+            )
+            navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
+          } catch (err) {
+            setError(err instanceof Error ? err.message : String(err))
+          }
         }
         C.ignorePromise(f())
       },

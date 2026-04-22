@@ -10,11 +10,12 @@ import {addMembersToWizard, type AddMembersWizard} from './state'
 
 const AddContacts = ({wizard}: {wizard: AddMembersWizard}) => {
   const navigateUp = C.Router2.navigateUp
-  const navigateAppend = C.Router2.navigateAppend
+  const navUpToScreen = C.Router2.navUpToScreen
   const onBack = () => navigateUp()
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
   const [selectedEmails, setSelectedEmails] = React.useState(new Set<string>())
+  const [error, setError] = React.useState('')
   const {contacts, loading, noAccessPermanent} = useContacts()
   const placeholderText = loading ? '' : `Search ${contacts.length} ${pluralize('contact', contacts.length)}`
 
@@ -38,26 +39,38 @@ const AddContacts = ({wizard}: {wizard: AddMembersWizard}) => {
       if (waiting) {
         return
       }
+      setError('')
       setWaiting(true)
       toAssertionsRPC(
         [{emails: [...selectedEmails].join(','), phoneNumbers: [...selectedPhones]}],
         r => {
           if (r?.length) {
             const f = async () => {
-              const nextWizard = await addMembersToWizard(
-                wizard,
-                r.map(m => ({
-                  ...(m.foundUser ? {assertion: m.username, resolvedFrom: m.assertion} : {assertion: m.assertion}),
-                  role: 'writer',
-                }))
-              )
-              navigateAppend({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
+              try {
+                const nextWizard = await addMembersToWizard(
+                  wizard,
+                  r.map(m => ({
+                    ...(m.foundUser
+                      ? {assertion: m.username, resolvedFrom: m.assertion}
+                      : {assertion: m.assertion}),
+                    role: 'writer',
+                  }))
+                )
+                navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
+              } catch (err) {
+                setWaiting(false)
+                setError(err instanceof Error ? err.message : String(err))
+              }
             }
             C.ignorePromise(f())
+          } else {
+            setWaiting(false)
+            setError('Could not add any of the selected contacts. Try another contact or method.')
           }
         },
         err => {
-          console.warn(err)
+          setWaiting(false)
+          setError(err.message)
         }
       )
     }
@@ -70,10 +83,15 @@ const AddContacts = ({wizard}: {wizard: AddMembersWizard}) => {
     return () => {
       useModalHeaderState.setState({actionEnabled: false, actionWaiting: false, onAction: undefined, title: ''})
     }
-  }, [waiting, selectedEmails, selectedPhones, toAssertionsRPC, navigateAppend, noneSelected, wizard])
+  }, [waiting, selectedEmails, selectedPhones, toAssertionsRPC, navUpToScreen, noneSelected, wizard])
 
   return (
     <>
+      {error ? (
+        <Kb.Banner color="red" key="err">
+          {error}
+        </Kb.Banner>
+      ) : null}
       <Kb.SearchFilter
         size="small"
         onChange={setSearch}
