@@ -55,8 +55,8 @@ const ChannelRow = (props: ChannelRowProps) => {
       name: 'teamChannel',
       params: {
         conversationIDKey: channel.conversationIDKey,
-        teamID,
         selectedTab: 'settings' as const,
+        teamID,
       },
     })
   }
