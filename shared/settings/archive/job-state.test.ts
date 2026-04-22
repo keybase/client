@@ -200,7 +200,7 @@ test('mapChatJobs derives UI context and progress from chat archive RPC jobs', (
         }),
       }),
       startedAt: 222,
-      status: T.RPCChat.ArchiveChatJobStatus.queued,
+      status: T.RPCChat.ArchiveChatJobStatus.running,
     }),
     makeArchiveChatJob({
       request: makeArchiveChatJobRequest({
@@ -212,7 +212,7 @@ test('mapChatJobs derives UI context and progress from chat archive RPC jobs', (
         }),
       }),
       startedAt: 333,
-      status: T.RPCChat.ArchiveChatJobStatus.queued,
+      status: T.RPCChat.ArchiveChatJobStatus.running,
     }),
   ])
 
