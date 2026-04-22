@@ -513,7 +513,7 @@ export const useChatManageChannelsBadge = (
   const [chosenChannelsState, setChosenChannelsState] =
     React.useState<ChosenChannelsStoreState>(emptyChosenChannelsStoreState)
   const chosenChannelsStateRef = React.useRef(chosenChannelsState)
-  const chosenChannelsInFlightRef = React.useRef<Promise<void> | undefined>()
+  const chosenChannelsInFlightRef = React.useRef<Promise<void> | undefined>(undefined)
   const chosenChannelsLoadedAtRef = React.useRef(0)
 
   const updateChosenChannelsState = React.useCallback((nextState: ChosenChannelsStoreState) => {
