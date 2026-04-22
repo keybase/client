@@ -376,14 +376,6 @@ const User = (props: {username: string}) => {
   const wrapperRef = React.useRef<HTMLDivElement>(null)
   useResizeObserver(wrapperRef, e => setWidth(e.contentRect.width))
 
-  const lastUsernameRef = React.useRef(p.username)
-  React.useEffect(() => {
-    if (username !== lastUsernameRef.current) {
-      lastUsernameRef.current = username
-      onReload()
-    }
-  }, [username, onReload])
-
   const errorFilter = (e: RPCError) => e.code !== T.RPCGen.StatusCode.scresolutionfailed
 
   const {itemsInARow, itemWidth} = widthToDimensions(width)
@@ -503,7 +495,6 @@ const User = (props: {username: string}) => {
 
   return (
     <Kb.Reloadable
-      reloadOnMount={true}
       onReload={p.onReload}
       waitingKeys={[C.waitingKeyTrackerProfileLoad]}
       errorFilter={errorFilter}

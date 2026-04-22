@@ -5,6 +5,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import * as ConvoState from '@/stores/convostate'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/stores/teams'
+import {useLoadTeamMembers} from '@/teams/team-members'
 import logger from '@/logger'
 import * as React from 'react'
 
@@ -394,56 +395,28 @@ const useChatTeamMembersRaw = (
   enabled = true
 ): ChatTeamMembers => {
   const validTeamID = loadableTeamID(teamID)
-  const [state, setState] = React.useState<ChatTeamMembersState>(emptyChatTeamMembersState)
-  const requestVersionRef = React.useRef(0)
+  useLoadTeamMembers(teamID, enabled)
+  const {getMembers, loadedMembers} = Teams.useTeamsState(
+    C.useShallow(s => ({
+      getMembers: s.dispatch.getMembers,
+      loadedMembers: validTeamID ? s.teamIDToMembers.get(validTeamID) : undefined,
+    }))
+  )
+  const members = enabled && validTeamID ? (loadedMembers ?? emptyMembers) : emptyMembers
+  const loading = enabled && !!validTeamID && !loadedMembers
 
   const reload = React.useCallback(async () => {
     if (!enabled || !validTeamID) {
-      setState(emptyChatTeamMembersState)
       return
     }
-    const requestVersion = ++requestVersionRef.current
-    setState(prev => ({...prev, loading: true}))
     try {
-      const members = Teams.rpcDetailsToMemberInfos(
-        (await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({id: validTeamID})) ?? []
-      )
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      setState({loading: false, members})
+      await getMembers(validTeamID, true)
     } catch (error) {
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      logger.warn(`Failed to load chat team members for ${validTeamID}`, error)
-      setState(prev => ({...prev, loading: false}))
+      logger.warn(`Failed to reload chat team members for ${validTeamID}`, error)
     }
-  }, [enabled, validTeamID])
+  }, [enabled, getMembers, validTeamID])
 
-  React.useEffect(() => {
-    void reload()
-  }, [reload])
-  C.Router2.useSafeFocusEffect(() => {
-    void reload()
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      setState(emptyChatTeamMembersState)
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      setState(emptyChatTeamMembersState)
-    }
-  })
-
-  return {...state, reload}
+  return {loading, members, reload}
 }
 
 const useChatTeamChannelsRaw = (

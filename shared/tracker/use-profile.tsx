@@ -25,6 +25,10 @@ type Options = {
 }
 
 const makeNonUserDetails = (): T.Tracker.NonUserDetails => ({...noNonUserDetails})
+type NonUserDetailsState = {
+  details: T.Tracker.NonUserDetails
+  username: string
+}
 
 export const useTrackerProfile = (username: string, options?: Options) => {
   const currentUser = useCurrentUserState(
@@ -34,9 +38,13 @@ export const useTrackerProfile = (username: string, options?: Options) => {
     }))
   )
   const [details, setDetails] = React.useState<T.Tracker.Details>(() => makeDetails(username))
-  const [nonUserDetails, setNonUserDetails] = React.useState<T.Tracker.NonUserDetails>(makeNonUserDetails)
+  const [nonUserDetails, setNonUserDetails] = React.useState<NonUserDetailsState>(() => ({
+    details: makeNonUserDetails(),
+    username,
+  }))
   const requestVersionRef = React.useRef(0)
   const detailsRef = React.useRef(details)
+  const hasSeenFocusRef = React.useRef(false)
 
   React.useEffect(() => {
     detailsRef.current = details
@@ -65,7 +73,7 @@ export const useTrackerProfile = (username: string, options?: Options) => {
           siteURL: '',
         }
         if (res.service) {
-          setNonUserDetails(prev => ({...prev, ...common, ...res.service}))
+          setNonUserDetails({details: {...makeNonUserDetails(), ...common, ...res.service}, username})
         } else {
           const {formatPhoneNumberInternational} = await import('@/util/phone-numbers')
           const formattedName =
@@ -74,7 +82,10 @@ export const useTrackerProfile = (username: string, options?: Options) => {
           if (requestVersionRef.current !== version) {
             return
           }
-          setNonUserDetails(prev => ({...prev, ...common, formattedName, fullName}))
+          setNonUserDetails({
+            details: {...makeNonUserDetails(), ...common, formattedName, fullName},
+            username,
+          })
         }
       } catch (error) {
         if (error instanceof RPCError) {
@@ -93,15 +104,15 @@ export const useTrackerProfile = (username: string, options?: Options) => {
       const guiID = generateGUIID()
       const version = requestVersionRef.current + 1
       requestVersionRef.current = version
+      const preserveExistingData = detailsRef.current.username === username
 
       setDetails(prev => ({
-        ...makeDetails(username),
+        ...(preserveExistingData ? prev : makeDetails(username)),
         guiID,
-        reason: prev.resetBrokeTrack ? prev.reason : '',
-        resetBrokeTrack: prev.resetBrokeTrack,
+        reason: preserveExistingData && prev.resetBrokeTrack ? prev.reason : '',
+        resetBrokeTrack: preserveExistingData ? prev.resetBrokeTrack : false,
         state: 'checking',
       }))
-      setNonUserDetails(makeNonUserDetails())
 
       const load = async () => {
         try {
@@ -189,14 +200,18 @@ export const useTrackerProfile = (username: string, options?: Options) => {
   )
 
   React.useEffect(() => {
-    setDetails(makeDetails(username))
-    setNonUserDetails(makeNonUserDetails())
     username && loadProfile()
   }, [loadProfile, username])
 
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       if (!options?.reloadOnFocus) {
+        return
+      }
+      // The initial mount path already loads once. Skip the first focus callback
+      // so entering the screen does not immediately trigger a second hard reload.
+      if (!hasSeenFocusRef.current) {
+        hasSeenFocusRef.current = true
         return
       }
       loadProfile(false)
@@ -259,10 +274,14 @@ export const useTrackerProfile = (username: string, options?: Options) => {
     setDetails(prev => updateTrackerDetailsSummary(prev, summary))
   })
 
+  const detailsForUsername = details.username === username ? details : makeDetails(username)
+  const nonUserDetailsForUsername =
+    nonUserDetails.username === username ? nonUserDetails.details : makeNonUserDetails()
+
   return {
-    details,
+    details: detailsForUsername,
     loadNonUserProfile,
     loadProfile,
-    nonUserDetails,
+    nonUserDetails: nonUserDetailsForUsername,
   }
 }
