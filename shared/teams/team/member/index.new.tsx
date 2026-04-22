@@ -39,8 +39,6 @@ type TeamTreeRowIn = {
   role: T.Teams.TeamRoleType
 } & TeamTreeRowNotIn
 
-type TreeMembershipOK = {s: T.RPCGen.TeamTreeMembershipStatus.ok; ok: T.RPCGen.TeamTreeMembershipValue}
-
 type TeamTreeMembershipState = {
   expectedCount?: number
   guid?: number
@@ -63,17 +61,9 @@ const consumeTeamTreeMembershipValue = (
 })
 
 const getSparseMemberInfo = (
-  detailsByTeam: ReadonlyMap<T.Teams.TeamID, T.Teams.TeamDetails | undefined>,
   sparseMemberInfos: ReadonlyMap<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>,
-  teamID: T.Teams.TeamID,
-  username: string
-) => {
-  const details = detailsByTeam.get(teamID)
-  if (details) {
-    return details.members.get(username) ?? {type: 'none' as const}
-  }
-  return sparseMemberInfos.get(teamID)
-}
+  teamID: T.Teams.TeamID
+) => sparseMemberInfos.get(teamID)
 
 const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) => {
   const loadTeamTreeMemberships = C.useRPC(T.RPCGen.teamsLoadTeamTreeMembershipsAsyncRpcPromise)
@@ -179,26 +169,19 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
     }
   })
 
-  const teamIDs: Array<T.Teams.TeamID> = state.memberships
-    .filter(membership => membership.result.s === T.RPCGen.TeamTreeMembershipStatus.ok)
-    .map(membership => (membership.result as TreeMembershipOK).ok.teamID)
-  const detailsByTeam = Teams.useTeamsState(
-    C.useDeep(s => new Map(teamIDs.map(teamID => [teamID, s.teamDetails.get(teamID)] as const)))
-  )
-
   const errors: Array<T.RPCGen.TeamTreeMembership> = []
   const nodesNotIn: Array<TeamTreeRowNotIn> = []
   const nodesIn: Array<TeamTreeRowIn> = []
 
   // Note that we do not directly take any information directly from the TeamTree result other
-  // than the **shape of the tree**. Per-team membership data prefers currently loaded
-  // team details when available and falls back to the async tree-membership result.
+  // than the **shape of the tree**. Membership metadata comes from the async tree-membership
+  // results themselves instead of peeking into the global teams cache.
   for (const membership of state.memberships) {
     const teamname = membership.teamName
 
     if (T.RPCGen.TeamTreeMembershipStatus.ok === membership.result.s) {
       const teamID = membership.result.ok.teamID
-      const sparseMemberInfo = getSparseMemberInfo(detailsByTeam, state.sparseMemberInfos, teamID, username)
+      const sparseMemberInfo = getSparseMemberInfo(state.sparseMemberInfos, teamID)
       if (!sparseMemberInfo) {
         continue
       }

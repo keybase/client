@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
-import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Common from '@/teams/common'
@@ -11,6 +10,7 @@ import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useModalHeaderState} from '@/stores/modal-header'
+import {LoadedTeamProvider, useLoadedTeam} from '../use-loaded-team'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -43,13 +43,14 @@ const getChannelsForList = (
   }
 }
 
-const AddToChannels = function AddToChannels(props: Props) {
+const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const teamID = props.teamID
   const myUsername = useCurrentUserState(s => s.username)
   const justMe = [myUsername]
   const usernames = props.usernames ?? justMe
   const mode = props.usernames ? 'others' : 'self'
   const nav = useSafeNavigation()
+  const {yourOperations} = useLoadedTeam(teamID)
 
   const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
   const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(channelMetas, usernames)
@@ -146,6 +147,7 @@ const AddToChannels = function AddToChannels(props: Props) {
         return (
           <HeaderRow
             key="{header}"
+            canCreateChannel={yourOperations.createChannel}
             mode={mode}
             teamID={teamID}
             onSelectAll={allSelected ? undefined : onSelectAll}
@@ -167,6 +169,8 @@ const AddToChannels = function AddToChannels(props: Props) {
             mode={mode}
             reloadChannels={reloadChannels}
             usernames={usernames}
+            canDeleteChannel={yourOperations.deleteChannel}
+            canEditChannelDescription={yourOperations.editChannelDescription}
           />
         )
     }
@@ -266,15 +270,15 @@ const AddToChannels = function AddToChannels(props: Props) {
 }
 
 const HeaderRow = function HeaderRow(p: {
+  canCreateChannel: boolean
   teamID: T.Teams.TeamID
   mode: 'others' | 'self'
   onSelectAll?: () => void
   onSelectNone?: () => void
 }) {
-  const {mode, teamID, onSelectAll, onSelectNone} = p
+  const {canCreateChannel, mode, teamID, onSelectAll, onSelectNone} = p
   const nav = useSafeNavigation()
   const onCreate = () => nav.safeNavigateAppend({name: 'chatCreateChannel', params: {teamID}})
-  const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
 
   return (
     <Kb.Box2
@@ -286,7 +290,7 @@ const HeaderRow = function HeaderRow(p: {
     >
       <Kb.BoxGrow2 />
       <Kb.Button
-        disabled={!canCreate}
+        disabled={!canCreateChannel}
         label="Create channel"
         small={true}
         mode="Secondary"
@@ -306,15 +310,14 @@ const HeaderRow = function HeaderRow(p: {
 }
 
 const SelfChannelActions = function SelfChannelActions(p: {
+  canDeleteChannel: boolean
+  canEditChannelDescription: boolean
   meta: T.Chat.ConversationMeta
   reloadChannels: () => Promise<void>
   selfMode: boolean
 }) {
-  const {meta, reloadChannels, selfMode} = p
+  const {canDeleteChannel, canEditChannelDescription, meta, reloadChannels, selfMode} = p
   const nav = useSafeNavigation()
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, meta.teamID))
-  const isAdmin = yourOperations.deleteChannel
-  const canEdit = yourOperations.editChannelDescription
   const inChannel = meta.membershipType === 'active'
 
   const [waiting, setWaiting] = React.useState(false)
@@ -381,7 +384,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
       const {attachTo, hidePopup} = p
       const menuItems = [
         {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
-        ...(isAdmin
+        ...(canDeleteChannel
           ? [
               {
                 icon: 'iconfont-nav-2-settings' as const,
@@ -432,7 +435,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
           </Kb.Button>
         </span>
       }
-      {canEdit && (
+      {canEditChannelDescription && (
         <Kb.IconButton
           icon="iconfont-ellipsis"
           iconColor={Kb.Styles.globalColors.black_50}
@@ -448,6 +451,8 @@ const SelfChannelActions = function SelfChannelActions(p: {
 }
 
 type ChannelRowProps = {
+  canDeleteChannel: boolean
+  canEditChannelDescription: boolean
   channelMeta: T.Chat.ConversationMeta
   selected: boolean
   onSelect: (conviID: T.Chat.ConversationIDKey) => void
@@ -457,7 +462,17 @@ type ChannelRowProps = {
   rowHeight: number
 }
 const ChannelRow = function ChannelRow(p: ChannelRowProps) {
-  const {channelMeta, mode, selected, onSelect: _onSelect, reloadChannels, usernames, rowHeight} = p
+  const {
+    canDeleteChannel,
+    canEditChannelDescription,
+    channelMeta,
+    mode,
+    selected,
+    onSelect: _onSelect,
+    reloadChannels,
+    usernames,
+    rowHeight,
+  } = p
   const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
   const {channels: activityByChannel} = Common.useActivityLevels()
@@ -489,7 +504,13 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
         </Kb.Box2>
         <Common.ParticipantMeta numParticipants={participants.length} />
         {selfMode ? (
-          <SelfChannelActions selfMode={selfMode} meta={channelMeta} reloadChannels={reloadChannels} />
+          <SelfChannelActions
+            canDeleteChannel={canDeleteChannel}
+            canEditChannelDescription={canEditChannelDescription}
+            selfMode={selfMode}
+            meta={channelMeta}
+            reloadChannels={reloadChannels}
+          />
         ) : (
           <Kb.CheckCircle
             checked={selected || allInChannel}
@@ -527,7 +548,13 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
             <Kb.Box2 direction="horizontal">
               <Common.ParticipantMeta numParticipants={participants.length} />
             </Kb.Box2>
-            <SelfChannelActions selfMode={selfMode} meta={channelMeta} reloadChannels={reloadChannels} />
+            <SelfChannelActions
+              canDeleteChannel={canDeleteChannel}
+              canEditChannelDescription={canEditChannelDescription}
+              selfMode={selfMode}
+              meta={channelMeta}
+              reloadChannels={reloadChannels}
+            />
           </Kb.Box2>
         ) : (
           <Kb.CheckCircle
@@ -613,5 +640,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   }),
 }))
+
+const AddToChannels = (props: Props) => (
+  <LoadedTeamProvider teamID={props.teamID}>
+    <AddToChannelsBody {...props} />
+  </LoadedTeamProvider>
+)
 
 export default AddToChannels
