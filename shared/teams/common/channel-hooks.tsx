@@ -3,14 +3,16 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
+import logger from '@/logger'
+import {useEngineActionListener} from '@/engine/action-listener'
 import {useLoadedTeam} from '../team/use-loaded-team'
-import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../use-cached-resource'
+import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '../use-cached-resource'
 
 type ChannelMetasData = {
   channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
 }
 
-const allChannelMetasCache = new Map<T.Teams.TeamID, CachedResourceCache<ChannelMetasData, T.Teams.TeamID>>()
+const allChannelMetasReloadStaleMs = 5_000
 
 // Filter bots out using team role info, isolate to only when related state changes
 export const useChannelParticipants = (
@@ -39,19 +41,23 @@ export const useAllChannelMetas = (
   const {
     teamMeta: {teamname},
   } = useLoadedTeam(teamID)
+  const enabled = !dontCallRPC && !!teamname
   const emptyChannelMetas = React.useMemo(
     () => new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>(),
     []
   )
-  const channelMetasCache = React.useMemo(
-    () => getCachedResourceCache(allChannelMetasCache, {channelMetas: emptyChannelMetas}, teamID),
-    [emptyChannelMetas, teamID]
+  const initialData = React.useMemo(
+    () => ({channelMetas: emptyChannelMetas}),
+    [emptyChannelMetas]
   )
-  const {data, loading, reload} = useCachedResource({
+  const [channelMetasCache] = React.useState<CachedResourceCache<ChannelMetasData, T.Teams.TeamID>>(
+    () => createCachedResourceCache(initialData, teamID)
+  )
+  const {data, loading, reload, clear} = useCachedResource({
     cache: channelMetasCache,
     cacheKey: teamID,
-    enabled: !dontCallRPC && !!teamname,
-    initialData: {channelMetas: emptyChannelMetas},
+    enabled,
+    initialData,
     load: async () =>
       new Promise<ChannelMetasData>((resolve, reject) => {
         getConversations(
@@ -79,9 +85,28 @@ export const useAllChannelMetas = (
           error => reject(error)
         )
       }),
+    onError: error => {
+      logger.warn(`Failed to load all channel metas for ${teamID}`, error)
+    },
     refreshKey: teamname,
-    staleMs: 0,
+    staleMs: allChannelMetasReloadStaleMs,
   })
+
+  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
+    if (action.payload.params.teamID === teamID) {
+      void reload()
+    }
+  }, enabled)
+  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
+    if (action.payload.params.teamID === teamID) {
+      clear(teamID)
+    }
+  }, enabled)
+  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
+    if (action.payload.params.teamID === teamID) {
+      clear(teamID)
+    }
+  }, enabled)
 
   return {
     channelMetas: data.channelMetas,

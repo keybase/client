@@ -75,7 +75,8 @@ const useLoadedTeamCacheMap = (providedCacheMap?: LoadedTeamCacheMap) => {
 const useLoadedTeamRaw = (
   teamID: T.Teams.TeamID,
   enabled = true,
-  providedCacheMap?: LoadedTeamCacheMap
+  providedCacheMap?: LoadedTeamCacheMap,
+  subscribeToUpdates = enabled
 ): LoadedTeam => {
   const validTeamID = loadableTeamID(teamID)
   const {loadIfStale: loadRoleMapIfStale, roleMap} = useTeamsRoleMap()
@@ -121,27 +122,27 @@ const useLoadedTeamRaw = (
     if (enabled) {
       void reload()
     }
-  })
+  }, subscribeToUpdates)
   useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', () => {
     if (enabled) {
       void reload()
     }
-  })
+  }, subscribeToUpdates)
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
       void reload()
     }
-  })
+  }, subscribeToUpdates)
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
       clear(validTeamID)
     }
-  })
+  }, subscribeToUpdates)
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
       clear(validTeamID)
     }
-  })
+  }, subscribeToUpdates)
 
   return {...data, loading, reload, teamMeta, yourOperations}
 }
@@ -161,6 +162,6 @@ export const LoadedTeamProvider = (props: React.PropsWithChildren<{teamID: T.Tea
 export const useLoadedTeam = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam => {
   const context = React.useContext(LoadedTeamContext)
   const useContextValue = context?.teamID === teamID
-  const raw = useLoadedTeamRaw(teamID, enabled && !useContextValue)
+  const raw = useLoadedTeamRaw(teamID, enabled && !useContextValue, undefined, enabled && !useContextValue)
   return useContextValue ? context : raw
 }
