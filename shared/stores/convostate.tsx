@@ -2449,6 +2449,55 @@ const createSlice =
         const f = async () => {
           const {id: conversationIDKey} = get()
           const convID = get().getConvID()
+          const pendingMessages: Array<T.Chat.Message> = []
+          let flushTimeout: ReturnType<typeof setTimeout> | undefined
+          const flushPendingMessages = () => {
+            if (flushTimeout) {
+              clearTimeout(flushTimeout)
+              flushTimeout = undefined
+            }
+            if (!pendingMessages.length) {
+              return
+            }
+            const messages = pendingMessages.splice(0)
+            const dedupedMessages = new Array<T.Chat.Message>()
+            const seenMessageIDs = new Set<T.Chat.MessageID>()
+            for (const message of messages) {
+              if (!seenMessageIDs.has(message.id)) {
+                seenMessageIDs.add(message.id)
+                dedupedMessages.push(message)
+              }
+            }
+            set(s => {
+              const info = mapGetEnsureValue(
+                s.attachmentViewMap,
+                viewType,
+                T.castDraft(makeAttachmentViewInfo())
+              )
+              const existingMessageIDs = new Set(info.messages.map(item => item.id))
+              const nextMessages = [...info.messages] as Array<T.Chat.Message>
+              let changed = false
+              for (const message of dedupedMessages) {
+                if (!existingMessageIDs.has(message.id)) {
+                  existingMessageIDs.add(message.id)
+                  nextMessages.push(T.castDraft(message))
+                  changed = true
+                }
+              }
+              if (changed) {
+                info.messages = nextMessages.sort((l, r) => r.id - l.id)
+              }
+            })
+            messagesAdd(dedupedMessages, {markAsRead: false, why: 'gallery inject'})
+          }
+          const scheduleFlushPendingMessages = () => {
+            if (flushTimeout) {
+              return
+            }
+            flushTimeout = setTimeout(() => {
+              flushPendingMessages()
+            }, 16)
+          }
           try {
             const res = await T.RPCChat.localLoadGalleryRpcListener({
               incomingCallMap: {
@@ -2468,18 +2517,8 @@ const createSlice =
                     // conversationMessage is used to tell if its this gallery load or not but if we
                     // load a message we already have we don't want to overwrite that it really belongs
                     const message = {...m, conversationMessage: get().messageMap.has(m.ordinal)}
-                    set(s => {
-                      const info = mapGetEnsureValue(
-                        s.attachmentViewMap,
-                        viewType,
-                        T.castDraft(makeAttachmentViewInfo())
-                      )
-                      if (!info.messages.find(item => item.id === message.id)) {
-                        info.messages = info.messages.concat(T.castDraft(message)).sort((l, r) => r.id - l.id)
-                      }
-                    })
-                    // inject them into the message map
-                    messagesAdd([message], {markAsRead: false, why: 'gallery inject'})
+                    pendingMessages.push(message)
+                    scheduleFlushPendingMessages()
                   }
                 },
               },
@@ -2490,6 +2529,7 @@ const createSlice =
                 typ: viewType,
               },
             })
+            flushPendingMessages()
             set(s => {
               const info = mapGetEnsureValue(
                 s.attachmentViewMap,
@@ -2500,6 +2540,7 @@ const createSlice =
               info.status = 'success'
             })
           } catch (error) {
+            flushPendingMessages()
             if (error instanceof RPCError) {
               logger.error('failed to load attachment view: ' + error.message)
               set(s => {
@@ -2511,6 +2552,10 @@ const createSlice =
                 info.last = false
                 info.status = 'error'
               })
+            }
+          } finally {
+            if (flushTimeout) {
+              clearTimeout(flushTimeout)
             }
           }
         }
