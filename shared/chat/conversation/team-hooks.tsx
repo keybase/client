@@ -8,7 +8,7 @@ import {useUsersState} from '@/stores/users'
 import * as Teams from '@/constants/teams'
 import logger from '@/logger'
 import * as React from 'react'
-import {useTeamsRoleMap} from '@/teams/use-teams-list'
+import {useTeamsListMap, useTeamsRoleMap} from '@/teams/use-teams-list'
 
 type ChatTeamState = {
   allowPromote: boolean
@@ -179,6 +179,7 @@ const annotatedTeamToChatTeamState = (
 
 const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = true): ChatTeam => {
   const validTeamID = loadableTeamID(teamID)
+  const teamMetaByID = useTeamsListMap()
   const {loadIfStale: loadRoleMapIfStale, roleMap} = useTeamsRoleMap()
   const [state, setState] = React.useState<ChatTeamStateInternal>(() => ({
     ...emptyChatTeamState,
@@ -191,13 +192,16 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
     setState({...emptyChatTeamState, loadedTeamID: validTeamID, teamname: teamname ?? ''})
   }, [teamname, validTeamID])
 
+  const teamMeta = validTeamID ? teamMetaByID.get(validTeamID) : undefined
+  const knownTeamname = teamname || teamMeta?.teamname || ''
+
   const reload = React.useCallback(async () => {
     if (!enabled || !validTeamID) {
       clearState()
       return
     }
     const requestVersion = ++requestVersionRef.current
-    setState(prev => ({...prev, loading: true, teamname: prev.teamname || teamname || ''}))
+    setState(prev => ({...prev, loading: true, teamname: prev.teamname || knownTeamname}))
     try {
       const [annotatedTeam] = await Promise.all([
         T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID}),
@@ -215,9 +219,9 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
         return
       }
       logger.warn(`Failed to load chat team metadata for ${validTeamID}`, error)
-      setState(prev => ({...prev, loading: false, teamname: prev.teamname || teamname || ''}))
+      setState(prev => ({...prev, loading: false, teamname: prev.teamname || knownTeamname}))
     }
-  }, [clearState, enabled, loadRoleMapIfStale, teamname, validTeamID])
+  }, [clearState, enabled, knownTeamname, loadRoleMapIfStale, validTeamID])
 
   const visibleState =
     enabled && state.loadedTeamID !== validTeamID
@@ -225,28 +229,19 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
       : state
   const roleAndDetails = roleAndDetailsFromMap(roleMap, validTeamID ?? T.Teams.noTeamID)
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
-
-  React.useEffect(() => {
-    void reload()
-  }, [reload])
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      void reload()
-    }, [reload])
-  )
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
     if (enabled) {
-      void reload()
+      clearState()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', () => {
     if (enabled) {
-      void reload()
+      clearState()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      void reload()
+      clearState()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
@@ -260,7 +255,14 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
     }
   })
 
-  return {...visibleState, reload, role: roleAndDetails?.role ?? 'none', yourOperations}
+  return {
+    ...visibleState,
+    allowPromote: teamMeta?.allowPromote ?? visibleState.allowPromote,
+    reload,
+    role: roleAndDetails?.role ?? teamMeta?.role ?? 'none',
+    teamname: knownTeamname || visibleState.teamname,
+    yourOperations,
+  }
 }
 
 const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeamMembers => {
