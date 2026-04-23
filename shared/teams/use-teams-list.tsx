@@ -20,7 +20,8 @@ type TeamsRoleMap = {
 
 const emptyTeams: ReadonlyArray<T.Teams.TeamMeta> = []
 const emptyTeamRoleMap = Object.freeze<T.RPCGen.TeamRoleMapAndVersion>({teams: undefined, version: 0})
-const TeamsListContext = React.createContext<{teamsList: TeamsList; teamsRoleMap: TeamsRoleMap} | null>(null)
+const TeamsListContext = React.createContext<TeamsList | null>(null)
+const TeamsRoleMapContext = React.createContext<TeamsRoleMap | null>(null)
 const teamsListReloadStaleMs = 5 * 60_000
 
 const teamListToArray = (list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>) => {
@@ -131,7 +132,7 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
     }
   })
 
-  return {reload, teams}
+  return React.useMemo(() => ({reload, teams}), [reload, teams])
 }
 
 const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
@@ -161,7 +162,7 @@ const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
     const requestVersion = ++requestVersionRef.current
     const request = new Promise<void>(resolve => {
       loadRoleMapRPC(
-        [{}],
+        [undefined],
         result => {
           if (requestVersion === requestVersionRef.current) {
             loadedAtRef.current = Date.now()
@@ -233,29 +234,29 @@ const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
     }
   })
 
-  return {loadIfStale, reload, roleMap}
+  return React.useMemo(() => ({loadIfStale, reload, roleMap}), [loadIfStale, reload, roleMap])
 }
 
 export const LoadedTeamsListProvider = (props: React.PropsWithChildren) => {
   const teamsList = useTeamsListRaw()
   const teamsRoleMap = useTeamsRoleMapRaw()
-  const value = React.useMemo(
-    () => ({teamsList, teamsRoleMap}),
-    [teamsList.reload, teamsList.teams, teamsRoleMap.loadIfStale, teamsRoleMap.reload, teamsRoleMap.roleMap]
+  return (
+    <TeamsListContext.Provider value={teamsList}>
+      <TeamsRoleMapContext.Provider value={teamsRoleMap}>{props.children}</TeamsRoleMapContext.Provider>
+    </TeamsListContext.Provider>
   )
-  return <TeamsListContext.Provider value={value}>{props.children}</TeamsListContext.Provider>
 }
 
 export const useTeamsList = (): TeamsList => {
   const context = React.useContext(TeamsListContext)
   const raw = useTeamsListRaw(!context)
-  return context?.teamsList ?? raw
+  return context ?? raw
 }
 
 export const useTeamsRoleMap = (): TeamsRoleMap => {
-  const context = React.useContext(TeamsListContext)
+  const context = React.useContext(TeamsRoleMapContext)
   const raw = useTeamsRoleMapRaw(!context)
-  return context?.teamsRoleMap ?? raw
+  return context ?? raw
 }
 
 export const useTeamsListMap = () => {
