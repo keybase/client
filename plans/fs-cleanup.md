@@ -50,6 +50,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 Current slice note:
 - mounted callers still read through the existing FS store-backed data while ownership moves into the feature hook layer first; cache deletion remains for later chunks
+- mounted browser rows now own inline rename/new-folder edit sessions through a feature-local provider; non-browser entry points still fall back to the legacy store path until those flows move
 
 ### Target callers for Chunk 1
 
@@ -71,15 +72,15 @@ Current slice note:
 ## Chunk 2: Remove Path-Action and Inline-Edit UI State
 
 - [x] Move `pathItemActionMenu` state into the path action menu flow
-- [ ] Move `edits` state into the owning folder / row UI
-- [ ] Replace store-owned rename/new-folder orchestration with local `C.useRPC(...)` calls or feature-local hooks
-- [ ] Keep error, waiting, and temporary filename state local to the mounted editor or menu
+- [x] Move `edits` state into the owning folder / row UI
+- [x] Replace store-owned rename/new-folder orchestration with local `C.useRPC(...)` calls or feature-local hooks
+- [x] Keep error, waiting, and temporary filename state local to the mounted editor or menu
 
 ### Files likely to move together
 
-- [ ] `fs/common/path-item-action/*`
-- [ ] `fs/browser/rows/editing.tsx`
-- [ ] `fs/browser/rows/rows-container.tsx`
+- [x] `fs/common/path-item-action/*`
+- [x] `fs/browser/rows/editing.tsx`
+- [x] `fs/browser/rows/rows-container.tsx`
 - [ ] `fs/common/path-item-action/confirm*.tsx`
 
 ### Store fallout after Chunk 2

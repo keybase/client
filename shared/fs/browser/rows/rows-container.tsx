@@ -7,6 +7,7 @@ import {asRows as topBarAsRow} from '../../top-bar'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useFsBrowserEdits, type BrowserEditSession} from '../edit-state'
 
 type OwnProps = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
@@ -49,32 +50,31 @@ const folderPlaceholderRows = _getPlaceholderRows(T.FS.PathType.Folder)
 
 const _makeInTlfRows = (
   parentPath: T.Immutable<T.FS.Path>,
-  edits: T.Immutable<Map<T.FS.EditID, T.FS.Edit>>,
+  editSessions: ReadonlyMap<T.FS.EditID, BrowserEditSession>,
   stillRows: T.Immutable<Array<RowTypes.StillRowItem>>
 ) => {
-  const relevantEdits = [...edits].filter(([_, edit]) => edit.parentPath === parentPath)
+  const relevantEdits = [...editSessions.values()].filter(({edit}) => edit.parentPath === parentPath)
   const newFolderRows: Array<SortableRowItem> = relevantEdits
-    .filter(([_, edit]) => edit.type === T.FS.EditType.NewFolder)
-    .map(([editID, edit]) => ({
-      editID,
-      editType: edit.type,
-      key: `edit:${T.FS.editIDToString(editID)}`,
-      name: edit.name,
+    .filter(({edit}) => edit.type === T.FS.EditType.NewFolder)
+    .map(editSession => ({
+      editSession,
+      key: `edit:${T.FS.editIDToString(editSession.editID)}`,
+      name: editSession.edit.name,
       // fields for sortable
       rowType: RowTypes.RowType.NewFolder,
       type: T.FS.PathType.Folder,
     }))
   const renameEdits = new Map(
     relevantEdits
-      .filter(([_, edit]) => edit.type === T.FS.EditType.Rename)
-      .map(([editID, edit]) => [edit.originalName, editID])
+      .filter(({edit}) => edit.type === T.FS.EditType.Rename)
+      .map(editSession => [editSession.edit.originalName, editSession] as const)
   )
   return newFolderRows.concat(
     stillRows.map(row =>
       renameEdits.has(row.name)
         ? {
             ...row,
-            editID: renameEdits.get(row.name),
+            editSession: renameEdits.get(row.name),
           }
         : row
     )
@@ -83,7 +83,8 @@ const _makeInTlfRows = (
 
 const getInTlfItemsFromStateProps = (
   stateProps: StateProps,
-  path: T.FS.Path
+  path: T.FS.Path,
+  editSessions: ReadonlyMap<T.FS.EditID, BrowserEditSession>
 ): Array<RowTypes.NamedRowItem> => {
   const _pathItem = FS.getPathItem(stateProps._pathItems, path)
   if (_pathItem.type !== T.FS.PathType.Folder) {
@@ -95,7 +96,7 @@ const getInTlfItemsFromStateProps = (
   }
 
   const stillRows = getStillRows(stateProps._pathItems, path, _pathItem.children)
-  return sortRowItems(_makeInTlfRows(path, stateProps._edits, stillRows), stateProps._sortSetting, '')
+  return sortRowItems(_makeInTlfRows(path, editSessions, stillRows), stateProps._sortSetting, '')
 }
 
 const getTlfRowsFromTlfs = (
@@ -118,7 +119,6 @@ const getTlfRowsFromTlfs = (
     }))
 
 type StateProps = {
-  _edits: T.FS.Edits
   _pathItems: T.FS.PathItems
   _sortSetting: T.FS.SortSetting
   _tlfs: T.FS.Tlfs
@@ -148,6 +148,7 @@ const getTlfItemsFromStateProps = (
 const getNormalRowItemsFromStateProps = (
   stateProps: StateProps,
   path: T.FS.Path,
+  editSessions: ReadonlyMap<T.FS.EditID, BrowserEditSession>,
   inDestinationPicker?: boolean
 ): Array<RowTypes.NamedRowItem> => {
   const level = T.FS.getPathLevel(path)
@@ -158,7 +159,7 @@ const getNormalRowItemsFromStateProps = (
     case 2:
       return getTlfItemsFromStateProps(stateProps, path, inDestinationPicker)
     default:
-      return getInTlfItemsFromStateProps(stateProps, path)
+      return getInTlfItemsFromStateProps(stateProps, path, editSessions)
   }
 }
 
@@ -171,19 +172,35 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
     : rows
 
 const Container = (o: OwnProps) => {
-  const {_edits, _pathItems, _sortSetting, _tlfs} = useFSState(
+  const {_legacyEdits, _pathItems, _sortSetting, _tlfs, commitEdit, discardEdit, setEditName} = useFSState(
     C.useShallow(s => {
-      const _edits = s.edits
+      const _legacyEdits = s.edits
       const _pathItems = s.pathItems
       const _sortSetting = FS.getPathUserSetting(s.pathUserSettings, o.path).sort
       const _tlfs = s.tlfs
-      return {_edits, _pathItems, _sortSetting, _tlfs}
+      const {commitEdit, discardEdit, setEditName} = s.dispatch
+      return {_legacyEdits, _pathItems, _sortSetting, _tlfs, commitEdit, discardEdit, setEditName}
     })
   )
   const _username = useCurrentUserState(s => s.username)
+  const browserEdits = useFsBrowserEdits()
+  const legacyEditWaiting = C.Waiting.useAnyWaiting([C.waitingKeyFSCommitEdit])
+  const editSessions = new Map<T.FS.EditID, BrowserEditSession>()
+  _legacyEdits.forEach((edit, editID) => {
+    editSessions.set(editID, {
+      commitEdit: () => commitEdit(editID),
+      discardEdit: () => discardEdit(editID),
+      edit,
+      editID,
+      isSubmitting: legacyEditWaiting,
+      setEditName: (name: string) => setEditName(editID, name),
+    })
+  })
+  browserEdits?.edits.forEach((editSession, editID) => {
+    editSessions.set(editID, editSession)
+  })
 
   const s = {
-    _edits,
     _pathItems,
     _sortSetting,
     _tlfs,
@@ -191,7 +208,7 @@ const Container = (o: OwnProps) => {
   }
   const inDestinationPicker = !!o.destinationPickerSource
 
-  const normalRowItems = getNormalRowItemsFromStateProps(s, o.path, inDestinationPicker)
+  const normalRowItems = getNormalRowItemsFromStateProps(s, o.path, editSessions, inDestinationPicker)
   const filteredRowItems = filterRowItems(normalRowItems, o.filter)
   const props = {
     destinationPickerSource: o.destinationPickerSource,

@@ -57,8 +57,8 @@ function Rows(props: Props & {listKey: string}) {
       case RowTypes.RowType.Still:
         return (
           <WrapRow>
-            {item.editID ? (
-              <Editing editID={item.editID} />
+            {item.editSession ? (
+              <Editing editSession={item.editSession} />
             ) : (
               <Still path={item.path} destinationPickerSource={destinationPickerSource} />
             )}
@@ -67,7 +67,7 @@ function Rows(props: Props & {listKey: string}) {
       case RowTypes.RowType.NewFolder:
         return (
           <WrapRow>
-            <Editing editID={item.editID} />
+            <Editing editSession={item.editSession} />
           </WrapRow>
         )
       case RowTypes.RowType.Empty:

@@ -6,6 +6,7 @@ import * as RowCommon from './rows/common'
 import * as T from '@/constants/types'
 import NavHeaderTitle from '@/fs/nav-header/title'
 import Root from './root'
+import {FsBrowserEditProvider, useFsBrowserEdits} from './edit-state'
 import Rows from './rows/rows-container'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
@@ -22,7 +23,8 @@ const canBackUp = C.isMobile
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const {parentPath, source} = ownProps
   const parentPathItem = FsCommon.useFsPathMetadata(parentPath)
-  const {isShare, isWritable, isCopyable, isMovable, moveOrCopy, newFolderRow} = useFSState(
+  const browserEdits = useFsBrowserEdits()
+  const {isShare, isWritable, isCopyable, isMovable, moveOrCopy, storeNewFolderRow} = useFSState(
     C.useShallow(s => {
       const writable = T.FS.getPathLevel(parentPath) > 2 && parentPathItem.writable
       const isShareSource = source.type === T.FS.DestinationPickerSource.IncomingShare
@@ -36,10 +38,11 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         isShare: isShareSource,
         isWritable: writable,
         moveOrCopy: s.dispatch.moveOrCopy,
-        newFolderRow: s.dispatch.newFolderRow,
+        storeNewFolderRow: s.dispatch.newFolderRow,
       }
     })
   )
+  const newFolderRow = browserEdits?.newFolderRow ?? storeNewFolderRow
 
   const nav = useSafeNavigation()
   const clearModals = C.Router2.clearModals
@@ -143,7 +146,11 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   )
 }
 
-const Screen = (props: OwnProps) => <ConnectedDestinationPicker {...props} />
+const Screen = (props: OwnProps) => (
+  <FsBrowserEditProvider>
+    <ConnectedDestinationPicker {...props} />
+  </FsBrowserEditProvider>
+)
 
 const NewFolder = (p: {onNewFolder?: () => void}) => {
   const {onNewFolder} = p

@@ -7,6 +7,7 @@ import ConflictBanner from '../banner/conflict-banner'
 import Footer from '../footer/footer'
 import OfflineFolder from './offline'
 import PublicReminder from '../banner/public-reminder'
+import {FsBrowserEditProvider} from './edit-state'
 import Root from './root'
 import Rows from './rows/rows-container'
 import {useFsPathItem} from '../common'
@@ -154,4 +155,10 @@ function BrowserContent(props: Props) {
   )
 }
 
-export default Container
+const Screen = (props: OwnProps) => (
+  <FsBrowserEditProvider>
+    <Container {...props} />
+  </FsBrowserEditProvider>
+)
+
+export default Screen

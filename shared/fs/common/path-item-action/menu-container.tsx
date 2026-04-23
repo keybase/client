@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import * as Util from '@/util/kbfs'
 import Header from './header'
 import type {FloatingMenuProps, OnDownloadStarted} from './types'
+import {useFsBrowserEdits} from '@/fs/browser/edit-state'
 import {getRootLayout, getShareLayout} from './layout'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
@@ -31,6 +32,7 @@ const Container = (op: OwnProps) => {
   const {downloadID, downloadIntent, path, mode, floatingMenuProps, onDownloadStarted, setView, view} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
   const {fileContext, pathItem} = Kbfs.useFsFileContext(path)
+  const browserEdits = useFsBrowserEdits()
   const data = useFSState(
     C.useShallow(s => {
       const {cancelDownload, download, newFolderRow, startRename} = s.dispatch
@@ -48,8 +50,10 @@ const Container = (op: OwnProps) => {
     })
   )
 
-  const {cancelDownload, download, newFolderRow} = data
-  const {sfmiEnabled, favoriteIgnore, dismissDownload, startRename} = data
+  const {cancelDownload, download, newFolderRow: storeNewFolderRow} = data
+  const {sfmiEnabled, favoriteIgnore, dismissDownload, startRename: storeStartRename} = data
+  const newFolderRow = browserEdits?.newFolderRow ?? storeNewFolderRow
+  const startRename = browserEdits?.startRename ?? storeStartRename
   const username = useCurrentUserState(s => s.username)
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const layout = getLayout(mode, path, pathItem, fileContext, username)
