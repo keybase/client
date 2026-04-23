@@ -4,7 +4,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
-import {useTeamsRoleMap} from '../use-teams-list'
+import {useTeamsAnnotatedTeam, useTeamsRoleMap} from '../use-teams-list'
 
 type LoadedTeam = {
   loading: boolean
@@ -67,6 +67,7 @@ const annotatedTeamToMeta = (
 
 const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam => {
   const validTeamID = loadableTeamID(teamID)
+  const {loadIfStale: loadAnnotatedTeamIfStale, reload: reloadAnnotatedTeam} = useTeamsAnnotatedTeam()
   const {loadIfStale: loadRoleMapIfStale, roleMap} = useTeamsRoleMap()
   const [state, setState] = React.useState<LoadedTeamState>(() => emptyLoadedTeamState(validTeamID))
   const requestVersionRef = React.useRef(0)
@@ -78,7 +79,7 @@ const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam =>
     [setState]
   )
 
-  const reload = React.useCallback(async () => {
+  const load = React.useCallback(async (force: boolean) => {
     if (!enabled || !validTeamID) {
       clearState()
       return
@@ -87,9 +88,12 @@ const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam =>
     setState(prev => ({...prev, loading: true}))
     try {
       const [annotatedTeam] = await Promise.all([
-        T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID}),
+        force ? reloadAnnotatedTeam(validTeamID) : loadAnnotatedTeamIfStale(validTeamID),
         loadRoleMapIfStale(),
       ])
+      if (!annotatedTeam) {
+        throw new Error(`No annotated team returned for ${validTeamID}`)
+      }
       if (requestVersion !== requestVersionRef.current) {
         return
       }
@@ -107,7 +111,15 @@ const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam =>
       logger.warn(`Failed to load team data for ${validTeamID}`, error)
       setState(prev => ({...prev, loading: false}))
     }
-  }, [clearState, enabled, loadRoleMapIfStale, validTeamID])
+  }, [clearState, enabled, loadAnnotatedTeamIfStale, loadRoleMapIfStale, reloadAnnotatedTeam, validTeamID])
+
+  const reload = React.useCallback(async () => {
+    await load(true)
+  }, [load])
+
+  const loadIfStale = React.useCallback(async () => {
+    await load(false)
+  }, [load])
 
   const visibleState =
     enabled && state.loadedTeamID !== validTeamID ? emptyLoadedTeamState(validTeamID) : state
@@ -123,13 +135,13 @@ const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam =>
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
 
   React.useEffect(() => {
-    void reload()
-  }, [reload])
+    void loadIfStale()
+  }, [loadIfStale])
 
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
-      void reload()
-    }, [reload])
+      void loadIfStale()
+    }, [loadIfStale])
   )
 
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
