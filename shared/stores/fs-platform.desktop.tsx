@@ -58,7 +58,6 @@ export const openLocalPathInSystemFileManagerDesktop = async (localPath: string)
 
 export const openPathInSystemFileManagerDesktop = async (
   path: T.FS.Path,
-  pathItems: T.FS.PathItems,
   driverStatus: T.FS.DriverStatus,
   directMountDir: string
 ) => {
@@ -70,10 +69,19 @@ export const openPathInSystemFileManagerDesktop = async (
     return
   }
 
+  const parsedPath = Constants.parsePath(path)
+  const selectDirectory =
+    ![T.FS.PathKind.InGroupTlf, T.FS.PathKind.InTeamTlf].includes(parsedPath.kind) ||
+    (
+      await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
+        path: Constants.pathToRPCPath(path),
+        refreshSubscription: false,
+      })
+    ).direntType === T.RPCGen.DirentType.dir
+
   await openPathInFinder?.(
     rebaseKbfsPathToMountLocation(path, directMountDir),
-    ![T.FS.PathKind.InGroupTlf, T.FS.PathKind.InTeamTlf].includes(Constants.parsePath(path).kind) ||
-      Constants.getPathItem(pathItems, path).type === T.FS.PathType.Folder
+    selectDirectory
   )
 }
 

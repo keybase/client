@@ -219,8 +219,8 @@ export const clientID = makeUUID()
 
 export const makeEditID = (): T.FS.EditID => T.FS.stringToEditID(makeUUID())
 
-export const resetBannerType = (s: State, path: T.FS.Path): T.FS.ResetBannerType => {
-  const resetParticipants = Constants.getTlfFromPath(s.tlfs, path).resetParticipants
+export const resetBannerTypeFromTlf = (tlf: T.FS.Tlf): T.FS.ResetBannerType => {
+  const {resetParticipants} = tlf
   if (resetParticipants.length === 0) {
     return T.FS.ResetBannerNoOthersType.None
   }
@@ -231,6 +231,9 @@ export const resetBannerType = (s: State, path: T.FS.Path): T.FS.ResetBannerType
   }
   return resetParticipants.length
 }
+
+export const resetBannerType = (s: Pick<State, 'tlfs'>, path: T.FS.Path): T.FS.ResetBannerType =>
+  resetBannerTypeFromTlf(Constants.getTlfFromPath(s.tlfs, path))
 
 const noAccessErrorCodes: Array<T.RPCGen.StatusCode> = [
   T.RPCGen.StatusCode.scsimplefsnoaccess,
@@ -298,7 +301,6 @@ type Store = T.Immutable<{
   errors: ReadonlyArray<string>
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   overallSyncStatus: T.FS.OverallSyncStatus
-  pathItems: T.FS.PathItems
   settings: T.FS.Settings
   sfmi: T.FS.SystemFileManagerIntegration
   softErrors: T.FS.SoftErrors
@@ -317,7 +319,6 @@ const initialStore: Store = {
   errors: [],
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   overallSyncStatus: Constants.emptyOverallSyncStatus,
-  pathItems: new Map(),
   settings: Constants.emptySettings,
   sfmi: {
     directMountDir: '',
@@ -365,7 +366,6 @@ export type State = Store & {
     favoriteIgnore: (path: T.FS.Path) => void
     favoritesLoad: () => void
     finishManualConflictResolution: (localViewTlfPath: T.FS.Path) => void
-    folderListLoad: (path: T.FS.Path, recursive: boolean) => void
     getOnlineStatus: () => void
     journalUpdate: (syncingPaths: Array<T.FS.Path>, totalSyncingBytes: number, endEstimate?: number) => void
     kbfsDaemonOnlineStatusChanged: (onlineStatus: T.RPCGen.KbfsOnlineStatus) => void
@@ -373,7 +373,6 @@ export type State = Store & {
     letResetUserBackIn: (id: T.RPCGen.TeamID, username: string) => void
     loadAdditionalTlf: (tlfPath: T.FS.Path) => void
     loadFilesTabBadge: () => void
-    loadPathMetadata: (path: T.FS.Path) => void
     loadSettings: () => void
     loadTlfSyncConfig: (tlfPath: T.FS.Path) => void
     loadUploadStatus: () => void
@@ -443,62 +442,6 @@ const getPrefetchStatusFromRPC = (
     default:
       return Constants.prefetchNotStarted
   }
-}
-
-const direntToMetadata = (d: T.RPCGen.Dirent) => ({
-  lastModifiedTimestamp: d.time,
-  lastWriter: d.lastWriterUnverified.username,
-  name: d.name.split('/').pop(),
-  prefetchStatus: getPrefetchStatusFromRPC(d.prefetchStatus, d.prefetchProgress),
-  size: d.size,
-  writable: d.writable,
-})
-
-const makeEntry = (d: T.RPCGen.Dirent, children?: Set<string>): T.FS.PathItem => {
-  switch (d.direntType) {
-    case T.RPCGen.DirentType.dir:
-      return {
-        ...Constants.emptyFolder,
-        ...direntToMetadata(d),
-        children: new Set(children || []),
-        progress: children ? T.FS.ProgressType.Loaded : T.FS.ProgressType.Pending,
-      } as T.FS.PathItem
-    case T.RPCGen.DirentType.sym:
-      return {
-        ...Constants.emptySymlink,
-        ...direntToMetadata(d),
-        // TODO: plumb link target
-      } as T.FS.PathItem
-    case T.RPCGen.DirentType.file:
-    case T.RPCGen.DirentType.exec:
-      return {
-        ...Constants.emptyFile,
-        ...direntToMetadata(d),
-      } as T.FS.PathItem
-  }
-}
-
-const updatePathItem = (
-  oldPathItem: T.Immutable<T.FS.PathItem>,
-  newPathItemFromAction: T.Immutable<T.FS.PathItem>
-): T.Immutable<T.FS.PathItem> => {
-  if (
-    oldPathItem.type === T.FS.PathType.Folder &&
-    newPathItemFromAction.type === T.FS.PathType.Folder &&
-    oldPathItem.progress === T.FS.ProgressType.Loaded &&
-    newPathItemFromAction.progress === T.FS.ProgressType.Pending
-  ) {
-    // The new one doesn't have children, but the old one has. We don't
-    // want to override a loaded folder into pending. So first set the children
-    // in new one using what we already have, see if they are equal.
-    const newPathItemNoOverridingChildrenAndProgress = {
-      ...newPathItemFromAction,
-      children: oldPathItem.children,
-      progress: T.FS.ProgressType.Loaded,
-    }
-    return newPathItemNoOverridingChildrenAndProgress
-  }
-  return newPathItemFromAction
 }
 
 export const useFSState = Z.createZustand<State>('fs', (set, get) => {
@@ -872,107 +815,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    folderListLoad: (rootPath, isRecursive) => {
-      const f = async () => {
-        try {
-          const opID = makeUUID()
-          if (isRecursive) {
-            await T.RPCGen.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
-              depth: 1,
-              filter: T.RPCGen.ListFilter.filterSystemHidden,
-              opID,
-              path: Constants.pathToRPCPath(rootPath),
-              refreshSubscription: false,
-            })
-          } else {
-            await T.RPCGen.SimpleFSSimpleFSListRpcPromise({
-              filter: T.RPCGen.ListFilter.filterSystemHidden,
-              opID,
-              path: Constants.pathToRPCPath(rootPath),
-              refreshSubscription: false,
-            })
-          }
-
-          await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, S.waitingKeyFSFolderList)
-
-          const result = await T.RPCGen.SimpleFSSimpleFSReadListRpcPromise({opID})
-          const entries = result.entries || []
-          const childMap = entries.reduce((m, d) => {
-            const [parent, child] = d.name.split('/')
-            if (child) {
-              // Only add to the children set if the parent definitely has children.
-              const fullParent = T.FS.pathConcat(rootPath, parent ?? '')
-              let children = m.get(fullParent)
-              if (!children) {
-                children = new Set<string>()
-                m.set(fullParent, children)
-              }
-              children.add(child)
-            } else {
-              let children = m.get(rootPath)
-              if (!children) {
-                children = new Set()
-                m.set(rootPath, children)
-              }
-              children.add(d.name)
-            }
-            return m
-          }, new Map<T.FS.Path, Set<string>>())
-
-          const direntToPathAndPathItem = (d: T.RPCGen.Dirent) => {
-            const path = T.FS.pathConcat(rootPath, d.name)
-            const entry = makeEntry(d, childMap.get(path))
-            if (entry.type === T.FS.PathType.Folder && isRecursive && !d.name.includes('/')) {
-              // Since we are loading with a depth of 2, first level directories are
-              // considered "loaded".
-              return [
-                path,
-                {
-                  ...entry,
-                  progress: T.FS.ProgressType.Loaded,
-                },
-              ] as const
-            }
-            return [path, entry] as const
-          }
-
-          // Get metadata fields of the directory that we just loaded from state to
-          // avoid overriding them.
-          const rootPathItem = Constants.getPathItem(get().pathItems, rootPath)
-          const rootFolder: T.FS.FolderPathItem = {
-            ...(rootPathItem.type === T.FS.PathType.Folder
-              ? rootPathItem
-              : {...Constants.emptyFolder, name: T.FS.getPathName(rootPath)}),
-            children: new Set(childMap.get(rootPath)),
-            progress: T.FS.ProgressType.Loaded,
-          }
-
-          const pathItems = new Map<T.FS.Path, T.FS.PathItem>([
-            ...(T.FS.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder] as const] : []),
-            ...entries.map(direntToPathAndPathItem),
-          ] as const)
-          set(s => {
-            pathItems.forEach((pathItemFromAction, path) => {
-              const oldPathItem = Constants.getPathItem(s.pathItems, path)
-              const newPathItem = updatePathItem(oldPathItem, pathItemFromAction)
-              if (oldPathItem.type === T.FS.PathType.Folder) {
-                oldPathItem.children.forEach(name => {
-                  if (newPathItem.type !== T.FS.PathType.Folder || !newPathItem.children.has(name)) {
-                    s.pathItems.delete(T.FS.pathConcat(path, name))
-                  }
-                })
-              }
-              s.pathItems.set(path, T.castDraft(newPathItem))
-            })
-
-          })
-        } catch (error) {
-          errorToActionOrThrow(error, rootPath)
-          return
-        }
-      }
-      ignorePromise(f())
-    },
     getOnlineStatus: () => {
       const f = async () => {
         await checkIfWeReConnectedToMDServerUpToNTimes(2)
@@ -1169,31 +1011,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
               s.badge = badge
             })
           } catch {}
-        }
-      }
-      ignorePromise(f())
-    },
-    loadPathMetadata: path => {
-      const f = async () => {
-        try {
-          const dirent = await T.RPCGen.SimpleFSSimpleFSStatRpcPromise(
-            {
-              path: Constants.pathToRPCPath(path),
-              refreshSubscription: false,
-            },
-            S.waitingKeyFSStat
-          )
-
-          const pathItem = makeEntry(dirent)
-          set(s => {
-            const oldPathItem = Constants.getPathItem(s.pathItems, path)
-            s.pathItems.set(path, T.castDraft(updatePathItem(oldPathItem, pathItem)))
-            s.softErrors.pathErrors.delete(path)
-            s.softErrors.tlfErrors.delete(path)
-          })
-        } catch (err) {
-          errorToActionOrThrow(err, path)
-          return
         }
       }
       ignorePromise(f())
@@ -1471,14 +1288,9 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           get().dispatch.setDriverStatus(fuseStatusToDriverStatus(status))
           if (status?.kextStarted && previousType === T.FS.DriverStatusType.Disabled) {
             const path = T.FS.stringToPath('/keybase')
-            const {sfmi, pathItems} = get()
+            const {sfmi} = get()
             try {
-              await openPathInSystemFileManagerInPlatform(
-                path,
-                pathItems,
-                sfmi.driverStatus,
-                sfmi.directMountDir
-              )
+              await openPathInSystemFileManagerInPlatform(path, sfmi.driverStatus, sfmi.directMountDir)
             } catch (e) {
               errorToActionOrThrow(e, path)
             }

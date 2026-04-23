@@ -14,7 +14,7 @@ type OwnProps = {
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
-  const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
+  const _tlf = Kbfs.useFsTlf(path)
   const finishManualConflictResolution = useFSState(s => s.dispatch.finishManualConflictResolution)
   const startManualConflictResolution = useFSState(s => s.dispatch.startManualConflictResolution)
   const navigateAppend = C.Router2.navigateAppend

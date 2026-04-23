@@ -11,7 +11,7 @@ import {FsBrowserEditProvider} from './edit-state'
 import {FsBrowserSortProvider} from './sort-state'
 import Root from './root'
 import Rows from './rows/rows-container'
-import {useFsErrorActionOrThrow, useFsPathItem} from '../common'
+import {useFsErrorActionOrThrow, useFsPathItem, useFsTlf} from '../common'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useFSState} from '@/stores/fs'
@@ -27,10 +27,11 @@ const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const filter = useModalHeaderState(s => s.folderViewFilter)
   const _pathItem = useFsPathItem(path)
+  const tlf = useFsTlf(path)
   const {_kbfsDaemonStatus, resetBannerType} = useFSState(
     C.useShallow(s => ({
       _kbfsDaemonStatus: s.kbfsDaemonStatus,
-      resetBannerType: FS.resetBannerType(s, path),
+      resetBannerType: FS.resetBannerTypeFromTlf(tlf),
     }))
   )
   const props = {

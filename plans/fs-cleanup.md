@@ -164,6 +164,10 @@ Current slice note:
 - [ ] Delete dead selectors, helpers, and tests
 - [ ] Keep only state that still clearly needs app-wide lifetime
 
+Current slice note:
+- mounted FS path consumers no longer fall back to `shared/stores/fs.tsx` for `pathItems`; route-owned hooks require the feature-local `FsDataProvider`
+- global `pathItems` state and its store-owned folder/stat loaders have been removed; desktop open-in-file-manager and upload summaries now stat paths directly when they need folder/file type
+
 ### Likely candidates to keep global
 
 - `downloads`

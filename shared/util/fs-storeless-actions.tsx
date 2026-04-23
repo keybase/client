@@ -25,9 +25,9 @@ export const openPathInSystemFileManagerDesktop = (
   onErrorOrThrow: (error: unknown, path?: T.FS.Path) => void = errorToActionOrThrow
 ) => {
   const f = async () => {
-    const {sfmi, pathItems} = useFSState.getState()
+    const {sfmi} = useFSState.getState()
     try {
-      await openPathInSystemFileManagerInPlatform(path, pathItems, sfmi.driverStatus, sfmi.directMountDir)
+      await openPathInSystemFileManagerInPlatform(path, sfmi.driverStatus, sfmi.directMountDir)
     } catch (e) {
       onErrorOrThrow(e, path)
     }

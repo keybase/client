@@ -98,7 +98,6 @@ export const openLocalPathInSystemFileManagerDesktop = async (_localPath: string
 
 export const openPathInSystemFileManagerDesktop = async (
   _path: T.FS.Path,
-  _pathItems: T.FS.PathItems,
   _driverStatus: T.FS.DriverStatus,
   _directMountDir: string
 ) => {}

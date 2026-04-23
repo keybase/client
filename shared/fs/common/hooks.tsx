@@ -23,7 +23,7 @@ import {
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
 
-const noopSubscribe = () => () => {}
+const emptyPathItems = new Map<T.FS.Path, T.FS.PathItem>()
 
 const makeEmptyTlfs = (): T.FS.Tlfs => ({
   additionalTlfs: new Map(),
@@ -298,12 +298,7 @@ const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic) => {
 
 const useLoadedPathItems = () => {
   const routeData = React.useContext(FsDataContext)
-  const storePathItems = React.useSyncExternalStore(
-    routeData ? noopSubscribe : useFSState.subscribe,
-    () => useFSState.getState().pathItems,
-    () => useFSState.getState().pathItems
-  )
-  return routeData?.pathItems ?? storePathItems
+  return routeData?.pathItems ?? emptyPathItems
 }
 
 const useLoadedTlfs = () => {
@@ -323,13 +318,18 @@ export const useFsPathItem = (path: T.FS.Path, options?: {loadOnMount?: boolean}
   const pathItems = useLoadedPathItems()
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat)
   const pathItem = FS.getPathItem(pathItems, path)
-  const loadPathMetadata = routeData?.loadPathMetadata ?? useFSState.getState().dispatch.loadPathMetadata
-  const shouldLoad = isPathItem(path) && options?.loadOnMount !== false
+  const loadPathMetadata = routeData?.loadPathMetadata
+  const shouldLoad = !!loadPathMetadata && isPathItem(path) && options?.loadOnMount !== false
   useEngineActionListener(
     'keybase.1.NotifyFS.FSSubscriptionNotifyPath',
     action => {
       const {clientID, path: updatedPath, topics} = action.payload.params
-      if (clientID === FS.clientID && updatedPath === T.FS.pathToString(path) && topics?.includes(T.RPCGen.PathSubscriptionTopic.stat)) {
+      if (
+        loadPathMetadata &&
+        clientID === FS.clientID &&
+        updatedPath === T.FS.pathToString(path) &&
+        topics?.includes(T.RPCGen.PathSubscriptionTopic.stat)
+      ) {
         loadPathMetadata(path)
       }
     },
@@ -337,7 +337,9 @@ export const useFsPathItem = (path: T.FS.Path, options?: {loadOnMount?: boolean}
   )
   useFsLoadOnMountAndFocus({
     enabled: shouldLoad,
-    load: () => loadPathMetadata(path),
+    load: () => {
+      loadPathMetadata?.(path)
+    },
     reloadKey: path,
   })
   return pathItem
@@ -356,19 +358,19 @@ export const useFsFolderChildren = (
   const pathItems = useLoadedPathItems()
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.children)
   const pathItem = FS.getPathItem(pathItems, path)
-  const loadFolderChildren =
-    routeData?.loadFolderChildren ?? useFSState.getState().dispatch.folderListLoad
+  const loadFolderChildren = routeData?.loadFolderChildren
   const initialLoadRecursive = !!options?.initialLoadRecursive
-  const shouldLoad = isPathItem(path)
+  const shouldLoad = !!loadFolderChildren && isPathItem(path)
   useEngineActionListener(
     'keybase.1.NotifyFS.FSSubscriptionNotifyPath',
     action => {
       const {clientID, path: updatedPath, topics} = action.payload.params
       if (
+        loadFolderChildren &&
         clientID === FS.clientID &&
         updatedPath === T.FS.pathToString(path) &&
         topics?.includes(T.RPCGen.PathSubscriptionTopic.children)
-        ) {
+      ) {
         loadFolderChildren(path, initialLoadRecursive)
       }
     },
@@ -376,7 +378,9 @@ export const useFsFolderChildren = (
   )
   useFsLoadOnMountAndFocus({
     enabled: shouldLoad,
-    load: () => loadFolderChildren(path, initialLoadRecursive),
+    load: () => {
+      loadFolderChildren?.(path, initialLoadRecursive)
+    },
     reloadKey: `${path}:${initialLoadRecursive ? 'recursive' : 'shallow'}`,
   })
   return pathItem

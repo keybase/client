@@ -19,6 +19,7 @@ import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useNotifState} from '@/stores/notifications'
 import type * as NotifConstants from '@/stores/notifications'
+import {useNonFolderSyncingPaths} from '@/fs/common/use-non-folder-syncing-paths'
 
 const {showTray} = KB2.functions
 
@@ -204,10 +205,10 @@ function useMenubarRemoteProps(): Props {
       return {httpSrv, loggedIn, outOfDate, windowShownCount}
     })
   )
-  const {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads} = useFSState(
+  const {kbfsDaemonStatus, overallSyncStatus, sfmi, tlfUpdates, uploads} = useFSState(
     C.useShallow(s => {
-      const {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads} = s
-      return {kbfsDaemonStatus, overallSyncStatus, pathItems, sfmi, tlfUpdates, uploads}
+      const {kbfsDaemonStatus, overallSyncStatus, sfmi, tlfUpdates, uploads} = s
+      return {kbfsDaemonStatus, overallSyncStatus, sfmi, tlfUpdates, uploads}
     })
   )
   const navBadgesMap = useNotifState(s => s.navBadges)
@@ -230,9 +231,7 @@ function useMenubarRemoteProps(): Props {
   // We just use syncingPaths rather than merging with writingToJournal here
   // since journal status comes a bit slower, and merging the two causes
   // flakes on our perception of overall upload status.
-  const filePaths = [...uploads.syncingPaths].filter(
-    path => FS.getPathItem(pathItems, path).type !== T.FS.PathType.Folder
-  )
+  const filePaths = useNonFolderSyncingPaths(uploads.syncingPaths)
 
   const upDown = {
     endEstimate: uploads.endEstimate ?? 0,
