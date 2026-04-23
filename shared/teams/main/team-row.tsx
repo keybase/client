@@ -2,6 +2,7 @@ import './team-row.css'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import logger from '@/logger'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '@/util/string'
 import {Activity} from '../common'
@@ -19,9 +20,12 @@ type Props = TeamRowItem & {
 }
 
 const TeamRow = function TeamRow(props: Props) {
-  const {activityLevel, badgeCount, isNew, showChat = true, teamMeta} = props
-  const {id: teamID} = teamMeta
+  const {activityLevel, badgeCount, id: teamID, isNew, showChat = true, teamMeta} = props
   const navigateAppend = C.Router2.navigateAppend
+
+  if (__DEV__ && teamMeta.id !== teamID) {
+    logger.warn(`TeamRow ID mismatch: props.id=${teamID} teamMeta.id=${teamMeta.id}`)
+  }
 
   const onViewTeam = () => navigateAppend({name: 'team', params: {teamID}})
 
