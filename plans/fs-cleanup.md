@@ -70,7 +70,7 @@ Current slice note:
 
 ## Chunk 2: Remove Path-Action and Inline-Edit UI State
 
-- [ ] Move `pathItemActionMenu` state into the path action menu flow
+- [x] Move `pathItemActionMenu` state into the path action menu flow
 - [ ] Move `edits` state into the owning folder / row UI
 - [ ] Replace store-owned rename/new-folder orchestration with local `C.useRPC(...)` calls or feature-local hooks
 - [ ] Keep error, waiting, and temporary filename state local to the mounted editor or menu

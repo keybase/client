@@ -150,11 +150,6 @@ export const emptyDownloadInfo = {
   startTime: 0,
 } satisfies T.FS.DownloadInfo
 
-export const emptyPathItemActionMenu = {
-  downloadID: undefined,
-  downloadIntent: undefined,
-} satisfies T.FS.PathItemActionMenu
-
 export const emptySettings = {
   isLoading: false,
   loaded: false,

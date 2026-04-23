@@ -287,7 +287,6 @@ type Store = T.Immutable<{
   fileContext: ReadonlyMap<T.FS.Path, T.FS.FileContext>
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   overallSyncStatus: T.FS.OverallSyncStatus
-  pathItemActionMenu: T.FS.PathItemActionMenu
   pathItems: T.FS.PathItems
   pathInfos: ReadonlyMap<T.FS.Path, T.FS.PathInfo>
   pathUserSettings: ReadonlyMap<T.FS.Path, T.FS.PathUserSetting>
@@ -312,7 +311,6 @@ const initialStore: Store = {
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   overallSyncStatus: Constants.emptyOverallSyncStatus,
   pathInfos: new Map(),
-  pathItemActionMenu: Constants.emptyPathItemActionMenu,
   pathItems: new Map(),
   pathUserSettings: new Map(),
   settings: Constants.emptySettings,
@@ -352,7 +350,11 @@ export type State = Store & {
     dismissDownload: (downloadID: string) => void
     dismissRedbar: (index: number) => void
     dismissUpload: (uploadID: string) => void
-    download: (path: T.FS.Path, type: 'download' | 'share' | 'saveMedia') => void
+    download: (
+      path: T.FS.Path,
+      type: 'download' | 'share' | 'saveMedia',
+      onStarted?: (downloadID: string, downloadIntent?: T.FS.DownloadIntent) => void
+    ) => void
     driverDisable: () => void
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
@@ -403,7 +405,6 @@ export type State = Store & {
     setDirectMountDir: (directMountDir: string) => void
     setDriverStatus: (driverStatus: T.FS.DriverStatus) => void
     setEditName: (editID: T.FS.EditID, name: string) => void
-    setPathItemActionMenuDownload: (downloadID?: string, intent?: T.FS.DownloadIntent) => void
     setPreferredMountDirs: (preferredMountDirs: ReadonlyArray<string>) => void
     setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     setSpaceAvailableNotificationThreshold: (spaceAvailableNotificationThreshold: number) => void
@@ -752,34 +753,30 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    download: (path, type) => {
+    download: (path, type, onStarted) => {
       const f = async () => {
         await requestPermissionsToWrite()
         const downloadID = await T.RPCGen.SimpleFSSimpleFSStartDownloadRpcPromise({
           isRegularDownload: type === 'download',
           path: Constants.pathToRPCPath(path).kbfs,
         })
+        const downloadIntent =
+          type === 'share'
+            ? T.FS.DownloadIntent.Share
+            : type === 'saveMedia'
+              ? T.FS.DownloadIntent.CameraRoll
+              : undefined
         set(s => {
           const info = s.downloads.info.get(downloadID)
           s.downloads.info.set(downloadID, {
             filename: info?.filename ?? T.FS.getPathName(path),
-            intent:
-              type === 'share'
-                ? T.FS.DownloadIntent.Share
-                : type === 'saveMedia'
-                  ? T.FS.DownloadIntent.CameraRoll
-                  : info?.intent,
+            intent: downloadIntent ?? info?.intent,
             isRegularDownload: type === 'download',
             path,
             startTime: info?.startTime ?? 0,
           })
         })
-        if (type !== 'download') {
-          get().dispatch.setPathItemActionMenuDownload(
-            downloadID,
-            type === 'share' ? T.FS.DownloadIntent.Share : T.FS.DownloadIntent.CameraRoll
-          )
-        }
+        onStarted?.(downloadID, downloadIntent)
       }
       ignorePromise(f())
     },
@@ -1727,12 +1724,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         }
         edit.error = undefined
         edit.name = name
-      })
-    },
-    setPathItemActionMenuDownload: (downloadID, intent) => {
-      set(s => {
-        s.pathItemActionMenu.downloadID = downloadID
-        s.pathItemActionMenu.downloadIntent = intent
       })
     },
     setPathSoftError: (path, softError) => {

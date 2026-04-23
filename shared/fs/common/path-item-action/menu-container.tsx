@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Util from '@/util/kbfs'
 import Header from './header'
-import type {FloatingMenuProps} from './types'
+import type {FloatingMenuProps, OnDownloadStarted} from './types'
 import {getRootLayout, getShareLayout} from './layout'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
@@ -13,10 +13,13 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {
+  downloadID?: string
+  downloadIntent?: T.FS.DownloadIntent
   floatingMenuProps: FloatingMenuProps
   previousView: T.FS.PathItemActionMenuView
   path: T.FS.Path
   mode: 'row' | 'screen'
+  onDownloadStarted: OnDownloadStarted
   setView: (view: T.FS.PathItemActionMenuView) => void
   view: T.FS.PathItemActionMenuView
 }
@@ -25,12 +28,11 @@ const needConfirm = (pathItem: T.FS.PathItem) =>
   pathItem.type === T.FS.PathType.File && pathItem.size > 50 * 1024 * 1024
 
 const Container = (op: OwnProps) => {
-  const {path, mode, floatingMenuProps, setView, view} = op
+  const {downloadID, downloadIntent, path, mode, floatingMenuProps, onDownloadStarted, setView, view} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
   const {fileContext, pathItem} = Kbfs.useFsFileContext(path)
   const data = useFSState(
     C.useShallow(s => {
-      const pathItemActionMenu = s.pathItemActionMenu
       const {cancelDownload, download, newFolderRow, startRename} = s.dispatch
       const {favoriteIgnore, dismissDownload} = s.dispatch
       const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
@@ -40,17 +42,14 @@ const Container = (op: OwnProps) => {
         download,
         favoriteIgnore,
         newFolderRow,
-        pathItemActionMenu,
         sfmiEnabled,
         startRename,
       }
     })
   )
 
-  const {pathItemActionMenu, cancelDownload, download, newFolderRow} = data
+  const {cancelDownload, download, newFolderRow} = data
   const {sfmiEnabled, favoriteIgnore, dismissDownload, startRename} = data
-
-  const {downloadID, downloadIntent} = pathItemActionMenu
   const username = useCurrentUserState(s => s.username)
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const layout = getLayout(mode, path, pathItem, fileContext, username)
@@ -132,7 +131,7 @@ const Container = (op: OwnProps) => {
             cancel()
           }
         : () => {
-            download(path, 'saveMedia')
+            download(path, 'saveMedia', onDownloadStarted)
             cancel()
           }
       return [{icon: 'iconfont-download-2', onClick, title: 'Save'}] as const
@@ -184,7 +183,7 @@ const Container = (op: OwnProps) => {
         if (conf) {
           setView(T.FS.PathItemActionMenuView.ConfirmSendToOtherApp)
         } else {
-          download(path, 'share')
+          download(path, 'share', onDownloadStarted)
         }
       })
       return [{icon: 'iconfont-share', onClick, title: 'Send to another app'}] as const
