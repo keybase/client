@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as React from 'react'
 import {act, cleanup, renderHook} from '@testing-library/react'
