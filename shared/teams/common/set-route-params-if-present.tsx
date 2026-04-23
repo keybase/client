@@ -1,9 +1,18 @@
-import {CommonActions, type NavigationProp, type ParamListBase} from '@react-navigation/native'
+import {
+  CommonActions,
+  type NavigationProp,
+  type NavigationState,
+  type ParamListBase,
+} from '@react-navigation/native'
 
-type Navigation = Pick<NavigationProp<ParamListBase>, 'dispatch' | 'getState'>
+type Navigation = {
+  dispatch: NavigationProp<ParamListBase>['dispatch']
+  getState: () => Readonly<NavigationState> | undefined
+}
 
 const setRouteParamsIfPresent = (navigation: Navigation, routeName: string, params: object) => {
-  const route = [...navigation.getState().routes].reverse().find(r => r.name === routeName)
+  const routes = navigation.getState()?.routes
+  const route = routes ? [...routes].reverse().find(r => r.name === routeName) : undefined
   if (!route?.key) {
     return
   }
