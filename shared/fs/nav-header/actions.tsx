@@ -10,7 +10,7 @@ type Props = {
   path: T.FS.Path
 }
 
-const FsNavHeaderRightActions = (props: Props) => {
+const FsNavHeaderRightActionsInner = (props: Props) => {
   const {folderViewFilter, setFolderViewFilter} = useModalHeaderState(
     C.useShallow(s => ({
       folderViewFilter: s.folderViewFilter,
@@ -45,6 +45,12 @@ const FsNavHeaderRightActions = (props: Props) => {
     </Kb.Box2>
   ) : null
 }
+
+const FsNavHeaderRightActions = (props: Props) => (
+  <Kbfs.FsDataProvider>
+    <FsNavHeaderRightActionsInner {...props} />
+  </Kbfs.FsDataProvider>
+)
 
 export default FsNavHeaderRightActions
 

@@ -112,7 +112,7 @@ Current slice note:
 - [x] `fs/browser/root.tsx`
 - [x] `fs/browser/rows/*`
 - [x] `fs/top-bar/*`
-- [ ] `fs/nav-header/*`
+- [x] `fs/nav-header/*`
 - [x] `fs/common/hooks.tsx`
 - [x] `fs/common/errs-container.tsx`
 
@@ -127,6 +127,7 @@ Current slice note:
 Current slice note:
 - mounted browser and destination-picker flows now keep per-path sort settings in a browser-local provider instead of `shared/stores/fs.tsx`
 - mounted FS route and destination-picker loaders now use a feature-local `FsDataProvider` for `pathItems` / `tlfs`; mounted hooks refresh that local state directly from SimpleFS RPCs instead of reading the shared cache
+- FS route headers now wrap `fs/nav-header/*` mounted consumers in a local `FsDataProvider`, so title/action/header path metadata no longer falls back to the shared mounted-view cache
 - mounted browser, file-preview, and destination-picker flows now use a feature-local `FsErrorProvider` for redbars; store-backed `errors` remain as fallback for non-route/global FS actions
 
 ## Chunk 4: Re-evaluate Subscription and Notification Ownership

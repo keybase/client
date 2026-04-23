@@ -28,7 +28,7 @@ const FilesTabStatusIcon = () => {
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.filesTabStatusIcon} /> : null
 }
 
-const NavMobileHeader = (props: Props) => {
+const NavMobileHeaderInner = (props: Props) => {
   const {expanded, folderViewFilter, setFolderViewFilter} = useModalHeaderState(
     C.useShallow(s => ({
       expanded: s.folderViewFilter !== undefined,
@@ -136,6 +136,12 @@ const styles = Kb.Styles.styleSheetCreate(
         minHeight: 44,
       },
     }) as const
+)
+
+const NavMobileHeader = (props: Props) => (
+  <Kbfs.FsDataProvider>
+    <NavMobileHeaderInner {...props} />
+  </Kbfs.FsDataProvider>
 )
 
 export default NavMobileHeader
