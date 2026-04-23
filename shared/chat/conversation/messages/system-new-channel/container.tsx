@@ -1,6 +1,6 @@
+import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
-import {useTeamsState} from '@/stores/teams'
 import type * as T from '@/constants/types'
 import UserNotice from '../user-notice'
 
@@ -9,10 +9,8 @@ type OwnProps = {message: T.Chat.MessageSystemNewChannel}
 function SystemNewChannelContainer(p: OwnProps) {
   const {message} = p
   const teamID = ConvoState.useChatContext(s => s.meta.teamID)
-  const manageChatChannels = useTeamsState(s => s.dispatch.manageChatChannels)
-  const onManageChannels = () => {
-    manageChatChannels(teamID)
-  }
+  const navigateAppend = C.Router2.navigateAppend
+  const onManageChannels = () => navigateAppend({name: 'teamAddToChannels', params: {teamID}})
 
   const descStyleOverride = {
     link: {fontSize: Kb.Styles.isMobile ? 15 : 13, fontWeight: '600'},

@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import BotMenu from './bot-menu'
-import {useTrackerState} from '@/stores/tracker'
 import {useFeaturedBot} from '@/util/featured-bots'
 import {navToProfile} from '@/constants/router'
+import {useLoadedTeam} from '../../use-loaded-team'
 
 export type Props = {
   botAlias: string
@@ -14,8 +14,8 @@ export type Props = {
   description: string
   onClick: () => void
   onEdit: () => void
+  onOpenProfile: () => void
   onRemove: () => void
-  onShowTracker: () => void
   ownerTeam?: string
   ownerUser?: string
   roleType: T.Teams.TeamRoleType
@@ -48,7 +48,7 @@ export const TeamBotRow = (props: Props) => {
       <Kb.Text
         type="BodySmallSemibold"
         style={{color: Kb.Styles.globalColors.black}}
-        onClick={props.onShowTracker}
+        onClick={props.onOpenProfile}
       >
         {props.botAlias || props.username}
       </Kb.Text>
@@ -76,7 +76,7 @@ export const TeamBotRow = (props: Props) => {
           <Kb.Avatar
             username={props.username}
             size={Kb.Styles.isMobile ? 48 : 32}
-            onClick={props.onShowTracker}
+            onClick={props.onOpenProfile}
           />
           <Kb.Box2 direction="vertical" style={styles.nameContainer}>
             <Kb.Box2 direction="horizontal" fullWidth={true}>{usernameDisplay}</Kb.Box2>
@@ -157,10 +157,9 @@ const blankInfo = Teams.initialMemberInfo
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID))
-  const canManageBots = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageBots)
-  const map = teamDetails?.members
-  const info: T.Teams.MemberInfo = map?.get(ownProps.username) || blankInfo
+  const {teamDetails, yourOperations} = useLoadedTeam(teamID)
+  const info: T.Teams.MemberInfo = teamDetails.members.get(ownProps.username) || blankInfo
+  const canManageBots = yourOperations.manageBots
   const _bot = useFeaturedBot(ownProps.username)
   const bot = _bot ?? {
     botAlias: info.fullName,
@@ -179,14 +178,7 @@ const Container = (ownProps: OwnProps) => {
   const roleType = info.type
   const status = info.status
   const username = info.username
-  const showTracker = useTrackerState(s => s.dispatch.showTracker)
-  const _onShowTracker = (username: string) => {
-    if (C.isMobile) {
-      navToProfile(username)
-    } else {
-      showTracker(username)
-    }
-  }
+  const onOpenProfile = () => navToProfile(ownProps.username)
   const navigateAppend = C.Router2.navigateAppend
   const onClick = () => {
     navigateAppend({name: 'teamMember', params: ownProps})
@@ -209,8 +201,8 @@ const Container = (ownProps: OwnProps) => {
     description: description,
     onClick: onClick,
     onEdit: onEdit,
+    onOpenProfile: onOpenProfile,
     onRemove: onRemove,
-    onShowTracker: () => _onShowTracker(ownProps.username),
     ownerTeam: ownerTeam,
     ownerUser: ownerUser,
     roleType: roleType,

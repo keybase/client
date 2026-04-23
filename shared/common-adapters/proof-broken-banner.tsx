@@ -1,6 +1,4 @@
-import * as C from '@/constants'
 import {Banner, BannerParagraph} from './banner'
-import {useTrackerState} from '@/stores/tracker'
 import {navToProfile} from '@/constants/router'
 
 const Kb = {Banner}
@@ -8,14 +6,7 @@ type Props = {users?: Array<string>}
 type ProofBrokenBannerNonEmptyProps = {users: Array<string>}
 
 const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
-  const showTracker = useTrackerState(s => s.dispatch.showTracker)
-  const onClickUsername = (username: string) => {
-    if (C.isMobile) {
-      navToProfile(username)
-    } else {
-      showTracker(username)
-    }
-  }
+  const onClickUsername = (username: string) => navToProfile(username)
   const content: Array<string | {text: string; onClick: () => void}> =
     props.users.length === 1
       ? [
@@ -36,8 +27,8 @@ const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
                   ...(index === length - 1
                     ? [{onClick: () => onClickUsername(user), text: user}]
                     : index === length - 2
-                    ? [{onClick: () => onClickUsername(user), text: user}, ', and ']
-                    : [{onClick: () => onClickUsername(user), text: user}, ', ']),
+                      ? [{onClick: () => onClickUsername(user), text: user}, ', and ']
+                      : [{onClick: () => onClickUsername(user), text: user}, ', ']),
                 ],
                 []
               )),

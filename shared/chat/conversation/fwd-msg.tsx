@@ -4,7 +4,7 @@ import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useModalHeaderState} from '@/stores/modal-header'
+import {useNavigation} from '@react-navigation/native'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
@@ -17,6 +17,7 @@ const TeamPicker = (props: Props) => {
   const srcConvID = ConvoState.useChatContext(s => s.id)
   const ordinal = props.ordinal
   const message = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
+  const navigation = useNavigation()
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
   const dstConvIDRef = React.useRef<Uint8Array | undefined>(undefined)
@@ -200,11 +201,8 @@ const TeamPicker = (props: Props) => {
     )
 
   React.useEffect(() => {
-    useModalHeaderState.setState({title: pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption'})
-    return () => {
-      useModalHeaderState.setState({title: ''})
-    }
-  }, [pickerState])
+    navigation.setOptions({title: pickerState === 'picker' ? 'Forward to team or chat' : 'Add a caption'})
+  }, [navigation, pickerState])
 
   return content
 }

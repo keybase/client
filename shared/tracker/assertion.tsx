@@ -7,74 +7,24 @@ import * as Kb from '@/common-adapters'
 import {SiteIcon} from '@/profile/generic/shared'
 import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
-import * as Tracker from '@/stores/tracker'
-import {useTrackerState} from '@/stores/tracker'
 import {navToProfile} from '@/constants/router'
 import {copyToClipboard} from '@/util/storeless-actions'
 
 type OwnProps = {
+  assertion: T.Tracker.Assertion
   isSuggestion?: boolean
+  notAUser?: boolean
+  onRefresh: () => void
+  stellarHidden?: boolean
   username: string
-  assertionKey: string
 }
-
-const notAUserAssertion = {
-  assertionKey: '',
-  belowFold: false,
-  color: 'gray',
-  kid: '',
-  metas: [{color: 'gray', label: 'PENDING'}],
-  pickerSubtext: '',
-  pickerText: '',
-  priority: 0,
-  proofURL: '',
-  sigID: '0',
-  siteIcon: [],
-  siteIconDarkmode: [],
-  siteIconFull: [],
-  siteIconFullDarkmode: [],
-  siteURL: '',
-  state: 'checking',
-  timestamp: 0,
-} satisfies Omit<T.Tracker.Assertion, 'type' | 'value' | 'wotProof'>
 
 const Container = (ownProps: OwnProps) => {
   const isYours = useCurrentUserState(s => ownProps.username === s.username)
-  const data = useTrackerState(
-    C.useShallow(s => {
-      let val = Tracker.noAssertion
-      let stellarHidden = false
-      let notAUser = false as boolean
-      if (ownProps.isSuggestion) {
-        val = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || Tracker.noAssertion
-      } else {
-        const d = s.getDetails(ownProps.username)
-        if (isYours && d.stellarHidden) {
-          stellarHidden = true
-        }
-        notAUser = d.state === 'notAUserYet'
-        if (notAUser) {
-          const nonUserDetails = s.getNonUserDetails(ownProps.username)
-          val = {
-            ...notAUserAssertion,
-            siteIcon: nonUserDetails.siteIcon,
-            siteIconDarkmode: nonUserDetails.siteIconDarkmode,
-            siteIconFull: nonUserDetails.siteIconFull,
-            siteIconFullDarkmode: nonUserDetails.siteIconFullDarkmode,
-            siteURL: nonUserDetails.siteURL,
-            type: nonUserDetails.assertionKey,
-            value: nonUserDetails.assertionValue,
-          }
-        } else if (d.assertions) {
-          val = d.assertions.get(ownProps.assertionKey) || Tracker.noAssertion
-        }
-      }
-      return {...val, notAUser, stellarHidden}
-    })
-  )
-  const {color, metas: _metas, proofURL, sigID, siteIcon, stellarHidden, notAUser} = data
-  const {siteIconDarkmode, siteIconFull, siteIconFullDarkmode, siteURL, state, timestamp, type, value} = data
-  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
+  const {assertion, isSuggestion = false, notAUser = false, onRefresh, stellarHidden = false} = ownProps
+  const {color, metas: _metas, proofURL, sigID, siteIcon} = assertion
+  const {siteIconDarkmode, siteIconFull, siteIconFullDarkmode, siteURL, state, timestamp, type, value} =
+    assertion
   const hideStellar = C.useRPC(T.RPCGen.apiserverPostRpcPromise)
   const recheckProof = C.useRPC(T.RPCGen.proveCheckProofRpcPromise)
   const navigateAppend = C.Router2.navigateAppend
@@ -91,7 +41,7 @@ const Container = (ownProps: OwnProps) => {
       [{sigID}, C.waitingKeyProfile],
       () => {
         navToProfile(ownProps.username)
-        loadProfile(ownProps.username, false)
+        onRefresh()
       },
       () => {}
     )
@@ -101,6 +51,7 @@ const Container = (ownProps: OwnProps) => {
       name: 'profileRevoke',
       params: {
         icon: siteIconFull,
+        kid: assertion.kid || undefined,
         platform: type as T.More.PlatformsExpandedType,
         platformHandle: value,
         proofId: sigID,
@@ -110,7 +61,7 @@ const Container = (ownProps: OwnProps) => {
 
   const metas = _metas.map(({color, label}) => ({color, label}))
 
-  const onCreateProof = notAUser ? undefined : ownProps.isSuggestion ? _onCreateProof : undefined
+  const onCreateProof = notAUser ? undefined : isSuggestion ? _onCreateProof : undefined
 
   const openProof = () => {
     openUrl(proofURL)
@@ -121,8 +72,6 @@ const Container = (ownProps: OwnProps) => {
 
   const onShowProof = notAUser || !proofURL ? undefined : openProof
   const onShowSite = notAUser || !siteURL ? undefined : openSite
-  const isSuggestion = !!ownProps.isSuggestion
-
   const {header, items} = (() => {
     if (!isYours || isSuggestion) {
       return {}

@@ -52,16 +52,6 @@ const PDFShareButton = ({url}: {url?: string}) => {
   )
 }
 
-const PDFHeaderTitle = () => {
-  const title = useModalHeaderState(s => s.title)
-  return <Kb.Text type="BodyBig">{title || 'PDF'}</Kb.Text>
-}
-
-const FwdMsgHeaderTitle = () => {
-  const title = useModalHeaderState(s => s.title)
-  return <>{title || 'Forward to team or chat'}</>
-}
-
 const BotInstallHeaderTitle = () => {
   const subScreen = useModalHeaderState(s => s.botSubScreen)
   return <>{subScreen === 'channels' ? 'Channels' : ''}</>
@@ -158,17 +148,23 @@ export const newRoutes = defineRouteMap({
   },
   chatRoot: Chat.isSplit
     ? {
-        ...makeChatScreen(React.lazy(async () => import('./inbox-and-conversation')), {
-          getOptions: inboxAndConvoGetOptions,
-          skipProvider: true,
-        }),
+        ...makeChatScreen(
+          React.lazy(async () => import('./inbox-and-conversation')),
+          {
+            getOptions: inboxAndConvoGetOptions,
+            skipProvider: true,
+          }
+        ),
         initialParams: emptyChatRootRouteParams,
       }
     : {
-        ...makeChatScreen(React.lazy(async () => import('./inbox')), {
-          getOptions: inboxGetOptions,
-          skipProvider: true,
-        }),
+        ...makeChatScreen(
+          React.lazy(async () => import('./inbox')),
+          {
+            getOptions: inboxGetOptions,
+            skipProvider: true,
+          }
+        ),
         initialParams: emptyChatRootRouteParams,
       },
 })
@@ -240,7 +236,7 @@ export const newModalRoutes = defineRouteMap({
   chatForwardMsgPick: makeChatScreen(
     React.lazy(async () => import('./conversation/fwd-msg')),
     {
-      getOptions: {headerTitle: () => <FwdMsgHeaderTitle />},
+      getOptions: {title: 'Forward to team or chat'},
     }
   ),
   chatInfoPanel: makeChatScreen(
@@ -281,9 +277,9 @@ export const newModalRoutes = defineRouteMap({
     {
       getOptions: p => ({
         headerRight: C.isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
-        headerTitle: () => <PDFHeaderTitle />,
         modalStyle: {height: '80%', maxHeight: '80%', width: '80%'},
         overlayStyle: {alignSelf: 'stretch'},
+        title: 'PDF',
       }),
     }
   ),

@@ -17,14 +17,9 @@ declare global {
 
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
-import type * as UseArchiveStateType from '@/stores/archive'
 import type * as UseChatStateType from '@/stores/chat'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
-import type * as UsePinentryStateType from '@/stores/pinentry'
-import type * as UseTeamsStateType from '@/stores/teams'
-import type * as UseTracker2StateType from '@/stores/tracker'
-import type * as UnlockFoldersType from '@/stores/unlock-folders'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {getTBStore} from '@/stores/team-building'
@@ -46,7 +41,6 @@ import {useShellState} from '@/stores/shell'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
-import {useTeamsState} from '@/stores/teams'
 import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 import {useRouterState} from '@/stores/router'
@@ -65,6 +59,7 @@ import {
 } from '@/stores/convostate'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
+import {clearNavBadges} from '@/teams/actions'
 
 let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__ ? (globalThis.__hmr_startupOnce ?? false) : false
 
@@ -187,11 +182,6 @@ export const initSharedSubscriptions = () => {
             }
           }
 
-          const updateTeams = () => {
-            useTeamsState.getState().dispatch.getTeams()
-            useTeamsState.getState().dispatch.refreshTeamRoleMap()
-          }
-
           const updateSettings = () => {
             useSettingsContactsState.getState().dispatch.loadContactImportEnabled()
           }
@@ -207,7 +197,6 @@ export const initSharedSubscriptions = () => {
 
           getFollowerInfo()
           ignorePromise(updateServerConfig())
-          updateTeams()
           updateSettings()
           updateChat()
         }
@@ -220,7 +209,6 @@ export const initSharedSubscriptions = () => {
           if (useDaemonState.getState().handshakeWaiters.size === 0) {
             ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
           }
-          useTeamsState.getState().dispatch.eagerLoadTeams()
         }
       }
 
@@ -375,7 +363,7 @@ export const initSharedSubscriptions = () => {
       }
 
       if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
-        useTeamsState.getState().dispatch.clearNavBadges()
+        clearNavBadges()
       }
 
       onConvoRouteChanged(prev, next)
@@ -396,14 +384,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
   }
 
   switch (action.type) {
-    case 'keybase.1.NotifySimpleFS.simpleFSArchiveStatusChanged':
-    case 'chat.1.NotifyChat.ChatArchiveComplete':
-    case 'chat.1.NotifyChat.ChatArchiveProgress':
-      {
-        const {useArchiveState} = require('@/stores/archive') as typeof UseArchiveStateType
-        useArchiveState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
     case 'keybase.1.NotifyBadges.badgeState':
       {
         const {badgeState} = action.payload.params
@@ -420,25 +400,19 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
         useFSState.getState().dispatch.onEngineIncomingImpl(action)
 
-        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
-        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
-
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case 'chat.1.chatUi.chatShowManageChannels':
     case 'keybase.1.NotifyTeam.teamMetadataUpdate':
-    case 'chat.1.NotifyChat.ChatWelcomeMessageLoaded':
-    case 'keybase.1.NotifyTeam.teamTreeMembershipsPartial':
-    case 'keybase.1.NotifyTeam.teamTreeMembershipsDone':
-    case 'keybase.1.NotifyTeam.teamRoleMapChanged':
     case 'keybase.1.NotifyTeam.teamChangedByID':
-    case 'keybase.1.NotifyTeam.teamDeleted':
-    case 'keybase.1.NotifyTeam.teamExit':
       {
-        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
-        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
+        useChatState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case 'keybase.1.NotifyTeam.teamRoleMapChanged':
+      {
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
@@ -460,16 +434,14 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       }
       syncGregorExplodingModes(goodState)
 
-      const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
-      useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+      const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
+      useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
       useChatState.getState().dispatch.onEngineIncomingImpl(action)
       break
     }
     case 'chat.1.NotifyChat.ChatSetTeamRetention':
       {
-        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
-        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
         routeConvoEngineIncoming(action)
       }
       break
@@ -488,12 +460,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
           useSettingsEmailState.getState().dispatch.notifyEmailVerified(emailAddress)
         }
         clearSignupEmail()
-      }
-      break
-    case 'keybase.1.secretUi.getPassphrase':
-      {
-        const {usePinentryState} = require('@/stores/pinentry') as typeof UsePinentryStateType
-        usePinentryState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged': {
@@ -583,8 +549,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'keybase.1.NotifyTracking.trackingChanged': {
       const {isTracking, username} = action.payload.params
       useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
-      const {useTrackerState} = require('@/stores/tracker') as typeof UseTracker2StateType
-      useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
       break
     }
     case 'keybase.1.NotifyTracking.trackingInfo': {
@@ -600,18 +564,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       dispatch.replace(followers, following)
       break
     }
-    case 'keybase.1.identify3Ui.identify3Result':
-    case 'keybase.1.identify3Ui.identify3ShowTracker':
-    case 'keybase.1.NotifyUsers.userChanged':
     case 'keybase.1.NotifyTracking.notifyUserBlocked':
-    case 'keybase.1.identify3Ui.identify3UpdateRow':
-    case 'keybase.1.identify3Ui.identify3UserReset':
-    case 'keybase.1.identify3Ui.identify3UpdateUserCard':
-    case 'keybase.1.identify3Ui.identify3Summary':
-      {
-        const {useTrackerState} = require('@/stores/tracker') as typeof UseTracker2StateType
-        useTrackerState.getState().dispatch.onEngineIncomingImpl(action)
-      }
       {
         const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
         useUsersState.getState().dispatch.onEngineIncomingImpl(action)
@@ -621,13 +574,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         const {useUsersState} = require('@/stores/users') as typeof UseUsersStateType
         useUsersState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.rekeyUI.refresh':
-    case 'keybase.1.rekeyUI.delegateRekeyUI':
-      {
-        const {onUnlockFoldersEngineIncoming} = require('@/stores/unlock-folders') as typeof UnlockFoldersType
-        onUnlockFoldersEngineIncoming(action)
       }
       break
     default:

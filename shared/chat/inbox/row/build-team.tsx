@@ -1,15 +1,14 @@
 import * as C from '@/constants'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
+import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 function BuildTeam() {
   const nav = useSafeNavigation()
-  const launchNewTeamWizardOrModal = useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = C.Router2.switchTab
   const onCreateTeam = () => {
     switchTab(C.Tabs.teamsTab)
-    launchNewTeamWizardOrModal()
+    nav.safeNavigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}})
   }
   const onJoinTeam = () => {
     nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}})

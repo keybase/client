@@ -103,15 +103,16 @@ export const createCommonState = (params?: CryptoInputRouteParams): CommonState 
   warningMessage: '',
 })
 
-export const resetWarnings = <State extends CommonState>(state: State): State =>
-  ({
+export function resetWarnings<State extends CommonState>(state: State): State {
+  return {
     ...state,
     errorMessage: '',
     warningMessage: '',
-  }) as State
+  } as State
+}
 
-export const resetOutput = <State extends CommonState>(state: State): State =>
-  ({
+export function resetOutput<State extends CommonState>(state: State): State {
+  return {
     ...resetWarnings(state),
     bytesComplete: 0,
     bytesTotal: 0,
@@ -122,31 +123,34 @@ export const resetOutput = <State extends CommonState>(state: State): State =>
     outputStatus: undefined,
     outputType: undefined,
     outputValid: false,
-  }) as State
+  } as State
+}
 
-export const beginRun = <State extends CommonState>(state: State): State =>
-  ({
+export function beginRun<State extends CommonState>(state: State): State {
+  return {
     ...resetWarnings(state),
     bytesComplete: 0,
     bytesTotal: 0,
     inProgress: true,
     outputStatus: 'pending',
     outputValid: false,
-  }) as State
+  } as State
+}
 
-export const clearInputState = <State extends CommonState>(state: State): State =>
-  ({
+export function clearInputState<State extends CommonState>(state: State): State {
+  return {
     ...resetOutput(state),
     input: '',
     inputType: 'text',
     outputValid: true,
-  }) as State
+  } as State
+}
 
-export const nextInputState = <State extends CommonState>(
+export function nextInputState<State extends CommonState>(
   state: State,
   type: T.Crypto.InputTypes,
   value: string
-): State => {
+): State {
   const next = {
     ...resetWarnings(state),
     input: value,
@@ -156,14 +160,15 @@ export const nextInputState = <State extends CommonState>(
   return (type === 'file' ? resetOutput(next) : next) as State
 }
 
-export const nextOpenedFileState = <State extends CommonState>(state: State, path: string): State =>
-  ({
+export function nextOpenedFileState<State extends CommonState>(state: State, path: string): State {
+  return {
     ...resetOutput(state),
     input: path,
     inputType: 'file',
-  }) as State
+  } as State
+}
 
-export const useCommittedState = <State>(createInitialState: () => State) => {
+export function useCommittedState<State>(createInitialState: () => State) {
   const [state, setState] = React.useState(createInitialState)
   const stateRef = React.useRef(state)
 
@@ -176,10 +181,10 @@ export const useCommittedState = <State>(createInitialState: () => State) => {
   return {commitState, state, stateRef}
 }
 
-export const maybeAutoRunTextOperation = <State extends CommonState>(
+export function maybeAutoRunTextOperation<State extends CommonState>(
   snapshot: State,
   run: (destinationDir?: string, snapshot?: State) => Promise<unknown>
-) => {
+) {
   if (snapshot.inputType !== 'text' || C.isMobile) return
   const f = async () => {
     await run('', snapshot)

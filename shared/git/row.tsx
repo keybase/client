@@ -1,13 +1,12 @@
 import * as C from '@/constants'
-import * as Teams from '@/stores/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {openURL} from '@/util/misc'
-import {useTrackerState} from '@/stores/tracker'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
+import {useTeamsListNameToIDMap} from '@/teams/use-teams-list'
 
 export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
 
@@ -25,7 +24,8 @@ const channelNameToString = (channelName?: string) => (channelName ? `#${channel
 function ConnectedRow(ownProps: OwnProps) {
   const {expanded, git, onShowDelete: onShowDelete_, onToggleExpand: onToggleExpand_, reload, setError} = ownProps
   const {id} = git
-  const teamID = Teams.useTeamsState(s => (git.teamname ? Teams.getTeamID(s, git.teamname) : undefined))
+  const teamNameToID = useTeamsListNameToIDMap()
+  const teamID = git.teamname ? teamNameToID.get(git.teamname) : undefined
   const isNew = React.useContext(NewContext).has(id)
   const you = useCurrentUserState(s => s.username)
   const setTeamRepoSettings = C.useRPC(T.RPCGen.gitSetTeamRepoSettingsRpcPromise)
@@ -78,14 +78,7 @@ function ConnectedRow(ownProps: OwnProps) {
     )
   }
 
-  const showTracker = useTrackerState(s => s.dispatch.showTracker)
-  const openUserTracker = (username: string) => {
-    if (C.isMobile) {
-      navToProfile(username)
-    } else {
-      showTracker(username)
-    }
-  }
+  const openUserProfile = (username: string) => navToProfile(username)
 
   const onBrowseGitRepo = () =>
     _onBrowseGitRepo(
@@ -193,7 +186,7 @@ function ConnectedRow(ownProps: OwnProps) {
                       underline={true}
                       colorFollowing={true}
                       usernames={lastEditUser}
-                      onUsernameClicked={() => openUserTracker(lastEditUser)}
+                      onUsernameClicked={() => openUserProfile(lastEditUser)}
                     />
                   </Kb.Box2>
                 )}

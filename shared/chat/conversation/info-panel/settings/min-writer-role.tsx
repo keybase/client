@@ -1,11 +1,12 @@
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Style from '@/styles'
 import type * as T from '@/constants/types'
 import upperFirst from 'lodash/upperFirst'
 import {indefiniteArticle} from '@/util/string'
+import {useChatTeam} from '../../team-hooks'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -13,8 +14,8 @@ const MinWriterRole = () => {
   const meta = ConvoState.useChatContext(s => s.meta)
   const {teamname, minWriterRole} = meta
 
-  const canPerform = Teams.useTeamsState(s => (teamname ? Teams.getCanPerform(s, teamname) : undefined))
-  const canSetMinWriterRole = canPerform ? canPerform.setMinWriterRole : false
+  const {yourOperations} = useChatTeam(meta.teamID, teamname)
+  const canSetMinWriterRole = yourOperations.setMinWriterRole
 
   const [saving, setSaving] = React.useState(false)
   const [selected, setSelected] = React.useState(minWriterRole)

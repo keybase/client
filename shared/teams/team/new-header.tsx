@@ -1,6 +1,4 @@
 import * as C from '@/constants'
-import * as React from 'react'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import TeamMenu from './menu-container'
 import {pluralize} from '@/util/string'
@@ -8,11 +6,17 @@ import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useTeamsState} from '@/stores/teams'
+import {makeAddMembersWizard} from '../add-members-wizard/state'
+import {useLoadedTeam} from './use-loaded-team'
+import {setMemberPublicity} from '@/teams/actions'
 
 const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
-  const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const onAdd = () => startAddMembersWizard(teamID)
+  const nav = useSafeNavigation()
+  const onAdd = () =>
+    nav.safeNavigateAppend({
+      name: 'teamAddToTeamFromWhere',
+      params: {wizard: makeAddMembersWizard(teamID)},
+    })
   return (
     <Kb.Button
       label="Add/Invite people"
@@ -24,22 +28,12 @@ const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
     />
   )
 }
-type FeatureTeamCardProps = {teamID: T.Teams.TeamID}
-const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
-  const {setJustFinishedAddMembersWizard, setMemberPublicity} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      setJustFinishedAddMembersWizard: s.dispatch.setJustFinishedAddMembersWizard,
-      setMemberPublicity: s.dispatch.setMemberPublicity,
-    }))
-  )
+type FeatureTeamCardProps = {
+  teamID: T.Teams.TeamID
+  onDismiss: () => void
+}
+const FeatureTeamCard = ({teamID, onDismiss}: FeatureTeamCardProps) => {
   const onFeature = () => setMemberPublicity(teamID, true)
-  const onNoThanks = () => {
-    setJustFinishedAddMembersWizard(false)
-  }
-  // Automatically dismisses this when the user navigates away
-  React.useEffect(() => {
-    return () => setJustFinishedAddMembersWizard(false)
-  }, [setJustFinishedAddMembersWizard])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsSetMemberPublicity(teamID))
   return (
     <Kb.Box2
@@ -68,7 +62,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
         <Kb.Button
           label="Later"
           type="Dim"
-          onClick={onNoThanks}
+          onClick={onDismiss}
           small={true}
           style={Kb.Styles.globalStyles.flexOne}
         />
@@ -79,6 +73,8 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
 
 type HeaderTitleProps = {
   teamID: T.Teams.TeamID
+  justFinishedAddWizard: boolean
+  onClearJustFinishedAddWizard: () => void
 }
 
 const roleDisplay = {
@@ -93,18 +89,9 @@ const roleDisplay = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID} = props
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => ({
-      activityLevel: s.activityLevels.teams.get(teamID) || 'none',
-      details: s.teamDetails.get(teamID),
-      justFinishedAddWizard: s.addMembersWizard.justFinished,
-      meta: Teams.getTeamMeta(s, teamID),
-      yourOperations: Teams.getCanPerformByID(s, teamID),
-    }))
-  )
-  const {activityLevel, details, justFinishedAddWizard} = teamsState
-  const {meta, yourOperations} = teamsState
-  useActivityLevels()
+  const {teamDetails: details, teamMeta: meta, yourOperations} = useLoadedTeam(teamID)
+  const {teams: activityByTeam} = useActivityLevels()
+  const activityLevel = activityByTeam.get(teamID) || 'none'
 
   const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)
   const makePopup = (p: Kb.Popup2Parms) => {
@@ -185,7 +172,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const bottomDescriptorsAndButtons = (
     <>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Kb.Styles.isPhone}>
-        {!!details?.description && (
+        {!!details.description && (
           <Kb.Text
             type="Body"
             lineClamp={3}
@@ -219,8 +206,11 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   )
 
   const addInviteAndLinkBox =
-    justFinishedAddWizard && !meta.showcasing ? (
-      <FeatureTeamCard teamID={props.teamID} />
+    props.justFinishedAddWizard && !meta.showcasing ? (
+      <FeatureTeamCard
+        teamID={props.teamID}
+        onDismiss={props.onClearJustFinishedAddWizard}
+      />
     ) : (
       <Kb.Box2
         direction="vertical"
@@ -282,19 +272,18 @@ export default HeaderTitle
 
 const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const nav = useSafeNavigation()
-  const {addMembersWizardPushMembers, meta, startAddMembersWizard, yourOperations} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      addMembersWizardPushMembers: s.dispatch.addMembersWizardPushMembers,
-      meta: Teams.getTeamMeta(s, teamID),
-      startAddMembersWizard: s.dispatch.startAddMembersWizard,
-      yourOperations: Teams.getCanPerformByID(s, teamID),
-    }))
-  )
+  const {teamMeta: meta, yourOperations} = useLoadedTeam(teamID)
   const yourUsername = useCurrentUserState(s => s.username)
 
   const onAddSelf = () => {
-    startAddMembersWizard(teamID)
-    addMembersWizardPushMembers([{assertion: yourUsername, role: 'writer'}])
+    nav.safeNavigateAppend({
+      name: 'teamAddToTeamConfirm',
+      params: {
+        wizard: makeAddMembersWizard(teamID, {
+          addingMembers: [{assertion: yourUsername, role: 'writer'}],
+        }),
+      },
+    })
   }
   const previewConversation = C.Router2.previewConversation
   const onChat = () => previewConversation({reason: 'teamHeader', teamname: meta.teamname})

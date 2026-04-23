@@ -1,8 +1,9 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {formatPhoneNumber} from '@/util/phone-numbers'
-import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
+import * as Teams from '@/constants/teams'
+import {removePendingInvite} from '@/teams/actions'
+import {useLoadedTeam} from '../../use-loaded-team'
 
 export type Props = {
   isKeybaseUser?: boolean
@@ -82,15 +83,14 @@ const labelledInviteRegex = /^(.+?) \((.+)\)$/
 // TODO: when removing flags.teamsRedesign, move this into the component itself
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = useTeamsState(s => s.teamDetails.get(teamID))
-  const _invites = teamDetails?.invites
+  const {teamDetails} = useLoadedTeam(teamID)
+  const invites = teamDetails.invites
 
-  const removePendingInvite = useTeamsState(s => s.dispatch.removePendingInvite)
   const _onCancelInvite = (inviteID: string) => {
     removePendingInvite(teamID, inviteID)
   }
 
-  const user = [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || Teams.emptyInviteInfo
+  const user = [...invites].find(invite => invite.id === ownProps.id) || Teams.emptyInviteInfo
 
   let label: string = ''
   let subLabel: undefined | string

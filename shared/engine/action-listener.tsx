@@ -39,10 +39,16 @@ export const subscribeToEngineAction = <T extends EngineGen.ActionType>(
 
 export const useEngineActionListener = <T extends EngineGen.ActionType>(
   type: T,
-  listener: (action: EngineGen.ActionOf<T>) => void
+  listener: (action: EngineGen.ActionOf<T>) => void,
+  enabled = true
 ) => {
   const onAction = React.useEffectEvent(listener)
-  React.useEffect(() => subscribeToEngineAction(type, action => onAction(action)), [type])
+  React.useEffect(() => {
+    if (!enabled) {
+      return
+    }
+    return subscribeToEngineAction(type, action => onAction(action))
+  }, [enabled, type])
 }
 
 export const notifyEngineActionListeners = (action: EngineGen.Actions) => {

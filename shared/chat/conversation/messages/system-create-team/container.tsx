@@ -1,10 +1,12 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import type * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useChatTeam} from '../../team-hooks'
+import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 
 type OwnProps = {message: T.Chat.MessageSystemCreateTeam}
 
@@ -17,7 +19,7 @@ function SystemCreateTeamContainer(p: OwnProps) {
       return {showInfoPanel, teamID, teamname}
     })
   )
-  const role = Teams.useTeamsState(s => Teams.getRole(s, teamID))
+  const {role} = useChatTeam(teamID, teamname)
   const you = useCurrentUserState(s => s.username)
   const isAdmin = Teams.isAdmin(role) || Teams.isOwner(role)
   const team = teamname
@@ -54,10 +56,13 @@ const ManageComponent = (props: {isAdmin: boolean; onViewTeam: () => void}) => {
     return null
   }
 }
-const AddInvite = (props: {teamID: string; isAdmin: boolean}) => {
+const AddInvite = (props: {teamID: T.Teams.TeamID; isAdmin: boolean}) => {
   const {teamID, isAdmin} = props
-  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const onAddInvite = () => startAddMembersWizard(teamID)
+  const navigateAppend = C.Router2.navigateAppend
+  const onAddInvite = () => {
+    teamID &&
+      navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
+  }
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (isAdmin) {
     return (

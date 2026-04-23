@@ -7,40 +7,40 @@ import {SiteIcon} from './generic/shared'
 import * as T from '@/constants/types'
 import Modal from './modal'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useTrackerState} from '@/stores/tracker'
 import {navToProfile} from '@/constants/router'
 
 type OwnProps = {
   icon: T.Tracker.SiteIconSet
+  kid?: string
   platform: T.More.PlatformsExpandedType
   platformHandle: string
   proofId: string
 }
 const RevokeProof = (ownProps: OwnProps) => {
-  const {platformHandle, platform, proofId, icon} = ownProps
+  const {icon, kid, platform, platformHandle, proofId} = ownProps
   const [errorMessage, setErrorMessage] = React.useState('')
   const currentUsername = useCurrentUserState(s => s.username)
-  const assertions = useTrackerState(s => s.getDetails(currentUsername).assertions)
-  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
   const revokeKey = C.useRPC(T.RPCGen.revokeRevokeKeyRpcPromise)
   const revokeSigs = C.useRPC(T.RPCGen.revokeRevokeSigsRpcPromise)
   const clearModals = C.Router2.clearModals
-  const proof = assertions ? [...assertions.values()].find(a => a.sigID === proofId) : undefined
   const onSuccess = () => {
     navToProfile(currentUsername)
-    loadProfile(currentUsername, false)
     clearModals()
   }
   const onCancel = () => {
     clearModals()
   }
   const onRevoke = () => {
-    if (!proofId || !proof) {
+    if (!proofId) {
       clearModals()
       return
     }
-    if (proof.type === 'pgp') {
-      revokeKey([{keyID: proof.kid}, C.waitingKeyProfile], onSuccess, error => {
+    if (platform === 'pgp') {
+      if (!kid) {
+        setErrorMessage('This PGP key cannot be dropped because its key ID is missing.')
+        return
+      }
+      revokeKey([{keyID: kid}, C.waitingKeyProfile], onSuccess, error => {
         setErrorMessage(`Error in dropping Pgp Key: ${error.message}`)
       })
       return

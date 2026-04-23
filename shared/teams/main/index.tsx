@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import TeamsFooter from './footer'
-import TeamRowNew from './team-row'
+import TeamRowNew, {type TeamRowItem} from './team-row'
 import {PerfProfiler} from '@/perf/react-profiler'
 
 type DeletedTeam = {
@@ -15,7 +15,7 @@ export type Props = {
   onCreateTeam: () => void
   onJoinTeam: () => void
   sortOrder: T.Teams.TeamListSort
-  teams: ReadonlyArray<T.Teams.TeamMeta>
+  teams: ReadonlyArray<TeamRowItem>
 }
 
 const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void; empty: boolean}) => (
@@ -101,7 +101,7 @@ const SortHeader = ({onChangeSort, sortOrder}: {onChangeSort: Props['onChangeSor
 const teamRowHeight = Kb.Styles.isMobile ? 72 : 48
 const teamRowItemHeight = {height: teamRowHeight, type: 'fixed' as const}
 
-type TeamItem = T.Teams.TeamMeta
+type TeamItem = TeamRowItem
 
 const Teams = function Teams(p: Props) {
   const {deletedTeams, teams, onCreateTeam, onJoinTeam, onChangeSort, sortOrder} = p
@@ -126,7 +126,7 @@ const Teams = function Teams(p: Props) {
   const renderItem = (_index: number, item: TeamItem) => {
     return (
       <PerfProfiler id="TeamRow">
-        <TeamRowNew showChat={!Kb.Styles.isMobile} teamID={item.id} />
+        <TeamRowNew showChat={!Kb.Styles.isMobile} {...item} />
       </PerfProfiler>
     )
   }

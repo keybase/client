@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import {useUsersState} from '@/stores/users'
-import {useTeamMembers} from '@/teams/team-members'
+import {useChatTeamMembers} from '../../team-hooks'
 
 export const transformer = (
   input: {
@@ -143,14 +143,19 @@ const useDataUsers = () => {
   const {participantInfo, teamID, teamType} = ConvoState.useChatContext(
     C.useShallow(s => ({participantInfo: s.participants, teamID: s.meta.teamID, teamType: s.meta.teamType}))
   )
-  const teamMembers = useTeamMembers(teamID)
-  const usernames = teamMembers
-    ? [...teamMembers.values()].map(member => member.username).sort((a, b) => a.localeCompare(b))
-    : participantInfo.all
-  const suggestions = usernames.map(username => ({
-    fullName: infoMap.get(username)?.fullname || '',
-    username,
-  }))
+  const {loading: loadingTeamMembers, members: teamMembers} = useChatTeamMembers(teamID)
+  const suggestions =
+    teamType !== 'adhoc' && !loadingTeamMembers && teamMembers.size > 0
+      ? [...teamMembers.values()]
+          .sort((a, b) => a.username.localeCompare(b.username))
+          .map(member => ({
+            fullName: member.fullName || infoMap.get(member.username)?.fullname || '',
+            username: member.username,
+          }))
+      : participantInfo.all.map(username => ({
+          fullName: infoMap.get(username)?.fullname || '',
+          username,
+        }))
   if (teamType !== 'adhoc') {
     const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
     suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})

@@ -1,8 +1,7 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
 
 type OwnProps = {
   teamID: T.Teams.TeamID
@@ -12,7 +11,8 @@ type OwnProps = {
 }
 const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
   const nav = useSafeNavigation()
-  const canManageEmoji = useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
+  const {yourOperations} = useLoadedTeam(teamID)
+  const canManageEmoji = yourOperations.manageEmojis
   const onAddEmoji = () =>
     nav.safeNavigateAppend({
       name: 'teamAddEmoji',

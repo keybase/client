@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
-import * as React from 'react'
+import * as T from '@/constants/types'
+import type * as React from 'react'
 import UnconnectedFollowButton from '@/profile/user/actions/follow-button'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
-import {useTrackerState} from '@/stores/tracker'
 import {useFollowerState} from '@/stores/followers'
+import {useTrackerProfile} from '@/tracker/use-profile'
 
 const renderItem = (_: number, item: T.RPCGen.ProcessedContact) => <Item item={item} />
 type ItemHeight = React.ComponentProps<typeof Kb.List<T.RPCGen.ProcessedContact>>['itemHeight']
@@ -20,28 +20,32 @@ const getFollowWaitingKey = (username: string) => `settings:followButton:${usern
 // used by people/follow-notification
 export const FollowButton = (props: FollowProps) => {
   const {username} = props
-  const userDetails = useTrackerState(s => s.getDetails(username))
+  const {details: userDetails, loadProfile} = useTrackerProfile(username)
   const followThem = useFollowerState(s => s.following.has(username))
   const followsYou = useFollowerState(s => s.followers.has(username))
   const {guiID} = userDetails
 
-  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
-  const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
+  const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
+  const followWaitingKey = getFollowWaitingKey(username)
 
-  React.useEffect(() => {
-    if (!guiID) {
-      loadProfile(username)
-    }
-  }, [username, guiID, loadProfile])
+  const onFollow = () =>
+    followUser(
+      [{follow: true, guiID}, followWaitingKey],
+      () => loadProfile(false),
+      () => {}
+    )
+  const onUnfollow = () =>
+    followUser(
+      [{follow: false, guiID}, followWaitingKey],
+      () => loadProfile(false),
+      () => {}
+    )
 
-  const onFollow = () => changeFollow(guiID, true)
-  const onUnfollow = () => changeFollow(guiID, false)
-
-  const waitingKey = [getFollowWaitingKey(username), C.waitingKeyTrackerProfileLoad]
+  const waitingKey = [followWaitingKey, C.waitingKeyTrackerProfileLoad]
 
   return (
     <UnconnectedFollowButton
-      disabled={userDetails.username !== username}
+      disabled={!guiID}
       following={followThem}
       followsYou={followsYou}
       waitingKey={waitingKey}

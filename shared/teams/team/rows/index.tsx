@@ -4,7 +4,6 @@ import {isBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmptyRow from './empty-row'
@@ -18,6 +17,7 @@ import {SubteamAddRow, SubteamInfoRow, SubteamTeamRow} from './subteam-row'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import {useEmojiState} from '../../emojis/use-emoji'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useTeamsListMap} from '@/teams/use-teams-list'
 
 type Requests = Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>
 
@@ -65,6 +65,7 @@ export type Section = Kb.SectionType<Item> & {
 
 export const useMembersSections = (
   teamID: T.Teams.TeamID,
+  loading: boolean,
   meta: T.Teams.TeamMeta,
   details: T.Teams.TeamDetails,
   yourOperations: T.Teams.TeamOperations
@@ -73,7 +74,7 @@ export const useMembersSections = (
   // TODO: figure out if this is bad for performance and if we should leave these functions early when we're not on that tab
 
   // TODO: consider moving this to the parent
-  const stillLoading = meta.memberCount > 0 && !details.members.size
+  const stillLoading = loading || (meta.memberCount > 0 && !details.members.size)
   if (stillLoading) {
     return [{data: [{type: 'members-loading'}], renderItem: () => <LoadingRow />} as const]
   }
@@ -103,11 +104,12 @@ export const useMembersSections = (
 
 export const useBotSections = (
   teamID: T.Teams.TeamID,
+  loading: boolean,
   meta: T.Teams.TeamMeta,
   details: T.Teams.TeamDetails,
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
-  const stillLoading = meta.memberCount > 0 && !details.members.size
+  const stillLoading = loading || (meta.memberCount > 0 && !details.members.size)
   if (stillLoading) {
     return [{data: [{type: 'members-loading'}], renderItem: () => <LoadingRow />} as const]
   }
@@ -191,11 +193,11 @@ export const useInvitesSections = (
 }
 export const useChannelsSections = (
   teamID: T.Teams.TeamID,
-  yourOperations: T.Teams.TeamOperations
+  yourOperations: T.Teams.TeamOperations,
+  channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>,
+  loading: boolean
 ): Array<Section> => {
   const isBig = Chat.useChatState(s => isBigTeam(s.inboxLayout, teamID))
-  const channels = Teams.useTeamsState(s => s.channelInfo.get(teamID))
-  const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
 
   if (!isBig) {
     return [
@@ -205,10 +207,10 @@ export const useChannelsSections = (
       } as const,
     ]
   }
-  if (!channels) {
+  if (loading) {
     return [{data: [{type: 'channel-loading'}], renderItem: () => <LoadingRow />} as const]
   }
-  const createRow = canCreate
+  const createRow = yourOperations.createChannel
     ? [{data: [{type: 'channel-add'}], renderItem: () => <ChannelHeaderRow teamID={teamID} />} as const]
     : []
 
@@ -227,7 +229,7 @@ export const useChannelsSections = (
         ),
       renderItem: ({item}: {item: Item}) =>
         item.type === 'channel-channels' ? (
-          <ChannelRow teamID={teamID} conversationIDKey={item.c.conversationIDKey} />
+          <ChannelRow teamID={teamID} channel={item.c} />
         ) : null,
     },
     channels.size < 5 && yourOperations.createChannel
@@ -251,10 +253,10 @@ export const useSubteamsSections = (
   subteamFilter: string,
   setSubteamFilter: React.Dispatch<React.SetStateAction<string>>
 ): Array<Section> => {
-  const teamMeta = Teams.useTeamsState(s => s.teamMeta)
+  const teamMetaByID = useTeamsListMap()
   const filterLC = subteamFilter.toLowerCase().trim()
   const subteams = [...details.subteams]
-    .filter(subteamID => !filterLC || teamMeta.get(subteamID)?.teamname.toLowerCase().includes(filterLC))
+    .filter(subteamID => !filterLC || teamMetaByID.get(subteamID)?.teamname.toLowerCase().includes(filterLC))
     .sort()
   const sections: Array<Section> = []
 
@@ -269,7 +271,7 @@ export const useSubteamsSections = (
   sections.push({
     data: subteams.map(s => ({id: s, type: 'subteams'})),
     renderItem: ({item}: {item: Item}) =>
-      item.type === 'subteams' ? <SubteamTeamRow teamID={item.id} /> : null,
+      item.type === 'subteams' ? <SubteamTeamRow teamID={item.id} teamMeta={teamMetaByID.get(item.id)} /> : null,
   } as const)
 
   if (details.subteams.size) {

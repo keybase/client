@@ -48,7 +48,9 @@ export const searchWaitingKey = 'teamBuilding:search'
 export const waitingKeyTeamsLoaded = 'teams:loaded'
 export const waitingKeyTeamsJoinTeam = 'teams:joinTeam'
 export const waitingKeyTeamsTeam = (teamID: T.Teams.TeamID) => `team:${teamID}`
+export const waitingKeyTeamsSetOpenTeam = (teamID: T.Teams.TeamID) => `teamOpen:${teamID}`
 export const waitingKeyTeamsSetMemberPublicity = (teamID: T.Teams.TeamID) => `teamMemberPub:${teamID}`
+export const waitingKeyTeamsSetTeamShowcase = (teamID: T.Teams.TeamID) => `teamShowcase:${teamID}`
 export const waitingKeyTeamsTeamTars = (teamID: T.Teams.TeamID) => `teamTars:${teamID}`
 export const waitingKeyTeamsCreation = 'teamCreate'
 export const waitingKeyTeamsAddUserToTeams = (username: string) => `addUserToTeams:${username}`
@@ -65,6 +67,8 @@ export const waitingKeyTeamsDeleteTeam = (teamID: T.Teams.TeamID) => `teamDelete
 export const waitingKeyTeamsLeaveTeam = (teamname: T.Teams.Teamname) => `teamLeave:${teamname}`
 export const waitingKeyTeamsRename = 'teams:rename'
 export const waitingKeyTeamsLoadWelcomeMessage = (teamID: T.Teams.TeamID) => `loadWelcomeMessage:${teamID}`
+export const waitingKeyTeamsLoadRetentionPolicy = (teamID: T.Teams.TeamID) =>
+  `teamRetentionLoad:${teamID}`
 export const waitingKeyTeamsSetRetentionPolicy = (teamID: T.Teams.TeamID) => `teamRetention:${teamID}`
 export const waitingKeyTeamsLoadTeamTreeActivity = (teamID: T.Teams.TeamID, username: string) =>
   `loadTeamTreeActivity:${teamID};${username}`

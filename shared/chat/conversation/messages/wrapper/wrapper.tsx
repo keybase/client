@@ -16,11 +16,10 @@ import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useTeamsState} from '@/stores/teams'
-import {useTrackerState} from '@/stores/tracker'
 import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
 import type {ConvoState as ConvoStateType, ConvoUIState} from '@/stores/convostate'
+import {useChatTeamMembers} from '../../team-hooks'
 
 export type Props = {
   isCenteredHighlight?: boolean
@@ -109,16 +108,9 @@ const getRowActions = (
 function AuthorSection(p: AuthorProps) {
   const {author, botAlias, isAdhocBot, teamID, teamType, teamname, timestamp, showUsername} = p
 
-  const authorRoleInTeam = useTeamsState(s => s.teamIDToMembers.get(teamID)?.get(author)?.type)
-  const showTracker = useTrackerState(s => s.dispatch.showTracker)
-
-  const onAuthorClick = () => {
-    if (C.isMobile) {
-      navToProfile(showUsername)
-    } else {
-      showTracker(showUsername)
-    }
-  }
+  const {members: teamMembers} = useChatTeamMembers(teamID)
+  const authorRoleInTeam = teamMembers.get(author)?.type
+  const onAuthorClick = () => navToProfile(showUsername)
 
   const authorIsOwner = authorRoleInTeam === 'owner'
   const authorIsAdmin = authorRoleInTeam === 'admin'

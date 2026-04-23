@@ -82,6 +82,12 @@ export const clampImageSize = (width: number, height: number, maxWidth: number, 
 }
 
 export const zoomImage = (width: number, height: number, maxThumbSize: number) => {
+  if (!width || !height) {
+    return {
+      dims: {height: maxThumbSize, width: maxThumbSize},
+      margins: {marginBottom: 0, marginLeft: 0, marginRight: 0, marginTop: 0},
+    }
+  }
   const dims =
     height > width
       ? {height: (maxThumbSize * height) / width, width: maxThumbSize}

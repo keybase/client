@@ -1,11 +1,12 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 import {useUsersState} from '@/stores/users'
+import {useChatTeam, useChatTeamMembers} from '../team-hooks'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -189,22 +190,17 @@ const BotTab = (props: Props) => {
   const meta = ConvoState.useChatContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
-  let canManageBots = false
-  if (teamname) {
-    canManageBots = yourOperations?.manageBots ?? false
-  } else {
-    canManageBots = true
-  }
+  const {yourOperations} = useChatTeam(teamID, teamname)
+  const canManageBots = teamname ? yourOperations.manageBots : true
   const adhocTeam = teamType === 'adhoc'
   const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const {members: teamMembers} = useChatTeamMembers(teamID)
   const participantsAll = participantInfo.all
 
   let botUsernames: Array<string> = []
   if (adhocTeam) {
     botUsernames = participantsAll.filter(p => !participantInfo.name.includes(p))
-  } else if (teamMembers) {
+  } else {
     botUsernames = [...teamMembers.values()]
       .filter(
         p =>
@@ -221,7 +217,7 @@ const BotTab = (props: Props) => {
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
-        !(!adhocTeam && teamMembers && Teams.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
+        (adhocTeam || !Teams.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
     )
     .map((bot, index) => ({...bot, index, type: 'featuredBot'}))
   const infoMap = useUsersState(s => s.infoMap)

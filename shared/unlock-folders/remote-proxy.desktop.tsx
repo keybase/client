@@ -1,7 +1,9 @@
 import * as C from '@/constants'
+import {useEngineActionListener} from '@/engine/action-listener'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {useColorScheme} from 'react-native'
+import {handleUnlockFoldersEngineAction} from './engine-actions.desktop'
 import type {ProxyProps} from './main2.desktop'
 import {useUnlockFoldersState} from './store'
 
@@ -23,10 +25,24 @@ function UnlockFolders(p: ProxyProps) {
 }
 
 const UnlockRemoteProxy = () => {
-  const devices = useUnlockFoldersState(s => s.devices)
-  const paperKeyError = useUnlockFoldersState(s => s.paperKeyError)
+  const {devices, open, paperKeyError} = useUnlockFoldersState(
+    C.useShallow(s => ({
+      devices: s.devices,
+      open: s.dispatch.open,
+      paperKeyError: s.paperKeyError,
+    }))
+  )
   const waiting = C.Waiting.useAnyWaiting('unlock-folders:waiting')
   const isDarkMode = useColorScheme() === 'dark'
+
+  useEngineActionListener('keybase.1.rekeyUI.refresh', action => {
+    handleUnlockFoldersEngineAction(action, open)
+  })
+
+  useEngineActionListener('keybase.1.rekeyUI.delegateRekeyUI', action => {
+    handleUnlockFoldersEngineAction(action, open)
+  })
+
   if (devices.length) {
     return (
       <UnlockFolders

@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
 import {useColorScheme} from 'react-native'
-import {useTrackerState} from '@/stores/tracker'
 import Modal from '../modal'
 import {SiteIcon} from './shared'
 import {normalizeProofUsername} from '../proof-utils'
@@ -16,6 +15,8 @@ import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {navToProfile} from '@/constants/router'
 import {copyToClipboard} from '@/util/storeless-actions'
+import {useProofSuggestions} from '../use-proof-suggestions'
+import {useTrackerProfile} from '@/tracker/use-profile'
 
 type ProveGenericParams = {
   buttonLabel: string
@@ -108,11 +109,12 @@ type Step =
 
 const Container = ({platform, reason = 'profile'}: Props) => {
   const currentUsername = useCurrentUserState(s => s.username)
-  const loadProfile = useTrackerState(s => s.dispatch.loadProfile)
-  const proofSuggestions = useTrackerState(s => s.proofSuggestions)
+  const {proofSuggestions} = useProofSuggestions()
+  const {loadProfile} = useTrackerProfile(currentUsername)
   const registerCryptoAddress = C.useRPC(T.RPCGen.cryptocurrencyRegisterAddressRpcPromise)
   const isDarkMode = useColorScheme() === 'dark'
   const {clearModals, navigateAppend, navigateUp} = C.Router2
+  const loadCurrentProfile = React.useCallback(() => loadProfile(false), [loadProfile])
 
   const providers = proofSuggestions.map(s => ({
     desc: s.pickerSubtext,
@@ -167,8 +169,6 @@ const Container = ({platform, reason = 'profile'}: Props) => {
     }
   }, [])
 
-  const loadCurrentProfile = () => loadProfile(currentUsername, false)
-
   const closeModal = () => {
     cancelSession()
     navigateUp()
@@ -178,7 +178,6 @@ const Container = ({platform, reason = 'profile'}: Props) => {
     cancelSession()
     clearModals()
     navToProfile(currentUsername)
-    loadCurrentProfile()
   }
 
   const checkProofAndNavigate = async (

@@ -1,10 +1,13 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
+import {useNavigation} from '@react-navigation/native'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import setRouteParamsIfPresent from '../common/set-route-params-if-present'
+import {useLoadedTeam} from '../team/use-loaded-team'
+import {useTeamsListMap} from '../use-teams-list'
 
 type Props = {
   members: string[]
@@ -14,41 +17,67 @@ type Props = {
 const ConfirmKickOut = (props: Props) => {
   const {members, teamID} = props
   const [subteamsToo, setSubteamsToo] = React.useState(false)
-
   const [kickedVisible, setKickedVisible] = React.useState(false)
-
-  const _subteamIDs = useTeamsState(s => s.teamDetails.get(teamID)?.subteams) ?? new Set<string>()
-  const subteamIDs = Array.from(_subteamIDs)
-  const subteams = useTeamsState(
-    C.useShallow(s => subteamIDs.map(id => Teams.getTeamMeta(s, id).teamname))
+  const removeMemberRPC = C.useRPC(T.RPCGen.teamsTeamRemoveMemberRpcPromise)
+  const {reload, teamDetails, teamMeta} = useLoadedTeam(teamID)
+  const teamMetaByID = useTeamsListMap()
+  const subteamIDs = React.useMemo(() => Array.from(teamDetails.subteams), [teamDetails.subteams])
+  const subteams = React.useMemo(
+    () => subteamIDs.map(id => teamMetaByID.get(id)?.teamname ?? '').filter(Boolean),
+    [subteamIDs, teamMetaByID]
   )
-  const teamname = useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname)
+  const teamname = teamMeta.teamname
   const waitingKeys = ([] as string[]).concat.apply(
     members.map(member => C.waitingKeyTeamsRemoveMember(teamID, member)),
     members.map(member => subteamIDs.map(subteamID => C.waitingKeyTeamsRemoveMember(subteamID, member)))
   )
-  const waiting = C.Waiting.useAnyWaiting(...waitingKeys)
+  const waiting = C.Waiting.useAnyWaiting(waitingKeys)
+  const waitingError = C.Waiting.useAnyErrors(waitingKeys)
+  const navigation = useNavigation()
   const nav = useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
-
-  const setMemberSelected = useTeamsState(s => s.dispatch.setMemberSelected)
-  const removeMember = useTeamsState(s => s.dispatch.removeMember)
-  const loadTeam = useTeamsState(s => s.dispatch.loadTeam)
-  // TODO(Y2K-1592): do this in one RPC
-  const onRemove = () => {
-    setMemberSelected(teamID, '', false, true)
-
-    members.forEach(member => removeMember(teamID, member))
-    if (subteamsToo) {
-      subteamIDs.forEach(subteamID => members.forEach(member => removeMember(subteamID, member)))
+  const removeMember = React.useCallback(
+    async (targetTeamID: T.Teams.TeamID, username: string) =>
+      await new Promise<void>((resolve, reject) => {
+        removeMemberRPC(
+          [
+            {
+              member: {
+                assertion: {assertion: username, removeFromSubtree: false},
+                type: T.RPCGen.TeamMemberToRemoveType.assertion,
+              },
+              teamID: targetTeamID,
+            },
+            [C.waitingKeyTeamsTeam(targetTeamID), C.waitingKeyTeamsRemoveMember(targetTeamID, username)],
+          ],
+          () => resolve(),
+          reject
+        )
+      }),
+    [removeMemberRPC]
+  )
+  const onRemove = React.useCallback(() => {
+    const f = async () => {
+      for (const member of members) {
+        await removeMember(teamID, member)
+      }
+      if (subteamsToo) {
+        for (const subteamID of subteamIDs) {
+          for (const member of members) {
+            await removeMember(subteamID, member)
+          }
+        }
+      }
+      await reload()
     }
-    loadTeam(teamID)
-  }
+    C.ignorePromise(f())
+  }, [members, reload, removeMember, subteamIDs, subteamsToo, teamID])
 
   const wasWaitingRef = React.useRef(waiting)
   const navigateUp = C.Router2.navigateUp
   React.useEffect(() => {
-    if (wasWaitingRef.current && !waiting) {
+    if (wasWaitingRef.current && !waiting && !waitingError) {
+      setRouteParamsIfPresent(navigation, 'team', {selectedMembers: undefined})
       setKickedVisible(true)
       setTimeout(() => {
         navigateUp()
@@ -57,7 +86,7 @@ const ConfirmKickOut = (props: Props) => {
     if (wasWaitingRef.current !== waiting) {
       wasWaitingRef.current = waiting
     }
-  }, [navigateUp, waiting])
+  }, [navigateUp, navigation, waiting, waitingError])
 
   const prompt = (
     <Kb.Text center={true} type="Header" style={styles.prompt}>
@@ -109,6 +138,7 @@ const ConfirmKickOut = (props: Props) => {
           <Kb.SimpleToast visible={kickedVisible} text="Kicked" iconType="iconfont-check" />
         </Kb.Box2>
       }
+      error={waitingError?.message ?? ''}
       onCancel={onCancel}
       onConfirm={kickedVisible ? undefined : onRemove}
       confirmText="Kick out"

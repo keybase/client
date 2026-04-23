@@ -1,12 +1,13 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import {getAddedUsernames} from '../system-users-added-to-conv/container'
 import {indefiniteArticle} from '@/util/string'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useChatTeamMembers} from '../../team-hooks'
 
 type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
 
@@ -21,12 +22,10 @@ function SystemAddedToTeamContainer(p: OwnProps) {
       teamname: s.meta.teamname,
     }))
   )
-  const {authorIsAdmin, authorIsOwner} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      authorIsAdmin: Teams.userIsRoleInTeam(s, teamID, author, 'admin'),
-      authorIsOwner: Teams.userIsRoleInTeam(s, teamID, author, 'owner'),
-    }))
-  )
+  const {members: teamMembers} = useChatTeamMembers(teamID)
+  const authorRole = teamMembers.get(author)?.type
+  const authorIsAdmin = authorRole === 'admin'
+  const authorIsOwner = authorRole === 'owner'
   const you = useCurrentUserState(s => s.username)
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'

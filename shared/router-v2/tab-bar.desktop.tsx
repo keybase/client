@@ -14,11 +14,11 @@ import {isLinux} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
 import './tab-bar.css'
 import {settingsLogOutTab} from '@/constants/settings'
-import {useTrackerState} from '@/stores/tracker'
 import {useFSState} from '@/stores/fs'
 import {useNotifState} from '@/stores/notifications'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useShellState} from '@/stores/shell'
+import {useUsersState} from '@/stores/users'
 import {navToProfile} from '@/constants/router'
 import {dumpLogs} from '@/util/storeless-actions'
 
@@ -43,7 +43,7 @@ const stop = () => {
 
 const Header = () => {
   const username = useCurrentUserState(s => s.username)
-  const fullname = useTrackerState(s => s.getDetails(username).fullname ?? '')
+  const fullname = useUsersState(s => s.infoMap.get(username)?.fullname ?? '')
 
   const logoutToLoggedOutFlow = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
   const onHelp = () => openURL('https://book.keybase.io')

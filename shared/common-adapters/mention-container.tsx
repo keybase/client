@@ -1,7 +1,5 @@
-import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import Mention, {type OwnProps} from './mention'
-import {useTrackerState} from '@/stores/tracker'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
@@ -24,14 +22,7 @@ const Container = (ownProps: OwnProps) => {
     }
   })()
 
-  const showTracker = useTrackerState(s => s.dispatch.showTracker)
-  const _onClick = () => {
-    if (C.isMobile) {
-      navToProfile(username)
-    } else {
-      showTracker(username)
-    }
-  }
+  const _onClick = () => navToProfile(username)
   const onClick = Chat.isSpecialMention(username) ? undefined : _onClick
 
   const props = {

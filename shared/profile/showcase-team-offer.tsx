@@ -1,37 +1,33 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
-import * as Teams from '@/stores/teams'
-import type * as T from '@/constants/types'
-import {useTeamsSubscribe} from '@/teams/subscriber'
-import {useTrackerState} from '@/stores/tracker'
-import {useCurrentUserState} from '@/stores/current-user'
+import * as T from '@/constants/types'
+import {useTeamsList} from '@/teams/use-teams-list'
+import {useConfigState} from '@/stores/config'
 
 const Container = () => {
   const waiting = C.useWaitingState(s => s.counts)
-  const you = useCurrentUserState(s => s.username)
-  const teamMeta = Teams.useTeamsState(s => s.teamMeta)
+  const {reload, teams} = useTeamsList()
+  const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
+  const setMemberPublicity = C.useRPC(T.RPCGen.teamsSetTeamMemberShowcaseRpcPromise)
+  const sortedTeams = [...teams].sort((a, b) => a.teamname.localeCompare(b.teamname))
+  const onPromote = (teamID: T.Teams.TeamID, promoted: boolean) => {
+    setMemberPublicity(
+      [
+        {isShowcased: promoted, teamID},
+        [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsSetMemberPublicity(teamID)],
+      ],
+      reload,
+      error => setGlobalError(error)
+    )
+  }
 
-  const onPromote = Teams.useTeamsState(s => s.dispatch.setMemberPublicity)
-  const teams = Teams.sortTeamsByName(teamMeta)
-
-  // Reload tracker profile when modal closes to reflect any showcase changes
-  React.useEffect(() => {
-    return () => {
-      setTimeout(() => {
-        useTrackerState.getState().dispatch.loadProfile(you)
-      }, 500)
-    }
-  }, [you])
-
-  useTeamsSubscribe()
   return (
     <>
       <Kb.Box2 direction="vertical" style={styles.container}>
         {!Kb.Styles.isMobile && <ShowcaseTeamOfferHeader />}
         <Kb.ScrollView>
           {Kb.Styles.isMobile && <ShowcaseTeamOfferHeader />}
-          {teams.map(teamMeta => (
+          {sortedTeams.map(teamMeta => (
             <TeamRow
               key={teamMeta.id}
               canShowcase={

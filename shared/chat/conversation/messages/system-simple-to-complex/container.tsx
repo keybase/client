@@ -1,5 +1,5 @@
+import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
-import {useTeamsState} from '@/stores/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
@@ -11,10 +11,8 @@ function SystemSimpleToComplexContainer(p: OwnProps) {
   const {message} = p
   const teamID = ConvoState.useChatContext(s => s.meta.teamID)
   const you = useCurrentUserState(s => s.username)
-  const manageChatChannels = useTeamsState(s => s.dispatch.manageChatChannels)
-  const onManageChannels = () => {
-    manageChatChannels(teamID)
-  }
+  const navigateAppend = C.Router2.navigateAppend
+  const onManageChannels = () => navigateAppend({name: 'teamAddToChannels', params: {teamID}})
   const {team, author} = message
   return (
     <UserNotice>

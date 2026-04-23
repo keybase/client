@@ -2,12 +2,13 @@ import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import type {StylesCrossPlatform} from '@/styles'
 import SaveIndicator from '@/common-adapters/save-indicator'
+import {useEngineActionListener} from '@/engine/action-listener'
+import {useLoadedTeam} from '../../use-loaded-team'
 import {useConfirm} from './use-confirm'
 
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
@@ -20,7 +21,6 @@ export type Props = {
   policy: T.Retention.RetentionPolicy
   policyIsExploding: boolean
   teamPolicy?: T.Retention.RetentionPolicy
-  load?: () => void
   loading: boolean // for when we're waiting to fetch the team policy
   showInheritOption: boolean
   showOverrideNotice: boolean
@@ -427,17 +427,83 @@ const policyToExplanation = (
   return exp
 }
 
+const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
+  type TeamRetentionState = {
+    loadedTeamID?: T.Teams.TeamID
+    teamPolicy?: T.Retention.RetentionPolicy
+  }
+
+  const [state, setState] = React.useState<TeamRetentionState>({loadedTeamID: teamID, teamPolicy: undefined})
+  const requestVersionRef = React.useRef(0)
+  const requestTeamIDRef = React.useRef(teamID)
+
+  const setTeamRetentionPolicy = React.useCallback((policy?: T.RPCChat.RetentionPolicy | null) => {
+    const nextPolicy = Teams.serviceRetentionPolicyToRetentionPolicy(policy)
+    setState({
+      loadedTeamID: teamID,
+      teamPolicy: nextPolicy.type === 'inherit' ? Teams.retentionPolicies.policyRetain : nextPolicy,
+    })
+  }, [teamID])
+
+  const reload = React.useCallback(async () => {
+    const requestVersion = ++requestVersionRef.current
+    try {
+      const servicePolicy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
+        {teamID},
+        C.waitingKeyTeamsLoadRetentionPolicy(teamID)
+      )
+      if (requestVersion !== requestVersionRef.current) {
+        return
+      }
+      setTeamRetentionPolicy(servicePolicy)
+    } catch {
+      if (requestVersion !== requestVersionRef.current) {
+        return
+      }
+      setTeamRetentionPolicy(undefined)
+    }
+  }, [setTeamRetentionPolicy, teamID])
+
+  React.useEffect(() => {
+    if (requestTeamIDRef.current !== teamID) {
+      requestTeamIDRef.current = teamID
+      requestVersionRef.current++
+    }
+  }, [teamID])
+
+  React.useEffect(() => {
+    void reload()
+  }, [reload])
+
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      void reload()
+    }, [reload])
+  )
+
+  useEngineActionListener('chat.1.NotifyChat.ChatSetTeamRetention', action => {
+    if (action.payload.params.teamID !== teamID) {
+      return
+    }
+    const first = action.payload.params.convs?.[0]
+    if (!first?.teamRetention) {
+      void reload()
+      return
+    }
+    setTeamRetentionPolicy(first.teamRetention)
+  })
+
+  const visibleState =
+    state.loadedTeamID === teamID ? state : {loadedTeamID: teamID, teamPolicy: undefined}
+
+  return {
+    loading: !visibleState.teamPolicy,
+    teamPolicy: visibleState.teamPolicy,
+  }
+}
+
 // Switcher to avoid having RetentionPicker try to process nonexistent data
 const RetentionSwitcher = (props: {entityType: RetentionEntityType} & Props) => {
-  const {teamID} = props
-  const existing = useTeamsState(s => s.teamIDToRetentionPolicy.get(teamID))
-  const getTeamRetentionPolicy = useTeamsState(s => s.dispatch.getTeamRetentionPolicy)
-  React.useEffect(() => {
-    // only load it up if its empty
-    if (!existing) {
-      getTeamRetentionPolicy(teamID)
-    }
-  }, [getTeamRetentionPolicy, teamID, existing])
   if (props.loading) {
     return <Kb.ProgressIndicator style={styles.progressIndicator} />
   }
@@ -455,6 +521,9 @@ export type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {entityType, conversationIDKey: _cid, teamID} = ownProps
+  const {loading: loadingTeamPolicy, teamPolicy: loadedTeamPolicy} = useLoadedTeamRetentionPolicy(teamID)
+  const {yourOperations} = useLoadedTeam(teamID)
+  const setTeamRetentionPolicyRPC = C.useRPC(T.RPCChat.localSetTeamRetentionLocalRpcPromise)
 
   let loading = false
   let teamPolicy: T.Retention.RetentionPolicy | undefined
@@ -467,30 +536,30 @@ const Container = (ownProps: OwnProps) => {
   let policy = ConvoState.useConvoState(conversationIDKey, s =>
     _cid ? s.meta.retentionPolicy : Teams.retentionPolicies.policyRetain
   )
-  const tempPolicy = useTeamsState(s => Teams.getTeamRetentionPolicyByID(s, teamID))
   if (entityType !== 'adhoc') {
-    loading = !tempPolicy
-    if (tempPolicy) {
+    loading = loadingTeamPolicy
+    if (loadedTeamPolicy) {
       if (entityType === 'channel') {
-        teamPolicy = tempPolicy
+        teamPolicy = loadedTeamPolicy
       } else {
-        policy = tempPolicy
+        policy = loadedTeamPolicy
       }
     }
   }
 
-  const canSetPolicy = useTeamsState(
-    s => entityType === 'adhoc' || Teams.getCanPerformByID(s, teamID).setRetentionPolicy
-  )
+  const canSetPolicy = entityType === 'adhoc' || yourOperations.setRetentionPolicy
   const policyIsExploding =
     policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy?.type === 'explode')
   const showInheritOption = entityType === 'channel'
   const showOverrideNotice = entityType === 'big team'
-  const setTeamRetentionPolicy = useTeamsState(s => s.dispatch.setTeamRetentionPolicy)
   const setConvRetentionPolicy = ConvoState.useConvoState(conversationIDKey, s => s.dispatch.setConvRetentionPolicy)
   const saveRetentionPolicy = (policy: T.Retention.RetentionPolicy) => {
     if (['small team', 'big team'].includes(entityType)) {
-      setTeamRetentionPolicy(teamID, policy)
+      setTeamRetentionPolicyRPC(
+        [{policy: Teams.retentionPolicyToServiceRetentionPolicy(policy), teamID}, C.waitingKeyTeamsSetRetentionPolicy(teamID)],
+        () => {},
+        () => {}
+      )
     } else if (['adhoc', 'channel'].includes(entityType)) {
       // we couldn't get here without throwing an error for !conversationIDKey
       setConvRetentionPolicy(policy)

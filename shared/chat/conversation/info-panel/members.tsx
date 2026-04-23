@@ -1,13 +1,14 @@
 import * as C from '@/constants'
 import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import * as ConvoState from '@/stores/convostate'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import Participant from './participant'
 import {useUsersState} from '@/stores/users'
 import {navToProfile} from '@/constants/router'
+import {useChatTeamMembers} from '../team-hooks'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -41,9 +42,9 @@ const MembersTab = (props: Props) => {
     })
   )
 
-  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const {loading: loadingTeamMembers, members: teamMembers} = useChatTeamMembers(teamID)
   const isGeneral = channelname === 'general'
-  const showAuditingBanner = isGeneral && !teamMembers
+  const showAuditingBanner = isGeneral && loadingTeamMembers
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   const participantInfo = ConvoState.useChatContext(s => s.participants)
   const participants = ConvoState.useChatContext(
@@ -68,11 +69,13 @@ const MembersTab = (props: Props) => {
     .map(
       p =>
         ({
-          fullname: (infoMap.get(p) || {fullname: ''}).fullname || participantInfo.contactName.get(p) || '',
-          isAdmin:
-            teamname && teamMembers ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
-          isOwner:
-            teamname && teamMembers ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
+          fullname:
+            (infoMap.get(p) || {fullname: ''}).fullname ||
+            teamMembers.get(p)?.fullName ||
+            participantInfo.contactName.get(p) ||
+            '',
+          isAdmin: teamname ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
+          isOwner: teamname ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
           key: `user-${p}`,
           type: 'member',
           username: p,
