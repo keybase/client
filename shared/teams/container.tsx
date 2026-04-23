@@ -4,7 +4,7 @@ import {useNotifState} from '@/stores/notifications'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import Main from './main'
-import {useActivityLevels} from './common'
+import {ActivityLevelsProvider, useActivityLevels} from './common'
 import {useTeamsList} from './use-teams-list'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {makeNewTeamWizard} from './new-team/wizard/state'
@@ -101,4 +101,10 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
   )
 }
 
-export default Connected
+const Container = (props: Props) => (
+  <ActivityLevelsProvider>
+    <Connected {...props} />
+  </ActivityLevelsProvider>
+)
+
+export default Container

@@ -54,6 +54,7 @@ const emptyLoadedActivityLevelsState = (): Omit<ActivityLevels, 'reload'> => ({
 
 const useActivityLevelsRaw = (enabled = true): ActivityLevels => {
   const [state, setState] = React.useState<Omit<ActivityLevels, 'reload'>>(emptyLoadedActivityLevelsState)
+  const hasFocusedSinceMountRef = React.useRef(false)
   const requestVersionRef = React.useRef(0)
 
   const reload = React.useCallback(async () => {
@@ -103,11 +104,18 @@ const useActivityLevelsRaw = (enabled = true): ActivityLevels => {
     }
   }, [enabled, reload])
 
-  C.Router2.useSafeFocusEffect(() => {
-    if (enabled) {
-      void reload()
-    }
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      if (!enabled) {
+        return
+      }
+      if (hasFocusedSinceMountRef.current) {
+        void reload()
+      } else {
+        hasFocusedSinceMountRef.current = true
+      }
+    }, [enabled, reload])
+  )
 
   return {...state, reload}
 }
@@ -183,8 +191,10 @@ export const ModalTitle = ({title, teamID, newTeamWizard}: ModalTitleProps) => {
 
 export const useActivityLevels = (): ActivityLevels => {
   const context = React.useContext(ActivityLevelsContext)
-  const raw = useActivityLevelsRaw(!context)
-  return context ?? raw
+  if (!context) {
+    throw new Error('useActivityLevels must be used within ActivityLevelsProvider')
+  }
+  return context
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
