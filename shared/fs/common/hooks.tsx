@@ -215,28 +215,85 @@ const useFsLoadOnMountAndFocus = ({
   C.Router2.useSafeFocusEffect(stableLoadOnMountAndFocus)
 }
 
-const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => {
+const useFsSubscriptionEffect = ({
+  errorPath,
+  subscribe,
+  subscriptionKey,
+}: {
+  errorPath?: T.FS.Path
+  subscribe: (subscriptionID: string) => Promise<void>
+  subscriptionKey: string
+}) => {
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const onError = React.useEffectEvent((error: unknown) => {
+    errorToActionOrThrow(error, errorPath)
+  })
+  const subscribeEvent = React.useEffectEvent(subscribe)
   React.useEffect(() => {
-    if (T.FS.getPathLevel(path) < 3) {
-      return () => {}
-    }
-
     const subscriptionID = FS.makeUUID()
-    const {subscribePath, unsubscribe} = useFSState.getState().dispatch
-    subscribePath(subscriptionID, path, topic)
-    return () => unsubscribe(subscriptionID)
-  }, [path, topic])
+    const f = async () => {
+      try {
+        await subscribeEvent(subscriptionID)
+      } catch (error) {
+        onError(error)
+      }
+    }
+    C.ignorePromise(f())
+    return () => {
+      C.ignorePromise(
+        T.RPCGen.SimpleFSSimpleFSUnsubscribeRpcPromise({
+          clientID: FS.clientID,
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
+          subscriptionID,
+        }).catch(() => {})
+      )
+    }
+  }, [errorPath, subscriptionKey])
+}
+
+const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => {
+  const pathString = T.FS.pathToString(path)
+  useFsSubscriptionEffect({
+    errorPath: path,
+    subscribe: async subscriptionID => {
+      if (T.FS.getPathLevel(path) < 3) {
+        return
+      }
+      try {
+        await T.RPCGen.SimpleFSSimpleFSSubscribePathRpcPromise({
+          clientID: FS.clientID,
+          deduplicateIntervalSecond: 1,
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
+          kbfsPath: pathString,
+          subscriptionID,
+          topic,
+        })
+      } catch (error) {
+        if (!(error instanceof RPCError)) {
+          throw error
+        }
+        if (error.code !== T.RPCGen.StatusCode.scteamcontactsettingsblock) {
+          throw error
+        }
+      }
+    },
+    subscriptionKey: `${pathString}:${topic}`,
+  })
 }
 
 const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic) => {
-  React.useEffect(() => {
-    const subscriptionID = FS.makeUUID()
-    const {subscribeNonPath, unsubscribe} = useFSState.getState().dispatch
-    subscribeNonPath(subscriptionID, topic)
-    return () => {
-      unsubscribe(subscriptionID)
-    }
-  }, [topic])
+  useFsSubscriptionEffect({
+    subscribe: async subscriptionID => {
+      await T.RPCGen.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
+        clientID: FS.clientID,
+        deduplicateIntervalSecond: 1,
+        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
+        subscriptionID,
+        topic,
+      })
+    },
+    subscriptionKey: String(topic),
+  })
 }
 
 const useLoadedPathItems = () => {
@@ -276,7 +333,7 @@ export const useFsPathItem = (path: T.FS.Path, options?: {loadOnMount?: boolean}
         loadPathMetadata(path)
       }
     },
-    !!routeData && shouldLoad
+    shouldLoad
   )
   useFsLoadOnMountAndFocus({
     enabled: shouldLoad,
@@ -311,11 +368,11 @@ export const useFsFolderChildren = (
         clientID === FS.clientID &&
         updatedPath === T.FS.pathToString(path) &&
         topics?.includes(T.RPCGen.PathSubscriptionTopic.children)
-      ) {
+        ) {
         loadFolderChildren(path, initialLoadRecursive)
       }
     },
-    !!routeData && shouldLoad
+    shouldLoad
   )
   useFsLoadOnMountAndFocus({
     enabled: shouldLoad,

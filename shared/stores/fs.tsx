@@ -386,11 +386,6 @@ export type State = Store & {
     ) => void
     onChangedFocus: (appFocused: boolean) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    onPathChange: (
-      clientID: string,
-      path: string,
-      topics: ReadonlyArray<T.RPCGen.PathSubscriptionTopic>
-    ) => void
     onSubscriptionNotify: (clientID: string, topic: T.RPCGen.SubscriptionTopic) => void
     pollJournalStatus: () => void
     redbar: (error: string) => void
@@ -409,7 +404,6 @@ export type State = Store & {
     setTlfSyncConfig: (tlfPath: T.FS.Path, enabled: boolean) => void
     startManualConflictResolution: (tlfPath: T.FS.Path) => void
     subscribeNonPath: (subscriptionID: string, topic: T.RPCGen.SubscriptionTopic) => void
-    subscribePath: (subscriptionID: string, path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => void
     syncStatusChanged: (status: T.RPCGen.FolderSyncStatus) => void
     unsubscribe: (subscriptionID: string) => void
     upload: (parentPath: T.FS.Path, localPath: string) => void
@@ -1369,11 +1363,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
           get().dispatch.syncStatusChanged(action.payload.params.status)
           break
-        case 'keybase.1.NotifyFS.FSSubscriptionNotifyPath': {
-          const {clientID, path, topics} = action.payload.params
-          get().dispatch.onPathChange(clientID, path, topics ?? [])
-          break
-        }
         case 'keybase.1.NotifyFS.FSSubscriptionNotify': {
           const {clientID, topic} = action.payload.params
           get().dispatch.onSubscriptionNotify(clientID, topic)
@@ -1381,23 +1370,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         }
         default:
       }
-    },
-    onPathChange: (cid, path, topics) => {
-      if (cid !== clientID) {
-        return
-      }
-
-      const {folderListLoad} = useFSState.getState().dispatch
-      topics.forEach(topic => {
-        switch (topic) {
-          case T.RPCGen.PathSubscriptionTopic.children:
-            folderListLoad(T.FS.stringToPath(path), false)
-            break
-          case T.RPCGen.PathSubscriptionTopic.stat:
-            get().dispatch.loadPathMetadata(T.FS.stringToPath(path))
-            break
-        }
-      })
     },
     onSubscriptionNotify: (cid, topic) => {
       const f = async () => {
@@ -1638,29 +1610,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           })
         } catch (err) {
           errorToActionOrThrow(err)
-        }
-      }
-      ignorePromise(f())
-    },
-    subscribePath: (subscriptionID, path, topic) => {
-      const f = async () => {
-        try {
-          await T.RPCGen.SimpleFSSimpleFSSubscribePathRpcPromise({
-            clientID,
-            deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
-            kbfsPath: T.FS.pathToString(path),
-            subscriptionID,
-            topic,
-          })
-        } catch (error) {
-          if (!(error instanceof RPCError)) {
-            return
-          }
-          if (error.code !== T.RPCGen.StatusCode.scteamcontactsettingsblock) {
-            // We'll handle this error in loadAdditionalTLF instead.
-            errorToActionOrThrow(error, path)
-          }
         }
       }
       ignorePromise(f())

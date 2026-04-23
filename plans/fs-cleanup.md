@@ -133,7 +133,7 @@ Current slice note:
 ## Chunk 4: Re-evaluate Subscription and Notification Ownership
 
 - [ ] Stop treating `fs` as the default owner for mounted-screen refreshes
-- [ ] Keep mounted path subscriptions near the owning hooks instead of centering all path refresh behavior in the store
+- [x] Keep mounted path subscriptions near the owning hooks instead of centering all path refresh behavior in the store
 - [ ] Re-evaluate store-owned handling for:
   - `keybase.1.NotifyFS.FSSubscriptionNotifyPath`
   - `keybase.1.NotifyFS.FSSubscriptionNotify`
@@ -153,6 +153,10 @@ Current slice note:
 - path-refresh parts of `onSubscriptionNotify`
 - mounted-view portions of `onEngineIncomingImpl`
 - some `subscribePath` / `subscribeNonPath` ownership if moved into feature hooks
+
+Current slice note:
+- mounted FS hooks now own their `SimpleFSSubscribePath` / `SimpleFSUnsubscribe` lifecycle directly, and store-owned `FSSubscriptionNotifyPath` refresh handling has been removed
+- non-path notifications still need review before the store stops being the default owner for mounted-screen refreshes
 
 ## Chunk 5: Decide What Stays Global
 
