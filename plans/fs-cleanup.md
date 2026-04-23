@@ -99,10 +99,10 @@ Current slice note:
 ## Chunk 3: Remove Route-Owned FS Screen State and Convenience Caches
 
 - [x] Move `useFsPathInfo` / `useFsFileContext` loads to local hook state and delete those FS-store caches
-- [ ] Replace list and preview screens with route-owned loaders rather than shared FS cache reads
+- [x] Replace list and preview screens with route-owned loaders rather than shared FS cache reads
 - [x] Move per-path sort / filter / local view preferences out of the global store unless they must survive unrelated entry points
 - [x] Re-evaluate whether `pathUserSettings` should become route-local, persisted separately, or remain small global preference state
-- [ ] Move screen-local redbars / errors out of the store where they only serve the current route
+- [x] Move screen-local redbars / errors out of the store where they only serve the current route
 - [x] Replace `loadAdditionalTlf`, `favoritesLoad`, `folderListLoad`, `loadPathMetadata`, and similar callers with feature hooks where possible
 
 ### Screens and flows to convert
@@ -114,7 +114,7 @@ Current slice note:
 - [x] `fs/top-bar/*`
 - [ ] `fs/nav-header/*`
 - [x] `fs/common/hooks.tsx`
-- [ ] `fs/common/errs-container.tsx`
+- [x] `fs/common/errs-container.tsx`
 
 ### Store fallout after Chunk 3
 
@@ -127,6 +127,7 @@ Current slice note:
 Current slice note:
 - mounted browser and destination-picker flows now keep per-path sort settings in a browser-local provider instead of `shared/stores/fs.tsx`
 - mounted FS route and destination-picker loaders now use a feature-local `FsDataProvider` for `pathItems` / `tlfs`; mounted hooks refresh that local state directly from SimpleFS RPCs instead of reading the shared cache
+- mounted browser, file-preview, and destination-picker flows now use a feature-local `FsErrorProvider` for redbars; store-backed `errors` remain as fallback for non-route/global FS actions
 
 ## Chunk 4: Re-evaluate Subscription and Notification Ownership
 

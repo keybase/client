@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Kbfs from '@/fs/common/hooks'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Util from '@/util/kbfs'
@@ -8,6 +7,8 @@ import Header from './header'
 import type {FloatingMenuProps, OnDownloadStarted} from './types'
 import {useFsBrowserEdits} from '@/fs/browser/edit-state'
 import {getRootLayout, getShareLayout} from './layout'
+import {useFsErrorActionOrThrow} from '../error-state'
+import {useFsFileContext} from '../hooks'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -31,7 +32,8 @@ const needConfirm = (pathItem: T.FS.PathItem) =>
 const Container = (op: OwnProps) => {
   const {downloadID, downloadIntent, path, mode, floatingMenuProps, onDownloadStarted, setView, view} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
-  const {fileContext, pathItem} = Kbfs.useFsFileContext(path)
+  const {fileContext, pathItem} = useFsFileContext(path)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
   const browserEdits = useFsBrowserEdits()
   const {cancelDownload, dismissDownload, download, favoriteIgnore, sfmiEnabled} = useFSState(
     C.useShallow(s => ({
@@ -97,7 +99,7 @@ const Container = (op: OwnProps) => {
           {
             icon: 'iconfont-finder',
             onClick: hideAndCancelAfter(() => {
-              openPathInSystemFileManagerDesktop(path)
+              openPathInSystemFileManagerDesktop(path, errorToActionOrThrow)
             }),
             title: 'Show in ' + C.fileUIName,
           },

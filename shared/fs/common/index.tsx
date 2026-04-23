@@ -14,4 +14,5 @@ export {default as SystemFileManagerIntegrationPopup} from './sfmi-popup'
 export {default as PathInfo} from './path-info'
 export {default as PathItemInfo} from './path-item-info'
 
+export * from './error-state'
 export * from './hooks'

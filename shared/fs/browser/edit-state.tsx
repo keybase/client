@@ -4,8 +4,9 @@ import {ignorePromise} from '@/constants/utils'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
-import {useFsLoadedPathItems} from '../common'
-import {errorToActionOrThrow, makeEditID, makeUUID} from '@/stores/fs'
+import {useFsErrorActionOrThrow} from '../common/error-state'
+import {useFsLoadedPathItems} from '../common/hooks'
+import {makeEditID, makeUUID} from '@/stores/fs'
 
 export type BrowserEditSession = Readonly<{
   commitEdit: () => void
@@ -81,6 +82,7 @@ const getStaleRenameEditIDs = (
 }
 
 export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) => {
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
   const [edits, setEdits] = React.useState<ReadonlyMap<T.FS.EditID, T.FS.Edit>>(() => new Map())
   const [submitting, setSubmitting] = React.useState<ReadonlySet<T.FS.EditID>>(() => new Set())
   const pathItems = useFsLoadedPathItems()

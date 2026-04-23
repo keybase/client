@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as Kbfs from '@/fs/common'
 import {openURL as openUrl} from '@/util/misc'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
@@ -12,6 +13,7 @@ type OwnProps = {
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
+  const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
   const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
   const finishManualConflictResolution = useFSState(s => s.dispatch.finishManualConflictResolution)
   const startManualConflictResolution = useFSState(s => s.dispatch.startManualConflictResolution)
@@ -30,7 +32,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   }
 
   const openInSystemFileManager = (path: T.FS.Path) => {
-    openPathInSystemFileManagerDesktop(path)
+    openPathInSystemFileManagerDesktop(path, errorToActionOrThrow)
   }
 
   const conflictState = _tlf.conflictState

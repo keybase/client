@@ -238,11 +238,22 @@ const noAccessErrorCodes: Array<T.RPCGen.StatusCode> = [
   T.RPCGen.StatusCode.scteamreaderror,
 ]
 
-export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
+type ErrorHandlers = {
+  checkKbfsDaemonRpcStatus: () => void
+  redbar: (error: string) => void
+  setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
+  setTlfSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
+}
+
+export const errorToActionOrThrowWithHandlers = (
+  {checkKbfsDaemonRpcStatus, redbar, setPathSoftError, setTlfSoftError}: ErrorHandlers,
+  error: unknown,
+  path?: T.FS.Path
+) => {
   if (!isObject(error)) return
   const code = (error as {code?: T.RPCGen.StatusCode}).code
   if (code === T.RPCGen.StatusCode.sckbfsclienttimeout) {
-    useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
+    checkKbfsDaemonRpcStatus()
     return
   }
   if (code === T.RPCGen.StatusCode.scidentifiesfailed) {
@@ -259,23 +270,26 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
     return undefined
   }
   if (path && code === T.RPCGen.StatusCode.scsimplefsnotexist) {
-    useFSState.getState().dispatch.setPathSoftError(path, T.FS.SoftError.Nonexistent)
+    setPathSoftError(path, T.FS.SoftError.Nonexistent)
     return
   }
   if (path && code && noAccessErrorCodes.includes(code)) {
     const tlfPath = Constants.getTlfPath(path)
     if (tlfPath) {
-      useFSState.getState().dispatch.setTlfSoftError(tlfPath, T.FS.SoftError.NoAccess)
+      setTlfSoftError(tlfPath, T.FS.SoftError.NoAccess)
       return
     }
   }
   if (code === T.RPCGen.StatusCode.scdeleted) {
     // The user is deleted. Let user know and move on.
-    useFSState.getState().dispatch.redbar('A user in this shared folder has deleted their account.')
+    redbar('A user in this shared folder has deleted their account.')
     return
   }
   throw error
 }
+
+export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) =>
+  errorToActionOrThrowWithHandlers(useFSState.getState().dispatch, error, path)
 
 type Store = T.Immutable<{
   badge: T.RPCGen.FilesTabBadge

@@ -84,9 +84,11 @@ const ConnectedInner = (ownProps: OwnProps) => {
 }
 
 const Connected = (ownProps: OwnProps) => (
-  <Kbfs.FsDataProvider>
-    <ConnectedInner {...ownProps} />
-  </Kbfs.FsDataProvider>
+  <Kbfs.FsErrorProvider>
+    <Kbfs.FsDataProvider>
+      <ConnectedInner {...ownProps} />
+    </Kbfs.FsDataProvider>
+  </Kbfs.FsErrorProvider>
 )
 
 export default Connected

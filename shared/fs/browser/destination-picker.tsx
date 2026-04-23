@@ -86,6 +86,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
           </Kb.Box2>
         )}
         <Kb.Divider key="dheader" />
+        <FsCommon.Errs />
         {!!onBackUp && (
           <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={onBackUp}>
             <Kb.Icon
@@ -146,13 +147,15 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
 }
 
 const Screen = (props: OwnProps) => (
-  <FsCommon.FsDataProvider>
-    <FsBrowserEditProvider>
-      <FsBrowserSortProvider>
-        <ConnectedDestinationPicker {...props} />
-      </FsBrowserSortProvider>
-    </FsBrowserEditProvider>
-  </FsCommon.FsDataProvider>
+  <FsCommon.FsErrorProvider>
+    <FsCommon.FsDataProvider>
+      <FsBrowserEditProvider>
+        <FsBrowserSortProvider>
+          <ConnectedDestinationPicker {...props} />
+        </FsBrowserSortProvider>
+      </FsBrowserEditProvider>
+    </FsCommon.FsDataProvider>
+  </FsCommon.FsErrorProvider>
 )
 
 const NewFolder = (p: {onNewFolder?: () => void}) => {

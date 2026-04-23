@@ -2,10 +2,12 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {errorToActionOrThrow, useFSState} from '@/stores/fs'
+import * as Kbfs from '@/fs/common'
+import {useFSState} from '@/stores/fs'
 import {openSecurityPreferencesDesktop as openSecurityPreferencesInPlatform} from '@/stores/fs-platform'
 
 const InstallSecurityPrefs = () => {
+  const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
   const driverStatus = useFSState(s => s.sfmi.driverStatus)
   const onCancel = C.Router2.navigateUp
   const openSecurityPrefs = () => {

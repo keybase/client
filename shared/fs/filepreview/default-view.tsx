@@ -2,7 +2,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {PathItemAction, LastModifiedLine, ItemIcon, type ClickableProps} from '../common'
-import {useFsFileContext} from '../common'
+import {useFsErrorActionOrThrow, useFsFileContext} from '../common'
 import {hasShare} from '../common/path-item-action/layout'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
@@ -18,6 +18,7 @@ const Share = (p: ClickableProps) => {
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const {fileContext, pathItem} = useFsFileContext(path)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
   const {sfmiEnabled, _download} = useFSState(
     C.useShallow(s => ({
       _download: s.dispatch.download,
@@ -28,7 +29,7 @@ const Container = (ownProps: OwnProps) => {
     _download(path, 'download')
   }
   const showInSystemFileManager = () => {
-    openPathInSystemFileManagerDesktop(path)
+    openPathInSystemFileManagerDesktop(path, errorToActionOrThrow)
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>

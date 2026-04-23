@@ -6,7 +6,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as FS from '@/stores/fs'
-import {errorToActionOrThrow, useFSState} from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 import {RPCError} from '@/util/errors'
 import {
   favoritesResultToTlfs,
@@ -15,6 +15,7 @@ import {
   makePathItemsFromDirents,
   updatePathItem,
 } from './rpc-state'
+import {useFsErrorActionOrThrow, useFsRedbarActions} from './error-state'
 import {
   finishedDownloadWithIntentMobile as finishedDownloadWithIntentInPlatform,
   finishedRegularDownloadMobile as finishedRegularDownloadInPlatform,
@@ -45,6 +46,7 @@ const FsDataContext = React.createContext<FsDataContextType | null>(null)
 
 export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
   const username = useCurrentUserState(s => s.username)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
   const [pathItems, setPathItems] = React.useState<T.FS.PathItems>(() => new Map())
   const [tlfs, setTlfs] = React.useState<T.FS.Tlfs>(makeEmptyTlfs)
 
@@ -466,6 +468,7 @@ export const useFsDownloadStatus = () => {
 
 export const useFsFileContext = (path: T.FS.Path) => {
   const pathItem = useFsPathItem(path)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
   const [fileContext, setFileContext] = React.useState(FS.emptyFileContext)
   const fileContextVersionRef = React.useRef(0)
   const [urlError, setUrlError] = React.useState('')
@@ -515,12 +518,13 @@ export const useFsWatchDownloadForMobile = C.isMobile
   ? (downloadID: string, downloadIntent?: T.FS.DownloadIntent): boolean => {
       const dlInfo = useFsDownloadInfo(downloadID)
       const {fileContext} = useFsFileContext(dlInfo.path)
+      const {redbar} = useFsRedbarActions()
+      const errorToActionOrThrow = useFsErrorActionOrThrow()
 
-      const {dismissDownload, dlState, redbar} = useFSState(
+      const {dismissDownload, dlState} = useFSState(
         C.useShallow(s => ({
           dismissDownload: s.dispatch.dismissDownload,
           dlState: s.downloads.state.get(downloadID) || FS.emptyDownloadState,
-          redbar: s.dispatch.redbar,
         }))
       )
       const finished = dlState !== FS.emptyDownloadState && !FS.downloadIsOngoing(dlState)
@@ -568,11 +572,11 @@ export const useFsWatchDownloadForMobile = C.isMobile
         dismissDownload,
         dlInfo,
         dlState,
-        redbar,
         finished,
         mimeType,
         downloadID,
         downloadIntent,
+        redbar,
       ])
       return justDoneWithIntent
     }
