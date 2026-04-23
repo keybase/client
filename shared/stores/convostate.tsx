@@ -2485,7 +2485,7 @@ const createSlice =
                 }
               }
               if (changed) {
-                info.messages = nextMessages.sort((l, r) => r.id - l.id)
+                info.messages = T.castDraft(nextMessages.sort((l, r) => r.id - l.id))
               }
             })
             messagesAdd(dedupedMessages, {markAsRead: false, why: 'gallery inject'})
