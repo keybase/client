@@ -50,7 +50,7 @@ const setupTeamWrapper = ({
     )
   }
 
-  return {selectedChannelChanges, selectedMemberChanges, Wrapper}
+  return {Wrapper, selectedChannelChanges, selectedMemberChanges}
 }
 
 const setupChannelWrapper = ({initialSelectedMembers}: {initialSelectedMembers?: Array<string>}) => {
@@ -72,7 +72,7 @@ const setupChannelWrapper = ({initialSelectedMembers}: {initialSelectedMembers?:
     )
   }
 
-  return {selectedMemberChanges, Wrapper}
+  return {Wrapper, selectedMemberChanges}
 }
 
 test('team selection provider keeps add remove and clear behavior in sync with route params', () => {
