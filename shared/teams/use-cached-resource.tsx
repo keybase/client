@@ -164,7 +164,7 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
       } else {
         hasFocusedSinceMountRef.current = true
       }
-    }, [cacheKey, enabled, loadIfStale])
+    }, [enabled, loadIfStale])
   )
 
   return {...state, clear, loadIfStale, reload}
