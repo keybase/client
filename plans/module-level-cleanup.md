@@ -20,7 +20,7 @@ If state truly needs app-wide lifetime, keep it in an explicit store and documen
 
 ### 1. Chat Team Hooks
 
-- [ ] `shared/chat/conversation/team-hooks.tsx`
+- [x] `shared/chat/conversation/team-hooks.tsx`
 - Current module-level mutable state to remove:
   - `chosenChannelsStoreState`
   - `chosenChannelsInFlight`
@@ -69,23 +69,23 @@ If state truly needs app-wide lifetime, keep it in an explicit store and documen
 
 ## Chunk 1: Remove Hidden Chat Team Stores
 
-- [ ] Split `team-hooks.tsx` into provider-owned state and pure helper functions
-- [ ] Move chosen-channels badge state into a mounted owner
+- [x] Split `team-hooks.tsx` into provider-owned state and pure helper functions
+- [x] Move chosen-channels badge state into a mounted owner
   - likely a conversation/team feature provider
   - no module-level `useSyncExternalStore(...)` snapshot
-- [ ] Move teamname loading out of module cache state
+- [x] Move teamname loading out of module cache state
   - either provider-owned loaded state
   - or direct per-consumer loads if duplication is acceptable
-- [ ] Remove the module-level per-user reset sentinel
+- [x] Remove the module-level per-user reset sentinel
   - user changes should reset provider/local state through React ownership, not `chatTeamHooksUsername`
-- [ ] Delete all chosen-channels and teamname module variables after consumers are moved
+- [x] Delete all chosen-channels and teamname module variables after consumers are moved
 
 ### Validation for Chunk 1
 
 - [ ] chat info panel still renders permissions and team metadata correctly
 - [ ] manage-channels badge still reloads and dismisses correctly
 - [ ] teamname lookups still refresh on team rename / exit / delete
-- [ ] no module-level mutable state remains in `chat/conversation/team-hooks.tsx`
+- [x] no module-level mutable state remains in `chat/conversation/team-hooks.tsx`
 
 ## Chunk 2: Remove Pinentry Singleton Routing
 
@@ -120,6 +120,7 @@ If state truly needs app-wide lifetime, keep it in an explicit store and documen
 
 ## Validation
 
-- [ ] `rg -n "^(let |const .* = new (Map|Set)\\(|const .*Listeners = new Set\\()"`
-- [ ] No branch-introduced cleanup code relies on module-level mutable state for feature ownership
-- [ ] Any remaining module-level mutable state is explicitly reviewed and documented as pre-existing or unrelated
+- [x] `rg -n "^(let |const .* = new (Map|Set)\\(|const .*Listeners = new Set\\()"`
+- [x] No branch-introduced cleanup code relies on module-level mutable state for feature ownership
+- [x] Any remaining module-level mutable state is explicitly reviewed and documented as pre-existing or unrelated
+  - Reviewed `shared/teams/common/use-loaded-team-channels.tsx`; its module-level `emptyChannels` constant is pre-existing and unrelated to the chat team hook cleanup.

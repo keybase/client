@@ -24,12 +24,6 @@ type ChatTeamMembersState = {
   members: ReadonlyMap<string, T.Teams.MemberInfo>
 }
 
-type ChatTeamChannelsState = {
-  channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
-  loading: boolean
-  teamname: string
-}
-
 type ChatTeamNamesState = {
   loading: boolean
   teamnames: ReadonlyMap<T.Teams.TeamID, string>
@@ -40,10 +34,6 @@ type ChatTeamStateInternal = ChatTeamState & {
 }
 
 type ChatTeamMembersStateInternal = ChatTeamMembersState & {
-  loadedTeamID?: T.Teams.TeamID
-}
-
-type ChatTeamChannelsStateInternal = ChatTeamChannelsState & {
   loadedTeamID?: T.Teams.TeamID
 }
 
@@ -68,10 +58,6 @@ export type ChatTeamMembers = ChatTeamMembersState & {
   reload: () => Promise<void>
 }
 
-export type ChatTeamChannels = ChatTeamChannelsState & {
-  reload: () => Promise<void>
-}
-
 export type ChatTeamNames = ChatTeamNamesState & {
   reload: () => Promise<void>
 }
@@ -80,10 +66,6 @@ export type ChatManageChannelsBadge = ChatManageChannelsBadgeState & {
   dismiss: () => Promise<void>
   reload: () => Promise<void>
 }
-
-const emptyMembers = new Map<string, T.Teams.MemberInfo>()
-const emptyChannels = new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()
-const emptyTeamnames = new Map<T.Teams.TeamID, string>()
 
 const emptyChatTeamState: ChatTeamStateInternal = {
   allowPromote: false,
@@ -95,30 +77,22 @@ const emptyChatTeamState: ChatTeamStateInternal = {
   yourOperations: Teams.initialCanUserPerform,
 }
 
-const emptyChatTeamChannelsState: ChatTeamChannelsStateInternal = {
-  channels: emptyChannels,
+const makeEmptyChatTeamMembersState = (): ChatTeamMembersStateInternal => ({
   loadedTeamID: undefined,
   loading: false,
-  teamname: '',
-}
+  members: new Map<string, T.Teams.MemberInfo>(),
+})
 
-const emptyChatTeamMembersState: ChatTeamMembersStateInternal = {
-  loadedTeamID: undefined,
+const makeEmptyChatTeamNamesState = (): ChatTeamNamesState => ({
   loading: false,
-  members: emptyMembers,
-}
+  teamnames: new Map<T.Teams.TeamID, string>(),
+})
 
-const emptyChatTeamNamesState: ChatTeamNamesState = {
-  loading: false,
-  teamnames: emptyTeamnames,
-}
-
-const emptyChosenChannelsTeamnames = new Set<string>()
-const emptyChosenChannelsStoreState: ChosenChannelsStoreState = {
+const makeEmptyChosenChannelsStoreState = (): ChosenChannelsStoreState => ({
   loaded: false,
   loading: false,
-  teamnames: emptyChosenChannelsTeamnames,
-}
+  teamnames: new Set<string>(),
+})
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
@@ -267,14 +241,14 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
 
 const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeamMembers => {
   const validTeamID = loadableTeamID(teamID)
-  const [state, setState] = React.useState<ChatTeamMembersStateInternal>({
-    ...emptyChatTeamMembersState,
+  const [state, setState] = React.useState<ChatTeamMembersStateInternal>(() => ({
+    ...makeEmptyChatTeamMembersState(),
     loadedTeamID: validTeamID,
-  })
+  }))
   const requestVersionRef = React.useRef(0)
   const clearState = React.useCallback(() => {
     requestVersionRef.current++
-    setState({...emptyChatTeamMembersState, loadedTeamID: validTeamID})
+    setState({...makeEmptyChatTeamMembersState(), loadedTeamID: validTeamID})
   }, [validTeamID])
 
   const reload = React.useCallback(async () => {
@@ -309,7 +283,7 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
 
   const visibleState =
     enabled && state.loadedTeamID !== validTeamID
-      ? {...emptyChatTeamMembersState, loadedTeamID: validTeamID}
+      ? {...makeEmptyChatTeamMembersState(), loadedTeamID: validTeamID}
       : state
 
   React.useEffect(() => {
@@ -320,98 +294,6 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
       void reload()
     }, [reload])
   )
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      void reload()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      clearState()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (enabled && action.payload.params.teamID === validTeamID) {
-      clearState()
-    }
-  })
-
-  return {...visibleState, reload}
-}
-
-const useChatTeamChannelsRaw = (
-  teamID: T.Teams.TeamID,
-  teamname?: string,
-  enabled = true
-): ChatTeamChannels => {
-  const validTeamID = loadableTeamID(teamID)
-  const [state, setState] = React.useState<ChatTeamChannelsStateInternal>(() => ({
-    ...emptyChatTeamChannelsState,
-    loadedTeamID: validTeamID,
-    teamname: teamname ?? '',
-  }))
-  const requestVersionRef = React.useRef(0)
-  const clearState = React.useCallback(() => {
-    requestVersionRef.current++
-    setState({...emptyChatTeamChannelsState, loadedTeamID: validTeamID, teamname: teamname ?? ''})
-  }, [teamname, validTeamID])
-
-  const reload = React.useCallback(async () => {
-    if (!enabled || !validTeamID) {
-      clearState()
-      return
-    }
-    const requestVersion = ++requestVersionRef.current
-    setState(prev => ({...prev, loading: true, teamname: prev.teamname || teamname || ''}))
-    try {
-      const resolvedTeamname =
-        teamname || (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID})).name
-      const {convs} = await T.RPCChat.localGetTLFConversationsLocalRpcPromise({
-        membersType: T.RPCChat.ConversationMembersType.team,
-        tlfName: resolvedTeamname,
-        topicType: T.RPCChat.TopicType.chat,
-      })
-      const channels =
-        convs?.reduce((res, inboxUIItem) => {
-          const conversationIDKey = T.Chat.stringToConversationIDKey(inboxUIItem.convID)
-          res.set(conversationIDKey, {
-            channelname: inboxUIItem.channel,
-            conversationIDKey,
-            description: inboxUIItem.headline,
-          })
-          return res
-        }, new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()) ?? emptyChannels
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      setState({channels, loadedTeamID: validTeamID, loading: false, teamname: resolvedTeamname})
-    } catch (error) {
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      logger.warn(`Failed to load chat channels for ${validTeamID}`, error)
-      setState(prev => ({...prev, loading: false}))
-    }
-  }, [clearState, enabled, teamname, validTeamID])
-
-  const visibleState =
-    enabled && state.loadedTeamID !== validTeamID
-      ? {...emptyChatTeamChannelsState, loadedTeamID: validTeamID, teamname: teamname ?? ''}
-      : state
-
-  React.useEffect(() => {
-    void reload()
-  }, [reload])
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      void reload()
-    }, [reload])
-  )
-  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
-    if (enabled) {
-      void reload()
-    }
-  })
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
       void reload()
@@ -439,11 +321,11 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
     .sort()
     .join(',')
   const validTeamIDs = React.useMemo(() => parseTeamIDsKey(teamIDsKey), [teamIDsKey])
-  const [state, setState] = React.useState<ChatTeamNamesState>(emptyChatTeamNamesState)
+  const [state, setState] = React.useState<ChatTeamNamesState>(() => makeEmptyChatTeamNamesState())
   const requestVersionRef = React.useRef(0)
   const clearState = React.useCallback(() => {
     requestVersionRef.current++
-    setState(emptyChatTeamNamesState)
+    setState(makeEmptyChatTeamNamesState())
   }, [])
 
   const reload = React.useCallback(async () => {
@@ -568,9 +450,6 @@ export const useChatTeamMembers = (teamID: T.Teams.TeamID): ChatTeamMembers => {
   return useContextValue ? context.members : raw
 }
 
-export const useChatTeamChannels = (teamID: T.Teams.TeamID, teamname?: string): ChatTeamChannels =>
-  useChatTeamChannelsRaw(teamID, teamname)
-
 export const useChatTeamNames = (teamIDs: ReadonlyArray<T.Teams.TeamID>): ChatTeamNames =>
   useChatTeamNamesRaw(teamIDs)
 
@@ -581,7 +460,7 @@ export const useChatManageChannelsBadge = (
   const username = useCurrentUserState(s => s.username)
   const validTeamID = loadableTeamID(teamID)
   const [chosenChannelsState, setChosenChannelsState] =
-    React.useState<ChosenChannelsStoreState>(emptyChosenChannelsStoreState)
+    React.useState<ChosenChannelsStoreState>(() => makeEmptyChosenChannelsStoreState())
   const chosenChannelsStateRef = React.useRef(chosenChannelsState)
   const chosenChannelsInFlightRef = React.useRef<Promise<void> | undefined>(undefined)
   const chosenChannelsLoadedAtRef = React.useRef(0)
@@ -623,7 +502,7 @@ export const useChatManageChannelsBadge = (
 
   const reload = React.useCallback(async () => {
     if (!validTeamID || !teamname || !username) {
-      updateChosenChannelsState(emptyChosenChannelsStoreState)
+      updateChosenChannelsState(makeEmptyChosenChannelsStoreState())
       return
     }
     if (chosenChannelsInFlightRef.current) {
@@ -657,7 +536,7 @@ export const useChatManageChannelsBadge = (
   const loadIfStale = React.useCallback(
     async (force = false) => {
       if (!validTeamID || !teamname || !username) {
-        updateChosenChannelsState(emptyChosenChannelsStoreState)
+        updateChosenChannelsState(makeEmptyChosenChannelsStoreState())
         return
       }
       const isFresh =
