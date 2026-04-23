@@ -51,13 +51,11 @@ for (const tab of Tabs.desktopTabs) {
 
 function AppTabsInner() {
   return (
-    <LoadedTeamsListProvider>
-      <Tab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
-        {Tabs.desktopTabs.map(tab => (
-          <Tab.Screen key={tab} name={tab} component={tabComponents[tab]!} />
-        ))}
-      </Tab.Navigator>
-    </LoadedTeamsListProvider>
+    <Tab.Navigator backBehavior="none" screenOptions={appTabsInnerOptions}>
+      {Tabs.desktopTabs.map(tab => (
+        <Tab.Screen key={tab} name={tab} component={tabComponents[tab]!} />
+      ))}
+    </Tab.Navigator>
   )
 }
 
@@ -227,7 +225,9 @@ function ElectronApp() {
       ref={navRef}
       theme={isDarkMode ? Shared.darkTheme : Shared.lightTheme}
     >
-      <RootComponent />
+      <LoadedTeamsListProvider>
+        <RootComponent />
+      </LoadedTeamsListProvider>
     </NavigationContainer>
   )
 }

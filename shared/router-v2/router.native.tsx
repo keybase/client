@@ -194,18 +194,16 @@ function AppTabs() {
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
 
   return (
-    <LoadedTeamsListProvider>
-      <Tab.Navigator backBehavior="none">
-        {tabs.map(tab => (
-          <Tab.Screen
-            key={tab}
-            name={tab}
-            component={tabComponents[tab]!}
-            options={appTabsScreenOptions(tab, navBadges, hasPermissions, isDarkMode)}
-          />
-        ))}
-      </Tab.Navigator>
-    </LoadedTeamsListProvider>
+    <Tab.Navigator backBehavior="none">
+      {tabs.map(tab => (
+        <Tab.Screen
+          key={tab}
+          name={tab}
+          component={tabComponents[tab]!}
+          options={appTabsScreenOptions(tab, navBadges, hasPermissions, isDarkMode)}
+        />
+      ))}
+    </Tab.Navigator>
   )
 }
 
@@ -342,7 +340,9 @@ function RNApp() {
         ref={navRef}
         theme={isDarkMode ? Shared.darkTheme : Shared.lightTheme}
       >
-        <RootComponent />
+        <LoadedTeamsListProvider>
+          <RootComponent />
+        </LoadedTeamsListProvider>
       </NavigationContainer>
     </Kb.Box2>
   )
