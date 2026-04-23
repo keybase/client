@@ -111,7 +111,7 @@ const PinentryProxy = () => {
   })
 
   const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = popupState
-  const show = type !== T.RPCGen.PassphraseType.none && !!showTyping
+  const show = type !== T.RPCGen.PassphraseType.none
   const darkMode = useColorScheme() === 'dark'
   if (show) {
     return (
