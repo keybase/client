@@ -12,6 +12,27 @@ import {
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
 
+const useFsLoadOnMountAndFocus = ({
+  enabled = true,
+  load,
+  deps,
+}: {
+  deps: ReadonlyArray<unknown>
+  enabled?: boolean
+  load: () => void
+}) => {
+  const loadOnMountAndFocus = React.useEffectEvent(() => {
+    enabled && load()
+  })
+  const [stableLoadOnMountAndFocus] = React.useState(() => () => {
+    loadOnMountAndFocus()
+  })
+  React.useEffect(() => {
+    enabled && loadOnMountAndFocus()
+  }, deps)
+  C.Router2.useSafeFocusEffect(stableLoadOnMountAndFocus)
+}
+
 const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => {
   const {subscribePath, unsubscribe} = useFSState(
     C.useShallow(s => ({
@@ -46,83 +67,106 @@ const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic) => {
   }, [subscribeNonPath, unsubscribe, topic])
 }
 
-export const useFsPathMetadata = (path: T.FS.Path) => {
+export const useFsPathItem = (path: T.FS.Path) => {
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat)
-  React.useEffect(() => {
-    isPathItem(path) && useFSState.getState().dispatch.loadPathMetadata(path)
-  }, [path])
+  const pathItem = useFSState(s => FS.getPathItem(s.pathItems, path))
+  const loadPathMetadata = useFSState(s => s.dispatch.loadPathMetadata)
+  const shouldLoad = isPathItem(path)
+  useFsLoadOnMountAndFocus({
+    deps: [loadPathMetadata, path, shouldLoad],
+    enabled: shouldLoad,
+    load: () => loadPathMetadata(path),
+  })
+  return pathItem
 }
 
-export const useFsChildren = (path: T.FS.Path, initialLoadRecursive?: boolean) => {
+export const useFsPathMetadata = (path: T.FS.Path) => useFsPathItem(path)
+
+export const useFsFolderChildren = (
+  path: T.FS.Path,
+  options?: {
+    initialLoadRecursive?: boolean
+  }
+) => {
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.children)
+  const pathItem = useFSState(s => FS.getPathItem(s.pathItems, path))
   const folderListLoad = useFSState(s => s.dispatch.folderListLoad)
-  React.useEffect(() => {
-    isPathItem(path) && folderListLoad(path, initialLoadRecursive || false)
-  }, [folderListLoad, path, initialLoadRecursive])
+  const initialLoadRecursive = !!options?.initialLoadRecursive
+  const shouldLoad = isPathItem(path)
+  useFsLoadOnMountAndFocus({
+    deps: [folderListLoad, initialLoadRecursive, path, shouldLoad],
+    enabled: shouldLoad,
+    load: () => folderListLoad(path, initialLoadRecursive),
+  })
+  return pathItem
 }
+
+export const useFsChildren = (path: T.FS.Path, initialLoadRecursive?: boolean) =>
+  useFsFolderChildren(path, {initialLoadRecursive})
 
 export const useFsTlfs = () => {
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites)
+  const tlfs = useFSState(s => s.tlfs)
   const favoritesLoad = useFSState(s => s.dispatch.favoritesLoad)
-  React.useEffect(() => {
-    favoritesLoad()
-  }, [favoritesLoad])
+  useFsLoadOnMountAndFocus({
+    deps: [favoritesLoad],
+    load: favoritesLoad,
+  })
+  return tlfs
 }
 
 export const useFsTlf = (path: T.FS.Path) => {
   const tlfPath = FS.getTlfPath(path)
-  const {tlfs, loadAdditionalTlf} = useFSState(
-    C.useShallow(s => ({
-      loadAdditionalTlf: s.dispatch.loadAdditionalTlf,
-      tlfs: s.tlfs,
-    }))
-  )
+  const tlfs = useFsTlfs()
+  const tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
+  const loadAdditionalTlf = useFSState(s => s.dispatch.loadAdditionalTlf)
   const active =
-    // If we don't have a TLF path, we are not inside a TLF yet. So no need
-    // to load.
     !!tlfPath &&
-    // If favorites are not loaded, don't load anything yet -- what we need
-    // might be available from favorites.
     tlfs.loaded &&
-    // If TLF is part of favorites list, we already have notifications to
-    // cover the refresh, so no need to load here. (To be clear,
-    // notifications don't cover syncConfig, but we already load when user
-    // toggles change.)
     FS.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) === FS.unknownTlf
-  // We need to load TLFs. We don't have notifications for this rpc yet, so
-  // just poll on a 10s interval.
+  const loadCurrentTlf = React.useEffectEvent(() => {
+    active && loadAdditionalTlf(tlfPath)
+  })
+  const [stableLoadCurrentTlf] = React.useState(() => () => {
+    loadCurrentTlf()
+  })
   Kb.useInterval(
     () => {
-      loadAdditionalTlf(tlfPath)
+      loadCurrentTlf()
     },
     active ? 10000 : undefined
   )
-  // useInterval doesn't trigger at beginning, so call in an effect here.
   React.useEffect(() => {
-    active && loadAdditionalTlf(tlfPath)
-  }, [active, loadAdditionalTlf, tlfPath])
+    loadCurrentTlf()
+  }, [active, loadAdditionalTlf, tlfPath, tlfs.loaded])
+  C.Router2.useSafeFocusEffect(stableLoadCurrentTlf)
+  return tlf
 }
 
 export const useFsOnlineStatus = () => {
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.onlineStatus)
   const getOnlineStatus = useFSState(s => s.dispatch.getOnlineStatus)
-  React.useEffect(() => {
-    getOnlineStatus()
-  }, [getOnlineStatus])
+  useFsLoadOnMountAndFocus({
+    deps: [getOnlineStatus],
+    load: getOnlineStatus,
+  })
 }
 
-export const useFsPathInfo = (path: T.FS.Path, knownPathInfo: T.FS.PathInfo): T.FS.PathInfo => {
+export const useFsPathInfo = (path: T.FS.Path, knownPathInfo = FS.emptyPathInfo): T.FS.PathInfo => {
   const pathInfo = useFSState(s => s.pathInfos.get(path) || FS.emptyPathInfo)
   const alreadyKnown = knownPathInfo !== FS.emptyPathInfo
-  React.useEffect(() => {
-    if (alreadyKnown) {
-      useFSState.getState().dispatch.loadedPathInfo(path, knownPathInfo)
-    } else if (pathInfo === FS.emptyPathInfo) {
-      // We only need to load if it's empty. This never changes once we have
-      // it.
-      useFSState.getState().dispatch.loadPathInfo(path)
-    }
-  }, [path, alreadyKnown, knownPathInfo, pathInfo])
+  useFsLoadOnMountAndFocus({
+    deps: [alreadyKnown, knownPathInfo, path, pathInfo],
+    load: () => {
+      if (alreadyKnown) {
+        useFSState.getState().dispatch.loadedPathInfo(path, knownPathInfo)
+      } else if (pathInfo === FS.emptyPathInfo) {
+        // We only need to load if it's empty. This never changes once we have
+        // it.
+        useFSState.getState().dispatch.loadPathInfo(path)
+      }
+    },
+  })
   return alreadyKnown ? knownPathInfo : pathInfo
 }
 
@@ -138,10 +182,11 @@ export const useFsDownloadInfo = (downloadID: string): T.FS.DownloadInfo => {
       loadDownloadInfo: s.dispatch.loadDownloadInfo,
     }))
   )
-  React.useEffect(() => {
-    // This never changes, so simply just load it once.
-    downloadID && loadDownloadInfo(downloadID)
-  }, [downloadID, loadDownloadInfo])
+  useFsLoadOnMountAndFocus({
+    deps: [downloadID, loadDownloadInfo],
+    enabled: !!downloadID,
+    load: () => loadDownloadInfo(downloadID),
+  })
   return info
 }
 
@@ -152,39 +197,40 @@ export const useFsDownloadStatus = () => {
       loadDownloadStatus: s.dispatch.loadDownloadStatus,
     }))
   )
-  React.useEffect(() => {
-    loadDownloadStatus()
-  }, [loadDownloadStatus])
+  useFsLoadOnMountAndFocus({
+    deps: [loadDownloadStatus],
+    load: loadDownloadStatus,
+  })
 }
 
 export const useFsFileContext = (path: T.FS.Path) => {
-  const {pathItem, loadFileContext} = useFSState(
+  const pathItem = useFsPathItem(path)
+  const {fileContext, loadFileContext} = useFSState(
     C.useShallow(s => ({
+      fileContext: s.fileContext.get(path) || FS.emptyFileContext,
       loadFileContext: s.dispatch.loadFileContext,
-      pathItem: FS.getPathItem(s.pathItems, path),
     }))
   )
   const [urlError, setUrlError] = React.useState('')
-  React.useEffect(() => {
-    urlError && logger.info(`urlError: ${urlError}`)
-    pathItem.type === T.FS.PathType.File && loadFileContext(path)
-  }, [
-    loadFileContext,
-    path,
-    // Intentionally depend on pathItem instead of only pathItem.type so we
-    // load when timestamp changes.
+  useFsLoadOnMountAndFocus({
+    deps: [loadFileContext, path, pathItem, urlError],
+    enabled: pathItem.type === T.FS.PathType.File,
+    load: () => {
+      urlError && logger.info(`urlError: ${urlError}`)
+      loadFileContext(path)
+    },
+  })
+  return {
+    fileContext,
+    onUrlError: setUrlError,
     pathItem,
-    // When url error happens it's possible that the URL of the item has
-    // changed due to HTTP server restarting. So reload in case of that.
-    urlError,
-  ])
-  return setUrlError
+  }
 }
 
 export const useFsWatchDownloadForMobile = C.isMobile
   ? (downloadID: string, downloadIntent?: T.FS.DownloadIntent): boolean => {
       const dlInfo = useFsDownloadInfo(downloadID)
-      useFsFileContext(dlInfo.path)
+      const {fileContext} = useFsFileContext(dlInfo.path)
 
       const {dismissDownload, dlState, redbar} = useFSState(
         C.useShallow(s => ({
@@ -194,11 +240,7 @@ export const useFsWatchDownloadForMobile = C.isMobile
         }))
       )
       const finished = dlState !== FS.emptyDownloadState && !FS.downloadIsOngoing(dlState)
-      const {mimeType} = useFSState(
-        C.useShallow(s => ({
-          mimeType: (s.fileContext.get(dlInfo.path) || FS.emptyFileContext).contentType,
-        }))
-      )
+      const mimeType = fileContext.contentType
 
       const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
       const handledIntentKeyRef = React.useRef<string>('')

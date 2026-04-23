@@ -32,30 +32,33 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ## Chunk 1: Define Path / TLF Data Hooks
 
-- [ ] Introduce a small service-backed FS hook layer for mounted consumers
+- [x] Introduce a small service-backed FS hook layer for mounted consumers
   - `useFsPathItem(path)`
   - `useFsFolderChildren(path, options?)`
   - `useFsTlf(path)`
   - `useFsPathMetadata(path)`
   - `useFsPathInfo(path)`
   - `useFsFileContext(path)`
-- [ ] Make these hooks own reload-on-mount/focus behavior instead of relying on a globally warmed `pathItems` / `tlfs` cache
-- [ ] Keep outputs narrow and purpose-built for FS consumers
+- [x] Make these hooks own reload-on-mount/focus behavior instead of relying on a globally warmed `pathItems` / `tlfs` cache
+- [x] Keep outputs narrow and purpose-built for FS consumers
   - current path item
   - children for the visible folder
   - current TLF metadata / sync config
   - file preview context
   - path info / soft error for the current path
-- [ ] Do not add a new hidden module-level cache; if a route needs shared data, use a feature-local provider
+- [x] Do not add a new hidden module-level cache; if a route needs shared data, use a feature-local provider
+
+Current slice note:
+- mounted callers still read through the existing FS store-backed data while ownership moves into the feature hook layer first; cache deletion remains for later chunks
 
 ### Target callers for Chunk 1
 
 - [ ] `fs/browser/*`
-- [ ] `fs/filepreview/*`
+- [x] `fs/filepreview/*`
 - [ ] `fs/nav-header/*`
 - [ ] `fs/common/path-*`
 - [ ] `fs/common/item-icon.tsx`
-- [ ] `fs/common/upload-button.tsx`
+- [x] `fs/common/upload-button.tsx`
 
 ### Store fallout after Chunk 1
 

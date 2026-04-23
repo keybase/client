@@ -8,7 +8,7 @@ import AVView from './av-view'
 import PdfView from './pdf-view'
 import * as Kb from '@/common-adapters'
 import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
+import {useFsFileContext} from '../common'
 
 type Props = {
   path: T.FS.Path
@@ -26,12 +26,7 @@ const FilePreviewView = (p: Props) => {
 }
 
 const FilePreviewViewContent = ({path, onUrlError}: Props) => {
-  const {pathItem, fileContext} = useFSState(
-    C.useShallow(s => ({
-      fileContext: s.fileContext.get(path) || FS.emptyFileContext,
-      pathItem: FS.getPathItem(s.pathItems, path),
-    }))
-  )
+  const {fileContext, pathItem} = useFsFileContext(path)
   const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(
     pathItem.lastModifiedTimestamp
   )

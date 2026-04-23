@@ -27,12 +27,10 @@ const needConfirm = (pathItem: T.FS.PathItem) =>
 const Container = (op: OwnProps) => {
   const {path, mode, floatingMenuProps, setView, view} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
-  Kbfs.useFsFileContext(path)
+  const {fileContext, pathItem} = Kbfs.useFsFileContext(path)
   const data = useFSState(
     C.useShallow(s => {
-      const pathItem = FS.getPathItem(s.pathItems, path)
       const pathItemActionMenu = s.pathItemActionMenu
-      const fileContext = s.fileContext.get(path) || FS.emptyFileContext
       const {cancelDownload, download, newFolderRow, startRename} = s.dispatch
       const {favoriteIgnore, dismissDownload} = s.dispatch
       const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
@@ -41,9 +39,7 @@ const Container = (op: OwnProps) => {
         dismissDownload,
         download,
         favoriteIgnore,
-        fileContext,
         newFolderRow,
-        pathItem,
         pathItemActionMenu,
         sfmiEnabled,
         startRename,
@@ -51,8 +47,7 @@ const Container = (op: OwnProps) => {
     })
   )
 
-  const {pathItem, pathItemActionMenu, fileContext, cancelDownload} = data
-  const {download, newFolderRow} = data
+  const {pathItemActionMenu, cancelDownload, download, newFolderRow} = data
   const {sfmiEnabled, favoriteIgnore, dismissDownload, startRename} = data
 
   const {downloadID, downloadIntent} = pathItemActionMenu

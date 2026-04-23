@@ -5,7 +5,7 @@ import TlfInfoLine from './tlf-info-line-container'
 import ItemIcon from './item-icon'
 import CommaSeparatedName from './comma-separated-name'
 import {pluralize} from '@/util/string'
-import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} from './hooks'
+import {useFsFolderChildren, useFsOnlineStatus, useFsPathItem, useFsSoftError} from './hooks'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
@@ -37,9 +37,8 @@ const getNumberOfFilesAndFolders = (
 }
 
 const FilesAndFoldersCount = (props: Props) => {
-  useFsChildren(props.path)
-  const pathItems = useFSState(s => s.pathItems)
-  const {files, folders, loaded} = getNumberOfFilesAndFolders(pathItems, props.path)
+  useFsFolderChildren(props.path)
+  const {files, folders, loaded} = useFSState(s => getNumberOfFilesAndFolders(s.pathItems, props.path))
   return loaded ? (
     <Kb.Text type="BodySmall">
       {folders ? `${folders} ${pluralize('Folder')}${files ? ', ' : ''}` : undefined}
@@ -78,8 +77,7 @@ const SoftErrorBanner = ({path}: {path: T.FS.Path}) => {
 
 const PathItemInfo = (props: Props) => {
   useFsOnlineStatus() // when used in chat, we don't have this from Files tab
-  useFsPathMetadata(props.path)
-  const pathItem = useFSState(s => FS.getPathItem(s.pathItems, props.path))
+  const pathItem = useFsPathItem(props.path)
   const name = (
     <CommaSeparatedName
       center={true}

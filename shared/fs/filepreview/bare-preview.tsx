@@ -13,7 +13,7 @@ const ConnectedBarePreview = (ownProps: OwnProps) => {
   const navigateUp = C.Router2.navigateUp
   const onBack = () => navigateUp()
 
-  const onUrlError = Kbfs.useFsFileContext(path)
+  const {onUrlError} = Kbfs.useFsFileContext(path)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.header}>
