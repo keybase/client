@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
+import {useFsPathItem} from '../common'
 
 type OwnProps = {
   path: T.FS.Path
@@ -30,16 +31,16 @@ const makeSortOptionItem = (sortSetting: T.FS.SortSetting, onClick?: () => void)
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const {_kbfsDaemonStatus, _pathItem, setSorting, _sortSetting} = useFSState(
+  const pathItem = useFsPathItem(path)
+  const {_kbfsDaemonStatus, setSorting, _sortSetting} = useFSState(
     C.useShallow(s => ({
       _kbfsDaemonStatus: s.kbfsDaemonStatus,
-      _pathItem: FS.getPathItem(s.pathItems, path),
       _sortSetting: FS.getPathUserSetting(s.pathUserSettings, path).sort,
       setSorting: s.dispatch.setSorting,
     }))
   )
 
-  const sortSetting = FS.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined
+  const sortSetting = FS.showSortSetting(path, pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     const sortByNameAsc =

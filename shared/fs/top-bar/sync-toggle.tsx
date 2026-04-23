@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
+import {useFsFolderChildren, useFsTlf} from '../common'
 
 type OwnProps = {
   tlfPath: T.FS.Path
@@ -11,10 +11,10 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
-  const {_tlfPathItem, _tlfs, setTlfSyncConfig} = useFSState(
+  const tlfPathItem = useFsFolderChildren(tlfPath)
+  const tlf = useFsTlf(tlfPath)
+  const {setTlfSyncConfig} = useFSState(
     C.useShallow(s => ({
-      _tlfPathItem: FS.getPathItem(s.pathItems, ownProps.tlfPath),
-      _tlfs: s.tlfs,
       setTlfSyncConfig: s.dispatch.setTlfSyncConfig,
     }))
   )
@@ -23,14 +23,14 @@ const Container = (ownProps: OwnProps) => {
   const enableSync = () => {
     setTlfSyncConfig(tlfPath, true)
   }
-  const syncConfig = FS.getTlfFromPath(_tlfs, tlfPath).syncConfig
+  const syncConfig = tlf.syncConfig
   // Disable sync when the TLF is empty and it's not enabled yet.
   // Band-aid fix for when new user has a non-exisitent TLF which we
   // can't enable sync for yet.
   const hideSyncToggle =
     syncConfig.mode === T.FS.TlfSyncMode.Disabled &&
-    _tlfPathItem.type === T.FS.PathType.Folder &&
-    !_tlfPathItem.children.size
+    tlfPathItem.type === T.FS.PathType.Folder &&
+    !tlfPathItem.children.size
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup, showPopup} = p

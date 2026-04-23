@@ -51,13 +51,14 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 Current slice note:
 - mounted callers still read through the existing FS store-backed data while ownership moves into the feature hook layer first; cache deletion remains for later chunks
 - mounted browser rows now own inline rename/new-folder edit sessions through a feature-local provider
+- browser rows, top-bar, and path-item-info now consume path / TLF data through `fs/common` hooks; `fs/browser/edit-state.tsx` remains the main browser-local raw `pathItems` reader
 
 ### Target callers for Chunk 1
 
 - [ ] `fs/browser/*`
 - [x] `fs/filepreview/*`
 - [x] `fs/nav-header/*`
-- [ ] `fs/common/path-*`
+- [x] `fs/common/path-*`
 - [x] `fs/common/item-icon.tsx`
 - [x] `fs/common/upload-button.tsx`
 

@@ -8,6 +8,7 @@ import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useFsBrowserEdits, type BrowserEditSession} from '../edit-state'
+import {useFsFolderChildItems, useFsTlfs} from '../../common'
 
 type OwnProps = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
@@ -17,17 +18,18 @@ type OwnProps = {
 }
 
 const getStillRows = (
-  pathItems: T.Immutable<Map<T.FS.Path, T.FS.PathItem>>,
-  parentPath: T.Immutable<T.FS.Path>,
-  names: ReadonlySet<string>
+  childItems: ReadonlyArray<T.Immutable<T.FS.PathItem>>,
+  childPaths: ReadonlyArray<T.Immutable<T.FS.Path>>
 ): Array<RowTypes.StillRowItem> =>
-  [...names].reduce<Array<RowTypes.StillRowItem>>((items, name) => {
-    const item = FS.getPathItem(pathItems, T.FS.pathConcat(parentPath, name))
-    const path = T.FS.pathConcat(parentPath, item.name)
+  childItems.reduce<Array<RowTypes.StillRowItem>>((items, item, index) => {
+    const path = childPaths[index]
+    if (!path) {
+      return items
+    }
     return [
       ...items,
       {
-        key: `still:${name}`,
+        key: `still:${item.name}`,
         lastModifiedTimestamp: item.lastModifiedTimestamp,
         name: item.name,
         path,
@@ -81,22 +83,24 @@ const _makeInTlfRows = (
   )
 }
 
-const getInTlfItemsFromStateProps = (
-  stateProps: StateProps,
+const getInTlfItems = (
+  pathItem: T.FS.PathItem,
+  childItems: ReadonlyArray<T.FS.PathItem>,
+  childPaths: ReadonlyArray<T.FS.Path>,
+  sortSetting: T.FS.SortSetting,
   path: T.FS.Path,
   editSessions: ReadonlyMap<T.FS.EditID, BrowserEditSession>
 ): Array<RowTypes.NamedRowItem> => {
-  const _pathItem = FS.getPathItem(stateProps._pathItems, path)
-  if (_pathItem.type !== T.FS.PathType.Folder) {
+  if (pathItem.type !== T.FS.PathType.Folder) {
     return filePlaceholderRows
   }
 
-  if (_pathItem.progress === T.FS.ProgressType.Pending) {
+  if (pathItem.progress === T.FS.ProgressType.Pending) {
     return filePlaceholderRows
   }
 
-  const stillRows = getStillRows(stateProps._pathItems, path, _pathItem.children)
-  return sortRowItems(_makeInTlfRows(path, editSessions, stillRows), stateProps._sortSetting, '')
+  const stillRows = getStillRows(childItems, childPaths)
+  return sortRowItems(_makeInTlfRows(path, editSessions, stillRows), sortSetting, '')
 }
 
 const getTlfRowsFromTlfs = (
@@ -118,48 +122,58 @@ const getTlfRowsFromTlfs = (
       type: T.FS.PathType.Folder,
     }))
 
-type StateProps = {
-  _pathItems: T.FS.PathItems
-  _sortSetting: T.FS.SortSetting
-  _tlfs: T.FS.Tlfs
-  _username: string
-}
-
-const getTlfItemsFromStateProps = (
-  stateProps: StateProps,
+const getTlfItems = (
+  tlfs: T.FS.Tlfs,
+  sortSetting: T.FS.SortSetting,
+  username: string,
   path: T.FS.Path,
   inDestinationPicker?: boolean
 ): Array<RowTypes.NamedRowItem> => {
-  if (stateProps._tlfs.private.size === 0) {
+  if (tlfs.private.size === 0) {
     // /keybase/private/<me> is always favorited. If it's not there it must be
     // unintialized.
     return folderPlaceholderRows
   }
 
-  const {tlfList, tlfType} = FS.getTlfListAndTypeFromPath(stateProps._tlfs, path)
+  const {tlfList, tlfType} = FS.getTlfListAndTypeFromPath(tlfs, path)
 
   return sortRowItems(
-    getTlfRowsFromTlfs(tlfList, tlfType, stateProps._username, inDestinationPicker),
-    stateProps._sortSetting,
-    (T.FS.pathIsNonTeamTLFList(path) && stateProps._username) || ''
+    getTlfRowsFromTlfs(tlfList, tlfType, username, inDestinationPicker),
+    sortSetting,
+    (T.FS.pathIsNonTeamTLFList(path) && username) || ''
   )
 }
 
-const getNormalRowItemsFromStateProps = (
-  stateProps: StateProps,
-  path: T.FS.Path,
-  editSessions: ReadonlyMap<T.FS.EditID, BrowserEditSession>,
+const getNormalRowItems = ({
+  childItems,
+  childPaths,
+  editSessions,
+  path,
+  pathItem,
+  sortSetting,
+  tlfs,
+  username,
+  inDestinationPicker,
+}: {
+  childItems: ReadonlyArray<T.FS.PathItem>
+  childPaths: ReadonlyArray<T.FS.Path>
+  editSessions: ReadonlyMap<T.FS.EditID, BrowserEditSession>
   inDestinationPicker?: boolean
-): Array<RowTypes.NamedRowItem> => {
+  path: T.FS.Path
+  pathItem: T.FS.PathItem
+  sortSetting: T.FS.SortSetting
+  tlfs: T.FS.Tlfs
+  username: string
+}): Array<RowTypes.NamedRowItem> => {
   const level = T.FS.getPathLevel(path)
   switch (level) {
     case 0:
     case 1:
       return [] // should never happen
     case 2:
-      return getTlfItemsFromStateProps(stateProps, path, inDestinationPicker)
+      return getTlfItems(tlfs, sortSetting, username, path, inDestinationPicker)
     default:
-      return getInTlfItemsFromStateProps(stateProps, path, editSessions)
+      return getInTlfItems(pathItem, childItems, childPaths, sortSetting, path, editSessions)
   }
 }
 
@@ -172,26 +186,25 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
     : rows
 
 const Container = (o: OwnProps) => {
-  const {_pathItems, _sortSetting, _tlfs} = useFSState(
-    C.useShallow(s => ({
-      _pathItems: s.pathItems,
-      _sortSetting: FS.getPathUserSetting(s.pathUserSettings, o.path).sort,
-      _tlfs: s.tlfs,
-    }))
-  )
+  const {childItems, childPaths, pathItem} = useFsFolderChildItems(o.path)
+  const tlfs = useFsTlfs()
+  const sortSetting = useFSState(s => FS.getPathUserSetting(s.pathUserSettings, o.path).sort)
   const _username = useCurrentUserState(s => s.username)
   const browserEdits = useFsBrowserEdits()
   const editSessions: ReadonlyMap<T.FS.EditID, BrowserEditSession> = browserEdits?.edits ?? new Map()
-
-  const s = {
-    _pathItems,
-    _sortSetting,
-    _tlfs,
-    _username,
-  }
   const inDestinationPicker = !!o.destinationPickerSource
 
-  const normalRowItems = getNormalRowItemsFromStateProps(s, o.path, editSessions, inDestinationPicker)
+  const normalRowItems = getNormalRowItems({
+    childItems,
+    childPaths,
+    editSessions,
+    inDestinationPicker,
+    path: o.path,
+    pathItem,
+    sortSetting,
+    tlfs,
+    username: _username,
+  })
   const filteredRowItems = filterRowItems(normalRowItems, o.filter)
   const props = {
     destinationPickerSource: o.destinationPickerSource,

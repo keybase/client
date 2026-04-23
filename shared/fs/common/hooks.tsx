@@ -105,6 +105,21 @@ export const useFsFolderChildren = (
 export const useFsChildren = (path: T.FS.Path, initialLoadRecursive?: boolean) =>
   useFsFolderChildren(path, {initialLoadRecursive})
 
+export const useFsFolderChildItems = (
+  path: T.FS.Path,
+  options?: {
+    initialLoadRecursive?: boolean
+  }
+) => {
+  const pathItem = useFsFolderChildren(path, options)
+  const childPaths =
+    pathItem.type === T.FS.PathType.Folder
+      ? [...pathItem.children].map(name => T.FS.pathConcat(path, name))
+      : []
+  const childItems = useFSState(C.useShallow(s => childPaths.map(childPath => FS.getPathItem(s.pathItems, childPath))))
+  return {childItems, childPaths, pathItem}
+}
+
 export const useFsTlfs = () => {
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites)
   const tlfs = useFSState(s => s.tlfs)
