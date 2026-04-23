@@ -39,7 +39,10 @@ export const useAllChannelMetas = (
   const {
     teamMeta: {teamname},
   } = useLoadedTeam(teamID)
-  const emptyChannelMetas = React.useMemo(() => new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>(), [])
+  const emptyChannelMetas = React.useMemo(
+    () => new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>(),
+    []
+  )
   const channelMetasCache = React.useMemo(
     () => getCachedResourceCache(allChannelMetasCache, {channelMetas: emptyChannelMetas}, teamID),
     [emptyChannelMetas, teamID]
@@ -55,7 +58,7 @@ export const useAllChannelMetas = (
           [
             {
               membersType: T.RPCChat.ConversationMembersType.team,
-              tlfName: teamname ?? '',
+              tlfName: teamname,
               topicType: T.RPCChat.TopicType.chat,
             },
             C.waitingKeyTeamsGetChannels(teamID),

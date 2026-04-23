@@ -49,7 +49,7 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
     load: async () =>
       new Promise<ReadonlyArray<T.Teams.TeamMeta>>((resolve, reject) => {
         loadTeamsRPC(
-          [{includeImplicitTeams: false, userAssertion: username ?? ''}, C.waitingKeyTeamsLoaded],
+          [{includeImplicitTeams: false, userAssertion: username}, C.waitingKeyTeamsLoaded],
           result => resolve(teamListToArray(result.teams ?? [])),
           error => reject(error)
         )
@@ -95,14 +95,22 @@ const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
   const username = useCurrentUserState(s => s.username)
   const loggedIn = useConfigState(s => s.loggedIn)
   const loadRoleMapRPC = C.useRPC(T.RPCGen.teamsGetTeamRoleMapRpcPromise)
-  const {data: roleMap, loadIfStale, reload} = useCachedResource({
+  const {
+    data: roleMap,
+    loadIfStale,
+    reload,
+  } = useCachedResource({
     cache: teamsRoleMapCache,
     cacheKey: username,
     enabled: enabled && !!username && loggedIn,
     initialData: emptyTeamRoleMap,
     load: async () =>
       new Promise<T.RPCGen.TeamRoleMapAndVersion>((resolve, reject) => {
-        loadRoleMapRPC([undefined], result => resolve(result), error => reject(error))
+        loadRoleMapRPC(
+          [undefined],
+          result => resolve(result),
+          error => reject(error)
+        )
       }),
     onError: error => {
       if ((error as {code?: number}).code !== T.RPCGen.StatusCode.scapinetworkerror) {

@@ -39,7 +39,11 @@ export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedR
   loadedAt: 0,
 })
 
-export const getCachedResourceCache = <T, K>(map: Map<K, CachedResourceCache<T, K>>, initialData: T, key: K) => {
+export const getCachedResourceCache = <T, K>(
+  map: Map<K, CachedResourceCache<T, K>>,
+  initialData: T,
+  key: K
+) => {
   const existing = map.get(key)
   if (existing) {
     return existing
