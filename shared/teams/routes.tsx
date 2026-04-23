@@ -293,6 +293,7 @@ export const newModalRoutes = defineRouteMap({
     getOptions: ({route}) => ({
       headerRight: () => <AddToChannelsHeaderRight />,
       headerTitle: () => <AddToChannelsHeaderTitle teamID={route.params.teamID} />,
+      modalStyle: {height: 560},
     }),
   }),
   teamAddToTeamConfirm: C.makeScreen(React.lazy(async () => import('./add-members-wizard/confirm')), {
