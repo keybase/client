@@ -8,6 +8,7 @@ import Footer from '../footer/footer'
 import OfflineFolder from './offline'
 import PublicReminder from '../banner/public-reminder'
 import {FsBrowserEditProvider} from './edit-state'
+import {FsBrowserSortProvider} from './sort-state'
 import Root from './root'
 import Rows from './rows/rows-container'
 import {useFsPathItem} from '../common'
@@ -157,7 +158,9 @@ function BrowserContent(props: Props) {
 
 const Screen = (props: OwnProps) => (
   <FsBrowserEditProvider>
-    <Container {...props} />
+    <FsBrowserSortProvider>
+      <Container {...props} />
+    </FsBrowserSortProvider>
   </FsBrowserEditProvider>
 )
 

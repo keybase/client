@@ -4,16 +4,16 @@ import * as RowTypes from './types'
 import {sortRowItems, type SortableRowItem} from './sort'
 import Rows, {type Props} from './rows'
 import {asRows as topBarAsRow} from '../../top-bar'
-import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useFsBrowserEdits, type BrowserEditSession} from '../edit-state'
+import {useFsBrowserSort} from '../sort-state'
 import {useFsFolderChildItems, useFsTlfs} from '../../common'
 
 type OwnProps = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
   filter?: string
-  path: T.FS.Path // path to the parent folder containering the rows,
+  path: T.FS.Path // path to the parent folder containing the rows,
   headerRows?: Array<RowTypes.HeaderRowItem>
 }
 
@@ -188,7 +188,7 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
 const Container = (o: OwnProps) => {
   const {childItems, childPaths, pathItem} = useFsFolderChildItems(o.path)
   const tlfs = useFsTlfs()
-  const sortSetting = useFSState(s => FS.getPathUserSetting(s.pathUserSettings, o.path).sort)
+  const {sortSetting} = useFsBrowserSort(o.path)
   const _username = useCurrentUserState(s => s.username)
   const browserEdits = useFsBrowserEdits()
   const editSessions: ReadonlyMap<T.FS.EditID, BrowserEditSession> = browserEdits?.edits ?? new Map()

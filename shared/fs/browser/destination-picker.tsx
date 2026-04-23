@@ -7,6 +7,7 @@ import * as T from '@/constants/types'
 import NavHeaderTitle from '@/fs/nav-header/title'
 import Root from './root'
 import {FsBrowserEditProvider, useFsBrowserEdits} from './edit-state'
+import {FsBrowserSortProvider} from './sort-state'
 import Rows from './rows/rows-container'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
@@ -146,7 +147,9 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
 
 const Screen = (props: OwnProps) => (
   <FsBrowserEditProvider>
-    <ConnectedDestinationPicker {...props} />
+    <FsBrowserSortProvider>
+      <ConnectedDestinationPicker {...props} />
+    </FsBrowserSortProvider>
   </FsBrowserEditProvider>
 )
 

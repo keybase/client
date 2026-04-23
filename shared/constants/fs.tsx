@@ -710,14 +710,6 @@ export const getMainBannerType = (
   }
 }
 
-// Settings/Configuration Utilities
-export const getPathUserSetting = (
-  pathUserSettings: T.Immutable<Map<T.FS.Path, T.FS.PathUserSetting>>,
-  path: T.Immutable<T.FS.Path>
-): T.FS.PathUserSetting =>
-  pathUserSettings.get(path) ||
-  (T.FS.getPathLevel(path) < 3 ? defaultTlfListPathUserSetting : defaultPathUserSetting)
-
 export const showSortSetting = (
   path: T.FS.Path,
   pathItem: T.FS.PathItem,

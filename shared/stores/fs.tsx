@@ -285,7 +285,6 @@ type Store = T.Immutable<{
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   overallSyncStatus: T.FS.OverallSyncStatus
   pathItems: T.FS.PathItems
-  pathUserSettings: ReadonlyMap<T.FS.Path, T.FS.PathUserSetting>
   settings: T.FS.Settings
   sfmi: T.FS.SystemFileManagerIntegration
   softErrors: T.FS.SoftErrors
@@ -305,7 +304,6 @@ const initialStore: Store = {
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   overallSyncStatus: Constants.emptyOverallSyncStatus,
   pathItems: new Map(),
-  pathUserSettings: new Map(),
   settings: Constants.emptySettings,
   sfmi: {
     directMountDir: '',
@@ -395,7 +393,6 @@ export type State = Store & {
     setTlfSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     setTlfsAsUnloaded: () => void
     setTlfSyncConfig: (tlfPath: T.FS.Path, enabled: boolean) => void
-    setSorting: (path: T.FS.Path, sortSetting: T.FS.SortSetting) => void
     startManualConflictResolution: (tlfPath: T.FS.Path) => void
     subscribeNonPath: (subscriptionID: string, topic: T.RPCGen.SubscriptionTopic) => void
     subscribePath: (subscriptionID: string, path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => void
@@ -1568,16 +1565,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     setPreferredMountDirs: preferredMountDirs => {
       set(s => {
         s.sfmi.preferredMountDirs = T.castDraft(preferredMountDirs)
-      })
-    },
-    setSorting: (path, sortSetting) => {
-      set(s => {
-        const old = s.pathUserSettings.get(path)
-        if (old) {
-          old.sort = sortSetting
-        } else {
-          s.pathUserSettings.set(path, {...Constants.defaultPathUserSetting, sort: sortSetting})
-        }
       })
     },
     setSpaceAvailableNotificationThreshold: threshold => {

@@ -100,8 +100,8 @@ Current slice note:
 
 - [x] Move `useFsPathInfo` / `useFsFileContext` loads to local hook state and delete those FS-store caches
 - [ ] Replace list and preview screens with route-owned loaders rather than shared FS cache reads
-- [ ] Move per-path sort / filter / local view preferences out of the global store unless they must survive unrelated entry points
-- [ ] Re-evaluate whether `pathUserSettings` should become route-local, persisted separately, or remain small global preference state
+- [x] Move per-path sort / filter / local view preferences out of the global store unless they must survive unrelated entry points
+- [x] Re-evaluate whether `pathUserSettings` should become route-local, persisted separately, or remain small global preference state
 - [ ] Move screen-local redbars / errors out of the store where they only serve the current route
 - [ ] Replace `loadAdditionalTlf`, `favoritesLoad`, `folderListLoad`, `loadPathMetadata`, and similar callers with feature hooks where possible
 
@@ -120,9 +120,12 @@ Current slice note:
 
 - `pathInfos`
 - `fileContext`
-- `pathUserSettings` if moved out
+- `pathUserSettings`
 - `errors` if route-local
 - more `pathItems` / `tlfs` cache usage
+
+Current slice note:
+- mounted browser and destination-picker flows now keep per-path sort settings in a browser-local provider instead of `shared/stores/fs.tsx`
 
 ## Chunk 4: Re-evaluate Subscription and Notification Ownership
 
