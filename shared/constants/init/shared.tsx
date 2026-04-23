@@ -20,7 +20,6 @@ declare global {
 import type * as UseChatStateType from '@/stores/chat'
 import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
-import type * as UseTeamsStateType from '@/stores/teams'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {getTBStore} from '@/stores/team-building'
@@ -42,7 +41,6 @@ import {useShellState} from '@/stores/shell'
 import {useSettingsEmailState} from '@/stores/settings-email'
 import {useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
-import {useTeamsState} from '@/stores/teams'
 import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 import {useRouterState} from '@/stores/router'
@@ -61,6 +59,7 @@ import {
 } from '@/stores/convostate'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
+import {clearNavBadges} from '@/teams/actions'
 
 let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__ ? (globalThis.__hmr_startupOnce ?? false) : false
 
@@ -183,11 +182,6 @@ export const initSharedSubscriptions = () => {
             }
           }
 
-          const updateTeams = () => {
-            useTeamsState.getState().dispatch.getTeams()
-            useTeamsState.getState().dispatch.refreshTeamRoleMap()
-          }
-
           const updateSettings = () => {
             useSettingsContactsState.getState().dispatch.loadContactImportEnabled()
           }
@@ -203,7 +197,6 @@ export const initSharedSubscriptions = () => {
 
           getFollowerInfo()
           ignorePromise(updateServerConfig())
-          updateTeams()
           updateSettings()
           updateChat()
         }
@@ -216,7 +209,6 @@ export const initSharedSubscriptions = () => {
           if (useDaemonState.getState().handshakeWaiters.size === 0) {
             ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
           }
-          useTeamsState.getState().dispatch.eagerLoadTeams()
         }
       }
 
@@ -371,7 +363,7 @@ export const initSharedSubscriptions = () => {
       }
 
       if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
-        useTeamsState.getState().dispatch.clearNavBadges()
+        clearNavBadges()
       }
 
       onConvoRouteChanged(prev, next)
@@ -408,25 +400,19 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
         useFSState.getState().dispatch.onEngineIncomingImpl(action)
 
-        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
-        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
-
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
-    case 'chat.1.chatUi.chatShowManageChannels':
     case 'keybase.1.NotifyTeam.teamMetadataUpdate':
-    case 'chat.1.NotifyChat.ChatWelcomeMessageLoaded':
-    case 'keybase.1.NotifyTeam.teamTreeMembershipsPartial':
-    case 'keybase.1.NotifyTeam.teamTreeMembershipsDone':
-    case 'keybase.1.NotifyTeam.teamRoleMapChanged':
     case 'keybase.1.NotifyTeam.teamChangedByID':
-    case 'keybase.1.NotifyTeam.teamDeleted':
-    case 'keybase.1.NotifyTeam.teamExit':
       {
-        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
-        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
+        useChatState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case 'keybase.1.NotifyTeam.teamRoleMapChanged':
+      {
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
@@ -448,16 +434,14 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       }
       syncGregorExplodingModes(goodState)
 
-      const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
-      useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
+      const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
+      useNotifState.getState().dispatch.onEngineIncomingImpl(action)
       const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
       useChatState.getState().dispatch.onEngineIncomingImpl(action)
       break
     }
     case 'chat.1.NotifyChat.ChatSetTeamRetention':
       {
-        const {useTeamsState} = require('@/stores/teams') as typeof UseTeamsStateType
-        useTeamsState.getState().dispatch.onEngineIncomingImpl(action)
         routeConvoEngineIncoming(action)
       }
       break

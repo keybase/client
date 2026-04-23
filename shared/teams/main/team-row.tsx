@@ -2,30 +2,30 @@ import './team-row.css'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import logger from '@/logger'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '@/util/string'
 import {Activity} from '../common'
-import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
 
-type Props = {
+export type TeamRowItem = {
+  activityLevel: T.Teams.ActivityLevel
+  badgeCount: number
+  id: T.Teams.TeamID
+  isNew: boolean
+  teamMeta: T.Teams.TeamMeta
+}
+
+type Props = TeamRowItem & {
   showChat?: boolean // default true
-  teamID: T.Teams.TeamID
 }
 
 const TeamRow = function TeamRow(props: Props) {
-  const {showChat = true, teamID} = props
+  const {activityLevel, badgeCount, id: teamID, isNew, showChat = true, teamMeta} = props
   const navigateAppend = C.Router2.navigateAppend
-  const data = useTeamsState(
-    C.useShallow(s => {
-      const teamMeta = Teams.getTeamMeta(s, teamID)
-      const activityLevel = s.activityLevels.teams.get(teamID) || 'none'
-      const badgeCount = Teams.getTeamRowBadgeCount(s.newTeamRequests, s.teamIDToResetUsers, teamID)
-      const isNew = s.newTeams.has(teamID)
-      return {activityLevel, badgeCount, isNew, teamMeta}
-    })
-  )
-  const {activityLevel, badgeCount, isNew, teamMeta} = data
+
+  if (__DEV__ && teamMeta.id !== teamID) {
+    logger.warn(`TeamRow ID mismatch: props.id=${teamID} teamMeta.id=${teamMeta.id}`)
+  }
 
   const onViewTeam = () => navigateAppend({name: 'team', params: {teamID}})
 

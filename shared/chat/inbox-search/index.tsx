@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Rover from './background'
@@ -18,6 +17,7 @@ import {
   type InboxSearchController,
   type InboxSearchVisibleResultCounts,
 } from '../inbox/use-inbox-search'
+import {showTeamByName} from '@/teams/team-page-actions'
 
 type OwnProps = {
   header?: React.ReactElement | null
@@ -412,11 +412,6 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
   const {name, description, memberCount, publicAdmins, inTeam, isSelected} = p
   const showingDueToSelect = React.useRef(false)
-  const {showTeamByName} = useTeamsState(
-    C.useShallow(s => ({
-      showTeamByName: s.dispatch.showTeamByName,
-    }))
-  )
 
   const clearModals = C.Router2.clearModals
   const navigateAppend = C.Router2.navigateAppend
@@ -436,7 +431,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         onJoinTeam={() => navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: name}})}
         onViewTeam={() => {
           clearModals()
-          showTeamByName(name)
+          void showTeamByName(name)
         }}
         publicAdmins={publicAdmins}
         visible={true}

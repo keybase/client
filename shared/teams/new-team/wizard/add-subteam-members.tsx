@@ -1,15 +1,15 @@
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
-import {useTeamDetailsSubscribe} from '@/teams/subscriber'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useModalHeaderState} from '@/stores/modal-header'
 import * as C from '@/constants'
 import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 type Props = {
   wizard: NewTeamWizard
@@ -41,11 +41,10 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
 
   const yourUsername = useCurrentUserState(s => s.username)
   const parentTeamID = wizardState.parentTeamID ?? T.Teams.noTeamID
-  useTeamDetailsSubscribe(parentTeamID)
-  const parentTeamName = Teams.useTeamsState(s => Teams.getTeamMeta(s, parentTeamID).teamname)
-  const parentMembersMap = Teams.useTeamsState(
-    s => (s.teamDetails.get(parentTeamID) ?? Teams.emptyTeamDetails).members
-  )
+  const {
+    teamDetails: {members: parentMembersMap},
+    teamMeta: {teamname: parentTeamName},
+  } = useLoadedTeam(parentTeamID)
   const parentMembers = [...parentMembersMap.values()].filter(
     m => !Teams.isBot(m.type) && m.username !== yourUsername
   )

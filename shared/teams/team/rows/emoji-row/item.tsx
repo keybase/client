@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as dateFns from 'date-fns'
 import {RPCToEmojiData} from '@/common-adapters/emoji'
 import EmojiMenu from './emoji-menu'
 import {useEmojiState} from '@/teams/emojis/use-emoji'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -20,8 +20,9 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
   const nav = useSafeNavigation()
   const username = useCurrentUserState(s => s.username)
-  const canManageEmoji = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
-  const deleteOtherEmoji = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
+  const {yourOperations} = useLoadedTeam(teamID)
+  const canManageEmoji = yourOperations.manageEmojis
+  const deleteOtherEmoji = yourOperations.deleteOtherEmojis
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
   const onAddAlias = () => {
     nav.safeNavigateAppend({

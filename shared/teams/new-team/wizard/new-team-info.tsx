@@ -2,13 +2,13 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as Teams from '@/stores/teams'
 import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
 import {type NewTeamWizard} from './state'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import {useLoadedTeam} from '../../team/use-loaded-team'
 
 const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
   switch (status) {
@@ -37,14 +37,17 @@ type TeamWizard2TeamInfoParamList = {
 const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<TeamWizard2TeamInfoParamList, 'teamWizard2TeamInfo'>>()
-  const parentName = Teams.useTeamsState(s =>
-    teamWizardState.parentTeamID ? Teams.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
-  )
+  const parentTeamID = teamWizardState.parentTeamID ?? T.Teams.noTeamID
+  const {
+    teamMeta: {teamname: loadedParentName},
+  } = useLoadedTeam(parentTeamID)
+  const parentName = teamWizardState.parentTeamID ? loadedParentName : undefined
+  const waitingOnParentTeam = !!teamWizardState.parentTeamID && !parentName
 
-  const minLength = parentName ? 2 : 3
+  const minLength = teamWizardState.parentTeamID ? 2 : 3
 
   const [name, _setName] = React.useState(
-    teamWizardState.name.substring(parentName ? parentName.length + 1 : 0)
+    teamWizardState.parentTeamID ? (teamWizardState.name.split('.').at(-1) ?? '') : teamWizardState.name
   )
   const teamname = parentName ? `${parentName}.${name}` : name
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
@@ -58,6 +61,11 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
   const checkTeam = C.useDebouncedCallback(C.useRPC(T.RPCGen.teamsUntrustedTeamExistsRpcPromise), 100)
 
   React.useEffect(() => {
+    if (waitingOnParentTeam) {
+      setTeamNameTaken(false)
+      setTeamNameTakenStatus(0)
+      return
+    }
     if (name.length >= minLength) {
       checkTeam(
         [{teamName: {parts: teamname.split('.')}}],
@@ -71,7 +79,7 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
       setTeamNameTaken(false)
       setTeamNameTakenStatus(0)
     }
-  }, [teamname, name.length, checkTeam, minLength])
+  }, [teamname, name.length, checkTeam, minLength, waitingOnParentTeam])
 
   const [description, setDescription] = React.useState(teamWizardState.description)
   const [openTeam, _setOpenTeam] = React.useState(
@@ -92,7 +100,7 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
   const [realRole, setRealRole] = React.useState<T.Teams.TeamRoleType>(teamWizardState.openTeamJoinRole)
   const [rolePickerIsOpen, setRolePickerIsOpen] = React.useState(false)
 
-  const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
+  const continueDisabled = waitingOnParentTeam || rolePickerIsOpen || teamNameTaken || name.length < minLength
 
   const navigateAppend = C.Router2.navigateAppend
 
@@ -125,6 +133,7 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
         {parentName ? (
           <Kb.Input3
             autoFocus={true}
+            disabled={waitingOnParentTeam}
             maxLength={16}
             onChangeText={setName}
             prefix={`${parentName}.`}
@@ -135,6 +144,7 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
         ) : (
           <Kb.Input3
             autoFocus={true}
+            disabled={waitingOnParentTeam}
             maxLength={16}
             onChangeText={setName}
             placeholder="Team name"
@@ -146,6 +156,8 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
             <Kb.Text type="BodySmallError" style={styles.biggerOnTheInside}>
               {getTeamTakenMessage(teamNameTakenStatus)}
             </Kb.Text>
+          ) : waitingOnParentTeam ? (
+            <Kb.Text type="BodySmall">Loading parent team info…</Kb.Text>
           ) : (
             <Kb.Text type="BodySmall">
               {teamWizardState.teamType === 'subteam'
@@ -155,6 +167,7 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
           )}
         </Kb.Box2>
         <Kb.Input3
+          disabled={waitingOnParentTeam}
           placeholder="Description"
           value={description}
           rowsMin={3}
@@ -202,10 +215,16 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
             </Kb.Box2>
           }
           checked={openTeam}
+          disabled={waitingOnParentTeam}
           onCheck={rolePickerIsOpen ? () => {} : setOpenTeam}
         />
         {teamWizardState.teamType === 'subteam' && (
-          <Kb.Checkbox onCheck={setAddYourself} checked={addYourself} label="Add yourself to the team" />
+          <Kb.Checkbox
+            onCheck={setAddYourself}
+            checked={addYourself}
+            disabled={waitingOnParentTeam}
+            label="Add yourself to the team"
+          />
         )}
         <Kb.Checkbox
           onCheck={setShowcase}

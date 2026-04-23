@@ -1,13 +1,16 @@
 import * as C from '@/constants'
-import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useTeamDetailsSubscribe, useTeamsSubscribe} from '../subscriber'
-import {SelectionPopup, useActivityLevels} from '../common'
+import {useNavigation} from '@react-navigation/native'
+import {useEngineActionListener} from '@/engine/action-listener'
+import {SelectionPopup, ActivityLevelsProvider} from '../common'
+import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
+import {TeamSelectionProvider} from '../common/selection-state'
 import TeamTabs from './tabs'
 import NewTeamHeader from './new-header'
 import Settings from './settings-tab'
+import {LoadedTeamProvider, useLoadedTeam} from './use-loaded-team'
 import {
   useMembersSections,
   useBotSections,
@@ -18,10 +21,14 @@ import {
   type Section,
   type Item,
 } from './rows'
+import {teamSeen} from '@/teams/actions'
 
 type Props = {
   teamID: T.Teams.TeamID
   initialTab?: T.Teams.TabKey
+  justFinishedAddWizard?: boolean
+  selectedChannels?: Array<T.Chat.ConversationIDKey>
+  selectedMembers?: Array<string>
 }
 
 // keep track during session
@@ -39,7 +46,6 @@ const useTabsState = (
   teamID: T.Teams.TeamID,
   providedTab?: T.Teams.TabKey
 ): [T.Teams.TabKey, (t: T.Teams.TabKey) => void] => {
-  const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
   const defaultSelectedTab = lastSelectedTabs.get(teamID) ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<T.Teams.TabKey>(defaultSelectedTab)
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
@@ -47,9 +53,6 @@ const useTabsState = (
     lastSelectedTabs.set(teamID, t)
     if (selectedTab !== 'settings' && t === 'settings') {
       dispatchClearWaiting(getSettingsErrorWaitingKeys(teamID))
-    }
-    if (selectedTab !== 'channels' && t === 'channels') {
-      loadTeamChannelList(teamID)
     }
     _setSelectedTab(t)
   }
@@ -63,26 +66,38 @@ const useTabsState = (
       if (defaultSelectedTab === 'settings') {
         dispatchClearWaiting(getSettingsErrorWaitingKeys(teamID))
       }
-      if (defaultSelectedTab === 'channels') {
-        loadTeamChannelList(teamID)
-      }
       _setSelectedTab(defaultSelectedTab)
     }
-  }, [teamID, defaultSelectedTab, dispatchClearWaiting, loadTeamChannelList])
+  }, [teamID, defaultSelectedTab, dispatchClearWaiting])
   return [selectedTab, setSelectedTab]
 }
 
-const Team = (props: Props) => {
+const useNavigateAwayOnDeletedTeam = (teamID: T.Teams.TeamID) => {
+  const navUpToScreen = C.Router2.navUpToScreen
+  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
+    if (action.payload.params.teamID === teamID) {
+      navUpToScreen('teamsRoot')
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
+    if (action.payload.params.teamID === teamID) {
+      navUpToScreen('teamsRoot')
+    }
+  })
+}
+
+const TeamBody = (props: Props) => {
   const teamID = props.teamID
   const initialTab = props.initialTab
+  const navigation = useNavigation()
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
   const [invitesCollapsed, setInvitesCollapsed] = React.useState(false)
   const [subteamFilter, setSubteamFilter] = React.useState('')
+  const clearJustFinishedAddWizard = React.useCallback(() => {
+    navigation.setParams({justFinishedAddWizard: undefined})
+  }, [navigation])
 
-  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID)) ?? Teams.emptyTeamDetails
-  const teamMeta = Teams.useTeamsState(C.useDeep(s => Teams.getTeamMeta(s, teamID)))
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
-  const teamSeen = Teams.useTeamsState(s => s.dispatch.teamSeen)
+  const {loading: loadingTeam, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
 
   React.useEffect(() => {
     setInvitesCollapsed(false)
@@ -92,27 +107,62 @@ const Team = (props: Props) => {
   C.Router2.useSafeFocusEffect(() => {
     return () => teamSeen(teamID)
   })
+  C.Router2.useSafeFocusEffect(() => {
+    return () => {
+      if (props.justFinishedAddWizard) {
+        clearJustFinishedAddWizard()
+      }
+    }
+  })
 
-  useTeamsSubscribe()
-  useTeamDetailsSubscribe(teamID)
-  useActivityLevels()
+  const {channels, loading: loadingChannels} = useLoadedTeamChannels(teamID, teamMeta.teamname)
+
+  React.useEffect(() => {
+    if (!props.selectedMembers?.length) {
+      return
+    }
+    const membersLoaded = teamMeta.memberCount === 0 || teamDetails.members.size > 0
+    if (!membersLoaded) {
+      return
+    }
+    const nextSelectedMembers = props.selectedMembers.filter(username => teamDetails.members.has(username))
+    if (nextSelectedMembers.length !== props.selectedMembers.length) {
+      navigation.setParams({selectedMembers: nextSelectedMembers.length ? nextSelectedMembers : undefined})
+    }
+  }, [navigation, props.selectedMembers, teamDetails.members, teamMeta.memberCount])
+
+  React.useEffect(() => {
+    if (!props.selectedChannels?.length || !channels.size) {
+      return
+    }
+    const nextSelectedChannels = props.selectedChannels.filter(conversationIDKey =>
+      channels.has(conversationIDKey)
+    )
+    if (nextSelectedChannels.length !== props.selectedChannels.length) {
+      navigation.setParams({selectedChannels: nextSelectedChannels.length ? nextSelectedChannels : undefined})
+    }
+  }, [channels, navigation, props.selectedChannels])
 
   // Sections
   const headerSection = {
     data: [{type: 'header'}, {type: 'tabs'}],
     renderItem: ({item}: {item: Item}) =>
       item.type === 'header' ? (
-        <NewTeamHeader teamID={teamID} />
+        <NewTeamHeader
+          teamID={teamID}
+          justFinishedAddWizard={!!props.justFinishedAddWizard}
+          onClearJustFinishedAddWizard={clearJustFinishedAddWizard}
+        />
       ) : item.type === 'tabs' ? (
         <TeamTabs teamID={teamID} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
       ) : null,
   } as const
 
   const sections: Array<Section> = [headerSection]
-  const membersSections = useMembersSections(teamID, teamMeta, teamDetails, yourOperations)
-  const botSections = useBotSections(teamID, teamMeta, teamDetails, yourOperations)
+  const membersSections = useMembersSections(teamID, loadingTeam, teamMeta, teamDetails, yourOperations)
+  const botSections = useBotSections(teamID, loadingTeam, teamMeta, teamDetails, yourOperations)
   const invitesSections = useInvitesSections(teamID, teamDetails, invitesCollapsed, setInvitesCollapsed)
-  const channelsSections = useChannelsSections(teamID, yourOperations)
+  const channelsSections = useChannelsSections(teamID, yourOperations, channels, loadingChannels)
   const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations, subteamFilter, setSubteamFilter)
   const emojiSections = useEmojiSections(teamID, selectedTab === 'emoji')
 
@@ -157,29 +207,56 @@ const Team = (props: Props) => {
   }
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      fullHeight={true}
-      flex={1}
-      style={styles.container}
-      relative={true}
+    <TeamSelectionProvider
+      selectedMembers={props.selectedMembers}
+      selectedChannels={props.selectedChannels}
+      onSelectedMembersChange={selectedMembers => navigation.setParams({selectedMembers})}
+      onSelectedChannelsChange={selectedChannels => navigation.setParams({selectedChannels})}
     >
-      <Kb.SectionList
-        renderSectionHeader={renderSectionHeader}
-        stickySectionHeadersEnabled={Kb.Styles.isMobile}
-        sections={sections}
-        contentContainerStyle={styles.listContentContainer}
-        style={styles.list}
-        getItemHeight={getItemHeight}
-      />
-      <SelectionPopup
-        selectedTab={
-          selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
-        }
-        teamID={teamID}
-      />
-    </Kb.Box2>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        fullHeight={true}
+        flex={1}
+        style={styles.container}
+        relative={true}
+      >
+        <Kb.SectionList
+          renderSectionHeader={renderSectionHeader}
+          stickySectionHeadersEnabled={Kb.Styles.isMobile}
+          sections={sections}
+          contentContainerStyle={styles.listContentContainer}
+          style={styles.list}
+          getItemHeight={getItemHeight}
+        />
+        <SelectionPopup
+          selectedTab={
+            selectedTab === 'members' ? 'teamMembers' : selectedTab === 'channels' ? 'teamChannels' : ''
+          }
+          teamID={teamID}
+        />
+      </Kb.Box2>
+    </TeamSelectionProvider>
+  )
+}
+
+const TeamWithChannelsProvider = (props: Props) => {
+  const {teamMeta} = useLoadedTeam(props.teamID)
+  return (
+    <LoadedTeamChannelsProvider teamID={props.teamID} teamname={teamMeta.teamname}>
+      <TeamBody {...props} />
+    </LoadedTeamChannelsProvider>
+  )
+}
+
+const Team = (props: Props) => {
+  useNavigateAwayOnDeletedTeam(props.teamID)
+  return (
+    <LoadedTeamProvider teamID={props.teamID}>
+      <ActivityLevelsProvider>
+        <TeamWithChannelsProvider {...props} />
+      </ActivityLevelsProvider>
+    </LoadedTeamProvider>
   )
 }
 

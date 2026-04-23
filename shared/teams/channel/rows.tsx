@@ -1,12 +1,14 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import {useChannelSelectionState} from '../common/selection-state'
 import MenuHeader from '../team/rows/menu-header.new'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
+import {useLoadedTeam} from '../team/use-loaded-team'
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -36,16 +38,10 @@ const ChannelMemberRow = (props: Props) => {
   const infoMap = useUsersState(s => s.infoMap)
   const setUserBlocks = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
   const participantInfo = ConvoState.useConvoState(conversationIDKey, s => s.participants)
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => ({
-      channelSelectedMembers: s.channelSelectedMembers.get(conversationIDKey),
-      channelSetMemberSelected: s.dispatch.channelSetMemberSelected,
-      teamMemberInfo: s.teamDetails.get(teamID)?.members.get(username) ?? Teams.initialMemberInfo,
-      yourOperations: Teams.getCanPerformByID(s, teamID),
-    }))
-  )
-  const {channelSelectedMembers, channelSetMemberSelected} = teamsState
-  const {teamMemberInfo, yourOperations} = teamsState
+  const {selectedMembers: channelSelectedMembers, setMemberSelected: channelSetMemberSelected} =
+    useChannelSelectionState()
+  const {teamDetails, yourOperations} = useLoadedTeam(teamID)
+  const teamMemberInfo = teamDetails.members.get(username) ?? Teams.initialMemberInfo
   const you = useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
@@ -78,11 +74,11 @@ const ChannelMemberRow = (props: Props) => {
   const roleLabel = !!active && Teams.typeToLabel[teamMemberInfo.type]
   const isYou = you === username
 
-  const anySelected = !!channelSelectedMembers?.size
-  const memberSelected = !!channelSelectedMembers?.has(username)
+  const anySelected = !!channelSelectedMembers.size
+  const memberSelected = channelSelectedMembers.has(username)
 
   const onSelect = (selected: boolean) => {
-    channelSetMemberSelected(conversationIDKey, username, selected)
+    channelSetMemberSelected(username, selected)
   }
   const previewConversation = C.Router2.previewConversation
   const onChat = () => {

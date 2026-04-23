@@ -1,15 +1,15 @@
 import * as C from '@/constants'
-import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import {Box2} from './box'
 import * as Styles from '@/styles'
 import Text from './text'
 import type {TextType} from './text.shared'
 import DelayedMounting from './delayed-mounting'
-import {TeamDetailsSubscriber} from '../teams/subscriber'
 import type TeamInfoType from '../profile/user/teams/teaminfo'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import type {MeasureRef} from './measure-ref'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {useTeamsListNameToIDMap} from '@/teams/use-teams-list'
 
 const Kb = {
   Box2,
@@ -22,6 +22,7 @@ export type Props = {
   inline?: boolean
   memberCount: number
   onJoinTeam: () => void
+  onPopupVisibleChange?: (visible: boolean) => void
   onViewTeam: () => void
   prefix?: string
   shouldLoadTeam?: boolean
@@ -37,14 +38,19 @@ const TeamWithPopup = (props: Props) => {
   const {prefix, teamName, type, inline} = props
   const popupRef = React.useRef<MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)
-  const onHidePopup = () => setShowPopup(false)
-  const onShowPopup = () => setShowPopup(true)
+  const onHidePopup = () => {
+    props.onPopupVisibleChange?.(false)
+    setShowPopup(false)
+  }
+  const onShowPopup = () => {
+    props.onPopupVisibleChange?.(true)
+    setShowPopup(true)
+  }
 
   const {default: TeamInfo} = require('../profile/user/teams/teaminfo') as {default: typeof TeamInfoType}
 
   const popup = showPopup && (
     <>
-      <TeamDetailsSubscriber teamID={props.teamID} />
       <DelayedMounting delay={Styles.isMobile ? 0 : 500}>
         <TeamInfo
           attachTo={Styles.isMobile ? undefined : popupRef}
@@ -104,14 +110,15 @@ type OwnProps = {
 }
 
 const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
-  const teamID = Teams.useTeamsState(s => Teams.getTeamID(s, ownProps.teamName))
-  const meta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
-  const description = Teams.useTeamsState(s => s.teamDetails.get(teamID)?.description) ?? ''
+  const [showPopup, setShowPopup] = React.useState(false)
+  const teamNameToID = useTeamsListNameToIDMap()
+  const teamID = teamNameToID.get(ownProps.teamName) ?? T.Teams.noTeamID
+  const {teamDetails, teamMeta} = useLoadedTeam(teamID, showPopup || !!ownProps.shouldLoadTeam)
   const stateProps = {
-    description,
-    isMember: meta.isMember,
-    isOpen: meta.isOpen,
-    memberCount: meta.memberCount,
+    description: teamDetails.description,
+    isMember: teamMeta.isMember,
+    isOpen: teamMeta.isOpen,
+    memberCount: teamMeta.memberCount,
     teamID,
   }
   const clearModals = C.Router2.clearModals
@@ -128,7 +135,12 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
     isOpen: stateProps.isOpen,
     memberCount: stateProps.memberCount,
     onJoinTeam: () => navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: ownProps.teamName}}),
-    onViewTeam: () => _onViewTeam(stateProps.teamID),
+    onPopupVisibleChange: setShowPopup,
+    onViewTeam: () => {
+      if (stateProps.teamID !== T.Teams.noTeamID) {
+        _onViewTeam(stateProps.teamID)
+      }
+    },
     prefix: ownProps.prefix,
     shouldLoadTeam: ownProps.shouldLoadTeam,
     teamID: stateProps.teamID,

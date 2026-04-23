@@ -27,6 +27,7 @@ import {handleAppLink} from '@/constants/deeplinks'
 import {useDaemonState} from '@/stores/daemon'
 import {useNotifState} from '@/stores/notifications'
 import {usePushState} from '@/stores/push'
+import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
 import {colors} from '@/styles/colors'
 
 const isLiquidGlassSupported = _isLiquidGlassSupported as boolean
@@ -339,7 +340,9 @@ function RNApp() {
         ref={navRef}
         theme={isDarkMode ? Shared.darkTheme : Shared.lightTheme}
       >
-        <RootComponent />
+        <LoadedTeamsListProvider>
+          <RootComponent />
+        </LoadedTeamsListProvider>
       </NavigationContainer>
     </Kb.Box2>
   )

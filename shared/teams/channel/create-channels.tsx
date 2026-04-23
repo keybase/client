@@ -2,17 +2,17 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
 import {RPCError} from '@/util/errors'
 import {CreateChannelsModal} from '../new-team/wizard/create-channels'
+import {useLoadedTeam} from '../team/use-loaded-team'
 
 type Props = {teamID: T.Teams.TeamID}
 
 const CreateChannels = (props: Props) => {
   const teamID = props.teamID
-  const teamname = useTeamsState(s => Teams.getTeamNameFromID(s, teamID))
-  const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const {
+    teamMeta: {teamname},
+  } = useLoadedTeam(teamID)
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
   const [success, setSuccess] = React.useState(false)
@@ -59,7 +59,6 @@ const CreateChannels = (props: Props) => {
             C.waitingKeyTeamsCreateChannel(teamID)
           )
         }
-        loadTeamChannelList(teamID)
         setSuccess(true)
       } catch (error_) {
         if (error_ instanceof RPCError) {

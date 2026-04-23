@@ -2,11 +2,11 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as Teams from '@/stores/teams'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {ModalTitle} from '@/teams/common'
 import {defineRouteMap} from '@/constants/types/router'
 import {getNextRouteAfterAvatar} from '@/teams/new-team/wizard/state'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 const Title = React.lazy(async () => import('./search'))
 
@@ -84,14 +84,11 @@ const EditAvatarWizardHeaderRight = ({
 }: {
   route: {params: {newTeamWizard?: T.Teams.NewTeamWizardState; wizard?: boolean}}
 }) => {
-  const parentTeamMemberCount = Teams.useTeamsState(s =>
-    route.params.newTeamWizard?.parentTeamID
-      ? Teams.getTeamMeta(s, route.params.newTeamWizard.parentTeamID).memberCount
-      : 0
-  )
+  const parentTeamID = route.params.newTeamWizard?.parentTeamID ?? T.Teams.noTeamID
+  const {teamMeta} = useLoadedTeam(parentTeamID, parentTeamID !== T.Teams.noTeamID)
   return (
     <EditAvatarHeaderRight
-      parentTeamMemberCount={parentTeamMemberCount}
+      parentTeamMemberCount={teamMeta.memberCount}
       wizard={route.params.wizard}
       wizardState={route.params.newTeamWizard}
     />

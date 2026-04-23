@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useTeamsState} from '@/stores/teams'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {useLoadedTeam} from '../use-loaded-team'
 
 type Props = {
   channelname: string
@@ -19,30 +19,65 @@ const EditChannel = (props: Props) => {
   const oldDescription = props.description
 
   const nav = useSafeNavigation()
+  const {
+    teamMeta: {teamname},
+  } = useLoadedTeam(teamID)
 
   const [name, _setName] = React.useState(oldName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_-]/, ''))
 
   const [description, setDescription] = React.useState(oldDescription)
+  const updateChannelNameRPC = C.useRPC(T.RPCChat.localPostMetadataRpcPromise)
+  const updateTopicRPC = C.useRPC(T.RPCChat.localPostHeadlineRpcPromise)
+  const waitingKey = C.waitingKeyTeamsUpdateChannelName(teamID)
 
-  const updateChannelName = useTeamsState(s => s.dispatch.updateChannelName)
-  const updateTopic = useTeamsState(s => s.dispatch.updateTopic)
-
-  const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
+  const updateChannelName = async (newChannelName: string) =>
+    await new Promise<void>((resolve, reject) => {
+      updateChannelNameRPC(
+        [
+          {
+            channelName: newChannelName,
+            conversationID: T.Chat.keyToConversationID(conversationIDKey),
+            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+            tlfName: teamname,
+            tlfPublic: false,
+          },
+          waitingKey,
+        ],
+        () => resolve(),
+        reject
+      )
+    })
+  const updateTopic = async (newTopic: string) =>
+    await new Promise<void>((resolve, reject) => {
+      updateTopicRPC(
+        [
+          {
+            conversationID: T.Chat.keyToConversationID(conversationIDKey),
+            headline: newTopic,
+            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+            tlfName: teamname,
+            tlfPublic: false,
+          },
+          waitingKey,
+        ],
+        () => resolve(),
+        reject
+      )
+    })
 
   const onSave = () => {
     const ps = [
-      ...(oldName !== name ? [updateChannelName(teamID, conversationIDKey, name)] : []),
-      ...(oldDescription !== description ? [updateTopic(teamID, conversationIDKey, description)] : []),
+      ...(oldName !== name ? [updateChannelName(name)] : []),
+      ...(oldDescription !== description ? [updateTopic(description)] : []),
     ]
     Promise.all(ps)
       .then(() => {
         nav.safeNavigateUp()
-        loadTeamChannelList(teamID)
       })
       .catch(() => {})
   }
-  const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsUpdateChannelName(teamID))
+  const waiting = C.Waiting.useAnyWaiting(waitingKey)
 
   return (
     <>
@@ -71,13 +106,13 @@ const EditChannel = (props: Props) => {
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.Button
-            label="Save"
-            onClick={onSave}
-            fullWidth={true}
-            disabled={oldName === name && description === oldDescription}
-            waiting={waiting}
-          />
+        <Kb.Button
+          label="Save"
+          onClick={onSave}
+          fullWidth={true}
+          disabled={oldName === name && description === oldDescription}
+          waiting={waiting}
+        />
       </Kb.Box2>
     </>
   )

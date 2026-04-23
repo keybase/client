@@ -1,11 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import BotMenu from './bot-menu'
 import {useFeaturedBot} from '@/util/featured-bots'
 import {navToProfile} from '@/constants/router'
+import {useLoadedTeam} from '../../use-loaded-team'
 
 export type Props = {
   botAlias: string
@@ -156,10 +157,9 @@ const blankInfo = Teams.initialMemberInfo
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID))
-  const canManageBots = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageBots)
-  const map = teamDetails?.members
-  const info: T.Teams.MemberInfo = map?.get(ownProps.username) || blankInfo
+  const {teamDetails, yourOperations} = useLoadedTeam(teamID)
+  const info: T.Teams.MemberInfo = teamDetails.members.get(ownProps.username) || blankInfo
+  const canManageBots = yourOperations.manageBots
   const _bot = useFeaturedBot(ownProps.username)
   const bot = _bot ?? {
     botAlias: info.fullName,

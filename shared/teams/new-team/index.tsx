@@ -1,10 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {openURL as openUrl} from '@/util/misc'
 import upperFirst from 'lodash/upperFirst'
+import {useLoadedTeam} from '../team/use-loaded-team'
+import {createNewTeamAndNavigate} from '@/teams/team-page-actions'
 
 const openSubteamInfo = () => openUrl('https://book.keybase.io/docs/teams/design')
 
@@ -119,19 +120,28 @@ type OwnProps = {subteamOf?: T.Teams.TeamID}
 
 const Container = (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? T.Teams.noTeamID
-  const baseTeam = Teams.useTeamsState(s => Teams.getTeamMeta(s, subteamOf).teamname)
+  const {
+    loading,
+    teamMeta: {teamname: baseTeam},
+  } = useLoadedTeam(subteamOf)
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }
-  const createNewTeam = Teams.useTeamsState(s => s.dispatch.createNewTeam)
   const onSubmit = (teamname: string, joinSubteam: boolean) => {
-    createNewTeam(teamname, joinSubteam)
+    void createNewTeamAndNavigate(teamname, joinSubteam)
   }
   const props = {
     baseTeam,
     onCancel,
     onSubmit,
+  }
+  if (subteamOf !== T.Teams.noTeamID && (loading || !baseTeam)) {
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+        <Kb.ProgressIndicator type="Large" />
+      </Kb.Box2>
+    )
   }
   return <CreateNewTeam {...props} />
 }

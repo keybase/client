@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useTeamsState} from '@/stores/teams'
+import {renameTeam} from './actions'
 
 type OwnProps = {teamname: string}
 
@@ -10,7 +10,6 @@ const Container = (ownProps: OwnProps) => {
   const _error = C.Waiting.useAnyErrors(C.waitingKeyTeamsRename)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsRename)
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
-  const renameTeam = useTeamsState(s => s.dispatch.renameTeam)
   const _onRename = renameTeam
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {

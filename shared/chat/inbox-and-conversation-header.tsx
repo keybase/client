@@ -6,10 +6,10 @@ import type {StyleOverride} from '@/common-adapters/markdown'
 import NewChatButton from './inbox/new-chat-button'
 import {setInboxHeaderPortalNode, useInboxHeaderPortalContent} from './inbox/header-portal-state'
 import type {ChatRootRouteParams} from './inbox-and-conversation'
+import {useChatTeam} from './conversation/team-hooks'
 import {useRoute, type RouteProp} from '@react-navigation/native'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
-import * as Teams from '@/stores/teams'
 
 type ChatRootRoute = RouteProp<{chatRoot: ChatRootRouteParams}, 'chatRoot'>
 
@@ -66,7 +66,9 @@ const Header2 = () => {
     ? participants.filter(part => part !== username)
     : participants
 
-  const canEditDesc = Teams.useTeamsState(s => Teams.getCanPerform(s, teamname).editChannelDescription)
+  const teamID = ConvoState.useChatContext(s => s.meta.teamID)
+  const {yourOperations} = useChatTeam(teamID, teamname)
+  const canEditDesc = yourOperations.editChannelDescription
   const otherInfo = useUsersState(s => s.infoMap.get(first))
   // If it's a one-on-one chat, use the user's fullname as the description
   const desc = otherInfo?.bio?.replace(/(\r\n|\n|\r)/gm, ' ') || descriptionDecorated

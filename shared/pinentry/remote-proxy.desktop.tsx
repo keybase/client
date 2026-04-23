@@ -1,5 +1,6 @@
 // Manages remote pinentry windows
 import {invalidPasswordErrorString} from '@/constants/config'
+import * as RemoteGen from '@/constants/remote-actions'
 import * as T from '@/constants/types'
 import {wrapErrors} from '@/constants/utils'
 import {useEngineActionListener} from '@/engine/action-listener'
@@ -9,8 +10,8 @@ import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {useColorScheme} from 'react-native'
 import * as React from 'react'
 import {useConfigState} from '@/stores/config'
-import {registerPinentryPopupHandlers, subscribePinentryPopupReset} from './desktop-popup-handles'
 import type {ProxyProps} from './main2.desktop'
+import {registerRemoteActionHandler} from '@/desktop/renderer/remote-event-handler.desktop'
 
 const windowOpts = {height: 230, width: 440}
 type PopupState = {
@@ -59,14 +60,18 @@ const PinentryProxy = () => {
 
   React.useEffect(
     () =>
-      registerPinentryPopupHandlers({
-        cancel: () => handlersRef.current.cancel?.(),
-        submit: password => handlersRef.current.submit?.(password),
+      registerRemoteActionHandler('pinentry', action => {
+        switch (action.type) {
+          case RemoteGen.pinentryOnCancel:
+            handlersRef.current.cancel?.()
+            break
+          case RemoteGen.pinentryOnSubmit:
+            handlersRef.current.submit?.(action.payload.password)
+            break
+        }
       }),
     []
   )
-
-  React.useEffect(() => subscribePinentryPopupReset(clearPopup), [clearPopup])
 
   React.useEffect(() => {
     if (!loggedIn) {

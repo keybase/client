@@ -1,7 +1,6 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
-import {useTeamsState} from '@/stores/teams'
 import Avatar from './avatar'
 import {Box2} from './box'
 import ClickableBox from './clickable-box'
@@ -14,6 +13,7 @@ import type {TextType, StylesTextCrossPlatform, AllowedColors, TextTypeBold} fro
 import ConnectedUsernames from './usernames'
 import {useFollowerState} from '@/stores/followers'
 import {navToProfile} from '@/constants/router'
+import {useTeamsListNameToIDMap} from '@/teams/use-teams-list'
 
 type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 
@@ -414,9 +414,38 @@ export type ConnectedNameWithIconProps = {
 
 type OwnProps = ConnectedNameWithIconProps
 
-const ConnectedNameWithIcon = (p: OwnProps) => {
+const ConnectedUserNameWithIcon = (p: OwnProps & {username: string}) => {
   const {onClick, username, teamname, ...props} = p
-  const teamID = useTeamsState(s => s.teamNameToID.get(teamname ?? ''))
+  const onOpenUserProfile = () => {
+    navToProfile(username)
+  }
+
+  let functionOnClick: NameWithIconProps['onClick']
+  let clickType: NameWithIconProps['clickType'] = 'onClick'
+  switch (onClick) {
+    case 'profile':
+      functionOnClick = onOpenUserProfile
+      clickType = 'profile'
+      break
+    default:
+      functionOnClick = onClick
+  }
+
+  return (
+    <NameWithIcon
+      {...props}
+      clickType={clickType}
+      onClick={functionOnClick}
+      teamname={teamname}
+      username={username}
+    />
+  )
+}
+
+const ConnectedTeamNameWithIcon = (p: OwnProps & {teamname: string}) => {
+  const {onClick, username, teamname, ...props} = p
+  const teamNameToID = useTeamsListNameToIDMap()
+  const teamID = teamNameToID.get(teamname)
   const clearModals = C.Router2.clearModals
   const navigateAppend = C.Router2.navigateAppend
   const onOpenTeamProfile = () => {
@@ -425,17 +454,12 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
       navigateAppend({name: 'team', params: {teamID}})
     }
   }
-  const onOpenUserProfile = () => {
-    username && navToProfile(username)
-  }
 
   let functionOnClick: NameWithIconProps['onClick']
   let clickType: NameWithIconProps['clickType'] = 'onClick'
   switch (onClick) {
     case 'profile': {
-      if (username) {
-        functionOnClick = onOpenUserProfile
-      } else if (teamID) {
+      if (teamID) {
         functionOnClick = onOpenTeamProfile
       }
       clickType = 'profile'
@@ -455,5 +479,14 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
     />
   )
 }
+
+const ConnectedNameWithIcon = (p: OwnProps) =>
+  p.username ? (
+    <ConnectedUserNameWithIcon {...p} username={p.username} />
+  ) : p.teamname ? (
+    <ConnectedTeamNameWithIcon {...p} teamname={p.teamname} />
+  ) : (
+    <NameWithIcon {...p} onClick={typeof p.onClick === 'function' ? p.onClick : undefined} />
+  )
 
 export default ConnectedNameWithIcon

@@ -19,8 +19,72 @@ import {makeUUID} from '@/util/uuid'
 import {dumpLogs, showMain} from '@/util/storeless-actions'
 import * as FSConstants from '@/constants/fs'
 import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {handlePinentryPopupRemoteAction} from '@/pinentry/desktop-popup-handles'
-import {handleTrackerPopupRemoteAction} from '@/tracker/desktop-popup-handles'
+import * as Z from '@/util/zustand'
+
+type RemoteActionOwner = 'pinentry' | 'tracker'
+
+type OwnerActionMap = {
+  pinentry: RemoteGen.PinentryOnCancelPayload | RemoteGen.PinentryOnSubmitPayload
+  tracker:
+    | RemoteGen.TrackerChangeFollowPayload
+    | RemoteGen.TrackerCloseTrackerPayload
+    | RemoteGen.TrackerIgnorePayload
+    | RemoteGen.TrackerLoadPayload
+}
+
+type OwnerEntry = {
+  handler: (action: OwnerActionMap[RemoteActionOwner]) => void
+  token: number
+}
+
+type RemoteActionHandlerStore = {
+  dispatch: {
+    resetState: () => void
+  }
+  nextOwnerToken: number
+  ownerHandlers: Map<RemoteActionOwner, OwnerEntry>
+}
+
+const useRemoteActionHandlerState = Z.createZustand<RemoteActionHandlerStore>(
+  'desktop-remote-action-handlers',
+  set => {
+    const resetState = () => {
+      set(s => {
+        s.nextOwnerToken = 0
+        s.ownerHandlers = new Map()
+      })
+    }
+    return {
+      dispatch: {resetState},
+      nextOwnerToken: 0,
+      ownerHandlers: new Map(),
+    }
+  }
+)
+
+const dispatchRemoteActionToOwner = <K extends RemoteActionOwner>(owner: K, action: OwnerActionMap[K]) => {
+  const entry = useRemoteActionHandlerState.getState().ownerHandlers.get(owner)
+  ;(entry?.handler as ((action: OwnerActionMap[K]) => void) | undefined)?.(action)
+}
+
+export const registerRemoteActionHandler = <K extends RemoteActionOwner>(
+  owner: K,
+  handler: (action: OwnerActionMap[K]) => void
+) => {
+  let token = 0
+  useRemoteActionHandlerState.setState(s => {
+    s.nextOwnerToken += 1
+    token = s.nextOwnerToken
+    s.ownerHandlers.set(owner, {handler: handler as OwnerEntry['handler'], token})
+  })
+  return () => {
+    useRemoteActionHandlerState.setState(s => {
+      if (s.ownerHandlers.get(owner)?.token === token) {
+        s.ownerHandlers.delete(owner)
+      }
+    })
+  }
+}
 
 const handleSaltPackOpen = (_path: string | HiddenString) => {
   const path = typeof _path === 'string' ? _path : _path.stringValue()
@@ -118,11 +182,11 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.pinentryOnCancel: {
-      handlePinentryPopupRemoteAction(action)
+      dispatchRemoteActionToOwner('pinentry', action)
       break
     }
     case RemoteGen.pinentryOnSubmit: {
-      handlePinentryPopupRemoteAction(action)
+      dispatchRemoteActionToOwner('pinentry', action)
       break
     }
     case RemoteGen.openPathInSystemFileManager: {
@@ -155,7 +219,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
     case RemoteGen.trackerIgnore:
     case RemoteGen.trackerCloseTracker:
     case RemoteGen.trackerLoad: {
-      handleTrackerPopupRemoteAction(action)
+      dispatchRemoteActionToOwner('tracker', action)
       break
     }
     case RemoteGen.link:

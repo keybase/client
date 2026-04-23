@@ -39,7 +39,7 @@ test('badge engine updates badge counts', () => {
 
   const badgeState = {
     bigTeamBadgeCount: 4,
-    deletedTeams: ['deleted-team'],
+    deletedTeams: [{teamName: 'deleted-team'}],
     homeTodoItems: 2,
     inboxVers: 1,
     newDevices: ['other-device'],
@@ -50,7 +50,7 @@ test('badge engine updates badge counts', () => {
     rekeysNeeded: 0,
     revokedDevices: ['device-id'],
     smallTeamBadgeCount: 3,
-    teamsWithResetUsers: ['reset-team'],
+    teamsWithResetUsers: [{teamID: 'team-1', username: 'bob'}],
     unverifiedEmails: 1,
     unverifiedPhones: 2,
   } as any
@@ -68,6 +68,9 @@ test('badge engine updates badge counts', () => {
   expect(store.getState().navBadges.get(Tabs.gitTab)).toBe(1)
   expect(store.getState().navBadges.get(Tabs.teamsTab)).toBe(8)
   expect(store.getState().navBadges.get(Tabs.settingsTab)).toBe(3)
+  expect(store.getState().deletedTeams).toEqual([{teamName: 'deleted-team'}])
+  expect(store.getState().newTeams.has('team-1')).toBe(true)
+  expect(store.getState().teamIDToResetUsers.get('team-1')).toEqual(new Set(['bob']))
 })
 
 test('stale badgeState events do not regress badge counts', () => {
@@ -112,4 +115,97 @@ test('stale badgeState events do not regress badge counts', () => {
   expect(store.getState().navBadges.get(Tabs.chatTab)).toBe(7)
   expect(store.getState().navBadges.get(Tabs.peopleTab)).toBe(2)
   expect(store.getState().navBadges.get(Tabs.settingsTab)).toBe(3)
+  expect(store.getState().deletedTeams).toEqual([])
+  expect(store.getState().newTeams.size).toBe(0)
+  expect(store.getState().teamIDToResetUsers.size).toBe(0)
+})
+
+test('same-version badgeState updates teams detail and teams badge count', () => {
+  const store = useNotifState
+
+  store.getState().dispatch.onEngineIncomingImpl({
+    payload: {
+      params: {
+        badgeState: {
+          bigTeamBadgeCount: 4,
+          homeTodoItems: 2,
+          inboxVers: 2,
+          newTeamAccessRequestCount: 0,
+          smallTeamBadgeCount: 3,
+          unverifiedEmails: 1,
+          unverifiedPhones: 2,
+        },
+      },
+    },
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any)
+
+  store.getState().dispatch.onEngineIncomingImpl({
+    payload: {
+      params: {
+        badgeState: {
+          bigTeamBadgeCount: 4,
+          deletedTeams: [{teamName: 'deleted-team'}],
+          homeTodoItems: 2,
+          inboxVers: 2,
+          newTeamAccessRequestCount: 5,
+          newTeams: ['team-1'],
+          smallTeamBadgeCount: 3,
+          teamsWithResetUsers: [{teamID: 'team-1', username: 'bob'}],
+          unverifiedEmails: 1,
+          unverifiedPhones: 2,
+        },
+      },
+    },
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any)
+
+  expect(store.getState().badgeVersion).toBe(2)
+  expect(store.getState().navBadges.get(Tabs.chatTab)).toBe(7)
+  expect(store.getState().navBadges.get(Tabs.teamsTab)).toBe(8)
+  expect(store.getState().desktopAppBadgeCount).toBe(20)
+  expect(store.getState().deletedTeams).toEqual([{teamName: 'deleted-team'}])
+  expect(store.getState().newTeams).toEqual(new Set(['team-1']))
+  expect(store.getState().teamIDToResetUsers.get('team-1')).toEqual(new Set(['bob']))
+})
+
+test('gregor push state populates per-team access requests', () => {
+  const store = useNotifState
+  const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value))
+
+  store.getState().dispatch.onEngineIncomingImpl({
+    payload: {
+      params: {
+        state: {
+          items: [
+            {
+              item: {
+                body: encode({id: 'team-1', username: 'alice'}),
+                category: 'team.request_access:team-1',
+              },
+              md: {},
+            },
+            {
+              item: {
+                body: encode({id: 'team-1', username: 'bob'}),
+                category: 'team.request_access:team-1',
+              },
+              md: {},
+            },
+            {
+              item: {
+                body: encode({id: 'team-2', username: 'charlie'}),
+                category: 'team.request_access:team-2',
+              },
+              md: {},
+            },
+          ],
+        },
+      },
+    },
+    type: 'keybase.1.gregorUI.pushState',
+  } as any)
+
+  expect(store.getState().newTeamRequests.get('team-1')).toEqual(new Set(['alice', 'bob']))
+  expect(store.getState().newTeamRequests.get('team-2')).toEqual(new Set(['charlie']))
 })

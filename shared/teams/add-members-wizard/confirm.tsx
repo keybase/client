@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Chat from '@/stores/chat'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {assertionToDisplay} from '@/common-adapters/usernames'
@@ -14,9 +13,11 @@ import {pluralize} from '@/util/string'
 import logger from '@/logger'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {createNewTeamFromWizard} from '../new-team/wizard/state'
+import {onTeamCreated} from '../create-team-effects'
 import {RPCError} from '@/util/errors'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import {useLoadedTeam} from '../team/use-loaded-team'
 import {
   removeWizardMember,
   setWizardDefaultChannels,
@@ -50,6 +51,8 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
   const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = wizard
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
   const newTeamWizard = wizard.newTeamWizard
+  const {teamMeta} = useLoadedTeam(teamID, !fromNewTeamWizard)
+  const isInTeam = teamMeta.role !== 'none'
   const updateWizard = React.useCallback(
     (nextWizard: AddMembersWizard) => {
       setWizard(nextWizard)
@@ -57,19 +60,7 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
     },
     [navigation]
   )
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => {
-      const teamID = wizard.teamID
-      const isInTeam = Teams.getRole(s, teamID) !== 'none'
-      return {
-        finishedAddMembersWizard: s.dispatch.finishedAddMembersWizard,
-        isInTeam,
-        teamMetaIsSubteam: Teams.getTeamMeta(s, teamID).teamname.includes('.'),
-      }
-    })
-  )
-  const {finishedAddMembersWizard, isInTeam, teamMetaIsSubteam} = teamsState
-  const isSubteam = fromNewTeamWizard ? newTeamWizard?.teamType === 'subteam' : teamMetaIsSubteam
+  const isSubteam = fromNewTeamWizard ? newTeamWizard?.teamType === 'subteam' : teamMeta.teamname.includes('.')
   const isBigTeam = Chat.useChatState(s => (fromNewTeamWizard ? false : getIsBigTeam(s.inboxLayout, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
 
@@ -105,7 +96,8 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
         const f = async () => {
           try {
             const teamID = await createNewTeamFromWizard({...newTeamWizard, error: undefined}, addingMembers)
-            C.Router2.navigateAppend({name: 'team', params: {teamID}})
+            onTeamCreated(teamID)
+            C.Router2.navigateAppend({name: 'team', params: {justFinishedAddWizard: true, teamID}})
             C.Router2.clearModals()
           } catch (err) {
             setWaiting(false)
@@ -137,7 +129,8 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
           ],
           _ => {
             // TODO handle users not added?
-            finishedAddMembersWizard()
+            C.Router2.navUpToScreen({name: 'team', params: {justFinishedAddWizard: true, teamID}}, true)
+            C.Router2.clearModals()
           },
           err => {
             setWaiting(false)

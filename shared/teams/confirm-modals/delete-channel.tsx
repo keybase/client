@@ -1,14 +1,15 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '@/constants/types'
-import {useTeamsState} from '@/stores/teams'
+import * as T from '@/constants/types'
+import {useNavigation} from '@react-navigation/native'
 import {pluralize} from '@/util/string'
+import setRouteParamsIfPresent from '../common/set-route-params-if-present'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 type Props = {
+  conversationIDKeys?: Array<T.Chat.ConversationIDKey>
   teamID: T.Teams.TeamID
-  // undefined means use the currently selected channels in the store (under the channel tab of the team page)
   conversationIDKey?: T.Chat.ConversationIDKey
 }
 
@@ -22,12 +23,11 @@ const Header = () => (
 const DeleteChannel = (props: Props) => {
   const teamID = props.teamID
   const routePropChannel = props.conversationIDKey
-  const storeSelectedChannels = useTeamsState(s => s.teamSelectedChannels.get(teamID))
 
-  // When the channels get deleted, the values in the store are gone but we should keep displaying the same thing.
   const [channelIDs] = React.useState(
-    routePropChannel ? [routePropChannel] : storeSelectedChannels ? [...storeSelectedChannels] : []
+    routePropChannel ? [routePropChannel] : props.conversationIDKeys ?? []
   )
+  const deleteChannelRPC = C.useRPC(T.RPCChat.localDeleteConversationLocalRpcPromise)
 
   const {channelMetas} = useAllChannelMetas(teamID)
   const channelnames: string[] = []
@@ -50,14 +50,39 @@ const DeleteChannel = (props: Props) => {
       numOtherChans
     )}`
   }
+  const waitingKey = C.waitingKeyTeamsDeleteChannel(teamID)
+  const waitingError = C.Waiting.useAnyErrors(waitingKey)
+  const clearModals = C.Router2.clearModals
+  const navigation = useNavigation()
 
-  const setChannelSelected = useTeamsState(s => s.dispatch.setChannelSelected)
-  const deleteMultiChannelsConfirmed = useTeamsState(s => s.dispatch.deleteMultiChannelsConfirmed)
-
-  const onDelete = () => {
-    deleteMultiChannelsConfirmed(teamID, Array.from(channelIDs.values()))
-    setChannelSelected(teamID, '', false, true)
-  }
+  const deleteChannel = React.useCallback(
+    async (conversationIDKey: T.Chat.ConversationIDKey) =>
+      await new Promise<void>((resolve, reject) => {
+        deleteChannelRPC(
+          [
+            {
+              channelName: '',
+              confirmed: true,
+              convID: T.Chat.keyToConversationID(conversationIDKey),
+            },
+            waitingKey,
+          ],
+          () => resolve(),
+          reject
+        )
+      }),
+    [deleteChannelRPC, waitingKey]
+  )
+  const onDelete = React.useCallback(() => {
+    const f = async () => {
+      for (const channelID of channelIDs) {
+        await deleteChannel(channelID)
+      }
+      setRouteParamsIfPresent(navigation, 'team', {selectedChannels: undefined})
+      clearModals()
+    }
+    C.ignorePromise(f())
+  }, [channelIDs, clearModals, deleteChannel, navigation])
 
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
@@ -68,6 +93,7 @@ const DeleteChannel = (props: Props) => {
     <Kb.ConfirmModal
       confirmText={`Delete ${pluralize('channel', channelnames.length)}`}
       description="This cannot be undone. All messages in the channel will be lost."
+      error={waitingError?.message ?? ''}
       header={<Header />}
       onConfirm={onDelete}
       onCancel={onCancel}
@@ -76,7 +102,7 @@ const DeleteChannel = (props: Props) => {
           Delete {deleteMsg}?
         </Kb.Text>
       }
-      waitingKey={C.waitingKeyTeamsDeleteChannel(teamID)}
+      waitingKey={waitingKey}
     />
   )
 }

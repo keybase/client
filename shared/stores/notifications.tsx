@@ -1,8 +1,11 @@
 import * as Z from '@/util/zustand'
 import type * as EngineGen from '@/constants/rpc'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
+import {bodyToJSON} from '@/constants/rpc-utils'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from '@/constants/tabs'
+import logger from '@/logger'
+import {mapGetEnsureValue} from '@/util/map'
 import {useCurrentUserState} from '@/stores/current-user'
 
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
@@ -10,18 +13,26 @@ export type NotificationKeys = 'kbfsUploading' | 'outOfSpace'
 
 type Store = T.Immutable<{
   badgeVersion: number
+  deletedTeams: ReadonlyArray<T.RPCGen.DeletedTeamInfo>
   desktopAppBadgeCount: number
   keyState: Map<NotificationKeys, boolean>
   mobileAppBadgeCount: number
+  newTeamRequests: Map<T.Teams.TeamID, Set<string>>
+  newTeams: Set<T.Teams.TeamID>
   navBadges: Map<Tabs.Tab, number>
+  teamIDToResetUsers: Map<T.Teams.TeamID, Set<string>>
   widgetBadge: BadgeType
 }>
 const initialStore: Store = {
   badgeVersion: -1,
+  deletedTeams: [],
   desktopAppBadgeCount: 0,
   keyState: new Map(),
   mobileAppBadgeCount: 0,
   navBadges: new Map(),
+  newTeamRequests: new Map(),
+  newTeams: new Set(),
+  teamIDToResetUsers: new Map(),
   widgetBadge: 'regular',
 }
 
@@ -66,6 +77,39 @@ const badgeStateToBadgeCounts = (bs: T.RPCGen.BadgeState) => {
 
   return counts
 }
+
+const badgeStateToTeamIDToResetUsers = (bs: T.RPCGen.BadgeState) => {
+  const teamIDToResetUsers = new Map<T.Teams.TeamID, Set<string>>()
+  bs.teamsWithResetUsers?.forEach(entry => {
+    if (!entry.teamID || !entry.username) {
+      return
+    }
+    const existing = mapGetEnsureValue(teamIDToResetUsers, entry.teamID, new Set<string>())
+    existing.add(entry.username)
+  })
+  return teamIDToResetUsers
+}
+
+const newRequestsGregorPrefix = 'team.request_access:'
+
+const gregorItemsToNewTeamRequests = (
+  items: Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
+) => {
+  const newTeamRequests = new Map<T.Teams.TeamID, Set<string>>()
+  items.forEach(({item}) => {
+    if (!item.category.startsWith(newRequestsGregorPrefix)) {
+      return
+    }
+    const request = bodyToJSON(item.body) as undefined | {id: T.Teams.TeamID; username: string}
+    if (!request) {
+      return
+    }
+    const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set<string>())
+    requests.add(request.username)
+  })
+  return newTeamRequests
+}
+
 export const useNotifState = Z.createZustand<State>('notifications', (set, get) => {
   const updateWidgetBadge = (s: Z.WritableDraft<State>) => {
     let widgetBadge: BadgeType = 'regular'
@@ -90,7 +134,21 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
       switch (action.type) {
         case 'keybase.1.NotifyBadges.badgeState': {
           const badgeState = action.payload.params.badgeState
-          if (get().badgeVersion >= badgeState.inboxVers) {
+          const currentBadgeVersion = get().badgeVersion
+          if (currentBadgeVersion > badgeState.inboxVers) {
+            break
+          }
+          set(s => {
+            s.deletedTeams = T.castDraft(badgeState.deletedTeams ?? [])
+            s.newTeams = new Set(badgeState.newTeams ?? [])
+            s.teamIDToResetUsers = badgeStateToTeamIDToResetUsers(badgeState)
+          })
+          if (currentBadgeVersion === badgeState.inboxVers) {
+            // Teams badge detail can change without advancing inboxVers, so keep the
+            // Teams tab badge in sync with the latest server-owned badge state.
+            get().dispatch.setBadgeCounts(
+              new Map([[Tabs.teamsTab, badgeStateToBadgeCounts(badgeState).get(Tabs.teamsTab) ?? 0]])
+            )
             break
           }
           set(s => {
@@ -98,6 +156,26 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
           })
           const counts = badgeStateToBadgeCounts(badgeState)
           get().dispatch.setBadgeCounts(counts)
+          break
+        }
+        case 'keybase.1.gregorUI.pushState': {
+          const {state} = action.payload.params
+          const items = state.items || []
+          const goodState = items.reduce<Array<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>>(
+            (arr, {md, item}) => {
+              if (md && item) {
+                arr.push({item, md})
+              }
+              return arr
+            },
+            []
+          )
+          if (goodState.length !== items.length) {
+            logger.warn('Lost some messages in filtering out nonNull gregor items')
+          }
+          set(s => {
+            s.newTeamRequests = gregorItemsToNewTeamRequests(goodState)
+          })
           break
         }
         default:

@@ -1,8 +1,10 @@
 import * as C from '@/constants'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
+import {useTeamsList} from '@/teams/use-teams-list'
 
 type OwnProps = {isTeam: boolean}
 const NewTeamSentry = '---NewTeam---'
@@ -10,14 +12,15 @@ const NewTeamSentry = '---NewTeam---'
 const Container = (ownProps: OwnProps) => {
   const {isTeam} = ownProps
   const [error, setError] = React.useState('')
-  const teamnames = Teams.useTeamsState(s => s.teamnames)
-  const teams = [...teamnames].sort(Teams.sortTeamnames)
+  const {teams: loadedTeams} = useTeamsList()
+  const teams = React.useMemo(
+    () => loadedTeams.map(team => team.teamname).sort(Teams.sortTeamnames),
+    [loadedTeams]
+  )
   const waitingKey = C.waitingKeyGitLoading
   const navigateUp = C.Router2.navigateUp
   const createPersonalRepo = C.useRPC(T.RPCGen.gitCreatePersonalRepoRpcPromise)
   const createTeamRepo = C.useRPC(T.RPCGen.gitCreateTeamRepoRpcPromise)
-  const getTeams = Teams.useTeamsState(s => s.dispatch.getTeams)
-  const loadTeams = getTeams
   const onClose = navigateUp
   const onCreate = (name: string, teamname: string, notifyTeam: boolean) => {
     if (isTeam && teamname) {
@@ -42,24 +45,18 @@ const Container = (ownProps: OwnProps) => {
       )
     }
   }
-  const launchNewTeamWizardOrModal = Teams.useTeamsState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = C.Router2.switchTab
+  const navigateAppend = C.Router2.navigateAppend
   const onNewTeam = () => {
     switchTab(C.Tabs.teamsTab)
-    launchNewTeamWizardOrModal()
+    navigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}})
   }
 
   const [name, setName] = React.useState('')
   const [notifyTeam, setNotifyTeam] = React.useState(true)
   const [selectedTeam, setSelectedTeam] = React.useState('')
 
-  React.useEffect(() => {
-    loadTeams()
-  }, [loadTeams])
-
-  const makeDropdownItems = () => {
-    return teams.concat(NewTeamSentry).map(makeDropdownItem)
-  }
+  const makeDropdownItems = () => teams.concat(NewTeamSentry).map(makeDropdownItem)
 
   const makeDropdownItem = (item?: string) => {
     if (!item) {

@@ -1,11 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import * as Kb from '@/common-adapters'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import logger from '@/logger'
+import {useTeamsList} from '@/teams/use-teams-list'
 
 const getOwnerDisabledReason = (
   selected: Set<string>,
@@ -53,9 +54,12 @@ const makeAddUserToTeamsResult = (
 type OwnProps = {username: string}
 const Container = (ownProps: OwnProps) => {
   const {username: them} = ownProps
-  const roles = Teams.useTeamsState(s => s.teamRoleMap.roles)
-  const teams = Teams.useTeamsState(s => s.teamMeta)
-  const teamNameToID = Teams.useTeamsState(s => s.teamNameToID)
+  const {teams} = useTeamsList()
+  const teamNameToID = React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
+  const teamNameToRole = React.useMemo(
+    () => new Map(teams.map(team => [team.teamname, team.role] as const)),
+    [teams]
+  )
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsProfileAddList)
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
@@ -69,16 +73,12 @@ const Container = (ownProps: OwnProps) => {
   const submitRequestID = React.useRef(0)
 
   // TODO Y2K-1086 use team ID given in teamProfileAddList to avoid this mapping
-  const _teamNameToRole = [...teams.values()].reduce(
-    (res, curr) => res.set(curr.teamname, roles.get(curr.id)?.role || 'none'),
-    new Map<string, T.Teams.MaybeTeamRoleType>()
-  )
   const [selectedTeams, setSelectedTeams] = React.useState(new Set<string>())
   const [rolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [selectedRole, setSelectedRole] = React.useState<T.Teams.TeamRoleType>('writer')
   const [sendNotification, setSendNotification] = React.useState(true)
 
-  const ownerDisabledReason = getOwnerDisabledReason(selectedTeams, _teamNameToRole)
+  const ownerDisabledReason = getOwnerDisabledReason(selectedTeams, teamNameToRole)
 
   React.useEffect(() => {
     return () => {
@@ -203,7 +203,7 @@ const Container = (ownProps: OwnProps) => {
     } else {
       nextSelectedTeams.delete(teamName)
     }
-    const canNotBeOwner = !!getOwnerDisabledReason(nextSelectedTeams, _teamNameToRole)
+    const canNotBeOwner = !!getOwnerDisabledReason(nextSelectedTeams, teamNameToRole)
 
     // If you selected them to be an owner, but they cannot be an owner,
     // then fallback to admin

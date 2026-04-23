@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
 import {useShellState} from '@/stores/shell'
 import * as React from 'react'
+import {useEngineActionListener} from '@/engine/action-listener'
 import Normal from '.'
 import * as T from '@/constants/types'
 import {FocusProvider, ScrollProvider} from './context'
@@ -82,8 +83,26 @@ const useOrangeLine = () => {
   return orangeLine
 }
 
+const useShowManageChannels = () => {
+  const navigateAppend = C.Router2.navigateAppend
+  const {teamID, teamname} = ConvoState.useChatContext(
+    C.useShallow(s => ({teamID: s.meta.teamID, teamname: s.meta.teamname}))
+  )
+  useEngineActionListener('chat.1.chatUi.chatShowManageChannels', action => {
+    if (
+      teamID &&
+      teamID !== T.Teams.noTeamID &&
+      teamname &&
+      action.payload.params.teamname === teamname
+    ) {
+      navigateAppend({name: 'teamAddToChannels', params: {teamID}})
+    }
+  })
+}
+
 const NormalWrapper = function NormalWrapper() {
   const orangeLine = useOrangeLine()
+  useShowManageChannels()
   return (
     <OrangeLineContext value={orangeLine}>
       <ChatTeamProvider>

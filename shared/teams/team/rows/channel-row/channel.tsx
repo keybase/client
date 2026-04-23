@@ -1,33 +1,33 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {Activity, useChannelParticipants} from '@/teams/common'
+import {Activity, useActivityLevels, useChannelParticipants} from '@/teams/common'
+import {useTeamSelectionState} from '@/teams/common/selection-state'
+import {useLoadedTeam} from '../../use-loaded-team'
 import {pluralize} from '@/util/string'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
 
 type ChannelRowProps = {
-  conversationIDKey: T.Chat.ConversationIDKey
+  channel: T.Teams.TeamChannelInfo
   teamID: T.Teams.TeamID
 }
 const ChannelRow = (props: ChannelRowProps) => {
-  const {conversationIDKey, teamID} = props
-  const channel = useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const {channel, teamID} = props
+  const conversationIDKey = channel.conversationIDKey
   const isGeneral = channel.channelname === 'general'
 
-  const selected = useTeamsState(s => !!s.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey))
-  const canPerform = useTeamsState(s => Teams.getCanPerformByID(s, teamID))
+  const {selectedChannels, setChannelSelected} = useTeamSelectionState()
+  const selected = selectedChannels.has(channel.conversationIDKey)
+  const {teamDetails, yourOperations: canPerform} = useLoadedTeam(teamID)
   const canDelete = canPerform.deleteChannel && !isGeneral
+  const {channels: activityByChannel} = useActivityLevels()
 
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
-  const details = useTeamsState(s => s.teamDetails.get(teamID))
-  const hasAllMembers = details?.members.size === numParticipants
-  const activityLevel = useTeamsState(s => s.activityLevels.channels.get(channel.conversationIDKey) || 'none')
+  const hasAllMembers = teamDetails.members.size === numParticipants
+  const activityLevel = activityByChannel.get(channel.conversationIDKey) || 'none'
 
   const nav = useSafeNavigation()
-  const setChannelSelected = useTeamsState(s => s.dispatch.setChannelSelected)
   const onSelect = (newSelected: boolean) => {
-    setChannelSelected(teamID, channel.conversationIDKey, newSelected)
+    setChannelSelected(channel.conversationIDKey, newSelected)
   }
 
   const onEditChannel = () => {
@@ -54,17 +54,18 @@ const ChannelRow = (props: ChannelRowProps) => {
     nav.safeNavigateAppend({
       name: 'teamChannel',
       params: {
-        ...props,
         conversationIDKey: channel.conversationIDKey,
         selectedTab: 'settings' as const,
+        teamID,
       },
     })
   }
 
-  const deleteChannelConfirmed = useTeamsState(s => s.dispatch.deleteChannelConfirmed)
-
   const onDeleteChannel = () => {
-    deleteChannelConfirmed(teamID, channel.conversationIDKey)
+    nav.safeNavigateAppend({
+      name: 'teamDeleteChannel',
+      params: {conversationIDKey: channel.conversationIDKey, teamID},
+    })
   }
   const checkCircle = (
     <Kb.CheckCircle
@@ -95,21 +96,21 @@ const ChannelRow = (props: ChannelRowProps) => {
   )
 
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const menuItems: Array<Kb.MenuItem> = [
-        {onClick: onNavToSettings, title: 'Settings'},
-        ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
-      ]
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={menuItems}
-          onHidden={hidePopup}
-          visible={true}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    const menuItems: Array<Kb.MenuItem> = [
+      {onClick: onNavToSettings, title: 'Settings'},
+      ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
+    ]
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={hidePopup}
+        visible={true}
+      />
+    )
+  }
   const {showPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const actions = canPerform.deleteChannel ? (

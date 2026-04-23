@@ -1,9 +1,11 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
+import * as Teams from '@/constants/teams'
+import {useNavigation} from '@react-navigation/native'
+import setRouteParamsIfPresent from '../common/set-route-params-if-present'
+import {useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {
@@ -19,14 +21,13 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const channelInfo = useTeamsState(s => Teams.getTeamChannelInfo(s, teamID, conversationIDKey))
-  const {channelname} = channelInfo
+  const {channels} = useLoadedTeamChannels(teamID)
+  const channelname = channels.get(conversationIDKey)?.channelname ?? ''
 
   const nav = useSafeNavigation()
+  const navigation = useNavigation()
   const onCancel = () => nav.safeNavigateUp()
 
-  const loadTeamChannelList = useTeamsState(s => s.dispatch.loadTeamChannelList)
-  const channelSetMemberSelected = useTeamsState(s => s.dispatch.channelSetMemberSelected)
   const removeFromChannel = C.useRPC(T.RPCChat.localRemoveFromConversationLocalRpcPromise)
 
   const onRemove = () => {
@@ -36,9 +37,8 @@ const ConfirmRemoveFromChannel = (props: Props) => {
       [{convID: T.Chat.keyToConversationID(conversationIDKey), usernames: members}],
       _ => {
         setWaiting(false)
-        channelSetMemberSelected(conversationIDKey, '', false, true)
+        setRouteParamsIfPresent(navigation, 'teamChannel', {selectedMembers: undefined})
         nav.safeNavigateUp()
-        loadTeamChannelList(teamID)
       },
       err => {
         setWaiting(false)

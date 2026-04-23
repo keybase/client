@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import * as ConvoState from '@/stores/convostate'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'

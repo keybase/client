@@ -1,15 +1,14 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Teams from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useLoadedTeam} from './use-loaded-team'
 
 type Props = {teamID: T.Teams.TeamID}
 
 const TeamInfo = (props: Props) => {
   const {teamID} = props
-  const teamMeta = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
-  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID))
+  const {teamDetails, teamMeta} = useLoadedTeam(teamID)
   const teamname = teamMeta.teamname
   const lastDot = teamname.lastIndexOf('.')
   const isSubteam = lastDot !== -1
@@ -18,12 +17,12 @@ const TeamInfo = (props: Props) => {
 
   const [newName, _setName] = React.useState(_leafName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
-  const [description, setDescription] = React.useState(teamDetails?.description ?? '')
+  const [description, setDescription] = React.useState(teamDetails.description)
   const [descError, setDescError] = React.useState('')
 
-  const saveDisabled =
-    (description === teamDetails?.description && newName === _leafName) || newName.length < 3
+  const saveDisabled = (description === teamDetails.description && newName === _leafName) || newName.length < 3
   const waiting = C.Waiting.useAnyWaiting([C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsRename])
+  const renameTeamRPC = C.useRPC(T.RPCGen.teamsTeamRenameRpcPromise)
   const editTeamDescription = C.useRPC(T.RPCGen.teamsSetTeamShowcaseRpcPromise)
 
   const errors = {
@@ -31,12 +30,21 @@ const TeamInfo = (props: Props) => {
     rename: C.Waiting.useAnyErrors(C.waitingKeyTeamsRename)?.message,
   }
 
-  const renameTeam = Teams.useTeamsState(s => s.dispatch.renameTeam)
   const onSave = () => {
     if (newName !== _leafName) {
-      renameTeam(teamname, parentTeamNameWithDot + newName)
+      renameTeamRPC(
+        [
+          {
+            newName: {parts: (parentTeamNameWithDot + newName).split('.')},
+            prevName: {parts: teamname.split('.')},
+          },
+          C.waitingKeyTeamsRename,
+        ],
+        () => {},
+        () => {}
+      )
     }
-    if (description !== teamDetails?.description) {
+    if (description !== teamDetails.description) {
       setDescError('')
       editTeamDescription(
         [{description, teamID}, C.waitingKeyTeamsTeam(teamID)],
@@ -62,6 +70,14 @@ const TeamInfo = (props: Props) => {
   React.useEffect(() => {
     wasWaitingRef.current = waiting
   }, [waiting])
+
+  React.useEffect(() => {
+    _setName(_leafName)
+  }, [_leafName])
+
+  React.useEffect(() => {
+    setDescription(teamDetails.description)
+  }, [teamDetails.description])
 
   return (
     <>

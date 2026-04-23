@@ -3,7 +3,6 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {makeChatScreen} from '@/chat/make-chat-screen'
 import * as T from '@/constants/types'
-import * as Teams from '@/stores/teams'
 import * as TB from '@/stores/team-building'
 import {addMembersToWizard, makeAddMembersWizard, type AddMembersWizard} from './add-members-wizard/state'
 import {ModalTitle} from './common'
@@ -15,7 +14,9 @@ import {useModalHeaderState} from '@/stores/modal-header'
 import teamsRootGetOptions from './get-options'
 import {defineRouteMap} from '@/constants/types/router'
 import {createNewTeamFromWizard, type NewTeamWizard} from './new-team/wizard/state'
+import {onTeamCreated} from './create-team-effects'
 import {RPCError} from '@/util/errors'
+import {useLoadedTeam} from './team/use-loaded-team'
 
 const TeamsTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
   <TeamBuilderScreen
@@ -114,7 +115,9 @@ const WizardPhoneHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => (
 )
 
 const TeamInfoHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
-  const teamname = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID).teamname)
+  const {
+    teamMeta: {teamname},
+  } = useLoadedTeam(teamID)
   const isSubteam = teamname.includes('.')
   return <ModalTitle teamID={teamID} title={isSubteam ? 'Edit subteam info' : 'Edit team info'} />
 }
@@ -170,6 +173,7 @@ const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
     const f = async () => {
       try {
         const teamID = await createNewTeamFromWizard(newTeamWizard, cleanWizard.addingMembers)
+        onTeamCreated(teamID)
         navigateAppend({name: 'team', params: {teamID}})
         clearModals()
       } catch (err) {
@@ -289,6 +293,7 @@ export const newModalRoutes = defineRouteMap({
     getOptions: ({route}) => ({
       headerRight: () => <AddToChannelsHeaderRight />,
       headerTitle: () => <AddToChannelsHeaderTitle teamID={route.params.teamID} />,
+      modalStyle: {height: 560},
     }),
   }),
   teamAddToTeamConfirm: C.makeScreen(React.lazy(async () => import('./add-members-wizard/confirm')), {

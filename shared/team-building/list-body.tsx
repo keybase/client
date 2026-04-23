@@ -1,13 +1,12 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as TB from '@/stores/team-building'
-import {useTeamsState} from '@/stores/teams'
 import * as Kb from '@/common-adapters'
 import * as Shared from './shared'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import throttle from 'lodash/throttle'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import type * as Types from './types'
 import type {RootRouteProps} from '@/router-v2/route-params'
 import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
@@ -16,6 +15,7 @@ import {useRoute} from '@react-navigation/native'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 import {useColorScheme} from 'react-native'
 
 type SuggestionsProps = {
@@ -257,8 +257,8 @@ const useListBodyData = ({
   )
   const username = useCurrentUserState(s => s.username)
   const following = useFollowerState(s => s.following)
-  const maybeTeamDetails = useTeamsState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
-  const preExistingTeamMembers: T.Teams.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
+  const {teamDetails} = useLoadedTeam(teamID ?? T.Teams.noTeamID, !!teamID)
+  const preExistingTeamMembers: T.Teams.TeamDetails['members'] = teamID ? teamDetails.members : emptyMap
   const {allSearchResults, teamSoFar, userRecs} = TB.useTBContext(
     C.useShallow(s => ({
       allSearchResults: s.searchResults,

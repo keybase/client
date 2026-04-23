@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
-import * as Teams from '@/stores/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {LayoutEvent} from '@/common-adapters/box'
+import {useChatTeam} from '@/chat/conversation/team-hooks'
 import startCase from 'lodash/startCase'
 import SkinTonePicker from './skin-tone-picker'
 import EmojiPicker, {getSkinToneModifierStrIfAvailable} from '.'
@@ -79,11 +79,9 @@ const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) =>
 }
 
 const useCanManageEmoji = () => {
-  const canManageEmoji = ConvoState.useChatContext(s => {
-    const meta = s.meta
-    // TODO not reactive
-    return !meta.teamname || Teams.getCanPerformByID(Teams.useTeamsState.getState(), meta.teamID).manageEmojis
-  })
+  const meta = ConvoState.useChatContext(s => s.meta)
+  const {yourOperations} = useChatTeam(meta.teamID, meta.teamname)
+  const canManageEmoji = !meta.teamname || yourOperations.manageEmojis
   return canManageEmoji
 }
 

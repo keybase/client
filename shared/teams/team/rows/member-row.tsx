@@ -1,11 +1,14 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/stores/teams'
+import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import MenuHeader from './menu-header.new'
+import {useTeamSelectionState} from '../../common/selection-state'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
+import {useLoadedTeam} from '../use-loaded-team'
+import {reAddToTeam, removeMember} from '@/teams/actions'
 
 export type Props = {
   firstItem: boolean
@@ -78,14 +81,12 @@ export const TeamMemberRow = (props: Props) => {
   const teamID = props.teamID
 
   const nav = useSafeNavigation()
-  const teamSelectedMembers = Teams.useTeamsState(s => s.teamSelectedMembers.get(teamID))
-  const anySelected = !!teamSelectedMembers?.size
-  const selected = !!teamSelectedMembers?.has(props.username)
-
-  const setMemberSelected = Teams.useTeamsState(s => s.dispatch.setMemberSelected)
+  const {selectedMembers: teamSelectedMembers, setMemberSelected} = useTeamSelectionState()
+  const anySelected = !!teamSelectedMembers.size
+  const selected = teamSelectedMembers.has(props.username)
 
   const onSelect = (selected: boolean) => {
-    setMemberSelected(teamID, props.username, selected)
+    setMemberSelected(props.username, selected)
   }
 
   const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK
@@ -280,18 +281,9 @@ const blankInfo = Teams.initialMemberInfo
 
 const Container = (ownProps: OwnProps) => {
   const {teamID, firstItem, username} = ownProps
-  const {members, reAddToTeam, removeMember, youCanManageMembers} = Teams.useTeamsState(
-    C.useShallow(s => {
-      const details = s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails
-      const {members} = details
-      const m = Teams.getTeamMeta(s, teamID)
-      const {teamname} = m
-      const youCanManageMembers = Teams.getCanPerform(s, teamname).manageMembers
-      const {dispatch} = s
-      const {removeMember, reAddToTeam} = dispatch
-      return {members, reAddToTeam, removeMember, youCanManageMembers}
-    })
-  )
+  const {teamDetails, yourOperations} = useLoadedTeam(teamID)
+  const members = teamDetails.members
+  const youCanManageMembers = yourOperations.manageMembers
   const info = members.get(username) || blankInfo
 
   const you = useCurrentUserState(s => s.username)
