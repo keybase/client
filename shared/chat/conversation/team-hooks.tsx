@@ -8,7 +8,7 @@ import {useUsersState} from '@/stores/users'
 import * as Teams from '@/constants/teams'
 import logger from '@/logger'
 import * as React from 'react'
-import {useTeamsAnnotatedTeam, useTeamsMembers, useTeamsRoleMap} from '@/teams/use-teams-list'
+import {useTeamsRoleMap} from '@/teams/use-teams-list'
 
 type ChatTeamState = {
   allowPromote: boolean
@@ -179,7 +179,6 @@ const annotatedTeamToChatTeamState = (
 
 const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = true): ChatTeam => {
   const validTeamID = loadableTeamID(teamID)
-  const {loadIfStale: loadAnnotatedTeamIfStale, reload: reloadAnnotatedTeam} = useTeamsAnnotatedTeam()
   const {loadIfStale: loadRoleMapIfStale, roleMap} = useTeamsRoleMap()
   const [state, setState] = React.useState<ChatTeamStateInternal>(() => ({
     ...emptyChatTeamState,
@@ -192,7 +191,7 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
     setState({...emptyChatTeamState, loadedTeamID: validTeamID, teamname: teamname ?? ''})
   }, [teamname, validTeamID])
 
-  const load = React.useCallback(async (force: boolean) => {
+  const reload = React.useCallback(async () => {
     if (!enabled || !validTeamID) {
       clearState()
       return
@@ -201,12 +200,9 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
     setState(prev => ({...prev, loading: true, teamname: prev.teamname || teamname || ''}))
     try {
       const [annotatedTeam] = await Promise.all([
-        force ? reloadAnnotatedTeam(validTeamID) : loadAnnotatedTeamIfStale(validTeamID),
+        T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID}),
         loadRoleMapIfStale(),
       ])
-      if (!annotatedTeam) {
-        throw new Error(`No annotated team returned for ${validTeamID}`)
-      }
       if (requestVersion !== requestVersionRef.current) {
         return
       }
@@ -221,23 +217,7 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
       logger.warn(`Failed to load chat team metadata for ${validTeamID}`, error)
       setState(prev => ({...prev, loading: false, teamname: prev.teamname || teamname || ''}))
     }
-  }, [
-    clearState,
-    enabled,
-    loadAnnotatedTeamIfStale,
-    loadRoleMapIfStale,
-    reloadAnnotatedTeam,
-    teamname,
-    validTeamID,
-  ])
-
-  const reload = React.useCallback(async () => {
-    await load(true)
-  }, [load])
-
-  const loadIfStale = React.useCallback(async () => {
-    await load(false)
-  }, [load])
+  }, [clearState, enabled, loadRoleMapIfStale, teamname, validTeamID])
 
   const visibleState =
     enabled && state.loadedTeamID !== validTeamID
@@ -247,12 +227,12 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
 
   React.useEffect(() => {
-    void loadIfStale()
-  }, [loadIfStale])
+    void reload()
+  }, [reload])
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
-      void loadIfStale()
-    }, [loadIfStale])
+      void reload()
+    }, [reload])
   )
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
     if (enabled) {
@@ -285,7 +265,6 @@ const useChatTeamRaw = (teamID: T.Teams.TeamID, teamname?: string, enabled = tru
 
 const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeamMembers => {
   const validTeamID = loadableTeamID(teamID)
-  const {loadIfStale: loadMembersIfStale, reload: reloadMembers} = useTeamsMembers()
   const [state, setState] = React.useState<ChatTeamMembersStateInternal>({
     ...emptyChatTeamMembersState,
     loadedTeamID: validTeamID,
@@ -296,7 +275,7 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
     setState({...emptyChatTeamMembersState, loadedTeamID: validTeamID})
   }, [validTeamID])
 
-  const load = React.useCallback(async (force: boolean) => {
+  const reload = React.useCallback(async () => {
     if (!enabled || !validTeamID) {
       clearState()
       return
@@ -305,7 +284,7 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
     setState(prev => ({...prev, loading: true}))
     try {
       const members = Teams.rpcDetailsToMemberInfos(
-        (force ? await reloadMembers(validTeamID) : await loadMembersIfStale(validTeamID)) ?? []
+        (await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({id: validTeamID})) ?? []
       )
       if (requestVersion !== requestVersionRef.current) {
         return
@@ -324,15 +303,7 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
       logger.warn(`Failed to reload chat team members for ${validTeamID}`, error)
       setState(prev => ({...prev, loading: false}))
     }
-  }, [clearState, enabled, loadMembersIfStale, reloadMembers, validTeamID])
-
-  const reload = React.useCallback(async () => {
-    await load(true)
-  }, [load])
-
-  const loadIfStale = React.useCallback(async () => {
-    await load(false)
-  }, [load])
+  }, [clearState, enabled, validTeamID])
 
   const visibleState =
     enabled && state.loadedTeamID !== validTeamID
@@ -340,12 +311,12 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
       : state
 
   React.useEffect(() => {
-    void loadIfStale()
-  }, [loadIfStale])
+    void reload()
+  }, [reload])
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
-      void loadIfStale()
-    }, [loadIfStale])
+      void reload()
+    }, [reload])
   )
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
@@ -372,7 +343,6 @@ const useChatTeamChannelsRaw = (
   enabled = true
 ): ChatTeamChannels => {
   const validTeamID = loadableTeamID(teamID)
-  const {loadIfStale: loadAnnotatedTeamIfStale} = useTeamsAnnotatedTeam()
   const [state, setState] = React.useState<ChatTeamChannelsStateInternal>(() => ({
     ...emptyChatTeamChannelsState,
     loadedTeamID: validTeamID,
@@ -392,10 +362,8 @@ const useChatTeamChannelsRaw = (
     const requestVersion = ++requestVersionRef.current
     setState(prev => ({...prev, loading: true, teamname: prev.teamname || teamname || ''}))
     try {
-      const resolvedTeamname = teamname || (await loadAnnotatedTeamIfStale(validTeamID))?.name
-      if (!resolvedTeamname) {
-        throw new Error(`No teamname returned for ${validTeamID}`)
-      }
+      const resolvedTeamname =
+        teamname || (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID})).name
       const {convs} = await T.RPCChat.localGetTLFConversationsLocalRpcPromise({
         membersType: T.RPCChat.ConversationMembersType.team,
         tlfName: resolvedTeamname,
@@ -422,7 +390,7 @@ const useChatTeamChannelsRaw = (
       logger.warn(`Failed to load chat channels for ${validTeamID}`, error)
       setState(prev => ({...prev, loading: false}))
     }
-  }, [clearState, enabled, loadAnnotatedTeamIfStale, teamname, validTeamID])
+  }, [clearState, enabled, teamname, validTeamID])
 
   const visibleState =
     enabled && state.loadedTeamID !== validTeamID
@@ -463,7 +431,6 @@ const useChatTeamChannelsRaw = (
 
 const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = true): ChatTeamNames => {
   const username = useCurrentUserState(s => s.username)
-  const {loadIfStale: loadAnnotatedTeamIfStale, reload: reloadAnnotatedTeam} = useTeamsAnnotatedTeam()
   const teamIDsKey = [
     ...new Set(teamIDs.map(loadableTeamID).filter((teamID): teamID is T.Teams.TeamID => !!teamID)),
   ]
@@ -477,7 +444,7 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
     setState(emptyChatTeamNamesState)
   }, [])
 
-  const load = React.useCallback(async (force: boolean) => {
+  const reload = React.useCallback(async () => {
     if (!enabled || !teamIDsKey || !username) {
       clearState()
       return
@@ -488,8 +455,7 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
       const resolvedTeamnames = await Promise.all(
         validTeamIDs.map(async teamID => {
           try {
-            const teamname = (force ? await reloadAnnotatedTeam(teamID) : await loadAnnotatedTeamIfStale(teamID))
-              ?.name
+            const teamname = (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name
             return teamname ? ([teamID, teamname] as const) : undefined
           } catch (error) {
             logger.warn(`Failed to load chat team name for ${teamID}`, error)
@@ -517,23 +483,15 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
       logger.warn(`Failed to load chat team names for ${teamIDsKey}`, error)
       setState(prev => ({loading: false, teamnames: new Map(prev.teamnames)}))
     }
-  }, [clearState, enabled, loadAnnotatedTeamIfStale, reloadAnnotatedTeam, teamIDsKey, username, validTeamIDs])
-
-  const reload = React.useCallback(async () => {
-    await load(true)
-  }, [load])
-
-  const loadIfStale = React.useCallback(async () => {
-    await load(false)
-  }, [load])
+  }, [clearState, enabled, teamIDsKey, username, validTeamIDs])
 
   React.useEffect(() => {
-    void loadIfStale()
-  }, [loadIfStale])
+    void reload()
+  }, [reload])
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
-      void loadIfStale()
-    }, [loadIfStale])
+      void reload()
+    }, [reload])
   )
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
     if (enabled && teamIDsKey) {

@@ -3,7 +3,6 @@ import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as React from 'react'
-import {useTeamsAnnotatedTeam} from '../use-teams-list'
 
 type LoadedTeamChannels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
@@ -35,16 +34,12 @@ const emptyLoadedTeamChannelsState = (
   loading,
 })
 
-const loadTeamname = async (
-  teamID: T.Teams.TeamID,
-  loadAnnotatedTeamIfStale: (teamID: T.Teams.TeamID) => Promise<T.RPCGen.AnnotatedTeam | undefined>,
-  teamname?: string
-) => {
+const loadTeamname = async (teamID: T.Teams.TeamID, teamname?: string) => {
   if (teamname) {
     return teamname
   }
-  const annotatedTeam = await loadAnnotatedTeamIfStale(teamID)
-  return annotatedTeam?.name
+  const annotatedTeam = await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})
+  return annotatedTeam.name
 }
 
 const useLoadedTeamChannelsRaw = (
@@ -53,7 +48,6 @@ const useLoadedTeamChannelsRaw = (
   enabled = true
 ): LoadedTeamChannels => {
   const validTeamID = loadableTeamID(teamID)
-  const {loadIfStale: loadAnnotatedTeamIfStale} = useTeamsAnnotatedTeam()
   const [state, setState] = React.useState<LoadedTeamChannelsState>(
     emptyLoadedTeamChannelsState(enabled && !!validTeamID, validTeamID)
   )
@@ -74,10 +68,7 @@ const useLoadedTeamChannelsRaw = (
     const requestVersion = ++requestVersionRef.current
     setState(prev => ({...prev, loading: true}))
     try {
-      const teamname = await loadTeamname(validTeamID, loadAnnotatedTeamIfStale, providedTeamname)
-      if (!teamname) {
-        throw new Error(`No teamname returned for ${validTeamID}`)
-      }
+      const teamname = await loadTeamname(validTeamID, providedTeamname)
       const {convs} = await T.RPCChat.localGetTLFConversationsLocalRpcPromise(
         {
           membersType: T.RPCChat.ConversationMembersType.team,
@@ -121,7 +112,7 @@ const useLoadedTeamChannelsRaw = (
       logger.warn(`Failed to load team channels for ${validTeamID}`, error)
       setState(prev => ({...prev, loading: false}))
     }
-  }, [clearState, enabled, loadAnnotatedTeamIfStale, providedTeamname, validTeamID])
+  }, [clearState, enabled, providedTeamname, validTeamID])
 
   const visibleState =
     enabled && state.loadedTeamID !== validTeamID ? emptyLoadedTeamChannelsState(false, validTeamID) : state

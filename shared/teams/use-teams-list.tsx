@@ -18,25 +18,11 @@ type TeamsRoleMap = {
   roleMap: T.RPCGen.TeamRoleMapAndVersion
 }
 
-type TeamsAnnotatedTeam = {
-  loadIfStale: (teamID: T.Teams.TeamID) => Promise<T.RPCGen.AnnotatedTeam | undefined>
-  reload: (teamID: T.Teams.TeamID) => Promise<T.RPCGen.AnnotatedTeam | undefined>
-}
-
-type TeamsMembers = {
-  loadIfStale: (teamID: T.Teams.TeamID) => Promise<ReadonlyArray<T.RPCGen.TeamMemberDetails> | undefined>
-  reload: (teamID: T.Teams.TeamID) => Promise<ReadonlyArray<T.RPCGen.TeamMemberDetails> | undefined>
-}
-
 const emptyTeams: ReadonlyArray<T.Teams.TeamMeta> = []
 const emptyTeamRoleMap = Object.freeze<T.RPCGen.TeamRoleMapAndVersion>({teams: undefined, version: 0})
 const TeamsListContext = React.createContext<TeamsList | null>(null)
 const TeamsRoleMapContext = React.createContext<TeamsRoleMap | null>(null)
-const TeamsAnnotatedTeamContext = React.createContext<TeamsAnnotatedTeam | null>(null)
-const TeamsMembersContext = React.createContext<TeamsMembers | null>(null)
 const teamsListReloadStaleMs = 5 * 60_000
-const loadableTeamID = (teamID: T.Teams.TeamID) =>
-  teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
 
 const teamListToArray = (list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>) => {
   return [...Teams.teamListToMeta(list).values()]
@@ -251,238 +237,12 @@ const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
   return React.useMemo(() => ({loadIfStale, reload, roleMap}), [loadIfStale, reload, roleMap])
 }
 
-const useTeamsAnnotatedTeamRaw = (enabled = true): TeamsAnnotatedTeam => {
-  const username = useCurrentUserState(s => s.username)
-  const loggedIn = useConfigState(s => s.loggedIn)
-  const loadAnnotatedTeamRPC = C.useRPC(T.RPCGen.teamsGetAnnotatedTeamRpcPromise)
-  const annotatedTeamsRef = React.useRef(new Map<T.Teams.TeamID, T.RPCGen.AnnotatedTeam>())
-  const requestVersionRef = React.useRef(new Map<T.Teams.TeamID, number>())
-  const inFlightRef = React.useRef(new Map<T.Teams.TeamID, Promise<T.RPCGen.AnnotatedTeam | undefined>>())
-  const loadedAtRef = React.useRef(new Map<T.Teams.TeamID, number>())
-
-  const clearTeam = React.useCallback((teamID: T.Teams.TeamID) => {
-    requestVersionRef.current.set(teamID, (requestVersionRef.current.get(teamID) ?? 0) + 1)
-    annotatedTeamsRef.current.delete(teamID)
-    inFlightRef.current.delete(teamID)
-    loadedAtRef.current.delete(teamID)
-  }, [])
-
-  const clearAll = React.useCallback(() => {
-    requestVersionRef.current = new Map()
-    annotatedTeamsRef.current = new Map()
-    inFlightRef.current = new Map()
-    loadedAtRef.current = new Map()
-  }, [])
-
-  const loadAnnotatedTeam = React.useEffectEvent(
-    async (teamID: T.Teams.TeamID, force: boolean): Promise<T.RPCGen.AnnotatedTeam | undefined> => {
-      const validTeamID = loadableTeamID(teamID)
-      if (!validTeamID) {
-        return undefined
-      }
-      if (!enabled || !loggedIn || !username) {
-        clearAll()
-        return undefined
-      }
-      const cached = annotatedTeamsRef.current.get(validTeamID)
-      const loadedAt = loadedAtRef.current.get(validTeamID) ?? 0
-      if (!force && cached && loadedAt && Date.now() - loadedAt < teamsListReloadStaleMs) {
-        return cached
-      }
-      const inFlight = inFlightRef.current.get(validTeamID)
-      if (inFlight) {
-        return inFlight
-      }
-      const requestVersion = (requestVersionRef.current.get(validTeamID) ?? 0) + 1
-      requestVersionRef.current.set(validTeamID, requestVersion)
-      const request = new Promise<T.RPCGen.AnnotatedTeam | undefined>(resolve => {
-        loadAnnotatedTeamRPC(
-          [{teamID: validTeamID}],
-          result => {
-            if (requestVersionRef.current.get(validTeamID) === requestVersion) {
-              annotatedTeamsRef.current.set(validTeamID, result)
-              loadedAtRef.current.set(validTeamID, Date.now())
-            }
-            resolve(annotatedTeamsRef.current.get(validTeamID))
-          },
-          error => {
-            if (requestVersionRef.current.get(validTeamID) === requestVersion) {
-              logger.warn(`Failed to load annotated team for ${validTeamID}`, error)
-            }
-            resolve(annotatedTeamsRef.current.get(validTeamID))
-          }
-        )
-      })
-      inFlightRef.current.set(validTeamID, request)
-      try {
-        return await request
-      } finally {
-        if (inFlightRef.current.get(validTeamID) === request) {
-          inFlightRef.current.delete(validTeamID)
-        }
-      }
-    }
-  )
-
-  const reload = React.useCallback(
-    async (teamID: T.Teams.TeamID) => await loadAnnotatedTeam(teamID, true),
-    []
-  )
-
-  const loadIfStale = React.useCallback(
-    async (teamID: T.Teams.TeamID) => await loadAnnotatedTeam(teamID, false),
-    []
-  )
-
-  React.useEffect(() => {
-    if (!enabled || !loggedIn || !username) {
-      clearAll()
-    }
-  }, [clearAll, enabled, loggedIn, username])
-
-  useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
-    if (enabled) {
-      clearAll()
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (enabled) {
-      clearTeam(action.payload.params.teamID)
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (enabled) {
-      clearTeam(action.payload.params.teamID)
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (enabled) {
-      clearTeam(action.payload.params.teamID)
-    }
-  })
-
-  return React.useMemo(() => ({loadIfStale, reload}), [loadIfStale, reload])
-}
-
-const useTeamsMembersRaw = (enabled = true): TeamsMembers => {
-  const username = useCurrentUserState(s => s.username)
-  const loggedIn = useConfigState(s => s.loggedIn)
-  const loadMembersRPC = C.useRPC(T.RPCGen.teamsTeamGetMembersByIDRpcPromise)
-  const membersRef = React.useRef(new Map<T.Teams.TeamID, ReadonlyArray<T.RPCGen.TeamMemberDetails>>())
-  const requestVersionRef = React.useRef(new Map<T.Teams.TeamID, number>())
-  const inFlightRef = React.useRef(
-    new Map<T.Teams.TeamID, Promise<ReadonlyArray<T.RPCGen.TeamMemberDetails> | undefined>>()
-  )
-  const loadedAtRef = React.useRef(new Map<T.Teams.TeamID, number>())
-
-  const clearTeam = React.useCallback((teamID: T.Teams.TeamID) => {
-    requestVersionRef.current.set(teamID, (requestVersionRef.current.get(teamID) ?? 0) + 1)
-    membersRef.current.delete(teamID)
-    inFlightRef.current.delete(teamID)
-    loadedAtRef.current.delete(teamID)
-  }, [])
-
-  const clearAll = React.useCallback(() => {
-    requestVersionRef.current = new Map()
-    membersRef.current = new Map()
-    inFlightRef.current = new Map()
-    loadedAtRef.current = new Map()
-  }, [])
-
-  const loadMembers = React.useEffectEvent(
-    async (teamID: T.Teams.TeamID, force: boolean): Promise<ReadonlyArray<T.RPCGen.TeamMemberDetails> | undefined> => {
-      const validTeamID = loadableTeamID(teamID)
-      if (!validTeamID) {
-        return undefined
-      }
-      if (!enabled || !loggedIn || !username) {
-        clearAll()
-        return undefined
-      }
-      const cached = membersRef.current.get(validTeamID)
-      const loadedAt = loadedAtRef.current.get(validTeamID) ?? 0
-      if (!force && cached && loadedAt && Date.now() - loadedAt < teamsListReloadStaleMs) {
-        return cached
-      }
-      const inFlight = inFlightRef.current.get(validTeamID)
-      if (inFlight) {
-        return inFlight
-      }
-      const requestVersion = (requestVersionRef.current.get(validTeamID) ?? 0) + 1
-      requestVersionRef.current.set(validTeamID, requestVersion)
-      const request = new Promise<ReadonlyArray<T.RPCGen.TeamMemberDetails> | undefined>(resolve => {
-        loadMembersRPC(
-          [{id: validTeamID}],
-          result => {
-            if (requestVersionRef.current.get(validTeamID) === requestVersion) {
-              membersRef.current.set(validTeamID, result ?? [])
-              loadedAtRef.current.set(validTeamID, Date.now())
-            }
-            resolve(membersRef.current.get(validTeamID))
-          },
-          error => {
-            if (requestVersionRef.current.get(validTeamID) === requestVersion) {
-              logger.warn(`Failed to load team members for ${validTeamID}`, error)
-            }
-            resolve(membersRef.current.get(validTeamID))
-          }
-        )
-      })
-      inFlightRef.current.set(validTeamID, request)
-      try {
-        return await request
-      } finally {
-        if (inFlightRef.current.get(validTeamID) === request) {
-          inFlightRef.current.delete(validTeamID)
-        }
-      }
-    }
-  )
-
-  const reload = React.useCallback(async (teamID: T.Teams.TeamID) => await loadMembers(teamID, true), [])
-
-  const loadIfStale = React.useCallback(
-    async (teamID: T.Teams.TeamID) => await loadMembers(teamID, false),
-    []
-  )
-
-  React.useEffect(() => {
-    if (!enabled || !loggedIn || !username) {
-      clearAll()
-    }
-  }, [clearAll, enabled, loggedIn, username])
-
-  useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
-    if (enabled) {
-      clearTeam(action.payload.params.teamID)
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
-    if (enabled) {
-      clearTeam(action.payload.params.teamID)
-    }
-  })
-  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
-    if (enabled) {
-      clearTeam(action.payload.params.teamID)
-    }
-  })
-
-  return React.useMemo(() => ({loadIfStale, reload}), [loadIfStale, reload])
-}
-
 export const LoadedTeamsListProvider = (props: React.PropsWithChildren) => {
   const teamsList = useTeamsListRaw()
   const teamsRoleMap = useTeamsRoleMapRaw()
-  const teamsAnnotatedTeam = useTeamsAnnotatedTeamRaw()
-  const teamsMembers = useTeamsMembersRaw()
   return (
     <TeamsListContext.Provider value={teamsList}>
-      <TeamsRoleMapContext.Provider value={teamsRoleMap}>
-        <TeamsAnnotatedTeamContext.Provider value={teamsAnnotatedTeam}>
-          <TeamsMembersContext.Provider value={teamsMembers}>{props.children}</TeamsMembersContext.Provider>
-        </TeamsAnnotatedTeamContext.Provider>
-      </TeamsRoleMapContext.Provider>
+      <TeamsRoleMapContext.Provider value={teamsRoleMap}>{props.children}</TeamsRoleMapContext.Provider>
     </TeamsListContext.Provider>
   )
 }
@@ -496,18 +256,6 @@ export const useTeamsList = (): TeamsList => {
 export const useTeamsRoleMap = (): TeamsRoleMap => {
   const context = React.useContext(TeamsRoleMapContext)
   const raw = useTeamsRoleMapRaw(!context)
-  return context ?? raw
-}
-
-export const useTeamsAnnotatedTeam = (): TeamsAnnotatedTeam => {
-  const context = React.useContext(TeamsAnnotatedTeamContext)
-  const raw = useTeamsAnnotatedTeamRaw(!context)
-  return context ?? raw
-}
-
-export const useTeamsMembers = (): TeamsMembers => {
-  const context = React.useContext(TeamsMembersContext)
-  const raw = useTeamsMembersRaw(!context)
   return context ?? raw
 }
 
