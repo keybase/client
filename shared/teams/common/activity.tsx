@@ -1,9 +1,9 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {createCachedResourceCache, useCachedResource} from '../use-cached-resource'
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-campfire-burning',
@@ -46,20 +46,20 @@ const lastActiveStatusToActivityLevel = (status: T.RPCChat.LastActiveStatus): T.
   }
 }
 
-const emptyLoadedActivityLevelsState = (): Omit<ActivityLevels, 'reload'> => ({
-  channels: emptyChannelActivityLevels,
-  loaded: false,
-  loading: false,
-  teams: emptyTeamActivityLevels,
-})
+type ActivityLevelsData = Pick<ActivityLevels, 'channels' | 'teams'>
 
-let cachedActivityLevelsState: Omit<ActivityLevels, 'reload'> = emptyLoadedActivityLevelsState()
-let cachedActivityLevelsLoadedAt = 0
-let cachedActivityLevelsInFlight: Promise<Omit<ActivityLevels, 'reload'>> | undefined
+const emptyActivityLevelsData: ActivityLevelsData = {
+  channels: emptyChannelActivityLevels,
+  teams: emptyTeamActivityLevels,
+}
+const activityLevelsCache = createCachedResourceCache<ActivityLevelsData, 'activity'>(
+  emptyActivityLevelsData,
+  'activity'
+)
 
 const parseActivityLevels = (
   results: Awaited<ReturnType<typeof T.RPCChat.localGetLastActiveForTeamsRpcPromise>>
-): Omit<ActivityLevels, 'reload'> => {
+): ActivityLevelsData => {
   const teams = Object.entries(results.teams ?? {}).reduce((res, [teamID, status]) => {
     if (status === T.RPCChat.LastActiveStatus.none) {
       return res
@@ -76,93 +76,24 @@ const parseActivityLevels = (
   }, new Map<T.Chat.ConversationIDKey, T.Teams.ActivityLevel>())
   return {
     channels,
-    loaded: true,
-    loading: false,
     teams,
   }
 }
 
 const useActivityLevelsRaw = (enabled = true): ActivityLevels => {
-  const [state, setState] = React.useState<Omit<ActivityLevels, 'reload'>>(
-    cachedActivityLevelsLoadedAt ? cachedActivityLevelsState : emptyLoadedActivityLevelsState
-  )
-  const hasFocusedSinceMountRef = React.useRef(false)
-  const requestVersionRef = React.useRef(0)
-
-  const loadActivityLevels = React.useEffectEvent(async (force: boolean) => {
-    if (!enabled) {
-      requestVersionRef.current++
-      setState(emptyLoadedActivityLevelsState())
-      return
-    }
-    if (
-      !force &&
-      cachedActivityLevelsLoadedAt &&
-      Date.now() - cachedActivityLevelsLoadedAt < activityLevelsReloadStaleMs
-    ) {
-      setState(cachedActivityLevelsState)
-      return
-    }
-    const requestVersion = ++requestVersionRef.current
-    setState(prev => ({...prev, loading: true}))
-    try {
-      if (cachedActivityLevelsInFlight) {
-        const nextState = await cachedActivityLevelsInFlight
-        if (requestVersion === requestVersionRef.current) {
-          setState(nextState)
-        }
-        return
-      }
-      const request = T.RPCChat.localGetLastActiveForTeamsRpcPromise().then(results => {
-        const nextState = parseActivityLevels(results)
-        cachedActivityLevelsLoadedAt = Date.now()
-        cachedActivityLevelsState = nextState
-        return nextState
-      })
-      cachedActivityLevelsInFlight = request
-      const nextState = await request
-      if (requestVersion === requestVersionRef.current) {
-        setState(nextState)
-      }
-    } catch (error) {
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
+  const {data, loaded, loading, reload} = useCachedResource({
+    cache: activityLevelsCache,
+    cacheKey: 'activity',
+    enabled,
+    initialData: emptyActivityLevelsData,
+    load: async () => parseActivityLevels(await T.RPCChat.localGetLastActiveForTeamsRpcPromise()),
+    onError: error => {
       logger.warn('Failed to load activity levels', error)
-      setState(prev => ({...prev, loading: false}))
-    } finally {
-      if (cachedActivityLevelsInFlight) {
-        cachedActivityLevelsInFlight = undefined
-      }
-    }
+    },
+    staleMs: activityLevelsReloadStaleMs,
   })
 
-  const reload = React.useCallback(async () => {
-    await loadActivityLevels(true)
-  }, [])
-
-  const loadIfStale = React.useCallback(async () => {
-    await loadActivityLevels(false)
-  }, [])
-
-  React.useEffect(() => {
-    void loadIfStale()
-  }, [enabled, loadIfStale])
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      if (!enabled) {
-        return
-      }
-      if (hasFocusedSinceMountRef.current) {
-        void loadIfStale()
-      } else {
-        hasFocusedSinceMountRef.current = true
-      }
-    }, [enabled, loadIfStale])
-  )
-
-  return {...state, reload}
+  return {...data, loaded, loading, reload}
 }
 
 export const ActivityLevelsProvider = (props: React.PropsWithChildren) => {

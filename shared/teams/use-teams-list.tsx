@@ -6,6 +6,7 @@ import * as Teams from '@/constants/teams'
 import {useEngineActionListener} from '@/engine/action-listener'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import {createCachedResourceCache, useCachedResource} from './use-cached-resource'
 
 type TeamsList = {
   reload: () => void
@@ -23,6 +24,14 @@ const emptyTeamRoleMap = Object.freeze<T.RPCGen.TeamRoleMapAndVersion>({teams: u
 const TeamsListContext = React.createContext<TeamsList | null>(null)
 const TeamsRoleMapContext = React.createContext<TeamsRoleMap | null>(null)
 const teamsListReloadStaleMs = 5 * 60_000
+const teamsListCache = createCachedResourceCache<ReadonlyArray<T.Teams.TeamMeta>, string | undefined>(
+  emptyTeams,
+  undefined
+)
+const teamsRoleMapCache = createCachedResourceCache<T.RPCGen.TeamRoleMapAndVersion, string | undefined>(
+  emptyTeamRoleMap,
+  undefined
+)
 
 const teamListToArray = (list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>) => {
   return [...Teams.teamListToMeta(list).values()]
@@ -32,103 +41,50 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
   const username = useCurrentUserState(s => s.username)
   const loggedIn = useConfigState(s => s.loggedIn)
   const loadTeamsRPC = C.useRPC(T.RPCGen.teamsTeamListUnverifiedRpcPromise)
-  const [teams, setTeams] = React.useState<ReadonlyArray<T.Teams.TeamMeta>>(emptyTeams)
-  const requestVersionRef = React.useRef(0)
-  const hasFocusedSinceMountRef = React.useRef(false)
-  const inFlightRef = React.useRef<Promise<void> | undefined>(undefined)
-  const loadedAtRef = React.useRef(0)
-
-  const loadTeams = React.useEffectEvent(async (force: boolean) => {
-    if (!enabled || !username || !loggedIn) {
-      requestVersionRef.current++
-      loadedAtRef.current = 0
-      setTeams(emptyTeams)
-      return
-    }
-    if (!force && loadedAtRef.current && Date.now() - loadedAtRef.current < teamsListReloadStaleMs) {
-      return
-    }
-    if (inFlightRef.current) {
-      await inFlightRef.current
-      return
-    }
-    const requestVersion = ++requestVersionRef.current
-    const request = new Promise<void>(resolve => {
-      loadTeamsRPC(
-        [{includeImplicitTeams: false, userAssertion: username}, C.waitingKeyTeamsLoaded],
-        result => {
-          if (requestVersion === requestVersionRef.current) {
-            loadedAtRef.current = Date.now()
-            setTeams(teamListToArray(result.teams ?? []))
-          }
-          resolve()
-        },
-        error => {
-          if (requestVersion === requestVersionRef.current && error.code !== T.RPCGen.StatusCode.scapinetworkerror) {
-            logger.warn('Failed to load teams list', error)
-          }
-          resolve()
-        }
-      )
-    })
-    inFlightRef.current = request
-    try {
-      await request
-    } finally {
-      if (inFlightRef.current === request) {
-        inFlightRef.current = undefined
+  const {data: teams, reload} = useCachedResource({
+    cache: teamsListCache,
+    cacheKey: username,
+    enabled: enabled && !!username && loggedIn,
+    initialData: emptyTeams,
+    load: async () =>
+      new Promise<ReadonlyArray<T.Teams.TeamMeta>>((resolve, reject) => {
+        loadTeamsRPC(
+          [{includeImplicitTeams: false, userAssertion: username ?? ''}, C.waitingKeyTeamsLoaded],
+          result => resolve(teamListToArray(result.teams ?? [])),
+          error => reject(error)
+        )
+      }),
+    onError: error => {
+      if ((error as {code?: number}).code !== T.RPCGen.StatusCode.scapinetworkerror) {
+        logger.warn('Failed to load teams list', error)
       }
-    }
+    },
+    staleMs: teamsListReloadStaleMs,
   })
-
-  const reload = React.useCallback(() => {
-    void loadTeams(true)
-  }, [])
-
-  const loadIfStale = React.useCallback(() => {
-    void loadTeams(false)
-  }, [])
-
-  React.useEffect(() => {
-    loadIfStale()
-  }, [enabled, loadIfStale, loggedIn, username])
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      if (!enabled) {
-        return
-      }
-      if (hasFocusedSinceMountRef.current) {
-        loadIfStale()
-      } else {
-        hasFocusedSinceMountRef.current = true
-      }
-    }, [enabled, loadIfStale])
-  )
 
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
     if (enabled) {
-      reload()
+      void reload()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', () => {
     if (enabled) {
-      reload()
+      void reload()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', () => {
     if (enabled) {
-      reload()
+      void reload()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', () => {
     if (enabled) {
-      reload()
+      void reload()
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', () => {
     if (enabled) {
-      reload()
+      void reload()
     }
   })
 
@@ -139,79 +95,22 @@ const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
   const username = useCurrentUserState(s => s.username)
   const loggedIn = useConfigState(s => s.loggedIn)
   const loadRoleMapRPC = C.useRPC(T.RPCGen.teamsGetTeamRoleMapRpcPromise)
-  const [roleMap, setRoleMap] = React.useState<T.RPCGen.TeamRoleMapAndVersion>(emptyTeamRoleMap)
-  const requestVersionRef = React.useRef(0)
-  const hasFocusedSinceMountRef = React.useRef(false)
-  const inFlightRef = React.useRef<Promise<void> | undefined>(undefined)
-  const loadedAtRef = React.useRef(0)
-
-  const loadRoleMap = React.useEffectEvent(async (force: boolean) => {
-    if (!enabled || !loggedIn || !username) {
-      requestVersionRef.current++
-      loadedAtRef.current = 0
-      setRoleMap(emptyTeamRoleMap)
-      return
-    }
-    if (!force && loadedAtRef.current && Date.now() - loadedAtRef.current < teamsListReloadStaleMs) {
-      return
-    }
-    if (inFlightRef.current) {
-      await inFlightRef.current
-      return
-    }
-    const requestVersion = ++requestVersionRef.current
-    const request = new Promise<void>(resolve => {
-      loadRoleMapRPC(
-        [undefined],
-        result => {
-          if (requestVersion === requestVersionRef.current) {
-            loadedAtRef.current = Date.now()
-            setRoleMap(result)
-          }
-          resolve()
-        },
-        error => {
-          if (requestVersion === requestVersionRef.current && error.code !== T.RPCGen.StatusCode.scapinetworkerror) {
-            logger.warn('Failed to load teams role map', error)
-          }
-          resolve()
-        }
-      )
-    })
-    inFlightRef.current = request
-    try {
-      await request
-    } finally {
-      if (inFlightRef.current === request) {
-        inFlightRef.current = undefined
+  const {data: roleMap, loadIfStale, reload} = useCachedResource({
+    cache: teamsRoleMapCache,
+    cacheKey: username,
+    enabled: enabled && !!username && loggedIn,
+    initialData: emptyTeamRoleMap,
+    load: async () =>
+      new Promise<T.RPCGen.TeamRoleMapAndVersion>((resolve, reject) => {
+        loadRoleMapRPC([undefined], result => resolve(result), error => reject(error))
+      }),
+    onError: error => {
+      if ((error as {code?: number}).code !== T.RPCGen.StatusCode.scapinetworkerror) {
+        logger.warn('Failed to load teams role map', error)
       }
-    }
+    },
+    staleMs: teamsListReloadStaleMs,
   })
-
-  const reload = React.useCallback(async () => {
-    await loadRoleMap(true)
-  }, [])
-
-  const loadIfStale = React.useCallback(async () => {
-    await loadRoleMap(false)
-  }, [])
-
-  React.useEffect(() => {
-    void loadIfStale()
-  }, [enabled, loadIfStale, loggedIn, username])
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      if (!enabled) {
-        return
-      }
-      if (hasFocusedSinceMountRef.current) {
-        void loadIfStale()
-      } else {
-        hasFocusedSinceMountRef.current = true
-      }
-    }, [enabled, loadIfStale])
-  )
 
   useEngineActionListener('keybase.1.NotifyTeam.teamRoleMapChanged', () => {
     if (enabled) {
@@ -249,14 +148,18 @@ export const LoadedTeamsListProvider = (props: React.PropsWithChildren) => {
 
 export const useTeamsList = (): TeamsList => {
   const context = React.useContext(TeamsListContext)
-  const raw = useTeamsListRaw(!context)
-  return context ?? raw
+  if (!context) {
+    throw new Error('useTeamsList must be used within LoadedTeamsListProvider')
+  }
+  return context
 }
 
 export const useTeamsRoleMap = (): TeamsRoleMap => {
   const context = React.useContext(TeamsRoleMapContext)
-  const raw = useTeamsRoleMapRaw(!context)
-  return context ?? raw
+  if (!context) {
+    throw new Error('useTeamsRoleMap must be used within LoadedTeamsListProvider')
+  }
+  return context
 }
 
 export const useTeamsListMap = () => {

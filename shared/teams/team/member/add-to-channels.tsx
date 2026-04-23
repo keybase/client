@@ -55,12 +55,6 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
   const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(channelMetas, usernames)
 
-  C.Router2.useSafeFocusEffect(
-    () => {
-      C.ignorePromise(reloadChannels())
-    }
-  )
-
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
   const [filtering, setFiltering] = React.useState(false)

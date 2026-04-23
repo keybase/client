@@ -475,9 +475,11 @@ const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
     void reload()
   }, [reload])
 
-  C.Router2.useSafeFocusEffect(() => {
-    void reload()
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      void reload()
+    }, [reload])
+  )
 
   useEngineActionListener('chat.1.NotifyChat.ChatSetTeamRetention', action => {
     if (action.payload.params.teamID !== teamID) {

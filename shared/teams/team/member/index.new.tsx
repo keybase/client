@@ -109,13 +109,15 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
     reload()
   }, [reload])
 
-  C.Router2.useSafeFocusEffect(() => {
-    if (hasFocusedSinceMountRef.current) {
-      reload()
-    } else {
-      hasFocusedSinceMountRef.current = true
-    }
-  })
+  C.Router2.useSafeFocusEffect(
+    React.useCallback(() => {
+      if (hasFocusedSinceMountRef.current) {
+        reload()
+      } else {
+        hasFocusedSinceMountRef.current = true
+      }
+    }, [reload])
+  )
 
   useEngineActionListener('keybase.1.NotifyTeam.teamTreeMembershipsDone', action => {
     const {result} = action.payload.params

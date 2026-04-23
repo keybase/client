@@ -1,10 +1,10 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import {useTeamsRoleMap} from '../use-teams-list'
+import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../use-cached-resource'
 
 type LoadedTeam = {
   loading: boolean
@@ -18,21 +18,21 @@ type LoadedTeamContextValue = LoadedTeam & {
   teamID: T.Teams.TeamID
 }
 
-type LoadedTeamState = Omit<LoadedTeam, 'reload'> & {
-  loadedTeamID?: T.Teams.TeamID
-}
+type LoadedTeamData = Pick<LoadedTeam, 'teamDetails' | 'teamMeta'>
 
 const LoadedTeamContext = React.createContext<LoadedTeamContextValue | null>(null)
+const loadedTeamReloadStaleMs = 0
+const loadedTeamCache = new Map<
+  T.Teams.TeamID | undefined,
+  CachedResourceCache<LoadedTeamData, T.Teams.TeamID | undefined>
+>()
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
 
-const emptyLoadedTeamState = (teamID?: T.Teams.TeamID): LoadedTeamState => ({
-  loadedTeamID: teamID,
-  loading: false,
+const emptyLoadedTeamData = (teamID?: T.Teams.TeamID): LoadedTeamData => ({
   teamDetails: Teams.emptyTeamDetails,
   teamMeta: teamID ? Teams.makeTeamMeta({id: teamID}) : Teams.emptyTeamMeta,
-  yourOperations: Teams.initialCanUserPerform,
 })
 
 const roleAndDetailsFromMap = (
@@ -68,69 +68,42 @@ const annotatedTeamToMeta = (
 const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam => {
   const validTeamID = loadableTeamID(teamID)
   const {loadIfStale: loadRoleMapIfStale, roleMap} = useTeamsRoleMap()
-  const [state, setState] = React.useState<LoadedTeamState>(() => emptyLoadedTeamState(validTeamID))
-  const requestVersionRef = React.useRef(0)
-  const clearState = React.useCallback(
-    (nextTeamID?: T.Teams.TeamID) => {
-      requestVersionRef.current++
-      setState(emptyLoadedTeamState(nextTeamID))
-    },
-    [setState]
+  const cache = React.useMemo(
+    () => getCachedResourceCache(loadedTeamCache, emptyLoadedTeamData(validTeamID), validTeamID),
+    [validTeamID]
   )
-
-  const reload = React.useCallback(async () => {
-    if (!enabled || !validTeamID) {
-      clearState()
-      return
-    }
-    const requestVersion = ++requestVersionRef.current
-    setState(prev => ({...prev, loading: true}))
-    try {
+  const initialData = React.useMemo(() => emptyLoadedTeamData(validTeamID), [validTeamID])
+  const {data, loading, reload, clear} = useCachedResource({
+    cache,
+    cacheKey: validTeamID,
+    enabled: enabled && !!validTeamID,
+    initialData,
+    load: async () => {
+      const teamIDToLoad = validTeamID ?? T.Teams.noTeamID
       const [annotatedTeam] = await Promise.all([
-        T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: validTeamID}),
+        T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID: teamIDToLoad}),
         loadRoleMapIfStale(),
       ])
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      setState({
-        loadedTeamID: validTeamID,
-        loading: false,
+      return {
         teamDetails: Teams.annotatedTeamToDetails(annotatedTeam),
-        teamMeta: annotatedTeamToMeta(validTeamID, annotatedTeam, undefined),
-        yourOperations: Teams.initialCanUserPerform,
-      })
-    } catch (error) {
-      if (requestVersion !== requestVersionRef.current) {
-        return
+        teamMeta: annotatedTeamToMeta(teamIDToLoad, annotatedTeam, undefined),
       }
+    },
+    onError: error => {
       logger.warn(`Failed to load team data for ${validTeamID}`, error)
-      setState(prev => ({...prev, loading: false}))
-    }
-  }, [clearState, enabled, loadRoleMapIfStale, validTeamID])
-
-  const visibleState =
-    enabled && state.loadedTeamID !== validTeamID ? emptyLoadedTeamState(validTeamID) : state
+    },
+    staleMs: loadedTeamReloadStaleMs,
+  })
   const roleAndDetails = roleAndDetailsFromMap(roleMap, validTeamID ?? T.Teams.noTeamID)
   const teamMeta = React.useMemo(
     () => ({
-      ...visibleState.teamMeta,
+      ...data.teamMeta,
       isMember: (roleAndDetails?.role ?? 'none') !== 'none',
       role: roleAndDetails?.role ?? 'none',
     }),
-    [roleAndDetails, visibleState.teamMeta]
+    [data.teamMeta, roleAndDetails]
   )
   const yourOperations = React.useMemo(() => Teams.deriveCanPerform(roleAndDetails), [roleAndDetails])
-
-  React.useEffect(() => {
-    void reload()
-  }, [reload])
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      void reload()
-    }, [reload])
-  )
 
   useEngineActionListener('keybase.1.NotifyTeam.teamMetadataUpdate', () => {
     if (enabled) {
@@ -149,16 +122,16 @@ const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam =>
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      clearState(validTeamID)
+      clear(validTeamID)
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      clearState(validTeamID)
+      clear(validTeamID)
     }
   })
 
-  return {...visibleState, reload, teamMeta, yourOperations}
+  return {...data, loading, reload, teamMeta, yourOperations}
 }
 
 export const LoadedTeamProvider = (props: React.PropsWithChildren<{teamID: T.Teams.TeamID}>) => {

@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as React from 'react'
+import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../use-cached-resource'
 
 type LoadedTeamChannels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
@@ -14,25 +15,21 @@ type LoadedTeamChannelsContextValue = LoadedTeamChannels & {
   teamID: T.Teams.TeamID
 }
 
-type LoadedTeamChannelsState = Omit<LoadedTeamChannels, 'reload'> & {
-  loadedTeamID?: T.Teams.TeamID
-}
+type LoadedTeamChannelsData = Pick<LoadedTeamChannels, 'channels'>
 
 const LoadedTeamChannelsContext = React.createContext<LoadedTeamChannelsContextValue | null>(null)
+const loadedTeamChannelsReloadStaleMs = 0
+const loadedTeamChannelsCache = new Map<
+  T.Teams.TeamID | undefined,
+  CachedResourceCache<LoadedTeamChannelsData, T.Teams.TeamID | undefined>
+>()
 
 const emptyChannels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo> = new Map()
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
 
-const emptyLoadedTeamChannelsState = (
-  loading = false,
-  teamID?: T.Teams.TeamID
-): LoadedTeamChannelsState => ({
-  channels: emptyChannels,
-  loadedTeamID: teamID,
-  loading,
-})
+const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {channels: emptyChannels}
 
 const loadTeamname = async (teamID: T.Teams.TeamID, teamname?: string) => {
   if (teamname) {
@@ -48,38 +45,26 @@ const useLoadedTeamChannelsRaw = (
   enabled = true
 ): LoadedTeamChannels => {
   const validTeamID = loadableTeamID(teamID)
-  const [state, setState] = React.useState<LoadedTeamChannelsState>(
-    emptyLoadedTeamChannelsState(enabled && !!validTeamID, validTeamID)
+  const cache = React.useMemo(
+    () => getCachedResourceCache(loadedTeamChannelsCache, emptyLoadedTeamChannelsData, validTeamID),
+    [validTeamID]
   )
-  const requestVersionRef = React.useRef(0)
-  const clearState = React.useCallback(
-    (loading = false, nextTeamID?: T.Teams.TeamID) => {
-      requestVersionRef.current++
-      setState(emptyLoadedTeamChannelsState(loading, nextTeamID))
-    },
-    [setState]
-  )
-
-  const reload = React.useCallback(async () => {
-    if (!enabled || !validTeamID) {
-      clearState()
-      return
-    }
-    const requestVersion = ++requestVersionRef.current
-    setState(prev => ({...prev, loading: true}))
-    try {
-      const teamname = await loadTeamname(validTeamID, providedTeamname)
+  const {data, loading, reload, clear} = useCachedResource({
+    cache,
+    cacheKey: validTeamID,
+    enabled: enabled && !!validTeamID,
+    initialData: emptyLoadedTeamChannelsData,
+    load: async () => {
+      const teamIDToLoad = validTeamID ?? T.Teams.noTeamID
+      const teamname = await loadTeamname(teamIDToLoad, providedTeamname)
       const {convs} = await T.RPCChat.localGetTLFConversationsLocalRpcPromise(
         {
           membersType: T.RPCChat.ConversationMembersType.team,
           tlfName: teamname,
           topicType: T.RPCChat.TopicType.chat,
         },
-        C.waitingKeyTeamsGetChannels(validTeamID)
+        C.waitingKeyTeamsGetChannels(teamIDToLoad)
       )
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
       const channels =
         convs?.reduce((res, inboxUIItem) => {
           const conversationIDKey = T.Chat.stringToConversationIDKey(inboxUIItem.convID)
@@ -100,29 +85,15 @@ const useLoadedTeamChannelsRaw = (
         )
       }
 
-      setState({
+      return {
         channels,
-        loadedTeamID: validTeamID,
-        loading: false,
-      })
-    } catch (error) {
-      if (requestVersion !== requestVersionRef.current) {
-        return
       }
+    },
+    onError: error => {
       logger.warn(`Failed to load team channels for ${validTeamID}`, error)
-      setState(prev => ({...prev, loading: false}))
-    }
-  }, [clearState, enabled, providedTeamname, validTeamID])
-
-  const visibleState =
-    enabled && state.loadedTeamID !== validTeamID ? emptyLoadedTeamChannelsState(false, validTeamID) : state
-
-  React.useEffect(() => {
-    void reload()
-  }, [reload])
-
-  C.Router2.useSafeFocusEffect(() => {
-    void reload()
+    },
+    refreshKey: providedTeamname,
+    staleMs: loadedTeamChannelsReloadStaleMs,
   })
 
   useEngineActionListener('keybase.1.NotifyTeam.teamChangedByID', action => {
@@ -132,16 +103,16 @@ const useLoadedTeamChannelsRaw = (
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      clearState(false, validTeamID)
+      clear(validTeamID)
     }
   })
   useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
     if (enabled && action.payload.params.teamID === validTeamID) {
-      clearState(false, validTeamID)
+      clear(validTeamID)
     }
   })
 
-  return {...visibleState, reload}
+  return {...data, loading, reload}
 }
 
 export const LoadedTeamChannelsProvider = (
