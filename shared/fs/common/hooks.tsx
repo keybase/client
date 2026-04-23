@@ -67,11 +67,11 @@ const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic) => {
   }, [subscribeNonPath, unsubscribe, topic])
 }
 
-export const useFsPathItem = (path: T.FS.Path) => {
+export const useFsPathItem = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => {
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat)
   const pathItem = useFSState(s => FS.getPathItem(s.pathItems, path))
   const loadPathMetadata = useFSState(s => s.dispatch.loadPathMetadata)
-  const shouldLoad = isPathItem(path)
+  const shouldLoad = isPathItem(path) && options?.loadOnMount !== false
   useFsLoadOnMountAndFocus({
     enabled: shouldLoad,
     load: () => loadPathMetadata(path),
@@ -80,7 +80,8 @@ export const useFsPathItem = (path: T.FS.Path) => {
   return pathItem
 }
 
-export const useFsPathMetadata = (path: T.FS.Path) => useFsPathItem(path)
+export const useFsPathMetadata = (path: T.FS.Path, options?: {loadOnMount?: boolean}) =>
+  useFsPathItem(path, options)
 
 export const useFsFolderChildren = (
   path: T.FS.Path,
@@ -114,7 +115,7 @@ export const useFsTlfs = () => {
   return tlfs
 }
 
-export const useFsTlf = (path: T.FS.Path) => {
+export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => {
   const tlfPath = FS.getTlfPath(path)
   const tlfs = useFsTlfs()
   const tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
@@ -122,7 +123,8 @@ export const useFsTlf = (path: T.FS.Path) => {
   const active =
     !!tlfPath &&
     tlfs.loaded &&
-    FS.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) === FS.unknownTlf
+    FS.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) === FS.unknownTlf &&
+    options?.loadOnMount !== false
   const loadCurrentTlf = React.useEffectEvent(() => {
     active && loadAdditionalTlf(tlfPath)
   })

@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useFSState} from '@/stores/fs'
+import {useFsPathItem} from './hooks'
 import * as FS from '@/stores/fs'
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
 }
 
 export const useOpen = (props: Props) => {
-  const pathItems = useFSState(s => s.pathItems)
+  const pathItem = useFsPathItem(props.path, {loadOnMount: false})
   const nav = useSafeNavigation()
 
   if (!props.destinationPickerSource) {
@@ -18,7 +18,7 @@ export const useOpen = (props: Props) => {
 
   const destinationPickerSource = props.destinationPickerSource
   const isFolder =
-    T.FS.getPathLevel(props.path) <= 3 || FS.getPathItem(pathItems, props.path).type === T.FS.PathType.Folder
+    T.FS.getPathLevel(props.path) <= 3 || pathItem.type === T.FS.PathType.Folder
 
   const canOpenInDestinationPicker =
     isFolder &&

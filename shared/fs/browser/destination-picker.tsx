@@ -21,10 +21,10 @@ const canBackUp = C.isMobile
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const {parentPath, source} = ownProps
+  const parentPathItem = FsCommon.useFsPathMetadata(parentPath)
   const {isShare, isWritable, isCopyable, isMovable, moveOrCopy, newFolderRow} = useFSState(
     C.useShallow(s => {
-      const pathItem = FS.getPathItem(s.pathItems, parentPath)
-      const writable = T.FS.getPathLevel(parentPath) > 2 && pathItem.writable
+      const writable = T.FS.getPathLevel(parentPath) > 2 && parentPathItem.writable
       const isShareSource = source.type === T.FS.DestinationPickerSource.IncomingShare
       const isMoveOrCopy = source.type === T.FS.DestinationPickerSource.MoveOrCopy
       const copyable =
@@ -71,7 +71,6 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       ? () => newFolderRow(parentPath)
       : undefined
 
-  FsCommon.useFsPathMetadata(parentPath)
   FsCommon.useFsTlfs()
   FsCommon.useFsOnlineStatus()
 

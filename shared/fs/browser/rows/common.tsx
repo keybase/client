@@ -22,9 +22,10 @@ export const StillCommon = (
 ) => (
   <Kb.ListItem
     type="Small"
-    statusIcon={<PathStatusIcon path={props.path} />}
+    statusIcon={<PathStatusIcon path={props.path} loadOnMount={false} />}
     icon={
       <ItemIcon
+        loadOnMount={false}
         path={props.path}
         size={32}
         style={Kb.Styles.collapseStyles([

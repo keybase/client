@@ -55,9 +55,9 @@ Current slice note:
 
 - [ ] `fs/browser/*`
 - [x] `fs/filepreview/*`
-- [ ] `fs/nav-header/*`
+- [x] `fs/nav-header/*`
 - [ ] `fs/common/path-*`
-- [ ] `fs/common/item-icon.tsx`
+- [x] `fs/common/item-icon.tsx`
 - [x] `fs/common/upload-button.tsx`
 
 ### Store fallout after Chunk 1

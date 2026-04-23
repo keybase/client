@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
-import {LastModifiedLine, Filename} from '@/fs/common'
+import {LastModifiedLine, Filename, useFsPathItem} from '@/fs/common'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
@@ -27,10 +27,10 @@ const getDownloadingText = (intent: T.FS.DownloadIntent) => {
 
 const StillContainer = (p: OwnProps) => {
   const {destinationPickerSource, path} = p
-  const {_downloads, _pathItem, _uploads, dismissUpload} = useFSState(
+  const _pathItem = useFsPathItem(path, {loadOnMount: false})
+  const {_downloads, _uploads, dismissUpload} = useFSState(
     C.useShallow(s => ({
       _downloads: s.downloads,
-      _pathItem: FS.getPathItem(s.pathItems, path),
       _uploads: s.uploads,
       dismissUpload: s.dispatch.dismissUpload,
     }))

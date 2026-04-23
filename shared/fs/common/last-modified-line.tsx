@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {formatTimeForFS} from '@/util/timestamp'
-import {useFSState} from '@/stores/fs'
+import {useFsPathItem} from './hooks'
 import * as FS from '@/stores/fs'
 
 export type OwnProps = {
@@ -24,7 +24,7 @@ const Username = ({mode, lastWriter}: {mode: OwnProps['mode']; lastWriter: strin
 
 const Container = (ownProps: OwnProps) => {
   const {path, mode} = ownProps
-  const _pathItem = useFSState(s => FS.getPathItem(s.pathItems, path))
+  const _pathItem = useFsPathItem(path, {loadOnMount: mode !== 'row'})
   const lastModifiedTimestamp = _pathItem === FS.unknownPathItem ? undefined : _pathItem.lastModifiedTimestamp
   const lastWriter = _pathItem === FS.unknownPathItem ? undefined : _pathItem.lastWriter
 

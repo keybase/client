@@ -9,6 +9,7 @@ import OfflineFolder from './offline'
 import PublicReminder from '../banner/public-reminder'
 import Root from './root'
 import Rows from './rows/rows-container'
+import {useFsPathItem} from '../common'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {errorToActionOrThrow, useFSState} from '@/stores/fs'
@@ -23,10 +24,10 @@ type OwnProps = {
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const filter = useModalHeaderState(s => s.folderViewFilter)
-  const {_kbfsDaemonStatus, _pathItem, resetBannerType} = useFSState(
+  const _pathItem = useFsPathItem(path)
+  const {_kbfsDaemonStatus, resetBannerType} = useFSState(
     C.useShallow(s => ({
       _kbfsDaemonStatus: s.kbfsDaemonStatus,
-      _pathItem: FS.getPathItem(s.pathItems, path),
       resetBannerType: FS.resetBannerType(s, path),
     }))
   )

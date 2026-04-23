@@ -4,8 +4,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import {useModalHeaderState} from '@/stores/modal-header'
-import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
 
 type Props = {
   onTriggerFilterMobile: () => void
@@ -19,8 +17,7 @@ const FsNavHeaderRightActions = (props: Props) => {
       setFolderViewFilter: s.dispatch.setFolderViewFilter,
     }))
   )
-  const softErrors = useFSState(s => s.softErrors)
-  const hasSoftError = !!FS.getSoftError(softErrors, props.path)
+  const hasSoftError = !!Kbfs.useFsSoftError(props.path)
   React.useEffect(() => {
     !Kb.Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
   }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount

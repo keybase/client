@@ -2,21 +2,23 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import PathStatusIcon from './path-status-icon'
 import {useFSState} from '@/stores/fs'
+import {useFsPathItem, useFsTlf, useFsTlfs} from './hooks'
 import * as FS from '@/stores/fs'
 
 type OwnPropsPathItem = {
+  loadOnMount?: boolean
   path: T.FS.Path
   showTooltipOnPressMobile?: boolean
 }
 
 const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
-  const {_kbfsDaemonStatus, _pathItem, _tlf, _uploads} = useFSState(
+  const _pathItem = useFsPathItem(ownProps.path, {loadOnMount: ownProps.loadOnMount})
+  const _tlf = useFsTlf(ownProps.path, {loadOnMount: ownProps.loadOnMount})
+  const {_kbfsDaemonStatus, _uploads} = useFSState(
     C.useShallow(s => {
       const _kbfsDaemonStatus = s.kbfsDaemonStatus
-      const _pathItem = FS.getPathItem(s.pathItems, ownProps.path)
-      const _tlf = FS.getTlfFromPath(s.tlfs, ownProps.path)
       const _uploads = s.uploads.syncingPaths
-      return {_kbfsDaemonStatus, _pathItem, _tlf, _uploads}
+      return {_kbfsDaemonStatus, _uploads}
     })
   )
   const props = {
@@ -38,10 +40,11 @@ type OwnPropsTlfType = {
 }
 
 const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
+  const tlfs = useFsTlfs()
   const {_kbfsDaemonStatus, _tlfList, _uploads} = useFSState(
     C.useShallow(s => {
       const _kbfsDaemonStatus = s.kbfsDaemonStatus
-      const _tlfList = ownProps.tlfType ? FS.getTlfListFromType(s.tlfs, ownProps.tlfType) : new Map()
+      const _tlfList = ownProps.tlfType ? FS.getTlfListFromType(tlfs, ownProps.tlfType) : new Map()
       const _uploads = s.uploads
       return {_kbfsDaemonStatus, _tlfList, _uploads}
     })
@@ -57,13 +60,18 @@ const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
 }
 
 type OwnProps = {
+  loadOnMount?: boolean
   path: T.FS.Path
   showTooltipOnPressMobile?: boolean
 }
 
 const PathStatusIconConnected = (props: OwnProps) =>
   T.FS.getPathLevel(props.path) > 2 ? (
-    <PathStatusIconPathItem path={props.path} showTooltipOnPressMobile={props.showTooltipOnPressMobile} />
+    <PathStatusIconPathItem
+      path={props.path}
+      loadOnMount={props.loadOnMount}
+      showTooltipOnPressMobile={props.showTooltipOnPressMobile}
+    />
   ) : (
     <PathStatusIconTlfType tlfType={T.FS.getTlfTypeFromPath(props.path)} />
   )
