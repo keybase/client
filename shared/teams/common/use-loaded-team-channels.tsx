@@ -17,13 +17,14 @@ type LoadedTeamChannelsContextValue = LoadedTeamChannels & {
 }
 
 type LoadedTeamChannelsData = Pick<LoadedTeamChannels, 'channels'>
-
-const LoadedTeamChannelsContext = React.createContext<LoadedTeamChannelsContextValue | null>(null)
-const loadedTeamChannelsReloadStaleMs = 5_000
-const loadedTeamChannelsCache = new Map<
+type LoadedTeamChannelsCacheMap = Map<
   T.Teams.TeamID | undefined,
   CachedResourceCache<LoadedTeamChannelsData, T.Teams.TeamID | undefined>
->()
+>
+
+const LoadedTeamChannelsContext = React.createContext<LoadedTeamChannelsContextValue | null>(null)
+const LoadedTeamChannelsCacheContext = React.createContext<LoadedTeamChannelsCacheMap | null>(null)
+const loadedTeamChannelsReloadStaleMs = 5_000
 
 const emptyChannels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo> = new Map()
 
@@ -32,19 +33,30 @@ const loadableTeamID = (teamID: T.Teams.TeamID) =>
 
 const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {channels: emptyChannels}
 
+const useLoadedTeamChannelsCacheMap = (providedCacheMap?: LoadedTeamChannelsCacheMap) => {
+  const contextCacheMap = React.useContext(LoadedTeamChannelsCacheContext)
+  const localCacheMapRef = React.useRef<LoadedTeamChannelsCacheMap | null>(null)
+  if (!localCacheMapRef.current) {
+    localCacheMapRef.current = new Map()
+  }
+  return providedCacheMap ?? contextCacheMap ?? localCacheMapRef.current
+}
+
 const useLoadedTeamChannelsRaw = (
   teamID: T.Teams.TeamID,
   providedTeamname?: string,
-  enabled = true
+  enabled = true,
+  providedCacheMap?: LoadedTeamChannelsCacheMap
 ): LoadedTeamChannels => {
   const validTeamID = loadableTeamID(teamID)
   const {
     teamMeta: {teamname: loadedTeamname},
   } = useLoadedTeam(teamID, enabled)
   const teamnameToLoad = providedTeamname || loadedTeamname
+  const cacheMap = useLoadedTeamChannelsCacheMap(providedCacheMap)
   const cache = React.useMemo(
-    () => getCachedResourceCache(loadedTeamChannelsCache, emptyLoadedTeamChannelsData, validTeamID),
-    [validTeamID]
+    () => getCachedResourceCache(cacheMap, emptyLoadedTeamChannelsData, validTeamID),
+    [cacheMap, validTeamID]
   )
   const {data, loading, reload, clear} = useCachedResource({
     cache,
@@ -111,9 +123,14 @@ export const LoadedTeamChannelsProvider = (
   props: React.PropsWithChildren<{teamID: T.Teams.TeamID; teamname?: string}>
 ) => {
   const {children, teamID, teamname} = props
-  const loadedTeamChannels = useLoadedTeamChannelsRaw(teamID, teamname)
+  const cacheMapRef = React.useRef<LoadedTeamChannelsCacheMap>(new Map())
+  const loadedTeamChannels = useLoadedTeamChannelsRaw(teamID, teamname, true, cacheMapRef.current)
   const value = {...loadedTeamChannels, teamID}
-  return <LoadedTeamChannelsContext.Provider value={value}>{children}</LoadedTeamChannelsContext.Provider>
+  return (
+    <LoadedTeamChannelsCacheContext.Provider value={cacheMapRef.current}>
+      <LoadedTeamChannelsContext.Provider value={value}>{children}</LoadedTeamChannelsContext.Provider>
+    </LoadedTeamChannelsCacheContext.Provider>
+  )
 }
 
 export const useLoadedTeamChannels = (

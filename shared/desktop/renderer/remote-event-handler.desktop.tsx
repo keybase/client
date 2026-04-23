@@ -19,6 +19,7 @@ import {makeUUID} from '@/util/uuid'
 import {dumpLogs, showMain} from '@/util/storeless-actions'
 import * as FSConstants from '@/constants/fs'
 import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import * as Z from '@/util/zustand'
 
 type RemoteActionOwner = 'pinentry' | 'tracker'
 
@@ -36,13 +37,33 @@ type OwnerEntry = {
   token: number
 }
 
-// Mounted remote owners register here so renderer-local remote actions can be
-// delegated without per-feature singletons or window event plumbing.
-const ownerHandlers = new Map<RemoteActionOwner, OwnerEntry>()
-let nextOwnerToken = 0
+type RemoteActionHandlerStore = {
+  nextOwnerToken: number
+  ownerHandlers: Map<RemoteActionOwner, OwnerEntry>
+  dispatch: {
+    resetState: () => void
+  }
+}
+
+const useRemoteActionHandlerState = Z.createZustand<RemoteActionHandlerStore>(
+  'desktop-remote-action-handlers',
+  set => {
+    const resetState = () => {
+      set(s => {
+        s.nextOwnerToken = 0
+        s.ownerHandlers = new Map()
+      })
+    }
+    return {
+      nextOwnerToken: 0,
+      ownerHandlers: new Map(),
+      dispatch: {resetState},
+    }
+  }
+)
 
 const dispatchRemoteActionToOwner = <K extends RemoteActionOwner>(owner: K, action: OwnerActionMap[K]) => {
-  const entry = ownerHandlers.get(owner)
+  const entry = useRemoteActionHandlerState.getState().ownerHandlers.get(owner)
   ;(entry?.handler as ((action: OwnerActionMap[K]) => void) | undefined)?.(action)
 }
 
@@ -50,13 +71,18 @@ export const registerRemoteActionHandler = <K extends RemoteActionOwner>(
   owner: K,
   handler: (action: OwnerActionMap[K]) => void
 ) => {
-  nextOwnerToken += 1
-  const token = nextOwnerToken
-  ownerHandlers.set(owner, {handler: handler as OwnerEntry['handler'], token})
+  let token = 0
+  useRemoteActionHandlerState.setState(s => {
+    s.nextOwnerToken += 1
+    token = s.nextOwnerToken
+    s.ownerHandlers.set(owner, {handler: handler as OwnerEntry['handler'], token})
+  })
   return () => {
-    if (ownerHandlers.get(owner)?.token === token) {
-      ownerHandlers.delete(owner)
-    }
+    useRemoteActionHandlerState.setState(s => {
+      if (s.ownerHandlers.get(owner)?.token === token) {
+        s.ownerHandlers.delete(owner)
+      }
+    })
   }
 }
 

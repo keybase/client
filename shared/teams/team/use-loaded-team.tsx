@@ -19,13 +19,14 @@ type LoadedTeamContextValue = LoadedTeam & {
 }
 
 type LoadedTeamData = Pick<LoadedTeam, 'teamDetails' | 'teamMeta'>
-
-const LoadedTeamContext = React.createContext<LoadedTeamContextValue | null>(null)
-const loadedTeamReloadStaleMs = 5_000
-const loadedTeamCache = new Map<
+type LoadedTeamCacheMap = Map<
   T.Teams.TeamID | undefined,
   CachedResourceCache<LoadedTeamData, T.Teams.TeamID | undefined>
->()
+>
+
+const LoadedTeamContext = React.createContext<LoadedTeamContextValue | null>(null)
+const LoadedTeamCacheContext = React.createContext<LoadedTeamCacheMap | null>(null)
+const loadedTeamReloadStaleMs = 5_000
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
@@ -65,12 +66,26 @@ const annotatedTeamToMeta = (
   teamname: annotatedTeam.name,
 })
 
-const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam => {
+const useLoadedTeamCacheMap = (providedCacheMap?: LoadedTeamCacheMap) => {
+  const contextCacheMap = React.useContext(LoadedTeamCacheContext)
+  const localCacheMapRef = React.useRef<LoadedTeamCacheMap | null>(null)
+  if (!localCacheMapRef.current) {
+    localCacheMapRef.current = new Map()
+  }
+  return providedCacheMap ?? contextCacheMap ?? localCacheMapRef.current
+}
+
+const useLoadedTeamRaw = (
+  teamID: T.Teams.TeamID,
+  enabled = true,
+  providedCacheMap?: LoadedTeamCacheMap
+): LoadedTeam => {
   const validTeamID = loadableTeamID(teamID)
   const {loadIfStale: loadRoleMapIfStale, roleMap} = useTeamsRoleMap()
+  const cacheMap = useLoadedTeamCacheMap(providedCacheMap)
   const cache = React.useMemo(
-    () => getCachedResourceCache(loadedTeamCache, emptyLoadedTeamData(validTeamID), validTeamID),
-    [validTeamID]
+    () => getCachedResourceCache(cacheMap, emptyLoadedTeamData(validTeamID), validTeamID),
+    [cacheMap, validTeamID]
   )
   const initialData = React.useMemo(() => emptyLoadedTeamData(validTeamID), [validTeamID])
   const {data, loading, reload, clear} = useCachedResource({
@@ -136,9 +151,14 @@ const useLoadedTeamRaw = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam =>
 
 export const LoadedTeamProvider = (props: React.PropsWithChildren<{teamID: T.Teams.TeamID}>) => {
   const {children, teamID} = props
-  const loadedTeam = useLoadedTeamRaw(teamID)
+  const cacheMapRef = React.useRef<LoadedTeamCacheMap>(new Map())
+  const loadedTeam = useLoadedTeamRaw(teamID, true, cacheMapRef.current)
   const value = {...loadedTeam, teamID}
-  return <LoadedTeamContext.Provider value={value}>{children}</LoadedTeamContext.Provider>
+  return (
+    <LoadedTeamCacheContext.Provider value={cacheMapRef.current}>
+      <LoadedTeamContext.Provider value={value}>{children}</LoadedTeamContext.Provider>
+    </LoadedTeamCacheContext.Provider>
+  )
 }
 
 export const useLoadedTeam = (teamID: T.Teams.TeamID, enabled = true): LoadedTeam => {

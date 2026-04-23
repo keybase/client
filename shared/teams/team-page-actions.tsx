@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {isMobile} from '@/constants/platform'
 import {clearModals, navigateAppend, navigateToInbox, previewConversation} from '@/constants/router'
 import logger from '@/logger'
+import {useConfigState} from '@/stores/config'
 import {addToTeam} from './actions'
 import {onTeamCreated} from './create-team-effects'
 
@@ -45,7 +46,10 @@ export const createNewTeamAndNavigate = async (
     if (isMobile) {
       navigateAppend({name: 'profileEditAvatar', params: {createdTeam: true, teamID}})
     }
-  } catch {}
+  } catch (error) {
+    logger.warn(`Failed to create team "${teamname}"`, error)
+    useConfigState.getState().dispatch.setGlobalError(error)
+  }
 }
 
 export const showTeamByName = async (teamname: string, options?: ShowTeamByNameOptions) => {

@@ -450,7 +450,7 @@ const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
     try {
       const servicePolicy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
         {teamID},
-        C.waitingKeyTeamsTeam(teamID)
+        C.waitingKeyTeamsLoadRetentionPolicy(teamID)
       )
       if (requestVersion !== requestVersionRef.current) {
         return

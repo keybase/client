@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
-import {createCachedResourceCache, useCachedResource} from '../use-cached-resource'
+import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '../use-cached-resource'
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-campfire-burning',
@@ -52,10 +52,6 @@ const emptyActivityLevelsData: ActivityLevelsData = {
   channels: emptyChannelActivityLevels,
   teams: emptyTeamActivityLevels,
 }
-const activityLevelsCache = createCachedResourceCache<ActivityLevelsData, 'activity'>(
-  emptyActivityLevelsData,
-  'activity'
-)
 
 const parseActivityLevels = (
   results: Awaited<ReturnType<typeof T.RPCChat.localGetLastActiveForTeamsRpcPromise>>
@@ -80,9 +76,12 @@ const parseActivityLevels = (
   }
 }
 
-const useActivityLevelsRaw = (enabled = true): ActivityLevels => {
+const useActivityLevelsRaw = (
+  cache: CachedResourceCache<ActivityLevelsData, 'activity'>,
+  enabled = true
+): ActivityLevels => {
   const {data, loaded, loading, reload} = useCachedResource({
-    cache: activityLevelsCache,
+    cache,
     cacheKey: 'activity',
     enabled,
     initialData: emptyActivityLevelsData,
@@ -98,7 +97,11 @@ const useActivityLevelsRaw = (enabled = true): ActivityLevels => {
 
 export const ActivityLevelsProvider = (props: React.PropsWithChildren) => {
   const {children} = props
-  const value = useActivityLevelsRaw()
+  const cacheRef = React.useRef(createCachedResourceCache<ActivityLevelsData, 'activity'>(
+    emptyActivityLevelsData,
+    'activity'
+  ))
+  const value = useActivityLevelsRaw(cacheRef.current)
   return <ActivityLevelsContext.Provider value={value}>{children}</ActivityLevelsContext.Provider>
 }
 

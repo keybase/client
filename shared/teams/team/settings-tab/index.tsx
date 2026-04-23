@@ -353,6 +353,9 @@ const Container = (ownProps: OwnProps) => {
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname
   const error = C.Waiting.useAnyErrors([
+    C.waitingKeyTeamsSetOpenTeam(teamID),
+    C.waitingKeyTeamsTeamTars(teamID),
+    C.waitingKeyTeamsSetTeamShowcase(teamID),
     C.waitingKeyTeamsSetMemberPublicity(teamID),
     C.waitingKeyTeamsSetRetentionPolicy(teamID),
   ])?.message
@@ -374,23 +377,36 @@ const Container = (ownProps: OwnProps) => {
                 settings: {joinAs: T.RPCGen.TeamRole[settings.openTeamRole], open: settings.openTeam},
                 teamID,
               },
+              [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsSetOpenTeam(teamID)],
             ])
           }
           if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
             changed = true
-            await callRPC(setTarsDisabledRPC, [{disabled: settings.ignoreAccessRequests, teamID}])
+            await callRPC(setTarsDisabledRPC, [
+              {disabled: settings.ignoreAccessRequests, teamID},
+              [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsTeamTars(teamID)],
+            ])
           }
           if (publicityAnyMember !== settings.publicityAnyMember) {
             changed = true
-            await callRPC(setTeamShowcaseRPC, [{anyMemberShowcase: settings.publicityAnyMember, teamID}])
+            await callRPC(setTeamShowcaseRPC, [
+              {anyMemberShowcase: settings.publicityAnyMember, teamID},
+              [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsSetTeamShowcase(teamID)],
+            ])
           }
           if (publicityMember !== settings.publicityMember) {
             changed = true
-            await callRPC(setTeamMemberShowcaseRPC, [{isShowcased: settings.publicityMember, teamID}])
+            await callRPC(setTeamMemberShowcaseRPC, [
+              {isShowcased: settings.publicityMember, teamID},
+              [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsSetMemberPublicity(teamID)],
+            ])
           }
           if (publicityTeam !== settings.publicityTeam) {
             changed = true
-            await callRPC(setTeamShowcaseRPC, [{isShowcased: settings.publicityTeam, teamID}])
+            await callRPC(setTeamShowcaseRPC, [
+              {isShowcased: settings.publicityTeam, teamID},
+              [C.waitingKeyTeamsTeam(teamID), C.waitingKeyTeamsSetTeamShowcase(teamID)],
+            ])
           }
           if (changed) {
             await reload()

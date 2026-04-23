@@ -1,9 +1,11 @@
 /// <reference types="jest" />
 import * as RemoteGen from '@/constants/remote-actions'
+import {resetAllStores} from '@/util/zustand'
 
 import {eventFromRemoteWindows, registerRemoteActionHandler} from './remote-event-handler.desktop'
 
 afterEach(() => {
+  resetAllStores()
   jest.restoreAllMocks()
 })
 
@@ -82,6 +84,16 @@ test('owner handlers stop after unregister', () => {
 
   unregister()
   eventFromRemoteWindows(RemoteGen.createPinentryOnSubmit({password: 'hunter2'}))
+
+  expect(listener).not.toHaveBeenCalled()
+})
+
+test('resetAllStores clears registered owner handlers', () => {
+  const listener = jest.fn()
+  registerRemoteActionHandler('tracker', listener)
+
+  resetAllStores()
+  eventFromRemoteWindows(RemoteGen.createTrackerIgnore({guiID: 'gui-2'}))
 
   expect(listener).not.toHaveBeenCalled()
 })
