@@ -14,6 +14,7 @@ import {useModalHeaderState} from '@/stores/modal-header'
 import teamsRootGetOptions from './get-options'
 import {defineRouteMap} from '@/constants/types/router'
 import {createNewTeamFromWizard, type NewTeamWizard} from './new-team/wizard/state'
+import {onTeamCreated} from './create-team-effects'
 import {RPCError} from '@/util/errors'
 import {useLoadedTeam} from './team/use-loaded-team'
 
@@ -172,6 +173,7 @@ const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
     const f = async () => {
       try {
         const teamID = await createNewTeamFromWizard(newTeamWizard, cleanWizard.addingMembers)
+        onTeamCreated(teamID)
         navigateAppend({name: 'team', params: {teamID}})
         clearModals()
       } catch (err) {

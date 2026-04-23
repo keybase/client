@@ -6,7 +6,11 @@ import * as Teams from '@/constants/teams'
 import {useEngineActionListener} from '@/engine/action-listener'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {createCachedResourceCache, useCachedResource} from './use-cached-resource'
+import {
+  type CachedResourceCache,
+  createCachedResourceCache,
+  useCachedResource,
+} from './use-cached-resource'
 
 type TeamsList = {
   reload: () => void
@@ -35,6 +39,23 @@ const teamsRoleMapCache = createCachedResourceCache<T.RPCGen.TeamRoleMapAndVersi
 
 const teamListToArray = (list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>) => {
   return [...Teams.teamListToMeta(list).values()]
+}
+
+const invalidateCachedResource = <T, K>(cache: CachedResourceCache<T, K>, nextKey: K) => {
+  cache.generation += 1
+  cache.inFlight = undefined
+  cache.key = nextKey
+  cache.loadedAt = 0
+}
+
+export const invalidateLoadedTeams = () => {
+  const username = useCurrentUserState.getState().username
+  const loggedIn = useConfigState.getState().loggedIn
+  if (!loggedIn || !username) {
+    return
+  }
+  invalidateCachedResource(teamsListCache, username)
+  invalidateCachedResource(teamsRoleMapCache, username)
 }
 
 const useTeamsListRaw = (enabled = true): TeamsList => {

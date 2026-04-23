@@ -13,6 +13,7 @@ import {pluralize} from '@/util/string'
 import logger from '@/logger'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {createNewTeamFromWizard} from '../new-team/wizard/state'
+import {onTeamCreated} from '../create-team-effects'
 import {RPCError} from '@/util/errors'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
@@ -95,6 +96,7 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
         const f = async () => {
           try {
             const teamID = await createNewTeamFromWizard({...newTeamWizard, error: undefined}, addingMembers)
+            onTeamCreated(teamID)
             C.Router2.navigateAppend({name: 'team', params: {justFinishedAddWizard: true, teamID}})
             C.Router2.clearModals()
           } catch (err) {
