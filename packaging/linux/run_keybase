@@ -97,7 +97,7 @@ start_background() {
 
   # We set the --auto-forked flag here so that updated clients that try to
   # restart this service will know to re-fork it themselves. That's all it does.
-  keybase --debug --use-default-log-file service --auto-forked &>> "$logdir/keybase.start.log" &
+  keybase --use-default-log-file service --auto-forked &>> "$logdir/keybase.start.log" &
 
   if [ "$KEYBASE_NO_KBFS" != "1" ]; then
       run_redirector_in_background
@@ -108,7 +108,7 @@ start_background() {
       # has invalid permissions, the user will be notified on the command line
       # after running `run_keybase`, but otherwise stdout will not be cluttered
       # with other various log messages.
-      ( kbfsfuse -debug -log-to-file | tee "$logdir/keybase.start.log" ) &
+      ( kbfsfuse -log-to-file | tee "$logdir/keybase.start.log" ) &
   fi
 
   if [ "$KEYBASE_NO_GUI" != "1" ]; then
