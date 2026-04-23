@@ -60,7 +60,7 @@ type OwnProps = {
   path?: T.FS.Path
 }
 
-const Connected = (ownProps: OwnProps) => {
+const ConnectedInner = (ownProps: OwnProps) => {
   const path = ownProps.path ?? FS.defaultPath
   const _pathItem = Kbfs.useFsPathItem(path)
   const kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
@@ -78,7 +78,15 @@ const Connected = (ownProps: OwnProps) => {
     path,
     pathType: isDefinitelyFolder ? T.FS.PathType.Folder : _pathItem.type,
   }
-  return <ChooseComponent {...props} />
+  return (
+    <ChooseComponent {...props} />
+  )
 }
+
+const Connected = (ownProps: OwnProps) => (
+  <Kbfs.FsDataProvider>
+    <ConnectedInner {...ownProps} />
+  </Kbfs.FsDataProvider>
+)
 
 export default Connected

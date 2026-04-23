@@ -2,15 +2,195 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
+import {useCurrentUserState} from '@/stores/current-user'
 import * as FS from '@/stores/fs'
 import {errorToActionOrThrow, useFSState} from '@/stores/fs'
+import {RPCError} from '@/util/errors'
+import {
+  favoritesResultToTlfs,
+  folderToTlf,
+  makeEntry,
+  makePathItemsFromDirents,
+  updatePathItem,
+} from './rpc-state'
 import {
   finishedDownloadWithIntentMobile as finishedDownloadWithIntentInPlatform,
   finishedRegularDownloadMobile as finishedRegularDownloadInPlatform,
 } from '@/stores/fs-platform'
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
+
+const noopSubscribe = () => () => {}
+
+const makeEmptyTlfs = (): T.FS.Tlfs => ({
+  additionalTlfs: new Map(),
+  loaded: false,
+  private: new Map(),
+  public: new Map(),
+  team: new Map(),
+})
+
+type FsDataContextType = {
+  loadAdditionalTlf: (tlfPath: T.FS.Path) => void
+  loadFolderChildren: (path: T.FS.Path, initialLoadRecursive: boolean) => void
+  loadPathMetadata: (path: T.FS.Path) => void
+  loadTlfs: () => void
+  pathItems: T.FS.PathItems
+  tlfs: T.FS.Tlfs
+}
+
+const FsDataContext = React.createContext<FsDataContextType | null>(null)
+
+export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
+  const username = useCurrentUserState(s => s.username)
+  const [pathItems, setPathItems] = React.useState<T.FS.PathItems>(() => new Map())
+  const [tlfs, setTlfs] = React.useState<T.FS.Tlfs>(makeEmptyTlfs)
+
+  const loadPathMetadata = (path: T.FS.Path) => {
+    const f = async () => {
+      try {
+        const dirent = await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
+          path: FS.pathToRPCPath(path),
+          refreshSubscription: false,
+        })
+        const pathItem = makeEntry(dirent)
+        setPathItems(prevPathItems => {
+          const nextPathItems = new Map(prevPathItems)
+          const oldPathItem = FS.getPathItem(prevPathItems, path)
+          nextPathItems.set(path, updatePathItem(oldPathItem, pathItem))
+          return nextPathItems
+        })
+        useFSState.getState().dispatch.setPathSoftError(path)
+        const tlfPath = FS.getTlfPath(path)
+        tlfPath && useFSState.getState().dispatch.setTlfSoftError(tlfPath)
+      } catch (error) {
+        errorToActionOrThrow(error, path)
+      }
+    }
+    C.ignorePromise(f())
+  }
+
+  const loadFolderChildren = (rootPath: T.FS.Path, initialLoadRecursive: boolean) => {
+    const f = async () => {
+      try {
+        const opID = FS.makeUUID()
+        if (initialLoadRecursive) {
+          await T.RPCGen.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
+            depth: 1,
+            filter: T.RPCGen.ListFilter.filterSystemHidden,
+            opID,
+            path: FS.pathToRPCPath(rootPath),
+            refreshSubscription: false,
+          })
+        } else {
+          await T.RPCGen.SimpleFSSimpleFSListRpcPromise({
+            filter: T.RPCGen.ListFilter.filterSystemHidden,
+            opID,
+            path: FS.pathToRPCPath(rootPath),
+            refreshSubscription: false,
+          })
+        }
+
+        await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})
+        const result = await T.RPCGen.SimpleFSSimpleFSReadListRpcPromise({opID})
+        const entries = result.entries || []
+
+        setPathItems(prevPathItems => {
+          const nextPathItems = new Map(prevPathItems)
+          const loadedPathItems = makePathItemsFromDirents({
+            entries,
+            isRecursive: initialLoadRecursive,
+            rootPath,
+            rootPathItem: FS.getPathItem(prevPathItems, rootPath),
+          })
+          loadedPathItems.forEach((pathItemFromAction, path) => {
+            const oldPathItem = FS.getPathItem(nextPathItems, path)
+            const nextPathItem = updatePathItem(oldPathItem, pathItemFromAction)
+            if (oldPathItem.type === T.FS.PathType.Folder) {
+              oldPathItem.children.forEach(name => {
+                if (nextPathItem.type !== T.FS.PathType.Folder || !nextPathItem.children.has(name)) {
+                  nextPathItems.delete(T.FS.pathConcat(path, name))
+                }
+              })
+            }
+            nextPathItems.set(path, nextPathItem)
+          })
+          return nextPathItems
+        })
+      } catch (error) {
+        errorToActionOrThrow(error, rootPath)
+      }
+    }
+    C.ignorePromise(f())
+  }
+
+  const loadTlfs = () => {
+    const f = async () => {
+      try {
+        const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
+        setTlfs(prevTlfs => favoritesResultToTlfs(results, username, prevTlfs.additionalTlfs))
+      } catch (error) {
+        errorToActionOrThrow(error)
+      }
+    }
+    C.ignorePromise(f())
+  }
+
+  const loadAdditionalTlf = (tlfPath: T.FS.Path) => {
+    const f = async () => {
+      if (T.FS.getPathLevel(tlfPath) !== 3) {
+        logger.warn('loadAdditionalTlf called on non-TLF path')
+        return
+      }
+      try {
+        const result = await T.RPCGen.SimpleFSSimpleFSGetFolderRpcPromise({
+          path: FS.pathToRPCPath(tlfPath).kbfs,
+        })
+        const next = folderToTlf({
+          folder: result.folder,
+          isFavorite: result.isFavorite,
+          isIgnored: result.isIgnored,
+          isNew: result.isNew,
+          username,
+        })
+        if (!next) {
+          return
+        }
+        setTlfs(prevTlfs => {
+          const additionalTlfs = new Map(prevTlfs.additionalTlfs)
+          additionalTlfs.set(tlfPath, next.tlf)
+          return {
+            ...prevTlfs,
+            additionalTlfs,
+          }
+        })
+      } catch (error) {
+        if (error instanceof RPCError && error.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
+          const fields = error.fields as undefined | Array<{key?: string; value?: string}>
+          const users = fields?.filter(elem => elem.key === 'usernames')
+          const usernames = users?.map(elem => elem.value ?? '') ?? []
+          C.Router2.navigateUp()
+          C.Router2.navigateAppend({
+            name: 'contactRestricted',
+            params: {source: 'newFolder', usernames},
+          })
+        }
+        errorToActionOrThrow(error, tlfPath)
+      }
+    }
+    C.ignorePromise(f())
+  }
+
+  return (
+    <FsDataContext.Provider
+      value={{loadAdditionalTlf, loadFolderChildren, loadPathMetadata, loadTlfs, pathItems, tlfs}}
+    >
+      {children}
+    </FsDataContext.Provider>
+  )
+}
 
 const useFsLoadOnMountAndFocus = ({
   enabled = true,
@@ -34,44 +214,68 @@ const useFsLoadOnMountAndFocus = ({
 }
 
 const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => {
-  const {subscribePath, unsubscribe} = useFSState(
-    C.useShallow(s => ({
-      subscribePath: s.dispatch.subscribePath,
-      unsubscribe: s.dispatch.unsubscribe,
-    }))
-  )
   React.useEffect(() => {
     if (T.FS.getPathLevel(path) < 3) {
       return () => {}
     }
 
     const subscriptionID = FS.makeUUID()
+    const {subscribePath, unsubscribe} = useFSState.getState().dispatch
     subscribePath(subscriptionID, path, topic)
     return () => unsubscribe(subscriptionID)
-  }, [subscribePath, unsubscribe, path, topic])
+  }, [path, topic])
 }
 
 const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic) => {
-  const {subscribeNonPath, unsubscribe} = useFSState(
-    C.useShallow(s => ({
-      subscribeNonPath: s.dispatch.subscribeNonPath,
-      unsubscribe: s.dispatch.unsubscribe,
-    }))
-  )
   React.useEffect(() => {
     const subscriptionID = FS.makeUUID()
+    const {subscribeNonPath, unsubscribe} = useFSState.getState().dispatch
     subscribeNonPath(subscriptionID, topic)
     return () => {
       unsubscribe(subscriptionID)
     }
-  }, [subscribeNonPath, unsubscribe, topic])
+  }, [topic])
 }
 
+const useLoadedPathItems = () => {
+  const routeData = React.useContext(FsDataContext)
+  const storePathItems = React.useSyncExternalStore(
+    routeData ? noopSubscribe : useFSState.subscribe,
+    () => useFSState.getState().pathItems,
+    () => useFSState.getState().pathItems
+  )
+  return routeData?.pathItems ?? storePathItems
+}
+
+const useLoadedTlfs = () => {
+  const routeData = React.useContext(FsDataContext)
+  const storeTlfs = React.useSyncExternalStore(
+    routeData ? noopSubscribe : useFSState.subscribe,
+    () => useFSState.getState().tlfs,
+    () => useFSState.getState().tlfs
+  )
+  return routeData?.tlfs ?? storeTlfs
+}
+
+export const useFsLoadedPathItems = () => useLoadedPathItems()
+
 export const useFsPathItem = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => {
+  const routeData = React.useContext(FsDataContext)
+  const pathItems = useLoadedPathItems()
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat)
-  const pathItem = useFSState(s => FS.getPathItem(s.pathItems, path))
-  const loadPathMetadata = useFSState(s => s.dispatch.loadPathMetadata)
+  const pathItem = FS.getPathItem(pathItems, path)
+  const loadPathMetadata = routeData?.loadPathMetadata ?? useFSState.getState().dispatch.loadPathMetadata
   const shouldLoad = isPathItem(path) && options?.loadOnMount !== false
+  useEngineActionListener(
+    'keybase.1.NotifyFS.FSSubscriptionNotifyPath',
+    action => {
+      const {clientID, path: updatedPath, topics} = action.payload.params
+      if (clientID === FS.clientID && updatedPath === T.FS.pathToString(path) && topics?.includes(T.RPCGen.PathSubscriptionTopic.stat)) {
+        loadPathMetadata(path)
+      }
+    },
+    !!routeData && shouldLoad
+  )
   useFsLoadOnMountAndFocus({
     enabled: shouldLoad,
     load: () => loadPathMetadata(path),
@@ -89,14 +293,31 @@ export const useFsFolderChildren = (
     initialLoadRecursive?: boolean
   }
 ) => {
+  const routeData = React.useContext(FsDataContext)
+  const pathItems = useLoadedPathItems()
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.children)
-  const pathItem = useFSState(s => FS.getPathItem(s.pathItems, path))
-  const folderListLoad = useFSState(s => s.dispatch.folderListLoad)
+  const pathItem = FS.getPathItem(pathItems, path)
+  const loadFolderChildren =
+    routeData?.loadFolderChildren ?? useFSState.getState().dispatch.folderListLoad
   const initialLoadRecursive = !!options?.initialLoadRecursive
   const shouldLoad = isPathItem(path)
+  useEngineActionListener(
+    'keybase.1.NotifyFS.FSSubscriptionNotifyPath',
+    action => {
+      const {clientID, path: updatedPath, topics} = action.payload.params
+      if (
+        clientID === FS.clientID &&
+        updatedPath === T.FS.pathToString(path) &&
+        topics?.includes(T.RPCGen.PathSubscriptionTopic.children)
+      ) {
+        loadFolderChildren(path, initialLoadRecursive)
+      }
+    },
+    !!routeData && shouldLoad
+  )
   useFsLoadOnMountAndFocus({
     enabled: shouldLoad,
-    load: () => folderListLoad(path, initialLoadRecursive),
+    load: () => loadFolderChildren(path, initialLoadRecursive),
     reloadKey: `${path}:${initialLoadRecursive ? 'recursive' : 'shallow'}`,
   })
   return pathItem
@@ -112,29 +333,42 @@ export const useFsFolderChildItems = (
   }
 ) => {
   const pathItem = useFsFolderChildren(path, options)
+  const pathItems = useLoadedPathItems()
   const childPaths =
     pathItem.type === T.FS.PathType.Folder
       ? [...pathItem.children].map(name => T.FS.pathConcat(path, name))
       : []
-  const childItems = useFSState(C.useShallow(s => childPaths.map(childPath => FS.getPathItem(s.pathItems, childPath))))
+  const childItems = childPaths.map(childPath => FS.getPathItem(pathItems, childPath))
   return {childItems, childPaths, pathItem}
 }
 
 export const useFsTlfs = () => {
+  const routeData = React.useContext(FsDataContext)
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites)
-  const tlfs = useFSState(s => s.tlfs)
-  const favoritesLoad = useFSState(s => s.dispatch.favoritesLoad)
+  const tlfs = useLoadedTlfs()
+  const loadTlfs = routeData?.loadTlfs ?? useFSState.getState().dispatch.favoritesLoad
+  useEngineActionListener(
+    'keybase.1.NotifyFS.FSSubscriptionNotify',
+    action => {
+      const {clientID, topic} = action.payload.params
+      if (clientID === FS.clientID && topic === T.RPCGen.SubscriptionTopic.favorites) {
+        loadTlfs()
+      }
+    },
+    !!routeData
+  )
   useFsLoadOnMountAndFocus({
-    load: favoritesLoad,
+    load: loadTlfs,
   })
   return tlfs
 }
 
 export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => {
+  const routeData = React.useContext(FsDataContext)
   const tlfPath = FS.getTlfPath(path)
   const tlfs = useFsTlfs()
-  const tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
-  const loadAdditionalTlf = useFSState(s => s.dispatch.loadAdditionalTlf)
+  const tlf = FS.getTlfFromPath(tlfs, path)
+  const loadAdditionalTlf = routeData?.loadAdditionalTlf ?? useFSState.getState().dispatch.loadAdditionalTlf
   const active =
     !!tlfPath &&
     tlfs.loaded &&
@@ -161,7 +395,7 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
 
 export const useFsOnlineStatus = () => {
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.onlineStatus)
-  const getOnlineStatus = useFSState(s => s.dispatch.getOnlineStatus)
+  const getOnlineStatus = useFSState.getState().dispatch.getOnlineStatus
   useFsLoadOnMountAndFocus({
     load: getOnlineStatus,
   })

@@ -51,11 +51,11 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 Current slice note:
 - mounted callers still read through the existing FS store-backed data while ownership moves into the feature hook layer first; cache deletion remains for later chunks
 - mounted browser rows now own inline rename/new-folder edit sessions through a feature-local provider
-- browser rows, top-bar, and path-item-info now consume path / TLF data through `fs/common` hooks; `fs/browser/edit-state.tsx` remains the main browser-local raw `pathItems` reader
+- mounted FS routes now use a feature-local `FsDataProvider` for `pathItems` / `tlfs`, and browser edit state reads that mounted cache instead of `shared/stores/fs.tsx`
 
 ### Target callers for Chunk 1
 
-- [ ] `fs/browser/*`
+- [x] `fs/browser/*`
 - [x] `fs/filepreview/*`
 - [x] `fs/nav-header/*`
 - [x] `fs/common/path-*`
@@ -103,17 +103,17 @@ Current slice note:
 - [x] Move per-path sort / filter / local view preferences out of the global store unless they must survive unrelated entry points
 - [x] Re-evaluate whether `pathUserSettings` should become route-local, persisted separately, or remain small global preference state
 - [ ] Move screen-local redbars / errors out of the store where they only serve the current route
-- [ ] Replace `loadAdditionalTlf`, `favoritesLoad`, `folderListLoad`, `loadPathMetadata`, and similar callers with feature hooks where possible
+- [x] Replace `loadAdditionalTlf`, `favoritesLoad`, `folderListLoad`, `loadPathMetadata`, and similar callers with feature hooks where possible
 
 ### Screens and flows to convert
 
-- [ ] `fs/index.tsx`
-- [ ] `fs/browser/index.tsx`
-- [ ] `fs/browser/root.tsx`
-- [ ] `fs/browser/rows/*`
-- [ ] `fs/top-bar/*`
+- [x] `fs/index.tsx`
+- [x] `fs/browser/index.tsx`
+- [x] `fs/browser/root.tsx`
+- [x] `fs/browser/rows/*`
+- [x] `fs/top-bar/*`
 - [ ] `fs/nav-header/*`
-- [ ] `fs/common/hooks.tsx`
+- [x] `fs/common/hooks.tsx`
 - [ ] `fs/common/errs-container.tsx`
 
 ### Store fallout after Chunk 3
@@ -126,6 +126,7 @@ Current slice note:
 
 Current slice note:
 - mounted browser and destination-picker flows now keep per-path sort settings in a browser-local provider instead of `shared/stores/fs.tsx`
+- mounted FS route and destination-picker loaders now use a feature-local `FsDataProvider` for `pathItems` / `tlfs`; mounted hooks refresh that local state directly from SimpleFS RPCs instead of reading the shared cache
 
 ## Chunk 4: Re-evaluate Subscription and Notification Ownership
 

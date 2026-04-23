@@ -146,11 +146,13 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
 }
 
 const Screen = (props: OwnProps) => (
-  <FsBrowserEditProvider>
-    <FsBrowserSortProvider>
-      <ConnectedDestinationPicker {...props} />
-    </FsBrowserSortProvider>
-  </FsBrowserEditProvider>
+  <FsCommon.FsDataProvider>
+    <FsBrowserEditProvider>
+      <FsBrowserSortProvider>
+        <ConnectedDestinationPicker {...props} />
+      </FsBrowserSortProvider>
+    </FsBrowserEditProvider>
+  </FsCommon.FsDataProvider>
 )
 
 const NewFolder = (p: {onNewFolder?: () => void}) => {
