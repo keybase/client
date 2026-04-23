@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as React from 'react'
+import {useLoadedTeam} from '../team/use-loaded-team'
 import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../use-cached-resource'
 
 type LoadedTeamChannels = {
@@ -18,7 +19,7 @@ type LoadedTeamChannelsContextValue = LoadedTeamChannels & {
 type LoadedTeamChannelsData = Pick<LoadedTeamChannels, 'channels'>
 
 const LoadedTeamChannelsContext = React.createContext<LoadedTeamChannelsContextValue | null>(null)
-const loadedTeamChannelsReloadStaleMs = 0
+const loadedTeamChannelsReloadStaleMs = 5_000
 const loadedTeamChannelsCache = new Map<
   T.Teams.TeamID | undefined,
   CachedResourceCache<LoadedTeamChannelsData, T.Teams.TeamID | undefined>
@@ -31,20 +32,16 @@ const loadableTeamID = (teamID: T.Teams.TeamID) =>
 
 const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {channels: emptyChannels}
 
-const loadTeamname = async (teamID: T.Teams.TeamID, teamname?: string) => {
-  if (teamname) {
-    return teamname
-  }
-  const annotatedTeam = await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})
-  return annotatedTeam.name
-}
-
 const useLoadedTeamChannelsRaw = (
   teamID: T.Teams.TeamID,
   providedTeamname?: string,
   enabled = true
 ): LoadedTeamChannels => {
   const validTeamID = loadableTeamID(teamID)
+  const {
+    teamMeta: {teamname: loadedTeamname},
+  } = useLoadedTeam(teamID, enabled)
+  const teamnameToLoad = providedTeamname || loadedTeamname
   const cache = React.useMemo(
     () => getCachedResourceCache(loadedTeamChannelsCache, emptyLoadedTeamChannelsData, validTeamID),
     [validTeamID]
@@ -52,11 +49,14 @@ const useLoadedTeamChannelsRaw = (
   const {data, loading, reload, clear} = useCachedResource({
     cache,
     cacheKey: validTeamID,
-    enabled: enabled && !!validTeamID,
+    enabled: enabled && !!validTeamID && !!teamnameToLoad,
     initialData: emptyLoadedTeamChannelsData,
     load: async () => {
+      if (!teamnameToLoad) {
+        return emptyLoadedTeamChannelsData
+      }
       const teamIDToLoad = validTeamID ?? T.Teams.noTeamID
-      const teamname = await loadTeamname(teamIDToLoad, providedTeamname)
+      const teamname = teamnameToLoad
       const {convs} = await T.RPCChat.localGetTLFConversationsLocalRpcPromise(
         {
           membersType: T.RPCChat.ConversationMembersType.team,
@@ -77,14 +77,6 @@ const useLoadedTeamChannelsRaw = (
         }, new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()) ??
         new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()
 
-      for (const channel of channels.values()) {
-        C.ignorePromise(
-          T.RPCChat.localRefreshParticipantsRpcPromise({
-            convID: T.Chat.keyToConversationID(channel.conversationIDKey),
-          })
-        )
-      }
-
       return {
         channels,
       }
@@ -92,7 +84,7 @@ const useLoadedTeamChannelsRaw = (
     onError: error => {
       logger.warn(`Failed to load team channels for ${validTeamID}`, error)
     },
-    refreshKey: providedTeamname,
+    refreshKey: teamnameToLoad,
     staleMs: loadedTeamChannelsReloadStaleMs,
   })
 

@@ -21,7 +21,7 @@ type LoadedTeamContextValue = LoadedTeam & {
 type LoadedTeamData = Pick<LoadedTeam, 'teamDetails' | 'teamMeta'>
 
 const LoadedTeamContext = React.createContext<LoadedTeamContextValue | null>(null)
-const loadedTeamReloadStaleMs = 0
+const loadedTeamReloadStaleMs = 5_000
 const loadedTeamCache = new Map<
   T.Teams.TeamID | undefined,
   CachedResourceCache<LoadedTeamData, T.Teams.TeamID | undefined>
