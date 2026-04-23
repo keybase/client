@@ -15,11 +15,11 @@ const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpe
 const useFsLoadOnMountAndFocus = ({
   enabled = true,
   load,
-  deps,
+  reloadKey,
 }: {
-  deps: ReadonlyArray<unknown>
   enabled?: boolean
   load: () => void
+  reloadKey?: unknown
 }) => {
   const loadOnMountAndFocus = React.useEffectEvent(() => {
     enabled && load()
@@ -29,7 +29,7 @@ const useFsLoadOnMountAndFocus = ({
   })
   React.useEffect(() => {
     enabled && loadOnMountAndFocus()
-  }, deps)
+  }, [enabled, reloadKey])
   C.Router2.useSafeFocusEffect(stableLoadOnMountAndFocus)
 }
 
@@ -73,9 +73,9 @@ export const useFsPathItem = (path: T.FS.Path) => {
   const loadPathMetadata = useFSState(s => s.dispatch.loadPathMetadata)
   const shouldLoad = isPathItem(path)
   useFsLoadOnMountAndFocus({
-    deps: [loadPathMetadata, path, shouldLoad],
     enabled: shouldLoad,
     load: () => loadPathMetadata(path),
+    reloadKey: path,
   })
   return pathItem
 }
@@ -94,9 +94,9 @@ export const useFsFolderChildren = (
   const initialLoadRecursive = !!options?.initialLoadRecursive
   const shouldLoad = isPathItem(path)
   useFsLoadOnMountAndFocus({
-    deps: [folderListLoad, initialLoadRecursive, path, shouldLoad],
     enabled: shouldLoad,
     load: () => folderListLoad(path, initialLoadRecursive),
+    reloadKey: `${path}:${initialLoadRecursive ? 'recursive' : 'shallow'}`,
   })
   return pathItem
 }
@@ -109,7 +109,6 @@ export const useFsTlfs = () => {
   const tlfs = useFSState(s => s.tlfs)
   const favoritesLoad = useFSState(s => s.dispatch.favoritesLoad)
   useFsLoadOnMountAndFocus({
-    deps: [favoritesLoad],
     load: favoritesLoad,
   })
   return tlfs
@@ -147,7 +146,6 @@ export const useFsOnlineStatus = () => {
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.onlineStatus)
   const getOnlineStatus = useFSState(s => s.dispatch.getOnlineStatus)
   useFsLoadOnMountAndFocus({
-    deps: [getOnlineStatus],
     load: getOnlineStatus,
   })
 }
@@ -156,7 +154,6 @@ export const useFsPathInfo = (path: T.FS.Path, knownPathInfo = FS.emptyPathInfo)
   const pathInfo = useFSState(s => s.pathInfos.get(path) || FS.emptyPathInfo)
   const alreadyKnown = knownPathInfo !== FS.emptyPathInfo
   useFsLoadOnMountAndFocus({
-    deps: [alreadyKnown, knownPathInfo, path, pathInfo],
     load: () => {
       if (alreadyKnown) {
         useFSState.getState().dispatch.loadedPathInfo(path, knownPathInfo)
@@ -166,6 +163,7 @@ export const useFsPathInfo = (path: T.FS.Path, knownPathInfo = FS.emptyPathInfo)
         useFSState.getState().dispatch.loadPathInfo(path)
       }
     },
+    reloadKey: alreadyKnown ? knownPathInfo : `${path}:${pathInfo === FS.emptyPathInfo ? 'empty' : 'loaded'}`,
   })
   return alreadyKnown ? knownPathInfo : pathInfo
 }
@@ -183,9 +181,9 @@ export const useFsDownloadInfo = (downloadID: string): T.FS.DownloadInfo => {
     }))
   )
   useFsLoadOnMountAndFocus({
-    deps: [downloadID, loadDownloadInfo],
     enabled: !!downloadID,
     load: () => loadDownloadInfo(downloadID),
+    reloadKey: downloadID,
   })
   return info
 }
@@ -198,7 +196,6 @@ export const useFsDownloadStatus = () => {
     }))
   )
   useFsLoadOnMountAndFocus({
-    deps: [loadDownloadStatus],
     load: loadDownloadStatus,
   })
 }
@@ -213,12 +210,12 @@ export const useFsFileContext = (path: T.FS.Path) => {
   )
   const [urlError, setUrlError] = React.useState('')
   useFsLoadOnMountAndFocus({
-    deps: [loadFileContext, path, pathItem, urlError],
     enabled: pathItem.type === T.FS.PathType.File,
     load: () => {
       urlError && logger.info(`urlError: ${urlError}`)
       loadFileContext(path)
     },
+    reloadKey: `${path}:${pathItem.type}:${pathItem.lastModifiedTimestamp}:${urlError}`,
   })
   return {
     fileContext,
