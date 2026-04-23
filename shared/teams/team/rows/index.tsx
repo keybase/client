@@ -65,6 +65,7 @@ export type Section = Kb.SectionType<Item> & {
 
 export const useMembersSections = (
   teamID: T.Teams.TeamID,
+  loading: boolean,
   meta: T.Teams.TeamMeta,
   details: T.Teams.TeamDetails,
   yourOperations: T.Teams.TeamOperations
@@ -73,7 +74,7 @@ export const useMembersSections = (
   // TODO: figure out if this is bad for performance and if we should leave these functions early when we're not on that tab
 
   // TODO: consider moving this to the parent
-  const stillLoading = meta.memberCount > 0 && !details.members.size
+  const stillLoading = loading || (meta.memberCount > 0 && !details.members.size)
   if (stillLoading) {
     return [{data: [{type: 'members-loading'}], renderItem: () => <LoadingRow />} as const]
   }
@@ -103,11 +104,12 @@ export const useMembersSections = (
 
 export const useBotSections = (
   teamID: T.Teams.TeamID,
+  loading: boolean,
   meta: T.Teams.TeamMeta,
   details: T.Teams.TeamDetails,
   yourOperations: T.Teams.TeamOperations
 ): Array<Section> => {
-  const stillLoading = meta.memberCount > 0 && !details.members.size
+  const stillLoading = loading || (meta.memberCount > 0 && !details.members.size)
   if (stillLoading) {
     return [{data: [{type: 'members-loading'}], renderItem: () => <LoadingRow />} as const]
   }

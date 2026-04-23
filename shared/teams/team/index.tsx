@@ -97,7 +97,7 @@ const TeamBody = (props: Props) => {
     navigation.setParams({justFinishedAddWizard: undefined})
   }, [navigation])
 
-  const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
+  const {loading: loadingTeam, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
 
   React.useEffect(() => {
     setInvitesCollapsed(false)
@@ -159,8 +159,8 @@ const TeamBody = (props: Props) => {
   } as const
 
   const sections: Array<Section> = [headerSection]
-  const membersSections = useMembersSections(teamID, teamMeta, teamDetails, yourOperations)
-  const botSections = useBotSections(teamID, teamMeta, teamDetails, yourOperations)
+  const membersSections = useMembersSections(teamID, loadingTeam, teamMeta, teamDetails, yourOperations)
+  const botSections = useBotSections(teamID, loadingTeam, teamMeta, teamDetails, yourOperations)
   const invitesSections = useInvitesSections(teamID, teamDetails, invitesCollapsed, setInvitesCollapsed)
   const channelsSections = useChannelsSections(teamID, yourOperations, channels, loadingChannels)
   const subteamsSections = useSubteamsSections(teamID, teamDetails, yourOperations, subteamFilter, setSubteamFilter)
