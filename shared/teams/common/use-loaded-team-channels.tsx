@@ -35,11 +35,8 @@ const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {channels: emptyChan
 
 const useLoadedTeamChannelsCacheMap = (providedCacheMap?: LoadedTeamChannelsCacheMap) => {
   const contextCacheMap = React.useContext(LoadedTeamChannelsCacheContext)
-  const localCacheMapRef = React.useRef<LoadedTeamChannelsCacheMap | null>(null)
-  if (!localCacheMapRef.current) {
-    localCacheMapRef.current = new Map()
-  }
-  return providedCacheMap ?? contextCacheMap ?? localCacheMapRef.current
+  const [localCacheMap] = React.useState<LoadedTeamChannelsCacheMap>(() => new Map())
+  return providedCacheMap ?? contextCacheMap ?? localCacheMap
 }
 
 const useLoadedTeamChannelsRaw = (
@@ -123,11 +120,11 @@ export const LoadedTeamChannelsProvider = (
   props: React.PropsWithChildren<{teamID: T.Teams.TeamID; teamname?: string}>
 ) => {
   const {children, teamID, teamname} = props
-  const cacheMapRef = React.useRef<LoadedTeamChannelsCacheMap>(new Map())
-  const loadedTeamChannels = useLoadedTeamChannelsRaw(teamID, teamname, true, cacheMapRef.current)
+  const [cacheMap] = React.useState<LoadedTeamChannelsCacheMap>(() => new Map())
+  const loadedTeamChannels = useLoadedTeamChannelsRaw(teamID, teamname, true, cacheMap)
   const value = {...loadedTeamChannels, teamID}
   return (
-    <LoadedTeamChannelsCacheContext.Provider value={cacheMapRef.current}>
+    <LoadedTeamChannelsCacheContext.Provider value={cacheMap}>
       <LoadedTeamChannelsContext.Provider value={value}>{children}</LoadedTeamChannelsContext.Provider>
     </LoadedTeamChannelsCacheContext.Provider>
   )

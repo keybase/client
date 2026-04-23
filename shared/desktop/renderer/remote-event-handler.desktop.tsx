@@ -38,11 +38,11 @@ type OwnerEntry = {
 }
 
 type RemoteActionHandlerStore = {
-  nextOwnerToken: number
-  ownerHandlers: Map<RemoteActionOwner, OwnerEntry>
   dispatch: {
     resetState: () => void
   }
+  nextOwnerToken: number
+  ownerHandlers: Map<RemoteActionOwner, OwnerEntry>
 }
 
 const useRemoteActionHandlerState = Z.createZustand<RemoteActionHandlerStore>(
@@ -55,9 +55,9 @@ const useRemoteActionHandlerState = Z.createZustand<RemoteActionHandlerStore>(
       })
     }
     return {
+      dispatch: {resetState},
       nextOwnerToken: 0,
       ownerHandlers: new Map(),
-      dispatch: {resetState},
     }
   }
 )

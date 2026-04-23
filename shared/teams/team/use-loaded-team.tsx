@@ -68,11 +68,8 @@ const annotatedTeamToMeta = (
 
 const useLoadedTeamCacheMap = (providedCacheMap?: LoadedTeamCacheMap) => {
   const contextCacheMap = React.useContext(LoadedTeamCacheContext)
-  const localCacheMapRef = React.useRef<LoadedTeamCacheMap | null>(null)
-  if (!localCacheMapRef.current) {
-    localCacheMapRef.current = new Map()
-  }
-  return providedCacheMap ?? contextCacheMap ?? localCacheMapRef.current
+  const [localCacheMap] = React.useState<LoadedTeamCacheMap>(() => new Map())
+  return providedCacheMap ?? contextCacheMap ?? localCacheMap
 }
 
 const useLoadedTeamRaw = (
@@ -151,11 +148,11 @@ const useLoadedTeamRaw = (
 
 export const LoadedTeamProvider = (props: React.PropsWithChildren<{teamID: T.Teams.TeamID}>) => {
   const {children, teamID} = props
-  const cacheMapRef = React.useRef<LoadedTeamCacheMap>(new Map())
-  const loadedTeam = useLoadedTeamRaw(teamID, true, cacheMapRef.current)
+  const [cacheMap] = React.useState<LoadedTeamCacheMap>(() => new Map())
+  const loadedTeam = useLoadedTeamRaw(teamID, true, cacheMap)
   const value = {...loadedTeam, teamID}
   return (
-    <LoadedTeamCacheContext.Provider value={cacheMapRef.current}>
+    <LoadedTeamCacheContext.Provider value={cacheMap}>
       <LoadedTeamContext.Provider value={value}>{children}</LoadedTeamContext.Provider>
     </LoadedTeamCacheContext.Provider>
   )

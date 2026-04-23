@@ -97,11 +97,10 @@ const useActivityLevelsRaw = (
 
 export const ActivityLevelsProvider = (props: React.PropsWithChildren) => {
   const {children} = props
-  const cacheRef = React.useRef(createCachedResourceCache<ActivityLevelsData, 'activity'>(
-    emptyActivityLevelsData,
-    'activity'
-  ))
-  const value = useActivityLevelsRaw(cacheRef.current)
+  const [cache] = React.useState(() =>
+    createCachedResourceCache<ActivityLevelsData, 'activity'>(emptyActivityLevelsData, 'activity')
+  )
+  const value = useActivityLevelsRaw(cache)
   return <ActivityLevelsContext.Provider value={value}>{children}</ActivityLevelsContext.Provider>
 }
 
