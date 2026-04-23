@@ -120,6 +120,55 @@ test('stale badgeState events do not regress badge counts', () => {
   expect(store.getState().teamIDToResetUsers.size).toBe(0)
 })
 
+test('same-version badgeState updates teams detail and teams badge count', () => {
+  const store = useNotifState
+
+  store.getState().dispatch.onEngineIncomingImpl({
+    payload: {
+      params: {
+        badgeState: {
+          bigTeamBadgeCount: 4,
+          homeTodoItems: 2,
+          inboxVers: 2,
+          newTeamAccessRequestCount: 0,
+          smallTeamBadgeCount: 3,
+          unverifiedEmails: 1,
+          unverifiedPhones: 2,
+        },
+      },
+    },
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any)
+
+  store.getState().dispatch.onEngineIncomingImpl({
+    payload: {
+      params: {
+        badgeState: {
+          bigTeamBadgeCount: 4,
+          deletedTeams: [{teamName: 'deleted-team'}],
+          homeTodoItems: 2,
+          inboxVers: 2,
+          newTeamAccessRequestCount: 5,
+          newTeams: ['team-1'],
+          smallTeamBadgeCount: 3,
+          teamsWithResetUsers: [{teamID: 'team-1', username: 'bob'}],
+          unverifiedEmails: 1,
+          unverifiedPhones: 2,
+        },
+      },
+    },
+    type: 'keybase.1.NotifyBadges.badgeState',
+  } as any)
+
+  expect(store.getState().badgeVersion).toBe(2)
+  expect(store.getState().navBadges.get(Tabs.chatTab)).toBe(7)
+  expect(store.getState().navBadges.get(Tabs.teamsTab)).toBe(8)
+  expect(store.getState().desktopAppBadgeCount).toBe(20)
+  expect(store.getState().deletedTeams).toEqual([{teamName: 'deleted-team'}])
+  expect(store.getState().newTeams).toEqual(new Set(['team-1']))
+  expect(store.getState().teamIDToResetUsers.get('team-1')).toEqual(new Set(['bob']))
+})
+
 test('gregor push state populates per-team access requests', () => {
   const store = useNotifState
   const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value))

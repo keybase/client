@@ -28,6 +28,8 @@ const emptyTeamRoleMap = Object.freeze<T.RPCGen.TeamRoleMapAndVersion>({teams: u
 const TeamsListContext = React.createContext<TeamsList | null>(null)
 const TeamsRoleMapContext = React.createContext<TeamsRoleMap | null>(null)
 const teamsListReloadStaleMs = 5 * 60_000
+const teamsListInvalidationListeners = new Set<() => void>()
+const teamsRoleMapInvalidationListeners = new Set<() => void>()
 const teamsListCache = createCachedResourceCache<ReadonlyArray<T.Teams.TeamMeta>, string | undefined>(
   emptyTeams,
   undefined
@@ -56,6 +58,8 @@ export const invalidateLoadedTeams = () => {
   }
   invalidateCachedResource(teamsListCache, username)
   invalidateCachedResource(teamsRoleMapCache, username)
+  teamsListInvalidationListeners.forEach(listener => listener())
+  teamsRoleMapInvalidationListeners.forEach(listener => listener())
 }
 
 const useTeamsListRaw = (enabled = true): TeamsList => {
@@ -109,6 +113,19 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
     }
   })
 
+  React.useEffect(() => {
+    if (!enabled) {
+      return
+    }
+    const listener = () => {
+      void reload()
+    }
+    teamsListInvalidationListeners.add(listener)
+    return () => {
+      teamsListInvalidationListeners.delete(listener)
+    }
+  }, [enabled, reload])
+
   return React.useMemo(() => ({reload, teams}), [reload, teams])
 }
 
@@ -161,6 +178,19 @@ const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
       void reload()
     }
   })
+
+  React.useEffect(() => {
+    if (!enabled) {
+      return
+    }
+    const listener = () => {
+      void reload()
+    }
+    teamsRoleMapInvalidationListeners.add(listener)
+    return () => {
+      teamsRoleMapInvalidationListeners.delete(listener)
+    }
+  }, [enabled, reload])
 
   return React.useMemo(() => ({loadIfStale, reload, roleMap}), [loadIfStale, reload, roleMap])
 }

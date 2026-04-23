@@ -134,14 +134,25 @@ export const useNotifState = Z.createZustand<State>('notifications', (set, get) 
       switch (action.type) {
         case 'keybase.1.NotifyBadges.badgeState': {
           const badgeState = action.payload.params.badgeState
-          if (get().badgeVersion >= badgeState.inboxVers) {
+          const currentBadgeVersion = get().badgeVersion
+          if (currentBadgeVersion > badgeState.inboxVers) {
+            break
+          }
+          set(s => {
+            s.deletedTeams = T.castDraft(badgeState.deletedTeams ?? [])
+            s.newTeams = new Set(badgeState.newTeams ?? [])
+            s.teamIDToResetUsers = badgeStateToTeamIDToResetUsers(badgeState)
+          })
+          if (currentBadgeVersion === badgeState.inboxVers) {
+            // Teams badge detail can change without advancing inboxVers, so keep the
+            // Teams tab badge in sync with the latest server-owned badge state.
+            get().dispatch.setBadgeCounts(
+              new Map([[Tabs.teamsTab, badgeStateToBadgeCounts(badgeState).get(Tabs.teamsTab) ?? 0]])
+            )
             break
           }
           set(s => {
             s.badgeVersion = badgeState.inboxVers
-            s.deletedTeams = T.castDraft(badgeState.deletedTeams ?? [])
-            s.newTeams = new Set(badgeState.newTeams ?? [])
-            s.teamIDToResetUsers = badgeStateToTeamIDToResetUsers(badgeState)
           })
           const counts = badgeStateToBadgeCounts(badgeState)
           get().dispatch.setBadgeCounts(counts)

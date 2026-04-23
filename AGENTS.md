@@ -12,6 +12,7 @@
 - Under `shared/`, non-test TypeScript source files should use the `.tsx` extension.
 - Do not edit lockfiles by hand. They are generated artifacts. If you cannot regenerate one locally, leave it unchanged.
 - Components must not mutate Zustand stores directly with `useXState.setState`, `getState()`-based writes, or similar ad hoc store mutation. If a component needs to affect store state, route it through a store dispatch action or move the state out of the store.
+- For server-owned state such as badges, Gregor-driven UI state, and other engine-fed state, prefer reflecting the latest server state instead of masking problems with optimistic local mutations. Do not add local state writes that make the UI look correct while drifting from what the server has actually told us.
 - When a Zustand store already uses `resetState: Z.defaultReset`, prefer calling `dispatch.resetState()` for full resets instead of manually reassigning each initial field in another dispatch action.
 - During refactors, do not delete existing guards, conditionals, or platform/test-specific behavior unless you have proven they are dead and the user asked for that behavior change. Port checks like `androidIsTestDevice` forward into the new code path instead of silently dropping them.
 - When addressing PR or review feedback, including bot or lint-style suggestions, do not apply it mechanically. Verify that the reported issue is real in this codebase and that the proposed fix is consistent with repo rules and improves correctness, behavior, or maintainability before making changes.
