@@ -153,19 +153,32 @@ export const useFsOnlineStatus = () => {
 }
 
 export const useFsPathInfo = (path: T.FS.Path, knownPathInfo = FS.emptyPathInfo): T.FS.PathInfo => {
-  const pathInfo = useFSState(s => s.pathInfos.get(path) || FS.emptyPathInfo)
   const alreadyKnown = knownPathInfo !== FS.emptyPathInfo
+  const [pathInfo, setPathInfo] = React.useState<T.FS.PathInfo>(alreadyKnown ? knownPathInfo : FS.emptyPathInfo)
+  const pathInfoVersionRef = React.useRef(0)
+  React.useEffect(() => {
+    pathInfoVersionRef.current += 1
+    setPathInfo(alreadyKnown ? knownPathInfo : FS.emptyPathInfo)
+  }, [alreadyKnown, knownPathInfo, path])
   useFsLoadOnMountAndFocus({
+    enabled: !alreadyKnown,
     load: () => {
-      if (alreadyKnown) {
-        useFSState.getState().dispatch.loadedPathInfo(path, knownPathInfo)
-      } else if (pathInfo === FS.emptyPathInfo) {
-        // We only need to load if it's empty. This never changes once we have
-        // it.
-        useFSState.getState().dispatch.loadPathInfo(path)
+      const version = ++pathInfoVersionRef.current
+      const f = async () => {
+        const nextPathInfo = await T.RPCGen.kbfsMountGetKBFSPathInfoRpcPromise({
+          standardPath: T.FS.pathToString(path),
+        })
+        if (pathInfoVersionRef.current !== version) {
+          return
+        }
+        setPathInfo({
+          deeplinkPath: nextPathInfo.deeplinkPath,
+          platformAfterMountPath: nextPathInfo.platformAfterMountPath,
+        })
       }
+      C.ignorePromise(f())
     },
-    reloadKey: alreadyKnown ? knownPathInfo : `${path}:${pathInfo === FS.emptyPathInfo ? 'empty' : 'loaded'}`,
+    reloadKey: path,
   })
   return alreadyKnown ? knownPathInfo : pathInfo
 }
@@ -204,18 +217,41 @@ export const useFsDownloadStatus = () => {
 
 export const useFsFileContext = (path: T.FS.Path) => {
   const pathItem = useFsPathItem(path)
-  const {fileContext, loadFileContext} = useFSState(
-    C.useShallow(s => ({
-      fileContext: s.fileContext.get(path) || FS.emptyFileContext,
-      loadFileContext: s.dispatch.loadFileContext,
-    }))
-  )
+  const [fileContext, setFileContext] = React.useState(FS.emptyFileContext)
+  const fileContextVersionRef = React.useRef(0)
   const [urlError, setUrlError] = React.useState('')
+  React.useEffect(() => {
+    fileContextVersionRef.current += 1
+    if (pathItem.type !== T.FS.PathType.File) {
+      setFileContext(FS.emptyFileContext)
+    }
+  }, [path, pathItem.type])
   useFsLoadOnMountAndFocus({
     enabled: pathItem.type === T.FS.PathType.File,
     load: () => {
-      urlError && logger.info(`urlError: ${urlError}`)
-      loadFileContext(path)
+      const version = ++fileContextVersionRef.current
+      const f = async () => {
+        try {
+          urlError && logger.info(`urlError: ${urlError}`)
+          const res = await T.RPCGen.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
+            path: FS.pathToRPCPath(path).kbfs,
+          })
+          if (fileContextVersionRef.current !== version) {
+            return
+          }
+          setFileContext({
+            contentType: res.contentType,
+            url: res.url,
+            viewType: res.viewType,
+          })
+        } catch (err) {
+          if (fileContextVersionRef.current !== version) {
+            return
+          }
+          errorToActionOrThrow(err)
+        }
+      }
+      C.ignorePromise(f())
     },
     reloadKey: `${path}:${pathItem.type}:${pathItem.lastModifiedTimestamp}:${urlError}`,
   })

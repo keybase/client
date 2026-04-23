@@ -97,6 +97,7 @@ Current slice note:
 
 ## Chunk 3: Remove Route-Owned FS Screen State and Convenience Caches
 
+- [x] Move `useFsPathInfo` / `useFsFileContext` loads to local hook state and delete those FS-store caches
 - [ ] Replace list and preview screens with route-owned loaders rather than shared FS cache reads
 - [ ] Move per-path sort / filter / local view preferences out of the global store unless they must survive unrelated entry points
 - [ ] Re-evaluate whether `pathUserSettings` should become route-local, persisted separately, or remain small global preference state
@@ -116,9 +117,11 @@ Current slice note:
 
 ### Store fallout after Chunk 3
 
+- `pathInfos`
+- `fileContext`
 - `pathUserSettings` if moved out
 - `errors` if route-local
-- more `pathItems` / `tlfs` / `pathInfos` / `fileContext` cache usage
+- more `pathItems` / `tlfs` cache usage
 
 ## Chunk 4: Re-evaluate Subscription and Notification Ownership
 

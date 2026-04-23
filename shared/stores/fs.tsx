@@ -282,11 +282,9 @@ type Store = T.Immutable<{
   criticalUpdate: boolean
   downloads: T.FS.Downloads
   errors: ReadonlyArray<string>
-  fileContext: ReadonlyMap<T.FS.Path, T.FS.FileContext>
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   overallSyncStatus: T.FS.OverallSyncStatus
   pathItems: T.FS.PathItems
-  pathInfos: ReadonlyMap<T.FS.Path, T.FS.PathInfo>
   pathUserSettings: ReadonlyMap<T.FS.Path, T.FS.PathUserSetting>
   settings: T.FS.Settings
   sfmi: T.FS.SystemFileManagerIntegration
@@ -304,10 +302,8 @@ const initialStore: Store = {
     state: new Map(),
   },
   errors: [],
-  fileContext: new Map(),
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   overallSyncStatus: Constants.emptyOverallSyncStatus,
-  pathInfos: new Map(),
   pathItems: new Map(),
   pathUserSettings: new Map(),
   settings: Constants.emptySettings,
@@ -364,16 +360,13 @@ export type State = Store & {
     kbfsDaemonRpcStatusChanged: (rpcStatus: T.FS.KbfsDaemonRpcStatus) => void
     letResetUserBackIn: (id: T.RPCGen.TeamID, username: string) => void
     loadAdditionalTlf: (tlfPath: T.FS.Path) => void
-    loadFileContext: (path: T.FS.Path) => void
     loadFilesTabBadge: () => void
-    loadPathInfo: (path: T.FS.Path) => void
     loadPathMetadata: (path: T.FS.Path) => void
     loadSettings: () => void
     loadTlfSyncConfig: (tlfPath: T.FS.Path) => void
     loadUploadStatus: () => void
     loadDownloadInfo: (downloadID: string) => void
     loadDownloadStatus: () => void
-    loadedPathInfo: (path: T.FS.Path, info: T.FS.PathInfo) => void
     moveOrCopy: (
       destinationParentPath: T.FS.Path,
       source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource,
@@ -1156,27 +1149,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    loadFileContext: path => {
-      const f = async () => {
-        try {
-          const res = await T.RPCGen.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
-            path: Constants.pathToRPCPath(path).kbfs,
-          })
-
-          set(s => {
-            s.fileContext.set(path, {
-              contentType: res.contentType,
-              url: res.url,
-              viewType: res.viewType,
-            })
-          })
-        } catch (err) {
-          errorToActionOrThrow(err)
-          return
-        }
-      }
-      ignorePromise(f())
-    },
     loadFilesTabBadge: () => {
       const f = async () => {
         try {
@@ -1193,18 +1165,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
             })
           } catch {}
         }
-      }
-      ignorePromise(f())
-    },
-    loadPathInfo: path => {
-      const f = async () => {
-        const pathInfo = await T.RPCGen.kbfsMountGetKBFSPathInfoRpcPromise({
-          standardPath: T.FS.pathToString(path),
-        })
-        get().dispatch.loadedPathInfo(path, {
-          deeplinkPath: pathInfo.deeplinkPath,
-          platformAfterMountPath: pathInfo.platformAfterMountPath,
-        })
       }
       ignorePromise(f())
     },
@@ -1319,11 +1279,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    loadedPathInfo: (path, info) => {
-      set(s => {
-        s.pathInfos.set(path, info)
-      })
     },
     moveOrCopy: (destinationParentPath, source, type) => {
       const f = async () => {
