@@ -172,33 +172,16 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
     : rows
 
 const Container = (o: OwnProps) => {
-  const {_legacyEdits, _pathItems, _sortSetting, _tlfs, commitEdit, discardEdit, setEditName} = useFSState(
-    C.useShallow(s => {
-      const _legacyEdits = s.edits
-      const _pathItems = s.pathItems
-      const _sortSetting = FS.getPathUserSetting(s.pathUserSettings, o.path).sort
-      const _tlfs = s.tlfs
-      const {commitEdit, discardEdit, setEditName} = s.dispatch
-      return {_legacyEdits, _pathItems, _sortSetting, _tlfs, commitEdit, discardEdit, setEditName}
-    })
+  const {_pathItems, _sortSetting, _tlfs} = useFSState(
+    C.useShallow(s => ({
+      _pathItems: s.pathItems,
+      _sortSetting: FS.getPathUserSetting(s.pathUserSettings, o.path).sort,
+      _tlfs: s.tlfs,
+    }))
   )
   const _username = useCurrentUserState(s => s.username)
   const browserEdits = useFsBrowserEdits()
-  const legacyEditWaiting = C.Waiting.useAnyWaiting([C.waitingKeyFSCommitEdit])
-  const editSessions = new Map<T.FS.EditID, BrowserEditSession>()
-  _legacyEdits.forEach((edit, editID) => {
-    editSessions.set(editID, {
-      commitEdit: () => commitEdit(editID),
-      discardEdit: () => discardEdit(editID),
-      edit,
-      editID,
-      isSubmitting: legacyEditWaiting,
-      setEditName: (name: string) => setEditName(editID, name),
-    })
-  })
-  browserEdits?.edits.forEach((editSession, editID) => {
-    editSessions.set(editID, editSession)
-  })
+  const editSessions: ReadonlyMap<T.FS.EditID, BrowserEditSession> = browserEdits?.edits ?? new Map()
 
   const s = {
     _pathItems,

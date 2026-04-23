@@ -50,7 +50,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 Current slice note:
 - mounted callers still read through the existing FS store-backed data while ownership moves into the feature hook layer first; cache deletion remains for later chunks
-- mounted browser rows now own inline rename/new-folder edit sessions through a feature-local provider; non-browser entry points still fall back to the legacy store path until those flows move
+- mounted browser rows now own inline rename/new-folder edit sessions through a feature-local provider
 
 ### Target callers for Chunk 1
 
@@ -81,7 +81,7 @@ Current slice note:
 - [x] `fs/common/path-item-action/*`
 - [x] `fs/browser/rows/editing.tsx`
 - [x] `fs/browser/rows/rows-container.tsx`
-- [ ] `fs/common/path-item-action/confirm*.tsx`
+- [x] `fs/common/path-item-action/confirm.tsx`
 
 ### Store fallout after Chunk 2
 
@@ -91,6 +91,9 @@ Current slice note:
 - `newFolderRow`
 - `setPathItemActionMenuDownload`
 - any edit-only error bookkeeping currently tied to `edits`
+
+Current slice note:
+- mounted browser and destination-picker flows now require `FsBrowserEditProvider`; the legacy FS-store fallback for inline rename/new-folder state has been removed
 
 ## Chunk 3: Remove Route-Owned FS Screen State and Convenience Caches
 

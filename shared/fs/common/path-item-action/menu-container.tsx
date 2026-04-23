@@ -33,27 +33,17 @@ const Container = (op: OwnProps) => {
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
   const {fileContext, pathItem} = Kbfs.useFsFileContext(path)
   const browserEdits = useFsBrowserEdits()
-  const data = useFSState(
-    C.useShallow(s => {
-      const {cancelDownload, download, newFolderRow, startRename} = s.dispatch
-      const {favoriteIgnore, dismissDownload} = s.dispatch
-      const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
-      return {
-        cancelDownload,
-        dismissDownload,
-        download,
-        favoriteIgnore,
-        newFolderRow,
-        sfmiEnabled,
-        startRename,
-      }
-    })
+  const {cancelDownload, dismissDownload, download, favoriteIgnore, sfmiEnabled} = useFSState(
+    C.useShallow(s => ({
+      cancelDownload: s.dispatch.cancelDownload,
+      dismissDownload: s.dispatch.dismissDownload,
+      download: s.dispatch.download,
+      favoriteIgnore: s.dispatch.favoriteIgnore,
+      sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
+    }))
   )
-
-  const {cancelDownload, download, newFolderRow: storeNewFolderRow} = data
-  const {sfmiEnabled, favoriteIgnore, dismissDownload, startRename: storeStartRename} = data
-  const newFolderRow = browserEdits?.newFolderRow ?? storeNewFolderRow
-  const startRename = browserEdits?.startRename ?? storeStartRename
+  const newFolderRow = browserEdits?.newFolderRow
+  const startRename = browserEdits?.startRename
   const username = useCurrentUserState(s => s.username)
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const layout = getLayout(mode, path, pathItem, fileContext, username)
@@ -73,7 +63,7 @@ const Container = (op: OwnProps) => {
     cancel()
   }
   const hideAndCancelAfter = (f: () => void) => hideAfter(cancelAfter(f))
-  const itemNewFolder = layout.newFolder
+  const itemNewFolder = layout.newFolder && newFolderRow
     ? ([
         {
           icon: 'iconfont-folder-new',
@@ -246,7 +236,7 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
-  const itemRename = layout.rename
+  const itemRename = layout.rename && startRename
     ? ([
         {
           icon: 'iconfont-edit',

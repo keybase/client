@@ -6,7 +6,6 @@ import * as Tabs from '@/constants/tabs'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {NotifyPopup} from '@/util/misc'
-import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {isMobile} from '@/constants/platform'
 import {tlfToPreferredOrder} from '@/util/kbfs'
@@ -282,7 +281,6 @@ type Store = T.Immutable<{
   badge: T.RPCGen.FilesTabBadge
   criticalUpdate: boolean
   downloads: T.FS.Downloads
-  edits: T.FS.Edits
   errors: ReadonlyArray<string>
   fileContext: ReadonlyMap<T.FS.Path, T.FS.FileContext>
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
@@ -305,7 +303,6 @@ const initialStore: Store = {
     regularDownloads: [],
     state: new Map(),
   },
-  edits: new Map(),
   errors: [],
   fileContext: new Map(),
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
@@ -344,9 +341,7 @@ export type State = Store & {
     afterKbfsDaemonRpcStatusChanged: () => void
     cancelDownload: (downloadID: string) => void
     checkKbfsDaemonRpcStatus: () => void
-    commitEdit: (editID: T.FS.EditID) => void
     deleteFile: (path: T.FS.Path) => void
-    discardEdit: (editID: T.FS.EditID) => void
     dismissDownload: (downloadID: string) => void
     dismissRedbar: (index: number) => void
     dismissUpload: (uploadID: string) => void
@@ -359,8 +354,6 @@ export type State = Store & {
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
-    editError: (editID: T.FS.EditID, error: string) => void
-    editSuccess: (editID: T.FS.EditID) => void
     favoriteIgnore: (path: T.FS.Path) => void
     favoritesLoad: () => void
     finishManualConflictResolution: (localViewTlfPath: T.FS.Path) => void
@@ -381,7 +374,6 @@ export type State = Store & {
     loadDownloadInfo: (downloadID: string) => void
     loadDownloadStatus: () => void
     loadedPathInfo: (path: T.FS.Path, info: T.FS.PathInfo) => void
-    newFolderRow: (parentPath: T.FS.Path) => void
     moveOrCopy: (
       destinationParentPath: T.FS.Path,
       source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource,
@@ -404,7 +396,6 @@ export type State = Store & {
     setDebugLevel: (level: string) => void
     setDirectMountDir: (directMountDir: string) => void
     setDriverStatus: (driverStatus: T.FS.DriverStatus) => void
-    setEditName: (editID: T.FS.EditID, name: string) => void
     setPreferredMountDirs: (preferredMountDirs: ReadonlyArray<string>) => void
     setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     setSpaceAvailableNotificationThreshold: (spaceAvailableNotificationThreshold: number) => void
@@ -413,7 +404,6 @@ export type State = Store & {
     setTlfSyncConfig: (tlfPath: T.FS.Path, enabled: boolean) => void
     setSorting: (path: T.FS.Path, sortSetting: T.FS.SortSetting) => void
     startManualConflictResolution: (tlfPath: T.FS.Path) => void
-    startRename: (path: T.FS.Path) => void
     subscribeNonPath: (subscriptionID: string, topic: T.RPCGen.SubscriptionTopic) => void
     subscribePath: (subscriptionID: string, path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => void
     syncStatusChanged: (status: T.RPCGen.FolderSyncStatus) => void
@@ -660,59 +650,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    commitEdit: editID => {
-      const edit = get().edits.get(editID)
-      if (!edit) {
-        return
-      }
-      const f = async () => {
-        switch (edit.type) {
-          case T.FS.EditType.NewFolder:
-            try {
-              await T.RPCGen.SimpleFSSimpleFSOpenRpcPromise(
-                {
-                  dest: Constants.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.name)),
-                  flags: T.RPCGen.OpenFlags.directory,
-                  opID: makeUUID(),
-                },
-                S.waitingKeyFSCommitEdit
-              )
-              get().dispatch.editSuccess(editID)
-              return
-            } catch (error) {
-              errorToActionOrThrow(error, edit.parentPath)
-              return
-            }
-          case T.FS.EditType.Rename:
-            try {
-              const opID = makeUUID()
-              await T.RPCGen.SimpleFSSimpleFSMoveRpcPromise({
-                dest: Constants.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.name)),
-                opID,
-                overwriteExistingFiles: false,
-                src: Constants.pathToRPCPath(T.FS.pathConcat(edit.parentPath, edit.originalName)),
-              })
-              await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID}, S.waitingKeyFSCommitEdit)
-              get().dispatch.editSuccess(editID)
-              return
-            } catch (error) {
-              if (
-                error instanceof RPCError &&
-                [
-                  T.RPCGen.StatusCode.scsimplefsnameexists,
-                  T.RPCGen.StatusCode.scsimplefsdirnotempty,
-                ].includes(error.code)
-              ) {
-                get().dispatch.editError(editID, error.desc || 'name exists')
-                return
-              }
-              errorToActionOrThrow(error, edit.parentPath)
-              return
-            }
-        }
-      }
-      ignorePromise(f())
-    },
     deleteFile: path => {
       const f = async () => {
         const opID = makeUUID()
@@ -728,11 +665,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    discardEdit: editID => {
-      set(s => {
-        s.edits.delete(editID)
-      })
     },
     dismissDownload: downloadID => {
       const f = async () => {
@@ -837,19 +769,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           s.sfmi.driverStatus.kextPermissionError = true
           s.sfmi.driverStatus.isEnabling = false
         }
-      })
-    },
-    editError: (editID, error) => {
-      set(s => {
-        const edit = s.edits.get(editID)
-        if (edit) {
-          edit.error = error
-        }
-      })
-    },
-    editSuccess: editID => {
-      set(s => {
-        s.edits.delete(editID)
       })
     },
     favoriteIgnore: path => {
@@ -1048,15 +967,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
               s.pathItems.set(path, T.castDraft(newPathItem))
             })
 
-            // Remove rename edits once the original item disappears from the folder.
-            s.edits.forEach((edit, editID) => {
-              if (edit.type === T.FS.EditType.Rename) {
-                const parent = Constants.getPathItem(s.pathItems, edit.parentPath)
-                if (!(parent.type === T.FS.PathType.Folder && parent.children.has(edit.originalName))) {
-                  s.edits.delete(editID)
-                }
-              }
-            })
           })
         } catch (error) {
           errorToActionOrThrow(error, rootPath)
@@ -1469,31 +1379,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    newFolderRow: parentPath => {
-      const parentPathItem = Constants.getPathItem(get().pathItems, parentPath)
-      if (parentPathItem.type !== T.FS.PathType.Folder) {
-        console.warn(`bad parentPath: ${parentPathItem.type}`)
-        return
-      }
-
-      const existingNewFolderNames = new Set([...get().edits.values()].map(({name}) => name))
-
-      let newFolderName = 'New Folder'
-      let i = 2
-      while (parentPathItem.children.has(newFolderName) || existingNewFolderNames.has(newFolderName)) {
-        newFolderName = `New Folder ${i}`
-        ++i
-      }
-
-      set(s => {
-        s.edits.set(makeEditID(), {
-          ...Constants.emptyNewFolder,
-          name: newFolderName,
-          originalName: newFolderName,
-          parentPath,
-        })
-      })
-    },
     onChangedFocus: appFocused => {
       const driverStatus = get().sfmi.driverStatus
       if (
@@ -1716,16 +1601,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       })
       get().dispatch.refreshMountDirsDesktop()
     },
-    setEditName: (editID, name) => {
-      set(s => {
-        const edit = s.edits.get(editID)
-        if (!edit || edit.name === name) {
-          return
-        }
-        edit.error = undefined
-        edit.name = name
-      })
-    },
     setPathSoftError: (path, softError) => {
       set(s => {
         if (softError) {
@@ -1794,18 +1669,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         get().dispatch.favoritesLoad()
       }
       ignorePromise(f())
-    },
-    startRename: path => {
-      const parentPath = T.FS.getPathParent(path)
-      const originalName = T.FS.getPathName(path)
-      set(s => {
-        s.edits.set(makeEditID(), {
-          name: originalName,
-          originalName,
-          parentPath,
-          type: T.FS.EditType.Rename,
-        })
-      })
     },
     subscribeNonPath: (subscriptionID, topic) => {
       const f = async () => {

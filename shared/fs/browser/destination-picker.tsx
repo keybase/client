@@ -24,7 +24,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const {parentPath, source} = ownProps
   const parentPathItem = FsCommon.useFsPathMetadata(parentPath)
   const browserEdits = useFsBrowserEdits()
-  const {isShare, isWritable, isCopyable, isMovable, moveOrCopy, storeNewFolderRow} = useFSState(
+  const {isShare, isWritable, isCopyable, isMovable, moveOrCopy} = useFSState(
     C.useShallow(s => {
       const writable = T.FS.getPathLevel(parentPath) > 2 && parentPathItem.writable
       const isShareSource = source.type === T.FS.DestinationPickerSource.IncomingShare
@@ -38,11 +38,9 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         isShare: isShareSource,
         isWritable: writable,
         moveOrCopy: s.dispatch.moveOrCopy,
-        storeNewFolderRow: s.dispatch.newFolderRow,
       }
     })
   )
-  const newFolderRow = browserEdits?.newFolderRow ?? storeNewFolderRow
 
   const nav = useSafeNavigation()
   const clearModals = C.Router2.clearModals
@@ -70,8 +68,8 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       }
     : undefined
   const onNewFolder =
-    isWritable && !isShare
-      ? () => newFolderRow(parentPath)
+    isWritable && !isShare && browserEdits?.newFolderRow
+      ? () => browserEdits.newFolderRow(parentPath)
       : undefined
 
   FsCommon.useFsTlfs()

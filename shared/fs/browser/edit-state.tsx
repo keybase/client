@@ -62,11 +62,53 @@ const deleteSubmitting = (prevSubmitting: ReadonlySet<T.FS.EditID>, editID: T.FS
 
 export const useFsBrowserEdits = () => React.useContext(BrowserEditContext)
 
+const getStaleRenameEditIDs = (
+  edits: ReadonlyMap<T.FS.EditID, T.FS.Edit>,
+  pathItems: T.FS.PathItems
+): ReadonlySet<T.FS.EditID> => {
+  const stale = new Set<T.FS.EditID>()
+  edits.forEach((edit, editID) => {
+    if (edit.type !== T.FS.EditType.Rename) {
+      return
+    }
+    const parent = Constants.getPathItem(pathItems, edit.parentPath)
+    if (!(parent.type === T.FS.PathType.Folder && parent.children.has(edit.originalName))) {
+      stale.add(editID)
+    }
+  })
+  return stale
+}
+
 export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) => {
   const [edits, setEdits] = React.useState<ReadonlyMap<T.FS.EditID, T.FS.Edit>>(() => new Map())
   const [submitting, setSubmitting] = React.useState<ReadonlySet<T.FS.EditID>>(() => new Set())
+  const pathItems = useFSState(s => s.pathItems)
   const editsRef = React.useRef(edits)
   editsRef.current = edits
+  const pathItemsRef = React.useRef(pathItems)
+  pathItemsRef.current = pathItems
+
+  React.useEffect(() => {
+    const staleEditIDs = getStaleRenameEditIDs(edits, pathItems)
+    if (!staleEditIDs.size) {
+      return
+    }
+    setEdits(prevEdits => {
+      const nextEdits = new Map(prevEdits)
+      staleEditIDs.forEach(editID => {
+        nextEdits.delete(editID)
+      })
+      return nextEdits
+    })
+    setSubmitting(prevSubmitting => {
+      let changed = false
+      const nextSubmitting = new Set(prevSubmitting)
+      staleEditIDs.forEach(editID => {
+        changed = nextSubmitting.delete(editID) || changed
+      })
+      return changed ? nextSubmitting : prevSubmitting
+    })
+  }, [edits, pathItems])
 
   const commitEdit = (editID: T.FS.EditID) => {
     const edit = editsRef.current.get(editID)
@@ -150,16 +192,13 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
   }
 
   const newFolderRow = (parentPath: T.FS.Path) => {
-    const parentPathItem = Constants.getPathItem(useFSState.getState().pathItems, parentPath)
+    const parentPathItem = Constants.getPathItem(pathItemsRef.current, parentPath)
     if (parentPathItem.type !== T.FS.PathType.Folder) {
       console.warn(`bad parentPath: ${parentPathItem.type}`)
       return
     }
 
-    const existingNewFolderNames = new Set([
-      ...[...editsRef.current.values()].map(({name}) => name),
-      ...[...useFSState.getState().edits.values()].map(({name}) => name),
-    ])
+    const existingNewFolderNames = new Set([...editsRef.current.values()].map(({name}) => name))
 
     let newFolderName = 'New Folder'
     let i = 2
