@@ -3,7 +3,9 @@ import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import {useNavigation} from '@react-navigation/native'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import setRouteParamsIfPresent from '../common/set-route-params-if-present'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {useTeamsListMap} from '../use-teams-list'
 
@@ -29,8 +31,9 @@ const ConfirmKickOut = (props: Props) => {
     members.map(member => C.waitingKeyTeamsRemoveMember(teamID, member)),
     members.map(member => subteamIDs.map(subteamID => C.waitingKeyTeamsRemoveMember(subteamID, member)))
   )
-  const waiting = C.Waiting.useAnyWaiting(...waitingKeys)
+  const waiting = C.Waiting.useAnyWaiting(waitingKeys)
   const waitingError = C.Waiting.useAnyErrors(waitingKeys)
+  const navigation = useNavigation()
   const nav = useSafeNavigation()
   const onCancel = () => nav.safeNavigateUp()
   const removeMember = React.useCallback(
@@ -73,7 +76,8 @@ const ConfirmKickOut = (props: Props) => {
   const wasWaitingRef = React.useRef(waiting)
   const navigateUp = C.Router2.navigateUp
   React.useEffect(() => {
-    if (wasWaitingRef.current && !waiting) {
+    if (wasWaitingRef.current && !waiting && !waitingError) {
+      setRouteParamsIfPresent(navigation, 'team', {selectedMembers: undefined})
       setKickedVisible(true)
       setTimeout(() => {
         navigateUp()
@@ -82,7 +86,7 @@ const ConfirmKickOut = (props: Props) => {
     if (wasWaitingRef.current !== waiting) {
       wasWaitingRef.current = waiting
     }
-  }, [navigateUp, waiting])
+  }, [navigateUp, navigation, waiting, waitingError])
 
   const prompt = (
     <Kb.Text center={true} type="Header" style={styles.prompt}>

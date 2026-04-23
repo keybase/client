@@ -3,6 +3,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
+import {useNavigation} from '@react-navigation/native'
+import setRouteParamsIfPresent from '../common/set-route-params-if-present'
 import {useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
@@ -23,6 +25,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
   const channelname = channels.get(conversationIDKey)?.channelname ?? ''
 
   const nav = useSafeNavigation()
+  const navigation = useNavigation()
   const onCancel = () => nav.safeNavigateUp()
 
   const removeFromChannel = C.useRPC(T.RPCChat.localRemoveFromConversationLocalRpcPromise)
@@ -34,6 +37,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
       [{convID: T.Chat.keyToConversationID(conversationIDKey), usernames: members}],
       _ => {
         setWaiting(false)
+        setRouteParamsIfPresent(navigation, 'teamChannel', {selectedMembers: undefined})
         nav.safeNavigateUp()
       },
       err => {
