@@ -848,8 +848,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           case T.RPCGen.SubscriptionTopic.settings:
             get().dispatch.loadSettings()
             break
-          case T.RPCGen.SubscriptionTopic.overallSyncStatus:
-            break
         }
       }
       ignorePromise(f())

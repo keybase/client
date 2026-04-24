@@ -443,7 +443,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       }
       break
     case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
-    case 'keybase.1.NotifyFS.FSSubscriptionNotifyPath':
     case 'keybase.1.NotifyFS.FSSubscriptionNotify':
       {
         const {useFSState} = require('@/stores/fs') as typeof UseFSStateType

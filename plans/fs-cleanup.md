@@ -135,12 +135,12 @@ Current slice note:
 
 - [x] Stop treating `fs` as the default owner for mounted-screen refreshes
 - [x] Keep mounted path subscriptions near the owning hooks instead of centering all path refresh behavior in the store
-- [ ] Re-evaluate store-owned handling for:
+- [x] Re-evaluate store-owned handling for:
   - `keybase.1.NotifyFS.FSSubscriptionNotifyPath`
   - `keybase.1.NotifyFS.FSSubscriptionNotify`
   - `keybase.1.NotifyFS.FSOverallSyncStatusChanged`
   - `keybase.1.NotifyBadges.badgeState`
-- [ ] Preserve only the parts that truly need background lifetime
+- [x] Preserve only the parts that truly need background lifetime
   - file-tab badge
   - overall sync status banner state
   - download status
@@ -158,18 +158,21 @@ Current slice note:
 Current slice note:
 - mounted FS hooks now own their `SimpleFSSubscribePath` / `SimpleFSUnsubscribe` lifecycle directly, and store-owned `FSSubscriptionNotifyPath` refresh handling has been removed
 - mounted FS hooks now resubscribe and reload on KBFS reconnect, and mounted TLF refreshes no longer rely on `shared/stores/fs.tsx`
-- store-owned `keybase.1.NotifyBadges.badgeState` favorites refresh handling has been removed; non-path background notifications still need review
+- store-owned `keybase.1.NotifyBadges.badgeState` favorites refresh handling has been removed
+- `shared/constants/init/shared.tsx` no longer forwards `FSSubscriptionNotifyPath` into `shared/stores/fs.tsx`; mounted hooks now consume that engine event directly through typed listeners
+- store-owned non-path notifications are now limited to the background-owned surfaces that still matter across routes: files-tab badge, overall sync status, download/upload status, daemon status, settings/SFMI, and menubar file-edit updates
 
 ## Chunk 5: Decide What Stays Global
 
-- [ ] Review what remains in `shared/stores/fs.tsx`
+- [x] Review what remains in `shared/stores/fs.tsx`
 - [ ] Delete dead selectors, helpers, and tests
-- [ ] Keep only state that still clearly needs app-wide lifetime
+- [x] Keep only state that still clearly needs app-wide lifetime
 
 Current slice note:
 - mounted FS path consumers no longer fall back to `shared/stores/fs.tsx` for `pathItems`; route-owned hooks require the feature-local `FsDataProvider`
 - global `pathItems` state and its store-owned folder/stat loaders have been removed; desktop open-in-file-manager and upload summaries now stat paths directly when they need folder/file type
 - global `tlfs` state and the store-owned TLF mutation helpers have been removed; mounted favorites/sync-config updates now reload through feature-local hooks
+- the remaining global FS store surface is now the cross-route/background set: downloads, uploads, kbfs daemon status, overall sync status, settings/SFMI, files-tab badge, menubar file-edit updates, critical-update state, and fallback/global FS error state
 
 ### Likely candidates to keep global
 
@@ -180,18 +183,19 @@ Current slice note:
 - `settings`
 - `sfmi`
 - `badge`
-- possibly `criticalUpdate`
+- `tlfUpdates`
+- `criticalUpdate`
+- `softErrors`
+- maybe `errors`
 
 ### Likely candidates to remove by the end
 
 - `pathItems`
 - `pathInfos`
 - `fileContext`
-- `tlfUpdates`
 - `edits`
 - `pathItemActionMenu`
 - maybe `pathUserSettings`
-- maybe `errors`
 - most mounted-view refresh logic in `dispatch`
 
 ## Validation
