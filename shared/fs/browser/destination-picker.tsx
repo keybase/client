@@ -6,9 +6,12 @@ import * as RowCommon from './rows/common'
 import * as T from '@/constants/types'
 import NavHeaderTitle from '@/fs/nav-header/title'
 import Root from './root'
+import {FsBrowserEditProvider, useFsBrowserEdits} from './edit-state'
+import {FsBrowserSortProvider} from './sort-state'
 import Rows from './rows/rows-container'
-import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
+import {useConfigState} from '@/stores/config'
+import {makeUUID} from '@/util/uuid'
 
 type OwnProps = {
   parentPath: T.FS.Path
@@ -21,28 +24,66 @@ const canBackUp = C.isMobile
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const {parentPath, source} = ownProps
-  const {isShare, isWritable, isCopyable, isMovable, moveOrCopy, newFolderRow} = useFSState(
-    C.useShallow(s => {
-      const pathItem = FS.getPathItem(s.pathItems, parentPath)
-      const writable = T.FS.getPathLevel(parentPath) > 2 && pathItem.writable
-      const isShareSource = source.type === T.FS.DestinationPickerSource.IncomingShare
-      const isMoveOrCopy = source.type === T.FS.DestinationPickerSource.MoveOrCopy
-      const copyable =
-        writable && (isShareSource || (isMoveOrCopy && parentPath !== T.FS.getPathParent(source.path)))
-      const movable = copyable && isMoveOrCopy && FS.pathsInSameTlf(source.path, parentPath)
-      return {
-        isCopyable: copyable,
-        isMovable: movable,
-        isShare: isShareSource,
-        isWritable: writable,
-        moveOrCopy: s.dispatch.moveOrCopy,
-        newFolderRow: s.dispatch.newFolderRow,
-      }
-    })
-  )
+  const parentPathItem = FsCommon.useFsPathMetadata(parentPath)
+  const browserEdits = useFsBrowserEdits()
+  const errorToActionOrThrow = FsCommon.useFsErrorActionOrThrow()
+  const isWritable = T.FS.getPathLevel(parentPath) > 2 && parentPathItem.writable
+  const isShare = source.type === T.FS.DestinationPickerSource.IncomingShare
+  const isMoveOrCopy = source.type === T.FS.DestinationPickerSource.MoveOrCopy
+  const isCopyable =
+    isWritable && (isShare || (isMoveOrCopy && parentPath !== T.FS.getPathParent(source.path)))
+  const isMovable = isCopyable && isMoveOrCopy && FS.pathsInSameTlf(source.path, parentPath)
 
   const nav = useSafeNavigation()
   const clearModals = C.Router2.clearModals
+  const moveOrCopy = (type: 'move' | 'copy') => {
+    const f = async () => {
+      const params =
+        source.type === T.FS.DestinationPickerSource.MoveOrCopy
+          ? [
+              {
+                dest: FS.pathToRPCPath(T.FS.pathConcat(parentPath, T.FS.getPathName(source.path))),
+                opID: makeUUID(),
+                overwriteExistingFiles: false,
+                src: FS.pathToRPCPath(source.path),
+              },
+            ]
+          : source.source
+              .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
+              .filter(({originalPath}) => !!originalPath)
+              .map(({originalPath, scaledPath}) => ({
+                dest: FS.pathToRPCPath(
+                  T.FS.pathConcat(
+                    parentPath,
+                    T.FS.getLocalPathName(originalPath)
+                    // We use the local path name here since we only care about file name.
+                  )
+                ),
+                opID: makeUUID(),
+                overwriteExistingFiles: false,
+                src: {
+                  PathType: T.RPCGen.PathType.local,
+                  local: T.FS.getNormalizedLocalPath(
+                    useConfigState.getState().incomingShareUseOriginal
+                      ? originalPath
+                      : scaledPath || originalPath
+                  ),
+                } as T.RPCGen.Path,
+              }))
+
+      try {
+        const rpc =
+          type === 'move'
+            ? T.RPCGen.SimpleFSSimpleFSMoveRpcPromise
+            : T.RPCGen.SimpleFSSimpleFSCopyRecursiveRpcPromise
+        await Promise.all(params.map(async param => rpc(param)))
+        await Promise.all(params.map(async ({opID}) => T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})))
+      } catch (error) {
+        errorToActionOrThrow(error, parentPath)
+      }
+    }
+    C.ignorePromise(f())
+  }
   const onBackUp =
     isShare || !canBackUp(parentPath)
       ? undefined
@@ -54,24 +95,23 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const onCancel = isShare ? undefined : () => clearModals()
   const onCopyHere = isCopyable
     ? () => {
-        moveOrCopy(parentPath, source, 'copy')
+        moveOrCopy('copy')
         clearModals()
         nav.safeNavigateAppend({name: 'fsRoot', params: {path: parentPath}})
       }
     : undefined
   const onMoveHere = isMovable
     ? () => {
-        moveOrCopy(parentPath, source, 'move')
+        moveOrCopy('move')
         clearModals()
         nav.safeNavigateAppend({name: 'fsRoot', params: {path: parentPath}})
       }
     : undefined
   const onNewFolder =
-    isWritable && !isShare
-      ? () => newFolderRow(parentPath)
+    isWritable && !isShare && browserEdits?.newFolderRow
+      ? () => browserEdits.newFolderRow(parentPath)
       : undefined
 
-  FsCommon.useFsPathMetadata(parentPath)
   FsCommon.useFsTlfs()
   FsCommon.useFsOnlineStatus()
 
@@ -85,6 +125,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
           </Kb.Box2>
         )}
         <Kb.Divider key="dheader" />
+        <FsCommon.Errs />
         {!!onBackUp && (
           <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={onBackUp}>
             <Kb.Icon
@@ -144,7 +185,17 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   )
 }
 
-const Screen = (props: OwnProps) => <ConnectedDestinationPicker {...props} />
+const Screen = (props: OwnProps) => (
+  <FsCommon.FsErrorProvider>
+    <FsCommon.FsDataProvider>
+      <FsBrowserEditProvider>
+        <FsBrowserSortProvider>
+          <ConnectedDestinationPicker {...props} />
+        </FsBrowserSortProvider>
+      </FsBrowserEditProvider>
+    </FsCommon.FsDataProvider>
+  </FsCommon.FsErrorProvider>
+)
 
 const NewFolder = (p: {onNewFolder?: () => void}) => {
   const {onNewFolder} = p

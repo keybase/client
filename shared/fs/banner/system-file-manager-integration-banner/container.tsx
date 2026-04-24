@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
-import {errorToActionOrThrow, useFSState} from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {ignorePromise} from '@/constants/utils'
 import {setSfmiBannerDismissedDesktop as setSfmiBannerDismissedInPlatform} from '@/stores/fs-platform'
@@ -12,6 +12,7 @@ import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actio
 type OwnProps = {alwaysShow?: boolean}
 
 const SFMIContainer = (op: OwnProps) => {
+  const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
   const {driverStatus, driverEnable, driverDisable, settings} = useFSState(
     C.useShallow(s => ({
       driverDisable: s.dispatch.driverDisable,
@@ -240,9 +241,10 @@ const DokanOutdated = (props: {driverStatus: T.FS.DriverStatus; onDisable: () =>
 
 type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
+  const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
   const displayingMountDir = useFSState(s => s.sfmi.preferredMountDirs[0] ?? '')
   const open = displayingMountDir
-    ? () => openLocalPathInSystemFileManagerDesktop(displayingMountDir)
+    ? () => openLocalPathInSystemFileManagerDesktop(displayingMountDir, errorToActionOrThrow)
     : undefined
   return (
     <Banner

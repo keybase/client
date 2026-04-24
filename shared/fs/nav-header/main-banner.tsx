@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
+import {useFsErrorActionOrThrow} from '../common/error-state'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
@@ -54,18 +55,29 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const ConnectedBanner = () => {
-  const {_kbfsDaemonStatus, _overallSyncStatus, loadPathMetadata} = useFSState(
+  const {_kbfsDaemonStatus, _overallSyncStatus} = useFSState(
     C.useShallow(s => {
       const _kbfsDaemonStatus = s.kbfsDaemonStatus
       const _overallSyncStatus = s.overallSyncStatus
-      const loadPathMetadata = s.dispatch.loadPathMetadata
-      return {_kbfsDaemonStatus, _overallSyncStatus, loadPathMetadata}
+      return {_kbfsDaemonStatus, _overallSyncStatus}
     })
   )
   const _name = useCurrentUserState(s => s.username)
-  // This LoadPathMetadata triggers a sync retry.
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  // Stat'ing the path nudges the service to retry sync.
   const onRetry = () => {
-    loadPathMetadata(T.FS.stringToPath('/keybase/private' + _name))
+    const path = T.FS.stringToPath('/keybase/private/' + _name)
+    const f = async () => {
+      try {
+        await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
+          path: FS.pathToRPCPath(path),
+          refreshSubscription: false,
+        })
+      } catch (error) {
+        errorToActionOrThrow(error, path)
+      }
+    }
+    C.ignorePromise(f())
   }
 
   const props = {

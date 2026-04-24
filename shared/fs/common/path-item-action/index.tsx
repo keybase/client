@@ -3,7 +3,6 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import ChooseView from './choose-view'
 import type {SizeType} from '@/common-adapters/icon'
-import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
 export type ClickableProps = {
@@ -57,13 +56,19 @@ function IconClickable(props: ICProps) {
 
 const PathItemAction = (props: Props) => {
   const {initView, path, mode} = props
-  const setPathItemActionMenuDownload = useFSState(s => s.dispatch.setPathItemActionMenuDownload)
   const [previousView, setPreviousView] = React.useState(initView)
   const [view, setViewState] = React.useState(initView)
+  const [downloadState, setDownloadState] = React.useState<{
+    downloadID?: string
+    downloadIntent?: T.FS.DownloadIntent
+  }>({})
 
   const setView = (nextView: T.FS.PathItemActionMenuView) => {
     setPreviousView(view)
     setViewState(nextView)
+  }
+  const onDownloadStarted = (downloadID: string, downloadIntent?: T.FS.DownloadIntent) => {
+    setDownloadState({downloadID, downloadIntent})
   }
 
   const makePopup = (p: Kb.Popup2Parms) => {
@@ -73,11 +78,14 @@ const PathItemAction = (props: Props) => {
       hidePopup()
       setPreviousView(initView)
       setViewState(initView)
-      setPathItemActionMenuDownload()
+      setDownloadState({})
     }
 
     return (
       <ChooseView
+        downloadID={downloadState.downloadID}
+        downloadIntent={downloadState.downloadIntent}
+        onDownloadStarted={onDownloadStarted}
         path={path}
         mode={mode}
         previousView={previousView}
@@ -97,6 +105,7 @@ const PathItemAction = (props: Props) => {
   const onClick = () => {
     setPreviousView(initView)
     setViewState(initView)
+    setDownloadState({})
     showPopup()
   }
 

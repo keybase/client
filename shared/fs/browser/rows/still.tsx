@@ -1,9 +1,8 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
-import {LastModifiedLine, Filename} from '@/fs/common'
+import {LastModifiedLine, Filename, useFsDismissUpload, useFsDownloadIntent, useFsPathItem} from '@/fs/common'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
@@ -27,21 +26,16 @@ const getDownloadingText = (intent: T.FS.DownloadIntent) => {
 
 const StillContainer = (p: OwnProps) => {
   const {destinationPickerSource, path} = p
-  const {_downloads, _pathItem, _uploads, dismissUpload} = useFSState(
-    C.useShallow(s => ({
-      _downloads: s.downloads,
-      _pathItem: FS.getPathItem(s.pathItems, path),
-      _uploads: s.uploads,
-      dismissUpload: s.dispatch.dismissUpload,
-    }))
-  )
+  const _pathItem = useFsPathItem(path, {loadOnMount: false, subscribe: false})
+  const dismissUpload = useFsDismissUpload()
+  const _uploads = useFSState(s => s.uploads)
   const writingToJournalUploadState = _uploads.writingToJournal.get(path)
   const onOpen = useOpen({destinationPickerSource, path})
 
   const dismissUploadError = writingToJournalUploadState?.error
     ? () => dismissUpload(writingToJournalUploadState.uploadID)
     : undefined
-  const intentIfDownloading = FS.getDownloadIntent(path, _downloads)
+  const intentIfDownloading = useFsDownloadIntent(path)
   const isEmpty =
     _pathItem.type === T.FS.PathType.Folder &&
     _pathItem.progress === T.FS.ProgressType.Loaded &&

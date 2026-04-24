@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import * as FS from '@/stores/fs'
+import {FsDataProvider} from './hooks'
+import {FsErrorProvider} from './error-state'
 import PathInfo from './path-info'
 import PathItemInfo from './path-item-info'
 
@@ -24,18 +26,22 @@ const useOpenInFilesTab = (path: T.FS.Path) => {
 const KbfsPathPopup = (props: PopupProps) => {
   const openInFilesTab = useOpenInFilesTab(props.standardPath)
   const header = (
-    <Kb.Box2 direction="vertical" style={styles.headerContainer} centerChildren={true} fullWidth={true}>
-      <PathItemInfo
-        path={props.standardPath}
-        containerStyle={Kb.Styles.collapseStyles([styles.sectionContainer, styles.noBottomPadding])}
-      />
-      <Kb.Divider />
-      <PathInfo
-        path={props.standardPath}
-        knownPathInfo={props.knownPathInfo}
-        containerStyle={styles.sectionContainer}
-      />
-    </Kb.Box2>
+    <FsErrorProvider>
+      <FsDataProvider>
+        <Kb.Box2 direction="vertical" style={styles.headerContainer} centerChildren={true} fullWidth={true}>
+          <PathItemInfo
+            path={props.standardPath}
+            containerStyle={Kb.Styles.collapseStyles([styles.sectionContainer, styles.noBottomPadding])}
+          />
+          <Kb.Divider />
+          <PathInfo
+            path={props.standardPath}
+            knownPathInfo={props.knownPathInfo}
+            containerStyle={styles.sectionContainer}
+          />
+        </Kb.Box2>
+      </FsDataProvider>
+    </FsErrorProvider>
   )
 
   return (

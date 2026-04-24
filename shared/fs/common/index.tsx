@@ -13,5 +13,7 @@ export {default as UploadIcon} from './upload-icon'
 export {default as SystemFileManagerIntegrationPopup} from './sfmi-popup'
 export {default as PathInfo} from './path-info'
 export {default as PathItemInfo} from './path-item-info'
+export {useFilesTabUploadIcon} from './use-files-tab-upload-icon'
 
+export * from './error-state'
 export * from './hooks'

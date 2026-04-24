@@ -63,7 +63,6 @@ export type Props = {
   showingDiskSpaceBanner: boolean
   totalSyncingBytes: number
   username: string
-  windowShownCount: number
   darkMode: boolean
 }
 
@@ -451,19 +450,8 @@ const badgeTypesInHeader = [C.Tabs.peopleTab, C.Tabs.chatTab, C.Tabs.fsTab, C.Ta
 const badgesInMenu = [C.Tabs.gitTab, C.Tabs.devicesTab, C.Tabs.settingsTab] as const
 const LoggedIn = (p: Props) => {
   const {endEstimate, files, following, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
-  const {outOfDate, windowShownCount, conversationsToSend, remoteTlfUpdates} = p
+  const {outOfDate, conversationsToSend, remoteTlfUpdates} = p
   const {httpSrvAddress, httpSrvToken, username} = p
-
-  const refreshUserFileEdits = C.useThrottledCallback(() => {
-    R.remoteDispatch(RemoteGen.createUserFileEditsLoad())
-  }, 5000)
-
-  React.useEffect(() => {
-    if (kbfsDaemonStatus.rpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected) {
-      return
-    }
-    refreshUserFileEdits()
-  }, [refreshUserFileEdits, windowShownCount, kbfsDaemonStatus.rpcStatus])
 
   return (
     <>

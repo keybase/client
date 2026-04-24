@@ -2,9 +2,9 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import TlfType from './rows/tlf-type'
 import Tlf from './rows/tlf'
+import {useFsTlfs} from '../common'
 import SfmiBanner from '../banner/system-file-manager-integration-banner/container'
 import {WrapRow} from './rows/rows'
-import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -78,7 +78,7 @@ const useRecentTlfs = (
   n: number,
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
 ): Array<SectionListItem> => {
-  const tlfs = useFSState(s => s.tlfs)
+  const tlfs = useFsTlfs()
   const username = useCurrentUserState(s => s.username)
   const privateTopN = useTopNTlfs(T.FS.TlfType.Private, tlfs.private, n)
   const publicTopN = useTopNTlfs(T.FS.TlfType.Public, tlfs.public, n)

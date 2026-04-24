@@ -24,11 +24,11 @@ const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
   FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} /> : null
 
 const FilesTabStatusIcon = () => {
-  const uploadIcon = FS.useFSState(s => s.getUploadIconForFilesTab())
+  const uploadIcon = Kbfs.useFilesTabUploadIcon()
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.filesTabStatusIcon} /> : null
 }
 
-const NavMobileHeader = (props: Props) => {
+const NavMobileHeaderInner = (props: Props) => {
   const {expanded, folderViewFilter, setFolderViewFilter} = useModalHeaderState(
     C.useShallow(s => ({
       expanded: s.folderViewFilter !== undefined,
@@ -136,6 +136,14 @@ const styles = Kb.Styles.styleSheetCreate(
         minHeight: 44,
       },
     }) as const
+)
+
+const NavMobileHeader = (props: Props) => (
+  <Kbfs.FsErrorProvider>
+    <Kbfs.FsDataProvider>
+      <NavMobileHeaderInner {...props} />
+    </Kbfs.FsDataProvider>
+  </Kbfs.FsErrorProvider>
 )
 
 export default NavMobileHeader

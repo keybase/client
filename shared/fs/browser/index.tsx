@@ -7,11 +7,14 @@ import ConflictBanner from '../banner/conflict-banner'
 import Footer from '../footer/footer'
 import OfflineFolder from './offline'
 import PublicReminder from '../banner/public-reminder'
+import {FsBrowserEditProvider} from './edit-state'
+import {FsBrowserSortProvider} from './sort-state'
 import Root from './root'
 import Rows from './rows/rows-container'
+import {useFsErrorActionOrThrow, useFsPathItem, useFsTlf, useFsUpload} from '../common'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {errorToActionOrThrow, useFSState} from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {uploadFromDragAndDropDesktop as uploadFromDragAndDropInPlatform} from '@/stores/fs-platform'
 
@@ -23,11 +26,12 @@ type OwnProps = {
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const filter = useModalHeaderState(s => s.folderViewFilter)
-  const {_kbfsDaemonStatus, _pathItem, resetBannerType} = useFSState(
+  const _pathItem = useFsPathItem(path)
+  const tlf = useFsTlf(path)
+  const {_kbfsDaemonStatus, resetBannerType} = useFSState(
     C.useShallow(s => ({
       _kbfsDaemonStatus: s.kbfsDaemonStatus,
-      _pathItem: FS.getPathItem(s.pathItems, path),
-      resetBannerType: FS.resetBannerType(s, path),
+      resetBannerType: FS.resetBannerTypeFromTlf(tlf),
     }))
   )
   const props = {
@@ -78,7 +82,8 @@ function DragAndDrop(p: {
   rejectReason?: string
 }) {
   const {children, path, rejectReason} = p
-  const upload = useFSState(s => s.dispatch.upload)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const upload = useFsUpload()
   const onAttach = (localPaths: Array<string>) => {
     const f = async () => {
       try {
@@ -153,4 +158,12 @@ function BrowserContent(props: Props) {
   )
 }
 
-export default Container
+const Screen = (props: OwnProps) => (
+  <FsBrowserEditProvider>
+    <FsBrowserSortProvider>
+      <Container {...props} />
+    </FsBrowserSortProvider>
+  </FsBrowserEditProvider>
+)
+
+export default Screen

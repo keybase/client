@@ -1,12 +1,12 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
-import type {FloatingMenuProps} from './types'
+import type {FloatingMenuProps, OnDownloadStarted} from './types'
 import * as Kb from '@/common-adapters'
-import {useFSState} from '@/stores/fs'
+import {useFsDownload, useFsPathItem} from '../hooks'
 import * as FS from '@/stores/fs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
+  onDownloadStarted: OnDownloadStarted
   previousView: T.FS.PathItemActionMenuView
   path: T.FS.Path
   setView: (view: T.FS.PathItemActionMenuView) => void
@@ -14,16 +14,15 @@ type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const {path, floatingMenuProps, previousView, setView, view} = ownProps
-  const {download, size} = useFSState(
-    C.useShallow(s => {
-      const size = FS.getPathItem(s.pathItems, path).size
-      const download = s.dispatch.download
-      return {download, size}
-    })
-  )
+  const {onDownloadStarted, path, floatingMenuProps, previousView, setView, view} = ownProps
+  const size = useFsPathItem(path).size
+  const download = useFsDownload()
   const confirm = () => {
-    download(path, view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ? 'saveMedia' : 'share')
+    download(
+      path,
+      view === T.FS.PathItemActionMenuView.ConfirmSaveMedia ? 'saveMedia' : 'share',
+      onDownloadStarted
+    )
     setView(previousView)
   }
   const action =

@@ -18,7 +18,6 @@ declare global {
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
 import type * as UseChatStateType from '@/stores/chat'
-import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
@@ -345,10 +344,10 @@ export const initSharedSubscriptions = () => {
         Util.getTab(prev) === Tabs.fsTab &&
         next &&
         Util.getTab(next) !== Tabs.fsTab &&
-        useFSState.getState().criticalUpdate
+        useShellState.getState().fsCriticalUpdate
       ) {
-        const {dispatch} = useFSState.getState()
-        dispatch.setCriticalUpdate(false)
+        const {dispatch} = useShellState.getState()
+        dispatch.setFsCriticalUpdate(false)
       }
       const fsRrouteNames = ['fsRoot', 'barePreview']
       const wasScreen = fsRrouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
@@ -397,9 +396,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
 
-        const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
-        useFSState.getState().dispatch.onEngineIncomingImpl(action)
-
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
@@ -446,11 +442,23 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       }
       break
     case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
-    case 'keybase.1.NotifyFS.FSSubscriptionNotifyPath':
+      {
+        useFSState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
     case 'keybase.1.NotifyFS.FSSubscriptionNotify':
       {
-        const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
-        useFSState.getState().dispatch.onEngineIncomingImpl(action)
+        switch (action.payload.params.topic) {
+          case T.RPCGen.SubscriptionTopic.journalStatus:
+          case T.RPCGen.SubscriptionTopic.onlineStatus:
+          case T.RPCGen.SubscriptionTopic.downloadStatus:
+          case T.RPCGen.SubscriptionTopic.uploadStatus:
+          case T.RPCGen.SubscriptionTopic.settings: {
+            useFSState.getState().dispatch.onEngineIncomingImpl(action)
+            break
+          }
+          default:
+        }
       }
       break
     case 'keybase.1.NotifyEmailAddress.emailAddressVerified':

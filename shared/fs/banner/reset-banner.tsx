@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import {folderNameWithoutUsers} from '@/util/kbfs'
 import * as Kb from '@/common-adapters'
 import * as RowTypes from '@/fs/browser/rows/types'
-import {useFSState} from '@/stores/fs'
+import {useFsErrorActionOrThrow, useFsTlf} from '@/fs/common'
 import * as FS from '@/stores/fs'
 import {navToProfile} from '@/constants/router'
 
@@ -11,8 +11,8 @@ type OwnProps = {path: T.FS.Path}
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
-  const letResetUserBackIn = useFSState(s => s.dispatch.letResetUserBackIn)
+  const _tlf = useFsTlf(path)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
   const _onOpenWithoutResetUsers = (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
     const pathElems = T.FS.getPathElements(currPath)
     if (pathElems.length < 3) return
@@ -21,7 +21,14 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     FS.navToPath(filteredPath)
   }
   const _onReAddToTeam = (id: T.RPCGen.TeamID, username: string) => {
-    letResetUserBackIn(id, username)
+    const f = async () => {
+      try {
+        await T.RPCGen.teamsTeamReAddMemberAfterResetRpcPromise({id, username})
+      } catch (error) {
+        errorToActionOrThrow(error)
+      }
+    }
+    C.ignorePromise(f())
   }
 
   const onOpenProfile = (username: string) => () => {

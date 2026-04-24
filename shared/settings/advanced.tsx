@@ -4,7 +4,6 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import {ProxySettings} from './proxy'
 import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/settings'
-import {useFSState} from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
@@ -307,8 +306,12 @@ const processorProfileDurationSeconds = 30
 const Developer = () => {
   const [clickCount, setClickCount] = React.useState(0)
 
-  const setDebugLevel = useFSState(s => s.dispatch.setDebugLevel)
-  const onExtraKBFSLogging = () => setDebugLevel('vlog2')
+  const onExtraKBFSLogging = () => {
+    const f = async () => {
+      await T.RPCGen.SimpleFSSimpleFSSetDebugLevelRpcPromise({level: 'vlog2'})
+    }
+    ignorePromise(f())
+  }
   const onToggleRuntimeStats = useConfigState(s => s.dispatch.toggleRuntimeStats)
   const onLabelClick = () =>
     setClickCount(s => {

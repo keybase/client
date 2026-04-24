@@ -19,15 +19,13 @@ type ChooseComponentProps = {
 const ChooseComponent = (props: ChooseComponentProps) => {
   const {emitBarePreview} = props
 
-  const fileContext = useFSState(s => s.fileContext.get(props.path) || FS.emptyFileContext)
-  const bare = C.isMobile && fileContext.viewType === T.RPCGen.GUIViewType.image
+  const {fileContext, onUrlError} = Kbfs.useFsFileContext(props.path)
+  const viewType: T.RPCGen.GUIViewType = fileContext.viewType
+  const bare = C.isMobile && viewType === T.RPCGen.GUIViewType.image
   React.useEffect(() => {
     bare && emitBarePreview()
   }, [bare, emitBarePreview])
 
-  Kbfs.useFsPathMetadata(props.path)
-  const onUrlError = Kbfs.useFsFileContext(props.path)
-  Kbfs.useFsTlfs()
   Kbfs.useFsOnlineStatus()
   Kbfs.useFsTlf(props.path)
   const softError = Kbfs.useFsSoftError(props.path)
@@ -63,15 +61,10 @@ type OwnProps = {
   path?: T.FS.Path
 }
 
-const Connected = (ownProps: OwnProps) => {
+const ConnectedInner = (ownProps: OwnProps) => {
   const path = ownProps.path ?? FS.defaultPath
-  const {_pathItem, kbfsDaemonStatus} = useFSState(
-    C.useShallow(s => {
-      const _pathItem = FS.getPathItem(s.pathItems, path)
-      const kbfsDaemonStatus = s.kbfsDaemonStatus
-      return {_pathItem, kbfsDaemonStatus}
-    })
-  )
+  const _pathItem = Kbfs.useFsPathItem(path)
+  const kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
   const navigateUp = C.Router2.navigateUp
   const navigateAppend = C.Router2.navigateAppend
   const emitBarePreview = () => {
@@ -86,7 +79,17 @@ const Connected = (ownProps: OwnProps) => {
     path,
     pathType: isDefinitelyFolder ? T.FS.PathType.Folder : _pathItem.type,
   }
-  return <ChooseComponent {...props} />
+  return (
+    <ChooseComponent {...props} />
+  )
 }
+
+const Connected = (ownProps: OwnProps) => (
+  <Kbfs.FsErrorProvider>
+    <Kbfs.FsDataProvider>
+      <ConnectedInner {...ownProps} />
+    </Kbfs.FsDataProvider>
+  </Kbfs.FsErrorProvider>
+)
 
 export default Connected

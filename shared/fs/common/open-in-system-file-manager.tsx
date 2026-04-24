@@ -1,6 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
+import {useFsErrorActionOrThrow} from './error-state'
 import SystemFileManagerIntegrationPopup from './sfmi-popup'
 import {useFSState} from '@/stores/fs'
 import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
@@ -8,7 +9,8 @@ import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 type Props = {path: T.FS.Path}
 
 function OpenInSystemFileManager({path}: Props) {
-  const openInSystemFileManager = () => openPathInSystemFileManagerDesktop(path)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const openInSystemFileManager = () => openPathInSystemFileManagerDesktop(path, errorToActionOrThrow)
   return (
     <Kb.WithTooltip tooltip={`Show in ${C.fileUIName}`}>
       <Kb.Icon
