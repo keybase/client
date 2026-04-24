@@ -25,10 +25,6 @@ export const useNonFolderSyncingPaths = (syncingPaths: ReadonlySet<T.FS.Path>) =
     })
 
     const unloadedPaths = paths.filter(path => !pathTypes.has(path))
-    if (!unloadedPaths.length) {
-      return
-    }
-
     const f = async () => {
       const resolvedTypes = await Promise.all(
         unloadedPaths.map(async path => {
@@ -52,10 +48,12 @@ export const useNonFolderSyncingPaths = (syncingPaths: ReadonlySet<T.FS.Path>) =
       }
       setPathTypes(prevPathTypes => {
         const nextPathTypes = new Map(prevPathTypes)
+        let changed = false
         resolvedTypes.forEach(({path, type}) => {
           nextPathTypes.set(path, type)
+          changed = true
         })
-        return nextPathTypes
+        return changed ? nextPathTypes : prevPathTypes
       })
     }
     C.ignorePromise(f())
