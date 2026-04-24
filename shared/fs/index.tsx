@@ -20,7 +20,8 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   const {emitBarePreview} = props
 
   const {fileContext, onUrlError} = Kbfs.useFsFileContext(props.path)
-  const bare = C.isMobile && fileContext.viewType === T.RPCGen.GUIViewType.image
+  const viewType: T.RPCGen.GUIViewType = fileContext.viewType
+  const bare = C.isMobile && viewType === T.RPCGen.GUIViewType.image
   React.useEffect(() => {
     bare && emitBarePreview()
   }, [bare, emitBarePreview])

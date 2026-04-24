@@ -120,7 +120,7 @@ const Container = (ownProps: OwnProps) => {
   const [kbfsPreviewURL, setKbfsPreviewURL] = React.useState<string | undefined>(undefined)
   React.useEffect(() => {
     setKbfsPreviewURL(undefined)
-    if (info?.type !== 'image' || info?.url || !path || !isKbfsPath(path)) {
+    if (info?.type !== 'image' || info.url || !path || !isKbfsPath(path)) {
       return
     }
     let canceled = false

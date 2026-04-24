@@ -317,16 +317,16 @@ export const useFsLoadedPathItems = () => useLoadedPathItems()
 
 export const useFsReloadTlfs = () => {
   const routeData = React.useContext(FsDataContext)
-  return React.useEffectEvent(() => {
+  return () => {
     routeData?.loadTlfs()
-  })
+  }
 }
 
 export const useFsRefreshTlf = (path: T.FS.Path) => {
   const routeData = React.useContext(FsDataContext)
   const tlfs = useLoadedTlfs()
   const tlfPath = FS.getTlfPath(path)
-  return React.useEffectEvent(() => {
+  return () => {
     if (!routeData || !tlfPath) {
       return
     }
@@ -335,7 +335,7 @@ export const useFsRefreshTlf = (path: T.FS.Path) => {
       return
     }
     routeData.loadAdditionalTlf(tlfPath)
-  })
+  }
 }
 
 export const useFsPathItem = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => {
@@ -556,7 +556,13 @@ export const useFsDownloadStatus = () => {
   })
 }
 
-export const useFsFileContext = (path: T.FS.Path) => {
+export const useFsFileContext = (
+  path: T.FS.Path
+): {
+  fileContext: T.FS.FileContext
+  onUrlError: React.Dispatch<React.SetStateAction<string>>
+  pathItem: T.FS.PathItem
+} => {
   const pathItem = useFsPathItem(path)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const [fileContext, setFileContext] = React.useState<T.FS.FileContext>(FS.emptyFileContext)

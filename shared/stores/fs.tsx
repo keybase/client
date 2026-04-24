@@ -232,36 +232,6 @@ export type State = Store & {
   getUploadIconForFilesTab: () => T.FS.UploadIcon | undefined
 }
 
-const emptyPrefetchInProgress = {
-  bytesFetched: 0,
-  bytesTotal: 0,
-  endEstimate: 0,
-  startTime: 0,
-  state: T.FS.PrefetchState.InProgress,
-} satisfies T.FS.PrefetchInProgress
-
-const getPrefetchStatusFromRPC = (
-  prefetchStatus: T.RPCGen.PrefetchStatus,
-  prefetchProgress: T.RPCGen.PrefetchProgress
-) => {
-  switch (prefetchStatus) {
-    case T.RPCGen.PrefetchStatus.notStarted:
-      return Constants.prefetchNotStarted
-    case T.RPCGen.PrefetchStatus.inProgress:
-      return {
-        ...emptyPrefetchInProgress,
-        bytesFetched: prefetchProgress.bytesFetched,
-        bytesTotal: prefetchProgress.bytesTotal,
-        endEstimate: prefetchProgress.endEstimate,
-        startTime: prefetchProgress.start,
-      }
-    case T.RPCGen.PrefetchStatus.complete:
-      return Constants.prefetchComplete
-    default:
-      return Constants.prefetchNotStarted
-  }
-}
-
 export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
   // reducer and happens before this.
@@ -468,6 +438,9 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           break
         case T.RPCGen.SubscriptionTopic.settings:
           get().dispatch.loadSettings()
+          break
+        case T.RPCGen.SubscriptionTopic.favorites:
+        case T.RPCGen.SubscriptionTopic.overallSyncStatus:
           break
       }
     }

@@ -66,7 +66,8 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   // find out if resource has updated. So embed timestamp into URL to force a
   // reload when needed.
   const url = fileContext.url + `&unused_field_ts=${loadedLastModifiedTimestamp}`
-  switch (fileContext.viewType) {
+  const viewType: T.RPCGen.GUIViewType = fileContext.viewType
+  switch (viewType) {
     case T.RPCGen.GUIViewType.default: {
       // mobile client only supports heic now
       if (C.isIOS && Chat.isPathHEIC(pathItem.name)) {

@@ -7,23 +7,24 @@ export const useNonFolderSyncingPaths = (syncingPaths: ReadonlySet<T.FS.Path>) =
   const [pathTypes, setPathTypes] = React.useState<Map<T.FS.Path, T.FS.PathType>>(() => new Map())
   const syncingPathList = [...syncingPaths]
   const syncingPathKey = syncingPathList.join('|')
-  const pathTypesRef = React.useRef(pathTypes)
-  pathTypesRef.current = pathTypes
   const pathTypesVersionRef = React.useRef(0)
 
   React.useEffect(() => {
+    const paths = [...syncingPaths]
     const version = ++pathTypesVersionRef.current
     setPathTypes(prevPathTypes => {
       const nextPathTypes = new Map(prevPathTypes)
+      let changed = false
       nextPathTypes.forEach((_, path) => {
         if (!syncingPaths.has(path)) {
           nextPathTypes.delete(path)
+          changed = true
         }
       })
-      return nextPathTypes
+      return changed ? nextPathTypes : prevPathTypes
     })
 
-    const unloadedPaths = syncingPathList.filter(path => !pathTypesRef.current.has(path))
+    const unloadedPaths = paths.filter(path => !pathTypes.has(path))
     if (!unloadedPaths.length) {
       return
     }
@@ -58,7 +59,7 @@ export const useNonFolderSyncingPaths = (syncingPaths: ReadonlySet<T.FS.Path>) =
       })
     }
     C.ignorePromise(f())
-  }, [syncingPathKey, syncingPaths])
+  }, [pathTypes, syncingPathKey, syncingPaths])
 
   return syncingPathList.filter(path => pathTypes.get(path) !== T.FS.PathType.Folder)
 }
