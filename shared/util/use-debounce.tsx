@@ -30,7 +30,7 @@ export function useDebouncedCallback<T extends AnyFunction>(
   options?: DebounceOptions
 ): DebouncedState<T> {
   const funcRef = React.useRef(func)
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     funcRef.current = func
   }, [func])
   const runtimeRef = React.useRef<DebounceRuntime<T>>({})
@@ -147,7 +147,7 @@ export function useThrottledCallback<T extends AnyFunction>(
   options?: DebounceOptions
 ): DebouncedState<T> {
   const funcRef = React.useRef(func)
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     funcRef.current = func
   }, [func])
   const runtimeRef = React.useRef<{

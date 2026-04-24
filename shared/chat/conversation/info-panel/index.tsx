@@ -18,7 +18,6 @@ type Props = {
 }
 
 const InfoPanelConnector = (ownProps: Props) => {
-  const initialTab = ownProps.tab
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const meta = ConvoState.useConvoState(conversationIDKey, s => s.meta)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
@@ -27,7 +26,8 @@ const InfoPanelConnector = (ownProps: Props) => {
   const teamname = meta.teamname
   const {role: yourRole} = useChatTeam(meta.teamID, teamname)
 
-  const [selectedTab, onSelectTab] = React.useState<Panel>(initialTab ?? 'members')
+  const [uncontrolledSelectedTab, onSelectTab] = React.useState<Panel>('members')
+  const selectedTab = ownProps.tab ?? uncontrolledSelectedTab
   const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
   const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
@@ -48,10 +48,6 @@ const InfoPanelConnector = (ownProps: Props) => {
     if (!lastSNO && shouldNavigateOut) {
       navigateToInbox()
     }
-  }
-
-  if (ownProps.tab !== undefined && ownProps.tab !== selectedTab) {
-    onSelectTab(ownProps.tab)
   }
 
   const getTabs = (): Array<TabType<Panel>> => {

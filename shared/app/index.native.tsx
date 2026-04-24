@@ -51,8 +51,6 @@ const initDarkMode = () => {
   } catch {}
 }
 
-initDarkMode()
-
 const useDarkHookup = () => {
   const appStateRef = React.useRef('active')
   const setSystemDarkMode = DarkMode.useDarkModeState(s => s.dispatch.setSystemDarkMode)
@@ -123,6 +121,7 @@ let inited = false
 const useInit = () => {
   if (inited) return
   inited = true
+  initDarkMode()
   Animated.addWhitelistedNativeProps({text: true})
   install()
   const {batch} = C.useWaitingState.getState().dispatch

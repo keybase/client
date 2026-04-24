@@ -31,7 +31,7 @@ Authoritative references:
    - External synchronization or async request
 3. Prefer the matching refactor pattern below.
 4. Preserve existing guards, platform branches, waiting keys, route behavior, and stale async protection unless proven dead.
-5. Do not move hook or component logic to module scope to avoid a lint. Module-level work runs at import time, bypasses React lifecycle and providers, and can leak behavior across accounts, routes, tests, or remounts.
+5. Do not move hook or component logic to module scope to avoid a lint. Module-level work runs at import time, bypasses React lifecycle and providers, and can leak behavior across accounts, routes, tests, or remounts; keep initialization in an existing idempotent init path or component effect instead.
 6. When working from a plan that groups lint fixes into batches, do exactly one batch per turn. After validating and updating the checklist for that batch, stop and report the result instead of starting the next batch.
 7. Remove now-unused imports, state, refs, helpers, styles, and type parameters.
 8. In this repo, do not run `yarn`, `npm`, lint, or TypeScript unless `node_modules` exists and the user's machine guidance allows it.
@@ -89,6 +89,15 @@ Keep exported component names stable unless callers need a new export.
 
 First try to store a stable ID and derive the selected object or validity during render.
 This often removes the need to reset selection at all.
+
+If a prop sometimes controls a value and otherwise the component owns it, derive the visible value during render instead of syncing state from the prop:
+
+```tsx
+const [internalTab, setInternalTab] = React.useState<Tab>('members')
+const selectedTab = props.tab ?? internalTab
+```
+
+Do not use a render-time `setState` just to mirror a controlled prop into local state.
 
 ```tsx
 const [selectedID, setSelectedID] = React.useState<string | undefined>()
@@ -159,6 +168,7 @@ React.useEffect(() => {
 
 Prefer request/version IDs over broad `isMounted` refs when rejecting stale async results.
 If a real mount guard is required, set it true inside the effect body and false in cleanup so Strict Mode remounts do not leave it stuck false.
+For stable callbacks that must always call the latest implementation, do not update a ref during render. Prefer `React.useEffectEvent` when the callback is used from an effect/subscription, and use `React.useLayoutEffect` for ref assignment when event handlers or timers need the latest callback immediately after commit. Keep `useEffectEvent` functions out of dependency arrays.
 
 ### Timers And Delayed UI
 
