@@ -1,22 +1,34 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Kbfs from '@/fs/common/hooks'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Util from '@/util/kbfs'
 import Header from './header'
-import type {FloatingMenuProps} from './types'
+import type {FloatingMenuProps, OnDownloadStarted} from './types'
+import {useFsBrowserEdits} from '@/fs/browser/edit-state'
 import {getRootLayout, getShareLayout} from './layout'
+import {useFsErrorActionOrThrow} from '../error-state'
+import {
+  useFsCancelDownload,
+  useFsDismissDownload,
+  useFsDownload,
+  useFsFileContext,
+  useFsReloadTlfs,
+  useFsWatchDownloadForMobile,
+} from '../hooks'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {
+  downloadID?: string
+  downloadIntent?: T.FS.DownloadIntent
   floatingMenuProps: FloatingMenuProps
   previousView: T.FS.PathItemActionMenuView
   path: T.FS.Path
   mode: 'row' | 'screen'
+  onDownloadStarted: OnDownloadStarted
   setView: (view: T.FS.PathItemActionMenuView) => void
   view: T.FS.PathItemActionMenuView
 }
@@ -24,38 +36,39 @@ type OwnProps = {
 const needConfirm = (pathItem: T.FS.PathItem) =>
   pathItem.type === T.FS.PathType.File && pathItem.size > 50 * 1024 * 1024
 
+const folderRPCFromPath = (path: T.FS.Path): T.RPCGen.FolderHandle | undefined => {
+  const pathElems = T.FS.getPathElements(path)
+  if (!pathElems.length) {
+    return undefined
+  }
+  const visibility = T.FS.getVisibilityFromElems(pathElems)
+  if (visibility === undefined) {
+    return undefined
+  }
+  const name = T.FS.getPathNameFromElems(pathElems)
+  if (!name) {
+    return undefined
+  }
+  return {
+    created: false,
+    folderType: T.FS.getRPCFolderTypeFromVisibility(visibility),
+    name,
+  }
+}
+
 const Container = (op: OwnProps) => {
-  const {path, mode, floatingMenuProps, setView, view} = op
+  const {downloadID, downloadIntent, path, mode, floatingMenuProps, onDownloadStarted, setView, view} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
-  Kbfs.useFsFileContext(path)
-  const data = useFSState(
-    C.useShallow(s => {
-      const pathItem = FS.getPathItem(s.pathItems, path)
-      const pathItemActionMenu = s.pathItemActionMenu
-      const fileContext = s.fileContext.get(path) || FS.emptyFileContext
-      const {cancelDownload, download, newFolderRow, startRename} = s.dispatch
-      const {favoriteIgnore, dismissDownload} = s.dispatch
-      const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
-      return {
-        cancelDownload,
-        dismissDownload,
-        download,
-        favoriteIgnore,
-        fileContext,
-        newFolderRow,
-        pathItem,
-        pathItemActionMenu,
-        sfmiEnabled,
-        startRename,
-      }
-    })
-  )
-
-  const {pathItem, pathItemActionMenu, fileContext, cancelDownload} = data
-  const {download, newFolderRow} = data
-  const {sfmiEnabled, favoriteIgnore, dismissDownload, startRename} = data
-
-  const {downloadID, downloadIntent} = pathItemActionMenu
+  const {fileContext, pathItem} = useFsFileContext(path)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const reloadTlfs = useFsReloadTlfs()
+  const browserEdits = useFsBrowserEdits()
+  const cancelDownload = useFsCancelDownload()
+  const dismissDownload = useFsDismissDownload()
+  const download = useFsDownload()
+  const sfmiEnabled = useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
+  const newFolderRow = browserEdits?.newFolderRow
+  const startRename = browserEdits?.startRename
   const username = useCurrentUserState(s => s.username)
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const layout = getLayout(mode, path, pathItem, fileContext, username)
@@ -75,7 +88,7 @@ const Container = (op: OwnProps) => {
     cancel()
   }
   const hideAndCancelAfter = (f: () => void) => hideAfter(cancelAfter(f))
-  const itemNewFolder = layout.newFolder
+  const itemNewFolder = layout.newFolder && newFolderRow
     ? ([
         {
           icon: 'iconfont-folder-new',
@@ -109,7 +122,7 @@ const Container = (op: OwnProps) => {
           {
             icon: 'iconfont-finder',
             onClick: hideAndCancelAfter(() => {
-              openPathInSystemFileManagerDesktop(path)
+              openPathInSystemFileManagerDesktop(path, errorToActionOrThrow)
             }),
             title: 'Show in ' + C.fileUIName,
           },
@@ -137,7 +150,7 @@ const Container = (op: OwnProps) => {
             cancel()
           }
         : () => {
-            download(path, 'saveMedia')
+            download(path, 'saveMedia', onDownloadStarted)
             cancel()
           }
       return [{icon: 'iconfont-download-2', onClick, title: 'Save'}] as const
@@ -189,7 +202,7 @@ const Container = (op: OwnProps) => {
         if (conf) {
           setView(T.FS.PathItemActionMenuView.ConfirmSendToOtherApp)
         } else {
-          download(path, 'share')
+          download(path, 'share', onDownloadStarted)
         }
       })
       return [{icon: 'iconfont-share', onClick, title: 'Send to another app'}] as const
@@ -227,11 +240,26 @@ const Container = (op: OwnProps) => {
     : []
 
   const ignoreNeedsToWait = C.Waiting.useAnyWaiting([C.waitingKeyFSFolderList, C.waitingKeyFSStat])
+  const ignoreFolder = () => {
+    const folder = folderRPCFromPath(path)
+    if (!folder) {
+      return
+    }
+    const f = async () => {
+      try {
+        await T.RPCGen.favoriteFavoriteIgnoreRpcPromise({folder})
+        reloadTlfs()
+      } catch (error) {
+        errorToActionOrThrow(error, path)
+      }
+    }
+    C.ignorePromise(f())
+  }
   const ignoreTlf = layout.ignoreTlf
     ? ignoreNeedsToWait
       ? ('disabled' as const)
       : cancelAfter(() => {
-          favoriteIgnore(path)
+          ignoreFolder()
         })
     : undefined
   const itemIgnore = ignoreTlf
@@ -248,7 +276,7 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
-  const itemRename = layout.rename
+  const itemRename = layout.rename && startRename
     ? ([
         {
           icon: 'iconfont-edit',
@@ -309,7 +337,7 @@ const Container = (op: OwnProps) => {
     ...itemDelete,
   ]
 
-  const justDoneWithIntent = Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
+  const justDoneWithIntent = useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
   React.useEffect(() => {
     justDoneWithIntent && hide()
   }, [justDoneWithIntent, hide])

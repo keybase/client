@@ -7,7 +7,6 @@ import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
-import {useFSState} from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
@@ -34,7 +33,6 @@ export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
   const navigateAppend = C.Router2.navigateAppend
   const clearModals = C.Router2.clearModals
-  const fileContext = useFSState(s => s.fileContext)
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
     text && ConvoState.getConvoUIState(conversationIDKey).dispatch.injectIntoInput(text)
     if (sendPaths?.length) {
@@ -44,7 +42,6 @@ export const MobileSendToChat = (props: Props) => {
           conversationIDKey,
           pathAndOutboxIDs: sendPaths.map(p => ({
             path: Kb.Styles.normalizePath(p),
-            url: fileContext.get(p)?.url,
           })),
           selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
           tlfName,

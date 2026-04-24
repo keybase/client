@@ -1,8 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import TopBar from '../top-bar'
-import {useFSState} from '@/stores/fs'
-import * as FS from '@/stores/fs'
+import {useFsTlf} from '../common'
 
 type Props = {
   path: T.FS.Path
@@ -43,7 +42,7 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const syncConfig = useFSState(s => FS.getTlfFromPath(s.tlfs, path).syncConfig)
+  const syncConfig = useFsTlf(path).syncConfig
   const props = {
     ...ownProps,
     syncEnabled: syncConfig.mode === T.FS.TlfSyncMode.Enabled,

@@ -8,7 +8,7 @@ import Tlf from './tlf'
 import Still from './still'
 import Editing from './editing'
 import {normalRowHeight} from './common'
-import {useFsChildren, UploadButton} from '@/fs/common'
+import {UploadButton} from '@/fs/common'
 
 export type Props = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
@@ -57,8 +57,8 @@ function Rows(props: Props & {listKey: string}) {
       case RowTypes.RowType.Still:
         return (
           <WrapRow>
-            {item.editID ? (
-              <Editing editID={item.editID} />
+            {item.editSession ? (
+              <Editing editSession={item.editSession} />
             ) : (
               <Still path={item.path} destinationPickerSource={destinationPickerSource} />
             )}
@@ -67,7 +67,7 @@ function Rows(props: Props & {listKey: string}) {
       case RowTypes.RowType.NewFolder:
         return (
           <WrapRow>
-            <Editing editID={item.editID} />
+            <Editing editSession={item.editSession} />
           </WrapRow>
         )
       case RowTypes.RowType.Empty:
@@ -139,8 +139,6 @@ function Rows(props: Props & {listKey: string}) {
 }
 
 const RowsWithAutoLoad = (props: Props) => {
-  useFsChildren(props.path, /* recursive */ true) // need recursive for the EMPTY tag
-
   // List caches offsets. So have the key derive from layouts so that we
   // trigger a re-render when layout changes. Also encode items length into
   // this, otherwise we'd get taller-than content rows when going into a

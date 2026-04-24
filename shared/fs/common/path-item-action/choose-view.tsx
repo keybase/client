@@ -1,11 +1,14 @@
 import * as T from '@/constants/types'
-import type {FloatingMenuProps} from './types'
+import type {FloatingMenuProps, OnDownloadStarted} from './types'
 import Menu from './menu-container'
 import Confirm from './confirm'
 
 type OwnProps = {
+  downloadID?: string
+  downloadIntent?: T.FS.DownloadIntent
   floatingMenuProps: FloatingMenuProps
   mode: 'row' | 'screen'
+  onDownloadStarted: OnDownloadStarted
   path: T.FS.Path
   previousView: T.FS.PathItemActionMenuView
   setView: (view: T.FS.PathItemActionMenuView) => void

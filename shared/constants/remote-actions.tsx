@@ -33,7 +33,6 @@ export const updateNow = 'remote:updateNow'
 export const updateWindowMaxState = 'remote:updateWindowMaxState'
 export const updateWindowShown = 'remote:updateWindowShown'
 export const updateWindowState = 'remote:updateWindowState'
-export const userFileEditsLoad = 'remote:userFileEditsLoad'
 
 // Action Creators
 /**
@@ -110,7 +109,6 @@ export const createUpdateWindowMaxState = (payload: {readonly max: boolean}) =>
   ({payload, type: updateWindowMaxState}) as const
 export const createUpdateWindowShown = (payload: {readonly component: string}) =>
   ({payload, type: updateWindowShown}) as const
-export const createUserFileEditsLoad = (payload?: undefined) => ({payload, type: userFileEditsLoad}) as const
 
 // Action Payloads
 export type CloseUnlockFoldersPayload = ReturnType<typeof createCloseUnlockFolders>
@@ -141,7 +139,6 @@ export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
 export type UpdateWindowMaxStatePayload = ReturnType<typeof createUpdateWindowMaxState>
 export type UpdateWindowShownPayload = ReturnType<typeof createUpdateWindowShown>
 export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState>
-export type UserFileEditsLoadPayload = ReturnType<typeof createUserFileEditsLoad>
 
 // All Actions
 // prettier-ignore
@@ -174,5 +171,4 @@ export type Actions =
   | UpdateWindowMaxStatePayload
   | UpdateWindowShownPayload
   | UpdateWindowStatePayload
-  | UserFileEditsLoadPayload
   | {readonly payload: undefined; readonly type: 'common:resetStore'}

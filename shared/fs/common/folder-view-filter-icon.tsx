@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type * as Styles from '@/styles'
-import {useFSState} from '@/stores/fs'
+import {useFsPathItem} from './hooks'
 import * as FS from '@/stores/fs'
 
 type Props = {
@@ -20,7 +20,7 @@ type OwnProps = Omit<Props, 'pathItem'>
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const pathItem = useFSState(s => FS.getPathItem(s.pathItems, path))
+  const pathItem = useFsPathItem(path)
   const props = {
     ...ownProps,
     pathItem,

@@ -1,21 +1,18 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
 import useFiles from './hooks'
 import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
 type Props = ReturnType<typeof useFiles>
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
 export const defaultNotificationThreshold = 100 * 1024 ** 2
 
-const ThresholdDropdown = (p: Pick<Props, 'spaceAvailableNotificationThreshold'>) => {
+const ThresholdDropdown = (
+  p: Pick<Props, 'spaceAvailableNotificationThreshold' | 'setSpaceAvailableNotificationThreshold'>
+) => {
   const allowedThresholds = allowedNotificationThresholds.map(
     i => ({label: FS.humanizeBytes(i, 0), value: i}) as const
-  )
-  const setSpaceAvailableNotificationThreshold = useFSState(
-    s => s.dispatch.setSpaceAvailableNotificationThreshold
   )
   const {spaceAvailableNotificationThreshold} = p
   const [notificationThreshold, setNotificationThreshold] = React.useState(
@@ -30,7 +27,7 @@ const ThresholdDropdown = (p: Pick<Props, 'spaceAvailableNotificationThreshold'>
 
   const hide = () => setVisible(false)
   const done = () => {
-    setSpaceAvailableNotificationThreshold(notificationThreshold)
+    p.setSpaceAvailableNotificationThreshold(notificationThreshold)
     setVisible(false)
   }
   const select = (selectedVal?: number) => selectedVal && setNotificationThreshold(selectedVal)
@@ -68,16 +65,16 @@ const ThresholdDropdown = (p: Pick<Props, 'spaceAvailableNotificationThreshold'>
 
 const Files = () => {
   const props = useFiles()
-  const {spaceAvailableNotificationThreshold, onEnableSyncNotifications, onDisableSyncNotifications} = props
+  const {
+    onDisableSyncNotifications,
+    onEnableSyncNotifications,
+    setSyncOnCellular,
+    spaceAvailableNotificationThreshold,
+    syncOnCellular,
+  } = props
   const {areSettingsLoading} = props
-  const syncOnCellular = useFSState(s => s.settings.syncOnCellular)
   const toggleSyncOnCellular = () => {
-    T.RPCGen.SimpleFSSimpleFSSetSyncOnCellularRpcPromise(
-      {syncOnCellular: !syncOnCellular},
-      C.waitingKeyFSSetSyncOnCellular
-    )
-      .then(() => {})
-      .catch(() => {})
+    setSyncOnCellular(!syncOnCellular)
   }
   const waitingToggleSyncOnCellular = C.Waiting.useAnyWaiting(C.waitingKeyFSSetSyncOnCellular)
   return (
@@ -103,6 +100,7 @@ const Files = () => {
         {!!spaceAvailableNotificationThreshold && (
           <ThresholdDropdown
             spaceAvailableNotificationThreshold={props.spaceAvailableNotificationThreshold}
+            setSpaceAvailableNotificationThreshold={props.setSpaceAvailableNotificationThreshold}
           />
         )}
         <Kb.Switch

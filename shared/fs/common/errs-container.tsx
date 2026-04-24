@@ -1,18 +1,13 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
-import {useFSState} from '@/stores/fs'
+import {useFsErrors, useFsRedbarActions} from './error-state'
 
 const ErrsContainer = () => {
-  const {_errors, _dismiss} = useFSState(
-    C.useShallow(s => ({
-      _dismiss: s.dispatch.dismissRedbar,
-      _errors: s.errors,
-    }))
-  )
+  const errors = useFsErrors()
+  const {dismissRedbar} = useFsRedbarActions()
   const props = {
-    errs: _errors.map((err, i) => ({
-      dismiss: () => _dismiss(i),
+    errs: errors.map((err, i) => ({
+      dismiss: () => dismissRedbar(i),
       msg: err,
     })),
   }
@@ -22,7 +17,7 @@ const ErrsContainer = () => {
         {props.errs.map((errProps, index) => (
           <React.Fragment key={index}>
             <Err {...errProps} />
-            {props.errs.length > 1 && index !== props.errs.length && <Kb.Divider />}
+            {props.errs.length > 1 && index !== props.errs.length - 1 && <Kb.Divider />}
           </React.Fragment>
         ))}
       </Kb.Box2>

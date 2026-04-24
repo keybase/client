@@ -1,8 +1,9 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
+import {useFsPathItem} from '../common'
+import {useFsBrowserSort} from '../browser/sort-state'
 
 type OwnProps = {
   path: T.FS.Path
@@ -30,41 +31,36 @@ const makeSortOptionItem = (sortSetting: T.FS.SortSetting, onClick?: () => void)
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const {_kbfsDaemonStatus, _pathItem, setSorting, _sortSetting} = useFSState(
-    C.useShallow(s => ({
-      _kbfsDaemonStatus: s.kbfsDaemonStatus,
-      _pathItem: FS.getPathItem(s.pathItems, path),
-      _sortSetting: FS.getPathUserSetting(s.pathUserSettings, path).sort,
-      setSorting: s.dispatch.setSorting,
-    }))
-  )
+  const pathItem = useFsPathItem(path)
+  const {setSortSetting, sortSetting} = useFsBrowserSort(path)
+  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
 
-  const sortSetting = FS.showSortSetting(path, _pathItem, _kbfsDaemonStatus) ? _sortSetting : undefined
+  const shownSortSetting = FS.showSortSetting(path, pathItem, _kbfsDaemonStatus) ? sortSetting : undefined
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     const sortByNameAsc =
       path === FS.defaultPath
         ? undefined
         : () => {
-            setSorting(path, T.FS.SortSetting.NameAsc)
+            setSortSetting(path, T.FS.SortSetting.NameAsc)
           }
     const sortByNameDesc =
       path === FS.defaultPath
         ? undefined
         : () => {
-            setSorting(path, T.FS.SortSetting.NameDesc)
+            setSortSetting(path, T.FS.SortSetting.NameDesc)
           }
     const sortByTimeAsc =
       path === FS.defaultPath
         ? undefined
         : () => {
-            setSorting(path, T.FS.SortSetting.TimeAsc)
+            setSortSetting(path, T.FS.SortSetting.TimeAsc)
           }
     const sortByTimeDesc =
       path === FS.defaultPath
         ? undefined
         : () => {
-            setSorting(path, T.FS.SortSetting.TimeDesc)
+            setSortSetting(path, T.FS.SortSetting.TimeDesc)
           }
     return (
       <Kb.FloatingMenu
@@ -83,13 +79,13 @@ const Container = (ownProps: OwnProps) => {
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
-  return sortSetting ? (
+  return shownSortSetting ? (
     <>
       <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" centerChildren={Kb.Styles.isMobile}>
           <Kb.Icon type="iconfont-arrow-full-down" padding="xtiny" sizeType="Small" />
           <Kb.Text type="BodySmallSemibold" style={styles.sortText}>
-            {getTextFromSortSetting(sortSetting)}
+            {getTextFromSortSetting(shownSortSetting)}
           </Kb.Text>
         </Kb.Box2>
       </Kb.ClickableBox>
