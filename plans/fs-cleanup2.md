@@ -26,7 +26,6 @@ The default assumption from the pruning skill still applies: local KBFS and Go s
 
 Remaining state to classify before each implementation slice:
 
-- `criticalUpdate`
 - `downloads`
 - `kbfsDaemonStatus`
 - `overallSyncStatus`
@@ -37,12 +36,12 @@ Remaining state to classify before each implementation slice:
 Remaining dispatch surface to classify before deleting or moving call sites:
 
 - daemon and lifecycle actions: `checkKbfsDaemonRpcStatus`, `getOnlineStatus`, `afterKbfsDaemonRpcStatusChanged`, `onChangedFocus`, `userIn`, `userOut`, `resetState`
-- engine/background actions: `onEngineIncomingImpl`, `journalUpdate`, `loadDownloadStatus`, `setCriticalUpdate`
+- engine/background actions: `onEngineIncomingImpl`, `journalUpdate`, `loadDownloadStatus`
 - settings/SFMI actions: `loadSettings`, `driverEnable`, `driverDisable`, `refreshDriverStatusDesktop`
 
 Initial ownership targets:
 
-- Keep global for now: daemon connection status, active upload/download status, overall sync status, desktop SFMI driver status, critical-update state.
+- Keep global for now: daemon connection status, active upload/download status, overall sync status, and desktop SFMI driver status.
 - Move or delete unless proven global: `settings` fields that only serve UI and any one-screen command wrappers reintroduced later.
 - Re-check every ambiguous item against the pruning skill instead of preserving it to avoid a service call.
 
@@ -76,7 +75,7 @@ Field ownership table:
 | Field | Current consumers | Ownership |
 | --- | --- | --- |
 | `badge` | FS mobile header and desktop tab bar upload icon. | `move-mounted`; `useFilesTabUploadIcon()` now loads on mount/focus and listens while mounted. |
-| `criticalUpdate` | init route transition clearing; desktop remote event setter. | `keep-global`; cross-window/route lifecycle flag. |
+| `criticalUpdate` | init route transition clearing; desktop remote event setter. | `move-shell`; now `shell.fsCriticalUpdate` because it is tab chrome state, not KBFS data. |
 | `downloads.regularDownloads` / `downloads.state` | FS footer, rows, item icons, mobile download watcher, download-status subscription. | `keep-global`; active transfer status must survive route changes. |
 | `downloads.info` | `useFsDownloadInfo`, footer downloads, mobile completion watcher, start-download prefill. | `move-route`; load per download in the owning hook/component while preserving MIME/save/share completion behavior. |
 | `errors` | `Errs` via `FsErrorProvider` fallback; store redbar actions. | `move-route`; keep temporary global fallback only for background FS actions until all redbar producers have mounted ownership. |
@@ -104,7 +103,7 @@ Dispatch ownership table:
 | `journalUpdate` | store journal polling, dev upload-banner toggle. | `keep-global-internal`; updates global upload status. Public exposure can be narrowed later. |
 | `loadDownloadStatus` | store subscription handler and `useFsDownloadStatus`. | `keep-global`; active download status is shared across routes. |
 | `userFileEditsLoad` | desktop remote event; menubar rendered `tlfUpdates`. | `move-menubar`; removed from the FS store and remote action bridge. |
-| `setCriticalUpdate` | desktop remote event and route transition clearing. | `keep-global`. |
+| `setCriticalUpdate` | desktop remote event and route transition clearing. | `move-shell`; remote actions and route clearing now call `shell.dispatch.setFsCriticalUpdate`. |
 | `driverEnable` / `driverDisable` / `refreshDriverStatusDesktop` | SFMI banner, popup, settings, init. | `keep-global`; platform integration state owner. |
 | `loadSettings` | store settings subscription and threshold refresh after settings-hook updates. | `keep-global-internal`; background threshold/SFMI refresh only. |
 | `setSpaceAvailableNotificationThreshold` | moved to settings files hook. | `move-component`; removed from store dispatch. |
@@ -134,6 +133,7 @@ Behavior to preserve:
 Current slice note:
 
 - `shared/fs/common/use-files-tab-upload-icon.tsx` now owns mounted files-tab badge loading for the mobile header and desktop tab bar.
+- `criticalUpdate` moved from the FS store to `shared/stores/shell.tsx` as `fsCriticalUpdate`; the desktop remote event, tab bar badge, and route-exit clearing now use the shell store.
 - `shared/settings/files/hooks.tsx` now owns the mounted Files settings RPC load and listens for settings subscription notifications while mounted.
 - The Files settings threshold and sync-on-cellular controls submit directly through SimpleFS RPCs instead of selecting global `settings` values.
 - After threshold/sync updates, the settings hook still refreshes the global FS settings owner so background disk-space warning comparisons keep the latest threshold.
@@ -223,12 +223,11 @@ Current slice note:
 
 Expected final boundary:
 
-- Global store state should be limited to active transfer status, daemon status, app-wide sync/banner state, critical-update state, and platform integration state that must survive unmounted FS routes.
+- Global FS store state should be limited to active transfer status, daemon status, app-wide sync/banner state, and platform integration state that must survive unmounted FS routes.
 - Mounted FS data, screen commands, redbars, settings UI state, and service-backed convenience mirrors should live outside the global store.
 
 Final global FS store contract:
 
-- `criticalUpdate`: cross-route desktop critical update flag cleared on FS tab exit.
 - `downloads.regularDownloads` / `downloads.state`: active download status shared by footer rows, path item badges, mobile completion handling, and route changes.
 - `kbfsDaemonStatus`: app-wide KBFS daemon RPC and online status.
 - `overallSyncStatus`: app-wide sync progress and disk-space warning/banner state, derived from background sync status notifications and the latest background threshold setting.
@@ -236,7 +235,7 @@ Final global FS store contract:
 - `sfmi`: desktop system file manager integration driver status and mount directories.
 - `uploads`: active upload/journal status shared by rows, footer, path status icons, menubar, and notification badges.
 
-`shared/stores/fs.tsx` remains because those fields are still durable background or cross-route state. It no longer owns mounted path data, soft errors, redbars, settings UI form state, download metadata mirrors, menubar TLF update history, or one-shot upload/download command wrappers.
+`shared/stores/fs.tsx` remains because those fields are still durable background or cross-route state. It no longer owns mounted path data, soft errors, redbars, settings UI form state, download metadata mirrors, menubar TLF update history, files tab chrome badges, or one-shot upload/download command wrappers.
 
 ## Validation
 

@@ -11,7 +11,6 @@ import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import type HiddenString from '@/util/hidden-string'
 import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
-import {useFSState} from '@/stores/fs'
 import {useShellState} from '@/stores/shell'
 import {useUnlockFoldersState} from '@/unlock-folders/store'
 import logger from '@/logger'
@@ -161,7 +160,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.setCriticalUpdate: {
-      useFSState.getState().dispatch.setCriticalUpdate(action.payload.critical)
+      useShellState.getState().dispatch.setFsCriticalUpdate(action.payload.critical)
       break
     }
     case RemoteGen.openFilesFromWidget: {

@@ -20,11 +20,13 @@ const filesTabBadgeToUploadIcon = (badge: T.RPCGen.FilesTabBadge): T.FS.UploadIc
 
 export const useFilesTabUploadIcon = () => {
   const connected = FS.useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
-  const connectedRef = React.useRef(false)
-  connectedRef.current = connected
+  const connectedRef = React.useRef(connected)
   const generationRef = React.useRef(0)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const [uploadIcon, setUploadIcon] = React.useState<T.FS.UploadIcon | undefined>(undefined)
+  React.useLayoutEffect(() => {
+    connectedRef.current = connected
+  }, [connected])
   const onError = React.useEffectEvent((error: unknown) => {
     errorToActionOrThrow(error)
   })

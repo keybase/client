@@ -344,10 +344,10 @@ export const initSharedSubscriptions = () => {
         Util.getTab(prev) === Tabs.fsTab &&
         next &&
         Util.getTab(next) !== Tabs.fsTab &&
-        useFSState.getState().criticalUpdate
+        useShellState.getState().fsCriticalUpdate
       ) {
-        const {dispatch} = useFSState.getState()
-        dispatch.setCriticalUpdate(false)
+        const {dispatch} = useShellState.getState()
+        dispatch.setFsCriticalUpdate(false)
       }
       const fsRrouteNames = ['fsRoot', 'barePreview']
       const wasScreen = fsRrouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')

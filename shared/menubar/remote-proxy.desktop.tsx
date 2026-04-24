@@ -245,12 +245,15 @@ function useMenubarTlfUpdates(
 ) {
   const [tlfUpdates, setTlfUpdates] = React.useState<T.FS.UserTlfUpdates>(emptyTlfUpdates)
   const generationRef = React.useRef(0)
-  const enabledRef = React.useRef(false)
-  enabledRef.current =
+  const enabled =
     loggedIn &&
     !userSwitching &&
     kbfsDaemonRpcStatus === T.FS.KbfsDaemonRpcStatus.Connected &&
     menuWindowShownCount > 0
+  const enabledRef = React.useRef(enabled)
+  React.useLayoutEffect(() => {
+    enabledRef.current = enabled
+  }, [enabled])
   const loadUserFileEdits = C.useThrottledCallback(() => {
     if (!enabledRef.current) {
       return
@@ -278,11 +281,11 @@ function useMenubarTlfUpdates(
       setTlfUpdates(emptyTlfUpdates)
       return
     }
-    if (!enabledRef.current) {
+    if (!enabled) {
       return
     }
     loadUserFileEdits()
-  }, [kbfsDaemonRpcStatus, loadUserFileEdits, loggedIn, menuWindowShownCount, userSwitching])
+  }, [enabled, loadUserFileEdits, loggedIn, userSwitching])
 
   return tlfUpdates
 }

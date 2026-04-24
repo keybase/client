@@ -126,7 +126,6 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
 }
 
 type Store = T.Immutable<{
-  criticalUpdate: boolean
   downloads: T.FS.Downloads
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   overallSyncStatus: T.FS.OverallSyncStatus
@@ -135,7 +134,6 @@ type Store = T.Immutable<{
   uploads: T.FS.Uploads
 }>
 const initialStore: Store = {
-  criticalUpdate: false,
   downloads: {
     regularDownloads: [],
     state: new Map(),
@@ -170,7 +168,6 @@ export type State = Store & {
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     refreshDriverStatusDesktop: () => void
     resetState: () => void
-    setCriticalUpdate: (u: boolean) => void
     userIn: () => void
     userOut: () => void
   }
@@ -754,11 +751,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         ...initialStore,
         dispatch: s.dispatch,
       }))
-    },
-    setCriticalUpdate: u => {
-      set(s => {
-        s.criticalUpdate = u
-      })
     },
     userIn: () => {
       const f = async () => {
