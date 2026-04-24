@@ -165,7 +165,7 @@ Current slice note:
 ## Chunk 5: Decide What Stays Global
 
 - [x] Review what remains in `shared/stores/fs.tsx`
-- [ ] Delete dead selectors, helpers, and tests
+- [x] Delete dead selectors, helpers, and tests
 - [x] Keep only state that still clearly needs app-wide lifetime
 
 Current slice note:
@@ -173,6 +173,7 @@ Current slice note:
 - global `pathItems` state and its store-owned folder/stat loaders have been removed; desktop open-in-file-manager and upload summaries now stat paths directly when they need folder/file type
 - global `tlfs` state and the store-owned TLF mutation helpers have been removed; mounted favorites/sync-config updates now reload through feature-local hooks
 - the remaining global FS store surface is now the cross-route/background set: downloads, uploads, kbfs daemon status, overall sync status, settings/SFMI, files-tab badge, menubar file-edit updates, critical-update state, and fallback/global FS error state
+- store-internal KBFS subscription, driver-status, and sync-status helpers no longer leak through the public `dispatch` surface; only the still-consumed global actions remain exposed
 
 ### Likely candidates to keep global
 
@@ -207,4 +208,4 @@ Current slice note:
 - [ ] Favorites and TLF views still refresh correctly after mutation
 - [ ] Download and upload banners still work globally across routes
 - [ ] Sync status, disk-space warnings, daemon status, and SFMI banners still work
-- [ ] No new module-level mutable cache is introduced as a replacement for Zustand
+- [x] No new module-level mutable cache is introduced as a replacement for Zustand

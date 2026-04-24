@@ -210,18 +210,12 @@ export type State = Store & {
       onStarted?: (downloadID: string, downloadIntent?: T.FS.DownloadIntent) => void
     ) => void
     driverDisable: () => void
-    driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
-    driverKextPermissionError: () => void
     finishManualConflictResolution: (localViewTlfPath: T.FS.Path) => void
     getOnlineStatus: () => void
     journalUpdate: (syncingPaths: Array<T.FS.Path>, totalSyncingBytes: number, endEstimate?: number) => void
-    kbfsDaemonOnlineStatusChanged: (onlineStatus: T.RPCGen.KbfsOnlineStatus) => void
-    kbfsDaemonRpcStatusChanged: (rpcStatus: T.FS.KbfsDaemonRpcStatus) => void
     letResetUserBackIn: (id: T.RPCGen.TeamID, username: string) => void
-    loadFilesTabBadge: () => void
     loadSettings: () => void
-    loadUploadStatus: () => void
     loadDownloadInfo: (downloadID: string) => void
     loadDownloadStatus: () => void
     moveOrCopy: (
@@ -231,29 +225,19 @@ export type State = Store & {
     ) => void
     onChangedFocus: (appFocused: boolean) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    onSubscriptionNotify: (clientID: string, topic: T.RPCGen.SubscriptionTopic) => void
-    pollJournalStatus: () => void
     redbar: (error: string) => void
     refreshDriverStatusDesktop: () => void
-    refreshMountDirsDesktop: () => void
     resetState: () => void
     setCriticalUpdate: (u: boolean) => void
     setDebugLevel: (level: string) => void
-    setDirectMountDir: (directMountDir: string) => void
-    setDriverStatus: (driverStatus: T.FS.DriverStatus) => void
-    setPreferredMountDirs: (preferredMountDirs: ReadonlyArray<string>) => void
     setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     setSpaceAvailableNotificationThreshold: (spaceAvailableNotificationThreshold: number) => void
     setTlfSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     startManualConflictResolution: (tlfPath: T.FS.Path) => void
-    subscribeNonPath: (subscriptionID: string, topic: T.RPCGen.SubscriptionTopic) => void
-    syncStatusChanged: (status: T.RPCGen.FolderSyncStatus) => void
-    unsubscribe: (subscriptionID: string) => void
     upload: (parentPath: T.FS.Path, localPath: string) => void
     userIn: () => void
     userOut: () => void
     userFileEditsLoad: () => void
-    waitForKbfsDaemon: () => void
   }
   getUploadIconForFilesTab: () => T.FS.UploadIcon | undefined
 }
@@ -314,7 +298,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number): Promise<void> => {
     try {
       const onlineStatus = await T.RPCGen.SimpleFSSimpleFSGetOnlineStatusRpcPromise({clientID})
-      get().dispatch.kbfsDaemonOnlineStatusChanged(onlineStatus)
+      kbfsDaemonOnlineStatusChanged(onlineStatus)
       return
     } catch (error) {
       if (n > 0) {
@@ -353,7 +337,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   const unsubscribeAll = () => {
     const subscriptionIDs = [fsBadgeSub.id, settingsSub.id, uploadStatusSub.id, journalStatusSub.id]
     subscriptionIDs.forEach(subscriptionID => {
-      subscriptionID && get().dispatch.unsubscribe(subscriptionID)
+      subscriptionID && unsubscribe(subscriptionID)
     })
     clearSubscriptions()
   }
@@ -362,8 +346,8 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     const oldID = sub.id
     sub.id = makeUUID()
     if (get().kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
-      if (oldID) get().dispatch.unsubscribe(oldID)
-      get().dispatch.subscribeNonPath(sub.id, topic)
+      if (oldID) unsubscribe(oldID)
+      subscribeNonPath(sub.id, topic)
       load()
     }
   }
@@ -379,6 +363,339 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     ignorePromise(f())
   }
 
+  const driverDisabling = () => {
+    set(s => {
+      if (s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled) {
+        s.sfmi.driverStatus.isDisabling = true
+      }
+    })
+    const f = async () => {
+      const {sfmi} = get()
+      await afterDriverDisablingInPlatform(sfmi.driverStatus)
+      get().dispatch.refreshDriverStatusDesktop()
+    }
+    ignorePromise(f())
+  }
+
+  const driverKextPermissionError = () => {
+    set(s => {
+      if (s.sfmi.driverStatus.type === T.FS.DriverStatusType.Disabled) {
+        s.sfmi.driverStatus.kextPermissionError = true
+        s.sfmi.driverStatus.isEnabling = false
+      }
+    })
+  }
+
+  const kbfsDaemonOnlineStatusChanged = (onlineStatus: T.RPCGen.KbfsOnlineStatus) => {
+    set(s => {
+      switch (onlineStatus) {
+        case T.RPCGen.KbfsOnlineStatus.offline:
+          s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Offline
+          break
+        case T.RPCGen.KbfsOnlineStatus.trying:
+          s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Trying
+          break
+        case T.RPCGen.KbfsOnlineStatus.online:
+          s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Online
+          break
+        default:
+          s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Unknown
+      }
+    })
+  }
+
+  const loadFilesTabBadge = () => {
+    const f = async () => {
+      try {
+        const badge = await T.RPCGen.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+        set(s => {
+          s.badge = badge
+        })
+      } catch {
+        // retry once HOTPOT-1226
+        try {
+          const badge = await T.RPCGen.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+          set(s => {
+            s.badge = badge
+          })
+        } catch {}
+      }
+    }
+    ignorePromise(f())
+  }
+
+  const loadUploadStatus = () => {
+    const f = async () => {
+      try {
+        const uploadStates = await T.RPCGen.SimpleFSSimpleFSGetUploadStatusRpcPromise()
+        set(s => {
+          const writingToJournal = new Map(
+            uploadStates?.map(uploadState => {
+              const path = rpcPathToPath(uploadState.targetPath)
+              const oldUploadState = s.uploads.writingToJournal.get(path)
+              return [
+                path,
+                oldUploadState &&
+                uploadState.error === oldUploadState.error &&
+                uploadState.canceled === oldUploadState.canceled &&
+                uploadState.uploadID === oldUploadState.uploadID
+                  ? oldUploadState
+                  : uploadState,
+              ]
+            })
+          )
+          if (!isEqual(writingToJournal, s.uploads.writingToJournal)) {
+            s.uploads.writingToJournal = writingToJournal
+          }
+        })
+      } catch (err) {
+        errorToActionOrThrow(err)
+      }
+    }
+    ignorePromise(f())
+  }
+
+  const onSubscriptionNotify = (cid: string, topic: T.RPCGen.SubscriptionTopic) => {
+    const f = async () => {
+      if (cid !== clientID || !shouldRunBackgroundFSRPC()) {
+        return
+      }
+      switch (topic) {
+        case T.RPCGen.SubscriptionTopic.journalStatus:
+          pollJournalStatus()
+          break
+        case T.RPCGen.SubscriptionTopic.onlineStatus:
+          await checkIfWeReConnectedToMDServerUpToNTimes(1)
+          break
+        case T.RPCGen.SubscriptionTopic.downloadStatus:
+          get().dispatch.loadDownloadStatus()
+          break
+        case T.RPCGen.SubscriptionTopic.uploadStatus:
+          loadUploadStatus()
+          break
+        case T.RPCGen.SubscriptionTopic.filesTabBadge:
+          loadFilesTabBadge()
+          break
+        case T.RPCGen.SubscriptionTopic.settings:
+          get().dispatch.loadSettings()
+          break
+      }
+    }
+    ignorePromise(f())
+  }
+
+  const refreshMountDirsDesktop = () => {
+    const f = async () => {
+      const {sfmi} = get()
+      if (sfmi.driverStatus.type !== T.FS.DriverStatusType.Enabled) {
+        return
+      }
+      try {
+        const {directMountDir, preferredMountDirs} = await refreshMountDirsInPlatform()
+        setDirectMountDir(directMountDir)
+        setPreferredMountDirs(preferredMountDirs)
+      } catch (e) {
+        errorToActionOrThrow(e)
+      }
+    }
+    ignorePromise(f())
+  }
+
+  const setDirectMountDir = (directMountDir: string) => {
+    set(s => {
+      s.sfmi.directMountDir = directMountDir
+    })
+  }
+
+  const setDriverStatus = (driverStatus: T.FS.DriverStatus) => {
+    set(s => {
+      s.sfmi.driverStatus = driverStatus
+    })
+    refreshMountDirsDesktop()
+  }
+
+  const setPreferredMountDirs = (preferredMountDirs: ReadonlyArray<string>) => {
+    set(s => {
+      s.sfmi.preferredMountDirs = T.castDraft(preferredMountDirs)
+    })
+  }
+
+  const subscribeNonPath = (subscriptionID: string, topic: T.RPCGen.SubscriptionTopic) => {
+    const f = async () => {
+      try {
+        await T.RPCGen.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
+          clientID,
+          deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
+          subscriptionID,
+          topic,
+        })
+      } catch (err) {
+        errorToActionOrThrow(err)
+      }
+    }
+    ignorePromise(f())
+  }
+
+  const syncStatusChanged = (status: T.RPCGen.FolderSyncStatus) => {
+    const diskSpaceStatus = status.outOfSyncSpace
+      ? T.FS.DiskSpaceStatus.Error
+      : status.localDiskBytesAvailable < get().settings.spaceAvailableNotificationThreshold
+        ? T.FS.DiskSpaceStatus.Warning
+        : T.FS.DiskSpaceStatus.Ok
+
+    const oldStatus = get().overallSyncStatus.diskSpaceStatus
+    set(s => {
+      s.overallSyncStatus.syncingFoldersProgress = status.prefetchProgress
+      s.overallSyncStatus.diskSpaceStatus = diskSpaceStatus
+    })
+
+    // Only notify about the disk space status if it has changed.
+    if (oldStatus !== diskSpaceStatus) {
+      switch (diskSpaceStatus) {
+        case T.FS.DiskSpaceStatus.Error: {
+          NotifyPopup('Sync Error', {
+            body: 'You are out of disk space. Some folders could not be synced.',
+            sound: true,
+          })
+          useNotifState.getState().dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
+          break
+        }
+        case T.FS.DiskSpaceStatus.Warning:
+          {
+            const threshold = Constants.humanizeBytes(get().settings.spaceAvailableNotificationThreshold, 0)
+            NotifyPopup('Disk Space Low', {
+              body: `You have less than ${threshold} of storage space left.`,
+            })
+            // Only show the banner if the previous state was OK and the new state
+            // is warning. Otherwise we rely on the previous state of the banner.
+            if (oldStatus === T.FS.DiskSpaceStatus.Ok) {
+              set(s => {
+                s.overallSyncStatus.showingBanner = true
+              })
+            }
+          }
+          break
+        case T.FS.DiskSpaceStatus.Ok:
+          break
+        default:
+      }
+    }
+  }
+
+  const unsubscribe = (subscriptionID: string) => {
+    const f = async () => {
+      try {
+        await T.RPCGen.SimpleFSSimpleFSUnsubscribeRpcPromise({
+          clientID,
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
+          subscriptionID,
+        })
+      } catch {}
+    }
+    ignorePromise(f())
+  }
+
+  const pollJournalStatus = () => {
+    if (pollJournalStatusPolling || !shouldRunBackgroundFSRPC()) {
+      return
+    }
+    pollJournalStatusPolling = true
+    const generation = asyncGeneration
+
+    const getWaitDuration = (endEstimate: number | undefined, lower: number, upper: number): number => {
+      if (!endEstimate) {
+        return upper
+      }
+      const diff = endEstimate - Date.now()
+      return diff < lower ? lower : diff > upper ? upper : diff
+    }
+
+    const f = async () => {
+      let shouldRefreshDaemonStatus = false
+      try {
+        while (isCurrentAsyncGeneration(generation)) {
+          const {syncingPaths, totalSyncingBytes, endEstimate} =
+            await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
+              filter: T.RPCGen.ListFilter.filterSystemHidden,
+            })
+          if (!isCurrentAsyncGeneration(generation)) {
+            return
+          }
+          get().dispatch.journalUpdate(
+            (syncingPaths || []).map(T.FS.stringToPath),
+            totalSyncingBytes,
+            endEstimate ?? undefined
+          )
+
+          // It's possible syncingPaths has not been emptied before
+          // totalSyncingBytes becomes 0. So check both.
+          if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
+            break
+          }
+          useNotifState.getState().dispatch.badgeApp('kbfsUploading', true)
+          await timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
+        }
+      } finally {
+        if (generation === asyncGeneration) {
+          pollJournalStatusPolling = false
+        }
+        shouldRefreshDaemonStatus = isCurrentAsyncGeneration(generation)
+        useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
+      }
+      if (!shouldRefreshDaemonStatus) {
+        return
+      }
+      get().dispatch.checkKbfsDaemonRpcStatus()
+    }
+    ignorePromise(f())
+  }
+
+  const waitForKbfsDaemon = () => {
+    if (waitForKbfsDaemonInProgress || !shouldRunBackgroundFSRPC()) {
+      return
+    }
+    waitForKbfsDaemonInProgress = true
+    const generation = asyncGeneration
+    set(s => {
+      s.kbfsDaemonStatus.rpcStatus = T.FS.KbfsDaemonRpcStatus.Waiting
+    })
+    const f = async () => {
+      try {
+        await T.RPCGen.configWaitForClientRpcPromise({
+          clientType: T.RPCGen.ClientType.kbfs,
+          timeout: 60, // 1min. This is arbitrary since we're gonna check again anyway if we're not connected.
+        })
+      } catch {
+      } finally {
+        if (generation === asyncGeneration) {
+          waitForKbfsDaemonInProgress = false
+        }
+      }
+      if (!isCurrentAsyncGeneration(generation)) {
+        return
+      }
+      get().dispatch.checkKbfsDaemonRpcStatus()
+    }
+    ignorePromise(f())
+  }
+
+  const kbfsDaemonRpcStatusChanged = (rpcStatus: T.FS.KbfsDaemonRpcStatus) => {
+    set(s => {
+      if (rpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected) {
+        s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Offline
+      }
+      s.kbfsDaemonStatus.rpcStatus = rpcStatus
+    })
+
+    subscribeAndLoad(fsBadgeSub, T.RPCGen.SubscriptionTopic.filesTabBadge, loadFilesTabBadge)
+    subscribeAndLoad(settingsSub, T.RPCGen.SubscriptionTopic.settings, () => get().dispatch.loadSettings())
+    subscribeAndLoad(uploadStatusSub, T.RPCGen.SubscriptionTopic.uploadStatus, loadUploadStatus)
+    subscribeAndLoad(journalStatusSub, T.RPCGen.SubscriptionTopic.journalStatus, pollJournalStatus)
+    // how this works isn't great. This function gets called way early before we set this
+    get().dispatch.afterKbfsDaemonRpcStatusChanged()
+  }
+
   const dispatch: State['dispatch'] = {
     afterKbfsDaemonRpcStatusChanged: () => {
       const f = async () => {
@@ -390,7 +707,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         if (kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected) {
           dispatch.refreshDriverStatusDesktop()
         }
-        dispatch.refreshMountDirsDesktop()
+        refreshMountDirsDesktop()
       }
       ignorePromise(f())
     },
@@ -415,7 +732,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         }
         const newStatus = connected ? T.FS.KbfsDaemonRpcStatus.Connected : T.FS.KbfsDaemonRpcStatus.Waiting
         const kbfsDaemonStatus = get().kbfsDaemonStatus
-        const {kbfsDaemonRpcStatusChanged, waitForKbfsDaemon} = get().dispatch
 
         if (kbfsDaemonStatus.rpcStatus !== newStatus) {
           kbfsDaemonRpcStatusChanged(newStatus)
@@ -494,23 +810,10 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         _setSfmiBannerDismissedDesktop(false)
         const result = await afterDriverDisableInPlatform(sfmi.driverStatus)
         if (result === 'disabling') {
-          dispatch.driverDisabling()
+          driverDisabling()
         } else if (result === 'refresh') {
           dispatch.refreshDriverStatusDesktop()
         }
-      }
-      ignorePromise(f())
-    },
-    driverDisabling: () => {
-      set(s => {
-        if (s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled) {
-          s.sfmi.driverStatus.isDisabling = true
-        }
-      })
-      const f = async () => {
-        const {dispatch, sfmi} = get()
-        await afterDriverDisablingInPlatform(sfmi.driverStatus)
-        dispatch.refreshDriverStatusDesktop()
       }
       ignorePromise(f())
     },
@@ -526,7 +829,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         try {
           const result = await afterDriverEnabledInPlatform(!!isRetry)
           if (result === 'kextPermissionError' || result === 'kextPermissionErrorRetry') {
-            dispatch.driverKextPermissionError()
+            driverKextPermissionError()
             if (result === 'kextPermissionError') {
               navigateAppend({name: 'kextPermission', params: {}})
             }
@@ -538,14 +841,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         }
       }
       ignorePromise(f())
-    },
-    driverKextPermissionError: () => {
-      set(s => {
-        if (s.sfmi.driverStatus.type === T.FS.DriverStatusType.Disabled) {
-          s.sfmi.driverStatus.kextPermissionError = true
-          s.sfmi.driverStatus.isEnabling = false
-        }
-      })
     },
     finishManualConflictResolution: localViewTlfPath => {
       const f = async () => {
@@ -570,44 +865,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         s.uploads.totalSyncingBytes = totalSyncingBytes
         s.uploads.endEstimate = endEstimate
       })
-    },
-    kbfsDaemonOnlineStatusChanged: onlineStatus => {
-      set(s => {
-        switch (onlineStatus) {
-          case T.RPCGen.KbfsOnlineStatus.offline:
-            s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Offline
-            break
-          case T.RPCGen.KbfsOnlineStatus.trying:
-            s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Trying
-            break
-          case T.RPCGen.KbfsOnlineStatus.online:
-            s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Online
-            break
-          default:
-            s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Unknown
-        }
-      })
-    },
-    kbfsDaemonRpcStatusChanged: rpcStatus => {
-      set(s => {
-        if (rpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected) {
-          s.kbfsDaemonStatus.onlineStatus = T.FS.KbfsDaemonOnlineStatus.Offline
-        }
-        s.kbfsDaemonStatus.rpcStatus = rpcStatus
-      })
-
-      subscribeAndLoad(fsBadgeSub, T.RPCGen.SubscriptionTopic.filesTabBadge, () =>
-        get().dispatch.loadFilesTabBadge()
-      )
-      subscribeAndLoad(settingsSub, T.RPCGen.SubscriptionTopic.settings, () => get().dispatch.loadSettings())
-      subscribeAndLoad(uploadStatusSub, T.RPCGen.SubscriptionTopic.uploadStatus, () =>
-        get().dispatch.loadUploadStatus()
-      )
-      subscribeAndLoad(journalStatusSub, T.RPCGen.SubscriptionTopic.journalStatus, () =>
-        get().dispatch.pollJournalStatus()
-      )
-      // how this works isn't great. This function gets called way early before we set this
-      get().dispatch.afterKbfsDaemonRpcStatusChanged()
     },
     letResetUserBackIn: (id, username) => {
       const f = async () => {
@@ -675,25 +932,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    loadFilesTabBadge: () => {
-      const f = async () => {
-        try {
-          const badge = await T.RPCGen.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-          set(s => {
-            s.badge = badge
-          })
-        } catch {
-          // retry once HOTPOT-1226
-          try {
-            const badge = await T.RPCGen.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-            set(s => {
-              s.badge = badge
-            })
-          } catch {}
-        }
-      }
-      ignorePromise(f())
-    },
     loadSettings: () => {
       const f = async () => {
         set(s => {
@@ -713,36 +951,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           set(s => {
             s.settings.isLoading = false
           })
-        }
-      }
-      ignorePromise(f())
-    },
-    loadUploadStatus: () => {
-      const f = async () => {
-        try {
-          const uploadStates = await T.RPCGen.SimpleFSSimpleFSGetUploadStatusRpcPromise()
-          set(s => {
-            const writingToJournal = new Map(
-              uploadStates?.map(uploadState => {
-                const path = rpcPathToPath(uploadState.targetPath)
-                const oldUploadState = s.uploads.writingToJournal.get(path)
-                return [
-                  path,
-                  oldUploadState &&
-                  uploadState.error === oldUploadState.error &&
-                  uploadState.canceled === oldUploadState.canceled &&
-                  uploadState.uploadID === oldUploadState.uploadID
-                    ? oldUploadState
-                    : uploadState,
-                ]
-              })
-            )
-            if (!isEqual(writingToJournal, s.uploads.writingToJournal)) {
-              s.uploads.writingToJournal = writingToJournal
-            }
-          })
-        } catch (err) {
-          errorToActionOrThrow(err)
         }
       }
       ignorePromise(f())
@@ -814,97 +1022,15 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     onEngineIncomingImpl: action => {
       switch (action.type) {
         case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
-          get().dispatch.syncStatusChanged(action.payload.params.status)
+          syncStatusChanged(action.payload.params.status)
           break
         case 'keybase.1.NotifyFS.FSSubscriptionNotify': {
           const {clientID, topic} = action.payload.params
-          get().dispatch.onSubscriptionNotify(clientID, topic)
+          onSubscriptionNotify(clientID, topic)
           break
         }
         default:
       }
-    },
-    onSubscriptionNotify: (cid, topic) => {
-      const f = async () => {
-        if (cid !== clientID || !shouldRunBackgroundFSRPC()) {
-          return
-        }
-        switch (topic) {
-          case T.RPCGen.SubscriptionTopic.journalStatus:
-            get().dispatch.pollJournalStatus()
-            break
-          case T.RPCGen.SubscriptionTopic.onlineStatus:
-            await checkIfWeReConnectedToMDServerUpToNTimes(1)
-            break
-          case T.RPCGen.SubscriptionTopic.downloadStatus:
-            get().dispatch.loadDownloadStatus()
-            break
-          case T.RPCGen.SubscriptionTopic.uploadStatus:
-            get().dispatch.loadUploadStatus()
-            break
-          case T.RPCGen.SubscriptionTopic.filesTabBadge:
-            get().dispatch.loadFilesTabBadge()
-            break
-          case T.RPCGen.SubscriptionTopic.settings:
-            get().dispatch.loadSettings()
-            break
-        }
-      }
-      ignorePromise(f())
-    },
-    pollJournalStatus: () => {
-      if (pollJournalStatusPolling || !shouldRunBackgroundFSRPC()) {
-        return
-      }
-      pollJournalStatusPolling = true
-      const generation = asyncGeneration
-
-      const getWaitDuration = (endEstimate: number | undefined, lower: number, upper: number): number => {
-        if (!endEstimate) {
-          return upper
-        }
-        const diff = endEstimate - Date.now()
-        return diff < lower ? lower : diff > upper ? upper : diff
-      }
-
-      const f = async () => {
-        let shouldRefreshDaemonStatus = false
-        try {
-          while (isCurrentAsyncGeneration(generation)) {
-            const {syncingPaths, totalSyncingBytes, endEstimate} =
-              await T.RPCGen.SimpleFSSimpleFSSyncStatusRpcPromise({
-                filter: T.RPCGen.ListFilter.filterSystemHidden,
-              })
-            if (!isCurrentAsyncGeneration(generation)) {
-              return
-            }
-            get().dispatch.journalUpdate(
-              (syncingPaths || []).map(T.FS.stringToPath),
-              totalSyncingBytes,
-              endEstimate ?? undefined
-            )
-
-            // It's possible syncingPaths has not been emptied before
-            // totalSyncingBytes becomes 0. So check both.
-            if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
-              break
-            }
-            useNotifState.getState().dispatch.badgeApp('kbfsUploading', true)
-            await timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
-          }
-        } finally {
-          if (generation === asyncGeneration) {
-            pollJournalStatusPolling = false
-          }
-          shouldRefreshDaemonStatus = isCurrentAsyncGeneration(generation)
-          useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
-        }
-        if (!shouldRefreshDaemonStatus) {
-          return
-        }
-        get().dispatch.checkKbfsDaemonRpcStatus()
-      }
-      ignorePromise(f())
     },
     redbar: error => {
       set(s => {
@@ -916,7 +1042,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         try {
           const previousType = get().sfmi.driverStatus.type
           const status = await refreshDriverStatusInPlatform()
-          get().dispatch.setDriverStatus(fuseStatusToDriverStatus(status))
+          setDriverStatus(fuseStatusToDriverStatus(status))
           if (status?.kextStarted && previousType === T.FS.DriverStatusType.Disabled) {
             const path = T.FS.stringToPath('/keybase')
             const {sfmi} = get()
@@ -926,22 +1052,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
               errorToActionOrThrow(e, path)
             }
           }
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-      }
-      ignorePromise(f())
-    },
-    refreshMountDirsDesktop: () => {
-      const f = async () => {
-        const {sfmi, dispatch} = get()
-        if (sfmi.driverStatus.type !== T.FS.DriverStatusType.Enabled) {
-          return
-        }
-        try {
-          const {directMountDir, preferredMountDirs} = await refreshMountDirsInPlatform()
-          dispatch.setDirectMountDir(directMountDir)
-          dispatch.setPreferredMountDirs(preferredMountDirs)
         } catch (e) {
           errorToActionOrThrow(e)
         }
@@ -970,17 +1080,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    setDirectMountDir: directMountDir => {
-      set(s => {
-        s.sfmi.directMountDir = directMountDir
-      })
-    },
-    setDriverStatus: driverStatus => {
-      set(s => {
-        s.sfmi.driverStatus = driverStatus
-      })
-      get().dispatch.refreshMountDirsDesktop()
-    },
     setPathSoftError: (path, softError) => {
       set(s => {
         if (softError) {
@@ -988,11 +1087,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         } else {
           s.softErrors.pathErrors.delete(path)
         }
-      })
-    },
-    setPreferredMountDirs: preferredMountDirs => {
-      set(s => {
-        s.sfmi.preferredMountDirs = T.castDraft(preferredMountDirs)
       })
     },
     setSpaceAvailableNotificationThreshold: threshold => {
@@ -1018,79 +1112,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         await T.RPCGen.SimpleFSSimpleFSClearConflictStateRpcPromise({
           path: Constants.pathToRPCPath(tlfPath),
         })
-      }
-      ignorePromise(f())
-    },
-    subscribeNonPath: (subscriptionID, topic) => {
-      const f = async () => {
-        try {
-          await T.RPCGen.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
-            clientID,
-            deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
-            subscriptionID,
-            topic,
-          })
-        } catch (err) {
-          errorToActionOrThrow(err)
-        }
-      }
-      ignorePromise(f())
-    },
-    syncStatusChanged: status => {
-      const diskSpaceStatus = status.outOfSyncSpace
-        ? T.FS.DiskSpaceStatus.Error
-        : status.localDiskBytesAvailable < get().settings.spaceAvailableNotificationThreshold
-          ? T.FS.DiskSpaceStatus.Warning
-          : T.FS.DiskSpaceStatus.Ok
-
-      const oldStatus = get().overallSyncStatus.diskSpaceStatus
-      set(s => {
-        s.overallSyncStatus.syncingFoldersProgress = status.prefetchProgress
-        s.overallSyncStatus.diskSpaceStatus = diskSpaceStatus
-      })
-
-      // Only notify about the disk space status if it has changed.
-      if (oldStatus !== diskSpaceStatus) {
-        switch (diskSpaceStatus) {
-          case T.FS.DiskSpaceStatus.Error: {
-            NotifyPopup('Sync Error', {
-              body: 'You are out of disk space. Some folders could not be synced.',
-              sound: true,
-            })
-            useNotifState.getState().dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
-            break
-          }
-          case T.FS.DiskSpaceStatus.Warning:
-            {
-              const threshold = Constants.humanizeBytes(get().settings.spaceAvailableNotificationThreshold, 0)
-              NotifyPopup('Disk Space Low', {
-                body: `You have less than ${threshold} of storage space left.`,
-              })
-              // Only show the banner if the previous state was OK and the new state
-              // is warning. Otherwise we rely on the previous state of the banner.
-              if (oldStatus === T.FS.DiskSpaceStatus.Ok) {
-                set(s => {
-                  s.overallSyncStatus.showingBanner = true
-                })
-              }
-            }
-            break
-          case T.FS.DiskSpaceStatus.Ok:
-            break
-          default:
-        }
-      }
-    },
-    unsubscribe: subscriptionID => {
-      const f = async () => {
-        try {
-          await T.RPCGen.SimpleFSSimpleFSUnsubscribeRpcPromise({
-            clientID,
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
-            subscriptionID,
-          })
-        } catch {}
       }
       ignorePromise(f())
     },
@@ -1140,34 +1161,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     userOut: () => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSUserOutRpcPromise({clientID})
-      }
-      ignorePromise(f())
-    },
-    waitForKbfsDaemon: () => {
-      if (waitForKbfsDaemonInProgress || !shouldRunBackgroundFSRPC()) {
-        return
-      }
-      waitForKbfsDaemonInProgress = true
-      const generation = asyncGeneration
-      set(s => {
-        s.kbfsDaemonStatus.rpcStatus = T.FS.KbfsDaemonRpcStatus.Waiting
-      })
-      const f = async () => {
-        try {
-          await T.RPCGen.configWaitForClientRpcPromise({
-            clientType: T.RPCGen.ClientType.kbfs,
-            timeout: 60, // 1min. This is arbitrary since we're gonna check again anyway if we're not connected.
-          })
-        } catch {
-        } finally {
-          if (generation === asyncGeneration) {
-            waitForKbfsDaemonInProgress = false
-          }
-        }
-        if (!isCurrentAsyncGeneration(generation)) {
-          return
-        }
-        get().dispatch.checkKbfsDaemonRpcStatus()
       }
       ignorePromise(f())
     },
