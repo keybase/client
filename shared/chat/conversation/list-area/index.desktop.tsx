@@ -367,29 +367,8 @@ const useItems = (p: {
 }) => {
   const {messageOrdinals, centeredHighlightOrdinal, centeredOrdinal, editingOrdinal} = p
   const ordinalsInAWaypoint = 10
-  const rowRenderer = (ordinal: T.Chat.Ordinal) => {
-    return (
-      <div
-        key={String(ordinal)}
-        data-debug={String(ordinal)}
-        className={Kb.Styles.classNames(
-          'hover-container',
-          'WrapperMessage',
-          'WrapperMessage-hoverBox',
-          'WrapperMessage-decorated',
-          'WrapperMessage-hoverColor',
-          {highlighted: centeredHighlightOrdinal === ordinal || editingOrdinal === ordinal}
-        )}
-      >
-        <Separator trailingItem={ordinal} />
-        <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
-      </div>
-    )
-  }
-
-  // TODO doesn't need all messageOrdinals in there, could just find buckets and push details down
-  const items = (() => {
-    const items: Array<React.ReactNode> = []
+  const waypointData = React.useMemo(() => {
+    const items: Array<{key: string; ordinals: Array<T.Chat.Ordinal>}> = []
     const numOrdinals = messageOrdinals.length
 
     let ordinals: Array<T.Chat.Ordinal> = []
@@ -416,9 +395,7 @@ const useItems = (p: {
           const chunks = chunk(ordinals, 10)
           chunks.forEach((toAdd, cidx) => {
             const key = `${lastBucket || ''}:${cidx + baseIndex}`
-            items.push(
-              <OrdinalWaypoint key={key} id={key} rowRenderer={rowRenderer} ordinals={toAdd} />
-            )
+            items.push({key, ordinals: toAdd})
           })
           // we pass previous so the OrdinalWaypoint can render the top item correctly
           ordinals = []
@@ -427,15 +404,7 @@ const useItems = (p: {
       }
       // If this is the centered ordinal, it goes into its own waypoint so we can easily scroll to it
       if (isCenteredOrdinal) {
-        const key = scrollOrdinalKey
-        items.push(
-          <OrdinalWaypoint
-            key={scrollOrdinalKey}
-            id={scrollOrdinalKey}
-            rowRenderer={rowRenderer}
-            ordinals={[ordinal]}
-          />
-        )
+        items.push({key: scrollOrdinalKey, ordinals: [ordinal]})
         lastBucket = 0
         baseIndex++ // push this up if we drop the centered ordinal waypoint
       } else {
@@ -443,8 +412,36 @@ const useItems = (p: {
       }
     })
 
-    return [<SpecialTopMessage key="specialTop" />, ...items, <SpecialBottomMessage key="specialBottom" />]
-  })()
+    return items
+  }, [centeredOrdinal, messageOrdinals, ordinalsInAWaypoint])
+
+  const rowRenderer = (ordinal: T.Chat.Ordinal) => {
+    return (
+      <div
+        key={String(ordinal)}
+        data-debug={String(ordinal)}
+        className={Kb.Styles.classNames(
+          'hover-container',
+          'WrapperMessage',
+          'WrapperMessage-hoverBox',
+          'WrapperMessage-decorated',
+          'WrapperMessage-hoverColor',
+          {highlighted: centeredHighlightOrdinal === ordinal || editingOrdinal === ordinal}
+        )}
+      >
+        <Separator trailingItem={ordinal} />
+        <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
+      </div>
+    )
+  }
+
+  const items = [
+    <SpecialTopMessage key="specialTop" />,
+    ...waypointData.map(({key, ordinals}) => (
+      <OrdinalWaypoint key={key} id={key} rowRenderer={rowRenderer} ordinals={ordinals} />
+    )),
+    <SpecialBottomMessage key="specialBottom" />,
+  ]
 
   return items
 }
