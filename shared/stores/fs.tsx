@@ -106,6 +106,8 @@ type ErrorHandlers = {
   setTlfSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
 }
 
+const noopSoftError: ErrorHandlers['setPathSoftError'] = () => {}
+
 export const errorToActionOrThrowWithHandlers = (
   {checkKbfsDaemonRpcStatus, redbar, setPathSoftError, setTlfSoftError}: ErrorHandlers,
   error: unknown,
@@ -149,8 +151,14 @@ export const errorToActionOrThrowWithHandlers = (
   throw error
 }
 
-export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) =>
-  errorToActionOrThrowWithHandlers(useFSState.getState().dispatch, error, path)
+export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
+  const {checkKbfsDaemonRpcStatus, redbar} = useFSState.getState().dispatch
+  return errorToActionOrThrowWithHandlers(
+    {checkKbfsDaemonRpcStatus, redbar, setPathSoftError: noopSoftError, setTlfSoftError: noopSoftError},
+    error,
+    path
+  )
+}
 
 type Store = T.Immutable<{
   badge: T.RPCGen.FilesTabBadge
@@ -161,7 +169,6 @@ type Store = T.Immutable<{
   overallSyncStatus: T.FS.OverallSyncStatus
   settings: T.FS.Settings
   sfmi: T.FS.SystemFileManagerIntegration
-  softErrors: T.FS.SoftErrors
   tlfUpdates: T.FS.UserTlfUpdates
   uploads: T.FS.Uploads
 }>
@@ -182,10 +189,6 @@ const initialStore: Store = {
     driverStatus: Constants.defaultDriverStatus,
     preferredMountDirs: [],
   },
-  softErrors: {
-    pathErrors: new Map(),
-    tlfErrors: new Map(),
-  },
   tlfUpdates: [],
   uploads: {
     endEstimate: undefined,
@@ -198,11 +201,8 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     afterKbfsDaemonRpcStatusChanged: () => void
-    cancelDownload: (downloadID: string) => void
     checkKbfsDaemonRpcStatus: () => void
-    dismissDownload: (downloadID: string) => void
     dismissRedbar: (index: number) => void
-    dismissUpload: (uploadID: string) => void
     download: (
       path: T.FS.Path,
       type: 'download' | 'share' | 'saveMedia',
@@ -222,9 +222,6 @@ export type State = Store & {
     resetState: () => void
     setCriticalUpdate: (u: boolean) => void
     setDebugLevel: (level: string) => void
-    setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
-    setTlfSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
-    upload: (parentPath: T.FS.Path, localPath: string) => void
     userIn: () => void
     userOut: () => void
     userFileEditsLoad: () => void
@@ -674,12 +671,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    cancelDownload: downloadID => {
-      const f = async () => {
-        await T.RPCGen.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID})
-      }
-      ignorePromise(f())
-    },
     checkKbfsDaemonRpcStatus: () => {
       const f = async () => {
         if (!shouldRunBackgroundFSRPC()) {
@@ -705,24 +696,10 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    dismissDownload: downloadID => {
-      const f = async () => {
-        await T.RPCGen.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID})
-      }
-      ignorePromise(f())
-    },
     dismissRedbar: index => {
       set(s => {
         s.errors = [...s.errors.slice(0, index), ...s.errors.slice(index + 1)]
       })
-    },
-    dismissUpload: uploadID => {
-      const f = async () => {
-        try {
-          await T.RPCGen.SimpleFSSimpleFSDismissUploadRpcPromise({uploadID})
-        } catch {}
-      }
-      ignorePromise(f())
     },
     download: (path, type, onStarted) => {
       const f = async () => {
@@ -943,37 +920,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     setDebugLevel: level => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSSetDebugLevelRpcPromise({level})
-      }
-      ignorePromise(f())
-    },
-    setPathSoftError: (path, softError) => {
-      set(s => {
-        if (softError) {
-          s.softErrors.pathErrors.set(path, softError)
-        } else {
-          s.softErrors.pathErrors.delete(path)
-        }
-      })
-    },
-    setTlfSoftError: (path, softError) => {
-      set(s => {
-        if (softError) {
-          s.softErrors.tlfErrors.set(path, softError)
-        } else {
-          s.softErrors.tlfErrors.delete(path)
-        }
-      })
-    },
-    upload: (parentPath, localPath) => {
-      const f = async () => {
-        try {
-          await T.RPCGen.SimpleFSSimpleFSStartUploadRpcPromise({
-            sourceLocalPath: T.FS.getNormalizedLocalPath(localPath),
-            targetParentPath: Constants.pathToRPCPath(parentPath).kbfs,
-          })
-        } catch (err) {
-          errorToActionOrThrow(err)
-        }
       }
       ignorePromise(f())
     },

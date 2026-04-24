@@ -11,7 +11,7 @@ import {FsBrowserEditProvider} from './edit-state'
 import {FsBrowserSortProvider} from './sort-state'
 import Root from './root'
 import Rows from './rows/rows-container'
-import {useFsErrorActionOrThrow, useFsPathItem, useFsTlf} from '../common'
+import {useFsErrorActionOrThrow, useFsPathItem, useFsTlf, useFsUpload} from '../common'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useFSState} from '@/stores/fs'
@@ -83,7 +83,7 @@ function DragAndDrop(p: {
 }) {
   const {children, path, rejectReason} = p
   const errorToActionOrThrow = useFsErrorActionOrThrow()
-  const upload = useFSState(s => s.dispatch.upload)
+  const upload = useFsUpload()
   const onAttach = (localPaths: Array<string>) => {
     const f = async () => {
       try {

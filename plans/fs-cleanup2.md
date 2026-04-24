@@ -148,11 +148,11 @@ Current slice note:
 
 ## Chunk 3: Move Soft Errors and Redbars to Route Ownership
 
-- [ ] Move path/TLF soft-error display and mutation out of global FS state when it only serves mounted FS routes.
-- [ ] Keep `errorToActionOrThrow` behavior, but route path-owned soft errors through `FsErrorProvider` or an equivalent mounted owner.
+- [x] Move path/TLF soft-error display and mutation out of global FS state when it only serves mounted FS routes.
+- [x] Keep `errorToActionOrThrow` behavior, but route path-owned soft errors through `FsErrorProvider` or an equivalent mounted owner.
 - [ ] Remove store-backed `errors`, `redbar`, and `dismissRedbar` if all visible redbars have mounted ownership.
 - [ ] Preserve fallback/global error handling only for real background FS actions that can fail while no FS route is mounted.
-- [ ] Update `shared/stores/tests/fs.test.ts` if it only tests behavior that moved to a feature provider.
+- [x] Update `shared/stores/tests/fs.test.ts` if it only tests behavior that moved to a feature provider.
 
 Behavior to preserve:
 
@@ -160,12 +160,20 @@ Behavior to preserve:
 - Deleted-user and other redbar-worthy errors still surface to the user.
 - Unmounted routes do not need stale path errors retained just to avoid a reload.
 
+Current slice note:
+
+- `FsErrorProvider` now owns path/TLF `softErrors` alongside route redbars.
+- `FsDataProvider.loadPathMetadata` clears path/TLF soft errors through the mounted error provider instead of mutating `useFSState`.
+- `shared/stores/fs.tsx` no longer exposes `softErrors`, `setPathSoftError`, or `setTlfSoftError`; the global `errorToActionOrThrow` fallback preserves daemon-timeout and redbar handling but intentionally does not keep route soft errors alive.
+- Standalone FS data owners in nav headers, bare preview, KBFS path popups, and the archive modal now mount an `FsErrorProvider` so their soft-error UI remains local to that surface.
+- Store-backed `errors`/`redbar` remain for now because some visible command wrappers still call store actions directly; remove that fallback after Chunk 4 moves those commands to feature ownership.
+
 ## Chunk 4: Move Transfer Command Wrappers Out of the Store
 
 - [ ] Move one-shot upload and download start commands into feature hooks or components when the result only affects the initiating UI.
 - [ ] Keep global transfer status state for active uploads/downloads if banners, rows, mobile completion handling, or tabs need it across routes.
 - [ ] Re-evaluate `downloads.info`; load per-download info from the owning footer/mobile watcher hook instead of maintaining a broad global info cache if feasible.
-- [ ] Move `cancelDownload`, `dismissDownload`, and `dismissUpload` out of the store unless they need to coordinate with global transfer state beyond calling the service.
+- [x] Move `cancelDownload`, `dismissDownload`, and `dismissUpload` out of the store unless they need to coordinate with global transfer state beyond calling the service.
 - [ ] Preserve mobile download-intent handling and platform-specific completion behavior.
 
 Behavior to preserve:
@@ -173,6 +181,14 @@ Behavior to preserve:
 - Regular download footer state still updates across route changes.
 - Mobile save/share/download completion still receives MIME type and dismisses finished downloads correctly.
 - Upload banners and row upload icons still reflect journal and upload-status notifications.
+
+Current slice note:
+
+- Upload start now lives in `useFsUpload()` and is called directly by the browser drag/drop flow and upload button.
+- Upload dismissal now lives in `useFsDismissUpload()` and is called directly by upload-error rows.
+- Download cancel/dismiss now live in `useFsCancelDownload()` and `useFsDismissDownload()` and are called directly by the footer, path action menu, and mobile completion watcher.
+- `shared/stores/fs.tsx` no longer exposes `upload`, `dismissUpload`, `cancelDownload`, or `dismissDownload`; global upload/download status remains store-owned through service subscriptions.
+- Download start and `downloads.info` remain in the store for the next transfer slice, especially because mobile download-intent completion still depends on MIME and download info coordination.
 
 ## Chunk 5: Narrow Engine and Init Plumbing
 

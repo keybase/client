@@ -139,9 +139,11 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const NavMobileHeader = (props: Props) => (
-  <Kbfs.FsDataProvider>
-    <NavMobileHeaderInner {...props} />
-  </Kbfs.FsDataProvider>
+  <Kbfs.FsErrorProvider>
+    <Kbfs.FsDataProvider>
+      <NavMobileHeaderInner {...props} />
+    </Kbfs.FsDataProvider>
+  </Kbfs.FsErrorProvider>
 )
 
 export default NavMobileHeader

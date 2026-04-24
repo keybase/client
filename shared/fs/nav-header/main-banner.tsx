@@ -2,7 +2,8 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FS from '@/stores/fs'
-import {errorToActionOrThrow, useFSState} from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
+import {useFsErrorActionOrThrow} from '../common/error-state'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
@@ -62,6 +63,7 @@ const ConnectedBanner = () => {
     })
   )
   const _name = useCurrentUserState(s => s.username)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
   // Stat'ing the path nudges the service to retry sync.
   const onRetry = () => {
     const path = T.FS.stringToPath('/keybase/private/' + _name)

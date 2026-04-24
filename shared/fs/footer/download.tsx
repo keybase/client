@@ -34,13 +34,9 @@ const getProgress = (dlState: T.FS.DownloadState) => (
 
 const Download = (props: Props) => {
   const dlInfo = Kbfs.useFsDownloadInfo(props.downloadID)
-  const {dlState, dismissDownload, cancelDownload} = useFSState(
-    C.useShallow(s => ({
-      cancelDownload: s.dispatch.cancelDownload,
-      dismissDownload: s.dispatch.dismissDownload,
-      dlState: s.downloads.state.get(props.downloadID) || FS.emptyDownloadState,
-    }))
-  )
+  const dlState = useFSState(s => s.downloads.state.get(props.downloadID) || FS.emptyDownloadState)
+  const dismissDownload = Kbfs.useFsDismissDownload()
+  const cancelDownload = Kbfs.useFsCancelDownload()
   const open = dlState.localPath
     ? () => openLocalPathInSystemFileManagerDesktop(dlState.localPath)
     : () => {}

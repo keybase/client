@@ -8,7 +8,13 @@ import type {FloatingMenuProps, OnDownloadStarted} from './types'
 import {useFsBrowserEdits} from '@/fs/browser/edit-state'
 import {getRootLayout, getShareLayout} from './layout'
 import {useFsErrorActionOrThrow} from '../error-state'
-import {useFsFileContext, useFsReloadTlfs, useFsWatchDownloadForMobile} from '../hooks'
+import {
+  useFsCancelDownload,
+  useFsDismissDownload,
+  useFsFileContext,
+  useFsReloadTlfs,
+  useFsWatchDownloadForMobile,
+} from '../hooks'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -56,10 +62,10 @@ const Container = (op: OwnProps) => {
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const reloadTlfs = useFsReloadTlfs()
   const browserEdits = useFsBrowserEdits()
-  const {cancelDownload, dismissDownload, download, sfmiEnabled} = useFSState(
+  const cancelDownload = useFsCancelDownload()
+  const dismissDownload = useFsDismissDownload()
+  const {download, sfmiEnabled} = useFSState(
     C.useShallow(s => ({
-      cancelDownload: s.dispatch.cancelDownload,
-      dismissDownload: s.dispatch.dismissDownload,
       download: s.dispatch.download,
       sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
     }))

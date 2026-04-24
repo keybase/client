@@ -15,7 +15,12 @@ import {
   makePathItemsFromDirents,
   updatePathItem,
 } from './rpc-state'
-import {useFsErrorActionOrThrow, useFsRedbarActions} from './error-state'
+import {
+  useFsErrorActionOrThrow,
+  useFsRedbarActions,
+  useFsSoftErrorActions,
+  useFsSoftErrors,
+} from './error-state'
 import {
   finishedDownloadWithIntentMobile as finishedDownloadWithIntentInPlatform,
   finishedRegularDownloadMobile as finishedRegularDownloadInPlatform,
@@ -49,6 +54,7 @@ const FsDataContext = React.createContext<FsDataContextType | null>(null)
 export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
   const username = useCurrentUserState(s => s.username)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const {setPathSoftError, setTlfSoftError} = useFsSoftErrorActions()
   const [pathItems, setPathItems] = React.useState<T.FS.PathItems>(() => new Map())
   const [tlfs, setTlfs] = React.useState<T.FS.Tlfs>(makeEmptyTlfs)
 
@@ -66,9 +72,9 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
           nextPathItems.set(path, updatePathItem(oldPathItem, pathItem))
           return nextPathItems
         })
-        useFSState.getState().dispatch.setPathSoftError(path)
+        setPathSoftError(path)
         const tlfPath = FS.getTlfPath(path)
-        tlfPath && useFSState.getState().dispatch.setTlfSoftError(tlfPath)
+        tlfPath && setTlfSoftError(tlfPath)
       } catch (error) {
         errorToActionOrThrow(error, path)
       }
@@ -525,8 +531,8 @@ export const useFsPathInfo = (path: T.FS.Path, knownPathInfo = FS.emptyPathInfo)
 }
 
 export const useFsSoftError = (path: T.FS.Path): T.FS.SoftError | undefined => {
-  const softErrors = useFSState(s => s.softErrors)
-  return FS.getSoftError(softErrors, path)
+  const softErrors = useFsSoftErrors()
+  return softErrors ? FS.getSoftError(softErrors, path) : undefined
 }
 
 export const useFsDownloadInfo = (downloadID: string): T.FS.DownloadInfo => {
@@ -554,6 +560,52 @@ export const useFsDownloadStatus = () => {
   useFsLoadOnMountAndFocus({
     load: loadDownloadStatus,
   })
+}
+
+export const useFsCancelDownload = () => {
+  return (downloadID: string) => {
+    const f = async () => {
+      await T.RPCGen.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID})
+    }
+    C.ignorePromise(f())
+  }
+}
+
+export const useFsDismissDownload = () => {
+  return (downloadID: string) => {
+    const f = async () => {
+      await T.RPCGen.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID})
+    }
+    C.ignorePromise(f())
+  }
+}
+
+export const useFsUpload = () => {
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  return (parentPath: T.FS.Path, localPath: string) => {
+    const f = async () => {
+      try {
+        await T.RPCGen.SimpleFSSimpleFSStartUploadRpcPromise({
+          sourceLocalPath: T.FS.getNormalizedLocalPath(localPath),
+          targetParentPath: FS.pathToRPCPath(parentPath).kbfs,
+        })
+      } catch (error) {
+        errorToActionOrThrow(error, parentPath)
+      }
+    }
+    C.ignorePromise(f())
+  }
+}
+
+export const useFsDismissUpload = () => {
+  return (uploadID: string) => {
+    const f = async () => {
+      try {
+        await T.RPCGen.SimpleFSSimpleFSDismissUploadRpcPromise({uploadID})
+      } catch {}
+    }
+    C.ignorePromise(f())
+  }
 }
 
 export const useFsFileContext = (
@@ -616,13 +668,9 @@ export const useFsWatchDownloadForMobile = C.isMobile
       const {fileContext} = useFsFileContext(dlInfo.path)
       const {redbar} = useFsRedbarActions()
       const errorToActionOrThrow = useFsErrorActionOrThrow()
+      const dismissDownload = useFsDismissDownload()
 
-      const {dismissDownload, dlState} = useFSState(
-        C.useShallow(s => ({
-          dismissDownload: s.dispatch.dismissDownload,
-          dlState: s.downloads.state.get(downloadID) || FS.emptyDownloadState,
-        }))
-      )
+      const dlState = useFSState(s => s.downloads.state.get(downloadID) || FS.emptyDownloadState)
       const finished = dlState !== FS.emptyDownloadState && !FS.downloadIsOngoing(dlState)
       const mimeType = fileContext.contentType
 

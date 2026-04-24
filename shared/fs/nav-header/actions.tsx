@@ -47,9 +47,11 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
 }
 
 const FsNavHeaderRightActions = (props: Props) => (
-  <Kbfs.FsDataProvider>
-    <FsNavHeaderRightActionsInner {...props} />
-  </Kbfs.FsDataProvider>
+  <Kbfs.FsErrorProvider>
+    <Kbfs.FsDataProvider>
+      <FsNavHeaderRightActionsInner {...props} />
+    </Kbfs.FsDataProvider>
+  </Kbfs.FsErrorProvider>
 )
 
 export default FsNavHeaderRightActions

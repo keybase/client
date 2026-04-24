@@ -307,7 +307,11 @@ const ArchiveModal = (p: Props) => {
     case 'fsPath':
       content = (
         <Kb.WithTooltip tooltip={p.path} position="bottom center" toastStyle={styles.contentContainer}>
-          <FsCommon.PathItemInfo path={p.path} />
+          <FsCommon.FsErrorProvider>
+            <FsCommon.FsDataProvider>
+              <FsCommon.PathItemInfo path={p.path} />
+            </FsCommon.FsDataProvider>
+          </FsCommon.FsErrorProvider>
         </Kb.WithTooltip>
       )
       break

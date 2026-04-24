@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
-import {LastModifiedLine, Filename, useFsPathItem} from '@/fs/common'
+import {LastModifiedLine, Filename, useFsDismissUpload, useFsPathItem} from '@/fs/common'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
@@ -28,11 +28,11 @@ const getDownloadingText = (intent: T.FS.DownloadIntent) => {
 const StillContainer = (p: OwnProps) => {
   const {destinationPickerSource, path} = p
   const _pathItem = useFsPathItem(path, {loadOnMount: false})
-  const {_downloads, _uploads, dismissUpload} = useFSState(
+  const dismissUpload = useFsDismissUpload()
+  const {_downloads, _uploads} = useFSState(
     C.useShallow(s => ({
       _downloads: s.downloads,
       _uploads: s.uploads,
-      dismissUpload: s.dispatch.dismissUpload,
     }))
   )
   const writingToJournalUploadState = _uploads.writingToJournal.get(path)

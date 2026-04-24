@@ -122,9 +122,11 @@ const FsNavHeaderTitleInner = (props: Props) =>
   )
 
 const FsNavHeaderTitle = (props: Props) => (
-  <Kbfs.FsDataProvider>
-    <FsNavHeaderTitleInner {...props} />
-  </Kbfs.FsDataProvider>
+  <Kbfs.FsErrorProvider>
+    <Kbfs.FsDataProvider>
+      <FsNavHeaderTitleInner {...props} />
+    </Kbfs.FsDataProvider>
+  </Kbfs.FsErrorProvider>
 )
 
 export default FsNavHeaderTitle

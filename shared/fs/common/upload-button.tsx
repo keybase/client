@@ -2,14 +2,13 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as Styles from '@/styles'
-import {useFSState} from '@/stores/fs'
 import {
   pickAndUploadMobile as pickAndUploadInPlatform,
   pickDocumentsMobile as pickDocumentsInPlatform,
   selectFilesToUploadDesktop as selectFilesToUploadInPlatform,
 } from '@/stores/fs-platform'
 import {useFsErrorActionOrThrow} from './error-state'
-import {useFsPathItem} from './hooks'
+import {useFsPathItem, useFsUpload} from './hooks'
 
 type OwnProps = {
   path: T.FS.Path
@@ -75,7 +74,7 @@ const UploadButton = (props: UploadButtonProps) => {
 const Container = (ownProps: OwnProps) => {
   const _pathItem = useFsPathItem(ownProps.path)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
-  const upload = useFSState(s => s.dispatch.upload)
+  const upload = useFsUpload()
   const _openAndUploadBoth = () => {
     const f = async () => {
       try {

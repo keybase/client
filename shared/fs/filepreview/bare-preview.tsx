@@ -8,7 +8,7 @@ import * as Kbfs from '../common'
 
 type OwnProps = {path: T.FS.Path}
 
-const ConnectedBarePreview = (ownProps: OwnProps) => {
+const ConnectedBarePreviewInner = (ownProps: OwnProps) => {
   const path = ownProps.path ?? FS.defaultPath
   const navigateUp = C.Router2.navigateUp
   const onBack = () => navigateUp()
@@ -38,6 +38,14 @@ const ConnectedBarePreview = (ownProps: OwnProps) => {
     </Kb.Box2>
   )
 }
+
+const ConnectedBarePreview = (props: OwnProps) => (
+  <Kbfs.FsErrorProvider>
+    <Kbfs.FsDataProvider>
+      <ConnectedBarePreviewInner {...props} />
+    </Kbfs.FsDataProvider>
+  </Kbfs.FsErrorProvider>
+)
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
