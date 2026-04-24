@@ -528,7 +528,7 @@ const useFsSubscriptionEffect = ({
 }: {
   enabled?: boolean
   errorPath?: T.FS.Path
-  subscribe: (subscriptionID: string) => Promise<void | false>
+  subscribe: (subscriptionID: string) => Promise<unknown>
   subscriptionKey: string
 }) => {
   const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
