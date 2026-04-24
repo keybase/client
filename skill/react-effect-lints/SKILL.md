@@ -32,8 +32,9 @@ Authoritative references:
 3. Prefer the matching refactor pattern below.
 4. Preserve existing guards, platform branches, waiting keys, route behavior, and stale async protection unless proven dead.
 5. Do not move hook or component logic to module scope to avoid a lint. Module-level work runs at import time, bypasses React lifecycle and providers, and can leak behavior across accounts, routes, tests, or remounts.
-6. Remove now-unused imports, state, refs, helpers, styles, and type parameters.
-7. In this repo, do not run `yarn`, `npm`, lint, or TypeScript unless `node_modules` exists and the user's machine guidance allows it.
+6. When working from a plan that groups lint fixes into batches, do exactly one batch per turn. After validating and updating the checklist for that batch, stop and report the result instead of starting the next batch.
+7. Remove now-unused imports, state, refs, helpers, styles, and type parameters.
+8. In this repo, do not run `yarn`, `npm`, lint, or TypeScript unless `node_modules` exists and the user's machine guidance allows it.
 
 ## Refactor Patterns
 
