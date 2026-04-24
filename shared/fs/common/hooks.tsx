@@ -957,23 +957,26 @@ export const useFsFileContext = (
   const [fileContext, setFileContext] = React.useState<T.FS.FileContext>(FS.emptyFileContext)
   const fileContextVersionRef = React.useRef(0)
   const [urlError, setUrlError] = React.useState('')
+  const reloadKey = `${path}:${pathItem.type}:${pathItem.lastModifiedTimestamp}:${urlError}`
+  const reloadKeyRef = React.useRef(reloadKey)
+  reloadKeyRef.current = reloadKey
   React.useEffect(() => {
-    fileContextVersionRef.current += 1
     if (pathItem.type !== T.FS.PathType.File) {
       setFileContext(FS.emptyFileContext)
     }
-  }, [path, pathItem.type])
+  }, [pathItem.type])
   useFsLoadOnMountAndFocus({
     enabled: pathItem.type === T.FS.PathType.File,
     load: () => {
       const version = ++fileContextVersionRef.current
+      const requestReloadKey = reloadKey
       const f = async () => {
         try {
           urlError && logger.info(`urlError: ${urlError}`)
           const res = await T.RPCGen.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
             path: FS.pathToRPCPath(path).kbfs,
           })
-          if (fileContextVersionRef.current !== version) {
+          if (fileContextVersionRef.current !== version || reloadKeyRef.current !== requestReloadKey) {
             return
           }
           setFileContext({
@@ -982,7 +985,7 @@ export const useFsFileContext = (
             viewType: res.viewType,
           })
         } catch (err) {
-          if (fileContextVersionRef.current !== version) {
+          if (fileContextVersionRef.current !== version || reloadKeyRef.current !== requestReloadKey) {
             return
           }
           errorToActionOrThrow(err)
@@ -990,7 +993,7 @@ export const useFsFileContext = (
       }
       C.ignorePromise(f())
     },
-    reloadKey: `${path}:${pathItem.type}:${pathItem.lastModifiedTimestamp}:${urlError}`,
+    reloadKey,
   })
   return {
     fileContext,
