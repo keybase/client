@@ -18,7 +18,6 @@ declare global {
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
 import type * as UseChatStateType from '@/stores/chat'
-import type * as UseFSStateType from '@/stores/fs'
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
@@ -444,7 +443,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break
     case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
       {
-        const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
         useFSState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
@@ -457,7 +455,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
           case T.RPCGen.SubscriptionTopic.uploadStatus:
           case T.RPCGen.SubscriptionTopic.filesTabBadge:
           case T.RPCGen.SubscriptionTopic.settings: {
-            const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
             useFSState.getState().dispatch.onEngineIncomingImpl(action)
             break
           }

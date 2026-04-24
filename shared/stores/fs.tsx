@@ -29,48 +29,6 @@ export * from '@/constants/fs'
 
 const rpcPathToPath = (rpcPath: T.RPCGen.KBFSPath) => T.FS.pathConcat(Constants.defaultPath, rpcPath.path)
 
-const pathFromFolderRPC = (folder: T.RPCGen.Folder): T.FS.Path => {
-  const visibility = T.FS.getVisibilityFromRPCFolderType(folder.folderType)
-  if (!visibility) return T.FS.stringToPath('')
-  return T.FS.stringToPath(`/keybase/${visibility}/${folder.name}`)
-}
-
-const fsNotificationTypeToEditType = (
-  fsNotificationType: T.RPCChat.Keybase1.FSNotificationType
-): T.FS.FileEditType => {
-  switch (fsNotificationType) {
-    case T.RPCGen.FSNotificationType.fileCreated:
-      return T.FS.FileEditType.Created
-    case T.RPCGen.FSNotificationType.fileModified:
-      return T.FS.FileEditType.Modified
-    case T.RPCGen.FSNotificationType.fileDeleted:
-      return T.FS.FileEditType.Deleted
-    case T.RPCGen.FSNotificationType.fileRenamed:
-      return T.FS.FileEditType.Renamed
-    default:
-      return T.FS.FileEditType.Unknown
-  }
-}
-
-const userTlfHistoryRPCToState = (
-  history: ReadonlyArray<T.RPCGen.FSFolderEditHistory>
-): T.FS.UserTlfUpdates =>
-  history.flatMap(folder => {
-    const path = pathFromFolderRPC(folder.folder)
-    return (folder.history ?? []).map(({writerName, edits}) => ({
-      history: edits
-        ? edits.map(({filename, notificationType, serverTime}) => ({
-            editType: fsNotificationTypeToEditType(notificationType),
-            filename,
-            serverTime,
-          }))
-        : [],
-      path,
-      serverTime: folder.serverTime,
-      writer: writerName,
-    }))
-  })
-
 const subscriptionDeduplicateIntervalSecond = 1
 
 export {makeUUID} from '@/util/uuid'
@@ -106,6 +64,9 @@ type ErrorHandlers = {
 }
 
 const noopSoftError: ErrorHandlers['setPathSoftError'] = () => {}
+const redbarToGlobalError: ErrorHandlers['redbar'] = error => {
+  useConfigState.getState().dispatch.setGlobalError(new Error(error))
+}
 
 export const errorToActionOrThrowWithHandlers = (
   {checkKbfsDaemonRpcStatus, redbar, setPathSoftError, setTlfSoftError}: ErrorHandlers,
@@ -151,9 +112,14 @@ export const errorToActionOrThrowWithHandlers = (
 }
 
 export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
-  const {checkKbfsDaemonRpcStatus, redbar} = useFSState.getState().dispatch
+  const {checkKbfsDaemonRpcStatus} = useFSState.getState().dispatch
   return errorToActionOrThrowWithHandlers(
-    {checkKbfsDaemonRpcStatus, redbar, setPathSoftError: noopSoftError, setTlfSoftError: noopSoftError},
+    {
+      checkKbfsDaemonRpcStatus,
+      redbar: redbarToGlobalError,
+      setPathSoftError: noopSoftError,
+      setTlfSoftError: noopSoftError,
+    },
     error,
     path
   )
@@ -163,12 +129,10 @@ type Store = T.Immutable<{
   badge: T.RPCGen.FilesTabBadge
   criticalUpdate: boolean
   downloads: T.FS.Downloads
-  errors: ReadonlyArray<string>
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   overallSyncStatus: T.FS.OverallSyncStatus
   settings: T.FS.Settings
   sfmi: T.FS.SystemFileManagerIntegration
-  tlfUpdates: T.FS.UserTlfUpdates
   uploads: T.FS.Uploads
 }>
 const initialStore: Store = {
@@ -178,7 +142,6 @@ const initialStore: Store = {
     regularDownloads: [],
     state: new Map(),
   },
-  errors: [],
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   overallSyncStatus: Constants.emptyOverallSyncStatus,
   settings: Constants.emptySettings,
@@ -187,7 +150,6 @@ const initialStore: Store = {
     driverStatus: Constants.defaultDriverStatus,
     preferredMountDirs: [],
   },
-  tlfUpdates: [],
   uploads: {
     endEstimate: undefined,
     syncingPaths: new Set(),
@@ -200,7 +162,6 @@ export type State = Store & {
   dispatch: {
     afterKbfsDaemonRpcStatusChanged: () => void
     checkKbfsDaemonRpcStatus: () => void
-    dismissRedbar: (index: number) => void
     driverDisable: () => void
     driverEnable: (isRetry?: boolean) => void
     getOnlineStatus: () => void
@@ -209,13 +170,11 @@ export type State = Store & {
     loadDownloadStatus: () => void
     onChangedFocus: (appFocused: boolean) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
-    redbar: (error: string) => void
     refreshDriverStatusDesktop: () => void
     resetState: () => void
     setCriticalUpdate: (u: boolean) => void
     userIn: () => void
     userOut: () => void
-    userFileEditsLoad: () => void
   }
   getUploadIconForFilesTab: () => T.FS.UploadIcon | undefined
 }
@@ -685,11 +644,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    dismissRedbar: index => {
-      set(s => {
-        s.errors = [...s.errors.slice(0, index), ...s.errors.slice(index + 1)]
-      })
-    },
     driverDisable: () => {
       const f = async () => {
         const {dispatch, sfmi} = get()
@@ -811,11 +765,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         default:
       }
     },
-    redbar: error => {
-      set(s => {
-        s.errors.push(error)
-      })
-    },
     refreshDriverStatusDesktop: () => {
       const f = async () => {
         try {
@@ -852,29 +801,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       set(s => {
         s.criticalUpdate = u
       })
-    },
-    userFileEditsLoad: () => {
-      const f = async () => {
-        if (!shouldRunBackgroundFSRPC()) {
-          return
-        }
-        const generation = asyncGeneration
-        try {
-          const writerEdits = await T.RPCGen.SimpleFSSimpleFSUserEditHistoryRpcPromise()
-          if (!isCurrentAsyncGeneration(generation)) {
-            return
-          }
-          set(s => {
-            s.tlfUpdates = T.castDraft(userTlfHistoryRPCToState(writerEdits || []))
-          })
-        } catch (error) {
-          if (!isCurrentAsyncGeneration(generation)) {
-            return
-          }
-          errorToActionOrThrow(error)
-        }
-      }
-      ignorePromise(f())
     },
     userIn: () => {
       const f = async () => {

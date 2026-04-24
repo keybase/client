@@ -164,10 +164,6 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       useFSState.getState().dispatch.setCriticalUpdate(action.payload.critical)
       break
     }
-    case RemoteGen.userFileEditsLoad: {
-      useFSState.getState().dispatch.userFileEditsLoad()
-      break
-    }
     case RemoteGen.openFilesFromWidget: {
       showMain()
       if (action.payload.path) {

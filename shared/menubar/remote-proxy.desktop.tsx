@@ -11,7 +11,7 @@ import KB2 from '@/util/electron.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import type {Props, Conversation, RemoteTlfUpdates} from './index.desktop'
 import {useColorScheme} from 'react-native'
-import {useFSState} from '@/stores/fs'
+import {errorToActionOrThrow, useFSState} from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useFollowerState} from '@/stores/followers'
 import {useDaemonState} from '@/stores/daemon'
@@ -28,6 +28,47 @@ type WidgetProps = {
 }
 
 const emptyConversations: ReadonlyArray<Conversation> = []
+const emptyTlfUpdates: T.FS.UserTlfUpdates = []
+
+const pathFromFolderRPC = (folder: T.RPCGen.Folder): T.FS.Path => {
+  const visibility = T.FS.getVisibilityFromRPCFolderType(folder.folderType)
+  if (!visibility) return T.FS.stringToPath('')
+  return T.FS.stringToPath(`/keybase/${visibility}/${folder.name}`)
+}
+
+const fsNotificationTypeToEditType = (fsNotificationType: T.RPCGen.FSNotificationType): T.FS.FileEditType => {
+  switch (fsNotificationType) {
+    case T.RPCGen.FSNotificationType.fileCreated:
+      return T.FS.FileEditType.Created
+    case T.RPCGen.FSNotificationType.fileModified:
+      return T.FS.FileEditType.Modified
+    case T.RPCGen.FSNotificationType.fileDeleted:
+      return T.FS.FileEditType.Deleted
+    case T.RPCGen.FSNotificationType.fileRenamed:
+      return T.FS.FileEditType.Renamed
+    default:
+      return T.FS.FileEditType.Unknown
+  }
+}
+
+const userTlfHistoryRPCToState = (
+  history: ReadonlyArray<T.RPCGen.FSFolderEditHistory>
+): T.FS.UserTlfUpdates =>
+  history.flatMap(folder => {
+    const path = pathFromFolderRPC(folder.folder)
+    return (folder.history ?? []).map(({writerName, edits}) => ({
+      history: edits
+        ? edits.map(({filename, notificationType, serverTime}) => ({
+            editType: fsNotificationTypeToEditType(notificationType),
+            filename,
+            serverTime,
+          }))
+        : [],
+      path,
+      serverTime: folder.serverTime,
+      writer: writerName,
+    }))
+  })
 
 function useWidgetTray(p: WidgetProps) {
   const {desktopAppBadgeCount, widgetBadge} = p
@@ -196,18 +237,68 @@ function useEnsureWidgetData(
   }, [widgetList])
 }
 
+function useMenubarTlfUpdates(
+  loggedIn: boolean,
+  userSwitching: boolean,
+  kbfsDaemonRpcStatus: T.FS.KbfsDaemonRpcStatus,
+  menuWindowShownCount: number
+) {
+  const [tlfUpdates, setTlfUpdates] = React.useState<T.FS.UserTlfUpdates>(emptyTlfUpdates)
+  const generationRef = React.useRef(0)
+  const enabledRef = React.useRef(false)
+  enabledRef.current =
+    loggedIn &&
+    !userSwitching &&
+    kbfsDaemonRpcStatus === T.FS.KbfsDaemonRpcStatus.Connected &&
+    menuWindowShownCount > 0
+  const loadUserFileEdits = C.useThrottledCallback(() => {
+    if (!enabledRef.current) {
+      return
+    }
+    const generation = ++generationRef.current
+    const f = async () => {
+      try {
+        const writerEdits = await T.RPCGen.SimpleFSSimpleFSUserEditHistoryRpcPromise()
+        if (generation !== generationRef.current || !enabledRef.current) {
+          return
+        }
+        setTlfUpdates(userTlfHistoryRPCToState(writerEdits || []))
+      } catch (error) {
+        if (generation === generationRef.current && enabledRef.current) {
+          errorToActionOrThrow(error)
+        }
+      }
+    }
+    C.ignorePromise(f())
+  }, 5000)
+
+  React.useEffect(() => {
+    if (!loggedIn || userSwitching) {
+      generationRef.current++
+      setTlfUpdates(emptyTlfUpdates)
+      return
+    }
+    if (!enabledRef.current) {
+      return
+    }
+    loadUserFileEdits()
+  }, [kbfsDaemonRpcStatus, loadUserFileEdits, loggedIn, menuWindowShownCount, userSwitching])
+
+  return tlfUpdates
+}
+
 function useMenubarRemoteProps(): Props {
   const username = useCurrentUserState(s => s.username)
-  const {httpSrv, loggedIn, outOfDate, windowShownCount} = useConfigState(
+  const {httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount} = useConfigState(
     C.useShallow(s => {
-      const {httpSrv, loggedIn, outOfDate, windowShownCount} = s
-      return {httpSrv, loggedIn, outOfDate, windowShownCount}
+      const {httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount} = s
+      return {httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount}
     })
   )
-  const {kbfsDaemonStatus, overallSyncStatus, sfmi, tlfUpdates, uploads} = useFSState(
+  const {kbfsDaemonStatus, overallSyncStatus, sfmi, uploads} = useFSState(
     C.useShallow(s => {
-      const {kbfsDaemonStatus, overallSyncStatus, sfmi, tlfUpdates, uploads} = s
-      return {kbfsDaemonStatus, overallSyncStatus, sfmi, tlfUpdates, uploads}
+      const {kbfsDaemonStatus, overallSyncStatus, sfmi, uploads} = s
+      return {kbfsDaemonStatus, overallSyncStatus, sfmi, uploads}
     })
   )
   const navBadgesMap = useNotifState(s => s.navBadges)
@@ -223,6 +314,13 @@ function useMenubarRemoteProps(): Props {
   const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
+  const menuWindowShownCount = windowShownCount.get('menu') ?? 0
+  const tlfUpdates = useMenubarTlfUpdates(
+    loggedIn,
+    userSwitching,
+    kbfsDaemonStatus.rpcStatus,
+    menuWindowShownCount
+  )
 
   const remoteTlfUpdates = tlfUpdates.map(t => toRemoteTlfUpdate(t, uploads))
 
@@ -260,7 +358,6 @@ function useMenubarRemoteProps(): Props {
     remoteTlfUpdates,
     showingDiskSpaceBanner: showingBanner,
     username,
-    windowShownCount: windowShownCount.get('menu') ?? 0,
   }
 }
 

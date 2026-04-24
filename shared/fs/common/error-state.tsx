@@ -1,9 +1,15 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {errorToActionOrThrow, errorToActionOrThrowWithHandlers, useFSState} from '@/stores/fs'
+import {useConfigState} from '@/stores/config'
 
-const noopSubscribe = () => () => {}
 const noopSoftError = () => {}
+const noopDismissRedbar = (_index: number) => {}
+const emptyErrors: ReadonlyArray<string> = []
+
+const redbarToGlobalError = (error: string) => {
+  useConfigState.getState().dispatch.setGlobalError(new Error(error))
+}
 
 const makeEmptySoftErrors = (): T.FS.SoftErrors => ({
   pathErrors: new Map(),
@@ -86,12 +92,7 @@ export const FsErrorProvider = ({children}: {children: React.ReactNode}) => {
 
 export const useFsErrors = () => {
   const routeErrors = React.useContext(FsErrorContext)
-  const storeErrors = React.useSyncExternalStore(
-    routeErrors ? noopSubscribe : useFSState.subscribe,
-    () => useFSState.getState().errors,
-    () => useFSState.getState().errors
-  )
-  return routeErrors?.errors ?? storeErrors
+  return routeErrors?.errors ?? emptyErrors
 }
 
 export const useFsRedbarActions = () => {
@@ -102,8 +103,8 @@ export const useFsRedbarActions = () => {
         redbar: routeErrors.redbar,
       }
     : {
-        dismissRedbar: useFSState.getState().dispatch.dismissRedbar,
-        redbar: useFSState.getState().dispatch.redbar,
+        dismissRedbar: noopDismissRedbar,
+        redbar: redbarToGlobalError,
       }
 }
 

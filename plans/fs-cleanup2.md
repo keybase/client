@@ -29,27 +29,22 @@ Remaining state to classify before each implementation slice:
 - `badge`
 - `criticalUpdate`
 - `downloads`
-- `errors`
 - `kbfsDaemonStatus`
 - `overallSyncStatus`
 - `settings`
 - `sfmi`
-- `softErrors`
-- `tlfUpdates`
 - `uploads`
 
 Remaining dispatch surface to classify before deleting or moving call sites:
 
 - daemon and lifecycle actions: `checkKbfsDaemonRpcStatus`, `getOnlineStatus`, `afterKbfsDaemonRpcStatusChanged`, `onChangedFocus`, `userIn`, `userOut`, `resetState`
-- engine/background actions: `onEngineIncomingImpl`, `journalUpdate`, `loadDownloadStatus`, `userFileEditsLoad`, `setCriticalUpdate`
-- transfer actions: `download`, `cancelDownload`, `dismissDownload`, `upload`, `dismissUpload`, `loadDownloadInfo`
-- settings/SFMI actions: `loadSettings`, `setDebugLevel`, `driverEnable`, `driverDisable`, `refreshDriverStatusDesktop`
-- error actions: `redbar`, `dismissRedbar`, `setPathSoftError`, `setTlfSoftError`
+- engine/background actions: `onEngineIncomingImpl`, `journalUpdate`, `loadDownloadStatus`, `setCriticalUpdate`
+- settings/SFMI actions: `loadSettings`, `driverEnable`, `driverDisable`, `refreshDriverStatusDesktop`
 
 Initial ownership targets:
 
 - Keep global for now: daemon connection status, files-tab badge, active upload/download status, overall sync status, desktop SFMI driver status, critical-update state.
-- Move or delete unless proven global: `settings`, `tlfUpdates`, `softErrors`, `errors`, `downloads.info`, and one-screen command wrappers.
+- Move or delete unless proven global: `settings` fields that only serve UI and any one-screen command wrappers reintroduced later.
 - Re-check every ambiguous item against the pruning skill instead of preserving it to avoid a service call.
 
 ## Chunk 1: Audit Remaining Consumers
@@ -75,7 +70,7 @@ Consumer map:
 - `shared/settings/advanced` only calls the one-shot `setDebugLevel` RPC wrapper.
 - `shared/constants/init/*` owns daemon/bootstrap forwarding, FS route enter/leave `userIn`/`userOut`, critical-update clearing, and the remaining FS engine bridge for overall sync and non-path subscription notifications.
 - `shared/stores/tests/fs.test.ts` only covers `makeEditID`, `resetState`, and global `softErrors` mutation.
-- Outside the initial search scope, desktop menubar plumbing still matters for ownership: `shared/menubar/remote-proxy.desktop.tsx` renders `tlfUpdates` plus daemon/sync/SFMI/upload state, and `shared/desktop/renderer/remote-event-handler.desktop.tsx` triggers `setCriticalUpdate` and `userFileEditsLoad`.
+- Outside the initial search scope, desktop menubar plumbing still matters for ownership: `shared/menubar/remote-proxy.desktop.tsx` renders daemon/sync/SFMI/upload state, owns its TLF update load, and `shared/desktop/renderer/remote-event-handler.desktop.tsx` triggers `setCriticalUpdate`.
 
 Field ownership table:
 
@@ -93,7 +88,7 @@ Field ownership table:
 | `settings.syncOnCellular` / `settings.isLoading` | moved to `shared/settings/files/hooks.tsx`; no global consumers remain. | `move-component`; removed from global `Settings`. |
 | `sfmi` | SFMI banner/popup/settings/open icon, init focus retry, menubar. | `keep-global`; platform integration state must survive unmounted FS routes. |
 | `softErrors` | `useFsSoftError`, `errorToActionOrThrow` handlers, FS tests. | `move-route`; path/TLF soft errors are route-owned display state. Preserve no-access/nonexistent behavior through `FsErrorProvider` or equivalent mounted owner. |
-| `tlfUpdates` | desktop menubar remote props after `userFileEditsLoad`. | `keep-global-for-now`; it is rendered outside mounted FS surfaces. Revisit as menubar-specific state only if that owner can load directly. |
+| `tlfUpdates` | desktop menubar remote props. | `move-menubar`; it is now loaded locally by `shared/menubar/remote-proxy.desktop.tsx`. |
 | `uploads` | upload footer, rows, path status icons, menubar, files-tab icon derivation, journal/upload subscriptions. | `keep-global`; active upload/journal state is app-wide transfer status. |
 
 Dispatch ownership table:
@@ -109,7 +104,7 @@ Dispatch ownership table:
 | `onEngineIncomingImpl` | init/shared for `FSOverallSyncStatusChanged` and non-path `FSSubscriptionNotify`. | `keep-global-narrow`; keep only durable background topics. Mounted refreshes should use typed listeners. |
 | `journalUpdate` | store journal polling, dev upload-banner toggle. | `keep-global-internal`; updates global upload status. Public exposure can be narrowed later. |
 | `loadDownloadStatus` | store subscription handler and `useFsDownloadStatus`. | `keep-global`; active download status is shared across routes. |
-| `userFileEditsLoad` | desktop remote event; menubar renders `tlfUpdates`. | `keep-global-for-now`; not FS-route-owned. |
+| `userFileEditsLoad` | desktop remote event; menubar rendered `tlfUpdates`. | `move-menubar`; removed from the FS store and remote action bridge. |
 | `setCriticalUpdate` | desktop remote event and route transition clearing. | `keep-global`. |
 | `driverEnable` / `driverDisable` / `refreshDriverStatusDesktop` | SFMI banner, popup, settings, init. | `keep-global`; platform integration state owner. |
 | `loadSettings` | store settings subscription and threshold refresh after settings-hook updates. | `keep-global-internal`; background threshold/SFMI refresh only. |
@@ -144,15 +139,15 @@ Current slice note:
 - After threshold/sync updates, the settings hook still refreshes the global FS settings owner so background disk-space warning comparisons keep the latest threshold.
 - The public store dispatch wrapper `setSpaceAvailableNotificationThreshold` and the settings-only `RefreshSettings` component were removed.
 - The settings-only `setDebugLevel` wrapper was removed; advanced settings now calls the SimpleFS debug-level RPC directly.
-- `tlfUpdates` stays global for now because desktop menubar remote props render it outside mounted FS routes after `userFileEditsLoad`.
+- `tlfUpdates` now lives in `shared/menubar/remote-proxy.desktop.tsx`, which loads user edit history directly when the menu window is shown and KBFS is connected.
 - Store `settings` is now narrowed to the background/SFMI fields still needed globally: `loaded`, `sfmiBannerDismissed`, and `spaceAvailableNotificationThreshold`.
 
 ## Chunk 3: Move Soft Errors and Redbars to Route Ownership
 
 - [x] Move path/TLF soft-error display and mutation out of global FS state when it only serves mounted FS routes.
 - [x] Keep `errorToActionOrThrow` behavior, but route path-owned soft errors through `FsErrorProvider` or an equivalent mounted owner.
-- [ ] Remove store-backed `errors`, `redbar`, and `dismissRedbar` if all visible redbars have mounted ownership.
-- [ ] Preserve fallback/global error handling only for real background FS actions that can fail while no FS route is mounted.
+- [x] Remove store-backed `errors`, `redbar`, and `dismissRedbar` if all visible redbars have mounted ownership.
+- [x] Preserve fallback/global error handling only for real background FS actions that can fail while no FS route is mounted.
 - [x] Update `shared/stores/tests/fs.test.ts` if it only tests behavior that moved to a feature provider.
 
 Behavior to preserve:
@@ -167,7 +162,7 @@ Current slice note:
 - `FsDataProvider.loadPathMetadata` clears path/TLF soft errors through the mounted error provider instead of mutating `useFSState`.
 - `shared/stores/fs.tsx` no longer exposes `softErrors`, `setPathSoftError`, or `setTlfSoftError`; the global `errorToActionOrThrow` fallback preserves daemon-timeout and redbar handling but intentionally does not keep route soft errors alive.
 - Standalone FS data owners in nav headers, bare preview, KBFS path popups, and the archive modal now mount an `FsErrorProvider` so their soft-error UI remains local to that surface.
-- Store-backed `errors`/`redbar` remain for now only as the global fallback used by store-owned background actions; the next redbar slice should decide whether that fallback needs a visible global owner or can be replaced by mounted route handling.
+- Store-backed `errors`, `redbar`, and `dismissRedbar` are now removed. Mounted FS redbars stay owned by `FsErrorProvider`; no-provider fallback errors now go through `config.globalError`, which is the visible app-wide error owner for background FS failures.
 
 ## Chunk 4: Move Transfer Command Wrappers Out of the Store
 
@@ -201,7 +196,7 @@ Current slice note:
 - [x] Move mounted-screen notification reactions to typed engine listeners in the owning hook or component.
 - [x] Remove `FSSubscriptionNotify` handling from the store for topics that only refresh mounted UI.
 - [x] Keep non-path subscriptions for files-tab badge, upload/download status, journal status, daemon/online status, and other app-wide surfaces that must update while FS is unmounted.
-- [ ] Delete dead init forwarding, type-only imports, callback plumbing, and tests after consumers move.
+- [x] Delete dead init forwarding, type-only imports, callback plumbing, and tests after consumers move.
 
 Behavior to preserve:
 
@@ -215,19 +210,33 @@ Current slice note:
 - Mounted-only topics such as favorites stay on the typed listener path; `useFsTlfs()` continues to listen and reload while mounted.
 - `shared/stores/fs.tsx` no longer keeps no-op `favorites` or `overallSyncStatus` subscription cases in `onSubscriptionNotify`.
 - `FSOverallSyncStatusChanged` remains store-owned because disk-space and sync banner state are app-wide background state.
+- The remaining FS engine forwarding in `shared/constants/init/shared.tsx` now uses the existing direct `useFSState` import; the dead FS dynamic require/type-only import was removed.
 
 ## Chunk 6: Collapse the Store Boundary
 
-- [ ] Remove dead store fields, dispatch actions, helpers, imports, tests, and selectors after each migrated slice.
-- [ ] Prefer file-local helpers for one-off migrated logic; only extract shared hooks when multiple consumers need them.
-- [ ] Keep selectors consolidated with `C.useShallow(...)` when components still read adjacent remaining store values.
-- [ ] Document the final global FS store contract in this plan before closing it out.
-- [ ] Delete `shared/stores/fs.tsx` only if no meaningful background store remains.
+- [x] Remove dead store fields, dispatch actions, helpers, imports, tests, and selectors after each migrated slice.
+- [x] Prefer file-local helpers for one-off migrated logic; only extract shared hooks when multiple consumers need them.
+- [x] Keep selectors consolidated with `C.useShallow(...)` when components still read adjacent remaining store values.
+- [x] Document the final global FS store contract in this plan before closing it out.
+- [x] Delete `shared/stores/fs.tsx` only if no meaningful background store remains.
 
 Expected final boundary:
 
 - Global store state should be limited to active transfer status, daemon status, app-wide sync/banner state, files-tab badge, critical-update state, and platform integration state that must survive unmounted FS routes.
 - Mounted FS data, screen commands, redbars, settings UI state, and service-backed convenience mirrors should live outside the global store.
+
+Final global FS store contract:
+
+- `badge`: files-tab upload badge state fed by background subscription.
+- `criticalUpdate`: cross-route desktop critical update flag cleared on FS tab exit.
+- `downloads.regularDownloads` / `downloads.state`: active download status shared by footer rows, path item badges, mobile completion handling, and route changes.
+- `kbfsDaemonStatus`: app-wide KBFS daemon RPC and online status.
+- `overallSyncStatus`: app-wide sync progress and disk-space warning/banner state, derived from background sync status notifications and the latest background threshold setting.
+- `settings.loaded`, `settings.sfmiBannerDismissed`, and `settings.spaceAvailableNotificationThreshold`: background settings subset needed by SFMI and disk-space notifications.
+- `sfmi`: desktop system file manager integration driver status and mount directories.
+- `uploads`: active upload/journal status shared by rows, footer, badge derivation, menubar, and notification badges.
+
+`shared/stores/fs.tsx` remains because those fields are still durable background or cross-route state. It no longer owns mounted path data, soft errors, redbars, settings UI form state, download metadata mirrors, menubar TLF update history, or one-shot upload/download command wrappers.
 
 ## Validation
 
@@ -238,7 +247,7 @@ Validate each implementation slice by inspection:
 - [x] Search for removed fields and actions with `rg`.
 - [x] Confirm no component still selects removed state or dispatches removed actions.
 - [x] Confirm route providers wrap all mounted consumers that need shared loaded data.
-- [ ] Confirm route params and navigation payloads line up when global state is replaced by explicit navigation context.
+- [x] Confirm route params and navigation payloads line up when global state is replaced by explicit navigation context.
 - [x] Confirm engine notifications still land in either a global background owner or a mounted typed listener.
 - [x] Confirm no new module-level mutable cache or hidden singleton store was introduced.
 
