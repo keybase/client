@@ -225,15 +225,17 @@ const Buttons = function Buttons(p: ButtonsProps) {
   const emojiStr = usePickerState(s => s.pickerMap.get(pickKey)?.emojiStr) ?? ''
   const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
 
-  const [lastEmoji, setLastEmoji] = React.useState('')
+  const lastEmojiRef = React.useRef('')
   React.useEffect(() => {
-    if (lastEmoji === emojiStr) {
+    if (lastEmojiRef.current === emojiStr) {
       return
     }
-    setLastEmoji(emojiStr)
-    emojiStr && insertText(emojiStr + ' ')
-    updatePickerMap(pickKey, undefined)
-  }, [emojiStr, insertText, lastEmoji, updatePickerMap])
+    lastEmojiRef.current = emojiStr
+    if (emojiStr) {
+      insertText(emojiStr + ' ')
+      updatePickerMap(pickKey, undefined)
+    }
+  }, [emojiStr, insertText, updatePickerMap])
 
   const navigateAppend = ConvoState.useChatNavigateAppend()
   const openEmojiPicker = () => {

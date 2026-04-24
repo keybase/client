@@ -153,8 +153,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const setEditing = ConvoState.useChatUIContext(s => s.dispatch.setEditing)
   const updateUnsentText = ConvoState.useChatUIContext(s => s.dispatch.injectIntoInput)
 
-  const [explodingModeSeconds, setExplodingModeSeconds] = React.useState(explodingModeSecondsRaw)
-  const isExploding = explodingModeSeconds !== 0
+  const isExploding = explodingModeSecondsRaw !== 0
 
   const hintText = useHintText({cannotWrite, isEditing, isExploding, minWriterRole})
   const inputRef = React.useRef<InputRef | null>(null)
@@ -260,10 +259,6 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     setInputRef(inputRef.current)
   }, [setInputRef])
 
-  React.useEffect(() => {
-    setExplodingModeSeconds(explodingModeSecondsRaw)
-  }, [explodingModeSecondsRaw])
-
   return (
     <PlatformInput
       hintText={hintText}
@@ -274,7 +269,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
       onChangeText={onChangeText}
       onCancelEditing={onCancelEditing}
       cannotWrite={cannotWrite}
-      explodingModeSeconds={explodingModeSeconds}
+      explodingModeSeconds={explodingModeSecondsRaw}
       isEditing={isEditing}
       isExploding={isExploding}
       minWriterRole={minWriterRole}

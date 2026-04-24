@@ -30,10 +30,10 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 
 ## Batch 3: Chat Input And Inbox State
 
-- [ ] `shared/chat/conversation/input-area/normal/index.tsx:264:5`
-- [ ] `shared/chat/conversation/input-area/normal/input.native.tsx:233:5`
-- [ ] `shared/chat/inbox/use-inbox-state.tsx:45:5`
-- [ ] `shared/chat/user-emoji.tsx:34:7`
+- [x] `shared/chat/conversation/input-area/normal/index.tsx:264:5` - derived exploding-mode seconds directly from conversation state instead of mirroring it in local state.
+- [x] `shared/chat/conversation/input-area/normal/input.native.tsx:233:5` - replaced the emoji picker repeat guard state with an effect-local ref.
+- [x] `shared/chat/inbox/use-inbox-state.tsx:45:5` - keyed small-row and expansion state by username so username changes render defaults without a reset effect.
+- [x] `shared/chat/user-emoji.tsx:34:7` - tagged emoji request completion and derived loading instead of synchronously clearing loading in the effect.
 
 ## Batch 4: Chat Message Wrappers And Timers
 
