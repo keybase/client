@@ -4,7 +4,6 @@ import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import * as Kbfs from '@/fs/common'
 import RefreshDriverStatusOnMount from '@/fs/common/refresh-driver-status-on-mount'
-import RefreshSettings from './refresh-settings'
 import useFiles from './hooks'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
@@ -15,13 +14,13 @@ export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 10
 export const defaultNotificationThreshold = 100 * 1024 ** 2
 
 const SyncNotificationSetting = (
-  p: Pick<Props, 'spaceAvailableNotificationThreshold' | 'areSettingsLoading'>
+  p: Pick<
+    Props,
+    'spaceAvailableNotificationThreshold' | 'areSettingsLoading' | 'setSpaceAvailableNotificationThreshold'
+  >
 ) => {
-  const setSpaceAvailableNotificationThreshold = useFSState(
-    s => s.dispatch.setSpaceAvailableNotificationThreshold
-  )
   const onChangedSyncNotifications = (selectedIdx: number) =>
-    setSpaceAvailableNotificationThreshold(allowedNotificationThresholds[selectedIdx] ?? 0)
+    p.setSpaceAvailableNotificationThreshold(allowedNotificationThresholds[selectedIdx] ?? 0)
   const {spaceAvailableNotificationThreshold, areSettingsLoading} = p
   return (
     <Kb.Box2 direction="horizontal" alignItems="center">
@@ -136,7 +135,6 @@ const FilesSettings = () => {
   return (
     <>
       <RefreshDriverStatusOnMount />
-      <RefreshSettings />
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         <FinderIntegration />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
@@ -154,6 +152,7 @@ const FilesSettings = () => {
                 <SyncNotificationSetting
                   spaceAvailableNotificationThreshold={props.spaceAvailableNotificationThreshold}
                   areSettingsLoading={props.areSettingsLoading}
+                  setSpaceAvailableNotificationThreshold={props.setSpaceAvailableNotificationThreshold}
                 />
               }
               checked={props.spaceAvailableNotificationThreshold !== 0}

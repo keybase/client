@@ -223,7 +223,6 @@ export type State = Store & {
     setCriticalUpdate: (u: boolean) => void
     setDebugLevel: (level: string) => void
     setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
-    setSpaceAvailableNotificationThreshold: (spaceAvailableNotificationThreshold: number) => void
     setTlfSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     upload: (parentPath: T.FS.Path, localPath: string) => void
     userIn: () => void
@@ -891,24 +890,15 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     loadSettings: () => {
       const f = async () => {
-        set(s => {
-          s.settings.isLoading = true
-        })
         try {
           const settings = await T.RPCGen.SimpleFSSimpleFSSettingsRpcPromise()
           set(s => {
             const o = s.settings
-            o.isLoading = false
             o.loaded = true
             o.sfmiBannerDismissed = settings.sfmiBannerDismissed
             o.spaceAvailableNotificationThreshold = settings.spaceAvailableNotificationThreshold
-            o.syncOnCellular = settings.syncOnCellular
           })
-        } catch {
-          set(s => {
-            s.settings.isLoading = false
-          })
-        }
+        } catch {}
       }
       ignorePromise(f())
     },
@@ -991,15 +981,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           s.softErrors.pathErrors.delete(path)
         }
       })
-    },
-    setSpaceAvailableNotificationThreshold: threshold => {
-      const f = async () => {
-        await T.RPCGen.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({
-          threshold,
-        })
-        get().dispatch.loadSettings()
-      }
-      ignorePromise(f())
     },
     setTlfSoftError: (path, softError) => {
       set(s => {

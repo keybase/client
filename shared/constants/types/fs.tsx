@@ -504,11 +504,9 @@ export type SoftErrors = Readonly<{
 }>
 
 export type Settings = Readonly<{
-  isLoading: boolean
   loaded: boolean
   sfmiBannerDismissed: boolean
   spaceAvailableNotificationThreshold: number
-  syncOnCellular: boolean
 }>
 
 export type PathInfo = Readonly<{

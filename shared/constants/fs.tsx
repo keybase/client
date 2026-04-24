@@ -151,11 +151,9 @@ export const emptyDownloadInfo = {
 } satisfies T.FS.DownloadInfo
 
 export const emptySettings = {
-  isLoading: false,
   loaded: false,
   sfmiBannerDismissed: false,
   spaceAvailableNotificationThreshold: 0,
-  syncOnCellular: false,
 } satisfies T.FS.Settings
 
 export const emptyPathInfo = {
