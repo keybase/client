@@ -8,6 +8,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
 import {RPCError} from '@/util/errors'
+import isEqual from 'lodash/isEqual'
 import {
   favoritesResultToTlfs,
   folderToTlf,
@@ -41,6 +42,10 @@ const makeEmptyTlfs = (): T.FS.Tlfs => ({
 
 const emptyTlfs = makeEmptyTlfs()
 
+type FsSubscriptionManager = {
+  subscriptions: Map<string, {count: number; subscriptionID: string}>
+}
+
 type FsDataContextType = {
   downloadInfos: ReadonlyMap<string, T.FS.DownloadInfo>
   loadAdditionalTlf: (tlfPath: T.FS.Path) => void
@@ -50,6 +55,7 @@ type FsDataContextType = {
   loadTlfs: () => void
   pathItems: T.FS.PathItems
   recordDownloadStarted: (downloadID: string, path: T.FS.Path, type: DownloadStartType) => void
+  subscriptionManager: FsSubscriptionManager
   tlfs: T.FS.Tlfs
 }
 
@@ -69,6 +75,8 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const {setPathSoftError, setTlfSoftError} = useFsSoftErrorActions()
   const activeDownloadIDs = useFSState(C.useShallow(s => [...s.downloads.state.keys()]))
+  const subscriptionManager = React.useRef<FsSubscriptionManager>({subscriptions: new Map()}).current
+  const loadTlfsInProgress = React.useRef(false)
   const [downloadInfos, setDownloadInfos] = React.useState<ReadonlyMap<string, T.FS.DownloadInfo>>(
     () => new Map()
   )
@@ -204,12 +212,21 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
   }
 
   const loadTlfs = () => {
+    if (loadTlfsInProgress.current) {
+      return
+    }
+    loadTlfsInProgress.current = true
     const f = async () => {
       try {
         const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
-        setTlfs(prevTlfs => favoritesResultToTlfs(results, username, prevTlfs.additionalTlfs))
+        setTlfs(prevTlfs => {
+          const nextTlfs = favoritesResultToTlfs(results, username, prevTlfs.additionalTlfs)
+          return isEqual(nextTlfs, prevTlfs) ? prevTlfs : nextTlfs
+        })
       } catch (error) {
         errorToActionOrThrow(error)
+      } finally {
+        loadTlfsInProgress.current = false
       }
     }
     C.ignorePromise(f())
@@ -271,6 +288,7 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
         loadTlfs,
         pathItems,
         recordDownloadStarted,
+        subscriptionManager,
         tlfs,
       }}
     >
@@ -301,26 +319,62 @@ const useFsLoadOnMountAndFocus = ({
   C.Router2.useSafeFocusEffect(stableLoadOnMountAndFocus)
 }
 
+const unsubscribeFsSubscription = (subscriptionID: string) => {
+  C.ignorePromise(
+    T.RPCGen.SimpleFSSimpleFSUnsubscribeRpcPromise({
+      clientID: FS.clientID,
+      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
+      subscriptionID,
+    }).catch(() => {})
+  )
+}
+
 const useFsSubscriptionEffect = ({
+  enabled = true,
   errorPath,
   subscribe,
   subscriptionKey,
 }: {
+  enabled?: boolean
   errorPath?: T.FS.Path
   subscribe: (subscriptionID: string) => Promise<void>
   subscriptionKey: string
 }) => {
   const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
+  const routeData = React.useContext(FsDataContext)
+  const subscriptionManager = routeData?.subscriptionManager
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const onError = React.useEffectEvent((error: unknown) => {
     errorToActionOrThrow(error, errorPath)
   })
   const subscribeEvent = React.useEffectEvent(subscribe)
   React.useEffect(() => {
-    if (!connected) {
+    if (!connected || !enabled) {
       return
     }
+
+    const manager = subscriptionManager
+    if (manager) {
+      const existingSubscription = manager.subscriptions.get(subscriptionKey)
+      if (existingSubscription) {
+        existingSubscription.count++
+        return () => {
+          const currentSubscription = manager.subscriptions.get(subscriptionKey)
+          if (currentSubscription !== existingSubscription) {
+            return
+          }
+          currentSubscription.count--
+          if (currentSubscription.count <= 0) {
+            manager.subscriptions.delete(subscriptionKey)
+            unsubscribeFsSubscription(currentSubscription.subscriptionID)
+          }
+        }
+      }
+    }
+
     const subscriptionID = FS.makeUUID()
+    const subscription = {count: 1, subscriptionID}
+    manager?.subscriptions.set(subscriptionKey, subscription)
     const f = async () => {
       try {
         await subscribeEvent(subscriptionID)
@@ -330,25 +384,29 @@ const useFsSubscriptionEffect = ({
     }
     C.ignorePromise(f())
     return () => {
-      C.ignorePromise(
-        T.RPCGen.SimpleFSSimpleFSUnsubscribeRpcPromise({
-          clientID: FS.clientID,
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
-          subscriptionID,
-        }).catch(() => {})
-      )
+      if (!manager) {
+        unsubscribeFsSubscription(subscriptionID)
+        return
+      }
+      const currentSubscription = manager.subscriptions.get(subscriptionKey)
+      if (currentSubscription !== subscription) {
+        return
+      }
+      currentSubscription.count--
+      if (currentSubscription.count <= 0) {
+        manager.subscriptions.delete(subscriptionKey)
+        unsubscribeFsSubscription(currentSubscription.subscriptionID)
+      }
     }
-  }, [connected, errorPath, subscriptionKey])
+  }, [connected, enabled, errorPath, subscriptionKey, subscriptionManager])
 }
 
 const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => {
   const pathString = T.FS.pathToString(path)
   useFsSubscriptionEffect({
+    enabled: T.FS.getPathLevel(path) >= 3,
     errorPath: path,
     subscribe: async subscriptionID => {
-      if (T.FS.getPathLevel(path) < 3) {
-        return
-      }
       try {
         await T.RPCGen.SimpleFSSimpleFSSubscribePathRpcPromise({
           clientID: FS.clientID,
@@ -367,12 +425,13 @@ const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscr
         }
       }
     },
-    subscriptionKey: `${pathString}:${topic}`,
+    subscriptionKey: `path:${pathString}:${topic}`,
   })
 }
 
-const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic) => {
+const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic, enabled = true) => {
   useFsSubscriptionEffect({
+    enabled,
     subscribe: async subscriptionID => {
       await T.RPCGen.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
         clientID: FS.clientID,
@@ -382,7 +441,7 @@ const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic) => {
         topic,
       })
     },
-    subscriptionKey: String(topic),
+    subscriptionKey: `nonpath:${topic}`,
   })
 }
 
@@ -515,9 +574,9 @@ export const useFsFolderChildItems = (
 
 export const useFsTlfs = () => {
   const routeData = React.useContext(FsDataContext)
-  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites)
-  const tlfs = useLoadedTlfs()
   const loadTlfs = routeData?.loadTlfs
+  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites, !!loadTlfs)
+  const tlfs = useLoadedTlfs()
   useEngineActionListener(
     'keybase.1.NotifyFS.FSSubscriptionNotify',
     action => {
