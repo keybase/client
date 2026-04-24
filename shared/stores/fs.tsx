@@ -126,7 +126,6 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
 }
 
 type Store = T.Immutable<{
-  badge: T.RPCGen.FilesTabBadge
   criticalUpdate: boolean
   downloads: T.FS.Downloads
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
@@ -136,7 +135,6 @@ type Store = T.Immutable<{
   uploads: T.FS.Uploads
 }>
 const initialStore: Store = {
-  badge: T.RPCGen.FilesTabBadge.none,
   criticalUpdate: false,
   downloads: {
     regularDownloads: [],
@@ -176,26 +174,12 @@ export type State = Store & {
     userIn: () => void
     userOut: () => void
   }
-  getUploadIconForFilesTab: () => T.FS.UploadIcon | undefined
 }
 
 export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
   // reducer and happens before this.
   let waitForKbfsDaemonInProgress = false
-
-  const getUploadIconForFilesTab = () => {
-    switch (get().badge) {
-      case T.RPCGen.FilesTabBadge.awaitingUpload:
-        return T.FS.UploadIcon.AwaitingToUpload
-      case T.RPCGen.FilesTabBadge.uploadingStuck:
-        return T.FS.UploadIcon.UploadingStuck
-      case T.RPCGen.FilesTabBadge.uploading:
-        return T.FS.UploadIcon.Uploading
-      case T.RPCGen.FilesTabBadge.none:
-        return undefined
-    }
-  }
 
   // At start-up we might have a race where we get connected to a kbfs daemon
   // which dies soon after, and we get an EOF here. So retry for a few times
@@ -219,7 +203,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     }
   }
 
-  const fsBadgeSub = {id: ''}
   const settingsSub = {id: ''}
   const uploadStatusSub = {id: ''}
   const journalStatusSub = {id: ''}
@@ -235,14 +218,13 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     generation === asyncGeneration && shouldRunBackgroundFSRPC()
 
   const clearSubscriptions = () => {
-    fsBadgeSub.id = ''
     settingsSub.id = ''
     uploadStatusSub.id = ''
     journalStatusSub.id = ''
   }
 
   const unsubscribeAll = () => {
-    const subscriptionIDs = [fsBadgeSub.id, settingsSub.id, uploadStatusSub.id, journalStatusSub.id]
+    const subscriptionIDs = [settingsSub.id, uploadStatusSub.id, journalStatusSub.id]
     subscriptionIDs.forEach(subscriptionID => {
       subscriptionID && unsubscribe(subscriptionID)
     })
@@ -311,26 +293,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     })
   }
 
-  const loadFilesTabBadge = () => {
-    const f = async () => {
-      try {
-        const badge = await T.RPCGen.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-        set(s => {
-          s.badge = badge
-        })
-      } catch {
-        // retry once HOTPOT-1226
-        try {
-          const badge = await T.RPCGen.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-          set(s => {
-            s.badge = badge
-          })
-        } catch {}
-      }
-    }
-    ignorePromise(f())
-  }
-
   const loadUploadStatus = () => {
     const f = async () => {
       try {
@@ -379,9 +341,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           break
         case T.RPCGen.SubscriptionTopic.uploadStatus:
           loadUploadStatus()
-          break
-        case T.RPCGen.SubscriptionTopic.filesTabBadge:
-          loadFilesTabBadge()
           break
         case T.RPCGen.SubscriptionTopic.settings:
           get().dispatch.loadSettings()
@@ -596,7 +555,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       s.kbfsDaemonStatus.rpcStatus = rpcStatus
     })
 
-    subscribeAndLoad(fsBadgeSub, T.RPCGen.SubscriptionTopic.filesTabBadge, loadFilesTabBadge)
     subscribeAndLoad(settingsSub, T.RPCGen.SubscriptionTopic.settings, () => get().dispatch.loadSettings())
     subscribeAndLoad(uploadStatusSub, T.RPCGen.SubscriptionTopic.uploadStatus, loadUploadStatus)
     subscribeAndLoad(journalStatusSub, T.RPCGen.SubscriptionTopic.journalStatus, pollJournalStatus)
@@ -820,6 +778,5 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   return {
     ...initialStore,
     dispatch,
-    getUploadIconForFilesTab,
   }
 })

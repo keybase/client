@@ -24,7 +24,7 @@ const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
   FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} /> : null
 
 const FilesTabStatusIcon = () => {
-  const uploadIcon = FS.useFSState(s => s.getUploadIconForFilesTab())
+  const uploadIcon = Kbfs.useFilesTabUploadIcon()
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.filesTabStatusIcon} /> : null
 }
 

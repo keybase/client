@@ -453,7 +453,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
           case T.RPCGen.SubscriptionTopic.onlineStatus:
           case T.RPCGen.SubscriptionTopic.downloadStatus:
           case T.RPCGen.SubscriptionTopic.uploadStatus:
-          case T.RPCGen.SubscriptionTopic.filesTabBadge:
           case T.RPCGen.SubscriptionTopic.settings: {
             useFSState.getState().dispatch.onEngineIncomingImpl(action)
             break

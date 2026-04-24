@@ -26,7 +26,6 @@ The default assumption from the pruning skill still applies: local KBFS and Go s
 
 Remaining state to classify before each implementation slice:
 
-- `badge`
 - `criticalUpdate`
 - `downloads`
 - `kbfsDaemonStatus`
@@ -43,7 +42,7 @@ Remaining dispatch surface to classify before deleting or moving call sites:
 
 Initial ownership targets:
 
-- Keep global for now: daemon connection status, files-tab badge, active upload/download status, overall sync status, desktop SFMI driver status, critical-update state.
+- Keep global for now: daemon connection status, active upload/download status, overall sync status, desktop SFMI driver status, critical-update state.
 - Move or delete unless proven global: `settings` fields that only serve UI and any one-screen command wrappers reintroduced later.
 - Re-check every ambiguous item against the pruning skill instead of preserving it to avoid a service call.
 
@@ -76,7 +75,7 @@ Field ownership table:
 
 | Field | Current consumers | Ownership |
 | --- | --- | --- |
-| `badge` | `getUploadIconForFilesTab()` for mobile header; store subscription loader. | `keep-global`; files-tab badge is background subscription state. |
+| `badge` | FS mobile header and desktop tab bar upload icon. | `move-mounted`; `useFilesTabUploadIcon()` now loads on mount/focus and listens while mounted. |
 | `criticalUpdate` | init route transition clearing; desktop remote event setter. | `keep-global`; cross-window/route lifecycle flag. |
 | `downloads.regularDownloads` / `downloads.state` | FS footer, rows, item icons, mobile download watcher, download-status subscription. | `keep-global`; active transfer status must survive route changes. |
 | `downloads.info` | `useFsDownloadInfo`, footer downloads, mobile completion watcher, start-download prefill. | `move-route`; load per download in the owning hook/component while preserving MIME/save/share completion behavior. |
@@ -134,6 +133,7 @@ Behavior to preserve:
 
 Current slice note:
 
+- `shared/fs/common/use-files-tab-upload-icon.tsx` now owns mounted files-tab badge loading for the mobile header and desktop tab bar.
 - `shared/settings/files/hooks.tsx` now owns the mounted Files settings RPC load and listens for settings subscription notifications while mounted.
 - The Files settings threshold and sync-on-cellular controls submit directly through SimpleFS RPCs instead of selecting global `settings` values.
 - After threshold/sync updates, the settings hook still refreshes the global FS settings owner so background disk-space warning comparisons keep the latest threshold.
@@ -195,7 +195,7 @@ Current slice note:
 - [x] Keep store-owned `onEngineIncomingImpl` only for durable background state.
 - [x] Move mounted-screen notification reactions to typed engine listeners in the owning hook or component.
 - [x] Remove `FSSubscriptionNotify` handling from the store for topics that only refresh mounted UI.
-- [x] Keep non-path subscriptions for files-tab badge, upload/download status, journal status, daemon/online status, and other app-wide surfaces that must update while FS is unmounted.
+- [x] Keep non-path subscriptions for upload/download status, journal status, daemon/online status, and other app-wide surfaces that must update while FS is unmounted.
 - [x] Delete dead init forwarding, type-only imports, callback plumbing, and tests after consumers move.
 
 Behavior to preserve:
@@ -206,7 +206,8 @@ Behavior to preserve:
 
 Current slice note:
 
-- `_onEngineIncoming` now forwards `FSSubscriptionNotify` into the FS store only for background-owned topics: journal status, online status, download status, upload status, files-tab badge, and settings.
+- `_onEngineIncoming` now forwards `FSSubscriptionNotify` into the FS store only for background-owned topics: journal status, online status, download status, upload status, and settings.
+- `filesTabBadge` now stays on the mounted typed-listener path; `useFilesTabUploadIcon()` subscribes and reloads the current badge while an icon surface is mounted.
 - Mounted-only topics such as favorites stay on the typed listener path; `useFsTlfs()` continues to listen and reload while mounted.
 - `shared/stores/fs.tsx` no longer keeps no-op `favorites` or `overallSyncStatus` subscription cases in `onSubscriptionNotify`.
 - `FSOverallSyncStatusChanged` remains store-owned because disk-space and sync banner state are app-wide background state.
@@ -222,19 +223,18 @@ Current slice note:
 
 Expected final boundary:
 
-- Global store state should be limited to active transfer status, daemon status, app-wide sync/banner state, files-tab badge, critical-update state, and platform integration state that must survive unmounted FS routes.
+- Global store state should be limited to active transfer status, daemon status, app-wide sync/banner state, critical-update state, and platform integration state that must survive unmounted FS routes.
 - Mounted FS data, screen commands, redbars, settings UI state, and service-backed convenience mirrors should live outside the global store.
 
 Final global FS store contract:
 
-- `badge`: files-tab upload badge state fed by background subscription.
 - `criticalUpdate`: cross-route desktop critical update flag cleared on FS tab exit.
 - `downloads.regularDownloads` / `downloads.state`: active download status shared by footer rows, path item badges, mobile completion handling, and route changes.
 - `kbfsDaemonStatus`: app-wide KBFS daemon RPC and online status.
 - `overallSyncStatus`: app-wide sync progress and disk-space warning/banner state, derived from background sync status notifications and the latest background threshold setting.
 - `settings.loaded`, `settings.sfmiBannerDismissed`, and `settings.spaceAvailableNotificationThreshold`: background settings subset needed by SFMI and disk-space notifications.
 - `sfmi`: desktop system file manager integration driver status and mount directories.
-- `uploads`: active upload/journal status shared by rows, footer, badge derivation, menubar, and notification badges.
+- `uploads`: active upload/journal status shared by rows, footer, path status icons, menubar, and notification badges.
 
 `shared/stores/fs.tsx` remains because those fields are still durable background or cross-route state. It no longer owns mounted path data, soft errors, redbars, settings UI form state, download metadata mirrors, menubar TLF update history, or one-shot upload/download command wrappers.
 
