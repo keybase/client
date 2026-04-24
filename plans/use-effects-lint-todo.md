@@ -9,6 +9,7 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 - Before starting each batch, read `skill/react-effect-lints/SKILL.md` and use its workflow.
 - For each lint, classify the effect first: derived render data, initial state only, identity reset, partial state adjustment, user-event consequence, or external sync/async request.
 - Do not fix these by deferring the state update with `setTimeout`, `Promise.resolve`, `queueMicrotask`, `deferEffectUpdate`, or a similar wrapper.
+- Do not trade a `react-hooks/set-state-in-effect` fix for another React lint violation. Avoid mutating refs during render, doing side effects during render, adding unguarded render-time `setState`, breaking hook dependency rules, or silencing React lint rules.
 - Preserve behavior, guards, platform branches, route params, waiting keys, and stale async protection.
 - Remove unused state, refs, imports, helpers, and comments after each item.
 - After each batch, update this checklist in the same change.
@@ -17,8 +18,8 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 ## Batch 1: Chat Info Panel
 
 - [x] `shared/chat/conversation/info-panel/attachments.tsx:453:7` - already handled with `skill/react-effect-lints`; moved attachment-view load into `onAttachmentViewChange` and removed `lastSAV`.
-- [ ] `shared/chat/conversation/info-panel/index.tsx:55:5`
-- [ ] `shared/chat/conversation/info-panel/members.tsx:56:7`
+- [x] `shared/chat/conversation/info-panel/index.tsx:55:5` - moved the prop tab correction to a guarded render update so the prop-provided tab still wins without an effect.
+- [x] `shared/chat/conversation/info-panel/members.tsx:56:7` - replaced last-team-name state with a ref that gates the refresh RPC.
 
 ## Batch 2: Chat Modals And Bot Install
 

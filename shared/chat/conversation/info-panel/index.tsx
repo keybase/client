@@ -27,7 +27,7 @@ const InfoPanelConnector = (ownProps: Props) => {
   const teamname = meta.teamname
   const {role: yourRole} = useChatTeam(meta.teamID, teamname)
 
-  const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab ?? 'members')
+  const [selectedTab, onSelectTab] = React.useState<Panel>(initialTab ?? 'members')
   const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
   const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
@@ -50,10 +50,9 @@ const InfoPanelConnector = (ownProps: Props) => {
     }
   }
 
-  React.useEffect(() => {
-    if (ownProps.tab === undefined || ownProps.tab === selectedTab) return
+  if (ownProps.tab !== undefined && ownProps.tab !== selectedTab) {
     onSelectTab(ownProps.tab)
-  }, [ownProps.tab, selectedTab])
+  }
 
   const getTabs = (): Array<TabType<Panel>> => {
     const showSettings = !isPreview || Teams.isAdmin(yourRole) || Teams.isOwner(yourRole)
