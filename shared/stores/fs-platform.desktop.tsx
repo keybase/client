@@ -70,14 +70,20 @@ export const openPathInSystemFileManagerDesktop = async (
   }
 
   const parsedPath = Constants.parsePath(path)
-  const selectDirectory =
-    ![T.FS.PathKind.InGroupTlf, T.FS.PathKind.InTeamTlf].includes(parsedPath.kind) ||
-    (
-      await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
-        path: Constants.pathToRPCPath(path),
-        refreshSubscription: false,
-      })
-    ).direntType === T.RPCGen.DirentType.dir
+  let selectDirectory = ![T.FS.PathKind.InGroupTlf, T.FS.PathKind.InTeamTlf].includes(parsedPath.kind)
+  if (!selectDirectory) {
+    try {
+      selectDirectory =
+        (
+          await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
+            path: Constants.pathToRPCPath(path),
+            refreshSubscription: false,
+          })
+        ).direntType === T.RPCGen.DirentType.dir
+    } catch (error) {
+      logger.warn('failed to stat KBFS path before opening system file manager: ', error)
+    }
+  }
 
   await openPathInFinder?.(
     rebaseKbfsPathToMountLocation(path, directMountDir),
