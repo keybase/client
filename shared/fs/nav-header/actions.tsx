@@ -4,23 +4,21 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import {useModalHeaderState} from '@/stores/modal-header'
-import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
+import {FsBrowserEditProvider} from '../browser/edit-state'
 
 type Props = {
   onTriggerFilterMobile: () => void
   path: T.FS.Path
 }
 
-const FsNavHeaderRightActions = (props: Props) => {
+const FsNavHeaderRightActionsInner = (props: Props) => {
   const {folderViewFilter, setFolderViewFilter} = useModalHeaderState(
     C.useShallow(s => ({
       folderViewFilter: s.folderViewFilter,
       setFolderViewFilter: s.dispatch.setFolderViewFilter,
     }))
   )
-  const softErrors = useFSState(s => s.softErrors)
-  const hasSoftError = !!FS.getSoftError(softErrors, props.path)
+  const hasSoftError = !!Kbfs.useFsSoftError(props.path)
   React.useEffect(() => {
     !Kb.Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
   }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
@@ -48,6 +46,16 @@ const FsNavHeaderRightActions = (props: Props) => {
     </Kb.Box2>
   ) : null
 }
+
+const FsNavHeaderRightActions = (props: Props) => (
+  <Kbfs.FsErrorProvider>
+    <Kbfs.FsDataProvider>
+      <FsBrowserEditProvider>
+        <FsNavHeaderRightActionsInner {...props} />
+      </FsBrowserEditProvider>
+    </Kbfs.FsDataProvider>
+  </Kbfs.FsErrorProvider>
+)
 
 export default FsNavHeaderRightActions
 

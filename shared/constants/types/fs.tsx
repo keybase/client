@@ -336,7 +336,6 @@ export type DownloadInfo = Readonly<{
 }>
 
 export type Downloads = Readonly<{
-  info: ReadonlyMap<string, DownloadInfo>
   regularDownloads: ReadonlyArray<string>
   state: ReadonlyMap<string, DownloadState>
 }>
@@ -424,10 +423,6 @@ export enum PathItemActionMenuView {
   ConfirmSaveMedia = 'confirm-save-media',
   ConfirmSendToOtherApp = 'confirm-send-to-other-app',
 }
-export type PathItemActionMenu = Readonly<{
-  downloadID: string | undefined
-  downloadIntent: DownloadIntent | undefined
-}>
 
 export enum DriverStatusType {
   Unknown = 'unknown',
@@ -508,11 +503,9 @@ export type SoftErrors = Readonly<{
 }>
 
 export type Settings = Readonly<{
-  isLoading: boolean
   loaded: boolean
   sfmiBannerDismissed: boolean
   spaceAvailableNotificationThreshold: number
-  syncOnCellular: boolean
 }>
 
 export type PathInfo = Readonly<{

@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useFSState} from '@/stores/fs'
+import {useFsPathItem} from './hooks'
 import * as FS from '@/stores/fs'
 
 type Props = {
@@ -12,7 +12,7 @@ type Props = {
 }
 
 const FolderViewFilter = (props: Props) => {
-  const pathItem = useFSState(s => FS.getPathItem(s.pathItems, props.path))
+  const pathItem = useFsPathItem(props.path)
 
   return FS.isFolder(props.path, pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.SearchFilter

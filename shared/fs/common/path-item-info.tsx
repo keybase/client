@@ -5,8 +5,7 @@ import TlfInfoLine from './tlf-info-line-container'
 import ItemIcon from './item-icon'
 import CommaSeparatedName from './comma-separated-name'
 import {pluralize} from '@/util/string'
-import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} from './hooks'
-import {useFSState} from '@/stores/fs'
+import {useFsFolderChildItems, useFsOnlineStatus, useFsPathItem, useFsSoftError} from './hooks'
 import * as FS from '@/stores/fs'
 
 type Props = {
@@ -15,14 +14,12 @@ type Props = {
 }
 
 const getNumberOfFilesAndFolders = (
-  pathItems: T.FS.PathItems,
-  path: T.FS.Path
+  pathItem: T.FS.PathItem,
+  childItems: ReadonlyArray<T.FS.PathItem>
 ): {folders: number; files: number; loaded: boolean} => {
-  const pathItem = FS.getPathItem(pathItems, path)
   return pathItem.type === T.FS.PathType.Folder
-    ? [...pathItem.children].reduce(
-        ({folders, files, loaded}, p) => {
-          const item = FS.getPathItem(pathItems, T.FS.pathConcat(path, p))
+    ? childItems.reduce(
+        ({folders, files, loaded}, item) => {
           const isFolder = item.type === T.FS.PathType.Folder
           const isFile = item.type !== T.FS.PathType.Folder && item !== FS.unknownPathItem
           return {
@@ -37,9 +34,8 @@ const getNumberOfFilesAndFolders = (
 }
 
 const FilesAndFoldersCount = (props: Props) => {
-  useFsChildren(props.path)
-  const pathItems = useFSState(s => s.pathItems)
-  const {files, folders, loaded} = getNumberOfFilesAndFolders(pathItems, props.path)
+  const {childItems, pathItem} = useFsFolderChildItems(props.path)
+  const {files, folders, loaded} = getNumberOfFilesAndFolders(pathItem, childItems)
   return loaded ? (
     <Kb.Text type="BodySmall">
       {folders ? `${folders} ${pluralize('Folder')}${files ? ', ' : ''}` : undefined}
@@ -78,8 +74,7 @@ const SoftErrorBanner = ({path}: {path: T.FS.Path}) => {
 
 const PathItemInfo = (props: Props) => {
   useFsOnlineStatus() // when used in chat, we don't have this from Files tab
-  useFsPathMetadata(props.path)
-  const pathItem = useFSState(s => FS.getPathItem(s.pathItems, props.path))
+  const pathItem = useFsPathItem(props.path)
   const name = (
     <CommaSeparatedName
       center={true}

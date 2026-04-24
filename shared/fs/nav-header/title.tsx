@@ -109,7 +109,7 @@ const MainTitle = (props: Props) => (
   </Kb.Box2>
 )
 
-const FsNavHeaderTitle = (props: Props) =>
+const FsNavHeaderTitleInner = (props: Props) =>
   props.path === FS.defaultPath ? (
     <Kb.Text type="Header" style={styles.rootTitle}>
       Files
@@ -120,6 +120,15 @@ const FsNavHeaderTitle = (props: Props) =>
       <MainTitle {...props} />
     </Kb.Box2>
   )
+
+const FsNavHeaderTitle = (props: Props) => (
+  <Kbfs.FsErrorProvider>
+    <Kbfs.FsDataProvider>
+      <FsNavHeaderTitleInner {...props} />
+    </Kbfs.FsDataProvider>
+  </Kbfs.FsErrorProvider>
+)
+
 export default FsNavHeaderTitle
 
 const styles = Kb.Styles.styleSheetCreate(

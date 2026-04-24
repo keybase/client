@@ -6,7 +6,6 @@ export declare const openLocalPathInSystemFileManagerDesktop: (localPath: string
 
 export declare const openPathInSystemFileManagerDesktop: (
   path: T.FS.Path,
-  pathItems: T.FS.PathItems,
   driverStatus: T.FS.DriverStatus,
   directMountDir: string
 ) => Promise<void>

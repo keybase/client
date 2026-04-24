@@ -1,28 +1,46 @@
 /// <reference types="jest" />
-import * as Constants from '../../constants/fs'
-import {isMobile} from '../../constants/platform'
-import * as T from '../../constants/types'
+import * as T from '@/constants/types'
 import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
-import {makeEditID, resetBannerType, useFSState} from '../fs'
+import {
+  computeBadgeNumberForTlfList,
+  errorToActionOrThrowWithHandlers,
+  getUploadIconForTlfType,
+  makeEditID,
+  resetBannerTypeFromTlf,
+  unknownTlf,
+  useFSState,
+} from '../fs'
 
-const bootstrapCurrentUser = () => {
+const normalConflictState = {
+  localViewTlfPaths: [],
+  resolvingConflict: false,
+  stuckInConflict: false,
+  type: T.FS.ConflictStateType.NormalView,
+} satisfies T.FS.ConflictStateNormalView
+
+const makeTlf = (p: Partial<T.FS.Tlf> = {}): T.FS.Tlf => ({
+  ...unknownTlf,
+  conflictState: p.conflictState ?? normalConflictState,
+  name: p.name ?? 'alice,bob',
+  resetParticipants: p.resetParticipants ?? [],
+  ...p,
+})
+
+beforeEach(() => {
+  useConfigState.setState({loggedIn: false, userSwitching: false} as any)
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
-    deviceName: 'device-name',
+    deviceName: 'test-device',
     uid: 'uid',
     username: 'alice',
   })
-}
-
-beforeEach(() => {
-  bootstrapCurrentUser()
-  useConfigState.setState({loggedIn: false, userSwitching: false} as any)
   useFSState.getState().dispatch.resetState()
 })
 
 afterEach(() => {
   useConfigState.setState({loggedIn: false, userSwitching: false} as any)
+  useCurrentUserState.getState().dispatch.resetState()
   useFSState.getState().dispatch.resetState()
 })
 
@@ -35,123 +53,93 @@ test('makeEditID returns distinct non-empty edit identifiers', () => {
   expect(first).not.toBe(second)
 })
 
-test('soft error setters add and remove path and tlf errors', () => {
-  const {dispatch} = useFSState.getState()
-  const path = T.FS.stringToPath('/keybase/private/alice/file.txt')
-  const tlfPath = T.FS.stringToPath('/keybase/private/alice')
-
-  dispatch.setPathSoftError(path, T.FS.SoftError.Nonexistent)
-  dispatch.setTlfSoftError(tlfPath, T.FS.SoftError.NoAccess)
-  expect(useFSState.getState().softErrors.pathErrors.get(path)).toBe(T.FS.SoftError.Nonexistent)
-  expect(useFSState.getState().softErrors.tlfErrors.get(tlfPath)).toBe(T.FS.SoftError.NoAccess)
-
-  dispatch.setPathSoftError(path)
-  dispatch.setTlfSoftError(tlfPath)
-  expect(useFSState.getState().softErrors.pathErrors.has(path)).toBe(false)
-  expect(useFSState.getState().softErrors.tlfErrors.has(tlfPath)).toBe(false)
+test('resetBannerTypeFromTlf classifies no reset, self reset, and other participant resets', () => {
+  expect(resetBannerTypeFromTlf(makeTlf())).toBe(T.FS.ResetBannerNoOthersType.None)
+  expect(resetBannerTypeFromTlf(makeTlf({resetParticipants: ['alice']}))).toBe(
+    T.FS.ResetBannerNoOthersType.Self
+  )
+  expect(resetBannerTypeFromTlf(makeTlf({resetParticipants: ['bob', 'charlie']}))).toBe(2)
 })
 
-test('resetBannerType distinguishes between self resets, other resets, and no resets', () => {
-  const privateTlfName = 'alice,bob'
-  const path = T.FS.stringToPath(`/keybase/private/${privateTlfName}`)
+test('errorToActionOrThrowWithHandlers routes FS soft errors and redbars', () => {
+  const checkKbfsDaemonRpcStatus = jest.fn()
+  const redbar = jest.fn()
+  const setPathSoftError = jest.fn()
+  const setTlfSoftError = jest.fn()
+  const handlers = {checkKbfsDaemonRpcStatus, redbar, setPathSoftError, setTlfSoftError}
+  const path = T.FS.stringToPath('/keybase/private/alice,bob/file')
 
-  useFSState.setState({
-    tlfs: {
-      ...useFSState.getState().tlfs,
-      private: new Map([
-        [
-          privateTlfName,
-          {
-            ...Constants.unknownTlf,
-            name: privateTlfName,
-            resetParticipants: ['alice'],
-          },
-        ],
-      ]),
-    },
-  } as any)
-  expect(resetBannerType(useFSState.getState(), path)).toBe(T.FS.ResetBannerNoOthersType.Self)
+  errorToActionOrThrowWithHandlers(handlers, {code: T.RPCGen.StatusCode.sckbfsclienttimeout}, path)
+  expect(checkKbfsDaemonRpcStatus).toHaveBeenCalledTimes(1)
 
-  useFSState.setState({
-    tlfs: {
-      ...useFSState.getState().tlfs,
-      private: new Map([
-        [
-          privateTlfName,
-          {
-            ...Constants.unknownTlf,
-            name: privateTlfName,
-            resetParticipants: ['bob', 'carol'],
-          },
-        ],
-      ]),
-    },
-  } as any)
-  expect(resetBannerType(useFSState.getState(), path)).toBe(2)
+  errorToActionOrThrowWithHandlers(handlers, {code: T.RPCGen.StatusCode.scsimplefsnotexist}, path)
+  expect(setPathSoftError).toHaveBeenCalledWith(path, T.FS.SoftError.Nonexistent)
 
-  useFSState.setState({
-    tlfs: {
-      ...useFSState.getState().tlfs,
-      private: new Map([[privateTlfName, {...Constants.unknownTlf, name: privateTlfName, resetParticipants: []}]]),
-    },
-  } as any)
-  expect(resetBannerType(useFSState.getState(), path)).toBe(T.FS.ResetBannerNoOthersType.None)
-})
-
-test('badge engine refreshes favorites when fs badge counters change', () => {
-  const store = useFSState
-  const favoritesLoad = jest.fn()
-  useConfigState.setState({loggedIn: true, userSwitching: false} as any)
-  store.setState(
-    {
-      ...store.getState(),
-      dispatch: {
-        ...store.getState().dispatch,
-        favoritesLoad,
-      },
-    },
-    true
+  errorToActionOrThrowWithHandlers(handlers, {code: T.RPCGen.StatusCode.scsimplefsnoaccess}, path)
+  expect(setTlfSoftError).toHaveBeenCalledWith(
+    T.FS.stringToPath('/keybase/private/alice,bob'),
+    T.FS.SoftError.NoAccess
   )
 
-  const action = {
-    payload: {params: {badgeState: {newTlfs: 1, rekeysNeeded: 0}}},
-    type: 'keybase.1.NotifyBadges.badgeState',
-  } as any
+  errorToActionOrThrowWithHandlers(handlers, {code: T.RPCGen.StatusCode.scdeleted}, path)
+  expect(redbar).toHaveBeenCalledWith('A user in this shared folder has deleted their account.')
 
-  store.getState().dispatch.onEngineIncomingImpl(action)
-  store.getState().dispatch.onEngineIncomingImpl(action)
-  store.getState().dispatch.onEngineIncomingImpl({
-    payload: {params: {badgeState: {newTlfs: 1, rekeysNeeded: 2}}},
-    type: 'keybase.1.NotifyBadges.badgeState',
-  } as any)
-
-  expect(favoritesLoad).toHaveBeenCalledTimes(isMobile ? 0 : 2)
+  expect(() =>
+    errorToActionOrThrowWithHandlers(handlers, {code: T.RPCGen.StatusCode.scgeneric}, path)
+  ).toThrow()
 })
 
-test('pre-login badge events do not consume the first eligible favorites refresh', () => {
-  const store = useFSState
-  const favoritesLoad = jest.fn()
-  store.setState(
-    {
-      ...store.getState(),
-      dispatch: {
-        ...store.getState().dispatch,
-        favoritesLoad,
-      },
-    },
-    true
+test('computeBadgeNumberForTlfList counts only new non-ignored TLFs', () => {
+  const tlfList = new Map([
+    ['new', makeTlf({isNew: true})],
+    ['ignored-new', makeTlf({isIgnored: true, isNew: true})],
+    ['old', makeTlf({isNew: false})],
+  ])
+
+  expect(computeBadgeNumberForTlfList(tlfList)).toBe(1)
+})
+
+test('getUploadIconForTlfType derives conflict, uploading, and offline upload status', () => {
+  const tlfType = T.FS.TlfType.Private
+  const tlfList = new Map([
+    [
+      'alice,bob',
+      makeTlf({
+        conflictState: {
+          ...normalConflictState,
+          stuckInConflict: true,
+        },
+      }),
+    ],
+  ])
+  const baseStatus = {
+    onlineStatus: T.FS.KbfsDaemonOnlineStatus.Online,
+    rpcStatus: T.FS.KbfsDaemonRpcStatus.Connected,
+  }
+  const baseUploads = {
+    endEstimate: undefined,
+    syncingPaths: new Set<T.FS.Path>(),
+    totalSyncingBytes: 0,
+    writingToJournal: new Map<T.FS.Path, T.RPCGen.UploadState>(),
+  }
+
+  expect(getUploadIconForTlfType(baseStatus, baseUploads, tlfList, tlfType)).toBe(
+    T.FS.UploadIcon.UploadingStuck
   )
 
-  const action = {
-    payload: {params: {badgeState: {newTlfs: 1, rekeysNeeded: 0}}},
-    type: 'keybase.1.NotifyBadges.badgeState',
-  } as any
-
-  useConfigState.setState({loggedIn: false, userSwitching: false} as any)
-  store.getState().dispatch.onEngineIncomingImpl(action)
-
-  useConfigState.setState({loggedIn: true, userSwitching: false} as any)
-  store.getState().dispatch.onEngineIncomingImpl(action)
-
-  expect(favoritesLoad).toHaveBeenCalledTimes(isMobile ? 0 : 1)
+  const activeUploads = {
+    ...baseUploads,
+    syncingPaths: new Set([T.FS.stringToPath('/keybase/private/alice,bob/file')]),
+  }
+  expect(getUploadIconForTlfType(baseStatus, activeUploads, new Map(), tlfType)).toBe(
+    T.FS.UploadIcon.Uploading
+  )
+  expect(
+    getUploadIconForTlfType(
+      {...baseStatus, onlineStatus: T.FS.KbfsDaemonOnlineStatus.Offline},
+      activeUploads,
+      new Map(),
+      tlfType
+    )
+  ).toBe(T.FS.UploadIcon.AwaitingToUpload)
 })

@@ -6,24 +6,30 @@ import {
   openPathInSystemFileManagerDesktop as openPathInSystemFileManagerInPlatform,
 } from '@/stores/fs-platform'
 
-export const openLocalPathInSystemFileManagerDesktop = (localPath: string) => {
+export const openLocalPathInSystemFileManagerDesktop = (
+  localPath: string,
+  onErrorOrThrow: (error: unknown) => void = errorToActionOrThrow
+) => {
   const f = async () => {
     try {
       await openLocalPathInSystemFileManagerInPlatform(localPath)
     } catch (e) {
-      errorToActionOrThrow(e)
+      onErrorOrThrow(e)
     }
   }
   ignorePromise(f())
 }
 
-export const openPathInSystemFileManagerDesktop = (path: T.FS.Path) => {
+export const openPathInSystemFileManagerDesktop = (
+  path: T.FS.Path,
+  onErrorOrThrow: (error: unknown, path?: T.FS.Path) => void = errorToActionOrThrow
+) => {
   const f = async () => {
-    const {sfmi, pathItems} = useFSState.getState()
+    const {sfmi} = useFSState.getState()
     try {
-      await openPathInSystemFileManagerInPlatform(path, pathItems, sfmi.driverStatus, sfmi.directMountDir)
+      await openPathInSystemFileManagerInPlatform(path, sfmi.driverStatus, sfmi.directMountDir)
     } catch (e) {
-      errorToActionOrThrow(e, path)
+      onErrorOrThrow(e, path)
     }
   }
   ignorePromise(f())

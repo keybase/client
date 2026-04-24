@@ -150,17 +150,10 @@ export const emptyDownloadInfo = {
   startTime: 0,
 } satisfies T.FS.DownloadInfo
 
-export const emptyPathItemActionMenu = {
-  downloadID: undefined,
-  downloadIntent: undefined,
-} satisfies T.FS.PathItemActionMenu
-
 export const emptySettings = {
-  isLoading: false,
   loaded: false,
   sfmiBannerDismissed: false,
   spaceAvailableNotificationThreshold: 0,
-  syncOnCellular: false,
 } satisfies T.FS.Settings
 
 export const emptyPathInfo = {
@@ -168,11 +161,11 @@ export const emptyPathInfo = {
   platformAfterMountPath: '',
 } satisfies T.FS.PathInfo
 
-export const emptyFileContext = {
+export const emptyFileContext: T.FS.FileContext = {
   contentType: '',
   url: '',
   viewType: T.RPCGen.GUIViewType.default,
-} satisfies T.FS.FileContext
+}
 
 // Driver Status Constants
 export const driverStatusUnknown = {
@@ -572,14 +565,15 @@ export const downloadIsOngoing = (dlState: T.FS.DownloadState) =>
 
 export const getDownloadIntent = (
   path: T.FS.Path,
-  downloads: T.FS.Downloads
+  downloadInfos: ReadonlyMap<string, T.FS.DownloadInfo>,
+  downloadStates: ReadonlyMap<string, T.FS.DownloadState>
 ): T.FS.DownloadIntent | undefined => {
-  const found = [...downloads.info].find(([_, info]) => info.path === path)
+  const found = [...downloadInfos].find(([_, info]) => info.path === path)
   if (!found) {
     return undefined
   }
   const [downloadID, info] = found
-  const dlState = downloads.state.get(downloadID) || emptyDownloadState
+  const dlState = downloadStates.get(downloadID) || emptyDownloadState
   if (!downloadIsOngoing(dlState)) {
     return undefined
   }
@@ -714,14 +708,6 @@ export const getMainBannerType = (
     return T.FS.MainBannerType.None
   }
 }
-
-// Settings/Configuration Utilities
-export const getPathUserSetting = (
-  pathUserSettings: T.Immutable<Map<T.FS.Path, T.FS.PathUserSetting>>,
-  path: T.Immutable<T.FS.Path>
-): T.FS.PathUserSetting =>
-  pathUserSettings.get(path) ||
-  (T.FS.getPathLevel(path) < 3 ? defaultTlfListPathUserSetting : defaultPathUserSetting)
 
 export const showSortSetting = (
   path: T.FS.Path,

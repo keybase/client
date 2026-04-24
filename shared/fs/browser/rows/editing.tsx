@@ -1,34 +1,31 @@
-import * as C from '@/constants'
 import * as React from 'react'
-import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {rowStyles} from './common'
-import {useFSState} from '@/stores/fs'
-import * as FS from '@/stores/fs'
+import * as T from '@/constants/types'
+import type {BrowserEditSession} from '../edit-state'
 
 type Props = {
-  editID: T.FS.EditID
+  editSession: BrowserEditSession
 }
 
-function Editing({editID}: Props) {
-  const {commitEdit, discardEdit, edit, setEditName} = useFSState(
-    C.useShallow(s => ({
-      commitEdit: s.dispatch.commitEdit,
-      discardEdit: s.dispatch.discardEdit,
-      edit: s.edits.get(editID) || FS.emptyNewFolder,
-      setEditName: s.dispatch.setEditName,
-    }))
-  )
+function Editing({editSession}: Props) {
+  const {commitEdit, discardEdit, edit} = editSession
   const [filename, setFilename] = React.useState(edit.name)
+  const setEditName = React.useEffectEvent((nextName: string) => {
+    editSession.setEditName(nextName)
+  })
   const onCancel = () => {
-    discardEdit(editID)
+    discardEdit()
   }
   const onSubmit = () => {
-    commitEdit(editID)
+    commitEdit()
   }
   React.useEffect(() => {
-    setEditName(editID, filename)
-  }, [editID, filename, setEditName])
+    setEditName(filename)
+  }, [filename, editSession.editID])
+  React.useEffect(() => {
+    setFilename(edit.name)
+  }, [edit.name, editSession.editID])
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') onCancel()
   }
@@ -70,12 +67,12 @@ function Editing({editID}: Props) {
               <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} />
             </Kb.WithTooltip>
           )}
-          <Kb.WaitingButton
+          <Kb.Button
             key="create"
             style={styles.button}
             small={true}
             label={edit.error ? 'Retry' : edit.type === T.FS.EditType.NewFolder ? 'Create' : 'Save'}
-            waitingKey={C.waitingKeyFSCommitEdit}
+            waiting={editSession.isSubmitting}
             onClick={onSubmit}
           />
           <Kb.Icon

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {navigateAppend} from '@/constants/router'
-import {useFSState} from '@/stores/fs'
+import {useFsPathItem} from '@/fs/common'
 import * as FS from '@/stores/fs'
 
 type Props = {
@@ -19,7 +19,7 @@ const getTlfName = (parsedPath: T.FS.ParsedPath): string => {
 
 const PublicBanner = (props: Props) => {
   const {path} = props
-  const isWritable = useFSState(s => FS.getPathItem(s.pathItems, path).writable)
+  const isWritable = useFsPathItem(path).writable
   const lastPublicBannerClosedTlf = props.lastClosedTlf ?? ''
   const setLastPublicBannerClosedTlf = React.useCallback(
     (tlf: string) =>

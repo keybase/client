@@ -2,8 +2,7 @@ import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
-import {useFsPathMetadata, TlfInfoLine, Filename} from '@/fs/common'
-import {useFSState} from '@/stores/fs'
+import {useFsPathMetadata, useFsTlf, TlfInfoLine, Filename} from '@/fs/common'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -23,9 +22,9 @@ const FsPathMetadataLoader = ({path}: {path: T.FS.Path}) => {
 
 const TLFContainer = (p: OwnProps) => {
   const {tlfType, name, mixedMode, destinationPickerSource, disabled} = p
-  const tlf = useFSState(s => FS.getTlfFromTlfs(s.tlfs, tlfType, name))
   const username = useCurrentUserState(s => s.username)
   const path = FS.tlfTypeAndNameToPath(tlfType, name)
+  const tlf = useFsTlf(path, {loadOnMount: false})
   const _usernames = FS.getUsernamesFromTlfName(name).filter(name => name !== username)
   const onOpen = useOpen({destinationPickerSource, path})
   const loadPathMetadata = tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled

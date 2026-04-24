@@ -14,7 +14,6 @@ import {isLinux} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
 import './tab-bar.css'
 import {settingsLogOutTab} from '@/constants/settings'
-import {useFSState} from '@/stores/fs'
 import {useNotifState} from '@/stores/notifications'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useShellState} from '@/stores/shell'
@@ -30,7 +29,7 @@ export type Props = {
 }
 
 const FilesTabBadge = () => {
-  const uploadIcon = useFSState(s => s.getUploadIconForFilesTab())
+  const uploadIcon = Kbfs.useFilesTabUploadIcon()
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.badgeIconUpload} /> : null
 }
 
@@ -213,11 +212,7 @@ type TabProps = {
 const TabBadge = (p: {name: Tabs.Tab}) => {
   const {name} = p
   const badgeNumbers = useNotifState(s => s.navBadges)
-  const {fsCriticalUpdate} = useFSState(
-    C.useShallow(s => ({
-      fsCriticalUpdate: s.criticalUpdate,
-    }))
-  )
+  const fsCriticalUpdate = useShellState(s => s.fsCriticalUpdate)
   const badge = (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
   return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
 }

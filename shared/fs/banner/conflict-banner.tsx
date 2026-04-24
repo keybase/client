@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as Kbfs from '@/fs/common'
 import {openURL as openUrl} from '@/util/misc'
-import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
@@ -12,12 +12,20 @@ type OwnProps = {
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = useFSState(s => FS.getTlfFromPath(s.tlfs, path))
-  const finishManualConflictResolution = useFSState(s => s.dispatch.finishManualConflictResolution)
-  const startManualConflictResolution = useFSState(s => s.dispatch.startManualConflictResolution)
+  const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
+  const _tlf = Kbfs.useFsTlf(path)
   const navigateAppend = C.Router2.navigateAppend
   const onFinishResolving = () => {
-    finishManualConflictResolution(path)
+    const f = async () => {
+      try {
+        await T.RPCGen.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
+          path: FS.pathToRPCPath(path),
+        })
+      } catch (error) {
+        errorToActionOrThrow(error, path)
+      }
+    }
+    C.ignorePromise(f())
   }
   const onGoToSamePathInDifferentTlf = (tlfPath: T.FS.Path) => {
     navigateAppend({name: 'fsRoot', params: {path: FS.rebasePathToDifferentTlf(path, tlfPath)}})
@@ -26,11 +34,20 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     openUrl('https://book.keybase.io/docs/files/details#conflict-resolution')
   }
   const onStartResolving = () => {
-    startManualConflictResolution(path)
+    const f = async () => {
+      try {
+        await T.RPCGen.SimpleFSSimpleFSClearConflictStateRpcPromise({
+          path: FS.pathToRPCPath(path),
+        })
+      } catch (error) {
+        errorToActionOrThrow(error, path)
+      }
+    }
+    C.ignorePromise(f())
   }
 
   const openInSystemFileManager = (path: T.FS.Path) => {
-    openPathInSystemFileManagerDesktop(path)
+    openPathInSystemFileManagerDesktop(path, errorToActionOrThrow)
   }
 
   const conflictState = _tlf.conflictState
