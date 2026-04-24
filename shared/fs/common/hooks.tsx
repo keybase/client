@@ -44,6 +44,7 @@ const emptyTlfs = makeEmptyTlfs()
 
 type FsSubscription = {
   count: number
+  subscribed: boolean
   subscriptionID: string
   unsubscribeTimer?: ReturnType<typeof setTimeout>
 }
@@ -485,23 +486,38 @@ const cancelScheduledSubscriptionUnsubscribe = (subscription: FsSubscription) =>
   delete subscription.unsubscribeTimer
 }
 
+const scheduleFsSubscriptionUnsubscribeIfUnused = (
+  manager: FsSubscriptionManager,
+  subscriptionKey: string,
+  subscription: FsSubscription
+) => {
+  if (subscription.count > 0 || subscription.unsubscribeTimer) {
+    return
+  }
+  if (!subscription.subscribed) {
+    return
+  }
+  subscription.unsubscribeTimer = setTimeout(() => {
+    const currentSubscription = manager.subscriptions.get(subscriptionKey)
+    if (
+      currentSubscription !== subscription ||
+      currentSubscription.count > 0 ||
+      !currentSubscription.subscribed
+    ) {
+      return
+    }
+    manager.subscriptions.delete(subscriptionKey)
+    unsubscribeFsSubscription(subscription.subscriptionID)
+  }, subscriptionUnsubscribeDelayMs)
+}
+
 const releaseFsSubscription = (
   manager: FsSubscriptionManager,
   subscriptionKey: string,
   subscription: FsSubscription
 ) => {
   subscription.count--
-  if (subscription.count > 0 || subscription.unsubscribeTimer) {
-    return
-  }
-  subscription.unsubscribeTimer = setTimeout(() => {
-    const currentSubscription = manager.subscriptions.get(subscriptionKey)
-    if (currentSubscription !== subscription || currentSubscription.count > 0) {
-      return
-    }
-    manager.subscriptions.delete(subscriptionKey)
-    unsubscribeFsSubscription(subscription.subscriptionID)
-  }, subscriptionUnsubscribeDelayMs)
+  scheduleFsSubscriptionUnsubscribeIfUnused(manager, subscriptionKey, subscription)
 }
 
 const useFsSubscriptionEffect = ({
@@ -512,7 +528,7 @@ const useFsSubscriptionEffect = ({
 }: {
   enabled?: boolean
   errorPath?: T.FS.Path
-  subscribe: (subscriptionID: string) => Promise<void>
+  subscribe: (subscriptionID: string) => Promise<void | false>
   subscriptionKey: string
 }) => {
   const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
@@ -545,19 +561,44 @@ const useFsSubscriptionEffect = ({
     }
 
     const subscriptionID = FS.makeUUID()
-    const subscription = {count: 1, subscriptionID}
+    const subscription = {count: 1, subscribed: false, subscriptionID}
     manager?.subscriptions.set(subscriptionKey, subscription)
+    const removeSubscription = () => {
+      if (manager?.subscriptions.get(subscriptionKey) === subscription) {
+        manager.subscriptions.delete(subscriptionKey)
+      }
+    }
     const f = async () => {
       try {
-        await subscribeEvent(subscriptionID)
+        const subscribed = await subscribeEvent(subscriptionID)
+        if (subscribed === false) {
+          removeSubscription()
+          return
+        }
+        subscription.subscribed = true
+        if (!manager) {
+          if (subscription.count === 0) {
+            unsubscribeFsSubscription(subscriptionID)
+          }
+          return
+        }
+        if (manager.subscriptions.get(subscriptionKey) !== subscription) {
+          unsubscribeFsSubscription(subscriptionID)
+          return
+        }
+        scheduleFsSubscriptionUnsubscribeIfUnused(manager, subscriptionKey, subscription)
       } catch (error) {
+        removeSubscription()
         onError(error)
       }
     }
     C.ignorePromise(f())
     return () => {
       if (!manager) {
-        unsubscribeFsSubscription(subscriptionID)
+        subscription.count--
+        if (subscription.subscribed) {
+          unsubscribeFsSubscription(subscriptionID)
+        }
         return
       }
       const currentSubscription = manager.subscriptions.get(subscriptionKey)
@@ -595,6 +636,7 @@ const useFsPathSubscriptionEffect = (
         if (error.code !== T.RPCGen.StatusCode.scteamcontactsettingsblock) {
           throw error
         }
+        return false
       }
     },
     subscriptionKey: `path:${pathString}:${topic}`,
