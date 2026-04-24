@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
 import {useModalHeaderState} from '@/stores/modal-header'
+import {FsBrowserEditProvider} from '../browser/edit-state'
 
 type Props = {
   onTriggerFilterMobile: () => void
@@ -49,7 +50,9 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
 const FsNavHeaderRightActions = (props: Props) => (
   <Kbfs.FsErrorProvider>
     <Kbfs.FsDataProvider>
-      <FsNavHeaderRightActionsInner {...props} />
+      <FsBrowserEditProvider>
+        <FsNavHeaderRightActionsInner {...props} />
+      </FsBrowserEditProvider>
     </Kbfs.FsDataProvider>
   </Kbfs.FsErrorProvider>
 )

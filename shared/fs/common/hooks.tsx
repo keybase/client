@@ -815,33 +815,46 @@ export const useFsOnlineStatus = () => {
 
 export const useFsPathInfo = (path: T.FS.Path, knownPathInfo = FS.emptyPathInfo): T.FS.PathInfo => {
   const alreadyKnown = knownPathInfo !== FS.emptyPathInfo
-  const [pathInfo, setPathInfo] = React.useState<T.FS.PathInfo>(alreadyKnown ? knownPathInfo : FS.emptyPathInfo)
   const pathInfoVersionRef = React.useRef(0)
+  const [pathInfoState, setPathInfoState] = React.useState<{
+    path: T.FS.Path
+    pathInfo: T.FS.PathInfo
+  }>(() => ({path, pathInfo: alreadyKnown ? knownPathInfo : FS.emptyPathInfo}))
   React.useEffect(() => {
-    pathInfoVersionRef.current += 1
-    setPathInfo(alreadyKnown ? knownPathInfo : FS.emptyPathInfo)
+    if (alreadyKnown) {
+      pathInfoVersionRef.current += 1
+      setPathInfoState({path, pathInfo: knownPathInfo})
+    }
   }, [alreadyKnown, knownPathInfo, path])
   useFsLoadOnMountAndFocus({
     enabled: !alreadyKnown,
     load: () => {
       const version = ++pathInfoVersionRef.current
+      const requestPath = path
       const f = async () => {
         const nextPathInfo = await T.RPCGen.kbfsMountGetKBFSPathInfoRpcPromise({
-          standardPath: T.FS.pathToString(path),
+          standardPath: T.FS.pathToString(requestPath),
         })
         if (pathInfoVersionRef.current !== version) {
           return
         }
-        setPathInfo({
-          deeplinkPath: nextPathInfo.deeplinkPath,
-          platformAfterMountPath: nextPathInfo.platformAfterMountPath,
+        setPathInfoState({
+          path: requestPath,
+          pathInfo: {
+            deeplinkPath: nextPathInfo.deeplinkPath,
+            platformAfterMountPath: nextPathInfo.platformAfterMountPath,
+          },
         })
       }
       C.ignorePromise(f())
     },
     reloadKey: path,
   })
-  return alreadyKnown ? knownPathInfo : pathInfo
+  return alreadyKnown
+    ? knownPathInfo
+    : pathInfoState.path === path
+      ? pathInfoState.pathInfo
+      : FS.emptyPathInfo
 }
 
 export const useFsSoftError = (path: T.FS.Path): T.FS.SoftError | undefined => {

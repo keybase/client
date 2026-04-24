@@ -25,6 +25,61 @@ type BrowserEditContextType = {
 
 const BrowserEditContext = React.createContext<BrowserEditContextType | null>(null)
 
+type BrowserEditState = {
+  edits: ReadonlyMap<T.FS.EditID, T.FS.Edit>
+  submitting: ReadonlySet<T.FS.EditID>
+}
+
+const makeEmptyBrowserEditState = (): BrowserEditState => ({
+  edits: new Map(),
+  submitting: new Set(),
+})
+
+let browserEditState = makeEmptyBrowserEditState()
+let browserEditProviderCount = 0
+const browserEditStateListeners = new Set<() => void>()
+
+const subscribeBrowserEditState = (listener: () => void) => {
+  browserEditStateListeners.add(listener)
+  return () => {
+    browserEditStateListeners.delete(listener)
+  }
+}
+
+const getBrowserEditStateSnapshot = () => browserEditState
+
+const setBrowserEditState = (updater: (prevState: BrowserEditState) => BrowserEditState) => {
+  const nextState = updater(browserEditState)
+  if (nextState === browserEditState) {
+    return
+  }
+  browserEditState = nextState
+  browserEditStateListeners.forEach(listener => listener())
+}
+
+const setBrowserEdits = (
+  updater: (prevEdits: ReadonlyMap<T.FS.EditID, T.FS.Edit>) => ReadonlyMap<T.FS.EditID, T.FS.Edit>
+) => {
+  setBrowserEditState(prevState => {
+    const edits = updater(prevState.edits)
+    return edits === prevState.edits ? prevState : {...prevState, edits}
+  })
+}
+
+const setBrowserSubmitting = (
+  updater: (prevSubmitting: ReadonlySet<T.FS.EditID>) => ReadonlySet<T.FS.EditID>
+) => {
+  setBrowserEditState(prevState => {
+    const submitting = updater(prevState.submitting)
+    return submitting === prevState.submitting ? prevState : {...prevState, submitting}
+  })
+}
+
+const resetBrowserEditState = () => {
+  browserEditState = makeEmptyBrowserEditState()
+  browserEditStateListeners.forEach(listener => listener())
+}
+
 const addOrReplaceEdit = (
   prevEdits: ReadonlyMap<T.FS.EditID, T.FS.Edit>,
   editID: T.FS.EditID,
@@ -83,41 +138,48 @@ const getStaleRenameEditIDs = (
 
 export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) => {
   const errorToActionOrThrow = useFsErrorActionOrThrow()
-  const [edits, setEdits] = React.useState<ReadonlyMap<T.FS.EditID, T.FS.Edit>>(() => new Map())
-  const [submitting, setSubmitting] = React.useState<ReadonlySet<T.FS.EditID>>(() => new Set())
+  const {edits, submitting} = React.useSyncExternalStore(
+    subscribeBrowserEditState,
+    getBrowserEditStateSnapshot,
+    getBrowserEditStateSnapshot
+  )
   const pathItems = useFsLoadedPathItems()
-  const editsRef = React.useRef(edits)
-  editsRef.current = edits
-  const pathItemsRef = React.useRef(pathItems)
-  pathItemsRef.current = pathItems
+
+  React.useEffect(() => {
+    browserEditProviderCount++
+    return () => {
+      browserEditProviderCount--
+      if (!browserEditProviderCount) {
+        resetBrowserEditState()
+      }
+    }
+  }, [])
 
   React.useEffect(() => {
     const staleEditIDs = getStaleRenameEditIDs(edits, pathItems)
     if (!staleEditIDs.size) {
       return
     }
-    setEdits(prevEdits => {
-      const nextEdits = new Map(prevEdits)
+    setBrowserEditState(prevState => {
+      const nextEdits = new Map(prevState.edits)
+      const nextSubmitting = new Set(prevState.submitting)
       staleEditIDs.forEach(editID => {
         nextEdits.delete(editID)
-      })
-      return nextEdits
-    })
-    setSubmitting(prevSubmitting => {
-      const nextSubmitting = new Set(prevSubmitting)
-      staleEditIDs.forEach(editID => {
         nextSubmitting.delete(editID)
       })
-      return nextSubmitting.size === prevSubmitting.size ? prevSubmitting : nextSubmitting
+      return {
+        edits: nextEdits,
+        submitting: nextSubmitting,
+      }
     })
   }, [edits, pathItems])
 
   const commitEdit = (editID: T.FS.EditID) => {
-    const edit = editsRef.current.get(editID)
+    const edit = edits.get(editID)
     if (!edit) {
       return
     }
-    setSubmitting(prevSubmitting => addSubmitting(prevSubmitting, editID))
+    setBrowserSubmitting(prevSubmitting => addSubmitting(prevSubmitting, editID))
     const f = async () => {
       try {
         switch (edit.type) {
@@ -143,7 +205,7 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
             break
           }
         }
-        setEdits(prevEdits => deleteEdit(prevEdits, editID))
+        setBrowserEdits(prevEdits => deleteEdit(prevEdits, editID))
       } catch (error) {
         if (
           edit.type === T.FS.EditType.Rename &&
@@ -152,26 +214,26 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
             error.code
           )
         ) {
-          setEdits(prevEdits =>
+          setBrowserEdits(prevEdits =>
             addOrReplaceEdit(prevEdits, editID, {...edit, error: error.desc || 'name exists'})
           )
           return
         }
         errorToActionOrThrow(error, edit.parentPath)
       } finally {
-        setSubmitting(prevSubmitting => deleteSubmitting(prevSubmitting, editID))
+        setBrowserSubmitting(prevSubmitting => deleteSubmitting(prevSubmitting, editID))
       }
     }
     ignorePromise(f())
   }
 
   const discardEdit = (editID: T.FS.EditID) => {
-    setEdits(prevEdits => deleteEdit(prevEdits, editID))
-    setSubmitting(prevSubmitting => deleteSubmitting(prevSubmitting, editID))
+    setBrowserEdits(prevEdits => deleteEdit(prevEdits, editID))
+    setBrowserSubmitting(prevSubmitting => deleteSubmitting(prevSubmitting, editID))
   }
 
   const setEditName = (editID: T.FS.EditID, name: string) => {
-    setEdits(prevEdits => {
+    setBrowserEdits(prevEdits => {
       const edit = prevEdits.get(editID)
       if (!edit || edit.name === name) {
         return prevEdits
@@ -183,7 +245,7 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
   const startRename = (path: T.FS.Path) => {
     const parentPath = T.FS.getPathParent(path)
     const originalName = T.FS.getPathName(path)
-    setEdits(prevEdits =>
+    setBrowserEdits(prevEdits =>
       addOrReplaceEdit(prevEdits, makeEditID(), {
         name: originalName,
         originalName,
@@ -194,13 +256,13 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
   }
 
   const newFolderRow = (parentPath: T.FS.Path) => {
-    const parentPathItem = Constants.getPathItem(pathItemsRef.current, parentPath)
+    const parentPathItem = Constants.getPathItem(pathItems, parentPath)
     if (parentPathItem.type !== T.FS.PathType.Folder) {
       console.warn(`bad parentPath: ${parentPathItem.type}`)
       return
     }
 
-    const existingNewFolderNames = new Set([...editsRef.current.values()].map(({name}) => name))
+    const existingNewFolderNames = new Set([...edits.values()].map(({name}) => name))
 
     let newFolderName = 'New Folder'
     let i = 2
@@ -209,7 +271,7 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
       ++i
     }
 
-    setEdits(prevEdits =>
+    setBrowserEdits(prevEdits =>
       addOrReplaceEdit(prevEdits, makeEditID(), {
         ...Constants.emptyNewFolder,
         name: newFolderName,
