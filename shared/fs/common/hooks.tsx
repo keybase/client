@@ -954,17 +954,21 @@ export const useFsFileContext = (
 } => {
   const pathItem = useFsPathItem(path)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
-  const [fileContext, setFileContext] = React.useState<T.FS.FileContext>(FS.emptyFileContext)
   const fileContextVersionRef = React.useRef(0)
   const [urlError, setUrlError] = React.useState('')
   const reloadKey = `${path}:${pathItem.type}:${pathItem.lastModifiedTimestamp}:${urlError}`
-  const reloadKeyRef = React.useRef(reloadKey)
-  reloadKeyRef.current = reloadKey
+  const [fileContextState, setFileContextState] = React.useState<{
+    fileContext: T.FS.FileContext
+    reloadKey: string
+  }>(() => ({fileContext: FS.emptyFileContext, reloadKey}))
+  const fileContext =
+    fileContextState.reloadKey === reloadKey ? fileContextState.fileContext : FS.emptyFileContext
   React.useEffect(() => {
     if (pathItem.type !== T.FS.PathType.File) {
-      setFileContext(FS.emptyFileContext)
+      fileContextVersionRef.current += 1
+      setFileContextState({fileContext: FS.emptyFileContext, reloadKey})
     }
-  }, [pathItem.type])
+  }, [pathItem.type, reloadKey])
   useFsLoadOnMountAndFocus({
     enabled: pathItem.type === T.FS.PathType.File,
     load: () => {
@@ -976,16 +980,19 @@ export const useFsFileContext = (
           const res = await T.RPCGen.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
             path: FS.pathToRPCPath(path).kbfs,
           })
-          if (fileContextVersionRef.current !== version || reloadKeyRef.current !== requestReloadKey) {
+          if (fileContextVersionRef.current !== version) {
             return
           }
-          setFileContext({
-            contentType: res.contentType,
-            url: res.url,
-            viewType: res.viewType,
+          setFileContextState({
+            fileContext: {
+              contentType: res.contentType,
+              url: res.url,
+              viewType: res.viewType,
+            },
+            reloadKey: requestReloadKey,
           })
         } catch (err) {
-          if (fileContextVersionRef.current !== version || reloadKeyRef.current !== requestReloadKey) {
+          if (fileContextVersionRef.current !== version) {
             return
           }
           errorToActionOrThrow(err)
