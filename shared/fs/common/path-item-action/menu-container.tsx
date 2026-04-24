@@ -8,7 +8,7 @@ import type {FloatingMenuProps, OnDownloadStarted} from './types'
 import {useFsBrowserEdits} from '@/fs/browser/edit-state'
 import {getRootLayout, getShareLayout} from './layout'
 import {useFsErrorActionOrThrow} from '../error-state'
-import {useFsFileContext, useFsWatchDownloadForMobile} from '../hooks'
+import {useFsFileContext, useFsReloadTlfs, useFsWatchDownloadForMobile} from '../hooks'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -29,18 +29,38 @@ type OwnProps = {
 const needConfirm = (pathItem: T.FS.PathItem) =>
   pathItem.type === T.FS.PathType.File && pathItem.size > 50 * 1024 * 1024
 
+const folderRPCFromPath = (path: T.FS.Path): T.RPCGen.FolderHandle | undefined => {
+  const pathElems = T.FS.getPathElements(path)
+  if (!pathElems.length) {
+    return undefined
+  }
+  const visibility = T.FS.getVisibilityFromElems(pathElems)
+  if (visibility === undefined) {
+    return undefined
+  }
+  const name = T.FS.getPathNameFromElems(pathElems)
+  if (!name) {
+    return undefined
+  }
+  return {
+    created: false,
+    folderType: T.FS.getRPCFolderTypeFromVisibility(visibility),
+    name,
+  }
+}
+
 const Container = (op: OwnProps) => {
   const {downloadID, downloadIntent, path, mode, floatingMenuProps, onDownloadStarted, setView, view} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
   const {fileContext, pathItem} = useFsFileContext(path)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const reloadTlfs = useFsReloadTlfs()
   const browserEdits = useFsBrowserEdits()
-  const {cancelDownload, dismissDownload, download, favoriteIgnore, sfmiEnabled} = useFSState(
+  const {cancelDownload, dismissDownload, download, sfmiEnabled} = useFSState(
     C.useShallow(s => ({
       cancelDownload: s.dispatch.cancelDownload,
       dismissDownload: s.dispatch.dismissDownload,
       download: s.dispatch.download,
-      favoriteIgnore: s.dispatch.favoriteIgnore,
       sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
     }))
   )
@@ -217,11 +237,26 @@ const Container = (op: OwnProps) => {
     : []
 
   const ignoreNeedsToWait = C.Waiting.useAnyWaiting([C.waitingKeyFSFolderList, C.waitingKeyFSStat])
+  const ignoreFolder = () => {
+    const folder = folderRPCFromPath(path)
+    if (!folder) {
+      return
+    }
+    const f = async () => {
+      try {
+        await T.RPCGen.favoriteFavoriteIgnoreRpcPromise({folder})
+        reloadTlfs()
+      } catch (error) {
+        errorToActionOrThrow(error, path)
+      }
+    }
+    C.ignorePromise(f())
+  }
   const ignoreTlf = layout.ignoreTlf
     ? ignoreNeedsToWait
       ? ('disabled' as const)
       : cancelAfter(() => {
-          favoriteIgnore(path)
+          ignoreFolder()
         })
     : undefined
   const itemIgnore = ignoreTlf

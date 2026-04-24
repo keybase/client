@@ -133,7 +133,7 @@ Current slice note:
 
 ## Chunk 4: Re-evaluate Subscription and Notification Ownership
 
-- [ ] Stop treating `fs` as the default owner for mounted-screen refreshes
+- [x] Stop treating `fs` as the default owner for mounted-screen refreshes
 - [x] Keep mounted path subscriptions near the owning hooks instead of centering all path refresh behavior in the store
 - [ ] Re-evaluate store-owned handling for:
   - `keybase.1.NotifyFS.FSSubscriptionNotifyPath`
@@ -157,7 +157,8 @@ Current slice note:
 
 Current slice note:
 - mounted FS hooks now own their `SimpleFSSubscribePath` / `SimpleFSUnsubscribe` lifecycle directly, and store-owned `FSSubscriptionNotifyPath` refresh handling has been removed
-- non-path notifications still need review before the store stops being the default owner for mounted-screen refreshes
+- mounted FS hooks now resubscribe and reload on KBFS reconnect, and mounted TLF refreshes no longer rely on `shared/stores/fs.tsx`
+- store-owned `keybase.1.NotifyBadges.badgeState` favorites refresh handling has been removed; non-path background notifications still need review
 
 ## Chunk 5: Decide What Stays Global
 
@@ -168,6 +169,7 @@ Current slice note:
 Current slice note:
 - mounted FS path consumers no longer fall back to `shared/stores/fs.tsx` for `pathItems`; route-owned hooks require the feature-local `FsDataProvider`
 - global `pathItems` state and its store-owned folder/stat loaders have been removed; desktop open-in-file-manager and upload summaries now stat paths directly when they need folder/file type
+- global `tlfs` state and the store-owned TLF mutation helpers have been removed; mounted favorites/sync-config updates now reload through feature-local hooks
 
 ### Likely candidates to keep global
 
@@ -185,7 +187,6 @@ Current slice note:
 - `pathItems`
 - `pathInfos`
 - `fileContext`
-- `tlfs`
 - `tlfUpdates`
 - `edits`
 - `pathItemActionMenu`

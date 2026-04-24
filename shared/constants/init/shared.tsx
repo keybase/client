@@ -397,9 +397,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
 
-        const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
-        useFSState.getState().dispatch.onEngineIncomingImpl(action)
-
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }

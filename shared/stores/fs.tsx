@@ -1,18 +1,14 @@
 import type * as EngineGen from '@/constants/rpc'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
-import * as S from '@/constants/strings'
 import {requestPermissionsToWrite} from '@/util/platform-specific'
-import * as Tabs from '@/constants/tabs'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {NotifyPopup} from '@/util/misc'
 import logger from '@/logger'
 import {isMobile} from '@/constants/platform'
-import {tlfToPreferredOrder} from '@/util/kbfs'
-import {RPCError} from '@/util/errors'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
-import {navigateAppend, navigateUp} from '@/constants/router'
+import {navigateAppend} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useNotifState} from '@/stores/notifications'
@@ -32,148 +28,12 @@ import {
 
 export * from '@/constants/fs'
 
-const tlfSyncEnabled = {
-  mode: T.FS.TlfSyncMode.Enabled,
-} satisfies T.FS.TlfSyncEnabled
-
-const tlfSyncDisabled = {
-  mode: T.FS.TlfSyncMode.Disabled,
-} satisfies T.FS.TlfSyncDisabled
-
-const makeTlfSyncPartial = ({
-  enabledPaths,
-}: {
-  enabledPaths?: T.FS.TlfSyncPartial['enabledPaths']
-}): T.FS.TlfSyncPartial => ({
-  enabledPaths: [...(enabledPaths || [])],
-  mode: T.FS.TlfSyncMode.Partial,
-})
-
-const makeConflictStateNormalView = ({
-  localViewTlfPaths,
-  resolvingConflict,
-  stuckInConflict,
-}: Partial<T.FS.ConflictStateNormalView>): T.FS.ConflictStateNormalView => ({
-  localViewTlfPaths: [...(localViewTlfPaths || [])],
-  resolvingConflict: resolvingConflict || false,
-  stuckInConflict: stuckInConflict || false,
-  type: T.FS.ConflictStateType.NormalView,
-})
-
-const tlfNormalViewWithNoConflict = makeConflictStateNormalView({})
-
-const makeConflictStateManualResolvingLocalView = ({
-  normalViewTlfPath,
-}: Partial<T.FS.ConflictStateManualResolvingLocalView>): T.FS.ConflictStateManualResolvingLocalView => ({
-  normalViewTlfPath: normalViewTlfPath || Constants.defaultPath,
-  type: T.FS.ConflictStateType.ManualResolvingLocalView,
-})
-
-const makeTlf = (p: Partial<T.FS.Tlf>): T.FS.Tlf => {
-  const {conflictState, isFavorite, isIgnored, isNew, name, resetParticipants, syncConfig, teamId, tlfMtime} =
-    p
-  return {
-    conflictState: conflictState || tlfNormalViewWithNoConflict,
-    isFavorite: isFavorite || false,
-    isIgnored: isIgnored || false,
-    isNew: isNew || false,
-    name: name || '',
-    resetParticipants: [...(resetParticipants || [])],
-    syncConfig: syncConfig || tlfSyncDisabled,
-    teamId: teamId || '',
-    tlfMtime: tlfMtime || 0,
-    /* See comment in constants/types/fs.js
-      needsRekey: false,
-      waitingForParticipantUnlock: I.List(),
-      youCanUnlock: I.List(),
-      */
-  }
-}
-
-const rpcFolderTypeToTlfType = (rpcFolderType: T.RPCGen.FolderType) => {
-  switch (rpcFolderType) {
-    case T.RPCGen.FolderType.private:
-      return T.FS.TlfType.Private
-    case T.RPCGen.FolderType.public:
-      return T.FS.TlfType.Public
-    case T.RPCGen.FolderType.team:
-      return T.FS.TlfType.Team
-    default:
-      return null
-  }
-}
-
 const rpcPathToPath = (rpcPath: T.RPCGen.KBFSPath) => T.FS.pathConcat(Constants.defaultPath, rpcPath.path)
 
 const pathFromFolderRPC = (folder: T.RPCGen.Folder): T.FS.Path => {
   const visibility = T.FS.getVisibilityFromRPCFolderType(folder.folderType)
   if (!visibility) return T.FS.stringToPath('')
   return T.FS.stringToPath(`/keybase/${visibility}/${folder.name}`)
-}
-
-const folderRPCFromPath = (path: T.FS.Path): T.RPCGen.FolderHandle | undefined => {
-  const pathElems = T.FS.getPathElements(path)
-  if (pathElems.length === 0) return undefined
-
-  const visibility = T.FS.getVisibilityFromElems(pathElems)
-  if (visibility === undefined) return undefined
-
-  const name = T.FS.getPathNameFromElems(pathElems)
-  if (name === '') return undefined
-
-  return {
-    created: false,
-    folderType: T.FS.getRPCFolderTypeFromVisibility(visibility),
-    name,
-  }
-}
-
-const rpcConflictStateToConflictState = (rpcConflictState?: T.RPCGen.ConflictState): T.FS.ConflictState => {
-  if (rpcConflictState) {
-    if (rpcConflictState.conflictStateType === T.RPCGen.ConflictStateType.normalview) {
-      const nv = rpcConflictState.normalview
-      return makeConflictStateNormalView({
-        localViewTlfPaths: (nv.localViews || []).reduce<Array<T.FS.Path>>((arr, p) => {
-          p.PathType === T.RPCGen.PathType.kbfs && arr.push(rpcPathToPath(p.kbfs))
-          return arr
-        }, []),
-        resolvingConflict: nv.resolvingConflict,
-        stuckInConflict: nv.stuckInConflict,
-      })
-    } else {
-      const nv = rpcConflictState.manualresolvinglocalview.normalView
-      return makeConflictStateManualResolvingLocalView({
-        normalViewTlfPath:
-          nv.PathType === T.RPCGen.PathType.kbfs ? rpcPathToPath(nv.kbfs) : Constants.defaultPath,
-      })
-    }
-  } else {
-    return tlfNormalViewWithNoConflict
-  }
-}
-
-const getSyncConfigFromRPC = (
-  tlfName: string,
-  tlfType: T.FS.TlfType,
-  config?: T.RPCGen.FolderSyncConfig
-): T.FS.TlfSyncConfig => {
-  if (!config) {
-    return tlfSyncDisabled
-  }
-  switch (config.mode) {
-    case T.RPCGen.FolderSyncMode.disabled:
-      return tlfSyncDisabled
-    case T.RPCGen.FolderSyncMode.enabled:
-      return tlfSyncEnabled
-    case T.RPCGen.FolderSyncMode.partial:
-      return makeTlfSyncPartial({
-        enabledPaths: config.paths
-          ? config.paths.map(str => T.FS.getPathFromRelative(tlfName, tlfType, str))
-          : [],
-      })
-    default:
-      return tlfSyncDisabled
-  }
 }
 
 const fsNotificationTypeToEditType = (
@@ -232,9 +92,6 @@ export const resetBannerTypeFromTlf = (tlf: T.FS.Tlf): T.FS.ResetBannerType => {
   }
   return resetParticipants.length
 }
-
-export const resetBannerType = (s: Pick<State, 'tlfs'>, path: T.FS.Path): T.FS.ResetBannerType =>
-  resetBannerTypeFromTlf(Constants.getTlfFromPath(s.tlfs, path))
 
 const noAccessErrorCodes: Array<T.RPCGen.StatusCode> = [
   T.RPCGen.StatusCode.scsimplefsnoaccess,
@@ -306,7 +163,6 @@ type Store = T.Immutable<{
   sfmi: T.FS.SystemFileManagerIntegration
   softErrors: T.FS.SoftErrors
   tlfUpdates: T.FS.UserTlfUpdates
-  tlfs: T.FS.Tlfs
   uploads: T.FS.Uploads
 }>
 const initialStore: Store = {
@@ -331,13 +187,6 @@ const initialStore: Store = {
     tlfErrors: new Map(),
   },
   tlfUpdates: [],
-  tlfs: {
-    additionalTlfs: new Map(),
-    loaded: false,
-    private: new Map(),
-    public: new Map(),
-    team: new Map(),
-  },
   uploads: {
     endEstimate: undefined,
     syncingPaths: new Set(),
@@ -364,18 +213,14 @@ export type State = Store & {
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
-    favoriteIgnore: (path: T.FS.Path) => void
-    favoritesLoad: () => void
     finishManualConflictResolution: (localViewTlfPath: T.FS.Path) => void
     getOnlineStatus: () => void
     journalUpdate: (syncingPaths: Array<T.FS.Path>, totalSyncingBytes: number, endEstimate?: number) => void
     kbfsDaemonOnlineStatusChanged: (onlineStatus: T.RPCGen.KbfsOnlineStatus) => void
     kbfsDaemonRpcStatusChanged: (rpcStatus: T.FS.KbfsDaemonRpcStatus) => void
     letResetUserBackIn: (id: T.RPCGen.TeamID, username: string) => void
-    loadAdditionalTlf: (tlfPath: T.FS.Path) => void
     loadFilesTabBadge: () => void
     loadSettings: () => void
-    loadTlfSyncConfig: (tlfPath: T.FS.Path) => void
     loadUploadStatus: () => void
     loadDownloadInfo: (downloadID: string) => void
     loadDownloadStatus: () => void
@@ -400,8 +245,6 @@ export type State = Store & {
     setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     setSpaceAvailableNotificationThreshold: (spaceAvailableNotificationThreshold: number) => void
     setTlfSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
-    setTlfsAsUnloaded: () => void
-    setTlfSyncConfig: (tlfPath: T.FS.Path, enabled: boolean) => void
     startManualConflictResolution: (tlfPath: T.FS.Path) => void
     subscribeNonPath: (subscriptionID: string, topic: T.RPCGen.SubscriptionTopic) => void
     syncStatusChanged: (status: T.RPCGen.FolderSyncStatus) => void
@@ -449,15 +292,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
   // reducer and happens before this.
   let waitForKbfsDaemonInProgress = false
-  let lastFavoritesBadgeState = {newTlfs: 0, rekeysNeeded: 0}
-
-  const shouldReloadFavoritesFromBadgeState = (badgeState: T.RPCGen.BadgeState) => {
-    const {newTlfs, rekeysNeeded} = badgeState
-    const same =
-      newTlfs === lastFavoritesBadgeState.newTlfs && rekeysNeeded === lastFavoritesBadgeState.rekeysNeeded
-    lastFavoritesBadgeState = {newTlfs, rekeysNeeded}
-    return !same
-  }
 
   const getUploadIconForFilesTab = () => {
     switch (get().badge) {
@@ -713,106 +547,11 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         }
       })
     },
-    favoriteIgnore: path => {
-      const setTlfIgnored = (isIgnored: boolean) => {
-        set(s => {
-          const elems = T.FS.getPathElements(path)
-          const visibility = T.FS.getVisibilityFromElems(elems)
-          if (!visibility) return
-          const name = elems[2] ?? ''
-          s.tlfs[visibility].set(
-            name,
-            T.castDraft({...(s.tlfs[visibility].get(name) || Constants.unknownTlf), isIgnored})
-          )
-        })
-      }
-      const f = async () => {
-        const folder = folderRPCFromPath(path)
-        if (!folder) {
-          throw new Error('No folder specified')
-        }
-        try {
-          await T.RPCGen.favoriteFavoriteIgnoreRpcPromise({folder})
-        } catch (error) {
-          errorToActionOrThrow(error, path)
-          setTlfIgnored(false)
-        }
-      }
-      setTlfIgnored(true)
-      ignorePromise(f())
-    },
-    favoritesLoad: () => {
-      const f = async () => {
-        try {
-          if (!useConfigState.getState().loggedIn) {
-            return
-          }
-          const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
-          const payload = {
-            private: new Map<string, T.FS.Tlf>(),
-            public: new Map<string, T.FS.Tlf>(),
-            team: new Map<string, T.FS.Tlf>(),
-          } as const
-          const fs = [
-            ...(results.favoriteFolders
-              ? [{folders: results.favoriteFolders, isFavorite: true, isIgnored: false, isNew: false}]
-              : []),
-            ...(results.ignoredFolders
-              ? [{folders: results.ignoredFolders, isFavorite: false, isIgnored: true, isNew: false}]
-              : []),
-            ...(results.newFolders
-              ? [{folders: results.newFolders, isFavorite: true, isIgnored: false, isNew: true}]
-              : []),
-          ]
-          fs.forEach(({folders, isFavorite, isIgnored, isNew}) =>
-            folders.forEach(folder => {
-              const tlfType = rpcFolderTypeToTlfType(folder.folderType)
-              const tlfName =
-                tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
-                  ? tlfToPreferredOrder(folder.name, useCurrentUserState.getState().username)
-                  : folder.name
-              tlfType &&
-                payload[tlfType].set(
-                  tlfName,
-                  makeTlf({
-                    conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
-                    isFavorite,
-                    isIgnored,
-                    isNew,
-                    name: tlfName,
-                    resetParticipants: (folder.reset_members || []).map(({username}) => username),
-                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
-                    teamId: folder.team_id || '',
-                    tlfMtime: folder.mtime || 0,
-                  })
-                )
-            })
-          )
-
-          if (payload.private.size) {
-            set(s => {
-              s.tlfs.private = T.castDraft(payload.private)
-              s.tlfs.public = T.castDraft(payload.public)
-              s.tlfs.team = T.castDraft(payload.team)
-              s.tlfs.loaded = true
-            })
-            const counts = new Map<Tabs.Tab, number>()
-            counts.set(Tabs.fsTab, Constants.computeBadgeNumberForAll(get().tlfs))
-            useNotifState.getState().dispatch.setBadgeCounts(counts)
-          }
-        } catch (e) {
-          errorToActionOrThrow(e)
-        }
-        return
-      }
-      ignorePromise(f())
-    },
     finishManualConflictResolution: localViewTlfPath => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
           path: Constants.pathToRPCPath(localViewTlfPath),
         })
-        get().dispatch.favoritesLoad()
       }
       ignorePromise(f())
     },
@@ -857,11 +596,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         s.kbfsDaemonStatus.rpcStatus = rpcStatus
       })
 
-      const kbfsDaemonStatus = get().kbfsDaemonStatus
-      if (kbfsDaemonStatus.rpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected) {
-        get().dispatch.setTlfsAsUnloaded()
-      }
-
       subscribeAndLoad(fsBadgeSub, T.RPCGen.SubscriptionTopic.filesTabBadge, () =>
         get().dispatch.loadFilesTabBadge()
       )
@@ -881,62 +615,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           await T.RPCGen.teamsTeamReAddMemberAfterResetRpcPromise({id, username})
         } catch (error) {
           errorToActionOrThrow(error)
-        }
-      }
-      ignorePromise(f())
-    },
-    loadAdditionalTlf: tlfPath => {
-      const f = async () => {
-        if (T.FS.getPathLevel(tlfPath) !== 3) {
-          logger.warn('loadAdditionalTlf called on non-TLF path')
-          return
-        }
-        try {
-          const {folder, isFavorite, isIgnored, isNew} = await T.RPCGen.SimpleFSSimpleFSGetFolderRpcPromise({
-            path: Constants.pathToRPCPath(tlfPath).kbfs,
-          })
-          const tlfType = rpcFolderTypeToTlfType(folder.folderType)
-          const tlfName =
-            tlfType === T.FS.TlfType.Private || tlfType === T.FS.TlfType.Public
-              ? tlfToPreferredOrder(folder.name, useCurrentUserState.getState().username)
-              : folder.name
-
-          if (tlfType) {
-            set(s => {
-              s.tlfs.additionalTlfs.set(
-                tlfPath,
-                T.castDraft(
-                  makeTlf({
-                    conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
-                    isFavorite,
-                    isIgnored,
-                    isNew,
-                    name: tlfName,
-                    resetParticipants: (folder.reset_members || []).map(({username}) => username),
-                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
-                    teamId: folder.team_id || '',
-                    tlfMtime: folder.mtime || 0,
-                  })
-                )
-              )
-            })
-          }
-        } catch (error) {
-          if (!(error instanceof RPCError)) {
-            return
-          }
-          if (error.code === T.RPCGen.StatusCode.scteamcontactsettingsblock) {
-            const fields = error.fields as undefined | Array<{key?: string; value?: string}>
-            const users = fields?.filter(elem => elem.key === 'usernames')
-            const usernames = users?.map(elem => elem.value ?? '') ?? []
-            // Don't leave the user on a broken FS dir screen.
-            navigateUp()
-            navigateAppend({
-              name: 'contactRestricted',
-              params: {source: 'newFolder', usernames},
-            })
-          }
-          errorToActionOrThrow(error, tlfPath)
         }
       }
       ignorePromise(f())
@@ -1039,40 +717,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    loadTlfSyncConfig: tlfPath => {
-      const f = async () => {
-        const parsedPath = Constants.parsePath(tlfPath)
-        if (parsedPath.kind !== T.FS.PathKind.GroupTlf && parsedPath.kind !== T.FS.PathKind.TeamTlf) {
-          return
-        }
-        try {
-          const result = await T.RPCGen.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
-            path: Constants.pathToRPCPath(tlfPath),
-          })
-          const syncConfig = getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config)
-          const tlfName = parsedPath.tlfName
-          const tlfType = parsedPath.tlfType
-
-          set(s => {
-            const existing = s.tlfs[tlfType].get(tlfName)
-            if (existing && existing !== Constants.unknownTlf) {
-              s.tlfs[tlfType].set(tlfName, T.castDraft({...existing, syncConfig}))
-              return
-            }
-
-            const additionalPath = T.FS.pathConcat(T.FS.pathConcat(Constants.defaultPath, tlfType), tlfName)
-            const existingAdditional = s.tlfs.additionalTlfs.get(additionalPath)
-            if (existingAdditional && existingAdditional !== Constants.unknownTlf) {
-              s.tlfs.additionalTlfs.set(additionalPath, T.castDraft({...existingAdditional, syncConfig}))
-            }
-          })
-        } catch (e) {
-          errorToActionOrThrow(e, tlfPath)
-          return
-        }
-      }
-      ignorePromise(f())
-    },
     loadUploadStatus: () => {
       const f = async () => {
         try {
@@ -1169,15 +813,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     onEngineIncomingImpl: action => {
       switch (action.type) {
-        case 'keybase.1.NotifyBadges.badgeState':
-          if (
-            !isMobile &&
-            shouldRunBackgroundFSRPC() &&
-            shouldReloadFavoritesFromBadgeState(action.payload.params.badgeState)
-          ) {
-            get().dispatch.favoritesLoad()
-          }
-          break
         case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
           get().dispatch.syncStatusChanged(action.payload.params.status)
           break
@@ -1195,9 +830,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           return
         }
         switch (topic) {
-          case T.RPCGen.SubscriptionTopic.favorites:
-            get().dispatch.favoritesLoad()
-            break
           case T.RPCGen.SubscriptionTopic.journalStatus:
             get().dispatch.pollJournalStatus()
             break
@@ -1320,7 +952,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     },
     resetState: () => {
       asyncGeneration++
-      lastFavoritesBadgeState = {newTlfs: 0, rekeysNeeded: 0}
       pollJournalStatusPolling = false
       waitForKbfsDaemonInProgress = false
       unsubscribeAll()
@@ -1384,30 +1015,11 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         }
       })
     },
-    setTlfSyncConfig: (tlfPath, enabled) => {
-      const f = async () => {
-        await T.RPCGen.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
-          {
-            config: {mode: enabled ? T.RPCGen.FolderSyncMode.enabled : T.RPCGen.FolderSyncMode.disabled},
-            path: Constants.pathToRPCPath(tlfPath),
-          },
-          S.waitingKeyFSSyncToggle
-        )
-        get().dispatch.loadTlfSyncConfig(tlfPath)
-      }
-      ignorePromise(f())
-    },
-    setTlfsAsUnloaded: () => {
-      set(s => {
-        s.tlfs.loaded = false
-      })
-    },
     startManualConflictResolution: tlfPath => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSClearConflictStateRpcPromise({
           path: Constants.pathToRPCPath(tlfPath),
         })
-        get().dispatch.favoritesLoad()
       }
       ignorePromise(f())
     },

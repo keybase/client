@@ -33,6 +33,8 @@ const makeEmptyTlfs = (): T.FS.Tlfs => ({
   team: new Map(),
 })
 
+const emptyTlfs = makeEmptyTlfs()
+
 type FsDataContextType = {
   loadAdditionalTlf: (tlfPath: T.FS.Path) => void
   loadFolderChildren: (path: T.FS.Path, initialLoadRecursive: boolean) => void
@@ -203,15 +205,16 @@ const useFsLoadOnMountAndFocus = ({
   load: () => void
   reloadKey?: unknown
 }) => {
+  const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
   const loadOnMountAndFocus = React.useEffectEvent(() => {
-    enabled && load()
+    connected && enabled && load()
   })
   const [stableLoadOnMountAndFocus] = React.useState(() => () => {
     loadOnMountAndFocus()
   })
   React.useEffect(() => {
-    enabled && loadOnMountAndFocus()
-  }, [enabled, reloadKey])
+    connected && enabled && loadOnMountAndFocus()
+  }, [connected, enabled, reloadKey])
   C.Router2.useSafeFocusEffect(stableLoadOnMountAndFocus)
 }
 
@@ -224,12 +227,16 @@ const useFsSubscriptionEffect = ({
   subscribe: (subscriptionID: string) => Promise<void>
   subscriptionKey: string
 }) => {
+  const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const onError = React.useEffectEvent((error: unknown) => {
     errorToActionOrThrow(error, errorPath)
   })
   const subscribeEvent = React.useEffectEvent(subscribe)
   React.useEffect(() => {
+    if (!connected) {
+      return
+    }
     const subscriptionID = FS.makeUUID()
     const f = async () => {
       try {
@@ -248,7 +255,7 @@ const useFsSubscriptionEffect = ({
         }).catch(() => {})
       )
     }
-  }, [errorPath, subscriptionKey])
+  }, [connected, errorPath, subscriptionKey])
 }
 
 const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => {
@@ -303,15 +310,33 @@ const useLoadedPathItems = () => {
 
 const useLoadedTlfs = () => {
   const routeData = React.useContext(FsDataContext)
-  const storeTlfs = React.useSyncExternalStore(
-    routeData ? noopSubscribe : useFSState.subscribe,
-    () => useFSState.getState().tlfs,
-    () => useFSState.getState().tlfs
-  )
-  return routeData?.tlfs ?? storeTlfs
+  return routeData?.tlfs ?? emptyTlfs
 }
 
 export const useFsLoadedPathItems = () => useLoadedPathItems()
+
+export const useFsReloadTlfs = () => {
+  const routeData = React.useContext(FsDataContext)
+  return React.useEffectEvent(() => {
+    routeData?.loadTlfs()
+  })
+}
+
+export const useFsRefreshTlf = (path: T.FS.Path) => {
+  const routeData = React.useContext(FsDataContext)
+  const tlfs = useLoadedTlfs()
+  const tlfPath = FS.getTlfPath(path)
+  return React.useEffectEvent(() => {
+    if (!routeData || !tlfPath) {
+      return
+    }
+    if (FS.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) !== FS.unknownTlf) {
+      routeData.loadTlfs()
+      return
+    }
+    routeData.loadAdditionalTlf(tlfPath)
+  })
+}
 
 export const useFsPathItem = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => {
   const routeData = React.useContext(FsDataContext)
@@ -409,19 +434,22 @@ export const useFsTlfs = () => {
   const routeData = React.useContext(FsDataContext)
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites)
   const tlfs = useLoadedTlfs()
-  const loadTlfs = routeData?.loadTlfs ?? useFSState.getState().dispatch.favoritesLoad
+  const loadTlfs = routeData?.loadTlfs
   useEngineActionListener(
     'keybase.1.NotifyFS.FSSubscriptionNotify',
     action => {
       const {clientID, topic} = action.payload.params
       if (clientID === FS.clientID && topic === T.RPCGen.SubscriptionTopic.favorites) {
-        loadTlfs()
+        loadTlfs?.()
       }
     },
-    !!routeData
+    !!loadTlfs
   )
   useFsLoadOnMountAndFocus({
-    load: loadTlfs,
+    enabled: !!loadTlfs,
+    load: () => {
+      loadTlfs?.()
+    },
   })
   return tlfs
 }
@@ -431,8 +459,9 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
   const tlfPath = FS.getTlfPath(path)
   const tlfs = useFsTlfs()
   const tlf = FS.getTlfFromPath(tlfs, path)
-  const loadAdditionalTlf = routeData?.loadAdditionalTlf ?? useFSState.getState().dispatch.loadAdditionalTlf
+  const loadAdditionalTlf = routeData?.loadAdditionalTlf
   const active =
+    !!loadAdditionalTlf &&
     !!tlfPath &&
     tlfs.loaded &&
     FS.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) === FS.unknownTlf &&

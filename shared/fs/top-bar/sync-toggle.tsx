@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useFSState} from '@/stores/fs'
-import {useFsFolderChildren, useFsTlf} from '../common'
+import {useFsErrorActionOrThrow, useFsFolderChildren, useFsRefreshTlf, useFsTlf} from '../common'
+import * as FS from '@/stores/fs'
 
 type OwnProps = {
   tlfPath: T.FS.Path
@@ -13,15 +13,30 @@ const Container = (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
   const tlfPathItem = useFsFolderChildren(tlfPath)
   const tlf = useFsTlf(tlfPath)
-  const {setTlfSyncConfig} = useFSState(
-    C.useShallow(s => ({
-      setTlfSyncConfig: s.dispatch.setTlfSyncConfig,
-    }))
-  )
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const refreshTlf = useFsRefreshTlf(tlfPath)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyFSSyncToggle)
 
+  const setTlfSyncConfig = (enabled: boolean) => {
+    const f = async () => {
+      try {
+        await T.RPCGen.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
+          {
+            config: {mode: enabled ? T.RPCGen.FolderSyncMode.enabled : T.RPCGen.FolderSyncMode.disabled},
+            path: FS.pathToRPCPath(tlfPath),
+          },
+          C.waitingKeyFSSyncToggle
+        )
+        refreshTlf()
+      } catch (error) {
+        errorToActionOrThrow(error, tlfPath)
+      }
+    }
+    C.ignorePromise(f())
+  }
+
   const enableSync = () => {
-    setTlfSyncConfig(tlfPath, true)
+    setTlfSyncConfig(true)
   }
   const syncConfig = tlf.syncConfig
   // Disable sync when the TLF is empty and it's not enabled yet.
@@ -35,7 +50,7 @@ const Container = (ownProps: OwnProps) => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup, showPopup} = p
     const disableSync = () => {
-      setTlfSyncConfig(tlfPath, false)
+      setTlfSyncConfig(false)
     }
     return (
       <Kb.FloatingMenu
