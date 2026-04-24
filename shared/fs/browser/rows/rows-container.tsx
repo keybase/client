@@ -186,7 +186,7 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
     : rows
 
 const Container = (o: OwnProps) => {
-  const {childItems, childPaths, pathItem} = useFsFolderChildItems(o.path)
+  const {childItems, childPaths, pathItem} = useFsFolderChildItems(o.path, {initialLoadRecursive: true})
   const tlfs = useFsTlfs()
   const {sortSetting} = useFsBrowserSort(o.path)
   const _username = useCurrentUserState(s => s.username)

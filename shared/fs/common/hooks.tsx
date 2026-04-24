@@ -42,8 +42,14 @@ const makeEmptyTlfs = (): T.FS.Tlfs => ({
 
 const emptyTlfs = makeEmptyTlfs()
 
+type FsSubscription = {
+  count: number
+  subscriptionID: string
+  unsubscribeTimer?: ReturnType<typeof setTimeout>
+}
+
 type FsSubscriptionManager = {
-  subscriptions: Map<string, {count: number; subscriptionID: string}>
+  subscriptions: Map<string, FsSubscription>
 }
 
 type FsDataContextType = {
@@ -70,21 +76,112 @@ const downloadIntentFromStartType = (type: DownloadStartType): T.FS.DownloadInte
       ? T.FS.DownloadIntent.CameraRoll
       : undefined
 
+type FsSharedData = {
+  downloadInfos: ReadonlyMap<string, T.FS.DownloadInfo>
+  pathItems: T.FS.PathItems
+  tlfs: T.FS.Tlfs
+}
+
+const makeEmptyFsSharedData = (): FsSharedData => ({
+  downloadInfos: new Map(),
+  pathItems: new Map(),
+  tlfs: makeEmptyTlfs(),
+})
+
+let fsSharedData = makeEmptyFsSharedData()
+const fsSharedDataListeners = new Set<() => void>()
+const sharedSubscriptionManager: FsSubscriptionManager = {subscriptions: new Map()}
+const seenDownloadIDs = new Set<string>()
+const loadingDownloadInfos = new Set<string>()
+const loadingPathMetadata = new Set<T.FS.Path>()
+const loadingFolderChildren = new Set<string>()
+const loadingAdditionalTlfs = new Set<T.FS.Path>()
+let fsSharedDataUsername = ''
+let loadTlfsInProgress = false
+
+const subscribeFsSharedData = (listener: () => void) => {
+  fsSharedDataListeners.add(listener)
+  return () => {
+    fsSharedDataListeners.delete(listener)
+  }
+}
+
+const getFsSharedDataSnapshot = () => fsSharedData
+
+const setFsSharedData = (updater: (prevData: FsSharedData) => FsSharedData) => {
+  const nextData = updater(fsSharedData)
+  if (nextData === fsSharedData) {
+    return
+  }
+  fsSharedData = nextData
+  fsSharedDataListeners.forEach(listener => listener())
+}
+
+const setDownloadInfos = (
+  updater: (
+    prevDownloadInfos: ReadonlyMap<string, T.FS.DownloadInfo>
+  ) => ReadonlyMap<string, T.FS.DownloadInfo>
+) => {
+  setFsSharedData(prevData => {
+    const downloadInfos = updater(prevData.downloadInfos)
+    return downloadInfos === prevData.downloadInfos ? prevData : {...prevData, downloadInfos}
+  })
+}
+
+const setPathItems = (updater: (prevPathItems: T.FS.PathItems) => T.FS.PathItems) => {
+  setFsSharedData(prevData => {
+    const pathItems = updater(prevData.pathItems)
+    return pathItems === prevData.pathItems ? prevData : {...prevData, pathItems}
+  })
+}
+
+const setTlfs = (updater: (prevTlfs: T.FS.Tlfs) => T.FS.Tlfs) => {
+  setFsSharedData(prevData => {
+    const tlfs = updater(prevData.tlfs)
+    return tlfs === prevData.tlfs ? prevData : {...prevData, tlfs}
+  })
+}
+
+const resetFsSharedData = () => {
+  fsSharedData = makeEmptyFsSharedData()
+  seenDownloadIDs.clear()
+  loadingDownloadInfos.clear()
+  loadingPathMetadata.clear()
+  loadingFolderChildren.clear()
+  loadingAdditionalTlfs.clear()
+  loadTlfsInProgress = false
+  fsSharedDataListeners.forEach(listener => listener())
+}
+
 export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
   const username = useCurrentUserState(s => s.username)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const {setPathSoftError, setTlfSoftError} = useFsSoftErrorActions()
   const activeDownloadIDs = useFSState(C.useShallow(s => [...s.downloads.state.keys()]))
-  const subscriptionManager = React.useRef<FsSubscriptionManager>({subscriptions: new Map()}).current
-  const loadTlfsInProgress = React.useRef(false)
-  const [downloadInfos, setDownloadInfos] = React.useState<ReadonlyMap<string, T.FS.DownloadInfo>>(
-    () => new Map()
+  const {downloadInfos, pathItems, tlfs} = React.useSyncExternalStore(
+    subscribeFsSharedData,
+    getFsSharedDataSnapshot,
+    getFsSharedDataSnapshot
   )
-  const seenDownloadIDs = React.useRef(new Set<string>())
-  const [pathItems, setPathItems] = React.useState<T.FS.PathItems>(() => new Map())
-  const [tlfs, setTlfs] = React.useState<T.FS.Tlfs>(makeEmptyTlfs)
+  const subscriptionManager = sharedSubscriptionManager
+
+  React.useEffect(() => {
+    if (!fsSharedDataUsername) {
+      fsSharedDataUsername = username
+      return
+    }
+    if (fsSharedDataUsername === username) {
+      return
+    }
+    fsSharedDataUsername = username
+    resetFsSharedData()
+  }, [username])
 
   const loadDownloadInfo = (downloadID: string) => {
+    if (loadingDownloadInfos.has(downloadID)) {
+      return
+    }
+    loadingDownloadInfos.add(downloadID)
     const f = async () => {
       try {
         const res = await T.RPCGen.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
@@ -104,6 +201,8 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
         })
       } catch (error) {
         errorToActionOrThrow(error)
+      } finally {
+        loadingDownloadInfos.delete(downloadID)
       }
     }
     C.ignorePromise(f())
@@ -135,22 +234,26 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
     setDownloadInfos(prevDownloadInfos => {
       let nextDownloadInfos: Map<string, T.FS.DownloadInfo> | undefined
       prevDownloadInfos.forEach((_, downloadID) => {
-        if (activeDownloadIDSet.has(downloadID) || !seenDownloadIDs.current.has(downloadID)) {
+        if (activeDownloadIDSet.has(downloadID) || !seenDownloadIDs.has(downloadID)) {
           return
         }
         nextDownloadInfos ??= new Map(prevDownloadInfos)
         nextDownloadInfos.delete(downloadID)
-        seenDownloadIDs.current.delete(downloadID)
+        seenDownloadIDs.delete(downloadID)
       })
       return nextDownloadInfos ?? prevDownloadInfos
     })
     activeDownloadIDs.forEach(downloadID => {
-      seenDownloadIDs.current.add(downloadID)
+      seenDownloadIDs.add(downloadID)
     })
     activeDownloadIDs.forEach(loadMissingDownloadInfo)
   }, [activeDownloadIDs])
 
   const loadPathMetadata = (path: T.FS.Path) => {
+    if (loadingPathMetadata.has(path)) {
+      return
+    }
+    loadingPathMetadata.add(path)
     const f = async () => {
       try {
         const dirent = await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
@@ -169,12 +272,19 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
         tlfPath && setTlfSoftError(tlfPath)
       } catch (error) {
         errorToActionOrThrow(error, path)
+      } finally {
+        loadingPathMetadata.delete(path)
       }
     }
     C.ignorePromise(f())
   }
 
   const loadFolderChildren = (rootPath: T.FS.Path, initialLoadRecursive: boolean) => {
+    const loadKey = `${rootPath}:${initialLoadRecursive ? 'recursive' : 'shallow'}`
+    if (loadingFolderChildren.has(loadKey)) {
+      return
+    }
+    loadingFolderChildren.add(loadKey)
     const f = async () => {
       try {
         const opID = FS.makeUUID()
@@ -223,16 +333,18 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
         })
       } catch (error) {
         errorToActionOrThrow(error, rootPath)
+      } finally {
+        loadingFolderChildren.delete(loadKey)
       }
     }
     C.ignorePromise(f())
   }
 
   const loadTlfs = () => {
-    if (loadTlfsInProgress.current) {
+    if (loadTlfsInProgress) {
       return
     }
-    loadTlfsInProgress.current = true
+    loadTlfsInProgress = true
     const f = async () => {
       try {
         const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
@@ -243,16 +355,21 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
       } catch (error) {
         errorToActionOrThrow(error)
       } finally {
-        loadTlfsInProgress.current = false
+        loadTlfsInProgress = false
       }
     }
     C.ignorePromise(f())
   }
 
   const loadAdditionalTlf = (tlfPath: T.FS.Path) => {
+    if (loadingAdditionalTlfs.has(tlfPath)) {
+      return
+    }
+    loadingAdditionalTlfs.add(tlfPath)
     const f = async () => {
       if (T.FS.getPathLevel(tlfPath) !== 3) {
         logger.warn('loadAdditionalTlf called on non-TLF path')
+        loadingAdditionalTlfs.delete(tlfPath)
         return
       }
       try {
@@ -289,6 +406,8 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
           })
         }
         errorToActionOrThrow(error, tlfPath)
+      } finally {
+        loadingAdditionalTlfs.delete(tlfPath)
       }
     }
     C.ignorePromise(f())
@@ -324,8 +443,18 @@ const useFsLoadOnMountAndFocus = ({
   reloadKey?: unknown
 }) => {
   const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
+  const lastLoadRef = React.useRef<{reloadKey?: unknown; time: number}>({time: 0})
   const loadOnMountAndFocus = React.useEffectEvent(() => {
-    connected && enabled && load()
+    if (!connected || !enabled) {
+      return
+    }
+    const now = Date.now()
+    const lastLoad = lastLoadRef.current
+    if (Object.is(lastLoad.reloadKey, reloadKey) && now - lastLoad.time < 250) {
+      return
+    }
+    lastLoadRef.current = {reloadKey, time: now}
+    load()
   })
   const [stableLoadOnMountAndFocus] = React.useState(() => () => {
     loadOnMountAndFocus()
@@ -344,6 +473,35 @@ const unsubscribeFsSubscription = (subscriptionID: string) => {
       subscriptionID,
     }).catch(() => {})
   )
+}
+
+const subscriptionUnsubscribeDelayMs = 1000
+
+const cancelScheduledSubscriptionUnsubscribe = (subscription: FsSubscription) => {
+  if (!subscription.unsubscribeTimer) {
+    return
+  }
+  clearTimeout(subscription.unsubscribeTimer)
+  delete subscription.unsubscribeTimer
+}
+
+const releaseFsSubscription = (
+  manager: FsSubscriptionManager,
+  subscriptionKey: string,
+  subscription: FsSubscription
+) => {
+  subscription.count--
+  if (subscription.count > 0 || subscription.unsubscribeTimer) {
+    return
+  }
+  subscription.unsubscribeTimer = setTimeout(() => {
+    const currentSubscription = manager.subscriptions.get(subscriptionKey)
+    if (currentSubscription !== subscription || currentSubscription.count > 0) {
+      return
+    }
+    manager.subscriptions.delete(subscriptionKey)
+    unsubscribeFsSubscription(subscription.subscriptionID)
+  }, subscriptionUnsubscribeDelayMs)
 }
 
 const useFsSubscriptionEffect = ({
@@ -374,17 +532,14 @@ const useFsSubscriptionEffect = ({
     if (manager) {
       const existingSubscription = manager.subscriptions.get(subscriptionKey)
       if (existingSubscription) {
+        cancelScheduledSubscriptionUnsubscribe(existingSubscription)
         existingSubscription.count++
         return () => {
           const currentSubscription = manager.subscriptions.get(subscriptionKey)
           if (currentSubscription !== existingSubscription) {
             return
           }
-          currentSubscription.count--
-          if (currentSubscription.count <= 0) {
-            manager.subscriptions.delete(subscriptionKey)
-            unsubscribeFsSubscription(currentSubscription.subscriptionID)
-          }
+          releaseFsSubscription(manager, subscriptionKey, currentSubscription)
         }
       }
     }
@@ -409,11 +564,7 @@ const useFsSubscriptionEffect = ({
       if (currentSubscription !== subscription) {
         return
       }
-      currentSubscription.count--
-      if (currentSubscription.count <= 0) {
-        manager.subscriptions.delete(subscriptionKey)
-        unsubscribeFsSubscription(currentSubscription.subscriptionID)
-      }
+      releaseFsSubscription(manager, subscriptionKey, currentSubscription)
     }
   }, [connected, enabled, errorPath, subscriptionKey, subscriptionManager])
 }
