@@ -25,8 +25,7 @@ export const useNonFolderSyncingPaths = (syncingPaths: ReadonlySet<T.FS.Path>) =
   const inFlightPaths = React.useRef(new Set<T.FS.Path>())
   const latestSyncingPaths = React.useRef(syncingPaths)
   const pathTypesRef = React.useRef(pathTypes)
-  const syncingPathList = [...syncingPaths]
-  const syncingPathKey = syncingPathList.join('|')
+  const syncingPathKey = [...syncingPaths].join('|')
 
   const setPathTypes = React.useEffectEvent(
     (
@@ -47,6 +46,7 @@ export const useNonFolderSyncingPaths = (syncingPaths: ReadonlySet<T.FS.Path>) =
   }, [pathTypes])
 
   React.useEffect(() => {
+    const syncingPathList = [...syncingPaths]
     latestSyncingPaths.current = syncingPaths
     setPathTypes(prevPathTypes => {
       const nextPathTypes = new Map(prevPathTypes)
@@ -95,16 +95,15 @@ export const useNonFolderSyncingPaths = (syncingPaths: ReadonlySet<T.FS.Path>) =
         )
         batch.forEach(path => inFlightPaths.current.delete(path))
         setPathTypes(prevPathTypes => {
-          const nextPathTypes = new Map(prevPathTypes)
-          let changed = false
-          resolvedTypes.forEach(({path, type}) => {
-            if (!latestSyncingPaths.current.has(path) || nextPathTypes.get(path) === type) {
-              return
+          let nextPathTypes: Map<T.FS.Path, T.FS.PathType> | undefined
+          for (const {path, type} of resolvedTypes) {
+            if (!latestSyncingPaths.current.has(path) || prevPathTypes.get(path) === type) {
+              continue
             }
+            nextPathTypes ??= new Map(prevPathTypes)
             nextPathTypes.set(path, type)
-            changed = true
-          })
-          return changed ? nextPathTypes : prevPathTypes
+          }
+          return nextPathTypes ?? prevPathTypes
         })
         if (idx + statBatchSize < unresolvedPaths.length) {
           await C.timeoutPromise(statBatchDelayMs)
@@ -114,5 +113,5 @@ export const useNonFolderSyncingPaths = (syncingPaths: ReadonlySet<T.FS.Path>) =
     C.ignorePromise(f())
   }, [loadedPathItems, syncingPathKey, syncingPaths])
 
-  return syncingPathList.filter(path => pathTypes.get(path) !== T.FS.PathType.Folder)
+  return [...syncingPaths].filter(path => pathTypes.get(path) !== T.FS.PathType.Folder)
 }
