@@ -629,6 +629,7 @@ const useFsPathSubscriptionEffect = (
           subscriptionID,
           topic,
         })
+        return true
       } catch (error) {
         if (!(error instanceof RPCError)) {
           throw error
