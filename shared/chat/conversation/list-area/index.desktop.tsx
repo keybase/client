@@ -615,13 +615,13 @@ if (colorWaypoints) {
 const OrdinalWaypoint = function OrdinalWaypoint(p: OrdinalWaypointProps) {
   const {ordinals, id, rowRenderer} = p
   const estimatedHeight = 40 * ordinals.length
-  const measuredHeightRef = React.useRef(-1)
+  const [height, setHeight] = React.useState(-1)
   const [wRef, setRef] = React.useState<HTMLDivElement | null>(null)
   const [setContentRef] = React.useState(() => (ref: HTMLDivElement | null) => {
     if (ref) {
       const height = ref.offsetHeight
       if (height) {
-        measuredHeightRef.current = height
+        setHeight(oldHeight => (oldHeight === height ? oldHeight : height))
       }
     }
     setRef(ref)
@@ -634,7 +634,6 @@ const OrdinalWaypoint = function OrdinalWaypoint(p: OrdinalWaypointProps) {
   if (renderMessages) {
     content = <Content key={id} id={id} ref={setContentRef} ordinals={ordinals} rowRenderer={rowRenderer} />
   } else {
-    const height = measuredHeightRef.current
     content = <Dummy key={id} id={id} height={height < 0 ? estimatedHeight : height} ref={setRef} />
   }
 
