@@ -430,7 +430,6 @@ export const useAttachmentSections = (
   useFlexWrap: boolean
 ): {sections: Array<Section>} => {
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState(T.RPCChat.GalleryItemTyp.media)
-  const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
   const loadAttachmentView = ConvoState.useChatContext(s => s.dispatch.loadAttachmentView)
   const loadMessagesCentered = ConvoState.useChatContext(s => s.dispatch.loadMessagesCentered)
   const clearModals = C.Router2.clearModals
@@ -448,17 +447,6 @@ export const useAttachmentSections = (
     }, 1)
   })
 
-  React.useEffect(() => {
-    if (lastSAV !== selectedAttachmentView) {
-      setLastSAV(selectedAttachmentView)
-      if (loadImmediately) {
-        setTimeout(() => {
-          loadAttachmentView(selectedAttachmentView)
-        }, 1)
-      }
-    }
-  }, [lastSAV, loadAttachmentView, loadImmediately, selectedAttachmentView])
-
   const attachmentView = ConvoState.useChatContext(s => s.attachmentViewMap)
   const attachmentInfo = attachmentView.get(selectedAttachmentView)
   const fromMsgID = attachmentInfo ? getFromMsgID(attachmentInfo) : undefined
@@ -466,7 +454,15 @@ export const useAttachmentSections = (
   const onLoadMore = fromMsgID ? () => loadAttachmentView(selectedAttachmentView, fromMsgID) : undefined
 
   const onAttachmentViewChange = (viewType: T.RPCChat.GalleryItemTyp) => {
+    if (viewType === selectedAttachmentView) {
+      return
+    }
     onSelectAttachmentView(viewType)
+    if (loadImmediately) {
+      setTimeout(() => {
+        loadAttachmentView(viewType)
+      }, 1)
+    }
   }
 
   const loadAttachments = () => {
