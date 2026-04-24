@@ -28,7 +28,6 @@ const InfoPanelConnector = (ownProps: Props) => {
 
   const [uncontrolledSelectedTab, onSelectTab] = React.useState<Panel>('members')
   const selectedTab = ownProps.tab ?? uncontrolledSelectedTab
-  const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
   const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
   const clearAttachmentView = ConvoState.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
@@ -43,12 +42,15 @@ const InfoPanelConnector = (ownProps: Props) => {
       clearAttachmentView()
     }
   }, [showInfoPanel, clearAttachmentView])
-  if (lastSNO !== shouldNavigateOut) {
-    setLastSNO(shouldNavigateOut)
-    if (!lastSNO && shouldNavigateOut) {
+
+  const lastShouldNavigateOutRef = React.useRef(shouldNavigateOut)
+  React.useEffect(() => {
+    const lastShouldNavigateOut = lastShouldNavigateOutRef.current
+    lastShouldNavigateOutRef.current = shouldNavigateOut
+    if (!lastShouldNavigateOut && shouldNavigateOut) {
       navigateToInbox()
     }
-  }
+  }, [shouldNavigateOut])
 
   const getTabs = (): Array<TabType<Panel>> => {
     const showSettings = !isPreview || Teams.isAdmin(yourRole) || Teams.isOwner(yourRole)
