@@ -80,6 +80,7 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
   const [downloadInfos, setDownloadInfos] = React.useState<ReadonlyMap<string, T.FS.DownloadInfo>>(
     () => new Map()
   )
+  const seenDownloadIDs = React.useRef(new Set<string>())
   const [pathItems, setPathItems] = React.useState<T.FS.PathItems>(() => new Map())
   const [tlfs, setTlfs] = React.useState<T.FS.Tlfs>(makeEmptyTlfs)
 
@@ -130,6 +131,22 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
     }
   })
   React.useEffect(() => {
+    const activeDownloadIDSet = new Set(activeDownloadIDs)
+    setDownloadInfos(prevDownloadInfos => {
+      let nextDownloadInfos: Map<string, T.FS.DownloadInfo> | undefined
+      prevDownloadInfos.forEach((_, downloadID) => {
+        if (activeDownloadIDSet.has(downloadID) || !seenDownloadIDs.current.has(downloadID)) {
+          return
+        }
+        nextDownloadInfos ??= new Map(prevDownloadInfos)
+        nextDownloadInfos.delete(downloadID)
+        seenDownloadIDs.current.delete(downloadID)
+      })
+      return nextDownloadInfos ?? prevDownloadInfos
+    })
+    activeDownloadIDs.forEach(downloadID => {
+      seenDownloadIDs.current.add(downloadID)
+    })
     activeDownloadIDs.forEach(loadMissingDownloadInfo)
   }, [activeDownloadIDs])
 
@@ -401,10 +418,14 @@ const useFsSubscriptionEffect = ({
   }, [connected, enabled, errorPath, subscriptionKey, subscriptionManager])
 }
 
-const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscriptionTopic) => {
+const useFsPathSubscriptionEffect = (
+  path: T.FS.Path,
+  topic: T.RPCGen.PathSubscriptionTopic,
+  enabled = true
+) => {
   const pathString = T.FS.pathToString(path)
   useFsSubscriptionEffect({
-    enabled: T.FS.getPathLevel(path) >= 3,
+    enabled: enabled && T.FS.getPathLevel(path) >= 3,
     errorPath: path,
     subscribe: async subscriptionID => {
       try {
@@ -427,6 +448,11 @@ const useFsPathSubscriptionEffect = (path: T.FS.Path, topic: T.RPCGen.PathSubscr
     },
     subscriptionKey: `path:${pathString}:${topic}`,
   })
+}
+
+type FsPathItemOptions = {
+  loadOnMount?: boolean
+  subscribe?: boolean
 }
 
 const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic, enabled = true) => {
@@ -480,10 +506,11 @@ export const useFsRefreshTlf = (path: T.FS.Path) => {
   }
 }
 
-export const useFsPathItem = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => {
+export const useFsPathItem = (path: T.FS.Path, options?: FsPathItemOptions) => {
   const routeData = React.useContext(FsDataContext)
   const pathItems = useLoadedPathItems()
-  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat)
+  const shouldSubscribe = options?.subscribe ?? (options?.loadOnMount !== false)
+  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat, shouldSubscribe)
   const pathItem = FS.getPathItem(pathItems, path)
   const loadPathMetadata = routeData?.loadPathMetadata
   const shouldLoad = !!loadPathMetadata && isPathItem(path) && options?.loadOnMount !== false
@@ -512,7 +539,7 @@ export const useFsPathItem = (path: T.FS.Path, options?: {loadOnMount?: boolean}
   return pathItem
 }
 
-export const useFsPathMetadata = (path: T.FS.Path, options?: {loadOnMount?: boolean}) =>
+export const useFsPathMetadata = (path: T.FS.Path, options?: FsPathItemOptions) =>
   useFsPathItem(path, options)
 
 export const useFsFolderChildren = (

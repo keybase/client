@@ -26,7 +26,7 @@ const getDownloadingText = (intent: T.FS.DownloadIntent) => {
 
 const StillContainer = (p: OwnProps) => {
   const {destinationPickerSource, path} = p
-  const _pathItem = useFsPathItem(path, {loadOnMount: false})
+  const _pathItem = useFsPathItem(path, {loadOnMount: false, subscribe: false})
   const dismissUpload = useFsDismissUpload()
   const _uploads = useFSState(s => s.uploads)
   const writingToJournalUploadState = _uploads.writingToJournal.get(path)

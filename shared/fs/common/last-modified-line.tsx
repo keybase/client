@@ -24,7 +24,8 @@ const Username = ({mode, lastWriter}: {mode: OwnProps['mode']; lastWriter: strin
 
 const Container = (ownProps: OwnProps) => {
   const {path, mode} = ownProps
-  const _pathItem = useFsPathItem(path, {loadOnMount: mode !== 'row'})
+  const loadPathItem = mode !== 'row'
+  const _pathItem = useFsPathItem(path, {loadOnMount: loadPathItem, subscribe: loadPathItem})
   const lastModifiedTimestamp = _pathItem === FS.unknownPathItem ? undefined : _pathItem.lastModifiedTimestamp
   const lastWriter = _pathItem === FS.unknownPathItem ? undefined : _pathItem.lastWriter
 

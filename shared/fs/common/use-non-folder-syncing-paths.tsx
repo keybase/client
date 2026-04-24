@@ -2,63 +2,117 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as FS from '@/stores/fs'
+import {useFsLoadedPathItems} from './hooks'
+
+const statBatchSize = 10
+const statBatchDelayMs = 250
+
+const statPathType = async (path: T.FS.Path): Promise<T.FS.PathType> => {
+  try {
+    const dirent = await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
+      path: FS.pathToRPCPath(path),
+      refreshSubscription: false,
+    })
+    return dirent.direntType === T.RPCGen.DirentType.dir ? T.FS.PathType.Folder : T.FS.PathType.File
+  } catch {
+    return T.FS.PathType.Unknown
+  }
+}
 
 export const useNonFolderSyncingPaths = (syncingPaths: ReadonlySet<T.FS.Path>) => {
-  const [pathTypes, setPathTypes] = React.useState<Map<T.FS.Path, T.FS.PathType>>(() => new Map())
+  const loadedPathItems = useFsLoadedPathItems()
+  const [pathTypes, _setPathTypes] = React.useState<ReadonlyMap<T.FS.Path, T.FS.PathType>>(() => new Map())
+  const inFlightPaths = React.useRef(new Set<T.FS.Path>())
+  const latestSyncingPaths = React.useRef(syncingPaths)
+  const pathTypesRef = React.useRef(pathTypes)
   const syncingPathList = [...syncingPaths]
   const syncingPathKey = syncingPathList.join('|')
-  const pathTypesVersionRef = React.useRef(0)
 
-  React.useEffect(() => {
-    const paths = [...syncingPaths]
-    const version = ++pathTypesVersionRef.current
-    setPathTypes(prevPathTypes => {
-      const stalePaths = [...prevPathTypes.keys()].filter(path => !syncingPaths.has(path))
-      if (!stalePaths.length) {
-        return prevPathTypes
-      }
-      const nextPathTypes = new Map(prevPathTypes)
-      stalePaths.forEach(path => {
-        nextPathTypes.delete(path)
-      })
-      return nextPathTypes
-    })
-
-    const unloadedPaths = paths.filter(path => !pathTypes.has(path))
-    if (!unloadedPaths.length) {
-      return
-    }
-    const f = async () => {
-      const resolvedTypes = await Promise.all(
-        unloadedPaths.map(async path => {
-          try {
-            const dirent = await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
-              path: FS.pathToRPCPath(path),
-              refreshSubscription: false,
-            })
-            return {
-              path,
-              type:
-                dirent.direntType === T.RPCGen.DirentType.dir ? T.FS.PathType.Folder : T.FS.PathType.File,
-            }
-          } catch {
-            return {path, type: T.FS.PathType.Unknown}
-          }
-        })
-      )
-      if (pathTypesVersionRef.current !== version) {
-        return
-      }
-      setPathTypes(prevPathTypes => {
-        const nextPathTypes = new Map(prevPathTypes)
-        resolvedTypes.forEach(({path, type}) => {
-          nextPathTypes.set(path, type)
-        })
+  const setPathTypes = React.useEffectEvent(
+    (
+      updater: (
+        prevPathTypes: ReadonlyMap<T.FS.Path, T.FS.PathType>
+      ) => ReadonlyMap<T.FS.Path, T.FS.PathType>
+    ) => {
+      _setPathTypes(prevPathTypes => {
+        const nextPathTypes = updater(prevPathTypes)
+        pathTypesRef.current = nextPathTypes
         return nextPathTypes
       })
     }
+  )
+
+  React.useEffect(() => {
+    pathTypesRef.current = pathTypes
+  }, [pathTypes])
+
+  React.useEffect(() => {
+    latestSyncingPaths.current = syncingPaths
+    setPathTypes(prevPathTypes => {
+      const nextPathTypes = new Map(prevPathTypes)
+      let changed = false
+      for (const path of prevPathTypes.keys()) {
+        if (!syncingPaths.has(path)) {
+          nextPathTypes.delete(path)
+          changed = true
+        }
+      }
+      for (const path of syncingPathList) {
+        const loadedType = loadedPathItems.get(path)?.type
+        if (loadedType && loadedType !== T.FS.PathType.Unknown && loadedType !== prevPathTypes.get(path)) {
+          nextPathTypes.set(path, loadedType)
+          changed = true
+        }
+      }
+      return changed ? nextPathTypes : prevPathTypes
+    })
+
+    const unresolvedPaths = syncingPathList.filter(path => {
+      const loadedType = loadedPathItems.get(path)?.type
+      return (
+        (!loadedType || loadedType === T.FS.PathType.Unknown) &&
+        !pathTypesRef.current.has(path) &&
+        !inFlightPaths.current.has(path)
+      )
+    })
+    if (!unresolvedPaths.length) {
+      return
+    }
+    const f = async () => {
+      for (let idx = 0; idx < unresolvedPaths.length; idx += statBatchSize) {
+        const batch = unresolvedPaths
+          .slice(idx, idx + statBatchSize)
+          .filter(path => latestSyncingPaths.current.has(path) && !pathTypesRef.current.has(path))
+        if (!batch.length) {
+          continue
+        }
+        batch.forEach(path => inFlightPaths.current.add(path))
+        const resolvedTypes = await Promise.all(
+          batch.map(async path => ({
+            path,
+            type: await statPathType(path),
+          }))
+        )
+        batch.forEach(path => inFlightPaths.current.delete(path))
+        setPathTypes(prevPathTypes => {
+          const nextPathTypes = new Map(prevPathTypes)
+          let changed = false
+          resolvedTypes.forEach(({path, type}) => {
+            if (!latestSyncingPaths.current.has(path) || nextPathTypes.get(path) === type) {
+              return
+            }
+            nextPathTypes.set(path, type)
+            changed = true
+          })
+          return changed ? nextPathTypes : prevPathTypes
+        })
+        if (idx + statBatchSize < unresolvedPaths.length) {
+          await C.timeoutPromise(statBatchDelayMs)
+        }
+      }
+    }
     C.ignorePromise(f())
-  }, [pathTypes, syncingPathKey, syncingPaths])
+  }, [loadedPathItems, syncingPathKey, syncingPaths])
 
   return syncingPathList.filter(path => pathTypes.get(path) !== T.FS.PathType.Folder)
 }

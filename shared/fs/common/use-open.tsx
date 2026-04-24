@@ -8,7 +8,7 @@ type Props = {
 }
 
 export const useOpen = (props: Props) => {
-  const pathItem = useFsPathItem(props.path, {loadOnMount: false})
+  const pathItem = useFsPathItem(props.path, {loadOnMount: false, subscribe: false})
   const nav = useSafeNavigation()
 
   if (!props.destinationPickerSource) {

@@ -127,12 +127,13 @@ type InTlfItemIconProps = {
   path: T.FS.Path
   size: Size
   style?: Kb.Styles.StylesCrossPlatform
+  subscribe?: boolean
   tlfTypeForFolderIconOverride?: T.FS.TlfType
 }
 
 const InTlfIcon = (props: InTlfItemIconProps) => {
   const downloadIntent = useFsDownloadIntent(props.path)
-  const pathItem = useFsPathItem(props.path, {loadOnMount: props.loadOnMount})
+  const pathItem = useFsPathItem(props.path, {loadOnMount: props.loadOnMount, subscribe: props.subscribe})
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   const badgeIcon = props.badgeOverride || (downloadIntent && 'icon-addon-file-downloading')
   return (
@@ -165,6 +166,7 @@ export type ItemIconProps = {
   path: T.FS.Path
   size: Size
   style?: Kb.Styles.StylesCrossPlatform
+  subscribe?: boolean
 }
 
 const ItemIcon = (props: ItemIconProps) => {
@@ -202,6 +204,7 @@ const ItemIcon = (props: ItemIconProps) => {
           path={props.path}
           size={props.size}
           style={props.style}
+          subscribe={props.subscribe}
           tlfTypeForFolderIconOverride={
             parsedPath.tlfType === T.FS.TlfType.Public ? T.FS.TlfType.Public : undefined
           }

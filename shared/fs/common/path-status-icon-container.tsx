@@ -9,10 +9,14 @@ type OwnPropsPathItem = {
   loadOnMount?: boolean
   path: T.FS.Path
   showTooltipOnPressMobile?: boolean
+  subscribe?: boolean
 }
 
 const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
-  const _pathItem = useFsPathItem(ownProps.path, {loadOnMount: ownProps.loadOnMount})
+  const _pathItem = useFsPathItem(ownProps.path, {
+    loadOnMount: ownProps.loadOnMount,
+    subscribe: ownProps.subscribe,
+  })
   const _tlf = useFsTlf(ownProps.path, {loadOnMount: ownProps.loadOnMount})
   const {_kbfsDaemonStatus, _uploads} = useFSState(
     C.useShallow(s => {
@@ -63,6 +67,7 @@ type OwnProps = {
   loadOnMount?: boolean
   path: T.FS.Path
   showTooltipOnPressMobile?: boolean
+  subscribe?: boolean
 }
 
 const PathStatusIconConnected = (props: OwnProps) =>
@@ -71,6 +76,7 @@ const PathStatusIconConnected = (props: OwnProps) =>
       path={props.path}
       loadOnMount={props.loadOnMount}
       showTooltipOnPressMobile={props.showTooltipOnPressMobile}
+      subscribe={props.subscribe}
     />
   ) : (
     <PathStatusIconTlfType tlfType={T.FS.getTlfTypeFromPath(props.path)} />

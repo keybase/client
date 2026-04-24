@@ -10,7 +10,11 @@ type BrowserSortContextType = {
 const BrowserSortContext = React.createContext<BrowserSortContextType | null>(null)
 
 const getDefaultSortSetting = (path: T.FS.Path) =>
-  T.FS.getPathLevel(path) < 3 ? Constants.defaultTlfListPathUserSetting.sort : Constants.defaultPathUserSetting.sort
+  T.FS.getPathLevel(path) < 3
+    ? Constants.defaultTlfListPathUserSetting.sort
+    : Constants.defaultPathUserSetting.sort
+
+const savedSortSettings = new Map<T.FS.Path, T.FS.SortSetting>()
 
 export const useFsBrowserSort = (path: T.FS.Path) => {
   const context = React.useContext(BrowserSortContext)
@@ -22,7 +26,7 @@ export const useFsBrowserSort = (path: T.FS.Path) => {
 
 export const FsBrowserSortProvider = ({children}: {children: React.ReactNode}) => {
   const [sortSettings, setSortSettings] = React.useState<ReadonlyMap<T.FS.Path, T.FS.SortSetting>>(
-    () => new Map()
+    () => new Map(savedSortSettings)
   )
 
   const setSortSetting = (path: T.FS.Path, sortSetting: T.FS.SortSetting) => {
@@ -30,8 +34,8 @@ export const FsBrowserSortProvider = ({children}: {children: React.ReactNode}) =
       if (prevSortSettings.get(path) === sortSetting) {
         return prevSortSettings
       }
-      const nextSortSettings = new Map(prevSortSettings)
-      nextSortSettings.set(path, sortSetting)
+      savedSortSettings.set(path, sortSetting)
+      const nextSortSettings = new Map(savedSortSettings)
       return nextSortSettings
     })
   }
