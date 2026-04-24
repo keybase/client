@@ -100,6 +100,29 @@ const loadingAdditionalTlfs = new Set<T.FS.Path>()
 let fsSharedDataUsername = ''
 let loadTlfsInProgress = false
 
+const unsubscribeFsSubscription = (subscriptionID: string) => {
+  C.ignorePromise(
+    T.RPCGen.SimpleFSSimpleFSUnsubscribeRpcPromise({
+      clientID: FS.clientID,
+      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
+      subscriptionID,
+    }).catch(() => {})
+  )
+}
+
+const resetFsSubscriptionManager = (manager: FsSubscriptionManager) => {
+  manager.subscriptions.forEach(subscription => {
+    if (subscription.unsubscribeTimer) {
+      clearTimeout(subscription.unsubscribeTimer)
+      delete subscription.unsubscribeTimer
+    }
+    if (subscription.subscribed) {
+      unsubscribeFsSubscription(subscription.subscriptionID)
+    }
+  })
+  manager.subscriptions.clear()
+}
+
 const subscribeFsSharedData = (listener: () => void) => {
   fsSharedDataListeners.add(listener)
   return () => {
@@ -145,6 +168,7 @@ const setTlfs = (updater: (prevTlfs: T.FS.Tlfs) => T.FS.Tlfs) => {
 
 const resetFsSharedData = () => {
   fsSharedData = makeEmptyFsSharedData()
+  resetFsSubscriptionManager(sharedSubscriptionManager)
   seenDownloadIDs.clear()
   loadingDownloadInfos.clear()
   loadingPathMetadata.clear()
@@ -166,7 +190,7 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
   )
   const subscriptionManager = sharedSubscriptionManager
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (!fsSharedDataUsername) {
       fsSharedDataUsername = username
       return
@@ -466,16 +490,6 @@ const useFsLoadOnMountAndFocus = ({
   C.Router2.useSafeFocusEffect(stableLoadOnMountAndFocus)
 }
 
-const unsubscribeFsSubscription = (subscriptionID: string) => {
-  C.ignorePromise(
-    T.RPCGen.SimpleFSSimpleFSUnsubscribeRpcPromise({
-      clientID: FS.clientID,
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
-      subscriptionID,
-    }).catch(() => {})
-  )
-}
-
 const subscriptionUnsubscribeDelayMs = 1000
 
 const cancelScheduledSubscriptionUnsubscribe = (subscription: FsSubscription) => {
@@ -533,6 +547,7 @@ const useFsSubscriptionEffect = ({
 }) => {
   const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
   const routeData = React.useContext(FsDataContext)
+  const username = useCurrentUserState(s => s.username)
   const subscriptionManager = routeData?.subscriptionManager
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const onError = React.useEffectEvent((error: unknown) => {
@@ -607,7 +622,7 @@ const useFsSubscriptionEffect = ({
       }
       releaseFsSubscription(manager, subscriptionKey, currentSubscription)
     }
-  }, [connected, enabled, errorPath, subscriptionKey, subscriptionManager])
+  }, [connected, enabled, errorPath, subscriptionKey, subscriptionManager, username])
 }
 
 const useFsPathSubscriptionEffect = (

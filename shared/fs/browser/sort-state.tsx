@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type BrowserSortContextType = {
   setSortSetting: (path: T.FS.Path, sortSetting: T.FS.SortSetting) => void
@@ -14,8 +15,6 @@ const getDefaultSortSetting = (path: T.FS.Path) =>
     ? Constants.defaultTlfListPathUserSetting.sort
     : Constants.defaultPathUserSetting.sort
 
-const savedSortSettings = new Map<T.FS.Path, T.FS.SortSetting>()
-
 export const useFsBrowserSort = (path: T.FS.Path) => {
   const context = React.useContext(BrowserSortContext)
   return {
@@ -25,17 +24,27 @@ export const useFsBrowserSort = (path: T.FS.Path) => {
 }
 
 export const FsBrowserSortProvider = ({children}: {children: React.ReactNode}) => {
+  const username = useCurrentUserState(s => s.username)
+  const usernameRef = React.useRef(username)
   const [sortSettings, setSortSettings] = React.useState<ReadonlyMap<T.FS.Path, T.FS.SortSetting>>(
-    () => new Map(savedSortSettings)
+    () => new Map<T.FS.Path, T.FS.SortSetting>()
   )
+
+  React.useEffect(() => {
+    if (usernameRef.current === username) {
+      return
+    }
+    usernameRef.current = username
+    setSortSettings(new Map<T.FS.Path, T.FS.SortSetting>())
+  }, [username])
 
   const setSortSetting = (path: T.FS.Path, sortSetting: T.FS.SortSetting) => {
     setSortSettings(prevSortSettings => {
       if (prevSortSettings.get(path) === sortSetting) {
         return prevSortSettings
       }
-      savedSortSettings.set(path, sortSetting)
-      const nextSortSettings = new Map(savedSortSettings)
+      const nextSortSettings = new Map(prevSortSettings)
+      nextSortSettings.set(path, sortSetting)
       return nextSortSettings
     })
   }

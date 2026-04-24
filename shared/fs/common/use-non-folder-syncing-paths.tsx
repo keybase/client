@@ -25,7 +25,7 @@ export const useNonFolderSyncingPaths = (syncingPaths: ReadonlySet<T.FS.Path>) =
   const inFlightPaths = React.useRef(new Set<T.FS.Path>())
   const latestSyncingPaths = React.useRef(syncingPaths)
   const pathTypesRef = React.useRef(pathTypes)
-  const syncingPathKey = [...syncingPaths].join('|')
+  const syncingPathCount = syncingPaths.size
 
   const setPathTypes = React.useEffectEvent(
     (
@@ -111,7 +111,7 @@ export const useNonFolderSyncingPaths = (syncingPaths: ReadonlySet<T.FS.Path>) =
       }
     }
     C.ignorePromise(f())
-  }, [loadedPathItems, syncingPathKey, syncingPaths])
+  }, [loadedPathItems, syncingPathCount, syncingPaths])
 
   return [...syncingPaths].filter(path => pathTypes.get(path) !== T.FS.PathType.Folder)
 }
