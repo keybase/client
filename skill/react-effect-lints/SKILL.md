@@ -31,8 +31,9 @@ Authoritative references:
    - External synchronization or async request
 3. Prefer the matching refactor pattern below.
 4. Preserve existing guards, platform branches, waiting keys, route behavior, and stale async protection unless proven dead.
-5. Remove now-unused imports, state, refs, helpers, styles, and type parameters.
-6. In this repo, do not run `yarn`, `npm`, lint, or TypeScript unless `node_modules` exists and the user's machine guidance allows it.
+5. Do not move hook or component logic to module scope to avoid a lint. Module-level work runs at import time, bypasses React lifecycle and providers, and can leak behavior across accounts, routes, tests, or remounts.
+6. Remove now-unused imports, state, refs, helpers, styles, and type parameters.
+7. In this repo, do not run `yarn`, `npm`, lint, or TypeScript unless `node_modules` exists and the user's machine guidance allows it.
 
 ## Refactor Patterns
 

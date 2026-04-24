@@ -23,10 +23,10 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 
 ## Batch 2: Chat Modals And Bot Install
 
-- [ ] `shared/chat/blocking/block-modal.tsx:244:7`
-- [ ] `shared/chat/conversation/attachment-get-titles.tsx:122:5`
-- [ ] `shared/chat/conversation/bot/install.tsx:68:5`
-- [ ] `shared/chat/conversation/bot/install.tsx:242:5`
+- [x] `shared/chat/blocking/block-modal.tsx:244:7` - moved default block settings into state initializers and left the effect for the one-time external block-state refresh.
+- [x] `shared/chat/conversation/attachment-get-titles.tsx:122:5` - already absent in current source; the logged `kbfsPreviewURL` reset effect is no longer present.
+- [x] `shared/chat/conversation/bot/install.tsx:68:5` - derived the visible conversation ID from the input conversation or a team-tagged async lookup result.
+- [x] `shared/chat/conversation/bot/install.tsx:242:5` - tagged loaded bot public commands by username instead of clearing command state in an effect.
 
 ## Batch 3: Chat Input And Inbox State
 
