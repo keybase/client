@@ -129,6 +129,7 @@ Current slice note:
 - mounted FS route and destination-picker loaders now use a feature-local `FsDataProvider` for `pathItems` / `tlfs`; mounted hooks refresh that local state directly from SimpleFS RPCs instead of reading the shared cache
 - FS route headers now wrap `fs/nav-header/*` mounted consumers in a local `FsDataProvider`, so title/action/header path metadata no longer falls back to the shared mounted-view cache
 - mounted browser, file-preview, and destination-picker flows now use a feature-local `FsErrorProvider` for redbars; store-backed `errors` remain as fallback for non-route/global FS actions
+- former `fileContext` callers that broke after cache removal now resolve preview data locally in mounted code instead of reaching back into `shared/stores/fs.tsx`
 
 ## Chunk 4: Re-evaluate Subscription and Notification Ownership
 

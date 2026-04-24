@@ -104,12 +104,11 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
       return nextEdits
     })
     setSubmitting(prevSubmitting => {
-      let changed = false
       const nextSubmitting = new Set(prevSubmitting)
       staleEditIDs.forEach(editID => {
-        changed = nextSubmitting.delete(editID) || changed
+        nextSubmitting.delete(editID)
       })
-      return changed ? nextSubmitting : prevSubmitting
+      return nextSubmitting.size === prevSubmitting.size ? prevSubmitting : nextSubmitting
     })
   }, [edits, pathItems])
 

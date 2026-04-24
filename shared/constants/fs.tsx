@@ -163,11 +163,11 @@ export const emptyPathInfo = {
   platformAfterMountPath: '',
 } satisfies T.FS.PathInfo
 
-export const emptyFileContext = {
+export const emptyFileContext: T.FS.FileContext = {
   contentType: '',
   url: '',
   viewType: T.RPCGen.GUIViewType.default,
-} satisfies T.FS.FileContext
+}
 
 // Driver Status Constants
 export const driverStatusUnknown = {

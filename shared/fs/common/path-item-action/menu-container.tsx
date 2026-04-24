@@ -8,7 +8,7 @@ import type {FloatingMenuProps, OnDownloadStarted} from './types'
 import {useFsBrowserEdits} from '@/fs/browser/edit-state'
 import {getRootLayout, getShareLayout} from './layout'
 import {useFsErrorActionOrThrow} from '../error-state'
-import {useFsFileContext} from '../hooks'
+import {useFsFileContext, useFsWatchDownloadForMobile} from '../hooks'
 import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -299,7 +299,7 @@ const Container = (op: OwnProps) => {
     ...itemDelete,
   ]
 
-  const justDoneWithIntent = Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
+  const justDoneWithIntent = useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
   React.useEffect(() => {
     justDoneWithIntent && hide()
   }, [justDoneWithIntent, hide])

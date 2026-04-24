@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as FS from '@/constants/fs'
 import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
@@ -35,6 +36,8 @@ const pathToAttachmentType = (path: string) => {
   }
   return 'file'
 }
+
+const isKbfsPath = (path: string) => path.startsWith('/keybase/')
 
 const Container = (ownProps: OwnProps) => {
   const {titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
@@ -114,6 +117,29 @@ const Container = (ownProps: OwnProps) => {
   const inputRef = React.useRef<Kb.Input3Ref>(null)
 
   const {info, path} = pathAndInfos[index] ?? {}
+  const [kbfsPreviewURL, setKbfsPreviewURL] = React.useState<string | undefined>(undefined)
+  React.useEffect(() => {
+    setKbfsPreviewURL(undefined)
+    if (info?.type !== 'image' || info?.url || !path || !isKbfsPath(path)) {
+      return
+    }
+    let canceled = false
+    const f = async () => {
+      try {
+        const fileContext = await T.RPCGen.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
+          path: FS.pathToRPCPath(T.FS.stringToPath(path)).kbfs,
+        })
+        if (!canceled) {
+          setKbfsPreviewURL(fileContext.url)
+        }
+      } catch {}
+    }
+    C.ignorePromise(f())
+    return () => {
+      canceled = true
+    }
+  }, [info?.type, info?.url, path])
+
   const titleHint = 'Add a caption...'
   if (!info) return null
 
@@ -121,7 +147,7 @@ const Container = (ownProps: OwnProps) => {
   switch (info.type) {
     case 'image':
       preview = path ? (
-        <Kb.ZoomableImage src={info.url ?? path} style={styles.image} boxCacheKey="getTitlesImg" />
+        <Kb.ZoomableImage src={info.url ?? kbfsPreviewURL ?? path} style={styles.image} boxCacheKey="getTitlesImg" />
       ) : null
       break
     case 'video':

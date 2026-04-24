@@ -530,7 +530,7 @@ export const useFsDownloadStatus = () => {
 export const useFsFileContext = (path: T.FS.Path) => {
   const pathItem = useFsPathItem(path)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
-  const [fileContext, setFileContext] = React.useState(FS.emptyFileContext)
+  const [fileContext, setFileContext] = React.useState<T.FS.FileContext>(FS.emptyFileContext)
   const fileContextVersionRef = React.useRef(0)
   const [urlError, setUrlError] = React.useState('')
   React.useEffect(() => {
@@ -633,6 +633,7 @@ export const useFsWatchDownloadForMobile = C.isMobile
         dismissDownload,
         dlInfo,
         dlState,
+        errorToActionOrThrow,
         finished,
         mimeType,
         downloadID,

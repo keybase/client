@@ -195,7 +195,7 @@ export const favoritesResultToTlfs = (
 const direntToMetadata = (d: T.RPCGen.Dirent) => ({
   lastModifiedTimestamp: d.time,
   lastWriter: d.lastWriterUnverified.username,
-  name: d.name.split('/').pop(),
+  name: d.name.split('/').pop() ?? '',
   prefetchStatus: (() => {
     switch (d.prefetchStatus) {
       case T.RPCGen.PrefetchStatus.notStarted:
