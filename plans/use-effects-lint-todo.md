@@ -38,11 +38,11 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 ## Batch 4: Chat Message Wrappers And Timers
 
 - [x] `shared/chat/conversation/list-area/index.desktop.tsx:662:9` - preserved waypoint virtualization height with a guarded ref-callback state update instead of state set from an effect.
-- [ ] `shared/chat/conversation/messages/wrapper/exploding-height-retainer/index.desktop.tsx:20:7`
-- [ ] `shared/chat/conversation/messages/wrapper/exploding-height-retainer/index.native.tsx:135:7`
-- [ ] `shared/chat/conversation/messages/wrapper/exploding-meta.tsx:82:7`
-- [ ] `shared/chat/conversation/messages/wrapper/exploding-meta.tsx:105:9`
-- [ ] `shared/chat/conversation/messages/wrapper/send-indicator.tsx:86:7`
+- [x] `shared/chat/conversation/messages/wrapper/exploding-height-retainer/index.desktop.tsx:20:7` - derived the active burn animation from retained-message state and left the effect only to finish the timer.
+- [x] `shared/chat/conversation/messages/wrapper/exploding-height-retainer/index.native.tsx:135:7` - moved random emoji child creation into the animated listener path instead of a render-data effect.
+- [x] `shared/chat/conversation/messages/wrapper/exploding-meta.tsx:82:7` - initialized countdown state from keyed message/pending inputs instead of starting it in an effect.
+- [x] `shared/chat/conversation/messages/wrapper/exploding-meta.tsx:105:9` - keyed pending transitions so countdown state restarts without a pending-change reset effect.
+- [x] `shared/chat/conversation/messages/wrapper/send-indicator.tsx:86:7` - derived status from props plus local timer state and kept effects for the encrypting/sent timers only.
 
 ## Batch 5: Chat Conversation Container And Search
 

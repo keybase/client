@@ -7,29 +7,45 @@ export const animationDuration = 2000
 
 const ExplodingHeightRetainer = (p: Props) => {
   const {retainHeight, explodedBy, style, children, messageKey} = p
-  const boxRef = React.useRef<Kb.MeasureRef>(null)
-  const [animating, setAnimating] = React.useState(false)
+  const [animationState, setAnimationState] = React.useState(() => ({
+    animationKey: undefined as string | undefined,
+    doneKey: retainHeight ? messageKey : undefined,
+    retainHeight,
+  }))
   const [height, setHeight] = React.useState(17)
 
-  const lastRetainHeight = React.useRef(retainHeight)
-
-  React.useEffect(() => {
-    if (lastRetainHeight.current === retainHeight) return
-    lastRetainHeight.current = retainHeight
-    if (retainHeight) {
-      setAnimating(true)
-      const timerID = setTimeout(() => setAnimating(false), animationDuration)
-      return () => {
-        clearTimeout(timerID)
-      }
+  let currentAnimationState = animationState
+  if (animationState.retainHeight !== retainHeight) {
+    currentAnimationState = {
+      animationKey: retainHeight ? messageKey : undefined,
+      doneKey: retainHeight ? undefined : animationState.doneKey,
+      retainHeight,
     }
-    return undefined
-  }, [retainHeight, messageKey])
+    setAnimationState(currentAnimationState)
+  }
+  const animating =
+    retainHeight &&
+    currentAnimationState.animationKey === messageKey &&
+    currentAnimationState.doneKey !== messageKey
 
   React.useEffect(() => {
-    const m = boxRef.current?.getBoundingClientRect()
-    if (m) {
-      m.height && setHeight(m.height)
+    if (!animating) {
+      return undefined
+    }
+    const timerID = setTimeout(() => {
+      setAnimationState(state =>
+        state.animationKey === messageKey ? {...state, doneKey: messageKey} : state
+      )
+    }, animationDuration)
+    return () => {
+      clearTimeout(timerID)
+    }
+  }, [animating, messageKey])
+
+  const setBoxRef = React.useCallback((ref: Kb.MeasureRef | null) => {
+    const measuredHeight = ref?.getBoundingClientRect().height
+    if (measuredHeight) {
+      setHeight(lastHeight => (lastHeight === measuredHeight ? lastHeight : measuredHeight))
     }
   }, [])
 
@@ -47,7 +63,7 @@ const ExplodingHeightRetainer = (p: Props) => {
           position: 'relative',
         },
       ])}
-      ref={boxRef}
+      ref={setBoxRef}
     >
       {retainHeight ? null : children}
       <Ashes doneExploding={!animating} exploded={retainHeight} explodedBy={explodedBy} height={height} />

@@ -102,62 +102,58 @@ const AnimatedAshTower = (p: AshTowerProps) => {
   )
 }
 
+const makeEmojiTowerChildren = (numImages: number) => {
+  const children: Array<React.ReactNode> = []
+  for (let i = 0; i < numImages * 4; i++) {
+    const r = Math.random()
+    let emoji: string
+    if (Kb.Styles.isAndroid) {
+      emoji = r < 0.5 ? '💥' : '💣'
+    } else {
+      if (r < 0.33) {
+        emoji = '💥'
+      } else if (r < 0.66) {
+        emoji = '💣'
+      } else {
+        emoji = '🤯'
+      }
+    }
+    children.push(
+      <Kb.Text key={i} type="Body">
+        {emoji}
+      </Kb.Text>
+    )
+  }
+  return children
+}
+
 const EmojiTower = (p: {numImages: number; animatedValue: NativeAnimated.Value}) => {
   const {numImages, animatedValue} = p
-  const [running, setRunning] = React.useState(false)
-  const [force, setForce] = React.useState(0)
+  const runningRef = React.useRef(false)
+  const [, setForce] = React.useState(0)
+  const [children, setChildren] = React.useState<React.ReactNode>(null)
 
   const forceRender = C.useThrottledCallback(() => setForce(f => f + 1), 100)
 
   React.useEffect(() => {
     animatedValue.addListener((evt: {value: number}) => {
       if ([0, 100].includes(evt.value)) {
-        setRunning(false)
+        runningRef.current = false
+        setChildren(null)
         return
       }
-      if (!running) {
-        setRunning(true)
+      if (!runningRef.current) {
+        runningRef.current = true
+        setChildren(makeEmojiTowerChildren(numImages))
         return
       }
       forceRender()
     })
     return () => {
+      runningRef.current = false
       animatedValue.removeAllListeners()
     }
-  }, [animatedValue, running, forceRender])
-
-  force // just to trigger
-
-  const [children, setChildren] = React.useState<React.ReactNode>(null)
-
-  React.useEffect(() => {
-    if (!running) {
-      setChildren(null)
-      return
-    }
-    const children: Array<React.ReactNode> = []
-    for (let i = 0; i < numImages * 4; i++) {
-      const r = Math.random()
-      let emoji: string
-      if (Kb.Styles.isAndroid) {
-        emoji = r < 0.5 ? '💥' : '💣'
-      } else {
-        if (r < 0.33) {
-          emoji = '💥'
-        } else if (r < 0.66) {
-          emoji = '💣'
-        } else {
-          emoji = '🤯'
-        }
-      }
-      children.push(
-        <Kb.Text key={i} type="Body">
-          {emoji}
-        </Kb.Text>
-      )
-    }
-    setChildren(children)
-  }, [running, numImages])
+  }, [animatedValue, forceRender, numImages])
 
   return <Kb.Box2 direction="vertical" overflow="hidden" style={styles.emojiTower}>{children}</Kb.Box2>
 }
