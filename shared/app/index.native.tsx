@@ -32,32 +32,31 @@ module.hot?.accept(() => {
   console.log('accepted update in shared/index.native')
 })
 
+const initDarkMode = () => {
+  const {setDarkModePreference, setSystemDarkMode, setSystemSupported} =
+    DarkMode.useDarkModeState.getState().dispatch
+  setSystemDarkMode(Appearance.getColorScheme() === 'dark')
+  setSystemSupported(darkModeSupported)
+  try {
+    const obj = JSON.parse(guiConfig) as {ui?: {darkMode?: string}} | undefined
+    const dm = obj?.ui?.darkMode
+    switch (dm) {
+      case 'system': // fallthrough
+      case 'alwaysDark': // fallthrough
+      case 'alwaysLight':
+        setDarkModePreference(dm, false)
+        break
+      default:
+    }
+  } catch {}
+}
+
+initDarkMode()
+
 const useDarkHookup = () => {
-  const initedRef = React.useRef(false)
   const appStateRef = React.useRef('active')
   const setSystemDarkMode = DarkMode.useDarkModeState(s => s.dispatch.setSystemDarkMode)
   const setMobileAppState = useShellState(s => s.dispatch.setMobileAppState)
-  const setSystemSupported = DarkMode.useDarkModeState(s => s.dispatch.setSystemSupported)
-  const setDarkModePreference = DarkMode.useDarkModeState(s => s.dispatch.setDarkModePreference)
-
-  // once
-  if (!initedRef.current) {
-    initedRef.current = true
-    setSystemDarkMode(Appearance.getColorScheme() === 'dark')
-    setSystemSupported(darkModeSupported)
-    try {
-      const obj = JSON.parse(guiConfig) as {ui?: {darkMode?: string}} | undefined
-      const dm = obj?.ui?.darkMode
-      switch (dm) {
-        case 'system': // fallthrough
-        case 'alwaysDark': // fallthrough
-        case 'alwaysLight':
-          setDarkModePreference(dm, false)
-          break
-        default:
-      }
-    } catch {}
-  }
 
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {

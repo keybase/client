@@ -4,6 +4,13 @@ import * as React from 'react'
 type AnyFunction = (...args: Array<any>) => any
 type TimerID = ReturnType<typeof setTimeout>
 
+type DebounceRuntime<T extends AnyFunction> = {
+  lastArgs?: Parameters<T>
+  lastCallTime?: number
+  lastResult?: ReturnType<T>
+  timerID?: TimerID
+}
+
 export type DebouncedState<T extends AnyFunction> = ((...args: Parameters<T>) => ReturnType<T> | undefined) & {
   cancel: () => void
   flush: () => ReturnType<T> | undefined
@@ -23,42 +30,43 @@ export function useDebouncedCallback<T extends AnyFunction>(
   options?: DebounceOptions
 ): DebouncedState<T> {
   const funcRef = React.useRef(func)
-  funcRef.current = func
+  React.useEffect(() => {
+    funcRef.current = func
+  }, [func])
+  const runtimeRef = React.useRef<DebounceRuntime<T>>({})
 
   const waitMs = normalizeWait(wait)
   const leading = options?.leading ?? false
   const trailing = options?.trailing ?? true
 
   const debounced = React.useMemo(() => {
-    let lastArgs: Parameters<T> | undefined
-    let lastCallTime: number | undefined
-    let lastResult: ReturnType<T> | undefined
-    let timerID: TimerID | undefined
-
     const clearTimer = () => {
-      if (timerID !== undefined) {
-        clearTimeout(timerID)
-        timerID = undefined
+      const runtime = runtimeRef.current
+      if (runtime.timerID !== undefined) {
+        clearTimeout(runtime.timerID)
+        runtime.timerID = undefined
       }
     }
 
     const invoke = () => {
-      const args = lastArgs
-      lastArgs = undefined
+      const runtime = runtimeRef.current
+      const args = runtime.lastArgs
+      runtime.lastArgs = undefined
       if (!args) {
-        return lastResult
+        return runtime.lastResult
       }
       const result = funcRef.current(...args)
-      lastResult = result
+      runtime.lastResult = result
       return result
     }
 
     const remainingWait = (time: number) => {
-      const sinceLastCall = time - (lastCallTime ?? 0)
+      const sinceLastCall = time - (runtimeRef.current.lastCallTime ?? 0)
       return waitMs - sinceLastCall
     }
 
     const shouldInvoke = (time: number) => {
+      const {lastCallTime} = runtimeRef.current
       if (lastCallTime === undefined) {
         return true
       }
@@ -68,11 +76,12 @@ export function useDebouncedCallback<T extends AnyFunction>(
 
     const trailingEdge = () => {
       clearTimer()
-      if (trailing && lastArgs) {
+      const runtime = runtimeRef.current
+      if (trailing && runtime.lastArgs) {
         return invoke()
       }
-      lastArgs = undefined
-      return lastResult
+      runtime.lastArgs = undefined
+      return runtime.lastResult
     }
 
     const timerExpired = () => {
@@ -81,44 +90,48 @@ export function useDebouncedCallback<T extends AnyFunction>(
         trailingEdge()
         return
       }
-      timerID = setTimeout(timerExpired, remainingWait(time))
+      runtimeRef.current.timerID = setTimeout(timerExpired, remainingWait(time))
     }
 
     const leadingEdge = () => {
-      timerID = setTimeout(timerExpired, waitMs)
-      return leading ? invoke() : lastResult
+      const runtime = runtimeRef.current
+      runtime.timerID = setTimeout(timerExpired, waitMs)
+      return leading ? invoke() : runtime.lastResult
     }
 
     const next = ((...args: Parameters<T>) => {
       const time = Date.now()
       const invokeNow = shouldInvoke(time)
+      const runtime = runtimeRef.current
 
-      lastArgs = args
-      lastCallTime = time
+      runtime.lastArgs = args
+      runtime.lastCallTime = time
 
-      if (invokeNow && timerID === undefined) {
+      if (invokeNow && runtime.timerID === undefined) {
         return leadingEdge()
       }
 
       clearTimer()
-      timerID = setTimeout(timerExpired, waitMs)
-      return lastResult
+      runtime.timerID = setTimeout(timerExpired, waitMs)
+      return runtime.lastResult
     }) as DebouncedState<T>
 
     next.cancel = () => {
       clearTimer()
-      lastArgs = undefined
-      lastCallTime = undefined
+      const runtime = runtimeRef.current
+      runtime.lastArgs = undefined
+      runtime.lastCallTime = undefined
     }
 
     next.flush = () => {
-      if (timerID === undefined) {
-        return lastResult
+      const runtime = runtimeRef.current
+      if (runtime.timerID === undefined) {
+        return runtime.lastResult
       }
       return trailingEdge()
     }
 
-    next.isPending = () => timerID !== undefined
+    next.isPending = () => runtimeRef.current.timerID !== undefined
 
     return next
   }, [leading, trailing, waitMs])
@@ -134,82 +147,97 @@ export function useThrottledCallback<T extends AnyFunction>(
   options?: DebounceOptions
 ): DebouncedState<T> {
   const funcRef = React.useRef(func)
-  funcRef.current = func
+  React.useEffect(() => {
+    funcRef.current = func
+  }, [func])
+  const runtimeRef = React.useRef<{
+    lastArgs?: Parameters<T>
+    lastInvokeTime?: number
+    lastResult?: ReturnType<T>
+    timerID?: TimerID
+  }>({})
 
   const waitMs = normalizeWait(wait)
   const leading = options?.leading ?? true
   const trailing = options?.trailing ?? true
 
   const throttled = React.useMemo(() => {
-    let lastArgs: Parameters<T> | undefined
-    let lastInvokeTime: number | undefined
-    let lastResult: ReturnType<T> | undefined
-    let timerID: TimerID | undefined
-
     const clearTimer = () => {
-      if (timerID !== undefined) {
-        clearTimeout(timerID)
-        timerID = undefined
+      const runtime = runtimeRef.current
+      if (runtime.timerID !== undefined) {
+        clearTimeout(runtime.timerID)
+        runtime.timerID = undefined
       }
     }
 
     const invoke = (time: number, args: Parameters<T>) => {
-      lastArgs = undefined
-      lastInvokeTime = time
+      const runtime = runtimeRef.current
+      runtime.lastArgs = undefined
+      runtime.lastInvokeTime = time
       const result = funcRef.current(...args)
-      lastResult = result
+      runtime.lastResult = result
       return result
     }
 
     const schedule = (time: number) => {
-      if (timerID !== undefined) {
+      const runtime = runtimeRef.current
+      if (runtime.timerID !== undefined) {
         return
       }
       const delay =
-        lastInvokeTime === undefined ? waitMs : Math.max(0, waitMs - (time - lastInvokeTime))
-      timerID = setTimeout(() => {
-        timerID = undefined
-        if (trailing && lastArgs) {
-          invoke(Date.now(), lastArgs)
+        runtime.lastInvokeTime === undefined
+          ? waitMs
+          : Math.max(0, waitMs - (time - runtime.lastInvokeTime))
+      runtime.timerID = setTimeout(() => {
+        const runtime = runtimeRef.current
+        runtime.timerID = undefined
+        if (trailing && runtime.lastArgs) {
+          invoke(Date.now(), runtime.lastArgs)
         } else {
-          lastArgs = undefined
+          runtime.lastArgs = undefined
         }
       }, delay)
     }
 
     const next = ((...args: Parameters<T>) => {
       const time = Date.now()
-      lastArgs = args
+      const runtime = runtimeRef.current
+      runtime.lastArgs = args
 
-      if (leading && (lastInvokeTime === undefined || time - lastInvokeTime >= waitMs)) {
+      if (
+        leading &&
+        (runtime.lastInvokeTime === undefined || time - runtime.lastInvokeTime >= waitMs)
+      ) {
         const result = invoke(time, args)
         schedule(time)
         return result
       }
 
       schedule(time)
-      return lastResult
+      return runtime.lastResult
     }) as DebouncedState<T>
 
     next.cancel = () => {
       clearTimer()
-      lastArgs = undefined
-      lastInvokeTime = undefined
+      const runtime = runtimeRef.current
+      runtime.lastArgs = undefined
+      runtime.lastInvokeTime = undefined
     }
 
     next.flush = () => {
-      if (timerID === undefined) {
-        return lastResult
+      const runtime = runtimeRef.current
+      if (runtime.timerID === undefined) {
+        return runtime.lastResult
       }
       clearTimer()
-      if (trailing && lastArgs) {
-        return invoke(Date.now(), lastArgs)
+      if (trailing && runtime.lastArgs) {
+        return invoke(Date.now(), runtime.lastArgs)
       }
-      lastArgs = undefined
-      return lastResult
+      runtime.lastArgs = undefined
+      return runtime.lastResult
     }
 
-    next.isPending = () => timerID !== undefined
+    next.isPending = () => runtimeRef.current.timerID !== undefined
 
     return next
   }, [leading, trailing, waitMs])

@@ -132,7 +132,6 @@ const Container = ({platform, reason = 'profile'}: Props) => {
   const afterCheckProofRef = React.useRef<undefined | (() => void)>(undefined)
   const cancelCurrentRef = React.useRef<undefined | (() => void)>(undefined)
   const submitUsernameRef = React.useRef<undefined | ((username: string) => void)>(undefined)
-  const startProofRef = React.useRef<(proofPlatform: string, proofReason: 'appLink' | 'profile') => void>(() => {})
   const [step, setStep] = React.useState<Step>(platform ? {kind: 'loading'} : {kind: 'pick'})
 
   const setStepSafe = (next: Step) => {
@@ -462,13 +461,13 @@ const Container = ({platform, reason = 'profile'}: Props) => {
     submitUsernameRef.current(normalized)
   }
 
-  startProofRef.current = startProof
+  const startProofEvent = React.useEffectEvent(startProof)
 
   React.useEffect(() => {
     const {platform: initialPlatform, reason: initialReason} = initialRouteRef.current
     if (initialPlatform && !initialProofStartedRef.current) {
       initialProofStartedRef.current = true
-      startProofRef.current(initialPlatform, initialReason)
+      startProofEvent(initialPlatform, initialReason)
     }
   }, [])
 

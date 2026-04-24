@@ -13,7 +13,6 @@ import {findLast} from '@/util/arrays'
 import {MessageRow} from '../messages/wrapper'
 import {globalMargins} from '@/styles/shared'
 import {FocusContext, ScrollContext} from '../normal/context'
-import shallowEqual from '@/util/shallow-equal'
 import useResizeObserver from '@/util/use-resize-observer.desktop'
 import useIntersectionObserver from '@/util/use-intersection-observer'
 import {copyToClipboard} from '@/util/storeless-actions'
@@ -388,8 +387,6 @@ const useItems = (p: {
     )
   }
 
-  const wayOrdinalCachRef = React.useRef(new Map<string, Array<T.Chat.Ordinal>>())
-
   // TODO doesn't need all messageOrdinals in there, could just find buckets and push details down
   const items = (() => {
     const items: Array<React.ReactNode> = []
@@ -419,16 +416,8 @@ const useItems = (p: {
           const chunks = chunk(ordinals, 10)
           chunks.forEach((toAdd, cidx) => {
             const key = `${lastBucket || ''}:${cidx + baseIndex}`
-            let wayOrdinals = toAdd
-            const existing = wayOrdinalCachRef.current.get(key)
-            if (existing && shallowEqual(existing, wayOrdinals)) {
-              wayOrdinals = existing
-            } else {
-              wayOrdinalCachRef.current.set(key, wayOrdinals)
-            }
-
             items.push(
-              <OrdinalWaypoint key={key} id={key} rowRenderer={rowRenderer} ordinals={wayOrdinals} />
+              <OrdinalWaypoint key={key} id={key} rowRenderer={rowRenderer} ordinals={toAdd} />
             )
           })
           // we pass previous so the OrdinalWaypoint can render the top item correctly
@@ -439,19 +428,12 @@ const useItems = (p: {
       // If this is the centered ordinal, it goes into its own waypoint so we can easily scroll to it
       if (isCenteredOrdinal) {
         const key = scrollOrdinalKey
-        let wayOrdinals = [ordinal]
-        const existing = wayOrdinalCachRef.current.get(key)
-        if (existing && shallowEqual(existing, wayOrdinals)) {
-          wayOrdinals = existing
-        } else {
-          wayOrdinalCachRef.current.set(key, wayOrdinals)
-        }
         items.push(
           <OrdinalWaypoint
             key={scrollOrdinalKey}
             id={scrollOrdinalKey}
             rowRenderer={rowRenderer}
-            ordinals={wayOrdinals}
+            ordinals={[ordinal]}
           />
         )
         lastBucket = 0
