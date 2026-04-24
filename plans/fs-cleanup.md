@@ -174,6 +174,7 @@ Current slice note:
 - global `tlfs` state and the store-owned TLF mutation helpers have been removed; mounted favorites/sync-config updates now reload through feature-local hooks
 - the remaining global FS store surface is now the cross-route/background set: downloads, uploads, kbfs daemon status, overall sync status, settings/SFMI, files-tab badge, menubar file-edit updates, critical-update state, and fallback/global FS error state
 - store-internal KBFS subscription, driver-status, and sync-status helpers no longer leak through the public `dispatch` surface; only the still-consumed global actions remain exposed
+- one-screen RPC wrappers for delete, destination-picker move/copy, and reset/conflict actions now live with their mounted owners instead of `shared/stores/fs.tsx`
 
 ### Likely candidates to keep global
 
@@ -200,6 +201,9 @@ Current slice note:
 - most mounted-view refresh logic in `dispatch`
 
 ## Validation
+
+Validation note:
+- pending manual FS runtime checks only; this machine does not have `node_modules`, so no TS/node validation was run in this repo
 
 - [ ] FS browser still loads folders and metadata correctly on entry
 - [ ] File preview still loads `fileContext` and download/share flows correctly

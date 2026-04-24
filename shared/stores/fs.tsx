@@ -200,7 +200,6 @@ export type State = Store & {
     afterKbfsDaemonRpcStatusChanged: () => void
     cancelDownload: (downloadID: string) => void
     checkKbfsDaemonRpcStatus: () => void
-    deleteFile: (path: T.FS.Path) => void
     dismissDownload: (downloadID: string) => void
     dismissRedbar: (index: number) => void
     dismissUpload: (uploadID: string) => void
@@ -211,18 +210,11 @@ export type State = Store & {
     ) => void
     driverDisable: () => void
     driverEnable: (isRetry?: boolean) => void
-    finishManualConflictResolution: (localViewTlfPath: T.FS.Path) => void
     getOnlineStatus: () => void
     journalUpdate: (syncingPaths: Array<T.FS.Path>, totalSyncingBytes: number, endEstimate?: number) => void
-    letResetUserBackIn: (id: T.RPCGen.TeamID, username: string) => void
     loadSettings: () => void
     loadDownloadInfo: (downloadID: string) => void
     loadDownloadStatus: () => void
-    moveOrCopy: (
-      destinationParentPath: T.FS.Path,
-      source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource,
-      type: 'move' | 'copy'
-    ) => void
     onChangedFocus: (appFocused: boolean) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     redbar: (error: string) => void
@@ -233,7 +225,6 @@ export type State = Store & {
     setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
     setSpaceAvailableNotificationThreshold: (spaceAvailableNotificationThreshold: number) => void
     setTlfSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
-    startManualConflictResolution: (tlfPath: T.FS.Path) => void
     upload: (parentPath: T.FS.Path, localPath: string) => void
     userIn: () => void
     userOut: () => void
@@ -742,22 +733,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    deleteFile: path => {
-      const f = async () => {
-        const opID = makeUUID()
-        try {
-          await T.RPCGen.SimpleFSSimpleFSRemoveRpcPromise({
-            opID,
-            path: Constants.pathToRPCPath(path),
-            recursive: true,
-          })
-          await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})
-        } catch (e) {
-          errorToActionOrThrow(e, path)
-        }
-      }
-      ignorePromise(f())
-    },
     dismissDownload: downloadID => {
       const f = async () => {
         await T.RPCGen.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID})
@@ -842,14 +817,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    finishManualConflictResolution: localViewTlfPath => {
-      const f = async () => {
-        await T.RPCGen.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
-          path: Constants.pathToRPCPath(localViewTlfPath),
-        })
-      }
-      ignorePromise(f())
-    },
     getOnlineStatus: () => {
       const f = async () => {
         await checkIfWeReConnectedToMDServerUpToNTimes(2)
@@ -865,16 +832,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         s.uploads.totalSyncingBytes = totalSyncingBytes
         s.uploads.endEstimate = endEstimate
       })
-    },
-    letResetUserBackIn: (id, username) => {
-      const f = async () => {
-        try {
-          await T.RPCGen.teamsTeamReAddMemberAfterResetRpcPromise({id, username})
-        } catch (error) {
-          errorToActionOrThrow(error)
-        }
-      }
-      ignorePromise(f())
     },
     loadDownloadInfo: downloadID => {
       const f = async () => {
@@ -951,60 +908,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           set(s => {
             s.settings.isLoading = false
           })
-        }
-      }
-      ignorePromise(f())
-    },
-    moveOrCopy: (destinationParentPath, source, type) => {
-      const f = async () => {
-        const params =
-          source.type === T.FS.DestinationPickerSource.MoveOrCopy
-            ? [
-                {
-                  dest: Constants.pathToRPCPath(
-                    T.FS.pathConcat(destinationParentPath, T.FS.getPathName(source.path))
-                  ),
-                  opID: makeUUID(),
-                  overwriteExistingFiles: false,
-                  src: Constants.pathToRPCPath(source.path),
-                },
-              ]
-            : source.source
-                .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
-                .filter(({originalPath}) => !!originalPath)
-                .map(({originalPath, scaledPath}) => ({
-                  dest: Constants.pathToRPCPath(
-                    T.FS.pathConcat(
-                      destinationParentPath,
-                      T.FS.getLocalPathName(originalPath)
-                      // We use the local path name here since we only care about file name.
-                    )
-                  ),
-                  opID: makeUUID(),
-                  overwriteExistingFiles: false,
-                  src: {
-                    PathType: T.RPCGen.PathType.local,
-                    local: T.FS.getNormalizedLocalPath(
-                      useConfigState.getState().incomingShareUseOriginal
-                        ? originalPath
-                        : scaledPath || originalPath
-                    ),
-                  } as T.RPCGen.Path,
-                }))
-
-        try {
-          const rpc =
-            type === 'move'
-              ? T.RPCGen.SimpleFSSimpleFSMoveRpcPromise
-              : T.RPCGen.SimpleFSSimpleFSCopyRecursiveRpcPromise
-          await Promise.all(params.map(async p => rpc(p)))
-          await Promise.all(params.map(async ({opID}) => T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})))
-          // We get source/dest paths from state rather than action, so we can't
-          // just retry it. If we do want retry in the future we can include those
-          // paths in the action.
-        } catch (e) {
-          errorToActionOrThrow(e, destinationParentPath)
-          return
         }
       }
       ignorePromise(f())
@@ -1106,14 +1009,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           s.softErrors.tlfErrors.delete(path)
         }
       })
-    },
-    startManualConflictResolution: tlfPath => {
-      const f = async () => {
-        await T.RPCGen.SimpleFSSimpleFSClearConflictStateRpcPromise({
-          path: Constants.pathToRPCPath(tlfPath),
-        })
-      }
-      ignorePromise(f())
     },
     upload: (parentPath, localPath) => {
       const f = async () => {
