@@ -1,9 +1,7 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import type {FloatingMenuProps, OnDownloadStarted} from './types'
 import * as Kb from '@/common-adapters'
-import {useFsPathItem} from '../hooks'
-import {useFSState} from '@/stores/fs'
+import {useFsDownload, useFsPathItem} from '../hooks'
 import * as FS from '@/stores/fs'
 
 type OwnProps = {
@@ -18,12 +16,7 @@ type OwnProps = {
 const Container = (ownProps: OwnProps) => {
   const {onDownloadStarted, path, floatingMenuProps, previousView, setView, view} = ownProps
   const size = useFsPathItem(path).size
-  const {download} = useFSState(
-    C.useShallow(s => {
-      const download = s.dispatch.download
-      return {download}
-    })
-  )
+  const download = useFsDownload()
   const confirm = () => {
     download(
       path,

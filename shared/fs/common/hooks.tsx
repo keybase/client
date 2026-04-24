@@ -25,6 +25,7 @@ import {
   finishedDownloadWithIntentMobile as finishedDownloadWithIntentInPlatform,
   finishedRegularDownloadMobile as finishedRegularDownloadInPlatform,
 } from '@/stores/fs-platform'
+import {requestPermissionsToWrite} from '@/util/platform-specific'
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
 
@@ -41,22 +42,88 @@ const makeEmptyTlfs = (): T.FS.Tlfs => ({
 const emptyTlfs = makeEmptyTlfs()
 
 type FsDataContextType = {
+  downloadInfos: ReadonlyMap<string, T.FS.DownloadInfo>
   loadAdditionalTlf: (tlfPath: T.FS.Path) => void
+  loadDownloadInfo: (downloadID: string) => void
   loadFolderChildren: (path: T.FS.Path, initialLoadRecursive: boolean) => void
   loadPathMetadata: (path: T.FS.Path) => void
   loadTlfs: () => void
   pathItems: T.FS.PathItems
+  recordDownloadStarted: (downloadID: string, path: T.FS.Path, type: DownloadStartType) => void
   tlfs: T.FS.Tlfs
 }
 
 const FsDataContext = React.createContext<FsDataContextType | null>(null)
 
+type DownloadStartType = 'download' | 'share' | 'saveMedia'
+
+const downloadIntentFromStartType = (type: DownloadStartType): T.FS.DownloadIntent | undefined =>
+  type === 'share'
+    ? T.FS.DownloadIntent.Share
+    : type === 'saveMedia'
+      ? T.FS.DownloadIntent.CameraRoll
+      : undefined
+
 export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
   const username = useCurrentUserState(s => s.username)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const {setPathSoftError, setTlfSoftError} = useFsSoftErrorActions()
+  const activeDownloadIDs = useFSState(C.useShallow(s => [...s.downloads.state.keys()]))
+  const [downloadInfos, setDownloadInfos] = React.useState<ReadonlyMap<string, T.FS.DownloadInfo>>(
+    () => new Map()
+  )
   const [pathItems, setPathItems] = React.useState<T.FS.PathItems>(() => new Map())
   const [tlfs, setTlfs] = React.useState<T.FS.Tlfs>(makeEmptyTlfs)
+
+  const loadDownloadInfo = (downloadID: string) => {
+    const f = async () => {
+      try {
+        const res = await T.RPCGen.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
+          downloadID,
+        })
+        setDownloadInfos(prevDownloadInfos => {
+          const old = prevDownloadInfos.get(downloadID)
+          const nextDownloadInfos = new Map(prevDownloadInfos)
+          nextDownloadInfos.set(downloadID, {
+            filename: res.filename,
+            intent: old?.intent,
+            isRegularDownload: res.isRegularDownload,
+            path: T.FS.stringToPath('/keybase' + res.path.path),
+            startTime: res.startTime,
+          })
+          return nextDownloadInfos
+        })
+      } catch (error) {
+        errorToActionOrThrow(error)
+      }
+    }
+    C.ignorePromise(f())
+  }
+
+  const recordDownloadStarted = (downloadID: string, path: T.FS.Path, type: DownloadStartType) => {
+    const downloadIntent = downloadIntentFromStartType(type)
+    setDownloadInfos(prevDownloadInfos => {
+      const old = prevDownloadInfos.get(downloadID)
+      const nextDownloadInfos = new Map(prevDownloadInfos)
+      nextDownloadInfos.set(downloadID, {
+        filename: old?.filename ?? T.FS.getPathName(path),
+        intent: downloadIntent ?? old?.intent,
+        isRegularDownload: type === 'download',
+        path,
+        startTime: old?.startTime ?? 0,
+      })
+      return nextDownloadInfos
+    })
+  }
+
+  const loadMissingDownloadInfo = React.useEffectEvent((downloadID: string) => {
+    if (!downloadInfos.has(downloadID)) {
+      loadDownloadInfo(downloadID)
+    }
+  })
+  React.useEffect(() => {
+    activeDownloadIDs.forEach(loadMissingDownloadInfo)
+  }, [activeDownloadIDs])
 
   const loadPathMetadata = (path: T.FS.Path) => {
     const f = async () => {
@@ -195,7 +262,17 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
 
   return (
     <FsDataContext.Provider
-      value={{loadAdditionalTlf, loadFolderChildren, loadPathMetadata, loadTlfs, pathItems, tlfs}}
+      value={{
+        downloadInfos,
+        loadAdditionalTlf,
+        loadDownloadInfo,
+        loadFolderChildren,
+        loadPathMetadata,
+        loadTlfs,
+        pathItems,
+        recordDownloadStarted,
+        tlfs,
+      }}
     >
       {children}
     </FsDataContext.Provider>
@@ -536,18 +613,20 @@ export const useFsSoftError = (path: T.FS.Path): T.FS.SoftError | undefined => {
 }
 
 export const useFsDownloadInfo = (downloadID: string): T.FS.DownloadInfo => {
-  const {info, loadDownloadInfo} = useFSState(
-    C.useShallow(s => ({
-      info: s.downloads.info.get(downloadID) || FS.emptyDownloadInfo,
-      loadDownloadInfo: s.dispatch.loadDownloadInfo,
-    }))
-  )
+  const routeData = React.useContext(FsDataContext)
+  const info = routeData?.downloadInfos.get(downloadID) || FS.emptyDownloadInfo
   useFsLoadOnMountAndFocus({
-    enabled: !!downloadID,
-    load: () => loadDownloadInfo(downloadID),
+    enabled: !!downloadID && !!routeData,
+    load: () => routeData?.loadDownloadInfo(downloadID),
     reloadKey: downloadID,
   })
   return info
+}
+
+export const useFsDownloadIntent = (path: T.FS.Path): T.FS.DownloadIntent | undefined => {
+  const routeData = React.useContext(FsDataContext)
+  const downloadStates = useFSState(s => s.downloads.state)
+  return routeData ? FS.getDownloadIntent(path, routeData.downloadInfos, downloadStates) : undefined
 }
 
 export const useFsDownloadStatus = () => {
@@ -560,6 +639,27 @@ export const useFsDownloadStatus = () => {
   useFsLoadOnMountAndFocus({
     load: loadDownloadStatus,
   })
+}
+
+export const useFsDownload = () => {
+  const routeData = React.useContext(FsDataContext)
+  return (
+    path: T.FS.Path,
+    type: DownloadStartType,
+    onStarted?: (downloadID: string, downloadIntent?: T.FS.DownloadIntent) => void
+  ) => {
+    const f = async () => {
+      await requestPermissionsToWrite()
+      const downloadID = await T.RPCGen.SimpleFSSimpleFSStartDownloadRpcPromise({
+        isRegularDownload: type === 'download',
+        path: FS.pathToRPCPath(path).kbfs,
+      })
+      const downloadIntent = downloadIntentFromStartType(type)
+      routeData?.recordDownloadStarted(downloadID, path, type)
+      onStarted?.(downloadID, downloadIntent)
+    }
+    C.ignorePromise(f())
+  }
 }
 
 export const useFsCancelDownload = () => {

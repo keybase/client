@@ -143,6 +143,7 @@ Current slice note:
 - The Files settings threshold and sync-on-cellular controls submit directly through SimpleFS RPCs instead of selecting global `settings` values.
 - After threshold/sync updates, the settings hook still refreshes the global FS settings owner so background disk-space warning comparisons keep the latest threshold.
 - The public store dispatch wrapper `setSpaceAvailableNotificationThreshold` and the settings-only `RefreshSettings` component were removed.
+- The settings-only `setDebugLevel` wrapper was removed; advanced settings now calls the SimpleFS debug-level RPC directly.
 - `tlfUpdates` stays global for now because desktop menubar remote props render it outside mounted FS routes after `userFileEditsLoad`.
 - Store `settings` is now narrowed to the background/SFMI fields still needed globally: `loaded`, `sfmiBannerDismissed`, and `spaceAvailableNotificationThreshold`.
 
@@ -166,15 +167,15 @@ Current slice note:
 - `FsDataProvider.loadPathMetadata` clears path/TLF soft errors through the mounted error provider instead of mutating `useFSState`.
 - `shared/stores/fs.tsx` no longer exposes `softErrors`, `setPathSoftError`, or `setTlfSoftError`; the global `errorToActionOrThrow` fallback preserves daemon-timeout and redbar handling but intentionally does not keep route soft errors alive.
 - Standalone FS data owners in nav headers, bare preview, KBFS path popups, and the archive modal now mount an `FsErrorProvider` so their soft-error UI remains local to that surface.
-- Store-backed `errors`/`redbar` remain for now because some visible command wrappers still call store actions directly; remove that fallback after Chunk 4 moves those commands to feature ownership.
+- Store-backed `errors`/`redbar` remain for now only as the global fallback used by store-owned background actions; the next redbar slice should decide whether that fallback needs a visible global owner or can be replaced by mounted route handling.
 
 ## Chunk 4: Move Transfer Command Wrappers Out of the Store
 
-- [ ] Move one-shot upload and download start commands into feature hooks or components when the result only affects the initiating UI.
-- [ ] Keep global transfer status state for active uploads/downloads if banners, rows, mobile completion handling, or tabs need it across routes.
-- [ ] Re-evaluate `downloads.info`; load per-download info from the owning footer/mobile watcher hook instead of maintaining a broad global info cache if feasible.
+- [x] Move one-shot upload and download start commands into feature hooks or components when the result only affects the initiating UI.
+- [x] Keep global transfer status state for active uploads/downloads if banners, rows, mobile completion handling, or tabs need it across routes.
+- [x] Re-evaluate `downloads.info`; load per-download info from the owning footer/mobile watcher hook instead of maintaining a broad global info cache if feasible.
 - [x] Move `cancelDownload`, `dismissDownload`, and `dismissUpload` out of the store unless they need to coordinate with global transfer state beyond calling the service.
-- [ ] Preserve mobile download-intent handling and platform-specific completion behavior.
+- [x] Preserve mobile download-intent handling and platform-specific completion behavior.
 
 Behavior to preserve:
 
@@ -188,14 +189,18 @@ Current slice note:
 - Upload dismissal now lives in `useFsDismissUpload()` and is called directly by upload-error rows.
 - Download cancel/dismiss now live in `useFsCancelDownload()` and `useFsDismissDownload()` and are called directly by the footer, path action menu, and mobile completion watcher.
 - `shared/stores/fs.tsx` no longer exposes `upload`, `dismissUpload`, `cancelDownload`, or `dismissDownload`; global upload/download status remains store-owned through service subscriptions.
-- Download start and `downloads.info` remain in the store for the next transfer slice, especially because mobile download-intent completion still depends on MIME and download info coordination.
+- Download start now lives in `useFsDownload()`, with the action menu, confirm menu, and preview default-download button calling it directly.
+- `downloads.info` was removed from `shared/stores/fs.tsx` and `T.FS.Downloads`; per-download metadata now lives in `FsDataProvider` while mounted.
+- `useFsDownloadInfo()` loads per-download metadata through the route provider, and `useFsDownloadIntent()` combines provider-owned info with global active download status for row text and item badges.
+- Mobile save/share/regular-download completion still routes through `useFsWatchDownloadForMobile`; started download intents are recorded in the mounted provider so MIME lookup and platform completion keep their existing coordination.
+- The store still owns `downloads.regularDownloads`, `downloads.state`, and `loadDownloadStatus` because active download status is shared across footers, rows, mobile completion handling, and route changes.
 
 ## Chunk 5: Narrow Engine and Init Plumbing
 
-- [ ] Keep store-owned `onEngineIncomingImpl` only for durable background state.
-- [ ] Move mounted-screen notification reactions to typed engine listeners in the owning hook or component.
-- [ ] Remove `FSSubscriptionNotify` handling from the store for topics that only refresh mounted UI.
-- [ ] Keep non-path subscriptions for files-tab badge, upload/download status, journal status, daemon/online status, and other app-wide surfaces that must update while FS is unmounted.
+- [x] Keep store-owned `onEngineIncomingImpl` only for durable background state.
+- [x] Move mounted-screen notification reactions to typed engine listeners in the owning hook or component.
+- [x] Remove `FSSubscriptionNotify` handling from the store for topics that only refresh mounted UI.
+- [x] Keep non-path subscriptions for files-tab badge, upload/download status, journal status, daemon/online status, and other app-wide surfaces that must update while FS is unmounted.
 - [ ] Delete dead init forwarding, type-only imports, callback plumbing, and tests after consumers move.
 
 Behavior to preserve:
@@ -203,6 +208,13 @@ Behavior to preserve:
 - Daemon reconnect still refreshes background-owned FS state.
 - App badges and upload notification badges still update.
 - Desktop and native init hooks still run platform-specific FS setup.
+
+Current slice note:
+
+- `_onEngineIncoming` now forwards `FSSubscriptionNotify` into the FS store only for background-owned topics: journal status, online status, download status, upload status, files-tab badge, and settings.
+- Mounted-only topics such as favorites stay on the typed listener path; `useFsTlfs()` continues to listen and reload while mounted.
+- `shared/stores/fs.tsx` no longer keeps no-op `favorites` or `overallSyncStatus` subscription cases in `onSubscriptionNotify`.
+- `FSOverallSyncStatusChanged` remains store-owned because disk-space and sync banner state are app-wide background state.
 
 ## Chunk 6: Collapse the Store Boundary
 
@@ -223,12 +235,12 @@ This machine does not have `node_modules` for this repo. Do not run `yarn`, `npm
 
 Validate each implementation slice by inspection:
 
-- [ ] Search for removed fields and actions with `rg`.
-- [ ] Confirm no component still selects removed state or dispatches removed actions.
-- [ ] Confirm route providers wrap all mounted consumers that need shared loaded data.
+- [x] Search for removed fields and actions with `rg`.
+- [x] Confirm no component still selects removed state or dispatches removed actions.
+- [x] Confirm route providers wrap all mounted consumers that need shared loaded data.
 - [ ] Confirm route params and navigation payloads line up when global state is replaced by explicit navigation context.
-- [ ] Confirm engine notifications still land in either a global background owner or a mounted typed listener.
-- [ ] Confirm no new module-level mutable cache or hidden singleton store was introduced.
+- [x] Confirm engine notifications still land in either a global background owner or a mounted typed listener.
+- [x] Confirm no new module-level mutable cache or hidden singleton store was introduced.
 
 Manual runtime scenarios for a runnable environment:
 

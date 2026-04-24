@@ -565,14 +565,15 @@ export const downloadIsOngoing = (dlState: T.FS.DownloadState) =>
 
 export const getDownloadIntent = (
   path: T.FS.Path,
-  downloads: T.FS.Downloads
+  downloadInfos: ReadonlyMap<string, T.FS.DownloadInfo>,
+  downloadStates: ReadonlyMap<string, T.FS.DownloadState>
 ): T.FS.DownloadIntent | undefined => {
-  const found = [...downloads.info].find(([_, info]) => info.path === path)
+  const found = [...downloadInfos].find(([_, info]) => info.path === path)
   if (!found) {
     return undefined
   }
   const [downloadID, info] = found
-  const dlState = downloads.state.get(downloadID) || emptyDownloadState
+  const dlState = downloadStates.get(downloadID) || emptyDownloadState
   if (!downloadIsOngoing(dlState)) {
     return undefined
   }

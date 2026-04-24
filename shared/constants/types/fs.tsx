@@ -336,7 +336,6 @@ export type DownloadInfo = Readonly<{
 }>
 
 export type Downloads = Readonly<{
-  info: ReadonlyMap<string, DownloadInfo>
   regularDownloads: ReadonlyArray<string>
   state: ReadonlyMap<string, DownloadState>
 }>

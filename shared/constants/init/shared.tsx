@@ -443,10 +443,26 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       }
       break
     case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
-    case 'keybase.1.NotifyFS.FSSubscriptionNotify':
       {
         const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
         useFSState.getState().dispatch.onEngineIncomingImpl(action)
+      }
+      break
+    case 'keybase.1.NotifyFS.FSSubscriptionNotify':
+      {
+        switch (action.payload.params.topic) {
+          case T.RPCGen.SubscriptionTopic.journalStatus:
+          case T.RPCGen.SubscriptionTopic.onlineStatus:
+          case T.RPCGen.SubscriptionTopic.downloadStatus:
+          case T.RPCGen.SubscriptionTopic.uploadStatus:
+          case T.RPCGen.SubscriptionTopic.filesTabBadge:
+          case T.RPCGen.SubscriptionTopic.settings: {
+            const {useFSState} = require('@/stores/fs') as typeof UseFSStateType
+            useFSState.getState().dispatch.onEngineIncomingImpl(action)
+            break
+          }
+          default:
+        }
       }
       break
     case 'keybase.1.NotifyEmailAddress.emailAddressVerified':

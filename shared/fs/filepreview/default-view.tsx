@@ -2,7 +2,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {PathItemAction, LastModifiedLine, ItemIcon, type ClickableProps} from '../common'
-import {useFsErrorActionOrThrow, useFsFileContext} from '../common'
+import {useFsDownload, useFsErrorActionOrThrow, useFsFileContext} from '../common'
 import {hasShare} from '../common/path-item-action/layout'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
@@ -19,12 +19,8 @@ const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const {fileContext, pathItem} = useFsFileContext(path)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
-  const {sfmiEnabled, _download} = useFSState(
-    C.useShallow(s => ({
-      _download: s.dispatch.download,
-      sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
-    }))
-  )
+  const _download = useFsDownload()
+  const sfmiEnabled = useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
   const download = () => {
     _download(path, 'download')
   }

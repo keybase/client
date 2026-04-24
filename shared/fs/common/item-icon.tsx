@@ -1,8 +1,7 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon'
-import {useFSState} from '@/stores/fs'
-import {useFsPathItem, useFsTlfs} from './hooks'
+import {useFsDownloadIntent, useFsPathItem, useFsTlfs} from './hooks'
 import * as FS from '@/stores/fs'
 
 export type Size = 96 | 48 | 32 | 16
@@ -132,8 +131,7 @@ type InTlfItemIconProps = {
 }
 
 const InTlfIcon = (props: InTlfItemIconProps) => {
-  const downloads = useFSState(s => s.downloads)
-  const downloadIntent = FS.getDownloadIntent(props.path, downloads)
+  const downloadIntent = useFsDownloadIntent(props.path)
   const pathItem = useFsPathItem(props.path, {loadOnMount: props.loadOnMount})
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   const badgeIcon = props.badgeOverride || (downloadIntent && 'icon-addon-file-downloading')

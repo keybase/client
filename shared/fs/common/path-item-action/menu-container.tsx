@@ -11,6 +11,7 @@ import {useFsErrorActionOrThrow} from '../error-state'
 import {
   useFsCancelDownload,
   useFsDismissDownload,
+  useFsDownload,
   useFsFileContext,
   useFsReloadTlfs,
   useFsWatchDownloadForMobile,
@@ -64,12 +65,8 @@ const Container = (op: OwnProps) => {
   const browserEdits = useFsBrowserEdits()
   const cancelDownload = useFsCancelDownload()
   const dismissDownload = useFsDismissDownload()
-  const {download, sfmiEnabled} = useFSState(
-    C.useShallow(s => ({
-      download: s.dispatch.download,
-      sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
-    }))
-  )
+  const download = useFsDownload()
+  const sfmiEnabled = useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
   const newFolderRow = browserEdits?.newFolderRow
   const startRename = browserEdits?.startRename
   const username = useCurrentUserState(s => s.username)

@@ -1,6 +1,5 @@
 import type * as EngineGen from '@/constants/rpc'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
-import {requestPermissionsToWrite} from '@/util/platform-specific'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {NotifyPopup} from '@/util/misc'
@@ -176,7 +175,6 @@ const initialStore: Store = {
   badge: T.RPCGen.FilesTabBadge.none,
   criticalUpdate: false,
   downloads: {
-    info: new Map(),
     regularDownloads: [],
     state: new Map(),
   },
@@ -203,17 +201,11 @@ export type State = Store & {
     afterKbfsDaemonRpcStatusChanged: () => void
     checkKbfsDaemonRpcStatus: () => void
     dismissRedbar: (index: number) => void
-    download: (
-      path: T.FS.Path,
-      type: 'download' | 'share' | 'saveMedia',
-      onStarted?: (downloadID: string, downloadIntent?: T.FS.DownloadIntent) => void
-    ) => void
     driverDisable: () => void
     driverEnable: (isRetry?: boolean) => void
     getOnlineStatus: () => void
     journalUpdate: (syncingPaths: Array<T.FS.Path>, totalSyncingBytes: number, endEstimate?: number) => void
     loadSettings: () => void
-    loadDownloadInfo: (downloadID: string) => void
     loadDownloadStatus: () => void
     onChangedFocus: (appFocused: boolean) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
@@ -221,7 +213,6 @@ export type State = Store & {
     refreshDriverStatusDesktop: () => void
     resetState: () => void
     setCriticalUpdate: (u: boolean) => void
-    setDebugLevel: (level: string) => void
     userIn: () => void
     userOut: () => void
     userFileEditsLoad: () => void
@@ -436,9 +427,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         case T.RPCGen.SubscriptionTopic.settings:
           get().dispatch.loadSettings()
           break
-        case T.RPCGen.SubscriptionTopic.favorites:
-        case T.RPCGen.SubscriptionTopic.overallSyncStatus:
-          break
+        default:
       }
     }
     ignorePromise(f())
@@ -701,33 +690,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         s.errors = [...s.errors.slice(0, index), ...s.errors.slice(index + 1)]
       })
     },
-    download: (path, type, onStarted) => {
-      const f = async () => {
-        await requestPermissionsToWrite()
-        const downloadID = await T.RPCGen.SimpleFSSimpleFSStartDownloadRpcPromise({
-          isRegularDownload: type === 'download',
-          path: Constants.pathToRPCPath(path).kbfs,
-        })
-        const downloadIntent =
-          type === 'share'
-            ? T.FS.DownloadIntent.Share
-            : type === 'saveMedia'
-              ? T.FS.DownloadIntent.CameraRoll
-              : undefined
-        set(s => {
-          const info = s.downloads.info.get(downloadID)
-          s.downloads.info.set(downloadID, {
-            filename: info?.filename ?? T.FS.getPathName(path),
-            intent: downloadIntent ?? info?.intent,
-            isRegularDownload: type === 'download',
-            path,
-            startTime: info?.startTime ?? 0,
-          })
-        })
-        onStarted?.(downloadID, downloadIntent)
-      }
-      ignorePromise(f())
-    },
     driverDisable: () => {
       const f = async () => {
         const {dispatch, sfmi} = get()
@@ -782,28 +744,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         s.uploads.endEstimate = endEstimate
       })
     },
-    loadDownloadInfo: downloadID => {
-      const f = async () => {
-        try {
-          const res = await T.RPCGen.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
-            downloadID,
-          })
-          set(s => {
-            const old = s.downloads.info.get(downloadID)
-            s.downloads.info.set(downloadID, {
-              filename: res.filename,
-              intent: old?.intent,
-              isRegularDownload: res.isRegularDownload,
-              path: T.FS.stringToPath('/keybase' + res.path.path),
-              startTime: res.startTime,
-            })
-          })
-        } catch (error) {
-          errorToActionOrThrow(error)
-        }
-      }
-      ignorePromise(f())
-    },
     loadDownloadStatus: () => {
       const f = async () => {
         try {
@@ -827,10 +767,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           set(s => {
             s.downloads.regularDownloads = T.castDraft(regularDownloads)
             s.downloads.state = state
-
-            for (const downloadID of s.downloads.info.keys()) {
-              if (!state.has(downloadID)) s.downloads.info.delete(downloadID)
-            }
           })
         } catch (error) {
           errorToActionOrThrow(error)
@@ -916,12 +852,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       set(s => {
         s.criticalUpdate = u
       })
-    },
-    setDebugLevel: level => {
-      const f = async () => {
-        await T.RPCGen.SimpleFSSimpleFSSetDebugLevelRpcPromise({level})
-      }
-      ignorePromise(f())
     },
     userFileEditsLoad: () => {
       const f = async () => {
