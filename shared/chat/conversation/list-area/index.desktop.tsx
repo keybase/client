@@ -615,38 +615,26 @@ if (colorWaypoints) {
 const OrdinalWaypoint = function OrdinalWaypoint(p: OrdinalWaypointProps) {
   const {ordinals, id, rowRenderer} = p
   const estimatedHeight = 40 * ordinals.length
-  const [height, setHeight] = React.useState(-1)
-  const [isVisible, setVisible] = React.useState(false)
+  const measuredHeightRef = React.useRef(-1)
   const [wRef, setRef] = React.useState<HTMLDivElement | null>(null)
-  const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
-  const {isIntersecting} = useIntersectionObserver(wRef, {root})
-  const lastIsIntersecting = React.useRef(isIntersecting)
-
-  React.useEffect(() => {
-    if (lastIsIntersecting.current === isIntersecting) return
-    lastIsIntersecting.current = isIntersecting
-    setVisible(isIntersecting)
-  }, [isIntersecting])
-
-  const renderMessages = isVisible
-  let content: React.ReactElement
-
-  const lastRenderMessages = React.useRef(false)
-  React.useEffect(() => {
-    if (!wRef) return
-    if (lastRenderMessages.current === renderMessages) return
-    if (renderMessages) {
-      const h = wRef.offsetHeight
-      if (h) {
-        setHeight(h)
+  const [setContentRef] = React.useState(() => (ref: HTMLDivElement | null) => {
+    if (ref) {
+      const height = ref.offsetHeight
+      if (height) {
+        measuredHeightRef.current = height
       }
     }
-    lastRenderMessages.current = renderMessages
-  }, [renderMessages, wRef])
+    setRef(ref)
+  })
+  const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
+  const {isIntersecting} = useIntersectionObserver(wRef, {root})
+  const renderMessages = isIntersecting
+  let content: React.ReactElement
 
   if (renderMessages) {
-    content = <Content key={id} id={id} ref={setRef} ordinals={ordinals} rowRenderer={rowRenderer} />
+    content = <Content key={id} id={id} ref={setContentRef} ordinals={ordinals} rowRenderer={rowRenderer} />
   } else {
+    const height = measuredHeightRef.current
     content = <Dummy key={id} id={id} height={height < 0 ? estimatedHeight : height} ref={setRef} />
   }
 

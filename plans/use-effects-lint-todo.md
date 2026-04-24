@@ -37,7 +37,7 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 
 ## Batch 4: Chat Message Wrappers And Timers
 
-- [ ] `shared/chat/conversation/list-area/index.desktop.tsx:662:9`
+- [x] `shared/chat/conversation/list-area/index.desktop.tsx:662:9` - preserved waypoint virtualization height with a measured-height ref instead of state set from an effect.
 - [ ] `shared/chat/conversation/messages/wrapper/exploding-height-retainer/index.desktop.tsx:20:7`
 - [ ] `shared/chat/conversation/messages/wrapper/exploding-height-retainer/index.native.tsx:135:7`
 - [ ] `shared/chat/conversation/messages/wrapper/exploding-meta.tsx:82:7`
