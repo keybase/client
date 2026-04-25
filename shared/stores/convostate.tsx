@@ -2927,7 +2927,7 @@ const createSlice =
             })
           } catch (err) {
             logger.error('Failed to save attachment: ' + err)
-            throw new Error('Failed to save attachment: ' + err)
+            throw new Error('Failed to save attachment: ' + err, {cause: err})
           }
         }
         ignorePromise(f())

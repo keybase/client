@@ -120,7 +120,8 @@ function updateIconFont(web: boolean) {
       const error = error_ as {message: string}
       if (error.message.includes('not found')) {
         throw new Error(
-          'FontForge is required to generate the icon font. Run `yarn`, install FontForge CLI globally, and try again.'
+          'FontForge is required to generate the icon font. Run `yarn`, install FontForge CLI globally, and try again.',
+          {cause: error_}
         )
       }
       throw error

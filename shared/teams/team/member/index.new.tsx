@@ -355,7 +355,7 @@ const TeamMember = (props: OwnProps) => {
               if (error.result.error.willSkipAncestors) {
                 failedAt.push('its parent teams')
               }
-              let failedAtStr = ''
+              let failedAtStr: string
               if (failedAt.length > 1) {
                 const last = failedAt.pop()
                 failedAtStr = failedAt.join(', ') + ', and ' + last

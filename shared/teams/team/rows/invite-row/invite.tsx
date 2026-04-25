@@ -92,16 +92,11 @@ const Container = (ownProps: OwnProps) => {
 
   const user = [...invites].find(invite => invite.id === ownProps.id) || Teams.emptyInviteInfo
 
-  let label: string = ''
-  let subLabel: undefined | string
-  let role: T.Teams.TeamRoleType = 'reader'
-  let isKeybaseUser = false
-
+  let label = user.username || user.name || user.email || user.phone
+  let subLabel: undefined | string = user.name ? user.phone || user.email : undefined
+  const role = user.role
+  const isKeybaseUser = !!user.username
   const onCancelInvite = () => _onCancelInvite(ownProps.id)
-  label = user.username || user.name || user.email || user.phone
-  subLabel = user.name ? user.phone || user.email : undefined
-  role = user.role
-  isKeybaseUser = !!user.username
   if (!subLabel && labelledInviteRegex.test(label)) {
     const match = labelledInviteRegex.exec(label)!
     label = match[1] ?? ''

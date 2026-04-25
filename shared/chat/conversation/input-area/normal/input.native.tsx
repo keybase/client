@@ -112,7 +112,7 @@ export function Input(p: InputLowLevelProps) {
     const commonStyle = Kb.Styles.collapseStyles([inputLowLevelStyles.common, textStyle])
 
     const lineHeight = textStyle.lineHeight
-    let lineStyle = new Array<Kb.Styles.StylesCrossPlatform>()
+    let lineStyle: Array<Kb.Styles.StylesCrossPlatform>
     if (multiline) {
       const defaultRowsToShow = Math.min(2, rowsMax ?? 2)
       const paddingStyles = padding ? Kb.Styles.padding(Kb.Styles.globalMargins[padding]) : {}

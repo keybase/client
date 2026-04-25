@@ -194,7 +194,7 @@ const RetentionDisplay = (
     entityType: RetentionEntityType
   } & Props
 ) => {
-  let convType = ''
+  let convType: string
   switch (props.entityType) {
     case 'big team':
       convType = 'team'

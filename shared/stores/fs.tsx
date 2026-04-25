@@ -476,7 +476,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     }
 
     const f = async () => {
-      let shouldRefreshDaemonStatus = false
+      let shouldRefreshDaemonStatus: boolean
       try {
         while (isCurrentAsyncGeneration(generation)) {
           const {syncingPaths, totalSyncingBytes, endEstimate} =

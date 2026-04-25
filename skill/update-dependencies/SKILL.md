@@ -19,12 +19,18 @@ These are pinned to the Expo SDK version — do not touch:
 These are outdated but blocked due to known compatibility issues. Always echo that you are skipping them:
 
 ```
-Skipping eslint — held back: eslint plugins not yet compatible with newer major versions
 Skipping react-error-boundary — held back: v6.x not compatible with our bundling setup
 ```
 
-- **`eslint`** — plugins not yet updated for newer major version compatibility
 - **`react-error-boundary`** — v6.x not compatible with our bundling setup
+
+## ESLint 10 notes
+
+ESLint was upgraded to v10. The following were added to support it:
+- `@eslint/js` — previously bundled with ESLint 9, now a separate package
+- `@eslint/compat` — used in `eslint.config.mjs` via `fixupConfigRules` to wrap `eslint-plugin-react` (which still uses deprecated `context.getFilename()` API removed in ESLint 10)
+
+If updating `eslint-plugin-react` to a version that supports ESLint 10 natively, remove the `fixupConfigRules` wrapper in `eslint.config.mjs` and potentially drop `@eslint/compat`.
 
 ## Process
 

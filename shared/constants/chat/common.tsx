@@ -19,7 +19,7 @@ export {isSplit, threadRouteName} from './layout'
 export const isUserActivelyLookingAtThisThread = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const selectedConversationIDKey = getSelectedConversation()
 
-  let chatThreadSelected = false
+  let chatThreadSelected: boolean
   if (!isSplit) {
     chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
   } else {
