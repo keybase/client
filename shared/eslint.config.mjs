@@ -225,7 +225,7 @@ export default [
       'no-constant-condition': ['warn', {checkLoops: false}],
       'no-implied-eval': 'error',
       'no-script-url': 'error',
-      'no-undeff': 'off',
+      'no-undef': 'off',
       'no-self-compare': 'error',
       'no-sequences': 'error',
       'prefer-const': 'error',
