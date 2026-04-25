@@ -25,6 +25,7 @@ const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
 }
 
 const cannotJoinAsOwner = {admin: `Users can't join open teams as admins`}
+type TeamNameTakenResult = {exists: boolean; status: T.RPCGen.StatusCode; teamname: string}
 
 type Props = {
   wizard: NewTeamWizard
@@ -51,35 +52,30 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
   )
   const teamname = parentName ? `${parentName}.${name}` : name
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
-  const [teamNameTakenStatus, setTeamNameTakenStatus] = React.useState(
-    T.RPCGen.StatusCode.scok
-  )
-  const [teamNameTaken, setTeamNameTaken] = React.useState(false)
+  const [teamNameTakenResult, setTeamNameTakenResult] = React.useState<TeamNameTakenResult | undefined>()
 
   // TODO this should check subteams too (ideally in go)
   // Also it shouldn't leak the names of subteams people make to the server
   const checkTeam = C.useDebouncedCallback(C.useRPC(T.RPCGen.teamsUntrustedTeamExistsRpcPromise), 100)
+  const canCheckTeamName = !waitingOnParentTeam && name.length >= minLength
 
   React.useEffect(() => {
-    if (waitingOnParentTeam) {
-      setTeamNameTaken(false)
-      setTeamNameTakenStatus(0)
+    if (!canCheckTeamName) {
       return
     }
-    if (name.length >= minLength) {
-      checkTeam(
-        [{teamName: {parts: teamname.split('.')}}],
-        ({exists, status}) => {
-          setTeamNameTaken(exists)
-          setTeamNameTakenStatus(status)
-        },
-        () => {} // TODO: handle errors?
-      )
-    } else {
-      setTeamNameTaken(false)
-      setTeamNameTakenStatus(0)
-    }
-  }, [teamname, name.length, checkTeam, minLength, waitingOnParentTeam])
+    checkTeam(
+      [{teamName: {parts: teamname.split('.')}}],
+      ({exists, status}) => {
+        setTeamNameTakenResult({exists, status, teamname})
+      },
+      () => {} // TODO: handle errors?
+    )
+  }, [teamname, checkTeam, canCheckTeamName])
+
+  const visibleTeamNameTakenResult =
+    canCheckTeamName && teamNameTakenResult?.teamname === teamname ? teamNameTakenResult : undefined
+  const teamNameTaken = visibleTeamNameTakenResult?.exists ?? false
+  const teamNameTakenStatus = visibleTeamNameTakenResult?.status ?? T.RPCGen.StatusCode.scok
 
   const [description, setDescription] = React.useState(teamWizardState.description)
   const [openTeam, _setOpenTeam] = React.useState(

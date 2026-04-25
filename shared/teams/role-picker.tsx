@@ -262,13 +262,13 @@ const Header = () => (
 const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<IncludeSetIndividually>) => {
   const {presetRole} = props
   const filteredRole = filterRole(presetRole)
-  const [selectedRole, setSelectedRole] = React.useState(
-    filteredRole ?? ('reader' as Role<IncludeSetIndividually>)
-  )
-  React.useEffect(() => {
-    const newRole = filterRole(presetRole) ?? ('reader' as Role<IncludeSetIndividually>)
-    setSelectedRole(newRole)
-  }, [presetRole])
+  const presetSelectedRole = filteredRole ?? ('reader' as Role<IncludeSetIndividually>)
+  const [selectedRole, setSelectedRole] = React.useState(presetSelectedRole)
+  const [previousPresetRole, setPreviousPresetRole] = React.useState(presetRole)
+  if (previousPresetRole !== presetRole) {
+    setPreviousPresetRole(presetRole)
+    setSelectedRole(presetSelectedRole)
+  }
 
   // as because convincing TS that filtering this makes it a different type is hard
   const roles = orderedRoles.filter(r => props.includeSetIndividually || r !== 'setIndividually') as Array<

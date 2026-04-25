@@ -11,12 +11,18 @@ import {openAppSettings} from '@/util/storeless-actions'
  * popup.
  */
 const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: () => void}) => {
-  const [showingPopup, setShowingPopup] = React.useState(noAccess)
-  React.useEffect(() => {
-    setShowingPopup(noAccess)
-  }, [noAccess])
+  const [dismissState, setDismissState] = React.useState(() => ({
+    dismissed: false,
+    noAccess,
+  }))
+  let dismissed = dismissState.dismissed
+  if (dismissState.noAccess !== noAccess) {
+    dismissed = false
+    setDismissState({dismissed: false, noAccess})
+  }
+  const showingPopup = noAccess && !dismissed
   const onClosePopup = () => {
-    setShowingPopup(false)
+    setDismissState({dismissed: true, noAccess})
     onClose()
   }
 

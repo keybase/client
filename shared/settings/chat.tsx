@@ -190,15 +190,11 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
     lastContactSettingsTeamsEnabled.current = _contactSettingsTeamsEnabled
   }, [_contactSettingsTeamsEnabled, contactSettingsTeamsEnabled])
 
-  React.useEffect(() => {
-    // Create an initial copy of teams data into state, so it can be mutated there.
-    if (
-      Object.keys(_contactSettingsSelectedTeams).length > 0 &&
-      Object.keys(contactSettingsSelectedTeams).length === 0
-    ) {
-      setContactSettingsSelectedTeams(_contactSettingsSelectedTeams)
-    }
-  }, [_contactSettingsSelectedTeams, contactSettingsSelectedTeams])
+  const hasInitialSelectedTeams = Object.keys(_contactSettingsSelectedTeams).length > 0
+  const hasLocalSelectedTeams = Object.keys(contactSettingsSelectedTeams).length > 0
+  if (hasInitialSelectedTeams && !hasLocalSelectedTeams) {
+    setContactSettingsSelectedTeams(_contactSettingsSelectedTeams)
+  }
 
   React.useEffect(() => {
     loadSettings()

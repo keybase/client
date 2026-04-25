@@ -44,10 +44,15 @@ type TeamAddToTeamConfirmParamList = {
 const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<TeamAddToTeamConfirmParamList, 'teamAddToTeamConfirm'>>()
-  const [wizard, setWizard] = React.useState(initialWizard)
-  React.useEffect(() => {
-    setWizard(initialWizard)
-  }, [initialWizard])
+  const [wizardState, setWizardState] = React.useState(() => ({
+    initialWizard,
+    wizard: initialWizard,
+  }))
+  let wizard = wizardState.wizard
+  if (wizardState.initialWizard !== initialWizard) {
+    wizard = initialWizard
+    setWizardState({initialWizard, wizard: initialWizard})
+  }
   const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = wizard
   const fromNewTeamWizard = teamID === T.Teams.newTeamWizardTeamID
   const newTeamWizard = wizard.newTeamWizard
@@ -55,10 +60,10 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
   const isInTeam = teamMeta.role !== 'none'
   const updateWizard = React.useCallback(
     (nextWizard: AddMembersWizard) => {
-      setWizard(nextWizard)
+      setWizardState({initialWizard, wizard: nextWizard})
       navigation.setParams({wizard: nextWizard})
     },
-    [navigation]
+    [initialWizard, navigation]
   )
   const isSubteam = fromNewTeamWizard ? newTeamWizard?.teamType === 'subteam' : teamMeta.teamname.includes('.')
   const isBigTeam = Chat.useChatState(s => (fromNewTeamWizard ? false : getIsBigTeam(s.inboxLayout, teamID)))
@@ -296,12 +301,7 @@ type RoleSelectorProps = {
 const RoleSelector = ({disabledRoles, memberCount, updateWizard, wizard}: RoleSelectorProps) => {
   const [showingMenu, setShowingMenu] = React.useState(false)
   const storeRole = wizard.role
-  const [role, setRole] = React.useState<RoleType>(storeRole)
-  React.useEffect(() => {
-    setRole(storeRole)
-  }, [storeRole])
   const onConfirmRole = (newRole: RoleType) => {
-    setRole(newRole)
     setShowingMenu(false)
     updateWizard(setWizardRole(wizard, newRole))
   }
@@ -311,7 +311,7 @@ const RoleSelector = ({disabledRoles, memberCount, updateWizard, wizard}: RoleSe
       <FloatingRolePicker<true>
         open={showingMenu}
         presetRole={storeRole}
-        onCancel={storeRole === role ? () => setShowingMenu(false) : undefined}
+        onCancel={() => setShowingMenu(false)}
         onConfirm={onConfirmRole}
         includeSetIndividually={!Kb.Styles.isPhone && (memberCount > 1 || storeRole === 'setIndividually')}
         disabledRoles={disabledRoles}

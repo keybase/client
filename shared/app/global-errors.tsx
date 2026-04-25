@@ -43,8 +43,12 @@ const useData = () => {
 
   const [cachedSummary, setSummary] = React.useState(summaryForError(error))
   const [cachedDetails, setDetails] = React.useState(detailsForError(error))
-  const [size, setSize] = React.useState<Size>('Closed')
+  const [expandedError, setExpandedError] = React.useState<Error | RPCError>()
   const countdownTimerRef = React.useRef<undefined | ReturnType<typeof setTimeout>>(undefined)
+  if (!error && expandedError) {
+    setExpandedError(undefined)
+  }
+  const size: Size = error ? (expandedError === error ? 'Big' : 'Small') : 'Closed'
 
   const clearCountdown = () => {
     countdownTimerRef.current && clearTimeout(countdownTimerRef.current)
@@ -52,7 +56,9 @@ const useData = () => {
   }
 
   const onExpandClick = () => {
-    setSize('Big')
+    if (error) {
+      setExpandedError(error)
+    }
     if (!C.isMobile) {
       clearCountdown()
     }
@@ -73,7 +79,6 @@ const useData = () => {
       error ? 0 : 7000
     ) // if it's set, do it immediately, if it's cleared set it in a bit
     const newError = !!error
-    setSize(newError ? 'Small' : 'Closed')
     if (!C.isMobile) {
       if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current)
       countdownTimerRef.current = undefined

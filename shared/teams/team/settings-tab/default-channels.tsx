@@ -23,14 +23,16 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
     defaultChannels: [],
     error: undefined,
     loadedTeamID: teamID,
-    waiting: false,
+    waiting: true,
   })
   const requestVersionRef = React.useRef(0)
   const requestTeamIDRef = React.useRef(teamID)
 
-  const reloadDefaultChannels = React.useCallback(() => {
+  const reloadDefaultChannels = React.useCallback((showWaiting = true) => {
     const requestVersion = ++requestVersionRef.current
-    setState(prev => ({...prev, error: undefined, waiting: true}))
+    if (showWaiting) {
+      setState(prev => ({...prev, error: undefined, waiting: true}))
+    }
     getDefaultChannelsRPC(
       [{teamID}],
       result => {
@@ -63,8 +65,9 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
     }
   }, [teamID])
 
-  // Initialize
-  React.useEffect(reloadDefaultChannels, [reloadDefaultChannels])
+  React.useEffect(() => {
+    reloadDefaultChannels(false)
+  }, [reloadDefaultChannels])
 
   const visibleState =
     state.loadedTeamID === teamID

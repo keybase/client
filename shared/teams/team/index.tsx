@@ -91,18 +91,37 @@ const TeamBody = (props: Props) => {
   const initialTab = props.initialTab
   const navigation = useNavigation()
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
-  const [invitesCollapsed, setInvitesCollapsed] = React.useState(false)
-  const [subteamFilter, setSubteamFilter] = React.useState('')
+  const [teamLocalState, setTeamLocalState] = React.useState({
+    invitesCollapsed: false,
+    subteamFilter: '',
+    teamID,
+  })
+  if (teamLocalState.teamID !== teamID) {
+    setTeamLocalState({invitesCollapsed: false, subteamFilter: '', teamID})
+  }
+  const invitesCollapsed = teamLocalState.invitesCollapsed
+  const subteamFilter = teamLocalState.subteamFilter
+  const setInvitesCollapsed: React.Dispatch<React.SetStateAction<boolean>> = nextInvitesCollapsed => {
+    setTeamLocalState(prev => ({
+      ...prev,
+      invitesCollapsed:
+        typeof nextInvitesCollapsed === 'function'
+          ? nextInvitesCollapsed(prev.invitesCollapsed)
+          : nextInvitesCollapsed,
+    }))
+  }
+  const setSubteamFilter: React.Dispatch<React.SetStateAction<string>> = nextSubteamFilter => {
+    setTeamLocalState(prev => ({
+      ...prev,
+      subteamFilter:
+        typeof nextSubteamFilter === 'function' ? nextSubteamFilter(prev.subteamFilter) : nextSubteamFilter,
+    }))
+  }
   const clearJustFinishedAddWizard = React.useCallback(() => {
     navigation.setParams({justFinishedAddWizard: undefined})
   }, [navigation])
 
   const {loading: loadingTeam, teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
-
-  React.useEffect(() => {
-    setInvitesCollapsed(false)
-    setSubteamFilter('')
-  }, [teamID])
 
   C.Router2.useSafeFocusEffect(() => {
     return () => teamSeen(teamID)

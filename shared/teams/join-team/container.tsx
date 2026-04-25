@@ -25,7 +25,9 @@ const getJoinTeamError = (error: unknown) => {
   return error instanceof Error ? error.message : 'Something went wrong.'
 }
 
-const Container = ({initialTeamname, success: successParam}: OwnProps) => {
+const Container = (props: OwnProps) => <ContainerInner key={props.initialTeamname ?? ''} {...props} />
+
+const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
   const [errorText, setErrorText] = React.useState('')
   const [open, setOpen] = React.useState(false)
   const [successTeamName, setSuccessTeamName] = React.useState('')
@@ -40,13 +42,6 @@ const Container = ({initialTeamname, success: successParam}: OwnProps) => {
 
   const setName = (n: string) => _setName(n.toLowerCase())
   const onBack = () => navigateUp()
-
-  React.useEffect(() => {
-    _setName(initialTeamname ?? '')
-    setErrorText('')
-    setOpen(false)
-    setSuccessTeamName('')
-  }, [initialTeamname])
 
   const onSubmit = () => {
     setErrorText('')

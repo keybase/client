@@ -67,85 +67,85 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 
 ## Batch 7: Desktop And Remote Surfaces
 
-- [ ] `shared/desktop/remote/remote-component.desktop.tsx:41:5`
-- [ ] `shared/menubar/remote-proxy.desktop.tsx:281:7`
-- [ ] `shared/pinentry/remote-proxy.desktop.tsx:78:7`
+- [x] `shared/desktop/remote/remote-component.desktop.tsx:41:5` - keyed received remote props by component/param and used a guarded render reset instead of clearing props in the subscription effect.
+- [x] `shared/menubar/remote-proxy.desktop.tsx:281:7` - moved logout/user-switch TLF clearing into guarded render state while the effect only invalidates pending loads and starts enabled refreshes.
+- [x] `shared/pinentry/remote-proxy.desktop.tsx:78:7` - moved popup hiding on logout into a guarded render reset and left the effect to clear remote action handlers only.
 
 ## Batch 8: Files, Devices, Git, Incoming Share, Wallets
 
-- [ ] `shared/devices/device-revoke.tsx:144:5`
-- [ ] `shared/fs/browser/rows/editing.tsx:27:5`
-- [ ] `shared/fs/common/hooks.tsx:884:7`
-- [ ] `shared/fs/common/hooks.tsx:1040:7`
-- [ ] `shared/fs/common/use-files-tab-upload-icon.tsx:63:7`
-- [ ] `shared/fs/footer/upload.desktop.tsx:18:7`
-- [ ] `shared/fs/footer/use-upload-countdown.tsx:72:11`
-- [ ] `shared/git/index.tsx:141:5`
-- [ ] `shared/incoming-share/index.tsx:309:5`
-- [ ] `shared/wallets/really-remove-account.tsx:33:5`
+- [x] `shared/devices/device-revoke.tsx:144:5` - derived the visible device from props or a matching loaded device instead of mirroring `ownProps.device`.
+- [x] `shared/fs/browser/rows/editing.tsx:27:5` - removed filename mirror state and writes edits directly through `editSession.setEditName`.
+- [x] `shared/fs/common/hooks.tsx:884:7` - kept known-path version invalidation but derives known path info instead of synchronously resetting cache state.
+- [x] `shared/fs/common/hooks.tsx:1040:7` - kept non-file version invalidation and derives empty file context for non-file/stale keys.
+- [x] `shared/fs/common/use-files-tab-upload-icon.tsx:63:7` - invalidates pending badge loads on disconnect and derives the disconnected icon as `undefined`.
+- [x] `shared/fs/footer/upload.desktop.tsx:18:7` - derives upload draw state from `showing` plus delayed hide completion, leaving the effect to own the hide timer.
+- [x] `shared/fs/footer/use-upload-countdown.tsx:72:11` - moved countdown state transitions into a guarded render state machine and left the effect to own the interval.
+- [x] `shared/git/index.tsx:141:5` - replaced route-param expansion effect/ref with guarded route-key expansion state.
+- [x] `shared/incoming-share/index.tsx:309:5` - derives Android share items from `androidShare` instead of syncing local state.
+- [x] `shared/wallets/really-remove-account.tsx:33:5` - keys the loaded secret key by `accountID` and protects stale async callbacks instead of clearing in the effect.
 
 ## Batch 9: Login, Profile, Provision
 
-- [ ] `shared/login/relogin/container.tsx:68:5`
-- [ ] `shared/login/relogin/container.tsx:73:7`
-- [ ] `shared/profile/add-to-team.tsx:181:5`
-- [ ] `shared/profile/generic/proofs-list.tsx:680:5`
-- [ ] `shared/profile/generic/proofs-list.tsx:684:5`
-- [ ] `shared/profile/generic/proofs-list.tsx:761:5`
-- [ ] `shared/profile/use-proof-suggestions.tsx:100:5`
-- [ ] `shared/provision/code-page/container.tsx:71:5`
+- [x] `shared/login/relogin/container.tsx:68:5` - replaced default-user sync with a guarded reset keyed by the selected default username.
+- [x] `shared/login/relogin/container.tsx:73:7` - replaced the need-password error latch effect with a guarded same-component state update.
+- [x] `shared/profile/add-to-team.tsx:181:5` - keyed the inner add-to-team component by username so username changes reset local form state before loading.
+- [x] `shared/profile/generic/proofs-list.tsx:680:5` - replaced initial-username sync with guarded username state.
+- [x] `shared/profile/generic/proofs-list.tsx:684:5` - replaced error prop sync with guarded error state while preserving submit-cleared local errors.
+- [x] `shared/profile/generic/proofs-list.tsx:761:5` - replaced generic step username sync with guarded username state.
+- [x] `shared/profile/use-proof-suggestions.tsx:100:5` - keys proof-suggestion results by enabled/load state and hides disabled or stale results without a clearing effect.
+- [x] `shared/provision/code-page/container.tsx:71:5` - replaced default-tab sync with guarded tab state.
 
 ## Batch 10: Settings And Signup
 
-- [ ] `shared/router-v2/account-switcher/index.tsx:142:7`
-- [ ] `shared/settings/account/index.tsx:208:5`
-- [ ] `shared/settings/account/index.tsx:215:5`
-- [ ] `shared/settings/account/index.tsx:222:5`
-- [ ] `shared/settings/account/index.tsx:231:7`
-- [ ] `shared/settings/chat.tsx:199:7`
-- [ ] `shared/settings/files/hooks.tsx:38:21`
-- [ ] `shared/settings/proxy.tsx:123:9`
-- [ ] `shared/signup/device-name.tsx:139:7`
+- [x] `shared/router-v2/account-switcher/index.tsx:142:7` - resets clicked row state with a guarded waiting-key adjustment.
+- [x] `shared/settings/account/index.tsx:208:5` - consumes added-email route banner state during guarded render while the effect only clears route params.
+- [x] `shared/settings/account/index.tsx:215:5` - consumes added-phone route banner state during guarded render while the effect only clears route params.
+- [x] `shared/settings/account/index.tsx:222:5` - clears account banner state with a guarded focus-keyed render adjustment.
+- [x] `shared/settings/account/index.tsx:231:7` - derives invalid or verified added-email banner clearing during render.
+- [x] `shared/settings/chat.tsx:199:7` - seeds selected team notification settings with a guarded render update.
+- [x] `shared/settings/files/hooks.tsx:38:21` - keeps file-settings loading state for explicit refreshes while the initial effect starts the request without a synchronous loading update.
+- [x] `shared/settings/proxy.tsx:123:9` - keys proxy form state to loaded `proxyData` via guarded render adjustment.
+- [x] `shared/signup/device-name.tsx:139:7` - sanitizes the device name in the initializer and input handler instead of an effect.
 
 ## Batch 11: Teams Entry Forms And Permissions
 
-- [ ] `shared/teams/add-members-wizard/confirm.tsx:49:5`
-- [ ] `shared/teams/add-members-wizard/confirm.tsx:301:5`
-- [ ] `shared/teams/channel/create-channels.tsx:21:5`
-- [ ] `shared/teams/channel/header.tsx:15:5`
-- [ ] `shared/teams/common/enable-contacts.tsx:16:5`
-- [ ] `shared/teams/common/use-contacts.native.tsx:93:7`
-- [ ] `shared/teams/common/use-contacts.native.tsx:123:7`
-- [ ] `shared/teams/emojis/add-alias.tsx:47:26`
+- [x] `shared/teams/add-members-wizard/confirm.tsx:49:5` - replaced wizard mirror state with guarded render adjustment keyed by the incoming wizard.
+- [x] `shared/teams/add-members-wizard/confirm.tsx:301:5` - removed redundant role mirror state and derives from the wizard role.
+- [x] `shared/teams/channel/create-channels.tsx:21:5` - keyed an inner component by `teamID` for identity resets.
+- [x] `shared/teams/channel/header.tsx:15:5` - tags recent-joins results by `conversationIDKey` with stale callback cleanup.
+- [x] `shared/teams/common/enable-contacts.tsx:16:5` - derives popup visibility from `noAccess` plus local dismissal state.
+- [x] `shared/teams/common/use-contacts.native.tsx:93:7` - tags contact load state by permission/region key and derives visible loading/error state.
+- [x] `shared/teams/common/use-contacts.native.tsx:123:7` - derives permanent no-access state from permission status instead of writing local state.
+- [x] `shared/teams/emojis/add-alias.tsx:47:26` - seeds and guards alias selection from `defaultSelected` while keeping focus as the only effect.
 
 ## Batch 12: Teams Loading And Navigation
 
-- [ ] `shared/teams/external-team.tsx:22:5`
-- [ ] `shared/teams/join-team/container.tsx:45:5`
-- [ ] `shared/teams/join-team/join-from-invite.tsx:45:5`
-- [ ] `shared/teams/new-team/wizard/new-team-info.tsx:65:7`
-- [ ] `shared/teams/role-picker.tsx:270:5`
-- [ ] `shared/teams/team/index.tsx:103:5`
-- [ ] `shared/teams/team/member/index.new.tsx:109:5`
-- [ ] `shared/teams/team/rows/index.tsx:294:5`
-- [ ] `shared/teams/team/rows/index.tsx:365:7`
+- [x] `shared/teams/external-team.tsx:22:5` - tags team-info results by teamname and request ID, deriving waiting from the matching result.
+- [x] `shared/teams/join-team/container.tsx:45:5` - keyed an inner join-team component by `initialTeamname`.
+- [x] `shared/teams/join-team/join-from-invite.tsx:45:5` - keyed an inner invite component by invite identity.
+- [x] `shared/teams/new-team/wizard/new-team-info.tsx:65:7` - tags debounced team-name validation results by teamname and derives stale or too-short names as available.
+- [x] `shared/teams/role-picker.tsx:270:5` - uses a guarded render reset for `presetRole`.
+- [x] `shared/teams/team/index.tsx:103:5` - scopes team-local collapsed/filter state by `teamID`.
+- [x] `shared/teams/team/member/index.new.tsx:109:5` - tags team-tree membership state by team/user and splits explicit reload from initial load.
+- [x] `shared/teams/team/rows/index.tsx:294:5` - tags general-conversation lookup results by `teamID` and preserves request stale guards.
+- [x] `shared/teams/team/rows/index.tsx:365:7` - removes trigger mirror state and loads emoji directly from the trigger effect.
 
 ## Batch 13: Teams Settings And Cached Resource
 
-- [ ] `shared/teams/team/settings-tab/default-channels.tsx:67:19`
-- [ ] `shared/teams/team/settings-tab/index.tsx:439:5`
-- [ ] `shared/teams/team/settings-tab/retention/index.tsx:63:7`
-- [ ] `shared/teams/team/settings-tab/retention/index.tsx:105:11`
-- [ ] `shared/teams/team/settings-tab/retention/index.tsx:118:9`
-- [ ] `shared/teams/team/settings-tab/retention/index.tsx:475:10`
-- [ ] `shared/teams/team/team-info.tsx:75:5`
-- [ ] `shared/teams/team/team-info.tsx:79:5`
-- [ ] `shared/teams/use-cached-resource.tsx:146:5`
+- [x] `shared/teams/team/settings-tab/default-channels.tsx:67:19` - starts the initial default-channel load without a synchronous waiting update while preserving request/team guards.
+- [x] `shared/teams/team/settings-tab/index.tsx:439:5` - replaces reset key state/effect with a derived settings key.
+- [x] `shared/teams/team/settings-tab/retention/index.tsx:63:7` - removes modal-open mirror state and reset effect.
+- [x] `shared/teams/team/settings-tab/retention/index.tsx:105:11` - moves retention warning/save logic into the menu selection handler.
+- [x] `shared/teams/team/settings-tab/retention/index.tsx:118:9` - derives saving state from pending policy instead of policy-change effect writes.
+- [x] `shared/teams/team/settings-tab/retention/index.tsx:475:10` - inlines initial retention loading as a cancellable async effect with request-version stale protection.
+- [x] `shared/teams/team/team-info.tsx:75:5` - tags draft team name by source name and derives resets when the source changes.
+- [x] `shared/teams/team/team-info.tsx:79:5` - tags draft description by source description and derives resets when the source changes.
+- [x] `shared/teams/use-cached-resource.tsx:146:5` - derives visible cache state for key/cache/enabled mismatches instead of synchronously resetting from the prop-change effect.
 
 ## Batch 14: Utilities And App Global Error
 
-- [ ] `shared/app/global-errors.tsx:76:5`
-- [ ] `shared/util/featured-bots.tsx:41:7`
-- [ ] `shared/util/featured-bots.tsx:91:7`
-- [ ] `shared/util/phone-numbers/index.tsx:236:7`
-- [ ] `shared/util/use-intersection-observer.desktop.tsx:44:5`
+- [x] `shared/app/global-errors.tsx:76:5` - derives size from the current error plus expanded-error state and clears the expanded marker when the error is gone.
+- [x] `shared/util/featured-bots.tsx:41:7` - keys featured-bot results by username with cancellation instead of clearing on empty username.
+- [x] `shared/util/featured-bots.tsx:91:7` - drives featured-bot page loads from pending-page state and settles async results with cancellation guards.
+- [x] `shared/util/phone-numbers/index.tsx:236:7` - initializes from the cached default country and lets the async loader update without a synchronous cache set in the effect.
+- [x] `shared/util/use-intersection-observer.desktop.tsx:44:5` - creates and subscribes the observer directly in the layout effect instead of mirroring observer state.

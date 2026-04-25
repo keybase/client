@@ -9,6 +9,12 @@ import {RPCError} from '@/util/errors'
 
 const emptyProofSuggestions: ReadonlyArray<T.Tracker.Assertion> = []
 
+type ProofSuggestionsState = {
+  enabled: boolean
+  loadKey: number
+  suggestions: ReadonlyArray<T.Tracker.Assertion>
+}
+
 const rpcRowColorToColor = (color: T.RPCGen.Identify3RowColor): T.Tracker.AssertionColor => {
   switch (color) {
     case T.RPCGen.Identify3RowColor.blue:
@@ -58,14 +64,22 @@ const rpcSuggestionToAssertion = (suggestion: T.RPCGen.ProofSuggestion): T.Track
 
 export const useProofSuggestions = (enabled = true) => {
   const uid = useCurrentUserState(s => s.uid)
-  const [proofSuggestions, setProofSuggestions] =
-    React.useState<ReadonlyArray<T.Tracker.Assertion>>(emptyProofSuggestions)
+  const [proofSuggestionsState, setProofSuggestionsState] = React.useState<ProofSuggestionsState>({
+    enabled,
+    loadKey: 0,
+    suggestions: emptyProofSuggestions,
+  })
   const requestVersionRef = React.useRef(0)
+  const loadKey =
+    proofSuggestionsState.enabled === enabled
+      ? proofSuggestionsState.loadKey
+      : proofSuggestionsState.loadKey + 1
+  const proofSuggestions =
+    proofSuggestionsState.enabled === enabled ? proofSuggestionsState.suggestions : emptyProofSuggestions
 
   const reload = React.useCallback(() => {
     if (!enabled) {
       requestVersionRef.current += 1
-      setProofSuggestions(emptyProofSuggestions)
       return
     }
 
@@ -81,7 +95,12 @@ export const useProofSuggestions = (enabled = true) => {
         if (requestVersionRef.current !== version) {
           return
         }
-        setProofSuggestions(suggestions?.map(rpcSuggestionToAssertion) ?? emptyProofSuggestions)
+        const nextSuggestions = suggestions?.map(rpcSuggestionToAssertion) ?? emptyProofSuggestions
+        setProofSuggestionsState(state =>
+          state.enabled === enabled && state.loadKey === loadKey
+            ? {...state, suggestions: nextSuggestions}
+            : state
+        )
       } catch (error) {
         if (!(error instanceof RPCError)) {
           return
@@ -94,7 +113,7 @@ export const useProofSuggestions = (enabled = true) => {
     }
 
     ignorePromise(load())
-  }, [enabled])
+  }, [enabled, loadKey])
 
   React.useEffect(() => {
     reload()
@@ -106,6 +125,14 @@ export const useProofSuggestions = (enabled = true) => {
     }
     reload()
   })
+
+  if (proofSuggestionsState.enabled !== enabled) {
+    setProofSuggestionsState(state =>
+      state.enabled === enabled
+        ? state
+        : {enabled, loadKey: state.loadKey + 1, suggestions: emptyProofSuggestions}
+    )
+  }
 
   return {
     proofSuggestions,

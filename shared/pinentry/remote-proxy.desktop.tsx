@@ -75,9 +75,9 @@ const PinentryProxy = () => {
 
   React.useEffect(() => {
     if (!loggedIn) {
-      clearPopup()
+      handlersRef.current = {}
     }
-  }, [clearPopup, loggedIn])
+  }, [loggedIn])
 
   useEngineActionListener('keybase.1.secretUi.getPassphrase', action => {
     const {response, params} = action.payload
@@ -110,7 +110,12 @@ const PinentryProxy = () => {
     })
   })
 
-  const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = popupState
+  const currentPopupState =
+    !loggedIn && popupState.type !== T.RPCGen.PassphraseType.none ? initialPopupState() : popupState
+  if (currentPopupState !== popupState) {
+    setPopupState(currentPopupState)
+  }
+  const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = currentPopupState
   const show = type !== T.RPCGen.PassphraseType.none
   const darkMode = useColorScheme() === 'dark'
   if (show) {

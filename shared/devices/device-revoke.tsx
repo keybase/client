@@ -134,15 +134,11 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const loadDeviceHistory = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
   const navigateUp = C.Router2.navigateUp
   const selectedDeviceID = ownProps.device?.deviceID ?? ownProps.deviceID ?? T.Devices.stringToDeviceID('')
-  const [loadedDevice, setLoadedDevice] = React.useState(ownProps.device)
-  const device = ownProps.device ?? loadedDevice
+  const [loadedDevice, setLoadedDevice] = React.useState<T.Devices.Device | undefined>()
+  const device = ownProps.device ?? (loadedDevice?.deviceID === selectedDeviceID ? loadedDevice : undefined)
   const [endangeredTLFs, setEndangeredTLFs] = React.useState(new Array<string>())
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const onCancel = navigateUp
-
-  React.useEffect(() => {
-    setLoadedDevice(ownProps.device)
-  }, [ownProps.device])
 
   C.useOnMountOnce(() => {
     if (device) {

@@ -23,29 +23,16 @@ function useIntersectionObserver<T extends HTMLElement = HTMLElement>(
     target: null,
     time: 0,
   }))
-  const [observer, setObserver] = React.useState(() =>
-    getIntersectionObserver({
-      pollInterval,
-      root,
-      rootMargin,
-      threshold,
-      useMutationObserver,
-    })
-  )
+  const thresholdKey = JSON.stringify(threshold)
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     const observer = getIntersectionObserver({
       pollInterval,
       root,
       rootMargin,
-      threshold,
+      threshold: JSON.parse(thresholdKey) as IntersectionObserverOptions['threshold'],
       useMutationObserver,
     })
-    setObserver(observer)
-    // eslint-disable-next-line
-  }, [root, rootMargin, pollInterval, useMutationObserver, JSON.stringify(threshold)])
-
-  React.useLayoutEffect(() => {
     const targetEl = target && 'current' in target ? target.current : target
     if (!observer || !targetEl) return
     let didUnsubscribe = false
@@ -71,7 +58,7 @@ function useIntersectionObserver<T extends HTMLElement = HTMLElement>(
       observer.observer.unobserve(targetEl)
       observer.unsubscribe(callback)
     }
-  }, [target, observer])
+  }, [target, root, rootMargin, pollInterval, useMutationObserver, thresholdKey])
 
   return entry
 }

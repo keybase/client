@@ -16,6 +16,12 @@ type UseRemotePropsReceiverOptions = {
   showOnProps?: boolean
 }
 
+type RemotePropsReceiverState<P> = {
+  component: RemoteComponentName
+  param: string
+  value: P | null
+}
+
 export const getRemoteComponentParam = () => new URLSearchParams(window.location.search).get('param') ?? ''
 
 export const useRemoteDarkModeSync = (darkMode: boolean) => {
@@ -33,16 +39,27 @@ export const RemoteDarkModeSync = (p: {children: React.ReactNode; darkMode: bool
 
 export const useRemotePropsReceiver = <P,>(options: UseRemotePropsReceiverOptions) => {
   const {component, param, showOnProps = true} = options
-  const [value, setValue] = React.useState<P | null>(null)
+  const [propsState, setPropsState] = React.useState<RemotePropsReceiverState<P>>(() => ({
+    component,
+    param,
+    value: null,
+  }))
+  const currentPropsState =
+    propsState.component === component && propsState.param === param
+      ? propsState
+      : {component, param, value: null}
+  if (currentPropsState !== propsState) {
+    setPropsState(currentPropsState)
+  }
+  const value = currentPropsState.value
   const hasShownWindow = React.useRef(false)
 
   React.useEffect(() => {
     hasShownWindow.current = false
-    setValue(null)
 
     const unsubscribe = ipcRendererOn?.('KBprops', (_event: unknown, raw: unknown) => {
       try {
-        setValue(JSON.parse(raw as string) as P)
+        setPropsState({component, param, value: JSON.parse(raw as string) as P})
       } catch (error) {
         logger.error('remote props parse failed', component, param, error)
       }

@@ -33,95 +33,57 @@ export type Props = {
 const RetentionPicker = (p: Props) => {
   const {policy, showInheritOption, teamPolicy, saveRetentionPolicy, entityType} = p
   const {containerStyle, dropdownStyle, policyIsExploding, showOverrideNotice, showSaveIndicator} = p
-  const [saving, setSaving] = React.useState(false)
-  const [selected, _setSelected] = React.useState<T.Retention.RetentionPolicy | undefined>(undefined)
+  const [pendingPolicy, setPendingPolicy] = React.useState<T.Retention.RetentionPolicy | undefined>(undefined)
+  const [selected, setSelected] = React.useState<T.Retention.RetentionPolicy | undefined>(undefined)
 
-  const userSelectedRef = React.useRef(false)
-
-  const setSelected = (r: T.Retention.RetentionPolicy, userSelected: boolean) => {
-      if (userSelected) {
-        userSelectedRef.current = userSelected
-      }
-      _setSelected(r)
-    }
-
-  const showSaved = React.useRef(false)
-
-  const isSelected = (p: T.Retention.RetentionPolicy) => {
-      return policyEquals(policy, p)
-    }
+  const isSelected = (p: T.Retention.RetentionPolicy) => policyEquals(policy, p)
 
   const modalConfirmed = useConfirm(s => s.confirmed)
-  const modalOpen = useConfirm(s => s.modalOpen)
   const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
 
-  const [lastConfirmed, setLastConfirmed] = React.useState<T.Retention.RetentionPolicy | undefined>(undefined)
-  const [lastModalOpen, setLastModalOpen] = React.useState(modalOpen)
+  const navigateAppend = C.Router2.navigateAppend
+  const confirmedSubmittedRef = React.useRef<T.Retention.RetentionPolicy | undefined>(undefined)
+  const selectedMatchesConfirmed =
+    !!selected &&
+    !!modalConfirmed &&
+    (policyEquals(selected, modalConfirmed) ||
+      (selected.type === 'inherit' && !!teamPolicy && policyEquals(teamPolicy, modalConfirmed)))
 
   React.useEffect(() => {
-    if (lastModalOpen !== modalOpen) {
-      setLastModalOpen(modalOpen)
-      if (!modalOpen) {
-        setSelected(policy, false)
-      }
+    if (!modalConfirmed) {
+      confirmedSubmittedRef.current = undefined
+      return
     }
-  }, [lastModalOpen, modalOpen, policy])
+    if (selected && selectedMatchesConfirmed && confirmedSubmittedRef.current !== modalConfirmed) {
+      confirmedSubmittedRef.current = modalConfirmed
+      saveRetentionPolicy(selected)
+    }
+    updateConfirm(undefined)
+  }, [modalConfirmed, saveRetentionPolicy, selected, selectedMatchesConfirmed, updateConfirm])
 
-  if (lastConfirmed !== modalConfirmed) {
-    setTimeout(() => {
-      setLastConfirmed(modalConfirmed)
-      if (selected === modalConfirmed) {
-        selected && saveRetentionPolicy(selected)
-      }
-      updateConfirm(undefined)
-    }, 1)
+  const selectPolicy = (nextPolicy: T.Retention.RetentionPolicy) => {
+    setSelected(nextPolicy)
+    const changed = !policyEquals(nextPolicy, policy)
+    if (!changed) {
+      setPendingPolicy(undefined)
+      return
+    }
+
+    const decreased = policyToComparable(nextPolicy, teamPolicy) < policyToComparable(policy, teamPolicy)
+    if (decreased) {
+      setPendingPolicy(undefined)
+      navigateAppend({
+        name: 'retentionWarning',
+        params: {entityType, policy: nextPolicy.type === 'inherit' && teamPolicy ? teamPolicy : nextPolicy},
+      })
+      return
+    }
+
+    saveRetentionPolicy(nextPolicy)
+    setPendingPolicy(nextPolicy)
   }
 
-  const navigateAppend = C.Router2.navigateAppend
-  React.useEffect(() => {
-    if (userSelectedRef.current) {
-      userSelectedRef.current = false
-      const changed = !policyEquals(selected, policy)
-      const decreased = policyToComparable(selected, teamPolicy) < policyToComparable(policy, teamPolicy)
-
-      // show dialog if decreased, set immediately if not
-      if (changed) {
-        if (decreased) {
-          // show warning
-          showSaved.current = false
-          if (selected) {
-            navigateAppend({
-              name: 'retentionWarning',
-              params: {entityType, policy: selected.type === 'inherit' && teamPolicy ? teamPolicy : selected},
-            })
-          }
-        } else {
-          const onConfirm = () => {
-            selected && saveRetentionPolicy(selected)
-          }
-          // set immediately
-          onConfirm()
-          showSaved.current = true
-          setSaving(true)
-        }
-      }
-    }
-  }, [selected, policy, saveRetentionPolicy, teamPolicy, navigateAppend, entityType])
-
-  const lastPolicy = React.useRef(policy)
-  const lastTeamPolicy = React.useRef(teamPolicy)
-
-  React.useEffect(() => {
-    if (!policyEquals(policy, lastPolicy.current) || !policyEquals(teamPolicy, lastTeamPolicy.current)) {
-      if (policyEquals(policy, selected)) {
-        // we just got updated retention policy matching the selected one
-        setSaving(false)
-      } // we could show a notice that we received a new value in an else block
-      setSelected(policy, false)
-    }
-    lastPolicy.current = policy
-    lastTeamPolicy.current = teamPolicy
-  }, [policy, teamPolicy, selected])
+  const saving = !!pendingPolicy && !policyEquals(policy, pendingPolicy)
 
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
@@ -139,7 +101,7 @@ const RetentionPicker = (p: Props) => {
                 ...arr,
                 {
                   isSelected: isSelected(policy),
-                  onClick: () => setSelected(policy, true),
+                  onClick: () => selectPolicy(policy),
                   title: policy.title,
                 } as const,
               ]
@@ -159,7 +121,7 @@ const RetentionPicker = (p: Props) => {
                 return [
                   {
                     isSelected: isSelected(policy),
-                    onClick: () => setSelected(policy, true),
+                    onClick: () => selectPolicy(policy),
                     title,
                   } as const,
                   'Divider' as const,
@@ -175,7 +137,7 @@ const RetentionPicker = (p: Props) => {
                   icon: 'iconfont-timer',
                   iconIsVisible: true,
                   isSelected: isSelected(policy),
-                  onClick: () => setSelected(policy, true),
+                  onClick: () => selectPolicy(policy),
                   title: policy.title,
                 } as const,
               ]
@@ -472,8 +434,30 @@ const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
   }, [teamID])
 
   React.useEffect(() => {
-    void reload()
-  }, [reload])
+    let canceled = false
+    const requestVersion = ++requestVersionRef.current
+    const load = async () => {
+      try {
+        const servicePolicy = await T.RPCChat.localGetTeamRetentionLocalRpcPromise(
+          {teamID},
+          C.waitingKeyTeamsLoadRetentionPolicy(teamID)
+        )
+        if (canceled || requestVersion !== requestVersionRef.current) {
+          return
+        }
+        setTeamRetentionPolicy(servicePolicy)
+      } catch {
+        if (canceled || requestVersion !== requestVersionRef.current) {
+          return
+        }
+        setTeamRetentionPolicy(undefined)
+      }
+    }
+    void load()
+    return () => {
+      canceled = true
+    }
+  }, [setTeamRetentionPolicy, teamID])
 
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {

@@ -433,15 +433,11 @@ const Container = (ownProps: OwnProps) => {
     ]
   )
 
-  // reset if incoming props change on us
-  const [key, setKey] = React.useState(0)
-  React.useEffect(() => {
-    setKey(k => k + 1)
-  }, [ignoreAccessRequests, openTeam, openTeamRole, publicityAnyMember, publicityMember, publicityTeam])
+  const settingsKey = `${ignoreAccessRequests}:${openTeam}:${openTeamRole}:${publicityAnyMember}:${publicityMember}:${publicityTeam}`
 
   return (
     <Settings
-      key={key}
+      key={settingsKey}
       allowOpenTrigger={allowOpenTrigger}
       canShowcase={canShowcase}
       error={error}

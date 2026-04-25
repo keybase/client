@@ -15,9 +15,29 @@ const TeamInfo = (props: Props) => {
   const _leafName = isSubteam ? teamname.substring(lastDot + 1) : teamname
   const parentTeamNameWithDot = isSubteam ? teamname.substring(0, lastDot + 1) : undefined
 
-  const [newName, _setName] = React.useState(_leafName)
-  const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
-  const [description, setDescription] = React.useState(teamDetails.description)
+  const [draft, setDraft] = React.useState(() => ({
+    description: teamDetails.description,
+    name: _leafName,
+    sourceDescription: teamDetails.description,
+    sourceName: _leafName,
+  }))
+  const hasNewSource = draft.sourceName !== _leafName || draft.sourceDescription !== teamDetails.description
+  const newName = hasNewSource ? _leafName : draft.name
+  const description = hasNewSource ? teamDetails.description : draft.description
+  const setName = (name: string) =>
+    setDraft({
+      description,
+      name: name.replace(/[^a-zA-Z0-9_]/, ''),
+      sourceDescription: teamDetails.description,
+      sourceName: _leafName,
+    })
+  const setDescription = (description: string) =>
+    setDraft({
+      description,
+      name: newName,
+      sourceDescription: teamDetails.description,
+      sourceName: _leafName,
+    })
   const [descError, setDescError] = React.useState('')
 
   const saveDisabled = (description === teamDetails.description && newName === _leafName) || newName.length < 3
@@ -70,14 +90,6 @@ const TeamInfo = (props: Props) => {
   React.useEffect(() => {
     wasWaitingRef.current = waiting
   }, [waiting])
-
-  React.useEffect(() => {
-    _setName(_leafName)
-  }, [_leafName])
-
-  React.useEffect(() => {
-    setDescription(teamDetails.description)
-  }, [teamDetails.description])
 
   return (
     <>

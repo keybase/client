@@ -297,19 +297,14 @@ const useIncomingShareItems = () => {
 
   // Android
   const androidShare = useConfigState(s => s.androidShare)
-  React.useEffect(() => {
-    if (!C.isAndroid || !androidShare) {
-      return
-    }
-
-    const items =
-      androidShare.type === T.RPCGen.IncomingShareType.file
+  const androidShareItems =
+    C.isAndroid && androidShare
+      ? androidShare.type === T.RPCGen.IncomingShareType.file
         ? androidShare.urls.map(u => ({originalPath: u, type: T.RPCGen.IncomingShareType.file}))
         : [{content: androidShare.text, type: T.RPCGen.IncomingShareType.text}]
-    setIncomingShareItems(items)
-  }, [androidShare, setIncomingShareItems])
+      : undefined
 
-  return {incomingShareError, incomingShareItems}
+  return {incomingShareError, incomingShareItems: androidShareItems ?? incomingShareItems}
 }
 
 type IncomingShareMainProps = {

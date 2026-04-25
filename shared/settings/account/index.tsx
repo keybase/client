@@ -172,6 +172,14 @@ const DeleteAccount = () => {
 
 type Props = {route: {params?: SettingsAccountRouteParams}}
 
+type AddedBannerState = {
+  email: string
+  isFocused: boolean
+  phone: boolean
+  routeEmail: string | undefined
+  routePhone: boolean
+}
+
 const AccountSettings = ({route}: Props) => {
   const addedEmailFromRoute = route.params?.addedEmailBannerEmail
   const addedPhoneFromRoute = !!route.params?.addedPhoneBanner
@@ -187,8 +195,13 @@ const AccountSettings = ({route}: Props) => {
   const phones = useSettingsPhoneState(s => s.phones)
   const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
   const deletePhoneNumber = C.useRPC(T.RPCGen.phoneNumbersDeletePhoneNumberRpcPromise)
-  const [addedEmail, setAddedEmail] = React.useState(addedEmailFromRoute ?? '')
-  const [addedPhone, setAddedPhone] = React.useState(addedPhoneFromRoute)
+  const [addedBannerState, setAddedBannerState] = React.useState<AddedBannerState>(() => ({
+    email: addedEmailFromRoute ?? '',
+    isFocused,
+    phone: addedPhoneFromRoute,
+    routeEmail: addedEmailFromRoute,
+    routePhone: addedPhoneFromRoute,
+  }))
   const {randomPW, reload: reloadRandomPW} = useRandomPWState()
   const {navigateAppend, switchTab} = C.Router2
   const _onClearSupersededPhoneNumber = (phone: string) => {
@@ -201,38 +214,53 @@ const AccountSettings = ({route}: Props) => {
       }
     )
   }
+  let nextAddedBannerState = addedBannerState
+  if (nextAddedBannerState.routeEmail !== addedEmailFromRoute) {
+    nextAddedBannerState = {
+      ...nextAddedBannerState,
+      email: addedEmailFromRoute ?? nextAddedBannerState.email,
+      routeEmail: addedEmailFromRoute,
+    }
+  }
+  if (nextAddedBannerState.routePhone !== addedPhoneFromRoute) {
+    nextAddedBannerState = {
+      ...nextAddedBannerState,
+      phone: addedPhoneFromRoute ? true : nextAddedBannerState.phone,
+      routePhone: addedPhoneFromRoute,
+    }
+  }
+  if (nextAddedBannerState.isFocused !== isFocused) {
+    nextAddedBannerState = {
+      ...nextAddedBannerState,
+      email: isFocused ? nextAddedBannerState.email : '',
+      isFocused,
+      phone: isFocused ? nextAddedBannerState.phone : false,
+    }
+  }
+  const addedEmailRow = nextAddedBannerState.email ? emails.get(nextAddedBannerState.email) : undefined
+  if (nextAddedBannerState.email && (!addedEmailRow || addedEmailRow.isVerified)) {
+    nextAddedBannerState = {...nextAddedBannerState, email: ''}
+  }
+  if (nextAddedBannerState !== addedBannerState) {
+    setAddedBannerState(nextAddedBannerState)
+  }
+  const addedEmail = nextAddedBannerState.email
+  const addedPhone = nextAddedBannerState.phone
   React.useEffect(() => {
     if (!addedEmailFromRoute) {
       return
     }
-    setAddedEmail(addedEmailFromRoute)
     navigation.setParams({addedEmailBannerEmail: undefined})
   }, [addedEmailFromRoute, navigation])
   React.useEffect(() => {
     if (!addedPhoneFromRoute) {
       return
     }
-    setAddedPhone(true)
     navigation.setParams({addedPhoneBanner: undefined})
   }, [addedPhoneFromRoute, navigation])
-  React.useEffect(() => {
-    if (isFocused) {
-      return
-    }
-    setAddedEmail('')
-    setAddedPhone(false)
-  }, [isFocused])
-  React.useEffect(() => {
-    if (!addedEmail) {
-      return
-    }
-    const addedEmailRow = emails.get(addedEmail)
-    if (!addedEmailRow || addedEmailRow.isVerified) {
-      setAddedEmail('')
-    }
-  }, [addedEmail, emails])
-  const onClearAddedEmail = () => setAddedEmail('')
-  const onClearAddedPhone = () => setAddedPhone(false)
+  const onEmailVerificationSuccess = (email: string) => setAddedBannerState(s => ({...s, email}))
+  const onClearAddedEmail = () => setAddedBannerState(s => ({...s, email: ''}))
+  const onClearAddedPhone = () => setAddedBannerState(s => ({...s, phone: false}))
   const onReload = () => {
     loadSettings()
     reloadRandomPW()
@@ -240,7 +268,7 @@ const AccountSettings = ({route}: Props) => {
   const onStartPhoneConversation = () => {
     switchTab(C.Tabs.chatTab)
     navigateAppend({name: 'chatNewChat', params: {namespace: 'chat'}})
-    setAddedPhone(false)
+    setAddedBannerState(s => ({...s, phone: false}))
   }
   const _supersededPhoneNumber = phones && [...phones.values()].find(p => p.superseded)
   const supersededKey = _supersededPhoneNumber?.e164
@@ -288,7 +316,7 @@ const AccountSettings = ({route}: Props) => {
           </Kb.Banner>
         )}
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-          <EmailPhone onEmailVerificationSuccess={setAddedEmail} />
+          <EmailPhone onEmailVerificationSuccess={onEmailVerificationSuccess} />
           <Kb.Divider />
           <Password randomPW={randomPW} />
           <Kb.Divider />

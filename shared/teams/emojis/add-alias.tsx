@@ -21,32 +21,63 @@ type ChosenEmoji = {
   renderableEmoji: RenderableEmoji
 }
 
+type EmojiSelection = {
+  alias: string
+  defaultSelectedKey: string
+  emoji?: ChosenEmoji
+}
+
+const aliasFromEmojiStr = (emojiStr: string) =>
+  emojiStr
+    // first merge skin-tone part into name, e.g.
+    // ":+1::skin-tone-1:" into ":+1-skin-tone-1:"
+    .replace(/::/g, '-')
+    // then strip colons.
+    .replace(/:/g, '')
+
+const selectionFromDefault = (defaultSelected?: EmojiData): EmojiSelection => {
+  if (!defaultSelected) {
+    return {alias: '', defaultSelectedKey: ''}
+  }
+  const emojiStr = getEmojiStr(defaultSelected)
+  return {
+    alias: aliasFromEmojiStr(emojiStr),
+    defaultSelectedKey: emojiStr,
+    emoji: {emojiStr, renderableEmoji: emojiDataToRenderableEmoji(defaultSelected)},
+  }
+}
+
 const AddAliasModal = (props: Props) => {
   const {defaultSelected} = props
-  const [emoji, setEmoji] = React.useState<ChosenEmoji | undefined>(undefined)
-  const [alias, setAlias] = React.useState('')
+  const defaultSelectedKey = defaultSelected ? getEmojiStr(defaultSelected) : ''
+  const [selection, setSelection] = React.useState(() => selectionFromDefault(defaultSelected))
+  let currentSelection = selection
+  if (defaultSelected && selection.defaultSelectedKey !== defaultSelectedKey) {
+    currentSelection = selectionFromDefault(defaultSelected)
+    setSelection(currentSelection)
+  }
+  const {alias, emoji} = currentSelection
   const [error, setError] = React.useState<undefined | string>(undefined)
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
 
   const aliasInputRef = React.useRef<AliasRef>(null)
   const onChoose = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
-    setEmoji({emojiStr, renderableEmoji})
-    setAlias(
-      emojiStr
-        // first merge skin-tone part into name, e.g.
-        // ":+1::skin-tone-1:" into ":+1-skin-tone-1:"
-        .replace(/::/g, '-')
-        // then strip colons.
-        .replace(/:/g, '')
-    )
+    setSelection(selected => ({
+      ...selected,
+      alias: aliasFromEmojiStr(emojiStr),
+      emoji: {emojiStr, renderableEmoji},
+    }))
     aliasInputRef.current?.focus()
   }
+  const onChangeAlias = (alias: string) => {
+    setSelection(selected => ({...selected, alias}))
+  }
 
-  React.useEffect(
-    () =>
-      defaultSelected && onChoose(getEmojiStr(defaultSelected), emojiDataToRenderableEmoji(defaultSelected)),
-    [defaultSelected]
-  )
+  React.useEffect(() => {
+    if (defaultSelected) {
+      aliasInputRef.current?.focus()
+    }
+  }, [defaultSelected])
 
   const addAliasRpc = C.useRPC(T.RPCChat.localAddEmojiAliasRpcPromise)
   const [addAliasWaiting, setAddAliasWaiting] = React.useState(false)
@@ -110,7 +141,7 @@ const AddAliasModal = (props: Props) => {
               error={error}
               disabled={!emoji}
               alias={alias}
-              onChangeAlias={setAlias}
+              onChangeAlias={onChangeAlias}
               onEnterKeyDown={doAddAlias}
               small={false}
             />
@@ -127,20 +158,22 @@ type ChooseEmojiProps = {
 const ChooseEmoji = Kb.Styles.isMobile
   ? (props: ChooseEmojiProps) => {
       const pickKey = 'addAlias'
-      const {emojiStr, renderableEmoji} = usePickerState(s => s.pickerMap.get(pickKey)) ?? {
-        emojiStr: '',
-        renderableEmoji: {},
-      }
+      const pickedEmoji = usePickerState(s => s.pickerMap.get(pickKey))
       const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
+      const onChoose = React.useEffectEvent(props.onChoose)
 
-      const [lastEmoji, setLastEmoji] = React.useState('')
-      if (lastEmoji !== emojiStr) {
-        setTimeout(() => {
-          setLastEmoji(emojiStr)
-          emojiStr && props.onChoose(emojiStr, renderableEmoji)
+      const lastEmojiRef = React.useRef('')
+      React.useEffect(() => {
+        const emojiStr = pickedEmoji?.emojiStr ?? ''
+        if (lastEmojiRef.current === emojiStr) {
+          return
+        }
+        lastEmojiRef.current = emojiStr
+        if (emojiStr) {
+          onChoose(emojiStr, pickedEmoji?.renderableEmoji ?? {})
           updatePickerMap(pickKey, undefined)
-        }, 1)
-      }
+        }
+      }, [pickedEmoji, updatePickerMap])
 
       const navigateAppend = C.Router2.navigateAppend
       const conversationIDKey = ConvoState.useChatContext(s => s.id)
