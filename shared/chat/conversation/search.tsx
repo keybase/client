@@ -11,18 +11,20 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useThreadSearchRoute} from './thread-search-route'
 
 type OwnProps = {style?: Styles.StylesCrossPlatform}
+type CommonProps = OwnProps & {
+  conversationIDKey: T.Chat.ConversationIDKey
+  initialQuery: string
+}
 
 type SearchState = {
   hits: Array<T.Chat.Message>
   status: T.Chat.ThreadSearchInfo['status']
 }
 
-const useCommon = (ownProps: OwnProps) => {
-  const {style} = ownProps
-  const initialQuery = useThreadSearchRoute()?.query ?? ''
-  const {conversationIDKey, loadMessagesCentered, toggleThreadSearch} = ConvoState.useChatContext(
+const useCommon = (ownProps: CommonProps) => {
+  const {conversationIDKey, initialQuery, style} = ownProps
+  const {loadMessagesCentered, toggleThreadSearch} = ConvoState.useChatContext(
     C.useShallow(s => ({
-      conversationIDKey: s.id,
       loadMessagesCentered: s.dispatch.loadMessagesCentered,
       toggleThreadSearch: s.dispatch.toggleThreadSearch,
     }))
@@ -31,7 +33,10 @@ const useCommon = (ownProps: OwnProps) => {
     toggleThreadSearch()
   }
 
-  const [searchState, setSearchState] = React.useState<SearchState>({hits: [], status: 'initial'})
+  const [searchState, setSearchState] = React.useState<SearchState>(() => ({
+    hits: [],
+    status: initialQuery ? 'inprogress' : 'initial',
+  }))
   const {hits: messageHits, status} = searchState
   const numHits = messageHits.length
   const hits = messageHits.map(h => ({
@@ -40,8 +45,8 @@ const useCommon = (ownProps: OwnProps) => {
     timestamp: h.timestamp,
   }))
   const [selectedIndex, setSelectedIndex] = React.useState(0)
-  const [text, setText] = React.useState('')
-  const [lastSearch, setLastSearch] = React.useState('')
+  const [text, setText] = React.useState(initialQuery)
+  const [lastSearch, setLastSearch] = React.useState(initialQuery)
 
   const searchOrdinalRef = React.useRef(0)
   const hitsRef = React.useRef(messageHits)
@@ -61,11 +66,7 @@ const useCommon = (ownProps: OwnProps) => {
     pendingReplaceHitsRef.current = undefined
   })
 
-  const runThreadSearch = React.useEffectEvent((query: string) => {
-    const requestOrdinal = searchOrdinalRef.current + 1
-    searchOrdinalRef.current = requestOrdinal
-    clearPendingFlush()
-    setSearchState({hits: [], status: query ? 'inprogress' : 'done'})
+  const startThreadSearchRequest = React.useEffectEvent((query: string, requestOrdinal: number) => {
     if (!query) {
       return
     }
@@ -197,6 +198,14 @@ const useCommon = (ownProps: OwnProps) => {
     C.ignorePromise(f())
   })
 
+  const runThreadSearch = (query: string) => {
+    const requestOrdinal = searchOrdinalRef.current + 1
+    searchOrdinalRef.current = requestOrdinal
+    clearPendingFlush()
+    setSearchState({hits: [], status: query ? 'inprogress' : 'done'})
+    startThreadSearchRequest(query, requestOrdinal)
+  }
+
   const submitSearch = () => {
     setLastSearch(text)
     setSelectedIndex(0)
@@ -249,23 +258,14 @@ const useCommon = (ownProps: OwnProps) => {
   const hasResults = status === 'done' || numHits > 0
 
   React.useEffect(() => {
-    searchOrdinalRef.current += 1
-    clearPendingFlush()
-    setSearchState({hits: [], status: 'initial'})
-    setLastSearch('')
-    setSelectedIndex(0)
-    setText('')
-  }, [conversationIDKey])
-
-  React.useEffect(() => {
     if (!initialQuery) {
       return
     }
-    setText(initialQuery)
-    setLastSearch(initialQuery)
-    setSelectedIndex(0)
-    runThreadSearch(initialQuery)
-  }, [conversationIDKey, initialQuery])
+    const requestOrdinal = searchOrdinalRef.current + 1
+    searchOrdinalRef.current = requestOrdinal
+    clearPendingFlush()
+    startThreadSearchRequest(initialQuery, requestOrdinal)
+  }, [initialQuery])
 
   React.useEffect(() => {
     return () => {
@@ -314,7 +314,20 @@ type SearchHit = {
   timestamp: number
 }
 
+const useThreadSearchCommonProps = (p: OwnProps): CommonProps => {
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const initialQuery = useThreadSearchRoute()?.query ?? ''
+  return {...p, conversationIDKey, initialQuery}
+}
+
+const threadSearchKey = (p: CommonProps) => `${p.conversationIDKey}:${p.initialQuery}`
+
 const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
+  const commonProps = useThreadSearchCommonProps(p)
+  return <ThreadSearchDesktopInner key={threadSearchKey(commonProps)} {...commonProps} />
+}
+
+const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProps) {
   const props = useCommon(p)
   const {conversationIDKey, submitSearch, hits, selectResult, onEnter} = props
   const {onUp, onDown, onChangedText, inProgress, hasResults} = props
@@ -436,6 +449,11 @@ const ThreadSearchDesktop = function ThreadSearchDesktop(p: OwnProps) {
 }
 
 const ThreadSearchMobile = function ThreadSearchMobile(p: OwnProps) {
+  const commonProps = useThreadSearchCommonProps(p)
+  return <ThreadSearchMobileInner key={threadSearchKey(commonProps)} {...commonProps} />
+}
+
+const ThreadSearchMobileInner = function ThreadSearchMobileInner(p: CommonProps) {
   const props = useCommon(p)
   const {numHits, onEnter, onUp, onDown, onChangedText, onToggleThreadSearch} = props
   const {inProgress, hasResults, selectedIndex, text, style, status} = props

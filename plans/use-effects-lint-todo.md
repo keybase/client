@@ -46,12 +46,12 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 
 ## Batch 5: Chat Conversation Container And Search
 
-- [ ] `shared/chat/conversation/normal/container.tsx:40:5`
-- [ ] `shared/chat/conversation/normal/container.tsx:79:9`
-- [ ] `shared/chat/conversation/search.tsx:254:5`
-- [ ] `shared/chat/conversation/search.tsx:264:5`
-- [ ] `shared/chat/conversation/team-hooks.tsx:290:10`
-- [ ] `shared/chat/conversation/team-hooks.tsx:373:10`
+- [x] `shared/chat/conversation/normal/container.tsx:40:5` - keyed orange-line state by conversation and let the load effect fetch without synchronously resetting state.
+- [x] `shared/chat/conversation/normal/container.tsx:79:9` - folded mobile app-state clearing into the guarded orange-line state adjustment during render.
+- [x] `shared/chat/conversation/search.tsx:254:5` - keyed thread-search internals by conversation/query instead of clearing search state in an effect.
+- [x] `shared/chat/conversation/search.tsx:264:5` - seeded initial-query state on mount and started the request without syncing input state from an effect.
+- [x] `shared/chat/conversation/team-hooks.tsx:290:10` - split team-member effect loading from manual reload loading state and derived initial loading for stale team IDs.
+- [x] `shared/chat/conversation/team-hooks.tsx:373:10` - split team-name effect loading from manual reload loading state and keyed visible results by the requested team IDs.
 
 ## Batch 6: Common Adapter Components
 
