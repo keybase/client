@@ -36,31 +36,39 @@ type UploadCountdownState = {
   mode: Mode
 }
 
-const makeInputKey = (isOnline: boolean, files: number, totalSyncingBytes: number, endEstimate: number, now: number) =>
-  `${isOnline}:${files}:${totalSyncingBytes}:${endEstimate}:${now}`
+const makeInputKey = (isOnline: boolean, files: number, totalSyncingBytes: number, endEstimate: number) =>
+  `${isOnline}:${files}:${totalSyncingBytes}:${endEstimate}`
 
 const updateCountdownState = (
   state: UploadCountdownState,
   isUploading: boolean,
   displayDuration: number,
-  inputKey: string
+  inputKey: string,
+  isTick = false
 ): UploadCountdownState => {
-  if (state.inputKey === inputKey) {
+  if (state.inputKey === inputKey && !isTick) {
     return state
   }
   switch (state.mode) {
     case Mode.Hidden:
-      return isUploading ? {glueTTL: initialGlueTTL, inputKey, mode: Mode.CountDown} : {...state, inputKey}
+      if (isUploading) {
+        return {glueTTL: initialGlueTTL, inputKey, mode: Mode.CountDown}
+      }
+      return state.inputKey === inputKey ? state : {...state, inputKey}
     case Mode.CountDown:
-      return isUploading
-        ? {...state, inputKey}
-        : {glueTTL: state.glueTTL, inputKey, mode: state.glueTTL > 0 ? Mode.Sticky : Mode.Hidden}
+      if (isUploading) {
+        return state.inputKey === inputKey ? state : {...state, inputKey}
+      }
+      return {glueTTL: state.glueTTL, inputKey, mode: state.glueTTL > 0 ? Mode.Sticky : Mode.Hidden}
     case Mode.Sticky: {
       if (isUploading) {
         return {glueTTL: initialGlueTTL, inputKey, mode: Mode.CountDown}
       }
       if (displayDuration !== 0) {
-        return {...state, inputKey}
+        return state.inputKey === inputKey ? state : {...state, inputKey}
+      }
+      if (!isTick) {
+        return state.inputKey === inputKey ? state : {...state, inputKey}
       }
       const glueTTL = Math.max(0, state.glueTTL - 1)
       return glueTTL > 0 ? {glueTTL, inputKey, mode: Mode.Sticky} : {glueTTL, inputKey, mode: Mode.Hidden}
@@ -74,7 +82,7 @@ export const useUploadCountdown = (p: UploadCountdownHOCProps) => {
   const [now, setNow] = React.useState(() => Date.now())
   const displayDuration = endEstimate ? endEstimate - now : 0
   const isUploading = isOnline && (!!files || !!totalSyncingBytes)
-  const inputKey = makeInputKey(isOnline, files, totalSyncingBytes, endEstimate || 0, now)
+  const inputKey = makeInputKey(isOnline, files, totalSyncingBytes, endEstimate || 0)
   const [countdownState, setCountdownState] = React.useState<UploadCountdownState>(() =>
     updateCountdownState({glueTTL: 0, inputKey: '', mode: Mode.Hidden}, isUploading, displayDuration, inputKey)
   )
@@ -87,11 +95,17 @@ export const useUploadCountdown = (p: UploadCountdownHOCProps) => {
     if (visibleCountdownState.mode === Mode.Hidden) {
       return
     }
-    const tickerID = setInterval(() => setNow(Date.now()), tickInterval)
+    const tickerID = setInterval(() => {
+      const nextNow = Date.now()
+      setNow(nextNow)
+      setCountdownState(state =>
+        updateCountdownState(state, isUploading, endEstimate ? endEstimate - nextNow : 0, inputKey, true)
+      )
+    }, tickInterval)
     return () => {
       clearInterval(tickerID)
     }
-  }, [visibleCountdownState.mode])
+  }, [endEstimate, inputKey, isUploading, visibleCountdownState.mode])
 
   return {
     debugToggleShow,

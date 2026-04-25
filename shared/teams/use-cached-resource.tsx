@@ -155,7 +155,7 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
     resetCache,
     staleMs,
   })
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     latestRef.current = {
       cache,
       cacheKey,

@@ -235,6 +235,49 @@ type PopupState = {
   style: Styles.StylesCrossPlatform
 }
 
+const stylesEqual = (left: Styles.StylesCrossPlatform, right: Styles.StylesCrossPlatform) => {
+  if (left === right) {
+    return true
+  }
+  const leftRecord = left as Record<string, unknown>
+  const rightRecord = right as Record<string, unknown>
+  const leftKeys = Object.keys(leftRecord)
+  const rightKeys = Object.keys(rightRecord)
+  return (
+    leftKeys.length === rightKeys.length &&
+    leftKeys.every(key => Object.is(leftRecord[key], rightRecord[key]))
+  )
+}
+
+const popupStatesEqual = (left: PopupState | undefined, right: PopupState) =>
+  !!left && left.node === right.node && stylesEqual(left.style, right.style)
+
+const makePopupState = (
+  node: HTMLDivElement,
+  attachTo: React.RefObject<MeasureRef | null> | undefined,
+  position: Styles.Position,
+  matchDimension: boolean | undefined,
+  positionFallbacks: ReadonlyArray<Styles.Position> | undefined,
+  offset: number,
+  style: Styles.StylesCrossPlatform | undefined
+): PopupState => {
+  const targetRect = attachTo?.current?.getBoundingClientRect()
+  const popupStyle = targetRect
+    ? Styles.collapseStyles([
+        computePopupStyle(
+          position,
+          targetRect,
+          node.getBoundingClientRect(),
+          !!matchDimension,
+          positionFallbacks,
+          offset
+        ),
+        style,
+      ])
+    : hiddenStyle
+  return {node, style: popupStyle}
+}
+
 export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const [popupState, setPopupState] = React.useState<PopupState>()
   const downRef = React.useRef<undefined | {x: number; y: number}>(undefined)
@@ -243,32 +286,13 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const remeasureHintRef = React.useRef(remeasureHint)
   const popupNode = popupState?.node
 
-  const setPopupRef = React.useCallback(
-    (node: HTMLDivElement | null) => {
-      if (!node) {
-        return
-      }
-      const targetRect = attachTo?.current?.getBoundingClientRect()
-      const style = targetRect
-        ? Styles.collapseStyles([
-            computePopupStyle(
-              position,
-              targetRect,
-              node.getBoundingClientRect(),
-              !!matchDimension,
-              positionFallbacks,
-              offset
-            ),
-            _style,
-          ])
-        : hiddenStyle
-      setPopupState({
-        node,
-        style,
-      })
-    },
-    [attachTo, matchDimension, offset, position, positionFallbacks, _style]
-  )
+  const setPopupRef = (node: HTMLDivElement | null) => {
+    if (!node) {
+      return
+    }
+    const nextState = makePopupState(node, attachTo, position, matchDimension, positionFallbacks, offset, _style)
+    setPopupState(prev => (popupStatesEqual(prev, nextState) ? prev : nextState))
+  }
 
   React.useEffect(() => {
     const hintChanged = remeasureHintRef.current !== remeasureHint
@@ -277,12 +301,21 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
       return undefined
     }
     const frameID = requestAnimationFrame(() => {
-      setPopupRef(popupNode)
+      const nextState = makePopupState(
+        popupNode,
+        attachTo,
+        position,
+        matchDimension,
+        positionFallbacks,
+        offset,
+        _style
+      )
+      setPopupState(prev => (popupStatesEqual(prev, nextState) ? prev : nextState))
     })
     return () => {
       cancelAnimationFrame(frameID)
     }
-  }, [popupNode, remeasureHint, setPopupRef])
+  }, [attachTo, matchDimension, offset, popupNode, position, positionFallbacks, remeasureHint, _style])
 
   React.useEffect(() => {
     const handleDown = (e: MouseEvent) => {

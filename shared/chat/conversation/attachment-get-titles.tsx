@@ -120,7 +120,7 @@ const Container = (ownProps: OwnProps) => {
   const [kbfsPreview, setKbfsPreview] = React.useState<
     {path: string; url: string | undefined} | undefined
   >()
-  const kbfsPreviewURL = kbfsPreview?.path === path ? kbfsPreview.url : undefined
+  const kbfsPreviewURL = kbfsPreview && kbfsPreview.path === path ? kbfsPreview.url : undefined
   React.useEffect(() => {
     if (info?.type !== 'image' || info.url || !path || !isKbfsPath(path)) {
       return

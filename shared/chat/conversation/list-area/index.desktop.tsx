@@ -20,6 +20,7 @@ import {copyToClipboard} from '@/util/storeless-actions'
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
 const scrollOrdinalKey = 'scroll-ordinal-key'
+const ordinalsInAWaypoint = 10
 
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
@@ -345,7 +346,7 @@ const useScrolling = (p: {
       const waypoints = listRef.current?.querySelectorAll('[data-key]')
       if (waypoints) {
         // find an id that should be our parent
-        const toFind = Math.floor(T.Chat.ordinalToNumber(editingOrdinal) / 10)
+        const toFind = Math.floor(T.Chat.ordinalToNumber(editingOrdinal) / ordinalsInAWaypoint)
         const allWaypoints = Array.from(waypoints) as Array<HTMLElement>
         const found = findLast(allWaypoints, w => {
           const key = w.dataset['key']
@@ -366,7 +367,6 @@ const useItems = (p: {
   editingOrdinal: T.Chat.Ordinal | undefined
 }) => {
   const {messageOrdinals, centeredHighlightOrdinal, centeredOrdinal, editingOrdinal} = p
-  const ordinalsInAWaypoint = 10
   const waypointData = React.useMemo(() => {
     const items: Array<{key: string; ordinals: Array<T.Chat.Ordinal>}> = []
     const numOrdinals = messageOrdinals.length
@@ -391,8 +391,8 @@ const useItems = (p: {
           ordinals.push(ordinal)
         }
         if (ordinals.length) {
-          // don't allow buckets to be too big, we have sends which can allow > 10 ordinals in a bucket so we split it further
-          const chunks = chunk(ordinals, 10)
+          // don't allow buckets to be too big; sends can put more ordinals than expected in one bucket
+          const chunks = chunk(ordinals, ordinalsInAWaypoint)
           chunks.forEach((toAdd, cidx) => {
             const key = `${lastBucket || ''}:${cidx + baseIndex}`
             items.push({key, ordinals: toAdd})
@@ -413,7 +413,7 @@ const useItems = (p: {
     })
 
     return items
-  }, [centeredOrdinal, messageOrdinals, ordinalsInAWaypoint])
+  }, [centeredOrdinal, messageOrdinals])
 
   const rowRenderer = (ordinal: T.Chat.Ordinal) => {
     return (

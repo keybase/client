@@ -136,7 +136,12 @@ export function useDebouncedCallback<T extends AnyFunction>(
     return next
   }, [leading, trailing, waitMs])
 
-  React.useEffect(() => () => debounced.cancel(), [debounced])
+  React.useLayoutEffect(() => {
+    runtimeRef.current = {}
+    return () => {
+      debounced.cancel()
+    }
+  }, [debounced])
 
   return debounced
 }
@@ -242,7 +247,12 @@ export function useThrottledCallback<T extends AnyFunction>(
     return next
   }, [leading, trailing, waitMs])
 
-  React.useEffect(() => () => throttled.cancel(), [throttled])
+  React.useLayoutEffect(() => {
+    runtimeRef.current = {}
+    return () => {
+      throttled.cancel()
+    }
+  }, [throttled])
 
   return throttled
 }

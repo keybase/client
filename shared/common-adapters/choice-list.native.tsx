@@ -8,12 +8,16 @@ import type {Props} from './choice-list'
 
 const Kb = {Box2, ClickableBox, IconAuto, Text}
 
+const makeOptionsKey = (options: Props['options']) =>
+  options.map(option => `${option.title}:${option.description}:${String(option.icon)}`).join('|')
+
 const ChoiceList = (props: Props) => {
   const {options} = props
-  const [active, setActive] = React.useState<{index?: number; options: Props['options']}>(() => ({
-    options,
+  const optionsKey = makeOptionsKey(options)
+  const [active, setActive] = React.useState<{index?: number; optionsKey: string}>(() => ({
+    optionsKey,
   }))
-  const activeIndex = active.options === options ? active.index : undefined
+  const activeIndex = active.optionsKey === optionsKey ? active.index : undefined
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -24,8 +28,8 @@ const ChoiceList = (props: Props) => {
             key={idx}
             underlayColor={Styles.globalColors.blueLighter2}
             onClick={op.onClick}
-            onPressIn={() => setActive({index: idx, options})}
-            onPressOut={() => setActive({options})}
+            onPressIn={() => setActive({index: idx, optionsKey})}
+            onPressOut={() => setActive({optionsKey})}
           >
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styleEntry}>
               <Kb.Box2 direction="vertical" centerChildren={true} style={styleIconContainer(activeIndex === idx)}>
