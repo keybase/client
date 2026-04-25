@@ -283,7 +283,6 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const downRef = React.useRef<undefined | {x: number; y: number}>(undefined)
   const {attachTo, children, propagateOutsideClicks, onClosePopup, style: _style} = props
   const {position, matchDimension, positionFallbacks, disableEscapeKey, offset = 0, remeasureHint} = props
-  const remeasureHintRef = React.useRef(remeasureHint)
   const popupNode = popupState?.node
 
   const setPopupRef = (node: HTMLDivElement | null) => {
@@ -295,9 +294,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   }
 
   React.useEffect(() => {
-    const hintChanged = remeasureHintRef.current !== remeasureHint
-    remeasureHintRef.current = remeasureHint
-    if (!hintChanged || !popupNode) {
+    if (!popupNode) {
       return undefined
     }
     const frameID = requestAnimationFrame(() => {

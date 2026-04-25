@@ -78,10 +78,11 @@ export const useUserEmoji = ({
         if (requestIDRef.current !== requestID) {
           return
         }
-        setLoadState(state => ({
-          ...state,
+        setLoadState({
           completedKey: requestKey,
-        }))
+          emojiGroups: emptyEmojiGroups,
+          emojis: emptyEmojis,
+        })
       }
     )
 
@@ -92,9 +93,10 @@ export const useUserEmoji = ({
     }
   }, [conversationIDKey, disabled, loadUserEmoji, requestKey, requestOnlyInTeam])
 
+  const isCurrent = loadState.completedKey === requestKey
   return {
-    emojiGroups: disabled ? undefined : loadState.emojiGroups,
-    emojis: loadState.emojis,
+    emojiGroups: disabled ? undefined : isCurrent ? loadState.emojiGroups : emptyEmojiGroups,
+    emojis: isCurrent ? loadState.emojis : emptyEmojis,
     loading: !disabled && loadState.completedKey !== requestKey,
   }
 }
