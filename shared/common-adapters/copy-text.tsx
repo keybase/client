@@ -40,10 +40,29 @@ const CopyText = (props: Props) => {
   const [showingToast, setShowingToast] = React.useState(false)
   const shareSheet = props.shareSheet && Styles.isMobile
   const copyRequestIDRef = React.useRef(0)
+  const copyOnLoadedRequestIDRef = React.useRef(0)
+  const popupAnchor = React.useRef<MeasureRef | null>(null)
+
+  const doCopy = (t: string) => {
+    if (shareSheet) {
+      showShareActionSheet('', t, 'text/plain')
+    } else {
+      setShowingToast(true)
+      copyToClipboard(t)
+    }
+    onCopy?.()
+    if (hideOnCopy) {
+      setRevealed(false)
+    }
+  }
+  const doCopyLoadedText = React.useEffectEvent((loadedText: string) => {
+    doCopy(loadedText)
+  })
 
   React.useEffect(() => {
     return () => {
       copyRequestIDRef.current += 1
+      copyOnLoadedRequestIDRef.current = 0
     }
   }, [])
 
@@ -70,19 +89,15 @@ const CopyText = (props: Props) => {
     }
   }, [withReveal, text, loadText])
 
-  const popupAnchor = React.useRef<MeasureRef | null>(null)
-  const doCopy = (t: string) => {
-    if (shareSheet) {
-      showShareActionSheet('', t, 'text/plain')
-    } else {
-      setShowingToast(true)
-      copyToClipboard(t)
+  React.useEffect(() => {
+    const requestID = copyOnLoadedRequestIDRef.current
+    if (!requestID || !text || copyRequestIDRef.current !== requestID) {
+      return
     }
-    onCopy?.()
-    if (hideOnCopy) {
-      setRevealed(false)
-    }
-  }
+    copyRequestIDRef.current = requestID + 1
+    copyOnLoadedRequestIDRef.current = 0
+    doCopyLoadedText(text)
+  }, [text])
 
   const copy = () => {
     if (!text) {
@@ -92,9 +107,15 @@ const CopyText = (props: Props) => {
       }
       const requestID = copyRequestIDRef.current + 1
       copyRequestIDRef.current = requestID
+      copyOnLoadedRequestIDRef.current = requestID
       loadText(loadedText => {
-        if (copyRequestIDRef.current === requestID && loadedText) {
+        if (
+          copyRequestIDRef.current === requestID &&
+          copyOnLoadedRequestIDRef.current === requestID &&
+          loadedText
+        ) {
           copyRequestIDRef.current = requestID + 1
+          copyOnLoadedRequestIDRef.current = 0
           doCopy(loadedText)
         }
       })

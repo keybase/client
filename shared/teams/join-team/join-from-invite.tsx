@@ -27,12 +27,10 @@ const getInviteError = (error: unknown, missingKey: boolean) => {
   return error instanceof Error ? error.message : 'Something went wrong.'
 }
 
-const JoinFromInvite = (props: Props) => (
-  <JoinFromInviteInner
-    key={JSON.stringify([props.inviteID ?? '', props.inviteKey ?? '', props.inviteDetails ?? null])}
-    {...props}
-  />
-)
+const getInviteIdentityKey = ({inviteDetails, inviteID = '', inviteKey = ''}: Props) =>
+  `${inviteID || inviteDetails?.inviteID || ''}:${inviteKey}`
+
+const JoinFromInvite = (props: Props) => <JoinFromInviteInner key={getInviteIdentityKey(props)} {...props} />
 
 const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = '', inviteKey = ''}: Props) => {
   const [details, setDetails] = React.useState(initialInviteDetails)
