@@ -55,7 +55,7 @@ const updateCountdownState = (
       return isUploading
         ? {...state, inputKey}
         : {glueTTL: state.glueTTL, inputKey, mode: state.glueTTL > 0 ? Mode.Sticky : Mode.Hidden}
-    case Mode.Sticky:
+    case Mode.Sticky: {
       if (isUploading) {
         return {glueTTL: initialGlueTTL, inputKey, mode: Mode.CountDown}
       }
@@ -64,6 +64,7 @@ const updateCountdownState = (
       }
       const glueTTL = Math.max(0, state.glueTTL - 1)
       return glueTTL > 0 ? {glueTTL, inputKey, mode: Mode.Sticky} : {glueTTL, inputKey, mode: Mode.Hidden}
+    }
   }
 }
 

@@ -66,8 +66,31 @@ export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
   }, [teamID])
 
   React.useEffect(() => {
-    reloadDefaultChannels(false)
-  }, [reloadDefaultChannels])
+    const requestVersion = ++requestVersionRef.current
+    getDefaultChannelsRPC(
+      [{teamID}],
+      result => {
+        if (requestVersion !== requestVersionRef.current) {
+          return
+        }
+        setState({
+          defaultChannels: [
+            {channelname: 'general', conversationIDKey: 'unused'},
+            ...(result.convs || []).map(conv => ({channelname: conv.channel, conversationIDKey: conv.convID})),
+          ],
+          error: undefined,
+          loadedTeamID: teamID,
+          waiting: false,
+        })
+      },
+      err => {
+        if (requestVersion !== requestVersionRef.current) {
+          return
+        }
+        setState(prev => ({...prev, error: err, loadedTeamID: teamID, waiting: false}))
+      }
+    )
+  }, [getDefaultChannelsRPC, teamID])
 
   const visibleState =
     state.loadedTeamID === teamID

@@ -17,12 +17,13 @@ const useFiles = () => {
     spaceAvailableNotificationThreshold: 0,
     syncOnCellular: false,
   }))
+  const readSettings = React.useCallback(async () => T.RPCGen.SimpleFSSimpleFSSettingsRpcPromise(), [])
   const loadSettings = React.useEffectEvent(async (showLoading: boolean) => {
     if (showLoading) {
       setSettings(s => ({...s, isLoading: true}))
     }
     try {
-      const next = await T.RPCGen.SimpleFSSimpleFSSettingsRpcPromise()
+      const next = await readSettings()
       setSettings({
         isLoading: false,
         spaceAvailableNotificationThreshold: next.spaceAvailableNotificationThreshold,
@@ -37,8 +38,28 @@ const useFiles = () => {
   })
 
   React.useEffect(() => {
-    C.ignorePromise(loadSettings(false))
-  }, [])
+    let canceled = false
+    const f = async () => {
+      try {
+        const next = await readSettings()
+        if (!canceled) {
+          setSettings({
+            isLoading: false,
+            spaceAvailableNotificationThreshold: next.spaceAvailableNotificationThreshold,
+            syncOnCellular: next.syncOnCellular,
+          })
+        }
+      } catch {
+        if (!canceled) {
+          setSettings(s => ({...s, isLoading: false}))
+        }
+      }
+    }
+    C.ignorePromise(f())
+    return () => {
+      canceled = true
+    }
+  }, [readSettings])
 
   useEngineActionListener('keybase.1.NotifyFS.FSSubscriptionNotify', action => {
     const {clientID, topic} = action.payload.params

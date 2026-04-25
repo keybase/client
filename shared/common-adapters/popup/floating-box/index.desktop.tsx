@@ -1,4 +1,3 @@
-import * as React from 'react'
 import type {Props} from '.'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
 import noop from 'lodash/noop'

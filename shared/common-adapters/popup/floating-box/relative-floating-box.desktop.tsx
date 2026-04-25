@@ -240,6 +240,7 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   const downRef = React.useRef<undefined | {x: number; y: number}>(undefined)
   const {attachTo, children, propagateOutsideClicks, onClosePopup, style: _style} = props
   const {position, matchDimension, positionFallbacks, disableEscapeKey, offset = 0, remeasureHint} = props
+  const remeasureHintRef = React.useRef(remeasureHint)
   const popupNode = popupState?.node
 
   const setPopupRef = React.useCallback(
@@ -266,8 +267,22 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
         style,
       })
     },
-    [attachTo, matchDimension, offset, position, positionFallbacks, remeasureHint, _style]
+    [attachTo, matchDimension, offset, position, positionFallbacks, _style]
   )
+
+  React.useEffect(() => {
+    const hintChanged = remeasureHintRef.current !== remeasureHint
+    remeasureHintRef.current = remeasureHint
+    if (!hintChanged || !popupNode) {
+      return undefined
+    }
+    const frameID = requestAnimationFrame(() => {
+      setPopupRef(popupNode)
+    })
+    return () => {
+      cancelAnimationFrame(frameID)
+    }
+  }, [popupNode, remeasureHint, setPopupRef])
 
   React.useEffect(() => {
     const handleDown = (e: MouseEvent) => {

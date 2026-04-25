@@ -52,6 +52,7 @@ const emptyActivityLevelsData: ActivityLevelsData = {
   channels: emptyChannelActivityLevels,
   teams: emptyTeamActivityLevels,
 }
+const activityLevelsCacheKey = 'activity' as const
 
 const parseActivityLevels = (
   results: Awaited<ReturnType<typeof T.RPCChat.localGetLastActiveForTeamsRpcPromise>>
@@ -77,12 +78,12 @@ const parseActivityLevels = (
 }
 
 const useActivityLevelsRaw = (
-  cache: CachedResourceCache<ActivityLevelsData, 'activity'>,
+  cache: CachedResourceCache<ActivityLevelsData, typeof activityLevelsCacheKey>,
   enabled = true
 ): ActivityLevels => {
   const {data, loaded, loading, reload} = useCachedResource({
     cache,
-    cacheKey: 'activity',
+    cacheKey: activityLevelsCacheKey,
     enabled,
     initialData: emptyActivityLevelsData,
     load: async () => parseActivityLevels(await T.RPCChat.localGetLastActiveForTeamsRpcPromise()),
@@ -98,7 +99,10 @@ const useActivityLevelsRaw = (
 export const ActivityLevelsProvider = (props: React.PropsWithChildren) => {
   const {children} = props
   const [cache] = React.useState(() =>
-    createCachedResourceCache<ActivityLevelsData, 'activity'>(emptyActivityLevelsData, 'activity')
+    createCachedResourceCache<ActivityLevelsData, typeof activityLevelsCacheKey>(
+      emptyActivityLevelsData,
+      activityLevelsCacheKey
+    )
   )
   const value = useActivityLevelsRaw(cache)
   return <ActivityLevelsContext.Provider value={value}>{children}</ActivityLevelsContext.Provider>

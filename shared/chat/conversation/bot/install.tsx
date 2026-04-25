@@ -71,7 +71,9 @@ export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, 
   const requestIDRef = React.useRef(0)
   const conversationIDKey =
     cleanInConvIDKey ??
-    (generalConversation?.teamID === teamID ? generalConversation.conversationIDKey : undefined)
+    (generalConversation && generalConversation.teamID === teamID
+      ? generalConversation.conversationIDKey
+      : undefined)
 
   React.useEffect(() => {
     requestIDRef.current += 1

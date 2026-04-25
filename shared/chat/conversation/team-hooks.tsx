@@ -261,15 +261,19 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
     setState(makeEmptyChatTeamMembersState())
   }
 
+  const loadMemberInfos = React.useCallback(
+    async (teamID: T.Teams.TeamID) =>
+      Teams.rpcDetailsToMemberInfos((await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({id: teamID})) ?? []),
+    []
+  )
+
   const loadMembers = React.useCallback(async () => {
     if (!enabled || !validTeamID) {
       return
     }
     const requestVersion = ++requestVersionRef.current
     try {
-      const members = Teams.rpcDetailsToMemberInfos(
-        (await T.RPCGen.teamsTeamGetMembersByIDRpcPromise({id: validTeamID})) ?? []
-      )
+      const members = await loadMemberInfos(validTeamID)
       if (requestVersion !== requestVersionRef.current) {
         return
       }
@@ -287,7 +291,7 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
       logger.warn(`Failed to reload chat team members for ${validTeamID}`, error)
       setState(prev => ({...prev, loadedTeamID: validTeamID, loading: false}))
     }
-  }, [enabled, validTeamID])
+  }, [enabled, loadMemberInfos, validTeamID])
 
   const reload = React.useCallback(async () => {
     if (!enabled || !validTeamID) {
@@ -306,8 +310,39 @@ const useChatTeamMembersRaw = (teamID: T.Teams.TeamID, enabled = true): ChatTeam
         : state
 
   React.useEffect(() => {
-    void loadMembers()
-  }, [loadMembers])
+    if (!enabled || !validTeamID) {
+      requestVersionRef.current += 1
+      return undefined
+    }
+    const requestVersion = ++requestVersionRef.current
+    const f = async () => {
+      try {
+        const members = await loadMemberInfos(validTeamID)
+        if (requestVersion !== requestVersionRef.current) {
+          return
+        }
+        useUsersState.getState().dispatch.updates(
+          [...members.values()].map(member => ({
+            info: {fullname: member.fullName},
+            name: member.username,
+          }))
+        )
+        setState({loadedTeamID: validTeamID, loading: false, members})
+      } catch (error) {
+        if (requestVersion !== requestVersionRef.current) {
+          return
+        }
+        logger.warn(`Failed to reload chat team members for ${validTeamID}`, error)
+        setState(prev => ({...prev, loadedTeamID: validTeamID, loading: false}))
+      }
+    }
+    C.ignorePromise(f())
+    return () => {
+      if (requestVersionRef.current === requestVersion) {
+        requestVersionRef.current += 1
+      }
+    }
+  }, [enabled, loadMemberInfos, validTeamID])
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       void loadMembers()
@@ -353,32 +388,37 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
     setState(makeEmptyChatTeamNamesState())
   }
 
+  const loadTeamNamesForIDs = React.useCallback(async (teamIDs: ReadonlyArray<T.Teams.TeamID>) => {
+    const resolvedTeamnames = await Promise.all(
+      teamIDs.map(async teamID => {
+        try {
+          const teamname = (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name
+          return teamname ? ([teamID, teamname] as const) : undefined
+        } catch (error) {
+          logger.warn(`Failed to load chat team name for ${teamID}`, error)
+          return undefined
+        }
+      })
+    )
+    const teamnames = new Map<T.Teams.TeamID, string>()
+    resolvedTeamnames.forEach(entry => {
+      if (entry) {
+        teamnames.set(entry[0], entry[1])
+      }
+    })
+    return teamnames
+  }, [])
+
   const loadTeamNames = React.useCallback(async () => {
     if (!enabled || !teamIDsKey || !username) {
       return
     }
     const requestVersion = ++requestVersionRef.current
     try {
-      const resolvedTeamnames = await Promise.all(
-        validTeamIDs.map(async teamID => {
-          try {
-            const teamname = (await T.RPCGen.teamsGetAnnotatedTeamRpcPromise({teamID})).name
-            return teamname ? ([teamID, teamname] as const) : undefined
-          } catch (error) {
-            logger.warn(`Failed to load chat team name for ${teamID}`, error)
-            return undefined
-          }
-        })
-      )
+      const teamnames = await loadTeamNamesForIDs(validTeamIDs)
       if (requestVersion !== requestVersionRef.current) {
         return
       }
-      const teamnames = new Map<T.Teams.TeamID, string>()
-      resolvedTeamnames.forEach(entry => {
-        if (entry) {
-          teamnames.set(entry[0], entry[1])
-        }
-      })
       setState({
         loadedTeamIDsKey: teamIDsKey,
         loading: false,
@@ -395,7 +435,7 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
         teamnames: prev.loadedTeamIDsKey === teamIDsKey ? new Map(prev.teamnames) : new Map(),
       }))
     }
-  }, [enabled, teamIDsKey, username, validTeamIDs])
+  }, [enabled, loadTeamNamesForIDs, teamIDsKey, username, validTeamIDs])
 
   const reload = React.useCallback(async () => {
     if (!enabled || !teamIDsKey || !username) {
@@ -418,8 +458,41 @@ const useChatTeamNamesRaw = (teamIDs: ReadonlyArray<T.Teams.TeamID>, enabled = t
         : state
 
   React.useEffect(() => {
-    void loadTeamNames()
-  }, [loadTeamNames])
+    if (!enabled || !teamIDsKey || !username) {
+      requestVersionRef.current += 1
+      return undefined
+    }
+    const requestVersion = ++requestVersionRef.current
+    const f = async () => {
+      try {
+        const teamnames = await loadTeamNamesForIDs(validTeamIDs)
+        if (requestVersion !== requestVersionRef.current) {
+          return
+        }
+        setState({
+          loadedTeamIDsKey: teamIDsKey,
+          loading: false,
+          teamnames,
+        })
+      } catch (error) {
+        if (requestVersion !== requestVersionRef.current) {
+          return
+        }
+        logger.warn(`Failed to load chat team names for ${teamIDsKey}`, error)
+        setState(prev => ({
+          loadedTeamIDsKey: teamIDsKey,
+          loading: false,
+          teamnames: prev.loadedTeamIDsKey === teamIDsKey ? new Map(prev.teamnames) : new Map(),
+        }))
+      }
+    }
+    C.ignorePromise(f())
+    return () => {
+      if (requestVersionRef.current === requestVersion) {
+        requestVersionRef.current += 1
+      }
+    }
+  }, [enabled, loadTeamNamesForIDs, teamIDsKey, username, validTeamIDs])
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
       void loadTeamNames()

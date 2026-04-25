@@ -79,7 +79,7 @@ export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedR
     },
     getData: () => data,
     getGeneration: () => generation,
-    getInFlight: () => inFlight,
+    getInFlight: (): Promise<T> | undefined => inFlight,
     getKey: () => storedKey,
     getLoadedAt: () => loadedAt,
     invalidate: nextKey => {

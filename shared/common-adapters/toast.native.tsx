@@ -90,16 +90,18 @@ const Toast = (props: Props) => {
       <Kb.KeyboardAvoidingView2>
         <Kb.Box2 direction="vertical" pointerEvents="none" justifyContent="center" style={styles.wrapper}>
           <NativeAnimated.View
-            style={Styles.collapseStyles([
-              styles.container,
-              {
-                // RN bugs with animated dynamicColors so have to use the raw ones
-                // known bug this won't work if the dark mode changes dynamic on ios currently
-                backgroundColor: isDarkMode ? darkColors.black : colors.black,
-              },
-              props.containerStyle,
+            style={[
+              Styles.collapseStyles([
+                styles.container,
+                {
+                  // RN bugs with animated dynamicColors so have to use the raw ones
+                  // known bug this won't work if the dark mode changes dynamic on ios currently
+                  backgroundColor: isDarkMode ? darkColors.black : colors.black,
+                },
+                props.containerStyle,
+              ]),
               {opacity},
-            ])}
+            ]}
           >
             {props.children}
           </NativeAnimated.View>

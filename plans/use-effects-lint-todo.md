@@ -24,7 +24,7 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 ## Batch 2: Chat Modals And Bot Install
 
 - [x] `shared/chat/blocking/block-modal.tsx:244:7` - moved default block settings into state initializers and left the effect for the one-time external block-state refresh.
-- [x] `shared/chat/conversation/attachment-get-titles.tsx:122:5` - already absent in current source; the logged `kbfsPreviewURL` reset effect is no longer present.
+- [x] `shared/chat/conversation/attachment-get-titles.tsx:122:5` - tags KBFS preview URLs by path and derives stale previews as absent instead of clearing preview state in the effect.
 - [x] `shared/chat/conversation/bot/install.tsx:68:5` - derived the visible conversation ID from the input conversation or a team-tagged async lookup result.
 - [x] `shared/chat/conversation/bot/install.tsx:242:5` - tagged loaded bot public commands by username instead of clearing command state in an effect.
 
@@ -50,8 +50,8 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 - [x] `shared/chat/conversation/normal/container.tsx:79:9` - folded mobile app-state clearing into the guarded orange-line state adjustment during render.
 - [x] `shared/chat/conversation/search.tsx:254:5` - keyed thread-search internals by conversation/query instead of clearing search state in an effect.
 - [x] `shared/chat/conversation/search.tsx:264:5` - seeded initial-query state on mount and started the request without syncing input state from an effect.
-- [x] `shared/chat/conversation/team-hooks.tsx:290:10` - split team-member effect loading from manual reload loading state and derived initial loading for stale team IDs.
-- [x] `shared/chat/conversation/team-hooks.tsx:373:10` - split team-name effect loading from manual reload loading state and keyed visible results by the requested team IDs.
+- [x] `shared/chat/conversation/team-hooks.tsx:290:10` - split team-member fetching from state application so the initial effect starts an async request without calling the reload state setter.
+- [x] `shared/chat/conversation/team-hooks.tsx:373:10` - split team-name fetching from state application so the initial effect starts an async request while visible results stay keyed by requested team IDs.
 
 ## Batch 6: Common Adapter Components
 
@@ -103,7 +103,7 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 - [x] `shared/settings/account/index.tsx:222:5` - clears account banner state with a guarded focus-keyed render adjustment.
 - [x] `shared/settings/account/index.tsx:231:7` - derives invalid or verified added-email banner clearing during render.
 - [x] `shared/settings/chat.tsx:199:7` - seeds selected team notification settings with a guarded render update.
-- [x] `shared/settings/files/hooks.tsx:38:21` - keeps file-settings loading state for explicit refreshes while the initial effect starts the request without a synchronous loading update.
+- [x] `shared/settings/files/hooks.tsx:38:21` - keeps file-settings loading state for explicit refreshes while the initial effect performs its own cancellable async settings read.
 - [x] `shared/settings/proxy.tsx:123:9` - keys proxy form state to loaded `proxyData` via guarded render adjustment.
 - [x] `shared/signup/device-name.tsx:139:7` - sanitizes the device name in the initializer and input handler instead of an effect.
 
@@ -132,7 +132,7 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 
 ## Batch 13: Teams Settings And Cached Resource
 
-- [x] `shared/teams/team/settings-tab/default-channels.tsx:67:19` - starts the initial default-channel load without a synchronous waiting update while preserving request/team guards.
+- [x] `shared/teams/team/settings-tab/default-channels.tsx:67:19` - starts the initial default-channel RPC directly from the effect callback path without calling the reload setter.
 - [x] `shared/teams/team/settings-tab/index.tsx:439:5` - replaces reset key state/effect with a derived settings key.
 - [x] `shared/teams/team/settings-tab/retention/index.tsx:63:7` - removes modal-open mirror state and reset effect.
 - [x] `shared/teams/team/settings-tab/retention/index.tsx:105:11` - moves retention warning/save logic into the menu selection handler.

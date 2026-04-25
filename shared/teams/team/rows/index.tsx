@@ -292,7 +292,9 @@ const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
   const findGeneralConvIDFromTeamID = C.useRPC(T.RPCChat.localFindGeneralConvFromTeamIDRpcPromise)
   const requestIDRef = React.useRef(0)
   const conversationIDKey =
-    conversationIDKeyResult?.teamID === teamID ? conversationIDKeyResult.conversationIDKey : undefined
+    conversationIDKeyResult && conversationIDKeyResult.teamID === teamID
+      ? conversationIDKeyResult.conversationIDKey
+      : undefined
 
   React.useEffect(() => {
     if (conversationIDKey || !teamID) {

@@ -63,7 +63,9 @@ export const useFeaturedBot = (botUsername?: string) => {
     }
   }, [botUsername, searchFeaturedBots])
 
-  return loadedFeaturedBot?.botUsername === botUsername ? loadedFeaturedBot.bot : undefined
+  return loadedFeaturedBot && loadedFeaturedBot.botUsername === botUsername
+    ? loadedFeaturedBot.bot
+    : undefined
 }
 
 export const useFeaturedBotPage = () => {
