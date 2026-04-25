@@ -24,15 +24,19 @@ function useIntersectionObserver<T extends HTMLElement = HTMLElement>(
     time: 0,
   }))
   const thresholdKey = JSON.stringify(threshold)
+  const getThreshold = React.useEffectEvent(() => threshold)
 
   React.useLayoutEffect(() => {
-    const observer = getIntersectionObserver({
-      pollInterval,
-      root,
-      rootMargin,
-      threshold: JSON.parse(thresholdKey) as IntersectionObserverOptions['threshold'],
-      useMutationObserver,
-    })
+    const observer = getIntersectionObserver(
+      {
+        pollInterval,
+        root,
+        rootMargin,
+        threshold: getThreshold(),
+        useMutationObserver,
+      },
+      thresholdKey
+    )
     const targetEl = target && 'current' in target ? target.current : target
     if (!observer || !targetEl) return
     let didUnsubscribe = false
@@ -98,9 +102,9 @@ const _intersectionObserver: Map<
   Record<string, ReturnType<typeof createIntersectionObserver>>
 > = new Map()
 
-function getIntersectionObserver(options: IntersectionObserverOptions) {
+function getIntersectionObserver(options: IntersectionObserverOptions, thresholdKey: string) {
   const {root, ...keys} = options
-  const key = JSON.stringify(keys)
+  const key = JSON.stringify({...keys, threshold: thresholdKey})
   let base = _intersectionObserver.get(root)
   if (!base) {
     base = {}
