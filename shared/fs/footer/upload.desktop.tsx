@@ -6,26 +6,37 @@ import capitalize from 'lodash/capitalize'
 import './upload.css'
 
 type DrawState = 'showing' | 'hiding' | 'hidden'
+type AnimationState = {
+  hideComplete: boolean
+  lastShowing: boolean
+}
+
 const Upload = (props: UploadProps) => {
   const {smallMode, showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow} = props
-  const [drawState, setDrawState] = React.useState<DrawState>(showing ? 'showing' : 'hidden')
+  const [animationState, setAnimationState] = React.useState<AnimationState>(() => ({
+    hideComplete: !showing,
+    lastShowing: showing,
+  }))
+  let hideComplete = animationState.hideComplete
+  if (animationState.lastShowing !== showing) {
+    hideComplete = false
+    setAnimationState({hideComplete, lastShowing: showing})
+  }
+  const drawState: DrawState = showing ? 'showing' : hideComplete ? 'hidden' : 'hiding'
 
   const height = 40
 
   React.useEffect(() => {
-    let id: undefined | ReturnType<typeof setTimeout>
-    if (showing) {
-      setDrawState('showing')
-    } else {
-      setDrawState('hiding')
-      id = setTimeout(() => {
-        setDrawState('hidden')
-      }, 300)
+    if (showing || hideComplete) {
+      return
     }
+    const id = setTimeout(() => {
+      setAnimationState(s => (s.lastShowing === showing ? {...s, hideComplete: true} : s))
+    }, 300)
     return () => {
-      id && clearTimeout(id)
+      clearTimeout(id)
     }
-  }, [showing])
+  }, [hideComplete, showing])
 
   // this is due to the fact that the parent container has a marginTop of -13 on darwin
   const offset = smallMode && C.isDarwin ? 13 : 0

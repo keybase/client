@@ -117,9 +117,11 @@ const Container = (ownProps: OwnProps) => {
   const inputRef = React.useRef<Kb.Input3Ref>(null)
 
   const {info, path} = pathAndInfos[index] ?? {}
-  const [kbfsPreviewURL, setKbfsPreviewURL] = React.useState<string | undefined>(undefined)
+  const [kbfsPreview, setKbfsPreview] = React.useState<
+    {path: string; url: string | undefined} | undefined
+  >()
+  const kbfsPreviewURL = kbfsPreview && kbfsPreview.path === path ? kbfsPreview.url : undefined
   React.useEffect(() => {
-    setKbfsPreviewURL(undefined)
     if (info?.type !== 'image' || info.url || !path || !isKbfsPath(path)) {
       return
     }
@@ -130,7 +132,7 @@ const Container = (ownProps: OwnProps) => {
           path: FS.pathToRPCPath(T.FS.stringToPath(path)).kbfs,
         })
         if (!canceled) {
-          setKbfsPreviewURL(fileContext.url)
+          setKbfsPreview({path, url: fileContext.url})
         }
       } catch {}
     }

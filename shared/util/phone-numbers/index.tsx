@@ -232,10 +232,6 @@ export const useDefaultPhoneCountry = () => {
 
   React.useEffect(() => {
     let canceled = false
-    if (_defaultPhoneCountry) {
-      setDefaultCountry(_defaultPhoneCountry)
-      return
-    }
     void loadDefaultPhoneCountry().then(country => {
       if (!canceled) {
         setDefaultCountry(country)

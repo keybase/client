@@ -53,55 +53,66 @@ type OwnProps = {
 }
 
 function SendIndicatorContainer(p: OwnProps) {
+  return <SendIndicator key={p.id} {...p} />
+}
+
+type IndicatorState = {
+  encrypting: boolean
+  failed: boolean
+  sent: boolean
+  sentHidden: boolean
+}
+
+function SendIndicator(p: OwnProps) {
   const {failed, id, isExploding, sent} = p
 
-  const [status, setStatus] = React.useState<AnimationStatus>(
-    sent ? 'sent' : failed ? 'error' : !shownEncryptingSet.has(id) ? 'encrypting' : 'sending'
-  )
-  const [visible, setVisible] = React.useState(!sent)
-  const timeoutRef = React.useRef<ReturnType<typeof setInterval> | undefined>(undefined)
+  const [indicatorState, setIndicatorState] = React.useState<IndicatorState>(() => ({
+    encrypting: !sent && !failed && !shownEncryptingSet.has(id),
+    failed,
+    sent,
+    sentHidden: sent,
+  }))
+
+  let currentIndicatorState = indicatorState
+  if (indicatorState.failed !== failed || indicatorState.sent !== sent) {
+    const hasTerminalState = indicatorState.failed || indicatorState.sent || failed || sent
+    currentIndicatorState = {
+      encrypting: hasTerminalState ? false : indicatorState.encrypting,
+      failed,
+      sent,
+      sentHidden: sent ? (indicatorState.sent === sent ? indicatorState.sentHidden : false) : false,
+    }
+    setIndicatorState(currentIndicatorState)
+  }
+  const {encrypting, sentHidden} = currentIndicatorState
 
   React.useEffect(() => {
-    if (status === 'encrypting' && !timeoutRef.current) {
-      timeoutRef.current = setTimeout(() => {
-        setStatus('sending')
-        timeoutRef.current = undefined
-      }, 600)
+    if (!encrypting || failed || sent) {
+      return undefined
     }
-
-    if (status === 'encrypting') {
-      shownEncryptingSet.add(id)
-    }
-
+    shownEncryptingSet.add(id)
+    const timeoutID = setTimeout(() => {
+      setIndicatorState(state => ({...state, encrypting: false}))
+    }, 600)
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-        timeoutRef.current = undefined
-      }
+      clearTimeout(timeoutID)
     }
-  }, [status, id])
+  }, [encrypting, failed, id, sent])
 
   React.useEffect(() => {
-    if (failed) {
-      setStatus('error')
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-        timeoutRef.current = undefined
-      }
-    } else if (sent) {
-      setStatus('sent')
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-      timeoutRef.current = setTimeout(() => {
-        setVisible(false)
-        timeoutRef.current = undefined
-      }, 400)
-    } else {
-      setVisible(true)
-      setStatus('sending')
+    if (!sent || failed || sentHidden) {
+      return undefined
     }
-  }, [failed, sent])
+    const timeoutID = setTimeout(() => {
+      setIndicatorState(state => (state.sent ? {...state, sentHidden: true} : state))
+    }, 400)
+    return () => {
+      clearTimeout(timeoutID)
+    }
+  }, [failed, sent, sentHidden])
+
+  const visible = failed || !sent || !sentHidden
+  const status: AnimationStatus = failed ? 'error' : sent ? 'sent' : encrypting ? 'encrypting' : 'sending'
 
   const isDarkMode = useColorScheme() === 'dark'
 

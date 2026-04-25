@@ -18,7 +18,8 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const attachmentRef = React.useRef<Kb.MeasureRef | null>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
 
-  const [sk, setSK] = React.useState('')
+  const [secretKeyState, setSecretKeyState] = React.useState({accountID: '', sk: ''})
+  const sk = secretKeyState.accountID === accountID ? secretKeyState.sk : ''
   const loading = !sk
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
   const deleteAccount = C.useRPC(T.RPCStellar.localDeleteWalletAccountLocalRpcPromise)
@@ -30,14 +31,19 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   }
 
   React.useEffect(() => {
-    setSK('')
+    let canceled = false
     getSecretKey(
       [{accountID}],
       r => {
-        setSK(r)
+        if (!canceled) {
+          setSecretKeyState({accountID, sk: r})
+        }
       },
       () => {}
     )
+    return () => {
+      canceled = true
+    }
   }, [getSecretKey, accountID])
 
   const onCopy = () => {

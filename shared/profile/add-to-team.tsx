@@ -53,6 +53,11 @@ const makeAddUserToTeamsResult = (
 
 type OwnProps = {username: string}
 const Container = (ownProps: OwnProps) => {
+  const {username} = ownProps
+  return <AddToTeam key={username} username={username} />
+}
+
+const AddToTeam = (ownProps: OwnProps) => {
   const {username: them} = ownProps
   const {teams} = useTeamsList()
   const teamNameToID = React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
@@ -79,13 +84,6 @@ const Container = (ownProps: OwnProps) => {
   const [sendNotification, setSendNotification] = React.useState(true)
 
   const ownerDisabledReason = getOwnerDisabledReason(selectedTeams, teamNameToRole)
-
-  React.useEffect(() => {
-    return () => {
-      teamListRequestID.current += 1
-      submitRequestID.current += 1
-    }
-  }, [])
 
   const loadTeamList = React.useEffectEvent(() => {
     const requestID = teamListRequestID.current + 1
@@ -178,15 +176,12 @@ const Container = (ownProps: OwnProps) => {
   )
 
   React.useEffect(() => {
-    setAddUserToTeamsResults('')
-    setAddUserToTeamsState('notStarted')
-    setSelectedTeams(new Set())
-    setRolePickerOpen(false)
-    setSelectedRole('writer')
-    setSendNotification(true)
-    setTeamProfileAddList([])
     loadTeamList()
-  }, [them])
+    return () => {
+      teamListRequestID.current += 1
+      submitRequestID.current += 1
+    }
+  }, [])
 
   const onBack = () => {
     navigateUp()

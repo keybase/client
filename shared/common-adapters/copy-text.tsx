@@ -5,7 +5,6 @@ import Button, {type ButtonProps} from './button'
 import Text from './text'
 import type {LineClampType, TextType} from './text.shared'
 import Toast from './toast'
-import {useTimeout} from './use-timers'
 import * as Styles from '@/styles'
 import logger from '@/logger'
 import type {MeasureRef} from './measure-ref'
@@ -32,35 +31,18 @@ type Props = {
   textType?: TextType
   placeholderText?: string
   shareSheet?: boolean // (mobile only) show share sheet instead of copying
-  loadText?: () => void
+  loadText?: (onLoaded?: (text: string) => void) => void
 }
 
 const CopyText = (props: Props) => {
   const {withReveal, text, loadText, onCopy, hideOnCopy} = props
   const [revealed, setRevealed] = React.useState(!props.withReveal)
   const [showingToast, setShowingToast] = React.useState(false)
-  const [requestedCopy, setRequestedCopy] = React.useState(false)
   const shareSheet = props.shareSheet && Styles.isMobile
-  const setShowingToastFalseLater = useTimeout(() => setShowingToast(false), 1500)
-  const [lastShowingToast, setLastShowingToast] = React.useState(showingToast)
-
-  if (lastShowingToast !== showingToast) {
-    setLastShowingToast(showingToast)
-    showingToast && setShowingToastFalseLater()
-  }
-
-  React.useEffect(() => {
-    if (!withReveal && !text) {
-      // only try to load text if withReveal is false
-      if (!loadText) {
-        logger.warn('no loadText method provided')
-        return
-      }
-      loadText()
-    }
-  }, [withReveal, text, loadText])
-
+  const copyRequestIDRef = React.useRef(0)
+  const copyOnLoadedRequestIDRef = React.useRef(0)
   const popupAnchor = React.useRef<MeasureRef | null>(null)
+
   const doCopy = (t: string) => {
     if (shareSheet) {
       showShareActionSheet('', t, 'text/plain')
@@ -73,6 +55,49 @@ const CopyText = (props: Props) => {
       setRevealed(false)
     }
   }
+  const doCopyLoadedText = React.useEffectEvent((loadedText: string) => {
+    doCopy(loadedText)
+  })
+
+  React.useEffect(() => {
+    return () => {
+      copyRequestIDRef.current += 1
+      copyOnLoadedRequestIDRef.current = 0
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (!showingToast) {
+      return undefined
+    }
+    const id = setTimeout(() => {
+      setShowingToast(false)
+    }, 1500)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [showingToast])
+
+  React.useEffect(() => {
+    if (!withReveal && !text) {
+      // only try to load text if withReveal is false
+      if (!loadText) {
+        logger.warn('no loadText method provided')
+        return
+      }
+      loadText()
+    }
+  }, [withReveal, text, loadText])
+
+  React.useEffect(() => {
+    const requestID = copyOnLoadedRequestIDRef.current
+    if (!requestID || !text || copyRequestIDRef.current !== requestID) {
+      return
+    }
+    copyRequestIDRef.current = requestID + 1
+    copyOnLoadedRequestIDRef.current = 0
+    doCopyLoadedText(text)
+  }, [text])
 
   const copy = () => {
     if (!text) {
@@ -80,31 +105,24 @@ const CopyText = (props: Props) => {
         logger.warn('no text to copy and no loadText method provided')
         return
       }
-      setRequestedCopy(true)
+      const requestID = copyRequestIDRef.current + 1
+      copyRequestIDRef.current = requestID
+      copyOnLoadedRequestIDRef.current = requestID
+      loadText(loadedText => {
+        if (
+          copyRequestIDRef.current === requestID &&
+          copyOnLoadedRequestIDRef.current === requestID &&
+          loadedText
+        ) {
+          copyRequestIDRef.current = requestID + 1
+          copyOnLoadedRequestIDRef.current = 0
+          doCopy(loadedText)
+        }
+      })
     } else {
       doCopy(text)
     }
   }
-
-  React.useEffect(() => {
-    if (requestedCopy && loadText) {
-      if (!text) {
-        loadText()
-      } else {
-        if (shareSheet) {
-          showShareActionSheet('', text, 'text/plain')
-        } else {
-          setShowingToast(true)
-          copyToClipboard(text)
-        }
-        onCopy?.()
-        if (hideOnCopy) {
-          setRevealed(false)
-        }
-        setRequestedCopy(false)
-      }
-    }
-  }, [requestedCopy, text, loadText, shareSheet, onCopy, hideOnCopy])
 
   const reveal = () => {
     if (!props.text && props.loadText) {
@@ -146,7 +164,6 @@ const CopyText = (props: Props) => {
         selectable={true}
         center={true}
         style={Styles.collapseStyles([styles.text, props.disabled && styles.textDisabled])}
-
       >
         {isRevealed && (props.text || props.placeholderText)
           ? props.text || props.placeholderText
@@ -158,11 +175,7 @@ const CopyText = (props: Props) => {
         </Kb.Text>
       )}
       {!props.disabled && (
-        <Kb.Button
-          type={props.buttonType || 'Default'}
-          style={styles.button}
-          onClick={copy}
-        >
+        <Kb.Button type={props.buttonType || 'Default'} style={styles.button} onClick={copy}>
           <Kb.Icon
             type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
             color={Styles.globalColors.whiteOrWhite}

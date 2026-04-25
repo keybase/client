@@ -9,6 +9,10 @@ import {useLoadedTeam} from '../team/use-loaded-team'
 type Props = {teamID: T.Teams.TeamID}
 
 const CreateChannels = (props: Props) => {
+  return <CreateChannelsInner key={props.teamID} teamID={props.teamID} />
+}
+
+const CreateChannelsInner = (props: Props) => {
   const teamID = props.teamID
   const {
     teamMeta: {teamname},
@@ -16,12 +20,6 @@ const CreateChannels = (props: Props) => {
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
   const [success, setSuccess] = React.useState(false)
-
-  React.useEffect(() => {
-    setError('')
-    setSuccess(false)
-    setWaiting(false)
-  }, [teamID])
 
   const banners = error ? (
     <Kb.Banner color="red" key="error">

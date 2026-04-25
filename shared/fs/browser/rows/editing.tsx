@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {rowStyles} from './common'
 import * as T from '@/constants/types'
@@ -10,22 +10,12 @@ type Props = {
 
 function Editing({editSession}: Props) {
   const {commitEdit, discardEdit, edit} = editSession
-  const [filename, setFilename] = React.useState(edit.name)
-  const setEditName = React.useEffectEvent((nextName: string) => {
-    editSession.setEditName(nextName)
-  })
   const onCancel = () => {
     discardEdit()
   }
   const onSubmit = () => {
     commitEdit()
   }
-  React.useEffect(() => {
-    setEditName(filename)
-  }, [filename, editSession.editID])
-  React.useEffect(() => {
-    setFilename(edit.name)
-  }, [edit.name, editSession.editID])
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') onCancel()
   }
@@ -48,12 +38,12 @@ function Editing({editSession}: Props) {
       body={
         <Kb.Box2 direction="vertical" key="main" style={rowStyles.itemBox}>
           <Kb.Input3
-            value={filename}
+            value={edit.name}
             placeholder={edit.originalName}
             selectTextOnFocus={true}
             inputStyle={styles.text}
             onEnterKeyDown={onSubmit}
-            onChangeText={(name: string) => setFilename(name)}
+            onChangeText={editSession.setEditName}
             autoFocus={true}
             onKeyDown={onKeyDown}
             hideBorder={true}

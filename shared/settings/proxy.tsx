@@ -63,6 +63,23 @@ const proxyTypeToDisplayName = {
   noProxy: 'No proxy',
   socks: 'SOCKS5',
 }
+type ProxyType = (typeof proxyTypeList)[number]
+type ProxyFormState = {
+  address: string
+  port: string
+  proxyData?: T.RPCGen.ProxyData
+  proxyType: ProxyType
+}
+
+const proxyDataToFormState = (proxyData: T.RPCGen.ProxyData): ProxyFormState => {
+  const addressPort = proxyData.addressWithPort.split(':')
+  return {
+    address: addressPort.slice(0, addressPort.length - 1).join(':'),
+    port: addressPort.length >= 2 ? (addressPort.at(-1) ?? '') : '8080',
+    proxyData,
+    proxyType: T.RPCGen.ProxyType[proxyData.proxyType] as ProxyType,
+  }
+}
 
 type Props = {
   allowTlsMitmToggle?: boolean
@@ -88,43 +105,27 @@ type Props = {
 
 const ProxySettingsComponent = (props: Props) => {
   const {loadProxyData, proxyData, setProxyData} = props
-  const [address, setAddress] = React.useState('')
-  const [port, setPort] = React.useState('')
-  const [proxyType, setProxyType] = React.useState<'noProxy' | 'httpConnect' | 'socks'>('noProxy')
-
-  const applyProxyData = React.useCallback((proxyData_: T.RPCGen.ProxyData) => {
-    const addressPort = proxyData_.addressWithPort.split(':')
-    const newAddress = addressPort.slice(0, addressPort.length - 1).join(':')
-    const newPort = addressPort.length >= 2 ? (addressPort.at(-1) ?? '') : '8080'
-    const newProxyType = T.RPCGen.ProxyType[proxyData_.proxyType] as typeof proxyType
-
-    setAddress(newAddress)
-    setPort(newPort)
-    setProxyType(newProxyType)
-  }, [])
+  const [proxyForm, setProxyForm] = React.useState<ProxyFormState>(() =>
+    proxyData ? proxyDataToFormState(proxyData) : {address: '', port: '', proxyType: 'noProxy'}
+  )
+  let nextProxyForm = proxyForm
+  if (proxyData && nextProxyForm.proxyData !== proxyData) {
+    nextProxyForm = proxyDataToFormState(proxyData)
+    setProxyForm(nextProxyForm)
+  }
+  const {address, port, proxyType} = nextProxyForm
 
   React.useEffect(() => {
     loadProxyData(
       [undefined],
       result => {
         setProxyData(result)
-        applyProxyData(result)
       },
       error => {
         logger.warn('Error loading proxy data', error)
       }
     )
-  }, [applyProxyData, loadProxyData, setProxyData])
-
-  const lastProxyDataRef = React.useRef(proxyData)
-  React.useEffect(() => {
-    if (lastProxyDataRef.current !== proxyData) {
-      if (proxyData) {
-        applyProxyData(proxyData)
-      }
-    }
-    lastProxyDataRef.current = proxyData
-  }, [applyProxyData, proxyData])
+  }, [loadProxyData, setProxyData])
 
   const certPinning = (): boolean => {
     if (props.allowTlsMitmToggle === undefined) {
@@ -159,8 +160,8 @@ const ProxySettingsComponent = (props: Props) => {
     )
   }
 
-  const proxyTypeSelected = (newProxyType: typeof proxyType) => {
-    setProxyType(newProxyType)
+  const proxyTypeSelected = (newProxyType: ProxyType) => {
+    setProxyForm(s => ({...s, proxyType: newProxyType}))
     if (newProxyType === 'noProxy') {
       saveProxySettings(newProxyType)
     }
@@ -209,9 +210,17 @@ const ProxySettingsComponent = (props: Props) => {
       {proxyType === 'noProxy' ? null : (
         <>
           <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
-          <Kb.Input3 placeholder="127.0.0.1" onChangeText={setAddress} value={address} />
+          <Kb.Input3
+            placeholder="127.0.0.1"
+            onChangeText={address => setProxyForm(s => ({...s, address}))}
+            value={address}
+          />
           <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
-          <Kb.Input3 placeholder="8080" onChangeText={setPort} value={port} />
+          <Kb.Input3
+            placeholder="8080"
+            onChangeText={port => setProxyForm(s => ({...s, port}))}
+            value={port}
+          />
         </>
       )}
       <Kb.Checkbox

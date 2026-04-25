@@ -87,13 +87,17 @@ const getRepos = (git: T.Immutable<Map<string, T.Git.GitInfo>>) =>
     {personals: [], teams: []}
   )
 
+type ExpandedState = {
+  appliedRouteKey: string
+  expandedSet: Set<string>
+}
+
 const Container = (ownProps: OwnProps) => {
   const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
   const loadGit = C.useRPC(T.RPCGen.gitGetAllGitMetadataRpcPromise)
   const clearGitBadges = C.useRPC(T.RPCGen.gregorDismissCategoryRpcPromise)
   const [error, setError] = React.useState<Error | undefined>()
   const [idToInfo, setIDToInfo] = React.useState(new Map<string, T.Git.GitInfo>())
-  const expandedRouteApplied = React.useRef(false)
   const isNew = useConfigState(s => s.badgeState?.newGitRepoGlobalUniqueIDs)
   const {badged} = useLocalBadging(new Set(isNew ?? []), () => {
     clearGitBadges(
@@ -127,23 +131,29 @@ const Container = (ownProps: OwnProps) => {
     load()
   })
 
-  const [expandedSet, setExpandedSet] = React.useState(new Set<string>())
-
-  React.useEffect(() => {
-    if (expandedRouteApplied.current) {
-      return
-    }
+  const [expandedState, setExpandedState] = React.useState<ExpandedState>(() => ({
+    appliedRouteKey: '',
+    expandedSet: new Set(),
+  }))
+  const expandedRouteKey =
+    ownProps.expandedRepoID && ownProps.expandedTeamname
+      ? `${ownProps.expandedTeamname}:${ownProps.expandedRepoID}`
+      : ''
+  let expandedSet = expandedState.expandedSet
+  if (expandedRouteKey && expandedState.appliedRouteKey !== expandedRouteKey) {
     const expanded = findExpandedRepoID(idToInfo, ownProps.expandedRepoID, ownProps.expandedTeamname)
-    if (!expanded) {
-      return
+    if (expanded) {
+      expandedSet = new Set([expanded])
+      setExpandedState({appliedRouteKey: expandedRouteKey, expandedSet})
     }
-    expandedRouteApplied.current = true
-    setExpandedSet(new Set([expanded]))
-  }, [idToInfo, ownProps.expandedRepoID, ownProps.expandedTeamname])
+  }
 
   const toggleExpand = (id: string) => {
-    expandedSet.has(id) ? expandedSet.delete(id) : expandedSet.add(id)
-    setExpandedSet(new Set(expandedSet))
+    setExpandedState(state => {
+      const nextExpandedSet = new Set(state.expandedSet)
+      nextExpandedSet.has(id) ? nextExpandedSet.delete(id) : nextExpandedSet.add(id)
+      return {...state, expandedSet: nextExpandedSet}
+    })
   }
 
   const makePopup = (p: Kb.Popup2Parms) => {

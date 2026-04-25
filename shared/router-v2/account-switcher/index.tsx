@@ -136,17 +136,18 @@ type AccountRowProps = {
 }
 const AccountRow = (props: AccountRowProps) => {
   const {waiting} = props
-  const [clicked, setClicked] = React.useState(false)
-  React.useEffect(() => {
-    if (!waiting) {
-      setClicked(false)
-    }
-  }, [setClicked, waiting])
+  const [{clicked, wasWaiting}, setClickedState] = React.useState(() => ({
+    clicked: false,
+    wasWaiting: waiting,
+  }))
+  if (wasWaiting !== waiting) {
+    setClickedState({clicked: waiting ? clicked : false, wasWaiting: waiting})
+  }
 
   const onClick = waiting
     ? undefined
     : () => {
-        setClicked(true)
+        setClickedState({clicked: true, wasWaiting: waiting})
         props.onSelectAccount(props.entry.account.username)
       }
   return (

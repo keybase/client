@@ -312,8 +312,9 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
   const recordEndRef = React.useRef(0)
   const hasSetupRecording = React.useRef(false)
   const pathRef = React.useRef('')
-  const ampTracker = React.useRef(new AmpTracker()).current
+  const [ampTracker] = React.useState(() => new AmpTracker())
   const [staged, setStaged] = React.useState(false)
+  const [stagedRecording, setStagedRecording] = React.useState({duration: 0, path: ''})
 
   const recorder = useAudioRecorder(recordingOptions)
   const recorderState = useAudioRecorderState(recorder, 100)
@@ -361,6 +362,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     }
     recordStartRef.current = 0
     recordEndRef.current = 0
+    setStagedRecording({duration: 0, path: ''})
     setStaged(false)
     setShowAudioSend(false)
   }
@@ -451,8 +453,8 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     <AudioSend
       ampTracker={ampTracker}
       cancelRecording={cancelRecording}
-      duration={(recordEndRef.current || recordStartRef.current) - recordStartRef.current}
-      path={pathRef.current}
+      duration={stagedRecording.duration}
+      path={stagedRecording.path}
       sendRecording={sendRecording}
     />
   ) : null
@@ -460,6 +462,10 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
   const stageRecording = () => {
     const impl = async () => {
       await stopRecording()
+      setStagedRecording({
+        duration: (recordEndRef.current || recordStartRef.current) - recordStartRef.current,
+        path: pathRef.current,
+      })
       setStaged(true)
       setShowAudioSend(true)
     }
@@ -469,13 +475,11 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
   }
 
   // on unmount cleanup
-  const onResetRef = React.useRef(onReset)
-  onResetRef.current = onReset
+  const onResetEvent = React.useEffectEvent(onReset)
   React.useEffect(() => {
     return () => {
       setShowAudioSend(false)
-      onResetRef
-        .current()
+      onResetEvent()
         .then(() => {})
         .catch(() => {})
     }

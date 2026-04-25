@@ -10,32 +10,41 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {navToProfile} from '@/constants/router'
 
 type Props = {teamname: string}
+type TeamInfoResult = {teamname: string; info?: T.RPCGen.UntrustedTeamInfo}
 
 const ExternalTeam = (props: Props) => {
   const teamname = props.teamname
 
   const getTeamInfo = C.useRPC(T.RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
-  const [teamInfo, setTeamInfo] = React.useState<T.RPCGen.UntrustedTeamInfo | undefined>()
-  const [waiting, setWaiting] = React.useState(false)
+  const [teamInfoResult, setTeamInfoResult] = React.useState<TeamInfoResult | undefined>()
+  const requestIDRef = React.useRef(0)
 
   React.useEffect(() => {
-    setWaiting(true)
+    requestIDRef.current += 1
+    const requestID = requestIDRef.current
     getTeamInfo(
       [{teamName: {parts: teamname.split('.')}}], // TODO this should just take a string
       result => {
-        // Note: set all state variables in both of these cases even if they're
-        // not changing from defaults. The user might be stacking these pages on
-        // top of one another, in which case react will preserve state from
-        // previously rendered teams.
-        setWaiting(false)
-        setTeamInfo(result)
+        if (requestIDRef.current === requestID) {
+          setTeamInfoResult({info: result, teamname})
+        }
       },
       _ => {
-        setWaiting(false)
-        setTeamInfo(undefined)
+        if (requestIDRef.current === requestID) {
+          setTeamInfoResult({teamname})
+        }
       }
     )
+    return () => {
+      if (requestIDRef.current === requestID) {
+        requestIDRef.current += 1
+      }
+    }
   }, [getTeamInfo, teamname])
+
+  const visibleTeamInfoResult = teamInfoResult?.teamname === teamname ? teamInfoResult : undefined
+  const teamInfo = visibleTeamInfoResult?.info
+  const waiting = !visibleTeamInfoResult
 
   if (teamInfo) {
     return (

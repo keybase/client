@@ -209,11 +209,26 @@ const Container = function BlockModal(ownProps: OwnProps) {
       navigateUp()
     }
   }
-  const [blockTeam, setBlockTeam] = React.useState(true)
+  const [blockTeam, setBlockTeam] = React.useState(context !== 'message-popup')
   const [finishClicked, setFinishClicked] = React.useState(false)
   // newBlocks holds a Map of blocks that will be applied when user clicks
   // "Finish" button. reports is the same thing for reporting.
-  const [newBlocks, setNewBlocks] = React.useState(new Map())
+  const [newBlocks, setNewBlocks] = React.useState<NewBlocksMap>(() => {
+    const initialBlocks = new Map<string, BlocksForUser>()
+    if (blockUserByDefault && adderUsername) {
+      initialBlocks.set(adderUsername, {
+        chatBlocked: true,
+        followBlocked: true,
+        report: reportsUserByDefault
+          ? {
+              ...defaultReport,
+              ...(flagUserByDefault ? {reason: reasons[reasons.length - 2] ?? defaultReport.reason} : {}),
+            }
+          : undefined,
+      })
+    }
+    return initialBlocks
+  })
 
   const loadedOnceRef = React.useRef(false)
   React.useEffect(() => {
@@ -226,38 +241,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
     if (usernames.length) {
       refreshBlocksFor(usernames)
     }
-
-    // Set default checkbox block values for adder user. We don't care if they
-    // are already blocked, setting a block is idempotent.
-    if (blockUserByDefault && adderUsername) {
-      const map = newBlocks
-      map.set(adderUsername, {
-        chatBlocked: true,
-        followBlocked: true,
-        report: reportsUserByDefault
-          ? {
-              ...defaultReport,
-              ...(flagUserByDefault ? {reason: reasons[reasons.length - 2]} : {}),
-            }
-          : undefined,
-      })
-      setNewBlocks(new Map(map))
-    }
-    if (context === 'message-popup') {
-      // Do not block conversation by default when coming from message popup
-      // menu.
-      setBlockTeam(false)
-    }
-  }, [
-    adderUsername,
-    blockUserByDefault,
-    context,
-    flagUserByDefault,
-    newBlocks,
-    otherUsernames,
-    refreshBlocksFor,
-    reportsUserByDefault,
-  ])
+  }, [adderUsername, otherUsernames, refreshBlocksFor])
 
   const lastFinishWaitingRef = React.useRef(finishWaiting)
   React.useEffect(() => {

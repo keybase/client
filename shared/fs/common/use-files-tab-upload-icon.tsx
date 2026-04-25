@@ -60,7 +60,6 @@ export const useFilesTabUploadIcon = () => {
   React.useEffect(() => {
     if (!connected) {
       generationRef.current++
-      setUploadIcon(undefined)
       return
     }
     loadUploadIcon()
@@ -108,5 +107,5 @@ export const useFilesTabUploadIcon = () => {
     connected
   )
 
-  return uploadIcon
+  return connected ? uploadIcon : undefined
 }

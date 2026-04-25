@@ -29,7 +29,10 @@ const ReloginContainer = () => {
   const users = sortBy(_users, 'username')
 
   const [password, setPassword] = React.useState('')
-  const [selectedUser, setSelectedUser] = React.useState(pselectedUser)
+  const [selectedUserState, setSelectedUserState] = React.useState({
+    defaultUsername: pselectedUser,
+    username: pselectedUser,
+  })
   const [showTyping, setShowTyping] = React.useState(false)
 
   const setLoginError = useConfigState(s => s.dispatch.setLoginError)
@@ -51,6 +54,19 @@ const ReloginContainer = () => {
 
   const [gotNeedPasswordError, setGotNeedPasswordError] = React.useState(false)
 
+  if (selectedUserState.defaultUsername !== pselectedUser) {
+    setSelectedUserState({defaultUsername: pselectedUser, username: pselectedUser})
+  }
+
+  const selectedUser =
+    selectedUserState.defaultUsername === pselectedUser ? selectedUserState.username : pselectedUser
+  const setSelectedUser = (username: string) =>
+    setSelectedUserState(state => ({...state, username}))
+
+  if (!gotNeedPasswordError && error === needPasswordError) {
+    setGotNeedPasswordError(true)
+  }
+
   const onSubmit = () => {
     onLogin(selectedUser, password)
   }
@@ -63,16 +79,6 @@ const ReloginContainer = () => {
       onLogin(user, '')
     }
   }
-
-  React.useEffect(() => {
-    setSelectedUser(pselectedUser)
-  }, [pselectedUser, setSelectedUser])
-
-  React.useEffect(() => {
-    if (error === needPasswordError) {
-      setGotNeedPasswordError(true)
-    }
-  }, [error, setGotNeedPasswordError])
 
   return (
     <Login

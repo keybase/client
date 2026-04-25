@@ -9,17 +9,28 @@ import {useLoadedTeam} from '../team/use-loaded-team'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 const useRecentJoins = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const [recentJoins, setRecentJoins] = React.useState<number | undefined>(undefined)
+  const [loadedRecentJoins, setLoadedRecentJoins] = React.useState<
+    {conversationIDKey: T.Chat.ConversationIDKey; recentJoins: number} | undefined
+  >(undefined)
   const getRecentJoinsRPC = C.useRPC(T.RPCChat.localGetRecentJoinsLocalRpcPromise)
   React.useEffect(() => {
-    setRecentJoins(undefined)
+    let canceled = false
     getRecentJoinsRPC(
       [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-      r => setRecentJoins(r),
+      recentJoins => {
+        if (!canceled) {
+          setLoadedRecentJoins({conversationIDKey, recentJoins})
+        }
+      },
       () => {}
     )
-  }, [conversationIDKey, getRecentJoinsRPC, setRecentJoins])
-  return recentJoins
+    return () => {
+      canceled = true
+    }
+  }, [conversationIDKey, getRecentJoinsRPC])
+  return loadedRecentJoins?.conversationIDKey === conversationIDKey
+    ? loadedRecentJoins.recentJoins
+    : undefined
 }
 
 type HeaderTitleProps = {

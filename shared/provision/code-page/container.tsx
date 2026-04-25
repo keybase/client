@@ -65,12 +65,14 @@ const CodePageContainer = () => {
     }
   })()
 
-  const [tab, setTab] = React.useState<Tab>(defaultTab)
+  const [tabState, setTabState] = React.useState({defaultTab, tab: defaultTab})
 
-  React.useEffect(() => {
-    setTab(defaultTab)
-  }, [defaultTab])
+  if (tabState.defaultTab !== defaultTab) {
+    setTabState({defaultTab, tab: defaultTab})
+  }
 
+  const tab = tabState.defaultTab === defaultTab ? tabState.tab : defaultTab
+  const setTab = (tab: Tab) => setTabState(state => ({...state, tab}))
   const tabBackground = () => (tab === 'QR' ? Kb.Styles.globalColors.blueLight : Kb.Styles.globalColors.green)
   const buttonType = () => (tab === 'QR' ? 'Default' as const : 'Success' as const)
   const buttonLabelStyle = () => (tab === 'QR' ? styles.primaryOnBlueLabel : styles.primaryOnGreenLabel)

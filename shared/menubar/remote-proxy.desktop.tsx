@@ -29,6 +29,10 @@ type WidgetProps = {
 
 const emptyConversations: ReadonlyArray<Conversation> = []
 const emptyTlfUpdates: T.FS.UserTlfUpdates = []
+type TlfUpdateState = {
+  shouldClear: boolean
+  tlfUpdates: T.FS.UserTlfUpdates
+}
 
 const pathFromFolderRPC = (folder: T.RPCGen.Folder): T.FS.Path => {
   const visibility = T.FS.getVisibilityFromRPCFolderType(folder.folderType)
@@ -243,7 +247,18 @@ function useMenubarTlfUpdates(
   kbfsDaemonRpcStatus: T.FS.KbfsDaemonRpcStatus,
   menuWindowShownCount: number
 ) {
-  const [tlfUpdates, setTlfUpdates] = React.useState<T.FS.UserTlfUpdates>(emptyTlfUpdates)
+  const shouldClearTlfUpdates = !loggedIn || userSwitching
+  const [tlfUpdateState, setTlfUpdateState] = React.useState<TlfUpdateState>(() => ({
+    shouldClear: shouldClearTlfUpdates,
+    tlfUpdates: emptyTlfUpdates,
+  }))
+  const currentTlfUpdateState =
+    tlfUpdateState.shouldClear === shouldClearTlfUpdates
+      ? tlfUpdateState
+      : {shouldClear: shouldClearTlfUpdates, tlfUpdates: emptyTlfUpdates}
+  if (currentTlfUpdateState !== tlfUpdateState) {
+    setTlfUpdateState(currentTlfUpdateState)
+  }
   const generationRef = React.useRef(0)
   const enabled =
     loggedIn &&
@@ -265,7 +280,10 @@ function useMenubarTlfUpdates(
         if (generation !== generationRef.current || !enabledRef.current) {
           return
         }
-        setTlfUpdates(userTlfHistoryRPCToState(writerEdits || []))
+        setTlfUpdateState({
+          shouldClear: false,
+          tlfUpdates: userTlfHistoryRPCToState(writerEdits || []),
+        })
       } catch (error) {
         if (generation === generationRef.current && enabledRef.current) {
           errorToActionOrThrow(error)
@@ -278,7 +296,6 @@ function useMenubarTlfUpdates(
   React.useEffect(() => {
     if (!loggedIn || userSwitching) {
       generationRef.current++
-      setTlfUpdates(emptyTlfUpdates)
       return
     }
     if (!enabled) {
@@ -287,7 +304,7 @@ function useMenubarTlfUpdates(
     loadUserFileEdits()
   }, [enabled, loadUserFileEdits, loggedIn, userSwitching])
 
-  return tlfUpdates
+  return currentTlfUpdateState.tlfUpdates
 }
 
 function useMenubarRemoteProps(): Props {

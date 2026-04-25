@@ -27,7 +27,12 @@ const getInviteError = (error: unknown, missingKey: boolean) => {
   return error instanceof Error ? error.message : 'Something went wrong.'
 }
 
-const JoinFromInvite = ({inviteDetails: initialInviteDetails, inviteID = '', inviteKey = ''}: Props) => {
+const getInviteIdentityKey = ({inviteDetails, inviteID = '', inviteKey = ''}: Props) =>
+  `${inviteID || inviteDetails?.inviteID || ''}:${inviteKey}`
+
+const JoinFromInvite = (props: Props) => <JoinFromInviteInner key={getInviteIdentityKey(props)} {...props} />
+
+const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = '', inviteKey = ''}: Props) => {
   const [details, setDetails] = React.useState(initialInviteDetails)
   const [error, setError] = React.useState('')
   const loaded = details !== undefined || !!error
@@ -40,13 +45,6 @@ const JoinFromInvite = ({inviteDetails: initialInviteDetails, inviteID = '', inv
   const [showSuccess, setShowSuccess] = React.useState(false)
   const rpcWaiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsJoinTeam)
   const waiting = rpcWaiting && clickedJoin
-
-  React.useEffect(() => {
-    setDetails(initialInviteDetails)
-    setError('')
-    setClickedJoin(false)
-    setShowSuccess(false)
-  }, [initialInviteDetails, inviteID, inviteKey])
 
   React.useEffect(() => {
     if (!canLoadDetails) {

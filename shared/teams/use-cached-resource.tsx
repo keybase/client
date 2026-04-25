@@ -2,17 +2,28 @@ import * as C from '@/constants'
 import * as React from 'react'
 
 export type CachedResourceCache<T, K> = {
-  data: T
-  generation: number
-  inFlight?: Promise<T>
-  key: K
-  loadedAt: number
+  clearInFlight: (request: Promise<T>) => void
+  getData: () => T
+  getGeneration: () => number
+  getInFlight: () => Promise<T> | undefined
+  getKey: () => K
+  getLoadedAt: () => number
+  invalidate: (key: K) => void
+  reset: (data: T, key: K) => void
+  setDataLoaded: (data: T, generation: number) => void
+  setInFlight: (request: Promise<T>) => void
 }
 
 type CachedResourceState<T> = {
   data: T
   loaded: boolean
   loading: boolean
+}
+
+type StoredCachedResourceState<T, K> = CachedResourceState<T> & {
+  cache: CachedResourceCache<T, K>
+  cacheKey: K
+  initialData: T
 }
 
 type Props<T, K> = {
@@ -32,12 +43,69 @@ const emptyState = <T,>(data: T): CachedResourceState<T> => ({
   loading: false,
 })
 
-export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedResourceCache<T, K> => ({
-  data: initialData,
-  generation: 0,
-  key,
-  loadedAt: 0,
+const cachedState = <T, K>(
+  cache: CachedResourceCache<T, K>,
+  cacheKey: K,
+  initialData: T
+): CachedResourceState<T> =>
+  Object.is(cache.getKey(), cacheKey) && cache.getLoadedAt()
+    ? {data: cache.getData(), loaded: true, loading: false}
+    : emptyState(initialData)
+
+const storedState = <T, K>(
+  cache: CachedResourceCache<T, K>,
+  cacheKey: K,
+  initialData: T,
+  state: CachedResourceState<T>
+): StoredCachedResourceState<T, K> => ({
+  ...state,
+  cache,
+  cacheKey,
+  initialData,
 })
+
+export const createCachedResourceCache = <T, K>(initialData: T, key: K): CachedResourceCache<T, K> => {
+  let data = initialData
+  let generation = 0
+  let inFlight: Promise<T> | undefined
+  let loadedAt = 0
+  let storedKey = key
+
+  return {
+    clearInFlight: request => {
+      if (inFlight === request) {
+        inFlight = undefined
+      }
+    },
+    getData: () => data,
+    getGeneration: () => generation,
+    getInFlight: (): Promise<T> | undefined => inFlight,
+    getKey: () => storedKey,
+    getLoadedAt: () => loadedAt,
+    invalidate: nextKey => {
+      generation += 1
+      inFlight = undefined
+      loadedAt = 0
+      storedKey = nextKey
+    },
+    reset: (nextData, nextKey) => {
+      data = nextData
+      generation += 1
+      inFlight = undefined
+      loadedAt = 0
+      storedKey = nextKey
+    },
+    setDataLoaded: (nextData, requestGeneration) => {
+      if (generation === requestGeneration) {
+        data = nextData
+        loadedAt = Date.now()
+      }
+    },
+    setInFlight: request => {
+      inFlight = request
+    },
+  }
+}
 
 export const getCachedResourceCache = <T, K>(
   map: Map<K, CachedResourceCache<T, K>>,
@@ -55,21 +123,15 @@ export const getCachedResourceCache = <T, K>(
 
 export const useCachedResource = <T, K>(props: Props<T, K>) => {
   const {cache, cacheKey, enabled = true, initialData, load, onError, refreshKey, staleMs} = props
-  const [state, setState] = React.useState<CachedResourceState<T>>(
-    Object.is(cache.key, cacheKey) && cache.loadedAt
-      ? {data: cache.data, loaded: true, loading: false}
-      : emptyState(initialData)
+  const [state, setState] = React.useState<StoredCachedResourceState<T, K>>(() =>
+    storedState(cache, cacheKey, initialData, cachedState(cache, cacheKey, initialData))
   )
   const hasFocusedSinceMountRef = React.useRef(false)
   const requestVersionRef = React.useRef(0)
 
   const resetCache = React.useCallback(
     (nextKey: K) => {
-      cache.data = initialData
-      cache.generation += 1
-      cache.inFlight = undefined
-      cache.key = nextKey
-      cache.loadedAt = 0
+      cache.reset(initialData, nextKey)
     },
     [cache, initialData]
   )
@@ -78,81 +140,110 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
     (nextKey: K = cacheKey) => {
       requestVersionRef.current += 1
       resetCache(nextKey)
-      setState(emptyState(initialData))
+      setState(storedState(cache, nextKey, initialData, emptyState(initialData)))
     },
-    [cacheKey, initialData, resetCache]
+    [cache, cacheKey, initialData, resetCache]
   )
 
-  const loadResource = React.useEffectEvent(async (force: boolean) => {
-    if (!Object.is(cache.key, cacheKey)) {
-      requestVersionRef.current += 1
-      resetCache(cacheKey)
-      setState(emptyState(initialData))
-    }
-    if (!enabled) {
-      clear(cacheKey)
-      return
-    }
-    if (!force && cache.loadedAt && Date.now() - cache.loadedAt < staleMs) {
-      setState({data: cache.data, loaded: true, loading: false})
-      return
-    }
-    const requestVersion = ++requestVersionRef.current
-    setState(prev => ({...prev, loading: true}))
-    let request: Promise<T> | undefined
-    try {
-      if (cache.inFlight) {
-        const data = await cache.inFlight
-        if (requestVersion === requestVersionRef.current) {
-          setState({data, loaded: true, loading: false})
-        }
-        return
-      }
-      const generation = cache.generation
-      request = load().then(data => {
-        if (cache.generation === generation) {
-          cache.data = data
-          cache.loadedAt = Date.now()
-        }
-        return data
-      })
-      cache.inFlight = request
-      const data = await request
-      if (requestVersion === requestVersionRef.current) {
-        setState({data, loaded: true, loading: false})
-      }
-    } catch (error) {
-      if (requestVersion !== requestVersionRef.current) {
-        return
-      }
-      onError?.(error)
-      setState(prev => ({...prev, loading: false}))
-    } finally {
-      if (request && cache.inFlight === request) {
-        cache.inFlight = undefined
-      }
-    }
+  const latestRef = React.useRef({
+    cache,
+    cacheKey,
+    enabled,
+    initialData,
+    load,
+    onError,
+    resetCache,
+    staleMs,
   })
+  React.useLayoutEffect(() => {
+    latestRef.current = {
+      cache,
+      cacheKey,
+      enabled,
+      initialData,
+      load,
+      onError,
+      resetCache,
+      staleMs,
+    }
+  }, [cache, cacheKey, enabled, initialData, load, onError, resetCache, staleMs])
+
+  const loadResource = React.useCallback(
+    async (force: boolean) => {
+      const {cache, cacheKey, enabled, initialData, load, onError, resetCache, staleMs} =
+        latestRef.current
+      if (!Object.is(cache.getKey(), cacheKey)) {
+        requestVersionRef.current += 1
+        resetCache(cacheKey)
+      }
+      if (!enabled) {
+        requestVersionRef.current += 1
+        resetCache(cacheKey)
+        return
+      }
+      const loadedAt = cache.getLoadedAt()
+      if (!force && loadedAt && Date.now() - loadedAt < staleMs) {
+        setState(storedState(cache, cacheKey, initialData, {data: cache.getData(), loaded: true, loading: false}))
+        return
+      }
+      const requestVersion = ++requestVersionRef.current
+      setState(prev =>
+        prev.cache === cache && Object.is(prev.cacheKey, cacheKey) && Object.is(prev.initialData, initialData)
+          ? {...prev, loading: true}
+          : storedState(cache, cacheKey, initialData, {...emptyState(initialData), loading: true})
+      )
+      let request: Promise<T> | undefined
+      try {
+        const inFlight = cache.getInFlight()
+        if (inFlight) {
+          const data = await inFlight
+          if (requestVersion === requestVersionRef.current) {
+            setState(storedState(cache, cacheKey, initialData, {data, loaded: true, loading: false}))
+          }
+          return
+        }
+        const generation = cache.getGeneration()
+        request = load().then(data => {
+          cache.setDataLoaded(data, generation)
+          return data
+        })
+        cache.setInFlight(request)
+        const data = await request
+        if (requestVersion === requestVersionRef.current) {
+          setState(storedState(cache, cacheKey, initialData, {data, loaded: true, loading: false}))
+        }
+      } catch (error) {
+        if (requestVersion !== requestVersionRef.current) {
+          return
+        }
+        onError?.(error)
+        setState(prev => ({...prev, loading: false}))
+      } finally {
+        if (request) {
+          cache.clearInFlight(request)
+        }
+      }
+    },
+    []
+  )
 
   const reload = React.useCallback(async () => {
     await loadResource(true)
-  }, [])
+  }, [loadResource])
 
   const loadIfStale = React.useCallback(async () => {
     await loadResource(false)
-  }, [])
+  }, [loadResource])
 
   React.useEffect(() => {
-    setState(
-      Object.is(cache.key, cacheKey) && cache.loadedAt
-        ? {data: cache.data, loaded: true, loading: false}
-        : emptyState(initialData)
-    )
-    if (!Object.is(cache.key, cacheKey)) {
-      clear(cacheKey)
+    if (!Object.is(cache.getKey(), cacheKey) || !enabled) {
+      requestVersionRef.current += 1
+      resetCache(cacheKey)
     }
-    void loadIfStale()
-  }, [cache, cacheKey, clear, enabled, initialData, loadIfStale, refreshKey])
+    if (enabled) {
+      void loadIfStale()
+    }
+  }, [cache, cacheKey, enabled, loadIfStale, refreshKey, resetCache])
 
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
@@ -167,5 +258,23 @@ export const useCachedResource = <T, K>(props: Props<T, K>) => {
     }, [enabled, loadIfStale])
   )
 
-  return {...state, clear, loadIfStale, reload}
+  const stateMatches =
+    state.cache === cache &&
+    Object.is(state.cacheKey, cacheKey) &&
+    Object.is(state.initialData, initialData) &&
+    (!state.loaded || !!cache.getLoadedAt())
+  const visibleState = !enabled
+    ? emptyState(initialData)
+    : stateMatches
+      ? state
+      : cachedState(cache, cacheKey, initialData)
+
+  return {
+    clear,
+    data: visibleState.data,
+    loadIfStale,
+    loaded: visibleState.loaded,
+    loading: visibleState.loading,
+    reload,
+  }
 }

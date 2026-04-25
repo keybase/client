@@ -46,13 +46,26 @@ type TeamTreeMembershipState = {
   lastActivity: Map<T.Teams.TeamID, number>
   memberships: Array<T.RPCGen.TeamTreeMembership>
   sparseMemberInfos: Map<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>
+  targetTeamID: T.Teams.TeamID
+  username: string
 }
 
-const makeEmptyTeamTreeMembershipState = (): TeamTreeMembershipState => ({
+const makeEmptyTeamTreeMembershipState = (
+  targetTeamID: T.Teams.TeamID,
+  username: string
+): TeamTreeMembershipState => ({
   lastActivity: new Map(),
   memberships: [],
   sparseMemberInfos: new Map(),
+  targetTeamID,
+  username,
 })
+
+const matchesTeamTreeMembershipState = (
+  state: TeamTreeMembershipState,
+  targetTeamID: T.Teams.TeamID,
+  username: string
+) => state.targetTeamID === targetTeamID && state.username === username
 
 const consumeTeamTreeMembershipValue = (
   value: T.RPCGen.TeamTreeMembershipValue
@@ -70,7 +83,7 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
   const loadTeamTreeMemberships = C.useRPC(T.RPCGen.teamsLoadTeamTreeMembershipsAsyncRpcPromise)
   const {teams} = useTeamsList()
   const teamMetas = new Map(teams.map(team => [team.id, team] as const))
-  const [state, setState] = React.useState(makeEmptyTeamTreeMembershipState)
+  const [state, setState] = React.useState(() => makeEmptyTeamTreeMembershipState(targetTeamID, username))
   const hasFocusedSinceMountRef = React.useRef(false)
 
   const loadLastActivity = React.useEffectEvent((teamID: T.Teams.TeamID) => {
@@ -81,6 +94,9 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
       )
         .then(activityMap => {
           setState(prev => {
+            if (!matchesTeamTreeMembershipState(prev, targetTeamID, username)) {
+              return prev
+            }
             const nextLastActivity = new Map(prev.lastActivity)
             Object.entries(activityMap ?? {}).forEach(([activityTeamID, lastActivity]) => {
               nextLastActivity.set(activityTeamID, lastActivity)
@@ -94,8 +110,7 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
     )
   })
 
-  const reload = React.useCallback(() => {
-    setState(makeEmptyTeamTreeMembershipState())
+  const load = React.useCallback(() => {
     loadTeamTreeMemberships(
       [{teamID: targetTeamID, username}],
       () => {},
@@ -105,9 +120,14 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
     )
   }, [loadTeamTreeMemberships, targetTeamID, username])
 
+  const reload = React.useCallback(() => {
+    setState(makeEmptyTeamTreeMembershipState(targetTeamID, username))
+    load()
+  }, [load, targetTeamID, username])
+
   React.useEffect(() => {
-    reload()
-  }, [reload])
+    load()
+  }, [load])
 
   C.Router2.useSafeFocusEffect(
     React.useCallback(() => {
@@ -125,17 +145,20 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
       return
     }
     setState(prev => {
-      if (prev.guid !== undefined && result.guid < prev.guid) {
-        return prev
+      const base = matchesTeamTreeMembershipState(prev, targetTeamID, username)
+        ? prev
+        : makeEmptyTeamTreeMembershipState(targetTeamID, username)
+      if (base.guid !== undefined && result.guid < base.guid) {
+        return base
       }
-      if (prev.guid === undefined || result.guid > prev.guid) {
+      if (base.guid === undefined || result.guid > base.guid) {
         return {
-          ...makeEmptyTeamTreeMembershipState(),
+          ...makeEmptyTeamTreeMembershipState(targetTeamID, username),
           expectedCount: result.expectedCount,
           guid: result.guid,
         }
       }
-      return {...prev, expectedCount: result.expectedCount}
+      return {...base, expectedCount: result.expectedCount}
     })
   })
 
@@ -145,15 +168,18 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
       return
     }
     setState(prev => {
-      if (prev.guid !== undefined && membership.guid < prev.guid) {
-        return prev
+      const base = matchesTeamTreeMembershipState(prev, targetTeamID, username)
+        ? prev
+        : makeEmptyTeamTreeMembershipState(targetTeamID, username)
+      if (base.guid !== undefined && membership.guid < base.guid) {
+        return base
       }
       const nextMemberships =
-        prev.guid === undefined || membership.guid > prev.guid
+        base.guid === undefined || membership.guid > base.guid
           ? [membership]
-          : [...prev.memberships, membership]
+          : [...base.memberships, membership]
       const nextSparseMemberInfos =
-        prev.guid === undefined || membership.guid > prev.guid ? new Map() : new Map(prev.sparseMemberInfos)
+        base.guid === undefined || membership.guid > base.guid ? new Map() : new Map(base.sparseMemberInfos)
       if (membership.result.s === T.RPCGen.TeamTreeMembershipStatus.ok) {
         nextSparseMemberInfos.set(
           membership.result.ok.teamID,
@@ -161,7 +187,7 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
         )
       }
       return {
-        ...prev,
+        ...base,
         guid: membership.guid,
         memberships: nextMemberships,
         sparseMemberInfos: nextSparseMemberInfos,
@@ -175,23 +201,26 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
   const errors: Array<T.RPCGen.TeamTreeMembership> = []
   const nodesNotIn: Array<TeamTreeRowNotIn> = []
   const nodesIn: Array<TeamTreeRowIn> = []
+  const visibleState = matchesTeamTreeMembershipState(state, targetTeamID, username)
+    ? state
+    : makeEmptyTeamTreeMembershipState(targetTeamID, username)
 
   // Note that we do not directly take any information directly from the TeamTree result other
   // than the **shape of the tree**. Membership metadata comes from the async tree-membership
   // results themselves instead of peeking into the global teams cache.
-  for (const membership of state.memberships) {
+  for (const membership of visibleState.memberships) {
     const teamname = membership.teamName
 
     if (T.RPCGen.TeamTreeMembershipStatus.ok === membership.result.s) {
       const teamID = membership.result.ok.teamID
-      const sparseMemberInfo = getSparseMemberInfo(state.sparseMemberInfos, teamID)
+      const sparseMemberInfo = getSparseMemberInfo(visibleState.sparseMemberInfos, teamID)
       if (!sparseMemberInfo) {
         continue
       }
 
       const row = {
         joinTime: sparseMemberInfo.joinTime,
-        lastActivity: state.lastActivity.get(teamID),
+        lastActivity: visibleState.lastActivity.get(teamID),
         // memberCount should always be populated because the TeamList, which is synced
         // eagerly, provides it.
         memberCount: teamMetas.get(teamID)?.memberCount,
@@ -213,7 +242,8 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
   }
   return {
     errors,
-    loading: state.expectedCount === undefined || state.memberships.length < state.expectedCount,
+    loading:
+      visibleState.expectedCount === undefined || visibleState.memberships.length < visibleState.expectedCount,
     nodesIn,
     nodesNotIn,
     reload,
@@ -325,7 +355,7 @@ const TeamMember = (props: OwnProps) => {
               if (error.result.error.willSkipAncestors) {
                 failedAt.push('its parent teams')
               }
-              let failedAtStr = ''
+              let failedAtStr: string
               if (failedAt.length > 1) {
                 const last = failedAt.pop()
                 failedAtStr = failedAt.join(', ') + ', and ' + last

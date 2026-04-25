@@ -13,7 +13,6 @@ import {findLast} from '@/util/arrays'
 import {MessageRow} from '../messages/wrapper'
 import {globalMargins} from '@/styles/shared'
 import {FocusContext, ScrollContext} from '../normal/context'
-import shallowEqual from '@/util/shallow-equal'
 import useResizeObserver from '@/util/use-resize-observer.desktop'
 import useIntersectionObserver from '@/util/use-intersection-observer'
 import {copyToClipboard} from '@/util/storeless-actions'
@@ -21,6 +20,7 @@ import {copyToClipboard} from '@/util/storeless-actions'
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
 const scrollOrdinalKey = 'scroll-ordinal-key'
+const ordinalsInAWaypoint = 10
 
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
@@ -346,7 +346,7 @@ const useScrolling = (p: {
       const waypoints = listRef.current?.querySelectorAll('[data-key]')
       if (waypoints) {
         // find an id that should be our parent
-        const toFind = Math.floor(T.Chat.ordinalToNumber(editingOrdinal) / 10)
+        const toFind = Math.floor(T.Chat.ordinalToNumber(editingOrdinal) / ordinalsInAWaypoint)
         const allWaypoints = Array.from(waypoints) as Array<HTMLElement>
         const found = findLast(allWaypoints, w => {
           const key = w.dataset['key']
@@ -367,32 +367,8 @@ const useItems = (p: {
   editingOrdinal: T.Chat.Ordinal | undefined
 }) => {
   const {messageOrdinals, centeredHighlightOrdinal, centeredOrdinal, editingOrdinal} = p
-  const ordinalsInAWaypoint = 10
-  const rowRenderer = (ordinal: T.Chat.Ordinal) => {
-    return (
-      <div
-        key={String(ordinal)}
-        data-debug={String(ordinal)}
-        className={Kb.Styles.classNames(
-          'hover-container',
-          'WrapperMessage',
-          'WrapperMessage-hoverBox',
-          'WrapperMessage-decorated',
-          'WrapperMessage-hoverColor',
-          {highlighted: centeredHighlightOrdinal === ordinal || editingOrdinal === ordinal}
-        )}
-      >
-        <Separator trailingItem={ordinal} />
-        <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
-      </div>
-    )
-  }
-
-  const wayOrdinalCachRef = React.useRef(new Map<string, Array<T.Chat.Ordinal>>())
-
-  // TODO doesn't need all messageOrdinals in there, could just find buckets and push details down
-  const items = (() => {
-    const items: Array<React.ReactNode> = []
+  const waypointData = React.useMemo(() => {
+    const items: Array<{key: string; ordinals: Array<T.Chat.Ordinal>}> = []
     const numOrdinals = messageOrdinals.length
 
     let ordinals: Array<T.Chat.Ordinal> = []
@@ -415,21 +391,11 @@ const useItems = (p: {
           ordinals.push(ordinal)
         }
         if (ordinals.length) {
-          // don't allow buckets to be too big, we have sends which can allow > 10 ordinals in a bucket so we split it further
-          const chunks = chunk(ordinals, 10)
+          // don't allow buckets to be too big; sends can put more ordinals than expected in one bucket
+          const chunks = chunk(ordinals, ordinalsInAWaypoint)
           chunks.forEach((toAdd, cidx) => {
             const key = `${lastBucket || ''}:${cidx + baseIndex}`
-            let wayOrdinals = toAdd
-            const existing = wayOrdinalCachRef.current.get(key)
-            if (existing && shallowEqual(existing, wayOrdinals)) {
-              wayOrdinals = existing
-            } else {
-              wayOrdinalCachRef.current.set(key, wayOrdinals)
-            }
-
-            items.push(
-              <OrdinalWaypoint key={key} id={key} rowRenderer={rowRenderer} ordinals={wayOrdinals} />
-            )
+            items.push({key, ordinals: toAdd})
           })
           // we pass previous so the OrdinalWaypoint can render the top item correctly
           ordinals = []
@@ -438,22 +404,7 @@ const useItems = (p: {
       }
       // If this is the centered ordinal, it goes into its own waypoint so we can easily scroll to it
       if (isCenteredOrdinal) {
-        const key = scrollOrdinalKey
-        let wayOrdinals = [ordinal]
-        const existing = wayOrdinalCachRef.current.get(key)
-        if (existing && shallowEqual(existing, wayOrdinals)) {
-          wayOrdinals = existing
-        } else {
-          wayOrdinalCachRef.current.set(key, wayOrdinals)
-        }
-        items.push(
-          <OrdinalWaypoint
-            key={scrollOrdinalKey}
-            id={scrollOrdinalKey}
-            rowRenderer={rowRenderer}
-            ordinals={wayOrdinals}
-          />
-        )
+        items.push({key: scrollOrdinalKey, ordinals: [ordinal]})
         lastBucket = 0
         baseIndex++ // push this up if we drop the centered ordinal waypoint
       } else {
@@ -461,8 +412,36 @@ const useItems = (p: {
       }
     })
 
-    return [<SpecialTopMessage key="specialTop" />, ...items, <SpecialBottomMessage key="specialBottom" />]
-  })()
+    return items
+  }, [centeredOrdinal, messageOrdinals])
+
+  const rowRenderer = (ordinal: T.Chat.Ordinal) => {
+    return (
+      <div
+        key={String(ordinal)}
+        data-debug={String(ordinal)}
+        className={Kb.Styles.classNames(
+          'hover-container',
+          'WrapperMessage',
+          'WrapperMessage-hoverBox',
+          'WrapperMessage-decorated',
+          'WrapperMessage-hoverColor',
+          {highlighted: centeredHighlightOrdinal === ordinal || editingOrdinal === ordinal}
+        )}
+      >
+        <Separator trailingItem={ordinal} />
+        <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
+      </div>
+    )
+  }
+
+  const items = [
+    <SpecialTopMessage key="specialTop" />,
+    ...waypointData.map(({key, ordinals}) => (
+      <OrdinalWaypoint key={key} id={key} rowRenderer={rowRenderer} ordinals={ordinals} />
+    )),
+    <SpecialBottomMessage key="specialBottom" />,
+  ]
 
   return items
 }
@@ -637,36 +616,23 @@ const OrdinalWaypoint = function OrdinalWaypoint(p: OrdinalWaypointProps) {
   const {ordinals, id, rowRenderer} = p
   const estimatedHeight = 40 * ordinals.length
   const [height, setHeight] = React.useState(-1)
-  const [isVisible, setVisible] = React.useState(false)
   const [wRef, setRef] = React.useState<HTMLDivElement | null>(null)
-  const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
-  const {isIntersecting} = useIntersectionObserver(wRef, {root})
-  const lastIsIntersecting = React.useRef(isIntersecting)
-
-  React.useEffect(() => {
-    if (lastIsIntersecting.current === isIntersecting) return
-    lastIsIntersecting.current = isIntersecting
-    setVisible(isIntersecting)
-  }, [isIntersecting])
-
-  const renderMessages = isVisible
-  let content: React.ReactElement
-
-  const lastRenderMessages = React.useRef(false)
-  React.useEffect(() => {
-    if (!wRef) return
-    if (lastRenderMessages.current === renderMessages) return
-    if (renderMessages) {
-      const h = wRef.offsetHeight
-      if (h) {
-        setHeight(h)
+  const [setContentRef] = React.useState(() => (ref: HTMLDivElement | null) => {
+    if (ref) {
+      const height = ref.offsetHeight
+      if (height) {
+        setHeight(oldHeight => (oldHeight === height ? oldHeight : height))
       }
     }
-    lastRenderMessages.current = renderMessages
-  }, [renderMessages, wRef])
+    setRef(ref)
+  })
+  const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
+  const {isIntersecting} = useIntersectionObserver(wRef, {root})
+  const renderMessages = isIntersecting
+  let content: React.ReactElement
 
   if (renderMessages) {
-    content = <Content key={id} id={id} ref={setRef} ordinals={ordinals} rowRenderer={rowRenderer} />
+    content = <Content key={id} id={id} ref={setContentRef} ordinals={ordinals} rowRenderer={rowRenderer} />
   } else {
     content = <Dummy key={id} id={id} height={height < 0 ? estimatedHeight : height} ref={setRef} />
   }

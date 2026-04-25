@@ -1,3 +1,4 @@
+import {fixupConfigRules} from '@eslint/compat'
 import eslint from '@eslint/js'
 import pluginPromise from 'eslint-plugin-promise'
 import reactPlugin from 'eslint-plugin-react'
@@ -180,18 +181,18 @@ export default [
     ...reactHooks.configs.flat.recommended,
   },
   pluginPromise.configs['flat/recommended'],
-  {
+  ...fixupConfigRules({
     name: 'react',
     ...reactPlugin.configs.flat.recommended,
     settings: {
       ...reactPlugin.configs.flat.recommended.settings,
       react: {version: 'detect'},
     },
-  },
-  {
+  }),
+  ...fixupConfigRules({
     name: 'react-jsx',
     ...reactPlugin.configs.flat['jsx-runtime'],
-  },
+  }),
   {
     ignores: [...ignores, '**/*.js'],
     files: ['**/*.mts', '**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
@@ -224,7 +225,7 @@ export default [
       'no-constant-condition': ['warn', {checkLoops: false}],
       'no-implied-eval': 'error',
       'no-script-url': 'error',
-      'no-undeff': 'off',
+      'no-undef': 'off',
       'no-self-compare': 'error',
       'no-sequences': 'error',
       'prefer-const': 'error',

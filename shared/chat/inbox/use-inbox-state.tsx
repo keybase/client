@@ -35,26 +35,30 @@ export function useInboxState(
     inboxRetriedOnCurrentEmpty,
     setInboxRetriedOnCurrentEmpty,
   } = chatState
-  const [inboxNumSmallRows, setInboxNumSmallRowsState] = React.useState(5)
-  const [smallTeamsExpanded, setSmallTeamsExpanded] = React.useState(false)
+  const [inboxControls, setInboxControls] = React.useState(() => ({
+    inboxNumSmallRows: 5,
+    inboxNumSmallRowsLoaded: false,
+    inboxNumSmallRowsUserChanged: false,
+    smallTeamsExpanded: false,
+    username,
+  }))
+  const controlsMatchUser = inboxControls.username === username
+  const inboxNumSmallRows = controlsMatchUser ? inboxControls.inboxNumSmallRows : 5
+  const inboxNumSmallRowsLoaded = controlsMatchUser ? inboxControls.inboxNumSmallRowsLoaded : false
+  const smallTeamsExpanded = controlsMatchUser ? inboxControls.smallTeamsExpanded : false
   const inboxNumSmallRowsLoadVersionRef = React.useRef(0)
-  const inboxNumSmallRowsLoadedRef = React.useRef(false)
-  const inboxNumSmallRowsUserChangedRef = React.useRef(false)
-
-  React.useEffect(() => {
-    setInboxNumSmallRowsState(5)
-    setSmallTeamsExpanded(false)
-    inboxNumSmallRowsLoadedRef.current = false
-    inboxNumSmallRowsUserChangedRef.current = false
-  }, [username])
 
   const setInboxNumSmallRows = (rows: number, persist = true) => {
     if (rows <= 0) {
       return
     }
-    inboxNumSmallRowsLoadedRef.current = true
-    inboxNumSmallRowsUserChangedRef.current = true
-    setInboxNumSmallRowsState(rows)
+    setInboxControls(state => ({
+      inboxNumSmallRows: rows,
+      inboxNumSmallRowsLoaded: true,
+      inboxNumSmallRowsUserChanged: true,
+      smallTeamsExpanded: state.username === username ? state.smallTeamsExpanded : false,
+      username,
+    }))
     if (!persist) {
       return
     }
@@ -69,7 +73,14 @@ export function useInboxState(
     C.ignorePromise(f())
   }
   const toggleSmallTeamsExpanded = () => {
-    setSmallTeamsExpanded(expanded => !expanded)
+    setInboxControls(state => ({
+      inboxNumSmallRows: state.username === username ? state.inboxNumSmallRows : 5,
+      inboxNumSmallRowsLoaded: state.username === username ? state.inboxNumSmallRowsLoaded : false,
+      inboxNumSmallRowsUserChanged:
+        state.username === username ? state.inboxNumSmallRowsUserChanged : false,
+      smallTeamsExpanded: !(state.username === username ? state.smallTeamsExpanded : false),
+      username,
+    }))
   }
 
   const {
@@ -133,7 +144,7 @@ export function useInboxState(
     if (!ready) {
       return
     }
-    if (inboxNumSmallRowsLoadedRef.current) {
+    if (inboxNumSmallRowsLoaded) {
       return
     }
     const loadVersion = inboxNumSmallRowsLoadVersionRef.current + 1
@@ -141,23 +152,36 @@ export function useInboxState(
     loadInboxNumSmallRows(
       [{path: 'ui.inboxSmallRows'}],
       rows => {
-        if (
-          inboxNumSmallRowsLoadVersionRef.current !== loadVersion ||
-          inboxNumSmallRowsUserChangedRef.current
-        ) {
+        if (inboxNumSmallRowsLoadVersionRef.current !== loadVersion) {
           return
         }
-        inboxNumSmallRowsLoadedRef.current = true
         const count = rows.i ?? -1
-        if (count > 0) {
-          setInboxNumSmallRowsState(count)
-        }
+        setInboxControls(state => {
+          if (state.username === username && state.inboxNumSmallRowsUserChanged) {
+            return state
+          }
+          return {
+            inboxNumSmallRows:
+              count > 0 ? count : state.username === username ? state.inboxNumSmallRows : 5,
+            inboxNumSmallRowsLoaded: true,
+            inboxNumSmallRowsUserChanged: false,
+            smallTeamsExpanded: state.username === username ? state.smallTeamsExpanded : false,
+            username,
+          }
+        })
       },
       () => {
         if (inboxNumSmallRowsLoadVersionRef.current !== loadVersion) {
           return
         }
-        inboxNumSmallRowsLoadedRef.current = true
+        setInboxControls(state => ({
+          inboxNumSmallRows: state.username === username ? state.inboxNumSmallRows : 5,
+          inboxNumSmallRowsLoaded: true,
+          inboxNumSmallRowsUserChanged:
+            state.username === username ? state.inboxNumSmallRowsUserChanged : false,
+          smallTeamsExpanded: state.username === username ? state.smallTeamsExpanded : false,
+          username,
+        }))
       }
     )
     return () => {
@@ -165,7 +189,7 @@ export function useInboxState(
         inboxNumSmallRowsLoadVersionRef.current++
       }
     }
-  }, [loadInboxNumSmallRows, loggedIn, username])
+  }, [inboxNumSmallRowsLoaded, loadInboxNumSmallRows, loggedIn, username])
 
   React.useEffect(() => {
     const ready = loggedIn && !!username && (!C.isMobile || isFocused)

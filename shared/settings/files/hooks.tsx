@@ -17,10 +17,13 @@ const useFiles = () => {
     spaceAvailableNotificationThreshold: 0,
     syncOnCellular: false,
   }))
-  const loadSettings = React.useEffectEvent(async () => {
-    setSettings(s => ({...s, isLoading: true}))
+  const readSettings = React.useCallback(async () => T.RPCGen.SimpleFSSimpleFSSettingsRpcPromise(), [])
+  const loadSettings = React.useEffectEvent(async (showLoading: boolean) => {
+    if (showLoading) {
+      setSettings(s => ({...s, isLoading: true}))
+    }
     try {
-      const next = await T.RPCGen.SimpleFSSimpleFSSettingsRpcPromise()
+      const next = await readSettings()
       setSettings({
         isLoading: false,
         spaceAvailableNotificationThreshold: next.spaceAvailableNotificationThreshold,
@@ -35,13 +38,33 @@ const useFiles = () => {
   })
 
   React.useEffect(() => {
-    C.ignorePromise(loadSettings())
-  }, [])
+    let canceled = false
+    const f = async () => {
+      try {
+        const next = await readSettings()
+        if (!canceled) {
+          setSettings({
+            isLoading: false,
+            spaceAvailableNotificationThreshold: next.spaceAvailableNotificationThreshold,
+            syncOnCellular: next.syncOnCellular,
+          })
+        }
+      } catch {
+        if (!canceled) {
+          setSettings(s => ({...s, isLoading: false}))
+        }
+      }
+    }
+    C.ignorePromise(f())
+    return () => {
+      canceled = true
+    }
+  }, [readSettings])
 
   useEngineActionListener('keybase.1.NotifyFS.FSSubscriptionNotify', action => {
     const {clientID, topic} = action.payload.params
     if (clientID === fsClientID && topic === T.RPCGen.SubscriptionTopic.settings) {
-      C.ignorePromise(loadSettings())
+      C.ignorePromise(loadSettings(true))
     }
   })
 
@@ -50,7 +73,7 @@ const useFiles = () => {
       setSettings(s => ({...s, isLoading: true}))
       try {
         await T.RPCGen.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({threshold})
-        await loadSettings()
+        await loadSettings(true)
         refreshGlobalSettings()
       } catch {
         setSettings(s => ({...s, isLoading: false}))
@@ -65,7 +88,7 @@ const useFiles = () => {
           {syncOnCellular},
           C.waitingKeyFSSetSyncOnCellular
         )
-        await loadSettings()
+        await loadSettings(true)
         refreshGlobalSettings()
       } catch {}
     }

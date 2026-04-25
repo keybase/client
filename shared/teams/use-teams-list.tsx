@@ -44,10 +44,7 @@ const teamListToArray = (list: ReadonlyArray<T.RPCGen.AnnotatedMemberInfo>) => {
 }
 
 const invalidateCachedResource = <T, K>(cache: CachedResourceCache<T, K>, nextKey: K) => {
-  cache.generation += 1
-  cache.inFlight = undefined
-  cache.key = nextKey
-  cache.loadedAt = 0
+  cache.invalidate(nextKey)
 }
 
 export const invalidateLoadedTeams = () => {

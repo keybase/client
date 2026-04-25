@@ -50,19 +50,20 @@ const MembersTab = (props: Props) => {
   const participants = ConvoState.useChatContext(
     C.useShallow(s => getBotsAndParticipants(s.meta, s.participants, teamMembers).participants)
   )
-  const [lastTeamName, setLastTeamName] = React.useState('')
+  const lastTeamNameRef = React.useRef('')
   React.useEffect(() => {
-    if (lastTeamName !== teamname) {
-      setLastTeamName(teamname)
-      if (teamname) {
-        refreshParticipants(
-          [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-          () => {},
-          () => {}
-        )
-      }
+    if (lastTeamNameRef.current === teamname) {
+      return
     }
-  }, [conversationIDKey, lastTeamName, refreshParticipants, teamname])
+    lastTeamNameRef.current = teamname
+    if (teamname) {
+      refreshParticipants(
+        [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+        () => {},
+        () => {}
+      )
+    }
+  }, [conversationIDKey, refreshParticipants, teamname])
 
   const showSpinner = !participants.length
   const participantsItems = participants

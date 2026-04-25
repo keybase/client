@@ -13,6 +13,12 @@ const flattenUserEmojis = (groups: ReadonlyArray<T.RPCChat.EmojiGroup>) => {
   return emojis
 }
 
+type UserEmojiLoadState = {
+  completedKey: string
+  emojiGroups: ReadonlyArray<T.RPCChat.EmojiGroup>
+  emojis: ReadonlyArray<T.RPCChat.Emoji>
+}
+
 export const useUserEmoji = ({
   conversationIDKey,
   disabled,
@@ -23,21 +29,25 @@ export const useUserEmoji = ({
   onlyInTeam?: boolean
 }) => {
   const loadUserEmoji = C.useRPC(T.RPCChat.localUserEmojisRpcPromise)
-  const [emojiGroups, setEmojiGroups] = React.useState(emptyEmojiGroups)
-  const [emojis, setEmojis] = React.useState(emptyEmojis)
-  const [loading, setLoading] = React.useState(false)
+  const requestOnlyInTeam = onlyInTeam ?? false
+  const requestKey = `${conversationIDKey ?? T.Chat.noConversationIDKey}:${
+    requestOnlyInTeam ? 'team' : 'all'
+  }`
+  const [loadState, setLoadState] = React.useState<UserEmojiLoadState>(() => ({
+    completedKey: '',
+    emojiGroups: emptyEmojiGroups,
+    emojis: emptyEmojis,
+  }))
   const requestIDRef = React.useRef(0)
 
   React.useEffect(() => {
     if (disabled) {
       requestIDRef.current += 1
-      setLoading(false)
       return
     }
 
     const requestID = requestIDRef.current + 1
     requestIDRef.current = requestID
-    setLoading(true)
 
     loadUserEmoji(
       [
@@ -49,7 +59,7 @@ export const useUserEmoji = ({
           opts: {
             getAliases: true,
             getCreationInfo: false,
-            onlyInTeam: onlyInTeam ?? false,
+            onlyInTeam: requestOnlyInTeam,
           },
         },
       ],
@@ -58,15 +68,21 @@ export const useUserEmoji = ({
           return
         }
         const nextGroups = results.emojis.emojis ?? emptyEmojiGroups
-        setEmojiGroups(nextGroups)
-        setEmojis(flattenUserEmojis(nextGroups))
-        setLoading(false)
+        setLoadState({
+          completedKey: requestKey,
+          emojiGroups: nextGroups,
+          emojis: flattenUserEmojis(nextGroups),
+        })
       },
       () => {
         if (requestIDRef.current !== requestID) {
           return
         }
-        setLoading(false)
+        setLoadState({
+          completedKey: requestKey,
+          emojiGroups: emptyEmojiGroups,
+          emojis: emptyEmojis,
+        })
       }
     )
 
@@ -75,11 +91,12 @@ export const useUserEmoji = ({
         requestIDRef.current += 1
       }
     }
-  }, [conversationIDKey, disabled, loadUserEmoji, onlyInTeam])
+  }, [conversationIDKey, disabled, loadUserEmoji, requestKey, requestOnlyInTeam])
 
+  const isCurrent = loadState.completedKey === requestKey
   return {
-    emojiGroups: disabled ? undefined : emojiGroups,
-    emojis,
-    loading: disabled ? false : loading,
+    emojiGroups: disabled ? undefined : isCurrent ? loadState.emojiGroups : emptyEmojiGroups,
+    emojis: isCurrent ? loadState.emojis : emptyEmojis,
+    loading: !disabled && loadState.completedKey !== requestKey,
   }
 }

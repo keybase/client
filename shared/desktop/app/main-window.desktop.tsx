@@ -29,8 +29,8 @@ const setupDefaultSession = () => {
       return callback(true)
     }
 
-    let ourPathname = ''
-    let requestPathname = ''
+    let ourPathname: string
+    let requestPathname: string
     try {
       ourPathname = new URL(htmlFile).pathname
       requestPathname = new URL(webContents.getURL()).pathname

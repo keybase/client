@@ -112,7 +112,7 @@ export function Input(p: InputLowLevelProps) {
     const commonStyle = Kb.Styles.collapseStyles([inputLowLevelStyles.common, textStyle])
 
     const lineHeight = textStyle.lineHeight
-    let lineStyle = new Array<Kb.Styles.StylesCrossPlatform>()
+    let lineStyle: Array<Kb.Styles.StylesCrossPlatform>
     if (multiline) {
       const defaultRowsToShow = Math.min(2, rowsMax ?? 2)
       const paddingStyles = padding ? Kb.Styles.padding(Kb.Styles.globalMargins[padding]) : {}
@@ -225,15 +225,17 @@ const Buttons = function Buttons(p: ButtonsProps) {
   const emojiStr = usePickerState(s => s.pickerMap.get(pickKey)?.emojiStr) ?? ''
   const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
 
-  const [lastEmoji, setLastEmoji] = React.useState('')
+  const lastEmojiRef = React.useRef('')
   React.useEffect(() => {
-    if (lastEmoji === emojiStr) {
+    if (lastEmojiRef.current === emojiStr) {
       return
     }
-    setLastEmoji(emojiStr)
-    emojiStr && insertText(emojiStr + ' ')
-    updatePickerMap(pickKey, undefined)
-  }, [emojiStr, insertText, lastEmoji, updatePickerMap])
+    lastEmojiRef.current = emojiStr
+    if (emojiStr) {
+      insertText(emojiStr + ' ')
+      updatePickerMap(pickKey, undefined)
+    }
+  }, [emojiStr, insertText, updatePickerMap])
 
   const navigateAppend = ConvoState.useChatNavigateAppend()
   const openEmojiPicker = () => {

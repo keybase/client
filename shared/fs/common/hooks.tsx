@@ -881,7 +881,6 @@ export const useFsPathInfo = (path: T.FS.Path, knownPathInfo = FS.emptyPathInfo)
   React.useEffect(() => {
     if (alreadyKnown) {
       pathInfoVersionRef.current += 1
-      setPathInfoState({path, pathInfo: knownPathInfo})
     }
   }, [alreadyKnown, knownPathInfo, path])
   useFsLoadOnMountAndFocus({
@@ -1037,7 +1036,6 @@ export const useFsFileContext = (
   React.useEffect(() => {
     if (pathItem.type !== T.FS.PathType.File) {
       fileContextVersionRef.current += 1
-      setFileContextState({fileContext: FS.emptyFileContext, reloadKey})
     }
   }, [pathItem.type, reloadKey])
   useFsLoadOnMountAndFocus({

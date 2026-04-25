@@ -114,7 +114,9 @@ const makeCleanDeviceName = (d: string) => {
 }
 
 const EnterDevicename = (props: EnterDevicenameProps) => {
-  const [deviceName, setDeviceName] = React.useState(props.initialDevicename || '')
+  const [deviceName, setDeviceName] = React.useState(() =>
+    makeCleanDeviceName(props.initialDevicename || '')
+  )
   const [readyToShowError, setReadyToShowError] = React.useState(false)
   const _setReadyToShowError = C.useDebouncedCallback((ready: boolean) => {
     setReadyToShowError(ready)
@@ -128,17 +130,11 @@ const EnterDevicename = (props: EnterDevicenameProps) => {
     Provision.badDeviceRE.test(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
   const _setDeviceName = (deviceName: string) => {
-    setDeviceName(deviceName)
+    setDeviceName(makeCleanDeviceName(deviceName))
     setReadyToShowError(false)
     _setReadyToShowError(true)
   }
   const onContinue = () => (disabled || props.waiting ? {} : props.onContinue(cleanDeviceName))
-
-  React.useEffect(() => {
-    if (cleanDeviceName !== deviceName) {
-      setDeviceName(cleanDeviceName)
-    }
-  }, [deviceName, cleanDeviceName])
 
   return (
     <SignupScreen

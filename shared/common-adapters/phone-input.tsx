@@ -168,7 +168,11 @@ type CountrySelectorRef = {
 function CountrySelector(p: CountrySelectorProps & {ref?: React.Ref<CountrySelectorRef>}) {
     const {onHidden, onSelect, selected: _selected, visible, attachTo, ref} = p
     const [filter, setFilter] = React.useState('')
-    const [selected, setSelected] = React.useState(_selected)
+    const [selectedState, setSelectedState] = React.useState<{
+      selected?: string
+      sourceSelected?: string
+    }>(() => ({selected: _selected, sourceSelected: _selected}))
+    const selected = selectedState.sourceSelected === _selected ? selectedState.selected : _selected
 
     const onSelectMenu = p.onSelect
 
@@ -182,7 +186,7 @@ function CountrySelector(p: CountrySelectorProps & {ref?: React.Ref<CountrySelec
     )
 
     const onCancel = () => {
-      setSelected(p.selected)
+      setSelectedState({selected: p.selected, sourceSelected: p.selected})
       onHidden()
     }
 
@@ -193,10 +197,6 @@ function CountrySelector(p: CountrySelectorProps & {ref?: React.Ref<CountrySelec
       onSelect(selected)
       onHidden()
     }
-
-    React.useEffect(() => {
-      setSelected(_selected)
-    }, [_selected])
 
     const desktopItems = menuItems(countryData(), filter, onSelectMenu)
     const mobileItems = pickerItems(countryData())
@@ -240,7 +240,7 @@ function CountrySelector(p: CountrySelectorProps & {ref?: React.Ref<CountrySelec
     return (
       <Kb.FloatingPicker
         items={mobileItems}
-        onSelect={setSelected}
+        onSelect={selected => setSelectedState({selected, sourceSelected: _selected})}
         onHidden={onCancel}
         onCancel={onCancel}
         onDone={onDone}
@@ -377,19 +377,15 @@ const PhoneInput = (p: Props) => {
     }
   }, [formatted, onChangeNumber, country])
 
-  const lastDefaultCountryRef = React.useRef(defaultCountry)
-
-  React.useEffect(() => {
-    if (lastDefaultCountryRef.current) {
-      return
-    }
-    lastDefaultCountryRef.current = defaultCountry
+  const [lastDefaultCountry, setLastDefaultCountry] = React.useState(defaultCountry)
+  if (!lastDefaultCountry && defaultCountry) {
+    setLastDefaultCountry(defaultCountry)
     if (!country && defaultCountry) {
       setCountry(defaultCountry)
       setFormatter(new AsYouTypeFormatter(defaultCountry))
       setPrefix(getCallingCode(defaultCountry).slice(1))
     }
-  }, [country, defaultCountry])
+  }
 
   const isSmall = small ?? !Styles.isMobile
 

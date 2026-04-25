@@ -190,7 +190,7 @@ const useNotificationSettings = (): UseNotificationSettingsResult => {
     ignorePromise(maybeClear())
 
     const f = async () => {
-      let body = ''
+      let body: string
       let chatGlobalSettings: T.RPCChat.GlobalAppNotificationSettings
 
       try {

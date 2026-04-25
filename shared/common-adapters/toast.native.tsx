@@ -4,11 +4,9 @@ import * as Styles from '@/styles'
 import {Box2} from './box'
 import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
 import Popup from './popup'
-import {useTimeout} from './use-timers'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import type {Props} from './toast'
 import {colors, darkColors} from '@/styles/colors'
-import noop from 'lodash/noop'
 import {useColorScheme} from 'react-native'
 
 const Kb = {
@@ -19,53 +17,71 @@ const Kb = {
 
 const Toast = (props: Props) => {
   const {visible} = props
-  const [shouldRender, setShouldRender] = React.useState(false)
-  const opacityRef = React.useRef(new NativeAnimated.Value(0))
-  const [opacity, setOpacity] = React.useState<NativeAnimated.Value | undefined>(undefined)
+  const [opacity] = React.useState(() => new NativeAnimated.Value(0))
+  const [renderState, setRenderState] = React.useState(() => ({
+    dismissedOnBlur: false,
+    shouldRender: visible,
+    visible,
+  }))
+
+  let currentRenderState = renderState
+  if (currentRenderState.visible !== visible) {
+    currentRenderState = {
+      dismissedOnBlur: false,
+      shouldRender: visible || currentRenderState.shouldRender,
+      visible,
+    }
+    setRenderState(currentRenderState)
+  }
+  const {shouldRender} = currentRenderState
+
   React.useEffect(() => {
-    setOpacity(opacityRef.current)
+    if (!shouldRender) {
+      return undefined
+    }
+    const animation = NativeAnimated.timing(opacity, {
+      duration: 200,
+      easing: NativeEasing.linear,
+      toValue: visible ? 1 : 0,
+      useNativeDriver: false,
+    })
+    animation.start()
+    return () => {
+      animation.stop()
+    }
+  }, [opacity, shouldRender, visible])
+
+  React.useEffect(() => {
+    if (visible || !shouldRender) {
+      return undefined
+    }
+    const id = setTimeout(() => {
+      setRenderState(state =>
+        state.visible || !state.shouldRender ? state : {...state, shouldRender: false}
+      )
+    }, 1000)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [shouldRender, visible])
+
+  const onSafeFocus = React.useCallback(() => {
+    setRenderState(state =>
+      state.dismissedOnBlur
+        ? {...state, dismissedOnBlur: false, shouldRender: state.visible || state.shouldRender}
+        : state
+    )
+    return () => {
+      setRenderState(state =>
+        state.shouldRender || !state.dismissedOnBlur
+          ? {...state, dismissedOnBlur: true, shouldRender: false}
+          : state
+      )
+    }
   }, [])
-  const setShouldRenderFalseLater = useTimeout(() => {
-    setShouldRender(false)
-  }, 1000)
-  React.useEffect(() => {
-    if (visible) {
-      setShouldRender(true)
-      return () => {
-        opacity &&
-          NativeAnimated.timing(opacity, {
-            duration: 200,
-            easing: NativeEasing.linear,
-            toValue: 0,
-            useNativeDriver: false,
-          }).start()
-        setShouldRenderFalseLater()
-      }
-    }
-    return noop
-  }, [visible, setShouldRenderFalseLater, opacity])
-  React.useEffect(() => {
-    if (shouldRender && opacity) {
-      const animation = NativeAnimated.timing(opacity, {
-        duration: 200,
-        easing: NativeEasing.linear,
-        toValue: 1,
-        useNativeDriver: false,
-      })
-      animation.start()
-      return () => {
-        animation.stop()
-      }
-    }
-    return noop
-  }, [shouldRender, opacity])
 
   // since this uses portals we need to hide if we're hidden else we can get stuck showing if our render is frozen
-  C.Router2.useSafeFocusEffect(() => {
-    return () => {
-      setShouldRender(false)
-    }
-  })
+  C.Router2.useSafeFocusEffect(onSafeFocus)
 
   const isDarkMode = useColorScheme() === 'dark'
 
@@ -74,16 +90,18 @@ const Toast = (props: Props) => {
       <Kb.KeyboardAvoidingView2>
         <Kb.Box2 direction="vertical" pointerEvents="none" justifyContent="center" style={styles.wrapper}>
           <NativeAnimated.View
-            style={Styles.collapseStyles([
-              styles.container,
-              {
-                // RN bugs with animated dynamicColors so have to use the raw ones
-                // known bug this won't work if the dark mode changes dynamic on ios currently
-                backgroundColor: isDarkMode ? darkColors.black : colors.black,
-              },
-              props.containerStyle,
-              {opacity: (opacity as number | undefined) ?? 0},
-            ])}
+            style={[
+              Styles.collapseStyles([
+                styles.container,
+                {
+                  // RN bugs with animated dynamicColors so have to use the raw ones
+                  // known bug this won't work if the dark mode changes dynamic on ios currently
+                  backgroundColor: isDarkMode ? darkColors.black : colors.black,
+                },
+                props.containerStyle,
+              ]),
+              {opacity},
+            ]}
           >
             {props.children}
           </NativeAnimated.View>

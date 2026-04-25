@@ -132,7 +132,6 @@ const Container = ({platform, reason = 'profile'}: Props) => {
   const afterCheckProofRef = React.useRef<undefined | (() => void)>(undefined)
   const cancelCurrentRef = React.useRef<undefined | (() => void)>(undefined)
   const submitUsernameRef = React.useRef<undefined | ((username: string) => void)>(undefined)
-  const startProofRef = React.useRef<(proofPlatform: string, proofReason: 'appLink' | 'profile') => void>(() => {})
   const [step, setStep] = React.useState<Step>(platform ? {kind: 'loading'} : {kind: 'pick'})
 
   const setStepSafe = (next: Step) => {
@@ -462,13 +461,13 @@ const Container = ({platform, reason = 'profile'}: Props) => {
     submitUsernameRef.current(normalized)
   }
 
-  startProofRef.current = startProof
+  const startProofEvent = React.useEffectEvent(startProof)
 
   React.useEffect(() => {
     const {platform: initialPlatform, reason: initialReason} = initialRouteRef.current
     if (initialPlatform && !initialProofStartedRef.current) {
       initialProofStartedRef.current = true
-      startProofRef.current(initialPlatform, initialReason)
+      startProofEvent(initialPlatform, initialReason)
     }
   }, [])
 
@@ -673,17 +672,26 @@ const EnterUsername = ({
   platform: T.More.PlatformsExpandedType
   username: string
 }) => {
-  const [username, setUsername] = React.useState(initialUsername)
-  const [errorText, setErrorText] = React.useState(error === 'Input canceled' ? '' : error)
+  const [usernameState, setUsernameState] = React.useState({
+    initialUsername,
+    username: initialUsername,
+  })
+  const normalizedError = error === 'Input canceled' ? '' : error
+  const [errorState, setErrorState] = React.useState({error, errorText: normalizedError})
 
-  React.useEffect(() => {
-    setUsername(initialUsername)
-  }, [initialUsername])
+  if (usernameState.initialUsername !== initialUsername) {
+    setUsernameState({initialUsername, username: initialUsername})
+  }
 
-  React.useEffect(() => {
-    setErrorText(error === 'Input canceled' ? '' : error)
-  }, [error])
+  if (errorState.error !== error) {
+    setErrorState({error, errorText: normalizedError})
+  }
 
+  const username =
+    usernameState.initialUsername === initialUsername ? usernameState.username : initialUsername
+  const setUsername = (username: string) => setUsernameState(state => ({...state, username}))
+  const errorText = errorState.error === error ? errorState.errorText : normalizedError
+  const setErrorText = (errorText: string) => setErrorState(state => ({...state, errorText}))
   const canSubmit = !!username.length
   const submit = () => {
     if (!canSubmit) {
@@ -756,11 +764,17 @@ const GenericEnterUsername = ({
   onSubmit: (username: string) => void
   step: GenericEnterUsernameStep
 }) => {
-  const [username, setUsername] = React.useState(step.username)
-  React.useEffect(() => {
-    setUsername(step.username)
-  }, [step.username])
+  const [usernameState, setUsernameState] = React.useState({
+    stepUsername: step.username,
+    username: step.username,
+  })
 
+  if (usernameState.stepUsername !== step.username) {
+    setUsernameState({stepUsername: step.username, username: step.username})
+  }
+
+  const username = usernameState.stepUsername === step.username ? usernameState.username : step.username
+  const setUsername = (username: string) => setUsernameState(state => ({...state, username}))
   const unreachable = !!step.proofUrl
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>

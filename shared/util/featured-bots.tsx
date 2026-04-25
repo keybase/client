@@ -33,64 +33,87 @@ export const getFeaturedSorted = (featuredBots: ReadonlyArray<T.RPCGen.FeaturedB
 }
 
 export const useFeaturedBot = (botUsername?: string) => {
-  const [featuredBot, setFeaturedBot] = React.useState<T.RPCGen.FeaturedBot>()
+  const [loadedFeaturedBot, setLoadedFeaturedBot] = React.useState<{
+    bot?: T.RPCGen.FeaturedBot
+    botUsername: string
+  }>()
   const searchFeaturedBots = C.useRPC(T.RPCGen.featuredBotSearchRpcPromise)
 
   React.useEffect(() => {
     if (!botUsername) {
-      setFeaturedBot(undefined)
       return
     }
 
+    let canceled = false
     searchFeaturedBots(
       [{limit: 10, offset: 0, query: botUsername}],
       result => {
-        setFeaturedBot(pickFeaturedBot(botUsername, result.bots ?? []))
+        if (!canceled) {
+          setLoadedFeaturedBot({bot: pickFeaturedBot(botUsername, result.bots ?? []), botUsername})
+        }
       },
       error => {
-        logger.info(`Featured bot load failed for ${botUsername}: ${error.message}`)
+        if (!canceled) {
+          logger.info(`Featured bot load failed for ${botUsername}: ${error.message}`)
+        }
       }
     )
+    return () => {
+      canceled = true
+    }
   }, [botUsername, searchFeaturedBots])
 
-  return featuredBot
+  return loadedFeaturedBot && loadedFeaturedBot.botUsername === botUsername
+    ? loadedFeaturedBot.bot
+    : undefined
 }
 
 export const useFeaturedBotPage = () => {
   const [featuredBots, setFeaturedBots] = React.useState<ReadonlyArray<T.RPCGen.FeaturedBot>>([])
   const [featuredBotsPage, setFeaturedBotsPage] = React.useState(-1)
   const [loadedAllBots, setLoadedAllBots] = React.useState(false)
-  const [loadingBots, setLoadingBots] = React.useState(false)
+  const [pendingFeaturedBotsPage, setPendingFeaturedBotsPage] = React.useState<number | undefined>(0)
   const loadFeaturedBots = C.useRPC(T.RPCGen.featuredBotFeaturedBotsRpcPromise)
+  const loadingBots = pendingFeaturedBotsPage !== undefined
 
-  const loadNextBotPage = React.useCallback(() => {
+  const loadNextBotPage = () => {
     if (loadingBots || loadedAllBots) {
       return
     }
 
-    const nextPage = featuredBotsPage + 1
-    setLoadingBots(true)
-    loadFeaturedBots(
-      [{limit: featuredBotPageSize, offset: nextPage * featuredBotPageSize, skipCache: false}],
-      result => {
-        const bots = result.bots ?? []
-        setFeaturedBots(previous => mergeFeaturedBots(previous, bots))
-        setFeaturedBotsPage(nextPage)
-        setLoadedAllBots(bots.length < featuredBotPageSize)
-        setLoadingBots(false)
-      },
-      error => {
-        logger.info(`Featured bots page load failed: ${error.message}`)
-        setLoadingBots(false)
-      }
-    )
-  }, [featuredBotsPage, loadFeaturedBots, loadedAllBots, loadingBots])
+    setPendingFeaturedBotsPage(featuredBotsPage + 1)
+  }
 
   React.useEffect(() => {
-    if (featuredBotsPage === -1 && !loadedAllBots) {
-      loadNextBotPage()
+    if (pendingFeaturedBotsPage === undefined) {
+      return
     }
-  }, [featuredBotsPage, loadedAllBots, loadNextBotPage])
+
+    let canceled = false
+    loadFeaturedBots(
+      [{limit: featuredBotPageSize, offset: pendingFeaturedBotsPage * featuredBotPageSize, skipCache: false}],
+      result => {
+        if (canceled) {
+          return
+        }
+        const bots = result.bots ?? []
+        setFeaturedBots(previous => mergeFeaturedBots(previous, bots))
+        setFeaturedBotsPage(pendingFeaturedBotsPage)
+        setLoadedAllBots(bots.length < featuredBotPageSize)
+        setPendingFeaturedBotsPage(undefined)
+      },
+      error => {
+        if (canceled) {
+          return
+        }
+        logger.info(`Featured bots page load failed: ${error.message}`)
+        setPendingFeaturedBotsPage(undefined)
+      }
+    )
+    return () => {
+      canceled = true
+    }
+  }, [loadFeaturedBots, pendingFeaturedBotsPage])
 
   return {featuredBots, loadNextBotPage, loadedAllBots, loadingBots}
 }
