@@ -19,13 +19,14 @@ const Row = (p: {account: Account}) => {
     setSK('')
     setErr('')
   }
-  const onReveal = () => {
+  const onReveal = (onLoaded?: (text: string) => void) => {
     setErr('')
     setSK('')
     getSecretKey(
       [{accountID}],
       r => {
         setSK(r)
+        onLoaded?.(r)
       },
       e => {
         setErr(e.desc)

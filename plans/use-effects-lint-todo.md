@@ -55,15 +55,15 @@ Scope: only `react-hooks/set-state-in-effect` findings. Ignore `refs`, `immutabi
 
 ## Batch 6: Common Adapter Components
 
-- [ ] `shared/common-adapters/choice-list.native.tsx:16:5`
-- [ ] `shared/common-adapters/copy-text.tsx:97:11`
-- [ ] `shared/common-adapters/phone-input.tsx:198:7`
-- [ ] `shared/common-adapters/phone-input.tsx:388:7`
-- [ ] `shared/common-adapters/popup/floating-box/index.desktop.tsx:18:5`
-- [ ] `shared/common-adapters/popup/floating-box/relative-floating-box.desktop.tsx:284:7`
-- [ ] `shared/common-adapters/save-indicator.tsx:35:9`
-- [ ] `shared/common-adapters/toast.native.tsx:33:7`
-- [ ] `shared/common-adapters/zoomable-image.desktop.tsx:46:7`
+- [x] `shared/common-adapters/choice-list.native.tsx:16:5` - keyed the active press state by the current options array so option changes render with no active item without an effect reset.
+- [x] `shared/common-adapters/copy-text.tsx:97:11` - moved copy-after-load into the copy request callback path and kept toast hiding as a timer effect.
+- [x] `shared/common-adapters/phone-input.tsx:198:7` - derived the country picker selected value from the latest selected prop plus local picker edits instead of syncing it in an effect.
+- [x] `shared/common-adapters/phone-input.tsx:388:7` - converted the late default-country initialization to a guarded render state adjustment.
+- [x] `shared/common-adapters/popup/floating-box/index.desktop.tsx:18:5` - moved anchor measurement out of an effect and into the floating-box commit ref path.
+- [x] `shared/common-adapters/popup/floating-box/relative-floating-box.desktop.tsx:284:7` - derived popup style from measured popup/anchor rects collected by the popup ref callback.
+- [x] `shared/common-adapters/save-indicator.tsx:35:9` - moved saving-state transitions into a guarded render update and left only the saved-state timeout effect.
+- [x] `shared/common-adapters/toast.native.tsx:33:7` - derived render visibility from the visible prop plus delayed hide state and kept animation/timer effects free of synchronous show updates.
+- [x] `shared/common-adapters/zoomable-image.desktop.tsx:46:7` - set zoom toast visibility from the zoom click path and left the effect only to expire the toast timer.
 
 ## Batch 7: Desktop And Remote Surfaces
 

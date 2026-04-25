@@ -14,6 +14,11 @@ const Kb = {
 
 type SaveState = 'init' | 'saving' | 'saved'
 
+type IndicatorState = {
+  saving: boolean
+  state: SaveState
+}
+
 export type Props = {
   saving: boolean
   style?: Styles.StylesCrossPlatform
@@ -25,28 +30,33 @@ const defaultStyle = {
 
 const SaveIndicator = (props: Props) => {
   const {saving, style} = props
-  const [state, setState] = React.useState<SaveState>('init')
-  const lastSavingRef = React.useRef(saving)
+  const [indicatorState, setIndicatorState] = React.useState<IndicatorState>(() => ({
+    saving,
+    state: 'init',
+  }))
+
+  let currentIndicatorState = indicatorState
+  if (currentIndicatorState.saving !== saving) {
+    currentIndicatorState = {
+      saving,
+      state: saving ? 'saving' : 'saved',
+    }
+    setIndicatorState(currentIndicatorState)
+  }
+  const {state} = currentIndicatorState
 
   React.useEffect(() => {
-    let id: ReturnType<typeof setTimeout> | undefined
-    if (lastSavingRef.current !== saving) {
-      if (saving) {
-        setState('saving')
-      } else {
-        setState('saved')
-        id = setTimeout(() => {
-          setState('init')
-        }, 1000)
-      }
-
-      lastSavingRef.current = saving
+    if (state !== 'saved') {
+      return undefined
     }
 
+    const id = setTimeout(() => {
+      setIndicatorState(state => (state.state === 'saved' ? {...state, state: 'init'} : state))
+    }, 1000)
     return () => {
-      if (id !== undefined) clearTimeout(id)
+      clearTimeout(id)
     }
-  }, [saving])
+  }, [state])
 
   let content: React.ReactNode = null
   switch (state) {

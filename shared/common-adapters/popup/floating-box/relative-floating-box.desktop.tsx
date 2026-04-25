@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../../key-event-handler.desktop'
+import type {MeasureRef} from '../../measure-ref'
 
 type ComputedStyle = {
   position: Styles._StylesCrossPlatform['position']
@@ -214,7 +215,7 @@ function computePopupStyle(
 }
 
 type ModalPositionRelativeProps = {
-  targetRect?: DOMRect
+  attachTo?: React.RefObject<MeasureRef | null>
   position: Styles.Position
   positionFallbacks?: ReadonlyArray<Styles.Position>
   matchDimension?: boolean
@@ -227,12 +228,46 @@ type ModalPositionRelativeProps = {
   offset?: number // offset in pixels from edge
 }
 
+const hiddenStyle = {opacity: 0, pointerEvents: 'none'} as const
+
+type PopupState = {
+  node: HTMLDivElement
+  style: Styles.StylesCrossPlatform
+}
+
 export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
-  const [popupNode, setPopupNode] = React.useState<HTMLDivElement | null>(null)
+  const [popupState, setPopupState] = React.useState<PopupState>()
   const downRef = React.useRef<undefined | {x: number; y: number}>(undefined)
-  const [style, setStyle] = React.useState<Styles.StylesCrossPlatform>({opacity: 0, pointerEvents: 'none'})
-  const {targetRect, children, propagateOutsideClicks, onClosePopup, style: _style} = props
-  const {position, matchDimension, positionFallbacks, disableEscapeKey, offset = 0} = props
+  const {attachTo, children, propagateOutsideClicks, onClosePopup, style: _style} = props
+  const {position, matchDimension, positionFallbacks, disableEscapeKey, offset = 0, remeasureHint} = props
+  const popupNode = popupState?.node
+
+  const setPopupRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!node) {
+        return
+      }
+      const targetRect = attachTo?.current?.getBoundingClientRect()
+      const style = targetRect
+        ? Styles.collapseStyles([
+            computePopupStyle(
+              position,
+              targetRect,
+              node.getBoundingClientRect(),
+              !!matchDimension,
+              positionFallbacks,
+              offset
+            ),
+            _style,
+          ])
+        : hiddenStyle
+      setPopupState({
+        node,
+        style,
+      })
+    },
+    [attachTo, matchDimension, offset, position, positionFallbacks, remeasureHint, _style]
+  )
 
   React.useEffect(() => {
     const handleDown = (e: MouseEvent) => {
@@ -268,27 +303,10 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
     }
   }, [onClosePopup, popupNode, propagateOutsideClicks])
 
-  React.useEffect(() => {
-    if (targetRect && popupNode) {
-      const s = Styles.collapseStyles([
-        computePopupStyle(
-          position,
-          targetRect,
-          popupNode.getBoundingClientRect(),
-          !!matchDimension,
-          positionFallbacks,
-          offset
-        ),
-        _style,
-      ])
-      setStyle(s)
-    }
-  }, [_style, matchDimension, position, positionFallbacks, popupNode, targetRect, offset])
-
   const modalRoot = document.getElementById('modal-root')
   return modalRoot
     ? ReactDOM.createPortal(
-        <div style={Styles.castStyleDesktop(style)} ref={setPopupNode}>
+        <div style={Styles.castStyleDesktop(popupState?.style ?? hiddenStyle)} ref={setPopupRef}>
           {disableEscapeKey ? (
             <div className="fade-in-generic">{children}</div>
           ) : (

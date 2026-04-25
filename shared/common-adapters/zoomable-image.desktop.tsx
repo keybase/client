@@ -34,25 +34,26 @@ function ZoomableImage(p: Props) {
   const isZoomedRef = React.useRef(isZoomed)
 
   const toggleZoom = () => {
-    isZoomedRef.current = !isZoomed
+    const nextIsZoomed = !isZoomed
+    isZoomedRef.current = nextIsZoomed
     setIsZoomed(s => !s)
+    setShowToast(nextIsZoomed)
     // hide until we handle mouse move
     imgRef.current?.classList.remove('fade-anim-enter-active')
-    onIsZoomed?.(!isZoomed)
+    onIsZoomed?.(nextIsZoomed)
   }
 
   React.useEffect(() => {
-    if (isZoomed) {
-      setShowToast(true)
-      const id = setTimeout(() => {
-        setShowToast(false)
-      }, 3000)
-      return () => {
-        setShowToast(false)
-        clearTimeout(id)
-      }
-    } else return undefined
-  }, [isZoomed])
+    if (!showToast) {
+      return undefined
+    }
+    const id = setTimeout(() => {
+      setShowToast(false)
+    }, 3000)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [showToast])
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!containerRef.current || !imgRef.current) return
