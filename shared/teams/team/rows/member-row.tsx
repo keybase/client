@@ -9,6 +9,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {useLoadedTeam} from '../use-loaded-team'
 import {reAddToTeam, removeMember} from '@/teams/actions'
+import {getRolePickerDisabledReasons} from '@/teams/role-picker-utils'
 
 export type Props = {
   firstItem: boolean
@@ -27,6 +28,7 @@ export type Props = {
   waitingForAdd: boolean
   waitingForRemove: boolean
   you: string
+  youCanEditRole: boolean
   youCanManageMembers: boolean
 }
 
@@ -44,7 +46,7 @@ const showCrown = {
 // you're changing one remember to change the other.
 
 export const TeamMemberRow = (props: Props) => {
-  const {roleType, fullName, username, youCanManageMembers} = props
+  const {roleType, fullName, username, youCanEditRole, youCanManageMembers} = props
   const {onOpenProfile, onChat, onBlock, onRemoveFromTeam} = props
   const active = props.status === 'active'
   const crown =
@@ -162,7 +164,9 @@ export const TeamMemberRow = (props: Props) => {
                 }),
               title: 'Add to channels...',
             },
-            {icon: 'iconfont-crown-admin', onClick: onClick, title: 'Edit role...'},
+            ...(youCanEditRole
+              ? [{icon: 'iconfont-crown-admin', onClick: pOnClick, title: 'Edit role...'}]
+              : []),
           ] as Kb.MenuItems)
         : []),
       {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
@@ -281,7 +285,7 @@ const blankInfo = Teams.initialMemberInfo
 
 const Container = (ownProps: OwnProps) => {
   const {teamID, firstItem, username} = ownProps
-  const {teamDetails, yourOperations} = useLoadedTeam(teamID)
+  const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
   const members = teamDetails.members
   const youCanManageMembers = yourOperations.manageMembers
   const info = members.get(username) || blankInfo
@@ -291,6 +295,17 @@ const Container = (ownProps: OwnProps) => {
   const needsPUK = info.needsPUK
   const roleType = info.type
   const status = info.status
+  const disabledReasons = getRolePickerDisabledReasons({
+    canManageMembers: youCanManageMembers,
+    currentUsername: you,
+    members,
+    membersToModify: username,
+    teamname: teamMeta.teamname,
+  })
+  const hasEditableRoleChoice = Teams.teamRoleTypes.some(
+    role => role !== roleType && disabledReasons[role] === undefined
+  )
+  const youCanEditRole = youCanManageMembers && status === 'active' && !needsPUK && hasEditableRoleChoice
   const waitingForAdd = C.Waiting.useAnyWaiting(C.waitingKeyTeamsAddMember(teamID, username))
   const waitingForRemove = C.Waiting.useAnyWaiting(C.waitingKeyTeamsRemoveMember(teamID, username))
   const setUserBlocks = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
@@ -336,6 +351,7 @@ const Container = (ownProps: OwnProps) => {
     waitingForAdd: waitingForAdd,
     waitingForRemove: waitingForRemove,
     you: you,
+    youCanEditRole: youCanEditRole,
     youCanManageMembers: youCanManageMembers,
   }
   return <TeamMemberRow {...props} />

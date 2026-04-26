@@ -9,6 +9,7 @@ import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {useLoadedTeam} from '../team/use-loaded-team'
+import {getRolePickerDisabledReasons} from '../role-picker-utils'
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -40,12 +41,24 @@ const ChannelMemberRow = (props: Props) => {
   const participantInfo = ConvoState.useConvoState(conversationIDKey, s => s.participants)
   const {selectedMembers: channelSelectedMembers, setMemberSelected: channelSetMemberSelected} =
     useChannelSelectionState()
-  const {teamDetails, yourOperations} = useLoadedTeam(teamID)
+  const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
   const teamMemberInfo = teamDetails.members.get(username) ?? Teams.initialMemberInfo
   const you = useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type
+  const disabledReasons = getRolePickerDisabledReasons({
+    canManageMembers: yourOperations.manageMembers,
+    currentUsername: you,
+    members: teamDetails.members,
+    membersToModify: username,
+    teamname: teamMeta.teamname,
+  })
+  const hasEditableRoleChoice = Teams.teamRoleTypes.some(
+    role => role !== roleType && disabledReasons[role] === undefined
+  )
+  const canEditRole =
+    yourOperations.manageMembers && active && !teamMemberInfo.needsPUK && hasEditableRoleChoice
   const crown = (() => {
     const type = crownIcon(roleType)
     return active && type ? (
@@ -164,7 +177,9 @@ const ChannelMemberRow = (props: Props) => {
                 navigateAppend({name: 'teamAddToChannels', params: {teamID, usernames: [username]}}),
               title: 'Add to channels...',
             },
-            {icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'},
+            ...(canEditRole
+              ? [{icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'}]
+              : []),
           ] as Kb.MenuItems)
         : []),
       {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
