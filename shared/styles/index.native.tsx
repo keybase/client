@@ -74,7 +74,7 @@ export const collapseStyles = (
   }
   if (nonNull.length === 1) {
     const s = nonNull[0]
-    if (typeof s === 'object') {
+    if (s && typeof s === 'object') {
       return s
     }
   }

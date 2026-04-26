@@ -87,7 +87,7 @@ const Container = (ownProps: OwnProps) => {
 
   const [index, setIndex] = React.useState(0)
   const [titles, setTitles] = React.useState(pathAndInfos.map((_, idx) => _titles?.[idx] ?? ''))
-  const [spoiler, setSpoiler] = React.useState(false)
+  const spoiler = false
 
   const onNext = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault()
@@ -205,14 +205,6 @@ const Container = (ownProps: OwnProps) => {
                 containerStyle={styles.inputBare}
                 inputStyle={styles.input}
               />
-              {/* (
-                <Kb.Checkbox
-                  style={{alignSelf: 'flex-end'}}
-                  label="Spoiler?"
-                  checked={spoiler}
-                  onCheck={setSpoiler}
-                />
-              )*/}
             </Kb.Box2>
           </Kb.Box2>
         </Kb.ClickableBox2>

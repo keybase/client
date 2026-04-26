@@ -842,15 +842,17 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
   const tlfs = useFsTlfs()
   const tlf = FS.getTlfFromPath(tlfs, path)
   const loadAdditionalTlf = routeData?.loadAdditionalTlf
-  const active =
-    !!loadAdditionalTlf &&
-    !!tlfPath &&
+  const tlfPathToLoad =
+    tlfPath &&
     tlfs.loaded &&
     FS.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) === FS.unknownTlf &&
     options?.loadOnMount !== false
+      ? tlfPath
+      : undefined
+  const active = !!loadAdditionalTlf && !!tlfPathToLoad
   const loadCurrentTlf = React.useEffectEvent(() => {
-    if (active && loadAdditionalTlf && tlfPath) {
-      loadAdditionalTlf(tlfPath)
+    if (loadAdditionalTlf && tlfPathToLoad) {
+      loadAdditionalTlf(tlfPathToLoad)
     }
   })
   const [stableLoadCurrentTlf] = React.useState(() => () => {
@@ -864,7 +866,7 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
   )
   React.useEffect(() => {
     loadCurrentTlf()
-  }, [active, loadAdditionalTlf, tlfPath, tlfs.loaded])
+  }, [active, loadAdditionalTlf, tlfPathToLoad])
   C.Router2.useSafeFocusEffect(stableLoadCurrentTlf)
   return tlf
 }
