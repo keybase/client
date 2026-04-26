@@ -395,6 +395,30 @@ test('onMessagesUpdated still applies to unopened active conversations', () => {
   expect(store.getState().messageMap.get(T.Chat.numberToOrdinal(402))?.id).toBe(msgID)
 })
 
+test('galleryMessagesLoaded injects gallery-only messages without marking read', () => {
+  const threadMessage = makeTextMessage({
+    id: T.Chat.numberToMessageID(301),
+    ordinal: T.Chat.numberToOrdinal(301),
+  })
+  const galleryMessage = makeAttachmentMessage({
+    conversationMessage: false,
+    id: T.Chat.numberToMessageID(501),
+    ordinal: T.Chat.numberToOrdinal(501),
+  })
+  const store = seedStore([threadMessage])
+  const markThreadAsRead = jest.spyOn(store.getState().dispatch, 'markThreadAsRead')
+
+  store.getState().dispatch.galleryMessagesLoaded([galleryMessage])
+
+  expect(store.getState().messageMap.get(galleryMessage.ordinal)).toEqual(galleryMessage)
+  expect(store.getState().messageOrdinals).toEqual([threadMessage.ordinal])
+  expect(store.getState().messageIDToOrdinal.get(galleryMessage.id)).toBe(galleryMessage.ordinal)
+  expect(store.getState().messageTypeMap.get(galleryMessage.ordinal)).toBe(
+    Message.getMessageRenderType(galleryMessage)
+  )
+  expect(markThreadAsRead).not.toHaveBeenCalled()
+})
+
 test('message updates refresh derived metadata for the following row', () => {
   const firstOrdinal = T.Chat.numberToOrdinal(301)
   const secondOrdinal = T.Chat.numberToOrdinal(302)

@@ -79,7 +79,6 @@ type ConvoStore = T.Immutable<{
   id: T.Chat.ConversationIDKey
   // temp cache for requestPayment and sendPayment message data,
   accountsInfoMap: Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
-  attachmentViewMap: Map<T.RPCChat.GalleryItemTyp, T.Chat.AttachmentViewInfo>
   badge: number
   botCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp
   botSettings: Map<string, T.RPCGen.TeamBotSettings | undefined>
@@ -137,7 +136,6 @@ export interface ConvoUIState extends ConvoUIStore {
 
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
-  attachmentViewMap: new Map(),
   badge: 0,
   botCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp.blank,
   botSettings: new Map(),
@@ -222,7 +220,6 @@ export interface ConvoState extends ConvoStore {
     blockConversation: (reportUser: boolean) => void
     botCommandsUpdateStatus: (b: T.RPCChat.UIBotCommandsUpdateStatus) => void
     channelSuggestionsTriggered: () => void
-    clearAttachmentView: () => void
     dismissBottomBanner: () => void
     dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
     editBotSettings: (
@@ -235,7 +232,7 @@ export interface ConvoState extends ConvoStore {
     hideConversation: (hide: boolean) => void
     joinConversation: () => void
     jumpToRecent: () => void
-    loadAttachmentView: (viewType: T.RPCChat.GalleryItemTyp, fromMsgID?: T.Chat.MessageID) => void
+    galleryMessagesLoaded: (messages: ReadonlyArray<T.Chat.Message>) => void
     loadMessagesCentered: (
       messageID: T.Chat.MessageID,
       highlightMode: T.Chat.CenterOrdinalHighlightMode
@@ -334,12 +331,6 @@ const ignoreErrors = [
   T.RPCGen.StatusCode.scapinetworkerror,
   T.RPCGen.StatusCode.sctimeout,
 ]
-
-const makeAttachmentViewInfo = (): T.Chat.AttachmentViewInfo => ({
-  last: false,
-  messages: [],
-  status: 'loading',
-})
 
 // Backend gives us messageIDs sometimes so we need to find our ordinal
 const messageIDToOrdinal = (
@@ -1273,7 +1264,6 @@ const createSlice =
             m.transferState = undefined
           }
         })
-        updateAttachmentViewTransfered(messageID, path)
         return rpcRes.filePath
       } catch (error) {
         const errMsg =
@@ -1291,7 +1281,6 @@ const createSlice =
             m.transferState = undefined
           }
         })
-        updateAttachmentViewTransfered(messageID, '')
         return false
       }
     }
@@ -1800,40 +1789,6 @@ const createSlice =
       })
     }
 
-    const updateAttachmentViewTransfer = (msgId: number, ratio: number) => {
-      set(s => {
-        const viewType = T.RPCChat.GalleryItemTyp.doc
-        const info = mapGetEnsureValue(s.attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
-        const {messages} = info
-        const idx = messages.findIndex(item => item.id === msgId)
-        if (idx !== -1) {
-          const m = messages[idx]
-          if (m!.type === 'attachment') {
-            m.transferState = 'downloading'
-            m.transferProgress = ratio
-          }
-        }
-      })
-    }
-
-    const updateAttachmentViewTransfered = (msgId: number, path: string) => {
-      set(s => {
-        const viewType = T.RPCChat.GalleryItemTyp.doc
-        const info = mapGetEnsureValue(s.attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
-        const {messages} = info
-        const idx = messages.findIndex(item => item.id === msgId)
-        if (idx !== -1) {
-          const m = messages[idx]
-          if (m!.type === 'attachment') {
-            m.downloadPath = path
-            m.fileURLCached = true
-            m.transferProgress = 0
-            m.transferState = undefined
-          }
-        }
-      })
-    }
-
     let lastScrollNumOrdinals = 0
     let lastScrollTime = 0
     const okToLoadMore = (n: number) => {
@@ -1876,7 +1831,6 @@ const createSlice =
 
     const onDownloadProgress = (msgID: number, bytesComplete: number, bytesTotal: number) => {
       const ratio = bytesComplete / bytesTotal
-      updateAttachmentViewTransfer(msgID, ratio)
       const ordinal = maybeGetOrdinalByMessageID(get(), T.Chat.numberToMessageID(msgID))
       if (!ordinal) {
         logger.info(`downloadProgress: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
@@ -2344,11 +2298,6 @@ const createSlice =
           refreshMutualTeamsInConv()
         }
       },
-      clearAttachmentView: () => {
-        set(s => {
-          s.attachmentViewMap = new Map()
-        })
-      },
       dismissBottomBanner: () => {
         set(s => {
           s.dismissedInviteBanners = true
@@ -2438,127 +2387,8 @@ const createSlice =
         })
         get().dispatch.loadMoreMessages({reason: 'jump to recent'})
       },
-      loadAttachmentView: (viewType, fromMsgID) => {
-        set(s => {
-          const {attachmentViewMap} = s
-          const info = mapGetEnsureValue(attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
-          info.status = 'loading'
-        })
-
-        const f = async () => {
-          const {id: conversationIDKey} = get()
-          const convID = get().getConvID()
-          const pendingMessages: Array<T.Chat.Message> = []
-          let flushTimeout: ReturnType<typeof setTimeout> | undefined
-          const flushPendingMessages = () => {
-            if (flushTimeout) {
-              clearTimeout(flushTimeout)
-              flushTimeout = undefined
-            }
-            if (!pendingMessages.length) {
-              return
-            }
-            const messages = pendingMessages.splice(0)
-            const dedupedMessages = new Array<T.Chat.Message>()
-            const seenMessageIDs = new Set<T.Chat.MessageID>()
-            for (const message of messages) {
-              if (!seenMessageIDs.has(message.id)) {
-                seenMessageIDs.add(message.id)
-                dedupedMessages.push(message)
-              }
-            }
-            set(s => {
-              const info = mapGetEnsureValue(
-                s.attachmentViewMap,
-                viewType,
-                T.castDraft(makeAttachmentViewInfo())
-              )
-              const existingMessageIDs = new Set(info.messages.map(item => item.id))
-              const nextMessages = [...info.messages] as Array<T.Chat.Message>
-              let changed = false
-              for (const message of dedupedMessages) {
-                if (!existingMessageIDs.has(message.id)) {
-                  existingMessageIDs.add(message.id)
-                  nextMessages.push(T.castDraft(message))
-                  changed = true
-                }
-              }
-              if (changed) {
-                info.messages = T.castDraft(nextMessages.sort((l, r) => r.id - l.id))
-              }
-            })
-            messagesAdd(dedupedMessages, {markAsRead: false, why: 'gallery inject'})
-          }
-          const scheduleFlushPendingMessages = () => {
-            if (flushTimeout) {
-              return
-            }
-            flushTimeout = setTimeout(() => {
-              flushPendingMessages()
-            }, 16)
-          }
-          try {
-            const res = await T.RPCChat.localLoadGalleryRpcListener({
-              incomingCallMap: {
-                'chat.1.chatUi.chatLoadGalleryHit': (
-                  hit: T.RPCChat.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
-                ) => {
-                  const {username, devicename} = getCurrentUser()
-                  const m = Message.uiMessageToMessage(
-                    conversationIDKey,
-                    hit.message,
-                    username,
-                    getLastOrdinal,
-                    devicename
-                  )
-
-                  if (m) {
-                    // conversationMessage is used to tell if its this gallery load or not but if we
-                    // load a message we already have we don't want to overwrite that it really belongs
-                    const message = {...m, conversationMessage: get().messageMap.has(m.ordinal)}
-                    pendingMessages.push(message)
-                    scheduleFlushPendingMessages()
-                  }
-                },
-              },
-              params: {
-                convID,
-                fromMsgID,
-                num: 50,
-                typ: viewType,
-              },
-            })
-            flushPendingMessages()
-            set(s => {
-              const info = mapGetEnsureValue(
-                s.attachmentViewMap,
-                viewType,
-                T.castDraft(makeAttachmentViewInfo())
-              )
-              info.last = !!res.last
-              info.status = 'success'
-            })
-          } catch (error) {
-            flushPendingMessages()
-            if (error instanceof RPCError) {
-              logger.error('failed to load attachment view: ' + error.message)
-              set(s => {
-                const info = mapGetEnsureValue(
-                  s.attachmentViewMap,
-                  viewType,
-                  T.castDraft(makeAttachmentViewInfo())
-                )
-                info.last = false
-                info.status = 'error'
-              })
-            }
-          } finally {
-            if (flushTimeout) {
-              clearTimeout(flushTimeout)
-            }
-          }
-        }
-        ignorePromise(f())
+      galleryMessagesLoaded: messages => {
+        messagesAdd([...messages], {markAsRead: false, why: 'gallery inject'})
       },
       loadMessagesCentered: (messageID, highlightMode) => {
         get().dispatch.messagesClear()
@@ -3798,7 +3628,6 @@ const createSlice =
             )
           } else if (visibleScreen?.name === 'chatInfoPanel') {
             navigateUp()
-            get().dispatch.clearAttachmentView()
           }
           return
         }

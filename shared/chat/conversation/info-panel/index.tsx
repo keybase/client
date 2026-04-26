@@ -30,7 +30,6 @@ const InfoPanelConnector = (ownProps: Props) => {
   const selectedTab = ownProps.tab ?? uncontrolledSelectedTab
 
   const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
-  const clearAttachmentView = ConvoState.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
   React.useEffect(() => {
     return () => {
       // Only call showInfoPanel(false) on mobile where the panel is a separate route.
@@ -39,9 +38,8 @@ const InfoPanelConnector = (ownProps: Props) => {
       if (Kb.Styles.isMobile) {
         showInfoPanel(false, undefined)
       }
-      clearAttachmentView()
     }
-  }, [showInfoPanel, clearAttachmentView])
+  }, [showInfoPanel])
 
   const lastShouldNavigateOutRef = React.useRef(shouldNavigateOut)
   React.useEffect(() => {

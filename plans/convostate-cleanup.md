@@ -67,19 +67,21 @@ Recommended cleanup order: move `attachmentViewMap` first, then `mutualTeams` an
 
 ## Chunk 2: Move Attachment Gallery State To The Attachments Feature
 
-- [ ] Create gallery state in `shared/chat/conversation/info-panel/attachments.tsx` or a colocated hook/provider
-- [ ] Move `attachmentViewMap`, `loadAttachmentView`, and `clearAttachmentView` ownership to that feature
-- [ ] Keep existing gallery behavior:
-  - [ ] load status starts as `loading`
-  - [ ] hits are deduped by message ID
-  - [ ] gallery messages are sorted newest-first
-  - [ ] loaded gallery messages are still injected into the thread cache when needed
-  - [ ] `last` and `error` status are preserved
-- [ ] Preserve attachment row behavior in `convostate`:
-  - [ ] upload/download progress on message rows remains engine-driven
-  - [ ] download complete still updates the backing message
-  - [ ] native save/share/PDF flows are unchanged
-- [ ] Route attachment-info-panel open/close behavior through the feature owner rather than clearing gallery state from `convostate.showInfoPanel`
+- [x] Create gallery state in `shared/chat/conversation/info-panel/attachments.tsx` or a colocated hook/provider
+- [x] Move `attachmentViewMap`, `loadAttachmentView`, and `clearAttachmentView` ownership to that feature
+- [x] Keep existing gallery behavior:
+  - [x] load status starts as `loading`
+  - [x] hits are deduped by message ID
+  - [x] gallery messages are sorted newest-first
+  - [x] loaded gallery messages are still injected into the thread cache when needed
+  - [x] `last` and `error` status are preserved
+- [x] Preserve attachment row behavior in `convostate`:
+  - [x] upload/download progress on message rows remains engine-driven
+  - [x] download complete still updates the backing message
+  - [x] native save/share/PDF flows are unchanged
+- [x] Route attachment-info-panel open/close behavior through the feature owner rather than clearing gallery state from `convostate.showInfoPanel`
+
+Implementation note: `convostate` now keeps only `galleryMessagesLoaded(...)` for durable message-cache injection; the gallery map and gallery RPC lifecycle live in the attachments feature.
 
 ## Chunk 3: Move Suggestion And Bot Convenience Caches To Feature Hooks
 
