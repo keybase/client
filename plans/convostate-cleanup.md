@@ -108,6 +108,8 @@ Implementation note: `convostate` now keeps only `galleryMessagesLoaded(...)` fo
 
 Implementation note: channel suggestions now load mutual teams on suggestor mount. Bot install and info-panel add-to-channel flows now load bot role/settings locally. Command suggestions now subscribe directly to `chatBotCommandsUpdateStatus` while the input is mounted, keeping bot restriction settings in the suggestor layer instead of `convostate`.
 
+Lint note: when local feature state needs to reset for a new conversation ID, do not call `setState` synchronously inside `useEffect`. Derive the blank/reset state from the current conversation key during render, remount the owning provider with `key`, or update from the external subscription callback so `react-hooks/set-state-in-effect` stays clean.
+
 ## Chunk 4: Move Composer UI State To The Conversation Input Feature
 
 - [ ] Introduce a conversation input provider or hook colocated with `shared/chat/conversation/input-area`

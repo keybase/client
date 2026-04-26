@@ -42,10 +42,6 @@ const makeBotCommandsUpdateState = (conversationIDKey: T.Chat.ConversationIDKey)
 export const useBotCommandsUpdateState = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const [updateState, setUpdateState] = React.useState(() => makeBotCommandsUpdateState(conversationIDKey))
 
-  React.useEffect(() => {
-    setUpdateState(makeBotCommandsUpdateState(conversationIDKey))
-  }, [conversationIDKey])
-
   useEngineActionListener('chat.1.chatUi.chatBotCommandsUpdateStatus', action => {
     if (T.Chat.stringToConversationIDKey(action.payload.params.convID) !== conversationIDKey) {
       return
