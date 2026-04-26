@@ -4,8 +4,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import logger from '@/logger'
-import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
+import {useConfigState} from '@/stores/config'
 import type {RefType as InputRef} from '../normal/input'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
@@ -43,28 +42,6 @@ const getBotRestrictBlockMap = (
   return blocks
 }
 const blankCommands: Array<T.RPCChat.ConversationCommand> = []
-
-const useBuiltinCommands = () => {
-  const [builtinCommands, setBuiltinCommands] = React.useState<T.Chat.StaticConfig['builtinCommands']>()
-  const loadStaticConfig = C.useRPC(T.RPCChat.localGetStaticConfigRpcPromise)
-  React.useEffect(() => {
-    loadStaticConfig(
-      [],
-      res => {
-        const staticConfig = serviceStaticConfigToStaticConfig(res)
-        if (!staticConfig) {
-          logger.error('chat.commands: got no deletableByDeleteHistory in static config')
-          return
-        }
-        setBuiltinCommands(staticConfig.builtinCommands)
-      },
-      err => {
-        logger.warn('chat.commands: error loading static config', err)
-      }
-    )
-  }, [loadStaticConfig])
-  return builtinCommands
-}
 
 const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   const {selected, item: command} = p
@@ -133,7 +110,7 @@ type UseDataSourceProps = {
 
 const useDataSource = (p: UseDataSourceProps) => {
   const {filter, inputRef, lastTextRef} = p
-  const builtinCommands = useBuiltinCommands()
+  const builtinCommands = useConfigState(s => s.chatBuiltinCommands)
   const showGiphySearch = ConvoState.useChatUIContext(s => s.giphyWindow)
   const showCommandMarkdown = ConvoState.useChatContext(s => !!s.commandMarkdown)
   return ConvoState.useChatContext(

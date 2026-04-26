@@ -70,7 +70,9 @@ export const useInboxLayoutState = Z.createZustand<State>('chat-inbox-layout', (
         try {
           const _layout = JSON.parse(str) as unknown
           if (!_layout || typeof _layout !== 'object') {
-            console.log('Invalid layout?')
+            logger.warn(
+              `Invalid inbox layout JSON: expected object, got ${_layout === null ? 'null' : typeof _layout}`
+            )
             return
           }
           const layout = _layout as T.RPCChat.UIInboxLayout
@@ -83,7 +85,7 @@ export const useInboxLayoutState = Z.createZustand<State>('chat-inbox-layout', (
             s.retriedOnCurrentEmpty = false
           }
         } catch (e) {
-          logger.info('failed to JSON parse inbox layout: ' + String(e))
+          logger.warn('failed to JSON parse inbox layout', e)
         }
       })
     },

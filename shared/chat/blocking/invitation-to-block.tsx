@@ -6,61 +6,9 @@ import * as React from 'react'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import * as T from '@/constants/types'
-import {bodyToJSON} from '@/constants/rpc-utils'
 import logger from '@/logger'
-import {useEngineActionListener} from '@/engine/action-listener'
 import {RPCError} from '@/util/errors'
-
-const blockButtonsGregorPrefix = 'blockButtons.'
-
-const gregorItemsToBlockButtons = (
-  items?: ReadonlyArray<{
-    readonly item?: T.RPCGen.Gregor1.Item | null
-  }> | null
-) =>
-  (items ?? []).reduce<Map<T.RPCGen.TeamID, T.Chat.BlockButtonsInfo>>((map, {item}) => {
-    if (!item?.category.startsWith(blockButtonsGregorPrefix)) {
-      return map
-    }
-    try {
-      const teamID = item.category.substring(blockButtonsGregorPrefix.length)
-      const body = bodyToJSON(item.body) as {adder?: unknown} | undefined
-      if (typeof body?.adder === 'string') {
-        map.set(teamID, {adder: body.adder})
-      }
-    } catch (e) {
-      logger.info('block buttons parse fail', e)
-    }
-    return map
-  }, new Map())
-
-const useBlockButtonsInfo = (teamID: T.Teams.TeamID) => {
-  const [blockButtonsMap, setBlockButtonsMap] = React.useState<
-    ReadonlyMap<T.RPCGen.TeamID, T.Chat.BlockButtonsInfo>
-  >(() => new Map())
-
-  const reloadBlockButtons = React.useEffectEvent(() => {
-    const f = async () => {
-      try {
-        const state = await T.RPCGen.gregorGetStateRpcPromise()
-        setBlockButtonsMap(gregorItemsToBlockButtons(state.items))
-      } catch (error) {
-        logger.warn('Failed to load block button state', error)
-      }
-    }
-    C.ignorePromise(f())
-  })
-
-  React.useEffect(() => {
-    reloadBlockButtons()
-  }, [])
-
-  useEngineActionListener('keybase.1.gregorUI.pushState', action => {
-    setBlockButtonsMap(gregorItemsToBlockButtons(action.payload.params.state.items))
-  })
-
-  return blockButtonsMap.get(teamID)
-}
+import {useBlockButtonsInfo} from './block-buttons-state'
 
 const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
   const f = async () => {

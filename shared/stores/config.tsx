@@ -20,6 +20,7 @@ type Store = T.Immutable<{
     | {type: T.RPCGen.IncomingShareType.file; urls: Array<string>}
     | {type: T.RPCGen.IncomingShareType.text; text: string}
   badgeState?: T.RPCGen.BadgeState
+  chatBuiltinCommands?: T.Chat.StaticConfig['builtinCommands']
   chatDeletableByDeleteHistory?: Set<T.Chat.MessageType>
   configuredAccounts: Array<T.Config.ConfiguredAccount>
   defaultUsername: string
@@ -63,6 +64,7 @@ const initialStore: Store = {
   allowAnimatedEmojis: true,
   androidShare: undefined,
   badgeState: undefined,
+  chatBuiltinCommands: undefined,
   chatDeletableByDeleteHistory: undefined,
   configuredAccounts: [],
   defaultUsername: '',
@@ -122,7 +124,7 @@ export type State = Store & {
     setAccounts: (a: Store['configuredAccounts']) => void
     setAndroidShare: (s: Store['androidShare']) => void
     setBadgeState: (b: State['badgeState']) => void
-    setChatDeletableByDeleteHistory: (s: Store['chatDeletableByDeleteHistory']) => void
+    setChatStaticConfig: (s: T.Chat.StaticConfig) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: unknown) => void
     setGregorReachable: (r: Store['gregorReachable']) => void
@@ -462,6 +464,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       if (isDebug) return
       set(s => ({
         ...initialStore,
+        chatBuiltinCommands: s.chatBuiltinCommands,
         chatDeletableByDeleteHistory: s.chatDeletableByDeleteHistory,
         configuredAccounts: s.configuredAccounts,
         defaultUsername: s.defaultUsername,
@@ -500,11 +503,10 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
         s.badgeState = T.castDraft(b)
       })
     },
-    setChatDeletableByDeleteHistory: deletableByDeleteHistory => {
+    setChatStaticConfig: staticConfig => {
       set(s => {
-        s.chatDeletableByDeleteHistory = deletableByDeleteHistory
-          ? new Set(deletableByDeleteHistory)
-          : undefined
+        s.chatBuiltinCommands = T.castDraft(staticConfig.builtinCommands)
+        s.chatDeletableByDeleteHistory = new Set(staticConfig.deletableByDeleteHistory)
       })
     },
     setDefaultUsername: u => {
