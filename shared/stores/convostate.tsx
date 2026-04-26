@@ -80,8 +80,6 @@ type ConvoStore = T.Immutable<{
   // temp cache for requestPayment and sendPayment message data,
   accountsInfoMap: Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
   badge: number
-  botCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp
-  botSettings: Map<string, T.RPCGen.TeamBotSettings | undefined>
   commandMarkdown?: T.RPCChat.UICommandMarkdown
   dismissedInviteBanners: boolean
   explodingMode: number // seconds to exploding message expiration,
@@ -135,8 +133,6 @@ export interface ConvoUIState extends ConvoUIStore {
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
   badge: 0,
-  botCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp.blank,
-  botSettings: new Map(),
   commandMarkdown: undefined,
   dismissedInviteBanners: false,
   explodingMode: 0,
@@ -214,7 +210,6 @@ export interface ConvoState extends ConvoStore {
     ) => void
     badgesUpdated: (badge: number) => void
     blockConversation: (reportUser: boolean) => void
-    botCommandsUpdateStatus: (b: T.RPCChat.UIBotCommandsUpdateStatus) => void
     dismissBottomBanner: () => void
     dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
     editBotSettings: (
@@ -1065,7 +1060,6 @@ export const handleConvoEngineIncoming = (
     case 'chat.1.chatUi.chatCommandMarkdown':
     case 'chat.1.chatUi.chatGiphyToggleResultWindow':
     case 'chat.1.chatUi.chatCommandStatus':
-    case 'chat.1.chatUi.chatBotCommandsUpdateStatus':
     case 'chat.1.chatUi.chatGiphySearchResults': {
       const conversationIDKey = T.Chat.stringToConversationIDKey(action.payload.params.convID)
       getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
@@ -2257,18 +2251,6 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      botCommandsUpdateStatus: status => {
-        set(s => {
-          s.botCommandsUpdateStatus = status.typ
-          if (status.typ === T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate) {
-            const settingsMap = new Map<string, T.RPCGen.TeamBotSettings | undefined>()
-            Object.keys(status.uptodate.settings ?? {}).forEach(u => {
-              settingsMap.set(u, status.uptodate.settings?.[u])
-            })
-            s.botSettings = T.castDraft(settingsMap)
-          }
-        })
-      },
       dismissBottomBanner: () => {
         set(s => {
           s.dismissedInviteBanners = true
@@ -2999,9 +2981,6 @@ const createSlice =
             })
             break
           }
-          case 'chat.1.chatUi.chatBotCommandsUpdateStatus':
-            get().dispatch.botCommandsUpdateStatus(action.payload.params.status)
-            break
           case 'chat.1.chatUi.chatCommandMarkdown':
             set(s => {
               s.commandMarkdown = action.payload.params.md || undefined

@@ -127,7 +127,6 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
       const {sendMessage, jumpToRecent, setExplodingMode} = s.dispatch
       const {cannotWrite, minWriterRole, tlfname} = meta
       const showReplyPreview = !!messageMap.get(uiData.replyTo)?.id
-      const suggestBotCommandsUpdateStatus = s.botCommandsUpdateStatus
       const convoID = s.getConvID()
       const metaGood = s.isMetaGood()
       const storeDraft = metaGood ? meta.draft : undefined
@@ -140,14 +139,14 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
       // prettier-ignore
       return {cannotWrite, conversationIDKey, convoID, explodingMode, explodingModeSeconds,
         jumpToRecent, minWriterRole, sendMessage, setExplodingMode, showReplyPreview,
-        storeDraft, suggestBotCommandsUpdateStatus, tlfname}
+        storeDraft, tlfname}
     })
   )
 
   const {cannotWrite, conversationIDKey, setExplodingMode: setExplodingModeRaw} = data
   const {jumpToRecent, minWriterRole, sendMessage} = data
   const {explodingModeSeconds: explodingModeSecondsRaw, convoID, tlfname, storeDraft} = data
-  const {suggestBotCommandsUpdateStatus, showReplyPreview} = data
+  const {showReplyPreview} = data
   const {editOrdinal, unsentText} = uiData
   const isEditing = !!editOrdinal
   const setEditing = ConvoState.useChatUIContext(s => s.dispatch.setEditing)
@@ -263,7 +262,6 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     <PlatformInput
       hintText={hintText}
       suggestionOverlayStyle={suggestionOverlayStyle}
-      suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
       onSubmit={onSubmit}
       setInputRef={setLocalInputRef}
       onChangeText={onChangeText}

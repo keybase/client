@@ -510,7 +510,6 @@ const PlatformInput = function PlatformInput(p: Props) {
     inputRef,
     onChangeText: p.onChangeText,
     onKeyDown: checkEnterOnKeyDown,
-    suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
     suggestionListStyle: undefined,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
     suggestionSpinnerStyle: styles.suggestionSpinnerStyle,

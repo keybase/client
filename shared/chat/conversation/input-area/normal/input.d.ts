@@ -72,7 +72,6 @@ export type PlatformInputProps = {
   onChangeText: (newText: string) => void
   onSubmit: (text: string) => void
   showReplyPreview: boolean
-  suggestBotCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp
   suggestionOverlayStyle: Styles.StylesCrossPlatform
 }
 

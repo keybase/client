@@ -553,7 +553,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.chatUi.chatCommandMarkdown':
     case 'chat.1.chatUi.chatGiphyToggleResultWindow':
     case 'chat.1.chatUi.chatCommandStatus':
-    case 'chat.1.chatUi.chatBotCommandsUpdateStatus':
     case 'chat.1.chatUi.chatGiphySearchResults':
     case 'chat.1.NotifyChat.ChatParticipantsInfo':
     case 'chat.1.NotifyChat.ChatConvUpdate':
