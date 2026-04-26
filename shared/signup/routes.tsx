@@ -15,7 +15,11 @@ const EmailSkipButton = () => {
       type="BodyBigLink"
       onClick={() => {
         setSignupEmail(C.noEmail)
-        showPushPrompt ? navigateAppend({name: 'settingsPushPrompt', params: {}}, true) : clearModals()
+        if (showPushPrompt) {
+          navigateAppend({name: 'settingsPushPrompt', params: {}}, true)
+        } else {
+          clearModals()
+        }
       }}
     >
       Skip

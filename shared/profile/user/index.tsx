@@ -488,7 +488,7 @@ const User = (props: {username: string}) => {
             if (item.type === 'bioTeamProofs') return null
             if (item.type === 'friend') {
               return (
-                <FriendRow key={'friend' + index} usernames={item.usernames} itemWidth={item.itemWidth} />
+                <FriendRow key={'friend' + String(index)} usernames={item.usernames} itemWidth={item.itemWidth} />
               )
             }
             return p.notAUser ? null : (

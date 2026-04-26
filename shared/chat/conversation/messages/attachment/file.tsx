@@ -57,7 +57,9 @@ function FileContainer(p: OwnProps) {
     )
   }
   const _onShowInFinder = () => {
-    downloadPath && openLocalPathInSystemFileManagerDesktop(downloadPath)
+    if (downloadPath) {
+      openLocalPathInSystemFileManagerDesktop(downloadPath)
+    }
   }
 
   const onDownload = () => {

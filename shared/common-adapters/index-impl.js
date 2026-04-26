@@ -1,3 +1,5 @@
+/* global module, require */
+
 // this is to defer actually importing these modules until you actually use them
 // this file is ignored by ts
 module.exports = {
@@ -73,14 +75,14 @@ module.exports = {
   get ConnectedNameWithIcon() {
     // explicitly require this to make popup work if it's not been imported
     // explicitly
-    require('./profile-card').default
+    require('./profile-card')
 
     return require('./name-with-icon').default
   },
   get ConnectedUsernames() {
     // explicitly require this to make popup work if it's not been imported
     // explicitly
-    require('./profile-card').default
+    require('./profile-card')
 
     return require('./usernames').default
   },

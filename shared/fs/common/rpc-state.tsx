@@ -76,7 +76,9 @@ const rpcConflictStateToConflictState = (rpcConflictState?: T.RPCGen.ConflictSta
       const nv = rpcConflictState.normalview
       return makeConflictStateNormalView({
         localViewTlfPaths: (nv.localViews || []).reduce<Array<T.FS.Path>>((arr, p) => {
-          p.PathType === T.RPCGen.PathType.kbfs && arr.push(rpcPathToPath(p.kbfs))
+          if (p.PathType === T.RPCGen.PathType.kbfs) {
+            arr.push(rpcPathToPath(p.kbfs))
+          }
           return arr
         }, []),
         resolvingConflict: nv.resolvingConflict,

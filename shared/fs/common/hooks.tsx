@@ -294,7 +294,9 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
         })
         setPathSoftError(path)
         const tlfPath = FS.getTlfPath(path)
-        tlfPath && setTlfSoftError(tlfPath)
+        if (tlfPath) {
+          setTlfSoftError(tlfPath)
+        }
       } catch (error) {
         errorToActionOrThrow(error, path)
       } finally {
@@ -485,7 +487,9 @@ const useFsLoadOnMountAndFocus = ({
     loadOnMountAndFocus()
   })
   React.useEffect(() => {
-    connected && enabled && loadOnMountAndFocus()
+    if (connected && enabled) {
+      loadOnMountAndFocus()
+    }
   }, [connected, enabled, reloadKey])
   C.Router2.useSafeFocusEffect(stableLoadOnMountAndFocus)
 }
@@ -845,7 +849,9 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
     FS.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) === FS.unknownTlf &&
     options?.loadOnMount !== false
   const loadCurrentTlf = React.useEffectEvent(() => {
-    active && loadAdditionalTlf(tlfPath)
+    if (active && loadAdditionalTlf && tlfPath) {
+      loadAdditionalTlf(tlfPath)
+    }
   })
   const [stableLoadCurrentTlf] = React.useState(() => () => {
     loadCurrentTlf()
@@ -1045,7 +1051,9 @@ export const useFsFileContext = (
       const requestReloadKey = reloadKey
       const f = async () => {
         try {
-          urlError && logger.info(`urlError: ${urlError}`)
+          if (urlError) {
+            logger.info(`urlError: ${urlError}`)
+          }
           const res = await T.RPCGen.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
             path: FS.pathToRPCPath(path).kbfs,
           })

@@ -77,10 +77,11 @@ const useWatchPosition = (
         unsub = () => sub.remove()
       } catch (_error) {
         const error = _error as {message?: string}
-        logger.info('failed to get location: ' + error.message)
+        const errorMessage = String(error.message)
+        logger.info('failed to get location: ' + errorMessage)
         setCommandStatusInfo({
           actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
-          displayText: `Failed to access location. ${error.message}`,
+          displayText: `Failed to access location. ${errorMessage}`,
           displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
         })
       }

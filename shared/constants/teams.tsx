@@ -398,7 +398,7 @@ export const getTeamRowBadgeCount = (
 }
 
 const canUserPerformCache: {[key: string]: T.Teams.TeamOperations} = {}
-const canUserPerformCacheKey = (t: T.Teams.TeamRoleAndDetails) => t.role + t.implicitAdmin
+const canUserPerformCacheKey = (t: T.Teams.TeamRoleAndDetails) => `${t.role}${String(t.implicitAdmin)}`
 export const deriveCanPerform = (roleAndDetails?: T.Teams.TeamRoleAndDetails): T.Teams.TeamOperations => {
   if (!roleAndDetails) {
     return initialCanUserPerform

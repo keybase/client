@@ -858,7 +858,7 @@ export const syncGregorExplodingModes = (
       )
       getConvoState(conversationIDKey).dispatch.setExplodingMode(seconds, true)
     } catch (error) {
-      logger.info('Error parsing exploding' + error)
+      logger.info('Error parsing exploding' + String(error))
     }
   })
 }
@@ -2926,8 +2926,9 @@ const createSlice =
               }
             })
           } catch (err) {
-            logger.error('Failed to save attachment: ' + err)
-            throw new Error('Failed to save attachment: ' + err, {cause: err})
+            const errString = String(err)
+            logger.error('Failed to save attachment: ' + errString)
+            throw new Error('Failed to save attachment: ' + errString, {cause: err})
           }
         }
         ignorePromise(f())

@@ -62,7 +62,9 @@ function WrapperText(p: Props) {
   })
   const onReplyClick = () => {
     const id = replyTo?.id ?? 0
-    id && messageData.replyJump(id)
+    if (id) {
+      messageData.replyJump(id)
+    }
   }
   const reply = useReply(replyTo, onReplyClick)
 

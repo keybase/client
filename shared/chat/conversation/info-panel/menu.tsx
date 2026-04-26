@@ -97,11 +97,12 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const routerNavigateAppend = C.Router2.navigateAppend
   const canAddPeople = yourOperations.manageMembers
   const onAddPeople = () => {
-    teamID &&
+    if (teamID) {
       routerNavigateAppend({
         name: 'teamAddToTeamFromWhere',
         params: {wizard: makeAddMembersWizard(teamID)},
       })
+    }
   }
   const chatNavigateAppend = ConvoState.useChatNavigateAppend()
   const onBlockConv = () => {
@@ -294,13 +295,14 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
       onClick: onBlockConv,
       title: 'Block',
     } as const)
-    conversationIDKey &&
+    if (conversationIDKey) {
       items.push({
         icon: 'iconfont-folder-downloads',
         iconIsVisible: false,
         onClick: onArchive,
         title: 'Backup conversation',
       } as const)
+    }
   } else {
     if (hasChannelSection) {
       items.push(channelHeader)

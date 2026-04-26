@@ -66,7 +66,9 @@ const NameWithIcon = (props: NameWithIconProps) => {
   const _onClickWrapper = onClick
     ? (event: React.BaseSyntheticEvent) => {
         if (!event.defaultPrevented) {
-          username && onClick(username)
+          if (username) {
+            onClick(username)
+          }
         }
       }
     : undefined

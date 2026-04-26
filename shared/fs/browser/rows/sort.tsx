@@ -80,7 +80,7 @@ const getComparerBySortBy = (sortBy: 'name' | 'time'): PathItemComparer => {
       return (a: SortableRowItem, b: SortableRowItem): number =>
         getLastModifiedTimeStamp(b) - getLastModifiedTimeStamp(a)
     default:
-      throw new Error('invalid SortBy: ' + sortBy)
+      throw new Error('invalid SortBy: ' + String(sortBy))
   }
 }
 

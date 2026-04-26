@@ -20,7 +20,7 @@ export const transformer = (
   return Common.standardTransformer(`${prefix}${command.name}`, tData, preview)
 }
 
-const keyExtractor = (c: T.RPCChat.ConversationCommand) => c.name + c.username
+const keyExtractor = (c: T.RPCChat.ConversationCommand) => c.name + String(c.username)
 
 const getBotRestrictBlockMap = (
   settings: ReadonlyMap<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>,
@@ -55,7 +55,9 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
     const botRestrictMap = getBotRestrictBlockMap(botSettings, s.id, [
       ...suggestBotCommands
         .reduce((s, c) => {
-          c.username && s.add(c.username)
+          if (c.username) {
+            s.add(c.username)
+          }
           return s
         }, new Set<string>())
         .values(),

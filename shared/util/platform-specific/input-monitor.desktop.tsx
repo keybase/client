@@ -62,16 +62,22 @@ class InputMonitor {
         break
       case 'appActive':
         this.notifyActive?.(true)
-        DEBUG_LOG && console.log('InputMonitor: 5 minute timeout')
+        if (DEBUG_LOG) {
+          console.log('InputMonitor: 5 minute timeout')
+        }
         this.timeoutID = setTimeout(() => this.transition('timeout'), timeToConsiderActiveForAwhile)
         break
       case 'afterActiveCheck':
         this.listenForMouseKeyboard()
-        DEBUG_LOG && console.log('InputMonitor: 1 minute timeout')
+        if (DEBUG_LOG) {
+          console.log('InputMonitor: 1 minute timeout')
+        }
         this.timeoutID = setTimeout(() => this.transition('timeout'), timeToConsiderInactive)
         break
       case 'appInactive':
-        DEBUG_LOG && console.log('InputMonitor: Inactive')
+        if (DEBUG_LOG) {
+          console.log('InputMonitor: Inactive')
+        }
         this.listenForMouseKeyboard()
         this.notifyActive?.(false)
         break
@@ -80,9 +86,13 @@ class InputMonitor {
 
   private clearTimers = () => {
     // always kill timers
-    this.timeoutID && clearTimeout(this.timeoutID)
+    if (this.timeoutID) {
+      clearTimeout(this.timeoutID)
+    }
     this.timeoutID = undefined
-    DEBUG_LOG && console.log('InputMonitor: Timer cleared')
+    if (DEBUG_LOG) {
+      console.log('InputMonitor: Timer cleared')
+    }
   }
 
   private listenerOptions = {
@@ -92,13 +102,17 @@ class InputMonitor {
 
   private listenForMouseKeyboard = () => {
     this.unlistenForMouseKeyboard()
-    DEBUG_LOG && console.log('InputMonitor: adding mouseKeyboard events')
+    if (DEBUG_LOG) {
+      console.log('InputMonitor: adding mouseKeyboard events')
+    }
     window.addEventListener('mousemove', this.onMouseKeyboard, this.listenerOptions)
     window.addEventListener('keypress', this.onMouseKeyboard, this.listenerOptions)
   }
 
   private unlistenForMouseKeyboard = () => {
-    DEBUG_LOG && console.log('InputMonitor: removing mouseKeyboard events')
+    if (DEBUG_LOG) {
+      console.log('InputMonitor: removing mouseKeyboard events')
+    }
     window.removeEventListener('mousemove', this.onMouseKeyboard, this.listenerOptions)
     window.removeEventListener('keypress', this.onMouseKeyboard, this.listenerOptions)
   }
@@ -107,7 +121,9 @@ class InputMonitor {
     this.clearTimers()
 
     const nextState = this.nextState(reason)
-    DEBUG_LOG && console.log('InputMonitor: transition', this.state, nextState)
+    if (DEBUG_LOG) {
+      console.log('InputMonitor: transition', this.state, nextState)
+    }
     if (nextState === this.state) return
     this.exitState(this.state)
     this.enterState(nextState)

@@ -24,7 +24,7 @@ function getMultsMap(imgMap: {[size: string]: unknown}, targetSize: number): Mul
   const ssizes = Object.keys(imgMap)
   if (!ssizes.length) return {}
 
-  const sizeKey = targetSize + ']' + ssizes.join(':')
+  const sizeKey = `${targetSize}]${ssizes.join(':')}`
   if (_getMultsMapCache[sizeKey]) return _getMultsMapCache[sizeKey]
 
   const sizes = ssizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)

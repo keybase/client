@@ -166,8 +166,7 @@ async function main() {
   copySync('Icon.png', 'build/desktop/Icon.png')
   copySync('Icon@2x.png', 'build/desktop/Icon@2x.png')
   await copySyncFolder('../images', 'build/images', ['.gif', '.png'])
-  if (TEMP_SKIP_BUILD) {
-  } else {
+  if (!TEMP_SKIP_BUILD) {
     fs.removeSync(desktopPath('build/images/folders'))
     fs.removeSync(desktopPath('build/images/iconfont'))
     fs.removeSync(desktopPath('build/images/mock'))
@@ -193,8 +192,7 @@ async function startPack() {
   process.env['APP_VERSION'] = appVersion
   const webpackConfig: Array<Configuration> = rootConfig(null, {mode: 'production'})
   try {
-    if (TEMP_SKIP_BUILD) {
-    } else {
+    if (!TEMP_SKIP_BUILD) {
       const stats = await new Promise<webpack.MultiStats | undefined>((resolve, reject) => {
         webpack(webpackConfig, (err: Error | null, stats: webpack.MultiStats | undefined) => {
           if (err) {

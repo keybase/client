@@ -200,7 +200,9 @@ export const useTrackerProfile = (username: string, options?: Options) => {
   )
 
   React.useEffect(() => {
-    username && loadProfile()
+    if (username) {
+      loadProfile()
+    }
   }, [loadProfile, username])
 
   C.Router2.useSafeFocusEffect(

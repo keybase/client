@@ -93,7 +93,9 @@ function ZoomableImage(p: Props) {
   }
 
   const handleWheel = (e: React.WheelEvent) => {
-    e.cancelable && e.preventDefault()
+    if (e.cancelable) {
+      e.preventDefault()
+    }
 
     if (dragPan && !allowPan) return
     if (!dragPan && !isZoomedRef.current) return

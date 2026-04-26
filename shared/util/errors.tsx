@@ -32,6 +32,31 @@ export function convertToError(err: unknown, method?: string): Error | RPCError 
   }
 }
 
+const errorMessage = (error: unknown) => {
+  if (error && typeof error === 'object') {
+    const message = (error as {message?: unknown}).message
+    if (typeof message === 'string') {
+      return message
+    }
+    const desc = (error as {desc?: unknown}).desc
+    if (typeof desc === 'string') {
+      return desc
+    }
+  }
+  return String(error)
+}
+
+export function ensureError(error: unknown): Error {
+  if (error instanceof Error) {
+    return error
+  }
+  const nativeError = new Error(errorMessage(error), {cause: error})
+  if (error && typeof error === 'object') {
+    Object.assign(nativeError, error)
+  }
+  return nativeError
+}
+
 type RPCErrorLike = {
   code: number
   desc: string

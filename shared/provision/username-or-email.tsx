@@ -51,7 +51,9 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const requestAutoInvite = useRequestAutoInvite()
   const _setUsername = useProvisionState(s => s.dispatch.dynamic.setUsername)
   const _onSubmit = (username: string) => {
-    !waiting && _setUsername?.(username)
+    if (!waiting) {
+      _setUsername?.(username)
+    }
   }
   const [username, setUsername] = React.useState(op.username ?? _username)
   React.useEffect(() => {

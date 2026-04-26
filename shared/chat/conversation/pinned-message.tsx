@@ -33,7 +33,9 @@ const PinnedMessage = function PinnedMessage() {
   const dismissUnpins = yourMessage || canAdminDelete
 
   const onClick = () => {
-    messageID && replyJump(messageID)
+    if (messageID) {
+      replyJump(messageID)
+    }
   }
   const onUnpin = () => {
     pinMessage()

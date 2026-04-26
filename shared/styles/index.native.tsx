@@ -57,7 +57,7 @@ export const styleSheetCreate = (f: () => MapToStyles): unknown =>
 
 export const collapseStyles = (
   styles: ReadonlyArray<unknown>
-): undefined | unknown | ReadonlyArray<object | null | false> => {
+): undefined | object | ReadonlyArray<unknown> => {
   // if we have no / singular values we pass those on in the hopes they're consts
   const nonNull = styles.filter(s => {
     if (!s) {

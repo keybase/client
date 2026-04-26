@@ -34,7 +34,9 @@ export const MobileSendToChat = (props: Props) => {
   const navigateAppend = C.Router2.navigateAppend
   const clearModals = C.Router2.clearModals
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
-    text && ConvoState.getConvoUIState(conversationIDKey).dispatch.injectIntoInput(text)
+    if (text) {
+      ConvoState.getConvoUIState(conversationIDKey).dispatch.injectIntoInput(text)
+    }
     if (sendPaths?.length) {
       navigateAppend({
         name: 'chatAttachmentGetTitles',

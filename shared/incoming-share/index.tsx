@@ -8,6 +8,7 @@ import {MobileSendToChat} from '../chat/send-to-chat'
 import {settingsFeedbackTab} from '@/constants/settings'
 import * as FS from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
+import {ensureError} from '@/util/errors'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
@@ -30,7 +31,9 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
 
   // If it's original only, set original in store.
   React.useEffect(() => {
-    originalOnly && setUseOriginalInStore(true)
+    if (originalOnly) {
+      setUseOriginalInStore(true)
+    }
   }, [originalOnly, setUseOriginalInStore])
 
   // From service to store, but only if this is not original only.
@@ -44,7 +47,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
             pref.compressPreference === T.RPCGen.IncomingShareCompressPreference.original
           ),
         err => {
-          throw err
+          throw ensureError(err)
         }
       )
     }
@@ -57,7 +60,9 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   const makePopup = (p: Kb.Popup2Parms) => {
     const {hidePopup} = p
     const setUseOriginalFromUI = (useOriginal: boolean) => {
-      !originalOnly && setUseOriginalInStore(useOriginal)
+      if (!originalOnly) {
+        setUseOriginalInStore(useOriginal)
+      }
       setUseOriginalInService(useOriginal)
     }
 
@@ -195,7 +200,9 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   React.useEffect(() => {
     if (!canDirectNav || hasNavigatedRef.current) return
     hasNavigatedRef.current = true
-    text && ConvoState.getConvoUIState(selectedConversationIDKey).dispatch.injectIntoInput(text)
+    if (text) {
+      ConvoState.getConvoUIState(selectedConversationIDKey).dispatch.injectIntoInput(text)
+    }
     C.Router2.navigateToThread(selectedConversationIDKey, 'extension')
     if (sendPaths.length > 0) {
       const meta = ConvoState.getConvoState(selectedConversationIDKey).meta

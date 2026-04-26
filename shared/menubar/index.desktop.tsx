@@ -249,7 +249,7 @@ const FilesPreview = (p: {remoteTlfUpdates: ReadonlyArray<RemoteTlfUpdates>; fol
           const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
           const tlfType = T.FS.getPathVisibility(update.tlf) || T.FS.TlfType.Private
           return (
-            <Kb.Box2 key={tlf + update.writer + update.timestamp} direction="horizontal" fullWidth={true} gap="tiny" style={styles.tlfRowContainer}>
+            <Kb.Box2 key={tlf + update.writer + String(update.timestamp)} direction="horizontal" fullWidth={true} gap="tiny" style={styles.tlfRowContainer}>
               <HttpAvatar
                 name={update.writer}
                 size={32}
@@ -390,7 +390,9 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   const {navBadges, showBadges} = p
   const openApp = (tab?: C.Tabs.AppTab) => {
     R.remoteDispatch(RemoteGen.createShowMain())
-    tab && R.remoteDispatch(RemoteGen.createSwitchTab({tab}))
+    if (tab) {
+      R.remoteDispatch(RemoteGen.createSwitchTab({tab}))
+    }
   }
 
   const menuItems = useMenuItems({...p, openApp})

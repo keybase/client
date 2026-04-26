@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global Buffer, console, process, require, setTimeout */
 // Takes screenshots of all 8 desktop app tabs via Chrome DevTools Protocol.
 // Usage: node visual-diff-take.js <baseline|current>
 //

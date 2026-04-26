@@ -33,7 +33,11 @@ const Video = (props: Props) => {
 
   const onVideoClick = () => {
     if (videoRef.current) {
-      videoRef.current.paused ? videoRef.current.play().catch(() => {}) : videoRef.current.pause()
+      if (videoRef.current.paused) {
+        videoRef.current.play().catch(() => {})
+      } else {
+        videoRef.current.pause()
+      }
     }
   }
 

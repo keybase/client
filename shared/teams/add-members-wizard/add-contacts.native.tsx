@@ -21,10 +21,18 @@ const AddContacts = ({wizard}: {wizard: AddMembersWizard}) => {
 
   const onSelectContact = (contact: Contact, checked: boolean) => {
     if (contact.type === 'phone') {
-      checked ? selectedPhones.add(contact.value) : selectedPhones.delete(contact.value)
+      if (checked) {
+        selectedPhones.add(contact.value)
+      } else {
+        selectedPhones.delete(contact.value)
+      }
       setSelectedPhones(new Set(selectedPhones))
     } else {
-      checked ? selectedEmails.add(contact.value) : selectedEmails.delete(contact.value)
+      if (checked) {
+        selectedEmails.add(contact.value)
+      } else {
+        selectedEmails.delete(contact.value)
+      }
       setSelectedEmails(new Set(selectedEmails))
     }
   }

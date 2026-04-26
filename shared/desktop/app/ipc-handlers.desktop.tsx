@@ -14,6 +14,7 @@ import {ctlQuit} from './ctl.desktop'
 import logger from '@/logger'
 import {htmlURL, preloadPath} from './html-root.desktop'
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
+import {ensureError} from '@/util/errors'
 import type {Action} from '../app/ipctypes'
 import type {Engine} from '@/engine'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug.desktop'
@@ -38,7 +39,7 @@ const winCheckRPCOwnership = async () => {
     execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
       if (error) {
         logger.info(`pipeowner check result: ${stdout.toString()}`)
-        reject(error)
+        reject(ensureError(error))
         return
       }
       const result = JSON.parse(stdout.toString()) as undefined | {isOwner?: unknown}
@@ -160,7 +161,7 @@ const openInDefaultDirectory = async (openPath: string) => {
           resolve()
         })
         .catch((err: unknown) => {
-          reject(err)
+          reject(ensureError(err))
         })
     })
   })
@@ -207,7 +208,7 @@ export const setupIPCHandlers = (deps: {
           logger.info('Invoking dokan installer')
           execFile(dokanPath, [], err => {
             if (err) {
-              reject(err)
+              reject(ensureError(err))
               return
             }
             // restart the service, particularly kbfsdokan
@@ -432,7 +433,11 @@ export const setupIPCHandlers = (deps: {
       case 'toggleMaximizeWindow': {
         const win = Electron.BrowserWindow.getFocusedWindow()
         if (win) {
-          win.isMaximized() ? win.unmaximize() : win.maximize()
+          if (win.isMaximized()) {
+            win.unmaximize()
+          } else {
+            win.maximize()
+          }
         }
         return
       }
@@ -502,7 +507,7 @@ export const setupIPCHandlers = (deps: {
             {encoding: 'utf8'}
           )
         } catch (e) {
-          console.warn('update app state failed' + e)
+          console.warn('update app state failed' + String(e))
         }
         break
       case 'appStartedUp':

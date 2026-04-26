@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global __dirname, console, module, process, require */
 // Unified perf baseline comparison — handles both iOS and desktop baseline dirs.
 //
 // iOS baseline:     maestro-fps.json + react-profiler.json

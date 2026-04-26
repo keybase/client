@@ -387,7 +387,9 @@ const usePeoplePageState = () => {
     skipTodoRPC(
       [{t: T.RPCGen.HomeScreenTodoType[type]}],
       () => {
-        mountedRef.current && queueLoadPeople(false)
+        if (mountedRef.current) {
+          queueLoadPeople(false)
+        }
       },
       _ => {}
     )

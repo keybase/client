@@ -15,7 +15,9 @@ const SetPublicName = () => {
   const ponBack = useSafeSubmit(navigateUp, !!error)
   const psetDeviceName = Provision.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
   const ponSubmit = (name: string) => {
-    !waiting && psetDeviceName?.(name)
+    if (!waiting) {
+      psetDeviceName?.(name)
+    }
   }
   const iconNumbers = T.Devices.nextDeviceIconNumbers(devices)
   const deviceIconNumber = C.isMobile ? iconNumbers.mobile : iconNumbers.desktop

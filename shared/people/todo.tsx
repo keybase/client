@@ -47,7 +47,9 @@ type TodoOwnProps = {
 
 const installLinkURL = 'https://keybase.io/download'
 const useOnSkipTodo = (skipTodo: (type: T.People.TodoType) => void, type?: T.People.TodoType) => () => {
-  type && skipTodo(type)
+  if (type) {
+    skipTodo(type)
+  }
 }
 
 function makeDefaultButtons(
@@ -117,7 +119,9 @@ const SettingsAccountTask = ({
   const onConfirm = () => {
     switchTab(C.Tabs.settingsTab)
     navigateAppend({name: settingsAccountTab, params: {}})
-    destination && navigateAppend({name: destination, params: {}})
+    if (destination) {
+      navigateAppend({name: destination, params: {}})
+    }
   }
   return <BasicTask {...props} dismissTodoType={dismissTodoType} onConfirm={onConfirm} />
 }
@@ -262,7 +266,9 @@ const VerifyAllPhoneNumberTask = (props: TodoOwnProps) => {
             label: 'Verify',
             onClick: () => {
               const meta = props.metadata
-              meta?.type === 'phone' && onConfirm(meta.phone)
+              if (meta?.type === 'phone') {
+                onConfirm(meta.phone)
+              }
             },
             type: 'Success' as const,
           },
@@ -293,7 +299,9 @@ const LegacyEmailVisibilityTask = (props: TodoOwnProps) => {
             label: 'Make searchable',
             onClick: () => {
               const meta = props.metadata
-              meta?.type === 'email' && onConfirm(meta.email)
+              if (meta?.type === 'email') {
+                onConfirm(meta.email)
+              }
             },
             type: 'Success' as const,
           },

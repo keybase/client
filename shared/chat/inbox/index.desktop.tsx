@@ -75,10 +75,9 @@ const DragLine = (p: {
   const newSmallRows = deltaNewSmallRows()
   let expandingRows: Array<string> = []
   let removingRows: Array<string> = []
-  if (newSmallRows === 0) {
-  } else if (newSmallRows > 0) {
+  if (newSmallRows > 0) {
     expandingRows = new Array<string>(newSmallRows).fill('')
-  } else {
+  } else if (newSmallRows < 0) {
     removingRows = new Array<string>(-newSmallRows).fill('')
   }
 

@@ -281,7 +281,9 @@ const Container = (ownProps: OwnProps) => {
   }
   const previewConversation = C.Router2.previewConversation
   const onChat = () => {
-    username && previewConversation({participants: [username], reason: 'teamInvite'})
+    if (username) {
+      previewConversation({participants: [username], reason: 'teamInvite'})
+    }
   }
   const onOpenProfile = () => {
     navToProfile(username)

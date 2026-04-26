@@ -104,12 +104,13 @@ export const RecsAndRecos = (props: RecsAndRecosProps) => {
   const highlightDetails = listIndexToSectionAndLocalIndex(highlightedIndex, recommendations)
 
   React.useEffect(() => {
-    highlightedIndex >= 0 &&
+    if (highlightedIndex >= 0) {
       sectionListRef.current?.scrollToLocation({
         itemIndex: highlightedIndex,
         sectionIndex: 0,
         viewPosition: 0,
       })
+    }
   }, [highlightedIndex])
 
   return (

@@ -20,7 +20,9 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
   )
   const hasSoftError = !!Kbfs.useFsSoftError(props.path)
   React.useEffect(() => {
-    !Kb.Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
+    if (!Kb.Styles.isMobile) {
+      setFolderViewFilter() // mobile is handled in mobile-header.tsx
+    }
   }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
 
   return !hasSoftError ? (

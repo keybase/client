@@ -158,7 +158,9 @@ const apiSearch = async (
     )
     return (results || []).reduce<Array<T.TB.User>>((arr, r) => {
       const u = parseRawResultToUser(r, service)
-      u && arr.push(u)
+      if (u) {
+        arr.push(u)
+      }
       return arr
     }, [])
   } catch (error) {

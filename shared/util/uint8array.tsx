@@ -66,7 +66,7 @@ export const uint8ArrayToHex = (array: Uint8Array): string => {
   let hexString = ''
   // eslint-disable-next-line @typescript-eslint/prefer-for-of -- Keep the indexed loop for parity with the upstream hot path.
   for (let index = 0; index < array.length; index++) {
-    hexString += byteToHexLookupTable[array[index]!]
+    hexString += byteToHexLookupTable[array[index]!]!
   }
 
   return hexString

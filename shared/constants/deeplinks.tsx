@@ -68,7 +68,9 @@ const handleKeybaseLink = (link: string) => {
         return
       }
       if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
-        parts.length === 4 && parts[3] && navToProfile(parts[3])
+        if (parts.length === 4 && parts[3]) {
+          navToProfile(parts[3])
+        }
         navigateAppend({name: 'profileProofsList', params: {platform: parts[2]!, reason: 'appLink'}})
         return
       }

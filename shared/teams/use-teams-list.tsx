@@ -3,6 +3,7 @@ import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/constants/teams'
+import {ensureError} from '@/util/errors'
 import {useEngineActionListener} from '@/engine/action-listener'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -28,6 +29,7 @@ const emptyTeamRoleMap = Object.freeze<T.RPCGen.TeamRoleMapAndVersion>({teams: u
 const TeamsListContext = React.createContext<TeamsList | null>(null)
 const TeamsRoleMapContext = React.createContext<TeamsRoleMap | null>(null)
 const teamsListReloadStaleMs = 5 * 60_000
+
 const teamsListInvalidationListeners = new Set<() => void>()
 const teamsRoleMapInvalidationListeners = new Set<() => void>()
 const teamsListCache = createCachedResourceCache<ReadonlyArray<T.Teams.TeamMeta>, string | undefined>(
@@ -73,7 +75,7 @@ const useTeamsListRaw = (enabled = true): TeamsList => {
         loadTeamsRPC(
           [{includeImplicitTeams: false, userAssertion: username}, C.waitingKeyTeamsLoaded],
           result => resolve(teamListToArray(result.teams ?? [])),
-          error => reject(error)
+          error => reject(ensureError(error))
         )
       }),
     onError: error => {
@@ -144,7 +146,7 @@ const useTeamsRoleMapRaw = (enabled = true): TeamsRoleMap => {
         loadRoleMapRPC(
           [undefined],
           result => resolve(result),
-          error => reject(error)
+          error => reject(ensureError(error))
         )
       }),
     onError: error => {

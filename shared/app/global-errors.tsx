@@ -51,7 +51,9 @@ const useData = () => {
   const size: Size = error ? (expandedError === error ? 'Big' : 'Small') : 'Closed'
 
   const clearCountdown = () => {
-    countdownTimerRef.current && clearTimeout(countdownTimerRef.current)
+    if (countdownTimerRef.current) {
+      clearTimeout(countdownTimerRef.current)
+    }
     countdownTimerRef.current = undefined
   }
 

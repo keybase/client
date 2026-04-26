@@ -14,7 +14,9 @@ const LocationMap = (props: Props) => {
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const onLoad = () => {
     setMapLoaded(true)
-    !!props.onLoad && props.onLoad()
+    if (props.onLoad) {
+      props.onLoad()
+    }
   }
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" justifyContent="center" style={styles.container}>

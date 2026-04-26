@@ -158,7 +158,9 @@ function SpecialTopMessage() {
     if (ordinal !== lastOrdinalRef.current) {
       setAllowDigging(false)
       lastOrdinalRef.current = ordinal
-      digTimerRef.current && clearTimeout(digTimerRef.current)
+      if (digTimerRef.current) {
+        clearTimeout(digTimerRef.current)
+      }
       digTimerRef.current = setTimeout(() => {
         setAllowDigging(true)
       }, 3000)

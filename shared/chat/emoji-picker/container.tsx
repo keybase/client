@@ -13,6 +13,7 @@ import {type RenderableEmoji, emojiData} from '@/common-adapters/emoji'
 import {usePickerState, type PickKey} from './use-picker'
 import {Keyboard} from 'react-native'
 import {useUserEmoji} from '@/chat/user-emoji'
+import {ensureError} from '@/util/errors'
 
 type Props = {
   disableCustomEmoji?: boolean
@@ -61,7 +62,7 @@ const useSkinTone = () => {
       [{skinTone: T.Chat.EmojiSkinToneToRPC(emojiSkinTone)}],
       res => updateUserReacjis(res),
       err => {
-        throw err
+        throw ensureError(err)
       }
     )
   }

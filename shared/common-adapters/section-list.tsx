@@ -40,7 +40,9 @@ function SectionListImpl<ItemT, SectionT>(
   const onViewableItemsChanged = onSectionChange
     ? (e: {viewableItems: ViewToken<ItemT>[]}) => {
         const section = e.viewableItems[0]?.section as SectionT | undefined
-        section && onSectionChange(section)
+        if (section) {
+          onSectionChange(section)
+        }
       }
     : undefined
 

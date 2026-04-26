@@ -23,13 +23,16 @@ const Breadcrumb = (props: Props) => {
   const {inDestinationPicker} = props
   const nav = useSafeNavigation()
   const onOpenPath = (path: T.FS.Path) => {
-    inDestinationPicker
-      ? props.destinationPickerSource &&
+    if (inDestinationPicker) {
+      if (props.destinationPickerSource) {
         nav.safeNavigateAppend({
           name: 'destinationPicker',
           params: {parentPath: path, source: props.destinationPickerSource},
         })
-      : nav.safeNavigateAppend({name: 'fsRoot', params: {path}})
+      }
+    } else {
+      nav.safeNavigateAppend({name: 'fsRoot', params: {path}})
+    }
   }
 
   const makePopup = (p: Kb.Popup2Parms) => {

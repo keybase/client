@@ -88,7 +88,9 @@ export const TransferIcon = (p: {
   }
 
   const onFinder = () => {
-    downloadPath && openLocalPathInSystemFileManagerDesktop(downloadPath)
+    if (downloadPath) {
+      openLocalPathInSystemFileManagerDesktop(downloadPath)
+    }
   }
 
   switch (state) {

@@ -95,13 +95,15 @@ const ChannelMemberRow = (props: Props) => {
   }
   const previewConversation = C.Router2.previewConversation
   const onChat = () => {
-    username && previewConversation({participants: [username], reason: 'teamMember'})
+    if (username) {
+      previewConversation({participants: [username], reason: 'teamMember'})
+    }
   }
   const navigateAppend = C.Router2.navigateAppend
   const onEditMember = () => {
-    yourOperations.manageMembers &&
-      username &&
+    if (yourOperations.manageMembers && username) {
       navigateAppend({name: 'teamMember', params: {teamID, username}})
+    }
   }
   const checkCircle = (
     <Kb.CheckCircle
@@ -148,7 +150,7 @@ const ChannelMemberRow = (props: Props) => {
         params: {conversationIDKey, members: [username], teamID},
       })
     const onBlock = () => {
-      username &&
+      if (username) {
         setUserBlocks(
           [
             {
@@ -165,6 +167,7 @@ const ChannelMemberRow = (props: Props) => {
           () => {},
           () => {}
         )
+      }
     }
 
     const menuItems: Kb.MenuItems = [

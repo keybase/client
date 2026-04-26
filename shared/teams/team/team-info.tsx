@@ -55,7 +55,7 @@ const TeamInfo = (props: Props) => {
       renameTeamRPC(
         [
           {
-            newName: {parts: (parentTeamNameWithDot + newName).split('.')},
+            newName: {parts: (String(parentTeamNameWithDot) + newName).split('.')},
             prevName: {parts: teamname.split('.')},
           },
           C.waitingKeyTeamsRename,

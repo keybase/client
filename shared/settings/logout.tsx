@@ -88,7 +88,11 @@ const LogoutContainer = () => {
             <Kb.Input3
               keyboardType={keyboardType}
               onEnterKeyDown={() => {
-                checkPasswordIsCorrect ? logOut() : onCheckPassword(password)
+                if (checkPasswordIsCorrect) {
+                  logOut()
+                } else {
+                  onCheckPassword(password)
+                }
               }}
               onChangeText={setPassword}
               placeholder="Your password"

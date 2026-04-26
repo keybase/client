@@ -66,7 +66,11 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
     const selected = selectedMembers.has(m.username)
     const onSelect = () => {
       // TODO: ensure performance (see Y2K-1666)
-      !selected ? selectedMembers.add(m.username) : selectedMembers.delete(m.username)
+      if (!selected) {
+        selectedMembers.add(m.username)
+      } else {
+        selectedMembers.delete(m.username)
+      }
       setSelectedMembers(new Set([...selectedMembers]))
     }
 

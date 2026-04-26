@@ -89,7 +89,9 @@ export function List<T>(p: ListProps<T>) {
 
     const onSubmit = () => {
       const sel = items[selectedIndex]
-      sel && onSelected(sel, true)
+      if (sel) {
+        onSelected(sel, true)
+      }
       return !!sel
     }
 

@@ -45,7 +45,7 @@ function getColor(status: T.FS.LocalConflictStatusType | T.FS.NonUploadStaticSyn
 
 function getTooltip(statusIcon: T.FS.PathStatusIcon, isFolder: boolean): string {
   if (typeof statusIcon === 'number') {
-    return 'Syncing ' + Math.floor(statusIcon * 100) + '%...'
+    return 'Syncing ' + String(Math.floor(statusIcon * 100)) + '%...'
   }
 
   switch (statusIcon) {

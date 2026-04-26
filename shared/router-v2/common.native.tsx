@@ -96,7 +96,7 @@ export const useSubnavTabAction = (navigation: SubnavNavigation, state: NavState
       ? navigation.emit({
           canPreventDefault: true,
           target: route.key,
-          // @ts-ignore tabPress is valid but not in the emit type
+          // @ts-expect-error tabPress is valid but not in the emit type
           type: 'tabPress',
         })
       : {defaultPrevented: false}

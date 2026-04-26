@@ -24,7 +24,9 @@ const PeopleResult = function PeopleResult(props: ResultProps) {
 
   const navigateAppend = C.Router2.navigateAppend
   const onMenuAddToTeam = () => {
-    keybaseUsername && navigateAppend({name: 'profileAddToTeam', params: {username: keybaseUsername}})
+    if (keybaseUsername) {
+      navigateAppend({name: 'profileAddToTeam', params: {username: keybaseUsername}})
+    }
   }
 
   const navigateUp = C.Router2.navigateUp
@@ -41,7 +43,9 @@ const PeopleResult = function PeopleResult(props: ResultProps) {
   }
 
   const onManageBlocking = () => {
-    keybaseUsername && navigateAppend({name: 'chatBlockingModal', params: {username: keybaseUsername}})
+    if (keybaseUsername) {
+      navigateAppend({name: 'chatBlockingModal', params: {username: keybaseUsername}})
+    }
   }
 
   const previewConversation = C.Router2.previewConversation
