@@ -31,6 +31,7 @@ export type State = Store & {
     setError: (e?: Error) => void
     setFailed: (r: string) => void
     setState: (s: T.Config.DaemonHandshakeState) => void
+    updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
     wait: (
       name: string,
       version: number,
@@ -176,6 +177,13 @@ export const useDaemonState = Z.createZustand<State>('daemon', (set, get) => {
         s.handshakeRetriesLeft = Math.max(0, s.handshakeRetriesLeft - 1)
       })
       get().dispatch.daemonHandshake(nextVersion)
+    },
+    updateUserReacjis: userReacjis => {
+      set(s => {
+        if (s.bootstrapStatus) {
+          s.bootstrapStatus.userReacjis = T.castDraft(userReacjis)
+        }
+      })
     },
     wait: (name, version, increment, failedReason, failedFatal) => {
       const {handshakeState, handshakeFailedReason, handshakeVersion} = get()

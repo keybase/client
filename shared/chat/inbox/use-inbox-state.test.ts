@@ -1,18 +1,17 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 
-type MockChatState = {
-  badgeStateVersion: number
+type MockInboxLayoutState = {
   dispatch: {
-    inboxRefresh: jest.Mock
-    setInboxRetriedOnCurrentEmpty: jest.Mock
+    refresh: jest.Mock
+    setRetriedOnCurrentEmpty: jest.Mock
   }
-  inboxHasLoaded: boolean
-  inboxLayout: undefined
-  inboxRetriedOnCurrentEmpty: boolean
+  hasLoaded: boolean
+  layout: undefined
+  retriedOnCurrentEmpty: boolean
 }
 
-let mockChatState: MockChatState
+let mockInboxLayoutState: MockInboxLayoutState
 
 jest.mock('@/constants', () => {
   const React = require('react')
@@ -40,11 +39,22 @@ jest.mock('@/constants', () => {
   }
 })
 
-jest.mock('@/stores/chat', () => ({
+jest.mock('@/constants/chat', () => ({
   getSelectedConversation: () => '',
   isSplit: false,
   noConversationIDKey: '',
-  useChatState: <T>(selector: (state: MockChatState) => T) => selector(mockChatState),
+}))
+
+jest.mock('./layout-state', () => ({
+  useInboxLayout: () => ({
+    hasLoaded: mockInboxLayoutState.hasLoaded,
+    layout: mockInboxLayoutState.layout,
+    refresh: mockInboxLayoutState.dispatch.refresh,
+  }),
+  useInboxRetryState: () => ({
+    retriedOnCurrentEmpty: mockInboxLayoutState.retriedOnCurrentEmpty,
+    setRetriedOnCurrentEmpty: mockInboxLayoutState.dispatch.setRetriedOnCurrentEmpty,
+  }),
 }))
 
 jest.mock('@/stores/convostate', () => ({
@@ -84,15 +94,14 @@ beforeEach(() => {
   mockLoadInboxNumSmallRows = jest.fn()
   mockInboxRefresh = jest.fn()
   mockSetInboxRetriedOnCurrentEmpty = jest.fn()
-  mockChatState = {
-    badgeStateVersion: 0,
+  mockInboxLayoutState = {
     dispatch: {
-      inboxRefresh: mockInboxRefresh,
-      setInboxRetriedOnCurrentEmpty: mockSetInboxRetriedOnCurrentEmpty,
+      refresh: mockInboxRefresh,
+      setRetriedOnCurrentEmpty: mockSetInboxRetriedOnCurrentEmpty,
     },
-    inboxHasLoaded: true,
-    inboxLayout: undefined,
-    inboxRetriedOnCurrentEmpty: true,
+    hasLoaded: true,
+    layout: undefined,
+    retriedOnCurrentEmpty: true,
   }
   ;(C.useRPC as jest.Mock).mockReturnValue(mockLoadInboxNumSmallRows)
   jest.spyOn(T.RPCGen, 'configGuiSetValueRpcPromise').mockResolvedValue(undefined)

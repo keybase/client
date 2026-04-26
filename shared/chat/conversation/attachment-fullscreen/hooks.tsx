@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import {clampImageSize} from '@/constants/chat/helpers'
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'

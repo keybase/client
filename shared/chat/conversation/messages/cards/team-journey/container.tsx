@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Teams from '@/constants/teams'
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -9,6 +9,7 @@ import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {setMemberPublicity} from '@/teams/actions'
 import {useTeamsListMap} from '@/teams/use-teams-list'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 
 type Action = {label: string; onClick: () => void} | 'wave'
 type OwnProps = {ordinal: T.Chat.Ordinal}
@@ -25,7 +26,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const teamMetaByID = useTeamsListMap()
   const teamMeta = teamMetaByID.get(teamID) ?? Teams.makeTeamMeta({id: teamID})
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
-  const isBigTeam = Chat.useChatState(s => getIsBigTeam(s.inboxLayout, teamID))
+  const isBigTeam = useInboxLayoutState(s => getIsBigTeam(s.layout, teamID))
   const navigateAppend = C.Router2.navigateAppend
   const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({name: 'team', params: {teamID}})
   const dismissJourneycard = ConvoState.useChatContext(s => s.dispatch.dismissJourneycard)

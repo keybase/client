@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -9,6 +9,7 @@ import {View} from 'react-native'
 import {RectButton} from 'react-native-gesture-handler'
 import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {useOpenedRowState} from '../../opened-row-state'
+import {useInboxRowSmall} from '@/stores/inbox-rows'
 
 const actionWidth = 64
 
@@ -60,7 +61,7 @@ function SwipeConvActions(p: Props) {
   }
   const {children, onPress} = p
 
-  const isMuted = Chat.useInboxRowSmall(conversationIDKey).isMuted
+  const isMuted = useInboxRowSmall(conversationIDKey).isMuted
   const cs = ConvoState.getConvoState(conversationIDKey)
   const setMarkAsUnread = cs.dispatch.setMarkAsUnread
   const mute = cs.dispatch.mute

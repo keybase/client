@@ -1,6 +1,6 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -8,6 +8,7 @@ import type * as T from '@/constants/types'
 import Conversation from './conversation/container'
 import InfoPanel, {type Panel} from './conversation/info-panel'
 import type {ThreadSearchRouteProps} from './conversation/thread-search-route'
+import {useInboxLayoutState} from './inbox/layout-state'
 
 export type InboxAndConversationProps = ThreadSearchRouteProps & {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -27,11 +28,11 @@ export function InboxAndConversationShell(props: Props) {
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
   const lastValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
   const lastAutoSelectedCIDRef = React.useRef('')
-  const selectNextConvo = Chat.useChatState(s => {
+  const selectNextConvo = useInboxLayoutState(s => {
     if (validConvoID) {
       return null
     }
-    const first = s.inboxLayout?.smallTeams?.[0]
+    const first = s.layout?.smallTeams?.[0]
     return first?.convID === lastValidCIDRef.current ? null : first?.convID
   })
 

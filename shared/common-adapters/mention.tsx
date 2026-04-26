@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import * as Styles from '@/styles'
 import {WithProfileCardPopup} from './profile-card'
 import Text from './text'

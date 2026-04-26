@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import {makeChatScreen} from './make-chat-screen'
 import * as FS from '@/constants/fs'
 import type * as T from '@/constants/types'

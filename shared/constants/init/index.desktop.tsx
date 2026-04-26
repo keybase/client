@@ -1,5 +1,5 @@
 // links all the stores together, stores never import this
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import {ignorePromise} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'

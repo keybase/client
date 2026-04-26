@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as CryptoRoutes from '@/constants/crypto'
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
 import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'

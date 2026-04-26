@@ -2,7 +2,7 @@ import type * as React from 'react'
 import * as T from './types'
 import type * as ConvoRegistryType from '@/stores/convo-registry'
 import type * as ConvoStateType from '@/stores/convostate'
-import type * as UseChatStateType from '@/stores/chat'
+import type * as InboxLayoutStateType from '@/chat/inbox/layout-state'
 import type * as UseCurrentUserStateType from '@/stores/current-user'
 import * as Tabs from './tabs'
 import {
@@ -522,8 +522,8 @@ export const createConversation = (
 
       navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
 
-      const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
-      ignorePromise(useChatState.getState().dispatch.inboxRefresh('joinedAConversation'))
+      const {useInboxLayoutState} = require('@/chat/inbox/layout-state') as typeof InboxLayoutStateType
+      ignorePromise(useInboxLayoutState.getState().dispatch.refresh('joinedAConversation'))
     } catch (error) {
       if (error instanceof RPCError) {
         const fields = error.fields as Array<{key?: string}> | undefined
