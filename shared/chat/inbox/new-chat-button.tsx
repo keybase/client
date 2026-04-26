@@ -1,7 +1,7 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import {LiquidGlassView, isLiquidGlassSupported} from '@callstack/liquid-glass'
+import {isEmptyInboxLayout, useInboxLayoutState} from './layout-state'
 
 const rainbowHeight = C.isElectron ? 32 : 36
 const rainbowWidth = C.isElectron ? 80 : 96
@@ -12,13 +12,7 @@ const colorBarCommon = {
 } as const
 
 const HeaderNewChatButton = () => {
-  const hide = Chat.useChatState(
-    s =>
-      s.inboxHasLoaded &&
-      !!s.inboxLayout &&
-      (s.inboxLayout.smallTeams || []).length === 0 &&
-      (s.inboxLayout.bigTeams || []).length === 0
-  )
+  const hide = useInboxLayoutState(s => s.hasLoaded && isEmptyInboxLayout(s.layout))
 
   const onNewChat = C.Router2.appendNewChatBuilder
 

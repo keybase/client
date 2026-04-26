@@ -27,6 +27,7 @@ import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
 import {isMobile, isPhone, serverConfigFileName} from '../platform'
 import {useAvatarState} from '@/common-adapters/avatar/store'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -147,8 +148,7 @@ const refreshStartupChat = () => {
   // On phone, let the focused inbox screen trigger the first refresh so hidden chatRoot
   // mounts behind a pushed conversation do not pay inbox startup cost.
   if (!isPhone && useCurrentUserState.getState().username) {
-    const {inboxRefresh} = useChatState.getState().dispatch
-    ignorePromise(inboxRefresh('bootstrap'))
+    ignorePromise(useInboxLayoutState.getState().dispatch.refresh('bootstrap'))
   }
 }
 
@@ -536,11 +536,13 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       break
     case 'chat.1.chatUi.chatMaybeMentionUpdate':
     case 'chat.1.NotifyChat.ChatIdentifyUpdate':
-    case 'chat.1.NotifyChat.ChatInboxStale':
       {
         const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
         useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
+      break
+    case 'chat.1.NotifyChat.ChatInboxStale':
+      ignorePromise(useInboxLayoutState.getState().dispatch.refresh('inboxStale'))
       break
     case 'chat.1.chatUi.chatInboxUnverified':
       onGetInboxUnverifiedConvs(action)
@@ -551,15 +553,15 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.NotifyChat.ChatInboxSynced':
       useWaitingState.getState().dispatch.clear(S.waitingKeyChatInboxSyncStarted)
       ignorePromise(
-        onChatInboxSynced(action, async reason => useChatState.getState().dispatch.inboxRefresh(reason))
+        onChatInboxSynced(action, async reason => useInboxLayoutState.getState().dispatch.refresh(reason))
       )
       break
     case 'chat.1.chatUi.chatInboxLayout': {
-      const {inboxHasLoaded, dispatch} = useChatState.getState()
-      dispatch.updateInboxLayout(action.payload.params.layout)
-      const {inboxLayout} = useChatState.getState()
-      if (inboxLayout) {
-        onInboxLayoutChanged(inboxLayout, inboxHasLoaded)
+      const {hasLoaded, dispatch} = useInboxLayoutState.getState()
+      dispatch.updateLayout(action.payload.params.layout)
+      const {layout} = useInboxLayoutState.getState()
+      if (layout) {
+        onInboxLayoutChanged(layout, hasLoaded)
       }
       break
     }

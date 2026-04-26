@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import type {ConvoState as ConvoStateType} from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import {useChatTeamNames} from '../../team-hooks'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 
 export const transformer = (
   {channelname, teamname}: {channelname: string; teamname?: string},
@@ -59,7 +59,7 @@ const getChannelSuggestions = (
       return noChannel
     }
     // TODO not reactive
-    const suggestions = (Chat.useChatState.getState().inboxLayout?.bigTeams ?? []).reduce<
+    const suggestions = (useInboxLayoutState.getState().layout?.bigTeams ?? []).reduce<
       Array<{channelname: string; teamname: string}>
     >((arr, t) => {
       if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel && mutualTeams.has(t.channel.teamname)) {
@@ -72,7 +72,7 @@ const getChannelSuggestions = (
   }
   // TODO: get all the channels in the team, too, for this
   // TODO not reactive
-  const suggestions = (Chat.useChatState.getState().inboxLayout?.bigTeams ?? []).reduce<
+  const suggestions = (useInboxLayoutState.getState().layout?.bigTeams ?? []).reduce<
     Array<{channelname: string}>
   >((arr, t) => {
     if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel && t.channel.teamname === teamname) {

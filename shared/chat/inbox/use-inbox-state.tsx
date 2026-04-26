@@ -7,7 +7,56 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useInboxRowsState} from '@/stores/inbox-rows'
 import {useIsFocused} from '@react-navigation/core'
+import type {ChatInboxRowItem} from './rowitem'
+import {useInboxLayout, useInboxRetryState} from './layout-state'
 import {buildInboxRows} from './rows'
+
+const useInboxBadges = (
+  inboxRows: ReadonlyArray<ChatInboxRowItem>,
+  selectedConversationIDKey: string
+) => {
+  const bigConvIds = React.useMemo(() => {
+    return inboxRows.map(r => (r.type === 'big' ? r.conversationIDKey : ''))
+  }, [inboxRows])
+
+  const unreadBadges = useInboxRowsState(
+    C.useShallow(s =>
+      bigConvIds.map(conversationIDKey =>
+        conversationIDKey ? (s.rowsBig.get(conversationIDKey)?.badgeCount ?? 0) : 0
+      )
+    )
+  )
+
+  const unreadIndices = React.useMemo(() => {
+    const next: Map<number, number> = new Map()
+    unreadBadges.forEach((badge, idx) => {
+      if (badge > 0) {
+        next.set(idx, badge)
+      }
+    })
+    return next
+  }, [unreadBadges])
+
+  let unreadTotal = 0
+  unreadIndices.forEach(count => {
+    unreadTotal += count
+  })
+
+  if (selectedConversationIDKey === Chat.noConversationIDKey || !unreadIndices.size) {
+    return {unreadIndices, unreadTotal}
+  }
+
+  const filteredIndices = new Map<number, number>()
+  let filteredTotal = 0
+  unreadIndices.forEach((badge, idx) => {
+    const row = inboxRows[idx]
+    if (row?.type === 'big' && row.conversationIDKey !== selectedConversationIDKey) {
+      filteredIndices.set(idx, badge)
+      filteredTotal += badge
+    }
+  })
+  return {unreadIndices: filteredIndices, unreadTotal: filteredTotal}
+}
 
 export function useInboxState(
   conversationIDKey?: string,
@@ -19,22 +68,9 @@ export function useInboxState(
   const username = useCurrentUserState(s => s.username)
   const loadInboxNumSmallRows = C.useRPC(T.RPCGen.configGuiGetValueRpcPromise)
 
-  const chatState = Chat.useChatState(
-    C.useShallow(s => ({
-      inboxHasLoaded: s.inboxHasLoaded,
-      inboxLayout: s.inboxLayout,
-      inboxRefresh: s.dispatch.inboxRefresh,
-      inboxRetriedOnCurrentEmpty: s.inboxRetriedOnCurrentEmpty,
-      setInboxRetriedOnCurrentEmpty: s.dispatch.setInboxRetriedOnCurrentEmpty,
-    }))
-  )
-  const {
-    inboxHasLoaded,
-    inboxLayout,
-    inboxRefresh,
-    inboxRetriedOnCurrentEmpty,
-    setInboxRetriedOnCurrentEmpty,
-  } = chatState
+  const {hasLoaded: inboxHasLoaded, layout: inboxLayout, refresh: inboxRefresh} = useInboxLayout()
+  const {retriedOnCurrentEmpty: inboxRetriedOnCurrentEmpty, setRetriedOnCurrentEmpty} =
+    useInboxRetryState()
   const [inboxControls, setInboxControls] = React.useState(() => ({
     inboxNumSmallRows: 5,
     inboxNumSmallRowsLoaded: false,
@@ -196,7 +232,7 @@ export function useInboxState(
     if (!ready || isSearching || !inboxHasLoaded || inboxRows.length > 0 || inboxRetriedOnCurrentEmpty) {
       return
     }
-    setInboxRetriedOnCurrentEmpty(true)
+    setRetriedOnCurrentEmpty(true)
     C.ignorePromise(inboxRefresh('inboxSyncedCurrentButEmpty'))
   }, [
     inboxHasLoaded,
@@ -206,53 +242,11 @@ export function useInboxState(
     isFocused,
     isSearching,
     loggedIn,
-    setInboxRetriedOnCurrentEmpty,
+    setRetriedOnCurrentEmpty,
     username,
   ])
 
-  // Compute unread big indices at render time from per-convo stores
-  const bigConvIds = React.useMemo(() => {
-    return inboxRows.map(r => (r.type === 'big' ? r.conversationIDKey : ''))
-  }, [inboxRows])
-
-  const unreadBadges = useInboxRowsState(
-    C.useShallow(s =>
-      bigConvIds.map(conversationIDKey =>
-        conversationIDKey ? (s.rowsBig.get(conversationIDKey)?.badgeCount ?? 0) : 0
-      )
-    )
-  )
-
-  const unreadIndices = React.useMemo(() => {
-    const next: Map<number, number> = new Map()
-    unreadBadges.forEach((badge, idx) => {
-      if (badge > 0) {
-        next.set(idx, badge)
-      }
-    })
-    return next
-  }, [unreadBadges])
-
-  let unreadTotal = 0
-  unreadIndices.forEach(count => {
-    unreadTotal += count
-  })
-
-  // Filter out the selected conversation
-  let filteredIndices = unreadIndices
-  let filteredTotal = unreadTotal
-  if (selectedConversationIDKey !== Chat.noConversationIDKey && unreadIndices.size) {
-    const filtered = new Map<number, number>()
-    filteredTotal = 0
-    unreadIndices.forEach((badge, idx) => {
-      const row = inboxRows[idx]
-      if (row?.type === 'big' && row.conversationIDKey !== selectedConversationIDKey) {
-        filtered.set(idx, badge)
-        filteredTotal += badge
-      }
-    })
-    filteredIndices = filtered
-  }
+  const {unreadIndices, unreadTotal} = useInboxBadges(inboxRows, selectedConversationIDKey)
 
   return {
     allowShowFloatingButton,
@@ -266,7 +260,7 @@ export function useInboxState(
     setInboxNumSmallRows,
     smallTeamsExpanded: showAllSmallTeams,
     toggleSmallTeamsExpanded,
-    unreadIndices: filteredIndices,
-    unreadTotal: filteredTotal,
+    unreadIndices,
+    unreadTotal,
   }
 }

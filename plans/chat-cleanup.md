@@ -31,29 +31,29 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ## Chunk 1: Split Inbox Layout Ownership From The Global Chat Store
 
-- [ ] Introduce a chat inbox hook layer for mounted inbox consumers
+- [x] Introduce a chat inbox hook layer for mounted inbox consumers
   - `useInboxLayout(...)`
   - `useInboxBadges(...)`
   - `useInboxRetryState(...)`
-- [ ] Move `inboxHasLoaded`, `inboxLayout`, and `inboxRetriedOnCurrentEmpty` ownership out of the global chat store and into the inbox feature
-- [ ] Keep `useInboxState(...)` as the primary integration point for inbox screens
-- [ ] Update inbox refresh flows to use local hook state plus explicit reload calls
+- [x] Move `inboxHasLoaded`, `inboxLayout`, and `inboxRetriedOnCurrentEmpty` ownership out of the global chat store and into the inbox feature
+- [x] Keep `useInboxState(...)` as the primary integration point for inbox screens
+- [x] Update inbox refresh flows to use local hook state plus explicit reload calls
 
 ### Target callers for Chunk 1
 
-- [ ] `chat/inbox/use-inbox-state.tsx`
-- [ ] `chat/inbox/new-chat-button.tsx`
-- [ ] `chat/inbox/search-row.tsx`
-- [ ] `chat/inbox-and-conversation-shared.tsx`
+- [x] `chat/inbox/use-inbox-state.tsx`
+- [x] `chat/inbox/new-chat-button.tsx`
+- [x] `chat/inbox/search-row.tsx`
+- [x] `chat/inbox-and-conversation-shared.tsx`
 - [ ] inbox badge/divider UI that only depends on mounted inbox state
 
 ### Store fallout after Chunk 1
 
-- `inboxHasLoaded`
-- `inboxLayout`
-- `inboxRetriedOnCurrentEmpty`
-- `updateInboxLayout`
-- `inboxRefresh` ownership from the chat store, if the inbox feature can own it directly
+- [x] `inboxHasLoaded`
+- [x] `inboxLayout`
+- [x] `inboxRetriedOnCurrentEmpty`
+- [x] `updateInboxLayout`
+- [x] `inboxRefresh` ownership from the chat store, if the inbox feature can own it directly
 
 ## Chunk 2: Remove Maybe-Mention Cache From Global Chat State
 

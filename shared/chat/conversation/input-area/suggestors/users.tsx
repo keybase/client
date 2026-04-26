@@ -6,6 +6,7 @@ import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import {useUsersState} from '@/stores/users'
 import {useChatTeamMembers} from '../../team-hooks'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 
 export const transformer = (
   input: {
@@ -168,7 +169,7 @@ const useDataUsers = () => {
 }
 
 const useDataTeams = () => {
-  const inboxLayout = Chat.useChatState(s => s.inboxLayout)
+  const inboxLayout = useInboxLayoutState(s => s.layout)
   const teams = getTeams(inboxLayout)
   const allChannels = inboxLayout?.bigTeams?.reduce<Array<TeamListItem>>((arr, t) => {
     if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel) {

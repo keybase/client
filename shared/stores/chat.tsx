@@ -2,15 +2,11 @@ import type * as EngineGen from '@/constants/rpc'
 import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
-import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import {getTeamMentionName} from '@/constants/chat/helpers'
 import {RPCError} from '@/util/errors'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import {ignorePromise} from '@/constants/utils'
-import {isPhone} from '@/constants/platform'
-import {useConfigState} from '@/stores/config'
-import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useUsersState} from '@/stores/users'
 
@@ -33,11 +29,8 @@ type Store = T.Immutable<{
   badgeStateVersion: number
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
-  inboxRetriedOnCurrentEmpty: boolean
   staticConfig?: T.Chat.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   userReacjis: T.Chat.UserReacjis
-  inboxHasLoaded: boolean // if we've ever loaded,
-  inboxLayout?: T.RPCChat.UIInboxLayout // layout of the inbox
   maybeMentionMap: Map<string, T.RPCChat.UIMaybeMentionInfo>
   blockButtonsMap: Map<T.RPCGen.TeamID, T.Chat.BlockButtonsInfo> // Should we show block buttons for this team ID?
 }>
@@ -46,9 +39,6 @@ const initialStore: Store = {
   badgeStateVersion: 0,
   bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
-  inboxHasLoaded: false,
-  inboxLayout: undefined,
-  inboxRetriedOnCurrentEmpty: false,
   maybeMentionMap: new Map(),
   smallTeamBadgeCount: 0,
   staticConfig: undefined,
@@ -59,13 +49,10 @@ export type State = Store & {
   dispatch: {
     badgesUpdated: (badgeState?: T.RPCGen.BadgeState) => void
     dismissBlockButtons: (teamID: T.RPCGen.TeamID) => void
-    inboxRefresh: (reason: T.Chat.RefreshReason) => Promise<void>
-    setInboxRetriedOnCurrentEmpty: (retried: boolean) => void
     loadStaticConfig: () => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     resetState: () => void
     setMaybeMentionInfo: (name: string, info: T.RPCChat.UIMaybeMentionInfo) => void
-    updateInboxLayout: (layout: string) => void
     updateUserReacjis: (userReacjis: T.RPCGen.UserReacjis) => void
     updatedGregor: (
       items: ReadonlyArray<{md: T.RPCGen.Gregor1.Metadata; item: T.RPCGen.Gregor1.Item}>
@@ -75,21 +62,6 @@ export type State = Store & {
 
 // generic chat store
 export const useChatState = Z.createZustand<State>('chat', (set, get) => {
-  const requestInboxLayout = async (reason: T.Chat.RefreshReason) => {
-    const {username} = useCurrentUserState.getState()
-    const {loggedIn} = useConfigState.getState()
-    if (!loggedIn || !username) {
-      return
-    }
-
-    logger.info(`Inbox refresh due to ${reason}`)
-    const reselectMode =
-      get().inboxHasLoaded || isPhone
-        ? T.RPCChat.InboxLayoutReselectMode.default
-        : T.RPCChat.InboxLayoutReselectMode.force
-    await T.RPCChat.localRequestInboxLayoutRpcPromise({reselectMode})
-  }
-
   const dispatch: State['dispatch'] = {
     badgesUpdated: b => {
       if (!b) {
@@ -114,7 +86,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
       }
       ignorePromise(f())
     },
-    inboxRefresh: async reason => requestInboxLayout(reason),
     loadStaticConfig: () => {
       if (get().staticConfig) {
         return
@@ -177,9 +148,6 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
           useUsersState.getState().dispatch.updates(updates)
           break
         }
-        case 'chat.1.NotifyChat.ChatInboxStale':
-          ignorePromise(get().dispatch.inboxRefresh('inboxStale'))
-          break
         case 'keybase.1.NotifyBadges.badgeState': {
           const {badgeState} = action.payload.params
           get().dispatch.badgesUpdated(badgeState)
@@ -214,42 +182,10 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
         staticConfig: s.staticConfig,
       }))
     },
-    setInboxRetriedOnCurrentEmpty: retried => {
-      set(s => {
-        s.inboxRetriedOnCurrentEmpty = retried
-      })
-    },
     setMaybeMentionInfo: (name, info) => {
       set(s => {
         const {maybeMentionMap} = s
         maybeMentionMap.set(name, T.castDraft(info))
-      })
-    },
-    updateInboxLayout: str => {
-      set(s => {
-        try {
-          const _layout = JSON.parse(str) as unknown
-          if (!_layout || typeof _layout !== 'object') {
-            console.log('Invalid layout?')
-            return
-          }
-          const layout = _layout as T.RPCChat.UIInboxLayout
-          const hasInboxRows =
-            (layout.smallTeams?.length ?? 0) > 0 ||
-            (layout.bigTeams?.length ?? 0) > 0 ||
-            layout.totalSmallTeams > 0
-
-          const layoutChanged = !isEqual(s.inboxLayout, layout)
-          if (layoutChanged) {
-            s.inboxLayout = T.castDraft(layout)
-          }
-          s.inboxHasLoaded = !!layout
-          if (hasInboxRows) {
-            s.inboxRetriedOnCurrentEmpty = false
-          }
-        } catch (e) {
-          logger.info('failed to JSON parse inbox layout: ' + String(e))
-        }
       })
     },
     updateUserReacjis: userReacjis => {

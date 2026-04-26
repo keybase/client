@@ -1,7 +1,7 @@
 // A mirror of the remote menubar windows.
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {chatStores} from '@/stores/convo-registry'
 import type {ConvoState as ConvoStateType} from '@/stores/convostate'
 import {useConfigState} from '@/stores/config'
@@ -226,7 +226,7 @@ function useEnsureWidgetData(
   loggedIn: boolean,
   inboxHasLoaded: boolean,
   widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined,
-  inboxRefresh: (reason: Chat.RefreshReason) => Promise<void>
+  inboxRefresh: (reason: T.Chat.RefreshReason) => Promise<void>
 ) {
   React.useEffect(() => {
     if (loggedIn && inboxHasLoaded && !widgetList) {
@@ -322,11 +322,11 @@ function useMenubarRemoteProps(): Props {
     })
   )
   const navBadgesMap = useNotifState(s => s.navBadges)
-  const {widgetList, inboxHasLoaded, inboxRefresh} = Chat.useChatState(
+  const {widgetList, inboxHasLoaded, inboxRefresh} = useInboxLayoutState(
     C.useShallow(s => ({
-      inboxHasLoaded: s.inboxHasLoaded,
-      inboxRefresh: s.dispatch.inboxRefresh,
-      widgetList: s.inboxLayout?.widgetList ?? undefined,
+      inboxHasLoaded: s.hasLoaded,
+      inboxRefresh: s.dispatch.refresh,
+      widgetList: s.layout?.widgetList ?? undefined,
     }))
   )
   useEnsureWidgetData(loggedIn, inboxHasLoaded, widgetList, inboxRefresh)
