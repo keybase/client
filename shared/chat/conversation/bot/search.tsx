@@ -113,7 +113,7 @@ const SearchBotPopup = (props: Props) => {
   const onSelect = (username: string) => {
     navigateAppend({
       name: 'chatInstallBot',
-      params: {botUsername: username, conversationIDKey, teamID},
+      params: {botUsername: username, conversationIDKey, ...(teamID ? {teamID} : {})},
     })
   }
 

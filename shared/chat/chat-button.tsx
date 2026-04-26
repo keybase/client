@@ -11,10 +11,10 @@ const Kb = {
 }
 
 type Props = {
-  small?: boolean
+  small?: boolean | undefined
   style?: Styles.StylesCrossPlatform
   username: string
-  afterClick?: () => void
+  afterClick?: (() => void) | undefined
 }
 
 const ChatButton = ({small, style, username, afterClick}: Props) => {
@@ -30,7 +30,7 @@ const ChatButton = ({small, style, username, afterClick}: Props) => {
       label="Chat"
       waitingKey={C.waitingKeyChatCreating}
       onClick={chat}
-      small={small}
+      small={small ?? false}
       style={style}
     >
       <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />

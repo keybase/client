@@ -111,7 +111,11 @@ const Fullscreen = function Fullscreen(p: Props) {
                   <source src={path} />
                 </video>
               ) : (
-                <Kb.ZoomableImage src={imgSrc} onIsZoomed={onIsZoomed} forceDims={forceDims} />
+                <Kb.ZoomableImage
+                  src={imgSrc}
+                  onIsZoomed={onIsZoomed}
+                  {...(forceDims === undefined ? {} : {forceDims})}
+                />
               )}
             </Kb.Box2>
             {!isZoomed && <Arrow left={false} onClick={onNextAttachment} />}

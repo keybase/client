@@ -52,14 +52,14 @@ const OverlayIcon = function OverlayIcon(p: {
 }
 
 type Props = {
-  participantOne?: string
-  participantTwo?: string
-  isHovered?: boolean
-  isLocked?: boolean
-  isMuted?: boolean
-  isSelected?: boolean
-  backgroundColor?: string
-  singleSize?: 128 | 96 | 64 | 48 | 32 | 24 | 16
+  participantOne?: string | undefined
+  participantTwo?: string | undefined
+  isHovered?: boolean | undefined
+  isLocked?: boolean | undefined
+  isMuted?: boolean | undefined
+  isSelected?: boolean | undefined
+  backgroundColor?: string | undefined
+  singleSize?: 128 | 96 | 64 | 48 | 32 | 24 | 16 | undefined
 }
 
 const Avatars = function Avatars(p: Props) {
@@ -83,7 +83,11 @@ const Avatars = function Avatars(p: Props) {
     return (
       <Kb.Box2 direction="vertical" relative={true} style={containerStyle}>
         <Kb.Box2 direction="vertical" relative={true}>
-          <Kb.Avatar username={participantOne} size={singleSize} style={{opacity}} />
+          <Kb.Avatar
+            {...(participantOne ? {username: participantOne} : {})}
+            size={singleSize}
+            style={{opacity}}
+          />
           <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
         </Kb.Box2>
       </Kb.Box2>
@@ -92,8 +96,8 @@ const Avatars = function Avatars(p: Props) {
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" relative={true} style={containerStyle}>
-      <Kb.Avatar username={participantTwo} size={32} style={leftStyle} />
-      <Kb.Avatar username={participantOne} size={32} style={rightStyle} />
+      <Kb.Avatar {...(participantTwo ? {username: participantTwo} : {})} size={32} style={leftStyle} />
+      <Kb.Avatar {...(participantOne ? {username: participantOne} : {})} size={32} style={rightStyle} />
       <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
     </Kb.Box2>
   )
@@ -117,7 +121,7 @@ const TeamAvatar = function TeamAvatar(p: {
   isHovered: boolean
   isMuted: boolean
   isSelected: boolean
-  size?: 128 | 96 | 64 | 48 | 32 | 24 | 16
+  size?: 128 | 96 | 64 | 48 | 32 | 24 | 16 | undefined
 }) {
   const {teamname, size, isSelected, isMuted, isHovered} = p
   return (

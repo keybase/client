@@ -69,13 +69,13 @@ const Row = ({description, disabled, name, onToggle, selected}: RowProps) => (
         )}
       </Kb.Box2>
     }
-    onClick={disabled ? undefined : onToggle}
+    {...(disabled ? {} : {onClick: onToggle})}
     action={
       <Kb.CheckCircle
         checked={selected}
-        onCheck={disabled ? undefined : onToggle}
+        {...(disabled ? {} : {onCheck: onToggle})}
         disabled={disabled}
-        disabledColor={selected ? Kb.Styles.globalColors.black_20OrWhite_20 : undefined}
+        {...(selected ? {disabledColor: Kb.Styles.globalColors.black_20OrWhite_20} : {})}
       />
     }
   />

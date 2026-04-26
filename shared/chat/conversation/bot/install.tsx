@@ -219,7 +219,7 @@ const InstallBotPopup = (props: Props) => {
     }
     navigateAppend({
       name: 'chatConfirmRemoveBot',
-      params: {botUsername, conversationIDKey, teamID: refreshTeamID},
+      params: {botUsername, conversationIDKey, ...(refreshTeamID ? {teamID: refreshTeamID} : {})},
     })
   }
   const onFeedback = () => {
@@ -672,7 +672,7 @@ const CommandsLabel = (props: CommandsLabelProps) => {
 type PermsListProps = {
   channelMetas?: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
   commands: T.Chat.BotPublicCommands | undefined
-  settings?: T.RPCGen.TeamBotSettings
+  settings: T.RPCGen.TeamBotSettings | undefined
   username: string
 }
 

@@ -19,10 +19,8 @@ type OwnProps = {
 
 type Info = {
   type: 'image' | 'file' | 'video'
-  title: string
   filename: string
-  outboxID?: T.RPCChat.OutboxID
-  url?: string
+  url: string | undefined
 }
 
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
@@ -73,12 +71,10 @@ const Container = (ownProps: OwnProps) => {
       C.Router2.navigateToThread(conversationIDKey, selectConversationWithReason)
     }
   }
-  const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}) => {
+  const pathAndInfos = pathAndOutboxIDs.map(({path, url}) => {
     const filename = T.FS.getLocalPathName(path)
     const info: Info = {
       filename,
-      outboxID: outboxID,
-      title: '',
       type: pathToAttachmentType(path),
       url,
     }
@@ -198,7 +194,7 @@ const Container = (ownProps: OwnProps) => {
                 placeholder={titleHint}
                 multiline={true}
                 rowsMin={2}
-                value={titles[index]}
+                value={titles[index] ?? ''}
                 onEnterKeyDown={onNext}
                 onChangeText={updateTitle}
                 hideBorder={true}

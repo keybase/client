@@ -94,7 +94,7 @@ const AudioPlayer = (props: Props) => {
       style={Kb.Styles.collapseStyles([styles.container, {height: big ? 56 : 40}])}
       gap="tiny"
     >
-      <Kb.ClickableBox onClick={url ? onClick : undefined} style={{justifyContent: 'center'}}>
+      <Kb.ClickableBox {...(url ? {onClick} : {})} style={{justifyContent: 'center'}}>
         <Kb.Icon
           type={!paused ? 'iconfont-pause' : 'iconfont-play'}
           fontSize={32}
@@ -102,7 +102,12 @@ const AudioPlayer = (props: Props) => {
         />
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny" fullHeight={true} justifyContent="flex-end">
-        <AudioVis height={big ? 32 : 18} amps={visAmps} maxWidth={maxWidth} playedRatio={playedRatio} />
+        <AudioVis
+          height={big ? 32 : 18}
+          amps={visAmps}
+          {...(maxWidth === undefined ? {} : {maxWidth})}
+          playedRatio={playedRatio}
+        />
         <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
       </Kb.Box2>
       {url.length > 0 && (

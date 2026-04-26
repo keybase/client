@@ -38,7 +38,6 @@ type CheckboxRowProps = {
   checked: boolean
   disabled?: boolean
   info?: string
-  more?: React.ReactNode
   onCheck: (c: boolean) => void
   text: React.ReactNode
 }
@@ -47,7 +46,7 @@ const CheckboxRow = (props: CheckboxRowProps) => (
     <Kb.Switch
       allowLabelClick={!props.disabled}
       color="red"
-      disabled={props.disabled}
+      disabled={props.disabled ?? false}
       gapSize={Kb.Styles.globalMargins.tiny}
       label={props.text}
       on={props.checked}
@@ -153,10 +152,10 @@ const Container = function BlockModal(ownProps: OwnProps) {
       [
         {
           comment: report.extraNotes,
-          convID: conversationIDKey,
           includeTranscript: report.includeTranscript && !!conversationIDKey,
           reason: report.reason,
           username,
+          ...(conversationIDKey ? {convID: conversationIDKey} : {}),
         },
         S.waitingKeyUsersReportUser,
       ],
@@ -167,15 +166,20 @@ const Container = function BlockModal(ownProps: OwnProps) {
   const setConversationStatus = ConvoState.useChatContext(s => s.dispatch.blockConversation)
   const setUserBlocks = (newBlocks: NewBlocksMap) => {
     // Convert our state block array to action payload.
-    const blocks = [...newBlocks.entries()]
+    const blocks: Array<T.RPCGen.UserBlockArg> = [...newBlocks.entries()]
       .filter(
         ([_, userBlocks]) => userBlocks.chatBlocked !== undefined || userBlocks.followBlocked !== undefined
       )
-      .map(([username, userBlocks]) => ({
-        setChatBlock: userBlocks.chatBlocked,
-        setFollowBlock: userBlocks.followBlocked,
-        username,
-      }))
+      .map(([username, userBlocks]) => {
+        let block: T.RPCGen.UserBlockArg = {username}
+        if (userBlocks.chatBlocked !== undefined) {
+          block = {...block, setChatBlock: userBlocks.chatBlocked}
+        }
+        if (userBlocks.followBlocked !== undefined) {
+          block = {...block, setFollowBlock: userBlocks.followBlocked}
+        }
+        return block
+      })
     if (blocks.length) {
       setUserBlocksRPC([{blocks}, S.waitingKeyUsersSetUserBlocks], () => {}, () => {})
     }
@@ -216,16 +220,17 @@ const Container = function BlockModal(ownProps: OwnProps) {
   const [newBlocks, setNewBlocks] = React.useState<NewBlocksMap>(() => {
     const initialBlocks = new Map<string, BlocksForUser>()
     if (blockUserByDefault && adderUsername) {
-      initialBlocks.set(adderUsername, {
+      const initialBlock: BlocksForUser = {
         chatBlocked: true,
         followBlocked: true,
-        report: reportsUserByDefault
-          ? {
-              ...defaultReport,
-              ...(flagUserByDefault ? {reason: reasons[reasons.length - 2] ?? defaultReport.reason} : {}),
-            }
-          : undefined,
-      })
+      }
+      if (reportsUserByDefault) {
+        initialBlock.report = {
+          ...defaultReport,
+          ...(flagUserByDefault ? {reason: reasons[reasons.length - 2] ?? defaultReport.reason} : {}),
+        }
+      }
+      initialBlocks.set(adderUsername, initialBlock)
     }
     return initialBlocks
   })
@@ -267,10 +272,10 @@ const Container = function BlockModal(ownProps: OwnProps) {
       if (current.report === undefined && shouldReport) {
         current.report = {...defaultReport}
       } else if (current.report && !shouldReport) {
-        current.report = undefined
+        delete current.report
       }
       newBlocks.set(username, current)
-    } else {
+    } else if (shouldReport) {
       newBlocks.set(username, {report: {...defaultReport}})
     }
     // Need to make a new object so the component re-renders.
