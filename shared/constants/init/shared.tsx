@@ -17,6 +17,7 @@ declare global {
 
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
+import type * as UseBlockButtonsStateType from '@/chat/blocking/block-buttons-state'
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
@@ -195,6 +196,10 @@ const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
   } else {
     clearSignupEmail()
     clearSignupDeviceNameDraft()
+    const {useBlockButtonsState} = require(
+      '@/chat/blocking/block-buttons-state'
+    ) as typeof UseBlockButtonsStateType
+    useBlockButtonsState.getState().dispatch.resetState()
   }
   loadConfiguredAccountsForBootstrap()
   if (!useConfigState.getState().loggedInCausedbyStartup) {
@@ -222,7 +227,8 @@ const onUserActiveChanged = () => {
 }
 
 const loadChatStaticConfig = () => {
-  if (useConfigState.getState().chatDeletableByDeleteHistory) {
+  const {chatBuiltinCommands, chatDeletableByDeleteHistory} = useConfigState.getState()
+  if (chatBuiltinCommands && chatDeletableByDeleteHistory) {
     return
   }
   const {handshakeVersion, dispatch} = useDaemonState.getState()
@@ -232,12 +238,10 @@ const loadChatStaticConfig = () => {
     try {
       const staticConfig = serviceStaticConfigToStaticConfig(await T.RPCChat.localGetStaticConfigRpcPromise())
       if (!staticConfig) {
-        logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+        logger.error('chat.loadStaticConfig: missing required static config')
         return
       }
-      useConfigState
-        .getState()
-        .dispatch.setChatDeletableByDeleteHistory(staticConfig.deletableByDeleteHistory)
+      useConfigState.getState().dispatch.setChatStaticConfig(staticConfig)
     } finally {
       dispatch.wait(name, handshakeVersion, false)
     }
@@ -484,6 +488,10 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         logger.warn('Lost some messages in filtering out nonNull gregor items')
       }
       syncGregorExplodingModes(goodState)
+      const {useBlockButtonsState} = require(
+        '@/chat/blocking/block-buttons-state'
+      ) as typeof UseBlockButtonsStateType
+      useBlockButtonsState.getState().dispatch.updateFromGregorItems(state.items)
 
       const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
       useNotifState.getState().dispatch.onEngineIncomingImpl(action)
