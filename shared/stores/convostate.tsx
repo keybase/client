@@ -278,7 +278,6 @@ export interface ConvoState extends ConvoStore {
     resetLetThemIn: (username: string) => void
     resetState: () => void
     resetDeleteMe: true
-    resolveMaybeMention: (name: string, channel: string) => void
     selectedConversation: () => void
     sendAudioRecording: (path: string, duration: number, amps: ReadonlyArray<number>) => Promise<void>
     sendMessage: (text: string) => void
@@ -3479,14 +3478,6 @@ const createSlice =
         ignorePromise(f())
       },
       resetState: Z.defaultReset,
-      resolveMaybeMention: (channel, name) => {
-        const f = async () => {
-          await T.RPCChat.localResolveMaybeMentionRpcPromise({
-            mention: {channel, name},
-          })
-        }
-        ignorePromise(f())
-      },
       selectedConversation: () => {
         const conversationIDKey = get().id
         clearChatTimeCache()

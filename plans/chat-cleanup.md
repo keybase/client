@@ -57,22 +57,22 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ## Chunk 2: Remove Maybe-Mention Cache From Global Chat State
 
-- [ ] Move `maybeMentionMap` out of `shared/stores/chat.tsx`
-- [ ] Replace it with a feature-local mention-resolution layer near `common-adapters/markdown/maybe-mention`
-- [ ] Keep resolution request and display state close to the mounted markdown consumer
-- [ ] If several mounted descendants need the same value, use a feature-local provider instead of a new global cache
+- [x] Move `maybeMentionMap` out of `shared/stores/chat.tsx`
+- [x] Replace it with a feature-local mention-resolution layer near `common-adapters/markdown/maybe-mention`
+- [x] Keep resolution request and display state close to the mounted markdown consumer
+- [x] If several mounted descendants need the same value, use a feature-local provider instead of a new global cache
 
 ### Files likely to move together
 
-- [ ] `common-adapters/markdown/maybe-mention/*`
-- [ ] `chat` engine-listener ownership for `chat.1.chatUi.chatMaybeMentionUpdate`
-- [ ] any teams/profile integration that only uses maybe-mention display data
+- [x] `common-adapters/markdown/maybe-mention/*`
+- [x] `chat` engine-listener ownership for `chat.1.chatUi.chatMaybeMentionUpdate`
+- [x] any teams/profile integration that only uses maybe-mention display data
 
 ### Store fallout after Chunk 2
 
-- `maybeMentionMap`
-- `setMaybeMentionInfo`
-- `chat.1.chatUi.chatMaybeMentionUpdate` handling in `stores/chat.tsx`
+- [x] `maybeMentionMap`
+- [x] `setMaybeMentionInfo`
+- [x] `chat.1.chatUi.chatMaybeMentionUpdate` handling in `stores/chat.tsx`
 
 ## Chunk 3: Remove Emoji Preference Convenience State
 
@@ -96,47 +96,47 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 - [ ] Re-evaluate whether `staticConfig` needs to live in the chat store
 - [ ] Prefer a dedicated lazy loader / hook for builtin command metadata if only suggestor surfaces need it
-- [ ] Re-evaluate `blockButtonsMap` as conversation-local or feature-local UI state
-- [ ] Keep gregor-driven block-button behavior intact while moving rendered state closer to the conversation UI if possible
+- [x] Re-evaluate `blockButtonsMap` as conversation-local or feature-local UI state
+- [x] Keep gregor-driven block-button behavior intact while moving rendered state closer to the conversation UI if possible
 
 ### Target callers for Chunk 4
 
 - [ ] `chat/conversation/input-area/suggestors/commands.tsx`
-- [ ] `chat/blocking/invitation-to-block.tsx`
+- [x] `chat/blocking/invitation-to-block.tsx`
 
 ### Store fallout after Chunk 4
 
 - `staticConfig`
 - `loadStaticConfig`
-- `blockButtonsMap`
-- `dismissBlockButtons`
-- `updatedGregor`
-- `keybase.1.gregorUI.pushState` handling in `stores/chat.tsx`, if no other chat-store state still depends on it
+- [x] `blockButtonsMap`
+- [x] `dismissBlockButtons`
+- [x] `updatedGregor`
+- [x] `keybase.1.gregorUI.pushState` handling in `stores/chat.tsx`, if no other chat-store state still depends on it
 
 ## Chunk 5: Re-evaluate Badge Counts and Remaining Engine Plumbing
 
-- [ ] Re-evaluate whether `smallTeamBadgeCount`, `bigTeamBadgeCount`, and `badgeStateVersion` belong in `stores/chat.tsx`
-- [ ] Prefer deriving visible inbox badge behavior from inbox rows / notifications state where practical
-- [ ] Keep only the minimal bridge needed for chat-specific badge UI if deriving everything elsewhere is too invasive for this pass
-- [ ] Re-evaluate remaining store-owned engine handling:
-  - `chat.1.NotifyChat.ChatInboxStale`
-  - `chat.1.NotifyChat.ChatIdentifyUpdate`
-  - `keybase.1.NotifyBadges.badgeState`
+- [x] Re-evaluate whether `smallTeamBadgeCount`, `bigTeamBadgeCount`, and `badgeStateVersion` belong in `stores/chat.tsx`
+- [x] Prefer deriving visible inbox badge behavior from inbox rows / notifications state where practical
+- [x] Keep only the minimal bridge needed for chat-specific badge UI if deriving everything elsewhere is too invasive for this pass
+- [x] Re-evaluate remaining store-owned engine handling:
+  - [x] `chat.1.NotifyChat.ChatInboxStale`
+  - [x] `chat.1.NotifyChat.ChatIdentifyUpdate`
+  - [x] `keybase.1.NotifyBadges.badgeState`
 
 ### Likely dependencies to update
 
-- [ ] `chat/inbox/row/big-teams-divider.tsx`
-- [ ] `chat/inbox/row/teams-divider-container.tsx`
-- [ ] `chat/conversation/header-area/index.native.tsx`
-- [ ] any inbox-visible badge affordances that still read the chat store
+- [x] `chat/inbox/row/big-teams-divider.tsx`
+- [x] `chat/inbox/row/teams-divider-container.tsx`
+- [x] `chat/conversation/header-area/index.native.tsx`
+- [x] any inbox-visible badge affordances that still read the chat store
 
 ### Store fallout after Chunk 5
 
-- `smallTeamBadgeCount`
-- `bigTeamBadgeCount`
-- `badgeStateVersion`
-- `badgesUpdated`
-- any remaining `onEngineIncomingImpl` cases no longer needed after earlier chunks
+- [x] `smallTeamBadgeCount`
+- [x] `bigTeamBadgeCount`
+- [x] `badgeStateVersion`
+- [x] `badgesUpdated`
+- [x] any remaining `onEngineIncomingImpl` cases no longer needed after earlier chunks
 
 ## Chunk 6: Decide What, If Anything, Stays In Zustand
 

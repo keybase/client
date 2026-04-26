@@ -8,6 +8,7 @@ import * as T from '@/constants/types'
 import {FocusProvider, ScrollProvider} from './context'
 import {OrangeLineContext} from '../orange-line-context'
 import {ChatTeamProvider} from '../team-hooks'
+import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
 
 type OrangeLineState = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -127,15 +128,17 @@ const NormalWrapper = function NormalWrapper() {
   const orangeLine = useOrangeLine()
   useShowManageChannels()
   return (
-    <OrangeLineContext value={orangeLine}>
-      <ChatTeamProvider>
-        <FocusProvider>
-          <ScrollProvider>
-            <Normal />
-          </ScrollProvider>
-        </FocusProvider>
-      </ChatTeamProvider>
-    </OrangeLineContext>
+    <MaybeMentionProvider>
+      <OrangeLineContext value={orangeLine}>
+        <ChatTeamProvider>
+          <FocusProvider>
+            <ScrollProvider>
+              <Normal />
+            </ScrollProvider>
+          </FocusProvider>
+        </ChatTeamProvider>
+      </OrangeLineContext>
+    </MaybeMentionProvider>
   )
 }
 export default NormalWrapper

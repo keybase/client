@@ -17,7 +17,6 @@ declare global {
 
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
-import type * as UseChatStateType from '@/stores/chat'
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
@@ -424,22 +423,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
 
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
-
-        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
-        useChatState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.NotifyTeam.teamMetadataUpdate':
-    case 'keybase.1.NotifyTeam.teamChangedByID':
-      {
-        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
-        useChatState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.NotifyTeam.teamRoleMapChanged':
-      {
-        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
-        useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case 'keybase.1.gregorUI.pushState': {
@@ -461,8 +444,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
 
       const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
       useNotifState.getState().dispatch.onEngineIncomingImpl(action)
-      const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
-      useChatState.getState().dispatch.onEngineIncomingImpl(action)
       break
     }
     case 'chat.1.NotifyChat.ChatSetTeamRetention':
@@ -534,13 +515,14 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.NotifyChat.ChatSetConvRetention':
       routeConvoEngineIncoming(action)
       break
-    case 'chat.1.chatUi.chatMaybeMentionUpdate':
-    case 'chat.1.NotifyChat.ChatIdentifyUpdate':
-      {
-        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
-        useChatState.getState().dispatch.onEngineIncomingImpl(action)
-      }
+    case 'chat.1.NotifyChat.ChatIdentifyUpdate': {
+      const {update} = action.payload.params
+      const usernames = update.CanonicalName.split(',')
+      const broken = (update.breaks.breaks || []).map(b => b.user.username)
+      const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
+      useUsersState.getState().dispatch.updates(updates)
       break
+    }
     case 'chat.1.NotifyChat.ChatInboxStale':
       ignorePromise(useInboxLayoutState.getState().dispatch.refresh('inboxStale'))
       break

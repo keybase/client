@@ -13,6 +13,7 @@ import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useConfigState} from '@/stores/config'
 import {navToProfile} from '@/constants/router'
 import * as React from 'react'
 
@@ -161,9 +162,9 @@ export const useBackBadge = () => {
   const visiblePath = C.Router2.getVisiblePath()
   const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const badgeStateVersion = Chat.useChatState(s => s.badgeStateVersion)
+  const badgeState = useConfigState(s => s.badgeState)
   const badgeNumber = React.useMemo(() => {
-    void badgeStateVersion
+    void badgeState
     let count = 0
     for (const store of chatStores.values()) {
       const {badge, id} = store.getState()
@@ -172,7 +173,7 @@ export const useBackBadge = () => {
       }
     }
     return count
-  }, [badgeStateVersion, conversationIDKey])
+  }, [badgeState, conversationIDKey])
   if (!onTopOfInbox) return 0
   return badgeNumber
 }

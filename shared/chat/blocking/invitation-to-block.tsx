@@ -1,11 +1,79 @@
 import * as C from '@/constants'
 import {isAssertion} from '@/constants/chat/helpers'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
+import * as T from '@/constants/types'
+import {bodyToJSON} from '@/constants/rpc-utils'
+import logger from '@/logger'
+import {useEngineActionListener} from '@/engine/action-listener'
+import {RPCError} from '@/util/errors'
+
+const blockButtonsGregorPrefix = 'blockButtons.'
+
+const gregorItemsToBlockButtons = (
+  items?: ReadonlyArray<{
+    readonly item?: T.RPCGen.Gregor1.Item | null
+  }> | null
+) =>
+  (items ?? []).reduce<Map<T.RPCGen.TeamID, T.Chat.BlockButtonsInfo>>((map, {item}) => {
+    if (!item?.category.startsWith(blockButtonsGregorPrefix)) {
+      return map
+    }
+    try {
+      const teamID = item.category.substring(blockButtonsGregorPrefix.length)
+      const body = bodyToJSON(item.body) as {adder?: unknown} | undefined
+      if (typeof body?.adder === 'string') {
+        map.set(teamID, {adder: body.adder})
+      }
+    } catch (e) {
+      logger.info('block buttons parse fail', e)
+    }
+    return map
+  }, new Map())
+
+const useBlockButtonsInfo = (teamID: T.Teams.TeamID) => {
+  const [blockButtonsMap, setBlockButtonsMap] = React.useState<
+    ReadonlyMap<T.RPCGen.TeamID, T.Chat.BlockButtonsInfo>
+  >(() => new Map())
+
+  const reloadBlockButtons = React.useEffectEvent(() => {
+    const f = async () => {
+      try {
+        const state = await T.RPCGen.gregorGetStateRpcPromise()
+        setBlockButtonsMap(gregorItemsToBlockButtons(state.items))
+      } catch (error) {
+        logger.warn('Failed to load block button state', error)
+      }
+    }
+    C.ignorePromise(f())
+  })
+
+  React.useEffect(() => {
+    reloadBlockButtons()
+  }, [])
+
+  useEngineActionListener('keybase.1.gregorUI.pushState', action => {
+    setBlockButtonsMap(gregorItemsToBlockButtons(action.payload.params.state.items))
+  })
+
+  return blockButtonsMap.get(teamID)
+}
+
+const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
+  const f = async () => {
+    try {
+      await T.RPCGen.userDismissBlockButtonsRpcPromise({tlfID: teamID})
+    } catch (error) {
+      if (error instanceof RPCError) {
+        logger.error(`Couldn't dismiss block buttons: ${error.message}`)
+      }
+    }
+  }
+  C.ignorePromise(f())
+}
 
 const BlockButtons = () => {
   const navigateAppend = C.Router2.navigateAppend
@@ -13,22 +81,18 @@ const BlockButtons = () => {
 
   const team = ConvoState.useChatContext(s => s.meta.teamname)
   const teamID = ConvoState.useChatContext(s => s.meta.teamID)
-  const blockButtonInfo = Chat.useChatState(s => {
-    const blockButtonsMap = s.blockButtonsMap
-    return teamID ? blockButtonsMap.get(teamID) : undefined
-  })
+  const blockButtonInfo = useBlockButtonsInfo(teamID)
   const participantInfo = ConvoState.useChatContext(s => s.participants)
   const currentUser = useCurrentUserState(s => s.username)
   const hasOwnMessage = ConvoState.useChatContext(s =>
     !!currentUser && [...(s.messageOrdinals ?? [])].some(ordinal => s.messageMap.get(ordinal)?.author === currentUser)
   )
-  const dismissBlockButtons = Chat.useChatState(s => s.dispatch.dismissBlockButtons)
 
   React.useEffect(() => {
     if (hasOwnMessage && blockButtonInfo && teamID) {
       dismissBlockButtons(teamID)
     }
-  }, [blockButtonInfo, dismissBlockButtons, hasOwnMessage, teamID])
+  }, [blockButtonInfo, hasOwnMessage, teamID])
 
   if (!blockButtonInfo) {
     return null
@@ -98,7 +162,7 @@ const BlockButtons = () => {
       direction="vertical"
       centerChildren={true}
       gap="tiny"
-          relative={true}
+      relative={true}
       style={styles.dismissContainer}
       fullWidth={true}
     >
@@ -106,7 +170,12 @@ const BlockButtons = () => {
         <Kb.Text type="BodySmall">
           {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
         </Kb.Text>
-        <Kb.Icon style={styles.dismissIcon} type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={onDismiss} />
+        <Kb.Icon
+          style={styles.dismissIcon}
+          type="iconfont-close"
+          color={Kb.Styles.globalColors.black_20}
+          onClick={onDismiss}
+        />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.buttonContainer}>
         {buttonRow}

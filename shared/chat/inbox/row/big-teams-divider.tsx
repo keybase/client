@@ -1,8 +1,8 @@
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
 import {BigTeamsLabel} from './big-teams-label'
+import {useConfigState} from '@/stores/config'
 
 type Props = {
   toggle: () => void
@@ -11,7 +11,7 @@ type Props = {
 
 const BigTeamsDivider = (props: Props) => {
   const {toggle, onEdit} = props
-  const badgeCount = Chat.useChatState(s => s.bigTeamBadgeCount)
+  const badgeCount = useConfigState(s => s.badgeState?.bigTeamBadgeCount ?? 0)
   return (
     <Kb.ClickableBox2
       onClick={() => {
