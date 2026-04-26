@@ -11,7 +11,7 @@
     "lib": ["ESNext", "dom"],
     "module": "preserve",
     "moduleResolution": "bundler",
-    "exactOptionalPropertyTypes": false,
+    "exactOptionalPropertyTypes": true,
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
