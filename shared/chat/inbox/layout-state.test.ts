@@ -14,7 +14,9 @@ jest.mock('@/constants/platform', () => ({
 jest.mock('@/logger', () => ({
   __esModule: true,
   default: {
+    error: () => {},
     info: (...args: Array<unknown>) => mockLoggerInfo(...args),
+    warn: () => {},
   },
 }))
 
@@ -138,7 +140,7 @@ test('updateLayout resets empty-inbox retry state when rows are present', () => 
   expect(useInboxLayoutState.getState().retriedOnCurrentEmpty).toBe(false)
 })
 
-test('resetState restores the initial layout store and keeps dispatch usable', () => {
+test('resetState restores the initial layout store and keeps dispatch usable', async () => {
   const {dispatch} = useInboxLayoutState.getState()
   dispatch.updateLayout(JSON.stringify(layoutWithRows))
   dispatch.setRetriedOnCurrentEmpty(true)
@@ -150,5 +152,10 @@ test('resetState restores the initial layout store and keeps dispatch usable', (
     hasLoaded: false,
     layout: undefined,
     retriedOnCurrentEmpty: false,
+  })
+
+  await dispatch.refresh('bootstrap')
+  expect(T.RPCChat.localRequestInboxLayoutRpcPromise).toHaveBeenCalledWith({
+    reselectMode: T.RPCChat.InboxLayoutReselectMode.force,
   })
 })
