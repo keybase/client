@@ -23,13 +23,13 @@ type BareState = {
 }
 
 export class BareErrorBoundary extends React.Component<BareProps, BareState> {
-  state: BareState = {}
+  override state: BareState = {}
 
   static getDerivedStateFromError(error: Error): BareState {
     return {error}
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
+  override componentDidCatch(error: Error, info: React.ErrorInfo) {
     this.props.onError?.(error, info)
   }
 
@@ -37,7 +37,7 @@ export class BareErrorBoundary extends React.Component<BareProps, BareState> {
     this.setState({error: undefined})
   }
 
-  render(): React.ReactNode {
+  override render(): React.ReactNode {
     const {children, fallback, fallbackRender} = this.props
     const {error} = this.state
 

@@ -17,7 +17,7 @@ class TestTransport extends RPCTransport {
     this._connected = p?.connected ?? true
   }
 
-  protected isConnected() {
+  protected override isConnected() {
     return this._connected
   }
 
