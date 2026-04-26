@@ -22,6 +22,7 @@ type Store = T.Immutable<{
     | {type: T.RPCGen.IncomingShareType.file; urls: Array<string>}
     | {type: T.RPCGen.IncomingShareType.text; text: string}
   badgeState?: T.RPCGen.BadgeState
+  chatDeletableByDeleteHistory?: Set<T.Chat.MessageType>
   configuredAccounts: Array<T.Config.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
@@ -64,6 +65,7 @@ const initialStore: Store = {
   allowAnimatedEmojis: true,
   androidShare: undefined,
   badgeState: undefined,
+  chatDeletableByDeleteHistory: undefined,
   configuredAccounts: [],
   defaultUsername: '',
   globalError: undefined,
@@ -122,6 +124,7 @@ export type State = Store & {
     setAccounts: (a: Store['configuredAccounts']) => void
     setAndroidShare: (s: Store['androidShare']) => void
     setBadgeState: (b: State['badgeState']) => void
+    setChatDeletableByDeleteHistory: (s: Store['chatDeletableByDeleteHistory']) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: unknown) => void
     setGregorReachable: (r: Store['gregorReachable']) => void
@@ -463,6 +466,7 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       set(s => ({
         ...initialStore,
         configuredAccounts: s.configuredAccounts,
+        chatDeletableByDeleteHistory: s.chatDeletableByDeleteHistory,
         defaultUsername: s.defaultUsername,
         dispatch: s.dispatch,
         startup: {loaded: s.startup.loaded},
@@ -497,6 +501,13 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       if (get().badgeState === b) return
       set(s => {
         s.badgeState = T.castDraft(b)
+      })
+    },
+    setChatDeletableByDeleteHistory: deletableByDeleteHistory => {
+      set(s => {
+        s.chatDeletableByDeleteHistory = deletableByDeleteHistory
+          ? new Set(deletableByDeleteHistory)
+          : undefined
       })
     },
     setDefaultUsername: u => {

@@ -941,7 +941,7 @@ const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
 
 const onNewChatActivity = (
   activity: NewChatActivity,
-  staticConfig?: T.Immutable<T.Chat.StaticConfig>
+  deletableByDeleteHistory?: ReadonlySet<T.Chat.MessageType>
 ): ConvoEngineIncomingResult => {
   switch (activity.activityType) {
     case T.RPCChat.ChatActivityType.incomingMessage: {
@@ -1002,7 +1002,7 @@ const onNewChatActivity = (
     case T.RPCChat.ChatActivityType.expunge: {
       const {expunge} = activity
       const conversationIDKey = T.Chat.conversationIDToKey(expunge.convID)
-      const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || Common.allMessageTypes
+      const deletableMessageTypes = deletableByDeleteHistory || Common.allMessageTypes
       getConvoState(conversationIDKey).dispatch.messagesWereDeleted({
         deletableMessageTypes,
         upToMessageID: T.Chat.numberToMessageID(expunge.expunge.upto),
@@ -1052,7 +1052,7 @@ const onNewChatActivity = (
 
 export const handleConvoEngineIncoming = (
   action: EngineGen.Actions,
-  staticConfig?: T.Immutable<T.Chat.StaticConfig>
+  deletableByDeleteHistory?: ReadonlySet<T.Chat.MessageType>
 ): ConvoEngineIncomingResult => {
   switch (action.type) {
     case 'chat.1.NotifyChat.ChatConvUpdate': {
@@ -1129,7 +1129,7 @@ export const handleConvoEngineIncoming = (
       unboxRows([T.Chat.conversationIDToKey(action.payload.params.convID)])
       return handledConvoEngineIncoming()
     case 'chat.1.NotifyChat.NewChatActivity':
-      return onNewChatActivity(action.payload.params.activity, staticConfig)
+      return onNewChatActivity(action.payload.params.activity, deletableByDeleteHistory)
     case 'chat.1.NotifyChat.ChatTypingUpdate': {
       const {typingUpdates} = action.payload.params
       typingUpdates?.forEach(update => {

@@ -1,11 +1,10 @@
-import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
+import {useReactionRowTopReacjis} from '@/chat/user-reacjis'
 
 type OwnProps = {
   className?: string
@@ -17,23 +16,12 @@ type OwnProps = {
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-const useTopReacjis = () =>
-  Chat.useChatState(
-    C.useShallow(s => [
-      s.userReacjis.topReacjis[0],
-      s.userReacjis.topReacjis[1],
-      s.userReacjis.topReacjis[2],
-      s.userReacjis.topReacjis[3],
-      s.userReacjis.topReacjis[4],
-    ])
-  ).filter((reacji): reacji is T.RPCGen.UserReacji => !!reacji)
-
 function EmojiRowContainer(p: OwnProps) {
   const {className, hasUnfurls, messageType, onReact: onReactProp, onReply: onReplyProp, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
   const setReplyTo = ConvoState.useChatUIContext(s => s.dispatch.setReplyTo)
   const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const emojis = useTopReacjis()
+  const emojis = useReactionRowTopReacjis()
   const navigateAppend = ConvoState.useChatNavigateAppend()
   const _onForward = () => {
     navigateAppend(conversationIDKey => ({

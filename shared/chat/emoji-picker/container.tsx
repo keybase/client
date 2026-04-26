@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -13,7 +12,7 @@ import {type RenderableEmoji, emojiData} from '@/common-adapters/emoji'
 import {usePickerState, type PickKey} from './use-picker'
 import {Keyboard} from 'react-native'
 import {useUserEmoji} from '@/chat/user-emoji'
-import {ensureError} from '@/util/errors'
+import {useCurrentSkinTone, useSetSkinTone, useTopReacjis} from '@/chat/user-reacjis'
 
 type Props = {
   disableCustomEmoji?: boolean
@@ -34,12 +33,12 @@ type RoutableProps = {
 }
 
 const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
-  const topReacjis = Chat.useChatState(s => s.userReacjis.topReacjis)
+  const topReacjis = useTopReacjis()
   const [filter, setFilter] = React.useState('')
   const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const onChoose = (emoji: string, renderableEmoji: RenderableEmoji) => {
-    if (conversationIDKey !== Chat.noConversationIDKey && onPickAddToMessageOrdinal) {
+    if (conversationIDKey !== T.Chat.noConversationIDKey && onPickAddToMessageOrdinal) {
       toggleMessageReaction(onPickAddToMessageOrdinal, emoji)
     }
     onPickAction?.(emoji, renderableEmoji)
@@ -54,18 +53,8 @@ const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) 
 }
 
 const useSkinTone = () => {
-  const currentSkinTone = T.Chat.EmojiSkinToneFromRPC(Chat.useChatState(s => s.userReacjis.skinTone))
-  const rpc = C.useRPC(T.RPCChat.localPutReacjiSkinToneRpcPromise)
-  const updateUserReacjis = Chat.useChatState(s => s.dispatch.updateUserReacjis)
-  const setSkinTone = (emojiSkinTone: undefined | T.Chat.EmojiSkinTone) => {
-    rpc(
-      [{skinTone: T.Chat.EmojiSkinToneToRPC(emojiSkinTone)}],
-      res => updateUserReacjis(res),
-      err => {
-        throw ensureError(err)
-      }
-    )
-  }
+  const currentSkinTone = useCurrentSkinTone()
+  const setSkinTone = useSetSkinTone()
   return {currentSkinTone, setSkinTone}
 }
 

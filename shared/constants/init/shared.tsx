@@ -22,12 +22,12 @@ import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {getTBStore} from '@/stores/team-building'
 import {getSelectedConversation} from '@/constants/chat/common'
+import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
 import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
 import {isMobile, isPhone, serverConfigFileName} from '../platform'
 import {useAvatarState} from '@/common-adapters/avatar/store'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
-import {useChatState} from '@/stores/chat'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
@@ -85,6 +85,21 @@ const subscribeValue = <State, Value>(
 type ConfigState = ReturnType<typeof useConfigState.getState>
 type DaemonState = ReturnType<typeof useDaemonState.getState>
 type RouterState = ReturnType<typeof useRouterState.getState>
+
+const bootstrapStatusKey = (bootstrap?: DaemonState['bootstrapStatus']) =>
+  bootstrap
+    ? [
+        bootstrap.registered ? '1' : '0',
+        bootstrap.loggedIn ? '1' : '0',
+        bootstrap.uid,
+        bootstrap.username,
+        bootstrap.deviceID,
+        bootstrap.deviceName,
+        bootstrap.fullname,
+        bootstrap.httpSrvInfo?.address ?? '',
+        bootstrap.httpSrvInfo?.token ?? '',
+      ].join('\x00')
+    : ''
 
 const loadConfiguredAccountsForBootstrap = () => {
   const configState = useConfigState.getState()
@@ -206,9 +221,33 @@ const onUserActiveChanged = () => {
   cs.dispatch.markThreadAsRead()
 }
 
+const loadChatStaticConfig = () => {
+  if (useConfigState.getState().chatDeletableByDeleteHistory) {
+    return
+  }
+  const {handshakeVersion, dispatch} = useDaemonState.getState()
+  const f = async () => {
+    const name = 'chat.loadStatic'
+    dispatch.wait(name, handshakeVersion, true)
+    try {
+      const staticConfig = serviceStaticConfigToStaticConfig(await T.RPCChat.localGetStaticConfigRpcPromise())
+      if (!staticConfig) {
+        logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+        return
+      }
+      useConfigState
+        .getState()
+        .dispatch.setChatDeletableByDeleteHistory(staticConfig.deletableByDeleteHistory)
+    } finally {
+      dispatch.wait(name, handshakeVersion, false)
+    }
+  }
+  ignorePromise(f())
+}
+
 const onHandshakeVersionChanged = () => {
   useDarkModeState.getState().dispatch.loadDarkPrefs()
-  useChatState.getState().dispatch.loadStaticConfig()
+  loadChatStaticConfig()
   loadConfiguredAccountsForBootstrap()
 }
 
@@ -217,7 +256,7 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
     return
   }
 
-  const {deviceID, deviceName, loggedIn, uid, username, userReacjis} = bootstrap
+  const {deviceID, deviceName, loggedIn, uid, username} = bootstrap
   useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
 
   const configDispatch = useConfigState.getState().dispatch
@@ -233,7 +272,6 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
     configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
   }
 
-  useChatState.getState().dispatch.updateUserReacjis(userReacjis)
 }
 
 const onHandshakeStateChanged = (handshakeState: DaemonState['handshakeState']) => {
@@ -385,7 +423,9 @@ export const initSharedSubscriptions = () => {
 
   _sharedUnsubs.push(
     subscribeValue(useDaemonState, s => s.handshakeVersion, onHandshakeVersionChanged),
-    subscribeValue(useDaemonState, s => s.bootstrapStatus, onBootstrapStatusChanged),
+    subscribeValue(useDaemonState, s => bootstrapStatusKey(s.bootstrapStatus), () =>
+      onBootstrapStatusChanged(useDaemonState.getState().bootstrapStatus)
+    ),
     subscribeValue(useDaemonState, s => s.handshakeState, onHandshakeStateChanged)
   )
 
@@ -401,12 +441,15 @@ export const initSharedSubscriptions = () => {
 // This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
   const routeConvoEngineIncoming = (engineAction: EngineGen.Actions) => {
-    const result = handleConvoEngineIncoming(engineAction, useChatState.getState().staticConfig)
+    const result = handleConvoEngineIncoming(
+      engineAction,
+      useConfigState.getState().chatDeletableByDeleteHistory
+    )
     if (result.inboxUIItem) {
       onIncomingInboxUIItem(result.inboxUIItem)
     }
     if (result.userReacjis) {
-      useChatState.getState().dispatch.updateUserReacjis(result.userReacjis)
+      useDaemonState.getState().dispatch.updateUserReacjis(result.userReacjis)
     }
   }
 

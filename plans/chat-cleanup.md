@@ -45,7 +45,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [x] `chat/inbox/new-chat-button.tsx`
 - [x] `chat/inbox/search-row.tsx`
 - [x] `chat/inbox-and-conversation-shared.tsx`
-- [ ] inbox badge/divider UI that only depends on mounted inbox state
+- [x] inbox badge/divider UI that only depends on mounted inbox state
 
 ### Store fallout after Chunk 1
 
@@ -76,38 +76,38 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ## Chunk 3: Remove Emoji Preference Convenience State
 
-- [ ] Re-evaluate `userReacjis` ownership
-- [ ] Move emoji picker and reaction-row preference state into a dedicated chat-emoji hook or provider if it does not need chat-wide store lifetime
-- [ ] Keep the owning RPCs near the emoji picker / reaction UI
-- [ ] Do not duplicate the same top-reaction or skin-tone cache in multiple places
+- [x] Re-evaluate `userReacjis` ownership
+- [x] Move emoji picker and reaction-row preference state into a dedicated chat-emoji hook or provider if it does not need chat-wide store lifetime
+- [x] Keep the owning RPCs near the emoji picker / reaction UI
+- [x] Do not duplicate the same top-reaction or skin-tone cache in multiple places
 
 ### Target callers for Chunk 3
 
-- [ ] `chat/emoji-picker/container.tsx`
-- [ ] `chat/conversation/messages/emoji-row.tsx`
-- [ ] `chat/conversation/messages/message-popup/reactionitem.tsx`
+- [x] `chat/emoji-picker/container.tsx`
+- [x] `chat/conversation/messages/emoji-row.tsx`
+- [x] `chat/conversation/messages/message-popup/reactionitem.tsx`
 
 ### Store fallout after Chunk 3
 
-- `userReacjis`
-- `updateUserReacjis`
+- [x] `userReacjis`
+- [x] `updateUserReacjis`
 
 ## Chunk 4: Re-evaluate Static Config and Block Buttons
 
-- [ ] Re-evaluate whether `staticConfig` needs to live in the chat store
-- [ ] Prefer a dedicated lazy loader / hook for builtin command metadata if only suggestor surfaces need it
+- [x] Re-evaluate whether `staticConfig` needs to live in the chat store
+- [x] Prefer a dedicated lazy loader / hook for builtin command metadata if only suggestor surfaces need it
 - [x] Re-evaluate `blockButtonsMap` as conversation-local or feature-local UI state
 - [x] Keep gregor-driven block-button behavior intact while moving rendered state closer to the conversation UI if possible
 
 ### Target callers for Chunk 4
 
-- [ ] `chat/conversation/input-area/suggestors/commands.tsx`
+- [x] `chat/conversation/input-area/suggestors/commands.tsx`
 - [x] `chat/blocking/invitation-to-block.tsx`
 
 ### Store fallout after Chunk 4
 
-- `staticConfig`
-- `loadStaticConfig`
+- [x] `staticConfig`
+- [x] `loadStaticConfig`
 - [x] `blockButtonsMap`
 - [x] `dismissBlockButtons`
 - [x] `updatedGregor`
@@ -140,10 +140,12 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 
 ## Chunk 6: Decide What, If Anything, Stays In Zustand
 
-- [ ] Review what remains in `shared/stores/chat.tsx`
-- [ ] Delete dead selectors, helpers, and tests
-- [ ] If only a tiny lazy-config surface remains, move it into feature hooks and remove the store entirely
-- [ ] If something must remain, document exactly why it needs app-wide lifetime
+- [x] Review what remains in `shared/stores/chat.tsx`
+- [x] Delete dead selectors, helpers, and tests
+- [x] If only a tiny lazy-config surface remains, move it into feature hooks and remove the store entirely
+- [x] If something must remain, document exactly why it needs app-wide lifetime
+
+`shared/stores/chat.tsx` is now a barrel module only. The expunge delete-history static config remains in the existing config store because engine handling needs synchronous app-wide access while UI screens may be unmounted.
 
 ### Likely candidates to remove by the end
 
@@ -153,7 +155,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - `maybeMentionMap`
 - `userReacjis`
 - `blockButtonsMap`
-- maybe `staticConfig`
+- `staticConfig`
 - maybe badge-count convenience state
 
 ### Explicitly out of scope for this plan
@@ -170,4 +172,4 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [ ] Emoji picker, reaction row, and skin-tone selection still work
 - [ ] Slash-command suggestor still loads builtin commands correctly
 - [ ] Block-buttons UI still appears and dismisses correctly
-- [ ] No new module-level mutable cache is introduced as a replacement for Zustand
+- [x] No new module-level mutable cache is introduced as a replacement for Zustand
