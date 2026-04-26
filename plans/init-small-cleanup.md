@@ -28,10 +28,10 @@ This is intentionally a small cleanup plan. It does not move engine incoming rou
 
 ## Chunk 1: Add A Small Subscription Helper
 
-- [ ] Add a file-local helper near `initSharedSubscriptions` that subscribes to a selected value and invokes a handler only when that value changes
-- [ ] Keep the helper local to `shared.tsx` for this pass unless another init file immediately needs it
-- [ ] Use strict identity comparison by default, matching the current `s.field !== old.field` behavior
-- [ ] Return the underlying unsubscribe so callers can keep using `_sharedUnsubs.push(...)`
+- [x] Add a file-local helper near `initSharedSubscriptions` that subscribes to a selected value and invokes a handler only when that value changes
+- [x] Keep the helper local to `shared.tsx` for this pass unless another init file immediately needs it
+- [x] Use strict identity comparison by default, matching the current `s.field !== old.field` behavior
+- [x] Return the underlying unsubscribe so callers can keep using `_sharedUnsubs.push(...)`
 
 Example target shape:
 
@@ -52,28 +52,28 @@ const subscribeValue = <State, Value>(
 
 ## Chunk 2: Extract Config Effects Into Named Handlers
 
-- [ ] Split the config subscription into separate named handlers for:
+- [x] Split the config subscription into separate named handlers for:
   - load-on-start phase reaching `startupOrReloginButNotInARush`
   - gregor reachability becoming `Reachable.yes`
   - installer run count changes
   - login state changes
   - revoked trigger changes
   - configured accounts changes
-- [ ] Keep the existing startup behavior intact: follower info request, server config update, contact import setting load, and non-phone chat bootstrap refresh
-- [ ] Keep login behavior intact: bootstrap status load, KBFS daemon status check, signup draft cleanup, configured account loading, and account refresh rules
-- [ ] Keep configured account mirroring into the users store intact
-- [ ] Move nested one-off functions out of the subscription body only when it makes the handler easier to scan
+- [x] Keep the existing startup behavior intact: follower info request, server config update, contact import setting load, and non-phone chat bootstrap refresh
+- [x] Keep login behavior intact: bootstrap status load, KBFS daemon status check, signup draft cleanup, configured account loading, and account refresh rules
+- [x] Keep configured account mirroring into the users store intact
+- [x] Move nested one-off functions out of the subscription body only when it makes the handler easier to scan
 
 ## Chunk 3: Extract Daemon, Shell, Provision, And Router Effects
 
-- [ ] Convert the shell `active` subscription into a named `onUserActiveChanged` style handler
-- [ ] Split daemon reactions into named handlers for:
+- [x] Convert the shell `active` subscription into a named `onUserActiveChanged` style handler
+- [x] Split daemon reactions into named handlers for:
   - handshake version changes
   - bootstrap status changes
   - handshake state reaching `done`
-- [ ] Keep bootstrap status fanout unchanged: current user bootstrap, default username, login state, HTTP server info, and user reacjis
-- [ ] Convert the provision trigger subscription into a named handler while preserving the logout-before-provision behavior
-- [ ] Convert the router nav-state subscription into a named route-change handler while preserving:
+- [x] Keep bootstrap status fanout unchanged: current user bootstrap, default username, login state, HTTP server info, and user reacjis
+- [x] Convert the provision trigger subscription into a named handler while preserving the logout-before-provision behavior
+- [x] Convert the router nav-state subscription into a named route-change handler while preserving:
   - team-building cancellation when leaving team-builder screens
   - FS critical update clearing when leaving the FS tab
   - FS `userIn` / `userOut` transitions
@@ -82,16 +82,16 @@ const subscribeValue = <State, Value>(
 
 ## Chunk 4: Keep The Init Boundary Clear
 
-- [ ] Leave `_onEngineIncoming` behavior out of this cleanup unless a trivial local extraction is needed for readability
-- [ ] Do not introduce a new global event bus or module-level mutable cache
-- [ ] Do not add `subscribeWithSelector` middleware in this pass unless the local helper proves insufficient
-- [ ] If a helper becomes useful in desktop or native init files too, move it to a small shared init utility in a separate follow-up
+- [x] Leave `_onEngineIncoming` behavior out of this cleanup unless a trivial local extraction is needed for readability
+- [x] Do not introduce a new global event bus or module-level mutable cache
+- [x] Do not add `subscribeWithSelector` middleware in this pass unless the local helper proves insufficient
+- [x] If a helper becomes useful in desktop or native init files too, move it to a small shared init utility in a separate follow-up
 
 ## Validation
 
-- [ ] Review the diff to confirm subscription triggers are identical to the previous field comparisons
-- [ ] Confirm `_sharedUnsubs` still receives every shared subscription unsubscribe
-- [ ] Confirm HMR cleanup still unsubscribes before re-subscribing
-- [ ] Confirm no stores gained new imports from other stores solely for side effects
-- [ ] Confirm no React component lifetime now owns app-wide daemon/login/navigation behavior
+- [x] Review the diff to confirm subscription triggers are identical to the previous field comparisons
+- [x] Confirm `_sharedUnsubs` still receives every shared subscription unsubscribe
+- [x] Confirm HMR cleanup still unsubscribes before re-subscribing
+- [x] Confirm no stores gained new imports from other stores solely for side effects
+- [x] Confirm no React component lifetime now owns app-wide daemon/login/navigation behavior
 - [ ] If node tooling is available on another machine, run `yarn lint` and `yarn tsc` from `shared/`
