@@ -122,7 +122,9 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
     if (!exploded || mode !== 'boom') {
       return undefined
     }
-    sharedTimerIDRef.current && SharedTimer.removeObserver(messageKey, sharedTimerIDRef.current)
+    if (sharedTimerIDRef.current) {
+      SharedTimer.removeObserver(messageKey, sharedTimerIDRef.current)
+    }
     sharedTimerKeyRef.current = messageKey
     sharedTimerIDRef.current = SharedTimer.addObserver(
       () => setTimerState(state => ({...state, mode: 'hidden'})),
@@ -133,8 +135,9 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
     )
 
     return () => {
-      sharedTimerIDRef.current &&
+      if (sharedTimerIDRef.current) {
         SharedTimer.removeObserver(sharedTimerKeyRef.current, sharedTimerIDRef.current)
+      }
     }
   }, [exploded, messageKey, mode])
 

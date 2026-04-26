@@ -262,7 +262,9 @@ export function makeScreen<COM extends React.LazyExoticComponent<any>>(
 }
 
 export const clearModals = () => {
-  DEBUG_NAV && console.log('[Nav] clearModals')
+  if (DEBUG_NAV) {
+    console.log('[Nav] clearModals')
+  }
   const n = _getNavigator()
   if (!n) return
   const ns = getRootState()
@@ -286,13 +288,17 @@ export const clearModals = () => {
 }
 
 export const navigateUp = () => {
-  DEBUG_NAV && console.log('[Nav] navigateUp')
+  if (DEBUG_NAV) {
+    console.log('[Nav] navigateUp')
+  }
   const n = _getNavigator()
   return n?.dispatch(CommonActions.goBack())
 }
 
 export const popStack = () => {
-  DEBUG_NAV && console.log('[Nav] popStack')
+  if (DEBUG_NAV) {
+    console.log('[Nav] popStack')
+  }
   const n = _getNavigator()
   n?.dispatch(StackActions.popToTop())
 }
@@ -300,7 +306,9 @@ export const popStack = () => {
 export function navUpToScreen(name: RouteKeys): void
 export function navUpToScreen(path: NavigateAppendType, replaceIfMissing?: boolean): void
 export function navUpToScreen(nameOrPath: RouteKeys | NavigateAppendType, replaceIfMissing = false) {
-  DEBUG_NAV && console.log('[Nav] navUpToScreen', {nameOrPath, replaceIfMissing})
+  if (DEBUG_NAV) {
+    console.log('[Nav] navUpToScreen', {nameOrPath, replaceIfMissing})
+  }
   const n = _getNavigator()
   if (!n) return
   const activeStackState = getActiveStackState()
@@ -350,7 +358,9 @@ export function navUpToScreen(nameOrPath: RouteKeys | NavigateAppendType, replac
 }
 
 export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
-  DEBUG_NAV && console.log('[Nav] navigateAppend', {path})
+  if (DEBUG_NAV) {
+    console.log('[Nav] navigateAppend', {path})
+  }
   const n = _getNavigator()
   if (!n) {
     return
@@ -363,7 +373,9 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
   const routeName = typeof nextPath.name === 'string' ? nextPath.name : String(nextPath.name)
   const params = nextPath.params
   if (!routeName) {
-    DEBUG_NAV && console.log('[Nav] navigateAppend no routeName bail', routeName)
+    if (DEBUG_NAV) {
+      console.log('[Nav] navigateAppend no routeName bail', routeName)
+    }
     return
   }
   const vp = getVisiblePath(ns)
@@ -389,7 +401,9 @@ export function navigateAppend(path: NavigateAppendType, replace?: boolean) {
 }
 
 export const switchTab = (name: Tabs.AppTab) => {
-  DEBUG_NAV && console.log('[Nav] switchTab', {name})
+  if (DEBUG_NAV) {
+    console.log('[Nav] switchTab', {name})
+  }
   const n = _getNavigator()
   if (!n) return
   const ns = getRootState()
@@ -729,7 +743,9 @@ export type NavigateToThreadReason =
   | 'teamMention'
 
 const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: ThreadNavParams) => {
-  DEBUG_NAV && console.log('[Nav] navToThread', conversationIDKey)
+  if (DEBUG_NAV) {
+    console.log('[Nav] navToThread', conversationIDKey)
+  }
   const n = _getNavigator()
   if (!n) return
   const rs = getRootState()

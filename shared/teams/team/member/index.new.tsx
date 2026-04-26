@@ -103,6 +103,7 @@ const useTeamTreeMemberships = (targetTeamID: T.Teams.TeamID, username: string) 
             })
             return {...prev, lastActivity: nextLastActivity}
           })
+          return undefined
         })
         .catch(error => {
           logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}`, error)
@@ -357,8 +358,8 @@ const TeamMember = (props: OwnProps) => {
               }
               let failedAtStr: string
               if (failedAt.length > 1) {
-                const last = failedAt.pop()
-                failedAtStr = failedAt.join(', ') + ', and ' + last
+                const last = failedAt.pop() ?? ''
+                failedAtStr = `${failedAt.join(', ')}, and ${last}`
               } else {
                 failedAtStr = failedAt[0] ?? ''
               }

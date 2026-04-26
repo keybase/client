@@ -248,7 +248,7 @@ export const useChatState = Z.createZustand<State>('chat', (set, get) => {
             s.inboxRetriedOnCurrentEmpty = false
           }
         } catch (e) {
-          logger.info('failed to JSON parse inbox layout: ' + e)
+          logger.info('failed to JSON parse inbox layout: ' + String(e))
         }
       })
     },

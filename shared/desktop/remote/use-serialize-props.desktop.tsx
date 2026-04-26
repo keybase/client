@@ -29,7 +29,9 @@ export default function useSerializeProps<P extends object>(
   const throttledSend = C.useThrottledCallback(
     (nextPropsStr: string, forceUpdateVersion: number) => {
       if (nextPropsStr === lastSent.current && forceUpdateVersion === lastForceUpdate.current) return
-      debugSerializer && console.log('[useSerializeProps]: throttled send', nextPropsStr.length)
+      if (debugSerializer) {
+        console.log('[useSerializeProps]: throttled send', nextPropsStr.length)
+      }
       rendererNewProps?.({propsStr: nextPropsStr, windowComponent, windowParam})
       lastSent.current = nextPropsStr
       lastForceUpdate.current = forceUpdateVersion

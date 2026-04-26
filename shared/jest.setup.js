@@ -1,3 +1,5 @@
+/* global global, require */
+
 const {enableMapSet, setUseStrictIteration} = require('immer')
 const {TextDecoder, TextEncoder} = require('util')
 

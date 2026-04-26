@@ -1,3 +1,5 @@
+/* global PerformanceObserver, cancelAnimationFrame, clearInterval, document, performance, requestAnimationFrame, setInterval, window */
+
 // Desktop performance measurement script — inject via browser_evaluate in Electron.
 // Creates window.__perf with start(), scrollContainer(), and stop() methods.
 ;(function () {

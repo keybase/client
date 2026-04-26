@@ -12,7 +12,9 @@ const SystemProfileResetNotice = () => {
     C.Router2.navigateToThread(conversationIDKey, 'jumpToReset')
   }
   const onOpenOlderConversation = () => {
-    prevConversationIDKey && _onOpenOlderConversation(prevConversationIDKey)
+    if (prevConversationIDKey) {
+      _onOpenOlderConversation(prevConversationIDKey)
+    }
   }
   return (
     <UserNotice>

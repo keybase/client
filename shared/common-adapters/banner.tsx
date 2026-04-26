@@ -27,7 +27,9 @@ export const BannerParagraph = (props: BannerParagraphProps) => (
   >
     {(Array.isArray(props.content) ? props.content : [props.content])
       .reduce<Array<_Segment | string>>((arr, s) => {
-        s && arr.push(s)
+        if (s) {
+          arr.push(s)
+        }
         return arr
       }, [])
       .map(segment => (typeof segment === 'string' ? {text: segment} : segment))

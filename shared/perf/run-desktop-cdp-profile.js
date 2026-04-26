@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global __dirname, console, process, require, setTimeout */
 // CDP CPU profiler for the Keybase Electron app.
 // Connects to the Chrome DevTools Protocol on localhost:9222,
 // records a CPU profile, and saves a .cpuprofile file.
@@ -116,7 +117,7 @@ async function main() {
     await send('Profiler.start')
     console.log(`Profiling for ${duration}ms...`)
 
-    await new Promise(resolve => setTimeout(resvolve, duration))
+    await new Promise(resolve => setTimeout(resolve, duration))
 
     // 4. Stop and save
     const result = await send('Profiler.stop')

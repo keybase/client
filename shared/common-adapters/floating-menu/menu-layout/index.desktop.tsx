@@ -93,7 +93,9 @@ const MenuLayout = (props: MenuLayoutProps) => {
     if (item === 'Divider' && arr.length && arr.at(-1) === 'Divider') {
       return arr
     }
-    item && arr.push(item)
+    if (item) {
+      arr.push(item)
+    }
     return arr
   }, [])
 

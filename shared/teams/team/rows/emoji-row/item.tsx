@@ -8,6 +8,7 @@ import {useEmojiState} from '@/teams/emojis/use-emoji'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
+import {ensureError} from '@/util/errors'
 
 type OwnProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -46,7 +47,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
           ],
           () => refreshEmoji(),
           err => {
-            throw err
+            throw ensureError(err)
           }
         )
       }

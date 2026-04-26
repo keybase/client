@@ -10,6 +10,7 @@ import {useEmojiState} from './use-emoji'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {useNavigation} from '@react-navigation/native'
 import KB2 from '@/util/electron'
+import {ensureError} from '@/util/errors'
 
 const {getPathForFile} = KB2.functions
 
@@ -66,7 +67,9 @@ const useDoAddEmojis = (
                 removeFilePath(new Set(res.successFilenames))
               }
               const failedFilenamesKeys = Object.keys(res.failedFilenames ?? {})
-              !failedFilenamesKeys.length && clearModals()
+              if (!failedFilenamesKeys.length) {
+                clearModals()
+              }
               setErrors(
                 new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames?.[key]?.uidisplay ?? '']))
               )
@@ -74,7 +77,7 @@ const useDoAddEmojis = (
               setWaitingAddEmojis(false)
             },
             err => {
-              throw err
+              throw ensureError(err)
             }
           )
         }
@@ -227,7 +230,9 @@ const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
       .filter(file => file.type.startsWith('image/'))
       .map(file => getPathForFile?.(file) ?? '')
       .filter(Boolean)
-    filesToAdd.length && addFiles(filesToAdd)
+    if (filesToAdd.length) {
+      addFiles(filesToAdd)
+    }
     setDragOver(false)
   }
   const pick = () => {

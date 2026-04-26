@@ -13,7 +13,6 @@ export function useSafeSubmit<F extends (...a: Array<any>) => void>(f: F, should
     if (safeToCallRef.current) {
       safeToCallRef.current = false
       f(...args)
-    } else {
     }
   }
 

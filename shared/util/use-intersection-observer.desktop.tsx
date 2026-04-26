@@ -47,9 +47,10 @@ function useIntersectionObserver<T extends HTMLElement = HTMLElement>(
       // eslint-disable-next-line
       for (let i = 0; i < entries.length; i++) {
         const entry = entries[i]
-        // @ts-ignore
+        if (!entry) {
+          continue
+        }
         if (entry.target === targetEl) {
-          // @ts-ignore
           setEntry(entry)
         }
       }
@@ -81,10 +82,11 @@ function createIntersectionObserver({
       for (const callback of callbacks) callback(entries, observer)
     },
     {root, rootMargin, threshold}
-  )
-  // @ts-ignore
+  ) as IntersectionObserver & {
+    POLL_INTERVAL?: number | null
+    USE_MUTATION_OBSERVER?: boolean
+  }
   observer.POLL_INTERVAL = pollInterval
-  // @ts-ignore
   observer.USE_MUTATION_OBSERVER = useMutationObserver
 
   return {

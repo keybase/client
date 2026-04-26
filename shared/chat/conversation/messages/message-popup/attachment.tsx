@@ -86,7 +86,9 @@ const PopAttach = (ownProps: OwnProps) => {
   const onShareAttachment = C.isMobile ? _onShareAttachment : undefined
 
   const _onShowInFinder = () => {
-    downloadPath && openLocalPathInSystemFileManagerDesktop(downloadPath)
+    if (downloadPath) {
+      openLocalPathInSystemFileManagerDesktop(downloadPath)
+    }
   }
   const onShowInFinder = !C.isMobile && message.downloadPath ? _onShowInFinder : undefined
 

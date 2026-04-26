@@ -653,7 +653,9 @@ function EditCancelRetry(p: {
     setEditing(ordinal)
   }
   const onRetry = () => {
-    outboxID && messageRetry(outboxID)
+    if (outboxID) {
+      messageRetry(outboxID)
+    }
   }
 
   const cancel =

@@ -1,5 +1,5 @@
 import {getEngine} from './require'
-import {RPCError} from '@/util/errors'
+import {ensureError, RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
 import type {CommonResponseHandler} from './types'
 import {wrapErrors} from '@/util/debug'
@@ -127,7 +127,7 @@ async function listener(p: {
         }
 
         if (error) {
-          reject(error)
+          reject(ensureError(error))
         } else {
           resolve(params)
         }

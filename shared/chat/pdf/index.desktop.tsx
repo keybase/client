@@ -15,7 +15,9 @@ const ChatPDF = (props: Props) => {
 
   const attachmentDownload = ConvoState.useChatContext(s => s.dispatch.attachmentDownload)
   const onDownload = () => {
-    message && attachmentDownload(message.ordinal)
+    if (message) {
+      attachmentDownload(message.ordinal)
+    }
     openLocalPathInSystemFileManagerDesktop(C.downloadFolder)
   }
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global __dirname, console, process, require, window */
 // Automated desktop performance test.
 // Connects to a running Electron app via CDP, navigates to a screen, scrolls, and saves FPS + React render stats.
 //

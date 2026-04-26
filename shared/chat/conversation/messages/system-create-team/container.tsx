@@ -60,8 +60,9 @@ const AddInvite = (props: {teamID: T.Teams.TeamID; isAdmin: boolean}) => {
   const {teamID, isAdmin} = props
   const navigateAppend = C.Router2.navigateAppend
   const onAddInvite = () => {
-    teamID &&
+    if (teamID) {
       navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
+    }
   }
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (isAdmin) {

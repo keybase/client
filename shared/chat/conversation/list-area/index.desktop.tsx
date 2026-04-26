@@ -133,20 +133,22 @@ const useScrolling = (p: {
 
   const [scrollDown] = React.useState(() => () => {
     const list = listRef.current
-    list &&
+    if (list) {
       adjustScrollAndIgnoreOnScroll(() => {
         list.scrollTop += list.clientHeight
       })
+    }
   })
 
   const [scrollUp] = React.useState(() => () => {
     lockedToBottomRef.current = false
     const list = listRef.current
-    list &&
+    if (list) {
       adjustScrollAndIgnoreOnScroll(() => {
         list.scrollTop -= list.clientHeight
         checkForLoadMoreThrottled()
       })
+    }
   })
 
   const scrollCheckRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -505,7 +507,9 @@ const ThreadWrapper = function ThreadWrapper() {
     })
 
     const tc = tempDiv.textContent
-    tc && copyToClipboard(tc)
+    if (tc) {
+      copyToClipboard(tc)
+    }
     tempDiv.remove()
   }
   const {focusInput} = React.useContext(FocusContext)

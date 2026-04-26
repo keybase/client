@@ -23,7 +23,9 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   const viewType: T.RPCGen.GUIViewType = fileContext.viewType
   const bare = C.isMobile && viewType === T.RPCGen.GUIViewType.image
   React.useEffect(() => {
-    bare && emitBarePreview()
+    if (bare) {
+      emitBarePreview()
+    }
   }, [bare, emitBarePreview])
 
   Kbfs.useFsOnlineStatus()

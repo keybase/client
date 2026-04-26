@@ -175,10 +175,11 @@ const onChatWatchPosition = async (
     await requestLocationPermission(action.payload.params.perm)
   } catch (_error) {
     const error = _error as {message?: string}
-    logger.info('failed to get location perms: ' + error.message)
+    const message = String(error.message)
+    logger.info('failed to get location perms: ' + message)
     setPermissionDeniedCommandStatus(
       T.Chat.conversationIDToKey(action.payload.params.convID),
-      `Failed to access location. ${error.message}`
+      `Failed to access location. ${message}`
     )
   }
 
@@ -286,7 +287,6 @@ export const initPlatformListener = () => {
           cacheDirOverride: fsCacheDir,
           downloadDirOverride: fsDownloadDir,
         })
-          .then(() => {})
           .catch((e: unknown) => {
             logger.error(`[Android cache override] Failed to configure: ${String(e)}`)
           })

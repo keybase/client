@@ -115,7 +115,9 @@ function DesktopHeader(p: Props) {
   const {headerTransparent, headerShadowVisible, headerBottomStyle, headerStyle, headerLeft} = options
 
   const pop = () => {
-    back && navigation.pop()
+    if (back) {
+      navigation.pop()
+    }
   }
 
   if (headerMode === 'none') {

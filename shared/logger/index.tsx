@@ -60,7 +60,9 @@ class AggregateLoggerImpl {
   private timerID: undefined | ReturnType<typeof setTimeout>
 
   private resetPeriodic = () => {
-    this.timerID && clearTimeout(this.timerID)
+    if (this.timerID) {
+      clearTimeout(this.timerID)
+    }
     // we wait, then want a good opportunity
     this.timerID = setTimeout(() => {
       requestIdleCallback(

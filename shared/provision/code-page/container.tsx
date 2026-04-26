@@ -38,7 +38,9 @@ const CodePageContainer = () => {
   const onBack = navigateUp
 
   const _onSubmitTextCode = (code: string) => {
-    !waiting && submitTextCode?.(code)
+    if (!waiting) {
+      submitTextCode?.(code)
+    }
   }
 
   const [code, setCode] = React.useState('')
@@ -336,7 +338,9 @@ const EnterText = (props: {
   const {onSubmitTextCode} = props
   const onSubmit = (e?: React.KeyboardEvent) => {
     e?.preventDefault()
-    code && onSubmitTextCode(code)
+    if (code) {
+      onSubmitTextCode(code)
+    }
   }
   return (
     <Kb.Box2 direction="vertical" style={styles.enterTextContainer} gap="small">

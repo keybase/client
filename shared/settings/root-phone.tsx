@@ -207,7 +207,7 @@ function SettingsNav() {
             ) : item.text ? (
               <SettingsItem
                 {...item}
-                key={item.text + index}
+                key={item.text + String(index)}
                 type={item.text}
                 onClick={() => item.onClick()}
                 selected={false}

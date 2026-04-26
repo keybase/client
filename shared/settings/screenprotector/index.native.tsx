@@ -10,8 +10,8 @@ const Screenprotector = () => {
     getSecureFlagSetting()
       .then(secureFlag => {
         setSecureFlag(secureFlag)
+        return undefined
       })
-      .then(() => {})
       .catch(() => {})
   })
 

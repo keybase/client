@@ -30,7 +30,11 @@ const ConnectedErrorModal = ({route}: Props) => {
   const popStack = C.Router2.popStack
   const navigateUp = C.Router2.navigateUp
   const onBack = () => {
-    loggedIn ? navigateUp() : popStack()
+    if (loggedIn) {
+      navigateUp()
+    } else {
+      popStack()
+    }
   }
 
   return (

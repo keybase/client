@@ -189,7 +189,9 @@ const DropdownButton = (p: DropdownProps) => {
         title: blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
       },
     ].reduce<Kb.MenuItems>((arr, i) => {
-      i && arr.push(i as Kb.MenuItem)
+      if (i) {
+        arr.push(i as Kb.MenuItem)
+      }
       return arr
     }, [])
     return (

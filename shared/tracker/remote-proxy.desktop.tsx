@@ -128,7 +128,9 @@ const RemoteTrackers = () => {
     setPopupState(prev => {
       const showTrackerSet = new Set(prev.showTrackerSet)
       const usernameToDetails = new Map(prev.usernameToDetails)
-      forceDisplay && showTrackerSet.add(assertion)
+      if (forceDisplay) {
+        showTrackerSet.add(assertion)
+      }
       const details = cloneDetails(usernameToDetails.get(assertion) ?? makeDetails(assertion))
       usernameToDetails.set(assertion, {
         ...details,

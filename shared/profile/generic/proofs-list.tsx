@@ -532,7 +532,9 @@ const Container = ({platform, reason = 'profile'}: Props) => {
                 submit()
                 return
               }
-              step.sigID && ignorePromise(checkProofAndNavigate(step.platform, step.sigID, step.username, step.proofText))
+              if (step.sigID) {
+                ignorePromise(checkProofAndNavigate(step.platform, step.sigID, step.username, step.proofText))
+              }
             }}
             step={step}
           />
@@ -928,7 +930,9 @@ const PostProof = ({
           gap="small"
           onCopyCapture={e => {
             e.preventDefault()
-            proofText && copyToClipboard(proofText)
+            if (proofText) {
+              copyToClipboard(proofText)
+            }
           }}
         >
           {!!step.error && (
@@ -973,7 +977,9 @@ const PostProof = ({
               <Kb.Button
                 onClick={() => {
                   setShowSubmit(true)
-                  url && openUrl(url)
+                  if (url) {
+                    openUrl(url)
+                  }
                 }}
                 label={proofActionText}
               />

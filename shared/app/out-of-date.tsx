@@ -44,9 +44,11 @@ const OutOfDate = () => {
                 setMobileCritical(false)
                 setMobileMessage('')
             }
+            return undefined
           })
           .catch(e => {
             logger.warn("Can't call critical check", e)
+            return undefined
           })
       )
     }, 60_000) // don't bother checking during startup

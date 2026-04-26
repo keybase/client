@@ -3,6 +3,7 @@ import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {NotifyPopup} from '@/util/misc'
+import {ensureError} from '@/util/errors'
 import logger from '@/logger'
 import {isMobile} from '@/constants/platform'
 import isObject from 'lodash/isObject'
@@ -108,7 +109,7 @@ export const errorToActionOrThrowWithHandlers = (
     redbar('A user in this shared folder has deleted their account.')
     return
   }
-  throw error
+  throw ensureError(error)
 }
 
 export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
@@ -223,7 +224,9 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   const unsubscribeAll = () => {
     const subscriptionIDs = [settingsSub.id, uploadStatusSub.id, journalStatusSub.id]
     subscriptionIDs.forEach(subscriptionID => {
-      subscriptionID && unsubscribe(subscriptionID)
+      if (subscriptionID) {
+        unsubscribe(subscriptionID)
+      }
     })
     clearSubscriptions()
   }

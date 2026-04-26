@@ -13,8 +13,9 @@ const AddPeople = (p: Props) => {
   const teamID = ConvoState.useChatContext(s => s.meta.teamID)
   const navigateAppend = ConvoState.useChatNavigateAppend()
   const onAddPeople = () => {
-    teamID &&
+    if (teamID) {
       C.Router2.navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
+    }
   }
   const onAddToChannel = () => {
     navigateAppend(conversationIDKey => ({name: 'chatAddToChannel', params: {conversationIDKey, teamID}}))
@@ -22,8 +23,7 @@ const AddPeople = (p: Props) => {
 
   let directAction: undefined | (() => void)
   let directLabel: string | undefined
-  if (!isGeneralChannel) {
-  } else {
+  if (isGeneralChannel) {
     directAction = onAddPeople
     directLabel = 'Add people to team'
   }

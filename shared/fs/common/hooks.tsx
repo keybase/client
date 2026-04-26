@@ -294,7 +294,9 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
         })
         setPathSoftError(path)
         const tlfPath = FS.getTlfPath(path)
-        tlfPath && setTlfSoftError(tlfPath)
+        if (tlfPath) {
+          setTlfSoftError(tlfPath)
+        }
       } catch (error) {
         errorToActionOrThrow(error, path)
       } finally {
@@ -485,7 +487,9 @@ const useFsLoadOnMountAndFocus = ({
     loadOnMountAndFocus()
   })
   React.useEffect(() => {
-    connected && enabled && loadOnMountAndFocus()
+    if (connected && enabled) {
+      loadOnMountAndFocus()
+    }
   }, [connected, enabled, reloadKey])
   C.Router2.useSafeFocusEffect(stableLoadOnMountAndFocus)
 }
@@ -838,14 +842,18 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
   const tlfs = useFsTlfs()
   const tlf = FS.getTlfFromPath(tlfs, path)
   const loadAdditionalTlf = routeData?.loadAdditionalTlf
-  const active =
-    !!loadAdditionalTlf &&
-    !!tlfPath &&
+  const tlfPathToLoad =
+    tlfPath &&
     tlfs.loaded &&
     FS.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) === FS.unknownTlf &&
     options?.loadOnMount !== false
+      ? tlfPath
+      : undefined
+  const active = !!loadAdditionalTlf && !!tlfPathToLoad
   const loadCurrentTlf = React.useEffectEvent(() => {
-    active && loadAdditionalTlf(tlfPath)
+    if (loadAdditionalTlf && tlfPathToLoad) {
+      loadAdditionalTlf(tlfPathToLoad)
+    }
   })
   const [stableLoadCurrentTlf] = React.useState(() => () => {
     loadCurrentTlf()
@@ -858,7 +866,7 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
   )
   React.useEffect(() => {
     loadCurrentTlf()
-  }, [active, loadAdditionalTlf, tlfPath, tlfs.loaded])
+  }, [active, loadAdditionalTlf, tlfPathToLoad])
   C.Router2.useSafeFocusEffect(stableLoadCurrentTlf)
   return tlf
 }
@@ -1045,7 +1053,9 @@ export const useFsFileContext = (
       const requestReloadKey = reloadKey
       const f = async () => {
         try {
-          urlError && logger.info(`urlError: ${urlError}`)
+          if (urlError) {
+            logger.info(`urlError: ${urlError}`)
+          }
           const res = await T.RPCGen.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
             path: FS.pathToRPCPath(path).kbfs,
           })

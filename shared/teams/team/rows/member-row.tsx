@@ -310,23 +310,28 @@ const Container = (ownProps: OwnProps) => {
   const waitingForRemove = C.Waiting.useAnyWaiting(C.waitingKeyTeamsRemoveMember(teamID, username))
   const setUserBlocks = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
   const onBlock = () => {
-    username &&
+    if (username) {
       setUserBlocks(
         [{blocks: [{setChatBlock: true, setFollowBlock: true, username}]}, C.waitingKeyUsersSetUserBlocks],
         () => {},
         () => {}
       )
+    }
   }
   const previewConversation = C.Router2.previewConversation
   const onChat = () => {
-    username && previewConversation({participants: [username], reason: 'teamMember'})
+    if (username) {
+      previewConversation({participants: [username], reason: 'teamMember'})
+    }
   }
   const navigateAppend = C.Router2.navigateAppend
   const onClick = () => {
     navigateAppend({name: 'teamMember', params: {teamID, username}})
   }
   const onOpenProfile = () => {
-    username && navToProfile(username)
+    if (username) {
+      navToProfile(username)
+    }
   }
   const onReAddToTeam = () => {
     reAddToTeam(teamID, username)

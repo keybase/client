@@ -121,7 +121,11 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
 
   const cancel = (e?: React.BaseSyntheticEvent) => {
     blur()
-    onCancel ? onCancel() : clear()
+    if (onCancel) {
+      onCancel()
+    } else {
+      clear()
+    }
     e?.stopPropagation()
   }
 
@@ -137,7 +141,9 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   Kb.useHotKey(props.hotkey && !props.onClick ? `mod+${props.hotkey}` : '', onHotkey)
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    e.key === 'Escape' && cancel(e)
+    if (e.key === 'Escape') {
+      cancel(e)
+    }
     _onKeyDown?.(e)
   }
 

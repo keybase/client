@@ -59,7 +59,9 @@ const useDarkHookup = () => {
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
       appStateRef.current = nextAppState
-      nextAppState !== 'unknown' && nextAppState !== 'extension' && setMobileAppState(nextAppState)
+      if (nextAppState !== 'unknown' && nextAppState !== 'extension') {
+        setMobileAppState(nextAppState)
+      }
 
       if (nextAppState === 'active') {
         setSystemDarkMode(Appearance.getColorScheme() === 'dark')

@@ -13,6 +13,7 @@ import {
 import {AliasInput, Modal, type AliasRef} from './common'
 import {useEmojiState} from './use-emoji'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
+import {ensureError} from '@/util/errors'
 
 type Props = {defaultSelected?: EmojiData}
 
@@ -106,7 +107,7 @@ const AddAliasModal = (props: Props) => {
             refreshEmoji()
           },
           err => {
-            throw err
+            throw ensureError(err)
           }
         )
       }

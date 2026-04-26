@@ -512,8 +512,7 @@ const Container = (ownProps: OwnProps) => {
   let loading = false
   let teamPolicy: T.Retention.RetentionPolicy | undefined
 
-  if (_cid) {
-  } else if (!entityType.endsWith('team')) {
+  if (!_cid && !entityType.endsWith('team')) {
     throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
   }
   const conversationIDKey = _cid ?? Chat.noConversationIDKey

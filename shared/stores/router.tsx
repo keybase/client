@@ -29,7 +29,9 @@ export const useRouterState = Z.createZustand<State>('router', (set, get) => {
     },
     setNavState: next => {
       const DEBUG_NAV = __DEV__ && (false as boolean)
-      DEBUG_NAV && console.log('[Nav] setNavState')
+      if (DEBUG_NAV) {
+        console.log('[Nav] setNavState')
+      }
       const prev = get().navState as Util.NavState
       if (prev === next) return
       set(s => {

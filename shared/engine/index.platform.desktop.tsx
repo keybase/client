@@ -25,7 +25,7 @@ class NativeTransport extends TransportShared {
     this.needsConnect = true
   }
 
-  protected isConnected() {
+  protected override isConnected() {
     return !!this._socket
   }
 
@@ -40,7 +40,7 @@ class NativeTransport extends TransportShared {
     this._socket.write(Buffer.from(framed))
   }
 
-  connect(cb: (err?: unknown) => void) {
+  override connect(cb: (err?: unknown) => void) {
     this.clearExplicitClose()
     if (this._socket) {
       cb()
@@ -49,14 +49,14 @@ class NativeTransport extends TransportShared {
     this.connectOnce(cb)
   }
 
-  packetizeData(m: Uint8Array) {
+  override packetizeData(m: Uint8Array) {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length)
     }
     mainWindowDispatchEngineIncoming?.(m)
   }
 
-  close() {
+  override close() {
     this.markExplicitClose()
     if (this._reconnectTimer) {
       clearTimeout(this._reconnectTimer)

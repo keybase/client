@@ -169,12 +169,13 @@ const Fullscreen = function Fullscreen(p: Props) {
   }, [])
 
   React.useEffect(() => {
-    fadeAnim &&
+    if (fadeAnim) {
       Animated.timing(fadeAnim, {
         duration: 240,
         toValue: showHeader ? 1 : 0,
         useNativeDriver: true,
       }).start()
+    }
   }, [showHeader, fadeAnim])
 
   return (

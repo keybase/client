@@ -91,7 +91,7 @@ const MenuBar = () => {
     try {
       mb.tray.setImage(getIcon())
     } catch (err) {
-      console.error('menu icon err: ' + err)
+      console.error('menu icon err: ' + String(err))
     }
   }
 
@@ -123,7 +123,9 @@ const MenuBar = () => {
         action.payload.desktopAppBadgeCount > 0
           ? fsAssetRoot + 'images/icons/icon-windows-badge.png'
           : null
-      overlay && mw?.setOverlayIcon(Electron.nativeImage.createFromPath(overlay), 'new activity')
+      if (overlay) {
+        mw?.setOverlayIcon(Electron.nativeImage.createFromPath(overlay), 'new activity')
+      }
     }
   })
 

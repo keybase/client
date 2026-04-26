@@ -117,14 +117,18 @@ function updateIconFont(web: boolean) {
     try {
       execSync('fontforge')
     } catch (error_) {
-      const error = error_ as {message: string}
-      if (error.message.includes('not found')) {
+      const error = error_ as {message?: string}
+      const message = String(error.message)
+      if (message.includes('not found')) {
         throw new Error(
           'FontForge is required to generate the icon font. Run `yarn`, install FontForge CLI globally, and try again.',
           {cause: error_}
         )
       }
-      throw error
+      if (error_ instanceof Error) {
+        throw error_
+      }
+      throw new Error(message, {cause: error_})
     }
   }
 

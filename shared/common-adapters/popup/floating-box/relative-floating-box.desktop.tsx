@@ -321,7 +321,9 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
 
     const handleClick = (e: MouseEvent) => {
       if (popupNode && e.target instanceof HTMLElement && !popupNode.contains(e.target)) {
-        !propagateOutsideClicks && e.stopPropagation()
+        if (!propagateOutsideClicks) {
+          e.stopPropagation()
+        }
         onClosePopup()
       }
     }

@@ -4,6 +4,7 @@ import * as Chat from '@/stores/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import logger from '@/logger'
+import {ensureError} from '@/util/errors'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '../use-cached-resource'
@@ -82,7 +83,7 @@ export const useAllChannelMetas = (
                   }, new Array<[string, T.Chat.ConversationMeta]>())
               ),
             }),
-          error => reject(error)
+          error => reject(ensureError(error))
         )
       }),
     onError: error => {

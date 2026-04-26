@@ -212,7 +212,7 @@ const reactComponentsForMarkdownType = {
       // nodes together into a single string output.
       let lastResult: React.ReactNode = null
       for (let i = 0; i < arr.length; i++) {
-        state.key = '' + i
+        state.key = String(i)
         const nodeOut = output(arr[i]!, state)
         if (typeof nodeOut === 'string' && typeof lastResult === 'string') {
           lastResult = lastResult + nodeOut

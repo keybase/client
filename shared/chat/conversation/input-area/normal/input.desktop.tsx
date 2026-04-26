@@ -332,7 +332,9 @@ const FileButton = function FileButton(p: {setHtmlInputRef: (i: HTMLInputElement
   const pickFile = () => {
     const paths = htmlInputRef.current?.files ? fileListToPaths(htmlInputRef.current.files) : undefined
     const pathAndOutboxIDs = paths?.reduce<Array<{path: string}>>((arr, path: string) => {
-      path && arr.push({path})
+      if (path) {
+        arr.push({path})
+      }
       return arr
     }, [])
     if (pathAndOutboxIDs?.length) {
@@ -493,7 +495,9 @@ const PlatformInput = function PlatformInput(p: Props) {
   const checkEnterOnKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !(e.altKey || e.shiftKey || e.metaKey)) {
       e.preventDefault()
-      inputRef.current && onSubmit(inputRef.current.value)
+      if (inputRef.current) {
+        onSubmit(inputRef.current.value)
+      }
     }
   }
 

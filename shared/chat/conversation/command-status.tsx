@@ -18,20 +18,10 @@ const Container = () => {
     setCommandStatusInfo()
   }
   const props = {
-    actions: _info.actions.map((a: T.RPCChat.UICommandStatusActionTyp | unknown) => {
-      switch (a) {
-        case T.RPCChat.UICommandStatusActionTyp.appsettings:
-          return {
-            displayText: 'View App Settings',
-            onClick: openAppSettings,
-          }
-        default:
-          return {
-            displayText: '???',
-            onClick: () => {},
-          }
-      }
-    }),
+    actions: _info.actions.map(() => ({
+      displayText: 'View App Settings',
+      onClick: openAppSettings,
+    })),
     displayText: _info.displayText,
     displayType: _info.displayType,
     onCancel,

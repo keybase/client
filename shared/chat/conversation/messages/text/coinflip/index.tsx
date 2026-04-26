@@ -22,7 +22,9 @@ function CoinFlipContainer() {
   )
   const status = ConvoState.useChatContext(s => s.flipStatusMap.get(flipGameID))
   const onFlipAgain = () => {
-    text && sendMessage(text.stringValue())
+    if (text) {
+      sendMessage(text.stringValue())
+    }
   }
   const phase = status?.phase
   const errorInfo = phase === T.RPCChat.UICoinFlipPhase.error ? status?.errorInfo : undefined

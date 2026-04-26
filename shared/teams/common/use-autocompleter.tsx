@@ -74,7 +74,9 @@ function useAutocompleter<U>(
           break
         case 'Enter':
           setSelected(0)
-          selectedItem?.value && onSelect(selectedItem.value)
+          if (selectedItem?.value) {
+            onSelect(selectedItem.value)
+          }
           return
       }
       let newSelected = selected + diff

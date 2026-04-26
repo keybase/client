@@ -73,7 +73,9 @@ const Container = (op: OwnProps) => {
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const layout = getLayout(mode, path, pathItem, fileContext, username)
   const cancel = () => {
-    C.isMobile && downloadID && cancelDownload(downloadID)
+    if (C.isMobile && downloadID) {
+      cancelDownload(downloadID)
+    }
   }
   const navigateAppend = C.Router2.navigateAppend
   const saving = downloadID && downloadIntent === T.FS.DownloadIntent.CameraRoll
@@ -174,7 +176,9 @@ const Container = (op: OwnProps) => {
         {
           icon: 'iconfont-chat',
           onClick: hideAndCancelAfter(() => {
-            path && navigateAppend({name: 'chatSendToChat', params: {sendPaths: [path]}})
+            if (path) {
+              navigateAppend({name: 'chatSendToChat', params: {sendPaths: [path]}})
+            }
           }),
           subTitle: `The ${
             pathItem.type === T.FS.PathType.Folder ? 'folder' : 'file'
@@ -339,12 +343,16 @@ const Container = (op: OwnProps) => {
 
   const justDoneWithIntent = useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
   React.useEffect(() => {
-    justDoneWithIntent && hide()
+    if (justDoneWithIntent) {
+      hide()
+    }
   }, [justDoneWithIntent, hide])
 
   const userInitiatedHide = () => {
     hide()
-    downloadID && dismissDownload(downloadID)
+    if (downloadID) {
+      dismissDownload(downloadID)
+    }
   }
 
   return (

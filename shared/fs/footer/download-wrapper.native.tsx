@@ -33,7 +33,11 @@ const DownloadNativeWrapper: React.FC<Props> = props => {
   }
 
   React.useEffect(() => {
-    props.isFirst && props.done ? ensureStarted() : ensureStopped()
+    if (props.isFirst && props.done) {
+      ensureStarted()
+    } else {
+      ensureStopped()
+    }
 
     return () => {
       ensureStopped()

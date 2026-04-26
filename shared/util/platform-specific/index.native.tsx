@@ -65,7 +65,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
       body: `Failed to save ${saveType} to camera roll`,
       id: Math.floor(Math.random() * 2 ** 32).toString(),
     }).catch(() => {})
-    logger.debug(logPrefix + 'failed to save: ' + e)
+    logger.debug(logPrefix + 'failed to save: ' + String(e))
     throw e
   } finally {
     try {

@@ -113,7 +113,9 @@ const startApp = () => {
       flushDeferredLaunch(runtime, getStartupProcessArgs)
 
       installer(err => {
-        err && console.log('Error: ', err)
+        if (err) {
+          console.log('Error: ', err)
+        }
         R.remoteDispatch(RemoteGen.createInstallerRan())
       })
     },

@@ -77,7 +77,9 @@ function EmailVerificationBanner(props: {signupEmail: string}) {
     () =>
       // Only have a cleanup function
       () => {
-        signupEmail && clearSignupEmail()
+        if (signupEmail) {
+          clearSignupEmail()
+        }
       },
     [signupEmail]
   )

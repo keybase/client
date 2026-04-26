@@ -45,8 +45,10 @@ const MenuRow = (props: MenuRowProps) => (
   <TouchableOpacity
     disabled={props.disabled}
     onPress={() => {
-      props.onHidden && !props.unWrapped && props.onHidden() // auto hide after a selection
-      props.onClick && !props.unWrapped && props.onClick()
+      if (!props.unWrapped) {
+        props.onHidden?.() // auto hide after a selection
+        props.onClick?.()
+      }
     }}
     style={Styles.collapseStyles([
       styles.itemContainer,

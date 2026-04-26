@@ -75,7 +75,7 @@ const TeamRow = (p: RowProps) => {
             )}
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" style={styles.teamText}>
-            <Kb.Text type="BodySmall">{membercount + ' member' + (membercount !== 1 ? 's' : '')}</Kb.Text>
+            <Kb.Text type="BodySmall">{String(membercount) + ' member' + (membercount !== 1 ? 's' : '')}</Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
         {showcased || canShowcase || waiting ? (

@@ -876,7 +876,9 @@ const validUIMessagetoMessage = (
           ? payments.reduce((arr: Array<string>, p) => {
               if (p.result.resultTyp === T.RPCChat.TextPaymentResultTyp.sent) {
                 const s = p.result.sent
-                s && arr.push(s)
+                if (s) {
+                  arr.push(s)
+                }
               }
               return arr
             }, [])

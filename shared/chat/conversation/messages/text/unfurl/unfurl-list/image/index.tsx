@@ -21,7 +21,9 @@ const UnfurlImage = (p: Props) => {
   const {autoplayVideo, isVideo, linkURL, onClick, url, style, widthPadding} = p
 
   const onOpenURL = () => {
-    linkURL && openURL(linkURL)
+    if (linkURL) {
+      openURL(linkURL)
+    }
   }
   const maxSize = Math.min(maxWidth, 320) - (widthPadding || 0)
   const {height, width} = clampImageSize(p.width, p.height, maxSize, 320)

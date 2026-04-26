@@ -317,7 +317,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
               gap="tiny"
             >
               <Kb.ProgressBar ratio={progress} />
-              <Kb.Text type="Body">{Math.round(progress * 100) + '%'}</Kb.Text>
+              <Kb.Text type="Body">{String(Math.round(progress * 100)) + '%'}</Kb.Text>
               <Kb.Box2 direction="horizontal" style={{flex: 1}} />
               {errorStr && (
                 <Kb.WithTooltip tooltip={errorStr} showOnPressMobile={true}>

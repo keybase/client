@@ -55,8 +55,12 @@ const Fullscreen = function Fullscreen(p: Props) {
 
   const vidRef = React.useRef<HTMLVideoElement>(null)
   const onHotKey = (cmd: string) => {
-    cmd === 'left' && onPreviousAttachment()
-    cmd === 'right' && onNextAttachment()
+    if (cmd === 'left') {
+      onPreviousAttachment()
+    }
+    if (cmd === 'right') {
+      onNextAttachment()
+    }
   }
   Kb.useHotKey(['left', 'right'], onHotKey)
   const isDownloadError = !!message.transferErrMsg

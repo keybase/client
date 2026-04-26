@@ -127,12 +127,16 @@ const filterAndJoin = (
 const getTeams = (layout?: T.RPCChat.UIInboxLayout) => {
   const bigTeams =
     layout?.bigTeams?.reduce<Array<string>>((arr, l) => {
-      l.state === T.RPCChat.UIInboxBigTeamRowTyp.label && arr.push(l.label.name)
+      if (l.state === T.RPCChat.UIInboxBigTeamRowTyp.label) {
+        arr.push(l.label.name)
+      }
       return arr
     }, []) ?? []
   const smallTeams =
     layout?.smallTeams?.reduce<Array<string>>((arr, l) => {
-      l.isTeam && arr.push(l.name)
+      if (l.isTeam) {
+        arr.push(l.name)
+      }
       return arr
     }, []) ?? []
   return bigTeams.concat(smallTeams).map(teamname => ({channelname: '', teamname}))

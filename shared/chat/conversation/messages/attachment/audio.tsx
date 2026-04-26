@@ -15,7 +15,9 @@ const AudioAttachment = ({message}: {message: T.Chat.MessageAttachment}) => {
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = messageAttachmentHasProgress(message)
   const onShowInFinder = () => {
-    message.downloadPath && openLocalPathInSystemFileManagerDesktop(message.downloadPath)
+    if (message.downloadPath) {
+      openLocalPathInSystemFileManagerDesktop(message.downloadPath)
+    }
   }
   const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
   const showInFinder = !!message.downloadPath && !Kb.Styles.isMobile

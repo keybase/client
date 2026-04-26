@@ -151,7 +151,11 @@ const Container = (ownProps: OwnProps) => {
   const toggleExpand = (id: string) => {
     setExpandedState(state => {
       const nextExpandedSet = new Set(state.expandedSet)
-      nextExpandedSet.has(id) ? nextExpandedSet.delete(id) : nextExpandedSet.add(id)
+      if (nextExpandedSet.has(id)) {
+        nextExpandedSet.delete(id)
+      } else {
+        nextExpandedSet.add(id)
+      }
       return {...state, expandedSet: nextExpandedSet}
     })
   }

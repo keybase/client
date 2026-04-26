@@ -62,9 +62,9 @@ const getChannelSuggestions = (
     const suggestions = (Chat.useChatState.getState().inboxLayout?.bigTeams ?? []).reduce<
       Array<{channelname: string; teamname: string}>
     >((arr, t) => {
-      t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel &&
-        mutualTeams.has(t.channel.teamname) &&
+      if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel && mutualTeams.has(t.channel.teamname)) {
         arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
+      }
       return arr
     }, [])
 
@@ -75,9 +75,9 @@ const getChannelSuggestions = (
   const suggestions = (Chat.useChatState.getState().inboxLayout?.bigTeams ?? []).reduce<
     Array<{channelname: string}>
   >((arr, t) => {
-    t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel &&
-      t.channel.teamname === teamname &&
+    if (t.state === T.RPCChat.UIInboxBigTeamRowTyp.channel && t.channel.teamname === teamname) {
       arr.push({channelname: t.channel.channelname})
+    }
     return arr
   }, [])
 

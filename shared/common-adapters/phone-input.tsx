@@ -519,7 +519,7 @@ const PhoneInput = (p: Props) => {
             ? !prefix
               ? '- Pick a country -'
               : '- Invalid country prefix -'
-            : countryData()[country]?.emoji + ' ' + countryData()[country]?.name}
+            : `${String(countryData()[country]?.emoji)} ${String(countryData()[country]?.name)}`}
         </Kb.Text>
       )
     }
@@ -530,7 +530,7 @@ const PhoneInput = (p: Props) => {
           {getCountryEmoji(country)}
         </Kb.Text>
         <Kb.Text type="BodySemibold" style={styles.countrySelector}>
-          {'+' + prefix}
+          {'+' + String(prefix)}
         </Kb.Text>
       </>
     )

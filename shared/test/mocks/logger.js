@@ -1,3 +1,4 @@
+/* global console, module */
 const bind = fn => (...args) => fn(...args)
 
 const logger = {

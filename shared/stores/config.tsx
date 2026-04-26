@@ -174,7 +174,9 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     const items = state.items || []
     const goodState = items.reduce<Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>>(
       (arr, {md, item}) => {
-        md && item && arr.push({item, md})
+        if (md && item) {
+          arr.push({item, md})
+        }
         return arr
       },
       []

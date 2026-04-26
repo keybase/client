@@ -65,7 +65,9 @@ function RowItem(p: IProps) {
   const [showingPopup, setShowingPopup] = React.useState(false)
 
   const showPopup = () => {
-    Kb.Styles.isMobile && Keyboard.dismiss()
+    if (Kb.Styles.isMobile) {
+      Keyboard.dismiss()
+    }
     setShowingPopup(true)
   }
   const hidePopup = () => {

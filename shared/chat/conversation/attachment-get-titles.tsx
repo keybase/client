@@ -62,9 +62,11 @@ const Container = (ownProps: OwnProps) => {
   const attachFromDragAndDrop = ConvoState.useChatContext(s => s.dispatch.attachFromDragAndDrop)
 
   const _onSubmit = (titles: Array<string>, spoiler: boolean) => {
-    tlfName || noDragDrop
-      ? attachmentsUpload(pathAndOutboxIDs, titles, tlfName, spoiler)
-      : attachFromDragAndDrop(pathAndOutboxIDs, titles)
+    if (tlfName || noDragDrop) {
+      attachmentsUpload(pathAndOutboxIDs, titles, tlfName, spoiler)
+    } else {
+      attachFromDragAndDrop(pathAndOutboxIDs, titles)
+    }
     clearModals()
 
     if (selectConversationWithReason) {
@@ -85,8 +87,7 @@ const Container = (ownProps: OwnProps) => {
 
   const [index, setIndex] = React.useState(0)
   const [titles, setTitles] = React.useState(pathAndInfos.map((_, idx) => _titles?.[idx] ?? ''))
-  const [spoiler, setSpoiler] = React.useState(false)
-  setSpoiler // TODO commented out
+  const spoiler = false
 
   const onNext = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault()
@@ -204,14 +205,6 @@ const Container = (ownProps: OwnProps) => {
                 containerStyle={styles.inputBare}
                 inputStyle={styles.input}
               />
-              {/* (
-                <Kb.Checkbox
-                  style={{alignSelf: 'flex-end'}}
-                  label="Spoiler?"
-                  checked={spoiler}
-                  onCheck={setSpoiler}
-                />
-              )*/}
             </Kb.Box2>
           </Kb.Box2>
         </Kb.ClickableBox2>

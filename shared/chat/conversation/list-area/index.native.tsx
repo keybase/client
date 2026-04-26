@@ -260,7 +260,7 @@ const ConversationList = function ConversationList() {
             key={conversationIDKey}
             testID="messageList"
             onScrollToIndexFailed={noop}
-            // @ts-ignore LegendList/FlashList prop; ignored by FlatList
+            // @ts-expect-error LegendList/FlashList prop; ignored by FlatList
             estimatedItemSize={72}
             ListHeaderComponent={SpecialBottomMessage}
             ListFooterComponent={SpecialTopMessage}

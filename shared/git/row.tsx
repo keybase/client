@@ -36,19 +36,21 @@ function ConnectedRow(ownProps: OwnProps) {
   const {canDelete, devicename, lastEditTime, lastEditUser, name} = git
 
   const onArchiveGitRepo = () => {
-    gitURL &&
+    if (gitURL) {
       navigateAppend({
         name: 'archiveModal',
         params: {gitURL, type: 'git' as const},
       })
+    }
   }
 
   const _onOpenChannelSelection = () => {
-    teamID &&
+    if (teamID) {
       navigateAppend({
         name: 'gitSelectChannel',
         params: {repoID, selected: channelName || 'general', teamID, teamname: teamname ?? ''},
       })
+    }
   }
 
   const onToggleChatEnabled = () => {
@@ -91,7 +93,9 @@ function ConnectedRow(ownProps: OwnProps) {
   const onToggleExpand = () => onToggleExpand_(id)
 
   const onClickDevice = () => {
-    lastEditUser && openURL(`https://keybase.io/${lastEditUser}/devices`)
+    if (lastEditUser) {
+      openURL(`https://keybase.io/${lastEditUser}/devices`)
+    }
   }
 
   const onChannelClick = (e: React.BaseSyntheticEvent) => {

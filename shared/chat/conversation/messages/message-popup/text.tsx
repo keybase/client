@@ -78,7 +78,9 @@ const PopText = (ownProps: OwnProps) => {
   const canReplyPrivately = ['small', 'big'].includes(teamType) || numPart > 2
   const navigateAppend = C.Router2.navigateAppend
   const onCopy = () => {
-    text && copyToClipboard(text)
+    if (text) {
+      copyToClipboard(text)
+    }
   }
 
   const _onReplyPrivately = () => {
