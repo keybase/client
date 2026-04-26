@@ -82,7 +82,6 @@ type ConvoStore = T.Immutable<{
   badge: number
   botCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp
   botSettings: Map<string, T.RPCGen.TeamBotSettings | undefined>
-  botTeamRoleMap: Map<string, T.Teams.TeamRoleType | undefined>
   commandMarkdown?: T.RPCChat.UICommandMarkdown
   dismissedInviteBanners: boolean
   explodingMode: number // seconds to exploding message expiration,
@@ -97,7 +96,6 @@ type ConvoStore = T.Immutable<{
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadBack: boolean
   moreToLoadForward: boolean
-  mutualTeams: ReadonlyArray<T.Teams.TeamID>
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   participants: T.Chat.ParticipantInfo
   pendingJumpMessageID?: T.Chat.MessageID
@@ -139,7 +137,6 @@ const initialConvoStore: ConvoStore = {
   badge: 0,
   botCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp.blank,
   botSettings: new Map(),
-  botTeamRoleMap: new Map(),
   commandMarkdown: undefined,
   dismissedInviteBanners: false,
   explodingMode: 0,
@@ -155,7 +152,6 @@ const initialConvoStore: ConvoStore = {
   meta: Meta.makeConversationMeta(),
   moreToLoadBack: false,
   moreToLoadForward: false,
-  mutualTeams: [],
   participants: noParticipantInfo,
   paymentStatusMap: new Map(),
   pendingJumpMessageID: undefined,
@@ -219,7 +215,6 @@ export interface ConvoState extends ConvoStore {
     badgesUpdated: (badge: number) => void
     blockConversation: (reportUser: boolean) => void
     botCommandsUpdateStatus: (b: T.RPCChat.UIBotCommandsUpdateStatus) => void
-    channelSuggestionsTriggered: () => void
     dismissBottomBanner: () => void
     dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
     editBotSettings: (
@@ -267,8 +262,6 @@ export interface ConvoState extends ConvoStore {
     paymentInfoReceived: (messageID: T.RPCChat.MessageID, paymentInfo: T.Chat.ChatPaymentInfo) => void
     pinMessage: (messageID?: T.Chat.MessageID) => void
     ignorePinnedMessage: () => void
-    refreshBotRoleInConv: (username: string) => void
-    refreshBotSettings: (username: string) => void
     removeBotMember: (username: string) => void
     replyJump: (messageID: T.Chat.MessageID) => void
     resetChatWithoutThem: () => void
@@ -1721,22 +1714,6 @@ const createSlice =
       getUI().dispatch.setGiphyWindow(show)
     }
 
-    const refreshMutualTeamsInConv = () => {
-      const f = async () => {
-        const {id: conversationIDKey} = get()
-        const username = useCurrentUserState.getState().username
-        const otherParticipants = Meta.getRowParticipants(get().participants, username || '')
-        const results = await T.RPCChat.localGetMutualTeamsLocalRpcPromise(
-          {usernames: otherParticipants},
-          Strings.waitingKeyChatMutualTeams(conversationIDKey)
-        )
-        set(s => {
-          s.mutualTeams = T.castDraft(results.teamIDs) ?? []
-        })
-      }
-      ignorePromise(f())
-    }
-
     const setMessageCenterOrdinal = (m?: T.Chat.CenterOrdinal) => {
       set(s => {
         s.messageCenterOrdinal = m
@@ -2291,12 +2268,6 @@ const createSlice =
             s.botSettings = T.castDraft(settingsMap)
           }
         })
-      },
-      channelSuggestionsTriggered: () => {
-        // If this is an impteam, try to refresh mutual team info
-        if (!get().meta.teamname) {
-          refreshMutualTeamsInConv()
-        }
       },
       dismissBottomBanner: () => {
         set(s => {
@@ -3214,55 +3185,6 @@ const createSlice =
           }
           s.pendingJumpMessageID = highlightMessageID
         })
-      },
-      refreshBotRoleInConv: username => {
-        const f = async () => {
-          let role: T.RPCGen.TeamRole | undefined
-          try {
-            role = await T.RPCChat.localGetTeamRoleInConversationRpcPromise({
-              convID: get().getConvID(),
-              username,
-            })
-          } catch (error) {
-            if (error instanceof RPCError) {
-              logger.info(`refreshBotRoleInConv: failed to refresh bot team role: ${error.message}`)
-            }
-            return
-          }
-          const trole = TeamsUtil.teamRoleByEnum[role]
-          const r = trole === 'none' ? undefined : trole
-          set(s => {
-            const roles = s.botTeamRoleMap
-            if (r !== undefined) {
-              roles.set(username, r)
-            } else {
-              roles.delete(username)
-            }
-          })
-        }
-        ignorePromise(f())
-      },
-      refreshBotSettings: username => {
-        set(s => {
-          s.botSettings.delete(username)
-        })
-        const f = async () => {
-          try {
-            const settings = await T.RPCChat.localGetBotMemberSettingsRpcPromise({
-              convID: get().getConvID(),
-              username,
-            })
-            set(s => {
-              s.botSettings.set(username, T.castDraft(settings))
-            })
-          } catch (error) {
-            if (error instanceof RPCError) {
-              logger.info(`refreshBotSettings: failed to refresh settings for ${username}: ${error.message}`)
-            }
-            return
-          }
-        }
-        ignorePromise(f())
       },
       removeBotMember: username => {
         const f = async () => {

@@ -3,14 +3,64 @@ import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 import {useUsersState} from '@/stores/users'
 import {useChatTeam, useChatTeamMembers} from '../team-hooks'
+import logger from '@/logger'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
   username: string
+}
+
+const useBotSettings = (conversationIDKey: T.Chat.ConversationIDKey, username: string) => {
+  const [loaded, setLoaded] = React.useState<
+    | {
+        conversationIDKey: T.Chat.ConversationIDKey
+        settings?: T.RPCGen.TeamBotSettings
+        username: string
+      }
+    | undefined
+  >()
+  const loadBotSettings = C.useRPC(T.RPCChat.localGetBotMemberSettingsRpcPromise)
+  const requestIDRef = React.useRef(0)
+
+  React.useEffect(() => {
+    requestIDRef.current += 1
+    const requestID = requestIDRef.current
+    loadBotSettings(
+      [{convID: T.Chat.keyToConversationID(conversationIDKey), username}],
+      settings => {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
+        setLoaded({conversationIDKey, settings, username})
+      },
+      error => {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
+        logger.info(`useBotSettings: failed to refresh settings for ${username}: ${error.message}`)
+        setLoaded({conversationIDKey, username})
+      }
+    )
+    return () => {
+      if (requestIDRef.current === requestID) {
+        requestIDRef.current += 1
+      }
+    }
+  }, [conversationIDKey, loadBotSettings, username])
+
+  const settings =
+    loaded?.conversationIDKey === conversationIDKey && loaded.username === username
+      ? loaded.settings
+      : undefined
+  const setSettings = React.useCallback(
+    (settings: T.RPCGen.TeamBotSettings) => setLoaded({conversationIDKey, settings, username}),
+    [conversationIDKey, username]
+  )
+  return {setSettings, settings}
 }
 
 const inThisChannelHeader = {type: 'bots: in this channel'} as const
@@ -36,8 +86,8 @@ type Section = Kb.SectionType<Item>
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
-  const settings = ConvoState.useChatContext(s => s.botSettings.get(username))
-  const editBotSettings = ConvoState.useChatContext(s => s.dispatch.editBotSettings)
+  const {settings, setSettings} = useBotSettings(conversationIDKey, username)
+  const editBotSettings = C.useRPC(T.RPCChat.localSetBotMemberSettingsRpcPromise)
   return (
     <Kb.WaitingButton
       disabled={!settings}
@@ -48,11 +98,24 @@ const AddToChannel = (props: AddToChannelProps) => {
         e.preventDefault()
         // if settings aren't loaded, don't even try to do anything
         if (settings && !settings.convs?.includes(conversationIDKey)) {
+          const nextSettings = {
+            cmds: settings.cmds,
+            convs: [conversationIDKey].concat(settings.convs ?? []),
+            mentions: settings.mentions,
+          }
           editBotSettings(
-            username,
-            settings.cmds,
-            settings.mentions,
-            [conversationIDKey].concat(settings.convs ?? [])
+            [
+              {
+                botSettings: nextSettings,
+                convID: T.Chat.keyToConversationID(conversationIDKey),
+                username,
+              },
+              C.waitingKeyChatBotAdd,
+            ],
+            () => setSettings(nextSettings),
+            error => {
+              logger.info(`AddToChannel: failed to edit bot settings: ${error.message}`)
+            }
           )
         }
       }}
@@ -78,15 +141,8 @@ export const Bot = (props: BotProps) => {
   const {ownerTeam, ownerUser} = props
   const {onClick, firstItem, isSelected} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
-  const refreshBotSettings = ConvoState.useChatContext(s => s.dispatch.refreshBotSettings)
   const primaryColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black
   const secondaryColor = isSelected ? Kb.Styles.globalColors.white : undefined
-  React.useEffect(() => {
-    if (conversationIDKey && showChannelAdd) {
-      // fetch bot settings if trying to show the add to channel button
-      refreshBotSettings(botUsername)
-    }
-  }, [conversationIDKey, botUsername, refreshBotSettings, showChannelAdd])
 
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>

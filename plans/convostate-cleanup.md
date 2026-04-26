@@ -85,18 +85,19 @@ Implementation note: `convostate` now keeps only `galleryMessagesLoaded(...)` fo
 
 ## Chunk 3: Move Suggestion And Bot Convenience Caches To Feature Hooks
 
-- [ ] Move `mutualTeams` and `channelSuggestionsTriggered` into channel suggestor ownership
-- [ ] First verify whether `channelSuggestionsTriggered` is dead or just indirectly invoked; remove it only if no trigger path exists
-- [ ] Reload mutual teams on suggestor activation for impteam conversations using `localGetMutualTeamsLocalRpcPromise`
-- [ ] Keep current loading behavior through the existing team-name lookup hook
-- [ ] Move `botTeamRoleMap` and `refreshBotRoleInConv` into the bot install modal first, since the role map is modal-owned state
-- [ ] Move `botSettings`, `refreshBotSettings`, and bot command restriction lookup only after preserving `chatBotCommandsUpdateStatus` for command suggestions
-- [ ] Preserve bot actions that modify durable server state:
-  - [ ] `addBotMember`
-  - [ ] `editBotSettings`
-  - [ ] `removeBotMember`
-- [ ] Preserve `chatBotCommandsUpdateStatus` handling until the new command suggestor owner can receive the update directly while mounted
-- [ ] Delete the store maps and refresh actions after all bot install/info-panel/command-suggestor consumers move
+- [x] Move `mutualTeams` and `channelSuggestionsTriggered` into channel suggestor ownership
+- [x] First verify whether `channelSuggestionsTriggered` is dead or just indirectly invoked; remove it only if no trigger path exists
+- [x] Reload mutual teams on suggestor activation for impteam conversations using `localGetMutualTeamsLocalRpcPromise`
+- [x] Keep current loading behavior through the existing team-name lookup hook
+- [x] Move `botTeamRoleMap` and `refreshBotRoleInConv` into the bot install modal first, since the role map is modal-owned state
+- [x] Move bot install/info-panel `refreshBotSettings` flows into feature-local bot settings loaders
+- [ ] Move remaining `botSettings` command restriction lookup only after preserving `chatBotCommandsUpdateStatus` for command suggestions
+- [x] Preserve bot actions that modify durable server state:
+  - [x] `addBotMember`
+  - [x] `editBotSettings`
+  - [x] `removeBotMember`
+- [x] Preserve `chatBotCommandsUpdateStatus` handling until the new command suggestor owner can receive the update directly while mounted
+- [ ] Delete the remaining store maps after all command-suggestor consumers move
 
 ### Target callers for Chunk 3
 
@@ -104,6 +105,8 @@ Implementation note: `convostate` now keeps only `galleryMessagesLoaded(...)` fo
 - `chat/conversation/input-area/suggestors/commands.tsx`
 - `chat/conversation/bot/install.tsx`
 - `chat/conversation/info-panel/bot.tsx`
+
+Implementation note: channel suggestions now load mutual teams on suggestor mount. Bot install and info-panel add-to-channel flows now load bot role/settings locally, and `convostate.botSettings` remains only for command suggestion restrictions through `chatBotCommandsUpdateStatus`.
 
 ## Chunk 4: Move Composer UI State To The Conversation Input Feature
 
