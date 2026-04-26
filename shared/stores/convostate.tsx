@@ -130,6 +130,16 @@ export interface ConvoUIState extends ConvoUIStore {
   }
 }
 
+export type ComposerSendContext = {
+  editingOrdinal?: T.Chat.Ordinal
+  onRestoreText?: (text: string) => void
+  replyToOrdinal?: T.Chat.Ordinal
+}
+
+export type GiphySendContext = {
+  replyToOrdinal?: T.Chat.Ordinal
+}
+
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
   badge: 0,
@@ -219,7 +229,7 @@ export interface ConvoState extends ConvoStore {
       convs?: ReadonlyArray<string>
     ) => void
     galleryMessagesLoaded: (messages: ReadonlyArray<T.Chat.Message>) => void
-    giphySend: (result: T.RPCChat.GiphySearchResult) => void
+    giphySend: (result: T.RPCChat.GiphySearchResult, context?: GiphySendContext) => void
     hideConversation: (hide: boolean) => void
     joinConversation: () => void
     jumpToRecent: () => void
@@ -265,7 +275,7 @@ export interface ConvoState extends ConvoStore {
     resetDeleteMe: true
     selectedConversation: () => void
     sendAudioRecording: (path: string, duration: number, amps: ReadonlyArray<number>) => Promise<void>
-    sendMessage: (text: string) => void
+    sendMessage: (text: string, context?: ComposerSendContext) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
@@ -2025,7 +2035,12 @@ const createSlice =
       ignorePromise(f())
     }
 
-    const _messageSend = (text: string, replyTo?: T.Chat.MessageID, waitingKey?: string) => {
+    const _messageSend = (
+      text: string,
+      replyTo?: T.Chat.MessageID,
+      waitingKey?: string,
+      onRestoreText?: (text: string) => void
+    ) => {
       getUI().dispatch.injectIntoInput('')
       getUI().dispatch.setReplyTo(T.Chat.numberToOrdinal(0))
       set(s => {
@@ -2054,7 +2069,11 @@ const createSlice =
             incomingCallMap: {
               'chat.1.chatUi.chatStellarDone': ({canceled}) => {
                 if (canceled) {
-                  getUI().dispatch.injectIntoInput(text)
+                  if (onRestoreText) {
+                    onRestoreText(text)
+                  } else {
+                    getUI().dispatch.injectIntoInput(text)
+                  }
                 }
               },
               'chat.1.chatUi.chatStellarShowConfirm': () => {},
@@ -2293,13 +2312,14 @@ const createSlice =
       galleryMessagesLoaded: messages => {
         messagesAdd([...messages], {markAsRead: false, why: 'gallery inject'})
       },
-      giphySend: result => {
+      giphySend: (result, context) => {
         getUI().dispatch.setGiphyWindow(false)
         const f = async () => {
           try {
             await T.RPCChat.localTrackGiphySelectRpcPromise({result})
           } catch {}
-          const replyTo = get().messageMap.get(getUI().replyTo)?.id
+          const replyToOrdinal = context ? context.replyToOrdinal : getUI().replyTo
+          const replyTo = get().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
           _messageSend(result.targetUrl, replyTo)
         }
         ignorePromise(f())
@@ -2851,9 +2871,8 @@ const createSlice =
           }
 
           const text = formatTextForQuoting(message.text.stringValue())
-          getConvoUIState(newThreadCID).dispatch.injectIntoInput(text)
           metasReceived([meta])
-          routerNavigateToThread(newThreadCID, 'createdMessagePrivately')
+          routerNavigateToThread(newThreadCID, 'createdMessagePrivately', undefined, undefined, undefined, text)
         }
         ignorePromise(f())
       },
@@ -3283,13 +3302,14 @@ const createSlice =
           }
         }
       },
-      sendMessage: text => {
-        const editOrdinal = getUI().editing
+      sendMessage: (text, context) => {
+        const editOrdinal = context ? context.editingOrdinal : getUI().editing
         if (editOrdinal) {
           _messageEdit(editOrdinal, text)
         } else {
-          const replyTo = get().messageMap.get(getUI().replyTo)?.id
-          _messageSend(text, replyTo)
+          const replyToOrdinal = context ? context.replyToOrdinal : getUI().replyTo
+          const replyTo = get().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
+          _messageSend(text, replyTo, undefined, context?.onRestoreText)
         }
       },
       setConvRetentionPolicy: _policy => {

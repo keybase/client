@@ -21,6 +21,7 @@ import type * as UseBlockButtonsStateType from '@/chat/blocking/block-buttons-st
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {onConversationInputEngineAction} from '@/chat/conversation/input-area/input-state'
 import {getTBStore} from '@/stores/team-building'
 import {getSelectedConversation} from '@/constants/chat/common'
 import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
@@ -563,6 +564,7 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.NotifyChat.NewChatActivity':
     case 'chat.1.NotifyChat.ChatTypingUpdate':
     case 'chat.1.NotifyChat.ChatSetConvRetention':
+      onConversationInputEngineAction(action)
       routeConvoEngineIncoming(action)
       break
     case 'chat.1.NotifyChat.ChatIdentifyUpdate': {

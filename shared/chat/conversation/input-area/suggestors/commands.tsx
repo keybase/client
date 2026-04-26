@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
+import * as InputState from '../input-state'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConfigState} from '@/stores/config'
 import type {RefType as InputRef} from '../normal/input'
@@ -156,8 +157,12 @@ type UseDataSourceProps = {
 const useDataSource = (p: UseDataSourceProps) => {
   const {filter, inputRef, lastTextRef} = p
   const builtinCommands = useConfigState(s => s.chatBuiltinCommands)
-  const showGiphySearch = ConvoState.useChatUIContext(s => s.giphyWindow)
-  const showCommandMarkdown = ConvoState.useChatContext(s => !!s.commandMarkdown)
+  const {showCommandMarkdown, showGiphySearch} = InputState.useConversationInput(
+    C.useShallow(s => ({
+      showCommandMarkdown: !!s.commandMarkdown,
+      showGiphySearch: s.giphyWindow,
+    }))
+  )
   return ConvoState.useChatContext(
     C.useShallow(s => {
       if (showCommandMarkdown || showGiphySearch) {

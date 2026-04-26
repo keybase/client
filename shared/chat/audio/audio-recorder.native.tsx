@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {Portal} from '@/common-adapters/portal.native'
 import * as React from 'react'
+import * as InputState from '@/chat/conversation/input-area/input-state'
 // we need to use the raw colors to animate
 import {colors} from '@/styles/colors'
 import * as Reanimated from 'react-native-reanimated'
@@ -366,7 +367,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     setStaged(false)
     setShowAudioSend(false)
   }
-  const setCommandStatusInfo = ConvoState.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
+  const setCommandStatusInfo = InputState.useConversationInput(s => s.dispatch.setCommandStatusInfo)
 
   const startRecording = () => {
     const checkPerms = async () => {

@@ -112,28 +112,28 @@ Lint note: when local feature state needs to reset for a new conversation ID, do
 
 ## Chunk 4: Move Composer UI State To The Conversation Input Feature
 
-- [ ] Introduce a conversation input provider or hook colocated with `shared/chat/conversation/input-area`
-- [ ] Move `editing`, `replyTo`, `unsentText`, `giphyWindow`, `giphyResult`, and `commandStatus` into that input owner
-- [ ] Preserve existing sentinels and draft semantics:
-  - [ ] `unsentText === undefined` means no local input override, so a server draft can still be adopted once
-  - [ ] `unsentText === ''` means intentionally cleared
-  - [ ] `editing === 0` and `replyTo === 0` continue to mean inactive until all consumers deliberately migrate to a different representation
-- [ ] Keep behavior for command markdown/status events:
-  - [ ] command status belongs to the input/suggestor surface
-  - [ ] command markdown moves with the composer/command UI because it is cleared on send and rendered beside the input
-  - [ ] mounted input code should subscribe to relevant typed engine events or receive them through a narrow compatibility bridge during migration
-- [ ] Preserve non-command `commandStatus` setters from location, audio, and native permission-denial flows
-- [ ] Replace `useChatUIContext(...)` consumers under the conversation tree with the new hook/provider
-- [ ] Replace direct `getConvoUIState(...).dispatch.injectIntoInput(...)` callers with explicit entry-context handling:
-  - [ ] `shared/incoming-share/index.tsx`
-  - [ ] `shared/chat/send-to-chat/index.tsx`
-  - [ ] message-reply-private prefill inside `convostate`
-  - [ ] native init permission-denial command-status handling
-- [ ] Keep `sendMessage` behavior intact:
-  - [ ] edit mode posts edit RPC and clears editing state
-  - [ ] reply mode sends `replyTo` message ID and clears reply state
-  - [ ] giphy send still tracks selection and sends target URL
-- [ ] Preserve debug/external reset behavior currently provided by clearing `convoUIStores` with `convo-registry`
+- [x] Introduce a conversation input provider or hook colocated with `shared/chat/conversation/input-area`
+- [x] Move `editing`, `replyTo`, `unsentText`, `giphyWindow`, `giphyResult`, and `commandStatus` into that input owner
+- [x] Preserve existing sentinels and draft semantics:
+  - [x] `unsentText === undefined` means no local input override, so a server draft can still be adopted once
+  - [x] `unsentText === ''` means intentionally cleared
+  - [x] `editing === 0` and `replyTo === 0` continue to mean inactive until all consumers deliberately migrate to a different representation
+- [x] Keep behavior for command markdown/status events:
+  - [x] command status belongs to the input/suggestor surface
+  - [x] command markdown moves with the composer/command UI because it is cleared on send and rendered beside the input
+  - [x] mounted input code should subscribe to relevant typed engine events or receive them through a narrow compatibility bridge during migration
+- [x] Preserve non-command `commandStatus` setters from location, audio, and native permission-denial flows
+- [x] Replace `useChatUIContext(...)` consumers under the conversation tree with the new hook/provider
+- [x] Replace direct `getConvoUIState(...).dispatch.injectIntoInput(...)` callers with explicit entry-context handling:
+  - [x] `shared/incoming-share/index.tsx`
+  - [x] `shared/chat/send-to-chat/index.tsx`
+  - [x] message-reply-private prefill inside `convostate`
+  - [x] native init permission-denial command-status handling
+- [x] Keep `sendMessage` behavior intact:
+  - [x] edit mode posts edit RPC and clears editing state
+  - [x] reply mode sends `replyTo` message ID and clears reply state
+  - [x] giphy send still tracks selection and sends target URL
+- [x] Preserve debug/external reset behavior currently provided by clearing `convoUIStores` with `convo-registry`
 - [ ] Delete `ConvoUIState`, `initialConvoUIStore`, `createConvoUISlice`, `convoUIStores`, and UI-store test helpers only after all consumers are migrated
 
 ### Target callers for Chunk 4
@@ -149,6 +149,8 @@ Lint note: when local feature state needs to reset for a new conversation ID, do
 - `constants/init/index.native.tsx`
 - `incoming-share/index.tsx`
 - `chat/send-to-chat/index.tsx`
+
+Implementation note: conversation input UI state now lives in `shared/chat/conversation/input-area/input-state.tsx` and is provided from the normal conversation wrapper so list rows, message popups, and input descendants share one owner. Command markdown/status and Giphy engine actions are bridged into the input owner during migration; the old `ConvoUIState` surface remains only for compatibility and tests until the final collapse slice.
 
 ## Chunk 5: Move Route And List UI State Where Practical
 

@@ -1,8 +1,8 @@
-import * as ConvoState from '@/stores/convostate'
+import * as InputState from '../input-area/input-state'
 
 export const useHooks = () => {
-  const giphy = ConvoState.useChatUIContext(s => s.giphyResult)
-  const onClick = ConvoState.useChatContext(s => s.dispatch.giphySend)
+  const giphy = InputState.useConversationInput(s => s.giphyResult)
+  const onClick = InputState.useConversationInput(s => s.dispatch.sendGiphyResult)
   return {
     galleryURL: giphy?.galleryUrl ?? '',
     onClick,

@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
+import * as InputState from './input-state'
 import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
 import * as Kb from '@/common-adapters'
@@ -55,7 +56,7 @@ const useWatchPosition = (
   conversationIDKey: T.Chat.ConversationIDKey,
   setLocation: React.Dispatch<React.SetStateAction<T.Chat.Coordinate | undefined>>
 ) => {
-  const setCommandStatusInfo = ConvoState.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
+  const setCommandStatusInfo = InputState.useConversationInput(s => s.dispatch.setCommandStatusInfo)
   React.useEffect(() => {
     let unsub = () => {}
     logger.info('[location] perms check due to map')
@@ -99,7 +100,7 @@ const LocationPopup = () => {
   const username = useCurrentUserState(s => s.username)
   const httpSrv = useConfigState(s => s.httpSrv)
   const [location, setLocation] = React.useState<T.Chat.Coordinate>()
-  const locationDenied = ConvoState.useChatUIContext(
+  const locationDenied = InputState.useConversationInput(
     s => s.commandStatus?.displayType === T.RPCChat.UICommandStatusDisplayTyp.error
   )
   const [mapLoaded, setMapLoaded] = React.useState(false)

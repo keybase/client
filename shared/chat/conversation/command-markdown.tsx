@@ -1,8 +1,8 @@
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
+import * as InputState from './input-area/input-state'
 
 const CommandMarkdown = () => {
-  const md = ConvoState.useChatContext(s => s.commandMarkdown)
+  const md = InputState.useConversationInput(s => s.commandMarkdown)
   const body = md?.body ?? ''
   const title = md?.title ?? undefined
   return (

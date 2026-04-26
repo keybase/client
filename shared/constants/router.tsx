@@ -2,6 +2,7 @@ import type * as React from 'react'
 import * as T from './types'
 import type * as ConvoRegistryType from '@/stores/convo-registry'
 import type * as ConvoStateType from '@/stores/convostate'
+import type * as ConversationInputStateType from '@/chat/conversation/input-area/input-state'
 import type * as InboxLayoutStateType from '@/chat/inbox/layout-state'
 import type * as UseCurrentUserStateType from '@/stores/current-user'
 import * as Tabs from './tabs'
@@ -88,6 +89,13 @@ const uiParticipantsToParticipantInfo = (
 const getConvoState = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const {getConvoState} = require('@/stores/convostate') as typeof ConvoStateType
   return getConvoState(conversationIDKey)
+}
+
+const injectConversationInputText = (conversationIDKey: T.Chat.ConversationIDKey, text?: string) => {
+  const {injectConversationInputText} = require(
+    '@/chat/conversation/input-area/input-state'
+  ) as typeof ConversationInputStateType
+  injectConversationInputText(conversationIDKey, text)
 }
 
 export const getRootState = (): NavState | undefined => {
@@ -788,9 +796,13 @@ export const navigateToThread = (
   reason: NavigateToThreadReason,
   highlightMessageID?: T.Chat.MessageID,
   threadSearchQuery?: string,
-  createConversationError?: T.Chat.CreateConversationError
+  createConversationError?: T.Chat.CreateConversationError,
+  inputPrefillText?: string
 ) => {
   getConvoState(conversationIDKey).dispatch.prepareToNavigateToThread(highlightMessageID)
+  if (inputPrefillText !== undefined) {
+    injectConversationInputText(conversationIDKey, inputPrefillText)
+  }
 
   if (reason === 'navChanged') {
     return
