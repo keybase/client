@@ -145,7 +145,7 @@ Assumption for this plan: local service RPCs are cheap enough that we prefer rel
 - [x] If only a tiny lazy-config surface remains, move it into feature hooks and remove the store entirely
 - [x] If something must remain, document exactly why it needs app-wide lifetime
 
-`shared/stores/chat.tsx` is now a barrel module only. The expunge delete-history static config remains in the existing config store because engine handling needs synchronous app-wide access while UI screens may be unmounted.
+`shared/stores/chat.tsx` has been removed. Chat constants and helpers now come from `shared/constants/chat`, and the expunge delete-history static config remains in the existing config store because engine handling needs synchronous app-wide access while UI screens may be unmounted.
 
 ### Likely candidates to remove by the end
 

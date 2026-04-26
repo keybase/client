@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import {isAssertion} from '@/constants/chat/helpers'
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'

@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {AliasInput, Modal} from './common'

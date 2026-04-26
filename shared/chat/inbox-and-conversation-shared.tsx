@@ -1,6 +1,6 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'

@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import {chatStores} from '@/stores/convo-registry'
 import * as ConvoState from '@/stores/convostate'
 import {getConvoState} from '@/stores/convostate'

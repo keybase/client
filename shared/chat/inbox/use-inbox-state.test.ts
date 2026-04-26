@@ -39,7 +39,7 @@ jest.mock('@/constants', () => {
   }
 })
 
-jest.mock('@/stores/chat', () => ({
+jest.mock('@/constants/chat', () => ({
   getSelectedConversation: () => '',
   isSplit: false,
   noConversationIDKey: '',

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Teams from '@/constants/teams'
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'

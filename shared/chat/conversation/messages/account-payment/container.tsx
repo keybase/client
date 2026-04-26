@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import type {ConvoState as ConvoStateType} from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
