@@ -12,9 +12,7 @@ import {isMobile} from '@/constants/platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
 import {navigateAppend} from '@/constants/router'
-import {
-  onEngineConnected as onEngineConnectedInPlatform,
-} from '@/util/storeless-actions'
+import {onEngineConnected as onEngineConnectedInPlatform} from '@/util/storeless-actions'
 
 type Store = T.Immutable<{
   allowAnimatedEmojis: boolean
@@ -365,10 +363,9 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     onEngineIncoming: action => {
       switch (action.type) {
         case 'keybase.1.NotifyAudit.rootAuditError':
-          get()
-            .dispatch.setGlobalError(
-              new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
-            )
+          get().dispatch.setGlobalError(
+            new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
+          )
           break
         case 'keybase.1.NotifyAudit.boxAuditError':
           get().dispatch.setGlobalError(
@@ -465,8 +462,8 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       if (isDebug) return
       set(s => ({
         ...initialStore,
-        configuredAccounts: s.configuredAccounts,
         chatDeletableByDeleteHistory: s.chatDeletableByDeleteHistory,
+        configuredAccounts: s.configuredAccounts,
         defaultUsername: s.defaultUsername,
         dispatch: s.dispatch,
         startup: {loaded: s.startup.loaded},
