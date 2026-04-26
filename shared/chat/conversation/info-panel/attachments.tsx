@@ -113,7 +113,7 @@ type Section = Kb.SectionType<Item>
 function getDateInfo<I extends {ctime: number}>(thumb: I) {
   const date = new Date(thumb.ctime)
   return {
-    month: monthNames[date.getMonth()],
+    month: monthNames[date.getMonth()]!,
     year: date.getFullYear(),
   }
 }
@@ -123,7 +123,7 @@ function formMonths<I extends {ctime: number; key: string}>(
 ): Array<{
   key: string
   data: Array<I>
-  month?: string
+  month: string
   year: number
 }> {
   if (items.length === 0) {
@@ -483,8 +483,11 @@ export const useAttachmentSections = (
     }
   }
 
-  const onShowInFinder = (message: T.Chat.MessageAttachment) =>
-    message.downloadPath && openLocalPathInSystemFileManagerDesktop(message.downloadPath)
+  const onShowInFinder = (message: T.Chat.MessageAttachment) => {
+    if (message.downloadPath) {
+      openLocalPathInSystemFileManagerDesktop(message.downloadPath)
+    }
+  }
 
   const avSection = {
     data: [{type: 'avselector'}] as const,
@@ -587,7 +590,7 @@ export const useAttachmentSections = (
                   <Kb.Box2
                     direction="horizontal"
                     fullWidth={true}
-                    style={useFlexWrap ? styles.flexWrap : undefined}
+                    {...(useFlexWrap ? {style: styles.flexWrap} : {})}
                   >
                     {item.images.map(cell => {
                       return <MediaThumb key={cell.thumb.key} sizing={cell.sizing} thumb={cell.thumb} />
@@ -616,7 +619,7 @@ export const useAttachmentSections = (
               jumpToAttachment(m.id)
             },
             onDownload: () => onDocDownload(m),
-            onShowInFinder: !C.isMobile && m.downloadPath ? () => onShowInFinder(m) : undefined,
+            ...(!C.isMobile && m.downloadPath ? {onShowInFinder: () => onShowInFinder(m)} : {}),
             progress: m.transferProgress,
             type: 'doc',
           }))
@@ -702,7 +705,12 @@ export const useAttachmentSections = (
                         {item.snippet}
                       </Kb.Markdown>
                     </Kb.Box2>
-                    {!!item.title && <LinkTitle title={item.title} url={item.url} />}
+                    {!!item.title && (
+                      <LinkTitle
+                        title={item.title}
+                        {...(item.url === undefined ? {} : {url: item.url})}
+                      />
+                    )}
                     <Kb.Divider />
                   </Kb.Box2>
                 </Kb.ClickableBox2>

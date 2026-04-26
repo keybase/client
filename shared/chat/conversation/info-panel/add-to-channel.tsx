@@ -110,12 +110,17 @@ const AddToChannel = (props: Props) => {
                 setToAdd(new Set(toAdd))
               }
             }
+            const onClickProps = alreadyIn ? {} : {onClick: onCheck}
+            const disabledColorProps =
+              alreadyIn || toAdd.has(item.username)
+                ? {disabledColor: Kb.Styles.globalColors.black_20OrWhite_20}
+                : {}
             return (
               <Kb.ListItem
                 firstItem={!Kb.Styles.isMobile || idx === 0}
                 icon={<Kb.Avatar size={32} username={item.username} />}
                 type="Small"
-                onClick={alreadyIn ? undefined : onCheck}
+                {...onClickProps}
                 hideHover={alreadyIn}
                 body={
                   <Kb.Box2 direction="vertical" alignItems="flex-start">
@@ -132,11 +137,7 @@ const AddToChannel = (props: Props) => {
                     onCheck={onCheck}
                     checked={alreadyIn || toAdd.has(item.username)}
                     disabled={alreadyIn}
-                    disabledColor={
-                      alreadyIn || toAdd.has(item.username)
-                        ? Kb.Styles.globalColors.black_20OrWhite_20
-                        : undefined
-                    }
+                    {...disabledColorProps}
                     style={styles.checkCircle}
                   />
                 }

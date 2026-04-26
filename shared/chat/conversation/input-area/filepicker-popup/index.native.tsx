@@ -70,7 +70,7 @@ const FilePickerPopup = (p: Props) => {
   return (
     <Kb.FloatingMenu
       header={header}
-      attachTo={p.attachTo}
+      {...(p.attachTo === undefined ? {} : {attachTo: p.attachTo})}
       items={items}
       mode="bottomsheet"
       onHidden={p.onHidden}

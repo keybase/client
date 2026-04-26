@@ -217,7 +217,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
     const {attachTo, hidePopup} = p
     return (
       <SetExplodingMessagePopup
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         onAfterSelect={focusInput}
         onHidden={hidePopup}
         visible={true}
@@ -243,7 +243,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
       <Kb.Box2
         direction="vertical"
         style={styles.explodingInsideWrapper}
-        tooltip={explodingModeSeconds ? undefined : 'Timer'}
+        {...(explodingModeSeconds ? {} : {tooltip: 'Timer'})}
         justifyContent="center"
       >
         {explodingModeSeconds ? (
@@ -282,7 +282,12 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <Kb.Popup attachTo={attachTo} visible={true} onHidden={hidePopup} position="top right">
+      <Kb.Popup
+        {...(attachTo === undefined ? {} : {attachTo})}
+        visible={true}
+        onHidden={hidePopup}
+        position="top right"
+      >
         <EmojiPickerDesktop onPickAction={insertEmoji} onDidPick={hidePopup} />
       </Kb.Popup>
     )
@@ -300,7 +305,7 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
         className="tooltip-top-left"
       >
         <Kb.Icon
-          color={showingPopup ? Kb.Styles.globalColors.black : undefined}
+          {...(showingPopup ? {color: Kb.Styles.globalColors.black} : {})}
           onClick={showPopup}
           type="iconfont-emoji"
         />

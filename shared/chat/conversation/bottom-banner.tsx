@@ -144,7 +144,7 @@ const BannerBox = (props: {
     direction="vertical"
     fullWidth={true}
     style={Kb.Styles.collapseStyles([styles.bannerStyle, {backgroundColor: props.color}])}
-    gap={props.gap}
+    {...(props.gap === undefined ? {} : {gap: props.gap})}
     alignItems="center"
   >
     {props.children}

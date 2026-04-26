@@ -223,10 +223,7 @@ const ChannelHeader = () => {
   return (
     <Kb.Box2 direction="vertical" style={maxWidthStyle}>
       <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Kb.Avatar
-          teamname={teamname || undefined}
-          size={16}
-        />
+        <Kb.Avatar {...(teamname ? {teamname} : {})} size={16} />
         <Kb.Text
           type={textType}
           lineClamp={1}

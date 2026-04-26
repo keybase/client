@@ -377,8 +377,10 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
 
   return (
     <Kb.FloatingMenu
-      attachTo={attachTo}
-      containerStyle={floatingMenuContainerStyle}
+      {...(attachTo === undefined ? {} : {attachTo})}
+      {...(floatingMenuContainerStyle === undefined
+        ? {}
+        : {containerStyle: floatingMenuContainerStyle})}
       visible={visible}
       items={items}
       header={header}

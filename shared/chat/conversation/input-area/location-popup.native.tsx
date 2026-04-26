@@ -159,7 +159,9 @@ const LocationPopup = () => {
             disabled={locationDenied}
             label="Send current location"
             onClick={() => onLocationShare('')}
-            subLabel={mapLoaded ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined}
+            {...(mapLoaded
+              ? {subLabel: `Accurate to ${location ? location.accuracy : 0} meters`}
+              : {})}
             primary={true}
           />
         </Kb.Box2>

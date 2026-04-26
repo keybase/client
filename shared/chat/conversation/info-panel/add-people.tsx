@@ -42,7 +42,7 @@ const AddPeople = (p: Props) => {
       ]
       return (
         <Kb.FloatingMenu
-          attachTo={attachTo}
+          {...(attachTo === undefined ? {} : {attachTo})}
           visible={true}
           items={items}
           onHidden={hidePopup}

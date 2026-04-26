@@ -31,7 +31,7 @@ const TeamHeader = () => {
       <ConvoState.ChatProvider id={conversationIDKey}>
         <ChatTeamProvider>
           <InfoPanelMenu
-            attachTo={attachTo}
+            {...(attachTo === undefined ? {} : {attachTo})}
             floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
             onHidden={hidePopup}
             hasHeader={false}

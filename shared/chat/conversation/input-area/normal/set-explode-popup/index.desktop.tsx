@@ -53,13 +53,12 @@ const SetExplodePopup = (p: Props) => {
   }))
   listItems.unshift({
     disabled: true,
-    onClick: undefined,
     title: 'Explode message after:',
     view: <Kb.Text type="BodySmallSemibold">Explode messages after:</Kb.Text>,
   })
   return (
     <Kb.FloatingMenu
-      attachTo={props.attachTo}
+      {...(props.attachTo === undefined ? {} : {attachTo: props.attachTo})}
       position="top left"
       visible={props.visible}
       closeOnSelect={true}

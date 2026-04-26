@@ -76,7 +76,7 @@ const Dropdown = (p: DropdownProps) => {
     const {attachTo, hidePopup} = p
     return (
       <Kb.FloatingMenu
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         closeOnSelect={true}
         visible={true}
         items={items}
