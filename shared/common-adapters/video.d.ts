@@ -2,13 +2,13 @@ import type * as React from 'react'
 import type * as Styles from '@/styles'
 
 export type Props = {
-  hideControls?: boolean
-  onUrlError?: (err: string) => void
-  style?: Styles.StylesCrossPlatform
+  hideControls?: boolean | undefined
+  onUrlError?: ((err: string) => void) | undefined
+  style?: Styles.StylesCrossPlatform | undefined
   url: string
-  allowFile?: boolean
-  muted?: boolean
-  autoPlay?: boolean
+  allowFile?: boolean | undefined
+  muted?: boolean | undefined
+  autoPlay?: boolean | undefined
 }
 
 export type State = {

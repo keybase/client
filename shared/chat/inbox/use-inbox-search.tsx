@@ -95,7 +95,6 @@ const getInboxSearchSelected = (
     if (conversationIDKey) {
       return {
         conversationIDKey,
-        query: undefined,
       }
     }
   } else if (selectedIndex < firstBotResultIdx) {

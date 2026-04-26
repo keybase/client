@@ -91,7 +91,11 @@ const makeDefineValues = (isDev: boolean, isHot: boolean, isProfile: boolean, fi
   __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env['APP_VERSION']),
 })
 
-const makeBabelLoader = (isDev: boolean, isHot: boolean, nodeThread: boolean): RuleSetRule['use'] => [
+const makeBabelLoader = (
+  isDev: boolean,
+  isHot: boolean,
+  nodeThread: boolean
+): NonNullable<RuleSetRule['use']> => [
   {
     loader: 'babel-loader',
     options: {
@@ -332,6 +336,7 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
   logWebpackDebug('Detected electron from package.json:', elecVersion)
   logWebpackDebug('Injecting defines:', defines)
 
+  const commonOptimization = makeCommonOptimization(isDev, isProfile)
   const commonConfig: Configuration = {
     bail: true,
     cache: {
@@ -344,7 +349,7 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
     devtool: evalDevtools ? 'eval' : isDev ? 'cheap-module-source-map' : 'source-map',
     mode: isDev ? 'development' : 'production',
     node: false,
-    optimization: makeCommonOptimization(isDev, isProfile),
+    ...(commonOptimization === undefined ? {} : {optimization: commonOptimization}),
     output: {
       filename: `[name]${fileSuffix}.bundle.js`,
       path: distDir,
@@ -369,9 +374,7 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
       // Ensure the view layer doesn't bleed into the node layer
       new webpack.IgnorePlugin({resourceRegExp: /^react$/}),
     ],
-    stats: {
-      usedExports: isDev ? undefined : false,
-    },
+    stats: isDev ? {} : {usedExports: false},
     target: 'electron-main',
   })
 

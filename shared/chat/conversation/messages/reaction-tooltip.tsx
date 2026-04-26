@@ -107,22 +107,22 @@ const ReactionTooltip = (p: OwnProps) => {
 
   return (
     <Kb.Popup
-      attachTo={attachmentRef}
       onHidden={onHidden}
       position="top center"
       positionFallbacks={positionFallbacks}
       propagateOutsideClicks={true}
       style={styles.overlay}
+      {...(attachmentRef !== undefined ? {attachTo: attachmentRef} : {})}
     >
       {/* need context since this uses a portal... */}
       <ConvoState.ChatProvider id={conversationIDKey}>
         <MessageContext value={messageContext}>
           <Kb.Box2
-            onMouseLeave={onMouseLeave}
-            onMouseOver={onMouseOver}
             direction="vertical"
             gap="tiny"
             style={Kb.Styles.collapseStyles([styles.listContainer, {paddingBottom: insets.bottom}])}
+            {...(onMouseLeave !== undefined ? {onMouseLeave} : {})}
+            {...(onMouseOver !== undefined ? {onMouseOver} : {})}
           >
             {Kb.Styles.isMobile && (
               <Kb.Box2 direction="horizontal">

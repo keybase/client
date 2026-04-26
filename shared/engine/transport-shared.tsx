@@ -12,7 +12,7 @@ import {
 } from './rpc-transport'
 
 // Logging for rpcs
-function rpcLog(info: {method: string; reason: string; extra?: object; type: string}): void {
+function rpcLog(info: {method: string; reason: string; extra?: object | undefined; type: string}): void {
   if (!printRPC) {
     return
   }
@@ -100,8 +100,8 @@ abstract class TransportShared extends RPCTransport {
   }
 
   // add logging / multiple call checking
-  invoke(method: string, args: [object], cb: (err: unknown, data: unknown) => void) {
-    const extra = args[0]
+  override invoke(method: string, args: [object] | undefined, cb: (err: unknown, data: unknown) => void) {
+    const extra = args?.[0]
     if (printRPC) {
       rpcLog({extra, method, reason: '[+calling]', type: 'engineToServer'})
     }
@@ -131,14 +131,14 @@ abstract class LocalTransport extends TransportShared {
     super(connectCallback, disconnectCallback, incomingRPCCallback)
     this.needsConnect = false
   }
-  connect(cb: (err?: unknown) => void) {
+  override connect(cb: (err?: unknown) => void) {
     cb()
   }
-  protected isConnected() {
+  protected override isConnected() {
     return true
   }
-  reset() {}
-  close() {}
+  override reset() {}
+  override close() {}
 }
 
 function sharedCreateClient(nativeTransport: TransportShared): {invoke: InvokeType; transport: TransportShared} {

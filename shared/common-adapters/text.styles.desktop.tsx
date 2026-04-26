@@ -179,7 +179,7 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       colorForBackground: {...whiteNegative, positive: Styles.globalColors.black_50},
       fontSize: 13,
       isLink: true,
-      styleOverride: {...Styles.globalStyles.fontSemibold, textDecoration: undefined},
+      styleOverride: Styles.globalStyles.fontSemibold,
     },
     BodySmallSuccess: {
       colorForBackground: {...whiteNegative, positive: Styles.globalColors.greenDark},

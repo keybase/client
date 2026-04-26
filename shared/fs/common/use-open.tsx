@@ -3,7 +3,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {useFsPathItem} from './hooks'
 
 type Props = {
-  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource | undefined
   path: T.FS.Path
 }
 

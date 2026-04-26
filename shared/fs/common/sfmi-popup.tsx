@@ -26,7 +26,12 @@ const SFMIPopup = (props: Props) => {
     const {attachTo, hidePopup} = p
 
     return (
-      <Kb.Popup style={styles.popup} attachTo={attachTo} onHidden={hidePopup} position="bottom right">
+      <Kb.Popup
+        style={styles.popup}
+        onHidden={hidePopup}
+        position="bottom right"
+        {...(attachTo === undefined ? {} : {attachTo})}
+      >
         <Kb.ClickableBox
           style={styles.container}
           onClick={e => {

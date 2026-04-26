@@ -55,7 +55,12 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
   })
 
   return allowToast && showingToast ? (
-    <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={true} toastTargetRef={toastTargetRef} />
+    <Kb.SimpleToast
+      iconType="iconfont-check"
+      text="Saved"
+      visible={true}
+      {...(toastTargetRef ? {toastTargetRef} : {})}
+    />
   ) : null
 }
 
@@ -129,7 +134,7 @@ export const TransferIcon = (p: {
           style={
             Kb.Styles.isMobile ? Kb.Styles.collapseStyles([style, {left: -48, opacity: 0.6}]) : undefined
           }
-          padding={Kb.Styles.isMobile ? 'small' : undefined}
+          {...(Kb.Styles.isMobile ? ({padding: 'small'} as const) : {})}
         />
       )
   }
@@ -201,7 +206,7 @@ export const Title = ({message}: {message: T.Chat.MessageAttachment}) => {
         messageType="attachment"
         selectable={true}
         allowFontScaling={true}
-        styleOverride={styleOverride}
+        {...(styleOverride ? {styleOverride} : {})}
       >
         {title}
       </Kb.Markdown>

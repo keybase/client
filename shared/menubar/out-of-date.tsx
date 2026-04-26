@@ -31,7 +31,7 @@ const OutOfDate = ({outOfDate}: Props) => {
             type="BodySmallSemibold"
             underline={!!updateNow}
             style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}
-            onClick={updateNow}
+            {...(updateNow === undefined ? {} : {onClick: updateNow})}
           >
             update now
           </Kb.Text>

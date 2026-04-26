@@ -4,6 +4,9 @@ import type {ParamListBase, RouteProp} from '@react-navigation/native'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 
 type RouteNameFor<ParamList extends ParamListBase> = Extract<keyof ParamList, string>
+type AllowShallowExplicitUndefined<T> = {
+  [K in keyof T]: T[K] | (undefined extends T[K] ? undefined : never)
+}
 
 export type GetOptionsParams<
   ParamList extends ParamListBase = ParamListBase,
@@ -62,14 +65,15 @@ export type LayoutOptions = {
 // - Header container styles: @react-navigation/elements HeaderOptions that work at runtime
 //   through our custom header but aren't exposed in NativeStackNavigationOptions
 export type GetOptionsRet =
-  | (Omit<NativeStackNavigationOptions, 'headerStyle'> &
-      LayoutOptions & {
+  | (AllowShallowExplicitUndefined<Omit<NativeStackNavigationOptions, 'headerStyle'>> &
+      AllowShallowExplicitUndefined<LayoutOptions> &
+      AllowShallowExplicitUndefined<{
         headerStyle?: Styles.StylesCrossPlatform
         headerBackgroundContainerStyle?: Styles.StylesCrossPlatform
         headerLeftContainerStyle?: Styles.StylesCrossPlatform
         headerRightContainerStyle?: Styles.StylesCrossPlatform
         headerTitleContainerStyle?: Styles.StylesCrossPlatform
-      })
+      }>)
   | undefined
 
 type AnyScreen = React.ComponentType<any> | React.LazyExoticComponent<any>

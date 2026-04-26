@@ -12,12 +12,15 @@ import {copyToClipboard} from '@/util/storeless-actions'
 
 type OwnProps = {
   assertion: T.Tracker.Assertion
-  isSuggestion?: boolean
-  notAUser?: boolean
+  isSuggestion?: boolean | undefined
+  notAUser?: boolean | undefined
   onRefresh: () => void
-  stellarHidden?: boolean
+  stellarHidden?: boolean | undefined
   username: string
 }
+
+const compactMenuItems = (items: ReadonlyArray<Kb.MenuItem | undefined>): Kb.MenuItems =>
+  items.filter((item): item is Kb.MenuItem => item !== undefined)
 
 const Container = (ownProps: OwnProps) => {
   const isYours = useCurrentUserState(s => ownProps.username === s.username)
@@ -51,7 +54,7 @@ const Container = (ownProps: OwnProps) => {
       name: 'profileRevoke',
       params: {
         icon: siteIconFull,
-        kid: assertion.kid || undefined,
+        kid: assertion.kid,
         platform: type as T.More.PlatformsExpandedType,
         platformHandle: value,
         proofId: sigID,
@@ -76,7 +79,7 @@ const Container = (ownProps: OwnProps) => {
     if (!isYours || isSuggestion) {
       return {}
     }
-    const onRevoke =
+    const onRevoke: Kb.MenuItem =
       type === 'stellar'
         ? {
             danger: true,
@@ -96,11 +99,11 @@ const Container = (ownProps: OwnProps) => {
             Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
           </Kb.Text>
         ),
-        items: [
-          {onClick: onShowProof, title: 'View proof'},
+        items: compactMenuItems([
+          onShowProof === undefined ? undefined : {onClick: onShowProof, title: 'View proof'},
           {onClick: onRecheck, title: 'I fixed it - recheck'},
           onRevoke,
-        ],
+        ]),
       }
     }
 
@@ -121,7 +124,7 @@ const Container = (ownProps: OwnProps) => {
             {pendingMessage}
           </Kb.Text>
         ) : null,
-        items: [onRevoke],
+        items: compactMenuItems([onRevoke]),
       }
     }
 
@@ -157,7 +160,12 @@ const Container = (ownProps: OwnProps) => {
           )}
         </Kb.Box2>
       ),
-      items: [{onClick: onShowProof, title: `View ${proofTypeToDesc(type)}`}, onRevoke],
+      items: compactMenuItems([
+        onShowProof === undefined
+          ? undefined
+          : {onClick: onShowProof, title: `View ${proofTypeToDesc(type)}`},
+        onRevoke,
+      ]),
     }
   })()
 
@@ -168,11 +176,11 @@ const Container = (ownProps: OwnProps) => {
         closeOnSelect={true}
         visible={true}
         onHidden={hidePopup}
-        attachTo={attachTo}
         position="bottom right"
         containerStyle={styles.floatingMenu}
         header={header}
         items={items}
+        {...(attachTo === undefined ? {} : {attachTo})}
       />
     ) : null
   }
@@ -181,11 +189,11 @@ const Container = (ownProps: OwnProps) => {
 
   return (
     <Kb.Box2
-      className={notAUser ? undefined : 'hover-container'}
       ref={popupAnchor}
       direction="vertical"
       style={styles.container}
       fullWidth={true}
+      {...(notAUser ? {} : {className: 'hover-container'})}
     >
       <Kb.Box2
         alignItems="flex-start"
@@ -222,8 +230,16 @@ const Container = (ownProps: OwnProps) => {
             </Kb.Text>
           )}
         </Kb.Text>
-        <Kb.ClickableBox onClick={items ? showPopup : onShowProof} style={styles.statusContainer}>
-          <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" tooltip={tooltip}>
+        <Kb.ClickableBox
+          style={styles.statusContainer}
+          {...(items ? {onClick: showPopup} : onShowProof === undefined ? {} : {onClick: onShowProof})}
+        >
+          <Kb.Box2
+            direction="horizontal"
+            alignItems="center"
+            gap="tiny"
+            {...(tooltip === undefined ? {} : {tooltip})}
+          >
             <Kb.Icon
               type={stateToIcon(state)}
               fontSize={20}
@@ -361,12 +377,12 @@ const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
     const {attachTo, hidePopup} = p
     return (
       <Kb.FloatingMenu
-        attachTo={attachTo}
         closeOnSelect={true}
         items={menuItems}
         onHidden={hidePopup}
         visible={true}
         position="bottom center"
+        {...(attachTo === undefined ? {} : {attachTo})}
       />
     )
   }
@@ -375,9 +391,9 @@ const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
   const label = (
     <Kb.Text
       type="BodyPrimaryLink"
-      onClick={Kb.Styles.isMobile ? undefined : showPopup}
-      tooltip={popup ? undefined : 'Stellar Federation Address'}
       style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
+      {...(Kb.Styles.isMobile ? {} : {onClick: showPopup})}
+      {...(popup ? {} : {tooltip: 'Stellar Federation Address'})}
     >
       {value}
     </Kb.Text>
@@ -394,12 +410,12 @@ const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
 }
 
 const Value = (p: {
-  isSuggestion?: boolean
+  isSuggestion?: boolean | undefined
   type: string
   value: string
   notAUser: boolean
-  onShowSite?: () => void
-  onCreateProof?: () => void
+  onShowSite?: (() => void) | undefined
+  onCreateProof?: (() => void) | undefined
   state: T.Tracker.AssertionState
   color: T.Tracker.AssertionColor
 }) => {
@@ -430,12 +446,12 @@ const Value = (p: {
     content = (
       <Kb.Text
         type={p.notAUser ? 'Body' : 'BodyPrimaryLink'}
-        onClick={p.onCreateProof || p.onShowSite}
         style={Kb.Styles.collapseStyles([
           style,
           stateToValueTextStyle(p.state),
           {color: assertionColorToTextColor(p.color)},
         ])}
+        {...(p.onCreateProof || p.onShowSite ? {onClick: p.onCreateProof || p.onShowSite} : {})}
       >
         {str}
       </Kb.Text>
@@ -453,12 +469,12 @@ const HoverOpacity = (p: {children: React.ReactNode}) => (
 
 type SIProps = {
   full: boolean
-  siteIconFullDarkmode?: T.Tracker.SiteIconSet
-  siteIconFull?: T.Tracker.SiteIconSet
-  siteIconDarkmode?: T.Tracker.SiteIconSet
-  siteIcon?: T.Tracker.SiteIconSet
-  onCreateProof?: () => void
-  onShowProof?: () => void
+  siteIconFullDarkmode?: T.Tracker.SiteIconSet | undefined
+  siteIconFull?: T.Tracker.SiteIconSet | undefined
+  siteIconDarkmode?: T.Tracker.SiteIconSet | undefined
+  siteIcon?: T.Tracker.SiteIconSet | undefined
+  onCreateProof?: (() => void) | undefined
+  onShowProof?: (() => void) | undefined
   isSuggestion: boolean
 }
 
@@ -482,7 +498,10 @@ const AssertionSiteIcon = (p: SIProps) => {
     child = <HoverOpacity>{child}</HoverOpacity>
   }
   return (
-    <Kb.ClickableBox onClick={onCreateProof || onShowProof} style={isSuggestion ? styles.halfOpacity : null}>
+    <Kb.ClickableBox
+      {...(onCreateProof || onShowProof ? {onClick: onCreateProof || onShowProof} : {})}
+      {...(isSuggestion ? {style: styles.halfOpacity} : {})}
+    >
       {child}
     </Kb.ClickableBox>
   )

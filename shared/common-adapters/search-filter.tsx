@@ -176,20 +176,21 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       props.hotkey && !props.onClick && !focused && !Styles.isMobile
         ? ` (${Platforms.shortcutSymbol}${props.hotkey.toUpperCase()})`
         : ''
+    const textValue = currentText()
     return (
       <Kb.Input3
-        autoFocus={props.focusOnMount}
-        value={currentText()}
         placeholder={props.placeholderText + hotkeyText}
         onChangeText={update}
         onBlur={onBlur}
         onFocus={onFocus}
         onKeyDown={onKeyDown}
-        onEnterKeyDown={props.onEnterKeyDown}
         ref={inputRef}
         hideBorder={true}
         containerStyle={styles.inputContainer}
         inputStyle={styles.input}
+        {...(props.focusOnMount === undefined ? {} : {autoFocus: props.focusOnMount})}
+        {...(textValue === undefined ? {} : {value: textValue})}
+        {...(props.onEnterKeyDown === undefined ? {} : {onEnterKeyDown: props.onEnterKeyDown})}
       />
     )
   }
@@ -248,12 +249,16 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     }
   }
 
+  const insideBoxProps = {
+    ...(measureRef === undefined ? {} : {ref: measureRef}),
+    ...(Styles.isMobile && props.onClick ? {pointerEvents: 'none' as const} : {}),
+  }
+
   const inside = (
     <Kb.Box2
-      ref={measureRef}
       direction="horizontal"
       style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
-      pointerEvents={Styles.isMobile && props.onClick ? 'none' : undefined}
+      {...insideBoxProps}
     >
       {leftIcon()}
       {input()}
@@ -262,6 +267,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     </Kb.Box2>
   )
 
+  const desktopOnClick = props.onClick || (!focused ? focus : undefined)
   const content = Styles.isMobile ? (
     <Kb.ClickableBox2
       data-search-filter={true}
@@ -288,9 +294,9 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       ])}
       onMouseOver={mouseOver}
       onMouseLeave={mouseLeave}
-      onClick={props.onClick || (!focused ? focus : undefined)}
       underlayColor={Styles.globalColors.transparent}
       hoverColor={Styles.globalColors.transparent}
+      {...(desktopOnClick === undefined ? {} : {onClick: desktopOnClick})}
     >
       {inside}
     </Kb.ClickableBox>

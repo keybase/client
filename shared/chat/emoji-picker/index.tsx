@@ -68,14 +68,14 @@ type Section = Omit<Kb.SectionType<Item>, 'renderItem'> & {key: string; title: s
 type Props = {
   addEmoji: () => void
   topReacjis: ReadonlyArray<T.RPCGen.UserReacji>
-  filter?: string
+  filter?: string | undefined
   hideFrequentEmoji: boolean
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
-  onHover?: (emoji: EmojiData) => void
-  skinTone?: T.Chat.EmojiSkinTone
-  customEmojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup>
+  onHover?: ((emoji: EmojiData) => void) | undefined
+  skinTone?: T.Chat.EmojiSkinTone | undefined
+  customEmojiGroups?: ReadonlyArray<T.RPCChat.EmojiGroup> | undefined
   width: number
-  waitingForEmoji?: boolean
+  waitingForEmoji?: boolean | undefined
 }
 
 type Bookmark = {
@@ -222,6 +222,7 @@ function EmojiPicker(props: Props) {
   const [activeSectionKey, setActiveSectionKey] = React.useState('')
   const getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
+    const onMouseOver = props.onHover ? () => props.onHover?.(emoji) : undefined
     return (
       <Kb.ClickableBox2
         className="emoji-picker-emoji-box"
@@ -231,14 +232,14 @@ function EmojiPicker(props: Props) {
             emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
           )
         }}
-        onMouseOver={props.onHover && (() => props.onHover?.(emoji))}
+        {...(onMouseOver === undefined ? {} : {onMouseOver})}
         style={styles.emoji}
         key={emoji.short_name}
       >
         <Kb.Emoji
           emojiData={emoji}
-          skinToneModifier={skinToneModifier}
-          skinToneKey={skinTone}
+          {...(skinToneModifier === undefined ? {} : {skinToneModifier})}
+          {...(skinTone === undefined ? {} : {skinToneKey: skinTone})}
           showTooltip={false}
           size={singleEmojiWidth}
         />

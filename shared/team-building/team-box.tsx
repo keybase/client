@@ -15,8 +15,8 @@ type Props = {
   onRemove: (userId: string) => void
   onFinishTeamBuilding: () => void
   searchString: string
-  goButtonLabel?: T.TB.GoButtonLabel
-  waitingKey?: string
+  goButtonLabel?: T.TB.GoButtonLabel | undefined
+  waitingKey?: string | undefined
 }
 
 const formatNameForUserBubble = (u: T.TB.SelectedUser) => {

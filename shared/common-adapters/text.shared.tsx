@@ -111,16 +111,16 @@ export type MetaType = {
     positive: string
     negative: string
   }
-  isLink?: true
-  styleOverride?: CSS.StylesCrossPlatform
-  isTerminal?: true
+  isLink?: true | undefined
+  styleOverride?: CSS._StylesCrossPlatform | undefined
+  isTerminal?: true | undefined
 }
 
 export type TextStyle = CSS._StylesCrossPlatform & {
-  fontSize?: number
-  lineHeight?: number
-  color?: string
-  cursor?: string
+  fontSize?: number | undefined
+  lineHeight?: number | undefined
+  color?: string | undefined
+  cursor?: string | undefined
 }
 
 export const backgroundModeIsNegative = (bm?: Background): boolean =>

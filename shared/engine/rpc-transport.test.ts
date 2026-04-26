@@ -12,16 +12,16 @@ class TestTransport extends RPCTransport {
   private _connected = true
   sent = new Array<RPCMessage>()
 
-  constructor(p?: {connected?: boolean; incomingRPCCallback?: IncomingRPCCallbackType}) {
+  constructor(p?: {connected?: boolean; incomingRPCCallback?: IncomingRPCCallbackType | undefined}) {
     super({incomingRPCCallback: p?.incomingRPCCallback})
     this._connected = p?.connected ?? true
   }
 
-  protected isConnected() {
+  protected override isConnected() {
     return this._connected
   }
 
-  protected writeMessage(message: RPCMessage) {
+  protected override writeMessage(message: RPCMessage) {
     this.sent.push(message)
   }
 

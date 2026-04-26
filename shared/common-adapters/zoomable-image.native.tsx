@@ -87,10 +87,10 @@ function ZoomableImage(p: Props) {
       <ResumableZoom
         maxScale={10}
         extendGestures={true}
-        onTap={onTap}
         onUpdate={onUpdate}
         onSwipe={onSwipe}
         panMode="clamp"
+        {...(onTap === undefined ? {} : {onTap})}
       >
         {content}
       </ResumableZoom>

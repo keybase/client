@@ -32,10 +32,10 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
         <Kbfs.FolderViewFilterIcon path={props.path} onClick={props.onTriggerFilterMobile} />
       ) : (
         <Kbfs.FolderViewFilter
-          filter={folderViewFilter}
           onChangeFilter={setFolderViewFilter}
           path={props.path}
           style={styles.folderViewFilter}
+          {...(folderViewFilter === undefined ? {} : {filter: folderViewFilter})}
         />
       )}
       <Kbfs.OpenInSystemFileManager path={props.path} />

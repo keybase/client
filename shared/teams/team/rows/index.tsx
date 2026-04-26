@@ -168,7 +168,7 @@ export const useInvitesSections = (
         item.type === 'invite-requests' ? (
           <RequestRow {...item} teamID={teamID} firstItem={index === 0} />
         ) : null,
-      title: Kb.Styles.isMobile ? `Requests (${details.requests.size})` : undefined,
+      ...(Kb.Styles.isMobile ? {title: `Requests (${details.requests.size})`} : {}),
     } satisfies Section
     sections.push(requestsSection)
   }
@@ -270,8 +270,13 @@ export const useSubteamsSections = (
   }
   sections.push({
     data: subteams.map(s => ({id: s, type: 'subteams'})),
-    renderItem: ({item}: {item: Item}) =>
-      item.type === 'subteams' ? <SubteamTeamRow teamID={item.id} teamMeta={teamMetaByID.get(item.id)} /> : null,
+    renderItem: ({item}: {item: Item}) => {
+      if (item.type !== 'subteams') {
+        return null
+      }
+      const teamMeta = teamMetaByID.get(item.id)
+      return <SubteamTeamRow teamID={item.id} {...(teamMeta === undefined ? {} : {teamMeta})} />
+    },
   } as const)
 
   if (details.subteams.size) {

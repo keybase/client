@@ -54,7 +54,6 @@ const Container = (ownProps: OwnProps) => {
     }
     return (
       <Kb.FloatingMenu
-        attachTo={attachTo}
         visible={true}
         onHidden={hidePopup}
         position="bottom left"
@@ -70,12 +69,13 @@ const Container = (ownProps: OwnProps) => {
                   icon: 'iconfont-cloud',
                   inProgress: waiting,
                   onClick: disableSync,
-                  style: waiting ? {opacity: 0.3} : undefined,
                   title: waiting ? 'Unsyncing' : 'Yes, unsync',
+                  ...(waiting ? {style: {opacity: 0.3}} : {}),
                 } as const,
               ]
             : []
         }
+        {...(attachTo === undefined ? {} : {attachTo})}
       />
     )
   }

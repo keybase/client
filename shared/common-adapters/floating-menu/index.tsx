@@ -8,26 +8,26 @@ import {useNavigation, type NavigationProp, type ParamListBase} from '@react-nav
 export type MenuItems = _MenuItems
 
 export type Props = {
-  attachTo?: React.RefObject<MeasureRef | null>
-  backgroundColor?: Styles.Color
+  attachTo?: React.RefObject<MeasureRef | null> | undefined
+  backgroundColor?: Styles.Color | undefined
   closeOnSelect: boolean
-  closeText?: string // mobile only; default to "Close",
-  containerStyle?: Styles.StylesCrossPlatform
-  header?: React.ReactNode
+  closeText?: string | undefined // mobile only; default to "Close",
+  containerStyle?: Styles.StylesCrossPlatform | undefined
+  header?: React.ReactNode | undefined
   items: ReadonlyArray<_MenuItems[number]>
-  listStyle?: object
-  mode?: 'modal' | 'bottomsheet'
+  listStyle?: object | undefined
+  mode?: 'modal' | 'bottomsheet' | undefined
   onHidden: () => void
-  position?: Styles.Position
-  positionFallbacks?: ReadonlyArray<Styles.Position>
-  propagateOutsideClicks?: boolean
-  remeasureHint?: number
-  textColor?: Styles.Color
+  position?: Styles.Position | undefined
+  positionFallbacks?: ReadonlyArray<Styles.Position> | undefined
+  propagateOutsideClicks?: boolean | undefined
+  remeasureHint?: number | undefined
+  textColor?: Styles.Color | undefined
   visible: boolean
-  offset?: number
+  offset?: number | undefined
   // mobile only
-  safeProviderStyle?: Styles.StylesCrossPlatform
-  snapPoints?: Array<string | number>
+  safeProviderStyle?: Styles.StylesCrossPlatform | undefined
+  snapPoints?: Array<string | number> | undefined
 }
 
 type SafeNavigationHook = <T extends NavigationProp<ParamListBase>>() => T | null

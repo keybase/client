@@ -39,10 +39,11 @@ export const fuseStatusToDriverStatus = (status?: T.RPCGen.FuseStatus): T.FS.Dri
     return Constants.defaultDriverStatus
   }
   if (status.kextStarted) {
+    const dokanUninstallExecPath = getUninstallExecPath(status)
     return {
       ...Constants.emptyDriverStatusEnabled,
       dokanOutdated: status.installAction === T.RPCGen.InstallAction.upgrade,
-      dokanUninstallExecPath: getUninstallExecPath(status),
+      ...(dokanUninstallExecPath === undefined ? {} : {dokanUninstallExecPath}),
     }
   }
   return Constants.emptyDriverStatusDisabled

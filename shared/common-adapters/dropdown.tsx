@@ -26,14 +26,14 @@ const Kb = {
 }
 
 type DropdownButtonProps = {
-  disabled?: boolean
-  selected?: React.ReactNode
-  selectedBoxStyle?: Styles.StylesCrossPlatform
-  style?: Styles.StylesCrossPlatform
-  popupAnchor?: React.RefObject<MeasureRef | null>
+  disabled?: boolean | undefined
+  selected?: React.ReactNode | undefined
+  selectedBoxStyle?: Styles.StylesCrossPlatform | undefined
+  style?: Styles.StylesCrossPlatform | undefined
+  popupAnchor?: React.RefObject<MeasureRef | null> | undefined
   toggleOpen: (e: React.BaseSyntheticEvent) => void
-  inline?: boolean
-  loading?: boolean
+  inline?: boolean | undefined
+  loading?: boolean | undefined
 }
 export const DropdownButton = (props: DropdownButtonProps) => {
   const {disabled, toggleOpen, style, popupAnchor, selectedBoxStyle, inline, loading, selected} = props
@@ -76,15 +76,15 @@ export const DropdownButton = (props: DropdownButtonProps) => {
 }
 
 type Props<N> = {
-  disabled?: boolean
-  itemBoxStyle?: Styles.StylesCrossPlatform
+  disabled?: boolean | undefined
+  itemBoxStyle?: Styles.StylesCrossPlatform | undefined
   items: Array<N>
-  onChangedIdx?: (selectedIdx: number) => void
-  overlayStyle?: Styles.StylesCrossPlatform
-  position?: Styles.Position
-  selected?: N
-  selectedBoxStyle?: Styles.StylesCrossPlatform
-  style?: Styles.StylesCrossPlatform
+  onChangedIdx?: ((selectedIdx: number) => void) | undefined
+  overlayStyle?: Styles.StylesCrossPlatform | undefined
+  position?: Styles.Position | undefined
+  selected?: N | undefined
+  selectedBoxStyle?: Styles.StylesCrossPlatform | undefined
+  style?: Styles.StylesCrossPlatform | undefined
 }
 
 function Dropdown<N extends React.ReactNode>(p: Props<N>) {
@@ -153,11 +153,11 @@ function Dropdown<N extends React.ReactNode>(p: Props<N>) {
 }
 
 type InlineDropdownProps = {
-  containerStyle?: Styles.StylesCrossPlatform
+  containerStyle?: Styles.StylesCrossPlatform | undefined
   onPress: () => void
-  style?: Styles.StylesCrossPlatform
-  loading?: boolean
-  selectedStyle?: Styles.StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform | undefined
+  loading?: boolean | undefined
+  selectedStyle?: Styles.StylesCrossPlatform | undefined
 } & (
   | {
       textWrapperType: null

@@ -10,7 +10,13 @@ import Typing from './typing'
 import logger from '@/logger'
 import type * as ImagePicker from 'expo-image-picker'
 import type {LayoutEvent} from '@/common-adapters/box'
-import type {Props as InputLowLevelProps, PlatformInputProps as Props, TextInfo, RefType} from './input'
+import type {
+  Props as InputLowLevelProps,
+  PlatformInputProps as Props,
+  Selection,
+  TextInfo,
+  RefType,
+} from './input'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
 import {Keyboard, TextInput, type NativeSyntheticEvent, type TextInputSelectionChangeEventData, useColorScheme} from 'react-native'
 import {MaxInputAreaContext} from './max-input-area-context'
@@ -48,9 +54,7 @@ export function Input(p: InputLowLevelProps) {
   const isDarkMode = useColorScheme() === 'dark'
   const [autoFocus, setAutoFocus] = React.useState(_autoFocus)
   const [value, setValue] = React.useState('')
-  const [selection, setSelection] = React.useState<{start: number; end?: number | undefined} | undefined>(
-    undefined
-  )
+  const [selection, setSelection] = React.useState<Selection | undefined>(undefined)
   const inputRef = React.useRef<TextInput | null>(null)
 
   const setInputRef = (ti: TextInput | null) => {
@@ -66,7 +70,8 @@ export function Input(p: InputLowLevelProps) {
     onChangeTextRef.current?.(s)
   })
   const onSelectionChange = (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-    setSelection(e.nativeEvent.selection)
+    const {end, start} = e.nativeEvent.selection
+    setSelection(end === undefined ? {start} : {end, start})
     _onSelectionChange?.(e)
   }
 
@@ -89,7 +94,7 @@ export function Input(p: InputLowLevelProps) {
       },
       isFocused: () => !!inputRef.current?.isFocused(),
       transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean): void => {
-        const ti = fn({selection, text: value})
+        const ti = fn(selection === undefined ? {text: value} : {selection, text: value})
         if (!reflectChange) {
           return
         }
@@ -406,15 +411,18 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
 
   return (
     <FilePickerPopup
-      attachTo={attachTo}
       visible={showingPopup}
       onHidden={hidePopup}
       onSelect={launchNativeImagePicker}
+      {...(attachTo ? {attachTo} : {})}
     />
   )
 }
 
-type AnimatedInputProps = Omit<InputLowLevelProps, 'ref'> & {expanded: boolean; inputRef?: React.Ref<RefType>}
+type AnimatedInputProps = Omit<InputLowLevelProps, 'ref'> & {
+  expanded: boolean
+  inputRef: React.Ref<RefType | null>
+}
 const AnimatedInput = (() => {
   if (skipAnimations) {
     return function AnimatedInput(p: AnimatedInputProps) {
@@ -549,16 +557,18 @@ const PlatformInput = (p: Props) => {
     const {attachTo, hidePopup} = p
     switch (whichMenu.current) {
       case 'filepickerpopup':
-        return <ChatFilePicker attachTo={attachTo} showingPopup={true} hidePopup={hidePopup} />
+        return (
+          <ChatFilePicker showingPopup={true} hidePopup={hidePopup} {...(attachTo ? {attachTo} : {})} />
+        )
       case 'moremenu':
         return <MoreMenuPopup onHidden={hidePopup} visible={true} />
       default:
         return (
           <SetExplodingMessagePicker
-            attachTo={attachTo}
             onHidden={hidePopup}
             visible={true}
             setExplodingMode={setExplodingMode}
+            {...(attachTo ? {attachTo} : {})}
           />
         )
     }

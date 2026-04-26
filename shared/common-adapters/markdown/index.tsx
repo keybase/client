@@ -40,9 +40,9 @@ export type MarkdownCreateComponent = (
   key: string,
   children: Array<React.ReactNode>,
   options: {
-    href?: string
-    convID?: string
-    bigEmoji?: boolean
+    href?: string | undefined
+    convID?: string | undefined
+    bigEmoji?: boolean | undefined
   }
 ) => React.ReactNode
 
@@ -51,32 +51,32 @@ export type MarkdownMeta = {
 }
 
 export type StyleOverride = {
-  paragraph?: StylesTextCrossPlatform
-  fence?: StylesTextCrossPlatform
-  inlineCode?: StylesTextCrossPlatform
-  strong?: StylesTextCrossPlatform
-  em?: StylesTextCrossPlatform
-  emojiSize?: {size: 22 | 16 | 18 | 32 | 24 | 26 | 28 | 36}
-  del?: StylesTextCrossPlatform
-  link?: StylesTextCrossPlatform
-  mailto?: StylesTextCrossPlatform
-  preview?: StylesTextCrossPlatform
-  kbfsPath?: StylesTextCrossPlatform
-  emoji?: StylesTextCrossPlatform
-  customEmoji?: StylesTextCrossPlatform
+  paragraph?: StylesTextCrossPlatform | undefined
+  fence?: StylesTextCrossPlatform | undefined
+  inlineCode?: StylesTextCrossPlatform | undefined
+  strong?: StylesTextCrossPlatform | undefined
+  em?: StylesTextCrossPlatform | undefined
+  emojiSize?: {size: 22 | 16 | 18 | 32 | 24 | 26 | 28 | 36} | undefined
+  del?: StylesTextCrossPlatform | undefined
+  link?: StylesTextCrossPlatform | undefined
+  mailto?: StylesTextCrossPlatform | undefined
+  preview?: StylesTextCrossPlatform | undefined
+  kbfsPath?: StylesTextCrossPlatform | undefined
+  emoji?: StylesTextCrossPlatform | undefined
+  customEmoji?: StylesTextCrossPlatform | undefined
 }
 
 export type Props = {
-  context?: string // metadata used for bookkeeping
-  children?: string
-  lineClamp?: LineClampType
-  selectable?: boolean // desktop - applies to outer container only
-  smallStandaloneEmoji?: boolean // don't increase font size for a standalone emoji
-  paragraphTextClassName?: string
-  preview?: boolean // if true render a simplified version
-  serviceOnly?: boolean // only render stuff from the service
-  serviceOnlyNoWrap?: boolean // only render stuff from the service, no wrapper
-  disallowAnimation?: boolean // only if serviceOnly
+  context?: string | undefined // metadata used for bookkeeping
+  children?: string | undefined
+  lineClamp?: LineClampType | undefined
+  selectable?: boolean | undefined // desktop - applies to outer container only
+  smallStandaloneEmoji?: boolean | undefined // don't increase font size for a standalone emoji
+  paragraphTextClassName?: string | undefined
+  preview?: boolean | undefined // if true render a simplified version
+  serviceOnly?: boolean | undefined // only render stuff from the service
+  serviceOnlyNoWrap?: boolean | undefined // only render stuff from the service, no wrapper
+  disallowAnimation?: boolean | undefined // only if serviceOnly
 
   // Style only styles the top level container.
   // This is only useful in desktop because of cascading styles and there is a top level wrapper.
@@ -87,21 +87,21 @@ export type Props = {
   // preferred to use the props.styleOverride.preview flag for this
   //
   // TODO type this up or remove it
-  style?: Styles.StylesCrossPlatform
-  allowFontScaling?: boolean
-  messageType?: T.Chat.MessageType
+  style?: Styles.StylesCrossPlatform | undefined
+  allowFontScaling?: boolean | undefined
+  messageType?: T.Chat.MessageType | undefined
   // This changes the specific style for specific types of text
   // for example you may want to make paragraphs, italics, etc to be black_50
   // but want blue_30 for the inline code
-  styleOverride?: StyleOverride
+  styleOverride?: StyleOverride | undefined
 
-  virtualText?: boolean // desktop only, see text.desktop
+  virtualText?: boolean | undefined // desktop only, see text.desktop
 }
 
 export type ParseMarkdownOptions = {
-  isMobile?: boolean
-  messageType?: T.Chat.MessageType
-  shouldUseMarkdownParser?: boolean
+  isMobile?: boolean | undefined
+  messageType?: T.Chat.MessageType | undefined
+  shouldUseMarkdownParser?: boolean | undefined
 }
 
 export type MarkdownOutputKind =
@@ -433,7 +433,7 @@ export const parseMarkdown = (
     disableAutoBlockNewlines: true,
     inline: false,
     isMobile: options?.isMobile ?? Styles.isMobile,
-    messageType: options?.messageType,
+    ...(options?.messageType === undefined ? {} : {messageType: options.messageType}),
   })
 }
 

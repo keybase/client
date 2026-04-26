@@ -7,9 +7,9 @@ import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 export type OwnProps = {
-  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource | undefined
   disabled: boolean
-  mixedMode?: boolean
+  mixedMode?: boolean | undefined
   name: string
   tlfType: T.FS.TlfType
 }
@@ -54,7 +54,7 @@ const TLFContainer = (p: OwnProps) => {
   const avatar = (
     <Kb.Box2 direction="horizontal" style={styles.avatarBox}>
       {FS.isTeamPath(path) ? (
-        <Kb.Avatar size={32} isTeam={true} teamname={usernames[0]} />
+        <Kb.Avatar size={32} isTeam={true} {...(usernames[0] === undefined ? {} : {teamname: usernames[0]})} />
       ) : (
         <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={usernames} />
       )}
@@ -67,18 +67,19 @@ const TLFContainer = (p: OwnProps) => {
       <StillCommon
         path={path}
         inDestinationPicker={!!destinationPickerSource}
-        onOpen={disabled ? undefined : onOpen}
-        mixedMode={mixedMode}
+        {...(disabled || onOpen === undefined ? {} : {onOpen})}
+        {...(mixedMode === undefined ? {} : {mixedMode})}
         writingToJournal={false}
-        body={Kb.Styles.isMobile ? <Kb.Box2 direction="vertical" fullWidth={true} style={rowStyles.itemBox}>{content}</Kb.Box2> : undefined}
-        content={
-          !Kb.Styles.isMobile ? (
-            <>
-              {content}
-              {avatar}
-            </>
-          ) : undefined
-        }
+        {...(Kb.Styles.isMobile
+          ? {body: <Kb.Box2 direction="vertical" fullWidth={true} style={rowStyles.itemBox}>{content}</Kb.Box2>}
+          : {
+              content: (
+                <>
+                  {content}
+                  {avatar}
+                </>
+              ),
+            })}
       />
     </>
   )

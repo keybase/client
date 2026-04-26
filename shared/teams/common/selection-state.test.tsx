@@ -30,8 +30,12 @@ const setupTeamWrapper = ({
   const selectedMemberChanges: Array<Array<string> | undefined> = []
 
   const Wrapper = ({children}: {children: React.ReactNode}) => {
-    const [selectedChannels, setSelectedChannels] = React.useState(initialSelectedChannels)
-    const [selectedMembers, setSelectedMembers] = React.useState(initialSelectedMembers)
+    const [selectedChannels, setSelectedChannels] = React.useState<
+      Array<T.Chat.ConversationIDKey> | undefined
+    >(initialSelectedChannels)
+    const [selectedMembers, setSelectedMembers] = React.useState<Array<string> | undefined>(
+      initialSelectedMembers
+    )
 
     return (
       <TeamSelectionProvider
@@ -58,7 +62,9 @@ const setupChannelWrapper = ({initialSelectedMembers}: {initialSelectedMembers?:
   const selectedMemberChanges: Array<Array<string> | undefined> = []
 
   const Wrapper = ({children}: {children: React.ReactNode}) => {
-    const [selectedMembers, setSelectedMembers] = React.useState(initialSelectedMembers)
+    const [selectedMembers, setSelectedMembers] = React.useState<Array<string> | undefined>(
+      initialSelectedMembers
+    )
 
     return (
       <ChannelSelectionProvider

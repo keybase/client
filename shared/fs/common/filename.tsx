@@ -3,10 +3,10 @@ import * as Kb from '@/common-adapters'
 import type {TextType} from '@/common-adapters/text.shared'
 
 type Props = {
-  path?: T.FS.Path
-  filename?: string
-  selectable?: boolean
-  style?: Kb.Styles.StylesCrossPlatform
+  path?: T.FS.Path | undefined
+  filename?: string | undefined
+  selectable?: boolean | undefined
+  style?: Kb.Styles.StylesCrossPlatform | undefined
   type: TextType
 }
 
@@ -25,13 +25,13 @@ const Filename = (props: Props) => {
     props.path ? T.FS.getPathName(props.path) : props.filename || ''
   )
   return (
-    <Kb.Box2 direction="horizontal" style={props.style}>
+    <Kb.Box2 direction="horizontal" {...(props.style === undefined ? {} : {style: props.style})}>
       <Kb.Text
         className="hover-underline-child"
         type={props.type}
         style={styles.breakAll}
         lineClamp={1}
-        selectable={props.selectable}
+        {...(props.selectable === undefined ? {} : {selectable: props.selectable})}
       >
         {fileNameWithoutExtension}
       </Kb.Text>
@@ -40,7 +40,7 @@ const Filename = (props: Props) => {
           className="hover-underline-child"
           type={props.type}
           style={styles.noShrink}
-          selectable={props.selectable}
+          {...(props.selectable === undefined ? {} : {selectable: props.selectable})}
         >
           {fileExtension}
         </Kb.Text>

@@ -61,10 +61,10 @@ const LogoutContainer = () => {
   ) : hasRandomPW ? (
     <UpdatePassword
       error={error}
-      hasPGPKeyOnServer={hasPGPKeyOnServer}
       onSave={onSave}
       saveLabel="Sign out"
       waitingForResponse={waitingForResponse}
+      {...(hasPGPKeyOnServer === undefined ? {} : {hasPGPKeyOnServer})}
     />
   ) : (
     <>

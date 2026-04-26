@@ -9,10 +9,10 @@ const Kb = {
 }
 
 export type RenderableEmoji = {
-  aliasForCustom?: string
-  unicodeStock?: string
-  renderStock?: string
-  renderUrl?: string
+  aliasForCustom?: string | undefined
+  unicodeStock?: string | undefined
+  renderStock?: string | undefined
+  renderUrl?: string | undefined
 }
 
 export const RPCUserReacjiToRenderableEmoji = (
@@ -55,14 +55,13 @@ export const getEmojiStr = (emoji: ED.EmojiData, skinToneModifier?: string) => {
 export function RPCToEmojiData(emoji: T.RPCChat.Emoji, noAnim: boolean, category?: string): ED.EmojiData {
   return {
     category: category ?? '',
-    name: undefined,
+    name: '',
     non_qualified: '',
     sheet_x: -1,
     sheet_y: -1,
     short_name: emoji.alias,
     short_names: [emoji.alias],
     sort_order: -1,
-    teamname: emoji.teamname ?? undefined,
     unified: '',
     userEmojiRenderStock:
       emoji.source.typ === T.RPCChat.EmojiLoadSourceTyp.str ? emoji.source.str : undefined,
@@ -72,6 +71,7 @@ export function RPCToEmojiData(emoji: T.RPCChat.Emoji, noAnim: boolean, category
         : noAnim && emoji.noAnimSource.typ === T.RPCChat.EmojiLoadSourceTyp.httpsrv
           ? emoji.noAnimSource.httpsrv
           : emoji.source.httpsrv,
+    ...(emoji.teamname ? {teamname: emoji.teamname} : {}),
   }
 }
 

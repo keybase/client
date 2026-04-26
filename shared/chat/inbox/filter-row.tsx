@@ -65,6 +65,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
       inputRef.current?.focus()
     }
   }, [isSearching])
+  const gap = Kb.Styles.isMobile ? 'small' : showSearch ? 'xtiny' : undefined
 
   const searchInput = isSearching ? (
     <Kb.SearchFilter
@@ -101,7 +102,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
     <Kb.Box2
       direction="horizontal"
       centerChildren={!Kb.Styles.isTablet}
-      gap={Kb.Styles.isMobile ? 'small' : showSearch ? 'xtiny' : undefined}
+      {...(gap === undefined ? {} : {gap})}
       style={Kb.Styles.collapseStyles([
         styles.containerNotFiltering,
         !Kb.Styles.isPhone && styles.whiteBg,

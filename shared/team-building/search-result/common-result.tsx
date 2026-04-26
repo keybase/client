@@ -22,22 +22,22 @@ export type ResultProps = {
   onAdd: (id: string) => void
   onRemove: (id: string) => void
   prettyName: string
-  pictureUrl?: string
+  pictureUrl?: string | undefined
   resultForService: T.TB.ServiceIdWithContact
-  rightButtons?: React.ReactNode
+  rightButtons?: React.ReactNode | undefined
   services: {[K in T.TB.ServiceIdWithContact]?: string}
   username: string
 }
 
 export type CommonResultProps = ResultProps & {
-  rowStyle?: Kb.Styles.StylesCrossPlatform
+  rowStyle?: Kb.Styles.StylesCrossPlatform | undefined
 }
 
 type BottomRowProps = {
   isKeybaseResult: boolean
   username: string
   isPreExistingTeamMember: boolean
-  keybaseUsername?: string
+  keybaseUsername?: string | undefined
   followingState: T.TB.FollowingState
   displayLabel: string
   prettyName: string
@@ -91,7 +91,7 @@ const CommonResult = (props: CommonResultProps) => {
   const onClick = getRowAction(props)
 
   return (
-    <Kb.ClickableBox onClick={onClick}>
+    <Kb.ClickableBox {...(onClick === undefined ? {} : {onClick})}>
       <Kb.Box2
         className="hover_background_color_blueLighter2 hover_container"
         direction="horizontal"
@@ -175,9 +175,9 @@ const Avatar = ({
   keybaseUsername,
   pictureUrl,
 }: {
-  keybaseUsername?: string
+  keybaseUsername?: string | undefined
   resultForService: T.TB.ServiceIdWithContact
-  pictureUrl?: string
+  pictureUrl?: string | undefined
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
@@ -201,7 +201,7 @@ type ServicesIconsProps = {
   prettyName: string
   displayLabel: string
   isKeybaseResult: boolean
-  keybaseUsername?: string
+  keybaseUsername?: string | undefined
 }
 
 const ServicesIcons = (props: ServicesIconsProps) => {
@@ -234,7 +234,7 @@ const FormatPrettyName = (props: {
   prettyName: string
   username: string
   services: Array<T.TB.ServiceIdWithContact>
-  keybaseUsername?: string
+  keybaseUsername?: string | undefined
   showServicesIcons: boolean
 }) =>
   props.prettyName &&
@@ -338,7 +338,7 @@ const BottomRow = (props: BottomRowProps) => {
 const Username = (props: {
   followingState: T.TB.FollowingState
   isKeybaseResult: boolean
-  keybaseUsername?: string
+  keybaseUsername?: string | undefined
   username: string
 }) => {
   const showFollowingState = props.isKeybaseResult && props.keybaseUsername

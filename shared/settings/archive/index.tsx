@@ -250,7 +250,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
     const {attachTo, hidePopup} = p
     return (
       <Kb.FloatingMenu
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         closeOnSelect={true}
         items={[{onClick: onShare, title: 'Share'}]}
         onHidden={hidePopup}

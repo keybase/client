@@ -28,10 +28,10 @@ const RichButton = (props: Props) => {
     <Kb.ClickableBox
       className="hover_container"
       style={Styles.collapseStyles([styles.containerStyle, isPressing && styles.mobileContainer])}
-      onClick={props.onClick}
       onPressIn={() => setPressing(true)}
       onPressOut={() => setPressing(false)}
       hoverColor={Styles.globalColors.blueLighter_20}
+      {...(props.onClick === undefined ? {} : {onClick: props.onClick})}
     >
       <Kb.IconAuto type={props.icon} style={styles.thumbnail} />
 

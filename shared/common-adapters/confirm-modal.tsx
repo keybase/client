@@ -10,19 +10,19 @@ import {Box2} from '@/common-adapters/box'
 
 // generally one of icon or header will be given
 export type Props = {
-  confirmText?: string
-  content?: React.ReactNode
-  description?: string
-  error?: string
-  header?: React.ReactNode
-  icon?: IconType
-  iconColor?: Styles.Color
-  onCancel?: () => void
-  onConfirm?: () => void
-  onConfirmDeactivated?: boolean
+  confirmText?: string | undefined
+  content?: React.ReactNode | undefined
+  description?: string | undefined
+  error?: string | undefined
+  header?: React.ReactNode | undefined
+  icon?: IconType | undefined
+  iconColor?: Styles.Color | undefined
+  onCancel?: (() => void) | undefined
+  onConfirm?: (() => void) | undefined
+  onConfirmDeactivated?: boolean | undefined
   prompt: React.ReactNode
-  waitingKey?: string | string[]
-  waiting?: boolean
+  waitingKey?: string | string[] | undefined
+  waiting?: boolean | undefined
 }
 
 const ConfirmModal = (props: Props) => (

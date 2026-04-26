@@ -12,8 +12,8 @@ export type OwnProps = {
   exploding: boolean
   explodesAt: number
   messageKey: string
-  onClick?: () => void
-  submitState?: T.Chat.Message['submitState']
+  onClick?: (() => void) | undefined
+  submitState?: T.Chat.Message['submitState'] | undefined
 }
 
 function ExplodingMetaContainer(p: OwnProps) {
@@ -195,7 +195,7 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
   }
 
   return (
-    <Kb.ClickableBox onClick={onClick} style={styles.container}>
+    <Kb.ClickableBox {...(onClick ? {onClick} : {})} style={styles.container}>
       {children}
     </Kb.ClickableBox>
   )

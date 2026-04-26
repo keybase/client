@@ -49,7 +49,7 @@ export const FollowButton = (props: FollowProps) => {
       following={followThem}
       followsYou={followsYou}
       waitingKey={waitingKey}
-      small={props.small}
+      {...(props.small === undefined ? {} : {small: props.small})}
       onFollow={onFollow}
       onUnfollow={onUnfollow}
     />

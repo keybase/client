@@ -32,7 +32,6 @@ const UnfurlImage = (p: Props) => {
     <Video
       autoPlay={autoplayVideo}
       height={height}
-      onClick={onClick}
       style={
         Kb.Styles.collapseStyles([
           styles.image,
@@ -42,6 +41,7 @@ const UnfurlImage = (p: Props) => {
       }
       url={url}
       width={width}
+      {...(onClick ? {onClick} : {})}
     />
   ) : (
     <Kb.ClickableBox onClick={onClick || onOpenURL}>

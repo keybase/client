@@ -10,7 +10,7 @@ type Props = {
   hasUnfurlList: boolean
   hasCoinFlip: boolean
   messageID: T.Chat.MessageID
-  unfurls?: T.Chat.UnfurlMap
+  unfurls?: T.Chat.UnfurlMap | undefined
 }
 
 export const useBottom = (data: Props) => {

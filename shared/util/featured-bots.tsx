@@ -49,7 +49,8 @@ export const useFeaturedBot = (botUsername?: string) => {
       [{limit: 10, offset: 0, query: botUsername}],
       result => {
         if (!canceled) {
-          setLoadedFeaturedBot({bot: pickFeaturedBot(botUsername, result.bots ?? []), botUsername})
+          const bot = pickFeaturedBot(botUsername, result.bots ?? [])
+          setLoadedFeaturedBot({botUsername, ...(bot === undefined ? {} : {bot})})
         }
       },
       error => {

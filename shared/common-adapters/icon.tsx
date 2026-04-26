@@ -9,15 +9,15 @@ export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
 
 export type IconProps = {
   type: IconType
-  color?: Styles.Color
-  fontSize?: number
-  sizeType?: SizeType
-  style?: Styles.StylesCrossPlatform
-  className?: string
-  hoverColor?: Styles.Color
-  hint?: string
-  onClick?: () => void
-  padding?: keyof typeof Styles.globalMargins
+  color?: Styles.Color | undefined
+  fontSize?: number | undefined
+  sizeType?: SizeType | undefined
+  style?: Styles.StylesCrossPlatform | undefined
+  className?: string | undefined
+  hoverColor?: Styles.Color | undefined
+  hint?: string | undefined
+  onClick?: (() => void) | undefined
+  padding?: keyof typeof Styles.globalMargins | undefined
 }
 
 const sizeToFontDesktop = {Big: 24, Bigger: 36, Default: 16, Huge: 48, Small: 12, Tiny: 8} as const

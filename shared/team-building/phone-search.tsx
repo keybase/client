@@ -57,9 +57,9 @@ const PhoneSearch = (props: PhoneSearchProps) => {
             // Supply a key to force reset the PhoneInput state after a user is added
             key={phoneInputKey}
             autoFocus={true}
-            defaultCountry={defaultCountry}
             onChangeNumber={onChangeNumberCb}
             onEnterKeyDown={_onContinue}
+            {...(defaultCountry === undefined ? {} : {defaultCountry})}
           />
           {!!user && canSubmit && !!user.serviceMap.keybase ? (
             <UserMatchMention username={user.serviceMap.keybase} />

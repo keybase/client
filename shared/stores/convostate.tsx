@@ -84,16 +84,16 @@ type ConvoStore = T.Immutable<{
   botCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp
   botSettings: Map<string, T.RPCGen.TeamBotSettings | undefined>
   botTeamRoleMap: Map<string, T.Teams.TeamRoleType | undefined>
-  commandMarkdown?: T.RPCChat.UICommandMarkdown
+  commandMarkdown?: T.RPCChat.UICommandMarkdown | undefined
   dismissedInviteBanners: boolean
   explodingMode: number // seconds to exploding message expiration,
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   loaded: boolean // did we ever load this thread yet
   markedAsUnread: T.Chat.Ordinal
-  messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
+  messageCenterOrdinal?: T.Chat.CenterOrdinal | undefined // ordinals to center threads on,
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
-  messageOrdinals?: ReadonlyArray<T.Chat.Ordinal> // ordered ordinals in a thread,
+  messageOrdinals?: ReadonlyArray<T.Chat.Ordinal> | undefined // ordered ordinals in a thread,
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message> // messages in a thread,
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadBack: boolean
@@ -101,7 +101,7 @@ type ConvoStore = T.Immutable<{
   mutualTeams: ReadonlyArray<T.Teams.TeamID>
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   participants: T.Chat.ParticipantInfo
-  pendingJumpMessageID?: T.Chat.MessageID
+  pendingJumpMessageID?: T.Chat.MessageID | undefined
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
   rowRecycleTypeMap: Map<T.Chat.Ordinal, string>
   separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
@@ -110,16 +110,16 @@ type ConvoStore = T.Immutable<{
   typing: ReadonlySet<string>
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
   unread: number
-  validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
+  validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal} | undefined
 }>
 
 export type ConvoUIStore = T.Immutable<{
-  commandStatus?: T.Chat.CommandStatusInfo
+  commandStatus?: T.Chat.CommandStatusInfo | undefined
   editing: T.Chat.Ordinal
-  giphyResult?: T.RPCChat.GiphySearchResults
+  giphyResult?: T.RPCChat.GiphySearchResults | undefined
   giphyWindow: boolean
   replyTo: T.Chat.Ordinal
-  unsentText?: string
+  unsentText?: string | undefined
 }>
 
 export interface ConvoUIState extends ConvoUIStore {
@@ -182,17 +182,17 @@ const initialConvoUIStore: ConvoUIStore = {
 }
 
 type LoadMoreMessagesParams = {
-  forceContainsLatestCalc?: boolean
-  messageIDControl?: T.RPCChat.MessageIDControl
+  forceContainsLatestCalc?: boolean | undefined
+  messageIDControl?: T.RPCChat.MessageIDControl | undefined
   centeredMessageID?: {
     conversationIDKey: T.Chat.ConversationIDKey
     messageID: T.Chat.MessageID
     highlightMode: T.Chat.CenterOrdinalHighlightMode
-  }
+  } | undefined
   reason: LoadMoreReason
-  knownRemotes?: ReadonlyArray<string>
-  scrollDirection?: ScrollDirection
-  numberOfMessagesToLoad?: number
+  knownRemotes?: ReadonlyArray<string> | undefined
+  scrollDirection?: ScrollDirection | undefined
+  numberOfMessagesToLoad?: number | undefined
 }
 
 export interface ConvoState extends ConvoStore {
@@ -4254,7 +4254,7 @@ const Context = React.createContext<MadeStore | null>(null)
 
 type ConvoProviderProps = React.PropsWithChildren<{
   id: T.Chat.ConversationIDKey
-  canBeNull?: boolean
+  canBeNull?: boolean | undefined
 }>
 export function ChatProvider({canBeNull, children, ...props}: ConvoProviderProps) {
   if (!canBeNull && (!props.id || props.id === noConversationIDKey)) {
@@ -4302,7 +4302,7 @@ type ChatRouteParams = {conversationIDKey?: T.Chat.ConversationIDKey}
 type RouteParams = {
   route: {params?: ChatRouteParams}
 }
-export function ProviderScreen(p: {children: React.ReactNode; rp: RouteParams; canBeNull?: boolean}) {
+export function ProviderScreen(p: {children: React.ReactNode; rp: RouteParams; canBeNull?: boolean | undefined}) {
   return (
     <ChatProvider id={p.rp.route.params?.conversationIDKey ?? noConversationIDKey} canBeNull={p.canBeNull}>
       {p.children}

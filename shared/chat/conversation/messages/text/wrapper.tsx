@@ -3,7 +3,6 @@ import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {useOrdinal} from '../ids-context'
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type {StyleOverride} from '@/common-adapters/markdown'
 import {sharedStyles} from '../shared-styles'
 
 let _sentHighlighted: Kb.Styles.StylesCrossPlatform | undefined
@@ -34,7 +33,7 @@ function MessageMarkdown({style, text}: {style: Kb.Styles.StylesCrossPlatform; t
     <Kb.Markdown
       messageType="text"
       style={style}
-      styleOverride={styleOverride as StyleOverride}
+      {...(styleOverride === undefined ? {} : {styleOverride})}
       allowFontScaling={true}
       context={String(ordinal)}
     >
@@ -51,6 +50,7 @@ function WrapperText(p: Props) {
 
   const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, text, textType, type} =
     messageData
+  const unfurls = message.type === 'text' ? message.unfurls : undefined
   const bottomChildren = useBottom({
     author: message.author,
     conversationIDKey: message.conversationIDKey,
@@ -58,7 +58,7 @@ function WrapperText(p: Props) {
     hasUnfurlList,
     hasUnfurlPrompts,
     messageID: message.id,
-    unfurls: message.type === 'text' ? message.unfurls : undefined,
+    ...(unfurls === undefined ? {} : {unfurls}),
   })
   const onReplyClick = () => {
     const id = replyTo?.id ?? 0

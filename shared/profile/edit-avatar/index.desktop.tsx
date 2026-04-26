@@ -146,7 +146,7 @@ const EditAvatar = (_p: Props) => {
         </Kb.Text>
         <Kb.ClickableBox
           className={Kb.Styles.classNames('hoverbox', {filled: loading !== 'loaded'})}
-          onClick={!loading ? filePickerOpen : undefined}
+          {...(!loading ? {onClick: filePickerOpen} : {})}
           style={{
             borderRadius: type === 'team' ? 32 : AVATAR_CONTAINER_SIZE,
             ...hoverStyles.hoverContainer,

@@ -231,7 +231,7 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
               <Kb.Box2
                 direction="vertical"
                 fullWidth={true}
-                gap={Kb.Styles.isMobile ? 'small' : undefined}
+                {...(Kb.Styles.isMobile ? {gap: 'small' as const} : {})}
                 gapStart={Kb.Styles.isMobile}
                 style={styles.checkboxIndented}
               >
@@ -253,7 +253,7 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
                 <Kb.Box2
                   direction="vertical"
                   fullWidth={true}
-                  gap={Kb.Styles.isMobile ? 'small' : undefined}
+                  {...(Kb.Styles.isMobile ? {gap: 'small' as const} : {})}
                   gapStart={false}
                   gapEnd={true}
                 >

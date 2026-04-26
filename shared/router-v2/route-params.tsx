@@ -2,6 +2,19 @@ import type {RouteProp} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import type {routes, modalRoutes, loggedOutRoutes} from './routes'
 
+type OptionalKeys<T> = {
+  [K in keyof T]-?: {} extends Pick<T, K> ? K : never
+}[keyof T]
+type AllowExplicitUndefined<T> = T extends (...args: Array<any>) => any
+  ? T
+  : T extends ReadonlyArray<infer U>
+    ? ReadonlyArray<AllowExplicitUndefined<U>>
+    : T extends object
+      ? Omit<{[K in keyof T]: AllowExplicitUndefined<T[K]>}, OptionalKeys<T>> & {
+          [K in OptionalKeys<T>]?: AllowExplicitUndefined<T[K]> | undefined
+        }
+      : T
+
 // tsgo bug: StaticParamList is the idiomatic React Navigation equivalent of _ExtractParams,
 // but tsgo reports "TS2315: Type 'StaticParamList' is not generic" (works fine with regular tsc).
 // Once tsgo fixes re-exported generic type aliases, replace _ExtractParams:
@@ -12,15 +25,19 @@ import type {routes, modalRoutes, loggedOutRoutes} from './routes'
 // through conditional types in RouteDef's field definitions. Instead, extract params
 // directly from the screen function's route prop, which tsgo handles correctly.
 type _ExtractParams<T> = {
-  [K in keyof T]: T[K] extends {screen: infer U}
-    ? U extends (args: infer V) => any
-      ? V extends {route: {params: infer W}}
-        ? W
-        : V extends {route: {params?: infer W}}
-          ? W
+  [K in keyof T]: AllowExplicitUndefined<
+    T[K] extends {initialParams: infer W}
+      ? W
+      : T[K] extends {screen: infer U}
+        ? U extends (args: infer V) => any
+          ? V extends {route: {params: infer W}}
+            ? W
+            : V extends {route: {params?: infer W}}
+              ? W
+              : {}
           : {}
-      : {}
-    : {}
+        : {}
+  >
 }
 
 type Tabs = {

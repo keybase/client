@@ -4,7 +4,7 @@ import Text from '@/common-adapters/text'
 
 type Props = {
   children: React.ReactNode
-  context?: string
+  context?: string | undefined
   content: string
 }
 

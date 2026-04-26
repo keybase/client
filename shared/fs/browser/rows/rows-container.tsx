@@ -11,10 +11,10 @@ import {useFsBrowserSort} from '../sort-state'
 import {useFsFolderChildItems, useFsTlfs} from '../../common'
 
 type OwnProps = {
-  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
-  filter?: string
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource | undefined
+  filter?: string | undefined
   path: T.FS.Path // path to the parent folder containing the rows,
-  headerRows?: Array<RowTypes.HeaderRowItem>
+  headerRows?: Array<RowTypes.HeaderRowItem> | undefined
 }
 
 const getStillRows = (
@@ -107,7 +107,7 @@ const getTlfRowsFromTlfs = (
   tlfs: T.Immutable<Map<string, T.FS.Tlf>>,
   tlfType: T.Immutable<T.FS.TlfType>,
   username: string,
-  inDestinationPicker?: boolean
+  inDestinationPicker?: boolean | undefined
 ): Array<SortableRowItem> =>
   [...tlfs]
     .filter(([_, {isIgnored}]) => !isIgnored)
@@ -127,7 +127,7 @@ const getTlfItems = (
   sortSetting: T.FS.SortSetting,
   username: string,
   path: T.FS.Path,
-  inDestinationPicker?: boolean
+  inDestinationPicker?: boolean | undefined
 ): Array<RowTypes.NamedRowItem> => {
   if (tlfs.private.size === 0) {
     // /keybase/private/<me> is always favorited. If it's not there it must be
@@ -158,7 +158,7 @@ const getNormalRowItems = ({
   childItems: ReadonlyArray<T.FS.PathItem>
   childPaths: ReadonlyArray<T.FS.Path>
   editSessions: ReadonlyMap<T.FS.EditID, BrowserEditSession>
-  inDestinationPicker?: boolean
+  inDestinationPicker?: boolean | undefined
   path: T.FS.Path
   pathItem: T.FS.PathItem
   sortSetting: T.FS.SortSetting
@@ -178,7 +178,7 @@ const getNormalRowItems = ({
 }
 
 const filterable = new Set([RowTypes.RowType.TlfType, RowTypes.RowType.Tlf, RowTypes.RowType.Still])
-const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
+const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string | undefined) =>
   filter
     ? rows.filter(
         row => !filterable.has(row.rowType) || row.name.toLowerCase().includes(filter.toLowerCase())

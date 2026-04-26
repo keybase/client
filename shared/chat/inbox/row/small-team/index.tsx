@@ -16,7 +16,7 @@ import TeamMenu from '@/chat/conversation/info-panel/menu'
 export type Props = {
   conversationIDKey: string
   isSelected: boolean
-  onSelectConversation?: () => void
+  onSelectConversation?: (() => void) | undefined
 }
 
 const SmallTeam = (p: Props) => {
@@ -101,7 +101,12 @@ const SmallTeam = (p: Props) => {
           {rowContents}
         </Kb.Box2>
       ) : (
-        <Kb.ClickableBox2 onClick={onSelectConversation} className={className} testID="inboxRow" style={containerStyle}>
+        <Kb.ClickableBox2
+          {...(onSelectConversation === undefined ? {} : {onClick: onSelectConversation})}
+          className={className}
+          testID="inboxRow"
+          style={containerStyle}
+        >
           {rowContents}
         </Kb.ClickableBox2>
       )}
@@ -117,7 +122,7 @@ type TopLineProps = {
   hasBadge: boolean
   hasUnread: boolean
   isSelected: boolean
-  backgroundColor?: string
+  backgroundColor?: string | undefined
 }
 
 const TopLine = (p: TopLineProps) => {
@@ -194,7 +199,13 @@ const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: 
     const {attachTo, hidePopup} = mp
     return (
       <ConvoState.ChatProvider id={conversationIDKey}>
-        <TeamMenu visible={true} attachTo={attachTo} onHidden={hidePopup} hasHeader={true} isSmallTeam={true} />
+        <TeamMenu
+          visible={true}
+          {...(attachTo === undefined ? {} : {attachTo})}
+          onHidden={hidePopup}
+          hasHeader={true}
+          isSmallTeam={true}
+        />
       </ConvoState.ChatProvider>
     )
   }
@@ -218,9 +229,9 @@ const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: 
 type BottomLineDisplayProps = {
   snippet: string
   snippetDecoration: T.RPCChat.SnippetDecoration
-  backgroundColor?: string
-  isSelected?: boolean
-  allowBold?: boolean
+  backgroundColor?: string | undefined
+  isSelected?: boolean | undefined
+  allowBold?: boolean | undefined
   hasUnread: boolean
   draft: string
   hasResetUsers: boolean
@@ -314,11 +325,11 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
 
 // Connected BottomLine that uses ChatContext (for external consumers like selectable-small-team)
 type BottomLineProps = {
-  snippet?: string
-  snippetDecoration?: T.RPCChat.SnippetDecoration
-  backgroundColor?: string
-  isSelected?: boolean
-  allowBold?: boolean
+  snippet?: string | undefined
+  snippetDecoration?: T.RPCChat.SnippetDecoration | undefined
+  backgroundColor?: string | undefined
+  isSelected?: boolean | undefined
+  allowBold?: boolean | undefined
 }
 
 const BottomLine = (p: BottomLineProps) => {
@@ -368,7 +379,7 @@ const BottomLine = (p: BottomLineProps) => {
 const SnippetContent = (p: {
   snippet: string
   snippetDecoration: T.RPCChat.SnippetDecoration
-  isSelected?: boolean
+  isSelected?: boolean | undefined
   style: Kb.Styles.StylesCrossPlatform
 }) => {
   const {snippet, snippetDecoration: decoration, isSelected, style} = p
@@ -434,7 +445,7 @@ const SnippetContent = (p: {
   return (
     <>
       {!!decorationNode && (
-        <Kb.Box2 direction="vertical" centerChildren={true} tooltip={tooltip}>
+        <Kb.Box2 direction="vertical" centerChildren={true} {...(tooltip === undefined ? {} : {tooltip})}>
           {decorationNode}
         </Kb.Box2>
       )}

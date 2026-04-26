@@ -250,7 +250,7 @@ const getCommonMessageData = ({
 }: {
   accountsInfoMap: ConvoStateType['accountsInfoMap']
   editing: T.Chat.Ordinal
-  isCenteredHighlight?: boolean
+  isCenteredHighlight?: boolean | undefined
   message: T.Chat.Message
   messageCenterOrdinal: ConvoStateType['messageCenterOrdinal']
   ordinal: T.Chat.Ordinal
@@ -342,13 +342,16 @@ const getEditCancelRetryData = (
   message: T.Chat.Message
 ): EditCancelRetryData => {
   const reason = message.errorReason ?? ''
-  return {
+  const data: EditCancelRetryData = {
     failureDescription:
       ecrType === EditCancelRetryType.NOACTION
         ? reason
         : `This message failed to send${reason ? '. ' : ''}${capitalize(reason)}`,
-    outboxID: message.outboxID,
   }
+  if (message.outboxID !== undefined) {
+    data.outboxID = message.outboxID
+  }
+  return data
 }
 
 // Combined selector hook that fetches all common wrapper data in a single subscription.
@@ -478,7 +481,7 @@ type TSProps = {
   ecrType: EditCancelRetryType
   exploding: boolean
   exploded: boolean
-  explodedBy?: string
+  explodedBy?: string | undefined
   explodesAt: number
   forceExplodingRetainer: boolean
   hasBeenEdited: boolean
@@ -489,9 +492,9 @@ type TSProps = {
   messageDelete: RowActions['messageDelete']
   messageRetry: RowActions['messageRetry']
   ordinal: T.Chat.Ordinal
-  outboxID?: T.Chat.OutboxID
+  outboxID?: T.Chat.OutboxID | undefined
   popupAnchor: React.RefObject<Kb.MeasureRef | null>
-  reactions?: T.Chat.Reactions
+  reactions?: T.Chat.Reactions | undefined
   sendIndicatorFailed: boolean
   sendIndicatorID: number
   sendIndicatorSent: boolean
@@ -507,7 +510,7 @@ type TSProps = {
   showingPicker: boolean
   showingPopup: boolean
   showPopup: () => void
-  submitState?: T.Chat.Message['submitState']
+  submitState?: T.Chat.Message['submitState'] | undefined
   toggleMessageReaction: RowActions['toggleMessageReaction']
   type: T.Chat.MessageType
 }
@@ -543,8 +546,10 @@ function TextAndSiblings(p: TSProps) {
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker, submitState} = p
   const pressableProps = Kb.Styles.isMobile
     ? {
-        onLongPress: decorate ? showPopup : undefined,
-        style: isHighlighted ? {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt} : undefined,
+        ...(decorate ? {onLongPress: showPopup} : {}),
+        ...(isHighlighted
+          ? {style: {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt}}
+          : {}),
       }
     : {
         className: Kb.Styles.classNames({
@@ -641,7 +646,7 @@ function EditCancelRetry(p: {
   failureDescription: string
   messageDelete: RowActions['messageDelete']
   messageRetry: RowActions['messageRetry']
-  outboxID?: T.Chat.OutboxID
+  outboxID?: T.Chat.OutboxID | undefined
   setEditing: RowActions['setEditing']
 }) {
   const {ecrType, exploding, failureDescription, messageDelete, messageRetry, outboxID, setEditing} = p
@@ -715,8 +720,8 @@ type BProps = {
   messageDelete: RowActions['messageDelete']
   messageRetry: RowActions['messageRetry']
   ordinal: T.Chat.Ordinal
-  outboxID?: T.Chat.OutboxID
-  reactions?: T.Chat.Reactions
+  outboxID?: T.Chat.OutboxID | undefined
+  reactions?: T.Chat.Reactions | undefined
   setEditing: RowActions['setEditing']
   setReplyTo: RowActions['setReplyTo']
   toggleMessageReaction: RowActions['toggleMessageReaction']
@@ -741,7 +746,7 @@ function BottomSide(p: BProps) {
       messageType={messageType}
       onReact={onReact}
       onReply={onReply}
-      reactions={reactions}
+      {...(reactions ? {reactions} : {})}
     />
   ) : null
 
@@ -799,7 +804,7 @@ type RProps = {
   sendIndicatorFailed: boolean
   sendIndicatorID: number
   sendIndicatorSent: boolean
-  submitState?: T.Chat.Message['submitState']
+  submitState?: T.Chat.Message['submitState'] | undefined
 }
 function RightSide(p: RProps) {
   const {showPopup, showSendIndicator, showCoinsIcon, popupAnchor} = p

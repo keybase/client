@@ -14,21 +14,21 @@ export type PushNotification =
     }
   | {
       conversationIDKey: ChatTypes.ConversationIDKey
-      forUid?: string
-      membersType?: RPCChatTypes.ConversationMembersType
+      forUid?: string | undefined
+      membersType?: RPCChatTypes.ConversationMembersType | undefined
       type: 'chat.newmessage'
       unboxPayload: string
       userInteraction: boolean
     }
   | {
-      forUid?: string
+      forUid?: string | undefined
       type: 'follow'
       userInteraction: boolean
       username: string
     }
   | {
       conversationIDKey: ChatTypes.ConversationIDKey
-      forUid?: string
+      forUid?: string | undefined
       type: 'chat.extension'
     }
   | {

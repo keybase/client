@@ -7,15 +7,15 @@ const {makeRenderer, closeRenderer} = KB2.functions
 
 export type UseBrowserOptions = {
   windowOpts: {
-    hasShadow?: boolean
+    hasShadow?: boolean | undefined
     height: number
-    transparent?: boolean
+    transparent?: boolean | undefined
     width: number
   }
-  windowPositionBottomRight?: true
-  windowComponent?: RemoteComponentName // undefined to kill the browserwindow
+  windowPositionBottomRight?: true | undefined
+  windowComponent?: RemoteComponentName | undefined // undefined to kill the browserwindow
   windowTitle: string
-  windowParam?: string
+  windowParam?: string | undefined
 }
 
 function useBrowserWindow(options: UseBrowserOptions) {
@@ -25,12 +25,15 @@ function useBrowserWindow(options: UseBrowserOptions) {
       makeRenderer?.({
         windowComponent,
         windowOpts,
-        windowParam,
-        windowPositionBottomRight,
+        ...(windowParam === undefined ? {} : {windowParam}),
+        ...(windowPositionBottomRight === undefined ? {} : {windowPositionBottomRight}),
       })
     }
     return () => {
-      closeRenderer?.({windowComponent, windowParam})
+      closeRenderer?.({
+        ...(windowComponent === undefined ? {} : {windowComponent}),
+        ...(windowParam === undefined ? {} : {windowParam}),
+      })
     }
   }, [windowComponent, windowParam, windowOpts, windowPositionBottomRight])
 }

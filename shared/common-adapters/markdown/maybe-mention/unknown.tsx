@@ -10,7 +10,7 @@ import * as Styles from '@/styles'
 const Kb = {Box2, Button, FloatingMenu, Styles, Text}
 
 type PopupProps = {
-  attachTo?: React.RefObject<MeasureRef | null>
+  attachTo?: React.RefObject<MeasureRef | null> | undefined
   onHidden: () => void
   onResolve: () => void
   text: string
@@ -42,11 +42,11 @@ const UnknownMentionPopup = (props: PopupProps) => {
 }
 
 type Props = {
-  allowFontScaling?: boolean
+  allowFontScaling?: boolean | undefined
   channel: string
   name: string
   onResolve: () => void
-  style?: Styles.StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform | undefined
 }
 
 const UnknownMention = (props: Props) => {

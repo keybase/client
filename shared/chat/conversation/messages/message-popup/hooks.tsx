@@ -232,8 +232,8 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
         {
           icon: 'iconfont-person',
           onClick: onViewProfile,
-          subTitle: C.isMobile ? profileSubtitle : undefined,
           title: `View ${author}'s profile`,
+          ...(C.isMobile ? {subTitle: profileSubtitle} : {}),
         },
       ] as const)
     : []

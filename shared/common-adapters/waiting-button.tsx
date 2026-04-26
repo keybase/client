@@ -8,8 +8,8 @@ const Kb = {
 }
 
 export type Props = {
-  onlyDisable?: boolean
-  waitingKey?: Array<string> | string
+  onlyDisable?: boolean | undefined
+  waitingKey?: Array<string> | string | undefined
 } & ButtonProps
 
 /* Waiting button is a <Kb.Button /> with handling of waiting states.
@@ -24,7 +24,7 @@ export type Props = {
  *  waiting store (store.waiting), which will be set by a saga somewhere.
  */
 
-function WaitingButton(props: Props & {ref?: React.Ref<MeasureRef>}) {
+function WaitingButton(props: Props & {ref?: React.Ref<MeasureRef> | undefined}) {
   const {onlyDisable, waitingKey, ref, ...buttonProps} = props
   const storeWaiting = C.Waiting.useAnyWaiting(waitingKey)
 

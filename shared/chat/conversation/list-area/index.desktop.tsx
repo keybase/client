@@ -630,7 +630,7 @@ const OrdinalWaypoint = function OrdinalWaypoint(p: OrdinalWaypointProps) {
     }
     setRef(ref)
   })
-  const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
+  const root = (wRef?.closest('.chat-scroller') as HTMLElement | null) ?? null
   const {isIntersecting} = useIntersectionObserver(wRef, {root})
   const renderMessages = isIntersecting
   let content: React.ReactElement

@@ -6,9 +6,9 @@ import type {ButtonProps} from '@/common-adapters/button'
 type NonReactTaskButton = {
   label: string
   onClick: () => void
-  type?: ButtonProps['type']
-  mode?: ButtonProps['mode']
-  waiting?: ButtonProps['waiting']
+  type?: ButtonProps['type'] | undefined
+  mode?: ButtonProps['mode'] | undefined
+  waiting?: ButtonProps['waiting'] | undefined
 }
 
 export type TaskButton = NonReactTaskButton | React.ReactElement
@@ -21,7 +21,7 @@ export type Props = {
   contentStyle?: Kb.Styles.StylesCrossPlatform
   format?: 'single' | 'multi'
   iconContainerStyle?: Kb.Styles.StylesCrossPlatform
-  buttons?: Array<TaskButton>
+  buttons?: Array<TaskButton> | undefined
 }
 
 const PeopleItem = (props: Props) => (
@@ -46,9 +46,21 @@ const PeopleItem = (props: Props) => (
               <Kb.Box2 key={idx} direction="vertical" style={styles.button}>
                 {b}
               </Kb.Box2>
-            ) : (
-              <Kb.Button key={b.label} small={true} style={styles.button} {...b} />
-            )
+            ) : (() => {
+                const {label, mode, onClick, type, waiting} = b
+                return (
+                  <Kb.Button
+                    key={label}
+                    small={true}
+                    style={styles.button}
+                    label={label}
+                    onClick={onClick}
+                    {...(mode === undefined ? {} : {mode})}
+                    {...(type === undefined ? {} : {type})}
+                    {...(waiting === undefined ? {} : {waiting})}
+                  />
+                )
+              })()
           )}
       </Kb.Box2>
     </Kb.Box2>

@@ -18,20 +18,20 @@ const Kb = {
 }
 
 type Props = {
-  align?: 'left' | 'right' // default to 'left',
-  allowLabelClick?: boolean
-  children?: React.ReactNode
-  color?: 'blue' | 'green' | 'red' // default to 'blue',
-  disabled?: boolean
-  gapInBetween?: boolean // inserts flex:1 gap between toggle and text,
-  gapSize?: number // inserts a gap of N pixels between toggle and text
+  align?: 'left' | 'right' | undefined // default to 'left',
+  allowLabelClick?: boolean | undefined
+  children?: React.ReactNode | undefined
+  color?: 'blue' | 'green' | 'red' | undefined // default to 'blue',
+  disabled?: boolean | undefined
+  gapInBetween?: boolean | undefined // inserts flex:1 gap between toggle and text,
+  gapSize?: number | undefined // inserts a gap of N pixels between toggle and text
   label: string | React.ReactNode
-  labelSubtitle?: string // only effective when label is a string,
-  labelTooltip?: string // only effective when label is a string,
-  labelType?: TextType // only effective when label is a string,
+  labelSubtitle?: string | undefined // only effective when label is a string,
+  labelTooltip?: string | undefined // only effective when label is a string,
+  labelType?: TextType | undefined // only effective when label is a string,
   on: boolean
   onClick: () => void
-  style?: Styles.StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform | undefined
 }
 
 const LabelContainer = (props: Props) =>
@@ -59,7 +59,7 @@ const getStyle = (props: Props) =>
     props.style,
   ])
 
-function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
+function Switch(props: Props & {ref?: React.Ref<MeasureRef> | undefined}) {
   const {ref} = props
   const content = (
     <>

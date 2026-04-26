@@ -49,9 +49,9 @@ function Video(p: Props) {
       <Kb.Box2
         direction="horizontal"
         alignSelf="flex-start"
-        gap={Kb.Styles.isMobile ? undefined : 'small'}
         alignItems="center"
         ref={toastTargetRef}
+        {...(!Kb.Styles.isMobile ? ({gap: 'small'} as const) : {})}
       >
         <Kb.Box2
           direction="vertical"

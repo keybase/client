@@ -20,6 +20,12 @@ export const makeNewTeamWizard = (overrides?: Partial<NewTeamWizard>): NewTeamWi
   ...overrides,
 })
 
+export const clearNewTeamWizardError = (wizard: NewTeamWizard): NewTeamWizard => {
+  const next = {...wizard}
+  delete next.error
+  return next
+}
+
 export const newTeamWizardToAddMembersWizard = (
   wizard: NewTeamWizard,
   overrides?: Partial<Omit<AddMembersWizard, 'teamID'>>
@@ -36,14 +42,16 @@ export const createNewTeamFromWizard = async (
   const {name, description, open, openTeamJoinRole, profileShowcase, addYourself} = wizard
   const {avatarFilename, avatarCrop, channels, subteams} = wizard
   const teamInfo: T.RPCGen.TeamCreateFancyInfo = {
-    avatar: avatarFilename ? {avatarFilename, crop: avatarCrop?.crop} : null,
-    chatChannels: channels,
+    avatar: avatarFilename
+      ? {avatarFilename, ...(avatarCrop?.crop ? {crop: avatarCrop.crop} : {})}
+      : null,
+    ...(channels === undefined ? {} : {chatChannels: channels}),
     description,
     joinSubteam: addYourself,
     name,
     openSettings: {joinAs: T.RPCGen.TeamRole[openTeamJoinRole], open},
     profileShowcase,
-    subteams,
+    ...(subteams === undefined ? {} : {subteams}),
     users: addingMembers.map(member => ({
       assertion: member.assertion,
       role: T.RPCGen.TeamRole[member.role],

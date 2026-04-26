@@ -633,9 +633,9 @@ const createRpc = <M extends PromiseMethod>(method: M): RpcFn<M> =>
     new Promise<RpcOut<M>>((resolve, reject) =>
       engine()._rpcOutgoing({
         method,
-        params,
         callback: (error: SimpleError, result: RpcOut<M>) => error ? reject(error) : resolve(result),
-        waitingKey,
+        ...(params === undefined ? {} : {params}),
+        ...(waitingKey === undefined ? {} : {waitingKey}),
       }))) as RpcFn<M>
 type ListenerMethod = 'chat.1.local.getThreadNonblock' | 'chat.1.local.loadGallery' | 'chat.1.local.postTextNonblock' | 'chat.1.local.searchInbox'
 type ListenerArgs<M extends ListenerMethod> = {
@@ -651,8 +651,10 @@ const createListener = <M extends ListenerMethod>(method: M): ListenerFn<M> =>
       method,
       params: p.params,
       incomingCallMap: p.incomingCallMap,
-      customResponseIncomingCallMap: p.customResponseIncomingCallMap,
-      waitingKey: p.waitingKey,
+      ...(p.customResponseIncomingCallMap === undefined
+        ? {}
+        : {customResponseIncomingCallMap: p.customResponseIncomingCallMap}),
+      ...(p.waitingKey === undefined ? {} : {waitingKey: p.waitingKey}),
     })) as ListenerFn<M>
 
 export enum ArchiveChatJobStatus {

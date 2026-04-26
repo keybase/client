@@ -21,7 +21,7 @@ const Kb = {
 }
 
 export type Props = {
-  attachTo?: React.RefObject<MeasureRef | null>
+  attachTo?: React.RefObject<MeasureRef | null> | undefined
   description: string
   inTeam: boolean
   isOpen: boolean
@@ -66,7 +66,6 @@ const TeamInfo = (props: Props) => {
 
   return (
     <Kb.FloatingMenu
-      attachTo={props.attachTo}
       closeOnSelect={false}
       onHidden={props.onHidden}
       visible={props.visible}
@@ -109,9 +108,9 @@ const TeamInfo = (props: Props) => {
             <Kb.WaitingButton
               waitingKey={C.waitingKeyTracker}
               label={requested ? 'Requested!' : props.isOpen ? 'Join team' : 'Request to join'}
-              onClick={requested ? undefined : _onJoinTeam}
               type={props.isOpen ? 'Success' : 'Default'}
               mode={requested ? 'Secondary' : 'Primary'}
+              {...(requested ? {} : {onClick: _onJoinTeam})}
             />
           )}
           {!!props.publicAdmins.length && (
@@ -134,6 +133,7 @@ const TeamInfo = (props: Props) => {
       }
       position={props.position ?? 'bottom left'}
       items={[]}
+      {...(props.attachTo === undefined ? {} : {attachTo: props.attachTo})}
     />
   )
 }

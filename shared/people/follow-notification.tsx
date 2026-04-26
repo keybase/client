@@ -49,22 +49,22 @@ const FollowNotification = (props: Props) => {
   }
 
   return (
-    <Kb.ClickableBox onClick={type === 'follow' ? onClick : undefined}>
+    <Kb.ClickableBox {...(type === 'follow' ? {onClick} : {})}>
       <PeopleItem
         badged={props.badged}
-        buttons={
-          props.type === 'contact'
-            ? [
-                <FollowButton username={username} small={true} key="follow" />,
-                <Kb.WaveButton username={username} small={true} key="wave" />,
-              ]
-            : undefined
-        }
         icon={<Kb.Avatar username={username} onClick={onClick} size={Kb.Styles.isMobile ? 48 : 32} />}
         iconContainerStyle={styles.iconContainer}
         when={props.notificationTime}
         contentStyle={styles.peopleItem}
         format="single"
+        {...(props.type === 'contact'
+          ? {
+              buttons: [
+                <FollowButton username={username} small={true} key="follow" />,
+                <Kb.WaveButton username={username} small={true} key="wave" />,
+              ],
+            }
+          : {})}
       >
         {props.type === 'follow' ? (
           <Kb.Text type="Body">{usernameComponent} followed you.</Kb.Text>

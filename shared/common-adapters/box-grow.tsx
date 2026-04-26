@@ -9,8 +9,14 @@ type Props = {
 }
 
 const BoxGrow = (p: Props) => {
+  const layoutProp = p.onLayout === undefined ? {} : {onLayout: p.onLayout}
   return (
-    <Box2 direction="vertical" alignSelf="stretch" style={Styles.collapseStyles([styles.outer, p.style])} onLayout={p.onLayout}>
+    <Box2
+      direction="vertical"
+      alignSelf="stretch"
+      style={Styles.collapseStyles([styles.outer, p.style])}
+      {...layoutProp}
+    >
       <Box2 direction="vertical" style={styles.inner}>
         {p.children}
       </Box2>
@@ -41,8 +47,9 @@ export default BoxGrow
 
 export const BoxGrow2 = (p: Props) => {
   const {onLayout, style, children} = p
+  const layoutProp = onLayout === undefined ? {} : {onLayout}
   return (
-    <Box2 direction="horizontal" style={Styles.collapseStyles([styles.outer2, style])} onLayout={onLayout}>
+    <Box2 direction="horizontal" style={Styles.collapseStyles([styles.outer2, style])} {...layoutProp}>
       <Box2 direction="horizontal" style={styles.inner2}>
         {children}
       </Box2>

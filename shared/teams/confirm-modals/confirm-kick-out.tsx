@@ -140,7 +140,7 @@ const ConfirmKickOut = (props: Props) => {
       }
       error={waitingError?.message ?? ''}
       onCancel={onCancel}
-      onConfirm={kickedVisible ? undefined : onRemove}
+      {...(kickedVisible ? {} : {onConfirm: onRemove})}
       confirmText="Kick out"
       waitingKey={waitingKeys}
     />

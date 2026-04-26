@@ -6,15 +6,15 @@ const Checkbox = (props: Props) => (
   <Switch
     align="left"
     color="blue"
-    disabled={props.disabled}
     label={props.labelComponent || props.label || ''}
-    labelType={props.labelType}
     on={props.checked}
     onClick={() => {
       props.onCheck?.(!props.checked)
     }}
     style={Styles.collapseStyles([styles.container, props.style])}
-    labelSubtitle={props.labelSubtitle}
+    {...(props.disabled === undefined ? {} : {disabled: props.disabled})}
+    {...(props.labelType === undefined ? {} : {labelType: props.labelType})}
+    {...(props.labelSubtitle === undefined ? {} : {labelSubtitle: props.labelSubtitle})}
   />
 )
 

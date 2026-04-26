@@ -8,7 +8,7 @@ import PathInfo from './path-info'
 import PathItemInfo from './path-item-info'
 
 type Props = {
-  knownPathInfo?: T.FS.PathInfo
+  knownPathInfo?: T.FS.PathInfo | undefined
   rawPath: string
   standardPath: T.FS.Path
 }

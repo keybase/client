@@ -98,6 +98,7 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
   const onClose = () => onNavUp()
 
   const teamname = (details?.teamName.parts || []).join('.')
+  const teamAvatar = details?.teamAvatars?.['square_192']
 
   const body =
     details === undefined ? (
@@ -130,7 +131,7 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
             size={96}
             teamname={teamname}
             isTeam={true}
-            imageOverrideUrl={details.teamAvatars?.['square_192']}
+            {...(teamAvatar === undefined ? {} : {imageOverrideUrl: teamAvatar})}
           />
           {details.teamIsOpen && (
             <Kb.Box2

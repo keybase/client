@@ -4,10 +4,10 @@ import PieSlice from './pie-slice'
 import UploadIcon from './upload-icon'
 
 type Props = {
-  isTlfType?: boolean
+  isTlfType?: boolean | undefined
   isFolder: boolean
-  statusIcon?: T.FS.PathStatusIcon
-  showTooltipOnPressMobile?: boolean
+  statusIcon?: T.FS.PathStatusIcon | undefined
+  showTooltipOnPressMobile?: boolean | undefined
 }
 
 function getIcon(status: T.FS.LocalConflictStatusType | T.FS.NonUploadStaticSyncStatus): Kb.IconType {
@@ -74,7 +74,9 @@ function PathStatusIcon(props: Props) {
   return props.statusIcon ? (
     <Kb.WithTooltip
       tooltip={getTooltip(props.statusIcon, props.isFolder)}
-      showOnPressMobile={props.showTooltipOnPressMobile}
+      {...(props.showTooltipOnPressMobile === undefined
+        ? {}
+        : {showOnPressMobile: props.showTooltipOnPressMobile})}
     >
       {typeof props.statusIcon === 'number' ? (
         <Kb.Box2 direction="horizontal" style={{margin: Kb.Styles.globalMargins.xtiny}}>

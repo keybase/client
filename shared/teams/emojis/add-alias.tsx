@@ -223,7 +223,7 @@ const ChooseEmoji = Kb.Styles.isMobile
     }
 
 type SelectedEmojiProps = {
-  chosen?: ChosenEmoji
+  chosen?: ChosenEmoji | undefined
 }
 
 const SelectedEmoji = (props: SelectedEmojiProps) => {

@@ -5,13 +5,13 @@ import Text from './text'
 
 export type OwnProps = {
   username: string
-  theme?: 'follow' | 'nonFollow' | 'highlight' | 'none'
-  style?: Styles.StylesCrossPlatform
-  allowFontScaling?: boolean
+  theme?: 'follow' | 'nonFollow' | 'highlight' | 'none' | undefined
+  style?: Styles.StylesCrossPlatform | undefined
+  allowFontScaling?: boolean | undefined
 }
 
 export type Props = {
-  onClick?: () => void
+  onClick?: (() => void) | undefined
 } & OwnProps
 const Mention = ({username, theme, style, allowFontScaling, onClick}: Props) => {
   const renderText = (onLongPress?: () => void) => (

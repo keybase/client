@@ -70,12 +70,12 @@ const showOpenDialog = async (opts: OpenDialogOptions) => {
       ...(allowMultiselect ? ['multiSelections' as const] : []),
     ]
     const allowedOptions = {
-      buttonLabel,
-      defaultPath,
-      filters,
-      message,
+      ...(buttonLabel === undefined ? {} : {buttonLabel}),
+      ...(defaultPath === undefined ? {} : {defaultPath}),
+      ...(filters === undefined ? {} : {filters}),
+      ...(message === undefined ? {} : {message}),
       properties: allowedProperties,
-      title,
+      ...(title === undefined ? {} : {title}),
     }
     const mw = getMainWindow()
     if (!mw) return []
@@ -93,11 +93,11 @@ const showSaveDialog = async (opts: SaveDialogOptions) => {
     const {title, message, buttonLabel, defaultPath} = opts
     const allowedProperties = ['showOverwriteConfirmation' as const]
     const allowedOptions = {
-      buttonLabel,
-      defaultPath,
-      message,
+      ...(buttonLabel === undefined ? {} : {buttonLabel}),
+      ...(defaultPath === undefined ? {} : {defaultPath}),
+      ...(message === undefined ? {} : {message}),
       properties: allowedProperties,
-      title,
+      ...(title === undefined ? {} : {title}),
     }
     const mw = getMainWindow()
     if (!mw) return []

@@ -8,9 +8,14 @@ import {useInboxSearch} from './inbox/use-inbox-search'
 export default function InboxAndConversationDesktop(props: InboxAndConversationProps) {
   const search = useInboxSearch()
   const headerPortal = useInboxHeaderPortal(search)
+  const inboxProps = {
+    search,
+    ...(props.conversationIDKey === undefined ? {} : {conversationIDKey: props.conversationIDKey}),
+    ...(props.refreshInbox === undefined ? {} : {refreshInbox: props.refreshInbox}),
+  }
   const leftPane = (
     <Kb.Box2 direction="vertical" fullHeight={true} style={styles.inboxPane}>
-      <Inbox conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} search={search} />
+      <Inbox {...inboxProps} />
     </Kb.Box2>
   )
 

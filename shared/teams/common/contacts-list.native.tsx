@@ -88,9 +88,14 @@ const ContactRow = function ContactRow({
           {bottomText && <Kb.Text type="BodySmall">{bottomText}</Kb.Text>}
         </Kb.Box2>
       }
-      onClick={disabled ? undefined : () => onCheck(!selected)}
+      {...(disabled ? {} : {onClick: () => onCheck(!selected)})}
       action={
-        <Kb.CheckCircle checked={selected} onCheck={onCheck} style={styles.checkCircle} disabled={disabled} />
+        <Kb.CheckCircle
+          checked={selected}
+          onCheck={onCheck}
+          style={styles.checkCircle}
+          {...(disabled === undefined ? {} : {disabled})}
+        />
       }
       icon={
         item.pictureUri ? (
@@ -131,7 +136,7 @@ const ContactsList = (props: Props) => {
             item={item}
             index={index}
             onSelect={onSelectForRows}
-            disabled={disabled}
+            {...(disabled === undefined ? {} : {disabled})}
             selected={
               item.type === 'email'
                 ? props.selectedEmails.has(item.value)

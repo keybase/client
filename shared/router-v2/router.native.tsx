@@ -56,14 +56,17 @@ const tabStackOptions = ({
   navigation,
 }: {
   navigation: {canGoBack: () => boolean}
-}): NativeStackNavigationOptions => ({
-  ...Common.defaultNavigationOptions,
-  ...(Platform.OS === 'ios' ? {contentStyle: {backgroundColor: Kb.Styles.globalColors.whiteOrBlack}} : {}),
-  // Use the native back button (liquid glass pill on iOS 26) for non-root screens;
-  // omit headerLeft entirely on root screens so no empty glass circle appears.
-  headerBackVisible: navigation.canGoBack(),
-  headerLeft: undefined,
-})
+}): NativeStackNavigationOptions => {
+  const options = {
+    ...Common.defaultNavigationOptions,
+    ...(Platform.OS === 'ios' ? {contentStyle: {backgroundColor: Kb.Styles.globalColors.whiteOrBlack}} : {}),
+    // Use the native back button (liquid glass pill on iOS 26) for non-root screens;
+    // clear the custom headerLeft from Common.defaultNavigationOptions.
+    headerBackVisible: navigation.canGoBack(),
+    headerLeft: undefined,
+  }
+  return options as NativeStackNavigationOptions
+}
 
 // On phones, each tab stack only contains its root screen. All other routes live in
 // the root stack (alongside chatConversation) so they render above the tab bar.
@@ -158,10 +161,12 @@ const appTabsScreenOptions = (
   hasPermissions: boolean,
   isDarkMode: boolean
 ) => {
+  const tabBarBadge = getBadgeNumber(routeName, navBadges, hasPermissions)
+  const tabBarIcon = getNativeTabIcon(routeName)
   return {
     headerShown: false,
     tabBarActiveIndicatorEnabled: false,
-    tabBarBadge: getBadgeNumber(routeName, navBadges, hasPermissions),
+    ...(tabBarBadge === undefined ? {} : {tabBarBadge}),
     tabBarBadgeStyle: {
       backgroundColor: isLiquidGlassSupported ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.orange,
     },
@@ -179,7 +184,7 @@ const appTabsScreenOptions = (
           tabBarActiveTintColor: Kb.Styles.globalColors.white,
           tabBarInactiveTintColor: Kb.Styles.globalColors.blueLighter,
         }),
-    tabBarIcon: getNativeTabIcon(routeName),
+    ...(tabBarIcon === undefined ? {} : {tabBarIcon}),
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
     tabBarLabelVisibilityMode: C.isTablet ? ('labeled' as const) : ('unlabeled' as const),
     tabBarMinimizeBehavior: 'never' as const, // until this actually works on all screens, not sure why it only
@@ -333,7 +338,7 @@ function RNApp() {
       {bar}
       <NavigationContainer
         fallback={<View style={{backgroundColor: Kb.Styles.globalColors.white, flex: 1}} />}
-        linking={loggedIn ? linkingConfig : undefined}
+        {...(loggedIn ? {linking: linkingConfig} : {})}
         onReady={onReady}
         onStateChange={onStateChange}
         onUnhandledAction={onUnhandledAction}

@@ -129,11 +129,11 @@ export const rpcDetailsToMemberInfos = (
       username,
       {
         fullName,
-        joinTime: joinTime || undefined,
         needsPUK,
         status: rpcMemberStatusToStatus[status],
         type: maybeRole,
         username,
+        ...(joinTime ? {joinTime} : {}),
       },
     ])
   })
@@ -316,11 +316,11 @@ const annotatedInvitesToInviteDetails = (
           creatorUsername: annotatedInvite.inviterUsername,
           id: teamInvite.id,
           isValid: annotatedInvite.isValid,
-          lastJoinedUsername,
           numUses: annotatedUsedInvites.length,
           role,
           url: annotatedInvite.displayName,
           validityDescription: annotatedInvite.validityDescription,
+          ...(lastJoinedUsername ? {lastJoinedUsername} : {}),
         })
       } else {
         if (!annotatedInvite.isValid) {
@@ -364,14 +364,15 @@ export const annotatedTeamToDetails = (t: T.RPCGen.AnnotatedTeam): T.Teams.TeamD
   const members = new Map<string, T.Teams.MemberInfo>()
   t.members?.forEach(member => {
     const {fullName, needsPUK, status, username} = member
+    const {joinTime} = member
     const maybeRole = teamRoleByEnum[member.role]
     members.set(username, {
       fullName,
-      joinTime: member.joinTime || undefined,
       needsPUK,
       status: rpcMemberStatusToStatus[status],
       type: maybeRole === 'none' ? 'reader' : maybeRole,
       username,
+      ...(joinTime ? {joinTime} : {}),
     })
   })
   return {

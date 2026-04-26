@@ -6,9 +6,9 @@ export type Props = {
   services: Array<T.TB.ServiceIdWithContact>
   selectedService: T.TB.ServiceIdWithContact
   onChangeService: (newService: T.TB.ServiceIdWithContact) => void
-  servicesShown?: number
-  minimalBorder?: boolean
-  offset?: SharedValue<number>
+  servicesShown?: number | undefined
+  minimalBorder?: boolean | undefined
+  offset?: SharedValue<number> | undefined
 }
 
 export type IconProps = {
@@ -16,8 +16,8 @@ export type IconProps = {
   label: Array<string>
   onClick: (s: T.TB.ServiceIdWithContact) => void
   isActive: boolean
-  minimalBorder?: boolean
-  offset?: SharedValue<number>
+  minimalBorder?: boolean | undefined
+  offset?: SharedValue<number> | undefined
 }
 
 export declare const ServiceTabBar: (p: Props) => React.ReactNode

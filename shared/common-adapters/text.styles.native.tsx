@@ -188,7 +188,7 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       colorForBackground: _blueLink,
       fontSize: 15,
       isLink: true,
-      styleOverride: {...Styles.globalStyles.fontSemibold, textDecorationLine: undefined},
+      styleOverride: Styles.globalStyles.fontSemibold,
     },
     BodySmallSuccess: {
       colorForBackground: {

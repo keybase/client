@@ -11,14 +11,14 @@ type RefType = React.RefObject<Kb.SectionListRef<Types.ResultData, Types.SearchR
 type TeamSoFar = ReadonlyArray<{userId: string}>
 
 type TeamAlphabetIndexProps = {
-  recommendations?: Array<Types.SearchRecSection>
+  recommendations?: Array<Types.SearchRecSection> | undefined
   teamSoFar: TeamSoFar
   sectionListRef: RefType
 }
 
 type RecsAndRecosProps = {
   highlightedIndex: number
-  recommendations?: Array<Types.SearchRecSection>
+  recommendations?: Array<Types.SearchRecSection> | undefined
   namespace: T.TB.AllowedNamespace
   selectedService: T.TB.ServiceIdWithContact
   onAdd: (userId: string) => void

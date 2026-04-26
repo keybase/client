@@ -34,7 +34,7 @@ const CheckCircle = (props: Props) => {
     <Kb.Icon
       type={props.checked ? 'iconfont-success' : 'iconfont-circle'}
       onClick={onClick}
-      fontSize={props.fontSize}
+      {...(props.fontSize === undefined ? {} : {fontSize: props.fontSize})}
       color={
         props.disabled
           ? props.disabledColor || Styles.globalColors.black_05OrWhite_10
@@ -50,7 +50,7 @@ const CheckCircle = (props: Props) => {
             : props.hoverColor || Styles.globalColors.blue
       }
       className={Styles.classNames(props.disabled && `checkCircle__disabled`, props.className)}
-      style={props.style}
+      {...(props.style === undefined ? {} : {style: props.style})}
     />
   )
 }

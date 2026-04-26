@@ -4,17 +4,17 @@ import TeamBuilding from '.'
 export default TeamBuilding
 
 type RouteParams = {
-  addMembersWizard?: AddMembersWizard
+  addMembersWizard?: AddMembersWizard | undefined
   namespace: T.TB.AllowedNamespace
-  teamID?: string
-  filterServices?: Array<T.TB.ServiceIdWithContact>
-  goButtonLabel?: T.TB.GoButtonLabel
-  title?: string
-  recommendedHideYourself?: boolean
+  teamID?: string | undefined
+  filterServices?: Array<T.TB.ServiceIdWithContact> | undefined
+  goButtonLabel?: T.TB.GoButtonLabel | undefined
+  title?: string | undefined
+  recommendedHideYourself?: boolean | undefined
 }
 
 export type TeamBuilderRouteParams = RouteParams
 
 export type TeamBuilderProps = RouteParams & {
-  onFinishTeamBuilding?: () => void
+  onFinishTeamBuilding?: (() => void) | undefined
 }

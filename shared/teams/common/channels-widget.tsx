@@ -39,8 +39,8 @@ export const ChannelsWidget = (props: Props) => (
 )
 
 type ChannelInputProps = {
-  disableGeneral?: boolean
-  disabledChannels?: ReadonlyArray<T.Teams.ChannelNameID>
+  disableGeneral?: boolean | undefined
+  disabledChannels?: ReadonlyArray<T.Teams.ChannelNameID> | undefined
   onAdd: (toAdd: ReadonlyArray<T.Teams.ChannelNameID>) => void
   selected: ReadonlyArray<T.Teams.ChannelNameID>
   teamID: T.Teams.TeamID
@@ -120,7 +120,7 @@ const ChannelInputMobile = (props: ChannelInputProps) => {
           onCancel={() => setShowingPopup(false)}
           onComplete={onComplete}
           disabledChannels={[...selected, ...(disabledChannels || [])]}
-          hideGeneral={disableGeneral}
+          {...(disableGeneral === undefined ? {} : {hideGeneral: disableGeneral})}
         />
       )}
     </Kb.ClickableBox>
@@ -129,7 +129,13 @@ const ChannelInputMobile = (props: ChannelInputProps) => {
 
 const ChannelInput = Kb.Styles.isMobile ? ChannelInputMobile : ChannelInputDesktop
 
-const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: () => void}) => (
+const ChannelPill = ({
+  channelname,
+  onRemove,
+}: {
+  channelname: string
+  onRemove?: (() => void) | undefined
+}) => (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
     <Kb.Text type={Kb.Styles.isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
     {onRemove && (

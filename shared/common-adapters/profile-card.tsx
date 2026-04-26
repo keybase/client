@@ -39,18 +39,18 @@ const Kb = {
 }
 
 type Props = {
-  clickToProfile?: true
-  containerStyle?: Styles.StylesCrossPlatform
-  onHide?: () => void
-  onLayoutChange?: () => void
-  showClose?: true
+  clickToProfile?: true | undefined
+  containerStyle?: Styles.StylesCrossPlatform | undefined
+  onHide?: (() => void) | undefined
+  onLayoutChange?: (() => void) | undefined
+  showClose?: true | undefined
   username: string
 }
 
 const maxIcons = 4
 
 type ServiceIconsProps = {
-  userDetailsAssertions?: ReadonlyMap<string, T.Tracker.Assertion>
+  userDetailsAssertions?: ReadonlyMap<string, T.Tracker.Assertion> | undefined
 }
 
 const assertionTypeToServiceId = (assertionType: string): Platforms.ServiceId | undefined => {
@@ -242,7 +242,7 @@ const ProfileCard = ({
 type WithProfileCardPopupProps = {
   username: string
   children: (onLongPress?: () => void) => React.ReactElement<typeof Text>
-  ellipsisStyle?: Styles.StylesCrossPlatform
+  ellipsisStyle?: Styles.StylesCrossPlatform | undefined
 }
 
 export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithProfileCardPopupProps) => {

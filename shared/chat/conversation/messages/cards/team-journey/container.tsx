@@ -195,7 +195,7 @@ const TeamJourneyHeader = (props: HeaderProps) => {
         isTeam={true}
         teamname={teamname}
         style={avatarStyle}
-        onClick={deactivateButtons ? undefined : onAuthorClick}
+        {...(!deactivateButtons ? {onClick: onAuthorClick} : {})}
       />
       <Kb.Box2
         direction="horizontal"
@@ -207,8 +207,8 @@ const TeamJourneyHeader = (props: HeaderProps) => {
         <Kb.Text
           style={styles.teamnameText}
           type="BodySmallBold"
-          onClick={deactivateButtons ? undefined : onAuthorClick}
           className={deactivateButtons ? '' : 'hover-underline'}
+          {...(!deactivateButtons ? {onClick: onAuthorClick} : {})}
         >
           {teamname}
         </Kb.Text>

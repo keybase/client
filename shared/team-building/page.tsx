@@ -14,7 +14,7 @@ const TBHeaderRight = ({
   goButtonLabel,
 }: {
   namespace: T.TB.AllowedNamespace
-  goButtonLabel?: string
+  goButtonLabel?: string | undefined
 }) => {
   const {enabled, onAction} = useModalHeaderState(
     C.useShallow(s => ({enabled: s.actionEnabled, onAction: s.onAction}))
@@ -24,8 +24,8 @@ const TBHeaderRight = ({
     return (
       <Kb.Text
         type="BodyBigLink"
-        onClick={enabled ? onAction : undefined}
-        style={!enabled ? styles.hide : undefined}
+        {...(enabled && onAction ? {onClick: onAction} : {})}
+        {...(!enabled ? {style: styles.hide} : {})}
       >
         Add
       </Kb.Text>
@@ -35,10 +35,10 @@ const TBHeaderRight = ({
     return (
       <Kb.Button
         label={goButtonLabel ?? 'Start'}
-        onClick={enabled ? onAction : undefined}
         small={true}
         type="Success"
-        style={!enabled && styles.hide}
+        {...(enabled && onAction ? {onClick: onAction} : {})}
+        {...(!enabled ? {style: styles.hide} : {})}
       />
     )
   }
@@ -54,8 +54,8 @@ const HeaderRightUpdater = ({
   onFinishTeamBuilding,
 }: {
   namespace: T.TB.AllowedNamespace
-  goButtonLabel?: string
-  onFinishTeamBuilding?: () => void
+  goButtonLabel?: string | undefined
+  onFinishTeamBuilding?: (() => void) | undefined
 }) => {
   const navigation = useNavigation()
   const hasTeamSoFar = useTBContext(s => s.teamSoFar.size > 0)
@@ -142,32 +142,32 @@ const getOptions = ({route}: OwnProps) => {
     return {
       ...common,
       // iOS: headerRight omitted; HeaderRightUpdater drives unstable_headerRightItems dynamically
-      headerRight: Kb.Styles.isIOS ? undefined : () => <TBHeaderRight namespace={namespace} />,
       headerTitle: () => (
         <TeamsModalTitle teamID={route.params.teamID ?? T.Teams.noTeamID} title="Search people" />
       ),
+      ...(Kb.Styles.isIOS ? {} : {headerRight: () => <TBHeaderRight namespace={namespace} />}),
     }
   }
 
   return {
     ...common,
     // iOS: headerRight omitted; HeaderRightUpdater drives unstable_headerRightItems dynamically
-    headerRight: Kb.Styles.isIOS
-      ? undefined
-      : () => <TBHeaderRight namespace={namespace} goButtonLabel={goButtonLabel} />,
+    ...(Kb.Styles.isIOS
+      ? {}
+      : {headerRight: () => <TBHeaderRight namespace={namespace} goButtonLabel={goButtonLabel} />}),
   }
 }
 
 const Building = React.lazy(async () => import('./container'))
 export type TeamBuilderScreenProps = StaticScreenProps<TeamBuilderRouteParams> & {
-  onComplete?: (users: ReadonlySet<T.TB.User>) => void
+  onComplete?: ((users: ReadonlySet<T.TB.User>) => void) | undefined
 }
 
 const ScreenBody = ({
   onComplete,
   routeParams,
 }: {
-  onComplete?: (users: ReadonlySet<T.TB.User>) => void
+  onComplete?: ((users: ReadonlySet<T.TB.User>) => void) | undefined
   routeParams: TeamBuilderRouteParams
 }) => {
   const {goButtonLabel, namespace} = routeParams

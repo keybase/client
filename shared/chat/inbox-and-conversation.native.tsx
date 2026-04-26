@@ -6,15 +6,18 @@ import {useInboxSearch} from './inbox/use-inbox-search'
 export default function InboxAndConversationNative(props: InboxAndConversationProps) {
   const search = useInboxSearch()
   const headerPortal = useInboxHeaderPortal(search)
+  const inboxProps = {
+    search,
+    ...(props.conversationIDKey === undefined ? {} : {conversationIDKey: props.conversationIDKey}),
+    ...(props.refreshInbox === undefined ? {} : {refreshInbox: props.refreshInbox}),
+  }
 
   return (
     <>
       {headerPortal}
       <InboxAndConversationShell
         {...props}
-        leftPane={
-          <Inbox conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} search={search} />
-        }
+        leftPane={<Inbox {...inboxProps} />}
       />
     </>
   )

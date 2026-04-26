@@ -130,12 +130,12 @@ const toRemoteConversation = (
   const {badge, unread, participants, meta} = conversation
 
   return {
-    channelname: meta.channelname,
     conversationIDKey,
-    snippetDecorated: meta.snippetDecorated,
-    teamType: meta.teamType,
-    timestamp: meta.timestamp,
-    tlfname: meta.tlfname,
+    ...(meta.channelname === undefined ? {} : {channelname: meta.channelname}),
+    ...(meta.snippetDecorated === undefined ? {} : {snippetDecorated: meta.snippetDecorated}),
+    ...(meta.teamType === undefined ? {} : {teamType: meta.teamType}),
+    ...(meta.timestamp === undefined ? {} : {timestamp: meta.timestamp}),
+    ...(meta.tlfname === undefined ? {} : {tlfname: meta.tlfname}),
     ...(badge > 0 ? {hasBadge: true as const} : {}),
     ...(unread > 0 ? {hasUnread: true as const} : {}),
     ...(participants.name.length ? {participants: participants.name.slice(0, 3)} : {}),
@@ -350,11 +350,12 @@ function useMenubarRemoteProps(): Props {
   // flakes on our perception of overall upload status.
   const filePaths = useNonFolderSyncingPaths(uploads.syncingPaths)
 
+  const fileName = filePaths.length === 1 ? T.FS.getPathName(filePaths[0] || T.FS.stringToPath('')) : undefined
   const upDown = {
     endEstimate: uploads.endEstimate ?? 0,
-    fileName: filePaths.length === 1 ? T.FS.getPathName(filePaths[0] || T.FS.stringToPath('')) : undefined,
     files: filePaths.length,
     totalSyncingBytes: uploads.totalSyncingBytes,
+    ...(fileName === undefined ? {} : {fileName}),
   }
 
   const daemonHandshakeState = useDaemonState(s => s.handshakeState)

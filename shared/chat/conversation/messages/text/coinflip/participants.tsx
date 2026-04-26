@@ -2,9 +2,9 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 
 export type Props = {
-  attachTo?: React.RefObject<Kb.MeasureRef | null>
+  attachTo?: React.RefObject<Kb.MeasureRef | null> | undefined
   onHidden: () => void
-  participants?: ReadonlyArray<T.RPCChat.UICoinFlipParticipant>
+  participants?: ReadonlyArray<T.RPCChat.UICoinFlipParticipant> | undefined
   visible: boolean
 }
 
@@ -12,6 +12,7 @@ const items: Kb.MenuItems = []
 
 const CoinFlipParticipants = (props: Props) => {
   const {attachTo, onHidden, participants, visible} = props
+  const floatingMenuProps = attachTo ? {attachTo} : {}
   const howThisWorksUrlProps = Kb.useClickURL('https://keybase.io/coin-flip')
   const header = (
     <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -43,7 +44,7 @@ const CoinFlipParticipants = (props: Props) => {
 
   return (
     <Kb.FloatingMenu
-      attachTo={attachTo}
+      {...floatingMenuProps}
       closeOnSelect={true}
       header={header}
       items={items}

@@ -4,13 +4,13 @@ type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
 
 type Store = T.Immutable<{
   alreadyOnKeybase: Array<T.RPCGen.ProcessedContact>
-  importEnabled?: boolean
+  importEnabled?: boolean | undefined
   importError: string
   importPromptDismissed: boolean
-  importedCount?: number
+  importedCount?: number | undefined
   // OS permissions. 'undetermined' -> we can show the prompt; 'unknown' -> we haven't checked
   permissionStatus: PermissionStatus
-  userCountryCode?: string
+  userCountryCode?: string | undefined
   waitingToShowJoinedModal: boolean
 }>
 

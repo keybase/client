@@ -25,7 +25,7 @@ const RoleButton = (props: Props) => {
 
   return (
     <InlineDropdown
-      containerStyle={props.containerStyle}
+      {...(props.containerStyle === undefined ? {} : {containerStyle: props.containerStyle})}
       textWrapperType={null}
       label={
         <Kb.Box2 direction="horizontal" alignItems="center" style={styles.label}>
@@ -35,7 +35,7 @@ const RoleButton = (props: Props) => {
       }
       onPress={props.onClick}
       style={Kb.Styles.collapseStyles([styles.button, props.style])}
-      loading={props.loading}
+      {...(props.loading === undefined ? {} : {loading: props.loading})}
     />
   )
 }

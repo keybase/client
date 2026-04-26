@@ -35,7 +35,6 @@ const Container = (ownProps: OwnProps) => {
       closeOnSelect={false}
       closeText="Cancel"
       containerStyle={floatingMenuProps.containerStyle}
-      attachTo={floatingMenuProps.attachTo}
       visible={floatingMenuProps.visible}
       onHidden={floatingMenuProps.hide}
       position="bottom right"
@@ -48,6 +47,7 @@ const Container = (ownProps: OwnProps) => {
           title: 'Yes, continue',
         },
       ]}
+      {...(floatingMenuProps.attachTo === undefined ? {} : {attachTo: floatingMenuProps.attachTo})}
     />
   )
 }

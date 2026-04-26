@@ -267,12 +267,13 @@ const HeaderRow = function HeaderRow(p: {
   canCreateChannel: boolean
   teamID: T.Teams.TeamID
   mode: 'others' | 'self'
-  onSelectAll?: () => void
-  onSelectNone?: () => void
+  onSelectAll?: (() => void) | undefined
+  onSelectNone?: (() => void) | undefined
 }) {
   const {canCreateChannel, mode, teamID, onSelectAll, onSelectNone} = p
   const nav = useSafeNavigation()
   const onCreate = () => nav.safeNavigateAppend({name: 'chatCreateChannel', params: {teamID}})
+  const selectAction = onSelectAll ?? onSelectNone
 
   return (
     <Kb.Box2
@@ -292,10 +293,10 @@ const HeaderRow = function HeaderRow(p: {
       >
         <Kb.Icon type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.blueDark} />
       </Kb.Button>
-      {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
+      {mode === 'self' || !selectAction ? (
         <Kb.Box2 direction="vertical" /> // box so that the other item aligns to the left
       ) : (
-        <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
+        <Kb.Text type="BodyPrimaryLink" onClick={selectAction}>
           {onSelectAll ? 'Select all' : 'Clear'}
         </Kb.Text>
       )}
@@ -391,7 +392,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
       ]
       return (
         <Kb.FloatingMenu
-          attachTo={attachTo}
+          {...(attachTo === undefined ? {} : {attachTo})}
           visible={true}
           onHidden={hidePopup}
           closeOnSelect={true}
@@ -486,6 +487,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
   const onSelect = () => {
     _onSelect(conversationIDKey)
   }
+  const disableSelection = selfMode || channelMeta.channelname === 'general' || allInChannel
 
   return Kb.Styles.isMobile ? (
     <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect} style={{height: rowHeight}}>
@@ -522,16 +524,16 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
   ) : (
     <Kb.ListItem
       fullDivider={true}
-      onMouseDown={
-        selfMode || channelMeta.channelname === 'general' || allInChannel
-          ? undefined
-          : evt => {
+      {...(disableSelection
+        ? {}
+        : {
+            onMouseDown: (evt: React.BaseSyntheticEvent) => {
               // using onMouseDown so we can prevent blurring the search filter
               evt.preventDefault()
               onSelect()
-            }
-      }
-      onClick={selfMode ? onPreviewChannel : undefined}
+            },
+          })}
+      {...(selfMode ? {onClick: onPreviewChannel} : {})}
       type="Small"
       action={
         selfMode ? (

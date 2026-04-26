@@ -117,7 +117,7 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
     ...(Kb.Styles.isMobile ? {} : {height: selected ? 160 : 42}),
   }
   return (
-    <Kb.ClickableBox onClick={onSelect} style={style}>
+    <Kb.ClickableBox {...(onSelect === undefined ? {} : {onClick: onSelect})} style={style}>
       <Kb.Divider />
       <RoleRow
         selected={selected}
@@ -135,8 +135,8 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
             : null
         }
         icon={roleInfo.icon}
-        onSelect={onSelect}
-        disabledReason={disabledReason}
+        {...(onSelect === undefined ? {} : {onSelect})}
+        {...(disabledReason === undefined ? {} : {disabledReason})}
       />
     </Kb.ClickableBox>
   )
@@ -290,8 +290,8 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
             <RoleRowWrapper
               key={role as string}
               role={role}
-              disabledReason={disabled}
-              onSelect={onSelect}
+              {...(disabled === undefined ? {} : {disabledReason: disabled})}
+              {...(onSelect === undefined ? {} : {onSelect})}
               selected={selectedRole === role}
               plural={props.plural ?? false}
             />
@@ -305,7 +305,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
           <Kb.Button
             fullWidth={true}
             disabled={selectedRole === presetRole}
-            waiting={props.waiting}
+            {...(props.waiting === undefined ? {} : {waiting: props.waiting})}
             label={selectedRole === 'setIndividually' ? 'Set Individually' : `Save`}
             onClick={selectedRole === presetRole ? () => {} : () => props.onConfirm(selectedRole)}
           />
@@ -420,7 +420,10 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const {position, children, open, onCancel, ...rest} = props
   const picker = (
-    <RolePicker<IncludeSetIndividually> {...rest} onCancel={Kb.Styles.isMobile ? undefined : onCancel} />
+    <RolePicker<IncludeSetIndividually>
+      {...rest}
+      {...(!Kb.Styles.isMobile && onCancel ? {onCancel} : {})}
+    />
   )
   return (
     <>
@@ -441,7 +444,11 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
             >
               {Kb.Styles.isMobile && (
                 <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.popupHeader}>
-                  <Kb.Text type="BodyBigLink" onClick={onCancel} style={styles.popupHeaderSide}>
+                  <Kb.Text
+                    type="BodyBigLink"
+                    {...(onCancel === undefined ? {} : {onClick: onCancel})}
+                    style={styles.popupHeaderSide}
+                  >
                     Cancel
                   </Kb.Text>
                   <Kb.Text type="BodyBig">Pick a role</Kb.Text>

@@ -79,25 +79,25 @@ const RemoteTracker = (props: {details: T.Tracker.Details; trackerUsername: stri
   const blocked = blockMap.get(trackerUsername)?.chatBlocked || false
 
   const p: ProxyProps = {
-    assertions: assertions ? [...assertions.values()] : undefined,
-    bio,
     blocked,
     darkMode: isDarkMode,
     followThem: following.has(trackerUsername),
-    followersCount,
-    followingCount,
     followsYou: followers.has(trackerUsername),
-    fullname,
     guiID,
     hidFromFollowers,
     httpSrvAddress: httpSrv.address,
     httpSrvToken: httpSrv.token,
     isYou: username === trackerUsername,
-    location,
     reason,
     state: details.state,
-    teamShowcase,
     trackerUsername,
+    ...(assertions === undefined ? {} : {assertions: [...assertions.values()]}),
+    ...(bio === undefined ? {} : {bio}),
+    ...(followersCount === undefined ? {} : {followersCount}),
+    ...(followingCount === undefined ? {} : {followingCount}),
+    ...(fullname === undefined ? {} : {fullname}),
+    ...(location === undefined ? {} : {location}),
+    ...(teamShowcase === undefined ? {} : {teamShowcase}),
   }
 
   const windowComponent = 'tracker'

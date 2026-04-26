@@ -31,7 +31,7 @@ export type TlfRowItem = {
 }
 
 export type StillRowItem = {
-  editSession?: BrowserEditSession // empty if not being renamed
+  editSession?: BrowserEditSession | undefined // empty if not being renamed
   key: string
   lastModifiedTimestamp: number
   name: string

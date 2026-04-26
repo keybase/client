@@ -40,19 +40,33 @@ const UpoadContainer = () => {
 
   // Filter out folder paths.
   const filePaths = useNonFolderSyncingPaths(uploads.syncingPaths)
+  const fileName = filePaths.length === 1 ? T.FS.getPathName(filePaths[0] || T.FS.stringToPath('')) : undefined
 
   const np = useUploadCountdown({
     // We just use syncingPaths rather than merging with writingToJournal here
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
-    debugToggleShow,
     endEstimate: enableDebugUploadBanner ? (uploads.endEstimate || 0) + 32000 : uploads.endEstimate || 0,
-    fileName: filePaths.length === 1 ? T.FS.getPathName(filePaths[0] || T.FS.stringToPath('')) : undefined,
     files: filePaths.length,
     isOnline: kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline,
     totalSyncingBytes: uploads.totalSyncingBytes,
+    ...(debugToggleShow === undefined ? {} : {debugToggleShow}),
+    ...(fileName === undefined ? {} : {fileName}),
   })
+  const {
+    debugToggleShow: uploadDebugToggleShow,
+    fileName: uploadFileName,
+    smallMode,
+    ...uploadProps
+  } = np
 
-  return <Upload {...np} />
+  return (
+    <Upload
+      {...uploadProps}
+      {...(uploadDebugToggleShow === undefined ? {} : {debugToggleShow: uploadDebugToggleShow})}
+      {...(uploadFileName === undefined ? {} : {fileName: uploadFileName})}
+      {...(smallMode === undefined ? {} : {smallMode})}
+    />
+  )
 }
 export default UpoadContainer

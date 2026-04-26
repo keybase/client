@@ -50,17 +50,25 @@ const onSuccess = (
   signed: boolean,
   senderUsername: string,
   senderFullname: string
-): CommonState => ({
-  ...resetWarnings(state),
-  inProgress: false,
-  output,
-  outputSenderFullname: signed ? senderFullname : undefined,
-  outputSenderUsername: signed ? senderUsername : undefined,
-  outputSigned: signed,
-  outputStatus: 'success',
-  outputType: inputType,
-  outputValid,
-})
+): CommonState => {
+  const next: CommonState = {
+    ...resetWarnings(state),
+    inProgress: false,
+    output,
+    outputSigned: signed,
+    outputStatus: 'success',
+    outputType: inputType,
+    outputValid,
+  }
+  if (signed) {
+    next.outputSenderFullname = senderFullname
+    next.outputSenderUsername = senderUsername
+  } else {
+    delete next.outputSenderFullname
+    delete next.outputSenderUsername
+  }
+  return next
+}
 
 export const useDecryptState = (params?: CryptoInputRouteParams) => {
   const {commitState, state, stateRef} = useCommittedState(() => createCommonState(params))

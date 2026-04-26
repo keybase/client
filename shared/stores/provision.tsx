@@ -69,7 +69,7 @@ type Store = T.Immutable<{
   deviceName: string
   devices: Array<Device>
   error: string
-  inlineError?: RPCError
+  inlineError?: RPCError | undefined
   passphrase: string
   startProvisionTrigger: number
   username: string
@@ -81,7 +81,6 @@ const initialStore: Store = {
   deviceName: '',
   devices: [],
   error: '',
-  inlineError: undefined,
   passphrase: '',
   startProvisionTrigger: 0,
   username: '',
@@ -454,6 +453,9 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
               break
             default:
               if (!errorCausedByUsCanceling(finalError)) {
+                const fields = finalError.fields as
+                  | ReadonlyArray<{key?: string; value?: string}>
+                  | undefined
                 clearModals()
                 navigateAppend(
                   {
@@ -463,8 +465,8 @@ export const useProvisionState = Z.createZustand<State>('provision', (set, get) 
                         code: finalError.code,
                         desc: finalError.desc,
                         details: finalError.details,
-                        fields: finalError.fields as ReadonlyArray<{key?: string; value?: string}> | undefined,
                         message: finalError.message,
+                        ...(fields === undefined ? {} : {fields}),
                       } satisfies ProvisionRouteError,
                     },
                   },

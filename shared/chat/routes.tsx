@@ -11,12 +11,13 @@ import {headerNavigationOptions} from './conversation/header-area'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {ModalTitle} from '@/teams/common'
 import inboxGetOptions from './inbox/get-options'
-import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
-import {defineRouteMap} from '@/constants/types/router'
+import InboxAndConvoHeader from './inbox-and-conversation-header'
+import {defineRouteMap, withRouteParams, type GetOptionsRet} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
 import type {ChatRootRouteParams} from './inbox-and-conversation'
 import {onTeamBuildingFinished} from '@/stores/convostate'
 import {showShareActionSheet} from '@/util/storeless-actions'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
 const Convo = React.lazy(async () => import('./conversation/container'))
 
 type ChatBlockingRouteParams = {
@@ -46,11 +47,33 @@ const ChatTeamBuilderScreen = (p: Parameters<typeof TeamBuilderScreen>[0]) => (
   <TeamBuilderScreen {...p} onComplete={onTeamBuildingFinished} />
 )
 
-const PDFShareButton = ({url}: {url?: string}) => {
+const PDFShareButton = ({url}: {url?: string | undefined}) => {
   return (
     <Kb.Icon type="iconfont-share" onClick={() => showShareActionSheet(url ?? '', '', 'application/pdf')} />
   )
 }
+
+const InboxAndConvoTabletHeader = () => {
+  const {width} = useSafeAreaFrame()
+  return (
+    <Kb.Box2 direction="horizontal" style={{height: 48, marginLeft: -20, width}}>
+      <InboxAndConvoHeader />
+    </Kb.Box2>
+  )
+}
+
+const inboxAndConvoGetOptions: GetOptionsRet = Kb.Styles.isTablet
+  ? {
+      headerBackgroundContainerStyle: {},
+      headerLeftContainerStyle: {maxWidth: 0},
+      headerRightContainerStyle: {maxWidth: 0},
+      headerStyle: {},
+      headerTitle: () => <InboxAndConvoTabletHeader />,
+      headerTitleContainerStyle: {},
+    }
+  : {
+      headerTitle: () => <InboxAndConvoHeader />,
+    }
 
 const BotInstallHeaderTitle = () => {
   const subScreen = useModalHeaderState(s => s.botSubScreen)
@@ -68,7 +91,7 @@ const BotInstallHeaderLeft = () => {
   )
   if (subScreen === 'channels') {
     return (
-      <Kb.Text type="BodyBigLink" onClick={onAction}>
+      <Kb.Text type="BodyBigLink" {...(onAction === undefined ? {} : {onClick: onAction})}>
         Back
       </Kb.Text>
     )
@@ -87,7 +110,7 @@ const BotInstallHeaderLeft = () => {
         'Cancel'
       )
     return (
-      <Kb.Text type="BodyBigLink" onClick={onAction}>
+      <Kb.Text type="BodyBigLink" {...(onAction === undefined ? {} : {onClick: onAction})}>
         {label}
       </Kb.Text>
     )
@@ -107,18 +130,19 @@ const AddToChannelHeaderRight = () => {
     C.useShallow(s => ({enabled: s.actionEnabled, onAction: s.onAction, waiting: s.actionWaiting}))
   )
   if (!Kb.Styles.isMobile) return null
+  const onClick = !waiting && enabled ? onAction : undefined
   return (
     <Kb.Text
       type="BodyBigLink"
-      onClick={!waiting && enabled ? onAction : undefined}
-      style={!enabled ? {opacity: 0.4} : undefined}
+      {...(onClick === undefined ? {} : {onClick})}
+      {...(enabled ? {} : {style: {opacity: 0.4}})}
     >
       Add
     </Kb.Text>
   )
 }
 
-const SendToChatHeaderLeft = ({canBack}: {canBack?: boolean}) => {
+const SendToChatHeaderLeft = ({canBack}: {canBack?: boolean | undefined}) => {
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
   if (canBack) {
@@ -140,33 +164,34 @@ export const newRoutes = defineRouteMap({
     canBeNullConvoID: true,
     getOptions: p => ({
       ...headerNavigationOptions(p.route),
-      presentation: undefined,
     }),
   }),
   chatEnterPaperkey: {
     screen: React.lazy(async () => import('./conversation/rekey/enter-paper-key')),
   },
-  chatRoot: Chat.isSplit
-    ? {
-        ...makeChatScreen(
-          React.lazy(async () => import('./inbox-and-conversation')),
-          {
-            getOptions: inboxAndConvoGetOptions,
-            skipProvider: true,
-          }
-        ),
-        initialParams: emptyChatRootRouteParams,
-      }
-    : {
-        ...makeChatScreen(
-          React.lazy(async () => import('./inbox')),
-          {
-            getOptions: inboxGetOptions,
-            skipProvider: true,
-          }
-        ),
-        initialParams: emptyChatRootRouteParams,
-      },
+  chatRoot: withRouteParams<ChatRootRouteParams>(
+    Chat.isSplit
+      ? {
+          ...makeChatScreen(
+            React.lazy(async () => import('./inbox-and-conversation')),
+            {
+              getOptions: inboxAndConvoGetOptions,
+              skipProvider: true,
+            }
+          ),
+          initialParams: emptyChatRootRouteParams,
+        }
+      : {
+          ...makeChatScreen(
+            React.lazy(async () => import('./inbox')),
+            {
+              getOptions: inboxGetOptions,
+              skipProvider: true,
+            }
+          ),
+          initialParams: emptyChatRootRouteParams,
+        }
+  ),
 })
 
 export const newModalRoutes = defineRouteMap({
@@ -276,7 +301,7 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./pdf')),
     {
       getOptions: p => ({
-        headerRight: C.isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
+        ...(C.isMobile ? {headerRight: () => <PDFShareButton url={p.route.params.url} />} : {}),
         modalStyle: {height: '80%', maxHeight: '80%', width: '80%'},
         overlayStyle: {alignSelf: 'stretch'},
         title: 'PDF',

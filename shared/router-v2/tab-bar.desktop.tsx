@@ -114,7 +114,7 @@ const Header = () => {
         header={menuHeader}
         closeOnSelect={true}
         visible={true}
-        attachTo={attachTo}
+        {...(attachTo ? {attachTo} : {})}
         items={menuItems}
         onHidden={hidePopup}
       />
@@ -271,9 +271,9 @@ function Tab(props: TabProps) {
       feedback={false}
       key={tab}
       onClick={onClick}
-      onMouseDown={onMouseDown}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseLeave}
+      {...(onMouseDown ? {onMouseDown} : {})}
+      {...(onMouseUp ? {onMouseUp} : {})}
+      {...(onMouseLeave ? {onMouseLeave} : {})}
     >
       <Kb.Box2
         direction="horizontal"
@@ -283,7 +283,7 @@ function Tab(props: TabProps) {
           'tab-tooltip',
           'tooltip-top-right'
         )}
-          relative={true}
+        relative={true}
         style={styles.tab}
         tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
       >

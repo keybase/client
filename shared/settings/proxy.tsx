@@ -82,7 +82,7 @@ const proxyDataToFormState = (proxyData: T.RPCGen.ProxyData): ProxyFormState => 
 }
 
 type Props = {
-  allowTlsMitmToggle?: boolean
+  allowTlsMitmToggle?: boolean | undefined
   loadProxyData: (
     args: [undefined],
     setResult: (result: T.RPCGen.ProxyData) => void,
@@ -93,7 +93,7 @@ type Props = {
   onConfirmDisableCertPinning: () => void
   onDisableCertPinning: () => void
   onEnableCertPinning: () => void
-  proxyData?: T.RPCGen.ProxyData
+  proxyData?: T.RPCGen.ProxyData | undefined
   saveProxyData: (
     args: [{proxyData: T.RPCGen.ProxyData}],
     setResult: () => void,

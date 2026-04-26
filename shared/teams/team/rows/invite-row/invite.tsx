@@ -8,8 +8,8 @@ import {useLoadedTeam} from '../../use-loaded-team'
 export type Props = {
   isKeybaseUser?: boolean
   label: string
-  subLabel?: string
-  onCancelInvite?: () => void
+  subLabel?: string | undefined
+  onCancelInvite?: (() => void) | undefined
   role: T.Teams.TeamRoleType
   firstItem: boolean
 }
@@ -31,14 +31,14 @@ export const TeamInviteRow = (props: Props) => {
           </Kb.Box2>
         </Kb.Box2>
       }
-      action={<TeamInviteMenu onCancelInvite={onCancelInvite} />}
+      action={onCancelInvite ? <TeamInviteMenu onCancelInvite={onCancelInvite} /> : null}
       onlyShowActionOnHover="fade"
       firstItem={firstItem}
     />
   )
 }
 
-const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
+const TeamInviteMenu = (props: {onCancelInvite: () => void}) => {
   const {onCancelInvite} = props
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
@@ -48,7 +48,7 @@ const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
           visible={true}
           onHidden={hidePopup}
           closeOnSelect={true}
-          attachTo={attachTo}
+          {...(attachTo === undefined ? {} : {attachTo})}
         />
       )
     }

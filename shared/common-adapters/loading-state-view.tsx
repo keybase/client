@@ -13,8 +13,8 @@ const Kb = {
 
 type Props = {
   loading: boolean
-  progress?: number
-  white?: boolean
+  progress?: number | undefined
+  white?: boolean | undefined
 }
 
 const LoadingStateView = (props: Props) =>

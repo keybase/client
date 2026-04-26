@@ -11,8 +11,8 @@ import {e164ToDisplay} from '@/util/phone-numbers'
 import type {Props as FeedbackRouteParams} from './feedback/container'
 
 export type SettingsAccountRouteParams = {
-  addedEmailBannerEmail?: string
-  addedPhoneBanner?: boolean
+  addedEmailBannerEmail?: string | undefined
+  addedPhoneBanner?: boolean | undefined
 }
 
 const PushPromptSkipButton = () => {

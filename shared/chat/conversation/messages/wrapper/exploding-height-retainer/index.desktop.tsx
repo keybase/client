@@ -71,7 +71,12 @@ const ExplodingHeightRetainer = (p: Props) => {
   )
 }
 
-const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: string; height: number}) => {
+const Ashes = (props: {
+  doneExploding: boolean
+  exploded: boolean
+  explodedBy?: string | undefined
+  height: number
+}) => {
   const {doneExploding, explodedBy, exploded, height} = props
   let explodedTag: React.ReactNode = null
   if (doneExploding) {

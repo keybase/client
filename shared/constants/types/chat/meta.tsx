@@ -38,13 +38,13 @@ export type ConversationMeta = T.Immutable<{
   notificationsGlobalIgnoreMentions: boolean
   notificationsMobile: NotificationsType
   offline: boolean
-  pinnedMsg?: PinnedMessageInfo
+  pinnedMsg?: PinnedMessageInfo | undefined
   readMsgID: Message.MessageID
   rekeyers: Set<string>
   resetParticipants: Set<string>
   retentionPolicy: RetentionPolicy
-  snippet?: string
-  snippetDecorated?: string
+  snippet?: string | undefined
+  snippetDecorated?: string | undefined
   snippetDecoration: T.RPCChat.SnippetDecoration
   status: T.RPCChat.ConversationStatus
   supersededBy: Common.ConversationIDKey

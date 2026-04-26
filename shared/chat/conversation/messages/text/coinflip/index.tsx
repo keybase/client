@@ -45,9 +45,9 @@ function CoinFlipContainer() {
     const {attachTo, hidePopup} = p
     return (
       <CoinFlipParticipants
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         onHidden={hidePopup}
-        participants={participants}
+        {...(participants === undefined ? {} : {participants})}
         visible={true}
       />
     )

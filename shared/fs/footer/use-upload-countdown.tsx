@@ -2,13 +2,13 @@ import * as React from 'react'
 import {formatDuration} from '@/util/timestamp'
 
 export type UploadCountdownHOCProps = {
-  endEstimate?: number
+  endEstimate?: number | undefined
   files: number
-  fileName?: string
+  fileName?: string | undefined
   isOnline: boolean
   totalSyncingBytes: number
-  debugToggleShow?: () => void
-  smallMode?: boolean
+  debugToggleShow?: (() => void) | undefined
+  smallMode?: boolean | undefined
 }
 
 // Cosider this component as a state machine with following four states. 1Hz

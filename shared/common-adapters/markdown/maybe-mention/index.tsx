@@ -11,12 +11,12 @@ import UnknownMention from './unknown'
 const Kb = {Mention, Text}
 
 type Props = {
-  allowFontScaling?: boolean
+  allowFontScaling?: boolean | undefined
   channel: string
-  info?: T.RPCChat.UIMaybeMentionInfo
+  info?: T.RPCChat.UIMaybeMentionInfo | undefined
   name: string
   onResolve: () => void
-  style?: StylesTextCrossPlatform
+  style?: StylesTextCrossPlatform | undefined
 }
 
 const MaybeMention = (props: Props) => {
@@ -57,10 +57,10 @@ const MaybeMention = (props: Props) => {
 }
 
 type OwnProps = {
-  allowFontScaling?: boolean
+  allowFontScaling?: boolean | undefined
   channel: string
   name: string
-  style?: StylesTextCrossPlatform
+  style?: StylesTextCrossPlatform | undefined
 }
 
 const Container = (ownProps: OwnProps) => {

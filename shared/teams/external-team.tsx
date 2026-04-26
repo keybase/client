@@ -141,9 +141,12 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
 
 const Header = ({info}: ExternalTeamProps) => {
   const nav = useSafeNavigation()
-  const teamname = info.name.parts?.join('.')
+  const teamname = info.name.parts?.join('.') ?? ''
   const onJoin = () =>
-    nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
+    nav.safeNavigateAppend({
+      name: 'teamJoinTeamDialog',
+      params: teamname ? {initialTeamname: teamname} : {},
+    })
   const {popupAnchor, showPopup, popup} = useTeamLinkPopup(teamname || '')
 
   const metaInfo = (

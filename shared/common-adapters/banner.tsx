@@ -7,7 +7,7 @@ import * as Styles from '@/styles'
 type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey' | 'white'
 
 type _Segment = {
-  onClick?: () => void
+  onClick?: (() => void) | undefined
   text: string
 }
 type Segment = _Segment | string | undefined
@@ -15,9 +15,9 @@ type Segment = _Segment | string | undefined
 type BannerParagraphProps = {
   bannerColor: Color
   content: string | Array<Segment>
-  inline?: boolean
-  selectable?: boolean
-  small?: boolean
+  inline?: boolean | undefined
+  selectable?: boolean | undefined
+  small?: boolean | undefined
 }
 
 export const BannerParagraph = (props: BannerParagraphProps) => (
@@ -66,12 +66,12 @@ type BannerProps = {
     | string
     | React.ReactElement<typeof BannerParagraph>
     | Array<React.ReactElement<typeof BannerParagraph>>
-  inline?: boolean
-  narrow?: boolean
-  onClose?: () => void
-  small?: boolean
-  style?: Styles.StylesCrossPlatform | null
-  textContainerStyle?: Styles.StylesCrossPlatform | null
+  inline?: boolean | undefined
+  narrow?: boolean | undefined
+  onClose?: (() => void) | undefined
+  small?: boolean | undefined
+  style?: Styles.StylesCrossPlatform | null | undefined
+  textContainerStyle?: Styles.StylesCrossPlatform | null | undefined
 }
 
 export const Banner = (props: BannerProps) => (

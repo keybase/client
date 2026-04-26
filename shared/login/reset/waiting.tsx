@@ -100,7 +100,10 @@ const Waiting = ({endTime: routeEndTime, pipelineStarted, username}: Props) => {
                 We are sending instructions to your email address or phone number.
               </Kb.Text>
               <Kb.Box2 direction="horizontal" centerChildren={true} relative={true}>
-                <Kb.Text type="BodyPrimaryLink" onClick={sendAgainWaiting ? undefined : onSendAgain}>
+                <Kb.Text
+                  type="BodyPrimaryLink"
+                  {...(sendAgainWaiting ? {} : {onClick: onSendAgain})}
+                >
                   Send again
                 </Kb.Text>
                 {sendAgainWaiting && (

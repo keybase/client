@@ -24,7 +24,7 @@ type Props<P> = {
   component: RemoteComponentName
   param: string
   showOnProps: boolean
-  style?: Kb.Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform | undefined
 }
 
 function RemoteComponentLoader<P>(p: Props<P>) {
@@ -40,7 +40,7 @@ function RemoteComponentLoader<P>(p: Props<P>) {
       fullWidth={true}
       style={Kb.Styles.collapseStyles([p.style ?? styles.container])}
     >
-      <ErrorBoundary closeOnClick={closeWindow} fallbackStyle={styles.errorFallback}>
+      <ErrorBoundary {...(closeWindow ? {closeOnClick: closeWindow} : {})} fallbackStyle={styles.errorFallback}>
         <GlobalKeyEventHandler>
           <Component {...value} />
         </GlobalKeyEventHandler>

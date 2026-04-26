@@ -53,20 +53,20 @@ export function useListProps<T>(p: Props<T>) {
     (itemHeight.type === 'fixed' || itemHeight.type === 'fixedListItemAuto' || itemHeight.type === 'perItem')
 
   return {
-    ListFooterComponent,
-    ListHeaderComponent,
     data: items as T[],
-    drawDistance,
     empty: items.length === 0,
     estimatedItemSize,
     extraData: extraDataProp ?? selectedIndex,
-    getFixedItemSize,
-    getItemType,
     keyExtractor,
-    onEndReached: onEndReached ? () => onEndReached() : undefined,
-    onViewableItemsChanged: onViewableItemsChanged as any,
     recycleItems,
     renderItem: legendRenderItem,
-    viewabilityConfig,
+    ...(ListFooterComponent === undefined ? {} : {ListFooterComponent}),
+    ...(ListHeaderComponent === undefined ? {} : {ListHeaderComponent}),
+    ...(drawDistance === undefined ? {} : {drawDistance}),
+    ...(getFixedItemSize === undefined ? {} : {getFixedItemSize}),
+    ...(getItemType === undefined ? {} : {getItemType}),
+    ...(onEndReached === undefined ? {} : {onEndReached: () => onEndReached()}),
+    ...(onViewableItemsChanged === undefined ? {} : {onViewableItemsChanged: onViewableItemsChanged as any}),
+    ...(viewabilityConfig === undefined ? {} : {viewabilityConfig}),
   }
 }

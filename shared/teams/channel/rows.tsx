@@ -225,7 +225,7 @@ const ChannelMemberRow = (props: Props) => {
     return (
       <Kb.FloatingMenu
         header={menuHeader}
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         closeOnSelect={true}
         items={menuItems}
         onHidden={hidePopup}

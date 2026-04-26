@@ -117,7 +117,6 @@ test('getUploadIconForTlfType derives conflict, uploading, and offline upload st
     rpcStatus: T.FS.KbfsDaemonRpcStatus.Connected,
   }
   const baseUploads = {
-    endEstimate: undefined,
     syncingPaths: new Set<T.FS.Path>(),
     totalSyncingBytes: 0,
     writingToJournal: new Map<T.FS.Path, T.RPCGen.UploadState>(),

@@ -10,7 +10,7 @@ type TeamTabsProps = {
   isBig: boolean
   numSubteams: number
   resetUserCount: number
-  selectedTab?: T.Teams.TabKey
+  selectedTab: T.Teams.TabKey
   setSelectedTab: (arg0: T.Teams.TabKey) => void
   showSubteams: boolean
 }
@@ -18,14 +18,26 @@ type TeamTabsProps = {
 const TeamTabs = (props: TeamTabsProps) => {
   const tabs: Array<TabType<T.Teams.TabKey>> = [
     {badgeNumber: props.resetUserCount, title: 'members' as const},
-    ...(!props.isBig ? [{title: 'emoji' as const}] : []),
-    ...(props.isBig || props.admin ? [{title: 'channels' as const}] : []),
-    ...(props.isBig ? [{title: 'emoji' as const}] : []),
-    {icon: Kb.Styles.isPhone ? 'iconfont-gear' : undefined, title: 'settings' as const},
-    // TODO: should we not show bots if there are no bots and you have no permissions?
-    {title: 'bots' as const},
-    ...(props.numSubteams > 0 || props.showSubteams ? [{title: 'subteams' as const}] : []),
   ]
+  if (!props.isBig) {
+    tabs.push({title: 'emoji' as const})
+  }
+  if (props.isBig || props.admin) {
+    tabs.push({title: 'channels' as const})
+  }
+  if (props.isBig) {
+    tabs.push({title: 'emoji' as const})
+  }
+  tabs.push(
+    Kb.Styles.isPhone
+      ? {icon: 'iconfont-gear' as const, title: 'settings' as const}
+      : {title: 'settings' as const}
+  )
+  // TODO: should we not show bots if there are no bots and you have no permissions?
+  tabs.push({title: 'bots' as const})
+  if (props.numSubteams > 0 || props.showSubteams) {
+    tabs.push({title: 'subteams' as const})
+  }
 
   const tabContent = (
     <Kb.Tabs

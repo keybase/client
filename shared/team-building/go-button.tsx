@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 export type Props = {
   onClick: () => void
   label: T.TB.GoButtonLabel
-  waitingKey?: string
+  waitingKey?: string | undefined
 }
 
 const GoButton = (props: Props) => (
@@ -28,7 +28,7 @@ const GoButton = (props: Props) => (
         label={props.label}
         onClick={props.onClick}
         style={styles.button}
-        waitingKey={props.waitingKey}
+        {...(props.waitingKey === undefined ? {} : {waitingKey: props.waitingKey})}
       />
     </Kb.WithTooltip>
   </Kb.Box2>

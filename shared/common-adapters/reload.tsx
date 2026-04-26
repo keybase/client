@@ -26,12 +26,12 @@ const autoReloadedNavigations = new WeakSet<object>()
 const pendingAutoReloadNavigations = new WeakSet<object>()
 
 type ReloadProps = {
-  onBack?: () => void
+  onBack?: (() => void) | undefined
   onFeedback: () => void
   onReload: (isRetry?: boolean) => void
   reason: string
-  style?: Styles.StylesCrossPlatform
-  title?: string
+  style?: Styles.StylesCrossPlatform | undefined
+  title?: string | undefined
 }
 
 function Reload(props: ReloadProps) {
@@ -85,13 +85,13 @@ export type Props = {
   children: React.ReactNode
   isWaiting: boolean
   needsReload: boolean
-  onBack?: () => void
+  onBack?: (() => void) | undefined
   onFeedback: () => void
   onReload: (isRetry?: boolean) => void
   reason: string
-  reloadOnMount?: boolean
-  style?: Styles.StylesCrossPlatform
-  title?: string
+  reloadOnMount?: boolean | undefined
+  style?: Styles.StylesCrossPlatform | undefined
+  title?: string | undefined
 }
 
 const Reloadable = (props: Props) => {
@@ -186,13 +186,13 @@ const styles = Styles.styleSheetCreate(
 
 export type OwnProps = {
   children: React.ReactNode
-  onBack?: () => void
+  onBack?: (() => void) | undefined
   onReload: (isRetry?: boolean) => void
-  reloadOnMount?: boolean
-  style?: Styles.StylesCrossPlatform
-  title?: string
+  reloadOnMount?: boolean | undefined
+  style?: Styles.StylesCrossPlatform | undefined
+  title?: string | undefined
   waitingKeys: string | Array<string>
-  errorFilter?: (rPCError: RPCError) => boolean
+  errorFilter?: ((rPCError: RPCError) => boolean) | undefined
 }
 
 const ReloadContainer = (ownProps: OwnProps) => {

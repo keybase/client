@@ -2,12 +2,12 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 type AliasInputProps = {
-  error?: string
-  disabled?: boolean
+  error?: string | undefined
+  disabled?: boolean | undefined
   alias: string
   onChangeAlias: (alias: string) => void
-  onRemove?: () => void
-  onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
+  onRemove?: (() => void) | undefined
+  onEnterKeyDown?: ((event?: React.BaseSyntheticEvent) => void) | undefined
   small: boolean
 }
 
@@ -51,12 +51,12 @@ export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>})
 
 type ModalProps = {
   bannerImage: Kb.IconType
-  bannerError?: string
+  bannerError?: string | undefined
   children: React.ReactNode
-  desktopHeight?: number
-  footerButtonLabel?: string
-  footerButtonOnClick?: () => void
-  footerButtonWaiting?: boolean
+  desktopHeight?: number | undefined
+  footerButtonLabel?: string | undefined
+  footerButtonOnClick?: (() => void) | undefined
+  footerButtonWaiting?: boolean | undefined
 }
 
 export const Modal = (props: ModalProps) => {

@@ -88,6 +88,7 @@ const BigTeamChannel = (props: Props) => {
       color={selected ? Kb.Styles.globalColors.white : undefined}
     />
   ) : null
+  const tooltip = outboxTooltip || hasDraft ? 'Draft message' : undefined
 
   return (
     <Kb.ClickableBox2 onClick={onSelectConversation} style={styles.container}>
@@ -109,7 +110,7 @@ const BigTeamChannel = (props: Props) => {
             alignItems="center"
             justifyContent="flex-end"
             flex={1}
-            tooltip={outboxTooltip || hasDraft ? 'Draft message' : undefined}
+            {...(tooltip === undefined ? {} : {tooltip})}
           >
             {draftIcon}
             {outboxIcon}

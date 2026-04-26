@@ -43,7 +43,10 @@ const paths = {
 }
 
 // Locations of all PNG assets to include in icon.constants.gen
-const pngAssetDirPaths = [
+const pngAssetDirPaths: Array<{
+  assetDirPath: string
+  insertFn: (iconFiles: Array<string>) => {[key: string]: IconInfo}
+}> = [
   {assetDirPath: paths.iconPng, insertFn: insertIconAssets},
   {assetDirPath: paths.illustrationPng, insertFn: insertIllustrationAssets},
   {assetDirPath: paths.releasePng, insertFn: insertReleaseAssets},
@@ -59,7 +62,7 @@ const computeCounter = (counter: number) => baseCharCode + counter - 1
 type Infos = {
   filePath: string
   counter: number
-  name?: string
+  name?: string | undefined
   size: string
 }
 const mapPaths =
@@ -301,14 +304,14 @@ const fontsGeneratedError = (error: unknown) => {
 }
 
 type IconInfo = {
-  extension?: string
-  imagesDir?: string
+  extension?: string | undefined
+  imagesDir?: string | undefined
   isFont: boolean
-  gridSize?: string
-  charCode?: number
-  nameDark?: string
-  require?: string
-  requireDark?: string
+  gridSize?: string | undefined
+  charCode?: number | undefined
+  nameDark?: string | undefined
+  require?: string | undefined
+  requireDark?: string | undefined
 }
 function insertIconAssets(iconFiles: Array<string>) {
   const icons: {[key: string]: IconInfo} = {}

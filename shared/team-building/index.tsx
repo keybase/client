@@ -85,7 +85,7 @@ const useTeamBuildingActions = ({
   setSearchString,
   setSelectedService,
 }: {
-  onFinishTeamBuilding?: () => void
+  onFinishTeamBuilding?: (() => void) | undefined
   namespace: T.TB.AllowedNamespace
   searchString: string
   selectedService: T.TB.ServiceIdWithContact
@@ -172,12 +172,12 @@ const useTeamBuildingActions = ({
 
 type OwnProps = {
   namespace: T.TB.AllowedNamespace
-  teamID?: string
-  filterServices?: Array<T.TB.ServiceIdWithContact>
-  goButtonLabel?: T.TB.GoButtonLabel
-  onFinishTeamBuilding?: () => void
-  title?: string
-  recommendedHideYourself?: boolean
+  teamID?: string | undefined
+  filterServices?: Array<T.TB.ServiceIdWithContact> | undefined
+  goButtonLabel?: T.TB.GoButtonLabel | undefined
+  onFinishTeamBuilding?: (() => void) | undefined
+  title?: string | undefined
+  recommendedHideYourself?: boolean | undefined
 }
 
 const TeamBuilding = ({

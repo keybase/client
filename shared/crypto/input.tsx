@@ -17,7 +17,7 @@ type TextProps = CommonProps & {
   inputPlaceholder: string
   onChangeText: (text: string) => void
   onSetFile: (path: string) => void
-  setBlurCB?: (cb: () => void) => void
+  setBlurCB?: ((cb: () => void) => void) | undefined
   textInputType: 'cipher' | 'plain'
 }
 
@@ -35,8 +35,8 @@ type DragAndDropProps = {
 }
 
 type RunActionBarProps = {
-  blurCBRef?: React.RefObject<() => void>
-  children?: React.ReactNode
+  blurCBRef?: React.RefObject<() => void> | undefined
+  children?: React.ReactNode | undefined
   onRun: () => void
   runLabel: string
 }
@@ -48,7 +48,7 @@ type InputProps = CommonProps & {
   inputPlaceholder: string
   onClearInput: () => void
   onSetInput: (type: T.Crypto.InputTypes, value: string) => void
-  setBlurCB?: (cb: () => void) => void
+  setBlurCB?: ((cb: () => void) => void) | undefined
   textInputType: 'cipher' | 'plain'
 }
 
@@ -129,7 +129,7 @@ const TextInput = (props: TextProps) => {
             multiline={true}
             autoFocus={true}
             hideBorder={true}
-            rowsMax={rowsMax}
+            {...(rowsMax === undefined ? {} : {rowsMax})}
             growAndScroll={growAndScroll}
             containerStyle={inputContainerStyle}
             inputStyle={inputStyle}

@@ -133,7 +133,7 @@ const Activity = (p: Props) => {
 }
 
 type MTProps = {title: string; teamID: T.Teams.TeamID}
-type ModalTitleProps = MTProps & {newTeamWizard?: T.Teams.NewTeamWizardState}
+type ModalTitleProps = MTProps & {newTeamWizard?: T.Teams.NewTeamWizardState | undefined}
 export const ModalTitle = ({title, teamID, newTeamWizard}: ModalTitleProps) => {
   const {teamMeta} = useLoadedTeam(teamID)
   const teamname = teamMeta.teamname
@@ -158,8 +158,8 @@ export const ModalTitle = ({title, teamID, newTeamWizard}: ModalTitleProps) => {
         teamname={displayTeamname === 'New team' ? '' : displayTeamname}
         style={styles.avatar}
         isTeam={true}
-        imageOverrideUrl={isNewTeamWizard ? avatarFilepath : undefined}
-        crop={isNewTeamWizard ? avatarCrop : undefined}
+        {...(avatarFilepath === undefined ? {} : {imageOverrideUrl: avatarFilepath})}
+        {...(avatarCrop === undefined ? {} : {crop: avatarCrop})}
       />
       <Kb.Box2 direction="vertical" alignItems="center">
         <Kb.Text type="BodySmall" lineClamp={1}>

@@ -229,6 +229,19 @@ export const useSafeFocusEffect = (fn: () => void) => {
   } catch {}
 }
 
+const dispatchReset = (
+  n: NonNullable<ReturnType<typeof _getNavigator>>,
+  state: Parameters<typeof CommonActions.reset>[0],
+  target?: string
+) => {
+  const action = CommonActions.reset(state)
+  if (!action.payload) {
+    return
+  }
+  const actionWithPayload = {...action, payload: action.payload}
+  n.dispatch(target ? {...actionWithPayload, target} : actionWithPayload)
+}
+
 // Helper to reduce boilerplate in route definitions
 // Works for components with or without route params
 export function makeScreen<COM extends React.LazyExoticComponent<any>>(
@@ -268,7 +281,7 @@ export const clearModals = () => {
   const n = _getNavigator()
   if (!n) return
   const ns = getRootState()
-  if (!_isLoggedIn(ns)) {
+  if (!ns?.key || !_isLoggedIn(ns)) {
     return
   }
   const rootRoutes = ns?.routes ?? []
@@ -276,14 +289,15 @@ export const clearModals = () => {
     (route, index) => index === 0 || rootNonModalRouteNames.has(route.name)
   )
   if (keepRoutes.length !== rootRoutes.length) {
-    n.dispatch({
-      ...CommonActions.reset({
+    dispatchReset(
+      n,
+      {
         ...ns,
         index: keepRoutes.length - 1,
         routes: keepRoutes,
-      } as Parameters<typeof CommonActions.reset>[0]),
-      target: ns?.key,
-    })
+      } as Parameters<typeof CommonActions.reset>[0],
+      ns.key
+    )
   }
 }
 
@@ -292,7 +306,7 @@ export const navigateUp = () => {
     console.log('[Nav] navigateUp')
   }
   const n = _getNavigator()
-  return n?.dispatch(CommonActions.goBack())
+  return n?.goBack()
 }
 
 export const popStack = () => {
@@ -336,14 +350,15 @@ export function navUpToScreen(nameOrPath: RouteKeys | NavigateAppendType, replac
     const nextRoutes = activeStackRoutes!.slice(0, routeIndex + 1).map((route, index) =>
       index === routeIndex ? {...route, params} : route
     )
-    n.dispatch({
-      ...CommonActions.reset({
+    dispatchReset(
+      n,
+      {
         ...activeStackState,
         index: routeIndex,
         routes: nextRoutes,
-      } as Parameters<typeof CommonActions.reset>[0]),
-      target: activeStackKey,
-    })
+      } as Parameters<typeof CommonActions.reset>[0],
+      activeStackState.key
+    )
     return
   }
 
@@ -430,11 +445,11 @@ export type PreviewReason =
   | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
 
 export type PreviewConversationParams = {
-  participants?: ReadonlyArray<string>
-  teamname?: string
-  channelname?: string
-  conversationIDKey?: T.Chat.ConversationIDKey
-  highlightMessageID?: T.Chat.MessageID
+  participants?: ReadonlyArray<string> | undefined
+  teamname?: string | undefined
+  channelname?: string | undefined
+  conversationIDKey?: T.Chat.ConversationIDKey | undefined
+  highlightMessageID?: T.Chat.MessageID | undefined
   reason: PreviewReason
 }
 
@@ -700,17 +715,18 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
     }
     return
   }
-  n.dispatch({
-    ...CommonActions.reset({...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<
+  dispatchReset(
+    n,
+    {...tabNavState, index: chatTabIndex, routes: updatedRoutes} as Parameters<
       typeof CommonActions.reset
-    >[0]),
-    target: tabNavState.key,
-  })
+    >[0],
+    tabNavState.key
+  )
 }
 
 type ThreadNavParams = {
-  createConversationError?: T.Chat.CreateConversationError
-  threadSearch?: {query?: string}
+  createConversationError?: T.Chat.CreateConversationError | undefined
+  threadSearch?: {query?: string | undefined} | undefined
 }
 
 export type NavigateToThreadReason =
@@ -776,10 +792,7 @@ const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: Th
         {name: 'chatConversation', params},
       ],
     }
-    n.dispatch({
-      ...CommonActions.reset(nextState as Parameters<typeof CommonActions.reset>[0]),
-      target: rs.key,
-    })
+    dispatchReset(n, nextState as Parameters<typeof CommonActions.reset>[0], rs.key)
   }
 }
 
@@ -806,7 +819,10 @@ export const navigateToThread = (
   }
 
   const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
-  const navParams = {createConversationError, threadSearch}
+  const navParams = {
+    ...(createConversationError === undefined ? {} : {createConversationError}),
+    ...(threadSearch === undefined ? {} : {threadSearch}),
+  }
   if (isSplit) {
     navToThread(conversationIDKey, navParams)
   } else if (reason === 'push' || reason === 'savedLastState') {
@@ -821,8 +837,12 @@ export const navigateToThread = (
 
     navigateAppend(
       {
-        name: threadRouteName,
-        params: {conversationIDKey, createConversationError, threadSearch},
+        name: 'chatConversation',
+        params: {
+          conversationIDKey,
+          ...(createConversationError === undefined ? {} : {createConversationError}),
+          ...(threadSearch === undefined ? {} : {threadSearch}),
+        },
       },
       replace
     )

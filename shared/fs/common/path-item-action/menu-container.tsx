@@ -22,8 +22,8 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {
-  downloadID?: string
-  downloadIntent?: T.FS.DownloadIntent
+  downloadID?: string | undefined
+  downloadIntent?: T.FS.DownloadIntent | undefined
   floatingMenuProps: FloatingMenuProps
   previousView: T.FS.PathItemActionMenuView
   path: T.FS.Path
@@ -104,11 +104,13 @@ const Container = (op: OwnProps) => {
 
   const previewConversation = C.Router2.previewConversation
   const openChat = cancelAfter(() => {
+    const {participants, teamname} = Util.tlfToParticipantsOrTeamname(T.FS.pathToString(path))
     previewConversation({
       reason: 'files',
       // tlfToParticipantsOrTeamname will route both public and private
       // folders to a private chat, which is exactly what we want.
-      ...Util.tlfToParticipantsOrTeamname(T.FS.pathToString(path)),
+      ...(participants === undefined ? {} : {participants}),
+      ...(teamname === undefined ? {} : {teamname}),
     })
   })
   const itemChatTeam = layout.openChatTeam
@@ -141,7 +143,6 @@ const Container = (op: OwnProps) => {
           disabled: true,
           icon: 'iconfont-download-2',
           inProgress: true,
-          onClick: undefined,
           title: 'Save',
         },
       ] as const
@@ -196,7 +197,6 @@ const Container = (op: OwnProps) => {
           disabled: true,
           icon: 'iconfont-share',
           inProgress: true,
-          onClick: undefined,
           title: 'Send to another app',
         },
       ] as const
@@ -272,10 +272,10 @@ const Container = (op: OwnProps) => {
           danger: true,
           disabled: ignoreTlf === 'disabled',
           icon: 'iconfont-hide',
-          onClick: ignoreTlf === 'disabled' ? undefined : hideAfter(ignoreTlf),
           progressIndicator: ignoreTlf === 'disabled',
           subTitle: 'Will hide the folder from your list.',
           title: 'Ignore this folder',
+          ...(ignoreTlf === 'disabled' ? {} : {onClick: hideAfter(ignoreTlf)}),
         },
       ] as const)
     : []

@@ -44,7 +44,7 @@ function UnfurlListContainer({
 }: {
   author: string
   conversationIDKey: T.Chat.ConversationIDKey
-  unfurls?: T.Chat.UnfurlMap
+  unfurls?: T.Chat.UnfurlMap | undefined
 }) {
   const ordinal = useOrdinal()
   const you = useCurrentUserState(s => s.username)

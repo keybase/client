@@ -9,7 +9,7 @@ import {useTeamsList} from '@/teams/use-teams-list'
 import {showTeamByName} from '@/teams/team-page-actions'
 
 type OwnProps = {
-  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
+  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase> | undefined
   username: string
 }
 

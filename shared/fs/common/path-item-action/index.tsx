@@ -16,8 +16,8 @@ type ClickableComponent = {
 }
 
 type ClickableIcon = {
-  actionIconWhite?: boolean
-  sizeType?: SizeType
+  actionIconWhite?: boolean | undefined
+  sizeType?: SizeType | undefined
   type: 'icon'
 }
 
@@ -59,8 +59,8 @@ const PathItemAction = (props: Props) => {
   const [previousView, setPreviousView] = React.useState(initView)
   const [view, setViewState] = React.useState(initView)
   const [downloadState, setDownloadState] = React.useState<{
-    downloadID?: string
-    downloadIntent?: T.FS.DownloadIntent
+    downloadID?: string | undefined
+    downloadIntent?: T.FS.DownloadIntent | undefined
   }>({})
 
   const setView = (nextView: T.FS.PathItemActionMenuView) => {

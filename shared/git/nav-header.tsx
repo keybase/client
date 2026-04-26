@@ -41,7 +41,6 @@ export const HeaderRightActions = () => {
 
     return (
       <Kb.FloatingMenu
-        attachTo={attachTo}
         closeOnSelect={true}
         visible={true}
         onHidden={hidePopup}
@@ -50,6 +49,7 @@ export const HeaderRightActions = () => {
           {icon: 'iconfont-person', onClick: onAddPersonal, title: 'New personal repository'},
           {icon: 'iconfont-people', onClick: onAddTeam, title: 'New team repository'},
         ]}
+        {...(attachTo === undefined ? {} : {attachTo})}
       />
     )
   }

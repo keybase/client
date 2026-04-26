@@ -62,9 +62,8 @@ const Download = (props: Props) => {
         <Kb.Box2 direction="vertical" flex={1} style={styles.nameAndProgress}>
           <Kb.Text
             type="BodySmallSemibold"
-            onClick={C.isMobile ? undefined : open}
             style={styles.filename}
-            lineClamp={C.isMobile ? 1 : undefined}
+            {...(C.isMobile ? {lineClamp: 1} : {onClick: open})}
           >
             {dlInfo.filename}
           </Kb.Text>

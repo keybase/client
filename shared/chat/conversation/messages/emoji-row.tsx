@@ -69,7 +69,7 @@ function EmojiRowContainer(p: OwnProps) {
       direction="horizontal"
       ref={popupAnchor}
       style={Kb.Styles.collapseStyles([styles.container, style])}
-      className={className}
+      {...(className !== undefined ? {className} : {})}
     >
       <Kb.Box2 direction="horizontal" gap="tiny">
         {emojis.map(e => (

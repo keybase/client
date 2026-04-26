@@ -40,7 +40,6 @@ function ReactionButton({
   return (
     <Kb.ClickableBox2
       className={Kb.Styles.classNames('react-button', className, {noShadow: active})}
-      onLongPress={onLongPress}
       onClick={onClick}
       style={Kb.Styles.collapseStyles([
         styles.borderBase,
@@ -49,6 +48,7 @@ function ReactionButton({
         active && styles.active,
         style,
       ])}
+      {...(onLongPress !== undefined ? {onLongPress} : {})}
     >
       <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny">
         <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal">
@@ -89,13 +89,13 @@ function ReactButtonContainer(p: OwnProps) {
   return (
     <ReactionButton
       active={active}
-      className={p.className}
       count={count}
       isDarkMode={isDarkMode}
       onClick={onClick}
-      onLongPress={p.onLongPress}
-      style={p.style}
       text={text}
+      {...(p.className !== undefined ? {className: p.className} : {})}
+      {...(p.onLongPress !== undefined ? {onLongPress: p.onLongPress} : {})}
+      {...(p.style !== undefined ? {style: p.style} : {})}
     />
   )
 }

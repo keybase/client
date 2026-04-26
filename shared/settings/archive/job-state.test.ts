@@ -21,21 +21,14 @@ const makeArchiveChatJobRequest = (
   identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
   jobID: 'job',
   outputPath: '/tmp/job',
-  query: undefined,
   ...overrides,
 })
 
 const makeInboxUIItem = (overrides: Partial<T.RPCChat.InboxUIItem> = {}): T.RPCChat.InboxUIItem => ({
-  botAliases: undefined,
   botCommands: noConversationCommands,
   channel: '',
   commands: noConversationCommands,
   convID: 'conv-id',
-  convRetention: undefined,
-  convSettings: undefined,
-  creatorInfo: undefined,
-  draft: undefined,
-  finalizeInfo: undefined,
   headline: '',
   headlineDecorated: '',
   isDefaultConv: false,
@@ -47,18 +40,11 @@ const makeInboxUIItem = (overrides: Partial<T.RPCChat.InboxUIItem> = {}): T.RPCC
   memberStatus: T.RPCChat.ConversationMemberStatus.active,
   membersType: T.RPCChat.ConversationMembersType.kbfs,
   name: '',
-  notifications: undefined,
-  participants: undefined,
-  pinnedMsg: undefined,
   readMsgID: 0,
-  resetParticipants: undefined,
   snippet: '',
   snippetDecorated: '',
   snippetDecoration: T.RPCChat.SnippetDecoration.none,
   status: T.RPCChat.ConversationStatus.unfiled,
-  supersededBy: undefined,
-  supersedes: undefined,
-  teamRetention: undefined,
   teamType: T.RPCChat.TeamType.none,
   time: 0,
   tlfID: 'tlf-id',
@@ -69,9 +55,7 @@ const makeInboxUIItem = (overrides: Partial<T.RPCChat.InboxUIItem> = {}): T.RPCC
 })
 
 const makeArchiveChatJob = (overrides: Partial<T.RPCChat.ArchiveChatJob> = {}): T.RPCChat.ArchiveChatJob => ({
-  checkpoints: undefined,
   err: '',
-  matchingConvs: undefined,
   messagesComplete: 0,
   messagesTotal: 0,
   request: makeArchiveChatJobRequest(),
@@ -88,7 +72,6 @@ const makeKBFSArchiveJobStatus = (
   bytesZipped: 0,
   completeCount: 0,
   desc: {
-    gitRepo: undefined,
     jobID: 'job',
     kbfsPathWithRevision: {
       archivedParam: {KBFSArchivedType: T.RPCGen.KBFSArchivedType.revision, revision: 0},
@@ -100,7 +83,6 @@ const makeKBFSArchiveJobStatus = (
     targetName: 'job.zip',
     zipFilePath: '/tmp/job.zip',
   },
-  error: undefined,
   inProgressCount: 0,
   phase: T.RPCGen.SimpleFSArchiveJobPhase.queued,
   skippedCount: 0,
@@ -117,7 +99,6 @@ test('mapKBFSJobs maps engine phases and archive metadata into UI jobs', () => {
         bytesTotal: 20,
         bytesZipped: 30,
         desc: {
-          gitRepo: undefined,
           jobID: 'job-1',
           kbfsPathWithRevision: {
             archivedParam: {KBFSArchivedType: T.RPCGen.KBFSArchivedType.revision, revision: 7},
@@ -149,7 +130,6 @@ test('mapKBFSJobs maps engine phases and archive metadata into UI jobs', () => {
           targetName: 'job-2.zip',
           zipFilePath: '/tmp/job-2.zip',
         },
-        error: undefined,
         phase: T.RPCGen.SimpleFSArchiveJobPhase.indexing,
       }),
     ],
@@ -184,7 +164,6 @@ test('mapChatJobs derives UI context and progress from chat archive RPC jobs', (
       request: makeArchiveChatJobRequest({
         jobID: 'all-chat',
         outputPath: '/tmp/all-chat',
-        query: undefined,
       }),
       startedAt: 111,
       status: T.RPCChat.ArchiveChatJobStatus.running,
@@ -195,7 +174,7 @@ test('mapChatJobs derives UI context and progress from chat archive RPC jobs', (
         jobID: 'conv-chat',
         outputPath: '/tmp/conv-chat',
         query: makeInboxQuery({
-          name: {membersType: T.RPCChat.ConversationMembersType.kbfs, name: 'alice,bob', tlfID: undefined},
+          name: {membersType: T.RPCChat.ConversationMembersType.kbfs, name: 'alice,bob'},
           topicName: 'general',
         }),
       }),
@@ -207,7 +186,7 @@ test('mapChatJobs derives UI context and progress from chat archive RPC jobs', (
         jobID: 'pending-chat',
         outputPath: '/tmp/pending-chat',
         query: makeInboxQuery({
-          name: {membersType: T.RPCChat.ConversationMembersType.kbfs, name: 'alice,bob', tlfID: undefined},
+          name: {membersType: T.RPCChat.ConversationMembersType.kbfs, name: 'alice,bob'},
           topicName: '',
         }),
       }),

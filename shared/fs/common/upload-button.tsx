@@ -12,19 +12,19 @@ import {useFsPathItem, useFsUpload} from './hooks'
 
 type OwnProps = {
   path: T.FS.Path
-  style?: Styles.StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform | undefined
 }
 
 type UploadButtonProps = {
   canUpload: boolean
-  openAndUploadBoth?: () => void
-  openAndUploadDirectory?: () => void
-  openAndUploadFile?: () => void
-  pickAndUploadFile?: () => void
-  pickAndUploadMixed?: () => void
-  pickAndUploadPhoto?: () => void
-  pickAndUploadVideo?: () => void
-  style: Styles.StylesCrossPlatform
+  openAndUploadBoth?: (() => void) | undefined
+  openAndUploadDirectory?: (() => void) | undefined
+  openAndUploadFile?: (() => void) | undefined
+  pickAndUploadFile?: (() => void) | undefined
+  pickAndUploadMixed?: (() => void) | undefined
+  pickAndUploadPhoto?: (() => void) | undefined
+  pickAndUploadVideo?: (() => void) | undefined
+  style?: Styles.StylesCrossPlatform | undefined
 }
 
 const UploadButton = (props: UploadButtonProps) => {

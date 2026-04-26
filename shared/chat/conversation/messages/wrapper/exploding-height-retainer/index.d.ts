@@ -2,7 +2,7 @@ import type * as React from 'react'
 import type * as Styles from '@/styles'
 export type Props = {
   children?: React.ReactElement
-  explodedBy?: string
+  explodedBy?: string | undefined
   exploding: boolean
   messageKey: string
   style?: Styles.StylesCrossPlatform

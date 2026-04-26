@@ -102,7 +102,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     const {attachTo, hidePopup} = p
     return (
       <Kb.FloatingMenu
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         closeOnSelect={true}
         items={menuItems}
         onHidden={hidePopup}

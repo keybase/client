@@ -43,11 +43,11 @@ export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
 export type MemberStatus = 'active' | 'deleted' | 'reset'
 export type TreeloaderSparseMemberInfo = {
-  joinTime?: number
+  joinTime?: number | undefined
   type: MaybeTeamRoleType
 }
 export type SparseMemberInfo = {
-  joinTime?: number
+  joinTime?: number | undefined
   type: TeamRoleType
 }
 export type MemberInfo = SparseMemberInfo & {
@@ -57,7 +57,7 @@ export type MemberInfo = SparseMemberInfo & {
   needsPUK: boolean
 }
 export type MemberInfoWithLastActivity = MemberInfo & {
-  lastActivity?: number
+  lastActivity?: number | undefined
 }
 
 export type InviteInfo = {
@@ -104,7 +104,7 @@ export type InviteLink = {
   id: string
   isValid: boolean
   validityDescription: string
-  lastJoinedUsername?: string
+  lastJoinedUsername?: string | undefined
   numUses: number
   role: TeamRoleType
   url: string

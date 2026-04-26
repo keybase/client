@@ -10,10 +10,10 @@ import ChooseConversation from './conversation-list/choose-conversation'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
-  canBack?: boolean
-  isFromShareExtension?: boolean
+  canBack?: boolean | undefined
+  isFromShareExtension?: boolean | undefined
   text?: string // incoming share (text)
-  sendPaths?: Array<string> // KBFS or incoming share (files)
+  sendPaths?: Array<string> | undefined // KBFS or incoming share (files)
 }
 
 const MobileSendToChatRoutable = (props: Props) => {

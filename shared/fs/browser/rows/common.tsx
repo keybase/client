@@ -5,19 +5,19 @@ import {OpenInSystemFileManager, ItemIcon, PathItemAction, PathStatusIcon} from 
 
 export type StillCommonProps = {
   path: T.FS.Path
-  inDestinationPicker?: boolean
-  onOpen?: () => void
-  mixedMode?: boolean
+  inDestinationPicker?: boolean | undefined
+  onOpen?: (() => void) | undefined
+  mixedMode?: boolean | undefined
 }
 
 export const StillCommon = (
   props: StillCommonProps & {
-    body?: React.ReactNode
+    body?: React.ReactNode | undefined
     // content and status are ignored if body is set.
-    content?: React.ReactNode
-    status?: React.ReactNode
+    content?: React.ReactNode | undefined
+    status?: React.ReactNode | undefined
     writingToJournal: boolean
-    uploadErrored?: boolean
+    uploadErrored?: boolean | undefined
   }
 ) => (
   <Kb.ListItem
@@ -33,11 +33,11 @@ export const StillCommon = (
           rowStyles.pathItemIcon,
           props.writingToJournal && !props.uploadErrored && rowStyles.opacity30,
         ])}
-        mixedMode={props.mixedMode}
+        {...(props.mixedMode === undefined ? {} : {mixedMode: props.mixedMode})}
       />
     }
     firstItem={true /* we add divider in Rows */}
-    onClick={props.onOpen}
+    {...(props.onOpen === undefined ? {} : {onClick: props.onOpen})}
     body={
       props.body || (
         <Kb.Box2

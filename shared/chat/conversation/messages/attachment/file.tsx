@@ -142,7 +142,7 @@ function FileContainer(p: OwnProps) {
                 messageType="attachment"
                 selectable={true}
                 style={getEditStyle(isEditing)}
-                styleOverride={styleOverride}
+                {...(styleOverride ? {styleOverride} : {})}
                 allowFontScaling={true}
               >
                 {title}

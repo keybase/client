@@ -5,11 +5,15 @@ import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-con
 
 // useFullScreenOverlay=false is useful to stick to an onscreen element like the audio recorder
 // otherwise you want it to be true so you can go above modals, aka the ... menu in an image attachment modal
-export const Portal = (p: {children: React.ReactNode; hostName?: string; useFullScreenOverlay?: boolean}) => {
+export const Portal = (p: {
+  children: React.ReactNode
+  hostName?: string | undefined
+  useFullScreenOverlay?: boolean | undefined
+}) => {
   const {children, hostName, useFullScreenOverlay} = p
   const fullWindow = (useFullScreenOverlay ?? true) && Styles.isIOS
   return fullWindow ? (
-    <GPortal hostName={hostName}>
+    <GPortal {...(hostName === undefined ? {} : {hostName})}>
       <FullWindowOverlay>
         <SafeAreaProvider initialMetrics={initialWindowMetrics} pointerEvents="box-none">
           {children}
@@ -17,7 +21,7 @@ export const Portal = (p: {children: React.ReactNode; hostName?: string; useFull
       </FullWindowOverlay>
     </GPortal>
   ) : (
-    <GPortal hostName={hostName}>{children}</GPortal>
+    <GPortal {...(hostName === undefined ? {} : {hostName})}>{children}</GPortal>
   )
 }
 

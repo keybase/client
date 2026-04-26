@@ -11,7 +11,7 @@ import {normalRowHeight} from './common'
 import {UploadButton} from '@/fs/common'
 
 export type Props = {
-  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource | undefined
   emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty'
   items: Array<RowTypes.RowItem>
   path: T.FS.Path

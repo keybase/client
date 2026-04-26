@@ -36,7 +36,14 @@ const TeamRow = function TeamRow(props: Props) {
 
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p
-      return <TeamMenu teamID={teamID} attachTo={attachTo} onHidden={hidePopup} visible={true} />
+      return (
+        <TeamMenu
+          teamID={teamID}
+          {...(attachTo === undefined ? {} : {attachTo})}
+          onHidden={hidePopup}
+          visible={true}
+        />
+      )
     }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
 

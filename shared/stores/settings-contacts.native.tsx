@@ -21,9 +21,7 @@ const initialStore: Store = {
   alreadyOnKeybase: [],
   importError: '',
   importPromptDismissed: false,
-  importedCount: undefined,
   permissionStatus: 'unknown',
-  userCountryCode: undefined,
   waitingToShowJoinedModal: false,
 }
 
@@ -41,7 +39,14 @@ const nativeContactsToContacts = (contacts: Contacts.ContactResponse, countryCod
       }
       return res
     }, [])
-    components.push(...emails.map(e => ({email: e.email, label: e.label})))
+    components.push(
+      ...emails.reduce<T.RPCGen.ContactComponent[]>((res, e) => {
+        if (e.email !== undefined) {
+          res.push({email: e.email, label: e.label})
+        }
+        return res
+      }, [])
+    )
     if (components.length) {
       ret.push({components, name})
     }
@@ -150,7 +155,7 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
         if (get().importEnabled === false) {
           await T.RPCGen.contactsSaveContactListRpcPromise({contacts: []})
           set(s => {
-            s.importedCount = undefined
+            delete s.importedCount
             s.importError = ''
           })
           return
@@ -193,7 +198,7 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
           const error = _error as {message: string}
           logger.error(`error loading contacts: ${error.message}`)
           set(s => {
-            s.importedCount = undefined
+            delete s.importedCount
             s.importError = error.message
           })
           return
@@ -230,7 +235,7 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
           const error = _error as {message: string}
           logger.error('Error saving contacts list: ', error.message)
           set(s => {
-            s.importedCount = undefined
+            delete s.importedCount
             s.importError = error.message
           })
         }

@@ -52,7 +52,7 @@ export const PaperKey = (props: Props) => {
         },
       ]}
       noBackground={true}
-      onBack={props.onBack}
+      {...(props.onBack === undefined ? {} : {onBack: props.onBack})}
       title={C.isMobile ? 'Enter paper key' : 'Enter your paper key'}
     >
       <Kb.Box2

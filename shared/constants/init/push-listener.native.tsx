@@ -87,16 +87,20 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
         } as const
       }
       case 'chat.newmessage':
-        return data.convID
-          ? {
-              conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
-              forUid,
-              membersType: anyToConversationMembersType(data.t),
-              type: 'chat.newmessage',
-              unboxPayload: data.m || '',
-              userInteraction,
-            }
-          : undefined
+        if (!data.convID) {
+          return undefined
+        }
+        {
+          const membersType = anyToConversationMembersType(data.t)
+          return {
+            conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
+            ...(forUid === undefined ? {} : {forUid}),
+            ...(membersType === undefined ? {} : {membersType}),
+            type: 'chat.newmessage',
+            unboxPayload: data.m || '',
+            userInteraction,
+          } as const
+        }
       case 'chat.newmessageSilent_2':
         if (data.c) {
           const membersType = anyToConversationMembersType(data.t)
@@ -111,19 +115,23 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
         }
         return undefined
       case 'follow':
-        return data.username
-          ? {
-              forUid: forUid ?? dataUid.targetUID,
-              type: 'follow',
-              userInteraction,
-              username: data.username,
-            }
-          : undefined
+        if (!data.username) {
+          return undefined
+        }
+        {
+          const followUid = forUid ?? dataUid.targetUID
+          return {
+            ...(followUid === undefined ? {} : {forUid: followUid}),
+            type: 'follow',
+            userInteraction,
+            username: data.username,
+          } as const
+        }
       case 'chat.extension':
         return data.convID
           ? {
               conversationIDKey: T.Chat.stringToConversationIDKey(data.convID),
-              forUid,
+              ...(forUid === undefined ? {} : {forUid}),
               type: 'chat.extension',
             }
           : undefined

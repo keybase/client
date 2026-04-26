@@ -6,14 +6,14 @@ import ImageIcon from './image-icon'
 
 export type IconAutoProps = {
   type: IconType
-  style?: Styles.StylesCrossPlatform
-  color?: Styles.Color
-  fontSize?: number
-  sizeType?: SizeType
-  className?: string
-  hoverColor?: Styles.Color
-  onClick?: () => void
-  padding?: keyof typeof Styles.globalMargins
+  style?: Styles.StylesCrossPlatform | undefined
+  color?: Styles.Color | undefined
+  fontSize?: number | undefined
+  sizeType?: SizeType | undefined
+  className?: string | undefined
+  hoverColor?: Styles.Color | undefined
+  onClick?: (() => void) | undefined
+  padding?: keyof typeof Styles.globalMargins | undefined
 }
 
 const IconAuto = (props: IconAutoProps) => {

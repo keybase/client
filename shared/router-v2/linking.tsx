@@ -7,6 +7,8 @@ import type * as UsePushStateType from '@/stores/push'
 import type {LinkingOptions} from '@react-navigation/native'
 import type {RootParamList} from './route-params'
 
+type GetStateFromPath = NonNullable<LinkingOptions<RootParamList>['getStateFromPath']>
+
 // ---- URL normalization ----
 
 // Convert https://keybase.io/ URLs to keybase:// URLs
@@ -308,7 +310,7 @@ export const createLinkingConfig = (
   // On native this is a no-op since there's no browser URL to update.
   getPathFromState: () => '',
 
-  getStateFromPath: customGetStateFromPath as LinkingOptions<RootParamList>['getStateFromPath'],
+  getStateFromPath: customGetStateFromPath as GetStateFromPath,
 
   prefixes: ['keybase://'],
 

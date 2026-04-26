@@ -86,10 +86,10 @@ const DragAndDrop = (props: Props) => {
   return (
     <Box2
       direction="vertical"
-      fullHeight={props.fullHeight}
-      fullWidth={props.fullWidth}
       onDragOver={_onDragOver}
       style={Styles.collapseStyles([styles.containerStyle, props.containerStyle])}
+      {...(props.fullHeight === undefined ? {} : {fullHeight: props.fullHeight})}
+      {...(props.fullWidth === undefined ? {} : {fullWidth: props.fullWidth})}
     >
       {props.children}
       {showDropOverlay && _dropOverlay()}

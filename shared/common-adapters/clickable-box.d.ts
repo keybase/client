@@ -2,45 +2,45 @@ import type * as React from 'react'
 import type * as Styles from '@/styles'
 import type {MeasureRef} from './measure-ref'
 export type Props = {
-  className?: string
-  children?: React.ReactNode
-  style?: Styles.StylesCrossPlatform
-  onClick?: (event: React.BaseSyntheticEvent) => void
-  onDoubleClick?: (event: React.BaseSyntheticEvent) => void
+  className?: string | undefined
+  children?: React.ReactNode | undefined
+  style?: Styles.StylesCrossPlatform | undefined
+  onClick?: ((event: React.BaseSyntheticEvent) => void) | undefined
+  onDoubleClick?: ((event: React.BaseSyntheticEvent) => void) | undefined
   onPress?: never
-  onLongPress?: (event: React.BaseSyntheticEvent) => void
-  underlayColor?: string
-  onPressIn?: () => void
-  onPressOut?: () => void
+  onLongPress?: ((event: React.BaseSyntheticEvent) => void) | undefined
+  underlayColor?: string | undefined
+  onPressIn?: (() => void) | undefined
+  onPressOut?: (() => void) | undefined
   // mobile only
-  feedback?: boolean
-  activeOpacity?: number
+  feedback?: boolean | undefined
+  activeOpacity?: number | undefined
   // desktop only
-  hoverColor?: string
-  onMouseOver?: (event: React.MouseEvent) => void
-  onMouseEnter?: (event: React.MouseEvent) => void
-  onMouseLeave?: (event: React.MouseEvent) => void
-  onMouseDown?: (event: React.MouseEvent) => void
-  onMouseMove?: (event: React.MouseEvent) => void
-  onMouseUp?: (event: React.MouseEvent) => void
-  title?: string
-  tooltip?: string
+  hoverColor?: string | undefined
+  onMouseOver?: ((event: React.MouseEvent) => void) | undefined
+  onMouseEnter?: ((event: React.MouseEvent) => void) | undefined
+  onMouseLeave?: ((event: React.MouseEvent) => void) | undefined
+  onMouseDown?: ((event: React.MouseEvent) => void) | undefined
+  onMouseMove?: ((event: React.MouseEvent) => void) | undefined
+  onMouseUp?: ((event: React.MouseEvent) => void) | undefined
+  title?: string | undefined
+  tooltip?: string | undefined
 }
 
 export type Props2 = {
   // mobile only
-  onLongPress?: () => void
-  hitSlop?: number
-  testID?: string
+  onLongPress?: (() => void) | undefined
+  hitSlop?: number | undefined
+  testID?: string | undefined
   // desktop only
-  onMouseOver?: (event: React.MouseEvent) => void
+  onMouseOver?: ((event: React.MouseEvent) => void) | undefined
 
-  onClick?: () => void
+  onClick?: (() => void) | undefined
   children: React.ReactNode
-  className?: string
-  style?: Styles.StylesCrossPlatform
+  className?: string | undefined
+  style?: Styles.StylesCrossPlatform | undefined
 }
 
-export declare function ClickableBox(props: Props & {ref?: React.Ref<MeasureRef>}): React.ReactNode
-export declare function ClickableBox2(props: Props2 & {ref?: React.Ref<MeasureRef | null>}): React.ReactNode
+export declare function ClickableBox(props: Props & {ref?: React.Ref<MeasureRef> | undefined}): React.ReactNode
+export declare function ClickableBox2(props: Props2 & {ref?: React.Ref<MeasureRef | null> | undefined}): React.ReactNode
 export default ClickableBox

@@ -16,7 +16,7 @@ const ChooseConversation = (props: Props) => {
     const {attachTo, hidePopup} = p
     return (
       <Kb.Popup
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         onHidden={hidePopup}
         position="center center"
         style={styles.overlay}

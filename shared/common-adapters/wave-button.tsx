@@ -20,10 +20,10 @@ const Kb = {
 }
 
 type Props = {
-  small?: boolean
-  style?: Styles.StylesCrossPlatform
-  toMany?: boolean
-  disabled?: boolean
+  small?: boolean | undefined
+  style?: Styles.StylesCrossPlatform | undefined
+  toMany?: boolean | undefined
+  disabled?: boolean | undefined
 } & (
   | {conversationIDKey: T.Chat.ConversationIDKey; username?: never}
   | {conversationIDKey?: never; username: string}

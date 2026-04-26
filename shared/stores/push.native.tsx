@@ -26,7 +26,6 @@ export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 
 const initialStore: Store = {
   hasPermissions: true,
   justSignedUp: false,
-  pendingPushNotification: undefined,
   showPushPrompt: false,
   token: '',
 }
@@ -113,7 +112,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
     },
     clearPendingPushNotification: () => {
       set(s => {
-        s.pendingPushNotification = undefined
+        delete s.pendingPushNotification
       })
     },
     deleteToken: version => {

@@ -26,11 +26,11 @@ const Container = (ownProps: OwnProps) => {
   const onClick = Chat.isSpecialMention(username) ? undefined : _onClick
 
   const props = {
-    allowFontScaling: ownProps.allowFontScaling,
-    onClick,
-    style: ownProps.style,
     theme,
     username,
+    ...(ownProps.allowFontScaling === undefined ? {} : {allowFontScaling: ownProps.allowFontScaling}),
+    ...(onClick === undefined ? {} : {onClick}),
+    ...(ownProps.style === undefined ? {} : {style: ownProps.style}),
   }
 
   return <Mention {...props} />

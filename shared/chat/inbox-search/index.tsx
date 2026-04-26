@@ -232,12 +232,13 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     const {item, section, index} = h
     const numHits = item.type === 'text' ? item.numHits : undefined
     const realIndex = index + section.indexOffset
+    const hitProps = numHits === undefined ? {} : {numSearchHits: numHits}
     return item.sizeType === 'big' ? (
       <ConvoState.ChatProvider id={item.conversationIDKey}>
         <SelectableBigTeamChannel
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
           name={item.name}
-          numSearchHits={numHits}
+          {...hitProps}
           maxSearchHits={inboxSearchMaxTextMessages}
           onSelectConversation={() => section.onSelect(item, realIndex)}
         />
@@ -247,7 +248,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
         <SelectableSmallTeam
           isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
           name={item.name}
-          numSearchHits={numHits}
+          {...hitProps}
           maxSearchHits={inboxSearchMaxTextMessages}
           onSelectConversation={() => section.onSelect(item, realIndex)}
         />
@@ -419,14 +420,13 @@ const OpenTeamRow = (p: OpenTeamProps) => {
     const {attachTo, hidePopup} = p
     return (
       <TeamInfo
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         description={description}
         inTeam={inTeam}
         isOpen={true}
         name={name}
         membersCount={memberCount}
         position="right center"
-        onChat={undefined}
         onHidden={hidePopup}
         onJoinTeam={() => navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: name}})}
         onViewTeam={() => {
@@ -474,7 +474,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             type="BodySemibold"
             style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black}}
             title={name}
-            lineClamp={Kb.Styles.isMobile ? 1 : undefined}
+            {...(Kb.Styles.isMobile ? {lineClamp: 1} : {})}
             ellipsizeMode="tail"
           >
             {name}

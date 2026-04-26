@@ -7,7 +7,7 @@ import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 
 type BodyProps = {
   autoFocus?: boolean
-  defaultCountry?: string
+  defaultCountry?: string | undefined
   onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onContinue: () => void
   searchable: boolean
@@ -16,7 +16,6 @@ type BodyProps = {
 }
 
 export const EnterPhoneNumberBody = (props: BodyProps) => {
-  const showCheckbox = !!props.onChangeSearchable
   return (
     <Kb.Box2
       alignItems="center"
@@ -29,12 +28,12 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <Kb.PhoneInput
           autoFocus={props.autoFocus ?? true}
-          defaultCountry={props.defaultCountry}
+          {...(props.defaultCountry === undefined ? {} : {defaultCountry: props.defaultCountry})}
           style={styles.input}
           onChangeNumber={props.onChangeNumber}
           onEnterKeyDown={props.onContinue}
         />
-        {showCheckbox ? (
+        {props.onChangeSearchable ? (
           <Kb.Checkbox
             label="Allow friends to find you by this phone number"
             checked={props.searchable}

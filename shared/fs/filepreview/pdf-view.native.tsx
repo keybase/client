@@ -8,7 +8,7 @@ const PdfView = (props: Props) => (
       url={props.url}
       pinnedURLMode={true}
       style={styles.webview}
-      onError={props.onUrlError}
+      {...(props.onUrlError === undefined ? {} : {onError: props.onUrlError})}
       showLoadingStateUntilLoaded={true}
     />
   </Kb.Box2>

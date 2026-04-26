@@ -26,9 +26,10 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const deleteOtherEmoji = yourOperations.deleteOtherEmojis
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
   const onAddAlias = () => {
+    const params = {conversationIDKey, defaultSelected: emojiData}
     nav.safeNavigateAppend({
       name: 'teamAddEmojiAlias',
-      params: {conversationIDKey, defaultSelected: emojiData},
+      params,
     })
   }
   const isStockAlias = emoji.remoteSource.typ === T.RPCChat.EmojiRemoteSourceTyp.stockalias

@@ -198,20 +198,20 @@ const DragLine = (p: {
 }
 
 type InboxProps = {
-  conversationIDKey?: T.Chat.ConversationIDKey
-  refreshInbox?: T.Chat.ChatRootInboxRefresh
-  search?: InboxSearchController
+  conversationIDKey?: T.Chat.ConversationIDKey | undefined
+  refreshInbox?: T.Chat.ChatRootInboxRefresh | undefined
+  search?: InboxSearchController | undefined
 }
 
 type ControlledInboxProps = {
-  conversationIDKey?: T.Chat.ConversationIDKey
-  refreshInbox?: T.Chat.ChatRootInboxRefresh
+  conversationIDKey?: T.Chat.ConversationIDKey | undefined
+  refreshInbox?: T.Chat.ChatRootInboxRefresh | undefined
   search: InboxSearchController
 }
 
 function InboxWithSearch(props: {
-  conversationIDKey?: T.Chat.ConversationIDKey
-  refreshInbox?: T.Chat.ChatRootInboxRefresh
+  conversationIDKey?: T.Chat.ConversationIDKey | undefined
+  refreshInbox?: T.Chat.ChatRootInboxRefresh | undefined
 }) {
   const search = useInboxSearch()
   return <InboxBody conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} search={search} />

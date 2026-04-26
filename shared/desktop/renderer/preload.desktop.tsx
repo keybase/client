@@ -36,9 +36,17 @@ if (isRenderer) {
         clipboardAvailableFormats: async () => {
           return invoke({type: 'clipboardAvailableFormats'})
         },
-        closeRenderer: (options: {windowComponent?: string; windowParam?: string}) => {
+        closeRenderer: (options: {windowComponent?: string | undefined; windowParam?: string | undefined}) => {
           const {windowComponent, windowParam} = options
-          ignorePromise(invoke({payload: {windowComponent, windowParam}, type: 'closeRenderer'}))
+          ignorePromise(
+            invoke({
+              payload: {
+                ...(windowComponent === undefined ? {} : {windowComponent}),
+                ...(windowParam === undefined ? {} : {windowParam}),
+              },
+              type: 'closeRenderer',
+            })
+          )
         },
         closeWindow: () => {
           ignorePromise(invoke({type: 'closeWindow'}))
@@ -115,13 +123,13 @@ if (isRenderer) {
         makeRenderer: (options: {
           windowComponent: string
           windowOpts: {
-            hasShadow?: boolean
+            hasShadow?: boolean | undefined
             height: number
-            transparent?: boolean
+            transparent?: boolean | undefined
             width: number
           }
-          windowParam?: string
-          windowPositionBottomRight?: boolean
+          windowParam?: string | undefined
+          windowPositionBottomRight?: boolean | undefined
         }) => {
           const {windowComponent, windowOpts, windowParam, windowPositionBottomRight} = options
           ignorePromise(
@@ -129,8 +137,8 @@ if (isRenderer) {
               payload: {
                 windowComponent,
                 windowOpts,
-                windowParam,
-                windowPositionBottomRight,
+                ...(windowParam === undefined ? {} : {windowParam}),
+                ...(windowPositionBottomRight === undefined ? {} : {windowPositionBottomRight}),
               },
               type: 'makeRenderer',
             })
@@ -180,7 +188,7 @@ if (isRenderer) {
         },
         selectFilesToUploadDialog: async (type: 'file' | 'directory' | 'both', parent?: string) => {
           return invoke({
-            payload: {parent, type},
+            payload: {...(parent === undefined ? {} : {parent}), type},
             type: 'selectFilesToUploadDialog',
           })
         },

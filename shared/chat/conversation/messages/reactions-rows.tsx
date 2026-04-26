@@ -89,10 +89,10 @@ function RowItem(p: IProps) {
       <ReactButton
         className={btnClassName}
         emoji={emoji}
-        onLongPress={Kb.Styles.isMobile ? showPopup : undefined}
         reaction={reaction}
         style={styles.button}
         toggleReaction={onReact}
+        {...(Kb.Styles.isMobile ? {onLongPress: showPopup} : {})}
       />
       {popup}
     </Kb.Box2>

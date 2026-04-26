@@ -62,7 +62,7 @@ const SortHeader = ({onChangeSort, sortOrder}: {onChangeSort: Props['onChangeSor
       const {attachTo, hidePopup} = p
       return (
         <Kb.FloatingMenu
-          attachTo={attachTo}
+          {...(attachTo === undefined ? {} : {attachTo})}
           items={[
             {icon: 'iconfont-team', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
             {

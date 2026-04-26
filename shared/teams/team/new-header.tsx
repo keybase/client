@@ -102,7 +102,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const avatar = (
     <Kb.Avatar
-      onClick={onEditAvatar}
+      {...(onEditAvatar === undefined ? {} : {onClick: onEditAvatar})}
       teamname={meta.teamname}
       size={96}
       style={Kb.Styles.collapseStyles([
@@ -176,7 +176,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           <Kb.Text
             type="Body"
             lineClamp={3}
-            onClick={onEditDescription}
+            {...(onEditDescription === undefined ? {} : {onClick: onEditDescription})}
             className={Kb.Styles.classNames({'hover-underline': !!onEditDescription})}
             style={styles.clickable}
           >
@@ -191,7 +191,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         <Activity level={activityLevel} style={styles.activity} />
         <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
           {meta.isMember && <Kb.Button label="Chat" onClick={onChat} small={true} />}
-          {yourOperations.editTeamDescription && (
+          {!!onEditDescription && (
             <Kb.Button label="Edit" onClick={onEditDescription} small={true} mode="Secondary" />
           )}
           <Kb.Button label="Share" onClick={showPopup} small={true} mode="Secondary" ref={popupAnchor} />

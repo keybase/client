@@ -26,38 +26,38 @@ const followSizeToStyle48 = {bottom: 0, left: 30, position: 'absolute'} as const
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 export type NameWithIconProps = {
-  avatarImageOverride?: string
-  avatarSize?: AvatarSize
-  avatarStyle?: Styles.StylesCrossPlatform
-  botAlias?: string | React.ReactNode
-  colorBroken?: boolean
-  colorFollowing?: boolean
-  notFollowingColorOverride?: AllowedColors
-  containerStyle?: Styles.StylesCrossPlatform
-  editableIcon?: boolean
-  hideFollowingOverlay?: boolean
-  horizontal?: boolean
-  icon?: IconType
-  iconBoxStyle?: Styles.StylesCrossPlatform
-  isYou?: boolean
-  metaOne?: string | React.ReactNode
-  metaStyle?: Styles.StylesCrossPlatform
-  metaTwo?: string | React.ReactElement // If components such as metaOne or
+  avatarImageOverride?: string | undefined
+  avatarSize?: AvatarSize | undefined
+  avatarStyle?: Styles.StylesCrossPlatform | undefined
+  botAlias?: string | React.ReactNode | undefined
+  colorBroken?: boolean | undefined
+  colorFollowing?: boolean | undefined
+  notFollowingColorOverride?: AllowedColors | undefined
+  containerStyle?: Styles.StylesCrossPlatform | undefined
+  editableIcon?: boolean | undefined
+  hideFollowingOverlay?: boolean | undefined
+  horizontal?: boolean | undefined
+  icon?: IconType | undefined
+  iconBoxStyle?: Styles.StylesCrossPlatform | undefined
+  isYou?: boolean | undefined
+  metaOne?: string | React.ReactNode | undefined
+  metaStyle?: Styles.StylesCrossPlatform | undefined
+  metaTwo?: string | React.ReactElement | undefined // If components such as metaOne or
   // metaTwo are passed in to NameWithIcon with click handlers and NameWithIcon has its own onClick handler,
   // both will fire unless the inner clicks call `event.preventDefault()`
-  onClick?: (username: string) => void
-  clickType?: 'profile' | 'onClick'
-  onEditIcon?: (e?: React.BaseSyntheticEvent) => void
-  selectable?: boolean
-  size?: Size
-  teamname?: string
-  channelname?: string
+  onClick?: ((username: string) => void) | undefined
+  clickType?: 'profile' | 'onClick' | undefined
+  onEditIcon?: ((e?: React.BaseSyntheticEvent) => void) | undefined
+  selectable?: boolean | undefined
+  size?: Size | undefined
+  teamname?: string | undefined
+  channelname?: string | undefined
   // for non-users
-  title?: string | React.ReactNode
-  titleStyle?: StylesTextCrossPlatform
-  underline?: boolean
-  username?: string
-  withProfileCardPopup?: boolean
+  title?: string | React.ReactNode | undefined
+  titleStyle?: StylesTextCrossPlatform | undefined
+  underline?: boolean | undefined
+  username?: string | undefined
+  withProfileCardPopup?: boolean | undefined
 }
 
 // If lineclamping isn't working, try adding a static width in containerStyle
@@ -411,7 +411,7 @@ const getAdapterProps = (
 }
 
 export type ConnectedNameWithIconProps = {
-  onClick?: 'profile' | NameWithIconProps['onClick']
+  onClick?: 'profile' | NameWithIconProps['onClick'] | undefined
 } & Omit<NameWithIconProps, 'onClick'>
 
 type OwnProps = ConnectedNameWithIconProps

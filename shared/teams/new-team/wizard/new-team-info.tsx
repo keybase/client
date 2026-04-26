@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
-import {type NewTeamWizard} from './state'
+import {clearNewTeamWizardError, type NewTeamWizard} from './state'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import {useLoadedTeam} from '../../team/use-loaded-team'
@@ -101,16 +101,15 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
   const navigateAppend = C.Router2.navigateAppend
 
   const onContinue = () => {
-    const wizard = {
+    const wizard = clearNewTeamWizardError({
       ...teamWizardState,
       addYourself,
       description,
-      error: undefined,
       name: teamname,
       open: openTeam,
       openTeamJoinRole: realRole,
       profileShowcase: showcase,
-    }
+    })
     navigation.setParams({wizard})
     navigateAppend({
       name: 'profileEditAvatar',

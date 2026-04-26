@@ -8,10 +8,10 @@ export type Device = {
   deviceNumberOfType: number
   lastUsed: number
   name: string
-  provisionedAt?: number
-  provisionerName?: string
-  revokedAt?: number
-  revokedByName?: string
+  provisionedAt?: number | undefined
+  provisionerName?: string | undefined
+  revokedAt?: number | undefined
+  revokedByName?: string | undefined
   type: DeviceType
 }
 

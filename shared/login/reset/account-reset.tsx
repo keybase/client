@@ -63,7 +63,14 @@ export const enterResetPipeline = ({onError, password = '', username}: EnterRese
           'keybase.1.loginUi.displayResetProgress': params => {
             const endTime = params.needVerify ? undefined : params.endTime * 1000
             navigateAppend(
-              {name: 'resetWaiting', params: {endTime, pipelineStarted: !params.needVerify, username}},
+              {
+                name: 'resetWaiting',
+                params: {
+                  pipelineStarted: !params.needVerify,
+                  username,
+                  ...(endTime === undefined ? {} : {endTime}),
+                },
+              },
               true
             )
           },

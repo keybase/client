@@ -41,7 +41,7 @@ export const useAddPhoneNumber = () => {
 }
 
 type UsePhoneVerificationParams = {
-  initialResend?: boolean
+  initialResend?: boolean | undefined
   onSuccess?: () => void
   phoneNumber: string
 }

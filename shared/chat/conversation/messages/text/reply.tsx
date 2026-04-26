@@ -5,7 +5,7 @@ import {useIsHighlighted} from '../ids-context'
 import type * as T from '@/constants/types'
 
 export const useReply = (replyTo?: T.Chat.MessageReplyTo, onClick?: () => void) => {
-  return replyTo ? <Reply replyTo={replyTo} onClick={onClick} /> : null
+  return replyTo ? <Reply replyTo={replyTo} {...(onClick ? {onClick} : {})} /> : null
 }
 
 const ReplyToContext = React.createContext<T.Chat.MessageReplyTo>(null!)
@@ -81,7 +81,7 @@ function ReplyStructure(p: RS) {
   const {showImage, showEdited, isDeleted, onClick} = p
 
   return (
-    <Kb.ClickableBox2 onClick={onClick}>
+    <Kb.ClickableBox2 {...(onClick ? {onClick} : {})}>
       <Kb.Box2
         direction="horizontal"
         gap="tiny"
@@ -126,7 +126,12 @@ function Reply({replyTo, onClick}: {onClick?: () => void; replyTo: T.Chat.Messag
 
   return (
     <ReplyToContext value={replyTo}>
-      <ReplyStructure isDeleted={isDeleted} showImage={showImage} showEdited={showEdited} onClick={onClick} />
+      <ReplyStructure
+        isDeleted={isDeleted}
+        showImage={showImage}
+        showEdited={showEdited}
+        {...(onClick ? {onClick} : {})}
+      />
     </ReplyToContext>
   )
 }

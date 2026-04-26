@@ -142,7 +142,7 @@ function ReloadableDevices() {
 
   return (
     <Kb.Reloadable
-      onBack={C.isMobile ? onBack : undefined}
+      {...(C.isMobile ? {onBack} : {})}
       waitingKeys={C.waitingKeyDevices}
       onReload={loadDevices}
       reloadOnMount={true}

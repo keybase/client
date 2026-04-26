@@ -18,7 +18,7 @@ function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
 }
 
-const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode => {
+const FullWindow = ({children}: {children?: React.ReactNode | undefined}): React.ReactNode => {
   return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 
@@ -77,7 +77,7 @@ function PopupSheet(props: PopupProps) {
       handleIndicatorStyle={styles.handleIndicatorStyle}
       style={styles.modalStyle}
       backdropComponent={Backdrop}
-      onDismiss={onHidden}
+      {...(onHidden === undefined ? {} : {onDismiss: onHidden})}
     >
       <BottomSheetView>{children}</BottomSheetView>
     </BottomSheetModal>

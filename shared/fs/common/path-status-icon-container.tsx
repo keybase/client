@@ -6,10 +6,10 @@ import {useFsPathItem, useFsTlf, useFsTlfs} from './hooks'
 import * as FS from '@/stores/fs'
 
 type OwnPropsPathItem = {
-  loadOnMount?: boolean
+  loadOnMount?: boolean | undefined
   path: T.FS.Path
-  showTooltipOnPressMobile?: boolean
-  subscribe?: boolean
+  showTooltipOnPressMobile?: boolean | undefined
+  subscribe?: boolean | undefined
 }
 
 const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
@@ -40,7 +40,7 @@ const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
 }
 
 type OwnPropsTlfType = {
-  tlfType?: T.FS.TlfType
+  tlfType?: T.FS.TlfType | undefined
 }
 
 const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
@@ -64,10 +64,10 @@ const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
 }
 
 type OwnProps = {
-  loadOnMount?: boolean
+  loadOnMount?: boolean | undefined
   path: T.FS.Path
-  showTooltipOnPressMobile?: boolean
-  subscribe?: boolean
+  showTooltipOnPressMobile?: boolean | undefined
+  subscribe?: boolean | undefined
 }
 
 const PathStatusIconConnected = (props: OwnProps) =>

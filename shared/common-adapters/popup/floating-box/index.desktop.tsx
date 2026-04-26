@@ -8,16 +8,16 @@ const FloatingBox = (props: Props) => {
 
   return (
     <RelativeFloatingBox
-      attachTo={attachTo}
-      disableEscapeKey={disableEscapeKey}
       position={position || 'bottom center'}
-      positionFallbacks={positionFallbacks}
       matchDimension={!!matchDimension}
       onClosePopup={onHidden || noop}
-      remeasureHint={remeasureHint}
-      propagateOutsideClicks={propagateOutsideClicks}
-      style={containerStyle}
-      offset={offset}
+      {...(attachTo === undefined ? {} : {attachTo})}
+      {...(disableEscapeKey === undefined ? {} : {disableEscapeKey})}
+      {...(positionFallbacks === undefined ? {} : {positionFallbacks})}
+      {...(remeasureHint === undefined ? {} : {remeasureHint})}
+      {...(propagateOutsideClicks === undefined ? {} : {propagateOutsideClicks})}
+      {...(containerStyle === undefined ? {} : {style: containerStyle})}
+      {...(offset === undefined ? {} : {offset})}
     >
       {children}
     </RelativeFloatingBox>

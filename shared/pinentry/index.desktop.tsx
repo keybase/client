@@ -6,11 +6,11 @@ import DragHeader from '../desktop/remote/drag-header.desktop'
 export type Props = {
   onSubmit: (password: string) => void
   onCancel: () => void
-  showTyping?: T.RPCGen.Feature
+  showTyping?: T.RPCGen.Feature | undefined
   type: T.RPCGen.PassphraseType
   prompt: string
-  retryLabel?: string
-  submitLabel?: string
+  retryLabel?: string | undefined
+  submitLabel?: string | undefined
 }
 
 const Pinentry = (props: Props) => {

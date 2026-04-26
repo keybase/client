@@ -11,6 +11,8 @@ import {settingsDesktopTabRoutes} from './routes'
 import {settingsAccountTab} from '@/constants/settings'
 import type {SettingsAccountRouteParams} from './routes'
 
+const tabRouter = TabRouter as unknown as Parameters<typeof useNavigationBuilder>[0]
+
 function LeftTabNavigator({
   initialRouteName,
   children,
@@ -19,7 +21,7 @@ function LeftTabNavigator({
 }: Parameters<typeof useNavigationBuilder>[1] & {
   backBehavior: 'initialRoute' | 'firstRoute' | 'history' | 'order' | 'none'
 }) {
-  const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
+  const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(tabRouter, {
     backBehavior,
     children,
     initialRouteName,

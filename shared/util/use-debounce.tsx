@@ -5,10 +5,10 @@ type AnyFunction = (...args: Array<any>) => any
 type TimerID = ReturnType<typeof setTimeout>
 
 type DebounceRuntime<T extends AnyFunction> = {
-  lastArgs?: Parameters<T>
-  lastCallTime?: number
-  lastResult?: ReturnType<T>
-  timerID?: TimerID
+  lastArgs?: Parameters<T> | undefined
+  lastCallTime?: number | undefined
+  lastResult?: ReturnType<T> | undefined
+  timerID?: TimerID | undefined
 }
 
 export type DebouncedState<T extends AnyFunction> = ((...args: Parameters<T>) => ReturnType<T> | undefined) & {
@@ -18,8 +18,8 @@ export type DebouncedState<T extends AnyFunction> = ((...args: Parameters<T>) =>
 }
 
 type DebounceOptions = {
-  leading?: boolean
-  trailing?: boolean
+  leading?: boolean | undefined
+  trailing?: boolean | undefined
 }
 
 const normalizeWait = (wait?: number) => Math.max(0, wait ?? 0)
@@ -156,10 +156,10 @@ export function useThrottledCallback<T extends AnyFunction>(
     funcRef.current = func
   }, [func])
   const runtimeRef = React.useRef<{
-    lastArgs?: Parameters<T>
-    lastInvokeTime?: number
-    lastResult?: ReturnType<T>
-    timerID?: TimerID
+    lastArgs?: Parameters<T> | undefined
+    lastInvokeTime?: number | undefined
+    lastResult?: ReturnType<T> | undefined
+    timerID?: TimerID | undefined
   }>({})
 
   const waitMs = normalizeWait(wait)

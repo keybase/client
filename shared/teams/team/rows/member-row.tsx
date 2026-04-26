@@ -113,7 +113,7 @@ export const TeamMemberRow = (props: Props) => {
             type="BodyBold"
             usernames={props.username}
             colorFollowing={true}
-            onUsernameClicked={onClick}
+            {...(onClick === undefined ? {} : {onUsernameClicked: onClick})}
           />
         </Kb.Box2>
 
@@ -196,7 +196,7 @@ export const TeamMemberRow = (props: Props) => {
     return (
       <Kb.FloatingMenu
         header={menuHeader}
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         closeOnSelect={true}
         items={menuItems}
         onHidden={hidePopup}
@@ -252,7 +252,7 @@ export const TeamMemberRow = (props: Props) => {
       firstItem={props.firstItem}
       style={selected ? styles.selected : styles.unselected}
       innerStyle={selected ? styles.selected : styles.unselected}
-      onClick={onClick}
+      {...(onClick === undefined ? {} : {onClick})}
     />
   )
 }

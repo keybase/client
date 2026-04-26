@@ -19,7 +19,13 @@ const styles = Kb.Styles.styleSheetCreate(
 
 const profileModalStyle = {width: 560}
 
-const EditAvatarHeaderLeft = ({wizard, showBack}: {wizard?: boolean; showBack?: boolean}) => {
+const EditAvatarHeaderLeft = ({
+  wizard,
+  showBack,
+}: {
+  wizard?: boolean | undefined
+  showBack?: boolean | undefined
+}) => {
   const navigateUp = C.Router2.navigateUp
   if (wizard || showBack) {
     return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
@@ -33,8 +39,8 @@ const EditAvatarHeaderRight = ({
   wizardState,
 }: {
   parentTeamMemberCount: number
-  wizard?: boolean
-  wizardState?: T.Teams.NewTeamWizardState
+  wizard?: boolean | undefined
+  wizardState?: T.Teams.NewTeamWizardState | undefined
 }) => {
   const navigateAppend = C.Router2.navigateAppend
   const onSkip = () => {
@@ -44,7 +50,12 @@ const EditAvatarHeaderRight = ({
     navigateAppend(
       {
         name: 'profileEditAvatar',
-        params: {createdTeam: true, newTeamWizard: wizardState, teamID: T.Teams.newTeamWizardTeamID, wizard},
+        params: {
+          createdTeam: true,
+          newTeamWizard: wizardState,
+          teamID: T.Teams.newTeamWizardTeamID,
+          ...(wizard === undefined ? {} : {wizard}),
+        },
       },
       true
     )
@@ -65,14 +76,20 @@ const EditAvatarHeaderTitle = ({
   wizard,
 }: {
   hasImage?: boolean
-  newTeamWizard?: T.Teams.NewTeamWizardState
-  teamID?: string
-  wizard?: boolean
+  newTeamWizard?: T.Teams.NewTeamWizardState | undefined
+  teamID?: string | undefined
+  wizard?: boolean | undefined
 }) => {
   if (teamID) {
     const title = hasImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
     if (Kb.Styles.isMobile) {
-      return <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />
+      return (
+        <ModalTitle
+          teamID={teamID}
+          title={title}
+          {...(newTeamWizard === undefined ? {} : {newTeamWizard})}
+        />
+      )
     }
     return <Kb.Text type="BodyBig">{title}</Kb.Text>
   }
@@ -82,7 +99,7 @@ const EditAvatarHeaderTitle = ({
 const EditAvatarWizardHeaderRight = ({
   route,
 }: {
-  route: {params: {newTeamWizard?: T.Teams.NewTeamWizardState; wizard?: boolean}}
+  route: {params: {newTeamWizard?: T.Teams.NewTeamWizardState | undefined; wizard?: boolean | undefined}}
 }) => {
   const parentTeamID = route.params.newTeamWizard?.parentTeamID ?? T.Teams.noTeamID
   const {teamMeta} = useLoadedTeam(parentTeamID, parentTeamID !== T.Teams.noTeamID)

@@ -19,10 +19,10 @@ const parseRepoResult = (result: T.RPCGen.GitRepoResult): T.Git.GitInfo | undefi
     if (r.folder.folderType === T.RPCGen.FolderType.public) {
       return undefined
     }
+    const channelName = r.teamRepoSettings?.channelName || undefined
     const teamname = r.folder.folderType === T.RPCGen.FolderType.team ? r.folder.name : undefined
     return {
       canDelete: r.canDelete,
-      channelName: r.teamRepoSettings?.channelName || undefined,
       chatDisabled: !!r.teamRepoSettings?.chatDisabled,
       devicename: r.serverMetadata.lastModifyingDeviceName,
       id: r.globalUniqueID,
@@ -30,8 +30,9 @@ const parseRepoResult = (result: T.RPCGen.GitRepoResult): T.Git.GitInfo | undefi
       lastEditUser: r.serverMetadata.lastModifyingUsername,
       name: r.localMetadata.repoName,
       repoID: r.repoID,
-      teamname,
       url: r.repoUrl,
+      ...(channelName === undefined ? {} : {channelName}),
+      ...(teamname === undefined ? {} : {teamname}),
     }
   }
   return undefined
@@ -109,7 +110,10 @@ const Container = (ownProps: OwnProps) => {
   const {personals, teams} = getRepos(idToInfo)
   const navigateAppend = C.Router2.navigateAppend
   const onShowDelete = (git: T.Git.GitInfo) => {
-    navigateAppend({name: 'gitDeleteRepo', params: {name: git.name, teamname: git.teamname}})
+    navigateAppend({
+      name: 'gitDeleteRepo',
+      params: {name: git.name, ...(git.teamname === undefined ? {} : {teamname: git.teamname})},
+    })
   }
   const load = () => {
     loadGit(
@@ -177,19 +181,19 @@ const Container = (ownProps: OwnProps) => {
 
     return (
       <Kb.FloatingMenu
-        attachTo={attachTo}
         closeOnSelect={true}
         items={menuItems}
         onHidden={hidePopup}
         visible={true}
         position="bottom center"
+        {...(attachTo === undefined ? {} : {attachTo})}
       />
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Reloadable waitingKeys={C.waitingKeyGitLoading} onBack={undefined} onReload={load}>
+    <Kb.Reloadable waitingKeys={C.waitingKeyGitLoading} onReload={load}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {Kb.Styles.isMobile && (

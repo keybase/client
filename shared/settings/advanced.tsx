@@ -103,7 +103,7 @@ const UseNativeFrame = () => {
 const LockdownCheckbox = (p: {
   hasRandomPW: boolean
   loaded: boolean
-  lockdownModeEnabled?: boolean
+  lockdownModeEnabled?: boolean | undefined
   setLockdownMode: (enabled: boolean) => void
   settingLockdownMode: boolean
 }) => {

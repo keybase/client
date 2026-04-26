@@ -10,7 +10,7 @@ const LeftAction = (p: {
   badgeNumber: number
   mode: 'back' | 'cancel'
   onAction: () => void
-  iconColor?: string
+  iconColor?: string | undefined
 }): React.ReactElement => (
   <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.leftAction}>
     {p.mode === 'cancel' ? (
@@ -57,12 +57,12 @@ const styles = Styles.styleSheetCreate(
 )
 
 export function HeaderLeftButton(hp: {
-  canGoBack?: boolean
-  badgeNumber?: number
-  onPress?: () => void
-  tintColor?: string
-  mode?: 'back' | 'cancel'
-  autoDetectCanGoBack?: boolean
+  canGoBack?: boolean | undefined
+  badgeNumber?: number | undefined
+  onPress?: (() => void) | undefined
+  tintColor?: string | undefined
+  mode?: 'back' | 'cancel' | undefined
+  autoDetectCanGoBack?: boolean | undefined
 }) {
   const nav = useNavigation()
   const canGoBack = hp.autoDetectCanGoBack ? nav.canGoBack() : (hp.canGoBack ?? true)

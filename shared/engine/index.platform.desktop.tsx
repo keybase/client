@@ -12,8 +12,8 @@ const {isRenderer} = KB2.constants
 
 // used by node
 class NativeTransport extends TransportShared {
-  private _socket?: Socket
-  private _reconnectTimer?: ReturnType<typeof setTimeout>
+  private _socket?: Socket | undefined
+  private _reconnectTimer?: ReturnType<typeof setTimeout> | undefined
   private _connecting = false
 
   constructor(
@@ -25,11 +25,11 @@ class NativeTransport extends TransportShared {
     this.needsConnect = true
   }
 
-  protected isConnected() {
+  protected override isConnected() {
     return !!this._socket
   }
 
-  protected writeMessage(message: RPCMessage) {
+  protected override writeMessage(message: RPCMessage) {
     if (!this._socket) {
       throw new Error('write attempt with no active stream')
     }
@@ -40,7 +40,7 @@ class NativeTransport extends TransportShared {
     this._socket.write(Buffer.from(framed))
   }
 
-  connect(cb: (err?: unknown) => void) {
+  override connect(cb: (err?: unknown) => void) {
     this.clearExplicitClose()
     if (this._socket) {
       cb()
@@ -49,14 +49,14 @@ class NativeTransport extends TransportShared {
     this.connectOnce(cb)
   }
 
-  packetizeData(m: Uint8Array) {
+  override packetizeData(m: Uint8Array) {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length)
     }
     mainWindowDispatchEngineIncoming?.(m)
   }
 
-  close() {
+  override close() {
     this.markExplicitClose()
     if (this._reconnectTimer) {
       clearTimeout(this._reconnectTimer)
@@ -134,7 +134,7 @@ class NativeTransport extends TransportShared {
 }
 
 class ProxyNativeTransport extends LocalTransport {
-  protected writeMessage(message: RPCMessage) {
+  protected override writeMessage(message: RPCMessage) {
     engineSend?.(message)
   }
 }

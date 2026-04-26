@@ -48,7 +48,7 @@ const Group = (props: GroupProps) => (
         <Kb.Text type="BodySmall">Or</Kb.Text>
         <Kb.Checkbox
           style={{marginTop: Kb.Styles.globalMargins.xtiny}}
-          onCheck={props.onToggleUnsubscribeAll}
+          {...(props.onToggleUnsubscribeAll === undefined ? {} : {onCheck: props.onToggleUnsubscribeAll})}
           disabled={!props.allowEdit}
           checked={!!props.unsubscribedFromAll}
           label={`Unsubscribe from all ${props.unsub} notifications`}

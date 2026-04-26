@@ -9,12 +9,12 @@ import * as Kb from '@/common-adapters'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {
-  attachTo?: React.RefObject<Kb.MeasureRef | null>
-  mode?: 'modal' | 'bottomsheet'
+  attachTo?: React.RefObject<Kb.MeasureRef | null> | undefined
+  mode?: 'modal' | 'bottomsheet' | undefined
   ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position
-  style?: StylesCrossPlatform
+  style?: StylesCrossPlatform | undefined
   visible: boolean
 }
 
@@ -142,17 +142,20 @@ const PopAttach = (ownProps: OwnProps) => {
 
   const header = useHeader(ordinal, onHidden)
   const snapPoints = [8 * 40 + 25]
+  const floatingMenuProps = {
+    ...(attachTo ? {attachTo} : {}),
+    ...(mode ? {mode} : {}),
+    ...(style ? {containerStyle: style} : {}),
+  }
 
   return (
     <Kb.FloatingMenu
-      attachTo={attachTo}
+      {...floatingMenuProps}
       header={header}
       items={items}
-      mode={mode}
       onHidden={onHidden}
       closeOnSelect={true}
       position={position}
-      containerStyle={style}
       snapPoints={snapPoints}
       visible={visible}
     />

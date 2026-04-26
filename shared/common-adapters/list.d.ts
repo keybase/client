@@ -50,33 +50,33 @@ export type ViewableItem<Item> = {index: number; item: Item}
 // Having flex in the list messes with creating the right size inner container
 // for scroll
 export type Props<Item> = {
-  style?: CustomStyles<'flex' | 'flexDirection'>
-  indexAsKey?: boolean
-  keyProperty?: string // if passed uses item[keyProperty] for the item keys,
-  keyExtractor?: (item: Item, index: number) => string
+  style?: CustomStyles<'flex' | 'flexDirection'> | undefined
+  indexAsKey?: boolean | undefined
+  keyProperty?: string | undefined // if passed uses item[keyProperty] for the item keys,
+  keyExtractor?: ((item: Item, index: number) => string) | undefined
   items: ReadonlyArray<Item>
   renderItem: (index: number, item: Item) => React.ReactElement | null
   itemHeight: VariableItemHeight<Item> | FixedHeight | FixedListItemAuto | TrueVariable | PerItemHeight<Item>
-  estimatedItemHeight?: number
-  selectedIndex?: number // TODO,
-  bounces?: boolean // mobile only,
-  keyboardShouldPersistTaps?: 'never' | 'always' | 'handled' // mobile only,
-  windowSize?: number // Mobile only, has a non-RN default,
-  onEndReached?: () => void
-  reAnimated?: boolean // mobile only, make list animated
-  extraData?: unknown
-  ref?: React.Ref<LegendListRef>
-  testID?: string
-  ListHeaderComponent?: React.ComponentType<unknown> | React.ReactElement | null
-  ListFooterComponent?: React.ComponentType<unknown> | React.ReactElement | null
-  recycleItems?: boolean
-  getItemType?: (item: Item, index: number) => string | undefined
-  drawDistance?: number
-  onViewableItemsChanged?: (data: {
+  estimatedItemHeight?: number | undefined
+  selectedIndex?: number | undefined // TODO,
+  bounces?: boolean | undefined // mobile only,
+  keyboardShouldPersistTaps?: 'never' | 'always' | 'handled' | undefined // mobile only,
+  windowSize?: number | undefined // Mobile only, has a non-RN default,
+  onEndReached?: (() => void) | undefined
+  reAnimated?: boolean | undefined // mobile only, make list animated
+  extraData?: unknown | undefined
+  ref?: React.Ref<LegendListRef> | undefined
+  testID?: string | undefined
+  ListHeaderComponent?: React.ComponentType<unknown> | React.ReactElement | null | undefined
+  ListFooterComponent?: React.ComponentType<unknown> | React.ReactElement | null | undefined
+  recycleItems?: boolean | undefined
+  getItemType?: ((item: Item, index: number) => string | undefined) | undefined
+  drawDistance?: number | undefined
+  onViewableItemsChanged?: ((data: {
     viewableItems: ReadonlyArray<ViewableItem<Item>>
     changed: ReadonlyArray<ViewableItem<Item>>
-  }) => void
-  viewabilityConfig?: object
+  }) => void) | undefined
+  viewabilityConfig?: object | undefined
 }
 
 export declare function List<Item>(p: Props<Item>): React.ReactNode

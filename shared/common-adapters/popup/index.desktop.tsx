@@ -23,15 +23,15 @@ function PopupPositioned(props: PopupProps) {
   }
   return (
     <Kb.FloatingBox
-      attachTo={props.attachTo}
-      containerStyle={props.containerStyle}
       matchDimension={!!props.matchDimension}
-      onHidden={props.onHidden}
-      remeasureHint={props.remeasureHint}
-      position={props.position}
-      positionFallbacks={props.positionFallbacks}
-      propagateOutsideClicks={props.propagateOutsideClicks}
-      offset={props.offset}
+      {...(props.attachTo === undefined ? {} : {attachTo: props.attachTo})}
+      {...(props.containerStyle === undefined ? {} : {containerStyle: props.containerStyle})}
+      {...(props.onHidden === undefined ? {} : {onHidden: props.onHidden})}
+      {...(props.remeasureHint === undefined ? {} : {remeasureHint: props.remeasureHint})}
+      {...(props.position === undefined ? {} : {position: props.position})}
+      {...(props.positionFallbacks === undefined ? {} : {positionFallbacks: props.positionFallbacks})}
+      {...(props.propagateOutsideClicks === undefined ? {} : {propagateOutsideClicks: props.propagateOutsideClicks})}
+      {...(props.offset === undefined ? {} : {offset: props.offset})}
     >
       {props.onHidden ? (
         <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.positioned, props.style])}>

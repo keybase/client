@@ -14,9 +14,9 @@ type State = 'appActive' | 'afterActiveCheck' | 'appInactive' | 'blurred' | 'foc
 // focused: App in foreground but no input yet, wait for keyboard/mouse
 
 class InputMonitor {
-  notifyActive?: NotifyActiveFunction
+  notifyActive?: NotifyActiveFunction | undefined
   private state: State
-  private timeoutID?: ReturnType<typeof setInterval>
+  private timeoutID?: ReturnType<typeof setInterval> | undefined
 
   constructor() {
     window.addEventListener('focus', this.onFocus)

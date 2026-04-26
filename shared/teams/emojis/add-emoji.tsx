@@ -193,8 +193,7 @@ export const AddEmojiModal = (props: Props) => {
     <Modal
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}
-      footerButtonLabel={Kb.Styles.isMobile ? 'Choose Images' : undefined}
-      footerButtonOnClick={Kb.Styles.isMobile ? pick : undefined}
+      {...(Kb.Styles.isMobile ? {footerButtonLabel: 'Choose Images', footerButtonOnClick: pick} : {})}
     >
       <AddEmojiPrompt addFiles={addFiles} />
     </Modal>
@@ -204,8 +203,8 @@ export const AddEmojiModal = (props: Props) => {
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}
       footerButtonLabel="Add emoji"
-      footerButtonOnClick={doAddEmojis}
       footerButtonWaiting={waitingAddEmojis}
+      {...(doAddEmojis ? {footerButtonOnClick: doAddEmojis} : {})}
     >
       <AddEmojiAliasAndConfirm addFiles={addFiles} emojisToAdd={emojisToAdd} />
     </Modal>

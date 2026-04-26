@@ -148,7 +148,6 @@ const initialStore: Store = {
     preferredMountDirs: [],
   },
   uploads: {
-    endEstimate: undefined,
     syncingPaths: new Set(),
     totalSyncingBytes: 0,
     writingToJournal: new Map(),
@@ -653,7 +652,11 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           s.uploads.syncingPaths = sp
         }
         s.uploads.totalSyncingBytes = totalSyncingBytes
-        s.uploads.endEstimate = endEstimate
+        if (endEstimate === undefined) {
+          delete s.uploads.endEstimate
+        } else {
+          s.uploads.endEstimate = endEstimate
+        }
       })
     },
     loadDownloadStatus: () => {

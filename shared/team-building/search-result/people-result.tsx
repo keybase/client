@@ -86,12 +86,12 @@ const PeopleResult = function PeopleResult(props: ResultProps) {
   return <CommonResult {...props} rowStyle={styles.rowContainer} rightButtons={rightButtons} />
 }
 type DropdownProps = {
-  onAddToTeam?: () => void
-  onOpenPrivateFolder?: () => void
-  onBrowsePublicFolder?: () => void
-  onManageBlocking?: () => void
-  blocked?: boolean
-  onUnfollow?: () => void
+  onAddToTeam?: (() => void) | undefined
+  onOpenPrivateFolder?: (() => void) | undefined
+  onBrowsePublicFolder?: (() => void) | undefined
+  onManageBlocking?: (() => void) | undefined
+  blocked?: boolean | undefined
+  onUnfollow?: (() => void) | undefined
 }
 
 const buildMenuItems = ({
@@ -129,11 +129,11 @@ const DropdownButton = (p: DropdownProps) => {
     return (
       <Kb.FloatingMenu
         closeOnSelect={true}
-        attachTo={attachTo}
         items={items}
         onHidden={hidePopup}
         position="bottom right"
         visible={true}
+        {...(attachTo === undefined ? {} : {attachTo})}
       />
     )
   }
@@ -148,7 +148,7 @@ const DropdownButton = (p: DropdownProps) => {
       ref={popupAnchor}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-        <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton} small={true}>
+        <Kb.Button mode="Secondary" style={styles.dropdownButton} small={true}>
           <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>

@@ -79,7 +79,7 @@ function UnfurlGeneric(p: {
           linkURL={url}
           height={height}
           width={width}
-          widthPadding={Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : undefined}
+          {...(Kb.Styles.isMobile ? {widthPadding: Kb.Styles.globalMargins.tiny} : {})}
           style={styles.bottomImage}
           isVideo={isVideo}
           autoplayVideo={false}

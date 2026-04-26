@@ -9,14 +9,14 @@ import {useLoadedTeam} from './use-loaded-team'
 import {makeAddMembersWizard} from '../add-members-wizard/state'
 
 type OwnProps = {
-  attachTo?: React.RefObject<Kb.MeasureRef | null>
+  attachTo?: React.RefObject<Kb.MeasureRef | null> | undefined
   onHidden: () => void
   teamID: T.Teams.TeamID
   visible: boolean
 }
 
 type Props = {
-  attachTo?: React.RefObject<Kb.MeasureRef | null>
+  attachTo?: React.RefObject<Kb.MeasureRef | null> | undefined
   items: Kb.MenuItems
   teamname: string
   memberCount: number
@@ -57,7 +57,7 @@ const TeamMenu = (props: Props) => {
   )
   return (
     <Kb.FloatingMenu
-      attachTo={attachTo}
+      {...(attachTo === undefined ? {} : {attachTo})}
       closeOnSelect={true}
       header={header}
       items={items}

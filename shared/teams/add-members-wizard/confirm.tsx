@@ -12,7 +12,7 @@ import {ChannelsWidget} from '../common'
 import {pluralize} from '@/util/string'
 import logger from '@/logger'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {createNewTeamFromWizard} from '../new-team/wizard/state'
+import {clearNewTeamWizardError, createNewTeamFromWizard} from '../new-team/wizard/state'
 import {onTeamCreated} from '../create-team-effects'
 import {RPCError} from '@/util/errors'
 import {useNavigation} from '@react-navigation/native'
@@ -93,14 +93,15 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
         if (!newTeamWizard) {
           return
         }
+        const cleanNewTeamWizard = clearNewTeamWizardError(newTeamWizard)
         updateWizard({
           ...wizard,
-          newTeamWizard: {...newTeamWizard, error: undefined},
+          newTeamWizard: cleanNewTeamWizard,
         })
         setWaiting(true)
         const f = async () => {
           try {
-            const teamID = await createNewTeamFromWizard({...newTeamWizard, error: undefined}, addingMembers)
+            const teamID = await createNewTeamFromWizard(cleanNewTeamWizard, addingMembers)
             onTeamCreated(teamID)
             C.Router2.navigateAppend({name: 'team', params: {justFinishedAddWizard: true, teamID}})
             C.Router2.clearModals()
@@ -117,13 +118,15 @@ const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
       }
     : () => {
         setWaiting(true)
+        const addToChannelsConvIDs = addToChannels
+          ?.filter(c => c.channelname !== 'general')
+          .map(c => c.conversationIDKey)
+        const emailInviteMessage = emailMessage || undefined
         addMembers(
           [
             {
-              addToChannels: addToChannels
-                ?.filter(c => c.channelname !== 'general')
-                .map(c => c.conversationIDKey),
-              emailInviteMessage: emailMessage || undefined,
+              ...(addToChannelsConvIDs === undefined ? {} : {addToChannels: addToChannelsConvIDs}),
+              ...(emailInviteMessage === undefined ? {} : {emailInviteMessage}),
               sendChatNotification: true,
               teamID,
               users: addingMembers.map(member => ({
@@ -268,7 +271,7 @@ const AddMoreMembers = ({wizard}: {wizard: AddMembersWizard}) => {
       const onAddEmail = () => nav.safeNavigateAppend({name: 'teamAddToTeamEmail', params: {wizard}})
       return (
         <Kb.FloatingMenu
-          attachTo={attachTo}
+          {...(attachTo === undefined ? {} : {attachTo})}
           closeOnSelect={true}
           onHidden={hidePopup}
           visible={true}
@@ -314,7 +317,7 @@ const RoleSelector = ({disabledRoles, memberCount, updateWizard, wizard}: RoleSe
         onCancel={() => setShowingMenu(false)}
         onConfirm={onConfirmRole}
         includeSetIndividually={!Kb.Styles.isPhone && (memberCount > 1 || storeRole === 'setIndividually')}
-        disabledRoles={disabledRoles}
+        {...(disabledRoles === undefined ? {} : {disabledRoles})}
         plural={memberCount !== 1}
       >
         <Kb.InlineDropdown
@@ -434,6 +437,7 @@ const AddingMember = (
     setShowingMenu(false)
     updateWizard(setWizardIndividualRole(wizard, props.assertion, newRole))
   }
+  const disabledRoles = isPhoneEmail ? disabledRolesForPhoneEmailIndividual : props.disabledRoles
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember} justifyContent="space-between">
       <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" flex={1} style={styles.memberPill}>
@@ -458,9 +462,9 @@ const AddingMember = (
           <FloatingRolePicker
             open={showingMenu}
             presetRole={individualRole}
-            onCancel={individualRole === rolePickerRole ? () => setShowingMenu(false) : undefined}
+            {...(individualRole === rolePickerRole ? {onCancel: () => setShowingMenu(false)} : {})}
             onConfirm={onConfirmRole}
-            disabledRoles={isPhoneEmail ? disabledRolesForPhoneEmailIndividual : props.disabledRoles}
+            {...(disabledRoles === undefined ? {} : {disabledRoles})}
           >
             <Kb.InlineDropdown
               textWrapperType="BodySmallSemibold"

@@ -30,13 +30,13 @@ const Kb = {
 }
 
 type MenuRowProps = {
-  isHeader?: boolean
-  newTag?: boolean
+  isHeader?: boolean | undefined
+  newTag?: boolean | undefined
   index: number
   numItems: number
-  onHidden?: () => void
-  textColor?: Styles.Color
-  backgroundColor?: Styles.Color
+  onHidden?: (() => void) | undefined
+  textColor?: Styles.Color | undefined
+  backgroundColor?: Styles.Color | undefined
 } & MenuItem
 
 const itemContainerHeight = 40
@@ -236,10 +236,10 @@ const MenuLayout = (props: MenuLayoutProps) => {
 }
 
 const styleRowText = (props: {
-  isHeader?: boolean
-  danger?: boolean
-  disabled?: boolean
-  textColor?: Styles.Color
+  isHeader?: boolean | undefined
+  danger?: boolean | undefined
+  disabled?: boolean | undefined
+  textColor?: Styles.Color | undefined
 }) => {
   const dangerColor = props.danger ? Styles.globalColors.redDark : Styles.globalColors.black
   const color = props.textColor || props.isHeader ? Styles.globalColors.white : dangerColor

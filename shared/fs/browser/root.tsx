@@ -9,7 +9,7 @@ import * as FS from '@/stores/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
-  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource | undefined
 }
 
 type SectionListItem = {
@@ -32,7 +32,9 @@ const rootRows: Array<SectionListItem> = [
   },
 ]
 
-const getRenderItem = (destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource) =>
+const getRenderItem = (
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource | undefined
+) =>
   function WrapTLF({item, section}: {item: SectionListItem; section: {key: string}}) {
     return section.key === 'section-top' ? (
       <WrapRow>
@@ -76,7 +78,7 @@ const useTopNTlfs = (
 
 const useRecentTlfs = (
   n: number,
-  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource | undefined
 ): Array<SectionListItem> => {
   const tlfs = useFsTlfs()
   const username = useCurrentUserState(s => s.username)

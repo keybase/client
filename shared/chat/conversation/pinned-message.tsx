@@ -104,12 +104,13 @@ const PinnedMessage = function PinnedMessage() {
       </Kb.Box2>
     </Kb.ClickableBox>
   )
+  const popupAttachTo = Kb.Styles.isMobile ? undefined : closeref
   const popup = (
     <UnpinPrompt
-      attachTo={Kb.Styles.isMobile ? undefined : closeref}
       onHidden={() => setShowPopup(false)}
       onUnpin={onDismiss}
       visible={showPopup}
+      {...(popupAttachTo ? {attachTo: popupAttachTo} : {})}
     />
   )
   return (
@@ -139,7 +140,6 @@ const UnpinPrompt = (props: UnpinProps) => {
   )
   return (
     <Kb.FloatingMenu
-      attachTo={props.attachTo}
       closeOnSelect={false}
       onHidden={props.onHidden}
       visible={props.visible}
@@ -147,6 +147,7 @@ const UnpinPrompt = (props: UnpinProps) => {
       header={header}
       position="left center"
       items={['Divider', {icon: 'iconfont-close', onClick: props.onUnpin, title: 'Yes, unpin'}]}
+      {...(props.attachTo ? {attachTo: props.attachTo} : {})}
     />
   )
 }

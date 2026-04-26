@@ -77,10 +77,10 @@ function makeDefaultButtons(
 const useRouterNavigation = () => C.Router2
 
 type BasicTaskProps = TodoOwnProps & {
-  dismissLabel?: string
-  dismissTodoType?: T.People.TodoType
+  dismissLabel?: string | undefined
+  dismissTodoType?: T.People.TodoType | undefined
   onConfirm: () => void
-  subText?: string
+  subText?: string | undefined
 }
 
 const BasicTask = ({
@@ -364,7 +364,7 @@ type Props = {
   badged: boolean
   icon: Kb.IconType
   instructions: string
-  subText?: string
+  subText?: string | undefined
   buttons: Array<TaskButton>
 }
 

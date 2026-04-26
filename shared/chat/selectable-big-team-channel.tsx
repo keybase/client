@@ -7,14 +7,14 @@ import type * as T from '@/constants/types'
 
 type Props = {
   isSelected: boolean
-  numSearchHits?: number
-  maxSearchHits?: number
+  numSearchHits?: number | undefined
+  maxSearchHits?: number | undefined
   teamname: string
   channelname: string
   onSelectConversation: () => void
   showBadge: boolean
   showBold: boolean
-  snippet?: string
+  snippet?: string | undefined
   snippetDecoration: T.RPCChat.SnippetDecoration
 }
 
@@ -34,6 +34,7 @@ const SelectableBigTeamChannel = (props: Props) => {
   }
 
   const boldOverride = props.showBold ? Kb.Styles.globalStyles.fontBold : null
+  const lineClamp = Kb.Styles.isMobile ? 1 : undefined
   const rowLoadedContent = (
     <>
       <TeamAvatar teamname={props.teamname} isMuted={false} isSelected={false} isHovered={isHovered} />
@@ -46,7 +47,7 @@ const SelectableBigTeamChannel = (props: Props) => {
               {color: props.isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black},
             ])}
             title={props.teamname}
-            lineClamp={Kb.Styles.isMobile ? 1 : undefined}
+            {...(lineClamp === undefined ? {} : {lineClamp})}
             ellipsizeMode="tail"
           >
             {props.teamname}
@@ -59,7 +60,7 @@ const SelectableBigTeamChannel = (props: Props) => {
               {color: props.isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black},
             ])}
             title={`#${props.channelname}`}
-            lineClamp={Kb.Styles.isMobile ? 1 : undefined}
+            {...(lineClamp === undefined ? {} : {lineClamp})}
             ellipsizeMode="tail"
           >
             &nbsp;#

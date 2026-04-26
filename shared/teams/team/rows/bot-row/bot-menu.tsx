@@ -2,7 +2,7 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 type Props = {
-  attachTo?: React.RefObject<Kb.MeasureRef | null>
+  attachTo?: React.RefObject<Kb.MeasureRef | null> | undefined
   canManageBots: boolean
   onEdit: () => void
   onRemove: () => void
@@ -23,7 +23,7 @@ const BotMenu = (props: Props) => {
   }
   return (
     <Kb.FloatingMenu
-      attachTo={props.attachTo}
+      {...(props.attachTo === undefined ? {} : {attachTo: props.attachTo})}
       closeOnSelect={true}
       items={items}
       onHidden={props.onHidden}

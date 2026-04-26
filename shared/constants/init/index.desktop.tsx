@@ -267,7 +267,6 @@ export const initPlatformListener = () => {
         conversation: Chat.noConversationIDKey,
         followUser: '',
         link: '',
-        tab: undefined,
       })
     }
   }))

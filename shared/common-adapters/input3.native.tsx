@@ -107,7 +107,12 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
     >
       {!!icon && (
         <Box2 direction="horizontal" style={styles.icon}>
-          <IconAuto color={Styles.globalColors.black_20} type={icon} fontSize={fontSize} style={styles.displayFlex} />
+          <IconAuto
+            color={Styles.globalColors.black_20}
+            type={icon}
+            style={styles.displayFlex}
+            {...(fontSize === undefined ? {} : {fontSize})}
+          />
         </Box2>
       )}
       {!!prefix && <Text type="BodySemibold" style={styles.prefix}>{prefix}</Text>}

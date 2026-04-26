@@ -3,10 +3,10 @@ import type {TextType, StylesTextCrossPlatform} from '@/common-adapters/text.sha
 
 export type Props = {
   name: string
-  elementStyle?: StylesTextCrossPlatform
+  elementStyle?: StylesTextCrossPlatform | undefined
   type: TextType
-  selectable?: boolean
-  center?: boolean
+  selectable?: boolean | undefined
+  center?: boolean | undefined
 }
 
 // We are splitting on ',' here, so it won't work for
@@ -18,11 +18,11 @@ const CommaSeparatedName = (props: Props) => (
   <>
     {props.name.split(',').map<React.ReactElement>((elem, idx, {length}: Array<string>) => (
       <Kb.Text
-        selectable={props.selectable}
-        center={props.center}
+        {...(props.selectable === undefined ? {} : {selectable: props.selectable})}
+        {...(props.center === undefined ? {} : {center: props.center})}
         key={idx.toString()}
         type={props.type}
-        style={props.elementStyle}
+        {...(props.elementStyle === undefined ? {} : {style: props.elementStyle})}
       >
         {elem}
         {idx !== length - 1 ? ',' : ''}

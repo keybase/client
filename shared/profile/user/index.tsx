@@ -75,7 +75,7 @@ const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
 const noopOnClick = () => {}
 
 type SbsTitleProps = {
-  serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon>
+  serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon> | undefined
   sbsUsername: string
 }
 const SbsTitle = (p: SbsTitleProps) => (
@@ -88,20 +88,20 @@ const BioLayout = (p: BioTeamProofsProps) => (
   <Kb.Box2 direction="vertical" style={styles.bio}>
     <Kb.ConnectedNameWithIcon
       onClick={p.title === p.username ? 'profile' : noopOnClick}
-      title={
-        p.title !== p.username ? <SbsTitle sbsUsername={p.title} serviceIcon={p.serviceIcon} /> : undefined
-      }
       username={p.username}
       underline={false}
       selectable={true}
       colorFollowing={true}
       notFollowingColorOverride={p.notAUser ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.orange}
       editableIcon={!!p.onEditAvatar}
-      onEditIcon={p.onEditAvatar || undefined}
       avatarSize={avatarSize}
       size="huge"
-      avatarImageOverride={p.sbsAvatarUrl}
       withProfileCardPopup={false}
+      {...(p.title !== p.username
+        ? {title: <SbsTitle sbsUsername={p.title} serviceIcon={p.serviceIcon} />}
+        : {})}
+      {...(p.onEditAvatar === undefined ? {} : {onEditIcon: p.onEditAvatar})}
+      {...(p.sbsAvatarUrl === undefined ? {} : {avatarImageOverride: p.sbsAvatarUrl})}
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Bio
@@ -257,34 +257,34 @@ function FriendRow(p: FriendRowProps) {
 }
 
 export type BioTeamProofsProps = {
-  onAddIdentity?: () => void
-  assertions?: ReadonlyArray<T.Tracker.Assertion>
+  onAddIdentity?: (() => void) | undefined
+  assertions?: ReadonlyArray<T.Tracker.Assertion> | undefined
   backgroundColorType: BackgroundColorType
-  bio?: string
+  bio?: string | undefined
   blocked: boolean
   followThem: boolean
-  followers?: ReadonlyArray<string>
-  followersCount?: number
+  followers?: ReadonlyArray<string> | undefined
+  followersCount?: number | undefined
   followsYou: boolean
-  followingCount?: number
+  followingCount?: number | undefined
   guiID: string
   hidFromFollowers: boolean
-  onEditAvatar?: (e?: React.BaseSyntheticEvent) => void
+  onEditAvatar?: ((e?: React.BaseSyntheticEvent) => void) | undefined
   notAUser: boolean
   onReload: () => void
-  suggestions?: ReadonlyArray<T.Tracker.Assertion>
+  suggestions?: ReadonlyArray<T.Tracker.Assertion> | undefined
   username: string
   reason: string
   name: string
-  location?: string
-  sbsAvatarUrl?: string
-  sbsDescription?: string
+  location?: string | undefined
+  sbsAvatarUrl?: string | undefined
+  sbsDescription?: string | undefined
   service: string
-  serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon>
+  serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon> | undefined
   state: T.Tracker.DetailsState
   stellarHidden: boolean
-  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
-  fullName?: string
+  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase> | undefined
+  fullName?: string | undefined
   title: string
 }
 const BioTeamProofs = (props: BioTeamProofsProps) => {

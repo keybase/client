@@ -13,8 +13,8 @@ import type {
 import type {CryptoTeamBuilderResult, EncryptOutputRouteParams, EncryptRouteParams} from './encrypt'
 
 type CryptoTeamBuilderRouteParams = Parameters<typeof cryptoTeamBuilder.screen>[0]['route']['params'] & {
-  teamBuilderNonce?: string
-  teamBuilderUsers?: CryptoTeamBuilderResult
+  teamBuilderNonce?: string | undefined
+  teamBuilderUsers?: CryptoTeamBuilderResult | undefined
 }
 
 const DecryptInputScreen = React.lazy(async () => {
@@ -86,7 +86,7 @@ const CryptoTeamBuilderScreen = (p: StaticScreenProps<CryptoTeamBuilderRoutePara
           {
             name: Crypto.encryptTab,
             params: {
-              teamBuilderNonce,
+              ...(teamBuilderNonce === undefined ? {} : {teamBuilderNonce}),
               teamBuilderUsers: nextTeamBuilderUsers,
             },
           },

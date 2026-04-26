@@ -20,7 +20,7 @@ export type Props = {
   dropdownStyle?: Kb.Styles.StylesCrossPlatform
   policy: T.Retention.RetentionPolicy
   policyIsExploding: boolean
-  teamPolicy?: T.Retention.RetentionPolicy
+  teamPolicy?: T.Retention.RetentionPolicy | undefined
   loading: boolean // for when we're waiting to fetch the team policy
   showInheritOption: boolean
   showOverrideNotice: boolean
@@ -149,7 +149,7 @@ const RetentionPicker = (p: Props) => {
       const items = makeItems()
       return (
         <Kb.FloatingMenu
-          attachTo={attachTo}
+          {...(attachTo === undefined ? {} : {attachTo})}
           closeOnSelect={true}
           visible={true}
           onHidden={hidePopup}
@@ -392,7 +392,7 @@ const policyToExplanation = (
 const useLoadedTeamRetentionPolicy = (teamID: T.Teams.TeamID) => {
   type TeamRetentionState = {
     loadedTeamID?: T.Teams.TeamID
-    teamPolicy?: T.Retention.RetentionPolicy
+    teamPolicy?: T.Retention.RetentionPolicy | undefined
   }
 
   const [state, setState] = React.useState<TeamRetentionState>({loadedTeamID: teamID, teamPolicy: undefined})

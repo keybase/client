@@ -77,9 +77,8 @@ export const mapKBFSJobs = (status: T.RPCGen.SimpleFSArchiveStatus) =>
         bytesCopied: job.bytesCopied,
         bytesTotal: job.bytesTotal,
         bytesZipped: job.bytesZipped,
-        error: job.error?.error,
-        errorNextRetry: job.error?.nextRetry,
-        gitRepo: job.desc.gitRepo ?? undefined,
+        ...(job.error ? {error: job.error.error, errorNextRetry: job.error.nextRetry} : {}),
+        ...(job.desc.gitRepo == null ? {} : {gitRepo: job.desc.gitRepo}),
         id: job.desc.jobID,
         kbfsPath: job.desc.kbfsPathWithRevision.path,
         kbfsRevision:

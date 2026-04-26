@@ -238,7 +238,12 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
       if (!edit || edit.name === name) {
         return prevEdits
       }
-      return addOrReplaceEdit(prevEdits, editID, {...edit, error: undefined, name})
+      return addOrReplaceEdit(prevEdits, editID, {
+        name,
+        originalName: edit.originalName,
+        parentPath: edit.parentPath,
+        type: edit.type,
+      })
     })
   }
 
@@ -273,10 +278,10 @@ export const FsBrowserEditProvider = ({children}: {children: React.ReactNode}) =
 
     setBrowserEdits(prevEdits =>
       addOrReplaceEdit(prevEdits, makeEditID(), {
-        ...Constants.emptyNewFolder,
         name: newFolderName,
         originalName: newFolderName,
         parentPath,
+        type: T.FS.EditType.NewFolder,
       })
     )
   }

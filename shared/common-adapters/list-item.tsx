@@ -37,72 +37,76 @@ type Props = {
   containerStyleOverride?: Styles.StylesCrossPlatform
 }
 
-const ListItem = (props: Props) => (
-  <Kb.ClickableBox
-    onClick={props.onClick || (props.onMouseDown ? () => {} : undefined)} // make sure clickable box applies click styles if just onMouseDown is given.
-    onMouseDown={props.onMouseDown}
-    style={Styles.collapseStyles([
-      props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge,
-      !!props.height && {minHeight: props.height},
-      props.style,
-    ])}
-  >
-    <Kb.Box2
-      className={Styles.classNames({
-        listItem2: !props.hideHover,
-      })}
-      direction="horizontal"
+const ListItem = (props: Props) => {
+  // Make sure clickable box applies click styles if just onMouseDown is given.
+  const onClick = props.onClick || (props.onMouseDown ? () => {} : undefined)
+  return (
+    <Kb.ClickableBox
+      {...(onClick === undefined ? {} : {onClick})}
+      {...(props.onMouseDown === undefined ? {} : {onMouseDown: props.onMouseDown})}
       style={Styles.collapseStyles([
-        props.type === 'Small' ? styles.rowSmall : styles.rowLarge,
+        props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge,
         !!props.height && {minHeight: props.height},
-        props.innerStyle,
+        props.style,
       ])}
-      fullWidth={true}
     >
-      {!props.firstItem && !!props.fullDivider && <Divider style={styles.divider} />}
-      {props.statusIcon && (
-        <Kb.Box2
-          direction="vertical"
-          style={getStatusIconStyle(props)}
-          alignSelf="flex-start"
-          alignItems="center"
-          justifyContent="center"
-        >
-          {props.statusIcon}
-        </Kb.Box2>
-      )}
-      {props.icon && (
-        <Kb.Box2
-          direction="vertical"
-          style={getIconStyle(props)}
-          centerChildren={true}
-          alignSelf="flex-start"
-        >
-          {props.icon}
-        </Kb.Box2>
-      )}
-      <Kb.Box2 direction="horizontal" style={getContainerStyles(props)}>
-        {!props.firstItem && !props.fullDivider && <Divider style={styles.divider} />}
-        <Kb.BoxGrow>
-          <Kb.Box2 fullHeight={true} direction="horizontal" justifyContent="flex-start" flex={1} relative={true} style={styles.bodyContainer}>
-            {props.body}
+      <Kb.Box2
+        className={Styles.classNames({
+          listItem2: !props.hideHover,
+        })}
+        direction="horizontal"
+        style={Styles.collapseStyles([
+          props.type === 'Small' ? styles.rowSmall : styles.rowLarge,
+          !!props.height && {minHeight: props.height},
+          props.innerStyle,
+        ])}
+        fullWidth={true}
+      >
+        {!props.firstItem && !!props.fullDivider && <Divider style={styles.divider} />}
+        {props.statusIcon && (
+          <Kb.Box2
+            direction="vertical"
+            style={getStatusIconStyle(props)}
+            alignSelf="flex-start"
+            alignItems="center"
+            justifyContent="center"
+          >
+            {props.statusIcon}
           </Kb.Box2>
-        </Kb.BoxGrow>
-        <Kb.Box2
-          direction="horizontal"
-          className={Styles.classNames({
-            fade: props.onlyShowActionOnHover === 'fade',
-            grow: props.onlyShowActionOnHover === 'grow',
-          })}
-          style={getActionStyle(props)}
-          alignSelf="center"
-        >
-          {props.action}
+        )}
+        {props.icon && (
+          <Kb.Box2
+            direction="vertical"
+            style={getIconStyle(props)}
+            centerChildren={true}
+            alignSelf="flex-start"
+          >
+            {props.icon}
+          </Kb.Box2>
+        )}
+        <Kb.Box2 direction="horizontal" style={getContainerStyles(props)}>
+          {!props.firstItem && !props.fullDivider && <Divider style={styles.divider} />}
+          <Kb.BoxGrow>
+            <Kb.Box2 fullHeight={true} direction="horizontal" justifyContent="flex-start" flex={1} relative={true} style={styles.bodyContainer}>
+              {props.body}
+            </Kb.Box2>
+          </Kb.BoxGrow>
+          <Kb.Box2
+            direction="horizontal"
+            className={Styles.classNames({
+              fade: props.onlyShowActionOnHover === 'fade',
+              grow: props.onlyShowActionOnHover === 'grow',
+            })}
+            style={getActionStyle(props)}
+            alignSelf="center"
+          >
+            {props.action}
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
-  </Kb.ClickableBox>
-)
+    </Kb.ClickableBox>
+  )
+}
 
 export const smallHeight = Styles.isMobile ? 56 : 48
 export const largeHeight = Styles.isMobile ? 64 : 56

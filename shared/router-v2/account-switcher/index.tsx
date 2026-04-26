@@ -173,7 +173,7 @@ const AccountRow = (props: AccountRowProps) => {
           {clicked && <Kb.ProgressIndicator type="Large" style={styles.progressIndicator} />}
         </Kb.Box2>
       }
-      onClick={onClick}
+      {...(onClick ? {onClick} : {})}
     />
   )
 }

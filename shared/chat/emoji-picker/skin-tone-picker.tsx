@@ -20,8 +20,8 @@ const circle = (skinTone: undefined | T.Chat.EmojiSkinTone, isExpanded: boolean,
 }
 
 type Props = {
-  currentSkinTone?: T.Chat.EmojiSkinTone
-  onExpandChange?: (expanded: boolean) => void
+  currentSkinTone?: T.Chat.EmojiSkinTone | undefined
+  onExpandChange?: ((expanded: boolean) => void) | undefined
   setSkinTone: (skinTone: undefined | T.Chat.EmojiSkinTone) => void
 }
 

@@ -66,7 +66,12 @@ const NavMobileHeaderInner = (props: Props) => {
     <Kb.SafeAreaViewTop>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
         {expanded ? (
-          <Kbfs.FolderViewFilter filter={folderViewFilter} onCancel={filterDone} onChangeFilter={setFolderViewFilter} path={props.path} />
+          <Kbfs.FolderViewFilter
+            onCancel={filterDone}
+            onChangeFilter={setFolderViewFilter}
+            path={props.path}
+            {...(folderViewFilter === undefined ? {} : {filter: folderViewFilter})}
+          />
         ) : (
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
             {pop ? (

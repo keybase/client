@@ -42,15 +42,17 @@ const cryptoSubRoutes = defineRouteMap({
     }),
   },
 })
+type BackBehavior = Parameters<typeof TabRouter>[0]['backBehavior']
+type Props = Parameters<typeof useNavigationBuilder>[1] & {backBehavior: BackBehavior}
+const tabRouter = TabRouter as unknown as Parameters<typeof useNavigationBuilder>[0]
+
 function LeftTabNavigator({
   initialRouteName,
   children,
   screenOptions,
   backBehavior,
-}: Parameters<typeof useNavigationBuilder>[1] & {
-  backBehavior: 'initialRoute' | 'firstRoute' | 'history' | 'order' | 'none'
-}) {
-  const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
+}: Props) {
+  const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(tabRouter, {
     backBehavior,
     children,
     initialRouteName,

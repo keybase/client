@@ -20,7 +20,7 @@ export const useDeleteAccount = () => {
     }
 
     deleteAccountRPC(
-      [{passphrase}, C.waitingKeySettingsGeneric],
+      [passphrase === undefined ? {} : {passphrase}, C.waitingKeySettingsGeneric],
       () => {
         setJustDeletedSelf(username)
         clearModals()

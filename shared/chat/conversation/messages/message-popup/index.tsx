@@ -9,11 +9,11 @@ import type * as T from '@/constants/types'
 
 type Props = {
   ordinal: T.Chat.Ordinal
-  attachTo?: React.RefObject<Kb.MeasureRef | null>
-  mode?: 'modal' | 'bottomsheet'
+  attachTo?: React.RefObject<Kb.MeasureRef | null> | undefined
+  mode?: 'modal' | 'bottomsheet' | undefined
   onHidden: () => void
   position: Kb.Styles.Position
-  style?: Kb.Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform | undefined
   visible: boolean
 }
 

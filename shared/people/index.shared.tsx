@@ -34,9 +34,9 @@ const renderPeopleItem = (item: T.Immutable<T.People.PeopleScreenItem>, props: P
           newFollows={item.newFollows}
           notificationTime={item.notificationTime}
           badged={item.badged}
-          numAdditional={item.numAdditional}
           key={String(item.notificationTime.getTime())}
           onClickUser={props.onClickUser}
+          {...(item.numAdditional === undefined ? {} : {numAdditional: item.numAdditional})}
         />
       )
     case 'announcement':

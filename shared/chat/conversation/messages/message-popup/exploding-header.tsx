@@ -7,9 +7,9 @@ import {navToProfile} from '@/constants/router'
 type Props = {
   explodesAt: number
   author: string
-  botUsername?: string
+  botUsername?: string | undefined
   deviceName: string
-  deviceRevokedAt?: number
+  deviceRevokedAt?: number | undefined
   hideTimer: boolean
   timestamp: number
   yourMessage: boolean

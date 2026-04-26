@@ -69,10 +69,10 @@ const Conversation = function Conversation() {
   return (
     <div className="conversation" style={styles.container} onPaste={onPaste} key={conversationIDKey}>
       <Kb.DragAndDrop
-        onAttach={cannotWrite ? undefined : onAttach}
         fullHeight={true}
         fullWidth={true}
-        rejectReason={dragAndDropRejectReason}
+        {...(cannotWrite ? {} : {onAttach})}
+        {...(dragAndDropRejectReason === undefined ? {} : {rejectReason: dragAndDropRejectReason})}
       >
         {threadLoadedOffline && <Offline />}
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>

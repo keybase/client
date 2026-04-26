@@ -60,10 +60,23 @@ export function makeChatScreen<COM extends LazyExoticComponent<any>>(
     screen: function Screen(p: ChatScreenProps<COM>) {
       const Comp = Component as any
       const params = ((p.route as {params?: ChatScreenParams<COM>}).params ?? {}) as ChatScreenParams<COM>
+      const providerConversationIDKey = (
+        params as {conversationIDKey?: T.Chat.ConversationIDKey | undefined}
+      ).conversationIDKey
       return options?.skipProvider ? (
         <Comp {...params} />
       ) : (
-        <ProviderScreen rp={p} canBeNull={options?.canBeNullConvoID}>
+        <ProviderScreen
+          rp={{
+            route: {
+              params:
+                providerConversationIDKey === undefined
+                  ? {}
+                  : {conversationIDKey: providerConversationIDKey},
+            },
+          }}
+          {...(options?.canBeNullConvoID === undefined ? {} : {canBeNull: options.canBeNullConvoID})}
+        >
           <Comp {...params} />
         </ProviderScreen>
       )

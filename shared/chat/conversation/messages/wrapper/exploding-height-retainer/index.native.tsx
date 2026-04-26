@@ -49,7 +49,7 @@ const ExplodingHeightRetainer = (p: Props) => {
 
 type AshTowerProps = {
   exploded: boolean
-  explodedBy?: string
+  explodedBy?: string | undefined
   messageKey: string
   numImages: number
 }
@@ -158,7 +158,7 @@ const EmojiTower = (p: {numImages: number; animatedValue: NativeAnimated.Value})
   return <Kb.Box2 direction="vertical" overflow="hidden" style={styles.emojiTower}>{children}</Kb.Box2>
 }
 
-const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: boolean}) => {
+const AshTower = (p: {explodedBy?: string | undefined; numImages: number; showExploded: boolean}) => {
   const {numImages, showExploded, explodedBy} = p
   const isDarkMode = useColorScheme() === 'dark'
   const children: Array<React.ReactNode> = []

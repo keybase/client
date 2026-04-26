@@ -16,31 +16,31 @@ type HeaderTitleProps = {
 }
 
 type RawOptions = {
-  headerMode?: string
-  title?: React.ReactNode
-  headerTitle?: React.ReactNode | React.JSXElementConstructor<HeaderTitleProps & {params?: unknown}>
-  headerLeft?: React.ReactNode | ((props: HeaderBackButtonProps) => React.ReactNode)
-  headerRight?: React.ReactNode | ((p: {tintColor?: string}) => React.ReactNode)
-  headerRightActions?: React.ReactNode | React.JSXElementConstructor<object>
-  subHeader?: React.ReactNode | React.JSXElementConstructor<object>
-  headerTransparent?: boolean
-  headerShadowVisible?: boolean
-  headerBottomStyle?: Kb.Styles.StylesCrossPlatform
-  headerStyle?: Kb.Styles.CollapsibleStyle
+  headerMode?: string | undefined
+  title?: React.ReactNode | undefined
+  headerTitle?: React.ReactNode | React.JSXElementConstructor<HeaderTitleProps & {params?: unknown}> | undefined
+  headerLeft?: React.ReactNode | ((props: HeaderBackButtonProps) => React.ReactNode) | undefined
+  headerRight?: React.ReactNode | ((p: {tintColor?: string}) => React.ReactNode) | undefined
+  headerRightActions?: React.ReactNode | React.JSXElementConstructor<object> | undefined
+  subHeader?: React.ReactNode | React.JSXElementConstructor<object> | undefined
+  headerTransparent?: boolean | undefined
+  headerShadowVisible?: boolean | undefined
+  headerBottomStyle?: Kb.Styles.StylesCrossPlatform | undefined
+  headerStyle?: Kb.Styles.CollapsibleStyle | undefined
 }
 
 type Options = {
-  headerMode?: string
-  title?: React.ReactNode
-  headerTitle?: React.ReactNode
-  headerLeft?: React.ReactNode | ((props: HeaderBackButtonProps) => React.ReactNode)
-  headerRight?: React.ReactNode | ((p: {tintColor?: string}) => React.ReactNode)
-  headerRightActions?: React.ReactNode
-  subHeader?: React.ReactNode
-  headerTransparent?: boolean
-  headerShadowVisible?: boolean
-  headerBottomStyle?: Kb.Styles.StylesCrossPlatform
-  headerStyle?: Kb.Styles.CollapsibleStyle
+  headerMode?: string | undefined
+  title?: React.ReactNode | undefined
+  headerTitle?: React.ReactNode | undefined
+  headerLeft?: React.ReactNode | ((props: HeaderBackButtonProps) => React.ReactNode) | undefined
+  headerRight?: React.ReactNode | ((p: {tintColor?: string}) => React.ReactNode) | undefined
+  headerRightActions?: React.ReactNode | undefined
+  subHeader?: React.ReactNode | undefined
+  headerTransparent?: boolean | undefined
+  headerShadowVisible?: boolean | undefined
+  headerBottomStyle?: Kb.Styles.StylesCrossPlatform | undefined
+  headerStyle?: Kb.Styles.CollapsibleStyle | undefined
 }
 
 // A mobile-like header for desktop

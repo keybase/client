@@ -53,64 +53,64 @@ export type MentionsChannel = 'none' | 'all' | 'here'
 
 export interface PathAndOutboxID {
   path: string
-  outboxID?: T.RPCChat.OutboxID
-  url?: string // if its a kbfs path
+  outboxID?: T.RPCChat.OutboxID | undefined
+  url?: string | undefined // if its a kbfs path
 }
 
 // optional props here may never get set depending on the type
 interface _MessageCommon {
-  readonly adder?: string
-  readonly attachmentType?: AttachmentType
-  readonly audioAmps?: ReadonlyArray<number>
-  readonly audioDuration?: number
+  readonly adder?: string | undefined
+  readonly attachmentType?: AttachmentType | undefined
+  readonly audioAmps?: ReadonlyArray<number> | undefined
+  readonly audioDuration?: number | undefined
   readonly author: string
   readonly bodySummary: HiddenString
-  readonly decoratedText?: HiddenString
-  readonly text?: HiddenString
-  readonly botUsername?: string
-  readonly cardType?: T.RPCChat.JourneycardType
+  readonly decoratedText?: HiddenString | undefined
+  readonly text?: HiddenString | undefined
+  readonly botUsername?: string | undefined
+  readonly cardType?: T.RPCChat.JourneycardType | undefined
   readonly conversationIDKey: Common.ConversationIDKey
-  readonly deviceName?: string
-  readonly deviceRevokedAt?: number
-  readonly deviceType?: DeviceType
-  readonly downloadPath?: string // string if downloaded,
-  readonly errorReason?: string
-  readonly errorTyp?: number
-  readonly exploded?: boolean
-  readonly explodedBy?: string // only if 'explode now' happened,
-  readonly exploding?: boolean
-  readonly explodingTime?: number
-  readonly explodingUnreadable?: boolean
-  readonly fileName?: string
-  readonly fileType?: string // MIME type,
-  readonly fileURL?: string
-  readonly hasBeenEdited?: boolean
+  readonly deviceName?: string | undefined
+  readonly deviceRevokedAt?: number | undefined
+  readonly deviceType?: DeviceType | undefined
+  readonly downloadPath?: string | undefined // string if downloaded,
+  readonly errorReason?: string | undefined
+  readonly errorTyp?: number | undefined
+  readonly exploded?: boolean | undefined
+  readonly explodedBy?: string | undefined // only if 'explode now' happened,
+  readonly exploding?: boolean | undefined
+  readonly explodingTime?: number | undefined
+  readonly explodingUnreadable?: boolean | undefined
+  readonly fileName?: string | undefined
+  readonly fileType?: string | undefined // MIME type,
+  readonly fileURL?: string | undefined
+  readonly hasBeenEdited?: boolean | undefined
   readonly id: MessageID
-  readonly inlineVideoPlayable?: boolean
-  readonly invitee?: string
-  readonly isCollapsed?: boolean
-  readonly isDeleteable?: boolean
-  readonly isEditable?: boolean
-  readonly joiners?: ReadonlyArray<string>
-  readonly leavers?: ReadonlyArray<string>
-  readonly mentionsAt?: MentionsAt
-  readonly mentionsChannel?: MentionsChannel
-  readonly newChannelname?: string
+  readonly inlineVideoPlayable?: boolean | undefined
+  readonly invitee?: string | undefined
+  readonly isCollapsed?: boolean | undefined
+  readonly isDeleteable?: boolean | undefined
+  readonly isEditable?: boolean | undefined
+  readonly joiners?: ReadonlyArray<string> | undefined
+  readonly leavers?: ReadonlyArray<string> | undefined
+  readonly mentionsAt?: MentionsAt | undefined
+  readonly mentionsChannel?: MentionsChannel | undefined
+  readonly newChannelname?: string | undefined
   readonly ordinal: Ordinal
-  readonly outboxID?: OutboxID
-  readonly previewHeight?: number
-  readonly previewURL?: string
-  readonly previewWidth?: number
-  readonly prover?: string
-  readonly reactions?: Reactions
-  readonly submitState?: 'deleting' | 'editing' | 'pending' | 'failed'
+  readonly outboxID?: OutboxID | undefined
+  readonly previewHeight?: number | undefined
+  readonly previewURL?: string | undefined
+  readonly previewWidth?: number | undefined
+  readonly prover?: string | undefined
+  readonly reactions?: Reactions | undefined
+  readonly submitState?: 'deleting' | 'editing' | 'pending' | 'failed' | undefined
   readonly timestamp: number
-  readonly title?: string
-  readonly transferErrMsg?: string
+  readonly title?: string | undefined
+  readonly transferErrMsg?: string | undefined
   readonly transferState?: MessageAttachmentTransferState
-  readonly unfurls?: UnfurlMap
+  readonly unfurls?: UnfurlMap | undefined
   // can be false for out of band calls like gallery load
-  readonly conversationMessage?: boolean
+  readonly conversationMessage?: boolean | undefined
 }
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
@@ -135,26 +135,26 @@ export interface MessageDeleted extends _MessageCommon {
 
 export interface MessageReplyTo extends _MessageCommon {
   readonly type: MessageType
-  readonly text?: HiddenString
+  readonly text?: HiddenString | undefined
 }
 
 export interface MessageText extends _MessageCommon {
-  readonly botUsername?: string
-  readonly decoratedText?: HiddenString
+  readonly botUsername?: string | undefined
+  readonly decoratedText?: HiddenString | undefined
   readonly exploded: boolean
   readonly explodedBy: string // only if 'explode now' happened,
   readonly exploding: boolean
   readonly explodingTime: number
   readonly explodingUnreadable: boolean // if we can't read this message bc we have no keys,
-  readonly inlinePaymentIDs?: ReadonlyArray<WalletTypes.PaymentID>
+  readonly inlinePaymentIDs?: ReadonlyArray<WalletTypes.PaymentID> | undefined
   readonly inlinePaymentSuccessful: boolean
-  readonly flipGameID?: string
-  readonly mentionsAt?: MentionsAt
+  readonly flipGameID?: string | undefined
+  readonly mentionsAt?: MentionsAt | undefined
   readonly mentionsChannel: MentionsChannel
   // this is actually a real Message type but with immutable the circular reference confuses TS, so only expose a small subset of the fields
-  readonly replyTo?: MessageReplyTo
+  readonly replyTo?: MessageReplyTo | undefined
   readonly text: HiddenString
-  readonly paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
+  readonly paymentInfo?: ChatPaymentInfo | undefined // If null, we are waiting on this from the service,
   readonly unfurls: undefined | UnfurlMap
   readonly type: 'text'
 }
@@ -181,13 +181,13 @@ export interface MessageAttachment extends _MessageCommon {
   readonly attachmentType: AttachmentType
   readonly audioAmps: undefined | ReadonlyArray<number>
   readonly audioDuration: number
-  readonly decoratedText?: HiddenString
+  readonly decoratedText?: HiddenString | undefined
   readonly showPlayButton: boolean
   readonly fileURL: string
   readonly fileURLCached: boolean
   readonly previewURL: string
   readonly fileType: string // MIME type,
-  readonly downloadPath?: string // string if downloaded,
+  readonly downloadPath?: string | undefined // string if downloaded,
   readonly exploded: boolean
   readonly explodedBy: string // only if 'explode now' happened,
   readonly exploding: boolean
@@ -202,13 +202,13 @@ export interface MessageAttachment extends _MessageCommon {
   readonly previewWidth: number
   readonly fullHeight: number
   readonly fullWidth: number
-  readonly previewTransferState?: 'downloading' // only for preview,
+  readonly previewTransferState?: 'downloading' | undefined // only for preview,
   readonly title: string
   readonly transferProgress: number // 0-1 // only for the file,
   readonly transferState?: MessageAttachmentTransferState
-  readonly transferErrMsg?: string
+  readonly transferErrMsg?: string | undefined
   readonly type: 'attachment'
-  readonly videoDuration?: string
+  readonly videoDuration?: string | undefined
 }
 
 export interface ChatRequestInfo {
@@ -225,7 +225,7 @@ export interface ChatRequestInfo {
 export interface MessageRequestPayment extends _MessageCommon {
   readonly note: HiddenString
   readonly requestID: RPCStellarTypes.KeybaseRequestID
-  readonly requestInfo?: ChatRequestInfo // If null, we are waiting on this from the service,
+  readonly requestInfo?: ChatRequestInfo | undefined // If null, we are waiting on this from the service,
   readonly type: 'requestPayment'
 }
 
@@ -250,7 +250,7 @@ export interface ChatPaymentInfo {
 }
 
 export interface MessageSendPayment extends _MessageCommon {
-  readonly paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
+  readonly paymentInfo?: ChatPaymentInfo | undefined // If null, we are waiting on this from the service,
   readonly type: 'sendPayment'
 }
 
@@ -271,7 +271,7 @@ export interface MessageSystemInviteAccepted extends _MessageCommon {
 
 export interface MessageSystemSBSResolved extends _MessageCommon {
   readonly assertionUsername: string
-  readonly assertionService?: ServiceIdWithContact
+  readonly assertionService?: ServiceIdWithContact | undefined
   readonly prover: string
   readonly type: 'systemSBSResolved'
 }
@@ -307,8 +307,8 @@ export interface MessageSystemAddedToTeam extends _MessageCommon {
 }
 
 export interface MessageSystemJoined extends _MessageCommon {
-  readonly joiners?: ReadonlyArray<string>
-  readonly leavers?: ReadonlyArray<string>
+  readonly joiners?: ReadonlyArray<string> | undefined
+  readonly leavers?: ReadonlyArray<string> | undefined
   readonly type: 'systemJoined'
 }
 
@@ -353,7 +353,7 @@ export interface MessageSystemChangeRetention extends _MessageCommon {
   readonly isInherit: boolean
   readonly isTeam: boolean
   readonly membersType: T.RPCChat.ConversationMembersType
-  readonly policy?: T.RPCChat.RetentionPolicy
+  readonly policy?: T.RPCChat.RetentionPolicy | undefined
   readonly type: 'systemChangeRetention'
   readonly user: string
   readonly you: string

@@ -2,9 +2,9 @@ import * as Kb from '@/common-adapters'
 
 type Props = {
   degrees: number
-  animated?: boolean
-  negative?: boolean
-  style?: Kb.Styles.StylesCrossPlatform
+  animated?: boolean | undefined
+  negative?: boolean | undefined
+  style?: Kb.Styles.StylesCrossPlatform | undefined
 }
 
 const Slice = (props: Props) => {
@@ -37,14 +37,24 @@ const Slice = (props: Props) => {
 
 const AnimatedPieSlice = (props: Props) => {
   const {degrees} = props
-  return <Slice degrees={degrees} style={props.style} negative={props.negative} />
+  return (
+    <Slice
+      degrees={degrees}
+      {...(props.style === undefined ? {} : {style: props.style})}
+      {...(props.negative === undefined ? {} : {negative: props.negative})}
+    />
+  )
 }
 
 const PieSlice = (props: Props) => {
   return props.animated ? (
     <AnimatedPieSlice {...props} />
   ) : (
-    <Slice degrees={props.degrees} style={props.style} negative={props.negative} />
+    <Slice
+      degrees={props.degrees}
+      {...(props.style === undefined ? {} : {style: props.style})}
+      {...(props.negative === undefined ? {} : {negative: props.negative})}
+    />
   )
 }
 const pieSize = Kb.Styles.isMobile ? 16 : 12

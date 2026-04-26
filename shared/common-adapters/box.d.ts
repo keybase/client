@@ -13,41 +13,41 @@ export type LayoutEvent = NativeSyntheticEvent<{
 }>
 
 export type Box2Props = {
-  alignItems?: 'center' | 'flex-start' | 'flex-end' | 'stretch'
-  alignSelf?: 'center' | 'flex-start' | 'flex-end' | 'stretch'
-  children?: React.ReactNode
-  centerChildren?: boolean
-  className?: string
-  collapsable?: boolean
+  alignItems?: 'center' | 'flex-start' | 'flex-end' | 'stretch' | undefined
+  alignSelf?: 'center' | 'flex-start' | 'flex-end' | 'stretch' | undefined
+  children?: React.ReactNode | undefined
+  centerChildren?: boolean | undefined
+  className?: string | undefined
+  collapsable?: boolean | undefined
   direction: 'horizontal' | 'vertical' | 'horizontalReverse' | 'verticalReverse'
-  flex?: number
-  fullHeight?: boolean
-  fullWidth?: boolean
-  justifyContent?: 'center' | 'flex-start' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly'
-  noShrink?: boolean
-  overflow?: 'hidden' | 'scroll' | 'visible' | 'auto'
-  onDragLeave?: (syntheticDragEvent: React.DragEvent) => void // desktop only
-  onDragOver?: (syntheticDragEvent: React.DragEvent) => void // desktop only
-  onDrop?: (syntheticDragEvent: React.DragEvent) => void // desktop only
-  onLayout?: (evt: LayoutEvent) => void // mobile only
-  onMouseDown?: (syntheticEvent: React.MouseEvent) => void // desktop only
-  onMouseMove?: (syntheticEvent: React.MouseEvent) => void // desktop only
-  onMouseLeave?: (syntheticEvent: React.MouseEvent) => void // desktop only
-  onMouseUp?: (syntheticEvent: React.MouseEvent) => void // desktop only
-  onMouseOver?: (syntheticEvent: React.MouseEvent) => void // desktop only
-  onCopyCapture?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
-  onContextMenu?: () => void // desktop only
-  padding?: keyof typeof globalMargins
-  pointerEvents?: 'none' | 'box-none'
-  relative?: boolean
-  style?: StylesCrossPlatform
-  gap?: keyof typeof globalMargins
-  gapStart?: boolean
-  gapEnd?: boolean
-  title?: string
-  tooltip?: string
+  flex?: number | undefined
+  fullHeight?: boolean | undefined
+  fullWidth?: boolean | undefined
+  justifyContent?: 'center' | 'flex-start' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly' | undefined
+  noShrink?: boolean | undefined
+  overflow?: 'hidden' | 'scroll' | 'visible' | 'auto' | undefined
+  onDragLeave?: ((syntheticDragEvent: React.DragEvent) => void) | undefined // desktop only
+  onDragOver?: ((syntheticDragEvent: React.DragEvent) => void) | undefined // desktop only
+  onDrop?: ((syntheticDragEvent: React.DragEvent) => void) | undefined // desktop only
+  onLayout?: ((evt: LayoutEvent) => void) | undefined // mobile only
+  onMouseDown?: ((syntheticEvent: React.MouseEvent) => void) | undefined // desktop only
+  onMouseMove?: ((syntheticEvent: React.MouseEvent) => void) | undefined // desktop only
+  onMouseLeave?: ((syntheticEvent: React.MouseEvent) => void) | undefined // desktop only
+  onMouseUp?: ((syntheticEvent: React.MouseEvent) => void) | undefined // desktop only
+  onMouseOver?: ((syntheticEvent: React.MouseEvent) => void) | undefined // desktop only
+  onCopyCapture?: ((syntheticEvent: React.SyntheticEvent) => void) | undefined // desktop only
+  onContextMenu?: (() => void) | undefined // desktop only
+  padding?: keyof typeof globalMargins | undefined
+  pointerEvents?: 'none' | 'box-none' | undefined
+  relative?: boolean | undefined
+  style?: StylesCrossPlatform | undefined
+  gap?: keyof typeof globalMargins | undefined
+  gapStart?: boolean | undefined
+  gapEnd?: boolean | undefined
+  title?: string | undefined
+  tooltip?: string | undefined
 }
 
-export declare function Box2(p: Box2Props & {ref?: React.Ref<MeasureRef>}): React.ReactNode
+export declare function Box2(p: Box2Props & {ref?: React.Ref<MeasureRef> | undefined}): React.ReactNode
 // wrapped by reanimated
-export declare function Box2Animated(p: Box2Props & {ref?: React.Ref<MeasureRef>}): React.ReactNode
+export declare function Box2Animated(p: Box2Props & {ref?: React.Ref<MeasureRef> | undefined}): React.ReactNode

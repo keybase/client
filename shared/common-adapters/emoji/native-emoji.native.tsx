@@ -21,7 +21,7 @@ function EmojiWrapper(props: Props) {
     <Text
       type="Body"
       style={Styles.collapseStyles([sizeStyle.get(size), props.style])}
-      allowFontScaling={props.allowFontScaling}
+      {...(props.allowFontScaling === undefined ? {} : {allowFontScaling: props.allowFontScaling})}
     >
       {emojiIndexByName[emojiName] ? emojiIndexByName[emojiName] + emojiVariantSuffix : emojiName}
     </Text>

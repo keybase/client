@@ -15,7 +15,7 @@ const Kb = {
 }
 
 type Props = {
-  attachTo?: React.RefObject<MeasureRef | null>
+  attachTo?: React.RefObject<MeasureRef | null> | undefined
   onHidden: () => void
   error: string
   visible: boolean
@@ -24,6 +24,7 @@ type Props = {
 const items: MenuItems = []
 
 const PaymentStatusError = (props: Props) => {
+  const floatingMenuProps = props.attachTo ? {attachTo: props.attachTo} : {}
   const header = (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text type="BodyExtrabold" style={styles.headerError}>
@@ -40,7 +41,7 @@ const PaymentStatusError = (props: Props) => {
 
   return (
     <Kb.FloatingMenu
-      attachTo={props.attachTo}
+      {...floatingMenuProps}
       closeOnSelect={true}
       header={header}
       items={items}

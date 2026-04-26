@@ -123,12 +123,12 @@ const URLText = (p: {
 
 export type Props = {
   json: string
-  allowFontScaling?: boolean
-  styleOverride?: StyleOverride
+  allowFontScaling?: boolean | undefined
+  styleOverride?: StyleOverride | undefined
   styles: {[K in string]: StylesTextCrossPlatform}
   disableBigEmojis: boolean
   disableEmojiAnimation: boolean
-  messageType?: T.Chat.MessageType
+  messageType?: T.Chat.MessageType | undefined
 }
 
 const ServiceDecoration = (p: Props) => {
@@ -156,10 +156,10 @@ const ServiceDecoration = (p: Props) => {
     }
     return (
       <PaymentStatus
-        paymentID={paymentID}
-        error={error}
         text={parsed.payment.paymentText}
-        allowFontScaling={allowFontScaling}
+        {...(paymentID === undefined ? {} : {paymentID})}
+        {...(error === undefined ? {} : {error})}
+        {...(allowFontScaling === undefined ? {} : {allowFontScaling})}
       />
     )
   } else if (parsed.typ === T.RPCChat.UITextDecorationTyp.atmention && parsed.atmention) {

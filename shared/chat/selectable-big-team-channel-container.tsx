@@ -3,9 +3,9 @@ import SelectableBigTeamChannel from './selectable-big-team-channel'
 
 type OwnProps = {
   isSelected: boolean
-  maxSearchHits?: number
+  maxSearchHits?: number | undefined
   name: string
-  numSearchHits?: number
+  numSearchHits?: number | undefined
   onSelectConversation: () => void
 }
 

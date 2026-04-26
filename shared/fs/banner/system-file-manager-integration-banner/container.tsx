@@ -9,7 +9,7 @@ import {ignorePromise} from '@/constants/utils'
 import {setSfmiBannerDismissedDesktop as setSfmiBannerDismissedInPlatform} from '@/stores/fs-platform'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
-type OwnProps = {alwaysShow?: boolean}
+type OwnProps = {alwaysShow?: boolean | undefined}
 
 const SFMIContainer = (op: OwnProps) => {
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
@@ -82,19 +82,19 @@ enum Background {
 type BannerButtonProps = {
   action: () => void
   buttonText: string
-  disabled?: boolean
+  disabled?: boolean | undefined
   inProgress: boolean
 }
 
 type BannerProps = {
   background: Background
   okIcon: boolean
-  onDismiss?: () => void
+  onDismiss?: (() => void) | undefined
   title: string
-  body?: string
-  bodyExtraComponent?: React.ReactNode
-  button?: BannerButtonProps
-  buttonSecondary?: BannerButtonProps
+  body?: string | undefined
+  bodyExtraComponent?: React.ReactNode | undefined
+  button?: BannerButtonProps | undefined
+  buttonSecondary?: BannerButtonProps | undefined
 }
 
 const backgroundToTextStyle = (background: Background) => {
@@ -171,22 +171,24 @@ const Banner = (props: BannerProps) => (
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" alignItems="center">
           {!!props.button && (
             <Kb.Button
-              disabled={props.button.disabled}
               label={props.button.buttonText}
               onClick={props.button.action}
               waiting={props.button.inProgress}
               style={buttonOnColorStyle}
               labelStyle={backgroundToButtonLabelStyle(props.background)}
+              {...(props.button.disabled === undefined ? {} : {disabled: props.button.disabled})}
             />
           )}
           {!!props.buttonSecondary && (
             <Kb.Button
-              disabled={props.buttonSecondary.disabled}
               label={props.buttonSecondary.buttonText}
               onClick={props.buttonSecondary.action}
               waiting={props.buttonSecondary.inProgress}
               style={buttonOnColorStyle}
               labelStyle={backgroundToButtonLabelStyle(props.background)}
+              {...(props.buttonSecondary.disabled === undefined
+                ? {}
+                : {disabled: props.buttonSecondary.disabled})}
             />
           )}
         </Kb.Box2>
@@ -239,7 +241,7 @@ const DokanOutdated = (props: {driverStatus: T.FS.DriverStatus; onDisable: () =>
   )
 }
 
-type JustEnabledProps = {onDismiss?: () => void}
+type JustEnabledProps = {onDismiss?: (() => void) | undefined}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
   const displayingMountDir = useFSState(s => s.sfmi.preferredMountDirs[0] ?? '')
@@ -269,7 +271,7 @@ const JustEnabled = ({onDismiss}: JustEnabledProps) => {
 const Enabled = (props: {
   driverStatus: T.FS.DriverStatus
   onDisable: () => void
-  alwaysShow?: boolean
+  alwaysShow?: boolean | undefined
   settings: T.FS.Settings
   onDismiss: () => void
 }) => {
@@ -301,7 +303,7 @@ const Enabled = (props: {
 const Disabled = (props: {
   driverStatus: T.FS.DriverStatus
   onEnable: () => void
-  alwaysShow?: boolean
+  alwaysShow?: boolean | undefined
   settings: T.FS.Settings
   onDismiss: () => void
 }) => {

@@ -5,8 +5,8 @@ type GlobalProps = {
 }
 
 type Props = {
-  onKeyDown?: (ev: KeyboardEvent) => void
-  onKeyPress?: (ev: KeyboardEvent) => void
+  onKeyDown?: ((ev: KeyboardEvent) => void) | undefined
+  onKeyPress?: ((ev: KeyboardEvent) => void) | undefined
   children: React.ReactNode
 }
 
@@ -27,8 +27,8 @@ const KeyEventHandlerWrapper = (props: Props) => (
 )
 
 type KeyEventHandlerRef = {
-  onKeyDown?: (ev: KeyboardEvent) => void
-  onKeyPress?: (ev: KeyboardEvent) => void
+  onKeyDown?: ((ev: KeyboardEvent) => void) | undefined
+  onKeyPress?: ((ev: KeyboardEvent) => void) | undefined
 }
 const KeyEventHandler = (props: Props & HandlerProps): React.ReactNode => {
   const {add, remove, onKeyDown, onKeyPress} = props
@@ -84,7 +84,7 @@ const GlobalKeyEventHandler = (props: GlobalProps) => {
 }
 
 type EscapeHandlerProps = {
-  onESC?: () => void
+  onESC?: (() => void) | undefined
   children: React.ReactNode
 }
 

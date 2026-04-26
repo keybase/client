@@ -6,9 +6,9 @@ import type {Image as RNImageType} from 'react-native'
 
 export type ImageIconProps = {
   type: IconType
-  style?: Styles.StylesCrossPlatform
-  className?: string
-  allowLazy?: boolean
+  style?: Styles.StylesCrossPlatform | undefined
+  className?: string | undefined
+  allowLazy?: boolean | undefined
 }
 
 const ImageIconDesktop = (props: ImageIconProps) => {

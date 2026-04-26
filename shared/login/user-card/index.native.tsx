@@ -20,8 +20,8 @@ const UserCard = (p: Props) => {
         />
         <Kb.Avatar
           size={avatarSize}
-          onClick={onAvatarClicked}
-          username={username}
+          {...(onAvatarClicked === undefined ? {} : {onClick: onAvatarClicked})}
+          {...(username === undefined ? {} : {username})}
         />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box2>

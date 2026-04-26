@@ -73,15 +73,15 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
         onHidden={hidePopup}
         items={[
           {
-            icon: useOriginalValue ? 'iconfont-check' : undefined,
             onClick: () => setUseOriginalFromUI(true),
-            rightTitle: isLarge ? 'Large file' : undefined,
             title: `Keep full size (${FS.humanizeBytes(originalTotalSize, 1)})`,
+            ...(useOriginalValue ? {icon: 'iconfont-check' as const} : {}),
+            ...(isLarge ? {rightTitle: 'Large file'} : {}),
           },
           {
-            icon: useOriginalValue ? undefined : 'iconfont-check',
             onClick: () => setUseOriginalFromUI(false),
             title: `Compress (${FS.humanizeBytes(scaledTotalSize, 1)})`,
+            ...(useOriginalValue ? {} : {icon: 'iconfont-check' as const}),
           },
         ]}
       />
@@ -251,7 +251,11 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
-          <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
+          <MobileSendToChat
+            isFromShareExtension={true}
+            sendPaths={sendPaths}
+            {...(text === undefined ? {} : {text})}
+          />
         </Kb.Box2>
       </Kb.Box2>
       {footer ? (
@@ -325,7 +329,9 @@ const IncomingShareMain = (props: IncomingShareMainProps) => {
   ) : incomingShareItems.length ? (
     <IncomingShare
       incomingShareItems={incomingShareItems}
-      selectedConversationIDKey={props.selectedConversationIDKey}
+      {...(props.selectedConversationIDKey === undefined
+        ? {}
+        : {selectedConversationIDKey: props.selectedConversationIDKey})}
     />
   ) : (
     <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>

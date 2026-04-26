@@ -35,9 +35,9 @@ export const ContinueButton = ({
     <Kb.WaitingButton
       waitingKey={C.waitingKeySignup}
       label={label || 'Continue'}
-      disabled={disabled}
       fullWidth={true}
       onClick={onClick}
+      {...(disabled === undefined ? {} : {disabled})}
     />
   </Kb.ButtonBar>
 )

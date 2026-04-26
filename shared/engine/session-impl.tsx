@@ -43,13 +43,13 @@ class Session {
 
   constructor(p: {
     sessionID: SessionID
-    incomingCallMap?: IncomingCallMapType
-    customResponseIncomingCallMap?: CustomResponseIncomingCallMap
-    waitingKey?: WaitingKey
+    incomingCallMap?: IncomingCallMapType | undefined
+    customResponseIncomingCallMap?: CustomResponseIncomingCallMap | undefined
+    waitingKey?: WaitingKey | undefined
     invoke: InvokeType
     endHandler: EndHandlerType
-    cancelHandler?: CancelHandlerType
-    dangling?: boolean
+    cancelHandler?: CancelHandlerType | undefined
+    dangling?: boolean | undefined
   }) {
     this._id = p.sessionID
     this._incomingCallMap = p.incomingCallMap || {}
@@ -118,7 +118,7 @@ class Session {
   }
 
   // Start the session normally. Tells engine we're done at the end
-  start(method: MethodKey, param: object, callback: (() => void) | undefined) {
+  start(method: MethodKey, param: object | undefined, callback: (() => void) | undefined) {
     this._startMethod = method
     this._startCallback = callback
 
@@ -131,7 +131,7 @@ class Session {
 
     // Add the sessionID
     const wrappedParam = {
-      ...param,
+      ...(param ?? {}),
       sessionID: this.getId(),
     }
 

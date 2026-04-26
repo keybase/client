@@ -24,18 +24,21 @@ export type SectionType<Item> = {
 }
 
 type Props<ItemT, SectionT> = SectionListProps<ItemT, SectionT> & {
-  getItemHeight?: (item: ItemT | undefined, sectionIndex: number, indexWithinSection: number) => number
-  getSectionHeaderHeight?: (sectionIndex: number) => number
-  onSectionChange?: (section: SectionT) => void
+  getItemHeight?: ((item: ItemT | undefined, sectionIndex: number, indexWithinSection: number) => number) | undefined
+  getSectionHeaderHeight?: ((sectionIndex: number) => number) | undefined
+  onSectionChange?: ((section: SectionT) => void) | undefined
 }
 
 function SectionListImpl<ItemT, SectionT>(
-  props: Props<ItemT, SectionT> & {ref?: React.Ref<NativeSectionList<ItemT, SectionT>>}
+  props: Props<ItemT, SectionT> & {ref?: React.Ref<NativeSectionList<ItemT, SectionT>> | undefined}
 ) {
   const {ref} = props
   const {getItemHeight, getSectionHeaderHeight, onSectionChange, ...rest} = props
   const getItemLayout = getItemHeight
-    ? getGetItemLayout<ItemT, SectionT>({getItemHeight, getSectionHeaderHeight})
+    ? getGetItemLayout<ItemT, SectionT>({
+        getItemHeight,
+        ...(getSectionHeaderHeight === undefined ? {} : {getSectionHeaderHeight}),
+      })
     : undefined
   const onViewableItemsChanged = onSectionChange
     ? (e: {viewableItems: ViewToken<ItemT>[]}) => {
@@ -88,10 +91,10 @@ type ListElement = SectionHeader | Row | SectionFooter
 
 export interface Parameters<ItemT> {
   getItemHeight: (rowData: ItemT | undefined, sectionIndex: number, rowIndex: number) => number
-  getSeparatorHeight?: (sectionIndex: number, rowIndex: number) => number
-  getSectionHeaderHeight?: (sectionIndex: number) => number
-  getSectionFooterHeight?: (sectionIndex: number) => number
-  listHeaderHeight?: number | (() => number)
+  getSeparatorHeight?: ((sectionIndex: number, rowIndex: number) => number) | undefined
+  getSectionHeaderHeight?: ((sectionIndex: number) => number) | undefined
+  getSectionFooterHeight?: ((sectionIndex: number) => number) | undefined
+  listHeaderHeight?: number | (() => number) | undefined
 }
 
 function getGetItemLayout<ItemT, SectionT>({

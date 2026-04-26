@@ -86,11 +86,11 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
     const {attachTo, hidePopup} = p
     return (
       <Kb.FloatingMenu
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         closeText="Cancel"
         visible={true}
         position="bottom right"
-        header={Kb.Styles.isMobile ? header : undefined}
+        {...(Kb.Styles.isMobile ? {header} : {})}
         onHidden={hidePopup}
         items={menuItems}
         closeOnSelect={true}

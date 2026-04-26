@@ -49,8 +49,8 @@ function Image(p: Props) {
       <Kb.Box2
         direction="horizontal"
         alignSelf="flex-start"
-        gap={Kb.Styles.isMobile ? undefined : 'small'}
         alignItems="center"
+        {...(!Kb.Styles.isMobile ? ({gap: 'small'} as const) : {})}
       >
         <Kb.Box2
           direction="vertical"

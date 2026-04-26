@@ -7,8 +7,8 @@ const UserCard = (p: Props) => {
     <div style={Kb.Styles.collapseStyles([styles.container, outerStyle]) as React.CSSProperties}>
       <Kb.Avatar
         size={avatarSize}
-        onClick={onAvatarClicked}
-        username={username}
+        {...(onAvatarClicked === undefined ? {} : {onClick: onAvatarClicked})}
+        {...(username === undefined ? {} : {username})}
       />
       <div
         style={

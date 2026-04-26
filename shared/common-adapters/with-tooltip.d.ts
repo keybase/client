@@ -2,18 +2,18 @@ import type * as React from 'react'
 import type {StylesCrossPlatform, Position} from '@/styles'
 
 export type Props = {
-  backgroundColor?: string
-  disabled?: boolean
+  backgroundColor?: string | undefined
+  disabled?: boolean | undefined
   tooltip: string | React.ReactNode
-  multiline?: boolean
-  containerStyle?: StylesCrossPlatform
+  multiline?: boolean | undefined
+  containerStyle?: StylesCrossPlatform | undefined
   children: React.ReactNode
-  position?: Position // on mobile only 'top center' and 'bottom center' are supported,,
-  className?: string
-  toastClassName?: string
-  toastStyle?: StylesCrossPlatform
-  textStyle?: StylesCrossPlatform
-  showOnPressMobile?: boolean
+  position?: Position | undefined // on mobile only 'top center' and 'bottom center' are supported,,
+  className?: string | undefined
+  toastClassName?: string | undefined
+  toastStyle?: StylesCrossPlatform | undefined
+  textStyle?: StylesCrossPlatform | undefined
+  showOnPressMobile?: boolean | undefined
 }
 
 export declare const WithTooltip: (p: Props) => React.ReactNode

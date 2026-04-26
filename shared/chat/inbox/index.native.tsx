@@ -52,20 +52,20 @@ const NoChats = (props: {onNewChat: () => void}) => (
 )
 
 type InboxProps = {
-  conversationIDKey?: T.Chat.ConversationIDKey
-  refreshInbox?: T.Chat.ChatRootInboxRefresh
-  search?: InboxSearchController
+  conversationIDKey?: T.Chat.ConversationIDKey | undefined
+  refreshInbox?: T.Chat.ChatRootInboxRefresh | undefined
+  search?: InboxSearchController | undefined
 }
 
 type ControlledInboxProps = {
-  conversationIDKey?: T.Chat.ConversationIDKey
-  refreshInbox?: T.Chat.ChatRootInboxRefresh
+  conversationIDKey?: T.Chat.ConversationIDKey | undefined
+  refreshInbox?: T.Chat.ChatRootInboxRefresh | undefined
   search: InboxSearchController
 }
 
 function InboxWithSearch(props: {
-  conversationIDKey?: T.Chat.ConversationIDKey
-  refreshInbox?: T.Chat.ChatRootInboxRefresh
+  conversationIDKey?: T.Chat.ConversationIDKey | undefined
+  refreshInbox?: T.Chat.ChatRootInboxRefresh | undefined
 }) {
   const search = useInboxSearch()
   return <InboxBody conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} search={search} />
@@ -161,7 +161,7 @@ function InboxBody(p: ControlledInboxProps) {
 
   const noChats = !neverLoaded && !isSearching && !rows.length && <NoChats onNewChat={onNewChat} />
   const floatingDivider = showFloating && !isSearching && allowShowFloatingButton && (
-    <BigTeamsDivider toggle={scrollToBigTeams} onEdit={C.isIOS ? promptSmallTeamsNum : undefined} />
+    <BigTeamsDivider toggle={scrollToBigTeams} {...(C.isIOS ? {onEdit: promptSmallTeamsNum} : {})} />
   )
 
   return (

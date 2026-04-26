@@ -2,7 +2,7 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 type SettingsItemProps = {
-  badgeNumber?: number
+  badgeNumber?: number | undefined
   icon?: Kb.IconType
   iconComponent?: React.ComponentType
   inProgress?: boolean

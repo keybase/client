@@ -3,10 +3,6 @@ import * as T from '@/constants/types'
 export const noDetails: T.Tracker.Details = {
   assertions: new Map(),
   blocked: false,
-  followers: undefined,
-  followersCount: undefined,
-  following: undefined,
-  followingCount: undefined,
   guiID: '',
   hidFromFollowers: false,
   reason: '',
@@ -29,8 +25,8 @@ export const makeDetails = (username: string): T.Tracker.Details => ({
 export const cloneDetails = (details: T.Tracker.Details): T.Tracker.Details => ({
   ...details,
   assertions: new Map(details.assertions ?? []),
-  followers: details.followers ? new Set(details.followers) : details.followers,
-  following: details.following ? new Set(details.following) : details.following,
+  ...(details.followers === undefined ? {} : {followers: new Set(details.followers)}),
+  ...(details.following === undefined ? {} : {following: new Set(details.following)}),
   teamShowcase: [...(details.teamShowcase ?? [])],
   webOfTrustEntries: [...(details.webOfTrustEntries ?? [])],
 })
@@ -136,7 +132,7 @@ export const rpcAssertionToAssertion = (row: T.RPCGen.Identify3Row): T.Tracker.A
   timestamp: row.ctime,
   type: row.key,
   value: row.value,
-  wotProof: row.wotProof ?? undefined,
+  ...(row.wotProof == null ? {} : {wotProof: row.wotProof}),
 })
 
 export const updateTrackerDetailsResult = (

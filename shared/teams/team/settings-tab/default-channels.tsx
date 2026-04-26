@@ -13,7 +13,7 @@ type Props = {
 export const useDefaultChannels = (teamID: T.Teams.TeamID) => {
   type DefaultChannelsState = {
     defaultChannels: Array<T.Teams.ChannelNameID>
-    error?: RPCError
+    error?: RPCError | undefined
     loadedTeamID?: T.Teams.TeamID
     waiting: boolean
   }

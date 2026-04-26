@@ -18,7 +18,7 @@ type CardIndex =
 
 type CardType = {
   card: CardIndex
-  hand?: boolean
+  hand?: boolean | undefined
 }
 
 function isCardIndex(value: number): value is CardIndex {
@@ -170,8 +170,8 @@ const Card = (props: CardType) => (
 )
 
 type DeckType = {
-  deck?: Array<CardType['card']>
-  hand?: boolean
+  deck?: Array<CardType['card']> | undefined
+  hand?: boolean | undefined
 }
 
 const CoinFlipResultDeck = (props: DeckType) => (
@@ -292,7 +292,10 @@ const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => (
         {props.index + 1}
       </Kb.Text>
     </Kb.Box2>
-    <Kb.Markdown allowFontScaling={true} styleOverride={props.index === 0 ? paragraphOverrides : undefined}>
+    <Kb.Markdown
+      allowFontScaling={true}
+      {...(props.index === 0 ? {styleOverride: paragraphOverrides} : {})}
+    >
       {props.item}
     </Kb.Markdown>
   </Kb.Box2>
@@ -303,7 +306,7 @@ const paragraphOverrides = {
     // These are Header's styles.
     fontSize: Kb.Styles.isMobile ? 20 : 18,
     fontWeight: '700',
-    lineHeight: Kb.Styles.isMobile ? 24 : undefined,
+    ...(Kb.Styles.isMobile ? {lineHeight: 24} : {}),
   } as const,
 }
 

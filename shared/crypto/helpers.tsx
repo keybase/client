@@ -14,19 +14,19 @@ export type CommonState = {
   input: string
   inputType: 'text' | 'file'
   output: string
-  outputSenderFullname?: string
-  outputSenderUsername?: string
+  outputSenderFullname?: string | undefined
+  outputSenderUsername?: string | undefined
   outputSigned: boolean
-  outputStatus?: OutputStatus
-  outputType?: 'text' | 'file'
+  outputStatus?: OutputStatus | undefined
+  outputType?: 'text' | 'file' | undefined
   outputValid: boolean
   warningMessage: string
 }
 
 export type CryptoInputRouteParams = {
-  entryNonce?: string
-  seedInputPath?: string
-  seedInputType?: 'text' | 'file'
+  entryNonce?: string | undefined
+  seedInputPath?: string | undefined
+  seedInputType?: 'text' | 'file' | undefined
 }
 
 export type CommonOutputRouteParams = CommonState

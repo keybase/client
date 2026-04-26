@@ -183,7 +183,7 @@ export const Phone = () => {
   )
 }
 type VerifyPhoneProps = {
-  initialResend?: boolean
+  initialResend?: boolean | undefined
   phoneNumber: string
 }
 

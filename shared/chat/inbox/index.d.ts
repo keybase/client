@@ -3,9 +3,9 @@ import type {ChatRootInboxRefresh, ConversationIDKey} from '@/constants/types/ch
 import type {InboxSearchController} from './use-inbox-search'
 
 type Props = {
-  conversationIDKey?: ConversationIDKey
-  refreshInbox?: ChatRootInboxRefresh
-  search?: InboxSearchController
+  conversationIDKey?: ConversationIDKey | undefined
+  refreshInbox?: ChatRootInboxRefresh | undefined
+  search?: InboxSearchController | undefined
 }
 
 declare const Inbox: (p: Props) => React.ReactNode

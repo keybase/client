@@ -15,17 +15,19 @@ type Props = {
   tooltip: string
 } & OwnProps
 
-const SyncingFolders = (props: Props) =>
-  props.show && props.progress !== 1.0 ? (
+const SyncingFolders = (props: Props) => {
+  const negative = props.negative ?? false
+  return props.show && props.progress !== 1.0 ? (
     <Kb.WithTooltip tooltip={props.tooltip} containerStyle={{alignSelf: 'center'}}>
       <Kb.Box2 direction="horizontal" alignItems="center">
-        <PieSlice degrees={props.progress * 360} animated={true} negative={props.negative} />
-        <Kb.Text type="BodyTiny" negative={props.negative} style={{marginLeft: 5}}>
+        <PieSlice degrees={props.progress * 360} animated={true} negative={negative} />
+        <Kb.Text type="BodyTiny" negative={negative} style={{marginLeft: 5}}>
           Syncing folders...
         </Kb.Text>
       </Kb.Box2>
     </Kb.WithTooltip>
   ) : null
+}
 
 const SyncFolders = (op: OwnProps) => {
   const {syncingFoldersProgress, online} = useFSState(
@@ -35,7 +37,7 @@ const SyncFolders = (op: OwnProps) => {
       return {online, syncingFoldersProgress}
     })
   )
-  const {negative} = op
+  const negative = op.negative ?? false
 
   if (syncingFoldersProgress.bytesTotal === 0) {
     return <SyncingFolders progress={0} show={false} tooltip="" />

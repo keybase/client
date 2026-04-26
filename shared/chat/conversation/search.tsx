@@ -420,13 +420,13 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
                 </Kb.Text>
                 <Kb.Icon
                   color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
-                  onClick={!noResults ? onUp : undefined}
                   type="iconfont-arrow-up"
+                  {...(!noResults ? {onClick: onUp} : {})}
                 />
                 <Kb.Icon
                   color={noResults ? Kb.Styles.globalColors.black_35 : Kb.Styles.globalColors.black_50}
-                  onClick={!noResults ? onDown : undefined}
                   type="iconfont-arrow-down"
+                  {...(!noResults ? {onClick: onDown} : {})}
                 />
               </Kb.Box2>
             )}

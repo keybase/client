@@ -33,7 +33,6 @@ const MenuLayout = (props: MenuLayoutProps) => {
     ) : (
       <ClickableBox
         key={index}
-        className={hoverClassName}
         style={Styles.collapseStyles([styles.itemContainer, styleClickable])}
         onClick={() => {
           item.onClick?.()
@@ -41,6 +40,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
             props.onHidden()
           }
         }}
+        {...(hoverClassName === undefined ? {} : {className: hoverClassName})}
       >
         {item.view}
         {!item.view && (

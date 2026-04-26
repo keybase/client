@@ -16,6 +16,10 @@ const LeftNav = (props: Props) => {
   const {navigate} = props
   const badgeNumbers = useNotifState(s => s.navBadges)
   const badgeNotifications = usePushState(s => (C.isElectron ? 0 : !s.hasPermissions ? 1 : 0))
+  const cryptoBadgeNumber = badgeNumbers.get(C.Tabs.cryptoTab)
+  const devicesBadgeNumber = badgeNumbers.get(C.Tabs.devicesTab)
+  const gitBadgeNumber = badgeNumbers.get(C.Tabs.gitTab)
+  const settingsBadgeNumber = badgeNumbers.get(C.Tabs.settingsTab)
 
   const onSignout = () => {
     navigate(Settings.settingsLogOutTab)
@@ -30,7 +34,7 @@ const LeftNav = (props: Props) => {
               type={Settings.settingsCryptoTab}
               selected={props.selected === Settings.settingsCryptoTab}
               onClick={props.onClick}
-              badgeNumber={badgeNumbers.get(C.Tabs.cryptoTab)}
+              {...(cryptoBadgeNumber === undefined ? {} : {badgeNumber: cryptoBadgeNumber})}
             />
             <SettingsItem
               icon="iconfont-nav-2-git"
@@ -38,7 +42,7 @@ const LeftNav = (props: Props) => {
               type={Settings.settingsGitTab}
               selected={props.selected === Settings.settingsGitTab}
               onClick={props.onClick}
-              badgeNumber={badgeNumbers.get(C.Tabs.gitTab)}
+              {...(gitBadgeNumber === undefined ? {} : {badgeNumber: gitBadgeNumber})}
             />
             <SettingsItem
               text="Devices"
@@ -46,7 +50,7 @@ const LeftNav = (props: Props) => {
               type={Settings.settingsDevicesTab}
               selected={props.selected === Settings.settingsDevicesTab}
               onClick={props.onClick}
-              badgeNumber={badgeNumbers.get(C.Tabs.devicesTab)}
+              {...(devicesBadgeNumber === undefined ? {} : {badgeNumber: devicesBadgeNumber})}
             />
             <Kb.SectionDivider label="Settings" />
           </>
@@ -56,7 +60,7 @@ const LeftNav = (props: Props) => {
           selected={props.selected === Settings.settingsAccountTab}
           type={Settings.settingsAccountTab}
           onClick={props.onClick}
-          badgeNumber={badgeNumbers.get(C.Tabs.settingsTab)}
+          {...(settingsBadgeNumber === undefined ? {} : {badgeNumber: settingsBadgeNumber})}
         />
         <SettingsItem
           text="Advanced"

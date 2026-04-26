@@ -275,8 +275,9 @@ export const uploadTeamAvatar = (
 ) => {
   const f = async () => {
     try {
+      const fixedCrop = fixCrop(crop)
       await T.RPCGen.teamsUploadTeamAvatarRpcPromise(
-        {crop: fixCrop(crop), filename, sendChatNotification, teamname},
+        {filename, sendChatNotification, teamname, ...(fixedCrop === undefined ? {} : {crop: fixedCrop})},
         S.waitingKeyProfileUploadAvatar
       )
       navigateUp()

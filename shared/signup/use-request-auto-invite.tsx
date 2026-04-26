@@ -20,7 +20,10 @@ const useRequestAutoInvite = () => {
         inviteCode = await T.RPCGen.signupGetInvitationCodeRpcPromise(undefined, C.waitingKeySignup)
       } catch {}
       navigateUp()
-      navigateAppend({name: 'signupEnterUsername', params: {inviteCode, username}})
+      navigateAppend({
+        name: 'signupEnterUsername',
+        params: username === undefined ? {inviteCode} : {inviteCode, username},
+      })
     }
     ignorePromise(f())
   }

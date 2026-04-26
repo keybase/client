@@ -247,7 +247,7 @@ const useListBodyData = ({
 }: {
   searchString: string
   selectedService: T.TB.ServiceIdWithContact
-  teamID?: T.Teams.TeamID
+  teamID?: T.Teams.TeamID | undefined
 }) => {
   const {contactsImported, contactsPermissionStatus} = useSettingsContactsState(
     C.useShallow(s => ({

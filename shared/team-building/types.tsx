@@ -5,7 +5,7 @@ export type SearchResult = {
   userId: string
   username: string
   prettyName: string
-  pictureUrl?: string
+  pictureUrl?: string | undefined
   displayLabel: string
   services: {[K in T.TB.ServiceIdWithContact]?: string}
   inTeam: boolean

@@ -32,11 +32,11 @@ type OwnProps = {
 type TeamTreeRowNotIn = {
   teamID: T.Teams.TeamID
   teamname: string
-  memberCount?: number
-  joinTime?: number
+  memberCount?: number | undefined
+  joinTime?: number | undefined
 }
 type TeamTreeRowIn = {
-  lastActivity?: number
+  lastActivity?: number | undefined
   role: T.Teams.TeamRoleType
 } & TeamTreeRowNotIn
 
@@ -69,10 +69,13 @@ const matchesTeamTreeMembershipState = (
 
 const consumeTeamTreeMembershipValue = (
   value: T.RPCGen.TeamTreeMembershipValue
-): T.Teams.TreeloaderSparseMemberInfo => ({
-  joinTime: value.joinTime ?? undefined,
-  type: Teams.teamRoleByEnum[value.role],
-})
+): T.Teams.TreeloaderSparseMemberInfo => {
+  const info: T.Teams.TreeloaderSparseMemberInfo = {type: Teams.teamRoleByEnum[value.role]}
+  if (value.joinTime !== undefined && value.joinTime !== null) {
+    info.joinTime = value.joinTime
+  }
+  return info
+}
 
 const getSparseMemberInfo = (
   sparseMemberInfos: ReadonlyMap<T.Teams.TeamID, T.Teams.TreeloaderSparseMemberInfo>,
@@ -506,7 +509,7 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   )
 }
 
-const LastActivity = (props: {lastActivity?: number; loading: boolean}) => {
+const LastActivity = (props: {lastActivity?: number | undefined; loading: boolean}) => {
   return (
     <Kb.Text type="BodySmall">
       {props.loading
@@ -847,7 +850,7 @@ const BlockDropdown = (props: {username: string}) => {
     const onBlock = () => nav.safeNavigateAppend({name: 'chatBlockingModal', params: {username}})
     return (
       <Kb.FloatingMenu
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         visible={true}
         onHidden={hidePopup}
         closeOnSelect={true}

@@ -8,11 +8,11 @@ import {useRandomPWState} from './use-random-pw'
 
 type Props = {
   error: string
-  hasPGPKeyOnServer?: boolean
+  hasPGPKeyOnServer?: boolean | undefined
   onSave: (password: string) => void // will only be called if password.length > 8 & passwords match
   saveLabel?: string
   showTyping?: boolean
-  waitingForResponse?: boolean
+  waitingForResponse?: boolean | undefined
 }
 
 export const UpdatePassword = (props: Props) => {
@@ -128,7 +128,7 @@ export const UpdatePassword = (props: Props) => {
               label={props.saveLabel || 'Save'}
               disabled={!canSubmit()}
               onClick={() => props.onSave(password)}
-              waiting={props.waitingForResponse}
+              waiting={!!props.waitingForResponse}
             />
           </Kb.ButtonBar>
       </Kb.Box2>

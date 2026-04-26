@@ -24,11 +24,11 @@ export type AnimationType =
 
 export type Props = {
   animationType: AnimationType
-  className?: string
-  containerStyle?: Styles.StylesCrossPlatform
-  height?: number
-  style?: Styles.StylesCrossPlatform
-  width?: number
+  className?: string | undefined
+  containerStyle?: Styles.StylesCrossPlatform | undefined
+  height?: number | undefined
+  style?: Styles.StylesCrossPlatform | undefined
+  width?: number | undefined
 }
 
 declare const Animation: (p: Props) => React.ReactNode

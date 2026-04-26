@@ -7,7 +7,7 @@ import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
 type OwnProps = {
-  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource | undefined
   path: T.FS.Path
 }
 

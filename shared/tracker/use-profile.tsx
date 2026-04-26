@@ -83,7 +83,12 @@ export const useTrackerProfile = (username: string, options?: Options) => {
             return
           }
           setNonUserDetails({
-            details: {...makeNonUserDetails(), ...common, formattedName, fullName},
+            details: {
+              ...makeNonUserDetails(),
+              ...common,
+              fullName,
+              ...(formattedName === undefined ? {} : {formattedName}),
+            },
             username,
           })
         }

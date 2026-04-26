@@ -3,11 +3,11 @@ import type * as React from 'react'
 export type UploadProps = {
   showing: boolean
   files: number
-  fileName?: string
+  fileName?: string | undefined
   totalSyncingBytes: number
   timeLeft: string
-  debugToggleShow?: () => void
-  smallMode?: boolean
+  debugToggleShow?: (() => void) | undefined
+  smallMode?: boolean | undefined
 }
 
 declare const Upload: (p: UploadProps) => React.ReactNode

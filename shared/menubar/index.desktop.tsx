@@ -21,12 +21,12 @@ const {hideWindow, ctlQuit} = KB2.functions
 
 export type Conversation = {
   conversationIDKey: string
-  teamType?: T.Chat.TeamType
-  tlfname?: string
-  teamname?: string
-  timestamp?: number
-  channelname?: string
-  snippetDecorated?: string
+  teamType?: T.Chat.TeamType | undefined
+  tlfname?: string | undefined
+  teamname?: string | undefined
+  timestamp?: number | undefined
+  channelname?: string | undefined
+  snippetDecorated?: string | undefined
   hasBadge?: true
   hasUnread?: true
   participants?: Array<string>
@@ -48,8 +48,8 @@ export type Props = {
   conversationsToSend: ReadonlyArray<Conversation>
   daemonHandshakeState: T.Config.DaemonHandshakeState
   diskSpaceStatus: T.FS.DiskSpaceStatus
-  endEstimate?: number
-  fileName?: string
+  endEstimate?: number | undefined
+  fileName?: string | undefined
   files: number
   following: ReadonlyArray<string>
   httpSrvAddress: string
@@ -96,17 +96,32 @@ const ArrowTick = () => {
 }
 
 type UWCDProps = {
-  endEstimate?: number
+  endEstimate?: number | undefined
   files: number
-  fileName?: string
+  fileName?: string | undefined
   totalSyncingBytes: number
   isOnline: boolean
   smallMode: boolean
 }
 const UploadWithCountdown = (p: UWCDProps) => {
   const {endEstimate, files, fileName, totalSyncingBytes, isOnline, smallMode} = p
-  const np = useUploadCountdown({endEstimate, fileName, files, isOnline, smallMode, totalSyncingBytes})
-  return <Upload {...np} />
+  const np = useUploadCountdown({
+    files,
+    isOnline,
+    smallMode,
+    totalSyncingBytes,
+    ...(endEstimate === undefined ? {} : {endEstimate}),
+    ...(fileName === undefined ? {} : {fileName}),
+  })
+  const {debugToggleShow, fileName: uploadFileName, smallMode: uploadSmallMode, ...uploadProps} = np
+  return (
+    <Upload
+      {...uploadProps}
+      {...(debugToggleShow === undefined ? {} : {debugToggleShow})}
+      {...(uploadFileName === undefined ? {} : {fileName: uploadFileName})}
+      {...(uploadSmallMode === undefined ? {} : {smallMode: uploadSmallMode})}
+    />
+  )
 }
 
 // Inline chat row (replaces SmallTeam + ChatProvider)
@@ -353,17 +368,35 @@ const useMenuItems = (
         {
           onClick: () => openApp(C.Tabs.gitTab),
           title: 'Git',
-          view: <TabView title="Git" iconType="iconfont-nav-2-git" count={navBadges[C.Tabs.gitTab]} />,
+          view: (
+            <TabView
+              title="Git"
+              iconType="iconfont-nav-2-git"
+              {...(navBadges[C.Tabs.gitTab] === undefined ? {} : {count: navBadges[C.Tabs.gitTab]})}
+            />
+          ),
         },
         {
           onClick: () => openApp(C.Tabs.devicesTab),
           title: 'Devices',
-          view: <TabView title="Devices" iconType="iconfont-nav-2-devices" count={navBadges[C.Tabs.devicesTab]} />,
+          view: (
+            <TabView
+              title="Devices"
+              iconType="iconfont-nav-2-devices"
+              {...(navBadges[C.Tabs.devicesTab] === undefined ? {} : {count: navBadges[C.Tabs.devicesTab]})}
+            />
+          ),
         },
         {
           onClick: () => openApp(C.Tabs.settingsTab),
           title: 'Settings',
-          view: <TabView title="Settings" iconType="iconfont-nav-2-settings" count={navBadges[C.Tabs.settingsTab]} />,
+          view: (
+            <TabView
+              title="Settings"
+              iconType="iconfont-nav-2-settings"
+              {...(navBadges[C.Tabs.settingsTab] === undefined ? {} : {count: navBadges[C.Tabs.settingsTab]})}
+            />
+          ),
         },
         'Divider' as const,
         ...openAppItem,
@@ -405,8 +438,8 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
         items={menuItems}
         visible={true}
         onHidden={hidePopup}
-        attachTo={attachTo}
         position="bottom right"
+        {...(attachTo === undefined ? {} : {attachTo})}
       />
     )
   }

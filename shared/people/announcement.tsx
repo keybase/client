@@ -6,16 +6,16 @@ import PeopleItem from './item'
 import * as Settings from '@/constants/settings'
 
 type OwnProps = {
-  appLink?: T.RPCGen.AppLinkType
+  appLink?: T.RPCGen.AppLinkType | undefined
   badged: boolean
-  confirmLabel?: string
+  confirmLabel?: string | undefined
   dismissAnnouncement: (id: T.RPCGen.HomeScreenAnnouncementID) => void
   dismissable: boolean
   getData: (markViewed?: boolean, force?: boolean) => void
-  iconUrl?: string
+  iconUrl?: string | undefined
   id: T.RPCGen.HomeScreenAnnouncementID
   text: string
-  url?: string
+  url?: string | undefined
 }
 
 const Container = (ownProps: OwnProps) => {

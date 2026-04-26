@@ -41,9 +41,9 @@ const createRpc = <M extends PromiseMethod>(method: M): RpcFn<M> =>
     new Promise<RpcOut<M>>((resolve, reject) =>
       engine()._rpcOutgoing({
         method,
-        params,
         callback: (error: SimpleError, result: RpcOut<M>) => error ? reject(error) : resolve(result),
-        waitingKey,
+        ...(params === undefined ? {} : {params}),
+        ...(waitingKey === undefined ? {} : {waitingKey}),
       }))) as RpcFn<M>
 
 export enum AccountBundleVersion {

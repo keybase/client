@@ -123,8 +123,8 @@ function ConnectedRow(ownProps: OwnProps) {
           <Kb.ClickableBox
             onClick={onToggleExpand}
             style={expanded ? styles.rowClickExpanded : styles.rowClick}
-            hoverColor={Kb.Styles.isMobile ? undefined : Kb.Styles.globalColors.transparent}
             underlayColor={Kb.Styles.globalColors.transparent}
+            {...(Kb.Styles.isMobile ? {} : {hoverColor: Kb.Styles.globalColors.transparent})}
           >
             <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowTop}>
               <Kb.Icon
@@ -134,10 +134,8 @@ function ConnectedRow(ownProps: OwnProps) {
               />
               <Kb.Avatar
                 size={Kb.Styles.isMobile ? 48 : 32}
-                isTeam={!!teamname}
-                teamname={teamname}
-                username={teamname ? undefined : you}
                 style={styles.iconTiny}
+                {...(teamname ? {isTeam: true, teamname} : {username: you})}
               />
               <Kb.Text lineClamp={1} type="BodySemibold" style={{color: Kb.Styles.globalColors.black}}>
                 {teamname ? `${teamname}/${name}` : name}

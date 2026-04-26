@@ -16,8 +16,8 @@ export type Props = {
   onEdit: () => void
   onOpenProfile: () => void
   onRemove: () => void
-  ownerTeam?: string
-  ownerUser?: string
+  ownerTeam?: string | undefined
+  ownerUser?: string | undefined
   roleType: T.Teams.TeamRoleType
   status: T.Teams.MemberStatus
   username: string

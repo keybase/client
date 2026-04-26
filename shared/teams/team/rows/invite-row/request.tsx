@@ -18,7 +18,7 @@ const positionFallbacks = ['left center', 'top left'] as const
 export type RowProps = {
   ctime: number
   disabledReasonsForRolePicker: T.Teams.DisabledReasonsForRolePicker
-  error?: string
+  error?: string | undefined
   firstItem: boolean
   fullName: string
   onChat: () => void
@@ -26,7 +26,7 @@ export type RowProps = {
   onOpenProfile: (u: string) => void
   teamID: T.Teams.TeamID
   username: string
-  reset?: boolean
+  reset?: boolean | undefined
   waiting: boolean
 }
 
@@ -75,7 +75,7 @@ export const TeamRequestRow = (props: Props) => {
         visible={true}
         onHidden={hidePopup}
         closeOnSelect={true}
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         position="bottom left"
         positionFallbacks={positionFallbacks}
       />
@@ -148,7 +148,7 @@ export const TeamRequestRow = (props: Props) => {
           {popup}
         </Kb.Box2>
       }
-      onClick={props.isRolePickerOpen ? undefined : () => onOpenProfile(username)}
+      {...(props.isRolePickerOpen ? {} : {onClick: () => onOpenProfile(username)})}
       firstItem={props.firstItem}
       style={props.waiting ? styles.disabled : styles.bg}
     />
@@ -179,7 +179,7 @@ type OwnProps = {
   firstItem: boolean
   fullName: string
   username: string
-  reset?: boolean
+  reset?: boolean | undefined
   teamID: T.Teams.TeamID
 }
 

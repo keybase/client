@@ -212,14 +212,20 @@ const TeamBody = (props: Props) => {
       break
   }
 
-  const renderSectionHeader = ({section}: {section: Section}) =>
-    section.title ? (
+  const renderSectionHeader = ({section}: {section: Section}) => {
+    if (section.title === undefined) {
+      return null
+    }
+    return (
       <Kb.SectionDivider
         label={section.title}
-        collapsed={section.collapsed}
-        onToggleCollapsed={section.onToggleCollapsed}
+        {...(section.collapsed === undefined ? {} : {collapsed: section.collapsed})}
+        {...(section.onToggleCollapsed === undefined
+          ? {}
+          : {onToggleCollapsed: section.onToggleCollapsed})}
       />
-    ) : null
+    )
+  }
 
   const getItemHeight = () => {
     return 48
@@ -227,8 +233,8 @@ const TeamBody = (props: Props) => {
 
   return (
     <TeamSelectionProvider
-      selectedMembers={props.selectedMembers}
-      selectedChannels={props.selectedChannels}
+      {...(props.selectedMembers === undefined ? {} : {selectedMembers: props.selectedMembers})}
+      {...(props.selectedChannels === undefined ? {} : {selectedChannels: props.selectedChannels})}
       onSelectedMembersChange={selectedMembers => navigation.setParams({selectedMembers})}
       onSelectedChannelsChange={selectedChannels => navigation.setParams({selectedChannels})}
     >

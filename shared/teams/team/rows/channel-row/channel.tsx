@@ -103,7 +103,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     ]
     return (
       <Kb.FloatingMenu
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         closeOnSelect={true}
         items={menuItems}
         onHidden={hidePopup}

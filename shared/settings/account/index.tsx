@@ -33,7 +33,7 @@ const AddButton = (props: AddButtonProps) => (
     label={`Add ${props.kind}`}
     small={true}
     disabled={props.disabled}
-    tooltip={props.disabled ? `You're already at the maximum ${props.kind}s` : undefined}
+    {...(props.disabled ? {tooltip: `You're already at the maximum ${props.kind}s`} : {})}
   />
 )
 
@@ -83,7 +83,7 @@ const EmailPhone = ({onEmailVerificationSuccess}: {onEmailVerificationSuccess: (
   )
 }
 
-const Password = ({randomPW}: {randomPW?: boolean}) => {
+const Password = ({randomPW}: {randomPW?: boolean | undefined}) => {
   const navigateAppend = C.Router2.navigateAppend
   const onSetPassword = () => {
     navigateAppend({name: settingsPasswordTab, params: {}})

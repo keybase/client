@@ -13,23 +13,23 @@ type BareFallbackRenderProps = {
 
 type BareProps = {
   children: React.ReactNode
-  fallback?: React.ReactNode
-  fallbackRender?: (props: BareFallbackRenderProps) => React.ReactNode
-  onError?: (error: Error, info: React.ErrorInfo) => void
+  fallback?: React.ReactNode | undefined
+  fallbackRender?: ((props: BareFallbackRenderProps) => React.ReactNode) | undefined
+  onError?: ((error: Error, info: React.ErrorInfo) => void) | undefined
 }
 
 type BareState = {
-  error?: Error
+  error?: Error | undefined
 }
 
 export class BareErrorBoundary extends React.Component<BareProps, BareState> {
-  state: BareState = {}
+  override state: BareState = {}
 
   static getDerivedStateFromError(error: Error): BareState {
     return {error}
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
+  override componentDidCatch(error: Error, info: React.ErrorInfo) {
     this.props.onError?.(error, info)
   }
 
@@ -37,7 +37,7 @@ export class BareErrorBoundary extends React.Component<BareProps, BareState> {
     this.setState({error: undefined})
   }
 
-  render(): React.ReactNode {
+  override render(): React.ReactNode {
     const {children, fallback, fallbackRender} = this.props
     const {error} = this.state
 
@@ -60,9 +60,9 @@ type AllErrorInfo = {
 }
 
 type FallbackProps = {
-  closeOnClick?: () => void
+  closeOnClick?: (() => void) | undefined
   info: AllErrorInfo
-  style?: Styles.StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform | undefined
 }
 
 const detailContainerStyle = {
@@ -128,8 +128,8 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
 
 type Props = {
   children: React.ReactNode
-  closeOnClick?: () => void
-  fallbackStyle?: Styles.StylesCrossPlatform
+  closeOnClick?: (() => void) | undefined
+  fallbackStyle?: Styles.StylesCrossPlatform | undefined
 }
 
 const EB = (p: Props) => {

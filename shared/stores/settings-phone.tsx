@@ -50,7 +50,7 @@ export type PhoneRow = {
 }
 
 type Store = T.Immutable<{
-  phones?: Map<string, PhoneRow>
+  phones?: Map<string, PhoneRow> | undefined
 }>
 
 const initialStore: Store = {

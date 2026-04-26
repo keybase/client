@@ -79,10 +79,10 @@ const rpcDeviceToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device => ({
   deviceNumberOfType: d.device.deviceNumberOfType,
   lastUsed: d.device.lastUsedTime,
   name: d.device.name,
-  provisionedAt: d.provisionedAt || undefined,
-  provisionerName: d.provisioner ? d.provisioner.name : undefined,
-  revokedAt: d.revokedAt || undefined,
-  revokedByName: d.revokedByDevice ? d.revokedByDevice.name : undefined,
+  ...(d.provisionedAt ? {provisionedAt: d.provisionedAt} : {}),
+  ...(d.provisioner ? {provisionerName: d.provisioner.name} : {}),
+  ...(d.revokedAt ? {revokedAt: d.revokedAt} : {}),
+  ...(d.revokedByDevice ? {revokedByName: d.revokedByDevice.name} : {}),
   type: T.Devices.stringToDeviceType(d.device.type),
 })
 

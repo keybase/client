@@ -6,7 +6,7 @@ import type {Props, AnimationType} from './animation'
 const defaultDimension = 16
 
 function Animation(props: Props) {
-  const {style, width, height, animationType} = props
+  const {style, width, height, animationType, className, containerStyle} = props
   const elementRef = React.useRef<HTMLDivElement>(null)
   const lottieInstance = React.useRef<null | ReturnType<typeof lottie.loadAnimation>>(null)
 
@@ -26,7 +26,11 @@ function Animation(props: Props) {
     }
   }, [animationType])
   return (
-    <Box2 direction="vertical" className={props.className} style={props.containerStyle}>
+    <Box2
+      direction="vertical"
+      {...(className === undefined ? {} : {className})}
+      {...(containerStyle === undefined ? {} : {style: containerStyle})}
+    >
       <div
         style={
           {

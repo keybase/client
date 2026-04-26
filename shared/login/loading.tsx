@@ -37,8 +37,8 @@ type SplashProps = {
   allowFeedback?: boolean
   failed: string
   status: string
-  onRetry?: () => void
-  onFeedback?: () => void
+  onRetry?: (() => void) | undefined
+  onFeedback?: (() => void) | undefined
 }
 export const Splash = (p: SplashProps) => {
   const {allowFeedback = true, failed, status, onRetry, onFeedback} = p
@@ -72,7 +72,7 @@ export const Splash = (p: SplashProps) => {
   )
 }
 
-const Feedback = ({onFeedback}: {onFeedback?: () => void}) =>
+const Feedback = ({onFeedback}: {onFeedback?: (() => void) | undefined}) =>
   onFeedback ? (
     <Kb.ButtonBar>
       <Kb.Button type="Dim" label="Send us feedback" onClick={onFeedback} />

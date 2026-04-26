@@ -4,7 +4,7 @@ import type {UseBoundStore, StoreApi} from 'zustand'
 type Store = T.Immutable<{
   hasPermissions: boolean
   justSignedUp: boolean
-  pendingPushNotification?: T.Push.PushNotification
+  pendingPushNotification?: T.Push.PushNotification | undefined
   showPushPrompt: boolean
   token: string
 }>
@@ -19,7 +19,11 @@ export type State = Store & {
     rejectPermissions: () => void
     requestPermissions: () => void
     setPushToken: (token: string) => void
-    showPermissionsPrompt: (p: {show?: boolean; persistSkip?: boolean; justSignedUp?: boolean}) => void
+    showPermissionsPrompt: (p: {
+      show?: boolean | undefined
+      persistSkip?: boolean | undefined
+      justSignedUp?: boolean | undefined
+    }) => void
     resetState: () => void
   }
 }

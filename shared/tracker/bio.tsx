@@ -1,16 +1,16 @@
 import * as Kb from '@/common-adapters'
 type Props = {
-  bio?: string
+  bio?: string | undefined
   blocked: boolean
   followThem: boolean
-  followersCount?: number
-  followingCount?: number
+  followersCount?: number | undefined
+  followingCount?: number | undefined
   followsYou: boolean
-  fullname?: string
+  fullname?: string | undefined
   hidFromFollowers: boolean
   inTracker: boolean
-  location?: string
-  sbsDescription?: string
+  location?: string | undefined
+  sbsDescription?: string | undefined
   username: string
 }
 
@@ -32,7 +32,7 @@ const Container = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
       <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">
-        <Kb.Text center={true} type="BodyBig" lineClamp={inTracker ? 1 : undefined} selectable={true}>
+        <Kb.Text center={true} type="BodyBig" selectable={true} {...(inTracker ? {lineClamp: 1} : {})}>
           {fullname}
         </Kb.Text>
       </Kb.Box2>
@@ -59,9 +59,9 @@ const Container = (props: Props) => {
         <Kb.Text
           type="Body"
           center={true}
-          lineClamp={inTracker ? 2 : undefined}
           style={styles.text}
           selectable={true}
+          {...(inTracker ? {lineClamp: 2} : {})}
         >
           {bio}
         </Kb.Text>
@@ -70,9 +70,9 @@ const Container = (props: Props) => {
         <Kb.Text
           type="BodySmall"
           center={true}
-          lineClamp={inTracker ? 1 : undefined}
           style={styles.text}
           selectable={true}
+          {...(inTracker ? {lineClamp: 1} : {})}
         >
           {location}
         </Kb.Text>
@@ -81,9 +81,9 @@ const Container = (props: Props) => {
         <Kb.Text
           type="BodySmall"
           center={true}
-          lineClamp={inTracker ? 1 : undefined}
           style={styles.text}
           selectable={true}
+          {...(inTracker ? {lineClamp: 1} : {})}
         >
           {sbsDescription}
         </Kb.Text>

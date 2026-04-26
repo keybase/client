@@ -132,7 +132,13 @@ const AvatarUploadWrapper = (p: Props) => {
         if (teamID) {
           const title = hasImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
           if (Kb.Styles.isMobile) {
-            return <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />
+            return (
+              <ModalTitle
+                teamID={teamID}
+                title={title}
+                {...(newTeamWizard === undefined ? {} : {newTeamWizard})}
+              />
+            )
           }
           return <Kb.Text type="BodyBig">{title}</Kb.Text>
         }

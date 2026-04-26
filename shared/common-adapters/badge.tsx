@@ -21,6 +21,7 @@ export type Badge2Props = {
 
 function Badge(p: Badge2Props) {
   const {border, containerStyle, className, badgeNumberStyle, badgeNumber, badgeStyle} = p
+  const classNameProp = className === undefined ? {} : {className}
   const fontSize = p.fontSize ?? (Styles.isMobile ? 12 : 10)
   const height = p.height ?? (Styles.isMobile ? 20 : 16)
   const leftRightPadding = p.leftRightPadding ?? (Styles.isPhone ? 5 : 4)
@@ -45,7 +46,7 @@ function Badge(p: Badge2Props) {
       >
         <Kb.Box2
           direction="vertical"
-          className={className}
+          {...classNameProp}
           style={Styles.collapseStyles([
             styles.badge,
             {
@@ -78,7 +79,7 @@ function Badge(p: Badge2Props) {
     return (
       <Kb.Box2
         direction="vertical"
-        className={className}
+        {...classNameProp}
         pointerEvents="none"
         style={Styles.collapseStyles([
           styles.badge,

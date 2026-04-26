@@ -4,8 +4,8 @@ import Menu from './menu-container'
 import Confirm from './confirm'
 
 type OwnProps = {
-  downloadID?: string
-  downloadIntent?: T.FS.DownloadIntent
+  downloadID?: string | undefined
+  downloadIntent?: T.FS.DownloadIntent | undefined
   floatingMenuProps: FloatingMenuProps
   mode: 'row' | 'screen'
   onDownloadStarted: OnDownloadStarted

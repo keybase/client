@@ -5,8 +5,8 @@ import * as Z from '@/util/zustand'
 import {maxHandshakeTries} from '@/constants/values'
 
 type Store = T.Immutable<{
-  bootstrapStatus?: T.RPCGen.BootstrapStatus
-  error?: Error
+  bootstrapStatus?: T.RPCGen.BootstrapStatus | undefined
+  error?: Error | undefined
   handshakeFailedReason: string
   handshakeRetriesLeft: number
   handshakeState: T.Config.DaemonHandshakeState

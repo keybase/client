@@ -15,11 +15,11 @@ import {registerRemoteActionHandler} from '@/desktop/renderer/remote-event-handl
 
 const windowOpts = {height: 230, width: 440}
 type PopupState = {
-  cancelLabel?: string
+  cancelLabel?: string | undefined
   prompt: string
-  retryLabel?: string
-  showTyping?: T.RPCGen.Feature
-  submitLabel?: string
+  retryLabel?: string | undefined
+  showTyping?: T.RPCGen.Feature | undefined
+  submitLabel?: string | undefined
   type: T.RPCGen.PassphraseType
   windowTitle: string
 }

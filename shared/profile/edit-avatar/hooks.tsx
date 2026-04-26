@@ -86,7 +86,12 @@ export default (ownProps: Props): Ret => {
 
   const onSaveUserAvatar = (_filename: string, crop?: T.RPCGen.ImageCropRect) => {
     const filename = Kb.Styles.unnormalizePath(_filename)
-    uploadAvatar([{crop: fixCrop(crop), filename}, C.waitingKeyProfileUploadAvatar], () => navigateUp(), () => {})
+    const fixedCrop = fixCrop(crop)
+    uploadAvatar(
+      [{filename, ...(fixedCrop === undefined ? {} : {crop: fixedCrop})}, C.waitingKeyProfileUploadAvatar],
+      () => navigateUp(),
+      () => {}
+    )
   }
   const parentTeamMemberCount = parentTeamMeta.memberCount
   const onSaveWizardAvatar = (_filename: string, crop?: T.Teams.AvatarCrop) => {
@@ -94,9 +99,10 @@ export default (ownProps: Props): Ret => {
       return
     }
     const filename = Kb.Styles.unnormalizePath(_filename)
+    const {avatarCrop: _avatarCrop, ...wizardBase} = ownProps.newTeamWizard
     const wizard = {
-      ...ownProps.newTeamWizard,
-      avatarCrop: crop,
+      ...wizardBase,
+      ...(crop === undefined ? {} : {avatarCrop: crop}),
       avatarFilename: filename,
     }
     navigateAppend(
@@ -135,12 +141,12 @@ export default (ownProps: Props): Ret => {
   const wizard = ownProps.wizard ?? false
   const bothProps = {
     error,
-    image,
     onBack,
     onClose,
     sendChatNotification,
     submitting,
     waitingKey: C.waitingKeyProfileUploadAvatar,
+    ...(image === undefined ? {} : {image}),
   }
   return teamID
     ? {
@@ -154,7 +160,17 @@ export default (ownProps: Props): Ret => {
           offsetTop?: number
         ) => {
           if (wizard) {
-            onSaveWizardAvatar(filename, crop ? {crop, offsetLeft, offsetTop, scaledWidth} : undefined)
+            onSaveWizardAvatar(
+              filename,
+              crop
+                ? {
+                    crop,
+                    ...(offsetLeft === undefined ? {} : {offsetLeft}),
+                    ...(offsetTop === undefined ? {} : {offsetTop}),
+                    ...(scaledWidth === undefined ? {} : {scaledWidth}),
+                  }
+                : undefined
+            )
           } else {
             onSaveTeamAvatar(filename, teamname, sendChatNotification, crop)
           }

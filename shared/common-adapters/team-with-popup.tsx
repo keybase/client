@@ -19,17 +19,17 @@ export type Props = {
   description: string
   isMember: boolean
   isOpen: boolean
-  inline?: boolean
+  inline?: boolean | undefined
   memberCount: number
   onJoinTeam: () => void
-  onPopupVisibleChange?: (visible: boolean) => void
+  onPopupVisibleChange?: ((visible: boolean) => void) | undefined
   onViewTeam: () => void
-  prefix?: string
-  shouldLoadTeam?: boolean
+  prefix?: string | undefined
+  shouldLoadTeam?: boolean | undefined
   teamID: T.Teams.TeamID
   teamName: string
   type: TextType
-  underline?: boolean
+  underline?: boolean | undefined
 }
 
 const TeamWithPopup = (props: Props) => {
@@ -101,12 +101,12 @@ const styles = Styles.styleSheetCreate(
 )
 
 type OwnProps = {
-  inline?: boolean
-  prefix?: string
-  shouldLoadTeam?: boolean
+  inline?: boolean | undefined
+  prefix?: string | undefined
+  shouldLoadTeam?: boolean | undefined
   teamName: string
   type: TextType
-  underline?: boolean
+  underline?: boolean | undefined
 }
 
 const ConnectedTeamWithPopup = (ownProps: OwnProps) => {

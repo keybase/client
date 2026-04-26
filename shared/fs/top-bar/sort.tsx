@@ -24,7 +24,7 @@ const getTextFromSortSetting = (sortSetting: T.FS.SortSetting) => {
   }
 }
 
-const makeSortOptionItem = (sortSetting: T.FS.SortSetting, onClick?: () => void) => ({
+const makeSortOptionItem = (sortSetting: T.FS.SortSetting, onClick: () => void) => ({
   onClick,
   title: getTextFromSortSetting(sortSetting),
 })

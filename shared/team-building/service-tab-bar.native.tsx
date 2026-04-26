@@ -39,7 +39,7 @@ const AnimatedScrollView = createAnimatedComponent(ScrollView)
 
 // On tablet add an additional "service" item that is only a bottom border that extends to the end of the ScrollView
 const TabletBottomBorderExtension = function TabletBottomBorderExtension(props: {
-  offset?: SharedValue<number>
+  offset?: SharedValue<number> | undefined
 }) {
   'use no memo'
   const {offset} = props

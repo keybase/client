@@ -8,9 +8,9 @@ import {useCurrentUserState} from '@/stores/current-user'
 type OwnProps = {
   filter?: string
   name: string
-  numSearchHits?: number
-  maxSearchHits?: number
-  participants?: Array<string>
+  numSearchHits?: number | undefined
+  maxSearchHits?: number | undefined
+  participants?: Array<string> | undefined
   isSelected: boolean
   onSelectConversation: () => void
 }

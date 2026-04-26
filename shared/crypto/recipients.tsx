@@ -32,8 +32,9 @@ const Recipients = ({inProgress, onAddRecipients, onClearRecipients, recipients}
             <Kb.Icon
               type="iconfont-remove"
               color={Kb.Styles.globalColors.black_20}
-              hoverColor={inProgress ? Kb.Styles.globalColors.black_20 : undefined}
-              onClick={inProgress ? undefined : onClearRecipients}
+              {...(inProgress
+                ? {hoverColor: Kb.Styles.globalColors.black_20}
+                : {onClick: onClearRecipients})}
             />
           </Kb.Box2>
         ) : null}

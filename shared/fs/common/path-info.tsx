@@ -5,8 +5,8 @@ import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
 
 type PathInfoProps = {
-  containerStyle?: Kb.Styles.StylesCrossPlatform
-  knownPathInfo?: T.FS.PathInfo
+  containerStyle?: Kb.Styles.StylesCrossPlatform | undefined
+  knownPathInfo?: T.FS.PathInfo | undefined
   path: T.FS.Path
 }
 

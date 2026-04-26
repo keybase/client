@@ -88,9 +88,11 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
         styles.container,
         selectedCount && !Kb.Styles.isMobile ? styles.containerShowing : null,
       ])}
-      gap={Kb.Styles.isPhone ? 'tiny' : undefined}
+      {...(Kb.Styles.isPhone ? {gap: 'tiny' as const} : {})}
       className="selectionPopup"
-      onLayout={Kb.Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
+      {...(Kb.Styles.isMobile
+        ? {onLayout: (event: Kb.LayoutEvent) => setHeight(event.nativeEvent.layout.height)}
+        : {})}
     >
       {Kb.Styles.isPhone && (
         <Kb.Text style={styles.topLink} type="BodyBigLink" onClick={onCancel}>
@@ -303,7 +305,7 @@ const EditRoleButton = ({members, teamID}: {teamID: T.Teams.TeamID; members: str
           disabled={disableButton}
           onClick={() => setShowingPicker(!showingPicker)}
           fullWidth={Kb.Styles.isPhone}
-          tooltip={disableButton ? disabledReasons.admin : undefined}
+          {...(disabledReasons.admin === undefined ? {} : {tooltip: disabledReasons.admin})}
         />
       </FloatingRolePicker>
       {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}

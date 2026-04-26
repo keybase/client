@@ -21,18 +21,19 @@ type Store = T.Immutable<{
   androidShare?:
     | {type: T.RPCGen.IncomingShareType.file; urls: Array<string>}
     | {type: T.RPCGen.IncomingShareType.text; text: string}
-  badgeState?: T.RPCGen.BadgeState
+    | undefined
+  badgeState?: T.RPCGen.BadgeState | undefined
   configuredAccounts: Array<T.Config.ConfiguredAccount>
   defaultUsername: string
-  globalError?: Error | RPCError
-  gregorReachable?: T.RPCGen.Reachable
+  globalError?: Error | RPCError | undefined
+  gregorReachable?: T.RPCGen.Reachable | undefined
   gregorPushState: Array<{md: T.RPCGregor.Metadata; item: T.RPCGregor.Item}>
-  loginError?: RPCError
+  loginError?: RPCError | undefined
   httpSrv: {
     address: string
     token: string
   }
-  incomingShareUseOriginal?: boolean
+  incomingShareUseOriginal?: boolean | undefined
   installerRanCount: number
   isOnline: boolean
   justDeletedSelf: string
@@ -48,13 +49,13 @@ type Store = T.Immutable<{
   outOfDate: T.Config.OutOfDate
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   revokedTrigger: number
-  runtimeStats?: T.RPCGen.RuntimeStats
+  runtimeStats?: T.RPCGen.RuntimeStats | undefined
   startup: {
     loaded: boolean
     conversation: T.Chat.ConversationIDKey
     followUser: string
     link: string
-    tab?: Tab
+    tab?: Tab | undefined
   }
   userSwitching: boolean
   windowShownCount: Map<string, number>

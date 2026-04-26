@@ -74,7 +74,7 @@ const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
       result => {
         setOpen(result.wasOpenTeam)
         setSuccessTeamName(result.wasTeamName ? name : '')
-        navigation.setParams({initialTeamname, success: true})
+        navigation.setParams({...(initialTeamname === undefined ? {} : {initialTeamname}), success: true})
       },
       error => {
         if (handoffToInviteRef.current) {

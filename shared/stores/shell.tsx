@@ -27,7 +27,7 @@ type Store = T.Immutable<{
   forceSmallNav: boolean
   fsCriticalUpdate: boolean
   mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
-  networkStatus?: {online: boolean; type: ConnectionType; isInit?: boolean}
+  networkStatus?: {online: boolean; type: ConnectionType; isInit?: boolean | undefined} | undefined
   notifySound: boolean
   openAtLogin: boolean
   useNativeFrame: boolean

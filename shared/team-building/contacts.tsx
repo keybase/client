@@ -148,7 +148,7 @@ export const ContactsImportButton = () => {
     return null
 
   return (
-    <Kb.ClickableBox onClick={onImportContacts}>
+    <Kb.ClickableBox {...(onImportContacts === undefined ? {} : {onClick: onImportContacts})}>
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}

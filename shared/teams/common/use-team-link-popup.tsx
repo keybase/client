@@ -20,7 +20,12 @@ export const useTeamLinkPopup = (teamname: string) => {
         </Kb.Box2>
       )
       return (
-        <Kb.Popup position="bottom left" style={styles.overlay} attachTo={attachTo} onHidden={hidePopup}>
+        <Kb.Popup
+          position="bottom left"
+          style={styles.overlay}
+          {...(attachTo === undefined ? {} : {attachTo})}
+          onHidden={hidePopup}
+        >
           {content}
         </Kb.Popup>
       )

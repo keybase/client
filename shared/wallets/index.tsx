@@ -56,7 +56,7 @@ const Row = (p: {account: Account}) => {
         <Kb.Box2
           direction="horizontal"
           alignItems="center"
-          gap={Kb.Styles.isMobile ? undefined : 'tiny'}
+          {...(Kb.Styles.isMobile ? {} : {gap: 'tiny' as const})}
           style={styles.idContainer}
         >
           <Kb.Text type="Body" title={accountID} lineClamp={1} style={styles.accountID}>

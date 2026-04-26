@@ -153,10 +153,10 @@ const MenuItem = (props: {emoji: string; text: string}) => (
 )
 
 type CountrySelectorProps = {
-  attachTo?: React.RefObject<MeasureRef | null>
+  attachTo?: React.RefObject<MeasureRef | null> | undefined
   onSelect: (s?: string) => void
   onHidden: () => void
-  selected?: string
+  selected?: string | undefined
   visible: boolean
 }
 
@@ -165,12 +165,12 @@ type CountrySelectorRef = {
   onSelectMenu: (s: string) => void
 }
 
-function CountrySelector(p: CountrySelectorProps & {ref?: React.Ref<CountrySelectorRef>}) {
+function CountrySelector(p: CountrySelectorProps & {ref?: React.Ref<CountrySelectorRef> | undefined}) {
     const {onHidden, onSelect, selected: _selected, visible, attachTo, ref} = p
     const [filter, setFilter] = React.useState('')
     const [selectedState, setSelectedState] = React.useState<{
-      selected?: string
-      sourceSelected?: string
+      selected?: string | undefined
+      sourceSelected?: string | undefined
     }>(() => ({selected: _selected, sourceSelected: _selected}))
     const selected = selectedState.sourceSelected === _selected ? selectedState.selected : _selected
 
@@ -251,13 +251,13 @@ function CountrySelector(p: CountrySelectorProps & {ref?: React.Ref<CountrySelec
 }
 
 type Props = {
-  autoFocus?: boolean
-  defaultCountry?: string
+  autoFocus?: boolean | undefined
+  defaultCountry?: string | undefined
   onChangeNumber: (phoneNumber: string, valid: boolean) => void
-  onEnterKeyDown?: (e?: React.KeyboardEvent) => void
-  onClear?: () => void
-  small?: boolean // default is true on desktop and false on mobile
-  style?: Styles.StylesCrossPlatform
+  onEnterKeyDown?: ((e?: React.KeyboardEvent) => void) | undefined
+  onClear?: (() => void) | undefined
+  small?: boolean | undefined // default is true on desktop and false on mobile
+  style?: Styles.StylesCrossPlatform | undefined
 }
 
 const PhoneInput = (p: Props) => {

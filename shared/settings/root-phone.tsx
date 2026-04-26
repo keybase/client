@@ -45,7 +45,7 @@ const PerfRow = () => {
 }
 
 type Item = {
-  badgeNumber?: number
+  badgeNumber?: number | undefined
   text: string
   icon?: Kb.IconType
   onClick: () => void

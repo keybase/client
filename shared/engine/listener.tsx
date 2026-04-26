@@ -4,6 +4,7 @@ import {printOutstandingRPCs} from '@/local-debug'
 import type {CommonResponseHandler} from './types'
 import {wrapErrors} from '@/util/debug'
 import type {ErrorType} from './rpc-transport'
+import type {IncomingCallMapType} from '.'
 
 type WaitingKey = string | ReadonlyArray<string>
 
@@ -132,9 +133,9 @@ async function listener(p: {
           resolve(params)
         }
       },
-      incomingCallMap: callMap,
+      incomingCallMap: callMap as IncomingCallMapType,
       method,
-      params,
+      ...(params === undefined ? {} : {params}),
     })
   })
 }

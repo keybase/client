@@ -14,10 +14,10 @@ import {showTeamByName} from '@/teams/team-page-actions'
 const Kb = {Box2, Styles, Text}
 
 type OwnProps = {
-  allowFontScaling?: boolean
+  allowFontScaling?: boolean | undefined
   channel: string
   name: string
-  style?: StylesTextCrossPlatform
+  style?: StylesTextCrossPlatform | undefined
 }
 
 const noAdmins: Array<string> = []
@@ -101,12 +101,12 @@ const TeamMention = (ownProps: OwnProps) => {
       isOpen={isOpen}
       name={name}
       membersCount={numMembers}
-      onChat={onChat}
       onHidden={handleMouseLeave}
       onJoinTeam={onJoinTeam}
       onViewTeam={onViewTeam}
       publicAdmins={publicAdmins}
       visible={showPopup}
+      {...(onChat === undefined ? {} : {onChat})}
     />
   )
 

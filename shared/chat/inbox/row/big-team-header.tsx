@@ -22,7 +22,7 @@ const BigTeamHeader = (props: Props) => {
     return (
       <ConvoState.ChatProvider id="" canBeNull={true}>
         <TeamMenu
-          attachTo={attachTo}
+          {...(attachTo === undefined ? {} : {attachTo})}
           visible={true}
           onHidden={hidePopup}
           teamID={teamID}

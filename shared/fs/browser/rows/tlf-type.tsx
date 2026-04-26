@@ -5,7 +5,7 @@ import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 
 type OwnProps = {
-  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource | undefined
   name: T.FS.TlfType
 }
 
@@ -24,7 +24,7 @@ const TLFTypeContainer = (p: OwnProps) => {
         <Kb.Text
           type={FS.pathTypeToTextType(T.FS.PathType.Folder)}
           style={rowStyles.rowText}
-          lineClamp={Kb.Styles.isMobile ? 1 : undefined}
+          {...(Kb.Styles.isMobile ? {lineClamp: 1} : {})}
         >
           {T.FS.getPathName(path)}
         </Kb.Text>

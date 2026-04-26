@@ -95,7 +95,6 @@ const MoreNetworksButton = (props: {
     const {attachTo, hidePopup} = p
     return (
       <Kb.FloatingMenu
-        attachTo={attachTo}
         closeOnSelect={true}
         items={services.map(service => ({
           onClick: () => onChangeService(service),
@@ -104,6 +103,7 @@ const MoreNetworksButton = (props: {
         }))}
         onHidden={hidePopup}
         visible={true}
+        {...(attachTo === undefined ? {} : {attachTo})}
       />
     )
   }

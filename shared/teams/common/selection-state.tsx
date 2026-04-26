@@ -18,8 +18,8 @@ type TeamSelectionProviderProps = {
   children: React.ReactNode
   onSelectedChannelsChange: (selectedChannels?: Array<T.Chat.ConversationIDKey>) => void
   onSelectedMembersChange: (selectedMembers?: Array<string>) => void
-  selectedChannels?: ReadonlyArray<T.Chat.ConversationIDKey>
-  selectedMembers?: ReadonlyArray<string>
+  selectedChannels?: ReadonlyArray<T.Chat.ConversationIDKey> | undefined
+  selectedMembers?: ReadonlyArray<string> | undefined
 }
 
 type ChannelSelectionState = {
@@ -31,7 +31,7 @@ type ChannelSelectionState = {
 type ChannelSelectionProviderProps = {
   children: React.ReactNode
   onSelectedMembersChange: (selectedMembers?: Array<string>) => void
-  selectedMembers?: ReadonlyArray<string>
+  selectedMembers?: ReadonlyArray<string> | undefined
 }
 
 const TeamSelectionContext = React.createContext<TeamSelectionState | null>(null)

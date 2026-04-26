@@ -141,6 +141,8 @@ const CopyText = (props: Props) => {
     : isRevealed
       ? 1
       : undefined
+  const concealedText = '••••••••••••'
+  const displayedText = isRevealed ? props.text || props.placeholderText || concealedText : concealedText
 
   return (
     <Kb.Box2
@@ -159,15 +161,13 @@ const CopyText = (props: Props) => {
         </Kb.Text>
       </Kb.Toast>
       <Kb.Text
-        lineClamp={lineClamp}
         type={props.textType || 'BodySmallSemibold'}
         selectable={true}
         center={true}
         style={Styles.collapseStyles([styles.text, props.disabled && styles.textDisabled])}
+        {...(lineClamp === undefined ? {} : {lineClamp})}
       >
-        {isRevealed && (props.text || props.placeholderText)
-          ? props.text || props.placeholderText
-          : '••••••••••••'}
+        {displayedText}
       </Kb.Text>
       {!isRevealed && (
         <Kb.Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={reveal}>

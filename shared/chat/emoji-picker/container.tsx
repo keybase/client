@@ -16,21 +16,21 @@ import {useUserEmoji} from '@/chat/user-emoji'
 import {ensureError} from '@/util/errors'
 
 type Props = {
-  disableCustomEmoji?: boolean
-  hideFrequentEmoji?: boolean
-  small?: boolean
-  onlyTeamCustomEmoji?: boolean
-  onDidPick?: () => void
-  onPickAddToMessageOrdinal?: T.Chat.Ordinal
-  onPickAction?: (emoji: string, renderableEmoji: RenderableEmoji) => void
+  disableCustomEmoji?: boolean | undefined
+  hideFrequentEmoji?: boolean | undefined
+  small?: boolean | undefined
+  onlyTeamCustomEmoji?: boolean | undefined
+  onDidPick?: (() => void) | undefined
+  onPickAddToMessageOrdinal?: T.Chat.Ordinal | undefined
+  onPickAction?: ((emoji: string, renderableEmoji: RenderableEmoji) => void) | undefined
 }
 
 type RoutableProps = {
-  small?: boolean
-  hideFrequentEmoji?: boolean
-  onlyTeamCustomEmoji?: boolean
+  small?: boolean | undefined
+  hideFrequentEmoji?: boolean | undefined
+  onlyTeamCustomEmoji?: boolean | undefined
   pickKey: PickKey
-  onPickAddToMessageOrdinal?: T.Chat.Ordinal
+  onPickAddToMessageOrdinal?: T.Chat.Ordinal | undefined
 }
 
 const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
@@ -73,8 +73,8 @@ const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) =>
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const {emojiGroups: customEmojiGroups, loading: waiting} = useUserEmoji({
     conversationIDKey,
-    disabled,
-    onlyInTeam,
+    ...(disabled === undefined ? {} : {disabled}),
+    ...(onlyInTeam === undefined ? {} : {onlyInTeam}),
   })
   return {customEmojiGroups, waiting}
 }
@@ -175,6 +175,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   }
 
   const setFilter = C.useThrottledCallback(_setFilter, 200)
+  const hoveredSkinToneModifier = getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)
 
   return (
     <Kb.Box2
@@ -224,8 +225,8 @@ export const EmojiPickerDesktop = (props: Props) => {
         >
           <Kb.Emoji
             emojiData={hoveredEmoji}
-            skinToneModifier={getSkinToneModifierStrIfAvailable(hoveredEmoji, currentSkinTone)}
-            skinToneKey={currentSkinTone}
+            {...(hoveredSkinToneModifier === undefined ? {} : {skinToneModifier: hoveredSkinToneModifier})}
+            {...(currentSkinTone === undefined ? {} : {skinToneKey: currentSkinTone})}
             showTooltip={false}
             size={36}
           />

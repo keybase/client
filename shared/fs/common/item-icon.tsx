@@ -56,7 +56,7 @@ const icons = {
 } as const
 
 export type TlfTypeIconProps = {
-  badgeOverride?: Kb.IconType
+  badgeOverride?: Kb.IconType | undefined
   size: Size
   style: Kb.Styles.StylesCrossPlatform
   tlfType: T.FS.TlfType
@@ -97,10 +97,10 @@ const TlfTypeIcon = (props: TlfTypeIconProps) => {
 }
 
 type TlfIconProps = {
-  badgeOverride?: Kb.IconType // TS freaking out IconType
+  badgeOverride?: Kb.IconType | undefined // TS freaking out IconType
   size: Size
-  style?: Kb.Styles.StylesCrossPlatform
-  tlfTypeForFolderIconOverride?: T.FS.TlfType
+  style?: Kb.Styles.StylesCrossPlatform | undefined
+  tlfTypeForFolderIconOverride?: T.FS.TlfType | undefined
 }
 
 const TlfIcon = (props: TlfIconProps) => (
@@ -122,13 +122,13 @@ const TlfIcon = (props: TlfIconProps) => (
 )
 
 type InTlfItemIconProps = {
-  badgeOverride?: Kb.IconType
-  loadOnMount?: boolean
+  badgeOverride?: Kb.IconType | undefined
+  loadOnMount?: boolean | undefined
   path: T.FS.Path
   size: Size
-  style?: Kb.Styles.StylesCrossPlatform
-  subscribe?: boolean
-  tlfTypeForFolderIconOverride?: T.FS.TlfType
+  style?: Kb.Styles.StylesCrossPlatform | undefined
+  subscribe?: boolean | undefined
+  tlfTypeForFolderIconOverride?: T.FS.TlfType | undefined
 }
 
 const InTlfIcon = (props: InTlfItemIconProps) => {
@@ -160,13 +160,13 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
 }
 
 export type ItemIconProps = {
-  badgeOverride?: IconType
-  loadOnMount?: boolean
-  mixedMode?: boolean
+  badgeOverride?: IconType | undefined
+  loadOnMount?: boolean | undefined
+  mixedMode?: boolean | undefined
   path: T.FS.Path
   size: Size
-  style?: Kb.Styles.StylesCrossPlatform
-  subscribe?: boolean
+  style?: Kb.Styles.StylesCrossPlatform | undefined
+  subscribe?: boolean | undefined
 }
 
 const ItemIcon = (props: ItemIconProps) => {

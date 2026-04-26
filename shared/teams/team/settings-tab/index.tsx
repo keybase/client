@@ -17,7 +17,7 @@ import {useSettingsTabState} from './use-settings'
 type Props = {
   allowOpenTrigger: number
   canShowcase: boolean
-  error?: string
+  error?: string | undefined
   isBigTeam: boolean
   ignoreAccessRequests: boolean
   publicityAnyMember: boolean
@@ -158,7 +158,7 @@ const OpenTeam = (props: {
             </Kb.Box2>
           </Kb.Box2>
         }
-        onCheck={props.isRolePickerOpen ? undefined : props.showWarning}
+        {...(props.isRolePickerOpen ? {} : {onCheck: props.showWarning})}
       />
     </Kb.Box2>
   )

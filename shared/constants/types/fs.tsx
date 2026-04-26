@@ -296,7 +296,7 @@ export type Edit = Readonly<{
   name: string
   // For new folders, this is the automatically generated hint.
   originalName: string
-  error?: string
+  error?: string | undefined
 }>
 
 export enum SortSetting {
@@ -329,7 +329,7 @@ export type DownloadState = Readonly<{
 
 export type DownloadInfo = Readonly<{
   filename: string
-  intent?: DownloadIntent
+  intent?: DownloadIntent | undefined
   isRegularDownload: boolean
   path: Path
   startTime: number
@@ -343,7 +343,7 @@ export type Downloads = Readonly<{
 export type Uploads = Readonly<{
   writingToJournal: ReadonlyMap<Path, RPCTypes.UploadState>
   totalSyncingBytes: number
-  endEstimate?: number
+  endEstimate?: number | undefined
   syncingPaths: ReadonlySet<Path>
 }>
 
@@ -445,7 +445,7 @@ export type DriverStatusEnabled = Readonly<{
   isDisabling: boolean
   // windows only
   dokanOutdated: boolean
-  dokanUninstallExecPath?: string
+  dokanUninstallExecPath?: string | undefined
 }>
 
 export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverStatusEnabled

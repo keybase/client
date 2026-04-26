@@ -284,8 +284,8 @@ const ChannelBody = (props: OwnProps) => {
   return (
     <LoadedTeamChannelsProvider teamID={teamID} teamname={meta.teamname}>
       <ChannelSelectionProvider
-        selectedMembers={props.selectedMembers}
         onSelectedMembersChange={selectedMembers => navigation.setParams({selectedMembers})}
+        {...(props.selectedMembers ? {selectedMembers: props.selectedMembers} : {})}
       >
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
           <Kb.SectionList

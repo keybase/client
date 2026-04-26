@@ -5,12 +5,12 @@ import type * as React from 'react'
 import type {Position, StylesCrossPlatform} from '@/styles'
 
 type OwnProps = {
-  attachTo?: React.RefObject<Kb.MeasureRef | null>
-  mode?: 'modal' | 'bottomsheet'
+  attachTo?: React.RefObject<Kb.MeasureRef | null> | undefined
+  mode?: 'modal' | 'bottomsheet' | undefined
   onHidden: () => void
   ordinal: T.Chat.Ordinal
   position: Position
-  style?: StylesCrossPlatform
+  style?: StylesCrossPlatform | undefined
   visible: boolean
 }
 
@@ -26,16 +26,19 @@ const JourneyCard = (ownProps: OwnProps) => {
   }
 
   const items: Kb.MenuItems = [{icon: 'iconfont-close', onClick: onDismiss, title: 'Dismiss message'}]
+  const floatingMenuProps = {
+    ...(attachTo ? {attachTo} : {}),
+    ...(mode ? {mode} : {}),
+    ...(style ? {containerStyle: style} : {}),
+  }
 
   return (
     <Kb.FloatingMenu
-      attachTo={attachTo}
+      {...floatingMenuProps}
       closeOnSelect={true}
       items={items}
-      mode={mode}
       onHidden={onHidden}
       position={position}
-      containerStyle={style}
       visible={visible}
       safeProviderStyle={safeProviderStyle}
     />

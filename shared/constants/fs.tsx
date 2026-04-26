@@ -106,7 +106,6 @@ export const unknownTlf = (() => {
 
 // Empty/Default Objects
 export const emptyNewFolder = {
-  error: undefined,
   name: 'New Folder',
   originalName: 'New Folder',
   parentPath: T.FS.stringToPath('/keybase'),
@@ -174,7 +173,6 @@ export const driverStatusUnknown = {
 
 export const emptyDriverStatusEnabled = {
   dokanOutdated: false,
-  dokanUninstallExecPath: undefined,
   isDisabling: false,
   type: T.FS.DriverStatusType.Enabled,
 } as const satisfies T.FS.DriverStatusEnabled
@@ -361,8 +359,8 @@ const splitTlfIntoReadersAndWriters = (
 } => {
   const [w, r] = tlf.split('#')
   return {
-    readers: r ? r.split(',').filter(i => !!i) : undefined,
     writers: w?.split(',').filter(i => !!i) ?? [],
+    ...(r ? {readers: r.split(',').filter(i => !!i)} : {}),
   }
 }
 

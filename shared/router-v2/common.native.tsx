@@ -39,7 +39,9 @@ export const defaultNavigationOptions = {
     ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
   headerLeft: ({tintColor}: HeaderLeftProps) => {
-    return <HeaderLeftButton autoDetectCanGoBack={true} tintColor={tintColor} />
+    const props =
+      tintColor === undefined ? {autoDetectCanGoBack: true} : {autoDetectCanGoBack: true, tintColor}
+    return <HeaderLeftButton {...props} />
   },
   headerLeftContainerStyle: {
     flexGrow: 0,
@@ -102,10 +104,8 @@ export const useSubnavTabAction = (navigation: SubnavNavigation, state: NavState
       : {defaultPrevented: false}
 
     if (!event.defaultPrevented) {
-      navigation.dispatch({
-        ...TabActions.jumpTo(tab),
-        target: state?.key,
-      })
+      const action = TabActions.jumpTo(tab)
+      navigation.dispatch(state?.key ? {...action, target: state.key} : action)
     }
   }
   return onSelectTab

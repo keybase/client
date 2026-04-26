@@ -4,7 +4,7 @@ import {formatTimeForFS} from '@/util/timestamp'
 
 export type Props = {
   isNew: boolean
-  mixedMode?: boolean
+  mixedMode?: boolean | undefined
   mode: 'row' | 'default'
   reset: boolean | ReadonlyArray<string>
   tlfMtime: number
@@ -34,6 +34,9 @@ const resetMetaMaybe = (props: Props) =>
     <Kb.Meta title="reset" backgroundColor={Kb.Styles.globalColors.red} style={styles.meta} />
   ) : null
 
+const rowLineClampProps = (props: Props) =>
+  props.mode === 'row' && Kb.Styles.isMobile ? ({lineClamp: 1} as const) : {}
+
 const resetText = (props: Props) => {
   const text =
     props.reset === true
@@ -45,7 +48,7 @@ const resetText = (props: Props) => {
     <Kb.Text
       type="BodySmallError"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-      lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
+      {...rowLineClampProps(props)}
     >
       {text}
     </Kb.Text>
@@ -58,7 +61,7 @@ const getPrefixText = (props: Props) =>
       <Kb.Text
         type="BodySmall"
         style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-        lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
+        {...rowLineClampProps(props)}
       >
         {props.tlfType}/
       </Kb.Text>
@@ -70,7 +73,7 @@ const timeText = (props: Props) =>
     <Kb.Text
       type="BodySmall"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-      lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
+      {...rowLineClampProps(props)}
     >
       {formatTimeForFS(props.tlfMtime, props.mode !== 'row')}
     </Kb.Text>
@@ -98,7 +101,7 @@ const TlfInfoLine = (props: Props) => {
     <Kb.Text
       type="BodySmall"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-      lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
+      {...rowLineClampProps(props)}
     >
       •&nbsp;
     </Kb.Text>

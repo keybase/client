@@ -173,10 +173,12 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
             fullWidth={true}
             style={styles.footer}
           >
-            {Kb.Styles.isMobile ? (
+            {Kb.Styles.isMobile && onNewFolder ? (
               <NewFolder onNewFolder={onNewFolder} />
-            ) : (
+            ) : onCancel ? (
               <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
+            ) : (
+              false
             )}
           </Kb.Box2>
         )}
@@ -197,7 +199,7 @@ const Screen = (props: OwnProps) => (
   </FsCommon.FsErrorProvider>
 )
 
-const NewFolder = (p: {onNewFolder?: () => void}) => {
+const NewFolder = (p: {onNewFolder: () => void}) => {
   const {onNewFolder} = p
   return (
     <Kb.ClickableBox style={styles.newFolderBox} onClick={onNewFolder}>

@@ -125,7 +125,7 @@ const WithTooltip = (props: Props) => {
               center={!props.multiline}
               type="BodySmall"
               style={Styles.collapseStyles([styles.text, props.textStyle])}
-              lineClamp={props.multiline ? undefined : 1}
+              {...(props.multiline ? {} : {lineClamp: 1})}
             >
               {props.tooltip}
             </Kb.Text>

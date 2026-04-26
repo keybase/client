@@ -19,24 +19,24 @@ export const setServiceDecoration = (SDT: typeof ServiceDecorationType) => {
 }
 
 interface State {
-  context?: string
-  allowFontScaling?: boolean
-  disallowAnimation?: boolean
-  messageType?: T.Chat.MessageType
-  paragraphTextClassName?: string
-  styleOverride?: StyleOverride
-  virtualText?: boolean
+  context?: string | undefined
+  allowFontScaling?: boolean | undefined
+  disallowAnimation?: boolean | undefined
+  messageType?: T.Chat.MessageType | undefined
+  paragraphTextClassName?: string | undefined
+  styleOverride?: StyleOverride | undefined
+  virtualText?: boolean | undefined
   key?: string | number | undefined
   inline?: boolean | null | undefined
-  inParagraph?: boolean
-  inBlockQuote?: boolean
-  insideEM?: boolean
-  insideStrong?: boolean
+  inParagraph?: boolean | undefined
+  inBlockQuote?: boolean | undefined
+  insideEM?: boolean | undefined
+  insideStrong?: boolean | undefined
 }
 
 interface Node {
   content: SM.SingleASTNode
-  raw?: string
+  raw?: string | undefined
 }
 
 const electronWrapStyle = {

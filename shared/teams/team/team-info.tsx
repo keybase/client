@@ -114,7 +114,7 @@ const TeamInfo = (props: Props) => {
             autoFocus={true}
             maxLength={16}
             onChangeText={setName}
-            prefix={parentTeamNameWithDot}
+            {...(parentTeamNameWithDot === undefined ? {} : {prefix: parentTeamNameWithDot})}
             placeholder="subteam"
             value={newName}
             containerStyle={styles.subteamNameInput}

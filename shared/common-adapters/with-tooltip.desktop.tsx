@@ -38,7 +38,7 @@ function WithTooltip(p: Props) {
       visible={true}
       attachTo={popupAnchor}
       position={position || 'top center'}
-      className={toastClassName}
+      {...(toastClassName === undefined ? {} : {className: toastClassName})}
     >
       <Kb.Text
         center={!Styles.isMobile}
@@ -57,11 +57,10 @@ function WithTooltip(p: Props) {
         alignSelf="stretch"
         alignItems="center"
         justifyContent="center"
-        style={containerStyle}
         ref={popupAnchor}
-        onMouseOver={IGNORE_FOR_PROFILING ? undefined : onMouseEnter}
-        onMouseLeave={IGNORE_FOR_PROFILING ? undefined : onMouseLeave}
-        className={className}
+        {...(containerStyle === undefined ? {} : {style: containerStyle})}
+        {...(IGNORE_FOR_PROFILING ? {} : {onMouseOver: onMouseEnter, onMouseLeave})}
+        {...(className === undefined ? {} : {className})}
       >
         {children}
       </Kb.Box2>

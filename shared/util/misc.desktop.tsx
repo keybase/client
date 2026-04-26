@@ -36,7 +36,7 @@ export const clearLocalLogs = async (): Promise<void> => {
 }
 
 export const editAvatar = () => {
-  navigateAppend({name: 'profileEditAvatar', params: {image: undefined}})
+  navigateAppend({name: 'profileEditAvatar', params: {}})
 }
 
 export const pickImages = async (title: string) => {
@@ -75,7 +75,11 @@ export function NotifyPopup(
     const key = rateLimitKey || title
 
     if (rateLimit[key]) {
-      rateLimitPayloads[key] = {onClick, opts, title}
+      rateLimitPayloads[key] = {
+        title,
+        ...(opts === undefined ? {} : {opts}),
+        ...(onClick === undefined ? {} : {onClick}),
+      }
       rateLimit[key]()
       return
     }

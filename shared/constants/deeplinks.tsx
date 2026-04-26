@@ -32,9 +32,9 @@ const validTeamname = (s: string) => s.split('.').every(validTeamnamePart)
 
 const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
   void showTeamByName(teamname, {
-    addMembers: action === 'add_or_invite' ? true : undefined,
-    initialTab: action === 'manage_settings' ? 'settings' : undefined,
-    join: action === 'join' ? true : undefined,
+    ...(action === 'add_or_invite' ? {addMembers: true} : {}),
+    ...(action === 'manage_settings' ? {initialTab: 'settings' as const} : {}),
+    ...(action === 'join' ? {join: true} : {}),
   })
 }
 
@@ -104,6 +104,10 @@ const handleKeybaseLink = (link: string) => {
             return
           }
           const [teamname, channelname] = teamChat
+          if (!teamname || !channelname) {
+            navigateAppend({name: 'keybaseLinkError', params: {error}})
+            return
+          }
           const _highlightMessageID = parseInt(parts[2]!, 10)
           if (_highlightMessageID < 0) {
             logger.warn(`invalid chat message id: ${_highlightMessageID}`)

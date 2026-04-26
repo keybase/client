@@ -37,9 +37,9 @@ const headerIconHeight = Kb.Styles.isMobile ? 96 : 48
 
 type Props = {
   author: string
-  botUsername?: string
+  botUsername?: string | undefined
   deviceName: string
-  deviceRevokedAt?: number
+  deviceRevokedAt?: number | undefined
   deviceType: T.Devices.DeviceType
   isLast?: boolean
   isLocation: boolean

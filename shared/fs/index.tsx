@@ -11,7 +11,7 @@ import * as FS from '@/stores/fs'
 type ChooseComponentProps = {
   emitBarePreview: () => void
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
-  lastClosedPublicBannerTlf?: string
+  lastClosedPublicBannerTlf?: string | undefined
   path: T.FS.Path
   pathType: T.FS.PathType
 }
@@ -59,8 +59,8 @@ const ChooseComponent = (props: ChooseComponentProps) => {
 }
 
 type OwnProps = {
-  lastClosedPublicBannerTlf?: string
-  path?: T.FS.Path
+  lastClosedPublicBannerTlf?: string | undefined
+  path?: T.FS.Path | undefined
 }
 
 const ConnectedInner = (ownProps: OwnProps) => {

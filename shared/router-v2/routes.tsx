@@ -119,13 +119,19 @@ type MakeLayoutFn = (
 ) => LayoutFn
 type MakeOptionsFn = (rd: RouteDef) => (params: GetOptionsParams) => GetOptionsRet
 type CheckedRouteEntry<Routes extends Record<string, RouteDef>> = Routes[keyof Routes]
+type StaticRouteDef = {
+  getOptions?: unknown
+  initialParams?: unknown
+  screen: React.ComponentType<any> | React.LazyExoticComponent<any>
+}
+type CheckedStaticRouteEntry<Routes extends Record<string, StaticRouteDef>> = Routes[keyof Routes]
 
 function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
   if (!opts) return {}
   return opts as NativeStackNavigationOptions
 }
 
-export function routeMapToStaticScreens<const RS extends Record<string, RouteDef>>(
+export function routeMapToStaticScreens<const RS extends Record<string, StaticRouteDef>>(
   rs: RS,
   makeLayoutFn: MakeLayoutFn,
   isModal: boolean,
@@ -141,18 +147,23 @@ export function routeMapToStaticScreens<const RS extends Record<string, RouteDef
       screen: React.ComponentType<any>
     }
   > = {}
-  for (const [name, rd] of Object.entries(rs) as Array<[string, CheckedRouteEntry<RS>]>) {
+  for (const [name, rd] of Object.entries(rs) as Array<[string, CheckedStaticRouteEntry<RS>]>) {
     result[name] = {
       ...(rd.initialParams === undefined ? {} : {initialParams: rd.initialParams as object}),
       // Layout functions return JSX (ReactElement) and accept any route/navigation.
       // Cast bridges our specific KBRootParamList types to RN's generic ParamListBase.
-      layout: makeLayoutFn(isModal, isLoggedOut, isTabScreen, rd.getOptions) as (props: any) => React.ReactElement,
+      layout: makeLayoutFn(isModal, isLoggedOut, isTabScreen, rd.getOptions as GetOptions | undefined) as (
+        props: any
+      ) => React.ReactElement,
       options: ({route, navigation}: {route: any; navigation: any}) => {
         const go = rd.getOptions
-        const opts = typeof go === 'function' ? go({navigation, route}) : go
+        const opts =
+          typeof go === 'function'
+            ? (go as (p: GetOptionsParams) => GetOptionsRet)({navigation, route})
+            : (go as GetOptionsRet)
         return toNavOptions(opts)
       },
-      screen: rd.screen,
+      screen: rd.screen as React.ComponentType<any>,
     }
   }
   return result

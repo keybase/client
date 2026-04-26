@@ -5,9 +5,7 @@ const initialStore: Store = {
   alreadyOnKeybase: [],
   importError: '',
   importPromptDismissed: false,
-  importedCount: undefined,
   permissionStatus: 'unknown',
-  userCountryCode: undefined,
   waitingToShowJoinedModal: false,
 }
 

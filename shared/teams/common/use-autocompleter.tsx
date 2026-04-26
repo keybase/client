@@ -31,7 +31,7 @@ function useAutocompleter<U>(
       const {attachTo, hidePopup} = p
       return (
         <Kb.Popup
-          attachTo={attachTo}
+          {...(attachTo === undefined ? {} : {attachTo})}
           onHidden={hidePopup}
           matchDimension={true}
           position="top center"

@@ -22,12 +22,12 @@ const Kb = {
 type Status = 'error' | 'pending' | 'completed' | 'claimable'
 
 export type Props = {
-  allowFontScaling?: boolean
+  allowFontScaling?: boolean | undefined
   allowPopup: boolean
-  errorDetail?: string
+  errorDetail?: string | undefined
   isSendError: boolean
   message: T.Chat.MessageText
-  paymentID?: T.Wallets.PaymentID
+  paymentID?: T.Wallets.PaymentID | undefined
   status: Status
   text: string
 }

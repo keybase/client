@@ -28,7 +28,6 @@ const Tab = createLeftTabNavigator()
 
 const appTabsInnerOptions = {
   ...Common.defaultNavigationOptions,
-  header: undefined,
   headerShown: false,
   tabBarActiveBackgroundColor: Kb.Styles.globalColors.blueDarkOrGreyDarkest,
   tabBarHideOnKeyboard: true,

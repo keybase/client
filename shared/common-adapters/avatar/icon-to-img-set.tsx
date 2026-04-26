@@ -3,9 +3,9 @@ import {iconMeta} from '../icon.constants-gen'
 import type {IconType} from '../icon.constants-gen'
 
 type MultMap = {
-  [1]?: number
-  [2]?: number
-  [3]?: number
+  [1]?: number | undefined
+  [2]?: number | undefined
+  [3]?: number | undefined
 }
 
 const multiKeys = [1, 2, 3] as const
@@ -28,7 +28,7 @@ function getMultsMap(imgMap: {[size: string]: unknown}, targetSize: number): Mul
   if (_getMultsMapCache[sizeKey]) return _getMultsMapCache[sizeKey]
 
   const sizes = ssizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
-  const multsMap: MultMap = {1: undefined, 2: undefined, 3: undefined}
+  const multsMap: MultMap = {}
 
   multiKeys.forEach(mult => {
     const level1 = idealSizeMultMap[String(targetSize)]
@@ -41,7 +41,7 @@ function getMultsMap(imgMap: {[size: string]: unknown}, targetSize: number): Mul
     }
     const ideal = mult * targetSize
     const size = sizes.find(size => size >= ideal)
-    multsMap[mult] = size || sizes.at(-1)
+    multsMap[mult] = size ?? sizes.at(-1)
   })
 
   _getMultsMapCache[sizeKey] = multsMap

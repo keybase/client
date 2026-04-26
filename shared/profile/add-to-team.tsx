@@ -341,7 +341,9 @@ type RowProps = {
 
 const TeamRow = (props: RowProps) => {
   return (
-    <Kb.ClickableBox onClick={props.canAddThem ? () => props.onCheck(!props.checked) : undefined}>
+    <Kb.ClickableBox
+      {...(props.canAddThem ? {onClick: () => props.onCheck(!props.checked)} : {})}
+    >
       <Kb.Box2 direction="horizontal" style={styles.teamRow}>
         <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
         <Kb.Box2 direction="vertical" relative={true} style={{display: 'flex'}}>

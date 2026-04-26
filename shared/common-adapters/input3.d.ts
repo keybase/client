@@ -58,51 +58,51 @@ export type Input3Ref = {
 
 export type Input3Props = {
   // Value
-  value?: string
-  onChangeText?: (text: string) => void
-  placeholder?: string
-  maxLength?: number
+  value?: string | undefined
+  onChangeText?: ((text: string) => void) | undefined
+  placeholder?: string | undefined
+  maxLength?: number | undefined
 
   // Chrome
-  error?: boolean
-  icon?: IconType
-  prefix?: string
-  decoration?: React.ReactNode
-  hideBorder?: boolean
-  disabled?: boolean
-  containerStyle?: StylesCrossPlatform
-  inputStyle?: StylesCrossPlatform
+  error?: boolean | undefined
+  icon?: IconType | undefined
+  prefix?: string | undefined
+  decoration?: React.ReactNode | undefined
+  hideBorder?: boolean | undefined
+  disabled?: boolean | undefined
+  containerStyle?: StylesCrossPlatform | undefined
+  inputStyle?: StylesCrossPlatform | undefined
 
   // Text
-  textType?: TextType
+  textType?: TextType | undefined
 
   // Behavior
-  autoFocus?: boolean
-  selectTextOnFocus?: boolean
-  multiline?: boolean
-  rowsMin?: number
-  rowsMax?: number
-  growAndScroll?: boolean
-  secureTextEntry?: boolean
+  autoFocus?: boolean | undefined
+  selectTextOnFocus?: boolean | undefined
+  multiline?: boolean | undefined
+  rowsMin?: number | undefined
+  rowsMax?: number | undefined
+  growAndScroll?: boolean | undefined
+  secureTextEntry?: boolean | undefined
 
   // Keyboard
-  onEnterKeyDown?: (event?: React.KeyboardEvent) => void
-  onKeyDown?: (event: React.KeyboardEvent) => void
-  returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'
-  keyboardType?: KeyboardType
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
-  autoCorrect?: boolean
-  spellCheck?: boolean
+  onEnterKeyDown?: ((event?: React.KeyboardEvent) => void) | undefined
+  onKeyDown?: ((event: React.KeyboardEvent) => void) | undefined
+  returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send' | undefined
+  keyboardType?: KeyboardType | undefined
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters' | undefined
+  autoCorrect?: boolean | undefined
+  spellCheck?: boolean | undefined
 
   // Focus
-  onFocus?: () => void
-  onBlur?: () => void
-  onClick?: (event: React.BaseSyntheticEvent) => void
+  onFocus?: (() => void) | undefined
+  onBlur?: (() => void) | undefined
+  onClick?: ((event: React.BaseSyntheticEvent) => void) | undefined
 
   // iOS autofill
-  textContentType?: TextContentType
+  textContentType?: TextContentType | undefined
 }
 
-declare function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}): React.ReactNode
+declare function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref> | undefined}): React.ReactNode
 
 export default Input3

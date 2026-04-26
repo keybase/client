@@ -2,12 +2,16 @@ import * as Kb from '@/common-adapters'
 
 type Props = {
   url: string
-  onLoadingStateChange?: (isLoading: boolean) => void
-  onUrlError?: (err: string) => void
+  onLoadingStateChange?: ((isLoading: boolean) => void) | undefined
+  onUrlError?: ((err: string) => void) | undefined
 }
 
 const AVPreview = (props: Props) => (
-  <Kb.Video url={props.url} style={styles.video} onUrlError={props.onUrlError} />
+  <Kb.Video
+    url={props.url}
+    style={styles.video}
+    {...(props.onUrlError === undefined ? {} : {onUrlError: props.onUrlError})}
+  />
 )
 export default AVPreview
 

@@ -50,30 +50,34 @@ export const errors = {
 export type ErrorType = {
   code: number
   desc: string
-  name?: string
+  name?: string | undefined
 }
 
 export type ResponseType = {
-  cancelled?: boolean
+  cancelled?: boolean | undefined
   seqid: number
-  error?: (e?: ErrorType) => void
-  result?: (r?: unknown) => void
+  error?: ((e?: ErrorType) => void) | undefined
+  result?: ((r?: unknown) => void) | undefined
 }
 
 export type PayloadType = {
   method: string
-  param: Array<{sessionID?: number}>
-  response?: ResponseType
+  param: Array<{sessionID?: number | undefined}>
+  response?: ResponseType | undefined
 }
 
 export type IncomingRPCCallbackType = (payload: PayloadType) => void
 export type ConnectDisconnectCB = () => void
-export type InvokeType = (method: string, args: [object], cb: (err: unknown, data: unknown) => void) => void
+export type InvokeType = (
+  method: string,
+  args: [object] | undefined,
+  cb: (err: unknown, data: unknown) => void
+) => void
 
 type InvocationCallback = (err: unknown, data: unknown) => void
 export type RPCMessage = [number, ...Array<unknown>]
 type PendingItem =
-  | {type: 'invoke'; method: string; args: [object]; cb: InvocationCallback}
+  | {type: 'invoke'; method: string; args: [object] | undefined; cb: InvocationCallback}
   | {type: 'message'; message: RPCMessage}
 
 const queueMax = 1000
@@ -126,17 +130,17 @@ export abstract class RPCTransport {
   private _chunks = new Array<Uint8Array>()
   private _chunkOffset = 0
   private _explicitClose = false
-  private _incomingRPCCallback?: IncomingRPCCallbackType
-  private _connectCallback?: ConnectDisconnectCB
-  private _disconnectCallback?: ConnectDisconnectCB
+  private _incomingRPCCallback?: IncomingRPCCallbackType | undefined
+  private _connectCallback?: ConnectDisconnectCB | undefined
+  private _disconnectCallback?: ConnectDisconnectCB | undefined
   private _invocations = new Map<number, InvocationCallback>()
   private _pending = new Array<PendingItem>()
   private _seqid = 1
 
   constructor(p?: {
-    incomingRPCCallback?: IncomingRPCCallbackType
-    connectCallback?: ConnectDisconnectCB
-    disconnectCallback?: ConnectDisconnectCB
+    incomingRPCCallback?: IncomingRPCCallbackType | undefined
+    connectCallback?: ConnectDisconnectCB | undefined
+    disconnectCallback?: ConnectDisconnectCB | undefined
   }) {
     this._incomingRPCCallback = p?.incomingRPCCallback
     this._connectCallback = p?.connectCallback
@@ -350,7 +354,7 @@ export abstract class RPCTransport {
     return true
   }
 
-  invoke(method: string, args: [object], cb: InvocationCallback) {
+  invoke(method: string, args: [object] | undefined, cb: InvocationCallback) {
     if (this.isConnected()) {
       this.invokeNow(method, args, cb)
       return
@@ -383,7 +387,7 @@ export abstract class RPCTransport {
     return encodeFrame(message)
   }
 
-  private invokeNow(method: string, args: [object], cb: InvocationCallback) {
+  private invokeNow(method: string, args: [object] | undefined, cb: InvocationCallback) {
     const seqid = this._seqid
     this._seqid += 1
     this._invocations.set(seqid, cb)

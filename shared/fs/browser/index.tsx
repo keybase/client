@@ -19,7 +19,7 @@ import * as FS from '@/stores/fs'
 import {uploadFromDragAndDropDesktop as uploadFromDragAndDropInPlatform} from '@/stores/fs-platform'
 
 type OwnProps = {
-  lastClosedPublicBannerTlf?: string
+  lastClosedPublicBannerTlf?: string | undefined
   path: T.FS.Path
 }
 
@@ -54,8 +54,8 @@ const Container = (ownProps: OwnProps) => {
 }
 
 type Props = {
-  filter?: string
-  lastClosedPublicBannerTlf?: string
+  filter?: string | undefined
+  lastClosedPublicBannerTlf?: string | undefined
   offlineUnsynced: boolean
   path: T.FS.Path
   resetBannerType: T.FS.ResetBannerType
@@ -79,7 +79,7 @@ const SelfReset = (_: Props) => (
 function DragAndDrop(p: {
   children: React.ReactNode
   path: T.FS.Path
-  rejectReason?: string
+  rejectReason?: string | undefined
 }) {
   const {children, path, rejectReason} = p
   const errorToActionOrThrow = useFsErrorActionOrThrow()
@@ -100,8 +100,8 @@ function DragAndDrop(p: {
       allowFolders={true}
       fullWidth={true}
       containerStyle={Kb.Styles.globalStyles.flexOne}
-      onAttach={!rejectReason ? onAttach : undefined}
-      rejectReason={rejectReason}
+      {...(!rejectReason ? {onAttach} : {})}
+      {...(rejectReason === undefined ? {} : {rejectReason})}
     >
       {children}
     </Kb.DragAndDrop>

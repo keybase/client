@@ -2,9 +2,9 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 type Props = {
-  attachTo?: React.RefObject<Kb.MeasureRef | null>
-  onAddAlias?: () => void
-  onRemove?: () => void
+  attachTo?: React.RefObject<Kb.MeasureRef | null> | undefined
+  onAddAlias?: (() => void) | undefined
+  onRemove?: (() => void) | undefined
   onHidden: () => void
   visible: boolean
   isAlias: boolean
@@ -33,7 +33,7 @@ const EmojiMenu = (props: Props) => {
   ]
   return (
     <Kb.FloatingMenu
-      attachTo={props.attachTo}
+      {...(props.attachTo === undefined ? {} : {attachTo: props.attachTo})}
       closeOnSelect={true}
       items={items}
       onHidden={props.onHidden}

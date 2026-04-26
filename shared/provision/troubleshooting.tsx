@@ -17,7 +17,7 @@ type BigButtonProps = {
 }
 
 const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) => (
-  <Kb.ClickableBox onClick={waiting ? undefined : onClick}>
+  <Kb.ClickableBox {...(waiting ? {} : {onClick})}>
     <Kb.Box2
       direction={Kb.Styles.isMobile ? 'horizontal' : 'vertical'}
       style={styles.bigButton}

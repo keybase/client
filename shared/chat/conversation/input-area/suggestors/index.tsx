@@ -312,9 +312,9 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     active,
     checkTrigger,
     filterEmpty: filter.length === 0,
-    onKeyDownProps: p.onKeyDown,
     onMoveRef,
     onSubmitRef,
+    ...(p.onKeyDown ? {onKeyDownProps: p.onKeyDown} : {}),
   })
 
   const onBlur = () => {

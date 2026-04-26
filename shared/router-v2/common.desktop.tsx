@@ -71,10 +71,8 @@ export const useSubnavTabAction: typeof useSubnavTabActionType = (navigation, st
       : {defaultPrevented: false}
 
     if (!event.defaultPrevented) {
-      navRef.current.dispatch({
-        ...TabActions.jumpTo(tab),
-        target: stateKeyRef.current,
-      })
+      const action = TabActions.jumpTo(tab)
+      navRef.current.dispatch(stateKeyRef.current ? {...action, target: stateKeyRef.current} : action)
     }
   }
 

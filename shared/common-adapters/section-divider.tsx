@@ -41,7 +41,10 @@ const SectionDivider = (props: Props) => {
     </Kb.Box2>
   )
   return collapsible ? (
-    <Kb.ClickableBox onClick={props.onToggleCollapsed} style={styles.fullWidth}>
+    <Kb.ClickableBox
+      style={styles.fullWidth}
+      {...(props.onToggleCollapsed === undefined ? {} : {onClick: props.onToggleCollapsed})}
+    >
       {children}
     </Kb.ClickableBox>
   ) : (

@@ -38,9 +38,9 @@ class Engine {
   _listenersAreReady: boolean = false
 
   _emitWaiting: (changes: BatchParams) => void
-  _onEngineIncoming?: (action: EngineGen.Actions) => void
+  _onEngineIncoming?: ((action: EngineGen.Actions) => void) | undefined
 
-  _queuedChanges: Array<{error?: RPCError; increment: boolean; key: WaitingKey}> = []
+  _queuedChanges: Array<{error?: RPCError | undefined; increment: boolean; key: WaitingKey}> = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error?: RPCError) => {
     this._queuedChanges.push({error, increment: waiting, key})
     this._throttledDispatchWaitingAction()
@@ -203,11 +203,11 @@ class Engine {
   // An outgoing call. ONLY called by the flow-type rpc helpers
   _rpcOutgoing(p: {
     method: string
-    params: object
+    params?: object | undefined
     callback: (...args: Array<any>) => void
-    incomingCallMap?: IncomingCallMapType
-    customResponseIncomingCallMap?: CustomResponseIncomingCallMapType
-    waitingKey?: WaitingKey
+    incomingCallMap?: IncomingCallMapType | undefined
+    customResponseIncomingCallMap?: CustomResponseIncomingCallMapType | undefined
+    waitingKey?: WaitingKey | undefined
   }) {
     const {customResponseIncomingCallMap, incomingCallMap, waitingKey} = p
     const {method, params, callback} = p
@@ -224,11 +224,11 @@ class Engine {
 
   // Make a new session. If the session hangs around forever set dangling to true
   createSession(p: {
-    incomingCallMap?: IncomingCallMapType
-    customResponseIncomingCallMap?: CustomResponseIncomingCallMapType
-    cancelHandler?: CancelHandlerType
-    dangling?: boolean
-    waitingKey?: WaitingKey
+    incomingCallMap?: IncomingCallMapType | undefined
+    customResponseIncomingCallMap?: CustomResponseIncomingCallMapType | undefined
+    cancelHandler?: CancelHandlerType | undefined
+    dangling?: boolean | undefined
+    waitingKey?: WaitingKey | undefined
   }): Session {
     const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false, waitingKey} = p
     const sessionID = this._generateSessionID()

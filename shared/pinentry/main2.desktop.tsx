@@ -6,12 +6,12 @@ import loadRemoteComponent from '../desktop/remote/component-loader.desktop'
 import {getRemoteComponentParam, RemoteDarkModeSync} from '../desktop/remote/remote-component.desktop'
 
 export type ProxyProps = {
-  cancelLabel?: string
+  cancelLabel?: string | undefined
   darkMode: boolean
   prompt: string
-  retryLabel?: string
-  showTyping?: T.RPCGen.Feature
-  submitLabel?: string
+  retryLabel?: string | undefined
+  showTyping?: T.RPCGen.Feature | undefined
+  submitLabel?: string | undefined
   type: T.RPCGen.PassphraseType
   windowTitle: string
 }

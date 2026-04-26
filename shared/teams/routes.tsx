@@ -13,7 +13,7 @@ import {TeamBuilderScreen} from '../team-building/page'
 import {useModalHeaderState} from '@/stores/modal-header'
 import teamsRootGetOptions from './get-options'
 import {defineRouteMap} from '@/constants/types/router'
-import {createNewTeamFromWizard, type NewTeamWizard} from './new-team/wizard/state'
+import {clearNewTeamWizardError, createNewTeamFromWizard, type NewTeamWizard} from './new-team/wizard/state'
 import {onTeamCreated} from './create-team-effects'
 import {RPCError} from '@/util/errors'
 import {useLoadedTeam} from './team/use-loaded-team'
@@ -55,7 +55,7 @@ const AddToChannelsHeaderRight = () => {
     <Kb.Text
       type="BodyBigLink"
       onClick={onAction}
-      style={!enabled ? {opacity: 0.4} : undefined}
+      {...(!enabled ? {style: {opacity: 0.4}} : {})}
     >
       Add
     </Kb.Text>
@@ -69,7 +69,7 @@ const SubteamMembersHeaderRight = () => {
   if (!Kb.Styles.isMobile) return null
   return (
     <Kb.Box2 direction="horizontal" style={{width: 48}} justifyContent="flex-end">
-      <Kb.Text type="BodyBigLink" onClick={onAction}>
+      <Kb.Text type="BodyBigLink" {...(onAction === undefined ? {} : {onClick: onAction})}>
         {title || 'Skip'}
       </Kb.Text>
     </Kb.Box2>
@@ -88,8 +88,8 @@ const AddContactsHeaderRight = () => {
     <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.positionRelative}>
       <Kb.Text
         type="BodyBigLink"
-        onClick={!waiting && enabled ? onAction : undefined}
-        style={!enabled ? {opacity: 0} : waiting ? {opacity: 0.4} : undefined}
+        {...(!waiting && enabled && onAction ? {onClick: onAction} : {})}
+        {...(!enabled ? {style: {opacity: 0}} : waiting ? {style: {opacity: 0.4}} : {})}
       >
         Done
       </Kb.Text>
@@ -165,14 +165,15 @@ const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
     if (!newTeamWizard) {
       return
     }
+    const cleanNewTeamWizard = clearNewTeamWizardError(newTeamWizard)
     const cleanWizard: AddMembersWizard = {
       ...wizard,
-      newTeamWizard: {...newTeamWizard, error: undefined},
+      newTeamWizard: cleanNewTeamWizard,
     }
     navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: cleanWizard}}, true)
     const f = async () => {
       try {
-        const teamID = await createNewTeamFromWizard(newTeamWizard, cleanWizard.addingMembers)
+        const teamID = await createNewTeamFromWizard(cleanNewTeamWizard, cleanWizard.addingMembers)
         onTeamCreated(teamID)
         navigateAppend({name: 'team', params: {teamID}})
         clearModals()
@@ -223,9 +224,12 @@ const AddFromWhereHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => (
   />
 )
 
-const JoinTeamHeaderTitle = ({success}: {success?: boolean}) => <>{success ? 'Request sent' : 'Join a team'}</>
+const JoinTeamHeaderTitle = ({success}: {success?: boolean | undefined}) => (
+  <>{success ? 'Request sent' : 'Join a team'}</>
+)
 
-const JoinTeamHeaderLeft = ({success}: {success?: boolean}) => (success ? null : <HeaderLeftButton />)
+const JoinTeamHeaderLeft = ({success}: {success?: boolean | undefined}) =>
+  success ? null : <HeaderLeftButton />
 
 const NewTeamInfoHeaderTitle = ({wizard}: {wizard: NewTeamWizard}) => {
   const title = wizard.teamType === 'subteam' ? 'Create a subteam' : 'Enter team info'
@@ -260,8 +264,7 @@ export const newRoutes = defineRouteMap({
     React.lazy(async () => import('./external-team')),
     {
       getOptions: {
-        header: undefined,
-        headerBottomStyle: {height: undefined},
+        header: () => null,
         headerShadowVisible: false,
         title: ' ', // hack: trick router shim so it doesn't add a safe area around us
       },
@@ -284,10 +287,16 @@ export const newModalRoutes = defineRouteMap({
   openTeamWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/open-team-warning'))),
   retentionWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/retention/warning'))),
   teamAddEmoji: C.makeScreen(React.lazy(async () => import('./emojis/add-emoji')), {
-    getOptions: {headerLeft: Kb.Styles.isMobile ? () => <HeaderLeftButton mode="cancel" /> : undefined, title: 'Add emoji'},
+    getOptions: {
+      ...(Kb.Styles.isMobile ? {headerLeft: () => <HeaderLeftButton mode="cancel" />} : {}),
+      title: 'Add emoji',
+    },
   }),
   teamAddEmojiAlias: makeChatScreen(React.lazy(async () => import('./emojis/add-alias')), {
-    getOptions: {headerLeft: Kb.Styles.isMobile ? () => <HeaderLeftButton mode="cancel" /> : undefined, title: 'Add an alias'},
+    getOptions: {
+      ...(Kb.Styles.isMobile ? {headerLeft: () => <HeaderLeftButton mode="cancel" />} : {}),
+      title: 'Add an alias',
+    },
   }),
   teamAddToChannels: C.makeScreen(React.lazy(async () => import('./team/member/add-to-channels')), {
     getOptions: ({route}) => ({

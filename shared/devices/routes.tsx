@@ -53,9 +53,9 @@ export const newModalRoutes = defineRouteMap({
   ...provisionNewRoutes,
   deviceAdd: C.makeScreen(React.lazy(async () => import('./add-device')), {
     getOptions: {
-      headerLeft: C.isMobile ? () => <AddDeviceCancelButton /> : undefined,
       modalStyle: {width: 620},
       title: 'Add a device',
+      ...(C.isMobile ? {headerLeft: () => <AddDeviceCancelButton />} : {}),
     },
   }),
   devicePaperKey: {

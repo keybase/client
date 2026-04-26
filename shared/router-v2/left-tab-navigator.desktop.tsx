@@ -9,13 +9,14 @@ import {getModalStack} from '@/constants/router'
 
 type BackBehavior = Parameters<typeof TabRouter>[0]['backBehavior']
 type Props = Parameters<typeof useNavigationBuilder>[1] & {backBehavior: BackBehavior}
+const tabRouter = TabRouter as unknown as Parameters<typeof useNavigationBuilder>[0]
 function LeftTabNavigator({
   backBehavior,
   initialRouteName,
   children,
   screenOptions,
 }: Props) {
-  const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
+  const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(tabRouter, {
     backBehavior,
     children,
     initialRouteName,

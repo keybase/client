@@ -11,12 +11,12 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {copyToClipboard} from '@/util/storeless-actions'
 
 type OwnProps = {
-  attachTo?: React.RefObject<Kb.MeasureRef | null>
-  mode?: 'modal' | 'bottomsheet'
+  attachTo?: React.RefObject<Kb.MeasureRef | null> | undefined
+  mode?: 'modal' | 'bottomsheet' | undefined
   ordinal: T.Chat.Ordinal
   onHidden: () => void
   position: Position
-  style?: StylesCrossPlatform
+  style?: StylesCrossPlatform | undefined
   visible: boolean
 }
 
@@ -163,7 +163,7 @@ const PopText = (ownProps: OwnProps) => {
     ? ([{icon: 'iconfont-reply', onClick: onReplyPrivately, title: 'Reply privately'}] as const)
     : []
 
-  const itemBlock = !yourMessage
+  const itemBlock = !yourMessage && onUserBlock
     ? ([
         {
           danger: true,
@@ -231,17 +231,20 @@ const PopText = (ownProps: OwnProps) => {
   ]
   const header = useHeader(ordinal, onHidden)
   const snapPoints = [8 * 40 + 25]
+  const floatingMenuProps = {
+    ...(attachTo ? {attachTo} : {}),
+    ...(mode ? {mode} : {}),
+    ...(style ? {containerStyle: style} : {}),
+  }
 
   return (
     <Kb.FloatingMenu
-      attachTo={attachTo}
+      {...floatingMenuProps}
       closeOnSelect={true}
       header={header}
       items={items}
-      mode={mode}
       onHidden={onHidden}
       position={position}
-      containerStyle={style}
       visible={visible}
       snapPoints={snapPoints}
       safeProviderStyle={safeProviderStyle}

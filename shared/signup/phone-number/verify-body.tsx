@@ -37,7 +37,7 @@ const VerifyBody = (props: BodyProps) => {
         inputStyle={styles.inputText2}
       />
       <Kb.ClickableBox
-        onClick={props.resendWaiting || resendDisabled ? undefined : onResend}
+        {...(props.resendWaiting || resendDisabled ? {} : {onClick: onResend})}
         style={styles.positionRelative}
       >
         <Kb.Box2

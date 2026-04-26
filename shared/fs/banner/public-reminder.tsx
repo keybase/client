@@ -6,7 +6,7 @@ import {useFsPathItem} from '@/fs/common'
 import * as FS from '@/stores/fs'
 
 type Props = {
-  lastClosedTlf?: string
+  lastClosedTlf?: string | undefined
   path: T.FS.Path
 }
 

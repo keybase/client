@@ -9,6 +9,11 @@ import {useInboxRowsState} from '@/stores/inbox-rows'
 import {useIsFocused} from '@react-navigation/core'
 import {buildInboxRows} from './rows'
 
+type ChatRootRefreshParams = {
+  conversationIDKey?: T.Chat.ConversationIDKey | undefined
+  refreshInbox?: T.Chat.ChatRootInboxRefresh | undefined
+}
+
 export function useInboxState(
   conversationIDKey?: string,
   isSearching = false,
@@ -122,7 +127,8 @@ export function useInboxState(
     }
     handledRefreshNonceRef.current = refreshInbox.nonce
     C.ignorePromise(inboxRefresh(refreshInbox.reason))
-    C.Router2.setChatRootParams({refreshInbox: undefined})
+    const clearRefreshInboxParams: ChatRootRefreshParams = {refreshInbox: undefined}
+    C.Router2.setChatRootParams(clearRefreshInboxParams)
   }, [inboxRefresh, isFocused, loggedIn, refreshInbox, username])
 
   C.Router2.useSafeFocusEffect(() => {

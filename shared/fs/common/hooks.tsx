@@ -46,7 +46,7 @@ type FsSubscription = {
   count: number
   subscribed: boolean
   subscriptionID: string
-  unsubscribeTimer?: ReturnType<typeof setTimeout>
+  unsubscribeTimer?: ReturnType<typeof setTimeout> | undefined
 }
 
 type FsSubscriptionManager = {
@@ -214,13 +214,14 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
         })
         setDownloadInfos(prevDownloadInfos => {
           const old = prevDownloadInfos.get(downloadID)
+          const intent = old?.intent
           const nextDownloadInfos = new Map(prevDownloadInfos)
           nextDownloadInfos.set(downloadID, {
             filename: res.filename,
-            intent: old?.intent,
             isRegularDownload: res.isRegularDownload,
             path: T.FS.stringToPath('/keybase' + res.path.path),
             startTime: res.startTime,
+            ...(intent === undefined ? {} : {intent}),
           })
           return nextDownloadInfos
         })
@@ -237,13 +238,14 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
     const downloadIntent = downloadIntentFromStartType(type)
     setDownloadInfos(prevDownloadInfos => {
       const old = prevDownloadInfos.get(downloadID)
+      const intent = downloadIntent ?? old?.intent
       const nextDownloadInfos = new Map(prevDownloadInfos)
       nextDownloadInfos.set(downloadID, {
         filename: old?.filename ?? T.FS.getPathName(path),
-        intent: downloadIntent ?? old?.intent,
         isRegularDownload: type === 'download',
         path,
         startTime: old?.startTime ?? 0,
+        ...(intent === undefined ? {} : {intent}),
       })
       return nextDownloadInfos
     })
@@ -664,8 +666,8 @@ const useFsPathSubscriptionEffect = (
 }
 
 type FsPathItemOptions = {
-  loadOnMount?: boolean
-  subscribe?: boolean
+  loadOnMount?: boolean | undefined
+  subscribe?: boolean | undefined
 }
 
 const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic, enabled = true) => {
@@ -758,7 +760,7 @@ export const useFsPathMetadata = (path: T.FS.Path, options?: FsPathItemOptions) 
 export const useFsFolderChildren = (
   path: T.FS.Path,
   options?: {
-    initialLoadRecursive?: boolean
+    initialLoadRecursive?: boolean | undefined
   }
 ) => {
   const routeData = React.useContext(FsDataContext)
@@ -794,12 +796,12 @@ export const useFsFolderChildren = (
 }
 
 export const useFsChildren = (path: T.FS.Path, initialLoadRecursive?: boolean) =>
-  useFsFolderChildren(path, {initialLoadRecursive})
+  useFsFolderChildren(path, initialLoadRecursive === undefined ? undefined : {initialLoadRecursive})
 
 export const useFsFolderChildItems = (
   path: T.FS.Path,
   options?: {
-    initialLoadRecursive?: boolean
+    initialLoadRecursive?: boolean | undefined
   }
 ) => {
   const pathItem = useFsFolderChildren(path, options)
@@ -836,7 +838,7 @@ export const useFsTlfs = () => {
   return tlfs
 }
 
-export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => {
+export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean | undefined}) => {
   const routeData = React.useContext(FsDataContext)
   const tlfPath = FS.getTlfPath(path)
   const tlfs = useFsTlfs()

@@ -10,7 +10,7 @@ const getVisibleServices = (filterServices?: Array<T.TB.ServiceIdWithContact>) =
 
 export const FilteredServiceTabBar = (
   props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {
-    filterServices?: Array<T.TB.ServiceIdWithContact>
+    filterServices?: Array<T.TB.ServiceIdWithContact> | undefined
   }
 ) => {
   const {selectedService, onChangeService, servicesShown, minimalBorder, offset, filterServices} = props

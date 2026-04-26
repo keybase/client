@@ -12,7 +12,7 @@ import {RPCError} from '@/util/errors'
 
 type StartRecoverPasswordParams = {
   abortProvisioning?: boolean
-  onResetEmailSent?: () => void
+  onResetEmailSent?: (() => void) | undefined
   replaceRoute?: boolean
   username: string
 }
@@ -144,7 +144,11 @@ export const startRecoverPassword = ({
                 wrapErrors(() => {
                   clear()
                   response.error({code: T.RPCGen.StatusCode.scinputcanceled, desc: 'Input canceled'})
-                  startRecoverPassword({onResetEmailSent, replaceRoute: true, username})
+                  startRecoverPassword({
+                    replaceRoute: true,
+                    username,
+                    ...(onResetEmailSent === undefined ? {} : {onResetEmailSent}),
+                  })
                 })
               )
               setHandle(
@@ -157,7 +161,7 @@ export const startRecoverPassword = ({
               navigateAppend(
                 {
                   name: 'recoverPasswordPaperKey',
-                  params: {error: params.pinentry.retryLabel || undefined},
+                  params: params.pinentry.retryLabel ? {error: params.pinentry.retryLabel} : {},
                 },
                 true
               )
@@ -178,7 +182,7 @@ export const startRecoverPassword = ({
                 })
               )
               if (!params.pinentry.retryLabel) {
-                navigateAppend({name: 'recoverPasswordSetPassword', params: {error: undefined}})
+                navigateAppend({name: 'recoverPasswordSetPassword', params: {}})
               } else {
                 navigateAppend(
                   {

@@ -6,9 +6,9 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import * as FS from '@/stores/fs'
 
 type Props = {
-  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
+  destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource | undefined
   path: T.FS.Path
-  inDestinationPicker?: boolean
+  inDestinationPicker?: boolean | undefined
 }
 
 const Breadcrumb = (props: Props) => {
@@ -40,7 +40,6 @@ const Breadcrumb = (props: Props) => {
     return (
       <Kb.FloatingMenu
         containerStyle={styles.floating}
-        attachTo={attachTo}
         visible={true}
         onHidden={hidePopup}
         items={ancestors
@@ -60,6 +59,7 @@ const Breadcrumb = (props: Props) => {
           }))}
         position="bottom left"
         closeOnSelect={true}
+        {...(attachTo === undefined ? {} : {attachTo})}
       />
     )
   }

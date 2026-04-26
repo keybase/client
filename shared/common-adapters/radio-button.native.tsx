@@ -43,7 +43,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
   return (
     <Kb.ClickableBox
       style={{...styles.container, ...style}}
-      onClick={disabled ? undefined : () => onSelect(!selected)}
+      {...(disabled ? {} : {onClick: () => onSelect(!selected)})}
     >
       <RadioOuterCircle disabled={disabled ?? false} selected={selected}>
         <RadioInnerCircle selected={selected} />

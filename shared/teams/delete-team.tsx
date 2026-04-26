@@ -108,7 +108,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
       description="This cannot be undone. By deleting the team, you agree that:"
       header={<Header teamname={teamname} />}
       onCancel={onBack}
-      onConfirm={disabled ? undefined : onDelete}
+      {...(disabled ? {} : {onConfirm: onDelete})}
       prompt={`Delete ${teamname}?`}
       waitingKey={C.waitingKeyTeamsDeleteTeam(teamID)}
     />

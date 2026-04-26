@@ -4,11 +4,11 @@ import {useFsPathItem} from './hooks'
 import * as FS from '@/stores/fs'
 
 type Props = {
-  filter?: string
+  filter?: string | undefined
   onChangeFilter: (filter: string) => void
-  onCancel?: () => void
+  onCancel?: (() => void) | undefined
   path: T.FS.Path
-  style?: Kb.Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform | undefined
 }
 
 const FolderViewFilter = (props: Props) => {
@@ -21,10 +21,10 @@ const FolderViewFilter = (props: Props) => {
       mobileCancelButton={true}
       focusOnMount={Kb.Styles.isMobile}
       hotkey="f"
-      onCancel={props.onCancel}
+      {...(props.onCancel === undefined ? {} : {onCancel: props.onCancel})}
       onChange={props.onChangeFilter}
       placeholderText="Filter"
-      style={props.style}
+      {...(props.style === undefined ? {} : {style: props.style})}
       value={props.filter ?? ''}
       valueControlled={true}
     />

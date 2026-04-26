@@ -1281,9 +1281,9 @@ const createRpc = <M extends PromiseMethod>(method: M): RpcFn<M> =>
     new Promise<RpcOut<M>>((resolve, reject) =>
       engine()._rpcOutgoing({
         method,
-        params,
         callback: (error: SimpleError, result: RpcOut<M>) => error ? reject(error) : resolve(result),
-        waitingKey,
+        ...(params === undefined ? {} : {params}),
+        ...(waitingKey === undefined ? {} : {waitingKey}),
       }))) as RpcFn<M>
 type ListenerMethod = 'keybase.1.account.enterResetPipeline' | 'keybase.1.device.deviceAdd' | 'keybase.1.identify3.identify3' | 'keybase.1.login.login' | 'keybase.1.login.paperKey' | 'keybase.1.login.recoverPassphrase' | 'keybase.1.pgp.pgpKeyGenDefault' | 'keybase.1.prove.startProof' | 'keybase.1.signup.signup' | 'keybase.1.teams.teamAcceptInviteOrRequestAccess' | 'keybase.1.teams.teamDelete'
 type ListenerArgs<M extends ListenerMethod> = {
@@ -1299,8 +1299,10 @@ const createListener = <M extends ListenerMethod>(method: M): ListenerFn<M> =>
       method,
       params: p.params,
       incomingCallMap: p.incomingCallMap,
-      customResponseIncomingCallMap: p.customResponseIncomingCallMap,
-      waitingKey: p.waitingKey,
+      ...(p.customResponseIncomingCallMap === undefined
+        ? {}
+        : {customResponseIncomingCallMap: p.customResponseIncomingCallMap}),
+      ...(p.waitingKey === undefined ? {} : {waitingKey: p.waitingKey}),
     })) as ListenerFn<M>
 
 export enum AppLinkType {

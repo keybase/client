@@ -68,9 +68,9 @@ const AddPhone = ({wizard}: {wizard: AddMembersWizard}) => {
             <Kb.PhoneInput
               key={pn.key}
               autoFocus={idx === 0}
-              defaultCountry={defaultCountry}
+              {...(defaultCountry === undefined ? {} : {defaultCountry})}
               onChangeNumber={(phoneNumber, valid) => setPhoneNumber(idx, phoneNumber, valid)}
-              onClear={phoneNumbers.length === 1 ? undefined : () => removePhoneNumber(idx)}
+              {...(phoneNumbers.length === 1 ? {} : {onClear: () => removePhoneNumber(idx)})}
               onEnterKeyDown={maybeSubmit}
             />
           ))}

@@ -27,12 +27,12 @@ const Toast = (props: Props) => {
 
   return (
     <Popup
-      attachTo={props.attachTo}
       propagateOutsideClicks={true}
-      position={props.position}
       containerStyle={styles.float}
       offset={4}
       positionFallbacks={positionFallbacks}
+      {...(props.attachTo === undefined ? {} : {attachTo: props.attachTo})}
+      {...(props.position === undefined ? {} : {position: props.position})}
     >
       <div
         className={Styles.classNames(

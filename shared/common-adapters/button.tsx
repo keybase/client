@@ -11,18 +11,18 @@ import type {default as IconComp} from './icon'
 export type ButtonType = 'Default' | 'Success' | 'Danger' | 'Dim'
 
 export type ButtonProps = {
-  children?: React.ReactNode
-  label?: string
-  onClick?: (event: React.BaseSyntheticEvent) => void
-  type?: ButtonType
-  mode?: 'Primary' | 'Secondary'
-  small?: boolean
-  fullWidth?: boolean
-  disabled?: boolean
-  waiting?: boolean
-  tooltip?: string
-  style?: Styles.StylesCrossPlatform
-  labelStyle?: Styles.StylesCrossPlatform
+  children?: React.ReactNode | undefined
+  label?: string | undefined
+  onClick?: ((event: React.BaseSyntheticEvent) => void) | undefined
+  type?: ButtonType | undefined
+  mode?: 'Primary' | 'Secondary' | undefined
+  small?: boolean | undefined
+  fullWidth?: boolean | undefined
+  disabled?: boolean | undefined
+  waiting?: boolean | undefined
+  tooltip?: string | undefined
+  style?: Styles.StylesCrossPlatform | undefined
+  labelStyle?: Styles.StylesCrossPlatform | undefined
 }
 
 export const regularHeight = Styles.isMobile ? 40 : 32
@@ -132,7 +132,7 @@ const progressContainerStyle = {
 const progressNormal = {height: Styles.isMobile ? 32 : 24, width: Styles.isMobile ? 32 : 24}
 const progressSmall = {height: Styles.isMobile ? 28 : 20, width: Styles.isMobile ? 28 : 20}
 
-const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
+const Progress = ({small, white}: {small?: boolean | undefined; white: boolean}) => {
   const {default: Animation} = require('./animation') as {default: typeof AnimationType}
   const animStyle = small ? progressSmall : progressNormal
   if (Styles.isMobile) {
@@ -150,7 +150,7 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   )
 }
 
-type FullProps = ButtonProps & {ref?: React.Ref<MeasureRef | null>}
+type FullProps = ButtonProps & {ref?: React.Ref<MeasureRef | null> | undefined}
 
 const ButtonDesktop = (props: FullProps) => {
   const {children, label, onClick, ref: measureRef, type = 'Default', mode = 'Primary', small, fullWidth, disabled, waiting, tooltip, style, labelStyle: labelStyleOverride} = props
@@ -273,10 +273,10 @@ export default Button
 // IconButton — convenience wrapper that renders an Icon as a child
 type IconButtonProps = Omit<ButtonProps, 'label' | 'children'> & {
   icon: IconType
-  iconColor?: Styles.Color
+  iconColor?: Styles.Color | undefined
 }
 
-export const IconButton = (props: IconButtonProps & {ref?: React.Ref<MeasureRef | null>}) => {
+export const IconButton = (props: IconButtonProps & {ref?: React.Ref<MeasureRef | null> | undefined}) => {
   const {icon, iconColor, ref, ...rest} = props
   const Icon = (require('./icon') as {default: typeof IconComp}).default
   const isPrimary = (rest.mode ?? 'Primary') === 'Primary'

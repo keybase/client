@@ -133,7 +133,7 @@ const packagerOpts: Options = {
     ],
   },
   // Any paths placed here will be moved to the final bundle
-  extraResource: saltpackIcon ? [saltpackIcon] : undefined,
+  ...(saltpackIcon ? {extraResource: [saltpackIcon]} : {}),
   helperBundleId: 'keybase.ElectronHelper',
   icon: argv.icon,
   ignore: [/\.map/, /\/test($|\/)/, /\/tools($|\/)/, /\/release($|\/)/, /\/node_modules($|\/)/],
@@ -243,9 +243,9 @@ async function pack(plat: string, arch: string) {
 
   const opts: Options = {
     ...packagerOpts,
-    arch: arch as Options['arch'],
+    arch: arch as NonNullable<Options['arch']>,
     out: packageOutDir,
-    platform: plat as Options['platform'],
+    platform: plat as NonNullable<Options['platform']>,
     ...(plat === 'win32'
       ? {
           win32metadata: {
@@ -255,7 +255,7 @@ async function pack(plat: string, arch: string) {
             ProductName: appName,
           },
         }
-      : null),
+      : {}),
   }
   console.log('Building using options', opts)
 

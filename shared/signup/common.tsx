@@ -29,7 +29,7 @@ export const InfoIcon = (props: InfoIconProps) => {
           {onClick: onFeedback, title: 'Send feedback'},
           {onClick: onDocumentation, title: 'Documentation'},
         ]}
-        attachTo={attachTo}
+        {...(attachTo === undefined ? {} : {attachTo})}
         visible={true}
         onHidden={hidePopup}
         closeOnSelect={true}
@@ -43,7 +43,7 @@ export const InfoIcon = (props: InfoIconProps) => {
       <Kb.Box2 direction="vertical" ref={popupAnchor} style={Kb.Styles.collapseStyles([props.invisible && styles.opacityNone, props.style])}>
         <Kb.Icon
           type="iconfont-question-mark"
-          onClick={props.invisible ? undefined : showPopup}
+          {...(props.invisible ? {} : {onClick: showPopup})}
           style={Kb.Styles.platformStyles({isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable}})}
         />
       </Kb.Box2>
@@ -53,16 +53,16 @@ export const InfoIcon = (props: InfoIconProps) => {
 }
 
 type HeaderProps = {
-  onBack?: () => void
-  title?: string
+  onBack?: (() => void) | undefined
+  title?: string | undefined
   titleComponent?: React.ReactNode
   showInfoIcon: boolean
   showInfoIconRow: boolean
   style: Kb.Styles.StylesCrossPlatform
   negative: boolean
   rightActionComponent?: React.ReactNode
-  rightActionLabel?: string
-  onRightAction?: () => void
+  rightActionLabel?: string | undefined
+  onRightAction?: (() => void) | undefined
 }
 
 // Only used on desktop
@@ -118,12 +118,12 @@ const Header = (props: HeaderProps) => (
 )
 
 type ButtonMeta = {
-  disabled?: boolean
+  disabled?: boolean | undefined
   label: string
   onClick: () => void
-  type?: ButtonProps['type']
-  waiting?: boolean
-  waitingKey?: string // makes this a WaitingButton
+  type?: ButtonProps['type'] | undefined
+  waiting?: boolean | undefined
+  waitingKey?: string | undefined // makes this a WaitingButton
 }
 
 type SignupScreenProps = {
@@ -209,19 +209,23 @@ export const SignupScreen = (props: SignupScreenProps) => {
             fullWidth={Kb.Styles.isMobile && !Kb.Styles.isTablet}
             style={styles.buttonBar}
           >
-            {props.buttons.map(b =>
-              b.waitingKey !== undefined ? (
-                <Kb.WaitingButton
-                  key={b.label}
-                  style={styles.button}
-                  {...b}
-                  waitingKey={b.waitingKey}
-                  fullWidth={true}
-                />
+            {props.buttons.map(b => {
+              const {disabled, label, onClick, type, waiting, waitingKey} = b
+              const buttonProps = {
+                ...(disabled === undefined ? {} : {disabled}),
+                ...(type === undefined ? {} : {type}),
+                ...(waiting === undefined ? {} : {waiting}),
+                fullWidth: true,
+                label,
+                onClick,
+                style: styles.button,
+              }
+              return waitingKey !== undefined ? (
+                <Kb.WaitingButton key={label} {...buttonProps} waitingKey={waitingKey} />
               ) : (
-                <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
+                <Kb.Button key={label} {...buttonProps} />
               )
-            )}
+            })}
           </Kb.ButtonBar>
         )}
       </Kb.Box2>

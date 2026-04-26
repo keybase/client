@@ -6,17 +6,17 @@ import {Avatars, TeamAvatar} from './avatars'
 import type * as T from '@/constants/types'
 
 type Props = {
-  backgroundColor?: string
+  backgroundColor?: string | undefined
   isMuted: boolean
   isSelected: boolean
   onSelectConversation: () => void
   isLocked: boolean
-  numSearchHits?: number
-  maxSearchHits?: number
+  numSearchHits?: number | undefined
+  maxSearchHits?: number | undefined
   participants: Array<string>
   showBadge: boolean
   showBold: boolean
-  snippet?: string
+  snippet?: string | undefined
   snippetDecoration: T.RPCChat.SnippetDecoration
   teamname: string
   usernameColor: string
@@ -76,8 +76,8 @@ const SelectableSmallTeam = (props: Props) => {
         <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
           <FilteredTopLine
             isSelected={props.isSelected}
-            numSearchHits={props.numSearchHits}
-            maxSearchHits={props.maxSearchHits}
+            {...(props.numSearchHits === undefined ? {} : {numSearchHits: props.numSearchHits})}
+            {...(props.maxSearchHits === undefined ? {} : {maxSearchHits: props.maxSearchHits})}
             participants={props.teamname ? [props.teamname] : props.participants}
             showBold={props.showBold}
             usernameColor={props.usernameColor}

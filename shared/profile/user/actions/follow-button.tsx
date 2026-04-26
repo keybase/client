@@ -21,6 +21,7 @@ type Props = {
 const FollowButton = (props: Props) => {
   const [mouseOver, setMouseover] = React.useState(false)
   const {following, followsYou, onFollow, onUnfollow, style, waitingKey, ...otherProps} = props
+  const buttonStyle = props.small ? style : {...styleButton, ...style}
 
   if (following) {
     const button = (
@@ -28,9 +29,9 @@ const FollowButton = (props: Props) => {
         type="Success"
         mode="Secondary"
         label={mouseOver ? 'Unfollow' : 'Following'}
-        onClick={onUnfollow}
         waitingKey={waitingKey}
-        style={props.small ? style : {...styleButton, ...style}}
+        {...(onUnfollow === undefined ? {} : {onClick: onUnfollow})}
+        {...(buttonStyle === undefined ? {} : {style: buttonStyle})}
         {...otherProps}
       />
     )
@@ -50,9 +51,9 @@ const FollowButton = (props: Props) => {
       <Kb.WaitingButton
         type="Success"
         label={followsYou ? 'Follow back' : 'Follow'}
-        onClick={onFollow}
         waitingKey={waitingKey}
-        style={props.small ? style : {...styleButton, ...style}}
+        {...(onFollow === undefined ? {} : {onClick: onFollow})}
+        {...(buttonStyle === undefined ? {} : {style: buttonStyle})}
         {...otherProps}
       />
     )

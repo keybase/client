@@ -86,7 +86,10 @@ const GitPushCreate = (props: CreateProps) => {
   return (
     <Kb.Text type="BodySmall">
       {pusher === you ? 'You ' : ''}created a new team repository called{` `}
-      <Kb.Text type="BodySmallPrimaryLink" onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}>
+      <Kb.Text
+        type="BodySmallPrimaryLink"
+        {...(repoID ? {onClick: () => onViewGitRepo(repoID, team)} : {})}
+      >
         {repo}
       </Kb.Text>
       .
@@ -114,8 +117,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
         {`commit${!!commitRef.commits && commitRef.commits.length !== 1 ? 's' : ''}`} to
         <Kb.Text
           type="BodySmall"
-          style={repoID ? styles.repoText : undefined}
-          onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
+          {...(repoID ? {onClick: () => onViewGitRepo(repoID, team), style: styles.repoText} : {})}
         >{` ${repo}/${branchName}`}</Kb.Text>
         :
       </Kb.Text>

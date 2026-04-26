@@ -107,10 +107,13 @@ export function List<T>(p: ListProps<T>) {
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         selectedIndex={selectedIndex}
-        suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
+        {...(suggestBotCommandsUpdateStatus === undefined ? {} : {suggestBotCommandsUpdateStatus})}
       />
       {loading && (
-        <Kb.ProgressIndicator type={Kb.Styles.isMobile ? undefined : 'Large'} style={spinnerStyle} />
+        <Kb.ProgressIndicator
+          style={spinnerStyle}
+          {...(Kb.Styles.isMobile ? {} : {type: 'Large' as const})}
+        />
       )}
     </>
   )

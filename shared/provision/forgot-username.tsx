@@ -101,7 +101,7 @@ const ForgotUsername = () => {
         {!emailSelected && (
           <Kb.PhoneInput
             autoFocus={true}
-            defaultCountry={defaultCountry}
+            {...(defaultCountry === undefined ? {} : {defaultCountry})}
             onChangeNumber={(phoneNumber, valid) => {
               if (!valid) {
                 setPhoneNumber(undefined)

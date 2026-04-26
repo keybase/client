@@ -80,7 +80,10 @@ export const showTeamByName = async (teamname: string, options?: ShowTeamByNameO
     }
   }
 
-  navigateAppend({name: 'team', params: {initialTab, teamID}})
+  navigateAppend({
+    name: 'team',
+    params: {teamID, ...(initialTab === undefined ? {} : {initialTab})},
+  })
   if (addMembers) {
     navigateAppend({
       name: 'teamsTeamBuilder',

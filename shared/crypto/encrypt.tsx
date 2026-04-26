@@ -60,8 +60,8 @@ export type CryptoTeamBuilderResult = Array<{
 }>
 
 export type EncryptRouteParams = CryptoInputRouteParams & {
-  teamBuilderNonce?: string
-  teamBuilderUsers?: CryptoTeamBuilderResult
+  teamBuilderNonce?: string | undefined
+  teamBuilderUsers?: CryptoTeamBuilderResult | undefined
 }
 
 export type EncryptOutputRouteParams = CommonOutputRouteParams & {
@@ -386,8 +386,8 @@ const EncryptOutputBanner = ({
 }: {
   hasRecipients: boolean
   includeSelf: boolean
-  outputStatus?: EncryptOutputRouteParams['outputStatus']
-  outputType?: EncryptOutputRouteParams['outputType']
+  outputStatus?: EncryptOutputRouteParams['outputStatus'] | undefined
+  outputType?: EncryptOutputRouteParams['outputType'] | undefined
   recipients: ReadonlyArray<string>
 }) => {
   const youAnd = (who: string) => (includeSelf ? `you and ${who}` : who)

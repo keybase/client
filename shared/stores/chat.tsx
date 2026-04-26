@@ -34,10 +34,10 @@ type Store = T.Immutable<{
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
   inboxRetriedOnCurrentEmpty: boolean
-  staticConfig?: T.Chat.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
+  staticConfig?: T.Chat.StaticConfig | undefined // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   userReacjis: T.Chat.UserReacjis
   inboxHasLoaded: boolean // if we've ever loaded,
-  inboxLayout?: T.RPCChat.UIInboxLayout // layout of the inbox
+  inboxLayout?: T.RPCChat.UIInboxLayout | undefined // layout of the inbox
   maybeMentionMap: Map<string, T.RPCChat.UIMaybeMentionInfo>
   blockButtonsMap: Map<T.RPCGen.TeamID, T.Chat.BlockButtonsInfo> // Should we show block buttons for this team ID?
 }>

@@ -11,37 +11,37 @@ import {navToProfile} from '@/constants/router'
 
 export type User = {
   username: string
-  readOnly?: boolean
-  broken?: boolean
-  you?: boolean
-  following?: boolean
+  readOnly?: boolean | undefined
+  broken?: boolean | undefined
+  you?: boolean | undefined
+  following?: boolean | undefined
 }
 
 export type Props = {
-  className?: string
-  backgroundMode?: Background
-  colorBroken?: boolean
-  colorYou?: boolean | AllowedColors
-  commaColor?: AllowedColors
-  containerStyle?: Styles.StylesCrossPlatform
-  inline?: boolean
-  inlineGrammar?: boolean
-  joinerStyle?: StylesTextCrossPlatform
-  lineClamp?: LineClampType
-  notFollowingColorOverride?: AllowedColors
-  onUsernameClicked?: ((username: string) => void) | 'profile'
-  prefix?: string
-  selectable?: boolean
-  showAnd?: boolean
-  skipSelf?: boolean
-  style?: StylesTextCrossPlatform
-  suffix?: string
-  suffixType?: TextType
-  title?: string
-  underline?: boolean
+  className?: string | undefined
+  backgroundMode?: Background | undefined
+  colorBroken?: boolean | undefined
+  colorYou?: boolean | AllowedColors | undefined
+  commaColor?: AllowedColors | undefined
+  containerStyle?: Styles.StylesCrossPlatform | undefined
+  inline?: boolean | undefined
+  inlineGrammar?: boolean | undefined
+  joinerStyle?: StylesTextCrossPlatform | undefined
+  lineClamp?: LineClampType | undefined
+  notFollowingColorOverride?: AllowedColors | undefined
+  onUsernameClicked?: ((username: string) => void) | 'profile' | undefined
+  prefix?: string | undefined
+  selectable?: boolean | undefined
+  showAnd?: boolean | undefined
+  skipSelf?: boolean | undefined
+  style?: StylesTextCrossPlatform | undefined
+  suffix?: string | undefined
+  suffixType?: TextType | undefined
+  title?: string | undefined
+  underline?: boolean | undefined
   usernames: ReadonlyArray<string> | string
-  withProfileCardPopup?: boolean
-  virtualText?: boolean // desktop only see text.desktop
+  withProfileCardPopup?: boolean | undefined
+  virtualText?: boolean | undefined // desktop only see text.desktop
 } & ({colorFollowing?: false; type: TextType} | {colorFollowing: boolean; type: TextTypeBold})
 
 // Mobile handles spaces correctly so don't insert anything
@@ -52,31 +52,31 @@ const space = Styles.isMobile ? ` ` : <>&nbsp;</>
 type WithProfileCardPopupProps = {
   username: string
   children: (onLongPress?: () => void) => React.ReactElement<typeof Text>
-  ellipsisStyle?: Styles.StylesCrossPlatform
+  ellipsisStyle?: Styles.StylesCrossPlatform | undefined
 }
 let WithProfileCardPopup: React.ComponentType<WithProfileCardPopupProps> | null
 export const _setWithProfileCardPopup = (Comp: React.ComponentType<WithProfileCardPopupProps>) =>
   (WithProfileCardPopup = Comp)
 
 type UsernameProps = {
-  backgroundMode?: Background
+  backgroundMode?: Background | undefined
   colorBroken: boolean
   colorFollowing: boolean
-  colorYou?: boolean | AllowedColors
-  inline?: boolean
-  joinerStyle?: StylesTextCrossPlatform
-  lineClamp?: LineClampType
-  notFollowingColorOverride?: AllowedColors
-  onUsernameClicked?: ((username: string) => void) | 'profile'
-  selectable?: boolean
-  underline?: boolean
+  colorYou?: boolean | AllowedColors | undefined
+  inline?: boolean | undefined
+  joinerStyle?: StylesTextCrossPlatform | undefined
+  lineClamp?: LineClampType | undefined
+  notFollowingColorOverride?: AllowedColors | undefined
+  onUsernameClicked?: ((username: string) => void) | 'profile' | undefined
+  selectable?: boolean | undefined
+  underline?: boolean | undefined
   showAnd: boolean
   showComma: boolean
   showSpace: boolean
-  style?: StylesTextCrossPlatform
+  style?: StylesTextCrossPlatform | undefined
   type: TextType
   username: string
-  virtualText?: boolean // desktop only see text.desktop
+  virtualText?: boolean | undefined // desktop only see text.desktop
   you: string
   withProfileCardPopup: boolean
 }
@@ -172,21 +172,21 @@ function Username(p: UsernameProps) {
 
 type UsernamesTextProps = {
   users: Array<string>
-  backgroundMode?: Background
+  backgroundMode?: Background | undefined
   colorBroken: boolean
   colorFollowing: boolean
-  colorYou?: boolean | AllowedColors
-  commaColor?: AllowedColors
-  inlineGrammar?: boolean
-  joinerStyle?: StylesTextCrossPlatform
-  notFollowingColorOverride?: AllowedColors
+  colorYou?: boolean | AllowedColors | undefined
+  commaColor?: AllowedColors | undefined
+  inlineGrammar?: boolean | undefined
+  joinerStyle?: StylesTextCrossPlatform | undefined
+  notFollowingColorOverride?: AllowedColors | undefined
   onUsernameClicked?: ((username: string) => void) | 'profile' | undefined
-  selectable?: boolean
-  inline?: boolean
+  selectable?: boolean | undefined
+  inline?: boolean | undefined
   type: TextType
-  showAnd?: boolean
+  showAnd?: boolean | undefined
   underline: boolean
-  virtualText?: boolean
+  virtualText?: boolean | undefined
   withProfileCardPopup: boolean
   you: string
 }

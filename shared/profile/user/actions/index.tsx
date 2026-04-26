@@ -167,7 +167,7 @@ type DropdownProps = {
   onAddToTeam: () => void
   isBot: boolean
   blockedOrHidFromFollowers: boolean
-  onUnfollow?: () => void
+  onUnfollow?: (() => void) | undefined
 }
 
 const DropdownButton = (p: DropdownProps) => {
@@ -197,11 +197,11 @@ const DropdownButton = (p: DropdownProps) => {
     return (
       <Kb.FloatingMenu
         closeOnSelect={true}
-        attachTo={attachTo}
         items={items}
         onHidden={hidePopup}
         position="bottom right"
         visible={true}
+        {...(attachTo === undefined ? {} : {attachTo})}
       />
     )
   }
@@ -210,7 +210,7 @@ const DropdownButton = (p: DropdownProps) => {
   return (
     <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-        <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
+        <Kb.Button mode="Secondary" style={styles.dropdownButton}>
           <Kb.Icon color={Kb.Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>

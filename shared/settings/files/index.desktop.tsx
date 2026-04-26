@@ -95,7 +95,7 @@ const FinderIntegration = () => {
               <Kb.Text type="Body">Keybase is enabled in {Platform.fileUIName}.</Kb.Text>
               <Kb.Text type="Body">
                 Your files are accessible at{' '}
-                <Kb.Text type="BodyPrimaryLink" underline={false} onClick={openMount}>
+                <Kb.Text type="BodyPrimaryLink" underline={false} {...(openMount === undefined ? {} : {onClick: openMount})}>
                   {displayingMountDir}
                 </Kb.Text>
                 .

@@ -3,17 +3,17 @@ import type * as Styles from '@/styles'
 import type {TextType} from './text.shared'
 
 export type Props = {
-  key?: string
-  label?: string | React.ReactNode
-  checkboxColor?: Styles.Color
-  checkboxStyle?: Styles.StylesCrossPlatform
-  labelComponent?: React.ReactNode
-  labelSubtitle?: string
-  labelType?: TextType
-  onCheck?: (newCheckedValue: boolean) => void
+  key?: string | undefined
+  label?: string | React.ReactNode | undefined
+  checkboxColor?: Styles.Color | undefined
+  checkboxStyle?: Styles.StylesCrossPlatform | undefined
+  labelComponent?: React.ReactNode | undefined
+  labelSubtitle?: string | undefined
+  labelType?: TextType | undefined
+  onCheck?: ((newCheckedValue: boolean) => void) | undefined
   checked: boolean
-  style?: Styles.StylesCrossPlatform
-  disabled?: boolean
+  style?: Styles.StylesCrossPlatform | undefined
+  disabled?: boolean | undefined
 }
 
 declare const Checkbox: (p: Props) => React.ReactNode

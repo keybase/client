@@ -130,22 +130,22 @@ const useBox2Shared = (p: Box2Props) => {
   return {
     children,
     collapsable,
-    onLayout,
-    pointerEvents,
     style,
+    ...(onLayout === undefined ? {} : {onLayout}),
+    ...(pointerEvents === undefined ? {} : {pointerEvents}),
   }
 }
 
-export const Box2 = (p: Box2Props & {ref?: React.Ref<View>}) => {
+export const Box2 = (p: Box2Props & {ref?: React.Ref<View> | undefined}) => {
   const {ref, ...rest} = p
   const props = useBox2Shared(rest)
-  return <View {...props} ref={ref} />
+  return <View {...props} {...(ref === undefined ? {} : {ref})} />
 }
 
-export const Box2Animated = (p: Box2Props & {ref?: React.Ref<View>}) => {
+export const Box2Animated = (p: Box2Props & {ref?: React.Ref<View> | undefined}) => {
   const {ref, ...rest} = p
   const props = useBox2Shared(rest)
-  return <Reanimated.View {...props} ref={ref} />
+  return <Reanimated.View {...props} {...(ref === undefined ? {} : {ref})} />
 }
 
 
@@ -200,4 +200,3 @@ const styles = {
     ...common,
   },
 } as const
-

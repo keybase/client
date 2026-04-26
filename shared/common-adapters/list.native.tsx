@@ -13,12 +13,12 @@ function List<T>({ref, ...p}: Props<T>) {
       <LegendList
         ref={ref as any}
         {...listProps}
-        testID={p.testID}
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps={p.keyboardShouldPersistTaps ?? 'handled'}
         overScrollMode="never"
-        bounces={p.bounces}
-        contentContainerStyle={p.style}
+        {...(p.testID === undefined ? {} : {testID: p.testID})}
+        {...(p.bounces === undefined ? {} : {bounces: p.bounces})}
+        {...(p.style === undefined ? {} : {contentContainerStyle: p.style})}
       />
     </View>
   )

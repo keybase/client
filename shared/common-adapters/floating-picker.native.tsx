@@ -18,11 +18,11 @@ const Kb = {
 // semi-controller to work around issues where a fully controlled one will cause the wheel on ios
 // to jump back and then slowly animate to the value you just went to
 function WrapPicker<T>(p: {
-  initialValue?: T
+  initialValue?: T | undefined
   onValueChange: (v: T | undefined) => void
-  prompt?: string
-  style?: Styles.StylesCrossPlatform
-  itemStyle?: Styles.StylesCrossPlatform
+  prompt?: string | undefined
+  style?: Styles.StylesCrossPlatform | undefined
+  itemStyle?: Styles.StylesCrossPlatform | undefined
   options: Array<{label: string; value: T}>
 }) {
   const {initialValue, onValueChange, options, prompt, style, itemStyle} = p
@@ -37,11 +37,11 @@ function WrapPicker<T>(p: {
 
   return (
     <Picker
-      selectedValue={localValue}
       onValueChange={handleValueChange}
-      prompt={prompt}
-      style={style}
-      itemStyle={itemStyle}
+      {...(style === undefined ? {} : {style})}
+      {...(itemStyle === undefined ? {} : {itemStyle})}
+      {...(localValue === undefined ? {} : {selectedValue: localValue})}
+      {...(prompt === undefined ? {} : {prompt})}
     >
       {options.map((option, index) => (
         <Picker.Item key={index} label={option.label} value={option.value} />
@@ -83,12 +83,12 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
         </Kb.Box2>
         {props.prompt}
         <WrapPicker<T>
-          initialValue={props.selectedValue}
           onValueChange={props.onSelect}
-          prompt={props.promptString}
           style={styles.picker}
           itemStyle={styles.item}
           options={props.items}
+          {...(props.selectedValue === undefined ? {} : {initialValue: props.selectedValue})}
+          {...(props.promptString === undefined ? {} : {prompt: props.promptString})}
         />
         <Kb.SafeAreaView style={styles.safeArea} />
       </Kb.Box2>

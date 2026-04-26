@@ -10,9 +10,9 @@ import InfoPanel, {type Panel} from './conversation/info-panel'
 import type {ThreadSearchRouteProps} from './conversation/thread-search-route'
 
 export type InboxAndConversationProps = ThreadSearchRouteProps & {
-  conversationIDKey?: T.Chat.ConversationIDKey
-  infoPanel?: {tab?: Panel}
-  refreshInbox?: T.Chat.ChatRootInboxRefresh
+  conversationIDKey?: T.Chat.ConversationIDKey | undefined
+  infoPanel?: {tab?: Panel | undefined} | undefined
+  refreshInbox?: T.Chat.ChatRootInboxRefresh | undefined
 }
 
 export type ChatRootRouteParams = InboxAndConversationProps
@@ -60,7 +60,10 @@ export function InboxAndConversationShell(props: Props) {
           </Kb.Box2>
           {infoPanel ? (
             <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
-              <InfoPanel key={conversationIDKey} tab={infoPanel.tab} />
+              <InfoPanel
+                key={conversationIDKey}
+                {...(infoPanel.tab === undefined ? {} : {tab: infoPanel.tab})}
+              />
             </Kb.Box2>
           ) : null}
         </Kb.Box2>

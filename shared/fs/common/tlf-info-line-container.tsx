@@ -6,7 +6,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 
 export type OwnProps = {
   path: T.FS.Path
-  mixedMode?: boolean
+  mixedMode?: boolean | undefined
   mode: 'row' | 'default'
 }
 

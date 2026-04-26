@@ -25,7 +25,7 @@ type TeamsRoleMap = {
 }
 
 const emptyTeams: ReadonlyArray<T.Teams.TeamMeta> = []
-const emptyTeamRoleMap = Object.freeze<T.RPCGen.TeamRoleMapAndVersion>({teams: undefined, version: 0})
+const emptyTeamRoleMap = Object.freeze<T.RPCGen.TeamRoleMapAndVersion>({teams: null, version: 0})
 const TeamsListContext = React.createContext<TeamsList | null>(null)
 const TeamsRoleMapContext = React.createContext<TeamsRoleMap | null>(null)
 const teamsListReloadStaleMs = 5 * 60_000

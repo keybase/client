@@ -9,7 +9,7 @@ const TextView = (props: Props) => (
       pinnedURLMode={true}
       style={styles.webview}
       injections={injections}
-      onError={props.onUrlError}
+      {...(props.onUrlError === undefined ? {} : {onError: props.onUrlError})}
       showLoadingStateUntilLoaded={true}
     />
   </Kb.Box2>

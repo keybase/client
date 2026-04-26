@@ -30,15 +30,15 @@ type ChatTeamNamesState = {
 }
 
 type ChatTeamNamesStateInternal = ChatTeamNamesState & {
-  loadedTeamIDsKey?: string
+  loadedTeamIDsKey: string | undefined
 }
 
 type ChatTeamStateInternal = ChatTeamState & {
-  loadedTeamID?: T.Teams.TeamID
+  loadedTeamID: T.Teams.TeamID | undefined
 }
 
 type ChatTeamMembersStateInternal = ChatTeamMembersState & {
-  loadedTeamID?: T.Teams.TeamID
+  loadedTeamID: T.Teams.TeamID | undefined
 }
 
 type ChatManageChannelsBadgeState = {

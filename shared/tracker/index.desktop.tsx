@@ -4,21 +4,21 @@ import {openURL as openUrl} from '@/util/misc'
 import {useColorScheme} from 'react-native'
 
 export type Props = {
-  assertions?: ReadonlyArray<T.Tracker.Assertion>
-  bio?: string
+  assertions?: ReadonlyArray<T.Tracker.Assertion> | undefined
+  bio?: string | undefined
   blocked: boolean
   darkMode: boolean
   followThem: boolean
-  followersCount?: number
-  followingCount?: number
+  followersCount?: number | undefined
+  followingCount?: number | undefined
   followsYou: boolean
-  fullname?: string
+  fullname?: string | undefined
   guiID: string
   hidFromFollowers: boolean
   httpSrvAddress: string
   httpSrvToken: string
   isYou: boolean
-  location?: string
+  location?: string | undefined
   onAccept: () => void
   onChat: () => void
   onClose: () => void
@@ -27,7 +27,7 @@ export type Props = {
   onReload: () => void
   reason: string
   state: T.Tracker.DetailsState
-  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
+  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase> | undefined
   trackerUsername: string
 }
 
@@ -83,15 +83,15 @@ const getButtons = (props: Props) => {
 
 // Inline bio rendering (store-free)
 const Bio = (props: {
-  bio?: string
+  bio?: string | undefined
   blocked: boolean
   followThem: boolean
-  followersCount?: number
-  followingCount?: number
+  followersCount?: number | undefined
+  followingCount?: number | undefined
   followsYou: boolean
-  fullname?: string
+  fullname?: string | undefined
   hidFromFollowers: boolean
-  location?: string
+  location?: string | undefined
   trackerUsername: string
 }) => {
   const {bio, blocked, followThem, followersCount, followingCount, followsYou, fullname, hidFromFollowers, location, trackerUsername} = props
