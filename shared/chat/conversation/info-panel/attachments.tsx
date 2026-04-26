@@ -429,6 +429,12 @@ const getFromMsgID = (info: T.Chat.AttachmentViewInfo): T.Chat.MessageID | undef
 }
 
 type AttachmentViewMap = Map<T.RPCChat.GalleryItemTyp, T.Chat.AttachmentViewInfo>
+type AttachmentViewState = {
+  attachmentViewMap: AttachmentViewMap
+  conversationIDKey: T.Chat.ConversationIDKey
+}
+
+const emptyAttachmentViewMap: AttachmentViewMap = new Map()
 
 const makeAttachmentViewInfo = (): T.Chat.AttachmentViewInfo => ({
   last: false,
@@ -466,24 +472,38 @@ const getLiveAttachmentInfo = (
 }
 
 const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const [attachmentViewMap, setAttachmentViewMap] = React.useState<AttachmentViewMap>(() => new Map())
+  const [attachmentViewState, setAttachmentViewState] = React.useState<AttachmentViewState>(() => ({
+    attachmentViewMap: new Map(),
+    conversationIDKey,
+  }))
   const loadGenerationRef = React.useRef(0)
 
   React.useEffect(() => {
     loadGenerationRef.current += 1
-    setAttachmentViewMap(new Map())
     return () => {
       loadGenerationRef.current += 1
     }
   }, [conversationIDKey])
 
+  const updateCurrentAttachmentViewMap = (
+    viewType: T.RPCChat.GalleryItemTyp,
+    updateInfo: (info: T.Chat.AttachmentViewInfo) => void
+  ) => {
+    setAttachmentViewState(({attachmentViewMap, conversationIDKey: stateConversationIDKey}) => ({
+      attachmentViewMap: updateAttachmentViewMap(
+        stateConversationIDKey === conversationIDKey ? attachmentViewMap : new Map(),
+        viewType,
+        updateInfo
+      ),
+      conversationIDKey,
+    }))
+  }
+
   const loadAttachmentView = React.useEffectEvent(
     (viewType: T.RPCChat.GalleryItemTyp, fromMsgID?: T.Chat.MessageID) => {
-      setAttachmentViewMap(attachmentViewMap =>
-        updateAttachmentViewMap(attachmentViewMap, viewType, info => {
-          info.status = 'loading'
-        })
-      )
+      updateCurrentAttachmentViewMap(viewType, info => {
+        info.status = 'loading'
+      })
 
       const generation = loadGenerationRef.current
       const isCurrentLoad = () => loadGenerationRef.current === generation
@@ -511,23 +531,21 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
               dedupedMessages.push(message)
             }
           }
-          setAttachmentViewMap(attachmentViewMap =>
-            updateAttachmentViewMap(attachmentViewMap, viewType, info => {
-              const existingMessageIDs = new Set(info.messages.map(item => item.id))
-              const nextMessages = [...info.messages]
-              let changed = false
-              for (const message of dedupedMessages) {
-                if (!existingMessageIDs.has(message.id)) {
-                  existingMessageIDs.add(message.id)
-                  nextMessages.push(message)
-                  changed = true
-                }
+          updateCurrentAttachmentViewMap(viewType, info => {
+            const existingMessageIDs = new Set(info.messages.map(item => item.id))
+            const nextMessages = [...info.messages]
+            let changed = false
+            for (const message of dedupedMessages) {
+              if (!existingMessageIDs.has(message.id)) {
+                existingMessageIDs.add(message.id)
+                nextMessages.push(message)
+                changed = true
               }
-              if (changed) {
-                info.messages = nextMessages.sort((l, r) => r.id - l.id)
-              }
-            })
-          )
+            }
+            if (changed) {
+              info.messages = nextMessages.sort((l, r) => r.id - l.id)
+            }
+          })
           ConvoState.getConvoState(conversationIDKey).dispatch.galleryMessagesLoaded(dedupedMessages)
         }
         const scheduleFlushPendingMessages = () => {
@@ -574,22 +592,18 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
           if (!isCurrentLoad()) {
             return
           }
-          setAttachmentViewMap(attachmentViewMap =>
-            updateAttachmentViewMap(attachmentViewMap, viewType, info => {
-              info.last = !!res.last
-              info.status = 'success'
-            })
-          )
+          updateCurrentAttachmentViewMap(viewType, info => {
+            info.last = !!res.last
+            info.status = 'success'
+          })
         } catch (error) {
           flushPendingMessages()
           if (error instanceof RPCError && isCurrentLoad()) {
             logger.error('failed to load attachment view: ' + error.message)
-            setAttachmentViewMap(attachmentViewMap =>
-              updateAttachmentViewMap(attachmentViewMap, viewType, info => {
-                info.last = false
-                info.status = 'error'
-              })
-            )
+            updateCurrentAttachmentViewMap(viewType, info => {
+              info.last = false
+              info.status = 'error'
+            })
           }
         } finally {
           if (flushTimeout) {
@@ -600,6 +614,11 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
       C.ignorePromise(f())
     }
   )
+
+  const attachmentViewMap =
+    attachmentViewState.conversationIDKey === conversationIDKey
+      ? attachmentViewState.attachmentViewMap
+      : emptyAttachmentViewMap
 
   return {attachmentViewMap, loadAttachmentView}
 }

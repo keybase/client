@@ -125,7 +125,6 @@ const useBotTeamRole = (
   React.useEffect(() => {
     requestIDRef.current += 1
     if (!conversationIDKey) {
-      setLoaded(undefined)
       return undefined
     }
     const requestID = requestIDRef.current
@@ -157,7 +156,7 @@ const useBotTeamRole = (
     }
   }, [botUsername, conversationIDKey, loadBotTeamRole])
 
-  return loaded?.conversationIDKey === conversationIDKey && loaded.botUsername === botUsername
+  return loaded && loaded.conversationIDKey === conversationIDKey && loaded.botUsername === botUsername
     ? loaded.teamRole
     : undefined
 }
@@ -181,7 +180,6 @@ const useBotSettings = (
   React.useEffect(() => {
     requestIDRef.current += 1
     if (!conversationIDKey || !enabled) {
-      setLoaded(undefined)
       return undefined
     }
     const requestID = requestIDRef.current
@@ -208,7 +206,7 @@ const useBotSettings = (
     }
   }, [botUsername, conversationIDKey, enabled, loadBotSettings])
 
-  return enabled && loaded?.conversationIDKey === conversationIDKey && loaded.botUsername === botUsername
+  return enabled && loaded && loaded.conversationIDKey === conversationIDKey && loaded.botUsername === botUsername
     ? loaded.settings
     : undefined
 }

@@ -223,11 +223,11 @@ export interface ConvoState extends ConvoStore {
       allowMentions: boolean,
       convs?: ReadonlyArray<string>
     ) => void
+    galleryMessagesLoaded: (messages: ReadonlyArray<T.Chat.Message>) => void
     giphySend: (result: T.RPCChat.GiphySearchResult) => void
     hideConversation: (hide: boolean) => void
     joinConversation: () => void
     jumpToRecent: () => void
-    galleryMessagesLoaded: (messages: ReadonlyArray<T.Chat.Message>) => void
     loadMessagesCentered: (
       messageID: T.Chat.MessageID,
       highlightMode: T.Chat.CenterOrdinalHighlightMode
@@ -2308,6 +2308,9 @@ const createSlice =
         }
         ignorePromise(f())
       },
+      galleryMessagesLoaded: messages => {
+        messagesAdd([...messages], {markAsRead: false, why: 'gallery inject'})
+      },
       giphySend: result => {
         getUI().dispatch.setGiphyWindow(false)
         const f = async () => {
@@ -2357,9 +2360,6 @@ const createSlice =
           s.validatedOrdinalRange = undefined
         })
         get().dispatch.loadMoreMessages({reason: 'jump to recent'})
-      },
-      galleryMessagesLoaded: messages => {
-        messagesAdd([...messages], {markAsRead: false, why: 'gallery inject'})
       },
       loadMessagesCentered: (messageID, highlightMode) => {
         get().dispatch.messagesClear()
