@@ -65,6 +65,27 @@ let _emitStartupOnLoadDaemonConnectedOnce: boolean = __DEV__ ? (globalThis.__hmr
 const _sharedUnsubs: Array<() => void> = __DEV__ ? (globalThis.__hmr_sharedUnsubs ??= []) : []
 const getAccountsWaitKey = 'config.getAccounts'
 
+type SubscribeStore<State> = {
+  subscribe: (listener: (state: State, previousState: State) => void) => () => void
+}
+
+const subscribeValue = <State, Value>(
+  store: SubscribeStore<State>,
+  select: (state: State) => Value,
+  onChange: (value: Value, previous: Value) => void
+) =>
+  store.subscribe((state, previousState) => {
+    const value = select(state)
+    const previous = select(previousState)
+    if (value !== previous) {
+      onChange(value, previous)
+    }
+  })
+
+type ConfigState = ReturnType<typeof useConfigState.getState>
+type DaemonState = ReturnType<typeof useDaemonState.getState>
+type RouterState = ReturnType<typeof useRouterState.getState>
+
 const loadConfiguredAccountsForBootstrap = () => {
   const configState = useConfigState.getState()
   if (configState.configuredAccounts.length) {
@@ -95,6 +116,200 @@ const loadConfiguredAccountsForBootstrap = () => {
   }
 
   ignorePromise(f())
+}
+
+const requestFollowerInfoForStartup = () => {
+  const {uid} = useCurrentUserState.getState()
+  logger.info(`getFollowerInfo: init; uid=${uid}`)
+  if (uid) {
+    // request follower info in the background
+    T.RPCGen.configRequestFollowingAndUnverifiedFollowersRpcPromise()
+      .then(() => {})
+      .catch(() => {})
+  }
+}
+
+const updateServerConfigForStartup = async () => {
+  if (useConfigState.getState().loggedIn) {
+    try {
+      await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
+        serverConfigPath: serverConfigFileName,
+      })
+    } catch {}
+  }
+}
+
+const loadStartupSettings = () => {
+  useSettingsContactsState.getState().dispatch.loadContactImportEnabled()
+}
+
+const refreshStartupChat = () => {
+  // On phone, let the focused inbox screen trigger the first refresh so hidden chatRoot
+  // mounts behind a pushed conversation do not pay inbox startup cost.
+  if (!isPhone && useCurrentUserState.getState().username) {
+    const {inboxRefresh} = useChatState.getState().dispatch
+    ignorePromise(inboxRefresh('bootstrap'))
+  }
+}
+
+const onLoadOnStartPhaseChanged = (loadOnStartPhase: ConfigState['loadOnStartPhase']) => {
+  if (loadOnStartPhase !== 'startupOrReloginButNotInARush') {
+    return
+  }
+
+  requestFollowerInfoForStartup()
+  ignorePromise(updateServerConfigForStartup())
+  loadStartupSettings()
+  refreshStartupChat()
+}
+
+const onGregorReachableChanged = (gregorReachable: ConfigState['gregorReachable']) => {
+  // Re-get info about our account if you log in/we're done handshaking/became reachable
+  if (gregorReachable === T.RPCGen.Reachable.yes && useDaemonState.getState().handshakeWaiters.size === 0) {
+    ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
+  }
+}
+
+const onInstallerRanCountChanged = () => {
+  useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
+}
+
+const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
+  if (loggedIn) {
+    ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
+    useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
+  } else {
+    clearSignupEmail()
+    clearSignupDeviceNameDraft()
+  }
+  loadConfiguredAccountsForBootstrap()
+  if (!useConfigState.getState().loggedInCausedbyStartup) {
+    ignorePromise(useConfigState.getState().dispatch.refreshAccounts())
+  }
+}
+
+const onRevokedTriggerChanged = () => {
+  loadConfiguredAccountsForBootstrap()
+}
+
+const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configuredAccounts']) => {
+  const updates = configuredAccounts.map(account => ({
+    info: {fullname: account.fullname ?? ''},
+    name: account.username,
+  }))
+  if (updates.length > 0) {
+    useUsersState.getState().dispatch.updates(updates)
+  }
+}
+
+const onUserActiveChanged = () => {
+  const cs = getConvoState(getSelectedConversation())
+  cs.dispatch.markThreadAsRead()
+}
+
+const onHandshakeVersionChanged = () => {
+  useDarkModeState.getState().dispatch.loadDarkPrefs()
+  useChatState.getState().dispatch.loadStaticConfig()
+  loadConfiguredAccountsForBootstrap()
+}
+
+const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => {
+  if (!bootstrap) {
+    return
+  }
+
+  const {deviceID, deviceName, loggedIn, uid, username, userReacjis} = bootstrap
+  useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
+
+  const configDispatch = useConfigState.getState().dispatch
+  if (username) {
+    configDispatch.setDefaultUsername(username)
+  }
+  if (loggedIn) {
+    configDispatch.setUserSwitching(false)
+  }
+  configDispatch.setLoggedIn(loggedIn, false)
+
+  if (bootstrap.httpSrvInfo) {
+    configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
+  }
+
+  useChatState.getState().dispatch.updateUserReacjis(userReacjis)
+}
+
+const onHandshakeStateChanged = (handshakeState: DaemonState['handshakeState']) => {
+  if (handshakeState === 'done' && !_emitStartupOnLoadDaemonConnectedOnce) {
+    _emitStartupOnLoadDaemonConnectedOnce = true
+    if (__DEV__) globalThis.__hmr_startupOnce = true
+    useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
+  }
+}
+
+const onStartProvisionTriggerChanged = () => {
+  useConfigState.getState().dispatch.setLoginError()
+  useConfigState.getState().dispatch.resetRevokedSelf()
+  const f = async () => {
+    // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
+    if (useConfigState.getState().loggedIn) {
+      await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, 'config:loginAsOther')
+    }
+  }
+  ignorePromise(f())
+}
+
+const teamBuilderNamespaces = ['chat', 'crypto', 'teams', 'people'] as const
+const namespaceToTeamBuilderRoute = {
+  chat: 'chatNewChat',
+  crypto: 'cryptoTeamBuilder',
+  people: 'peopleTeamBuilder',
+  teams: 'teamsTeamBuilder',
+} as const
+const fsRouteNames: ReadonlyArray<string> = ['fsRoot', 'barePreview']
+
+const onNavStateChanged = (nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
+  const next = nextNavState as Util.NavState
+  const prev = previousNavState as Util.NavState
+  if (prev === next) return
+
+  for (const namespace of teamBuilderNamespaces) {
+    const wasTeamBuilding = namespaceToTeamBuilderRoute[namespace] === Util.getVisibleScreen(prev)?.name
+    if (wasTeamBuilding) {
+      // team building or modal on top of that still
+      const isTeamBuilding = namespaceToTeamBuilderRoute[namespace] === Util.getVisibleScreen(next)?.name
+      if (!isTeamBuilding) {
+        getTBStore(namespace).dispatch.cancelTeamBuilding()
+      }
+    }
+  }
+
+  // Clear critical update when we nav away from tab
+  if (
+    prev &&
+    Util.getTab(prev) === Tabs.fsTab &&
+    next &&
+    Util.getTab(next) !== Tabs.fsTab &&
+    useShellState.getState().fsCriticalUpdate
+  ) {
+    const {dispatch} = useShellState.getState()
+    dispatch.setFsCriticalUpdate(false)
+  }
+
+  const wasScreen = fsRouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
+  const isScreen = fsRouteNames.includes(Util.getVisibleScreen(next)?.name ?? '')
+  if (wasScreen !== isScreen) {
+    const {dispatch} = useFSState.getState()
+    if (wasScreen) {
+      dispatch.userOut()
+    } else {
+      dispatch.userIn()
+    }
+  }
+
+  if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
+    clearNavBadges()
+  }
+
+  onConvoRouteChanged(prev, next)
 }
 
 export const onEngineConnected = () => {
@@ -157,216 +372,30 @@ export const initSharedSubscriptions = () => {
   for (const unsub of _sharedUnsubs) unsub()
   _sharedUnsubs.length = 0
   _sharedUnsubs.push(
-    useConfigState.subscribe((s, old) => {
-      if (s.loadOnStartPhase !== old.loadOnStartPhase) {
-        if (s.loadOnStartPhase === 'startupOrReloginButNotInARush') {
-          const getFollowerInfo = () => {
-            const {uid} = useCurrentUserState.getState()
-            logger.info(`getFollowerInfo: init; uid=${uid}`)
-            if (uid) {
-              // request follower info in the background
-              T.RPCGen.configRequestFollowingAndUnverifiedFollowersRpcPromise()
-                .then(() => {})
-                .catch(() => {})
-            }
-          }
-
-          const updateServerConfig = async () => {
-            if (s.loggedIn) {
-              try {
-                await T.RPCGen.configUpdateLastLoggedInAndServerConfigRpcPromise({
-                  serverConfigPath: serverConfigFileName,
-                })
-              } catch {}
-            }
-          }
-
-          const updateSettings = () => {
-            useSettingsContactsState.getState().dispatch.loadContactImportEnabled()
-          }
-
-          const updateChat = () => {
-            // On phone, let the focused inbox screen trigger the first refresh so hidden chatRoot
-            // mounts behind a pushed conversation do not pay inbox startup cost.
-            if (!isPhone && useCurrentUserState.getState().username) {
-              const {inboxRefresh} = useChatState.getState().dispatch
-              ignorePromise(inboxRefresh('bootstrap'))
-            }
-          }
-
-          getFollowerInfo()
-          ignorePromise(updateServerConfig())
-          updateSettings()
-          updateChat()
-        }
-      }
-
-      if (s.gregorReachable !== old.gregorReachable) {
-        // Re-get info about our account if you log in/we're done handshaking/became reachable
-        if (s.gregorReachable === T.RPCGen.Reachable.yes) {
-          // not in waiting state
-          if (useDaemonState.getState().handshakeWaiters.size === 0) {
-            ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
-          }
-        }
-      }
-
-      if (s.installerRanCount !== old.installerRanCount) {
-        useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
-      }
-
-      if (s.loggedIn !== old.loggedIn) {
-        if (s.loggedIn) {
-          ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
-          useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
-        } else {
-          clearSignupEmail()
-          clearSignupDeviceNameDraft()
-        }
-        loadConfiguredAccountsForBootstrap()
-        if (!s.loggedInCausedbyStartup) {
-          ignorePromise(useConfigState.getState().dispatch.refreshAccounts())
-        }
-      }
-
-      if (s.revokedTrigger !== old.revokedTrigger) {
-        loadConfiguredAccountsForBootstrap()
-      }
-
-      if (s.configuredAccounts !== old.configuredAccounts) {
-        const updates = s.configuredAccounts.map(account => ({
-          info: {fullname: account.fullname ?? ''},
-          name: account.username,
-        }))
-        if (updates.length > 0) {
-          useUsersState.getState().dispatch.updates(updates)
-        }
-      }
-
-    })
+    subscribeValue(useConfigState, s => s.loadOnStartPhase, onLoadOnStartPhaseChanged),
+    subscribeValue(useConfigState, s => s.gregorReachable, onGregorReachableChanged),
+    subscribeValue(useConfigState, s => s.installerRanCount, onInstallerRanCountChanged),
+    subscribeValue(useConfigState, s => s.loggedIn, onLoggedInChanged),
+    subscribeValue(useConfigState, s => s.revokedTrigger, onRevokedTriggerChanged),
+    subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged)
   )
 
   _sharedUnsubs.push(
-    useShellState.subscribe((s, old) => {
-      if (s.active !== old.active) {
-        const cs = getConvoState(getSelectedConversation())
-        cs.dispatch.markThreadAsRead()
-      }
-    })
+    subscribeValue(useShellState, s => s.active, onUserActiveChanged)
   )
 
   _sharedUnsubs.push(
-    useDaemonState.subscribe((s, old) => {
-      if (s.handshakeVersion !== old.handshakeVersion) {
-        useDarkModeState.getState().dispatch.loadDarkPrefs()
-        useChatState.getState().dispatch.loadStaticConfig()
-        loadConfiguredAccountsForBootstrap()
-      }
-
-      if (s.bootstrapStatus !== old.bootstrapStatus) {
-        const bootstrap = s.bootstrapStatus
-        if (bootstrap) {
-          const {deviceID, deviceName, loggedIn, uid, username, userReacjis} = bootstrap
-          useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
-
-          const configDispatch = useConfigState.getState().dispatch
-          if (username) {
-            configDispatch.setDefaultUsername(username)
-          }
-          if (loggedIn) {
-            configDispatch.setUserSwitching(false)
-          }
-          configDispatch.setLoggedIn(loggedIn, false)
-
-          if (bootstrap.httpSrvInfo) {
-            configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
-          }
-
-          useChatState.getState().dispatch.updateUserReacjis(userReacjis)
-        }
-      }
-
-      if (s.handshakeState !== old.handshakeState) {
-        if (s.handshakeState === 'done') {
-          if (!_emitStartupOnLoadDaemonConnectedOnce) {
-            _emitStartupOnLoadDaemonConnectedOnce = true
-            if (__DEV__) globalThis.__hmr_startupOnce = true
-            useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
-          }
-        }
-      }
-    })
+    subscribeValue(useDaemonState, s => s.handshakeVersion, onHandshakeVersionChanged),
+    subscribeValue(useDaemonState, s => s.bootstrapStatus, onBootstrapStatusChanged),
+    subscribeValue(useDaemonState, s => s.handshakeState, onHandshakeStateChanged)
   )
 
   _sharedUnsubs.push(
-    useProvisionState.subscribe((s, old) => {
-      if (s.startProvisionTrigger !== old.startProvisionTrigger) {
-        useConfigState.getState().dispatch.setLoginError()
-        useConfigState.getState().dispatch.resetRevokedSelf()
-        const f = async () => {
-          // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-          if (useConfigState.getState().loggedIn) {
-            await T.RPCGen.loginLogoutRpcPromise({force: false, keepSecrets: true}, 'config:loginAsOther')
-          }
-        }
-        ignorePromise(f())
-      }
-    })
+    subscribeValue(useProvisionState, s => s.startProvisionTrigger, onStartProvisionTriggerChanged)
   )
 
   _sharedUnsubs.push(
-    useRouterState.subscribe((s, old) => {
-      const next = s.navState as Util.NavState
-      const prev = old.navState as Util.NavState
-      if (prev === next) return
-
-      const namespaces = ['chat', 'crypto', 'teams', 'people'] as const
-      const namespaceToRoute = new Map([
-        ['chat', 'chatNewChat'],
-        ['crypto', 'cryptoTeamBuilder'],
-        ['teams', 'teamsTeamBuilder'],
-        ['people', 'peopleTeamBuilder'],
-      ])
-      for (const namespace of namespaces) {
-        const wasTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(prev)?.name
-        if (wasTeamBuilding) {
-          // team building or modal on top of that still
-          const isTeamBuilding = namespaceToRoute.get(namespace) === Util.getVisibleScreen(next)?.name
-          if (!isTeamBuilding) {
-            getTBStore(namespace).dispatch.cancelTeamBuilding()
-          }
-        }
-      }
-
-      // Clear critical update when we nav away from tab
-      if (
-        prev &&
-        Util.getTab(prev) === Tabs.fsTab &&
-        next &&
-        Util.getTab(next) !== Tabs.fsTab &&
-        useShellState.getState().fsCriticalUpdate
-      ) {
-        const {dispatch} = useShellState.getState()
-        dispatch.setFsCriticalUpdate(false)
-      }
-      const fsRrouteNames = ['fsRoot', 'barePreview']
-      const wasScreen = fsRrouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
-      const isScreen = fsRrouteNames.includes(Util.getVisibleScreen(next)?.name ?? '')
-      if (wasScreen !== isScreen) {
-        const {dispatch} = useFSState.getState()
-        if (wasScreen) {
-          dispatch.userOut()
-        } else {
-          dispatch.userIn()
-        }
-      }
-
-      if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
-        clearNavBadges()
-      }
-
-      onConvoRouteChanged(prev, next)
-    })
+    subscribeValue(useRouterState, s => s.navState, onNavStateChanged)
   )
 }
 
