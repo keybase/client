@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
-import * as React from 'react'
+import type * as React from 'react'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
