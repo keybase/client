@@ -3,7 +3,7 @@
 import {act, cleanup, renderHook} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {useBotSettings} from './bot'
+import {useBotSettings} from '../bot/settings'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 

@@ -8,59 +8,11 @@ import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 import {useUsersState} from '@/stores/users'
 import {useChatTeam, useChatTeamMembers} from '../team-hooks'
 import logger from '@/logger'
+import {useBotSettings} from '../bot/settings'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
   username: string
-}
-
-export const useBotSettings = (conversationIDKey: T.Chat.ConversationIDKey, username: string) => {
-  const [loaded, setLoaded] = React.useState<
-    | {
-        conversationIDKey: T.Chat.ConversationIDKey
-        settings?: T.RPCGen.TeamBotSettings
-        username: string
-      }
-    | undefined
-  >()
-  const loadBotSettings = C.useRPC(T.RPCChat.localGetBotMemberSettingsRpcPromise)
-  const requestIDRef = React.useRef(0)
-
-  React.useEffect(() => {
-    requestIDRef.current += 1
-    const requestID = requestIDRef.current
-    loadBotSettings(
-      [{convID: T.Chat.keyToConversationID(conversationIDKey), username}],
-      settings => {
-        if (requestIDRef.current !== requestID) {
-          return
-        }
-        setLoaded({conversationIDKey, settings, username})
-      },
-      error => {
-        if (requestIDRef.current !== requestID) {
-          return
-        }
-        logger.info(`useBotSettings: failed to refresh settings for ${username}: ${error.message}`)
-        setLoaded({conversationIDKey, username})
-      }
-    )
-    return () => {
-      if (requestIDRef.current === requestID) {
-        requestIDRef.current += 1
-      }
-    }
-  }, [conversationIDKey, loadBotSettings, username])
-
-  const settings =
-    loaded?.conversationIDKey === conversationIDKey && loaded.username === username
-      ? loaded.settings
-      : undefined
-  const setSettings = React.useCallback(
-    (settings: T.RPCGen.TeamBotSettings) => setLoaded({conversationIDKey, settings, username}),
-    [conversationIDKey, username]
-  )
-  return {setSettings, settings}
 }
 
 const inThisChannelHeader = {type: 'bots: in this channel'} as const

@@ -3,7 +3,8 @@
 import {act, cleanup, renderHook} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {useBotSettings, useBotTeamRole} from './install'
+import {useBotSettings} from './settings'
+import {useBotTeamRole} from './install'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
@@ -76,7 +77,7 @@ test('useBotSettings refreshes only when enabled and hides stale conversation da
   })
 
   expect(T.RPCChat.localGetBotMemberSettingsRpcPromise).not.toHaveBeenCalled()
-  expect(result.current).toBeUndefined()
+  expect(result.current.settings).toBeUndefined()
 
   rerender({enabled: true, id: convID})
   await act(async () => {
@@ -87,11 +88,11 @@ test('useBotSettings refreshes only when enabled and hides stale conversation da
     convID: T.Chat.keyToConversationID(convID),
     username: 'helperbot',
   })
-  expect(result.current).toEqual(settings)
+  expect(result.current.settings).toEqual(settings)
 
   rerender({enabled: true, id: otherConvID})
 
-  expect(result.current).toBeUndefined()
+  expect(result.current.settings).toBeUndefined()
 
   await act(async () => {
     await flushPromises()
@@ -101,5 +102,5 @@ test('useBotSettings refreshes only when enabled and hides stale conversation da
     convID: T.Chat.keyToConversationID(otherConvID),
     username: 'helperbot',
   })
-  expect(result.current).toEqual(settings)
+  expect(result.current.settings).toEqual(settings)
 })

@@ -14,6 +14,7 @@ import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useFeaturedBot} from '@/util/featured-bots'
 import type {RPCError} from '@/util/errors'
 import logger from '@/logger'
+import {useBotSettings} from './settings'
 
 const RestrictedItem = '---RESTRICTED---'
 
@@ -161,56 +162,6 @@ export const useBotTeamRole = (
     : undefined
 }
 
-export const useBotSettings = (
-  conversationIDKey: T.Chat.ConversationIDKey | undefined,
-  botUsername: string,
-  enabled: boolean
-) => {
-  const [loaded, setLoaded] = React.useState<
-    | {
-        botUsername: string
-        conversationIDKey: T.Chat.ConversationIDKey
-        settings?: T.RPCGen.TeamBotSettings
-      }
-    | undefined
-  >()
-  const loadBotSettings = C.useRPC(T.RPCChat.localGetBotMemberSettingsRpcPromise)
-  const requestIDRef = React.useRef(0)
-
-  React.useEffect(() => {
-    requestIDRef.current += 1
-    if (!conversationIDKey || !enabled) {
-      return undefined
-    }
-    const requestID = requestIDRef.current
-    loadBotSettings(
-      [{convID: T.Chat.keyToConversationID(conversationIDKey), username: botUsername}],
-      settings => {
-        if (requestIDRef.current !== requestID) {
-          return
-        }
-        setLoaded({botUsername, conversationIDKey, settings})
-      },
-      error => {
-        if (requestIDRef.current !== requestID) {
-          return
-        }
-        logger.info(`useBotSettings: failed to refresh settings for ${botUsername}: ${error.message}`)
-        setLoaded({botUsername, conversationIDKey})
-      }
-    )
-    return () => {
-      if (requestIDRef.current === requestID) {
-        requestIDRef.current += 1
-      }
-    }
-  }, [botUsername, conversationIDKey, enabled, loadBotSettings])
-
-  return enabled && loaded && loaded.conversationIDKey === conversationIDKey && loaded.botUsername === botUsername
-    ? loaded.settings
-    : undefined
-}
-
 type LoaderProps = {
   botUsername: string
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -279,7 +230,7 @@ const InstallBotPopup = (props: Props) => {
 
   const {yourOperations} = useChatTeam(meta.teamID, meta.teamname)
   const readOnly = meta.teamname ? !yourOperations.manageBots : false
-  const settings = useBotSettings(conversationIDKey, botUsername, !!inTeam)
+  const {settings} = useBotSettings(conversationIDKey, botUsername, !!inTeam)
   let teamname: string | undefined
   let teamID: T.Teams.TeamID = T.Teams.noTeamID
   let refreshTeamID: T.Teams.TeamID | undefined
