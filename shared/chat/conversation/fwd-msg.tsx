@@ -8,15 +8,20 @@ import {useNavigation} from '@react-navigation/native'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
+import {
+  ConversationThreadProvider,
+  useConversationThreadID,
+  useConversationThreadMessage,
+} from './thread-context'
 
 type Props = {ordinal: T.Chat.Ordinal}
 
 type PickerState = 'picker' | 'title'
 
-const TeamPicker = (props: Props) => {
-  const srcConvID = ConvoState.useChatContext(s => s.id)
+const TeamPickerInner = (props: Props) => {
+  const srcConvID = useConversationThreadID()
   const ordinal = props.ordinal
-  const message = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
+  const message = useConversationThreadMessage(ordinal)
   const navigation = useNavigation()
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
@@ -274,5 +279,14 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
     }) as const
 )
+
+const TeamPicker = (props: Props) => {
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  return (
+    <ConversationThreadProvider id={conversationIDKey}>
+      <TeamPickerInner {...props} />
+    </ConversationThreadProvider>
+  )
+}
 
 export default TeamPicker

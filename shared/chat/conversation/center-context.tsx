@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {clearThreadHighlightMessageID} from '@/constants/router'
 import {useChatThreadRouteParams} from './thread-search-route'
-import {useThreadLoadStatusReporter} from './thread-load-status-context'
+import {useThreadLoadStatusOptions} from './thread-load-status-context'
 import {useConversationThreadJumpToRecent, useConversationThreadLoadMessagesCentered} from './thread-context'
 
 type CenterState = {
@@ -59,7 +59,7 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   const routeParams = useChatThreadRouteParams()
   const threadSearchVisible = !!routeParams?.threadSearch
   const routeHighlightMessageID = routeParams?.highlightMessageID
-  const onThreadLoadStatus = useThreadLoadStatusReporter()
+  const threadLoadStatusOptions = useThreadLoadStatusOptions()
   const loadMessagesCentered = useConversationThreadLoadMessagesCentered()
   const jumpToRecentThread = useConversationThreadJumpToRecent()
   const [centerState, setCenterState] = React.useState<CenterState>(() => ({
@@ -93,13 +93,13 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   ) => {
     setCenterForMessage(messageID, highlightMode)
     loadMessagesCentered(messageID, highlightMode, {
-      onThreadLoadStatus,
+      ...threadLoadStatusOptions,
     })
   }
 
   const jumpToRecent = () => {
     clearCenter()
-    jumpToRecentThread({onThreadLoadStatus})
+    jumpToRecentThread(threadLoadStatusOptions)
   }
 
   const consumedRouteHighlightRef = React.useRef<T.Chat.MessageID | undefined>(undefined)

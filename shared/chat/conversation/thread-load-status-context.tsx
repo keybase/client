@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useShellState} from '@/stores/shell'
 import {
+  type ThreadLoadStatusOptions,
   type ThreadLoadStatusReporter,
   useConversationThreadMarkThreadAsRead,
   useConversationThreadLoadMoreMessages,
@@ -15,14 +16,20 @@ type ThreadLoadStatusState = {
 }
 
 type ThreadLoadStatusContextType = {
+  getThreadLoadStatusOptions: () => ThreadLoadStatusOptions
   onThreadLoadStatus: ThreadLoadStatusReporter
   status: T.RPCChat.UIChatThreadStatusTyp
 }
 
 const noThreadLoadStatus = T.RPCChat.UIChatThreadStatusTyp.none
 const ignoreThreadLoadStatus: ThreadLoadStatusReporter = () => {}
+const ignoreThreadLoadStatusOptions = () => ({
+  isThreadLoadCurrent: () => true,
+  onThreadLoadStatus: ignoreThreadLoadStatus,
+})
 
 const ThreadLoadStatusContext = React.createContext<ThreadLoadStatusContextType>({
+  getThreadLoadStatusOptions: ignoreThreadLoadStatusOptions,
   onThreadLoadStatus: ignoreThreadLoadStatus,
   status: noThreadLoadStatus,
 })
@@ -31,6 +38,9 @@ export const useThreadLoadStatus = () => React.useContext(ThreadLoadStatusContex
 
 export const useThreadLoadStatusReporter = () =>
   React.useContext(ThreadLoadStatusContext).onThreadLoadStatus
+
+export const useThreadLoadStatusOptions = () =>
+  React.useContext(ThreadLoadStatusContext).getThreadLoadStatusOptions()
 
 export const ConversationThreadLoadStatusProvider = (
   p: React.PropsWithChildren<{
@@ -45,10 +55,17 @@ export const ConversationThreadLoadStatusProvider = (
   const selectedConversation = useConversationThreadSelectedConversation()
   const appFocused = useShellState(s => s.appFocused)
   const previousAppFocusedRef = React.useRef(appFocused)
+  const threadLoadGenerationRef = React.useRef(0)
   const [threadLoadStatusState, setThreadLoadStatusState] = React.useState<ThreadLoadStatusState>(() => ({
     conversationIDKey: id,
     status: noThreadLoadStatus,
   }))
+
+  React.useEffect(() => {
+    return () => {
+      threadLoadGenerationRef.current += 1
+    }
+  }, [id])
 
   const status =
     threadLoadStatusState.conversationIDKey === id ? threadLoadStatusState.status : noThreadLoadStatus
@@ -60,16 +77,24 @@ export const ConversationThreadLoadStatusProvider = (
     setThreadLoadStatusState({conversationIDKey, status})
   }
 
+  const getThreadLoadStatusOptions = (): ThreadLoadStatusOptions => {
+    const generation = threadLoadGenerationRef.current
+    return {
+      isThreadLoadCurrent: () => threadLoadGenerationRef.current === generation,
+      onThreadLoadStatus,
+    }
+  }
+
   const reloadStaleThread = () => {
     loadMoreMessages({
-      onThreadLoadStatus,
+      ...getThreadLoadStatusOptions(),
       reason: 'got stale',
     })
   }
 
   const reloadForegroundedThread = React.useEffectEvent(() => {
     loadMoreMessages({
-      onThreadLoadStatus,
+      ...getThreadLoadStatusOptions(),
       reason: 'foregrounding',
     })
     markThreadAsRead()
@@ -107,7 +132,7 @@ export const ConversationThreadLoadStatusProvider = (
 
   const selectConversation = React.useEffectEvent(() => {
     selectedConversation({
-      onThreadLoadStatus,
+      ...getThreadLoadStatusOptions(),
       skipThreadLoad: initialSkipThreadLoadOnSelection,
     })
   })
@@ -116,6 +141,6 @@ export const ConversationThreadLoadStatusProvider = (
     selectConversation()
   }, [id, initialSkipThreadLoadOnSelection])
 
-  const value = {onThreadLoadStatus, status}
+  const value = {getThreadLoadStatusOptions, onThreadLoadStatus, status}
   return <ThreadLoadStatusContext value={value}>{children}</ThreadLoadStatusContext>
 }

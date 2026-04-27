@@ -23,7 +23,7 @@ import {
   useConversationThreadMessageMap,
   useConversationThreadMessageTypeMap,
 } from '../thread-context'
-import {useThreadLoadStatusReporter} from '../thread-load-status-context'
+import {useThreadLoadStatusOptions} from '../thread-load-status-context'
 // import {useDebugLayout} from '@/util/debug-react'
 
 // TODO if we bring flashlist back bring back the patch
@@ -50,7 +50,7 @@ const useScrolling = (p: {
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = useConversationThreadLoadOlderMessagesDueToScroll()
-  const onThreadLoadStatus = useThreadLoadStatusReporter()
+  const threadLoadStatusOptions = useThreadLoadStatusOptions()
   const [scrollToBottom] = React.useState(() => () => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   })
@@ -89,7 +89,7 @@ const useScrolling = (p: {
   })
 
   const onEndReached = () => {
-    loadOlderMessages(numOrdinals, {onThreadLoadStatus})
+    loadOlderMessages(numOrdinals, threadLoadStatusOptions)
   }
 
   return {

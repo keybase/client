@@ -29,7 +29,8 @@ const selectSnapshot = (s: ConvoState.ConvoState): ConversationThreadSnapshot =>
   validatedOrdinalRange: s.validatedOrdinalRange,
 })
 
-type ThreadLoadStatusOptions = {
+export type ThreadLoadStatusOptions = {
+  isThreadLoadCurrent?: () => boolean
   onThreadLoadStatus?: ThreadLoadStatusReporter
 }
 

@@ -46,12 +46,12 @@ The intended end state is:
   - [ ] Include message maps/ordinals, lightweight metadata, participants, pagination flags, and decorator maps only if needed for fast remount
   - [x] Keep cache reads/writes explicit through `get`, `put`, `delete`, and `clear` helpers
   - [x] Register cache clearing with debug/external reset plumbing currently handled by `convo-registry`
-  - [ ] Do not add subscriptions, in-flight request registries, or hidden mutable feature state to the cache
+  - [x] Do not add subscriptions, in-flight request registries, or hidden mutable feature state to the cache
 - [ ] Route thread entry through the provider
   - [x] Seed normal thread entry from the cache if present, while avoiding cache seeding for centered/highlight loads
   - [x] Always refresh/reload from the chat service on entry or focus
   - [x] Replace stale cache entries after service results arrive
-  - [ ] Ignore stale async responses for conversations that are no longer mounted
+  - [x] Ignore stale async responses for conversations that are no longer mounted
 
 ## Chunk 1: Move Core Thread Loading And Pagination
 

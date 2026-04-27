@@ -115,6 +115,7 @@ export type ThreadLoadStatusReporter = (
 ) => void
 
 type ThreadLoadStatusOptions = {
+  isThreadLoadCurrent?: () => boolean
   onThreadLoadStatus?: ThreadLoadStatusReporter
 }
 
@@ -2198,7 +2199,15 @@ const createSlice =
           return
         }
         const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
-        const {reason, messageIDControl, knownRemotes, centeredMessageID, onThreadLoadStatus} = p
+        const {
+          reason,
+          messageIDControl,
+          knownRemotes,
+          centeredMessageID,
+          isThreadLoadCurrent,
+          onThreadLoadStatus,
+        } = p
+        const isCurrentThreadLoad = () => isThreadLoadCurrent?.() ?? true
 
         const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
           const pagination = {
@@ -2222,6 +2231,11 @@ const createSlice =
         // we get a thread-is-stale notification, or when you scroll up and want more
         // messages
         const f = async () => {
+          if (!isCurrentThreadLoad()) {
+            logger.info('loadMoreMessages: bail: stale mounted thread load')
+            return
+          }
+
           // Get the conversationIDKey
           const {id: conversationIDKey} = get()
 
@@ -2243,6 +2257,10 @@ const createSlice =
           let reconciled = false
           const onGotThread = (thread: string, why: string) => {
             if (!thread) {
+              return
+            }
+            if (!isCurrentThreadLoad()) {
+              logger.info(`loadMoreMessages: stale response ignored: ${why}`)
               return
             }
 
@@ -2321,7 +2339,9 @@ const createSlice =
                   logger.info(
                     `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${p.status.typ}`
                   )
-                  onThreadLoadStatus?.(conversationIDKey, p.status.typ)
+                  if (isCurrentThreadLoad()) {
+                    onThreadLoadStatus?.(conversationIDKey, p.status.typ)
+                  }
                 },
               },
               params: {
@@ -2343,12 +2363,18 @@ const createSlice =
               },
               waitingKey: loadingKey,
             })
+            if (!isCurrentThreadLoad()) {
+              return
+            }
             if (get().isMetaGood()) {
               set(s => {
                 s.meta.offline = results.offline
               })
             }
           } catch (error) {
+            if (!isCurrentThreadLoad()) {
+              return
+            }
             if (error instanceof RPCError) {
               logger.warn(`loadMoreMessages: error: ${error.desc}`)
               // no longer in team

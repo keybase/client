@@ -14,6 +14,7 @@ import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actio
 import {RPCError} from '@/util/errors'
 import {useCurrentUserState} from '@/stores/current-user'
 import logger from '@/logger'
+import {useConversationThreadLastOrdinal, useConversationThreadMessageMap} from '../thread-context'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -472,6 +473,12 @@ const getLiveAttachmentInfo = (
 }
 
 const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const lastOrdinal = useConversationThreadLastOrdinal()
+  const messageMap = useConversationThreadMessageMap()
+  const threadSnapshotRef = React.useRef({lastOrdinal, messageMap})
+  React.useEffect(() => {
+    threadSnapshotRef.current = {lastOrdinal, messageMap}
+  }, [lastOrdinal, messageMap])
   const [attachmentViewState, setAttachmentViewState] = React.useState<AttachmentViewState>(() => ({
     attachmentViewMap: new Map(),
     conversationIDKey,
@@ -558,8 +565,7 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
         }
         try {
           const {deviceName, username} = useCurrentUserState.getState()
-          const getLastOrdinal = () =>
-            ConvoState.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+          const getLastOrdinal = () => threadSnapshotRef.current.lastOrdinal
           const res = await T.RPCChat.localLoadGalleryRpcListener({
             incomingCallMap: {
               'chat.1.chatUi.chatLoadGalleryHit': hit => {
@@ -572,10 +578,9 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
                 )
 
                 if (message) {
-                  const conversationState = ConvoState.getConvoState(conversationIDKey)
                   pendingMessages.push({
                     ...message,
-                    conversationMessage: conversationState.messageMap.has(message.ordinal),
+                    conversationMessage: threadSnapshotRef.current.messageMap.has(message.ordinal),
                   })
                   scheduleFlushPendingMessages()
                 }
@@ -642,7 +647,7 @@ export const useAttachmentSections = (
       messageAttachmentNativeShare: s.dispatch.messageAttachmentNativeShare,
     }))
   )
-  const messageMap = ConvoState.useChatContext(s => s.messageMap)
+  const messageMap = useConversationThreadMessageMap()
   const {attachmentViewMap, loadAttachmentView} = useAttachmentViewState(conversationIDKey)
   const clearModals = C.Router2.clearModals
 

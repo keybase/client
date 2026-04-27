@@ -12,6 +12,7 @@ import AttachmentsList from './attachments'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '@/common-adapters/tabs'
 import {ChatTeamProvider, useChatTeam} from '../team-hooks'
+import {ConversationThreadProvider} from '../thread-context'
 
 type Props = {
   tab?: 'settings' | 'members' | 'attachments' | 'bots'
@@ -122,7 +123,11 @@ const InfoPanelConnector = (ownProps: Props) => {
     default:
       sectionList = null
   }
-  sectionList = <ChatTeamProvider>{sectionList}</ChatTeamProvider>
+  sectionList = (
+    <ConversationThreadProvider id={conversationIDKey}>
+      <ChatTeamProvider>{sectionList}</ChatTeamProvider>
+    </ConversationThreadProvider>
+  )
 
   if (Kb.Styles.isTablet) {
     // Use a View to make the left border.

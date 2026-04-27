@@ -5,10 +5,11 @@ import * as React from 'react'
 import {useNavigation} from '@react-navigation/native'
 import type {Props} from '.'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {ConversationThreadProvider, useConversationThreadMessage} from '../conversation/thread-context'
 
-const ChatPDF = (props: Props) => {
+const ChatPDFInner = (props: Props) => {
   const {ordinal} = props
-  const message = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
+  const message = useConversationThreadMessage(ordinal)
   const title = message?.title || message?.fileName || 'PDF'
   const url = message?.fileURL
   const navigation = useNavigation()
@@ -36,6 +37,15 @@ const ChatPDF = (props: Props) => {
           </Kb.ButtonBar>
       </Kb.Box2>
     </>
+  )
+}
+
+const ChatPDF = (props: Props) => {
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  return (
+    <ConversationThreadProvider id={conversationIDKey}>
+      <ChatPDFInner {...props} />
+    </ConversationThreadProvider>
   )
 }
 

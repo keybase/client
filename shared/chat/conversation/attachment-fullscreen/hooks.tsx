@@ -6,16 +6,16 @@ import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {useConversationThreadID, useConversationThreadMessage} from '../thread-context'
 
 const blankMessage = Chat.makeMessageAttachment({})
 export const useData = (initialOrdinal: T.Chat.Ordinal) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const [ordinal, setOrdinal] = React.useState(initialOrdinal)
 
-  const message: T.Chat.MessageAttachment = ConvoState.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    return m?.type === 'attachment' ? m : blankMessage
-  })
+  const threadMessage = useConversationThreadMessage(ordinal)
+  const message: T.Chat.MessageAttachment =
+    threadMessage?.type === 'attachment' ? threadMessage : blankMessage
 
   const loadNextAttachment = ConvoState.useChatContext(s => s.dispatch.loadNextAttachment)
   const onSwitchAttachment = (backInTime: boolean) => {

@@ -10,6 +10,7 @@ import {useShellState} from '@/stores/shell'
 import {
   ConversationThreadLoadStatusProvider,
   useThreadLoadStatus,
+  useThreadLoadStatusOptions,
   useThreadLoadStatusReporter,
 } from './thread-load-status-context'
 import {ConversationThreadProvider} from './thread-context'
@@ -72,6 +73,17 @@ test('thread load status reporter ignores stale conversation statuses', () => {
     result.current.report(convID, T.RPCChat.UIChatThreadStatusTyp.server)
   })
   expect(result.current.status).toBe(T.RPCChat.UIChatThreadStatusTyp.server)
+})
+
+test('thread load options invalidate when the mounted provider unmounts', () => {
+  const {result, unmount} = renderHook(() => useThreadLoadStatusOptions(), {wrapper})
+  const options = result.current
+
+  expect(options.isThreadLoadCurrent?.()).toBe(true)
+
+  unmount()
+
+  expect(options.isThreadLoadCurrent?.()).toBe(false)
 })
 
 test('mounted stale-thread reload reports status through the provider', async () => {

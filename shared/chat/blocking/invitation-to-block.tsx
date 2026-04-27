@@ -9,6 +9,10 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {useBlockButtonsInfo} from './block-buttons-state'
+import {
+  useConversationThreadMessageMap,
+  useConversationThreadMessageOrdinalsMaybe,
+} from '../conversation/thread-context'
 
 const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
   const f = async () => {
@@ -32,9 +36,11 @@ const BlockButtons = () => {
   const blockButtonInfo = useBlockButtonsInfo(teamID)
   const participantInfo = ConvoState.useChatContext(s => s.participants)
   const currentUser = useCurrentUserState(s => s.username)
-  const hasOwnMessage = ConvoState.useChatContext(s =>
-    !!currentUser && [...(s.messageOrdinals ?? [])].some(ordinal => s.messageMap.get(ordinal)?.author === currentUser)
-  )
+  const messageMap = useConversationThreadMessageMap()
+  const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
+  const hasOwnMessage =
+    !!currentUser &&
+    [...(messageOrdinals ?? [])].some(ordinal => messageMap.get(ordinal)?.author === currentUser)
 
   React.useEffect(() => {
     if (hasOwnMessage && blockButtonInfo && teamID) {
