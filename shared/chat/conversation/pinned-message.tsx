@@ -6,17 +6,19 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from './team-hooks'
+import {useConversationCenter} from './center-context'
 
 const PinnedMessage = function PinnedMessage() {
-  const {conversationIDKey, teamID, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = ConvoState.useChatContext(
+  const {conversationIDKey, teamID, teamname, pinnedMsg, onIgnore, pinMessage} = ConvoState.useChatContext(
     C.useShallow(s => {
       const {meta, dispatch, id: conversationIDKey} = s
       const {teamID, teamname} = meta
       const pinnedMsg = meta.pinnedMsg
-      const {pinMessage, replyJump, ignorePinnedMessage: onIgnore} = dispatch
-      return {conversationIDKey, onIgnore, pinMessage, pinnedMsg, replyJump, teamID, teamname}
+      const {pinMessage, ignorePinnedMessage: onIgnore} = dispatch
+      return {conversationIDKey, onIgnore, pinMessage, pinnedMsg, teamID, teamname}
     })
   )
+  const {centerOnMessage} = useConversationCenter()
   const you = useCurrentUserState(s => s.username)
   const {yourOperations} = useChatTeam(teamID, teamname)
   const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))
@@ -34,7 +36,7 @@ const PinnedMessage = function PinnedMessage() {
 
   const onClick = () => {
     if (messageID) {
-      replyJump(messageID)
+      centerOnMessage(messageID, 'flash')
     }
   }
   const onUnpin = () => {

@@ -68,7 +68,7 @@ type AuthorProps = {
 
 type RowActions = Pick<
   ConvoStateType['dispatch'],
-  'messageDelete' | 'messageRetry' | 'replyJump' | 'toggleMessageReaction'
+  'messageDelete' | 'messageRetry' | 'toggleMessageReaction'
 > &
   Pick<ConversationInputState['dispatch'], 'setEditing' | 'setReplyTo'>
 
@@ -103,9 +103,9 @@ const getRowActions = (
   dispatch: ConvoStateType['dispatch'],
   uiDispatch: Pick<ConversationInputState['dispatch'], 'setEditing' | 'setReplyTo'>
 ): RowActions => {
-  const {messageDelete, messageRetry, replyJump, toggleMessageReaction} = dispatch
+  const {messageDelete, messageRetry, toggleMessageReaction} = dispatch
   const {setEditing, setReplyTo} = uiDispatch
-  return {messageDelete, messageRetry, replyJump, setEditing, setReplyTo, toggleMessageReaction}
+  return {messageDelete, messageRetry, setEditing, setReplyTo, toggleMessageReaction}
 }
 
 function AuthorSection(p: AuthorProps) {
@@ -245,7 +245,6 @@ const getCommonMessageData = ({
   editing,
   isCenteredHighlight,
   message,
-  messageCenterOrdinal,
   ordinal,
   paymentStatusMap,
   unfurlPrompt,
@@ -255,7 +254,6 @@ const getCommonMessageData = ({
   editing: T.Chat.Ordinal
   isCenteredHighlight?: boolean
   message: T.Chat.Message
-  messageCenterOrdinal: ConvoStateType['messageCenterOrdinal']
   ordinal: T.Chat.Ordinal
   paymentStatusMap: ConvoStateType['paymentStatusMap']
   unfurlPrompt: ConvoStateType['unfurlPrompt']
@@ -294,13 +292,7 @@ const getCommonMessageData = ({
   const showReplyTo = !!replyTo
   const text =
     message.type === 'text' ? (message.decoratedText?.stringValue() ?? message.text.stringValue()) : ''
-  const showCenteredHighlight =
-    isCenteredHighlight ??
-    !!(
-      messageCenterOrdinal &&
-      messageCenterOrdinal.highlightMode !== 'none' &&
-      messageCenterOrdinal.ordinal === ordinal
-    )
+  const showCenteredHighlight = !!isCenteredHighlight
 
   return {
     botname,
@@ -371,7 +363,6 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         editing,
         isCenteredHighlight,
         message,
-        messageCenterOrdinal: s.messageCenterOrdinal,
         ordinal,
         paymentStatusMap: s.paymentStatusMap,
         unfurlPrompt: s.unfurlPrompt,
@@ -410,7 +401,6 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
         editing,
         isCenteredHighlight,
         message,
-        messageCenterOrdinal: s.messageCenterOrdinal,
         ordinal,
         paymentStatusMap: s.paymentStatusMap,
         unfurlPrompt: s.unfurlPrompt,

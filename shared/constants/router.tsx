@@ -828,13 +828,6 @@ export const navigateToThread = (
   const visibleConvo = params?.conversationIDKey
   const visibleRouteName = visible?.name
 
-  const highlightHandledInline =
-    !!highlightMessageID && visibleRouteName === threadRouteName && visibleConvo === conversationIDKey
-  if (highlightHandledInline) {
-    convoState.dispatch.loadMessagesCentered(highlightMessageID, 'flash')
-  }
-  const routeHighlightMessageID = highlightHandledInline ? undefined : highlightMessageID
-
   if (visibleRouteName !== threadRouteName && reason === 'findNewestConversation') {
     return
   }
@@ -842,8 +835,18 @@ export const navigateToThread = (
   const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
   const navParams = {
     createConversationError,
-    highlightMessageID: routeHighlightMessageID,
+    highlightMessageID,
     threadSearch,
+  }
+  const sameVisibleThread = visibleRouteName === threadRouteName && visibleConvo === conversationIDKey
+  if (sameVisibleThread && highlightMessageID) {
+    const sameThreadParams = {conversationIDKey, ...navParams}
+    if (isSplit) {
+      setChatRootParams(sameThreadParams)
+    } else {
+      navigateAppend({name: threadRouteName, params: sameThreadParams}, true)
+    }
+    return
   }
   if (isSplit) {
     navToThread(conversationIDKey, navParams)
@@ -863,7 +866,7 @@ export const navigateToThread = (
         params: {
           conversationIDKey,
           createConversationError,
-          highlightMessageID: routeHighlightMessageID,
+          highlightMessageID,
           threadSearch,
         },
       },

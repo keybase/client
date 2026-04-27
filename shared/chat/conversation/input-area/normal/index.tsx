@@ -15,6 +15,7 @@ import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input'
+import {useConversationCenter} from '../../center-context'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {getRouteParamsFromRoute, type RootRouteProps} from '@/router-v2/route-params'
@@ -153,6 +154,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const setEditing = InputState.useConversationInput(s => s.dispatch.setEditing)
   const updateUnsentText = InputState.useConversationInput(s => s.dispatch.injectIntoInput)
   const sendComposerText = InputState.useConversationInput(s => s.dispatch.sendComposerText)
+  const {hasCenter, jumpToRecent} = useConversationCenter()
 
   const isExploding = explodingModeSecondsRaw !== 0
 
@@ -178,9 +180,8 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     if (!text) return
     injectText('', true)
     sendComposerText(text)
-    const cs = ConvoState.getConvoState(conversationIDKey)
-    if (cs.messageCenterOrdinal) {
-      cs.dispatch.toggleThreadSearch(true)
+    if (hasCenter) {
+      ConvoState.getConvoState(conversationIDKey).dispatch.toggleThreadSearch(true)
       jumpToRecent()
     } else {
       scrollToBottom()

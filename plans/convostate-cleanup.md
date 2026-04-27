@@ -157,12 +157,12 @@ Implementation note: the old `ConvoUIState` compatibility surface has been remov
 ## Chunk 5: Move Route And List UI State Where Practical
 
 - [x] Move pending message-jump entry context out of `pendingJumpMessageID` and into route params or the navigation call path
-- [ ] Move centered/highlight state out of `messageCenterOrdinal` into the list route/provider if list consumers can still react to search, reply-jump, deep-link, and jump-to-recent events
-- [ ] Preserve current behaviors:
+- [x] Move centered/highlight state out of `messageCenterOrdinal` into the list route/provider if list consumers can still react to search, reply-jump, deep-link, and jump-to-recent events
+- [x] Preserve current behaviors:
   - [x] `navigateToThread(..., highlightMessageID)` still deep-links and flashes the target message
-  - [ ] `loadMessagesCentered` still clears stale messages, loads around the pivot, and highlights according to mode
-  - [ ] `toggleThreadSearch(false)` clears or de-emphasizes highlight exactly as today
-  - [ ] sending while search/highlight is active still closes search and jumps to recent
+  - [x] `loadMessagesCentered` still clears stale messages, loads around the pivot, and highlights according to mode
+  - [x] `toggleThreadSearch(false)` clears or de-emphasizes highlight exactly as today
+  - [x] sending while search/highlight is active still closes search and jumps to recent
 - [x] Move mark-unread orange-line UI out of `markedAsUnread` if the normal conversation screen can own it without missing service updates
 - [x] Keep `setMarkAsUnread` server RPC behavior in `convostate` until all call sites use a feature-level action with equivalent fallback loading
 - [ ] Move `threadLoadStatus` to route/list state if `loadMoreMessages` can report status through the feature owner without stale statuses bleeding across conversations
@@ -171,7 +171,7 @@ Implementation note: the old `ConvoUIState` compatibility surface has been remov
   - [x] compute them in the list/message layer from `messageOrdinals`, `messageMap`, current username, and adjacent messages
 - [x] If row metadata moves, preserve the current refresh semantics for adjacent messages after inserts, deletes, explosions, edits, and reaction updates
 - [x] Add missing tests before moving route/list state:
-  - [x] highlight message entry context is consumed exactly once by `selectedConversation`
+  - [x] highlight message entry context is route-owned and centered by the mounted conversation provider
   - [x] `setMarkAsUnread(false)` remains a no-op
   - [x] `threadLoadStatus` resets to `none` on selected conversation
   - [x] native row recycle types are stable for pending, failed, reply, and reaction rows
@@ -181,6 +181,8 @@ Implementation note: highlighted message navigation now travels through `navigat
 Implementation note: message-level mark-unread now updates the mounted conversation's orange-line owner through `OrangeLineContext`, while `convostate.setMarkAsUnread(...)` keeps the server `forceUnread` RPC and fallback message lookup behavior. The old `markedAsUnread` store field has been removed.
 
 Implementation note: row presentation metadata now derives in `shared/chat/conversation/messages/row-metadata.tsx` instead of long-lived `convostate` maps. Message rows, separators, and native list item recycling compute from `messageOrdinals`, `messageMap`, `messageTypeMap`, current username, and adjacent messages.
+
+Implementation note: centered/highlight state now lives in `shared/chat/conversation/center-context.tsx`, mounted under the normal conversation wrapper. Search, pin/reply jumps, route `highlightMessageID`, attachment jumps, jump-to-recent, and composer-send behavior route through that owner while `convostate.loadMessagesCentered(...)` remains the loading-only RPC path for centered thread fetches. `convostate` no longer stores `messageCenterOrdinal` or exposes `replyJump`.
 
 ### Target callers for Chunk 5
 

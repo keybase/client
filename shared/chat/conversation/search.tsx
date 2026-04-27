@@ -8,6 +8,7 @@ import * as Kb from '@/common-adapters'
 import {RPCError} from '@/util/errors'
 import {formatTimeForMessages} from '@/util/timestamp'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useConversationCenter} from './center-context'
 import {useThreadSearchRoute} from './thread-search-route'
 
 type OwnProps = {style?: Styles.StylesCrossPlatform}
@@ -23,12 +24,8 @@ type SearchState = {
 
 const useCommon = (ownProps: CommonProps) => {
   const {conversationIDKey, initialQuery, style} = ownProps
-  const {loadMessagesCentered, toggleThreadSearch} = ConvoState.useChatContext(
-    C.useShallow(s => ({
-      loadMessagesCentered: s.dispatch.loadMessagesCentered,
-      toggleThreadSearch: s.dispatch.toggleThreadSearch,
-    }))
-  )
+  const toggleThreadSearch = ConvoState.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const {centerOnMessage} = useConversationCenter()
   const onToggleThreadSearch = () => {
     toggleThreadSearch()
   }
@@ -215,7 +212,7 @@ const useCommon = (ownProps: CommonProps) => {
   const [selectResult] = React.useState(() => (index: number) => {
     const message = hitsRef.current[index]
     if (message?.id) {
-      loadMessagesCentered(message.id, 'always')
+      centerOnMessage(message.id, 'always')
     }
     setSelectedIndex(index)
   })

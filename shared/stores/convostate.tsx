@@ -13,7 +13,6 @@ import {
   getVisibleScreen,
   getModalStack,
   setChatRootParams,
-  clearThreadHighlightMessageID,
 } from '@/constants/router'
 import type * as Router2 from '@/constants/router'
 import {isIOS} from '@/constants/platform'
@@ -84,7 +83,6 @@ type ConvoStore = T.Immutable<{
   explodingMode: number // seconds to exploding message expiration,
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   loaded: boolean // did we ever load this thread yet
-  messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
   messageOrdinals?: ReadonlyArray<T.Chat.Ordinal> // ordered ordinals in a thread,
@@ -120,7 +118,6 @@ const initialConvoStore: ConvoStore = {
   flipStatusMap: new Map(),
   id: noConversationIDKey,
   loaded: false,
-  messageCenterOrdinal: undefined,
   messageIDToOrdinal: new Map(),
   messageMap: new Map(),
   messageOrdinals: undefined,
@@ -225,12 +222,11 @@ export interface ConvoState extends ConvoStore {
     pinMessage: (messageID?: T.Chat.MessageID) => void
     ignorePinnedMessage: () => void
     removeBotMember: (username: string) => void
-    replyJump: (messageID: T.Chat.MessageID) => void
     resetChatWithoutThem: () => void
     resetLetThemIn: (username: string) => void
     resetState: () => void
     resetDeleteMe: true
-    selectedConversation: (highlightMessageID?: T.Chat.MessageID) => void
+    selectedConversation: (skipThreadLoad?: boolean) => void
     sendAudioRecording: (path: string, duration: number, amps: ReadonlyArray<number>) => Promise<void>
     sendMessage: (text: string, context?: ComposerSendContext) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
@@ -355,20 +351,14 @@ export const onRouteChanged = (prev: T.Immutable<Router2.NavState>, next: T.Immu
         // still chatting? just select new one
         if (wasChat && isChat && isID && T.Chat.isValidConversationIDKey(isID)) {
           deselectAction()
-          getConvoState(isID).dispatch.selectedConversation(highlightMessageID)
-          if (highlightMessageID) {
-            clearThreadHighlightMessageID()
-          }
+          getConvoState(isID).dispatch.selectedConversation(!!highlightMessageID)
         } else if (wasChat && !isChat) {
           // leaving a chat
           deselectAction()
         } else if (isChat && isID && T.Chat.isValidConversationIDKey(isID)) {
           // going into a chat
           deselectAction()
-          getConvoState(isID).dispatch.selectedConversation(highlightMessageID)
-          if (highlightMessageID) {
-            clearThreadHighlightMessageID()
-          }
+          getConvoState(isID).dispatch.selectedConversation(!!highlightMessageID)
         }
       }
     }
@@ -1552,12 +1542,6 @@ const createSlice =
       getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
     }
 
-    const setMessageCenterOrdinal = (m?: T.Chat.CenterOrdinal) => {
-      set(s => {
-        s.messageCenterOrdinal = m
-      })
-    }
-
     const toggleLocalReaction = (p: {
       decorated: string
       emoji: string
@@ -2173,7 +2157,6 @@ const createSlice =
         ignorePromise(f())
       },
       jumpToRecent: () => {
-        setMessageCenterOrdinal()
         set(s => {
           s.validatedOrdinalRange = undefined
         })
@@ -2302,10 +2285,6 @@ const createSlice =
                 reconciled = true
               }
               messagesAdd(messages, {validatedRange, why: `load more ongotthread: ${why}`})
-              if (centeredMessageID) {
-                const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(centeredMessageID.messageID))
-                setMessageCenterOrdinal({highlightMode: centeredMessageID.highlightMode, ordinal})
-              }
             }
 
             // Force mark as read for user-initiated navigations (not auto-selection by service)
@@ -2987,10 +2966,6 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      replyJump: messageID => {
-        setMessageCenterOrdinal()
-        get().dispatch.loadMessagesCentered(messageID, 'flash')
-      },
       resetChatWithoutThem: () => {
         // Implicit teams w/ reset users we can invite them back in or chat w/o them
         const meta = get().meta
@@ -3015,10 +2990,9 @@ const createSlice =
         ignorePromise(f())
       },
       resetState: Z.defaultReset,
-      selectedConversation: highlightMessageID => {
+      selectedConversation: skipThreadLoad => {
         const conversationIDKey = get().id
         clearChatTimeCache()
-        setMessageCenterOrdinal()
 
         const fetchConversationBio = () => {
           const participantInfo = get().participants
@@ -3044,10 +3018,7 @@ const createSlice =
           s.threadLoadStatus = T.RPCChat.UIChatThreadStatusTyp.none
         })
         fetchConversationBio()
-        // Handle a one-shot jump (e.g. from notification deep link).
-        if (highlightMessageID) {
-          get().dispatch.loadMessagesCentered(highlightMessageID, 'flash')
-        } else {
+        if (!skipThreadLoad) {
           get().dispatch.loadMoreMessages({reason: 'focused'})
         }
       },
@@ -3393,13 +3364,6 @@ const createSlice =
           | {conversationIDKey?: T.Chat.ConversationIDKey; threadSearch?: {query?: string}}
           | undefined
         const nextVisible = hide !== undefined ? !hide : !params?.threadSearch
-        set(s => {
-          if (!nextVisible) {
-            s.messageCenterOrdinal = undefined
-          } else if (s.messageCenterOrdinal) {
-            s.messageCenterOrdinal.highlightMode = 'none'
-          }
-        })
 
         const threadSearch = nextVisible ? (query ? {query} : {}) : undefined
         if (Common.isSplit) {

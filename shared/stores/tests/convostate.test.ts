@@ -711,22 +711,18 @@ test('local setters update participants and badge', () => {
   expect(store.getState().badge).toBe(3)
 })
 
-test('highlight message is consumed once by selectedConversation', () => {
+test('selectedConversation can defer thread load for route-owned highlight', () => {
   const store = createStore()
   jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
-  const loadMessagesCentered = jest.fn()
   const loadMoreMessages = jest.fn()
   const current = store.getState()
   store.setState({
-    ...current,
-    dispatch: {...current.dispatch, loadMessagesCentered, loadMoreMessages},
+    dispatch: {...current.dispatch, loadMoreMessages},
   })
 
-  store.getState().dispatch.selectedConversation(msgID)
+  store.getState().dispatch.selectedConversation(true)
   store.getState().dispatch.selectedConversation()
 
-  expect(loadMessagesCentered).toHaveBeenCalledTimes(1)
-  expect(loadMessagesCentered).toHaveBeenCalledWith(msgID, 'flash')
   expect(loadMoreMessages).toHaveBeenCalledTimes(1)
 })
 
@@ -795,15 +791,4 @@ test('syncBadgeState updates listed conversations and clears missing badges', ()
   expect(getConvoState(firstConvID).unread).toBe(4)
   expect(getConvoState(otherConvID).badge).toBe(1)
   expect(getConvoState(otherConvID).unread).toBe(6)
-})
-
-test('toggleThreadSearch removes center highlight when opening search', () => {
-  const store = createStore()
-  applyState(store, {
-    messageCenterOrdinal: {highlightMode: 'always', ordinal},
-  })
-
-  store.getState().dispatch.toggleThreadSearch()
-
-  expect(store.getState().messageCenterOrdinal?.highlightMode).toBe('none')
 })

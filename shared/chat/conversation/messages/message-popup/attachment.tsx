@@ -33,7 +33,6 @@ const PopAttach = (ownProps: OwnProps) => {
 
   const {
     attachmentDownload,
-    loadMessagesCentered,
     messageAttachmentNativeSave,
     messageAttachmentNativeShare,
     showInfoPanel,
@@ -41,14 +40,12 @@ const PopAttach = (ownProps: OwnProps) => {
     C.useShallow(s => {
       const {
         attachmentDownload,
-        loadMessagesCentered,
         messageAttachmentNativeSave,
         messageAttachmentNativeShare,
         showInfoPanel,
       } = s.dispatch
       return {
         attachmentDownload,
-        loadMessagesCentered,
         messageAttachmentNativeSave,
         messageAttachmentNativeShare,
         showInfoPanel,
@@ -57,9 +54,9 @@ const PopAttach = (ownProps: OwnProps) => {
   )
 
   const onJump = () => {
-    loadMessagesCentered(id, 'always')
     showInfoPanel(false, 'attachments')
     clearModals()
+    C.Router2.navigateToThread(message.conversationIDKey, 'misc', id)
   }
 
   const onAllMedia = () => {

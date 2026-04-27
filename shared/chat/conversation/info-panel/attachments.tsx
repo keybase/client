@@ -633,14 +633,12 @@ export const useAttachmentSections = (
     attachmentDownload,
     attachmentPreviewSelect,
     conversationIDKey,
-    loadMessagesCentered,
     messageAttachmentNativeShare,
   } = ConvoState.useChatContext(
     C.useShallow(s => ({
       attachmentDownload: s.dispatch.attachmentDownload,
       attachmentPreviewSelect: s.dispatch.attachmentPreviewSelect,
       conversationIDKey: s.id,
-      loadMessagesCentered: s.dispatch.loadMessagesCentered,
       messageAttachmentNativeShare: s.dispatch.messageAttachmentNativeShare,
     }))
   )
@@ -652,7 +650,7 @@ export const useAttachmentSections = (
     if (C.isMobile) {
       clearModals()
     }
-    loadMessagesCentered(messageID, 'always')
+    C.Router2.navigateToThread(conversationIDKey, 'misc', messageID)
   }
 
   const loadSelectedAttachmentView = React.useEffectEvent(() => {

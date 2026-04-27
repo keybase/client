@@ -17,6 +17,7 @@ import {FocusContext, ScrollContext} from '../normal/context'
 import useResizeObserver from '@/util/use-resize-observer.desktop'
 import useIntersectionObserver from '@/util/use-intersection-observer'
 import {copyToClipboard} from '@/util/storeless-actions'
+import {useConversationCenter} from '../center-context'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -455,13 +456,9 @@ const ThreadWrapper = function ThreadWrapper() {
   const data = ConvoState.useChatContext(
     C.useShallow(s => {
       const {id: conversationIDKey} = s
-      const {messageCenterOrdinal: mco, messageOrdinals = noOrdinals, loaded} = s
-      const centeredHighlightOrdinal = mco && mco.highlightMode !== 'none' ? mco.ordinal : undefined
-      const centeredOrdinal = mco?.ordinal
+      const {messageOrdinals = noOrdinals, loaded} = s
       const containsLatestMessage = s.isCaughtUp()
       return {
-        centeredHighlightOrdinal,
-        centeredOrdinal,
         containsLatestMessage,
         conversationIDKey,
         loaded,
@@ -469,7 +466,8 @@ const ThreadWrapper = function ThreadWrapper() {
       }
     })
   )
-  const {conversationIDKey, centeredHighlightOrdinal, centeredOrdinal} = data
+  const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
+  const {conversationIDKey} = data
   const {containsLatestMessage, messageOrdinals, loaded} = data
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const _setListRef = (r: HTMLDivElement | null) => {

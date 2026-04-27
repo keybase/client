@@ -3,6 +3,7 @@ import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import JumpToRecent from './jump-to-recent'
 import type * as T from '@/constants/types'
+import {useConversationCenter} from '../center-context'
 import logger from '@/logger'
 
 export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => {
@@ -24,11 +25,12 @@ export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number)
   const data = ConvoState.useChatContext(
     C.useShallow(s => {
       const {loaded, moreToLoadForward} = s
-      const {jumpToRecent, toggleThreadSearch} = s.dispatch
-      return {jumpToRecent, loaded, moreToLoadForward, toggleThreadSearch}
+      const {toggleThreadSearch} = s.dispatch
+      return {loaded, moreToLoadForward, toggleThreadSearch}
     })
   )
-  const {moreToLoadForward, jumpToRecent, loaded, toggleThreadSearch} = data
+  const {moreToLoadForward, loaded, toggleThreadSearch} = data
+  const {jumpToRecent} = useConversationCenter()
 
   const onJump = () => {
     scrollToBottom()

@@ -8,6 +8,7 @@ import * as T from '@/constants/types'
 import {FocusProvider, ScrollProvider} from './context'
 import {OrangeLineContext, SetOrangeLineContext} from '../orange-line-context'
 import {ChatTeamProvider} from '../team-hooks'
+import {ConversationCenterProvider} from '../center-context'
 import {ConversationInputProvider} from '../input-area/input-state'
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
 
@@ -120,13 +121,15 @@ const NormalWrapper = function NormalWrapper() {
       <OrangeLineContext value={orangeLine}>
         <SetOrangeLineContext value={setOrangeLine}>
           <ChatTeamProvider>
-            <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
-              <FocusProvider>
-                <ScrollProvider>
-                  <Normal />
-                </ScrollProvider>
-              </FocusProvider>
-            </ConversationInputProvider>
+            <ConversationCenterProvider key={conversationIDKey} id={conversationIDKey}>
+              <ConversationInputProvider id={conversationIDKey}>
+                <FocusProvider>
+                  <ScrollProvider>
+                    <Normal />
+                  </ScrollProvider>
+                </FocusProvider>
+              </ConversationInputProvider>
+            </ConversationCenterProvider>
           </ChatTeamProvider>
         </SetOrangeLineContext>
       </OrangeLineContext>

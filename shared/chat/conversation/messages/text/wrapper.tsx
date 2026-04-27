@@ -5,6 +5,7 @@ import {useOrdinal} from '../ids-context'
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {sharedStyles} from '../shared-styles'
+import {useConversationCenter} from '../../center-context'
 
 let _sentHighlighted: Kb.Styles.StylesCrossPlatform | undefined
 const getSentHighlighted = () => {
@@ -47,6 +48,7 @@ function WrapperText(p: Props) {
   const {ordinal, isCenteredHighlight = false} = p
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {messageData} = wrapper
+  const {centerOnMessage} = useConversationCenter()
   const {isEditing, message, replyTo} = messageData
 
   const {hasCoinFlip, hasUnfurlList, hasUnfurlPrompts, showCenteredHighlight, text, textType, type} =
@@ -63,7 +65,7 @@ function WrapperText(p: Props) {
   const onReplyClick = () => {
     const id = replyTo?.id ?? 0
     if (id) {
-      messageData.replyJump(id)
+      centerOnMessage(id, 'flash')
     }
   }
   const reply = useReply(replyTo, onReplyClick)
