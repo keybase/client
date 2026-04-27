@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {clearThreadHighlightMessageID} from '@/constants/router'
 import {useChatThreadRouteParams} from './thread-search-route'
+import {useThreadLoadStatusReporter} from './thread-load-status-context'
 
 type CenterState = {
   center: T.Chat.CenterOrdinal | undefined
@@ -44,6 +45,7 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   const routeParams = useChatThreadRouteParams()
   const threadSearchVisible = !!routeParams?.threadSearch
   const routeHighlightMessageID = routeParams?.highlightMessageID
+  const onThreadLoadStatus = useThreadLoadStatusReporter()
   const [centerState, setCenterState] = React.useState<CenterState>(() => ({
     center: undefined,
     threadSearchVisible,
@@ -79,12 +81,14 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
     highlightMode: T.Chat.CenterOrdinalHighlightMode
   ) => {
     setCenterForMessage(messageID, highlightMode)
-    ConvoState.getConvoState(id).dispatch.loadMessagesCentered(messageID, highlightMode)
+    ConvoState.getConvoState(id).dispatch.loadMessagesCentered(messageID, highlightMode, {
+      onThreadLoadStatus,
+    })
   }
 
   const jumpToRecent = () => {
     clearCenter()
-    ConvoState.getConvoState(id).dispatch.jumpToRecent()
+    ConvoState.getConvoState(id).dispatch.jumpToRecent({onThreadLoadStatus})
   }
 
   const consumedRouteHighlightRef = React.useRef<T.Chat.MessageID | undefined>(undefined)

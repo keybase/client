@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
+import {useThreadLoadStatus} from './thread-load-status-context'
 
 const ValidatedStatus = () => {
   const [visible, setVisible] = React.useState(true)
@@ -31,7 +32,7 @@ const getBkgColor = (status: T.RPCChat.UIChatThreadStatusTyp) => {
 }
 
 const ThreadLoadStatus = () => {
-  const status = ConvoState.useChatContext(s => s.threadLoadStatus)
+  const status = useThreadLoadStatus()
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
 
   logger.info(`ThreadLoadStatus: convID: ${conversationIDKey} status: ${status}`)

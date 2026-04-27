@@ -93,7 +93,6 @@ type ConvoStore = T.Immutable<{
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
-  threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp
   typing: ReadonlySet<string>
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
   unread: number
@@ -108,6 +107,19 @@ export type ComposerSendContext = {
 
 export type GiphySendContext = {
   replyToOrdinal?: T.Chat.Ordinal
+}
+
+export type ThreadLoadStatusReporter = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  status: T.RPCChat.UIChatThreadStatusTyp
+) => void
+
+type ThreadLoadStatusOptions = {
+  onThreadLoadStatus?: ThreadLoadStatusReporter
+}
+
+type SelectedConversationOptions = ThreadLoadStatusOptions & {
+  skipThreadLoad?: boolean
 }
 
 const initialConvoStore: ConvoStore = {
@@ -128,14 +140,13 @@ const initialConvoStore: ConvoStore = {
   participants: noParticipantInfo,
   paymentStatusMap: new Map(),
   pendingOutboxToOrdinal: new Map(),
-  threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.none,
   typing: new Set(),
   unfurlPrompt: new Map(),
   unread: 0,
   validatedOrdinalRange: undefined,
 }
 
-type LoadMoreMessagesParams = {
+type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
   forceContainsLatestCalc?: boolean
   messageIDControl?: T.RPCChat.MessageIDControl
   centeredMessageID?: {
@@ -186,13 +197,14 @@ export interface ConvoState extends ConvoStore {
     giphySend: (result: T.RPCChat.GiphySearchResult, context?: GiphySendContext) => void
     hideConversation: (hide: boolean) => void
     joinConversation: () => void
-    jumpToRecent: () => void
+    jumpToRecent: (options?: ThreadLoadStatusOptions) => void
     loadMessagesCentered: (
       messageID: T.Chat.MessageID,
-      highlightMode: T.Chat.CenterOrdinalHighlightMode
+      highlightMode: T.Chat.CenterOrdinalHighlightMode,
+      options?: ThreadLoadStatusOptions
     ) => void
-    loadOlderMessagesDueToScroll: (numOrdinals: number) => void
-    loadNewerMessagesDueToScroll: (numOrdinals: number) => void
+    loadOlderMessagesDueToScroll: (numOrdinals: number, options?: ThreadLoadStatusOptions) => void
+    loadNewerMessagesDueToScroll: (numOrdinals: number, options?: ThreadLoadStatusOptions) => void
     loadMoreMessages: DebouncedFunc<(p: LoadMoreMessagesParams) => void>
     loadNextAttachment: (from: T.Chat.Ordinal, backInTime: boolean) => Promise<T.Chat.Ordinal>
     markThreadAsRead: (force?: boolean) => void
@@ -226,7 +238,7 @@ export interface ConvoState extends ConvoStore {
     resetLetThemIn: (username: string) => void
     resetState: () => void
     resetDeleteMe: true
-    selectedConversation: (skipThreadLoad?: boolean) => void
+    selectedConversation: (options?: SelectedConversationOptions) => void
     sendAudioRecording: (path: string, duration: number, amps: ReadonlyArray<number>) => Promise<void>
     sendMessage: (text: string, context?: ComposerSendContext) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
@@ -237,7 +249,7 @@ export interface ConvoState extends ConvoStore {
     setParticipants: (p: ConvoState['participants']) => void
     setTyping: DebouncedFunc<(t: Set<string>) => void>
     showInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
-    tabSelected: () => void
+    tabSelected: (options?: ThreadLoadStatusOptions) => void
     toggleMessageCollapse: (messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => void
     toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => void
     toggleThreadSearch: (hide?: boolean, query?: string) => void
@@ -351,14 +363,14 @@ export const onRouteChanged = (prev: T.Immutable<Router2.NavState>, next: T.Immu
         // still chatting? just select new one
         if (wasChat && isChat && isID && T.Chat.isValidConversationIDKey(isID)) {
           deselectAction()
-          getConvoState(isID).dispatch.selectedConversation(!!highlightMessageID)
+          getConvoState(isID).dispatch.selectedConversation({skipThreadLoad: wasID !== isID || !!highlightMessageID})
         } else if (wasChat && !isChat) {
           // leaving a chat
           deselectAction()
         } else if (isChat && isID && T.Chat.isValidConversationIDKey(isID)) {
           // going into a chat
           deselectAction()
-          getConvoState(isID).dispatch.selectedConversation(!!highlightMessageID)
+          getConvoState(isID).dispatch.selectedConversation({skipThreadLoad: true})
         }
       }
     }
@@ -466,13 +478,6 @@ export const maybeChangeSelectedConversation = (inboxLayout?: T.RPCChat.UIInboxL
     `maybeChangeSelectedConversation: selecting new conv: new:${newConvID} old:${oldConvID} prevselected ${selectedConversation}`
   )
   routerNavigateToThread(newConvID, 'findNewestConversation')
-}
-
-export const loadSelectedConversationIfStale = (metas: ReadonlyArray<T.Chat.ConversationMeta>) => {
-  const selectedConversation = Common.getSelectedConversation()
-  if (metas.some(meta => meta.conversationIDKey === selectedConversation)) {
-    getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
-  }
 }
 
 export const hydrateInboxLayout = (layout: T.RPCChat.UIInboxLayout) => {
@@ -758,7 +763,6 @@ export const onChatInboxSynced = async (
         }
         return arr
       }, [])
-      loadSelectedConversationIfStale(metas)
       const removals = syncRes.incremental.removals?.map(T.Chat.stringToConversationIDKey)
       if (metas.length || removals?.length) {
         metasReceived(metas, removals)
@@ -851,9 +855,6 @@ const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
     }
   }
   const selectedConversation = Common.getSelectedConversation()
-  const shouldLoadMore = (updates ?? []).some(
-    u => T.Chat.conversationIDToKey(u.convID) === selectedConversation
-  )
   keys.forEach(key => {
     const conversationIDKeys = (updates ?? []).reduce<Array<T.Chat.ConversationIDKey>>((arr, u) => {
       const conversationIDKey = T.Chat.conversationIDToKey(u.convID)
@@ -879,9 +880,6 @@ const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
       })
     }
   })
-  if (shouldLoadMore) {
-    getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
-  }
 }
 
 const onNewChatActivity = (
@@ -2171,13 +2169,13 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      jumpToRecent: () => {
+      jumpToRecent: options => {
         set(s => {
           s.validatedOrdinalRange = undefined
         })
-        get().dispatch.loadMoreMessages({reason: 'jump to recent'})
+        get().dispatch.loadMoreMessages({...(options ?? {}), reason: 'jump to recent'})
       },
-      loadMessagesCentered: (messageID, highlightMode) => {
+      loadMessagesCentered: (messageID, highlightMode, options) => {
         get().dispatch.messagesClear()
         get().dispatch.loadMoreMessages({
           centeredMessageID: {
@@ -2191,6 +2189,7 @@ const createSlice =
             num: numMessagesOnInitialLoad,
             pivot: messageID,
           },
+          ...(options ?? {}),
           reason: 'centered',
         })
       },
@@ -2199,7 +2198,7 @@ const createSlice =
           return
         }
         const {scrollDirection: sd = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
-        const {reason, messageIDControl, knownRemotes, centeredMessageID} = p
+        const {reason, messageIDControl, knownRemotes, centeredMessageID, onThreadLoadStatus} = p
 
         const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
           const pagination = {
@@ -2322,9 +2321,7 @@ const createSlice =
                   logger.info(
                     `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${p.status.typ}`
                   )
-                  set(s => {
-                    s.threadLoadStatus = p.status.typ
-                  })
+                  onThreadLoadStatus?.(conversationIDKey, p.status.typ)
                 },
               },
               params: {
@@ -2368,7 +2365,7 @@ const createSlice =
 
         ignorePromise(f())
       }, 500),
-      loadNewerMessagesDueToScroll: numOrdinals => {
+      loadNewerMessagesDueToScroll: (numOrdinals, options) => {
         if (!numOrdinals) {
           return
         }
@@ -2378,6 +2375,7 @@ const createSlice =
         }
 
         get().dispatch.loadMoreMessages({
+          ...(options ?? {}),
           numberOfMessagesToLoad: numMessagesOnScrollback,
           reason: 'scroll forward',
           scrollDirection: 'forward',
@@ -2424,7 +2422,7 @@ const createSlice =
 
         return f()
       },
-      loadOlderMessagesDueToScroll: numOrdinals => {
+      loadOlderMessagesDueToScroll: (numOrdinals, options) => {
         if (!get().moreToLoadBack) {
           logger.info('bail: scrolling back and at the end')
           return
@@ -2439,6 +2437,7 @@ const createSlice =
         }
 
         get().dispatch.loadMoreMessages({
+          ...(options ?? {}),
           numberOfMessagesToLoad: numMessagesOnScrollback,
           reason: 'scroll back',
           scrollDirection: 'back',
@@ -3005,8 +3004,9 @@ const createSlice =
         ignorePromise(f())
       },
       resetState: Z.defaultReset,
-      selectedConversation: skipThreadLoad => {
+      selectedConversation: options => {
         const conversationIDKey = get().id
+        const {skipThreadLoad, ...loadStatusOptions} = options ?? {}
         clearChatTimeCache()
 
         const fetchConversationBio = () => {
@@ -3029,12 +3029,9 @@ const createSlice =
         const participantInfo = get().participants
         const force = !get().isMetaGood() || participantInfo.all.length === 0
         unboxRows([conversationIDKey], force)
-        set(s => {
-          s.threadLoadStatus = T.RPCChat.UIChatThreadStatusTyp.none
-        })
         fetchConversationBio()
         if (!skipThreadLoad) {
-          get().dispatch.loadMoreMessages({reason: 'focused'})
+          get().dispatch.loadMoreMessages({...loadStatusOptions, reason: 'focused'})
         }
       },
       sendAudioRecording: async (path, duration, amps) => {
@@ -3309,8 +3306,8 @@ const createSlice =
         }
         setChatRootParams({conversationIDKey, infoPanel: show ? {tab} : undefined})
       },
-      tabSelected: () => {
-        get().dispatch.loadMoreMessages({reason: 'tab selected'})
+      tabSelected: options => {
+        get().dispatch.loadMoreMessages({...(options ?? {}), reason: 'tab selected'})
         get().dispatch.markThreadAsRead()
       },
       toggleMessageCollapse: (messageID, ordinal) => {

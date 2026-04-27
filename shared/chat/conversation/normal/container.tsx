@@ -10,7 +10,9 @@ import {OrangeLineContext, SetOrangeLineContext} from '../orange-line-context'
 import {ChatTeamProvider} from '../team-hooks'
 import {ConversationCenterProvider} from '../center-context'
 import {ConversationInputProvider} from '../input-area/input-state'
+import {ConversationThreadLoadStatusProvider} from '../thread-load-status-context'
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
+import {useChatThreadRouteParams} from '../thread-search-route'
 
 type OrangeLineState = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -115,21 +117,29 @@ const useShowManageChannels = () => {
 const NormalWrapper = function NormalWrapper() {
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const {orangeLine, setOrangeLine} = useOrangeLine()
+  const routeParams = useChatThreadRouteParams()
+  const skipThreadLoadOnSelection = !!routeParams?.highlightMessageID
   useShowManageChannels()
   return (
     <MaybeMentionProvider>
       <OrangeLineContext value={orangeLine}>
         <SetOrangeLineContext value={setOrangeLine}>
           <ChatTeamProvider>
-            <ConversationCenterProvider key={conversationIDKey} id={conversationIDKey}>
-              <ConversationInputProvider id={conversationIDKey}>
-                <FocusProvider>
-                  <ScrollProvider>
-                    <Normal />
-                  </ScrollProvider>
-                </FocusProvider>
-              </ConversationInputProvider>
-            </ConversationCenterProvider>
+            <ConversationThreadLoadStatusProvider
+              key={conversationIDKey}
+              id={conversationIDKey}
+              skipThreadLoadOnSelection={skipThreadLoadOnSelection}
+            >
+              <ConversationCenterProvider id={conversationIDKey}>
+                <ConversationInputProvider id={conversationIDKey}>
+                  <FocusProvider>
+                    <ScrollProvider>
+                      <Normal />
+                    </ScrollProvider>
+                  </FocusProvider>
+                </ConversationInputProvider>
+              </ConversationCenterProvider>
+            </ConversationThreadLoadStatusProvider>
           </ChatTeamProvider>
         </SetOrangeLineContext>
       </OrangeLineContext>

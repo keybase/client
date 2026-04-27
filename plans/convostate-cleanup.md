@@ -174,7 +174,7 @@ Implementation note: the old `ConvoUIState` compatibility surface has been remov
   - [x] sending while search/highlight is active still closes search and jumps to recent
 - [x] Move mark-unread orange-line UI out of `markedAsUnread` if the normal conversation screen can own it without missing service updates
 - [x] Keep `setMarkAsUnread` server RPC behavior in `convostate` until all call sites use a feature-level action with equivalent fallback loading
-- [ ] Move `threadLoadStatus` to route/list state if `loadMoreMessages` can report status through the feature owner without stale statuses bleeding across conversations
+- [x] Move `threadLoadStatus` to route/list state if `loadMoreMessages` can report status through the feature owner without stale statuses bleeding across conversations
 - [x] Re-evaluate `rowRecycleTypeMap`, `separatorMap`, and `showUsernameMap`:
   - [x] confirm list virtualization does not require precomputed stable row metadata in `convostate`
   - [x] compute them in the list/message layer from `messageOrdinals`, `messageMap`, current username, and adjacent messages
@@ -182,7 +182,7 @@ Implementation note: the old `ConvoUIState` compatibility surface has been remov
 - [x] Add missing tests before moving route/list state:
   - [x] highlight message entry context is route-owned and centered by the mounted conversation provider
   - [x] `setMarkAsUnread(false)` remains a no-op
-  - [x] `threadLoadStatus` resets to `none` on selected conversation
+  - [x] thread-load status resets in the mounted owner and ignores stale conversation callbacks
   - [x] native row recycle types are stable for pending, failed, reply, and reaction rows
 
 Implementation note: highlighted message navigation now travels through `navigateToThread` route params or is loaded immediately when already viewing the same thread. The route highlight param is cleared after selection, and `convostate` no longer stores `pendingJumpMessageID`.
@@ -192,6 +192,8 @@ Implementation note: message-level mark-unread now updates the mounted conversat
 Implementation note: row presentation metadata now derives in `shared/chat/conversation/messages/row-metadata.tsx` instead of long-lived `convostate` maps. Message rows, separators, and native list item recycling compute from `messageOrdinals`, `messageMap`, `messageTypeMap`, current username, and adjacent messages.
 
 Implementation note: centered/highlight state now lives in `shared/chat/conversation/center-context.tsx`, mounted under the normal conversation wrapper. Search, pin/reply jumps, route `highlightMessageID`, attachment jumps, jump-to-recent, and composer-send behavior route through that owner while `convostate.loadMessagesCentered(...)` remains the loading-only RPC path for centered thread fetches. `convostate` no longer stores `messageCenterOrdinal` or exposes `replyJump`.
+
+Implementation note: thread-load banner status now lives in `shared/chat/conversation/thread-load-status-context.tsx`, mounted under the normal conversation wrapper. `convostate.loadMoreMessages(...)` accepts an optional status reporter for visible thread loads, and mounted route/list actions pass that reporter for selected loads, centered loads, jump-to-recent, pagination, and selected stale-thread reloads. `convostate` no longer stores `threadLoadStatus`.
 
 ### Target callers for Chunk 5
 
@@ -206,13 +208,15 @@ Implementation note: centered/highlight state now lives in `shared/chat/conversa
 
 ## Chunk 6: Collapse The Store Surface
 
-- [ ] Remove moved fields from `ConvoStore` and `initialConvoStore`
-- [ ] Remove moved actions from `ConvoState['dispatch']`
-- [ ] Remove dead helpers, imports, registry entries, and test helpers
-- [ ] Keep `getConvoState`, `useConvoState`, `ChatProvider`, `ProviderScreen`, and `useChatContext` for durable thread state
-- [ ] Keep `convo-registry` focused on real conversation stores only
-- [ ] Update tests so `shared/stores/tests/convostate.test.ts` covers only remaining conversation-store behavior
-- [ ] Add colocated feature tests for any state moved out of the store
+- [x] Remove moved fields from `ConvoStore` and `initialConvoStore`
+- [x] Remove moved actions from `ConvoState['dispatch']`
+- [x] Remove dead helpers, imports, registry entries, and test helpers
+- [x] Keep `getConvoState`, `useConvoState`, `ChatProvider`, `ProviderScreen`, and `useChatContext` for durable thread state
+- [x] Keep `convo-registry` focused on real conversation stores only
+- [x] Update tests so `shared/stores/tests/convostate.test.ts` covers only remaining conversation-store behavior
+- [x] Add colocated feature tests for any state moved out of the store
+
+Implementation note: the remaining dispatch actions that are still called from mounted feature owners perform durable message loading, message-cache injection, send/edit/reply posting, or server-side read/unread/bot mutations. The moved UI state fields and their compatibility actions are gone from `convostate`.
 
 ## Validation
 
@@ -227,7 +231,7 @@ Implementation note: centered/highlight state now lives in `shared/chat/conversa
 - [ ] Mark a thread unread and confirm the orange line and badge behavior
 - [ ] Receive typing, badge, stale-thread, reaction, payment, unfurl, attachment-progress, and message-update notifications
 - [ ] Switch conversations rapidly without leaking input state between threads
-- [ ] No new module-level mutable cache is introduced as a replacement for Zustand
+- [x] No new module-level mutable cache is introduced as a replacement for Zustand
 
 ## Local Validation Constraint
 

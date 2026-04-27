@@ -19,6 +19,7 @@ import {ScrollContext} from '../normal/context'
 import noop from 'lodash/noop'
 import * as RowMetadata from '../messages/row-metadata'
 import {useConversationCenter} from '../center-context'
+import {useThreadLoadStatusReporter} from '../thread-load-status-context'
 // import {useDebugLayout} from '@/util/debug-react'
 
 // TODO if we bring flashlist back bring back the patch
@@ -45,6 +46,7 @@ const useScrolling = (p: {
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = ConvoState.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+  const onThreadLoadStatus = useThreadLoadStatusReporter()
   const [scrollToBottom] = React.useState(() => () => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   })
@@ -83,7 +85,7 @@ const useScrolling = (p: {
   })
 
   const onEndReached = () => {
-    loadOlderMessages(numOrdinals)
+    loadOlderMessages(numOrdinals, {onThreadLoadStatus})
   }
 
   return {

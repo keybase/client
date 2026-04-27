@@ -1140,7 +1140,7 @@ test('selectedConversation can defer thread load for route-owned highlight', () 
     dispatch: {...current.dispatch, loadMoreMessages},
   })
 
-  store.getState().dispatch.selectedConversation(true)
+  store.getState().dispatch.selectedConversation({skipThreadLoad: true})
   store.getState().dispatch.selectedConversation()
 
   expect(loadMoreMessages).toHaveBeenCalledTimes(1)
@@ -1226,20 +1226,38 @@ test('setMarkAsUnread loads a tiny thread window when the message map is empty',
   })
 })
 
-test('selectedConversation resets threadLoadStatus', () => {
+test('loadMoreMessages reports thread load status through the UI callback', async () => {
   const store = createStore()
-  jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
-  const loadMoreMessages = makeLoadMoreMessagesMock()
-  const current = store.getState()
-  store.setState({
-    ...current,
-    dispatch: {...current.dispatch, loadMoreMessages},
-    threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.server,
+  const statuses: Array<T.RPCChat.UIChatThreadStatusTyp> = []
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadStatus']?.({
+      status: {typ: T.RPCChat.UIChatThreadStatusTyp.server},
+    })
+    p.incomingCallMap['chat.1.chatUi.chatThreadStatus']?.({
+      status: {typ: T.RPCChat.UIChatThreadStatusTyp.validating, validating: 0},
+    })
+    p.incomingCallMap['chat.1.chatUi.chatThreadStatus']?.({
+      status: {typ: T.RPCChat.UIChatThreadStatusTyp.validated},
+    })
+    await Promise.resolve()
+    return {offline: false}
   })
 
-  store.getState().dispatch.selectedConversation()
+  store.getState().dispatch.loadMoreMessages({
+    onThreadLoadStatus: (conversationIDKey, status) => {
+      if (conversationIDKey === convID) {
+        statuses.push(status)
+      }
+    },
+    reason: 'centered',
+  })
+  await flushPromises()
 
-  expect(store.getState().threadLoadStatus).toBe(T.RPCChat.UIChatThreadStatusTyp.none)
+  expect(statuses).toEqual([
+    T.RPCChat.UIChatThreadStatusTyp.server,
+    T.RPCChat.UIChatThreadStatusTyp.validating,
+    T.RPCChat.UIChatThreadStatusTyp.validated,
+  ])
 })
 
 test('syncBadgeState updates listed conversations and clears missing badges', () => {
