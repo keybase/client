@@ -4,6 +4,8 @@ import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as InputState from '../../input-area/input-state'
+import * as RowMetadata from '../row-metadata'
 import {MessageContext, useOrdinal} from '../ids-context'
 import EmojiRow from '../emoji-row'
 import ExplodingHeightRetainer from './exploding-height-retainer'
@@ -18,7 +20,8 @@ import {useEdited} from './edited'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
-import type {ConvoState as ConvoStateType, ConvoUIState} from '@/stores/convostate'
+import type {ConvoState as ConvoStateType} from '@/stores/convostate'
+import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMembers} from '../../team-hooks'
 
 export type Props = {
@@ -67,7 +70,7 @@ type RowActions = Pick<
   ConvoStateType['dispatch'],
   'messageDelete' | 'messageRetry' | 'replyJump' | 'toggleMessageReaction'
 > &
-  Pick<ConvoUIState['dispatch'], 'setEditing' | 'setReplyTo'>
+  Pick<ConversationInputState['dispatch'], 'setEditing' | 'setReplyTo'>
 
 type EditCancelRetryData = {
   failureDescription: string
@@ -98,7 +101,7 @@ const emptyAuthorData: FlatAuthorData = {
 
 const getRowActions = (
   dispatch: ConvoStateType['dispatch'],
-  uiDispatch: Pick<ConvoUIState['dispatch'], 'setEditing' | 'setReplyTo'>
+  uiDispatch: Pick<ConversationInputState['dispatch'], 'setEditing' | 'setReplyTo'>
 ): RowActions => {
   const {messageDelete, messageRetry, replyJump, toggleMessageReaction} = dispatch
   const {setEditing, setReplyTo} = uiDispatch
@@ -354,14 +357,15 @@ const getEditCancelRetryData = (
 // Combined selector hook that fetches all common wrapper data in a single subscription.
 export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
   const you = useCurrentUserState(s => s.username)
-  const editing = ConvoState.useChatUIContext(s => s.editing)
-  const uiDispatch = ConvoState.useChatUIContext(
+  const editing = InputState.useConversationInput(s => s.editing)
+  const uiDispatch = InputState.useConversationInput(
     C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
   )
 
   return ConvoState.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal) ?? missingMessage
+      const messageOrdinals = s.messageOrdinals ?? []
       const commonData = getCommonMessageData({
         accountsInfoMap: s.accountsInfoMap,
         editing,
@@ -373,11 +377,18 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
+      const showUsername = RowMetadata.getMessageShowUsername({
+        message,
+        messageMap: s.messageMap,
+        messageOrdinals,
+        ordinal,
+        you,
+      })
       return {
         ...commonData,
         ...getEditCancelRetryData(commonData.ecrType, message),
         ...getRowActions(s.dispatch, uiDispatch),
-        ...getAuthorData(message, s.meta, s.participants, s.showUsernameMap.get(ordinal) ?? ''),
+        ...getAuthorData(message, s.meta, s.participants, showUsername),
       }
     })
   )
@@ -385,14 +396,15 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
 
 const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
   const you = useCurrentUserState(s => s.username)
-  const editing = ConvoState.useChatUIContext(s => s.editing)
-  const uiDispatch = ConvoState.useChatUIContext(
+  const editing = InputState.useConversationInput(s => s.editing)
+  const uiDispatch = InputState.useConversationInput(
     C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
   )
 
   return ConvoState.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal) ?? missingMessage
+      const messageOrdinals = s.messageOrdinals ?? []
       const commonData = getCommonMessageData({
         accountsInfoMap: s.accountsInfoMap,
         editing,
@@ -404,11 +416,18 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
+      const showUsername = RowMetadata.getMessageShowUsername({
+        message,
+        messageMap: s.messageMap,
+        messageOrdinals,
+        ordinal,
+        you,
+      })
       return {
         ...commonData,
         ...getEditCancelRetryData(commonData.ecrType, message),
         ...getRowActions(s.dispatch, uiDispatch),
-        ...getAuthorData(message, s.meta, s.participants, s.showUsernameMap.get(ordinal) ?? ''),
+        ...getAuthorData(message, s.meta, s.participants, showUsername),
         message,
       }
     })

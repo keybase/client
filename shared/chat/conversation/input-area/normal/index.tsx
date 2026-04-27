@@ -6,6 +6,7 @@ import * as React from 'react'
 import CommandMarkdown from '../../command-markdown'
 import CommandStatus from '../../command-status'
 import Giphy from '../../giphy'
+import * as InputState from '../input-state'
 import PlatformInput from './input'
 import ReplyPreview from '../../reply-preview'
 import * as T from '@/constants/types'
@@ -70,10 +71,10 @@ const useHintText = (p: {
 }
 
 const Input = function Input() {
-  const showGiphySearch = ConvoState.useChatUIContext(s => s.giphyWindow)
-  const showCommandMarkdown = ConvoState.useChatContext(s => !!s.commandMarkdown)
-  const showCommandStatus = ConvoState.useChatUIContext(s => !!s.commandStatus)
-  const replyTo = ConvoState.useChatUIContext(s => s.replyTo)
+  const showGiphySearch = InputState.useConversationInput(s => s.giphyWindow)
+  const showCommandMarkdown = InputState.useConversationInput(s => !!s.commandMarkdown)
+  const showCommandStatus = InputState.useConversationInput(s => !!s.commandStatus)
+  const replyTo = InputState.useConversationInput(s => s.replyTo)
   const showReplyTo = ConvoState.useChatContext(s => !!s.messageMap.get(replyTo)?.id)
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
@@ -114,7 +115,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
   const params = getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)
   const infoPanelShowing = !!(params && typeof params === 'object' && 'infoPanel' in params && params.infoPanel)
-  const uiData = ConvoState.useChatUIContext(
+  const uiData = InputState.useConversationInput(
     C.useShallow(s => ({
       editOrdinal: s.editing,
       replyTo: s.replyTo,
@@ -124,10 +125,9 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const data = ConvoState.useChatContext(
     C.useShallow(s => {
       const {meta, id: conversationIDKey, messageMap} = s
-      const {sendMessage, jumpToRecent, setExplodingMode} = s.dispatch
+      const {jumpToRecent, setExplodingMode} = s.dispatch
       const {cannotWrite, minWriterRole, tlfname} = meta
       const showReplyPreview = !!messageMap.get(uiData.replyTo)?.id
-      const suggestBotCommandsUpdateStatus = s.botCommandsUpdateStatus
       const convoID = s.getConvID()
       const metaGood = s.isMetaGood()
       const storeDraft = metaGood ? meta.draft : undefined
@@ -139,19 +139,20 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
           : explodingMode
       // prettier-ignore
       return {cannotWrite, conversationIDKey, convoID, explodingMode, explodingModeSeconds,
-        jumpToRecent, minWriterRole, sendMessage, setExplodingMode, showReplyPreview,
-        storeDraft, suggestBotCommandsUpdateStatus, tlfname}
+        jumpToRecent, minWriterRole, setExplodingMode, showReplyPreview,
+        storeDraft, tlfname}
     })
   )
 
   const {cannotWrite, conversationIDKey, setExplodingMode: setExplodingModeRaw} = data
-  const {jumpToRecent, minWriterRole, sendMessage} = data
+  const {jumpToRecent, minWriterRole} = data
   const {explodingModeSeconds: explodingModeSecondsRaw, convoID, tlfname, storeDraft} = data
-  const {suggestBotCommandsUpdateStatus, showReplyPreview} = data
+  const {showReplyPreview} = data
   const {editOrdinal, unsentText} = uiData
   const isEditing = !!editOrdinal
-  const setEditing = ConvoState.useChatUIContext(s => s.dispatch.setEditing)
-  const updateUnsentText = ConvoState.useChatUIContext(s => s.dispatch.injectIntoInput)
+  const setEditing = InputState.useConversationInput(s => s.dispatch.setEditing)
+  const updateUnsentText = InputState.useConversationInput(s => s.dispatch.injectIntoInput)
+  const sendComposerText = InputState.useConversationInput(s => s.dispatch.sendComposerText)
 
   const isExploding = explodingModeSecondsRaw !== 0
 
@@ -176,7 +177,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const onSubmit = (text: string) => {
     if (!text) return
     injectText('', true)
-    sendMessage(text)
+    sendComposerText(text)
     const cs = ConvoState.getConvoState(conversationIDKey)
     if (cs.messageCenterOrdinal) {
       cs.dispatch.toggleThreadSearch(true)
@@ -263,7 +264,6 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     <PlatformInput
       hintText={hintText}
       suggestionOverlayStyle={suggestionOverlayStyle}
-      suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
       onSubmit={onSubmit}
       setInputRef={setLocalInputRef}
       onChangeText={onChangeText}

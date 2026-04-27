@@ -2,9 +2,10 @@ import {zoomImage} from '@/constants/chat/helpers'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as InputState from './input-area/input-state'
 
 const ReplyPreview = () => {
-  const rordinal = ConvoState.useChatUIContext(s => s.replyTo)
+  const rordinal = InputState.useConversationInput(s => s.replyTo)
   const message = ConvoState.useChatContext(s => {
     return rordinal ? s.messageMap.get(rordinal) : null
   })
@@ -31,7 +32,7 @@ const ReplyPreview = () => {
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
   const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 80) : null
-  const setReplyTo = ConvoState.useChatUIContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = InputState.useConversationInput(s => s.dispatch.setReplyTo)
   const onCancel = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))
   }

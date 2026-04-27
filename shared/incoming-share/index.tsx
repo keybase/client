@@ -5,6 +5,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {MobileSendToChat} from '../chat/send-to-chat'
+import {injectConversationInputText} from '@/chat/conversation/input-area/input-state'
 import {settingsFeedbackTab} from '@/constants/settings'
 import * as FS from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
@@ -201,7 +202,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
     if (!canDirectNav || hasNavigatedRef.current) return
     hasNavigatedRef.current = true
     if (text) {
-      ConvoState.getConvoUIState(selectedConversationIDKey).dispatch.injectIntoInput(text)
+      injectConversationInputText(selectedConversationIDKey, text)
     }
     C.Router2.navigateToThread(selectedConversationIDKey, 'extension')
     if (sendPaths.length > 0) {

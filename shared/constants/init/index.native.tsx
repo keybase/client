@@ -30,7 +30,8 @@ import {initPushListener, getStartupDetailsFromInitialPush} from './push-listene
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {noConversationIDKey} from '../types/chat/common'
 import {getSelectedConversation} from '../chat/common'
-import {getConvoState, getConvoUIState} from '@/stores/convostate'
+import {getConvoState} from '@/stores/convostate'
+import {setConversationInputCommandStatus} from '@/chat/conversation/input-area/input-state'
 import {requestLocationPermission} from '@/util/platform-specific/index.native'
 import * as ScreenCapture from 'expo-screen-capture'
 import {getSecureFlagSetting} from '@/constants/platform.native'
@@ -159,7 +160,7 @@ const ensureBackgroundTask = () => {
 }
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
-  getConvoUIState(conversationIDKey).dispatch.setCommandStatusInfo({
+  setConversationInputCommandStatus(conversationIDKey, {
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
     displayText: text,
     displayType: T.RPCChat.UICommandStatusDisplayTyp.error,

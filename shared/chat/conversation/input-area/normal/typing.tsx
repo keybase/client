@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
+import * as InputState from '../input-state'
 
 const Names = (props: {names?: ReadonlySet<string>}) => {
   const textType = 'BodyTinySemibold'
@@ -44,12 +45,16 @@ const Names = (props: {names?: ReadonlySet<string>}) => {
 const emptySet = new Set<string>()
 
 const Typing = function Typing() {
-  const showGiphySearch = ConvoState.useChatUIContext(s => s.giphyWindow)
+  const {showCommandMarkdown, showGiphySearch} = InputState.useConversationInput(
+    C.useShallow(s => ({
+      showCommandMarkdown: !!s.commandMarkdown,
+      showGiphySearch: s.giphyWindow,
+    }))
+  )
   const names = ConvoState.useChatContext(
     C.useShallow(s => {
       const names = s.typing
       if (!C.isMobile) return names
-      const showCommandMarkdown = !!s.commandMarkdown
       const showTypingStatus = !showGiphySearch && !showCommandMarkdown
       return showTypingStatus ? names : emptySet
     })

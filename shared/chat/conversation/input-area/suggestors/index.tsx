@@ -46,7 +46,7 @@ const suggestorToMarker = {
 
 type UseSuggestorsProps = Pick<
   Props,
-  'onChangeText' | 'suggestBotCommandsUpdateStatus' | 'suggestionOverlayStyle'
+  'onChangeText' | 'suggestionOverlayStyle'
 > & {
   suggestionListStyle: Kb.Styles.StylesCrossPlatform
   suggestionSpinnerStyle: Kb.Styles.StylesCrossPlatform
@@ -286,7 +286,9 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const [filter, setFilter] = React.useState('')
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
   const {onChangeText: onChangeTextProps} = p
-  const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle} = p
+  const {suggestionSpinnerStyle} = p
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const botCommandsUpdateState = Commands.useBotCommandsUpdateState(conversationIDKey)
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
     inputRef,
@@ -348,7 +350,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     setOnMoveRef,
     setOnSubmitRef,
     spinnerStyle: suggestionSpinnerStyle,
-    suggestBotCommandsUpdateStatus,
+    suggestBotCommandsUpdateStatus: botCommandsUpdateState.status,
   }
 
   let content: React.ReactNode = null
@@ -357,7 +359,14 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
       content = <Channels.List {...listProps} />
       break
     case 'commands':
-      content = <Commands.List {...listProps} inputRef={inputRef} lastTextRef={lastTextRef} />
+      content = (
+        <Commands.List
+          {...listProps}
+          botSettings={botCommandsUpdateState.settings}
+          inputRef={inputRef}
+          lastTextRef={lastTextRef}
+        />
+      )
       break
     case 'emoji':
       content = <Emoji.List {...listProps} />

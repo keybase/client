@@ -8,9 +8,7 @@ import {resetAllStores} from '../../util/zustand'
 import {useCurrentUserState} from '../current-user'
 import {
   createConvoStoreForTesting,
-  createConvoStoresForTesting,
   type ConvoState,
-  type ConvoUIState,
   getConvoState,
   syncBadgeState,
 } from '../convostate'
@@ -233,18 +231,6 @@ const applyState = (
   })
 }
 
-const applyUIState = (
-  store: {getState: () => any; setState: (state: any) => void},
-  partial: Partial<ConvoUIState>
-) => {
-  const current = store.getState()
-  store.setState({
-    ...current,
-    ...partial,
-    dispatch: current.dispatch,
-  })
-}
-
 const createStore = () => createConvoStoreForTesting(convID)
 
 const seedStore = (
@@ -282,8 +268,6 @@ const seedStore = (
     messageTypeMap,
     meta: makeMeta(),
     pendingOutboxToOrdinal,
-    separatorMap: new Map(),
-    showUsernameMap: new Map(),
     ...extra,
   })
   return store
@@ -299,8 +283,6 @@ const seedStoreWithAnchoredMessage = () => {
     messageTypeMap: new Map(),
     meta: makeMeta(),
     pendingOutboxToOrdinal: new Map([[outboxID, ordinal]]),
-    separatorMap: new Map([[ordinal, T.Chat.numberToOrdinal(0)]]),
-    showUsernameMap: new Map([[ordinal, 'alice']]),
   }
   applyState(store, {
     ...baseState,
@@ -341,7 +323,7 @@ test('updateCoinFlipStatus stores coin flip status by game ID in the convo store
   expect(store.getState().flipStatusMap.get(status.gameID)).toEqual(status)
 })
 
-test('onMessagesUpdated adds messages and recomputes derived thread maps', () => {
+test('onMessagesUpdated adds messages and updates message indexes', () => {
   jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
 
   const store = createStore()
@@ -361,10 +343,6 @@ test('onMessagesUpdated adds messages and recomputes derived thread maps', () =>
     T.Chat.numberToOrdinal(302),
   ])
   expect(store.getState().messageIDToOrdinal.get(firstMsgID)).toBe(T.Chat.numberToOrdinal(301))
-  expect(store.getState().separatorMap.get(T.Chat.numberToOrdinal(301))).toBe(T.Chat.numberToOrdinal(0))
-  expect(store.getState().separatorMap.get(T.Chat.numberToOrdinal(302))).toBe(T.Chat.numberToOrdinal(301))
-  expect(store.getState().showUsernameMap.get(T.Chat.numberToOrdinal(301))).toBe('bob')
-  expect(store.getState().showUsernameMap.get(T.Chat.numberToOrdinal(302))).toBe('')
   expect(store.getState().messageTypeMap.size).toBe(0)
 })
 
@@ -395,7 +373,31 @@ test('onMessagesUpdated still applies to unopened active conversations', () => {
   expect(store.getState().messageMap.get(T.Chat.numberToOrdinal(402))?.id).toBe(msgID)
 })
 
-test('message updates refresh derived metadata for the following row', () => {
+test('galleryMessagesLoaded injects gallery-only messages without marking read', () => {
+  const threadMessage = makeTextMessage({
+    id: T.Chat.numberToMessageID(301),
+    ordinal: T.Chat.numberToOrdinal(301),
+  })
+  const galleryMessage = makeAttachmentMessage({
+    conversationMessage: false,
+    id: T.Chat.numberToMessageID(501),
+    ordinal: T.Chat.numberToOrdinal(501),
+  })
+  const store = seedStore([threadMessage])
+  const markThreadAsRead = jest.spyOn(store.getState().dispatch, 'markThreadAsRead')
+
+  store.getState().dispatch.galleryMessagesLoaded([galleryMessage])
+
+  expect(store.getState().messageMap.get(galleryMessage.ordinal)).toEqual(galleryMessage)
+  expect(store.getState().messageOrdinals).toEqual([threadMessage.ordinal])
+  expect(store.getState().messageIDToOrdinal.get(galleryMessage.id)).toBe(galleryMessage.ordinal)
+  expect(store.getState().messageTypeMap.get(galleryMessage.ordinal)).toBe(
+    Message.getMessageRenderType(galleryMessage)
+  )
+  expect(markThreadAsRead).not.toHaveBeenCalled()
+})
+
+test('message updates merge into the existing message row', () => {
   const firstOrdinal = T.Chat.numberToOrdinal(301)
   const secondOrdinal = T.Chat.numberToOrdinal(302)
   const firstMsgID = T.Chat.numberToMessageID(301)
@@ -421,9 +423,10 @@ test('message updates refresh derived metadata for the following row', () => {
     updates: [makeValidTextUIMessage(firstMsgID, 'edited first', {author: 'alice', timestamp: 100})],
   })
 
-  expect(store.getState().showUsernameMap.get(firstOrdinal)).toBe('alice')
-  expect(store.getState().showUsernameMap.get(secondOrdinal)).toBe('bob')
-  expect(store.getState().separatorMap.get(secondOrdinal)).toBe(firstOrdinal)
+  const firstMessage = store.getState().messageMap.get(firstOrdinal)
+  expect(firstMessage?.author).toBe('alice')
+  expect(firstMessage?.type === 'text' ? firstMessage.text.stringValue() : undefined).toBe('edited first')
+  expect(store.getState().messageMap.has(secondOrdinal)).toBe(true)
 })
 
 test('reaction updates preserve outbox-anchored row identity', () => {
@@ -502,7 +505,7 @@ test('message deletion removes the row but preserves the outbox anchor', () => {
   expect(store.getState().messageIDToOrdinal.has(msgID)).toBe(false)
 })
 
-test('message deletion refreshes derived metadata for the next row', () => {
+test('message deletion removes the ordinal and keeps the next row', () => {
   const firstOrdinal = T.Chat.numberToOrdinal(401)
   const secondOrdinal = T.Chat.numberToOrdinal(402)
   const store = seedStore([
@@ -525,9 +528,8 @@ test('message deletion refreshes derived metadata for the next row', () => {
   store.getState().dispatch.messagesWereDeleted({ordinals: [firstOrdinal]})
 
   expect(store.getState().messageOrdinals).toEqual([secondOrdinal])
-  expect(store.getState().separatorMap.has(firstOrdinal)).toBe(false)
-  expect(store.getState().showUsernameMap.get(secondOrdinal)).toBe('bob')
-  expect(store.getState().separatorMap.get(secondOrdinal)).toBe(T.Chat.numberToOrdinal(0))
+  expect(store.getState().messageMap.has(firstOrdinal)).toBe(false)
+  expect(store.getState().messageMap.get(secondOrdinal)?.author).toBe('bob')
 })
 
 test('message deletion up to a message ID honors deletable message types', () => {
@@ -585,8 +587,6 @@ test('messagesClear resets all message indexes and maps', () => {
   const store = seedStoreWithAnchoredMessage()
   applyState(store, {
     loaded: true,
-    separatorMap: new Map([[ordinal, T.Chat.numberToOrdinal(0)]]),
-    showUsernameMap: new Map([[ordinal, 'alice']]),
     validatedOrdinalRange: {from: ordinal, to: ordinal},
   })
   store.getState().dispatch.messagesClear()
@@ -596,8 +596,6 @@ test('messagesClear resets all message indexes and maps', () => {
   expect(store.getState().messageTypeMap.size).toBe(0)
   expect(store.getState().pendingOutboxToOrdinal.size).toBe(0)
   expect(store.getState().messageIDToOrdinal.size).toBe(0)
-  expect(store.getState().separatorMap.size).toBe(0)
-  expect(store.getState().showUsernameMap.size).toBe(0)
   expect(store.getState().validatedOrdinalRange).toBeUndefined()
 })
 
@@ -613,8 +611,6 @@ test('server ack preserves the outbox-anchored ordinal and later msgID lookups h
     messageTypeMap: new Map(),
     meta: makeMeta(),
     pendingOutboxToOrdinal: new Map([[outboxID, pendingOrdinal]]),
-    separatorMap: new Map([[pendingOrdinal, T.Chat.numberToOrdinal(0)]]),
-    showUsernameMap: new Map([[pendingOrdinal, 'alice']]),
   }
   applyState(store, baseState)
 
@@ -700,65 +696,8 @@ test('onMessageErrored marks the pending message as failed and leaves unknown ou
   expect(message?.errorTyp).toBe(7)
 })
 
-test('setEditing last picks the latest editable local message and injects its content', () => {
-  const attachmentOrdinal = T.Chat.numberToOrdinal(703)
-  const {convoStore: store, uiStore} = createConvoStoresForTesting(convID)
-  applyState(store, seedStore([
-    makeTextMessage({
-      author: 'bob',
-      id: T.Chat.numberToMessageID(701),
-      ordinal: T.Chat.numberToOrdinal(701),
-      outboxID: T.Chat.stringToOutboxID('someone-else'),
-    }),
-    makeTextMessage({
-      exploded: true,
-      id: T.Chat.numberToMessageID(702),
-      ordinal: T.Chat.numberToOrdinal(702),
-      outboxID: T.Chat.stringToOutboxID('exploded-self'),
-      text: 'ignore me',
-    }),
-    makeAttachmentMessage({
-      id: T.Chat.numberToMessageID(703),
-      ordinal: attachmentOrdinal,
-      outboxID: T.Chat.stringToOutboxID('editable-attachment'),
-      title: 'picked attachment title',
-    }),
-  ]).getState())
-
-  uiStore.getState().dispatch.setEditing('last')
-
-  expect(uiStore.getState().editing).toBe(attachmentOrdinal)
-  expect(uiStore.getState().unsentText).toBe('picked attachment title')
-})
-
-test('setEditing clear resets editing state and clears unsent text', () => {
-  const {uiStore} = createConvoStoresForTesting(convID)
-  applyUIState(uiStore, {
-    editing: ordinal,
-    unsentText: 'draft text',
-  })
-
-  uiStore.getState().dispatch.setEditing('clear')
-
-  expect(uiStore.getState().editing).toBe(T.Chat.numberToOrdinal(0))
-  expect(uiStore.getState().unsentText).toBe('')
-})
-
-test('setMeta adopts the server draft once when the meta becomes good', () => {
-  const {convoStore: store, uiStore} = createConvoStoresForTesting(convID)
-
-  store.getState().dispatch.setMeta(makeMeta({draft: 'server draft'}))
-  expect(store.getState().isMetaGood()).toBe(true)
-  expect(uiStore.getState().unsentText).toBe('server draft')
-
-  uiStore.getState().dispatch.injectIntoInput('local draft')
-  store.getState().dispatch.setMeta(makeMeta({draft: 'new server draft'}))
-
-  expect(uiStore.getState().unsentText).toBe('local draft')
-})
-
-test('local setters update participants, reply target, and badge', () => {
-  const {convoStore: store, uiStore} = createConvoStoresForTesting(convID)
+test('local setters update participants and badge', () => {
+  const store = createStore()
   const participants: ConvoState['participants'] = {
     all: ['alice', 'bob'],
     contactName: new Map([['bob', 'Bobby']]),
@@ -766,12 +705,53 @@ test('local setters update participants, reply target, and badge', () => {
   }
 
   store.getState().dispatch.setParticipants(participants)
-  uiStore.getState().dispatch.setReplyTo(ordinal)
   store.getState().dispatch.badgesUpdated(3)
 
   expect(store.getState().participants).toEqual(participants)
-  expect(uiStore.getState().replyTo).toBe(ordinal)
   expect(store.getState().badge).toBe(3)
+})
+
+test('highlight message is consumed once by selectedConversation', () => {
+  const store = createStore()
+  jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+  const loadMessagesCentered = jest.fn()
+  const loadMoreMessages = jest.fn()
+  const current = store.getState()
+  store.setState({
+    ...current,
+    dispatch: {...current.dispatch, loadMessagesCentered, loadMoreMessages},
+  })
+
+  store.getState().dispatch.selectedConversation(msgID)
+  store.getState().dispatch.selectedConversation()
+
+  expect(loadMessagesCentered).toHaveBeenCalledTimes(1)
+  expect(loadMessagesCentered).toHaveBeenCalledWith(msgID, 'flash')
+  expect(loadMoreMessages).toHaveBeenCalledTimes(1)
+})
+
+test('setMarkAsUnread false is a no-op', () => {
+  const store = createStore()
+  const markAsRead = jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue(undefined)
+
+  store.getState().dispatch.setMarkAsUnread(false)
+
+  expect(markAsRead).not.toHaveBeenCalled()
+})
+
+test('selectedConversation resets threadLoadStatus', () => {
+  const store = createStore()
+  jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+  const current = store.getState()
+  store.setState({
+    ...current,
+    dispatch: {...current.dispatch, loadMoreMessages: jest.fn()},
+    threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.server,
+  })
+
+  store.getState().dispatch.selectedConversation()
+
+  expect(store.getState().threadLoadStatus).toBe(T.RPCChat.UIChatThreadStatusTyp.none)
 })
 
 test('syncBadgeState updates listed conversations and clears missing badges', () => {

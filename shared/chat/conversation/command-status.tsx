@@ -1,6 +1,6 @@
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import * as InputState from './input-area/input-state'
 import {openAppSettings} from '@/util/storeless-actions'
 
 const empty = {
@@ -10,10 +10,10 @@ const empty = {
 }
 
 const Container = () => {
-  const info = ConvoState.useChatUIContext(s => s.commandStatus)
+  const info = InputState.useConversationInput(s => s.commandStatus)
   const _info = info || empty
 
-  const setCommandStatusInfo = ConvoState.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
+  const setCommandStatusInfo = InputState.useConversationInput(s => s.dispatch.setCommandStatusInfo)
   const onCancel = () => {
     setCommandStatusInfo()
   }

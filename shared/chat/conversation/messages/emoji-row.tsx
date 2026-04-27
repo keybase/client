@@ -1,5 +1,6 @@
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
+import * as InputState from '../input-area/input-state'
 import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
@@ -19,7 +20,7 @@ type OwnProps = {
 function EmojiRowContainer(p: OwnProps) {
   const {className, hasUnfurls, messageType, onReact: onReactProp, onReply: onReplyProp, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
-  const setReplyTo = ConvoState.useChatUIContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = InputState.useConversationInput(s => s.dispatch.setReplyTo)
   const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
   const emojis = useReactionRowTopReacjis()
   const navigateAppend = ConvoState.useChatNavigateAppend()

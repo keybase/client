@@ -1,5 +1,6 @@
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
+import * as InputState from '../input-state'
 
 type Props = {
   onHidden: () => void
@@ -8,7 +9,7 @@ type Props = {
 
 const MoreMenuPopup = (props: Props) => {
   const {onHidden, visible} = props
-  const injectIntoInput = ConvoState.useChatUIContext(s => s.dispatch.injectIntoInput)
+  const injectIntoInput = InputState.useConversationInput(s => s.dispatch.injectIntoInput)
   const navigateAppend = ConvoState.useChatNavigateAppend()
   const onLocationShare = () => {
     navigateAppend(conversationIDKey => ({name: 'chatLocationPreview', params: {conversationIDKey}}))

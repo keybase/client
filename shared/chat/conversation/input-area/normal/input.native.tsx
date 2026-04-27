@@ -471,7 +471,6 @@ const PlatformInput = (p: Props) => {
     expanded,
     inputRef,
     onChangeText: p.onChangeText,
-    suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
     suggestionListStyle,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
     suggestionSpinnerStyle,

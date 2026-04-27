@@ -3,6 +3,7 @@ import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Hooks from './hooks'
 import * as React from 'react'
+import * as InputState from '../input-area/input-state'
 import {PerfProfiler} from '@/perf/react-profiler'
 import * as T from '@/constants/types'
 import Separator from '../messages/separator'
@@ -337,7 +338,7 @@ const useScrolling = (p: {
   }, [scrollDown, scrollToBottom, scrollUp, setScrollRef])
 
   // go to editing message
-  const editingOrdinal = ConvoState.useChatUIContext(s => s.editing)
+  const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const lastEditingOrdinalRef = React.useRef(0)
   React.useEffect(() => {
     if (lastEditingOrdinalRef.current === editingOrdinal) return
@@ -450,7 +451,7 @@ const useItems = (p: {
 
 const noOrdinals = new Array<T.Chat.Ordinal>()
 const ThreadWrapper = function ThreadWrapper() {
-  const editingOrdinal = ConvoState.useChatUIContext(s => s.editing)
+  const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const data = ConvoState.useChatContext(
     C.useShallow(s => {
       const {id: conversationIDKey} = s

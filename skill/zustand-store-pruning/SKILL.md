@@ -86,6 +86,8 @@ useEngineActionListener('keybase.1.homeUI.homeUIRefresh', () => {
 
 and let `shared/constants/init/shared.tsx` remain the single engine entrypoint that fans out to both global stores and typed feature listeners.
 
+When moving notification-fed state into mounted React hooks, do not reset local state with synchronous `setState` inside `useEffect`; this violates `react-hooks/set-state-in-effect` and causes cascading renders. Prefer deriving a blank/reset view from the current owner key during render, remounting an owner provider with `key`, or updating state only from the external subscription callback.
+
 Move it to route params if it is:
 
 - Data screen A already knows and screen B only needs for that navigation

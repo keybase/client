@@ -6,8 +6,9 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import Normal from '.'
 import * as T from '@/constants/types'
 import {FocusProvider, ScrollProvider} from './context'
-import {OrangeLineContext} from '../orange-line-context'
+import {OrangeLineContext, SetOrangeLineContext} from '../orange-line-context'
 import {ChatTeamProvider} from '../team-hooks'
+import {ConversationInputProvider} from '../input-area/input-state'
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
 
 type OrangeLineState = {
@@ -75,26 +76,7 @@ const useOrangeLine = () => {
     }
   }, [id, loaded, savedReadMsgID])
 
-  const {markedAsUnread, maxVisibleMsgID} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {maxVisibleMsgID} = s.meta
-      const {markedAsUnread} = s
-      return {markedAsUnread, maxVisibleMsgID}
-    })
-  )
-
-  // unread changed things
-  const lastMarkedAsUnreadRef = React.useRef(markedAsUnread)
-  React.useEffect(() => {
-    if (lastMarkedAsUnreadRef.current !== markedAsUnread) {
-      lastMarkedAsUnreadRef.current = markedAsUnread
-      setOrangeLineState(state =>
-        state.conversationIDKey === id
-          ? {...state, orangeLine: T.Chat.numberToOrdinal(markedAsUnread)}
-          : state
-      )
-    }
-  }, [id, markedAsUnread])
+  const maxVisibleMsgID = ConvoState.useChatContext(s => s.meta.maxVisibleMsgID)
 
   // just use the rpc for orange line if we're not active
   // if we are active we want to keep whatever state we had so it is maintained
@@ -104,7 +86,12 @@ const useOrangeLine = () => {
     }
   }, [maxVisibleMsgID, active, id])
 
-  return currentOrangeLineState.orangeLine
+  const setOrangeLine = (messageID: T.Chat.MessageID) => {
+    const orangeLine = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(messageID))
+    setOrangeLineState(state => (state.conversationIDKey === id ? {...state, orangeLine} : state))
+  }
+
+  return {orangeLine: currentOrangeLineState.orangeLine, setOrangeLine}
 }
 
 const useShowManageChannels = () => {
@@ -125,18 +112,23 @@ const useShowManageChannels = () => {
 }
 
 const NormalWrapper = function NormalWrapper() {
-  const orangeLine = useOrangeLine()
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const {orangeLine, setOrangeLine} = useOrangeLine()
   useShowManageChannels()
   return (
     <MaybeMentionProvider>
       <OrangeLineContext value={orangeLine}>
-        <ChatTeamProvider>
-          <FocusProvider>
-            <ScrollProvider>
-              <Normal />
-            </ScrollProvider>
-          </FocusProvider>
-        </ChatTeamProvider>
+        <SetOrangeLineContext value={setOrangeLine}>
+          <ChatTeamProvider>
+            <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
+              <FocusProvider>
+                <ScrollProvider>
+                  <Normal />
+                </ScrollProvider>
+              </FocusProvider>
+            </ConversationInputProvider>
+          </ChatTeamProvider>
+        </SetOrangeLineContext>
       </OrangeLineContext>
     </MaybeMentionProvider>
   )

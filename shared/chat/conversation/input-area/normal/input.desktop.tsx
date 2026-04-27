@@ -2,6 +2,7 @@ import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as InputState from '../input-state'
 import SetExplodingMessagePopup from './set-explode-popup'
 import Typing from './typing'
 import type {Props as InputLowLevelProps, TextInfo, RefType} from './input'
@@ -311,7 +312,7 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
 }
 
 const GiphyButton = function GiphyButton() {
-  const toggleGiphyPrefill = ConvoState.useChatUIContext(s => s.dispatch.toggleGiphyPrefill)
+  const toggleGiphyPrefill = InputState.useConversationInput(s => s.dispatch.toggleGiphyPrefill)
   const onGiphyToggle = toggleGiphyPrefill
 
   return (
@@ -388,7 +389,7 @@ const useKeyboard = (p: UseKeyboardProps) => {
   const {htmlInputRef, focusInput, isEditing, onKeyDown, onCancelEditing} = p
   const {onChangeText, onEditLastMessage, showReplyPreview} = p
   const lastText = React.useRef('')
-  const setReplyTo = ConvoState.useChatUIContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = InputState.useConversationInput(s => s.dispatch.setReplyTo)
   const {scrollDown, scrollUp} = React.useContext(ScrollContext)
   const onCancelReply = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))
@@ -510,7 +511,6 @@ const PlatformInput = function PlatformInput(p: Props) {
     inputRef,
     onChangeText: p.onChangeText,
     onKeyDown: checkEnterOnKeyDown,
-    suggestBotCommandsUpdateStatus: p.suggestBotCommandsUpdateStatus,
     suggestionListStyle: undefined,
     suggestionOverlayStyle: p.suggestionOverlayStyle,
     suggestionSpinnerStyle: styles.suggestionSpinnerStyle,
@@ -519,7 +519,7 @@ const PlatformInput = function PlatformInput(p: Props) {
   const focusInput = () => {
     inputRef.current?.focus()
   }
-  const setEditing = ConvoState.useChatUIContext(s => s.dispatch.setEditing)
+  const setEditing = InputState.useConversationInput(s => s.dispatch.setEditing)
   const onEditLastMessage = () => {
     setEditing('last')
   }

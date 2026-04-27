@@ -13,6 +13,7 @@ import {
   getVisibleScreen,
   getModalStack,
   setChatRootParams,
+  clearThreadHighlightMessageID,
 } from '@/constants/router'
 import type * as Router2 from '@/constants/router'
 import {isIOS} from '@/constants/platform'
@@ -48,13 +49,12 @@ import {enumKeys, ignorePromise, shallowEqual, timeoutPromise} from '@/constants
 import {persistRoute, showMain} from '@/util/storeless-actions'
 import {flushInboxRowUpdates, queueInboxRowUpdate} from './inbox-rows'
 import * as Strings from '@/constants/strings'
-import {chatStores, convoUIStores} from './convo-registry'
+import {chatStores} from './convo-registry'
 
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
-import {getUsernameToShow} from '@/chat/conversation/messages/separator-utils'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -79,17 +79,11 @@ type ConvoStore = T.Immutable<{
   id: T.Chat.ConversationIDKey
   // temp cache for requestPayment and sendPayment message data,
   accountsInfoMap: Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
-  attachmentViewMap: Map<T.RPCChat.GalleryItemTyp, T.Chat.AttachmentViewInfo>
   badge: number
-  botCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp
-  botSettings: Map<string, T.RPCGen.TeamBotSettings | undefined>
-  botTeamRoleMap: Map<string, T.Teams.TeamRoleType | undefined>
-  commandMarkdown?: T.RPCChat.UICommandMarkdown
   dismissedInviteBanners: boolean
   explodingMode: number // seconds to exploding message expiration,
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   loaded: boolean // did we ever load this thread yet
-  markedAsUnread: T.Chat.Ordinal
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
@@ -98,14 +92,9 @@ type ConvoStore = T.Immutable<{
   meta: T.Chat.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadBack: boolean
   moreToLoadForward: boolean
-  mutualTeams: ReadonlyArray<T.Teams.TeamID>
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   participants: T.Chat.ParticipantInfo
-  pendingJumpMessageID?: T.Chat.MessageID
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
-  rowRecycleTypeMap: Map<T.Chat.Ordinal, string>
-  separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
-  showUsernameMap: Map<T.Chat.Ordinal, string>
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp
   typing: ReadonlySet<string>
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
@@ -113,42 +102,24 @@ type ConvoStore = T.Immutable<{
   validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
 }>
 
-export type ConvoUIStore = T.Immutable<{
-  commandStatus?: T.Chat.CommandStatusInfo
-  editing: T.Chat.Ordinal
-  giphyResult?: T.RPCChat.GiphySearchResults
-  giphyWindow: boolean
-  replyTo: T.Chat.Ordinal
-  unsentText?: string
-}>
+export type ComposerSendContext = {
+  editingOrdinal?: T.Chat.Ordinal
+  onRestoreText?: (text: string) => void
+  replyToOrdinal?: T.Chat.Ordinal
+}
 
-export interface ConvoUIState extends ConvoUIStore {
-  dispatch: {
-    injectIntoInput: (text?: string) => void
-    resetState: () => void
-    setCommandStatusInfo: (info?: T.Chat.CommandStatusInfo) => void
-    setEditing: (ordinal: T.Chat.Ordinal | 'last' | 'clear') => void
-    setGiphyResult: (result?: T.RPCChat.GiphySearchResults) => void
-    setGiphyWindow: (show: boolean) => void
-    setReplyTo: (ordinal: T.Chat.Ordinal) => void
-    toggleGiphyPrefill: () => void
-  }
+export type GiphySendContext = {
+  replyToOrdinal?: T.Chat.Ordinal
 }
 
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
-  attachmentViewMap: new Map(),
   badge: 0,
-  botCommandsUpdateStatus: T.RPCChat.UIBotCommandsUpdateStatusTyp.blank,
-  botSettings: new Map(),
-  botTeamRoleMap: new Map(),
-  commandMarkdown: undefined,
   dismissedInviteBanners: false,
   explodingMode: 0,
   flipStatusMap: new Map(),
   id: noConversationIDKey,
   loaded: false,
-  markedAsUnread: T.Chat.numberToOrdinal(0),
   messageCenterOrdinal: undefined,
   messageIDToOrdinal: new Map(),
   messageMap: new Map(),
@@ -157,28 +128,14 @@ const initialConvoStore: ConvoStore = {
   meta: Meta.makeConversationMeta(),
   moreToLoadBack: false,
   moreToLoadForward: false,
-  mutualTeams: [],
   participants: noParticipantInfo,
   paymentStatusMap: new Map(),
-  pendingJumpMessageID: undefined,
   pendingOutboxToOrdinal: new Map(),
-  rowRecycleTypeMap: new Map(),
-  separatorMap: new Map(),
-  showUsernameMap: new Map(),
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.none,
   typing: new Set(),
   unfurlPrompt: new Map(),
   unread: 0,
   validatedOrdinalRange: undefined,
-}
-
-const initialConvoUIStore: ConvoUIStore = {
-  commandStatus: undefined,
-  editing: T.Chat.numberToOrdinal(0),
-  giphyResult: undefined,
-  giphyWindow: false,
-  replyTo: T.Chat.numberToOrdinal(0),
-  unsentText: undefined,
 }
 
 type LoadMoreMessagesParams = {
@@ -220,9 +177,6 @@ export interface ConvoState extends ConvoStore {
     ) => void
     badgesUpdated: (badge: number) => void
     blockConversation: (reportUser: boolean) => void
-    botCommandsUpdateStatus: (b: T.RPCChat.UIBotCommandsUpdateStatus) => void
-    channelSuggestionsTriggered: () => void
-    clearAttachmentView: () => void
     dismissBottomBanner: () => void
     dismissJourneycard: (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => void
     editBotSettings: (
@@ -231,11 +185,11 @@ export interface ConvoState extends ConvoStore {
       allowMentions: boolean,
       convs?: ReadonlyArray<string>
     ) => void
-    giphySend: (result: T.RPCChat.GiphySearchResult) => void
+    galleryMessagesLoaded: (messages: ReadonlyArray<T.Chat.Message>) => void
+    giphySend: (result: T.RPCChat.GiphySearchResult, context?: GiphySendContext) => void
     hideConversation: (hide: boolean) => void
     joinConversation: () => void
     jumpToRecent: () => void
-    loadAttachmentView: (viewType: T.RPCChat.GalleryItemTyp, fromMsgID?: T.Chat.MessageID) => void
     loadMessagesCentered: (
       messageID: T.Chat.MessageID,
       highlightMode: T.Chat.CenterOrdinalHighlightMode
@@ -262,7 +216,7 @@ export interface ConvoState extends ConvoStore {
     }) => void
     mute: (m: boolean) => void
     openFolder: () => void
-    prepareToNavigateToThread: (highlightMessageID?: T.Chat.MessageID) => void
+    prepareToNavigateToThread: () => void
     onEngineIncoming: (action: EngineGen.Actions) => void
     onIncomingMessage: (incoming: T.RPCChat.IncomingMessage) => void
     onMessageErrored: (outboxID: T.Chat.OutboxID, reason: string, errorTyp?: number) => void
@@ -270,17 +224,15 @@ export interface ConvoState extends ConvoStore {
     paymentInfoReceived: (messageID: T.RPCChat.MessageID, paymentInfo: T.Chat.ChatPaymentInfo) => void
     pinMessage: (messageID?: T.Chat.MessageID) => void
     ignorePinnedMessage: () => void
-    refreshBotRoleInConv: (username: string) => void
-    refreshBotSettings: (username: string) => void
     removeBotMember: (username: string) => void
     replyJump: (messageID: T.Chat.MessageID) => void
     resetChatWithoutThem: () => void
     resetLetThemIn: (username: string) => void
     resetState: () => void
     resetDeleteMe: true
-    selectedConversation: () => void
+    selectedConversation: (highlightMessageID?: T.Chat.MessageID) => void
     sendAudioRecording: (path: string, duration: number, amps: ReadonlyArray<number>) => Promise<void>
-    sendMessage: (text: string) => void
+    sendMessage: (text: string, context?: ComposerSendContext) => void
     setConvRetentionPolicy: (policy: T.Retention.RetentionPolicy) => void
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
@@ -335,12 +287,6 @@ const ignoreErrors = [
   T.RPCGen.StatusCode.sctimeout,
 ]
 
-const makeAttachmentViewInfo = (): T.Chat.AttachmentViewInfo => ({
-  last: false,
-  messages: [],
-  status: 'loading',
-})
-
 // Backend gives us messageIDs sometimes so we need to find our ordinal
 const messageIDToOrdinal = (
   map: ConvoState['messageMap'],
@@ -387,9 +333,12 @@ export const onRouteChanged = (prev: T.Immutable<Router2.NavState>, next: T.Immu
     // nothing to do with chat
     if (wasChat || isChat) {
       const pParams = p?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
-      const nParams = n?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
+      const nParams = n?.params as
+        | undefined
+        | {conversationIDKey?: T.Chat.ConversationIDKey; highlightMessageID?: T.Chat.MessageID}
       const wasID = pParams?.conversationIDKey
       const isID = nParams?.conversationIDKey
+      const highlightMessageID = nParams?.highlightMessageID
 
       logger.info('maybeChangeChatSelection ', {isChat, isID, wasChat, wasID})
 
@@ -406,14 +355,20 @@ export const onRouteChanged = (prev: T.Immutable<Router2.NavState>, next: T.Immu
         // still chatting? just select new one
         if (wasChat && isChat && isID && T.Chat.isValidConversationIDKey(isID)) {
           deselectAction()
-          getConvoState(isID).dispatch.selectedConversation()
+          getConvoState(isID).dispatch.selectedConversation(highlightMessageID)
+          if (highlightMessageID) {
+            clearThreadHighlightMessageID()
+          }
         } else if (wasChat && !isChat) {
           // leaving a chat
           deselectAction()
         } else if (isChat && isID && T.Chat.isValidConversationIDKey(isID)) {
           // going into a chat
           deselectAction()
-          getConvoState(isID).dispatch.selectedConversation()
+          getConvoState(isID).dispatch.selectedConversation(highlightMessageID)
+          if (highlightMessageID) {
+            clearThreadHighlightMessageID()
+          }
         }
       }
     }
@@ -1078,15 +1033,6 @@ export const handleConvoEngineIncoming = (
       getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
       return handledConvoEngineIncoming()
     }
-    case 'chat.1.chatUi.chatCommandMarkdown':
-    case 'chat.1.chatUi.chatGiphyToggleResultWindow':
-    case 'chat.1.chatUi.chatCommandStatus':
-    case 'chat.1.chatUi.chatBotCommandsUpdateStatus':
-    case 'chat.1.chatUi.chatGiphySearchResults': {
-      const conversationIDKey = T.Chat.stringToConversationIDKey(action.payload.params.convID)
-      getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
-      return handledConvoEngineIncoming()
-    }
     case 'chat.1.NotifyChat.ChatParticipantsInfo': {
       const {participants: participantMap} = action.payload.params
       Object.keys(participantMap ?? {}).forEach(convIDStr => {
@@ -1238,12 +1184,8 @@ const loadThreadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RP
 )
 
 const createSlice =
-  (
-    id: T.Chat.ConversationIDKey = noConversationIDKey,
-    getLinkedUIState: () => ConvoUIState = () => getConvoUIState(id)
-  ): Z.ImmerStateCreator<ConvoState> =>
+  (id: T.Chat.ConversationIDKey = noConversationIDKey): Z.ImmerStateCreator<ConvoState> =>
   (set, get) => {
-    const getUI = getLinkedUIState
     const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
     const getCurrentUser = () => {
       const s = useCurrentUserState.getState()
@@ -1273,7 +1215,6 @@ const createSlice =
             m.transferState = undefined
           }
         })
-        updateAttachmentViewTransfered(messageID, path)
         return rpcRes.filePath
       } catch (error) {
         const errMsg =
@@ -1291,7 +1232,6 @@ const createSlice =
             m.transferState = undefined
           }
         })
-        updateAttachmentViewTransfered(messageID, '')
         return false
       }
     }
@@ -1338,107 +1278,6 @@ const createSlice =
       messageID: T.Chat.MessageID
     ) =>
       messageIDToOrdinal(state.messageMap, state.pendingOutboxToOrdinal, messageID, state.messageIDToOrdinal)
-
-    const findOrdinalIndex = (ordinals: ReadonlyArray<T.Chat.Ordinal>, ordinal: T.Chat.Ordinal) => {
-      let low = 0
-      let high = ordinals.length
-      while (low < high) {
-        const mid = Math.floor((low + high) / 2)
-        if (ordinals[mid]! < ordinal) {
-          low = mid + 1
-        } else {
-          high = mid
-        }
-      }
-      return low
-    }
-
-    const refreshDerivedMetadata = (
-      s: Z.WritableDraft<ConvoState>,
-      changedOrdinals: ReadonlySet<T.Chat.Ordinal>
-    ) => {
-      if (changedOrdinals.size === 0) {
-        return
-      }
-
-      const messageOrdinals = s.messageOrdinals ?? []
-      const you = useCurrentUserState.getState().username
-      const ordinalsToRefresh = new Set(changedOrdinals)
-
-      for (const ordinal of changedOrdinals) {
-        const idx = findOrdinalIndex(messageOrdinals, ordinal)
-        const maybeCurrent = messageOrdinals[idx]
-        const nextOrdinal = maybeCurrent === ordinal ? messageOrdinals[idx + 1] : maybeCurrent
-        if (nextOrdinal !== undefined) {
-          ordinalsToRefresh.add(nextOrdinal)
-        }
-      }
-
-      for (const ordinal of ordinalsToRefresh) {
-        const idx = findOrdinalIndex(messageOrdinals, ordinal)
-        if (messageOrdinals[idx] !== ordinal) {
-          s.rowRecycleTypeMap.delete(ordinal)
-          s.separatorMap.delete(ordinal)
-          s.showUsernameMap.delete(ordinal)
-          continue
-        }
-
-        const previousOrdinal = idx > 0 ? messageOrdinals[idx - 1]! : T.Chat.numberToOrdinal(0)
-        const message = s.messageMap.get(ordinal)
-        if (!message) {
-          s.rowRecycleTypeMap.delete(ordinal)
-          s.separatorMap.delete(ordinal)
-          s.showUsernameMap.delete(ordinal)
-          continue
-        }
-
-        s.separatorMap.set(ordinal, previousOrdinal)
-        const previousMessage = idx > 0 ? s.messageMap.get(previousOrdinal) : undefined
-        s.showUsernameMap.set(ordinal, getUsernameToShow(message, previousMessage, you))
-        setRowRenderDerivedMetadata(s, ordinal, message)
-      }
-    }
-
-    const getRowRecycleType = (
-      message: T.Chat.Message,
-      renderType: T.Chat.RenderMessageType
-    ): string | undefined => {
-      let rowRecycleType = renderType
-      let needsSpecificRecycleType = false
-
-      if (
-        (message.type === 'text' || message.type === 'attachment') &&
-        (message.submitState === 'pending' || message.submitState === 'failed')
-      ) {
-        rowRecycleType += ':pending'
-        needsSpecificRecycleType = true
-      }
-
-      if (message.type === 'text' && message.replyTo) {
-        rowRecycleType += ':reply'
-        needsSpecificRecycleType = true
-      }
-      if (message.reactions?.size) {
-        rowRecycleType += ':reactions'
-        needsSpecificRecycleType = true
-      }
-
-      return needsSpecificRecycleType ? rowRecycleType : undefined
-    }
-
-    const setRowRenderDerivedMetadata = (
-      s: Z.WritableDraft<ConvoState>,
-      ordinal: T.Chat.Ordinal,
-      message: T.Chat.Message
-    ) => {
-      const renderType = s.messageTypeMap.get(ordinal) ?? Message.getMessageRenderType(message)
-      const rowRecycleType = getRowRecycleType(message, renderType)
-      if (rowRecycleType) {
-        s.rowRecycleTypeMap.set(ordinal, rowRecycleType)
-      } else {
-        s.rowRecycleTypeMap.delete(ordinal)
-      }
-    }
 
     const mergeMessage = (
       existing: Z.WritableDraft<T.Chat.Message>,
@@ -1527,7 +1366,6 @@ const createSlice =
       set(s => {
         // Build set of incoming regular ordinals for ordinal management
         const incomingOrdinals = new Set<T.Chat.Ordinal>()
-        const touchedOrdinals = new Set<T.Chat.Ordinal>()
         for (const m of messages) {
           if (m.conversationMessage !== false && m.type !== 'deleted') {
             incomingOrdinals.add(m.ordinal)
@@ -1539,7 +1377,6 @@ const createSlice =
           const regularMessage = m.conversationMessage !== false
 
           if (regularMessage && m.type === 'deleted') {
-            touchedOrdinals.add(m.ordinal)
             clearMessageIDIndexForOrdinal(s, m.ordinal)
             s.messageMap.delete(m.ordinal)
             s.messageTypeMap.delete(m.ordinal)
@@ -1569,10 +1406,6 @@ const createSlice =
                 incomingOrdinals.add(mapOrdinal)
               }
               m.ordinal = mapOrdinal
-            }
-
-            if (regularMessage) {
-              touchedOrdinals.add(mapOrdinal)
             }
 
             const existingMsg = s.messageMap.get(mapOrdinal)
@@ -1631,7 +1464,6 @@ const createSlice =
         if (validatedRange) {
           for (const o of existing) {
             if (o >= validatedRange.from && o <= validatedRange.to && !incomingOrdinals.has(o)) {
-              touchedOrdinals.add(o)
               clearMessageIDIndexForOrdinal(s, o)
               existing.delete(o)
               s.messageMap.delete(o)
@@ -1653,8 +1485,6 @@ const createSlice =
         if (changed || !s.messageOrdinals) {
           s.messageOrdinals = [...existing].sort((a, b) => a - b)
         }
-
-        refreshDerivedMetadata(s, touchedOrdinals)
       })
 
       if (markAsRead) {
@@ -1722,32 +1552,6 @@ const createSlice =
       getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
     }
 
-    const onGiphyToggleWindow = (
-      action: EngineGen.EngineAction<'chat.1.chatUi.chatGiphyToggleResultWindow'>
-    ) => {
-      const {show, clearInput} = action.payload.params
-      if (clearInput) {
-        getUI().dispatch.injectIntoInput('')
-      }
-      getUI().dispatch.setGiphyWindow(show)
-    }
-
-    const refreshMutualTeamsInConv = () => {
-      const f = async () => {
-        const {id: conversationIDKey} = get()
-        const username = useCurrentUserState.getState().username
-        const otherParticipants = Meta.getRowParticipants(get().participants, username || '')
-        const results = await T.RPCChat.localGetMutualTeamsLocalRpcPromise(
-          {usernames: otherParticipants},
-          Strings.waitingKeyChatMutualTeams(conversationIDKey)
-        )
-        set(s => {
-          s.mutualTeams = T.castDraft(results.teamIDs) ?? []
-        })
-      }
-      ignorePromise(f())
-    }
-
     const setMessageCenterOrdinal = (m?: T.Chat.CenterOrdinal) => {
       set(s => {
         s.messageCenterOrdinal = m
@@ -1784,7 +1588,6 @@ const createSlice =
               users: [{timestamp: Date.now(), username}],
             })
           }
-          setRowRenderDerivedMetadata(s, targetOrdinal, m)
         }
       })
     }
@@ -1796,40 +1599,6 @@ const createSlice =
           prompts.add(domain)
         } else {
           prompts.delete(domain)
-        }
-      })
-    }
-
-    const updateAttachmentViewTransfer = (msgId: number, ratio: number) => {
-      set(s => {
-        const viewType = T.RPCChat.GalleryItemTyp.doc
-        const info = mapGetEnsureValue(s.attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
-        const {messages} = info
-        const idx = messages.findIndex(item => item.id === msgId)
-        if (idx !== -1) {
-          const m = messages[idx]
-          if (m!.type === 'attachment') {
-            m.transferState = 'downloading'
-            m.transferProgress = ratio
-          }
-        }
-      })
-    }
-
-    const updateAttachmentViewTransfered = (msgId: number, path: string) => {
-      set(s => {
-        const viewType = T.RPCChat.GalleryItemTyp.doc
-        const info = mapGetEnsureValue(s.attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
-        const {messages} = info
-        const idx = messages.findIndex(item => item.id === msgId)
-        if (idx !== -1) {
-          const m = messages[idx]
-          if (m!.type === 'attachment') {
-            m.downloadPath = path
-            m.fileURLCached = true
-            m.transferProgress = 0
-            m.transferState = undefined
-          }
         }
       })
     }
@@ -1876,7 +1645,6 @@ const createSlice =
 
     const onDownloadProgress = (msgID: number, bytesComplete: number, bytesTotal: number) => {
       const ratio = bytesComplete / bytesTotal
-      updateAttachmentViewTransfer(msgID, ratio)
       const ordinal = maybeGetOrdinalByMessageID(get(), T.Chat.numberToMessageID(msgID))
       if (!ordinal) {
         logger.info(`downloadProgress: no ordinal found: conversationIDKey: ${get().id} msgID: ${msgID}`)
@@ -1999,7 +1767,6 @@ const createSlice =
           if (s.messageOrdinals) {
             s.messageOrdinals = s.messageOrdinals.filter(o => o !== toDelOrdinal)
           }
-          refreshDerivedMetadata(s, new Set([toDelOrdinal]))
         })
       }
 
@@ -2060,7 +1827,6 @@ const createSlice =
     }
 
     const _messageEdit = (ordinal: T.Chat.Ordinal, text: string) => {
-      getUI().dispatch.injectIntoInput('')
       const m = get().messageMap.get(ordinal)
       if (!m || !(m.type === 'text' || m.type === 'attachment')) {
         logger.warn("Can't find message to edit", ordinal)
@@ -2068,10 +1834,8 @@ const createSlice =
       }
       // Skip if the content is the same
       if (m.type === 'text' && m.text.stringValue() === text) {
-        getUI().dispatch.setEditing('clear')
         return
       } else if (m.type === 'attachment' && m.title === text) {
-        getUI().dispatch.setEditing('clear')
         return
       }
       set(s => {
@@ -2080,8 +1844,6 @@ const createSlice =
           m1.submitState = 'editing'
         }
       })
-      getUI().dispatch.setEditing('clear')
-
       const f = async () => {
         await T.RPCChat.localPostEditNonblockRpcPromise({
           body: text,
@@ -2100,13 +1862,12 @@ const createSlice =
       ignorePromise(f())
     }
 
-    const _messageSend = (text: string, replyTo?: T.Chat.MessageID, waitingKey?: string) => {
-      getUI().dispatch.injectIntoInput('')
-      getUI().dispatch.setReplyTo(T.Chat.numberToOrdinal(0))
-      set(s => {
-        s.commandMarkdown = undefined
-      })
-      getUI().dispatch.setGiphyWindow(false)
+    const _messageSend = (
+      text: string,
+      replyTo?: T.Chat.MessageID,
+      waitingKey?: string,
+      onRestoreText?: (text: string) => void
+    ) => {
       const f = async () => {
         const meta = get().meta
         const tlfName = meta.tlfname
@@ -2129,7 +1890,7 @@ const createSlice =
             incomingCallMap: {
               'chat.1.chatUi.chatStellarDone': ({canceled}) => {
                 if (canceled) {
-                  getUI().dispatch.injectIntoInput(text)
+                  onRestoreText?.(text)
                 }
               },
               'chat.1.chatUi.chatStellarShowConfirm': () => {},
@@ -2326,29 +2087,6 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      botCommandsUpdateStatus: status => {
-        set(s => {
-          s.botCommandsUpdateStatus = status.typ
-          if (status.typ === T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate) {
-            const settingsMap = new Map<string, T.RPCGen.TeamBotSettings | undefined>()
-            Object.keys(status.uptodate.settings ?? {}).forEach(u => {
-              settingsMap.set(u, status.uptodate.settings?.[u])
-            })
-            s.botSettings = T.castDraft(settingsMap)
-          }
-        })
-      },
-      channelSuggestionsTriggered: () => {
-        // If this is an impteam, try to refresh mutual team info
-        if (!get().meta.teamname) {
-          refreshMutualTeamsInConv()
-        }
-      },
-      clearAttachmentView: () => {
-        set(s => {
-          s.attachmentViewMap = new Map()
-        })
-      },
       dismissBottomBanner: () => {
         set(s => {
           s.dismissedInviteBanners = true
@@ -2388,13 +2126,16 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      giphySend: result => {
-        getUI().dispatch.setGiphyWindow(false)
+      galleryMessagesLoaded: messages => {
+        messagesAdd([...messages], {markAsRead: false, why: 'gallery inject'})
+      },
+      giphySend: (result, context) => {
         const f = async () => {
           try {
             await T.RPCChat.localTrackGiphySelectRpcPromise({result})
           } catch {}
-          const replyTo = get().messageMap.get(getUI().replyTo)?.id
+          const replyToOrdinal = context?.replyToOrdinal
+          const replyTo = get().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
           _messageSend(result.targetUrl, replyTo)
         }
         ignorePromise(f())
@@ -2437,128 +2178,6 @@ const createSlice =
           s.validatedOrdinalRange = undefined
         })
         get().dispatch.loadMoreMessages({reason: 'jump to recent'})
-      },
-      loadAttachmentView: (viewType, fromMsgID) => {
-        set(s => {
-          const {attachmentViewMap} = s
-          const info = mapGetEnsureValue(attachmentViewMap, viewType, T.castDraft(makeAttachmentViewInfo()))
-          info.status = 'loading'
-        })
-
-        const f = async () => {
-          const {id: conversationIDKey} = get()
-          const convID = get().getConvID()
-          const pendingMessages: Array<T.Chat.Message> = []
-          let flushTimeout: ReturnType<typeof setTimeout> | undefined
-          const flushPendingMessages = () => {
-            if (flushTimeout) {
-              clearTimeout(flushTimeout)
-              flushTimeout = undefined
-            }
-            if (!pendingMessages.length) {
-              return
-            }
-            const messages = pendingMessages.splice(0)
-            const dedupedMessages = new Array<T.Chat.Message>()
-            const seenMessageIDs = new Set<T.Chat.MessageID>()
-            for (const message of messages) {
-              if (!seenMessageIDs.has(message.id)) {
-                seenMessageIDs.add(message.id)
-                dedupedMessages.push(message)
-              }
-            }
-            set(s => {
-              const info = mapGetEnsureValue(
-                s.attachmentViewMap,
-                viewType,
-                T.castDraft(makeAttachmentViewInfo())
-              )
-              const existingMessageIDs = new Set(info.messages.map(item => item.id))
-              const nextMessages = [...info.messages] as Array<T.Chat.Message>
-              let changed = false
-              for (const message of dedupedMessages) {
-                if (!existingMessageIDs.has(message.id)) {
-                  existingMessageIDs.add(message.id)
-                  nextMessages.push(T.castDraft(message))
-                  changed = true
-                }
-              }
-              if (changed) {
-                info.messages = T.castDraft(nextMessages.sort((l, r) => r.id - l.id))
-              }
-            })
-            messagesAdd(dedupedMessages, {markAsRead: false, why: 'gallery inject'})
-          }
-          const scheduleFlushPendingMessages = () => {
-            if (flushTimeout) {
-              return
-            }
-            flushTimeout = setTimeout(() => {
-              flushPendingMessages()
-            }, 16)
-          }
-          try {
-            const res = await T.RPCChat.localLoadGalleryRpcListener({
-              incomingCallMap: {
-                'chat.1.chatUi.chatLoadGalleryHit': (
-                  hit: T.RPCChat.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
-                ) => {
-                  const {username, devicename} = getCurrentUser()
-                  const m = Message.uiMessageToMessage(
-                    conversationIDKey,
-                    hit.message,
-                    username,
-                    getLastOrdinal,
-                    devicename
-                  )
-
-                  if (m) {
-                    // conversationMessage is used to tell if its this gallery load or not but if we
-                    // load a message we already have we don't want to overwrite that it really belongs
-                    const message = {...m, conversationMessage: get().messageMap.has(m.ordinal)}
-                    pendingMessages.push(message)
-                    scheduleFlushPendingMessages()
-                  }
-                },
-              },
-              params: {
-                convID,
-                fromMsgID,
-                num: 50,
-                typ: viewType,
-              },
-            })
-            flushPendingMessages()
-            set(s => {
-              const info = mapGetEnsureValue(
-                s.attachmentViewMap,
-                viewType,
-                T.castDraft(makeAttachmentViewInfo())
-              )
-              info.last = !!res.last
-              info.status = 'success'
-            })
-          } catch (error) {
-            flushPendingMessages()
-            if (error instanceof RPCError) {
-              logger.error('failed to load attachment view: ' + error.message)
-              set(s => {
-                const info = mapGetEnsureValue(
-                  s.attachmentViewMap,
-                  viewType,
-                  T.castDraft(makeAttachmentViewInfo())
-                )
-                info.last = false
-                info.status = 'error'
-              })
-            }
-          } finally {
-            if (flushTimeout) {
-              clearTimeout(flushTimeout)
-            }
-          }
-        }
-        ignorePromise(f())
       },
       loadMessagesCentered: (messageID, highlightMode) => {
         get().dispatch.messagesClear()
@@ -3068,9 +2687,8 @@ const createSlice =
           }
 
           const text = formatTextForQuoting(message.text.stringValue())
-          getConvoUIState(newThreadCID).dispatch.injectIntoInput(text)
           metasReceived([meta])
-          routerNavigateToThread(newThreadCID, 'createdMessagePrivately')
+          routerNavigateToThread(newThreadCID, 'createdMessagePrivately', undefined, undefined, undefined, text)
         }
         ignorePromise(f())
       },
@@ -3098,9 +2716,6 @@ const createSlice =
           s.messageMap.clear()
           s.messageOrdinals = undefined
           s.messageTypeMap.clear()
-          s.rowRecycleTypeMap.clear()
-          s.separatorMap.clear()
-          s.showUsernameMap.clear()
           s.validatedOrdinalRange = undefined
         })
       },
@@ -3115,9 +2730,6 @@ const createSlice =
             m.explodedBy = explodedBy || ''
             m.reactions = new Map()
             m.unfurls = new Map()
-            if (ordinal) {
-              setRowRenderDerivedMetadata(s, ordinal, m)
-            }
             if (m.type === 'text') {
               m.flipGameID = ''
               m.mentionsAt = new Set()
@@ -3164,7 +2776,6 @@ const createSlice =
           if (s.messageOrdinals) {
             s.messageOrdinals = s.messageOrdinals.filter(o => !allOrdinals.has(o))
           }
-          refreshDerivedMetadata(s, allOrdinals)
         })
       },
       mute: m => {
@@ -3189,30 +2800,6 @@ const createSlice =
             onDownloadProgress(msgID, bytesComplete, bytesTotal)
             break
           }
-          case 'chat.1.chatUi.chatCommandStatus': {
-            const {displayText, typ, actions} = action.payload.params
-            getUI().dispatch.setCommandStatusInfo({
-              actions: T.castDraft(actions) || [],
-              displayText,
-              displayType: typ,
-            })
-            break
-          }
-          case 'chat.1.chatUi.chatBotCommandsUpdateStatus':
-            get().dispatch.botCommandsUpdateStatus(action.payload.params.status)
-            break
-          case 'chat.1.chatUi.chatCommandMarkdown':
-            set(s => {
-              s.commandMarkdown = action.payload.params.md || undefined
-            })
-            break
-          case 'chat.1.chatUi.chatGiphyToggleResultWindow': {
-            onGiphyToggleWindow(action)
-            break
-          }
-          case 'chat.1.chatUi.chatGiphySearchResults':
-            getUI().dispatch.setGiphyResult(action.payload.params.results)
-            break
           case 'chat.1.NotifyChat.ChatRequestInfo':
             {
               const {info, msgID} = action.payload.params
@@ -3376,63 +2963,13 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      prepareToNavigateToThread: highlightMessageID => {
+      prepareToNavigateToThread: () => {
         set(s => {
           // force loaded if we're an error
           if (s.id === T.Chat.pendingErrorConversationIDKey) {
             s.loaded = true
           }
-          s.pendingJumpMessageID = highlightMessageID
         })
-      },
-      refreshBotRoleInConv: username => {
-        const f = async () => {
-          let role: T.RPCGen.TeamRole | undefined
-          try {
-            role = await T.RPCChat.localGetTeamRoleInConversationRpcPromise({
-              convID: get().getConvID(),
-              username,
-            })
-          } catch (error) {
-            if (error instanceof RPCError) {
-              logger.info(`refreshBotRoleInConv: failed to refresh bot team role: ${error.message}`)
-            }
-            return
-          }
-          const trole = TeamsUtil.teamRoleByEnum[role]
-          const r = trole === 'none' ? undefined : trole
-          set(s => {
-            const roles = s.botTeamRoleMap
-            if (r !== undefined) {
-              roles.set(username, r)
-            } else {
-              roles.delete(username)
-            }
-          })
-        }
-        ignorePromise(f())
-      },
-      refreshBotSettings: username => {
-        set(s => {
-          s.botSettings.delete(username)
-        })
-        const f = async () => {
-          try {
-            const settings = await T.RPCChat.localGetBotMemberSettingsRpcPromise({
-              convID: get().getConvID(),
-              username,
-            })
-            set(s => {
-              s.botSettings.set(username, T.castDraft(settings))
-            })
-          } catch (error) {
-            if (error instanceof RPCError) {
-              logger.info(`refreshBotSettings: failed to refresh settings for ${username}: ${error.message}`)
-            }
-            return
-          }
-        }
-        ignorePromise(f())
       },
       removeBotMember: username => {
         const f = async () => {
@@ -3478,7 +3015,7 @@ const createSlice =
         ignorePromise(f())
       },
       resetState: Z.defaultReset,
-      selectedConversation: () => {
+      selectedConversation: highlightMessageID => {
         const conversationIDKey = get().id
         clearChatTimeCache()
         setMessageCenterOrdinal()
@@ -3507,13 +3044,9 @@ const createSlice =
           s.threadLoadStatus = T.RPCChat.UIChatThreadStatusTyp.none
         })
         fetchConversationBio()
-        // Handle pending jump (e.g. from notification deep link)
-        const pendingJump = get().pendingJumpMessageID
-        if (pendingJump) {
-          set(s => {
-            s.pendingJumpMessageID = undefined
-          })
-          get().dispatch.loadMessagesCentered(pendingJump, 'flash')
+        // Handle a one-shot jump (e.g. from notification deep link).
+        if (highlightMessageID) {
+          get().dispatch.loadMessagesCentered(highlightMessageID, 'flash')
         } else {
           get().dispatch.loadMoreMessages({reason: 'focused'})
         }
@@ -3552,13 +3085,14 @@ const createSlice =
           }
         }
       },
-      sendMessage: text => {
-        const editOrdinal = getUI().editing
+      sendMessage: (text, context) => {
+        const editOrdinal = context?.editingOrdinal
         if (editOrdinal) {
           _messageEdit(editOrdinal, text)
         } else {
-          const replyTo = get().messageMap.get(getUI().replyTo)?.id
-          _messageSend(text, replyTo)
+          const replyToOrdinal = context?.replyToOrdinal
+          const replyTo = get().messageMap.get(replyToOrdinal ?? T.Chat.numberToOrdinal(0))?.id
+          _messageSend(text, replyTo, undefined, context?.onRestoreText)
         }
       },
       setConvRetentionPolicy: _policy => {
@@ -3630,11 +3164,6 @@ const createSlice =
       setMarkAsUnread: readMsgID => {
         if (readMsgID === false) {
           return
-        }
-        if (readMsgID) {
-          set(s => {
-            s.markedAsUnread = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(readMsgID))
-          })
         }
         const conversationIDKey = get().id
         const f = async () => {
@@ -3738,19 +3267,10 @@ const createSlice =
       },
       setMeta: _m => {
         const m = _m ?? Meta.makeConversationMeta()
-        const wasGood = get().isMetaGood()
         set(s => {
           updateImmer(s.meta, m)
         })
         queueInboxRowUpdate(get().id)
-        const isGood = get().isMetaGood()
-        if (!wasGood && isGood) {
-          // got a good meta, adopt the draft once
-          const ui = getUI()
-          if (ui.unsentText === undefined) {
-            ui.dispatch.injectIntoInput(get().meta.draft.length ? get().meta.draft : undefined)
-          }
-        }
       },
       setMinWriterRole: role => {
         const f = async () => {
@@ -3798,7 +3318,6 @@ const createSlice =
             )
           } else if (visibleScreen?.name === 'chatInfoPanel') {
             navigateUp()
-            get().dispatch.clearAttachmentView()
           }
           return
         }
@@ -4070,7 +3589,6 @@ const createSlice =
                 }
                 m.reactions = T.castDraft(newReactions)
               }
-              setRowRenderDerivedMetadata(s, targetOrdinal, m)
             }
           })
         }
@@ -4106,89 +3624,6 @@ const createSlice =
 
 type MadeStore = UseBoundStore<StoreApi<ConvoState>>
 
-const createConvoUISlice =
-  (
-    id: T.Chat.ConversationIDKey,
-    getLinkedConvoState: () => ConvoState = () => getConvoState(id)
-  ): Z.ImmerStateCreator<ConvoUIState> =>
-  (set, get) => ({
-    ...initialConvoUIStore,
-    dispatch: {
-      injectIntoInput: text => {
-        set(s => {
-          s.unsentText = text
-        })
-      },
-      resetState: Z.defaultReset,
-      setCommandStatusInfo: info => {
-        set(s => {
-          s.commandStatus = info ? T.castDraft(info) : undefined
-        })
-      },
-      setEditing: e => {
-        if (e === 'clear') {
-          set(s => {
-            s.editing = T.Chat.numberToOrdinal(0)
-            s.unsentText = ''
-          })
-          return
-        }
-
-        const messageMap = getLinkedConvoState().messageMap
-        let ordinal = T.Chat.numberToOrdinal(0)
-        if (e === 'last') {
-          const editLastUser = useCurrentUserState.getState().username
-          const ordinals = getLinkedConvoState().messageOrdinals
-          const found =
-            !!ordinals &&
-            findLast(ordinals, o => {
-              const message = messageMap.get(o)
-              return !!(
-                (message?.type === 'text' || message?.type === 'attachment') &&
-                message.author === editLastUser &&
-                !message.exploded &&
-                message.isEditable
-              )
-            })
-          if (!found) return
-          ordinal = found
-        } else {
-          ordinal = e
-        }
-
-        if (!ordinal) return
-        const message = messageMap.get(ordinal)
-        if (message?.type === 'text' || message?.type === 'attachment') {
-          set(s => {
-            s.editing = ordinal
-            s.unsentText = message.type === 'text' ? message.text.stringValue() : message.title
-          })
-        }
-      },
-      setGiphyResult: result => {
-        set(s => {
-          s.giphyResult = result ? T.castDraft(result) : undefined
-        })
-      },
-      setGiphyWindow: show => {
-        set(s => {
-          s.giphyWindow = show
-        })
-      },
-      setReplyTo: ordinal => {
-        set(s => {
-          s.replyTo = ordinal
-        })
-      },
-      toggleGiphyPrefill: () => {
-        const shouldClear = get().giphyWindow
-        set(s => {
-          s.unsentText = shouldClear ? '' : '/giphy '
-        })
-      },
-    },
-  })
-
 const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   const existing = chatStores.get(id)
   if (existing) return existing
@@ -4197,32 +3632,8 @@ const createConvoStore = (id: T.Chat.ConversationIDKey) => {
   return next
 }
 
-const createConvoUIStore = (id: T.Chat.ConversationIDKey) => {
-  const existing = convoUIStores.get(id)
-  if (existing) return existing
-  const next = Z.createZustand<ConvoUIState>(createConvoUISlice(id))
-  convoUIStores.set(id, next)
-  return next
-}
-
 export const createConvoStoreForTesting = (id: T.Chat.ConversationIDKey) => {
-  return createConvoStoresForTesting(id).convoStore
-}
-
-export const createConvoStoresForTesting = (id: T.Chat.ConversationIDKey) => {
-  const pair = {} as {
-    convoStore: UseBoundStore<StoreApi<ConvoState>>
-    uiStore: UseBoundStore<StoreApi<ConvoUIState>>
-  }
-  const convoStore = Z.createZustand<ConvoState>(createSlice(id, () => pair.uiStore.getState()))
-  const uiStore = Z.createZustand<ConvoUIState>(createConvoUISlice(id, () => pair.convoStore.getState()))
-  pair.convoStore = convoStore
-  pair.uiStore = uiStore
-  return {convoStore, uiStore}
-}
-
-export const createConvoUIStoreForTesting = (id: T.Chat.ConversationIDKey) => {
-  return createConvoStoresForTesting(id).uiStore
+  return Z.createZustand<ConvoState>(createSlice(id))
 }
 
 // debug only
@@ -4233,11 +3644,6 @@ export function hasConvoState(id: T.Chat.ConversationIDKey) {
 // non reactive call, used in actions/dispatches
 export function getConvoState(id: T.Chat.ConversationIDKey) {
   const store = createConvoStore(id)
-  return store.getState()
-}
-
-export function getConvoUIState(id: T.Chat.ConversationIDKey) {
-  const store = createConvoUIStore(id)
   return store.getState()
 }
 
@@ -4272,19 +3678,9 @@ export function useChatContext<T>(selector: (state: ConvoState) => T): T {
   return useStore(store, selector)
 }
 
-export function useChatUIContext<T>(selector: (state: ConvoUIState) => T): T {
-  const id = useChatContext(s => s.id)
-  return useConvoUIState(id, selector)
-}
-
 // unusual, usually you useContext, but maybe in teams
 export function useConvoState<T>(id: T.Chat.ConversationIDKey, selector: (state: ConvoState) => T): T {
   const store = createConvoStore(id)
-  return useStore(store, selector)
-}
-
-export function useConvoUIState<T>(id: T.Chat.ConversationIDKey, selector: (state: ConvoUIState) => T): T {
-  const store = createConvoUIStore(id)
   return useStore(store, selector)
 }
 

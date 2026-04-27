@@ -8,6 +8,7 @@ export type ThreadSearchRoute = {
 
 export type ThreadSearchRouteProps = {
   createConversationError?: T.Chat.CreateConversationError
+  highlightMessageID?: T.Chat.MessageID
   threadSearch?: ThreadSearchRoute
 }
 

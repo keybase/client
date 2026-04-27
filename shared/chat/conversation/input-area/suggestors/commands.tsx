@@ -1,9 +1,11 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
-import type * as React from 'react'
+import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
+import * as InputState from '../input-state'
+import {useEngineActionListener} from '@/engine/action-listener'
 import {useConfigState} from '@/stores/config'
 import type {RefType as InputRef} from '../normal/input'
 
@@ -23,14 +25,58 @@ export const transformer = (
 
 const keyExtractor = (c: T.RPCChat.ConversationCommand) => c.name + String(c.username)
 
+type BotSettingsMap = ReadonlyMap<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>
+type BotCommandsUpdateState = {
+  conversationIDKey: T.Chat.ConversationIDKey
+  settings: BotSettingsMap
+  status: T.RPCChat.UIBotCommandsUpdateStatusTyp
+}
+
+const BotCommandSettingsContext = React.createContext<BotSettingsMap | undefined>(undefined)
+
+const makeBotCommandsUpdateState = (conversationIDKey: T.Chat.ConversationIDKey): BotCommandsUpdateState => ({
+  conversationIDKey,
+  settings: new Map<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>(),
+  status: T.RPCChat.UIBotCommandsUpdateStatusTyp.blank,
+})
+
+export const useBotCommandsUpdateState = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const [updateState, setUpdateState] = React.useState(() => makeBotCommandsUpdateState(conversationIDKey))
+
+  useEngineActionListener('chat.1.chatUi.chatBotCommandsUpdateStatus', action => {
+    if (T.Chat.stringToConversationIDKey(action.payload.params.convID) !== conversationIDKey) {
+      return
+    }
+    const {status} = action.payload.params
+    setUpdateState(previous => {
+      if (status.typ !== T.RPCChat.UIBotCommandsUpdateStatusTyp.uptodate) {
+        const settings =
+          previous.conversationIDKey === conversationIDKey
+            ? previous.settings
+            : new Map<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>()
+        return {conversationIDKey, settings, status: status.typ}
+      }
+      const settings = new Map<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>()
+      Object.entries(status.uptodate.settings ?? {}).forEach(([username, botSettings]) => {
+        settings.set(username, botSettings)
+      })
+      return {conversationIDKey, settings, status: status.typ}
+    })
+  })
+
+  return updateState.conversationIDKey === conversationIDKey
+    ? updateState
+    : makeBotCommandsUpdateState(conversationIDKey)
+}
+
 const getBotRestrictBlockMap = (
-  settings: ReadonlyMap<string, T.RPCChat.Keybase1.TeamBotSettings | undefined>,
+  settings: BotSettingsMap | undefined,
   conversationIDKey: T.Chat.ConversationIDKey,
   bots: ReadonlyArray<string>
 ) => {
   const blocks = new Map<string, boolean>()
   bots.forEach(b => {
-    const botSettings = settings.get(b)
+    const botSettings = settings?.get(b)
     if (!botSettings) {
       blocks.set(b, false)
       return
@@ -46,7 +92,7 @@ const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   const {selected, item: command} = p
   const prefix = getCommandPrefix(command)
-  const botSettings = ConvoState.useChatContext(s => s.botSettings)
+  const botSettings = React.useContext(BotCommandSettingsContext)
   const enabled = ConvoState.useChatContext(s => {
     const {botCommands} = s.meta
     const suggestBotCommands =
@@ -111,8 +157,12 @@ type UseDataSourceProps = {
 const useDataSource = (p: UseDataSourceProps) => {
   const {filter, inputRef, lastTextRef} = p
   const builtinCommands = useConfigState(s => s.chatBuiltinCommands)
-  const showGiphySearch = ConvoState.useChatUIContext(s => s.giphyWindow)
-  const showCommandMarkdown = ConvoState.useChatContext(s => !!s.commandMarkdown)
+  const {showCommandMarkdown, showGiphySearch} = InputState.useConversationInput(
+    C.useShallow(s => ({
+      showCommandMarkdown: !!s.commandMarkdown,
+      showGiphySearch: s.giphyWindow,
+    }))
+  )
   return ConvoState.useChatContext(
     C.useShallow(s => {
       if (showCommandMarkdown || showGiphySearch) {
@@ -169,6 +219,7 @@ type ListProps = Pick<
   Common.ListProps<CommandType>,
   'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
+  botSettings: BotSettingsMap
   filter: string
   onSelected: (item: CommandType, final: boolean) => void
   setOnMoveRef: (r: (up: boolean) => void) => void
@@ -178,15 +229,17 @@ type ListProps = Pick<
   lastTextRef: React.RefObject<string>
 }
 export const List = (p: ListProps) => {
-  const {filter, inputRef, lastTextRef, ...rest} = p
+  const {botSettings, filter, inputRef, lastTextRef, ...rest} = p
   const items = useDataSource({filter, inputRef, lastTextRef})
   return (
-    <Common.List
-      {...rest}
-      keyExtractor={keyExtractor}
-      items={items}
-      ItemRenderer={ItemRenderer}
-      loading={false}
-    />
+    <BotCommandSettingsContext.Provider value={botSettings}>
+      <Common.List
+        {...rest}
+        keyExtractor={keyExtractor}
+        items={items}
+        ItemRenderer={ItemRenderer}
+        loading={false}
+      />
+    </BotCommandSettingsContext.Provider>
   )
 }
