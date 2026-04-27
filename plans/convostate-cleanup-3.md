@@ -103,24 +103,41 @@ The intended end state is:
   - [x] message add/merge/indexing
   - [ ] incoming message handling
   - [ ] edit/delete mutation handling
-  - [ ] `messagesWereDeleted`
-  - [ ] `messagesExploded`
-  - [ ] `onMessagesUpdated`
-  - [ ] `onMessageErrored`
-  - [ ] `updateReactions`
-  - [ ] local reaction toggling for outbox reaction echoes
+  - [x] `messagesWereDeleted`
+  - [x] `messagesExploded`
+  - [x] `onMessagesUpdated`
+  - [x] `onMessageErrored`
+  - [x] `updateReactions`
+  - [x] local reaction toggling for outbox reaction echoes
   - Extracted core message add/merge/indexing into `shared/chat/conversation/thread-message-state.tsx`.
     `convostate` still calls it as the compatibility backend until active engine mutation routing moves.
+  - Extracted deletion, explosion, failed-outbox, server reaction update, and local reaction echo
+    mutations into `shared/chat/conversation/thread-message-state.tsx`. `convostate` still calls
+    these helpers as the compatibility backend until mounted active-thread listeners own routing.
+  - Routed `NewChatActivity.messagesUpdated` through the mounted `ConversationThreadProvider`
+    listener; global routing now invalidates the non-reactive thread cache without creating a
+    background `convostate`.
+  - Routed direct `NewChatActivity` expunge, ephemeral purge, and reaction-update row mutations
+    through the mounted provider listener. Global routing still preserves global side effects such
+    as `userReacjis`, but no longer creates background `convostate` instances for these events.
 - [ ] Replace global per-conversation engine routing for active-thread-only updates with mounted typed listeners
   - [ ] incoming messages update mounted provider when the conversation is visible
   - [ ] stale-thread notifications trigger provider reload/focus refresh
   - [ ] message updates, deletions, explosions, and reactions update mounted provider state
   - [ ] unmounted conversations do not create or keep warm per-conversation stores
+    - `messagesUpdated`, expunge, ephemeral purge, and reaction updates no longer create background
+      conversation stores; the mounted provider applies matching updates when visible.
 - [ ] Keep inbox/global behavior outside the thread provider
   - [ ] inbox layout and row summaries still refresh through inbox-owned stores
   - [ ] app badge and chat tab badge remain server-owned/global
   - [ ] no background path should require `getConvoState(id)` just to keep a thread cache warm
 - [ ] Update tests so thread mutation coverage lives with the new provider/runtime instead of `shared/stores/tests/convostate.test.ts`
+  - Added focused coverage for extracted mutation helpers in
+    `shared/chat/conversation/thread-message-state.test.tsx`; compatibility tests remain in
+    `convostate.test.ts` until active engine routing moves.
+  - Added mounted-provider coverage for `messagesUpdated` and reaction-update typed listener
+    routing, plus global routing guards that ensure these events preserve global side effects
+    without creating background conversation stores.
 
 ## Chunk 3: Move Metadata, Participants, Typing, Unread, And Badges
 

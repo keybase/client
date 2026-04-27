@@ -25,7 +25,6 @@ import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
 import * as Z from '@/util/zustand'
 import {navToPath} from '@/constants/fs'
-import HiddenString from '@/util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
@@ -49,9 +48,15 @@ import * as Strings from '@/constants/strings'
 import {chatStores} from './convo-registry'
 import {
   addMessagesToThreadState,
-  clearMessageIDIndexForOrdinal,
+  deleteMessagesFromThreadState,
+  explodeMessagesInThreadState,
   getOrdinalForMessageID,
+  removeMessageOrdinalFromThreadState,
+  setMessageErroredInThreadState,
+  toggleLocalReactionInThreadState,
+  updateReactionsInThreadState,
 } from '@/chat/conversation/thread-message-state'
+import {deleteConversationThreadCacheSnapshot} from '@/chat/conversation/thread-cache'
 
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
@@ -838,10 +843,7 @@ const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
   })
 }
 
-const onNewChatActivity = (
-  activity: NewChatActivity,
-  deletableByDeleteHistory?: ReadonlySet<T.Chat.MessageType>
-): ConvoEngineIncomingResult => {
+const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult => {
   switch (activity.activityType) {
     case T.RPCChat.ChatActivityType.incomingMessage: {
       const {incomingMessage} = activity
@@ -901,26 +903,13 @@ const onNewChatActivity = (
     case T.RPCChat.ChatActivityType.expunge: {
       const {expunge} = activity
       const conversationIDKey = T.Chat.conversationIDToKey(expunge.convID)
-      const deletableMessageTypes = deletableByDeleteHistory || Common.allMessageTypes
-      getConvoState(conversationIDKey).dispatch.messagesWereDeleted({
-        deletableMessageTypes,
-        upToMessageID: T.Chat.numberToMessageID(expunge.expunge.upto),
-      })
+      deleteConversationThreadCacheSnapshot(conversationIDKey)
       return handledConvoEngineIncoming()
     }
     case T.RPCChat.ChatActivityType.ephemeralPurge: {
       const {ephemeralPurge} = activity
       const conversationIDKey = T.Chat.conversationIDToKey(ephemeralPurge.convID)
-      const messageIDs = ephemeralPurge.msgs?.reduce<Array<T.Chat.MessageID>>((arr, msg) => {
-        const msgID = Message.getMessageID(msg)
-        if (msgID) {
-          arr.push(msgID)
-        }
-        return arr
-      }, [])
-      if (messageIDs) {
-        getConvoState(conversationIDKey).dispatch.messagesExploded(messageIDs)
-      }
+      deleteConversationThreadCacheSnapshot(conversationIDKey)
       return handledConvoEngineIncoming()
     }
     case T.RPCChat.ChatActivityType.reactionUpdate: {
@@ -930,18 +919,16 @@ const onNewChatActivity = (
         logger.warn(`Got ReactionUpdateNotif with no reactionUpdates for convID=${conversationIDKey}`)
         return handledConvoEngineIncoming()
       }
-      const updates = reactionUpdate.reactionUpdates.map(ru => ({
-        reactions: Message.reactionMapToReactions(ru.reactions),
-        targetMsgID: T.Chat.numberToMessageID(ru.targetMsgID),
-      }))
-      logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
-      getConvoState(conversationIDKey).dispatch.updateReactions(updates)
+      logger.info(
+        `Got ${reactionUpdate.reactionUpdates.length} reaction updates for convID=${conversationIDKey}`
+      )
+      deleteConversationThreadCacheSnapshot(conversationIDKey)
       return handledConvoEngineIncoming({userReacjis: reactionUpdate.userReacjis})
     }
     case T.RPCChat.ChatActivityType.messagesUpdated: {
       const {messagesUpdated} = activity
       const conversationIDKey = T.Chat.conversationIDToKey(messagesUpdated.convID)
-      getConvoState(conversationIDKey).dispatch.onMessagesUpdated(messagesUpdated)
+      deleteConversationThreadCacheSnapshot(conversationIDKey)
       return handledConvoEngineIncoming()
     }
     default:
@@ -949,10 +936,7 @@ const onNewChatActivity = (
   }
 }
 
-export const handleConvoEngineIncoming = (
-  action: EngineGen.Actions,
-  deletableByDeleteHistory?: ReadonlySet<T.Chat.MessageType>
-): ConvoEngineIncomingResult => {
+export const handleConvoEngineIncoming = (action: EngineGen.Actions): ConvoEngineIncomingResult => {
   switch (action.type) {
     case 'chat.1.NotifyChat.ChatConvUpdate': {
       const {conv} = action.payload.params
@@ -1019,7 +1003,7 @@ export const handleConvoEngineIncoming = (
       unboxRows([T.Chat.conversationIDToKey(action.payload.params.convID)])
       return handledConvoEngineIncoming()
     case 'chat.1.NotifyChat.NewChatActivity':
-      return onNewChatActivity(action.payload.params.activity, deletableByDeleteHistory)
+      return onNewChatActivity(action.payload.params.activity)
     case 'chat.1.NotifyChat.ChatTypingUpdate': {
       const {typingUpdates} = action.payload.params
       typingUpdates?.forEach(update => {
@@ -1332,31 +1316,8 @@ const createSlice =
       targetOrdinal: T.Chat.Ordinal
       username: string
     }) => {
-      const {decorated, emoji, targetOrdinal, username} = p
       set(s => {
-        const m = s.messageMap.get(targetOrdinal)
-        if (m && Message.isMessageWithReactions(m)) {
-          if (!m.reactions) {
-            m.reactions = new Map()
-          }
-          const existing = m.reactions.get(emoji)
-          if (existing) {
-            const userIndex = existing.users.findIndex(u => u.username === username)
-            if (userIndex >= 0) {
-              existing.users = existing.users.filter(u => u.username !== username)
-              if (existing.users.length === 0) {
-                m.reactions.delete(emoji)
-              }
-            } else {
-              existing.users = [...existing.users, {timestamp: Date.now(), username}]
-            }
-          } else {
-            m.reactions.set(emoji, {
-              decorated,
-              users: [{timestamp: Date.now(), username}],
-            })
-          }
-        }
+        toggleLocalReactionInThreadState(s, p)
       })
     }
 
@@ -1510,12 +1471,7 @@ const createSlice =
       const existing = get().messageMap.get(toDelOrdinal)
       if (existing) {
         set(s => {
-          clearMessageIDIndexForOrdinal(s, toDelOrdinal, existing)
-          s.messageMap.delete(toDelOrdinal)
-          s.messageTypeMap.delete(toDelOrdinal)
-          if (s.messageOrdinals) {
-            s.messageOrdinals = s.messageOrdinals.filter(o => o !== toDelOrdinal)
-          }
+          removeMessageOrdinalFromThreadState(s, toDelOrdinal, existing)
         })
       }
 
@@ -2431,60 +2387,17 @@ const createSlice =
       messagesExploded: (messageIDs, explodedBy) => {
         logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
         set(s => {
-          messageIDs.forEach(mid => {
-            const ordinal = maybeGetOrdinalByMessageID(s, mid)
-            const m = ordinal && s.messageMap.get(ordinal)
-            if (!m) return
-            m.exploded = true
-            m.explodedBy = explodedBy || ''
-            m.reactions = new Map()
-            m.unfurls = new Map()
-            if (m.type === 'text') {
-              m.flipGameID = ''
-              m.mentionsAt = new Set()
-              m.text = new HiddenString('')
-            }
-          })
+          explodeMessagesInThreadState(s, messageIDs, explodedBy)
         })
       },
       messagesWereDeleted: p => {
-        const {
-          deletableMessageTypes = Common.allMessageTypes,
-          messageIDs = [],
-          ordinals = [],
-          upToMessageID = null,
-        } = p
-        const state = get()
-        const {messageMap} = state
-
-        let upToOrdinals: Array<T.Chat.Ordinal> = []
-        if (upToMessageID) {
-          upToOrdinals = [...messageMap.entries()].reduce((arr, [ordinal, m]) => {
-            if (m.id < upToMessageID && deletableMessageTypes.has(m.type)) {
-              arr.push(ordinal)
-            }
-            return arr
-          }, new Array<T.Chat.Ordinal>())
-        }
-
-        const allOrdinals = new Set([
-          ...ordinals,
-          ...messageIDs.flatMap(id => {
-            const o = maybeGetOrdinalByMessageID(state, id)
-            return o ? [o] : []
-          }),
-          ...upToOrdinals,
-        ])
-
         set(s => {
-          allOrdinals.forEach(ordinal => {
-            clearMessageIDIndexForOrdinal(s, ordinal)
-            s.messageMap.delete(ordinal)
-            s.messageTypeMap.delete(ordinal)
+          deleteMessagesFromThreadState(s, {
+            deletableMessageTypes: p.deletableMessageTypes ?? Common.allMessageTypes,
+            messageIDs: p.messageIDs,
+            ordinals: p.ordinals,
+            upToMessageID: p.upToMessageID,
           })
-          if (s.messageOrdinals) {
-            s.messageOrdinals = s.messageOrdinals.filter(o => !allOrdinals.has(o))
-          }
         })
       },
       mute: m => {
@@ -2614,12 +2527,7 @@ const createSlice =
       },
       onMessageErrored: (outboxID, reason, errorTyp) => {
         set(s => {
-          const ordinal = s.pendingOutboxToOrdinal.get(outboxID)
-          const m = ordinal ? s.messageMap.get(ordinal) : undefined
-          if (!m) return
-          m.errorReason = reason
-          m.errorTyp = errorTyp || undefined
-          m.submitState = 'failed'
+          setMessageErroredInThreadState(s, outboxID, reason, errorTyp)
         })
       },
       onMessagesUpdated: messagesUpdated => {
@@ -3232,53 +3140,16 @@ const createSlice =
         ignorePromise(f())
       },
       updateReactions: updates => {
-        for (const u of updates) {
-          const reactions = u.reactions
-          const targetMsgID = u.targetMsgID
-          const targetOrdinal = maybeGetOrdinalByMessageID(get(), u.targetMsgID)
-          if (!targetOrdinal) {
-            logger.info(
-              `updateReactions: couldn't find target ordinal for targetMsgID=${targetMsgID} in convID=${
-                get().id
-              }`
-            )
-            continue
-          }
-          set(s => {
-            const m = s.messageMap.get(targetOrdinal)
-            if (m && m.type !== 'deleted' && m.type !== 'placeholder') {
-              if (!reactions) {
-                m.reactions = undefined
-              } else if (!m.reactions) {
-                m.reactions = T.castDraft(reactions)
-              } else {
-                const existingOrder = [...m.reactions.keys()]
-                const scoreMap = new Map(
-                  [...reactions.entries()].map(([key, value]) => {
-                    return [
-                      key,
-                      value.users.reduce(
-                        (minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp),
-                        Infinity
-                      ),
-                    ]
-                  })
-                )
-                const newReactions = new Map<string, T.Chat.ReactionDesc>()
-                for (const emoji of existingOrder) {
-                  if (reactions.has(emoji)) {
-                    newReactions.set(emoji, reactions.get(emoji)!)
-                  }
-                }
-                const remainingEmojis = [...reactions.keys()].filter(emoji => !newReactions.has(emoji))
-                remainingEmojis.sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
-                for (const emoji of remainingEmojis) {
-                  newReactions.set(emoji, reactions.get(emoji)!)
-                }
-                m.reactions = T.castDraft(newReactions)
-              }
-            }
-          })
+        const missingTargetMsgIDs = new Array<T.Chat.MessageID>()
+        set(s => {
+          missingTargetMsgIDs.push(...updateReactionsInThreadState(s, updates))
+        })
+        for (const targetMsgID of missingTargetMsgIDs) {
+          logger.info(
+            `updateReactions: couldn't find target ordinal for targetMsgID=${targetMsgID} in convID=${
+              get().id
+            }`
+          )
         }
         get().dispatch.markThreadAsRead()
       },

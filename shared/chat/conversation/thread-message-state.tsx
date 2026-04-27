@@ -14,6 +14,18 @@ type WritableConversationThreadMessageState = {
   validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
 }
 
+type ThreadMessagesDeleteParams = {
+  messageIDs?: ReadonlyArray<T.Chat.MessageID>
+  upToMessageID?: T.Chat.MessageID
+  deletableMessageTypes?: ReadonlySet<T.Chat.MessageType>
+  ordinals?: ReadonlyArray<T.Chat.Ordinal>
+}
+
+type ThreadReactionUpdate = {
+  targetMsgID: T.Chat.MessageID
+  reactions?: T.Chat.Reactions
+}
+
 export const getOrdinalForMessageID = (
   map: ReadonlyMap<T.Chat.Ordinal, MessageLookup>,
   pendingOutboxToOrdinal: ReadonlyMap<T.Chat.OutboxID, T.Chat.Ordinal> | undefined,
@@ -52,6 +64,19 @@ export const clearMessageIDIndexForOrdinal = (
   const message = knownMessage ?? state.messageMap.get(ordinal)
   if (message?.id) {
     state.messageIDToOrdinal.delete(message.id)
+  }
+}
+
+export const removeMessageOrdinalFromThreadState = (
+  state: WritableConversationThreadMessageState,
+  ordinal: T.Chat.Ordinal,
+  knownMessage?: MessageLookup
+) => {
+  clearMessageIDIndexForOrdinal(state, ordinal, knownMessage)
+  state.messageMap.delete(ordinal)
+  state.messageTypeMap.delete(ordinal)
+  if (state.messageOrdinals) {
+    state.messageOrdinals = state.messageOrdinals.filter(o => o !== ordinal)
   }
 }
 
@@ -237,4 +262,155 @@ export const addMessagesToThreadState = (
   if (changed || !state.messageOrdinals) {
     state.messageOrdinals = [...existing].sort((a, b) => a - b)
   }
+}
+
+export const deleteMessagesFromThreadState = (
+  state: WritableConversationThreadMessageState,
+  p: ThreadMessagesDeleteParams
+) => {
+  const {deletableMessageTypes, messageIDs = [], ordinals = [], upToMessageID} = p
+  const {messageMap} = state
+
+  let upToOrdinals: Array<T.Chat.Ordinal> = []
+  if (upToMessageID && deletableMessageTypes) {
+    upToOrdinals = [...messageMap.entries()].reduce((arr, [ordinal, m]) => {
+      if (m.id < upToMessageID && deletableMessageTypes.has(m.type)) {
+        arr.push(ordinal)
+      }
+      return arr
+    }, new Array<T.Chat.Ordinal>())
+  }
+
+  const allOrdinals = new Set([
+    ...ordinals,
+    ...messageIDs.flatMap(id => {
+      const o = maybeGetOrdinalByMessageID(state, id)
+      return o ? [o] : []
+    }),
+    ...upToOrdinals,
+  ])
+
+  allOrdinals.forEach(ordinal => {
+    removeMessageOrdinalFromThreadState(state, ordinal)
+  })
+}
+
+export const explodeMessagesInThreadState = (
+  state: WritableConversationThreadMessageState,
+  messageIDs: ReadonlyArray<T.Chat.MessageID>,
+  explodedBy?: string
+) => {
+  messageIDs.forEach(mid => {
+    const ordinal = maybeGetOrdinalByMessageID(state, mid)
+    const m = ordinal && state.messageMap.get(ordinal)
+    if (!m) return
+    m.exploded = true
+    m.explodedBy = explodedBy || ''
+    m.reactions = new Map()
+    m.unfurls = new Map()
+    if (m.type === 'text') {
+      m.flipGameID = ''
+      m.mentionsAt = new Set()
+      m.text = new HiddenString('')
+    }
+  })
+}
+
+export const setMessageErroredInThreadState = (
+  state: WritableConversationThreadMessageState,
+  outboxID: T.Chat.OutboxID,
+  reason: string,
+  errorTyp?: number
+) => {
+  const ordinal = state.pendingOutboxToOrdinal.get(outboxID)
+  const m = ordinal ? state.messageMap.get(ordinal) : undefined
+  if (!m) return
+  m.errorReason = reason
+  m.errorTyp = errorTyp || undefined
+  m.submitState = 'failed'
+}
+
+export const toggleLocalReactionInThreadState = (
+  state: WritableConversationThreadMessageState,
+  p: {
+    decorated: string
+    emoji: string
+    targetOrdinal: T.Chat.Ordinal
+    username: string
+  }
+) => {
+  const {decorated, emoji, targetOrdinal, username} = p
+  const m = state.messageMap.get(targetOrdinal)
+  if (m && Message.isMessageWithReactions(m)) {
+    if (!m.reactions) {
+      m.reactions = new Map()
+    }
+    const existing = m.reactions.get(emoji)
+    if (existing) {
+      const userIndex = existing.users.findIndex(u => u.username === username)
+      if (userIndex >= 0) {
+        existing.users = existing.users.filter(u => u.username !== username)
+        if (existing.users.length === 0) {
+          m.reactions.delete(emoji)
+        }
+      } else {
+        existing.users = [...existing.users, {timestamp: Date.now(), username}]
+      }
+    } else {
+      m.reactions.set(emoji, {
+        decorated,
+        users: [{timestamp: Date.now(), username}],
+      })
+    }
+  }
+}
+
+export const updateReactionsInThreadState = (
+  state: WritableConversationThreadMessageState,
+  updates: ReadonlyArray<ThreadReactionUpdate>
+) => {
+  const missingTargetMsgIDs = new Array<T.Chat.MessageID>()
+  for (const u of updates) {
+    const reactions = u.reactions
+    const targetMsgID = u.targetMsgID
+    const targetOrdinal = maybeGetOrdinalByMessageID(state, targetMsgID)
+    if (!targetOrdinal) {
+      missingTargetMsgIDs.push(targetMsgID)
+      continue
+    }
+    const m = state.messageMap.get(targetOrdinal)
+    if (m && m.type !== 'deleted' && m.type !== 'placeholder') {
+      if (!reactions) {
+        m.reactions = undefined
+      } else if (!m.reactions) {
+        m.reactions = T.castDraft(reactions)
+      } else {
+        const existingOrder = [...m.reactions.keys()]
+        const scoreMap = new Map(
+          [...reactions.entries()].map(([key, value]) => {
+            return [
+              key,
+              value.users.reduce(
+                (minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp),
+                Infinity
+              ),
+            ]
+          })
+        )
+        const newReactions = new Map<string, T.Chat.ReactionDesc>()
+        for (const emoji of existingOrder) {
+          if (reactions.has(emoji)) {
+            newReactions.set(emoji, reactions.get(emoji)!)
+          }
+        }
+        const remainingEmojis = [...reactions.keys()].filter(emoji => !newReactions.has(emoji))
+        remainingEmojis.sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
+        for (const emoji of remainingEmojis) {
+          newReactions.set(emoji, reactions.get(emoji)!)
+        }
+        m.reactions = T.castDraft(newReactions)
+      }
+    }
+  }
+  return missingTargetMsgIDs
 }

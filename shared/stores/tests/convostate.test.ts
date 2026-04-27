@@ -12,6 +12,7 @@ import {
   type ConvoState,
   getConvoState,
   handleConvoEngineIncoming,
+  hasConvoState,
   syncBadgeState,
 } from '../convostate'
 import {queueInboxRowUpdate} from '../inbox-rows'
@@ -398,6 +399,56 @@ test('onMessagesUpdated ignores unopened background conversations', () => {
 
   expect(store.getState().messageOrdinals).toBeUndefined()
   expect(store.getState().messageMap.size).toBe(0)
+})
+
+test('global messagesUpdated routing does not create a background conversation store', () => {
+  expect(hasConvoState(convID)).toBe(false)
+
+  handleConvoEngineIncoming({
+    payload: {
+      params: {
+        activity: {
+          activityType: T.RPCChat.ChatActivityType.messagesUpdated,
+          messagesUpdated: {
+            convID: T.Chat.keyToConversationID(convID),
+            updates: [makeValidTextUIMessage(T.Chat.numberToMessageID(401), 'background update')],
+          },
+        },
+      },
+    },
+    type: 'chat.1.NotifyChat.NewChatActivity',
+  } as never)
+
+  expect(hasConvoState(convID)).toBe(false)
+})
+
+test('global reactionUpdate routing preserves user reacjis without creating a background store', () => {
+  const userReacjis = {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: null}
+  expect(hasConvoState(convID)).toBe(false)
+
+  const result = handleConvoEngineIncoming({
+    payload: {
+      params: {
+        activity: {
+          activityType: T.RPCChat.ChatActivityType.reactionUpdate,
+          reactionUpdate: {
+            convID: T.Chat.keyToConversationID(convID),
+            reactionUpdates: [
+              {
+                reactions: {reactions: null},
+                targetMsgID: T.Chat.messageIDToNumber(msgID),
+              },
+            ],
+            userReacjis,
+          },
+        },
+      },
+    },
+    type: 'chat.1.NotifyChat.NewChatActivity',
+  } as never)
+
+  expect(result.userReacjis).toEqual(userReacjis)
+  expect(hasConvoState(convID)).toBe(false)
 })
 
 test('onMessagesUpdated still applies to unopened active conversations', () => {

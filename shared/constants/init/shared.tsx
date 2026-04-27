@@ -445,10 +445,7 @@ export const initSharedSubscriptions = () => {
 // This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
   const routeConvoEngineIncoming = (engineAction: EngineGen.Actions) => {
-    const result = handleConvoEngineIncoming(
-      engineAction,
-      useConfigState.getState().chatDeletableByDeleteHistory
-    )
+    const result = handleConvoEngineIncoming(engineAction)
     if (result.inboxUIItem) {
       onIncomingInboxUIItem(result.inboxUIItem)
     }

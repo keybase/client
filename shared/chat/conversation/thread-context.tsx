@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Common from '@/constants/chat/common'
 import * as Message from '@/constants/chat/message'
 import * as ConvoState from '@/stores/convostate'
 import * as Meta from '@/constants/chat/meta'
@@ -11,8 +12,10 @@ import throttle from 'lodash/throttle'
 import {clearChatTimeCache} from '@/util/timestamp'
 import {enumKeys, ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
+import {useEngineActionListener} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
+import {useConfigState} from '@/stores/config'
 import {
   deleteConversationThreadCacheSnapshot,
   getConversationThreadCacheSnapshot,
@@ -188,6 +191,79 @@ const getCurrentUser = () => {
 
 const getLastOrdinal = (conversationIDKey: T.Chat.ConversationIDKey) =>
   ConvoState.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+
+const applyMessagesUpdatedToThread = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  messagesUpdated: T.RPCChat.MessagesUpdated
+) => {
+  if (!messagesUpdated.updates) return
+  const state = ConvoState.getConvoState(conversationIDKey)
+  const activelyLookingAtThread = Common.isUserActivelyLookingAtThisThread(conversationIDKey)
+  if (!state.loaded && !activelyLookingAtThread) {
+    return
+  }
+
+  const {username, devicename} = getCurrentUser()
+  const messages = messagesUpdated.updates.flatMap(uimsg => {
+    if (!Message.getMessageID(uimsg)) return []
+    const message = Message.uiMessageToMessage(
+      conversationIDKey,
+      uimsg,
+      username,
+      () => getLastOrdinal(conversationIDKey),
+      devicename
+    )
+    return message ? [message] : []
+  })
+  if (messages.length === 0) {
+    return
+  }
+  ConvoState.addMessagesToThreadCompat(conversationIDKey, messages, {
+    markAsRead: activelyLookingAtThread,
+  })
+}
+
+const applyReactionUpdateToThread = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  reactionUpdate: T.RPCChat.ReactionUpdateNotif
+) => {
+  if (!reactionUpdate.reactionUpdates || reactionUpdate.reactionUpdates.length === 0) {
+    return
+  }
+  const updates = reactionUpdate.reactionUpdates.map(ru => ({
+    reactions: Message.reactionMapToReactions(ru.reactions),
+    targetMsgID: T.Chat.numberToMessageID(ru.targetMsgID),
+  }))
+  ConvoState.getConvoState(conversationIDKey).dispatch.updateReactions(updates)
+}
+
+const applyExpungeToThread = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  expunge: T.RPCChat.ExpungeInfo
+) => {
+  const deletableMessageTypes =
+    useConfigState.getState().chatDeletableByDeleteHistory || Common.allMessageTypes
+  ConvoState.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({
+    deletableMessageTypes,
+    upToMessageID: T.Chat.numberToMessageID(expunge.expunge.upto),
+  })
+}
+
+const applyEphemeralPurgeToThread = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  ephemeralPurge: T.RPCChat.EphemeralPurgeNotifInfo
+) => {
+  const messageIDs = ephemeralPurge.msgs?.reduce<Array<T.Chat.MessageID>>((arr, msg) => {
+    const msgID = Message.getMessageID(msg)
+    if (msgID) {
+      arr.push(msgID)
+    }
+    return arr
+  }, [])
+  if (messageIDs) {
+    ConvoState.getConvoState(conversationIDKey).dispatch.messagesExploded(messageIDs)
+  }
+}
 
 const loadConversationThreadMessages = (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -403,6 +479,44 @@ export const ConversationThreadProvider = (
       threadActions.loadMoreMessages.cancel()
     }
   }, [threadActions])
+  useEngineActionListener('chat.1.NotifyChat.NewChatActivity', action => {
+    const {activity} = action.payload.params
+    switch (activity.activityType) {
+      case T.RPCChat.ChatActivityType.messagesUpdated: {
+        const {messagesUpdated} = activity
+        const conversationIDKey = T.Chat.conversationIDToKey(messagesUpdated.convID)
+        if (conversationIDKey === id) {
+          applyMessagesUpdatedToThread(conversationIDKey, messagesUpdated)
+        }
+        break
+      }
+      case T.RPCChat.ChatActivityType.reactionUpdate: {
+        const {reactionUpdate} = activity
+        const conversationIDKey = T.Chat.conversationIDToKey(reactionUpdate.convID)
+        if (conversationIDKey === id) {
+          applyReactionUpdateToThread(conversationIDKey, reactionUpdate)
+        }
+        break
+      }
+      case T.RPCChat.ChatActivityType.expunge: {
+        const {expunge} = activity
+        const conversationIDKey = T.Chat.conversationIDToKey(expunge.convID)
+        if (conversationIDKey === id) {
+          applyExpungeToThread(conversationIDKey, expunge)
+        }
+        break
+      }
+      case T.RPCChat.ChatActivityType.ephemeralPurge: {
+        const {ephemeralPurge} = activity
+        const conversationIDKey = T.Chat.conversationIDToKey(ephemeralPurge.convID)
+        if (conversationIDKey === id) {
+          applyEphemeralPurgeToThread(conversationIDKey, ephemeralPurge)
+        }
+        break
+      }
+      default:
+    }
+  })
 
   return (
     <ConversationThreadIDContext value={id}>
