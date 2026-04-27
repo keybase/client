@@ -66,7 +66,7 @@ Recommended cleanup order: move `attachmentViewMap` first, then `mutualTeams` an
   - [x] row separator, author-name, and recycle-type behavior after inserts/deletes/edits
 
 Coverage note: this slice adds regression tests in `shared/stores/tests/convostate.test.ts`,
-`shared/chat/conversation/input-area/input-state.test.ts`,
+`shared/chat/conversation/input-area/input-state.test.tsx`,
 `shared/chat/conversation/info-panel/attachments.test.tsx`,
 `shared/chat/conversation/input-area/suggestors/commands.test.tsx`, and
 `shared/chat/conversation/messages/row-metadata.test.ts`. Mutual-team channel suggestor refresh is covered

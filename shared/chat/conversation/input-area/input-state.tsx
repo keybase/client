@@ -133,22 +133,20 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
       }
 
       const {messageMap, messageOrdinals} = ConvoState.getConvoState(id)
-      let ordinal = emptyOrdinal
+      let ordinal: T.Chat.Ordinal | undefined
       if (e === 'last') {
         const editLastUser = useCurrentUserState.getState().username
-        const found =
-          !!messageOrdinals &&
-          findLast(messageOrdinals, o => {
-            const message = messageMap.get(o)
-            return !!(
-              (message?.type === 'text' || message?.type === 'attachment') &&
-              message.author === editLastUser &&
-              !message.exploded &&
-              message.isEditable
-            )
-          })
-        if (!found) return
-        ordinal = found
+        ordinal = messageOrdinals
+          ? findLast(messageOrdinals, o => {
+              const message = messageMap.get(o)
+              return !!(
+                (message?.type === 'text' || message?.type === 'attachment') &&
+                message.author === editLastUser &&
+                !message.exploded &&
+                message.isEditable
+              )
+            })
+          : undefined
       } else {
         ordinal = e
       }
