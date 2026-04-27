@@ -163,8 +163,8 @@ Implementation note: the old `ConvoUIState` compatibility surface has been remov
   - [ ] `loadMessagesCentered` still clears stale messages, loads around the pivot, and highlights according to mode
   - [ ] `toggleThreadSearch(false)` clears or de-emphasizes highlight exactly as today
   - [ ] sending while search/highlight is active still closes search and jumps to recent
-- [ ] Move mark-unread orange-line UI out of `markedAsUnread` if the normal conversation screen can own it without missing service updates
-- [ ] Keep `setMarkAsUnread` server RPC behavior in `convostate` until all call sites use a feature-level action with equivalent fallback loading
+- [x] Move mark-unread orange-line UI out of `markedAsUnread` if the normal conversation screen can own it without missing service updates
+- [x] Keep `setMarkAsUnread` server RPC behavior in `convostate` until all call sites use a feature-level action with equivalent fallback loading
 - [ ] Move `threadLoadStatus` to route/list state if `loadMoreMessages` can report status through the feature owner without stale statuses bleeding across conversations
 - [ ] Re-evaluate `rowRecycleTypeMap`, `separatorMap`, and `showUsernameMap`:
   - [ ] keep them in `convostate` if list virtualization requires precomputed stable row metadata
@@ -177,6 +177,8 @@ Implementation note: the old `ConvoUIState` compatibility surface has been remov
   - [x] native row recycle types are stable for pending, failed, reply, and reaction rows
 
 Implementation note: highlighted message navigation now travels through `navigateToThread` route params or is loaded immediately when already viewing the same thread. The route highlight param is cleared after selection, and `convostate` no longer stores `pendingJumpMessageID`.
+
+Implementation note: message-level mark-unread now updates the mounted conversation's orange-line owner through `OrangeLineContext`, while `convostate.setMarkAsUnread(...)` keeps the server `forceUnread` RPC and fallback message lookup behavior. The old `markedAsUnread` store field has been removed.
 
 ### Target callers for Chunk 5
 

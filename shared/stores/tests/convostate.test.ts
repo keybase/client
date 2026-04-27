@@ -786,11 +786,9 @@ test('highlight message is consumed once by selectedConversation', () => {
 test('setMarkAsUnread false is a no-op', () => {
   const store = createStore()
   const markAsRead = jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue(undefined)
-  applyState(store, {markedAsUnread: ordinal})
 
   store.getState().dispatch.setMarkAsUnread(false)
 
-  expect(store.getState().markedAsUnread).toBe(ordinal)
   expect(markAsRead).not.toHaveBeenCalled()
 })
 

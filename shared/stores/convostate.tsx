@@ -85,7 +85,6 @@ type ConvoStore = T.Immutable<{
   explodingMode: number // seconds to exploding message expiration,
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   loaded: boolean // did we ever load this thread yet
-  markedAsUnread: T.Chat.Ordinal
   messageCenterOrdinal?: T.Chat.CenterOrdinal // ordinals to center threads on,
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType> // messages T.Chat to help the thread, text is never used
@@ -125,7 +124,6 @@ const initialConvoStore: ConvoStore = {
   flipStatusMap: new Map(),
   id: noConversationIDKey,
   loaded: false,
-  markedAsUnread: T.Chat.numberToOrdinal(0),
   messageCenterOrdinal: undefined,
   messageIDToOrdinal: new Map(),
   messageMap: new Map(),
@@ -3292,11 +3290,6 @@ const createSlice =
       setMarkAsUnread: readMsgID => {
         if (readMsgID === false) {
           return
-        }
-        if (readMsgID) {
-          set(s => {
-            s.markedAsUnread = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(readMsgID))
-          })
         }
         const conversationIDKey = get().id
         const f = async () => {

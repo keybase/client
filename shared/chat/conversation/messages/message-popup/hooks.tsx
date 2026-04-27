@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as InputState from '../../input-area/input-state'
+import * as React from 'react'
 import {useCurrentUserState} from '@/stores/current-user'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
 import ReactionItem from './reactionitem'
@@ -12,6 +13,7 @@ import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import {navToProfile} from '@/constants/router'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
+import {SetOrangeLineContext} from '../../orange-line-context'
 
 const emptyText = Chat.makeMessageText({})
 
@@ -104,6 +106,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
       return {messageDelete, pinMessage, setMarkAsUnread}
     })
   )
+  const setOrangeLine = React.useContext(SetOrangeLineContext)
   const {setEditing, setReplyTo} = InputState.useConversationInput(
     C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
   )
@@ -157,6 +160,9 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     : []
 
   const onMarkAsUnread = () => {
+    if (id) {
+      setOrangeLine(id)
+    }
     setMarkAsUnread(id)
   }
   const itemUnread = [
