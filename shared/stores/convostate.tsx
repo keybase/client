@@ -1362,23 +1362,38 @@ const createSlice =
           }
         }
 
+        const getMapOrdinal = (m: Z.WritableDraft<T.Chat.Message>, regularMessage: boolean) => {
+          let mapOrdinal = m.ordinal
+          // if we've sent it we use the outbox id to manage the ordinal relationship
+          if (regularMessage && m.outboxID) {
+            const existingSent = s.pendingOutboxToOrdinal.get(m.outboxID)
+            if (existingSent) {
+              mapOrdinal = existingSent
+            }
+          }
+          if (regularMessage && mapOrdinal === m.ordinal && m.id) {
+            const existingByMessageID = maybeGetOrdinalByMessageID(s, m.id)
+            if (existingByMessageID) {
+              mapOrdinal = existingByMessageID
+            }
+          }
+          return mapOrdinal
+        }
+
         for (const _m of messages) {
           const m = T.castDraft(_m)
           const regularMessage = m.conversationMessage !== false
 
           if (regularMessage && m.type === 'deleted') {
-            clearMessageIDIndexForOrdinal(s, m.ordinal)
-            s.messageMap.delete(m.ordinal)
-            s.messageTypeMap.delete(m.ordinal)
-          } else {
-            let mapOrdinal = m.ordinal
-            // if we've sent it we use the outbox id to manage the ordinal relationship
-            if (regularMessage && m.outboxID) {
-              const existingSent = s.pendingOutboxToOrdinal.get(m.outboxID)
-              if (existingSent) {
-                mapOrdinal = existingSent
-              }
+            const mapOrdinal = getMapOrdinal(m, regularMessage)
+            if (m.ordinal !== mapOrdinal) {
+              m.ordinal = mapOrdinal
             }
+            clearMessageIDIndexForOrdinal(s, mapOrdinal)
+            s.messageMap.delete(mapOrdinal)
+            s.messageTypeMap.delete(mapOrdinal)
+          } else {
+            const mapOrdinal = getMapOrdinal(m, regularMessage)
             // never set a placeholder on top of any other data
             if (m.type === 'placeholder') {
               const old = s.messageMap.get(mapOrdinal)
@@ -1389,7 +1404,7 @@ const createSlice =
             }
 
             if (m.ordinal !== mapOrdinal) {
-              // Outbox remap: fix incomingOrdinals so the original ordinal doesn't
+              // Ordinal remap: fix incomingOrdinals so the original ordinal doesn't
               // get merged into messageOrdinals with no backing message
               if (regularMessage && m.type !== 'deleted') {
                 incomingOrdinals.delete(m.ordinal)

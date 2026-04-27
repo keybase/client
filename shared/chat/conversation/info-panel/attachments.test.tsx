@@ -6,7 +6,6 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import {ChatProvider, getConvoState} from '@/stores/convostate'
-import {RPCError} from '@/util/errors'
 import {useAttachmentSections} from './attachments'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -144,6 +143,7 @@ test('attachment gallery loads media, dedupes hits, injects messages, and loads 
         message: makeValidTextUIMessage(T.Chat.numberToMessageID(100), 'duplicate gallery hit'),
       })
     }
+    await Promise.resolve()
     return {last: requests.length > 1}
   })
   const {result} = renderAttachmentSections()
@@ -168,7 +168,7 @@ test('attachment gallery loads media, dedupes hits, injects messages, and loads 
   expect(getConvoState(convID).messageMap.size).toBe(2)
 
   const loadMoreSection = result.current.sections.at(-1)
-  const loadMoreButton = loadMoreSection?.renderItem?.({
+  const loadMoreButton = loadMoreSection?.renderItem({
     index: 0,
     item: {type: 'load-more'},
   } as never) as {props: {onClick: () => void}} | undefined
@@ -186,8 +186,9 @@ test('attachment gallery exposes error retry and empty success states', async ()
   const requests = new Array<Parameters<typeof T.RPCChat.localLoadGalleryRpcListener>[0]>()
   jest.spyOn(T.RPCChat, 'localLoadGalleryRpcListener').mockImplementation(async p => {
     requests.push(p)
+    await Promise.resolve()
     if (shouldFail) {
-      throw new RPCError('gallery failed', T.RPCGen.StatusCode.scgeneric)
+      throw new Error('gallery failed')
     }
     return {last: true}
   })
@@ -199,7 +200,7 @@ test('attachment gallery exposes error retry and empty success states', async ()
   })
 
   const errorSection = result.current.sections.at(-1)
-  const retryButton = errorSection?.renderItem?.({
+  const retryButton = errorSection?.renderItem({
     index: 0,
     item: {type: 'load-more'},
   } as never) as {props: {label: string; onClick: () => void}} | undefined
@@ -221,11 +222,13 @@ test('attachment gallery ignores hits that arrive after unmount cleanup', async 
   let request: Parameters<typeof T.RPCChat.localLoadGalleryRpcListener>[0] | undefined
   let resolveLoad: ((result: T.RPCChat.LoadGalleryRes) => void) | undefined
   jest.spyOn(T.RPCChat, 'localLoadGalleryRpcListener').mockImplementation(
-    p =>
-      new Promise<T.RPCChat.LoadGalleryRes>(resolve => {
+    async p => {
+      const result = await new Promise<T.RPCChat.LoadGalleryRes>(resolve => {
         request = p
         resolveLoad = resolve
       })
+      return result
+    }
   )
   const {unmount} = renderAttachmentSections()
 
@@ -256,6 +259,7 @@ test('attachment gallery doc rows reflect live transfer progress from convostate
         message: makeValidAttachmentUIMessage(attachmentMsgID, 'report.png'),
       })
     }
+    await Promise.resolve()
     return {last: true}
   })
   const {result} = renderAttachmentSections()
@@ -266,7 +270,7 @@ test('attachment gallery doc rows reflect live transfer progress from convostate
   })
 
   const selectorSection = result.current.sections[0]
-  const selector = selectorSection?.renderItem?.({
+  const selector = selectorSection?.renderItem({
     index: 0,
     item: {type: 'avselector'},
   } as never) as {props: {onSelectView: (viewType: T.RPCChat.GalleryItemTyp) => void}} | undefined

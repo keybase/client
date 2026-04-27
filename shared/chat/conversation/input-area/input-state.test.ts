@@ -58,13 +58,19 @@ const makeGiphyResult = (targetUrl = 'https://media.giphy.com/media/target/giphy
   targetUrl,
 })
 
+const makeRpcOutboxID = (label: string): T.RPCChat.OutboxID =>
+  new TextEncoder().encode(label)
+const makeOutboxID = (label: string): T.Chat.OutboxID =>
+  T.Chat.rpcOutboxIDToOutboxID(makeRpcOutboxID(label))
+
 const mockPostText = () => {
   let lastPost:
     | Parameters<typeof T.RPCChat.localPostTextNonblockRpcListener>[0]
     | undefined
   jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockImplementation(async p => {
     lastPost = p
-    return {outboxID: T.Chat.outboxIDToRpcOutboxID(T.Chat.stringToOutboxID('posted-outbox'))}
+    await Promise.resolve()
+    return {outboxID: makeRpcOutboxID('posted-outbox')}
   })
   return () => lastPost
 }
@@ -217,12 +223,12 @@ test('sendComposerText edits the selected message and clears edit state', async 
     makeTextMessage({
       id: editMessageID,
       ordinal: editOrdinal,
-      outboxID: T.Chat.stringToOutboxID('edit-target'),
+      outboxID: makeOutboxID('edit-target'),
       text: 'old text',
     }),
   ])
   const editPost = jest.spyOn(T.RPCChat, 'localPostEditNonblockRpcPromise').mockResolvedValue({
-    outboxID: T.Chat.outboxIDToRpcOutboxID(T.Chat.stringToOutboxID('edit-outbox')),
+    outboxID: makeRpcOutboxID('edit-outbox'),
   })
   const inputStore = createConversationInputStoreForTesting(convID)
   inputStore.getState().dispatch.setEditing(editOrdinal)
@@ -258,7 +264,7 @@ test('giphy engine events and send path update the input owner', async () => {
     }),
   ])
   const getLastPost = mockPostText()
-  const trackGiphy = jest.spyOn(T.RPCChat, 'localTrackGiphySelectRpcPromise').mockResolvedValue(undefined)
+  const trackGiphy = jest.spyOn(T.RPCChat, 'localTrackGiphySelectRpcPromise').mockResolvedValue({})
   const inputStore = createConversationInputStoreForTesting(convID)
   const result = makeGiphyResult()
 

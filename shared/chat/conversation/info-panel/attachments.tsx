@@ -598,7 +598,7 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
           })
         } catch (error) {
           flushPendingMessages()
-          if (error instanceof RPCError && isCurrentLoad()) {
+          if ((error instanceof RPCError || error instanceof Error) && isCurrentLoad()) {
             logger.error('failed to load attachment view: ' + error.message)
             updateCurrentAttachmentViewMap(viewType, info => {
               info.last = false

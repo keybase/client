@@ -50,7 +50,9 @@ export const getMessageRowRecycleType = (
   message: T.Chat.Message,
   renderType?: T.Chat.RenderMessageType
 ): string | undefined => {
-  let rowRecycleType = renderType ?? Message.getMessageRenderType(message)
+  const baseType =
+    message.type === 'attachment' ? message.type : (renderType ?? Message.getMessageRenderType(message))
+  let rowRecycleType = baseType
   let needsSpecificRecycleType = false
 
   if (

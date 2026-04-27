@@ -44,6 +44,9 @@ const makeReaction = (username: string, timestamp: number): T.Chat.ReactionDesc 
   users: [{timestamp, username}],
 })
 
+const makeRpcOutboxID = (label: string): T.RPCChat.OutboxID =>
+  new TextEncoder().encode(label)
+
 const makeTextMessage = (override?: Omit<Partial<T.Chat.MessageText>, 'text'> & {text?: string}) =>
   Message.makeMessageText({
     author: 'alice',
@@ -242,7 +245,7 @@ type LoadMoreMessagesMock = (
 
 const makeLoadMoreMessagesMock = () =>
   Object.assign(
-    jest.fn<LoadMoreMessagesMock>(),
+    jest.fn<ReturnType<LoadMoreMessagesMock>, Parameters<LoadMoreMessagesMock>>(),
     {
       cancel: () => {},
       flush: () => undefined,
@@ -422,7 +425,10 @@ test('galleryMessagesLoaded injects gallery-only messages without marking read',
     ordinal: T.Chat.numberToOrdinal(501),
   })
   const store = seedStore([threadMessage])
-  const markThreadAsRead = jest.fn<ConvoState['dispatch']['markThreadAsRead']>()
+  const markThreadAsRead = jest.fn<
+    ReturnType<ConvoState['dispatch']['markThreadAsRead']>,
+    Parameters<ConvoState['dispatch']['markThreadAsRead']>
+  >()
   const current = store.getState()
   store.setState({
     ...current,
@@ -531,7 +537,8 @@ test('attachment transfer events ignore non-actionable rows', () => {
 })
 
 test('attachment upload progress updates pending outbox-backed rows', () => {
-  const uploadOutboxID = T.Chat.stringToOutboxID('upload-outbox')
+  const uploadRpcOutboxID = makeRpcOutboxID('upload-outbox')
+  const uploadOutboxID = T.Chat.rpcOutboxIDToOutboxID(uploadRpcOutboxID)
   const attachment = makeAttachmentMessage({
     outboxID: uploadOutboxID,
     transferProgress: 0,
@@ -544,7 +551,7 @@ test('attachment upload progress updates pending outbox-backed rows', () => {
         bytesComplete: 30,
         bytesTotal: 60,
         convID: T.Chat.keyToConversationID(convID),
-        outboxID: T.Chat.outboxIDToRpcOutboxID(uploadOutboxID),
+        outboxID: uploadRpcOutboxID,
         uid: 'uid',
       },
     },
@@ -832,6 +839,7 @@ test('initial thread loads prune stale ordinals inside the validated range', asy
         pagination: {last: true, next: '', num: 2, previous: ''},
       }),
     })
+    await Promise.resolve()
     return {offline: false}
   })
 
@@ -1196,6 +1204,7 @@ test('setMarkAsUnread loads a tiny thread window when the message map is empty',
         ],
       }),
     })
+    await Promise.resolve()
     return {offline: false}
   })
   const store = createStore()
