@@ -4,7 +4,6 @@ import * as TeamsUtil from '@/constants/teams'
 import * as PlatformSpecific from '@/util/platform-specific'
 import {
   createConversation,
-  getTab,
   navigateAppend,
   navigateToInbox,
   navigateToThread as routerNavigateToThread,
@@ -20,7 +19,6 @@ import {updateImmer} from '@/constants/utils'
 import * as T from '@/constants/types'
 import * as Styles from '@/styles'
 import * as Common from '@/constants/chat/common'
-import * as Tabs from '@/constants/tabs'
 import type * as EngineGen from '@/constants/rpc'
 import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
@@ -250,7 +248,6 @@ export interface ConvoState extends ConvoStore {
     setParticipants: (p: ConvoState['participants']) => void
     setTyping: DebouncedFunc<(t: Set<string>) => void>
     showInfoPanel: (show: boolean, tab: 'settings' | 'members' | 'attachments' | 'bots' | undefined) => void
-    tabSelected: (options?: ThreadLoadStatusOptions) => void
     toggleMessageCollapse: (messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => void
     toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => void
     toggleThreadSearch: (hide?: boolean, query?: string) => void
@@ -374,15 +371,6 @@ export const onRouteChanged = (prev: T.Immutable<Router2.NavState>, next: T.Immu
           getConvoState(isID).dispatch.selectedConversation({skipThreadLoad: true})
         }
       }
-    }
-  }
-
-  if (getTab(prev) !== Tabs.chatTab && getTab(next) === Tabs.chatTab) {
-    const n = getVisibleScreen(next)
-    const nParams = n?.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
-    const isID = nParams?.conversationIDKey
-    if (isID) {
-      getConvoState(isID).dispatch.tabSelected()
     }
   }
 }
@@ -3331,10 +3319,6 @@ const createSlice =
           return
         }
         setChatRootParams({conversationIDKey, infoPanel: show ? {tab} : undefined})
-      },
-      tabSelected: options => {
-        get().dispatch.loadMoreMessages({...(options ?? {}), reason: 'tab selected'})
-        get().dispatch.markThreadAsRead()
       },
       toggleMessageCollapse: (messageID, ordinal) => {
         const f = async () => {

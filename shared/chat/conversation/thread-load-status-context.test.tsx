@@ -15,6 +15,11 @@ import {
 } from './thread-load-status-context'
 import {ConversationThreadProvider} from './thread-context'
 
+let mockRouteFocused = true
+jest.mock('@react-navigation/core', () => ({
+  useIsFocused: () => mockRouteFocused,
+}))
+
 jest.mock('@/stores/inbox-rows', () => ({
   flushInboxRowUpdates: jest.fn(),
   queueInboxRowUpdate: jest.fn(),
@@ -30,6 +35,7 @@ const flushPromises = async () => {
 }
 
 beforeEach(() => {
+  mockRouteFocused = true
   jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
@@ -111,6 +117,28 @@ test('mounted stale-thread reload reports status through the provider', async ()
       },
       type: 'chat.1.NotifyChat.ChatThreadsStale',
     } as never)
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(result.current).toBe(T.RPCChat.UIChatThreadStatusTyp.server)
+})
+
+test('mounted route focus reload reports status through the provider', async () => {
+  mockRouteFocused = false
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadStatus']?.({
+      status: {typ: T.RPCChat.UIChatThreadStatusTyp.server},
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {rerender, result} = renderHook(() => useThreadLoadStatus(), {wrapper})
+
+  act(() => {
+    mockRouteFocused = true
+    rerender()
   })
   await act(async () => {
     await flushPromises()

@@ -67,7 +67,7 @@ The intended end state is:
   - [ ] `validatedOrdinalRange`
 - [ ] Move thread-loading actions into provider-owned actions:
   - [ ] `selectedConversation`
-  - [ ] `tabSelected`
+  - [x] `tabSelected`
   - [ ] `loadMoreMessages`
   - [ ] `loadOlderMessagesDueToScroll`
   - [ ] `loadNewerMessagesDueToScroll`

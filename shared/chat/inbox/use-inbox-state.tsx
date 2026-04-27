@@ -131,21 +131,9 @@ export function useInboxState(
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey
 
-  // Handle focus changes on mobile
-  const prevIsFocusedRef = React.useRef(isFocused)
   const handledRefreshNonceRef = React.useRef('')
-  React.useEffect(() => {
-    if (prevIsFocusedRef.current === isFocused) return
-    prevIsFocusedRef.current = isFocused
-    if (C.isMobile && isFocused && Chat.isSplit) {
-      ConvoState.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
-    }
-  }, [isFocused])
 
   C.useOnMountOnce(() => {
-    if (!C.isMobile) {
-      ConvoState.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
-    }
     if (!C.isPhone && !inboxHasLoaded) {
       C.ignorePromise(inboxRefresh('componentNeverLoaded'))
     }

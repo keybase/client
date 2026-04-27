@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useShellState} from '@/stores/shell'
+import {useIsFocused} from '@react-navigation/core'
 import {
   type ThreadLoadStatusOptions,
   type ThreadLoadStatusReporter,
@@ -55,6 +56,8 @@ export const ConversationThreadLoadStatusProvider = (
   const selectedConversation = useConversationThreadSelectedConversation()
   const appFocused = useShellState(s => s.appFocused)
   const previousAppFocusedRef = React.useRef(appFocused)
+  const routeFocused = useIsFocused()
+  const previousRouteFocusedRef = React.useRef(routeFocused)
   const threadLoadGenerationRef = React.useRef(0)
   const [threadLoadStatusState, setThreadLoadStatusState] = React.useState<ThreadLoadStatusState>(() => ({
     conversationIDKey: id,
@@ -100,6 +103,14 @@ export const ConversationThreadLoadStatusProvider = (
     markThreadAsRead()
   })
 
+  const reloadSelectedThread = React.useEffectEvent(() => {
+    loadMoreMessages({
+      ...getThreadLoadStatusOptions(),
+      reason: 'tab selected',
+    })
+    markThreadAsRead()
+  })
+
   React.useEffect(() => {
     const previousAppFocused = previousAppFocusedRef.current
     previousAppFocusedRef.current = appFocused
@@ -107,6 +118,14 @@ export const ConversationThreadLoadStatusProvider = (
       reloadForegroundedThread()
     }
   }, [appFocused])
+
+  React.useEffect(() => {
+    const previousRouteFocused = previousRouteFocusedRef.current
+    previousRouteFocusedRef.current = routeFocused
+    if (routeFocused && !previousRouteFocused) {
+      reloadSelectedThread()
+    }
+  }, [routeFocused])
 
   useEngineActionListener('chat.1.NotifyChat.ChatThreadsStale', action => {
     const hasStaleThread = (action.payload.params.updates ?? []).some(
