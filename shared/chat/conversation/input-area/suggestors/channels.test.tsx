@@ -9,7 +9,7 @@ import {ChatProvider, getConvoState} from '@/stores/convostate'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {List} from './channels'
 
-const mockCommonList = jest.fn(() => null)
+const mockCommonList = jest.fn((_p: unknown) => null)
 const mockUseChatTeamNames = jest.fn((teamIDs: ReadonlyArray<unknown>) => ({
   loading: false,
   reload: jest.fn(),
@@ -117,6 +117,7 @@ afterEach(() => {
 
 test('channel suggestions load mutual teams when the suggestor mounts', async () => {
   jest.spyOn(T.RPCChat, 'localGetMutualTeamsLocalRpcPromise').mockResolvedValue({
+    offline: false,
     teamIDs: ['team-alpha' as T.Teams.TeamID, 'team-beta' as T.Teams.TeamID],
   })
 

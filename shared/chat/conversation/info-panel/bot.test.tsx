@@ -44,12 +44,13 @@ test('useBotSettings refreshes settings for the visible bot and supports local u
 })
 
 test('useBotSettings clears visible settings while refreshing a different bot', async () => {
-  jest.spyOn(T.RPCChat, 'localGetBotMemberSettingsRpcPromise').mockImplementation(({username}) =>
-    Promise.resolve(
-      username === 'helperbot'
+  jest.spyOn(T.RPCChat, 'localGetBotMemberSettingsRpcPromise').mockImplementation(
+    async ({username}) => {
+      await Promise.resolve()
+      return username === 'helperbot'
         ? {cmds: true, convs: ['helper-conv'], mentions: false}
         : {cmds: false, convs: ['other-conv'], mentions: true}
-    )
+    }
   )
 
   const {rerender, result} = renderHook(({username}) => useBotSettings(convID, username), {

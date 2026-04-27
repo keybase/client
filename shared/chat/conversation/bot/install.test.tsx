@@ -23,10 +23,12 @@ afterEach(() => {
 test('useBotTeamRole refreshes role for the selected conversation and ignores stale results', async () => {
   const resolvers = new Map<string, (role: T.RPCGen.TeamRole) => void>()
   jest.spyOn(T.RPCChat, 'localGetTeamRoleInConversationRpcPromise').mockImplementation(
-    ({username}) =>
-      new Promise<T.RPCGen.TeamRole>(resolve => {
+    async ({username}) => {
+      const role = await new Promise<T.RPCGen.TeamRole>(resolve => {
         resolvers.set(username, resolve)
       })
+      return role
+    }
   )
 
   const {rerender, result} = renderHook(
