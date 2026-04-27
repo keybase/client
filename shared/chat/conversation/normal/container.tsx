@@ -15,49 +15,40 @@ import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/con
 import {useChatThreadRouteParams} from '../thread-search-route'
 
 type OrangeLineState = {
-  conversationIDKey: T.Chat.ConversationIDKey
   mobileAppState: ShellState['mobileAppState']
   orangeLine: T.Chat.Ordinal
 }
 
-type OrangeLineKey = Omit<OrangeLineState, 'orangeLine'>
+type OrangeLineKey = {
+  conversationIDKey: T.Chat.ConversationIDKey
+  mobileAppState: ShellState['mobileAppState']
+}
 
 const noOrangeLine = T.Chat.numberToOrdinal(0)
 
-const getCurrentOrangeLineState = (
+const getVisibleOrangeLine = (
   state: OrangeLineState,
-  conversationIDKey: T.Chat.ConversationIDKey,
   mobileAppState: ShellState['mobileAppState']
-): OrangeLineState => {
-  if (state.conversationIDKey === conversationIDKey && state.mobileAppState === mobileAppState) {
-    return state
+): T.Chat.Ordinal => {
+  if (state.mobileAppState === mobileAppState || mobileAppState === 'active') {
+    return state.orangeLine
   }
 
-  return {
-    conversationIDKey,
-    mobileAppState,
-    orangeLine:
-      state.conversationIDKey === conversationIDKey && mobileAppState === 'active'
-        ? state.orangeLine
-        : noOrangeLine,
-  }
+  return noOrangeLine
 }
 
-const useOrangeLine = () => {
-  const id = ConvoState.useChatContext(s => s.id)
-  const {active, mobileAppState} = useShellState(
-    C.useShallow(s => ({active: s.active, mobileAppState: s.mobileAppState}))
-  )
+const useOrangeLine = (
+  id: T.Chat.ConversationIDKey,
+  active: boolean,
+  mobileAppState: ShellState['mobileAppState']
+) => {
   const [orangeLineState, setOrangeLineState] = React.useState<OrangeLineState>(() => ({
-    conversationIDKey: id,
     mobileAppState,
     orangeLine: noOrangeLine,
   }))
-  const currentOrangeLineState = getCurrentOrangeLineState(orangeLineState, id, mobileAppState)
   const currentOrangeLineKeyRef = React.useRef<OrangeLineKey>({conversationIDKey: id, mobileAppState})
   React.useLayoutEffect(() => {
     currentOrangeLineKeyRef.current = {conversationIDKey: id, mobileAppState}
-    setOrangeLineState(state => getCurrentOrangeLineState(state, id, mobileAppState))
   }, [id, mobileAppState])
   // Snapshot readMsgID during render (synchronous, before any effects like markThreadAsRead)
   // This ensures we capture the read position before the Go service processes mark-as-read
@@ -81,10 +72,10 @@ const useOrangeLine = () => {
         if (currentKey.conversationIDKey !== conversationIDKey) {
           return
         }
-        setOrangeLineState(state => ({
-          ...getCurrentOrangeLineState(state, currentKey.conversationIDKey, currentKey.mobileAppState),
+        setOrangeLineState({
+          mobileAppState: currentKey.mobileAppState,
           orangeLine: nextOrangeLine,
-        }))
+        })
       }
       C.ignorePromise(f())
     }
@@ -92,9 +83,7 @@ const useOrangeLine = () => {
 
   const loaded = ConvoState.useChatContext(s => s.loaded)
 
-  // Fire when conversation changes or messages finish loading
   // Wait for loaded so the Go service has messages in its local cache
-  // On desktop the component doesn't remount on conversation switch, so we depend on id
   React.useEffect(() => {
     if (loaded) {
       loadOrangeLine(id, savedReadMsgID)
@@ -117,13 +106,13 @@ const useOrangeLine = () => {
       return
     }
     const orangeLine = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(messageID))
-    setOrangeLineState(state => ({
-      ...getCurrentOrangeLineState(state, currentKey.conversationIDKey, currentKey.mobileAppState),
+    setOrangeLineState({
+      mobileAppState: currentKey.mobileAppState,
       orangeLine,
-    }))
+    })
   }
 
-  return {orangeLine: currentOrangeLineState.orangeLine, setOrangeLine}
+  return {orangeLine: getVisibleOrangeLine(orangeLineState, mobileAppState), setOrangeLine}
 }
 
 const useShowManageChannels = () => {
@@ -143,35 +132,57 @@ const useShowManageChannels = () => {
   })
 }
 
+type OrangeLineProviderProps = React.PropsWithChildren<{
+  active: boolean
+  conversationIDKey: T.Chat.ConversationIDKey
+  mobileAppState: ShellState['mobileAppState']
+}>
+
+const NormalOrangeLineProvider = (props: OrangeLineProviderProps) => {
+  const {active, children, conversationIDKey, mobileAppState} = props
+  const {orangeLine, setOrangeLine} = useOrangeLine(conversationIDKey, active, mobileAppState)
+
+  return (
+    <OrangeLineContext value={orangeLine}>
+      <SetOrangeLineContext value={setOrangeLine}>{children}</SetOrangeLineContext>
+    </OrangeLineContext>
+  )
+}
+
 const NormalWrapper = function NormalWrapper() {
   const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const {orangeLine, setOrangeLine} = useOrangeLine()
+  const {active, mobileAppState} = useShellState(
+    C.useShallow(s => ({active: s.active, mobileAppState: s.mobileAppState}))
+  )
   const routeParams = useChatThreadRouteParams()
   const skipThreadLoadOnSelection = !!routeParams?.highlightMessageID
   useShowManageChannels()
   return (
     <MaybeMentionProvider>
-      <OrangeLineContext value={orangeLine}>
-        <SetOrangeLineContext value={setOrangeLine}>
-          <ChatTeamProvider>
-            <ConversationThreadLoadStatusProvider
-              key={conversationIDKey}
-              id={conversationIDKey}
-              skipThreadLoadOnSelection={skipThreadLoadOnSelection}
-            >
-              <ConversationCenterProvider id={conversationIDKey}>
-                <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
-                  <FocusProvider>
-                    <ScrollProvider>
-                      <Normal />
-                    </ScrollProvider>
-                  </FocusProvider>
-                </ConversationInputProvider>
-              </ConversationCenterProvider>
-            </ConversationThreadLoadStatusProvider>
-          </ChatTeamProvider>
-        </SetOrangeLineContext>
-      </OrangeLineContext>
+      <NormalOrangeLineProvider
+        key={conversationIDKey}
+        active={active}
+        conversationIDKey={conversationIDKey}
+        mobileAppState={mobileAppState}
+      >
+        <ChatTeamProvider>
+          <ConversationThreadLoadStatusProvider
+            key={conversationIDKey}
+            id={conversationIDKey}
+            skipThreadLoadOnSelection={skipThreadLoadOnSelection}
+          >
+            <ConversationCenterProvider id={conversationIDKey}>
+              <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
+                <FocusProvider>
+                  <ScrollProvider>
+                    <Normal />
+                  </ScrollProvider>
+                </FocusProvider>
+              </ConversationInputProvider>
+            </ConversationCenterProvider>
+          </ConversationThreadLoadStatusProvider>
+        </ChatTeamProvider>
+      </NormalOrangeLineProvider>
     </MaybeMentionProvider>
   )
 }

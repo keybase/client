@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as Message from '@/constants/chat/message'
-import * as React from 'react'
+import type * as React from 'react'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import {act, cleanup, renderHook} from '@testing-library/react'
