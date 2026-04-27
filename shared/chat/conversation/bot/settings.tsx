@@ -49,7 +49,10 @@ export const useBotSettings = (
   }, [botUsername, conversationIDKey, enabled, loadBotSettings])
 
   const settings =
-    enabled && loaded?.conversationIDKey === conversationIDKey && loaded.botUsername === botUsername
+    enabled &&
+    loaded &&
+    loaded.conversationIDKey === conversationIDKey &&
+    loaded.botUsername === botUsername
       ? loaded.settings
       : undefined
   const setSettings = React.useCallback(

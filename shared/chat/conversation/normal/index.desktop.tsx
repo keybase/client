@@ -10,6 +10,7 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import ThreadSearch from '../search'
+import {useConversationCenter} from '../center-context'
 import {useThreadSearchRoute} from '../thread-search-route'
 import {readImageFromClipboard} from '@/util/clipboard.desktop'
 import '../conversation.css'
@@ -61,7 +62,11 @@ const Conversation = function Conversation() {
       .catch(() => {})
   }
   const toggleThreadSearch = ConvoState.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const {clearCenter} = useConversationCenter()
   const onToggleThreadSearch = () => {
+    if (showThreadSearch) {
+      clearCenter()
+    }
     toggleThreadSearch()
   }
   Kb.useHotKey('mod+f', onToggleThreadSearch)

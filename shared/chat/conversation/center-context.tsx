@@ -66,9 +66,6 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   }))
 
   const currentCenterState = stateForThreadSearchVisible(centerState, threadSearchVisible)
-  React.useEffect(() => {
-    setCenterState(state => stateForThreadSearchVisible(state, threadSearchVisible))
-  }, [threadSearchVisible])
 
   const setCenterForMessage = (
     messageID: T.Chat.MessageID,

@@ -25,8 +25,9 @@ type SearchState = {
 const useCommon = (ownProps: CommonProps) => {
   const {conversationIDKey, initialQuery, style} = ownProps
   const toggleThreadSearch = ConvoState.useChatContext(s => s.dispatch.toggleThreadSearch)
-  const {centerOnMessage} = useConversationCenter()
+  const {centerOnMessage, clearCenter} = useConversationCenter()
   const onToggleThreadSearch = () => {
+    clearCenter()
     toggleThreadSearch()
   }
 
