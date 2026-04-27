@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
@@ -19,6 +18,11 @@ import {ScrollContext} from '../normal/context'
 import noop from 'lodash/noop'
 import * as RowMetadata from '../messages/row-metadata'
 import {useConversationCenter} from '../center-context'
+import {
+  useConversationThreadListData,
+  useConversationThreadMessageMap,
+  useConversationThreadMessageTypeMap,
+} from '../thread-context'
 import {useThreadLoadStatusReporter} from '../thread-load-status-context'
 // import {useDebugLayout} from '@/util/debug-react'
 
@@ -106,16 +110,7 @@ const ConversationList = function ConversationList() {
     </Kb.Text>
   ) : null
 
-  const listData = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {id: conversationIDKey, loaded} = s
-      return {
-        conversationIDKey,
-        loaded,
-        messageOrdinals: s.messageOrdinals ?? noOrdinals,
-      }
-    })
-  )
+  const listData = useConversationThreadListData()
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
   const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
   const centeredOrdinalOrNone = centeredOrdinal ?? noCenteredOrdinal
@@ -140,18 +135,19 @@ const ConversationList = function ConversationList() {
 
   const numOrdinals = messageOrdinals.length
 
+  const messageMap = useConversationThreadMessageMap()
+  const messageTypeMap = useConversationThreadMessageTypeMap()
   const getItemType = React.useCallback(
     (ordinal: T.Chat.Ordinal) => {
       if (!ordinal) {
         return 'null'
       }
-      const convoState = ConvoState.getConvoState(conversationIDKey)
-      const message = convoState.messageMap.get(ordinal)
+      const message = messageMap.get(ordinal)
       return message
-        ? RowMetadata.getMessageRowType(message, convoState.messageTypeMap.get(ordinal))
-        : (convoState.messageTypeMap.get(ordinal) ?? 'text')
+        ? RowMetadata.getMessageRowType(message, messageTypeMap.get(ordinal))
+        : (messageTypeMap.get(ordinal) ?? 'text')
     },
-    [conversationIDKey]
+    [messageMap, messageTypeMap]
   )
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({

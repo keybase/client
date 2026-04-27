@@ -7,6 +7,7 @@ import {type Position, fileUIName, type StylesCrossPlatform} from '@/styles'
 import {useItems, useHeader} from './hooks'
 import * as Kb from '@/common-adapters'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {useConversationThreadMessage} from '../../thread-context'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -22,11 +23,8 @@ const emptyMessage = Chat.makeMessageAttachment({})
 
 const PopAttach = (ownProps: OwnProps) => {
   const {ordinal, attachTo, mode, onHidden, position, style, visible} = ownProps
-  const message = ConvoState.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    const message = m?.type === 'attachment' ? m : emptyMessage
-    return message
-  })
+  const m = useConversationThreadMessage(ordinal)
+  const message = m?.type === 'attachment' ? m : emptyMessage
   const {downloadPath, attachmentType, id} = message
   const pending = !!message.transferState
   const clearModals = C.Router2.clearModals

@@ -1,14 +1,12 @@
 import {zoomImage} from '@/constants/chat/helpers'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as InputState from './input-area/input-state'
+import {useConversationThreadMessage} from './thread-context'
 
 const ReplyPreview = () => {
   const rordinal = InputState.useConversationInput(s => s.replyTo)
-  const message = ConvoState.useChatContext(s => {
-    return rordinal ? s.messageMap.get(rordinal) : null
-  })
+  const message = useConversationThreadMessage(rordinal)
   let text = ''
   if (message) {
     switch (message.type) {

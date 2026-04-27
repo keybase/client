@@ -7,6 +7,7 @@ import ReactButton from './react-button'
 import type * as T from '@/constants/types'
 import {MessageContext} from './ids-context'
 import {useUsersState} from '@/stores/users'
+import {useConversationThreadMessage} from '../thread-context'
 
 const positionFallbacks = ['bottom center', 'left center'] as const
 
@@ -33,10 +34,8 @@ type Section = {
 const ReactionTooltip = (p: OwnProps) => {
   const {ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
-  const reactions = ConvoState.useChatContext(s => {
-    const message = s.messageMap.get(ordinal)
-    return message && Chat.isMessageWithReactions(message) ? message.reactions : undefined
-  })
+  const message = useConversationThreadMessage(ordinal)
+  const reactions = message && Chat.isMessageWithReactions(message) ? message.reactions : undefined
   const usersInfo = useUsersState(s => (reactions ? s.infoMap : emptyUsersInfo))
   const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
 

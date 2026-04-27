@@ -5,6 +5,7 @@ import type * as React from 'react'
 import AttachmentMessage from './attachment'
 import JourneycardMessage from './journeycard'
 import TextMessage from './text'
+import {ConversationThreadProvider, useConversationThreadMessage} from '../../thread-context'
 import type * as T from '@/constants/types'
 
 type Props = {
@@ -19,7 +20,7 @@ type Props = {
 
 function MessagePopup(p: Props) {
   const {ordinal, attachTo, onHidden, position, style, visible, mode} = p
-  const type = ConvoState.useChatContext(s => s.messageMap.get(ordinal)?.type)
+  const type = useConversationThreadMessage(ordinal)?.type
   switch (type) {
     case 'text':
     case 'setChannelname':
@@ -86,19 +87,24 @@ function MessagePopup(p: Props) {
 type ModalProps = {ordinal: T.Chat.Ordinal}
 export const MessagePopupModal = (p: ModalProps) => {
   const {ordinal} = p
+  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const {pop} = C.useNav()
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo} = p
     return pop ? (
-      <MessagePopup
-        ordinal={ordinal}
-        key="popup"
-        attachTo={attachTo}
-        mode="modal"
-        onHidden={pop}
-        position="top right"
-        visible={true}
-      />
+      <ConvoState.ChatProvider id={conversationIDKey}>
+        <ConversationThreadProvider id={conversationIDKey} seedFromCache={false}>
+          <MessagePopup
+            ordinal={ordinal}
+            key="popup"
+            attachTo={attachTo}
+            mode="modal"
+            onHidden={pop}
+            position="top right"
+            visible={true}
+          />
+        </ConversationThreadProvider>
+      </ConvoState.ChatProvider>
     ) : null
   }
   const {popup, popupAnchor, showPopup, showingPopup} = Kb.usePopup2(makePopup)
@@ -124,16 +130,18 @@ export const useMessagePopup = (p: {
     const {attachTo, hidePopup} = p
     return (shouldShow?.() ?? true) ? (
       <ConvoState.ChatProvider id={conversationIDKey}>
-        <MessagePopup
-          ordinal={ordinal}
-          key="popup"
-          attachTo={attachTo}
-          mode="bottomsheet"
-          onHidden={hidePopup}
-          position="top right"
-          style={style}
-          visible={true}
-        />
+        <ConversationThreadProvider id={conversationIDKey} seedFromCache={false}>
+          <MessagePopup
+            ordinal={ordinal}
+            key="popup"
+            attachTo={attachTo}
+            mode="bottomsheet"
+            onHidden={hidePopup}
+            position="top right"
+            style={style}
+            visible={true}
+          />
+        </ConversationThreadProvider>
       </ConvoState.ChatProvider>
     ) : null
   }

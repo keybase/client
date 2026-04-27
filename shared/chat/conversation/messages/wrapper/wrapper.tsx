@@ -20,6 +20,11 @@ import {useEdited} from './edited'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
+import {
+  useConversationThreadMessage,
+  useConversationThreadMessageMap,
+  useConversationThreadMessageOrdinals,
+} from '../../thread-context'
 import type {ConvoState as ConvoStateType} from '@/stores/convostate'
 import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMembers} from '../../team-hooks'
@@ -353,11 +358,12 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   const uiDispatch = InputState.useConversationInput(
     C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
   )
+  const message = useConversationThreadMessage(ordinal) ?? missingMessage
+  const messageMap = useConversationThreadMessageMap()
+  const messageOrdinals = useConversationThreadMessageOrdinals()
 
   return ConvoState.useChatContext(
     C.useShallow(s => {
-      const message = s.messageMap.get(ordinal) ?? missingMessage
-      const messageOrdinals = s.messageOrdinals ?? []
       const commonData = getCommonMessageData({
         accountsInfoMap: s.accountsInfoMap,
         editing,
@@ -370,7 +376,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
       })
       const showUsername = RowMetadata.getMessageShowUsername({
         message,
-        messageMap: s.messageMap,
+        messageMap,
         messageOrdinals,
         ordinal,
         you,
@@ -391,11 +397,12 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
   const uiDispatch = InputState.useConversationInput(
     C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
   )
+  const message = useConversationThreadMessage(ordinal) ?? missingMessage
+  const messageMap = useConversationThreadMessageMap()
+  const messageOrdinals = useConversationThreadMessageOrdinals()
 
   return ConvoState.useChatContext(
     C.useShallow(s => {
-      const message = s.messageMap.get(ordinal) ?? missingMessage
-      const messageOrdinals = s.messageOrdinals ?? []
       const commonData = getCommonMessageData({
         accountsInfoMap: s.accountsInfoMap,
         editing,
@@ -408,7 +415,7 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
       })
       const showUsername = RowMetadata.getMessageShowUsername({
         message,
-        messageMap: s.messageMap,
+        messageMap,
         messageOrdinals,
         ordinal,
         you,

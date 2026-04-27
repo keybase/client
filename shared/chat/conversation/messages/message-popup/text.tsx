@@ -9,6 +9,7 @@ import {useItems, useHeader} from './hooks'
 import {openURL} from '@/util/misc'
 import {useCurrentUserState} from '@/stores/current-user'
 import {copyToClipboard} from '@/util/storeless-actions'
+import {useConversationThreadMessage} from '../../thread-context'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -24,11 +25,7 @@ const emptyMessage = Chat.makeMessageText({})
 
 const PopText = (ownProps: OwnProps) => {
   const {ordinal, attachTo, mode, onHidden, position, style, visible} = ownProps
-  const message = ConvoState.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    const message = m ?? emptyMessage
-    return message
-  })
+  const message = useConversationThreadMessage(ordinal) ?? emptyMessage
   const you = useCurrentUserState(s => s.username)
   const {conversationIDKey, author} = message
   const text = (() => {

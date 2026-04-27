@@ -35,20 +35,22 @@ The intended end state is:
 ## New Thread Runtime Shape
 
 - [ ] Add a mounted conversation thread provider under `shared/chat/conversation`
+  - [x] Add the initial `ConversationThreadProvider` boundary around the normal mounted thread subtree
   - [ ] Own active thread data with React context plus reducer/local state, not Zustand
-  - [ ] Key provider state by `conversationIDKey` so switching threads resets mounted UI correctly
-  - [ ] Expose selectors/actions needed by conversation descendants without preserving the old `ConvoState` API shape
+  - [x] Key provider state by `conversationIDKey` so switching threads resets mounted UI correctly
+  - [x] Expose initial core thread selectors for loaded state, ordinals, pagination, and message render type without preserving the old `ConvoState` API shape
   - [ ] Preserve React Compiler guidance: avoid unnecessary `useMemo`/`useCallback` and do not read/write refs during render
 - [ ] Add a chat-specific non-Zustand thread cache
-  - [ ] Store last-loaded thread snapshots by `conversationIDKey`
+  - [x] Add explicit `get`, `put`, `delete`, and `clear` helpers for a non-reactive thread snapshot cache
+  - [x] Store last-loaded core thread snapshots by `conversationIDKey`
   - [ ] Include message maps/ordinals, lightweight metadata, participants, pagination flags, and decorator maps only if needed for fast remount
-  - [ ] Keep cache reads/writes explicit through `get`, `put`, `delete`, and `clear` helpers
-  - [ ] Register cache clearing with debug/external reset plumbing currently handled by `convo-registry`
+  - [x] Keep cache reads/writes explicit through `get`, `put`, `delete`, and `clear` helpers
+  - [x] Register cache clearing with debug/external reset plumbing currently handled by `convo-registry`
   - [ ] Do not add subscriptions, in-flight request registries, or hidden mutable feature state to the cache
 - [ ] Route thread entry through the provider
-  - [ ] Seed from the cache if present
+  - [x] Seed normal thread entry from the cache if present, while avoiding cache seeding for centered/highlight loads
   - [ ] Always refresh/reload from the chat service on entry or focus
-  - [ ] Replace stale cache entries after service results arrive
+  - [x] Replace stale cache entries after service results arrive
   - [ ] Ignore stale async responses for conversations that are no longer mounted
 
 ## Chunk 1: Move Core Thread Loading And Pagination
@@ -80,11 +82,11 @@ The intended end state is:
   - [ ] thread load status continues to report through `thread-load-status-context`
   - [ ] user-initiated loads still mark the thread read when appropriate
 - [ ] Update all list/message consumers to read from the new thread provider
-  - [ ] desktop list area
-  - [ ] native list area
-  - [ ] message wrapper
-  - [ ] separator and row metadata callers
-  - [ ] message popups
+  - [x] desktop list area
+  - [x] native list area
+  - [x] message wrapper
+  - [x] separator and row metadata callers for mounted rows
+  - [x] message popups
   - [ ] search/center/jump flows
 - [ ] Delete the moved fields from `ConvoStore` only after all consumers are off `useChatContext`
 

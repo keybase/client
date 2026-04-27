@@ -13,6 +13,7 @@ import {navToProfile, setThreadInputEditing, setThreadInputReplyTo} from '@/cons
 import {copyToClipboard} from '@/util/storeless-actions'
 import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
 import {SetOrangeLineContext} from '../../orange-line-context'
+import {useConversationThreadMessage} from '../../thread-context'
 
 const emptyText = Chat.makeMessageText({})
 
@@ -32,9 +33,7 @@ const getConversationLabel = (
 
 export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const currentConversationIDKey = ConvoState.useChatContext(s => s.id)
-  const message = ConvoState.useChatContext(s => {
-    return s.messageMap.get(ordinal) ?? emptyText
-  })
+  const message = useConversationThreadMessage(ordinal) ?? emptyText
   const isAttach = message.type === 'attachment'
   const {author, id, deviceName, timestamp, deviceRevokedAt} = message
   const meta = ConvoState.useChatContext(s => s.meta)
@@ -257,9 +256,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
 }
 
 export const useHeader = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
-  const message = ConvoState.useChatContext(s => {
-    return s.messageMap.get(ordinal) ?? emptyText
-  })
+  const message = useConversationThreadMessage(ordinal) ?? emptyText
   const you = useCurrentUserState(s => s.username)
   const {author, deviceType, deviceName, botUsername, timestamp, exploding, explodingTime} = message
   const yourMessage = author === you

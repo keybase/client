@@ -10,6 +10,7 @@ import NewChatCard from './cards/new-chat'
 import ProfileResetNotice from './system-profile-reset-notice'
 import RetentionNotice from './retention-notice'
 import {useChatThreadRouteParams} from '../thread-search-route'
+import {useConversationThreadMessageOrdinalsMaybe, useConversationThreadPagination} from '../thread-context'
 import {usingFlashList} from '../list-area/flashlist-config'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -109,14 +110,16 @@ const ErrorMessage = () => {
 
 function SpecialTopMessage() {
   const username = useCurrentUserState(s => s.username)
+  const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
+  const {moreToLoadBack} = useConversationThreadPagination()
   const data = ConvoState.useChatContext(
     C.useShallow(s => {
-      const ordinals = s.messageOrdinals
+      const ordinals = messageOrdinals
       const hasLoadedEver = ordinals !== undefined
       const ordinal = ordinals?.[0] ?? T.Chat.numberToOrdinal(0)
       const meta = s.meta
       const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
-      const loadMoreType = s.moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
+      const loadMoreType = moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
       const pendingState =
         s.id === T.Chat.pendingWaitingConversationIDKey
           ? 'waiting'

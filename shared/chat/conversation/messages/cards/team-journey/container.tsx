@@ -10,6 +10,7 @@ import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {setMemberPublicity} from '@/teams/actions'
 import {useTeamsListMap} from '@/teams/use-teams-list'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {useConversationThreadMessage} from '../../../thread-context'
 
 type Action = {label: string; onClick: () => void} | 'wave'
 type OwnProps = {ordinal: T.Chat.Ordinal}
@@ -18,7 +19,7 @@ const emptyJourney = Chat.makeMessageJourneycard({})
 
 const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {ordinal} = ownProps
-  const m = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
+  const m = useConversationThreadMessage(ordinal)
   const message = m?.type === 'journeycard' ? m : emptyJourney
   const conv = ConvoState.useChatContext(s => s.meta)
   const {cannotWrite, channelname, teamname, teamID} = conv

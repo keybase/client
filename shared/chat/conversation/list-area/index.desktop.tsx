@@ -18,6 +18,7 @@ import useResizeObserver from '@/util/use-resize-observer.desktop'
 import useIntersectionObserver from '@/util/use-intersection-observer'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {useConversationCenter} from '../center-context'
+import {useConversationThreadListData} from '../thread-context'
 import {useThreadLoadStatusReporter} from '../thread-load-status-context'
 
 // Infinite scrolling list.
@@ -455,22 +456,9 @@ const useItems = (p: {
   return items
 }
 
-const noOrdinals = new Array<T.Chat.Ordinal>()
 const ThreadWrapper = function ThreadWrapper() {
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
-  const data = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {id: conversationIDKey} = s
-      const {messageOrdinals = noOrdinals, loaded} = s
-      const containsLatestMessage = s.isCaughtUp()
-      return {
-        containsLatestMessage,
-        conversationIDKey,
-        loaded,
-        messageOrdinals,
-      }
-    })
-  )
+  const data = useConversationThreadListData()
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
   const {conversationIDKey} = data
   const {containsLatestMessage, messageOrdinals, loaded} = data

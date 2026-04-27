@@ -10,6 +10,7 @@ import {OrangeLineContext, SetOrangeLineContext} from '../orange-line-context'
 import {ChatTeamProvider} from '../team-hooks'
 import {ConversationCenterProvider} from '../center-context'
 import {ConversationInputProvider} from '../input-area/input-state'
+import {ConversationThreadProvider, useConversationThreadLoaded} from '../thread-context'
 import {ConversationThreadLoadStatusProvider} from '../thread-load-status-context'
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
 import {useChatThreadRouteParams} from '../thread-search-route'
@@ -81,7 +82,7 @@ const useOrangeLine = (
     }
   )
 
-  const loaded = ConvoState.useChatContext(s => s.loaded)
+  const loaded = useConversationThreadLoaded()
 
   // Wait for loaded so the Go service has messages in its local cache
   React.useEffect(() => {
@@ -158,32 +159,37 @@ const NormalWrapper = function NormalWrapper() {
   const skipThreadLoadOnSelection = !!routeParams?.highlightMessageID
   useShowManageChannels()
   return (
-    <MaybeMentionProvider>
-      <NormalOrangeLineProvider
-        key={conversationIDKey}
-        active={active}
-        conversationIDKey={conversationIDKey}
-        mobileAppState={mobileAppState}
-      >
-        <ChatTeamProvider>
-          <ConversationThreadLoadStatusProvider
-            key={conversationIDKey}
-            id={conversationIDKey}
-            skipThreadLoadOnSelection={skipThreadLoadOnSelection}
-          >
-            <ConversationCenterProvider id={conversationIDKey}>
-              <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
-                <FocusProvider>
-                  <ScrollProvider>
-                    <Normal />
-                  </ScrollProvider>
-                </FocusProvider>
-              </ConversationInputProvider>
-            </ConversationCenterProvider>
-          </ConversationThreadLoadStatusProvider>
-        </ChatTeamProvider>
-      </NormalOrangeLineProvider>
-    </MaybeMentionProvider>
+    <ConversationThreadProvider
+      key={conversationIDKey}
+      id={conversationIDKey}
+      seedFromCache={!skipThreadLoadOnSelection}
+    >
+      <MaybeMentionProvider>
+        <NormalOrangeLineProvider
+          active={active}
+          conversationIDKey={conversationIDKey}
+          mobileAppState={mobileAppState}
+        >
+          <ChatTeamProvider>
+            <ConversationThreadLoadStatusProvider
+              key={conversationIDKey}
+              id={conversationIDKey}
+              skipThreadLoadOnSelection={skipThreadLoadOnSelection}
+            >
+              <ConversationCenterProvider id={conversationIDKey}>
+                <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
+                  <FocusProvider>
+                    <ScrollProvider>
+                      <Normal />
+                    </ScrollProvider>
+                  </FocusProvider>
+                </ConversationInputProvider>
+              </ConversationCenterProvider>
+            </ConversationThreadLoadStatusProvider>
+          </ChatTeamProvider>
+        </NormalOrangeLineProvider>
+      </MaybeMentionProvider>
+    </ConversationThreadProvider>
   )
 }
 export default NormalWrapper

@@ -16,6 +16,7 @@ import {assertionToDisplay} from '@/common-adapters/usernames'
 import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input'
 import {useConversationCenter} from '../../center-context'
+import {useConversationThreadMessage} from '../../thread-context'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {getRouteParamsFromRoute, type RootRouteProps} from '@/router-v2/route-params'
@@ -76,7 +77,7 @@ const Input = function Input() {
   const showCommandMarkdown = InputState.useConversationInput(s => !!s.commandMarkdown)
   const showCommandStatus = InputState.useConversationInput(s => !!s.commandStatus)
   const replyTo = InputState.useConversationInput(s => s.replyTo)
-  const showReplyTo = ConvoState.useChatContext(s => !!s.messageMap.get(replyTo)?.id)
+  const showReplyTo = !!useConversationThreadMessage(replyTo)?.id
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
       {showReplyTo && <ReplyPreview />}
@@ -123,12 +124,13 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
       unsentText: s.unsentText,
     }))
   )
+  const replyToMessage = useConversationThreadMessage(uiData.replyTo)
   const data = ConvoState.useChatContext(
     C.useShallow(s => {
-      const {meta, id: conversationIDKey, messageMap} = s
+      const {meta, id: conversationIDKey} = s
       const {setExplodingMode} = s.dispatch
       const {cannotWrite, minWriterRole, tlfname} = meta
-      const showReplyPreview = !!messageMap.get(uiData.replyTo)?.id
+      const showReplyPreview = !!replyToMessage?.id
       const convoID = s.getConvID()
       const metaGood = s.isMetaGood()
       const storeDraft = metaGood ? meta.draft : undefined
