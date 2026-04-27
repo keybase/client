@@ -72,15 +72,18 @@ The intended end state is:
   - [x] `loadOlderMessagesDueToScroll`
   - [x] `loadNewerMessagesDueToScroll`
   - [x] `loadMessagesCentered`
-  - [ ] `jumpToRecent`
+  - [x] `jumpToRecent`
   - [ ] `messagesClear`
   - Mounted provider path now owns `selectedConversation`, centered loads, and scroll pagination wrappers
     through `thread-context`; `convostate` remains as the compatibility backend until `loadMoreMessages`
     and message mutations move.
+  - Removed the obsolete `convostate` dispatch wrappers for centered loads, scroll pagination, and
+    jump-to-recent. Active centered clear still delegates to `messagesClear` as the temporary backend
+    until core message state fully moves into the mounted provider.
 - [ ] Preserve current loading semantics
   - [ ] initial load still requests `numMessagesOnInitialLoad`
   - [ ] pagination still uses forward/back pagination tokens
-  - [ ] centered loads still clear stale visible messages before loading around the pivot
+  - [x] centered loads still clear stale visible messages before loading around the pivot
   - [ ] `validatedOrdinalRange` still prevents stale message validation bugs
   - [x] thread load status continues to report through `thread-load-status-context`
   - [ ] user-initiated loads still mark the thread read when appropriate

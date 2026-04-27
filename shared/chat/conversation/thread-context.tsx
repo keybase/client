@@ -8,6 +8,7 @@ import {clearChatTimeCache} from '@/util/timestamp'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {
+  deleteConversationThreadCacheSnapshot,
   getConversationThreadCacheSnapshot,
   putConversationThreadCacheSnapshot,
   type ConversationThreadSnapshot,
@@ -44,11 +45,21 @@ type SelectedConversationOptions = ThreadLoadStatusOptions & {
 }
 
 type LoadMoreMessages = ConvoState.ConvoState['dispatch']['loadMoreMessages']
-type LoadMessagesCentered = ConvoState.ConvoState['dispatch']['loadMessagesCentered']
-type LoadOlderMessagesDueToScroll =
-  ConvoState.ConvoState['dispatch']['loadOlderMessagesDueToScroll']
-type LoadNewerMessagesDueToScroll =
-  ConvoState.ConvoState['dispatch']['loadNewerMessagesDueToScroll']
+type LoadMessagesCentered = (
+  messageID: T.Chat.MessageID,
+  highlightMode: T.Chat.CenterOrdinalHighlightMode,
+  options?: ThreadLoadStatusOptions
+) => void
+type LoadOlderMessagesDueToScroll = (
+  numOrdinals: number,
+  options?: ThreadLoadStatusOptions
+) => void
+type LoadNewerMessagesDueToScroll = (
+  numOrdinals: number,
+  options?: ThreadLoadStatusOptions
+) => void
+type JumpToRecent = (options?: ThreadLoadStatusOptions) => void
+type MessagesClear = () => void
 type SelectedConversation = ConvoState.ConvoState['dispatch']['selectedConversation']
 
 export type ThreadLoadStatusReporter = (
@@ -193,16 +204,20 @@ export const useConversationThreadLoadMoreMessages = () => {
 
 const useConversationThreadMessagesClear = () => {
   const conversationIDKey = useConversationThreadID()
-  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.messagesClear)
+  const messagesClear: MessagesClear = () => {
+    deleteConversationThreadCacheSnapshot(conversationIDKey)
+    ConvoState.getConvoState(conversationIDKey).dispatch.messagesClear()
+  }
+  return messagesClear
 }
 
 export const useConversationThreadLoadOlderMessagesDueToScroll = () => {
-  const conversationIDKey = useConversationThreadID()
+  const {moreToLoadBack} = useConversationThreadPagination()
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
   const okToLoadMore = useScrollLoadGate()
 
   const loadOlderMessagesDueToScroll: LoadOlderMessagesDueToScroll = (numOrdinals, options) => {
-    if (!ConvoState.getConvoState(conversationIDKey).moreToLoadBack) {
+    if (!moreToLoadBack) {
       logger.info('bail: scrolling back and at the end')
       return
     }
@@ -276,7 +291,13 @@ export const useConversationThreadLoadMessagesCentered = () => {
 
 export const useConversationThreadJumpToRecent = () => {
   const conversationIDKey = useConversationThreadID()
-  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.jumpToRecent)
+  const loadMoreMessages = useConversationThreadLoadMoreMessages()
+
+  const jumpToRecent: JumpToRecent = options => {
+    ConvoState.clearConvoStateValidatedOrdinalRange(conversationIDKey)
+    loadMoreMessages({...(options ?? {}), reason: 'jump to recent'})
+  }
+  return jumpToRecent
 }
 
 export const useConversationThreadMarkThreadAsRead = () => {

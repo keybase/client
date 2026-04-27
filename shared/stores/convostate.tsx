@@ -196,14 +196,6 @@ export interface ConvoState extends ConvoStore {
     giphySend: (result: T.RPCChat.GiphySearchResult, context?: GiphySendContext) => void
     hideConversation: (hide: boolean) => void
     joinConversation: () => void
-    jumpToRecent: (options?: ThreadLoadStatusOptions) => void
-    loadMessagesCentered: (
-      messageID: T.Chat.MessageID,
-      highlightMode: T.Chat.CenterOrdinalHighlightMode,
-      options?: ThreadLoadStatusOptions
-    ) => void
-    loadOlderMessagesDueToScroll: (numOrdinals: number, options?: ThreadLoadStatusOptions) => void
-    loadNewerMessagesDueToScroll: (numOrdinals: number, options?: ThreadLoadStatusOptions) => void
     loadMoreMessages: DebouncedFunc<(p: LoadMoreMessagesParams) => void>
     loadNextAttachment: (from: T.Chat.Ordinal, backInTime: boolean) => Promise<T.Chat.Ordinal>
     markThreadAsRead: (force?: boolean) => void
@@ -1589,25 +1581,6 @@ const createSlice =
       })
     }
 
-    let lastScrollNumOrdinals = 0
-    let lastScrollTime = 0
-    const okToLoadMore = (n: number) => {
-      const now = Date.now()
-      if (n !== lastScrollNumOrdinals) {
-        lastScrollNumOrdinals = n
-        lastScrollTime = now
-        return true
-      }
-
-      const delta = now - lastScrollTime
-      const ok = delta > 500
-      if (ok) {
-        lastScrollNumOrdinals = n
-        lastScrollTime = now
-      }
-      return ok
-    }
-
     const onDownloadComplete = (msgID: number) => {
       const ordinal = maybeGetOrdinalByMessageID(get(), T.Chat.numberToMessageID(msgID))
       if (!ordinal) {
@@ -2158,30 +2131,6 @@ const createSlice =
         }
         ignorePromise(f())
       },
-      jumpToRecent: options => {
-        set(s => {
-          s.validatedOrdinalRange = undefined
-        })
-        get().dispatch.loadMoreMessages({...(options ?? {}), reason: 'jump to recent'})
-      },
-      loadMessagesCentered: (messageID, highlightMode, options) => {
-        get().dispatch.messagesClear()
-        get().dispatch.loadMoreMessages({
-          centeredMessageID: {
-            conversationIDKey: Common.getSelectedConversation(),
-            highlightMode,
-            messageID,
-          },
-          forceContainsLatestCalc: true,
-          messageIDControl: {
-            mode: T.RPCChat.MessageIDControlMode.centered,
-            num: numMessagesOnInitialLoad,
-            pivot: messageID,
-          },
-          ...(options ?? {}),
-          reason: 'centered',
-        })
-      },
       loadMoreMessages: throttle((p: LoadMoreMessagesParams) => {
         if (!T.Chat.isValidConversationIDKey(get().id)) {
           return
@@ -2379,22 +2328,6 @@ const createSlice =
 
         ignorePromise(f())
       }, 500),
-      loadNewerMessagesDueToScroll: (numOrdinals, options) => {
-        if (!numOrdinals) {
-          return
-        }
-
-        if (!okToLoadMore(numOrdinals)) {
-          return
-        }
-
-        get().dispatch.loadMoreMessages({
-          ...(options ?? {}),
-          numberOfMessagesToLoad: numMessagesOnScrollback,
-          reason: 'scroll forward',
-          scrollDirection: 'forward',
-        })
-      },
       loadNextAttachment: async (from, backInTime) => {
         const fromMsg = get().messageMap.get(from)
         if (!fromMsg) return Promise.reject(new Error('Incorrect from'))
@@ -2435,27 +2368,6 @@ const createSlice =
         }
 
         return f()
-      },
-      loadOlderMessagesDueToScroll: (numOrdinals, options) => {
-        if (!get().moreToLoadBack) {
-          logger.info('bail: scrolling back and at the end')
-          return
-        }
-
-        if (!numOrdinals) {
-          return
-        }
-
-        if (!okToLoadMore(numOrdinals)) {
-          return
-        }
-
-        get().dispatch.loadMoreMessages({
-          ...(options ?? {}),
-          numberOfMessagesToLoad: numMessagesOnScrollback,
-          reason: 'scroll back',
-          scrollDirection: 'back',
-        })
       },
       markTeamAsRead: teamID => {
         const f = async () => {
@@ -3620,6 +3532,12 @@ const createConvoStore = (id: T.Chat.ConversationIDKey) => {
 
 export const createConvoStoreForTesting = (id: T.Chat.ConversationIDKey) => {
   return Z.createZustand<ConvoState>(createSlice(id))
+}
+
+export const clearConvoStateValidatedOrdinalRange = (id: T.Chat.ConversationIDKey) => {
+  createConvoStore(id).setState(s => {
+    s.validatedOrdinalRange = undefined
+  })
 }
 
 // debug only

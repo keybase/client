@@ -1020,59 +1020,6 @@ test('updateFromUIInboxLayout seeds preview metadata before trusted meta arrives
   expect(store.getState().meta.draft).toBe('trusted draft')
 })
 
-test('loadMessagesCentered clears stale thread state and requests a centered load', () => {
-  jest.spyOn(Common, 'getSelectedConversation').mockReturnValue(convID)
-  const store = seedStore([
-    makeTextMessage({
-      id: T.Chat.numberToMessageID(301),
-      ordinal: T.Chat.numberToOrdinal(301),
-    }),
-  ])
-  applyState(store, {validatedOrdinalRange: {from: T.Chat.numberToOrdinal(301), to: T.Chat.numberToOrdinal(301)}})
-  const loadMoreMessages = makeLoadMoreMessagesMock()
-  const current = store.getState()
-  store.setState({
-    ...current,
-    dispatch: {...current.dispatch, loadMoreMessages},
-  })
-
-  store.getState().dispatch.loadMessagesCentered(T.Chat.numberToMessageID(999), 'flash')
-
-  expect(store.getState().messageMap.size).toBe(0)
-  expect(store.getState().messageOrdinals).toBeUndefined()
-  expect(store.getState().validatedOrdinalRange).toBeUndefined()
-  expect(loadMoreMessages).toHaveBeenCalledWith(
-    expect.objectContaining({
-      centeredMessageID: {
-        conversationIDKey: convID,
-        highlightMode: 'flash',
-        messageID: T.Chat.numberToMessageID(999),
-      },
-      messageIDControl: expect.objectContaining({
-        mode: T.RPCChat.MessageIDControlMode.centered,
-        pivot: T.Chat.numberToMessageID(999),
-      }),
-      reason: 'centered',
-    })
-  )
-})
-
-test('jumpToRecent clears validated search state and reloads recent messages', () => {
-  const store = createStore()
-  const loadMoreMessages = makeLoadMoreMessagesMock()
-  const current = store.getState()
-  store.setState({
-    ...current,
-    dispatch: {...current.dispatch, loadMoreMessages},
-    validatedOrdinalRange: {from: T.Chat.numberToOrdinal(1), to: T.Chat.numberToOrdinal(3)},
-  })
-
-  store.getState().dispatch.jumpToRecent()
-
-  expect(store.getState().validatedOrdinalRange).toBeUndefined()
-  expect(loadMoreMessages).toHaveBeenCalledWith({reason: 'jump to recent'})
-})
-
 test('bot membership actions send restricted and unrestricted payloads', async () => {
   const addBotMember = jest.spyOn(T.RPCChat, 'localAddBotMemberRpcPromise').mockResolvedValue(undefined)
   const store = createStore()
