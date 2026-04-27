@@ -134,7 +134,7 @@ Lint note: when local feature state needs to reset for a new conversation ID, do
   - [x] reply mode sends `replyTo` message ID and clears reply state
   - [x] giphy send still tracks selection and sends target URL
 - [x] Preserve debug/external reset behavior currently provided by clearing `convoUIStores` with `convo-registry`
-- [ ] Delete `ConvoUIState`, `initialConvoUIStore`, `createConvoUISlice`, `convoUIStores`, and UI-store test helpers only after all consumers are migrated
+- [x] Delete `ConvoUIState`, `initialConvoUIStore`, `createConvoUISlice`, `convoUIStores`, and UI-store test helpers only after all consumers are migrated
 
 ### Target callers for Chunk 4
 
@@ -150,14 +150,16 @@ Lint note: when local feature state needs to reset for a new conversation ID, do
 - `incoming-share/index.tsx`
 - `chat/send-to-chat/index.tsx`
 
-Implementation note: conversation input UI state now lives in `shared/chat/conversation/input-area/input-state.tsx` and is provided from the normal conversation wrapper so list rows, message popups, and input descendants share one owner. Command markdown/status and Giphy engine actions are bridged into the input owner during migration; the old `ConvoUIState` surface remains only for compatibility and tests until the final collapse slice.
+Implementation note: conversation input UI state now lives in `shared/chat/conversation/input-area/input-state.tsx` and is provided from the normal conversation wrapper so list rows, message popups, and input descendants share one owner. Command markdown/status and Giphy engine actions are bridged into the input owner.
+
+Implementation note: the old `ConvoUIState` compatibility surface has been removed. Composer edit-state regression coverage now lives with `shared/chat/conversation/input-area/input-state.tsx`, and `convostate` no longer handles command markdown/status or Giphy UI engine events.
 
 ## Chunk 5: Move Route And List UI State Where Practical
 
-- [ ] Move pending message-jump entry context out of `pendingJumpMessageID` and into route params or the navigation call path
+- [x] Move pending message-jump entry context out of `pendingJumpMessageID` and into route params or the navigation call path
 - [ ] Move centered/highlight state out of `messageCenterOrdinal` into the list route/provider if list consumers can still react to search, reply-jump, deep-link, and jump-to-recent events
 - [ ] Preserve current behaviors:
-  - [ ] `prepareToNavigateToThread(highlightMessageID)` still deep-links and flashes the target message
+  - [x] `navigateToThread(..., highlightMessageID)` still deep-links and flashes the target message
   - [ ] `loadMessagesCentered` still clears stale messages, loads around the pivot, and highlights according to mode
   - [ ] `toggleThreadSearch(false)` clears or de-emphasizes highlight exactly as today
   - [ ] sending while search/highlight is active still closes search and jumps to recent
@@ -168,11 +170,13 @@ Implementation note: conversation input UI state now lives in `shared/chat/conve
   - [ ] keep them in `convostate` if list virtualization requires precomputed stable row metadata
   - [ ] otherwise compute them in the list/message layer from `messageOrdinals`, `messageMap`, current username, and adjacent messages
 - [ ] If row metadata moves, preserve the current refresh semantics for adjacent messages after inserts, deletes, explosions, edits, and reaction updates
-- [ ] Add missing tests before moving route/list state:
-  - [ ] `pendingJumpMessageID` is consumed exactly once by `selectedConversation`
-  - [ ] `setMarkAsUnread(false)` remains a no-op
-  - [ ] `threadLoadStatus` resets to `none` on selected conversation
-  - [ ] native row recycle types are stable for pending, failed, reply, and reaction rows
+- [x] Add missing tests before moving route/list state:
+  - [x] highlight message entry context is consumed exactly once by `selectedConversation`
+  - [x] `setMarkAsUnread(false)` remains a no-op
+  - [x] `threadLoadStatus` resets to `none` on selected conversation
+  - [x] native row recycle types are stable for pending, failed, reply, and reaction rows
+
+Implementation note: highlighted message navigation now travels through `navigateToThread` route params or is loaded immediately when already viewing the same thread. The route highlight param is cleared after selection, and `convostate` no longer stores `pendingJumpMessageID`.
 
 ### Target callers for Chunk 5
 

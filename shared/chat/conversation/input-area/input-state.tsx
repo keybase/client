@@ -187,6 +187,9 @@ const getConversationInputState = (conversationIDKey: T.Chat.ConversationIDKey) 
   return createConversationInputStore(conversationIDKey).getState()
 }
 
+export const createConversationInputStoreForTesting = (conversationIDKey: T.Chat.ConversationIDKey) =>
+  createConversationInputStore(conversationIDKey)
+
 export const injectConversationInputText = (conversationIDKey: T.Chat.ConversationIDKey, text?: string) => {
   getConversationInputState(conversationIDKey).dispatch.injectIntoInput(text)
 }

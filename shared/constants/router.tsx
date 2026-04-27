@@ -716,8 +716,20 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   })
 }
 
+export const clearThreadHighlightMessageID = () => {
+  const n = _getNavigator()
+  if (!n) return
+  const visible = getVisibleScreen()
+  if (!visible?.key || visible.name !== threadRouteName) return
+  n.dispatch({
+    ...CommonActions.setParams({highlightMessageID: undefined}),
+    source: visible.key,
+  })
+}
+
 type ThreadNavParams = {
   createConversationError?: T.Chat.CreateConversationError
+  highlightMessageID?: T.Chat.MessageID
   threadSearch?: {query?: string}
 }
 
@@ -761,6 +773,7 @@ const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: Th
   const params = {
     conversationIDKey,
     createConversationError: navParams?.createConversationError,
+    highlightMessageID: navParams?.highlightMessageID,
     threadSearch: navParams?.threadSearch,
   }
 
@@ -799,10 +812,12 @@ export const navigateToThread = (
   createConversationError?: T.Chat.CreateConversationError,
   inputPrefillText?: string
 ) => {
-  getConvoState(conversationIDKey).dispatch.prepareToNavigateToThread(highlightMessageID)
   if (inputPrefillText !== undefined) {
     injectConversationInputText(conversationIDKey, inputPrefillText)
   }
+
+  const convoState = getConvoState(conversationIDKey)
+  convoState.dispatch.prepareToNavigateToThread()
 
   if (reason === 'navChanged') {
     return
@@ -813,12 +828,23 @@ export const navigateToThread = (
   const visibleConvo = params?.conversationIDKey
   const visibleRouteName = visible?.name
 
+  const highlightHandledInline =
+    !!highlightMessageID && visibleRouteName === threadRouteName && visibleConvo === conversationIDKey
+  if (highlightHandledInline) {
+    convoState.dispatch.loadMessagesCentered(highlightMessageID, 'flash')
+  }
+  const routeHighlightMessageID = highlightHandledInline ? undefined : highlightMessageID
+
   if (visibleRouteName !== threadRouteName && reason === 'findNewestConversation') {
     return
   }
 
   const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
-  const navParams = {createConversationError, threadSearch}
+  const navParams = {
+    createConversationError,
+    highlightMessageID: routeHighlightMessageID,
+    threadSearch,
+  }
   if (isSplit) {
     navToThread(conversationIDKey, navParams)
   } else if (reason === 'push' || reason === 'savedLastState') {
@@ -834,7 +860,12 @@ export const navigateToThread = (
     navigateAppend(
       {
         name: threadRouteName,
-        params: {conversationIDKey, createConversationError, threadSearch},
+        params: {
+          conversationIDKey,
+          createConversationError,
+          highlightMessageID: routeHighlightMessageID,
+          threadSearch,
+        },
       },
       replace
     )

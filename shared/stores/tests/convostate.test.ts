@@ -8,9 +8,7 @@ import {resetAllStores} from '../../util/zustand'
 import {useCurrentUserState} from '../current-user'
 import {
   createConvoStoreForTesting,
-  createConvoStoresForTesting,
   type ConvoState,
-  type ConvoUIState,
   getConvoState,
   syncBadgeState,
 } from '../convostate'
@@ -233,18 +231,6 @@ const applyState = (
   })
 }
 
-const applyUIState = (
-  store: {getState: () => any; setState: (state: any) => void},
-  partial: Partial<ConvoUIState>
-) => {
-  const current = store.getState()
-  store.setState({
-    ...current,
-    ...partial,
-    dispatch: current.dispatch,
-  })
-}
-
 const createStore = () => createConvoStoreForTesting(convID)
 
 const seedStore = (
@@ -366,6 +352,45 @@ test('onMessagesUpdated adds messages and recomputes derived thread maps', () =>
   expect(store.getState().showUsernameMap.get(T.Chat.numberToOrdinal(301))).toBe('bob')
   expect(store.getState().showUsernameMap.get(T.Chat.numberToOrdinal(302))).toBe('')
   expect(store.getState().messageTypeMap.size).toBe(0)
+})
+
+test('row recycle types distinguish native pending, failed, reply, and reaction rows', () => {
+  const store = createStore()
+  const pendingOrdinal = T.Chat.numberToOrdinal(401)
+  const failedOrdinal = T.Chat.numberToOrdinal(402)
+  const replyOrdinal = T.Chat.numberToOrdinal(403)
+  const reactionOrdinal = T.Chat.numberToOrdinal(404)
+
+  store.getState().dispatch.galleryMessagesLoaded([
+    makePendingTextMessage(pendingOrdinal, T.Chat.stringToOutboxID('pending-outbox'), 'pending'),
+    makeTextMessage({
+      errorReason: 'failed',
+      id: T.Chat.numberToMessageID(402),
+      ordinal: failedOrdinal,
+      outboxID: T.Chat.stringToOutboxID('failed-outbox'),
+      submitState: 'failed',
+    }),
+    makeTextMessage({
+      id: T.Chat.numberToMessageID(403),
+      ordinal: replyOrdinal,
+      outboxID: T.Chat.stringToOutboxID('reply-outbox'),
+      replyTo: makeTextMessage({
+        id: T.Chat.numberToMessageID(399),
+        ordinal: T.Chat.numberToOrdinal(399),
+      }),
+    }),
+    makeTextMessage({
+      id: T.Chat.numberToMessageID(404),
+      ordinal: reactionOrdinal,
+      outboxID: T.Chat.stringToOutboxID('reaction-outbox'),
+      reactions: new Map([[':+1:', makeReaction('bob', 5)]]),
+    }),
+  ])
+
+  expect(store.getState().rowRecycleTypeMap.get(pendingOrdinal)).toBe('text:pending')
+  expect(store.getState().rowRecycleTypeMap.get(failedOrdinal)).toBe('text:pending')
+  expect(store.getState().rowRecycleTypeMap.get(replyOrdinal)).toBe('text:reply')
+  expect(store.getState().rowRecycleTypeMap.get(reactionOrdinal)).toBe('text:reactions')
 })
 
 test('onMessagesUpdated ignores unopened background conversations', () => {
@@ -724,65 +749,8 @@ test('onMessageErrored marks the pending message as failed and leaves unknown ou
   expect(message?.errorTyp).toBe(7)
 })
 
-test('setEditing last picks the latest editable local message and injects its content', () => {
-  const attachmentOrdinal = T.Chat.numberToOrdinal(703)
-  const {convoStore: store, uiStore} = createConvoStoresForTesting(convID)
-  applyState(store, seedStore([
-    makeTextMessage({
-      author: 'bob',
-      id: T.Chat.numberToMessageID(701),
-      ordinal: T.Chat.numberToOrdinal(701),
-      outboxID: T.Chat.stringToOutboxID('someone-else'),
-    }),
-    makeTextMessage({
-      exploded: true,
-      id: T.Chat.numberToMessageID(702),
-      ordinal: T.Chat.numberToOrdinal(702),
-      outboxID: T.Chat.stringToOutboxID('exploded-self'),
-      text: 'ignore me',
-    }),
-    makeAttachmentMessage({
-      id: T.Chat.numberToMessageID(703),
-      ordinal: attachmentOrdinal,
-      outboxID: T.Chat.stringToOutboxID('editable-attachment'),
-      title: 'picked attachment title',
-    }),
-  ]).getState())
-
-  uiStore.getState().dispatch.setEditing('last')
-
-  expect(uiStore.getState().editing).toBe(attachmentOrdinal)
-  expect(uiStore.getState().unsentText).toBe('picked attachment title')
-})
-
-test('setEditing clear resets editing state and clears unsent text', () => {
-  const {uiStore} = createConvoStoresForTesting(convID)
-  applyUIState(uiStore, {
-    editing: ordinal,
-    unsentText: 'draft text',
-  })
-
-  uiStore.getState().dispatch.setEditing('clear')
-
-  expect(uiStore.getState().editing).toBe(T.Chat.numberToOrdinal(0))
-  expect(uiStore.getState().unsentText).toBe('')
-})
-
-test('setMeta adopts the server draft once when the meta becomes good', () => {
-  const {convoStore: store, uiStore} = createConvoStoresForTesting(convID)
-
-  store.getState().dispatch.setMeta(makeMeta({draft: 'server draft'}))
-  expect(store.getState().isMetaGood()).toBe(true)
-  expect(uiStore.getState().unsentText).toBe('server draft')
-
-  uiStore.getState().dispatch.injectIntoInput('local draft')
-  store.getState().dispatch.setMeta(makeMeta({draft: 'new server draft'}))
-
-  expect(uiStore.getState().unsentText).toBe('local draft')
-})
-
-test('local setters update participants, reply target, and badge', () => {
-  const {convoStore: store, uiStore} = createConvoStoresForTesting(convID)
+test('local setters update participants and badge', () => {
+  const store = createStore()
   const participants: ConvoState['participants'] = {
     all: ['alice', 'bob'],
     contactName: new Map([['bob', 'Bobby']]),
@@ -790,12 +758,55 @@ test('local setters update participants, reply target, and badge', () => {
   }
 
   store.getState().dispatch.setParticipants(participants)
-  uiStore.getState().dispatch.setReplyTo(ordinal)
   store.getState().dispatch.badgesUpdated(3)
 
   expect(store.getState().participants).toEqual(participants)
-  expect(uiStore.getState().replyTo).toBe(ordinal)
   expect(store.getState().badge).toBe(3)
+})
+
+test('highlight message is consumed once by selectedConversation', () => {
+  const store = createStore()
+  jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+  const loadMessagesCentered = jest.fn()
+  const loadMoreMessages = jest.fn()
+  const current = store.getState()
+  store.setState({
+    ...current,
+    dispatch: {...current.dispatch, loadMessagesCentered, loadMoreMessages},
+  })
+
+  store.getState().dispatch.selectedConversation(msgID)
+  store.getState().dispatch.selectedConversation()
+
+  expect(loadMessagesCentered).toHaveBeenCalledTimes(1)
+  expect(loadMessagesCentered).toHaveBeenCalledWith(msgID, 'flash')
+  expect(loadMoreMessages).toHaveBeenCalledTimes(1)
+})
+
+test('setMarkAsUnread false is a no-op', () => {
+  const store = createStore()
+  const markAsRead = jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue(undefined)
+  applyState(store, {markedAsUnread: ordinal})
+
+  store.getState().dispatch.setMarkAsUnread(false)
+
+  expect(store.getState().markedAsUnread).toBe(ordinal)
+  expect(markAsRead).not.toHaveBeenCalled()
+})
+
+test('selectedConversation resets threadLoadStatus', () => {
+  const store = createStore()
+  jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+  const current = store.getState()
+  store.setState({
+    ...current,
+    dispatch: {...current.dispatch, loadMoreMessages: jest.fn()},
+    threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.server,
+  })
+
+  store.getState().dispatch.selectedConversation()
+
+  expect(store.getState().threadLoadStatus).toBe(T.RPCChat.UIChatThreadStatusTyp.none)
 })
 
 test('syncBadgeState updates listed conversations and clears missing badges', () => {
