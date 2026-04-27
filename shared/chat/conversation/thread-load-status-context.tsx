@@ -1,7 +1,11 @@
-import * as ConvoState from '@/stores/convostate'
+import type {ThreadLoadStatusReporter} from '@/stores/convostate'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
+import {
+  useConversationThreadLoadMoreMessages,
+  useConversationThreadSelectedConversation,
+} from './thread-context'
 
 type ThreadLoadStatusState = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -9,12 +13,12 @@ type ThreadLoadStatusState = {
 }
 
 type ThreadLoadStatusContextType = {
-  onThreadLoadStatus: ConvoState.ThreadLoadStatusReporter
+  onThreadLoadStatus: ThreadLoadStatusReporter
   status: T.RPCChat.UIChatThreadStatusTyp
 }
 
 const noThreadLoadStatus = T.RPCChat.UIChatThreadStatusTyp.none
-const ignoreThreadLoadStatus: ConvoState.ThreadLoadStatusReporter = () => {}
+const ignoreThreadLoadStatus: ThreadLoadStatusReporter = () => {}
 
 const ThreadLoadStatusContext = React.createContext<ThreadLoadStatusContextType>({
   onThreadLoadStatus: ignoreThreadLoadStatus,
@@ -34,6 +38,8 @@ export const ConversationThreadLoadStatusProvider = (
 ) => {
   const {children, id, skipThreadLoadOnSelection = false} = p
   const [initialSkipThreadLoadOnSelection] = React.useState(skipThreadLoadOnSelection)
+  const loadMoreMessages = useConversationThreadLoadMoreMessages()
+  const selectedConversation = useConversationThreadSelectedConversation()
   const [threadLoadStatusState, setThreadLoadStatusState] = React.useState<ThreadLoadStatusState>(() => ({
     conversationIDKey: id,
     status: noThreadLoadStatus,
@@ -42,7 +48,7 @@ export const ConversationThreadLoadStatusProvider = (
   const status =
     threadLoadStatusState.conversationIDKey === id ? threadLoadStatusState.status : noThreadLoadStatus
 
-  const onThreadLoadStatus: ConvoState.ThreadLoadStatusReporter = (conversationIDKey, status) => {
+  const onThreadLoadStatus: ThreadLoadStatusReporter = (conversationIDKey, status) => {
     if (conversationIDKey !== id) {
       return
     }
@@ -50,7 +56,7 @@ export const ConversationThreadLoadStatusProvider = (
   }
 
   const reloadStaleThread = () => {
-    ConvoState.getConvoState(id).dispatch.loadMoreMessages({
+    loadMoreMessages({
       onThreadLoadStatus,
       reason: 'got stale',
     })
@@ -79,7 +85,7 @@ export const ConversationThreadLoadStatusProvider = (
   })
 
   const selectConversation = React.useEffectEvent(() => {
-    ConvoState.getConvoState(id).dispatch.selectedConversation({
+    selectedConversation({
       onThreadLoadStatus,
       skipThreadLoad: initialSkipThreadLoadOnSelection,
     })

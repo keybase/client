@@ -11,6 +11,7 @@ import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import ThreadSearch from '../search'
 import {useConversationCenter} from '../center-context'
+import {useConversationThreadID, useConversationThreadToggleSearch} from '../thread-context'
 import {useThreadSearchRoute} from '../thread-search-route'
 import {readImageFromClipboard} from '@/util/clipboard.desktop'
 import '../conversation.css'
@@ -23,7 +24,7 @@ const Offline = () => (
 )
 
 const LoadingLine = () => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const showLoader = C.Waiting.useAnyWaiting([
     C.waitingKeyChatThreadLoad(conversationIDKey),
     C.waitingKeyChatInboxSyncStarted,
@@ -32,7 +33,7 @@ const LoadingLine = () => {
 }
 
 const Conversation = function Conversation() {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const navigateAppend = ConvoState.useChatNavigateAppend()
   const onAttach = (paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({path: p}))
@@ -61,7 +62,7 @@ const Conversation = function Conversation() {
       })
       .catch(() => {})
   }
-  const toggleThreadSearch = ConvoState.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const toggleThreadSearch = useConversationThreadToggleSearch()
   const {clearCenter} = useConversationCenter()
   const onToggleThreadSearch = () => {
     if (showThreadSearch) {

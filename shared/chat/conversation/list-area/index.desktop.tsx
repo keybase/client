@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Hooks from './hooks'
 import * as React from 'react'
@@ -18,7 +17,12 @@ import useResizeObserver from '@/util/use-resize-observer.desktop'
 import useIntersectionObserver from '@/util/use-intersection-observer'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {useConversationCenter} from '../center-context'
-import {useConversationThreadListData} from '../thread-context'
+import {
+  useConversationThreadID,
+  useConversationThreadListData,
+  useConversationThreadLoadNewerMessagesDueToScroll,
+  useConversationThreadLoadOlderMessagesDueToScroll,
+} from '../thread-context'
 import {useThreadLoadStatusReporter} from '../thread-load-status-context'
 
 // Infinite scrolling list.
@@ -39,7 +43,7 @@ const useScrolling = (p: {
   setListRef: (r: HTMLDivElement | null) => void
   centeredOrdinal: T.Chat.Ordinal | undefined
 }) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const {listRef, setListRef: _setListRef, containsLatestMessage} = p
   const containsLatestMessageRef = React.useRef(containsLatestMessage)
   React.useEffect(() => {
@@ -48,14 +52,14 @@ const useScrolling = (p: {
   const {messageOrdinals, centeredOrdinal, loaded} = p
   const numOrdinals = messageOrdinals.length
   const onThreadLoadStatus = useThreadLoadStatusReporter()
-  const loadNewerMessagesDueToScroll = ConvoState.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
+  const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
   const loadNewerMessages = C.useThrottledCallback(() => {
     loadNewerMessagesDueToScroll(numOrdinals, {onThreadLoadStatus})
   }, 200)
   // if we scroll up try and keep the position
   const scrollBottomOffsetRef = React.useRef<number | undefined>(undefined)
 
-  const loadOlderMessagesDueToScroll = ConvoState.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+  const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
   const loadOlderMessages = React.useCallback((numOrdinals: number) => {
     loadOlderMessagesDueToScroll(numOrdinals, {onThreadLoadStatus})
   }, [loadOlderMessagesDueToScroll, onThreadLoadStatus])

@@ -11,6 +11,7 @@ import {
   useThreadLoadStatus,
   useThreadLoadStatusReporter,
 } from './thread-load-status-context'
+import {ConversationThreadProvider} from './thread-context'
 
 jest.mock('@/stores/inbox-rows', () => ({
   flushInboxRowUpdates: jest.fn(),
@@ -43,9 +44,11 @@ afterEach(() => {
 })
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadLoadStatusProvider id={convID} skipThreadLoadOnSelection={true}>
-    {children}
-  </ConversationThreadLoadStatusProvider>
+  <ConversationThreadProvider id={convID} seedFromCache={false}>
+    <ConversationThreadLoadStatusProvider id={convID} skipThreadLoadOnSelection={true}>
+      {children}
+    </ConversationThreadLoadStatusProvider>
+  </ConversationThreadProvider>
 )
 
 test('thread load status reporter ignores stale conversation statuses', () => {

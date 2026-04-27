@@ -1,4 +1,3 @@
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
 import * as Kb from '@/common-adapters'
@@ -20,6 +19,7 @@ import * as RowMetadata from '../messages/row-metadata'
 import {useConversationCenter} from '../center-context'
 import {
   useConversationThreadListData,
+  useConversationThreadLoadOlderMessagesDueToScroll,
   useConversationThreadMessageMap,
   useConversationThreadMessageTypeMap,
 } from '../thread-context'
@@ -49,7 +49,7 @@ const useScrolling = (p: {
 }) => {
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
-  const loadOlderMessages = ConvoState.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+  const loadOlderMessages = useConversationThreadLoadOlderMessagesDueToScroll()
   const onThreadLoadStatus = useThreadLoadStatusReporter()
   const [scrollToBottom] = React.useState(() => () => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})

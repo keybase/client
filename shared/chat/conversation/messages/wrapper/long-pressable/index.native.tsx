@@ -1,9 +1,9 @@
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as InputState from '../../../input-area/input-state'
 import type {Props} from '.'
 import {useOrdinal} from '../../ids-context'
+import {useConversationThreadToggleSearch} from '../../../thread-context'
 import Swipeable, {
   type SwipeableMethods,
   SwipeDirection,
@@ -40,7 +40,7 @@ function LongPressable(props: Props) {
     translation: Reanimated.SharedValue<number>
   ) => <ReplyIcon progress={translation} />
 
-  const toggleThreadSearch = ConvoState.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const toggleThreadSearch = useConversationThreadToggleSearch()
   const setReplyTo = InputState.useConversationInput(s => s.dispatch.setReplyTo)
   const ordinal = useOrdinal()
   const {focusInput} = React.useContext(FocusContext)

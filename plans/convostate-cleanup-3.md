@@ -79,7 +79,7 @@ The intended end state is:
   - [ ] pagination still uses forward/back pagination tokens
   - [ ] centered loads still clear stale visible messages before loading around the pivot
   - [ ] `validatedOrdinalRange` still prevents stale message validation bugs
-  - [ ] thread load status continues to report through `thread-load-status-context`
+  - [x] thread load status continues to report through `thread-load-status-context`
   - [ ] user-initiated loads still mark the thread read when appropriate
 - [ ] Update all list/message consumers to read from the new thread provider
   - [x] desktop list area
@@ -87,7 +87,7 @@ The intended end state is:
   - [x] message wrapper
   - [x] separator and row metadata callers for mounted rows
   - [x] message popups
-  - [ ] search/center/jump flows
+  - [x] search/center/jump flows
 - [ ] Delete the moved fields from `ConvoStore` only after all consumers are off `useChatContext`
 
 ## Chunk 2: Move Message Mutations And Active Engine Updates

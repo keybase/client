@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {
   getConversationThreadCacheSnapshot,
   putConversationThreadCacheSnapshot,
@@ -29,7 +29,15 @@ const selectSnapshot = (s: ConvoState.ConvoState): ConversationThreadSnapshot =>
   validatedOrdinalRange: s.validatedOrdinalRange,
 })
 
-const useConversationThreadID = () => {
+type ThreadLoadStatusOptions = {
+  onThreadLoadStatus?: ConvoState.ThreadLoadStatusReporter
+}
+
+type SelectedConversationOptions = ThreadLoadStatusOptions & {
+  skipThreadLoad?: boolean
+}
+
+export const useConversationThreadID = () => {
   const conversationIDKey = React.useContext(ConversationThreadIDContext)
   if (!conversationIDKey) {
     throw new Error('Missing ConversationThreadProvider in the tree')
@@ -88,6 +96,11 @@ export const ConversationThreadProvider = (
 export const useConversationThreadLoaded = () =>
   useConversationThreadSnapshotValue(snapshot => snapshot.loaded)
 
+export const useConversationThreadLastOrdinal = () =>
+  useConversationThreadSnapshotValue(
+    snapshot => snapshot.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+  )
+
 export const useConversationThreadMessage = (ordinal: T.Chat.Ordinal) =>
   useConversationThreadSnapshotValue(snapshot => snapshot.messageMap.get(ordinal))
 
@@ -129,4 +142,47 @@ export const useConversationThreadListData = () => {
     }))
   )
   return {...data, conversationIDKey}
+}
+
+export const useConversationThreadLoadMoreMessages = () => {
+  const conversationIDKey = useConversationThreadID()
+  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.loadMoreMessages)
+}
+
+export const useConversationThreadLoadOlderMessagesDueToScroll = () => {
+  const conversationIDKey = useConversationThreadID()
+  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.loadOlderMessagesDueToScroll)
+}
+
+export const useConversationThreadLoadNewerMessagesDueToScroll = () => {
+  const conversationIDKey = useConversationThreadID()
+  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.loadNewerMessagesDueToScroll)
+}
+
+export const useConversationThreadLoadMessagesCentered = () => {
+  const conversationIDKey = useConversationThreadID()
+  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.loadMessagesCentered)
+}
+
+export const useConversationThreadJumpToRecent = () => {
+  const conversationIDKey = useConversationThreadID()
+  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.jumpToRecent)
+}
+
+export const useConversationThreadMarkThreadAsRead = () => {
+  const conversationIDKey = useConversationThreadID()
+  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.markThreadAsRead)
+}
+
+export const useConversationThreadSelectedConversation = () => {
+  const conversationIDKey = useConversationThreadID()
+  return ConvoState.useConvoState(
+    conversationIDKey,
+    (s): ((options?: SelectedConversationOptions) => void) => s.dispatch.selectedConversation
+  )
+}
+
+export const useConversationThreadToggleSearch = () => {
+  const conversationIDKey = useConversationThreadID()
+  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.toggleThreadSearch)
 }
