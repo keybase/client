@@ -233,6 +233,15 @@ const applyState = (
 
 const createStore = () => createConvoStoreForTesting(convID)
 
+const makeLoadMoreMessagesMock = () =>
+  Object.assign(
+    jest.fn<(...args: Parameters<ConvoState['dispatch']['loadMoreMessages']>) => void>(),
+    {
+      cancel: () => {},
+      flush: () => {},
+    }
+  )
+
 const seedStore = (
   messages: ReadonlyArray<T.Chat.Message>,
   extra?: Partial<ConvoState> & {
@@ -384,7 +393,12 @@ test('galleryMessagesLoaded injects gallery-only messages without marking read',
     ordinal: T.Chat.numberToOrdinal(501),
   })
   const store = seedStore([threadMessage])
-  const markThreadAsRead = jest.spyOn(store.getState().dispatch, 'markThreadAsRead')
+  const markThreadAsRead = jest.fn<ConvoState['dispatch']['markThreadAsRead']>()
+  const current = store.getState()
+  store.setState({
+    ...current,
+    dispatch: {...current.dispatch, markThreadAsRead},
+  })
 
   store.getState().dispatch.galleryMessagesLoaded([galleryMessage])
 
@@ -714,7 +728,7 @@ test('local setters update participants and badge', () => {
 test('selectedConversation can defer thread load for route-owned highlight', () => {
   const store = createStore()
   jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
-  const loadMoreMessages = jest.fn()
+  const loadMoreMessages = makeLoadMoreMessagesMock()
   const current = store.getState()
   store.setState({
     dispatch: {...current.dispatch, loadMoreMessages},
@@ -728,7 +742,9 @@ test('selectedConversation can defer thread load for route-owned highlight', () 
 
 test('setMarkAsUnread false is a no-op', () => {
   const store = createStore()
-  const markAsRead = jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue(undefined)
+  const markAsRead = jest
+    .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
+    .mockResolvedValue({offline: false})
 
   store.getState().dispatch.setMarkAsUnread(false)
 
@@ -738,10 +754,11 @@ test('setMarkAsUnread false is a no-op', () => {
 test('selectedConversation resets threadLoadStatus', () => {
   const store = createStore()
   jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+  const loadMoreMessages = makeLoadMoreMessagesMock()
   const current = store.getState()
   store.setState({
     ...current,
-    dispatch: {...current.dispatch, loadMoreMessages: jest.fn()},
+    dispatch: {...current.dispatch, loadMoreMessages},
     threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.server,
   })
 

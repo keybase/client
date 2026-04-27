@@ -126,7 +126,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const data = ConvoState.useChatContext(
     C.useShallow(s => {
       const {meta, id: conversationIDKey, messageMap} = s
-      const {jumpToRecent, setExplodingMode} = s.dispatch
+      const {setExplodingMode} = s.dispatch
       const {cannotWrite, minWriterRole, tlfname} = meta
       const showReplyPreview = !!messageMap.get(uiData.replyTo)?.id
       const convoID = s.getConvID()
@@ -140,13 +140,13 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
           : explodingMode
       // prettier-ignore
       return {cannotWrite, conversationIDKey, convoID, explodingMode, explodingModeSeconds,
-        jumpToRecent, minWriterRole, setExplodingMode, showReplyPreview,
+        minWriterRole, setExplodingMode, showReplyPreview,
         storeDraft, tlfname}
     })
   )
 
   const {cannotWrite, conversationIDKey, setExplodingMode: setExplodingModeRaw} = data
-  const {jumpToRecent, minWriterRole} = data
+  const {minWriterRole} = data
   const {explodingModeSeconds: explodingModeSecondsRaw, convoID, tlfname, storeDraft} = data
   const {showReplyPreview} = data
   const {editOrdinal, unsentText} = uiData

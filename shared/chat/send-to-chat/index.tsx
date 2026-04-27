@@ -7,7 +7,7 @@ import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
-import {injectConversationInputText} from './conversation/input-area/input-state'
+import {injectConversationInputText} from '../conversation/input-area/input-state'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
