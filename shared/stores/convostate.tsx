@@ -55,7 +55,6 @@ import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
-import {getUsernameToShow} from '@/chat/conversation/messages/separator-utils'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -96,9 +95,6 @@ type ConvoStore = T.Immutable<{
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal> // messages waiting to be sent,
-  rowRecycleTypeMap: Map<T.Chat.Ordinal, string>
-  separatorMap: Map<T.Chat.Ordinal, T.Chat.Ordinal>
-  showUsernameMap: Map<T.Chat.Ordinal, string>
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp
   typing: ReadonlySet<string>
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
@@ -135,9 +131,6 @@ const initialConvoStore: ConvoStore = {
   participants: noParticipantInfo,
   paymentStatusMap: new Map(),
   pendingOutboxToOrdinal: new Map(),
-  rowRecycleTypeMap: new Map(),
-  separatorMap: new Map(),
-  showUsernameMap: new Map(),
   threadLoadStatus: T.RPCChat.UIChatThreadStatusTyp.none,
   typing: new Set(),
   unfurlPrompt: new Map(),
@@ -1286,107 +1279,6 @@ const createSlice =
     ) =>
       messageIDToOrdinal(state.messageMap, state.pendingOutboxToOrdinal, messageID, state.messageIDToOrdinal)
 
-    const findOrdinalIndex = (ordinals: ReadonlyArray<T.Chat.Ordinal>, ordinal: T.Chat.Ordinal) => {
-      let low = 0
-      let high = ordinals.length
-      while (low < high) {
-        const mid = Math.floor((low + high) / 2)
-        if (ordinals[mid]! < ordinal) {
-          low = mid + 1
-        } else {
-          high = mid
-        }
-      }
-      return low
-    }
-
-    const refreshDerivedMetadata = (
-      s: Z.WritableDraft<ConvoState>,
-      changedOrdinals: ReadonlySet<T.Chat.Ordinal>
-    ) => {
-      if (changedOrdinals.size === 0) {
-        return
-      }
-
-      const messageOrdinals = s.messageOrdinals ?? []
-      const you = useCurrentUserState.getState().username
-      const ordinalsToRefresh = new Set(changedOrdinals)
-
-      for (const ordinal of changedOrdinals) {
-        const idx = findOrdinalIndex(messageOrdinals, ordinal)
-        const maybeCurrent = messageOrdinals[idx]
-        const nextOrdinal = maybeCurrent === ordinal ? messageOrdinals[idx + 1] : maybeCurrent
-        if (nextOrdinal !== undefined) {
-          ordinalsToRefresh.add(nextOrdinal)
-        }
-      }
-
-      for (const ordinal of ordinalsToRefresh) {
-        const idx = findOrdinalIndex(messageOrdinals, ordinal)
-        if (messageOrdinals[idx] !== ordinal) {
-          s.rowRecycleTypeMap.delete(ordinal)
-          s.separatorMap.delete(ordinal)
-          s.showUsernameMap.delete(ordinal)
-          continue
-        }
-
-        const previousOrdinal = idx > 0 ? messageOrdinals[idx - 1]! : T.Chat.numberToOrdinal(0)
-        const message = s.messageMap.get(ordinal)
-        if (!message) {
-          s.rowRecycleTypeMap.delete(ordinal)
-          s.separatorMap.delete(ordinal)
-          s.showUsernameMap.delete(ordinal)
-          continue
-        }
-
-        s.separatorMap.set(ordinal, previousOrdinal)
-        const previousMessage = idx > 0 ? s.messageMap.get(previousOrdinal) : undefined
-        s.showUsernameMap.set(ordinal, getUsernameToShow(message, previousMessage, you))
-        setRowRenderDerivedMetadata(s, ordinal, message)
-      }
-    }
-
-    const getRowRecycleType = (
-      message: T.Chat.Message,
-      renderType: T.Chat.RenderMessageType
-    ): string | undefined => {
-      let rowRecycleType = renderType
-      let needsSpecificRecycleType = false
-
-      if (
-        (message.type === 'text' || message.type === 'attachment') &&
-        (message.submitState === 'pending' || message.submitState === 'failed')
-      ) {
-        rowRecycleType += ':pending'
-        needsSpecificRecycleType = true
-      }
-
-      if (message.type === 'text' && message.replyTo) {
-        rowRecycleType += ':reply'
-        needsSpecificRecycleType = true
-      }
-      if (message.reactions?.size) {
-        rowRecycleType += ':reactions'
-        needsSpecificRecycleType = true
-      }
-
-      return needsSpecificRecycleType ? rowRecycleType : undefined
-    }
-
-    const setRowRenderDerivedMetadata = (
-      s: Z.WritableDraft<ConvoState>,
-      ordinal: T.Chat.Ordinal,
-      message: T.Chat.Message
-    ) => {
-      const renderType = s.messageTypeMap.get(ordinal) ?? Message.getMessageRenderType(message)
-      const rowRecycleType = getRowRecycleType(message, renderType)
-      if (rowRecycleType) {
-        s.rowRecycleTypeMap.set(ordinal, rowRecycleType)
-      } else {
-        s.rowRecycleTypeMap.delete(ordinal)
-      }
-    }
-
     const mergeMessage = (
       existing: Z.WritableDraft<T.Chat.Message>,
       incoming: Z.WritableDraft<T.Chat.Message>
@@ -1474,7 +1366,6 @@ const createSlice =
       set(s => {
         // Build set of incoming regular ordinals for ordinal management
         const incomingOrdinals = new Set<T.Chat.Ordinal>()
-        const touchedOrdinals = new Set<T.Chat.Ordinal>()
         for (const m of messages) {
           if (m.conversationMessage !== false && m.type !== 'deleted') {
             incomingOrdinals.add(m.ordinal)
@@ -1486,7 +1377,6 @@ const createSlice =
           const regularMessage = m.conversationMessage !== false
 
           if (regularMessage && m.type === 'deleted') {
-            touchedOrdinals.add(m.ordinal)
             clearMessageIDIndexForOrdinal(s, m.ordinal)
             s.messageMap.delete(m.ordinal)
             s.messageTypeMap.delete(m.ordinal)
@@ -1516,10 +1406,6 @@ const createSlice =
                 incomingOrdinals.add(mapOrdinal)
               }
               m.ordinal = mapOrdinal
-            }
-
-            if (regularMessage) {
-              touchedOrdinals.add(mapOrdinal)
             }
 
             const existingMsg = s.messageMap.get(mapOrdinal)
@@ -1578,7 +1464,6 @@ const createSlice =
         if (validatedRange) {
           for (const o of existing) {
             if (o >= validatedRange.from && o <= validatedRange.to && !incomingOrdinals.has(o)) {
-              touchedOrdinals.add(o)
               clearMessageIDIndexForOrdinal(s, o)
               existing.delete(o)
               s.messageMap.delete(o)
@@ -1600,8 +1485,6 @@ const createSlice =
         if (changed || !s.messageOrdinals) {
           s.messageOrdinals = [...existing].sort((a, b) => a - b)
         }
-
-        refreshDerivedMetadata(s, touchedOrdinals)
       })
 
       if (markAsRead) {
@@ -1705,7 +1588,6 @@ const createSlice =
               users: [{timestamp: Date.now(), username}],
             })
           }
-          setRowRenderDerivedMetadata(s, targetOrdinal, m)
         }
       })
     }
@@ -1885,7 +1767,6 @@ const createSlice =
           if (s.messageOrdinals) {
             s.messageOrdinals = s.messageOrdinals.filter(o => o !== toDelOrdinal)
           }
-          refreshDerivedMetadata(s, new Set([toDelOrdinal]))
         })
       }
 
@@ -2835,9 +2716,6 @@ const createSlice =
           s.messageMap.clear()
           s.messageOrdinals = undefined
           s.messageTypeMap.clear()
-          s.rowRecycleTypeMap.clear()
-          s.separatorMap.clear()
-          s.showUsernameMap.clear()
           s.validatedOrdinalRange = undefined
         })
       },
@@ -2852,9 +2730,6 @@ const createSlice =
             m.explodedBy = explodedBy || ''
             m.reactions = new Map()
             m.unfurls = new Map()
-            if (ordinal) {
-              setRowRenderDerivedMetadata(s, ordinal, m)
-            }
             if (m.type === 'text') {
               m.flipGameID = ''
               m.mentionsAt = new Set()
@@ -2901,7 +2776,6 @@ const createSlice =
           if (s.messageOrdinals) {
             s.messageOrdinals = s.messageOrdinals.filter(o => !allOrdinals.has(o))
           }
-          refreshDerivedMetadata(s, allOrdinals)
         })
       },
       mute: m => {
@@ -3715,7 +3589,6 @@ const createSlice =
                 }
                 m.reactions = T.castDraft(newReactions)
               }
-              setRowRenderDerivedMetadata(s, targetOrdinal, m)
             }
           })
         }

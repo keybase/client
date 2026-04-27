@@ -5,6 +5,7 @@ import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as InputState from '../../input-area/input-state'
+import * as RowMetadata from '../row-metadata'
 import {MessageContext, useOrdinal} from '../ids-context'
 import EmojiRow from '../emoji-row'
 import ExplodingHeightRetainer from './exploding-height-retainer'
@@ -364,6 +365,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   return ConvoState.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal) ?? missingMessage
+      const messageOrdinals = s.messageOrdinals ?? []
       const commonData = getCommonMessageData({
         accountsInfoMap: s.accountsInfoMap,
         editing,
@@ -375,11 +377,18 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
+      const showUsername = RowMetadata.getMessageShowUsername({
+        message,
+        messageMap: s.messageMap,
+        messageOrdinals,
+        ordinal,
+        you,
+      })
       return {
         ...commonData,
         ...getEditCancelRetryData(commonData.ecrType, message),
         ...getRowActions(s.dispatch, uiDispatch),
-        ...getAuthorData(message, s.meta, s.participants, s.showUsernameMap.get(ordinal) ?? ''),
+        ...getAuthorData(message, s.meta, s.participants, showUsername),
       }
     })
   )
@@ -395,6 +404,7 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
   return ConvoState.useChatContext(
     C.useShallow(s => {
       const message = s.messageMap.get(ordinal) ?? missingMessage
+      const messageOrdinals = s.messageOrdinals ?? []
       const commonData = getCommonMessageData({
         accountsInfoMap: s.accountsInfoMap,
         editing,
@@ -406,11 +416,18 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
+      const showUsername = RowMetadata.getMessageShowUsername({
+        message,
+        messageMap: s.messageMap,
+        messageOrdinals,
+        ordinal,
+        you,
+      })
       return {
         ...commonData,
         ...getEditCancelRetryData(commonData.ecrType, message),
         ...getRowActions(s.dispatch, uiDispatch),
-        ...getAuthorData(message, s.meta, s.participants, s.showUsernameMap.get(ordinal) ?? ''),
+        ...getAuthorData(message, s.meta, s.participants, showUsername),
         message,
       }
     })

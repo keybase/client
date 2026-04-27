@@ -166,10 +166,10 @@ Implementation note: the old `ConvoUIState` compatibility surface has been remov
 - [x] Move mark-unread orange-line UI out of `markedAsUnread` if the normal conversation screen can own it without missing service updates
 - [x] Keep `setMarkAsUnread` server RPC behavior in `convostate` until all call sites use a feature-level action with equivalent fallback loading
 - [ ] Move `threadLoadStatus` to route/list state if `loadMoreMessages` can report status through the feature owner without stale statuses bleeding across conversations
-- [ ] Re-evaluate `rowRecycleTypeMap`, `separatorMap`, and `showUsernameMap`:
-  - [ ] keep them in `convostate` if list virtualization requires precomputed stable row metadata
-  - [ ] otherwise compute them in the list/message layer from `messageOrdinals`, `messageMap`, current username, and adjacent messages
-- [ ] If row metadata moves, preserve the current refresh semantics for adjacent messages after inserts, deletes, explosions, edits, and reaction updates
+- [x] Re-evaluate `rowRecycleTypeMap`, `separatorMap`, and `showUsernameMap`:
+  - [x] confirm list virtualization does not require precomputed stable row metadata in `convostate`
+  - [x] compute them in the list/message layer from `messageOrdinals`, `messageMap`, current username, and adjacent messages
+- [x] If row metadata moves, preserve the current refresh semantics for adjacent messages after inserts, deletes, explosions, edits, and reaction updates
 - [x] Add missing tests before moving route/list state:
   - [x] highlight message entry context is consumed exactly once by `selectedConversation`
   - [x] `setMarkAsUnread(false)` remains a no-op
@@ -179,6 +179,8 @@ Implementation note: the old `ConvoUIState` compatibility surface has been remov
 Implementation note: highlighted message navigation now travels through `navigateToThread` route params or is loaded immediately when already viewing the same thread. The route highlight param is cleared after selection, and `convostate` no longer stores `pendingJumpMessageID`.
 
 Implementation note: message-level mark-unread now updates the mounted conversation's orange-line owner through `OrangeLineContext`, while `convostate.setMarkAsUnread(...)` keeps the server `forceUnread` RPC and fallback message lookup behavior. The old `markedAsUnread` store field has been removed.
+
+Implementation note: row presentation metadata now derives in `shared/chat/conversation/messages/row-metadata.tsx` instead of long-lived `convostate` maps. Message rows, separators, and native list item recycling compute from `messageOrdinals`, `messageMap`, `messageTypeMap`, current username, and adjacent messages.
 
 ### Target callers for Chunk 5
 

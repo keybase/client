@@ -17,6 +17,7 @@ import {usingFlashList} from './flashlist-config'
 import {PerfProfiler} from '@/perf/react-profiler'
 import {ScrollContext} from '../normal/context'
 import noop from 'lodash/noop'
+import * as RowMetadata from '../messages/row-metadata'
 // import {useDebugLayout} from '@/util/debug-react'
 
 // TODO if we bring flashlist back bring back the patch
@@ -145,7 +146,10 @@ const ConversationList = function ConversationList() {
         return 'null'
       }
       const convoState = ConvoState.getConvoState(conversationIDKey)
-      return convoState.rowRecycleTypeMap.get(ordinal) ?? convoState.messageTypeMap.get(ordinal) ?? 'text'
+      const message = convoState.messageMap.get(ordinal)
+      return message
+        ? RowMetadata.getMessageRowType(message, convoState.messageTypeMap.get(ordinal))
+        : (convoState.messageTypeMap.get(ordinal) ?? 'text')
     },
     [conversationIDKey]
   )

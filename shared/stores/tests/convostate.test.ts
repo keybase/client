@@ -268,8 +268,6 @@ const seedStore = (
     messageTypeMap,
     meta: makeMeta(),
     pendingOutboxToOrdinal,
-    separatorMap: new Map(),
-    showUsernameMap: new Map(),
     ...extra,
   })
   return store
@@ -285,8 +283,6 @@ const seedStoreWithAnchoredMessage = () => {
     messageTypeMap: new Map(),
     meta: makeMeta(),
     pendingOutboxToOrdinal: new Map([[outboxID, ordinal]]),
-    separatorMap: new Map([[ordinal, T.Chat.numberToOrdinal(0)]]),
-    showUsernameMap: new Map([[ordinal, 'alice']]),
   }
   applyState(store, {
     ...baseState,
@@ -327,7 +323,7 @@ test('updateCoinFlipStatus stores coin flip status by game ID in the convo store
   expect(store.getState().flipStatusMap.get(status.gameID)).toEqual(status)
 })
 
-test('onMessagesUpdated adds messages and recomputes derived thread maps', () => {
+test('onMessagesUpdated adds messages and updates message indexes', () => {
   jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
 
   const store = createStore()
@@ -347,50 +343,7 @@ test('onMessagesUpdated adds messages and recomputes derived thread maps', () =>
     T.Chat.numberToOrdinal(302),
   ])
   expect(store.getState().messageIDToOrdinal.get(firstMsgID)).toBe(T.Chat.numberToOrdinal(301))
-  expect(store.getState().separatorMap.get(T.Chat.numberToOrdinal(301))).toBe(T.Chat.numberToOrdinal(0))
-  expect(store.getState().separatorMap.get(T.Chat.numberToOrdinal(302))).toBe(T.Chat.numberToOrdinal(301))
-  expect(store.getState().showUsernameMap.get(T.Chat.numberToOrdinal(301))).toBe('bob')
-  expect(store.getState().showUsernameMap.get(T.Chat.numberToOrdinal(302))).toBe('')
   expect(store.getState().messageTypeMap.size).toBe(0)
-})
-
-test('row recycle types distinguish native pending, failed, reply, and reaction rows', () => {
-  const store = createStore()
-  const pendingOrdinal = T.Chat.numberToOrdinal(401)
-  const failedOrdinal = T.Chat.numberToOrdinal(402)
-  const replyOrdinal = T.Chat.numberToOrdinal(403)
-  const reactionOrdinal = T.Chat.numberToOrdinal(404)
-
-  store.getState().dispatch.galleryMessagesLoaded([
-    makePendingTextMessage(pendingOrdinal, T.Chat.stringToOutboxID('pending-outbox'), 'pending'),
-    makeTextMessage({
-      errorReason: 'failed',
-      id: T.Chat.numberToMessageID(402),
-      ordinal: failedOrdinal,
-      outboxID: T.Chat.stringToOutboxID('failed-outbox'),
-      submitState: 'failed',
-    }),
-    makeTextMessage({
-      id: T.Chat.numberToMessageID(403),
-      ordinal: replyOrdinal,
-      outboxID: T.Chat.stringToOutboxID('reply-outbox'),
-      replyTo: makeTextMessage({
-        id: T.Chat.numberToMessageID(399),
-        ordinal: T.Chat.numberToOrdinal(399),
-      }),
-    }),
-    makeTextMessage({
-      id: T.Chat.numberToMessageID(404),
-      ordinal: reactionOrdinal,
-      outboxID: T.Chat.stringToOutboxID('reaction-outbox'),
-      reactions: new Map([[':+1:', makeReaction('bob', 5)]]),
-    }),
-  ])
-
-  expect(store.getState().rowRecycleTypeMap.get(pendingOrdinal)).toBe('text:pending')
-  expect(store.getState().rowRecycleTypeMap.get(failedOrdinal)).toBe('text:pending')
-  expect(store.getState().rowRecycleTypeMap.get(replyOrdinal)).toBe('text:reply')
-  expect(store.getState().rowRecycleTypeMap.get(reactionOrdinal)).toBe('text:reactions')
 })
 
 test('onMessagesUpdated ignores unopened background conversations', () => {
@@ -444,7 +397,7 @@ test('galleryMessagesLoaded injects gallery-only messages without marking read',
   expect(markThreadAsRead).not.toHaveBeenCalled()
 })
 
-test('message updates refresh derived metadata for the following row', () => {
+test('message updates merge into the existing message row', () => {
   const firstOrdinal = T.Chat.numberToOrdinal(301)
   const secondOrdinal = T.Chat.numberToOrdinal(302)
   const firstMsgID = T.Chat.numberToMessageID(301)
@@ -470,9 +423,10 @@ test('message updates refresh derived metadata for the following row', () => {
     updates: [makeValidTextUIMessage(firstMsgID, 'edited first', {author: 'alice', timestamp: 100})],
   })
 
-  expect(store.getState().showUsernameMap.get(firstOrdinal)).toBe('alice')
-  expect(store.getState().showUsernameMap.get(secondOrdinal)).toBe('bob')
-  expect(store.getState().separatorMap.get(secondOrdinal)).toBe(firstOrdinal)
+  const firstMessage = store.getState().messageMap.get(firstOrdinal)
+  expect(firstMessage?.author).toBe('alice')
+  expect(firstMessage?.type === 'text' ? firstMessage.text.stringValue() : undefined).toBe('edited first')
+  expect(store.getState().messageMap.has(secondOrdinal)).toBe(true)
 })
 
 test('reaction updates preserve outbox-anchored row identity', () => {
@@ -551,7 +505,7 @@ test('message deletion removes the row but preserves the outbox anchor', () => {
   expect(store.getState().messageIDToOrdinal.has(msgID)).toBe(false)
 })
 
-test('message deletion refreshes derived metadata for the next row', () => {
+test('message deletion removes the ordinal and keeps the next row', () => {
   const firstOrdinal = T.Chat.numberToOrdinal(401)
   const secondOrdinal = T.Chat.numberToOrdinal(402)
   const store = seedStore([
@@ -574,9 +528,8 @@ test('message deletion refreshes derived metadata for the next row', () => {
   store.getState().dispatch.messagesWereDeleted({ordinals: [firstOrdinal]})
 
   expect(store.getState().messageOrdinals).toEqual([secondOrdinal])
-  expect(store.getState().separatorMap.has(firstOrdinal)).toBe(false)
-  expect(store.getState().showUsernameMap.get(secondOrdinal)).toBe('bob')
-  expect(store.getState().separatorMap.get(secondOrdinal)).toBe(T.Chat.numberToOrdinal(0))
+  expect(store.getState().messageMap.has(firstOrdinal)).toBe(false)
+  expect(store.getState().messageMap.get(secondOrdinal)?.author).toBe('bob')
 })
 
 test('message deletion up to a message ID honors deletable message types', () => {
@@ -634,8 +587,6 @@ test('messagesClear resets all message indexes and maps', () => {
   const store = seedStoreWithAnchoredMessage()
   applyState(store, {
     loaded: true,
-    separatorMap: new Map([[ordinal, T.Chat.numberToOrdinal(0)]]),
-    showUsernameMap: new Map([[ordinal, 'alice']]),
     validatedOrdinalRange: {from: ordinal, to: ordinal},
   })
   store.getState().dispatch.messagesClear()
@@ -645,8 +596,6 @@ test('messagesClear resets all message indexes and maps', () => {
   expect(store.getState().messageTypeMap.size).toBe(0)
   expect(store.getState().pendingOutboxToOrdinal.size).toBe(0)
   expect(store.getState().messageIDToOrdinal.size).toBe(0)
-  expect(store.getState().separatorMap.size).toBe(0)
-  expect(store.getState().showUsernameMap.size).toBe(0)
   expect(store.getState().validatedOrdinalRange).toBeUndefined()
 })
 
@@ -662,8 +611,6 @@ test('server ack preserves the outbox-anchored ordinal and later msgID lookups h
     messageTypeMap: new Map(),
     meta: makeMeta(),
     pendingOutboxToOrdinal: new Map([[outboxID, pendingOrdinal]]),
-    separatorMap: new Map([[pendingOrdinal, T.Chat.numberToOrdinal(0)]]),
-    showUsernameMap: new Map([[pendingOrdinal, 'alice']]),
   }
   applyState(store, baseState)
 

@@ -3,9 +3,11 @@ import * as Chat from '@/constants/chat'
 import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as RowMetadata from './row-metadata'
 import * as T from '@/constants/types'
 import {formatTimeForConversationList} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
+import {useCurrentUserState} from '@/stores/current-user'
 
 const missingMessage = Chat.makeMessageDeleted({})
 
@@ -13,12 +15,20 @@ const missingMessage = Chat.makeMessageDeleted({})
 const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal) => {
   const ordinal = Kb.Styles.isMobile ? leadingItem : trailingItem
   const orangeOrdinal = React.useContext(OrangeLineContext)
+  const you = useCurrentUserState(s => s.username)
 
   return ConvoState.useChatContext(
     C.useShallow(s => {
-      const previous = s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0)
+      const messageOrdinals = s.messageOrdinals ?? []
+      const previous = RowMetadata.getPreviousOrdinal(messageOrdinals, ordinal)
       const m = s.messageMap.get(ordinal) ?? missingMessage
-      const showUsername = s.showUsernameMap.get(ordinal) ?? ''
+      const showUsername = RowMetadata.getMessageShowUsername({
+        message: m,
+        messageMap: s.messageMap,
+        messageOrdinals,
+        ordinal,
+        you,
+      })
       const tooSoon = !m.timestamp || new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
       const orangeMessage = orangeOrdinal ? s.messageMap.get(orangeOrdinal) : undefined
       const orangeOrdinalExists =
