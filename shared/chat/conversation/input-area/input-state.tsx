@@ -92,7 +92,6 @@ const inputReducer = (state: ConversationInputStore, action: InputAction): Conve
     case 'toggleGiphyPrefill':
       return {...state, unsentText: state.giphyWindow ? '' : '/giphy '}
   }
-  return state
 }
 
 const Context = React.createContext<ConversationInputState | undefined>(undefined)
