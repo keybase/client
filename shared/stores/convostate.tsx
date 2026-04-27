@@ -47,6 +47,11 @@ import {persistRoute, showMain} from '@/util/storeless-actions'
 import {flushInboxRowUpdates, queueInboxRowUpdate} from './inbox-rows'
 import * as Strings from '@/constants/strings'
 import {chatStores} from './convo-registry'
+import {
+  addMessagesToThreadState,
+  clearMessageIDIndexForOrdinal,
+  getOrdinalForMessageID,
+} from '@/chat/conversation/thread-message-state'
 
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
@@ -284,36 +289,6 @@ const ignoreErrors = [
   T.RPCGen.StatusCode.scapinetworkerror,
   T.RPCGen.StatusCode.sctimeout,
 ]
-
-// Backend gives us messageIDs sometimes so we need to find our ordinal
-const messageIDToOrdinal = (
-  map: ConvoState['messageMap'],
-  pendingOutboxToOrdinal: ConvoState['pendingOutboxToOrdinal'] | undefined,
-  messageID: T.Chat.MessageID,
-  indexed?: ReadonlyMap<T.Chat.MessageID, T.Chat.Ordinal>
-) => {
-  const indexedOrdinal = indexed?.get(messageID)
-  if (indexedOrdinal !== undefined && map.get(indexedOrdinal)?.id === messageID) {
-    return indexedOrdinal
-  }
-
-  // A message we didn't send in this session?
-  let m = map.get(T.Chat.numberToOrdinal(messageID))
-  if (m?.id !== 0 && m?.id === messageID) {
-    return m.ordinal
-  }
-  // Search through our sent messages
-  if (pendingOutboxToOrdinal) {
-    for (const ordinal of pendingOutboxToOrdinal.values()) {
-      m = map.get(ordinal)
-      if (m?.id !== 0 && m?.id === messageID) {
-        return ordinal
-      }
-    }
-  }
-
-  return null
-}
 
 type ScrollDirection = 'none' | 'back' | 'forward'
 export const numMessagesOnInitialLoad = isMobile ? 20 : 100
@@ -1221,66 +1196,16 @@ const createSlice =
       return clientPrev || T.Chat.numberToMessageID(0)
     }
 
-    const clearMessageIDIndexForOrdinal = (
-      state: Z.WritableDraft<ConvoState>,
-      ordinal: T.Chat.Ordinal,
-      knownMessage?: T.Chat.Message
-    ) => {
-      const message = knownMessage ?? state.messageMap.get(ordinal)
-      if (message?.id) {
-        state.messageIDToOrdinal.delete(message.id)
-      }
-    }
-
-    const indexMessage = (
-      state: Z.WritableDraft<ConvoState>,
-      ordinal: T.Chat.Ordinal,
-      message: T.Chat.Message
-    ) => {
-      if (message.id) {
-        state.messageIDToOrdinal.set(message.id, ordinal)
-      }
-    }
-
     const maybeGetOrdinalByMessageID = (
       state: Pick<ConvoState, 'messageIDToOrdinal' | 'messageMap' | 'pendingOutboxToOrdinal'>,
       messageID: T.Chat.MessageID
     ) =>
-      messageIDToOrdinal(state.messageMap, state.pendingOutboxToOrdinal, messageID, state.messageIDToOrdinal)
-
-    const mergeMessage = (
-      existing: Z.WritableDraft<T.Chat.Message>,
-      incoming: Z.WritableDraft<T.Chat.Message>
-    ) => {
-      const existingRecord = existing as Record<string, unknown>
-      const incomingRecord = incoming as Record<string, unknown>
-      const allKeys = new Set([...Object.keys(existingRecord), ...Object.keys(incomingRecord)])
-      for (const key of allKeys) {
-        const val = incomingRecord[key]
-        const cur = existingRecord[key]
-        if (val instanceof HiddenString) {
-          if (!(cur instanceof HiddenString) || !val.equals(cur)) {
-            existingRecord[key] = val
-          }
-        } else if (val instanceof Map) {
-          if (cur instanceof Map) {
-            for (const k of (cur as Map<unknown, unknown>).keys()) {
-              if (!(val as Map<unknown, unknown>).has(k)) {
-                ;(cur as Map<unknown, unknown>).delete(k)
-              }
-            }
-            for (const [k, v] of val as Map<unknown, unknown>) {
-              ;(cur as Map<unknown, unknown>).set(k, v)
-            }
-          } else {
-            existingRecord[key] = val
-          }
-        } else {
-          // covers: incoming has a value (set it), incoming lacks the key (val is undefined, clears it)
-          if (cur !== val) existingRecord[key] = val
-        }
-      }
-    }
+      getOrdinalForMessageID(
+        state.messageMap,
+        state.pendingOutboxToOrdinal,
+        messageID,
+        state.messageIDToOrdinal
+      )
 
     const desktopNotification = (author: string, body: string) => {
       if (isMobile) return
@@ -1333,142 +1258,7 @@ const createSlice =
       }
 
       set(s => {
-        // Build set of incoming regular ordinals for ordinal management
-        const incomingOrdinals = new Set<T.Chat.Ordinal>()
-        for (const m of messages) {
-          if (m.conversationMessage !== false && m.type !== 'deleted') {
-            incomingOrdinals.add(m.ordinal)
-          }
-        }
-
-        const getMapOrdinal = (m: Z.WritableDraft<T.Chat.Message>, regularMessage: boolean) => {
-          let mapOrdinal = m.ordinal
-          // if we've sent it we use the outbox id to manage the ordinal relationship
-          if (regularMessage && m.outboxID) {
-            const existingSent = s.pendingOutboxToOrdinal.get(m.outboxID)
-            if (existingSent) {
-              mapOrdinal = existingSent
-            }
-          }
-          if (regularMessage && mapOrdinal === m.ordinal && m.id) {
-            const existingByMessageID = maybeGetOrdinalByMessageID(s, m.id)
-            if (existingByMessageID) {
-              mapOrdinal = existingByMessageID
-            }
-          }
-          return mapOrdinal
-        }
-
-        for (const _m of messages) {
-          const m = T.castDraft(_m)
-          const regularMessage = m.conversationMessage !== false
-
-          if (regularMessage && m.type === 'deleted') {
-            const mapOrdinal = getMapOrdinal(m, regularMessage)
-            if (m.ordinal !== mapOrdinal) {
-              m.ordinal = mapOrdinal
-            }
-            clearMessageIDIndexForOrdinal(s, mapOrdinal)
-            s.messageMap.delete(mapOrdinal)
-            s.messageTypeMap.delete(mapOrdinal)
-          } else {
-            const mapOrdinal = getMapOrdinal(m, regularMessage)
-            // never set a placeholder on top of any other data
-            if (m.type === 'placeholder') {
-              const old = s.messageMap.get(mapOrdinal)
-              if (old && old.type !== 'placeholder') {
-                // ignore it
-                continue
-              }
-            }
-
-            if (m.ordinal !== mapOrdinal) {
-              // Ordinal remap: fix incomingOrdinals so the original ordinal doesn't
-              // get merged into messageOrdinals with no backing message
-              if (regularMessage && m.type !== 'deleted') {
-                incomingOrdinals.delete(m.ordinal)
-                incomingOrdinals.add(mapOrdinal)
-              }
-              m.ordinal = mapOrdinal
-            }
-
-            const existingMsg = s.messageMap.get(mapOrdinal)
-            if (existingMsg?.type === m.type) {
-              if (existingMsg.id && existingMsg.id !== m.id) {
-                s.messageIDToOrdinal.delete(existingMsg.id)
-              }
-              mergeMessage(existingMsg, m)
-              indexMessage(s, mapOrdinal, existingMsg)
-              if (m.type !== 'text') {
-                s.messageTypeMap.set(mapOrdinal, Message.getMessageRenderType(m))
-              }
-              continue
-            }
-
-            if (existingMsg) {
-              clearMessageIDIndexForOrdinal(s, mapOrdinal, existingMsg)
-            }
-            s.messageMap.set(mapOrdinal, T.castDraft(m))
-            indexMessage(s, mapOrdinal, m)
-            if (
-              regularMessage &&
-              m.outboxID &&
-              T.Chat.messageIDToNumber(m.id) !== T.Chat.ordinalToNumber(m.ordinal)
-            ) {
-              s.pendingOutboxToOrdinal.set(m.outboxID, mapOrdinal)
-            }
-            if (m.type === 'text') {
-              s.messageTypeMap.delete(mapOrdinal)
-            } else {
-              s.messageTypeMap.set(mapOrdinal, Message.getMessageRenderType(m))
-            }
-          }
-        }
-
-        // Merge incoming ordinals into existing
-        const existing = new Set(s.messageOrdinals ?? [])
-        let changed = false
-        for (const o of incomingOrdinals) {
-          if (!existing.has(o)) {
-            existing.add(o)
-            changed = true
-          }
-        }
-        // Remove deleted ordinals
-        for (const _m of messages) {
-          const m = T.castDraft(_m)
-          if (m.conversationMessage !== false && m.type === 'deleted') {
-            if (existing.has(m.ordinal)) {
-              existing.delete(m.ordinal)
-              changed = true
-            }
-          }
-        }
-        // Reconcile via validatedRange: prune ordinals within the range that the server didn't return
-        if (validatedRange) {
-          for (const o of existing) {
-            if (o >= validatedRange.from && o <= validatedRange.to && !incomingOrdinals.has(o)) {
-              clearMessageIDIndexForOrdinal(s, o)
-              existing.delete(o)
-              s.messageMap.delete(o)
-              s.messageTypeMap.delete(o)
-              changed = true
-            }
-          }
-          // Expand the validated range (union of old + new)
-          const prev = s.validatedOrdinalRange
-          if (prev) {
-            s.validatedOrdinalRange = {
-              from: Math.min(prev.from, validatedRange.from) as T.Chat.Ordinal,
-              to: Math.max(prev.to, validatedRange.to) as T.Chat.Ordinal,
-            }
-          } else {
-            s.validatedOrdinalRange = validatedRange
-          }
-        }
-        if (changed || !s.messageOrdinals) {
-          s.messageOrdinals = [...existing].sort((a, b) => a - b)
-        }
+        addMessagesToThreadState(s, messages, {validatedRange})
       })
 
       if (markAsRead) {
@@ -3537,6 +3327,69 @@ export const createConvoStoreForTesting = (id: T.Chat.ConversationIDKey) => {
 export const clearConvoStateValidatedOrdinalRange = (id: T.Chat.ConversationIDKey) => {
   createConvoStore(id).setState(s => {
     s.validatedOrdinalRange = undefined
+  })
+}
+
+export const clearThreadMessagesCompat = (id: T.Chat.ConversationIDKey) => {
+  createConvoStore(id).setState(s => {
+    s.pendingOutboxToOrdinal.clear()
+    s.loaded = false
+    s.messageIDToOrdinal.clear()
+    s.messageMap.clear()
+    s.messageOrdinals = undefined
+    s.messageTypeMap.clear()
+    s.validatedOrdinalRange = undefined
+  })
+}
+
+export const addMessagesToThreadCompat = (
+  id: T.Chat.ConversationIDKey,
+  messages: ReadonlyArray<T.Chat.Message>,
+  opt: {
+    markAsRead?: boolean
+    validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
+  } = {}
+) => {
+  const store = createConvoStore(id)
+  store.setState(s => {
+    addMessagesToThreadState(s, messages, {validatedRange: opt.validatedRange})
+  })
+  if (opt.markAsRead ?? true) {
+    store.getState().dispatch.markThreadAsRead()
+  }
+}
+
+export const setThreadLoadedCompat = (id: T.Chat.ConversationIDKey, loaded: boolean) => {
+  createConvoStore(id).setState(s => {
+    s.loaded = loaded
+  })
+}
+
+export const setThreadPaginationCompat = (
+  id: T.Chat.ConversationIDKey,
+  scrollDirection: ScrollDirection,
+  moreToLoad: boolean,
+  centered: boolean
+) => {
+  createConvoStore(id).setState(s => {
+    switch (scrollDirection) {
+      case 'forward':
+        s.moreToLoadForward = moreToLoad
+        break
+      case 'back':
+        s.moreToLoadBack = moreToLoad
+        break
+      case 'none':
+        s.moreToLoadBack = moreToLoad
+        s.moreToLoadForward = centered
+        break
+    }
+  })
+}
+
+export const setThreadOfflineCompat = (id: T.Chat.ConversationIDKey, offline: boolean) => {
+  createConvoStore(id).setState(s => {
+    s.meta.offline = offline
   })
 }
 

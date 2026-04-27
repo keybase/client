@@ -1,10 +1,16 @@
 import * as C from '@/constants'
+import * as Message from '@/constants/chat/message'
 import * as ConvoState from '@/stores/convostate'
 import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
+import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
+import {navigateToInbox} from '@/constants/router'
 import logger from '@/logger'
+import throttle from 'lodash/throttle'
 import {clearChatTimeCache} from '@/util/timestamp'
+import {enumKeys, ignorePromise} from '@/constants/utils'
+import {RPCError} from '@/util/errors'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {
@@ -45,6 +51,7 @@ type SelectedConversationOptions = ThreadLoadStatusOptions & {
 }
 
 type LoadMoreMessages = ConvoState.ConvoState['dispatch']['loadMoreMessages']
+type LoadMoreMessagesParams = Parameters<LoadMoreMessages>[0]
 type LoadMessagesCentered = (
   messageID: T.Chat.MessageID,
   highlightMode: T.Chat.CenterOrdinalHighlightMode,
@@ -61,6 +68,15 @@ type LoadNewerMessagesDueToScroll = (
 type JumpToRecent = (options?: ThreadLoadStatusOptions) => void
 type MessagesClear = () => void
 type SelectedConversation = ConvoState.ConvoState['dispatch']['selectedConversation']
+type ScrollDirection = 'none' | 'back' | 'forward'
+type ConversationThreadActions = {
+  loadMoreMessages: LoadMoreMessages
+  messagesClear: MessagesClear
+}
+
+const ConversationThreadActionsContext = React.createContext<ConversationThreadActions | undefined>(
+  undefined
+)
 
 export type ThreadLoadStatusReporter = (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -76,6 +92,14 @@ export const useConversationThreadID = () => {
 }
 
 const useCachedSnapshot = () => React.useContext(ConversationThreadCacheContext)
+
+const useConversationThreadActions = () => {
+  const actions = React.useContext(ConversationThreadActionsContext)
+  if (!actions) {
+    throw new Error('Missing ConversationThreadProvider actions in the tree')
+  }
+  return actions
+}
 
 const useScrollLoadGate = () => {
   const lastScrollNumOrdinalsRef = React.useRef(0)
@@ -95,6 +119,235 @@ const useScrollLoadGate = () => {
     }
     return ok
   }
+}
+
+const reasonToRPCReason = (reason: string): T.RPCChat.GetThreadReason => {
+  switch (reason) {
+    case 'extension':
+    case 'push':
+      return T.RPCChat.GetThreadReason.push
+    case 'foregrounding':
+      return T.RPCChat.GetThreadReason.foreground
+    default:
+      return T.RPCChat.GetThreadReason.general
+  }
+}
+
+const loadThreadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
+  (arr, key) => {
+    switch (key) {
+      case 'none':
+      case 'edit':
+      case 'delete':
+      case 'attachmentuploaded':
+      case 'reaction':
+      case 'unfurl':
+      case 'tlfname':
+        break
+      default:
+        {
+          const val = T.RPCChat.MessageType[key]
+          if (typeof val === 'number') {
+            arr.push(val)
+          }
+        }
+        break
+    }
+
+    return arr
+  },
+  []
+)
+
+const scrollDirectionToPagination = (
+  scrollDirection: ScrollDirection,
+  numberOfMessagesToLoad: number
+) => {
+  const pagination = {
+    last: false,
+    next: '',
+    num: numberOfMessagesToLoad,
+    previous: '',
+  }
+  switch (scrollDirection) {
+    case 'none':
+      break
+    case 'back':
+      pagination.next = 'deadbeef'
+      break
+    case 'forward':
+      pagination.previous = 'deadbeef'
+  }
+  return pagination
+}
+
+const getCurrentUser = () => {
+  const s = useCurrentUserState.getState()
+  return {devicename: s.deviceName, username: s.username}
+}
+
+const getLastOrdinal = (conversationIDKey: T.Chat.ConversationIDKey) =>
+  ConvoState.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+
+const loadConversationThreadMessages = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  p: LoadMoreMessagesParams
+) => {
+  const state = ConvoState.getConvoState(conversationIDKey)
+  if (!T.Chat.isValidConversationIDKey(state.id)) {
+    return
+  }
+  const {scrollDirection = 'none', numberOfMessagesToLoad = ConvoState.numMessagesOnInitialLoad} = p
+  const {reason, messageIDControl, knownRemotes, centeredMessageID, isThreadLoadCurrent, onThreadLoadStatus} =
+    p
+  const isCurrentThreadLoad = () => isThreadLoadCurrent?.() ?? true
+
+  const f = async () => {
+    if (!isCurrentThreadLoad()) {
+      logger.info('loadMoreMessages: bail: stale mounted thread load')
+      return
+    }
+
+    if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
+      logger.info('loadMoreMessages: bail: no conversationIDKey')
+      return
+    }
+
+    const currentState = ConvoState.getConvoState(conversationIDKey)
+    if (currentState.meta.membershipType === 'youAreReset' || currentState.meta.rekeyers.size > 0) {
+      logger.info('loadMoreMessages: bail: we are reset')
+      return
+    }
+    logger.info(
+      `loadMoreMessages: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
+    )
+
+    const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
+    const convID = currentState.getConvID()
+    let reconciled = false
+    const onGotThread = (thread: string, why: string) => {
+      if (!thread) {
+        return
+      }
+      if (!isCurrentThreadLoad()) {
+        logger.info(`loadMoreMessages: stale response ignored: ${why}`)
+        return
+      }
+
+      if (!ConvoState.getConvoState(conversationIDKey).loaded) {
+        ConvoState.setThreadLoadedCompat(conversationIDKey, true)
+      }
+
+      const {username, devicename} = getCurrentUser()
+      const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
+
+      const messages = (uiMessages.messages ?? []).reduce<Array<T.Chat.Message>>((arr, m) => {
+        const message = Message.uiMessageToMessage(
+          conversationIDKey,
+          m,
+          username,
+          () => getLastOrdinal(conversationIDKey),
+          devicename
+        )
+        if (message) {
+          arr.push(message)
+        }
+        return arr
+      }, [])
+
+      const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
+      ConvoState.setThreadPaginationCompat(
+        conversationIDKey,
+        scrollDirection,
+        moreToLoad,
+        !!centeredMessageID
+      )
+
+      if (messages.length) {
+        let validatedRange: {from: T.Chat.Ordinal; to: T.Chat.Ordinal} | undefined
+        if (scrollDirection === 'none' && !reconciled) {
+          const ords = messages
+            .filter(m => m.conversationMessage !== false && m.type !== 'deleted')
+            .map(m => m.ordinal)
+          if (ords.length > 0) {
+            validatedRange = {
+              from: Math.min(...ords) as T.Chat.Ordinal,
+              to: Math.max(...ords) as T.Chat.Ordinal,
+            }
+          }
+          reconciled = true
+        }
+        ConvoState.addMessagesToThreadCompat(conversationIDKey, messages, {validatedRange})
+      }
+
+      const isUserNavigation =
+        reason !== 'findNewestConversation' &&
+        reason !== 'findNewestConversationFromLayout' &&
+        reason !== 'tab selected'
+      if (isUserNavigation) {
+        ConvoState.getConvoState(conversationIDKey).dispatch.markThreadAsRead(true)
+      }
+    }
+
+    const pagination = messageIDControl
+      ? null
+      : scrollDirectionToPagination(scrollDirection, numberOfMessagesToLoad)
+    try {
+      const results = await T.RPCChat.localGetThreadNonblockRpcListener({
+        incomingCallMap: {
+          'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || '', 'cached'),
+          'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || '', 'full'),
+          'chat.1.chatUi.chatThreadStatus': p => {
+            logger.info(
+              `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${p.status.typ}`
+            )
+            if (isCurrentThreadLoad()) {
+              onThreadLoadStatus?.(conversationIDKey, p.status.typ)
+            }
+          },
+        },
+        params: {
+          cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
+          conversationID: convID,
+          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          knownRemotes,
+          pagination,
+          pgmode: T.RPCChat.GetThreadNonblockPgMode.server,
+          query: {
+            disablePostProcessThread: false,
+            disableResolveSupersedes: false,
+            enableDeletePlaceholders: true,
+            markAsRead: false,
+            messageIDControl,
+            messageTypes: loadThreadMessageTypes,
+          },
+          reason: reasonToRPCReason(reason),
+        },
+        waitingKey: loadingKey,
+      })
+      if (!isCurrentThreadLoad()) {
+        return
+      }
+      if (ConvoState.getConvoState(conversationIDKey).isMetaGood()) {
+        ConvoState.setThreadOfflineCompat(conversationIDKey, results.offline)
+      }
+    } catch (error) {
+      if (!isCurrentThreadLoad()) {
+        return
+      }
+      if (error instanceof RPCError) {
+        logger.warn(`loadMoreMessages: error: ${error.desc}`)
+        if (error.code === T.RPCGen.StatusCode.scchatnotinteam) {
+          navigateToInbox(true, 'maybeKickedFromTeam')
+        }
+        if (error.code !== T.RPCGen.StatusCode.scteamreaderror) {
+          throw error
+        }
+      }
+    }
+  }
+
+  ignorePromise(f())
 }
 
 const useConversationThreadSnapshotValue = <TValue,>(
@@ -133,12 +386,32 @@ export const ConversationThreadProvider = (
       ? getConversationThreadCacheSnapshot(id)
       : undefined
   )
+  const [threadActions] = React.useState<ConversationThreadActions>(() => {
+    const loadMoreMessages: LoadMoreMessages = throttle((p: LoadMoreMessagesParams) => {
+      loadConversationThreadMessages(id, p)
+    }, 500)
+    return {
+      loadMoreMessages,
+      messagesClear: () => {
+        deleteConversationThreadCacheSnapshot(id)
+        ConvoState.clearThreadMessagesCompat(id)
+      },
+    }
+  })
+  React.useEffect(() => {
+    return () => {
+      threadActions.loadMoreMessages.cancel()
+    }
+  }, [threadActions])
+
   return (
     <ConversationThreadIDContext value={id}>
-      <ConversationThreadCacheContext value={cachedSnapshot}>
-        <ConversationThreadCacheSync id={id} clearCachedSnapshot={setCachedSnapshot} />
-        {children}
-      </ConversationThreadCacheContext>
+      <ConversationThreadActionsContext value={threadActions}>
+        <ConversationThreadCacheContext value={cachedSnapshot}>
+          <ConversationThreadCacheSync id={id} clearCachedSnapshot={setCachedSnapshot} />
+          {children}
+        </ConversationThreadCacheContext>
+      </ConversationThreadActionsContext>
     </ConversationThreadIDContext>
   )
 }
@@ -195,19 +468,12 @@ export const useConversationThreadListData = () => {
 }
 
 export const useConversationThreadLoadMoreMessages = () => {
-  const conversationIDKey = useConversationThreadID()
-  return ConvoState.useConvoState(
-    conversationIDKey,
-    (s): LoadMoreMessages => s.dispatch.loadMoreMessages
-  )
+  const {loadMoreMessages} = useConversationThreadActions()
+  return loadMoreMessages
 }
 
 const useConversationThreadMessagesClear = () => {
-  const conversationIDKey = useConversationThreadID()
-  const messagesClear: MessagesClear = () => {
-    deleteConversationThreadCacheSnapshot(conversationIDKey)
-    ConvoState.getConvoState(conversationIDKey).dispatch.messagesClear()
-  }
+  const {messagesClear} = useConversationThreadActions()
   return messagesClear
 }
 

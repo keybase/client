@@ -68,25 +68,26 @@ The intended end state is:
 - [ ] Move thread-loading actions into provider-owned actions:
   - [x] `selectedConversation`
   - [x] `tabSelected`
-  - [ ] `loadMoreMessages`
+  - [x] `loadMoreMessages`
   - [x] `loadOlderMessagesDueToScroll`
   - [x] `loadNewerMessagesDueToScroll`
   - [x] `loadMessagesCentered`
   - [x] `jumpToRecent`
-  - [ ] `messagesClear`
-  - Mounted provider path now owns `selectedConversation`, centered loads, and scroll pagination wrappers
-    through `thread-context`; `convostate` remains as the compatibility backend until `loadMoreMessages`
-    and message mutations move.
-  - Removed the obsolete `convostate` dispatch wrappers for centered loads, scroll pagination, and
-    jump-to-recent. Active centered clear still delegates to `messagesClear` as the temporary backend
-    until core message state fully moves into the mounted provider.
+  - [x] `messagesClear`
+  - Mounted provider path now owns `selectedConversation`, `loadMoreMessages`, `messagesClear`,
+    centered loads, and scroll pagination wrappers through `thread-context`; `convostate` remains as
+    the compatibility state backend until message mutations move.
+  - Removed mounted-path use of the obsolete `convostate` dispatch wrappers for centered loads,
+    scroll pagination, jump-to-recent, `loadMoreMessages`, and active centered clear. These still
+    write the temporary compatibility state until core message state fully moves into the mounted
+    provider.
 - [ ] Preserve current loading semantics
-  - [ ] initial load still requests `numMessagesOnInitialLoad`
-  - [ ] pagination still uses forward/back pagination tokens
+  - [x] initial load still requests `numMessagesOnInitialLoad`
+  - [x] pagination still uses forward/back pagination tokens
   - [x] centered loads still clear stale visible messages before loading around the pivot
-  - [ ] `validatedOrdinalRange` still prevents stale message validation bugs
+  - [x] `validatedOrdinalRange` still prevents stale message validation bugs
   - [x] thread load status continues to report through `thread-load-status-context`
-  - [ ] user-initiated loads still mark the thread read when appropriate
+  - [x] user-initiated loads still mark the thread read when appropriate
 - [ ] Update all list/message consumers to read from the new thread provider
   - [x] desktop list area
   - [x] native list area
@@ -99,7 +100,7 @@ The intended end state is:
 ## Chunk 2: Move Message Mutations And Active Engine Updates
 
 - [ ] Move thread message mutation helpers into the provider/runtime:
-  - [ ] message add/merge/indexing
+  - [x] message add/merge/indexing
   - [ ] incoming message handling
   - [ ] edit/delete mutation handling
   - [ ] `messagesWereDeleted`
@@ -108,6 +109,8 @@ The intended end state is:
   - [ ] `onMessageErrored`
   - [ ] `updateReactions`
   - [ ] local reaction toggling for outbox reaction echoes
+  - Extracted core message add/merge/indexing into `shared/chat/conversation/thread-message-state.tsx`.
+    `convostate` still calls it as the compatibility backend until active engine mutation routing moves.
 - [ ] Replace global per-conversation engine routing for active-thread-only updates with mounted typed listeners
   - [ ] incoming messages update mounted provider when the conversation is visible
   - [ ] stale-thread notifications trigger provider reload/focus refresh

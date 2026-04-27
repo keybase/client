@@ -20,6 +20,12 @@ jest.mock('@/stores/inbox-rows', () => ({
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 
+const flushPromises = async () => {
+  for (let i = 0; i < 5; i++) {
+    await Promise.resolve()
+  }
+}
+
 const makeTextMessage = () =>
   Message.makeMessageText({
     author: 'alice',
@@ -31,19 +37,6 @@ const makeTextMessage = () =>
     timestamp: 100,
   })
 
-const makeLoadMoreMessagesMock = () =>
-  Object.assign(jest.fn(), {
-    cancel: () => {},
-    flush: () => undefined,
-  })
-
-const installLoadMoreMessagesMock = () => {
-  const state = getConvoState(convID)
-  const loadMoreMessages = makeLoadMoreMessagesMock()
-  state.dispatch.loadMoreMessages = loadMoreMessages as typeof state.dispatch.loadMoreMessages
-  return loadMoreMessages
-}
-
 const wrapper = ({children}: {children: React.ReactNode}) => (
   <ConversationThreadProvider id={convID} seedFromCache={false}>{children}</ConversationThreadProvider>
 )
@@ -54,47 +47,53 @@ afterEach(() => {
   resetAllStores()
 })
 
-test('centered load clears stale thread state and requests a centered load', () => {
+test('centered load clears stale thread state and requests a centered load', async () => {
   getConvoState(convID).dispatch.galleryMessagesLoaded([makeTextMessage()])
   expect(getConvoState(convID).messageMap.size).toBe(1)
-  const loadMoreMessages = installLoadMoreMessagesMock()
+  const loadThread = jest
+    .spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener')
+    .mockResolvedValue({offline: false})
   const {result} = renderHook(() => useConversationThreadLoadMessagesCentered(), {wrapper})
 
   act(() => {
     result.current(T.Chat.numberToMessageID(999), 'flash')
   })
+  await act(async () => {
+    await flushPromises()
+  })
 
   expect(getConvoState(convID).messageMap.size).toBe(0)
   expect(getConvoState(convID).messageOrdinals).toBeUndefined()
-  expect(loadMoreMessages).toHaveBeenCalledWith(
+  expect(loadThread).toHaveBeenCalledWith(
     expect.objectContaining({
-      centeredMessageID: {
-        conversationIDKey: convID,
-        highlightMode: 'flash',
-        messageID: T.Chat.numberToMessageID(999),
-      },
-      messageIDControl: expect.objectContaining({
-        mode: T.RPCChat.MessageIDControlMode.centered,
-        pivot: T.Chat.numberToMessageID(999),
+      params: expect.objectContaining({
+        query: expect.objectContaining({
+          messageIDControl: expect.objectContaining({
+            mode: T.RPCChat.MessageIDControlMode.centered,
+            pivot: T.Chat.numberToMessageID(999),
+          }),
+        }),
       }),
-      reason: 'centered',
     })
   )
 })
 
-test('jumpToRecent reloads recent messages through the mounted thread action', () => {
+test('jumpToRecent reloads recent messages through the mounted thread action', async () => {
   const onThreadLoadStatus = jest.fn()
-  const loadMoreMessages = installLoadMoreMessagesMock()
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadStatus']?.({
+      status: {typ: T.RPCChat.UIChatThreadStatusTyp.server},
+    })
+    return {offline: false}
+  })
   const {result} = renderHook(() => useConversationThreadJumpToRecent(), {wrapper})
 
   act(() => {
     result.current({onThreadLoadStatus})
   })
+  await act(async () => {
+    await flushPromises()
+  })
 
-  expect(loadMoreMessages).toHaveBeenCalledWith(
-    expect.objectContaining({
-      onThreadLoadStatus,
-      reason: 'jump to recent',
-    })
-  )
+  expect(onThreadLoadStatus).toHaveBeenCalledWith(convID, T.RPCChat.UIChatThreadStatusTyp.server)
 })
