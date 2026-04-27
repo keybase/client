@@ -709,10 +709,21 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   })
 }
 
+const getVisibleThreadScreen = () => {
+  const visiblePath = getVisiblePath()
+  for (let i = visiblePath.length - 1; i >= 0; --i) {
+    const route = visiblePath[i]
+    if (route?.name === threadRouteName) {
+      return route
+    }
+  }
+  return undefined
+}
+
 export const clearThreadHighlightMessageID = () => {
   const n = _getNavigator()
   if (!n) return
-  const visible = getVisibleScreen()
+  const visible = getVisibleThreadScreen()
   if (!visible?.key || visible.name !== threadRouteName) return
   n.dispatch({
     ...CommonActions.setParams({highlightMessageID: undefined}),
@@ -730,17 +741,6 @@ const makeThreadInputAction = (action: ThreadInputActionRequest): ThreadInputAct
   ...action,
   key: makeUUID(),
 })
-
-const getVisibleThreadScreen = () => {
-  const visiblePath = getVisiblePath()
-  for (let i = visiblePath.length - 1; i >= 0; --i) {
-    const route = visiblePath[i]
-    if (route?.name === threadRouteName) {
-      return route
-    }
-  }
-  return undefined
-}
 
 const setThreadInputAction = (
   conversationIDKey: T.Chat.ConversationIDKey,
