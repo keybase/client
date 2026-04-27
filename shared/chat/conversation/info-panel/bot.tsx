@@ -14,7 +14,7 @@ type AddToChannelProps = {
   username: string
 }
 
-const useBotSettings = (conversationIDKey: T.Chat.ConversationIDKey, username: string) => {
+export const useBotSettings = (conversationIDKey: T.Chat.ConversationIDKey, username: string) => {
   const [loaded, setLoaded] = React.useState<
     | {
         conversationIDKey: T.Chat.ConversationIDKey

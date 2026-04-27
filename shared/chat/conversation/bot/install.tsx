@@ -107,7 +107,7 @@ export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, 
   return conversationIDKey
 }
 
-const useBotTeamRole = (
+export const useBotTeamRole = (
   conversationIDKey: T.Chat.ConversationIDKey | undefined,
   botUsername: string
 ) => {
@@ -161,7 +161,7 @@ const useBotTeamRole = (
     : undefined
 }
 
-const useBotSettings = (
+export const useBotSettings = (
   conversationIDKey: T.Chat.ConversationIDKey | undefined,
   botUsername: string,
   enabled: boolean

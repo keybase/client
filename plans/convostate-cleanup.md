@@ -54,11 +54,11 @@ Recommended cleanup order: move `attachmentViewMap` first, then `mutualTeams` an
   - [x] reply selection and clearing after send
   - [x] giphy result/window behavior
   - [x] command status and command markdown display behavior
-- [ ] Add or confirm coverage for non-input feature state:
+- [x] Add or confirm coverage for non-input feature state:
   - [x] attachment gallery load, clear, load-more, and error states
   - [x] attachment download progress reflected in both rows and gallery when visible
-  - [ ] mutual-team channel suggestions refresh on trigger
-  - [ ] bot settings and bot role refresh flows
+  - [x] mutual-team channel suggestions refresh on trigger
+  - [x] bot settings and bot role refresh flows
 - [x] Add or confirm coverage for route/list behavior:
   - [x] centered message jump from search/deep link/reply jump
   - [x] jump-to-recent clears search/highlight state
@@ -69,8 +69,10 @@ Coverage note: this slice adds regression tests in `shared/stores/tests/convosta
 `shared/chat/conversation/input-area/input-state.test.ts`,
 `shared/chat/conversation/info-panel/attachments.test.tsx`,
 `shared/chat/conversation/input-area/suggestors/commands.test.tsx`, and
-`shared/chat/conversation/messages/row-metadata.test.ts`. Mutual-team channel suggestor refresh and the
-private bot role/settings loader hooks still need dedicated component or hook tests.
+`shared/chat/conversation/messages/row-metadata.test.ts`. Mutual-team channel suggestor refresh is covered
+in `shared/chat/conversation/input-area/suggestors/channels.test.tsx`, and bot role/settings loader
+coverage lives in `shared/chat/conversation/bot/install.test.tsx` and
+`shared/chat/conversation/info-panel/bot.test.tsx`.
 
 ## Chunk 2: Move Attachment Gallery State To The Attachments Feature
 
