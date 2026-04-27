@@ -1,15 +1,20 @@
+/** @jest-environment jsdom */
 /// <reference types="jest" />
 import * as Message from '@/constants/chat/message'
+import * as React from 'react'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
+import {act, cleanup, renderHook} from '@testing-library/react'
+import {getConvoState, ChatProvider} from '@/stores/convostate'
+import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
-import {getConvoState} from '@/stores/convostate'
-import {
-  createConversationInputStoreForTesting,
-  injectConversationInputText,
-  onConversationInputEngineAction,
-} from './input-state'
+import {ConversationInputProvider, useConversationInput} from './input-state'
+
+let mockRouteParams: Record<string, unknown> = {}
+jest.mock('@react-navigation/native', () => ({
+  useRoute: () => ({params: mockRouteParams}),
+}))
 
 jest.mock('@/stores/inbox-rows', () => ({
   flushInboxRowUpdates: jest.fn(),
@@ -58,15 +63,11 @@ const makeGiphyResult = (targetUrl = 'https://media.giphy.com/media/target/giphy
   targetUrl,
 })
 
-const makeRpcOutboxID = (label: string): T.RPCChat.OutboxID =>
-  new TextEncoder().encode(label)
-const makeOutboxID = (label: string): T.Chat.OutboxID =>
-  T.Chat.rpcOutboxIDToOutboxID(makeRpcOutboxID(label))
+const makeRpcOutboxID = (label: string): T.RPCChat.OutboxID => new TextEncoder().encode(label)
+const makeOutboxID = (label: string): T.Chat.OutboxID => T.Chat.rpcOutboxIDToOutboxID(makeRpcOutboxID(label))
 
 const mockPostText = () => {
-  let lastPost:
-    | Parameters<typeof T.RPCChat.localPostTextNonblockRpcListener>[0]
-    | undefined
+  let lastPost: Parameters<typeof T.RPCChat.localPostTextNonblockRpcListener>[0] | undefined
   jest.spyOn(T.RPCChat, 'localPostTextNonblockRpcListener').mockImplementation(async p => {
     lastPost = p
     await Promise.resolve()
@@ -75,7 +76,28 @@ const mockPostText = () => {
   return () => lastPost
 }
 
+const wrapperFor = (id: T.Chat.ConversationIDKey) =>
+  function Wrapper(p: React.PropsWithChildren) {
+    return (
+      <ChatProvider id={id}>
+        <ConversationInputProvider id={id}>{p.children}</ConversationInputProvider>
+      </ChatProvider>
+    )
+  }
+
+const renderInput = (id = convID) =>
+  renderHook(() => useConversationInput(s => s), {
+    wrapper: wrapperFor(id),
+  })
+
+const notifyInputEngineAction = (action: Parameters<typeof notifyEngineActionListeners>[0]) => {
+  act(() => {
+    notifyEngineActionListeners(action)
+  })
+}
+
 beforeEach(() => {
+  mockRouteParams = {}
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'test-device',
@@ -85,8 +107,17 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  cleanup()
   jest.restoreAllMocks()
   resetAllStores()
+})
+
+test('route input action injects prefill text into the mounted provider', () => {
+  mockRouteParams = {inputAction: {key: 'prefill-1', text: 'prefill from route', type: 'injectText'}}
+
+  const {result} = renderInput()
+
+  expect(result.current.unsentText).toBe('prefill from route')
 })
 
 test('setEditing last picks the latest editable local message and injects its content', () => {
@@ -112,27 +143,35 @@ test('setEditing last picks the latest editable local message and injects its co
       title: 'picked attachment title',
     }),
   ])
-  const inputStore = createConversationInputStoreForTesting(convID)
+  const {result} = renderInput()
 
-  inputStore.getState().dispatch.setEditing('last')
+  act(() => {
+    result.current.dispatch.setEditing('last')
+  })
 
-  expect(inputStore.getState().editing).toBe(attachmentOrdinal)
-  expect(inputStore.getState().unsentText).toBe('picked attachment title')
+  expect(result.current.editing).toBe(attachmentOrdinal)
+  expect(result.current.unsentText).toBe('picked attachment title')
 })
 
 test('setEditing clear resets editing state and clears unsent text', () => {
-  const inputStore = createConversationInputStoreForTesting(convID)
-  const current = inputStore.getState()
-  inputStore.setState({
-    ...current,
-    editing: T.Chat.numberToOrdinal(10),
-    unsentText: 'draft text',
+  const editOrdinal = T.Chat.numberToOrdinal(704)
+  getConvoState(convID).dispatch.galleryMessagesLoaded([
+    makeTextMessage({
+      id: T.Chat.numberToMessageID(704),
+      ordinal: editOrdinal,
+      outboxID: T.Chat.stringToOutboxID('editable-text'),
+      text: 'explicit edit text',
+    }),
+  ])
+  const {result} = renderInput()
+
+  act(() => {
+    result.current.dispatch.setEditing(editOrdinal)
+    result.current.dispatch.setEditing('clear')
   })
 
-  inputStore.getState().dispatch.setEditing('clear')
-
-  expect(inputStore.getState().editing).toBe(T.Chat.numberToOrdinal(0))
-  expect(inputStore.getState().unsentText).toBe('')
+  expect(result.current.editing).toBe(T.Chat.numberToOrdinal(0))
+  expect(result.current.unsentText).toBe('')
 })
 
 test('setEditing explicit ordinal selects editable text and ignores missing messages', () => {
@@ -145,35 +184,45 @@ test('setEditing explicit ordinal selects editable text and ignores missing mess
       text: 'explicit edit text',
     }),
   ])
-  const inputStore = createConversationInputStoreForTesting(convID)
+  const {result} = renderInput()
 
-  inputStore.getState().dispatch.setEditing(editOrdinal)
+  act(() => {
+    result.current.dispatch.setEditing(editOrdinal)
+  })
 
-  expect(inputStore.getState().editing).toBe(editOrdinal)
-  expect(inputStore.getState().unsentText).toBe('explicit edit text')
+  expect(result.current.editing).toBe(editOrdinal)
+  expect(result.current.unsentText).toBe('explicit edit text')
 
-  inputStore.getState().dispatch.setEditing(T.Chat.numberToOrdinal(999))
+  act(() => {
+    result.current.dispatch.setEditing(T.Chat.numberToOrdinal(999))
+  })
 
-  expect(inputStore.getState().editing).toBe(editOrdinal)
-  expect(inputStore.getState().unsentText).toBe('explicit edit text')
+  expect(result.current.editing).toBe(editOrdinal)
+  expect(result.current.unsentText).toBe('explicit edit text')
 })
 
-test('external input injection is scoped to the target conversation', () => {
-  const inputStore = createConversationInputStoreForTesting(convID)
-  const otherInputStore = createConversationInputStoreForTesting(otherConvID)
+test('input injection is scoped to the owning provider', () => {
+  const input = renderInput()
+  const otherInput = renderInput(otherConvID)
 
-  injectConversationInputText(convID, 'prefill from share')
+  act(() => {
+    input.result.current.dispatch.injectIntoInput('prefill from share')
+  })
 
-  expect(inputStore.getState().unsentText).toBe('prefill from share')
-  expect(otherInputStore.getState().unsentText).toBeUndefined()
+  expect(input.result.current.unsentText).toBe('prefill from share')
+  expect(otherInput.result.current.unsentText).toBeUndefined()
 
-  injectConversationInputText(convID, '')
+  act(() => {
+    input.result.current.dispatch.injectIntoInput('')
+  })
 
-  expect(inputStore.getState().unsentText).toBe('')
+  expect(input.result.current.unsentText).toBe('')
 
-  injectConversationInputText(convID)
+  act(() => {
+    input.result.current.dispatch.injectIntoInput()
+  })
 
-  expect(inputStore.getState().unsentText).toBeUndefined()
+  expect(input.result.current.unsentText).toBeUndefined()
 })
 
 test('sendComposerText sends reply context and clears transient composer state', async () => {
@@ -188,32 +237,40 @@ test('sendComposerText sends reply context and clears transient composer state',
     }),
   ])
   const getLastPost = mockPostText()
-  const inputStore = createConversationInputStoreForTesting(convID)
-  inputStore.getState().dispatch.setReplyTo(replyOrdinal)
-  inputStore.getState().dispatch.setCommandMarkdown({body: '**markdown**', title: 'Command'})
-  inputStore.getState().dispatch.setGiphyWindow(true)
-  inputStore.getState().dispatch.injectIntoInput('reply text')
+  const {result} = renderInput()
+  act(() => {
+    result.current.dispatch.setReplyTo(replyOrdinal)
+    result.current.dispatch.setCommandMarkdown({body: '**markdown**', title: 'Command'})
+    result.current.dispatch.setGiphyWindow(true)
+    result.current.dispatch.injectIntoInput('reply text')
+  })
 
-  inputStore.getState().dispatch.sendComposerText('sent reply')
+  act(() => {
+    result.current.dispatch.sendComposerText('sent reply')
+  })
   await flushPromises()
 
-  expect(inputStore.getState().replyTo).toBe(T.Chat.numberToOrdinal(0))
-  expect(inputStore.getState().commandMarkdown).toBeUndefined()
-  expect(inputStore.getState().giphyWindow).toBe(false)
-  expect(inputStore.getState().unsentText).toBe('')
+  expect(result.current.replyTo).toBe(T.Chat.numberToOrdinal(0))
+  expect(result.current.commandMarkdown).toBeUndefined()
+  expect(result.current.giphyWindow).toBe(false)
+  expect(result.current.unsentText).toBe('')
   expect(getLastPost()?.params.body).toBe('sent reply')
   expect(getLastPost()?.params.replyTo).toBe(replyMessageID)
 })
 
 test('sendComposerText restores text when a stellar flow is canceled', async () => {
   const getLastPost = mockPostText()
-  const inputStore = createConversationInputStoreForTesting(convID)
+  const {result} = renderInput()
 
-  inputStore.getState().dispatch.sendComposerText('restore me')
+  act(() => {
+    result.current.dispatch.sendComposerText('restore me')
+  })
   await flushPromises()
-  getLastPost()?.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+  act(() => {
+    getLastPost()?.incomingCallMap['chat.1.chatUi.chatStellarDone']?.({canceled: true})
+  })
 
-  expect(inputStore.getState().unsentText).toBe('restore me')
+  expect(result.current.unsentText).toBe('restore me')
 })
 
 test('sendComposerText edits the selected message and clears edit state', async () => {
@@ -230,20 +287,24 @@ test('sendComposerText edits the selected message and clears edit state', async 
   const editPost = jest.spyOn(T.RPCChat, 'localPostEditNonblockRpcPromise').mockResolvedValue({
     outboxID: makeRpcOutboxID('edit-outbox'),
   })
-  const inputStore = createConversationInputStoreForTesting(convID)
-  inputStore.getState().dispatch.setEditing(editOrdinal)
-  inputStore.getState().dispatch.setReplyTo(T.Chat.numberToOrdinal(705))
-  inputStore.getState().dispatch.setGiphyWindow(true)
-  inputStore.getState().dispatch.setCommandMarkdown({body: 'edit markdown'})
+  const {result} = renderInput()
+  act(() => {
+    result.current.dispatch.setEditing(editOrdinal)
+    result.current.dispatch.setReplyTo(T.Chat.numberToOrdinal(705))
+    result.current.dispatch.setGiphyWindow(true)
+    result.current.dispatch.setCommandMarkdown({body: 'edit markdown'})
+  })
 
-  inputStore.getState().dispatch.sendComposerText('new text')
+  act(() => {
+    result.current.dispatch.sendComposerText('new text')
+  })
   await flushPromises()
 
-  expect(inputStore.getState().editing).toBe(T.Chat.numberToOrdinal(0))
-  expect(inputStore.getState().replyTo).toBe(T.Chat.numberToOrdinal(0))
-  expect(inputStore.getState().giphyWindow).toBe(false)
-  expect(inputStore.getState().commandMarkdown).toBeUndefined()
-  expect(inputStore.getState().unsentText).toBe('')
+  expect(result.current.editing).toBe(T.Chat.numberToOrdinal(0))
+  expect(result.current.replyTo).toBe(T.Chat.numberToOrdinal(0))
+  expect(result.current.giphyWindow).toBe(false)
+  expect(result.current.commandMarkdown).toBeUndefined()
+  expect(result.current.unsentText).toBe('')
   expect(getConvoState(convID).messageMap.get(editOrdinal)?.submitState).toBe('editing')
   expect(editPost).toHaveBeenCalledWith(
     expect.objectContaining({
@@ -265,49 +326,59 @@ test('giphy engine events and send path update the input owner', async () => {
   ])
   const getLastPost = mockPostText()
   const trackGiphy = jest.spyOn(T.RPCChat, 'localTrackGiphySelectRpcPromise').mockResolvedValue({})
-  const inputStore = createConversationInputStoreForTesting(convID)
-  const result = makeGiphyResult()
+  const {result} = renderInput()
+  const giphyResult = makeGiphyResult()
 
-  inputStore.getState().dispatch.injectIntoInput('/giphy cats')
-  onConversationInputEngineAction({
+  act(() => {
+    result.current.dispatch.injectIntoInput('/giphy cats')
+  })
+  notifyInputEngineAction({
     payload: {params: {clearInput: true, convID, show: true}},
     type: 'chat.1.chatUi.chatGiphyToggleResultWindow',
   } as never)
-  onConversationInputEngineAction({
-    payload: {params: {convID, results: {galleryUrl: 'https://giphy.com/search/cats', results: [result]}}},
+  notifyInputEngineAction({
+    payload: {params: {convID, results: {galleryUrl: 'https://giphy.com/search/cats', results: [giphyResult]}}},
     type: 'chat.1.chatUi.chatGiphySearchResults',
   } as never)
-  inputStore.getState().dispatch.setReplyTo(replyOrdinal)
+  act(() => {
+    result.current.dispatch.setReplyTo(replyOrdinal)
+  })
 
-  expect(inputStore.getState().giphyWindow).toBe(true)
-  expect(inputStore.getState().unsentText).toBe('')
-  expect(inputStore.getState().giphyResult?.results).toEqual([result])
+  expect(result.current.giphyWindow).toBe(true)
+  expect(result.current.unsentText).toBe('')
+  expect(result.current.giphyResult?.results).toEqual([giphyResult])
 
-  inputStore.getState().dispatch.sendGiphyResult(result)
+  act(() => {
+    result.current.dispatch.sendGiphyResult(giphyResult)
+  })
   await flushPromises()
 
-  expect(trackGiphy).toHaveBeenCalledWith({result})
-  expect(getLastPost()?.params.body).toBe(result.targetUrl)
+  expect(trackGiphy).toHaveBeenCalledWith({result: giphyResult})
+  expect(getLastPost()?.params.body).toBe(giphyResult.targetUrl)
   expect(getLastPost()?.params.replyTo).toBe(replyMessageID)
-  expect(inputStore.getState().replyTo).toBe(T.Chat.numberToOrdinal(0))
-  expect(inputStore.getState().giphyWindow).toBe(false)
-  expect(inputStore.getState().unsentText).toBe('')
+  expect(result.current.replyTo).toBe(T.Chat.numberToOrdinal(0))
+  expect(result.current.giphyWindow).toBe(false)
+  expect(result.current.unsentText).toBe('')
 })
 
 test('toggleGiphyPrefill toggles the slash command text', () => {
-  const inputStore = createConversationInputStoreForTesting(convID)
+  const {result} = renderInput()
 
-  inputStore.getState().dispatch.toggleGiphyPrefill()
-  expect(inputStore.getState().unsentText).toBe('/giphy ')
+  act(() => {
+    result.current.dispatch.toggleGiphyPrefill()
+  })
+  expect(result.current.unsentText).toBe('/giphy ')
 
-  inputStore.getState().dispatch.setGiphyWindow(true)
-  inputStore.getState().dispatch.toggleGiphyPrefill()
-  expect(inputStore.getState().unsentText).toBe('')
+  act(() => {
+    result.current.dispatch.setGiphyWindow(true)
+    result.current.dispatch.toggleGiphyPrefill()
+  })
+  expect(result.current.unsentText).toBe('')
 })
 
 test('command status and markdown engine events are conversation scoped', () => {
-  const inputStore = createConversationInputStoreForTesting(convID)
-  const otherInputStore = createConversationInputStoreForTesting(otherConvID)
+  const input = renderInput()
+  const otherInput = renderInput(otherConvID)
   const commandStatus = {
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
     displayText: 'location disabled',
@@ -315,7 +386,7 @@ test('command status and markdown engine events are conversation scoped', () => 
   }
   const commandMarkdown = {body: '*formatted* command output', title: 'Command output'}
 
-  onConversationInputEngineAction({
+  notifyInputEngineAction({
     payload: {
       params: {
         actions: commandStatus.actions,
@@ -326,24 +397,24 @@ test('command status and markdown engine events are conversation scoped', () => 
     },
     type: 'chat.1.chatUi.chatCommandStatus',
   } as never)
-  onConversationInputEngineAction({
+  notifyInputEngineAction({
     payload: {params: {convID, md: commandMarkdown}},
     type: 'chat.1.chatUi.chatCommandMarkdown',
   } as never)
 
-  expect(inputStore.getState().commandStatus).toEqual(commandStatus)
-  expect(inputStore.getState().commandMarkdown).toEqual(commandMarkdown)
-  expect(otherInputStore.getState().commandStatus).toBeUndefined()
-  expect(otherInputStore.getState().commandMarkdown).toBeUndefined()
+  expect(input.result.current.commandStatus).toEqual(commandStatus)
+  expect(input.result.current.commandMarkdown).toEqual(commandMarkdown)
+  expect(otherInput.result.current.commandStatus).toBeUndefined()
+  expect(otherInput.result.current.commandMarkdown).toBeUndefined()
 
-  onConversationInputEngineAction({
+  notifyInputEngineAction({
     payload: {params: {convID, md: null}},
     type: 'chat.1.chatUi.chatCommandMarkdown',
   } as never)
 
-  expect(inputStore.getState().commandMarkdown).toBeUndefined()
+  expect(input.result.current.commandMarkdown).toBeUndefined()
 
-  onConversationInputEngineAction({
+  notifyInputEngineAction({
     payload: {
       params: {
         actions: null,
@@ -355,7 +426,7 @@ test('command status and markdown engine events are conversation scoped', () => 
     type: 'chat.1.chatUi.chatCommandStatus',
   } as never)
 
-  expect(inputStore.getState().commandStatus).toEqual({
+  expect(input.result.current.commandStatus).toEqual({
     actions: [],
     displayText: 'no actions',
     displayType: T.RPCChat.UICommandStatusDisplayTyp.status,

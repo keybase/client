@@ -5,7 +5,6 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {MobileSendToChat} from '../chat/send-to-chat'
-import {injectConversationInputText} from '@/chat/conversation/input-area/input-state'
 import {settingsFeedbackTab} from '@/constants/settings'
 import * as FS from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
@@ -201,17 +200,15 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   React.useEffect(() => {
     if (!canDirectNav || hasNavigatedRef.current) return
     hasNavigatedRef.current = true
-    if (text) {
-      injectConversationInputText(selectedConversationIDKey, text)
-    }
-    C.Router2.navigateToThread(selectedConversationIDKey, 'extension')
     if (sendPaths.length > 0) {
+      C.Router2.navigateToThread(selectedConversationIDKey, 'extension')
       const meta = ConvoState.getConvoState(selectedConversationIDKey).meta
       const tlfName = meta.conversationIDKey === selectedConversationIDKey ? meta.tlfname : ''
       navigateAppend({
         name: 'chatAttachmentGetTitles',
         params: {
           conversationIDKey: selectedConversationIDKey,
+          inputPrefillText: text,
           pathAndOutboxIDs: sendPaths.map(p => ({
             path: Kb.Styles.normalizePath(p),
           })),
@@ -219,6 +216,8 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
           tlfName,
         },
       })
+    } else {
+      C.Router2.navigateToThread(selectedConversationIDKey, 'extension', undefined, undefined, undefined, text)
     }
   }, [canDirectNav, selectedConversationIDKey, sendPaths, text, navigateAppend])
 

@@ -159,7 +159,7 @@ Lint note: when local feature state needs to reset for a new conversation ID, do
 - `incoming-share/index.tsx`
 - `chat/send-to-chat/index.tsx`
 
-Implementation note: conversation input UI state now lives in `shared/chat/conversation/input-area/input-state.tsx` and is provided from the normal conversation wrapper so list rows, message popups, and input descendants share one owner. Command markdown/status and Giphy engine actions are bridged into the input owner.
+Implementation note: conversation input UI state now lives in `shared/chat/conversation/input-area/input-state.tsx` as reducer-owned component state provided from the normal conversation wrapper so list rows, message popups, and input descendants share one owner. Command markdown/status and Giphy engine actions are handled by the mounted input owner, and external prefill/edit/reply/status requests enter through explicit route `inputAction` params rather than a per-conversation input-store registry.
 
 Implementation note: the old `ConvoUIState` compatibility surface has been removed. Composer edit-state regression coverage now lives with `shared/chat/conversation/input-area/input-state.tsx`, and `convostate` no longer handles command markdown/status or Giphy UI engine events.
 

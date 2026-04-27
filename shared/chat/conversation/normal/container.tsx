@@ -131,7 +131,7 @@ const NormalWrapper = function NormalWrapper() {
               skipThreadLoadOnSelection={skipThreadLoadOnSelection}
             >
               <ConversationCenterProvider id={conversationIDKey}>
-                <ConversationInputProvider id={conversationIDKey}>
+                <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
                   <FocusProvider>
                     <ScrollProvider>
                       <Normal />

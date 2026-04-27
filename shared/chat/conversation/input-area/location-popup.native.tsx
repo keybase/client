@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
-import * as InputState from './input-state'
 import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
 import * as Kb from '@/common-adapters'
@@ -12,6 +11,7 @@ import {requestLocationPermission} from '@/util/platform-specific'
 import * as ExpoLocation from 'expo-location'
 import {ignorePromise} from '@/constants/utils'
 import {openAppSettings} from '@/util/storeless-actions'
+import {setThreadInputCommandStatus} from '@/constants/router'
 
 const LocationButton = (props: {
   disabled: boolean
@@ -54,9 +54,9 @@ const updateLocation = (coord: T.Chat.Coordinate) => {
 
 const useWatchPosition = (
   conversationIDKey: T.Chat.ConversationIDKey,
+  onPermissionDenied: (displayText: string) => void,
   setLocation: React.Dispatch<React.SetStateAction<T.Chat.Coordinate | undefined>>
 ) => {
-  const setCommandStatusInfo = InputState.useConversationInput(s => s.dispatch.setCommandStatusInfo)
   React.useEffect(() => {
     let unsub = () => {}
     logger.info('[location] perms check due to map')
@@ -80,11 +80,7 @@ const useWatchPosition = (
         const error = _error as {message?: string}
         const errorMessage = String(error.message)
         logger.info('failed to get location: ' + errorMessage)
-        setCommandStatusInfo({
-          actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
-          displayText: `Failed to access location. ${errorMessage}`,
-          displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
-        })
+        onPermissionDenied(`Failed to access location. ${errorMessage}`)
       }
     }
 
@@ -92,7 +88,7 @@ const useWatchPosition = (
     return () => {
       unsub()
     }
-  }, [conversationIDKey, setCommandStatusInfo, setLocation])
+  }, [conversationIDKey, onPermissionDenied, setLocation])
 }
 
 const LocationPopup = () => {
@@ -100,8 +96,17 @@ const LocationPopup = () => {
   const username = useCurrentUserState(s => s.username)
   const httpSrv = useConfigState(s => s.httpSrv)
   const [location, setLocation] = React.useState<T.Chat.Coordinate>()
-  const locationDenied = InputState.useConversationInput(
-    s => s.commandStatus?.displayType === T.RPCChat.UICommandStatusDisplayTyp.error
+  const [locationDenied, setLocationDenied] = React.useState(false)
+  const onPermissionDenied = React.useCallback(
+    (displayText: string) => {
+      setLocationDenied(true)
+      setThreadInputCommandStatus(conversationIDKey, {
+        actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
+        displayText,
+        displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
+      })
+    },
+    [conversationIDKey]
   )
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const clearModals = C.Router2.clearModals
@@ -114,7 +119,7 @@ const LocationPopup = () => {
     sendMessage(duration ? `/location live ${duration}` : '/location')
   }
 
-  useWatchPosition(conversationIDKey, setLocation)
+  useWatchPosition(conversationIDKey, onPermissionDenied, setLocation)
 
   const width = Math.ceil(Kb.Styles.dimensionWidth)
   const height = Math.ceil(Kb.Styles.dimensionHeight - 320)

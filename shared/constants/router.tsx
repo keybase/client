@@ -2,9 +2,9 @@ import type * as React from 'react'
 import * as T from './types'
 import type * as ConvoRegistryType from '@/stores/convo-registry'
 import type * as ConvoStateType from '@/stores/convostate'
-import type * as ConversationInputStateType from '@/chat/conversation/input-area/input-state'
 import type * as InboxLayoutStateType from '@/chat/inbox/layout-state'
 import type * as UseCurrentUserStateType from '@/stores/current-user'
+import type {ThreadInputAction} from '@/chat/conversation/thread-search-route'
 import * as Tabs from './tabs'
 import {
   StackActions,
@@ -89,13 +89,6 @@ const uiParticipantsToParticipantInfo = (
 const getConvoState = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const {getConvoState} = require('@/stores/convostate') as typeof ConvoStateType
   return getConvoState(conversationIDKey)
-}
-
-const injectConversationInputText = (conversationIDKey: T.Chat.ConversationIDKey, text?: string) => {
-  const {injectConversationInputText} = require(
-    '@/chat/conversation/input-area/input-state'
-  ) as typeof ConversationInputStateType
-  injectConversationInputText(conversationIDKey, text)
 }
 
 export const getRootState = (): NavState | undefined => {
@@ -727,9 +720,85 @@ export const clearThreadHighlightMessageID = () => {
   })
 }
 
+type ThreadInputActionRequest =
+  | {type: 'commandStatus'; info?: T.Chat.CommandStatusInfo}
+  | {type: 'injectText'; text?: string}
+  | {type: 'setEditing'; ordinal: T.Chat.Ordinal}
+  | {type: 'setReplyTo'; ordinal: T.Chat.Ordinal}
+
+const makeThreadInputAction = (action: ThreadInputActionRequest): ThreadInputAction => ({
+  ...action,
+  key: makeUUID(),
+})
+
+const getVisibleThreadScreen = () => {
+  const visiblePath = getVisiblePath()
+  for (let i = visiblePath.length - 1; i >= 0; --i) {
+    const route = visiblePath[i]
+    if (route?.name === threadRouteName) {
+      return route
+    }
+  }
+  return undefined
+}
+
+const setThreadInputAction = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  action: ThreadInputActionRequest
+) => {
+  const n = _getNavigator()
+  if (!n) return
+  const visible = getVisibleThreadScreen()
+  const params = visible?.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
+  if (!visible?.key || visible.name !== threadRouteName || params?.conversationIDKey !== conversationIDKey) {
+    return
+  }
+  n.dispatch({
+    ...CommonActions.setParams({inputAction: makeThreadInputAction(action)}),
+    source: visible.key,
+  })
+}
+
+export const clearThreadInputAction = (key?: string) => {
+  const n = _getNavigator()
+  if (!n) return
+  const visible = getVisibleThreadScreen()
+  if (!visible?.key || visible.name !== threadRouteName) return
+  const params = visible.params as {inputAction?: ThreadInputAction} | undefined
+  if (key && params?.inputAction?.key !== key) {
+    return
+  }
+  n.dispatch({
+    ...CommonActions.setParams({inputAction: undefined}),
+    source: visible.key,
+  })
+}
+
+export const setThreadInputCommandStatus = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  info?: T.Chat.CommandStatusInfo
+) => {
+  setThreadInputAction(conversationIDKey, {info, type: 'commandStatus'})
+}
+
+export const setThreadInputEditing = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  ordinal: T.Chat.Ordinal
+) => {
+  setThreadInputAction(conversationIDKey, {ordinal, type: 'setEditing'})
+}
+
+export const setThreadInputReplyTo = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  ordinal: T.Chat.Ordinal
+) => {
+  setThreadInputAction(conversationIDKey, {ordinal, type: 'setReplyTo'})
+}
+
 type ThreadNavParams = {
   createConversationError?: T.Chat.CreateConversationError
   highlightMessageID?: T.Chat.MessageID
+  inputAction?: ThreadInputAction
   threadSearch?: {query?: string}
 }
 
@@ -774,6 +843,7 @@ const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: Th
     conversationIDKey,
     createConversationError: navParams?.createConversationError,
     highlightMessageID: navParams?.highlightMessageID,
+    inputAction: navParams?.inputAction,
     threadSearch: navParams?.threadSearch,
   }
 
@@ -812,10 +882,6 @@ export const navigateToThread = (
   createConversationError?: T.Chat.CreateConversationError,
   inputPrefillText?: string
 ) => {
-  if (inputPrefillText !== undefined) {
-    injectConversationInputText(conversationIDKey, inputPrefillText)
-  }
-
   const convoState = getConvoState(conversationIDKey)
   convoState.dispatch.prepareToNavigateToThread()
 
@@ -833,13 +899,16 @@ export const navigateToThread = (
   }
 
   const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
+  const inputAction =
+    inputPrefillText !== undefined ? makeThreadInputAction({text: inputPrefillText, type: 'injectText'}) : undefined
   const navParams = {
     createConversationError,
     highlightMessageID,
+    inputAction,
     threadSearch,
   }
   const sameVisibleThread = visibleRouteName === threadRouteName && visibleConvo === conversationIDKey
-  if (sameVisibleThread && highlightMessageID) {
+  if (sameVisibleThread && (highlightMessageID || inputAction)) {
     const sameThreadParams = {conversationIDKey, ...navParams}
     if (isSplit) {
       setChatRootParams(sameThreadParams)
@@ -867,6 +936,7 @@ export const navigateToThread = (
           conversationIDKey,
           createConversationError,
           highlightMessageID,
+          inputAction,
           threadSearch,
         },
       },

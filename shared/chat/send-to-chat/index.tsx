@@ -7,7 +7,6 @@ import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
-import {injectConversationInputText} from '../conversation/input-area/input-state'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
@@ -35,14 +34,12 @@ export const MobileSendToChat = (props: Props) => {
   const navigateAppend = C.Router2.navigateAppend
   const clearModals = C.Router2.clearModals
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
-    if (text) {
-      injectConversationInputText(conversationIDKey, text)
-    }
     if (sendPaths?.length) {
       navigateAppend({
         name: 'chatAttachmentGetTitles',
         params: {
           conversationIDKey,
+          inputPrefillText: text,
           pathAndOutboxIDs: sendPaths.map(p => ({
             path: Kb.Styles.normalizePath(p),
           })),
@@ -52,7 +49,14 @@ export const MobileSendToChat = (props: Props) => {
       })
     } else {
       clearModals()
-      C.Router2.navigateToThread(conversationIDKey, isFromShareExtension ? 'extension' : 'files')
+      C.Router2.navigateToThread(
+        conversationIDKey,
+        isFromShareExtension ? 'extension' : 'files',
+        undefined,
+        undefined,
+        undefined,
+        text
+      )
     }
   }
   return <ConversationList {...props} onSelect={onSelect} />

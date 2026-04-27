@@ -8,6 +8,7 @@ import * as Kb from '@/common-adapters'
 
 type OwnProps = {
   pathAndOutboxIDs: Array<T.Chat.PathAndOutboxID>
+  inputPrefillText?: string
   titles?: Array<string>
   selectConversationWithReason?: 'extension' | 'files'
   // If tlfName is set, we'll use Chat2Gen.createAttachmentsUpload. Otherwise
@@ -70,7 +71,14 @@ const Container = (ownProps: OwnProps) => {
     clearModals()
 
     if (selectConversationWithReason) {
-      C.Router2.navigateToThread(conversationIDKey, selectConversationWithReason)
+      C.Router2.navigateToThread(
+        conversationIDKey,
+        selectConversationWithReason,
+        undefined,
+        undefined,
+        undefined,
+        ownProps.inputPrefillText
+      )
     }
   }
   const pathAndInfos = pathAndOutboxIDs.map(({path, outboxID, url}) => {

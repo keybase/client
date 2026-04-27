@@ -17,7 +17,7 @@ import {NotifyPopup} from '@/util/misc'
 import logger from '@/logger'
 import {Linking} from 'react-native'
 import {isAndroid} from '@/constants/platform.native'
-import {logState} from '@/constants/router'
+import {logState, setThreadInputCommandStatus} from '@/constants/router'
 import {setupAudioMode} from '@/util/audio.native'
 import {
   fsCacheDir,
@@ -31,7 +31,6 @@ import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {noConversationIDKey} from '../types/chat/common'
 import {getSelectedConversation} from '../chat/common'
 import {getConvoState} from '@/stores/convostate'
-import {setConversationInputCommandStatus} from '@/chat/conversation/input-area/input-state'
 import {requestLocationPermission} from '@/util/platform-specific/index.native'
 import * as ScreenCapture from 'expo-screen-capture'
 import {getSecureFlagSetting} from '@/constants/platform.native'
@@ -160,7 +159,7 @@ const ensureBackgroundTask = () => {
 }
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
-  setConversationInputCommandStatus(conversationIDKey, {
+  setThreadInputCommandStatus(conversationIDKey, {
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
     displayText: text,
     displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
