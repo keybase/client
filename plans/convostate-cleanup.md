@@ -46,24 +46,31 @@ Recommended cleanup order: move `attachmentViewMap` first, then `mutualTeams` an
 
 ## Chunk 1: Add Regression Coverage Before Moving State
 
-- [ ] Preserve the current core `convostate` tests for message merge, deletion, reaction, payment, coin-flip, meta, badge, and derived row behavior
-- [ ] Add or confirm coverage for input UI behavior before moving it:
-  - [ ] injecting text into the composer from same-thread UI
-  - [ ] incoming share / send-to-chat prefill behavior
-  - [ ] edit-last-message selection and clearing
-  - [ ] reply selection and clearing after send
-  - [ ] giphy result/window behavior
-  - [ ] command status and command markdown display behavior
+- [x] Preserve the current core `convostate` tests for message merge, deletion, reaction, payment, coin-flip, meta, badge, and derived row behavior
+- [x] Add or confirm coverage for input UI behavior before moving it:
+  - [x] injecting text into the composer from same-thread UI
+  - [x] incoming share / send-to-chat prefill behavior
+  - [x] edit-last-message selection and clearing
+  - [x] reply selection and clearing after send
+  - [x] giphy result/window behavior
+  - [x] command status and command markdown display behavior
 - [ ] Add or confirm coverage for non-input feature state:
-  - [ ] attachment gallery load, clear, load-more, and error states
-  - [ ] attachment download progress reflected in both rows and gallery when visible
+  - [x] attachment gallery load, clear, load-more, and error states
+  - [x] attachment download progress reflected in both rows and gallery when visible
   - [ ] mutual-team channel suggestions refresh on trigger
   - [ ] bot settings and bot role refresh flows
-- [ ] Add or confirm coverage for route/list behavior:
-  - [ ] centered message jump from search/deep link/reply jump
-  - [ ] jump-to-recent clears search/highlight state
-  - [ ] mark-unread orange line behavior
-  - [ ] row separator, author-name, and recycle-type behavior after inserts/deletes/edits
+- [x] Add or confirm coverage for route/list behavior:
+  - [x] centered message jump from search/deep link/reply jump
+  - [x] jump-to-recent clears search/highlight state
+  - [x] mark-unread orange line behavior
+  - [x] row separator, author-name, and recycle-type behavior after inserts/deletes/edits
+
+Coverage note: this slice adds regression tests in `shared/stores/tests/convostate.test.ts`,
+`shared/chat/conversation/input-area/input-state.test.ts`,
+`shared/chat/conversation/info-panel/attachments.test.tsx`,
+`shared/chat/conversation/input-area/suggestors/commands.test.tsx`, and
+`shared/chat/conversation/messages/row-metadata.test.ts`. Mutual-team channel suggestor refresh and the
+private bot role/settings loader hooks still need dedicated component or hook tests.
 
 ## Chunk 2: Move Attachment Gallery State To The Attachments Feature
 

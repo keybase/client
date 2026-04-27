@@ -28,6 +28,18 @@ const makeTextMessage = (override?: Omit<Partial<T.Chat.MessageText>, 'text'> & 
     text: new HiddenString(override?.text ?? 'hello'),
   })
 
+const makeAttachmentMessage = (override?: Partial<T.Chat.MessageAttachment>) =>
+  Message.makeMessageAttachment({
+    author: 'alice',
+    conversationIDKey: convID,
+    id: T.Chat.numberToMessageID(201),
+    ordinal: T.Chat.numberToOrdinal(201),
+    outboxID: T.Chat.stringToOutboxID('attachment-outbox'),
+    timestamp: 100,
+    title: 'attachment title',
+    ...override,
+  })
+
 test('showUsername is derived from the previous ordinal and current message data', () => {
   const firstOrdinal = T.Chat.numberToOrdinal(301)
   const secondOrdinal = T.Chat.numberToOrdinal(302)
@@ -132,4 +144,100 @@ test('row type preserves native recycle distinctions', () => {
   expect(getMessageRowType(failed)).toBe('text:pending')
   expect(getMessageRowType(reply)).toBe('text:reply')
   expect(getMessageRowType(reaction)).toBe('text:reactions')
+})
+
+test('showUsername recomputes from the current neighboring ordinal after inserts and deletes', () => {
+  const firstOrdinal = T.Chat.numberToOrdinal(501)
+  const insertedOrdinal = T.Chat.numberToOrdinal(502)
+  const currentOrdinal = T.Chat.numberToOrdinal(503)
+  const messageMap = new Map<T.Chat.Ordinal, T.Chat.Message>([
+    [
+      firstOrdinal,
+      makeTextMessage({
+        author: 'alice',
+        id: T.Chat.numberToMessageID(501),
+        ordinal: firstOrdinal,
+      }),
+    ],
+    [
+      currentOrdinal,
+      makeTextMessage({
+        author: 'bob',
+        id: T.Chat.numberToMessageID(503),
+        ordinal: currentOrdinal,
+      }),
+    ],
+  ])
+
+  expect(
+    getMessageShowUsername({
+      message: messageMap.get(currentOrdinal)!,
+      messageMap,
+      messageOrdinals: [firstOrdinal, currentOrdinal],
+      ordinal: currentOrdinal,
+      you: 'alice',
+    })
+  ).toBe('bob')
+
+  messageMap.set(
+    insertedOrdinal,
+    makeTextMessage({
+      author: 'bob',
+      id: T.Chat.numberToMessageID(502),
+      ordinal: insertedOrdinal,
+    })
+  )
+
+  expect(
+    getMessageShowUsername({
+      message: messageMap.get(currentOrdinal)!,
+      messageMap,
+      messageOrdinals: [firstOrdinal, insertedOrdinal, currentOrdinal],
+      ordinal: currentOrdinal,
+      you: 'alice',
+    })
+  ).toBe('')
+
+  messageMap.delete(insertedOrdinal)
+
+  expect(
+    getMessageShowUsername({
+      message: messageMap.get(currentOrdinal)!,
+      messageMap,
+      messageOrdinals: [firstOrdinal, currentOrdinal],
+      ordinal: currentOrdinal,
+      you: 'alice',
+    })
+  ).toBe('bob')
+})
+
+test('row type combines pending, reply, and reaction suffixes after row edits', () => {
+  const reply = makeTextMessage({
+    id: T.Chat.numberToMessageID(600),
+    ordinal: T.Chat.numberToOrdinal(600),
+  })
+  const pendingReplyWithReaction = makeTextMessage({
+    id: T.Chat.numberToMessageID(601),
+    ordinal: T.Chat.numberToOrdinal(601),
+    reactions: new Map([[':+1:', makeReaction('bob', 5)]]),
+    replyTo: reply,
+    submitState: 'pending',
+  })
+  const failedAttachment = makeAttachmentMessage({
+    errorReason: 'upload failed',
+    id: T.Chat.numberToMessageID(602),
+    ordinal: T.Chat.numberToOrdinal(602),
+    submitState: 'failed',
+  })
+
+  expect(getMessageRowType(pendingReplyWithReaction)).toBe('text:pending:reply:reactions')
+  expect(getMessageRowType(failedAttachment)).toBe('attachment:pending')
+
+  const edited = makeTextMessage({
+    id: T.Chat.numberToMessageID(601),
+    ordinal: T.Chat.numberToOrdinal(601),
+    submitState: undefined,
+  })
+
+  expect(getMessageRowType(edited)).toBe('text')
 })

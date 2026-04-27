@@ -5,13 +5,16 @@ import * as Message from '../../constants/chat/message'
 import * as T from '../../constants/types'
 import HiddenString from '../../util/hidden-string'
 import {resetAllStores} from '../../util/zustand'
+import {useConfigState} from '../config'
 import {useCurrentUserState} from '../current-user'
 import {
   createConvoStoreForTesting,
   type ConvoState,
   getConvoState,
+  handleConvoEngineIncoming,
   syncBadgeState,
 } from '../convostate'
+import {queueInboxRowUpdate} from '../inbox-rows'
 
 jest.mock('../inbox-rows', () => ({
   queueInboxRowUpdate: jest.fn(),
@@ -233,14 +236,24 @@ const applyState = (
 
 const createStore = () => createConvoStoreForTesting(convID)
 
+type LoadMoreMessagesMock = (
+  p: Parameters<ConvoState['dispatch']['loadMoreMessages']>[0]
+) => undefined
+
 const makeLoadMoreMessagesMock = () =>
   Object.assign(
-    jest.fn<void, Parameters<ConvoState['dispatch']['loadMoreMessages']>>(),
+    jest.fn<LoadMoreMessagesMock>(),
     {
       cancel: () => {},
-      flush: () => {},
+      flush: () => undefined,
     }
   )
+
+const flushPromises = async () => {
+  for (let i = 0; i < 5; i++) {
+    await Promise.resolve()
+  }
+}
 
 const seedStore = (
   messages: ReadonlyArray<T.Chat.Message>,
@@ -332,6 +345,22 @@ test('updateCoinFlipStatus stores coin flip status by game ID in the convo store
   expect(store.getState().flipStatusMap.get(status.gameID)).toEqual(status)
 })
 
+test('coin flip status batches are grouped by conversation', () => {
+  const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([9, 8, 7, 6]))
+  const first = makeCoinFlipStatus({gameID: 'flip-1', progressText: 'first'})
+  const replacement = makeCoinFlipStatus({gameID: 'flip-1', progressText: 'updated'})
+  const second = makeCoinFlipStatus({convID: otherConvID, gameID: 'flip-2'})
+
+  getConvoState(convID).dispatch.updateCoinFlipStatuses([first])
+  handleConvoEngineIncoming({
+    payload: {params: {statuses: [replacement, second]}},
+    type: 'chat.1.chatUi.chatCoinFlipStatus',
+  } as never)
+
+  expect(getConvoState(convID).flipStatusMap.get('flip-1')).toEqual(replacement)
+  expect(getConvoState(otherConvID).flipStatusMap.get('flip-2')).toEqual(second)
+})
+
 test('onMessagesUpdated adds messages and updates message indexes', () => {
   jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
 
@@ -393,7 +422,7 @@ test('galleryMessagesLoaded injects gallery-only messages without marking read',
     ordinal: T.Chat.numberToOrdinal(501),
   })
   const store = seedStore([threadMessage])
-  const markThreadAsRead = jest.fn<void, [force?: boolean]>()
+  const markThreadAsRead = jest.fn<ConvoState['dispatch']['markThreadAsRead']>()
   const current = store.getState()
   store.setState({
     ...current,
@@ -409,6 +438,122 @@ test('galleryMessagesLoaded injects gallery-only messages without marking read',
     Message.getMessageRenderType(galleryMessage)
   )
   expect(markThreadAsRead).not.toHaveBeenCalled()
+})
+
+test('attachment download progress and completion update message transfer state', () => {
+  const attachment = makeAttachmentMessage({
+    transferErrMsg: 'old error',
+    transferProgress: 0,
+  })
+  const store = seedStore([attachment])
+
+  store.getState().dispatch.onEngineIncoming({
+    payload: {
+      params: {
+        bytesComplete: 25,
+        bytesTotal: 100,
+        convID: T.Chat.keyToConversationID(convID),
+        msgID: T.Chat.messageIDToNumber(attachment.id),
+      },
+    },
+    type: 'chat.1.NotifyChat.ChatAttachmentDownloadProgress',
+  } as never)
+
+  const downloading = store.getState().messageMap.get(attachment.ordinal)
+  expect(downloading?.type === 'attachment' ? downloading.transferErrMsg : undefined).toBeUndefined()
+  expect(downloading?.type === 'attachment' ? downloading.transferProgress : undefined).toBe(0.25)
+  expect(downloading?.type === 'attachment' ? downloading.transferState : undefined).toBe('downloading')
+
+  store.getState().dispatch.onEngineIncoming({
+    payload: {
+      params: {
+        convID: T.Chat.keyToConversationID(convID),
+        msgID: T.Chat.messageIDToNumber(attachment.id),
+      },
+    },
+    type: 'chat.1.NotifyChat.ChatAttachmentDownloadComplete',
+  } as never)
+
+  const complete = store.getState().messageMap.get(attachment.ordinal)
+  expect(complete?.type === 'attachment' ? complete.transferProgress : undefined).toBe(0)
+  expect(complete?.type === 'attachment' ? complete.transferState : undefined).toBeUndefined()
+})
+
+test('attachment transfer events ignore non-actionable rows', () => {
+  const downloaded = makeAttachmentMessage({
+    downloadPath: '/tmp/downloaded.png',
+    id: T.Chat.numberToMessageID(701),
+    ordinal: T.Chat.numberToOrdinal(701),
+    transferProgress: 0.5,
+  })
+  const completed = makeAttachmentMessage({
+    id: T.Chat.numberToMessageID(702),
+    ordinal: T.Chat.numberToOrdinal(702),
+    transferProgress: 1,
+  })
+  const text = makeTextMessage({
+    id: T.Chat.numberToMessageID(703),
+    ordinal: T.Chat.numberToOrdinal(703),
+  })
+  const store = seedStore([downloaded, completed, text])
+
+  ;[downloaded, completed, text].forEach(message => {
+    store.getState().dispatch.onEngineIncoming({
+      payload: {
+        params: {
+          bytesComplete: 75,
+          bytesTotal: 100,
+          convID: T.Chat.keyToConversationID(convID),
+          msgID: T.Chat.messageIDToNumber(message.id),
+        },
+      },
+      type: 'chat.1.NotifyChat.ChatAttachmentDownloadProgress',
+    } as never)
+  })
+  store.getState().dispatch.onEngineIncoming({
+    payload: {
+      params: {
+        bytesComplete: 75,
+        bytesTotal: 100,
+        convID: T.Chat.keyToConversationID(convID),
+        msgID: 9999,
+      },
+    },
+    type: 'chat.1.NotifyChat.ChatAttachmentDownloadProgress',
+  } as never)
+
+  const downloadedAfter = store.getState().messageMap.get(downloaded.ordinal)
+  const completedAfter = store.getState().messageMap.get(completed.ordinal)
+  const textAfter = store.getState().messageMap.get(text.ordinal)
+  expect(downloadedAfter?.type === 'attachment' ? downloadedAfter.transferProgress : undefined).toBe(0.5)
+  expect(completedAfter?.type === 'attachment' ? completedAfter.transferProgress : undefined).toBe(1)
+  expect(textAfter?.type).toBe('text')
+})
+
+test('attachment upload progress updates pending outbox-backed rows', () => {
+  const uploadOutboxID = T.Chat.stringToOutboxID('upload-outbox')
+  const attachment = makeAttachmentMessage({
+    outboxID: uploadOutboxID,
+    transferProgress: 0,
+  })
+  const store = seedStore([attachment])
+
+  store.getState().dispatch.onEngineIncoming({
+    payload: {
+      params: {
+        bytesComplete: 30,
+        bytesTotal: 60,
+        convID: T.Chat.keyToConversationID(convID),
+        outboxID: T.Chat.outboxIDToRpcOutboxID(uploadOutboxID),
+        uid: 'uid',
+      },
+    },
+    type: 'chat.1.NotifyChat.ChatAttachmentUploadProgress',
+  } as never)
+
+  const message = store.getState().messageMap.get(attachment.ordinal)
+  expect(message?.type === 'attachment' ? message.transferProgress : undefined).toBe(0.5)
+  expect(message?.type === 'attachment' ? message.transferState : undefined).toBe('uploading')
 })
 
 test('message updates merge into the existing message row', () => {
@@ -441,6 +586,37 @@ test('message updates merge into the existing message row', () => {
   expect(firstMessage?.author).toBe('alice')
   expect(firstMessage?.type === 'text' ? firstMessage.text.stringValue() : undefined).toBe('edited first')
   expect(store.getState().messageMap.has(secondOrdinal)).toBe(true)
+})
+
+test('message updates clear stale optional row metadata', () => {
+  const replyTo = makeTextMessage({
+    id: T.Chat.numberToMessageID(299),
+    ordinal: T.Chat.numberToOrdinal(299),
+    text: 'old reply',
+  })
+  const store = seedStore([
+    makeTextMessage({
+      decoratedText: new HiddenString('decorated old text'),
+      flipGameID: 'old-flip',
+      reactions: new Map([[':+1:', makeReaction('bob', 5)]]),
+      replyTo,
+      text: 'old text',
+      unfurls: new Map([['https://keybase.io', {} as T.RPCChat.UIMessageUnfurlInfo]]),
+    }),
+  ])
+
+  store.getState().dispatch.onMessagesUpdated({
+    convID: T.Chat.keyToConversationID(convID),
+    updates: [makeValidTextUIMessage(msgID, 'fresh text')],
+  })
+
+  const message = store.getState().messageMap.get(ordinal)
+  expect(message?.type === 'text' ? message.text.stringValue() : undefined).toBe('fresh text')
+  expect(message?.reactions).toBeUndefined()
+  expect(message?.type === 'text' ? message.decoratedText : undefined).toBeUndefined()
+  expect(message?.type === 'text' ? message.flipGameID : undefined).toBeUndefined()
+  expect(message?.type === 'text' ? message.replyTo : undefined).toBeUndefined()
+  expect(message?.type === 'text' ? message.unfurls : undefined).toBeUndefined()
 })
 
 test('reaction updates preserve outbox-anchored row identity', () => {
@@ -546,6 +722,20 @@ test('message deletion removes the ordinal and keeps the next row', () => {
   expect(store.getState().messageMap.get(secondOrdinal)?.author).toBe('bob')
 })
 
+test('message deletion clears attachment render type indexes', () => {
+  const attachment = makeAttachmentMessage()
+  const store = seedStore([attachment])
+
+  expect(store.getState().messageTypeMap.has(attachment.ordinal)).toBe(true)
+
+  store.getState().dispatch.messagesWereDeleted({messageIDs: [attachment.id]})
+
+  expect(store.getState().messageMap.has(attachment.ordinal)).toBe(false)
+  expect(store.getState().messageOrdinals).toEqual([])
+  expect(store.getState().messageIDToOrdinal.has(attachment.id)).toBe(false)
+  expect(store.getState().messageTypeMap.has(attachment.ordinal)).toBe(false)
+})
+
 test('message deletion up to a message ID honors deletable message types', () => {
   const earlyText = makeTextMessage({
     id: T.Chat.numberToMessageID(501),
@@ -611,6 +801,54 @@ test('messagesClear resets all message indexes and maps', () => {
   expect(store.getState().pendingOutboxToOrdinal.size).toBe(0)
   expect(store.getState().messageIDToOrdinal.size).toBe(0)
   expect(store.getState().validatedOrdinalRange).toBeUndefined()
+})
+
+test('initial thread loads prune stale ordinals inside the validated range', async () => {
+  const missingMsgID = T.Chat.numberToMessageID(902)
+  const attachment = makeAttachmentMessage({
+    id: missingMsgID,
+    ordinal: T.Chat.numberToOrdinal(902),
+  })
+  const store = seedStore([
+    makeTextMessage({
+      id: T.Chat.numberToMessageID(901),
+      ordinal: T.Chat.numberToOrdinal(901),
+      outboxID: T.Chat.stringToOutboxID('kept-first'),
+    }),
+    attachment,
+    makeTextMessage({
+      id: T.Chat.numberToMessageID(903),
+      ordinal: T.Chat.numberToOrdinal(903),
+      outboxID: T.Chat.stringToOutboxID('kept-last'),
+    }),
+  ])
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [
+          makeValidTextUIMessage(T.Chat.numberToMessageID(901), 'kept first'),
+          makeValidTextUIMessage(T.Chat.numberToMessageID(903), 'kept last'),
+        ],
+        pagination: {last: true, next: '', num: 2, previous: ''},
+      }),
+    })
+    return {offline: false}
+  })
+
+  store.getState().dispatch.loadMoreMessages({reason: 'centered'})
+  await flushPromises()
+
+  expect(store.getState().messageOrdinals).toEqual([
+    T.Chat.numberToOrdinal(901),
+    T.Chat.numberToOrdinal(903),
+  ])
+  expect(store.getState().messageMap.has(attachment.ordinal)).toBe(false)
+  expect(store.getState().messageIDToOrdinal.has(missingMsgID)).toBe(false)
+  expect(store.getState().messageTypeMap.has(attachment.ordinal)).toBe(false)
+  expect(store.getState().validatedOrdinalRange).toEqual({
+    from: T.Chat.numberToOrdinal(901),
+    to: T.Chat.numberToOrdinal(903),
+  })
 })
 
 test('server ack preserves the outbox-anchored ordinal and later msgID lookups hit that row', () => {
@@ -725,6 +963,166 @@ test('local setters update participants and badge', () => {
   expect(store.getState().badge).toBe(3)
 })
 
+test('local setters queue inbox row updates for visible metadata', () => {
+  const queue = queueInboxRowUpdate as jest.MockedFunction<typeof queueInboxRowUpdate>
+  queue.mockClear()
+  const store = createStore()
+
+  store.getState().dispatch.setMeta(makeMeta({teamname: 'acme'}))
+  store.getState().dispatch.updateMeta({channelname: 'general'})
+  store.getState().dispatch.badgesUpdated(3)
+  store.getState().dispatch.unreadUpdated(4)
+  store.getState().dispatch.setParticipants({
+    all: ['alice', 'bob'],
+    contactName: new Map(),
+    name: ['alice', 'bob'],
+  })
+
+  expect(queue).toHaveBeenCalledTimes(5)
+  expect(queue).toHaveBeenNthCalledWith(1, convID)
+  expect(queue).toHaveBeenNthCalledWith(5, convID)
+})
+
+test('updateFromUIInboxLayout seeds preview metadata before trusted meta arrives', () => {
+  const store = createStore()
+
+  store.getState().dispatch.updateFromUIInboxLayout({
+    channelname: '',
+    draft: 'draft text',
+    isMuted: true,
+    layoutName: 'alice, bob',
+    snippet: 'latest snippet',
+    snippetDecoration: T.RPCChat.SnippetDecoration.none,
+    teamname: '',
+    time: 123,
+  })
+
+  expect(store.getState().meta.draft).toBe('draft text')
+  expect(store.getState().meta.isMuted).toBe(true)
+  expect(store.getState().meta.snippet).toBe('latest snippet')
+  expect(store.getState().meta.timestamp).toBe(123)
+  expect(store.getState().participants.name).toEqual(['alice', 'bob'])
+
+  store.getState().dispatch.setMeta(makeMeta({draft: 'trusted draft'}))
+  store.getState().dispatch.updateFromUIInboxLayout({
+    draft: 'ignored draft',
+    isMuted: false,
+  })
+
+  expect(store.getState().meta.draft).toBe('trusted draft')
+})
+
+test('loadMessagesCentered clears stale thread state and requests a centered load', () => {
+  jest.spyOn(Common, 'getSelectedConversation').mockReturnValue(convID)
+  const store = seedStore([
+    makeTextMessage({
+      id: T.Chat.numberToMessageID(301),
+      ordinal: T.Chat.numberToOrdinal(301),
+    }),
+  ])
+  applyState(store, {validatedOrdinalRange: {from: T.Chat.numberToOrdinal(301), to: T.Chat.numberToOrdinal(301)}})
+  const loadMoreMessages = makeLoadMoreMessagesMock()
+  const current = store.getState()
+  store.setState({
+    ...current,
+    dispatch: {...current.dispatch, loadMoreMessages},
+  })
+
+  store.getState().dispatch.loadMessagesCentered(T.Chat.numberToMessageID(999), 'flash')
+
+  expect(store.getState().messageMap.size).toBe(0)
+  expect(store.getState().messageOrdinals).toBeUndefined()
+  expect(store.getState().validatedOrdinalRange).toBeUndefined()
+  expect(loadMoreMessages).toHaveBeenCalledWith(
+    expect.objectContaining({
+      centeredMessageID: {
+        conversationIDKey: convID,
+        highlightMode: 'flash',
+        messageID: T.Chat.numberToMessageID(999),
+      },
+      messageIDControl: expect.objectContaining({
+        mode: T.RPCChat.MessageIDControlMode.centered,
+        pivot: T.Chat.numberToMessageID(999),
+      }),
+      reason: 'centered',
+    })
+  )
+})
+
+test('jumpToRecent clears validated search state and reloads recent messages', () => {
+  const store = createStore()
+  const loadMoreMessages = makeLoadMoreMessagesMock()
+  const current = store.getState()
+  store.setState({
+    ...current,
+    dispatch: {...current.dispatch, loadMoreMessages},
+    validatedOrdinalRange: {from: T.Chat.numberToOrdinal(1), to: T.Chat.numberToOrdinal(3)},
+  })
+
+  store.getState().dispatch.jumpToRecent()
+
+  expect(store.getState().validatedOrdinalRange).toBeUndefined()
+  expect(loadMoreMessages).toHaveBeenCalledWith({reason: 'jump to recent'})
+})
+
+test('bot membership actions send restricted and unrestricted payloads', async () => {
+  const addBotMember = jest.spyOn(T.RPCChat, 'localAddBotMemberRpcPromise').mockResolvedValue(undefined)
+  const store = createStore()
+
+  store.getState().dispatch.addBotMember('helperbot', true, false, true, ['conv-a'])
+  store.getState().dispatch.addBotMember('openbot', false, false, false)
+  await flushPromises()
+
+  expect(addBotMember).toHaveBeenNthCalledWith(
+    1,
+    {
+      botSettings: {cmds: true, convs: ['conv-a'], mentions: false},
+      convID: T.Chat.keyToConversationID(convID),
+      role: T.RPCGen.TeamRole.restrictedbot,
+      username: 'helperbot',
+    },
+    expect.any(String)
+  )
+  expect(addBotMember).toHaveBeenNthCalledWith(
+    2,
+    {
+      botSettings: null,
+      convID: T.Chat.keyToConversationID(convID),
+      role: T.RPCGen.TeamRole.bot,
+      username: 'openbot',
+    },
+    expect.any(String)
+  )
+})
+
+test('bot edit and remove actions send service payloads with waiting keys', async () => {
+  const editBotSettings = jest
+    .spyOn(T.RPCChat, 'localSetBotMemberSettingsRpcPromise')
+    .mockResolvedValue(undefined)
+  const removeBotMember = jest.spyOn(T.RPCChat, 'localRemoveBotMemberRpcPromise').mockResolvedValue(undefined)
+  const store = createStore()
+
+  store.getState().dispatch.editBotSettings('helperbot', false, true, ['conv-b'])
+  store.getState().dispatch.removeBotMember('helperbot')
+  await flushPromises()
+
+  expect(editBotSettings).toHaveBeenCalledWith(
+    {
+      botSettings: {cmds: false, convs: ['conv-b'], mentions: true},
+      convID: T.Chat.keyToConversationID(convID),
+      username: 'helperbot',
+    },
+    expect.any(String)
+  )
+  expect(removeBotMember).toHaveBeenCalledWith(
+    {
+      convID: T.Chat.keyToConversationID(convID),
+      username: 'helperbot',
+    },
+    expect.any(String)
+  )
+})
+
 test('selectedConversation can defer thread load for route-owned highlight', () => {
   const store = createStore()
   jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
@@ -749,6 +1147,74 @@ test('setMarkAsUnread false is a no-op', () => {
   store.getState().dispatch.setMarkAsUnread(false)
 
   expect(markAsRead).not.toHaveBeenCalled()
+})
+
+test('setMarkAsUnread marks the previous visible message as the unread line', async () => {
+  useConfigState.setState({loggedIn: true})
+  const markAsRead = jest
+    .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
+    .mockResolvedValue({offline: false})
+  const store = seedStore([
+    makeTextMessage({
+      id: T.Chat.numberToMessageID(801),
+      ordinal: T.Chat.numberToOrdinal(801),
+      outboxID: T.Chat.stringToOutboxID('before-unread'),
+    }),
+    makeTextMessage({
+      id: T.Chat.numberToMessageID(802),
+      ordinal: T.Chat.numberToOrdinal(802),
+      outboxID: T.Chat.stringToOutboxID('at-unread'),
+    }),
+  ])
+  applyState(store, {meta: makeMeta({maxVisibleMsgID: T.Chat.numberToMessageID(802)})})
+
+  store.getState().dispatch.setMarkAsUnread(T.Chat.numberToMessageID(802))
+  await flushPromises()
+
+  expect(markAsRead).toHaveBeenCalledWith({
+    conversationID: T.Chat.keyToConversationID(convID),
+    forceUnread: true,
+    msgID: T.Chat.numberToMessageID(801),
+  })
+})
+
+test('setMarkAsUnread loads a tiny thread window when the message map is empty', async () => {
+  useConfigState.setState({loggedIn: true})
+  const markAsRead = jest
+    .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
+    .mockResolvedValue({offline: false})
+  let threadRequest:
+    | Parameters<typeof T.RPCChat.localGetThreadNonblockRpcListener>[0]
+    | undefined
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    threadRequest = p
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [
+          makeValidTextUIMessage(T.Chat.numberToMessageID(900), 'newer'),
+          makeValidTextUIMessage(T.Chat.numberToMessageID(899), 'older'),
+        ],
+      }),
+    })
+    return {offline: false}
+  })
+  const store = createStore()
+  applyState(store, {meta: makeMeta({maxVisibleMsgID: T.Chat.numberToMessageID(900)})})
+
+  store.getState().dispatch.setMarkAsUnread()
+  await flushPromises()
+
+  expect(threadRequest?.params.pagination).toEqual({
+    last: false,
+    next: '',
+    num: 2,
+    previous: '',
+  })
+  expect(markAsRead).toHaveBeenCalledWith({
+    conversationID: T.Chat.keyToConversationID(convID),
+    forceUnread: true,
+    msgID: T.Chat.numberToMessageID(899),
+  })
 })
 
 test('selectedConversation resets threadLoadStatus', () => {
