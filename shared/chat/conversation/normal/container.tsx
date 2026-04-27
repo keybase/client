@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
-import {useShellState} from '@/stores/shell'
+import {type State as ShellState, useShellState} from '@/stores/shell'
 import * as React from 'react'
 import {useEngineActionListener} from '@/engine/action-listener'
 import Normal from '.'
@@ -16,32 +16,49 @@ import {useChatThreadRouteParams} from '../thread-search-route'
 
 type OrangeLineState = {
   conversationIDKey: T.Chat.ConversationIDKey
-  mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
+  mobileAppState: ShellState['mobileAppState']
   orangeLine: T.Chat.Ordinal
+}
+
+type OrangeLineKey = Omit<OrangeLineState, 'orangeLine'>
+
+const noOrangeLine = T.Chat.numberToOrdinal(0)
+
+const getCurrentOrangeLineState = (
+  state: OrangeLineState,
+  conversationIDKey: T.Chat.ConversationIDKey,
+  mobileAppState: ShellState['mobileAppState']
+): OrangeLineState => {
+  if (state.conversationIDKey === conversationIDKey && state.mobileAppState === mobileAppState) {
+    return state
+  }
+
+  return {
+    conversationIDKey,
+    mobileAppState,
+    orangeLine:
+      state.conversationIDKey === conversationIDKey && mobileAppState === 'active'
+        ? state.orangeLine
+        : noOrangeLine,
+  }
 }
 
 const useOrangeLine = () => {
   const id = ConvoState.useChatContext(s => s.id)
-  const active = useShellState(s => s.active)
-  const mobileAppState = useShellState(s => s.mobileAppState)
-  const noOrangeLine = T.Chat.numberToOrdinal(0)
+  const {active, mobileAppState} = useShellState(
+    C.useShallow(s => ({active: s.active, mobileAppState: s.mobileAppState}))
+  )
   const [orangeLineState, setOrangeLineState] = React.useState<OrangeLineState>(() => ({
     conversationIDKey: id,
     mobileAppState,
     orangeLine: noOrangeLine,
   }))
-  let currentOrangeLineState = orangeLineState
-  if (orangeLineState.conversationIDKey !== id || orangeLineState.mobileAppState !== mobileAppState) {
-    currentOrangeLineState = {
-      conversationIDKey: id,
-      mobileAppState,
-      orangeLine:
-        orangeLineState.conversationIDKey === id && mobileAppState === 'active'
-          ? orangeLineState.orangeLine
-          : noOrangeLine,
-    }
-    setOrangeLineState(currentOrangeLineState)
-  }
+  const currentOrangeLineState = getCurrentOrangeLineState(orangeLineState, id, mobileAppState)
+  const currentOrangeLineKeyRef = React.useRef<OrangeLineKey>({conversationIDKey: id, mobileAppState})
+  React.useLayoutEffect(() => {
+    currentOrangeLineKeyRef.current = {conversationIDKey: id, mobileAppState}
+    setOrangeLineState(state => getCurrentOrangeLineState(state, id, mobileAppState))
+  }, [id, mobileAppState])
   // Snapshot readMsgID during render (synchronous, before any effects like markThreadAsRead)
   // This ensures we capture the read position before the Go service processes mark-as-read
   const savedReadMsgID = React.useMemo(() => ConvoState.getConvoState(id).meta.readMsgID, [id])
@@ -60,9 +77,14 @@ const useOrangeLine = () => {
         const nextOrangeLine = T.Chat.numberToOrdinal(
           unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
         )
-        setOrangeLineState(state =>
-          state.conversationIDKey === conversationIDKey ? {...state, orangeLine: nextOrangeLine} : state
-        )
+        const currentKey = currentOrangeLineKeyRef.current
+        if (currentKey.conversationIDKey !== conversationIDKey) {
+          return
+        }
+        setOrangeLineState(state => ({
+          ...getCurrentOrangeLineState(state, currentKey.conversationIDKey, currentKey.mobileAppState),
+          orangeLine: nextOrangeLine,
+        }))
       }
       C.ignorePromise(f())
     }
@@ -90,8 +112,15 @@ const useOrangeLine = () => {
   }, [maxVisibleMsgID, active, id])
 
   const setOrangeLine = (messageID: T.Chat.MessageID) => {
+    const currentKey = currentOrangeLineKeyRef.current
+    if (currentKey.conversationIDKey !== id) {
+      return
+    }
     const orangeLine = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(messageID))
-    setOrangeLineState(state => (state.conversationIDKey === id ? {...state, orangeLine} : state))
+    setOrangeLineState(state => ({
+      ...getCurrentOrangeLineState(state, currentKey.conversationIDKey, currentKey.mobileAppState),
+      orangeLine,
+    }))
   }
 
   return {orangeLine: currentOrangeLineState.orangeLine, setOrangeLine}
