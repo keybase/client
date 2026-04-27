@@ -1,7 +1,12 @@
 import * as C from '@/constants'
 import * as ConvoState from '@/stores/convostate'
+import * as Meta from '@/constants/chat/meta'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import logger from '@/logger'
+import {clearChatTimeCache} from '@/util/timestamp'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useUsersState} from '@/stores/users'
 import {
   getConversationThreadCacheSnapshot,
   putConversationThreadCacheSnapshot,
@@ -38,6 +43,14 @@ type SelectedConversationOptions = ThreadLoadStatusOptions & {
   skipThreadLoad?: boolean
 }
 
+type LoadMoreMessages = ConvoState.ConvoState['dispatch']['loadMoreMessages']
+type LoadMessagesCentered = ConvoState.ConvoState['dispatch']['loadMessagesCentered']
+type LoadOlderMessagesDueToScroll =
+  ConvoState.ConvoState['dispatch']['loadOlderMessagesDueToScroll']
+type LoadNewerMessagesDueToScroll =
+  ConvoState.ConvoState['dispatch']['loadNewerMessagesDueToScroll']
+type SelectedConversation = ConvoState.ConvoState['dispatch']['selectedConversation']
+
 export type ThreadLoadStatusReporter = (
   conversationIDKey: T.Chat.ConversationIDKey,
   status: T.RPCChat.UIChatThreadStatusTyp
@@ -52,6 +65,26 @@ export const useConversationThreadID = () => {
 }
 
 const useCachedSnapshot = () => React.useContext(ConversationThreadCacheContext)
+
+const useScrollLoadGate = () => {
+  const lastScrollNumOrdinalsRef = React.useRef(0)
+  const lastScrollTimeRef = React.useRef(0)
+  return (numOrdinals: number) => {
+    const now = Date.now()
+    if (numOrdinals !== lastScrollNumOrdinalsRef.current) {
+      lastScrollNumOrdinalsRef.current = numOrdinals
+      lastScrollTimeRef.current = now
+      return true
+    }
+
+    const ok = now - lastScrollTimeRef.current > 500
+    if (ok) {
+      lastScrollNumOrdinalsRef.current = numOrdinals
+      lastScrollTimeRef.current = now
+    }
+    return ok
+  }
+}
 
 const useConversationThreadSnapshotValue = <TValue,>(
   selector: (snapshot: ConversationThreadSnapshot) => TValue
@@ -152,22 +185,93 @@ export const useConversationThreadListData = () => {
 
 export const useConversationThreadLoadMoreMessages = () => {
   const conversationIDKey = useConversationThreadID()
-  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.loadMoreMessages)
+  return ConvoState.useConvoState(
+    conversationIDKey,
+    (s): LoadMoreMessages => s.dispatch.loadMoreMessages
+  )
+}
+
+const useConversationThreadMessagesClear = () => {
+  const conversationIDKey = useConversationThreadID()
+  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.messagesClear)
 }
 
 export const useConversationThreadLoadOlderMessagesDueToScroll = () => {
   const conversationIDKey = useConversationThreadID()
-  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.loadOlderMessagesDueToScroll)
+  const loadMoreMessages = useConversationThreadLoadMoreMessages()
+  const okToLoadMore = useScrollLoadGate()
+
+  const loadOlderMessagesDueToScroll: LoadOlderMessagesDueToScroll = (numOrdinals, options) => {
+    if (!ConvoState.getConvoState(conversationIDKey).moreToLoadBack) {
+      logger.info('bail: scrolling back and at the end')
+      return
+    }
+
+    if (!numOrdinals) {
+      return
+    }
+
+    if (!okToLoadMore(numOrdinals)) {
+      return
+    }
+
+    loadMoreMessages({
+      ...(options ?? {}),
+      numberOfMessagesToLoad: ConvoState.numMessagesOnScrollback,
+      reason: 'scroll back',
+      scrollDirection: 'back',
+    })
+  }
+  return loadOlderMessagesDueToScroll
 }
 
 export const useConversationThreadLoadNewerMessagesDueToScroll = () => {
-  const conversationIDKey = useConversationThreadID()
-  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.loadNewerMessagesDueToScroll)
+  const loadMoreMessages = useConversationThreadLoadMoreMessages()
+  const okToLoadMore = useScrollLoadGate()
+
+  const loadNewerMessagesDueToScroll: LoadNewerMessagesDueToScroll = (numOrdinals, options) => {
+    if (!numOrdinals) {
+      return
+    }
+
+    if (!okToLoadMore(numOrdinals)) {
+      return
+    }
+
+    loadMoreMessages({
+      ...(options ?? {}),
+      numberOfMessagesToLoad: ConvoState.numMessagesOnScrollback,
+      reason: 'scroll forward',
+      scrollDirection: 'forward',
+    })
+  }
+  return loadNewerMessagesDueToScroll
 }
 
 export const useConversationThreadLoadMessagesCentered = () => {
   const conversationIDKey = useConversationThreadID()
-  return ConvoState.useConvoState(conversationIDKey, s => s.dispatch.loadMessagesCentered)
+  const loadMoreMessages = useConversationThreadLoadMoreMessages()
+  const messagesClear = useConversationThreadMessagesClear()
+
+  const loadMessagesCentered: LoadMessagesCentered = (messageID, highlightMode, options) => {
+    messagesClear()
+    loadMoreMessages({
+      centeredMessageID: {
+        conversationIDKey,
+        highlightMode,
+        messageID,
+      },
+      forceContainsLatestCalc: true,
+      messageIDControl: {
+        mode: T.RPCChat.MessageIDControlMode.centered,
+        num: ConvoState.numMessagesOnInitialLoad,
+        pivot: messageID,
+      },
+      ...(options ?? {}),
+      reason: 'centered',
+    })
+  }
+  return loadMessagesCentered
 }
 
 export const useConversationThreadJumpToRecent = () => {
@@ -182,10 +286,32 @@ export const useConversationThreadMarkThreadAsRead = () => {
 
 export const useConversationThreadSelectedConversation = () => {
   const conversationIDKey = useConversationThreadID()
-  return ConvoState.useConvoState(
-    conversationIDKey,
-    (s): ((options?: SelectedConversationOptions) => void) => s.dispatch.selectedConversation
-  )
+  const loadMoreMessages = useConversationThreadLoadMoreMessages()
+
+  const selectedConversation: SelectedConversation = (options?: SelectedConversationOptions) => {
+    const {skipThreadLoad, ...loadStatusOptions} = options ?? {}
+    clearChatTimeCache()
+
+    const state = ConvoState.getConvoState(conversationIDKey)
+    const participantInfo = state.participants
+    const force = !state.isMetaGood() || participantInfo.all.length === 0
+    ConvoState.unboxRows([conversationIDKey], force)
+
+    const username = useCurrentUserState.getState().username
+    const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
+    if (otherParticipants.length === 1) {
+      const otherUsername = otherParticipants[0] || ''
+
+      if (otherUsername && !otherUsername.includes('@')) {
+        useUsersState.getState().dispatch.getBio(otherUsername)
+      }
+    }
+
+    if (!skipThreadLoad) {
+      loadMoreMessages({...loadStatusOptions, reason: 'focused'})
+    }
+  }
+  return selectedConversation
 }
 
 export const useConversationThreadToggleSearch = () => {

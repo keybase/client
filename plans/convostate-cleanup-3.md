@@ -66,14 +66,17 @@ The intended end state is:
   - [ ] `moreToLoadForward`
   - [ ] `validatedOrdinalRange`
 - [ ] Move thread-loading actions into provider-owned actions:
-  - [ ] `selectedConversation`
+  - [x] `selectedConversation`
   - [x] `tabSelected`
   - [ ] `loadMoreMessages`
-  - [ ] `loadOlderMessagesDueToScroll`
-  - [ ] `loadNewerMessagesDueToScroll`
-  - [ ] `loadMessagesCentered`
+  - [x] `loadOlderMessagesDueToScroll`
+  - [x] `loadNewerMessagesDueToScroll`
+  - [x] `loadMessagesCentered`
   - [ ] `jumpToRecent`
   - [ ] `messagesClear`
+  - Mounted provider path now owns `selectedConversation`, centered loads, and scroll pagination wrappers
+    through `thread-context`; `convostate` remains as the compatibility backend until `loadMoreMessages`
+    and message mutations move.
 - [ ] Preserve current loading semantics
   - [ ] initial load still requests `numMessagesOnInitialLoad`
   - [ ] pagination still uses forward/back pagination tokens
