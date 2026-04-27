@@ -235,7 +235,7 @@ const createStore = () => createConvoStoreForTesting(convID)
 
 const makeLoadMoreMessagesMock = () =>
   Object.assign(
-    jest.fn<(...args: Parameters<ConvoState['dispatch']['loadMoreMessages']>) => void>(),
+    jest.fn<void, Parameters<ConvoState['dispatch']['loadMoreMessages']>>(),
     {
       cancel: () => {},
       flush: () => {},
@@ -393,7 +393,7 @@ test('galleryMessagesLoaded injects gallery-only messages without marking read',
     ordinal: T.Chat.numberToOrdinal(501),
   })
   const store = seedStore([threadMessage])
-  const markThreadAsRead = jest.fn<ConvoState['dispatch']['markThreadAsRead']>()
+  const markThreadAsRead = jest.fn<void, [force?: boolean]>()
   const current = store.getState()
   store.setState({
     ...current,
