@@ -55,9 +55,9 @@ const useScrolling = (p: {
   const scrollBottomOffsetRef = React.useRef<number | undefined>(undefined)
 
   const loadOlderMessagesDueToScroll = ConvoState.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
-  const loadOlderMessages = (numOrdinals: number) => {
+  const loadOlderMessages = React.useCallback((numOrdinals: number) => {
     loadOlderMessagesDueToScroll(numOrdinals, {onThreadLoadStatus})
-  }
+  }, [loadOlderMessagesDueToScroll, onThreadLoadStatus])
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
