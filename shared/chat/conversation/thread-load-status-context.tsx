@@ -1,8 +1,10 @@
-import type {ThreadLoadStatusReporter} from '@/stores/convostate'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
+import {useShellState} from '@/stores/shell'
 import {
+  type ThreadLoadStatusReporter,
+  useConversationThreadMarkThreadAsRead,
   useConversationThreadLoadMoreMessages,
   useConversationThreadSelectedConversation,
 } from './thread-context'
@@ -39,7 +41,10 @@ export const ConversationThreadLoadStatusProvider = (
   const {children, id, skipThreadLoadOnSelection = false} = p
   const [initialSkipThreadLoadOnSelection] = React.useState(skipThreadLoadOnSelection)
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
+  const markThreadAsRead = useConversationThreadMarkThreadAsRead()
   const selectedConversation = useConversationThreadSelectedConversation()
+  const appFocused = useShellState(s => s.appFocused)
+  const previousAppFocusedRef = React.useRef(appFocused)
   const [threadLoadStatusState, setThreadLoadStatusState] = React.useState<ThreadLoadStatusState>(() => ({
     conversationIDKey: id,
     status: noThreadLoadStatus,
@@ -61,6 +66,22 @@ export const ConversationThreadLoadStatusProvider = (
       reason: 'got stale',
     })
   }
+
+  const reloadForegroundedThread = React.useEffectEvent(() => {
+    loadMoreMessages({
+      onThreadLoadStatus,
+      reason: 'foregrounding',
+    })
+    markThreadAsRead()
+  })
+
+  React.useEffect(() => {
+    const previousAppFocused = previousAppFocusedRef.current
+    previousAppFocusedRef.current = appFocused
+    if (appFocused && !previousAppFocused) {
+      reloadForegroundedThread()
+    }
+  }, [appFocused])
 
   useEngineActionListener('chat.1.NotifyChat.ChatThreadsStale', action => {
     const hasStaleThread = (action.payload.params.updates ?? []).some(

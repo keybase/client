@@ -6,6 +6,7 @@ import {findLast} from '@/util/arrays'
 import {useChatThreadRouteParams, type ThreadInputAction} from '../thread-search-route'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
+import {useConversationThreadMessageMap, useConversationThreadMessageOrdinalsMaybe} from '../thread-context'
 
 type ConversationInputStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown
@@ -102,6 +103,8 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   const {children, id} = p
   const routeInputAction = useChatThreadRouteParams()?.inputAction
   const [state, dispatchState] = React.useReducer(inputReducer, initialConversationInputStore)
+  const messageMap = useConversationThreadMessageMap()
+  const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
 
   const injectIntoInput = React.useCallback((text?: string) => {
     dispatchState({text, type: 'injectIntoInput'})
@@ -131,7 +134,6 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
         return
       }
 
-      const {messageMap, messageOrdinals} = ConvoState.getConvoState(id)
       let ordinal: T.Chat.Ordinal | undefined
       if (e === 'last') {
         const editLastUser = useCurrentUserState.getState().username
@@ -160,7 +162,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
         })
       }
     },
-    [id]
+    [messageMap, messageOrdinals]
   )
   const sendComposerText = React.useCallback(
     (text: string) => {

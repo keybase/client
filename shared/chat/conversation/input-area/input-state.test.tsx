@@ -10,6 +10,7 @@ import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import {ConversationInputProvider, useConversationInput} from './input-state'
+import {ConversationThreadProvider} from '../thread-context'
 
 let mockRouteParams: Record<string, unknown> = {}
 jest.mock('@react-navigation/native', () => ({
@@ -80,7 +81,9 @@ const wrapperFor = (id: T.Chat.ConversationIDKey) =>
   function Wrapper(p: React.PropsWithChildren) {
     return (
       <ChatProvider id={id}>
-        <ConversationInputProvider id={id}>{p.children}</ConversationInputProvider>
+        <ConversationThreadProvider id={id} seedFromCache={false}>
+          <ConversationInputProvider id={id}>{p.children}</ConversationInputProvider>
+        </ConversationThreadProvider>
       </ChatProvider>
     )
   }

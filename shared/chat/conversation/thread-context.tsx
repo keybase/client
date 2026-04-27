@@ -30,12 +30,17 @@ const selectSnapshot = (s: ConvoState.ConvoState): ConversationThreadSnapshot =>
 })
 
 type ThreadLoadStatusOptions = {
-  onThreadLoadStatus?: ConvoState.ThreadLoadStatusReporter
+  onThreadLoadStatus?: ThreadLoadStatusReporter
 }
 
 type SelectedConversationOptions = ThreadLoadStatusOptions & {
   skipThreadLoad?: boolean
 }
+
+export type ThreadLoadStatusReporter = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  status: T.RPCChat.UIChatThreadStatusTyp
+) => void
 
 export const useConversationThreadID = () => {
   const conversationIDKey = React.useContext(ConversationThreadIDContext)

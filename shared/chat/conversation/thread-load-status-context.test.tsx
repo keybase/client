@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useShellState} from '@/stores/shell'
 import {
   ConversationThreadLoadStatusProvider,
   useThreadLoadStatus,
@@ -98,6 +99,32 @@ test('mounted stale-thread reload reports status through the provider', async ()
       },
       type: 'chat.1.NotifyChat.ChatThreadsStale',
     } as never)
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(result.current).toBe(T.RPCChat.UIChatThreadStatusTyp.server)
+})
+
+test('mounted focus reload reports status through the provider', async () => {
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadStatus']?.({
+      status: {typ: T.RPCChat.UIChatThreadStatusTyp.server},
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(() => useThreadLoadStatus(), {wrapper})
+
+  act(() => {
+    useShellState.getState().dispatch.changedFocus(false)
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+  act(() => {
+    useShellState.getState().dispatch.changedFocus(true)
   })
   await act(async () => {
     await flushPromises()

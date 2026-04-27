@@ -49,7 +49,7 @@ The intended end state is:
   - [ ] Do not add subscriptions, in-flight request registries, or hidden mutable feature state to the cache
 - [ ] Route thread entry through the provider
   - [x] Seed normal thread entry from the cache if present, while avoiding cache seeding for centered/highlight loads
-  - [ ] Always refresh/reload from the chat service on entry or focus
+  - [x] Always refresh/reload from the chat service on entry or focus
   - [x] Replace stale cache entries after service results arrive
   - [ ] Ignore stale async responses for conversations that are no longer mounted
 

@@ -9,6 +9,7 @@ import type * as T from '@/constants/types'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type * as WalletTypes from '@/constants/types/wallets'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
+import {useConversationThreadMessage} from '@/chat/conversation/thread-context'
 import {useCurrentUserState} from '@/stores/current-user'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
@@ -183,8 +184,7 @@ function PaymentStatusContainer(p: OwnProps) {
   const status = error ? 'error' : (paymentInfo?.status ?? 'pending')
 
   const you = useCurrentUserState(s => s.username)
-  // TODO remove
-  const message = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
+  const message = useConversationThreadMessage(ordinal)
   const author = message?.author
   const allowPopup =
     status === 'completed' || status === 'pending' || status === 'claimable' || author === you
