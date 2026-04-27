@@ -37,6 +37,20 @@ const CenterContext = React.createContext<CenterContextType>({
 
 export const useConversationCenter = () => React.useContext(CenterContext)
 
+const stateForThreadSearchVisible = (state: CenterState, threadSearchVisible: boolean): CenterState => {
+  if (state.threadSearchVisible === threadSearchVisible) {
+    return state
+  }
+  return {
+    center: threadSearchVisible
+      ? state.center
+        ? {...state.center, highlightMode: 'none'}
+        : undefined
+      : undefined,
+    threadSearchVisible,
+  }
+}
+
 export const ConversationCenterProvider = function ConversationCenterProvider(p: {
   children: React.ReactNode
   id: T.Chat.ConversationIDKey
@@ -51,29 +65,27 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
     threadSearchVisible,
   }))
 
-  let currentCenterState = centerState
-  if (centerState.threadSearchVisible !== threadSearchVisible) {
-    currentCenterState = {
-      center: threadSearchVisible
-        ? centerState.center
-          ? {...centerState.center, highlightMode: 'none'}
-          : undefined
-        : undefined,
-      threadSearchVisible,
-    }
-    setCenterState(currentCenterState)
-  }
+  const currentCenterState = stateForThreadSearchVisible(centerState, threadSearchVisible)
+  React.useEffect(() => {
+    setCenterState(state => stateForThreadSearchVisible(state, threadSearchVisible))
+  }, [threadSearchVisible])
 
   const setCenterForMessage = (
     messageID: T.Chat.MessageID,
     highlightMode: T.Chat.CenterOrdinalHighlightMode
   ) => {
     const ordinal = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(messageID))
-    setCenterState(state => ({...state, center: {highlightMode, ordinal}}))
+    setCenterState(state => ({
+      ...stateForThreadSearchVisible(state, threadSearchVisible),
+      center: {highlightMode, ordinal},
+    }))
   }
 
   const clearCenter = () => {
-    setCenterState(state => (state.center ? {...state, center: undefined} : state))
+    setCenterState(state => {
+      const current = stateForThreadSearchVisible(state, threadSearchVisible)
+      return current.center ? {...current, center: undefined} : current
+    })
   }
 
   const centerOnMessage = (

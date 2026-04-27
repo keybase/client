@@ -155,7 +155,7 @@ const useDataSource = (filter: string) => {
 
   // TODO this will thrash always
   return {
-    items: suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
+    items: suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)),
     loading: suggestChannelsLoading || loadingMutualTeamnames,
   }
 }
