@@ -86,8 +86,8 @@ async function listener(p: {
           }
         }
 
-        // Yield after sending the auto-response so transport work can flush
-        // before handlers do heavier state updates.
+        // Give transport a short window to drain callback bursts before
+        // handlers do heavier state updates.
         setTimeout(() => {
           const invokeAndDispatch = wrapErrors(async () => {
             if (response) {
@@ -102,7 +102,7 @@ async function listener(p: {
           invokeAndDispatch()
             .then(() => {})
             .catch(() => {})
-        }, 0)
+        }, 5)
       }
       return map
     }, {})
