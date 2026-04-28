@@ -49,9 +49,8 @@ const Header2 = () => {
   const first = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
 
   // length ===1 means just you so show yourself
-  const withoutSelf = participants && participants.length > 1
-    ? participants.filter(part => part !== username)
-    : participants
+  const withoutSelf =
+    participants && participants.length > 1 ? participants.filter(part => part !== username) : participants
 
   const {teamID} = meta
   const {yourOperations} = useChatTeam(teamID, teamname)
@@ -70,7 +69,7 @@ const Header2 = () => {
   }
   const privateFolderPath = tlfname
     ? `${Config.defaultKBFSPath}${Config.defaultPrivatePrefix}${tlfname}`
-    : participants && participants.length
+    : participants?.length
       ? Config.privateFolderWithUsers(participants)
       : ''
   const folderPath = isTeam ? (teamname ? Config.teamFolder(teamname) : '') : privateFolderPath

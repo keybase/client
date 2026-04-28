@@ -1,13 +1,17 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import type * as T from '@/constants/types'
 import {openSMS as _openSMS} from '@/util/misc'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {showShareActionSheet} from '@/util/platform-specific'
-import {useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from './thread-context'
+import {
+  useConversationThreadID,
+  useConversationThreadMeta,
+  useConversationThreadParticipants,
+} from './thread-context'
 import {useBottomBannerState} from './bottom-banner-state'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
@@ -48,7 +52,9 @@ const Invite = (props: {onDismiss: () => void}) => {
   if (C.isMobile) {
     return (
       <BannerBox color={Kb.Styles.globalColors.blue} gap="xtiny">
-        <Kb.Text center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text>
+        <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
+          {caption}
+        </Kb.Text>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
           <Kb.Button
             label="Send install link"
@@ -72,7 +78,9 @@ const Invite = (props: {onDismiss: () => void}) => {
 
   return (
     <BannerBox color={Kb.Styles.globalColors.blue}>
-      <Kb.Text center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text>
+      <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
+        {caption}
+      </Kb.Text>
       <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
         Send them this link:
         <Kb.Text

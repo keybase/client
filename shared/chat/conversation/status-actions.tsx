@@ -75,7 +75,7 @@ export const muteConversation = (conversationIDKey: T.Chat.ConversationIDKey, mu
   )
 }
 
-export const muteConversationPromise = (conversationIDKey: T.Chat.ConversationIDKey, muted: boolean) =>
+export const muteConversationPromise = async (conversationIDKey: T.Chat.ConversationIDKey, muted: boolean) =>
   setConversationStatusPromise(
     conversationIDKey,
     muted ? T.RPCChat.ConversationStatus.muted : T.RPCChat.ConversationStatus.unfiled
