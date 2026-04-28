@@ -439,6 +439,7 @@ type AttachmentViewState = {
   attachmentViewMap: AttachmentViewMap
   conversationIDKey: T.Chat.ConversationIDKey
 }
+type AttachmentLoadReason = 'initial-effect' | 'load-more' | 'retry' | 'tab-change'
 
 const emptyAttachmentViewMap: AttachmentViewMap = new Map()
 
@@ -447,9 +448,6 @@ const makeAttachmentViewInfo = (): T.Chat.AttachmentViewInfo => ({
   messages: [],
   status: 'loading',
 })
-
-const isCanceledRPCError = (error: RPCError | Error) =>
-  error instanceof RPCError && error.code === T.RPCGen.StatusCode.sccanceled
 
 const updateAttachmentViewMap = (
   attachmentViewMap: AttachmentViewMap,
@@ -516,12 +514,23 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
   }
 
   const loadAttachmentView = React.useEffectEvent(
-    (viewType: T.RPCChat.GalleryItemTyp, fromMsgID?: T.Chat.MessageID) => {
+    (
+      viewType: T.RPCChat.GalleryItemTyp,
+      fromMsgID: T.Chat.MessageID | undefined,
+      reason: AttachmentLoadReason
+    ) => {
       updateCurrentAttachmentViewMap(viewType, info => {
         info.status = 'loading'
       })
 
       const generation = ++loadGenerationRef.current
+      logger.info('attachment gallery load start', {
+        conversationIDKey,
+        fromMsgID,
+        generation,
+        reason,
+        viewType,
+      })
       const isCurrentLoad = () => loadGenerationRef.current === generation
       const f = async () => {
         const convID = T.Chat.keyToConversationID(conversationIDKey)
@@ -604,30 +613,49 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
           })
           flushPendingMessages()
           if (!isCurrentLoad()) {
+            logger.info('attachment gallery load stale success ignored', {
+              conversationIDKey,
+              fromMsgID,
+              generation,
+              reason,
+              viewType,
+            })
             return
           }
+          logger.info('attachment gallery load success', {
+            conversationIDKey,
+            fromMsgID,
+            generation,
+            last: !!res.last,
+            reason,
+            viewType,
+          })
           updateCurrentAttachmentViewMap(viewType, info => {
             info.last = !!res.last
             info.status = 'success'
           })
         } catch (error) {
           flushPendingMessages()
-          if (
-            (error instanceof RPCError || error instanceof Error) &&
-            isCanceledRPCError(error) &&
-            isCurrentLoad()
-          ) {
-            updateCurrentAttachmentViewMap(viewType, info => {
-              if (info.messages.length) {
-                info.last = false
-                info.status = 'success'
-              }
+          if ((error instanceof RPCError || error instanceof Error) && isCurrentLoad()) {
+            logger.error('failed to load attachment view: ' + error.message, {
+              conversationIDKey,
+              fromMsgID,
+              generation,
+              reason,
+              viewType,
             })
-          } else if ((error instanceof RPCError || error instanceof Error) && isCurrentLoad()) {
-            logger.error('failed to load attachment view: ' + error.message)
             updateCurrentAttachmentViewMap(viewType, info => {
               info.last = false
               info.status = 'error'
+            })
+          } else if (error instanceof RPCError || error instanceof Error) {
+            logger.info('attachment gallery load stale error ignored', {
+              conversationIDKey,
+              error: error.message,
+              fromMsgID,
+              generation,
+              reason,
+              viewType,
             })
           }
         } finally {
@@ -669,7 +697,7 @@ export const useAttachmentSections = (
   }
 
   const loadSelectedAttachmentView = React.useEffectEvent(() => {
-    loadAttachmentView(selectedAttachmentView)
+    loadAttachmentView(selectedAttachmentView, undefined, 'initial-effect')
   })
   React.useEffect(() => {
     if (!loadImmediately) {
@@ -686,7 +714,9 @@ export const useAttachmentSections = (
   const attachmentInfo = getLiveAttachmentInfo(attachmentViewMap.get(selectedAttachmentView), messageMap)
   const fromMsgID = attachmentInfo ? getFromMsgID(attachmentInfo) : undefined
 
-  const onLoadMore = fromMsgID ? () => loadAttachmentView(selectedAttachmentView, fromMsgID) : undefined
+  const onLoadMore = fromMsgID
+    ? () => loadAttachmentView(selectedAttachmentView, fromMsgID, 'load-more')
+    : undefined
 
   const onAttachmentViewChange = (viewType: T.RPCChat.GalleryItemTyp) => {
     if (viewType === selectedAttachmentView) {
@@ -695,13 +725,13 @@ export const useAttachmentSections = (
     onSelectAttachmentView(viewType)
     if (loadImmediately) {
       setTimeout(() => {
-        loadAttachmentView(viewType)
+        loadAttachmentView(viewType, undefined, 'tab-change')
       }, 1)
     }
   }
 
   const loadAttachments = () => {
-    loadAttachmentView(selectedAttachmentView)
+    loadAttachmentView(selectedAttachmentView, undefined, 'retry')
   }
 
   const onMediaClick = (message: T.Chat.MessageAttachment) => showAttachmentPreview(message.ordinal)

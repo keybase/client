@@ -3,9 +3,7 @@
 import {act, cleanup, renderHook} from '@testing-library/react'
 import type * as React from 'react'
 import * as T from '@/constants/types'
-import logger from '@/logger'
 import {resetAllStores} from '@/util/zustand'
-import {RPCError} from '@/util/errors'
 import {useCurrentUserState} from '@/stores/current-user'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {getConversationThreadCacheSnapshot} from '../thread-cache'
@@ -250,42 +248,6 @@ test('attachment gallery waits to load until the attachments view is active', as
   })
 
   expect(requests).toHaveLength(1)
-})
-
-test('attachment gallery does not surface RPC cancels from superseded loads as errors', async () => {
-  const loggerError = jest.spyOn(logger, 'error').mockImplementation(() => {})
-  let rejectLoad: ((error: RPCError) => void) | undefined
-  jest.spyOn(T.RPCChat, 'localLoadGalleryRpcListener').mockImplementation(
-    p =>
-      new Promise<T.RPCChat.LoadGalleryRes>((_resolve, reject) => {
-        rejectLoad = reject
-        p.incomingCallMap['chat.1.chatUi.chatLoadGalleryHit']?.({
-          message: makeValidTextUIMessage(T.Chat.numberToMessageID(100), 'gallery hit'),
-        })
-      })
-  )
-  const {result} = renderAttachmentSections()
-
-  await act(async () => {
-    jest.advanceTimersByTime(1)
-    jest.advanceTimersByTime(16)
-    await flushPromises()
-  })
-
-  await act(async () => {
-    rejectLoad?.(new RPCError('Received RPC cancel for session', T.RPCGen.StatusCode.sccanceled))
-    await flushPromises()
-  })
-
-  const loadMoreSection = result.current.sections.at(-1)
-  const loadMoreButton = loadMoreSection?.renderItem({
-    index: 0,
-    item: {type: 'load-more'},
-  } as never) as {props: {label: string}} | undefined
-
-  expect(loadMoreButton?.props.label).toBe('Load more')
-  expect(loggerError).not.toHaveBeenCalledWith(expect.stringContaining('failed to load attachment view'))
-  expect(result.current.message100?.id).toBe(T.Chat.numberToMessageID(100))
 })
 
 test('attachment gallery ignores hits that arrive after unmount cleanup', async () => {
