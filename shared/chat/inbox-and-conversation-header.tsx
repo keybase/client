@@ -9,50 +9,79 @@ import {setInboxHeaderPortalNode, useInboxHeaderPortalContent} from './inbox/hea
 import type {ChatRootRouteParams} from './inbox-and-conversation'
 import {useChatTeam} from './conversation/team-hooks'
 import {useRoute, type RouteProp} from '@react-navigation/native'
+import {useInboxMetadataState} from './inbox/metadata'
+import {useInboxRowsState} from '@/stores/inbox-rows'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToPath} from '@/constants/fs'
-import {
-  ConversationThreadProvider,
-  showConversationInfoPanel,
-  toggleConversationThreadSearch,
-  useConversationThreadID,
-  useConversationThreadMeta,
-  useConversationThreadParticipants,
-} from './conversation/thread-context'
+import {showConversationInfoPanel, toggleConversationThreadSearch} from './conversation/thread-context'
 import {muteConversation} from './conversation/status-actions'
 
 type ChatRootRoute = RouteProp<{chatRoot: ChatRootRouteParams}, 'chatRoot'>
 
+const emptyMeta = Chat.makeConversationMeta()
+const emptyParticipantInfo = Chat.uiParticipantsToParticipantInfo([])
+const emptyParticipants: ReadonlyArray<string> = []
+
 const Header = () => {
-  const {params} = useRoute<ChatRootRoute>()
-  const conversationIDKey = params.conversationIDKey ?? Chat.noConversationIDKey
-  return (
-    <ConversationThreadProvider id={conversationIDKey}>
-      <Header2 />
-    </ConversationThreadProvider>
-  )
+  return <Header2 />
 }
 
 const Header2 = () => {
   const {params} = useRoute<ChatRootRoute>()
   const username = useCurrentUserState(s => s.username)
   const infoPanelShowing = !!params.infoPanel
-  const conversationIDKey = useConversationThreadID()
-  const meta = useConversationThreadMeta()
-  const participantInfo = useConversationThreadParticipants()
-  const {channelname, descriptionDecorated, isMuted: muted, teamType, teamname, tlfname} = meta
+  const conversationIDKey = params.conversationIDKey ?? Chat.noConversationIDKey
+  const {meta, participantInfo} = useInboxMetadataState(
+    C.useShallow(s => ({
+      meta: s.metas.get(conversationIDKey) ?? emptyMeta,
+      participantInfo: s.participants.get(conversationIDKey) ?? emptyParticipantInfo,
+    }))
+  )
+  const inboxRow = useInboxRowsState(
+    C.useShallow(s => {
+      const big = s.rowsBig.get(conversationIDKey)
+      const small = s.rowsSmall.get(conversationIDKey)
+      return {
+        rowChannelname: big?.channelname ?? '',
+        rowParticipants: small?.participants ?? emptyParticipants,
+        rowTeamname: big?.teamname || small?.teamDisplayName || '',
+      }
+    })
+  )
+  const {
+    channelname: metaChannelname,
+    descriptionDecorated,
+    isMuted: muted,
+    teamID,
+    teamType: metaTeamType,
+    teamname: metaTeamname,
+    tlfname,
+  } = meta
+  const channelname = metaChannelname || inboxRow.rowChannelname
+  const teamname = metaTeamname || inboxRow.rowTeamname
+  const teamType =
+    metaTeamType !== 'adhoc' ? metaTeamType : inboxRow.rowChannelname ? 'big' : teamname ? 'small' : 'adhoc'
   const channel = teamType === 'big' ? `${teamname}#${channelname}` : teamType === 'small' ? teamname : null
-  const isTeam = ['small', 'big'].includes(teamType)
-  const participants = teamType === 'adhoc' ? participantInfo.name : null
-  const otherParticipants = Chat.getRowParticipants(participantInfo, username)
+  const isTeam = teamType !== 'adhoc'
+  const rowParticipantsWithSelf = username
+    ? [...new Set([...inboxRow.rowParticipants, username])]
+    : emptyParticipants
+  const participants =
+    teamType === 'adhoc'
+      ? participantInfo.name.length
+        ? participantInfo.name
+        : rowParticipantsWithSelf
+      : null
+  const otherParticipants = participantInfo.name.length
+    ? Chat.getRowParticipants(participantInfo, username)
+    : inboxRow.rowParticipants
   const first = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
 
   // length ===1 means just you so show yourself
   const withoutSelf =
     participants && participants.length > 1 ? participants.filter(part => part !== username) : participants
 
-  const {teamID} = meta
   const {yourOperations} = useChatTeam(teamID, teamname)
   const canEditDesc = yourOperations.editChannelDescription
   const otherInfo = useUsersState(s => s.infoMap.get(first))
