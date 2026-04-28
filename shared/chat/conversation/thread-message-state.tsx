@@ -75,7 +75,7 @@ export const cloneMessageWithImmer = (
     for (const key of Object.keys(record)) {
       record[key] = cloneStoreObjectWithImmer(record[key])
     }
-    record.ordinal = ordinal
+    record['ordinal'] = ordinal
   }) as T.Chat.Message
 
 const cloneMessageForThreadState = (

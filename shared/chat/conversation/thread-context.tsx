@@ -112,30 +112,33 @@ const copyConversationMeta = (meta: T.Chat.ConversationMeta): T.Chat.Conversatio
     () => {}
   )
 
-const cloneMapWithImmer = <K, V>(map: ReadonlyMap<K, V>): Map<K, V> =>
-  produce(new Map(map), draft => {
-    for (const [key, value] of draft) {
-      draft.set(key, cloneStoreObjectWithImmer(value) as V)
-    }
-  })
+const cloneMapWithImmer = <K, V>(map: ReadonlyMap<K, V>): Map<K, V> => {
+  const next = new Map<K, V>()
+  for (const [key, value] of map) {
+    next.set(key, cloneStoreObjectWithImmer(value) as V)
+  }
+  return next
+}
 
 const cloneMessageMapWithImmer = (
   map: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>
-): Map<T.Chat.Ordinal, T.Chat.Message> =>
-  produce(new Map(map), draft => {
-    for (const [ordinal, message] of draft) {
-      draft.set(ordinal, cloneMessageWithImmer(message, ordinal))
-    }
-  })
+): Map<T.Chat.Ordinal, T.Chat.Message> => {
+  const next = new Map<T.Chat.Ordinal, T.Chat.Message>()
+  for (const [ordinal, message] of map) {
+    next.set(ordinal, cloneMessageWithImmer(message, ordinal))
+  }
+  return next
+}
 
 const cloneUnfurlPromptMapWithImmer = (
   map: ReadonlyMap<T.Chat.MessageID, ReadonlySet<string>>
-): Map<T.Chat.MessageID, Set<string>> =>
-  produce(new Map(map), draft => {
-    for (const [messageID, domains] of draft) {
-      draft.set(messageID, produce(new Set(domains), () => {}))
-    }
-  })
+): Map<T.Chat.MessageID, Set<string>> => {
+  const next = new Map<T.Chat.MessageID, Set<string>>()
+  for (const [messageID, domains] of map) {
+    next.set(messageID, new Set(domains))
+  }
+  return next
+}
 
 const getExplodingModeFromGregorItems = (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -248,15 +251,15 @@ const makeEmptyThreadState = (): ConversationThreadState =>
       explodingMode: 0,
       flipStatusMap: new Map<string, T.RPCChat.UICoinFlipStatus>(),
       loaded: false,
-      meta: copyConversationMeta(Meta.makeConversationMeta()),
       messageIDToOrdinal: new Map<T.Chat.MessageID, T.Chat.Ordinal>(),
       messageMap: new Map<T.Chat.Ordinal, T.Chat.Message>(),
       messageOrdinals: undefined as ReadonlyArray<T.Chat.Ordinal> | undefined,
       messageTypeMap: new Map<T.Chat.Ordinal, T.Chat.RenderMessageType>(),
+      meta: copyConversationMeta(Meta.makeConversationMeta()),
       moreToLoadBack: false,
       moreToLoadForward: false,
-      paymentStatusMap: new Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>(),
       participants: makeEmptyParticipantInfo(),
+      paymentStatusMap: new Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>(),
       pendingOutboxToOrdinal: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
       typing: new Set<string>(),
       unfurlPrompt: new Map<T.Chat.MessageID, Set<string>>(),
@@ -275,17 +278,17 @@ const snapshotToThreadState = (
           explodingMode: snapshot.explodingMode,
           flipStatusMap: cloneMapWithImmer(snapshot.flipStatusMap),
           loaded: snapshot.loaded,
-          meta: copyConversationMeta(snapshot.meta),
           messageIDToOrdinal: produce(new Map(snapshot.messageIDToOrdinal), () => {}),
           messageMap: cloneMessageMapWithImmer(snapshot.messageMap),
           messageOrdinals: snapshot.messageOrdinals
             ? produce([...snapshot.messageOrdinals], () => {})
             : undefined,
           messageTypeMap: produce(new Map(snapshot.messageTypeMap), () => {}),
+          meta: copyConversationMeta(snapshot.meta),
           moreToLoadBack: snapshot.moreToLoadBack,
           moreToLoadForward: snapshot.moreToLoadForward,
-          paymentStatusMap: cloneMapWithImmer(snapshot.paymentStatusMap),
           participants: copyParticipantInfo(snapshot.participants),
+          paymentStatusMap: cloneMapWithImmer(snapshot.paymentStatusMap),
           pendingOutboxToOrdinal: produce(new Map(snapshot.pendingOutboxToOrdinal), () => {}),
           typing: produce(new Set<string>(), () => {}),
           unfurlPrompt: cloneUnfurlPromptMapWithImmer(snapshot.unfurlPrompt),
@@ -303,10 +306,10 @@ const makeInitialThreadState = (id: T.Chat.ConversationIDKey, seedFromCache: boo
   const participants = getInboxConversationParticipants(id)
   return produce(snapshotToThreadState(snapshot), s => {
     if (meta) {
-      s.meta = copyConversationMeta(meta)
+      s.meta = T.castDraft(copyConversationMeta(meta))
     }
     if (participants) {
-      s.participants = copyParticipantInfo(participants)
+      s.participants = T.castDraft(copyParticipantInfo(participants))
     }
     s.explodingMode = getExplodingModeFromConfig(id)
   })
@@ -319,15 +322,15 @@ const threadStateToSnapshot = (state: ConversationThreadState): ConversationThre
       explodingMode: state.explodingMode,
       flipStatusMap: cloneMapWithImmer(state.flipStatusMap),
       loaded: state.loaded,
-      meta: copyConversationMeta(state.meta),
       messageIDToOrdinal: produce(new Map(state.messageIDToOrdinal), () => {}),
       messageMap: cloneMessageMapWithImmer(state.messageMap),
       messageOrdinals: state.messageOrdinals ? produce([...state.messageOrdinals], () => {}) : undefined,
       messageTypeMap: produce(new Map(state.messageTypeMap), () => {}),
+      meta: copyConversationMeta(state.meta),
       moreToLoadBack: state.moreToLoadBack,
       moreToLoadForward: state.moreToLoadForward,
-      paymentStatusMap: cloneMapWithImmer(state.paymentStatusMap),
       participants: copyParticipantInfo(state.participants),
+      paymentStatusMap: cloneMapWithImmer(state.paymentStatusMap),
       pendingOutboxToOrdinal: produce(new Map(state.pendingOutboxToOrdinal), () => {}),
       unfurlPrompt: cloneUnfurlPromptMapWithImmer(state.unfurlPrompt),
       validatedOrdinalRange: state.validatedOrdinalRange
@@ -346,8 +349,21 @@ type SelectedConversationOptions = ThreadLoadStatusOptions & {
   skipThreadLoad?: boolean
 }
 
+type ScrollDirection = 'none' | 'back' | 'forward'
+type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
+  centeredMessageID?: {
+    conversationIDKey: T.Chat.ConversationIDKey
+    highlightMode: T.Chat.CenterOrdinalHighlightMode
+    messageID: T.Chat.MessageID
+  }
+  forceContainsLatestCalc?: boolean
+  knownRemotes?: ReadonlyArray<string>
+  messageIDControl?: T.RPCChat.MessageIDControl | null
+  numberOfMessagesToLoad?: number
+  reason: string
+  scrollDirection?: ScrollDirection
+}
 type LoadMoreMessages = DebouncedFunc<(p: LoadMoreMessagesParams) => void>
-type LoadMoreMessagesParams = Parameters<LoadMoreMessages>[0]
 type LoadMessagesCentered = (
   messageID: T.Chat.MessageID,
   highlightMode: T.Chat.CenterOrdinalHighlightMode,
@@ -364,7 +380,6 @@ type LoadNewerMessagesDueToScroll = (
 type JumpToRecent = (options?: ThreadLoadStatusOptions) => void
 type MessagesClear = () => void
 type SelectedConversation = (options?: SelectedConversationOptions) => void
-type ScrollDirection = 'none' | 'back' | 'forward'
 type ConversationThreadActions = {
   addMessages: (
     messages: ReadonlyArray<T.Chat.Message>,
@@ -686,8 +701,7 @@ const applyIncomingMessageToThread = (
     const ordinal = getOrdinalForMessageIDInSnapshot(snapshot, T.Chat.numberToMessageID(placeholderID))
     const existing = ordinal ? snapshot.messageMap.get(ordinal) : undefined
     if (ordinal && existing) {
-      message.ordinal = ordinal
-      actions.addMessages([Message.upgradeMessage(existing, message)])
+      actions.addMessages([Message.upgradeMessage(existing, {...message, ordinal})])
     } else {
       actions.addMessages([message])
     }
@@ -1030,7 +1044,7 @@ export const ConversationThreadProvider = (
   })
   const setMeta = React.useEffectEvent((meta?: T.Chat.ConversationMeta) => {
     updateThreadState(s => {
-      s.meta = copyConversationMeta(meta ?? Meta.makeConversationMeta())
+      s.meta = T.castDraft(copyConversationMeta(meta ?? Meta.makeConversationMeta()))
     })
     if (meta) {
       metasReceived([getSnapshot().meta])
@@ -1047,7 +1061,7 @@ export const ConversationThreadProvider = (
   })
   const setParticipants = React.useEffectEvent((participants: T.Chat.ParticipantInfo) => {
     updateThreadState(s => {
-      s.participants = copyParticipantInfo(participants)
+      s.participants = T.castDraft(copyParticipantInfo(participants))
     })
     participantInfoReceived(id, participants, getSnapshot().meta)
   })
@@ -1463,7 +1477,7 @@ export const ConversationThreadProvider = (
     (statuses: ReadonlyArray<T.RPCChat.UICoinFlipStatus>) => {
       updateThreadState(s => {
         statuses.forEach(status => {
-          s.flipStatusMap.set(status.gameID, status)
+          s.flipStatusMap.set(status.gameID, T.castDraft(status))
         })
       })
     }
@@ -1510,18 +1524,22 @@ export const ConversationThreadProvider = (
     }
   )
   const [threadActions] = React.useState<ConversationThreadActions>(() => {
-    let actions: ConversationThreadActions | undefined
+    const threadActionsHolder: {current?: ConversationThreadActions} = {}
     const loadMoreMessages: LoadMoreMessages = throttle((p: LoadMoreMessagesParams) => {
+      const actions = threadActionsHolder.current
       if (actions) {
         loadConversationThreadMessages(id, p, actions)
       }
     }, 500)
-    actions = {
+    const threadActions: ConversationThreadActions = {
       addMessages,
       clearUnfurlPrompt,
       clearValidatedOrdinalRange,
+      completeAttachmentDownload,
       deleteMessages,
       explodeMessages,
+      failAttachmentDownload,
+      finishAttachmentDownload,
       getSnapshot,
       loadMoreMessages,
       markThreadAsRead,
@@ -1530,25 +1548,22 @@ export const ConversationThreadProvider = (
       messagesClear,
       receivePaymentInfo,
       receiveRequestInfo,
-      failAttachmentDownload,
-      finishAttachmentDownload,
       retryMessage,
+      setAttachmentMobileSaving,
       setExplodingMode,
-      setMeta,
+      setMarkAsUnread,
       setMessageErrored,
       setMessageSubmitState,
-      setAttachmentMobileSaving,
+      setMeta,
       setPagination,
-      setMarkAsUnread,
       setParticipants,
-      startAttachmentDownload,
       setThreadLoaded,
       setTyping,
       showUnfurlPrompt,
+      startAttachmentDownload,
       toggleLocalReaction,
       toggleMessageCollapse,
       toggleMessageReaction,
-      completeAttachmentDownload,
       unfurlRemove,
       updateAttachmentDownloadProgress,
       updateAttachmentUploadProgress,
@@ -1556,7 +1571,8 @@ export const ConversationThreadProvider = (
       updateMeta,
       updateReactions,
     }
-    return actions
+    threadActionsHolder.current = threadActions
+    return threadActions
   })
   React.useEffect(() => {
     return () => {
@@ -1793,9 +1809,9 @@ export const ConversationThreadProvider = (
     }
   })
   useEngineActionListener('chat.1.NotifyChat.ChatAttachmentUploadStart', action => {
-    const {bytesComplete, bytesTotal, convID, outboxID} = action.payload.params
+    const {convID, outboxID} = action.payload.params
     if (T.Chat.conversationIDToKey(convID) === id) {
-      threadActions.updateAttachmentUploadProgress(outboxID, bytesComplete, bytesTotal)
+      threadActions.updateAttachmentUploadProgress(outboxID)
     }
   })
   useEngineActionListener('chat.1.NotifyChat.ChatAttachmentUploadProgress', action => {

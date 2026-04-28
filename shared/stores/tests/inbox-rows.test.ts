@@ -29,7 +29,7 @@ test('explicit meta and participant updates merge into the row caches', () => {
 
   syncInboxRowBadgeState({
     conversations: [{badgeCount: 2, convID: T.Chat.keyToConversationID(convID), unreadMessages: 1}],
-  } as T.RPCGen.BadgeState)
+  } as unknown as T.RPCGen.BadgeState)
   updateInboxRowTyping([
     {
       convID: T.Chat.keyToConversationID(convID),
@@ -146,7 +146,7 @@ test('layout and meta sync populate inbox rows without a convo store lookup', ()
         {assertion: 'alice', inConvName: true, type: T.RPCChat.UIParticipantType.user},
         {assertion: 'carol', inConvName: true, type: T.RPCChat.UIParticipantType.user},
       ],
-    } as T.RPCChat.InboxUIItem,
+    } as unknown as T.RPCChat.InboxUIItem,
   ])
   expect(useInboxRowsState.getState().rowsSmall.get(convID)?.participants).toEqual(['carol'])
 

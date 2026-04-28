@@ -5,7 +5,7 @@ import AttachmentMessage from './attachment'
 import JourneycardMessage from './journeycard'
 import TextMessage from './text'
 import {ConversationThreadProvider, useConversationThreadID, useConversationThreadMessage} from '../../thread-context'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 
 type Props = {
   ordinal: T.Chat.Ordinal

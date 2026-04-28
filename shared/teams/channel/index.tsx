@@ -145,11 +145,11 @@ const ChannelBody = (props: OwnProps) => {
   const providedTab = props.selectedTab
   const navigation = useNavigation()
 
-  const {channelMetas, channelParticipants} = useAllChannelMetas(teamID)
+  const {channelMetas, channelParticipants: channelParticipantsByConv} = useAllChannelMetas(teamID)
   const meta = channelMetas.get(conversationIDKey) ?? Chat.makeConversationMeta()
   const {loading: loadingTeam, teamDetails, yourOperations} = useLoadedTeam(teamID)
   const teamMembers = teamDetails.members
-  const participantInfo = channelParticipants.get(conversationIDKey) ?? emptyParticipantInfo
+  const participantInfo = channelParticipantsByConv.get(conversationIDKey) ?? emptyParticipantInfo
   const {bots, participants: _participants} = getBotsAndParticipants(
     meta,
     participantInfo,
@@ -160,7 +160,7 @@ const ChannelBody = (props: OwnProps) => {
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
   const channelParticipants = useChannelParticipants(teamID, conversationIDKey)
   const generalMembersLoading = meta.channelname === 'general' && loadingTeam && teamMembers.size === 0
-  const participants =
+  const participants: ReadonlyArray<string> =
     meta.channelname === 'general' && teamMembers.size > 0 ? _participants : channelParticipants
   useLoadDataForChannelPage(conversationIDKey, selectedTab, meta, participants)
 

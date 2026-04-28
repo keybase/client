@@ -12,7 +12,7 @@ function UnfurlPromptListContainer({messageID}: {messageID: T.Chat.MessageID}) {
   const _setPolicy = (domain: string, result: T.RPCChat.UnfurlPromptResult) => {
     unfurlResolvePrompt(messageID, domain, result)
   }
-  const prompts = [...(promptDomains ?? [])].map(domain => ({
+  const prompts = [...promptDomains].map(domain => ({
     domain,
     onAccept: () =>
       _setPolicy(domain, {

@@ -6,7 +6,7 @@ import * as Kb from '@/common-adapters'
 import * as InputState from '../input-state'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConfigState} from '@/stores/config'
-import type {RefType as InputRef} from '../normal/input'
+import type {Selection as InputSelection} from '../normal/input'
 import {useConversationThreadID, useConversationThreadMeta} from '../../thread-context'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
@@ -146,14 +146,19 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   )
 }
 
+export type CommandInputSnapshot = {
+  selection: InputSelection | undefined
+  text: string
+}
+
 type UseDataSourceProps = {
   filter: string
-  inputRef: React.RefObject<InputRef | null>
-  lastTextRef: React.RefObject<string>
+  inputSnapshot: CommandInputSnapshot
 }
 
 const useDataSource = (p: UseDataSourceProps) => {
-  const {filter, inputRef, lastTextRef} = p
+  const {filter, inputSnapshot} = p
+  const {selection: sel, text} = inputSnapshot
   const builtinCommands = useConfigState(s => s.chatBuiltinCommands)
   const {botCommands, commands} = useConversationThreadMeta()
   const {showCommandMarkdown, showGiphySearch} = InputState.useConversationInput(
@@ -177,9 +182,8 @@ const useDataSource = (p: UseDataSourceProps) => {
         : blankCommands
       : blankCommands
 
-  const sel = inputRef.current?.getSelection()
   if (sel) {
-    if (!lastTextRef.current) return []
+    if (!text) return []
 
     const getMaxCmdLength = (
       suggestBotCommands: ReadonlyArray<T.RPCChat.ConversationCommand>,
@@ -192,19 +196,14 @@ const useDataSource = (p: UseDataSourceProps) => {
 
     // a little messy. Check if the message starts with '/' and that the cursor is
     // within maxCmdLength chars away from it. This happens before `onChangeText`, so
-    // we can't do a more robust check on `lastTextRef.current` because it's out of date.
-    if (
-      !(lastTextRef.current.startsWith('/') || lastTextRef.current.startsWith('!')) ||
-      (sel.start || 0) > maxCmdLength
-    ) {
+    // we can't do a more robust check on `text` because it can be out of date.
+    if (!(text.startsWith('/') || text.startsWith('!')) || (sel.start || 0) > maxCmdLength) {
       // not at beginning of message
       return []
     }
   }
   const fil = filter.toLowerCase()
-  return (lastTextRef.current.startsWith('!') ? suggestBotCommands : suggestCommands).filter(c =>
-    c.name.includes(fil)
-  )
+  return (text.startsWith('!') ? suggestBotCommands : suggestCommands).filter(c => c.name.includes(fil))
 }
 
 type CommandType = T.RPCChat.ConversationCommand
@@ -218,12 +217,11 @@ type ListProps = Pick<
   setOnMoveRef: (r: (up: boolean) => void) => void
   setOnSubmitRef: (r: () => boolean) => void
 } & {
-  inputRef: React.RefObject<InputRef | null>
-  lastTextRef: React.RefObject<string>
+  inputSnapshot: CommandInputSnapshot
 }
 export const List = (p: ListProps) => {
-  const {botSettings, filter, inputRef, lastTextRef, ...rest} = p
-  const items = useDataSource({filter, inputRef, lastTextRef})
+  const {botSettings, filter, inputSnapshot, ...rest} = p
+  const items = useDataSource({filter, inputSnapshot})
   return (
     <BotCommandSettingsContext.Provider value={botSettings}>
       <Common.List

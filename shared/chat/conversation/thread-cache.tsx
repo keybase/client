@@ -43,21 +43,23 @@ const cloneParticipants = (participants: T.Chat.ParticipantInfo): T.Chat.Partici
     () => {}
   )
 
-const cloneMapWithImmer = <K, V>(map: ReadonlyMap<K, V>): Map<K, V> =>
-  produce(new Map(map), draft => {
-    for (const [key, value] of draft) {
-      draft.set(key, cloneStoreObjectWithImmer(value) as V)
-    }
-  })
+const cloneMapWithImmer = <K, V>(map: ReadonlyMap<K, V>): Map<K, V> => {
+  const next = new Map<K, V>()
+  for (const [key, value] of map) {
+    next.set(key, cloneStoreObjectWithImmer(value) as V)
+  }
+  return next
+}
 
 const cloneMessageMap = (
   map: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>
-): Map<T.Chat.Ordinal, T.Chat.Message> =>
-  produce(new Map(map), draft => {
-    for (const [ordinal, message] of draft) {
-      draft.set(ordinal, cloneMessageWithImmer(message, ordinal))
-    }
-  })
+): Map<T.Chat.Ordinal, T.Chat.Message> => {
+  const next = new Map<T.Chat.Ordinal, T.Chat.Message>()
+  for (const [ordinal, message] of map) {
+    next.set(ordinal, cloneMessageWithImmer(message, ordinal))
+  }
+  return next
+}
 
 declare global {
   var __hmr_conversationThreadCache:
@@ -72,15 +74,15 @@ const cloneSnapshot = (snapshot: ConversationThreadSnapshot): ConversationThread
       explodingMode: snapshot.explodingMode,
       flipStatusMap: cloneMapWithImmer(snapshot.flipStatusMap),
       loaded: snapshot.loaded,
-      meta: cloneMeta(snapshot.meta),
       messageIDToOrdinal: new Map(snapshot.messageIDToOrdinal),
       messageMap: cloneMessageMap(snapshot.messageMap),
       messageOrdinals: snapshot.messageOrdinals ? produce([...snapshot.messageOrdinals], () => {}) : undefined,
       messageTypeMap: new Map(snapshot.messageTypeMap),
+      meta: cloneMeta(snapshot.meta),
       moreToLoadBack: snapshot.moreToLoadBack,
       moreToLoadForward: snapshot.moreToLoadForward,
-      paymentStatusMap: cloneMapWithImmer(snapshot.paymentStatusMap),
       participants: cloneParticipants(snapshot.participants),
+      paymentStatusMap: cloneMapWithImmer(snapshot.paymentStatusMap),
       pendingOutboxToOrdinal: new Map(snapshot.pendingOutboxToOrdinal),
       unfurlPrompt: cloneMapWithImmer(snapshot.unfurlPrompt),
       validatedOrdinalRange: snapshot.validatedOrdinalRange

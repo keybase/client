@@ -102,7 +102,7 @@ export const participantInfoReceived = (
   meta?: T.Chat.ConversationMeta
 ) => {
   useInboxMetadataState.setState(s => {
-    s.participants.set(conversationIDKey, copyParticipantInfo(participantInfo))
+    s.participants.set(conversationIDKey, T.castDraft(copyParticipantInfo(participantInfo)))
   })
   if (meta) {
     syncInboxRowsFromMetaAndParticipants([{meta, participantInfo}])
@@ -119,7 +119,7 @@ export const metasReceived = (
       s.participants.delete(r)
     })
     metas.forEach(m => {
-      s.metas.set(m.conversationIDKey, copyConversationMeta(m))
+      s.metas.set(m.conversationIDKey, T.castDraft(copyConversationMeta(m)))
     })
   })
   syncInboxRowsFromMetas(metas, removals)
@@ -143,7 +143,7 @@ const updateInboxParticipants = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIIt
   if (participantEntries.length > 0) {
     useInboxMetadataState.setState(s => {
       participantEntries.forEach(({conversationIDKey, participantInfo}) => {
-        s.participants.set(conversationIDKey, copyParticipantInfo(participantInfo))
+        s.participants.set(conversationIDKey, T.castDraft(copyParticipantInfo(participantInfo)))
       })
     })
   }
@@ -161,7 +161,10 @@ export const syncInboxParticipantsFromParticipantMap = (
       }
       const participantInfo = Common.uiParticipantsToParticipantInfo(participants)
       if (participantInfo.all.length > 0) {
-        s.participants.set(T.Chat.stringToConversationIDKey(convIDStr), copyParticipantInfo(participantInfo))
+        s.participants.set(
+          T.Chat.stringToConversationIDKey(convIDStr),
+          T.castDraft(copyParticipantInfo(participantInfo))
+        )
       }
     })
   })

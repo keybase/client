@@ -13,7 +13,6 @@ import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {navToProfile} from '@/constants/router'
-import * as React from 'react'
 import {
   ConversationThreadProvider,
   showConversationInfoPanel,

@@ -260,7 +260,6 @@ export const syncInboxRowsFromLayout = (layout: T.RPCChat.UIInboxLayout) => {
       small.snippetDecoration = row.snippetDecoration
       small.teamDisplayName = row.isTeam ? row.name.split('#')[0] ?? '' : ''
       small.timestamp = row.time || 0
-      small.trustedState = small.trustedState ?? 'untrusted'
       if (!row.isTeam && row.name && small.participants.length === 0) {
         const names = row.name
           .split(',')
@@ -278,7 +277,6 @@ export const syncInboxRowsFromLayout = (layout: T.RPCChat.UIInboxLayout) => {
       big.snippet = snippet
       big.snippetDecoration = bigSnippetDecoration(row.snippetDecoration)
       big.teamname = row.isTeam ? row.name : ''
-      big.trustedState = big.trustedState ?? 'untrusted'
     })
     layout.bigTeams?.forEach(row => {
       if (row.state !== T.RPCChat.UIInboxBigTeamRowTyp.channel) {
@@ -292,7 +290,6 @@ export const syncInboxRowsFromLayout = (layout: T.RPCChat.UIInboxLayout) => {
       big.hasUnread = big.unreadCount > 0
       big.isMuted = row.channel.isMuted
       big.teamname = row.channel.teamname
-      big.trustedState = big.trustedState ?? 'untrusted'
     })
   })
 }

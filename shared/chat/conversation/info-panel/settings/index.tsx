@@ -69,10 +69,10 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }
 
   const onArchive = () => {
-    navigateAppend(conversationIDKey => ({
+    navigateAppend({
       name: 'archiveModal',
       params: {conversationIDKey, type: 'chatID' as const},
-    }))
+    })
   }
 
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'

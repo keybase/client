@@ -218,11 +218,11 @@ const makeThreadSnapshot = (messages: ReadonlyArray<T.Chat.Message>): Conversati
     explodingMode: 0,
     flipStatusMap: new Map(),
     loaded: true,
-    meta: {...Meta.makeConversationMeta(), conversationIDKey: convID},
     messageIDToOrdinal,
     messageMap,
     messageOrdinals,
     messageTypeMap,
+    meta: {...Meta.makeConversationMeta(), conversationIDKey: convID},
     moreToLoadBack: false,
     moreToLoadForward: false,
     participants: {all: [], contactName: new Map(), name: []},
@@ -291,11 +291,11 @@ test('centered load clears stale thread state and requests a centered load', asy
 
 test('jumpToRecent reloads recent messages through the mounted thread action', async () => {
   const onThreadLoadStatus = jest.fn()
-  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(p => {
     p.incomingCallMap['chat.1.chatUi.chatThreadStatus']?.({
       status: {typ: T.RPCChat.UIChatThreadStatusTyp.server},
     })
-    return {offline: false}
+    return Promise.resolve({offline: false})
   })
   const {result} = renderHook(() => useConversationThreadJumpToRecent(), {wrapper})
 

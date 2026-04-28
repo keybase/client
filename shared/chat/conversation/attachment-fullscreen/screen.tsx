@@ -1,4 +1,4 @@
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import * as React from 'react'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import Full from '.'
