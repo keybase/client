@@ -9,6 +9,7 @@ import {act, cleanup, renderHook} from '@testing-library/react'
 import type * as React from 'react'
 import {participantInfoReceived} from '@/chat/inbox/metadata'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
 import {
@@ -380,8 +381,10 @@ test('mounted thread listener applies messagesUpdated for the active conversatio
   expect(result.current.message?.id).toBe(firstMsgID)
 })
 
-test('mounted thread listener applies incoming messages for the active conversation', () => {
+test('mounted thread listener applies incoming messages for the active conversation', async () => {
   jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+  useConfigState.setState({loggedIn: true})
+  const markAsRead = jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue(undefined)
   const firstMsgID = T.Chat.numberToMessageID(601)
   const {result} = renderHook(
     () => ({
@@ -407,6 +410,15 @@ test('mounted thread listener applies incoming messages for the active conversat
 
   expect(result.current.ordinals).toEqual([T.Chat.numberToOrdinal(601)])
   expect(result.current.message?.id).toBe(firstMsgID)
+  await act(async () => {
+    await flushPromises()
+  })
+  expect(markAsRead).toHaveBeenCalledTimes(1)
+  expect(markAsRead).toHaveBeenCalledWith({
+    conversationID: T.Chat.keyToConversationID(convID),
+    forceUnread: false,
+    msgID: firstMsgID,
+  })
 })
 
 test('mounted thread listener applies failed outbox messages for the active conversation', () => {

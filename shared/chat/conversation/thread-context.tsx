@@ -702,15 +702,15 @@ const applyIncomingMessageToThread = (
     const ordinal = getOrdinalForMessageIDInSnapshot(snapshot, T.Chat.numberToMessageID(placeholderID))
     const existing = ordinal ? snapshot.messageMap.get(ordinal) : undefined
     if (ordinal && existing) {
-      actions.addMessages([Message.upgradeMessage(existing, {...message, ordinal})])
+      actions.addMessages([Message.upgradeMessage(existing, {...message, ordinal})], {markAsRead: true})
     } else {
-      actions.addMessages([message])
+      actions.addMessages([message], {markAsRead: true})
     }
   } else {
     if (actions.getSnapshot().moreToLoadForward) {
       return
     }
-    actions.addMessages([message])
+    actions.addMessages([message], {markAsRead: true})
   }
 }
 
@@ -987,6 +987,44 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       setThreadState(next)
     }
   )
+  const markThreadAsRead = React.useEffectEvent((force?: boolean) => {
+    const f = async () => {
+      if (!useConfigState.getState().loggedIn) {
+        logger.info('mark read bail on not logged in')
+        return
+      }
+      if (!T.Chat.isValidConversationIDKey(id)) {
+        logger.info('mark read bail on no selected conversation')
+        return
+      }
+      if (!force && !Common.isUserActivelyLookingAtThisThread(id)) {
+        logger.info('mark read bail on not looking at this thread')
+        return
+      }
+      const snapshot = getSnapshot()
+      if (snapshot.moreToLoadForward) {
+        logger.info('mark read bail on not containing latest message')
+        return
+      }
+      const ordinal = findLast([...(snapshot.messageOrdinals ?? [])], (o: T.Chat.Ordinal) => {
+        const m = snapshot.messageMap.get(o)
+        return m ? !!m.id : false
+      })
+      const message = ordinal ? snapshot.messageMap.get(ordinal) : undefined
+      const readMsgID = message?.id
+      if (snapshot.meta.conversationIDKey === id && readMsgID === snapshot.meta.readMsgID) {
+        logger.info(`marking read messages is noop bail: ${id} ${readMsgID}`)
+        return
+      }
+      logger.info(`marking read messages ${id} ${readMsgID}`)
+      await T.RPCChat.localMarkAsReadLocalRpcPromise({
+        conversationID: T.Chat.keyToConversationID(id),
+        forceUnread: false,
+        msgID: readMsgID,
+      })
+    }
+    ignorePromise(f())
+  })
   const addMessages = React.useEffectEvent(
     (
       messages: ReadonlyArray<T.Chat.Message>,
@@ -995,6 +1033,9 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       updateThreadState(s => {
         addMessagesToThreadState(s, messages, {validatedRange: opt.validatedRange})
       })
+      if (opt.markAsRead) {
+        markThreadAsRead()
+      }
     }
   )
   const deleteMessages = React.useEffectEvent(
@@ -1068,44 +1109,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       s.participants = T.castDraft(copyParticipantInfo(participants))
     })
     participantInfoReceived(id, participants, getSnapshot().meta)
-  })
-  const markThreadAsRead = React.useEffectEvent((force?: boolean) => {
-    const f = async () => {
-      if (!useConfigState.getState().loggedIn) {
-        logger.info('mark read bail on not logged in')
-        return
-      }
-      if (!T.Chat.isValidConversationIDKey(id)) {
-        logger.info('mark read bail on no selected conversation')
-        return
-      }
-      if (!force && !Common.isUserActivelyLookingAtThisThread(id)) {
-        logger.info('mark read bail on not looking at this thread')
-        return
-      }
-      const snapshot = getSnapshot()
-      if (snapshot.moreToLoadForward) {
-        logger.info('mark read bail on not containing latest message')
-        return
-      }
-      const ordinal = findLast([...(snapshot.messageOrdinals ?? [])], (o: T.Chat.Ordinal) => {
-        const m = snapshot.messageMap.get(o)
-        return m ? !!m.id : false
-      })
-      const message = ordinal ? snapshot.messageMap.get(ordinal) : undefined
-      const readMsgID = message?.id
-      if (snapshot.meta.conversationIDKey === id && readMsgID === snapshot.meta.readMsgID) {
-        logger.info(`marking read messages is noop bail: ${id} ${readMsgID}`)
-        return
-      }
-      logger.info(`marking read messages ${id} ${readMsgID}`)
-      await T.RPCChat.localMarkAsReadLocalRpcPromise({
-        conversationID: T.Chat.keyToConversationID(id),
-        forceUnread: false,
-        msgID: readMsgID,
-      })
-    }
-    ignorePromise(f())
   })
   const setMarkAsUnread = React.useEffectEvent((readMsgID?: T.Chat.MessageID | false) => {
     if (readMsgID === false) {
