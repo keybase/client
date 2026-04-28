@@ -33,7 +33,6 @@ export const useRefreshBotMembershipOnSuccess = (
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
-  const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   const {setParticipants} = useConversationThreadActions()
 
   React.useEffect(() => {
@@ -47,19 +46,9 @@ export const useRefreshBotMembershipOnSuccess = (
           [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
           preview => {
             setParticipants(ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
-            refreshParticipants(
-              [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-              () => {},
-              () => {}
-            )
             onSuccess()
           },
           () => {
-            refreshParticipants(
-              [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-              () => {},
-              () => {}
-            )
             onSuccess()
           }
         )
@@ -71,7 +60,6 @@ export const useRefreshBotMembershipOnSuccess = (
     error,
     onSuccess,
     previewConversationByID,
-    refreshParticipants,
     setParticipants,
     shouldRefreshMembership,
     waiting,

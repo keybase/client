@@ -60,6 +60,7 @@ import {
   metasReceived,
   participantInfoReceived,
   unboxRows,
+  useInboxMetadataState,
 } from '@/chat/inbox/metadata'
 
 const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
@@ -1582,6 +1583,15 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       threadActions.loadMoreMessages.cancel()
     }
   }, [threadActions])
+  const inboxParticipants = useInboxMetadataState(s => s.participants.get(id))
+  React.useEffect(() => {
+    if (!inboxParticipants) {
+      return
+    }
+    updateThreadState(s => {
+      s.participants = T.castDraft(copyParticipantInfo(inboxParticipants))
+    })
+  }, [inboxParticipants])
   React.useEffect(() => {
     if (threadState.loaded) {
       putConversationThreadCacheSnapshot(id, threadStateToSnapshot(threadState))

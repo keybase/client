@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as ChatCommon from '@/constants/chat/common'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -8,7 +9,12 @@ import {useUsersState} from '@/stores/users'
 import {useChatTeam, useChatTeamMembers} from '../team-hooks'
 import logger from '@/logger'
 import {useBotSettings} from '../bot/settings'
-import {useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from '../thread-context'
+import {
+  useConversationThreadActions,
+  useConversationThreadID,
+  useConversationThreadMeta,
+  useConversationThreadParticipants,
+} from '../thread-context'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -40,6 +46,8 @@ const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
   const {settings, setSettings} = useBotSettings(conversationIDKey, username)
   const editBotSettings = C.useRPC(T.RPCChat.localSetBotMemberSettingsRpcPromise)
+  const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
+  const {setParticipants} = useConversationThreadActions()
   return (
     <Kb.WaitingButton
       disabled={!settings}
@@ -64,7 +72,16 @@ const AddToChannel = (props: AddToChannelProps) => {
               },
               C.waitingKeyChatBotAdd,
             ],
-            () => setSettings(nextSettings),
+            () => {
+              setSettings(nextSettings)
+              previewConversationByID(
+                [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+                preview => {
+                  setParticipants(ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
+                },
+                () => {}
+              )
+            },
             error => {
               logger.info(`AddToChannel: failed to edit bot settings: ${error.message}`)
             }
@@ -203,26 +220,50 @@ const BotTab = (props: Props) => {
   const adhocTeam = teamType === 'adhoc'
   const participantInfo = useConversationThreadParticipants()
   const {members: teamMembers, reload: reloadTeamMembers} = useChatTeamMembers(teamID)
-  const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
+  const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
+  const {setParticipants} = useConversationThreadActions()
   const mutationWaiting = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const mutationError = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const wasMutationWaitingRef = React.useRef(mutationWaiting)
+  const repairedAdhocParticipantsRef = React.useRef<T.Chat.ConversationIDKey | undefined>(undefined)
   const participantsAll = participantInfo.all
+  React.useEffect(() => {
+    if (
+      !adhocTeam ||
+      participantInfo.name.length > 0 ||
+      participantsAll.length === 0 ||
+      repairedAdhocParticipantsRef.current === conversationIDKey ||
+      !T.Chat.isValidConversationIDKey(conversationIDKey)
+    ) {
+      return
+    }
+    repairedAdhocParticipantsRef.current = conversationIDKey
+    previewConversationByID(
+      [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+      preview => {
+        setParticipants(ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
+      },
+      () => {}
+    )
+  }, [adhocTeam, conversationIDKey, participantInfo.name.length, participantsAll.length, previewConversationByID])
+
   React.useEffect(() => {
     const mutationJustFinished = wasMutationWaitingRef.current && !mutationWaiting
     wasMutationWaitingRef.current = mutationWaiting
     if (!mutationJustFinished || mutationError || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
       return
     }
-    refreshParticipants(
+    previewConversationByID(
       [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-      () => {},
+      preview => {
+        setParticipants(ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
+      },
       () => {}
     )
     if (!adhocTeam) {
       C.ignorePromise(reloadTeamMembers())
     }
-  }, [adhocTeam, conversationIDKey, mutationError, mutationWaiting, refreshParticipants, reloadTeamMembers])
+  }, [adhocTeam, conversationIDKey, mutationError, mutationWaiting, previewConversationByID, reloadTeamMembers])
 
   let botUsernames: Array<string> = []
   if (adhocTeam) {

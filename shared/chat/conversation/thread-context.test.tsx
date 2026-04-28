@@ -7,6 +7,7 @@ import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import type * as React from 'react'
+import {participantInfoReceived} from '@/chat/inbox/metadata'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
@@ -24,6 +25,7 @@ import {
   useConversationThreadMessage,
   useConversationThreadMessageOrdinalsMaybe,
   useConversationThreadPaymentStatus,
+  useConversationThreadParticipants,
   useConversationThreadTyping,
   useConversationThreadUnfurlPromptDomains,
 } from './thread-context'
@@ -266,6 +268,25 @@ test('same-conversation nested providers reuse the outer live thread state', () 
   })
 
   expect(result.current?.id).toBe(T.Chat.numberToMessageID(301))
+})
+
+test('mounted thread syncs participant updates received outside its provider', () => {
+  const {result} = renderHook(() => useConversationThreadParticipants(), {wrapper})
+  const participantInfo = {
+    all: ['alice', 'helperbot'],
+    contactName: new Map<string, string>(),
+    name: ['alice'],
+  }
+
+  act(() => {
+    participantInfoReceived(convID, participantInfo, {
+      ...Meta.makeConversationMeta(),
+      conversationIDKey: convID,
+    })
+  })
+
+  expect(result.current.all).toEqual(['alice', 'helperbot'])
+  expect(result.current.name).toEqual(['alice'])
 })
 
 test('centered load clears stale thread state and requests a centered load', async () => {
