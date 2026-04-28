@@ -291,11 +291,12 @@ test('centered load clears stale thread state and requests a centered load', asy
 
 test('jumpToRecent reloads recent messages through the mounted thread action', async () => {
   const onThreadLoadStatus = jest.fn()
-  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(p => {
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
     p.incomingCallMap['chat.1.chatUi.chatThreadStatus']?.({
       status: {typ: T.RPCChat.UIChatThreadStatusTyp.server},
     })
-    return Promise.resolve({offline: false})
+    await Promise.resolve()
+    return {offline: false}
   })
   const {result} = renderHook(() => useConversationThreadJumpToRecent(), {wrapper})
 
