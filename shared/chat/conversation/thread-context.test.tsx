@@ -384,7 +384,9 @@ test('mounted thread listener applies messagesUpdated for the active conversatio
 test('mounted thread listener applies incoming messages for the active conversation', async () => {
   jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
   useConfigState.setState({loggedIn: true})
-  const markAsRead = jest.spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise').mockResolvedValue(undefined)
+  const markAsRead = jest
+    .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
+    .mockResolvedValue({offline: false})
   const firstMsgID = T.Chat.numberToMessageID(601)
   const {result} = renderHook(
     () => ({
