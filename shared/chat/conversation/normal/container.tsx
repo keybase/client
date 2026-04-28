@@ -75,9 +75,14 @@ const useOrangeLine = (
         if (currentKey.conversationIDKey !== conversationIDKey) {
           return
         }
-        setOrangeLineState({
-          mobileAppState: currentKey.mobileAppState,
-          orangeLine: nextOrangeLine,
+        setOrangeLineState(prev => {
+          if (nextOrangeLine === noOrangeLine && prev.orangeLine !== noOrangeLine) {
+            return prev
+          }
+          return {
+            mobileAppState: currentKey.mobileAppState,
+            orangeLine: nextOrangeLine,
+          }
         })
       }
       C.ignorePromise(f())
