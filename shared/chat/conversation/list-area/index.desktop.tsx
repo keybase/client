@@ -251,17 +251,8 @@ const useScrolling = (p: {
 
   const [didFirstLoad, setDidFirstLoad] = React.useState(false)
 
-  // Ensure didFirstLoad is true whenever we're loaded (even if we skipped reload)
-  React.useEffect(() => {
-    if (loaded && !didFirstLoad) {
-      requestAnimationFrame(() => {
-        setDidFirstLoad(true)
-      })
-    }
-  }, [loaded, didFirstLoad])
-
   // Handle scrolling when loaded becomes true. Scroll to centered ordinal if present, else bottom
-  const prevLoadedRef = React.useRef(loaded)
+  const prevLoadedRef = React.useRef(false)
   React.useLayoutEffect(() => {
     const justLoaded = loaded && !prevLoadedRef.current
     prevLoadedRef.current = loaded
@@ -276,10 +267,19 @@ const useScrolling = (p: {
     if (centeredOrdinal) {
       lockedToBottomRef.current = false
       scrollToCentered()
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setDidFirstLoad(true)
+        })
+      })
     } else {
-      scrollToBottom()
+      scrollToBottomSync()
+      requestAnimationFrame(() => {
+        scrollToBottomSync()
+        setDidFirstLoad(true)
+      })
     }
-  }, [loaded, centeredOrdinal, markInitiallyLoadedThreadAsRead, scrollToBottom, scrollToCentered])
+  }, [loaded, centeredOrdinal, markInitiallyLoadedThreadAsRead, scrollToBottomSync, scrollToCentered])
 
   const firstOrdinal = messageOrdinals[0]
   const prevFirstOrdinalRef = React.useRef(firstOrdinal)
