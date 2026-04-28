@@ -245,7 +245,14 @@ const BotTab = (props: Props) => {
       },
       () => {}
     )
-  }, [adhocTeam, conversationIDKey, participantInfo.name.length, participantsAll.length, previewConversationByID])
+  }, [
+    adhocTeam,
+    conversationIDKey,
+    participantInfo.name.length,
+    participantsAll.length,
+    previewConversationByID,
+    setParticipants,
+  ])
 
   React.useEffect(() => {
     const mutationJustFinished = wasMutationWaitingRef.current && !mutationWaiting
@@ -263,7 +270,15 @@ const BotTab = (props: Props) => {
     if (!adhocTeam) {
       C.ignorePromise(reloadTeamMembers())
     }
-  }, [adhocTeam, conversationIDKey, mutationError, mutationWaiting, previewConversationByID, reloadTeamMembers])
+  }, [
+    adhocTeam,
+    conversationIDKey,
+    mutationError,
+    mutationWaiting,
+    previewConversationByID,
+    reloadTeamMembers,
+    setParticipants,
+  ])
 
   let botUsernames: Array<string> = []
   if (adhocTeam) {
