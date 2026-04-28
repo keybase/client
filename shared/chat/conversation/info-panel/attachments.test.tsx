@@ -243,6 +243,10 @@ test('attachment gallery waits to load until the attachments view is active', as
 
   await act(async () => {
     rerender({loadImmediately: true})
+    await flushPromises()
+  })
+
+  await act(async () => {
     jest.advanceTimersByTime(1)
     await flushPromises()
   })
