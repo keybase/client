@@ -616,7 +616,7 @@ test('mounted thread listener applies attachment download and upload progress', 
     id: T.Chat.numberToMessageID(701),
     ordinal: T.Chat.numberToOrdinal(701),
   })
-  const uploadOutboxID = T.Chat.stringToOutboxID('upload-outbox')
+  const uploadOutboxID = T.Chat.stringToOutboxID('0c0d')
   const uploadRpcOutboxID = T.Chat.outboxIDToRpcOutboxID(uploadOutboxID)
   const uploadMessage = makeAttachmentMessage({
     id: T.Chat.numberToMessageID(702),

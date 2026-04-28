@@ -17,6 +17,7 @@ import {ConversationThreadProvider} from './thread-context'
 
 let mockRouteFocused = true
 jest.mock('@react-navigation/core', () => ({
+  createNavigationContainerRef: jest.fn(() => ({current: null})),
   useIsFocused: () => mockRouteFocused,
 }))
 
