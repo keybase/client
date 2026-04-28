@@ -76,7 +76,7 @@ const useOrangeLine = (
           return
         }
         setOrangeLineState(prev => {
-          if (nextOrangeLine === noOrangeLine && prev.orangeLine !== noOrangeLine) {
+          if (prev.orangeLine !== noOrangeLine) {
             return prev
           }
           return {
@@ -114,9 +114,14 @@ const useOrangeLine = (
       return
     }
     const orangeLine = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(messageID))
-    setOrangeLineState({
-      mobileAppState: currentKey.mobileAppState,
-      orangeLine,
+    setOrangeLineState(prev => {
+      if (prev.orangeLine !== noOrangeLine) {
+        return prev
+      }
+      return {
+        mobileAppState: currentKey.mobileAppState,
+        orangeLine,
+      }
     })
   }
 
