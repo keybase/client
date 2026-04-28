@@ -653,7 +653,9 @@ const applyIncomingMessageToThread = (
   incomingMessage: T.RPCChat.IncomingMessage,
   actions: ConversationThreadActions
 ) => {
-  if (!Common.isUserActivelyLookingAtThisThread(conversationIDKey)) {
+  const snapshot = actions.getSnapshot()
+  const activelyLookingAtThread = Common.isUserActivelyLookingAtThisThread(conversationIDKey)
+  if (!snapshot.loaded && !activelyLookingAtThread) {
     return
   }
   const {message: cMsg, modifiedMessage} = incomingMessage
@@ -702,15 +704,17 @@ const applyIncomingMessageToThread = (
     const ordinal = getOrdinalForMessageIDInSnapshot(snapshot, T.Chat.numberToMessageID(placeholderID))
     const existing = ordinal ? snapshot.messageMap.get(ordinal) : undefined
     if (ordinal && existing) {
-      actions.addMessages([Message.upgradeMessage(existing, {...message, ordinal})], {markAsRead: true})
+      actions.addMessages([Message.upgradeMessage(existing, {...message, ordinal})], {
+        markAsRead: activelyLookingAtThread,
+      })
     } else {
-      actions.addMessages([message], {markAsRead: true})
+      actions.addMessages([message], {markAsRead: activelyLookingAtThread})
     }
   } else {
     if (actions.getSnapshot().moreToLoadForward) {
       return
     }
-    actions.addMessages([message], {markAsRead: true})
+    actions.addMessages([message], {markAsRead: activelyLookingAtThread})
   }
 }
 

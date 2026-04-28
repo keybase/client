@@ -423,6 +423,44 @@ test('mounted thread listener applies incoming messages for the active conversat
   })
 })
 
+test('mounted thread listener applies incoming messages while inactive without marking read', async () => {
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(false)
+  useConfigState.setState({loggedIn: true})
+  seedThreadCache([])
+  const markAsRead = jest
+    .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
+    .mockResolvedValue({offline: false})
+  const firstMsgID = T.Chat.numberToMessageID(602)
+  const {result} = renderHook(
+    () => ({
+      message: useConversationThreadMessage(T.Chat.numberToOrdinal(602)),
+      ordinals: useConversationThreadMessageOrdinalsMaybe(),
+    }),
+    {wrapper}
+  )
+
+  act(() => {
+    notifyEngineActionListeners({
+      payload: {
+        params: {
+          activity: {
+            activityType: T.RPCChat.ChatActivityType.incomingMessage,
+            incomingMessage: makeIncomingTextMessage(convID, firstMsgID, 'inactive incoming'),
+          },
+        },
+      },
+      type: 'chat.1.NotifyChat.NewChatActivity',
+    } as never)
+  })
+
+  expect(result.current.ordinals).toEqual([T.Chat.numberToOrdinal(602)])
+  expect(result.current.message?.id).toBe(firstMsgID)
+  await act(async () => {
+    await flushPromises()
+  })
+  expect(markAsRead).not.toHaveBeenCalled()
+})
+
 test('mounted thread listener applies failed outbox messages for the active conversation', () => {
   const pendingOrdinal = T.Chat.numberToOrdinal(801)
   const pendingOutboxID = T.Chat.stringToOutboxID('0a0b')
