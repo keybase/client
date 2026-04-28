@@ -963,9 +963,12 @@ const useConversationThreadSnapshotValue = <TValue,>(
   return selector(snapshot)
 }
 
-export const ConversationThreadProvider = (
-  p: React.PropsWithChildren<{id: T.Chat.ConversationIDKey; seedFromCache?: boolean}>
-) => {
+type ConversationThreadProviderProps = React.PropsWithChildren<{
+  id: T.Chat.ConversationIDKey
+  seedFromCache?: boolean
+}>
+
+const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => {
   const {children, id, seedFromCache = true} = p
   const [threadState, setThreadState] = React.useState<ConversationThreadState>(() => {
     return makeInitialThreadState(id, seedFromCache)
@@ -1830,6 +1833,15 @@ export const ConversationThreadProvider = (
       </ConversationThreadActionsContext>
     </ConversationThreadIDContext>
   )
+}
+
+export const ConversationThreadProvider = (p: ConversationThreadProviderProps) => {
+  const currentConversationIDKey = React.useContext(ConversationThreadIDContext)
+  if (currentConversationIDKey === p.id) {
+    // Same-thread wrappers should share the live message/meta state instead of replacing it.
+    return <>{p.children}</>
+  }
+  return <ConversationThreadProviderInner {...p} />
 }
 
 export const useConversationThreadLoaded = () =>

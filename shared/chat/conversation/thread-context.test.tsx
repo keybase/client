@@ -193,6 +193,14 @@ const wrapper = ({children}: {children: React.ReactNode}) => (
   <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
 )
 
+const nestedSameThreadWrapper = ({children}: {children: React.ReactNode}) => (
+  <ConversationThreadProvider id={convID}>
+    <ConversationThreadProvider id={convID} seedFromCache={false}>
+      {children}
+    </ConversationThreadProvider>
+  </ConversationThreadProvider>
+)
+
 const makeThreadSnapshot = (messages: ReadonlyArray<T.Chat.Message>): ConversationThreadSnapshot => {
   const sortedMessages = [...messages].sort((a, b) => a.ordinal - b.ordinal)
   const messageMap = new Map(sortedMessages.map(message => [message.ordinal, message]))
@@ -249,6 +257,15 @@ afterEach(() => {
   cleanup()
   jest.restoreAllMocks()
   resetAllStores()
+})
+
+test('same-conversation nested providers reuse the outer live thread state', () => {
+  seedThreadCache([makeTextMessage()])
+  const {result} = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
+    wrapper: nestedSameThreadWrapper,
+  })
+
+  expect(result.current?.id).toBe(T.Chat.numberToMessageID(301))
 })
 
 test('centered load clears stale thread state and requests a centered load', async () => {

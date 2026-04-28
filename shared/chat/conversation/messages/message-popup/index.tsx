@@ -91,7 +91,7 @@ export const MessagePopupModal = (p: ModalProps) => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo} = p
     return pop ? (
-      <ConversationThreadProvider id={conversationIDKey} seedFromCache={false}>
+      <ConversationThreadProvider id={conversationIDKey}>
         <MessagePopup
           ordinal={ordinal}
           key="popup"

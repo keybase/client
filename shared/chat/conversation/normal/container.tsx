@@ -54,16 +54,15 @@ const useOrangeLine = (
   React.useLayoutEffect(() => {
     currentOrangeLineKeyRef.current = {conversationIDKey: id, mobileAppState}
   }, [id, mobileAppState])
-  // Snapshot readMsgID during render (synchronous, before any effects like markThreadAsRead)
-  // This ensures we capture the read position before the Go service processes mark-as-read
   const meta = useConversationThreadMeta()
-  const savedReadMsgID = meta.readMsgID
+  // Keep the read position from when this conversation mounted. Mark-as-read updates
+  // meta.readMsgID shortly after navigation, but the open thread should retain its orange line.
+  const [initialReadMsgID] = React.useState(() => meta.readMsgID)
 
   const loadOrangeLine = React.useEffectEvent(
-    (conversationIDKey: T.Chat.ConversationIDKey, savedReadMsgID?: T.Chat.MessageID) => {
+    (conversationIDKey: T.Chat.ConversationIDKey, readMsgID: T.Chat.MessageID) => {
       const f = async () => {
         const convID = T.Chat.keyToConversationID(conversationIDKey)
-        const readMsgID = savedReadMsgID ?? meta.readMsgID
         const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
           convID,
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -90,9 +89,9 @@ const useOrangeLine = (
   // Wait for loaded so the Go service has messages in its local cache
   React.useEffect(() => {
     if (loaded) {
-      loadOrangeLine(id, savedReadMsgID)
+      loadOrangeLine(id, initialReadMsgID)
     }
-  }, [id, loaded, savedReadMsgID])
+  }, [id, loaded, initialReadMsgID])
 
   const maxVisibleMsgID = meta.maxVisibleMsgID
 
@@ -100,9 +99,9 @@ const useOrangeLine = (
   // if we are active we want to keep whatever state we had so it is maintained
   React.useEffect(() => {
     if (!active) {
-      loadOrangeLine(id)
+      loadOrangeLine(id, meta.readMsgID)
     }
-  }, [maxVisibleMsgID, active, id])
+  }, [maxVisibleMsgID, active, id, meta.readMsgID])
 
   const setOrangeLine = (messageID: T.Chat.MessageID) => {
     const currentKey = currentOrangeLineKeyRef.current
@@ -162,6 +161,7 @@ const NormalProviderChildren = (props: {
   return (
     <MaybeMentionProvider>
       <NormalOrangeLineProvider
+        key={conversationIDKey}
         active={active}
         conversationIDKey={conversationIDKey}
         mobileAppState={mobileAppState}
