@@ -448,6 +448,9 @@ const makeAttachmentViewInfo = (): T.Chat.AttachmentViewInfo => ({
   status: 'loading',
 })
 
+const isCanceledRPCError = (error: RPCError | Error) =>
+  error instanceof RPCError && error.code === T.RPCGen.StatusCode.sccanceled
+
 const updateAttachmentViewMap = (
   attachmentViewMap: AttachmentViewMap,
   viewType: T.RPCChat.GalleryItemTyp,
@@ -518,7 +521,7 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
         info.status = 'loading'
       })
 
-      const generation = loadGenerationRef.current
+      const generation = ++loadGenerationRef.current
       const isCurrentLoad = () => loadGenerationRef.current === generation
       const f = async () => {
         const convID = T.Chat.keyToConversationID(conversationIDKey)
@@ -609,7 +612,18 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
           })
         } catch (error) {
           flushPendingMessages()
-          if ((error instanceof RPCError || error instanceof Error) && isCurrentLoad()) {
+          if (
+            (error instanceof RPCError || error instanceof Error) &&
+            isCanceledRPCError(error) &&
+            isCurrentLoad()
+          ) {
+            updateCurrentAttachmentViewMap(viewType, info => {
+              if (info.messages.length) {
+                info.last = false
+                info.status = 'success'
+              }
+            })
+          } else if ((error instanceof RPCError || error instanceof Error) && isCurrentLoad()) {
             logger.error('failed to load attachment view: ' + error.message)
             updateCurrentAttachmentViewMap(viewType, info => {
               info.last = false
@@ -658,13 +672,16 @@ export const useAttachmentSections = (
     loadAttachmentView(selectedAttachmentView)
   })
   React.useEffect(() => {
+    if (!loadImmediately) {
+      return
+    }
     const timeout = setTimeout(() => {
       loadSelectedAttachmentView()
     }, 1)
     return () => {
       clearTimeout(timeout)
     }
-  }, [conversationIDKey])
+  }, [conversationIDKey, loadImmediately])
 
   const attachmentInfo = getLiveAttachmentInfo(attachmentViewMap.get(selectedAttachmentView), messageMap)
   const fromMsgID = attachmentInfo ? getFromMsgID(attachmentInfo) : undefined
