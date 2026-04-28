@@ -41,7 +41,7 @@ const Header2 = () => {
   const conversationIDKey = useConversationThreadID()
   const meta = useConversationThreadMeta()
   const participantInfo = useConversationThreadParticipants()
-  const {channelname, descriptionDecorated, isMuted: muted, teamType, teamname} = meta
+  const {channelname, descriptionDecorated, isMuted: muted, teamType, teamname, tlfname} = meta
   const channel = teamType === 'big' ? `${teamname}#${channelname}` : teamType === 'small' ? teamname : null
   const isTeam = ['small', 'big'].includes(teamType)
   const participants = teamType === 'adhoc' ? participantInfo.name : null
@@ -68,10 +68,17 @@ const Header2 = () => {
   const unMuteConversation = () => {
     muteConversation(conversationIDKey, false)
   }
+  const privateFolderPath = tlfname
+    ? `${Config.defaultKBFSPath}${Config.defaultPrivatePrefix}${tlfname}`
+    : participants && participants.length
+      ? Config.privateFolderWithUsers(participants)
+      : ''
+  const folderPath = isTeam ? (teamname ? Config.teamFolder(teamname) : '') : privateFolderPath
   const onOpenFolder = () => {
-    const path = T.FS.stringToPath(
-      isTeam ? Config.teamFolder(teamname) : Config.privateFolderWithUsers(participants ?? [])
-    )
+    if (!folderPath) {
+      return
+    }
+    const path = T.FS.stringToPath(folderPath)
     navToPath(path)
   }
 
@@ -215,8 +222,17 @@ const Header2 = () => {
       >
         <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={onToggleThreadSearch} />
       </Kb.Box2>
-      <Kb.Box2 className="tooltip-left" direction="vertical" tooltip="Open folder">
-        <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={onOpenFolder} />
+      <Kb.Box2
+        className="tooltip-left"
+        direction="vertical"
+        tooltip={folderPath ? 'Open folder' : 'Folder unavailable'}
+      >
+        <Kb.Icon
+          color={folderPath ? undefined : Kb.Styles.globalColors.black_20}
+          style={folderPath ? styles.clickable : undefined}
+          type="iconfont-folder-private"
+          onClick={folderPath ? onOpenFolder : undefined}
+        />
       </Kb.Box2>
       <Kb.Box2 className="tooltip-left" direction="vertical" tooltip="Chat info & settings">
         <Kb.Icon

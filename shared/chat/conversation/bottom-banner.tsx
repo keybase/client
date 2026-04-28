@@ -1,12 +1,14 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import type * as T from '@/constants/types'
 import {openSMS as _openSMS} from '@/util/misc'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {showShareActionSheet} from '@/util/platform-specific'
 import {useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from './thread-context'
+import {useBottomBannerState} from './bottom-banner-state'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
@@ -98,13 +100,21 @@ const Broken = () => {
 
 const BannerContainer = function BannerContainer() {
   const conversationIDKey = useConversationThreadID()
-  return <BannerContainerInner key={conversationIDKey} />
+  return <BannerContainerInner key={conversationIDKey} conversationIDKey={conversationIDKey} />
 }
 
-const BannerContainerInner = function BannerContainerInner() {
+const BannerContainerInner = function BannerContainerInner(props: {
+  conversationIDKey: T.Chat.ConversationIDKey
+}) {
+  const {conversationIDKey} = props
   const following = useFollowerState(s => s.following)
   const infoMap = useUsersState(s => s.infoMap)
-  const [dismissed, setDismissed] = React.useState(false)
+  const {dismissed, dismissInviteBanner} = useBottomBannerState(
+    C.useShallow(s => ({
+      dismissInviteBanner: s.dispatch.dismissInviteBanner,
+      dismissed: s.inviteBannerDismissed.has(conversationIDKey),
+    }))
+  )
   const participantInfo = useConversationThreadParticipants()
   const meta = useConversationThreadMeta()
   const type = (() => {
@@ -123,7 +133,7 @@ const BannerContainerInner = function BannerContainerInner() {
 
   switch (type) {
     case 'invite':
-      return <Invite onDismiss={() => setDismissed(true)} />
+      return <Invite onDismiss={() => dismissInviteBanner(conversationIDKey)} />
     case 'broken':
       return <Broken />
     case 'none':

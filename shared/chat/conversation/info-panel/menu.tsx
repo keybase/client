@@ -19,6 +19,8 @@ import {
   useConversationThreadSetMarkAsUnread,
 } from '../thread-context'
 
+const isHexBytes = (s: string) => s.length > 0 && s.length % 2 === 0 && /^[0-9a-fA-F]+$/.test(s)
+
 export type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
   onHidden: () => void
@@ -134,13 +136,15 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   }
   const clearModals = C.Router2.clearModals
   const loggedIn = useConfigState(s => s.loggedIn)
+  const teamIDString = T.Teams.teamIDToString(teamID)
+  const canMarkTLFAsRead = isHexBytes(teamIDString)
   const onMarkAsRead = () => {
     clearModals()
     const f = async () => {
-      if (!loggedIn) {
+      if (!loggedIn || !canMarkTLFAsRead) {
         return
       }
-      const tlfID = hexToUint8Array(T.Teams.teamIDToString(teamID))
+      const tlfID = hexToUint8Array(teamIDString)
       await T.RPCChat.localMarkTLFAsReadLocalRpcPromise({tlfID})
     }
     C.ignorePromise(f())
@@ -348,7 +352,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     if (hasChannelSection) {
       items.push(teamHeader)
     }
-    if (!isSmallTeam) {
+    if (!isSmallTeam && canMarkTLFAsRead) {
       // Only show if we have multiple channels
       items.push({
         icon: 'iconfont-envelope',

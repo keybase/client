@@ -28,18 +28,22 @@ const loadThreadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RP
   []
 )
 
+const setConversationStatusPromise = async (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  status: T.RPCChat.ConversationStatus
+) => {
+  await T.RPCChat.localSetConversationStatusLocalRpcPromise({
+    conversationID: T.Chat.keyToConversationID(conversationIDKey),
+    identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+    status,
+  })
+}
+
 const setConversationStatus = (
   conversationIDKey: T.Chat.ConversationIDKey,
   status: T.RPCChat.ConversationStatus
 ) => {
-  const f = async () => {
-    await T.RPCChat.localSetConversationStatusLocalRpcPromise({
-      conversationID: T.Chat.keyToConversationID(conversationIDKey),
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      status,
-    })
-  }
-  C.ignorePromise(f())
+  C.ignorePromise(setConversationStatusPromise(conversationIDKey, status))
 }
 
 export const hideConversation = (conversationIDKey: T.Chat.ConversationIDKey, hide: boolean) => {
@@ -70,6 +74,12 @@ export const muteConversation = (conversationIDKey: T.Chat.ConversationIDKey, mu
     muted ? T.RPCChat.ConversationStatus.muted : T.RPCChat.ConversationStatus.unfiled
   )
 }
+
+export const muteConversationPromise = (conversationIDKey: T.Chat.ConversationIDKey, muted: boolean) =>
+  setConversationStatusPromise(
+    conversationIDKey,
+    muted ? T.RPCChat.ConversationStatus.muted : T.RPCChat.ConversationStatus.unfiled
+  )
 
 export const markConversationUnread = (
   conversationIDKey: T.Chat.ConversationIDKey,
