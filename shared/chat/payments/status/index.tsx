@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import * as ConvoState from '@/stores/convostate'
 import PaymentStatusError from './error'
 import Text from '@/common-adapters/text'
 import {Box2} from '@/common-adapters/box'
@@ -9,7 +8,10 @@ import type * as T from '@/constants/types'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type * as WalletTypes from '@/constants/types/wallets'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
-import {useConversationThreadMessage} from '@/chat/conversation/thread-context'
+import {
+  useConversationThreadMessage,
+  useConversationThreadPaymentStatus,
+} from '@/chat/conversation/thread-context'
 import {useCurrentUserState} from '@/stores/current-user'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
@@ -178,9 +180,7 @@ const reduceStatus = (status: string): Status => {
 function PaymentStatusContainer(p: OwnProps) {
   const {error, paymentID, text, allowFontScaling} = p
   const ordinal = useOrdinal()
-  const paymentInfo = ConvoState.useChatContext(s =>
-    paymentID ? s.paymentStatusMap.get(paymentID) : undefined
-  )
+  const paymentInfo = useConversationThreadPaymentStatus(paymentID)
   const status = error ? 'error' : (paymentInfo?.status ?? 'pending')
 
   const you = useCurrentUserState(s => s.username)

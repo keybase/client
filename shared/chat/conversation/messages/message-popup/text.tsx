@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -9,7 +8,12 @@ import {useItems, useHeader} from './hooks'
 import {openURL} from '@/util/misc'
 import {useCurrentUserState} from '@/stores/current-user'
 import {copyToClipboard} from '@/util/storeless-actions'
-import {useConversationThreadMessage} from '../../thread-context'
+import {
+  useConversationThreadMessage,
+  useConversationThreadMessageActions,
+  useConversationThreadMeta,
+  useConversationThreadParticipants,
+} from '../../thread-context'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -62,15 +66,10 @@ const PopText = (ownProps: OwnProps) => {
   })()
 
   const yourMessage = author === you
-  const {isTeam, messageReplyPrivately, numPart, teamType} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {teamType, teamname} = s.meta
-      const isTeam = !!teamname
-      const numPart = s.participants.all.length
-      const {messageReplyPrivately} = s.dispatch
-      return {isTeam, messageReplyPrivately, numPart, teamType}
-    })
-  )
+  const {teamType, teamname} = useConversationThreadMeta()
+  const isTeam = !!teamname
+  const numPart = useConversationThreadParticipants().all.length
+  const {messageReplyPrivately} = useConversationThreadMessageActions()
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const canReplyPrivately = ['small', 'big'].includes(teamType) || numPart > 2
   const navigateAppend = C.Router2.navigateAppend

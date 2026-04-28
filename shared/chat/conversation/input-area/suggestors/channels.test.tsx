@@ -5,8 +5,9 @@ import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
-import {ChatProvider, getConvoState} from '@/stores/convostate'
+import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {ConversationThreadProvider} from '../../thread-context'
 import {List} from './channels'
 
 const mockCommonList = jest.fn((_p: unknown) => null)
@@ -37,7 +38,16 @@ jest.mock('../../team-hooks', () => ({
 
 jest.mock('@/stores/inbox-rows', () => ({
   flushInboxRowUpdates: jest.fn(),
+  getInboxRowTrustedState: jest.fn(() => undefined),
   queueInboxRowUpdate: jest.fn(),
+  setInboxRowTrustedState: jest.fn(),
+  syncInboxRowBadgeState: jest.fn(),
+  syncInboxRowsFromLayout: jest.fn(),
+  syncInboxRowsFromMetaAndParticipants: jest.fn(),
+  syncInboxRowsFromMetas: jest.fn(),
+  syncInboxRowsFromParticipantMap: jest.fn(),
+  syncInboxRowsFromParticipants: jest.fn(),
+  updateInboxRowTyping: jest.fn(),
 }))
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -64,7 +74,7 @@ const makeChannelRow = (
 
 const renderChannels = () =>
   render(
-    <ChatProvider id={convID}>
+    <ConversationThreadProvider id={convID}>
       <List
         expanded={false}
         filter=""
@@ -74,7 +84,7 @@ const renderChannels = () =>
         setOnMoveRef={jest.fn()}
         setOnSubmitRef={jest.fn()}
       />
-    </ChatProvider>
+    </ConversationThreadProvider>
   )
 
 beforeEach(() => {
@@ -84,16 +94,21 @@ beforeEach(() => {
     uid: 'uid',
     username: 'alice',
   })
-  getConvoState(convID).dispatch.setMeta({
+  const meta: T.Chat.ConversationMeta = {
     ...Meta.makeConversationMeta(),
     conversationIDKey: convID,
     teamType: 'adhoc',
-  })
-  getConvoState(convID).dispatch.setParticipants({
-    all: ['alice', 'bob', 'carol'],
-    contactName: new Map(),
-    name: ['alice', 'bob', 'carol'],
-  })
+  }
+  metasReceived([meta])
+  participantInfoReceived(
+    convID,
+    {
+      all: ['alice', 'bob', 'carol'],
+      contactName: new Map(),
+      name: ['alice', 'bob', 'carol'],
+    },
+    meta
+  )
   useInboxLayoutState.getState().dispatch.updateLayout(
     JSON.stringify({
       bigTeams: [

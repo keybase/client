@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -13,8 +12,15 @@ import {usePickerState, type PickKey} from './use-picker'
 import {Keyboard} from 'react-native'
 import {useUserEmoji} from '@/chat/user-emoji'
 import {useCurrentSkinTone, useSetSkinTone, useTopReacjis} from '@/chat/user-reacjis'
+import {
+  ConversationThreadProvider,
+  useConversationThreadID,
+  useConversationThreadMessageActions,
+  useConversationThreadMeta,
+} from '@/chat/conversation/thread-context'
 
 type Props = {
+  conversationIDKey?: T.Chat.ConversationIDKey
   disableCustomEmoji?: boolean
   hideFrequentEmoji?: boolean
   small?: boolean
@@ -25,6 +31,7 @@ type Props = {
 }
 
 type RoutableProps = {
+  conversationIDKey?: T.Chat.ConversationIDKey
   small?: boolean
   hideFrequentEmoji?: boolean
   onlyTeamCustomEmoji?: boolean
@@ -35,8 +42,8 @@ type RoutableProps = {
 const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
   const topReacjis = useTopReacjis()
   const [filter, setFilter] = React.useState('')
-  const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const {toggleMessageReaction} = useConversationThreadMessageActions()
+  const conversationIDKey = useConversationThreadID()
   const onChoose = (emoji: string, renderableEmoji: RenderableEmoji) => {
     if (conversationIDKey !== T.Chat.noConversationIDKey && onPickAddToMessageOrdinal) {
       toggleMessageReaction(onPickAddToMessageOrdinal, emoji)
@@ -59,7 +66,7 @@ const useSkinTone = () => {
 }
 
 const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const {emojiGroups: customEmojiGroups, loading: waiting} = useUserEmoji({
     conversationIDKey,
     disabled,
@@ -69,7 +76,7 @@ const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) =>
 }
 
 const useCanManageEmoji = () => {
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const meta = useConversationThreadMeta()
   const {yourOperations} = useChatTeam(meta.teamID, meta.teamname)
   const canManageEmoji = !meta.teamname || yourOperations.manageEmojis
   return canManageEmoji
@@ -86,12 +93,12 @@ const WrapperMobile = (props: Props) => {
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const navigateUp = C.Router2.navigateUp
   const onCancel = navigateUp
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const addEmoji = () =>
-    navigateAppend(conversationIDKey => ({
+    C.Router2.navigateAppend({
       name: 'teamAddEmoji',
       params: {conversationIDKey, teamID: T.Teams.noTeamID},
-    }))
+    })
   const canManageEmoji = useCanManageEmoji()
 
   return (
@@ -147,20 +154,20 @@ const WrapperMobile = (props: Props) => {
   )
 }
 
-export const EmojiPickerDesktop = (props: Props) => {
+const EmojiPickerDesktopInner = (props: Props) => {
   const {onDidPick} = props
   const {filter, onChoose, setFilter: _setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState(emojiData.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
   const canManageEmoji = useCanManageEmoji()
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const addEmoji = () => {
     onDidPick?.()
-    navigateAppend(conversationIDKey => ({
+    C.Router2.navigateAppend({
       name: 'teamAddEmoji',
       params: {conversationIDKey, teamID: T.Teams.noTeamID},
-    }))
+    })
   }
 
   const setFilter = C.useThrottledCallback(_setFilter, 200)
@@ -246,6 +253,17 @@ export const EmojiPickerDesktop = (props: Props) => {
   )
 }
 
+export const EmojiPickerDesktop = (props: Props) => {
+  const {conversationIDKey} = props
+  return conversationIDKey ? (
+    <ConversationThreadProvider id={conversationIDKey}>
+      <EmojiPickerDesktopInner {...props} />
+    </ConversationThreadProvider>
+  ) : (
+    <EmojiPickerDesktopInner {...props} />
+  )
+}
+
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
@@ -303,6 +321,15 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const Routable = (props: RoutableProps) => {
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
+  return (
+    <ConversationThreadProvider id={conversationIDKey}>
+      <RoutableInner {...props} />
+    </ConversationThreadProvider>
+  )
+}
+
+const RoutableInner = (props: RoutableProps) => {
   const small = props.small
   const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageOrdinal, pickKey} = props
   const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)

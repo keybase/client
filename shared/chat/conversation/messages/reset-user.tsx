@@ -1,12 +1,13 @@
-import * as ConvoState from '@/stores/convostate'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import {navToProfile} from '@/constants/router'
+import {useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from '../thread-context'
 
 const ResetUser = () => {
-  const meta = ConvoState.useChatContext(s => s.meta)
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const resetChatWithoutThem = ConvoState.useChatContext(s => s.dispatch.resetChatWithoutThem)
-  const resetLetThemIn = ConvoState.useChatContext(s => s.dispatch.resetLetThemIn)
+  const meta = useConversationThreadMeta()
+  const participantInfo = useConversationThreadParticipants()
+  const conversationIDKey = useConversationThreadID()
   const _participants = participantInfo.all
   const _resetParticipants = meta.resetParticipants
   const _viewProfile = navToProfile
@@ -14,8 +15,21 @@ const ResetUser = () => {
   const nonResetUsers = new Set(_participants)
   _resetParticipants.forEach(r => nonResetUsers.delete(r))
   const allowChatWithoutThem = nonResetUsers.size > 1
-  const chatWithoutThem = resetChatWithoutThem
-  const letThemIn = () => resetLetThemIn(username)
+  const chatWithoutThem = () => {
+    C.Router2.previewConversation({
+      participants: [...nonResetUsers],
+      reason: 'resetChatWithoutThem',
+    })
+  }
+  const letThemIn = () => {
+    const f = async () => {
+      await T.RPCChat.localAddTeamMemberAfterResetRpcPromise({
+        convID: T.Chat.keyToConversationID(conversationIDKey),
+        username,
+      })
+    }
+    C.ignorePromise(f())
+  }
   const viewProfile = () => _viewProfile(username)
 
   return (

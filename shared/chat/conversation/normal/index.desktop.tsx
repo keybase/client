@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import {PerfProfiler} from '@/perf/react-profiler'
@@ -11,11 +10,12 @@ import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import ThreadSearch from '../search'
 import {useConversationCenter} from '../center-context'
-import {useConversationThreadID, useConversationThreadToggleSearch} from '../thread-context'
+import {useConversationThreadID, useConversationThreadMeta, useConversationThreadToggleSearch} from '../thread-context'
 import {useThreadSearchRoute} from '../thread-search-route'
 import {readImageFromClipboard} from '@/util/clipboard.desktop'
 import '../conversation.css'
 import {indefiniteArticle} from '@/util/string'
+import {makePasteAttachment} from '../attachment-actions'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -34,30 +34,26 @@ const LoadingLine = () => {
 
 const Conversation = function Conversation() {
   const conversationIDKey = useConversationThreadID()
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const navigateAppend = C.Router2.navigateAppend
   const onAttach = (paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({path: p}))
-    navigateAppend(conversationIDKey => ({
+    navigateAppend({
       name: 'chatAttachmentGetTitles',
       params: {conversationIDKey, pathAndOutboxIDs},
-    }))
+    })
   }
   const showThreadSearch = !!useThreadSearchRoute()
-  const cannotWrite = ConvoState.useChatContext(s => s.meta.cannotWrite)
-  const threadLoadedOffline = ConvoState.useChatContext(s => s.meta.offline)
-  const dragAndDropRejectReason = ConvoState.useChatContext(s => {
-    const meta = s.meta
-    const {cannotWrite, minWriterRole} = meta
-    return cannotWrite
-      ? `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
-      : undefined
-  })
-  const attachmentPasted = ConvoState.useChatContext(s => s.dispatch.attachmentPasted)
+  const meta = useConversationThreadMeta()
+  const {cannotWrite, minWriterRole} = meta
+  const threadLoadedOffline = meta.offline
+  const dragAndDropRejectReason = cannotWrite
+    ? `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
+    : undefined
   const onPaste = (e: React.SyntheticEvent) => {
     readImageFromClipboard(e)
       .then(clipboardData => {
         if (clipboardData) {
-          attachmentPasted(clipboardData)
+          makePasteAttachment(conversationIDKey, clipboardData)
         }
       })
       .catch(() => {})

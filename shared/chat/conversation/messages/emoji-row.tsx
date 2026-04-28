@@ -1,4 +1,4 @@
-import * as ConvoState from '@/stores/convostate'
+import * as C from '@/constants'
 import * as React from 'react'
 import * as InputState from '../input-area/input-state'
 import {useOrdinal} from './ids-context'
@@ -6,6 +6,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 import {useReactionRowTopReacjis} from '@/chat/user-reacjis'
+import {useConversationThreadID, useConversationThreadMessageActions} from '../thread-context'
 
 type OwnProps = {
   className?: string
@@ -21,14 +22,14 @@ function EmojiRowContainer(p: OwnProps) {
   const {className, hasUnfurls, messageType, onReact: onReactProp, onReply: onReplyProp, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
   const setReplyTo = InputState.useConversationInput(s => s.dispatch.setReplyTo)
-  const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const {toggleMessageReaction} = useConversationThreadMessageActions()
   const emojis = useReactionRowTopReacjis()
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const _onForward = () => {
-    navigateAppend(conversationIDKey => ({
+    C.Router2.navigateAppend({
       name: 'chatForwardMsgPick',
       params: {conversationIDKey, ordinal},
-    }))
+    })
   }
   const onReact = (emoji: string) => {
     if (onReactProp) {

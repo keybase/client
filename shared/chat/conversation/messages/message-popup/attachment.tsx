@@ -1,13 +1,13 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import type * as React from 'react'
 import type * as T from '@/constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '@/styles'
 import {useItems, useHeader} from './hooks'
 import * as Kb from '@/common-adapters'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {useConversationThreadMessage} from '../../thread-context'
+import {useConversationShowInfoPanel, useConversationThreadMessage} from '../../thread-context'
+import {useConversationAttachmentActions} from '../../attachment-actions'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -29,27 +29,9 @@ const PopAttach = (ownProps: OwnProps) => {
   const pending = !!message.transferState
   const clearModals = C.Router2.clearModals
 
-  const {
-    attachmentDownload,
-    messageAttachmentNativeSave,
-    messageAttachmentNativeShare,
-    showInfoPanel,
-  } = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {
-        attachmentDownload,
-        messageAttachmentNativeSave,
-        messageAttachmentNativeShare,
-        showInfoPanel,
-      } = s.dispatch
-      return {
-        attachmentDownload,
-        messageAttachmentNativeSave,
-        messageAttachmentNativeShare,
-        showInfoPanel,
-      }
-    })
-  )
+  const {attachmentDownload, messageAttachmentNativeSave, messageAttachmentNativeShare} =
+    useConversationAttachmentActions()
+  const showInfoPanel = useConversationShowInfoPanel()
 
   const onJump = () => {
     showInfoPanel(false, 'attachments')

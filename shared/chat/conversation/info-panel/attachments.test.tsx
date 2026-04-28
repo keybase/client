@@ -5,7 +5,9 @@ import type * as React from 'react'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
-import {ChatProvider, getConvoState} from '@/stores/convostate'
+import {notifyEngineActionListeners} from '@/engine/action-listener'
+import {getConversationThreadCacheSnapshot} from '../thread-cache'
+import {ConversationThreadProvider, useConversationThreadMessage} from '../thread-context'
 import {useAttachmentSections} from './attachments'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -107,9 +109,18 @@ const makeValidAttachmentUIMessage = (
 }
 
 const renderAttachmentSections = () =>
-  renderHook(() => useAttachmentSections({commonSections: []}, true, false), {
-    wrapper: ({children}: {children: React.ReactNode}) => <ChatProvider id={convID}>{children}</ChatProvider>,
-  })
+  renderHook(
+    () => ({
+      ...useAttachmentSections({commonSections: []}, true, false),
+      message100: useConversationThreadMessage(T.Chat.numberToOrdinal(100)),
+      message101: useConversationThreadMessage(T.Chat.numberToOrdinal(101)),
+    }),
+    {
+      wrapper: ({children}: {children: React.ReactNode}) => (
+        <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
+      ),
+    }
+  )
 
 beforeEach(() => {
   jest.useFakeTimers()
@@ -159,13 +170,8 @@ test('attachment gallery loads media, dedupes hits, injects messages, and loads 
     num: 50,
     typ: T.RPCChat.GalleryItemTyp.media,
   })
-  expect(getConvoState(convID).messageMap.get(T.Chat.numberToOrdinal(100))?.id).toBe(
-    T.Chat.numberToMessageID(100)
-  )
-  expect(getConvoState(convID).messageMap.get(T.Chat.numberToOrdinal(101))?.id).toBe(
-    T.Chat.numberToMessageID(101)
-  )
-  expect(getConvoState(convID).messageMap.size).toBe(2)
+  expect(result.current.message100?.id).toBe(T.Chat.numberToMessageID(100))
+  expect(result.current.message101?.id).toBe(T.Chat.numberToMessageID(101))
 
   const loadMoreSection = result.current.sections.at(-1)
   const loadMoreButton = loadMoreSection?.renderItem({
@@ -246,10 +252,10 @@ test('attachment gallery ignores hits that arrive after unmount cleanup', async 
     await flushPromises()
   })
 
-  expect(getConvoState(convID).messageMap.size).toBe(0)
+  expect(getConversationThreadCacheSnapshot(convID)?.messageMap.size ?? 0).toBe(0)
 })
 
-test('attachment gallery doc rows reflect live transfer progress from convostate', async () => {
+test('attachment gallery doc rows reflect live transfer progress from the mounted thread provider', async () => {
   const requests = new Array<Parameters<typeof T.RPCChat.localLoadGalleryRpcListener>[0]>()
   const attachmentMsgID = T.Chat.numberToMessageID(400)
   jest.spyOn(T.RPCChat, 'localLoadGalleryRpcListener').mockImplementation(async p => {
@@ -288,7 +294,7 @@ test('attachment gallery doc rows reflect live transfer progress from convostate
   expect(findDoc()).toEqual(expect.objectContaining({downloading: false, progress: 0}))
 
   act(() => {
-    getConvoState(convID).dispatch.onEngineIncoming({
+    notifyEngineActionListeners({
       payload: {
         params: {
           bytesComplete: 50,

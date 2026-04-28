@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import * as T from '@/constants/types'
@@ -8,8 +7,17 @@ import * as InfoPanelCommon from './common'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useConfigState} from '@/stores/config'
 import {useChatManageChannelsBadge, useChatTeam} from '../team-hooks'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
+import {hexToUint8Array} from '@/util/uint8array'
+import {hideConversation, joinConversation, muteConversation} from '../status-actions'
+import {
+  useConversationThreadID,
+  useConversationThreadMeta,
+  useConversationThreadParticipants,
+  useConversationThreadSetMarkAsUnread,
+} from '../thread-context'
 
 export type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -30,8 +38,8 @@ const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
   const {isSmallTeam, pteamID} = p
   const username = useCurrentUserState(s => s.username)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const participantInfo = useConversationThreadParticipants()
+  const meta = useConversationThreadMeta()
   const {teamname: loadedTeamname} = useChatTeam(pteamID ?? T.Teams.noTeamID)
   const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
@@ -95,6 +103,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     teamname
   )
   const routerNavigateAppend = C.Router2.navigateAppend
+  const conversationIDKey = useConversationThreadID()
   const canAddPeople = yourOperations.manageMembers
   const onAddPeople = () => {
     if (teamID) {
@@ -104,9 +113,8 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
       })
     }
   }
-  const chatNavigateAppend = ConvoState.useChatNavigateAppend()
   const onBlockConv = () => {
-    chatNavigateAppend(conversationIDKey => ({
+    routerNavigateAppend({
       name: 'chatBlockingModal',
       params: {
         blockUserByDefault: participants.length === 1,
@@ -114,39 +122,44 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
         others: participants,
         team: teamname,
       },
-    }))
+    })
   }
 
-  const onJoinChannel = ConvoState.useChatContext(s => s.dispatch.joinConversation)
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const onJoinChannel = () => joinConversation(conversationIDKey)
   const onLeaveChannel = () => C.Router2.leaveConversation(conversationIDKey)
-  const onLeaveTeam = () => teamID && chatNavigateAppend(() => ({name: 'teamReallyLeaveTeam', params: {teamID}}))
+  const onLeaveTeam = () => teamID && routerNavigateAppend({name: 'teamReallyLeaveTeam', params: {teamID}})
   const onManageChannels = () => {
     routerNavigateAppend({name: 'teamAddToChannels', params: {teamID}})
     void dismissManageChannelsBadge()
   }
   const clearModals = C.Router2.clearModals
-  const markTeamAsRead = ConvoState.useChatContext(s => s.dispatch.markTeamAsRead)
+  const loggedIn = useConfigState(s => s.loggedIn)
   const onMarkAsRead = () => {
     clearModals()
-    markTeamAsRead(teamID)
+    const f = async () => {
+      if (!loggedIn) {
+        return
+      }
+      const tlfID = hexToUint8Array(T.Teams.teamIDToString(teamID))
+      await T.RPCChat.localMarkTLFAsReadLocalRpcPromise({tlfID})
+    }
+    C.ignorePromise(f())
   }
-  const setMarkAsUnread = ConvoState.useChatContext(s => s.dispatch.setMarkAsUnread)
+  const setMarkAsUnread = useConversationThreadSetMarkAsUnread()
   const onMarkAsUnread = () => {
     clearModals()
     setMarkAsUnread()
   }
   const onViewTeam = () => {
     clearModals()
-    chatNavigateAppend(() => ({name: 'team', params: {teamID}}))
+    routerNavigateAppend({name: 'team', params: {teamID}})
   }
-  const hideConversation = ConvoState.useChatContext(s => s.dispatch.hideConversation)
   const onHideConv = () => {
-    hideConversation(true)
+    hideConversation(conversationIDKey, true)
   }
-  const onMuteConv = ConvoState.useChatContext(s => s.dispatch.mute)
+  const onMuteConv = (muted: boolean) => muteConversation(conversationIDKey, muted)
   const onUnhideConv = () => {
-    hideConversation(false)
+    hideConversation(conversationIDKey, false)
   }
 
   const isGeneralChannel = !!(channelname && channelname === 'general')
@@ -395,8 +408,8 @@ type AdhocHeaderProps = {
 }
 
 const AdhocHeader = (props: AdhocHeaderProps) => {
-  const meta = ConvoState.useChatContext(s => s.meta)
-  const participants = ConvoState.useChatContext(s => s.participants)
+  const meta = useConversationThreadMeta()
+  const participants = useConversationThreadParticipants()
   const {channelHumans} = InfoPanelCommon.useHumans(participants, meta)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>

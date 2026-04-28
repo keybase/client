@@ -1,9 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import {chatStores} from '@/stores/convo-registry'
-import * as ConvoState from '@/stores/convostate'
-import {getConvoState} from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {Keyboard} from 'react-native'
@@ -16,9 +14,18 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {navToProfile} from '@/constants/router'
 import * as React from 'react'
+import {
+  ConversationThreadProvider,
+  showConversationInfoPanel,
+  toggleConversationThreadSearch,
+  useConversationThreadID,
+  useConversationThreadMeta,
+  useConversationThreadParticipants,
+} from '../thread-context'
+import {muteConversation} from '../status-actions'
 
 export const HeaderAreaRight = () => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const pendingWaiting =
     conversationIDKey === Chat.pendingWaitingConversationIDKey ||
     conversationIDKey === Chat.pendingErrorConversationIDKey
@@ -42,14 +49,12 @@ export const HeaderAreaRight = () => {
   //   </>
   // ) : null
 
-  const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
-  const onShowInfoPanel = () => showInfoPanel(true, undefined)
-  const toggleThreadSearch = ConvoState.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const onShowInfoPanel = () => showConversationInfoPanel(conversationIDKey, true, undefined)
   const onToggleThreadSearch = () => {
     // fix a race with the keyboard going away and coming back quickly
     Keyboard.dismiss()
     setTimeout(() => {
-      toggleThreadSearch()
+      toggleConversationThreadSearch(conversationIDKey)
     }, 100)
   }
 
@@ -72,9 +77,9 @@ enum HeaderType {
 }
 
 const HeaderBranchContainer = function HeaderBranchContainer() {
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const type = ConvoState.useChatContext(s => {
-    const meta = s.meta
+  const participantInfo = useConversationThreadParticipants()
+  const meta = useConversationThreadMeta()
+  const type = (() => {
     const teamName = meta.teamname
     if (teamName) {
       return HeaderType.Team
@@ -84,7 +89,7 @@ const HeaderBranchContainer = function HeaderBranchContainer() {
       participant => participant.endsWith('@phone') || participant.endsWith('@email')
     )
     return isPhoneOrEmail ? HeaderType.PhoneEmail : HeaderType.User
-  })
+  })()
 
   switch (type) {
     case HeaderType.Team:
@@ -114,15 +119,14 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
           headerLeft: (props: HeaderBackButtonProps) => {
             const {labelStyle, ...rest} = props
             return (
-              <ConvoState.ChatProvider id={conversationIDKey}>
+              <ConversationThreadProvider id={conversationIDKey}>
                 <BadgeHeaderLeftArray {...rest} />
-              </ConvoState.ChatProvider>
+              </ConversationThreadProvider>
             )
           },
         }
       : {}),
     // iOS 26: two separate native buttons (each gets its own glass pill).
-    // getConvoState lets us access dispatch without hooks since this runs outside React.
     ...(Kb.Styles.isIOS
       ? {
           unstable_headerRightItems: () => [
@@ -131,29 +135,29 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
               label: 'Search',
               onPress: () => {
                 Keyboard.dismiss()
-                setTimeout(() => getConvoState(conversationIDKey).dispatch.toggleThreadSearch(), 100)
+                setTimeout(() => toggleConversationThreadSearch(conversationIDKey), 100)
               },
               type: 'button' as const,
             },
             {
               icon: sfIcon('info.circle'),
               label: 'Info',
-              onPress: () => getConvoState(conversationIDKey).dispatch.showInfoPanel(true, undefined),
+              onPress: () => showConversationInfoPanel(conversationIDKey, true, undefined),
               type: 'button' as const,
             },
           ],
         }
       : {
           headerRight: () => (
-            <ConvoState.ChatProvider id={conversationIDKey}>
+            <ConversationThreadProvider id={conversationIDKey}>
               <HeaderAreaRight />
-            </ConvoState.ChatProvider>
+            </ConversationThreadProvider>
           ),
         }),
     headerTitle: () => (
-      <ConvoState.ChatProvider id={conversationIDKey}>
+      <ConversationThreadProvider id={conversationIDKey}>
         <HeaderBranchContainer />
-      </ConvoState.ChatProvider>
+      </ConversationThreadProvider>
     ),
   }
 }
@@ -161,19 +165,13 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
 export const useBackBadge = () => {
   const visiblePath = C.Router2.getVisiblePath()
   const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const badgeState = useConfigState(s => s.badgeState)
-  const badgeNumber = React.useMemo(() => {
-    void badgeState
-    let count = 0
-    for (const store of chatStores.values()) {
-      const {badge, id} = store.getState()
-      if (id !== conversationIDKey) {
-        count += badge
-      }
-    }
-    return count
-  }, [badgeState, conversationIDKey])
+  const badgeNumber =
+    badgeState?.conversations?.reduce((count, conversation) => {
+      const id = T.Chat.conversationIDToKey(conversation.convID)
+      return id === conversationIDKey ? count : count + conversation.badgeCount
+    }, 0) ?? 0
   if (!onTopOfInbox) return 0
   return badgeNumber
 }
@@ -182,10 +180,10 @@ const shhIconColor = Kb.Styles.globalColors.black_20
 const shhIconFontSize = 24
 
 const ShhIcon = function ShhIcon() {
-  const isMuted = ConvoState.useChatContext(s => s.meta.isMuted)
-  const mute = ConvoState.useChatContext(s => s.dispatch.mute)
+  const conversationIDKey = useConversationThreadID()
+  const isMuted = useConversationThreadMeta().isMuted
   const unMuteConversation = () => {
-    mute(false)
+    muteConversation(conversationIDKey, false)
   }
   return isMuted ? (
     <Kb.Icon
@@ -206,14 +204,8 @@ const useMaxWidthStyle = () => {
 }
 
 const ChannelHeader = () => {
-  const {channelname, smallTeam, teamname, teamID} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const meta = s.meta
-      const {channelname, teamname, teamType, teamID} = meta
-      const smallTeam = teamType !== 'big'
-      return {channelname, smallTeam, teamID, teamname}
-    })
-  )
+  const {channelname, teamname, teamType, teamID} = useConversationThreadMeta()
+  const smallTeam = teamType !== 'big'
   const textType = smallTeam ? 'BodyBig' : Kb.Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
   const navigateAppend = C.Router2.navigateAppend
   const onClick = () => {
@@ -256,20 +248,13 @@ const emptyArray = new Array<string>()
 const UsernameHeader = () => {
   const you = useCurrentUserState(s => s.username)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const {participants, theirFullname} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const meta = s.meta
-      const participants = meta.teamname ? emptyArray : participantInfo.name
-      const theirFullname =
-        participants.length === 2
-          ? participants
-              .filter(username => username !== you)
-              .map(username => infoMap.get(username)?.fullname)[0]
-          : undefined
-      return {participants, theirFullname}
-    })
-  )
+  const participantInfo = useConversationThreadParticipants()
+  const meta = useConversationThreadMeta()
+  const participants = meta.teamname ? emptyArray : participantInfo.name
+  const theirFullname =
+    participants.length === 2
+      ? participants.filter(username => username !== you).map(username => infoMap.get(username)?.fullname)[0]
+      : undefined
   const onShowProfile = (username: string) => {
     navToProfile(username)
   }
@@ -305,8 +290,8 @@ const UsernameHeader = () => {
 }
 
 const PhoneOrEmailHeader = () => {
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const participantInfo = useConversationThreadParticipants()
+  const meta = useConversationThreadMeta()
   const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)

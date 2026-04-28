@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import {zoomImage} from '@/constants/chat/helpers'
 import * as Message from '@/constants/chat/message'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import * as T from '@/constants/types'
@@ -14,7 +13,13 @@ import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actio
 import {RPCError} from '@/util/errors'
 import {useCurrentUserState} from '@/stores/current-user'
 import logger from '@/logger'
-import {useConversationThreadLastOrdinal, useConversationThreadMessageMap} from '../thread-context'
+import {
+  useConversationThreadGalleryMessagesLoaded,
+  useConversationThreadID,
+  useConversationThreadLastOrdinal,
+  useConversationThreadMessageMap,
+} from '../thread-context'
+import {useConversationAttachmentActions} from '../attachment-actions'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -473,6 +478,7 @@ const getLiveAttachmentInfo = (
 }
 
 const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const galleryMessagesLoaded = useConversationThreadGalleryMessagesLoaded()
   const lastOrdinal = useConversationThreadLastOrdinal()
   const messageMap = useConversationThreadMessageMap()
   const threadSnapshotRef = React.useRef({lastOrdinal, messageMap})
@@ -515,7 +521,7 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
       const generation = loadGenerationRef.current
       const isCurrentLoad = () => loadGenerationRef.current === generation
       const f = async () => {
-        const convID = ConvoState.getConvoState(conversationIDKey).getConvID()
+        const convID = T.Chat.keyToConversationID(conversationIDKey)
         const pendingMessages: Array<T.Chat.Message> = []
         let flushTimeout: ReturnType<typeof setTimeout> | undefined
         const flushPendingMessages = () => {
@@ -553,7 +559,7 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
               info.messages = nextMessages.sort((l, r) => r.id - l.id)
             }
           })
-          ConvoState.getConvoState(conversationIDKey).dispatch.galleryMessagesLoaded(dedupedMessages)
+          galleryMessagesLoaded(dedupedMessages)
         }
         const scheduleFlushPendingMessages = () => {
           if (flushTimeout) {
@@ -634,19 +640,9 @@ export const useAttachmentSections = (
   useFlexWrap: boolean
 ): {sections: Array<Section>} => {
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState(T.RPCChat.GalleryItemTyp.media)
-  const {
-    attachmentDownload,
-    attachmentPreviewSelect,
-    conversationIDKey,
-    messageAttachmentNativeShare,
-  } = ConvoState.useChatContext(
-    C.useShallow(s => ({
-      attachmentDownload: s.dispatch.attachmentDownload,
-      attachmentPreviewSelect: s.dispatch.attachmentPreviewSelect,
-      conversationIDKey: s.id,
-      messageAttachmentNativeShare: s.dispatch.messageAttachmentNativeShare,
-    }))
-  )
+  const conversationIDKey = useConversationThreadID()
+  const {attachmentDownload, messageAttachmentNativeShare, showAttachmentPreview} =
+    useConversationAttachmentActions()
   const messageMap = useConversationThreadMessageMap()
   const {attachmentViewMap, loadAttachmentView} = useAttachmentViewState(conversationIDKey)
   const clearModals = C.Router2.clearModals
@@ -691,7 +687,7 @@ export const useAttachmentSections = (
     loadAttachmentView(selectedAttachmentView)
   }
 
-  const onMediaClick = (message: T.Chat.MessageAttachment) => attachmentPreviewSelect(message.ordinal)
+  const onMediaClick = (message: T.Chat.MessageAttachment) => showAttachmentPreview(message.ordinal)
 
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
     if (Kb.Styles.isMobile) {

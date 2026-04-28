@@ -1,4 +1,3 @@
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {clearThreadInputAction} from '@/constants/router'
@@ -7,6 +6,7 @@ import {useChatThreadRouteParams, type ThreadInputAction} from '../thread-search
 import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConversationThreadMessageMap, useConversationThreadMessageOrdinalsMaybe} from '../thread-context'
+import {useConversationSendActions} from '../send-actions'
 
 type ConversationInputStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown
@@ -105,6 +105,7 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   const [state, dispatchState] = React.useReducer(inputReducer, initialConversationInputStore)
   const messageMap = useConversationThreadMessageMap()
   const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
+  const {sendGiphyResult: sendGiphyResultAction, sendMessage} = useConversationSendActions()
 
   const injectIntoInput = React.useCallback((text?: string) => {
     dispatchState({text, type: 'injectIntoInput'})
@@ -166,21 +167,21 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   )
   const sendComposerText = React.useCallback(
     (text: string) => {
-      ConvoState.getConvoState(id).dispatch.sendMessage(text, {
+      sendMessage(text, {
         editingOrdinal: state.editing,
         onRestoreText: injectIntoInput,
         replyToOrdinal: state.replyTo,
       })
       dispatchState({type: 'afterSend'})
     },
-    [id, injectIntoInput, state.editing, state.replyTo]
+    [injectIntoInput, sendMessage, state.editing, state.replyTo]
   )
   const sendGiphyResult = React.useCallback(
     (result: T.RPCChat.GiphySearchResult) => {
-      ConvoState.getConvoState(id).dispatch.giphySend(result, {replyToOrdinal: state.replyTo})
+      sendGiphyResultAction(result, state.replyTo)
       dispatchState({type: 'afterSend'})
     },
-    [id, state.replyTo]
+    [sendGiphyResultAction, state.replyTo]
   )
   const toggleGiphyPrefill = React.useCallback(() => {
     dispatchState({type: 'toggleGiphyPrefill'})

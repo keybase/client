@@ -1,7 +1,7 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
+import {useConversationThreadID, useConversationThreadMeta} from '../thread-context'
 
 type Props = {
   isAdmin: boolean
@@ -10,15 +10,15 @@ type Props = {
 
 const AddPeople = (p: Props) => {
   const {isGeneralChannel, isAdmin} = p
-  const teamID = ConvoState.useChatContext(s => s.meta.teamID)
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const teamID = useConversationThreadMeta().teamID
+  const conversationIDKey = useConversationThreadID()
   const onAddPeople = () => {
     if (teamID) {
       C.Router2.navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
     }
   }
   const onAddToChannel = () => {
-    navigateAppend(conversationIDKey => ({name: 'chatAddToChannel', params: {conversationIDKey, teamID}}))
+    C.Router2.navigateAppend({name: 'chatAddToChannel', params: {conversationIDKey, teamID}})
   }
 
   let directAction: undefined | (() => void)

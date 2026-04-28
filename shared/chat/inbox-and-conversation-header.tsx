@@ -1,7 +1,8 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
+import * as Config from '@/constants/config'
 import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import NewChatButton from './inbox/new-chat-button'
 import {setInboxHeaderPortalNode, useInboxHeaderPortalContent} from './inbox/header-portal-state'
@@ -10,15 +11,26 @@ import {useChatTeam} from './conversation/team-hooks'
 import {useRoute, type RouteProp} from '@react-navigation/native'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
+import {navToPath} from '@/constants/fs'
+import {
+  ConversationThreadProvider,
+  showConversationInfoPanel,
+  toggleConversationThreadSearch,
+  useConversationThreadID,
+  useConversationThreadMeta,
+  useConversationThreadParticipants,
+} from './conversation/thread-context'
+import {muteConversation} from './conversation/status-actions'
 
 type ChatRootRoute = RouteProp<{chatRoot: ChatRootRouteParams}, 'chatRoot'>
 
 const Header = () => {
   const {params} = useRoute<ChatRootRoute>()
+  const conversationIDKey = params.conversationIDKey ?? Chat.noConversationIDKey
   return (
-    <ConvoState.ChatProvider canBeNull={true} id={params.conversationIDKey ?? Chat.noConversationIDKey}>
+    <ConversationThreadProvider id={conversationIDKey}>
       <Header2 />
-    </ConvoState.ChatProvider>
+    </ConversationThreadProvider>
   )
 }
 
@@ -26,47 +38,22 @@ const Header2 = () => {
   const {params} = useRoute<ChatRootRoute>()
   const username = useCurrentUserState(s => s.username)
   const infoPanelShowing = !!params.infoPanel
-  const data = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {meta, id, dispatch} = s
-      const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
-      const {openFolder, toggleThreadSearch, mute, showInfoPanel} = dispatch
-
-      const channel =
-        teamType === 'big' ? `${teamname}#${channelname}` : teamType === 'small' ? teamname : null
-      const isTeam = ['small', 'big'].includes(teamType)
-      const participants = teamType === 'adhoc' ? s.participants.name : null
-
-      const otherParticipants = Chat.getRowParticipants(s.participants, username)
-
-      const first = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
-      return {
-        channel,
-        channelname,
-        descriptionDecorated,
-        first,
-        id,
-        isMuted,
-        isTeam,
-        mute,
-        openFolder,
-        participants,
-        showInfoPanel,
-        teamname,
-        toggleThreadSearch,
-      }
-    })
-  )
-  const {channel, descriptionDecorated, isMuted: muted, teamname, mute} = data
-  const {showInfoPanel, first, isTeam} = data
-  const {id: conversationIDKey, openFolder: onOpenFolder, toggleThreadSearch, participants} = data
+  const conversationIDKey = useConversationThreadID()
+  const meta = useConversationThreadMeta()
+  const participantInfo = useConversationThreadParticipants()
+  const {channelname, descriptionDecorated, isMuted: muted, teamType, teamname} = meta
+  const channel = teamType === 'big' ? `${teamname}#${channelname}` : teamType === 'small' ? teamname : null
+  const isTeam = ['small', 'big'].includes(teamType)
+  const participants = teamType === 'adhoc' ? participantInfo.name : null
+  const otherParticipants = Chat.getRowParticipants(participantInfo, username)
+  const first = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
 
   // length ===1 means just you so show yourself
   const withoutSelf = participants && participants.length > 1
     ? participants.filter(part => part !== username)
     : participants
 
-  const teamID = ConvoState.useChatContext(s => s.meta.teamID)
+  const {teamID} = meta
   const {yourOperations} = useChatTeam(teamID, teamname)
   const canEditDesc = yourOperations.editChannelDescription
   const otherInfo = useUsersState(s => s.infoMap.get(first))
@@ -76,14 +63,20 @@ const Header2 = () => {
   const headerPortalContent = useInboxHeaderPortalContent()
 
   const onToggleThreadSearch = () => {
-    toggleThreadSearch()
+    toggleConversationThreadSearch(conversationIDKey)
   }
   const unMuteConversation = () => {
-    mute(false)
+    muteConversation(conversationIDKey, false)
+  }
+  const onOpenFolder = () => {
+    const path = T.FS.stringToPath(
+      isTeam ? Config.teamFolder(teamname) : Config.privateFolderWithUsers(participants ?? [])
+    )
+    navToPath(path)
   }
 
   const onToggleInfoPanel = () => {
-    showInfoPanel(!infoPanelShowing, undefined)
+    showConversationInfoPanel(conversationIDKey, !infoPanelShowing, undefined)
   }
 
   const showActions = Chat.isValidConversationIDKey(conversationIDKey)

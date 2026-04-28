@@ -1,16 +1,16 @@
 import type * as T from '@/constants/types'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import Full from '.'
 import {ConversationThreadProvider} from '../thread-context'
 
 type OwnProps = {
+  conversationIDKey?: T.Chat.ConversationIDKey
   ordinal: T.Chat.Ordinal
 }
 
 const Screen = (p: OwnProps) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = p.conversationIDKey ?? T.Chat.noConversationIDKey
   const {width, height} = useSafeAreaFrame()
   const isPortrait = height > width
   const wasPortraitRef = React.useRef(isPortrait)

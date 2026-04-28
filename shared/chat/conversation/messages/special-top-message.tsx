@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -10,7 +9,13 @@ import NewChatCard from './cards/new-chat'
 import ProfileResetNotice from './system-profile-reset-notice'
 import RetentionNotice from './retention-notice'
 import {useChatThreadRouteParams} from '../thread-search-route'
-import {useConversationThreadMessageOrdinalsMaybe, useConversationThreadPagination} from '../thread-context'
+import {
+  useConversationThreadID,
+  useConversationThreadMessageOrdinalsMaybe,
+  useConversationThreadMeta,
+  useConversationThreadPagination,
+  useConversationThreadParticipants,
+} from '../thread-context'
 import {usingFlashList} from '../list-area/flashlist-config'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -110,48 +115,32 @@ const ErrorMessage = () => {
 
 function SpecialTopMessage() {
   const username = useCurrentUserState(s => s.username)
+  const conversationIDKey = useConversationThreadID()
+  const meta = useConversationThreadMeta()
+  const participants = useConversationThreadParticipants()
   const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
   const {moreToLoadBack} = useConversationThreadPagination()
-  const data = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const ordinals = messageOrdinals
-      const hasLoadedEver = ordinals !== undefined
-      const ordinal = ordinals?.[0] ?? T.Chat.numberToOrdinal(0)
-      const meta = s.meta
-      const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
-      const loadMoreType = moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
-      const pendingState =
-        s.id === T.Chat.pendingWaitingConversationIDKey
-          ? 'waiting'
-          : s.id === T.Chat.pendingErrorConversationIDKey
-            ? 'error'
-            : 'done'
+  const hasLoadedEver = messageOrdinals !== undefined
+  const ordinal = messageOrdinals?.[0] ?? T.Chat.numberToOrdinal(0)
+  const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
+  const loadMoreType = moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
+  const pendingState =
+    conversationIDKey === T.Chat.pendingWaitingConversationIDKey
+      ? 'waiting'
+      : conversationIDKey === T.Chat.pendingErrorConversationIDKey
+        ? 'error'
+        : 'done'
 
-      const partAll = s.participants.all
-      const partNum = partAll.length
-      const isHelloBotConversation = teamType === 'adhoc' && partNum === 2 && partAll.includes('hellobot')
-      const isSelfConversation = teamType === 'adhoc' && partNum === 1 && partAll.includes(username)
-      const showTeamOffer =
-        hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && partNum > 2
-      const hasOlderResetConversation = supersedes !== T.Chat.noConversationIDKey
-      // don't show default header in the case of the retention notice being visible
-      const showRetentionNotice =
-        retentionPolicy.type !== 'retain' &&
-        !(retentionPolicy.type === 'inherit' && teamRetentionPolicy.type === 'retain')
-      return {
-        hasOlderResetConversation,
-        isHelloBotConversation,
-        isSelfConversation,
-        loadMoreType,
-        ordinal,
-        pendingState,
-        showRetentionNotice,
-        showTeamOffer,
-      }
-    })
-  )
-  const {ordinal, pendingState, isHelloBotConversation, hasOlderResetConversation} = data
-  const {loadMoreType, isSelfConversation, showTeamOffer, showRetentionNotice} = data
+  const partAll = participants.all
+  const partNum = partAll.length
+  const isHelloBotConversation = teamType === 'adhoc' && partNum === 2 && partAll.includes('hellobot')
+  const isSelfConversation = teamType === 'adhoc' && partNum === 1 && partAll.includes(username)
+  const showTeamOffer = hasLoadedEver && loadMoreType === 'noMoreToLoad' && teamType === 'adhoc' && partNum > 2
+  const hasOlderResetConversation = supersedes !== T.Chat.noConversationIDKey
+  // don't show default header in the case of the retention notice being visible
+  const showRetentionNotice =
+    retentionPolicy.type !== 'retain' &&
+    !(retentionPolicy.type === 'inherit' && teamRetentionPolicy.type === 'retain')
   // we defer showing this so it doesn't flash so much
   const [allowDigging, setAllowDigging] = React.useState(false)
   const lastOrdinalRef = React.useRef(ordinal)

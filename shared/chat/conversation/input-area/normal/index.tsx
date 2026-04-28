@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import CommandMarkdown from '../../command-markdown'
@@ -16,10 +15,19 @@ import {assertionToDisplay} from '@/common-adapters/usernames'
 import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input'
 import {useConversationCenter} from '../../center-context'
-import {useConversationThreadMessage, useConversationThreadToggleSearch} from '../../thread-context'
+import {
+  useConversationThreadExplodingMode,
+  useConversationThreadID,
+  useConversationThreadMessage,
+  useConversationThreadMeta,
+  useConversationThreadParticipants,
+  useConversationThreadSetExplodingMode,
+  useConversationThreadToggleSearch,
+} from '../../thread-context'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {getRouteParamsFromRoute, type RootRouteProps} from '@/router-v2/route-params'
+import {unboxRows} from '@/chat/inbox/metadata'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -29,8 +37,8 @@ const useHintText = (p: {
 }) => {
   const {minWriterRole, isExploding, isEditing, cannotWrite} = p
   const username = useCurrentUserState(s => s.username)
-  const {teamType, teamname, channelname} = ConvoState.useChatContext(s => s.meta)
-  const participantInfoName = ConvoState.useChatContext(s => s.participants.name)
+  const {teamType, teamname, channelname} = useConversationThreadMeta()
+  const participantInfoName = useConversationThreadParticipants().name
   if (Kb.Styles.isMobile && isExploding) {
     return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   }
@@ -125,32 +133,20 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }))
   )
   const replyToMessage = useConversationThreadMessage(uiData.replyTo)
-  const data = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {meta, id: conversationIDKey} = s
-      const {setExplodingMode} = s.dispatch
-      const {cannotWrite, minWriterRole, tlfname} = meta
-      const showReplyPreview = !!replyToMessage?.id
-      const convoID = s.getConvID()
-      const metaGood = s.isMetaGood()
-      const storeDraft = metaGood ? meta.draft : undefined
-      const explodingMode = s.explodingMode
-      const convRetention = Chat.getEffectiveRetentionPolicy(meta)
-      const explodingModeSeconds =
-        convRetention.type === 'explode'
-          ? Math.min(explodingMode || Infinity, convRetention.seconds)
-          : explodingMode
-      // prettier-ignore
-      return {cannotWrite, conversationIDKey, convoID, explodingMode, explodingModeSeconds,
-        minWriterRole, setExplodingMode, showReplyPreview,
-        storeDraft, tlfname}
-    })
-  )
-
-  const {cannotWrite, conversationIDKey, setExplodingMode: setExplodingModeRaw} = data
-  const {minWriterRole} = data
-  const {explodingModeSeconds: explodingModeSecondsRaw, convoID, tlfname, storeDraft} = data
-  const {showReplyPreview} = data
+  const conversationIDKey = useConversationThreadID()
+  const meta = useConversationThreadMeta()
+  const explodingMode = useConversationThreadExplodingMode()
+  const setExplodingModeRaw = useConversationThreadSetExplodingMode()
+  const {cannotWrite, minWriterRole, tlfname} = meta
+  const convoID = T.Chat.isValidConversationIDKey(conversationIDKey)
+    ? T.Chat.keyToConversationID(conversationIDKey)
+    : new Uint8Array(0)
+  const metaGood = meta.conversationIDKey === conversationIDKey
+  const storeDraft = metaGood ? meta.draft : undefined
+  const convRetention = Chat.getEffectiveRetentionPolicy(meta)
+  const explodingModeSecondsRaw =
+    convRetention.type === 'explode' ? Math.min(explodingMode || Infinity, convRetention.seconds) : explodingMode
+  const showReplyPreview = !!replyToMessage?.id
   const {editOrdinal, unsentText} = uiData
   const isEditing = !!editOrdinal
   const setEditing = InputState.useConversationInput(s => s.dispatch.setEditing)
@@ -232,7 +228,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   React.useEffect(() => {
     const rows = [loadIDOnUnloadRef.current]
     return () => {
-      ConvoState.unboxRows(rows)
+      unboxRows(rows)
     }
   }, [loadIDOnUnloadRef])
 

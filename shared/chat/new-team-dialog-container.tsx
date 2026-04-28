@@ -1,16 +1,19 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import {CreateNewTeam} from '../teams/new-team'
 import {useCurrentUserState} from '@/stores/current-user'
 import {createNewTeamAndNavigate} from '@/teams/team-page-actions'
+import * as T from '@/constants/types'
+import {ConversationThreadProvider, useConversationThreadParticipants} from './conversation/thread-context'
 
-const NewTeamDialog = () => {
+type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
+
+const NewTeamDialogInner = () => {
   const baseTeam = ''
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const participantInfo = useConversationThreadParticipants()
   const username = useCurrentUserState(s => s.username)
   const onSubmit = (teamname: string) => {
     const usersToAdd = participantInfo.name
@@ -25,5 +28,11 @@ const NewTeamDialog = () => {
   }
   return <CreateNewTeam {...props} />
 }
+
+const NewTeamDialog = (props: Props) => (
+  <ConversationThreadProvider id={props.conversationIDKey ?? T.Chat.noConversationIDKey}>
+    <NewTeamDialogInner />
+  </ConversationThreadProvider>
+)
 
 export default NewTeamDialog

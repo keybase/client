@@ -1,5 +1,4 @@
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
@@ -10,6 +9,7 @@ import {RectButton} from 'react-native-gesture-handler'
 import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
 import {useOpenedRowState} from '../../opened-row-state'
 import {useInboxRowSmall} from '@/stores/inbox-rows'
+import {hideConversation, markConversationUnread, muteConversation} from '@/chat/conversation/status-actions'
 
 const actionWidth = 64
 
@@ -62,23 +62,19 @@ function SwipeConvActions(p: Props) {
   const {children, onPress} = p
 
   const isMuted = useInboxRowSmall(conversationIDKey).isMuted
-  const cs = ConvoState.getConvoState(conversationIDKey)
-  const setMarkAsUnread = cs.dispatch.setMarkAsUnread
-  const mute = cs.dispatch.mute
-  const hideConversation = cs.dispatch.hideConversation
 
   const onMarkAsUnread = () => {
-    setMarkAsUnread()
+    markConversationUnread(conversationIDKey)
     closeOpenedRow()
   }
 
   const onMute = () => {
-    mute(!isMuted)
+    muteConversation(conversationIDKey, !isMuted)
     closeOpenedRow()
   }
 
   const onHide = () => {
-    hideConversation(true)
+    hideConversation(conversationIDKey, true)
     closeOpenedRow()
   }
 

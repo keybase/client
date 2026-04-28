@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
@@ -12,6 +11,8 @@ import * as ExpoLocation from 'expo-location'
 import {ignorePromise} from '@/constants/utils'
 import {openAppSettings} from '@/util/storeless-actions'
 import {setThreadInputCommandStatus} from '@/constants/router'
+import {useConversationSendActions} from '../send-actions'
+import {ConversationThreadProvider, useConversationThreadID} from '../thread-context'
 
 const LocationButton = (props: {
   disabled: boolean
@@ -91,8 +92,8 @@ const useWatchPosition = (
   }, [conversationIDKey, onPermissionDenied, setLocation])
 }
 
-const LocationPopup = () => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+const LocationPopupInner = () => {
+  const conversationIDKey = useConversationThreadID()
   const username = useCurrentUserState(s => s.username)
   const httpSrv = useConfigState(s => s.httpSrv)
   const [location, setLocation] = React.useState<T.Chat.Coordinate>()
@@ -113,7 +114,7 @@ const LocationPopup = () => {
   const onClose = () => {
     clearModals()
   }
-  const sendMessage = ConvoState.useChatContext(s => s.dispatch.sendMessage)
+  const {sendMessage} = useConversationSendActions()
   const onLocationShare = (duration: string) => {
     onClose()
     sendMessage(duration ? `/location live ${duration}` : '/location')
@@ -171,6 +172,17 @@ const LocationPopup = () => {
         </Kb.Box2>
       </Kb.Box2>
     </>
+  )
+}
+
+type LocationPopupProps = {conversationIDKey?: T.Chat.ConversationIDKey}
+
+const LocationPopup = (props: LocationPopupProps) => {
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
+  return (
+    <ConversationThreadProvider id={conversationIDKey}>
+      <LocationPopupInner />
+    </ConversationThreadProvider>
   )
 }
 

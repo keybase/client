@@ -55,7 +55,7 @@ jest.mock('./layout-state', () => ({
   }),
 }))
 
-jest.mock('@/stores/convostate', () => ({
+jest.mock('./metadata', () => ({
   queueMetaToRequest: jest.fn(),
 }))
 

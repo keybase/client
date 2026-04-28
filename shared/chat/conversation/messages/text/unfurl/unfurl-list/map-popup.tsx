@@ -1,10 +1,10 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters/index'
 import type * as T from '@/constants/types'
 import {openURL} from '@/util/misc'
 import LocationMap from '@/chat/location-map'
 import {useConfigState} from '@/stores/config'
+import {useConversationSendActions} from '../../../../send-actions'
 
 type Props = {
   coord: T.Chat.Coordinate
@@ -27,7 +27,7 @@ const UnfurlMapPopup = (props: Props) => {
     onClose()
     openURL(url)
   }
-  const sendMessage = ConvoState.useChatContext(s => s.dispatch.sendMessage)
+  const {sendMessage} = useConversationSendActions()
   const onStopSharing = () => {
     onClose()
     sendMessage('/location stop')

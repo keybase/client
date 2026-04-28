@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import {type State as ShellState, useShellState} from '@/stores/shell'
 import * as React from 'react'
 import {useEngineActionListener} from '@/engine/action-listener'
@@ -10,7 +9,11 @@ import {OrangeLineContext, SetOrangeLineContext} from '../orange-line-context'
 import {ChatTeamProvider} from '../team-hooks'
 import {ConversationCenterProvider} from '../center-context'
 import {ConversationInputProvider} from '../input-area/input-state'
-import {ConversationThreadProvider, useConversationThreadLoaded} from '../thread-context'
+import {
+  useConversationThreadID,
+  useConversationThreadLoaded,
+  useConversationThreadMeta,
+} from '../thread-context'
 import {ConversationThreadLoadStatusProvider} from '../thread-load-status-context'
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
 import {useChatThreadRouteParams} from '../thread-search-route'
@@ -53,14 +56,14 @@ const useOrangeLine = (
   }, [id, mobileAppState])
   // Snapshot readMsgID during render (synchronous, before any effects like markThreadAsRead)
   // This ensures we capture the read position before the Go service processes mark-as-read
-  const savedReadMsgID = React.useMemo(() => ConvoState.getConvoState(id).meta.readMsgID, [id])
+  const meta = useConversationThreadMeta()
+  const savedReadMsgID = meta.readMsgID
 
   const loadOrangeLine = React.useEffectEvent(
     (conversationIDKey: T.Chat.ConversationIDKey, savedReadMsgID?: T.Chat.MessageID) => {
       const f = async () => {
-        const store = ConvoState.getConvoState(conversationIDKey)
-        const convID = store.getConvID()
-        const readMsgID = savedReadMsgID ?? store.meta.readMsgID
+        const convID = T.Chat.keyToConversationID(conversationIDKey)
+        const readMsgID = savedReadMsgID ?? meta.readMsgID
         const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
           convID,
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -91,7 +94,7 @@ const useOrangeLine = (
     }
   }, [id, loaded, savedReadMsgID])
 
-  const maxVisibleMsgID = ConvoState.useChatContext(s => s.meta.maxVisibleMsgID)
+  const maxVisibleMsgID = meta.maxVisibleMsgID
 
   // just use the rpc for orange line if we're not active
   // if we are active we want to keep whatever state we had so it is maintained
@@ -118,9 +121,7 @@ const useOrangeLine = (
 
 const useShowManageChannels = () => {
   const navigateAppend = C.Router2.navigateAppend
-  const {teamID, teamname} = ConvoState.useChatContext(
-    C.useShallow(s => ({teamID: s.meta.teamID, teamname: s.meta.teamname}))
-  )
+  const {teamID, teamname} = useConversationThreadMeta()
   useEngineActionListener('chat.1.chatUi.chatShowManageChannels', action => {
     if (
       teamID &&
@@ -150,46 +151,57 @@ const NormalOrangeLineProvider = (props: OrangeLineProviderProps) => {
   )
 }
 
+const NormalProviderChildren = (props: {
+  active: boolean
+  conversationIDKey: T.Chat.ConversationIDKey
+  mobileAppState: ShellState['mobileAppState']
+  skipThreadLoadOnSelection: boolean
+}) => {
+  const {active, conversationIDKey, mobileAppState, skipThreadLoadOnSelection} = props
+  useShowManageChannels()
+  return (
+    <MaybeMentionProvider>
+      <NormalOrangeLineProvider
+        active={active}
+        conversationIDKey={conversationIDKey}
+        mobileAppState={mobileAppState}
+      >
+        <ChatTeamProvider>
+          <ConversationThreadLoadStatusProvider
+            key={conversationIDKey}
+            id={conversationIDKey}
+            skipThreadLoadOnSelection={skipThreadLoadOnSelection}
+          >
+            <ConversationCenterProvider id={conversationIDKey}>
+              <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
+                <FocusProvider>
+                  <ScrollProvider>
+                    <Normal />
+                  </ScrollProvider>
+                </FocusProvider>
+              </ConversationInputProvider>
+            </ConversationCenterProvider>
+          </ConversationThreadLoadStatusProvider>
+        </ChatTeamProvider>
+      </NormalOrangeLineProvider>
+    </MaybeMentionProvider>
+  )
+}
+
 const NormalWrapper = function NormalWrapper() {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const {active, mobileAppState} = useShellState(
     C.useShallow(s => ({active: s.active, mobileAppState: s.mobileAppState}))
   )
   const routeParams = useChatThreadRouteParams()
   const skipThreadLoadOnSelection = !!routeParams?.highlightMessageID
-  useShowManageChannels()
   return (
-    <ConversationThreadProvider
-      key={conversationIDKey}
-      id={conversationIDKey}
-      seedFromCache={!skipThreadLoadOnSelection}
-    >
-      <MaybeMentionProvider>
-        <NormalOrangeLineProvider
-          active={active}
-          conversationIDKey={conversationIDKey}
-          mobileAppState={mobileAppState}
-        >
-          <ChatTeamProvider>
-            <ConversationThreadLoadStatusProvider
-              key={conversationIDKey}
-              id={conversationIDKey}
-              skipThreadLoadOnSelection={skipThreadLoadOnSelection}
-            >
-              <ConversationCenterProvider id={conversationIDKey}>
-                <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
-                  <FocusProvider>
-                    <ScrollProvider>
-                      <Normal />
-                    </ScrollProvider>
-                  </FocusProvider>
-                </ConversationInputProvider>
-              </ConversationCenterProvider>
-            </ConversationThreadLoadStatusProvider>
-          </ChatTeamProvider>
-        </NormalOrangeLineProvider>
-      </MaybeMentionProvider>
-    </ConversationThreadProvider>
+    <NormalProviderChildren
+      active={active}
+      conversationIDKey={conversationIDKey}
+      mobileAppState={mobileAppState}
+      skipThreadLoadOnSelection={skipThreadLoadOnSelection}
+    />
   )
 }
 export default NormalWrapper

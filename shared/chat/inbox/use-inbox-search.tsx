@@ -5,8 +5,8 @@ import logger from '@/logger'
 import {useShellState} from '@/stores/shell'
 import {RPCError} from '@/util/errors'
 import {isMobile} from '@/constants/platform'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
+import {ensureInboxSearchMetas} from './metadata'
 
 export const inboxSearchMaxTextMessages = 25
 export const inboxSearchMaxTextResults = 50
@@ -253,15 +253,7 @@ export function useInboxSearch(): InboxSearchController {
             nameStatus: 'success',
           }))
 
-          const missingMetas = results.reduce<Array<T.Chat.ConversationIDKey>>((arr, r) => {
-            if (!ConvoState.getConvoState(r.conversationIDKey).isMetaGood()) {
-              arr.push(r.conversationIDKey)
-            }
-            return arr
-          }, [])
-          if (missingMetas.length > 0) {
-            ConvoState.unboxRows(missingMetas, true)
-          }
+          ensureInboxSearchMetas(results.map(r => r.conversationIDKey))
         }
 
         const onOpenTeamHits = (
@@ -313,11 +305,7 @@ export function useInboxSearch(): InboxSearchController {
             return {...prev, textResults}
           })
 
-          if (
-            ConvoState.getConvoState(result.conversationIDKey).meta.conversationIDKey === T.Chat.noConversationIDKey
-          ) {
-            ConvoState.unboxRows([result.conversationIDKey], true)
-          }
+          ensureInboxSearchMetas([result.conversationIDKey])
         }
 
         const onStart = () => {

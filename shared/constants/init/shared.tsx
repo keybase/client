@@ -13,8 +13,6 @@ declare global {
 
   var __hmr_oneTimeInitDone: boolean | undefined
 
-  var __hmr_chatStores: Map<unknown, unknown> | undefined
-
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
 import type * as UseBlockButtonsStateType from '@/chat/blocking/block-buttons-state'
@@ -45,18 +43,16 @@ import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
+import {handleConvoEngineIncoming, markThreadAsRead} from '@/chat/inbox/engine'
 import {
-  getConvoState,
+  onChatRouteChanged,
   onChatInboxSynced,
   onGetInboxConvsUnboxed,
   onGetInboxUnverifiedConvs,
   onInboxLayoutChanged,
   onIncomingInboxUIItem,
-  handleConvoEngineIncoming,
-  onRouteChanged as onConvoRouteChanged,
   syncBadgeState,
-  syncGregorExplodingModes,
-} from '@/stores/convostate'
+} from '@/chat/inbox/metadata'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 import {clearNavBadges} from '@/teams/actions'
@@ -222,8 +218,7 @@ const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configured
 }
 
 const onUserActiveChanged = () => {
-  const cs = getConvoState(getSelectedConversation())
-  cs.dispatch.markThreadAsRead()
+  markThreadAsRead(getSelectedConversation())
 }
 
 const loadChatStaticConfig = () => {
@@ -350,7 +345,7 @@ const onNavStateChanged = (nextNavState: RouterState['navState'], previousNavSta
     clearNavBadges()
   }
 
-  onConvoRouteChanged(prev, next)
+  onChatRouteChanged(prev, next)
 }
 
 export const onEngineConnected = () => {
@@ -484,7 +479,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       if (goodState.length !== items.length) {
         logger.warn('Lost some messages in filtering out nonNull gregor items')
       }
-      syncGregorExplodingModes(goodState)
       const {useBlockButtonsState} = require(
         '@/chat/blocking/block-buttons-state'
       ) as typeof UseBlockButtonsStateType

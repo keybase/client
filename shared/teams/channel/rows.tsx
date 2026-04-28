@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -15,6 +14,7 @@ type Props = {
   conversationIDKey: T.Chat.ConversationIDKey
   firstItem: boolean
   isGeneral: boolean
+  participantInfo: T.Chat.ParticipantInfo
   teamID: T.Teams.TeamID
   username: string
 }
@@ -35,10 +35,9 @@ const crownIcon = (roleType: T.Teams.TeamRoleType) => {
 // you're changing one remember to change the other.
 
 const ChannelMemberRow = (props: Props) => {
-  const {conversationIDKey, teamID, username} = props
+  const {conversationIDKey, participantInfo, teamID, username} = props
   const infoMap = useUsersState(s => s.infoMap)
   const setUserBlocks = C.useRPC(T.RPCGen.userSetUserBlocksRpcPromise)
-  const participantInfo = ConvoState.useConvoState(conversationIDKey, s => s.participants)
   const {selectedMembers: channelSelectedMembers, setMemberSelected: channelSetMemberSelected} =
     useChannelSelectionState()
   const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)

@@ -109,7 +109,7 @@ const UploadWithCountdown = (p: UWCDProps) => {
   return <Upload {...np} />
 }
 
-// Inline chat row (replaces SmallTeam + ChatProvider)
+// Inline chat row for the menubar conversation list.
 const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: string; username: string}) => {
   const {conv, httpSrvAddress, httpSrvToken, username} = p
   const isTeam = conv.teamType !== 'adhoc'

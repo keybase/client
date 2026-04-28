@@ -1,18 +1,20 @@
-import * as ConvoState from '@/stores/convostate'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import InfoPanelMenu from './menu'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
 import {ChatTeamProvider, useChatTeam} from '../team-hooks'
+import {joinConversation} from '../status-actions'
+import {ConversationThreadProvider, useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from '../thread-context'
 
 const gearIconSize = Kb.Styles.isMobile ? 24 : 16
 
 const TeamHeader = () => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const conversationIDKey = useConversationThreadID()
+  const meta = useConversationThreadMeta()
   const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
-  const participants = ConvoState.useChatContext(s => s.participants)
-  const onJoinChannel = ConvoState.useChatContext(s => s.dispatch.joinConversation)
+  const participants = useConversationThreadParticipants()
+  const onJoinChannel = () => joinConversation(conversationIDKey)
   const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
 
   const {yourOperations} = useChatTeam(teamID, teamname)
@@ -28,7 +30,7 @@ const TeamHeader = () => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <ConvoState.ChatProvider id={conversationIDKey}>
+      <ConversationThreadProvider id={conversationIDKey}>
         <ChatTeamProvider>
           <InfoPanelMenu
             attachTo={attachTo}
@@ -39,7 +41,7 @@ const TeamHeader = () => {
             visible={true}
           />
         </ChatTeamProvider>
-      </ConvoState.ChatProvider>
+      </ConversationThreadProvider>
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
@@ -141,12 +143,12 @@ const TeamHeader = () => {
 }
 
 export const AdhocHeader = () => {
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const onShowNewTeamDialog = () => {
-    navigateAppend(conversationIDKey => ({
+    C.Router2.navigateAppend({
       name: 'chatShowNewTeamDialog',
       params: {conversationIDKey},
-    }))
+    })
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">

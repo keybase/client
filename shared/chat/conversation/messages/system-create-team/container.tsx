@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
@@ -7,18 +6,14 @@ import type * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from '../../team-hooks'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
+import {useConversationShowInfoPanel, useConversationThreadMeta} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemCreateTeam}
 
 function SystemCreateTeamContainer(p: OwnProps) {
   const {creator} = p.message
-  const {showInfoPanel, teamID, teamname} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {teamID, teamname} = s.meta
-      const {showInfoPanel} = s.dispatch
-      return {showInfoPanel, teamID, teamname}
-    })
-  )
+  const {teamID, teamname} = useConversationThreadMeta()
+  const showInfoPanel = useConversationShowInfoPanel()
   const {role} = useChatTeam(teamID, teamname)
   const you = useCurrentUserState(s => s.username)
   const isAdmin = Teams.isAdmin(role) || Teams.isOwner(role)

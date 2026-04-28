@@ -1,7 +1,9 @@
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
+import {ignorePromise} from '@/constants/utils'
+import {muteConversation} from '../../status-actions'
+import {useConversationThreadID, useConversationThreadMeta} from '../../thread-context'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 
@@ -101,27 +103,54 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
 }
 
 const Notifications = () => {
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const meta = useConversationThreadMeta()
+  const conversationIDKey = useConversationThreadID()
   const [channelWide, setChannelWide] = React.useState(meta.notificationsGlobalIgnoreMentions)
   const [desktop, setDesktop] = React.useState(meta.notificationsDesktop)
   const [mobile, setMobile] = React.useState(meta.notificationsMobile)
   const [muted, setMuted] = React.useState(meta.isMuted)
   const [saving, setSaving] = React.useState(false)
   const delayUnsave = Kb.useTimeout(() => setSaving(false), 100)
-  const updateNotificationSettings = ConvoState.useChatContext(s => s.dispatch.updateNotificationSettings)
   const saveNotifications = (
     desktop: T.Chat.NotificationsType,
     mobile: T.Chat.NotificationsType,
     channelWide: boolean
   ) => {
     setSaving(true)
-    updateNotificationSettings(desktop, mobile, channelWide)
+    const f = async () => {
+      await T.RPCChat.localSetAppNotificationSettingsLocalRpcPromise({
+        channelWide,
+        convID: T.Chat.keyToConversationID(conversationIDKey),
+        settings: [
+          {
+            deviceType: T.RPCGen.DeviceType.desktop,
+            enabled: desktop === 'onWhenAtMentioned',
+            kind: T.RPCChat.NotificationKind.atmention,
+          },
+          {
+            deviceType: T.RPCGen.DeviceType.desktop,
+            enabled: desktop === 'onAnyActivity',
+            kind: T.RPCChat.NotificationKind.generic,
+          },
+          {
+            deviceType: T.RPCGen.DeviceType.mobile,
+            enabled: mobile === 'onWhenAtMentioned',
+            kind: T.RPCChat.NotificationKind.atmention,
+          },
+          {
+            deviceType: T.RPCGen.DeviceType.mobile,
+            enabled: mobile === 'onAnyActivity',
+            kind: T.RPCChat.NotificationKind.generic,
+          },
+        ],
+      })
+    }
+    ignorePromise(f())
     delayUnsave()
   }
-  const mute = ConvoState.useChatContext(s => s.dispatch.mute)
   const saveMuted = (muted: boolean) => {
     setSaving(true)
-    mute(muted)
+    muteConversation(conversationIDKey, muted)
     delayUnsave()
   }
 

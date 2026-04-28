@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -14,7 +13,7 @@ import {
   useConversationThreadMessage,
 } from './thread-context'
 
-type Props = {ordinal: T.Chat.Ordinal}
+type Props = {conversationIDKey?: T.Chat.ConversationIDKey; ordinal: T.Chat.Ordinal}
 
 type PickerState = 'picker' | 'title'
 
@@ -281,7 +280,7 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const TeamPicker = (props: Props) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
   return (
     <ConversationThreadProvider id={conversationIDKey}>
       <TeamPickerInner {...props} />

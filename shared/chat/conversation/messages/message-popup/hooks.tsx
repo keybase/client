@@ -1,7 +1,6 @@
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import {useCurrentUserState} from '@/stores/current-user'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
@@ -13,7 +12,16 @@ import {navToProfile, setThreadInputEditing, setThreadInputReplyTo} from '@/cons
 import {copyToClipboard} from '@/util/storeless-actions'
 import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
 import {SetOrangeLineContext} from '../../orange-line-context'
-import {useConversationThreadMessage} from '../../thread-context'
+import {
+  useConversationThreadMessage,
+  useConversationThreadMessageActions,
+  useConversationThreadID,
+  useConversationThreadMeta,
+  useConversationThreadParticipants,
+  useConversationThreadSetMarkAsUnread,
+} from '../../thread-context'
+import logger from '@/logger'
+import {RPCError} from '@/util/errors'
 
 const emptyText = Chat.makeMessageText({})
 
@@ -32,27 +40,26 @@ const getConversationLabel = (
 }
 
 export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
-  const currentConversationIDKey = ConvoState.useChatContext(s => s.id)
+  const currentConversationIDKey = useConversationThreadID()
   const message = useConversationThreadMessage(ordinal) ?? emptyText
   const isAttach = message.type === 'attachment'
   const {author, id, deviceName, timestamp, deviceRevokedAt} = message
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const meta = useConversationThreadMeta()
   const {teamID, teamname} = meta
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const participantInfo = useConversationThreadParticipants()
+  const {messageDelete, toggleMessageReaction} = useConversationThreadMessageActions()
   const onReact = (emoji: string) => {
     toggleMessageReaction(ordinal, emoji)
   }
-  const navigateAppend = ConvoState.useChatNavigateAppend()
   const _onAddReaction = () => {
-    navigateAppend(conversationIDKey => ({
+    C.Router2.navigateAppend({
       name: 'chatChooseEmoji',
       params: {
-        conversationIDKey,
+        conversationIDKey: currentConversationIDKey,
         onPickAddToMessageOrdinal: ordinal,
         pickKey: 'reaction',
       },
-    }))
+    })
   }
   const onAddReaction = C.isMobile ? _onAddReaction : undefined
 
@@ -66,7 +73,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
         ? !participantInfo.name.includes(author)
         : false
   const _onInstallBot = () => {
-    navigateAppend(() => ({name: 'chatInstallBotPick', params: {botUsername: author}}))
+    C.Router2.navigateAppend({name: 'chatInstallBotPick', params: {botUsername: author}})
   }
   const onInstallBot = authorIsBot ? _onInstallBot : undefined
 
@@ -99,12 +106,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     {icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'},
   ] as const
 
-  const {messageDelete, pinMessage, setMarkAsUnread} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {messageDelete, pinMessage, setMarkAsUnread} = s.dispatch
-      return {messageDelete, pinMessage, setMarkAsUnread}
-    })
-  )
+  const setMarkAsUnread = useConversationThreadSetMarkAsUnread()
   const setOrangeLine = React.useContext(SetOrangeLineContext)
   const onReply = () => {
     setThreadInputReplyTo(currentConversationIDKey, ordinal)
@@ -133,10 +135,10 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
       : []
 
   const _onForward = () => {
-    navigateAppend(conversationIDKey => ({
+    C.Router2.navigateAppend({
       name: 'chatForwardMsgPick',
-      params: {conversationIDKey, ordinal},
-    }))
+      params: {conversationIDKey: currentConversationIDKey, ordinal},
+    })
   }
   const onForward = isAttach || (message.unfurls?.size ?? 0) > 0 ? _onForward : undefined // only unfurls for text
 
@@ -147,7 +149,22 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const isTeam = !!teamname
   const canPinMessage = (!isTeam || yourOperations.pinMessage) && !message.exploded
   const _onPinMessage = () => {
-    pinMessage(id)
+    if (!id) {
+      return
+    }
+    const f = async () => {
+      try {
+        await T.RPCChat.localPinMessageRpcPromise({
+          convID: T.Chat.keyToConversationID(currentConversationIDKey),
+          msgID: id,
+        })
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.error(`pinMessage: ${error.message}`)
+        }
+      }
+    }
+    C.ignorePromise(f())
   }
   const onPinMessage = canPinMessage ? _onPinMessage : undefined
   const itemPin = onPinMessage
@@ -205,7 +222,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     : []
 
   const _onKick = () => {
-    navigateAppend(() => ({name: 'teamReallyRemoveMember', params: {members: [author], teamID}}))
+    C.Router2.navigateAppend({name: 'teamReallyRemoveMember', params: {members: [author], teamID}})
   }
   const authorInTeam = teamMembers.size ? teamMembers.has(author) : true
   const onKick = isDeleteable && !!teamID && !yourMessage && authorInTeam ? _onKick : undefined

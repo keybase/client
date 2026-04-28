@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
@@ -8,20 +7,16 @@ import {getAddedUsernames} from '../system-users-added-to-conv/container'
 import {indefiniteArticle} from '@/util/string'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeamMembers} from '../../team-hooks'
+import {useConversationShowInfoPanel, useConversationThreadID, useConversationThreadMeta} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
 
 function SystemAddedToTeamContainer(p: OwnProps) {
   const {message} = p
   const {addee, adder, author, bulkAdds, role: _role, timestamp} = message
-  const {teamID, teamname, teamType, showInfoPanel} = ConvoState.useChatContext(
-    C.useShallow(s => ({
-      showInfoPanel: s.dispatch.showInfoPanel,
-      teamID: s.meta.teamID,
-      teamType: s.meta.teamType,
-      teamname: s.meta.teamname,
-    }))
-  )
+  const conversationIDKey = useConversationThreadID()
+  const {teamID, teamname, teamType} = useConversationThreadMeta()
+  const showInfoPanel = useConversationShowInfoPanel()
   const {members: teamMembers} = useChatTeamMembers(teamID)
   const authorRole = teamMembers.get(author)?.type
   const authorIsAdmin = authorRole === 'admin'
@@ -33,17 +28,16 @@ function SystemAddedToTeamContainer(p: OwnProps) {
     showInfoPanel(true, 'settings')
   }
 
-  const navigateAppend = ConvoState.useChatNavigateAppend()
   const onViewBot = () => {
-    navigateAppend(conversationIDKey => ({
+    C.Router2.navigateAppend({
       name: 'chatInstallBot',
       params: {botUsername: addee, conversationIDKey},
-    }))
+    })
   }
 
   const onViewTeam = () => {
     if (teamID) {
-      navigateAppend(() => ({name: 'team', params: {teamID}}))
+      C.Router2.navigateAppend({name: 'team', params: {teamID}})
     } else {
       showInfoPanel(true, 'settings')
     }

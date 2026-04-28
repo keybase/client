@@ -1,11 +1,12 @@
 import * as C from '@/constants'
 import {clampImageSize} from '@/constants/chat/helpers'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {sharedStyles} from '../shared-styles'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {useConversationAttachmentActions} from '../../attachment-actions'
+import {useConversationThreadMessageActions} from '../../thread-context'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
@@ -80,9 +81,8 @@ export const TransferIcon = (p: {
       default:
     }
   }
-  const download = ConvoState.useChatContext(s =>
-    C.isMobile ? s.dispatch.messageAttachmentNativeSave : s.dispatch.attachmentDownload
-  )
+  const {attachmentDownload, messageAttachmentNativeSave} = useConversationAttachmentActions()
+  const download = C.isMobile ? messageAttachmentNativeSave : attachmentDownload
   const onDownload = () => {
     download(ordinal)
   }
@@ -236,7 +236,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const useCollapseAction = (ordinal: T.Chat.Ordinal) => {
-  const toggleMessageCollapse = ConvoState.useChatContext(s => s.dispatch.toggleMessageCollapse)
+  const {toggleMessageCollapse} = useConversationThreadMessageActions()
   const onCollapse = () => {
     toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
   }

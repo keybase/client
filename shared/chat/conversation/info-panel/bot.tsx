@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -8,6 +7,7 @@ import {useUsersState} from '@/stores/users'
 import {useChatTeam, useChatTeamMembers} from '../team-hooks'
 import logger from '@/logger'
 import {useBotSettings} from '../bot/settings'
+import {useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from '../thread-context'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -194,13 +194,13 @@ type Props = {
 }
 
 const BotTab = (props: Props) => {
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const meta = useConversationThreadMeta()
   const {teamID, teamname, teamType, botAliases} = meta
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const {yourOperations} = useChatTeam(teamID, teamname)
   const canManageBots = teamname ? yourOperations.manageBots : true
   const adhocTeam = teamType === 'adhoc'
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const participantInfo = useConversationThreadParticipants()
   const {members: teamMembers} = useChatTeamMembers(teamID)
   const participantsAll = participantInfo.all
 
@@ -253,15 +253,15 @@ const BotTab = (props: Props) => {
 
   const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const navigateAppend = C.Router2.navigateAppend
   const onBotAdd = () => {
-    navigateAppend(conversationIDKey => ({name: 'chatSearchBots', params: {conversationIDKey}}))
+    navigateAppend({name: 'chatSearchBots', params: {conversationIDKey}})
   }
   const onBotSelect = (username: string) => {
-    navigateAppend(conversationIDKey => ({
+    navigateAppend({
       name: 'chatInstallBot',
       params: {botUsername: username, conversationIDKey},
-    }))
+    })
   }
 
   const items: Array<Item> = [

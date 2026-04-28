@@ -1,9 +1,9 @@
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
+import {useConversationThreadMeta} from '../../thread-context'
 
 function LeftContainer() {
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const meta = useConversationThreadMeta()
   const {channelname, teamType, teamname} = meta
   const isBigTeam = teamType === 'big'
 

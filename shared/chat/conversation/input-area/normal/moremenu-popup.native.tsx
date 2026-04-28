@@ -1,6 +1,7 @@
-import * as ConvoState from '@/stores/convostate'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as InputState from '../input-state'
+import {useConversationThreadID} from '../../thread-context'
 
 type Props = {
   onHidden: () => void
@@ -10,9 +11,9 @@ type Props = {
 const MoreMenuPopup = (props: Props) => {
   const {onHidden, visible} = props
   const injectIntoInput = InputState.useConversationInput(s => s.dispatch.injectIntoInput)
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const onLocationShare = () => {
-    navigateAppend(conversationIDKey => ({name: 'chatLocationPreview', params: {conversationIDKey}}))
+    C.Router2.navigateAppend({name: 'chatLocationPreview', params: {conversationIDKey}})
   }
   // merge
   const onCoinFlip = () => injectIntoInput('/flip ')

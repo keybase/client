@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -9,6 +8,7 @@ import {settingsFeedbackTab} from '@/constants/settings'
 import * as FS from '@/stores/fs'
 import {useConfigState} from '@/stores/config'
 import {ensureError} from '@/util/errors'
+import {getInboxConversationMeta} from '@/chat/inbox/metadata'
 
 export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingShareProps) => {
   const originalTotalSize = incomingShareItems.reduce((bytes, item) => bytes + (item.originalSize ?? 0), 0)
@@ -202,8 +202,8 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
     hasNavigatedRef.current = true
     if (sendPaths.length > 0) {
       C.Router2.navigateToThread(selectedConversationIDKey, 'extension')
-      const meta = ConvoState.getConvoState(selectedConversationIDKey).meta
-      const tlfName = meta.conversationIDKey === selectedConversationIDKey ? meta.tlfname : ''
+      const meta = getInboxConversationMeta(selectedConversationIDKey)
+      const tlfName = meta?.conversationIDKey === selectedConversationIDKey ? meta.tlfname : ''
       navigateAppend({
         name: 'chatAttachmentGetTitles',
         params: {

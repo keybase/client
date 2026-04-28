@@ -1,6 +1,7 @@
 import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
+import {produce} from 'immer'
 import type {WritableDraft} from '@/util/zustand'
 
 type MessageLookup = Pick<T.Chat.Message, 'id' | 'ordinal'>
@@ -25,6 +26,63 @@ type ThreadReactionUpdate = {
   targetMsgID: T.Chat.MessageID
   reactions?: T.Chat.Reactions
 }
+
+export const cloneStoreObjectWithImmer = (value: unknown): unknown => {
+  if (value instanceof HiddenString) {
+    return value
+  }
+  if (value instanceof Map) {
+    return produce(new Map(value), draft => {
+      for (const [key, entryValue] of draft) {
+        draft.set(key, cloneStoreObjectWithImmer(entryValue))
+      }
+    })
+  }
+  if (value instanceof Set) {
+    return produce(new Set(value), draft => {
+      const entries = [...draft]
+      draft.clear()
+      entries.forEach(entry => {
+        draft.add(cloneStoreObjectWithImmer(entry))
+      })
+    })
+  }
+  if (Array.isArray(value)) {
+    return produce([...value], draft => {
+      const mutableDraft = draft as Array<unknown>
+      for (let idx = 0; idx < draft.length; ++idx) {
+        mutableDraft[idx] = cloneStoreObjectWithImmer(draft[idx])
+      }
+    })
+  }
+  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+    return produce({...value}, draft => {
+      const record = draft as Record<string, unknown>
+      for (const key of Object.keys(record)) {
+        record[key] = cloneStoreObjectWithImmer(record[key])
+      }
+    })
+  }
+  return value
+}
+
+export const cloneMessageWithImmer = (
+  message: T.Chat.Message,
+  ordinal: T.Chat.Ordinal = message.ordinal
+): T.Chat.Message =>
+  produce({...message}, draft => {
+    const record = draft as Record<string, unknown>
+    for (const key of Object.keys(record)) {
+      record[key] = cloneStoreObjectWithImmer(record[key])
+    }
+    record.ordinal = ordinal
+  }) as T.Chat.Message
+
+const cloneMessageForThreadState = (
+  message: T.Chat.Message,
+  ordinal: T.Chat.Ordinal
+): WritableDraft<T.Chat.Message> =>
+  T.castDraft(cloneMessageWithImmer(message, ordinal))
 
 export const getOrdinalForMessageID = (
   map: ReadonlyMap<T.Chat.Ordinal, MessageLookup>,
@@ -145,7 +203,7 @@ export const addMessagesToThreadState = (
     }
   }
 
-  const getMapOrdinal = (m: WritableDraft<T.Chat.Message>, regularMessage: boolean) => {
+  const getMapOrdinal = (m: T.Chat.Message, regularMessage: boolean) => {
     let mapOrdinal = m.ordinal
     if (regularMessage && m.outboxID) {
       const existingSent = state.pendingOutboxToOrdinal.get(m.outboxID)
@@ -162,20 +220,18 @@ export const addMessagesToThreadState = (
     return mapOrdinal
   }
 
+  const deletedOrdinals = new Set<T.Chat.Ordinal>()
   for (const _m of messages) {
-    const m = T.castDraft(_m)
-    const regularMessage = m.conversationMessage !== false
+    const regularMessage = _m.conversationMessage !== false
+    const mapOrdinal = getMapOrdinal(_m, regularMessage)
+    const m = cloneMessageForThreadState(_m, mapOrdinal)
 
     if (regularMessage && m.type === 'deleted') {
-      const mapOrdinal = getMapOrdinal(m, regularMessage)
-      if (m.ordinal !== mapOrdinal) {
-        m.ordinal = mapOrdinal
-      }
       clearMessageIDIndexForOrdinal(state, mapOrdinal)
       state.messageMap.delete(mapOrdinal)
       state.messageTypeMap.delete(mapOrdinal)
+      deletedOrdinals.add(mapOrdinal)
     } else {
-      const mapOrdinal = getMapOrdinal(m, regularMessage)
       if (m.type === 'placeholder') {
         const old = state.messageMap.get(mapOrdinal)
         if (old && old.type !== 'placeholder') {
@@ -183,13 +239,10 @@ export const addMessagesToThreadState = (
         }
       }
 
-      if (m.ordinal !== mapOrdinal) {
+      if (_m.ordinal !== mapOrdinal) {
         // Keep the ordinal list aligned when an outbox/messageID match remaps the message.
-        if (regularMessage && m.type !== 'deleted') {
-          incomingOrdinals.delete(m.ordinal)
-          incomingOrdinals.add(mapOrdinal)
-        }
-        m.ordinal = mapOrdinal
+        incomingOrdinals.delete(_m.ordinal)
+        incomingOrdinals.add(mapOrdinal)
       }
 
       const existingMsg = state.messageMap.get(mapOrdinal)
@@ -208,7 +261,7 @@ export const addMessagesToThreadState = (
       if (existingMsg) {
         clearMessageIDIndexForOrdinal(state, mapOrdinal, existingMsg)
       }
-      state.messageMap.set(mapOrdinal, T.castDraft(m))
+      state.messageMap.set(mapOrdinal, m)
       indexMessage(state, mapOrdinal, m)
       if (
         regularMessage &&
@@ -233,10 +286,9 @@ export const addMessagesToThreadState = (
       changed = true
     }
   }
-  for (const _m of messages) {
-    const m = T.castDraft(_m)
-    if (m.conversationMessage !== false && m.type === 'deleted' && existing.has(m.ordinal)) {
-      existing.delete(m.ordinal)
+  for (const ordinal of deletedOrdinals) {
+    if (existing.has(ordinal)) {
+      existing.delete(ordinal)
       changed = true
     }
   }
@@ -413,4 +465,132 @@ export const updateReactionsInThreadState = (
     }
   }
   return missingTargetMsgIDs
+}
+
+export const updateAttachmentDownloadProgressInThreadState = (
+  state: WritableConversationThreadMessageState,
+  msgID: number,
+  bytesComplete: number,
+  bytesTotal: number
+) => {
+  const ratio = bytesComplete / bytesTotal
+  const ordinal = maybeGetOrdinalByMessageID(state, T.Chat.numberToMessageID(msgID))
+  if (!ordinal) return false
+  const m = state.messageMap.get(ordinal)
+  if (m?.type !== 'attachment') return false
+
+  if (!m.downloadPath && m.transferProgress !== 1) {
+    m.transferErrMsg = undefined
+    m.transferProgress = ratio
+    m.transferState = 'downloading'
+  }
+  return true
+}
+
+export const retryMessageInThreadState = (
+  state: WritableConversationThreadMessageState,
+  outboxID: T.Chat.OutboxID
+) => {
+  const ordinal = state.pendingOutboxToOrdinal.get(outboxID)
+  if (!ordinal || !state.messageMap.get(ordinal)) {
+    return false
+  }
+  const message = state.messageMap.get(ordinal)
+  if (message) {
+    message.errorReason = undefined
+    message.submitState = 'pending'
+  }
+  return true
+}
+
+export const setMessageSubmitStateInThreadState = (
+  state: WritableConversationThreadMessageState,
+  ordinal: T.Chat.Ordinal,
+  submitState: T.Chat.Message['submitState']
+) => {
+  const message = state.messageMap.get(ordinal)
+  if (message) {
+    message.submitState = submitState
+  }
+}
+
+export const completeAttachmentDownloadInThreadState = (
+  state: WritableConversationThreadMessageState,
+  msgID: number
+) => {
+  const ordinal = maybeGetOrdinalByMessageID(state, T.Chat.numberToMessageID(msgID))
+  if (!ordinal) return false
+  const m = state.messageMap.get(ordinal)
+  if (m?.type !== 'attachment') return false
+  m.transferProgress = 0
+  m.transferState = undefined
+  return true
+}
+
+export const updateAttachmentUploadProgressInThreadState = (
+  state: WritableConversationThreadMessageState,
+  outboxID: Uint8Array,
+  bytesComplete = 0,
+  bytesTotal?: number
+) => {
+  const ordinal = state.pendingOutboxToOrdinal.get(T.Chat.rpcOutboxIDToOutboxID(outboxID))
+  if (!ordinal) return false
+  const m = state.messageMap.get(ordinal)
+  if (m?.type !== 'attachment') return false
+  m.transferProgress = bytesTotal ? bytesComplete / bytesTotal : 0.01
+  m.transferState = 'uploading'
+  return true
+}
+
+export const startAttachmentDownloadInThreadState = (
+  state: WritableConversationThreadMessageState,
+  ordinal: T.Chat.Ordinal
+) => {
+  const m = state.messageMap.get(ordinal)
+  if (!m) return false
+  m.transferErrMsg = m.type === 'attachment' ? undefined : 'Trying to download missing / incorrect message?'
+  m.transferState = m.type === 'attachment' ? 'downloading' : undefined
+  return m.type === 'attachment'
+}
+
+export const finishAttachmentDownloadInThreadState = (
+  state: WritableConversationThreadMessageState,
+  ordinal: T.Chat.Ordinal,
+  path: string
+) => {
+  const m = state.messageMap.get(ordinal)
+  if (m?.type !== 'attachment') return false
+  m.downloadPath = path
+  m.fileURLCached = true
+  m.transferErrMsg = undefined
+  m.transferProgress = 1
+  m.transferState = undefined
+  return true
+}
+
+export const failAttachmentDownloadInThreadState = (
+  state: WritableConversationThreadMessageState,
+  ordinal: T.Chat.Ordinal,
+  errMsg: string
+) => {
+  const m = state.messageMap.get(ordinal)
+  if (m?.type !== 'attachment') return false
+  m.downloadPath = ''
+  m.fileURLCached = true
+  m.transferErrMsg = errMsg
+  m.transferProgress = 0
+  m.transferState = undefined
+  return true
+}
+
+export const setAttachmentMobileSavingInThreadState = (
+  state: WritableConversationThreadMessageState,
+  ordinal: T.Chat.Ordinal,
+  saving: boolean
+) => {
+  const m = state.messageMap.get(ordinal)
+  if (m?.type !== 'attachment') return false
+  m.transferErrMsg = undefined
+  m.transferState = saving ? 'mobileSaving' : undefined
+  return true
 }

@@ -1,12 +1,26 @@
 import * as C from '@/constants'
 import * as FS from '@/constants/fs'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {
+  cancelAttachmentUploads,
+  getClientPrevFromThread,
+  uploadAttachments,
+  uploadAttachmentsFromDragAndDrop,
+} from './attachment-actions'
+import {
+  ConversationThreadProvider,
+  useConversationThreadExplodingMode,
+  useConversationThreadID,
+  useConversationThreadMeta,
+  useConversationThreadMessageMap,
+  useConversationThreadMessageOrdinalsMaybe,
+} from './thread-context'
 
 type OwnProps = {
+  conversationIDKey?: T.Chat.ConversationIDKey
   pathAndOutboxIDs: Array<T.Chat.PathAndOutboxID>
   inputPrefillText?: string
   titles?: Array<string>
@@ -40,15 +54,19 @@ const pathToAttachmentType = (path: string) => {
 
 const isKbfsPath = (path: string) => path.startsWith('/keybase/')
 
-const Container = (ownProps: OwnProps) => {
+const ContainerInner = (ownProps: OwnProps) => {
   const {titles: _titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.Router2.navigateUp
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const attachmentUploadCanceled = ConvoState.useChatContext(s => s.dispatch.attachmentUploadCanceled)
+  const conversationIDKey = useConversationThreadID()
+  const metaTlfName = useConversationThreadMeta().tlfname
+  const explodingMode = useConversationThreadExplodingMode()
+  const messageMap = useConversationThreadMessageMap()
+  const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
+  const clientPrev = getClientPrevFromThread(messageMap, messageOrdinals)
   const onCancel = () => {
-    attachmentUploadCanceled(
+    cancelAttachmentUploads(
       pathAndOutboxIDs.reduce((l: Array<T.RPCChat.OutboxID>, {outboxID}) => {
         if (outboxID) {
           l.push(outboxID)
@@ -59,14 +77,21 @@ const Container = (ownProps: OwnProps) => {
     navigateUp()
   }
   const clearModals = C.Router2.clearModals
-  const attachmentsUpload = ConvoState.useChatContext(s => s.dispatch.attachmentsUpload)
-  const attachFromDragAndDrop = ConvoState.useChatContext(s => s.dispatch.attachFromDragAndDrop)
 
-  const _onSubmit = (titles: Array<string>, spoiler: boolean) => {
+  const _onSubmit = (titles: Array<string>, _spoiler: boolean) => {
+    const tlfNameToUse = tlfName ?? metaTlfName
+    const uploadArgs = {
+      clientPrev,
+      conversationIDKey,
+      ephemeralLifetime: explodingMode,
+      paths: pathAndOutboxIDs,
+      titles,
+      tlfName: tlfNameToUse,
+    }
     if (tlfName || noDragDrop) {
-      attachmentsUpload(pathAndOutboxIDs, titles, tlfName, spoiler)
+      uploadAttachments(uploadArgs)
     } else {
-      attachFromDragAndDrop(pathAndOutboxIDs, titles)
+      uploadAttachmentsFromDragAndDrop(uploadArgs)
     }
     clearModals()
 
@@ -313,4 +338,14 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
     }) as const
 )
+
+const Container = (ownProps: OwnProps) => {
+  const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
+  return (
+    <ConversationThreadProvider id={conversationIDKey}>
+      <ContainerInner {...ownProps} />
+    </ConversationThreadProvider>
+  )
+}
+
 export default Container

@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
@@ -8,6 +7,7 @@ import {useChatTeamNames} from '../../team-hooks'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as React from 'react'
+import {useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from '../../thread-context'
 
 export const transformer = (
   {channelname, teamname}: {channelname: string; teamname?: string},
@@ -137,9 +137,9 @@ const getChannelSuggestions = (
 }
 
 const useDataSource = (filter: string) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const meta = ConvoState.useChatContext(s => s.meta)
-  const participants = ConvoState.useChatContext(s => s.participants)
+  const conversationIDKey = useConversationThreadID()
+  const meta = useConversationThreadMeta()
+  const participants = useConversationThreadParticipants()
   const mutualTeams = useMutualTeams(conversationIDKey, meta, participants)
   const {teamnames: mutualTeamnamesByID, loading: loadingMutualTeamnames} = useChatTeamNames(mutualTeams)
   const {teamID} = meta

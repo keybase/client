@@ -1,10 +1,10 @@
 // Debug utilities for chat
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {debugWarning} from '@/util/debug-warning'
 import {registerDebugClear} from '@/util/debug'
+import {getConversationThreadCacheSnapshot} from '@/chat/conversation/thread-cache'
 
 export const chatDebugEnabled = false as boolean
 
@@ -19,10 +19,14 @@ registerDebugClear(() => {
 
 const chatDebugDump = chatDebugEnabled
   ? (conversationIDKey: T.Chat.ConversationIDKey) => {
-      const cs = ConvoState.getConvoState(conversationIDKey)
-      logger.error('[CHATDEBUG] os: ', cs.messageOrdinals)
+      const snapshot = getConversationThreadCacheSnapshot(conversationIDKey)
+      if (!snapshot) {
+        logger.error('[CHATDEBUG] no cached snapshot for: ', conversationIDKey)
+        return
+      }
+      logger.error('[CHATDEBUG] os: ', snapshot.messageOrdinals)
       // logger.error('[CHATDEBUG] orange: ', cs.orangeAboveOrdinal)
-      const m = cs.meta
+      const m = snapshot.meta
       logger.error('[CHATDEBUG] meta: ', {
         inboxLocalVersion: m.inboxLocalVersion,
         inboxVersion: m.inboxVersion,
@@ -33,10 +37,10 @@ const chatDebugDump = chatDebugEnabled
         status: m.status,
         timestamp: m.timestamp,
       })
-      logger.error('[CHATDEBUG] pen: ', [...cs.pendingOutboxToOrdinal.entries()])
+      logger.error('[CHATDEBUG] pen: ', [...snapshot.pendingOutboxToOrdinal.entries()])
       logger.error(
         '[CHATDEBUG] mm: ',
-        [...cs.messageMap.entries()].map(([k, v]) => {
+        [...snapshot.messageMap.entries()].map(([k, v]) => {
           const {id, ordinal, submitState, outboxID, type} = v
           return {
             key: k,

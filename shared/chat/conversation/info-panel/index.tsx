@@ -1,8 +1,8 @@
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
+import type * as T from '@/constants/types'
 import {navigateToInbox} from '@/constants/router'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
@@ -12,15 +12,27 @@ import AttachmentsList from './attachments'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '@/common-adapters/tabs'
 import {ChatTeamProvider, useChatTeam} from '../team-hooks'
-import {ConversationThreadProvider} from '../thread-context'
+import {ConversationThreadProvider, useConversationShowInfoPanel, useConversationThreadMeta} from '../thread-context'
 
 type Props = {
+  conversationIDKey?: T.Chat.ConversationIDKey
   tab?: 'settings' | 'members' | 'attachments' | 'bots'
 }
 
 const InfoPanelConnector = (ownProps: Props) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const meta = ConvoState.useConvoState(conversationIDKey, s => s.meta)
+  const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
+  return (
+    <ConversationThreadProvider id={conversationIDKey}>
+      <ChatTeamProvider>
+        <InfoPanelConnectorInner {...ownProps} conversationIDKey={conversationIDKey} />
+      </ChatTeamProvider>
+    </ConversationThreadProvider>
+  )
+}
+
+const InfoPanelConnectorInner = (ownProps: Props & {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey} = ownProps
+  const meta = useConversationThreadMeta()
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname
@@ -30,7 +42,7 @@ const InfoPanelConnector = (ownProps: Props) => {
   const [uncontrolledSelectedTab, onSelectTab] = React.useState<Panel>(() => ownProps.tab ?? 'members')
   const selectedTab = ownProps.tab ?? uncontrolledSelectedTab
 
-  const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
+  const showInfoPanel = useConversationShowInfoPanel()
   React.useEffect(() => {
     return () => {
       // Only call showInfoPanel(false) on mobile where the panel is a separate route.
@@ -123,12 +135,6 @@ const InfoPanelConnector = (ownProps: Props) => {
     default:
       sectionList = null
   }
-  sectionList = (
-    <ConversationThreadProvider id={conversationIDKey}>
-      <ChatTeamProvider>{sectionList}</ChatTeamProvider>
-    </ConversationThreadProvider>
-  )
-
   if (Kb.Styles.isTablet) {
     // Use a View to make the left border.
     return (

@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -7,24 +6,35 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {pluralize} from '@/util/string'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useChatTeamMembers} from '../team-hooks'
+import {
+  ConversationThreadProvider,
+  useConversationThreadID,
+  useConversationThreadMeta,
+  useConversationThreadParticipants,
+} from '../thread-context'
 
-type Props = {teamID: T.Teams.TeamID}
+type Props = {conversationIDKey?: T.Chat.ConversationIDKey; teamID: T.Teams.TeamID}
 
 const AddToChannel = (props: Props) => {
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
+  return (
+    <ConversationThreadProvider id={conversationIDKey}>
+      <AddToChannelInner {...props} />
+    </ConversationThreadProvider>
+  )
+}
+
+const AddToChannelInner = (props: Props) => {
   const {teamID} = props
   const nav = useSafeNavigation()
-  const {channelname, conversationIDKey} = ConvoState.useChatContext(
-    C.useShallow(s => ({
-      channelname: s.meta.channelname,
-      conversationIDKey: s.id,
-    }))
-  )
+  const conversationIDKey = useConversationThreadID()
+  const channelname = useConversationThreadMeta().channelname
 
   const [toAdd, setToAdd] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
 
-  const participants = ConvoState.useChatContext(s => s.participants.all)
+  const participants = useConversationThreadParticipants().all
   const {loading: loadingMembers, members: teamMembers} = useChatTeamMembers(teamID)
   const allMembers = [...teamMembers.values()]
     .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')

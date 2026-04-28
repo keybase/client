@@ -1,21 +1,16 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import {PerfProfiler} from '@/perf/react-profiler'
 import Normal from './normal'
 import Preview from './preview'
 import ThreadSearch from '../search'
 import {useThreadSearchRoute} from '../thread-search-route'
+import {useConversationThreadID, useConversationThreadMeta} from '../thread-context'
 
 const InputAreaContainer = () => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const showThreadSearch = !!useThreadSearchRoute()
-  const {membershipType, resetParticipants, wasFinalizedBy} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {membershipType, resetParticipants, wasFinalizedBy} = s.meta
-      return {membershipType, resetParticipants, wasFinalizedBy}
-    })
-  )
+  const {membershipType, resetParticipants, wasFinalizedBy} = useConversationThreadMeta()
 
   let noInput = resetParticipants.size > 0 || !!wasFinalizedBy
   if (

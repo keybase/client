@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as ChatCommon from '@/constants/chat/common'
 import * as Meta from '@/constants/chat/meta'
 import * as Teams from '@/constants/teams'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useModalHeaderState} from '@/stores/modal-header'
@@ -12,9 +11,15 @@ import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useFeaturedBot} from '@/util/featured-bots'
-import type {RPCError} from '@/util/errors'
+import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useBotSettings} from './settings'
+import {
+  ConversationThreadProvider,
+  useConversationThreadActions,
+  useConversationThreadMeta,
+} from '../thread-context'
+import {metasReceived} from '@/chat/inbox/metadata'
 
 const RestrictedItem = '---RESTRICTED---'
 
@@ -28,7 +33,7 @@ export const useRefreshBotMembershipOnSuccess = (
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
-  const setParticipants = ConvoState.useChatContext(s => s.dispatch.setParticipants)
+  const {setParticipants} = useConversationThreadActions()
 
   React.useEffect(() => {
     if (!waiting && wasWaitingRef.current && !error) {
@@ -94,7 +99,7 @@ export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, 
         if (!meta) {
           return
         }
-        ConvoState.metasReceived([meta])
+        metasReceived([meta])
         setGeneralConversation({conversationIDKey: meta.conversationIDKey, teamID})
       },
       () => {}
@@ -175,9 +180,9 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   if (!conversationIDKey) return null
   return (
-    <ConvoState.ChatProvider id={conversationIDKey}>
+    <ConversationThreadProvider id={conversationIDKey}>
       <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
-    </ConvoState.ChatProvider>
+    </ConversationThreadProvider>
   )
 }
 
@@ -207,7 +212,7 @@ const InstallBotPopup = (props: Props) => {
     | undefined
   >()
 
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const meta = useConversationThreadMeta()
   const commandsFromMeta = (
     meta.botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
       ? meta.botCommands.custom.commands || blankCommands
@@ -247,7 +252,6 @@ const InstallBotPopup = (props: Props) => {
   // dispatch
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
-  const addBotMember = ConvoState.useChatContext(s => s.dispatch.addBotMember)
   const [pendingMutation, setPendingMutation] = React.useState<'add' | 'edit' | undefined>()
   const onLearn = () => {
     openURL('https://book.keybase.io/docs/chat/restricted-bots')
@@ -258,16 +262,50 @@ const InstallBotPopup = (props: Props) => {
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
     setPendingMutation('add')
-    addBotMember(botUsername, installWithCommands, installWithMentions, installWithRestrict, installInConvs)
+    const f = async () => {
+      try {
+        await T.RPCChat.localAddBotMemberRpcPromise(
+          {
+            botSettings: installWithRestrict
+              ? {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions}
+              : null,
+            convID: T.Chat.keyToConversationID(conversationIDKey),
+            role: installWithRestrict ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
+            username: botUsername,
+          },
+          C.waitingKeyChatBotAdd
+        )
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.info('addBotMember: failed to add bot member: ' + error.message)
+        }
+      }
+    }
+    C.ignorePromise(f())
   }
-  const editBotSettings = ConvoState.useChatContext(s => s.dispatch.editBotSettings)
   const onEdit = () => {
     if (!conversationIDKey) {
       return
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
     setPendingMutation('edit')
-    editBotSettings(botUsername, installWithCommands, installWithMentions, installInConvs)
+    const f = async () => {
+      try {
+        await T.RPCChat.localSetBotMemberSettingsRpcPromise(
+          {
+            botSettings: {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions},
+            convID: T.Chat.keyToConversationID(conversationIDKey),
+            username: botUsername,
+          },
+          C.waitingKeyChatBotAdd
+        )
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.info('addBotMember: failed to edit bot settings: ' + error.message)
+        }
+      }
+    }
+    C.ignorePromise(f())
   }
   const navigateAppend = C.Router2.navigateAppend
   const onRemove = () => {

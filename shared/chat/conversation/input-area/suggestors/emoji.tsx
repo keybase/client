@@ -1,8 +1,8 @@
-import * as ConvoState from '@/stores/convostate'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import {type EmojiData, RPCToEmojiData, emojiData} from '@/common-adapters/emoji'
 import {useUserEmoji} from '@/chat/user-emoji'
+import {useConversationThreadID} from '../../thread-context'
 
 export const transformer = (
   emoji: EmojiData,
@@ -38,7 +38,7 @@ const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
 const empty = new Array<EmojiData>()
 
 const useDataSource = (filter: string) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const {emojis: userEmojis, loading: userEmojisLoading} = useUserEmoji({conversationIDKey})
 
   if (!emojiPrepass.test(filter)) {

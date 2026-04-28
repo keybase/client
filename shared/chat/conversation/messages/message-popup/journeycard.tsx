@@ -1,9 +1,11 @@
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type * as React from 'react'
 import type {Position, StylesCrossPlatform} from '@/styles'
-import {useConversationThreadMessage} from '../../thread-context'
+import {
+  useConversationThreadDismissJourneycard,
+  useConversationThreadMessage,
+} from '../../thread-context'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -19,7 +21,7 @@ const JourneyCard = (ownProps: OwnProps) => {
   const {ordinal, attachTo, mode, onHidden, style, visible, position} = ownProps
   const cardType = useConversationThreadMessage(ordinal)?.cardType ?? T.RPCChat.JourneycardType.unused
 
-  const dismissJourneycard = ConvoState.useChatContext(s => s.dispatch.dismissJourneycard)
+  const dismissJourneycard = useConversationThreadDismissJourneycard()
   const onDismiss = () => {
     dismissJourneycard(cardType, ordinal)
   }

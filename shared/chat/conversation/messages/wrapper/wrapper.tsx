@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import {getMessageKey} from '@/constants/chat/helpers'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as InputState from '../../input-area/input-state'
@@ -21,13 +20,23 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
 import {
+  useConversationThreadAccountsInfoMap,
   useConversationThreadMessage,
   useConversationThreadMessageMap,
   useConversationThreadMessageOrdinals,
+  useConversationThreadPaymentStatusMap,
+  useConversationThreadActions,
+  useConversationThreadMessageActions,
+  useConversationThreadMeta,
+  useConversationThreadParticipants,
+  useConversationThreadUnfurlPromptMap,
 } from '../../thread-context'
-import type {ConvoState as ConvoStateType} from '@/stores/convostate'
 import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMembers} from '../../team-hooks'
+
+type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
+type PaymentStatusMap = ReadonlyMap<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
+type UnfurlPromptMap = ReadonlyMap<T.Chat.MessageID, ReadonlySet<string>>
 
 export type Props = {
   isCenteredHighlight?: boolean
@@ -71,11 +80,11 @@ type AuthorProps = {
   showUsername: string
 }
 
-type RowActions = Pick<
-  ConvoStateType['dispatch'],
-  'messageDelete' | 'messageRetry' | 'toggleMessageReaction'
-> &
-  Pick<ConversationInputState['dispatch'], 'setEditing' | 'setReplyTo'>
+type RowActions = Pick<ConversationInputState['dispatch'], 'setEditing' | 'setReplyTo'> & {
+  messageDelete: (ordinal: T.Chat.Ordinal) => void
+  messageRetry: (outboxID: T.Chat.OutboxID) => void
+  toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => void
+}
 
 type EditCancelRetryData = {
   failureDescription: string
@@ -105,10 +114,11 @@ const emptyAuthorData: FlatAuthorData = {
 }
 
 const getRowActions = (
-  dispatch: ConvoStateType['dispatch'],
-  uiDispatch: Pick<ConversationInputState['dispatch'], 'setEditing' | 'setReplyTo'>
+  messageActions: Pick<RowActions, 'messageDelete' | 'toggleMessageReaction'>,
+  uiDispatch: Pick<ConversationInputState['dispatch'], 'setEditing' | 'setReplyTo'>,
+  messageRetry: RowActions['messageRetry']
 ): RowActions => {
-  const {messageDelete, messageRetry, toggleMessageReaction} = dispatch
+  const {messageDelete, toggleMessageReaction} = messageActions
   const {setEditing, setReplyTo} = uiDispatch
   return {messageDelete, messageRetry, setEditing, setReplyTo, toggleMessageReaction}
 }
@@ -195,8 +205,8 @@ function AuthorSection(p: AuthorProps) {
 
 const getAuthorData = (
   message: T.Chat.Message,
-  meta: ConvoStateType['meta'],
-  participants: ConvoStateType['participants'],
+  meta: T.Chat.ConversationMeta,
+  participants: T.Chat.ParticipantInfo,
   showUsername: string
 ): FlatAuthorData => {
   if (!showUsername) {
@@ -255,13 +265,13 @@ const getCommonMessageData = ({
   unfurlPrompt,
   you,
 }: {
-  accountsInfoMap: ConvoStateType['accountsInfoMap']
+  accountsInfoMap: AccountsInfoMap
   editing: T.Chat.Ordinal
   isCenteredHighlight?: boolean
   message: T.Chat.Message
   ordinal: T.Chat.Ordinal
-  paymentStatusMap: ConvoStateType['paymentStatusMap']
-  unfurlPrompt: ConvoStateType['unfurlPrompt']
+  paymentStatusMap: PaymentStatusMap
+  unfurlPrompt: UnfurlPromptMap
   you: string
 }) => {
   const {submitState, author, id, botUsername} = message
@@ -361,34 +371,37 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   const message = useConversationThreadMessage(ordinal) ?? missingMessage
   const messageMap = useConversationThreadMessageMap()
   const messageOrdinals = useConversationThreadMessageOrdinals()
+  const accountsInfoMap = useConversationThreadAccountsInfoMap()
+  const paymentStatusMap = useConversationThreadPaymentStatusMap()
+  const unfurlPrompt = useConversationThreadUnfurlPromptMap()
+  const {retryMessage} = useConversationThreadActions()
+  const messageActions = useConversationThreadMessageActions()
+  const meta = useConversationThreadMeta()
+  const participants = useConversationThreadParticipants()
 
-  return ConvoState.useChatContext(
-    C.useShallow(s => {
-      const commonData = getCommonMessageData({
-        accountsInfoMap: s.accountsInfoMap,
-        editing,
-        isCenteredHighlight,
-        message,
-        ordinal,
-        paymentStatusMap: s.paymentStatusMap,
-        unfurlPrompt: s.unfurlPrompt,
-        you,
-      })
-      const showUsername = RowMetadata.getMessageShowUsername({
-        message,
-        messageMap,
-        messageOrdinals,
-        ordinal,
-        you,
-      })
-      return {
-        ...commonData,
-        ...getEditCancelRetryData(commonData.ecrType, message),
-        ...getRowActions(s.dispatch, uiDispatch),
-        ...getAuthorData(message, s.meta, s.participants, showUsername),
-      }
-    })
-  )
+  const commonData = getCommonMessageData({
+    accountsInfoMap,
+    editing,
+    isCenteredHighlight,
+    message,
+    ordinal,
+    paymentStatusMap,
+    unfurlPrompt,
+    you,
+  })
+  const showUsername = RowMetadata.getMessageShowUsername({
+    message,
+    messageMap,
+    messageOrdinals,
+    ordinal,
+    you,
+  })
+  return {
+    ...commonData,
+    ...getEditCancelRetryData(commonData.ecrType, message),
+    ...getRowActions(messageActions, uiDispatch, retryMessage),
+    ...getAuthorData(message, meta, participants, showUsername),
+  }
 }
 
 const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
@@ -400,35 +413,38 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
   const message = useConversationThreadMessage(ordinal) ?? missingMessage
   const messageMap = useConversationThreadMessageMap()
   const messageOrdinals = useConversationThreadMessageOrdinals()
+  const accountsInfoMap = useConversationThreadAccountsInfoMap()
+  const paymentStatusMap = useConversationThreadPaymentStatusMap()
+  const unfurlPrompt = useConversationThreadUnfurlPromptMap()
+  const {retryMessage} = useConversationThreadActions()
+  const messageActions = useConversationThreadMessageActions()
+  const meta = useConversationThreadMeta()
+  const participants = useConversationThreadParticipants()
 
-  return ConvoState.useChatContext(
-    C.useShallow(s => {
-      const commonData = getCommonMessageData({
-        accountsInfoMap: s.accountsInfoMap,
-        editing,
-        isCenteredHighlight,
-        message,
-        ordinal,
-        paymentStatusMap: s.paymentStatusMap,
-        unfurlPrompt: s.unfurlPrompt,
-        you,
-      })
-      const showUsername = RowMetadata.getMessageShowUsername({
-        message,
-        messageMap,
-        messageOrdinals,
-        ordinal,
-        you,
-      })
-      return {
-        ...commonData,
-        ...getEditCancelRetryData(commonData.ecrType, message),
-        ...getRowActions(s.dispatch, uiDispatch),
-        ...getAuthorData(message, s.meta, s.participants, showUsername),
-        message,
-      }
-    })
-  )
+  const commonData = getCommonMessageData({
+    accountsInfoMap,
+    editing,
+    isCenteredHighlight,
+    message,
+    ordinal,
+    paymentStatusMap,
+    unfurlPrompt,
+    you,
+  })
+  const showUsername = RowMetadata.getMessageShowUsername({
+    message,
+    messageMap,
+    messageOrdinals,
+    ordinal,
+    you,
+  })
+  return {
+    ...commonData,
+    ...getEditCancelRetryData(commonData.ecrType, message),
+    ...getRowActions(messageActions, uiDispatch, retryMessage),
+    ...getAuthorData(message, meta, participants, showUsername),
+    message,
+  }
 }
 
 const useWrapperPopup = (
@@ -470,7 +486,7 @@ type WrapperMessageProps = {
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
 const hasSuccessfulInlinePayments = (
-  paymentStatusMap: ConvoStateType['paymentStatusMap'],
+  paymentStatusMap: PaymentStatusMap,
   message: T.Chat.Message
 ): boolean => {
   if (message.type !== 'text' || !message.inlinePaymentIDs) {

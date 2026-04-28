@@ -1,4 +1,3 @@
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import CoinFlipError from './errors'
@@ -6,7 +5,8 @@ import CoinFlipParticipants from './participants'
 import CoinFlipResult from './results'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {pluralize} from '@/util/string'
-import {useConversationThreadMessage} from '../../../thread-context'
+import {useConversationThreadCoinFlipStatus, useConversationThreadMessage} from '../../../thread-context'
+import {useConversationSendActions} from '../../../send-actions'
 
 function CoinFlipContainer() {
   const ordinal = useOrdinal()
@@ -14,8 +14,8 @@ function CoinFlipContainer() {
   const isSendError = message?.type === 'text' ? !!message.errorReason : false
   const text = message?.type === 'text' ? message.text : undefined
   const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
-  const sendMessage = ConvoState.useChatContext(s => s.dispatch.sendMessage)
-  const status = ConvoState.useChatContext(s => s.flipStatusMap.get(flipGameID))
+  const {sendMessage} = useConversationSendActions()
+  const status = useConversationThreadCoinFlipStatus(flipGameID)
   const onFlipAgain = () => {
     if (text) {
       sendMessage(text.stringValue())

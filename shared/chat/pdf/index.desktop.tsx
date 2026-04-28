@@ -1,11 +1,12 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useNavigation} from '@react-navigation/native'
 import type {Props} from '.'
+import * as T from '@/constants/types'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {ConversationThreadProvider, useConversationThreadMessage} from '../conversation/thread-context'
+import {useConversationAttachmentActions} from '../conversation/attachment-actions'
 
 const ChatPDFInner = (props: Props) => {
   const {ordinal} = props
@@ -14,7 +15,7 @@ const ChatPDFInner = (props: Props) => {
   const url = message?.fileURL
   const navigation = useNavigation()
 
-  const attachmentDownload = ConvoState.useChatContext(s => s.dispatch.attachmentDownload)
+  const {attachmentDownload} = useConversationAttachmentActions()
   const onDownload = () => {
     if (message) {
       attachmentDownload(message.ordinal)
@@ -41,7 +42,7 @@ const ChatPDFInner = (props: Props) => {
 }
 
 const ChatPDF = (props: Props) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   return (
     <ConversationThreadProvider id={conversationIDKey}>
       <ChatPDFInner {...props} />

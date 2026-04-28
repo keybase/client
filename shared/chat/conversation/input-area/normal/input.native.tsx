@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AudioRecorder from '@/chat/audio/audio-recorder.native'
@@ -30,6 +29,7 @@ import {standardTransformer} from '../suggestors/common'
 import {filePickerError} from '@/util/storeless-actions'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 import {useSuggestors} from '../suggestors'
+import {useConversationThreadID} from '../../thread-context'
 
 // Low-level TextInput wrapper
 
@@ -237,12 +237,12 @@ const Buttons = function Buttons(p: ButtonsProps) {
     }
   }, [emojiStr, insertText, updatePickerMap])
 
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const openEmojiPicker = () => {
-    navigateAppend(conversationIDKey => ({
+    C.Router2.navigateAppend({
       name: 'chatChooseEmoji',
       params: {conversationIDKey, pickKey},
-    }))
+    })
   }
 
   const explodingIcon = !isEditing && !cannotWrite && (
@@ -353,19 +353,18 @@ type ChatFilePickerProps = {
 }
 const ChatFilePicker = (p: ChatFilePickerProps) => {
   const {attachTo, showingPopup, hidePopup} = p
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed' | 'file', location: string) => {
     const f = async () => {
       const handleSelection = (result: ImagePicker.ImagePickerResult) => {
-        if (result.canceled || result.assets.length === 0 || !conversationIDKey) {
+        if (result.canceled || result.assets.length === 0) {
           return
         }
         const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
-        navigateAppend(conversationIDKey => ({
+        C.Router2.navigateAppend({
           name: 'chatAttachmentGetTitles',
           params: {conversationIDKey, pathAndOutboxIDs},
-        }))
+        })
       }
 
       switch (location) {
@@ -390,10 +389,10 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
             const res = await pickDocumentsAsync(true)
             if (!res.canceled && res.assets.length > 0) {
               const pathAndOutboxIDs = res.assets.map(a => ({path: a.uri}))
-              navigateAppend(conversationIDKey => ({
+              C.Router2.navigateAppend({
                 name: 'chatAttachmentGetTitles',
                 params: {conversationIDKey, pathAndOutboxIDs},
-              }))
+              })
             }
           } catch (error) {
             filePickerError(new Error(String(error)))
@@ -576,14 +575,14 @@ const PlatformInput = (p: Props) => {
     ourShowMenu('exploding')
   }
 
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const onPasteImage = (uri: Array<string>) => {
     try {
       const pathAndOutboxIDs = uri.map(path => ({path}))
-      navigateAppend(conversationIDKey => ({
+      C.Router2.navigateAppend({
         name: 'chatAttachmentGetTitles',
         params: {conversationIDKey, pathAndOutboxIDs},
-      }))
+      })
     } catch (e) {
       logger.info('onPasteImage error', e)
     }

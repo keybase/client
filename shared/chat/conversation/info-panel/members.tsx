@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import {getBotsAndParticipants} from '@/constants/chat/helpers'
-import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -9,6 +8,7 @@ import Participant from './participant'
 import {useUsersState} from '@/stores/users'
 import {navToProfile} from '@/constants/router'
 import {useChatTeamMembers} from '../team-hooks'
+import {useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from '../thread-context'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
@@ -32,24 +32,17 @@ type Item =
 type Section = Kb.SectionType<Item>
 
 const MembersTab = (props: Props) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const infoMap = useUsersState(s => s.infoMap)
-  const {channelname, teamID, teamname} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {meta} = s
-      const {teamID, channelname, teamname} = meta
-      return {channelname, teamID, teamname}
-    })
-  )
+  const meta = useConversationThreadMeta()
+  const {channelname, teamID, teamname} = meta
 
   const {loading: loadingTeamMembers, members: teamMembers} = useChatTeamMembers(teamID)
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && loadingTeamMembers
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const participants = ConvoState.useChatContext(
-    C.useShallow(s => getBotsAndParticipants(s.meta, s.participants, teamMembers).participants)
-  )
+  const participantInfo = useConversationThreadParticipants()
+  const participants = getBotsAndParticipants(meta, participantInfo, teamMembers).participants
   const lastTeamNameRef = React.useRef('')
   React.useEffect(() => {
     if (lastTeamNameRef.current === teamname) {

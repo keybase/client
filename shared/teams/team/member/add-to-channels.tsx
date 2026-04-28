@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -19,6 +18,7 @@ type Props = {
 
 const getChannelsForList = (
   channels: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>,
+  channelParticipants: Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>,
   usernames: string[]
 ) => {
   const processed = [...channels.values()].reduce(
@@ -31,8 +31,7 @@ const getChannelsForList = (
   const convIDKeysAvailable = sortedList
     .map(c => c.conversationIDKey)
     .filter(convIDKey => {
-      // TODO not reactive
-      const participants = ConvoState.getConvoState(convIDKey).participants.all
+      const participants = channelParticipants.get(convIDKey)?.all ?? []
       // At least one person is not in the channel
       return usernames.some(member => !participants.includes(member))
     })
@@ -52,8 +51,12 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const nav = useSafeNavigation()
   const {yourOperations} = useLoadedTeam(teamID)
 
-  const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
-  const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(channelMetas, usernames)
+  const {channelMetas, channelParticipants, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
+  const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(
+    channelMetas,
+    channelParticipants,
+    usernames
+  )
 
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
@@ -65,11 +68,12 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => {
-      // TODO not reactive
-      const p = ConvoState.getConvoState(c.conversationIDKey).participants
+      const p = channelParticipants.get(c.conversationIDKey)
+      const participants = p?.name.length ? p.name : (p?.all ?? [])
       return {
         channelMeta: c,
-        numMembers: p.name.length || p.all.length || 0,
+        numMembers: participants.length,
+        participants,
         type: 'channel' as const,
       }
     }),
@@ -163,6 +167,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
             mode={mode}
             reloadChannels={reloadChannels}
             usernames={usernames}
+            participants={item.participants}
             canDeleteChannel={yourOperations.deleteChannel}
             canEditChannelDescription={yourOperations.editChannelDescription}
           />
@@ -451,6 +456,7 @@ type ChannelRowProps = {
   selected: boolean
   onSelect: (conviID: T.Chat.ConversationIDKey) => void
   mode: 'self' | 'others'
+  participants: ReadonlyArray<string>
   reloadChannels: () => Promise<void>
   usernames: string[]
   rowHeight: number
@@ -461,6 +467,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
     canEditChannelDescription,
     channelMeta,
     mode,
+    participants,
     selected,
     onSelect: _onSelect,
     reloadChannels,
@@ -470,10 +477,6 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
   const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
   const {channels: activityByChannel} = Common.useActivityLevels()
-  const participants = ConvoState.useConvoState(conversationIDKey, s => {
-    const {name, all} = s.participants
-    return name.length ? name : all
-  })
   const activityLevel = activityByChannel.get(channelMeta.conversationIDKey) || 'none'
   const allInChannel = usernames.every(member => participants.includes(member))
   const previewConversation = C.Router2.previewConversation

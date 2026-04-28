@@ -1,6 +1,6 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat'
 import {getBotsAndParticipants} from '@/constants/chat/helpers'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
@@ -11,7 +11,7 @@ import {
   useAttachmentSections,
   type Item as AttachmentItem,
 } from '../../chat/conversation/info-panel/attachments'
-import {SelectionPopup, useChannelParticipants, ActivityLevelsProvider} from '../common'
+import {SelectionPopup, useAllChannelMetas, useChannelParticipants, ActivityLevelsProvider} from '../common'
 import {ChannelSelectionProvider} from '../common/selection-state'
 import ChannelTabs, {type TabKey} from './tabs'
 import ChannelHeader from './header'
@@ -22,6 +22,7 @@ import EmptyRow from '../team/rows/empty-row'
 import {LoadedTeamChannelsProvider} from '../common/use-loaded-team-channels'
 import {useUsersState} from '@/stores/users'
 import {LoadedTeamProvider, useLoadedTeam} from '../team/use-loaded-team'
+import {unboxRows} from '@/chat/inbox/metadata'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID
@@ -29,6 +30,8 @@ export type OwnProps = {
   selectedTab?: TabKey
   selectedMembers?: Array<string>
 }
+
+const emptyParticipantInfo: T.Chat.ParticipantInfo = {all: [], contactName: new Map(), name: []}
 
 const useLoadDataForChannelPage = (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -52,7 +55,7 @@ const useLoadDataForChannelPage = (
       (!loadedBlockStateForConvRef.current || selectedTab !== prevSelectedTabRef.current || participantsChanged)
     ) {
       if (meta.conversationIDKey === 'EMPTY') {
-        ConvoState.unboxRows([conversationIDKey])
+        unboxRows([conversationIDKey])
       }
       getBlockState(participants)
       loadedBlockStateForConvRef.current = true
@@ -142,12 +145,16 @@ const ChannelBody = (props: OwnProps) => {
   const providedTab = props.selectedTab
   const navigation = useNavigation()
 
-  const meta = ConvoState.useConvoState(conversationIDKey, s => s.meta)
+  const {channelMetas, channelParticipants} = useAllChannelMetas(teamID)
+  const meta = channelMetas.get(conversationIDKey) ?? Chat.makeConversationMeta()
   const {loading: loadingTeam, teamDetails, yourOperations} = useLoadedTeam(teamID)
   const teamMembers = teamDetails.members
-  const {bots, participants: _participants} = ConvoState.useConvoState(
-    conversationIDKey,
-    C.useDeep(s => getBotsAndParticipants(meta, s.participants, teamMembers, true /* sort */))
+  const participantInfo = channelParticipants.get(conversationIDKey) ?? emptyParticipantInfo
+  const {bots, participants: _participants} = getBotsAndParticipants(
+    meta,
+    participantInfo,
+    teamMembers,
+    true /* sort */
   )
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
@@ -205,6 +212,7 @@ const ChannelBody = (props: OwnProps) => {
               conversationIDKey={conversationIDKey}
               teamID={teamID}
               username={item.username}
+              participantInfo={participantInfo}
               firstItem={index === 0}
               isGeneral={meta.channelname === 'general'}
             />

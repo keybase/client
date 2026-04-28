@@ -15,7 +15,7 @@ import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
 import {defineRouteMap} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
 import type {ChatRootRouteParams} from './inbox-and-conversation'
-import {onTeamBuildingFinished} from '@/stores/convostate'
+import {onTeamBuildingFinished} from './team-building-finished'
 import {showShareActionSheet} from '@/util/storeless-actions'
 const Convo = React.lazy(async () => import('./conversation/container'))
 

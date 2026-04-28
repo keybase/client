@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
@@ -10,6 +9,7 @@ import {useIsFocused} from '@react-navigation/core'
 import type {ChatInboxRowItem} from './rowitem'
 import {useInboxLayout, useInboxRetryState} from './layout-state'
 import {buildInboxRows} from './rows'
+import {queueMetaToRequest} from './metadata'
 
 const useInboxBadges = (
   inboxRows: ReadonlyArray<ChatInboxRowItem>,
@@ -242,7 +242,7 @@ export function useInboxState(
     isSearching,
     neverLoaded: !inboxHasLoaded,
     onNewChat: appendNewChatBuilder,
-    onUntrustedInboxVisible: ConvoState.queueMetaToRequest,
+    onUntrustedInboxVisible: queueMetaToRequest,
     rows: inboxRows,
     selectedConversationIDKey,
     setInboxNumSmallRows,

@@ -1,4 +1,4 @@
-import * as ConvoState from '@/stores/convostate'
+import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -15,6 +15,7 @@ import {ScrollContext} from '@/chat/conversation/normal/context'
 import {getTextStyle} from '@/common-adapters/text.styles'
 import {useColorScheme} from 'react-native'
 import KB2 from '@/util/electron.desktop'
+import {useConversationThreadID} from '../../thread-context'
 
 const {getPathForFile} = KB2.functions
 
@@ -329,7 +330,7 @@ const fileListToPaths = (f: FileList): Array<string> => {
 const FileButton = function FileButton(p: {setHtmlInputRef: (i: HTMLInputElement | null) => void}) {
   const {setHtmlInputRef} = p
   const htmlInputRef = React.useRef<HTMLInputElement | null>(null)
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const pickFile = () => {
     const paths = htmlInputRef.current?.files ? fileListToPaths(htmlInputRef.current.files) : undefined
     const pathAndOutboxIDs = paths?.reduce<Array<{path: string}>>((arr, path: string) => {
@@ -339,10 +340,10 @@ const FileButton = function FileButton(p: {setHtmlInputRef: (i: HTMLInputElement
       return arr
     }, [])
     if (pathAndOutboxIDs?.length) {
-      navigateAppend(conversationIDKey => ({
+      C.Router2.navigateAppend({
         name: 'chatAttachmentGetTitles',
         params: {conversationIDKey, pathAndOutboxIDs},
-      }))
+      })
     }
 
     if (htmlInputRef.current) {

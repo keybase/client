@@ -1,14 +1,14 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as T from '@/constants/types'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
 import {navToProfile} from '@/constants/router'
+import {useConversationThreadMeta} from '../thread-context'
 
 const Container = () => {
   const _you = useCurrentUserState(s => s.username)
-  const rekeyers = ConvoState.useChatContext(s => s.meta.rekeyers)
+  const rekeyers = useConversationThreadMeta().rekeyers
   const onBack = C.Router2.navigateUp
   const navigateAppend = C.Router2.navigateAppend
   const onEnterPaperkey = () => {

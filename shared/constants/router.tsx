@@ -1,7 +1,6 @@
 import type * as React from 'react'
 import * as T from './types'
-import type * as ConvoRegistryType from '@/stores/convo-registry'
-import type * as ConvoStateType from '@/stores/convostate'
+import type * as ChatInboxMetadataType from '@/chat/inbox/metadata'
 import type * as InboxLayoutStateType from '@/chat/inbox/layout-state'
 import type * as UseCurrentUserStateType from '@/stores/current-user'
 import type {ThreadInputAction} from '@/chat/conversation/thread-search-route'
@@ -84,11 +83,6 @@ const uiParticipantsToParticipantInfo = (
     }
   })
   return participantInfo
-}
-
-const getConvoState = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const {getConvoState} = require('@/stores/convostate') as typeof ConvoStateType
-  return getConvoState(conversationIDKey)
 }
 
 export const getRootState = (): NavState | undefined => {
@@ -510,7 +504,7 @@ export const createConversation = (
         return
       }
 
-      const {metasReceived} = require('@/stores/convostate') as typeof ConvoStateType
+      const {metasReceived} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
       const meta = Meta.inboxUIItemToConversationMeta(uiConv)
       if (meta) {
         metasReceived([meta])
@@ -518,7 +512,8 @@ export const createConversation = (
 
       const participantInfo = uiParticipantsToParticipantInfo(uiConv.participants ?? [])
       if (participantInfo.all.length > 0) {
-        getConvoState(conversationIDKey).dispatch.setParticipants(participantInfo)
+        const {participantInfoReceived} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
+        participantInfoReceived(conversationIDKey, participantInfo, meta)
       }
 
       navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
@@ -555,15 +550,15 @@ export const previewConversation = (p: PreviewConversationParams) => {
     const {participants, teamname, highlightMessageID} = p
     if (teamname || !participants) return
 
-    const {chatStores} = require('@/stores/convo-registry') as typeof ConvoRegistryType
+    const {useInboxMetadataState} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
     const toFind = [...participants].sort().join(',')
     const toFindN = participants.length
-    for (const cs of chatStores.values()) {
-      const names = cs.getState().participants.name
+    for (const [conversationIDKey, participantInfo] of useInboxMetadataState.getState().participants) {
+      const names = participantInfo.name
       if (names.length !== toFindN) continue
       const participantSet = [...names].sort().join(',')
       if (participantSet === toFind) {
-        navigateToThread(cs.getState().id, 'justCreated', highlightMessageID)
+        navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
         return
       }
     }
@@ -628,7 +623,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
       })
       const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
       if (meta) {
-        const {metasReceived} = require('@/stores/convostate') as typeof ConvoStateType
+        const {metasReceived} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
         metasReceived([meta])
       }
 
@@ -882,9 +877,6 @@ export const navigateToThread = (
   createConversationError?: T.Chat.CreateConversationError,
   inputPrefillText?: string
 ) => {
-  const convoState = getConvoState(conversationIDKey)
-  convoState.dispatch.prepareToNavigateToThread()
-
   if (reason === 'navChanged') {
     return
   }

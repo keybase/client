@@ -1,5 +1,4 @@
 import * as Channels from './channels'
-import * as ConvoState from '@/stores/convostate'
 import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Kb from '@/common-adapters'
@@ -7,6 +6,7 @@ import * as React from 'react'
 import * as Users from './users'
 import type * as Common from './common'
 import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input'
+import {ConversationThreadProvider, useConversationThreadID} from '../../thread-context'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -287,7 +287,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
   const {onChangeText: onChangeTextProps} = p
   const {suggestionSpinnerStyle} = p
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const botCommandsUpdateState = Commands.useBotCommandsUpdateState(conversationIDKey)
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
@@ -401,7 +401,7 @@ type PopupProps = {
 }
 const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
-  const conversationIdKey = ConvoState.useChatContext(s => s.id)
+  const conversationIdKey = useConversationThreadID()
 
   const attachRef = inputRef as React.RefObject<Kb.MeasureRef | null>
 
@@ -418,9 +418,9 @@ const Popup = (p: PopupProps) => {
       style={suggestionOverlayStyle}
     >
       {Kb.Styles.isMobile ? (
-        <ConvoState.ChatProvider id={conversationIdKey}>
+        <ConversationThreadProvider id={conversationIdKey}>
           <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
-        </ConvoState.ChatProvider>
+        </ConversationThreadProvider>
       ) : (
         children
       )}

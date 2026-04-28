@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import {isAssertion} from '@/constants/chat/helpers'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -10,8 +9,11 @@ import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {useBlockButtonsInfo} from './block-buttons-state'
 import {
+  useConversationThreadID,
+  useConversationThreadMeta,
   useConversationThreadMessageMap,
   useConversationThreadMessageOrdinalsMaybe,
+  useConversationThreadParticipants,
 } from '../conversation/thread-context'
 
 const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
@@ -29,12 +31,10 @@ const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
 
 const BlockButtons = () => {
   const navigateAppend = C.Router2.navigateAppend
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-
-  const team = ConvoState.useChatContext(s => s.meta.teamname)
-  const teamID = ConvoState.useChatContext(s => s.meta.teamID)
+  const conversationIDKey = useConversationThreadID()
+  const {teamID, teamname: team, tlfname} = useConversationThreadMeta()
   const blockButtonInfo = useBlockButtonsInfo(teamID)
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const participantInfo = useConversationThreadParticipants()
   const currentUser = useCurrentUserState(s => s.username)
   const messageMap = useConversationThreadMessageMap()
   const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
@@ -80,6 +80,7 @@ const BlockButtons = () => {
       <Kb.WaveButton
         small={true}
         conversationIDKey={conversationIDKey}
+        tlfName={tlfname}
         toMany={others.length > 0 || !!team}
         style={styles.waveButton}
       />

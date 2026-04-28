@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import type {StylesCrossPlatform} from '@/styles'
 import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
@@ -8,6 +7,7 @@ import {colors, darkColors} from '@/styles/colors'
 import {useColorScheme} from 'react-native'
 import {useCurrentUserState} from '@/stores/current-user'
 import type * as T from '@/constants/types'
+import {useConversationThreadID} from '../thread-context'
 
 export type OwnProps = {
   className?: string
@@ -107,12 +107,12 @@ type NewReactionButtonProps = {
 export function NewReactionButton(p: NewReactionButtonProps) {
   const ordinal = useOrdinal()
   const isDarkMode = useColorScheme() === 'dark'
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const onOpenEmojiPicker = () => {
-    navigateAppend(conversationIDKey => ({
+    C.Router2.navigateAppend({
       name: 'chatChooseEmoji',
       params: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
-    }))
+    })
   }
 
   return (

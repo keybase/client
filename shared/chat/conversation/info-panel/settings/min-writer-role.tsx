@@ -1,17 +1,19 @@
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Style from '@/styles'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import upperFirst from 'lodash/upperFirst'
 import {indefiniteArticle} from '@/util/string'
 import {useChatTeam} from '../../team-hooks'
+import {ignorePromise} from '@/constants/utils'
+import {useConversationThreadID, useConversationThreadMeta} from '../../thread-context'
 
 const positionFallbacks = ['bottom center'] as const
 
 const MinWriterRole = () => {
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const meta = useConversationThreadMeta()
+  const conversationIDKey = useConversationThreadID()
   const {teamname, minWriterRole} = meta
 
   const {yourOperations} = useChatTeam(meta.teamID, teamname)
@@ -19,9 +21,16 @@ const MinWriterRole = () => {
 
   const [saving, setSaving] = React.useState(false)
   const [selected, setSelected] = React.useState(minWriterRole)
-  const setMinWriterRole = ConvoState.useChatContext(s => s.dispatch.setMinWriterRole)
 
-  const onSetNewRole = (role: T.Teams.TeamRoleType) => setMinWriterRole(role)
+  const onSetNewRole = (role: T.Teams.TeamRoleType) => {
+    const f = async () => {
+      await T.RPCChat.localSetConvMinWriterRoleLocalRpcPromise({
+        convID: T.Chat.keyToConversationID(conversationIDKey),
+        role: T.RPCGen.TeamRole[role],
+      })
+    }
+    ignorePromise(f())
+  }
   const selectRole = (role: T.Teams.TeamRoleType) => {
     if (role !== minWriterRole) {
       setSaving(true)

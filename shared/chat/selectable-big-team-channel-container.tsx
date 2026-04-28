@@ -1,7 +1,9 @@
-import * as ConvoState from '@/stores/convostate'
+import {useInboxRowBig} from '@/stores/inbox-rows'
 import SelectableBigTeamChannel from './selectable-big-team-channel'
+import type * as T from '@/constants/types'
 
 type OwnProps = {
+  conversationIDKey: T.Chat.ConversationIDKey
   isSelected: boolean
   maxSearchHits?: number
   name: string
@@ -10,12 +12,13 @@ type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
-  const showBold = ConvoState.useChatContext(s => s.unread > 0)
-  const showBadge = ConvoState.useChatContext(s => s.badge > 0)
-  const _meta = ConvoState.useChatContext(s => s.meta)
-  let teamname = _meta.teamname
-  let channelname = _meta.channelname
+  const {conversationIDKey, isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} =
+    ownProps
+  const row = useInboxRowBig(conversationIDKey)
+  const showBold = row.hasUnread
+  const showBadge = row.hasBadge
+  let teamname = row.teamname
+  let channelname = row.channelname
   if (!teamname) {
     const parts = name.split('#')
     if (parts.length >= 2) {
@@ -25,14 +28,15 @@ const Container = (ownProps: OwnProps) => {
   }
   const props = {
     channelname,
+    conversationIDKey,
     isSelected,
     maxSearchHits,
     numSearchHits,
     onSelectConversation,
     showBadge,
     showBold: showBold && !isSelected,
-    snippet: _meta.snippet,
-    snippetDecoration: _meta.snippetDecoration,
+    snippet: row.snippet,
+    snippetDecoration: row.snippetDecoration,
     teamname,
   }
   return <SelectableBigTeamChannel {...props} />

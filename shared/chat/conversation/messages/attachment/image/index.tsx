@@ -1,7 +1,8 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
+import {showAttachmentPreview} from '../../../attachment-actions'
+import {useConversationThreadID} from '../../../thread-context'
 import ImageImpl from './imageimpl'
 import {
   getAttachmentDisplayFileName,
@@ -23,12 +24,12 @@ type Props = {
 function Image(p: Props) {
   const {message, ordinal, showPopup} = p
   const {isCollapsed, title, transferProgress, transferState} = message
-  const attachmentPreviewSelect = ConvoState.useChatContext(s => s.dispatch.attachmentPreviewSelect)
+  const conversationIDKey = useConversationThreadID()
   const fileName = getAttachmentDisplayFileName(message)
   const showTitle = !!title
   const openFullscreen = () => {
     Keyboard.dismiss()
-    attachmentPreviewSelect(ordinal)
+    showAttachmentPreview(conversationIDKey, ordinal)
   }
   const containerStyle = styles.container
   const collapseIcon = useCollapseIcon(ordinal, isCollapsed, false)

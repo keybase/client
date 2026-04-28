@@ -1,11 +1,11 @@
-import * as ConvoState from '@/stores/convostate'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from './user-notice'
+import {useConversationThreadMeta} from '../thread-context'
 
 const SystemProfileResetNotice = () => {
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const meta = useConversationThreadMeta()
   const prevConversationIDKey = meta.supersedes
   const username = meta.wasFinalizedBy || ''
   const _onOpenOlderConversation = (conversationIDKey: T.Chat.ConversationIDKey) => {

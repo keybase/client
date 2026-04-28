@@ -1,17 +1,37 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import type {ThreadSearchRouteProps} from './thread-search-route'
+import type * as T from '@/constants/types'
+import {ConversationThreadProvider, useConversationThreadID, useConversationThreadMeta} from './thread-context'
 
-const Conversation = function Conversation(_: ThreadSearchRouteProps) {
-  const type = ConvoState.useChatContext(s => {
-    const meta = s.meta
-    switch (s.id) {
+type Props = ThreadSearchRouteProps & {
+  conversationIDKey?: T.Chat.ConversationIDKey
+}
+
+const Conversation = function Conversation(props: Props) {
+  const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
+  const skipThreadLoadOnSelection = !!props.highlightMessageID
+  return (
+    <ConversationThreadProvider
+      key={conversationIDKey}
+      id={conversationIDKey}
+      seedFromCache={!skipThreadLoadOnSelection}
+    >
+      <ConversationInner />
+    </ConversationThreadProvider>
+  )
+}
+
+const ConversationInner = function ConversationInner() {
+  const conversationIDKey = useConversationThreadID()
+  const meta = useConversationThreadMeta()
+  const type = (() => {
+    switch (conversationIDKey) {
       case Chat.noConversationIDKey:
         return 'noConvo'
       default:
@@ -25,7 +45,7 @@ const Conversation = function Conversation(_: ThreadSearchRouteProps) {
           return 'normal'
         }
     }
-  })
+  })()
 
   switch (type) {
     case 'error':

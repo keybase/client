@@ -22,7 +22,16 @@ jest.mock('@react-navigation/core', () => ({
 
 jest.mock('@/stores/inbox-rows', () => ({
   flushInboxRowUpdates: jest.fn(),
+  getInboxRowTrustedState: jest.fn(() => undefined),
   queueInboxRowUpdate: jest.fn(),
+  setInboxRowTrustedState: jest.fn(),
+  syncInboxRowBadgeState: jest.fn(),
+  syncInboxRowsFromLayout: jest.fn(),
+  syncInboxRowsFromMetaAndParticipants: jest.fn(),
+  syncInboxRowsFromMetas: jest.fn(),
+  syncInboxRowsFromParticipantMap: jest.fn(),
+  syncInboxRowsFromParticipants: jest.fn(),
+  updateInboxRowTyping: jest.fn(),
 }))
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
