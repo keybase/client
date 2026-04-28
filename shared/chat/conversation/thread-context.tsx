@@ -223,6 +223,16 @@ const applyMessagesUpdatedToThread = (
   })
 }
 
+const applyIncomingMessageToThread = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  incomingMessage: T.RPCChat.IncomingMessage
+) => {
+  if (!Common.isUserActivelyLookingAtThisThread(conversationIDKey)) {
+    return
+  }
+  ConvoState.getConvoState(conversationIDKey).dispatch.onIncomingMessage(incomingMessage)
+}
+
 const applyReactionUpdateToThread = (
   conversationIDKey: T.Chat.ConversationIDKey,
   reactionUpdate: T.RPCChat.ReactionUpdateNotif
@@ -482,6 +492,14 @@ export const ConversationThreadProvider = (
   useEngineActionListener('chat.1.NotifyChat.NewChatActivity', action => {
     const {activity} = action.payload.params
     switch (activity.activityType) {
+      case T.RPCChat.ChatActivityType.incomingMessage: {
+        const {incomingMessage} = activity
+        const conversationIDKey = T.Chat.conversationIDToKey(incomingMessage.convID)
+        if (conversationIDKey === id) {
+          applyIncomingMessageToThread(conversationIDKey, incomingMessage)
+        }
+        break
+      }
       case T.RPCChat.ChatActivityType.messagesUpdated: {
         const {messagesUpdated} = activity
         const conversationIDKey = T.Chat.conversationIDToKey(messagesUpdated.convID)

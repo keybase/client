@@ -101,7 +101,7 @@ The intended end state is:
 
 - [ ] Move thread message mutation helpers into the provider/runtime:
   - [x] message add/merge/indexing
-  - [ ] incoming message handling
+  - [x] incoming message handling
   - [ ] edit/delete mutation handling
   - [x] `messagesWereDeleted`
   - [x] `messagesExploded`
@@ -120,9 +120,12 @@ The intended end state is:
   - Routed direct `NewChatActivity` expunge, ephemeral purge, and reaction-update row mutations
     through the mounted provider listener. Global routing still preserves global side effects such
     as `userReacjis`, but no longer creates background `convostate` instances for these events.
+  - Routed `NewChatActivity.incomingMessage` through the mounted provider listener for the active
+    visible thread. Global routing now preserves desktop notifications, inbox item return data, and
+    thread cache invalidation without calling `getConvoState` for message-state updates.
 - [ ] Replace global per-conversation engine routing for active-thread-only updates with mounted typed listeners
-  - [ ] incoming messages update mounted provider when the conversation is visible
-  - [ ] stale-thread notifications trigger provider reload/focus refresh
+  - [x] incoming messages update mounted provider when the conversation is visible
+  - [x] stale-thread notifications trigger provider reload/focus refresh
   - [ ] message updates, deletions, explosions, and reactions update mounted provider state
   - [ ] unmounted conversations do not create or keep warm per-conversation stores
     - `messagesUpdated`, expunge, ephemeral purge, and reaction updates no longer create background
@@ -138,6 +141,8 @@ The intended end state is:
   - Added mounted-provider coverage for `messagesUpdated` and reaction-update typed listener
     routing, plus global routing guards that ensure these events preserve global side effects
     without creating background conversation stores.
+  - Added mounted-provider coverage for visible incoming messages and a global routing guard that
+    `incomingMessage` no longer creates a background store for message-state updates.
 
 ## Chunk 3: Move Metadata, Participants, Typing, Unread, And Badges
 

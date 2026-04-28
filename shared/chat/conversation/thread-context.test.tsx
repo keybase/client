@@ -87,6 +87,20 @@ const makeValidTextUIMessage = (serverMsgID: T.Chat.MessageID, text: string): T.
   },
 })
 
+const makeIncomingTextMessage = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  serverMsgID: T.Chat.MessageID,
+  text: string
+): T.RPCChat.IncomingMessage => ({
+  conv: null,
+  convID: T.Chat.keyToConversationID(conversationIDKey),
+  desktopNotificationSnippet: '',
+  displayDesktopNotification: false,
+  message: makeValidTextUIMessage(serverMsgID, text),
+  modifiedMessage: null,
+  pagination: null,
+})
+
 const wrapper = ({children}: {children: React.ReactNode}) => (
   <ConversationThreadProvider id={convID} seedFromCache={false}>{children}</ConversationThreadProvider>
 )
@@ -183,6 +197,29 @@ test('mounted thread listener applies messagesUpdated for the active conversatio
   expect(getConvoState(convID).messageIDToOrdinal.get(firstMsgID)).toBe(T.Chat.numberToOrdinal(401))
 })
 
+test('mounted thread listener applies incoming messages for the active conversation', () => {
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+  renderHook(() => null, {wrapper})
+  const firstMsgID = T.Chat.numberToMessageID(601)
+
+  act(() => {
+    notifyEngineActionListeners({
+      payload: {
+        params: {
+          activity: {
+            activityType: T.RPCChat.ChatActivityType.incomingMessage,
+            incomingMessage: makeIncomingTextMessage(convID, firstMsgID, 'incoming'),
+          },
+        },
+      },
+      type: 'chat.1.NotifyChat.NewChatActivity',
+    } as never)
+  })
+
+  expect(getConvoState(convID).messageOrdinals).toEqual([T.Chat.numberToOrdinal(601)])
+  expect(getConvoState(convID).messageIDToOrdinal.get(firstMsgID)).toBe(T.Chat.numberToOrdinal(601))
+})
+
 test('mounted thread listener ignores messagesUpdated for other conversations', () => {
   jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
   renderHook(() => null, {wrapper})
@@ -198,6 +235,32 @@ test('mounted thread listener ignores messagesUpdated for other conversations', 
               convID: T.Chat.keyToConversationID(otherConvID),
               updates: [makeValidTextUIMessage(T.Chat.numberToMessageID(501), 'ignored')],
             },
+          },
+        },
+      },
+      type: 'chat.1.NotifyChat.NewChatActivity',
+    } as never)
+  })
+
+  expect(hasConvoState(otherConvID)).toBe(false)
+})
+
+test('mounted thread listener ignores incoming messages for other conversations', () => {
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+  renderHook(() => null, {wrapper})
+  const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([9, 8, 7, 6]))
+
+  act(() => {
+    notifyEngineActionListeners({
+      payload: {
+        params: {
+          activity: {
+            activityType: T.RPCChat.ChatActivityType.incomingMessage,
+            incomingMessage: makeIncomingTextMessage(
+              otherConvID,
+              T.Chat.numberToMessageID(701),
+              'ignored'
+            ),
           },
         },
       },

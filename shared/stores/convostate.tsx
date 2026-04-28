@@ -843,12 +843,61 @@ const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
   })
 }
 
+const maybeShowIncomingMessageDesktopNotification = (incomingMessage: T.RPCChat.IncomingMessage) => {
+  if (
+    isMobile ||
+    !incomingMessage.displayDesktopNotification ||
+    !incomingMessage.desktopNotificationSnippet
+  ) {
+    return
+  }
+
+  const {message} = incomingMessage
+  if (message.state !== T.RPCChat.MessageUnboxedState.valid) {
+    return
+  }
+
+  const conversationIDKey = T.Chat.conversationIDToKey(incomingMessage.convID)
+  const existingState = chatStores.get(conversationIDKey)?.getState()
+  let meta: T.Chat.ConversationMeta | undefined
+  if (existingState?.isMetaGood()) {
+    meta = existingState.meta
+  } else if (incomingMessage.conv) {
+    meta = Meta.inboxUIItemToConversationMeta(incomingMessage.conv)
+  }
+  if (Common.isUserActivelyLookingAtThisThread(conversationIDKey) || meta?.isMuted) {
+    logger.info('not sending notification')
+    return
+  }
+
+  logger.info('sending chat notification')
+  const {senderUsername} = message.valid
+  let title = senderUsername
+  if (meta?.teamType === 'small' || meta?.teamType === 'big') {
+    title = meta.teamname || senderUsername
+  }
+  if (meta?.teamType === 'big') {
+    title += `#${meta.channelname}`
+  }
+  const onClick = () => {
+    showMain()
+    navigateToInbox()
+    routerNavigateToThread(conversationIDKey, 'desktopNotification')
+  }
+  const onClose = () => {}
+  logger.info('invoking NotifyPopup for chat notification')
+  const sound = useShellState.getState().notifySound
+  const cleanBody = incomingMessage.desktopNotificationSnippet.replaceAll(/!>(.*?)<!/g, '•••')
+  NotifyPopup(title, {body: cleanBody, sound}, -1, senderUsername, onClick, onClose)
+}
+
 const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult => {
   switch (activity.activityType) {
     case T.RPCChat.ChatActivityType.incomingMessage: {
       const {incomingMessage} = activity
       const conversationIDKey = T.Chat.conversationIDToKey(incomingMessage.convID)
-      getConvoState(conversationIDKey).dispatch.onIncomingMessage(incomingMessage)
+      maybeShowIncomingMessageDesktopNotification(incomingMessage)
+      deleteConversationThreadCacheSnapshot(conversationIDKey)
       return handledConvoEngineIncoming({inboxUIItem: incomingMessage.conv ?? undefined})
     }
     case T.RPCChat.ChatActivityType.setStatus:

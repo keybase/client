@@ -126,6 +126,23 @@ const makeValidTextUIMessage = (
   },
 })
 
+const makeIncomingTextMessage = (
+  serverMsgID: T.Chat.MessageID,
+  text: string,
+  options?: {
+    conv?: T.RPCChat.InboxUIItem | null
+    conversationIDKey?: T.Chat.ConversationIDKey
+  }
+): T.RPCChat.IncomingMessage => ({
+  conv: options?.conv,
+  convID: T.Chat.keyToConversationID(options?.conversationIDKey ?? convID),
+  desktopNotificationSnippet: '',
+  displayDesktopNotification: false,
+  message: makeValidTextUIMessage(serverMsgID, text, {author: 'bob'}),
+  modifiedMessage: null,
+  pagination: null,
+})
+
 const makePlaceholderUIMessage = (messageID: T.Chat.MessageID, hidden = false): T.RPCChat.UIMessage =>
   ({
     placeholder: {
@@ -419,6 +436,28 @@ test('global messagesUpdated routing does not create a background conversation s
     type: 'chat.1.NotifyChat.NewChatActivity',
   } as never)
 
+  expect(hasConvoState(convID)).toBe(false)
+})
+
+test('global incomingMessage routing does not create a background conversation store', () => {
+  const inboxUIItem = {convID: T.Chat.conversationIDKeyToString(convID)} as T.RPCChat.InboxUIItem
+  expect(hasConvoState(convID)).toBe(false)
+
+  const result = handleConvoEngineIncoming({
+    payload: {
+      params: {
+        activity: {
+          activityType: T.RPCChat.ChatActivityType.incomingMessage,
+          incomingMessage: makeIncomingTextMessage(T.Chat.numberToMessageID(501), 'background incoming', {
+            conv: inboxUIItem,
+          }),
+        },
+      },
+    },
+    type: 'chat.1.NotifyChat.NewChatActivity',
+  } as never)
+
+  expect(result.inboxUIItem).toBe(inboxUIItem)
   expect(hasConvoState(convID)).toBe(false)
 })
 
