@@ -609,9 +609,8 @@ if (colorWaypoints) {
   }
 }
 
-// Start unmeasured waypoints as placeholders with estimated height.
-// Intersection Observer fires synchronously for elements in the viewport on mount,
-// so visible waypoints render immediately. Off-screen ones stay as placeholders until scrolled to.
+// Render unmeasured waypoints once so initial scroll positioning uses real heights.
+// After measuring, off-screen waypoints can collapse back to placeholders.
 const OrdinalWaypoint = function OrdinalWaypoint(p: OrdinalWaypointProps) {
   const {ordinals, id, rowRenderer} = p
   const estimatedHeight = 40 * ordinals.length
@@ -628,7 +627,7 @@ const OrdinalWaypoint = function OrdinalWaypoint(p: OrdinalWaypointProps) {
   })
   const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
   const {isIntersecting} = useIntersectionObserver(wRef, {root})
-  const renderMessages = isIntersecting
+  const renderMessages = height < 0 || isIntersecting
   let content: React.ReactElement
 
   if (renderMessages) {

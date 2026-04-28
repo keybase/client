@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import * as T from '@/constants/types'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 import {useUsersState} from '@/stores/users'
@@ -201,8 +202,27 @@ const BotTab = (props: Props) => {
   const canManageBots = teamname ? yourOperations.manageBots : true
   const adhocTeam = teamType === 'adhoc'
   const participantInfo = useConversationThreadParticipants()
-  const {members: teamMembers} = useChatTeamMembers(teamID)
+  const {members: teamMembers, reload: reloadTeamMembers} = useChatTeamMembers(teamID)
+  const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
+  const mutationWaiting = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+  const mutationError = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+  const wasMutationWaitingRef = React.useRef(mutationWaiting)
   const participantsAll = participantInfo.all
+  React.useEffect(() => {
+    const mutationJustFinished = wasMutationWaitingRef.current && !mutationWaiting
+    wasMutationWaitingRef.current = mutationWaiting
+    if (!mutationJustFinished || mutationError || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
+      return
+    }
+    refreshParticipants(
+      [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+      () => {},
+      () => {}
+    )
+    if (!adhocTeam) {
+      C.ignorePromise(reloadTeamMembers())
+    }
+  }, [adhocTeam, conversationIDKey, mutationError, mutationWaiting, refreshParticipants, reloadTeamMembers])
 
   let botUsernames: Array<string> = []
   if (adhocTeam) {

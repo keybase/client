@@ -33,22 +33,33 @@ export const useRefreshBotMembershipOnSuccess = (
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
+  const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
   const {setParticipants} = useConversationThreadActions()
 
   React.useEffect(() => {
     if (!waiting && wasWaitingRef.current && !error) {
       if (!shouldRefreshMembership) {
         onSuccess()
-      } else if (!conversationIDKey) {
+      } else if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
         onSuccess()
       } else {
         previewConversationByID(
           [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
           preview => {
             setParticipants(ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
+            refreshParticipants(
+              [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+              () => {},
+              () => {}
+            )
             onSuccess()
           },
           () => {
+            refreshParticipants(
+              [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+              () => {},
+              () => {}
+            )
             onSuccess()
           }
         )
@@ -60,6 +71,7 @@ export const useRefreshBotMembershipOnSuccess = (
     error,
     onSuccess,
     previewConversationByID,
+    refreshParticipants,
     setParticipants,
     shouldRefreshMembership,
     waiting,
@@ -325,7 +337,7 @@ const InstallBotPopup = (props: Props) => {
     conversationIDKey,
     C.waitingKeyChatBotAdd,
     mutationError,
-    pendingMutation === 'add',
+    pendingMutation !== undefined,
     () => {
       setPendingMutation(undefined)
       clearModals()
