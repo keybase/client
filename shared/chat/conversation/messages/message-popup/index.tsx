@@ -4,7 +4,7 @@ import type * as React from 'react'
 import AttachmentMessage from './attachment'
 import JourneycardMessage from './journeycard'
 import TextMessage from './text'
-import {ConversationThreadProvider, useConversationThreadID, useConversationThreadMessage} from '../../thread-context'
+import {ConversationThreadProvider, useConversationThreadMessage} from '../../thread-context'
 import * as T from '@/constants/types'
 
 type Props = {
@@ -121,23 +121,20 @@ export const useMessagePopup = (p: {
   shouldShow?: () => boolean
   style?: Kb.Styles.StylesCrossPlatform
 }) => {
-  const conversationIDKey = useConversationThreadID()
   const {ordinal, shouldShow, style} = p
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (shouldShow?.() ?? true) ? (
-      <ConversationThreadProvider id={conversationIDKey} seedFromCache={false}>
-        <MessagePopup
-          ordinal={ordinal}
-          key="popup"
-          attachTo={attachTo}
-          mode="bottomsheet"
-          onHidden={hidePopup}
-          position="top right"
-          style={style}
-          visible={true}
-        />
-      </ConversationThreadProvider>
+      <MessagePopup
+        ordinal={ordinal}
+        key="popup"
+        attachTo={attachTo}
+        mode="bottomsheet"
+        onHidden={hidePopup}
+        position="top right"
+        style={style}
+        visible={true}
+      />
     ) : null
   }
   return Kb.usePopup2(makePopup)
