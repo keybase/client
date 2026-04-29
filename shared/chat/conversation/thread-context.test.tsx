@@ -787,13 +787,14 @@ test('toggleMessageReaction updates locally and ignores its matching outbox echo
   seedThreadCache([makeTextMessage()])
   const postReaction = jest
     .spyOn(T.RPCChat, 'localPostReactionNonblockRpcPromise')
-    .mockImplementation(p =>
-      Promise.resolve({
+    .mockImplementation(async p => {
+      const outboxID = await Promise.resolve(p.outboxID ?? new Uint8Array())
+      return {
         identifyFailures: null,
-        outboxID: p.outboxID ?? new Uint8Array(),
+        outboxID,
         rateLimits: null,
-      })
-    )
+      }
+    })
   const {result} = renderHook(
     () => ({
       message: useConversationThreadMessage(targetOrdinal),
