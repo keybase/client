@@ -4,6 +4,7 @@ import * as Emoji from './emoji'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Users from './users'
+import * as InputState from '../input-state'
 import type * as Common from './common'
 import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input'
 import {ConversationThreadProvider, useConversationThreadID} from '../../thread-context'
@@ -315,6 +316,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   }
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
+  const suppressCommandSuggestions = InputState.useConversationInput(s => !!s.commandMarkdown || s.giphyWindow)
   const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
   const {onChangeText: onChangeTextProps} = p
   const {suggestionSpinnerStyle} = p
@@ -396,6 +398,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
           {...listProps}
           botSettings={botCommandsUpdateState.settings}
           inputSnapshot={commandInputSnapshot}
+          suppressCommandSuggestions={suppressCommandSuggestions}
         />
       )
       break

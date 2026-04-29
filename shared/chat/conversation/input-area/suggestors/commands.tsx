@@ -1,9 +1,7 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import * as InputState from '../input-state'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConfigState} from '@/stores/config'
 import type {Selection as InputSelection} from '../normal/input'
@@ -155,20 +153,15 @@ export type CommandInputSnapshot = {
 type UseDataSourceProps = {
   filter: string
   inputSnapshot: CommandInputSnapshot
+  suppressCommandSuggestions: boolean
 }
 
 const useDataSource = (p: UseDataSourceProps) => {
-  const {filter, inputSnapshot} = p
+  const {filter, inputSnapshot, suppressCommandSuggestions} = p
   const {selection: sel, text} = inputSnapshot
   const builtinCommands = useConfigState(s => s.chatBuiltinCommands)
   const {botCommands, commands} = useConversationThreadMeta()
-  const {showCommandMarkdown, showGiphySearch} = InputState.useConversationInput(
-    C.useShallow(s => ({
-      showCommandMarkdown: !!s.commandMarkdown,
-      showGiphySearch: s.giphyWindow,
-    }))
-  )
-  if (showCommandMarkdown || showGiphySearch) {
+  if (suppressCommandSuggestions) {
     return []
   }
 
@@ -217,12 +210,13 @@ type ListProps = Pick<
   onSelected: (item: CommandType, final: boolean) => void
   setOnMoveRef: (r: (up: boolean) => void) => void
   setOnSubmitRef: (r: () => boolean) => void
+  suppressCommandSuggestions: boolean
 } & {
   inputSnapshot: CommandInputSnapshot
 }
 export const List = (p: ListProps) => {
-  const {botSettings, filter, inputSnapshot, ...rest} = p
-  const items = useDataSource({filter, inputSnapshot})
+  const {botSettings, filter, inputSnapshot, suppressCommandSuggestions, ...rest} = p
+  const items = useDataSource({filter, inputSnapshot, suppressCommandSuggestions})
   return (
     <BotCommandSettingsContext.Provider value={botSettings}>
       <Common.List
