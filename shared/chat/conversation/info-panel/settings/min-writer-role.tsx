@@ -27,8 +27,15 @@ const MinWriterRole = () => {
 
   React.useEffect(() => {
     latestMinWriterRoleRef.current = minWriterRole
-    setSelected(minWriterRole)
   }, [minWriterRole])
+
+  const [lastMinWriterRole, setLastMinWriterRole] = React.useState(minWriterRole)
+  let selectedRole = selected
+  if (lastMinWriterRole !== minWriterRole) {
+    setLastMinWriterRole(minWriterRole)
+    selectedRole = minWriterRole
+    setSelected(minWriterRole)
+  }
 
   const startSave = () => {
     const saveID = latestSaveIDRef.current + 1
@@ -67,7 +74,7 @@ const MinWriterRole = () => {
     ignorePromise(f())
   }
   const selectRole = (role: T.Teams.TeamRoleType) => {
-    if (role !== selected) {
+    if (role !== selectedRole) {
       const saveID = startSave()
       setSelected(role)
       onSetNewRole(role, saveID)
@@ -75,7 +82,7 @@ const MinWriterRole = () => {
   }
 
   const items = Teams.teamRoleTypes.map(role => ({
-    isSelected: role === selected,
+    isSelected: role === selectedRole,
     onClick: () => selectRole(role),
     title: upperFirst(role),
   }))
@@ -87,7 +94,7 @@ const MinWriterRole = () => {
       </Kb.Box2>
       {canSetMinWriterRole ? (
         <Dropdown
-          minWriterRole={selected}
+          minWriterRole={selectedRole}
           items={items}
           saving={saving}
           hasSaveError={!!saveError}
@@ -177,13 +184,13 @@ const styles = Style.styleSheetCreate(
           width: 'auto',
         },
       }),
+      hidden: {display: 'none'},
       label: {
         alignItems: 'center',
         minHeight: Style.isMobile ? 40 : 32,
         paddingLeft: Style.globalMargins.xsmall,
         width: '100%',
       },
-      hidden: {display: 'none'},
       saveIndicator: Style.platformStyles({
         common: {
           ...Style.globalStyles.flexBoxRow,
