@@ -3,14 +3,19 @@ import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
 import {
+  applyOptimisticReactionsToMessage,
+  clearOptimisticReactionsForUpdatesInThreadState,
   deleteMessagesFromThreadState,
   explodeMessagesInThreadState,
   setMessageErroredInThreadState,
-  toggleLocalReactionInThreadState,
+  type OptimisticReaction,
   updateReactionsInThreadState,
 } from './thread-message-state'
 
 type WritableConversationThreadMessageState = Parameters<typeof deleteMessagesFromThreadState>[0]
+type WritableConversationThreadOptimisticState = WritableConversationThreadMessageState & {
+  optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>
+}
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const ordinal = T.Chat.numberToOrdinal(10)
@@ -165,26 +170,49 @@ test('setMessageErroredInThreadState marks pending outbox rows as failed', () =>
   expect(message?.errorTyp).toBe(7)
 })
 
-test('toggleLocalReactionInThreadState mirrors outbox reaction echoes', () => {
+test('applyOptimisticReactionsToMessage overlays reactions without mutating server state', () => {
   const state = makeThreadState([makeTextMessage()])
+  const message = state.messageMap.get(ordinal)
 
-  toggleLocalReactionInThreadState(state, {
-    decorated: ':+1:',
-    emoji: ':+1:',
-    targetOrdinal: ordinal,
-    username: 'alice',
-  })
-  expect(state.messageMap.get(ordinal)?.reactions?.get(':+1:')?.users).toEqual([
-    {timestamp: expect.any(Number), username: 'alice'},
+  const withReaction = applyOptimisticReactionsToMessage(
+    message,
+    new Map([
+      [
+        outboxID,
+        {
+          add: true,
+          decorated: ':+1:',
+          emoji: ':+1:',
+          targetOrdinal: ordinal,
+          timestamp: 10,
+          username: 'alice',
+        },
+      ],
+    ])
+  )
+
+  expect(withReaction?.reactions?.get(':+1:')?.users).toEqual([
+    {timestamp: 10, username: 'alice'},
   ])
+  expect(message?.reactions).toBeUndefined()
 
-  toggleLocalReactionInThreadState(state, {
-    decorated: ':+1:',
-    emoji: ':+1:',
-    targetOrdinal: ordinal,
-    username: 'alice',
-  })
-  expect(state.messageMap.get(ordinal)?.reactions?.has(':+1:')).toBe(false)
+  const withoutReaction = applyOptimisticReactionsToMessage(
+    makeTextMessage({reactions: new Map([[':+1:', makeReaction('alice', 50)]])}),
+    new Map([
+      [
+        outboxID,
+        {
+          add: false,
+          decorated: ':+1:',
+          emoji: ':+1:',
+          targetOrdinal: ordinal,
+          timestamp: 11,
+          username: 'alice',
+        },
+      ],
+    ])
+  )
+  expect(withoutReaction?.reactions).toBeUndefined()
 })
 
 test('updateReactionsInThreadState keeps existing emoji order and reports missing targets', () => {
@@ -217,4 +245,32 @@ test('updateReactionsInThreadState keeps existing emoji order and reports missin
   ])
   expect([...(message?.reactions?.keys() ?? [])]).toEqual([':+1:', ':wave:', ':eyes:', ':fire:'])
   expect(missing).toEqual([T.Chat.numberToMessageID(999)])
+})
+
+test('clearOptimisticReactionsForUpdatesInThreadState drops overlay once server state arrives', () => {
+  const reactions = new Map([[':+1:', makeReaction('bob', 30)]])
+  const state: WritableConversationThreadOptimisticState = {
+    ...makeThreadState([makeTextMessage()]),
+    optimisticReactionMap: new Map([
+      [
+        outboxID,
+        {
+          add: true,
+          decorated: ':+1:',
+          emoji: ':+1:',
+          targetOrdinal: ordinal,
+          timestamp: 10,
+          username: 'alice',
+        },
+      ],
+    ]),
+  }
+
+  updateReactionsInThreadState(state, [{reactions, targetMsgID: msgID}])
+  clearOptimisticReactionsForUpdatesInThreadState(state, [{reactions, targetMsgID: msgID}])
+
+  expect(state.optimisticReactionMap.size).toBe(0)
+  expect(state.messageMap.get(ordinal)?.reactions?.get(':+1:')?.users).toEqual([
+    {timestamp: 30, username: 'bob'},
+  ])
 })

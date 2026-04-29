@@ -20,6 +20,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
 import {
+  getConversationThreadDisplayMessage,
   useConversationThreadActions,
   useConversationThreadMessageActions,
   useConversationThreadSnapshotValue,
@@ -366,7 +367,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
 
   return useConversationThreadSnapshotValue(
     C.useShallow(s => {
-      const message = s.messageMap.get(ordinal) ?? missingMessage
+      const message = getConversationThreadDisplayMessage(s, ordinal) ?? missingMessage
       const commonData = getCommonMessageData({
         accountsInfoMap: s.accountsInfoMap,
         editing,
@@ -405,7 +406,7 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
 
   return useConversationThreadSnapshotValue(
     C.useShallow(s => {
-      const message = s.messageMap.get(ordinal) ?? missingMessage
+      const message = getConversationThreadDisplayMessage(s, ordinal) ?? missingMessage
       const commonData = getCommonMessageData({
         accountsInfoMap: s.accountsInfoMap,
         editing,

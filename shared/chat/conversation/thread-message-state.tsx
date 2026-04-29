@@ -27,6 +27,17 @@ type ThreadReactionUpdate = {
   reactions?: T.Chat.Reactions
 }
 
+export type OptimisticReaction = T.Immutable<{
+  add: boolean
+  decorated: string
+  emoji: string
+  targetOrdinal: T.Chat.Ordinal
+  timestamp: number
+  username: string
+}>
+
+export type OptimisticReactionMap = ReadonlyMap<T.Chat.OutboxID, OptimisticReaction>
+
 export const cloneStoreObjectWithImmer = (value: unknown): unknown => {
   if (value instanceof HiddenString) {
     return value
@@ -385,38 +396,90 @@ export const setMessageErroredInThreadState = (
   m.submitState = 'failed'
 }
 
-export const toggleLocalReactionInThreadState = (
-  state: WritableConversationThreadMessageState,
-  p: {
-    decorated: string
-    emoji: string
-    targetOrdinal: T.Chat.Ordinal
-    username: string
-  }
-) => {
-  const {decorated, emoji, targetOrdinal, username} = p
-  const m = state.messageMap.get(targetOrdinal)
-  if (m && Message.isMessageWithReactions(m)) {
-    if (!m.reactions) {
-      m.reactions = new Map()
-    }
-    const existing = m.reactions.get(emoji)
+const applyOptimisticReactionToReactions = (
+  reactions: T.Chat.Reactions | undefined,
+  reaction: OptimisticReaction
+): T.Chat.Reactions | undefined => {
+  const next = new Map(reactions ?? [])
+  const existing = next.get(reaction.emoji)
+  if (reaction.add) {
     if (existing) {
-      const userIndex = existing.users.findIndex(u => u.username === username)
-      if (userIndex >= 0) {
-        existing.users = existing.users.filter(u => u.username !== username)
-        if (existing.users.length === 0) {
-          m.reactions.delete(emoji)
-        }
-      } else {
-        existing.users = [...existing.users, {timestamp: Date.now(), username}]
-      }
+      const hasUser = existing.users.some(u => u.username === reaction.username)
+      next.set(reaction.emoji, {
+        decorated: reaction.decorated || existing.decorated,
+        users: hasUser
+          ? existing.users
+          : [...existing.users, {timestamp: reaction.timestamp, username: reaction.username}],
+      })
     } else {
-      m.reactions.set(emoji, {
-        decorated,
-        users: [{timestamp: Date.now(), username}],
+      next.set(reaction.emoji, {
+        decorated: reaction.decorated,
+        users: [{timestamp: reaction.timestamp, username: reaction.username}],
       })
     }
+  } else if (existing) {
+    const users = existing.users.filter(u => u.username !== reaction.username)
+    if (users.length) {
+      next.set(reaction.emoji, {...existing, users})
+    } else {
+      next.delete(reaction.emoji)
+    }
+  }
+  return next.size ? next : undefined
+}
+
+export const applyOptimisticReactionsToMessage = (
+  message: T.Chat.Message | undefined,
+  optimisticReactions: OptimisticReactionMap
+): T.Chat.Message | undefined => {
+  if (!message || !optimisticReactions.size || !Message.isMessageWithReactions(message)) {
+    return message
+  }
+  let changed = false
+  let reactions = message.reactions
+  for (const reaction of optimisticReactions.values()) {
+    if (reaction.targetOrdinal === message.ordinal) {
+      changed = true
+      reactions = applyOptimisticReactionToReactions(reactions, reaction)
+    }
+  }
+  return changed ? {...message, reactions} : message
+}
+
+const clearOptimisticReactionsForOrdinal = (
+  state: {optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>},
+  ordinal: T.Chat.Ordinal
+) => {
+  const outboxIDs = new Array<T.Chat.OutboxID>()
+  for (const [outboxID, reaction] of state.optimisticReactionMap) {
+    if (reaction.targetOrdinal === ordinal) {
+      outboxIDs.push(outboxID)
+    }
+  }
+  outboxIDs.forEach(outboxID => state.optimisticReactionMap.delete(outboxID))
+}
+
+export const clearOptimisticReactionsForUpdatesInThreadState = (
+  state: WritableConversationThreadMessageState & {
+    optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>
+  },
+  updates: ReadonlyArray<ThreadReactionUpdate>
+) => {
+  for (const update of updates) {
+    const targetOrdinal = maybeGetOrdinalByMessageID(state, update.targetMsgID)
+    if (!targetOrdinal) {
+      continue
+    }
+    clearOptimisticReactionsForOrdinal(state, targetOrdinal)
+  }
+}
+
+export const clearOptimisticReactionsForMessagesInThreadState = (
+  state: {optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>},
+  messages: ReadonlyArray<T.Chat.Message>
+) => {
+  for (const message of messages) {
+    clearOptimisticReactionsForOrdinal(state, message.ordinal)
   }
 }
 

@@ -33,6 +33,7 @@ import {
   useConversationThreadMeta,
   useConversationThreadPaymentStatus,
   useConversationThreadParticipants,
+  useConversationThreadStore,
   useConversationThreadTyping,
   useConversationThreadUnfurlPromptDomains,
 } from './thread-context'
@@ -148,7 +149,8 @@ const makeIncomingOutboxReaction = (
   conversationIDKey: T.Chat.ConversationIDKey,
   outboxID: Uint8Array,
   targetMsgID: T.Chat.MessageID,
-  body: string
+  body: string,
+  decorated = body
 ): T.RPCChat.IncomingMessage => ({
   conv: null,
   convID: T.Chat.keyToConversationID(conversationIDKey),
@@ -158,7 +160,7 @@ const makeIncomingOutboxReaction = (
     outbox: {
       body,
       ctime: 200,
-      decoratedTextBody: body,
+      decoratedTextBody: decorated,
       filename: '',
       isEphemeral: false,
       messageType: T.RPCChat.MessageType.reaction,
@@ -781,7 +783,7 @@ test('mounted thread listener applies reaction updates for the active conversati
   })
 })
 
-test('toggleMessageReaction updates locally and ignores its matching outbox echo', async () => {
+test('toggleMessageReaction overlays locally without mutating server reactions', async () => {
   const targetMsgID = T.Chat.numberToMessageID(301)
   const targetOrdinal = T.Chat.numberToOrdinal(301)
   seedThreadCache([makeTextMessage()])
@@ -799,6 +801,7 @@ test('toggleMessageReaction updates locally and ignores its matching outbox echo
     () => ({
       message: useConversationThreadMessage(targetOrdinal),
       messageActions: useConversationThreadMessageActions(),
+      store: useConversationThreadStore(),
     }),
     {wrapper}
   )
@@ -808,6 +811,7 @@ test('toggleMessageReaction updates locally and ignores its matching outbox echo
   })
 
   expect(result.current.message?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['alice'])
+  expect(result.current.store.getState().messageMap.get(targetOrdinal)?.reactions).toBeUndefined()
   await act(async () => {
     await flushPromises()
   })
@@ -821,7 +825,13 @@ test('toggleMessageReaction updates locally and ignores its matching outbox echo
         params: {
           activity: {
             activityType: T.RPCChat.ChatActivityType.incomingMessage,
-            incomingMessage: makeIncomingOutboxReaction(convID, outboxID!, targetMsgID, ':+1:'),
+            incomingMessage: makeIncomingOutboxReaction(
+              convID,
+              outboxID!,
+              targetMsgID,
+              ':+1:',
+              'decorated-plus-one'
+            ),
           },
         },
       },
@@ -830,6 +840,49 @@ test('toggleMessageReaction updates locally and ignores its matching outbox echo
   })
 
   expect(result.current.message?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['alice'])
+  expect(result.current.message?.reactions?.get(':+1:')?.decorated).toBe('decorated-plus-one')
+  expect(result.current.store.getState().messageMap.get(targetOrdinal)?.reactions).toBeUndefined()
+
+  act(() => {
+    notifyEngineActionListeners({
+      payload: {
+        params: {
+          activity: {
+            activityType: T.RPCChat.ChatActivityType.reactionUpdate,
+            reactionUpdate: {
+              convID: T.Chat.keyToConversationID(convID),
+              reactionUpdates: [
+                {
+                  reactions: {
+                    reactions: {
+                      ':+1:': {
+                        decorated: 'server-plus-one',
+                        users: {
+                          alice: {
+                            ctime: 300,
+                            reactionMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(99)),
+                          },
+                        },
+                      },
+                    },
+                  },
+                  targetMsgID: T.Chat.messageIDToNumber(targetMsgID),
+                },
+              ],
+              userReacjis: {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: null},
+            },
+          },
+        },
+      },
+      type: 'chat.1.NotifyChat.NewChatActivity',
+    } as never)
+  })
+
+  expect(result.current.store.getState().optimisticReactionMap.size).toBe(0)
+  expect(result.current.store.getState().messageMap.get(targetOrdinal)?.reactions?.get(':+1:')).toEqual({
+    decorated: 'server-plus-one',
+    users: [{timestamp: 300, username: 'alice'}],
+  })
 })
 
 test('mounted thread listener applies inbox failure metadata for the active conversation', () => {

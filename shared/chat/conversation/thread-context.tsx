@@ -38,20 +38,23 @@ import {
 } from './thread-cache'
 import {
   addMessagesToThreadState,
+  applyOptimisticReactionsToMessage,
   completeAttachmentDownloadInThreadState,
   cloneMessageWithImmer,
   cloneStoreObjectWithImmer,
+  clearOptimisticReactionsForUpdatesInThreadState,
+  clearOptimisticReactionsForMessagesInThreadState,
   deleteMessagesFromThreadState,
   explodeMessagesInThreadState,
   failAttachmentDownloadInThreadState,
   finishAttachmentDownloadInThreadState,
   getOrdinalForMessageID,
+  type OptimisticReaction,
   retryMessageInThreadState,
   setMessageSubmitStateInThreadState,
   setMessageErroredInThreadState,
   setAttachmentMobileSavingInThreadState,
   startAttachmentDownloadInThreadState,
-  toggleLocalReactionInThreadState,
   updateAttachmentDownloadProgressInThreadState,
   updateAttachmentUploadProgressInThreadState,
   updateReactionsInThreadState,
@@ -239,7 +242,7 @@ export type ConversationThreadState = {
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>
   moreToLoadBack: boolean
   moreToLoadForward: boolean
-  optimisticReactionOutboxIDs: Set<T.Chat.OutboxID>
+  optimisticReactionMap: Map<T.Chat.OutboxID, OptimisticReaction>
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
@@ -266,7 +269,7 @@ const makeEmptyThreadState = (): ConversationThreadState =>
       meta: copyConversationMeta(Meta.makeConversationMeta()),
       moreToLoadBack: false,
       moreToLoadForward: false,
-      optimisticReactionOutboxIDs: new Set<T.Chat.OutboxID>(),
+      optimisticReactionMap: new Map<T.Chat.OutboxID, OptimisticReaction>(),
       participants: makeEmptyParticipantInfo(),
       paymentStatusMap: new Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>(),
       pendingOutboxToOrdinal: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
@@ -296,7 +299,7 @@ const snapshotToThreadState = (
           meta: copyConversationMeta(snapshot.meta),
           moreToLoadBack: snapshot.moreToLoadBack,
           moreToLoadForward: snapshot.moreToLoadForward,
-          optimisticReactionOutboxIDs: produce(new Set<T.Chat.OutboxID>(), () => {}),
+          optimisticReactionMap: produce(new Map<T.Chat.OutboxID, OptimisticReaction>(), () => {}),
           participants: copyParticipantInfo(snapshot.participants),
           paymentStatusMap: cloneMapWithImmer(snapshot.paymentStatusMap),
           pendingOutboxToOrdinal: produce(new Map(snapshot.pendingOutboxToOrdinal), () => {}),
@@ -431,14 +434,9 @@ type ConversationThreadActions = {
   setParticipants: (participants: T.Chat.ParticipantInfo) => void
   setTyping: (typing: ReadonlySet<string>) => void
   showUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
-  toggleLocalReaction: (p: {
-    decorated: string
-    emoji: string
-    outboxID?: T.Chat.OutboxID
-    source?: 'incoming' | 'optimistic' | 'rollback'
-    targetOrdinal: T.Chat.Ordinal
-    username: string
-  }) => void
+  addOptimisticReaction: (outboxID: T.Chat.OutboxID, reaction: OptimisticReaction) => void
+  removeOptimisticReaction: (outboxID: T.Chat.OutboxID) => void
+  updateOptimisticReactionDecorated: (outboxID: T.Chat.OutboxID, decorated: string) => void
   toggleMessageCollapse: (messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => void
   toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => void
   unfurlRemove: (messageID: T.Chat.MessageID) => void
@@ -683,14 +681,10 @@ const applyIncomingMessageToThread = (
     cMsg.state === T.RPCChat.MessageUnboxedState.outbox &&
     cMsg.outbox.messageType === T.RPCChat.MessageType.reaction
   ) {
-    actions.toggleLocalReaction({
-      decorated: cMsg.outbox.decoratedTextBody ?? '',
-      emoji: cMsg.outbox.body,
-      outboxID: T.Chat.stringToOutboxID(cMsg.outbox.outboxID),
-      source: 'incoming',
-      targetOrdinal: T.Chat.numberToOrdinal(cMsg.outbox.supersedes),
-      username,
-    })
+    actions.updateOptimisticReactionDecorated(
+      T.Chat.stringToOutboxID(cMsg.outbox.outboxID),
+      cMsg.outbox.decoratedTextBody ?? cMsg.outbox.body
+    )
     return
   }
 
@@ -1112,6 +1106,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
     ) => {
       updateThreadState(s => {
         addMessagesToThreadState(s, messages, {validatedRange: opt.validatedRange})
+        clearOptimisticReactionsForMessagesInThreadState(s, messages)
       })
       if (opt.markAsRead) {
         markThreadAsRead()
@@ -1142,6 +1137,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
         }
         if (p.messages.length) {
           addMessagesToThreadState(s, p.messages, {validatedRange: p.validatedRange})
+          clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
         }
       })
     }
@@ -1400,35 +1396,25 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
     }
     ignorePromise(f())
   })
-  const toggleLocalReaction = React.useEffectEvent(
-    (reaction: {
-      decorated: string
-      emoji: string
-      outboxID?: T.Chat.OutboxID
-      source?: 'incoming' | 'optimistic' | 'rollback'
-      targetOrdinal: T.Chat.Ordinal
-      username: string
-    }) => {
+  const addOptimisticReaction = React.useEffectEvent(
+    (outboxID: T.Chat.OutboxID, reaction: OptimisticReaction) => {
       updateThreadState(s => {
-        const {outboxID, source} = reaction
-        if (outboxID) {
-          if (source === 'optimistic') {
-            s.optimisticReactionOutboxIDs.add(outboxID)
-          } else if (source === 'incoming' && s.optimisticReactionOutboxIDs.delete(outboxID)) {
-            const message = s.messageMap.get(reaction.targetOrdinal)
-            const existing =
-              message && Message.isMessageWithReactions(message)
-                ? message.reactions?.get(reaction.emoji)
-                : undefined
-            if (existing && reaction.decorated) {
-              existing.decorated = reaction.decorated
-            }
-            return
-          } else if (source === 'rollback' && !s.optimisticReactionOutboxIDs.delete(outboxID)) {
-            return
-          }
+        s.optimisticReactionMap.set(outboxID, reaction)
+      })
+    }
+  )
+  const removeOptimisticReaction = React.useEffectEvent((outboxID: T.Chat.OutboxID) => {
+    updateThreadState(s => {
+      s.optimisticReactionMap.delete(outboxID)
+    })
+  })
+  const updateOptimisticReactionDecorated = React.useEffectEvent(
+    (outboxID: T.Chat.OutboxID, decorated: string) => {
+      updateThreadState(s => {
+        const reaction = s.optimisticReactionMap.get(outboxID)
+        if (reaction) {
+          s.optimisticReactionMap.set(outboxID, {...reaction, decorated})
         }
-        toggleLocalReactionInThreadState(s, reaction)
       })
     }
   )
@@ -1478,14 +1464,17 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
         logger.warn(`toggleMessageReaction: no current username`)
         return
       }
+      const displayMessage = applyOptimisticReactionsToMessage(message, snapshot.optimisticReactionMap)
+      const add =
+        !displayMessage?.reactions?.get(emoji)?.users.some(reaction => reaction.username === username)
       const outboxID = Common.generateOutboxID()
       const localOutboxID = T.Chat.rpcOutboxIDToOutboxID(outboxID)
-      toggleLocalReaction({
+      addOptimisticReaction(localOutboxID, {
+        add,
         decorated: emoji,
         emoji,
-        outboxID: localOutboxID,
-        source: 'optimistic',
         targetOrdinal: ordinal,
+        timestamp: Date.now(),
         username,
       })
       logger.info(`toggleMessageReaction: posting reaction`)
@@ -1501,14 +1490,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
           tlfPublic: false,
         })
       } catch (error) {
-        toggleLocalReaction({
-          decorated: emoji,
-          emoji,
-          outboxID: localOutboxID,
-          source: 'rollback',
-          targetOrdinal: ordinal,
-          username,
-        })
+        removeOptimisticReaction(localOutboxID)
         if (error instanceof RPCError) {
           logger.info(`toggleMessageReaction: failed to post` + error.message)
         }
@@ -1547,6 +1529,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       const missingTargetMsgIDs = new Array<T.Chat.MessageID>()
       updateThreadState(s => {
         missingTargetMsgIDs.push(...updateReactionsInThreadState(s, updates))
+        clearOptimisticReactionsForUpdatesInThreadState(s, updates)
       })
       for (const targetMsgID of missingTargetMsgIDs) {
         logger.info(
@@ -1570,6 +1553,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       s.messageMap.clear()
       s.messageOrdinals = undefined
       s.messageTypeMap.clear()
+      s.optimisticReactionMap.clear()
       s.validatedOrdinalRange = undefined
     })
   })
@@ -1669,6 +1653,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
     }, 500)
     const threadActions: ConversationThreadActions = {
       addMessages,
+      addOptimisticReaction,
       applyThreadLoad,
       clearUnfurlPrompt,
       clearValidatedOrdinalRange,
@@ -1685,6 +1670,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       messagesClear,
       receivePaymentInfo,
       receiveRequestInfo,
+      removeOptimisticReaction,
       retryMessage,
       setAttachmentMobileSaving,
       setExplodingMode,
@@ -1696,7 +1682,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       setTyping,
       showUnfurlPrompt,
       startAttachmentDownload,
-      toggleLocalReaction,
       toggleMessageCollapse,
       toggleMessageReaction,
       unfurlRemove,
@@ -1704,6 +1689,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       updateAttachmentUploadProgress,
       updateCoinFlipStatuses,
       updateMeta,
+      updateOptimisticReactionDecorated,
       updateReactions,
     }
     threadActionsHolder.current = threadActions
@@ -2086,8 +2072,13 @@ export const useConversationThreadLastOrdinal = () =>
     snapshot => snapshot.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
   )
 
+export const getConversationThreadDisplayMessage = (
+  snapshot: ConversationThreadState,
+  ordinal: T.Chat.Ordinal
+) => applyOptimisticReactionsToMessage(snapshot.messageMap.get(ordinal), snapshot.optimisticReactionMap)
+
 export const useConversationThreadMessage = (ordinal: T.Chat.Ordinal) =>
-  useConversationThreadSnapshotValue(snapshot => snapshot.messageMap.get(ordinal))
+  useConversationThreadSnapshotValue(snapshot => getConversationThreadDisplayMessage(snapshot, ordinal))
 
 export const useConversationThreadMessageMap = () =>
   useConversationThreadSnapshotValue(snapshot =>

@@ -1,4 +1,5 @@
 import * as Common from '@/constants/chat/common'
+import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as TeamsUtil from '@/constants/teams'
 import * as T from '@/constants/types'
@@ -17,7 +18,10 @@ import {updateInboxRowTyping} from '@/stores/inbox-rows'
 import {
   deleteConversationThreadCacheSnapshot,
   getConversationThreadCacheSnapshot,
+  putConversationThreadCacheSnapshot,
 } from '@/chat/conversation/thread-cache'
+import {updateReactionsInThreadState} from '@/chat/conversation/thread-message-state'
+import {produce} from 'immer'
 import {
   getInboxConversationMeta,
   metaReceivedError,
@@ -42,6 +46,34 @@ const handledConvoEngineIncoming = (result: Omit<ConvoEngineIncomingResult, 'han
   ...result,
   handled: true,
 })
+
+const applyReactionUpdateToCachedThread = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  reactionUpdate: T.RPCChat.ReactionUpdateNotif
+) => {
+  const snapshot = getConversationThreadCacheSnapshot(conversationIDKey)
+  if (!snapshot || !reactionUpdate.reactionUpdates?.length) {
+    return
+  }
+  const updates = reactionUpdate.reactionUpdates.map(ru => ({
+    reactions: Message.reactionMapToReactions(ru.reactions),
+    targetMsgID: T.Chat.numberToMessageID(ru.targetMsgID),
+  }))
+  const missingTargetMsgIDs = new Array<T.Chat.MessageID>()
+  const next = produce(snapshot, s => {
+    missingTargetMsgIDs.push(...updateReactionsInThreadState(T.castDraft(s), updates))
+  })
+  for (const targetMsgID of missingTargetMsgIDs) {
+    logger.info(
+      `applyReactionUpdateToCachedThread: couldn't find target ordinal for targetMsgID=${targetMsgID} in convID=${conversationIDKey}`
+    )
+  }
+  if (missingTargetMsgIDs.length) {
+    deleteConversationThreadCacheSnapshot(conversationIDKey)
+    return
+  }
+  putConversationThreadCacheSnapshot(conversationIDKey, next)
+}
 
 export const markThreadAsRead = (id: T.Chat.ConversationIDKey, force?: boolean) => {
   const f = async () => {
@@ -231,7 +263,7 @@ const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult
       logger.info(
         `Got ${reactionUpdate.reactionUpdates.length} reaction updates for convID=${conversationIDKey}`
       )
-      deleteConversationThreadCacheSnapshot(conversationIDKey)
+      applyReactionUpdateToCachedThread(conversationIDKey, reactionUpdate)
       return handledConvoEngineIncoming({userReacjis: reactionUpdate.userReacjis})
     }
     case T.RPCChat.ChatActivityType.messagesUpdated: {

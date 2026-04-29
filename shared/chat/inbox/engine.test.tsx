@@ -1,6 +1,8 @@
 /// <reference types="jest" />
+import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
+import HiddenString from '@/util/hidden-string'
 import {resetAllStores} from '@/util/zustand'
 import {
   getConversationThreadCacheSnapshot,
@@ -37,26 +39,50 @@ const msgID = T.Chat.numberToMessageID(101)
 
 const makeRpcOutboxID = (label: string): T.RPCChat.OutboxID => new TextEncoder().encode(label)
 
-const makeThreadSnapshot = (): ConversationThreadSnapshot => ({
-  accountsInfoMap: new Map(),
-  explodingMode: 0,
-  flipStatusMap: new Map(),
-  loaded: true,
-  messageIDToOrdinal: new Map(),
-  messageMap: new Map(),
-  messageOrdinals: [],
-  messageTypeMap: new Map(),
-  meta: {...Meta.makeConversationMeta(), conversationIDKey: convID},
-  moreToLoadBack: false,
-  moreToLoadForward: false,
-  participants: {all: [], contactName: new Map(), name: []},
-  paymentStatusMap: new Map(),
-  pendingOutboxToOrdinal: new Map(),
-  unfurlPrompt: new Map(),
-})
+const makeTextMessage = () =>
+  Message.makeMessageText({
+    author: 'alice',
+    conversationIDKey: convID,
+    id: msgID,
+    ordinal: T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(msgID)),
+    outboxID: T.Chat.stringToOutboxID('outbox-1'),
+    text: new HiddenString('message'),
+    timestamp: 100,
+  })
 
-const seedThreadCache = () => {
-  putConversationThreadCacheSnapshot(convID, makeThreadSnapshot())
+const makeThreadSnapshot = (messages: ReadonlyArray<T.Chat.Message> = []): ConversationThreadSnapshot => {
+  const messageMap = new Map(messages.map(message => [message.ordinal, message]))
+  const messageIDToOrdinal = new Map<T.Chat.MessageID, T.Chat.Ordinal>()
+  const pendingOutboxToOrdinal = new Map<T.Chat.OutboxID, T.Chat.Ordinal>()
+  messages.forEach(message => {
+    if (message.id) {
+      messageIDToOrdinal.set(message.id, message.ordinal)
+    }
+    if (message.outboxID) {
+      pendingOutboxToOrdinal.set(message.outboxID, message.ordinal)
+    }
+  })
+  return {
+    accountsInfoMap: new Map(),
+    explodingMode: 0,
+    flipStatusMap: new Map(),
+    loaded: true,
+    messageIDToOrdinal,
+    messageMap,
+    messageOrdinals: messages.map(message => message.ordinal),
+    messageTypeMap: new Map(),
+    meta: {...Meta.makeConversationMeta(), conversationIDKey: convID},
+    moreToLoadBack: false,
+    moreToLoadForward: false,
+    participants: {all: [], contactName: new Map(), name: []},
+    paymentStatusMap: new Map(),
+    pendingOutboxToOrdinal,
+    unfurlPrompt: new Map(),
+  }
+}
+
+const seedThreadCache = (messages?: ReadonlyArray<T.Chat.Message>) => {
+  putConversationThreadCacheSnapshot(convID, makeThreadSnapshot(messages))
 }
 
 const makeValidTextUIMessage = (serverMsgID: T.Chat.MessageID, text: string): T.RPCChat.UIMessage => ({
@@ -224,7 +250,7 @@ test('global coin flip and decorator routing do not create thread cache entries'
   expect(getConversationThreadCacheSnapshot(otherConvID)).toBeUndefined()
 })
 
-test('global message activity routing invalidates thread cache and preserves returned global data', () => {
+test('global message activity routing updates thread cache and preserves returned global data', () => {
   seedThreadCache()
 
   handleConvoEngineIncoming({
@@ -262,7 +288,7 @@ test('global message activity routing invalidates thread cache and preserves ret
   expect(getConversationThreadCacheSnapshot(convID)).toBeUndefined()
 
   const userReacjis = {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: null}
-  seedThreadCache()
+  seedThreadCache([makeTextMessage()])
   const reactionResult = handleConvoEngineIncoming({
     payload: {
       params: {
@@ -272,7 +298,19 @@ test('global message activity routing invalidates thread cache and preserves ret
             convID: T.Chat.keyToConversationID(convID),
             reactionUpdates: [
               {
-                reactions: {reactions: null},
+                reactions: {
+                  reactions: {
+                    ':+1:': {
+                      decorated: ':+1:',
+                      users: {
+                        bob: {
+                          ctime: 5,
+                          reactionMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(99)),
+                        },
+                      },
+                    },
+                  },
+                },
                 targetMsgID: T.Chat.messageIDToNumber(msgID),
               },
             ],
@@ -284,6 +322,50 @@ test('global message activity routing invalidates thread cache and preserves ret
     type: 'chat.1.NotifyChat.NewChatActivity',
   } as never)
   expect(reactionResult.userReacjis).toEqual(userReacjis)
+  expect(
+    getConversationThreadCacheSnapshot(convID)
+      ?.messageMap.get(T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(msgID)))
+      ?.reactions?.get(':+1:')
+      ?.users.map(u => u.username)
+  ).toEqual(['bob'])
+})
+
+test('global reaction updates invalidate cached thread when the target message is missing', () => {
+  seedThreadCache([makeTextMessage()])
+
+  handleConvoEngineIncoming({
+    payload: {
+      params: {
+        activity: {
+          activityType: T.RPCChat.ChatActivityType.reactionUpdate,
+          reactionUpdate: {
+            convID: T.Chat.keyToConversationID(convID),
+            reactionUpdates: [
+              {
+                reactions: {
+                  reactions: {
+                    ':+1:': {
+                      decorated: ':+1:',
+                      users: {
+                        bob: {
+                          ctime: 5,
+                          reactionMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(99)),
+                        },
+                      },
+                    },
+                  },
+                },
+                targetMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(999)),
+              },
+            ],
+            userReacjis: {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: null},
+          },
+        },
+      },
+    },
+    type: 'chat.1.NotifyChat.NewChatActivity',
+  } as never)
+
   expect(getConversationThreadCacheSnapshot(convID)).toBeUndefined()
 })
 
