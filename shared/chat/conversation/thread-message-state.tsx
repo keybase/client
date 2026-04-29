@@ -224,15 +224,16 @@ export const addMessagesToThreadState = (
   for (const _m of messages) {
     const regularMessage = _m.conversationMessage !== false
     const mapOrdinal = getMapOrdinal(_m, regularMessage)
-    const m = cloneMessageForThreadState(_m, mapOrdinal)
+    const getIncomingMessage = (): WritableDraft<T.Chat.Message> =>
+      _m.ordinal === mapOrdinal ? T.castDraft(_m) : cloneMessageForThreadState(_m, mapOrdinal)
 
-    if (regularMessage && m.type === 'deleted') {
+    if (regularMessage && _m.type === 'deleted') {
       clearMessageIDIndexForOrdinal(state, mapOrdinal)
       state.messageMap.delete(mapOrdinal)
       state.messageTypeMap.delete(mapOrdinal)
       deletedOrdinals.add(mapOrdinal)
     } else {
-      if (m.type === 'placeholder') {
+      if (_m.type === 'placeholder') {
         const old = state.messageMap.get(mapOrdinal)
         if (old && old.type !== 'placeholder') {
           continue
@@ -246,7 +247,8 @@ export const addMessagesToThreadState = (
       }
 
       const existingMsg = state.messageMap.get(mapOrdinal)
-      if (existingMsg?.type === m.type) {
+      if (existingMsg?.type === _m.type) {
+        const m = getIncomingMessage()
         if (existingMsg.id && existingMsg.id !== m.id) {
           state.messageIDToOrdinal.delete(existingMsg.id)
         }
@@ -261,6 +263,7 @@ export const addMessagesToThreadState = (
       if (existingMsg) {
         clearMessageIDIndexForOrdinal(state, mapOrdinal, existingMsg)
       }
+      const m = cloneMessageForThreadState(_m, mapOrdinal)
       state.messageMap.set(mapOrdinal, m)
       indexMessage(state, mapOrdinal, m)
       if (

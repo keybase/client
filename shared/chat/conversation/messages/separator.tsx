@@ -7,11 +7,7 @@ import * as T from '@/constants/types'
 import {formatTimeForConversationList} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
 import {useCurrentUserState} from '@/stores/current-user'
-import {
-  useConversationThreadMessage,
-  useConversationThreadMessageMap,
-  useConversationThreadMessageOrdinals,
-} from '../thread-context'
+import {useConversationThreadSnapshotValue} from '../thread-context'
 
 const missingMessage = Chat.makeMessageDeleted({})
 const noOrdinal = T.Chat.numberToOrdinal(0)
@@ -21,29 +17,35 @@ const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordi
   const ordinal = Kb.Styles.isMobile ? leadingItem : trailingItem
   const orangeOrdinal = React.useContext(OrangeLineContext)
   const you = useCurrentUserState(s => s.username)
-  const messageMap = useConversationThreadMessageMap()
-  const messageOrdinals = useConversationThreadMessageOrdinals()
-  const m = useConversationThreadMessage(ordinal) ?? missingMessage
-  const orangeMessage = useConversationThreadMessage(orangeOrdinal || noOrdinal)
 
-  const previous = RowMetadata.getPreviousOrdinal(messageOrdinals, ordinal)
-  const showUsername = RowMetadata.getMessageShowUsername({
-    message: m,
-    messageMap,
-    messageOrdinals,
-    ordinal,
-    you,
-  })
-  const tooSoon = !m.timestamp || new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
-  const orangeOrdinalExists =
-    !!orangeOrdinal && messageMap.has(orangeOrdinal) && orangeMessage?.type !== 'placeholder'
-  const orangeLineAbove =
-    orangeOrdinalExists && (orangeOrdinal === ordinal || (orangeOrdinal < ordinal && orangeOrdinal > previous))
-  const isJoinLeave = m.type === 'systemJoined'
-  const orangeTime =
-    !C.isMobile && !showUsername && !tooSoon && !isJoinLeave ? formatTimeForConversationList(m.timestamp) : ''
+  return useConversationThreadSnapshotValue(
+    C.useShallow(s => {
+      const messageOrdinals = s.messageOrdinals ?? []
+      const m = s.messageMap.get(ordinal) ?? missingMessage
+      const orangeMessage = s.messageMap.get(orangeOrdinal || noOrdinal)
+      const previous = RowMetadata.getPreviousOrdinal(messageOrdinals, ordinal)
+      const showUsername = RowMetadata.getMessageShowUsername({
+        message: m,
+        messageMap: s.messageMap,
+        messageOrdinals,
+        ordinal,
+        you,
+      })
+      const tooSoon = !m.timestamp || new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
+      const orangeOrdinalExists =
+        !!orangeOrdinal && s.messageMap.has(orangeOrdinal) && orangeMessage?.type !== 'placeholder'
+      const orangeLineAbove =
+        orangeOrdinalExists &&
+        (orangeOrdinal === ordinal || (orangeOrdinal < ordinal && orangeOrdinal > previous))
+      const isJoinLeave = m.type === 'systemJoined'
+      const orangeTime =
+        !C.isMobile && !showUsername && !tooSoon && !isJoinLeave
+          ? formatTimeForConversationList(m.timestamp)
+          : ''
 
-  return {orangeLineAbove, orangeTime, ordinal}
+      return {orangeLineAbove, orangeTime, ordinal}
+    })
+  )
 }
 
 type Props = {

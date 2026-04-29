@@ -20,16 +20,9 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
 import {
-  useConversationThreadAccountsInfoMap,
-  useConversationThreadMessage,
-  useConversationThreadMessageMap,
-  useConversationThreadMessageOrdinals,
-  useConversationThreadPaymentStatusMap,
   useConversationThreadActions,
   useConversationThreadMessageActions,
-  useConversationThreadMeta,
-  useConversationThreadParticipants,
-  useConversationThreadUnfurlPromptMap,
+  useConversationThreadSnapshotValue,
 } from '../../thread-context'
 import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMembers} from '../../team-hooks'
@@ -368,40 +361,37 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   const uiDispatch = InputState.useConversationInputDispatch(
     C.useShallow(s => ({setEditing: s.setEditing, setReplyTo: s.setReplyTo}))
   )
-  const message = useConversationThreadMessage(ordinal) ?? missingMessage
-  const messageMap = useConversationThreadMessageMap()
-  const messageOrdinals = useConversationThreadMessageOrdinals()
-  const accountsInfoMap = useConversationThreadAccountsInfoMap()
-  const paymentStatusMap = useConversationThreadPaymentStatusMap()
-  const unfurlPrompt = useConversationThreadUnfurlPromptMap()
   const {retryMessage} = useConversationThreadActions()
   const messageActions = useConversationThreadMessageActions()
-  const meta = useConversationThreadMeta()
-  const participants = useConversationThreadParticipants()
 
-  const commonData = getCommonMessageData({
-    accountsInfoMap,
-    editing,
-    isCenteredHighlight,
-    message,
-    ordinal,
-    paymentStatusMap,
-    unfurlPrompt,
-    you,
-  })
-  const showUsername = RowMetadata.getMessageShowUsername({
-    message,
-    messageMap,
-    messageOrdinals,
-    ordinal,
-    you,
-  })
-  return {
-    ...commonData,
-    ...getEditCancelRetryData(commonData.ecrType, message),
-    ...getRowActions(messageActions, uiDispatch, retryMessage),
-    ...getAuthorData(message, meta, participants, showUsername),
-  }
+  return useConversationThreadSnapshotValue(
+    C.useShallow(s => {
+      const message = s.messageMap.get(ordinal) ?? missingMessage
+      const commonData = getCommonMessageData({
+        accountsInfoMap: s.accountsInfoMap,
+        editing,
+        isCenteredHighlight,
+        message,
+        ordinal,
+        paymentStatusMap: s.paymentStatusMap,
+        unfurlPrompt: s.unfurlPrompt,
+        you,
+      })
+      const showUsername = RowMetadata.getMessageShowUsername({
+        message,
+        messageMap: s.messageMap,
+        messageOrdinals: s.messageOrdinals ?? [],
+        ordinal,
+        you,
+      })
+      return {
+        ...commonData,
+        ...getEditCancelRetryData(commonData.ecrType, message),
+        ...getRowActions(messageActions, uiDispatch, retryMessage),
+        ...getAuthorData(message, s.meta, s.participants, showUsername),
+      }
+    })
+  )
 }
 
 const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
@@ -410,41 +400,38 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
   const uiDispatch = InputState.useConversationInputDispatch(
     C.useShallow(s => ({setEditing: s.setEditing, setReplyTo: s.setReplyTo}))
   )
-  const message = useConversationThreadMessage(ordinal) ?? missingMessage
-  const messageMap = useConversationThreadMessageMap()
-  const messageOrdinals = useConversationThreadMessageOrdinals()
-  const accountsInfoMap = useConversationThreadAccountsInfoMap()
-  const paymentStatusMap = useConversationThreadPaymentStatusMap()
-  const unfurlPrompt = useConversationThreadUnfurlPromptMap()
   const {retryMessage} = useConversationThreadActions()
   const messageActions = useConversationThreadMessageActions()
-  const meta = useConversationThreadMeta()
-  const participants = useConversationThreadParticipants()
 
-  const commonData = getCommonMessageData({
-    accountsInfoMap,
-    editing,
-    isCenteredHighlight,
-    message,
-    ordinal,
-    paymentStatusMap,
-    unfurlPrompt,
-    you,
-  })
-  const showUsername = RowMetadata.getMessageShowUsername({
-    message,
-    messageMap,
-    messageOrdinals,
-    ordinal,
-    you,
-  })
-  return {
-    ...commonData,
-    ...getEditCancelRetryData(commonData.ecrType, message),
-    ...getRowActions(messageActions, uiDispatch, retryMessage),
-    ...getAuthorData(message, meta, participants, showUsername),
-    message,
-  }
+  return useConversationThreadSnapshotValue(
+    C.useShallow(s => {
+      const message = s.messageMap.get(ordinal) ?? missingMessage
+      const commonData = getCommonMessageData({
+        accountsInfoMap: s.accountsInfoMap,
+        editing,
+        isCenteredHighlight,
+        message,
+        ordinal,
+        paymentStatusMap: s.paymentStatusMap,
+        unfurlPrompt: s.unfurlPrompt,
+        you,
+      })
+      const showUsername = RowMetadata.getMessageShowUsername({
+        message,
+        messageMap: s.messageMap,
+        messageOrdinals: s.messageOrdinals ?? [],
+        ordinal,
+        you,
+      })
+      return {
+        ...commonData,
+        ...getEditCancelRetryData(commonData.ecrType, message),
+        ...getRowActions(messageActions, uiDispatch, retryMessage),
+        ...getAuthorData(message, s.meta, s.participants, showUsername),
+        message,
+      }
+    })
+  )
 }
 
 const useWrapperPopup = (

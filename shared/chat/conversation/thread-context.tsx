@@ -28,6 +28,8 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {useConfigState} from '@/stores/config'
 import {produce, type Draft} from 'immer'
+import {useStore} from 'zustand'
+import {createStore, type StoreApi} from 'zustand/vanilla'
 import {
   deleteConversationThreadCacheSnapshot,
   getConversationThreadCacheSnapshot,
@@ -224,10 +226,8 @@ const getClientPrevFromSnapshot = (snapshot: ConversationThreadState): T.Chat.Me
 
 const ConversationThreadIDContext = React.createContext<T.Chat.ConversationIDKey | undefined>(undefined)
 ConversationThreadIDContext.displayName = 'ConversationThreadIDContext'
-const ConversationThreadStateContext = React.createContext<ConversationThreadState | undefined>(undefined)
-ConversationThreadStateContext.displayName = 'ConversationThreadStateContext'
 
-type ConversationThreadState = {
+export type ConversationThreadState = {
   accountsInfoMap: Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
   explodingMode: number
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
@@ -246,6 +246,10 @@ type ConversationThreadState = {
   unfurlPrompt: Map<T.Chat.MessageID, Set<string>>
   validatedOrdinalRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
 }
+
+type ConversationThreadStore = StoreApi<ConversationThreadState>
+const ConversationThreadStoreContext = React.createContext<ConversationThreadStore | undefined>(undefined)
+ConversationThreadStoreContext.displayName = 'ConversationThreadStoreContext'
 
 const makeEmptyThreadState = (): ConversationThreadState =>
   produce(
@@ -318,6 +322,9 @@ const makeInitialThreadState = (id: T.Chat.ConversationIDKey, seedFromCache: boo
   })
 }
 
+const makeThreadStore = (id: T.Chat.ConversationIDKey, seedFromCache: boolean) =>
+  createStore<ConversationThreadState>(() => makeInitialThreadState(id, seedFromCache))
+
 const threadStateToSnapshot = (state: ConversationThreadState): ConversationThreadSnapshot =>
   produce(
     {
@@ -388,6 +395,13 @@ type ConversationThreadActions = {
     messages: ReadonlyArray<T.Chat.Message>,
     opt?: {markAsRead?: boolean; validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}}
   ) => void
+  applyThreadLoad: (p: {
+    centered: boolean
+    messages: ReadonlyArray<T.Chat.Message>
+    moreToLoad: boolean
+    scrollDirection: ScrollDirection
+    validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
+  }) => void
   clearValidatedOrdinalRange: () => void
   clearUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
   deleteMessages: (p: {
@@ -410,10 +424,8 @@ type ConversationThreadActions = {
   setMeta: (meta?: T.Chat.ConversationMeta) => void
   setMessageErrored: (outboxID: T.Chat.OutboxID, reason: string, errorTyp?: number) => void
   setMessageSubmitState: (ordinal: T.Chat.Ordinal, submitState: T.Chat.Message['submitState']) => void
-  setPagination: (scrollDirection: ScrollDirection, moreToLoad: boolean, centered: boolean) => void
   setMarkAsUnread: (readMsgID?: T.Chat.MessageID | false) => void
   setParticipants: (participants: T.Chat.ParticipantInfo) => void
-  setThreadLoaded: (loaded: boolean) => void
   setTyping: (typing: ReadonlySet<string>) => void
   showUnfurlPrompt: (messageID: T.Chat.MessageID, domain: string) => void
   toggleLocalReaction: (p: {
@@ -850,10 +862,6 @@ const loadConversationThreadMessages = (
         return
       }
 
-      if (!actions.getSnapshot().loaded) {
-        actions.setThreadLoaded(true)
-      }
-
       const {username, devicename} = getCurrentUser()
       const uiMessages = JSON.parse(thread) as T.RPCChat.UIMessages
 
@@ -872,10 +880,8 @@ const loadConversationThreadMessages = (
       }, [])
 
       const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-      actions.setPagination(scrollDirection, moreToLoad, !!centeredMessageID)
-
+      let validatedRange: {from: T.Chat.Ordinal; to: T.Chat.Ordinal} | undefined
       if (messages.length) {
-        let validatedRange: {from: T.Chat.Ordinal; to: T.Chat.Ordinal} | undefined
         if (scrollDirection === 'none' && !reconciled) {
           const ords = messages
             .filter(m => m.conversationMessage !== false && m.type !== 'deleted')
@@ -888,8 +894,14 @@ const loadConversationThreadMessages = (
           }
           reconciled = true
         }
-        actions.addMessages(messages, {validatedRange})
       }
+      actions.applyThreadLoad({
+        centered: !!centeredMessageID,
+        messages,
+        moreToLoad,
+        scrollDirection,
+        validatedRange,
+      })
 
       const isUserNavigation =
         reason !== 'findNewestConversation' &&
@@ -961,14 +973,22 @@ const loadConversationThreadMessages = (
   ignorePromise(f())
 }
 
-const useConversationThreadSnapshotValue = <TValue,>(
+export const useConversationThreadSnapshotValue = <TValue,>(
   selector: (snapshot: ConversationThreadState) => TValue
 ) => {
-  const snapshot = React.useContext(ConversationThreadStateContext)
-  if (!snapshot) {
+  const store = React.useContext(ConversationThreadStoreContext)
+  if (!store) {
     throw new Error('Missing ConversationThreadProvider state in the tree')
   }
-  return selector(snapshot)
+  return useStore(store, selector)
+}
+
+export const useConversationThreadStore = () => {
+  const store = React.useContext(ConversationThreadStoreContext)
+  if (!store) {
+    throw new Error('Missing ConversationThreadProvider state in the tree')
+  }
+  return store
 }
 
 type ConversationThreadProviderProps = React.PropsWithChildren<{
@@ -978,20 +998,13 @@ type ConversationThreadProviderProps = React.PropsWithChildren<{
 
 const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => {
   const {children, id, seedFromCache = true} = p
-  const [threadState, setThreadState] = React.useState<ConversationThreadState>(() => {
-    return makeInitialThreadState(id, seedFromCache)
-  })
-  const threadStateRef = React.useRef(threadState)
-  React.useLayoutEffect(() => {
-    threadStateRef.current = threadState
-  }, [threadState])
+  const [threadStore] = React.useState(() => makeThreadStore(id, seedFromCache))
 
-  const getSnapshot = React.useEffectEvent(() => threadStateRef.current)
+  const getSnapshot = React.useEffectEvent(() => threadStore.getState())
   const updateThreadState = React.useEffectEvent(
     (updater: (draft: Draft<ConversationThreadState>) => void) => {
-      const next = produce(threadStateRef.current, draft => updater(draft))
-      threadStateRef.current = next
-      setThreadState(next)
+      const next = produce(threadStore.getState(), draft => updater(draft))
+      threadStore.setState(next, true)
     }
   )
   const markThreadAsRead = React.useEffectEvent((force?: boolean) => {
@@ -1043,6 +1056,34 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       if (opt.markAsRead) {
         markThreadAsRead()
       }
+    }
+  )
+  const applyThreadLoad = React.useEffectEvent(
+    (p: {
+      centered: boolean
+      messages: ReadonlyArray<T.Chat.Message>
+      moreToLoad: boolean
+      scrollDirection: ScrollDirection
+      validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
+    }) => {
+      updateThreadState(s => {
+        s.loaded = true
+        switch (p.scrollDirection) {
+          case 'forward':
+            s.moreToLoadForward = p.moreToLoad
+            break
+          case 'back':
+            s.moreToLoadBack = p.moreToLoad
+            break
+          case 'none':
+            s.moreToLoadBack = p.moreToLoad
+            s.moreToLoadForward = p.centered
+            break
+        }
+        if (p.messages.length) {
+          addMessagesToThreadState(s, p.messages, {validatedRange: p.validatedRange})
+        }
+      })
     }
   )
   const deleteMessages = React.useEffectEvent(
@@ -1386,29 +1427,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       })
     }
   )
-  const setPagination = React.useEffectEvent(
-    (scrollDirection: ScrollDirection, moreToLoad: boolean, centered: boolean) => {
-      updateThreadState(s => {
-        switch (scrollDirection) {
-          case 'forward':
-            s.moreToLoadForward = moreToLoad
-            break
-          case 'back':
-            s.moreToLoadBack = moreToLoad
-            break
-          case 'none':
-            s.moreToLoadBack = moreToLoad
-            s.moreToLoadForward = centered
-            break
-        }
-      })
-    }
-  )
-  const setThreadLoaded = React.useEffectEvent((loaded: boolean) => {
-    updateThreadState(s => {
-      s.loaded = loaded
-    })
-  })
   const toggleLocalReaction = React.useEffectEvent(
     (reaction: {
       decorated: string
@@ -1547,6 +1565,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
     }, 500)
     const threadActions: ConversationThreadActions = {
       addMessages,
+      applyThreadLoad,
       clearUnfurlPrompt,
       clearValidatedOrdinalRange,
       completeAttachmentDownload,
@@ -1569,9 +1588,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       setMessageErrored,
       setMessageSubmitState,
       setMeta,
-      setPagination,
       setParticipants,
-      setThreadLoaded,
       setTyping,
       showUnfurlPrompt,
       startAttachmentDownload,
@@ -1591,8 +1608,12 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   React.useEffect(() => {
     return () => {
       threadActions.loadMoreMessages.cancel()
+      const snapshot = threadStore.getState()
+      if (snapshot.loaded) {
+        putConversationThreadCacheSnapshot(id, threadStateToSnapshot(snapshot))
+      }
     }
-  }, [threadActions])
+  }, [id, threadActions, threadStore])
   const inboxParticipants = useInboxMetadataState(s => s.participants.get(id))
   React.useEffect(() => {
     if (!inboxParticipants) {
@@ -1602,11 +1623,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       s.participants = T.castDraft(copyParticipantInfo(inboxParticipants))
     })
   }, [inboxParticipants])
-  React.useEffect(() => {
-    if (threadState.loaded) {
-      putConversationThreadCacheSnapshot(id, threadStateToSnapshot(threadState))
-    }
-  }, [id, threadState])
   useEngineActionListener('chat.1.NotifyChat.NewChatActivity', action => {
     const {activity} = action.payload.params
     switch (activity.activityType) {
@@ -1847,9 +1863,9 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   return (
     <ConversationThreadIDContext value={id}>
       <ConversationThreadActionsContext value={threadActions}>
-        <ConversationThreadStateContext value={threadState}>
+        <ConversationThreadStoreContext value={threadStore}>
           {children}
-        </ConversationThreadStateContext>
+        </ConversationThreadStoreContext>
       </ConversationThreadActionsContext>
     </ConversationThreadIDContext>
   )

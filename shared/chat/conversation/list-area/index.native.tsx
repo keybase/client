@@ -20,8 +20,7 @@ import {useConversationCenter} from '../center-context'
 import {
   useConversationThreadListData,
   useConversationThreadLoadOlderMessagesDueToScroll,
-  useConversationThreadMessageMap,
-  useConversationThreadMessageTypeMap,
+  useConversationThreadStore,
 } from '../thread-context'
 import {useThreadLoadStatusOptions} from '../thread-load-status-context'
 // import {useDebugLayout} from '@/util/debug-react'
@@ -135,19 +134,19 @@ const ConversationList = function ConversationList() {
 
   const numOrdinals = messageOrdinals.length
 
-  const messageMap = useConversationThreadMessageMap()
-  const messageTypeMap = useConversationThreadMessageTypeMap()
+  const threadStore = useConversationThreadStore()
   const getItemType = React.useCallback(
     (ordinal: T.Chat.Ordinal) => {
       if (!ordinal) {
         return 'null'
       }
+      const {messageMap, messageTypeMap} = threadStore.getState()
       const message = messageMap.get(ordinal)
       return message
         ? RowMetadata.getMessageRowType(message, messageTypeMap.get(ordinal))
         : (messageTypeMap.get(ordinal) ?? 'text')
     },
-    [messageMap, messageTypeMap]
+    [threadStore]
   )
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
