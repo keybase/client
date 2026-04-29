@@ -12,7 +12,7 @@ import AttachmentsList from './attachments'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '@/common-adapters/tabs'
 import {ChatTeamProvider, useChatTeam} from '../team-hooks'
-import {ConversationThreadProvider, useConversationShowInfoPanel, useConversationThreadMeta} from '../thread-context'
+import {ConversationThreadBridgeProvider, useConversationShowInfoPanel, useConversationThreadMeta} from '../thread-context'
 
 type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -22,11 +22,11 @@ type Props = {
 const InfoPanelConnector = (ownProps: Props) => {
   const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
   return (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <ConversationThreadBridgeProvider id={conversationIDKey}>
       <ChatTeamProvider>
         <InfoPanelConnectorInner {...ownProps} conversationIDKey={conversationIDKey} />
       </ChatTeamProvider>
-    </ConversationThreadProvider>
+    </ConversationThreadBridgeProvider>
   )
 }
 

@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {ConversationThreadProvider, useConversationThreadMeta} from './conversation/thread-context'
+import {ConversationThreadBridgeProvider, useConversationThreadMeta} from './conversation/thread-context'
 import logger from '@/logger'
 
 type Props = {
@@ -11,9 +11,9 @@ type Props = {
 const DeleteHistoryWarning = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   return (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <ConversationThreadBridgeProvider id={conversationIDKey}>
       <DeleteHistoryWarningInner conversationIDKey={conversationIDKey} />
-    </ConversationThreadProvider>
+    </ConversationThreadBridgeProvider>
   )
 }
 

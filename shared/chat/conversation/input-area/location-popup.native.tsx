@@ -12,7 +12,7 @@ import {ignorePromise} from '@/constants/utils'
 import {openAppSettings} from '@/util/storeless-actions'
 import {setThreadInputCommandStatus} from '@/constants/router'
 import {useConversationSendActions} from '../send-actions'
-import {ConversationThreadProvider, useConversationThreadID} from '../thread-context'
+import {ConversationThreadBridgeProvider, useConversationThreadID} from '../thread-context'
 
 const LocationButton = (props: {
   disabled: boolean
@@ -180,9 +180,9 @@ type LocationPopupProps = {conversationIDKey?: T.Chat.ConversationIDKey}
 const LocationPopup = (props: LocationPopupProps) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   return (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <ConversationThreadBridgeProvider id={conversationIDKey}>
       <LocationPopupInner />
-    </ConversationThreadProvider>
+    </ConversationThreadBridgeProvider>
   )
 }
 

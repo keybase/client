@@ -15,7 +15,7 @@ import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useBotSettings} from './settings'
 import {
-  ConversationThreadProvider,
+  ConversationThreadBridgeProvider,
   useConversationThreadActions,
   useConversationThreadMeta,
 } from '../thread-context'
@@ -180,9 +180,9 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   if (!conversationIDKey) return null
   return (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <ConversationThreadBridgeProvider id={conversationIDKey}>
       <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
-    </ConversationThreadProvider>
+    </ConversationThreadBridgeProvider>
   )
 }
 

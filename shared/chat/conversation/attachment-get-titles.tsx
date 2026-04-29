@@ -11,7 +11,7 @@ import {
   uploadAttachmentsFromDragAndDrop,
 } from './attachment-actions'
 import {
-  ConversationThreadProvider,
+  ConversationThreadBridgeProvider,
   useConversationThreadExplodingMode,
   useConversationThreadID,
   useConversationThreadMeta,
@@ -342,9 +342,9 @@ const styles = Kb.Styles.styleSheetCreate(
 const Container = (ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
   return (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <ConversationThreadBridgeProvider id={conversationIDKey}>
       <ContainerInner {...ownProps} />
-    </ConversationThreadProvider>
+    </ConversationThreadBridgeProvider>
   )
 }
 

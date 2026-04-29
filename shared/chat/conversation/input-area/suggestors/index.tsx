@@ -7,7 +7,7 @@ import * as Users from './users'
 import * as InputState from '../input-state'
 import type * as Common from './common'
 import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input'
-import {ConversationThreadProvider, useConversationThreadID} from '../../thread-context'
+import {ConversationThreadBridgeProvider, useConversationThreadID} from '../../thread-context'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -452,9 +452,9 @@ const Popup = (p: PopupProps) => {
       style={suggestionOverlayStyle}
     >
       {Kb.Styles.isMobile ? (
-        <ConversationThreadProvider id={conversationIdKey}>
+        <ConversationThreadBridgeProvider id={conversationIdKey}>
           <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
-        </ConversationThreadProvider>
+        </ConversationThreadBridgeProvider>
       ) : (
         children
       )}

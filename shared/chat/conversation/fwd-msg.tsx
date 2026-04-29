@@ -8,7 +8,7 @@ import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
 import {
-  ConversationThreadProvider,
+  RequiredConversationThreadBridgeProvider,
   useConversationThreadID,
   useConversationThreadMessage,
 } from './thread-context'
@@ -282,9 +282,9 @@ const styles = Kb.Styles.styleSheetCreate(
 const TeamPicker = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
   return (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <RequiredConversationThreadBridgeProvider id={conversationIDKey}>
       <TeamPickerInner {...props} />
-    </ConversationThreadProvider>
+    </RequiredConversationThreadBridgeProvider>
   )
 }
 

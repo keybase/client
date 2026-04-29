@@ -13,7 +13,8 @@ import {Keyboard} from 'react-native'
 import {useUserEmoji} from '@/chat/user-emoji'
 import {useCurrentSkinTone, useSetSkinTone, useTopReacjis} from '@/chat/user-reacjis'
 import {
-  ConversationThreadProvider,
+  ConversationThreadBridgeProvider,
+  RequiredConversationThreadBridgeProvider,
   useConversationThreadID,
   useConversationThreadMessageActions,
   useConversationThreadMeta,
@@ -255,10 +256,13 @@ const EmojiPickerDesktopInner = (props: Props) => {
 
 export const EmojiPickerDesktop = (props: Props) => {
   const {conversationIDKey} = props
+  const PickerProvider = props.onPickAddToMessageOrdinal
+    ? RequiredConversationThreadBridgeProvider
+    : ConversationThreadBridgeProvider
   return conversationIDKey ? (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <PickerProvider id={conversationIDKey}>
       <EmojiPickerDesktopInner {...props} />
-    </ConversationThreadProvider>
+    </PickerProvider>
   ) : (
     <EmojiPickerDesktopInner {...props} />
   )
@@ -322,10 +326,13 @@ const styles = Kb.Styles.styleSheetCreate(
 
 const Routable = (props: RoutableProps) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
+  const PickerProvider = props.onPickAddToMessageOrdinal
+    ? RequiredConversationThreadBridgeProvider
+    : ConversationThreadBridgeProvider
   return (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <PickerProvider id={conversationIDKey}>
       <RoutableInner {...props} />
-    </ConversationThreadProvider>
+    </PickerProvider>
   )
 }
 

@@ -14,7 +14,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {navToProfile} from '@/constants/router'
 import {
-  ConversationThreadProvider,
+  ConversationThreadBridgeProvider,
   showConversationInfoPanel,
   toggleConversationThreadSearch,
   useConversationThreadID,
@@ -118,9 +118,9 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
           headerLeft: (props: HeaderBackButtonProps) => {
             const {labelStyle, ...rest} = props
             return (
-              <ConversationThreadProvider id={conversationIDKey}>
+              <ConversationThreadBridgeProvider id={conversationIDKey}>
                 <BadgeHeaderLeftArray {...rest} />
-              </ConversationThreadProvider>
+              </ConversationThreadBridgeProvider>
             )
           },
         }
@@ -148,15 +148,15 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
         }
       : {
           headerRight: () => (
-            <ConversationThreadProvider id={conversationIDKey}>
+            <ConversationThreadBridgeProvider id={conversationIDKey}>
               <HeaderAreaRight />
-            </ConversationThreadProvider>
+            </ConversationThreadBridgeProvider>
           ),
         }),
     headerTitle: () => (
-      <ConversationThreadProvider id={conversationIDKey}>
+      <ConversationThreadBridgeProvider id={conversationIDKey}>
         <HeaderBranchContainer />
-      </ConversationThreadProvider>
+      </ConversationThreadBridgeProvider>
     ),
   }
 }

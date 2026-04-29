@@ -7,7 +7,7 @@ import * as S from '@/constants/strings'
 import logger from '@/logger'
 import {Bot} from '../info-panel/bot'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
-import {ConversationThreadProvider, useConversationThreadID} from '../thread-context'
+import {ConversationThreadBridgeProvider, useConversationThreadID} from '../thread-context'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; teamID?: T.Teams.TeamID}
 type BotSearchResults = {
@@ -31,9 +31,9 @@ type Section = Omit<Kb.SectionType<Item>, 'title'> & {title: string}
 const SearchBotPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   return (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <ConversationThreadBridgeProvider id={conversationIDKey}>
       <SearchBotPopupInner {...props} />
-    </ConversationThreadProvider>
+    </ConversationThreadBridgeProvider>
   )
 }
 

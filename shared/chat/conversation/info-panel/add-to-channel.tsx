@@ -7,7 +7,7 @@ import {pluralize} from '@/util/string'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useChatTeamMembers} from '../team-hooks'
 import {
-  ConversationThreadProvider,
+  ConversationThreadBridgeProvider,
   useConversationThreadID,
   useConversationThreadMeta,
   useConversationThreadParticipants,
@@ -18,9 +18,9 @@ type Props = {conversationIDKey?: T.Chat.ConversationIDKey; teamID: T.Teams.Team
 const AddToChannel = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   return (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <ConversationThreadBridgeProvider id={conversationIDKey}>
       <AddToChannelInner {...props} />
-    </ConversationThreadProvider>
+    </ConversationThreadBridgeProvider>
   )
 }
 

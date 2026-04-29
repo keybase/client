@@ -3,7 +3,7 @@ import {CreateNewTeam} from '../teams/new-team'
 import {useCurrentUserState} from '@/stores/current-user'
 import {createNewTeamAndNavigate} from '@/teams/team-page-actions'
 import * as T from '@/constants/types'
-import {ConversationThreadProvider, useConversationThreadParticipants} from './conversation/thread-context'
+import {ConversationThreadBridgeProvider, useConversationThreadParticipants} from './conversation/thread-context'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
 
@@ -30,9 +30,9 @@ const NewTeamDialogInner = () => {
 }
 
 const NewTeamDialog = (props: Props) => (
-  <ConversationThreadProvider id={props.conversationIDKey ?? T.Chat.noConversationIDKey}>
+  <ConversationThreadBridgeProvider id={props.conversationIDKey ?? T.Chat.noConversationIDKey}>
     <NewTeamDialogInner />
-  </ConversationThreadProvider>
+  </ConversationThreadBridgeProvider>
 )
 
 export default NewTeamDialog

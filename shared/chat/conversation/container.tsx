@@ -7,7 +7,7 @@ import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import type {ThreadSearchRouteProps} from './thread-search-route'
 import type * as T from '@/constants/types'
-import {ConversationThreadProvider, useConversationThreadID, useConversationThreadMeta} from './thread-context'
+import {LiveConversationThreadProvider, useConversationThreadID, useConversationThreadMeta} from './thread-context'
 
 type Props = ThreadSearchRouteProps & {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -17,13 +17,13 @@ const Conversation = function Conversation(props: Props) {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
   const skipThreadLoadOnSelection = !!props.highlightMessageID
   return (
-    <ConversationThreadProvider
+    <LiveConversationThreadProvider
       key={conversationIDKey}
       id={conversationIDKey}
       seedFromCache={!skipThreadLoadOnSelection}
     >
       <ConversationInner />
-    </ConversationThreadProvider>
+    </LiveConversationThreadProvider>
   )
 }
 

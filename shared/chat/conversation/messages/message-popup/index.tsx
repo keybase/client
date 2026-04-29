@@ -4,7 +4,7 @@ import type * as React from 'react'
 import AttachmentMessage from './attachment'
 import JourneycardMessage from './journeycard'
 import TextMessage from './text'
-import {ConversationThreadProvider, useConversationThreadMessage} from '../../thread-context'
+import {RequiredConversationThreadBridgeProvider, useConversationThreadMessage} from '../../thread-context'
 import * as T from '@/constants/types'
 
 type Props = {
@@ -91,7 +91,7 @@ export const MessagePopupModal = (p: ModalProps) => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo} = p
     return pop ? (
-      <ConversationThreadProvider id={conversationIDKey}>
+      <RequiredConversationThreadBridgeProvider id={conversationIDKey}>
         <MessagePopup
           ordinal={ordinal}
           key="popup"
@@ -101,7 +101,7 @@ export const MessagePopupModal = (p: ModalProps) => {
           position="top right"
           visible={true}
         />
-      </ConversationThreadProvider>
+      </RequiredConversationThreadBridgeProvider>
     ) : null
   }
   const {popup, popupAnchor, showPopup, showingPopup} = Kb.usePopup2(makePopup)

@@ -5,7 +5,7 @@ import {openURL} from '@/util/misc'
 import LocationMap from '@/chat/location-map'
 import {useConfigState} from '@/stores/config'
 import {useConversationSendActions} from '../../../../send-actions'
-import {ConversationThreadProvider} from '../../../../thread-context'
+import {ConversationThreadBridgeProvider} from '../../../../thread-context'
 
 type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -62,9 +62,9 @@ const UnfurlMapPopupInner = (props: Props) => {
 const UnfurlMapPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   return (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <ConversationThreadBridgeProvider id={conversationIDKey}>
       <UnfurlMapPopupInner {...props} />
-    </ConversationThreadProvider>
+    </ConversationThreadBridgeProvider>
   )
 }
 

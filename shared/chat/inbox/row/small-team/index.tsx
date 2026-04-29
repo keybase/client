@@ -11,7 +11,7 @@ import {formatTimeForConversationList} from '@/util/timestamp'
 import {useOpenedRowState} from '../opened-row-state'
 import {useInboxRowSmall} from '@/stores/inbox-rows'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
-import {ConversationThreadProvider} from '@/chat/conversation/thread-context'
+import {ConversationThreadBridgeProvider} from '@/chat/conversation/thread-context'
 export type Props = {
   conversationIDKey: string
   isSelected: boolean
@@ -192,9 +192,9 @@ const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: 
   const makePopup = (mp: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = mp
     return (
-      <ConversationThreadProvider id={conversationIDKey}>
+      <ConversationThreadBridgeProvider id={conversationIDKey}>
         <TeamMenu visible={true} attachTo={attachTo} onHidden={hidePopup} hasHeader={true} isSmallTeam={true} />
-      </ConversationThreadProvider>
+      </ConversationThreadBridgeProvider>
     )
   }
   const {showingPopup, showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)

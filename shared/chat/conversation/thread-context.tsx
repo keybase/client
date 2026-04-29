@@ -995,8 +995,62 @@ type ConversationThreadProviderProps = React.PropsWithChildren<{
   seedFromCache?: boolean
 }>
 
-const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => {
-  const {children, id, seedFromCache = true} = p
+type ConversationThreadProviderInnerProps = ConversationThreadProviderProps & {
+  registerLive?: boolean
+}
+
+type ConversationThreadProviderEntry = {
+  actions: ConversationThreadActions
+  store: ConversationThreadStore
+}
+
+const liveConversationThreadProviders = new Map<T.Chat.ConversationIDKey, ConversationThreadProviderEntry>()
+const liveConversationThreadProviderListeners = new Set<() => void>()
+
+const notifyLiveConversationThreadProviderListeners = () => {
+  liveConversationThreadProviderListeners.forEach(listener => listener())
+}
+
+const subscribeLiveConversationThreadProviders = (listener: () => void) => {
+  liveConversationThreadProviderListeners.add(listener)
+  return () => {
+    liveConversationThreadProviderListeners.delete(listener)
+  }
+}
+
+const registerLiveConversationThreadProvider = (
+  id: T.Chat.ConversationIDKey,
+  entry: ConversationThreadProviderEntry
+) => {
+  liveConversationThreadProviders.set(id, entry)
+  notifyLiveConversationThreadProviderListeners()
+}
+
+const unregisterLiveConversationThreadProvider = (
+  id: T.Chat.ConversationIDKey,
+  entry: ConversationThreadProviderEntry
+) => {
+  if (liveConversationThreadProviders.get(id) === entry) {
+    liveConversationThreadProviders.delete(id)
+    notifyLiveConversationThreadProviderListeners()
+  }
+}
+
+const ConversationThreadContextProvider = (p: {
+  actions: ConversationThreadActions
+  children: React.ReactNode
+  id: T.Chat.ConversationIDKey
+  store: ConversationThreadStore
+}) => (
+  <ConversationThreadIDContext value={p.id}>
+    <ConversationThreadActionsContext value={p.actions}>
+      <ConversationThreadStoreContext value={p.store}>{p.children}</ConversationThreadStoreContext>
+    </ConversationThreadActionsContext>
+  </ConversationThreadIDContext>
+)
+
+const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps) => {
+  const {children, id, registerLive = false, seedFromCache = true} = p
   const [threadStore] = React.useState(() => makeThreadStore(id, seedFromCache))
 
   const getSnapshot = React.useEffectEvent(() => threadStore.getState())
@@ -1613,6 +1667,16 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       }
     }
   }, [id, threadActions, threadStore])
+  React.useLayoutEffect(() => {
+    if (!registerLive) {
+      return
+    }
+    const entry = {actions: threadActions, store: threadStore}
+    registerLiveConversationThreadProvider(id, entry)
+    return () => {
+      unregisterLiveConversationThreadProvider(id, entry)
+    }
+  }, [id, registerLive, threadActions, threadStore])
   const inboxParticipants = useInboxMetadataState(s => s.participants.get(id))
   React.useEffect(() => {
     if (!inboxParticipants) {
@@ -1860,13 +1924,9 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   })
 
   return (
-    <ConversationThreadIDContext value={id}>
-      <ConversationThreadActionsContext value={threadActions}>
-        <ConversationThreadStoreContext value={threadStore}>
-          {children}
-        </ConversationThreadStoreContext>
-      </ConversationThreadActionsContext>
-    </ConversationThreadIDContext>
+    <ConversationThreadContextProvider id={id} actions={threadActions} store={threadStore}>
+      {children}
+    </ConversationThreadContextProvider>
   )
 }
 
@@ -1877,6 +1937,59 @@ export const ConversationThreadProvider = (p: ConversationThreadProviderProps) =
     return <>{p.children}</>
   }
   return <ConversationThreadProviderInner {...p} />
+}
+
+export const LiveConversationThreadProvider = (p: ConversationThreadProviderProps) => (
+  <ConversationThreadProviderInner {...p} registerLive={true} />
+)
+
+const useLiveConversationThreadProviderEntry = (id: T.Chat.ConversationIDKey) =>
+  React.useSyncExternalStore(
+    subscribeLiveConversationThreadProviders,
+    () => liveConversationThreadProviders.get(id),
+    () => undefined
+  )
+
+// React Navigation headers, routes, and popup roots can render outside the live conversation tree.
+// This fallback is only for surfaces that can still work from cache, inbox meta, or participants.
+export const ConversationThreadBridgeProvider = (p: ConversationThreadProviderProps) => {
+  const currentConversationIDKey = React.useContext(ConversationThreadIDContext)
+  const liveEntry = useLiveConversationThreadProviderEntry(p.id)
+  if (currentConversationIDKey === p.id) {
+    return <>{p.children}</>
+  }
+  if (liveEntry) {
+    return (
+      <ConversationThreadContextProvider id={p.id} actions={liveEntry.actions} store={liveEntry.store}>
+        {p.children}
+      </ConversationThreadContextProvider>
+    )
+  }
+  return <ConversationThreadProviderInner {...p} />
+}
+
+// Use this for message-scoped routes and actions. Rendering without the live thread would no-op later.
+export const RequiredConversationThreadBridgeProvider = (p: ConversationThreadProviderProps) => {
+  const currentConversationIDKey = React.useContext(ConversationThreadIDContext)
+  const liveEntry = useLiveConversationThreadProviderEntry(p.id)
+  React.useEffect(() => {
+    const missingLiveThread =
+      currentConversationIDKey !== p.id && !liveConversationThreadProviders.get(p.id)
+    if (missingLiveThread && T.Chat.isValidConversationIDKey(p.id)) {
+      logger.warn(`RequiredConversationThreadBridgeProvider: missing live thread for ${p.id}`)
+    }
+  }, [currentConversationIDKey, p.id, liveEntry])
+  if (currentConversationIDKey === p.id) {
+    return <>{p.children}</>
+  }
+  if (!liveEntry) {
+    return null
+  }
+  return (
+    <ConversationThreadContextProvider id={p.id} actions={liveEntry.actions} store={liveEntry.store}>
+      {p.children}
+    </ConversationThreadContextProvider>
+  )
 }
 
 export const useConversationThreadLoaded = () =>

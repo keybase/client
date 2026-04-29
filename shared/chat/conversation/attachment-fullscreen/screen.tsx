@@ -4,7 +4,7 @@ import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import Full from '.'
 import {takeAttachmentPreviewMessage} from '../attachment-actions'
 import {
-  ConversationThreadProvider,
+  ConversationThreadBridgeProvider,
   useConversationThreadActions,
   useConversationThreadMessage,
 } from '../thread-context'
@@ -52,9 +52,9 @@ const Screen = (p: OwnProps) => {
   }, [isPortrait])
 
   return (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <ConversationThreadBridgeProvider id={conversationIDKey}>
       <SeededFull initialMessage={initialMessage} isPortrait={isPortrait} ordinal={p.ordinal} viewKey={key} />
-    </ConversationThreadProvider>
+    </ConversationThreadBridgeProvider>
   )
 }
 

@@ -18,7 +18,10 @@ import {
   type ConversationThreadSnapshot,
 } from './thread-cache'
 import {
+  ConversationThreadBridgeProvider,
   ConversationThreadProvider,
+  LiveConversationThreadProvider,
+  RequiredConversationThreadBridgeProvider,
   useConversationThreadAccountsInfoMap,
   useConversationThreadCoinFlipStatus,
   useConversationThreadJumpToRecent,
@@ -205,6 +208,30 @@ const nestedSameThreadWrapper = ({children}: {children: React.ReactNode}) => (
   </ConversationThreadProvider>
 )
 
+const liveThreadWrapper = ({children}: {children: React.ReactNode}) => (
+  <LiveConversationThreadProvider id={convID}>
+    {children}
+  </LiveConversationThreadProvider>
+)
+
+const separatePlainThreadWrapper = ({children}: {children: React.ReactNode}) => (
+  <ConversationThreadProvider id={convID} seedFromCache={false}>
+    {children}
+  </ConversationThreadProvider>
+)
+
+const separateBridgeThreadWrapper = ({children}: {children: React.ReactNode}) => (
+  <ConversationThreadBridgeProvider id={convID} seedFromCache={false}>
+    {children}
+  </ConversationThreadBridgeProvider>
+)
+
+const requiredBridgeThreadWrapper = ({children}: {children: React.ReactNode}) => (
+  <RequiredConversationThreadBridgeProvider id={convID} seedFromCache={false}>
+    {children}
+  </RequiredConversationThreadBridgeProvider>
+)
+
 const makeThreadSnapshot = (messages: ReadonlyArray<T.Chat.Message>): ConversationThreadSnapshot => {
   const sortedMessages = [...messages].sort((a, b) => a.ordinal - b.ordinal)
   const messageMap = new Map(sortedMessages.map(message => [message.ordinal, message]))
@@ -270,6 +297,50 @@ test('same-conversation nested providers reuse the outer live thread state', () 
   })
 
   expect(result.current?.id).toBe(T.Chat.numberToMessageID(301))
+})
+
+test('same-conversation bridge providers reuse the registered live thread state', () => {
+  seedThreadCache([makeTextMessage()])
+  const live = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
+    wrapper: liveThreadWrapper,
+  })
+  expect(live.result.current?.id).toBe(T.Chat.numberToMessageID(301))
+
+  const route = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
+    wrapper: separateBridgeThreadWrapper,
+  })
+  expect(route.result.current?.id).toBe(T.Chat.numberToMessageID(301))
+})
+
+test('required bridge providers render only with a registered live thread', () => {
+  seedThreadCache([makeTextMessage()])
+  const missing = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
+    wrapper: requiredBridgeThreadWrapper,
+  })
+  expect(missing.result.current).toBeUndefined()
+
+  const live = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
+    wrapper: liveThreadWrapper,
+  })
+  expect(live.result.current?.id).toBe(T.Chat.numberToMessageID(301))
+
+  const required = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
+    wrapper: requiredBridgeThreadWrapper,
+  })
+  expect(required.result.current?.id).toBe(T.Chat.numberToMessageID(301))
+})
+
+test('separate plain providers do not reuse the registered live thread state', () => {
+  seedThreadCache([makeTextMessage()])
+  const live = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
+    wrapper: liveThreadWrapper,
+  })
+  expect(live.result.current?.id).toBe(T.Chat.numberToMessageID(301))
+
+  const plain = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
+    wrapper: separatePlainThreadWrapper,
+  })
+  expect(plain.result.current).toBeUndefined()
 })
 
 test('mounted thread syncs participant updates received outside its provider', () => {

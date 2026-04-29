@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {useBotConversationIDKey, useRefreshBotMembershipOnSuccess} from './install'
-import {ConversationThreadProvider, useConversationThreadID} from '../thread-context'
+import {ConversationThreadBridgeProvider, useConversationThreadID} from '../thread-context'
 
 type Props = {
   botUsername: string
@@ -58,9 +58,9 @@ const ConfirmBotRemove = (props: Props) => {
   const {teamID, botUsername} = props
   const conversationIDKey = useBotConversationIDKey(props.conversationIDKey, teamID)
   return conversationIDKey ? (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <ConversationThreadBridgeProvider id={conversationIDKey}>
       <ConfirmBotRemoveImpl botUsername={botUsername} />
-    </ConversationThreadProvider>
+    </ConversationThreadBridgeProvider>
   ) : null
 }
 

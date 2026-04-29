@@ -5,7 +5,7 @@ import {useNavigation} from '@react-navigation/native'
 import type {Props} from '.'
 import * as T from '@/constants/types'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {ConversationThreadProvider, useConversationThreadMessage} from '../conversation/thread-context'
+import {RequiredConversationThreadBridgeProvider, useConversationThreadMessage} from '../conversation/thread-context'
 import {useConversationAttachmentActions} from '../conversation/attachment-actions'
 
 const ChatPDFInner = (props: Props) => {
@@ -44,9 +44,9 @@ const ChatPDFInner = (props: Props) => {
 const ChatPDF = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   return (
-    <ConversationThreadProvider id={conversationIDKey}>
+    <RequiredConversationThreadBridgeProvider id={conversationIDKey}>
       <ChatPDFInner {...props} />
-    </ConversationThreadProvider>
+    </RequiredConversationThreadBridgeProvider>
   )
 }
 

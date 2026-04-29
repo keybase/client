@@ -5,7 +5,12 @@ import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
 import {ChatTeamProvider, useChatTeam} from '../team-hooks'
 import {joinConversation} from '../status-actions'
-import {ConversationThreadProvider, useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from '../thread-context'
+import {
+  ConversationThreadBridgeProvider,
+  useConversationThreadID,
+  useConversationThreadMeta,
+  useConversationThreadParticipants,
+} from '../thread-context'
 
 const gearIconSize = Kb.Styles.isMobile ? 24 : 16
 
@@ -30,7 +35,7 @@ const TeamHeader = () => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <ConversationThreadProvider id={conversationIDKey}>
+      <ConversationThreadBridgeProvider id={conversationIDKey}>
         <ChatTeamProvider>
           <InfoPanelMenu
             attachTo={attachTo}
@@ -41,7 +46,7 @@ const TeamHeader = () => {
             visible={true}
           />
         </ChatTeamProvider>
-      </ConversationThreadProvider>
+      </ConversationThreadBridgeProvider>
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
