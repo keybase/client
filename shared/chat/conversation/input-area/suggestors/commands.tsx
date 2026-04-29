@@ -203,7 +203,7 @@ const useDataSource = (p: UseDataSourceProps) => {
 type CommandType = T.RPCChat.ConversationCommand
 type ListProps = Pick<
   Common.ListProps<CommandType>,
-  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
   botSettings: BotSettingsMap
   filter: string

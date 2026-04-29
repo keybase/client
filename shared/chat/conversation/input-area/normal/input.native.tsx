@@ -187,6 +187,8 @@ const inputLowLevelStyles = Kb.Styles.styleSheetCreate(() => ({
 const singleLineHeight = 36
 const threeLineHeight = 78
 const inputAreaHeight = 91
+const maxExpandedSuggestionListHeight = 240
+const minExpandedSuggestionListHeight = 120
 
 type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -413,11 +415,15 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
   )
 }
 
-type AnimatedInputProps = Omit<InputLowLevelProps, 'ref'> & {expanded: boolean; inputRef?: React.Ref<RefType>}
+type AnimatedInputProps = Omit<InputLowLevelProps, 'ref'> & {
+  expanded: boolean
+  inputRef?: React.Ref<RefType>
+  reservedHeight?: number
+}
 const AnimatedInput = (() => {
   if (skipAnimations) {
     return function AnimatedInput(p: AnimatedInputProps) {
-      const {expanded, inputRef, ...rest} = p
+      const {expanded: _expanded, inputRef, reservedHeight: _reservedHeight, ...rest} = p
       return (
         <Animated.View style={[p.style, rest.style]}>
           <Input multiline={true} {...rest} ref={inputRef} style={styles.inputInner} />
@@ -428,10 +434,10 @@ const AnimatedInput = (() => {
     return function AnimatedInput(p: AnimatedInputProps) {
       'use no memo'
       const maxInputArea = React.useContext(MaxInputAreaContext)
-      const {expanded, inputRef, ...rest} = p
+      const {expanded, inputRef, reservedHeight = 0, ...rest} = p
       const lastExpandedRef = React.useRef(expanded)
       const offset = useSharedValue(expanded ? 1 : 0)
-      const maxHeight = maxInputArea - inputAreaHeight - 15
+      const maxHeight = Math.max(threeLineHeight, maxInputArea - inputAreaHeight - 15 - reservedHeight)
       const as = useAnimatedStyle(() => ({
         maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
         minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
@@ -458,7 +464,23 @@ const PlatformInput = (p: Props) => {
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const inputRef = React.useRef<RefType | null>(null)
-  const suggestionListStyle = Kb.Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}])
+  const maxInputArea = React.useContext(MaxInputAreaContext)
+  const preferredExpandedSuggestionListHeight = maxInputArea
+    ? Math.max(
+        minExpandedSuggestionListHeight,
+        Math.min(maxExpandedSuggestionListHeight, Math.floor(maxInputArea * 0.35))
+      )
+    : 0
+  const maxSuggestionReserveHeight = Math.max(0, maxInputArea - inputAreaHeight - 15 - threeLineHeight)
+  const expandedSuggestionListHeight = Math.min(
+    preferredExpandedSuggestionListHeight,
+    maxSuggestionReserveHeight
+  )
+  const suggestionListStyle = Kb.Styles.collapseStyles([
+    styles.suggestionList,
+    !!height && {marginBottom: height},
+    expanded && {maxHeight: expandedSuggestionListHeight},
+  ])
   const suggestionSpinnerStyle = Kb.Styles.collapseStyles([styles.suggestionSpinnerStyle, !!height && {marginBottom: height}])
   const {
     popup: suggestorPopup,
@@ -466,8 +488,8 @@ const PlatformInput = (p: Props) => {
     onBlur,
     onSelectionChange,
     onFocus,
+    suggestionsShowing,
   } = useSuggestors({
-    expanded,
     inputRef,
     onChangeText: p.onChangeText,
     suggestionListStyle,
@@ -476,6 +498,7 @@ const PlatformInput = (p: Props) => {
   })
   const {cannotWrite, isEditing, isExploding, setInputRef, setExplodingMode} = p
   const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
+  const suggestionListReserveHeight = expanded && suggestionsShowing ? expandedSuggestionListHeight : 0
 
   const lastText = React.useRef('')
   const whichMenu = React.useRef<MenuType | undefined>(undefined)
@@ -646,6 +669,7 @@ const PlatformInput = (p: Props) => {
               style={styles.input}
               textType="Body"
               rowsMin={1}
+              reservedHeight={suggestionListReserveHeight}
               expanded={expanded}
             />
             <AnimatedExpand expandInput={toggleExpandInput} expanded={expanded} />

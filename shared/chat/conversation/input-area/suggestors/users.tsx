@@ -206,7 +206,7 @@ type ListItem = {
 
 type ListProps = Pick<
   Common.ListProps<ListItem>,
-  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
   filter: string
   onSelected: (item: ListItem, final: boolean) => void

@@ -51,7 +51,6 @@ type UseSuggestorsProps = Pick<
 > & {
   suggestionListStyle: Kb.Styles.StylesCrossPlatform
   suggestionSpinnerStyle: Kb.Styles.StylesCrossPlatform
-  expanded: boolean
   inputRef: React.RefObject<InputRef | null>
   onKeyDown?: (evt: React.KeyboardEvent) => void
 }
@@ -317,7 +316,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
   const suppressCommandSuggestions = InputState.useConversationInput(s => !!s.commandMarkdown || s.giphyWindow)
-  const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
+  const {inputRef, suggestionListStyle, suggestionOverlayStyle} = p
   const {onChangeText: onChangeTextProps} = p
   const {suggestionSpinnerStyle} = p
   const conversationIDKey = useConversationThreadID()
@@ -377,7 +376,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   }
 
   const listProps = {
-    expanded,
     filter,
     listStyle: suggestionListStyle,
     onSelected,
@@ -424,6 +422,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     onKeyDown,
     onSelectionChange: onSelectionChange2,
     popup,
+    suggestionsShowing: !!content,
   }
 }
 

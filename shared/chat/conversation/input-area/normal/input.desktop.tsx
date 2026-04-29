@@ -508,7 +508,6 @@ const PlatformInput = function PlatformInput(p: Props) {
     onKeyDown,
     onChangeText: onChangeTextSuggestors,
   } = useSuggestors({
-    expanded: false,
     inputRef,
     onChangeText: p.onChangeText,
     onKeyDown: checkEnterOnKeyDown,

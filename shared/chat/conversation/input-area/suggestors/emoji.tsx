@@ -64,7 +64,7 @@ const useDataSource = (filter: string) => {
 
 type ListProps = Pick<
   Common.ListProps<EmojiData>,
-  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
   filter: string
   onSelected: (item: EmojiData, final: boolean) => void

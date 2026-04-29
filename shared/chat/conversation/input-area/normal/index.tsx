@@ -128,6 +128,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const uiData = InputState.useConversationInput(
     C.useShallow(s => ({
       editOrdinal: s.editing,
+      focusInputCounter: s.focusInputCounter,
       replyTo: s.replyTo,
       unsentText: s.unsentText,
     }))
@@ -147,7 +148,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const explodingModeSecondsRaw =
     convRetention.type === 'explode' ? Math.min(explodingMode || Infinity, convRetention.seconds) : explodingMode
   const showReplyPreview = !!replyToMessage?.id
-  const {editOrdinal, unsentText} = uiData
+  const {editOrdinal, focusInputCounter, unsentText} = uiData
   const isEditing = !!editOrdinal
   const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
   const updateUnsentText = InputState.useConversationInputDispatch(s => s.injectIntoInput)
@@ -248,12 +249,15 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }
   }, [storeDraft])
 
+  const lastFocusInputCounter = React.useRef(focusInputCounter)
   React.useEffect(() => {
     if (unsentText !== undefined) {
-      doInjectText(inputRef, unsentText)
+      const shouldFocus = focusInputCounter !== lastFocusInputCounter.current
+      lastFocusInputCounter.current = focusInputCounter
+      doInjectText(inputRef, unsentText, shouldFocus)
       updateUnsentText(undefined)
     }
-  }, [updateUnsentText, unsentText])
+  }, [focusInputCounter, updateUnsentText, unsentText])
 
   const {setInputRef} = React.useContext(FocusContext)
   React.useEffect(() => {

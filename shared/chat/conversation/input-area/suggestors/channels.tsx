@@ -165,7 +165,7 @@ type ChannelType = {
 }
 type ListProps = Pick<
   Common.ListProps<ChannelType>,
-  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
   filter: string
   onSelected: (item: ChannelType, final: boolean) => void

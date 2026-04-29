@@ -76,7 +76,6 @@ const renderChannels = () =>
   render(
     <ConversationThreadProvider id={convID}>
       <List
-        expanded={false}
         filter=""
         listStyle={{}}
         spinnerStyle={{}}

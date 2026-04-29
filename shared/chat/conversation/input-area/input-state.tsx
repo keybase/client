@@ -12,6 +12,7 @@ type ConversationInputStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown
   commandStatus?: T.Chat.CommandStatusInfo
   editing: T.Chat.Ordinal
+  focusInputCounter: number
   giphyResult?: T.RPCChat.GiphySearchResults
   giphyWindow: boolean
   replyTo: T.Chat.Ordinal
@@ -19,7 +20,7 @@ type ConversationInputStore = T.Immutable<{
 }>
 
 type ConversationInputDispatch = {
-  injectIntoInput: (text?: string) => void
+  injectIntoInput: (text?: string, focus?: boolean) => void
   resetState: () => void
   sendComposerText: (text: string) => void
   sendGiphyResult: (result: T.RPCChat.GiphySearchResult) => void
@@ -42,6 +43,7 @@ const initialConversationInputStore: ConversationInputStore = {
   commandMarkdown: undefined,
   commandStatus: undefined,
   editing: emptyOrdinal,
+  focusInputCounter: 0,
   giphyResult: undefined,
   giphyWindow: false,
   replyTo: emptyOrdinal,
@@ -50,7 +52,7 @@ const initialConversationInputStore: ConversationInputStore = {
 
 type InputAction =
   | {type: 'afterSend'}
-  | {type: 'injectIntoInput'; text?: string}
+  | {type: 'injectIntoInput'; focus?: boolean; text?: string}
   | {type: 'resetState'}
   | {type: 'setCommandMarkdown'; md?: T.RPCChat.UICommandMarkdown}
   | {type: 'setCommandStatusInfo'; info?: T.Chat.CommandStatusInfo}
@@ -73,7 +75,12 @@ const inputReducer = (state: ConversationInputStore, action: InputAction): Conve
         unsentText: '',
       }
     case 'injectIntoInput':
-      return {...state, unsentText: action.text}
+      return {
+        ...state,
+        focusInputCounter:
+          action.focus && action.text !== undefined ? state.focusInputCounter + 1 : state.focusInputCounter,
+        unsentText: action.text,
+      }
     case 'resetState':
       return initialConversationInputStore
     case 'setCommandMarkdown':
@@ -110,8 +117,8 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
   const {sendGiphyResult: sendGiphyResultAction, sendMessage} = useConversationSendActions()
 
-  const injectIntoInput = React.useEffectEvent((text?: string) => {
-    dispatchState({text, type: 'injectIntoInput'})
+  const injectIntoInput = React.useEffectEvent((text?: string, focus?: boolean) => {
+    dispatchState({focus, text, type: 'injectIntoInput'})
   })
   const resetState = React.useEffectEvent(() => {
     dispatchState({type: 'resetState'})
