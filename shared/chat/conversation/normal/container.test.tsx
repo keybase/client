@@ -11,6 +11,8 @@ import {useShellState} from '@/stores/shell'
 import {OrangeLineContext, SetOrangeLineContext} from '../orange-line-context'
 import NormalWrapper from './container'
 
+type ConstantsModule = typeof C
+
 let mockConversationIDKey: T.Chat.ConversationIDKey
 let mockLoaded = true
 let mockMeta: T.Chat.ConversationMeta
@@ -45,12 +47,15 @@ const makeMeta = (
 })
 
 function mockNormal() {
-  return React.createElement(OrangeLineContext.Consumer, null, orangeLine =>
-    React.createElement(SetOrangeLineContext.Consumer, null, setOrangeLine => {
-      mockSetOrangeLine = setOrangeLine
-      return React.createElement('div', {'data-testid': 'orange-line'}, String(orangeLine))
-    })
-  )
+  return React.createElement(OrangeLineContext.Consumer, {
+    children: (orangeLine: T.Chat.Ordinal) =>
+      React.createElement(SetOrangeLineContext.Consumer, {
+        children: (setOrangeLine: (messageID: T.Chat.MessageID) => void) => {
+          mockSetOrangeLine = setOrangeLine
+          return React.createElement('div', {'data-testid': 'orange-line'}, String(orangeLine))
+        },
+      }),
+  })
 }
 
 function mockPassthroughProvider({children}: {children: React.ReactNode}) {
@@ -75,7 +80,7 @@ jest.mock('.', () => {
 })
 
 jest.mock('@/constants', () => {
-  const actual = jest.requireActual('@/constants') as typeof import('@/constants')
+  const actual = jest.requireActual('@/constants') as ConstantsModule
   return {...actual, Router2: {...actual.Router2, navigateAppend: jest.fn()}}
 })
 
