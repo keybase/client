@@ -1,12 +1,14 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters/index'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {openURL} from '@/util/misc'
 import LocationMap from '@/chat/location-map'
 import {useConfigState} from '@/stores/config'
 import {useConversationSendActions} from '../../../../send-actions'
+import {ConversationThreadProvider} from '../../../../thread-context'
 
 type Props = {
+  conversationIDKey?: T.Chat.ConversationIDKey
   coord: T.Chat.Coordinate
   isAuthor: boolean
   author?: string
@@ -14,7 +16,7 @@ type Props = {
   url: string
 }
 
-const UnfurlMapPopup = (props: Props) => {
+const UnfurlMapPopupInner = (props: Props) => {
   const {coord, isAuthor, isLiveLocation, url} = props
   const author = props.author ?? ''
   const httpSrv = useConfigState(s => s.httpSrv)
@@ -54,6 +56,15 @@ const UnfurlMapPopup = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
     </>
+  )
+}
+
+const UnfurlMapPopup = (props: Props) => {
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
+  return (
+    <ConversationThreadProvider id={conversationIDKey}>
+      <UnfurlMapPopupInner {...props} />
+    </ConversationThreadProvider>
   )
 }
 
