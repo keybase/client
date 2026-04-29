@@ -22,7 +22,7 @@ jest.mock('@react-navigation/core', () => ({
   useIsFocused: () => mockRouteFocused,
 }))
 jest.mock('@/constants/router', () => {
-  const actual = jest.requireActual<typeof import('@/constants/router')>('@/constants/router')
+  const actual = jest.requireActual('@/constants/router')
   return {
     ...actual,
     getVisibleScreen: () => (mockVisibleScreenName ? {name: mockVisibleScreenName} : undefined),
