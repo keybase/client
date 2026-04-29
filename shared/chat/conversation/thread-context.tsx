@@ -2072,10 +2072,30 @@ export const useConversationThreadLastOrdinal = () =>
     snapshot => snapshot.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
   )
 
+const displayMessageCache = new WeakMap<
+  T.Chat.Message,
+  {
+    displayMessage: T.Chat.Message | undefined
+    optimisticReactionMap: ConversationThreadState['optimisticReactionMap']
+  }
+>()
+
 export const getConversationThreadDisplayMessage = (
   snapshot: ConversationThreadState,
   ordinal: T.Chat.Ordinal
-) => applyOptimisticReactionsToMessage(snapshot.messageMap.get(ordinal), snapshot.optimisticReactionMap)
+) => {
+  const message = snapshot.messageMap.get(ordinal)
+  if (!message) {
+    return undefined
+  }
+  const cached = displayMessageCache.get(message)
+  if (cached?.optimisticReactionMap === snapshot.optimisticReactionMap) {
+    return cached.displayMessage
+  }
+  const displayMessage = applyOptimisticReactionsToMessage(message, snapshot.optimisticReactionMap)
+  displayMessageCache.set(message, {displayMessage, optimisticReactionMap: snapshot.optimisticReactionMap})
+  return displayMessage
+}
 
 export const useConversationThreadMessage = (ordinal: T.Chat.Ordinal) =>
   useConversationThreadSnapshotValue(snapshot => getConversationThreadDisplayMessage(snapshot, ordinal))
