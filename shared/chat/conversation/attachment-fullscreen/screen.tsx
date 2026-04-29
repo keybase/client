@@ -2,15 +2,49 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import Full from '.'
-import {ConversationThreadProvider} from '../thread-context'
+import {takeAttachmentPreviewMessage} from '../attachment-actions'
+import {
+  ConversationThreadProvider,
+  useConversationThreadActions,
+  useConversationThreadMessage,
+} from '../thread-context'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
   ordinal: T.Chat.Ordinal
 }
 
+const SeededFull = (p: {
+  initialMessage?: T.Chat.MessageAttachment
+  isPortrait: boolean
+  ordinal: T.Chat.Ordinal
+  viewKey: number
+}) => {
+  const {initialMessage, isPortrait, ordinal, viewKey} = p
+  const {addMessages} = useConversationThreadActions()
+  const existing = useConversationThreadMessage(initialMessage?.ordinal ?? ordinal)
+
+  React.useEffect(() => {
+    if (initialMessage && existing?.type !== 'attachment') {
+      addMessages([initialMessage])
+    }
+  }, [existing?.type, initialMessage])
+
+  return (
+    <Full
+      initialMessage={initialMessage}
+      ordinal={ordinal}
+      showHeader={isPortrait}
+      key={String(viewKey)}
+    />
+  )
+}
+
 const Screen = (p: OwnProps) => {
   const conversationIDKey = p.conversationIDKey ?? T.Chat.noConversationIDKey
+  const [initialMessage] = React.useState(() =>
+    takeAttachmentPreviewMessage(conversationIDKey, p.ordinal)
+  )
   const {width, height} = useSafeAreaFrame()
   const isPortrait = height > width
   const wasPortraitRef = React.useRef(isPortrait)
@@ -26,7 +60,12 @@ const Screen = (p: OwnProps) => {
 
   return (
     <ConversationThreadProvider id={conversationIDKey}>
-      <Full ordinal={p.ordinal} showHeader={isPortrait} key={String(key)} />
+      <SeededFull
+        initialMessage={initialMessage}
+        isPortrait={isPortrait}
+        ordinal={p.ordinal}
+        viewKey={key}
+      />
     </ConversationThreadProvider>
   )
 }

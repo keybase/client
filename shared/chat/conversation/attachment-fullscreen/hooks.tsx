@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import {clampImageSize} from '@/constants/chat/helpers'
 import * as Chat from '@/constants/chat'
 import type * as T from '@/constants/types'
+import logger from '@/logger'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {
@@ -13,13 +14,24 @@ import {
 import {useConversationAttachmentActions} from '../attachment-actions'
 
 const blankMessage = Chat.makeMessageAttachment({})
-export const useData = (initialOrdinal: T.Chat.Ordinal) => {
+export const useData = (initialOrdinal: T.Chat.Ordinal, initialMessage?: T.Chat.MessageAttachment) => {
   const conversationIDKey = useConversationThreadID()
   const [ordinal, setOrdinal] = React.useState(initialOrdinal)
 
   const threadMessage = useConversationThreadMessage(ordinal)
+  const initialMessageForOrdinal = initialMessage?.ordinal === ordinal ? initialMessage : undefined
   const message: T.Chat.MessageAttachment =
-    threadMessage?.type === 'attachment' ? threadMessage : blankMessage
+    threadMessage?.type === 'attachment' ? threadMessage : initialMessageForOrdinal ?? blankMessage
+
+  React.useEffect(() => {
+    if (message !== blankMessage || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
+      return
+    }
+    const ordinalNumber = T.Chat.ordinalToNumber(ordinal)
+    logger.warn(
+      `chat attachment fullscreen: missing attachment message for convID=${conversationIDKey} ordinal=${ordinalNumber}`
+    )
+  }, [conversationIDKey, message, ordinal])
 
   const {attachmentDownload, loadNextAttachment} = useConversationAttachmentActions()
   const onSwitchAttachment = (backInTime: boolean) => {

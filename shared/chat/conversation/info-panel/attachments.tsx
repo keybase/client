@@ -734,7 +734,7 @@ export const useAttachmentSections = (
     loadAttachmentView(selectedAttachmentView, undefined, 'retry')
   }
 
-  const onMediaClick = (message: T.Chat.MessageAttachment) => showAttachmentPreview(message.ordinal)
+  const onMediaClick = (message: T.Chat.MessageAttachment) => showAttachmentPreview(message.ordinal, message)
 
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
     if (Kb.Styles.isMobile) {

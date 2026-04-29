@@ -50,7 +50,7 @@ const FullscreenVideo = (p: {
 
 const Fullscreen = function Fullscreen(p: Props) {
   const {showHeader: _showHeader = true} = p
-  const data = useData(p.ordinal)
+  const data = useData(p.ordinal, p.initialMessage)
   const {isVideo, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
   const {onNextAttachment, onPreviousAttachment} = data
   const [loaded, setLoaded] = React.useState(false)
@@ -77,7 +77,7 @@ const Fullscreen = function Fullscreen(p: Props) {
   const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
   const srcDims = imgSrc === path
     ? {height: data.fullHeight, width: data.fullWidth}
-    : {height: data.previewWidth, width: data.previewHeight}
+    : {height: data.previewHeight, width: data.previewWidth}
 
   const {showPopup, popup} = useMessagePopup({ordinal})
 
@@ -121,8 +121,8 @@ const Fullscreen = function Fullscreen(p: Props) {
     }
   }
 
-  if (path) {
-    if (isVideo) {
+  if (isVideo) {
+    if (path) {
       content = (
         <FullscreenVideo
           key={path}
@@ -133,18 +133,18 @@ const Fullscreen = function Fullscreen(p: Props) {
           onLoaded={() => setLoaded(true)}
         />
       )
-    } else {
-      content = (
-        <Kb.ZoomableImage
-          src={imgSrc}
-          style={styles.zoomableBox}
-          onSwipe={onSwipe}
-          onTap={toggleHeader}
-          srcDims={srcDims}
-          boxCacheKey="chat-attach"
-        />
-      )
     }
+  } else if (imgSrc) {
+    content = (
+      <Kb.ZoomableImage
+        src={imgSrc}
+        style={styles.zoomableBox}
+        onSwipe={onSwipe}
+        onTap={toggleHeader}
+        srcDims={srcDims}
+        boxCacheKey="chat-attach"
+      />
+    )
   }
 
   if (!loaded && isVideo) {

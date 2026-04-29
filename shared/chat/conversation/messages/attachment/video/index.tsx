@@ -29,7 +29,7 @@ function Video(p: Props) {
   const showTitle = !!title
   const openFullscreen = () => {
     Keyboard.dismiss()
-    showAttachmentPreview(conversationIDKey, ordinal)
+    showAttachmentPreview(conversationIDKey, ordinal, message)
   }
   const containerStyle = styles.container
   const collapseIcon = useCollapseIcon(ordinal, isCollapsed, false)

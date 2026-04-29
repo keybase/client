@@ -61,10 +61,31 @@ export const makePasteAttachment = (conversationIDKey: T.Chat.ConversationIDKey,
   ignorePromise(f())
 }
 
-export const showAttachmentPreview = (
+const attachmentPreviewMessageHandoff = new Map<string, T.Chat.MessageAttachment>()
+const attachmentPreviewMessageKey = (conversationIDKey: T.Chat.ConversationIDKey, ordinal: T.Chat.Ordinal) =>
+  `${conversationIDKey}:${T.Chat.ordinalToNumber(ordinal)}`
+
+export const takeAttachmentPreviewMessage = (
   conversationIDKey: T.Chat.ConversationIDKey,
   ordinal: T.Chat.Ordinal
 ) => {
+  const key = attachmentPreviewMessageKey(conversationIDKey, ordinal)
+  const message = attachmentPreviewMessageHandoff.get(key)
+  attachmentPreviewMessageHandoff.delete(key)
+  return message
+}
+
+export const showAttachmentPreview = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  ordinal: T.Chat.Ordinal,
+  message?: T.Chat.MessageAttachment
+) => {
+  const key = attachmentPreviewMessageKey(conversationIDKey, ordinal)
+  if (message) {
+    attachmentPreviewMessageHandoff.set(key, message)
+  } else {
+    attachmentPreviewMessageHandoff.delete(key)
+  }
   navigateAppend({
     name: 'chatAttachmentFullscreen',
     params: {conversationIDKey, ordinal},
@@ -304,6 +325,10 @@ export const useConversationAttachmentActions = () => {
     loadNextAttachment,
     messageAttachmentNativeSave,
     messageAttachmentNativeShare,
-    showAttachmentPreview: (ordinal: T.Chat.Ordinal) => showAttachmentPreview(conversationIDKey, ordinal),
+    showAttachmentPreview: (ordinal: T.Chat.Ordinal, message?: T.Chat.MessageAttachment) => {
+      const existing = messageMap.get(ordinal)
+      const initialMessage = message ?? (existing?.type === 'attachment' ? existing : undefined)
+      showAttachmentPreview(conversationIDKey, ordinal, initialMessage)
+    },
   }
 }
