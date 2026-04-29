@@ -317,7 +317,7 @@ test('required bridge providers render only with a registered live thread', () =
   const missing = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
     wrapper: requiredBridgeThreadWrapper,
   })
-  expect(missing.result.current).toBeUndefined()
+  expect(missing.result.current).toBeNull()
 
   const live = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
     wrapper: liveThreadWrapper,
