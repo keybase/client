@@ -367,7 +367,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     setStaged(false)
     setShowAudioSend(false)
   }
-  const setCommandStatusInfo = InputState.useConversationInput(s => s.dispatch.setCommandStatusInfo)
+  const setCommandStatusInfo = InputState.useConversationInputDispatch(s => s.setCommandStatusInfo)
 
   const startRecording = () => {
     const checkPerms = async () => {

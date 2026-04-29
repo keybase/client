@@ -149,9 +149,9 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const showReplyPreview = !!replyToMessage?.id
   const {editOrdinal, unsentText} = uiData
   const isEditing = !!editOrdinal
-  const setEditing = InputState.useConversationInput(s => s.dispatch.setEditing)
-  const updateUnsentText = InputState.useConversationInput(s => s.dispatch.injectIntoInput)
-  const sendComposerText = InputState.useConversationInput(s => s.dispatch.sendComposerText)
+  const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
+  const updateUnsentText = InputState.useConversationInputDispatch(s => s.injectIntoInput)
+  const sendComposerText = InputState.useConversationInputDispatch(s => s.sendComposerText)
   const {hasCenter, jumpToRecent} = useConversationCenter()
   const toggleThreadSearch = useConversationThreadToggleSearch()
 

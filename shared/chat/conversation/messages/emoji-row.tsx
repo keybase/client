@@ -21,7 +21,7 @@ type OwnProps = {
 function EmojiRowContainer(p: OwnProps) {
   const {className, hasUnfurls, messageType, onReact: onReactProp, onReply: onReplyProp, onShowingEmojiPicker, style} = p
   const ordinal = useOrdinal()
-  const setReplyTo = InputState.useConversationInput(s => s.dispatch.setReplyTo)
+  const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
   const {toggleMessageReaction} = useConversationThreadMessageActions()
   const emojis = useReactionRowTopReacjis()
   const conversationIDKey = useConversationThreadID()

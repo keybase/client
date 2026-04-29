@@ -34,6 +34,7 @@ const CenterContext = React.createContext<CenterContextType>({
   hasCenter: false,
   jumpToRecent: missingContext,
 })
+CenterContext.displayName = 'ConversationCenterContext'
 
 export const useConversationCenter = () => React.useContext(CenterContext)
 

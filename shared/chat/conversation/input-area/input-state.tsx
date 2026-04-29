@@ -95,7 +95,10 @@ const inputReducer = (state: ConversationInputStore, action: InputAction): Conve
   }
 }
 
-const Context = React.createContext<ConversationInputState | undefined>(undefined)
+const StateContext = React.createContext<ConversationInputStore | undefined>(undefined)
+StateContext.displayName = 'ConversationInputStateContext'
+const DispatchContext = React.createContext<ConversationInputDispatch | undefined>(undefined)
+DispatchContext.displayName = 'ConversationInputDispatchContext'
 
 const actionConversationIDKey = (convID: string) => T.Chat.stringToConversationIDKey(convID)
 
@@ -107,85 +110,89 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
   const {sendGiphyResult: sendGiphyResultAction, sendMessage} = useConversationSendActions()
 
-  const injectIntoInput = React.useCallback((text?: string) => {
+  const injectIntoInput = React.useEffectEvent((text?: string) => {
     dispatchState({text, type: 'injectIntoInput'})
-  }, [])
-  const resetState = React.useCallback(() => {
+  })
+  const resetState = React.useEffectEvent(() => {
     dispatchState({type: 'resetState'})
-  }, [])
-  const setCommandMarkdown = React.useCallback((md?: T.RPCChat.UICommandMarkdown) => {
+  })
+  const setCommandMarkdown = React.useEffectEvent((md?: T.RPCChat.UICommandMarkdown) => {
     dispatchState({md, type: 'setCommandMarkdown'})
-  }, [])
-  const setCommandStatusInfo = React.useCallback((info?: T.Chat.CommandStatusInfo) => {
+  })
+  const setCommandStatusInfo = React.useEffectEvent((info?: T.Chat.CommandStatusInfo) => {
     dispatchState({info, type: 'setCommandStatusInfo'})
-  }, [])
-  const setGiphyResult = React.useCallback((result?: T.RPCChat.GiphySearchResults) => {
+  })
+  const setGiphyResult = React.useEffectEvent((result?: T.RPCChat.GiphySearchResults) => {
     dispatchState({result, type: 'setGiphyResult'})
-  }, [])
-  const setGiphyWindow = React.useCallback((show: boolean) => {
+  })
+  const setGiphyWindow = React.useEffectEvent((show: boolean) => {
     dispatchState({show, type: 'setGiphyWindow'})
-  }, [])
-  const setReplyTo = React.useCallback((ordinal: T.Chat.Ordinal) => {
+  })
+  const setReplyTo = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
     dispatchState({ordinal, type: 'setReplyTo'})
-  }, [])
-  const setEditing = React.useCallback(
-    (e: T.Chat.Ordinal | 'last' | 'clear') => {
-      if (e === 'clear') {
-        dispatchState({type: 'setEditingClear'})
-        return
-      }
+  })
+  const setEditing = React.useEffectEvent((e: T.Chat.Ordinal | 'last' | 'clear') => {
+    if (e === 'clear') {
+      dispatchState({type: 'setEditingClear'})
+      return
+    }
 
-      let ordinal: T.Chat.Ordinal | undefined
-      if (e === 'last') {
-        const editLastUser = useCurrentUserState.getState().username
-        ordinal = messageOrdinals
-          ? findLast(messageOrdinals, o => {
-              const message = messageMap.get(o)
-              return !!(
-                (message?.type === 'text' || message?.type === 'attachment') &&
-                message.author === editLastUser &&
-                !message.exploded &&
-                message.isEditable
-              )
-            })
-          : undefined
-      } else {
-        ordinal = e
-      }
+    let ordinal: T.Chat.Ordinal | undefined
+    if (e === 'last') {
+      const editLastUser = useCurrentUserState.getState().username
+      ordinal = messageOrdinals
+        ? findLast(messageOrdinals, o => {
+            const message = messageMap.get(o)
+            return !!(
+              (message?.type === 'text' || message?.type === 'attachment') &&
+              message.author === editLastUser &&
+              !message.exploded &&
+              message.isEditable
+            )
+          })
+        : undefined
+    } else {
+      ordinal = e
+    }
 
-      if (!ordinal) return
-      const message = messageMap.get(ordinal)
-      if (message?.type === 'text' || message?.type === 'attachment') {
-        dispatchState({
-          ordinal,
-          text: message.type === 'text' ? message.text.stringValue() : message.title,
-          type: 'setEditing',
-        })
-      }
-    },
-    [messageMap, messageOrdinals]
-  )
-  const sendComposerText = React.useCallback(
-    (text: string) => {
-      sendMessage(text, {
-        editingOrdinal: state.editing,
-        onRestoreText: injectIntoInput,
-        replyToOrdinal: state.replyTo,
+    if (!ordinal) return
+    const message = messageMap.get(ordinal)
+    if (message?.type === 'text' || message?.type === 'attachment') {
+      dispatchState({
+        ordinal,
+        text: message.type === 'text' ? message.text.stringValue() : message.title,
+        type: 'setEditing',
       })
-      dispatchState({type: 'afterSend'})
-    },
-    [injectIntoInput, sendMessage, state.editing, state.replyTo]
-  )
-  const sendGiphyResult = React.useCallback(
-    (result: T.RPCChat.GiphySearchResult) => {
-      sendGiphyResultAction(result, state.replyTo)
-      dispatchState({type: 'afterSend'})
-    },
-    [sendGiphyResultAction, state.replyTo]
-  )
-  const toggleGiphyPrefill = React.useCallback(() => {
+    }
+  })
+  const sendComposerText = React.useEffectEvent((text: string) => {
+    sendMessage(text, {
+      editingOrdinal: state.editing,
+      onRestoreText: injectIntoInput,
+      replyToOrdinal: state.replyTo,
+    })
+    dispatchState({type: 'afterSend'})
+  })
+  const sendGiphyResult = React.useEffectEvent((result: T.RPCChat.GiphySearchResult) => {
+    sendGiphyResultAction(result, state.replyTo)
+    dispatchState({type: 'afterSend'})
+  })
+  const toggleGiphyPrefill = React.useEffectEvent(() => {
     dispatchState({type: 'toggleGiphyPrefill'})
-  }, [])
+  })
+  const [inputDispatch] = React.useState<ConversationInputDispatch>(() => ({
+    injectIntoInput,
+    resetState,
+    sendComposerText,
+    sendGiphyResult,
+    setCommandMarkdown,
+    setCommandStatusInfo,
+    setEditing,
+    setGiphyResult,
+    setGiphyWindow,
+    setReplyTo,
+    toggleGiphyPrefill,
+  }))
 
   const applyInputAction = React.useEffectEvent((action: ThreadInputAction) => {
     switch (action.type) {
@@ -253,46 +260,26 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
     setGiphyResult(results)
   })
 
-  const inputDispatch = React.useMemo<ConversationInputDispatch>(
-    () => ({
-      injectIntoInput,
-      resetState,
-      sendComposerText,
-      sendGiphyResult,
-      setCommandMarkdown,
-      setCommandStatusInfo,
-      setEditing,
-      setGiphyResult,
-      setGiphyWindow,
-      setReplyTo,
-      toggleGiphyPrefill,
-    }),
-    [
-      injectIntoInput,
-      resetState,
-      sendComposerText,
-      sendGiphyResult,
-      setCommandMarkdown,
-      setCommandStatusInfo,
-      setEditing,
-      setGiphyResult,
-      setGiphyWindow,
-      setReplyTo,
-      toggleGiphyPrefill,
-    ]
+  return (
+    <DispatchContext value={inputDispatch}>
+      <StateContext value={state}>{children}</StateContext>
+    </DispatchContext>
   )
-  const value = React.useMemo<ConversationInputState>(
-    () => ({...state, dispatch: inputDispatch}),
-    [inputDispatch, state]
-  )
-
-  return <Context value={value}>{children}</Context>
 }
 
 export function useConversationInput<T>(selector: (state: ConversationInputState) => T): T {
-  const state = React.useContext(Context)
-  if (!state) {
+  const state = React.useContext(StateContext)
+  const dispatch = React.useContext(DispatchContext)
+  if (!state || !dispatch) {
     throw new Error('Missing ConversationInputProvider in the tree')
   }
-  return selector(state)
+  return selector({...state, dispatch})
+}
+
+export function useConversationInputDispatch<T>(selector: (dispatch: ConversationInputDispatch) => T): T {
+  const dispatch = React.useContext(DispatchContext)
+  if (!dispatch) {
+    throw new Error('Missing ConversationInputProvider in the tree')
+  }
+  return selector(dispatch)
 }

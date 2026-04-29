@@ -223,7 +223,9 @@ const getClientPrevFromSnapshot = (snapshot: ConversationThreadState): T.Chat.Me
 }
 
 const ConversationThreadIDContext = React.createContext<T.Chat.ConversationIDKey | undefined>(undefined)
+ConversationThreadIDContext.displayName = 'ConversationThreadIDContext'
 const ConversationThreadStateContext = React.createContext<ConversationThreadState | undefined>(undefined)
+ConversationThreadStateContext.displayName = 'ConversationThreadStateContext'
 
 type ConversationThreadState = {
   accountsInfoMap: Map<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
@@ -444,6 +446,7 @@ type ConversationThreadActions = {
 const ConversationThreadActionsContext = React.createContext<ConversationThreadActions | undefined>(
   undefined
 )
+ConversationThreadActionsContext.displayName = 'ConversationThreadActionsContext'
 
 export type ThreadLoadStatusReporter = (
   conversationIDKey: T.Chat.ConversationIDKey,

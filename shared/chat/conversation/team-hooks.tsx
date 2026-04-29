@@ -539,6 +539,7 @@ type ChatTeamContextValue = {
 }
 
 const ChatTeamContext = React.createContext<ChatTeamContextValue | null>(null)
+ChatTeamContext.displayName = 'ChatTeamContext'
 
 export const ChatTeamProvider = (props: React.PropsWithChildren) => {
   const {children} = props

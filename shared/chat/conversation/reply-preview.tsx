@@ -30,7 +30,7 @@ const ReplyPreview = () => {
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
   const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 80) : null
-  const setReplyTo = InputState.useConversationInput(s => s.dispatch.setReplyTo)
+  const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
   const onCancel = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))
   }

@@ -64,6 +64,7 @@ const chatDebugDump = chatDebugEnabled
   : undefined
 
 export const DebugChatDumpContext = React.createContext({chatDebugDump})
+DebugChatDumpContext.displayName = 'DebugChatDumpContext'
 
 export const useChatDebugDump = chatDebugEnabled
   ? (key: string, dumpCB: () => string) => {

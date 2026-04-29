@@ -10,7 +10,7 @@ type Props = {
 
 const MoreMenuPopup = (props: Props) => {
   const {onHidden, visible} = props
-  const injectIntoInput = InputState.useConversationInput(s => s.dispatch.injectIntoInput)
+  const injectIntoInput = InputState.useConversationInputDispatch(s => s.injectIntoInput)
   const conversationIDKey = useConversationThreadID()
   const onLocationShare = () => {
     C.Router2.navigateAppend({name: 'chatLocationPreview', params: {conversationIDKey}})

@@ -33,6 +33,7 @@ type BotCommandsUpdateState = {
 }
 
 const BotCommandSettingsContext = React.createContext<BotSettingsMap | undefined>(undefined)
+BotCommandSettingsContext.displayName = 'BotCommandSettingsContext'
 
 const makeBotCommandsUpdateState = (conversationIDKey: T.Chat.ConversationIDKey): BotCommandsUpdateState => ({
   conversationIDKey,

@@ -365,8 +365,8 @@ const getEditCancelRetryData = (
 export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
   const you = useCurrentUserState(s => s.username)
   const editing = InputState.useConversationInput(s => s.editing)
-  const uiDispatch = InputState.useConversationInput(
-    C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
+  const uiDispatch = InputState.useConversationInputDispatch(
+    C.useShallow(s => ({setEditing: s.setEditing, setReplyTo: s.setReplyTo}))
   )
   const message = useConversationThreadMessage(ordinal) ?? missingMessage
   const messageMap = useConversationThreadMessageMap()
@@ -407,8 +407,8 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
 const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
   const you = useCurrentUserState(s => s.username)
   const editing = InputState.useConversationInput(s => s.editing)
-  const uiDispatch = InputState.useConversationInput(
-    C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
+  const uiDispatch = InputState.useConversationInputDispatch(
+    C.useShallow(s => ({setEditing: s.setEditing, setReplyTo: s.setReplyTo}))
   )
   const message = useConversationThreadMessage(ordinal) ?? missingMessage
   const messageMap = useConversationThreadMessageMap()
