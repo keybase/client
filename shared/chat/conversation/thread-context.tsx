@@ -2006,12 +2006,12 @@ const useConversationThreadMessagesClear = () => {
 }
 
 export const useConversationThreadLoadOlderMessagesDueToScroll = () => {
-  const {moreToLoadBack} = useConversationThreadPagination()
+  const threadStore = useConversationThreadStore()
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
   const okToLoadMore = useScrollLoadGate()
 
   const loadOlderMessagesDueToScroll: LoadOlderMessagesDueToScroll = (numOrdinals, options) => {
-    if (!moreToLoadBack) {
+    if (!threadStore.getState().moreToLoadBack) {
       logger.info('bail: scrolling back and at the end')
       return
     }
