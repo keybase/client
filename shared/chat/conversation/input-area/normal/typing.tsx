@@ -75,10 +75,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       isTypingAnimation: Kb.Styles.platformStyles({
-        isElectron: {
-          left: 24,
-          position: 'absolute',
-        },
         isMobile: {
           height: 16,
           width: 16,
@@ -88,6 +84,14 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           flexGrow: 1,
           opacity: 1,
+        },
+        isElectron: {
+          alignItems: 'center',
+          height: 16,
+          marginBottom: Kb.Styles.globalMargins.xtiny,
+          marginTop: 2,
+          minWidth: 0,
+          paddingLeft: 24,
         },
         isMobile: {
           alignItems: 'flex-end',
@@ -102,9 +106,8 @@ const styles = Kb.Styles.styleSheetCreate(
       isTypingText: Kb.Styles.platformStyles({
         isElectron: {
           flexGrow: 1,
-          left: 56,
-          marginTop: 2,
-          position: 'absolute',
+          marginLeft: 16,
+          minWidth: 0,
           textAlign: 'left',
         },
         isMobile: {
