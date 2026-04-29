@@ -81,7 +81,6 @@ const emptyUnfurlPromptMap: ReadonlyMap<T.Chat.MessageID, ReadonlySet<string>> =
 const emptyStringSet: ReadonlySet<string> = new Set()
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = 100
-let reactionDebugLogCount = 0
 let reactionDebugNextObjectID = 1
 const reactionDebugObjectIDs = new WeakMap<object, number>()
 const reactionDebugObjectID = (value: unknown) => {
@@ -98,12 +97,10 @@ const reactionDebugObjectID = (value: unknown) => {
   return next
 }
 const reactionDebugLog = (...args: Array<unknown>) => {
-  if (reactionDebugLogCount < 120) {
-    logger.info('[reaction-debug]', ...args)
-  } else if (reactionDebugLogCount === 120) {
-    logger.info('[reaction-debug]', 'suppressing further logs')
+  if (!__DEV__) {
+    return
   }
-  reactionDebugLogCount++
+  logger.info('[reaction-debug]', ...args)
 }
 
 const ignoreErrors = [
