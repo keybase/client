@@ -240,14 +240,16 @@ test('loaded gate defers fetching the orange line until the thread has loaded', 
   })
   mockLoaded = false
 
-  const {rerender} = render(<NormalWrapper />)
+  render(<NormalWrapper />)
   await flushOrangeLine()
 
   expect(unreadlineRpc).not.toHaveBeenCalled()
   expectOrangeLine(noOrangeLine)
 
-  mockLoaded = true
-  rerender(<NormalWrapper />)
+  act(() => {
+    mockLoaded = true
+    useShellState.setState({mobileAppState: 'background'})
+  })
   await flushOrangeLine()
 
   expect(unreadlineRpc).toHaveBeenCalledTimes(1)
@@ -262,12 +264,14 @@ test('initial load uses the read message ID from mount even if meta changes befo
   mockLoaded = false
   mockMeta = makeMeta(convID, 5)
 
-  const {rerender} = render(<NormalWrapper />)
+  render(<NormalWrapper />)
   await flushOrangeLine()
 
   mockMeta = makeMeta(convID, 99)
-  mockLoaded = true
-  rerender(<NormalWrapper />)
+  act(() => {
+    mockLoaded = true
+    useShellState.setState({mobileAppState: 'background'})
+  })
   await flushOrangeLine()
 
   expect(unreadlineRpc).toHaveBeenCalledTimes(1)
