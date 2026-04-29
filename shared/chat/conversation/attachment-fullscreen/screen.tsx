@@ -28,23 +28,16 @@ const SeededFull = (p: {
     if (initialMessage && existing?.type !== 'attachment') {
       addMessages([initialMessage])
     }
-  }, [existing?.type, initialMessage])
+  }, [existing?.type, initialMessage, addMessages])
 
   return (
-    <Full
-      initialMessage={initialMessage}
-      ordinal={ordinal}
-      showHeader={isPortrait}
-      key={String(viewKey)}
-    />
+    <Full initialMessage={initialMessage} ordinal={ordinal} showHeader={isPortrait} key={String(viewKey)} />
   )
 }
 
 const Screen = (p: OwnProps) => {
   const conversationIDKey = p.conversationIDKey ?? T.Chat.noConversationIDKey
-  const [initialMessage] = React.useState(() =>
-    takeAttachmentPreviewMessage(conversationIDKey, p.ordinal)
-  )
+  const [initialMessage] = React.useState(() => takeAttachmentPreviewMessage(conversationIDKey, p.ordinal))
   const {width, height} = useSafeAreaFrame()
   const isPortrait = height > width
   const wasPortraitRef = React.useRef(isPortrait)
@@ -60,12 +53,7 @@ const Screen = (p: OwnProps) => {
 
   return (
     <ConversationThreadProvider id={conversationIDKey}>
-      <SeededFull
-        initialMessage={initialMessage}
-        isPortrait={isPortrait}
-        ordinal={p.ordinal}
-        viewKey={key}
-      />
+      <SeededFull initialMessage={initialMessage} isPortrait={isPortrait} ordinal={p.ordinal} viewKey={key} />
     </ConversationThreadProvider>
   )
 }

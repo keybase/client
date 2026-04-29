@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import {clampImageSize} from '@/constants/chat/helpers'
 import * as Chat from '@/constants/chat'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import logger from '@/logger'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
@@ -21,7 +21,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal, initialMessage?: T.Chat.
   const threadMessage = useConversationThreadMessage(ordinal)
   const initialMessageForOrdinal = initialMessage?.ordinal === ordinal ? initialMessage : undefined
   const message: T.Chat.MessageAttachment =
-    threadMessage?.type === 'attachment' ? threadMessage : initialMessageForOrdinal ?? blankMessage
+    threadMessage?.type === 'attachment' ? threadMessage : (initialMessageForOrdinal ?? blankMessage)
 
   React.useEffect(() => {
     if (message !== blankMessage || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
