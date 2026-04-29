@@ -2052,7 +2052,9 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
 
 export const ConversationThreadProvider = (p: ConversationThreadProviderProps) => {
   const currentConversationIDKey = React.useContext(ConversationThreadIDContext)
-  if (currentConversationIDKey === p.id) {
+  const currentActions = React.useContext(ConversationThreadActionsContext)
+  const currentStore = React.useContext(ConversationThreadStoreContext)
+  if (currentConversationIDKey === p.id && currentActions && currentStore) {
     // Same-thread wrappers should share the live message/meta state instead of replacing it.
     return <>{p.children}</>
   }
@@ -2074,8 +2076,10 @@ const useLiveConversationThreadProviderEntry = (id: T.Chat.ConversationIDKey) =>
 // This fallback is only for surfaces that can still work from cache, inbox meta, or participants.
 export const ConversationThreadBridgeProvider = (p: ConversationThreadProviderProps) => {
   const currentConversationIDKey = React.useContext(ConversationThreadIDContext)
+  const currentActions = React.useContext(ConversationThreadActionsContext)
+  const currentStore = React.useContext(ConversationThreadStoreContext)
   const liveEntry = useLiveConversationThreadProviderEntry(p.id)
-  if (currentConversationIDKey === p.id) {
+  if (currentConversationIDKey === p.id && currentActions && currentStore) {
     return <>{p.children}</>
   }
   if (liveEntry) {
@@ -2091,15 +2095,18 @@ export const ConversationThreadBridgeProvider = (p: ConversationThreadProviderPr
 // Use this for message-scoped routes and actions. Rendering without the live thread would no-op later.
 export const RequiredConversationThreadBridgeProvider = (p: ConversationThreadProviderProps) => {
   const currentConversationIDKey = React.useContext(ConversationThreadIDContext)
+  const currentActions = React.useContext(ConversationThreadActionsContext)
+  const currentStore = React.useContext(ConversationThreadStoreContext)
   const liveEntry = useLiveConversationThreadProviderEntry(p.id)
   React.useEffect(() => {
     const missingLiveThread =
-      currentConversationIDKey !== p.id && !liveConversationThreadProviders.get(p.id)
+      !(currentConversationIDKey === p.id && currentActions && currentStore) &&
+      !liveConversationThreadProviders.get(p.id)
     if (missingLiveThread && T.Chat.isValidConversationIDKey(p.id)) {
       logger.warn(`RequiredConversationThreadBridgeProvider: missing live thread for ${p.id}`)
     }
-  }, [currentConversationIDKey, p.id, liveEntry])
-  if (currentConversationIDKey === p.id) {
+  }, [currentActions, currentConversationIDKey, currentStore, p.id, liveEntry])
+  if (currentConversationIDKey === p.id && currentActions && currentStore) {
     return <>{p.children}</>
   }
   if (!liveEntry) {
