@@ -23,6 +23,7 @@ import {
   useConversationThreadCoinFlipStatus,
   useConversationThreadJumpToRecent,
   useConversationThreadLoadMessagesCentered,
+  useConversationThreadLoadOlderMessagesDueToScroll,
   useConversationThreadMessage,
   useConversationThreadMessageOrdinalsMaybe,
   useConversationThreadPaymentStatus,
@@ -347,6 +348,38 @@ test('jumpToRecent reloads recent messages through the mounted thread action', a
   })
 
   expect(onThreadLoadStatus).toHaveBeenCalledWith(convID, T.RPCChat.UIChatThreadStatusTyp.server)
+})
+
+test('scrollback loads older messages without marking the thread read', async () => {
+  putConversationThreadCacheSnapshot(convID, {
+    ...makeThreadSnapshot([makeTextMessage()]),
+    moreToLoadBack: true,
+  })
+  useConfigState.setState({loggedIn: true})
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [makeValidTextUIMessage(T.Chat.numberToMessageID(201), 'older')],
+        pagination: {last: false, next: '', num: 100, previous: ''},
+      }),
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const markAsRead = jest
+    .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
+    .mockResolvedValue({offline: false})
+  const {result} = renderHook(() => useConversationThreadLoadOlderMessagesDueToScroll(), {wrapper})
+
+  act(() => {
+    result.current(1)
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(markAsRead).not.toHaveBeenCalled()
 })
 
 test('mounted thread listener applies messagesUpdated for the active conversation', () => {

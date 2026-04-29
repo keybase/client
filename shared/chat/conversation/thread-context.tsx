@@ -904,6 +904,7 @@ const loadConversationThreadMessages = (
       const isUserNavigation =
         reason !== 'findNewestConversation' &&
         reason !== 'findNewestConversationFromLayout' &&
+        reason !== 'scroll back' &&
         reason !== 'tab selected'
       if (isUserNavigation) {
         actions.markThreadAsRead(true)
