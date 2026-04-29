@@ -783,6 +783,84 @@ test('mounted thread listener applies reaction updates for the active conversati
   })
 })
 
+test('loaded focus refresh does not overwrite newer streamed reaction updates', async () => {
+  const targetMsgID = T.Chat.numberToMessageID(301)
+  const targetOrdinal = T.Chat.numberToOrdinal(301)
+  seedThreadCache([makeTextMessage()])
+  let incomingCallMap:
+    | Parameters<typeof T.RPCChat.localGetThreadNonblockRpcListener>[0]['incomingCallMap']
+    | undefined
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    incomingCallMap = p.incomingCallMap
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(
+    () => ({
+      loadMoreMessages: useConversationThreadLoadMoreMessages(),
+      message: useConversationThreadMessage(targetOrdinal),
+    }),
+    {wrapper}
+  )
+
+  act(() => {
+    result.current.loadMoreMessages({reason: 'tab selected'})
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(incomingCallMap).toBeDefined()
+
+  act(() => {
+    notifyEngineActionListeners({
+      payload: {
+        params: {
+          activity: {
+            activityType: T.RPCChat.ChatActivityType.reactionUpdate,
+            reactionUpdate: {
+              convID: T.Chat.keyToConversationID(convID),
+              reactionUpdates: [
+                {
+                  reactions: {
+                    reactions: {
+                      ':+1:': {
+                        decorated: ':+1:',
+                        users: {
+                          alice: {
+                            ctime: 300,
+                            reactionMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(99)),
+                          },
+                        },
+                      },
+                    },
+                  },
+                  targetMsgID: T.Chat.messageIDToNumber(targetMsgID),
+                },
+              ],
+              userReacjis: {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: null},
+            },
+          },
+        },
+      },
+      type: 'chat.1.NotifyChat.NewChatActivity',
+    } as never)
+  })
+
+  expect(result.current.message?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['alice'])
+
+  act(() => {
+    incomingCallMap?.['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [makeValidTextUIMessage(targetMsgID, 'stale server copy')],
+        pagination: {last: true, next: '', num: 20, previous: ''},
+      }),
+    })
+  })
+
+  expect(result.current.message?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['alice'])
+})
+
 test('toggleMessageReaction overlays locally without mutating server reactions', async () => {
   const targetMsgID = T.Chat.numberToMessageID(301)
   const targetOrdinal = T.Chat.numberToOrdinal(301)

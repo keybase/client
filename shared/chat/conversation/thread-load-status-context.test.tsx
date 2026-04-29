@@ -16,10 +16,18 @@ import {
 import {ConversationThreadProvider} from './thread-context'
 
 let mockRouteFocused = true
+let mockVisibleScreenName: string | undefined
 jest.mock('@react-navigation/core', () => ({
   createNavigationContainerRef: jest.fn(() => ({current: null})),
   useIsFocused: () => mockRouteFocused,
 }))
+jest.mock('@/constants/router', () => {
+  const actual = jest.requireActual<typeof import('@/constants/router')>('@/constants/router')
+  return {
+    ...actual,
+    getVisibleScreen: () => (mockVisibleScreenName ? {name: mockVisibleScreenName} : undefined),
+  }
+})
 
 jest.mock('@/stores/inbox-rows', () => ({
   flushInboxRowUpdates: jest.fn(),
@@ -46,6 +54,7 @@ const flushPromises = async () => {
 
 beforeEach(() => {
   mockRouteFocused = true
+  mockVisibleScreenName = undefined
   jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
@@ -155,6 +164,26 @@ test('mounted route focus reload reports status through the provider', async () 
   })
 
   expect(result.current).toBe(T.RPCChat.UIChatThreadStatusTyp.server)
+})
+
+test('mounted route focus skips reload after returning from emoji picker', async () => {
+  mockRouteFocused = false
+  mockVisibleScreenName = 'chatChooseEmoji'
+  const getThread = jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockResolvedValue({
+    offline: false,
+  })
+  const {rerender} = renderHook(() => useThreadLoadStatus(), {wrapper})
+
+  act(() => {
+    mockRouteFocused = true
+    mockVisibleScreenName = undefined
+    rerender()
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(getThread).not.toHaveBeenCalled()
 })
 
 test('mounted app foreground does not reload the thread', async () => {

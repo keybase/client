@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
+import {getVisibleScreen} from '@/constants/router'
 import {useIsFocused} from '@react-navigation/core'
 import {
   type ThreadLoadStatusOptions,
@@ -33,6 +34,7 @@ const ignoreThreadLoadStatusOptions = () => ({
   isThreadLoadCurrent: () => true,
   onThreadLoadStatus: ignoreThreadLoadStatus,
 })
+const skipReloadOnReturnFromScreens = new Set(['chatChooseEmoji'])
 
 const missingThreadLoadStatusContext = () => {
   throw new Error('Missing ConversationThreadLoadStatusProvider in the tree')
@@ -80,6 +82,7 @@ export const ConversationThreadLoadStatusProvider = (
   }, [id])
   const routeFocused = useIsFocused()
   const previousRouteFocusedRef = React.useRef(routeFocused)
+  const blurredToScreenNameRef = React.useRef<string | undefined>(undefined)
   const threadLoadGenerationRef = React.useRef(0)
   const threadLoadStatusOptionsRef = React.useRef<ThreadLoadStatusOptionsCache | undefined>(undefined)
   const [threadLoadStatusState, setThreadLoadStatusState] = React.useState<ThreadLoadStatusState>(() => ({
@@ -143,7 +146,16 @@ export const ConversationThreadLoadStatusProvider = (
   React.useEffect(() => {
     const previousRouteFocused = previousRouteFocusedRef.current
     previousRouteFocusedRef.current = routeFocused
-    if (routeFocused && !previousRouteFocused) {
+    if (!routeFocused) {
+      blurredToScreenNameRef.current = getVisibleScreen()?.name
+      return
+    }
+    const blurredToScreenName = blurredToScreenNameRef.current
+    blurredToScreenNameRef.current = undefined
+    if (!previousRouteFocused) {
+      if (blurredToScreenName && skipReloadOnReturnFromScreens.has(blurredToScreenName)) {
+        return
+      }
       reloadSelectedThread()
     }
   }, [routeFocused])

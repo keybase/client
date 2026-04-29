@@ -81,6 +81,19 @@ const emptyUnfurlPromptMap: ReadonlyMap<T.Chat.MessageID, ReadonlySet<string>> =
 const emptyStringSet: ReadonlySet<string> = new Set()
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = 100
+
+const sameStringSet = (a: ReadonlySet<string>, b: ReadonlySet<string>) => {
+  if (a.size !== b.size) {
+    return false
+  }
+  for (const value of a) {
+    if (!b.has(value)) {
+      return false
+    }
+  }
+  return true
+}
+
 let reactionDebugNextObjectID = 1
 const reactionDebugObjectIDs = new WeakMap<object, number>()
 const reactionDebugObjectID = (value: unknown) => {
@@ -256,6 +269,7 @@ export type ConversationThreadState = {
   explodingMode: number
   flipStatusMap: Map<string, T.RPCChat.UICoinFlipStatus>
   loaded: boolean
+  liveUpdateVersion: number
   meta: T.Chat.ConversationMeta
   messageIDToOrdinal: Map<T.Chat.MessageID, T.Chat.Ordinal>
   messageMap: Map<T.Chat.Ordinal, T.Chat.Message>
@@ -283,6 +297,7 @@ const makeEmptyThreadState = (): ConversationThreadState =>
       explodingMode: 0,
       flipStatusMap: new Map<string, T.RPCChat.UICoinFlipStatus>(),
       loaded: false,
+      liveUpdateVersion: 0,
       messageIDToOrdinal: new Map<T.Chat.MessageID, T.Chat.Ordinal>(),
       messageMap: new Map<T.Chat.Ordinal, T.Chat.Message>(),
       messageOrdinals: undefined as ReadonlyArray<T.Chat.Ordinal> | undefined,
@@ -311,6 +326,7 @@ const snapshotToThreadState = (
           explodingMode: snapshot.explodingMode,
           flipStatusMap: cloneMapWithImmer(snapshot.flipStatusMap),
           loaded: snapshot.loaded,
+          liveUpdateVersion: 0,
           messageIDToOrdinal: produce(new Map(snapshot.messageIDToOrdinal), () => {}),
           messageMap: cloneMessageMapWithImmer(snapshot.messageMap),
           messageOrdinals: snapshot.messageOrdinals
@@ -420,7 +436,11 @@ type SelectedConversation = (options?: SelectedConversationOptions) => void
 type ConversationThreadActions = {
   addMessages: (
     messages: ReadonlyArray<T.Chat.Message>,
-    opt?: {markAsRead?: boolean; validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}}
+    opt?: {
+      liveUpdate?: boolean
+      markAsRead?: boolean
+      validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
+    }
   ) => void
   applyThreadLoad: (p: {
     centered: boolean
@@ -436,8 +456,13 @@ type ConversationThreadActions = {
     upToMessageID?: T.Chat.MessageID
     deletableMessageTypes?: ReadonlySet<T.Chat.MessageType>
     ordinals?: ReadonlyArray<T.Chat.Ordinal>
+    liveUpdate?: boolean
   }) => void
-  explodeMessages: (messageIDs: ReadonlyArray<T.Chat.MessageID>, explodedBy?: string) => void
+  explodeMessages: (
+    messageIDs: ReadonlyArray<T.Chat.MessageID>,
+    explodedBy?: string,
+    liveUpdate?: boolean
+  ) => void
   getSnapshot: () => ConversationThreadState
   loadMoreMessages: LoadMoreMessages
   markThreadAsRead: (force?: boolean) => void
@@ -629,7 +654,7 @@ const applyMessagesUpdatedToThread = (
   if (messages.length === 0) {
     return
   }
-  actions.addMessages(messages, {markAsRead: activelyLookingAtThread})
+  actions.addMessages(messages, {liveUpdate: true, markAsRead: activelyLookingAtThread})
 }
 
 const applyIncomingMutationToThread = (
@@ -642,7 +667,7 @@ const applyIncomingMutationToThread = (
   logger.info(`Got chat incoming message of messageType: ${body.messageType}`)
   const mutationOrdinal = T.Chat.numberToOrdinal(valid.messageID)
   if (actions.getSnapshot().messageMap.has(mutationOrdinal)) {
-    actions.deleteMessages({ordinals: [mutationOrdinal]})
+    actions.deleteMessages({liveUpdate: true, ordinals: [mutationOrdinal]})
   }
 
   switch (body.messageType) {
@@ -657,7 +682,7 @@ const applyIncomingMutationToThread = (
           devicename
         )
         if (modMessage) {
-          actions.addMessages([modMessage])
+          actions.addMessages([modMessage], {liveUpdate: true})
         }
       }
       return true
@@ -673,9 +698,9 @@ const applyIncomingMutationToThread = (
         })
 
         if (isExplodeNow) {
-          actions.explodeMessages(messageIDs, valid.senderUsername)
+          actions.explodeMessages(messageIDs, valid.senderUsername, true)
         } else {
-          actions.deleteMessages({messageIDs})
+          actions.deleteMessages({liveUpdate: true, messageIDs})
         }
       }
       return true
@@ -740,16 +765,17 @@ const applyIncomingMessageToThread = (
     const existing = ordinal ? snapshot.messageMap.get(ordinal) : undefined
     if (ordinal && existing) {
       actions.addMessages([Message.upgradeMessage(existing, {...message, ordinal})], {
+        liveUpdate: true,
         markAsRead: activelyLookingAtThread,
       })
     } else {
-      actions.addMessages([message], {markAsRead: activelyLookingAtThread})
+      actions.addMessages([message], {liveUpdate: true, markAsRead: activelyLookingAtThread})
     }
   } else {
     if (actions.getSnapshot().moreToLoadForward) {
       return
     }
-    actions.addMessages([message], {markAsRead: activelyLookingAtThread})
+    actions.addMessages([message], {liveUpdate: true, markAsRead: activelyLookingAtThread})
   }
 }
 
@@ -793,6 +819,7 @@ const applyExpungeToThread = (expunge: T.RPCChat.ExpungeInfo, actions: Conversat
     useConfigState.getState().chatDeletableByDeleteHistory || Common.allMessageTypes
   actions.deleteMessages({
     deletableMessageTypes,
+    liveUpdate: true,
     upToMessageID: T.Chat.numberToMessageID(expunge.expunge.upto),
   })
 }
@@ -809,7 +836,7 @@ const applyEphemeralPurgeToThread = (
     return arr
   }, [])
   if (messageIDs) {
-    actions.explodeMessages(messageIDs)
+    actions.explodeMessages(messageIDs, undefined, true)
   }
 }
 
@@ -861,11 +888,19 @@ const loadConversationThreadMessages = (
       return
     }
 
-    const currentMeta = actions.getSnapshot().meta
+    const loadStartedSnapshot = actions.getSnapshot()
+    const currentMeta = loadStartedSnapshot.meta
     if (currentMeta.membershipType === 'youAreReset' || currentMeta.rekeyers.size > 0) {
       logger.info('loadMoreMessages: bail: we are reset')
       return
     }
+    const loadStartedLiveUpdateVersion = loadStartedSnapshot.liveUpdateVersion
+    const protectLoadedFocusRefresh =
+      loadStartedSnapshot.loaded &&
+      scrollDirection === 'none' &&
+      !centeredMessageID &&
+      !messageIDControl &&
+      (reason === 'focused' || reason === 'tab selected')
     logger.info(
       `loadMoreMessages: calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
     )
@@ -879,6 +914,15 @@ const loadConversationThreadMessages = (
       }
       if (!isCurrentThreadLoad()) {
         logger.info(`loadMoreMessages: stale response ignored: ${why}`)
+        return
+      }
+      if (
+        protectLoadedFocusRefresh &&
+        actions.getSnapshot().liveUpdateVersion !== loadStartedLiveUpdateVersion
+      ) {
+        logger.info(
+          `loadMoreMessages: stale response ignored after live update: ${why} reason=${reason} convID=${conversationIDKey}`
+        )
         return
       }
 
@@ -1080,13 +1124,17 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
     (updater: (draft: Draft<ConversationThreadState>) => void) => {
       const current = threadStore.getState()
       const next = produce(current, draft => updater(draft))
+      if (current === next) {
+        return
+      }
       reactionDebugLog('updateThreadState', {
         convID: id,
+        liveUpdateVersion: current.liveUpdateVersion,
+        nextLiveUpdateVersion: next.liveUpdateVersion,
         nextOptimisticMapID: reactionDebugObjectID(next.optimisticReactionMap),
         nextOptimisticSize: next.optimisticReactionMap.size,
         nextStateID: reactionDebugObjectID(next),
         sameOptimisticMap: current.optimisticReactionMap === next.optimisticReactionMap,
-        sameState: current === next,
         stateID: reactionDebugObjectID(current),
       })
       threadStore.setState(next, true)
@@ -1133,9 +1181,16 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
   const addMessages = React.useEffectEvent(
     (
       messages: ReadonlyArray<T.Chat.Message>,
-      opt: {markAsRead?: boolean; validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}} = {}
+      opt: {
+        liveUpdate?: boolean
+        markAsRead?: boolean
+        validatedRange?: {from: T.Chat.Ordinal; to: T.Chat.Ordinal}
+      } = {}
     ) => {
       updateThreadState(s => {
+        if (opt.liveUpdate) {
+          s.liveUpdateVersion += 1
+        }
         addMessagesToThreadState(s, messages, {validatedRange: opt.validatedRange})
         clearOptimisticReactionsForMessagesInThreadState(s, messages)
       })
@@ -1179,8 +1234,12 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       upToMessageID?: T.Chat.MessageID
       deletableMessageTypes?: ReadonlySet<T.Chat.MessageType>
       ordinals?: ReadonlyArray<T.Chat.Ordinal>
+      liveUpdate?: boolean
     }) => {
       updateThreadState(s => {
+        if (p.liveUpdate) {
+          s.liveUpdateVersion += 1
+        }
         deleteMessagesFromThreadState(s, {
           deletableMessageTypes: p.deletableMessageTypes ?? Common.allMessageTypes,
           messageIDs: p.messageIDs,
@@ -1191,8 +1250,11 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
     }
   )
   const explodeMessages = React.useEffectEvent(
-    (messageIDs: ReadonlyArray<T.Chat.MessageID>, explodedBy?: string) => {
+    (messageIDs: ReadonlyArray<T.Chat.MessageID>, explodedBy?: string, liveUpdate?: boolean) => {
       updateThreadState(s => {
+        if (liveUpdate) {
+          s.liveUpdateVersion += 1
+        }
         explodeMessagesInThreadState(s, messageIDs, explodedBy)
       })
     }
@@ -1578,6 +1640,9 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       const missingTargetMsgIDs = new Array<T.Chat.MessageID>()
       updateThreadState(s => {
         missingTargetMsgIDs.push(...updateReactionsInThreadState(s, updates))
+        if (missingTargetMsgIDs.length !== updates.length) {
+          s.liveUpdateVersion += 1
+        }
         clearOptimisticReactionsForUpdatesInThreadState(s, updates)
       })
       for (const targetMsgID of missingTargetMsgIDs) {
@@ -1608,6 +1673,9 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
   })
   const setTyping = React.useEffectEvent((typing: ReadonlySet<string>) => {
     updateThreadState(s => {
+      if (sameStringSet(s.typing, typing)) {
+        return
+      }
       s.typing = new Set(typing)
     })
   })
