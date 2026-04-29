@@ -262,6 +262,9 @@ export const initPushListener = () => {
     const forUid = (pending as {forUid?: string}).forUid
     if (!forUid || forUid !== s.uid) return
     pushState.dispatch.clearPendingPushNotification()
+    // The switch is complete — clear userSwitching so the configuredAccounts
+    // subscriber is unblocked for future notifications.
+    storeRegistry.getState('config').dispatch.setUserSwitching(false)
     pushState.dispatch.handlePush(pending)
   })
 

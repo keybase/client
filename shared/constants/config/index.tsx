@@ -1035,6 +1035,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         Z.resetAllStores()
         if (pendingPush) {
           storeRegistry.getState('push').dispatch.setPendingPushNotification(pendingPush)
+          // Restore userSwitching=true so the configuredAccounts subscriber in
+          // push.native.tsx doesn't fire and trigger a second login() call before
+          // the new account's uid is set. Cleared in the current-user subscriber
+          // once navigation completes.
+          storeRegistry.getState('config').dispatch.setUserSwitching(true)
         }
       }
 
