@@ -506,8 +506,6 @@ const reasonToRPCReason = (reason: string): T.RPCChat.GetThreadReason => {
     case 'extension':
     case 'push':
       return T.RPCChat.GetThreadReason.push
-    case 'foregrounding':
-      return T.RPCChat.GetThreadReason.foreground
     default:
       return T.RPCChat.GetThreadReason.general
   }

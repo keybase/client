@@ -157,15 +157,15 @@ test('mounted route focus reload reports status through the provider', async () 
   expect(result.current).toBe(T.RPCChat.UIChatThreadStatusTyp.server)
 })
 
-test('mounted focus reload reports status through the provider', async () => {
-  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+test('mounted app foreground does not reload the thread', async () => {
+  const getThread = jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
     p.incomingCallMap['chat.1.chatUi.chatThreadStatus']?.({
       status: {typ: T.RPCChat.UIChatThreadStatusTyp.server},
     })
     await Promise.resolve()
     return {offline: false}
   })
-  const {result} = renderHook(() => useThreadLoadStatus(), {wrapper})
+  renderHook(() => useThreadLoadStatus(), {wrapper})
 
   act(() => {
     useShellState.getState().dispatch.changedFocus(false)
@@ -180,5 +180,5 @@ test('mounted focus reload reports status through the provider', async () => {
     await flushPromises()
   })
 
-  expect(result.current).toBe(T.RPCChat.UIChatThreadStatusTyp.server)
+  expect(getThread).not.toHaveBeenCalled()
 })

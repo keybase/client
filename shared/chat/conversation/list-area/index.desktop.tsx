@@ -23,7 +23,7 @@ import {
   useConversationThreadLoadNewerMessagesDueToScroll,
   useConversationThreadLoadOlderMessagesDueToScroll,
 } from '../thread-context'
-import {useThreadLoadStatusOptions} from '../thread-load-status-context'
+import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -51,18 +51,18 @@ const useScrolling = (p: {
   }, [containsLatestMessage])
   const {messageOrdinals, centeredOrdinal, loaded} = p
   const numOrdinals = messageOrdinals.length
-  const threadLoadStatusOptions = useThreadLoadStatusOptions()
+  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
   const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
   const loadNewerMessages = C.useThrottledCallback(() => {
-    loadNewerMessagesDueToScroll(numOrdinals, threadLoadStatusOptions)
+    loadNewerMessagesDueToScroll(numOrdinals, getThreadLoadStatusOptions())
   }, 200)
   // if we scroll up try and keep the position
   const scrollBottomOffsetRef = React.useRef<number | undefined>(undefined)
 
   const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
   const loadOlderMessages = React.useCallback((numOrdinals: number) => {
-    loadOlderMessagesDueToScroll(numOrdinals, threadLoadStatusOptions)
-  }, [loadOlderMessagesDueToScroll, threadLoadStatusOptions])
+    loadOlderMessagesDueToScroll(numOrdinals, getThreadLoadStatusOptions())
+  }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10

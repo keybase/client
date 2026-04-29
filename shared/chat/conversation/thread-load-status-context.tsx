@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {useShellState} from '@/stores/shell'
 import {useIsFocused} from '@react-navigation/core'
 import {
   type ThreadLoadStatusOptions,
@@ -61,6 +60,9 @@ export const useThreadLoadStatusReporter = () =>
 export const useThreadLoadStatusOptions = () =>
   React.useContext(ThreadLoadStatusActionContext).getThreadLoadStatusOptions()
 
+export const useThreadLoadStatusOptionsGetter = () =>
+  React.useContext(ThreadLoadStatusActionContext).getThreadLoadStatusOptions
+
 export const ConversationThreadLoadStatusProvider = (
   p: React.PropsWithChildren<{
     id: T.Chat.ConversationIDKey
@@ -76,8 +78,6 @@ export const ConversationThreadLoadStatusProvider = (
   React.useLayoutEffect(() => {
     currentIDRef.current = id
   }, [id])
-  const appFocused = useShellState(s => s.appFocused)
-  const previousAppFocusedRef = React.useRef(appFocused)
   const routeFocused = useIsFocused()
   const previousRouteFocusedRef = React.useRef(routeFocused)
   const threadLoadGenerationRef = React.useRef(0)
@@ -132,14 +132,6 @@ export const ConversationThreadLoadStatusProvider = (
     })
   }
 
-  const reloadForegroundedThread = React.useEffectEvent(() => {
-    loadMoreMessages({
-      ...getThreadLoadStatusOptions(),
-      reason: 'foregrounding',
-    })
-    markThreadAsRead()
-  })
-
   const reloadSelectedThread = React.useEffectEvent(() => {
     loadMoreMessages({
       ...getThreadLoadStatusOptions(),
@@ -147,14 +139,6 @@ export const ConversationThreadLoadStatusProvider = (
     })
     markThreadAsRead()
   })
-
-  React.useEffect(() => {
-    const previousAppFocused = previousAppFocusedRef.current
-    previousAppFocusedRef.current = appFocused
-    if (appFocused && !previousAppFocused) {
-      reloadForegroundedThread()
-    }
-  }, [appFocused])
 
   React.useEffect(() => {
     const previousRouteFocused = previousRouteFocusedRef.current
