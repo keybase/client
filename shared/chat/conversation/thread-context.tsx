@@ -98,9 +98,6 @@ const reactionDebugObjectID = (value: unknown) => {
   return next
 }
 const reactionDebugLog = (...args: Array<unknown>) => {
-  if (!__DEV__) {
-    return
-  }
   if (reactionDebugLogCount < 120) {
     logger.info('[reaction-debug]', ...args)
   } else if (reactionDebugLogCount === 120) {
