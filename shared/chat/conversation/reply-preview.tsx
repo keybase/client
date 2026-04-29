@@ -36,13 +36,13 @@ const ReplyPreview = () => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" alignSelf="stretch" style={styles.outerContainer}>
       <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny" fullWidth={true}>
         <Kb.Box2 direction="vertical" style={styles.title} fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Replying to:</Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" style={styles.replyContainer}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
+          <Kb.Box2 direction="vertical" alignSelf="stretch" flex={1} style={styles.contentContainer} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={username} size={32} />
               <Kb.Text type="BodyBold" style={styles.username}>
@@ -72,16 +72,14 @@ const ReplyPreview = () => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      close: {alignSelf: 'flex-start'},
+      close: {alignSelf: 'flex-start', flexShrink: 0},
       container: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.desktopStyles.boxShadow,
           borderRadius: Kb.Styles.borderRadius,
         },
       }),
-      contentContainer: Kb.Styles.platformStyles({
-        isMobile: {flex: 1},
-      }),
+      contentContainer: {minWidth: 0},
       outerContainer: Kb.Styles.platformStyles({
         isElectron: {
           marginBottom: Kb.Styles.globalMargins.xtiny,
