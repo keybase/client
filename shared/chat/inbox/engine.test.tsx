@@ -8,7 +8,7 @@ import {
   type ConversationThreadSnapshot,
 } from '@/chat/conversation/thread-cache'
 import {handleConvoEngineIncoming} from './engine'
-import {syncBadgeState} from './metadata'
+import {getInboxConversationMeta, getInboxConversationParticipants, syncBadgeState} from './metadata'
 import {
   syncInboxRowBadgeState,
   syncInboxRowsFromParticipantMap,
@@ -137,6 +137,43 @@ const makeCoinFlipStatus = (
   resultText: '',
   revealVisualization: '',
   ...override,
+})
+
+const makeUnverifiedInboxUIItem = (): T.RPCChat.UnverifiedInboxUIItem => ({
+  commands: {typ: T.RPCChat.ConversationCommandGroupsTyp.none},
+  convID: T.Chat.conversationIDKeyToString(convID),
+  convRetention: null,
+  draft: null,
+  finalizeInfo: null,
+  isDefaultConv: false,
+  isPublic: false,
+  localMetadata: {
+    channelName: '',
+    headline: '',
+    headlineDecorated: '',
+    resetParticipants: null,
+    snippet: '',
+    snippetDecoration: T.RPCChat.SnippetDecoration.none,
+    writerNames: null,
+  },
+  localVersion: 1,
+  maxMsgID: T.Chat.messageIDToNumber(msgID),
+  maxVisibleMsgID: T.Chat.messageIDToNumber(msgID),
+  memberStatus: T.RPCChat.ConversationMemberStatus.active,
+  membersType: T.RPCChat.ConversationMembersType.impteamnative,
+  name: 'alice,bob,charlie',
+  notifications: null,
+  readMsgID: 0,
+  status: T.RPCChat.ConversationStatus.unfiled,
+  supersededBy: null,
+  supersedes: null,
+  teamRetention: null,
+  teamType: T.RPCChat.TeamType.simple,
+  time: 1,
+  tlfID: 'tlf-id',
+  topicType: T.RPCChat.TopicType.chat,
+  version: 1,
+  visibility: T.RPCGen.TLFVisibility.private,
 })
 
 test('global coin flip and decorator routing do not create thread cache entries', () => {
@@ -343,6 +380,36 @@ test('global typing and participant updates route to inbox rows', () => {
   } as never)
 
   expect(syncInboxRowsFromParticipantMap).toHaveBeenCalledWith(participantMap)
+})
+
+test('global inbox failure routing stores error metadata and rekey participants', () => {
+  handleConvoEngineIncoming({
+    payload: {
+      params: {
+        convID: T.Chat.keyToConversationID(convID),
+        error: {
+          message: 'rekey needed',
+          rekeyInfo: {
+            readerNames: ['charlie'],
+            rekeyers: ['bob'],
+            tlfName: 'alice,bob,charlie',
+            tlfPublic: false,
+            writerNames: ['alice', 'bob'],
+          },
+          remoteConv: makeUnverifiedInboxUIItem(),
+          typ: T.RPCChat.ConversationErrorType.otherrekeyneeded,
+          unverifiedTLFName: 'alice,bob,charlie',
+        },
+      },
+    },
+    type: 'chat.1.chatUi.chatInboxFailed',
+  } as never)
+
+  const meta = getInboxConversationMeta(convID)
+  expect(meta?.trustedState).toBe('error')
+  expect(meta?.snippet).toBe('rekey needed')
+  expect([...(meta?.rekeyers ?? [])]).toEqual(['bob'])
+  expect(getInboxConversationParticipants(convID)?.name).toEqual(['alice', 'bob', 'charlie'])
 })
 
 test('syncBadgeState delegates badge ownership to inbox rows', () => {

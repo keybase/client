@@ -1553,6 +1553,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
           `updateReactions: couldn't find target ordinal for targetMsgID=${targetMsgID} in convID=${id}`
         )
       }
+      markThreadAsRead()
     }
   )
   const clearValidatedOrdinalRange = React.useEffectEvent(() => {
@@ -1845,6 +1846,23 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
     const conversationIDKey = conv ? T.Chat.stringToConversationIDKey(conv.convID) : T.Chat.noConversationIDKey
     if (conversationIDKey === id) {
       applyInboxUIItemToThread(conv, threadActions)
+    }
+  })
+  useEngineActionListener('chat.1.chatUi.chatInboxFailed', action => {
+    const {convID, error} = action.payload.params
+    if (T.Chat.conversationIDToKey(convID) !== id) {
+      return
+    }
+    const {meta, participants} = Meta.inboxUIItemErrorToConversationMetaAndParticipants(
+      error,
+      useCurrentUserState.getState().username,
+      threadActions.getSnapshot().meta
+    )
+    if (meta) {
+      threadActions.setMeta(meta)
+    }
+    if (participants) {
+      threadActions.setParticipants(participants)
     }
   })
   useEngineActionListener('chat.1.NotifyChat.ChatSetConvSettings', action => {

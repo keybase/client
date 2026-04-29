@@ -96,6 +96,33 @@ export const updateInboxConversationMeta = (
   ])
 }
 
+export const metaReceivedError = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  error: T.RPCChat.InboxUIItemError
+) => {
+  if (error.typ === T.RPCChat.ConversationErrorType.transient) {
+    logger.info(
+      `metaReceivedError: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
+    )
+    return
+  }
+  logger.info(
+    `metaReceivedError: displaying error for convID: ${conversationIDKey} error: ${error.message}`
+  )
+  const {meta, participants} = Meta.inboxUIItemErrorToConversationMetaAndParticipants(
+    error,
+    useCurrentUserState.getState().username,
+    getInboxConversationMeta(conversationIDKey)
+  )
+  if (!meta) {
+    return
+  }
+  metasReceived([meta])
+  if (participants) {
+    participantInfoReceived(conversationIDKey, participants, meta)
+  }
+}
+
 export const participantInfoReceived = (
   conversationIDKey: T.Chat.ConversationIDKey,
   participantInfo: T.Chat.ParticipantInfo,

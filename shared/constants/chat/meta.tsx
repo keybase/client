@@ -96,6 +96,59 @@ export const unverifiedInboxUIItemToConversationMeta = (
   }
 }
 
+export const inboxUIItemErrorToConversationMetaAndParticipants = (
+  error: T.RPCChat.InboxUIItemError,
+  username: string,
+  oldMeta?: T.Chat.ConversationMeta
+): {meta?: T.Chat.ConversationMeta; participants?: T.Chat.ParticipantInfo} => {
+  if (error.typ === T.RPCChat.ConversationErrorType.transient) {
+    return {}
+  }
+  const isRekeyError =
+    error.typ === T.RPCChat.ConversationErrorType.otherrekeyneeded ||
+    error.typ === T.RPCChat.ConversationErrorType.selfrekeyneeded
+  const remoteMeta = unverifiedInboxUIItemToConversationMeta(error.remoteConv)
+  const baseMeta = isRekeyError ? remoteMeta : (oldMeta ?? remoteMeta)
+  if (!baseMeta) {
+    return {}
+  }
+  const meta = {
+    ...baseMeta,
+    snippet: error.message,
+    snippetDecoration: T.RPCChat.SnippetDecoration.none,
+    trustedState: 'error' as const,
+  }
+  if (!isRekeyError) {
+    return {meta}
+  }
+
+  const {rekeyInfo} = error
+  const participants = [
+    ...(rekeyInfo
+      ? new Set<string>(
+          ([] as Array<string>)
+            .concat(rekeyInfo.writerNames || [], rekeyInfo.readerNames || [])
+            .filter(Boolean)
+        )
+      : new Set<string>(error.unverifiedTLFName.split(','))),
+  ]
+  return {
+    meta: {
+      ...meta,
+      rekeyers: new Set<string>(
+        error.typ === T.RPCChat.ConversationErrorType.selfrekeyneeded
+          ? [username || '']
+          : rekeyInfo?.rekeyers || []
+      ),
+    },
+    participants: {
+      all: participants,
+      contactName: new Map<string, string>(),
+      name: participants,
+    },
+  }
+}
+
 const conversationMetadataToMetaSupersedeInfo = (metas?: ReadonlyArray<T.RPCChat.ConversationMetadata>) => {
   const meta = metas?.find(m => m.idTriple.topicType === T.RPCChat.TopicType.chat && !!m.finalizeInfo)
 

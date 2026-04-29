@@ -30,6 +30,7 @@ import {
   useConversationThreadMessage,
   useConversationThreadMessageActions,
   useConversationThreadMessageOrdinalsMaybe,
+  useConversationThreadMeta,
   useConversationThreadPaymentStatus,
   useConversationThreadParticipants,
   useConversationThreadTyping,
@@ -173,6 +174,43 @@ const makeIncomingOutboxReaction = (
   },
   modifiedMessage: null,
   pagination: null,
+})
+
+const makeUnverifiedInboxUIItem = (): T.RPCChat.UnverifiedInboxUIItem => ({
+  commands: {typ: T.RPCChat.ConversationCommandGroupsTyp.none},
+  convID: T.Chat.conversationIDKeyToString(convID),
+  convRetention: null,
+  draft: null,
+  finalizeInfo: null,
+  isDefaultConv: false,
+  isPublic: false,
+  localMetadata: {
+    channelName: '',
+    headline: '',
+    headlineDecorated: '',
+    resetParticipants: null,
+    snippet: '',
+    snippetDecoration: T.RPCChat.SnippetDecoration.none,
+    writerNames: null,
+  },
+  localVersion: 1,
+  maxMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(301)),
+  maxVisibleMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(301)),
+  memberStatus: T.RPCChat.ConversationMemberStatus.active,
+  membersType: T.RPCChat.ConversationMembersType.impteamnative,
+  name: 'alice,bob,charlie',
+  notifications: null,
+  readMsgID: 0,
+  status: T.RPCChat.ConversationStatus.unfiled,
+  supersededBy: null,
+  supersedes: null,
+  teamRetention: null,
+  teamType: T.RPCChat.TeamType.simple,
+  time: 1,
+  tlfID: 'tlf-id',
+  topicType: T.RPCChat.TopicType.chat,
+  version: 1,
+  visibility: T.RPCGen.TLFVisibility.private,
 })
 
 const makeFailedOutboxRecord = (
@@ -687,7 +725,12 @@ test('mounted thread listener ignores incoming messages for other conversations'
   expect(getConversationThreadCacheSnapshot(otherConvID)).toBeUndefined()
 })
 
-test('mounted thread listener applies reaction updates for the active conversation', () => {
+test('mounted thread listener applies reaction updates for the active conversation', async () => {
+  jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
+  useConfigState.setState({loggedIn: true})
+  const markAsRead = jest
+    .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
+    .mockResolvedValue({offline: false})
   const targetMsgID = T.Chat.numberToMessageID(301)
   seedThreadCache([makeTextMessage()])
   const {result} = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {wrapper})
@@ -728,6 +771,14 @@ test('mounted thread listener applies reaction updates for the active conversati
   })
 
   expect(Message.getReactionOrder(result.current?.reactions ?? new Map())).toEqual([':+1:'])
+  await act(async () => {
+    await flushPromises()
+  })
+  expect(markAsRead).toHaveBeenCalledWith({
+    conversationID: T.Chat.keyToConversationID(convID),
+    forceUnread: false,
+    msgID: targetMsgID,
+  })
 })
 
 test('toggleMessageReaction updates locally and ignores its matching outbox echo', async () => {
@@ -776,6 +827,46 @@ test('toggleMessageReaction updates locally and ignores its matching outbox echo
   })
 
   expect(result.current.message?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['alice'])
+})
+
+test('mounted thread listener applies inbox failure metadata for the active conversation', () => {
+  seedThreadCache([makeTextMessage()])
+  const {result} = renderHook(
+    () => ({
+      meta: useConversationThreadMeta(),
+      participants: useConversationThreadParticipants(),
+    }),
+    {wrapper}
+  )
+
+  act(() => {
+    notifyEngineActionListeners({
+      payload: {
+        params: {
+          convID: T.Chat.keyToConversationID(convID),
+          error: {
+            message: 'rekey needed',
+            rekeyInfo: {
+              readerNames: ['charlie'],
+              rekeyers: ['bob'],
+              tlfName: 'alice,bob,charlie',
+              tlfPublic: false,
+              writerNames: ['alice', 'bob'],
+            },
+            remoteConv: makeUnverifiedInboxUIItem(),
+            typ: T.RPCChat.ConversationErrorType.otherrekeyneeded,
+            unverifiedTLFName: 'alice,bob,charlie',
+          },
+        },
+      },
+      type: 'chat.1.chatUi.chatInboxFailed',
+    } as never)
+  })
+
+  expect(result.current.meta.trustedState).toBe('error')
+  expect(result.current.meta.snippet).toBe('rekey needed')
+  expect([...result.current.meta.rekeyers]).toEqual(['bob'])
+  expect(result.current.participants.name).toEqual(['alice', 'bob', 'charlie'])
 })
 
 test('mounted thread listener applies request and payment decorators for the active conversation', () => {

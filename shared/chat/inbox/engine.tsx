@@ -20,6 +20,7 @@ import {
 } from '@/chat/conversation/thread-cache'
 import {
   getInboxConversationMeta,
+  metaReceivedError,
   metasReceived,
   syncInboxParticipantsFromParticipantMap,
   updateInboxConversationMeta,
@@ -255,8 +256,11 @@ export const handleConvoEngineIncoming = (action: EngineGen.Actions): ConvoEngin
       }
       return handledConvoEngineIncoming()
     }
-    case 'chat.1.chatUi.chatInboxFailed':
+    case 'chat.1.chatUi.chatInboxFailed': {
+      const {convID, error} = action.payload.params
+      metaReceivedError(T.Chat.conversationIDToKey(convID), error)
       return handledConvoEngineIncoming()
+    }
     case 'chat.1.NotifyChat.ChatSetConvSettings': {
       const conversationIDKey = T.Chat.conversationIDToKey(action.payload.params.convID)
       const conv = action.payload.params.conv
