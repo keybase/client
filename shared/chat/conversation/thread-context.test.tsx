@@ -28,6 +28,7 @@ import {
   useConversationThreadLoadMessagesCentered,
   useConversationThreadLoadOlderMessagesDueToScroll,
   useConversationThreadMessage,
+  useConversationThreadMessageActions,
   useConversationThreadMessageOrdinalsMaybe,
   useConversationThreadPaymentStatus,
   useConversationThreadParticipants,
@@ -138,6 +139,38 @@ const makeIncomingTextMessage = (
   desktopNotificationSnippet: '',
   displayDesktopNotification: false,
   message: makeValidTextUIMessage(serverMsgID, text),
+  modifiedMessage: null,
+  pagination: null,
+})
+
+const makeIncomingOutboxReaction = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  outboxID: Uint8Array,
+  targetMsgID: T.Chat.MessageID,
+  body: string
+): T.RPCChat.IncomingMessage => ({
+  conv: null,
+  convID: T.Chat.keyToConversationID(conversationIDKey),
+  desktopNotificationSnippet: '',
+  displayDesktopNotification: false,
+  message: {
+    outbox: {
+      body,
+      ctime: 200,
+      decoratedTextBody: body,
+      filename: '',
+      isEphemeral: false,
+      messageType: T.RPCChat.MessageType.reaction,
+      ordinal: T.Chat.messageIDToNumber(targetMsgID) + 0.001,
+      outboxID: T.Chat.rpcOutboxIDToOutboxID(outboxID),
+      preview: null,
+      replyTo: null,
+      state: {sending: 0, state: T.RPCChat.OutboxStateType.sending},
+      supersedes: T.Chat.messageIDToNumber(targetMsgID),
+      title: '',
+    },
+    state: T.RPCChat.MessageUnboxedState.outbox,
+  },
   modifiedMessage: null,
   pagination: null,
 })
@@ -695,6 +728,54 @@ test('mounted thread listener applies reaction updates for the active conversati
   })
 
   expect(Message.getReactionOrder(result.current?.reactions ?? new Map())).toEqual([':+1:'])
+})
+
+test('toggleMessageReaction updates locally and ignores its matching outbox echo', async () => {
+  const targetMsgID = T.Chat.numberToMessageID(301)
+  const targetOrdinal = T.Chat.numberToOrdinal(301)
+  seedThreadCache([makeTextMessage()])
+  const postReaction = jest
+    .spyOn(T.RPCChat, 'localPostReactionNonblockRpcPromise')
+    .mockImplementation(async p => ({
+      identifyFailures: null,
+      outboxID: p.outboxID ?? new Uint8Array(),
+      rateLimits: null,
+    }))
+  const {result} = renderHook(
+    () => ({
+      message: useConversationThreadMessage(targetOrdinal),
+      messageActions: useConversationThreadMessageActions(),
+    }),
+    {wrapper}
+  )
+
+  act(() => {
+    result.current.messageActions.toggleMessageReaction(targetOrdinal, ':+1:')
+  })
+
+  expect(result.current.message?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['alice'])
+  await act(async () => {
+    await flushPromises()
+  })
+
+  const outboxID = postReaction.mock.calls[0]?.[0].outboxID
+  expect(outboxID).toBeDefined()
+
+  act(() => {
+    notifyEngineActionListeners({
+      payload: {
+        params: {
+          activity: {
+            activityType: T.RPCChat.ChatActivityType.incomingMessage,
+            incomingMessage: makeIncomingOutboxReaction(convID, outboxID!, targetMsgID, ':+1:'),
+          },
+        },
+      },
+      type: 'chat.1.NotifyChat.NewChatActivity',
+    } as never)
+  })
+
+  expect(result.current.message?.reactions?.get(':+1:')?.users.map(u => u.username)).toEqual(['alice'])
 })
 
 test('mounted thread listener applies request and payment decorators for the active conversation', () => {

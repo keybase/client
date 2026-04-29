@@ -239,6 +239,7 @@ export type ConversationThreadState = {
   messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>
   moreToLoadBack: boolean
   moreToLoadForward: boolean
+  optimisticReactionOutboxIDs: Set<T.Chat.OutboxID>
   paymentStatusMap: Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
   participants: T.Chat.ParticipantInfo
   pendingOutboxToOrdinal: Map<T.Chat.OutboxID, T.Chat.Ordinal>
@@ -265,6 +266,7 @@ const makeEmptyThreadState = (): ConversationThreadState =>
       meta: copyConversationMeta(Meta.makeConversationMeta()),
       moreToLoadBack: false,
       moreToLoadForward: false,
+      optimisticReactionOutboxIDs: new Set<T.Chat.OutboxID>(),
       participants: makeEmptyParticipantInfo(),
       paymentStatusMap: new Map<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>(),
       pendingOutboxToOrdinal: new Map<T.Chat.OutboxID, T.Chat.Ordinal>(),
@@ -294,6 +296,7 @@ const snapshotToThreadState = (
           meta: copyConversationMeta(snapshot.meta),
           moreToLoadBack: snapshot.moreToLoadBack,
           moreToLoadForward: snapshot.moreToLoadForward,
+          optimisticReactionOutboxIDs: produce(new Set<T.Chat.OutboxID>(), () => {}),
           participants: copyParticipantInfo(snapshot.participants),
           paymentStatusMap: cloneMapWithImmer(snapshot.paymentStatusMap),
           pendingOutboxToOrdinal: produce(new Map(snapshot.pendingOutboxToOrdinal), () => {}),
@@ -431,6 +434,8 @@ type ConversationThreadActions = {
   toggleLocalReaction: (p: {
     decorated: string
     emoji: string
+    outboxID?: T.Chat.OutboxID
+    source?: 'incoming' | 'optimistic' | 'rollback'
     targetOrdinal: T.Chat.Ordinal
     username: string
   }) => void
@@ -681,6 +686,8 @@ const applyIncomingMessageToThread = (
     actions.toggleLocalReaction({
       decorated: cMsg.outbox.decoratedTextBody ?? '',
       emoji: cMsg.outbox.body,
+      outboxID: T.Chat.stringToOutboxID(cMsg.outbox.outboxID),
+      source: 'incoming',
       targetOrdinal: T.Chat.numberToOrdinal(cMsg.outbox.supersedes),
       username,
     })
@@ -1393,6 +1400,38 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
     }
     ignorePromise(f())
   })
+  const toggleLocalReaction = React.useEffectEvent(
+    (reaction: {
+      decorated: string
+      emoji: string
+      outboxID?: T.Chat.OutboxID
+      source?: 'incoming' | 'optimistic' | 'rollback'
+      targetOrdinal: T.Chat.Ordinal
+      username: string
+    }) => {
+      updateThreadState(s => {
+        const {outboxID, source} = reaction
+        if (outboxID) {
+          if (source === 'optimistic') {
+            s.optimisticReactionOutboxIDs.add(outboxID)
+          } else if (source === 'incoming' && s.optimisticReactionOutboxIDs.delete(outboxID)) {
+            const message = s.messageMap.get(reaction.targetOrdinal)
+            const existing =
+              message && Message.isMessageWithReactions(message)
+                ? message.reactions?.get(reaction.emoji)
+                : undefined
+            if (existing && reaction.decorated) {
+              existing.decorated = reaction.decorated
+            }
+            return
+          } else if (source === 'rollback' && !s.optimisticReactionOutboxIDs.delete(outboxID)) {
+            return
+          }
+        }
+        toggleLocalReactionInThreadState(s, reaction)
+      })
+    }
+  )
   const toggleMessageCollapse = React.useEffectEvent(
     (messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => {
       const f = async () => {
@@ -1434,6 +1473,21 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
         logger.warn(`toggleMessageReaction: message is exploded`)
         return
       }
+      const username = useCurrentUserState.getState().username
+      if (!username) {
+        logger.warn(`toggleMessageReaction: no current username`)
+        return
+      }
+      const outboxID = Common.generateOutboxID()
+      const localOutboxID = T.Chat.rpcOutboxIDToOutboxID(outboxID)
+      toggleLocalReaction({
+        decorated: emoji,
+        emoji,
+        outboxID: localOutboxID,
+        source: 'optimistic',
+        targetOrdinal: ordinal,
+        username,
+      })
       logger.info(`toggleMessageReaction: posting reaction`)
       try {
         await T.RPCChat.localPostReactionNonblockRpcPromise({
@@ -1441,12 +1495,20 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
           clientPrev: getClientPrevFromSnapshot(snapshot),
           conversationID: T.Chat.keyToConversationID(id),
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          outboxID: Common.generateOutboxID(),
+          outboxID,
           supersedes: messageID,
           tlfName: snapshot.meta.tlfname,
           tlfPublic: false,
         })
       } catch (error) {
+        toggleLocalReaction({
+          decorated: emoji,
+          emoji,
+          outboxID: localOutboxID,
+          source: 'rollback',
+          targetOrdinal: ordinal,
+          username,
+        })
         if (error instanceof RPCError) {
           logger.info(`toggleMessageReaction: failed to post` + error.message)
         }
@@ -1477,18 +1539,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
     (ordinal: T.Chat.Ordinal, submitState: T.Chat.Message['submitState']) => {
       updateThreadState(s => {
         setMessageSubmitStateInThreadState(s, ordinal, submitState)
-      })
-    }
-  )
-  const toggleLocalReaction = React.useEffectEvent(
-    (reaction: {
-      decorated: string
-      emoji: string
-      targetOrdinal: T.Chat.Ordinal
-      username: string
-    }) => {
-      updateThreadState(s => {
-        toggleLocalReactionInThreadState(s, reaction)
       })
     }
   )
