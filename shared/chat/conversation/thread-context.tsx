@@ -94,28 +94,6 @@ const sameStringSet = (a: ReadonlySet<string>, b: ReadonlySet<string>) => {
   return true
 }
 
-let reactionDebugNextObjectID = 1
-const reactionDebugObjectIDs = new WeakMap<object, number>()
-const reactionDebugObjectID = (value: unknown) => {
-  if ((!value || typeof value !== 'object') && typeof value !== 'function') {
-    return String(value)
-  }
-  const object = value as object
-  const existing = reactionDebugObjectIDs.get(object)
-  if (existing) {
-    return existing
-  }
-  const next = reactionDebugNextObjectID++
-  reactionDebugObjectIDs.set(object, next)
-  return next
-}
-const reactionDebugLog = (...args: Array<unknown>) => {
-  if (!__DEV__) {
-    return
-  }
-  logger.info('[reaction-debug]', ...args)
-}
-
 const ignoreErrors = [
   T.RPCGen.StatusCode.scgenericapierror,
   T.RPCGen.StatusCode.scapinetworkerror,
@@ -1127,16 +1105,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       if (current === next) {
         return
       }
-      reactionDebugLog('updateThreadState', {
-        convID: id,
-        liveUpdateVersion: current.liveUpdateVersion,
-        nextLiveUpdateVersion: next.liveUpdateVersion,
-        nextOptimisticMapID: reactionDebugObjectID(next.optimisticReactionMap),
-        nextOptimisticSize: next.optimisticReactionMap.size,
-        nextStateID: reactionDebugObjectID(next),
-        sameOptimisticMap: current.optimisticReactionMap === next.optimisticReactionMap,
-        stateID: reactionDebugObjectID(current),
-      })
       threadStore.setState(next, true)
     }
   )
@@ -1491,26 +1459,18 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
   })
   const addOptimisticReaction = React.useEffectEvent(
     (outboxID: T.Chat.OutboxID, reaction: OptimisticReaction) => {
-      reactionDebugLog('addOptimisticReaction:start', {
-        add: reaction.add,
-        emoji: reaction.emoji,
-        outboxID,
-        targetOrdinal: reaction.targetOrdinal,
-      })
       updateThreadState(s => {
         s.optimisticReactionMap.set(outboxID, reaction)
       })
     }
   )
   const removeOptimisticReaction = React.useEffectEvent((outboxID: T.Chat.OutboxID) => {
-    reactionDebugLog('removeOptimisticReaction:start', {outboxID})
     updateThreadState(s => {
       s.optimisticReactionMap.delete(outboxID)
     })
   })
   const updateOptimisticReactionDecorated = React.useEffectEvent(
     (outboxID: T.Chat.OutboxID, decorated: string) => {
-      reactionDebugLog('updateOptimisticReactionDecorated:start', {decorated, outboxID})
       updateThreadState(s => {
         const reaction = s.optimisticReactionMap.get(outboxID)
         if (reaction) {
@@ -1568,16 +1528,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       const displayMessage = applyOptimisticReactionsToMessage(message, snapshot.optimisticReactionMap)
       const add =
         !displayMessage?.reactions?.get(emoji)?.users.some(reaction => reaction.username === username)
-      reactionDebugLog('toggleMessageReaction:decision', {
-        add,
-        displayMessageID: reactionDebugObjectID(displayMessage),
-        emoji,
-        messageID: reactionDebugObjectID(message),
-        optimisticMapID: reactionDebugObjectID(snapshot.optimisticReactionMap),
-        optimisticSize: snapshot.optimisticReactionMap.size,
-        ordinal,
-        stateID: reactionDebugObjectID(snapshot),
-      })
       const outboxID = Common.generateOutboxID()
       const localOutboxID = T.Chat.rpcOutboxIDToOutboxID(outboxID)
       addOptimisticReaction(localOutboxID, {
@@ -1588,7 +1538,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
         timestamp: Date.now(),
         username,
       })
-      logger.info(`toggleMessageReaction: posting reaction`)
       try {
         await T.RPCChat.localPostReactionNonblockRpcPromise({
           body: emoji,
@@ -2203,38 +2152,13 @@ export const getConversationThreadDisplayMessage = (
 ) => {
   const message = snapshot.messageMap.get(ordinal)
   if (!message) {
-    reactionDebugLog('displayMessage:missing', {
-      optimisticMapID: reactionDebugObjectID(snapshot.optimisticReactionMap),
-      optimisticSize: snapshot.optimisticReactionMap.size,
-      ordinal,
-      stateID: reactionDebugObjectID(snapshot),
-    })
     return undefined
   }
   const cached = displayMessageCache.get(message)
   if (cached?.optimisticReactionMap === snapshot.optimisticReactionMap) {
-    reactionDebugLog('displayMessage:cacheHit', {
-      displayMessageID: reactionDebugObjectID(cached.displayMessage),
-      messageID: reactionDebugObjectID(message),
-      optimisticMapID: reactionDebugObjectID(snapshot.optimisticReactionMap),
-      optimisticSize: snapshot.optimisticReactionMap.size,
-      ordinal,
-      sameAsMessage: cached.displayMessage === message,
-      stateID: reactionDebugObjectID(snapshot),
-    })
     return cached.displayMessage
   }
   const displayMessage = applyOptimisticReactionsToMessage(message, snapshot.optimisticReactionMap)
-  reactionDebugLog('displayMessage:computed', {
-    cachedOptimisticMapID: reactionDebugObjectID(cached?.optimisticReactionMap),
-    displayMessageID: reactionDebugObjectID(displayMessage),
-    messageID: reactionDebugObjectID(message),
-    optimisticMapID: reactionDebugObjectID(snapshot.optimisticReactionMap),
-    optimisticSize: snapshot.optimisticReactionMap.size,
-    ordinal,
-    sameAsMessage: displayMessage === message,
-    stateID: reactionDebugObjectID(snapshot),
-  })
   displayMessageCache.set(message, {displayMessage, optimisticReactionMap: snapshot.optimisticReactionMap})
   return displayMessage
 }
