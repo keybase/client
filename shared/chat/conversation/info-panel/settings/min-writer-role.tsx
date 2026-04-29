@@ -21,40 +21,61 @@ const MinWriterRole = () => {
 
   const [saving, setSaving] = React.useState(false)
   const [selected, setSelected] = React.useState(minWriterRole)
+  const [saveError, setSaveError] = React.useState('')
+  const latestSaveIDRef = React.useRef(0)
+  const latestMinWriterRoleRef = React.useRef(minWriterRole)
 
-  const onSetNewRole = (role: T.Teams.TeamRoleType) => {
+  React.useEffect(() => {
+    latestMinWriterRoleRef.current = minWriterRole
+    setSelected(minWriterRole)
+  }, [minWriterRole])
+
+  const startSave = () => {
+    const saveID = latestSaveIDRef.current + 1
+    latestSaveIDRef.current = saveID
+    setSaveError('')
+    setSaving(true)
+    return saveID
+  }
+  const finishSave = (saveID: number) => {
+    if (latestSaveIDRef.current === saveID) {
+      setSaving(false)
+    }
+  }
+  const failSave = (saveID: number, error: unknown) => {
+    if (latestSaveIDRef.current !== saveID) {
+      return
+    }
+    setSaveError(
+      error instanceof Error && error.message ? error.message : 'Failed to save minimum posting role.'
+    )
+    setSelected(latestMinWriterRoleRef.current)
+    setSaving(false)
+  }
+  const onSetNewRole = (role: T.Teams.TeamRoleType, saveID: number) => {
     const f = async () => {
-      await T.RPCChat.localSetConvMinWriterRoleLocalRpcPromise({
-        convID: T.Chat.keyToConversationID(conversationIDKey),
-        role: T.RPCGen.TeamRole[role],
-      })
+      try {
+        await T.RPCChat.localSetConvMinWriterRoleLocalRpcPromise({
+          convID: T.Chat.keyToConversationID(conversationIDKey),
+          role: T.RPCGen.TeamRole[role],
+        })
+        finishSave(saveID)
+      } catch (error) {
+        failSave(saveID, error)
+      }
     }
     ignorePromise(f())
   }
   const selectRole = (role: T.Teams.TeamRoleType) => {
-    if (role !== minWriterRole) {
-      setSaving(true)
+    if (role !== selected) {
+      const saveID = startSave()
       setSelected(role)
-      onSetNewRole(role)
-    }
-  }
-
-  const [lastMinWriterRole, setLastMinWriterRole] = React.useState(minWriterRole)
-  const [lastSelected, setLastSelected] = React.useState(selected)
-
-  if (lastSelected !== selected || lastMinWriterRole !== minWriterRole) {
-    setLastSelected(selected)
-    setLastMinWriterRole(minWriterRole)
-    if (minWriterRole !== lastMinWriterRole) {
-      setSelected(minWriterRole)
-    }
-    if (selected === minWriterRole) {
-      setSaving(false)
+      onSetNewRole(role, saveID)
     }
   }
 
   const items = Teams.teamRoleTypes.map(role => ({
-    isSelected: role === minWriterRole,
+    isSelected: role === selected,
     onClick: () => selectRole(role),
     title: upperFirst(role),
   }))
@@ -65,10 +86,20 @@ const MinWriterRole = () => {
         <Kb.Text type="BodySmallSemibold">Minimum role to post</Kb.Text>
       </Kb.Box2>
       {canSetMinWriterRole ? (
-        <Dropdown minWriterRole={selected} items={items} saving={saving} />
+        <Dropdown
+          minWriterRole={selected}
+          items={items}
+          saving={saving}
+          hasSaveError={!!saveError}
+        />
       ) : (
         <Display minWriterRole={minWriterRole} />
       )}
+      {canSetMinWriterRole && saveError ? (
+        <Kb.Banner color="red">
+          <Kb.BannerParagraph bannerColor="red" content={saveError} />
+        </Kb.Banner>
+      ) : null}
     </Kb.Box2>
   )
 }
@@ -77,10 +108,11 @@ type DropdownProps = {
   minWriterRole: T.Teams.TeamRoleType
   items: Kb.MenuItems
   saving: boolean
+  hasSaveError: boolean
 }
 
 const Dropdown = (p: DropdownProps) => {
-  const {items, minWriterRole, saving} = p
+  const {hasSaveError, items, minWriterRole, saving} = p
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
@@ -96,6 +128,10 @@ const Dropdown = (p: DropdownProps) => {
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const saveIndicatorStyle = Style.collapseStyles([
+    styles.saveIndicator,
+    hasSaveError ? styles.hidden : null,
+  ])
   return (
     <>
       <Kb.ClickableBox
@@ -110,7 +146,7 @@ const Dropdown = (p: DropdownProps) => {
         <Kb.Icon type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />
       </Kb.ClickableBox>
       {popup}
-      <Kb.SaveIndicator saving={saving} style={styles.saveIndicator} />
+      <Kb.SaveIndicator saving={saving} style={saveIndicatorStyle} />
     </>
   )
 }
@@ -147,6 +183,7 @@ const styles = Style.styleSheetCreate(
         paddingLeft: Style.globalMargins.xsmall,
         width: '100%',
       },
+      hidden: {display: 'none'},
       saveIndicator: Style.platformStyles({
         common: {
           ...Style.globalStyles.flexBoxRow,

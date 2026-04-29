@@ -78,7 +78,7 @@ const ContainerInner = (ownProps: OwnProps) => {
   }
   const clearModals = C.Router2.clearModals
 
-  const _onSubmit = (titles: Array<string>, _spoiler: boolean) => {
+  const _onSubmit = (titles: Array<string>) => {
     const tlfNameToUse = tlfName ?? metaTlfName
     const uploadArgs = {
       clientPrev,
@@ -120,7 +120,6 @@ const ContainerInner = (ownProps: OwnProps) => {
 
   const [index, setIndex] = React.useState(0)
   const [titles, setTitles] = React.useState(pathAndInfos.map((_, idx) => _titles?.[idx] ?? ''))
-  const spoiler = false
 
   const onNext = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault()
@@ -132,7 +131,7 @@ const ContainerInner = (ownProps: OwnProps) => {
 
     // done
     if (nextIndex === pathAndInfos.length) {
-      _onSubmit(titles, spoiler)
+      _onSubmit(titles)
     } else {
       // go to next
       setIndex(s => s + 1)
@@ -141,7 +140,7 @@ const ContainerInner = (ownProps: OwnProps) => {
 
   const onSubmit = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault()
-    _onSubmit(titles, spoiler)
+    _onSubmit(titles)
   }
 
   const updateTitle = (title: string) => {
