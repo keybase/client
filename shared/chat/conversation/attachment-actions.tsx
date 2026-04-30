@@ -263,7 +263,7 @@ export const messageAttachmentNativeShareMessage = (
       return
     }
 
-    if (isIOS && (message.fileName ?? '').endsWith('.pdf') && fromDownload) {
+    if (isIOS && message.fileName.endsWith('.pdf') && fromDownload) {
       showPDFViewer(conversationIDKey, message.ordinal, message, 'file://' + filePath)
       return
     }

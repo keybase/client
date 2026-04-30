@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as React from 'react'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {
   deleteConversationMessage,

@@ -194,7 +194,7 @@ const ChannelBody = (props: OwnProps) => {
   }
 
   const {sections: attachmentSections} = useAttachmentSections(
-    {commonSections: []},
+    {commonSections: [], conversationIDKey},
     selectedTab === 'attachments', // load data immediately
     true // variable width
   )
@@ -282,7 +282,9 @@ const ChannelBody = (props: OwnProps) => {
     case 'settings': {
       sections.push({
         data: [{type: 'settings'}],
-        renderItem: () => <SettingsList isPreview={isPreview} commonSections={[]} />,
+        renderItem: () => (
+          <SettingsList isPreview={isPreview} commonSections={[]} conversationIDKey={conversationIDKey} />
+        ),
       } as const)
       break
     }

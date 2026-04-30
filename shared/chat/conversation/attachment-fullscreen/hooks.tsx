@@ -70,8 +70,8 @@ export const useData = (
     maxHeight
   )
 
-  const isVideo = (message.fileType ?? '').startsWith('video')
-  const showPreview = !(fileType ?? '').includes('png')
+  const isVideo = message.fileType.startsWith('video')
+  const showPreview = !fileType.includes('png')
   const onAllMedia = () => showConversationInfoPanel(conversationIDKey, true, 'attachments')
   const onClose = () => navigateUp()
   const onDownloadAttachment = message.downloadPath

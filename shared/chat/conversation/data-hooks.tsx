@@ -297,8 +297,11 @@ const useConversationMessagesAroundMessageID = (
   })
 
   React.useEffect(() => {
-    reload()
+    const timeout = setTimeout(() => {
+      reload()
+    }, 0)
     return () => {
+      clearTimeout(timeout)
       generationRef.current += 1
     }
   }, [conversationIDKey, messageID, num])
@@ -388,7 +391,9 @@ export const markConversationAsUnread = (
   ignorePromise(f())
 }
 
-export const useConversationMarkAsUnread = (conversationIDKey: T.Chat.ConversationIDKey) =>
-  React.useEffectEvent((readMsgID?: T.Chat.MessageID | false) => {
+export const useConversationMarkAsUnread = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const markAsUnread = (readMsgID?: T.Chat.MessageID | false) => {
     markConversationAsUnread(conversationIDKey, readMsgID)
-  })
+  }
+  return markAsUnread
+}
