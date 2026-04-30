@@ -11,7 +11,7 @@ import BotsList from './bot'
 import AttachmentsList from './attachments'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '@/common-adapters/tabs'
-import {ChatTeamProvider, useChatTeam} from '../team-hooks'
+import {useChatTeam} from '../team-hooks'
 import {showConversationInfoPanel} from '../thread-context'
 import {useConversationMeta} from '../data-hooks'
 
@@ -22,11 +22,7 @@ type Props = {
 
 const InfoPanelConnector = (ownProps: Props) => {
   const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
-  return (
-    <ChatTeamProvider>
-      <InfoPanelConnectorInner {...ownProps} conversationIDKey={conversationIDKey} />
-    </ChatTeamProvider>
-  )
+  return <InfoPanelConnectorInner {...ownProps} conversationIDKey={conversationIDKey} />
 }
 
 const InfoPanelConnectorInner = (ownProps: Props & {conversationIDKey: T.Chat.ConversationIDKey}) => {

@@ -4,7 +4,7 @@ import type * as T from '@/constants/types'
 import InfoPanelMenu from './menu'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
-import {ChatTeamProvider, useChatTeam} from '../team-hooks'
+import {useChatTeam} from '../team-hooks'
 import {joinConversation} from '../status-actions'
 import {useConversationMetadata} from '../data-hooks'
 
@@ -30,17 +30,15 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <ChatTeamProvider>
-        <InfoPanelMenu
-          attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
-          floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-          onHidden={hidePopup}
-          hasHeader={false}
-          isSmallTeam={isSmallTeam}
-          visible={true}
-        />
-      </ChatTeamProvider>
+      <InfoPanelMenu
+        attachTo={attachTo}
+        conversationIDKey={conversationIDKey}
+        floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+        onHidden={hidePopup}
+        hasHeader={false}
+        isSmallTeam={isSmallTeam}
+        visible={true}
+      />
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
