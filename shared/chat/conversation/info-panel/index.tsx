@@ -12,7 +12,8 @@ import AttachmentsList from './attachments'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '@/common-adapters/tabs'
 import {ChatTeamProvider, useChatTeam} from '../team-hooks'
-import {ConversationThreadBridgeProvider, useConversationShowInfoPanel, useConversationThreadMeta} from '../thread-context'
+import {showConversationInfoPanel} from '../thread-context'
+import {useConversationMeta} from '../data-hooks'
 
 type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -22,17 +23,15 @@ type Props = {
 const InfoPanelConnector = (ownProps: Props) => {
   const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
   return (
-    <ConversationThreadBridgeProvider id={conversationIDKey}>
-      <ChatTeamProvider>
-        <InfoPanelConnectorInner {...ownProps} conversationIDKey={conversationIDKey} />
-      </ChatTeamProvider>
-    </ConversationThreadBridgeProvider>
+    <ChatTeamProvider>
+      <InfoPanelConnectorInner {...ownProps} conversationIDKey={conversationIDKey} />
+    </ChatTeamProvider>
   )
 }
 
 const InfoPanelConnectorInner = (ownProps: Props & {conversationIDKey: T.Chat.ConversationIDKey}) => {
   const {conversationIDKey} = ownProps
-  const meta = useConversationThreadMeta()
+  const meta = useConversationMeta(conversationIDKey)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname
@@ -42,17 +41,19 @@ const InfoPanelConnectorInner = (ownProps: Props & {conversationIDKey: T.Chat.Co
   const [uncontrolledSelectedTab, onSelectTab] = React.useState<Panel>(() => ownProps.tab ?? 'members')
   const selectedTab = ownProps.tab ?? uncontrolledSelectedTab
 
-  const showInfoPanel = useConversationShowInfoPanel()
+  const hideInfoPanel = React.useEffectEvent(() => {
+    showConversationInfoPanel(conversationIDKey, false, undefined)
+  })
   React.useEffect(() => {
     return () => {
       // Only call showInfoPanel(false) on mobile where the panel is a separate route.
       // On desktop the panel is inline and this cleanup fires during StrictMode
       // double-effect, which immediately hides the panel.
       if (Kb.Styles.isMobile) {
-        showInfoPanel(false, undefined)
+        hideInfoPanel()
       }
     }
-  }, [showInfoPanel])
+  }, [])
 
   const lastShouldNavigateOutRef = React.useRef(shouldNavigateOut)
   React.useEffect(() => {
@@ -79,7 +80,11 @@ const InfoPanelConnectorInner = (ownProps: Props & {conversationIDKey: T.Chat.Co
       data: [{type: 'header-item'}],
       renderItem: () => (
         <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
-          {teamname && channelname ? <TeamHeader /> : <AdhocHeader />}
+          {teamname && channelname ? (
+            <TeamHeader conversationIDKey={conversationIDKey} />
+          ) : (
+            <AdhocHeader conversationIDKey={conversationIDKey} />
+          )}
         </Kb.Box2>
       ),
     },
@@ -121,16 +126,22 @@ const InfoPanelConnectorInner = (ownProps: Props & {conversationIDKey: T.Chat.Co
   let sectionList: React.ReactNode
   switch (selectedTab) {
     case 'settings':
-      sectionList = <SettingsList isPreview={isPreview} commonSections={commonSections} />
+      sectionList = (
+        <SettingsList
+          conversationIDKey={conversationIDKey}
+          isPreview={isPreview}
+          commonSections={commonSections}
+        />
+      )
       break
     case 'members':
-      sectionList = <MembersList commonSections={commonSections} />
+      sectionList = <MembersList conversationIDKey={conversationIDKey} commonSections={commonSections} />
       break
     case 'attachments':
-      sectionList = <AttachmentsList commonSections={commonSections} />
+      sectionList = <AttachmentsList conversationIDKey={conversationIDKey} commonSections={commonSections} />
       break
     case 'bots':
-      sectionList = <BotsList commonSections={commonSections} />
+      sectionList = <BotsList conversationIDKey={conversationIDKey} commonSections={commonSections} />
       break
     default:
       sectionList = null

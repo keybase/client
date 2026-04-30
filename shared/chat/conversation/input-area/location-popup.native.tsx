@@ -11,8 +11,8 @@ import * as ExpoLocation from 'expo-location'
 import {ignorePromise} from '@/constants/utils'
 import {openAppSettings} from '@/util/storeless-actions'
 import {setThreadInputCommandStatus} from '@/constants/router'
-import {useConversationSendActions} from '../send-actions'
-import {ConversationThreadBridgeProvider, useConversationThreadID} from '../thread-context'
+import {sendTextToConversation} from '../send-actions'
+import {useConversationMeta} from '../data-hooks'
 
 const LocationButton = (props: {
   disabled: boolean
@@ -92,8 +92,9 @@ const useWatchPosition = (
   }, [conversationIDKey, onPermissionDenied, setLocation])
 }
 
-const LocationPopupInner = () => {
-  const conversationIDKey = useConversationThreadID()
+const LocationPopupInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey} = props
+  const {tlfname} = useConversationMeta(conversationIDKey)
   const username = useCurrentUserState(s => s.username)
   const httpSrv = useConfigState(s => s.httpSrv)
   const [location, setLocation] = React.useState<T.Chat.Coordinate>()
@@ -114,10 +115,13 @@ const LocationPopupInner = () => {
   const onClose = () => {
     clearModals()
   }
-  const {sendMessage} = useConversationSendActions()
   const onLocationShare = (duration: string) => {
     onClose()
-    sendMessage(duration ? `/location live ${duration}` : '/location')
+    if (!tlfname) {
+      logger.warn('LocationPopup: no tlfname for send')
+      return
+    }
+    sendTextToConversation(conversationIDKey, tlfname, duration ? `/location live ${duration}` : '/location')
   }
 
   useWatchPosition(conversationIDKey, onPermissionDenied, setLocation)
@@ -179,11 +183,7 @@ type LocationPopupProps = {conversationIDKey?: T.Chat.ConversationIDKey}
 
 const LocationPopup = (props: LocationPopupProps) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
-  return (
-    <ConversationThreadBridgeProvider id={conversationIDKey}>
-      <LocationPopupInner />
-    </ConversationThreadBridgeProvider>
-  )
+  return <LocationPopupInner conversationIDKey={conversationIDKey} />
 }
 
 const styles = Kb.Styles.styleSheetCreate(

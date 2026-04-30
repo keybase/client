@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import {muteConversationPromise} from '../../status-actions'
-import {useConversationThreadID, useConversationThreadMeta} from '../../thread-context'
+import {useConversationMeta} from '../../data-hooks'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 
@@ -102,9 +102,9 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
   )
 }
 
-const Notifications = () => {
-  const meta = useConversationThreadMeta()
-  const conversationIDKey = useConversationThreadID()
+const Notifications = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey} = props
+  const meta = useConversationMeta(conversationIDKey)
   const [channelWide, setChannelWide] = React.useState(meta.notificationsGlobalIgnoreMentions)
   const [desktop, setDesktop] = React.useState(meta.notificationsDesktop)
   const [mobile, setMobile] = React.useState(meta.notificationsMobile)

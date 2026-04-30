@@ -14,15 +14,14 @@ import {RPCError} from '@/util/errors'
 import {useCurrentUserState} from '@/stores/current-user'
 import logger from '@/logger'
 import {
-  useConversationThreadGalleryMessagesLoaded,
-  useConversationThreadID,
-  useConversationThreadLastOrdinal,
-  useConversationThreadMessageMap,
-} from '../thread-context'
-import {useConversationAttachmentActions} from '../attachment-actions'
+  attachmentDownloadMessage,
+  messageAttachmentNativeShareMessage,
+  showAttachmentPreview,
+} from '../attachment-actions'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const monthNames = [
@@ -225,6 +224,8 @@ const DocViewRow = (props: DocViewRowProps) => {
     return !!item.message
   }
   const {showPopup, popup} = useMessagePopup({
+    conversationIDKey: item.message?.conversationIDKey,
+    message: item.message,
     ordinal: item.message?.ordinal ?? T.Chat.numberToOrdinal(0),
     shouldShow,
   })
@@ -462,30 +463,8 @@ const updateAttachmentViewMap = (
   return nextMap
 }
 
-const getLiveAttachmentInfo = (
-  info: T.Chat.AttachmentViewInfo | undefined,
-  messageMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>
-) => {
-  if (!info) {
-    return undefined
-  }
-  return {
-    ...info,
-    messages: info.messages.map(message => {
-      const threadMessage = messageMap.get(message.ordinal)
-      return threadMessage?.id === message.id && threadMessage.type === message.type ? threadMessage : message
-    }),
-  }
-}
-
 const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const galleryMessagesLoaded = useConversationThreadGalleryMessagesLoaded()
-  const lastOrdinal = useConversationThreadLastOrdinal()
-  const messageMap = useConversationThreadMessageMap()
-  const threadSnapshotRef = React.useRef({lastOrdinal, messageMap})
-  React.useEffect(() => {
-    threadSnapshotRef.current = {lastOrdinal, messageMap}
-  }, [lastOrdinal, messageMap])
+  const lastOrdinalRef = React.useRef(T.Chat.numberToOrdinal(0))
   const [attachmentViewState, setAttachmentViewState] = React.useState<AttachmentViewState>(() => ({
     attachmentViewMap: new Map(),
     conversationIDKey,
@@ -571,7 +550,6 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
               info.messages = nextMessages.sort((l, r) => r.id - l.id)
             }
           })
-          galleryMessagesLoaded(dedupedMessages)
         }
         const scheduleFlushPendingMessages = () => {
           if (flushTimeout) {
@@ -583,7 +561,7 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
         }
         try {
           const {deviceName, username} = useCurrentUserState.getState()
-          const getLastOrdinal = () => threadSnapshotRef.current.lastOrdinal
+          const getLastOrdinal = () => lastOrdinalRef.current
           const res = await T.RPCChat.localLoadGalleryRpcListener({
             incomingCallMap: {
               'chat.1.chatUi.chatLoadGalleryHit': hit => {
@@ -596,9 +574,12 @@ const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => 
                 )
 
                 if (message) {
+                  if (T.Chat.ordinalToNumber(message.ordinal) > T.Chat.ordinalToNumber(lastOrdinalRef.current)) {
+                    lastOrdinalRef.current = message.ordinal
+                  }
                   pendingMessages.push({
                     ...message,
-                    conversationMessage: threadSnapshotRef.current.messageMap.has(message.ordinal),
+                    conversationMessage: false,
                   })
                   scheduleFlushPendingMessages()
                 }
@@ -682,10 +663,7 @@ export const useAttachmentSections = (
   useFlexWrap: boolean
 ): {sections: Array<Section>} => {
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState(T.RPCChat.GalleryItemTyp.media)
-  const conversationIDKey = useConversationThreadID()
-  const {attachmentDownload, messageAttachmentNativeShare, showAttachmentPreview} =
-    useConversationAttachmentActions()
-  const messageMap = useConversationThreadMessageMap()
+  const {conversationIDKey} = p
   const {attachmentViewMap, loadAttachmentView} = useAttachmentViewState(conversationIDKey)
   const clearModals = C.Router2.clearModals
 
@@ -711,7 +689,7 @@ export const useAttachmentSections = (
     }
   }, [conversationIDKey, loadImmediately])
 
-  const attachmentInfo = getLiveAttachmentInfo(attachmentViewMap.get(selectedAttachmentView), messageMap)
+  const attachmentInfo = attachmentViewMap.get(selectedAttachmentView)
   const fromMsgID = attachmentInfo ? getFromMsgID(attachmentInfo) : undefined
 
   const onLoadMore = fromMsgID
@@ -734,13 +712,14 @@ export const useAttachmentSections = (
     loadAttachmentView(selectedAttachmentView, undefined, 'retry')
   }
 
-  const onMediaClick = (message: T.Chat.MessageAttachment) => showAttachmentPreview(message.ordinal, message)
+  const onMediaClick = (message: T.Chat.MessageAttachment) =>
+    showAttachmentPreview(conversationIDKey, message.ordinal, message)
 
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
     if (Kb.Styles.isMobile) {
-      messageAttachmentNativeShare(message.ordinal)
+      messageAttachmentNativeShareMessage(conversationIDKey, message)
     } else if (!message.downloadPath) {
-      attachmentDownload(message.ordinal)
+      attachmentDownloadMessage(conversationIDKey, message)
     }
   }
 

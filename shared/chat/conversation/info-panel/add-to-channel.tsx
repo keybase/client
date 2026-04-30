@@ -6,35 +6,26 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {pluralize} from '@/util/string'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useChatTeamMembers} from '../team-hooks'
-import {
-  ConversationThreadBridgeProvider,
-  useConversationThreadID,
-  useConversationThreadMeta,
-  useConversationThreadParticipants,
-} from '../thread-context'
+import {useConversationMetadata} from '../data-hooks'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; teamID: T.Teams.TeamID}
 
 const AddToChannel = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
-  return (
-    <ConversationThreadBridgeProvider id={conversationIDKey}>
-      <AddToChannelInner {...props} />
-    </ConversationThreadBridgeProvider>
-  )
+  return <AddToChannelInner {...props} conversationIDKey={conversationIDKey} />
 }
 
-const AddToChannelInner = (props: Props) => {
-  const {teamID} = props
+const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey, teamID} = props
   const nav = useSafeNavigation()
-  const conversationIDKey = useConversationThreadID()
-  const channelname = useConversationThreadMeta().channelname
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
+  const channelname = meta.channelname
 
   const [toAdd, setToAdd] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
 
-  const participants = useConversationThreadParticipants().all
+  const participants = participantInfo.all
   const {loading: loadingMembers, members: teamMembers} = useChatTeamMembers(teamID)
   const allMembers = [...teamMembers.values()]
     .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')

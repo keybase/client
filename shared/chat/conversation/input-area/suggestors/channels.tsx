@@ -7,7 +7,7 @@ import {useChatTeamNames} from '../../team-hooks'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as React from 'react'
-import {useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from '../../thread-context'
+import {useConversationMetadata} from '../../data-hooks'
 
 export const transformer = (
   {channelname, teamname}: {channelname: string; teamname?: string},
@@ -136,10 +136,8 @@ const getChannelSuggestions = (
   return suggestions
 }
 
-const useDataSource = (filter: string) => {
-  const conversationIDKey = useConversationThreadID()
-  const meta = useConversationThreadMeta()
-  const participants = useConversationThreadParticipants()
+const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: string) => {
+  const {meta, participants} = useConversationMetadata(conversationIDKey)
   const mutualTeams = useMutualTeams(conversationIDKey, meta, participants)
   const {teamnames: mutualTeamnamesByID, loading: loadingMutualTeamnames} = useChatTeamNames(mutualTeams)
   const {teamID} = meta
@@ -167,14 +165,15 @@ type ListProps = Pick<
   Common.ListProps<ChannelType>,
   'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
+  conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: ChannelType, final: boolean) => void
   setOnMoveRef: (r: (up: boolean) => void) => void
   setOnSubmitRef: (r: () => boolean) => void
 }
 export const List = (p: ListProps) => {
-  const {filter, ...rest} = p
-  const {items, loading} = useDataSource(filter)
+  const {conversationIDKey, filter, ...rest} = p
+  const {items, loading} = useDataSource(conversationIDKey, filter)
   return (
     <Common.List
       {...rest}

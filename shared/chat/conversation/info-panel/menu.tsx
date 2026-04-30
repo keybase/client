@@ -12,17 +12,13 @@ import {useChatManageChannelsBadge, useChatTeam} from '../team-hooks'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 import {hexToUint8Array} from '@/util/uint8array'
 import {hideConversation, joinConversation, muteConversation} from '../status-actions'
-import {
-  useConversationThreadID,
-  useConversationThreadMeta,
-  useConversationThreadParticipants,
-  useConversationThreadSetMarkAsUnread,
-} from '../thread-context'
+import {useConversationMarkAsUnread, useConversationMetadata} from '../data-hooks'
 
 const isHexBytes = (s: string) => s.length > 0 && s.length % 2 === 0 && /^[0-9a-fA-F]+$/.test(s)
 
 export type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
+  conversationIDKey?: T.Chat.ConversationIDKey
   onHidden: () => void
   floatingMenuContainerStyle?: Kb.Styles.StylesCrossPlatform
   hasHeader: boolean
@@ -36,12 +32,15 @@ const InfoPanelMenuConnectorVisible = function InfoPanelMenuConnectorVisible(p: 
   return visible ? <InfoPanelMenuConnector {...p} /> : null
 }
 
-const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
-  const {isSmallTeam, pteamID} = p
+const useData = (p: {
+  conversationIDKey: T.Chat.ConversationIDKey
+  isSmallTeam: boolean
+  pteamID: string | undefined
+}) => {
+  const {conversationIDKey, isSmallTeam, pteamID} = p
   const username = useCurrentUserState(s => s.username)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = useConversationThreadParticipants()
-  const meta = useConversationThreadMeta()
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const {teamname: loadedTeamname} = useChatTeam(pteamID ?? T.Teams.noTeamID)
   const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
@@ -93,9 +92,10 @@ const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
 const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const {attachTo, onHidden, floatingMenuContainerStyle, hasHeader} = p
   const {isSmallTeam, teamID: pteamID} = p
+  const conversationIDKey = p.conversationIDKey ?? Chat.noConversationIDKey
   const visible = true
 
-  const data = useData({isSmallTeam, pteamID})
+  const data = useData({conversationIDKey, isSmallTeam, pteamID})
   const {teamname, teamID, channelname, isInChannel, ignored, fullname} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
 
@@ -105,7 +105,6 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     teamname
   )
   const routerNavigateAppend = C.Router2.navigateAppend
-  const conversationIDKey = useConversationThreadID()
   const canAddPeople = yourOperations.manageMembers
   const onAddPeople = () => {
     if (teamID) {
@@ -149,7 +148,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     }
     C.ignorePromise(f())
   }
-  const setMarkAsUnread = useConversationThreadSetMarkAsUnread()
+  const setMarkAsUnread = useConversationMarkAsUnread(conversationIDKey)
   const onMarkAsUnread = () => {
     clearModals()
     setMarkAsUnread()
@@ -386,7 +385,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
 
   const header = hasHeader ? (
     isAdhoc && conversationIDKey ? (
-      <AdhocHeader isMuted={!!isMuted} fullname={fullname ?? ''} />
+      <AdhocHeader conversationIDKey={conversationIDKey} isMuted={!!isMuted} fullname={fullname ?? ''} />
     ) : teamname && teamID ? (
       <TeamHeader isMuted={!!isMuted} teamname={teamname} teamID={teamID} onViewTeam={onViewTeam} />
     ) : null
@@ -407,13 +406,13 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
 }
 
 type AdhocHeaderProps = {
+  conversationIDKey: T.Chat.ConversationIDKey
   fullname: string
   isMuted: boolean
 }
 
 const AdhocHeader = (props: AdhocHeaderProps) => {
-  const meta = useConversationThreadMeta()
-  const participants = useConversationThreadParticipants()
+  const {meta, participants} = useConversationMetadata(props.conversationIDKey)
   const {channelHumans} = InfoPanelCommon.useHumans(participants, meta)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>

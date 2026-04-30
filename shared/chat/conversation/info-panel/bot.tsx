@@ -9,12 +9,8 @@ import {useUsersState} from '@/stores/users'
 import {useChatTeam, useChatTeamMembers} from '../team-hooks'
 import logger from '@/logger'
 import {useBotSettings} from '../bot/settings'
-import {
-  useConversationThreadActions,
-  useConversationThreadID,
-  useConversationThreadMeta,
-  useConversationThreadParticipants,
-} from '../thread-context'
+import {getInboxConversationMeta, participantInfoReceived} from '@/chat/inbox/metadata'
+import {useConversationMetadata} from '../data-hooks'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -47,7 +43,6 @@ const AddToChannel = (props: AddToChannelProps) => {
   const {settings, setSettings} = useBotSettings(conversationIDKey, username)
   const editBotSettings = C.useRPC(T.RPCChat.localSetBotMemberSettingsRpcPromise)
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
-  const {setParticipants} = useConversationThreadActions()
   return (
     <Kb.WaitingButton
       disabled={!settings}
@@ -77,7 +72,11 @@ const AddToChannel = (props: AddToChannelProps) => {
               previewConversationByID(
                 [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
                 preview => {
-                  setParticipants(ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
+                  participantInfoReceived(
+                    conversationIDKey,
+                    ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
+                    getInboxConversationMeta(conversationIDKey)
+                  )
                 },
                 () => {}
               )
@@ -209,19 +208,18 @@ const styles = Kb.Styles.styleSheetCreate(
 
 type Props = {
   commonSections: ReadonlyArray<Section>
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const BotTab = (props: Props) => {
-  const meta = useConversationThreadMeta()
+  const {conversationIDKey} = props
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const {teamID, teamname, teamType, botAliases} = meta
-  const conversationIDKey = useConversationThreadID()
   const {yourOperations} = useChatTeam(teamID, teamname)
   const canManageBots = teamname ? yourOperations.manageBots : true
   const adhocTeam = teamType === 'adhoc'
-  const participantInfo = useConversationThreadParticipants()
   const {members: teamMembers, reload: reloadTeamMembers} = useChatTeamMembers(teamID)
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
-  const {setParticipants} = useConversationThreadActions()
   const mutationWaiting = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const mutationError = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
   const wasMutationWaitingRef = React.useRef(mutationWaiting)
@@ -241,7 +239,11 @@ const BotTab = (props: Props) => {
     previewConversationByID(
       [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
       preview => {
-        setParticipants(ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
+        participantInfoReceived(
+          conversationIDKey,
+          ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
+          getInboxConversationMeta(conversationIDKey)
+        )
       },
       () => {}
     )
@@ -251,7 +253,6 @@ const BotTab = (props: Props) => {
     participantInfo.name.length,
     participantsAll.length,
     previewConversationByID,
-    setParticipants,
   ])
 
   React.useEffect(() => {
@@ -263,7 +264,11 @@ const BotTab = (props: Props) => {
     previewConversationByID(
       [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
       preview => {
-        setParticipants(ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
+        participantInfoReceived(
+          conversationIDKey,
+          ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
+          getInboxConversationMeta(conversationIDKey)
+        )
       },
       () => {}
     )
@@ -277,7 +282,6 @@ const BotTab = (props: Props) => {
     mutationWaiting,
     previewConversationByID,
     reloadTeamMembers,
-    setParticipants,
   ])
 
   let botUsernames: Array<string> = []

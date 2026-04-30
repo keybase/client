@@ -1,17 +1,17 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
-import {useConversationThreadID, useConversationThreadMeta} from '../thread-context'
 
 type Props = {
+  conversationIDKey: T.Chat.ConversationIDKey
   isAdmin: boolean
   isGeneralChannel: boolean
+  teamID: T.Teams.TeamID
 }
 
 const AddPeople = (p: Props) => {
-  const {isGeneralChannel, isAdmin} = p
-  const teamID = useConversationThreadMeta().teamID
-  const conversationIDKey = useConversationThreadID()
+  const {conversationIDKey, isGeneralChannel, isAdmin, teamID} = p
   const onAddPeople = () => {
     if (teamID) {
       C.Router2.navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})

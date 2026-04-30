@@ -3,17 +3,18 @@ import {CreateNewTeam} from '../teams/new-team'
 import {useCurrentUserState} from '@/stores/current-user'
 import {createNewTeamAndNavigate} from '@/teams/team-page-actions'
 import * as T from '@/constants/types'
-import {ConversationThreadBridgeProvider, useConversationThreadParticipants} from './conversation/thread-context'
+import {useConversationParticipants} from './conversation/data-hooks'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
 
-const NewTeamDialogInner = () => {
+const NewTeamDialogInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey} = props
   const baseTeam = ''
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }
-  const participantInfo = useConversationThreadParticipants()
+  const participantInfo = useConversationParticipants(conversationIDKey)
   const username = useCurrentUserState(s => s.username)
   const onSubmit = (teamname: string) => {
     const usersToAdd = participantInfo.name
@@ -21,18 +22,16 @@ const NewTeamDialogInner = () => {
       .map(assertion => ({assertion, role: 'writer' as const}))
     void createNewTeamAndNavigate(teamname, false, {fromChat: true, usersToAdd})
   }
-  const props = {
+  const newTeamProps = {
     baseTeam,
     onCancel,
     onSubmit,
   }
-  return <CreateNewTeam {...props} />
+  return <CreateNewTeam {...newTeamProps} />
 }
 
 const NewTeamDialog = (props: Props) => (
-  <ConversationThreadBridgeProvider id={props.conversationIDKey ?? T.Chat.noConversationIDKey}>
-    <NewTeamDialogInner />
-  </ConversationThreadBridgeProvider>
+  <NewTeamDialogInner conversationIDKey={props.conversationIDKey ?? T.Chat.noConversationIDKey} />
 )
 
 export default NewTeamDialog

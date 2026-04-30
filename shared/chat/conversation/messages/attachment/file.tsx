@@ -9,7 +9,7 @@ import type {StyleOverride} from '@/common-adapters/markdown'
 import {getEditStyle, ShowToastAfterSaving} from './shared'
 import {makeUUID} from '@/util/uuid'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {useConversationAttachmentActions} from '../../attachment-actions'
+import {showPDFViewer, useConversationAttachmentActions} from '../../attachment-actions'
 
 type OwnProps = {
   isEditing: boolean
@@ -62,10 +62,7 @@ function FileContainer(p: OwnProps) {
       messageAttachmentNativeShare(ordinal, true)
     } else if (!downloadPath) {
       if (fileType === 'application/pdf') {
-        navigateAppend({
-          name: 'chatPDF',
-          params: {conversationIDKey, ordinal},
-        })
+        showPDFViewer(conversationIDKey, ordinal, message)
       } else {
         switch (transferState) {
           case 'uploading':

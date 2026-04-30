@@ -31,7 +31,7 @@ const Arrow = (props: ArrowProps) => {
 }
 
 const Fullscreen = function Fullscreen(p: Props) {
-  const data = useData(p.ordinal)
+  const data = useData(p.conversationIDKey, p.ordinal, p.initialMessage)
   const {message, ordinal, path, title, progress, previewPath} = data
   const {progressLabel, onNextAttachment, onPreviousAttachment} = data
   const {onDownloadAttachment, onShowInFinder, isVideo} = data
@@ -65,7 +65,7 @@ const Fullscreen = function Fullscreen(p: Props) {
   Kb.useHotKey(['left', 'right'], onHotKey)
   const isDownloadError = !!message.transferErrMsg
 
-  const {showPopup, popup, popupAnchor} = useMessagePopup({ordinal})
+  const {showPopup, popup, popupAnchor} = useMessagePopup({conversationIDKey: p.conversationIDKey, message, ordinal})
 
   const titleOverride = {
     paragraph: Kb.Styles.platformStyles({

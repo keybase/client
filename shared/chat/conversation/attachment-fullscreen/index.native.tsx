@@ -50,7 +50,7 @@ const FullscreenVideo = (p: {
 
 const Fullscreen = function Fullscreen(p: Props) {
   const {showHeader: _showHeader = true} = p
-  const data = useData(p.ordinal, p.initialMessage)
+  const data = useData(p.conversationIDKey, p.ordinal, p.initialMessage)
   const {isVideo, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
   const {onNextAttachment, onPreviousAttachment} = data
   const [loaded, setLoaded] = React.useState(false)
@@ -79,7 +79,7 @@ const Fullscreen = function Fullscreen(p: Props) {
     ? {height: data.fullHeight, width: data.fullWidth}
     : {height: data.previewHeight, width: data.previewWidth}
 
-  const {showPopup, popup} = useMessagePopup({ordinal})
+  const {showPopup, popup} = useMessagePopup({conversationIDKey: p.conversationIDKey, message, ordinal})
 
   const onSwipe = (left: boolean) => {
     if (left) {
@@ -181,7 +181,7 @@ const Fullscreen = function Fullscreen(p: Props) {
   return (
     <Kb.Box2
       direction="vertical"
-          relative={true}
+      relative={true}
       style={{backgroundColor: Kb.Styles.globalColors.blackOrBlack}}
       fullWidth={true}
       fullHeight={true}

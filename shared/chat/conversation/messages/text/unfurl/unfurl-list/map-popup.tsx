@@ -4,8 +4,8 @@ import * as T from '@/constants/types'
 import {openURL} from '@/util/misc'
 import LocationMap from '@/chat/location-map'
 import {useConfigState} from '@/stores/config'
-import {useConversationSendActions} from '../../../../send-actions'
-import {ConversationThreadBridgeProvider} from '../../../../thread-context'
+import {sendTextToConversation} from '../../../../send-actions'
+import {useConversationMeta} from '../../../../data-hooks'
 
 type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -17,9 +17,10 @@ type Props = {
 }
 
 const UnfurlMapPopupInner = (props: Props) => {
-  const {coord, isAuthor, isLiveLocation, url} = props
+  const {coord, conversationIDKey = T.Chat.noConversationIDKey, isAuthor, isLiveLocation, url} = props
   const author = props.author ?? ''
   const httpSrv = useConfigState(s => s.httpSrv)
+  const {tlfname} = useConversationMeta(conversationIDKey)
 
   const clearModals = C.Router2.clearModals
   const onClose = () => {
@@ -29,10 +30,11 @@ const UnfurlMapPopupInner = (props: Props) => {
     onClose()
     openURL(url)
   }
-  const {sendMessage} = useConversationSendActions()
   const onStopSharing = () => {
     onClose()
-    sendMessage('/location stop')
+    if (tlfname) {
+      sendTextToConversation(conversationIDKey, tlfname, '/location stop')
+    }
   }
 
   const width = Kb.Styles.isMobile ? Math.ceil(Kb.Styles.dimensionWidth) : 300
@@ -60,12 +62,7 @@ const UnfurlMapPopupInner = (props: Props) => {
 }
 
 const UnfurlMapPopup = (props: Props) => {
-  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
-  return (
-    <ConversationThreadBridgeProvider id={conversationIDKey}>
-      <UnfurlMapPopupInner {...props} />
-    </ConversationThreadBridgeProvider>
-  )
+  return <UnfurlMapPopupInner {...props} />
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

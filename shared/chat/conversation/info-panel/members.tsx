@@ -8,10 +8,11 @@ import Participant from './participant'
 import {useUsersState} from '@/stores/users'
 import {navToProfile} from '@/constants/router'
 import {useChatTeamMembers} from '../team-hooks'
-import {useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from '../thread-context'
+import {useConversationMetadata} from '../data-hooks'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 type Item =
@@ -32,16 +33,15 @@ type Item =
 type Section = Kb.SectionType<Item>
 
 const MembersTab = (props: Props) => {
-  const conversationIDKey = useConversationThreadID()
+  const {conversationIDKey} = props
   const infoMap = useUsersState(s => s.infoMap)
-  const meta = useConversationThreadMeta()
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const {channelname, teamID, teamname} = meta
 
   const {loading: loadingTeamMembers, members: teamMembers} = useChatTeamMembers(teamID)
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && loadingTeamMembers
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
-  const participantInfo = useConversationThreadParticipants()
   const participants = getBotsAndParticipants(meta, participantInfo, teamMembers).participants
   const lastTeamNameRef = React.useRef('')
   React.useEffect(() => {

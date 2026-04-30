@@ -6,18 +6,10 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {
   cancelAttachmentUploads,
-  getClientPrevFromThread,
   uploadAttachments,
   uploadAttachmentsFromDragAndDrop,
 } from './attachment-actions'
-import {
-  ConversationThreadBridgeProvider,
-  useConversationThreadExplodingMode,
-  useConversationThreadID,
-  useConversationThreadMeta,
-  useConversationThreadMessageMap,
-  useConversationThreadMessageOrdinalsMaybe,
-} from './thread-context'
+import {getConversationClientPrev, useConversationExplodingMode, useConversationMeta} from './data-hooks'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -59,12 +51,10 @@ const ContainerInner = (ownProps: OwnProps) => {
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const navigateUp = C.Router2.navigateUp
-  const conversationIDKey = useConversationThreadID()
-  const metaTlfName = useConversationThreadMeta().tlfname
-  const explodingMode = useConversationThreadExplodingMode()
-  const messageMap = useConversationThreadMessageMap()
-  const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
-  const clientPrev = getClientPrevFromThread(messageMap, messageOrdinals)
+  const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
+  const metaTlfName = useConversationMeta(conversationIDKey).tlfname
+  const explodingMode = useConversationExplodingMode(conversationIDKey)
+  const clientPrev = getConversationClientPrev(conversationIDKey)
   const onCancel = () => {
     cancelAttachmentUploads(
       pathAndOutboxIDs.reduce((l: Array<T.RPCChat.OutboxID>, {outboxID}) => {
@@ -339,12 +329,7 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const Container = (ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
-  return (
-    <ConversationThreadBridgeProvider id={conversationIDKey}>
-      <ContainerInner {...ownProps} />
-    </ConversationThreadBridgeProvider>
-  )
+  return <ContainerInner {...ownProps} />
 }
 
 export default Container

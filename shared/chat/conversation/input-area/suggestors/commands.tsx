@@ -5,7 +5,7 @@ import * as Kb from '@/common-adapters'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConfigState} from '@/stores/config'
 import type {Selection as InputSelection} from '../normal/input'
-import {useConversationThreadID, useConversationThreadMeta} from '../../thread-context'
+import {useConversationMeta} from '../../data-hooks'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
   return command.username ? '!' : '/'
@@ -32,6 +32,14 @@ type BotCommandsUpdateState = {
 
 const BotCommandSettingsContext = React.createContext<BotSettingsMap | undefined>(undefined)
 BotCommandSettingsContext.displayName = 'BotCommandSettingsContext'
+const BotCommandConversationContext = React.createContext<
+  | {
+      botCommands: T.RPCChat.ConversationCommandGroups
+      conversationIDKey: T.Chat.ConversationIDKey
+    }
+  | undefined
+>(undefined)
+BotCommandConversationContext.displayName = 'BotCommandConversationContext'
 
 const makeBotCommandsUpdateState = (conversationIDKey: T.Chat.ConversationIDKey): BotCommandsUpdateState => ({
   conversationIDKey,
@@ -92,10 +100,11 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   const {selected, item: command} = p
   const prefix = getCommandPrefix(command)
   const botSettings = React.useContext(BotCommandSettingsContext)
-  const conversationIDKey = useConversationThreadID()
-  const {botCommands} = useConversationThreadMeta()
+  const botCommandConversation = React.useContext(BotCommandConversationContext)
+  const conversationIDKey = botCommandConversation?.conversationIDKey ?? T.Chat.noConversationIDKey
+  const botCommands = botCommandConversation?.botCommands
   const suggestBotCommands =
-    botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
+    botCommands?.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
       ? botCommands.custom.commands || blankCommands
       : blankCommands
   const botRestrictMap = getBotRestrictBlockMap(botSettings, conversationIDKey, [
@@ -151,16 +160,17 @@ export type CommandInputSnapshot = {
 }
 
 type UseDataSourceProps = {
+  conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   inputSnapshot: CommandInputSnapshot
   suppressCommandSuggestions: boolean
 }
 
 const useDataSource = (p: UseDataSourceProps) => {
-  const {filter, inputSnapshot, suppressCommandSuggestions} = p
+  const {conversationIDKey, filter, inputSnapshot, suppressCommandSuggestions} = p
   const {selection: sel, text} = inputSnapshot
   const builtinCommands = useConfigState(s => s.chatBuiltinCommands)
-  const {botCommands, commands} = useConversationThreadMeta()
+  const {botCommands, commands} = useConversationMeta(conversationIDKey)
   if (suppressCommandSuggestions) {
     return []
   }
@@ -206,6 +216,7 @@ type ListProps = Pick<
   'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
   botSettings: BotSettingsMap
+  conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: CommandType, final: boolean) => void
   setOnMoveRef: (r: (up: boolean) => void) => void
@@ -215,17 +226,20 @@ type ListProps = Pick<
   inputSnapshot: CommandInputSnapshot
 }
 export const List = (p: ListProps) => {
-  const {botSettings, filter, inputSnapshot, suppressCommandSuggestions, ...rest} = p
-  const items = useDataSource({filter, inputSnapshot, suppressCommandSuggestions})
+  const {botSettings, conversationIDKey, filter, inputSnapshot, suppressCommandSuggestions, ...rest} = p
+  const {botCommands} = useConversationMeta(conversationIDKey)
+  const items = useDataSource({conversationIDKey, filter, inputSnapshot, suppressCommandSuggestions})
   return (
     <BotCommandSettingsContext.Provider value={botSettings}>
-      <Common.List
-        {...rest}
-        keyExtractor={keyExtractor}
-        items={items}
-        ItemRenderer={ItemRenderer}
-        loading={false}
-      />
+      <BotCommandConversationContext.Provider value={{botCommands, conversationIDKey}}>
+        <Common.List
+          {...rest}
+          keyExtractor={keyExtractor}
+          items={items}
+          ItemRenderer={ItemRenderer}
+          loading={false}
+        />
+      </BotCommandConversationContext.Provider>
     </BotCommandSettingsContext.Provider>
   )
 }

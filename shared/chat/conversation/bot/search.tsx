@@ -7,7 +7,6 @@ import * as S from '@/constants/strings'
 import logger from '@/logger'
 import {Bot} from '../info-panel/bot'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
-import {ConversationThreadBridgeProvider, useConversationThreadID} from '../thread-context'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; teamID?: T.Teams.TeamID}
 type BotSearchResults = {
@@ -30,16 +29,11 @@ type Section = Omit<Kb.SectionType<Item>, 'title'> & {title: string}
 
 const SearchBotPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
-  return (
-    <ConversationThreadBridgeProvider id={conversationIDKey}>
-      <SearchBotPopupInner {...props} />
-    </ConversationThreadBridgeProvider>
-  )
+  return <SearchBotPopupInner {...props} conversationIDKey={conversationIDKey} />
 }
 
-const SearchBotPopupInner = (props: Props) => {
-  const conversationIDKey = useConversationThreadID()
-  const teamID = props.teamID
+const SearchBotPopupInner = (props: Props & {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey, teamID} = props
   const [lastQuery, setLastQuery] = React.useState('')
   const [botSearchResults, setBotSearchResults] = React.useState(
     new Map<string, BotSearchResults | undefined>()

@@ -13,12 +13,10 @@ import {Keyboard} from 'react-native'
 import {useUserEmoji} from '@/chat/user-emoji'
 import {useCurrentSkinTone, useSetSkinTone, useTopReacjis} from '@/chat/user-reacjis'
 import {
-  ConversationThreadBridgeProvider,
-  RequiredConversationThreadBridgeProvider,
-  useConversationThreadID,
-  useConversationThreadMessageActions,
-  useConversationThreadMeta,
-} from '@/chat/conversation/thread-context'
+  toggleConversationMessageReaction,
+  toggleConversationMessageReactionByID,
+} from '@/chat/conversation/message-actions'
+import {useConversationMessageByOrdinal, useConversationMeta} from '@/chat/conversation/data-hooks'
 
 type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -40,14 +38,29 @@ type RoutableProps = {
   onPickAddToMessageOrdinal?: T.Chat.Ordinal
 }
 
-const useReacji = ({onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
+const useReacji = ({
+  conversationIDKey = T.Chat.noConversationIDKey,
+  onDidPick,
+  onPickAction,
+  onPickAddToMessageOrdinal,
+}: Props) => {
   const topReacjis = useTopReacjis()
   const [filter, setFilter] = React.useState('')
-  const {toggleMessageReaction} = useConversationThreadMessageActions()
-  const conversationIDKey = useConversationThreadID()
+  const message = useConversationMessageByOrdinal(
+    conversationIDKey,
+    onPickAddToMessageOrdinal ?? T.Chat.numberToOrdinal(0)
+  )
   const onChoose = (emoji: string, renderableEmoji: RenderableEmoji) => {
     if (conversationIDKey !== T.Chat.noConversationIDKey && onPickAddToMessageOrdinal) {
-      toggleMessageReaction(onPickAddToMessageOrdinal, emoji)
+      if (message) {
+        toggleConversationMessageReaction(conversationIDKey, message, emoji)
+      } else {
+        toggleConversationMessageReactionByID(
+          conversationIDKey,
+          T.Chat.numberToMessageID(T.Chat.ordinalToNumber(onPickAddToMessageOrdinal)),
+          emoji
+        )
+      }
     }
     onPickAction?.(emoji, renderableEmoji)
     onDidPick?.()
@@ -66,8 +79,11 @@ const useSkinTone = () => {
   return {currentSkinTone, setSkinTone}
 }
 
-const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) => {
-  const conversationIDKey = useConversationThreadID()
+const useCustomReacji = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  onlyInTeam: boolean | undefined,
+  disabled?: boolean
+) => {
   const {emojiGroups: customEmojiGroups, loading: waiting} = useUserEmoji({
     conversationIDKey,
     disabled,
@@ -76,31 +92,35 @@ const useCustomReacji = (onlyInTeam: boolean | undefined, disabled?: boolean) =>
   return {customEmojiGroups, waiting}
 }
 
-const useCanManageEmoji = () => {
-  const meta = useConversationThreadMeta()
+const useCanManageEmoji = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const meta = useConversationMeta(conversationIDKey)
   const {yourOperations} = useChatTeam(meta.teamID, meta.teamname)
   const canManageEmoji = !meta.teamname || yourOperations.manageEmojis
   return canManageEmoji
 }
 
 const WrapperMobile = (props: Props) => {
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
 
   const setFilterTextChangedThrottled = C.useThrottledCallback(setFilter, 200)
-  const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
+  const {waiting, customEmojiGroups} = useCustomReacji(
+    conversationIDKey,
+    props.onlyTeamCustomEmoji,
+    props.disableCustomEmoji
+  )
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => setWidth(evt.nativeEvent.layout.width)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const navigateUp = C.Router2.navigateUp
   const onCancel = navigateUp
-  const conversationIDKey = useConversationThreadID()
   const addEmoji = () =>
     C.Router2.navigateAppend({
       name: 'teamAddEmoji',
       params: {conversationIDKey, teamID: T.Teams.noTeamID},
     })
-  const canManageEmoji = useCanManageEmoji()
+  const canManageEmoji = useCanManageEmoji(conversationIDKey)
 
   return (
     <Kb.Box2
@@ -157,12 +177,16 @@ const WrapperMobile = (props: Props) => {
 
 const EmojiPickerDesktopInner = (props: Props) => {
   const {onDidPick} = props
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   const {filter, onChoose, setFilter: _setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState(emojiData.defaultHoverEmoji)
-  const {waiting, customEmojiGroups} = useCustomReacji(props.onlyTeamCustomEmoji, props.disableCustomEmoji)
-  const canManageEmoji = useCanManageEmoji()
-  const conversationIDKey = useConversationThreadID()
+  const {waiting, customEmojiGroups} = useCustomReacji(
+    conversationIDKey,
+    props.onlyTeamCustomEmoji,
+    props.disableCustomEmoji
+  )
+  const canManageEmoji = useCanManageEmoji(conversationIDKey)
   const addEmoji = () => {
     onDidPick?.()
     C.Router2.navigateAppend({
@@ -255,17 +279,7 @@ const EmojiPickerDesktopInner = (props: Props) => {
 }
 
 export const EmojiPickerDesktop = (props: Props) => {
-  const {conversationIDKey} = props
-  const PickerProvider = props.onPickAddToMessageOrdinal
-    ? RequiredConversationThreadBridgeProvider
-    : ConversationThreadBridgeProvider
-  return conversationIDKey ? (
-    <PickerProvider id={conversationIDKey}>
-      <EmojiPickerDesktopInner {...props} />
-    </PickerProvider>
-  ) : (
-    <EmojiPickerDesktopInner {...props} />
-  )
+  return <EmojiPickerDesktopInner {...props} />
 }
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -325,15 +339,7 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const Routable = (props: RoutableProps) => {
-  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
-  const PickerProvider = props.onPickAddToMessageOrdinal
-    ? RequiredConversationThreadBridgeProvider
-    : ConversationThreadBridgeProvider
-  return (
-    <PickerProvider id={conversationIDKey}>
-      <RoutableInner {...props} />
-    </PickerProvider>
-  )
+  return <RoutableInner {...props} />
 }
 
 const RoutableInner = (props: RoutableProps) => {
@@ -352,6 +358,7 @@ const RoutableInner = (props: RoutableProps) => {
 
   return (
     <WrapperMobile
+      conversationIDKey={props.conversationIDKey}
       small={small}
       onPickAction={onPickAction}
       onPickAddToMessageOrdinal={onPickAddToMessageOrdinal}

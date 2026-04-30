@@ -7,21 +7,30 @@ import logger from '@/logger'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {
-  useConversationShowInfoPanel,
-  useConversationThreadID,
-  useConversationThreadMessage,
-} from '../thread-context'
-import {useConversationAttachmentActions} from '../attachment-actions'
+  attachmentDownloadMessage,
+  loadNextAttachmentMessage,
+} from '../attachment-actions'
+import {showConversationInfoPanel} from '../thread-context'
+import {useConversationMessageByOrdinal} from '../data-hooks'
 
 const blankMessage = Chat.makeMessageAttachment({})
-export const useData = (initialOrdinal: T.Chat.Ordinal, initialMessage?: T.Chat.MessageAttachment) => {
-  const conversationIDKey = useConversationThreadID()
+export const useData = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  initialOrdinal: T.Chat.Ordinal,
+  initialMessage?: T.Chat.MessageAttachment
+) => {
   const [ordinal, setOrdinal] = React.useState(initialOrdinal)
+  const [messageOverride, setMessageOverride] = React.useState<T.Chat.MessageAttachment | undefined>(
+    initialMessage
+  )
 
-  const threadMessage = useConversationThreadMessage(ordinal)
+  const loadedMessage = useConversationMessageByOrdinal(conversationIDKey, ordinal)
   const initialMessageForOrdinal = initialMessage?.ordinal === ordinal ? initialMessage : undefined
+  const overrideMessageForOrdinal = messageOverride?.ordinal === ordinal ? messageOverride : undefined
   const message: T.Chat.MessageAttachment =
-    threadMessage?.type === 'attachment' ? threadMessage : (initialMessageForOrdinal ?? blankMessage)
+    loadedMessage?.type === 'attachment'
+      ? loadedMessage
+      : (overrideMessageForOrdinal ?? initialMessageForOrdinal ?? blankMessage)
 
   React.useEffect(() => {
     if (message !== blankMessage || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
@@ -33,12 +42,12 @@ export const useData = (initialOrdinal: T.Chat.Ordinal, initialMessage?: T.Chat.
     )
   }, [conversationIDKey, message, ordinal])
 
-  const {attachmentDownload, loadNextAttachment} = useConversationAttachmentActions()
   const onSwitchAttachment = (backInTime: boolean) => {
     const f = async () => {
-      if (conversationIDKey !== blankMessage.conversationIDKey) {
-        const o = await loadNextAttachment(ordinal, backInTime)
-        setOrdinal(o)
+      if (conversationIDKey !== blankMessage.conversationIDKey && message !== blankMessage) {
+        const nextMessage = await loadNextAttachmentMessage(conversationIDKey, message, backInTime)
+        setMessageOverride(nextMessage)
+        setOrdinal(nextMessage.ordinal)
       }
     }
     C.ignorePromise(f())
@@ -52,7 +61,6 @@ export const useData = (initialOrdinal: T.Chat.Ordinal, initialMessage?: T.Chat.
   }
 
   const navigateUp = C.Router2.navigateUp
-  const showInfoPanel = useConversationShowInfoPanel()
   const {downloadPath, fileURL: path, fullHeight, fullWidth, fileType} = message
   const {previewHeight, previewURL: previewPath, previewWidth, title, transferProgress} = message
   const {height: clampedHeight, width: clampedWidth} = clampImageSize(
@@ -62,14 +70,14 @@ export const useData = (initialOrdinal: T.Chat.Ordinal, initialMessage?: T.Chat.
     maxHeight
   )
 
-  const isVideo = message.fileType.startsWith('video')
-  const showPreview = !fileType.includes('png')
-  const onAllMedia = () => showInfoPanel(true, 'attachments')
+  const isVideo = (message.fileType ?? '').startsWith('video')
+  const showPreview = !(fileType ?? '').includes('png')
+  const onAllMedia = () => showConversationInfoPanel(conversationIDKey, true, 'attachments')
   const onClose = () => navigateUp()
   const onDownloadAttachment = message.downloadPath
     ? undefined
     : () => {
-        attachmentDownload(message.ordinal)
+        attachmentDownloadMessage(conversationIDKey, message)
       }
 
   const onShowInFinder = downloadPath

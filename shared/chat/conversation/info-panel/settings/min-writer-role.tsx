@@ -7,13 +7,13 @@ import upperFirst from 'lodash/upperFirst'
 import {indefiniteArticle} from '@/util/string'
 import {useChatTeam} from '../../team-hooks'
 import {ignorePromise} from '@/constants/utils'
-import {useConversationThreadID, useConversationThreadMeta} from '../../thread-context'
+import {useConversationMeta} from '../../data-hooks'
 
 const positionFallbacks = ['bottom center'] as const
 
-const MinWriterRole = () => {
-  const meta = useConversationThreadMeta()
-  const conversationIDKey = useConversationThreadID()
+const MinWriterRole = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey} = props
+  const meta = useConversationMeta(conversationIDKey)
   const {teamname, minWriterRole} = meta
 
   const {yourOperations} = useChatTeam(meta.teamID, teamname)

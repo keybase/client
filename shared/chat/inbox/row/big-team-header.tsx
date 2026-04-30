@@ -4,7 +4,6 @@ import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
 import {useChatManageChannelsBadge} from '@/chat/conversation/team-hooks'
-import {ConversationThreadBridgeProvider} from '@/chat/conversation/thread-context'
 
 type Props = {
   teamname: string
@@ -20,16 +19,14 @@ const BigTeamHeader = (props: Props) => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <ConversationThreadBridgeProvider id={T.Chat.noConversationIDKey}>
-        <TeamMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          teamID={teamID}
-          hasHeader={true}
-          isSmallTeam={false}
-        />
-      </ConversationThreadBridgeProvider>
+      <TeamMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        teamID={teamID}
+        hasHeader={true}
+        isSmallTeam={false}
+      />
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)

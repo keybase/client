@@ -7,7 +7,6 @@ import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
-import {ConversationThreadProvider} from '../../thread-context'
 import {List} from './channels'
 
 const mockCommonList = jest.fn((_p: unknown) => null)
@@ -74,16 +73,15 @@ const makeChannelRow = (
 
 const renderChannels = () =>
   render(
-    <ConversationThreadProvider id={convID}>
-      <List
-        filter=""
-        listStyle={{}}
-        spinnerStyle={{}}
-        onSelected={jest.fn()}
-        setOnMoveRef={jest.fn()}
-        setOnSubmitRef={jest.fn()}
-      />
-    </ConversationThreadProvider>
+    <List
+      conversationIDKey={convID}
+      filter=""
+      listStyle={{}}
+      spinnerStyle={{}}
+      onSelected={jest.fn()}
+      setOnMoveRef={jest.fn()}
+      setOnSubmitRef={jest.fn()}
+    />
   )
 
 beforeEach(() => {

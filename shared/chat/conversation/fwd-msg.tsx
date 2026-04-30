@@ -7,20 +7,46 @@ import {useNavigation} from '@react-navigation/native'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
-import {
-  RequiredConversationThreadBridgeProvider,
-  useConversationThreadID,
-  useConversationThreadMessage,
-} from './thread-context'
+import {useConversationMessageByOrdinal} from './data-hooks'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; ordinal: T.Chat.Ordinal}
 
 type PickerState = 'picker' | 'title'
 
+const forwardMessageHandoff = new Map<string, T.Chat.Message>()
+const forwardMessageKey = (conversationIDKey: T.Chat.ConversationIDKey, ordinal: T.Chat.Ordinal) =>
+  `${conversationIDKey}:${T.Chat.ordinalToNumber(ordinal)}`
+
+const takeForwardMessage = (conversationIDKey: T.Chat.ConversationIDKey, ordinal: T.Chat.Ordinal) => {
+  const key = forwardMessageKey(conversationIDKey, ordinal)
+  const message = forwardMessageHandoff.get(key)
+  forwardMessageHandoff.delete(key)
+  return message
+}
+
+export const showForwardMessagePicker = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  ordinal: T.Chat.Ordinal,
+  message?: T.Chat.Message
+) => {
+  const key = forwardMessageKey(conversationIDKey, ordinal)
+  if (message) {
+    forwardMessageHandoff.set(key, message)
+  } else {
+    forwardMessageHandoff.delete(key)
+  }
+  C.Router2.navigateAppend({
+    name: 'chatForwardMsgPick',
+    params: {conversationIDKey, ordinal},
+  })
+}
+
 const TeamPickerInner = (props: Props) => {
-  const srcConvID = useConversationThreadID()
+  const srcConvID = props.conversationIDKey ?? Chat.noConversationIDKey
   const ordinal = props.ordinal
-  const message = useConversationThreadMessage(ordinal)
+  const [initialMessage] = React.useState(() => takeForwardMessage(srcConvID, ordinal))
+  const loadedMessage = useConversationMessageByOrdinal(srcConvID, ordinal)
+  const message = loadedMessage ?? initialMessage
   const navigation = useNavigation()
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
@@ -280,12 +306,7 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const TeamPicker = (props: Props) => {
-  const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
-  return (
-    <RequiredConversationThreadBridgeProvider id={conversationIDKey}>
-      <TeamPickerInner {...props} />
-    </RequiredConversationThreadBridgeProvider>
-  )
+  return <TeamPickerInner {...props} />
 }
 
 export default TeamPicker

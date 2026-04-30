@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {ConversationThreadBridgeProvider, useConversationThreadMeta} from './conversation/thread-context'
+import {useConversationMeta} from './conversation/data-hooks'
 import logger from '@/logger'
 
 type Props = {
@@ -10,21 +10,12 @@ type Props = {
 
 const DeleteHistoryWarning = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
-  return (
-    <ConversationThreadBridgeProvider id={conversationIDKey}>
-      <DeleteHistoryWarningInner conversationIDKey={conversationIDKey} />
-    </ConversationThreadBridgeProvider>
-  )
-}
-
-const DeleteHistoryWarningInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
-  const {conversationIDKey} = props
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }
   const clearModals = C.Router2.clearModals
-  const {tlfname} = useConversationThreadMeta()
+  const {tlfname} = useConversationMeta(conversationIDKey)
   const onDeleteHistory = () => {
     clearModals()
     const f = async () => {

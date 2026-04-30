@@ -92,6 +92,35 @@ export const showAttachmentPreview = (
   })
 }
 
+const pdfMessageHandoff = new Map<string, T.Chat.MessageAttachment>()
+const pdfMessageKey = (conversationIDKey: T.Chat.ConversationIDKey, ordinal: T.Chat.Ordinal) =>
+  `${conversationIDKey}:${T.Chat.ordinalToNumber(ordinal)}`
+
+export const takePDFMessage = (conversationIDKey: T.Chat.ConversationIDKey, ordinal: T.Chat.Ordinal) => {
+  const key = pdfMessageKey(conversationIDKey, ordinal)
+  const message = pdfMessageHandoff.get(key)
+  pdfMessageHandoff.delete(key)
+  return message
+}
+
+export const showPDFViewer = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  ordinal: T.Chat.Ordinal,
+  message?: T.Chat.MessageAttachment,
+  url?: string
+) => {
+  const key = pdfMessageKey(conversationIDKey, ordinal)
+  if (message) {
+    pdfMessageHandoff.set(key, message)
+  } else {
+    pdfMessageHandoff.delete(key)
+  }
+  navigateAppend({
+    name: 'chatPDF',
+    params: url ? {conversationIDKey, ordinal, url} : {conversationIDKey, ordinal},
+  })
+}
+
 export const uploadAttachments = (p: {
   clientPrev: T.Chat.MessageID
   conversationIDKey: T.Chat.ConversationIDKey
@@ -157,6 +186,125 @@ export const uploadAttachmentsFromDragAndDrop = (p: {
     }
   }
   ignorePromise(f())
+}
+
+const downloadAttachmentMessage = async (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  message: T.Chat.MessageAttachment,
+  downloadToCache: boolean
+) => {
+  try {
+    const rpcRes = await T.RPCChat.localDownloadFileAttachmentLocalRpcPromise({
+      conversationID: T.Chat.keyToConversationID(conversationIDKey),
+      downloadToCache,
+      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+      messageID: message.id,
+      preview: false,
+    })
+    return rpcRes.filePath
+  } catch (error) {
+    if (error instanceof RPCError) {
+      logger.info(`downloadAttachmentMessage error: ${error.message}`)
+    }
+    return false
+  }
+}
+
+export const attachmentDownloadMessage = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  message: T.Chat.MessageAttachment
+) => {
+  if (message.downloadPath) {
+    logger.warn('Attachment already downloaded')
+    return
+  }
+
+  const f = async () => {
+    await downloadAttachmentMessage(conversationIDKey, message, false)
+  }
+  ignorePromise(f())
+}
+
+export const messageAttachmentNativeSaveMessage = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  message: T.Chat.MessageAttachment
+) => {
+  if (!isMobile) {
+    return
+  }
+  const f = async () => {
+    const {fileType} = message
+    const fileName = await downloadAttachmentMessage(conversationIDKey, message, true)
+    if (!fileName) {
+      logger.info('Downloading attachment failed')
+      return
+    }
+    try {
+      logger.info('Trying to save chat attachment to camera roll')
+      await PlatformSpecific.saveAttachmentToCameraRoll(fileName, fileType)
+    } catch (err) {
+      const errString = String(err)
+      logger.error('Failed to save attachment: ' + errString)
+      throw new Error('Failed to save attachment: ' + errString, {cause: err})
+    }
+  }
+  ignorePromise(f())
+}
+
+export const messageAttachmentNativeShareMessage = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  message: T.Chat.MessageAttachment,
+  fromDownload = false
+) => {
+  const f = async () => {
+    const filePath = await downloadAttachmentMessage(conversationIDKey, message, true)
+    if (!filePath) {
+      logger.info('Downloading attachment failed')
+      return
+    }
+
+    if (isIOS && (message.fileName ?? '').endsWith('.pdf') && fromDownload) {
+      showPDFViewer(conversationIDKey, message.ordinal, message, 'file://' + filePath)
+      return
+    }
+
+    try {
+      await PlatformSpecific.showShareActionSheet({filePath, mimeType: message.fileType})
+    } catch (_e: unknown) {
+      const e = _e as undefined | {message: string}
+      logger.error('Failed to share attachment: ' + JSON.stringify(e?.message))
+    }
+  }
+  ignorePromise(f())
+}
+
+export const loadNextAttachmentMessage = async (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  fromMsg: T.Chat.MessageAttachment,
+  backInTime: boolean
+) => {
+  const {deviceName, username} = useCurrentUserState.getState()
+  const result = await T.RPCChat.localGetNextAttachmentMessageLocalRpcPromise({
+    assetTypes: [T.RPCChat.AssetMetadataType.image, T.RPCChat.AssetMetadataType.video],
+    backInTime,
+    convID: T.Chat.keyToConversationID(conversationIDKey),
+    identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+    messageID: fromMsg.id,
+  })
+
+  if (result.message) {
+    const goodMessage = Message.uiMessageToMessage(
+      conversationIDKey,
+      result.message,
+      username,
+      () => fromMsg.ordinal,
+      deviceName
+    )
+    if (goodMessage?.type === 'attachment') {
+      return goodMessage
+    }
+  }
+  return Promise.reject(new Error('No more results'))
 }
 
 export const useConversationAttachmentActions = () => {
@@ -261,14 +409,7 @@ export const useConversationAttachmentActions = () => {
       }
 
       if (isIOS && message.fileName.endsWith('.pdf') && fromDownload) {
-        navigateAppend({
-          name: 'chatPDF',
-          params: {
-            conversationIDKey,
-            ordinal,
-            url: 'file://' + filePath,
-          },
-        })
+        showPDFViewer(conversationIDKey, ordinal, message, 'file://' + filePath)
         return
       }
 

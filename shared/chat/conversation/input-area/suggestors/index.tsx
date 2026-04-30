@@ -7,7 +7,7 @@ import * as Users from './users'
 import * as InputState from '../input-state'
 import type * as Common from './common'
 import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input'
-import {ConversationThreadBridgeProvider, useConversationThreadID} from '../../thread-context'
+import {useConversationThreadID} from '../../thread-context'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -376,6 +376,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   }
 
   const listProps = {
+    conversationIDKey,
     filter,
     listStyle: suggestionListStyle,
     onSelected,
@@ -434,7 +435,6 @@ type PopupProps = {
 }
 const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
-  const conversationIdKey = useConversationThreadID()
 
   const attachRef = inputRef as React.RefObject<Kb.MeasureRef | null>
 
@@ -450,13 +450,7 @@ const Popup = (p: PopupProps) => {
       containerStyle={suggestionOverlayStyle}
       style={suggestionOverlayStyle}
     >
-      {Kb.Styles.isMobile ? (
-        <ConversationThreadBridgeProvider id={conversationIdKey}>
-          <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
-        </ConversationThreadBridgeProvider>
-      ) : (
-        children
-      )}
+      {Kb.Styles.isMobile ? <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2> : children}
     </Kb.Popup>
   )
 }

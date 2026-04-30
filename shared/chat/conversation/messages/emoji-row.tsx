@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as InputState from '../input-area/input-state'
 import {useOrdinal} from './ids-context'
@@ -6,7 +5,12 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 import {useReactionRowTopReacjis} from '@/chat/user-reacjis'
-import {useConversationThreadID, useConversationThreadMessageActions} from '../thread-context'
+import {showForwardMessagePicker} from '../fwd-msg'
+import {
+  useConversationThreadID,
+  useConversationThreadMessage,
+  useConversationThreadMessageActions,
+} from '../thread-context'
 
 type OwnProps = {
   className?: string
@@ -25,11 +29,9 @@ function EmojiRowContainer(p: OwnProps) {
   const {toggleMessageReaction} = useConversationThreadMessageActions()
   const emojis = useReactionRowTopReacjis()
   const conversationIDKey = useConversationThreadID()
+  const message = useConversationThreadMessage(ordinal)
   const _onForward = () => {
-    C.Router2.navigateAppend({
-      name: 'chatForwardMsgPick',
-      params: {conversationIDKey, ordinal},
-    })
+    showForwardMessagePicker(conversationIDKey, ordinal, message)
   }
   const onReact = (emoji: string) => {
     if (onReactProp) {
@@ -100,7 +102,11 @@ function EmojiRowContainer(p: OwnProps) {
           onHidden={_hidePicker}
           propagateOutsideClicks={false}
         >
-          <EmojiPickerDesktop onPickAddToMessageOrdinal={ordinal} onDidPick={_hidePicker} />
+          <EmojiPickerDesktop
+            conversationIDKey={conversationIDKey}
+            onPickAddToMessageOrdinal={ordinal}
+            onDidPick={_hidePicker}
+          />
         </Kb.Popup>
       )}
     </Kb.Box2>

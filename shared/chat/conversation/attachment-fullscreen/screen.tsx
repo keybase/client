@@ -3,11 +3,6 @@ import * as React from 'react'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import Full from '.'
 import {takeAttachmentPreviewMessage} from '../attachment-actions'
-import {
-  ConversationThreadBridgeProvider,
-  useConversationThreadActions,
-  useConversationThreadMessage,
-} from '../thread-context'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -15,23 +10,22 @@ type OwnProps = {
 }
 
 const SeededFull = (p: {
+  conversationIDKey: T.Chat.ConversationIDKey
   initialMessage?: T.Chat.MessageAttachment
   isPortrait: boolean
   ordinal: T.Chat.Ordinal
   viewKey: number
 }) => {
-  const {initialMessage, isPortrait, ordinal, viewKey} = p
-  const {addMessages} = useConversationThreadActions()
-  const existing = useConversationThreadMessage(initialMessage?.ordinal ?? ordinal)
-
-  React.useEffect(() => {
-    if (initialMessage && existing?.type !== 'attachment') {
-      addMessages([initialMessage])
-    }
-  }, [existing?.type, initialMessage, addMessages])
+  const {conversationIDKey, initialMessage, isPortrait, ordinal, viewKey} = p
 
   return (
-    <Full initialMessage={initialMessage} ordinal={ordinal} showHeader={isPortrait} key={String(viewKey)} />
+    <Full
+      conversationIDKey={conversationIDKey}
+      initialMessage={initialMessage}
+      ordinal={ordinal}
+      showHeader={isPortrait}
+      key={String(viewKey)}
+    />
   )
 }
 
@@ -52,9 +46,13 @@ const Screen = (p: OwnProps) => {
   }, [isPortrait])
 
   return (
-    <ConversationThreadBridgeProvider id={conversationIDKey}>
-      <SeededFull initialMessage={initialMessage} isPortrait={isPortrait} ordinal={p.ordinal} viewKey={key} />
-    </ConversationThreadBridgeProvider>
+    <SeededFull
+      conversationIDKey={conversationIDKey}
+      initialMessage={initialMessage}
+      isPortrait={isPortrait}
+      ordinal={p.ordinal}
+      viewKey={key}
+    />
   )
 }
 

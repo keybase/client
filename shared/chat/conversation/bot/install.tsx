@@ -14,12 +14,8 @@ import {useFeaturedBot} from '@/util/featured-bots'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useBotSettings} from './settings'
-import {
-  ConversationThreadBridgeProvider,
-  useConversationThreadActions,
-  useConversationThreadMeta,
-} from '../thread-context'
-import {metasReceived} from '@/chat/inbox/metadata'
+import {getInboxConversationMeta, metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
+import {useConversationMeta} from '../data-hooks'
 
 const RestrictedItem = '---RESTRICTED---'
 
@@ -33,7 +29,6 @@ export const useRefreshBotMembershipOnSuccess = (
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
-  const {setParticipants} = useConversationThreadActions()
 
   React.useEffect(() => {
     if (!waiting && wasWaitingRef.current && !error) {
@@ -45,7 +40,11 @@ export const useRefreshBotMembershipOnSuccess = (
         previewConversationByID(
           [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
           preview => {
-            setParticipants(ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
+            participantInfoReceived(
+              conversationIDKey,
+              ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
+              getInboxConversationMeta(conversationIDKey)
+            )
             onSuccess()
           },
           () => {
@@ -60,7 +59,6 @@ export const useRefreshBotMembershipOnSuccess = (
     error,
     onSuccess,
     previewConversationByID,
-    setParticipants,
     shouldRefreshMembership,
     waiting,
   ])
@@ -179,11 +177,7 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const teamID = props.teamID
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   if (!conversationIDKey) return null
-  return (
-    <ConversationThreadBridgeProvider id={conversationIDKey}>
-      <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
-    </ConversationThreadBridgeProvider>
-  )
+  return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
 }
 
 type Props = {
@@ -212,7 +206,7 @@ const InstallBotPopup = (props: Props) => {
     | undefined
   >()
 
-  const meta = useConversationThreadMeta()
+  const meta = useConversationMeta(conversationIDKey ?? T.Chat.noConversationIDKey)
   const commandsFromMeta = (
     meta.botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
       ? meta.botCommands.custom.commands || blankCommands

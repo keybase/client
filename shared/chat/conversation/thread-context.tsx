@@ -66,11 +66,8 @@ const emptyAccountsInfoMap: ReadonlyMap<
   T.RPCChat.MessageID,
   T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo
 > = new Map()
-const emptyFlipStatusMap: ReadonlyMap<string, T.RPCChat.UICoinFlipStatus> = new Map()
 const emptyMessageMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message> = new Map()
 const emptyMessageTypeMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.RenderMessageType> = new Map()
-const emptyPaymentStatusMap: ReadonlyMap<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo> = new Map()
-const emptyUnfurlPromptMap: ReadonlyMap<T.Chat.MessageID, ReadonlySet<string>> = new Map()
 const emptyStringSet: ReadonlySet<string> = new Set()
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = 100
@@ -959,47 +956,6 @@ type ConversationThreadProviderProps = React.PropsWithChildren<{
   id: T.Chat.ConversationIDKey
 }>
 
-type ConversationThreadProviderInnerProps = ConversationThreadProviderProps & {
-  registerLive?: boolean
-}
-
-type ConversationThreadProviderEntry = {
-  actions: ConversationThreadActions
-  store: ConversationThreadStore
-}
-
-const liveConversationThreadProviders = new Map<T.Chat.ConversationIDKey, ConversationThreadProviderEntry>()
-const liveConversationThreadProviderListeners = new Set<() => void>()
-
-const notifyLiveConversationThreadProviderListeners = () => {
-  liveConversationThreadProviderListeners.forEach(listener => listener())
-}
-
-const subscribeLiveConversationThreadProviders = (listener: () => void) => {
-  liveConversationThreadProviderListeners.add(listener)
-  return () => {
-    liveConversationThreadProviderListeners.delete(listener)
-  }
-}
-
-const registerLiveConversationThreadProvider = (
-  id: T.Chat.ConversationIDKey,
-  entry: ConversationThreadProviderEntry
-) => {
-  liveConversationThreadProviders.set(id, entry)
-  notifyLiveConversationThreadProviderListeners()
-}
-
-const unregisterLiveConversationThreadProvider = (
-  id: T.Chat.ConversationIDKey,
-  entry: ConversationThreadProviderEntry
-) => {
-  if (liveConversationThreadProviders.get(id) === entry) {
-    liveConversationThreadProviders.delete(id)
-    notifyLiveConversationThreadProviderListeners()
-  }
-}
-
 const ConversationThreadContextProvider = (p: {
   actions: ConversationThreadActions
   children: React.ReactNode
@@ -1013,8 +969,8 @@ const ConversationThreadContextProvider = (p: {
   </ConversationThreadIDContext>
 )
 
-const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps) => {
-  const {children, id, registerLive = false} = p
+const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => {
+  const {children, id} = p
   const [threadStore] = React.useState(() => makeThreadStore(id))
   const active = useShellState(s => s.active)
   const previousActiveRef = React.useRef(active)
@@ -1727,16 +1683,6 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       threadActions.loadMoreMessages.cancel()
     }
   }, [threadActions])
-  React.useLayoutEffect(() => {
-    if (!registerLive) {
-      return
-    }
-    const entry = {actions: threadActions, store: threadStore}
-    registerLiveConversationThreadProvider(id, entry)
-    return () => {
-      unregisterLiveConversationThreadProvider(id, entry)
-    }
-  }, [id, registerLive, threadActions, threadStore])
   const inboxParticipants = useInboxMetadataState(s => s.participants.get(id))
   React.useEffect(() => {
     if (!inboxParticipants) {
@@ -2019,62 +1965,8 @@ export const ConversationThreadProvider = (p: ConversationThreadProviderProps) =
 }
 
 export const LiveConversationThreadProvider = (p: ConversationThreadProviderProps) => (
-  <ConversationThreadProviderInner {...p} registerLive={true} />
+  <ConversationThreadProviderInner {...p} />
 )
-
-const useLiveConversationThreadProviderEntry = (id: T.Chat.ConversationIDKey) =>
-  React.useSyncExternalStore(
-    subscribeLiveConversationThreadProviders,
-    () => liveConversationThreadProviders.get(id),
-    () => undefined
-  )
-
-// React Navigation headers, routes, and popup roots can render outside the live conversation tree.
-// This fallback is only for surfaces that can still work from cache, inbox meta, or participants.
-export const ConversationThreadBridgeProvider = (p: ConversationThreadProviderProps) => {
-  const currentConversationIDKey = React.useContext(ConversationThreadIDContext)
-  const currentActions = React.useContext(ConversationThreadActionsContext)
-  const currentStore = React.useContext(ConversationThreadStoreContext)
-  const liveEntry = useLiveConversationThreadProviderEntry(p.id)
-  if (currentConversationIDKey === p.id && currentActions && currentStore) {
-    return <>{p.children}</>
-  }
-  if (liveEntry) {
-    return (
-      <ConversationThreadContextProvider id={p.id} actions={liveEntry.actions} store={liveEntry.store}>
-        {p.children}
-      </ConversationThreadContextProvider>
-    )
-  }
-  return <ConversationThreadProviderInner {...p} />
-}
-
-// Use this for message-scoped routes and actions. Rendering without the live thread would no-op later.
-export const RequiredConversationThreadBridgeProvider = (p: ConversationThreadProviderProps) => {
-  const currentConversationIDKey = React.useContext(ConversationThreadIDContext)
-  const currentActions = React.useContext(ConversationThreadActionsContext)
-  const currentStore = React.useContext(ConversationThreadStoreContext)
-  const liveEntry = useLiveConversationThreadProviderEntry(p.id)
-  React.useEffect(() => {
-    const missingLiveThread =
-      !(currentConversationIDKey === p.id && currentActions && currentStore) &&
-      !liveConversationThreadProviders.get(p.id)
-    if (missingLiveThread && T.Chat.isValidConversationIDKey(p.id)) {
-      logger.warn(`RequiredConversationThreadBridgeProvider: missing live thread for ${p.id}`)
-    }
-  }, [currentActions, currentConversationIDKey, currentStore, p.id, liveEntry])
-  if (currentConversationIDKey === p.id && currentActions && currentStore) {
-    return <>{p.children}</>
-  }
-  if (!liveEntry) {
-    return null
-  }
-  return (
-    <ConversationThreadContextProvider id={p.id} actions={liveEntry.actions} store={liveEntry.store}>
-      {p.children}
-    </ConversationThreadContextProvider>
-  )
-}
 
 export const useConversationThreadLoaded = () =>
   useConversationThreadSnapshotValue(snapshot => snapshot.loaded)
@@ -2162,26 +2054,11 @@ export const useConversationThreadPaymentStatus = (paymentID?: T.Wallets.Payment
     paymentID ? snapshot.paymentStatusMap.get(paymentID) : undefined
   )
 
-export const useConversationThreadPaymentStatusMap = () =>
-  useConversationThreadSnapshotValue(snapshot =>
-    snapshot.paymentStatusMap.size === 0 ? emptyPaymentStatusMap : snapshot.paymentStatusMap
-  )
-
 export const useConversationThreadUnfurlPromptDomains = (messageID: T.Chat.MessageID) =>
   useConversationThreadSnapshotValue(snapshot => snapshot.unfurlPrompt.get(messageID) ?? emptyStringSet)
 
-export const useConversationThreadUnfurlPromptMap = () =>
-  useConversationThreadSnapshotValue(snapshot =>
-    snapshot.unfurlPrompt.size === 0 ? emptyUnfurlPromptMap : snapshot.unfurlPrompt
-  )
-
 export const useConversationThreadCoinFlipStatus = (gameID: string) =>
   useConversationThreadSnapshotValue(snapshot => snapshot.flipStatusMap.get(gameID))
-
-export const useConversationThreadFlipStatusMap = () =>
-  useConversationThreadSnapshotValue(snapshot =>
-    snapshot.flipStatusMap.size === 0 ? emptyFlipStatusMap : snapshot.flipStatusMap
-  )
 
 export const useConversationThreadTyping = () =>
   useConversationThreadSnapshotValue(snapshot =>
@@ -2212,13 +2089,6 @@ export const useConversationThreadListData = () => {
 export const useConversationThreadLoadMoreMessages = () => {
   const {loadMoreMessages} = useConversationThreadActions()
   return loadMoreMessages
-}
-
-export const useConversationThreadGalleryMessagesLoaded = () => {
-  const {addMessages} = useConversationThreadActions()
-  return (messages: ReadonlyArray<T.Chat.Message>) => {
-    addMessages(messages, {markAsRead: false})
-  }
 }
 
 const useConversationThreadMessagesClear = () => {

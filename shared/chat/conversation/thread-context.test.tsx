@@ -14,10 +14,8 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useShellState} from '@/stores/shell'
 import {resetAllStores} from '@/util/zustand'
 import {
-  ConversationThreadBridgeProvider,
   ConversationThreadProvider,
   LiveConversationThreadProvider,
-  RequiredConversationThreadBridgeProvider,
   useConversationThreadActions,
   useConversationThreadAccountsInfoMap,
   useConversationThreadCoinFlipStatus,
@@ -288,14 +286,6 @@ const separatePlainThreadWrapper = ({children}: {children: React.ReactNode}) => 
   <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
 )
 
-const separateBridgeThreadWrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadBridgeProvider id={convID}>{children}</ConversationThreadBridgeProvider>
-)
-
-const requiredBridgeThreadWrapper = ({children}: {children: React.ReactNode}) => (
-  <RequiredConversationThreadBridgeProvider id={convID}>{children}</RequiredConversationThreadBridgeProvider>
-)
-
 beforeEach(() => {
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
@@ -327,50 +317,7 @@ test('same-conversation nested providers reuse the outer live thread state', () 
   expect(result.current.message?.id).toBe(T.Chat.numberToMessageID(301))
 })
 
-test('same-conversation bridge providers reuse the registered live thread state', () => {
-  const live = renderHook(
-    () => ({
-      actions: useConversationThreadActions(),
-      message: useConversationThreadMessage(T.Chat.numberToOrdinal(301)),
-    }),
-    {wrapper: liveThreadWrapper}
-  )
-  act(() => {
-    live.result.current.actions.addMessages([makeTextMessage()])
-  })
-  expect(live.result.current.message?.id).toBe(T.Chat.numberToMessageID(301))
-
-  const route = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
-    wrapper: separateBridgeThreadWrapper,
-  })
-  expect(route.result.current?.id).toBe(T.Chat.numberToMessageID(301))
-})
-
-test('required bridge providers render only with a registered live thread', () => {
-  const missing = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
-    wrapper: requiredBridgeThreadWrapper,
-  })
-  expect(missing.result.current).toBeNull()
-
-  const live = renderHook(
-    () => ({
-      actions: useConversationThreadActions(),
-      message: useConversationThreadMessage(T.Chat.numberToOrdinal(301)),
-    }),
-    {wrapper: liveThreadWrapper}
-  )
-  act(() => {
-    live.result.current.actions.addMessages([makeTextMessage()])
-  })
-  expect(live.result.current.message?.id).toBe(T.Chat.numberToMessageID(301))
-
-  const required = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
-    wrapper: requiredBridgeThreadWrapper,
-  })
-  expect(required.result.current?.id).toBe(T.Chat.numberToMessageID(301))
-})
-
-test('separate plain providers do not reuse the registered live thread state', () => {
+test('separate providers do not share thread state', () => {
   const live = renderHook(
     () => ({
       actions: useConversationThreadActions(),

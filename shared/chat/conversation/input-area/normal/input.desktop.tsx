@@ -268,6 +268,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
 type EmojiButtonProps = {inputRef: InputRefType}
 const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
   const {inputRef} = p
+  const conversationIDKey = useConversationThreadID()
   const insertEmoji = (emojiColons: string) => {
     inputRef.current?.transformText(({text, selection}) => {
       const newText =
@@ -285,7 +286,11 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
     const {attachTo, hidePopup} = p
     return (
       <Kb.Popup attachTo={attachTo} visible={true} onHidden={hidePopup} position="top right">
-        <EmojiPickerDesktop onPickAction={insertEmoji} onDidPick={hidePopup} />
+        <EmojiPickerDesktop
+          conversationIDKey={conversationIDKey}
+          onPickAction={insertEmoji}
+          onDidPick={hidePopup}
+        />
       </Kb.Popup>
     )
   }

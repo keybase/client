@@ -9,15 +9,18 @@ import RetentionPicker from '@/teams/team/settings-tab/retention'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
 import {hideConversation as setConversationHidden} from '../../status-actions'
-import {useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from '../../thread-context'
+import {useConversationMetadata} from '../../data-hooks'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
-type SettingsPanelProps = {isPreview: boolean}
+type SettingsPanelProps = {
+  conversationIDKey: T.Chat.ConversationIDKey
+  isPreview: boolean
+}
 
 const SettingsPanel = (props: SettingsPanelProps) => {
-  const {isPreview} = props
+  const {conversationIDKey, isPreview} = props
   const username = useCurrentUserState(s => s.username)
-  const meta = useConversationThreadMeta()
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const {status, teamname, teamType, channelname, teamID} = meta
   const {yourOperations} = useChatTeam(teamID, teamname)
   const ignored = status === T.RPCChat.ConversationStatus.ignored
@@ -35,13 +38,11 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }
 
   const {members: teamMembers} = useChatTeamMembers(teamID)
-  const participantInfo = useConversationThreadParticipants()
   const membersForBlock = (teamMembers.size ? [...teamMembers.keys()] : participantInfo.name).filter(
     u => u !== username && !isAssertion(u)
   )
 
   const navigateAppend = C.Router2.navigateAppend
-  const conversationIDKey = useConversationThreadID()
   const onShowClearConversationDialog = () => {
     navigateAppend({name: 'chatDeleteHistoryWarning', params: {conversationIDKey}})
   }
@@ -91,7 +92,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             <Kb.Button type="Success" mode="Primary" label="Join channel" style={styles.buttonStyle} />
           </Kb.Box2>
         ) : (
-          <Notifications />
+          <Notifications conversationIDKey={conversationIDKey} />
         )}
         {entityType === 'channel' && channelname !== 'general' && !isPreview && (
           <Kb.Button
@@ -149,7 +150,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           showSaveIndicator={true}
           teamID={teamID}
         />
-        {(entityType === 'channel' || entityType === 'small team') && <MinWriterRole />}
+        {(entityType === 'channel' || entityType === 'small team') && (
+          <MinWriterRole conversationIDKey={conversationIDKey} />
+        )}
         {showDangerZone ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>
@@ -206,12 +209,15 @@ type Section = Kb.SectionType<Item>
 type Props = {
   isPreview: boolean
   commonSections: ReadonlyArray<Section>
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const SettingsTab = (p: Props) => {
   const section = {
     data: [{type: 'settings-panel'}] as const,
-    renderItem: () => <SettingsPanel isPreview={p.isPreview} />,
+    renderItem: () => (
+      <SettingsPanel conversationIDKey={p.conversationIDKey} isPreview={p.isPreview} />
+    ),
   } satisfies Section
   const sections: Array<Section> = [...p.commonSections, section]
   return (
