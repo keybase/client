@@ -18,8 +18,7 @@ export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => 
       logger.info('mark intially as read bail on not looking at this thread anymore?')
       return
     }
-    // Force mark as read since this is triggered by navigation (user action)
-    markThreadAsRead(true)
+    markThreadAsRead()
   }
 
   return {markInitiallyLoadedThreadAsRead}

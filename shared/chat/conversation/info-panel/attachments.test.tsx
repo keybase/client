@@ -6,7 +6,6 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
-import {getConversationThreadCacheSnapshot} from '../thread-cache'
 import {ConversationThreadProvider, useConversationThreadMessage} from '../thread-context'
 import {useAttachmentSections} from './attachments'
 
@@ -282,7 +281,12 @@ test('attachment gallery ignores hits that arrive after unmount cleanup', async 
     await flushPromises()
   })
 
-  expect(getConversationThreadCacheSnapshot(convID)?.messageMap.size ?? 0).toBe(0)
+  const {result} = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(300)), {
+    wrapper: ({children}: {children: React.ReactNode}) => (
+      <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
+    ),
+  })
+  expect(result.current).toBeUndefined()
 })
 
 test('attachment gallery doc rows reflect live transfer progress from the mounted thread provider', async () => {

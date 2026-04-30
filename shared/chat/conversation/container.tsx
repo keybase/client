@@ -15,13 +15,8 @@ type Props = ThreadSearchRouteProps & {
 
 const Conversation = function Conversation(props: Props) {
   const conversationIDKey = props.conversationIDKey ?? Chat.noConversationIDKey
-  const skipThreadLoadOnSelection = !!props.highlightMessageID
   return (
-    <LiveConversationThreadProvider
-      key={conversationIDKey}
-      id={conversationIDKey}
-      seedFromCache={!skipThreadLoadOnSelection}
-    >
+    <LiveConversationThreadProvider key={conversationIDKey} id={conversationIDKey}>
       <ConversationInner />
     </LiveConversationThreadProvider>
   )

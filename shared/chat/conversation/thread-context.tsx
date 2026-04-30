@@ -27,21 +27,14 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import {useConfigState} from '@/stores/config'
+import {useShellState} from '@/stores/shell'
 import {produce, type Draft} from 'immer'
 import {useStore} from 'zustand'
 import {createStore, type StoreApi} from 'zustand/vanilla'
 import {
-  deleteConversationThreadCacheSnapshot,
-  getConversationThreadCacheSnapshot,
-  putConversationThreadCacheSnapshot,
-  type ConversationThreadSnapshot,
-} from './thread-cache'
-import {
   addMessagesToThreadState,
   applyOptimisticReactionsToMessage,
   completeAttachmentDownloadInThreadState,
-  cloneMessageWithImmer,
-  cloneStoreObjectWithImmer,
   clearOptimisticReactionsForUpdatesInThreadState,
   clearOptimisticReactionsForMessagesInThreadState,
   deleteMessagesFromThreadState,
@@ -129,34 +122,6 @@ const copyConversationMeta = (meta: T.Chat.ConversationMeta): T.Chat.Conversatio
     },
     () => {}
   )
-
-const cloneMapWithImmer = <K, V>(map: ReadonlyMap<K, V>): Map<K, V> => {
-  const next = new Map<K, V>()
-  for (const [key, value] of map) {
-    next.set(key, cloneStoreObjectWithImmer(value) as V)
-  }
-  return next
-}
-
-const cloneMessageMapWithImmer = (
-  map: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message>
-): Map<T.Chat.Ordinal, T.Chat.Message> => {
-  const next = new Map<T.Chat.Ordinal, T.Chat.Message>()
-  for (const [ordinal, message] of map) {
-    next.set(ordinal, cloneMessageWithImmer(message, ordinal))
-  }
-  return next
-}
-
-const cloneUnfurlPromptMapWithImmer = (
-  map: ReadonlyMap<T.Chat.MessageID, ReadonlySet<string>>
-): Map<T.Chat.MessageID, Set<string>> => {
-  const next = new Map<T.Chat.MessageID, Set<string>>()
-  for (const [messageID, domains] of map) {
-    next.set(messageID, new Set(domains))
-  }
-  return next
-}
 
 const getExplodingModeFromGregorItems = (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -294,45 +259,10 @@ const makeEmptyThreadState = (): ConversationThreadState =>
     () => {}
   )
 
-const snapshotToThreadState = (
-  snapshot: ConversationThreadSnapshot | undefined
-): ConversationThreadState =>
-  snapshot
-    ? produce(
-        {
-          accountsInfoMap: cloneMapWithImmer(snapshot.accountsInfoMap),
-          explodingMode: snapshot.explodingMode,
-          flipStatusMap: cloneMapWithImmer(snapshot.flipStatusMap),
-          liveUpdateVersion: 0,
-          loaded: snapshot.loaded,
-          messageIDToOrdinal: produce(new Map(snapshot.messageIDToOrdinal), () => {}),
-          messageMap: cloneMessageMapWithImmer(snapshot.messageMap),
-          messageOrdinals: snapshot.messageOrdinals
-            ? produce([...snapshot.messageOrdinals], () => {})
-            : undefined,
-          messageTypeMap: produce(new Map(snapshot.messageTypeMap), () => {}),
-          meta: copyConversationMeta(snapshot.meta),
-          moreToLoadBack: snapshot.moreToLoadBack,
-          moreToLoadForward: snapshot.moreToLoadForward,
-          optimisticReactionMap: produce(new Map<T.Chat.OutboxID, OptimisticReaction>(), () => {}),
-          participants: copyParticipantInfo(snapshot.participants),
-          paymentStatusMap: cloneMapWithImmer(snapshot.paymentStatusMap),
-          pendingOutboxToOrdinal: produce(new Map(snapshot.pendingOutboxToOrdinal), () => {}),
-          typing: produce(new Set<string>(), () => {}),
-          unfurlPrompt: cloneUnfurlPromptMapWithImmer(snapshot.unfurlPrompt),
-          validatedOrdinalRange: snapshot.validatedOrdinalRange
-            ? produce({...snapshot.validatedOrdinalRange}, () => {})
-            : undefined,
-        },
-        () => {}
-      )
-    : makeEmptyThreadState()
-
-const makeInitialThreadState = (id: T.Chat.ConversationIDKey, seedFromCache: boolean) => {
-  const snapshot = seedFromCache ? getConversationThreadCacheSnapshot(id) : undefined
+const makeInitialThreadState = (id: T.Chat.ConversationIDKey) => {
   const meta = getInboxConversationMeta(id)
   const participants = getInboxConversationParticipants(id)
-  return produce(snapshotToThreadState(snapshot), s => {
+  return produce(makeEmptyThreadState(), s => {
     if (meta) {
       s.meta = T.castDraft(copyConversationMeta(meta))
     }
@@ -343,33 +273,8 @@ const makeInitialThreadState = (id: T.Chat.ConversationIDKey, seedFromCache: boo
   })
 }
 
-const makeThreadStore = (id: T.Chat.ConversationIDKey, seedFromCache: boolean) =>
-  createStore<ConversationThreadState>(() => makeInitialThreadState(id, seedFromCache))
-
-const threadStateToSnapshot = (state: ConversationThreadState): ConversationThreadSnapshot =>
-  produce(
-    {
-      accountsInfoMap: cloneMapWithImmer(state.accountsInfoMap),
-      explodingMode: state.explodingMode,
-      flipStatusMap: cloneMapWithImmer(state.flipStatusMap),
-      loaded: state.loaded,
-      messageIDToOrdinal: produce(new Map(state.messageIDToOrdinal), () => {}),
-      messageMap: cloneMessageMapWithImmer(state.messageMap),
-      messageOrdinals: state.messageOrdinals ? produce([...state.messageOrdinals], () => {}) : undefined,
-      messageTypeMap: produce(new Map(state.messageTypeMap), () => {}),
-      meta: copyConversationMeta(state.meta),
-      moreToLoadBack: state.moreToLoadBack,
-      moreToLoadForward: state.moreToLoadForward,
-      participants: copyParticipantInfo(state.participants),
-      paymentStatusMap: cloneMapWithImmer(state.paymentStatusMap),
-      pendingOutboxToOrdinal: produce(new Map(state.pendingOutboxToOrdinal), () => {}),
-      unfurlPrompt: cloneUnfurlPromptMapWithImmer(state.unfurlPrompt),
-      validatedOrdinalRange: state.validatedOrdinalRange
-        ? produce({...state.validatedOrdinalRange}, () => {})
-        : undefined,
-    },
-    () => {}
-  )
+const makeThreadStore = (id: T.Chat.ConversationIDKey) =>
+  createStore<ConversationThreadState>(() => makeInitialThreadState(id))
 
 export type ThreadLoadStatusOptions = {
   isThreadLoadCurrent?: () => boolean
@@ -422,6 +327,7 @@ type ConversationThreadActions = {
   ) => void
   applyThreadLoad: (p: {
     centered: boolean
+    enableActiveMarkRead: boolean
     messages: ReadonlyArray<T.Chat.Message>
     moreToLoad: boolean
     scrollDirection: ScrollDirection
@@ -443,7 +349,7 @@ type ConversationThreadActions = {
   ) => void
   getSnapshot: () => ConversationThreadState
   loadMoreMessages: LoadMoreMessages
-  markThreadAsRead: (force?: boolean) => void
+  markThreadAsRead: () => void
   messageDelete: (ordinal: T.Chat.Ordinal) => void
   messageReplyPrivately: (ordinal: T.Chat.Ordinal) => void
   messagesClear: MessagesClear
@@ -922,6 +828,12 @@ const loadConversationThreadMessages = (
       }, [])
 
       const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
+      const canMarkReadForThreadWindow =
+        !centeredMessageID &&
+        !messageIDControl &&
+        scrollDirection !== 'back' &&
+        reason !== 'findNewestConversation' &&
+        reason !== 'findNewestConversationFromLayout'
       let validatedRange: {from: T.Chat.Ordinal; to: T.Chat.Ordinal} | undefined
       if (messages.length) {
         if (scrollDirection === 'none' && !reconciled) {
@@ -939,19 +851,15 @@ const loadConversationThreadMessages = (
       }
       actions.applyThreadLoad({
         centered: !!centeredMessageID,
+        enableActiveMarkRead: canMarkReadForThreadWindow,
         messages,
         moreToLoad,
         scrollDirection,
         validatedRange,
       })
 
-      const isUserNavigation =
-        reason !== 'findNewestConversation' &&
-        reason !== 'findNewestConversationFromLayout' &&
-        reason !== 'scroll back' &&
-        reason !== 'tab selected'
-      if (isUserNavigation) {
-        actions.markThreadAsRead(true)
+      if (canMarkReadForThreadWindow) {
+        actions.markThreadAsRead()
       }
     }
 
@@ -1036,7 +944,6 @@ export const useConversationThreadStore = () => {
 
 type ConversationThreadProviderProps = React.PropsWithChildren<{
   id: T.Chat.ConversationIDKey
-  seedFromCache?: boolean
 }>
 
 type ConversationThreadProviderInnerProps = ConversationThreadProviderProps & {
@@ -1094,8 +1001,11 @@ const ConversationThreadContextProvider = (p: {
 )
 
 const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps) => {
-  const {children, id, registerLive = false, seedFromCache = true} = p
-  const [threadStore] = React.useState(() => makeThreadStore(id, seedFromCache))
+  const {children, id, registerLive = false} = p
+  const [threadStore] = React.useState(() => makeThreadStore(id))
+  const active = useShellState(s => s.active)
+  const previousActiveRef = React.useRef(active)
+  const activeMarkReadEnabledRef = React.useRef(false)
 
   const getSnapshot = React.useEffectEvent(() => threadStore.getState())
   const updateThreadState = React.useEffectEvent(
@@ -1108,7 +1018,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       threadStore.setState(next, true)
     }
   )
-  const markThreadAsRead = React.useEffectEvent((force?: boolean) => {
+  const markThreadAsRead = React.useEffectEvent(() => {
     const f = async () => {
       if (!useConfigState.getState().loggedIn) {
         logger.info('mark read bail on not logged in')
@@ -1118,11 +1028,19 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
         logger.info('mark read bail on no selected conversation')
         return
       }
-      if (!force && !Common.isUserActivelyLookingAtThisThread(id)) {
+      if (!activeMarkReadEnabledRef.current) {
+        logger.info('mark read bail on no eligible thread load')
+        return
+      }
+      if (!Common.isUserActivelyLookingAtThisThread(id)) {
         logger.info('mark read bail on not looking at this thread')
         return
       }
       const snapshot = getSnapshot()
+      if (!snapshot.loaded) {
+        logger.info('mark read bail on unloaded thread')
+        return
+      }
       if (snapshot.moreToLoadForward) {
         logger.info('mark read bail on not containing latest message')
         return
@@ -1133,6 +1051,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       })
       const message = ordinal ? snapshot.messageMap.get(ordinal) : undefined
       const readMsgID = message?.id
+      if (!readMsgID) {
+        logger.info(`marking read messages ${id} failed due to no id`)
+        return
+      }
       if (snapshot.meta.conversationIDKey === id && readMsgID === snapshot.meta.readMsgID) {
         logger.info(`marking read messages is noop bail: ${id} ${readMsgID}`)
         return
@@ -1146,6 +1068,13 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
     }
     ignorePromise(f())
   })
+  React.useEffect(() => {
+    const wasActive = previousActiveRef.current
+    previousActiveRef.current = active
+    if (!wasActive && active && activeMarkReadEnabledRef.current) {
+      markThreadAsRead()
+    }
+  }, [active])
   const addMessages = React.useEffectEvent(
     (
       messages: ReadonlyArray<T.Chat.Message>,
@@ -1170,6 +1099,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
   const applyThreadLoad = React.useEffectEvent(
     (p: {
       centered: boolean
+      enableActiveMarkRead: boolean
       messages: ReadonlyArray<T.Chat.Message>
       moreToLoad: boolean
       scrollDirection: ScrollDirection
@@ -1194,6 +1124,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
           clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
         }
       })
+      activeMarkReadEnabledRef.current = activeMarkReadEnabledRef.current || p.enableActiveMarkRead
     }
   )
   const deleteMessages = React.useEffectEvent(
@@ -1608,7 +1539,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
     })
   })
   const messagesClear = React.useEffectEvent(() => {
-    deleteConversationThreadCacheSnapshot(id)
+    activeMarkReadEnabledRef.current = false
     updateThreadState(s => {
       s.pendingOutboxToOrdinal.clear()
       s.loaded = false
@@ -1764,12 +1695,8 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
   React.useEffect(() => {
     return () => {
       threadActions.loadMoreMessages.cancel()
-      const snapshot = threadStore.getState()
-      if (snapshot.loaded) {
-        putConversationThreadCacheSnapshot(id, threadStateToSnapshot(snapshot))
-      }
     }
-  }, [id, threadActions, threadStore])
+  }, [threadActions])
   React.useLayoutEffect(() => {
     if (!registerLive) {
       return

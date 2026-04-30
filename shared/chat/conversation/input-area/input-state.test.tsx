@@ -88,7 +88,7 @@ const mockPostText = () => {
 const wrapperFor = (id: T.Chat.ConversationIDKey) =>
   function Wrapper(p: React.PropsWithChildren) {
     return (
-      <ConversationThreadProvider id={id} seedFromCache={false}>
+      <ConversationThreadProvider id={id}>
         <ConversationInputProvider id={id}>{p.children}</ConversationInputProvider>
       </ConversationThreadProvider>
     )

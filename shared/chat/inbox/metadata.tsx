@@ -28,10 +28,6 @@ import {
   syncInboxRowsFromParticipantMap,
   syncInboxRowsFromParticipants,
 } from '@/stores/inbox-rows'
-import {
-  clearConversationThreadCache,
-  getConversationThreadCacheSnapshot,
-} from '@/chat/conversation/thread-cache'
 
 type InboxMetadataState = T.Immutable<{
   metas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
@@ -285,8 +281,7 @@ export const onChatRouteChanged = (
 
   logger.info('maybeChangeChatSelection ', {isChat, isID, wasChat, wasID})
 
-  const isLoaded = !isID || !!getConversationThreadCacheSnapshot(isID)?.loaded
-  if (wasChat && isChat && wasID === isID && isLoaded) {
+  if (wasChat && isChat && wasID === isID) {
     return
   }
   if (wasChat && wasID && T.Chat.isValidConversationIDKey(wasID)) {
@@ -317,7 +312,6 @@ export const clearConversationsForInboxSync = () => {
     s.metas.clear()
     s.participants.clear()
   })
-  clearConversationThreadCache()
 }
 
 const trustedStateForConversation = (id: T.Chat.ConversationIDKey) =>

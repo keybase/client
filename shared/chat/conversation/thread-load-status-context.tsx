@@ -6,7 +6,6 @@ import {useIsFocused} from '@react-navigation/core'
 import {
   type ThreadLoadStatusOptions,
   type ThreadLoadStatusReporter,
-  useConversationThreadMarkThreadAsRead,
   useConversationThreadLoadMoreMessages,
   useConversationThreadSelectedConversation,
 } from './thread-context'
@@ -74,7 +73,6 @@ export const ConversationThreadLoadStatusProvider = (
   const {children, id, skipThreadLoadOnSelection = false} = p
   const [initialSkipThreadLoadOnSelection] = React.useState(skipThreadLoadOnSelection)
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
-  const markThreadAsRead = useConversationThreadMarkThreadAsRead()
   const selectedConversation = useConversationThreadSelectedConversation()
   const currentIDRef = React.useRef(id)
   React.useLayoutEffect(() => {
@@ -140,7 +138,6 @@ export const ConversationThreadLoadStatusProvider = (
       ...getThreadLoadStatusOptions(),
       reason: 'tab selected',
     })
-    markThreadAsRead()
   })
 
   React.useEffect(() => {

@@ -11,17 +11,14 @@ import {participantInfoReceived} from '@/chat/inbox/metadata'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useShellState} from '@/stores/shell'
 import {resetAllStores} from '@/util/zustand'
-import {
-  getConversationThreadCacheSnapshot,
-  putConversationThreadCacheSnapshot,
-  type ConversationThreadSnapshot,
-} from './thread-cache'
 import {
   ConversationThreadBridgeProvider,
   ConversationThreadProvider,
   LiveConversationThreadProvider,
   RequiredConversationThreadBridgeProvider,
+  useConversationThreadActions,
   useConversationThreadAccountsInfoMap,
   useConversationThreadCoinFlipStatus,
   useConversationThreadJumpToRecent,
@@ -276,9 +273,7 @@ const wrapper = ({children}: {children: React.ReactNode}) => (
 
 const nestedSameThreadWrapper = ({children}: {children: React.ReactNode}) => (
   <ConversationThreadProvider id={convID}>
-    <ConversationThreadProvider id={convID} seedFromCache={false}>
-      {children}
-    </ConversationThreadProvider>
+    <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
   </ConversationThreadProvider>
 )
 
@@ -289,65 +284,16 @@ const liveThreadWrapper = ({children}: {children: React.ReactNode}) => (
 )
 
 const separatePlainThreadWrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadProvider id={convID} seedFromCache={false}>
-    {children}
-  </ConversationThreadProvider>
+  <ConversationThreadProvider id={convID}>{children}</ConversationThreadProvider>
 )
 
 const separateBridgeThreadWrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadBridgeProvider id={convID} seedFromCache={false}>
-    {children}
-  </ConversationThreadBridgeProvider>
+  <ConversationThreadBridgeProvider id={convID}>{children}</ConversationThreadBridgeProvider>
 )
 
 const requiredBridgeThreadWrapper = ({children}: {children: React.ReactNode}) => (
-  <RequiredConversationThreadBridgeProvider id={convID} seedFromCache={false}>
-    {children}
-  </RequiredConversationThreadBridgeProvider>
+  <RequiredConversationThreadBridgeProvider id={convID}>{children}</RequiredConversationThreadBridgeProvider>
 )
-
-const makeThreadSnapshot = (messages: ReadonlyArray<T.Chat.Message>): ConversationThreadSnapshot => {
-  const sortedMessages = [...messages].sort((a, b) => a.ordinal - b.ordinal)
-  const messageMap = new Map(sortedMessages.map(message => [message.ordinal, message]))
-  const messageOrdinals = sortedMessages
-    .filter(message => message.conversationMessage !== false && message.type !== 'deleted')
-    .map(message => message.ordinal)
-  const messageTypeMap = new Map<T.Chat.Ordinal, T.Chat.RenderMessageType>()
-  const messageIDToOrdinal = new Map<T.Chat.MessageID, T.Chat.Ordinal>()
-  const pendingOutboxToOrdinal = new Map<T.Chat.OutboxID, T.Chat.Ordinal>()
-  sortedMessages.forEach(message => {
-    if (message.type !== 'text') {
-      messageTypeMap.set(message.ordinal, Message.getMessageRenderType(message))
-    }
-    if (message.id) {
-      messageIDToOrdinal.set(message.id, message.ordinal)
-    }
-    if (message.outboxID) {
-      pendingOutboxToOrdinal.set(message.outboxID, message.ordinal)
-    }
-  })
-  return {
-    accountsInfoMap: new Map(),
-    explodingMode: 0,
-    flipStatusMap: new Map(),
-    loaded: true,
-    messageIDToOrdinal,
-    messageMap,
-    messageOrdinals,
-    messageTypeMap,
-    meta: {...Meta.makeConversationMeta(), conversationIDKey: convID},
-    moreToLoadBack: false,
-    moreToLoadForward: false,
-    participants: {all: [], contactName: new Map(), name: []},
-    paymentStatusMap: new Map(),
-    pendingOutboxToOrdinal,
-    unfurlPrompt: new Map(),
-  }
-}
-
-const seedThreadCache = (messages: ReadonlyArray<T.Chat.Message>) => {
-  putConversationThreadCacheSnapshot(convID, makeThreadSnapshot(messages))
-}
 
 beforeEach(() => {
   useCurrentUserState.getState().dispatch.setBootstrap({
@@ -365,20 +311,33 @@ afterEach(() => {
 })
 
 test('same-conversation nested providers reuse the outer live thread state', () => {
-  seedThreadCache([makeTextMessage()])
-  const {result} = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
-    wrapper: nestedSameThreadWrapper,
+  const {result} = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      message: useConversationThreadMessage(T.Chat.numberToOrdinal(301)),
+    }),
+    {wrapper: nestedSameThreadWrapper}
+  )
+
+  act(() => {
+    result.current.actions.addMessages([makeTextMessage()])
   })
 
-  expect(result.current?.id).toBe(T.Chat.numberToMessageID(301))
+  expect(result.current.message?.id).toBe(T.Chat.numberToMessageID(301))
 })
 
 test('same-conversation bridge providers reuse the registered live thread state', () => {
-  seedThreadCache([makeTextMessage()])
-  const live = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
-    wrapper: liveThreadWrapper,
+  const live = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      message: useConversationThreadMessage(T.Chat.numberToOrdinal(301)),
+    }),
+    {wrapper: liveThreadWrapper}
+  )
+  act(() => {
+    live.result.current.actions.addMessages([makeTextMessage()])
   })
-  expect(live.result.current?.id).toBe(T.Chat.numberToMessageID(301))
+  expect(live.result.current.message?.id).toBe(T.Chat.numberToMessageID(301))
 
   const route = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
     wrapper: separateBridgeThreadWrapper,
@@ -387,16 +346,22 @@ test('same-conversation bridge providers reuse the registered live thread state'
 })
 
 test('required bridge providers render only with a registered live thread', () => {
-  seedThreadCache([makeTextMessage()])
   const missing = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
     wrapper: requiredBridgeThreadWrapper,
   })
   expect(missing.result.current).toBeNull()
 
-  const live = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
-    wrapper: liveThreadWrapper,
+  const live = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      message: useConversationThreadMessage(T.Chat.numberToOrdinal(301)),
+    }),
+    {wrapper: liveThreadWrapper}
+  )
+  act(() => {
+    live.result.current.actions.addMessages([makeTextMessage()])
   })
-  expect(live.result.current?.id).toBe(T.Chat.numberToMessageID(301))
+  expect(live.result.current.message?.id).toBe(T.Chat.numberToMessageID(301))
 
   const required = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
     wrapper: requiredBridgeThreadWrapper,
@@ -405,11 +370,17 @@ test('required bridge providers render only with a registered live thread', () =
 })
 
 test('separate plain providers do not reuse the registered live thread state', () => {
-  seedThreadCache([makeTextMessage()])
-  const live = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
-    wrapper: liveThreadWrapper,
+  const live = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      message: useConversationThreadMessage(T.Chat.numberToOrdinal(301)),
+    }),
+    {wrapper: liveThreadWrapper}
+  )
+  act(() => {
+    live.result.current.actions.addMessages([makeTextMessage()])
   })
-  expect(live.result.current?.id).toBe(T.Chat.numberToMessageID(301))
+  expect(live.result.current.message?.id).toBe(T.Chat.numberToMessageID(301))
 
   const plain = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {
     wrapper: separatePlainThreadWrapper,
@@ -437,18 +408,22 @@ test('mounted thread syncs participant updates received outside its provider', (
 })
 
 test('centered load clears stale thread state and requests a centered load', async () => {
-  seedThreadCache([makeTextMessage()])
   const loadThread = jest
     .spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener')
     .mockResolvedValue({offline: false})
   const {result} = renderHook(
     () => ({
+      actions: useConversationThreadActions(),
       loadMessagesCentered: useConversationThreadLoadMessagesCentered(),
       messageOrdinals: useConversationThreadMessageOrdinalsMaybe(),
       staleMessage: useConversationThreadMessage(T.Chat.numberToOrdinal(301)),
     }),
     {wrapper}
   )
+
+  act(() => {
+    result.current.actions.addMessages([makeTextMessage()])
+  })
   expect(result.current.staleMessage?.id).toBe(T.Chat.numberToMessageID(301))
 
   act(() => {
@@ -496,10 +471,6 @@ test('jumpToRecent reloads recent messages through the mounted thread action', a
 })
 
 test('scrollback loads older messages without marking the thread read', async () => {
-  putConversationThreadCacheSnapshot(convID, {
-    ...makeThreadSnapshot([makeTextMessage()]),
-    moreToLoadBack: true,
-  })
   useConfigState.setState({loggedIn: true})
   jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
   jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
@@ -515,10 +486,26 @@ test('scrollback loads older messages without marking the thread read', async ()
   const markAsRead = jest
     .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
     .mockResolvedValue({offline: false})
-  const {result} = renderHook(() => useConversationThreadLoadOlderMessagesDueToScroll(), {wrapper})
+  const {result} = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      loadOlderMessagesDueToScroll: useConversationThreadLoadOlderMessagesDueToScroll(),
+    }),
+    {wrapper}
+  )
 
   act(() => {
-    result.current(1)
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [makeTextMessage()],
+      moreToLoad: true,
+      scrollDirection: 'back',
+    })
+  })
+
+  act(() => {
+    result.current.loadOlderMessagesDueToScroll(1)
   })
   await act(async () => {
     await flushPromises()
@@ -565,14 +552,34 @@ test('mounted thread listener applies incoming messages for the active conversat
   const markAsRead = jest
     .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
     .mockResolvedValue({offline: false})
+  const loadedMsgID = T.Chat.numberToMessageID(600)
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [makeValidTextUIMessage(loadedMsgID, 'loaded')],
+        pagination: {last: true, next: '', num: 100, previous: ''},
+      }),
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
   const firstMsgID = T.Chat.numberToMessageID(601)
   const {result} = renderHook(
     () => ({
+      loadMoreMessages: useConversationThreadLoadMoreMessages(),
       message: useConversationThreadMessage(T.Chat.numberToOrdinal(601)),
       ordinals: useConversationThreadMessageOrdinalsMaybe(),
     }),
     {wrapper}
   )
+
+  act(() => {
+    result.current.loadMoreMessages({reason: 'focused'})
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+  markAsRead.mockClear()
 
   act(() => {
     notifyEngineActionListeners({
@@ -588,7 +595,10 @@ test('mounted thread listener applies incoming messages for the active conversat
     } as never)
   })
 
-  expect(result.current.ordinals).toEqual([T.Chat.numberToOrdinal(601)])
+  expect(result.current.ordinals).toEqual([
+    T.Chat.numberToOrdinal(600),
+    T.Chat.numberToOrdinal(601),
+  ])
   expect(result.current.message?.id).toBe(firstMsgID)
   await act(async () => {
     await flushPromises()
@@ -604,7 +614,6 @@ test('mounted thread listener applies incoming messages for the active conversat
 test('mounted thread listener applies incoming messages while inactive without marking read', async () => {
   jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(false)
   useConfigState.setState({loggedIn: true})
-  seedThreadCache([])
   const markAsRead = jest
     .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
     .mockResolvedValue({offline: false})
@@ -639,21 +648,112 @@ test('mounted thread listener applies incoming messages while inactive without m
   expect(markAsRead).not.toHaveBeenCalled()
 })
 
+test('active change marks read after an eligible mounted thread load', async () => {
+  useConfigState.setState({loggedIn: true})
+  useShellState.getState().dispatch.setActive(false)
+  jest
+    .spyOn(Common, 'isUserActivelyLookingAtThisThread')
+    .mockImplementation(() => useShellState.getState().active)
+  const markAsRead = jest
+    .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
+    .mockResolvedValue({offline: false})
+  const msgID = T.Chat.numberToMessageID(603)
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [makeValidTextUIMessage(msgID, 'loaded inactive')],
+        pagination: {last: true, next: '', num: 100, previous: ''},
+      }),
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(() => useConversationThreadLoadMoreMessages(), {wrapper})
+
+  act(() => {
+    result.current({reason: 'tab selected'})
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+  expect(markAsRead).not.toHaveBeenCalled()
+
+  act(() => {
+    useShellState.getState().dispatch.setActive(true)
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+  expect(markAsRead).toHaveBeenCalledWith({
+    conversationID: T.Chat.keyToConversationID(convID),
+    forceUnread: false,
+    msgID,
+  })
+})
+
+test('active change does not mark read after a centered thread load', async () => {
+  useConfigState.setState({loggedIn: true})
+  useShellState.getState().dispatch.setActive(false)
+  jest
+    .spyOn(Common, 'isUserActivelyLookingAtThisThread')
+    .mockImplementation(() => useShellState.getState().active)
+  const markAsRead = jest
+    .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
+    .mockResolvedValue({offline: false})
+  const msgID = T.Chat.numberToMessageID(604)
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [makeValidTextUIMessage(msgID, 'centered inactive')],
+        pagination: {last: true, next: '', num: 100, previous: ''},
+      }),
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(() => useConversationThreadLoadMessagesCentered(), {wrapper})
+
+  act(() => {
+    result.current(msgID, 'flash')
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+  expect(markAsRead).not.toHaveBeenCalled()
+
+  act(() => {
+    useShellState.getState().dispatch.setActive(true)
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+  expect(markAsRead).not.toHaveBeenCalled()
+})
+
 test('mounted thread listener applies failed outbox messages for the active conversation', () => {
   const pendingOrdinal = T.Chat.numberToOrdinal(801)
   const pendingOutboxID = T.Chat.stringToOutboxID('0a0b')
-  seedThreadCache([
-    Message.makeMessageText({
-      author: 'alice',
-      conversationIDKey: convID,
-      ordinal: pendingOrdinal,
-      outboxID: pendingOutboxID,
-      submitState: 'pending',
-      text: new HiddenString('pending'),
-      timestamp: 300,
+  const {result} = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      message: useConversationThreadMessage(pendingOrdinal),
     }),
-  ])
-  const {result} = renderHook(() => useConversationThreadMessage(pendingOrdinal), {wrapper})
+    {wrapper}
+  )
+
+  act(() => {
+    result.current.actions.addMessages([
+      Message.makeMessageText({
+        author: 'alice',
+        conversationIDKey: convID,
+        ordinal: pendingOrdinal,
+        outboxID: pendingOutboxID,
+        submitState: 'pending',
+        text: new HiddenString('pending'),
+        timestamp: 300,
+      }),
+    ])
+  })
 
   act(() => {
     notifyEngineActionListeners({
@@ -673,13 +773,16 @@ test('mounted thread listener applies failed outbox messages for the active conv
     } as never)
   })
 
-  expect(result.current?.submitState).toBe('failed')
-  expect(result.current?.errorReason).toBe('network fail')
+  expect(result.current.message?.submitState).toBe('failed')
+  expect(result.current.message?.errorReason).toBe('network fail')
 })
 
 test('mounted thread listener ignores messagesUpdated for other conversations', () => {
   jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
-  renderHook(() => null, {wrapper})
+  const {result} = renderHook(
+    () => useConversationThreadMessage(T.Chat.numberToOrdinal(501)),
+    {wrapper}
+  )
   const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([9, 8, 7, 6]))
 
   act(() => {
@@ -699,12 +802,15 @@ test('mounted thread listener ignores messagesUpdated for other conversations', 
     } as never)
   })
 
-  expect(getConversationThreadCacheSnapshot(otherConvID)).toBeUndefined()
+  expect(result.current).toBeUndefined()
 })
 
 test('mounted thread listener ignores incoming messages for other conversations', () => {
   jest.spyOn(Common, 'isUserActivelyLookingAtThisThread').mockReturnValue(true)
-  renderHook(() => null, {wrapper})
+  const {result} = renderHook(
+    () => useConversationThreadMessage(T.Chat.numberToOrdinal(701)),
+    {wrapper}
+  )
   const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([9, 8, 7, 6]))
 
   act(() => {
@@ -725,7 +831,7 @@ test('mounted thread listener ignores incoming messages for other conversations'
     } as never)
   })
 
-  expect(getConversationThreadCacheSnapshot(otherConvID)).toBeUndefined()
+  expect(result.current).toBeUndefined()
 })
 
 test('mounted thread listener applies reaction updates for the active conversation', async () => {
@@ -735,8 +841,31 @@ test('mounted thread listener applies reaction updates for the active conversati
     .spyOn(T.RPCChat, 'localMarkAsReadLocalRpcPromise')
     .mockResolvedValue({offline: false})
   const targetMsgID = T.Chat.numberToMessageID(301)
-  seedThreadCache([makeTextMessage()])
-  const {result} = renderHook(() => useConversationThreadMessage(T.Chat.numberToOrdinal(301)), {wrapper})
+  jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
+    p.incomingCallMap['chat.1.chatUi.chatThreadFull']?.({
+      thread: JSON.stringify({
+        messages: [makeValidTextUIMessage(targetMsgID, 'loaded')],
+        pagination: {last: true, next: '', num: 100, previous: ''},
+      }),
+    })
+    await Promise.resolve()
+    return {offline: false}
+  })
+  const {result} = renderHook(
+    () => ({
+      loadMoreMessages: useConversationThreadLoadMoreMessages(),
+      message: useConversationThreadMessage(T.Chat.numberToOrdinal(301)),
+    }),
+    {wrapper}
+  )
+
+  act(() => {
+    result.current.loadMoreMessages({reason: 'focused'})
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+  markAsRead.mockClear()
 
   act(() => {
     notifyEngineActionListeners({
@@ -773,7 +902,7 @@ test('mounted thread listener applies reaction updates for the active conversati
     } as never)
   })
 
-  expect(Message.getReactionOrder(result.current?.reactions ?? new Map())).toEqual([':+1:'])
+  expect(Message.getReactionOrder(result.current.message?.reactions ?? new Map())).toEqual([':+1:'])
   await act(async () => {
     await flushPromises()
   })
@@ -787,7 +916,6 @@ test('mounted thread listener applies reaction updates for the active conversati
 test('loaded focus refresh does not overwrite newer streamed reaction updates', async () => {
   const targetMsgID = T.Chat.numberToMessageID(301)
   const targetOrdinal = T.Chat.numberToOrdinal(301)
-  seedThreadCache([makeTextMessage()])
   let incomingCallMap:
     | Parameters<typeof T.RPCChat.localGetThreadNonblockRpcListener>[0]['incomingCallMap']
     | undefined
@@ -798,11 +926,22 @@ test('loaded focus refresh does not overwrite newer streamed reaction updates', 
   })
   const {result} = renderHook(
     () => ({
+      actions: useConversationThreadActions(),
       loadMoreMessages: useConversationThreadLoadMoreMessages(),
       message: useConversationThreadMessage(targetOrdinal),
     }),
     {wrapper}
   )
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: true,
+      messages: [makeTextMessage()],
+      moreToLoad: false,
+      scrollDirection: 'none',
+    })
+  })
 
   act(() => {
     result.current.loadMoreMessages({reason: 'tab selected'})
@@ -865,7 +1004,6 @@ test('loaded focus refresh does not overwrite newer streamed reaction updates', 
 test('toggleMessageReaction overlays locally without mutating server reactions', async () => {
   const targetMsgID = T.Chat.numberToMessageID(301)
   const targetOrdinal = T.Chat.numberToOrdinal(301)
-  seedThreadCache([makeTextMessage()])
   const postReaction = jest
     .spyOn(T.RPCChat, 'localPostReactionNonblockRpcPromise')
     .mockImplementation(async p => {
@@ -878,12 +1016,17 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
     })
   const {result} = renderHook(
     () => ({
+      actions: useConversationThreadActions(),
       message: useConversationThreadMessage(targetOrdinal),
       messageActions: useConversationThreadMessageActions(),
       store: useConversationThreadStore(),
     }),
     {wrapper}
   )
+
+  act(() => {
+    result.current.actions.addMessages([makeTextMessage()])
+  })
 
   act(() => {
     result.current.messageActions.toggleMessageReaction(targetOrdinal, ':+1:')
@@ -965,7 +1108,6 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
 })
 
 test('mounted thread listener applies inbox failure metadata for the active conversation', () => {
-  seedThreadCache([makeTextMessage()])
   const {result} = renderHook(
     () => ({
       meta: useConversationThreadMeta(),
@@ -1125,12 +1267,17 @@ test('mounted thread listener applies attachment download and upload progress', 
     ordinal: T.Chat.numberToOrdinal(702),
     outboxID: uploadOutboxID,
   })
-  seedThreadCache([downloadMessage, uploadMessage])
-  const {result: downloadResult} = renderHook(() => useConversationThreadMessage(downloadMessage.ordinal), {
-    wrapper,
-  })
-  const {result: uploadResult} = renderHook(() => useConversationThreadMessage(uploadMessage.ordinal), {
-    wrapper,
+  const {result} = renderHook(
+    () => ({
+      actions: useConversationThreadActions(),
+      downloadMessage: useConversationThreadMessage(downloadMessage.ordinal),
+      uploadMessage: useConversationThreadMessage(uploadMessage.ordinal),
+    }),
+    {wrapper}
+  )
+
+  act(() => {
+    result.current.actions.addMessages([downloadMessage, uploadMessage])
   })
 
   act(() => {
@@ -1160,17 +1307,23 @@ test('mounted thread listener applies attachment download and upload progress', 
   })
 
   expect(
-    downloadResult.current?.type === 'attachment' ? downloadResult.current.transferProgress : undefined
+    result.current.downloadMessage?.type === 'attachment'
+      ? result.current.downloadMessage.transferProgress
+      : undefined
   ).toBe(0.25)
   expect(
-    downloadResult.current?.type === 'attachment' ? downloadResult.current.transferState : undefined
+    result.current.downloadMessage?.type === 'attachment'
+      ? result.current.downloadMessage.transferState
+      : undefined
   ).toBe('downloading')
-  expect(uploadResult.current?.type === 'attachment' ? uploadResult.current.transferProgress : undefined).toBe(
-    0.5
-  )
-  expect(uploadResult.current?.type === 'attachment' ? uploadResult.current.transferState : undefined).toBe(
-    'uploading'
-  )
+  expect(
+    result.current.uploadMessage?.type === 'attachment'
+      ? result.current.uploadMessage.transferProgress
+      : undefined
+  ).toBe(0.5)
+  expect(
+    result.current.uploadMessage?.type === 'attachment' ? result.current.uploadMessage.transferState : undefined
+  ).toBe('uploading')
 
   act(() => {
     notifyEngineActionListeners({
@@ -1185,6 +1338,8 @@ test('mounted thread listener applies attachment download and upload progress', 
   })
 
   expect(
-    downloadResult.current?.type === 'attachment' ? downloadResult.current.transferState : undefined
+    result.current.downloadMessage?.type === 'attachment'
+      ? result.current.downloadMessage.transferState
+      : undefined
   ).toBeUndefined()
 })

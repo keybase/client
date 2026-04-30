@@ -20,7 +20,6 @@ import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {getTBStore} from '@/stores/team-building'
-import {getSelectedConversation} from '@/constants/chat/common'
 import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
 import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
@@ -43,7 +42,7 @@ import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
-import {handleConvoEngineIncoming, markThreadAsRead} from '@/chat/inbox/engine'
+import {handleConvoEngineIncoming} from '@/chat/inbox/engine'
 import {
   onChatRouteChanged,
   onChatInboxSynced,
@@ -215,10 +214,6 @@ const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configured
   if (updates.length > 0) {
     useUsersState.getState().dispatch.updates(updates)
   }
-}
-
-const onUserActiveChanged = () => {
-  markThreadAsRead(getSelectedConversation())
 }
 
 const loadChatStaticConfig = () => {
@@ -414,10 +409,6 @@ export const initSharedSubscriptions = () => {
     subscribeValue(useConfigState, s => s.loggedIn, onLoggedInChanged),
     subscribeValue(useConfigState, s => s.revokedTrigger, onRevokedTriggerChanged),
     subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged)
-  )
-
-  _sharedUnsubs.push(
-    subscribeValue(useShellState, s => s.active, onUserActiveChanged)
   )
 
   _sharedUnsubs.push(

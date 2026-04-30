@@ -1,14 +1,6 @@
 /// <reference types="jest" />
-import * as Message from '@/constants/chat/message'
-import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
-import HiddenString from '@/util/hidden-string'
 import {resetAllStores} from '@/util/zustand'
-import {
-  getConversationThreadCacheSnapshot,
-  putConversationThreadCacheSnapshot,
-  type ConversationThreadSnapshot,
-} from '@/chat/conversation/thread-cache'
 import {handleConvoEngineIncoming} from './engine'
 import {getInboxConversationMeta, getInboxConversationParticipants, syncBadgeState} from './metadata'
 import {
@@ -38,52 +30,6 @@ const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const msgID = T.Chat.numberToMessageID(101)
 
 const makeRpcOutboxID = (label: string): T.RPCChat.OutboxID => new TextEncoder().encode(label)
-
-const makeTextMessage = () =>
-  Message.makeMessageText({
-    author: 'alice',
-    conversationIDKey: convID,
-    id: msgID,
-    ordinal: T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(msgID)),
-    outboxID: T.Chat.stringToOutboxID('outbox-1'),
-    text: new HiddenString('message'),
-    timestamp: 100,
-  })
-
-const makeThreadSnapshot = (messages: ReadonlyArray<T.Chat.Message> = []): ConversationThreadSnapshot => {
-  const messageMap = new Map(messages.map(message => [message.ordinal, message]))
-  const messageIDToOrdinal = new Map<T.Chat.MessageID, T.Chat.Ordinal>()
-  const pendingOutboxToOrdinal = new Map<T.Chat.OutboxID, T.Chat.Ordinal>()
-  messages.forEach(message => {
-    if (message.id) {
-      messageIDToOrdinal.set(message.id, message.ordinal)
-    }
-    if (message.outboxID) {
-      pendingOutboxToOrdinal.set(message.outboxID, message.ordinal)
-    }
-  })
-  return {
-    accountsInfoMap: new Map(),
-    explodingMode: 0,
-    flipStatusMap: new Map(),
-    loaded: true,
-    messageIDToOrdinal,
-    messageMap,
-    messageOrdinals: messages.map(message => message.ordinal),
-    messageTypeMap: new Map(),
-    meta: {...Meta.makeConversationMeta(), conversationIDKey: convID},
-    moreToLoadBack: false,
-    moreToLoadForward: false,
-    participants: {all: [], contactName: new Map(), name: []},
-    paymentStatusMap: new Map(),
-    pendingOutboxToOrdinal,
-    unfurlPrompt: new Map(),
-  }
-}
-
-const seedThreadCache = (messages?: ReadonlyArray<T.Chat.Message>) => {
-  putConversationThreadCacheSnapshot(convID, makeThreadSnapshot(messages))
-}
 
 const makeValidTextUIMessage = (serverMsgID: T.Chat.MessageID, text: string): T.RPCChat.UIMessage => ({
   state: T.RPCChat.MessageUnboxedState.valid,
@@ -202,15 +148,17 @@ const makeUnverifiedInboxUIItem = (): T.RPCChat.UnverifiedInboxUIItem => ({
   visibility: T.RPCGen.TLFVisibility.private,
 })
 
-test('global coin flip and decorator routing do not create thread cache entries', () => {
+test('global coin flip and decorator routing is handled without mounted thread state', () => {
   const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([9, 8, 7, 6]))
   const first = makeCoinFlipStatus({gameID: 'flip-1', progressText: 'first'})
   const second = makeCoinFlipStatus({convID: otherConvID, gameID: 'flip-2'})
 
-  handleConvoEngineIncoming({
-    payload: {params: {statuses: [first, second]}},
-    type: 'chat.1.chatUi.chatCoinFlipStatus',
-  } as never)
+  expect(
+    handleConvoEngineIncoming({
+      payload: {params: {statuses: [first, second]}},
+      type: 'chat.1.chatUi.chatCoinFlipStatus',
+    } as never).handled
+  ).toBe(true)
   ;[
     {
       payload: {
@@ -244,33 +192,28 @@ test('global coin flip and decorator routing do not create thread cache entries'
       },
       type: 'chat.1.NotifyChat.ChatPaymentInfo',
     },
-  ].forEach(action => handleConvoEngineIncoming(action as never))
-
-  expect(getConversationThreadCacheSnapshot(convID)).toBeUndefined()
-  expect(getConversationThreadCacheSnapshot(otherConvID)).toBeUndefined()
+  ].forEach(action => expect(handleConvoEngineIncoming(action as never).handled).toBe(true))
 })
 
-test('global message activity routing updates thread cache and preserves returned global data', () => {
-  seedThreadCache()
-
-  handleConvoEngineIncoming({
-    payload: {
-      params: {
-        activity: {
-          activityType: T.RPCChat.ChatActivityType.messagesUpdated,
-          messagesUpdated: {
-            convID: T.Chat.keyToConversationID(convID),
-            updates: [makeValidTextUIMessage(T.Chat.numberToMessageID(401), 'background update')],
+test('global message activity routing preserves returned global data', () => {
+  expect(
+    handleConvoEngineIncoming({
+      payload: {
+        params: {
+          activity: {
+            activityType: T.RPCChat.ChatActivityType.messagesUpdated,
+            messagesUpdated: {
+              convID: T.Chat.keyToConversationID(convID),
+              updates: [makeValidTextUIMessage(T.Chat.numberToMessageID(401), 'background update')],
+            },
           },
         },
       },
-    },
-    type: 'chat.1.NotifyChat.NewChatActivity',
-  } as never)
-  expect(getConversationThreadCacheSnapshot(convID)).toBeUndefined()
+      type: 'chat.1.NotifyChat.NewChatActivity',
+    } as never).handled
+  ).toBe(true)
 
   const inboxUIItem = {convID: T.Chat.conversationIDKeyToString(convID)} as T.RPCChat.InboxUIItem
-  seedThreadCache()
   const incomingResult = handleConvoEngineIncoming({
     payload: {
       params: {
@@ -285,10 +228,8 @@ test('global message activity routing updates thread cache and preserves returne
     type: 'chat.1.NotifyChat.NewChatActivity',
   } as never)
   expect(incomingResult.inboxUIItem).toBe(inboxUIItem)
-  expect(getConversationThreadCacheSnapshot(convID)).toBeUndefined()
 
   const userReacjis = {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: null}
-  seedThreadCache([makeTextMessage()])
   const reactionResult = handleConvoEngineIncoming({
     payload: {
       params: {
@@ -322,116 +263,71 @@ test('global message activity routing updates thread cache and preserves returne
     type: 'chat.1.NotifyChat.NewChatActivity',
   } as never)
   expect(reactionResult.userReacjis).toEqual(userReacjis)
+})
+
+test('global failed message and transfer routing is handled without mounted thread state', () => {
   expect(
-    getConversationThreadCacheSnapshot(convID)
-      ?.messageMap.get(T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(msgID)))
-      ?.reactions?.get(':+1:')
-      ?.users.map(u => u.username)
-  ).toEqual(['bob'])
-})
-
-test('global reaction updates invalidate cached thread when the target message is missing', () => {
-  seedThreadCache([makeTextMessage()])
-
-  handleConvoEngineIncoming({
-    payload: {
-      params: {
-        activity: {
-          activityType: T.RPCChat.ChatActivityType.reactionUpdate,
-          reactionUpdate: {
-            convID: T.Chat.keyToConversationID(convID),
-            reactionUpdates: [
-              {
-                reactions: {
-                  reactions: {
-                    ':+1:': {
-                      decorated: ':+1:',
-                      users: {
-                        bob: {
-                          ctime: 5,
-                          reactionMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(99)),
-                        },
-                      },
+    handleConvoEngineIncoming({
+      payload: {
+        params: {
+          activity: {
+            activityType: T.RPCChat.ChatActivityType.failedMessage,
+            failedMessage: {
+              conv: null,
+              isEphemeralPurge: false,
+              outboxRecords: [
+                {
+                  Msg: {},
+                  convID: T.Chat.keyToConversationID(convID),
+                  ctime: 0,
+                  identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+                  ordinal: 0,
+                  outboxID: makeRpcOutboxID('outbox-1'),
+                  state: {
+                    error: {
+                      message: 'network fail',
+                      typ: T.RPCChat.OutboxErrorType.misc,
                     },
+                    state: T.RPCChat.OutboxStateType.error,
                   },
-                },
-                targetMsgID: T.Chat.messageIDToNumber(T.Chat.numberToMessageID(999)),
-              },
-            ],
-            userReacjis: {skinTone: T.RPCGen.ReacjiSkinTone.none, topReacjis: null},
+                } as T.RPCChat.OutboxRecord,
+              ],
+            },
           },
         },
       },
-    },
-    type: 'chat.1.NotifyChat.NewChatActivity',
-  } as never)
+      type: 'chat.1.NotifyChat.NewChatActivity',
+    } as never).handled
+  ).toBe(true)
 
-  expect(getConversationThreadCacheSnapshot(convID)).toBeUndefined()
-})
-
-test('global failed message and transfer routing invalidate thread cache', () => {
-  seedThreadCache()
-  handleConvoEngineIncoming({
-    payload: {
-      params: {
-        activity: {
-          activityType: T.RPCChat.ChatActivityType.failedMessage,
-          failedMessage: {
-            conv: null,
-            isEphemeralPurge: false,
-            outboxRecords: [
-              {
-                Msg: {},
-                convID: T.Chat.keyToConversationID(convID),
-                ctime: 0,
-                identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-                ordinal: 0,
-                outboxID: makeRpcOutboxID('outbox-1'),
-                state: {
-                  error: {
-                    message: 'network fail',
-                    typ: T.RPCChat.OutboxErrorType.misc,
-                  },
-                  state: T.RPCChat.OutboxStateType.error,
-                },
-              } as T.RPCChat.OutboxRecord,
-            ],
-          },
+  expect(
+    handleConvoEngineIncoming({
+      payload: {
+        params: {
+          bytesComplete: 25,
+          bytesTotal: 100,
+          convID: T.Chat.keyToConversationID(convID),
+          msgID: T.Chat.messageIDToNumber(msgID),
         },
       },
-    },
-    type: 'chat.1.NotifyChat.NewChatActivity',
-  } as never)
-  expect(getConversationThreadCacheSnapshot(convID)).toBeUndefined()
+      type: 'chat.1.NotifyChat.ChatAttachmentDownloadProgress',
+    } as never).handled
+  ).toBe(true)
 
-  seedThreadCache()
-  handleConvoEngineIncoming({
-    payload: {
-      params: {
-        bytesComplete: 25,
-        bytesTotal: 100,
-        convID: T.Chat.keyToConversationID(convID),
-        msgID: T.Chat.messageIDToNumber(msgID),
+  expect(
+    handleConvoEngineIncoming({
+      payload: {
+        params: {
+          bytesComplete: 25,
+          bytesTotal: 100,
+          convID: T.Chat.keyToConversationID(convID),
+          outboxID: makeRpcOutboxID('upload-outbox'),
+          uid: 'uid',
+        },
       },
-    },
-    type: 'chat.1.NotifyChat.ChatAttachmentDownloadProgress',
-  } as never)
-  expect(getConversationThreadCacheSnapshot(convID)).toBeUndefined()
-
-  seedThreadCache()
-  handleConvoEngineIncoming({
-    payload: {
-      params: {
-        bytesComplete: 25,
-        bytesTotal: 100,
-        convID: T.Chat.keyToConversationID(convID),
-        outboxID: makeRpcOutboxID('upload-outbox'),
-        uid: 'uid',
-      },
-    },
-    type: 'chat.1.NotifyChat.ChatAttachmentUploadProgress',
-  } as never)
-  expect(getConversationThreadCacheSnapshot(convID)).toBeUndefined()
+      type: 'chat.1.NotifyChat.ChatAttachmentUploadProgress',
+    } as never).handled
+  ).toBe(true)
 })
 
 test('global typing and participant updates route to inbox rows', () => {

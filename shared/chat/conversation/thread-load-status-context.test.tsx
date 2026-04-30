@@ -71,7 +71,7 @@ afterEach(() => {
 })
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
-  <ConversationThreadProvider id={convID} seedFromCache={false}>
+  <ConversationThreadProvider id={convID}>
     <ConversationThreadLoadStatusProvider id={convID} skipThreadLoadOnSelection={true}>
       {children}
     </ConversationThreadLoadStatusProvider>

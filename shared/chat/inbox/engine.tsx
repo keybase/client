@@ -1,5 +1,4 @@
 import * as Common from '@/constants/chat/common'
-import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
 import * as TeamsUtil from '@/constants/teams'
 import * as T from '@/constants/types'
@@ -9,19 +8,9 @@ import logger from '@/logger'
 import {isMobile} from '@/constants/platform'
 import {NotifyPopup} from '@/util/misc'
 import {showMain} from '@/util/storeless-actions'
-import {ignorePromise} from '@/constants/utils'
-import {findLast} from '@/util/arrays'
-import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
 import {useUsersState} from '@/stores/users'
 import {updateInboxRowTyping} from '@/stores/inbox-rows'
-import {
-  deleteConversationThreadCacheSnapshot,
-  getConversationThreadCacheSnapshot,
-  putConversationThreadCacheSnapshot,
-} from '@/chat/conversation/thread-cache'
-import {updateReactionsInThreadState} from '@/chat/conversation/thread-message-state'
-import {produce} from 'immer'
 import {
   getInboxConversationMeta,
   metaReceivedError,
@@ -47,74 +36,6 @@ const handledConvoEngineIncoming = (result: Omit<ConvoEngineIncomingResult, 'han
   handled: true,
 })
 
-const applyReactionUpdateToCachedThread = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  reactionUpdate: T.RPCChat.ReactionUpdateNotif
-) => {
-  const snapshot = getConversationThreadCacheSnapshot(conversationIDKey)
-  if (!snapshot || !reactionUpdate.reactionUpdates?.length) {
-    return
-  }
-  const updates = reactionUpdate.reactionUpdates.map(ru => ({
-    reactions: Message.reactionMapToReactions(ru.reactions),
-    targetMsgID: T.Chat.numberToMessageID(ru.targetMsgID),
-  }))
-  const missingTargetMsgIDs = new Array<T.Chat.MessageID>()
-  const next = produce(snapshot, s => {
-    missingTargetMsgIDs.push(...updateReactionsInThreadState(T.castDraft(s), updates))
-  })
-  for (const targetMsgID of missingTargetMsgIDs) {
-    logger.info(
-      `applyReactionUpdateToCachedThread: couldn't find target ordinal for targetMsgID=${targetMsgID} in convID=${conversationIDKey}`
-    )
-  }
-  if (missingTargetMsgIDs.length) {
-    deleteConversationThreadCacheSnapshot(conversationIDKey)
-    return
-  }
-  putConversationThreadCacheSnapshot(conversationIDKey, next)
-}
-
-export const markThreadAsRead = (id: T.Chat.ConversationIDKey, force?: boolean) => {
-  const f = async () => {
-    if (!useConfigState.getState().loggedIn) {
-      logger.info('mark read bail on not logged in')
-      return
-    }
-    if (!T.Chat.isValidConversationIDKey(id)) {
-      logger.info('mark read bail on no selected conversation')
-      return
-    }
-    if (!force && !Common.isUserActivelyLookingAtThisThread(id)) {
-      logger.info('mark read bail on not looking at this thread')
-      return
-    }
-    const snapshot = getConversationThreadCacheSnapshot(id)
-    if (snapshot?.moreToLoadForward) {
-      logger.info('mark read bail on not containing latest message')
-      return
-    }
-    const ordinal = findLast([...(snapshot?.messageOrdinals ?? [])], o => {
-      const m = snapshot?.messageMap.get(o)
-      return m ? !!m.id : false
-    })
-    const message = ordinal ? snapshot?.messageMap.get(ordinal) : undefined
-    const readMsgID = message?.id
-    const meta = snapshot?.meta.conversationIDKey === id ? snapshot.meta : getInboxConversationMeta(id)
-    if (meta?.conversationIDKey === id && readMsgID === meta.readMsgID) {
-      logger.info(`marking read messages is noop bail: ${id} ${readMsgID}`)
-      return
-    }
-    logger.info(`marking read messages ${id} ${readMsgID}`)
-    await T.RPCChat.localMarkAsReadLocalRpcPromise({
-      conversationID: T.Chat.keyToConversationID(id),
-      forceUnread: false,
-      msgID: readMsgID,
-    })
-  }
-  ignorePromise(f())
-}
-
 const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
   const keys = ['clear', 'newactivity'] as const
   if (__DEV__) {
@@ -137,11 +58,6 @@ const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
       `onChatThreadsStale: dispatching thread reload actions for ${conversationIDKeys.length} convs of type ${key}`
     )
     unboxRows(conversationIDKeys, true)
-    if (T.RPCChat.StaleUpdateType[key] === T.RPCChat.StaleUpdateType.clear) {
-      conversationIDKeys.forEach(conversationIDKey => {
-        deleteConversationThreadCacheSnapshot(conversationIDKey)
-      })
-    }
   })
 }
 
@@ -194,9 +110,7 @@ const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult
   switch (activity.activityType) {
     case T.RPCChat.ChatActivityType.incomingMessage: {
       const {incomingMessage} = activity
-      const conversationIDKey = T.Chat.conversationIDToKey(incomingMessage.convID)
       maybeShowIncomingMessageDesktopNotification(incomingMessage)
-      deleteConversationThreadCacheSnapshot(conversationIDKey)
       return handledConvoEngineIncoming({inboxUIItem: incomingMessage.conv ?? undefined})
     }
     case T.RPCChat.ChatActivityType.setStatus:
@@ -218,8 +132,6 @@ const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult
           return handledConvoEngineIncoming({inboxUIItem})
         }
         const {error} = s
-        const conversationIDKey = T.Chat.conversationIDToKey(outboxRecord.convID)
-        deleteConversationThreadCacheSnapshot(conversationIDKey)
 
         if (error.typ === T.RPCChat.OutboxErrorType.identify) {
           const match = error.message.match(/"(.*)"/)
@@ -244,13 +156,9 @@ const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult
       return handledConvoEngineIncoming()
     }
     case T.RPCChat.ChatActivityType.expunge: {
-      const {expunge} = activity
-      deleteConversationThreadCacheSnapshot(T.Chat.conversationIDToKey(expunge.convID))
       return handledConvoEngineIncoming()
     }
     case T.RPCChat.ChatActivityType.ephemeralPurge: {
-      const {ephemeralPurge} = activity
-      deleteConversationThreadCacheSnapshot(T.Chat.conversationIDToKey(ephemeralPurge.convID))
       return handledConvoEngineIncoming()
     }
     case T.RPCChat.ChatActivityType.reactionUpdate: {
@@ -263,12 +171,9 @@ const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult
       logger.info(
         `Got ${reactionUpdate.reactionUpdates.length} reaction updates for convID=${conversationIDKey}`
       )
-      applyReactionUpdateToCachedThread(conversationIDKey, reactionUpdate)
       return handledConvoEngineIncoming({userReacjis: reactionUpdate.userReacjis})
     }
     case T.RPCChat.ChatActivityType.messagesUpdated: {
-      const {messagesUpdated} = activity
-      deleteConversationThreadCacheSnapshot(T.Chat.conversationIDToKey(messagesUpdated.convID))
       return handledConvoEngineIncoming()
     }
     default:
@@ -308,7 +213,6 @@ export const handleConvoEngineIncoming = (action: EngineGen.Actions): ConvoEngin
     case 'chat.1.NotifyChat.ChatAttachmentDownloadProgress':
     case 'chat.1.NotifyChat.ChatAttachmentDownloadComplete':
     case 'chat.1.NotifyChat.ChatAttachmentUploadProgress': {
-      deleteConversationThreadCacheSnapshot(T.Chat.conversationIDToKey(action.payload.params.convID))
       return handledConvoEngineIncoming()
     }
     case 'chat.1.NotifyChat.ChatPromptUnfurl':

@@ -4,7 +4,6 @@ import type * as T from '@/constants/types'
 import logger from '@/logger'
 import {debugWarning} from '@/util/debug-warning'
 import {registerDebugClear} from '@/util/debug'
-import {getConversationThreadCacheSnapshot} from '@/chat/conversation/thread-cache'
 
 export const chatDebugEnabled = false as boolean
 
@@ -18,41 +17,7 @@ registerDebugClear(() => {
 })
 
 const chatDebugDump = chatDebugEnabled
-  ? (conversationIDKey: T.Chat.ConversationIDKey) => {
-      const snapshot = getConversationThreadCacheSnapshot(conversationIDKey)
-      if (!snapshot) {
-        logger.error('[CHATDEBUG] no cached snapshot for: ', conversationIDKey)
-        return
-      }
-      logger.error('[CHATDEBUG] os: ', snapshot.messageOrdinals)
-      // logger.error('[CHATDEBUG] orange: ', cs.orangeAboveOrdinal)
-      const m = snapshot.meta
-      logger.error('[CHATDEBUG] meta: ', {
-        inboxLocalVersion: m.inboxLocalVersion,
-        inboxVersion: m.inboxVersion,
-        maxMsgID: m.maxMsgID,
-        maxVisibleMsgID: m.maxVisibleMsgID,
-        offline: m.offline,
-        readMsgID: m.readMsgID,
-        status: m.status,
-        timestamp: m.timestamp,
-      })
-      logger.error('[CHATDEBUG] pen: ', [...snapshot.pendingOutboxToOrdinal.entries()])
-      logger.error(
-        '[CHATDEBUG] mm: ',
-        [...snapshot.messageMap.entries()].map(([k, v]) => {
-          const {id, ordinal, submitState, outboxID, type} = v
-          return {
-            key: k,
-            length: type === 'text' ? v.text.stringValue().length : -1,
-            mid: id,
-            ordinal,
-            outboxID,
-            submitState,
-            type,
-          }
-        })
-      )
+  ? (_conversationIDKey: T.Chat.ConversationIDKey) => {
       const lines = [...dumpMap.values()]
         .reduce((strs, cb) => {
           strs.push(cb())
