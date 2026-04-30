@@ -2,6 +2,11 @@ require "json"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -Wno-comma -Wno-shorten-64-to-32'
+kb_jsi_inbound_binary_mode = ENV.fetch("KB_JSI_INBOUND_BINARY_MODE", "0")
+kb_jsi_outbound_typed_array_fastpath = ENV.fetch("KB_JSI_OUTBOUND_TYPED_ARRAY_FASTPATH", "0")
+kb_jsi_perf = ENV["KB_JSI_PERF"] == "1" ? " -DKB_JSI_PERF=1" : ""
+kb_jsi_experiment_flags = " -DKB_JSI_INBOUND_BINARY_MODE=#{kb_jsi_inbound_binary_mode} -DKB_JSI_OUTBOUND_TYPED_ARRAY_FASTPATH=#{kb_jsi_outbound_typed_array_fastpath}#{kb_jsi_perf}"
+kb_cpp_flags = "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DMSGPACK_NO_BOOST=1#{kb_jsi_experiment_flags}"
 
 Pod::Spec.new do |s|
   s.name         = "react-native-kb"
@@ -27,7 +32,7 @@ Pod::Spec.new do |s|
   if respond_to?(:install_modules_dependencies, true)
       s.pod_target_xcconfig    = {
           "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\" $(PODS_ROOT)/../../node_modules/msgpack-cxx-7.0.0/include $(PODS_ROOT)/../keybasego.xcframework/ios-arm64/Keybasego.framework/Headers \"$(PODS_CONFIGURATION_BUILD_DIR)/KBCommon\"",
-          "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DMSGPACK_NO_BOOST=1",
+          "OTHER_CPLUSPLUSFLAGS" => kb_cpp_flags,
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
       }
     install_modules_dependencies(s)
@@ -39,7 +44,7 @@ Pod::Spec.new do |s|
       s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
       s.pod_target_xcconfig    = {
           "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\" $(PODS_ROOT)/../../node_modules/msgpack-cxx-7.0.0/include $(PODS_ROOT)/../keybasego.xcframework/ios-arm64/Keybasego.framework/Headers \"$(PODS_CONFIGURATION_BUILD_DIR)/KBCommon\"",
-          "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DMSGPACK_NO_BOOST=1",
+          "OTHER_CPLUSPLUSFLAGS" => kb_cpp_flags,
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
       }
       s.dependency "React-Codegen"
@@ -50,7 +55,7 @@ Pod::Spec.new do |s|
     else
       s.pod_target_xcconfig    = {
           "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\" $(PODS_ROOT)/../../node_modules/msgpack-cxx-7.0.0/include $(PODS_ROOT)/../keybasego.xcframework/ios-arm64/Keybasego.framework/Headers \"$(PODS_CONFIGURATION_BUILD_DIR)/KBCommon\"",
-          "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DMSGPACK_NO_BOOST=1",
+          "OTHER_CPLUSPLUSFLAGS" => kb_cpp_flags,
           "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
       }
     end

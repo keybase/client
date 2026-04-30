@@ -35,10 +35,19 @@ def getExtOrIntegerDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["Kb_" + name]).toInteger()
 }
 
+def getKbExperimentOrDefault(name, defaultValue) {
+  def key = "Kb_" + name
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.findProperty(key) ?: defaultValue)
+}
+
 def reactNativeArchitectures() {
   def value = project.getProperties().get('reactNativeArchitectures')
   return value ? value.split(',') : ['armeabi-v7a', 'x86', 'x86_64', 'arm64-v8a']
 }
+
+def kbJsiInboundBinaryMode = getKbExperimentOrDefault("JSI_INBOUND_BINARY_MODE", "0")
+def kbJsiOutboundTypedArrayFastpath = getKbExperimentOrDefault("JSI_OUTBOUND_TYPED_ARRAY_FASTPATH", "OFF")
+def kbJsiPerf = getKbExperimentOrDefault("JSI_PERF", "OFF")
 
 android {
   ndkVersion getExtOrDefault("ndkVersion")
@@ -54,7 +63,10 @@ android {
     externalNativeBuild {
       cmake {
         cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all"
-        arguments '-DANDROID_STL=c++_shared'
+        arguments '-DANDROID_STL=c++_shared',
+          "-DKB_JSI_INBOUND_BINARY_MODE=${kbJsiInboundBinaryMode}",
+          "-DKB_JSI_OUTBOUND_TYPED_ARRAY_FASTPATH=${kbJsiOutboundTypedArrayFastpath}",
+          "-DKB_JSI_PERF=${kbJsiPerf}"
         abiFilters(*reactNativeArchitectures())
       }
     }

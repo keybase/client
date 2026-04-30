@@ -4,6 +4,16 @@ cmake_minimum_required(VERSION 3.4.1)
 set (CMAKE_VERBOSE_MAKEFILE ON)
 set (CMAKE_CXX_STANDARD 20)
 set (NODE_MODULES_DIR "${CMAKE_SOURCE_DIR}/../..")
+set (KB_JSI_INBOUND_BINARY_MODE "0" CACHE STRING "0=current Uint8Array, 1=MutableBuffer ArrayBuffer, 2=MutableBuffer wrapped Uint8Array")
+set_property(CACHE KB_JSI_INBOUND_BINARY_MODE PROPERTY STRINGS "0" "1" "2")
+option(KB_JSI_OUTBOUND_TYPED_ARRAY_FASTPATH "Check Uint8Array before object property enumeration" OFF)
+option(KB_JSI_PERF "Install benchmark-only JSI performance hooks" OFF)
+
+if(KB_JSI_OUTBOUND_TYPED_ARRAY_FASTPATH)
+  set(KB_JSI_OUTBOUND_TYPED_ARRAY_FASTPATH_VALUE 1)
+else()
+  set(KB_JSI_OUTBOUND_TYPED_ARRAY_FASTPATH_VALUE 0)
+endif()
 
 add_library(cpp
             SHARED
@@ -26,7 +36,17 @@ set_target_properties(
         POSITION_INDEPENDENT_CODE ON
 )
 
-add_definitions(-DMSGPACK_NO_BOOST)
+target_compile_definitions(
+        cpp
+        PRIVATE
+        MSGPACK_NO_BOOST
+        KB_JSI_INBOUND_BINARY_MODE=${KB_JSI_INBOUND_BINARY_MODE}
+        KB_JSI_OUTBOUND_TYPED_ARRAY_FASTPATH=${KB_JSI_OUTBOUND_TYPED_ARRAY_FASTPATH_VALUE}
+)
+
+if(KB_JSI_PERF)
+  target_compile_definitions(cpp PRIVATE KB_JSI_PERF=1)
+endif()
 
 find_package(ReactAndroid REQUIRED CONFIG)
 find_package(fbjni REQUIRED CONFIG)
