@@ -113,7 +113,7 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
     return () => {
       setMarkReadBlocked(false)
     }
-  }, [threadSearchVisible])
+  }, [setMarkReadBlocked, threadSearchVisible])
 
   const consumedRouteHighlightRef = React.useRef<T.Chat.MessageID | undefined>(undefined)
   const consumeRouteHighlight = React.useEffectEvent((messageID: T.Chat.MessageID) => {
