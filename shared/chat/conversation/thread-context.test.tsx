@@ -620,11 +620,22 @@ test('mounted thread listener applies incoming messages while inactive without m
   const firstMsgID = T.Chat.numberToMessageID(602)
   const {result} = renderHook(
     () => ({
+      actions: useConversationThreadActions(),
       message: useConversationThreadMessage(T.Chat.numberToOrdinal(602)),
       ordinals: useConversationThreadMessageOrdinalsMaybe(),
     }),
     {wrapper}
   )
+
+  act(() => {
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [],
+      moreToLoad: false,
+      scrollDirection: 'none',
+    })
+  })
 
   act(() => {
     notifyEngineActionListeners({
@@ -1025,7 +1036,13 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
   )
 
   act(() => {
-    result.current.actions.addMessages([makeTextMessage()])
+    result.current.actions.applyThreadLoad({
+      centered: false,
+      enableActiveMarkRead: false,
+      messages: [makeTextMessage()],
+      moreToLoad: false,
+      scrollDirection: 'none',
+    })
   })
 
   act(() => {
@@ -1263,7 +1280,7 @@ test('mounted thread listener applies attachment download and upload progress', 
   const uploadOutboxID = T.Chat.stringToOutboxID('0c0d')
   const uploadRpcOutboxID = T.Chat.outboxIDToRpcOutboxID(uploadOutboxID)
   const uploadMessage = makeAttachmentMessage({
-    id: T.Chat.numberToMessageID(702),
+    id: T.Chat.numberToMessageID(0),
     ordinal: T.Chat.numberToOrdinal(702),
     outboxID: uploadOutboxID,
   })
