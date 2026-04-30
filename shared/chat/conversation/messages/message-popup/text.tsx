@@ -33,6 +33,8 @@ const PopText = (ownProps: OwnProps) => {
     switch (message.type) {
       case 'text':
         return message.text.stringValue()
+      case 'setDescription':
+        return message.newDescription.stringValue() || undefined
       case 'systemGitPush':
         switch (message.pushType) {
           case T.RPCGen.GitPushType.createrepo:
