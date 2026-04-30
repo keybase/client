@@ -2,6 +2,9 @@ import type * as T from '@/constants/types'
 import {registerDebugClear} from '@/util/debug'
 import {registerExternalResetter} from '@/util/zustand'
 
+// Flip to true to measure cold thread loads without the snapshot cache.
+const disableConversationThreadCache = false
+
 export type ConversationThreadSnapshot = {
   accountsInfoMap: ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
   explodingMode: number
@@ -32,6 +35,9 @@ const cache: Map<T.Chat.ConversationIDKey, ConversationThreadSnapshot> = __DEV__
   : new Map()
 
 export const getConversationThreadCacheSnapshot = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  if (disableConversationThreadCache) {
+    return undefined
+  }
   return cache.get(conversationIDKey)
 }
 
@@ -39,6 +45,9 @@ export const putConversationThreadCacheSnapshot = (
   conversationIDKey: T.Chat.ConversationIDKey,
   snapshot: ConversationThreadSnapshot
 ) => {
+  if (disableConversationThreadCache) {
+    return
+  }
   cache.set(conversationIDKey, snapshot)
 }
 
