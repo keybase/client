@@ -3,7 +3,11 @@ import * as T from '@/constants/types'
 import {clearThreadHighlightMessageID} from '@/constants/router'
 import {useChatThreadRouteParams} from './thread-search-route'
 import {useThreadLoadStatusOptionsGetter} from './thread-load-status-context'
-import {useConversationThreadJumpToRecent, useConversationThreadLoadMessagesCentered} from './thread-context'
+import {
+  useConversationThreadJumpToRecent,
+  useConversationThreadLoadMessagesCentered,
+  useConversationThreadSetMarkReadBlocked,
+} from './thread-context'
 
 type CenterState = {
   center: T.Chat.CenterOrdinal | undefined
@@ -63,6 +67,7 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
   const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
   const loadMessagesCentered = useConversationThreadLoadMessagesCentered()
   const jumpToRecentThread = useConversationThreadJumpToRecent()
+  const setMarkReadBlocked = useConversationThreadSetMarkReadBlocked()
   const [centerState, setCenterState] = React.useState<CenterState>(() => ({
     center: undefined,
     threadSearchVisible,
@@ -103,8 +108,16 @@ export const ConversationCenterProvider = function ConversationCenterProvider(p:
     jumpToRecentThread(getThreadLoadStatusOptions())
   }
 
+  React.useEffect(() => {
+    setMarkReadBlocked(threadSearchVisible)
+    return () => {
+      setMarkReadBlocked(false)
+    }
+  }, [threadSearchVisible])
+
   const consumedRouteHighlightRef = React.useRef<T.Chat.MessageID | undefined>(undefined)
   const consumeRouteHighlight = React.useEffectEvent((messageID: T.Chat.MessageID) => {
+    setMarkReadBlocked(true)
     centerOnMessage(messageID, 'flash')
     clearThreadHighlightMessageID()
   })

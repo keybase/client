@@ -16,10 +16,11 @@ type ConstantsModule = typeof C
 let mockConversationIDKey: T.Chat.ConversationIDKey
 let mockLoaded = true
 let mockMeta: T.Chat.ConversationMeta
-let mockRouteParams: {highlightMessageID?: T.Chat.MessageID} | undefined
+let mockRouteParams: {highlightMessageID?: T.Chat.MessageID; threadSearch?: {query?: string}} | undefined
 let mockSetOrangeLine: ((messageID: T.Chat.MessageID) => void) | undefined
 let mockThreadLoadStatusProviderProps:
   | {
+      allowMarkReadOnLoad?: boolean
       id: T.Chat.ConversationIDKey
       skipThreadLoadOnSelection?: boolean
     }
@@ -64,11 +65,13 @@ function mockPassthroughProvider({children}: {children: React.ReactNode}) {
 
 function mockConversationThreadLoadStatusProvider(
   props: React.PropsWithChildren<{
+    allowMarkReadOnLoad?: boolean
     id: T.Chat.ConversationIDKey
     skipThreadLoadOnSelection?: boolean
   }>
 ) {
   mockThreadLoadStatusProviderProps = {
+    allowMarkReadOnLoad: props.allowMarkReadOnLoad,
     id: props.id,
     skipThreadLoadOnSelection: props.skipThreadLoadOnSelection,
   }
@@ -412,6 +415,7 @@ test('highlight route params skip thread load on selection', () => {
   render(<NormalWrapper />)
 
   expect(mockThreadLoadStatusProviderProps).toEqual({
+    allowMarkReadOnLoad: false,
     id: convID,
     skipThreadLoadOnSelection: true,
   })
@@ -423,6 +427,7 @@ test('missing highlight route params do not skip thread load on selection', () =
   render(<NormalWrapper />)
 
   expect(mockThreadLoadStatusProviderProps).toEqual({
+    allowMarkReadOnLoad: true,
     id: convID,
     skipThreadLoadOnSelection: false,
   })
@@ -435,6 +440,20 @@ test('zero highlight route params do not skip thread load on selection', () => {
   render(<NormalWrapper />)
 
   expect(mockThreadLoadStatusProviderProps).toEqual({
+    allowMarkReadOnLoad: true,
+    id: convID,
+    skipThreadLoadOnSelection: false,
+  })
+})
+
+test('thread search route params disable mark read without skipping thread load', () => {
+  mockLoaded = false
+  mockRouteParams = {threadSearch: {query: 'needle'}}
+
+  render(<NormalWrapper />)
+
+  expect(mockThreadLoadStatusProviderProps).toEqual({
+    allowMarkReadOnLoad: false,
     id: convID,
     skipThreadLoadOnSelection: false,
   })

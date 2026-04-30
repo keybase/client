@@ -162,11 +162,12 @@ const NormalOrangeLineProvider = (props: OrangeLineProviderProps) => {
 
 const NormalProviderChildren = (props: {
   active: boolean
+  allowMarkReadOnLoad: boolean
   conversationIDKey: T.Chat.ConversationIDKey
   mobileAppState: ShellState['mobileAppState']
   skipThreadLoadOnSelection: boolean
 }) => {
-  const {active, conversationIDKey, mobileAppState, skipThreadLoadOnSelection} = props
+  const {active, allowMarkReadOnLoad, conversationIDKey, mobileAppState, skipThreadLoadOnSelection} = props
   useShowManageChannels()
   return (
     <MaybeMentionProvider>
@@ -178,6 +179,7 @@ const NormalProviderChildren = (props: {
       >
         <ChatTeamProvider>
           <ConversationThreadLoadStatusProvider
+            allowMarkReadOnLoad={allowMarkReadOnLoad}
             key={conversationIDKey}
             id={conversationIDKey}
             skipThreadLoadOnSelection={skipThreadLoadOnSelection}
@@ -205,9 +207,11 @@ const NormalWrapper = function NormalWrapper() {
   )
   const routeParams = useChatThreadRouteParams()
   const skipThreadLoadOnSelection = !!routeParams?.highlightMessageID
+  const allowMarkReadOnLoad = !routeParams?.highlightMessageID && !routeParams?.threadSearch
   return (
     <NormalProviderChildren
       active={active}
+      allowMarkReadOnLoad={allowMarkReadOnLoad}
       conversationIDKey={conversationIDKey}
       mobileAppState={mobileAppState}
       skipThreadLoadOnSelection={skipThreadLoadOnSelection}

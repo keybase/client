@@ -66,11 +66,12 @@ export const useThreadLoadStatusOptionsGetter = () =>
 
 export const ConversationThreadLoadStatusProvider = (
   p: React.PropsWithChildren<{
+    allowMarkReadOnLoad?: boolean
     id: T.Chat.ConversationIDKey
     skipThreadLoadOnSelection?: boolean
   }>
 ) => {
-  const {children, id, skipThreadLoadOnSelection = false} = p
+  const {allowMarkReadOnLoad = true, children, id, skipThreadLoadOnSelection = false} = p
   const [initialSkipThreadLoadOnSelection] = React.useState(skipThreadLoadOnSelection)
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
   const selectedConversation = useConversationThreadSelectedConversation()
@@ -128,6 +129,7 @@ export const ConversationThreadLoadStatusProvider = (
 
   const reloadStaleThread = () => {
     loadMoreMessages({
+      allowMarkAsRead: allowMarkReadOnLoad,
       ...getThreadLoadStatusOptions(),
       reason: 'got stale',
     })
@@ -135,6 +137,7 @@ export const ConversationThreadLoadStatusProvider = (
 
   const reloadSelectedThread = React.useEffectEvent(() => {
     loadMoreMessages({
+      allowMarkAsRead: allowMarkReadOnLoad,
       ...getThreadLoadStatusOptions(),
       reason: 'tab selected',
     })
@@ -181,6 +184,7 @@ export const ConversationThreadLoadStatusProvider = (
 
   const selectConversation = React.useEffectEvent(() => {
     selectedConversation({
+      allowMarkAsRead: allowMarkReadOnLoad,
       ...getThreadLoadStatusOptions(),
       skipThreadLoad: initialSkipThreadLoadOnSelection,
     })

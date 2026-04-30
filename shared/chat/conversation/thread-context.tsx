@@ -282,11 +282,13 @@ export type ThreadLoadStatusOptions = {
 }
 
 type SelectedConversationOptions = ThreadLoadStatusOptions & {
+  allowMarkAsRead?: boolean
   skipThreadLoad?: boolean
 }
 
 type ScrollDirection = 'none' | 'back' | 'forward'
 type LoadMoreMessagesParams = ThreadLoadStatusOptions & {
+  allowMarkAsRead?: boolean
   centeredMessageID?: {
     conversationIDKey: T.Chat.ConversationIDKey
     highlightMode: T.Chat.CenterOrdinalHighlightMode
@@ -327,6 +329,7 @@ type ConversationThreadActions = {
   ) => void
   applyThreadLoad: (p: {
     centered: boolean
+    disableActiveMarkRead?: boolean
     enableActiveMarkRead: boolean
     messages: ReadonlyArray<T.Chat.Message>
     moreToLoad: boolean
@@ -350,6 +353,7 @@ type ConversationThreadActions = {
   getSnapshot: () => ConversationThreadState
   loadMoreMessages: LoadMoreMessages
   markThreadAsRead: () => void
+  setMarkReadBlocked: (blocked: boolean) => void
   messageDelete: (ordinal: T.Chat.Ordinal) => void
   messageReplyPrivately: (ordinal: T.Chat.Ordinal) => void
   messagesClear: MessagesClear
@@ -757,8 +761,15 @@ const loadConversationThreadMessages = (
     return
   }
   const {scrollDirection = 'none', numberOfMessagesToLoad = numMessagesOnInitialLoad} = p
-  const {reason, messageIDControl, knownRemotes, centeredMessageID, isThreadLoadCurrent, onThreadLoadStatus} =
-    p
+  const {
+    allowMarkAsRead = true,
+    reason,
+    messageIDControl,
+    knownRemotes,
+    centeredMessageID,
+    isThreadLoadCurrent,
+    onThreadLoadStatus,
+  } = p
   const isCurrentThreadLoad = () => isThreadLoadCurrent?.() ?? true
 
   const f = async () => {
@@ -829,6 +840,7 @@ const loadConversationThreadMessages = (
 
       const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
       const canMarkReadForThreadWindow =
+        allowMarkAsRead &&
         !centeredMessageID &&
         !messageIDControl &&
         scrollDirection !== 'back' &&
@@ -851,6 +863,7 @@ const loadConversationThreadMessages = (
       }
       actions.applyThreadLoad({
         centered: !!centeredMessageID,
+        disableActiveMarkRead: !allowMarkAsRead || !!centeredMessageID || !!messageIDControl,
         enableActiveMarkRead: canMarkReadForThreadWindow,
         messages,
         moreToLoad,
@@ -1006,6 +1019,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
   const active = useShellState(s => s.active)
   const previousActiveRef = React.useRef(active)
   const activeMarkReadEnabledRef = React.useRef(false)
+  const markReadBlockedRef = React.useRef(false)
 
   const getSnapshot = React.useEffectEvent(() => threadStore.getState())
   const updateThreadState = React.useEffectEvent(
@@ -1030,6 +1044,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       }
       if (!activeMarkReadEnabledRef.current) {
         logger.info('mark read bail on no eligible thread load')
+        return
+      }
+      if (markReadBlockedRef.current) {
+        logger.info('mark read bail on blocked thread load')
         return
       }
       if (!Common.isUserActivelyLookingAtThisThread(id)) {
@@ -1096,9 +1114,16 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       }
     }
   )
+  const setMarkReadBlocked = React.useEffectEvent((blocked: boolean) => {
+    markReadBlockedRef.current = blocked
+    if (blocked) {
+      activeMarkReadEnabledRef.current = false
+    }
+  })
   const applyThreadLoad = React.useEffectEvent(
     (p: {
       centered: boolean
+      disableActiveMarkRead?: boolean
       enableActiveMarkRead: boolean
       messages: ReadonlyArray<T.Chat.Message>
       moreToLoad: boolean
@@ -1124,7 +1149,11 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
           clearOptimisticReactionsForMessagesInThreadState(s, p.messages)
         }
       })
-      activeMarkReadEnabledRef.current = activeMarkReadEnabledRef.current || p.enableActiveMarkRead
+      if (p.disableActiveMarkRead) {
+        activeMarkReadEnabledRef.current = false
+      } else if (p.enableActiveMarkRead && !markReadBlockedRef.current) {
+        activeMarkReadEnabledRef.current = true
+      }
     }
   )
   const deleteMessages = React.useEffectEvent(
@@ -1673,6 +1702,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderInnerProps
       setExplodingMode,
       setMarkAsUnread,
       setMessageErrored,
+      setMarkReadBlocked,
       setMessageSubmitState,
       setMeta,
       setParticipants,
@@ -2275,10 +2305,11 @@ export const useConversationThreadLoadMessagesCentered = () => {
 }
 
 export const useConversationThreadJumpToRecent = () => {
-  const {clearValidatedOrdinalRange} = useConversationThreadActions()
+  const {clearValidatedOrdinalRange, setMarkReadBlocked} = useConversationThreadActions()
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
 
   const jumpToRecent: JumpToRecent = options => {
+    setMarkReadBlocked(false)
     clearValidatedOrdinalRange()
     loadMoreMessages({...(options ?? {}), reason: 'jump to recent'})
   }
@@ -2293,6 +2324,11 @@ export const useConversationThreadMarkThreadAsRead = () => {
 export const useConversationThreadSetMarkAsUnread = () => {
   const {setMarkAsUnread} = useConversationThreadActions()
   return setMarkAsUnread
+}
+
+export const useConversationThreadSetMarkReadBlocked = () => {
+  const {setMarkReadBlocked} = useConversationThreadActions()
+  return setMarkReadBlocked
 }
 
 export const useConversationThreadMessageActions = () => {
