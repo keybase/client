@@ -11,10 +11,7 @@ import RetentionNotice from './retention-notice'
 import {useChatThreadRouteParams} from '../thread-search-route'
 import {
   useConversationThreadID,
-  useConversationThreadMessageOrdinalsMaybe,
-  useConversationThreadMeta,
-  useConversationThreadPagination,
-  useConversationThreadParticipants,
+  useConversationThreadSelector,
 } from '../thread-context'
 import {usingFlashList} from '../list-area/flashlist-config'
 import * as FS from '@/constants/fs'
@@ -116,10 +113,14 @@ const ErrorMessage = () => {
 function SpecialTopMessage() {
   const username = useCurrentUserState(s => s.username)
   const conversationIDKey = useConversationThreadID()
-  const meta = useConversationThreadMeta()
-  const participants = useConversationThreadParticipants()
-  const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
-  const {moreToLoadBack} = useConversationThreadPagination()
+  const {messageOrdinals, meta, moreToLoadBack, participants} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      messageOrdinals: s.messageOrdinals,
+      meta: s.meta,
+      moreToLoadBack: s.moreToLoadBack,
+      participants: s.participants,
+    }))
+  )
   const hasLoadedEver = messageOrdinals !== undefined
   const ordinal = messageOrdinals?.[0] ?? T.Chat.numberToOrdinal(0)
   const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta

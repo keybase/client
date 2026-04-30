@@ -2,11 +2,12 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {navToProfile} from '@/constants/router'
-import {useConversationThreadID, useConversationThreadMeta, useConversationThreadParticipants} from '../thread-context'
+import {useConversationThreadID, useConversationThreadSelector} from '../thread-context'
 
 const ResetUser = () => {
-  const meta = useConversationThreadMeta()
-  const participantInfo = useConversationThreadParticipants()
+  const {meta, participantInfo} = useConversationThreadSelector(
+    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
+  )
   const conversationIDKey = useConversationThreadID()
   const _participants = participantInfo.all
   const _resetParticipants = meta.resetParticipants

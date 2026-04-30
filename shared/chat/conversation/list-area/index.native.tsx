@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
 import * as Kb from '@/common-adapters'
@@ -18,8 +19,9 @@ import noop from 'lodash/noop'
 import * as RowMetadata from '../messages/row-metadata'
 import {useConversationCenter} from '../center-context'
 import {
-  useConversationThreadListData,
+  useConversationThreadID,
   useConversationThreadLoadOlderMessagesDueToScroll,
+  useConversationThreadSelector,
   useConversationThreadStore,
 } from '../thread-context'
 import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
@@ -109,12 +111,18 @@ const ConversationList = function ConversationList() {
     </Kb.Text>
   ) : null
 
-  const listData = useConversationThreadListData()
+  const conversationIDKey = useConversationThreadID()
+  const listData = useConversationThreadSelector(
+    C.useShallow(s => ({
+      loaded: s.loaded,
+      messageOrdinals: s.messageOrdinals,
+    }))
+  )
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
   const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
   const centeredOrdinalOrNone = centeredOrdinal ?? noCenteredOrdinal
   const centeredHighlightOrdinalOrNone = centeredHighlightOrdinal ?? noCenteredOrdinal
-  const {conversationIDKey, loaded} = listData
+  const {loaded} = listData
 
   const messageOrdinals = useInvertedMessageOrdinals(listData.messageOrdinals)
 

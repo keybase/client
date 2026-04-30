@@ -11,8 +11,7 @@ import {ConversationCenterProvider} from '../center-context'
 import {ConversationInputProvider} from '../input-area/input-state'
 import {
   useConversationThreadID,
-  useConversationThreadLoaded,
-  useConversationThreadMeta,
+  useConversationThreadSelector,
 } from '../thread-context'
 import {ConversationThreadLoadStatusProvider} from '../thread-load-status-context'
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
@@ -54,7 +53,7 @@ const useOrangeLine = (
   React.useLayoutEffect(() => {
     currentOrangeLineKeyRef.current = {conversationIDKey: id, mobileAppState}
   }, [id, mobileAppState])
-  const meta = useConversationThreadMeta()
+  const meta = useConversationThreadSelector(s => s.meta)
   // Keep the read position from when this conversation mounted. Mark-as-read updates
   // meta.readMsgID shortly after navigation, but the open thread should retain its orange line.
   const [initialReadMsgID] = React.useState(() => meta.readMsgID)
@@ -89,7 +88,7 @@ const useOrangeLine = (
     }
   )
 
-  const loaded = useConversationThreadLoaded()
+  const loaded = useConversationThreadSelector(s => s.loaded)
 
   // Wait for loaded so the Go service has messages in its local cache
   React.useEffect(() => {
@@ -130,7 +129,9 @@ const useOrangeLine = (
 
 const useShowManageChannels = () => {
   const navigateAppend = C.Router2.navigateAppend
-  const {teamID, teamname} = useConversationThreadMeta()
+  const {teamID, teamname} = useConversationThreadSelector(
+    C.useShallow(s => ({teamID: s.meta.teamID, teamname: s.meta.teamname}))
+  )
   useEngineActionListener('chat.1.chatUi.chatShowManageChannels', action => {
     if (
       teamID &&

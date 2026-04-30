@@ -23,7 +23,7 @@ import {
   getConversationThreadDisplayMessage,
   useConversationThreadActions,
   useConversationThreadMessageActions,
-  useConversationThreadSnapshotValue,
+  useConversationThreadSelector,
 } from '../../thread-context'
 import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMembers} from '../../team-hooks'
@@ -366,7 +366,7 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
   const {retryMessage} = useConversationThreadActions()
   const messageActions = useConversationThreadMessageActions()
 
-  return useConversationThreadSnapshotValue(
+  return useConversationThreadSelector(
     C.useShallow(s => {
       const message = getConversationThreadDisplayMessage(s, ordinal) ?? missingMessage
       const commonData = getCommonMessageData({
@@ -405,7 +405,7 @@ const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?
   const {retryMessage} = useConversationThreadActions()
   const messageActions = useConversationThreadMessageActions()
 
-  return useConversationThreadSnapshotValue(
+  return useConversationThreadSelector(
     C.useShallow(s => {
       const message = getConversationThreadDisplayMessage(s, ordinal) ?? missingMessage
       const commonData = getCommonMessageData({

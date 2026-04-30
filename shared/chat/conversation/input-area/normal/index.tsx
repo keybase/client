@@ -16,11 +16,9 @@ import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input'
 import {useConversationCenter} from '../../center-context'
 import {
-  useConversationThreadExplodingMode,
   useConversationThreadID,
   useConversationThreadMessage,
-  useConversationThreadMeta,
-  useConversationThreadParticipants,
+  useConversationThreadSelector,
   useConversationThreadSetExplodingMode,
   useConversationThreadToggleSearch,
 } from '../../thread-context'
@@ -37,8 +35,14 @@ const useHintText = (p: {
 }) => {
   const {minWriterRole, isExploding, isEditing, cannotWrite} = p
   const username = useCurrentUserState(s => s.username)
-  const {teamType, teamname, channelname} = useConversationThreadMeta()
-  const participantInfoName = useConversationThreadParticipants().name
+  const {channelname, participantInfoName, teamType, teamname} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      channelname: s.meta.channelname,
+      participantInfoName: s.participants.name,
+      teamType: s.meta.teamType,
+      teamname: s.meta.teamname,
+    }))
+  )
   if (Kb.Styles.isMobile && isExploding) {
     return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   }
@@ -135,8 +139,9 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   )
   const replyToMessage = useConversationThreadMessage(uiData.replyTo)
   const conversationIDKey = useConversationThreadID()
-  const meta = useConversationThreadMeta()
-  const explodingMode = useConversationThreadExplodingMode()
+  const {explodingMode, meta} = useConversationThreadSelector(
+    C.useShallow(s => ({explodingMode: s.explodingMode, meta: s.meta}))
+  )
   const setExplodingModeRaw = useConversationThreadSetExplodingMode()
   const {cannotWrite, minWriterRole, tlfname} = meta
   const convoID = T.Chat.isValidConversationIDKey(conversationIDKey)

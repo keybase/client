@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {clearThreadInputAction} from '@/constants/router'
@@ -5,7 +6,7 @@ import {findLast} from '@/util/arrays'
 import {useChatThreadRouteParams, type ThreadInputAction} from '../thread-search-route'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {useConversationThreadMessageMap, useConversationThreadMessageOrdinalsMaybe} from '../thread-context'
+import {useConversationThreadSelector} from '../thread-context'
 import {useConversationSendActions} from '../send-actions'
 
 type ConversationInputStore = T.Immutable<{
@@ -113,8 +114,9 @@ export const ConversationInputProvider = (p: React.PropsWithChildren<{id: T.Chat
   const {children, id} = p
   const routeInputAction = useChatThreadRouteParams()?.inputAction
   const [state, dispatchState] = React.useReducer(inputReducer, initialConversationInputStore)
-  const messageMap = useConversationThreadMessageMap()
-  const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
+  const {messageMap, messageOrdinals} = useConversationThreadSelector(
+    C.useShallow(s => ({messageMap: s.messageMap, messageOrdinals: s.messageOrdinals}))
+  )
   const {sendGiphyResult: sendGiphyResultAction, sendMessage} = useConversationSendActions()
 
   const injectIntoInput = React.useEffectEvent((text?: string, focus?: boolean) => {

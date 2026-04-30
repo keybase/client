@@ -1,9 +1,9 @@
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
-import {useConversationThreadMeta} from '../../thread-context'
+import {useConversationThreadSelector} from '../../thread-context'
 
 function LeftContainer() {
-  const meta = useConversationThreadMeta()
+  const meta = useConversationThreadSelector(s => s.meta)
   const {channelname, teamType, teamname} = meta
   const isBigTeam = teamType === 'big'
 

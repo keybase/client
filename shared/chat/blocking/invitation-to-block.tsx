@@ -10,10 +10,7 @@ import {RPCError} from '@/util/errors'
 import {useBlockButtonsInfo} from './block-buttons-state'
 import {
   useConversationThreadID,
-  useConversationThreadMeta,
-  useConversationThreadMessageMap,
-  useConversationThreadMessageOrdinalsMaybe,
-  useConversationThreadParticipants,
+  useConversationThreadSelector,
 } from '../conversation/thread-context'
 
 const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
@@ -32,12 +29,19 @@ const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
 const BlockButtons = () => {
   const navigateAppend = C.Router2.navigateAppend
   const conversationIDKey = useConversationThreadID()
-  const {teamID, teamname: team, tlfname} = useConversationThreadMeta()
+  const {messageMap, messageOrdinals, participantInfo, team, teamID, tlfname} =
+    useConversationThreadSelector(
+      C.useShallow(s => ({
+        messageMap: s.messageMap,
+        messageOrdinals: s.messageOrdinals,
+        participantInfo: s.participants,
+        team: s.meta.teamname,
+        teamID: s.meta.teamID,
+        tlfname: s.meta.tlfname,
+      }))
+    )
   const blockButtonInfo = useBlockButtonsInfo(teamID)
-  const participantInfo = useConversationThreadParticipants()
   const currentUser = useCurrentUserState(s => s.username)
-  const messageMap = useConversationThreadMessageMap()
-  const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
   const hasOwnMessage =
     !!currentUser &&
     [...(messageOrdinals ?? [])].some(ordinal => messageMap.get(ordinal)?.author === currentUser)

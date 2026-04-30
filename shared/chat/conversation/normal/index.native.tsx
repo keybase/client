@@ -13,7 +13,7 @@ import type {LayoutEvent} from '@/common-adapters/box'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
 import {PerfProfiler} from '@/perf/react-profiler'
 import logger from '@/logger'
-import {useConversationThreadID, useConversationThreadMeta} from '../thread-context'
+import {useConversationThreadID, useConversationThreadSelector} from '../thread-context'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -69,7 +69,7 @@ const Conversation = function Conversation() {
         paddingBottom: Kb.Styles.isTablet ? 0 : insets.bottom,
       }
 
-  const threadLoadedOffline = useConversationThreadMeta().offline
+  const threadLoadedOffline = useConversationThreadSelector(s => s.meta.offline)
 
   const content = (
     <Kb.Box2

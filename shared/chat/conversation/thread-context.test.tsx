@@ -17,8 +17,6 @@ import {
   ConversationThreadProvider,
   LiveConversationThreadProvider,
   useConversationThreadActions,
-  useConversationThreadAccountsInfoMap,
-  useConversationThreadCoinFlipStatus,
   useConversationThreadJumpToRecent,
   useConversationThreadLoadMoreMessages,
   useConversationThreadLoadMessagesCentered,
@@ -26,13 +24,8 @@ import {
   useConversationThreadMarkThreadAsRead,
   useConversationThreadMessage,
   useConversationThreadMessageActions,
-  useConversationThreadMessageOrdinalsMaybe,
-  useConversationThreadMeta,
-  useConversationThreadPaymentStatus,
-  useConversationThreadParticipants,
+  useConversationThreadSelector,
   useConversationThreadStore,
-  useConversationThreadTyping,
-  useConversationThreadUnfurlPromptDomains,
 } from './thread-context'
 
 jest.mock('@/stores/inbox-rows', () => ({
@@ -50,6 +43,7 @@ jest.mock('@/stores/inbox-rows', () => ({
 }))
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
+const emptyStringSet = new Set<string>()
 
 const flushPromises = async () => {
   for (let i = 0; i < 5; i++) {
@@ -337,7 +331,7 @@ test('separate providers do not share thread state', () => {
 })
 
 test('mounted thread syncs participant updates received outside its provider', () => {
-  const {result} = renderHook(() => useConversationThreadParticipants(), {wrapper})
+  const {result} = renderHook(() => useConversationThreadSelector(s => s.participants), {wrapper})
   const participantInfo = {
     all: ['alice', 'helperbot'],
     contactName: new Map<string, string>(),
@@ -363,7 +357,7 @@ test('centered load clears stale thread state and requests a centered load', asy
     () => ({
       actions: useConversationThreadActions(),
       loadMessagesCentered: useConversationThreadLoadMessagesCentered(),
-      messageOrdinals: useConversationThreadMessageOrdinalsMaybe(),
+      messageOrdinals: useConversationThreadSelector(s => s.messageOrdinals),
       staleMessage: useConversationThreadMessage(T.Chat.numberToOrdinal(301)),
     }),
     {wrapper}
@@ -538,7 +532,7 @@ test('mounted thread listener applies messagesUpdated for the active conversatio
   const {result} = renderHook(
     () => ({
       message: useConversationThreadMessage(T.Chat.numberToOrdinal(401)),
-      ordinals: useConversationThreadMessageOrdinalsMaybe(),
+      ordinals: useConversationThreadSelector(s => s.messageOrdinals),
     }),
     {wrapper}
   )
@@ -586,7 +580,7 @@ test('mounted thread listener applies incoming messages for the active conversat
     () => ({
       loadMoreMessages: useConversationThreadLoadMoreMessages(),
       message: useConversationThreadMessage(T.Chat.numberToOrdinal(601)),
-      ordinals: useConversationThreadMessageOrdinalsMaybe(),
+      ordinals: useConversationThreadSelector(s => s.messageOrdinals),
     }),
     {wrapper}
   )
@@ -640,7 +634,7 @@ test('mounted thread listener applies incoming messages while inactive without m
     () => ({
       actions: useConversationThreadActions(),
       message: useConversationThreadMessage(T.Chat.numberToOrdinal(602)),
-      ordinals: useConversationThreadMessageOrdinalsMaybe(),
+      ordinals: useConversationThreadSelector(s => s.messageOrdinals),
     }),
     {wrapper}
   )
@@ -1145,8 +1139,8 @@ test('toggleMessageReaction overlays locally without mutating server reactions',
 test('mounted thread listener applies inbox failure metadata for the active conversation', () => {
   const {result} = renderHook(
     () => ({
-      meta: useConversationThreadMeta(),
-      participants: useConversationThreadParticipants(),
+      meta: useConversationThreadSelector(s => s.meta),
+      participants: useConversationThreadSelector(s => s.participants),
     }),
     {wrapper}
   )
@@ -1184,8 +1178,8 @@ test('mounted thread listener applies inbox failure metadata for the active conv
 test('mounted thread listener applies request and payment decorators for the active conversation', () => {
   const {result} = renderHook(
     () => ({
-      accountsInfoMap: useConversationThreadAccountsInfoMap(),
-      paymentInfo: useConversationThreadPaymentStatus('payment-1'),
+      accountsInfoMap: useConversationThreadSelector(s => s.accountsInfoMap),
+      paymentInfo: useConversationThreadSelector(s => s.paymentStatusMap.get('payment-1')),
     }),
     {wrapper}
   )
@@ -1224,8 +1218,10 @@ test('mounted thread listener applies unfurl prompts and coin flip status for th
   const gameID = 'flip-1'
   const {result} = renderHook(
     () => ({
-      flipStatus: useConversationThreadCoinFlipStatus(gameID),
-      promptDomains: useConversationThreadUnfurlPromptDomains(T.Chat.numberToMessageID(903)),
+      flipStatus: useConversationThreadSelector(s => s.flipStatusMap.get(gameID)),
+      promptDomains: useConversationThreadSelector(
+        s => s.unfurlPrompt.get(T.Chat.numberToMessageID(903)) ?? emptyStringSet
+      ),
     }),
     {wrapper}
   )
@@ -1269,7 +1265,7 @@ test('mounted thread listener applies unfurl prompts and coin flip status for th
 })
 
 test('mounted thread listener applies typing updates for the active conversation', () => {
-  const {result} = renderHook(() => useConversationThreadTyping(), {wrapper})
+  const {result} = renderHook(() => useConversationThreadSelector(s => s.typing), {wrapper})
 
   act(() => {
     notifyEngineActionListeners({

@@ -93,8 +93,9 @@ jest.mock('@/engine/action-listener', () => ({
 
 jest.mock('../thread-context', () => ({
   useConversationThreadID: () => mockConversationIDKey,
-  useConversationThreadLoaded: () => mockLoaded,
-  useConversationThreadMeta: () => mockMeta,
+  useConversationThreadSelector: (
+    selector: (state: {loaded: boolean; meta: T.Chat.ConversationMeta}) => unknown
+  ) => selector({loaded: mockLoaded, meta: mockMeta}),
 }))
 
 jest.mock('../team-hooks', () => {

@@ -12,8 +12,8 @@ import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {
   useConversationThreadDismissJourneycard,
   useConversationThreadID,
-  useConversationThreadMeta,
   useConversationThreadMessage,
+  useConversationThreadSelector,
 } from '../../../thread-context'
 
 type Action = {label: string; onClick: () => void} | 'wave'
@@ -25,7 +25,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {ordinal} = ownProps
   const m = useConversationThreadMessage(ordinal)
   const message = m?.type === 'journeycard' ? m : emptyJourney
-  const conv = useConversationThreadMeta()
+  const conv = useConversationThreadSelector(s => s.meta)
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const teamMetaByID = useTeamsListMap()

@@ -10,7 +10,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useConversationCenter} from './center-context'
 import {
   useConversationThreadID,
-  useConversationThreadLastOrdinal,
+  useConversationThreadSelector,
   useConversationThreadToggleSearch,
 } from './thread-context'
 import {useThreadSearchRoute} from './thread-search-route'
@@ -55,7 +55,9 @@ const useCommon = (ownProps: CommonProps) => {
   const flushTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const pendingHitsRef = React.useRef<Array<T.Chat.Message>>([])
   const pendingReplaceHitsRef = React.useRef<Array<T.Chat.Message> | undefined>(undefined)
-  const lastOrdinal = useConversationThreadLastOrdinal()
+  const lastOrdinal = useConversationThreadSelector(
+    s => s.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+  )
   const lastOrdinalRef = React.useRef(lastOrdinal)
   React.useEffect(() => {
     hitsRef.current = messageHits

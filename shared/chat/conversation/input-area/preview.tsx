@@ -2,12 +2,11 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {joinConversation} from '../status-actions'
-import {useConversationThreadID, useConversationThreadMeta} from '../thread-context'
+import {useConversationThreadID, useConversationThreadSelector} from '../thread-context'
 
 const Preview = () => {
   const conversationIDKey = useConversationThreadID()
-  const meta = useConversationThreadMeta()
-  const {channelname} = meta
+  const channelname = useConversationThreadSelector(s => s.meta.channelname)
   const [clicked, setClicked] = React.useState<undefined | 'join' | 'leave'>(undefined)
 
   const _onClick = (join: boolean) => {

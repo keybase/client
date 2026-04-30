@@ -20,8 +20,7 @@ import {
   useConversationThreadID,
   useConversationThreadMessage,
   useConversationThreadMessageActions,
-  useConversationThreadMeta,
-  useConversationThreadParticipants,
+  useConversationThreadSelector,
   useConversationThreadSetMarkAsUnread,
 } from '../../thread-context'
 import ExplodingPopupHeader from './exploding-header'
@@ -280,8 +279,9 @@ export type MessagePopupItems = ReturnType<typeof useItemsForMessage>
 const useThreadItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const conversationIDKey = useConversationThreadID()
   const message = useConversationThreadMessage(ordinal) ?? emptyText
-  const meta = useConversationThreadMeta()
-  const participantInfo = useConversationThreadParticipants()
+  const {meta, participantInfo} = useConversationThreadSelector(
+    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
+  )
   const {messageDelete, toggleMessageReaction} = useConversationThreadMessageActions()
   const setMarkAsUnread = useConversationThreadSetMarkAsUnread()
   return useItemsForMessage({

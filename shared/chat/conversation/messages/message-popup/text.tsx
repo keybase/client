@@ -12,8 +12,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {
   useConversationThreadMessage,
   useConversationThreadMessageActions,
-  useConversationThreadMeta,
-  useConversationThreadParticipants,
+  useConversationThreadSelector,
 } from '../../thread-context'
 import type {MessagePopupItems} from './hooks'
 import {useHeader, useHeaderForMessage, useItems, useStorelessItems} from './hooks'
@@ -252,8 +251,9 @@ const PopTextLoaded = (ownProps: OwnProps & {
 const PopTextThread = (ownProps: OwnProps) => {
   const {ordinal, onHidden} = ownProps
   const message = useConversationThreadMessage(ordinal) ?? emptyMessage
-  const meta = useConversationThreadMeta()
-  const participantInfo = useConversationThreadParticipants()
+  const {meta, participantInfo} = useConversationThreadSelector(
+    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
+  )
   const itemsData = useItems(ordinal, onHidden)
   const header = useHeader(ordinal, onHidden)
   const {messageReplyPrivately} = useConversationThreadMessageActions()

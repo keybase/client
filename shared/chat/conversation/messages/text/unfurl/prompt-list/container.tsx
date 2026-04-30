@@ -2,12 +2,14 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import Prompt from './prompt'
 import {
-  useConversationThreadUnfurlPromptDomains,
   useConversationThreadUnfurlResolvePrompt,
+  useConversationThreadSelector,
 } from '@/chat/conversation/thread-context'
 
+const emptySet = new Set<string>()
+
 function UnfurlPromptListContainer({messageID}: {messageID: T.Chat.MessageID}) {
-  const promptDomains = useConversationThreadUnfurlPromptDomains(messageID)
+  const promptDomains = useConversationThreadSelector(s => s.unfurlPrompt.get(messageID) ?? emptySet)
   const unfurlResolvePrompt = useConversationThreadUnfurlResolvePrompt()
   const _setPolicy = (domain: string, result: T.RPCChat.UnfurlPromptResult) => {
     unfurlResolvePrompt(messageID, domain, result)

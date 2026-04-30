@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as InputState from '../input-state'
-import {useConversationThreadTyping} from '@/chat/conversation/thread-context'
+import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
 
 const Names = (props: {names?: ReadonlySet<string>}) => {
   const textType = 'BodyTinySemibold'
@@ -45,7 +45,7 @@ const Names = (props: {names?: ReadonlySet<string>}) => {
 const emptySet = new Set<string>()
 
 const Typing = function Typing() {
-  const threadTyping = useConversationThreadTyping()
+  const threadTyping = useConversationThreadSelector(s => (s.typing.size === 0 ? emptySet : s.typing))
   const {showCommandMarkdown, showGiphySearch} = InputState.useConversationInput(
     C.useShallow(s => ({
       showCommandMarkdown: !!s.commandMarkdown,

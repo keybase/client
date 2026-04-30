@@ -5,7 +5,7 @@ import CoinFlipParticipants from './participants'
 import CoinFlipResult from './results'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {pluralize} from '@/util/string'
-import {useConversationThreadCoinFlipStatus, useConversationThreadMessage} from '../../../thread-context'
+import {useConversationThreadMessage, useConversationThreadSelector} from '../../../thread-context'
 import {useConversationSendActions} from '../../../send-actions'
 
 function CoinFlipContainer() {
@@ -15,7 +15,7 @@ function CoinFlipContainer() {
   const text = message?.type === 'text' ? message.text : undefined
   const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
   const {sendMessage} = useConversationSendActions()
-  const status = useConversationThreadCoinFlipStatus(flipGameID)
+  const status = useConversationThreadSelector(s => s.flipStatusMap.get(flipGameID))
   const onFlipAgain = () => {
     if (text) {
       sendMessage(text.stringValue())

@@ -7,7 +7,7 @@ import {getAddedUsernames} from '../system-users-added-to-conv/container'
 import {indefiniteArticle} from '@/util/string'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeamMembers} from '../../team-hooks'
-import {useConversationShowInfoPanel, useConversationThreadID, useConversationThreadMeta} from '../../thread-context'
+import {useConversationShowInfoPanel, useConversationThreadID, useConversationThreadSelector} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
 
@@ -15,7 +15,13 @@ function SystemAddedToTeamContainer(p: OwnProps) {
   const {message} = p
   const {addee, adder, author, bulkAdds, role: _role, timestamp} = message
   const conversationIDKey = useConversationThreadID()
-  const {teamID, teamname, teamType} = useConversationThreadMeta()
+  const {teamID, teamname, teamType} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      teamID: s.meta.teamID,
+      teamType: s.meta.teamType,
+      teamname: s.meta.teamname,
+    }))
+  )
   const showInfoPanel = useConversationShowInfoPanel()
   const {members: teamMembers} = useChatTeamMembers(teamID)
   const authorRole = teamMembers.get(author)?.type

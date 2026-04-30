@@ -10,7 +10,7 @@ import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import ThreadSearch from '../search'
 import {useConversationCenter} from '../center-context'
-import {useConversationThreadID, useConversationThreadMeta, useConversationThreadToggleSearch} from '../thread-context'
+import {useConversationThreadID, useConversationThreadSelector, useConversationThreadToggleSearch} from '../thread-context'
 import {useThreadSearchRoute} from '../thread-search-route'
 import {readImageFromClipboard} from '@/util/clipboard.desktop'
 import '../conversation.css'
@@ -43,7 +43,7 @@ const Conversation = function Conversation() {
     })
   }
   const showThreadSearch = !!useThreadSearchRoute()
-  const meta = useConversationThreadMeta()
+  const meta = useConversationThreadSelector(s => s.meta)
   const {cannotWrite, minWriterRole} = meta
   const threadLoadedOffline = meta.offline
   const dragAndDropRejectReason = cannotWrite

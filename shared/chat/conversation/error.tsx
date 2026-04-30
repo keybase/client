@@ -1,8 +1,8 @@
 import * as Kb from '@/common-adapters'
-import {useConversationThreadMeta} from './thread-context'
+import {useConversationThreadSelector} from './thread-context'
 
 const ConversationError = () => {
-  const text = useConversationThreadMeta().snippet ?? ''
+  const text = useConversationThreadSelector(s => s.meta.snippet) ?? ''
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
       <Kb.Text type="Header">There was an error loading this conversation.</Kb.Text>

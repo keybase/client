@@ -9,8 +9,7 @@ import {useFollowerState} from '@/stores/followers'
 import {showShareActionSheet} from '@/util/platform-specific'
 import {
   useConversationThreadID,
-  useConversationThreadMeta,
-  useConversationThreadParticipants,
+  useConversationThreadSelector,
 } from './thread-context'
 import {useBottomBannerState} from './bottom-banner-state'
 
@@ -18,7 +17,7 @@ const installMessage = `I sent you encrypted messages on Keybase. You can instal
 
 const Invite = (props: {onDismiss: () => void}) => {
   const linkUrlProps = Kb.useClickURL('https://keybase.io/app')
-  const participantInfo = useConversationThreadParticipants()
+  const participantInfo = useConversationThreadSelector(s => s.participants)
   const participantInfoAll = participantInfo.all
   const users = participantInfoAll.filter(p => p.includes('@'))
 
@@ -101,7 +100,7 @@ const Invite = (props: {onDismiss: () => void}) => {
 const Broken = () => {
   const following = useFollowerState(s => s.following)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = useConversationThreadParticipants()
+  const participantInfo = useConversationThreadSelector(s => s.participants)
   const users = participantInfo.all.filter(p => following.has(p) && infoMap.get(p)?.broken)
   return <Kb.ProofBrokenBanner users={users} />
 }
@@ -123,8 +122,9 @@ const BannerContainerInner = function BannerContainerInner(props: {
       dismissed: s.inviteBannerDismissed.has(conversationIDKey),
     }))
   )
-  const participantInfo = useConversationThreadParticipants()
-  const meta = useConversationThreadMeta()
+  const {meta, participantInfo} = useConversationThreadSelector(
+    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
+  )
   const type = (() => {
     if (meta.teamType !== 'adhoc') {
       return 'none'

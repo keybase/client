@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as Common from '@/constants/chat/common'
 import * as T from '@/constants/types'
 import logger from '@/logger'
@@ -5,12 +6,9 @@ import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
 import {getClientPrevFromThread} from './attachment-actions'
 import {
-  useConversationThreadExplodingMode,
   useConversationThreadActions,
   useConversationThreadID,
-  useConversationThreadMeta,
-  useConversationThreadMessageMap,
-  useConversationThreadMessageOrdinalsMaybe,
+  useConversationThreadSelector,
 } from './thread-context'
 
 type SendTextParams = {
@@ -84,10 +82,14 @@ export const sendTextToConversation = (
 export const useConversationSendActions = () => {
   const conversationIDKey = useConversationThreadID()
   const actions = useConversationThreadActions()
-  const messageMap = useConversationThreadMessageMap()
-  const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
-  const meta = useConversationThreadMeta()
-  const explodingMode = useConversationThreadExplodingMode()
+  const {explodingMode, messageMap, messageOrdinals, meta} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      explodingMode: s.explodingMode,
+      messageMap: s.messageMap,
+      messageOrdinals: s.messageOrdinals,
+      meta: s.meta,
+    }))
+  )
   const clientPrev = getClientPrevFromThread(messageMap, messageOrdinals)
 
   const editMessage = (ordinal: T.Chat.Ordinal, text: string) => {

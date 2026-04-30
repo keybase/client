@@ -19,15 +19,16 @@ import {copyToClipboard} from '@/util/storeless-actions'
 import {useConversationCenter} from '../center-context'
 import {
   useConversationThreadID,
-  useConversationThreadListData,
   useConversationThreadLoadNewerMessagesDueToScroll,
   useConversationThreadLoadOlderMessagesDueToScroll,
+  useConversationThreadSelector,
 } from '../thread-context'
 import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
 const scrollOrdinalKey = 'scroll-ordinal-key'
+const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
 const ordinalsInAWaypoint = 10
 
 // We load the first thread automatically so in order to mark it read
@@ -462,9 +463,15 @@ const useItems = (p: {
 
 const ThreadWrapper = function ThreadWrapper() {
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
-  const data = useConversationThreadListData()
+  const conversationIDKey = useConversationThreadID()
+  const data = useConversationThreadSelector(
+    C.useShallow(s => ({
+      containsLatestMessage: !s.moreToLoadForward,
+      loaded: s.loaded,
+      messageOrdinals: s.messageOrdinals ?? noOrdinals,
+    }))
+  )
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
-  const {conversationIDKey} = data
   const {containsLatestMessage, messageOrdinals, loaded} = data
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const _setListRef = (r: HTMLDivElement | null) => {

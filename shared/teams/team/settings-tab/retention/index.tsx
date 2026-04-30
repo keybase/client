@@ -9,7 +9,7 @@ import SaveIndicator from '@/common-adapters/save-indicator'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {useConfirm} from './use-confirm'
-import {ConversationThreadProvider, useConversationThreadMeta} from '@/chat/conversation/thread-context'
+import {ConversationThreadProvider, useConversationThreadSelector} from '@/chat/conversation/thread-context'
 
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
 
@@ -525,7 +525,7 @@ const Container = (ownProps: OwnProps) => {
 }
 
 const ConversationPolicyContainer = (ownProps: OwnProps & {conversationIDKey: T.Chat.ConversationIDKey}) => {
-  const policy = useConversationThreadMeta().retentionPolicy
+  const policy = useConversationThreadSelector(s => s.meta.retentionPolicy)
   return <ContainerWithPolicy {...ownProps} policy={policy} />
 }
 

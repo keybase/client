@@ -10,7 +10,7 @@ import type * as WalletTypes from '@/constants/types/wallets'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {
   useConversationThreadMessage,
-  useConversationThreadPaymentStatus,
+  useConversationThreadSelector,
 } from '@/chat/conversation/thread-context'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -180,7 +180,9 @@ const reduceStatus = (status: string): Status => {
 function PaymentStatusContainer(p: OwnProps) {
   const {error, paymentID, text, allowFontScaling} = p
   const ordinal = useOrdinal()
-  const paymentInfo = useConversationThreadPaymentStatus(paymentID)
+  const paymentInfo = useConversationThreadSelector(s =>
+    paymentID ? s.paymentStatusMap.get(paymentID) : undefined
+  )
   const status = error ? 'error' : (paymentInfo?.status ?? 'pending')
 
   const you = useCurrentUserState(s => s.username)

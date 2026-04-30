@@ -1,7 +1,7 @@
 import * as Chat from '@/constants/chat'
 import type * as T from '@/constants/types'
 import type {Props} from '.'
-import {useConversationThreadExplodingMode, useConversationThreadMeta} from '../../../thread-context'
+import {useConversationThreadSelector} from '../../../thread-context'
 
 export type MessageExplodeDescription = {
   text: string
@@ -32,8 +32,8 @@ const makeItems = (meta: T.Chat.ConversationMeta) => {
 
 export default (p: Props) => {
   const {setExplodingMode, onHidden, visible, attachTo, onAfterSelect} = p
-  const _meta = useConversationThreadMeta()
-  const selected = useConversationThreadExplodingMode()
+  const _meta = useConversationThreadSelector(s => s.meta)
+  const selected = useConversationThreadSelector(s => s.explodingMode)
   const onSelect = (seconds: number) => {
     setTimeout(() => {
       setExplodingMode(seconds)

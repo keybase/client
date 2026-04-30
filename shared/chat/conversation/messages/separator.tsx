@@ -7,7 +7,7 @@ import * as T from '@/constants/types'
 import {formatTimeForConversationList} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useConversationThreadSnapshotValue} from '../thread-context'
+import {useConversationThreadSelector} from '../thread-context'
 
 const missingMessage = Chat.makeMessageDeleted({})
 const noOrdinal = T.Chat.numberToOrdinal(0)
@@ -18,7 +18,7 @@ const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordi
   const orangeOrdinal = React.useContext(OrangeLineContext)
   const you = useCurrentUserState(s => s.username)
 
-  return useConversationThreadSnapshotValue(
+  return useConversationThreadSelector(
     C.useShallow(s => {
       const messageOrdinals = s.messageOrdinals ?? []
       const m = s.messageMap.get(ordinal) ?? missingMessage

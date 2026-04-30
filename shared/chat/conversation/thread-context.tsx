@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Common from '@/constants/chat/common'
 import * as Message from '@/constants/chat/message'
 import * as Meta from '@/constants/chat/meta'
@@ -61,14 +60,6 @@ import {
   useInboxMetadataState,
 } from '@/chat/inbox/metadata'
 
-const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
-const emptyAccountsInfoMap: ReadonlyMap<
-  T.RPCChat.MessageID,
-  T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo
-> = new Map()
-const emptyMessageMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.Message> = new Map()
-const emptyMessageTypeMap: ReadonlyMap<T.Chat.Ordinal, T.Chat.RenderMessageType> = new Map()
-const emptyStringSet: ReadonlySet<string> = new Set()
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = 100
 
@@ -934,7 +925,7 @@ const loadConversationThreadMessages = (
   ignorePromise(f())
 }
 
-export const useConversationThreadSnapshotValue = <TValue,>(
+export const useConversationThreadSelector = <TValue,>(
   selector: (snapshot: ConversationThreadState) => TValue
 ) => {
   const store = React.useContext(ConversationThreadStoreContext)
@@ -1968,31 +1959,10 @@ export const LiveConversationThreadProvider = (p: ConversationThreadProviderProp
   <ConversationThreadProviderInner {...p} />
 )
 
-export const useConversationThreadLoaded = () =>
-  useConversationThreadSnapshotValue(snapshot => snapshot.loaded)
-
-export const useConversationThreadMeta = () => useConversationThreadSnapshotValue(snapshot => snapshot.meta)
-
-export const useConversationThreadParticipants = () =>
-  useConversationThreadSnapshotValue(snapshot => snapshot.participants)
-
-export const useConversationThreadExplodingMode = () =>
-  useConversationThreadSnapshotValue(snapshot => snapshot.explodingMode)
-
 export const useConversationThreadSetExplodingMode = () => {
   const {setExplodingMode} = useConversationThreadActions()
   return setExplodingMode
 }
-
-export const useConversationThreadIsMetaGood = () => {
-  const conversationIDKey = useConversationThreadID()
-  return useConversationThreadSnapshotValue(snapshot => snapshot.meta.conversationIDKey === conversationIDKey)
-}
-
-export const useConversationThreadLastOrdinal = () =>
-  useConversationThreadSnapshotValue(
-    snapshot => snapshot.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
-  )
 
 const displayMessageCache = new WeakMap<
   T.Chat.Message,
@@ -2020,71 +1990,7 @@ export const getConversationThreadDisplayMessage = (
 }
 
 export const useConversationThreadMessage = (ordinal: T.Chat.Ordinal) =>
-  useConversationThreadSnapshotValue(snapshot => getConversationThreadDisplayMessage(snapshot, ordinal))
-
-export const useConversationThreadMessageMap = () =>
-  useConversationThreadSnapshotValue(snapshot =>
-    snapshot.messageMap.size === 0 ? emptyMessageMap : snapshot.messageMap
-  )
-
-export const useConversationThreadMessageOrdinals = () =>
-  useConversationThreadSnapshotValue(snapshot => snapshot.messageOrdinals ?? noOrdinals)
-
-export const useConversationThreadMessageOrdinalsMaybe = () =>
-  useConversationThreadSnapshotValue(snapshot => snapshot.messageOrdinals)
-
-export const useConversationThreadPendingOutboxToOrdinal = () =>
-  useConversationThreadSnapshotValue(snapshot => snapshot.pendingOutboxToOrdinal)
-
-export const useConversationThreadMessageType = (ordinal: T.Chat.Ordinal) =>
-  useConversationThreadSnapshotValue(snapshot => snapshot.messageTypeMap.get(ordinal) ?? 'text')
-
-export const useConversationThreadMessageTypeMap = () =>
-  useConversationThreadSnapshotValue(snapshot =>
-    snapshot.messageTypeMap.size === 0 ? emptyMessageTypeMap : snapshot.messageTypeMap
-  )
-
-export const useConversationThreadAccountsInfoMap = () =>
-  useConversationThreadSnapshotValue(snapshot =>
-    snapshot.accountsInfoMap.size === 0 ? emptyAccountsInfoMap : snapshot.accountsInfoMap
-  )
-
-export const useConversationThreadPaymentStatus = (paymentID?: T.Wallets.PaymentID) =>
-  useConversationThreadSnapshotValue(snapshot =>
-    paymentID ? snapshot.paymentStatusMap.get(paymentID) : undefined
-  )
-
-export const useConversationThreadUnfurlPromptDomains = (messageID: T.Chat.MessageID) =>
-  useConversationThreadSnapshotValue(snapshot => snapshot.unfurlPrompt.get(messageID) ?? emptyStringSet)
-
-export const useConversationThreadCoinFlipStatus = (gameID: string) =>
-  useConversationThreadSnapshotValue(snapshot => snapshot.flipStatusMap.get(gameID))
-
-export const useConversationThreadTyping = () =>
-  useConversationThreadSnapshotValue(snapshot =>
-    snapshot.typing.size === 0 ? emptyStringSet : snapshot.typing
-  )
-
-export const useConversationThreadPagination = () =>
-  useConversationThreadSnapshotValue(
-    C.useShallow(snapshot => ({
-      loaded: snapshot.loaded,
-      moreToLoadBack: snapshot.moreToLoadBack,
-      moreToLoadForward: snapshot.moreToLoadForward,
-    }))
-  )
-
-export const useConversationThreadListData = () => {
-  const conversationIDKey = useConversationThreadID()
-  const data = useConversationThreadSnapshotValue(
-    C.useShallow(snapshot => ({
-      containsLatestMessage: !snapshot.moreToLoadForward,
-      loaded: snapshot.loaded,
-      messageOrdinals: snapshot.messageOrdinals ?? noOrdinals,
-    }))
-  )
-  return {...data, conversationIDKey}
-}
+  useConversationThreadSelector(snapshot => getConversationThreadDisplayMessage(snapshot, ordinal))
 
 export const useConversationThreadLoadMoreMessages = () => {
   const {loadMoreMessages} = useConversationThreadActions()
@@ -2209,9 +2115,9 @@ export const useConversationThreadMessageActions = () => {
 
 export const useConversationThreadSelectedConversation = () => {
   const conversationIDKey = useConversationThreadID()
-  const isMetaGood = useConversationThreadIsMetaGood()
+  const isMetaGood = useConversationThreadSelector(s => s.meta.conversationIDKey === conversationIDKey)
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
-  const participantInfo = useConversationThreadParticipants()
+  const participantInfo = useConversationThreadSelector(s => s.participants)
 
   const selectedConversation: SelectedConversation = (options?: SelectedConversationOptions) => {
     const {skipThreadLoad, ...loadStatusOptions} = options ?? {}

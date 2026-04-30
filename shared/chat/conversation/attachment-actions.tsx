@@ -1,3 +1,4 @@
+import * as C from '@/constants'
 import * as Common from '@/constants/chat/common'
 import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
@@ -13,9 +14,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {
   useConversationThreadActions,
   useConversationThreadID,
-  useConversationThreadMessageMap,
-  useConversationThreadMessageOrdinalsMaybe,
-  useConversationThreadPendingOutboxToOrdinal,
+  useConversationThreadSelector,
 } from './thread-context'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
@@ -315,9 +314,13 @@ export const loadNextAttachmentMessage = async (
 export const useConversationAttachmentActions = () => {
   const conversationIDKey = useConversationThreadID()
   const actions = useConversationThreadActions()
-  const messageMap = useConversationThreadMessageMap()
-  const messageOrdinals = useConversationThreadMessageOrdinalsMaybe()
-  const pendingOutboxToOrdinal = useConversationThreadPendingOutboxToOrdinal()
+  const {messageMap, messageOrdinals, pendingOutboxToOrdinal} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      messageMap: s.messageMap,
+      messageOrdinals: s.messageOrdinals,
+      pendingOutboxToOrdinal: s.pendingOutboxToOrdinal,
+    }))
+  )
 
   const downloadAttachment = async (downloadToCache: boolean, ordinal: T.Chat.Ordinal) => {
     const messageID = messageMap.get(ordinal)?.id

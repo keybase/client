@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import MarkdownMemo from '@/wallets/markdown-memo'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useConversationThreadAccountsInfoMap} from '../../thread-context'
+import {useConversationThreadSelector} from '../../thread-context'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -65,7 +65,7 @@ const getRequestMessageInfo = (
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const you = useCurrentUserState(s => s.username)
-  const accountsInfoMap = useConversationThreadAccountsInfoMap()
+  const accountsInfoMap = useConversationThreadSelector(s => s.accountsInfoMap)
 
   const stateProps = (() => {
     const youAreSender = ownProps.message.author === you

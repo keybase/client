@@ -1,10 +1,11 @@
+import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import JumpToRecent from './jump-to-recent'
 import type * as T from '@/constants/types'
 import {useConversationCenter} from '../center-context'
 import {
   useConversationThreadMarkThreadAsRead,
-  useConversationThreadPagination,
+  useConversationThreadSelector,
   useConversationThreadToggleSearch,
 } from '../thread-context'
 import logger from '@/logger'
@@ -25,7 +26,9 @@ export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => 
 }
 
 export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number) => {
-  const {moreToLoadForward, loaded} = useConversationThreadPagination()
+  const {moreToLoadForward, loaded} = useConversationThreadSelector(
+    C.useShallow(s => ({loaded: s.loaded, moreToLoadForward: s.moreToLoadForward}))
+  )
   const toggleThreadSearch = useConversationThreadToggleSearch()
   const {jumpToRecent} = useConversationCenter()
 
