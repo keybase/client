@@ -23,7 +23,15 @@ type OwnProps = {
 }
 
 function EmojiRowContainer(p: OwnProps) {
-  const {className, hasUnfurls, messageType, onReact: onReactProp, onReply: onReplyProp, onShowingEmojiPicker, style} = p
+  const {
+    className,
+    hasUnfurls,
+    messageType,
+    onReact: onReactProp,
+    onReply: onReplyProp,
+    onShowingEmojiPicker,
+    style,
+  } = p
   const ordinal = useOrdinal()
   const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
   const {toggleMessageReaction} = useConversationThreadMessageActions()
@@ -83,7 +91,12 @@ function EmojiRowContainer(p: OwnProps) {
           <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
         </Kb.ClickableBox>
         {!!onReply && (
-          <Kb.ClickableBox className="hover_container" onClick={onReply} style={styles.iconContainer} tooltip="Reply">
+          <Kb.ClickableBox
+            className="hover_container"
+            onClick={onReply}
+            style={styles.iconContainer}
+            tooltip="Reply"
+          >
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
           </Kb.ClickableBox>
         )}
@@ -152,13 +165,13 @@ const styles = Kb.Styles.styleSheetCreate(
           height: Kb.Styles.globalMargins.medium,
         },
       }),
+      disabled: {opacity: 0.3},
       divider: {
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginLeft: Kb.Styles.globalMargins.xsmall,
         marginRight: Kb.Styles.globalMargins.xtiny,
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      disabled: {opacity: 0.3},
       emojiBox: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
