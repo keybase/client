@@ -7,18 +7,18 @@ import {useNavigation} from '@react-navigation/native'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
-import {useConversationMessageByOrdinal} from './data-hooks'
+import {useConversationMessage} from './data-hooks'
 
-type Props = {conversationIDKey?: T.Chat.ConversationIDKey; ordinal: T.Chat.Ordinal}
+type Props = {conversationIDKey?: T.Chat.ConversationIDKey; messageID: T.Chat.MessageID}
 
 type PickerState = 'picker' | 'title'
 
 const forwardMessageHandoff = new Map<string, T.Chat.Message>()
-const forwardMessageKey = (conversationIDKey: T.Chat.ConversationIDKey, ordinal: T.Chat.Ordinal) =>
-  `${conversationIDKey}:${T.Chat.ordinalToNumber(ordinal)}`
+const forwardMessageKey = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) =>
+  `${conversationIDKey}:${T.Chat.messageIDToNumber(messageID)}`
 
-const takeForwardMessage = (conversationIDKey: T.Chat.ConversationIDKey, ordinal: T.Chat.Ordinal) => {
-  const key = forwardMessageKey(conversationIDKey, ordinal)
+const takeForwardMessage = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => {
+  const key = forwardMessageKey(conversationIDKey, messageID)
   const message = forwardMessageHandoff.get(key)
   forwardMessageHandoff.delete(key)
   return message
@@ -26,26 +26,25 @@ const takeForwardMessage = (conversationIDKey: T.Chat.ConversationIDKey, ordinal
 
 export const showForwardMessagePicker = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  ordinal: T.Chat.Ordinal,
-  message?: T.Chat.Message
+  message: T.Chat.Message | undefined
 ) => {
-  const key = forwardMessageKey(conversationIDKey, ordinal)
-  if (message) {
-    forwardMessageHandoff.set(key, message)
-  } else {
-    forwardMessageHandoff.delete(key)
+  if (!message || !T.Chat.messageIDToNumber(message.id)) {
+    logger.warn('showForwardMessagePicker: no message id')
+    return
   }
+  const key = forwardMessageKey(conversationIDKey, message.id)
+  forwardMessageHandoff.set(key, message)
   C.Router2.navigateAppend({
     name: 'chatForwardMsgPick',
-    params: {conversationIDKey, ordinal},
+    params: {conversationIDKey, messageID: message.id},
   })
 }
 
 const TeamPickerInner = (props: Props) => {
   const srcConvID = props.conversationIDKey ?? Chat.noConversationIDKey
-  const ordinal = props.ordinal
-  const [initialMessage] = React.useState(() => takeForwardMessage(srcConvID, ordinal))
-  const loadedMessage = useConversationMessageByOrdinal(srcConvID, ordinal)
+  const messageID = props.messageID
+  const [initialMessage] = React.useState(() => takeForwardMessage(srcConvID, messageID))
+  const loadedMessage = useConversationMessage(srcConvID, messageID)
   const message = loadedMessage ?? initialMessage
   const navigation = useNavigation()
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')

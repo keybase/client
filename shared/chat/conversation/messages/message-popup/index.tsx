@@ -4,7 +4,7 @@ import type * as React from 'react'
 import AttachmentMessage from './attachment'
 import JourneycardMessage from './journeycard'
 import TextMessage from './text'
-import {useConversationMessageByOrdinal} from '../../data-hooks'
+import {useConversationMessage} from '../../data-hooks'
 import {useConversationThreadMessage} from '../../thread-context'
 import * as T from '@/constants/types'
 
@@ -97,15 +97,16 @@ function ThreadMessagePopup(p: Props) {
 }
 
 // Mobile only
-type ModalProps = {conversationIDKey?: T.Chat.ConversationIDKey; ordinal: T.Chat.Ordinal}
+type ModalProps = {conversationIDKey?: T.Chat.ConversationIDKey; messageID: T.Chat.MessageID}
 export const MessagePopupModal = (p: ModalProps) => {
-  const {ordinal} = p
+  const {messageID} = p
   const conversationIDKey = p.conversationIDKey ?? T.Chat.noConversationIDKey
-  const message = useConversationMessageByOrdinal(conversationIDKey, ordinal)
+  const message = useConversationMessage(conversationIDKey, messageID)
+  const ordinal = message?.ordinal
   const {pop} = C.useNav()
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo} = p
-    return pop ? (
+    return pop && ordinal !== undefined ? (
       <MessagePopupLoaded
         ordinal={ordinal}
         key="popup"
@@ -120,7 +121,7 @@ export const MessagePopupModal = (p: ModalProps) => {
     ) : null
   }
   const {popup, popupAnchor, showPopup, showingPopup} = Kb.usePopup2(makePopup)
-  if (!showingPopup) {
+  if (!showingPopup && ordinal !== undefined) {
     showPopup()
   }
 
@@ -134,17 +135,24 @@ export const MessagePopupModal = (p: ModalProps) => {
 export const useMessagePopup = (p: {
   conversationIDKey?: T.Chat.ConversationIDKey
   message?: T.Chat.Message
-  ordinal: T.Chat.Ordinal
+  ordinal?: T.Chat.Ordinal
   shouldShow?: () => boolean
   style?: Kb.Styles.StylesCrossPlatform
 }) => {
   const {conversationIDKey, message, ordinal, shouldShow, style} = p
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
+    const popupOrdinal = message?.ordinal ?? ordinal
+    if (popupOrdinal === undefined) {
+      return null
+    }
+    if (message && !T.Chat.messageIDToNumber(message.id)) {
+      return null
+    }
     const Popup = conversationIDKey && message ? MessagePopupLoaded : ThreadMessagePopup
     return (shouldShow?.() ?? true) ? (
       <Popup
-        ordinal={ordinal}
+        ordinal={popupOrdinal}
         key="popup"
         attachTo={attachTo}
         conversationIDKey={conversationIDKey}

@@ -50,11 +50,11 @@ const FullscreenVideo = (p: {
 
 const Fullscreen = function Fullscreen(p: Props) {
   const {showHeader: _showHeader = true} = p
-  const data = useData(p.conversationIDKey, p.ordinal, p.initialMessage)
+  const data = useData(p.conversationIDKey, p.messageID, p.initialMessage)
   const {isVideo, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
   const {onNextAttachment, onPreviousAttachment} = data
+  const {hasMessageID} = data
   const [loaded, setLoaded] = React.useState(false)
-  const {ordinal} = message
   const [showHeader, setShowHeader] = React.useState(_showHeader)
   const toggleHeader = () => {
     setShowHeader(s => !s)
@@ -79,13 +79,13 @@ const Fullscreen = function Fullscreen(p: Props) {
     ? {height: data.fullHeight, width: data.fullWidth}
     : {height: data.previewHeight, width: data.previewWidth}
 
-  const {showPopup, popup} = useMessagePopup({conversationIDKey: p.conversationIDKey, message, ordinal})
+  const {showPopup, popup} = useMessagePopup({conversationIDKey: p.conversationIDKey, message})
 
   const onSwipe = (left: boolean) => {
     if (left) {
-      onNextAttachment()
+      onNextAttachment?.()
     } else {
-      onPreviousAttachment()
+      onPreviousAttachment?.()
     }
   }
 
@@ -139,7 +139,7 @@ const Fullscreen = function Fullscreen(p: Props) {
       <Kb.ZoomableImage
         src={imgSrc}
         style={styles.zoomableBox}
-        onSwipe={onSwipe}
+        onSwipe={hasMessageID ? onSwipe : undefined}
         onTap={toggleHeader}
         srcDims={srcDims}
         boxCacheKey="chat-attach"
@@ -199,7 +199,12 @@ const Fullscreen = function Fullscreen(p: Props) {
           </Kb.Text>
         </Kb.Box2>
       </Animated.View>
-      <Kb.IconButton icon="iconfont-ellipsis" style={styles.headerFooter} onClick={showPopup} />
+      <Kb.IconButton
+        disabled={!hasMessageID}
+        icon="iconfont-ellipsis"
+        style={styles.headerFooter}
+        onClick={hasMessageID ? showPopup : undefined}
+      />
       {popup}
     </Kb.Box2>
   )

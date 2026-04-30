@@ -271,6 +271,7 @@ const getCommonMessageData = ({
   const {submitState, author, id, botUsername} = message
   const type = message.type
   const exploded = !!message.exploded
+  const hasMessageID = !!T.Chat.messageIDToNumber(id)
   const idMatchesOrdinal = T.Chat.ordinalToNumber(message.ordinal) === T.Chat.messageIDToNumber(id)
   const exploding = !!message.exploding
   const decorate = !exploded && !message.errorReason
@@ -283,13 +284,13 @@ const getCommonMessageData = ({
   const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, message)
   const hasReactions = (message.reactions?.size ?? 0) > 0
   const botname = botUsername === author ? '' : (botUsername ?? '')
-  const canShowReactionsPopup = Chat.isMessageWithReactions(message)
+  const canShowReactionsPopup = hasMessageID && Chat.isMessageWithReactions(message)
   const ecrType = getEcrType(message, you)
-  const shouldShowPopup = Chat.shouldShowPopup(accountsInfoMap, message)
+  const shouldShowPopup = hasMessageID && Chat.shouldShowPopup(accountsInfoMap, message)
   const hasBeenEdited = message.hasBeenEdited ?? false
   const hasCoinFlip = message.type === 'text' && !!message.flipGameID
   const hasUnfurlList = (message.unfurls?.size ?? 0) > 0
-  const hasUnfurlPrompts = !!id && !!unfurlPrompt.get(id)?.size
+  const hasUnfurlPrompts = hasMessageID && !!unfurlPrompt.get(id)?.size
   const textType: 'error' | 'sent' | 'pending' = message.errorReason
     ? 'error'
     : !submitState
@@ -563,7 +564,7 @@ function TextAndSiblings(p: TSProps) {
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker, submitState} = p
   const pressableProps = Kb.Styles.isMobile
     ? {
-        onLongPress: decorate ? showPopup : undefined,
+        onLongPress: decorate && shouldShowPopup ? showPopup : undefined,
         style: isHighlighted ? {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt} : undefined,
       }
     : {
@@ -573,7 +574,7 @@ function TextAndSiblings(p: TSProps) {
           // eslint-disable-next-line sort-keys
           active: showingPopup || showingPicker,
         }),
-        onContextMenu: showPopup,
+        onContextMenu: shouldShowPopup ? showPopup : undefined,
       }
 
   const content = exploding ? (
@@ -839,7 +840,7 @@ function RightSide(p: RProps) {
       exploding={p.exploding}
       explodesAt={p.explodesAt}
       messageKey={p.messageKey}
-      onClick={showPopup}
+      onClick={shouldShowPopup ? showPopup : undefined}
       submitState={p.submitState}
     />
   ) : null

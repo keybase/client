@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {
   deleteConversationMessage,
@@ -62,16 +62,20 @@ const useItemsForMessage = (p: {
   const ordinal = message.ordinal
   const isAttach = message.type === 'attachment'
   const {author, id, deviceName, timestamp, deviceRevokedAt} = message
+  const hasMessageID = !!T.Chat.messageIDToNumber(id)
   const {teamID, teamname} = meta
   const onReact = (emoji: string) => {
     actions.toggleReaction(emoji)
   }
   const _onAddReaction = () => {
+    if (!hasMessageID) {
+      return
+    }
     C.Router2.navigateAppend({
       name: 'chatChooseEmoji',
       params: {
         conversationIDKey,
-        onPickAddToMessageOrdinal: ordinal,
+        onPickAddToMessageID: id,
         pickKey: 'reaction',
       },
     })
@@ -92,7 +96,7 @@ const useItemsForMessage = (p: {
   }
   const onInstallBot = authorIsBot ? _onInstallBot : undefined
 
-  const itemReaction = onAddReaction
+  const itemReaction = onAddReaction && hasMessageID
     ? ([
         {
           title: '',
@@ -117,9 +121,9 @@ const useItemsForMessage = (p: {
   const onCopyLink = () => {
     copyToClipboard(linkFromConvAndMessage(convLabel, id))
   }
-  const itemCopyLink = [
-    {icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'},
-  ] as const
+  const itemCopyLink = hasMessageID
+    ? ([{icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'}] as const)
+    : []
 
   const setOrangeLine = React.useContext(SetOrangeLineContext)
   const onReply = () => {
@@ -127,7 +131,9 @@ const useItemsForMessage = (p: {
   }
   const itemReply = message.exploded
     ? []
-    : ([{icon: 'iconfont-reply', onClick: onReply, title: 'Reply'}] as const)
+    : hasMessageID
+      ? ([{icon: 'iconfont-reply', onClick: onReply, title: 'Reply'}] as const)
+      : []
 
   const _onEdit = () => {
     setThreadInputEditing(conversationIDKey, ordinal)
@@ -136,7 +142,7 @@ const useItemsForMessage = (p: {
   const you = useCurrentUserState(s => s.username)
   const yourMessage = author === you
   const onEdit = yourMessage ? _onEdit : undefined
-  const isEditable = message.isEditable && yourMessage && !message.exploded
+  const isEditable = hasMessageID && message.isEditable && yourMessage && !message.exploded
   const itemEdit =
     onEdit && isEditable
       ? ([
@@ -149,9 +155,9 @@ const useItemsForMessage = (p: {
       : []
 
   const _onForward = () => {
-    showForwardMessagePicker(conversationIDKey, ordinal, message)
+    showForwardMessagePicker(conversationIDKey, message)
   }
-  const onForward = isAttach || (message.unfurls?.size ?? 0) > 0 ? _onForward : undefined
+  const onForward = hasMessageID && (isAttach || (message.unfurls?.size ?? 0) > 0) ? _onForward : undefined
   const itemForward = onForward
     ? ([{icon: 'iconfont-forward', onClick: onForward, title: 'Forward'}] as const)
     : []
@@ -163,7 +169,7 @@ const useItemsForMessage = (p: {
       pinConversationMessage(conversationIDKey, id)
     }
   }
-  const onPinMessage = canPinMessage ? _onPinMessage : undefined
+  const onPinMessage = canPinMessage && hasMessageID ? _onPinMessage : undefined
   const itemPin = onPinMessage
     ? ([{icon: 'iconfont-pin', onClick: onPinMessage, title: 'Pin message'}] as const)
     : []
@@ -174,9 +180,9 @@ const useItemsForMessage = (p: {
       actions.markAsUnread(id)
     }
   }
-  const itemUnread = [
-    {icon: 'iconfont-envelope-solid', onClick: onMarkAsUnread, title: 'Mark as unread'},
-  ] as const
+  const itemUnread = hasMessageID
+    ? ([{icon: 'iconfont-envelope-solid', onClick: onMarkAsUnread, title: 'Mark as unread'}] as const)
+    : []
 
   const clearModals = C.Router2.clearModals
   const _onDelete = () => {

@@ -6,23 +6,23 @@ import {takeAttachmentPreviewMessage} from '../attachment-actions'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
-  ordinal: T.Chat.Ordinal
+  messageID: T.Chat.MessageID
 }
 
 const SeededFull = (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   initialMessage?: T.Chat.MessageAttachment
   isPortrait: boolean
-  ordinal: T.Chat.Ordinal
+  messageID: T.Chat.MessageID
   viewKey: number
 }) => {
-  const {conversationIDKey, initialMessage, isPortrait, ordinal, viewKey} = p
+  const {conversationIDKey, initialMessage, isPortrait, messageID, viewKey} = p
 
   return (
     <Full
       conversationIDKey={conversationIDKey}
       initialMessage={initialMessage}
-      ordinal={ordinal}
+      messageID={messageID}
       showHeader={isPortrait}
       key={String(viewKey)}
     />
@@ -31,7 +31,9 @@ const SeededFull = (p: {
 
 const Screen = (p: OwnProps) => {
   const conversationIDKey = p.conversationIDKey ?? T.Chat.noConversationIDKey
-  const [initialMessage] = React.useState(() => takeAttachmentPreviewMessage(conversationIDKey, p.ordinal))
+  const [initialMessage] = React.useState(() =>
+    takeAttachmentPreviewMessage(conversationIDKey, p.messageID)
+  )
   const {width, height} = useSafeAreaFrame()
   const isPortrait = height > width
   const wasPortraitRef = React.useRef(isPortrait)
@@ -50,7 +52,7 @@ const Screen = (p: OwnProps) => {
       conversationIDKey={conversationIDKey}
       initialMessage={initialMessage}
       isPortrait={isPortrait}
-      ordinal={p.ordinal}
+      messageID={p.messageID}
       viewKey={key}
     />
   )

@@ -62,14 +62,16 @@ export const makePasteAttachment = (conversationIDKey: T.Chat.ConversationIDKey,
 }
 
 const attachmentPreviewMessageHandoff = new Map<string, T.Chat.MessageAttachment>()
-const attachmentPreviewMessageKey = (conversationIDKey: T.Chat.ConversationIDKey, ordinal: T.Chat.Ordinal) =>
-  `${conversationIDKey}:${T.Chat.ordinalToNumber(ordinal)}`
+const messageHandoffKey = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  messageID: T.Chat.MessageID
+) => `${conversationIDKey}:${T.Chat.messageIDToNumber(messageID)}`
 
 export const takeAttachmentPreviewMessage = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  ordinal: T.Chat.Ordinal
+  messageID: T.Chat.MessageID
 ) => {
-  const key = attachmentPreviewMessageKey(conversationIDKey, ordinal)
+  const key = messageHandoffKey(conversationIDKey, messageID)
   const message = attachmentPreviewMessageHandoff.get(key)
   attachmentPreviewMessageHandoff.delete(key)
   return message
@@ -77,27 +79,27 @@ export const takeAttachmentPreviewMessage = (
 
 export const showAttachmentPreview = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  ordinal: T.Chat.Ordinal,
-  message?: T.Chat.MessageAttachment
+  message: T.Chat.MessageAttachment
 ) => {
-  const key = attachmentPreviewMessageKey(conversationIDKey, ordinal)
-  if (message) {
-    attachmentPreviewMessageHandoff.set(key, message)
-  } else {
-    attachmentPreviewMessageHandoff.delete(key)
+  if (!T.Chat.messageIDToNumber(message.id)) {
+    logger.warn('showAttachmentPreview: no message id')
+    return
   }
+  const key = messageHandoffKey(conversationIDKey, message.id)
+  attachmentPreviewMessageHandoff.set(key, message)
   navigateAppend({
     name: 'chatAttachmentFullscreen',
-    params: {conversationIDKey, ordinal},
+    params: {conversationIDKey, messageID: message.id},
   })
 }
 
 const pdfMessageHandoff = new Map<string, T.Chat.MessageAttachment>()
-const pdfMessageKey = (conversationIDKey: T.Chat.ConversationIDKey, ordinal: T.Chat.Ordinal) =>
-  `${conversationIDKey}:${T.Chat.ordinalToNumber(ordinal)}`
 
-export const takePDFMessage = (conversationIDKey: T.Chat.ConversationIDKey, ordinal: T.Chat.Ordinal) => {
-  const key = pdfMessageKey(conversationIDKey, ordinal)
+export const takePDFMessage = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  messageID: T.Chat.MessageID
+) => {
+  const key = messageHandoffKey(conversationIDKey, messageID)
   const message = pdfMessageHandoff.get(key)
   pdfMessageHandoff.delete(key)
   return message
@@ -105,19 +107,18 @@ export const takePDFMessage = (conversationIDKey: T.Chat.ConversationIDKey, ordi
 
 export const showPDFViewer = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  ordinal: T.Chat.Ordinal,
-  message?: T.Chat.MessageAttachment,
+  message: T.Chat.MessageAttachment,
   url?: string
 ) => {
-  const key = pdfMessageKey(conversationIDKey, ordinal)
-  if (message) {
-    pdfMessageHandoff.set(key, message)
-  } else {
-    pdfMessageHandoff.delete(key)
+  if (!T.Chat.messageIDToNumber(message.id)) {
+    logger.warn('showPDFViewer: no message id')
+    return
   }
+  const key = messageHandoffKey(conversationIDKey, message.id)
+  pdfMessageHandoff.set(key, message)
   navigateAppend({
     name: 'chatPDF',
-    params: url ? {conversationIDKey, ordinal, url} : {conversationIDKey, ordinal},
+    params: url ? {conversationIDKey, messageID: message.id, url} : {conversationIDKey, messageID: message.id},
   })
 }
 
@@ -193,6 +194,10 @@ const downloadAttachmentMessage = async (
   message: T.Chat.MessageAttachment,
   downloadToCache: boolean
 ) => {
+  if (!T.Chat.messageIDToNumber(message.id)) {
+    logger.warn('downloadAttachmentMessage: no message id')
+    return false
+  }
   try {
     const rpcRes = await T.RPCChat.localDownloadFileAttachmentLocalRpcPromise({
       conversationID: T.Chat.keyToConversationID(conversationIDKey),
@@ -264,7 +269,7 @@ export const messageAttachmentNativeShareMessage = (
     }
 
     if (isIOS && message.fileName.endsWith('.pdf') && fromDownload) {
-      showPDFViewer(conversationIDKey, message.ordinal, message, 'file://' + filePath)
+      showPDFViewer(conversationIDKey, message, 'file://' + filePath)
       return
     }
 
@@ -409,7 +414,7 @@ export const useConversationAttachmentActions = () => {
       }
 
       if (isIOS && message.fileName.endsWith('.pdf') && fromDownload) {
-        showPDFViewer(conversationIDKey, ordinal, message, 'file://' + filePath)
+        showPDFViewer(conversationIDKey, message, 'file://' + filePath)
         return
       }
 
@@ -469,7 +474,9 @@ export const useConversationAttachmentActions = () => {
     showAttachmentPreview: (ordinal: T.Chat.Ordinal, message?: T.Chat.MessageAttachment) => {
       const existing = messageMap.get(ordinal)
       const initialMessage = message ?? (existing?.type === 'attachment' ? existing : undefined)
-      showAttachmentPreview(conversationIDKey, ordinal, initialMessage)
+      if (initialMessage) {
+        showAttachmentPreview(conversationIDKey, initialMessage)
+      }
     },
   }
 }

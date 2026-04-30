@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {showAttachmentPreview} from '../../../attachment-actions'
 import {useConversationThreadID} from '../../../thread-context'
 import VideoImpl from './videoimpl'
@@ -25,12 +25,15 @@ function Video(p: Props) {
   const {message, ordinal, showPopup} = p
   const {isCollapsed, submitState, title, transferProgress, transferState} = message
   const conversationIDKey = useConversationThreadID()
+  const hasMessageID = !!T.Chat.messageIDToNumber(message.id)
   const fileName = getAttachmentDisplayFileName(message)
   const showTitle = !!title
-  const openFullscreen = () => {
-    Keyboard.dismiss()
-    showAttachmentPreview(conversationIDKey, ordinal, message)
-  }
+  const openFullscreen = hasMessageID
+    ? () => {
+        Keyboard.dismiss()
+        showAttachmentPreview(conversationIDKey, message)
+      }
+    : undefined
   const containerStyle = styles.container
   const collapseIcon = useCollapseIcon(ordinal, isCollapsed, false)
 
@@ -66,7 +69,7 @@ function Video(p: Props) {
           <VideoImpl
             message={message}
             openFullscreen={openFullscreen}
-            showPopup={showPopup}
+            showPopup={hasMessageID ? showPopup : undefined}
             allowPlay={transferState !== 'uploading' && submitState !== 'pending'}
           />
           {showTitle ? <Title message={message} /> : null}

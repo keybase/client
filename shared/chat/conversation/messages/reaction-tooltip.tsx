@@ -3,7 +3,7 @@ import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import ReactButton from './react-button'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {MessageContext} from './ids-context'
 import {useUsersState} from '@/stores/users'
 import {useConversationThreadID, useConversationThreadMessage, useConversationThreadMessageActions} from '../thread-context'
@@ -38,12 +38,16 @@ const ReactionTooltip = (p: OwnProps) => {
   const usersInfo = useUsersState(s => (reactions ? s.infoMap : emptyUsersInfo))
   const {toggleMessageReaction} = useConversationThreadMessageActions()
   const conversationIDKey = useConversationThreadID()
+  const hasMessageID = !!message && !!T.Chat.messageIDToNumber(message.id)
 
   const onAddReaction = () => {
+    if (!message || !T.Chat.messageIDToNumber(message.id)) {
+      return
+    }
     onHidden()
     C.Router2.navigateAppend({
       name: 'chatChooseEmoji',
-      params: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
+      params: {conversationIDKey, onPickAddToMessageID: message.id, pickKey: 'reaction'},
     })
   }
 
@@ -138,7 +142,13 @@ const ReactionTooltip = (p: OwnProps) => {
           />
           {Kb.Styles.isMobile && (
             <Kb.ButtonBar style={styles.addReactionButtonBar}>
-              <Kb.Button mode="Secondary" fullWidth={true} onClick={onAddReaction} label="Add a reaction">
+              <Kb.Button
+                disabled={!hasMessageID}
+                mode="Secondary"
+                fullWidth={true}
+                onClick={hasMessageID ? onAddReaction : undefined}
+                label="Add a reaction"
+              >
                 <Kb.Icon
                   type="iconfont-reacji"
                   color={Kb.Styles.globalColors.blue}

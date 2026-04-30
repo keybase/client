@@ -16,7 +16,7 @@ import {
   toggleConversationMessageReaction,
   toggleConversationMessageReactionByID,
 } from '@/chat/conversation/message-actions'
-import {useConversationMessageByOrdinal, useConversationMeta} from '@/chat/conversation/data-hooks'
+import {useConversationMessage, useConversationMeta} from '@/chat/conversation/data-hooks'
 
 type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -25,7 +25,7 @@ type Props = {
   small?: boolean
   onlyTeamCustomEmoji?: boolean
   onDidPick?: () => void
-  onPickAddToMessageOrdinal?: T.Chat.Ordinal
+  onPickAddToMessageID?: T.Chat.MessageID
   onPickAction?: (emoji: string, renderableEmoji: RenderableEmoji) => void
 }
 
@@ -35,31 +35,27 @@ type RoutableProps = {
   hideFrequentEmoji?: boolean
   onlyTeamCustomEmoji?: boolean
   pickKey: PickKey
-  onPickAddToMessageOrdinal?: T.Chat.Ordinal
+  onPickAddToMessageID?: T.Chat.MessageID
 }
 
 const useReacji = ({
   conversationIDKey = T.Chat.noConversationIDKey,
   onDidPick,
   onPickAction,
-  onPickAddToMessageOrdinal,
+  onPickAddToMessageID,
 }: Props) => {
   const topReacjis = useTopReacjis()
   const [filter, setFilter] = React.useState('')
-  const message = useConversationMessageByOrdinal(
+  const message = useConversationMessage(
     conversationIDKey,
-    onPickAddToMessageOrdinal ?? T.Chat.numberToOrdinal(0)
+    onPickAddToMessageID ?? T.Chat.numberToMessageID(0)
   )
   const onChoose = (emoji: string, renderableEmoji: RenderableEmoji) => {
-    if (conversationIDKey !== T.Chat.noConversationIDKey && onPickAddToMessageOrdinal) {
+    if (conversationIDKey !== T.Chat.noConversationIDKey && onPickAddToMessageID) {
       if (message) {
         toggleConversationMessageReaction(conversationIDKey, message, emoji)
       } else {
-        toggleConversationMessageReactionByID(
-          conversationIDKey,
-          T.Chat.numberToMessageID(T.Chat.ordinalToNumber(onPickAddToMessageOrdinal)),
-          emoji
-        )
+        toggleConversationMessageReactionByID(conversationIDKey, onPickAddToMessageID, emoji)
       }
     }
     onPickAction?.(emoji, renderableEmoji)
@@ -344,7 +340,7 @@ const Routable = (props: RoutableProps) => {
 
 const RoutableInner = (props: RoutableProps) => {
   const small = props.small
-  const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageOrdinal, pickKey} = props
+  const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageID, pickKey} = props
   const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
   const onPickAction = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
     updatePickerMap(pickKey, {emojiStr, renderableEmoji})
@@ -361,7 +357,7 @@ const RoutableInner = (props: RoutableProps) => {
       conversationIDKey={props.conversationIDKey}
       small={small}
       onPickAction={onPickAction}
-      onPickAddToMessageOrdinal={onPickAddToMessageOrdinal}
+      onPickAddToMessageID={onPickAddToMessageID}
       onDidPick={onDidPick}
       hideFrequentEmoji={hideFrequentEmoji}
       onlyTeamCustomEmoji={onlyTeamCustomEmoji}

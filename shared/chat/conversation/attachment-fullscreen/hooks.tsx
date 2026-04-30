@@ -11,43 +11,43 @@ import {
   loadNextAttachmentMessage,
 } from '../attachment-actions'
 import {showConversationInfoPanel} from '../thread-context'
-import {useConversationMessageByOrdinal} from '../data-hooks'
+import {useConversationMessage} from '../data-hooks'
 
 const blankMessage = Chat.makeMessageAttachment({})
 export const useData = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  initialOrdinal: T.Chat.Ordinal,
+  initialMessageID: T.Chat.MessageID,
   initialMessage?: T.Chat.MessageAttachment
 ) => {
-  const [ordinal, setOrdinal] = React.useState(initialOrdinal)
+  const [messageID, setMessageID] = React.useState(initialMessageID)
   const [messageOverride, setMessageOverride] = React.useState<T.Chat.MessageAttachment | undefined>(
     initialMessage
   )
 
-  const loadedMessage = useConversationMessageByOrdinal(conversationIDKey, ordinal)
-  const initialMessageForOrdinal = initialMessage?.ordinal === ordinal ? initialMessage : undefined
-  const overrideMessageForOrdinal = messageOverride?.ordinal === ordinal ? messageOverride : undefined
+  const loadedMessage = useConversationMessage(conversationIDKey, messageID)
+  const initialMessageForID = initialMessage?.id === messageID ? initialMessage : undefined
+  const overrideMessageForID = messageOverride?.id === messageID ? messageOverride : undefined
   const message: T.Chat.MessageAttachment =
     loadedMessage?.type === 'attachment'
       ? loadedMessage
-      : (overrideMessageForOrdinal ?? initialMessageForOrdinal ?? blankMessage)
+      : (overrideMessageForID ?? initialMessageForID ?? blankMessage)
+  const hasMessageID = !!T.Chat.messageIDToNumber(message.id)
 
   React.useEffect(() => {
     if (message !== blankMessage || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
       return
     }
-    const ordinalNumber = T.Chat.ordinalToNumber(ordinal)
     logger.warn(
-      `chat attachment fullscreen: missing attachment message for convID=${conversationIDKey} ordinal=${ordinalNumber}`
+      `chat attachment fullscreen: missing attachment message for convID=${conversationIDKey} messageID=${messageID}`
     )
-  }, [conversationIDKey, message, ordinal])
+  }, [conversationIDKey, message, messageID])
 
   const onSwitchAttachment = (backInTime: boolean) => {
     const f = async () => {
-      if (conversationIDKey !== blankMessage.conversationIDKey && message !== blankMessage) {
+      if (conversationIDKey !== blankMessage.conversationIDKey && message !== blankMessage && hasMessageID) {
         const nextMessage = await loadNextAttachmentMessage(conversationIDKey, message, backInTime)
         setMessageOverride(nextMessage)
-        setOrdinal(nextMessage.ordinal)
+        setMessageID(nextMessage.id)
       }
     }
     C.ignorePromise(f())
@@ -74,7 +74,7 @@ export const useData = (
   const showPreview = !fileType.includes('png')
   const onAllMedia = () => showConversationInfoPanel(conversationIDKey, true, 'attachments')
   const onClose = () => navigateUp()
-  const onDownloadAttachment = message.downloadPath
+  const onDownloadAttachment = message.downloadPath || !hasMessageID
     ? undefined
     : () => {
         attachmentDownloadMessage(conversationIDKey, message)
@@ -94,15 +94,15 @@ export const useData = (
   return {
     fullHeight,
     fullWidth,
+    hasMessageID,
     isVideo,
     message,
     onAllMedia,
     onClose,
     onDownloadAttachment,
-    onNextAttachment,
-    onPreviousAttachment,
+    onNextAttachment: hasMessageID ? onNextAttachment : undefined,
+    onPreviousAttachment: hasMessageID ? onPreviousAttachment : undefined,
     onShowInFinder,
-    ordinal,
     path,
     previewHeight: clampedHeight,
     previewPath,

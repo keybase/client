@@ -6,8 +6,8 @@ import type {StyleOverride} from '@/common-adapters/markdown'
 import {colors, darkColors} from '@/styles/colors'
 import {useColorScheme} from 'react-native'
 import {useCurrentUserState} from '@/stores/current-user'
-import type * as T from '@/constants/types'
-import {useConversationThreadID} from '../thread-context'
+import * as T from '@/constants/types'
+import {useConversationThreadID, useConversationThreadMessage} from '../thread-context'
 
 export type OwnProps = {
   className?: string
@@ -108,21 +108,27 @@ export function NewReactionButton(p: NewReactionButtonProps) {
   const ordinal = useOrdinal()
   const isDarkMode = useColorScheme() === 'dark'
   const conversationIDKey = useConversationThreadID()
+  const message = useConversationThreadMessage(ordinal)
+  const hasMessageID = !!message && !!T.Chat.messageIDToNumber(message.id)
   const onOpenEmojiPicker = () => {
+    if (!message || !T.Chat.messageIDToNumber(message.id)) {
+      return
+    }
     C.Router2.navigateAppend({
       name: 'chatChooseEmoji',
-      params: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
+      params: {conversationIDKey, onPickAddToMessageID: message.id, pickKey: 'reaction'},
     })
   }
 
   return (
     <Kb.ClickableBox2
-      onClick={onOpenEmojiPicker}
+      onClick={hasMessageID ? onOpenEmojiPicker : undefined}
       style={Kb.Styles.collapseStyles([
         styles.borderBase,
         {borderColor: isDarkMode ? darkColors.black_10 : colors.black_10},
         styles.newReactionButtonBox,
         styles.buttonBox,
+        !hasMessageID && styles.disabled,
         p.style,
       ])}
     >
@@ -189,6 +195,7 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'relative',
       },
       countActive: {color: Kb.Styles.globalColors.blueDark},
+      disabled: {opacity: 0.3},
       emojiIconWrapper: Kb.Styles.platformStyles({
         isElectron: {position: 'absolute'},
         isMobile: {marginTop: 2},

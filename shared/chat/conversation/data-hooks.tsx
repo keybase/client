@@ -260,9 +260,6 @@ const loadConversationMessagesAroundMessageID = async (
   return [...messages.values()].sort((l, r) => T.Chat.messageIDToNumber(l.id) - T.Chat.messageIDToNumber(r.id))
 }
 
-const ordinalToMessageID = (ordinal: T.Chat.Ordinal) =>
-  T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal))
-
 const useConversationMessagesAroundMessageID = (
   conversationIDKey: T.Chat.ConversationIDKey,
   messageID: T.Chat.MessageID,
@@ -344,11 +341,6 @@ export const useConversationMessage = (
   const messages = useConversationMessagesAroundMessageID(conversationIDKey, messageID)
   return messages.find(message => message.id === messageID)
 }
-
-export const useConversationMessageByOrdinal = (
-  conversationIDKey: T.Chat.ConversationIDKey,
-  ordinal: T.Chat.Ordinal
-) => useConversationMessage(conversationIDKey, ordinalToMessageID(ordinal))
 
 export const markConversationAsUnread = (
   conversationIDKey: T.Chat.ConversationIDKey,

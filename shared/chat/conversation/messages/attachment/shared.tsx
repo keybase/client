@@ -66,6 +66,7 @@ export const TransferIcon = (p: {
   style: Kb.Styles.StylesCrossPlatform
 }) => {
   const {message, ordinal, style} = p
+  const hasMessageID = !!T.Chat.messageIDToNumber(message.id)
   let state: 'none' | 'doneWithPath' | 'done' | 'downloading' = 'none'
   const downloadPath = message.downloadPath ?? ''
   if (downloadPath.length) {
@@ -84,6 +85,9 @@ export const TransferIcon = (p: {
   const {attachmentDownload, messageAttachmentNativeSave} = useConversationAttachmentActions()
   const download = C.isMobile ? messageAttachmentNativeSave : attachmentDownload
   const onDownload = () => {
+    if (!hasMessageID) {
+      return
+    }
     download(ordinal)
   }
 
@@ -118,7 +122,7 @@ export const TransferIcon = (p: {
         />
       )
     case 'none':
-      return (
+      return hasMessageID ? (
         <Kb.Icon
           className="hover-opacity-full"
           type="iconfont-download"
@@ -131,7 +135,7 @@ export const TransferIcon = (p: {
           }
           padding={Kb.Styles.isMobile ? 'small' : undefined}
         />
-      )
+      ) : null
   }
 }
 

@@ -6,17 +6,18 @@ import type {Props} from '.'
 import * as T from '@/constants/types'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {attachmentDownloadMessage, takePDFMessage} from '../conversation/attachment-actions'
-import {useConversationMessageByOrdinal} from '../conversation/data-hooks'
+import {useConversationMessage} from '../conversation/data-hooks'
 
 const ChatPDF = (props: Props) => {
-  const {ordinal} = props
+  const {messageID} = props
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
-  const [initialMessage] = React.useState(() => takePDFMessage(conversationIDKey, ordinal))
-  const loadedMessage = useConversationMessageByOrdinal(conversationIDKey, ordinal)
+  const [initialMessage] = React.useState(() => takePDFMessage(conversationIDKey, messageID))
+  const loadedMessage = useConversationMessage(conversationIDKey, messageID)
   const message = loadedMessage?.type === 'attachment' ? loadedMessage : initialMessage
   const title = message?.title || message?.fileName || 'PDF'
   const url = props.url ?? message?.fileURL
   const navigation = useNavigation()
+  const canDownload = !!message
 
   const onDownload = () => {
     if (message) {
@@ -36,7 +37,7 @@ const ChatPDF = (props: Props) => {
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
         <Kb.ButtonBar small={true}>
-          <Kb.Button type="Default" label="Download" onClick={onDownload} />
+          <Kb.Button type="Default" label="Download" onClick={onDownload} disabled={!canDownload} />
         </Kb.ButtonBar>
       </Kb.Box2>
     </>

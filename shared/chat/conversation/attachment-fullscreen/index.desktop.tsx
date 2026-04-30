@@ -7,7 +7,7 @@ import type {StyleOverride} from '@/common-adapters/markdown'
 
 type ArrowProps = {
   left: boolean
-  onClick: () => void
+  onClick?: () => void
 }
 
 const Arrow = (props: ArrowProps) => {
@@ -15,11 +15,15 @@ const Arrow = (props: ArrowProps) => {
   return (
     <Kb.ClickableBox
       className="hover_background_color_black background_color_black_50 fade-background-color"
-      onClick={e => {
-        e.stopPropagation()
-        onClick()
-      }}
-      style={styles.circle}
+      onClick={
+        onClick
+          ? e => {
+              e.stopPropagation()
+              onClick()
+            }
+          : undefined
+      }
+      style={Kb.Styles.collapseStyles([styles.circle, !onClick && styles.disabled])}
     >
       <Kb.Icon
         type={left ? 'iconfont-arrow-left' : 'iconfont-arrow-right'}
@@ -31,11 +35,12 @@ const Arrow = (props: ArrowProps) => {
 }
 
 const Fullscreen = function Fullscreen(p: Props) {
-  const data = useData(p.conversationIDKey, p.ordinal, p.initialMessage)
-  const {message, ordinal, path, title, progress, previewPath} = data
+  const data = useData(p.conversationIDKey, p.messageID, p.initialMessage)
+  const {message, path, title, progress, previewPath} = data
   const {progressLabel, onNextAttachment, onPreviousAttachment} = data
   const {onDownloadAttachment, onShowInFinder, isVideo} = data
   const {fullWidth, fullHeight} = data
+  const {hasMessageID} = data
 
   const [isZoomed, setIsZoomed] = React.useState(false)
   const onIsZoomed = (zoomed: boolean) => {
@@ -56,16 +61,16 @@ const Fullscreen = function Fullscreen(p: Props) {
   const vidRef = React.useRef<HTMLVideoElement>(null)
   const onHotKey = (cmd: string) => {
     if (cmd === 'left') {
-      onPreviousAttachment()
+      onPreviousAttachment?.()
     }
     if (cmd === 'right') {
-      onNextAttachment()
+      onNextAttachment?.()
     }
   }
   Kb.useHotKey(['left', 'right'], onHotKey)
   const isDownloadError = !!message.transferErrMsg
 
-  const {showPopup, popup, popupAnchor} = useMessagePopup({conversationIDKey: p.conversationIDKey, message, ordinal})
+  const {showPopup, popup, popupAnchor} = useMessagePopup({conversationIDKey: p.conversationIDKey, message})
 
   const titleOverride = {
     paragraph: Kb.Styles.platformStyles({
@@ -83,8 +88,9 @@ const Fullscreen = function Fullscreen(p: Props) {
           <Kb.Icon
             type="iconfont-ellipsis"
             color={Kb.Styles.globalColors.black_50}
-            onClick={showPopup}
+            onClick={hasMessageID ? showPopup : undefined}
             padding="small"
+            style={!hasMessageID ? styles.disabled : undefined}
           />
         </Kb.Box2>
         {popup}
@@ -180,6 +186,7 @@ const styles = Kb.Styles.styleSheetCreate(
         height: '100%',
         width: '100%',
       },
+      disabled: {opacity: 0.3},
       // Opt out of the Electron titlebar drag region so the icon gets cursor/click events
       ellipsisContainer: Kb.Styles.platformStyles({
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,

@@ -220,18 +220,18 @@ type DocViewRowProps = {item: Doc}
 
 const DocViewRow = (props: DocViewRowProps) => {
   const {item} = props
+  const hasMessageID = !!item.message && !!T.Chat.messageIDToNumber(item.message.id)
   const shouldShow = () => {
-    return !!item.message
+    return hasMessageID
   }
   const {showPopup, popup} = useMessagePopup({
     conversationIDKey: item.message?.conversationIDKey,
     message: item.message,
-    ordinal: item.message?.ordinal ?? T.Chat.numberToOrdinal(0),
     shouldShow,
   })
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ClickableBox onClick={item.onClick} onLongPress={showPopup}>
+      <Kb.ClickableBox onClick={item.onClick} onLongPress={hasMessageID ? showPopup : undefined}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
           <Kb.ImageIcon type="icon-file-32" style={styles.docIcon} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
@@ -712,8 +712,7 @@ export const useAttachmentSections = (
     loadAttachmentView(selectedAttachmentView, undefined, 'retry')
   }
 
-  const onMediaClick = (message: T.Chat.MessageAttachment) =>
-    showAttachmentPreview(conversationIDKey, message.ordinal, message)
+  const onMediaClick = (message: T.Chat.MessageAttachment) => showAttachmentPreview(conversationIDKey, message)
 
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
     if (Kb.Styles.isMobile) {
