@@ -1,13 +1,11 @@
-import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import * as InputState from '../input-state'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConfigState} from '@/stores/config'
-import type {RefType as InputRef} from '../normal/input'
+import type {Selection as InputSelection} from '../normal/input'
+import {useConversationMeta} from '../../data-hooks'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
   return command.username ? '!' : '/'
@@ -33,6 +31,15 @@ type BotCommandsUpdateState = {
 }
 
 const BotCommandSettingsContext = React.createContext<BotSettingsMap | undefined>(undefined)
+BotCommandSettingsContext.displayName = 'BotCommandSettingsContext'
+const BotCommandConversationContext = React.createContext<
+  | {
+      botCommands: T.RPCChat.ConversationCommandGroups
+      conversationIDKey: T.Chat.ConversationIDKey
+    }
+  | undefined
+>(undefined)
+BotCommandConversationContext.displayName = 'BotCommandConversationContext'
 
 const makeBotCommandsUpdateState = (conversationIDKey: T.Chat.ConversationIDKey): BotCommandsUpdateState => ({
   conversationIDKey,
@@ -93,25 +100,24 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   const {selected, item: command} = p
   const prefix = getCommandPrefix(command)
   const botSettings = React.useContext(BotCommandSettingsContext)
-  const enabled = ConvoState.useChatContext(s => {
-    const {botCommands} = s.meta
-    const suggestBotCommands =
-      botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
-        ? botCommands.custom.commands || blankCommands
-        : blankCommands
-
-    const botRestrictMap = getBotRestrictBlockMap(botSettings, s.id, [
-      ...suggestBotCommands
-        .reduce((s, c) => {
-          if (c.username) {
-            s.add(c.username)
-          }
-          return s
-        }, new Set<string>())
-        .values(),
-    ])
-    return !botRestrictMap.get(command.username ?? '')
-  })
+  const botCommandConversation = React.useContext(BotCommandConversationContext)
+  const conversationIDKey = botCommandConversation?.conversationIDKey ?? T.Chat.noConversationIDKey
+  const botCommands = botCommandConversation?.botCommands
+  const suggestBotCommands =
+    botCommands?.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
+      ? botCommands.custom.commands || blankCommands
+      : blankCommands
+  const botRestrictMap = getBotRestrictBlockMap(botSettings, conversationIDKey, [
+    ...suggestBotCommands
+      .reduce((s, c) => {
+        if (c.username) {
+          s.add(c.username)
+        }
+        return s
+      }, new Set<string>())
+      .values(),
+  ])
+  const enabled = !botRestrictMap.get(command.username ?? '')
   return (
     <Kb.Box2
       direction="horizontal"
@@ -148,98 +154,92 @@ const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   )
 }
 
+export type CommandInputSnapshot = {
+  selection: InputSelection | undefined
+  text: string
+}
+
 type UseDataSourceProps = {
+  conversationIDKey: T.Chat.ConversationIDKey
   filter: string
-  inputRef: React.RefObject<InputRef | null>
-  lastTextRef: React.RefObject<string>
+  inputSnapshot: CommandInputSnapshot
+  suppressCommandSuggestions: boolean
 }
 
 const useDataSource = (p: UseDataSourceProps) => {
-  const {filter, inputRef, lastTextRef} = p
+  const {conversationIDKey, filter, inputSnapshot, suppressCommandSuggestions} = p
+  const {selection: sel, text} = inputSnapshot
   const builtinCommands = useConfigState(s => s.chatBuiltinCommands)
-  const {showCommandMarkdown, showGiphySearch} = InputState.useConversationInput(
-    C.useShallow(s => ({
-      showCommandMarkdown: !!s.commandMarkdown,
-      showGiphySearch: s.giphyWindow,
-    }))
-  )
-  return ConvoState.useChatContext(
-    C.useShallow(s => {
-      if (showCommandMarkdown || showGiphySearch) {
-        return []
-      }
+  const {botCommands, commands} = useConversationMeta(conversationIDKey)
+  if (suppressCommandSuggestions) {
+    return []
+  }
 
-      const {botCommands, commands} = s.meta
-      const suggestBotCommands =
-        botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
-          ? botCommands.custom.commands || blankCommands
-          : blankCommands
-      const suggestCommands =
-        commands.typ === T.RPCChat.ConversationCommandGroupsTyp.builtin
-          ? builtinCommands
-            ? builtinCommands[commands.builtin]
-            : blankCommands
-          : blankCommands
+  const suggestBotCommands =
+    botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
+      ? botCommands.custom.commands || blankCommands
+      : blankCommands
+  const suggestCommands =
+    commands.typ === T.RPCChat.ConversationCommandGroupsTyp.builtin
+      ? builtinCommands
+        ? builtinCommands[commands.builtin]
+        : blankCommands
+      : blankCommands
 
-      const sel = inputRef.current?.getSelection()
-      if (sel) {
-        if (!lastTextRef.current) return []
+  if (sel) {
+    if (!text) return []
 
-        const getMaxCmdLength = (
-          suggestBotCommands: ReadonlyArray<T.RPCChat.ConversationCommand>,
-          suggestCommands: ReadonlyArray<T.RPCChat.ConversationCommand>
-        ) =>
-          suggestCommands
-            .concat(suggestBotCommands)
-            .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
-        const maxCmdLength = getMaxCmdLength(suggestBotCommands, suggestCommands)
+    const getMaxCmdLength = (
+      suggestBotCommands: ReadonlyArray<T.RPCChat.ConversationCommand>,
+      suggestCommands: ReadonlyArray<T.RPCChat.ConversationCommand>
+    ) =>
+      suggestCommands
+        .concat(suggestBotCommands)
+        .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
+    const maxCmdLength = getMaxCmdLength(suggestBotCommands, suggestCommands)
 
-        // a little messy. Check if the message starts with '/' and that the cursor is
-        // within maxCmdLength chars away from it. This happens before `onChangeText`, so
-        // we can't do a more robust check on `lastTextRef.current` because it's out of date.
-        if (
-          !(lastTextRef.current.startsWith('/') || lastTextRef.current.startsWith('!')) ||
-          (sel.start || 0) > maxCmdLength
-        ) {
-          // not at beginning of message
-          return []
-        }
-      }
-      const fil = filter.toLowerCase()
-      const data = (lastTextRef.current.startsWith('!') ? suggestBotCommands : suggestCommands).filter(c =>
-        c.name.includes(fil)
-      )
-      return data
-    })
-  )
+    // a little messy. Check if the message starts with '/' and that the cursor is
+    // within maxCmdLength chars away from it. This happens before `onChangeText`, so
+    // we can't do a more robust check on `text` because it can be out of date.
+    if (!(text.startsWith('/') || text.startsWith('!')) || (sel.start || 0) > maxCmdLength) {
+      // not at beginning of message
+      return []
+    }
+  }
+  const fil = filter.toLowerCase()
+  return (text.startsWith('!') ? suggestBotCommands : suggestCommands).filter(c => c.name.includes(fil))
 }
 
 type CommandType = T.RPCChat.ConversationCommand
 type ListProps = Pick<
   Common.ListProps<CommandType>,
-  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
   botSettings: BotSettingsMap
+  conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: CommandType, final: boolean) => void
   setOnMoveRef: (r: (up: boolean) => void) => void
   setOnSubmitRef: (r: () => boolean) => void
+  suppressCommandSuggestions: boolean
 } & {
-  inputRef: React.RefObject<InputRef | null>
-  lastTextRef: React.RefObject<string>
+  inputSnapshot: CommandInputSnapshot
 }
 export const List = (p: ListProps) => {
-  const {botSettings, filter, inputRef, lastTextRef, ...rest} = p
-  const items = useDataSource({filter, inputRef, lastTextRef})
+  const {botSettings, conversationIDKey, filter, inputSnapshot, suppressCommandSuggestions, ...rest} = p
+  const {botCommands} = useConversationMeta(conversationIDKey)
+  const items = useDataSource({conversationIDKey, filter, inputSnapshot, suppressCommandSuggestions})
   return (
     <BotCommandSettingsContext.Provider value={botSettings}>
-      <Common.List
-        {...rest}
-        keyExtractor={keyExtractor}
-        items={items}
-        ItemRenderer={ItemRenderer}
-        loading={false}
-      />
+      <BotCommandConversationContext.Provider value={{botCommands, conversationIDKey}}>
+        <Common.List
+          {...rest}
+          keyExtractor={keyExtractor}
+          items={items}
+          ItemRenderer={ItemRenderer}
+          loading={false}
+        />
+      </BotCommandConversationContext.Provider>
     </BotCommandSettingsContext.Provider>
   )
 }

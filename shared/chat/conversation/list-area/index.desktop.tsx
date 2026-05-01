@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Hooks from './hooks'
 import * as React from 'react'
@@ -18,11 +17,18 @@ import useResizeObserver from '@/util/use-resize-observer.desktop'
 import useIntersectionObserver from '@/util/use-intersection-observer'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {useConversationCenter} from '../center-context'
-import {useThreadLoadStatusReporter} from '../thread-load-status-context'
+import {
+  useConversationThreadID,
+  useConversationThreadLoadNewerMessagesDueToScroll,
+  useConversationThreadLoadOlderMessagesDueToScroll,
+  useConversationThreadSelector,
+} from '../thread-context'
+import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
 const scrollOrdinalKey = 'scroll-ordinal-key'
+const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
 const ordinalsInAWaypoint = 10
 
 // We load the first thread automatically so in order to mark it read
@@ -38,7 +44,7 @@ const useScrolling = (p: {
   setListRef: (r: HTMLDivElement | null) => void
   centeredOrdinal: T.Chat.Ordinal | undefined
 }) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const {listRef, setListRef: _setListRef, containsLatestMessage} = p
   const containsLatestMessageRef = React.useRef(containsLatestMessage)
   React.useEffect(() => {
@@ -46,18 +52,18 @@ const useScrolling = (p: {
   }, [containsLatestMessage])
   const {messageOrdinals, centeredOrdinal, loaded} = p
   const numOrdinals = messageOrdinals.length
-  const onThreadLoadStatus = useThreadLoadStatusReporter()
-  const loadNewerMessagesDueToScroll = ConvoState.useChatContext(s => s.dispatch.loadNewerMessagesDueToScroll)
+  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
+  const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
   const loadNewerMessages = C.useThrottledCallback(() => {
-    loadNewerMessagesDueToScroll(numOrdinals, {onThreadLoadStatus})
+    loadNewerMessagesDueToScroll(numOrdinals, getThreadLoadStatusOptions())
   }, 200)
   // if we scroll up try and keep the position
   const scrollBottomOffsetRef = React.useRef<number | undefined>(undefined)
 
-  const loadOlderMessagesDueToScroll = ConvoState.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
+  const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
   const loadOlderMessages = React.useCallback((numOrdinals: number) => {
-    loadOlderMessagesDueToScroll(numOrdinals, {onThreadLoadStatus})
-  }, [loadOlderMessagesDueToScroll, onThreadLoadStatus])
+    loadOlderMessagesDueToScroll(numOrdinals, getThreadLoadStatusOptions())
+  }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
@@ -246,17 +252,8 @@ const useScrolling = (p: {
 
   const [didFirstLoad, setDidFirstLoad] = React.useState(false)
 
-  // Ensure didFirstLoad is true whenever we're loaded (even if we skipped reload)
-  React.useEffect(() => {
-    if (loaded && !didFirstLoad) {
-      requestAnimationFrame(() => {
-        setDidFirstLoad(true)
-      })
-    }
-  }, [loaded, didFirstLoad])
-
   // Handle scrolling when loaded becomes true. Scroll to centered ordinal if present, else bottom
-  const prevLoadedRef = React.useRef(loaded)
+  const prevLoadedRef = React.useRef(false)
   React.useLayoutEffect(() => {
     const justLoaded = loaded && !prevLoadedRef.current
     prevLoadedRef.current = loaded
@@ -271,10 +268,19 @@ const useScrolling = (p: {
     if (centeredOrdinal) {
       lockedToBottomRef.current = false
       scrollToCentered()
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setDidFirstLoad(true)
+        })
+      })
     } else {
-      scrollToBottom()
+      scrollToBottomSync()
+      requestAnimationFrame(() => {
+        scrollToBottomSync()
+        setDidFirstLoad(true)
+      })
     }
-  }, [loaded, centeredOrdinal, markInitiallyLoadedThreadAsRead, scrollToBottom, scrollToCentered])
+  }, [loaded, centeredOrdinal, markInitiallyLoadedThreadAsRead, scrollToBottomSync, scrollToCentered])
 
   const firstOrdinal = messageOrdinals[0]
   const prevFirstOrdinalRef = React.useRef(firstOrdinal)
@@ -455,24 +461,17 @@ const useItems = (p: {
   return items
 }
 
-const noOrdinals = new Array<T.Chat.Ordinal>()
 const ThreadWrapper = function ThreadWrapper() {
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
-  const data = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {id: conversationIDKey} = s
-      const {messageOrdinals = noOrdinals, loaded} = s
-      const containsLatestMessage = s.isCaughtUp()
-      return {
-        containsLatestMessage,
-        conversationIDKey,
-        loaded,
-        messageOrdinals,
-      }
-    })
+  const conversationIDKey = useConversationThreadID()
+  const data = useConversationThreadSelector(
+    C.useShallow(s => ({
+      containsLatestMessage: !s.moreToLoadForward,
+      loaded: s.loaded,
+      messageOrdinals: s.messageOrdinals ?? noOrdinals,
+    }))
   )
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
-  const {conversationIDKey} = data
   const {containsLatestMessage, messageOrdinals, loaded} = data
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const _setListRef = (r: HTMLDivElement | null) => {
@@ -617,9 +616,8 @@ if (colorWaypoints) {
   }
 }
 
-// Start unmeasured waypoints as placeholders with estimated height.
-// Intersection Observer fires synchronously for elements in the viewport on mount,
-// so visible waypoints render immediately. Off-screen ones stay as placeholders until scrolled to.
+// Render unmeasured waypoints once so initial scroll positioning uses real heights.
+// After measuring, off-screen waypoints can collapse back to placeholders.
 const OrdinalWaypoint = function OrdinalWaypoint(p: OrdinalWaypointProps) {
   const {ordinals, id, rowRenderer} = p
   const estimatedHeight = 40 * ordinals.length
@@ -636,7 +634,7 @@ const OrdinalWaypoint = function OrdinalWaypoint(p: OrdinalWaypointProps) {
   })
   const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
   const {isIntersecting} = useIntersectionObserver(wRef, {root})
-  const renderMessages = isIntersecting
+  const renderMessages = height < 0 || isIntersecting
   let content: React.ReactElement
 
   if (renderMessages) {

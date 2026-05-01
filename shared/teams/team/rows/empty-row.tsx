@@ -1,7 +1,5 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
@@ -9,6 +7,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 import {useLoadedTeam} from '../use-loaded-team'
+import {joinConversation} from '@/chat/conversation/status-actions'
 
 type Props = {
   type: 'channelsEmpty' | 'channelsFew' | 'members' | 'subteams'
@@ -93,14 +92,10 @@ const EmptyRow = (props: Props) => {
   const you = useCurrentUserState(s => s.username)
   const onSecondaryAction = useSecondaryAction(props)
   const addToTeam = C.useRPC(T.RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
-  const joinConversation = ConvoState.useConvoState(
-    conversationIDKey ?? Chat.noConversationIDKey,
-    s => s.dispatch.joinConversation
-  )
   const [error, setError] = React.useState('')
   const onAddSelf = () => {
     if (conversationIDKey) {
-      joinConversation()
+      joinConversation(conversationIDKey)
     } else {
       setError('')
       addToTeam(

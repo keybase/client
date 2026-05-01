@@ -1,7 +1,8 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as ConvoState from '@/stores/convostate'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
+import {showAttachmentPreview} from '../../../attachment-actions'
+import {useConversationThreadID} from '../../../thread-context'
 import ImageImpl from './imageimpl'
 import {
   getAttachmentDisplayFileName,
@@ -23,13 +24,16 @@ type Props = {
 function Image(p: Props) {
   const {message, ordinal, showPopup} = p
   const {isCollapsed, title, transferProgress, transferState} = message
-  const attachmentPreviewSelect = ConvoState.useChatContext(s => s.dispatch.attachmentPreviewSelect)
+  const conversationIDKey = useConversationThreadID()
+  const hasMessageID = !!T.Chat.messageIDToNumber(message.id)
   const fileName = getAttachmentDisplayFileName(message)
   const showTitle = !!title
-  const openFullscreen = () => {
-    Keyboard.dismiss()
-    attachmentPreviewSelect(ordinal)
-  }
+  const openFullscreen = hasMessageID
+    ? () => {
+        Keyboard.dismiss()
+        showAttachmentPreview(conversationIDKey, message)
+      }
+    : undefined
   const containerStyle = styles.container
   const collapseIcon = useCollapseIcon(ordinal, isCollapsed, false)
 
@@ -63,7 +67,7 @@ function Image(p: Props) {
           <ShowToastAfterSaving transferState={transferState} toastTargetRef={toastTargetRef} />
           <Kb.ClickableBox
             onClick={openFullscreen}
-            onLongPress={showPopup}
+            onLongPress={hasMessageID ? showPopup : undefined}
             style={styles.imageContainer}
             ref={toastTargetRef}
           >

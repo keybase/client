@@ -47,28 +47,22 @@ function PopupPositioned(props: PopupProps) {
 function PopupSheet(props: PopupProps) {
   const {children, onHidden, snapPoints} = props
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
-  const shownRef = React.useRef(false)
 
   React.useEffect(() => {
+    bottomRef.current?.present()
     return () => {
       bottomRef.current?.forceClose()
+      bottomRef.current = null
     }
   }, [])
 
+  const setBottomSheetRef = (sheet: BottomSheetModal | null) => {
+    bottomRef.current = sheet
+  }
+
   return (
     <BottomSheetModal
-      ref={s => {
-        if (bottomRef.current && bottomRef.current !== s) {
-          bottomRef.current.forceClose()
-        }
-        bottomRef.current = s
-        if (s && !shownRef.current) {
-          shownRef.current = true
-          setTimeout(() => {
-            s.present()
-          }, 100)
-        }
-      }}
+      ref={setBottomSheetRef}
       enableDynamicSizing={true}
       snapPoints={snapPoints ?? defaultSnapPoints}
       backgroundStyle={styles.modalBackground}

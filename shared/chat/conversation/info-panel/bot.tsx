@@ -1,13 +1,16 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
+import * as ChatCommon from '@/constants/chat/common'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
 import * as T from '@/constants/types'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 import {useUsersState} from '@/stores/users'
 import {useChatTeam, useChatTeamMembers} from '../team-hooks'
 import logger from '@/logger'
 import {useBotSettings} from '../bot/settings'
+import {getInboxConversationMeta, participantInfoReceived} from '@/chat/inbox/metadata'
+import {useConversationMetadata} from '../data-hooks'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -39,6 +42,7 @@ const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
   const {settings, setSettings} = useBotSettings(conversationIDKey, username)
   const editBotSettings = C.useRPC(T.RPCChat.localSetBotMemberSettingsRpcPromise)
+  const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
   return (
     <Kb.WaitingButton
       disabled={!settings}
@@ -63,7 +67,20 @@ const AddToChannel = (props: AddToChannelProps) => {
               },
               C.waitingKeyChatBotAdd,
             ],
-            () => setSettings(nextSettings),
+            () => {
+              setSettings(nextSettings)
+              previewConversationByID(
+                [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+                preview => {
+                  participantInfoReceived(
+                    conversationIDKey,
+                    ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
+                    getInboxConversationMeta(conversationIDKey)
+                  )
+                },
+                () => {}
+              )
+            },
             error => {
               logger.info(`AddToChannel: failed to edit bot settings: ${error.message}`)
             }
@@ -191,18 +208,81 @@ const styles = Kb.Styles.styleSheetCreate(
 
 type Props = {
   commonSections: ReadonlyArray<Section>
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const BotTab = (props: Props) => {
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const {conversationIDKey} = props
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const {teamID, teamname, teamType, botAliases} = meta
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const {yourOperations} = useChatTeam(teamID, teamname)
   const canManageBots = teamname ? yourOperations.manageBots : true
   const adhocTeam = teamType === 'adhoc'
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const {members: teamMembers} = useChatTeamMembers(teamID)
+  const {members: teamMembers, reload: reloadTeamMembers} = useChatTeamMembers(teamID)
+  const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
+  const mutationWaiting = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+  const mutationError = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+  const wasMutationWaitingRef = React.useRef(mutationWaiting)
+  const repairedAdhocParticipantsRef = React.useRef<T.Chat.ConversationIDKey | undefined>(undefined)
   const participantsAll = participantInfo.all
+  React.useEffect(() => {
+    if (
+      !adhocTeam ||
+      participantInfo.name.length > 0 ||
+      participantsAll.length === 0 ||
+      repairedAdhocParticipantsRef.current === conversationIDKey ||
+      !T.Chat.isValidConversationIDKey(conversationIDKey)
+    ) {
+      return
+    }
+    repairedAdhocParticipantsRef.current = conversationIDKey
+    previewConversationByID(
+      [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+      preview => {
+        participantInfoReceived(
+          conversationIDKey,
+          ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
+          getInboxConversationMeta(conversationIDKey)
+        )
+      },
+      () => {}
+    )
+  }, [
+    adhocTeam,
+    conversationIDKey,
+    participantInfo.name.length,
+    participantsAll.length,
+    previewConversationByID,
+  ])
+
+  React.useEffect(() => {
+    const mutationJustFinished = wasMutationWaitingRef.current && !mutationWaiting
+    wasMutationWaitingRef.current = mutationWaiting
+    if (!mutationJustFinished || mutationError || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
+      return
+    }
+    previewConversationByID(
+      [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+      preview => {
+        participantInfoReceived(
+          conversationIDKey,
+          ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
+          getInboxConversationMeta(conversationIDKey)
+        )
+      },
+      () => {}
+    )
+    if (!adhocTeam) {
+      C.ignorePromise(reloadTeamMembers())
+    }
+  }, [
+    adhocTeam,
+    conversationIDKey,
+    mutationError,
+    mutationWaiting,
+    previewConversationByID,
+    reloadTeamMembers,
+  ])
 
   let botUsernames: Array<string> = []
   if (adhocTeam) {
@@ -253,15 +333,15 @@ const BotTab = (props: Props) => {
 
   const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const navigateAppend = C.Router2.navigateAppend
   const onBotAdd = () => {
-    navigateAppend(conversationIDKey => ({name: 'chatSearchBots', params: {conversationIDKey}}))
+    navigateAppend({name: 'chatSearchBots', params: {conversationIDKey}})
   }
   const onBotSelect = (username: string) => {
-    navigateAppend(conversationIDKey => ({
+    navigateAppend({
       name: 'chatInstallBot',
       params: {botUsername: username, conversationIDKey},
-    }))
+    })
   }
 
   const items: Array<Item> = [

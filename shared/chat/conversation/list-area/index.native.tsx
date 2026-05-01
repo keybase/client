@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Hooks from './hooks'
 import * as Kb from '@/common-adapters'
@@ -19,7 +18,13 @@ import {ScrollContext} from '../normal/context'
 import noop from 'lodash/noop'
 import * as RowMetadata from '../messages/row-metadata'
 import {useConversationCenter} from '../center-context'
-import {useThreadLoadStatusReporter} from '../thread-load-status-context'
+import {
+  useConversationThreadID,
+  useConversationThreadLoadOlderMessagesDueToScroll,
+  useConversationThreadSelector,
+  useConversationThreadStore,
+} from '../thread-context'
+import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
 // import {useDebugLayout} from '@/util/debug-react'
 
 // TODO if we bring flashlist back bring back the patch
@@ -45,8 +50,8 @@ const useScrolling = (p: {
 }) => {
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
-  const loadOlderMessages = ConvoState.useChatContext(s => s.dispatch.loadOlderMessagesDueToScroll)
-  const onThreadLoadStatus = useThreadLoadStatusReporter()
+  const loadOlderMessages = useConversationThreadLoadOlderMessagesDueToScroll()
+  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
   const [scrollToBottom] = React.useState(() => () => {
     listRef.current?.scrollToOffset({animated: false, offset: 0})
   })
@@ -85,7 +90,7 @@ const useScrolling = (p: {
   })
 
   const onEndReached = () => {
-    loadOlderMessages(numOrdinals, {onThreadLoadStatus})
+    loadOlderMessages(numOrdinals, getThreadLoadStatusOptions())
   }
 
   return {
@@ -106,21 +111,18 @@ const ConversationList = function ConversationList() {
     </Kb.Text>
   ) : null
 
-  const listData = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {id: conversationIDKey, loaded} = s
-      return {
-        conversationIDKey,
-        loaded,
-        messageOrdinals: s.messageOrdinals ?? noOrdinals,
-      }
-    })
+  const conversationIDKey = useConversationThreadID()
+  const listData = useConversationThreadSelector(
+    C.useShallow(s => ({
+      loaded: s.loaded,
+      messageOrdinals: s.messageOrdinals,
+    }))
   )
   const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
   const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
   const centeredOrdinalOrNone = centeredOrdinal ?? noCenteredOrdinal
   const centeredHighlightOrdinalOrNone = centeredHighlightOrdinal ?? noCenteredOrdinal
-  const {conversationIDKey, loaded} = listData
+  const {loaded} = listData
 
   const messageOrdinals = useInvertedMessageOrdinals(listData.messageOrdinals)
 
@@ -140,18 +142,19 @@ const ConversationList = function ConversationList() {
 
   const numOrdinals = messageOrdinals.length
 
+  const threadStore = useConversationThreadStore()
   const getItemType = React.useCallback(
     (ordinal: T.Chat.Ordinal) => {
       if (!ordinal) {
         return 'null'
       }
-      const convoState = ConvoState.getConvoState(conversationIDKey)
-      const message = convoState.messageMap.get(ordinal)
+      const {messageMap, messageTypeMap} = threadStore.getState()
+      const message = messageMap.get(ordinal)
       return message
-        ? RowMetadata.getMessageRowType(message, convoState.messageTypeMap.get(ordinal))
-        : (convoState.messageTypeMap.get(ordinal) ?? 'text')
+        ? RowMetadata.getMessageRowType(message, messageTypeMap.get(ordinal))
+        : (messageTypeMap.get(ordinal) ?? 'text')
     },
-    [conversationIDKey]
+    [threadStore]
   )
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({

@@ -1,35 +1,35 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import JumpToRecent from './jump-to-recent'
 import type * as T from '@/constants/types'
 import {useConversationCenter} from '../center-context'
+import {
+  useConversationThreadMarkThreadAsRead,
+  useConversationThreadSelector,
+  useConversationThreadToggleSearch,
+} from '../thread-context'
 import logger from '@/logger'
 
 export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => {
   const {conversationIDKey} = p
+  const markThreadAsRead = useConversationThreadMarkThreadAsRead()
   const markInitiallyLoadedThreadAsRead = () => {
     const selected = Chat.getSelectedConversation()
     if (selected !== conversationIDKey) {
       logger.info('mark intially as read bail on not looking at this thread anymore?')
       return
     }
-    // Force mark as read since this is triggered by navigation (user action)
-    ConvoState.getConvoState(conversationIDKey).dispatch.markThreadAsRead(true)
+    markThreadAsRead()
   }
 
   return {markInitiallyLoadedThreadAsRead}
 }
 
 export const useJumpToRecent = (scrollToBottom: () => void, numOrdinals: number) => {
-  const data = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {loaded, moreToLoadForward} = s
-      const {toggleThreadSearch} = s.dispatch
-      return {loaded, moreToLoadForward, toggleThreadSearch}
-    })
+  const {moreToLoadForward, loaded} = useConversationThreadSelector(
+    C.useShallow(s => ({loaded: s.loaded, moreToLoadForward: s.moreToLoadForward}))
   )
-  const {moreToLoadForward, loaded, toggleThreadSearch} = data
+  const toggleThreadSearch = useConversationThreadToggleSearch()
   const {jumpToRecent} = useConversationCenter()
 
   const onJump = () => {

@@ -1,16 +1,20 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import {CreateNewTeam} from '../teams/new-team'
 import {useCurrentUserState} from '@/stores/current-user'
 import {createNewTeamAndNavigate} from '@/teams/team-page-actions'
+import * as T from '@/constants/types'
+import {useConversationParticipants} from './conversation/data-hooks'
 
-const NewTeamDialog = () => {
+type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
+
+const NewTeamDialogInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey} = props
   const baseTeam = ''
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const participantInfo = useConversationParticipants(conversationIDKey)
   const username = useCurrentUserState(s => s.username)
   const onSubmit = (teamname: string) => {
     const usersToAdd = participantInfo.name
@@ -18,12 +22,16 @@ const NewTeamDialog = () => {
       .map(assertion => ({assertion, role: 'writer' as const}))
     void createNewTeamAndNavigate(teamname, false, {fromChat: true, usersToAdd})
   }
-  const props = {
+  const newTeamProps = {
     baseTeam,
     onCancel,
     onSubmit,
   }
-  return <CreateNewTeam {...props} />
+  return <CreateNewTeam {...newTeamProps} />
 }
+
+const NewTeamDialog = (props: Props) => (
+  <NewTeamDialogInner conversationIDKey={props.conversationIDKey ?? T.Chat.noConversationIDKey} />
+)
 
 export default NewTeamDialog

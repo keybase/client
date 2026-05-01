@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
@@ -9,7 +8,7 @@ import logger from '@/logger'
 import {Bot} from '../info-panel/bot'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 
-type Props = {teamID?: T.Teams.TeamID}
+type Props = {conversationIDKey?: T.Chat.ConversationIDKey; teamID?: T.Teams.TeamID}
 type BotSearchResults = {
   bots: ReadonlyArray<T.RPCGen.FeaturedBot>
   users: ReadonlyArray<string>
@@ -29,8 +28,12 @@ type Item =
 type Section = Omit<Kb.SectionType<Item>, 'title'> & {title: string}
 
 const SearchBotPopup = (props: Props) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const teamID = props.teamID
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
+  return <SearchBotPopupInner {...props} conversationIDKey={conversationIDKey} />
+}
+
+const SearchBotPopupInner = (props: Props & {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey, teamID} = props
   const [lastQuery, setLastQuery] = React.useState('')
   const [botSearchResults, setBotSearchResults] = React.useState(
     new Map<string, BotSearchResults | undefined>()

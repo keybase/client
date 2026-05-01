@@ -1,11 +1,16 @@
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as InputState from '../input-area/input-state'
 import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 import {useReactionRowTopReacjis} from '@/chat/user-reacjis'
+import {showForwardMessagePicker} from '../fwd-msg'
+import {
+  useConversationThreadID,
+  useConversationThreadMessage,
+  useConversationThreadMessageActions,
+} from '../thread-context'
 
 type OwnProps = {
   className?: string
@@ -18,19 +23,29 @@ type OwnProps = {
 }
 
 function EmojiRowContainer(p: OwnProps) {
-  const {className, hasUnfurls, messageType, onReact: onReactProp, onReply: onReplyProp, onShowingEmojiPicker, style} = p
+  const {
+    className,
+    hasUnfurls,
+    messageType,
+    onReact: onReactProp,
+    onReply: onReplyProp,
+    onShowingEmojiPicker,
+    style,
+  } = p
   const ordinal = useOrdinal()
-  const setReplyTo = InputState.useConversationInput(s => s.dispatch.setReplyTo)
-  const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
+  const {toggleMessageReaction} = useConversationThreadMessageActions()
   const emojis = useReactionRowTopReacjis()
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
+  const message = useConversationThreadMessage(ordinal)
+  const hasMessageID = !!message && !!T.Chat.messageIDToNumber(message.id)
   const _onForward = () => {
-    navigateAppend(conversationIDKey => ({
-      name: 'chatForwardMsgPick',
-      params: {conversationIDKey, ordinal},
-    }))
+    showForwardMessagePicker(conversationIDKey, message)
   }
   const onReact = (emoji: string) => {
+    if (!hasMessageID) {
+      return
+    }
     if (onReactProp) {
       onReactProp(emoji)
       return
@@ -41,7 +56,7 @@ function EmojiRowContainer(p: OwnProps) {
     setReplyTo(ordinal)
   }
 
-  const onForward = hasUnfurls || messageType === 'attachment' ? _onForward : undefined
+  const onForward = hasMessageID && (hasUnfurls || messageType === 'attachment') ? _onForward : undefined
   const onReply =
     messageType === 'text' || messageType === 'attachment' ? (onReplyProp ?? _onReply) : undefined
 
@@ -69,14 +84,19 @@ function EmojiRowContainer(p: OwnProps) {
         <Kb.Divider style={styles.divider} vertical={true} />
         <Kb.ClickableBox
           className="hover_container"
-          onClick={_showPicker}
-          style={styles.iconContainer}
+          onClick={hasMessageID ? _showPicker : undefined}
+          style={Kb.Styles.collapseStyles([styles.iconContainer, !hasMessageID && styles.disabled])}
           tooltip="React"
         >
           <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
         </Kb.ClickableBox>
         {!!onReply && (
-          <Kb.ClickableBox className="hover_container" onClick={onReply} style={styles.iconContainer} tooltip="Reply">
+          <Kb.ClickableBox
+            className="hover_container"
+            onClick={onReply}
+            style={styles.iconContainer}
+            tooltip="Reply"
+          >
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
           </Kb.ClickableBox>
         )}
@@ -91,7 +111,7 @@ function EmojiRowContainer(p: OwnProps) {
           </Kb.ClickableBox>
         )}
       </Kb.Box2>
-      {showingPicker && (
+      {showingPicker && message && hasMessageID && (
         <Kb.Popup
           attachTo={popupAnchor}
           containerStyle={styles.pickerContainer}
@@ -99,7 +119,11 @@ function EmojiRowContainer(p: OwnProps) {
           onHidden={_hidePicker}
           propagateOutsideClicks={false}
         >
-          <EmojiPickerDesktop onPickAddToMessageOrdinal={ordinal} onDidPick={_hidePicker} />
+          <EmojiPickerDesktop
+            conversationIDKey={conversationIDKey}
+            onPickAddToMessageID={message.id}
+            onDidPick={_hidePicker}
+          />
         </Kb.Popup>
       )}
     </Kb.Box2>
@@ -141,6 +165,7 @@ const styles = Kb.Styles.styleSheetCreate(
           height: Kb.Styles.globalMargins.medium,
         },
       }),
+      disabled: {opacity: 0.3},
       divider: {
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginLeft: Kb.Styles.globalMargins.xsmall,

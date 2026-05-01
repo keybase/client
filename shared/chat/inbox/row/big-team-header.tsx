@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
 import type * as T from '@/constants/types'
@@ -20,16 +19,14 @@ const BigTeamHeader = (props: Props) => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <ConvoState.ChatProvider id="" canBeNull={true}>
-        <TeamMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          teamID={teamID}
-          hasHeader={true}
-          isSmallTeam={false}
-        />
-      </ConvoState.ChatProvider>
+      <TeamMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        teamID={teamID}
+        hasHeader={true}
+        isSmallTeam={false}
+      />
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)

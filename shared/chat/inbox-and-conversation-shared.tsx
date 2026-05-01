@@ -1,7 +1,6 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
@@ -52,21 +51,19 @@ export function InboxAndConversationShell(props: Props) {
   }, [conversationIDKey, selectNextConvo, validConvoID])
 
   return (
-    <ConvoState.ChatProvider id={conversationIDKey} canBeNull={true}>
-      <Kb.KeyboardAvoidingView2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} relative={true}>
-          {props.leftPane}
-          <Kb.Box2 direction="vertical" fullHeight={true} flex={1}>
-            <Conversation />
-          </Kb.Box2>
-          {infoPanel ? (
-            <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
-              <InfoPanel key={conversationIDKey} tab={infoPanel.tab} />
-            </Kb.Box2>
-          ) : null}
+    <Kb.KeyboardAvoidingView2>
+      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} relative={true}>
+        {props.leftPane}
+        <Kb.Box2 direction="vertical" fullHeight={true} flex={1}>
+          <Conversation {...props} conversationIDKey={conversationIDKey} />
         </Kb.Box2>
-      </Kb.KeyboardAvoidingView2>
-    </ConvoState.ChatProvider>
+        {infoPanel ? (
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
+            <InfoPanel key={conversationIDKey} conversationIDKey={conversationIDKey} tab={infoPanel.tab} />
+          </Kb.Box2>
+        ) : null}
+      </Kb.Box2>
+    </Kb.KeyboardAvoidingView2>
   )
 }
 

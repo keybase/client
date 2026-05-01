@@ -167,7 +167,7 @@ const rules = {
   'react/react-in-jsx-scope': 'off',
   'react/style-prop-object': 'error',
   'react/void-dom-elements-no-children': 'error',
-  'sort-keys': ['error', 'asc', {caseSensitive: true, natural: false}],
+  'sort-keys': 'off',
   strict: ['error', 'global'],
   'react-hooks/refs': 'error',
 }

@@ -1,18 +1,23 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
+import type * as T from '@/constants/types'
 import {openSMS as _openSMS} from '@/util/misc'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {showShareActionSheet} from '@/util/platform-specific'
+import {
+  useConversationThreadID,
+  useConversationThreadSelector,
+} from './thread-context'
+import {useBottomBannerState} from './bottom-banner-state'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
-const Invite = () => {
+const Invite = (props: {onDismiss: () => void}) => {
   const linkUrlProps = Kb.useClickURL('https://keybase.io/app')
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const participantInfo = useConversationThreadSelector(s => s.participants)
   const participantInfoAll = participantInfo.all
   const users = participantInfoAll.filter(p => p.includes('@'))
 
@@ -33,8 +38,6 @@ const Invite = () => {
 
   const usernameToContactName = participantInfo.contactName
 
-  const onDismiss = ConvoState.useChatContext(s => s.dispatch.dismissBottomBanner)
-
   const theirName =
     users.length === 1
       ? usernameToContactName.get(users[0]!) || assertionToDisplay(users[0]!)
@@ -48,7 +51,9 @@ const Invite = () => {
   if (C.isMobile) {
     return (
       <BannerBox color={Kb.Styles.globalColors.blue} gap="xtiny">
-        <Kb.Text center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text>
+        <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
+          {caption}
+        </Kb.Text>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
           <Kb.Button
             label="Send install link"
@@ -60,7 +65,7 @@ const Invite = () => {
           <Kb.Button
             label="Dismiss"
             mode="Secondary"
-            onClick={onDismiss}
+            onClick={props.onDismiss}
             small={true}
             style={styles.secondaryOnColor}
             labelStyle={styles.secondaryOnColorLabel}
@@ -72,7 +77,9 @@ const Invite = () => {
 
   return (
     <BannerBox color={Kb.Styles.globalColors.blue}>
-      <Kb.Text center={true} type="BodySmallSemibold" negative={true}>{caption}</Kb.Text>
+      <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
+        {caption}
+      </Kb.Text>
       <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
         Send them this link:
         <Kb.Text
@@ -93,39 +100,48 @@ const Invite = () => {
 const Broken = () => {
   const following = useFollowerState(s => s.following)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
+  const participantInfo = useConversationThreadSelector(s => s.participants)
   const users = participantInfo.all.filter(p => following.has(p) && infoMap.get(p)?.broken)
   return <Kb.ProofBrokenBanner users={users} />
 }
 
 const BannerContainer = function BannerContainer() {
+  const conversationIDKey = useConversationThreadID()
+  return <BannerContainerInner key={conversationIDKey} conversationIDKey={conversationIDKey} />
+}
+
+const BannerContainerInner = function BannerContainerInner(props: {
+  conversationIDKey: T.Chat.ConversationIDKey
+}) {
+  const {conversationIDKey} = props
   const following = useFollowerState(s => s.following)
   const infoMap = useUsersState(s => s.infoMap)
-  const dismissed = ConvoState.useChatContext(s => s.dismissedInviteBanners)
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const type = ConvoState.useChatContext(s => {
-    const teamType = s.meta.teamType
-    if (teamType !== 'adhoc') {
+  const {dismissed, dismissInviteBanner} = useBottomBannerState(
+    C.useShallow(s => ({
+      dismissInviteBanner: s.dispatch.dismissInviteBanner,
+      dismissed: s.inviteBannerDismissed.has(conversationIDKey),
+    }))
+  )
+  const {meta, participantInfo} = useConversationThreadSelector(
+    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
+  )
+  const type = (() => {
+    if (meta.teamType !== 'adhoc') {
       return 'none'
     }
     const participantInfoAll = participantInfo.all
     const broken = participantInfoAll.some(p => following.has(p) && infoMap.get(p)?.broken)
     if (broken) {
       return 'broken'
-    } else {
-      const toInvite = participantInfoAll.some(p => p.includes('@'))
-      const hasMessages = !s.meta.isEmpty
-      if (toInvite && !dismissed && hasMessages) {
-        return 'invite'
-      } else {
-        return 'none'
-      }
     }
-  })
+    const toInvite = participantInfoAll.some(p => p.includes('@'))
+    const hasMessages = !meta.isEmpty
+    return toInvite && !dismissed && hasMessages ? 'invite' : 'none'
+  })()
 
   switch (type) {
     case 'invite':
-      return <Invite />
+      return <Invite onDismiss={() => dismissInviteBanner(conversationIDKey)} />
     case 'broken':
       return <Broken />
     case 'none':

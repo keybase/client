@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
@@ -10,6 +9,7 @@ import SaveIndicator from '@/common-adapters/save-indicator'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useLoadedTeam} from '../../use-loaded-team'
 import {useConfirm} from './use-confirm'
+import {ConversationThreadProvider, useConversationThreadSelector} from '@/chat/conversation/thread-context'
 
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
 
@@ -504,21 +504,46 @@ export type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const {entityType, conversationIDKey: _cid, teamID} = ownProps
+  const {conversationIDKey: _cid, entityType} = ownProps
+  if (!_cid && !entityType.endsWith('team')) {
+    throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
+  }
+  if (_cid) {
+    return (
+      <ConversationThreadProvider id={_cid}>
+        <ConversationPolicyContainer {...ownProps} conversationIDKey={_cid} />
+      </ConversationThreadProvider>
+    )
+  }
+  return (
+    <ContainerWithPolicy
+      {...ownProps}
+      conversationIDKey={Chat.noConversationIDKey}
+      policy={Teams.retentionPolicies.policyRetain}
+    />
+  )
+}
+
+const ConversationPolicyContainer = (ownProps: OwnProps & {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const policy = useConversationThreadSelector(s => s.meta.retentionPolicy)
+  return <ContainerWithPolicy {...ownProps} policy={policy} />
+}
+
+const ContainerWithPolicy = (
+  ownProps: OwnProps & {
+    conversationIDKey: T.Chat.ConversationIDKey
+    policy: T.Retention.RetentionPolicy
+  }
+) => {
+  const {entityType, conversationIDKey, policy: loadedPolicy, teamID} = ownProps
   const {loading: loadingTeamPolicy, teamPolicy: loadedTeamPolicy} = useLoadedTeamRetentionPolicy(teamID)
   const {yourOperations} = useLoadedTeam(teamID)
+  const setConvRetentionPolicyRPC = C.useRPC(T.RPCChat.localSetConvRetentionLocalRpcPromise)
   const setTeamRetentionPolicyRPC = C.useRPC(T.RPCChat.localSetTeamRetentionLocalRpcPromise)
 
   let loading = false
   let teamPolicy: T.Retention.RetentionPolicy | undefined
-
-  if (!_cid && !entityType.endsWith('team')) {
-    throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
-  }
-  const conversationIDKey = _cid ?? Chat.noConversationIDKey
-  let policy = ConvoState.useConvoState(conversationIDKey, s =>
-    _cid ? s.meta.retentionPolicy : Teams.retentionPolicies.policyRetain
-  )
+  let policy = loadedPolicy
   if (entityType !== 'adhoc') {
     loading = loadingTeamPolicy
     if (loadedTeamPolicy) {
@@ -535,17 +560,28 @@ const Container = (ownProps: OwnProps) => {
     policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy?.type === 'explode')
   const showInheritOption = entityType === 'channel'
   const showOverrideNotice = entityType === 'big team'
-  const setConvRetentionPolicy = ConvoState.useConvoState(conversationIDKey, s => s.dispatch.setConvRetentionPolicy)
   const saveRetentionPolicy = (policy: T.Retention.RetentionPolicy) => {
     if (['small team', 'big team'].includes(entityType)) {
       setTeamRetentionPolicyRPC(
-        [{policy: Teams.retentionPolicyToServiceRetentionPolicy(policy), teamID}, C.waitingKeyTeamsSetRetentionPolicy(teamID)],
+        [
+          {policy: Teams.retentionPolicyToServiceRetentionPolicy(policy), teamID},
+          C.waitingKeyTeamsSetRetentionPolicy(teamID),
+        ],
         () => {},
         () => {}
       )
     } else if (['adhoc', 'channel'].includes(entityType)) {
       // we couldn't get here without throwing an error for !conversationIDKey
-      setConvRetentionPolicy(policy)
+      setConvRetentionPolicyRPC(
+        [
+          {
+            convID: T.Chat.keyToConversationID(conversationIDKey),
+            policy: Teams.retentionPolicyToServiceRetentionPolicy(policy),
+          },
+        ],
+        () => {},
+        () => {}
+      )
     } else {
       throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
     }

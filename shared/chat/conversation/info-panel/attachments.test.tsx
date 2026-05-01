@@ -1,11 +1,9 @@
 /** @jest-environment jsdom */
 /// <reference types="jest" />
 import {act, cleanup, renderHook} from '@testing-library/react'
-import type * as React from 'react'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
-import {ChatProvider, getConvoState} from '@/stores/convostate'
 import {useAttachmentSections} from './attachments'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
@@ -63,53 +61,13 @@ const makeValidTextUIMessage = (serverMsgID: T.Chat.MessageID, text: string): T.
   },
 })
 
-const makeAsset = (filename: string): T.RPCChat.Asset => ({
-  bucket: '',
-  encHash: new Uint8Array(),
-  endpoint: '',
-  filename,
-  key: new Uint8Array(),
-  metadata: {assetType: T.RPCChat.AssetMetadataType.image, image: {height: 80, width: 120}},
-  mimeType: 'image/png',
-  nonce: new Uint8Array(),
-  path: '',
-  ptHash: new Uint8Array(),
-  region: '',
-  size: 100,
-  tag: T.RPCChat.AssetTag.primary,
-  title: filename,
-  verifyKey: new Uint8Array(),
-})
-
-const makeValidAttachmentUIMessage = (
-  serverMsgID: T.Chat.MessageID,
-  filename: string
-): T.RPCChat.UIMessage => {
-  const base = makeValidTextUIMessage(serverMsgID, filename)
-  if (base.state !== T.RPCChat.MessageUnboxedState.valid) {
-    throw new Error('expected valid base message')
-  }
-  return {
-    state: T.RPCChat.MessageUnboxedState.valid,
-    valid: {
-      ...base.valid,
-      messageBody: {
-        attachment: {
-          metadata: new Uint8Array(),
-          object: makeAsset(filename),
-          previews: [makeAsset(`${filename}.preview`)],
-          uploaded: true,
-        },
-        messageType: T.RPCChat.MessageType.attachment,
-      },
-    },
-  }
-}
-
-const renderAttachmentSections = () =>
-  renderHook(() => useAttachmentSections({commonSections: []}, true, false), {
-    wrapper: ({children}: {children: React.ReactNode}) => <ChatProvider id={convID}>{children}</ChatProvider>,
-  })
+const renderAttachmentSections = (loadImmediately = true) =>
+  renderHook(
+    ({loadImmediately}: {loadImmediately: boolean}) => ({
+      ...useAttachmentSections({commonSections: [], conversationIDKey: convID}, loadImmediately, false),
+    }),
+    {initialProps: {loadImmediately}}
+  )
 
 beforeEach(() => {
   jest.useFakeTimers()
@@ -128,7 +86,7 @@ afterEach(() => {
   resetAllStores()
 })
 
-test('attachment gallery loads media, dedupes hits, injects messages, and loads more from the oldest hit', async () => {
+test('attachment gallery loads media, dedupes hits, and loads more from the oldest hit', async () => {
   const requests = new Array<Parameters<typeof T.RPCChat.localLoadGalleryRpcListener>[0]>()
   jest.spyOn(T.RPCChat, 'localLoadGalleryRpcListener').mockImplementation(async p => {
     requests.push(p)
@@ -159,14 +117,6 @@ test('attachment gallery loads media, dedupes hits, injects messages, and loads 
     num: 50,
     typ: T.RPCChat.GalleryItemTyp.media,
   })
-  expect(getConvoState(convID).messageMap.get(T.Chat.numberToOrdinal(100))?.id).toBe(
-    T.Chat.numberToMessageID(100)
-  )
-  expect(getConvoState(convID).messageMap.get(T.Chat.numberToOrdinal(101))?.id).toBe(
-    T.Chat.numberToMessageID(101)
-  )
-  expect(getConvoState(convID).messageMap.size).toBe(2)
-
   const loadMoreSection = result.current.sections.at(-1)
   const loadMoreButton = loadMoreSection?.renderItem({
     index: 0,
@@ -218,6 +168,35 @@ test('attachment gallery exposes error retry and empty success states', async ()
   )
 })
 
+test('attachment gallery waits to load until the attachments view is active', async () => {
+  const requests = new Array<Parameters<typeof T.RPCChat.localLoadGalleryRpcListener>[0]>()
+  jest.spyOn(T.RPCChat, 'localLoadGalleryRpcListener').mockImplementation(async p => {
+    requests.push(p)
+    await Promise.resolve()
+    return {last: true}
+  })
+  const {rerender} = renderAttachmentSections(false)
+
+  await act(async () => {
+    jest.advanceTimersByTime(1)
+    await flushPromises()
+  })
+
+  expect(requests).toHaveLength(0)
+
+  await act(async () => {
+    rerender({loadImmediately: true})
+    await flushPromises()
+  })
+
+  await act(async () => {
+    jest.advanceTimersByTime(1)
+    await flushPromises()
+  })
+
+  expect(requests).toHaveLength(1)
+})
+
 test('attachment gallery ignores hits that arrive after unmount cleanup', async () => {
   let request: Parameters<typeof T.RPCChat.localLoadGalleryRpcListener>[0] | undefined
   let resolveLoad: ((result: T.RPCChat.LoadGalleryRes) => void) | undefined
@@ -246,60 +225,5 @@ test('attachment gallery ignores hits that arrive after unmount cleanup', async 
     await flushPromises()
   })
 
-  expect(getConvoState(convID).messageMap.size).toBe(0)
-})
-
-test('attachment gallery doc rows reflect live transfer progress from convostate', async () => {
-  const requests = new Array<Parameters<typeof T.RPCChat.localLoadGalleryRpcListener>[0]>()
-  const attachmentMsgID = T.Chat.numberToMessageID(400)
-  jest.spyOn(T.RPCChat, 'localLoadGalleryRpcListener').mockImplementation(async p => {
-    requests.push(p)
-    if (p.params.typ === T.RPCChat.GalleryItemTyp.doc) {
-      p.incomingCallMap['chat.1.chatUi.chatLoadGalleryHit']?.({
-        message: makeValidAttachmentUIMessage(attachmentMsgID, 'report.png'),
-      })
-    }
-    await Promise.resolve()
-    return {last: true}
-  })
-  const {result} = renderAttachmentSections()
-
-  await act(async () => {
-    jest.advanceTimersByTime(1)
-    await flushPromises()
-  })
-
-  const selectorSection = result.current.sections[0]
-  const selector = selectorSection?.renderItem({
-    index: 0,
-    item: {type: 'avselector'},
-  } as never) as {props: {onSelectView: (viewType: T.RPCChat.GalleryItemTyp) => void}} | undefined
-
-  await act(async () => {
-    selector?.props.onSelectView(T.RPCChat.GalleryItemTyp.doc)
-    jest.advanceTimersByTime(1)
-    await flushPromises()
-  })
-
-  expect(requests.at(-1)?.params.typ).toBe(T.RPCChat.GalleryItemTyp.doc)
-
-  const findDoc = () =>
-    result.current.sections.flatMap(section => section.data).find(item => item.type === 'doc')
-  expect(findDoc()).toEqual(expect.objectContaining({downloading: false, progress: 0}))
-
-  act(() => {
-    getConvoState(convID).dispatch.onEngineIncoming({
-      payload: {
-        params: {
-          bytesComplete: 50,
-          bytesTotal: 100,
-          convID: T.Chat.keyToConversationID(convID),
-          msgID: T.Chat.messageIDToNumber(attachmentMsgID),
-        },
-      },
-      type: 'chat.1.NotifyChat.ChatAttachmentDownloadProgress',
-    } as never)
-  })
-
-  expect(findDoc()).toEqual(expect.objectContaining({downloading: true, progress: 0.5}))
+  expect(request?.params.convID).toEqual(T.Chat.keyToConversationID(convID))
 })

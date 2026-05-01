@@ -1,22 +1,23 @@
 import * as C from '@/constants'
 import {zoomImage} from '@/constants/chat/helpers'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from './team-hooks'
 import {useConversationCenter} from './center-context'
+import {useConversationThreadID, useConversationThreadSelector} from './thread-context'
+import logger from '@/logger'
+import {RPCError} from '@/util/errors'
 
 const PinnedMessage = function PinnedMessage() {
-  const {conversationIDKey, teamID, teamname, pinnedMsg, onIgnore, pinMessage} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {meta, dispatch, id: conversationIDKey} = s
-      const {teamID, teamname} = meta
-      const pinnedMsg = meta.pinnedMsg
-      const {pinMessage, ignorePinnedMessage: onIgnore} = dispatch
-      return {conversationIDKey, onIgnore, pinMessage, pinnedMsg, teamID, teamname}
-    })
+  const conversationIDKey = useConversationThreadID()
+  const {pinnedMsg, teamID, teamname} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      pinnedMsg: s.meta.pinnedMsg,
+      teamID: s.meta.teamID,
+      teamname: s.meta.teamname,
+    }))
   )
   const {centerOnMessage} = useConversationCenter()
   const you = useCurrentUserState(s => s.username)
@@ -40,7 +41,27 @@ const PinnedMessage = function PinnedMessage() {
     }
   }
   const onUnpin = () => {
-    pinMessage()
+    const f = async () => {
+      try {
+        await T.RPCChat.localUnpinMessageRpcPromise(
+          {convID: T.Chat.keyToConversationID(conversationIDKey)},
+          C.waitingKeyChatUnpin(conversationIDKey)
+        )
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.error(`pinMessage: ${error.message}`)
+        }
+      }
+    }
+    C.ignorePromise(f())
+  }
+  const onIgnore = () => {
+    const f = async () => {
+      await T.RPCChat.localIgnorePinnedMessageRpcPromise({
+        convID: T.Chat.keyToConversationID(conversationIDKey),
+      })
+    }
+    C.ignorePromise(f())
   }
   const closeref = React.useRef<Kb.MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)

@@ -1,18 +1,31 @@
-import type * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
-import {useCurrentUserState} from '@/stores/current-user'
-import {linkFromConvAndMessage} from '@/constants/deeplinks'
-import ReactionItem from './reactionitem'
-import MessagePopupHeader from './header'
-import ExplodingPopupHeader from './exploding-header'
-import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
-import {navToProfile, setThreadInputEditing, setThreadInputReplyTo} from '@/constants/router'
+import * as T from '@/constants/types'
 import {copyToClipboard} from '@/util/storeless-actions'
-import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
+import {
+  deleteConversationMessage,
+  pinConversationMessage,
+  toggleConversationMessageReaction,
+} from '../../message-actions'
+import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
+import {linkFromConvAndMessage} from '@/constants/deeplinks'
+import {markConversationAsUnread} from '../../data-hooks'
+import {showForwardMessagePicker} from '../../fwd-msg'
+import {navToProfile, setThreadInputEditing, setThreadInputReplyTo} from '@/constants/router'
 import {SetOrangeLineContext} from '../../orange-line-context'
+import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
+import {useCurrentUserState} from '@/stores/current-user'
+import {
+  useConversationThreadID,
+  useConversationThreadMessage,
+  useConversationThreadMessageActions,
+  useConversationThreadSelector,
+  useConversationThreadSetMarkAsUnread,
+} from '../../thread-context'
+import ExplodingPopupHeader from './exploding-header'
+import MessagePopupHeader from './header'
+import ReactionItem from './reactionitem'
 
 const emptyText = Chat.makeMessageText({})
 
@@ -30,30 +43,41 @@ const getConversationLabel = (
   return Chat.getRowParticipants(participantInfo, '').join(',')
 }
 
-export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
-  const currentConversationIDKey = ConvoState.useChatContext(s => s.id)
-  const message = ConvoState.useChatContext(s => {
-    return s.messageMap.get(ordinal) ?? emptyText
-  })
+type ItemActions = {
+  deleteMessage: () => void
+  markAsUnread: (id: T.Chat.MessageID) => void
+  toggleReaction: (emoji: string) => void
+}
+
+const useItemsForMessage = (p: {
+  actions: ItemActions
+  conversationIDKey: T.Chat.ConversationIDKey
+  message: T.Chat.Message
+  meta: T.Chat.ConversationMeta
+  onHidden: () => void
+  participantInfo: T.Chat.ParticipantInfo
+}) => {
+  const {actions, conversationIDKey, message, meta, onHidden, participantInfo} = p
+  const ordinal = message.ordinal
   const isAttach = message.type === 'attachment'
   const {author, id, deviceName, timestamp, deviceRevokedAt} = message
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const hasMessageID = !!T.Chat.messageIDToNumber(id)
   const {teamID, teamname} = meta
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
   const onReact = (emoji: string) => {
-    toggleMessageReaction(ordinal, emoji)
+    actions.toggleReaction(emoji)
   }
-  const navigateAppend = ConvoState.useChatNavigateAppend()
   const _onAddReaction = () => {
-    navigateAppend(conversationIDKey => ({
+    if (!hasMessageID) {
+      return
+    }
+    C.Router2.navigateAppend({
       name: 'chatChooseEmoji',
       params: {
         conversationIDKey,
-        onPickAddToMessageOrdinal: ordinal,
+        onPickAddToMessageID: id,
         pickKey: 'reaction',
       },
-    }))
+    })
   }
   const onAddReaction = C.isMobile ? _onAddReaction : undefined
 
@@ -67,11 +91,11 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
         ? !participantInfo.name.includes(author)
         : false
   const _onInstallBot = () => {
-    navigateAppend(() => ({name: 'chatInstallBotPick', params: {botUsername: author}}))
+    C.Router2.navigateAppend({name: 'chatInstallBotPick', params: {botUsername: author}})
   }
   const onInstallBot = authorIsBot ? _onInstallBot : undefined
 
-  const itemReaction = onAddReaction
+  const itemReaction = onAddReaction && hasMessageID
     ? ([
         {
           title: '',
@@ -96,32 +120,28 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const onCopyLink = () => {
     copyToClipboard(linkFromConvAndMessage(convLabel, id))
   }
-  const itemCopyLink = [
-    {icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'},
-  ] as const
+  const itemCopyLink = hasMessageID
+    ? ([{icon: 'iconfont-link', onClick: onCopyLink, title: 'Copy a link to this message'}] as const)
+    : []
 
-  const {messageDelete, pinMessage, setMarkAsUnread} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {messageDelete, pinMessage, setMarkAsUnread} = s.dispatch
-      return {messageDelete, pinMessage, setMarkAsUnread}
-    })
-  )
   const setOrangeLine = React.useContext(SetOrangeLineContext)
   const onReply = () => {
-    setThreadInputReplyTo(currentConversationIDKey, ordinal)
+    setThreadInputReplyTo(conversationIDKey, ordinal)
   }
   const itemReply = message.exploded
     ? []
-    : ([{icon: 'iconfont-reply', onClick: onReply, title: 'Reply'}] as const)
+    : hasMessageID
+      ? ([{icon: 'iconfont-reply', onClick: onReply, title: 'Reply'}] as const)
+      : []
 
   const _onEdit = () => {
-    setThreadInputEditing(currentConversationIDKey, ordinal)
+    setThreadInputEditing(conversationIDKey, ordinal)
   }
 
   const you = useCurrentUserState(s => s.username)
   const yourMessage = author === you
   const onEdit = yourMessage ? _onEdit : undefined
-  const isEditable = message.isEditable && yourMessage && !message.exploded
+  const isEditable = hasMessageID && message.isEditable && yourMessage && !message.exploded
   const itemEdit =
     onEdit && isEditable
       ? ([
@@ -134,13 +154,9 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
       : []
 
   const _onForward = () => {
-    navigateAppend(conversationIDKey => ({
-      name: 'chatForwardMsgPick',
-      params: {conversationIDKey, ordinal},
-    }))
+    showForwardMessagePicker(conversationIDKey, message)
   }
-  const onForward = isAttach || (message.unfurls?.size ?? 0) > 0 ? _onForward : undefined // only unfurls for text
-
+  const onForward = hasMessageID && (isAttach || (message.unfurls?.size ?? 0) > 0) ? _onForward : undefined
   const itemForward = onForward
     ? ([{icon: 'iconfont-forward', onClick: onForward, title: 'Forward'}] as const)
     : []
@@ -148,26 +164,28 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const isTeam = !!teamname
   const canPinMessage = (!isTeam || yourOperations.pinMessage) && !message.exploded
   const _onPinMessage = () => {
-    pinMessage(id)
+    if (id) {
+      pinConversationMessage(conversationIDKey, id)
+    }
   }
-  const onPinMessage = canPinMessage ? _onPinMessage : undefined
+  const onPinMessage = canPinMessage && hasMessageID ? _onPinMessage : undefined
   const itemPin = onPinMessage
     ? ([{icon: 'iconfont-pin', onClick: onPinMessage, title: 'Pin message'}] as const)
     : []
 
   const onMarkAsUnread = () => {
     if (id) {
-      setOrangeLine(id)
+      setOrangeLine(ordinal)
+      actions.markAsUnread(id)
     }
-    setMarkAsUnread(id)
   }
-  const itemUnread = [
-    {icon: 'iconfont-envelope-solid', onClick: onMarkAsUnread, title: 'Mark as unread'},
-  ] as const
+  const itemUnread = hasMessageID
+    ? ([{icon: 'iconfont-envelope-solid', onClick: onMarkAsUnread, title: 'Mark as unread'}] as const)
+    : []
 
   const clearModals = C.Router2.clearModals
   const _onDelete = () => {
-    messageDelete(ordinal)
+    actions.deleteMessage()
     clearModals()
   }
 
@@ -175,7 +193,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const canExplodeNow =
     message.exploding && (yourMessage || canDeleteHistory) && message.isDeleteable && !message.exploded
   const _onExplodeNow = () => {
-    messageDelete(ordinal)
+    actions.deleteMessage()
   }
   const onExplodeNow = canExplodeNow ? _onExplodeNow : undefined
   const canAdminDelete = yourOperations.deleteOtherMessages
@@ -206,7 +224,7 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
     : []
 
   const _onKick = () => {
-    navigateAppend(() => ({name: 'teamReallyRemoveMember', params: {members: [author], teamID}}))
+    C.Router2.navigateAppend({name: 'teamReallyRemoveMember', params: {members: [author], teamID}})
   }
   const authorInTeam = teamMembers.size ? teamMembers.has(author) : true
   const onKick = isDeleteable && !!teamID && !yourMessage && authorInTeam ? _onKick : undefined
@@ -256,10 +274,54 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   }
 }
 
-export const useHeader = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
-  const message = ConvoState.useChatContext(s => {
-    return s.messageMap.get(ordinal) ?? emptyText
+export type MessagePopupItems = ReturnType<typeof useItemsForMessage>
+
+const useThreadItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
+  const conversationIDKey = useConversationThreadID()
+  const message = useConversationThreadMessage(ordinal) ?? emptyText
+  const {meta, participantInfo} = useConversationThreadSelector(
+    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
+  )
+  const {messageDelete, toggleMessageReaction} = useConversationThreadMessageActions()
+  const setMarkAsUnread = useConversationThreadSetMarkAsUnread()
+  return useItemsForMessage({
+    actions: {
+      deleteMessage: () => messageDelete(ordinal),
+      markAsUnread: setMarkAsUnread,
+      toggleReaction: emoji => toggleMessageReaction(ordinal, emoji),
+    },
+    conversationIDKey,
+    message,
+    meta,
+    onHidden,
+    participantInfo,
   })
+}
+
+export const useStorelessItems = (p: {
+  conversationIDKey: T.Chat.ConversationIDKey
+  message: T.Chat.Message
+  meta: T.Chat.ConversationMeta
+  onHidden: () => void
+  participantInfo: T.Chat.ParticipantInfo
+}) =>
+  useItemsForMessage({
+    actions: {
+      deleteMessage: () => deleteConversationMessage(p.conversationIDKey, p.message, p.meta.tlfname),
+      markAsUnread: id => markConversationAsUnread(p.conversationIDKey, id),
+      toggleReaction: emoji =>
+        toggleConversationMessageReaction(p.conversationIDKey, p.message, emoji, p.meta.tlfname),
+    },
+    conversationIDKey: p.conversationIDKey,
+    message: p.message,
+    meta: p.meta,
+    onHidden: p.onHidden,
+    participantInfo: p.participantInfo,
+  })
+
+export const useItems = useThreadItems
+
+export const useHeaderForMessage = (message: T.Chat.Message, onHidden: () => void) => {
   const you = useCurrentUserState(s => s.username)
   const {author, deviceType, deviceName, botUsername, timestamp, exploding, explodingTime} = message
   const yourMessage = author === you
@@ -293,4 +355,9 @@ export const useHeader = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
       yourMessage={yourMessage}
     />
   )
+}
+
+export const useHeader = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
+  const message = useConversationThreadMessage(ordinal) ?? emptyText
+  return useHeaderForMessage(message, onHidden)
 }

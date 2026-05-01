@@ -1,8 +1,7 @@
 import * as C from '@/constants'
 import * as CryptoRoutes from '@/constants/crypto'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
@@ -10,6 +9,7 @@ import type {StyleOverride} from '@/common-adapters/markdown'
 import {getEditStyle, ShowToastAfterSaving} from './shared'
 import {makeUUID} from '@/util/uuid'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {showPDFViewer, useConversationAttachmentActions} from '../../attachment-actions'
 
 type OwnProps = {
   isEditing: boolean
@@ -20,12 +20,7 @@ type OwnProps = {
 
 function FileContainer(p: OwnProps) {
   const {isEditing, message, ordinal} = p
-  const {attachmentDownload, messageAttachmentNativeShare} = ConvoState.useChatContext(
-    C.useShallow(s => ({
-      attachmentDownload: s.dispatch.attachmentDownload,
-      messageAttachmentNativeShare: s.dispatch.messageAttachmentNativeShare,
-    }))
-  )
+  const {attachmentDownload, messageAttachmentNativeShare} = useConversationAttachmentActions()
   const {
     conversationIDKey,
     downloadPath,
@@ -35,6 +30,7 @@ function FileContainer(p: OwnProps) {
     transferProgress: progress,
     transferState,
   } = message
+  const hasMessageID = !!T.Chat.messageIDToNumber(message.id)
   const title = message.decoratedText?.stringValue() || message.title || message.fileName
 
   const switchTab = C.Router2.switchTab
@@ -63,14 +59,14 @@ function FileContainer(p: OwnProps) {
   }
 
   const onDownload = () => {
+    if (!hasMessageID) {
+      return
+    }
     if (C.isMobile) {
       messageAttachmentNativeShare(ordinal, true)
     } else if (!downloadPath) {
       if (fileType === 'application/pdf') {
-        navigateAppend({
-          name: 'chatPDF',
-          params: {conversationIDKey, ordinal},
-        })
+        showPDFViewer(conversationIDKey, message)
       } else {
         switch (transferState) {
           case 'uploading':
@@ -98,7 +94,7 @@ function FileContainer(p: OwnProps) {
   const fileName = _fileName
   const isSaltpackFile = !!fileName && isPathSaltpack(fileName)
   const onShowInFinder = !C.isMobile && downloadPath ? _onShowInFinder : undefined
-  const showMessageMenu = p.showPopup
+  const showMessageMenu = hasMessageID ? p.showPopup : undefined
 
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(transferState)
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
@@ -114,7 +110,7 @@ function FileContainer(p: OwnProps) {
     : undefined
 
   return (
-    <Kb.ClickableBox2 onLongPress={showMessageMenu} onClick={onDownload}>
+    <Kb.ClickableBox2 onLongPress={showMessageMenu} onClick={hasMessageID ? onDownload : undefined}>
       <ShowToastAfterSaving transferState={transferState} />
       <Kb.Box2
         direction="vertical"
@@ -151,7 +147,7 @@ function FileContainer(p: OwnProps) {
             {fileName !== title && (
               <Kb.Text
                 type="BodyTiny"
-                onClick={onDownload}
+                onClick={hasMessageID ? onDownload : undefined}
                 style={Kb.Styles.collapseStyles([
                   isSaltpackFile && styles.saltpackFileName,
                   getEditStyle(isEditing),
@@ -190,7 +186,7 @@ function FileContainer(p: OwnProps) {
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
             <Kb.Text type="BodySmall" style={styles.error}>
               Failed to download.{' '}
-              <Kb.Text type="BodySmall" style={styles.retry} onClick={onDownload}>
+              <Kb.Text type="BodySmall" style={styles.retry} onClick={hasMessageID ? onDownload : undefined}>
                 Retry
               </Kb.Text>
             </Kb.Text>

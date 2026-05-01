@@ -3,9 +3,11 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as S from '@/constants/strings'
-import * as ConvoState from '@/stores/convostate'
 import {useUsersState} from '@/stores/users'
 import {leaveTeam} from '@/teams/actions'
+import {navigateToInbox} from '@/constants/router'
+import {persistRoute} from '@/util/storeless-actions'
+import {useConfigState} from '@/stores/config'
 
 // Type for extra RouteProp passed to block modal sometimes when launching the
 // modal from specific places from the app.
@@ -28,7 +30,7 @@ type OwnProps = {
   flagUserByDefault?: boolean
   reportsUserByDefault?: boolean
   context?: BlockModalContext
-  conversationIDKey?: string
+  conversationIDKey?: T.Chat.ConversationIDKey
   others?: Array<string>
   team?: string
   username?: string
@@ -164,7 +166,21 @@ const Container = function BlockModal(ownProps: OwnProps) {
       () => {}
     )
   }
-  const setConversationStatus = ConvoState.useChatContext(s => s.dispatch.blockConversation)
+  const setConversationStatus = (reportUser: boolean) => {
+    if (!conversationIDKey) {
+      return
+    }
+    const f = async () => {
+      navigateToInbox()
+      persistRoute(false, false, () => useConfigState.getState().startup.loaded)
+      await T.RPCChat.localSetConversationStatusLocalRpcPromise({
+        conversationID: T.Chat.keyToConversationID(conversationIDKey),
+        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+        status: reportUser ? T.RPCChat.ConversationStatus.reported : T.RPCChat.ConversationStatus.blocked,
+      })
+    }
+    C.ignorePromise(f())
+  }
   const setUserBlocks = (newBlocks: NewBlocksMap) => {
     // Convert our state block array to action payload.
     const blocks = [...newBlocks.entries()]

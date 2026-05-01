@@ -29,8 +29,6 @@ import {
 import {initPushListener, getStartupDetailsFromInitialPush} from './push-listener.native'
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {noConversationIDKey} from '../types/chat/common'
-import {getSelectedConversation} from '../chat/common'
-import {getConvoState} from '@/stores/convostate'
 import {requestLocationPermission} from '@/util/platform-specific/index.native'
 import * as ScreenCapture from 'expo-screen-capture'
 import {getSecureFlagSetting} from '@/constants/platform.native'
@@ -270,12 +268,6 @@ export const initPlatformListener = () => {
 
     logger.info(`setting app state on service to: ${logState}`)
     s.dispatch.changedFocus(appFocused)
-
-    if (appFocused && old.mobileAppState !== 'active') {
-      const {dispatch} = getConvoState(getSelectedConversation())
-      dispatch.loadMoreMessages({reason: 'foregrounding'})
-      dispatch.markThreadAsRead()
-    }
   })
 
   const configureAndroidCacheDir = () => {

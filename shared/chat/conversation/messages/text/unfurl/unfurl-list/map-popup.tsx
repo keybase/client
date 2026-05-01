@@ -1,12 +1,14 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters/index'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {openURL} from '@/util/misc'
 import LocationMap from '@/chat/location-map'
 import {useConfigState} from '@/stores/config'
+import {sendTextToConversation} from '../../../../send-actions'
+import {useConversationMeta} from '../../../../data-hooks'
 
 type Props = {
+  conversationIDKey?: T.Chat.ConversationIDKey
   coord: T.Chat.Coordinate
   isAuthor: boolean
   author?: string
@@ -14,10 +16,11 @@ type Props = {
   url: string
 }
 
-const UnfurlMapPopup = (props: Props) => {
-  const {coord, isAuthor, isLiveLocation, url} = props
+const UnfurlMapPopupInner = (props: Props) => {
+  const {coord, conversationIDKey = T.Chat.noConversationIDKey, isAuthor, isLiveLocation, url} = props
   const author = props.author ?? ''
   const httpSrv = useConfigState(s => s.httpSrv)
+  const {tlfname} = useConversationMeta(conversationIDKey)
 
   const clearModals = C.Router2.clearModals
   const onClose = () => {
@@ -27,10 +30,11 @@ const UnfurlMapPopup = (props: Props) => {
     onClose()
     openURL(url)
   }
-  const sendMessage = ConvoState.useChatContext(s => s.dispatch.sendMessage)
   const onStopSharing = () => {
     onClose()
-    sendMessage('/location stop')
+    if (tlfname) {
+      sendTextToConversation(conversationIDKey, tlfname, '/location stop')
+    }
   }
 
   const width = Kb.Styles.isMobile ? Math.ceil(Kb.Styles.dimensionWidth) : 300
@@ -55,6 +59,10 @@ const UnfurlMapPopup = (props: Props) => {
       </Kb.Box2>
     </>
   )
+}
+
+const UnfurlMapPopup = (props: Props) => {
+  return <UnfurlMapPopupInner {...props} />
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

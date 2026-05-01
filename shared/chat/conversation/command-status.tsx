@@ -13,7 +13,7 @@ const Container = () => {
   const info = InputState.useConversationInput(s => s.commandStatus)
   const _info = info || empty
 
-  const setCommandStatusInfo = InputState.useConversationInput(s => s.dispatch.setCommandStatusInfo)
+  const setCommandStatusInfo = InputState.useConversationInputDispatch(s => s.setCommandStatusInfo)
   const onCancel = () => {
     setCommandStatusInfo()
   }

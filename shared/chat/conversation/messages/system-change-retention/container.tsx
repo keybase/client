@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import * as T from '@/constants/types'
 import * as dateFns from 'date-fns'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam} from '../../team-hooks'
+import {useConversationShowInfoPanel, useConversationThreadSelector} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemChangeRetention}
 
@@ -13,14 +13,14 @@ function SystemChangeRetentionContainer(p: OwnProps) {
   const {message} = p
   const {isInherit, isTeam, membersType, policy, user} = message
   const you = useCurrentUserState(s => s.username)
-  const {teamID, teamType, teamname, showInfoPanel} = ConvoState.useChatContext(
+  const {teamID, teamType, teamname} = useConversationThreadSelector(
     C.useShallow(s => ({
-      showInfoPanel: s.dispatch.showInfoPanel,
       teamID: s.meta.teamID,
       teamType: s.meta.teamType,
       teamname: s.meta.teamname,
     }))
   )
+  const showInfoPanel = useConversationShowInfoPanel()
   const {yourOperations} = useChatTeam(teamID, teamname)
   const canManage = teamType === 'adhoc' ? true : yourOperations.setRetentionPolicy
   const onManageRetention = () => {

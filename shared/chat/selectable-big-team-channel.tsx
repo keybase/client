@@ -6,6 +6,7 @@ import {BottomLine} from './inbox/row/small-team'
 import type * as T from '@/constants/types'
 
 type Props = {
+  conversationIDKey: T.Chat.ConversationIDKey
   isSelected: boolean
   numSearchHits?: number
   maxSearchHits?: number
@@ -68,6 +69,7 @@ const SelectableBigTeamChannel = (props: Props) => {
         </Kb.Box2>
         {!props.numSearchHits && (
           <BottomLine
+            conversationIDKey={props.conversationIDKey}
             snippet={props.snippet}
             snippetDecoration={props.snippetDecoration}
             isSelected={props.isSelected}

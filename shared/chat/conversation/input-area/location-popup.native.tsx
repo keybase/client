@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import {useConfigState} from '@/stores/config'
 import logger from '@/logger'
@@ -12,6 +11,8 @@ import * as ExpoLocation from 'expo-location'
 import {ignorePromise} from '@/constants/utils'
 import {openAppSettings} from '@/util/storeless-actions'
 import {setThreadInputCommandStatus} from '@/constants/router'
+import {sendTextToConversation} from '../send-actions'
+import {useConversationMeta} from '../data-hooks'
 
 const LocationButton = (props: {
   disabled: boolean
@@ -91,8 +92,9 @@ const useWatchPosition = (
   }, [conversationIDKey, onPermissionDenied, setLocation])
 }
 
-const LocationPopup = () => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+const LocationPopupInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey} = props
+  const {tlfname} = useConversationMeta(conversationIDKey)
   const username = useCurrentUserState(s => s.username)
   const httpSrv = useConfigState(s => s.httpSrv)
   const [location, setLocation] = React.useState<T.Chat.Coordinate>()
@@ -113,10 +115,13 @@ const LocationPopup = () => {
   const onClose = () => {
     clearModals()
   }
-  const sendMessage = ConvoState.useChatContext(s => s.dispatch.sendMessage)
   const onLocationShare = (duration: string) => {
     onClose()
-    sendMessage(duration ? `/location live ${duration}` : '/location')
+    if (!tlfname) {
+      logger.warn('LocationPopup: no tlfname for send')
+      return
+    }
+    sendTextToConversation(conversationIDKey, tlfname, duration ? `/location live ${duration}` : '/location')
   }
 
   useWatchPosition(conversationIDKey, onPermissionDenied, setLocation)
@@ -172,6 +177,13 @@ const LocationPopup = () => {
       </Kb.Box2>
     </>
   )
+}
+
+type LocationPopupProps = {conversationIDKey?: T.Chat.ConversationIDKey}
+
+const LocationPopup = (props: LocationPopupProps) => {
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
+  return <LocationPopupInner conversationIDKey={conversationIDKey} />
 }
 
 const styles = Kb.Styles.styleSheetCreate(

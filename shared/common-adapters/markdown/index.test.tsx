@@ -180,6 +180,11 @@ test('Markdown uses big emoji rendering for standalone emoji messages', () => {
   expect(getMarkdownOutputKind(parseMarkdown(':wave:'))).toBe('bigEmoji')
 })
 
+test('Markdown renders stock emoji aliases', () => {
+  const {container} = render(<Markdown>{':thumbsup:'}</Markdown>)
+  expect(container.textContent).toContain('👍')
+})
+
 test('Markdown keeps default output for mixed emoji and text', () => {
   expect(getMarkdownOutputKind(parseMarkdown(':wave: hi'))).toBe('default')
 })

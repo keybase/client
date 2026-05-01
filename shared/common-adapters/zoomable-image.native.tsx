@@ -15,15 +15,19 @@ import {
 function ZoomableImage(p: Props) {
   const {src, style, onChanged: onZoom, onSwipe: _onSwipe, onTap} = p
   const {isFetching, resolution} = useImageResolution({uri: src})
+  const srcDims = p.srcDims?.width && p.srcDims.height ? p.srcDims : undefined
+  const imageResolution = resolution ?? srcDims
+  const imageResolutionHeight = imageResolution?.height
+  const imageResolutionWidth = imageResolution?.width
   const currentZoomSV = useSharedValue(1)
 
   const onUpdate = (s: CommonZoomState<number>) => {
     'worklet'
     currentZoomSV.set(s.scale)
-    if (onZoom && resolution?.width) {
-      const actualScale = (s.scale * s.childSize.width) / resolution.width
+    if (onZoom && imageResolutionWidth) {
+      const actualScale = (s.scale * s.childSize.width) / imageResolutionWidth
       const {width} = s.childSize
-      const scale = width / resolution.width
+      const scale = width / imageResolutionWidth
       const scaledContainerWidth = s.containerSize.width / scale
       const scaledContainerHeight = s.containerSize.height / scale
 
@@ -67,10 +71,16 @@ function ZoomableImage(p: Props) {
     })
   }
 
-  if (isFetching || !resolution || containerSize.width === 0 || containerSize.height === 0) {
+  if (
+    (!imageResolution && isFetching) ||
+    !imageResolutionHeight ||
+    !imageResolutionWidth ||
+    containerSize.width === 0 ||
+    containerSize.height === 0
+  ) {
     content = <></>
   } else {
-    const size = fitContainer(resolution.width / resolution.height, containerSize)
+    const size = fitContainer(imageResolutionWidth / imageResolutionHeight, containerSize)
     content = (
       <Image
         contentFit="fill"

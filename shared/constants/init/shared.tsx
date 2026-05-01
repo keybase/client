@@ -13,8 +13,6 @@ declare global {
 
   var __hmr_oneTimeInitDone: boolean | undefined
 
-  var __hmr_chatStores: Map<unknown, unknown> | undefined
-
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
 import type * as UseBlockButtonsStateType from '@/chat/blocking/block-buttons-state'
@@ -22,7 +20,6 @@ import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {getTBStore} from '@/stores/team-building'
-import {getSelectedConversation} from '@/constants/chat/common'
 import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
 import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
@@ -45,18 +42,16 @@ import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
+import {handleConvoEngineIncoming} from '@/chat/inbox/engine'
 import {
-  getConvoState,
+  onChatRouteChanged,
   onChatInboxSynced,
   onGetInboxConvsUnboxed,
   onGetInboxUnverifiedConvs,
   onInboxLayoutChanged,
   onIncomingInboxUIItem,
-  handleConvoEngineIncoming,
-  onRouteChanged as onConvoRouteChanged,
   syncBadgeState,
-  syncGregorExplodingModes,
-} from '@/stores/convostate'
+} from '@/chat/inbox/metadata'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 import {clearNavBadges} from '@/teams/actions'
@@ -221,11 +216,6 @@ const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configured
   }
 }
 
-const onUserActiveChanged = () => {
-  const cs = getConvoState(getSelectedConversation())
-  cs.dispatch.markThreadAsRead()
-}
-
 const loadChatStaticConfig = () => {
   const {chatBuiltinCommands, chatDeletableByDeleteHistory} = useConfigState.getState()
   if (chatBuiltinCommands && chatDeletableByDeleteHistory) {
@@ -350,7 +340,7 @@ const onNavStateChanged = (nextNavState: RouterState['navState'], previousNavSta
     clearNavBadges()
   }
 
-  onConvoRouteChanged(prev, next)
+  onChatRouteChanged(prev, next)
 }
 
 export const onEngineConnected = () => {
@@ -422,10 +412,6 @@ export const initSharedSubscriptions = () => {
   )
 
   _sharedUnsubs.push(
-    subscribeValue(useShellState, s => s.active, onUserActiveChanged)
-  )
-
-  _sharedUnsubs.push(
     subscribeValue(useDaemonState, s => s.handshakeVersion, onHandshakeVersionChanged),
     subscribeValue(useDaemonState, s => bootstrapStatusKey(s.bootstrapStatus), () =>
       onBootstrapStatusChanged(useDaemonState.getState().bootstrapStatus)
@@ -445,10 +431,7 @@ export const initSharedSubscriptions = () => {
 // This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
   const routeConvoEngineIncoming = (engineAction: EngineGen.Actions) => {
-    const result = handleConvoEngineIncoming(
-      engineAction,
-      useConfigState.getState().chatDeletableByDeleteHistory
-    )
+    const result = handleConvoEngineIncoming(engineAction)
     if (result.inboxUIItem) {
       onIncomingInboxUIItem(result.inboxUIItem)
     }
@@ -487,7 +470,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       if (goodState.length !== items.length) {
         logger.warn('Lost some messages in filtering out nonNull gregor items')
       }
-      syncGregorExplodingModes(goodState)
       const {useBlockButtonsState} = require(
         '@/chat/blocking/block-buttons-state'
       ) as typeof UseBlockButtonsStateType

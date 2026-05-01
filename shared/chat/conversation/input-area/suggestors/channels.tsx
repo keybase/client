@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
@@ -8,6 +7,7 @@ import {useChatTeamNames} from '../../team-hooks'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as React from 'react'
+import {useConversationMetadata} from '../../data-hooks'
 
 export const transformer = (
   {channelname, teamname}: {channelname: string; teamname?: string},
@@ -136,10 +136,8 @@ const getChannelSuggestions = (
   return suggestions
 }
 
-const useDataSource = (filter: string) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const meta = ConvoState.useChatContext(s => s.meta)
-  const participants = ConvoState.useChatContext(s => s.participants)
+const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: string) => {
+  const {meta, participants} = useConversationMetadata(conversationIDKey)
   const mutualTeams = useMutualTeams(conversationIDKey, meta, participants)
   const {teamnames: mutualTeamnamesByID, loading: loadingMutualTeamnames} = useChatTeamNames(mutualTeams)
   const {teamID} = meta
@@ -165,16 +163,17 @@ type ChannelType = {
 }
 type ListProps = Pick<
   Common.ListProps<ChannelType>,
-  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
+  conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: ChannelType, final: boolean) => void
   setOnMoveRef: (r: (up: boolean) => void) => void
   setOnSubmitRef: (r: () => boolean) => void
 }
 export const List = (p: ListProps) => {
-  const {filter, ...rest} = p
-  const {items, loading} = useDataSource(filter)
+  const {conversationIDKey, filter, ...rest} = p
+  const {items, loading} = useDataSource(conversationIDKey, filter)
   return (
     <Common.List
       {...rest}

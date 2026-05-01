@@ -1,11 +1,11 @@
-import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type {AllowedColors} from '@/common-adapters/text.shared'
 import SelectableSmallTeam from './selectable-small-team'
-import {useCurrentUserState} from '@/stores/current-user'
+import {useInboxRowSmall} from '@/stores/inbox-rows'
+import type * as T from '@/constants/types'
 
 type OwnProps = {
+  conversationIDKey: T.Chat.ConversationIDKey
   filter?: string
   name: string
   numSearchHits?: number
@@ -38,22 +38,18 @@ const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const _hasBadge = ConvoState.useChatContext(s => s.badge > 0)
-  const _hasUnread = ConvoState.useChatContext(s => s.unread > 0)
-  const _meta = ConvoState.useChatContext(s => s.meta)
-  const _participantInfo = ConvoState.useChatContext(s => s.participants)
-  const _username = useCurrentUserState(s => s.username)
-  const isMuted = ConvoState.useChatContext(s => s.meta.isMuted)
+  const {conversationIDKey} = ownProps
+  const row = useInboxRowSmall(conversationIDKey)
+  const _hasBadge = row.hasBadge
+  const _hasUnread = row.hasUnread
+  const isMuted = row.isMuted
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const styles = getRowStyles(isSelected, _hasUnread)
-  const participantNeedToRekey = _meta.rekeyers.size > 0
-  const youNeedToRekey = !participantNeedToRekey && _meta.rekeyers.has(_username)
-  const isLocked = participantNeedToRekey || youNeedToRekey
+  const isLocked = row.isLocked || row.participantNeedToRekey || row.youNeedToRekey
 
   // order participants by hit, if it's set
   const filter = ownProps.filter ?? ''
-  const metaParts = Chat.getRowParticipants(_participantInfo, _username)
-  let participants = ownProps.participants ?? (metaParts.length > 0 ? metaParts : name.split(','))
+  let participants = ownProps.participants ?? (row.participants.length > 0 ? [...row.participants] : name.split(','))
   participants = participants.sort((a, b) => {
     const ai = a.indexOf(filter)
     const bi = b.indexOf(filter)
@@ -69,6 +65,7 @@ const Container = (ownProps: OwnProps) => {
 
   const props = {
     backgroundColor: styles.backgroundColor,
+    conversationIDKey,
     isLocked,
     isMuted,
     isSelected,
@@ -78,9 +75,9 @@ const Container = (ownProps: OwnProps) => {
     participants,
     showBadge: _hasBadge,
     showBold: styles.showBold,
-    snippet: _meta.snippet,
-    snippetDecoration: _meta.snippetDecoration,
-    teamname: _meta.teamname,
+    snippet: row.snippet,
+    snippetDecoration: row.snippetDecoration,
+    teamname: row.teamDisplayName,
     usernameColor: styles.usernameColor,
   }
 

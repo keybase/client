@@ -1,4 +1,4 @@
-import * as ConvoState from '@/stores/convostate'
+import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -15,6 +15,7 @@ import {ScrollContext} from '@/chat/conversation/normal/context'
 import {getTextStyle} from '@/common-adapters/text.styles'
 import {useColorScheme} from 'react-native'
 import KB2 from '@/util/electron.desktop'
+import {useConversationThreadID} from '../../thread-context'
 
 const {getPathForFile} = KB2.functions
 
@@ -267,6 +268,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
 type EmojiButtonProps = {inputRef: InputRefType}
 const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
   const {inputRef} = p
+  const conversationIDKey = useConversationThreadID()
   const insertEmoji = (emojiColons: string) => {
     inputRef.current?.transformText(({text, selection}) => {
       const newText =
@@ -284,7 +286,11 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
     const {attachTo, hidePopup} = p
     return (
       <Kb.Popup attachTo={attachTo} visible={true} onHidden={hidePopup} position="top right">
-        <EmojiPickerDesktop onPickAction={insertEmoji} onDidPick={hidePopup} />
+        <EmojiPickerDesktop
+          conversationIDKey={conversationIDKey}
+          onPickAction={insertEmoji}
+          onDidPick={hidePopup}
+        />
       </Kb.Popup>
     )
   }
@@ -312,7 +318,7 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
 }
 
 const GiphyButton = function GiphyButton() {
-  const toggleGiphyPrefill = InputState.useConversationInput(s => s.dispatch.toggleGiphyPrefill)
+  const toggleGiphyPrefill = InputState.useConversationInputDispatch(s => s.toggleGiphyPrefill)
   const onGiphyToggle = toggleGiphyPrefill
 
   return (
@@ -329,7 +335,7 @@ const fileListToPaths = (f: FileList): Array<string> => {
 const FileButton = function FileButton(p: {setHtmlInputRef: (i: HTMLInputElement | null) => void}) {
   const {setHtmlInputRef} = p
   const htmlInputRef = React.useRef<HTMLInputElement | null>(null)
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const pickFile = () => {
     const paths = htmlInputRef.current?.files ? fileListToPaths(htmlInputRef.current.files) : undefined
     const pathAndOutboxIDs = paths?.reduce<Array<{path: string}>>((arr, path: string) => {
@@ -339,10 +345,10 @@ const FileButton = function FileButton(p: {setHtmlInputRef: (i: HTMLInputElement
       return arr
     }, [])
     if (pathAndOutboxIDs?.length) {
-      navigateAppend(conversationIDKey => ({
+      C.Router2.navigateAppend({
         name: 'chatAttachmentGetTitles',
         params: {conversationIDKey, pathAndOutboxIDs},
-      }))
+      })
     }
 
     if (htmlInputRef.current) {
@@ -389,7 +395,7 @@ const useKeyboard = (p: UseKeyboardProps) => {
   const {htmlInputRef, focusInput, isEditing, onKeyDown, onCancelEditing} = p
   const {onChangeText, onEditLastMessage, showReplyPreview} = p
   const lastText = React.useRef('')
-  const setReplyTo = InputState.useConversationInput(s => s.dispatch.setReplyTo)
+  const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
   const {scrollDown, scrollUp} = React.useContext(ScrollContext)
   const onCancelReply = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))
@@ -507,7 +513,6 @@ const PlatformInput = function PlatformInput(p: Props) {
     onKeyDown,
     onChangeText: onChangeTextSuggestors,
   } = useSuggestors({
-    expanded: false,
     inputRef,
     onChangeText: p.onChangeText,
     onKeyDown: checkEnterOnKeyDown,
@@ -519,7 +524,7 @@ const PlatformInput = function PlatformInput(p: Props) {
   const focusInput = () => {
     inputRef.current?.focus()
   }
-  const setEditing = InputState.useConversationInput(s => s.dispatch.setEditing)
+  const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
   const onEditLastMessage = () => {
     setEditing('last')
   }

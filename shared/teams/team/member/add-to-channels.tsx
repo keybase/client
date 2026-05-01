@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -19,6 +18,7 @@ type Props = {
 
 const getChannelsForList = (
   channels: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>,
+  channelParticipants: Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>,
   usernames: string[]
 ) => {
   const processed = [...channels.values()].reduce(
@@ -31,8 +31,7 @@ const getChannelsForList = (
   const convIDKeysAvailable = sortedList
     .map(c => c.conversationIDKey)
     .filter(convIDKey => {
-      // TODO not reactive
-      const participants = ConvoState.getConvoState(convIDKey).participants.all
+      const participants = channelParticipants.get(convIDKey)?.all ?? []
       // At least one person is not in the channel
       return usernames.some(member => !participants.includes(member))
     })
@@ -52,8 +51,12 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const nav = useSafeNavigation()
   const {yourOperations} = useLoadedTeam(teamID)
 
-  const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
-  const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(channelMetas, usernames)
+  const {channelMetas, channelParticipants, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
+  const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(
+    channelMetas,
+    channelParticipants,
+    usernames
+  )
 
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
@@ -65,11 +68,12 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => {
-      // TODO not reactive
-      const p = ConvoState.getConvoState(c.conversationIDKey).participants
+      const p = channelParticipants.get(c.conversationIDKey)
+      const participants = p?.name.length ? p.name : (p?.all ?? [])
       return {
         channelMeta: c,
-        numMembers: p.name.length || p.all.length || 0,
+        numMembers: participants.length,
+        participants,
         type: 'channel' as const,
       }
     }),
@@ -163,6 +167,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
             mode={mode}
             reloadChannels={reloadChannels}
             usernames={usernames}
+            participants={item.participants}
             canDeleteChannel={yourOperations.deleteChannel}
             canEditChannelDescription={yourOperations.editChannelDescription}
           />
@@ -173,28 +178,27 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   // TODO: alternate title when there aren't channels yet?
   const title =
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
-  const desktopFooter = !Kb.Styles.isMobile && mode !== 'self' ? (
-    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-        <Kb.Button
-          type="Dim"
-          label="Cancel"
-          onClick={onCancel}
-          style={Kb.Styles.globalStyles.flexOne}
-          disabled={waiting}
-        />
-        <Kb.Button
-          label={
-            numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'
-          }
-          onClick={onFinish}
-          disabled={!numSelected}
-          style={Kb.Styles.globalStyles.flexOne}
-          waiting={waiting}
-        />
+  const desktopFooter =
+    !Kb.Styles.isMobile && mode !== 'self' ? (
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+          <Kb.Button
+            type="Dim"
+            label="Cancel"
+            onClick={onCancel}
+            style={Kb.Styles.globalStyles.flexOne}
+            disabled={waiting}
+          />
+          <Kb.Button
+            label={numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'}
+            onClick={onFinish}
+            disabled={!numSelected}
+            style={Kb.Styles.globalStyles.flexOne}
+            waiting={waiting}
+          />
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
-  ) : null
+    ) : null
 
   React.useEffect(() => {
     if (mode !== 'others') return
@@ -223,7 +227,12 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
       title,
     })
     return () => {
-      useModalHeaderState.setState({actionEnabled: false, actionWaiting: false, onAction: undefined, title: ''})
+      useModalHeaderState.setState({
+        actionEnabled: false,
+        actionWaiting: false,
+        onAction: undefined,
+        title: '',
+      })
     }
   }, [mode, waiting, selected, submit, usernames, nav, numSelected, title])
 
@@ -375,30 +384,30 @@ const SelfChannelActions = function SelfChannelActions(p: {
   }
 
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const menuItems = [
-        {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
-        ...(canDeleteChannel
-          ? [
-              {
-                icon: 'iconfont-nav-2-settings' as const,
-                onClick: onChannelSettings,
-                title: 'Channel settings',
-              },
-              {danger: true, icon: 'iconfont-remove' as const, onClick: onDelete, title: 'Delete'},
-            ]
-          : []),
-      ]
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          closeOnSelect={true}
-          items={menuItems}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    const menuItems = [
+      {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
+      ...(canDeleteChannel
+        ? [
+            {
+              icon: 'iconfont-nav-2-settings' as const,
+              onClick: onChannelSettings,
+              title: 'Channel settings',
+            },
+            {danger: true, icon: 'iconfont-remove' as const, onClick: onDelete, title: 'Delete'},
+          ]
+        : []),
+    ]
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        closeOnSelect={true}
+        items={menuItems}
+      />
+    )
+  }
   const {popupAnchor, showPopup, popup} = Kb.usePopup2(makePopup)
   const [buttonMousedOver, setMouseover] = React.useState(false)
   return (
@@ -410,25 +419,23 @@ const SelfChannelActions = function SelfChannelActions(p: {
       style={Kb.Styles.collapseStyles([selfMode && !Kb.Styles.isMobile && styles.channelRowSelfMode])}
     >
       {popup}
-      {
-        <span
-          onMouseEnter={Kb.Styles.isMobile ? undefined : () => setMouseover(true)}
-          onMouseLeave={Kb.Styles.isMobile ? undefined : () => setMouseover(false)}
+      <Kb.Box2
+        direction="horizontal"
+        onMouseOver={() => setMouseover(true)}
+        onMouseLeave={() => setMouseover(false)}
+      >
+        <Kb.Button
+          disabled={meta.channelname === 'general'}
+          type={buttonMousedOver && inChannel ? 'Default' : 'Success'}
+          mode={inChannel ? 'Secondary' : 'Primary'}
+          label={inChannel ? (buttonMousedOver ? 'Leave' : 'In') : 'Join'}
+          onClick={inChannel ? onLeave : onJoin}
+          small={true}
+          waiting={waiting}
         >
-          <Kb.Button
-            disabled={meta.channelname === 'general'}
-            type={buttonMousedOver && inChannel ? 'Default' : 'Success'}
-            mode={inChannel ? 'Secondary' : 'Primary'}
-            label={inChannel ? (buttonMousedOver ? 'Leave' : 'In') : 'Join'}
-            onClick={inChannel ? onLeave : onJoin}
-            small={true}
-            style={styles.joinLeaveButton}
-            waiting={waiting}
-          >
-            {inChannel && !buttonMousedOver ? <Kb.Icon type="iconfont-check" sizeType="Tiny" /> : undefined}
-          </Kb.Button>
-        </span>
-      }
+          {inChannel && !buttonMousedOver ? <Kb.Icon type="iconfont-check" sizeType="Tiny" /> : undefined}
+        </Kb.Button>
+      </Kb.Box2>
       {canEditChannelDescription && (
         <Kb.IconButton
           icon="iconfont-ellipsis"
@@ -451,6 +458,7 @@ type ChannelRowProps = {
   selected: boolean
   onSelect: (conviID: T.Chat.ConversationIDKey) => void
   mode: 'self' | 'others'
+  participants: ReadonlyArray<string>
   reloadChannels: () => Promise<void>
   usernames: string[]
   rowHeight: number
@@ -461,6 +469,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
     canEditChannelDescription,
     channelMeta,
     mode,
+    participants,
     selected,
     onSelect: _onSelect,
     reloadChannels,
@@ -470,10 +479,6 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
   const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
   const {channels: activityByChannel} = Common.useActivityLevels()
-  const participants = ConvoState.useConvoState(conversationIDKey, s => {
-    const {name, all} = s.participants
-    return name.length ? name : all
-  })
   const activityLevel = activityByChannel.get(channelMeta.conversationIDKey) || 'none'
   const allInChannel = usernames.every(member => participants.includes(member))
   const previewConversation = C.Router2.previewConversation
@@ -489,7 +494,14 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
 
   return Kb.Styles.isMobile ? (
     <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect} style={{height: rowHeight}}>
-      <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="tiny" justifyContent="space-between">
+      <Kb.Box2
+        direction="horizontal"
+        style={styles.item}
+        alignItems="center"
+        fullWidth={true}
+        gap="tiny"
+        justifyContent="space-between"
+      >
         <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
           #{channelMeta.channelname}
         </Kb.Text>
@@ -615,7 +627,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     },
   }),
-  joinLeaveButton: {width: 63},
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),

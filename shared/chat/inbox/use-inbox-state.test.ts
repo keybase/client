@@ -40,8 +40,6 @@ jest.mock('@/constants', () => {
 })
 
 jest.mock('@/constants/chat', () => ({
-  getSelectedConversation: () => '',
-  isSplit: false,
   noConversationIDKey: '',
 }))
 
@@ -57,13 +55,7 @@ jest.mock('./layout-state', () => ({
   }),
 }))
 
-jest.mock('@/stores/convostate', () => ({
-  getConvoState: () => ({
-    badge: 0,
-    dispatch: {
-      tabSelected: jest.fn(),
-    },
-  }),
+jest.mock('./metadata', () => ({
   queueMetaToRequest: jest.fn(),
 }))
 

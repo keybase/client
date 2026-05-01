@@ -1,9 +1,7 @@
 // A mirror of the remote menubar windows.
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
-import {chatStores} from '@/stores/convo-registry'
-import type {ConvoState as ConvoStateType} from '@/stores/convostate'
+import {ensureWidgetMetas, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {useConfigState} from '@/stores/config'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -93,41 +91,21 @@ const toRemoteTlfUpdate = (t: T.FS.TlfUpdate, uploads: T.FS.Uploads): RemoteTlfU
   writer: t.writer,
 })
 
-const convoDiff = (a: ConvoStateType, b: ConvoStateType) => {
-  if (a === b) return false
-
-  if (a.meta !== b.meta) {
-    if (
-      a.meta.channelname !== b.meta.channelname ||
-      a.meta.snippetDecorated !== b.meta.snippetDecorated ||
-      a.meta.teamType !== b.meta.teamType ||
-      a.meta.timestamp !== b.meta.timestamp ||
-      a.meta.tlfname !== b.meta.tlfname
-    ) {
-      return true
-    }
-  }
-
-  if (
-    a.badge !== b.badge ||
-    a.unread !== b.unread ||
-    !C.shallowEqual(a.participants.name, b.participants.name)
-  ) {
-    return true
-  }
-
-  return false
-}
-
 const toRemoteConversation = (
   conversationIDKey: T.Chat.ConversationIDKey,
-  conversation: ConvoStateType
+  meta: T.Chat.ConversationMeta,
+  participants: T.Chat.ParticipantInfo | undefined,
+  badgeState: T.RPCGen.BadgeState | undefined
 ): Conversation | undefined => {
-  if (!conversation.isMetaGood()) {
+  if (meta.conversationIDKey !== conversationIDKey) {
     return undefined
   }
 
-  const {badge, unread, participants, meta} = conversation
+  const badgeInfo = badgeState?.conversations?.find(
+    badgeConversation => T.Chat.conversationIDToKey(badgeConversation.convID) === conversationIDKey
+  )
+  const badge = badgeInfo?.badgeCount ?? 0
+  const unread = badgeInfo?.unreadMessages ?? 0
 
   return {
     channelname: meta.channelname,
@@ -138,7 +116,7 @@ const toRemoteConversation = (
     tlfname: meta.tlfname,
     ...(badge > 0 ? {hasBadge: true as const} : {}),
     ...(unread > 0 ? {hasUnread: true as const} : {}),
-    ...(participants.name.length ? {participants: participants.name.slice(0, 3)} : {}),
+    ...(participants?.name.length ? {participants: participants.name.slice(0, 3)} : {}),
   }
 }
 
@@ -165,15 +143,21 @@ const toNavBadges = (navBadgesMap: ReadonlyMap<string, number>) => {
 }
 
 const getWidgetConversationSnapshot = (
-  widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined
+  widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined,
+  badgeState: T.RPCGen.BadgeState | undefined
 ) => {
   if (!widgetList?.length) {
     return emptyConversations
   }
 
   const conversations: Array<Conversation> = []
+  const {metas, participants} = useInboxMetadataState.getState()
   for (const widget of widgetList) {
-    const conversation = toRemoteConversation(widget.convID, ConvoState.getConvoState(widget.convID))
+    const meta = metas.get(widget.convID)
+    if (!meta) {
+      continue
+    }
+    const conversation = toRemoteConversation(widget.convID, meta, participants.get(widget.convID), badgeState)
     if (conversation) {
       conversations.push(conversation)
     }
@@ -182,7 +166,8 @@ const getWidgetConversationSnapshot = (
 }
 
 const useWidgetConversationList = (
-  widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined
+  widgetList: ReadonlyArray<{convID: T.Chat.ConversationIDKey}> | undefined,
+  badgeState: T.RPCGen.BadgeState | undefined
 ) => {
   const snapshotRef = React.useRef(emptyConversations)
 
@@ -192,32 +177,21 @@ const useWidgetConversationList = (
         return () => {}
       }
 
-      const unsubs = widgetList.map(widget => {
-        ConvoState.getConvoState(widget.convID)
-        return chatStores.get(widget.convID)?.subscribe((state, oldState) => {
-          if (convoDiff(state, oldState)) {
-            onStoreChange()
-          }
-        })
+      return useInboxMetadataState.subscribe(() => {
+        onStoreChange()
       })
-
-      return () => {
-        for (const unsub of unsubs) {
-          unsub?.()
-        }
-      }
     },
     [widgetList]
   )
 
   const getSnapshot = React.useCallback(() => {
-    const nextSnapshot = getWidgetConversationSnapshot(widgetList)
+    const nextSnapshot = getWidgetConversationSnapshot(widgetList, badgeState)
     if (sameConversationList(snapshotRef.current, nextSnapshot)) {
       return snapshotRef.current
     }
     snapshotRef.current = nextSnapshot
     return nextSnapshot
-  }, [widgetList])
+  }, [badgeState, widgetList])
 
   return React.useSyncExternalStore(subscribe, getSnapshot, () => emptyConversations)
 }
@@ -236,7 +210,7 @@ function useEnsureWidgetData(
 
   React.useEffect(() => {
     if (widgetList) {
-      ConvoState.ensureWidgetMetas(widgetList)
+      ensureWidgetMetas(widgetList)
     }
   }, [widgetList])
 }
@@ -309,10 +283,10 @@ function useMenubarTlfUpdates(
 
 function useMenubarRemoteProps(): Props {
   const username = useCurrentUserState(s => s.username)
-  const {httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount} = useConfigState(
+  const {badgeState, httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount} = useConfigState(
     C.useShallow(s => {
-      const {httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount} = s
-      return {httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount}
+      const {badgeState, httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount} = s
+      return {badgeState, httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount}
     })
   )
   const {kbfsDaemonStatus, overallSyncStatus, sfmi, uploads} = useFSState(
@@ -330,7 +304,7 @@ function useMenubarRemoteProps(): Props {
     }))
   )
   useEnsureWidgetData(loggedIn, inboxHasLoaded, widgetList, inboxRefresh)
-  const conversationsToSend = useWidgetConversationList(widgetList)
+  const conversationsToSend = useWidgetConversationList(widgetList, badgeState)
   const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled

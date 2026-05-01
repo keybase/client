@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AudioRecorder from '@/chat/audio/audio-recorder.native'
@@ -30,6 +29,7 @@ import {standardTransformer} from '../suggestors/common'
 import {filePickerError} from '@/util/storeless-actions'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 import {useSuggestors} from '../suggestors'
+import {useConversationThreadID} from '../../thread-context'
 
 // Low-level TextInput wrapper
 
@@ -187,6 +187,8 @@ const inputLowLevelStyles = Kb.Styles.styleSheetCreate(() => ({
 const singleLineHeight = 36
 const threeLineHeight = 78
 const inputAreaHeight = 91
+const maxExpandedSuggestionListHeight = 240
+const minExpandedSuggestionListHeight = 120
 
 type MenuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -237,12 +239,12 @@ const Buttons = function Buttons(p: ButtonsProps) {
     }
   }, [emojiStr, insertText, updatePickerMap])
 
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const openEmojiPicker = () => {
-    navigateAppend(conversationIDKey => ({
+    C.Router2.navigateAppend({
       name: 'chatChooseEmoji',
       params: {conversationIDKey, pickKey},
-    }))
+    })
   }
 
   const explodingIcon = !isEditing && !cannotWrite && (
@@ -353,19 +355,18 @@ type ChatFilePickerProps = {
 }
 const ChatFilePicker = (p: ChatFilePickerProps) => {
   const {attachTo, showingPopup, hidePopup} = p
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed' | 'file', location: string) => {
     const f = async () => {
       const handleSelection = (result: ImagePicker.ImagePickerResult) => {
-        if (result.canceled || result.assets.length === 0 || !conversationIDKey) {
+        if (result.canceled || result.assets.length === 0) {
           return
         }
         const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
-        navigateAppend(conversationIDKey => ({
+        C.Router2.navigateAppend({
           name: 'chatAttachmentGetTitles',
           params: {conversationIDKey, pathAndOutboxIDs},
-        }))
+        })
       }
 
       switch (location) {
@@ -390,10 +391,10 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
             const res = await pickDocumentsAsync(true)
             if (!res.canceled && res.assets.length > 0) {
               const pathAndOutboxIDs = res.assets.map(a => ({path: a.uri}))
-              navigateAppend(conversationIDKey => ({
+              C.Router2.navigateAppend({
                 name: 'chatAttachmentGetTitles',
                 params: {conversationIDKey, pathAndOutboxIDs},
-              }))
+              })
             }
           } catch (error) {
             filePickerError(new Error(String(error)))
@@ -414,11 +415,15 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
   )
 }
 
-type AnimatedInputProps = Omit<InputLowLevelProps, 'ref'> & {expanded: boolean; inputRef?: React.Ref<RefType>}
+type AnimatedInputProps = Omit<InputLowLevelProps, 'ref'> & {
+  expanded: boolean
+  inputRef?: React.Ref<RefType>
+  reservedHeight?: number
+}
 const AnimatedInput = (() => {
   if (skipAnimations) {
     return function AnimatedInput(p: AnimatedInputProps) {
-      const {expanded, inputRef, ...rest} = p
+      const {expanded: _expanded, inputRef, reservedHeight: _reservedHeight, ...rest} = p
       return (
         <Animated.View style={[p.style, rest.style]}>
           <Input multiline={true} {...rest} ref={inputRef} style={styles.inputInner} />
@@ -429,10 +434,10 @@ const AnimatedInput = (() => {
     return function AnimatedInput(p: AnimatedInputProps) {
       'use no memo'
       const maxInputArea = React.useContext(MaxInputAreaContext)
-      const {expanded, inputRef, ...rest} = p
+      const {expanded, inputRef, reservedHeight = 0, ...rest} = p
       const lastExpandedRef = React.useRef(expanded)
       const offset = useSharedValue(expanded ? 1 : 0)
-      const maxHeight = maxInputArea - inputAreaHeight - 15
+      const maxHeight = Math.max(threeLineHeight, maxInputArea - inputAreaHeight - 15 - reservedHeight)
       const as = useAnimatedStyle(() => ({
         maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
         minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
@@ -459,7 +464,23 @@ const PlatformInput = (p: Props) => {
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const inputRef = React.useRef<RefType | null>(null)
-  const suggestionListStyle = Kb.Styles.collapseStyles([styles.suggestionList, !!height && {marginBottom: height}])
+  const maxInputArea = React.useContext(MaxInputAreaContext)
+  const preferredExpandedSuggestionListHeight = maxInputArea
+    ? Math.max(
+        minExpandedSuggestionListHeight,
+        Math.min(maxExpandedSuggestionListHeight, Math.floor(maxInputArea * 0.35))
+      )
+    : 0
+  const maxSuggestionReserveHeight = Math.max(0, maxInputArea - inputAreaHeight - 15 - threeLineHeight)
+  const expandedSuggestionListHeight = Math.min(
+    preferredExpandedSuggestionListHeight,
+    maxSuggestionReserveHeight
+  )
+  const suggestionListStyle = Kb.Styles.collapseStyles([
+    styles.suggestionList,
+    !!height && {marginBottom: height},
+    expanded && {maxHeight: expandedSuggestionListHeight},
+  ])
   const suggestionSpinnerStyle = Kb.Styles.collapseStyles([styles.suggestionSpinnerStyle, !!height && {marginBottom: height}])
   const {
     popup: suggestorPopup,
@@ -467,8 +488,8 @@ const PlatformInput = (p: Props) => {
     onBlur,
     onSelectionChange,
     onFocus,
+    suggestionsShowing,
   } = useSuggestors({
-    expanded,
     inputRef,
     onChangeText: p.onChangeText,
     suggestionListStyle,
@@ -477,6 +498,7 @@ const PlatformInput = (p: Props) => {
   })
   const {cannotWrite, isEditing, isExploding, setInputRef, setExplodingMode} = p
   const {onSubmit, explodingModeSeconds, hintText, onCancelEditing} = p
+  const suggestionListReserveHeight = expanded && suggestionsShowing ? expandedSuggestionListHeight : 0
 
   const lastText = React.useRef('')
   const whichMenu = React.useRef<MenuType | undefined>(undefined)
@@ -576,14 +598,14 @@ const PlatformInput = (p: Props) => {
     ourShowMenu('exploding')
   }
 
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const onPasteImage = (uri: Array<string>) => {
     try {
       const pathAndOutboxIDs = uri.map(path => ({path}))
-      navigateAppend(conversationIDKey => ({
+      C.Router2.navigateAppend({
         name: 'chatAttachmentGetTitles',
         params: {conversationIDKey, pathAndOutboxIDs},
-      }))
+      })
     } catch (e) {
       logger.info('onPasteImage error', e)
     }
@@ -647,6 +669,7 @@ const PlatformInput = (p: Props) => {
               style={styles.input}
               textType="Body"
               rowsMin={1}
+              reservedHeight={suggestionListReserveHeight}
               expanded={expanded}
             />
             <AnimatedExpand expandInput={toggleExpandInput} expanded={expanded} />

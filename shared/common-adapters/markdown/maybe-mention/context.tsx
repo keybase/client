@@ -6,6 +6,7 @@ import * as React from 'react'
 type MaybeMentionInfo = T.RPCChat.UIMaybeMentionInfo
 
 const MaybeMentionContext = React.createContext<ReadonlyMap<string, MaybeMentionInfo> | undefined>(undefined)
+MaybeMentionContext.displayName = 'MaybeMentionContext'
 
 type ProviderProps = {
   children: React.ReactNode

@@ -1,10 +1,11 @@
-import * as ConvoState from '@/stores/convostate'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {useConversationThreadID} from '../../thread-context'
 
 const MakeTeam = () => {
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const onShowNewTeamDialog = () =>
-    navigateAppend(conversationIDKey => ({name: 'chatShowNewTeamDialog', params: {conversationIDKey}}))
+    C.Router2.navigateAppend({name: 'chatShowNewTeamDialog', params: {conversationIDKey}})
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>

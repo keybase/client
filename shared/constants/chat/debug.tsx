@@ -1,5 +1,4 @@
 // Debug utilities for chat
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
@@ -18,37 +17,7 @@ registerDebugClear(() => {
 })
 
 const chatDebugDump = chatDebugEnabled
-  ? (conversationIDKey: T.Chat.ConversationIDKey) => {
-      const cs = ConvoState.getConvoState(conversationIDKey)
-      logger.error('[CHATDEBUG] os: ', cs.messageOrdinals)
-      // logger.error('[CHATDEBUG] orange: ', cs.orangeAboveOrdinal)
-      const m = cs.meta
-      logger.error('[CHATDEBUG] meta: ', {
-        inboxLocalVersion: m.inboxLocalVersion,
-        inboxVersion: m.inboxVersion,
-        maxMsgID: m.maxMsgID,
-        maxVisibleMsgID: m.maxVisibleMsgID,
-        offline: m.offline,
-        readMsgID: m.readMsgID,
-        status: m.status,
-        timestamp: m.timestamp,
-      })
-      logger.error('[CHATDEBUG] pen: ', [...cs.pendingOutboxToOrdinal.entries()])
-      logger.error(
-        '[CHATDEBUG] mm: ',
-        [...cs.messageMap.entries()].map(([k, v]) => {
-          const {id, ordinal, submitState, outboxID, type} = v
-          return {
-            key: k,
-            length: type === 'text' ? v.text.stringValue().length : -1,
-            mid: id,
-            ordinal,
-            outboxID,
-            submitState,
-            type,
-          }
-        })
-      )
+  ? (_conversationIDKey: T.Chat.ConversationIDKey) => {
       const lines = [...dumpMap.values()]
         .reduce((strs, cb) => {
           strs.push(cb())
@@ -60,6 +29,7 @@ const chatDebugDump = chatDebugEnabled
   : undefined
 
 export const DebugChatDumpContext = React.createContext({chatDebugDump})
+DebugChatDumpContext.displayName = 'DebugChatDumpContext'
 
 export const useChatDebugDump = chatDebugEnabled
   ? (key: string, dumpCB: () => string) => {
