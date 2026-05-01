@@ -178,28 +178,27 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   // TODO: alternate title when there aren't channels yet?
   const title =
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
-  const desktopFooter = !Kb.Styles.isMobile && mode !== 'self' ? (
-    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-        <Kb.Button
-          type="Dim"
-          label="Cancel"
-          onClick={onCancel}
-          style={Kb.Styles.globalStyles.flexOne}
-          disabled={waiting}
-        />
-        <Kb.Button
-          label={
-            numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'
-          }
-          onClick={onFinish}
-          disabled={!numSelected}
-          style={Kb.Styles.globalStyles.flexOne}
-          waiting={waiting}
-        />
+  const desktopFooter =
+    !Kb.Styles.isMobile && mode !== 'self' ? (
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+          <Kb.Button
+            type="Dim"
+            label="Cancel"
+            onClick={onCancel}
+            style={Kb.Styles.globalStyles.flexOne}
+            disabled={waiting}
+          />
+          <Kb.Button
+            label={numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'}
+            onClick={onFinish}
+            disabled={!numSelected}
+            style={Kb.Styles.globalStyles.flexOne}
+            waiting={waiting}
+          />
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
-  ) : null
+    ) : null
 
   React.useEffect(() => {
     if (mode !== 'others') return
@@ -228,7 +227,12 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
       title,
     })
     return () => {
-      useModalHeaderState.setState({actionEnabled: false, actionWaiting: false, onAction: undefined, title: ''})
+      useModalHeaderState.setState({
+        actionEnabled: false,
+        actionWaiting: false,
+        onAction: undefined,
+        title: '',
+      })
     }
   }, [mode, waiting, selected, submit, usernames, nav, numSelected, title])
 
@@ -380,30 +384,30 @@ const SelfChannelActions = function SelfChannelActions(p: {
   }
 
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const menuItems = [
-        {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
-        ...(canDeleteChannel
-          ? [
-              {
-                icon: 'iconfont-nav-2-settings' as const,
-                onClick: onChannelSettings,
-                title: 'Channel settings',
-              },
-              {danger: true, icon: 'iconfont-remove' as const, onClick: onDelete, title: 'Delete'},
-            ]
-          : []),
-      ]
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          closeOnSelect={true}
-          items={menuItems}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    const menuItems = [
+      {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
+      ...(canDeleteChannel
+        ? [
+            {
+              icon: 'iconfont-nav-2-settings' as const,
+              onClick: onChannelSettings,
+              title: 'Channel settings',
+            },
+            {danger: true, icon: 'iconfont-remove' as const, onClick: onDelete, title: 'Delete'},
+          ]
+        : []),
+    ]
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        closeOnSelect={true}
+        items={menuItems}
+      />
+    )
+  }
   const {popupAnchor, showPopup, popup} = Kb.usePopup2(makePopup)
   const [buttonMousedOver, setMouseover] = React.useState(false)
   return (
@@ -427,7 +431,6 @@ const SelfChannelActions = function SelfChannelActions(p: {
           label={inChannel ? (buttonMousedOver ? 'Leave' : 'In') : 'Join'}
           onClick={inChannel ? onLeave : onJoin}
           small={true}
-          style={styles.joinLeaveButton}
           waiting={waiting}
         >
           {inChannel && !buttonMousedOver ? <Kb.Icon type="iconfont-check" sizeType="Tiny" /> : undefined}
@@ -491,7 +494,14 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
 
   return Kb.Styles.isMobile ? (
     <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect} style={{height: rowHeight}}>
-      <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="tiny" justifyContent="space-between">
+      <Kb.Box2
+        direction="horizontal"
+        style={styles.item}
+        alignItems="center"
+        fullWidth={true}
+        gap="tiny"
+        justifyContent="space-between"
+      >
         <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
           #{channelMeta.channelname}
         </Kb.Text>
@@ -614,10 +624,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   item: Kb.Styles.platformStyles({
     isElectron: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.small)},
     isMobile: {
-      ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     },
   }),
-  joinLeaveButton: {width: 63},
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
