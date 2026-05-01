@@ -614,7 +614,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   item: Kb.Styles.platformStyles({
     isElectron: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.small)},
     isMobile: {
-      ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
+      ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
     },
   }),
   joinLeaveButton: {width: 63},
