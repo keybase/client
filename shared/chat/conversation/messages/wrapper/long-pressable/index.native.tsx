@@ -52,7 +52,7 @@ function LongPressable(props: Props) {
 
   const swipeRef = React.useRef<SwipeableMethods | null>(null)
   const onSwipeableWillOpen = (dir: SwipeDirection) => {
-    if (dir === SwipeDirection.RIGHT) {
+    if (dir === SwipeDirection.LEFT) {
       swipeRef.current?.close()
       onSwipeLeft()
     }
