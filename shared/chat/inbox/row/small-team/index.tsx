@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import type * as React from 'react'
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from '../sizes'
 import * as T from '@/constants/types'
@@ -188,19 +188,22 @@ const TopLine = (p: TopLineProps) => {
 const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: string; isSelected: boolean}) => {
   const {conversationIDKey, subColor, isSelected} = p
   const iconHoverColor = isSelected ? Kb.Styles.globalColors.white_75 : Kb.Styles.globalColors.black
-  const makePopup = (mp: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup} = mp
-    return (
-      <TeamMenu
-        visible={true}
-        attachTo={attachTo}
-        conversationIDKey={conversationIDKey}
-        onHidden={hidePopup}
-        hasHeader={true}
-        isSmallTeam={true}
-      />
-    )
-  }
+  const makePopup = React.useCallback(
+    (mp: Kb.Popup2Parms) => {
+      const {attachTo, hidePopup} = mp
+      return (
+        <TeamMenu
+          visible={true}
+          attachTo={attachTo}
+          conversationIDKey={conversationIDKey}
+          onHidden={hidePopup}
+          hasHeader={true}
+          isSmallTeam={true}
+        />
+      )
+    },
+    [conversationIDKey]
+  )
   const {showingPopup, showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>

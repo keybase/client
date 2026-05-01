@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
+import * as React from 'react'
 import type * as T from '@/constants/types'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
 import {useChatManageChannelsBadge} from '@/chat/conversation/team-hooks'
@@ -16,19 +17,22 @@ const BigTeamHeader = (props: Props) => {
   const navigateAppend = C.Router2.navigateAppend
   const onClick = () => navigateAppend({name: 'team', params: {teamID}})
 
-  const makePopup = (p: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup} = p
-    return (
-      <TeamMenu
-        attachTo={attachTo}
-        visible={true}
-        onHidden={hidePopup}
-        teamID={teamID}
-        hasHeader={true}
-        isSmallTeam={false}
-      />
-    )
-  }
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, hidePopup} = p
+      return (
+        <TeamMenu
+          attachTo={attachTo}
+          visible={true}
+          onHidden={hidePopup}
+          teamID={teamID}
+          hasHeader={true}
+          isSmallTeam={false}
+        />
+      )
+    },
+    [teamID]
+  )
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
