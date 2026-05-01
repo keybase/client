@@ -415,25 +415,24 @@ const SelfChannelActions = function SelfChannelActions(p: {
       style={Kb.Styles.collapseStyles([selfMode && !Kb.Styles.isMobile && styles.channelRowSelfMode])}
     >
       {popup}
-      {
-        <span
-          onMouseEnter={Kb.Styles.isMobile ? undefined : () => setMouseover(true)}
-          onMouseLeave={Kb.Styles.isMobile ? undefined : () => setMouseover(false)}
+      <Kb.Box2
+        direction="horizontal"
+        onMouseOver={() => setMouseover(true)}
+        onMouseLeave={() => setMouseover(false)}
+      >
+        <Kb.Button
+          disabled={meta.channelname === 'general'}
+          type={buttonMousedOver && inChannel ? 'Default' : 'Success'}
+          mode={inChannel ? 'Secondary' : 'Primary'}
+          label={inChannel ? (buttonMousedOver ? 'Leave' : 'In') : 'Join'}
+          onClick={inChannel ? onLeave : onJoin}
+          small={true}
+          style={styles.joinLeaveButton}
+          waiting={waiting}
         >
-          <Kb.Button
-            disabled={meta.channelname === 'general'}
-            type={buttonMousedOver && inChannel ? 'Default' : 'Success'}
-            mode={inChannel ? 'Secondary' : 'Primary'}
-            label={inChannel ? (buttonMousedOver ? 'Leave' : 'In') : 'Join'}
-            onClick={inChannel ? onLeave : onJoin}
-            small={true}
-            style={styles.joinLeaveButton}
-            waiting={waiting}
-          >
-            {inChannel && !buttonMousedOver ? <Kb.Icon type="iconfont-check" sizeType="Tiny" /> : undefined}
-          </Kb.Button>
-        </span>
-      }
+          {inChannel && !buttonMousedOver ? <Kb.Icon type="iconfont-check" sizeType="Tiny" /> : undefined}
+        </Kb.Button>
+      </Kb.Box2>
       {canEditChannelDescription && (
         <Kb.IconButton
           icon="iconfont-ellipsis"
