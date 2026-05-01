@@ -84,7 +84,7 @@ export function useInboxState(
   const smallTeamsExpanded = controlsMatchUser ? inboxControls.smallTeamsExpanded : false
   const inboxNumSmallRowsLoadVersionRef = React.useRef(0)
 
-  const setInboxNumSmallRows = (rows: number, persist = true) => {
+  const setInboxNumSmallRows = React.useCallback((rows: number, persist = true) => {
     if (rows <= 0) {
       return
     }
@@ -107,8 +107,8 @@ export function useInboxState(
       } catch {}
     }
     C.ignorePromise(f())
-  }
-  const toggleSmallTeamsExpanded = () => {
+  }, [username])
+  const toggleSmallTeamsExpanded = React.useCallback(() => {
     setInboxControls(state => ({
       inboxNumSmallRows: state.username === username ? state.inboxNumSmallRows : 5,
       inboxNumSmallRowsLoaded: state.username === username ? state.inboxNumSmallRowsLoaded : false,
@@ -117,7 +117,7 @@ export function useInboxState(
       smallTeamsExpanded: !(state.username === username ? state.smallTeamsExpanded : false),
       username,
     }))
-  }
+  }, [username])
 
   const {
     allowShowFloatingButton,
