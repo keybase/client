@@ -3,10 +3,13 @@
 import {act, cleanup, renderHook} from '@testing-library/react'
 import type * as React from 'react'
 import * as T from '@/constants/types'
+import * as Tabs from '@/constants/tabs'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useRouterState} from '@/stores/router'
 import {useShellState} from '@/stores/shell'
+import type {NavState} from '@/constants/router'
 import {
   ConversationThreadLoadStatusProvider,
   useThreadLoadStatus,
@@ -50,6 +53,22 @@ const flushPromises = async () => {
   for (let i = 0; i < 5; i++) {
     await Promise.resolve()
   }
+}
+
+const setSelectedTab = (tab: Tabs.Tab) => {
+  const index = Tabs.desktopTabs.indexOf(tab)
+  useRouterState.getState().dispatch.setNavState({
+    index: 0,
+    routes: [
+      {
+        name: 'loggedIn',
+        state: {
+          index,
+          routes: Tabs.desktopTabs.map(name => ({name})),
+        },
+      },
+    ],
+  } as NavState)
 }
 
 beforeEach(() => {
@@ -151,7 +170,7 @@ test('mounted stale-thread reload reports status through the provider', async ()
 })
 
 test('mounted route focus reload reports status through the provider', async () => {
-  mockRouteFocused = false
+  setSelectedTab(Tabs.peopleTab)
   jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockImplementation(async p => {
     p.incomingCallMap['chat.1.chatUi.chatThreadStatus']?.({
       status: {typ: T.RPCChat.UIChatThreadStatusTyp.server},
@@ -162,7 +181,7 @@ test('mounted route focus reload reports status through the provider', async () 
   const {rerender, result} = renderHook(() => useThreadLoadStatus(), {wrapper})
 
   act(() => {
-    mockRouteFocused = true
+    setSelectedTab(Tabs.chatTab)
     rerender()
   })
   await act(async () => {
@@ -173,7 +192,7 @@ test('mounted route focus reload reports status through the provider', async () 
 })
 
 test('hidden initial selection waits for route focus before loading thread', async () => {
-  mockRouteFocused = false
+  setSelectedTab(Tabs.peopleTab)
   const getThread = jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockResolvedValue({
     offline: false,
   })
@@ -185,7 +204,7 @@ test('hidden initial selection waits for route focus before loading thread', asy
   expect(getThread).not.toHaveBeenCalled()
 
   act(() => {
-    mockRouteFocused = true
+    setSelectedTab(Tabs.chatTab)
     rerender()
   })
   await act(async () => {
@@ -196,7 +215,7 @@ test('hidden initial selection waits for route focus before loading thread', asy
 })
 
 test('mounted route focus skips reload after returning from emoji picker', async () => {
-  mockRouteFocused = false
+  setSelectedTab(Tabs.peopleTab)
   mockVisibleScreenName = 'chatChooseEmoji'
   const getThread = jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockResolvedValue({
     offline: false,
@@ -204,7 +223,7 @@ test('mounted route focus skips reload after returning from emoji picker', async
   const {rerender} = renderHook(() => useThreadLoadStatus(), {wrapper})
 
   act(() => {
-    mockRouteFocused = true
+    setSelectedTab(Tabs.chatTab)
     mockVisibleScreenName = undefined
     rerender()
   })
