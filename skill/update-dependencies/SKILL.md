@@ -42,15 +42,24 @@ cd shared && yarn outdated
 
 This shows current, wanted, and latest versions.
 
-### 2. For packages with beta/dev/canary versions
+### 2. Check pre-release packages manually
 
-If `yarn outdated` shows a pre-release version or you suspect one exists:
+`yarn outdated` does **not** show updates for packages currently on a pre-release version (beta, alpha, dev, canary, rc). After running `yarn outdated`, also check these packages manually:
 
 ```bash
-cd shared && yarn info <package> versions
+cd shared && yarn info @legendapp/list versions
 ```
 
-Choose the most recent **stable** version unless the project already tracks a pre-release line (e.g., `@typescript/native-preview` tracks dev builds).
+For each pre-release package in `package.json`, run `yarn info <package> versions` and pick the most recent version in the same pre-release line (e.g., still beta if currently beta). Do not promote to stable unless intentional.
+
+Packages currently on pre-release lines that need manual checking:
+- `@legendapp/list` — beta
+- `@typescript/native-preview` — dev builds
+- `react-native-gesture-handler` — beta
+
+If `yarn outdated` shows a pre-release version or you suspect one exists for other packages, check with `yarn info <package> versions`.
+
+Choose the most recent **stable** version unless the project already tracks a pre-release line.
 
 ### 3. Edit package.json with exact versions
 
