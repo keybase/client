@@ -3,18 +3,19 @@ import * as T from '@/constants/types'
 
 type WaitingKey = string | ReadonlyArray<string>
 
-export const cancelConversationPost = (outboxID: T.Chat.OutboxID) =>
-  T.RPCChat.localCancelPostRpcPromise({
+export const cancelConversationPost = async (outboxID: T.Chat.OutboxID) => {
+  return await T.RPCChat.localCancelPostRpcPromise({
     outboxID: T.Chat.outboxIDToRpcOutboxID(outboxID),
   })
+}
 
-export const postConversationDelete = (p: {
+export const postConversationDelete = async (p: {
   clientPrev?: T.Chat.MessageID
   conversationIDKey: T.Chat.ConversationIDKey
   messageID: T.Chat.MessageID
   tlfName: string
-}) =>
-  T.RPCChat.localPostDeleteNonblockRpcPromise({
+}) => {
+  return await T.RPCChat.localPostDeleteNonblockRpcPromise({
     clientPrev: p.clientPrev ?? T.Chat.numberToMessageID(0),
     conversationID: T.Chat.keyToConversationID(p.conversationIDKey),
     identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -23,16 +24,17 @@ export const postConversationDelete = (p: {
     tlfName: p.tlfName,
     tlfPublic: false,
   })
+}
 
-export const postConversationReaction = (p: {
+export const postConversationReaction = async (p: {
   body: string
   clientPrev: T.Chat.MessageID
   conversationIDKey: T.Chat.ConversationIDKey
   messageID: T.Chat.MessageID
   outboxID?: T.RPCChat.OutboxID
   tlfName: string
-}) =>
-  T.RPCChat.localPostReactionNonblockRpcPromise({
+}) => {
+  return await T.RPCChat.localPostReactionNonblockRpcPromise({
     body: p.body,
     clientPrev: p.clientPrev,
     conversationID: T.Chat.keyToConversationID(p.conversationIDKey),
@@ -42,9 +44,13 @@ export const postConversationReaction = (p: {
     tlfName: p.tlfName,
     tlfPublic: false,
   })
+}
 
-export const createAdhocConversation = (usernames: ReadonlyArray<string>, waitingKey?: WaitingKey) =>
-  T.RPCChat.localNewConversationLocalRpcPromise(
+export const createAdhocConversation = async (
+  usernames: ReadonlyArray<string>,
+  waitingKey?: WaitingKey
+) => {
+  return await T.RPCChat.localNewConversationLocalRpcPromise(
     {
       identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
       membersType: T.RPCChat.ConversationMembersType.impteamnative,
@@ -54,12 +60,14 @@ export const createAdhocConversation = (usernames: ReadonlyArray<string>, waitin
     },
     waitingKey
   )
+}
 
-export const dismissConversationJourneycardRPC = (
+export const dismissConversationJourneycardRPC = async (
   conversationIDKey: T.Chat.ConversationIDKey,
   cardType: T.RPCChat.JourneycardType
-) =>
-  T.RPCChat.localDismissJourneycardRpcPromise({
+) => {
+  return await T.RPCChat.localDismissJourneycardRpcPromise({
     cardType,
     convID: T.Chat.keyToConversationID(conversationIDKey),
   })
+}

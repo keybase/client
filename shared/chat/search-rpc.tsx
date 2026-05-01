@@ -21,12 +21,12 @@ const makeSearchOpts = (overrides: Partial<T.RPCChat.SearchOpts>): T.RPCChat.Sea
   ...overrides,
 })
 
-export const searchInboxRPC = (p: {
+export const searchInboxRPC = async (p: {
   incomingCallMap: T.RPCChat.IncomingCallMapType
   opts: Partial<T.RPCChat.SearchOpts>
   query: string
-}) =>
-  T.RPCChat.localSearchInboxRpcListener({
+}) => {
+  return await T.RPCChat.localSearchInboxRpcListener({
     incomingCallMap: p.incomingCallMap,
     params: {
       identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -35,7 +35,12 @@ export const searchInboxRPC = (p: {
       query: p.query,
     },
   })
+}
 
-export const cancelActiveInboxSearchRPC = () => T.RPCChat.localCancelActiveInboxSearchRpcPromise()
+export const cancelActiveInboxSearchRPC = async () => {
+  return await T.RPCChat.localCancelActiveInboxSearchRpcPromise()
+}
 
-export const cancelActiveThreadSearchRPC = () => T.RPCChat.localCancelActiveSearchRpcPromise()
+export const cancelActiveThreadSearchRPC = async () => {
+  return await T.RPCChat.localCancelActiveSearchRpcPromise()
+}

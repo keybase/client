@@ -43,7 +43,7 @@ const makeThreadPagination = (num: number): T.RPCChat.UIPagination => ({
   previous: '',
 })
 
-export const loadThreadNonblock = (p: {
+export const loadThreadNonblock = async (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   knownRemotes?: ReadonlyArray<string>
   messageIDControl?: T.RPCChat.MessageIDControl | null
@@ -65,7 +65,7 @@ export const loadThreadNonblock = (p: {
     incomingCallMap['chat.1.chatUi.chatThreadStatus'] = params => p.onThreadStatus?.(params.status)
   }
 
-  return T.RPCChat.localGetThreadNonblockRpcListener({
+  return await T.RPCChat.localGetThreadNonblockRpcListener({
     incomingCallMap,
     params: {
       cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
@@ -131,13 +131,14 @@ export const loadThreadMessageIDAtIndex = async (
   return msgID
 }
 
-export const markConversationRead = (p: {
+export const markConversationRead = async (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   forceUnread: boolean
   msgID?: T.Chat.MessageID
-}) =>
-  T.RPCChat.localMarkAsReadLocalRpcPromise({
+}) => {
+  return await T.RPCChat.localMarkAsReadLocalRpcPromise({
     conversationID: T.Chat.keyToConversationID(p.conversationIDKey),
     forceUnread: p.forceUnread,
     msgID: p.msgID,
   })
+}

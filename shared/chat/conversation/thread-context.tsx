@@ -1167,7 +1167,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         }
       } else {
         try {
-          msgID = await loadThreadMessageIDAtIndex(id, 1)
+          const loadedMsgID = await loadThreadMessageIDAtIndex(id, 1)
+          if (loadedMsgID) {
+            msgID = loadedMsgID
+          }
         } catch {}
       }
 
