@@ -12,6 +12,7 @@ import {useConfigState} from '@/stores/config'
 import {uint8ArrayToString} from '@/util/uint8array'
 import logger from '@/logger'
 import {loadThreadNonblock, markConversationRead} from './thread-rpc'
+import {setConversationOrangeLine} from './orange-line-context'
 
 const emptyConversationMeta = Meta.makeConversationMeta()
 const emptyParticipantInfo: T.Chat.ParticipantInfo = {
@@ -319,6 +320,10 @@ export const markConversationAsUnread = (
       logger.info(`marking unread messages ${conversationIDKey} failed due to no id`)
       return
     }
+    setConversationOrangeLine(
+      conversationIDKey,
+      T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(unreadLineID))
+    )
 
     let msgID = unreadLineID
     try {

@@ -5,7 +5,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import Normal from '.'
 import * as T from '@/constants/types'
 import {FocusProvider, ScrollProvider} from './context'
-import {OrangeLineContext, SetOrangeLineContext} from '../orange-line-context'
+import {OrangeLineContext, SetOrangeLineContext, useExplicitOrangeLineState} from '../orange-line-context'
 import {ChatTeamProvider} from '../team-hooks'
 import {ConversationCenterProvider} from '../center-context'
 import {ConversationInputProvider} from '../input-area/input-state'
@@ -107,21 +107,29 @@ const useOrangeLine = (
     }
   }, [maxVisibleMsgID, active, id, meta.readMsgID])
 
-  const setOrangeLine = (ordinal: T.Chat.Ordinal) => {
+  const setOrangeLine = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
     const currentKey = currentOrangeLineKeyRef.current
     if (currentKey.conversationIDKey !== id) {
       return
     }
-    setOrangeLineState(prev => {
-      if (prev.orangeLine !== noOrangeLine) {
-        return prev
-      }
-      return {
-        mobileAppState: currentKey.mobileAppState,
-        orangeLine: ordinal,
-      }
+    setOrangeLineState({
+      mobileAppState: currentKey.mobileAppState,
+      orangeLine: ordinal,
     })
-  }
+  })
+
+  const explicitOrangeLine = useExplicitOrangeLineState(s => s.update)
+  const explicitOrangeLineVersionRef = React.useRef(explicitOrangeLine?.version ?? 0)
+  React.useEffect(() => {
+    if (!explicitOrangeLine || explicitOrangeLine.version <= explicitOrangeLineVersionRef.current) {
+      return
+    }
+    explicitOrangeLineVersionRef.current = explicitOrangeLine.version
+    if (explicitOrangeLine.conversationIDKey !== id) {
+      return
+    }
+    setOrangeLine(explicitOrangeLine.ordinal)
+  }, [explicitOrangeLine, id])
 
   return {orangeLine: getVisibleOrangeLine(orangeLineState, mobileAppState), setOrangeLine}
 }

@@ -3,6 +3,8 @@ import * as T from '@/constants/types'
 import {isPhone} from '@/constants/platform'
 import {navigateToInbox, setChatRootParams} from '@/constants/router'
 import logger from '@/logger'
+import {getInboxConversationMeta} from '@/chat/inbox/metadata'
+import {setConversationOrangeLine} from './orange-line-context'
 import {loadThreadMessageIDAtIndex, markConversationRead} from './thread-rpc'
 
 const setConversationStatusPromise = async (
@@ -63,6 +65,13 @@ export const markConversationUnread = (
   readMsgID?: T.Chat.MessageID
 ) => {
   const f = async () => {
+    const unreadLineID = readMsgID || getInboxConversationMeta(conversationIDKey)?.maxVisibleMsgID
+    if (unreadLineID) {
+      setConversationOrangeLine(
+        conversationIDKey,
+        T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(unreadLineID))
+      )
+    }
     let msgID = readMsgID
     if (!msgID) {
       msgID = await loadThreadMessageIDAtIndex(conversationIDKey, 1)

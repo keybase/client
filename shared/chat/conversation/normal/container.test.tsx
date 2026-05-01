@@ -8,7 +8,7 @@ import * as React from 'react'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {useShellState} from '@/stores/shell'
-import {OrangeLineContext, SetOrangeLineContext} from '../orange-line-context'
+import {OrangeLineContext, SetOrangeLineContext, setConversationOrangeLine} from '../orange-line-context'
 import NormalWrapper from './container'
 
 type ConstantsModule = typeof C
@@ -205,7 +205,7 @@ test('orange line stays fixed across unreadline refreshes while the thread stays
   expectOrangeLine(initialOrangeLine)
 })
 
-test('manual orange line updates do not move an existing orange line', async () => {
+test('manual orange line updates move an existing orange line', async () => {
   const initialOrangeLine = T.Chat.numberToOrdinal(10)
   getUnreadlineRpc().mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(10)})
 
@@ -218,7 +218,7 @@ test('manual orange line updates do not move an existing orange line', async () 
     mockSetOrangeLine?.(T.Chat.numberToOrdinal(50))
   })
 
-  expectOrangeLine(initialOrangeLine)
+  expectOrangeLine(T.Chat.numberToOrdinal(50))
 })
 
 test('orange line resets after switching to another thread', async () => {
@@ -346,6 +346,48 @@ test('manual orange line update sets the line when no line exists yet', async ()
   })
 
   expectOrangeLine(localOrdinal)
+})
+
+test('explicit orange line requests from outside the thread move an existing orange line', async () => {
+  getUnreadlineRpc().mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(10)})
+
+  render(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expectOrangeLine(T.Chat.numberToOrdinal(10))
+
+  act(() => {
+    setConversationOrangeLine(convID, T.Chat.numberToOrdinal(50))
+  })
+
+  expectOrangeLine(T.Chat.numberToOrdinal(50))
+})
+
+test('explicit orange line requests for other threads are ignored', async () => {
+  getUnreadlineRpc().mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(10)})
+
+  render(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expectOrangeLine(T.Chat.numberToOrdinal(10))
+
+  act(() => {
+    setConversationOrangeLine(otherConvID, T.Chat.numberToOrdinal(50))
+  })
+
+  expectOrangeLine(T.Chat.numberToOrdinal(10))
+})
+
+test('stale explicit orange line requests from before mount do not override the loaded line', async () => {
+  act(() => {
+    setConversationOrangeLine(convID, T.Chat.numberToOrdinal(50))
+  })
+  getUnreadlineRpc().mockResolvedValue({offline: false, unreadlineID: T.Chat.numberToMessageID(10)})
+
+  render(<NormalWrapper />)
+  await flushOrangeLine()
+
+  expectOrangeLine(T.Chat.numberToOrdinal(10))
 })
 
 test('orange line captured while active is hidden while the mobile app state is non-active', async () => {
