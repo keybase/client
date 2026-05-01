@@ -50,8 +50,9 @@ const TeamPickerInner = (props: Props) => {
   const setSearchTerm = C.useDebouncedCallback(setTerm, 200)
   const dstConvIDRef = React.useRef<Uint8Array | undefined>(undefined)
   const [results, setResults] = React.useState<ReadonlyArray<T.RPCChat.ConvSearchHit>>([])
-  const [waiting, setWaiting] = React.useState(false)
+  const [loadedTerm, setLoadedTerm] = React.useState<string>()
   const [error, setError] = React.useState('')
+  const waiting = loadedTerm !== term
   const fwdMsg = C.useRPC(T.RPCChat.localForwardMessageNonblockRpcPromise)
   const submit = C.useRPC(T.RPCChat.localForwardMessageConvSearchRpcPromise)
 
@@ -61,18 +62,17 @@ const TeamPickerInner = (props: Props) => {
 
   React.useEffect(() => {
     let stale = false
-    setWaiting(true)
-    setError('')
     submit(
       [{term}],
       result => {
         if (stale) return
-        setWaiting(false)
+        setLoadedTerm(term)
+        setError('')
         setResults(result ?? [])
       },
       error => {
         if (stale) return
-        setWaiting(false)
+        setLoadedTerm(term)
         setError('Something went wrong, please try again.')
         logger.info('TeamPicker: error loading search results: ' + error.message)
       }
@@ -179,6 +179,7 @@ const TeamPickerInner = (props: Props) => {
     )
   }
 
+  const showError = !waiting && error.length > 0
   const content =
     pickerState === 'picker' ? (
       <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -195,7 +196,7 @@ const TeamPickerInner = (props: Props) => {
           />
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-          {error.length > 0 ? (
+          {showError ? (
             <Kb.Text type="Body" style={{alignSelf: 'center', color: Kb.Styles.globalColors.redDark}}>
               {error}
             </Kb.Text>
