@@ -877,7 +877,7 @@ function RightSide(p: RProps) {
           'tooltip-left'
         )}
       >
-        <Kb.Box2 direction="vertical" style={styles.ellipsis}>
+        <Kb.Box2 direction="vertical">
           <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
         </Kb.Box2>
       </Kb.Box2>
@@ -1030,10 +1030,6 @@ const styles = Kb.Styles.styleSheetCreate(
           wordBreak: 'break-all',
         },
         isMobile: {maxWidth: 120},
-      }),
-      ellipsis: Kb.Styles.platformStyles({
-        isElectron: {paddingTop: 2},
-        isMobile: {paddingTop: 4},
       }),
       emojiRow: Kb.Styles.platformStyles({
         isElectron: {
