@@ -1,7 +1,7 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {isBigTeam} from '@/constants/chat/helpers'
-import * as Chat from '@/stores/chat'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import type {Tab as TabType} from '@/common-adapters/tabs'
 import {useLoadedTeam} from './use-loaded-team'
 
@@ -90,7 +90,7 @@ const Container = (ownProps: OwnProps) => {
   const {teamDetails, yourOperations} = useLoadedTeam(teamID)
   const resetUserCount = [...teamDetails.members.values()].filter(member => member.status === 'reset').length
   const admin = yourOperations.manageMembers
-  const isBig = Chat.useChatState(s => isBigTeam(s.inboxLayout, teamID))
+  const isBig = useInboxLayoutState(s => isBigTeam(s.layout, teamID))
   const numSubteams = teamDetails.subteams.size
   const showSubteams = yourOperations.manageSubteams
   const props = {

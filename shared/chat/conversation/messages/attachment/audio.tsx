@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import AudioPlayer from '@/chat/audio/audio-player'

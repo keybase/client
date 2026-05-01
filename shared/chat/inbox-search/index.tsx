@@ -1,6 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Rover from './background'
@@ -108,15 +106,13 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     const fullSection = section as Section
     const realIndex = index + fullSection.indexOffset
     return (
-      <ConvoState.ChatProvider id={Chat.noConversationIDKey} key={index} canBeNull={true}>
-        <Bot
-          {...item.bot}
-          onClick={onInstallBot}
-          firstItem={index === 0}
-          hideHover={true}
-          isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
-        />
-      </ConvoState.ChatProvider>
+      <Bot
+        {...item.bot}
+        onClick={onInstallBot}
+        firstItem={index === 0}
+        hideHover={true}
+        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
+      />
     )
   }
 
@@ -233,25 +229,23 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     const numHits = item.type === 'text' ? item.numHits : undefined
     const realIndex = index + section.indexOffset
     return item.sizeType === 'big' ? (
-      <ConvoState.ChatProvider id={item.conversationIDKey}>
-        <SelectableBigTeamChannel
-          isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
-          name={item.name}
-          numSearchHits={numHits}
-          maxSearchHits={inboxSearchMaxTextMessages}
-          onSelectConversation={() => section.onSelect(item, realIndex)}
-        />
-      </ConvoState.ChatProvider>
+      <SelectableBigTeamChannel
+        conversationIDKey={item.conversationIDKey}
+        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
+        name={item.name}
+        numSearchHits={numHits}
+        maxSearchHits={inboxSearchMaxTextMessages}
+        onSelectConversation={() => section.onSelect(item, realIndex)}
+      />
     ) : (
-      <ConvoState.ChatProvider id={item.conversationIDKey}>
-        <SelectableSmallTeam
-          isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
-          name={item.name}
-          numSearchHits={numHits}
-          maxSearchHits={inboxSearchMaxTextMessages}
-          onSelectConversation={() => section.onSelect(item, realIndex)}
-        />
-      </ConvoState.ChatProvider>
+      <SelectableSmallTeam
+        conversationIDKey={item.conversationIDKey}
+        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
+        name={item.name}
+        numSearchHits={numHits}
+        maxSearchHits={inboxSearchMaxTextMessages}
+        onSelectConversation={() => section.onSelect(item, realIndex)}
+      />
     )
   }
 

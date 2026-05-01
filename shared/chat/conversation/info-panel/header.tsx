@@ -1,18 +1,20 @@
-import * as ConvoState from '@/stores/convostate'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import InfoPanelMenu from './menu'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
-import {ChatTeamProvider, useChatTeam} from '../team-hooks'
+import {useChatTeam} from '../team-hooks'
+import {joinConversation} from '../status-actions'
+import {useConversationMetadata} from '../data-hooks'
 
 const gearIconSize = Kb.Styles.isMobile ? 24 : 16
 
-const TeamHeader = () => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const meta = ConvoState.useChatContext(s => s.meta)
+const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey} = props
+  const {meta, participants} = useConversationMetadata(conversationIDKey)
   const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
-  const participants = ConvoState.useChatContext(s => s.participants)
-  const onJoinChannel = ConvoState.useChatContext(s => s.dispatch.joinConversation)
+  const onJoinChannel = () => joinConversation(conversationIDKey)
   const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
 
   const {yourOperations} = useChatTeam(teamID, teamname)
@@ -28,18 +30,15 @@ const TeamHeader = () => {
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <ConvoState.ChatProvider id={conversationIDKey}>
-        <ChatTeamProvider>
-          <InfoPanelMenu
-            attachTo={attachTo}
-            floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-            onHidden={hidePopup}
-            hasHeader={false}
-            isSmallTeam={isSmallTeam}
-            visible={true}
-          />
-        </ChatTeamProvider>
-      </ConvoState.ChatProvider>
+      <InfoPanelMenu
+        attachTo={attachTo}
+        conversationIDKey={conversationIDKey}
+        floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+        onHidden={hidePopup}
+        hasHeader={false}
+        isSmallTeam={isSmallTeam}
+        visible={true}
+      />
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
@@ -134,19 +133,24 @@ const TeamHeader = () => {
         />
       )}
       {!isPreview && (admin || !isGeneralChannel) && (
-        <AddPeople isAdmin={admin} isGeneralChannel={isGeneralChannel} />
+        <AddPeople
+          conversationIDKey={conversationIDKey}
+          isAdmin={admin}
+          isGeneralChannel={isGeneralChannel}
+          teamID={teamID}
+        />
       )}
     </Kb.Box2>
   )
 }
 
-export const AdhocHeader = () => {
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+export const AdhocHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey} = props
   const onShowNewTeamDialog = () => {
-    navigateAppend(conversationIDKey => ({
+    C.Router2.navigateAppend({
       name: 'chatShowNewTeamDialog',
       params: {conversationIDKey},
-    }))
+    })
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">

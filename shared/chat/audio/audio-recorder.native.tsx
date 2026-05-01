@@ -1,8 +1,8 @@
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {Portal} from '@/common-adapters/portal.native'
 import * as React from 'react'
+import * as InputState from '@/chat/conversation/input-area/input-state'
 // we need to use the raw colors to animate
 import {colors} from '@/styles/colors'
 import * as Reanimated from 'react-native-reanimated'
@@ -16,6 +16,7 @@ import logger from '@/logger'
 import * as Haptics from 'expo-haptics'
 import {File} from 'expo-file-system'
 import AudioSend from './audio-send.native'
+import {useConversationSendActions} from '@/chat/conversation/send-actions'
 
 const {useSharedValue, Extrapolation, useAnimatedStyle} = Reanimated
 const {interpolate, withSequence, withSpring, runOnJS} = Reanimated
@@ -366,7 +367,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     setStaged(false)
     setShowAudioSend(false)
   }
-  const setCommandStatusInfo = ConvoState.useChatUIContext(s => s.dispatch.setCommandStatusInfo)
+  const setCommandStatusInfo = InputState.useConversationInputDispatch(s => s.setCommandStatusInfo)
 
   const startRecording = () => {
     const checkPerms = async () => {
@@ -422,7 +423,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     return
   }
 
-  const sendAudioRecording = ConvoState.useChatContext(s => s.dispatch.sendAudioRecording)
+  const {sendAudioRecording} = useConversationSendActions()
 
   const sendRecording = () => {
     const impl = async () => {

@@ -43,7 +43,6 @@ export const TeamSuggestion = (p: {teamname: string; channelname: string | undef
 
 export type ItemRendererProps<T> = {selected: boolean; item: T}
 export type ListProps<L> = {
-  expanded: boolean
   items: Array<L>
   keyExtractor: (item: L, idx: number) => string
   suggestBotCommandsUpdateStatus?: T.RPCChat.UIBotCommandsUpdateStatusTyp
@@ -57,7 +56,7 @@ export type ListProps<L> = {
 }
 
 export function List<T>(p: ListProps<T>) {
-  const {expanded, items, ItemRenderer, loading, keyExtractor, onSelected} = p
+  const {items, ItemRenderer, loading, keyExtractor, onSelected} = p
   const {suggestBotCommandsUpdateStatus, listStyle, spinnerStyle, setOnMoveRef, setOnSubmitRef} = p
   const [selectedIndex, setSelectedIndex] = React.useState(0)
 
@@ -102,7 +101,7 @@ export function List<T>(p: ListProps<T>) {
   return (
     <>
       <SuggestionList
-        style={expanded ? {bottom: 95, position: 'absolute', top: 95} : listStyle}
+        style={listStyle}
         items={items}
         keyExtractor={keyExtractor}
         renderItem={renderItem}

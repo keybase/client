@@ -291,7 +291,7 @@ export const newModalRoutes = defineRouteMap({
   }),
   teamAddToChannels: C.makeScreen(React.lazy(async () => import('./team/member/add-to-channels')), {
     getOptions: ({route}) => ({
-      headerRight: () => <AddToChannelsHeaderRight />,
+      headerRight: route.params.usernames ? () => <AddToChannelsHeaderRight /> : undefined,
       headerTitle: () => <AddToChannelsHeaderTitle teamID={route.params.teamID} />,
       modalStyle: {height: 560},
     }),

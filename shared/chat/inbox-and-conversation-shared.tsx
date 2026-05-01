@@ -1,13 +1,13 @@
 // Just for desktop and tablet, we show inbox and conversation side by side
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
-import * as ConvoState from '@/stores/convostate'
+import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import Conversation from './conversation/container'
 import InfoPanel, {type Panel} from './conversation/info-panel'
 import type {ThreadSearchRouteProps} from './conversation/thread-search-route'
+import {useInboxLayoutState} from './inbox/layout-state'
 
 export type InboxAndConversationProps = ThreadSearchRouteProps & {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -27,11 +27,11 @@ export function InboxAndConversationShell(props: Props) {
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
   const lastValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
   const lastAutoSelectedCIDRef = React.useRef('')
-  const selectNextConvo = Chat.useChatState(s => {
+  const selectNextConvo = useInboxLayoutState(s => {
     if (validConvoID) {
       return null
     }
-    const first = s.inboxLayout?.smallTeams?.[0]
+    const first = s.layout?.smallTeams?.[0]
     return first?.convID === lastValidCIDRef.current ? null : first?.convID
   })
 
@@ -51,21 +51,19 @@ export function InboxAndConversationShell(props: Props) {
   }, [conversationIDKey, selectNextConvo, validConvoID])
 
   return (
-    <ConvoState.ChatProvider id={conversationIDKey} canBeNull={true}>
-      <Kb.KeyboardAvoidingView2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} relative={true}>
-          {props.leftPane}
-          <Kb.Box2 direction="vertical" fullHeight={true} flex={1}>
-            <Conversation />
-          </Kb.Box2>
-          {infoPanel ? (
-            <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
-              <InfoPanel key={conversationIDKey} tab={infoPanel.tab} />
-            </Kb.Box2>
-          ) : null}
+    <Kb.KeyboardAvoidingView2>
+      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} relative={true}>
+        {props.leftPane}
+        <Kb.Box2 direction="vertical" fullHeight={true} flex={1}>
+          <Conversation {...props} conversationIDKey={conversationIDKey} />
         </Kb.Box2>
-      </Kb.KeyboardAvoidingView2>
-    </ConvoState.ChatProvider>
+        {infoPanel ? (
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
+            <InfoPanel key={conversationIDKey} conversationIDKey={conversationIDKey} tab={infoPanel.tab} />
+          </Kb.Box2>
+        ) : null}
+      </Kb.Box2>
+    </Kb.KeyboardAvoidingView2>
   )
 }
 

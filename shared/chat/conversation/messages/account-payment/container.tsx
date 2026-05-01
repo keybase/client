@@ -1,10 +1,9 @@
-import * as Chat from '@/stores/chat'
-import * as ConvoState from '@/stores/convostate'
-import type {ConvoState as ConvoStateType} from '@/stores/convostate'
+import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import MarkdownMemo from '@/wallets/markdown-memo'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useConversationThreadSelector} from '../../thread-context'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -46,8 +45,10 @@ type OwnProps = {
   message: T.Chat.MessageSendPayment | T.Chat.MessageRequestPayment
 }
 
+type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
+
 const getRequestMessageInfo = (
-  accountsInfoMap: ConvoStateType['accountsInfoMap'],
+  accountsInfoMap: AccountsInfoMap,
   message: T.Chat.MessageRequestPayment
 ) => {
   const maybeRequestInfo = accountsInfoMap.get(message.id)
@@ -64,7 +65,7 @@ const getRequestMessageInfo = (
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const you = useCurrentUserState(s => s.username)
-  const accountsInfoMap = ConvoState.useChatContext(s => s.accountsInfoMap)
+  const accountsInfoMap = useConversationThreadSelector(s => s.accountsInfoMap)
 
   const stateProps = (() => {
     const youAreSender = ownProps.message.author === you

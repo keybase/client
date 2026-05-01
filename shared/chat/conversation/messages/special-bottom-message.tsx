@@ -1,18 +1,12 @@
-import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
-import * as ConvoState from '@/stores/convostate'
+import * as Chat from '@/constants/chat'
+import {useConversationThreadSelector} from '../thread-context'
 import OldProfileReset from './system-old-profile-reset-notice/container'
 import ResetUser from './reset-user'
 
 function BottomMessageContainer() {
-  const {showSuperseded, showResetParticipants} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const meta = s.meta
-      const showResetParticipants = meta.resetParticipants.size !== 0
-      const showSuperseded = !!meta.wasFinalizedBy || meta.supersededBy !== Chat.noConversationIDKey
-      return {showResetParticipants, showSuperseded}
-    })
-  )
+  const meta = useConversationThreadSelector(s => s.meta)
+  const showResetParticipants = meta.resetParticipants.size !== 0
+  const showSuperseded = !!meta.wasFinalizedBy || meta.supersededBy !== Chat.noConversationIDKey
 
   if (showResetParticipants) {
     return <ResetUser />

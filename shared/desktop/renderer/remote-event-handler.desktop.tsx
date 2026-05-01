@@ -9,7 +9,7 @@ import {onEngineConnected, onEngineDisconnected} from '@/constants/init/index.de
 import {emitDeepLink} from '@/router-v2/linking'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/util/path'
 import type HiddenString from '@/util/hidden-string'
-import {useChatState} from '@/stores/chat'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
 import {useUnlockFoldersState} from '@/unlock-folders/store'
@@ -143,7 +143,7 @@ export const eventFromRemoteWindows = (action: RemoteGen.Actions) => {
       break
     }
     case RemoteGen.inboxRefresh: {
-      ignorePromise(useChatState.getState().dispatch.inboxRefresh('widgetRefresh'))
+      ignorePromise(useInboxLayoutState.getState().dispatch.refresh('widgetRefresh'))
       break
     }
     case RemoteGen.engineConnection: {

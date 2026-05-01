@@ -1,7 +1,5 @@
-import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import {useReactionRowTopReacjis} from '@/chat/user-reacjis'
 
 type Props = {
   onHidden: () => void
@@ -9,19 +7,8 @@ type Props = {
   showPicker: () => void
 }
 
-const useTopReacjis = () =>
-  Chat.useChatState(
-    C.useShallow(s => [
-      s.userReacjis.topReacjis[0],
-      s.userReacjis.topReacjis[1],
-      s.userReacjis.topReacjis[2],
-      s.userReacjis.topReacjis[3],
-      s.userReacjis.topReacjis[4],
-    ])
-  ).filter((reacji): reacji is T.RPCGen.UserReacji => !!reacji)
-
 const ReactionItem = (props: Props) => {
-  const topReacjis = useTopReacjis()
+  const topReacjis = useReactionRowTopReacjis()
   const onReact = (emoji: string) => {
     props.onReact(emoji)
     props.onHidden()

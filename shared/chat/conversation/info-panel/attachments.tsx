@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import {zoomImage} from '@/constants/chat/helpers'
-import * as ConvoState from '@/stores/convostate'
+import * as Message from '@/constants/chat/message'
 import * as Kb from '@/common-adapters'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import * as T from '@/constants/types'
@@ -10,9 +10,18 @@ import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp
 import {infoPanelWidth} from './common'
 import {useMessagePopup} from '../messages/message-popup'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {RPCError} from '@/util/errors'
+import {useCurrentUserState} from '@/stores/current-user'
+import logger from '@/logger'
+import {
+  attachmentDownloadMessage,
+  messageAttachmentNativeShareMessage,
+  showAttachmentPreview,
+} from '../attachment-actions'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const monthNames = [
@@ -211,16 +220,18 @@ type DocViewRowProps = {item: Doc}
 
 const DocViewRow = (props: DocViewRowProps) => {
   const {item} = props
+  const hasMessageID = !!item.message && !!T.Chat.messageIDToNumber(item.message.id)
   const shouldShow = () => {
-    return !!item.message
+    return hasMessageID
   }
   const {showPopup, popup} = useMessagePopup({
-    ordinal: item.message?.ordinal ?? T.Chat.numberToOrdinal(0),
+    conversationIDKey: item.message?.conversationIDKey,
+    message: item.message,
     shouldShow,
   })
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ClickableBox onClick={item.onClick} onLongPress={showPopup}>
+      <Kb.ClickableBox onClick={item.onClick} onLongPress={hasMessageID ? showPopup : undefined}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
           <Kb.ImageIcon type="icon-file-32" style={styles.docIcon} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
@@ -424,34 +435,266 @@ const getFromMsgID = (info: T.Chat.AttachmentViewInfo): T.Chat.MessageID | undef
   return lastMessage?.id
 }
 
+type AttachmentViewMap = Map<T.RPCChat.GalleryItemTyp, T.Chat.AttachmentViewInfo>
+type AttachmentViewState = {
+  attachmentViewMap: AttachmentViewMap
+  conversationIDKey: T.Chat.ConversationIDKey
+}
+type AttachmentLoadReason = 'initial-effect' | 'load-more' | 'retry' | 'tab-change'
+
+const emptyAttachmentViewMap: AttachmentViewMap = new Map()
+
+const makeAttachmentViewInfo = (): T.Chat.AttachmentViewInfo => ({
+  last: false,
+  messages: [],
+  status: 'loading',
+})
+
+const updateAttachmentViewMap = (
+  attachmentViewMap: AttachmentViewMap,
+  viewType: T.RPCChat.GalleryItemTyp,
+  updateInfo: (info: T.Chat.AttachmentViewInfo) => void
+) => {
+  const info = attachmentViewMap.get(viewType) ?? makeAttachmentViewInfo()
+  const nextInfo = {...info, messages: [...info.messages]}
+  updateInfo(nextInfo)
+  const nextMap = new Map(attachmentViewMap)
+  nextMap.set(viewType, nextInfo)
+  return nextMap
+}
+
+const useAttachmentViewState = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const lastOrdinalRef = React.useRef(T.Chat.numberToOrdinal(0))
+  const [attachmentViewState, setAttachmentViewState] = React.useState<AttachmentViewState>(() => ({
+    attachmentViewMap: new Map(),
+    conversationIDKey,
+  }))
+  const loadGenerationRef = React.useRef(0)
+
+  React.useEffect(() => {
+    loadGenerationRef.current += 1
+    return () => {
+      loadGenerationRef.current += 1
+    }
+  }, [conversationIDKey])
+
+  const updateCurrentAttachmentViewMap = (
+    viewType: T.RPCChat.GalleryItemTyp,
+    updateInfo: (info: T.Chat.AttachmentViewInfo) => void
+  ) => {
+    setAttachmentViewState(({attachmentViewMap, conversationIDKey: stateConversationIDKey}) => ({
+      attachmentViewMap: updateAttachmentViewMap(
+        stateConversationIDKey === conversationIDKey ? attachmentViewMap : new Map(),
+        viewType,
+        updateInfo
+      ),
+      conversationIDKey,
+    }))
+  }
+
+  const loadAttachmentView = React.useEffectEvent(
+    (
+      viewType: T.RPCChat.GalleryItemTyp,
+      fromMsgID: T.Chat.MessageID | undefined,
+      reason: AttachmentLoadReason
+    ) => {
+      updateCurrentAttachmentViewMap(viewType, info => {
+        info.status = 'loading'
+      })
+
+      const generation = ++loadGenerationRef.current
+      logger.info('attachment gallery load start', {
+        conversationIDKey,
+        fromMsgID,
+        generation,
+        reason,
+        viewType,
+      })
+      const isCurrentLoad = () => loadGenerationRef.current === generation
+      const f = async () => {
+        const convID = T.Chat.keyToConversationID(conversationIDKey)
+        const pendingMessages: Array<T.Chat.Message> = []
+        let flushTimeout: ReturnType<typeof setTimeout> | undefined
+        const flushPendingMessages = () => {
+          if (flushTimeout) {
+            clearTimeout(flushTimeout)
+            flushTimeout = undefined
+          }
+          if (!pendingMessages.length) {
+            return
+          }
+          const messages = pendingMessages.splice(0)
+          if (!isCurrentLoad()) {
+            return
+          }
+          const dedupedMessages = new Array<T.Chat.Message>()
+          const seenMessageIDs = new Set<T.Chat.MessageID>()
+          for (const message of messages) {
+            if (!seenMessageIDs.has(message.id)) {
+              seenMessageIDs.add(message.id)
+              dedupedMessages.push(message)
+            }
+          }
+          updateCurrentAttachmentViewMap(viewType, info => {
+            const existingMessageIDs = new Set(info.messages.map(item => item.id))
+            const nextMessages = [...info.messages]
+            let changed = false
+            for (const message of dedupedMessages) {
+              if (!existingMessageIDs.has(message.id)) {
+                existingMessageIDs.add(message.id)
+                nextMessages.push(message)
+                changed = true
+              }
+            }
+            if (changed) {
+              info.messages = nextMessages.sort((l, r) => r.id - l.id)
+            }
+          })
+        }
+        const scheduleFlushPendingMessages = () => {
+          if (flushTimeout) {
+            return
+          }
+          flushTimeout = setTimeout(() => {
+            flushPendingMessages()
+          }, 16)
+        }
+        try {
+          const {deviceName, username} = useCurrentUserState.getState()
+          const getLastOrdinal = () => lastOrdinalRef.current
+          const res = await T.RPCChat.localLoadGalleryRpcListener({
+            incomingCallMap: {
+              'chat.1.chatUi.chatLoadGalleryHit': hit => {
+                const message = Message.uiMessageToMessage(
+                  conversationIDKey,
+                  hit.message,
+                  username,
+                  getLastOrdinal,
+                  deviceName
+                )
+
+                if (message) {
+                  if (T.Chat.ordinalToNumber(message.ordinal) > T.Chat.ordinalToNumber(lastOrdinalRef.current)) {
+                    lastOrdinalRef.current = message.ordinal
+                  }
+                  pendingMessages.push({
+                    ...message,
+                    conversationMessage: false,
+                  })
+                  scheduleFlushPendingMessages()
+                }
+              },
+            },
+            params: {
+              convID,
+              fromMsgID,
+              num: 50,
+              typ: viewType,
+            },
+          })
+          flushPendingMessages()
+          if (!isCurrentLoad()) {
+            logger.info('attachment gallery load stale success ignored', {
+              conversationIDKey,
+              fromMsgID,
+              generation,
+              reason,
+              viewType,
+            })
+            return
+          }
+          logger.info('attachment gallery load success', {
+            conversationIDKey,
+            fromMsgID,
+            generation,
+            last: !!res.last,
+            reason,
+            viewType,
+          })
+          updateCurrentAttachmentViewMap(viewType, info => {
+            info.last = !!res.last
+            info.status = 'success'
+          })
+        } catch (error) {
+          flushPendingMessages()
+          if ((error instanceof RPCError || error instanceof Error) && isCurrentLoad()) {
+            logger.error('failed to load attachment view: ' + error.message, {
+              conversationIDKey,
+              fromMsgID,
+              generation,
+              reason,
+              viewType,
+            })
+            updateCurrentAttachmentViewMap(viewType, info => {
+              info.last = false
+              info.status = 'error'
+            })
+          } else if (error instanceof RPCError || error instanceof Error) {
+            logger.info('attachment gallery load stale error ignored', {
+              conversationIDKey,
+              error: error.message,
+              fromMsgID,
+              generation,
+              reason,
+              viewType,
+            })
+          }
+        } finally {
+          if (flushTimeout) {
+            clearTimeout(flushTimeout)
+          }
+        }
+      }
+      C.ignorePromise(f())
+    }
+  )
+
+  const attachmentViewMap =
+    attachmentViewState.conversationIDKey === conversationIDKey
+      ? attachmentViewState.attachmentViewMap
+      : emptyAttachmentViewMap
+
+  return {attachmentViewMap, loadAttachmentView}
+}
+
 export const useAttachmentSections = (
   p: Props,
   loadImmediately: boolean,
   useFlexWrap: boolean
 ): {sections: Array<Section>} => {
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState(T.RPCChat.GalleryItemTyp.media)
-  const loadAttachmentView = ConvoState.useChatContext(s => s.dispatch.loadAttachmentView)
-  const loadMessagesCentered = ConvoState.useChatContext(s => s.dispatch.loadMessagesCentered)
+  const {conversationIDKey} = p
+  const {attachmentViewMap, loadAttachmentView} = useAttachmentViewState(conversationIDKey)
   const clearModals = C.Router2.clearModals
 
   const jumpToAttachment = (messageID: T.Chat.MessageID) => {
     if (C.isMobile) {
       clearModals()
     }
-    loadMessagesCentered(messageID, 'always')
+    C.Router2.navigateToThread(conversationIDKey, 'misc', messageID)
   }
 
-  C.useOnMountOnce(() => {
-    setTimeout(() => {
-      loadAttachmentView(selectedAttachmentView)
-    }, 1)
+  const loadSelectedAttachmentView = React.useEffectEvent(() => {
+    loadAttachmentView(selectedAttachmentView, undefined, 'initial-effect')
   })
+  React.useEffect(() => {
+    if (!loadImmediately) {
+      return
+    }
+    const timeout = setTimeout(() => {
+      loadSelectedAttachmentView()
+    }, 1)
+    return () => {
+      clearTimeout(timeout)
+    }
+  }, [conversationIDKey, loadImmediately])
 
-  const attachmentView = ConvoState.useChatContext(s => s.attachmentViewMap)
-  const attachmentInfo = attachmentView.get(selectedAttachmentView)
+  const attachmentInfo = attachmentViewMap.get(selectedAttachmentView)
   const fromMsgID = attachmentInfo ? getFromMsgID(attachmentInfo) : undefined
 
-  const onLoadMore = fromMsgID ? () => loadAttachmentView(selectedAttachmentView, fromMsgID) : undefined
+  const onLoadMore = fromMsgID
+    ? () => loadAttachmentView(selectedAttachmentView, fromMsgID, 'load-more')
+    : undefined
 
   const onAttachmentViewChange = (viewType: T.RPCChat.GalleryItemTyp) => {
     if (viewType === selectedAttachmentView) {
@@ -460,26 +703,22 @@ export const useAttachmentSections = (
     onSelectAttachmentView(viewType)
     if (loadImmediately) {
       setTimeout(() => {
-        loadAttachmentView(viewType)
+        loadAttachmentView(viewType, undefined, 'tab-change')
       }, 1)
     }
   }
 
   const loadAttachments = () => {
-    loadAttachmentView(selectedAttachmentView)
+    loadAttachmentView(selectedAttachmentView, undefined, 'retry')
   }
 
-  const attachmentPreviewSelect = ConvoState.useChatContext(s => s.dispatch.attachmentPreviewSelect)
-  const onMediaClick = (message: T.Chat.MessageAttachment) => attachmentPreviewSelect(message.ordinal)
-
-  const attachmentDownload = ConvoState.useChatContext(s => s.dispatch.attachmentDownload)
-  const messageAttachmentNativeShare = ConvoState.useChatContext(s => s.dispatch.messageAttachmentNativeShare)
+  const onMediaClick = (message: T.Chat.MessageAttachment) => showAttachmentPreview(conversationIDKey, message)
 
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
     if (Kb.Styles.isMobile) {
-      messageAttachmentNativeShare(message.ordinal)
+      messageAttachmentNativeShareMessage(conversationIDKey, message)
     } else if (!message.downloadPath) {
-      attachmentDownload(message.ordinal)
+      attachmentDownloadMessage(conversationIDKey, message)
     }
   }
 

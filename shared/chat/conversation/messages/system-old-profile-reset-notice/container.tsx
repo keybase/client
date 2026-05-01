@@ -1,12 +1,17 @@
-import * as ConvoState from '@/stores/convostate'
+import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import {navigateToThread, previewConversation} from '@/constants/router'
 import {Text} from '@/common-adapters'
 import UserNotice from '../user-notice'
+import {useConversationThreadSelector} from '../../thread-context'
 
 const SystemOldProfileResetNotice = () => {
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const {meta, participantInfo} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      meta: s.meta,
+      participantInfo: s.participants,
+    }))
+  )
   const _participants = participantInfo.all
   const nextConversationIDKey = meta.supersededBy
   const username = meta.wasFinalizedBy || ''

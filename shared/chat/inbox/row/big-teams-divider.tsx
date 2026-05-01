@@ -1,24 +1,29 @@
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
 import * as T from '@/constants/types'
 import {BigTeamsLabel} from './big-teams-label'
+import {useConfigState} from '@/stores/config'
 
 type Props = {
+  inlineLayout?: boolean
   toggle: () => void
   onEdit?: () => void
 }
 
 const BigTeamsDivider = (props: Props) => {
-  const {toggle, onEdit} = props
-  const badgeCount = Chat.useChatState(s => s.bigTeamBadgeCount)
+  const {inlineLayout, toggle, onEdit} = props
+  const badgeCount = useConfigState(s => s.badgeState?.bigTeamBadgeCount ?? 0)
+  const containerStyle = Kb.Styles.collapseStyles([
+    styles.container,
+    inlineLayout ? styles.inlineContainer : undefined,
+  ])
   return (
     <Kb.ClickableBox2
       onClick={() => {
         T.RPCChat.localRequestInboxSmallResetRpcPromise().catch(() => {})
         toggle()
       }}
-      style={styles.container}
+      style={containerStyle}
     >
       <Kb.Box2
         direction="horizontal"
@@ -67,6 +72,15 @@ const styles = Kb.Styles.styleSheetCreate(
           left: 0,
           position: 'absolute',
           right: 0,
+        },
+      }),
+      inlineContainer: Kb.Styles.platformStyles({
+        isMobile: {
+          bottom: undefined,
+          left: undefined,
+          position: 'relative',
+          right: undefined,
+          width: '100%',
         },
       }),
       dividerBox: Kb.Styles.platformStyles({

@@ -2,13 +2,13 @@ import * as C from '@/constants'
 import {bodyToJSON} from '@/constants/rpc-utils'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
-import * as ConvoState from '@/stores/convostate'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
 import * as Teams from '@/constants/teams'
 import logger from '@/logger'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '@/teams/use-teams-list'
+import {useConversationThreadSelector} from './thread-context'
 
 type ChatTeamState = {
   allowPromote: boolean
@@ -539,14 +539,16 @@ type ChatTeamContextValue = {
 }
 
 const ChatTeamContext = React.createContext<ChatTeamContextValue | null>(null)
+ChatTeamContext.displayName = 'ChatTeamContext'
 
 export const ChatTeamProvider = (props: React.PropsWithChildren) => {
   const {children} = props
-  const {teamID, teamType, teamname} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {teamID, teamType, teamname} = s.meta
-      return {teamID, teamType, teamname}
-    })
+  const {teamID, teamType, teamname} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      teamID: s.meta.teamID,
+      teamType: s.meta.teamType,
+      teamname: s.meta.teamname,
+    }))
   )
   const outer = React.useContext(ChatTeamContext)
   const enabled = teamType !== 'adhoc' && !!loadableTeamID(teamID)

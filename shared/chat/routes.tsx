@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import {makeChatScreen} from './make-chat-screen'
 import * as FS from '@/constants/fs'
 import type * as T from '@/constants/types'
@@ -15,7 +15,7 @@ import inboxAndConvoGetOptions from './inbox-and-conversation-get-options'
 import {defineRouteMap} from '@/constants/types/router'
 import type {BlockModalContext} from './blocking/block-modal'
 import type {ChatRootRouteParams} from './inbox-and-conversation'
-import {onTeamBuildingFinished} from '@/stores/convostate'
+import {onTeamBuildingFinished} from './team-building-finished'
 import {showShareActionSheet} from '@/util/storeless-actions'
 const Convo = React.lazy(async () => import('./conversation/container'))
 

@@ -1,6 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
-import * as ConvoState from '@/stores/convostate'
+import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -8,6 +7,7 @@ import * as Kbfs from '@/fs/common'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 import {useCurrentUserState} from '@/stores/current-user'
+import {uploadAttachments} from '../conversation/attachment-actions'
 
 type Props = {
   canBack?: boolean
@@ -34,14 +34,12 @@ export const MobileSendToChat = (props: Props) => {
   const navigateAppend = C.Router2.navigateAppend
   const clearModals = C.Router2.clearModals
   const onSelect = (conversationIDKey: T.Chat.ConversationIDKey, tlfName: string) => {
-    if (text) {
-      ConvoState.getConvoUIState(conversationIDKey).dispatch.injectIntoInput(text)
-    }
     if (sendPaths?.length) {
       navigateAppend({
         name: 'chatAttachmentGetTitles',
         params: {
           conversationIDKey,
+          inputPrefillText: text,
           pathAndOutboxIDs: sendPaths.map(p => ({
             path: Kb.Styles.normalizePath(p),
           })),
@@ -51,7 +49,14 @@ export const MobileSendToChat = (props: Props) => {
       })
     } else {
       clearModals()
-      C.Router2.navigateToThread(conversationIDKey, isFromShareExtension ? 'extension' : 'files')
+      C.Router2.navigateToThread(
+        conversationIDKey,
+        isFromShareExtension ? 'extension' : 'files',
+        undefined,
+        undefined,
+        undefined,
+        text
+      )
     }
   }
   return <ConversationList {...props} onSelect={onSelect} />
@@ -73,13 +78,15 @@ const DesktopSendToChat = (props: Props) => {
     setConvName(convname)
   }
   const onSend = () => {
-    const {dispatch} = ConvoState.getConvoState(conversationIDKey)
     sendPaths.forEach(path =>
-      dispatch.attachmentsUpload(
-        [{path: T.FS.pathToString(path)}],
-        [title],
-        `${username},${convName.split('#')[0]}`
-      )
+      uploadAttachments({
+        clientPrev: T.Chat.numberToMessageID(0),
+        conversationIDKey,
+        ephemeralLifetime: 0,
+        paths: [{path: T.FS.pathToString(path)}],
+        titles: [title],
+        tlfName: `${username},${convName.split('#')[0]}`,
+      })
     )
     clearModals()
     C.Router2.navigateToThread(conversationIDKey, 'files')

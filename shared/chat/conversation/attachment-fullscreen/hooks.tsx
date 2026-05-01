@@ -1,28 +1,53 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import {clampImageSize} from '@/constants/chat/helpers'
-import * as Chat from '@/stores/chat'
-import * as ConvoState from '@/stores/convostate'
-import type * as T from '@/constants/types'
+import * as Chat from '@/constants/chat'
+import * as T from '@/constants/types'
+import logger from '@/logger'
 import {maxWidth, maxHeight} from '../messages/attachment/shared'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {
+  attachmentDownloadMessage,
+  loadNextAttachmentMessage,
+} from '../attachment-actions'
+import {showConversationInfoPanel} from '../thread-context'
+import {useConversationMessage} from '../data-hooks'
 
 const blankMessage = Chat.makeMessageAttachment({})
-export const useData = (initialOrdinal: T.Chat.Ordinal) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const [ordinal, setOrdinal] = React.useState(initialOrdinal)
+export const useData = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  initialMessageID: T.Chat.MessageID,
+  initialMessage?: T.Chat.MessageAttachment
+) => {
+  const [messageID, setMessageID] = React.useState(initialMessageID)
+  const [messageOverride, setMessageOverride] = React.useState<T.Chat.MessageAttachment | undefined>(
+    initialMessage
+  )
 
-  const message: T.Chat.MessageAttachment = ConvoState.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    return m?.type === 'attachment' ? m : blankMessage
-  })
+  const loadedMessage = useConversationMessage(conversationIDKey, messageID)
+  const initialMessageForID = initialMessage?.id === messageID ? initialMessage : undefined
+  const overrideMessageForID = messageOverride?.id === messageID ? messageOverride : undefined
+  const message: T.Chat.MessageAttachment =
+    loadedMessage?.type === 'attachment'
+      ? loadedMessage
+      : (overrideMessageForID ?? initialMessageForID ?? blankMessage)
+  const hasMessageID = !!T.Chat.messageIDToNumber(message.id)
 
-  const loadNextAttachment = ConvoState.useChatContext(s => s.dispatch.loadNextAttachment)
+  React.useEffect(() => {
+    if (message !== blankMessage || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
+      return
+    }
+    logger.warn(
+      `chat attachment fullscreen: missing attachment message for convID=${conversationIDKey} messageID=${messageID}`
+    )
+  }, [conversationIDKey, message, messageID])
+
   const onSwitchAttachment = (backInTime: boolean) => {
     const f = async () => {
-      if (conversationIDKey !== blankMessage.conversationIDKey) {
-        const o = await loadNextAttachment(ordinal, backInTime)
-        setOrdinal(o)
+      if (conversationIDKey !== blankMessage.conversationIDKey && message !== blankMessage && hasMessageID) {
+        const nextMessage = await loadNextAttachmentMessage(conversationIDKey, message, backInTime)
+        setMessageOverride(nextMessage)
+        setMessageID(nextMessage.id)
       }
     }
     C.ignorePromise(f())
@@ -36,8 +61,6 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   }
 
   const navigateUp = C.Router2.navigateUp
-  const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
-  const attachmentDownload = ConvoState.useChatContext(s => s.dispatch.attachmentDownload)
   const {downloadPath, fileURL: path, fullHeight, fullWidth, fileType} = message
   const {previewHeight, previewURL: previewPath, previewWidth, title, transferProgress} = message
   const {height: clampedHeight, width: clampedWidth} = clampImageSize(
@@ -49,12 +72,12 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
 
   const isVideo = message.fileType.startsWith('video')
   const showPreview = !fileType.includes('png')
-  const onAllMedia = () => showInfoPanel(true, 'attachments')
+  const onAllMedia = () => showConversationInfoPanel(conversationIDKey, true, 'attachments')
   const onClose = () => navigateUp()
-  const onDownloadAttachment = message.downloadPath
+  const onDownloadAttachment = message.downloadPath || !hasMessageID
     ? undefined
     : () => {
-        attachmentDownload(message.ordinal)
+        attachmentDownloadMessage(conversationIDKey, message)
       }
 
   const onShowInFinder = downloadPath
@@ -71,15 +94,15 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   return {
     fullHeight,
     fullWidth,
+    hasMessageID,
     isVideo,
     message,
     onAllMedia,
     onClose,
     onDownloadAttachment,
-    onNextAttachment,
-    onPreviousAttachment,
+    onNextAttachment: hasMessageID ? onNextAttachment : undefined,
+    onPreviousAttachment: hasMessageID ? onPreviousAttachment : undefined,
     onShowInFinder,
-    ordinal,
     path,
     previewHeight: clampedHeight,
     previewPath,

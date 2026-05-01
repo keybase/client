@@ -1,52 +1,67 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
-import {useShellState} from '@/stores/shell'
+import {type State as ShellState, useShellState} from '@/stores/shell'
 import * as React from 'react'
 import {useEngineActionListener} from '@/engine/action-listener'
 import Normal from '.'
 import * as T from '@/constants/types'
 import {FocusProvider, ScrollProvider} from './context'
-import {OrangeLineContext} from '../orange-line-context'
+import {OrangeLineContext, SetOrangeLineContext, useExplicitOrangeLineState} from '../orange-line-context'
 import {ChatTeamProvider} from '../team-hooks'
+import {ConversationCenterProvider} from '../center-context'
+import {ConversationInputProvider} from '../input-area/input-state'
+import {
+  useConversationThreadID,
+  useConversationThreadSelector,
+} from '../thread-context'
+import {ConversationThreadLoadStatusProvider} from '../thread-load-status-context'
+import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
+import {useChatThreadRouteParams} from '../thread-search-route'
 
 type OrangeLineState = {
-  conversationIDKey: T.Chat.ConversationIDKey
-  mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
+  mobileAppState: ShellState['mobileAppState']
   orangeLine: T.Chat.Ordinal
 }
 
-const useOrangeLine = () => {
-  const id = ConvoState.useChatContext(s => s.id)
-  const active = useShellState(s => s.active)
-  const mobileAppState = useShellState(s => s.mobileAppState)
-  const noOrangeLine = T.Chat.numberToOrdinal(0)
+type OrangeLineKey = {
+  conversationIDKey: T.Chat.ConversationIDKey
+  mobileAppState: ShellState['mobileAppState']
+}
+
+const noOrangeLine = T.Chat.numberToOrdinal(0)
+
+const getVisibleOrangeLine = (
+  state: OrangeLineState,
+  mobileAppState: ShellState['mobileAppState']
+): T.Chat.Ordinal => {
+  if (state.mobileAppState === mobileAppState || mobileAppState === 'active') {
+    return state.orangeLine
+  }
+
+  return noOrangeLine
+}
+
+const useOrangeLine = (
+  id: T.Chat.ConversationIDKey,
+  active: boolean,
+  mobileAppState: ShellState['mobileAppState']
+) => {
   const [orangeLineState, setOrangeLineState] = React.useState<OrangeLineState>(() => ({
-    conversationIDKey: id,
     mobileAppState,
     orangeLine: noOrangeLine,
   }))
-  let currentOrangeLineState = orangeLineState
-  if (orangeLineState.conversationIDKey !== id || orangeLineState.mobileAppState !== mobileAppState) {
-    currentOrangeLineState = {
-      conversationIDKey: id,
-      mobileAppState,
-      orangeLine:
-        orangeLineState.conversationIDKey === id && mobileAppState === 'active'
-          ? orangeLineState.orangeLine
-          : noOrangeLine,
-    }
-    setOrangeLineState(currentOrangeLineState)
-  }
-  // Snapshot readMsgID during render (synchronous, before any effects like markThreadAsRead)
-  // This ensures we capture the read position before the Go service processes mark-as-read
-  const savedReadMsgID = React.useMemo(() => ConvoState.getConvoState(id).meta.readMsgID, [id])
+  const currentOrangeLineKeyRef = React.useRef<OrangeLineKey>({conversationIDKey: id, mobileAppState})
+  React.useLayoutEffect(() => {
+    currentOrangeLineKeyRef.current = {conversationIDKey: id, mobileAppState}
+  }, [id, mobileAppState])
+  const meta = useConversationThreadSelector(s => s.meta)
+  // Keep the read position from when this conversation mounted. Mark-as-read updates
+  // meta.readMsgID shortly after navigation, but the open thread should retain its orange line.
+  const [initialReadMsgID] = React.useState(() => meta.readMsgID)
 
   const loadOrangeLine = React.useEffectEvent(
-    (conversationIDKey: T.Chat.ConversationIDKey, savedReadMsgID?: T.Chat.MessageID) => {
+    (conversationIDKey: T.Chat.ConversationIDKey, readMsgID: T.Chat.MessageID) => {
       const f = async () => {
-        const store = ConvoState.getConvoState(conversationIDKey)
-        const convID = store.getConvID()
-        const readMsgID = savedReadMsgID ?? store.meta.readMsgID
+        const convID = T.Chat.keyToConversationID(conversationIDKey)
         const unreadlineRes = await T.RPCChat.localGetUnreadlineRpcPromise({
           convID,
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
@@ -55,60 +70,73 @@ const useOrangeLine = () => {
         const nextOrangeLine = T.Chat.numberToOrdinal(
           unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
         )
-        setOrangeLineState(state =>
-          state.conversationIDKey === conversationIDKey ? {...state, orangeLine: nextOrangeLine} : state
-        )
+        const currentKey = currentOrangeLineKeyRef.current
+        if (currentKey.conversationIDKey !== conversationIDKey) {
+          return
+        }
+        setOrangeLineState(prev => {
+          if (prev.orangeLine !== noOrangeLine) {
+            return prev
+          }
+          return {
+            mobileAppState: currentKey.mobileAppState,
+            orangeLine: nextOrangeLine,
+          }
+        })
       }
       C.ignorePromise(f())
     }
   )
 
-  const loaded = ConvoState.useChatContext(s => s.loaded)
+  const loaded = useConversationThreadSelector(s => s.loaded)
 
-  // Fire when conversation changes or messages finish loading
   // Wait for loaded so the Go service has messages in its local cache
-  // On desktop the component doesn't remount on conversation switch, so we depend on id
   React.useEffect(() => {
     if (loaded) {
-      loadOrangeLine(id, savedReadMsgID)
+      loadOrangeLine(id, initialReadMsgID)
     }
-  }, [id, loaded, savedReadMsgID])
+  }, [id, loaded, initialReadMsgID])
 
-  const {markedAsUnread, maxVisibleMsgID} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {maxVisibleMsgID} = s.meta
-      const {markedAsUnread} = s
-      return {markedAsUnread, maxVisibleMsgID}
-    })
-  )
-
-  // unread changed things
-  const lastMarkedAsUnreadRef = React.useRef(markedAsUnread)
-  React.useEffect(() => {
-    if (lastMarkedAsUnreadRef.current !== markedAsUnread) {
-      lastMarkedAsUnreadRef.current = markedAsUnread
-      setOrangeLineState(state =>
-        state.conversationIDKey === id
-          ? {...state, orangeLine: T.Chat.numberToOrdinal(markedAsUnread)}
-          : state
-      )
-    }
-  }, [id, markedAsUnread])
+  const maxVisibleMsgID = meta.maxVisibleMsgID
 
   // just use the rpc for orange line if we're not active
   // if we are active we want to keep whatever state we had so it is maintained
   React.useEffect(() => {
     if (!active) {
-      loadOrangeLine(id)
+      loadOrangeLine(id, meta.readMsgID)
     }
-  }, [maxVisibleMsgID, active, id])
+  }, [maxVisibleMsgID, active, id, meta.readMsgID])
 
-  return currentOrangeLineState.orangeLine
+  const setOrangeLine = React.useEffectEvent((ordinal: T.Chat.Ordinal) => {
+    const currentKey = currentOrangeLineKeyRef.current
+    if (currentKey.conversationIDKey !== id) {
+      return
+    }
+    setOrangeLineState({
+      mobileAppState: currentKey.mobileAppState,
+      orangeLine: ordinal,
+    })
+  })
+
+  const explicitOrangeLine = useExplicitOrangeLineState(s => s.update)
+  const explicitOrangeLineVersionRef = React.useRef(explicitOrangeLine?.version ?? 0)
+  React.useEffect(() => {
+    if (!explicitOrangeLine || explicitOrangeLine.version <= explicitOrangeLineVersionRef.current) {
+      return
+    }
+    explicitOrangeLineVersionRef.current = explicitOrangeLine.version
+    if (explicitOrangeLine.conversationIDKey !== id) {
+      return
+    }
+    setOrangeLine(explicitOrangeLine.ordinal)
+  }, [explicitOrangeLine, id])
+
+  return {orangeLine: getVisibleOrangeLine(orangeLineState, mobileAppState), setOrangeLine}
 }
 
 const useShowManageChannels = () => {
   const navigateAppend = C.Router2.navigateAppend
-  const {teamID, teamname} = ConvoState.useChatContext(
+  const {teamID, teamname} = useConversationThreadSelector(
     C.useShallow(s => ({teamID: s.meta.teamID, teamname: s.meta.teamname}))
   )
   useEngineActionListener('chat.1.chatUi.chatShowManageChannels', action => {
@@ -123,19 +151,79 @@ const useShowManageChannels = () => {
   })
 }
 
-const NormalWrapper = function NormalWrapper() {
-  const orangeLine = useOrangeLine()
-  useShowManageChannels()
+type OrangeLineProviderProps = React.PropsWithChildren<{
+  active: boolean
+  conversationIDKey: T.Chat.ConversationIDKey
+  mobileAppState: ShellState['mobileAppState']
+}>
+
+const NormalOrangeLineProvider = (props: OrangeLineProviderProps) => {
+  const {active, children, conversationIDKey, mobileAppState} = props
+  const {orangeLine, setOrangeLine} = useOrangeLine(conversationIDKey, active, mobileAppState)
+
   return (
     <OrangeLineContext value={orangeLine}>
-      <ChatTeamProvider>
-        <FocusProvider>
-          <ScrollProvider>
-            <Normal />
-          </ScrollProvider>
-        </FocusProvider>
-      </ChatTeamProvider>
+      <SetOrangeLineContext value={setOrangeLine}>{children}</SetOrangeLineContext>
     </OrangeLineContext>
+  )
+}
+
+const NormalProviderChildren = (props: {
+  active: boolean
+  allowMarkReadOnLoad: boolean
+  conversationIDKey: T.Chat.ConversationIDKey
+  mobileAppState: ShellState['mobileAppState']
+  skipThreadLoadOnSelection: boolean
+}) => {
+  const {active, allowMarkReadOnLoad, conversationIDKey, mobileAppState, skipThreadLoadOnSelection} = props
+  useShowManageChannels()
+  return (
+    <MaybeMentionProvider>
+      <NormalOrangeLineProvider
+        key={conversationIDKey}
+        active={active}
+        conversationIDKey={conversationIDKey}
+        mobileAppState={mobileAppState}
+      >
+        <ChatTeamProvider>
+          <ConversationThreadLoadStatusProvider
+            allowMarkReadOnLoad={allowMarkReadOnLoad}
+            key={conversationIDKey}
+            id={conversationIDKey}
+            skipThreadLoadOnSelection={skipThreadLoadOnSelection}
+          >
+            <ConversationCenterProvider id={conversationIDKey}>
+              <ConversationInputProvider key={conversationIDKey} id={conversationIDKey}>
+                <FocusProvider>
+                  <ScrollProvider>
+                    <Normal />
+                  </ScrollProvider>
+                </FocusProvider>
+              </ConversationInputProvider>
+            </ConversationCenterProvider>
+          </ConversationThreadLoadStatusProvider>
+        </ChatTeamProvider>
+      </NormalOrangeLineProvider>
+    </MaybeMentionProvider>
+  )
+}
+
+const NormalWrapper = function NormalWrapper() {
+  const conversationIDKey = useConversationThreadID()
+  const {active, mobileAppState} = useShellState(
+    C.useShallow(s => ({active: s.active, mobileAppState: s.mobileAppState}))
+  )
+  const routeParams = useChatThreadRouteParams()
+  const skipThreadLoadOnSelection = !!routeParams?.highlightMessageID
+  const allowMarkReadOnLoad = !routeParams?.highlightMessageID && !routeParams?.threadSearch
+  return (
+    <NormalProviderChildren
+      active={active}
+      allowMarkReadOnLoad={allowMarkReadOnLoad}
+      conversationIDKey={conversationIDKey}
+      mobileAppState={mobileAppState}
+      skipThreadLoadOnSelection={skipThreadLoadOnSelection}
+    />
   )
 }
 export default NormalWrapper

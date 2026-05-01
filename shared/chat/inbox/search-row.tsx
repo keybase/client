@@ -1,9 +1,9 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
 import * as Kb from '@/common-adapters'
 import ChatFilterRow from './filter-row'
 import NewChatButton from './new-chat-button'
 import StartNewChat from './row/start-new-chat'
+import {isEmptyInboxLayout, useInboxLayoutState} from './layout-state'
 import type {InboxSearchController} from './use-inbox-search'
 
 type OwnProps = {
@@ -19,13 +19,9 @@ type OwnProps = {
 export default function InboxSearchRow(ownProps: OwnProps) {
   const {forceShowFilter, search, showNewChatButton, showSearch} = ownProps
   const {cancelSearch, isSearching, moveSelectedIndex, query, selectResult, setQuery, startSearch} = search
-  const chatState = Chat.useChatState(
+  const chatState = useInboxLayoutState(
     C.useShallow(s => {
-      const hasLoadedEmptyInbox =
-        s.inboxHasLoaded &&
-        !!s.inboxLayout &&
-        (s.inboxLayout.smallTeams || []).length === 0 &&
-        (s.inboxLayout.bigTeams || []).length === 0
+      const hasLoadedEmptyInbox = s.hasLoaded && isEmptyInboxLayout(s.layout)
       return {
         showEmptyInbox: hasLoadedEmptyInbox,
       }

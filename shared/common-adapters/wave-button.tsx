@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import {Box2} from './box'
 import Icon from './icon'
@@ -10,6 +9,7 @@ import * as Styles from '@/styles'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
+import {sendTextToConversation} from '@/chat/conversation/send-actions'
 
 const Kb = {
   Box2,
@@ -25,7 +25,7 @@ type Props = {
   toMany?: boolean
   disabled?: boolean
 } & (
-  | {conversationIDKey: T.Chat.ConversationIDKey; username?: never}
+  | {conversationIDKey: T.Chat.ConversationIDKey; tlfName: string; username?: never}
   | {conversationIDKey?: never; username: string}
 )
 
@@ -34,24 +34,7 @@ const getWaveWaitingKey = (recipient: string) => {
 }
 
 const WaveButton = (props: Props) => {
-  const hasContext = ConvoState.useHasContext()
-  if (props.username) {
-    if (hasContext) {
-      return <WaveButtonImpl {...props} />
-    } else {
-      return (
-        <ConvoState.ChatProvider key="wave" id="" canBeNull={true}>
-          <WaveButtonImpl {...props} />
-        </ConvoState.ChatProvider>
-      )
-    }
-  }
-  if (hasContext) {
-    return <WaveButtonImpl {...props} />
-  } else {
-    logger.warn('WaveButton: need one of username or conversationIDKey')
-    return null
-  }
+  return <WaveButtonImpl {...props} />
 }
 
 // A button that sends a wave emoji into a chat.
@@ -60,7 +43,6 @@ const WaveButtonImpl = (props: Props) => {
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = C.Waiting.useAnyWaiting(waitingKey)
   const username = useCurrentUserState(s => s.username)
-  const sendMessage = ConvoState.useChatContext(s => s.dispatch.sendMessage)
   const createConversation = C.useRPC(T.RPCChat.localNewConversationLocalRpcPromise)
   const onWave = () => {
     if (props.username) {
@@ -85,14 +67,14 @@ const WaveButtonImpl = (props: Props) => {
             logger.warn("WaveButton: couldn't resolve wave conversation")
             return
           }
-          ConvoState.getConvoState(conversationIDKey).dispatch.sendMessage(':wave:')
+          sendTextToConversation(conversationIDKey, `${username},${props.username}`, ':wave:')
         },
         error => {
           logger.warn('Could not send in WaveButton', error.message)
         }
       )
     } else if (props.conversationIDKey) {
-      sendMessage(':wave:')
+      sendTextToConversation(props.conversationIDKey, props.tlfName, ':wave:')
     } else {
       logger.warn('WaveButton: need one of username or conversationIDKey')
       return

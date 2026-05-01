@@ -11,6 +11,15 @@ The Go service is the source of truth for a lot of this repo's state. Prefer que
 
 Do not silently drop behavior. If a field or action is ambiguous, state the tradeoff and keep the behavior intact.
 
+Many Keybase Zustand stores use Immer middleware. When moving store-owned objects out of Zustand into React
+context, keep the same immutable state model by default: update provider state through Immer `produce`, and
+insert Immer-produced copies of store objects such as messages, metadata, participants, `Map`, `Set`, arrays,
+and nested objects instead of retaining mutable references from RPC parsing, caches, or compatibility stores.
+Do not mutate existing React state containers in place and then return the same object. For helpers shared
+between old Zustand code and new providers, make it clear whether the helper expects an Immer draft or a copied
+immutable value, and ensure provider callers produce new identities for every changed container that selectors
+or renders depend on.
+
 ## Best Targets First
 
 Start with small settings or wizard stores that mix form state and RPC orchestration:
@@ -85,6 +94,8 @@ useEngineActionListener('keybase.1.homeUI.homeUIRefresh', () => {
 ```
 
 and let `shared/constants/init/shared.tsx` remain the single engine entrypoint that fans out to both global stores and typed feature listeners.
+
+When moving notification-fed state into mounted React hooks, do not reset local state with synchronous `setState` inside `useEffect`; this violates `react-hooks/set-state-in-effect` and causes cascading renders. Prefer deriving a blank/reset view from the current owner key during render, remounting an owner provider with `key`, or updating state only from the external subscription callback.
 
 Move it to route params if it is:
 

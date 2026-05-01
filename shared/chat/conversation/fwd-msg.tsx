@@ -1,48 +1,86 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
-import * as ConvoState from '@/stores/convostate'
+import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
-import debounce from 'lodash/debounce'
 import logger from '@/logger'
+import {useConversationMessage} from './data-hooks'
 
-type Props = {ordinal: T.Chat.Ordinal}
+type Props = {conversationIDKey?: T.Chat.ConversationIDKey; messageID: T.Chat.MessageID}
 
 type PickerState = 'picker' | 'title'
 
-const TeamPicker = (props: Props) => {
-  const srcConvID = ConvoState.useChatContext(s => s.id)
-  const ordinal = props.ordinal
-  const message = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
+const forwardMessageHandoff = new Map<string, T.Chat.Message>()
+const forwardMessageKey = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) =>
+  `${conversationIDKey}:${T.Chat.messageIDToNumber(messageID)}`
+
+const getForwardMessage = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => {
+  const key = forwardMessageKey(conversationIDKey, messageID)
+  return forwardMessageHandoff.get(key)
+}
+
+export const showForwardMessagePicker = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  message: T.Chat.Message | undefined
+) => {
+  if (!message || !T.Chat.messageIDToNumber(message.id)) {
+    logger.warn('showForwardMessagePicker: no message id')
+    return
+  }
+  const key = forwardMessageKey(conversationIDKey, message.id)
+  forwardMessageHandoff.set(key, message)
+  C.Router2.navigateAppend({
+    name: 'chatForwardMsgPick',
+    params: {conversationIDKey, messageID: message.id},
+  })
+}
+
+const TeamPickerInner = (props: Props) => {
+  const srcConvID = props.conversationIDKey ?? Chat.noConversationIDKey
+  const messageID = props.messageID
+  const handoffKey = forwardMessageKey(srcConvID, messageID)
+  const [initialMessage] = React.useState(() => getForwardMessage(srcConvID, messageID))
+  const loadedMessage = useConversationMessage(srcConvID, messageID)
+  const message = loadedMessage ?? initialMessage
   const navigation = useNavigation()
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
+  const setSearchTerm = C.useDebouncedCallback(setTerm, 200)
   const dstConvIDRef = React.useRef<Uint8Array | undefined>(undefined)
   const [results, setResults] = React.useState<ReadonlyArray<T.RPCChat.ConvSearchHit>>([])
-  const [waiting, setWaiting] = React.useState(false)
+  const [loadedTerm, setLoadedTerm] = React.useState<string>()
   const [error, setError] = React.useState('')
+  const waiting = loadedTerm !== term
   const fwdMsg = C.useRPC(T.RPCChat.localForwardMessageNonblockRpcPromise)
   const submit = C.useRPC(T.RPCChat.localForwardMessageConvSearchRpcPromise)
-  const [lastTerm, setLastTerm] = React.useState('init')
-  if (lastTerm !== term) {
-    setLastTerm(term)
-    setWaiting(true)
+
+  React.useEffect(() => {
+    forwardMessageHandoff.delete(handoffKey)
+  }, [handoffKey])
+
+  React.useEffect(() => {
+    let stale = false
     submit(
       [{term}],
       result => {
-        setWaiting(false)
+        if (stale) return
+        setLoadedTerm(term)
+        setError('')
         setResults(result ?? [])
       },
       error => {
-        setWaiting(false)
+        if (stale) return
+        setLoadedTerm(term)
         setError('Something went wrong, please try again.')
         logger.info('TeamPicker: error loading search results: ' + error.message)
       }
     )
-  }
+    return () => {
+      stale = true
+    }
+  }, [submit, term])
 
   const clearModals = C.Router2.clearModals
   const onClose = () => {
@@ -96,13 +134,9 @@ const TeamPicker = (props: Props) => {
           title,
         },
       ],
-      () => {
-        setWaiting(false)
-      },
+      () => {},
       error => {
-        setWaiting(false)
-        setError('Something went wrong, please try again.')
-        logger.info('TeamPicker: error loading search results: ' + error.message)
+        logger.info('TeamPicker: error forwarding message: ' + error.message)
       }
     )
     clearModals()
@@ -116,7 +150,6 @@ const TeamPicker = (props: Props) => {
 
     dstConvIDRef.current = dstConvID
 
-    // add caption on files, otherwise we have an effect below which will submit
     if (message.type === 'attachment') {
       setPickerState('title')
     } else {
@@ -146,6 +179,7 @@ const TeamPicker = (props: Props) => {
     )
   }
 
+  const showError = !waiting && error.length > 0
   const content =
     pickerState === 'picker' ? (
       <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -155,14 +189,14 @@ const TeamPicker = (props: Props) => {
             icon="iconfont-search"
             placeholderText={`Search chats and teams...`}
             placeholderCentered={true}
-            onChange={debounce(setTerm, 200)}
+            onChange={setSearchTerm}
             style={styles.searchFilter}
             focusOnMount={true}
             waiting={waiting}
           />
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-          {error.length > 0 ? (
+          {showError ? (
             <Kb.Text type="Body" style={{alignSelf: 'center', color: Kb.Styles.globalColors.redDark}}>
               {error}
             </Kb.Text>
@@ -274,5 +308,9 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
     }) as const
 )
+
+const TeamPicker = (props: Props) => {
+  return <TeamPickerInner {...props} />
+}
 
 export default TeamPicker

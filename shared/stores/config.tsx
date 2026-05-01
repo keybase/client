@@ -12,9 +12,7 @@ import {isMobile} from '@/constants/platform'
 import {type CommonResponseHandler} from '@/engine/types'
 import {invalidPasswordErrorString} from '@/constants/config'
 import {navigateAppend} from '@/constants/router'
-import {
-  onEngineConnected as onEngineConnectedInPlatform,
-} from '@/util/storeless-actions'
+import {onEngineConnected as onEngineConnectedInPlatform} from '@/util/storeless-actions'
 
 type Store = T.Immutable<{
   allowAnimatedEmojis: boolean
@@ -22,6 +20,8 @@ type Store = T.Immutable<{
     | {type: T.RPCGen.IncomingShareType.file; urls: Array<string>}
     | {type: T.RPCGen.IncomingShareType.text; text: string}
   badgeState?: T.RPCGen.BadgeState
+  chatBuiltinCommands?: T.Chat.StaticConfig['builtinCommands']
+  chatDeletableByDeleteHistory?: Set<T.Chat.MessageType>
   configuredAccounts: Array<T.Config.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
@@ -64,6 +64,8 @@ const initialStore: Store = {
   allowAnimatedEmojis: true,
   androidShare: undefined,
   badgeState: undefined,
+  chatBuiltinCommands: undefined,
+  chatDeletableByDeleteHistory: undefined,
   configuredAccounts: [],
   defaultUsername: '',
   globalError: undefined,
@@ -122,6 +124,7 @@ export type State = Store & {
     setAccounts: (a: Store['configuredAccounts']) => void
     setAndroidShare: (s: Store['androidShare']) => void
     setBadgeState: (b: State['badgeState']) => void
+    setChatStaticConfig: (s: T.Chat.StaticConfig) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: unknown) => void
     setGregorReachable: (r: Store['gregorReachable']) => void
@@ -362,10 +365,9 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
     onEngineIncoming: action => {
       switch (action.type) {
         case 'keybase.1.NotifyAudit.rootAuditError':
-          get()
-            .dispatch.setGlobalError(
-              new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
-            )
+          get().dispatch.setGlobalError(
+            new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
+          )
           break
         case 'keybase.1.NotifyAudit.boxAuditError':
           get().dispatch.setGlobalError(
@@ -462,6 +464,8 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       if (isDebug) return
       set(s => ({
         ...initialStore,
+        chatBuiltinCommands: s.chatBuiltinCommands,
+        chatDeletableByDeleteHistory: s.chatDeletableByDeleteHistory,
         configuredAccounts: s.configuredAccounts,
         defaultUsername: s.defaultUsername,
         dispatch: s.dispatch,
@@ -497,6 +501,12 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       if (get().badgeState === b) return
       set(s => {
         s.badgeState = T.castDraft(b)
+      })
+    },
+    setChatStaticConfig: staticConfig => {
+      set(s => {
+        s.chatBuiltinCommands = T.castDraft(staticConfig.builtinCommands)
+        s.chatDeletableByDeleteHistory = new Set(staticConfig.deletableByDeleteHistory)
       })
     },
     setDefaultUsername: u => {
