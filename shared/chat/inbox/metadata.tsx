@@ -17,7 +17,6 @@ import * as Z from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useUsersState} from '@/stores/users'
-import {produce} from 'immer'
 import {
   getInboxRowTrustedState,
   setInboxRowTrustedState,
@@ -37,41 +36,17 @@ type InboxMetadataState = T.Immutable<{
   }
 }>
 
-const copyConversationMeta = (meta: T.Chat.ConversationMeta): T.Chat.ConversationMeta =>
-  produce(
-    {
-      ...meta,
-      rekeyers: new Set(meta.rekeyers),
-      resetParticipants: new Set(meta.resetParticipants),
-    },
-    () => {}
-  )
-
-const copyParticipantInfo = (participants: T.Chat.ParticipantInfo): T.Chat.ParticipantInfo =>
-  produce(
-    {
-      all: [...participants.all],
-      contactName: new Map(participants.contactName),
-      name: [...participants.name],
-    },
-    () => {}
-  )
-
 export const useInboxMetadataState = Z.createZustand<InboxMetadataState>('inbox-metadata', () => ({
   dispatch: {resetState: Z.defaultReset},
   metas: new Map(),
   participants: new Map(),
 }))
 
-export const getInboxConversationMeta = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const meta = useInboxMetadataState.getState().metas.get(conversationIDKey)
-  return meta ? copyConversationMeta(meta) : undefined
-}
+export const getInboxConversationMeta = (conversationIDKey: T.Chat.ConversationIDKey) =>
+  useInboxMetadataState.getState().metas.get(conversationIDKey)
 
-export const getInboxConversationParticipants = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const participants = useInboxMetadataState.getState().participants.get(conversationIDKey)
-  return participants ? copyParticipantInfo(participants) : undefined
-}
+export const getInboxConversationParticipants = (conversationIDKey: T.Chat.ConversationIDKey) =>
+  useInboxMetadataState.getState().participants.get(conversationIDKey)
 
 export const updateInboxConversationMeta = (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -82,14 +57,14 @@ export const updateInboxConversationMeta = (
     return
   }
   metasReceived([
-    copyConversationMeta({
+    {
       ...oldMeta,
       ...partial,
       rekeyers: partial.rekeyers ? new Set(partial.rekeyers) : oldMeta.rekeyers,
       resetParticipants: partial.resetParticipants
         ? new Set(partial.resetParticipants)
         : oldMeta.resetParticipants,
-    }),
+    },
   ])
 }
 
@@ -126,7 +101,7 @@ export const participantInfoReceived = (
   meta?: T.Chat.ConversationMeta
 ) => {
   useInboxMetadataState.setState(s => {
-    s.participants.set(conversationIDKey, T.castDraft(copyParticipantInfo(participantInfo)))
+    s.participants.set(conversationIDKey, T.castDraft(participantInfo))
   })
   if (meta) {
     syncInboxRowsFromMetaAndParticipants([{meta, participantInfo}])
@@ -143,7 +118,7 @@ export const metasReceived = (
       s.participants.delete(r)
     })
     metas.forEach(m => {
-      s.metas.set(m.conversationIDKey, T.castDraft(copyConversationMeta(m)))
+      s.metas.set(m.conversationIDKey, T.castDraft(m))
     })
   })
   syncInboxRowsFromMetas(metas, removals)
@@ -167,7 +142,7 @@ const updateInboxParticipants = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIIt
   if (participantEntries.length > 0) {
     useInboxMetadataState.setState(s => {
       participantEntries.forEach(({conversationIDKey, participantInfo}) => {
-        s.participants.set(conversationIDKey, T.castDraft(copyParticipantInfo(participantInfo)))
+        s.participants.set(conversationIDKey, T.castDraft(participantInfo))
       })
     })
   }
@@ -187,7 +162,7 @@ export const syncInboxParticipantsFromParticipantMap = (
       if (participantInfo.all.length > 0) {
         s.participants.set(
           T.Chat.stringToConversationIDKey(convIDStr),
-          T.castDraft(copyParticipantInfo(participantInfo))
+          T.castDraft(participantInfo)
         )
       }
     })

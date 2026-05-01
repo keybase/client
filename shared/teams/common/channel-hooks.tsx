@@ -7,33 +7,12 @@ import {ensureError} from '@/util/errors'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '../use-cached-resource'
-import {produce} from 'immer'
 import {useLoadedTeamChannels} from './use-loaded-team-channels'
 
 type ChannelMetasData = {
   channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
   channelParticipants: Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>
 }
-
-const copyParticipantInfo = (participants: T.Chat.ParticipantInfo): T.Chat.ParticipantInfo =>
-  produce(
-    {
-      all: [...participants.all],
-      contactName: new Map(participants.contactName),
-      name: [...participants.name],
-    },
-    () => {}
-  )
-
-const copyConversationMeta = (meta: T.Chat.ConversationMeta): T.Chat.ConversationMeta =>
-  produce(
-    {
-      ...meta,
-      rekeyers: new Set(meta.rekeyers),
-      resetParticipants: new Set(meta.resetParticipants),
-    },
-    () => {}
-  )
 
 const allChannelMetasReloadStaleMs = 5_000
 
@@ -108,10 +87,10 @@ export const useAllChannelMetas = (
                 return
               }
               const conversationIDKey = meta.conversationIDKey
-              channelMetas.set(conversationIDKey, copyConversationMeta(meta))
+              channelMetas.set(conversationIDKey, meta)
               channelParticipants.set(
                 conversationIDKey,
-                copyParticipantInfo(Chat.uiParticipantsToParticipantInfo(conv.participants ?? []))
+                Chat.uiParticipantsToParticipantInfo(conv.participants ?? [])
               )
             })
             resolve({

@@ -95,35 +95,11 @@ const ignoreErrors = [
   T.RPCGen.StatusCode.sctimeout,
 ]
 
-const makeEmptyParticipantInfo = (): T.Chat.ParticipantInfo =>
-  produce(
-    {
-      all: [] as Array<string>,
-      contactName: new Map<string, string>(),
-      name: [] as Array<string>,
-    },
-    () => {}
-  )
-
-const copyParticipantInfo = (participants: T.Chat.ParticipantInfo): T.Chat.ParticipantInfo =>
-  produce(
-    {
-      all: [...participants.all],
-      contactName: new Map(participants.contactName),
-      name: [...participants.name],
-    },
-    () => {}
-  )
-
-const copyConversationMeta = (meta: T.Chat.ConversationMeta): T.Chat.ConversationMeta =>
-  produce(
-    {
-      ...meta,
-      rekeyers: new Set(meta.rekeyers),
-      resetParticipants: new Set(meta.resetParticipants),
-    },
-    () => {}
-  )
+const makeEmptyParticipantInfo = (): T.Chat.ParticipantInfo => ({
+  all: [],
+  contactName: new Map(),
+  name: [],
+})
 
 const getExplodingModeFromGregorItems = (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -247,7 +223,7 @@ const makeEmptyThreadState = (): ConversationThreadState =>
       messageMap: new Map<T.Chat.Ordinal, T.Chat.Message>(),
       messageOrdinals: undefined as ReadonlyArray<T.Chat.Ordinal> | undefined,
       messageTypeMap: new Map<T.Chat.Ordinal, T.Chat.RenderMessageType>(),
-      meta: copyConversationMeta(Meta.makeConversationMeta()),
+      meta: Meta.makeConversationMeta(),
       moreToLoadBack: false,
       moreToLoadForward: false,
       optimisticReactionMap: new Map<T.Chat.OutboxID, OptimisticReaction>(),
@@ -266,10 +242,10 @@ const makeInitialThreadState = (id: T.Chat.ConversationIDKey) => {
   const participants = getInboxConversationParticipants(id)
   return produce(makeEmptyThreadState(), s => {
     if (meta) {
-      s.meta = T.castDraft(copyConversationMeta(meta))
+      s.meta = T.castDraft(meta)
     }
     if (participants) {
-      s.participants = T.castDraft(copyParticipantInfo(participants))
+      s.participants = T.castDraft(participants)
     }
     s.explodingMode = getExplodingModeFromConfig(id)
   })
@@ -1120,7 +1096,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   })
   const setMeta = React.useEffectEvent((meta?: T.Chat.ConversationMeta) => {
     updateThreadState(s => {
-      s.meta = T.castDraft(copyConversationMeta(meta ?? Meta.makeConversationMeta()))
+      s.meta = T.castDraft(meta ?? Meta.makeConversationMeta())
     })
     if (meta) {
       metasReceived([getSnapshot().meta])
@@ -1137,7 +1113,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   })
   const setParticipants = React.useEffectEvent((participants: T.Chat.ParticipantInfo) => {
     updateThreadState(s => {
-      s.participants = T.castDraft(copyParticipantInfo(participants))
+      s.participants = T.castDraft(participants)
     })
     participantInfoReceived(id, participants, getSnapshot().meta)
   })
@@ -1562,7 +1538,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       return
     }
     updateThreadState(s => {
-      s.participants = T.castDraft(copyParticipantInfo(inboxParticipants))
+      s.participants = T.castDraft(inboxParticipants)
     })
   }, [inboxParticipants])
   useEngineActionListener('chat.1.NotifyChat.NewChatActivity', action => {

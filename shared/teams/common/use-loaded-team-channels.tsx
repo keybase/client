@@ -6,7 +6,6 @@ import logger from '@/logger'
 import * as React from 'react'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../use-cached-resource'
-import {produce} from 'immer'
 
 type LoadedTeamChannels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
@@ -39,16 +38,6 @@ const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
   channelParticipants: emptyChannelParticipants,
   channels: emptyChannels,
 }
-
-const copyParticipantInfo = (participants: T.Chat.ParticipantInfo): T.Chat.ParticipantInfo =>
-  produce(
-    {
-      all: [...participants.all],
-      contactName: new Map(participants.contactName),
-      name: [...participants.name],
-    },
-    () => {}
-  )
 
 const useLoadedTeamChannelsCacheMap = (providedCacheMap?: LoadedTeamChannelsCacheMap) => {
   const contextCacheMap = React.useContext(LoadedTeamChannelsCacheContext)
@@ -102,7 +91,7 @@ const useLoadedTeamChannelsRaw = (
           })
           channelParticipants.set(
             conversationIDKey,
-            copyParticipantInfo(Chat.uiParticipantsToParticipantInfo(inboxUIItem.participants ?? []))
+            Chat.uiParticipantsToParticipantInfo(inboxUIItem.participants ?? [])
           )
           return res
         }, new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()) ??
