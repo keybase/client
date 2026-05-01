@@ -186,7 +186,7 @@ export const ConversationThreadLoadStatusProvider = (
     selectedConversation({
       allowMarkAsRead: allowMarkReadOnLoad,
       ...getThreadLoadStatusOptions(),
-      skipThreadLoad: initialSkipThreadLoadOnSelection,
+      skipThreadLoad: initialSkipThreadLoadOnSelection || !routeFocused,
     })
   })
 

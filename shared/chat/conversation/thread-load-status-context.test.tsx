@@ -78,6 +78,12 @@ const wrapper = ({children}: {children: React.ReactNode}) => (
   </ConversationThreadProvider>
 )
 
+const wrapperWithInitialThreadLoad = ({children}: {children: React.ReactNode}) => (
+  <ConversationThreadProvider id={convID}>
+    <ConversationThreadLoadStatusProvider id={convID}>{children}</ConversationThreadLoadStatusProvider>
+  </ConversationThreadProvider>
+)
+
 test('thread load status reporter ignores stale conversation statuses', () => {
   const {result} = renderHook(
     () => ({
@@ -164,6 +170,29 @@ test('mounted route focus reload reports status through the provider', async () 
   })
 
   expect(result.current).toBe(T.RPCChat.UIChatThreadStatusTyp.server)
+})
+
+test('hidden initial selection waits for route focus before loading thread', async () => {
+  mockRouteFocused = false
+  const getThread = jest.spyOn(T.RPCChat, 'localGetThreadNonblockRpcListener').mockResolvedValue({
+    offline: false,
+  })
+  const {rerender} = renderHook(() => useThreadLoadStatus(), {wrapper: wrapperWithInitialThreadLoad})
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(getThread).not.toHaveBeenCalled()
+
+  act(() => {
+    mockRouteFocused = true
+    rerender()
+  })
+  await act(async () => {
+    await flushPromises()
+  })
+
+  expect(getThread).toHaveBeenCalledTimes(1)
 })
 
 test('mounted route focus skips reload after returning from emoji picker', async () => {

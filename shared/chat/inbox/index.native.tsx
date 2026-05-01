@@ -3,6 +3,7 @@ import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
+import {useChosenChannelsTeamnames} from '@/chat/conversation/manage-channels-badge'
 import {useNavigation, type NavigationProp} from '@react-navigation/native'
 import type {NativeBottomTabNavigationProp} from '@react-navigation/bottom-tabs/unstable'
 import {PerfProfiler} from '@/perf/react-profiler'
@@ -85,6 +86,14 @@ function InboxBody(p: ControlledInboxProps) {
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
   const headComponent = C.isTablet ? null : <SearchRow search={search} showSearch={C.isMobile} />
   const navigation = useNavigation<NavigationProp<RootParamList, 'chatRoot'>>()
+  const chosenChannelsTeamnames = useChosenChannelsTeamnames()
+  const listExtraData = React.useMemo(
+    () => ({
+      chosenChannelsTeamnames,
+      selectedConversationIDKey: C.isTablet ? selectedConversationIDKey : undefined,
+    }),
+    [chosenChannelsTeamnames, selectedConversationIDKey]
+  )
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} =
@@ -125,7 +134,7 @@ function InboxBody(p: ControlledInboxProps) {
       element = <BuildTeam />
     } else {
       const isSelected = 'conversationIDKey' in row && selectedConversationIDKey === row.conversationIDKey
-      element = makeRow(row, isSelected)
+      element = makeRow(row, isSelected, chosenChannelsTeamnames)
     }
 
     return <PerfProfiler id={`InboxRow-${row.type}`}>{element}</PerfProfiler>
@@ -222,7 +231,7 @@ function InboxBody(p: ControlledInboxProps) {
             ref={listRef}
             renderItem={renderItem}
             drawDistance={250}
-            extraData={C.isTablet ? selectedConversationIDKey : undefined}
+            extraData={listExtraData}
           />
         )}
         {noChats}

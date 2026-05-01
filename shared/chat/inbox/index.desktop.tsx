@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
+import {useChosenChannelsTeamnames} from '@/chat/conversation/manage-channels-badge'
 import {PerfProfiler} from '@/perf/react-profiler'
 import {
   type RowItem,
@@ -223,6 +224,11 @@ function InboxBody(props: ControlledInboxProps) {
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = inbox
   const {toggleSmallTeamsExpanded, selectedConversationIDKey, onUntrustedInboxVisible} = inbox
   const {setInboxNumSmallRows, allowShowFloatingButton} = inbox
+  const chosenChannelsTeamnames = useChosenChannelsTeamnames()
+  const listExtraData = React.useMemo(
+    () => ({chosenChannelsTeamnames, selectedConversationIDKey}),
+    [chosenChannelsTeamnames, selectedConversationIDKey]
+  )
 
   const scrollDiv = React.useRef<HTMLDivElement | null>(null)
   const listRef = React.useRef<LegendListRef | null>(null)
@@ -297,7 +303,7 @@ function InboxBody(props: ControlledInboxProps) {
       return <BuildTeam />
     }
     const isSelected = 'conversationIDKey' in item && selectedConversationIDKey === item.conversationIDKey
-    return <>{makeRow(item, isSelected)}</>
+    return <>{makeRow(item, isSelected, chosenChannelsTeamnames)}</>
   }
 
   const floatingDivider = !search.isSearching && showFloating && allowShowFloatingButton && (
@@ -325,7 +331,7 @@ function InboxBody(props: ControlledInboxProps) {
                   ref={listRef}
                   renderItem={renderItem}
                   drawDistance={250}
-                  extraData={selectedConversationIDKey}
+                  extraData={listExtraData}
                 />
               ) : null}
             </div>
