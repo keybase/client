@@ -107,19 +107,18 @@ const useOrangeLine = (
     }
   }, [maxVisibleMsgID, active, id, meta.readMsgID])
 
-  const setOrangeLine = (messageID: T.Chat.MessageID) => {
+  const setOrangeLine = (ordinal: T.Chat.Ordinal) => {
     const currentKey = currentOrangeLineKeyRef.current
     if (currentKey.conversationIDKey !== id) {
       return
     }
-    const orangeLine = T.Chat.numberToOrdinal(T.Chat.messageIDToNumber(messageID))
     setOrangeLineState(prev => {
       if (prev.orangeLine !== noOrangeLine) {
         return prev
       }
       return {
         mobileAppState: currentKey.mobileAppState,
-        orangeLine,
+        orangeLine: ordinal,
       }
     })
   }

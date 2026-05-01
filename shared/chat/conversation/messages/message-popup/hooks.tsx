@@ -175,7 +175,7 @@ const useItemsForMessage = (p: {
 
   const onMarkAsUnread = () => {
     if (id) {
-      setOrangeLine(id)
+      setOrangeLine(ordinal)
       actions.markAsUnread(id)
     }
   }

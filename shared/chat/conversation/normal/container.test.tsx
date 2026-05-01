@@ -17,7 +17,7 @@ let mockConversationIDKey: T.Chat.ConversationIDKey
 let mockLoaded = true
 let mockMeta: T.Chat.ConversationMeta
 let mockRouteParams: {highlightMessageID?: T.Chat.MessageID; threadSearch?: {query?: string}} | undefined
-let mockSetOrangeLine: ((messageID: T.Chat.MessageID) => void) | undefined
+let mockSetOrangeLine: ((ordinal: T.Chat.Ordinal) => void) | undefined
 let mockThreadLoadStatusProviderProps:
   | {
       allowMarkReadOnLoad?: boolean
@@ -51,7 +51,7 @@ function mockNormal() {
   return React.createElement(OrangeLineContext.Consumer, {
     children: (orangeLine: T.Chat.Ordinal) =>
       React.createElement(SetOrangeLineContext.Consumer, {
-        children: (setOrangeLine: (messageID: T.Chat.MessageID) => void) => {
+        children: (setOrangeLine: (ordinal: T.Chat.Ordinal) => void) => {
           mockSetOrangeLine = setOrangeLine
           return React.createElement('div', {'data-testid': 'orange-line'}, String(orangeLine))
         },
@@ -215,7 +215,7 @@ test('manual orange line updates do not move an existing orange line', async () 
   expectOrangeLine(initialOrangeLine)
 
   act(() => {
-    mockSetOrangeLine?.(T.Chat.numberToMessageID(50))
+    mockSetOrangeLine?.(T.Chat.numberToOrdinal(50))
   })
 
   expectOrangeLine(initialOrangeLine)
@@ -332,6 +332,7 @@ test('manual orange line update sets the line when no line exists yet', async ()
     offline: false,
     unreadlineID: T.Chat.numberToMessageID(30),
   })
+  const localOrdinal = T.Chat.numberToOrdinal(50.001)
   mockLoaded = false
 
   render(<NormalWrapper />)
@@ -341,10 +342,10 @@ test('manual orange line update sets the line when no line exists yet', async ()
   expectOrangeLine(noOrangeLine)
 
   act(() => {
-    mockSetOrangeLine?.(T.Chat.numberToMessageID(50))
+    mockSetOrangeLine?.(localOrdinal)
   })
 
-  expectOrangeLine(T.Chat.numberToOrdinal(50))
+  expectOrangeLine(localOrdinal)
 })
 
 test('orange line captured while active is hidden while the mobile app state is non-active', async () => {
