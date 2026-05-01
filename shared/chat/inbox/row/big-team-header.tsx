@@ -5,6 +5,7 @@ import * as React from 'react'
 import type * as T from '@/constants/types'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
 import {useChatManageChannelsBadge} from '@/chat/conversation/team-hooks'
+import logger from '@/logger'
 
 type Props = {
   teamname: string
@@ -16,24 +17,48 @@ const BigTeamHeader = (props: Props) => {
   const {showBadge: badgeSubscribe} = useChatManageChannelsBadge(teamID, teamname)
   const navigateAppend = C.Router2.navigateAppend
   const onClick = () => navigateAppend({name: 'team', params: {teamID}})
+  const everOpenedRef = React.useRef(false)
+  const showingPopupRef = React.useRef(false)
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <TeamMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          teamID={teamID}
-          hasHeader={true}
-          isSmallTeam={false}
-        />
-      )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    const onHidden = () => {
+      logger.info('[chat:big-team-gear] onHidden', {teamID, teamname})
+      hidePopup()
+    }
+    return (
+      <TeamMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={onHidden}
+        teamID={teamID}
+        hasHeader={true}
+        isSmallTeam={false}
+      />
+    )
+  }
+  const {showPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const onShowPopup = () => {
+    everOpenedRef.current = true
+    logger.info('[chat:big-team-gear] showPopup', {teamID, teamname})
+    showPopup()
+  }
+
+  React.useEffect(() => {
+    showingPopupRef.current = showingPopup
+    if (everOpenedRef.current) {
+      logger.info('[chat:big-team-gear] showingPopup changed', {showingPopup, teamID, teamname})
+    }
+  }, [showingPopup, teamID, teamname])
+
+  React.useEffect(
+    () => () => {
+      if (showingPopupRef.current) {
+        logger.info('[chat:big-team-gear] header unmounted while popup showing', {teamID, teamname})
+      }
     },
-    [teamID]
+    [teamID, teamname]
   )
-  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.teamRowContainer}>
@@ -52,7 +77,7 @@ const BigTeamHeader = (props: Props) => {
       </Kb.BoxGrow2>
       <Kb.ClickableBox2
         className="hover_container"
-        onClick={showPopup}
+        onClick={onShowPopup}
         ref={popupAnchor}
         style={styles.showMenu}
       >

@@ -4,6 +4,7 @@ import type {MeasureRef} from '@/common-adapters/measure-ref'
 import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
 import * as Styles from '@/styles'
 import {useNavigation, type NavigationProp, type ParamListBase} from '@react-navigation/native'
+import logger from '@/logger'
 
 export type MenuItems = _MenuItems
 
@@ -43,6 +44,7 @@ function FloatingMenu(props: Props) {
 
   React.useEffect(() => {
     const unsub = navigation?.addListener('state', () => {
+      logger.info('[chat:popup] floating menu hidden from navigation state')
       onHidden()
     })
     return unsub

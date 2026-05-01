@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import InfoPanelMenu from './menu'
 import * as InfoPanelCommon from './common'
@@ -28,23 +27,20 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
   }
   const isGeneralChannel = !!(channelname && channelname === 'general')
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <InfoPanelMenu
-          attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
-          floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-          onHidden={hidePopup}
-          hasHeader={false}
-          isSmallTeam={isSmallTeam}
-          visible={true}
-        />
-      )
-    },
-    [conversationIDKey, isSmallTeam]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <InfoPanelMenu
+        attachTo={attachTo}
+        conversationIDKey={conversationIDKey}
+        floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+        onHidden={hidePopup}
+        hasHeader={false}
+        isSmallTeam={isSmallTeam}
+        visible={true}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

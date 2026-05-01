@@ -11,6 +11,7 @@ import {
 } from './bottom-sheet'
 import {FullWindowOverlay} from 'react-native-screens'
 import type {PopupProps} from '.'
+import logger from '@/logger'
 
 const defaultSnapPoints = ['75%']
 
@@ -48,6 +49,10 @@ function PopupSheet(props: PopupProps) {
   const {children, onHidden, snapPoints} = props
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
   const shownRef = React.useRef(false)
+  const onDismiss = () => {
+    logger.info('[chat:popup] bottom sheet dismissed')
+    onHidden?.()
+  }
 
   React.useEffect(() => {
     return () => {
@@ -77,7 +82,7 @@ function PopupSheet(props: PopupProps) {
       handleIndicatorStyle={styles.handleIndicatorStyle}
       style={styles.modalStyle}
       backdropComponent={Backdrop}
-      onDismiss={onHidden}
+      onDismiss={onDismiss}
     >
       <BottomSheetView>{children}</BottomSheetView>
     </BottomSheetModal>
