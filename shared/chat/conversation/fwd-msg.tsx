@@ -5,7 +5,6 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
-import debounce from 'lodash/debounce'
 import logger from '@/logger'
 import {useConversationMessage} from './data-hooks'
 
@@ -17,11 +16,9 @@ const forwardMessageHandoff = new Map<string, T.Chat.Message>()
 const forwardMessageKey = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) =>
   `${conversationIDKey}:${T.Chat.messageIDToNumber(messageID)}`
 
-const takeForwardMessage = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => {
+const getForwardMessage = (conversationIDKey: T.Chat.ConversationIDKey, messageID: T.Chat.MessageID) => {
   const key = forwardMessageKey(conversationIDKey, messageID)
-  const message = forwardMessageHandoff.get(key)
-  forwardMessageHandoff.delete(key)
-  return message
+  return forwardMessageHandoff.get(key)
 }
 
 export const showForwardMessagePicker = (
@@ -43,35 +40,47 @@ export const showForwardMessagePicker = (
 const TeamPickerInner = (props: Props) => {
   const srcConvID = props.conversationIDKey ?? Chat.noConversationIDKey
   const messageID = props.messageID
-  const [initialMessage] = React.useState(() => takeForwardMessage(srcConvID, messageID))
+  const handoffKey = forwardMessageKey(srcConvID, messageID)
+  const [initialMessage] = React.useState(() => getForwardMessage(srcConvID, messageID))
   const loadedMessage = useConversationMessage(srcConvID, messageID)
   const message = loadedMessage ?? initialMessage
   const navigation = useNavigation()
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
+  const setSearchTerm = C.useDebouncedCallback(setTerm, 200)
   const dstConvIDRef = React.useRef<Uint8Array | undefined>(undefined)
   const [results, setResults] = React.useState<ReadonlyArray<T.RPCChat.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
   const fwdMsg = C.useRPC(T.RPCChat.localForwardMessageNonblockRpcPromise)
   const submit = C.useRPC(T.RPCChat.localForwardMessageConvSearchRpcPromise)
-  const [lastTerm, setLastTerm] = React.useState('init')
-  if (lastTerm !== term) {
-    setLastTerm(term)
+
+  React.useEffect(() => {
+    forwardMessageHandoff.delete(handoffKey)
+  }, [handoffKey])
+
+  React.useEffect(() => {
+    let stale = false
     setWaiting(true)
+    setError('')
     submit(
       [{term}],
       result => {
+        if (stale) return
         setWaiting(false)
         setResults(result ?? [])
       },
       error => {
+        if (stale) return
         setWaiting(false)
         setError('Something went wrong, please try again.')
         logger.info('TeamPicker: error loading search results: ' + error.message)
       }
     )
-  }
+    return () => {
+      stale = true
+    }
+  }, [submit, term])
 
   const clearModals = C.Router2.clearModals
   const onClose = () => {
@@ -125,13 +134,9 @@ const TeamPickerInner = (props: Props) => {
           title,
         },
       ],
-      () => {
-        setWaiting(false)
-      },
+      () => {},
       error => {
-        setWaiting(false)
-        setError('Something went wrong, please try again.')
-        logger.info('TeamPicker: error loading search results: ' + error.message)
+        logger.info('TeamPicker: error forwarding message: ' + error.message)
       }
     )
     clearModals()
@@ -145,7 +150,6 @@ const TeamPickerInner = (props: Props) => {
 
     dstConvIDRef.current = dstConvID
 
-    // add caption on files, otherwise we have an effect below which will submit
     if (message.type === 'attachment') {
       setPickerState('title')
     } else {
@@ -184,7 +188,7 @@ const TeamPickerInner = (props: Props) => {
             icon="iconfont-search"
             placeholderText={`Search chats and teams...`}
             placeholderCentered={true}
-            onChange={debounce(setTerm, 200)}
+            onChange={setSearchTerm}
             style={styles.searchFilter}
             focusOnMount={true}
             waiting={waiting}
