@@ -9,6 +9,7 @@ import InfoPanel, {type Panel} from './conversation/info-panel'
 import type {ThreadSearchRouteProps} from './conversation/thread-search-route'
 import {useInboxLayoutState} from './inbox/layout-state'
 import type {NavState} from '@/constants/router'
+import logger from '@/logger'
 
 export type InboxAndConversationProps = ThreadSearchRouteProps & {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -47,6 +48,7 @@ export function InboxAndConversationShell(props: Props) {
     if (!chatTabSelected || !firstSmallTeam || firstSmallTeam === lastValidCIDRef.current) {
       return
     }
+    logger.info(`InboxAndConversationShell: auto-selecting first chat thread: ${firstSmallTeam}`)
     C.Router2.navigateToThread(firstSmallTeam, 'findNewestConversationFromLayout')
   }, [chatTabSelected, conversationIDKey, firstSmallTeam, validConvoID])
 
