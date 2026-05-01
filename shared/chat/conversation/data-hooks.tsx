@@ -6,11 +6,12 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {getInboxConversationMeta, unboxRows, useInboxMetadataState} from '@/chat/inbox/metadata'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {enumKeys, ignorePromise} from '@/constants/utils'
+import {ignorePromise} from '@/constants/utils'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {uint8ArrayToString} from '@/util/uint8array'
 import logger from '@/logger'
+import {loadThreadNonblock, markConversationRead} from './thread-rpc'
 
 const emptyConversationMeta = Meta.makeConversationMeta()
 const emptyParticipantInfo: T.Chat.ParticipantInfo = {
@@ -19,32 +20,6 @@ const emptyParticipantInfo: T.Chat.ParticipantInfo = {
   name: [],
 }
 const emptyMessages: ReadonlyArray<T.Chat.Message> = []
-
-const loadThreadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
-  (arr, key) => {
-    switch (key) {
-      case 'none':
-      case 'edit':
-      case 'delete':
-      case 'attachmentuploaded':
-      case 'reaction':
-      case 'unfurl':
-      case 'tlfname':
-        break
-      default:
-        {
-          const val = T.RPCChat.MessageType[key]
-          if (typeof val === 'number') {
-            arr.push(val)
-          }
-        }
-        break
-    }
-
-    return arr
-  },
-  []
-)
 
 const reloadConversationMetadata = (conversationIDKey: T.Chat.ConversationIDKey) => {
   if (T.Chat.isValidConversationIDKey(conversationIDKey)) {
@@ -229,32 +204,16 @@ const loadConversationMessagesAroundMessageID = async (
       }
     })
   }
-  await T.RPCChat.localGetThreadNonblockRpcListener({
-    incomingCallMap: {
-      'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || ''),
-      'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || ''),
+  await loadThreadNonblock({
+    conversationIDKey,
+    messageIDControl: {
+      mode: T.RPCChat.MessageIDControlMode.centered,
+      num,
+      pivot: messageID,
     },
-    params: {
-      cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
-      conversationID: T.Chat.keyToConversationID(conversationIDKey),
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      knownRemotes: [],
-      pagination: null,
-      pgmode: T.RPCChat.GetThreadNonblockPgMode.server,
-      query: {
-        disablePostProcessThread: false,
-        disableResolveSupersedes: false,
-        enableDeletePlaceholders: true,
-        markAsRead: false,
-        messageIDControl: {
-          mode: T.RPCChat.MessageIDControlMode.centered,
-          num,
-          pivot: messageID,
-        },
-        messageTypes: loadThreadMessageTypes,
-      },
-      reason: T.RPCChat.GetThreadReason.general,
-    },
+    onCachedThread: onGotThread,
+    onFullThread: onGotThread,
+    pagination: null,
   })
 
   return [...messages.values()].sort((l, r) => T.Chat.messageIDToNumber(l.id) - T.Chat.messageIDToNumber(r.id))
@@ -374,11 +333,7 @@ export const markConversationAsUnread = (
     } catch {}
 
     logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
-    await T.RPCChat.localMarkAsReadLocalRpcPromise({
-      conversationID: T.Chat.keyToConversationID(conversationIDKey),
-      forceUnread: true,
-      msgID,
-    })
+    await markConversationRead({conversationIDKey, forceUnread: true, msgID})
   }
   ignorePromise(f())
 }

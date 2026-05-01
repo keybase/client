@@ -8,6 +8,7 @@ import {RPCError} from '@/util/errors'
 import {formatTimeForMessages} from '@/util/timestamp'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConversationCenter} from './center-context'
+import {cancelActiveThreadSearchRPC, searchInboxRPC} from '../search-rpc'
 import {
   useConversationThreadID,
   useConversationThreadSelector,
@@ -131,7 +132,7 @@ const useCommon = (ownProps: CommonProps) => {
 
     const f = async () => {
       try {
-        await T.RPCChat.localSearchInboxRpcListener({
+        await searchInboxRPC({
           incomingCallMap: {
             'chat.1.chatUi.chatSearchDone': onDone,
             'chat.1.chatUi.chatSearchHit': hit => {
@@ -171,33 +172,13 @@ const useCommon = (ownProps: CommonProps) => {
               updateIfCurrent(state => ({...state, status: 'inprogress'}))
             },
           },
-          params: {
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-            namesOnly: false,
-            opts: {
-              afterContext: 0,
-              beforeContext: 0,
-              convID: T.Chat.isValidConversationIDKey(conversationIDKey)
-                ? T.Chat.keyToConversationID(conversationIDKey)
-                : new Uint8Array(0),
-              isRegex: false,
-              matchMentions: false,
-              maxBots: 0,
-              maxConvsHit: 0,
-              maxConvsSearched: 0,
-              maxHits: 1000,
-              maxMessages: -1,
-              maxNameConvs: 0,
-              maxTeams: 0,
-              reindexMode: T.RPCChat.ReIndexingMode.postsearchSync,
-              sentAfter: 0,
-              sentBefore: 0,
-              sentBy: '',
-              sentTo: '',
-              skipBotCache: false,
-            },
-            query,
+          opts: {
+            convID: T.Chat.isValidConversationIDKey(conversationIDKey)
+              ? T.Chat.keyToConversationID(conversationIDKey)
+              : new Uint8Array(0),
+            maxHits: 1000,
           },
+          query,
         })
       } catch (error) {
         if (error instanceof RPCError) {
@@ -281,7 +262,7 @@ const useCommon = (ownProps: CommonProps) => {
     return () => {
       searchOrdinalRef.current += 1
       clearPendingFlush()
-      C.ignorePromise(T.RPCChat.localCancelActiveSearchRpcPromise().catch(() => {}))
+      C.ignorePromise(cancelActiveThreadSearchRPC().catch(() => {}))
     }
   }, [])
 

@@ -19,7 +19,7 @@ import throttle from 'lodash/throttle'
 import type {DebouncedFunc} from 'lodash'
 import {clearChatTimeCache} from '@/util/timestamp'
 import {findLast} from '@/util/arrays'
-import {enumKeys, ignorePromise} from '@/constants/utils'
+import {ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
 import {uint8ArrayToString} from '@/util/uint8array'
 import {useEngineActionListener} from '@/engine/action-listener'
@@ -59,6 +59,20 @@ import {
   unboxRows,
   useInboxMetadataState,
 } from '@/chat/inbox/metadata'
+import {
+  loadThreadMessageIDAtIndex,
+  loadThreadNonblock,
+  markConversationRead,
+  threadLoadReasonToRPCReason,
+} from './thread-rpc'
+import {
+  cancelConversationPost,
+  createAdhocConversation,
+  dismissConversationJourneycardRPC,
+  postConversationDelete,
+  postConversationReaction,
+} from './message-rpc'
+import {cancelActiveThreadSearchRPC} from '../search-rpc'
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = 100
@@ -426,42 +440,6 @@ const useScrollLoadGate = () => {
   }
 }
 
-const reasonToRPCReason = (reason: string): T.RPCChat.GetThreadReason => {
-  switch (reason) {
-    case 'extension':
-    case 'push':
-      return T.RPCChat.GetThreadReason.push
-    default:
-      return T.RPCChat.GetThreadReason.general
-  }
-}
-
-const loadThreadMessageTypes = enumKeys(T.RPCChat.MessageType).reduce<Array<T.RPCChat.MessageType>>(
-  (arr, key) => {
-    switch (key) {
-      case 'none':
-      case 'edit':
-      case 'delete':
-      case 'attachmentuploaded':
-      case 'reaction':
-      case 'unfurl':
-      case 'tlfname':
-        break
-      default:
-        {
-          const val = T.RPCChat.MessageType[key]
-          if (typeof val === 'number') {
-            arr.push(val)
-          }
-        }
-        break
-    }
-
-    return arr
-  },
-  []
-)
-
 const scrollDirectionToPagination = (
   scrollDirection: ScrollDirection,
   numberOfMessagesToLoad: number
@@ -789,7 +767,6 @@ const loadConversationThreadMessages = (
     )
 
     const loadingKey = Strings.waitingKeyChatThreadLoad(conversationIDKey)
-    const convID = T.Chat.keyToConversationID(conversationIDKey)
     let reconciled = false
     const onGotThread = (thread: string, why: string) => {
       if (!thread) {
@@ -868,36 +845,22 @@ const loadConversationThreadMessages = (
       ? null
       : scrollDirectionToPagination(scrollDirection, numberOfMessagesToLoad)
     try {
-      const results = await T.RPCChat.localGetThreadNonblockRpcListener({
-        incomingCallMap: {
-          'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || '', 'cached'),
-          'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || '', 'full'),
-          'chat.1.chatUi.chatThreadStatus': p => {
-            logger.info(
-              `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${p.status.typ}`
-            )
-            if (isCurrentThreadLoad()) {
-              onThreadLoadStatus?.(conversationIDKey, p.status.typ)
-            }
-          },
+      const results = await loadThreadNonblock({
+        conversationIDKey,
+        knownRemotes,
+        messageIDControl,
+        onCachedThread: thread => onGotThread(thread, 'cached'),
+        onFullThread: thread => onGotThread(thread, 'full'),
+        onThreadStatus: status => {
+          logger.info(
+            `loadMoreMessages: thread status received: convID: ${conversationIDKey} typ: ${status.typ}`
+          )
+          if (isCurrentThreadLoad()) {
+            onThreadLoadStatus?.(conversationIDKey, status.typ)
+          }
         },
-        params: {
-          cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
-          conversationID: convID,
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          knownRemotes,
-          pagination,
-          pgmode: T.RPCChat.GetThreadNonblockPgMode.server,
-          query: {
-            disablePostProcessThread: false,
-            disableResolveSupersedes: false,
-            enableDeletePlaceholders: true,
-            markAsRead: false,
-            messageIDControl,
-            messageTypes: loadThreadMessageTypes,
-          },
-          reason: reasonToRPCReason(reason),
-        },
+        pagination,
+        reason: threadLoadReasonToRPCReason(reason),
         waitingKey: loadingKey,
       })
       if (!isCurrentThreadLoad()) {
@@ -1025,11 +988,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         return
       }
       logger.info(`marking read messages ${id} ${readMsgID}`)
-      await T.RPCChat.localMarkAsReadLocalRpcPromise({
-        conversationID: T.Chat.keyToConversationID(id),
-        forceUnread: false,
-        msgID: readMsgID,
-      })
+      await markConversationRead({conversationIDKey: id, forceUnread: false, msgID: readMsgID})
     }
     ignorePromise(f())
   })
@@ -1207,63 +1166,8 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
           msgID = message.id
         }
       } else {
-        const pagination = {
-          last: false,
-          next: '',
-          num: 2,
-          previous: '',
-        }
         try {
-          await new Promise<void>(resolve => {
-            let settled = false
-            const done = () => {
-              if (!settled) {
-                settled = true
-                resolve()
-              }
-            }
-            const onGotThread = (p: string) => {
-              try {
-                const d = JSON.parse(p) as undefined | {messages?: Array<{valid?: {messageID?: unknown}}>}
-                const m = d?.messages?.[1]?.valid?.messageID
-                if (typeof m === 'number') {
-                  msgID = T.Chat.numberToMessageID(m)
-                }
-                done()
-              } catch {
-                done()
-              }
-            }
-            T.RPCChat.localGetThreadNonblockRpcListener({
-              incomingCallMap: {
-                'chat.1.chatUi.chatThreadCached': p => onGotThread(p.thread || ''),
-                'chat.1.chatUi.chatThreadFull': p => onGotThread(p.thread || ''),
-              },
-              params: {
-                cbMode: T.RPCChat.GetThreadNonblockCbMode.incremental,
-                conversationID: T.Chat.keyToConversationID(id),
-                identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-                knownRemotes: [],
-                pagination,
-                pgmode: T.RPCChat.GetThreadNonblockPgMode.server,
-                query: {
-                  disablePostProcessThread: false,
-                  disableResolveSupersedes: false,
-                  enableDeletePlaceholders: true,
-                  markAsRead: false,
-                  messageIDControl: null,
-                  messageTypes: loadThreadMessageTypes,
-                },
-                reason: reasonToRPCReason(''),
-              },
-            })
-              .then(() => {
-                done()
-              })
-              .catch(() => {
-                done()
-              })
-          })
+          msgID = await loadThreadMessageIDAtIndex(id, 1)
         } catch {}
       }
 
@@ -1273,11 +1177,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       }
 
       logger.info(`marking unread messages ${id} ${msgID}`)
-      await T.RPCChat.localMarkAsReadLocalRpcPromise({
-        conversationID: T.Chat.keyToConversationID(id),
-        forceUnread: true,
-        msgID,
-      })
+      await markConversationRead({conversationIDKey: id, forceUnread: true, msgID})
     }
     ignorePromise(f())
   })
@@ -1302,23 +1202,17 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       }
       if (!message.id) {
         if (message.outboxID) {
-          await T.RPCChat.localCancelPostRpcPromise({
-            outboxID: T.Chat.outboxIDToRpcOutboxID(message.outboxID),
-          })
+          await cancelConversationPost(message.outboxID)
           deleteMessages({ordinals: [message.ordinal]})
         } else {
           logger.warn('Delete of no message id and no outboxid')
         }
         return
       }
-      await T.RPCChat.localPostDeleteNonblockRpcPromise({
-        clientPrev: 0,
-        conversationID: T.Chat.keyToConversationID(id),
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        outboxID: null,
-        supersedes: message.id,
+      await postConversationDelete({
+        conversationIDKey: id,
+        messageID: message.id,
         tlfName: snapshot.meta.tlfname,
-        tlfPublic: false,
       })
     }
     ignorePromise(f())
@@ -1334,16 +1228,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
       if (!username) {
         throw new Error('messageReplyPrivately: making a convo while logged out?')
       }
-      const result = await T.RPCChat.localNewConversationLocalRpcPromise(
-        {
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-          membersType: T.RPCChat.ConversationMembersType.impteamnative,
-          tlfName: [...new Set([username, message.author])].join(','),
-          tlfVisibility: T.RPCGen.TLFVisibility.private,
-          topicType: T.RPCChat.TopicType.chat,
-        },
-        Strings.waitingKeyChatCreating
-      )
+      const result = await createAdhocConversation([username, message.author], Strings.waitingKeyChatCreating)
       const newThreadCID = T.Chat.conversationIDToKey(result.conv.info.id)
       if (!newThreadCID) {
         logger.warn("messageReplyPrivately: couldn't make a new conversation?")
@@ -1446,15 +1331,13 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         username,
       })
       try {
-        await T.RPCChat.localPostReactionNonblockRpcPromise({
+        await postConversationReaction({
           body: emoji,
           clientPrev: getClientPrevFromSnapshot(snapshot),
-          conversationID: T.Chat.keyToConversationID(id),
-          identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+          conversationIDKey: id,
+          messageID,
           outboxID,
-          supersedes: messageID,
           tlfName: snapshot.meta.tlfname,
-          tlfPublic: false,
         })
       } catch (error) {
         removeOptimisticReaction(localOutboxID)
@@ -1472,14 +1355,10 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         logger.debug('unfurl remove no meta found, aborting!')
         return
       }
-      await T.RPCChat.localPostDeleteNonblockRpcPromise({
-        clientPrev: 0,
-        conversationID: T.Chat.keyToConversationID(id),
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        outboxID: null,
-        supersedes: messageID,
+      await postConversationDelete({
+        conversationIDKey: id,
+        messageID,
         tlfName: snapshot.meta.tlfname,
-        tlfPublic: false,
       })
     }
     ignorePromise(f())
@@ -2170,7 +2049,7 @@ export const toggleConversationThreadSearch = (
 
   const f = async () => {
     if (!nextVisible) {
-      await T.RPCChat.localCancelActiveSearchRpcPromise()
+      await cancelActiveThreadSearchRPC()
     }
   }
   ignorePromise(f())
@@ -2213,10 +2092,7 @@ export const useConversationThreadDismissJourneycard = () => {
   const {deleteMessages} = useConversationThreadActions()
   return (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) => {
     const f = async () => {
-      await T.RPCChat.localDismissJourneycardRpcPromise({
-        cardType,
-        convID: T.Chat.keyToConversationID(conversationIDKey),
-      }).catch((error: unknown) => {
+      await dismissConversationJourneycardRPC(conversationIDKey, cardType).catch((error: unknown) => {
         if (error instanceof RPCError) {
           logger.error(`Failed to dismiss journeycard: ${error.message}`)
         }

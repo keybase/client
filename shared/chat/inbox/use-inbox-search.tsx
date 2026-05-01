@@ -7,6 +7,7 @@ import {RPCError} from '@/util/errors'
 import {isMobile} from '@/constants/platform'
 import * as React from 'react'
 import {ensureInboxSearchMetas} from './metadata'
+import {cancelActiveInboxSearchRPC, searchInboxRPC} from '../search-rpc'
 
 export const inboxSearchMaxTextMessages = 25
 export const inboxSearchMaxTextResults = 50
@@ -178,7 +179,7 @@ export function useInboxSearch(): InboxSearchController {
   const cancelActiveSearch = React.useCallback(() => {
     const f = async () => {
       try {
-        await T.RPCChat.localCancelActiveInboxSearchRpcPromise()
+        await cancelActiveInboxSearchRPC()
       } catch {}
     }
     ignorePromise(f())
@@ -203,7 +204,6 @@ export function useInboxSearch(): InboxSearchController {
     resetSearchState()
   }, [invalidateSearch, resetSearchState])
 
-
   const isActiveSearch = React.useCallback(
     (searchID: number) => searchID === activeSearchIDRef.current && isSearchingRef.current,
     []
@@ -215,7 +215,7 @@ export function useInboxSearch(): InboxSearchController {
       updateSearchInfo(prev => ({...prev, query}))
       const f = async () => {
         try {
-          await T.RPCChat.localCancelActiveInboxSearchRpcPromise()
+          await cancelActiveInboxSearchRPC()
         } catch {}
 
         if (!isActiveSearch(searchID) || searchInfoRef.current.query !== query) {
@@ -331,7 +331,7 @@ export function useInboxSearch(): InboxSearchController {
         }
 
         try {
-          await T.RPCChat.localSearchInboxRpcListener({
+          await searchInboxRPC({
             incomingCallMap: {
               'chat.1.chatUi.chatSearchBotHits': onBotsHits,
               'chat.1.chatUi.chatSearchConvHits': onConvHits,
@@ -341,30 +341,14 @@ export function useInboxSearch(): InboxSearchController {
               'chat.1.chatUi.chatSearchIndexStatus': onIndexStatus,
               'chat.1.chatUi.chatSearchTeamHits': onOpenTeamHits,
             },
-            params: {
-              identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-              namesOnly: false,
-              opts: {
-                afterContext: 0,
-                beforeContext: 0,
-                isRegex: false,
-                matchMentions: false,
-                maxBots: 10,
-                maxConvsHit: inboxSearchMaxTextResults,
-                maxConvsSearched: 0,
-                maxHits: inboxSearchMaxTextMessages,
-                maxMessages: -1,
-                maxNameConvs: query.length > 0 ? inboxSearchMaxNameResults : inboxSearchMaxUnreadNameResults,
-                maxTeams: 10,
-                reindexMode: T.RPCChat.ReIndexingMode.postsearchSync,
-                sentAfter: 0,
-                sentBefore: 0,
-                sentBy: '',
-                sentTo: '',
-                skipBotCache: false,
-              },
-              query,
+            opts: {
+              maxBots: 10,
+              maxConvsHit: inboxSearchMaxTextResults,
+              maxHits: inboxSearchMaxTextMessages,
+              maxNameConvs: query.length > 0 ? inboxSearchMaxNameResults : inboxSearchMaxUnreadNameResults,
+              maxTeams: 10,
             },
+            query,
           })
         } catch (error) {
           if (error instanceof RPCError && error.code !== T.RPCGen.StatusCode.sccanceled) {

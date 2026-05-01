@@ -1,4 +1,3 @@
-import * as Common from '@/constants/chat/common'
 import * as Meta from '@/constants/chat/meta'
 import * as Strings from '@/constants/strings'
 import * as T from '@/constants/types'
@@ -8,6 +7,13 @@ import {navigateToThread} from '@/constants/router'
 import {useCurrentUserState} from '@/stores/current-user'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
+import {
+  cancelConversationPost,
+  createAdhocConversation,
+  dismissConversationJourneycardRPC,
+  postConversationDelete,
+  postConversationReaction,
+} from './message-rpc'
 
 const formatTextForQuoting = (text: string) =>
   text
@@ -30,22 +36,16 @@ export const deleteConversationMessage = (
     }
     if (!message.id) {
       if (message.outboxID) {
-        await T.RPCChat.localCancelPostRpcPromise({
-          outboxID: T.Chat.outboxIDToRpcOutboxID(message.outboxID),
-        })
+        await cancelConversationPost(message.outboxID)
       } else {
         logger.warn('deleteConversationMessage: no message id or outbox id')
       }
       return
     }
-    await T.RPCChat.localPostDeleteNonblockRpcPromise({
-      clientPrev: 0,
-      conversationID: T.Chat.keyToConversationID(conversationIDKey),
-      identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-      outboxID: null,
-      supersedes: message.id,
+    await postConversationDelete({
+      conversationIDKey,
+      messageID: message.id,
       tlfName: tlfName || getInboxConversationMeta(conversationIDKey)?.tlfname || '',
-      tlfPublic: false,
     })
   }
   ignorePromise(f())
@@ -89,15 +89,12 @@ export const toggleConversationMessageReactionByID = (
       return
     }
     try {
-      await T.RPCChat.localPostReactionNonblockRpcPromise({
+      await postConversationReaction({
         body: emoji,
         clientPrev: getClientPrev(conversationIDKey),
-        conversationID: T.Chat.keyToConversationID(conversationIDKey),
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        outboxID: Common.generateOutboxID(),
-        supersedes: messageID,
+        conversationIDKey,
+        messageID,
         tlfName: tlfName || getInboxConversationMeta(conversationIDKey)?.tlfname || '',
-        tlfPublic: false,
       })
     } catch (error) {
       if (error instanceof RPCError) {
@@ -114,16 +111,7 @@ export const replyPrivatelyToConversationMessage = (message: T.Chat.Message) => 
     if (!username) {
       throw new Error('replyPrivatelyToConversationMessage: making a convo while logged out?')
     }
-    const result = await T.RPCChat.localNewConversationLocalRpcPromise(
-      {
-        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-        membersType: T.RPCChat.ConversationMembersType.impteamnative,
-        tlfName: [...new Set([username, message.author])].join(','),
-        tlfVisibility: T.RPCGen.TLFVisibility.private,
-        topicType: T.RPCChat.TopicType.chat,
-      },
-      Strings.waitingKeyChatCreating
-    )
+    const result = await createAdhocConversation([username, message.author], Strings.waitingKeyChatCreating)
     const newThreadCID = T.Chat.conversationIDToKey(result.conv.info.id)
     if (!newThreadCID) {
       logger.warn("replyPrivatelyToConversationMessage: couldn't make a new conversation")
@@ -169,10 +157,7 @@ export const dismissConversationJourneycard = (
   cardType: T.RPCChat.JourneycardType
 ) => {
   const f = async () => {
-    await T.RPCChat.localDismissJourneycardRpcPromise({
-      cardType,
-      convID: T.Chat.keyToConversationID(conversationIDKey),
-    }).catch((error: unknown) => {
+    await dismissConversationJourneycardRPC(conversationIDKey, cardType).catch((error: unknown) => {
       if (error instanceof RPCError) {
         logger.error(`Failed to dismiss journeycard: ${error.message}`)
       }
