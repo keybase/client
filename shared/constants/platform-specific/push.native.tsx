@@ -279,7 +279,6 @@ export const initPushListener = () => {
     if (!forUid || forUid === storeRegistry.getState('current-user').uid) return
     const account = s.configuredAccounts.find(acc => acc.uid === forUid)
     if (!account?.hasStoredSecret) return
-    pushState.dispatch.clearPendingPushNotification()
     pushState.dispatch.handlePush(pending)
   })
 

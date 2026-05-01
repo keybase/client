@@ -245,8 +245,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     set(s => {
       s.gregorReachable = r
     })
-    // Re-get info about our account if you log in/we're done handshaking/became reachable
-    if (r === T.RPCGen.Reachable.yes) {
+    // Re-get info about our account if you log in/we're done handshaking/became reachable.
+    // Skip during an account switch — the in-flight login will trigger its own bootstrap once
+    // it completes, and a reachability bootstrap here could return loggedIn=true with an empty
+    // uid (service session not yet established), which would prematurely clear userSwitching and
+    // unblock the configuredAccounts subscriber into firing a spurious second switch.
+    if (r === T.RPCGen.Reachable.yes && !get().userSwitching) {
       // not in waiting state
       if (storeRegistry.getState('daemon').handshakeWaiters.size === 0) {
         ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())

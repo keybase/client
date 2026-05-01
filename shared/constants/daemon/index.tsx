@@ -188,6 +188,16 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
           storeRegistry.getState('config').dispatch.setUserSwitching(false)
         }
 
+        // A bootstrap started during the gap between old-account logout and
+        // new-account login will return loggedIn=false even though the new
+        // account is already authenticated.  Calling setLoggedIn(false) here
+        // would trigger resetAllStores() and flip loggedIn to false right as
+        // navigateToThread fires, causing the navigation to be discarded.
+        if (!loggedIn && storeRegistry.getState('config').userSwitching) {
+          logger.info('[Bootstrap] ignoring loggedIn=false result during account switch')
+          return
+        }
+
         logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
         storeRegistry.getState('config').dispatch.setLoggedIn(loggedIn, false)
         storeRegistry.getState('chat').dispatch.updateUserReacjis(userReacjis)

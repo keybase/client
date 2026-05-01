@@ -178,15 +178,9 @@ export const usePushState = Z.createZustand<State>((set, get) => {
                 return
               }
               // Guard against re-triggering a switch that is already in progress.
-              // After a logout, Z.resetAllStores() resets userSwitching to false but
-              // preserves pendingPushNotification. If applicationDidBecomeActive
-              // re-emits the same notification before the bootstrap sets currentUid,
-              // we would call login() a second time — clobbering the first switch's
-              // navigation. Skip if the pending notification is already queued for
-              // the same account.
-              const existingPending = get().pendingPushNotification
-              const existingForUid = existingPending ? (existingPending as {forUid?: string}).forUid : undefined
-              if (existingForUid === forUid) {
+              // applicationDidBecomeActive can re-emit the same notification while the
+              // switch is still running; userSwitching=true is the authoritative signal.
+              if (storeRegistry.getState('config').userSwitching) {
                 logger.info('[Push] switch already in progress for this account, skipping duplicate')
                 return
               }
@@ -195,10 +189,13 @@ export const usePushState = Z.createZustand<State>((set, get) => {
               // changes, picked up by the subscriber in
               // constants/platform-specific/push.native.tsx (initPushListener).
               logger.info('[Push] switching to account for notification tap')
+              // Set userSwitching=true before pendingPushNotification so there is
+              // no window in which the notification is queued but the guard above
+              // would pass for a concurrent delivery.
+              configDispatch.setUserSwitching(true)
               set(s => {
                 s.pendingPushNotification = notification
               })
-              configDispatch.setUserSwitching(true)
               configDispatch.login(account.username, '')
               return
             }
