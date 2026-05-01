@@ -1,7 +1,6 @@
 import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
 import HiddenString from '@/util/hidden-string'
-import {produce} from 'immer'
 import type {WritableDraft} from '@/util/zustand'
 
 type MessageLookup = Pick<T.Chat.Message, 'id' | 'ordinal'>
@@ -38,62 +37,11 @@ export type OptimisticReaction = T.Immutable<{
 
 export type OptimisticReactionMap = ReadonlyMap<T.Chat.OutboxID, OptimisticReaction>
 
-export const cloneStoreObjectWithImmer = (value: unknown): unknown => {
-  if (value instanceof HiddenString) {
-    return value
-  }
-  if (value instanceof Map) {
-    return produce(new Map(value), draft => {
-      for (const [key, entryValue] of draft) {
-        draft.set(key, cloneStoreObjectWithImmer(entryValue))
-      }
-    })
-  }
-  if (value instanceof Set) {
-    return produce(new Set(value), draft => {
-      const entries = [...draft]
-      draft.clear()
-      entries.forEach(entry => {
-        draft.add(cloneStoreObjectWithImmer(entry))
-      })
-    })
-  }
-  if (Array.isArray(value)) {
-    return produce([...value], draft => {
-      const mutableDraft = draft as Array<unknown>
-      for (let idx = 0; idx < draft.length; ++idx) {
-        mutableDraft[idx] = cloneStoreObjectWithImmer(draft[idx])
-      }
-    })
-  }
-  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
-    return produce({...value}, draft => {
-      const record = draft as Record<string, unknown>
-      for (const key of Object.keys(record)) {
-        record[key] = cloneStoreObjectWithImmer(record[key])
-      }
-    })
-  }
-  return value
-}
-
-export const cloneMessageWithImmer = (
+const messageForThreadState = (
   message: T.Chat.Message,
   ordinal: T.Chat.Ordinal = message.ordinal
-): T.Chat.Message =>
-  produce({...message}, draft => {
-    const record = draft as Record<string, unknown>
-    for (const key of Object.keys(record)) {
-      record[key] = cloneStoreObjectWithImmer(record[key])
-    }
-    record['ordinal'] = ordinal
-  }) as T.Chat.Message
-
-const cloneMessageForThreadState = (
-  message: T.Chat.Message,
-  ordinal: T.Chat.Ordinal
 ): WritableDraft<T.Chat.Message> =>
-  T.castDraft(cloneMessageWithImmer(message, ordinal))
+  T.castDraft(message.ordinal === ordinal ? message : {...message, ordinal})
 
 export const getOrdinalForMessageID = (
   map: ReadonlyMap<T.Chat.Ordinal, MessageLookup>,
@@ -236,7 +184,7 @@ export const addMessagesToThreadState = (
     const regularMessage = _m.conversationMessage !== false
     const mapOrdinal = getMapOrdinal(_m, regularMessage)
     const getIncomingMessage = (): WritableDraft<T.Chat.Message> =>
-      _m.ordinal === mapOrdinal ? T.castDraft(_m) : cloneMessageForThreadState(_m, mapOrdinal)
+      messageForThreadState(_m, mapOrdinal)
 
     if (regularMessage && _m.type === 'deleted') {
       clearMessageIDIndexForOrdinal(state, mapOrdinal)
@@ -274,7 +222,7 @@ export const addMessagesToThreadState = (
       if (existingMsg) {
         clearMessageIDIndexForOrdinal(state, mapOrdinal, existingMsg)
       }
-      const m = cloneMessageForThreadState(_m, mapOrdinal)
+      const m = messageForThreadState(_m, mapOrdinal)
       state.messageMap.set(mapOrdinal, m)
       indexMessage(state, mapOrdinal, m)
       if (
