@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as ChatCommon from '@/constants/chat/common'
 import * as Meta from '@/constants/chat/meta'
-import * as ConvoState from '@/stores/convostate'
+import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useModalHeaderState} from '@/stores/modal-header'
@@ -11,7 +11,11 @@ import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useFeaturedBot} from '@/util/featured-bots'
-import type {RPCError} from '@/util/errors'
+import {RPCError} from '@/util/errors'
+import logger from '@/logger'
+import {useBotSettings} from './settings'
+import {getInboxConversationMeta, metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
+import {useConversationMeta} from '../data-hooks'
 
 const RestrictedItem = '---RESTRICTED---'
 
@@ -25,19 +29,22 @@ export const useRefreshBotMembershipOnSuccess = (
   const waiting = C.Waiting.useAnyWaiting(waitingKey)
   const wasWaitingRef = React.useRef(waiting)
   const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
-  const setParticipants = ConvoState.useChatContext(s => s.dispatch.setParticipants)
 
   React.useEffect(() => {
     if (!waiting && wasWaitingRef.current && !error) {
       if (!shouldRefreshMembership) {
         onSuccess()
-      } else if (!conversationIDKey) {
+      } else if (!conversationIDKey || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
         onSuccess()
       } else {
         previewConversationByID(
           [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
           preview => {
-            setParticipants(ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []))
+            participantInfoReceived(
+              conversationIDKey,
+              ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
+              getInboxConversationMeta(conversationIDKey)
+            )
             onSuccess()
           },
           () => {
@@ -52,7 +59,6 @@ export const useRefreshBotMembershipOnSuccess = (
     error,
     onSuccess,
     previewConversationByID,
-    setParticipants,
     shouldRefreshMembership,
     waiting,
   ])
@@ -91,7 +97,7 @@ export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, 
         if (!meta) {
           return
         }
-        ConvoState.metasReceived([meta])
+        metasReceived([meta])
         setGeneralConversation({conversationIDKey: meta.conversationIDKey, teamID})
       },
       () => {}
@@ -103,6 +109,60 @@ export const useBotConversationIDKey = (inConvIDKey?: T.Chat.ConversationIDKey, 
     }
   }, [cleanInConvIDKey, findGeneralConvIDFromTeamID, teamID])
   return conversationIDKey
+}
+
+export const useBotTeamRole = (
+  conversationIDKey: T.Chat.ConversationIDKey | undefined,
+  botUsername: string
+) => {
+  const [loaded, setLoaded] = React.useState<
+    | {
+        botUsername: string
+        conversationIDKey: T.Chat.ConversationIDKey
+        teamRole?: T.Teams.TeamRoleType
+      }
+    | undefined
+  >()
+  const loadBotTeamRole = C.useRPC(T.RPCChat.localGetTeamRoleInConversationRpcPromise)
+  const requestIDRef = React.useRef(0)
+
+  React.useEffect(() => {
+    requestIDRef.current += 1
+    if (!conversationIDKey) {
+      return undefined
+    }
+    const requestID = requestIDRef.current
+    loadBotTeamRole(
+      [{convID: T.Chat.keyToConversationID(conversationIDKey), username: botUsername}],
+      role => {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
+        const teamRole = Teams.teamRoleByEnum[role]
+        setLoaded({
+          botUsername,
+          conversationIDKey,
+          teamRole: teamRole === 'none' ? undefined : teamRole,
+        })
+      },
+      error => {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
+        logger.info(`useBotTeamRole: failed to refresh bot team role: ${error.message}`)
+        setLoaded({botUsername, conversationIDKey})
+      }
+    )
+    return () => {
+      if (requestIDRef.current === requestID) {
+        requestIDRef.current += 1
+      }
+    }
+  }, [botUsername, conversationIDKey, loadBotTeamRole])
+
+  return loaded && loaded.conversationIDKey === conversationIDKey && loaded.botUsername === botUsername
+    ? loaded.teamRole
+    : undefined
 }
 
 type LoaderProps = {
@@ -117,11 +177,7 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const teamID = props.teamID
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   if (!conversationIDKey) return null
-  return (
-    <ConvoState.ChatProvider id={conversationIDKey}>
-      <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
-    </ConvoState.ChatProvider>
-  )
+  return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
 }
 
 type Props = {
@@ -150,7 +206,7 @@ const InstallBotPopup = (props: Props) => {
     | undefined
   >()
 
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const meta = useConversationMeta(conversationIDKey ?? T.Chat.noConversationIDKey)
   const commandsFromMeta = (
     meta.botCommands.typ === T.RPCChat.ConversationCommandGroupsTyp.custom
       ? meta.botCommands.custom.commands || blankCommands
@@ -166,14 +222,14 @@ const InstallBotPopup = (props: Props) => {
         : undefined
 
   const featured = useFeaturedBot(botUsername)
-  const teamRole = ConvoState.useChatContext(s => s.botTeamRoleMap.get(botUsername))
+  const teamRole = useBotTeamRole(conversationIDKey, botUsername)
   const inTeam = teamRole !== undefined ? !!teamRole : undefined
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
 
   const {yourOperations} = useChatTeam(meta.teamID, meta.teamname)
   const readOnly = meta.teamname ? !yourOperations.manageBots : false
-  const settings = ConvoState.useChatContext(s => s.botSettings.get(botUsername) ?? undefined)
+  const {settings} = useBotSettings(conversationIDKey, botUsername, !!inTeam)
   let teamname: string | undefined
   let teamID: T.Teams.TeamID = T.Teams.noTeamID
   let refreshTeamID: T.Teams.TeamID | undefined
@@ -190,7 +246,6 @@ const InstallBotPopup = (props: Props) => {
   // dispatch
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
-  const addBotMember = ConvoState.useChatContext(s => s.dispatch.addBotMember)
   const [pendingMutation, setPendingMutation] = React.useState<'add' | 'edit' | undefined>()
   const onLearn = () => {
     openURL('https://book.keybase.io/docs/chat/restricted-bots')
@@ -201,16 +256,50 @@ const InstallBotPopup = (props: Props) => {
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
     setPendingMutation('add')
-    addBotMember(botUsername, installWithCommands, installWithMentions, installWithRestrict, installInConvs)
+    const f = async () => {
+      try {
+        await T.RPCChat.localAddBotMemberRpcPromise(
+          {
+            botSettings: installWithRestrict
+              ? {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions}
+              : null,
+            convID: T.Chat.keyToConversationID(conversationIDKey),
+            role: installWithRestrict ? T.RPCGen.TeamRole.restrictedbot : T.RPCGen.TeamRole.bot,
+            username: botUsername,
+          },
+          C.waitingKeyChatBotAdd
+        )
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.info('addBotMember: failed to add bot member: ' + error.message)
+        }
+      }
+    }
+    C.ignorePromise(f())
   }
-  const editBotSettings = ConvoState.useChatContext(s => s.dispatch.editBotSettings)
   const onEdit = () => {
     if (!conversationIDKey) {
       return
     }
     dispatchClearWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
     setPendingMutation('edit')
-    editBotSettings(botUsername, installWithCommands, installWithMentions, installInConvs)
+    const f = async () => {
+      try {
+        await T.RPCChat.localSetBotMemberSettingsRpcPromise(
+          {
+            botSettings: {cmds: installWithCommands, convs: installInConvs, mentions: installWithMentions},
+            convID: T.Chat.keyToConversationID(conversationIDKey),
+            username: botUsername,
+          },
+          C.waitingKeyChatBotAdd
+        )
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.info('addBotMember: failed to edit bot settings: ' + error.message)
+        }
+      }
+    }
+    C.ignorePromise(f())
   }
   const navigateAppend = C.Router2.navigateAppend
   const onRemove = () => {
@@ -226,23 +315,11 @@ const InstallBotPopup = (props: Props) => {
     navigateAppend({name: 'feedback', params: {}})
   }
 
-  const refreshBotSettings = ConvoState.useChatContext(s => s.dispatch.refreshBotSettings)
-  const refreshBotRoleInConv = ConvoState.useChatContext(s => s.dispatch.refreshBotRoleInConv)
-
-  // lifecycle
-  React.useEffect(() => {
-    if (conversationIDKey) {
-      refreshBotRoleInConv(botUsername)
-      if (inTeam) {
-        refreshBotSettings(botUsername)
-      }
-    }
-  }, [refreshBotRoleInConv, refreshBotSettings, conversationIDKey, inTeam, botUsername])
   useRefreshBotMembershipOnSuccess(
     conversationIDKey,
     C.waitingKeyChatBotAdd,
     mutationError,
-    pendingMutation === 'add',
+    pendingMutation !== undefined,
     () => {
       setPendingMutation(undefined)
       clearModals()

@@ -1,9 +1,10 @@
 import * as C from '@/constants'
 import {getMessageKey} from '@/constants/chat/helpers'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as InputState from '../../input-area/input-state'
+import * as RowMetadata from '../row-metadata'
 import {MessageContext, useOrdinal} from '../ids-context'
 import EmojiRow from '../emoji-row'
 import ExplodingHeightRetainer from './exploding-height-retainer'
@@ -18,8 +19,18 @@ import {useEdited} from './edited'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
-import type {ConvoState as ConvoStateType, ConvoUIState} from '@/stores/convostate'
+import {
+  getConversationThreadDisplayMessage,
+  useConversationThreadActions,
+  useConversationThreadMessageActions,
+  useConversationThreadSelector,
+} from '../../thread-context'
+import type {ConversationInputState} from '../../input-area/input-state'
 import {useChatTeamMembers} from '../../team-hooks'
+
+type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
+type PaymentStatusMap = ReadonlyMap<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
+type UnfurlPromptMap = ReadonlyMap<T.Chat.MessageID, ReadonlySet<string>>
 
 export type Props = {
   isCenteredHighlight?: boolean
@@ -63,11 +74,11 @@ type AuthorProps = {
   showUsername: string
 }
 
-type RowActions = Pick<
-  ConvoStateType['dispatch'],
-  'messageDelete' | 'messageRetry' | 'replyJump' | 'toggleMessageReaction'
-> &
-  Pick<ConvoUIState['dispatch'], 'setEditing' | 'setReplyTo'>
+type RowActions = Pick<ConversationInputState['dispatch'], 'setEditing' | 'setReplyTo'> & {
+  messageDelete: (ordinal: T.Chat.Ordinal) => void
+  messageRetry: (outboxID: T.Chat.OutboxID) => void
+  toggleMessageReaction: (ordinal: T.Chat.Ordinal, emoji: string) => void
+}
 
 type EditCancelRetryData = {
   failureDescription: string
@@ -97,12 +108,13 @@ const emptyAuthorData: FlatAuthorData = {
 }
 
 const getRowActions = (
-  dispatch: ConvoStateType['dispatch'],
-  uiDispatch: Pick<ConvoUIState['dispatch'], 'setEditing' | 'setReplyTo'>
+  messageActions: Pick<RowActions, 'messageDelete' | 'toggleMessageReaction'>,
+  uiDispatch: Pick<ConversationInputState['dispatch'], 'setEditing' | 'setReplyTo'>,
+  messageRetry: RowActions['messageRetry']
 ): RowActions => {
-  const {messageDelete, messageRetry, replyJump, toggleMessageReaction} = dispatch
+  const {messageDelete, toggleMessageReaction} = messageActions
   const {setEditing, setReplyTo} = uiDispatch
-  return {messageDelete, messageRetry, replyJump, setEditing, setReplyTo, toggleMessageReaction}
+  return {messageDelete, messageRetry, setEditing, setReplyTo, toggleMessageReaction}
 }
 
 function AuthorSection(p: AuthorProps) {
@@ -187,8 +199,8 @@ function AuthorSection(p: AuthorProps) {
 
 const getAuthorData = (
   message: T.Chat.Message,
-  meta: ConvoStateType['meta'],
-  participants: ConvoStateType['participants'],
+  meta: T.Chat.ConversationMeta,
+  participants: T.Chat.ParticipantInfo,
   showUsername: string
 ): FlatAuthorData => {
   if (!showUsername) {
@@ -242,25 +254,24 @@ const getCommonMessageData = ({
   editing,
   isCenteredHighlight,
   message,
-  messageCenterOrdinal,
   ordinal,
   paymentStatusMap,
   unfurlPrompt,
   you,
 }: {
-  accountsInfoMap: ConvoStateType['accountsInfoMap']
+  accountsInfoMap: AccountsInfoMap
   editing: T.Chat.Ordinal
   isCenteredHighlight?: boolean
   message: T.Chat.Message
-  messageCenterOrdinal: ConvoStateType['messageCenterOrdinal']
   ordinal: T.Chat.Ordinal
-  paymentStatusMap: ConvoStateType['paymentStatusMap']
-  unfurlPrompt: ConvoStateType['unfurlPrompt']
+  paymentStatusMap: PaymentStatusMap
+  unfurlPrompt: UnfurlPromptMap
   you: string
 }) => {
   const {submitState, author, id, botUsername} = message
   const type = message.type
   const exploded = !!message.exploded
+  const hasMessageID = !!T.Chat.messageIDToNumber(id)
   const idMatchesOrdinal = T.Chat.ordinalToNumber(message.ordinal) === T.Chat.messageIDToNumber(id)
   const exploding = !!message.exploding
   const decorate = !exploded && !message.errorReason
@@ -273,13 +284,13 @@ const getCommonMessageData = ({
   const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, message)
   const hasReactions = (message.reactions?.size ?? 0) > 0
   const botname = botUsername === author ? '' : (botUsername ?? '')
-  const canShowReactionsPopup = Chat.isMessageWithReactions(message)
+  const canShowReactionsPopup = hasMessageID && Chat.isMessageWithReactions(message)
   const ecrType = getEcrType(message, you)
-  const shouldShowPopup = Chat.shouldShowPopup(accountsInfoMap, message)
+  const shouldShowPopup = hasMessageID && Chat.shouldShowPopup(accountsInfoMap, message)
   const hasBeenEdited = message.hasBeenEdited ?? false
   const hasCoinFlip = message.type === 'text' && !!message.flipGameID
   const hasUnfurlList = (message.unfurls?.size ?? 0) > 0
-  const hasUnfurlPrompts = !!id && !!unfurlPrompt.get(id)?.size
+  const hasUnfurlPrompts = hasMessageID && !!unfurlPrompt.get(id)?.size
   const textType: 'error' | 'sent' | 'pending' = message.errorReason
     ? 'error'
     : !submitState
@@ -291,13 +302,7 @@ const getCommonMessageData = ({
   const showReplyTo = !!replyTo
   const text =
     message.type === 'text' ? (message.decoratedText?.stringValue() ?? message.text.stringValue()) : ''
-  const showCenteredHighlight =
-    isCenteredHighlight ??
-    !!(
-      messageCenterOrdinal &&
-      messageCenterOrdinal.highlightMode !== 'none' &&
-      messageCenterOrdinal.ordinal === ordinal
-    )
+  const showCenteredHighlight = !!isCenteredHighlight
 
   return {
     botname,
@@ -354,30 +359,38 @@ const getEditCancelRetryData = (
 // Combined selector hook that fetches all common wrapper data in a single subscription.
 export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
   const you = useCurrentUserState(s => s.username)
-  const editing = ConvoState.useChatUIContext(s => s.editing)
-  const uiDispatch = ConvoState.useChatUIContext(
-    C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
+  const editing = InputState.useConversationInput(s => s.editing)
+  const uiDispatch = InputState.useConversationInputDispatch(
+    C.useShallow(s => ({setEditing: s.setEditing, setReplyTo: s.setReplyTo}))
   )
+  const {retryMessage} = useConversationThreadActions()
+  const messageActions = useConversationThreadMessageActions()
 
-  return ConvoState.useChatContext(
+  return useConversationThreadSelector(
     C.useShallow(s => {
-      const message = s.messageMap.get(ordinal) ?? missingMessage
+      const message = getConversationThreadDisplayMessage(s, ordinal) ?? missingMessage
       const commonData = getCommonMessageData({
         accountsInfoMap: s.accountsInfoMap,
         editing,
         isCenteredHighlight,
         message,
-        messageCenterOrdinal: s.messageCenterOrdinal,
         ordinal,
         paymentStatusMap: s.paymentStatusMap,
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
+      const showUsername = RowMetadata.getMessageShowUsername({
+        message,
+        messageMap: s.messageMap,
+        messageOrdinals: s.messageOrdinals ?? [],
+        ordinal,
+        you,
+      })
       return {
         ...commonData,
         ...getEditCancelRetryData(commonData.ecrType, message),
-        ...getRowActions(s.dispatch, uiDispatch),
-        ...getAuthorData(message, s.meta, s.participants, s.showUsernameMap.get(ordinal) ?? ''),
+        ...getRowActions(messageActions, uiDispatch, retryMessage),
+        ...getAuthorData(message, s.meta, s.participants, showUsername),
       }
     })
   )
@@ -385,30 +398,38 @@ export const useMessageData = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: bo
 
 const useMessageDataWithMessage = (ordinal: T.Chat.Ordinal, isCenteredHighlight?: boolean) => {
   const you = useCurrentUserState(s => s.username)
-  const editing = ConvoState.useChatUIContext(s => s.editing)
-  const uiDispatch = ConvoState.useChatUIContext(
-    C.useShallow(s => ({setEditing: s.dispatch.setEditing, setReplyTo: s.dispatch.setReplyTo}))
+  const editing = InputState.useConversationInput(s => s.editing)
+  const uiDispatch = InputState.useConversationInputDispatch(
+    C.useShallow(s => ({setEditing: s.setEditing, setReplyTo: s.setReplyTo}))
   )
+  const {retryMessage} = useConversationThreadActions()
+  const messageActions = useConversationThreadMessageActions()
 
-  return ConvoState.useChatContext(
+  return useConversationThreadSelector(
     C.useShallow(s => {
-      const message = s.messageMap.get(ordinal) ?? missingMessage
+      const message = getConversationThreadDisplayMessage(s, ordinal) ?? missingMessage
       const commonData = getCommonMessageData({
         accountsInfoMap: s.accountsInfoMap,
         editing,
         isCenteredHighlight,
         message,
-        messageCenterOrdinal: s.messageCenterOrdinal,
         ordinal,
         paymentStatusMap: s.paymentStatusMap,
         unfurlPrompt: s.unfurlPrompt,
         you,
       })
+      const showUsername = RowMetadata.getMessageShowUsername({
+        message,
+        messageMap: s.messageMap,
+        messageOrdinals: s.messageOrdinals ?? [],
+        ordinal,
+        you,
+      })
       return {
         ...commonData,
         ...getEditCancelRetryData(commonData.ecrType, message),
-        ...getRowActions(s.dispatch, uiDispatch),
-        ...getAuthorData(message, s.meta, s.participants, s.showUsernameMap.get(ordinal) ?? ''),
+        ...getRowActions(messageActions, uiDispatch, retryMessage),
+        ...getAuthorData(message, s.meta, s.participants, showUsername),
         message,
       }
     })
@@ -454,7 +475,7 @@ type WrapperMessageProps = {
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
 const hasSuccessfulInlinePayments = (
-  paymentStatusMap: ConvoStateType['paymentStatusMap'],
+  paymentStatusMap: PaymentStatusMap,
   message: T.Chat.Message
 ): boolean => {
   if (message.type !== 'text' || !message.inlinePaymentIDs) {
@@ -543,7 +564,7 @@ function TextAndSiblings(p: TSProps) {
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker, submitState} = p
   const pressableProps = Kb.Styles.isMobile
     ? {
-        onLongPress: decorate ? showPopup : undefined,
+        onLongPress: decorate && shouldShowPopup ? showPopup : undefined,
         style: isHighlighted ? {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt} : undefined,
       }
     : {
@@ -553,7 +574,7 @@ function TextAndSiblings(p: TSProps) {
           // eslint-disable-next-line sort-keys
           active: showingPopup || showingPicker,
         }),
-        onContextMenu: showPopup,
+        onContextMenu: shouldShowPopup ? showPopup : undefined,
       }
 
   const content = exploding ? (
@@ -819,7 +840,7 @@ function RightSide(p: RProps) {
       exploding={p.exploding}
       explodesAt={p.explodesAt}
       messageKey={p.messageKey}
-      onClick={showPopup}
+      onClick={shouldShowPopup ? showPopup : undefined}
       submitState={p.submitState}
     />
   ) : null
@@ -856,7 +877,7 @@ function RightSide(p: RProps) {
           'tooltip-left'
         )}
       >
-        <Kb.Box2 direction="vertical" style={styles.ellipsis}>
+        <Kb.Box2 direction="vertical">
           <Kb.Icon type="iconfont-ellipsis" onClick={showPopup} />
         </Kb.Box2>
       </Kb.Box2>
@@ -1009,10 +1030,6 @@ const styles = Kb.Styles.styleSheetCreate(
           wordBreak: 'break-all',
         },
         isMobile: {maxWidth: 120},
-      }),
-      ellipsis: Kb.Styles.platformStyles({
-        isElectron: {paddingTop: 2},
-        isMobile: {paddingTop: 4},
       }),
       emojiRow: Kb.Styles.platformStyles({
         isElectron: {

@@ -1,4 +1,5 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
@@ -8,6 +9,7 @@ import {type CachedResourceCache, getCachedResourceCache, useCachedResource} fro
 
 type LoadedTeamChannels = {
   channels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>
+  channelParticipants: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>
   loading: boolean
   reload: () => Promise<void>
 }
@@ -16,7 +18,7 @@ type LoadedTeamChannelsContextValue = LoadedTeamChannels & {
   teamID: T.Teams.TeamID
 }
 
-type LoadedTeamChannelsData = Pick<LoadedTeamChannels, 'channels'>
+type LoadedTeamChannelsData = Pick<LoadedTeamChannels, 'channels' | 'channelParticipants'>
 type LoadedTeamChannelsCacheMap = Map<
   T.Teams.TeamID | undefined,
   CachedResourceCache<LoadedTeamChannelsData, T.Teams.TeamID | undefined>
@@ -27,11 +29,15 @@ const LoadedTeamChannelsCacheContext = React.createContext<LoadedTeamChannelsCac
 const loadedTeamChannelsReloadStaleMs = 5_000
 
 const emptyChannels: ReadonlyMap<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo> = new Map()
+const emptyChannelParticipants: ReadonlyMap<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo> = new Map()
 
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
 
-const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {channels: emptyChannels}
+const emptyLoadedTeamChannelsData: LoadedTeamChannelsData = {
+  channelParticipants: emptyChannelParticipants,
+  channels: emptyChannels,
+}
 
 const useLoadedTeamChannelsCacheMap = (providedCacheMap?: LoadedTeamChannelsCacheMap) => {
   const contextCacheMap = React.useContext(LoadedTeamChannelsCacheContext)
@@ -74,6 +80,7 @@ const useLoadedTeamChannelsRaw = (
         },
         C.waitingKeyTeamsGetChannels(teamIDToLoad)
       )
+      const channelParticipants = new Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>()
       const channels =
         convs?.reduce((res, inboxUIItem) => {
           const conversationIDKey = T.Chat.stringToConversationIDKey(inboxUIItem.convID)
@@ -82,11 +89,16 @@ const useLoadedTeamChannelsRaw = (
             conversationIDKey,
             description: inboxUIItem.headline,
           })
+          channelParticipants.set(
+            conversationIDKey,
+            Chat.uiParticipantsToParticipantInfo(inboxUIItem.participants ?? [])
+          )
           return res
         }, new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()) ??
         new Map<T.Chat.ConversationIDKey, T.Teams.TeamChannelInfo>()
 
       return {
+        channelParticipants,
         channels,
       }
     },

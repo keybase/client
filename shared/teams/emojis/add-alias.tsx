@@ -1,6 +1,5 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
@@ -15,7 +14,10 @@ import {useEmojiState} from './use-emoji'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 import {ensureError} from '@/util/errors'
 
-type Props = {defaultSelected?: EmojiData}
+type Props = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+  defaultSelected?: EmojiData
+}
 
 type ChosenEmoji = {
   emojiStr: string
@@ -50,6 +52,7 @@ const selectionFromDefault = (defaultSelected?: EmojiData): EmojiSelection => {
 
 const AddAliasModal = (props: Props) => {
   const {defaultSelected} = props
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   const defaultSelectedKey = defaultSelected ? getEmojiStr(defaultSelected) : ''
   const [selection, setSelection] = React.useState(() => selectionFromDefault(defaultSelected))
   let currentSelection = selection
@@ -59,7 +62,6 @@ const AddAliasModal = (props: Props) => {
   }
   const {alias, emoji} = currentSelection
   const [error, setError] = React.useState<undefined | string>(undefined)
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
 
   const aliasInputRef = React.useRef<AliasRef>(null)
   const onChoose = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
@@ -126,7 +128,7 @@ const AddAliasModal = (props: Props) => {
           <Kb.Text type="BodySemibold">Choose an existing emoji:</Kb.Text>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="small">
             <SelectedEmoji chosen={emoji} />
-            <ChooseEmoji onChoose={onChoose} />
+            <ChooseEmoji conversationIDKey={conversationIDKey} onChoose={onChoose} />
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2
@@ -154,6 +156,7 @@ const AddAliasModal = (props: Props) => {
 }
 
 type ChooseEmojiProps = {
+  conversationIDKey: T.Chat.ConversationIDKey
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
 }
 const ChooseEmoji = Kb.Styles.isMobile
@@ -177,7 +180,7 @@ const ChooseEmoji = Kb.Styles.isMobile
       }, [pickedEmoji, updatePickerMap])
 
       const navigateAppend = C.Router2.navigateAppend
-      const conversationIDKey = ConvoState.useChatContext(s => s.id)
+      const {conversationIDKey} = props
       const openEmojiPicker = () =>
         navigateAppend({
           name: 'chatChooseEmoji',
@@ -192,7 +195,7 @@ const ChooseEmoji = Kb.Styles.isMobile
       return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
     }
   : (props: ChooseEmojiProps) => {
-      const {onChoose} = props
+      const {conversationIDKey, onChoose} = props
       const makePopup = (p: Kb.Popup2Parms) => {
         const {attachTo, hidePopup} = p
         return (
@@ -204,6 +207,7 @@ const ChooseEmoji = Kb.Styles.isMobile
             propagateOutsideClicks={false}
           >
             <EmojiPickerDesktop
+              conversationIDKey={conversationIDKey}
               hideFrequentEmoji={true}
               small={false}
               onPickAction={onChoose}

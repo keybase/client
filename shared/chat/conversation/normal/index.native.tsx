@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import {PortalHost} from '@/common-adapters/portal.native'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -14,6 +13,7 @@ import type {LayoutEvent} from '@/common-adapters/box'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
 import {PerfProfiler} from '@/perf/react-profiler'
 import logger from '@/logger'
+import {useConversationThreadID, useConversationThreadSelector} from '../thread-context'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -22,7 +22,7 @@ const Offline = () => (
 )
 
 const LoadingLine = () => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const showLoader = C.Waiting.useAnyWaiting([
     C.waitingKeyChatThreadLoad(conversationIDKey),
     C.waitingKeyChatInboxSyncStarted,
@@ -36,7 +36,7 @@ const Conversation = function Conversation() {
     setMaxInputArea(e.nativeEvent.layout.height)
   }
 
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   logger.info(`Conversation: rendering convID: ${conversationIDKey}`)
 
   const innerComponent = (
@@ -69,7 +69,7 @@ const Conversation = function Conversation() {
         paddingBottom: Kb.Styles.isTablet ? 0 : insets.bottom,
       }
 
-  const threadLoadedOffline = ConvoState.useChatContext(s => s.meta.offline)
+  const threadLoadedOffline = useConversationThreadSelector(s => s.meta.offline)
 
   const content = (
     <Kb.Box2

@@ -4,14 +4,23 @@ import groupBy from 'lodash/groupBy'
 import type * as Kb from '@/common-adapters'
 
 export const skinTones = ['1F3FA', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF'] as const
-export const emojiNameMap = Object.values(emojidata).reduce<Record<string, EmojiData>>((res, emoji) => {
+const emojiValues = Object.values(emojidata)
+
+export const emojiNameMap = emojiValues.reduce<Record<string, EmojiData>>((res, emoji) => {
   res[emoji.short_name] = emoji
   return res
 }, {})
+emojiValues.forEach(emoji => {
+  emoji.short_names.forEach(name => {
+    if (!emojiNameMap[name]) {
+      emojiNameMap[name] = emoji
+    }
+  })
+})
 
 export type {EmojiData} from 'emoji-datasource-apple'
 
-const categorized = groupBy(emojidata, 'category')
+const categorized = groupBy(emojiValues, 'category')
 categorized['Smileys & People'] = [
   ...(categorized['Smileys & Emotion'] ?? []),
   ...(categorized['People & Body'] ?? []),
@@ -60,9 +69,8 @@ export const categories = categoryOrder.map(category => ({
 
 export const emojiSearch = (filter: string, maxResults: number) => {
   const parts = filter.toLowerCase().split(/[\s|,|\-|_]+/)
-  const vals: Array<EmojiData> = Object.values(emojidata)
   type ResType = Array<{emoji: EmojiData; score: number}>
-  const res = vals.reduce<ResType>((arr, emoji: EmojiData) => {
+  const res = emojiValues.reduce<ResType>((arr, emoji: EmojiData) => {
     let score = 0
 
     const looking = [...new Set([emoji.name, emoji.category, emoji.short_name, ...emoji.short_names])].map(

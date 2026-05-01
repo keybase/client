@@ -1,19 +1,18 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {joinConversation} from '../status-actions'
+import {useConversationThreadID, useConversationThreadSelector} from '../thread-context'
 
 const Preview = () => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const meta = ConvoState.useChatContext(s => s.meta)
-  const onJoinChannel = ConvoState.useChatContext(s => s.dispatch.joinConversation)
-  const {channelname} = meta
+  const conversationIDKey = useConversationThreadID()
+  const channelname = useConversationThreadSelector(s => s.meta.channelname)
   const [clicked, setClicked] = React.useState<undefined | 'join' | 'leave'>(undefined)
 
   const _onClick = (join: boolean) => {
     setClicked(join ? 'join' : 'leave')
     if (join) {
-      onJoinChannel()
+      joinConversation(conversationIDKey)
     } else {
       C.Router2.leaveConversation(conversationIDKey)
     }

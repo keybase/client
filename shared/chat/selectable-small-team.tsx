@@ -7,6 +7,7 @@ import type * as T from '@/constants/types'
 
 type Props = {
   backgroundColor?: string
+  conversationIDKey: T.Chat.ConversationIDKey
   isMuted: boolean
   isSelected: boolean
   onSelectConversation: () => void
@@ -84,6 +85,7 @@ const SelectableSmallTeam = (props: Props) => {
           />
           {!props.numSearchHits && (
             <BottomLine
+              conversationIDKey={props.conversationIDKey}
               snippet={props.snippet}
               snippetDecoration={props.snippetDecoration}
               isSelected={props.isSelected}

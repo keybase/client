@@ -16,6 +16,7 @@ export const ShowAudioSendContext = React.createContext({
   setShowAudioSend: (_s: boolean) => {},
   showAudioSend: false,
 })
+ShowAudioSendContext.displayName = 'ShowAudioSendContext'
 
 export const AudioSendWrapper = () => {
   return <PortalHost name="audioSend" />

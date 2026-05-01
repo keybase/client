@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
@@ -10,6 +9,7 @@ import {useIsFocused} from '@react-navigation/core'
 import type {ChatInboxRowItem} from './rowitem'
 import {useInboxLayout, useInboxRetryState} from './layout-state'
 import {buildInboxRows} from './rows'
+import {queueMetaToRequest} from './metadata'
 
 const useInboxBadges = (
   inboxRows: ReadonlyArray<ChatInboxRowItem>,
@@ -84,7 +84,7 @@ export function useInboxState(
   const smallTeamsExpanded = controlsMatchUser ? inboxControls.smallTeamsExpanded : false
   const inboxNumSmallRowsLoadVersionRef = React.useRef(0)
 
-  const setInboxNumSmallRows = (rows: number, persist = true) => {
+  const setInboxNumSmallRows = React.useCallback((rows: number, persist = true) => {
     if (rows <= 0) {
       return
     }
@@ -107,8 +107,8 @@ export function useInboxState(
       } catch {}
     }
     C.ignorePromise(f())
-  }
-  const toggleSmallTeamsExpanded = () => {
+  }, [username])
+  const toggleSmallTeamsExpanded = React.useCallback(() => {
     setInboxControls(state => ({
       inboxNumSmallRows: state.username === username ? state.inboxNumSmallRows : 5,
       inboxNumSmallRowsLoaded: state.username === username ? state.inboxNumSmallRowsLoaded : false,
@@ -117,7 +117,7 @@ export function useInboxState(
       smallTeamsExpanded: !(state.username === username ? state.smallTeamsExpanded : false),
       username,
     }))
-  }
+  }, [username])
 
   const {
     allowShowFloatingButton,
@@ -131,21 +131,9 @@ export function useInboxState(
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder
   const selectedConversationIDKey = conversationIDKey ?? Chat.noConversationIDKey
 
-  // Handle focus changes on mobile
-  const prevIsFocusedRef = React.useRef(isFocused)
   const handledRefreshNonceRef = React.useRef('')
-  React.useEffect(() => {
-    if (prevIsFocusedRef.current === isFocused) return
-    prevIsFocusedRef.current = isFocused
-    if (C.isMobile && isFocused && Chat.isSplit) {
-      ConvoState.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
-    }
-  }, [isFocused])
 
   C.useOnMountOnce(() => {
-    if (!C.isMobile) {
-      ConvoState.getConvoState(Chat.getSelectedConversation()).dispatch.tabSelected()
-    }
     if (!C.isPhone && !inboxHasLoaded) {
       C.ignorePromise(inboxRefresh('componentNeverLoaded'))
     }
@@ -254,7 +242,7 @@ export function useInboxState(
     isSearching,
     neverLoaded: !inboxHasLoaded,
     onNewChat: appendNewChatBuilder,
-    onUntrustedInboxVisible: ConvoState.queueMetaToRequest,
+    onUntrustedInboxVisible: queueMetaToRequest,
     rows: inboxRows,
     selectedConversationIDKey,
     setInboxNumSmallRows,

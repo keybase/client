@@ -1,16 +1,17 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as React from 'react'
 import logger from '@/logger'
 import {ensureError} from '@/util/errors'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '../use-cached-resource'
+import {useLoadedTeamChannels} from './use-loaded-team-channels'
 
 type ChannelMetasData = {
   channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
+  channelParticipants: Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>
 }
 
 const allChannelMetasReloadStaleMs = 5_000
@@ -20,7 +21,8 @@ export const useChannelParticipants = (
   teamID: T.Teams.TeamID,
   conversationIDKey: T.Chat.ConversationIDKey
 ) => {
-  const participants = ConvoState.useConvoState(conversationIDKey, s => s.participants.all)
+  const {channelParticipants} = useLoadedTeamChannels(teamID)
+  const participants = channelParticipants.get(conversationIDKey)?.all ?? []
   const {
     teamDetails: {members: teamMembers},
   } = useLoadedTeam(teamID)
@@ -35,6 +37,7 @@ export const useAllChannelMetas = (
   dontCallRPC?: boolean
 ): {
   channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>
+  channelParticipants: Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>
   loadingChannels: boolean
   reloadChannels: () => Promise<void>
 } => {
@@ -47,9 +50,13 @@ export const useAllChannelMetas = (
     () => new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>(),
     []
   )
+  const emptyChannelParticipants = React.useMemo(
+    () => new Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>(),
+    []
+  )
   const initialData = React.useMemo(
-    () => ({channelMetas: emptyChannelMetas}),
-    [emptyChannelMetas]
+    () => ({channelMetas: emptyChannelMetas, channelParticipants: emptyChannelParticipants}),
+    [emptyChannelMetas, emptyChannelParticipants]
   )
   const [channelMetasCache] = React.useState<CachedResourceCache<ChannelMetasData, T.Teams.TeamID>>(
     () => createCachedResourceCache(initialData, teamID)
@@ -70,19 +77,27 @@ export const useAllChannelMetas = (
             },
             C.waitingKeyTeamsGetChannels(teamID),
           ],
-          ({convs}) =>
+          ({convs}) => {
+            const channelMetas = new Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>()
+            const channelParticipants = new Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>()
+            const loadedConvs = convs ?? []
+            loadedConvs.forEach(conv => {
+              const meta = Chat.inboxUIItemToConversationMeta(conv)
+              if (!meta) {
+                return
+              }
+              const conversationIDKey = meta.conversationIDKey
+              channelMetas.set(conversationIDKey, meta)
+              channelParticipants.set(
+                conversationIDKey,
+                Chat.uiParticipantsToParticipantInfo(conv.participants ?? [])
+              )
+            })
             resolve({
-              channelMetas: new Map(
-                (convs ?? [])
-                  .map(conv => Chat.inboxUIItemToConversationMeta(conv))
-                  .reduce((arr, a) => {
-                    if (a) {
-                      arr.push([a.conversationIDKey, a])
-                    }
-                    return arr
-                  }, new Array<[string, T.Chat.ConversationMeta]>())
-              ),
-            }),
+              channelMetas,
+              channelParticipants,
+            })
+          },
           error => reject(ensureError(error))
         )
       }),
@@ -111,6 +126,7 @@ export const useAllChannelMetas = (
 
   return {
     channelMetas: data.channelMetas,
+    channelParticipants: data.channelParticipants,
     loadingChannels: (!dontCallRPC && !teamname) || loading,
     reloadChannels: reload,
   }

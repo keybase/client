@@ -8,7 +8,7 @@ import {pickSave} from '@/util/misc'
 import * as FsCommon from '@/fs/common'
 import {settingsArchiveTab} from '@/constants/settings'
 import {useCurrentUserState} from '@/stores/current-user'
-import {getConvoState} from '@/stores/convostate'
+import {getInboxConversationMeta, getInboxConversationParticipants} from '@/chat/inbox/metadata'
 import {makeUUID} from '@/util/uuid'
 
 type ArchiveAllFilesResponseWaiter =
@@ -39,18 +39,17 @@ type Props =
   | {type: 'fsPath'; path: string}
   | {type: 'git'; gitURL: string}
 
-const chatIDToDisplayname = (conversationIDKey: string) => {
+const chatIDToDisplayname = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const you = useCurrentUserState.getState().username
-  const cs = getConvoState(conversationIDKey)
-  const m = cs.meta
-  if (m.teamname) {
+  const m = getInboxConversationMeta(conversationIDKey)
+  if (m?.teamname) {
     if (m.channelname) {
       return `${m.teamname}#${m.channelname}`
     }
     return m.teamname
   }
 
-  const participants = cs.participants.name
+  const participants = getInboxConversationParticipants(conversationIDKey)?.name ?? []
   if (participants.length === 1) {
     return participants[0] ?? ''
   }

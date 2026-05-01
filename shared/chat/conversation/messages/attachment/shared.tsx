@@ -1,11 +1,12 @@
 import * as C from '@/constants'
 import {clampImageSize} from '@/constants/chat/helpers'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {sharedStyles} from '../shared-styles'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {useConversationAttachmentActions} from '../../attachment-actions'
+import {useConversationThreadMessageActions} from '../../thread-context'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState
@@ -65,6 +66,7 @@ export const TransferIcon = (p: {
   style: Kb.Styles.StylesCrossPlatform
 }) => {
   const {message, ordinal, style} = p
+  const hasMessageID = !!T.Chat.messageIDToNumber(message.id)
   let state: 'none' | 'doneWithPath' | 'done' | 'downloading' = 'none'
   const downloadPath = message.downloadPath ?? ''
   if (downloadPath.length) {
@@ -80,10 +82,12 @@ export const TransferIcon = (p: {
       default:
     }
   }
-  const download = ConvoState.useChatContext(s =>
-    C.isMobile ? s.dispatch.messageAttachmentNativeSave : s.dispatch.attachmentDownload
-  )
+  const {attachmentDownload, messageAttachmentNativeSave} = useConversationAttachmentActions()
+  const download = C.isMobile ? messageAttachmentNativeSave : attachmentDownload
   const onDownload = () => {
+    if (!hasMessageID) {
+      return
+    }
     download(ordinal)
   }
 
@@ -118,7 +122,7 @@ export const TransferIcon = (p: {
         />
       )
     case 'none':
-      return (
+      return hasMessageID ? (
         <Kb.Icon
           className="hover-opacity-full"
           type="iconfont-download"
@@ -131,7 +135,7 @@ export const TransferIcon = (p: {
           }
           padding={Kb.Styles.isMobile ? 'small' : undefined}
         />
-      )
+      ) : null
   }
 }
 
@@ -236,7 +240,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const useCollapseAction = (ordinal: T.Chat.Ordinal) => {
-  const toggleMessageCollapse = ConvoState.useChatContext(s => s.dispatch.toggleMessageCollapse)
+  const {toggleMessageCollapse} = useConversationThreadMessageActions()
   const onCollapse = () => {
     toggleMessageCollapse(T.Chat.numberToMessageID(T.Chat.ordinalToNumber(ordinal)), ordinal)
   }

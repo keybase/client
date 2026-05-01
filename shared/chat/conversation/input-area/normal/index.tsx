@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import CommandMarkdown from '../../command-markdown'
 import CommandStatus from '../../command-status'
 import Giphy from '../../giphy'
+import * as InputState from '../input-state'
 import PlatformInput from './input'
 import ReplyPreview from '../../reply-preview'
 import * as T from '@/constants/types'
@@ -14,9 +14,18 @@ import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
 import type {RefType as InputRef} from './input'
+import {useConversationCenter} from '../../center-context'
+import {
+  useConversationThreadID,
+  useConversationThreadMessage,
+  useConversationThreadSelector,
+  useConversationThreadSetExplodingMode,
+  useConversationThreadToggleSearch,
+} from '../../thread-context'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {getRouteParamsFromRoute, type RootRouteProps} from '@/router-v2/route-params'
+import {unboxRows} from '@/chat/inbox/metadata'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -26,8 +35,14 @@ const useHintText = (p: {
 }) => {
   const {minWriterRole, isExploding, isEditing, cannotWrite} = p
   const username = useCurrentUserState(s => s.username)
-  const {teamType, teamname, channelname} = ConvoState.useChatContext(s => s.meta)
-  const participantInfoName = ConvoState.useChatContext(s => s.participants.name)
+  const {channelname, participantInfoName, teamType, teamname} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      channelname: s.meta.channelname,
+      participantInfoName: s.participants.name,
+      teamType: s.meta.teamType,
+      teamname: s.meta.teamname,
+    }))
+  )
   if (Kb.Styles.isMobile && isExploding) {
     return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   }
@@ -70,11 +85,11 @@ const useHintText = (p: {
 }
 
 const Input = function Input() {
-  const showGiphySearch = ConvoState.useChatUIContext(s => s.giphyWindow)
-  const showCommandMarkdown = ConvoState.useChatContext(s => !!s.commandMarkdown)
-  const showCommandStatus = ConvoState.useChatUIContext(s => !!s.commandStatus)
-  const replyTo = ConvoState.useChatUIContext(s => s.replyTo)
-  const showReplyTo = ConvoState.useChatContext(s => !!s.messageMap.get(replyTo)?.id)
+  const showGiphySearch = InputState.useConversationInput(s => s.giphyWindow)
+  const showCommandMarkdown = InputState.useConversationInput(s => !!s.commandMarkdown)
+  const showCommandStatus = InputState.useConversationInput(s => !!s.commandStatus)
+  const replyTo = InputState.useConversationInput(s => s.replyTo)
+  const showReplyTo = !!useConversationThreadMessage(replyTo)?.id
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
       {showReplyTo && <ReplyPreview />}
@@ -114,44 +129,37 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
   const params = getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)
   const infoPanelShowing = !!(params && typeof params === 'object' && 'infoPanel' in params && params.infoPanel)
-  const uiData = ConvoState.useChatUIContext(
+  const uiData = InputState.useConversationInput(
     C.useShallow(s => ({
       editOrdinal: s.editing,
+      focusInputCounter: s.focusInputCounter,
       replyTo: s.replyTo,
       unsentText: s.unsentText,
     }))
   )
-  const data = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const {meta, id: conversationIDKey, messageMap} = s
-      const {sendMessage, jumpToRecent, setExplodingMode} = s.dispatch
-      const {cannotWrite, minWriterRole, tlfname} = meta
-      const showReplyPreview = !!messageMap.get(uiData.replyTo)?.id
-      const suggestBotCommandsUpdateStatus = s.botCommandsUpdateStatus
-      const convoID = s.getConvID()
-      const metaGood = s.isMetaGood()
-      const storeDraft = metaGood ? meta.draft : undefined
-      const explodingMode = s.explodingMode
-      const convRetention = Chat.getEffectiveRetentionPolicy(meta)
-      const explodingModeSeconds =
-        convRetention.type === 'explode'
-          ? Math.min(explodingMode || Infinity, convRetention.seconds)
-          : explodingMode
-      // prettier-ignore
-      return {cannotWrite, conversationIDKey, convoID, explodingMode, explodingModeSeconds,
-        jumpToRecent, minWriterRole, sendMessage, setExplodingMode, showReplyPreview,
-        storeDraft, suggestBotCommandsUpdateStatus, tlfname}
-    })
+  const replyToMessage = useConversationThreadMessage(uiData.replyTo)
+  const conversationIDKey = useConversationThreadID()
+  const {explodingMode, meta} = useConversationThreadSelector(
+    C.useShallow(s => ({explodingMode: s.explodingMode, meta: s.meta}))
   )
-
-  const {cannotWrite, conversationIDKey, setExplodingMode: setExplodingModeRaw} = data
-  const {jumpToRecent, minWriterRole, sendMessage} = data
-  const {explodingModeSeconds: explodingModeSecondsRaw, convoID, tlfname, storeDraft} = data
-  const {suggestBotCommandsUpdateStatus, showReplyPreview} = data
-  const {editOrdinal, unsentText} = uiData
+  const setExplodingModeRaw = useConversationThreadSetExplodingMode()
+  const {cannotWrite, minWriterRole, tlfname} = meta
+  const convoID = T.Chat.isValidConversationIDKey(conversationIDKey)
+    ? T.Chat.keyToConversationID(conversationIDKey)
+    : new Uint8Array(0)
+  const metaGood = meta.conversationIDKey === conversationIDKey
+  const storeDraft = metaGood ? meta.draft : undefined
+  const convRetention = Chat.getEffectiveRetentionPolicy(meta)
+  const explodingModeSecondsRaw =
+    convRetention.type === 'explode' ? Math.min(explodingMode || Infinity, convRetention.seconds) : explodingMode
+  const showReplyPreview = !!replyToMessage?.id
+  const {editOrdinal, focusInputCounter, unsentText} = uiData
   const isEditing = !!editOrdinal
-  const setEditing = ConvoState.useChatUIContext(s => s.dispatch.setEditing)
-  const updateUnsentText = ConvoState.useChatUIContext(s => s.dispatch.injectIntoInput)
+  const setEditing = InputState.useConversationInputDispatch(s => s.setEditing)
+  const updateUnsentText = InputState.useConversationInputDispatch(s => s.injectIntoInput)
+  const sendComposerText = InputState.useConversationInputDispatch(s => s.sendComposerText)
+  const {hasCenter, jumpToRecent} = useConversationCenter()
+  const toggleThreadSearch = useConversationThreadToggleSearch()
 
   const isExploding = explodingModeSecondsRaw !== 0
 
@@ -176,10 +184,9 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const onSubmit = (text: string) => {
     if (!text) return
     injectText('', true)
-    sendMessage(text)
-    const cs = ConvoState.getConvoState(conversationIDKey)
-    if (cs.messageCenterOrdinal) {
-      cs.dispatch.toggleThreadSearch(true)
+    sendComposerText(text)
+    if (hasCenter) {
+      toggleThreadSearch(true)
       jumpToRecent()
     } else {
       scrollToBottom()
@@ -227,7 +234,7 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   React.useEffect(() => {
     const rows = [loadIDOnUnloadRef.current]
     return () => {
-      ConvoState.unboxRows(rows)
+      unboxRows(rows)
     }
   }, [loadIDOnUnloadRef])
 
@@ -247,12 +254,15 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     }
   }, [storeDraft])
 
+  const lastFocusInputCounter = React.useRef(focusInputCounter)
   React.useEffect(() => {
     if (unsentText !== undefined) {
-      doInjectText(inputRef, unsentText)
+      const shouldFocus = focusInputCounter !== lastFocusInputCounter.current
+      lastFocusInputCounter.current = focusInputCounter
+      doInjectText(inputRef, unsentText, shouldFocus)
       updateUnsentText(undefined)
     }
-  }, [updateUnsentText, unsentText])
+  }, [focusInputCounter, updateUnsentText, unsentText])
 
   const {setInputRef} = React.useContext(FocusContext)
   React.useEffect(() => {
@@ -263,7 +273,6 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     <PlatformInput
       hintText={hintText}
       suggestionOverlayStyle={suggestionOverlayStyle}
-      suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
       onSubmit={onSubmit}
       setInputRef={setLocalInputRef}
       onChangeText={onChangeText}

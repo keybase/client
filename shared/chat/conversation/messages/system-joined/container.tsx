@@ -1,16 +1,16 @@
-import * as ConvoState from '@/stores/convostate'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import {getAddedUsernames} from '../system-users-added-to-conv/container'
 import {formatTimeForChat} from '@/util/timestamp'
+import {useConversationThreadSelector} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemJoined}
 
 function JoinedContainer(p: OwnProps) {
   const {message} = p
   const {joiners, author, leavers, timestamp} = message
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const meta = useConversationThreadSelector(s => s.meta)
   const {channelname, teamType, teamname} = meta
   const joiners2 = !joiners?.length && !leavers?.length ? [author] : joiners
   const isBigTeam = teamType === 'big'

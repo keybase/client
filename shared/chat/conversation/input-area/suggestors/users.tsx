@@ -1,12 +1,11 @@
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import {useUsersState} from '@/stores/users'
 import {useChatTeamMembers} from '../../team-hooks'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {useConversationMetadata} from '../../data-hooks'
 
 export const transformer = (
   input: {
@@ -143,11 +142,10 @@ const getTeams = (layout?: T.RPCChat.UIInboxLayout) => {
   return bigTeams.concat(smallTeams).map(teamname => ({channelname: '', teamname}))
 }
 
-const useDataUsers = () => {
+const useDataUsers = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const infoMap = useUsersState(s => s.infoMap)
-  const {participantInfo, teamID, teamType} = ConvoState.useChatContext(
-    C.useShallow(s => ({participantInfo: s.participants, teamID: s.meta.teamID, teamType: s.meta.teamType}))
-  )
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
+  const {teamID, teamType} = meta
   const {loading: loadingTeamMembers, members: teamMembers} = useChatTeamMembers(teamID)
   const suggestions =
     teamType !== 'adhoc' && !loadingTeamMembers && teamMembers.size > 0
@@ -182,9 +180,9 @@ const useDataTeams = () => {
   return {allChannels, teams}
 }
 
-const useDataSource = (filter: string) => {
+const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: string) => {
   const fl = filter.toLowerCase()
-  const users = useDataUsers()
+  const users = useDataUsers(conversationIDKey)
   const {teams, allChannels} = useDataTeams()
   return filterAndJoin(users, teams, allChannels, fl)
 }
@@ -208,8 +206,9 @@ type ListItem = {
 
 type ListProps = Pick<
   Common.ListProps<ListItem>,
-  'expanded' | 'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
+  'suggestBotCommandsUpdateStatus' | 'listStyle' | 'spinnerStyle'
 > & {
+  conversationIDKey: T.Chat.ConversationIDKey
   filter: string
   onSelected: (item: ListItem, final: boolean) => void
   setOnMoveRef: (r: (up: boolean) => void) => void
@@ -262,8 +261,8 @@ const keyExtractor = (item: ListItem) => {
 }
 
 export const UsersList = (p: ListProps) => {
-  const {filter, ...rest} = p
-  const items = useDataSource(filter)
+  const {conversationIDKey, filter, ...rest} = p
+  const items = useDataSource(conversationIDKey, filter)
   return (
     <Common.List
       {...rest}

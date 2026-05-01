@@ -1,8 +1,8 @@
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
+import type * as T from '@/constants/types'
 import {navigateToInbox} from '@/constants/router'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
@@ -11,15 +11,23 @@ import BotsList from './bot'
 import AttachmentsList from './attachments'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '@/common-adapters/tabs'
-import {ChatTeamProvider, useChatTeam} from '../team-hooks'
+import {useChatTeam} from '../team-hooks'
+import {showConversationInfoPanel} from '../thread-context'
+import {useConversationMeta} from '../data-hooks'
 
 type Props = {
+  conversationIDKey?: T.Chat.ConversationIDKey
   tab?: 'settings' | 'members' | 'attachments' | 'bots'
 }
 
 const InfoPanelConnector = (ownProps: Props) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const meta = ConvoState.useConvoState(conversationIDKey, s => s.meta)
+  const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
+  return <InfoPanelConnectorInner {...ownProps} conversationIDKey={conversationIDKey} />
+}
+
+const InfoPanelConnectorInner = (ownProps: Props & {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey} = ownProps
+  const meta = useConversationMeta(conversationIDKey)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname
@@ -29,19 +37,19 @@ const InfoPanelConnector = (ownProps: Props) => {
   const [uncontrolledSelectedTab, onSelectTab] = React.useState<Panel>(() => ownProps.tab ?? 'members')
   const selectedTab = ownProps.tab ?? uncontrolledSelectedTab
 
-  const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
-  const clearAttachmentView = ConvoState.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
+  const hideInfoPanel = React.useEffectEvent(() => {
+    showConversationInfoPanel(conversationIDKey, false, undefined)
+  })
   React.useEffect(() => {
     return () => {
       // Only call showInfoPanel(false) on mobile where the panel is a separate route.
       // On desktop the panel is inline and this cleanup fires during StrictMode
       // double-effect, which immediately hides the panel.
       if (Kb.Styles.isMobile) {
-        showInfoPanel(false, undefined)
+        hideInfoPanel()
       }
-      clearAttachmentView()
     }
-  }, [showInfoPanel, clearAttachmentView])
+  }, [])
 
   const lastShouldNavigateOutRef = React.useRef(shouldNavigateOut)
   React.useEffect(() => {
@@ -68,7 +76,11 @@ const InfoPanelConnector = (ownProps: Props) => {
       data: [{type: 'header-item'}],
       renderItem: () => (
         <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
-          {teamname && channelname ? <TeamHeader /> : <AdhocHeader />}
+          {teamname && channelname ? (
+            <TeamHeader conversationIDKey={conversationIDKey} />
+          ) : (
+            <AdhocHeader conversationIDKey={conversationIDKey} />
+          )}
         </Kb.Box2>
       ),
     },
@@ -110,22 +122,26 @@ const InfoPanelConnector = (ownProps: Props) => {
   let sectionList: React.ReactNode
   switch (selectedTab) {
     case 'settings':
-      sectionList = <SettingsList isPreview={isPreview} commonSections={commonSections} />
+      sectionList = (
+        <SettingsList
+          conversationIDKey={conversationIDKey}
+          isPreview={isPreview}
+          commonSections={commonSections}
+        />
+      )
       break
     case 'members':
-      sectionList = <MembersList commonSections={commonSections} />
+      sectionList = <MembersList conversationIDKey={conversationIDKey} commonSections={commonSections} />
       break
     case 'attachments':
-      sectionList = <AttachmentsList commonSections={commonSections} />
+      sectionList = <AttachmentsList conversationIDKey={conversationIDKey} commonSections={commonSections} />
       break
     case 'bots':
-      sectionList = <BotsList commonSections={commonSections} />
+      sectionList = <BotsList conversationIDKey={conversationIDKey} commonSections={commonSections} />
       break
     default:
       sectionList = null
   }
-  sectionList = <ChatTeamProvider>{sectionList}</ChatTeamProvider>
-
   if (Kb.Styles.isTablet) {
     // Use a View to make the left border.
     return (

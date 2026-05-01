@@ -1,7 +1,8 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
+import logger from '@/logger'
+import {RPCError} from '@/util/errors'
 import {useBotConversationIDKey, useRefreshBotMembershipOnSuccess} from './install'
 
 type Props = {
@@ -10,17 +11,30 @@ type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
 }
 
-const ConfirmBotRemoveImpl = (props: {botUsername: string}) => {
-  const {botUsername} = props
+const ConfirmBotRemoveImpl = (props: {
+  botUsername: string
+  conversationIDKey: T.Chat.ConversationIDKey
+}) => {
+  const {botUsername, conversationIDKey} = props
   const clearModals = C.Router2.clearModals
   const error = C.Waiting.useAnyErrors(C.waitingKeyChatBotRemove)
-  const removeBotMember = ConvoState.useChatContext(s => s.dispatch.removeBotMember)
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const onClose = () => {
     clearModals()
   }
   const onRemove = () => {
-    removeBotMember(botUsername)
+    const f = async () => {
+      try {
+        await T.RPCChat.localRemoveBotMemberRpcPromise(
+          {convID: T.Chat.keyToConversationID(conversationIDKey), username: botUsername},
+          C.waitingKeyChatBotRemove
+        )
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.info('removeBotMember: failed to remove bot member: ' + error.message)
+        }
+      }
+    }
+    C.ignorePromise(f())
   }
   useRefreshBotMembershipOnSuccess(
     conversationIDKey,
@@ -45,9 +59,7 @@ const ConfirmBotRemove = (props: Props) => {
   const {teamID, botUsername} = props
   const conversationIDKey = useBotConversationIDKey(props.conversationIDKey, teamID)
   return conversationIDKey ? (
-    <ConvoState.ChatProvider id={conversationIDKey}>
-      <ConfirmBotRemoveImpl botUsername={botUsername} />
-    </ConvoState.ChatProvider>
+    <ConfirmBotRemoveImpl botUsername={botUsername} conversationIDKey={conversationIDKey} />
   ) : null
 }
 

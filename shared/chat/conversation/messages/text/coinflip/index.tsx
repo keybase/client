@@ -1,5 +1,3 @@
-import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import CoinFlipError from './errors'
@@ -7,20 +5,17 @@ import CoinFlipParticipants from './participants'
 import CoinFlipResult from './results'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {pluralize} from '@/util/string'
+import {useConversationThreadMessage, useConversationThreadSelector} from '../../../thread-context'
+import {useConversationSendActions} from '../../../send-actions'
 
 function CoinFlipContainer() {
   const ordinal = useOrdinal()
-  const {isSendError, text, flipGameID, sendMessage} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const message = s.messageMap.get(ordinal)
-      const isSendError = message?.type === 'text' ? !!message.errorReason : false
-      const text = message?.type === 'text' ? message.text : undefined
-      const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
-      const {sendMessage} = s.dispatch
-      return {flipGameID, isSendError, message, sendMessage, text}
-    })
-  )
-  const status = ConvoState.useChatContext(s => s.flipStatusMap.get(flipGameID))
+  const message = useConversationThreadMessage(ordinal)
+  const isSendError = message?.type === 'text' ? !!message.errorReason : false
+  const text = message?.type === 'text' ? message.text : undefined
+  const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
+  const {sendMessage} = useConversationSendActions()
+  const status = useConversationThreadSelector(s => s.flipStatusMap.get(flipGameID))
   const onFlipAgain = () => {
     if (text) {
       sendMessage(text.stringValue())

@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
 import {isBigTeam} from '@/constants/chat/helpers'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -18,6 +17,7 @@ import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers
 import {useEmojiState} from '../../emojis/use-emoji'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useTeamsListMap} from '@/teams/use-teams-list'
+import {metasReceived} from '@/chat/inbox/metadata'
 
 type Requests = Omit<React.ComponentProps<typeof RequestRow>, 'firstItem' | 'teamID'>
 
@@ -312,7 +312,7 @@ const useGeneralConversationIDKey = (teamID?: T.Teams.TeamID) => {
         if (!meta) {
           return
         }
-        ConvoState.metasReceived([meta])
+        metasReceived([meta])
         setConversationIDKeyResult({conversationIDKey: meta.conversationIDKey, teamID})
       },
       () => {}

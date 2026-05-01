@@ -1,7 +1,6 @@
 import * as C from '@/constants'
 import {isAssertion} from '@/constants/chat/helpers'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import MinWriterRole from './min-writer-role'
@@ -9,14 +8,19 @@ import Notifications from './notifications'
 import RetentionPicker from '@/teams/team/settings-tab/retention'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
+import {hideConversation as setConversationHidden} from '../../status-actions'
+import {useConversationMetadata} from '../../data-hooks'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
-type SettingsPanelProps = {isPreview: boolean}
+type SettingsPanelProps = {
+  conversationIDKey: T.Chat.ConversationIDKey
+  isPreview: boolean
+}
 
 const SettingsPanel = (props: SettingsPanelProps) => {
-  const {isPreview} = props
+  const {conversationIDKey, isPreview} = props
   const username = useCurrentUserState(s => s.username)
-  const meta = ConvoState.useChatContext(s => s.meta)
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const {status, teamname, teamType, channelname, teamID} = meta
   const {yourOperations} = useChatTeam(teamID, teamname)
   const ignored = status === T.RPCChat.ConversationStatus.ignored
@@ -34,22 +38,20 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   }
 
   const {members: teamMembers} = useChatTeamMembers(teamID)
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
   const membersForBlock = (teamMembers.size ? [...teamMembers.keys()] : participantInfo.name).filter(
     u => u !== username && !isAssertion(u)
   )
 
-  const navigateAppend = ConvoState.useChatNavigateAppend()
+  const navigateAppend = C.Router2.navigateAppend
   const onShowClearConversationDialog = () => {
-    navigateAppend(conversationIDKey => ({name: 'chatDeleteHistoryWarning', params: {conversationIDKey}}))
+    navigateAppend({name: 'chatDeleteHistoryWarning', params: {conversationIDKey}})
   }
 
-  const hideConversation = ConvoState.useChatContext(s => s.dispatch.hideConversation)
-  const onHideConv = () => hideConversation(true)
-  const onUnhideConv = () => hideConversation(false)
+  const onHideConv = () => setConversationHidden(conversationIDKey, true)
+  const onUnhideConv = () => setConversationHidden(conversationIDKey, false)
   const onShowBlockConversationDialog = () => {
     if (membersForBlock.length) {
-      navigateAppend(conversationIDKey => ({
+      navigateAppend({
         name: 'chatBlockingModal',
         params: {
           blockUserByDefault: true,
@@ -57,22 +59,21 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           others: membersForBlock,
           team: teamname,
         },
-      }))
+      })
     } else {
       onHideConv()
     }
   }
 
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const onLeaveConversation = () => {
     C.Router2.leaveConversation(conversationIDKey)
   }
 
   const onArchive = () => {
-    navigateAppend(conversationIDKey => ({
+    navigateAppend({
       name: 'archiveModal',
       params: {conversationIDKey, type: 'chatID' as const},
-    }))
+    })
   }
 
   const showDangerZone = canDeleteHistory || entityType === 'adhoc' || entityType !== 'channel'
@@ -91,7 +92,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             <Kb.Button type="Success" mode="Primary" label="Join channel" style={styles.buttonStyle} />
           </Kb.Box2>
         ) : (
-          <Notifications />
+          <Notifications conversationIDKey={conversationIDKey} />
         )}
         {entityType === 'channel' && channelname !== 'general' && !isPreview && (
           <Kb.Button
@@ -149,7 +150,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           showSaveIndicator={true}
           teamID={teamID}
         />
-        {(entityType === 'channel' || entityType === 'small team') && <MinWriterRole />}
+        {(entityType === 'channel' || entityType === 'small team') && (
+          <MinWriterRole conversationIDKey={conversationIDKey} />
+        )}
         {showDangerZone ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
             <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>
@@ -206,12 +209,15 @@ type Section = Kb.SectionType<Item>
 type Props = {
   isPreview: boolean
   commonSections: ReadonlyArray<Section>
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const SettingsTab = (p: Props) => {
   const section = {
     data: [{type: 'settings-panel'}] as const,
-    renderItem: () => <SettingsPanel isPreview={p.isPreview} />,
+    renderItem: () => (
+      <SettingsPanel conversationIDKey={p.conversationIDKey} isPreview={p.isPreview} />
+    ),
   } satisfies Section
   const sections: Array<Section> = [...p.commonSections, section]
   return (

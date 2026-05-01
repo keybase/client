@@ -13,8 +13,8 @@ const emptyInboxRowsResult: InboxRowsResult = {
   smallTeamsExpanded: false,
 }
 
-// Build structural inbox rows from layout. Display data (badge, unread, muted, etc.)
-// is read per-row via ChatProvider + useChatContext at render time.
+// Build structural inbox rows from layout. Display data (badge, unread, muted, etc.) is read per-row
+// from inbox row state at render time.
 export function buildInboxRows(
   layout: T.RPCChat.UIInboxLayout | undefined,
   inboxNumSmallRows: number,

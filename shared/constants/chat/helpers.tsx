@@ -12,10 +12,9 @@ export const getBotsAndParticipants = (
 ) => {
   const isAdhocTeam = meta.teamType === 'adhoc'
   const members = teamMembers ?? new Map<string, T.Teams.MemberInfo>()
-  let bots: Array<string> = []
-  if (isAdhocTeam) {
-    bots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
-  } else {
+  const participantBots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
+  let bots = participantBots
+  if (!isAdhocTeam && members.size) {
     bots = [...members.values()]
       .filter(
         p =>
@@ -25,7 +24,7 @@ export const getBotsAndParticipants = (
       .map(p => p.username)
       .sort((l, r) => l.localeCompare(r))
   }
-  let participants: ReadonlyArray<string> = participantInfo.all
+  let participants: ReadonlyArray<string> = participantInfo.name
   if (meta.channelname === 'general') {
     participants = [...members.values()].reduce<Array<string>>((l, mi) => {
       l.push(mi.username)

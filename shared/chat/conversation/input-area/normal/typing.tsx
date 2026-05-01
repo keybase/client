@@ -1,6 +1,7 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
+import * as InputState from '../input-state'
+import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
 
 const Names = (props: {names?: ReadonlySet<string>}) => {
   const textType = 'BodyTinySemibold'
@@ -44,16 +45,15 @@ const Names = (props: {names?: ReadonlySet<string>}) => {
 const emptySet = new Set<string>()
 
 const Typing = function Typing() {
-  const showGiphySearch = ConvoState.useChatUIContext(s => s.giphyWindow)
-  const names = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const names = s.typing
-      if (!C.isMobile) return names
-      const showCommandMarkdown = !!s.commandMarkdown
-      const showTypingStatus = !showGiphySearch && !showCommandMarkdown
-      return showTypingStatus ? names : emptySet
-    })
+  const threadTyping = useConversationThreadSelector(s => (s.typing.size === 0 ? emptySet : s.typing))
+  const {showCommandMarkdown, showGiphySearch} = InputState.useConversationInput(
+    C.useShallow(s => ({
+      showCommandMarkdown: !!s.commandMarkdown,
+      showGiphySearch: s.giphyWindow,
+    }))
   )
+  const showTypingStatus = !C.isMobile || (!showGiphySearch && !showCommandMarkdown)
+  const names = showTypingStatus ? threadTyping : emptySet
   return (
     <Kb.Box2 direction="horizontal" style={styles.isTypingContainer}>
       {names.size > 0 && (
@@ -75,10 +75,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       isTypingAnimation: Kb.Styles.platformStyles({
-        isElectron: {
-          left: 24,
-          position: 'absolute',
-        },
         isMobile: {
           height: 16,
           width: 16,
@@ -88,6 +84,14 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           flexGrow: 1,
           opacity: 1,
+        },
+        isElectron: {
+          alignItems: 'center',
+          height: 16,
+          marginBottom: Kb.Styles.globalMargins.xtiny,
+          marginTop: 2,
+          minWidth: 0,
+          paddingLeft: 24,
         },
         isMobile: {
           alignItems: 'flex-end',
@@ -102,9 +106,8 @@ const styles = Kb.Styles.styleSheetCreate(
       isTypingText: Kb.Styles.platformStyles({
         isElectron: {
           flexGrow: 1,
-          left: 56,
-          marginTop: 2,
-          position: 'absolute',
+          marginLeft: 16,
+          minWidth: 0,
           textAlign: 'left',
         },
         isMobile: {

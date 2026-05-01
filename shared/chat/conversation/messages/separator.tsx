@@ -1,28 +1,39 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as RowMetadata from './row-metadata'
 import * as T from '@/constants/types'
 import {formatTimeForConversationList} from '@/util/timestamp'
 import {OrangeLineContext} from '../orange-line-context'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useConversationThreadSelector} from '../thread-context'
 
 const missingMessage = Chat.makeMessageDeleted({})
+const noOrdinal = T.Chat.numberToOrdinal(0)
 
 // Single merged selector replacing useStateFast + useState
 const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal) => {
   const ordinal = Kb.Styles.isMobile ? leadingItem : trailingItem
   const orangeOrdinal = React.useContext(OrangeLineContext)
+  const you = useCurrentUserState(s => s.username)
 
-  return ConvoState.useChatContext(
+  return useConversationThreadSelector(
     C.useShallow(s => {
-      const previous = s.separatorMap.get(ordinal) ?? T.Chat.numberToOrdinal(0)
+      const messageOrdinals = s.messageOrdinals ?? []
       const m = s.messageMap.get(ordinal) ?? missingMessage
-      const showUsername = s.showUsernameMap.get(ordinal) ?? ''
+      const orangeMessage = s.messageMap.get(orangeOrdinal || noOrdinal)
+      const previous = RowMetadata.getPreviousOrdinal(messageOrdinals, ordinal)
+      const showUsername = RowMetadata.getMessageShowUsername({
+        message: m,
+        messageMap: s.messageMap,
+        messageOrdinals,
+        ordinal,
+        you,
+      })
       const tooSoon = !m.timestamp || new Date().getTime() - m.timestamp < 1000 * 60 * 60 * 2
-      const orangeMessage = orangeOrdinal ? s.messageMap.get(orangeOrdinal) : undefined
       const orangeOrdinalExists =
-        orangeOrdinal && s.messageMap.has(orangeOrdinal) && orangeMessage?.type !== 'placeholder'
+        !!orangeOrdinal && s.messageMap.has(orangeOrdinal) && orangeMessage?.type !== 'placeholder'
       const orangeLineAbove =
         orangeOrdinalExists &&
         (orangeOrdinal === ordinal || (orangeOrdinal < ordinal && orangeOrdinal > previous))

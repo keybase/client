@@ -1,14 +1,14 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import UserNotice from '../user-notice'
+import {useConversationThreadSelector} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemNewChannel}
 
 function SystemNewChannelContainer(p: OwnProps) {
   const {message} = p
-  const teamID = ConvoState.useChatContext(s => s.meta.teamID)
+  const teamID = useConversationThreadSelector(s => s.meta.teamID)
   const navigateAppend = C.Router2.navigateAppend
   const onManageChannels = () => navigateAppend({name: 'teamAddToChannels', params: {teamID}})
 

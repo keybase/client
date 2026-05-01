@@ -192,7 +192,9 @@ class Session {
 
   // Tell engine if we can handle the cancelled call
   hasSeqID(seqID: number) {
-    return Object.hasOwn(this._seqIDResponded, String(seqID))
+    // The server can cancel callback seqids after we have already responded.
+    // Only unresponded callback seqids should cancel the parent session.
+    return this._seqIDResponded[String(seqID)] === false
   }
 }
 

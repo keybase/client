@@ -1,6 +1,5 @@
 import type {GetOptionsRet, RouteDef} from '@/constants/types/router'
 import type * as T from '@/constants/types'
-import {ProviderScreen} from '@/stores/convostate'
 import type {StaticScreenProps} from '@react-navigation/core'
 import type {ComponentProps, LazyExoticComponent, ReactElement} from 'react'
 
@@ -60,13 +59,7 @@ export function makeChatScreen<COM extends LazyExoticComponent<any>>(
     screen: function Screen(p: ChatScreenProps<COM>) {
       const Comp = Component as any
       const params = ((p.route as {params?: ChatScreenParams<COM>}).params ?? {}) as ChatScreenParams<COM>
-      return options?.skipProvider ? (
-        <Comp {...params} />
-      ) : (
-        <ProviderScreen rp={p} canBeNull={options?.canBeNullConvoID}>
-          <Comp {...params} />
-        </ProviderScreen>
-      )
+      return <Comp {...params} />
     },
   }
 }

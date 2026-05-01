@@ -1,22 +1,27 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useNavigation} from '@react-navigation/native'
 import type {Props} from '.'
+import * as T from '@/constants/types'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {attachmentDownloadMessage, takePDFMessage} from '../conversation/attachment-actions'
+import {useConversationMessage} from '../conversation/data-hooks'
 
 const ChatPDF = (props: Props) => {
-  const {ordinal} = props
-  const message = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
+  const {messageID} = props
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
+  const [initialMessage] = React.useState(() => takePDFMessage(conversationIDKey, messageID))
+  const loadedMessage = useConversationMessage(conversationIDKey, messageID)
+  const message = loadedMessage?.type === 'attachment' ? loadedMessage : initialMessage
   const title = message?.title || message?.fileName || 'PDF'
-  const url = message?.fileURL
+  const url = props.url ?? message?.fileURL
   const navigation = useNavigation()
+  const canDownload = !!message
 
-  const attachmentDownload = ConvoState.useChatContext(s => s.dispatch.attachmentDownload)
   const onDownload = () => {
     if (message) {
-      attachmentDownload(message.ordinal)
+      attachmentDownloadMessage(conversationIDKey, message)
     }
     openLocalPathInSystemFileManagerDesktop(C.downloadFolder)
   }
@@ -31,9 +36,9 @@ const ChatPDF = (props: Props) => {
         <embed src={url} width="100%" height="100%" />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
-          <Kb.ButtonBar small={true}>
-            <Kb.Button type="Default" label="Download" onClick={onDownload} />
-          </Kb.ButtonBar>
+        <Kb.ButtonBar small={true}>
+          <Kb.Button type="Default" label="Download" onClick={onDownload} disabled={!canDownload} />
+        </Kb.ButtonBar>
       </Kb.Box2>
     </>
   )

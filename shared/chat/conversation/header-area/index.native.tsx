@@ -1,9 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import {chatStores} from '@/stores/convo-registry'
-import * as ConvoState from '@/stores/convostate'
-import {getConvoState} from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
+import * as T from '@/constants/types'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {Keyboard} from 'react-native'
@@ -15,10 +13,14 @@ import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {navToProfile} from '@/constants/router'
-import * as React from 'react'
+import {showConversationInfoPanel, toggleConversationThreadSearch} from '../thread-context'
+import {useConversationMetadata} from '../data-hooks'
+import {muteConversation} from '../status-actions'
 
-export const HeaderAreaRight = () => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+type HeaderConversationProps = {conversationIDKey: T.Chat.ConversationIDKey}
+
+export const HeaderAreaRight = (props: HeaderConversationProps) => {
+  const {conversationIDKey} = props
   const pendingWaiting =
     conversationIDKey === Chat.pendingWaitingConversationIDKey ||
     conversationIDKey === Chat.pendingErrorConversationIDKey
@@ -42,14 +44,12 @@ export const HeaderAreaRight = () => {
   //   </>
   // ) : null
 
-  const showInfoPanel = ConvoState.useChatContext(s => s.dispatch.showInfoPanel)
-  const onShowInfoPanel = () => showInfoPanel(true, undefined)
-  const toggleThreadSearch = ConvoState.useChatContext(s => s.dispatch.toggleThreadSearch)
+  const onShowInfoPanel = () => showConversationInfoPanel(conversationIDKey, true, undefined)
   const onToggleThreadSearch = () => {
     // fix a race with the keyboard going away and coming back quickly
     Keyboard.dismiss()
     setTimeout(() => {
-      toggleThreadSearch()
+      toggleConversationThreadSearch(conversationIDKey)
     }, 100)
   }
 
@@ -72,9 +72,13 @@ enum HeaderType {
 }
 
 const HeaderBranchContainer = function HeaderBranchContainer() {
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const type = ConvoState.useChatContext(s => {
-    const meta = s.meta
+  return <HeaderBranchContainerInner conversationIDKey={Chat.noConversationIDKey} />
+}
+
+const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: HeaderConversationProps) {
+  const {conversationIDKey} = props
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
+  const type = (() => {
     const teamName = meta.teamname
     if (teamName) {
       return HeaderType.Team
@@ -84,27 +88,28 @@ const HeaderBranchContainer = function HeaderBranchContainer() {
       participant => participant.endsWith('@phone') || participant.endsWith('@email')
     )
     return isPhoneOrEmail ? HeaderType.PhoneEmail : HeaderType.User
-  })
+  })()
 
   switch (type) {
     case HeaderType.Team:
-      return <ChannelHeader />
+      return <ChannelHeader conversationIDKey={conversationIDKey} />
     case HeaderType.PhoneEmail:
-      return <PhoneOrEmailHeader />
+      return <PhoneOrEmailHeader conversationIDKey={conversationIDKey} />
     case HeaderType.User:
-      return <UsernameHeader />
+      return <UsernameHeader conversationIDKey={conversationIDKey} />
   }
 }
 export default HeaderBranchContainer
 
-const BadgeHeaderLeftArray = (p: HeaderBackButtonProps) => {
-  const badgeNumber = useBackBadge()
-  return <HeaderLeftButton badgeNumber={badgeNumber} {...p} />
+const BadgeHeaderLeftArray = (p: HeaderBackButtonProps & HeaderConversationProps) => {
+  const {conversationIDKey, ...rest} = p
+  const badgeNumber = useBackBadge(conversationIDKey)
+  return <HeaderLeftButton badgeNumber={badgeNumber} {...rest} />
 }
 
 const sfIcon = (name: SFSymbol) => ({name, type: 'sfSymbol' as const})
 
-export const headerNavigationOptions = (route: {params?: {conversationIDKey?: string}}) => {
+export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.Chat.ConversationIDKey}}) => {
   const conversationIDKey = route.params?.conversationIDKey ?? Chat.noConversationIDKey
   return {
     // iOS 26: headerLeft omitted — native back button comes from tabStackOptions (headerBackVisible: true).
@@ -113,16 +118,11 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
       ? {
           headerLeft: (props: HeaderBackButtonProps) => {
             const {labelStyle, ...rest} = props
-            return (
-              <ConvoState.ChatProvider id={conversationIDKey}>
-                <BadgeHeaderLeftArray {...rest} />
-              </ConvoState.ChatProvider>
-            )
+            return <BadgeHeaderLeftArray {...rest} conversationIDKey={conversationIDKey} />
           },
         }
       : {}),
     // iOS 26: two separate native buttons (each gets its own glass pill).
-    // getConvoState lets us access dispatch without hooks since this runs outside React.
     ...(Kb.Styles.isIOS
       ? {
           unstable_headerRightItems: () => [
@@ -131,49 +131,34 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: st
               label: 'Search',
               onPress: () => {
                 Keyboard.dismiss()
-                setTimeout(() => getConvoState(conversationIDKey).dispatch.toggleThreadSearch(), 100)
+                setTimeout(() => toggleConversationThreadSearch(conversationIDKey), 100)
               },
               type: 'button' as const,
             },
             {
               icon: sfIcon('info.circle'),
               label: 'Info',
-              onPress: () => getConvoState(conversationIDKey).dispatch.showInfoPanel(true, undefined),
+              onPress: () => showConversationInfoPanel(conversationIDKey, true, undefined),
               type: 'button' as const,
             },
           ],
         }
       : {
-          headerRight: () => (
-            <ConvoState.ChatProvider id={conversationIDKey}>
-              <HeaderAreaRight />
-            </ConvoState.ChatProvider>
-          ),
+          headerRight: () => <HeaderAreaRight conversationIDKey={conversationIDKey} />,
         }),
-    headerTitle: () => (
-      <ConvoState.ChatProvider id={conversationIDKey}>
-        <HeaderBranchContainer />
-      </ConvoState.ChatProvider>
-    ),
+    headerTitle: () => <HeaderBranchContainerInner conversationIDKey={conversationIDKey} />,
   }
 }
 
-export const useBackBadge = () => {
+export const useBackBadge = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const visiblePath = C.Router2.getVisiblePath()
   const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const badgeState = useConfigState(s => s.badgeState)
-  const badgeNumber = React.useMemo(() => {
-    void badgeState
-    let count = 0
-    for (const store of chatStores.values()) {
-      const {badge, id} = store.getState()
-      if (id !== conversationIDKey) {
-        count += badge
-      }
-    }
-    return count
-  }, [badgeState, conversationIDKey])
+  const badgeNumber =
+    badgeState?.conversations?.reduce((count, conversation) => {
+      const id = T.Chat.conversationIDToKey(conversation.convID)
+      return id === conversationIDKey ? count : count + conversation.badgeCount
+    }, 0) ?? 0
   if (!onTopOfInbox) return 0
   return badgeNumber
 }
@@ -181,11 +166,11 @@ export const useBackBadge = () => {
 const shhIconColor = Kb.Styles.globalColors.black_20
 const shhIconFontSize = 24
 
-const ShhIcon = function ShhIcon() {
-  const isMuted = ConvoState.useChatContext(s => s.meta.isMuted)
-  const mute = ConvoState.useChatContext(s => s.dispatch.mute)
+const ShhIcon = function ShhIcon(props: HeaderConversationProps) {
+  const {conversationIDKey} = props
+  const isMuted = useConversationMetadata(conversationIDKey).meta.isMuted
   const unMuteConversation = () => {
-    mute(false)
+    muteConversation(conversationIDKey, false)
   }
   return isMuted ? (
     <Kb.Icon
@@ -198,28 +183,23 @@ const ShhIcon = function ShhIcon() {
   ) : null
 }
 
-const useMaxWidthStyle = () => {
+const useMaxWidthStyle = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const {width} = useSafeAreaFrame()
-  const hasBadge = useBackBadge() > 0
+  const hasBadge = useBackBadge(conversationIDKey) > 0
   const w = width - 140 - (hasBadge ? 40 : 0)
   return {maxWidth: w, minWidth: w}
 }
 
-const ChannelHeader = () => {
-  const {channelname, smallTeam, teamname, teamID} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const meta = s.meta
-      const {channelname, teamname, teamType, teamID} = meta
-      const smallTeam = teamType !== 'big'
-      return {channelname, smallTeam, teamID, teamname}
-    })
-  )
+const ChannelHeader = (props: HeaderConversationProps) => {
+  const {conversationIDKey} = props
+  const {channelname, teamname, teamType, teamID} = useConversationMetadata(conversationIDKey).meta
+  const smallTeam = teamType !== 'big'
   const textType = smallTeam ? 'BodyBig' : Kb.Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
   const navigateAppend = C.Router2.navigateAppend
   const onClick = () => {
     navigateAppend({name: 'team', params: {teamID}})
   }
-  const maxWidthStyle = useMaxWidthStyle()
+  const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
 
   return (
     <Kb.Box2 direction="vertical" style={maxWidthStyle}>
@@ -238,14 +218,14 @@ const ChannelHeader = () => {
           &nbsp;
           {teamname}
         </Kb.Text>
-        {smallTeam && <ShhIcon />}
+        {smallTeam && <ShhIcon conversationIDKey={conversationIDKey} />}
       </Kb.Box2>
       {!smallTeam && (
         <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
           <Kb.Text type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
             #{channelname}
           </Kb.Text>
-          <ShhIcon />
+          <ShhIcon conversationIDKey={conversationIDKey} />
         </Kb.Box2>
       )}
     </Kb.Box2>
@@ -253,28 +233,21 @@ const ChannelHeader = () => {
 }
 
 const emptyArray = new Array<string>()
-const UsernameHeader = () => {
+const UsernameHeader = (props: HeaderConversationProps) => {
+  const {conversationIDKey} = props
   const you = useCurrentUserState(s => s.username)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const {participants, theirFullname} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const meta = s.meta
-      const participants = meta.teamname ? emptyArray : participantInfo.name
-      const theirFullname =
-        participants.length === 2
-          ? participants
-              .filter(username => username !== you)
-              .map(username => infoMap.get(username)?.fullname)[0]
-          : undefined
-      return {participants, theirFullname}
-    })
-  )
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
+  const participants = meta.teamname ? emptyArray : participantInfo.name
+  const theirFullname =
+    participants.length === 2
+      ? participants.filter(username => username !== you).map(username => infoMap.get(username)?.fullname)[0]
+      : undefined
   const onShowProfile = (username: string) => {
     navToProfile(username)
   }
 
-  const maxWidthStyle = useMaxWidthStyle()
+  const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
 
   return (
     <Kb.Box2
@@ -298,20 +271,20 @@ const UsernameHeader = () => {
           onUsernameClicked={onShowProfile}
           skipSelf={participants.length > 1}
         />
-        <ShhIcon />
+        <ShhIcon conversationIDKey={conversationIDKey} />
       </Kb.Box2>
     </Kb.Box2>
   )
 }
 
-const PhoneOrEmailHeader = () => {
-  const participantInfo = ConvoState.useChatContext(s => s.participants)
-  const meta = ConvoState.useChatContext(s => s.meta)
+const PhoneOrEmailHeader = (props: HeaderConversationProps) => {
+  const {conversationIDKey} = props
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
   const name = participantInfo.contactName.get(phoneOrEmail)
-  const maxWidthStyle = useMaxWidthStyle()
+  const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
   return (
     <Kb.Box2
       direction="vertical"
@@ -321,7 +294,7 @@ const PhoneOrEmailHeader = () => {
         <Kb.Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
           {formattedPhoneOrEmail}
         </Kb.Text>
-        <ShhIcon />
+        <ShhIcon conversationIDKey={conversationIDKey} />
       </Kb.Box2>
       {!!name && <Kb.Text type="BodyTiny">{name}</Kb.Text>}
     </Kb.Box2>

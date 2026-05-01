@@ -9,6 +9,7 @@ export const useReply = (replyTo?: T.Chat.MessageReplyTo, onClick?: () => void) 
 }
 
 const ReplyToContext = React.createContext<T.Chat.MessageReplyTo>(null!)
+ReplyToContext.displayName = 'ReplyToContext'
 
 const AvatarHolder = () => {
   const {author} = React.useContext(ReplyToContext)

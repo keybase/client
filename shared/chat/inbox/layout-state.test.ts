@@ -4,6 +4,7 @@ let mockIsPhone = false
 let mockLoggedIn = true
 let mockUsername = 'alice'
 const mockLoggerInfo = jest.fn()
+const mockLoggerWarn = jest.fn()
 
 jest.mock('@/constants/platform', () => ({
   get isPhone() {
@@ -16,7 +17,7 @@ jest.mock('@/logger', () => ({
   default: {
     error: () => {},
     info: (...args: Array<unknown>) => mockLoggerInfo(...args),
-    warn: () => {},
+    warn: (...args: Array<unknown>) => mockLoggerWarn(...args),
   },
 }))
 
@@ -56,6 +57,7 @@ beforeEach(() => {
   mockLoggedIn = true
   mockUsername = 'alice'
   mockLoggerInfo.mockClear()
+  mockLoggerWarn.mockClear()
   useInboxLayoutState.getState().dispatch.resetState()
   jest.spyOn(T.RPCChat, 'localRequestInboxLayoutRpcPromise').mockResolvedValue(undefined)
 })
@@ -113,7 +115,10 @@ test('updateLayout ignores invalid JSON without changing state', () => {
     layout: undefined,
     retriedOnCurrentEmpty: true,
   })
-  expect(mockLoggerInfo).toHaveBeenCalledWith(expect.stringContaining('failed to JSON parse inbox layout'))
+  expect(mockLoggerWarn).toHaveBeenCalledWith(
+    expect.stringContaining('failed to JSON parse inbox layout'),
+    expect.any(SyntaxError)
+  )
 })
 
 test('updateLayout does not replace an equivalent layout', () => {

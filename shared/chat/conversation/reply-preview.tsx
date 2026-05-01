@@ -1,13 +1,12 @@
 import {zoomImage} from '@/constants/chat/helpers'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as InputState from './input-area/input-state'
+import {useConversationThreadMessage} from './thread-context'
 
 const ReplyPreview = () => {
-  const rordinal = ConvoState.useChatUIContext(s => s.replyTo)
-  const message = ConvoState.useChatContext(s => {
-    return rordinal ? s.messageMap.get(rordinal) : null
-  })
+  const rordinal = InputState.useConversationInput(s => s.replyTo)
+  const message = useConversationThreadMessage(rordinal)
   let text = ''
   if (message) {
     switch (message.type) {
@@ -31,19 +30,19 @@ const ReplyPreview = () => {
   const imageWidth = attachment?.previewWidth
   const username = message?.author ?? ''
   const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 80) : null
-  const setReplyTo = ConvoState.useChatUIContext(s => s.dispatch.setReplyTo)
+  const setReplyTo = InputState.useConversationInputDispatch(s => s.setReplyTo)
   const onCancel = () => {
     setReplyTo(T.Chat.numberToOrdinal(0))
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>
+    <Kb.Box2 direction="vertical" alignSelf="stretch" style={styles.outerContainer}>
       <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny" fullWidth={true}>
         <Kb.Box2 direction="vertical" style={styles.title} fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Replying to:</Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} justifyContent="space-between" style={styles.replyContainer}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
+          <Kb.Box2 direction="vertical" alignSelf="stretch" flex={1} style={styles.contentContainer} gap="tiny">
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={username} size={32} />
               <Kb.Text type="BodyBold" style={styles.username}>
@@ -73,16 +72,14 @@ const ReplyPreview = () => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      close: {alignSelf: 'flex-start'},
+      close: {alignSelf: 'flex-start', flexShrink: 0},
       container: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.desktopStyles.boxShadow,
           borderRadius: Kb.Styles.borderRadius,
         },
       }),
-      contentContainer: Kb.Styles.platformStyles({
-        isMobile: {flex: 1},
-      }),
+      contentContainer: {minWidth: 0},
       outerContainer: Kb.Styles.platformStyles({
         isElectron: {
           marginBottom: Kb.Styles.globalMargins.xtiny,

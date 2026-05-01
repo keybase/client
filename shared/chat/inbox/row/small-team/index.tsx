@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import * as ConvoState from '@/stores/convostate'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from '../sizes'
@@ -9,7 +8,6 @@ import SwipeConvActions from './swipe-conv-actions'
 import './small-team.css'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import {formatTimeForConversationList} from '@/util/timestamp'
-import {useCurrentUserState} from '@/stores/current-user'
 import {useOpenedRowState} from '../opened-row-state'
 import {useInboxRowSmall} from '@/stores/inbox-rows'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
@@ -193,9 +191,14 @@ const TopLineGear = (p: {conversationIDKey: T.Chat.ConversationIDKey; subColor: 
   const makePopup = (mp: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = mp
     return (
-      <ConvoState.ChatProvider id={conversationIDKey}>
-        <TeamMenu visible={true} attachTo={attachTo} onHidden={hidePopup} hasHeader={true} isSmallTeam={true} />
-      </ConvoState.ChatProvider>
+      <TeamMenu
+        visible={true}
+        attachTo={attachTo}
+        conversationIDKey={conversationIDKey}
+        onHidden={hidePopup}
+        hasHeader={true}
+        isSmallTeam={true}
+      />
     )
   }
   const {showingPopup, showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
@@ -314,6 +317,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
 
 // Connected BottomLine that uses ChatContext (for external consumers like selectable-small-team)
 type BottomLineProps = {
+  conversationIDKey: T.Chat.ConversationIDKey
   snippet?: string
   snippetDecoration?: T.RPCChat.SnippetDecoration
   backgroundColor?: string
@@ -322,30 +326,14 @@ type BottomLineProps = {
 }
 
 const BottomLine = (p: BottomLineProps) => {
-  const {allowBold = true, isSelected, backgroundColor} = p
+  const {allowBold = true, conversationIDKey, isSelected, backgroundColor} = p
   const snippet = p.snippet ?? ''
   const snippetDecoration = p.snippetDecoration ?? T.RPCChat.SnippetDecoration.none
 
-  const you = useCurrentUserState(s => s.username)
-  const {hasUnread, draft: _draft, hasResetUsers, participantNeedToRekey, youAreReset, youNeedToRekey, trustedState, hasId} =
-    ConvoState.useChatContext(
-      C.useShallow(s => {
-        const {membershipType, rekeyers, resetParticipants, trustedState} = s.meta
-        return {
-          draft: s.meta.draft,
-          hasId: !!s.id,
-          hasResetUsers: resetParticipants.size > 0,
-          hasUnread: s.unread > 0,
-          participantNeedToRekey: rekeyers.size > 0,
-          trustedState,
-          youAreReset: membershipType === 'youAreReset',
-          youNeedToRekey: rekeyers.has(you),
-        }
-      })
-    )
-
-  const isDecryptingSnippet = hasId && !snippet ? trustedState === 'requesting' || trustedState === 'untrusted' : false
-  const draft = (!isSelected && !hasUnread && _draft) || ''
+  const row = useInboxRowSmall(conversationIDKey)
+  const {hasUnread, draft: rawDraft, hasResetUsers, participantNeedToRekey, youAreReset, youNeedToRekey} = row
+  const isDecryptingSnippet = !snippet && row.isDecryptingSnippet
+  const draft = (!isSelected && !hasUnread && rawDraft) || ''
 
   return (
     <BottomLineDisplay
