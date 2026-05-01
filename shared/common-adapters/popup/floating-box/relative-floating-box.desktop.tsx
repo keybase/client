@@ -3,7 +3,6 @@ import * as Styles from '@/styles'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../../key-event-handler.desktop'
 import type {MeasureRef} from '../../measure-ref'
-import logger from '@/logger'
 
 type ComputedStyle = {
   position: Styles._StylesCrossPlatform['position']
@@ -263,9 +262,6 @@ const makePopupState = (
   style: Styles.StylesCrossPlatform | undefined
 ): PopupState => {
   const targetRect = attachTo?.current?.getBoundingClientRect()
-  if (!targetRect) {
-    logger.info('[chat:popup] missing anchor rect', {hasAttachTo: !!attachTo})
-  }
   const popupStyle = targetRect
     ? Styles.collapseStyles([
         computePopupStyle(
@@ -280,18 +276,6 @@ const makePopupState = (
       ])
     : hiddenStyle
   return {node, style: popupStyle}
-}
-
-const describeMouseTarget = (target: EventTarget | null) => {
-  if (!(target instanceof HTMLElement)) {
-    return {target: String(target)}
-  }
-  return {
-    className: target.className,
-    id: target.id,
-    tagName: target.tagName,
-    text: target.innerText?.slice(0, 80) ?? '',
-  }
 }
 
 export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
@@ -337,10 +321,6 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
 
     const handleClick = (e: MouseEvent) => {
       if (popupNode && e.target instanceof HTMLElement && !popupNode.contains(e.target)) {
-        logger.info('[chat:popup] outside click close', {
-          propagateOutsideClicks,
-          target: describeMouseTarget(e.target),
-        })
         if (!propagateOutsideClicks) {
           e.stopPropagation()
         }
@@ -371,17 +351,13 @@ export const RelativeFloatingBox = (props: ModalPositionRelativeProps) => {
   }, [onClosePopup, popupNode, propagateOutsideClicks])
 
   const modalRoot = document.getElementById('modal-root')
-  const closeFromEscape = () => {
-    logger.info('[chat:popup] escape close')
-    onClosePopup()
-  }
   return modalRoot
     ? ReactDOM.createPortal(
         <div style={Styles.castStyleDesktop(popupState?.style ?? hiddenStyle)} ref={setPopupRef}>
           {disableEscapeKey ? (
             <div className="fade-in-generic">{children}</div>
           ) : (
-            <EscapeHandler onESC={closeFromEscape}>
+            <EscapeHandler onESC={onClosePopup}>
               <div className="fade-in-generic">{children}</div>
             </EscapeHandler>
           )}

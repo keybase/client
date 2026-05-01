@@ -11,7 +11,6 @@ import {
 } from './bottom-sheet'
 import {FullWindowOverlay} from 'react-native-screens'
 import type {PopupProps} from '.'
-import logger from '@/logger'
 
 const defaultSnapPoints = ['75%']
 
@@ -48,32 +47,46 @@ function PopupPositioned(props: PopupProps) {
 function PopupSheet(props: PopupProps) {
   const {children, onHidden, snapPoints} = props
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
+  const presentTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const shownRef = React.useRef(false)
-  const onDismiss = () => {
-    logger.info('[chat:popup] bottom sheet dismissed')
-    onHidden?.()
-  }
 
   React.useEffect(() => {
     return () => {
+      if (presentTimeoutRef.current) {
+        clearTimeout(presentTimeoutRef.current)
+        presentTimeoutRef.current = undefined
+      }
       bottomRef.current?.forceClose()
+    }
+  }, [])
+
+  const setBottomSheetRef = React.useCallback((sheet: BottomSheetModal | null) => {
+    if (!sheet) {
+      return
+    }
+    if (bottomRef.current && bottomRef.current !== sheet) {
+      bottomRef.current.forceClose()
+      shownRef.current = false
+      if (presentTimeoutRef.current) {
+        clearTimeout(presentTimeoutRef.current)
+        presentTimeoutRef.current = undefined
+      }
+    }
+    bottomRef.current = sheet
+    if (!shownRef.current) {
+      shownRef.current = true
+      presentTimeoutRef.current = setTimeout(() => {
+        if (bottomRef.current === sheet) {
+          sheet.present()
+        }
+        presentTimeoutRef.current = undefined
+      }, 100)
     }
   }, [])
 
   return (
     <BottomSheetModal
-      ref={s => {
-        if (bottomRef.current && bottomRef.current !== s) {
-          bottomRef.current.forceClose()
-        }
-        bottomRef.current = s
-        if (s && !shownRef.current) {
-          shownRef.current = true
-          setTimeout(() => {
-            s.present()
-          }, 100)
-        }
-      }}
+      ref={setBottomSheetRef}
       enableDynamicSizing={true}
       snapPoints={snapPoints ?? defaultSnapPoints}
       backgroundStyle={styles.modalBackground}
@@ -82,7 +95,7 @@ function PopupSheet(props: PopupProps) {
       handleIndicatorStyle={styles.handleIndicatorStyle}
       style={styles.modalStyle}
       backdropComponent={Backdrop}
-      onDismiss={onDismiss}
+      onDismiss={onHidden}
     >
       <BottomSheetView>{children}</BottomSheetView>
     </BottomSheetModal>

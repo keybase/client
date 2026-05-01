@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {isMobile} from '@/styles'
 import type {MeasureRef} from '../measure-ref'
-import logger from '@/logger'
 
 export type Popup2Parms = {
   attachTo?: React.RefObject<MeasureRef | null>
@@ -21,8 +20,6 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
 
   const [hidePopup] = React.useState(() => () => {
     const now = Date.now()
-    const elapsed = now - lastToggle.current
-    logger.info('[chat:popup] hidePopup requested', {elapsed, suppressed: elapsed < tooQuick})
     if (now - lastToggle.current < tooQuick) {
       return
     }
@@ -31,8 +28,6 @@ export const usePopup2 = (makePopup: (p: Popup2Parms) => React.ReactElement | nu
   })
   const [showPopup] = React.useState(() => () => {
     const now = Date.now()
-    const elapsed = now - lastToggle.current
-    logger.info('[chat:popup] showPopup requested', {elapsed, suppressed: elapsed < tooQuick})
     if (now - lastToggle.current < tooQuick) {
       return
     }
