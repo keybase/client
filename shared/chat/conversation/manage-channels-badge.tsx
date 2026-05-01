@@ -20,8 +20,8 @@ export const useChosenChannelsTeamnames = () => {
   return React.useMemo(() => getChosenChannelsTeamnames(gregorPushState), [gregorPushState])
 }
 
-export const updateChosenChannelsTeamnames = (teamnames: ReadonlySet<string>) =>
-  T.RPCGen.gregorUpdateCategoryRpcPromise({
+export const updateChosenChannelsTeamnames = async (teamnames: ReadonlySet<string>) =>
+  await T.RPCGen.gregorUpdateCategoryRpcPromise({
     body: JSON.stringify([...teamnames]),
     category: chosenChannelsGregorKey,
     dtime: {offset: 0, time: 0},

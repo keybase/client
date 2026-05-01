@@ -544,12 +544,12 @@ export const useChatManageChannelsBadge = (
   const username = useCurrentUserState(s => s.username)
   const validTeamID = loadableTeamID(teamID)
   const chosenChannelsTeamnames = useChosenChannelsTeamnames()
-  const [optimisticTeamnames, setOptimisticTeamnames] = React.useState(chosenChannelsTeamnames)
-  React.useEffect(() => {
-    setOptimisticTeamnames(chosenChannelsTeamnames)
-  }, [chosenChannelsTeamnames])
+  const [optimisticDismissedKey, setOptimisticDismissedKey] = React.useState('')
   const canLoad = !!validTeamID && !!teamname && !!username
-  const showBadge = canLoad ? !optimisticTeamnames.has(teamname) : false
+  const optimisticKey = `${username}:${teamname}`
+  const showBadge = canLoad
+    ? !chosenChannelsTeamnames.has(teamname) && optimisticDismissedKey !== optimisticKey
+    : false
   const state = {
     loading: false,
     showBadge,
@@ -559,19 +559,19 @@ export const useChatManageChannelsBadge = (
     if (!canLoad) {
       return
     }
-    const nextTeamnames = new Set(optimisticTeamnames)
+    const nextTeamnames = new Set(chosenChannelsTeamnames)
     if (nextTeamnames.has(teamname)) {
       return
     }
     nextTeamnames.add(teamname)
-    setOptimisticTeamnames(nextTeamnames)
+    setOptimisticDismissedKey(optimisticKey)
     try {
       await updateChosenChannelsTeamnames(nextTeamnames)
     } catch (error) {
       logger.warn(`Failed to update chosen channel state for ${teamname}`, error)
-      setOptimisticTeamnames(chosenChannelsTeamnames)
+      setOptimisticDismissedKey(key => (key === optimisticKey ? '' : key))
     }
-  }, [canLoad, chosenChannelsTeamnames, optimisticTeamnames, teamname])
+  }, [canLoad, chosenChannelsTeamnames, optimisticKey, teamname])
 
   return {...state, dismiss}
 }
