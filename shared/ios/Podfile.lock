@@ -3,7 +3,7 @@ PODS:
   - DoubleConversion (1.1.6)
   - EXConstants (55.0.15):
     - ExpoModulesCore
-  - Expo (55.0.17):
+  - Expo (55.0.19):
     - boost
     - DoubleConversion
     - ExpoModulesCore
@@ -67,7 +67,7 @@ PODS:
     - SDWebImageWebPCoder (~> 0.14.6)
   - ExpoImagePicker (55.0.19):
     - ExpoModulesCore
-  - ExpoKeepAwake (55.0.6):
+  - ExpoKeepAwake (55.0.7):
     - ExpoModulesCore
   - ExpoLocalization (55.0.13):
     - ExpoModulesCore
@@ -80,7 +80,7 @@ PODS:
   - ExpoMediaLibrary (55.0.15):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (55.0.23):
+  - ExpoModulesCore (55.0.24):
     - boost
     - DoubleConversion
     - ExpoModulesJSI
@@ -111,7 +111,7 @@ PODS:
     - RNWorklets
     - SocketRocket
     - Yoga
-  - ExpoModulesJSI (55.0.23):
+  - ExpoModulesJSI (55.0.24):
     - hermes-engine
     - React-Core
     - React-runtimescheduler
@@ -3604,7 +3604,7 @@ SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXConstants: 5caf448ff399f60be9d1053e77aed32e39411900
-  Expo: d44f616c129ab8c83c66c0099fd355d08a734ede
+  Expo: 7b26ddfa30288a3efa028befd173722829cf6249
   ExpoAsset: f56ed740b6a127da2bfd90832cf688ae309d4410
   ExpoAudio: a826903abdeba843cde8602bd1c077d808b31f1d
   ExpoCamera: 0ed88db61b7dc54712a98b8baaf415a3be88b76b
@@ -3618,14 +3618,14 @@ SPEC CHECKSUMS:
   ExpoHaptics: 679f09dc37d5981e619bc197732007a3334e80b8
   ExpoImage: bd9e9c5bc4eff7a6883339be305f8b0bb5a0cf1c
   ExpoImagePicker: 6d8e97db8aa1fcdd357c0ed1e7365cf30100a0fe
-  ExpoKeepAwake: a1baf9810a2dee1905aa9bdd336852598f7220e9
+  ExpoKeepAwake: 861c66deb0f9f28f87882610195f26c4b88fba6f
   ExpoLocalization: c5cd7fa65c797d3a2f1adbd1fd4c601c524fd677
   ExpoLocation: ba5fff1510a7f123abf620fc2242db2fc87eba0f
   ExpoLogBox: 617da77cbc083627692b2ea050a3666808aef2cd
   ExpoMailComposer: bb63854e80400563d4a1537f1c9fadf7c8e70ab1
   ExpoMediaLibrary: 4f73cc006973a250134ae1b2ab311fde399c0b6a
-  ExpoModulesCore: ef9482b6b2f0de2bad0b047f5394501aa8a41ed5
-  ExpoModulesJSI: bd01f4d433a586cbb8a24316ddf914bd4af5cb44
+  ExpoModulesCore: 573b009528cdf3f9c8c3675e30010f27a7251324
+  ExpoModulesJSI: bbd6d912b19ba7455d95b2c2fd3bc73459f8cba9
   ExpoScreenCapture: bcbb78db8311c51553ce6178c43e52bef0654c2a
   ExpoSMS: cd74cf9d83be085384481c47bfe7240baba70cb6
   ExpoTaskManager: 7c2660c3c0bd0ed863e1536e59e11b71ac1490c6
