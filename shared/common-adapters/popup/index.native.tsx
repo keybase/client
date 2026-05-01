@@ -47,42 +47,18 @@ function PopupPositioned(props: PopupProps) {
 function PopupSheet(props: PopupProps) {
   const {children, onHidden, snapPoints} = props
   const bottomRef = React.useRef<BottomSheetModal | null>(null)
-  const presentTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const shownRef = React.useRef(false)
 
   React.useEffect(() => {
+    bottomRef.current?.present()
     return () => {
-      if (presentTimeoutRef.current) {
-        clearTimeout(presentTimeoutRef.current)
-        presentTimeoutRef.current = undefined
-      }
       bottomRef.current?.forceClose()
+      bottomRef.current = null
     }
   }, [])
 
-  const setBottomSheetRef = React.useCallback((sheet: BottomSheetModal | null) => {
-    if (!sheet) {
-      return
-    }
-    if (bottomRef.current && bottomRef.current !== sheet) {
-      bottomRef.current.forceClose()
-      shownRef.current = false
-      if (presentTimeoutRef.current) {
-        clearTimeout(presentTimeoutRef.current)
-        presentTimeoutRef.current = undefined
-      }
-    }
+  const setBottomSheetRef = (sheet: BottomSheetModal | null) => {
     bottomRef.current = sheet
-    if (!shownRef.current) {
-      shownRef.current = true
-      presentTimeoutRef.current = setTimeout(() => {
-        if (bottomRef.current === sheet) {
-          sheet.present()
-        }
-        presentTimeoutRef.current = undefined
-      }, 100)
-    }
-  }, [])
+  }
 
   return (
     <BottomSheetModal
