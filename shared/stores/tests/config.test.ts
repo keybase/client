@@ -118,7 +118,7 @@ test('onEngineIncoming owns audit errors and badge state', () => {
 test('custom resetState preserves the fields config intentionally carries across resets', () => {
   const {dispatch} = useConfigState.getState()
 
-  dispatch.setAccounts([{hasStoredSecret: true, username: 'alice'}])
+  dispatch.setAccounts([{hasStoredSecret: true, uid: 'alice-uid', username: 'alice'}])
   dispatch.setDefaultUsername('alice')
   useConfigState.setState({
     globalError: new Error('transient'),
@@ -128,7 +128,7 @@ test('custom resetState preserves the fields config intentionally carries across
   dispatch.resetState()
 
   const state = useConfigState.getState()
-  expect(state.configuredAccounts).toEqual([{hasStoredSecret: true, username: 'alice'}])
+  expect(state.configuredAccounts).toEqual([{hasStoredSecret: true, uid: 'alice-uid', username: 'alice'}])
   expect(state.defaultUsername).toBe('alice')
   expect(state.userSwitching).toBe(true)
   expect(state.globalError).toBeUndefined()
