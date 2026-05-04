@@ -4,7 +4,6 @@ import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {NotifyPopup} from '@/util/misc'
 import {ensureError} from '@/util/errors'
-import logger from '@/logger'
 import {isMobile} from '@/constants/platform'
 import isObject from 'lodash/isObject'
 import isEqual from 'lodash/isEqual'
@@ -129,19 +128,27 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
 type Store = T.Immutable<{
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   overallSyncStatus: T.FS.OverallSyncStatus
-  settings: T.FS.Settings
+  settings: {
+    loaded: boolean
+    spaceAvailableNotificationThreshold: number
+  }
   sfmi: T.FS.SystemFileManagerIntegration
+  sfmiBannerDismissed: boolean
   uploads: T.FS.Uploads
 }>
 const initialStore: Store = {
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   overallSyncStatus: Constants.emptyOverallSyncStatus,
-  settings: Constants.emptySettings,
+  settings: {
+    loaded: false,
+    spaceAvailableNotificationThreshold: 0,
+  },
   sfmi: {
     directMountDir: '',
     driverStatus: Constants.defaultDriverStatus,
     preferredMountDirs: [],
   },
+  sfmiBannerDismissed: false,
   uploads: {
     endEstimate: undefined,
     syncingPaths: new Set(),
@@ -156,9 +163,8 @@ export type State = Store & {
     checkKbfsDaemonRpcStatus: () => void
     driverDisable: () => void
     driverEnable: (isRetry?: boolean) => void
-    getOnlineStatus: () => void
-    journalUpdate: (syncingPaths: Array<T.FS.Path>, totalSyncingBytes: number, endEstimate?: number) => void
     loadSettings: () => void
+    onlineStatusChanged: (onlineStatus: T.RPCGen.KbfsOnlineStatus) => void
     onChangedFocus: (appFocused: boolean) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     refreshDriverStatusDesktop: () => void
@@ -172,28 +178,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
   // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
   // reducer and happens before this.
   let waitForKbfsDaemonInProgress = false
-
-  // At start-up we might have a race where we get connected to a kbfs daemon
-  // which dies soon after, and we get an EOF here. So retry for a few times
-  // until we get through. After each try we delay for 2s, so this should give us
-  // e.g. 12s when n == 6. If it still doesn't work after 12s, something's wrong
-  // and we deserve a black bar.
-  const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number): Promise<void> => {
-    try {
-      const onlineStatus = await T.RPCGen.SimpleFSSimpleFSGetOnlineStatusRpcPromise({clientID})
-      kbfsDaemonOnlineStatusChanged(onlineStatus)
-      return
-    } catch (error) {
-      if (n > 0) {
-        logger.warn(`failed to check if we are connected to MDServer: ${String(error)}; n=${n}`)
-        await timeoutPromise(2000)
-        return checkIfWeReConnectedToMDServerUpToNTimes(n - 1)
-      } else {
-        logger.warn(`failed to check if we are connected to MDServer : ${String(error)}; n=${n}, throwing`)
-        throw error
-      }
-    }
-  }
 
   const settingsSub = {id: ''}
   const uploadStatusSub = {id: ''}
@@ -327,9 +311,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         case T.RPCGen.SubscriptionTopic.journalStatus:
           pollJournalStatus()
           break
-        case T.RPCGen.SubscriptionTopic.onlineStatus:
-          await checkIfWeReConnectedToMDServerUpToNTimes(1)
-          break
         case T.RPCGen.SubscriptionTopic.uploadStatus:
           loadUploadStatus()
           break
@@ -454,6 +435,21 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
     ignorePromise(f())
   }
 
+  const journalUpdate = (
+    syncingPaths: ReadonlyArray<T.FS.Path>,
+    totalSyncingBytes: number,
+    endEstimate?: number
+  ) => {
+    set(s => {
+      const sp = new Set(syncingPaths)
+      if (!isEqual(sp, s.uploads.syncingPaths)) {
+        s.uploads.syncingPaths = sp
+      }
+      s.uploads.totalSyncingBytes = totalSyncingBytes
+      s.uploads.endEstimate = endEstimate
+    })
+  }
+
   const pollJournalStatus = () => {
     if (pollJournalStatusPolling || !shouldRunBackgroundFSRPC()) {
       return
@@ -480,7 +476,7 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           if (!isCurrentAsyncGeneration(generation)) {
             return
           }
-          get().dispatch.journalUpdate(
+          journalUpdate(
             (syncingPaths || []).map(T.FS.stringToPath),
             totalSyncingBytes,
             endEstimate ?? undefined
@@ -631,22 +627,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
       }
       ignorePromise(f())
     },
-    getOnlineStatus: () => {
-      const f = async () => {
-        await checkIfWeReConnectedToMDServerUpToNTimes(2)
-      }
-      ignorePromise(f())
-    },
-    journalUpdate: (syncingPaths, totalSyncingBytes, endEstimate) => {
-      set(s => {
-        const sp = new Set(syncingPaths)
-        if (!isEqual(sp, s.uploads.syncingPaths)) {
-          s.uploads.syncingPaths = sp
-        }
-        s.uploads.totalSyncingBytes = totalSyncingBytes
-        s.uploads.endEstimate = endEstimate
-      })
-    },
     loadSettings: () => {
       const f = async () => {
         try {
@@ -654,13 +634,14 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           set(s => {
             const o = s.settings
             o.loaded = true
-            o.sfmiBannerDismissed = settings.sfmiBannerDismissed
             o.spaceAvailableNotificationThreshold = settings.spaceAvailableNotificationThreshold
+            s.sfmiBannerDismissed = settings.sfmiBannerDismissed
           })
         } catch {}
       }
       ignorePromise(f())
     },
+    onlineStatusChanged: kbfsDaemonOnlineStatusChanged,
     onChangedFocus: appFocused => {
       const driverStatus = get().sfmi.driverStatus
       if (

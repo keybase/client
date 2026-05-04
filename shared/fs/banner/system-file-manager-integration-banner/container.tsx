@@ -13,12 +13,13 @@ type OwnProps = {alwaysShow?: boolean}
 
 const SFMIContainer = (op: OwnProps) => {
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
-  const {driverStatus, driverEnable, driverDisable, settings} = useFSState(
+  const {driverStatus, driverEnable, driverDisable, settings, sfmiBannerDismissed} = useFSState(
     C.useShallow(s => ({
       driverDisable: s.dispatch.driverDisable,
       driverEnable: s.dispatch.driverEnable,
       driverStatus: s.sfmi.driverStatus,
       settings: s.settings,
+      sfmiBannerDismissed: s.sfmiBannerDismissed,
     }))
   )
   const onDisable = () => driverDisable()
@@ -48,22 +49,21 @@ const SFMIContainer = (op: OwnProps) => {
 
   switch (driverStatus.type) {
     case T.FS.DriverStatusType.Disabled:
-      return alwaysShow || !settings.sfmiBannerDismissed ? (
+      return alwaysShow || !sfmiBannerDismissed ? (
         <Disabled
           driverStatus={driverStatus}
           onEnable={onEnable}
           alwaysShow={alwaysShow}
-          settings={settings}
           onDismiss={onDismiss}
         />
       ) : null
     case T.FS.DriverStatusType.Enabled:
-      return alwaysShow || !settings.sfmiBannerDismissed ? (
+      return alwaysShow || !sfmiBannerDismissed ? (
         <Enabled
           driverStatus={driverStatus}
           onDisable={onDisable}
           alwaysShow={alwaysShow}
-          settings={settings}
+          sfmiBannerDismissed={sfmiBannerDismissed}
           onDismiss={onDismiss}
         />
       ) : null
@@ -270,10 +270,10 @@ const Enabled = (props: {
   driverStatus: T.FS.DriverStatus
   onDisable: () => void
   alwaysShow?: boolean
-  settings: T.FS.Settings
+  sfmiBannerDismissed: boolean
   onDismiss: () => void
 }) => {
-  const {driverStatus, onDisable, alwaysShow, settings, onDismiss} = props
+  const {driverStatus, onDisable, alwaysShow, sfmiBannerDismissed, onDismiss} = props
   if (driverStatus.type !== T.FS.DriverStatusType.Enabled) {
     return <ThisShouldNotHappen />
   }
@@ -292,7 +292,7 @@ const Enabled = (props: {
       />
     )
   }
-  if (alwaysShow || !settings.sfmiBannerDismissed) {
+  if (alwaysShow || !sfmiBannerDismissed) {
     return <JustEnabled onDismiss={alwaysShow ? undefined : onDismiss} />
   }
   return null
@@ -302,7 +302,6 @@ const Disabled = (props: {
   driverStatus: T.FS.DriverStatus
   onEnable: () => void
   alwaysShow?: boolean
-  settings: T.FS.Settings
   onDismiss: () => void
 }) => {
   const {driverStatus, onEnable, alwaysShow, onDismiss} = props

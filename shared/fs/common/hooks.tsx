@@ -945,10 +945,44 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
 }
 
 export const useFsOnlineStatus = () => {
+  const onlineStatusChanged = useFSState(s => s.dispatch.onlineStatusChanged)
+  const focused = useSafeIsFocused()
+  const loadOnlineStatus = React.useEffectEvent((retries: number) => {
+    const checkOnlineStatus = async (remainingRetries: number): Promise<void> => {
+      try {
+        const onlineStatus = await T.RPCGen.SimpleFSSimpleFSGetOnlineStatusRpcPromise({
+          clientID: FS.clientID,
+        })
+        onlineStatusChanged(onlineStatus)
+      } catch (error) {
+        if (remainingRetries > 0) {
+          logger.warn(
+            `failed to check if we are connected to MDServer: ${String(error)}; n=${remainingRetries}`
+          )
+          await C.timeoutPromise(2000)
+          return checkOnlineStatus(remainingRetries - 1)
+        }
+        logger.warn(
+          `failed to check if we are connected to MDServer : ${String(error)}; n=${remainingRetries}, throwing`
+        )
+        throw error
+      }
+    }
+    C.ignorePromise(checkOnlineStatus(retries))
+  })
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.onlineStatus)
-  const getOnlineStatus = useFSState.getState().dispatch.getOnlineStatus
+  useEngineActionListener(
+    'keybase.1.NotifyFS.FSSubscriptionNotify',
+    action => {
+      const {clientID, topic} = action.payload.params
+      if (clientID === FS.clientID && topic === T.RPCGen.SubscriptionTopic.onlineStatus) {
+        loadOnlineStatus(1)
+      }
+    },
+    focused
+  )
   useFsLoadOnMountAndFocus({
-    load: getOnlineStatus,
+    load: () => loadOnlineStatus(2),
   })
 }
 

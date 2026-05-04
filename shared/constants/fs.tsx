@@ -731,7 +731,10 @@ export const getSoftError = (softErrors: T.FS.SoftErrors, path: T.FS.Path): T.FS
   return (tlfPath && softErrors.tlfErrors.get(tlfPath)) || undefined
 }
 
-export const sfmiInfoLoaded = (settings: T.FS.Settings, driverStatus: T.FS.DriverStatus): boolean =>
+export const sfmiInfoLoaded = (
+  settings: {loaded: boolean},
+  driverStatus: T.FS.DriverStatus
+): boolean =>
   settings.loaded && driverStatus !== driverStatusUnknown
 
 export const hideOrDisableInDestinationPicker = (

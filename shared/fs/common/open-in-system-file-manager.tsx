@@ -27,10 +27,10 @@ function OpenInSystemFileManager({path}: Props) {
 const OpenInSFM = (props: Props) => {
   const {shouldHideFileManagerIcon, showOpenInSystemFileManager} = useFSState(
     C.useShallow(s => {
-      const sfmiBannerDismissed = s.settings.sfmiBannerDismissed
       const driverStatusType = s.sfmi.driverStatus.type
       return {
-        shouldHideFileManagerIcon: driverStatusType === T.FS.DriverStatusType.Disabled && sfmiBannerDismissed,
+        shouldHideFileManagerIcon:
+          driverStatusType === T.FS.DriverStatusType.Disabled && s.sfmiBannerDismissed,
         showOpenInSystemFileManager: driverStatusType === T.FS.DriverStatusType.Enabled,
       }
     })

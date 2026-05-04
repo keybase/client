@@ -501,7 +501,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       {
         switch (action.payload.params.topic) {
           case T.RPCGen.SubscriptionTopic.journalStatus:
-          case T.RPCGen.SubscriptionTopic.onlineStatus:
           case T.RPCGen.SubscriptionTopic.uploadStatus:
           case T.RPCGen.SubscriptionTopic.settings: {
             useFSState.getState().dispatch.onEngineIncomingImpl(action)
