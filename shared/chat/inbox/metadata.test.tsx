@@ -24,7 +24,7 @@ afterEach(() => {
 test('forceUnboxRowsForService deduplicates requests while an unbox is in flight', async () => {
   const resolvers = new Array<() => void>()
   jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockImplementation(
-    () =>
+    async () =>
       new Promise(resolve => {
         resolvers.push(() => {
           resolve(undefined)
