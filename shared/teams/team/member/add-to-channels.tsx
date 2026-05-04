@@ -239,9 +239,9 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   return (
     <Common.ActivityLevelsProvider>
       {loadingChannels && !channelMetas.size ? (
-        <Kb.Box style={styles.spinnerContainer}>
+        <Kb.Box2 direction="vertical" style={styles.spinnerContainer}>
           <Kb.ProgressIndicator type="Large" />
-        </Kb.Box>
+        </Kb.Box2>
       ) : (
         <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
