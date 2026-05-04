@@ -207,7 +207,14 @@ const ConversationList = function ConversationList() {
         scrollToBottom()
       }, 100)
     }
-  }, [loaded, centeredOrdinalOrNone, scrollToBottom, scrollToCentered, numOrdinals])
+  }, [
+    centeredOrdinalOrNone,
+    loaded,
+    markInitiallyLoadedThreadAsRead,
+    numOrdinals,
+    scrollToBottom,
+    scrollToCentered,
+  ])
 
   // useChatDebugDump(
   //   'listArea',
