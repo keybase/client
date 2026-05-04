@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useEngineActionListener} from '@/engine/action-listener'
+import {NavigationContext} from '@react-navigation/core'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as FS from '@/stores/fs'
@@ -42,6 +43,29 @@ const makeEmptyTlfs = (): T.FS.Tlfs => ({
 
 const emptyTlfs = makeEmptyTlfs()
 
+const useSafeIsFocused = () => {
+  const navigation = React.useContext(NavigationContext)
+  const subscribe = React.useCallback(
+    (listener: () => void) => {
+      if (!navigation) {
+        return () => {}
+      }
+      const unsubscribeFocus = navigation.addListener('focus', listener)
+      const unsubscribeBlur = navigation.addListener('blur', listener)
+      return () => {
+        unsubscribeFocus()
+        unsubscribeBlur()
+      }
+    },
+    [navigation]
+  )
+  return React.useSyncExternalStore(
+    subscribe,
+    () => navigation?.isFocused() ?? true,
+    () => true
+  )
+}
+
 type FsSubscription = {
   count: number
   subscribed: boolean
@@ -54,9 +78,11 @@ type FsSubscriptionManager = {
 }
 
 type FsDataContextType = {
+  downloads: T.FS.Downloads
   downloadInfos: ReadonlyMap<string, T.FS.DownloadInfo>
   loadAdditionalTlf: (tlfPath: T.FS.Path) => void
   loadDownloadInfo: (downloadID: string) => void
+  loadDownloadStatus: () => void
   loadFolderChildren: (path: T.FS.Path, initialLoadRecursive: boolean) => void
   loadPathMetadata: (path: T.FS.Path) => void
   loadTlfs: () => void
@@ -78,27 +104,27 @@ const downloadIntentFromStartType = (type: DownloadStartType): T.FS.DownloadInte
       : undefined
 
 type FsSharedData = {
+  downloads: T.FS.Downloads
   downloadInfos: ReadonlyMap<string, T.FS.DownloadInfo>
   pathItems: T.FS.PathItems
   tlfs: T.FS.Tlfs
 }
 
+const makeEmptyDownloads = (): T.FS.Downloads => ({
+  regularDownloads: [],
+  state: new Map(),
+})
+
+const emptyDownloads = makeEmptyDownloads()
+
 const makeEmptyFsSharedData = (): FsSharedData => ({
+  downloads: makeEmptyDownloads(),
   downloadInfos: new Map(),
   pathItems: new Map(),
   tlfs: makeEmptyTlfs(),
 })
 
-let fsSharedData = makeEmptyFsSharedData()
-const fsSharedDataListeners = new Set<() => void>()
-const sharedSubscriptionManager: FsSubscriptionManager = {subscriptions: new Map()}
-const seenDownloadIDs = new Set<string>()
-const loadingDownloadInfos = new Set<string>()
-const loadingPathMetadata = new Set<T.FS.Path>()
-const loadingFolderChildren = new Set<string>()
-const loadingAdditionalTlfs = new Set<T.FS.Path>()
-let fsSharedDataUsername = ''
-let loadTlfsInProgress = false
+type SetFsSharedData = React.Dispatch<React.SetStateAction<FsSharedData>>
 
 const unsubscribeFsSubscription = (subscriptionID: string) => {
   C.ignorePromise(
@@ -123,86 +149,94 @@ const resetFsSubscriptionManager = (manager: FsSubscriptionManager) => {
   manager.subscriptions.clear()
 }
 
-const subscribeFsSharedData = (listener: () => void) => {
-  fsSharedDataListeners.add(listener)
-  return () => {
-    fsSharedDataListeners.delete(listener)
-  }
-}
-
-const getFsSharedDataSnapshot = () => fsSharedData
-
-const setFsSharedData = (updater: (prevData: FsSharedData) => FsSharedData) => {
-  const nextData = updater(fsSharedData)
-  if (nextData === fsSharedData) {
-    return
-  }
-  fsSharedData = nextData
-  fsSharedDataListeners.forEach(listener => listener())
-}
-
 const setDownloadInfos = (
+  setFsSharedData: SetFsSharedData,
   updater: (
     prevDownloadInfos: ReadonlyMap<string, T.FS.DownloadInfo>
   ) => ReadonlyMap<string, T.FS.DownloadInfo>
 ) => {
-  setFsSharedData(prevData => {
-    const downloadInfos = updater(prevData.downloadInfos)
-    return downloadInfos === prevData.downloadInfos ? prevData : {...prevData, downloadInfos}
-  })
+  setFsSharedData(prevData =>
+    C.produce(prevData, draft => {
+      const downloadInfos = updater(prevData.downloadInfos)
+      if (downloadInfos !== prevData.downloadInfos) {
+        draft.downloadInfos = T.castDraft(downloadInfos)
+      }
+    })
+  )
 }
 
-const setPathItems = (updater: (prevPathItems: T.FS.PathItems) => T.FS.PathItems) => {
-  setFsSharedData(prevData => {
-    const pathItems = updater(prevData.pathItems)
-    return pathItems === prevData.pathItems ? prevData : {...prevData, pathItems}
-  })
+const setDownloads = (setFsSharedData: SetFsSharedData, downloads: T.FS.Downloads) => {
+  setFsSharedData(prevData =>
+    C.produce(prevData, draft => {
+      if (!isEqual(downloads, prevData.downloads)) {
+        draft.downloads = T.castDraft(downloads)
+      }
+    })
+  )
 }
 
-const setTlfs = (updater: (prevTlfs: T.FS.Tlfs) => T.FS.Tlfs) => {
-  setFsSharedData(prevData => {
-    const tlfs = updater(prevData.tlfs)
-    return tlfs === prevData.tlfs ? prevData : {...prevData, tlfs}
-  })
+const setPathItems = (
+  setFsSharedData: SetFsSharedData,
+  updater: (prevPathItems: T.FS.PathItems) => T.FS.PathItems
+) => {
+  setFsSharedData(prevData =>
+    C.produce(prevData, draft => {
+      const pathItems = updater(prevData.pathItems)
+      if (pathItems !== prevData.pathItems) {
+        draft.pathItems = T.castDraft(pathItems)
+      }
+    })
+  )
 }
 
-const resetFsSharedData = () => {
-  fsSharedData = makeEmptyFsSharedData()
-  resetFsSubscriptionManager(sharedSubscriptionManager)
-  seenDownloadIDs.clear()
-  loadingDownloadInfos.clear()
-  loadingPathMetadata.clear()
-  loadingFolderChildren.clear()
-  loadingAdditionalTlfs.clear()
-  loadTlfsInProgress = false
-  fsSharedDataListeners.forEach(listener => listener())
+const setTlfs = (setFsSharedData: SetFsSharedData, updater: (prevTlfs: T.FS.Tlfs) => T.FS.Tlfs) => {
+  setFsSharedData(prevData =>
+    C.produce(prevData, draft => {
+      const tlfs = updater(prevData.tlfs)
+      if (tlfs !== prevData.tlfs) {
+        draft.tlfs = T.castDraft(tlfs)
+      }
+    })
+  )
 }
 
 export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
   const username = useCurrentUserState(s => s.username)
+  return (
+    <FsDataProviderForUsername key={username} username={username}>
+      {children}
+    </FsDataProviderForUsername>
+  )
+}
+
+const FsDataProviderForUsername = ({
+  children,
+  username,
+}: {
+  children: React.ReactNode
+  username: string
+}) => {
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const {setPathSoftError, setTlfSoftError} = useFsSoftErrorActions()
-  const activeDownloadIDs = useFSState(C.useShallow(s => [...s.downloads.state.keys()]))
-  const {downloadInfos, pathItems, tlfs} = React.useSyncExternalStore(
-    subscribeFsSharedData,
-    getFsSharedDataSnapshot,
-    getFsSharedDataSnapshot
-  )
-  const subscriptionManager = sharedSubscriptionManager
+  const [fsSharedData, setFsSharedData] = React.useState(makeEmptyFsSharedData)
+  const subscriptionManagerRef = React.useRef<FsSubscriptionManager>({subscriptions: new Map()})
+  const seenDownloadIDsRef = React.useRef(new Set<string>())
+  const loadingDownloadInfosRef = React.useRef(new Set<string>())
+  const loadingPathMetadataRef = React.useRef(new Set<T.FS.Path>())
+  const loadingFolderChildrenRef = React.useRef(new Set<string>())
+  const loadingAdditionalTlfsRef = React.useRef(new Set<T.FS.Path>())
+  const loadTlfsInProgressRef = React.useRef(false)
+  const {downloads, downloadInfos, pathItems, tlfs} = fsSharedData
+  const subscriptionManager = subscriptionManagerRef.current
 
-  React.useLayoutEffect(() => {
-    if (!fsSharedDataUsername) {
-      fsSharedDataUsername = username
-      return
+  React.useEffect(() => {
+    return () => {
+      resetFsSubscriptionManager(subscriptionManagerRef.current)
     }
-    if (fsSharedDataUsername === username) {
-      return
-    }
-    fsSharedDataUsername = username
-    resetFsSharedData()
-  }, [username])
+  }, [])
 
   const loadDownloadInfo = (downloadID: string) => {
+    const loadingDownloadInfos = loadingDownloadInfosRef.current
     if (loadingDownloadInfos.has(downloadID)) {
       return
     }
@@ -212,7 +246,7 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
         const res = await T.RPCGen.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
           downloadID,
         })
-        setDownloadInfos(prevDownloadInfos => {
+        setDownloadInfos(setFsSharedData, prevDownloadInfos => {
           const old = prevDownloadInfos.get(downloadID)
           const nextDownloadInfos = new Map(prevDownloadInfos)
           nextDownloadInfos.set(downloadID, {
@@ -235,7 +269,7 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
 
   const recordDownloadStarted = (downloadID: string, path: T.FS.Path, type: DownloadStartType) => {
     const downloadIntent = downloadIntentFromStartType(type)
-    setDownloadInfos(prevDownloadInfos => {
+    setDownloadInfos(setFsSharedData, prevDownloadInfos => {
       const old = prevDownloadInfos.get(downloadID)
       const nextDownloadInfos = new Map(prevDownloadInfos)
       nextDownloadInfos.set(downloadID, {
@@ -255,8 +289,10 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
     }
   })
   React.useEffect(() => {
+    const activeDownloadIDs = [...downloads.state.keys()]
     const activeDownloadIDSet = new Set(activeDownloadIDs)
-    setDownloadInfos(prevDownloadInfos => {
+    const seenDownloadIDs = seenDownloadIDsRef.current
+    setDownloadInfos(setFsSharedData, prevDownloadInfos => {
       let nextDownloadInfos: Map<string, T.FS.DownloadInfo> | undefined
       prevDownloadInfos.forEach((_, downloadID) => {
         if (activeDownloadIDSet.has(downloadID) || !seenDownloadIDs.has(downloadID)) {
@@ -272,9 +308,36 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
       seenDownloadIDs.add(downloadID)
     })
     activeDownloadIDs.forEach(loadMissingDownloadInfo)
-  }, [activeDownloadIDs])
+  }, [downloads.state])
+
+  const loadDownloadStatus = () => {
+    const f = async () => {
+      try {
+        const res = await T.RPCGen.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
+        const regularDownloads = [...(res.regularDownloadIDs || [])]
+        const state = new Map(
+          (res.states || []).map(s => [
+            s.downloadID,
+            {
+              canceled: s.canceled,
+              done: s.done,
+              endEstimate: s.endEstimate,
+              error: s.error,
+              localPath: s.localPath,
+              progress: s.progress,
+            },
+          ])
+        )
+        setDownloads(setFsSharedData, {regularDownloads, state})
+      } catch (error) {
+        errorToActionOrThrow(error)
+      }
+    }
+    C.ignorePromise(f())
+  }
 
   const loadPathMetadata = (path: T.FS.Path) => {
+    const loadingPathMetadata = loadingPathMetadataRef.current
     if (loadingPathMetadata.has(path)) {
       return
     }
@@ -286,7 +349,7 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
           refreshSubscription: false,
         })
         const pathItem = makeEntry(dirent)
-        setPathItems(prevPathItems => {
+        setPathItems(setFsSharedData, prevPathItems => {
           const nextPathItems = new Map(prevPathItems)
           const oldPathItem = FS.getPathItem(prevPathItems, path)
           nextPathItems.set(path, updatePathItem(oldPathItem, pathItem))
@@ -308,6 +371,7 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
 
   const loadFolderChildren = (rootPath: T.FS.Path, initialLoadRecursive: boolean) => {
     const loadKey = `${rootPath}:${initialLoadRecursive ? 'recursive' : 'shallow'}`
+    const loadingFolderChildren = loadingFolderChildrenRef.current
     if (loadingFolderChildren.has(loadKey)) {
       return
     }
@@ -336,7 +400,7 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
         const result = await T.RPCGen.SimpleFSSimpleFSReadListRpcPromise({opID})
         const entries = result.entries || []
 
-        setPathItems(prevPathItems => {
+        setPathItems(setFsSharedData, prevPathItems => {
           const nextPathItems = new Map(prevPathItems)
           const loadedPathItems = makePathItemsFromDirents({
             entries,
@@ -368,27 +432,28 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
   }
 
   const loadTlfs = () => {
-    if (loadTlfsInProgress) {
+    if (loadTlfsInProgressRef.current) {
       return
     }
-    loadTlfsInProgress = true
+    loadTlfsInProgressRef.current = true
     const f = async () => {
       try {
         const results = await T.RPCGen.SimpleFSSimpleFSListFavoritesRpcPromise()
-        setTlfs(prevTlfs => {
+        setTlfs(setFsSharedData, prevTlfs => {
           const nextTlfs = favoritesResultToTlfs(results, username, prevTlfs.additionalTlfs)
           return isEqual(nextTlfs, prevTlfs) ? prevTlfs : nextTlfs
         })
       } catch (error) {
         errorToActionOrThrow(error)
       } finally {
-        loadTlfsInProgress = false
+        loadTlfsInProgressRef.current = false
       }
     }
     C.ignorePromise(f())
   }
 
   const loadAdditionalTlf = (tlfPath: T.FS.Path) => {
+    const loadingAdditionalTlfs = loadingAdditionalTlfsRef.current
     if (loadingAdditionalTlfs.has(tlfPath)) {
       return
     }
@@ -413,7 +478,7 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
         if (!next) {
           return
         }
-        setTlfs(prevTlfs => {
+        setTlfs(setFsSharedData, prevTlfs => {
           const additionalTlfs = new Map(prevTlfs.additionalTlfs)
           additionalTlfs.set(tlfPath, next.tlf)
           return {
@@ -443,9 +508,11 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
   return (
     <FsDataContext.Provider
       value={{
+        downloads,
         downloadInfos,
         loadAdditionalTlf,
         loadDownloadInfo,
+        loadDownloadStatus,
         loadFolderChildren,
         loadPathMetadata,
         loadTlfs,
@@ -470,9 +537,10 @@ const useFsLoadOnMountAndFocus = ({
   reloadKey?: unknown
 }) => {
   const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
+  const focused = useSafeIsFocused()
   const lastLoadRef = React.useRef<{reloadKey?: unknown; time: number}>({time: 0})
   const loadOnMountAndFocus = React.useEffectEvent(() => {
-    if (!connected || !enabled) {
+    if (!connected || !enabled || !focused) {
       return
     }
     const now = Date.now()
@@ -487,10 +555,10 @@ const useFsLoadOnMountAndFocus = ({
     loadOnMountAndFocus()
   })
   React.useEffect(() => {
-    if (connected && enabled) {
+    if (connected && enabled && focused) {
       loadOnMountAndFocus()
     }
-  }, [connected, enabled, reloadKey])
+  }, [connected, enabled, focused, reloadKey])
   C.Router2.useSafeFocusEffect(stableLoadOnMountAndFocus)
 }
 
@@ -550,6 +618,7 @@ const useFsSubscriptionEffect = ({
   subscriptionKey: string
 }) => {
   const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
+  const focused = useSafeIsFocused()
   const routeData = React.useContext(FsDataContext)
   const username = useCurrentUserState(s => s.username)
   const subscriptionManager = routeData?.subscriptionManager
@@ -559,7 +628,7 @@ const useFsSubscriptionEffect = ({
   })
   const subscribeEvent = React.useEffectEvent(subscribe)
   React.useEffect(() => {
-    if (!connected || !enabled) {
+    if (!connected || !enabled || !focused) {
       return
     }
 
@@ -626,7 +695,7 @@ const useFsSubscriptionEffect = ({
       }
       releaseFsSubscription(manager, subscriptionKey, currentSubscription)
     }
-  }, [connected, enabled, errorPath, subscriptionKey, subscriptionManager, username])
+  }, [connected, enabled, errorPath, focused, subscriptionKey, subscriptionManager, username])
 }
 
 const useFsPathSubscriptionEffect = (
@@ -722,6 +791,7 @@ export const useFsRefreshTlf = (path: T.FS.Path) => {
 export const useFsPathItem = (path: T.FS.Path, options?: FsPathItemOptions) => {
   const routeData = React.useContext(FsDataContext)
   const pathItems = useLoadedPathItems()
+  const focused = useSafeIsFocused()
   const shouldSubscribe = options?.subscribe ?? (options?.loadOnMount !== false)
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat, shouldSubscribe)
   const pathItem = FS.getPathItem(pathItems, path)
@@ -740,7 +810,7 @@ export const useFsPathItem = (path: T.FS.Path, options?: FsPathItemOptions) => {
         loadPathMetadata(path)
       }
     },
-    shouldLoad
+    shouldLoad && focused
   )
   useFsLoadOnMountAndFocus({
     enabled: shouldLoad,
@@ -763,6 +833,7 @@ export const useFsFolderChildren = (
 ) => {
   const routeData = React.useContext(FsDataContext)
   const pathItems = useLoadedPathItems()
+  const focused = useSafeIsFocused()
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.children)
   const pathItem = FS.getPathItem(pathItems, path)
   const loadFolderChildren = routeData?.loadFolderChildren
@@ -781,7 +852,7 @@ export const useFsFolderChildren = (
         loadFolderChildren(path, initialLoadRecursive)
       }
     },
-    shouldLoad
+    shouldLoad && focused
   )
   useFsLoadOnMountAndFocus({
     enabled: shouldLoad,
@@ -815,6 +886,7 @@ export const useFsFolderChildItems = (
 export const useFsTlfs = () => {
   const routeData = React.useContext(FsDataContext)
   const loadTlfs = routeData?.loadTlfs
+  const focused = useSafeIsFocused()
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites, !!loadTlfs)
   const tlfs = useLoadedTlfs()
   useEngineActionListener(
@@ -825,7 +897,7 @@ export const useFsTlfs = () => {
         loadTlfs?.()
       }
     },
-    !!loadTlfs
+    !!loadTlfs && focused
   )
   useFsLoadOnMountAndFocus({
     enabled: !!loadTlfs,
@@ -842,6 +914,7 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
   const tlfs = useFsTlfs()
   const tlf = FS.getTlfFromPath(tlfs, path)
   const loadAdditionalTlf = routeData?.loadAdditionalTlf
+  const focused = useSafeIsFocused()
   const tlfPathToLoad =
     tlfPath &&
     tlfs.loaded &&
@@ -849,7 +922,7 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
     options?.loadOnMount !== false
       ? tlfPath
       : undefined
-  const active = !!loadAdditionalTlf && !!tlfPathToLoad
+  const active = focused && !!loadAdditionalTlf && !!tlfPathToLoad
   const loadCurrentTlf = React.useEffectEvent(() => {
     if (loadAdditionalTlf && tlfPathToLoad) {
       loadAdditionalTlf(tlfPathToLoad)
@@ -940,20 +1013,34 @@ export const useFsDownloadInfo = (downloadID: string): T.FS.DownloadInfo => {
 
 export const useFsDownloadIntent = (path: T.FS.Path): T.FS.DownloadIntent | undefined => {
   const routeData = React.useContext(FsDataContext)
-  const downloadStates = useFSState(s => s.downloads.state)
-  return routeData ? FS.getDownloadIntent(path, routeData.downloadInfos, downloadStates) : undefined
+  return routeData ? FS.getDownloadIntent(path, routeData.downloadInfos, routeData.downloads.state) : undefined
 }
 
 export const useFsDownloadStatus = () => {
-  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.downloadStatus)
-  const {loadDownloadStatus} = useFSState(
-    C.useShallow(s => ({
-      loadDownloadStatus: s.dispatch.loadDownloadStatus,
-    }))
+  const routeData = React.useContext(FsDataContext)
+  const loadDownloadStatus = routeData?.loadDownloadStatus
+  const focused = useSafeIsFocused()
+  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.downloadStatus, !!loadDownloadStatus)
+  useEngineActionListener(
+    'keybase.1.NotifyFS.FSSubscriptionNotify',
+    action => {
+      const {clientID, topic} = action.payload.params
+      if (clientID === FS.clientID && topic === T.RPCGen.SubscriptionTopic.downloadStatus) {
+        loadDownloadStatus?.()
+      }
+    },
+    !!loadDownloadStatus && focused
   )
   useFsLoadOnMountAndFocus({
-    load: loadDownloadStatus,
+    enabled: !!loadDownloadStatus,
+    load: () => loadDownloadStatus?.(),
   })
+  return routeData?.downloads ?? emptyDownloads
+}
+
+export const useFsDownloadState = (downloadID: string) => {
+  const routeData = React.useContext(FsDataContext)
+  return routeData?.downloads.state.get(downloadID) || FS.emptyDownloadState
 }
 
 export const useFsDownload = () => {
@@ -1096,7 +1183,7 @@ export const useFsWatchDownloadForMobile = C.isMobile
       const errorToActionOrThrow = useFsErrorActionOrThrow()
       const dismissDownload = useFsDismissDownload()
 
-      const dlState = useFSState(s => s.downloads.state.get(downloadID) || FS.emptyDownloadState)
+      const dlState = useFsDownloadState(downloadID)
       const finished = dlState !== FS.emptyDownloadState && !FS.downloadIsOngoing(dlState)
       const mimeType = fileContext.contentType
 

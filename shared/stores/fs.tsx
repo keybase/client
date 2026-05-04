@@ -127,7 +127,6 @@ export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
 }
 
 type Store = T.Immutable<{
-  downloads: T.FS.Downloads
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   overallSyncStatus: T.FS.OverallSyncStatus
   settings: T.FS.Settings
@@ -135,10 +134,6 @@ type Store = T.Immutable<{
   uploads: T.FS.Uploads
 }>
 const initialStore: Store = {
-  downloads: {
-    regularDownloads: [],
-    state: new Map(),
-  },
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   overallSyncStatus: Constants.emptyOverallSyncStatus,
   settings: Constants.emptySettings,
@@ -164,7 +159,6 @@ export type State = Store & {
     getOnlineStatus: () => void
     journalUpdate: (syncingPaths: Array<T.FS.Path>, totalSyncingBytes: number, endEstimate?: number) => void
     loadSettings: () => void
-    loadDownloadStatus: () => void
     onChangedFocus: (appFocused: boolean) => void
     onEngineIncomingImpl: (action: EngineGen.Actions) => void
     refreshDriverStatusDesktop: () => void
@@ -335,9 +329,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
           break
         case T.RPCGen.SubscriptionTopic.onlineStatus:
           await checkIfWeReConnectedToMDServerUpToNTimes(1)
-          break
-        case T.RPCGen.SubscriptionTopic.downloadStatus:
-          get().dispatch.loadDownloadStatus()
           break
         case T.RPCGen.SubscriptionTopic.uploadStatus:
           loadUploadStatus()
@@ -655,36 +646,6 @@ export const useFSState = Z.createZustand<State>('fs', (set, get) => {
         s.uploads.totalSyncingBytes = totalSyncingBytes
         s.uploads.endEstimate = endEstimate
       })
-    },
-    loadDownloadStatus: () => {
-      const f = async () => {
-        try {
-          const res = await T.RPCGen.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
-
-          const regularDownloads = res.regularDownloadIDs || []
-          const state = new Map(
-            (res.states || []).map(s => [
-              s.downloadID,
-              {
-                canceled: s.canceled,
-                done: s.done,
-                endEstimate: s.endEstimate,
-                error: s.error,
-                localPath: s.localPath,
-                progress: s.progress,
-              },
-            ])
-          )
-
-          set(s => {
-            s.downloads.regularDownloads = T.castDraft(regularDownloads)
-            s.downloads.state = state
-          })
-        } catch (error) {
-          errorToActionOrThrow(error)
-        }
-      }
-      ignorePromise(f())
     },
     loadSettings: () => {
       const f = async () => {

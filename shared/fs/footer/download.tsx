@@ -5,7 +5,6 @@ import * as T from '@/constants/types'
 import DownloadWrapper from './download-wrapper'
 import {formatDurationFromNowTo} from '@/util/timestamp'
 import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 export type Props = {
@@ -34,7 +33,7 @@ const getProgress = (dlState: T.FS.DownloadState) => (
 
 const Download = (props: Props) => {
   const dlInfo = Kbfs.useFsDownloadInfo(props.downloadID)
-  const dlState = useFSState(s => s.downloads.state.get(props.downloadID) || FS.emptyDownloadState)
+  const dlState = Kbfs.useFsDownloadState(props.downloadID)
   const dismissDownload = Kbfs.useFsDismissDownload()
   const cancelDownload = Kbfs.useFsCancelDownload()
   const open = dlState.localPath
