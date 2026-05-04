@@ -5,8 +5,9 @@ package keybase1
 
 import (
 	"context"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type PGPKeyInSecretStoreFileArg struct {
