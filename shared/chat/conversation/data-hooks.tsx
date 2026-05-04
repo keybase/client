@@ -24,7 +24,7 @@ const emptyMessages: ReadonlyArray<T.Chat.Message> = []
 
 const reloadConversationMetadata = (conversationIDKey: T.Chat.ConversationIDKey) => {
   if (T.Chat.isValidConversationIDKey(conversationIDKey)) {
-    unboxRows([conversationIDKey], true)
+    unboxRows([conversationIDKey])
   }
 }
 

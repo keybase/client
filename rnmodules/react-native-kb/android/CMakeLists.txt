@@ -26,7 +26,11 @@ set_target_properties(
         POSITION_INDEPENDENT_CODE ON
 )
 
-add_definitions(-DMSGPACK_NO_BOOST)
+target_compile_definitions(
+        cpp
+        PRIVATE
+        MSGPACK_NO_BOOST
+)
 
 find_package(ReactAndroid REQUIRED CONFIG)
 find_package(fbjni REQUIRED CONFIG)

@@ -12,6 +12,7 @@ import {useShellState} from '@/stores/shell'
 import {useUsersState} from '@/stores/users'
 import {updateInboxRowTyping} from '@/stores/inbox-rows'
 import {
+  forceUnboxRowsForService,
   getInboxConversationMeta,
   metaReceivedError,
   metasReceived,
@@ -57,7 +58,7 @@ const onChatThreadsStale = (updates: ThreadStaleUpdates) => {
     logger.info(
       `onChatThreadsStale: dispatching thread reload actions for ${conversationIDKeys.length} convs of type ${key}`
     )
-    unboxRows(conversationIDKeys, true)
+    forceUnboxRowsForService(conversationIDKeys)
   })
 }
 
@@ -115,8 +116,13 @@ const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult
     }
     case T.RPCChat.ChatActivityType.setStatus:
       return handledConvoEngineIncoming({inboxUIItem: activity.setStatus.conv ?? undefined})
-    case T.RPCChat.ChatActivityType.readMessage:
-      return handledConvoEngineIncoming({inboxUIItem: activity.readMessage.conv ?? undefined})
+    case T.RPCChat.ChatActivityType.readMessage: {
+      const {readMessage} = activity
+      if (!readMessage.conv) {
+        forceUnboxRowsForService([T.Chat.conversationIDToKey(readMessage.convID)])
+      }
+      return handledConvoEngineIncoming({inboxUIItem: readMessage.conv ?? undefined})
+    }
     case T.RPCChat.ChatActivityType.newConversation:
       return handledConvoEngineIncoming({inboxUIItem: activity.newConversation.conv ?? undefined})
     case T.RPCChat.ChatActivityType.failedMessage: {
@@ -144,7 +150,7 @@ const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult
       return handledConvoEngineIncoming({inboxUIItem})
     }
     case T.RPCChat.ChatActivityType.membersUpdate:
-      unboxRows([T.Chat.conversationIDToKey(activity.membersUpdate.convID)], true)
+      forceUnboxRowsForService([T.Chat.conversationIDToKey(activity.membersUpdate.convID)])
       return handledConvoEngineIncoming()
     case T.RPCChat.ChatActivityType.setAppNotificationSettings: {
       const {setAppNotificationSettings} = activity
@@ -228,9 +234,8 @@ export const handleConvoEngineIncoming = (action: EngineGen.Actions): ConvoEngin
       onChatThreadsStale(action.payload.params.updates)
       return handledConvoEngineIncoming()
     case 'chat.1.NotifyChat.ChatSubteamRename':
-      unboxRows(
-        (action.payload.params.convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID)),
-        true
+      forceUnboxRowsForService(
+        (action.payload.params.convs ?? []).map(c => T.Chat.stringToConversationIDKey(c.convID))
       )
       return handledConvoEngineIncoming()
     case 'chat.1.NotifyChat.ChatTLFFinalize':

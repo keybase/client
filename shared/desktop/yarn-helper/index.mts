@@ -42,6 +42,7 @@ const commands: {[key: string]: Command} = {
   postinstall: {
     code: () => {
       fixModules()
+      syncLocalRNModules()
       checkFSEvents()
       clearTSCache()
       clearAndroidBuild()
@@ -50,6 +51,12 @@ const commands: {[key: string]: Command} = {
       patchIosKBLib()
     },
     help: '',
+  },
+  'sync-local-rnmodules': {
+    code: () => {
+      syncLocalRNModules()
+    },
+    help: 'Sync local file:../rnmodules dependencies into node_modules',
   },
   test: {
     code: () => {
@@ -93,6 +100,66 @@ function fixModules() {
     fs.writeFileSync(path.join(root, 'package.json'), `{"main": "index.js"}`)
     fs.writeFileSync(path.join(root, 'index.js'), `module.exports = function(){return {};};`)
   } catch {}
+}
+
+const syncLocalRNModules = () => {
+  const sharedRoot = path.resolve(__dirname, '..', '..')
+  const repoRoot = path.resolve(sharedRoot, '..')
+  const rnmodulesRoot = path.join(repoRoot, 'rnmodules')
+  const nodeModulesRoot = path.join(sharedRoot, 'node_modules')
+
+  if (!fs.existsSync(nodeModulesRoot)) {
+    return
+  }
+
+  const packageJSONPath = path.join(sharedRoot, 'package.json')
+  const packageJSON = JSON.parse(fs.readFileSync(packageJSONPath, 'utf8')) as {
+    dependencies?: Record<string, string>
+    devDependencies?: Record<string, string>
+    optionalDependencies?: Record<string, string>
+  }
+  const deps = {
+    ...packageJSON.dependencies,
+    ...packageJSON.devDependencies,
+    ...packageJSON.optionalDependencies,
+  }
+
+  for (const [name, spec] of Object.entries(deps)) {
+    if (!spec.startsWith('file:../rnmodules/')) {
+      continue
+    }
+
+    const source = path.resolve(sharedRoot, spec.slice('file:'.length))
+    const relToRNModules = path.relative(rnmodulesRoot, source)
+    if (relToRNModules.startsWith('..') || path.isAbsolute(relToRNModules)) {
+      continue
+    }
+
+    if (!fs.existsSync(source)) {
+      throw new Error(`Local RN module source is missing for ${name}: ${source}`)
+    }
+
+    const dest = path.join(nodeModulesRoot, name)
+    console.log(`Syncing ${name} from ${path.relative(sharedRoot, source)} to node_modules`)
+    rimrafSync(dest)
+    fs.mkdirSync(path.dirname(dest), {recursive: true})
+    fs.cpSync(source, dest, {
+      filter: src => {
+        const rel = path.relative(source, src)
+        return !(
+          rel === 'node_modules' ||
+          rel.startsWith(`node_modules${path.sep}`) ||
+          rel === '.git' ||
+          rel.startsWith(`.git${path.sep}`) ||
+          rel === 'android/build' ||
+          rel.startsWith(`android${path.sep}build${path.sep}`) ||
+          rel === 'ios/build' ||
+          rel.startsWith(`ios${path.sep}build${path.sep}`)
+        )
+      },
+      recursive: true,
+    })
+  }
 }
 
 function exec(command: string, env?: object, options?: object) {

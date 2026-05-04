@@ -1,6 +1,7 @@
 #include "react-native-kb.h"
 #include <cmath>
 #include <cstring>
+#include <limits>
 #include "msgpack-safe.hpp"
 #include <string>
 
@@ -35,6 +36,29 @@ void KBBridge::resetCaches(Runtime &runtime) {
     cachedRpcOnJs_.reset();
     cachedRuntime_ = &runtime;
   }
+}
+
+Function &KBBridge::uint8ArrayCtor(Runtime &runtime) {
+  resetCaches(runtime);
+  if (!cachedUint8ArrayCtor_) {
+    auto ctor = runtime.global().getPropertyAsFunction(runtime, "Uint8Array");
+    cachedUint8ArrayCtor_ = std::make_unique<Function>(std::move(ctor));
+  }
+  return *cachedUint8ArrayCtor_;
+}
+
+Value KBBridge::binaryFromBytes(Runtime &runtime, const char *ptr,
+                                size_t size) {
+  Value uint8Array = uint8ArrayCtor(runtime).callAsConstructor(
+      runtime, static_cast<double>(size));
+  Object uint8ArrayObj = uint8Array.asObject(runtime);
+  ArrayBuffer buffer = uint8ArrayObj.getProperty(runtime, "buffer")
+                           .asObject(runtime)
+                           .getArrayBuffer(runtime);
+  if (size > 0) {
+    std::memcpy(buffer.data(runtime), ptr, size);
+  }
+  return uint8Array;
 }
 
 static std::string mpToString(msgpack::object &o) {
@@ -96,23 +120,8 @@ Value KBBridge::convertMPToJSI(Runtime &runtime, void *mpObj) {
   }
   case msgpack::type::BIN: {
     auto ptr = o.via.bin.ptr;
-    int size = o.via.bin.size;
-
-    resetCaches(runtime);
-    if (!cachedUint8ArrayCtor_) {
-      auto ctor =
-          runtime.global().getPropertyAsFunction(runtime, "Uint8Array");
-      cachedUint8ArrayCtor_ = std::make_unique<Function>(std::move(ctor));
-    }
-
-    Value uint8Array =
-        cachedUint8ArrayCtor_->callAsConstructor(runtime, size);
-    Object uint8ArrayObj = uint8Array.asObject(runtime);
-    ArrayBuffer buffer = uint8ArrayObj.getProperty(runtime, "buffer")
-                             .asObject(runtime)
-                             .getArrayBuffer(runtime);
-    std::memcpy(buffer.data(runtime), ptr, size);
-    return uint8Array;
+    auto size = o.via.bin.size;
+    return binaryFromBytes(runtime, ptr, size);
   }
   case msgpack::type::ARRAY: {
     auto size = o.via.array.size;
@@ -154,11 +163,28 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
     pk.pack(str);
   } else if (value.isObject()) {
     auto obj = value.getObject(runtime);
+    auto packArrayBufferBytesUnchecked = [&](ArrayBuffer &arrayBuf,
+                                             size_t offset, size_t length) {
+      pk.pack_bin(static_cast<uint32_t>(length));
+      pk.pack_bin_body(
+          reinterpret_cast<const char *>(arrayBuf.data(runtime)) + offset,
+          static_cast<uint32_t>(length));
+    };
+    auto packArrayBufferBytes = [&](ArrayBuffer &arrayBuf, size_t offset,
+                                    size_t length) {
+      auto bufferSize = arrayBuf.size(runtime);
+      if (offset > bufferSize || length > bufferSize - offset ||
+          length > std::numeric_limits<uint32_t>::max()) {
+        throw std::runtime_error("ArrayBuffer view is out of range");
+      }
+      pk.pack_bin(static_cast<uint32_t>(length));
+      pk.pack_bin_body(
+          reinterpret_cast<const char *>(arrayBuf.data(runtime)) + offset,
+          static_cast<uint32_t>(length));
+    };
     if (obj.isArrayBuffer(runtime)) {
       auto buf = obj.getArrayBuffer(runtime);
-      pk.pack_bin(static_cast<uint32_t>(buf.size(runtime)));
-      pk.pack_bin_body(reinterpret_cast<const char *>(buf.data(runtime)),
-                       static_cast<uint32_t>(buf.size(runtime)));
+      packArrayBufferBytes(buf, 0, buf.size(runtime));
     } else if (obj.isArray(runtime)) {
       auto arr = obj.getArray(runtime);
       auto len = arr.size(runtime);
@@ -167,12 +193,12 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
         convertJSIToMP(runtime, arr.getValueAtIndex(runtime, i), &pk);
       }
     } else {
-      auto names = obj.getPropertyNames(runtime);
-      auto len = names.size(runtime);
-
-      // Probe for TypedArray (Uint8Array). Extracted as a lambda so it
-      // can be called from two sites without duplicating the logic.
-      auto tryPackTypedArray = [&]() -> bool {
+      auto tryPackTypedArray = [&](bool requireUint8Array,
+                                   bool validateView) -> bool {
+        if (requireUint8Array &&
+            !obj.instanceOf(runtime, uint8ArrayCtor(runtime))) {
+          return false;
+        }
         auto byteLengthProp = obj.getProperty(runtime, "byteLength");
         if (!byteLengthProp.isNumber()) return false;
         auto bufferProp = obj.getProperty(runtime, "buffer");
@@ -181,20 +207,40 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
         if (!bufferObj.isArrayBuffer(runtime)) return false;
         auto arrayBuf = bufferObj.getArrayBuffer(runtime);
         auto byteOffset = obj.getProperty(runtime, "byteOffset");
-        size_t offset = byteOffset.isNumber()
-                            ? static_cast<size_t>(byteOffset.getNumber())
-                            : 0;
-        size_t length = static_cast<size_t>(byteLengthProp.getNumber());
-        pk.pack_bin(static_cast<uint32_t>(length));
-        pk.pack_bin_body(
-            reinterpret_cast<const char *>(arrayBuf.data(runtime)) + offset,
-            static_cast<uint32_t>(length));
+        auto byteLengthNum = byteLengthProp.getNumber();
+        auto byteOffsetNum =
+            byteOffset.isNumber() ? byteOffset.getNumber() : 0;
+        if (validateView) {
+          if (!std::isfinite(byteOffsetNum) ||
+              !std::isfinite(byteLengthNum) || byteOffsetNum < 0 ||
+              byteLengthNum < 0 ||
+              byteOffsetNum != std::floor(byteOffsetNum) ||
+              byteLengthNum != std::floor(byteLengthNum)) {
+            return false;
+          }
+          auto offset = static_cast<size_t>(byteOffsetNum);
+          auto length = static_cast<size_t>(byteLengthNum);
+          packArrayBufferBytes(arrayBuf, offset, length);
+        } else {
+          auto offset = static_cast<size_t>(byteOffsetNum);
+          auto length = static_cast<size_t>(byteLengthNum);
+          packArrayBufferBytesUnchecked(arrayBuf, offset, length);
+        }
         return true;
       };
 
+      // Uint8Array is common for RPC binary payloads; check it before
+      // enumerating indexed properties.
+      if (tryPackTypedArray(true, true)) {
+        return;
+      }
+
+      auto names = obj.getPropertyNames(runtime);
+      auto len = names.size(runtime);
+
       // Empty object: could be {} or empty TypedArray — must probe
       if (len == 0) {
-        if (tryPackTypedArray()) return;
+        if (tryPackTypedArray(false, false)) return;
         pk.pack_map(0);
         return;
       }
@@ -206,7 +252,7 @@ void KBBridge::convertJSIToMP(Runtime &runtime, const Value &value,
       auto firstName = names.getValueAtIndex(runtime, 0).getString(runtime);
       auto firstStr = firstName.utf8(runtime);
       if (!firstStr.empty() && firstStr[0] >= '0' && firstStr[0] <= '9') {
-        if (tryPackTypedArray()) return;
+        if (tryPackTypedArray(false, false)) return;
       }
 
       // Regular object — encode as MAP
@@ -328,7 +374,6 @@ void KBBridge::onDataFromGo(uint8_t *data, int size) {
         break;
       }
     }
-
     if (values->empty()) {
       return;
     }

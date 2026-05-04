@@ -31,10 +31,6 @@ import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
 const List = /*usingFlashList ? FlashList :*/ FlatList
 const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
 
-// We load the first thread automatically so in order to mark it read
-// we send an action on the first mount once
-let markedInitiallyLoaded = false
-
 export const DEBUGDump = () => {}
 
 const useInvertedMessageOrdinals = (messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>) => {
@@ -127,7 +123,7 @@ const ConversationList = function ConversationList() {
   const messageOrdinals = useInvertedMessageOrdinals(listData.messageOrdinals)
 
   const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
-  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
+  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
   }
@@ -183,19 +179,22 @@ const ConversationList = function ConversationList() {
     return undefined
   }, [centeredOrdinalOrNone, scrollToCentered])
 
-  React.useEffect(() => {
-    if (!markedInitiallyLoaded) {
-      markedInitiallyLoaded = true
-      markInitiallyLoadedThreadAsRead()
-    }
-  }, [markInitiallyLoadedThreadAsRead])
-
-  const prevLoadedRef = React.useRef(loaded)
+  const prevLoadedRef = React.useRef(false)
+  const markedLoadedThreadRef = React.useRef(false)
+  React.useLayoutEffect(() => {
+    prevLoadedRef.current = false
+    markedLoadedThreadRef.current = false
+  }, [conversationIDKey])
   React.useLayoutEffect(() => {
     const justLoaded = loaded && !prevLoadedRef.current
     prevLoadedRef.current = loaded
 
     if (!justLoaded) return
+
+    if (!markedLoadedThreadRef.current) {
+      markedLoadedThreadRef.current = true
+      markInitiallyLoadedThreadAsRead()
+    }
 
     if (centeredOrdinalOrNone > 0) {
       scrollToCentered()
@@ -208,7 +207,14 @@ const ConversationList = function ConversationList() {
         scrollToBottom()
       }, 100)
     }
-  }, [loaded, centeredOrdinalOrNone, scrollToBottom, scrollToCentered, numOrdinals])
+  }, [
+    centeredOrdinalOrNone,
+    loaded,
+    markInitiallyLoadedThreadAsRead,
+    numOrdinals,
+    scrollToBottom,
+    scrollToCentered,
+  ])
 
   // useChatDebugDump(
   //   'listArea',

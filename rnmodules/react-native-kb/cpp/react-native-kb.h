@@ -51,6 +51,9 @@ private:
   std::vector<uint8_t> combinedBuf_;
 
   void resetCaches(facebook::jsi::Runtime &runtime);
+  facebook::jsi::Function &uint8ArrayCtor(facebook::jsi::Runtime &runtime);
+  facebook::jsi::Value binaryFromBytes(facebook::jsi::Runtime &runtime,
+                                       const char *ptr, size_t size);
   facebook::jsi::Value convertMPToJSI(facebook::jsi::Runtime &runtime,
                                       void *mpObj);
   void convertJSIToMP(facebook::jsi::Runtime &runtime,
