@@ -44,7 +44,6 @@ const useScrolling = (p: {
   setListRef: (r: HTMLDivElement | null) => void
   centeredOrdinal: T.Chat.Ordinal | undefined
 }) => {
-  const conversationIDKey = useConversationThreadID()
   const {listRef, setListRef: _setListRef, containsLatestMessage} = p
   const containsLatestMessageRef = React.useRef(containsLatestMessage)
   React.useEffect(() => {
