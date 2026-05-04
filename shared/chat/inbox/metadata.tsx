@@ -260,7 +260,7 @@ export const onChatRouteChanged = (
     return
   }
   if (wasChat && wasID && T.Chat.isValidConversationIDKey(wasID)) {
-    unboxRows([wasID], true)
+    unboxRows([wasID])
   }
 }
 
@@ -297,6 +297,8 @@ const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey
     const trustedState = trustedStateForConversation(id)
     return trustedState !== 'requesting' && trustedState !== 'trusted'
   })
+
+const inFlightUnboxRows = new Set<T.Chat.ConversationIDKey>()
 
 type ConvoMetaQueueState = T.Immutable<{
   generation: number
@@ -340,6 +342,7 @@ const useConvoMetaQueueState = Z.createZustand<ConvoMetaQueueState>('convo-meta-
       get().dispatch.queueMetaHandle()
     },
     resetState: () => {
+      inFlightUnboxRows.clear()
       set(s => {
         s.generation += 1
         s.inFlight = false
@@ -405,7 +408,7 @@ async function runMetaQueueWorker(generation: number) {
   }
 }
 
-export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: boolean) => {
+const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force: boolean) => {
   const f = async () => {
     if (!useConfigState.getState().loggedIn) {
       return
@@ -414,7 +417,10 @@ export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: 
     const conversationIDKeys = ids.reduce<Array<string>>((arr, id) => {
       if (id && T.Chat.isValidConversationIDKey(id)) {
         const trustedState = trustedStateForConversation(id)
-        if (force || (trustedState !== 'requesting' && trustedState !== 'trusted')) {
+        if (
+          !inFlightUnboxRows.has(id) &&
+          (force || (trustedState !== 'requesting' && trustedState !== 'trusted'))
+        ) {
           arr.push(id)
         }
       }
@@ -424,6 +430,7 @@ export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: 
     if (!conversationIDKeys.length) {
       return
     }
+    conversationIDKeys.forEach(id => inFlightUnboxRows.add(id))
     setInboxRowTrustedState(conversationIDKeys, 'requesting')
     logger.info(
       `unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`
@@ -436,9 +443,19 @@ export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, force?: 
       if (error instanceof RPCError) {
         logger.info(`unboxRows: failed ${error.desc}`)
       }
+    } finally {
+      conversationIDKeys.forEach(id => inFlightUnboxRows.delete(id))
     }
   }
   ignorePromise(f())
+}
+
+export const unboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => {
+  requestInboxUnboxRows(ids, false)
+}
+
+export const forceUnboxRowsForService = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => {
+  requestInboxUnboxRows(ids, true)
 }
 
 export const queueMetaHandle = () => {
@@ -471,7 +488,7 @@ export const ensureWidgetMetas = (
   if (missing.length === 0) {
     return
   }
-  unboxRows(missing, true)
+  unboxRows(missing)
 }
 
 export const ensureInboxSearchMetas = (ids: ReadonlyArray<T.Chat.ConversationIDKey>) => {
@@ -482,7 +499,7 @@ export const ensureInboxSearchMetas = (ids: ReadonlyArray<T.Chat.ConversationIDK
     return arr
   }, [])
   if (missing.length > 0) {
-    unboxRows(missing, true)
+    unboxRows(missing)
   }
 }
 
@@ -554,11 +571,10 @@ export const onChatInboxSynced = async (
         metasReceived(metas, removals)
       }
 
-      unboxRows(
+      forceUnboxRowsForService(
         items
           .filter(item => item.shouldUnbox)
-          .map(item => T.Chat.stringToConversationIDKey(item.conv.convID)),
-        true
+          .map(item => T.Chat.stringToConversationIDKey(item.conv.convID))
       )
       return
     }

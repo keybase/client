@@ -1973,7 +1973,6 @@ export const useConversationThreadMessageActions = () => {
 
 export const useConversationThreadSelectedConversation = () => {
   const conversationIDKey = useConversationThreadID()
-  const isMetaGood = useConversationThreadSelector(s => s.meta.conversationIDKey === conversationIDKey)
   const loadMoreMessages = useConversationThreadLoadMoreMessages()
   const participantInfo = useConversationThreadSelector(s => s.participants)
 
@@ -1981,8 +1980,7 @@ export const useConversationThreadSelectedConversation = () => {
     const {skipThreadLoad, ...loadStatusOptions} = options ?? {}
     clearChatTimeCache()
 
-    const force = !isMetaGood || participantInfo.all.length === 0
-    unboxRows([conversationIDKey], force)
+    unboxRows([conversationIDKey])
 
     const username = useCurrentUserState.getState().username
     const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
