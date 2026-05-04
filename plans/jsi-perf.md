@@ -29,9 +29,7 @@ Keybase is on RN 0.83.4 with New Architecture and Hermes enabled. RN's public Tu
 ## Run / Evaluation Notes
 
 - Keep all measurements benchmark-only until the current bridge baseline is captured and compared against any ArrayBuffer-backed prototype.
-- This machine cannot run the JS validation or benchmark workflow because `node_modules` is absent; do not run `yarn`, `npm`, `yarn lint`, `yarn tsc`, or other node-based tooling here.
 - Local work on this machine is limited to code/document inspection and source updates. Run the benchmark harness, RN build, and validation on a machine with dependencies installed.
-- The remaining unchecked item is the actual run/result capture step on a runnable environment.
 
 ## Experiment Matrix
 
