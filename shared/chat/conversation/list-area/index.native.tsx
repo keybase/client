@@ -123,7 +123,7 @@ const ConversationList = function ConversationList() {
   const messageOrdinals = useInvertedMessageOrdinals(listData.messageOrdinals)
 
   const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
-  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
+  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
   }

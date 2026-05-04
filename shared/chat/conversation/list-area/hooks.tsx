@@ -1,24 +1,15 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat'
 import JumpToRecent from './jump-to-recent'
-import type * as T from '@/constants/types'
 import {useConversationCenter} from '../center-context'
 import {
   useConversationThreadMarkThreadAsRead,
   useConversationThreadSelector,
   useConversationThreadToggleSearch,
 } from '../thread-context'
-import logger from '@/logger'
 
-export const useActions = (p: {conversationIDKey: T.Chat.ConversationIDKey}) => {
-  const {conversationIDKey} = p
+export const useActions = () => {
   const markThreadAsRead = useConversationThreadMarkThreadAsRead()
   const markInitiallyLoadedThreadAsRead = () => {
-    const selected = Chat.getSelectedConversation()
-    if (selected !== conversationIDKey) {
-      logger.info('mark intially as read bail on not looking at this thread anymore?')
-      return
-    }
     markThreadAsRead()
   }
 

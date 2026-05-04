@@ -64,7 +64,7 @@ const useScrolling = (p: {
   const loadOlderMessages = React.useCallback((numOrdinals: number) => {
     loadOlderMessagesDueToScroll(numOrdinals, getThreadLoadStatusOptions())
   }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
-  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
+  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
   const listEdgeSlopTop = 1000

@@ -30,6 +30,7 @@ import {useShellState} from '@/stores/shell'
 import {produce, type Draft} from 'immer'
 import {useStore} from 'zustand'
 import {createStore, type StoreApi} from 'zustand/vanilla'
+import {useIsFocused} from '@react-navigation/core'
 import {
   addMessagesToThreadState,
   applyOptimisticReactionsToMessage,
@@ -903,6 +904,8 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
   const {children, id} = p
   const [threadStore] = React.useState(() => makeThreadStore(id))
   const active = useShellState(s => s.active)
+  const appFocused = useShellState(s => s.appFocused)
+  const routeFocused = useIsFocused()
   const previousActiveRef = React.useRef(active)
   const activeMarkReadEnabledRef = React.useRef(false)
   const markReadBlockedRef = React.useRef(false)
@@ -936,7 +939,7 @@ const ConversationThreadProviderInner = (p: ConversationThreadProviderProps) => 
         logger.info('mark read bail on blocked thread load')
         return
       }
-      if (!Common.isUserActivelyLookingAtThisThread(id)) {
+      if (!appFocused || !active || !routeFocused) {
         logger.info('mark read bail on not looking at this thread')
         return
       }
