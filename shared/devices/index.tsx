@@ -153,10 +153,14 @@ function ReloadableDevices() {
           {Kb.Styles.isMobile ? (
             <Kb.ClickableBox onClick={() => onAddDevice()} style={headerStyles.container}>
               <Kb.Button label="Add a device or paper key" fullWidth={true} />
+              {waiting ? (
+                <Kb.Box2 direction="vertical" centerChildren={true} style={styles.progressContainer}>
+                  <Kb.ProgressIndicator />
+                </Kb.Box2>
+              ) : null}
             </Kb.ClickableBox>
           ) : null}
           {showPaperKeyNudge ? <PaperKeyNudge onAddDevice={() => onAddDevice(['paper key'])} /> : null}
-          {waiting ? <Kb.ProgressIndicator style={styles.progress} /> : null}
           <Kb.BoxGrow2>
             <Kb.List bounces={false} items={items} renderItem={renderItem} itemHeight={itemHeight} keyProperty="key" />
           </Kb.BoxGrow2>
@@ -174,11 +178,12 @@ type Item =
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      progress: {
-        left: 12,
+      progressContainer: {
+        bottom: 0,
+        left: 0,
         position: 'absolute',
-        top: Kb.Styles.isMobile ? 22 : 14,
-        width: 20,
+        right: 0,
+        top: 0,
       },
       revokedNote: {
         padding: Kb.Styles.globalMargins.medium,
@@ -195,6 +200,7 @@ const headerStyles = Kb.Styles.styleSheetCreate(() => ({
     justifyContent: 'center',
     paddingLeft: Kb.Styles.globalMargins.small,
     paddingRight: Kb.Styles.globalMargins.small,
+    position: 'relative',
   },
 }))
 

@@ -4,6 +4,7 @@ import type * as RPCChatTypes from '@/constants/rpc/rpc-chat-gen'
 export type PushNotification =
   | {
       badges: number
+      forUid?: string
       type: 'chat.readmessage'
     }
   | {
@@ -25,6 +26,21 @@ export type PushNotification =
       type: 'follow'
       userInteraction: boolean
       username: string
+    }
+  | {
+      forUid?: string
+      type: 'device.revoked'
+      userInteraction: boolean
+    }
+  | {
+      forUid?: string
+      type: 'device.new'
+      userInteraction: boolean
+    }
+  | {
+      forUid?: string
+      type: 'autoreset'
+      userInteraction: boolean
     }
   | {
       conversationIDKey: ChatTypes.ConversationIDKey

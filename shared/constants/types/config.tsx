@@ -8,6 +8,6 @@ export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
 export type ConfiguredAccount = {
   fullname?: string
   hasStoredSecret: boolean
-  uid?: string
+  uid: string
   username: string
 }

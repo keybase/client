@@ -303,12 +303,11 @@ func (d *Service) Run() (err error) {
 		return
 	}
 
-	if err = d.G().LocalDb.ForceOpen(); err != nil {
-		return err
-	}
-	if err = d.G().LocalChatDb.ForceOpen(); err != nil {
-		return err
-	}
+	// Open both local DBs concurrently. They are at different paths so there
+	// is no lock contention between them. Any DB call that arrives before an
+	// open finishes will block on sync.Once inside doWhileOpenAndNukeIfCorrupted.
+	go func() { _ = d.G().LocalDb.ForceOpen() }()
+	go func() { _ = d.G().LocalChatDb.ForceOpen() }()
 
 	var l net.Listener
 	if l, err = d.ConfigRPCServer(); err != nil {
@@ -666,6 +665,12 @@ func (d *Service) StartLoopbackServer(loginMode libkb.LoginAttempt) error {
 	if err = d.GetExclusiveLock(); err != nil {
 		return err
 	}
+
+	// Open both local DBs concurrently. They are at different paths so there
+	// is no lock contention between them. Any DB call that arrives before an
+	// open finishes will block on sync.Once inside doWhileOpenAndNukeIfCorrupted.
+	go func() { _ = d.G().LocalDb.ForceOpen() }()
+	go func() { _ = d.G().LocalChatDb.ForceOpen() }()
 
 	if l, err = d.G().MakeLoopbackServer(); err != nil {
 		return err

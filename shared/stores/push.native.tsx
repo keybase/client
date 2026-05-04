@@ -1,5 +1,7 @@
 import * as S from '@/constants/strings'
+import * as Tabs from '@/constants/tabs'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '@/constants/utils'
+import {navUpToScreen, switchTab} from '@/constants/router'
 import {emitDeepLink} from '@/router-v2/linking'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -150,21 +152,33 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
           if (forUid) {
             const currentUid = useCurrentUserState.getState().uid
             if (forUid !== currentUid) {
+              const userInteraction = 'userInteraction' in notification ? notification.userInteraction : false
+              if (!userInteraction) {
+                logger.info('[Push] notification for different account but no userInteraction, skipping')
+                return
+              }
               const {configuredAccounts, dispatch: configDispatch} = useConfigState.getState()
               const account = configuredAccounts.find(acc => acc.uid === forUid)
               if (!account) {
-                logger.info('[Push] notification forUid not in configured accounts, skipping')
+                logger.info('[Push] notification forUid not in configured accounts yet, waiting to retry')
+                set(s => {
+                  s.pendingPushNotification = notification
+                })
                 return
               }
               if (!account.hasStoredSecret) {
                 logger.info('[Push] account has no stored secret, cannot switch')
                 return
               }
+              if (useConfigState.getState().userSwitching) {
+                logger.info('[Push] switch already in progress for this account, skipping duplicate')
+                return
+              }
               logger.info('[Push] switching to account for notification tap')
+              configDispatch.setUserSwitching(true)
               set(s => {
                 s.pendingPushNotification = notification
               })
-              configDispatch.setUserSwitching(true)
               configDispatch.login(account.username, '')
               return
             }
@@ -187,6 +201,18 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
                 const {username} = notification
                 emitDeepLink(`keybase://profile/show/${username}`)
               }
+              break
+            case 'device.revoked':
+            case 'device.new':
+              if (notification.userInteraction && useConfigState.getState().loggedIn) {
+                switchTab(Tabs.settingsTab)
+                navUpToScreen('devicesRoot')
+              }
+              break
+            case 'autoreset':
+              // The ResetModal is always mounted and self-shows when autoreset.active
+              // is true (driven by Gregor/badge state sync). The account switch above
+              // is sufficient; no explicit navigation needed.
               break
             case 'chat.extension':
               {
@@ -280,7 +306,21 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       }
       ignorePromise(f())
     },
-    resetState: Z.defaultReset,
+    resetState: () => {
+      const pendingPushNotification = useConfigState.getState().userSwitching
+        ? get().pendingPushNotification
+        : undefined
+      set(s => ({
+        ...initialStore,
+        dispatch: s.dispatch,
+        pendingPushNotification,
+      }))
+    },
+    setPendingPushNotification: (notification: T.Push.PushNotification) => {
+      set(s => {
+        s.pendingPushNotification = notification
+      })
+    },
     setPushToken: (token: string) => {
       set(s => {
         s.token = token

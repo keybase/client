@@ -434,14 +434,14 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       const nextConfiguredAccounts: Array<T.Config.ConfiguredAccount> = []
 
       configuredAccounts.forEach(account => {
-        const {username, isCurrent, fullname, hasStoredSecret} = account
+        const {username, isCurrent, fullname, hasStoredSecret, uid} = account
         if (username === defaultUsername) {
           existingDefaultFound = true
         }
         if (isCurrent) {
           currentName = account.username
         }
-        nextConfiguredAccounts.push({fullname, hasStoredSecret, username})
+        nextConfiguredAccounts.push({fullname, hasStoredSecret, uid, username})
       })
       if (!existingDefaultFound) {
         setDefaultUsername(currentName)
@@ -581,9 +581,15 @@ export const useConfigState = Z.createZustand<State>('config', (set, get) => {
       set(s => {
         s.loginError = error
       })
-      // On login error, turn off the user switching flag, so that the login screen is not
-      // hidden and the user can see and respond to the error.
-      get().dispatch.setUserSwitching(false)
+      if (error) {
+        get().dispatch.setUserSwitching(false)
+        const push = require('@/stores/push') as {
+          usePushState?: {
+            getState: () => {dispatch: {clearPendingPushNotification: () => void}}
+          }
+        }
+        push.usePushState?.getState().dispatch.clearPendingPushNotification()
+      }
     },
     setOutOfDate: outOfDate => {
       set(s => {

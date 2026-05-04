@@ -70,7 +70,7 @@ export type Props = {
   context?: string // metadata used for bookkeeping
   children?: string
   lineClamp?: LineClampType
-  selectable?: boolean // desktop - applies to outer container only
+  selectable?: boolean
   smallStandaloneEmoji?: boolean // don't increase font size for a standalone emoji
   paragraphTextClassName?: string
   preview?: boolean // if true render a simplified version
@@ -479,6 +479,7 @@ function SimpleMarkdownComponent(p: Props) {
       disallowAnimation,
       messageType,
       paragraphTextClassName,
+      selectable,
       styleOverride,
       virtualText,
     }

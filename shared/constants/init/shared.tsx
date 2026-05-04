@@ -175,7 +175,11 @@ const onLoadOnStartPhaseChanged = (loadOnStartPhase: ConfigState['loadOnStartPha
 
 const onGregorReachableChanged = (gregorReachable: ConfigState['gregorReachable']) => {
   // Re-get info about our account if you log in/we're done handshaking/became reachable
-  if (gregorReachable === T.RPCGen.Reachable.yes && useDaemonState.getState().handshakeWaiters.size === 0) {
+  if (
+    gregorReachable === T.RPCGen.Reachable.yes &&
+    useDaemonState.getState().handshakeWaiters.size === 0 &&
+    !useConfigState.getState().userSwitching
+  ) {
     ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
   }
 }
@@ -259,6 +263,10 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
   }
   if (loggedIn) {
     configDispatch.setUserSwitching(false)
+  }
+  if (!loggedIn && useConfigState.getState().userSwitching) {
+    logger.info('[Bootstrap] ignoring loggedIn=false result during account switch')
+    return
   }
   configDispatch.setLoggedIn(loggedIn, false)
 

@@ -6,15 +6,20 @@ import os
 private let log = Logger(subsystem: "com.keybase.app", category: "push")
 
 class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
-  func localNotification(_ ident: String?, msg: String?, badgeCount: Int, soundName: String?, convID: String?, typ: String?) {
+  func localNotification(
+    _ ident: String?, title: String?, msg: String?, badgeCount: Int, soundName: String?,
+    convID: String?, typ: String?, uid: String?
+  ) {
     let content = UNMutableNotificationContent()
     if let soundName = soundName {
       content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: soundName))
     }
     content.badge = (badgeCount >= 0) ? NSNumber(value: badgeCount) : nil
+    content.title = title ?? ""
     content.body = msg ?? ""
-    content.userInfo = ["convID": convID ?? "", "type": typ ?? ""]
-    let request = UNNotificationRequest(identifier: ident ?? UUID().uuidString, content: content, trigger: nil)
+    content.userInfo = ["convID": convID ?? "", "type": typ ?? "", "uid": uid ?? ""]
+    let request = UNNotificationRequest(
+      identifier: ident ?? UUID().uuidString, content: content, trigger: nil)
     UNUserNotificationCenter.current().add(request) { error in
       if let error = error {
         log.error("local notification failed: \(error.localizedDescription, privacy: .public)")
@@ -37,6 +42,17 @@ class PushNotifier: NSObject, Keybasego.KeybasePushNotifierProtocol {
     } else {
       msg = message.serverMessage
     }
-    localNotification(ident, msg: msg, badgeCount: notification.badgeCount, soundName: notification.soundName, convID: notification.convID, typ: "chat.newmessage")
+    let title = notification.title
+
+    let soundName: String? = notification.soundName.isEmpty ? nil : notification.soundName
+    let uid: String? = notification.uid.isEmpty ? nil : notification.uid
+    localNotification(
+      ident, title: title, msg: msg,
+      badgeCount: notification.badgeCount,
+      soundName: soundName,
+      convID: notification.convID,
+      typ: "chat.newmessage",
+      uid: uid
+    )
   }
 }

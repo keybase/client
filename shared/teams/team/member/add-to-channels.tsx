@@ -239,9 +239,9 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   return (
     <Common.ActivityLevelsProvider>
       {loadingChannels && !channelMetas.size ? (
-        <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box style={styles.spinnerContainer}>
           <Kb.ProgressIndicator type="Large" />
-        </Kb.Box2>
+        </Kb.Box>
       ) : (
         <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
@@ -644,6 +644,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   searchFilterContainer: Kb.Styles.platformStyles({
     isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   }),
+  spinnerContainer: {
+    ...Kb.Styles.globalStyles.flexOne,
+    ...Kb.Styles.globalStyles.flexBoxCenter,
+  },
 }))
 
 const AddToChannels = (props: Props) => (
