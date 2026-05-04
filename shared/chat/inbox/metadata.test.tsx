@@ -21,10 +21,10 @@ afterEach(() => {
   resetAllStores()
 })
 
-test('forceUnboxRowsForService deduplicates requests while an unbox is in flight', async () => {
+test('forceUnboxRowsForService reruns once for requests made while an unbox is in flight', async () => {
   const resolvers = new Array<() => void>()
   jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockImplementation(
-    async () =>
+    () =>
       new Promise(resolve => {
         resolvers.push(() => {
           resolve(undefined)
@@ -39,9 +39,6 @@ test('forceUnboxRowsForService deduplicates requests while an unbox is in flight
   expect(T.RPCChat.localRequestInboxUnboxRpcPromise).toHaveBeenCalledTimes(1)
 
   resolvers[0]?.()
-  await flushPromises()
-
-  forceUnboxRowsForService([convID])
   await flushPromises()
 
   expect(T.RPCChat.localRequestInboxUnboxRpcPromise).toHaveBeenCalledTimes(2)

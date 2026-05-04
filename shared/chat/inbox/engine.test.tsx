@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {handleConvoEngineIncoming} from './engine'
 import {getInboxConversationMeta, getInboxConversationParticipants, syncBadgeState} from './metadata'
+import {useConfigState} from '@/stores/config'
 import {
   syncInboxRowBadgeState,
   syncInboxRowsFromParticipantMap,
@@ -263,6 +264,33 @@ test('global message activity routing preserves returned global data', () => {
     type: 'chat.1.NotifyChat.NewChatActivity',
   } as never)
   expect(reactionResult.userReacjis).toEqual(userReacjis)
+})
+
+test('read message activity without attached inbox item refreshes service-owned metadata', () => {
+  useConfigState.setState({loggedIn: true})
+  const unbox = jest.spyOn(T.RPCChat, 'localRequestInboxUnboxRpcPromise').mockResolvedValue(undefined)
+
+  expect(
+    handleConvoEngineIncoming({
+      payload: {
+        params: {
+          activity: {
+            activityType: T.RPCChat.ChatActivityType.readMessage,
+            readMessage: {
+              conv: null,
+              convID: T.Chat.keyToConversationID(convID),
+              msgID: T.Chat.messageIDToNumber(msgID),
+            },
+          },
+        },
+      },
+      type: 'chat.1.NotifyChat.NewChatActivity',
+    } as never).handled
+  ).toBe(true)
+
+  expect(unbox).toHaveBeenCalledWith({
+    convIDs: [T.Chat.keyToConversationID(convID)],
+  })
 })
 
 test('global failed message and transfer routing is handled without mounted thread state', () => {

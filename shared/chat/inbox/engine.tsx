@@ -116,8 +116,13 @@ const onNewChatActivity = (activity: NewChatActivity): ConvoEngineIncomingResult
     }
     case T.RPCChat.ChatActivityType.setStatus:
       return handledConvoEngineIncoming({inboxUIItem: activity.setStatus.conv ?? undefined})
-    case T.RPCChat.ChatActivityType.readMessage:
-      return handledConvoEngineIncoming({inboxUIItem: activity.readMessage.conv ?? undefined})
+    case T.RPCChat.ChatActivityType.readMessage: {
+      const {readMessage} = activity
+      if (!readMessage.conv) {
+        forceUnboxRowsForService([T.Chat.conversationIDToKey(readMessage.convID)])
+      }
+      return handledConvoEngineIncoming({inboxUIItem: readMessage.conv ?? undefined})
+    }
     case T.RPCChat.ChatActivityType.newConversation:
       return handledConvoEngineIncoming({inboxUIItem: activity.newConversation.conv ?? undefined})
     case T.RPCChat.ChatActivityType.failedMessage: {

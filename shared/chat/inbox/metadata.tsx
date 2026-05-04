@@ -299,6 +299,7 @@ const untrustedConversationIDKeys = (ids: ReadonlyArray<T.Chat.ConversationIDKey
   })
 
 const inFlightUnboxRows = new Set<T.Chat.ConversationIDKey>()
+const pendingForcedUnboxRows = new Set<T.Chat.ConversationIDKey>()
 
 type ConvoMetaQueueState = T.Immutable<{
   generation: number
@@ -343,6 +344,7 @@ const useConvoMetaQueueState = Z.createZustand<ConvoMetaQueueState>('convo-meta-
     },
     resetState: () => {
       inFlightUnboxRows.clear()
+      pendingForcedUnboxRows.clear()
       set(s => {
         s.generation += 1
         s.inFlight = false
@@ -417,10 +419,11 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
     const conversationIDKeys = ids.reduce<Array<string>>((arr, id) => {
       if (id && T.Chat.isValidConversationIDKey(id)) {
         const trustedState = trustedStateForConversation(id)
-        if (
-          !inFlightUnboxRows.has(id) &&
-          (force || (trustedState !== 'requesting' && trustedState !== 'trusted'))
-        ) {
+        if (inFlightUnboxRows.has(id)) {
+          if (force) {
+            pendingForcedUnboxRows.add(id)
+          }
+        } else if (force || (trustedState !== 'requesting' && trustedState !== 'trusted')) {
           arr.push(id)
         }
       }
@@ -445,6 +448,16 @@ const requestInboxUnboxRows = (ids: ReadonlyArray<T.Chat.ConversationIDKey>, for
       }
     } finally {
       conversationIDKeys.forEach(id => inFlightUnboxRows.delete(id))
+      const rerunIDs = conversationIDKeys.filter(id => {
+        const shouldRerun = pendingForcedUnboxRows.has(id)
+        if (shouldRerun) {
+          pendingForcedUnboxRows.delete(id)
+        }
+        return shouldRerun
+      })
+      if (rerunIDs.length > 0) {
+        requestInboxUnboxRows(rerunIDs, true)
+      }
     }
   }
   ignorePromise(f())
