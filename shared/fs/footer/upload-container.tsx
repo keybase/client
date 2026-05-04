@@ -1,17 +1,13 @@
 import * as T from '@/constants/types'
 import Upload from './upload'
 import {useUploadCountdown} from './use-upload-countdown'
-import * as C from '@/constants'
 import {useFSState} from '@/stores/fs'
+import {useFsUploadStatus} from '../common'
 import {useNonFolderSyncingPaths} from '../common/use-non-folder-syncing-paths'
 
 const UpoadContainer = () => {
-  const {kbfsDaemonStatus, uploads} = useFSState(
-    C.useShallow(s => {
-      const {kbfsDaemonStatus, uploads} = s
-      return {kbfsDaemonStatus, uploads}
-    })
-  )
+  const kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const uploads = useFsUploadStatus()
 
   // We just use syncingPaths rather than merging with writingToJournal here
   // since journal status comes a bit slower, and merging the two causes

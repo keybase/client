@@ -16,6 +16,7 @@ import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useNotifState} from '@/stores/notifications'
 import type * as NotifConstants from '@/stores/notifications'
+import {useFsOverallSyncStatus, useFsUploadStatus} from '@/fs/common/status'
 import {useNonFolderSyncingPaths} from '@/fs/common/use-non-folder-syncing-paths'
 import {
   fuseStatusToDriverStatus,
@@ -333,12 +334,9 @@ function useMenubarRemoteProps(): Props {
       return {badgeState, httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount}
     })
   )
-  const {kbfsDaemonStatus, overallSyncStatus, uploads} = useFSState(
-    C.useShallow(s => {
-      const {kbfsDaemonStatus, overallSyncStatus, uploads} = s
-      return {kbfsDaemonStatus, overallSyncStatus, uploads}
-    })
-  )
+  const kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const overallSyncStatus = useFsOverallSyncStatus()
+  const uploads = useFsUploadStatus()
   const navBadgesMap = useNotifState(s => s.navBadges)
   const {widgetList, inboxHasLoaded, inboxRefresh} = useInboxLayoutState(
     C.useShallow(s => ({

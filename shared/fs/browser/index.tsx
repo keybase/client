@@ -28,12 +28,8 @@ const Container = (ownProps: OwnProps) => {
   const filter = useModalHeaderState(s => s.folderViewFilter)
   const _pathItem = useFsPathItem(path)
   const tlf = useFsTlf(path)
-  const {_kbfsDaemonStatus, resetBannerType} = useFSState(
-    C.useShallow(s => ({
-      _kbfsDaemonStatus: s.kbfsDaemonStatus,
-      resetBannerType: FS.resetBannerTypeFromTlf(tlf),
-    }))
-  )
+  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const resetBannerType = FS.resetBannerTypeFromTlf(tlf)
   const props = {
     filter,
     lastClosedPublicBannerTlf: ownProps.lastClosedPublicBannerTlf,

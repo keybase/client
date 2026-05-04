@@ -492,24 +492,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
         routeConvoEngineIncoming(action)
       }
       break
-    case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
-      {
-        useFSState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.NotifyFS.FSSubscriptionNotify':
-      {
-        switch (action.payload.params.topic) {
-          case T.RPCGen.SubscriptionTopic.journalStatus:
-          case T.RPCGen.SubscriptionTopic.uploadStatus:
-          case T.RPCGen.SubscriptionTopic.settings: {
-            useFSState.getState().dispatch.onEngineIncomingImpl(action)
-            break
-          }
-          default:
-        }
-      }
-      break
     case 'keybase.1.NotifyEmailAddress.emailAddressVerified':
       {
         const emailAddress = action.payload.params.emailAddress

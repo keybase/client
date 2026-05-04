@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FS from '@/stores/fs'
 import {useFSState} from '@/stores/fs'
-import {useFsErrorActionOrThrow} from '../common/error-state'
+import {useFsErrorActionOrThrow, useFsOverallSyncStatus} from '../common'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
@@ -55,13 +55,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const ConnectedBanner = () => {
-  const {_kbfsDaemonStatus, _overallSyncStatus} = useFSState(
-    C.useShallow(s => {
-      const _kbfsDaemonStatus = s.kbfsDaemonStatus
-      const _overallSyncStatus = s.overallSyncStatus
-      return {_kbfsDaemonStatus, _overallSyncStatus}
-    })
-  )
+  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const _overallSyncStatus = useFsOverallSyncStatus()
   const _name = useCurrentUserState(s => s.username)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   // Stat'ing the path nudges the service to retry sync.
