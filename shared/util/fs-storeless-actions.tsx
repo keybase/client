@@ -1,9 +1,12 @@
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
-import {errorToActionOrThrow, useFSState} from '@/stores/fs'
+import {errorToActionOrThrow} from '@/stores/fs'
 import {
+  fuseStatusToDriverStatus,
   openLocalPathInSystemFileManagerDesktop as openLocalPathInSystemFileManagerInPlatform,
   openPathInSystemFileManagerDesktop as openPathInSystemFileManagerInPlatform,
+  refreshDriverStatusDesktop as refreshDriverStatusInPlatform,
+  refreshMountDirsDesktop as refreshMountDirsInPlatform,
 } from '@/stores/fs-platform'
 
 export const openLocalPathInSystemFileManagerDesktop = (
@@ -25,9 +28,14 @@ export const openPathInSystemFileManagerDesktop = (
   onErrorOrThrow: (error: unknown, path?: T.FS.Path) => void = errorToActionOrThrow
 ) => {
   const f = async () => {
-    const {sfmi} = useFSState.getState()
     try {
-      await openPathInSystemFileManagerInPlatform(path, sfmi.driverStatus, sfmi.directMountDir)
+      const status = await refreshDriverStatusInPlatform()
+      const driverStatus = fuseStatusToDriverStatus(status)
+      const {directMountDir} =
+        driverStatus.type === T.FS.DriverStatusType.Enabled
+          ? await refreshMountDirsInPlatform()
+          : {directMountDir: ''}
+      await openPathInSystemFileManagerInPlatform(path, driverStatus, directMountDir)
     } catch (e) {
       onErrorOrThrow(e, path)
     }

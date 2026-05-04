@@ -150,12 +150,6 @@ export const emptyDownloadInfo = {
   startTime: 0,
 } satisfies T.FS.DownloadInfo
 
-export const emptySettings = {
-  loaded: false,
-  sfmiBannerDismissed: false,
-  spaceAvailableNotificationThreshold: 0,
-} satisfies T.FS.Settings
-
 export const emptyPathInfo = {
   deeplinkPath: '',
   platformAfterMountPath: '',

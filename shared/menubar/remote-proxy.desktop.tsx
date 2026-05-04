@@ -17,6 +17,10 @@ import {useDarkModeState} from '@/stores/darkmode'
 import {useNotifState} from '@/stores/notifications'
 import type * as NotifConstants from '@/stores/notifications'
 import {useNonFolderSyncingPaths} from '@/fs/common/use-non-folder-syncing-paths'
+import {
+  fuseStatusToDriverStatus,
+  refreshDriverStatusDesktop as refreshDriverStatusInPlatform,
+} from '@/stores/fs-platform'
 
 const {showTray} = KB2.functions
 
@@ -281,6 +285,46 @@ function useMenubarTlfUpdates(
   return currentTlfUpdateState.tlfUpdates
 }
 
+function useMenubarSfmiEnabled(
+  loggedIn: boolean,
+  userSwitching: boolean,
+  kbfsDaemonRpcStatus: T.FS.KbfsDaemonRpcStatus,
+  menuWindowShownCount: number
+) {
+  const [enabled, setEnabled] = React.useState(false)
+
+  React.useEffect(() => {
+    if (
+      !loggedIn ||
+      userSwitching ||
+      kbfsDaemonRpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected
+    ) {
+      setEnabled(false)
+      return
+    }
+
+    let canceled = false
+    const f = async () => {
+      try {
+        const status = await refreshDriverStatusInPlatform()
+        if (!canceled) {
+          setEnabled(fuseStatusToDriverStatus(status).type === T.FS.DriverStatusType.Enabled)
+        }
+      } catch (error) {
+        if (!canceled) {
+          errorToActionOrThrow(error)
+        }
+      }
+    }
+    C.ignorePromise(f())
+    return () => {
+      canceled = true
+    }
+  }, [loggedIn, userSwitching, kbfsDaemonRpcStatus, menuWindowShownCount])
+
+  return enabled
+}
+
 function useMenubarRemoteProps(): Props {
   const username = useCurrentUserState(s => s.username)
   const {badgeState, httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount} = useConfigState(
@@ -289,10 +333,10 @@ function useMenubarRemoteProps(): Props {
       return {badgeState, httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount}
     })
   )
-  const {kbfsDaemonStatus, overallSyncStatus, sfmi, uploads} = useFSState(
+  const {kbfsDaemonStatus, overallSyncStatus, uploads} = useFSState(
     C.useShallow(s => {
-      const {kbfsDaemonStatus, overallSyncStatus, sfmi, uploads} = s
-      return {kbfsDaemonStatus, overallSyncStatus, sfmi, uploads}
+      const {kbfsDaemonStatus, overallSyncStatus, uploads} = s
+      return {kbfsDaemonStatus, overallSyncStatus, uploads}
     })
   )
   const navBadgesMap = useNotifState(s => s.navBadges)
@@ -307,8 +351,13 @@ function useMenubarRemoteProps(): Props {
   const conversationsToSend = useWidgetConversationList(widgetList, badgeState)
   const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
-  const kbfsEnabled = sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
   const menuWindowShownCount = windowShownCount.get('menu') ?? 0
+  const kbfsEnabled = useMenubarSfmiEnabled(
+    loggedIn,
+    userSwitching,
+    kbfsDaemonStatus.rpcStatus,
+    menuWindowShownCount
+  )
   const tlfUpdates = useMenubarTlfUpdates(
     loggedIn,
     userSwitching,

@@ -28,6 +28,7 @@ import {
   finishedRegularDownloadMobile as finishedRegularDownloadInPlatform,
 } from '@/stores/fs-platform'
 import {requestPermissionsToWrite} from '@/util/platform-specific'
+import {SystemFileManagerIntegrationProvider} from './sfmi'
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
 
@@ -506,24 +507,26 @@ const FsDataProviderForUsername = ({
   }
 
   return (
-    <FsDataContext.Provider
-      value={{
-        downloads,
-        downloadInfos,
-        loadAdditionalTlf,
-        loadDownloadInfo,
-        loadDownloadStatus,
-        loadFolderChildren,
-        loadPathMetadata,
-        loadTlfs,
-        pathItems,
-        recordDownloadStarted,
-        subscriptionManager,
-        tlfs,
-      }}
-    >
-      {children}
-    </FsDataContext.Provider>
+    <SystemFileManagerIntegrationProvider>
+      <FsDataContext.Provider
+        value={{
+          downloads,
+          downloadInfos,
+          loadAdditionalTlf,
+          loadDownloadInfo,
+          loadDownloadStatus,
+          loadFolderChildren,
+          loadPathMetadata,
+          loadTlfs,
+          pathItems,
+          recordDownloadStarted,
+          subscriptionManager,
+          tlfs,
+        }}
+      >
+        {children}
+      </FsDataContext.Provider>
+    </SystemFileManagerIntegrationProvider>
   )
 }
 

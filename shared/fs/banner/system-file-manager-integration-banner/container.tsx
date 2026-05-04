@@ -3,40 +3,26 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
-import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
-import {ignorePromise} from '@/constants/utils'
-import {setSfmiBannerDismissedDesktop as setSfmiBannerDismissedInPlatform} from '@/stores/fs-platform'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {alwaysShow?: boolean}
 
 const SFMIContainer = (op: OwnProps) => {
-  const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
-  const {driverStatus, driverEnable, driverDisable, settings, sfmiBannerDismissed} = useFSState(
-    C.useShallow(s => ({
-      driverDisable: s.dispatch.driverDisable,
-      driverEnable: s.dispatch.driverEnable,
-      driverStatus: s.sfmi.driverStatus,
-      settings: s.settings,
-      sfmiBannerDismissed: s.sfmiBannerDismissed,
-    }))
-  )
+  const {
+    driverDisable,
+    driverEnable,
+    driverStatus,
+    settingsLoaded,
+    setSfmiBannerDismissed,
+    sfmiBannerDismissed,
+  } = Kbfs.useSystemFileManagerIntegration()
   const onDisable = () => driverDisable()
-  const onDismiss = () => {
-    const f = async () => {
-      try {
-        await setSfmiBannerDismissedInPlatform(true)
-      } catch (e) {
-        errorToActionOrThrow(e)
-      }
-    }
-    ignorePromise(f())
-  }
+  const onDismiss = () => setSfmiBannerDismissed(true)
   const onEnable = driverEnable
   const alwaysShow = op.alwaysShow
 
-  if (!FS.sfmiInfoLoaded(settings, driverStatus)) {
+  if (!FS.sfmiInfoLoaded({loaded: settingsLoaded}, driverStatus)) {
     return alwaysShow ? (
       <Banner
         background={Background.Blue}
@@ -242,7 +228,8 @@ const DokanOutdated = (props: {driverStatus: T.FS.DriverStatus; onDisable: () =>
 type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
-  const displayingMountDir = useFSState(s => s.sfmi.preferredMountDirs[0] ?? '')
+  const {preferredMountDirs} = Kbfs.useSystemFileManagerIntegration()
+  const displayingMountDir = preferredMountDirs[0] ?? ''
   const open = displayingMountDir
     ? () => openLocalPathInSystemFileManagerDesktop(displayingMountDir, errorToActionOrThrow)
     : undefined

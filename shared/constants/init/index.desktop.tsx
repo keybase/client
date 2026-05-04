@@ -142,11 +142,6 @@ export const initPlatformListener = () => {
   for (const unsub of _platformUnsubs) unsub()
   _platformUnsubs.length = 0
 
-  _platformUnsubs.push(useShellState.subscribe((s, old) => {
-    if (s.appFocused === old.appFocused) return
-    useFSState.getState().dispatch.onChangedFocus(s.appFocused)
-  }))
-
   _platformUnsubs.push(useConfigState.subscribe((s, old) => {
     if (s.loggedIn !== old.loggedIn) {
       useShellState.getState().dispatch.osNetworkStatusChanged(navigator.onLine, 'notavailable', true)

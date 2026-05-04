@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import {useFsPathInfo} from './hooks'
 import * as Kb from '@/common-adapters'
-import {useFSState} from '@/stores/fs'
 import * as FS from '@/stores/fs'
+import {useSystemFileManagerIntegration} from './sfmi'
 
 type PathInfoProps = {
   containerStyle?: Kb.Styles.StylesCrossPlatform
@@ -11,7 +11,7 @@ type PathInfoProps = {
 }
 
 const useMountPointPath = (platformAfterMountPath: string) => {
-  const sfmi = useFSState(s => s.sfmi)
+  const sfmi = useSystemFileManagerIntegration()
   const mount =
     sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
       ? sfmi.preferredMountDirs[0] || sfmi.directMountDir

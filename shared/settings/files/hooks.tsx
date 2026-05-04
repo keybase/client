@@ -29,12 +29,14 @@ const useFiles = () => {
         spaceAvailableNotificationThreshold: next.spaceAvailableNotificationThreshold,
         syncOnCellular: next.syncOnCellular,
       })
+      return next
     } catch {
       setSettings(s => ({...s, isLoading: false}))
+      return undefined
     }
   })
-  const refreshGlobalSettings = React.useEffectEvent(() => {
-    useFSState.getState().dispatch.loadSettings()
+  const updateGlobalSpaceAvailableNotificationThreshold = React.useEffectEvent((threshold: number) => {
+    useFSState.getState().dispatch.spaceAvailableNotificationThresholdChanged(threshold)
   })
 
   React.useEffect(() => {
@@ -73,8 +75,10 @@ const useFiles = () => {
       setSettings(s => ({...s, isLoading: true}))
       try {
         await T.RPCGen.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({threshold})
-        await loadSettings(true)
-        refreshGlobalSettings()
+        const next = await loadSettings(true)
+        updateGlobalSpaceAvailableNotificationThreshold(
+          next?.spaceAvailableNotificationThreshold ?? threshold
+        )
       } catch {
         setSettings(s => ({...s, isLoading: false}))
       }
@@ -89,7 +93,6 @@ const useFiles = () => {
           C.waitingKeyFSSetSyncOnCellular
         )
         await loadSettings(true)
-        refreshGlobalSettings()
       } catch {}
     }
     C.ignorePromise(f())

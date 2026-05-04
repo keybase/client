@@ -17,3 +17,4 @@ export {useFilesTabUploadIcon} from './use-files-tab-upload-icon'
 
 export * from './error-state'
 export * from './hooks'
+export * from './sfmi'
