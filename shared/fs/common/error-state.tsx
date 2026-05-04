@@ -1,14 +1,86 @@
 import * as React from 'react'
-import type * as T from '@/constants/types'
-import {errorToActionOrThrow, errorToActionOrThrowWithHandlers, useFSState} from '@/stores/fs'
+import * as Constants from '@/constants/fs'
+import * as T from '@/constants/types'
+import {ensureError} from '@/util/errors'
 import {useConfigState} from '@/stores/config'
+import {useFSState} from '@/stores/fs'
+import isObject from 'lodash/isObject'
 
 const noopSoftError = () => {}
 const noopDismissRedbar = (_index: number) => {}
 const emptyErrors: ReadonlyArray<string> = []
+const noAccessErrorCodes: Array<T.RPCGen.StatusCode> = [
+  T.RPCGen.StatusCode.scsimplefsnoaccess,
+  T.RPCGen.StatusCode.scteamnotfound,
+  T.RPCGen.StatusCode.scteamreaderror,
+]
+
+type ErrorHandlers = {
+  checkKbfsDaemonRpcStatus: () => void
+  redbar: (error: string) => void
+  setPathSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
+  setTlfSoftError: (path: T.FS.Path, softError?: T.FS.SoftError) => void
+}
 
 const redbarToGlobalError = (error: string) => {
   useConfigState.getState().dispatch.setGlobalError(new Error(error))
+}
+
+export const errorToActionOrThrowWithHandlers = (
+  {checkKbfsDaemonRpcStatus, redbar, setPathSoftError, setTlfSoftError}: ErrorHandlers,
+  error: unknown,
+  path?: T.FS.Path
+) => {
+  if (!isObject(error)) return
+  const code = (error as {code?: T.RPCGen.StatusCode}).code
+  if (code === T.RPCGen.StatusCode.sckbfsclienttimeout) {
+    checkKbfsDaemonRpcStatus()
+    return
+  }
+  if (code === T.RPCGen.StatusCode.scidentifiesfailed) {
+    // This is specifically to address the situation where when user tries to
+    // remove a shared TLF from their favorites but another user of the TLF has
+    // deleted their account the subscribePath call cauused from the popup will
+    // get SCIdentifiesFailed error. We can't do anything here so just move on.
+    // (Ideally we'd be able to tell it's becaue the user was deleted, but we
+    // don't have that from Go right now.)
+    //
+    // TODO: TRIAGE-2379 this should probably be ignored on Go side. We
+    // already use fsGui identifyBehavior and there's no reason we should get
+    // an identify error here.
+    return undefined
+  }
+  if (path && code === T.RPCGen.StatusCode.scsimplefsnotexist) {
+    setPathSoftError(path, T.FS.SoftError.Nonexistent)
+    return
+  }
+  if (path && code && noAccessErrorCodes.includes(code)) {
+    const tlfPath = Constants.getTlfPath(path)
+    if (tlfPath) {
+      setTlfSoftError(tlfPath, T.FS.SoftError.NoAccess)
+      return
+    }
+  }
+  if (code === T.RPCGen.StatusCode.scdeleted) {
+    // The user is deleted. Let user know and move on.
+    redbar('A user in this shared folder has deleted their account.')
+    return
+  }
+  throw ensureError(error)
+}
+
+export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
+  const {checkKbfsDaemonRpcStatus} = useFSState.getState().dispatch
+  return errorToActionOrThrowWithHandlers(
+    {
+      checkKbfsDaemonRpcStatus,
+      redbar: redbarToGlobalError,
+      setPathSoftError: noopSoftError,
+      setTlfSoftError: noopSoftError,
+    },
+    error,
+    path
+  )
 }
 
 const makeEmptySoftErrors = (): T.FS.SoftErrors => ({

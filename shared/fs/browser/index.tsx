@@ -29,7 +29,7 @@ const Container = (ownProps: OwnProps) => {
   const _pathItem = useFsPathItem(path)
   const tlf = useFsTlf(path)
   const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
-  const resetBannerType = FS.resetBannerTypeFromTlf(tlf)
+  const resetBannerType = Kbfs.resetBannerTypeFromTlf(tlf)
   const props = {
     filter,
     lastClosedPublicBannerTlf: ownProps.lastClosedPublicBannerTlf,

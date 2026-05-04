@@ -4,9 +4,11 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {NotifyPopup} from '@/util/misc'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {clientID as fsClientID, errorToActionOrThrow, makeUUID, useFSState} from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
 import {useNotifState} from '@/stores/notifications'
 import isEqual from 'lodash/isEqual'
+import {clientID as fsClientID, makeUUID} from './client'
+import {errorToActionOrThrow} from './error-state'
 
 type FsStatusState = {
   generation: number

@@ -2,7 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
-import * as FS from '@/stores/fs'
+import {useFSState} from '@/stores/fs'
+import {clientID as fsClientID, makeUUID} from './client'
 import {useFsErrorActionOrThrow} from './error-state'
 
 const filesTabBadgeToUploadIcon = (badge: T.RPCGen.FilesTabBadge): T.FS.UploadIcon | undefined => {
@@ -19,7 +20,7 @@ const filesTabBadgeToUploadIcon = (badge: T.RPCGen.FilesTabBadge): T.FS.UploadIc
 }
 
 export const useFilesTabUploadIcon = () => {
-  const connected = FS.useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
+  const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
   const connectedRef = React.useRef(connected)
   const generationRef = React.useRef(0)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
@@ -70,11 +71,11 @@ export const useFilesTabUploadIcon = () => {
     if (!connected) {
       return
     }
-    const subscriptionID = FS.makeUUID()
+    const subscriptionID = makeUUID()
     const f = async () => {
       try {
         await T.RPCGen.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
-          clientID: FS.clientID,
+          clientID: fsClientID,
           deduplicateIntervalSecond: 1,
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
           subscriptionID,
@@ -88,7 +89,7 @@ export const useFilesTabUploadIcon = () => {
     return () => {
       C.ignorePromise(
         T.RPCGen.SimpleFSSimpleFSUnsubscribeRpcPromise({
-          clientID: FS.clientID,
+          clientID: fsClientID,
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
           subscriptionID,
         }).catch(() => {})
@@ -100,7 +101,7 @@ export const useFilesTabUploadIcon = () => {
     'keybase.1.NotifyFS.FSSubscriptionNotify',
     action => {
       const {clientID, topic} = action.payload.params
-      if (clientID === FS.clientID && topic === T.RPCGen.SubscriptionTopic.filesTabBadge) {
+      if (clientID === fsClientID && topic === T.RPCGen.SubscriptionTopic.filesTabBadge) {
         loadUploadIcon()
       }
     },

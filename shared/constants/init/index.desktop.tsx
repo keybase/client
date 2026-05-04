@@ -3,7 +3,6 @@ import * as Chat from '@/constants/chat'
 import {ignorePromise} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
-import {useFSState} from '@/stores/fs'
 import {openAtLoginKey, useShellState} from '@/stores/shell'
 import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
@@ -17,6 +16,7 @@ import {kbfsNotification} from '@/util/platform-specific/kbfs-notifications'
 import {skipAppFocusActions} from '@/local-debug.desktop'
 import {NotifyPopup} from '@/util/misc'
 import {noKBFSFailReason} from '@/constants/config'
+import {afterKbfsDaemonRpcStatusChanged} from '@/fs/common/lifecycle'
 import {initSharedSubscriptions, _onEngineIncoming, onEngineConnected as onSharedEngineConnected} from './shared'
 import {dumpLogs} from '@/util/storeless-actions'
 
@@ -276,7 +276,7 @@ export const initPlatformListener = () => {
     }
   })
   if (!isLinux) {
-    useFSState.getState().dispatch.afterKbfsDaemonRpcStatusChanged()
+    afterKbfsDaemonRpcStatusChanged()
   }
 
   initSharedSubscriptions()

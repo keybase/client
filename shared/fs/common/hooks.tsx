@@ -29,6 +29,7 @@ import {
 } from '@/stores/fs-platform'
 import {requestPermissionsToWrite} from '@/util/platform-specific'
 import {SystemFileManagerIntegrationProvider} from './sfmi'
+import {clientID as fsClientID, makeUUID} from './client'
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
 
@@ -130,7 +131,7 @@ type SetFsSharedData = React.Dispatch<React.SetStateAction<FsSharedData>>
 const unsubscribeFsSubscription = (subscriptionID: string) => {
   C.ignorePromise(
     T.RPCGen.SimpleFSSimpleFSUnsubscribeRpcPromise({
-      clientID: FS.clientID,
+      clientID: fsClientID,
       identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
       subscriptionID,
     }).catch(() => {})
@@ -379,7 +380,7 @@ const FsDataProviderForUsername = ({
     loadingFolderChildren.add(loadKey)
     const f = async () => {
       try {
-        const opID = FS.makeUUID()
+        const opID = makeUUID()
         if (initialLoadRecursive) {
           await T.RPCGen.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
             depth: 1,
@@ -651,7 +652,7 @@ const useFsSubscriptionEffect = ({
       }
     }
 
-    const subscriptionID = FS.makeUUID()
+    const subscriptionID = makeUUID()
     const subscription = {count: 1, subscribed: false, subscriptionID}
     manager?.subscriptions.set(subscriptionKey, subscription)
     const removeSubscription = () => {
@@ -713,7 +714,7 @@ const useFsPathSubscriptionEffect = (
     subscribe: async subscriptionID => {
       try {
         await T.RPCGen.SimpleFSSimpleFSSubscribePathRpcPromise({
-          clientID: FS.clientID,
+          clientID: fsClientID,
           deduplicateIntervalSecond: 1,
           identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
           kbfsPath: pathString,
@@ -745,7 +746,7 @@ const useFsNonPathSubscriptionEffect = (topic: T.RPCGen.SubscriptionTopic, enabl
     enabled,
     subscribe: async subscriptionID => {
       await T.RPCGen.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
-        clientID: FS.clientID,
+        clientID: fsClientID,
         deduplicateIntervalSecond: 1,
         identifyBehavior: T.RPCGen.TLFIdentifyBehavior.fsGui,
         subscriptionID,
@@ -806,7 +807,7 @@ export const useFsPathItem = (path: T.FS.Path, options?: FsPathItemOptions) => {
       const {clientID, path: updatedPath, topics} = action.payload.params
       if (
         loadPathMetadata &&
-        clientID === FS.clientID &&
+        clientID === fsClientID &&
         updatedPath === T.FS.pathToString(path) &&
         topics?.includes(T.RPCGen.PathSubscriptionTopic.stat)
       ) {
@@ -848,7 +849,7 @@ export const useFsFolderChildren = (
       const {clientID, path: updatedPath, topics} = action.payload.params
       if (
         loadFolderChildren &&
-        clientID === FS.clientID &&
+        clientID === fsClientID &&
         updatedPath === T.FS.pathToString(path) &&
         topics?.includes(T.RPCGen.PathSubscriptionTopic.children)
       ) {
@@ -896,7 +897,7 @@ export const useFsTlfs = () => {
     'keybase.1.NotifyFS.FSSubscriptionNotify',
     action => {
       const {clientID, topic} = action.payload.params
-      if (clientID === FS.clientID && topic === T.RPCGen.SubscriptionTopic.favorites) {
+      if (clientID === fsClientID && topic === T.RPCGen.SubscriptionTopic.favorites) {
         loadTlfs?.()
       }
     },
@@ -954,7 +955,7 @@ export const useFsOnlineStatus = () => {
     const checkOnlineStatus = async (remainingRetries: number): Promise<void> => {
       try {
         const onlineStatus = await T.RPCGen.SimpleFSSimpleFSGetOnlineStatusRpcPromise({
-          clientID: FS.clientID,
+          clientID: fsClientID,
         })
         onlineStatusChanged(onlineStatus)
       } catch (error) {
@@ -978,7 +979,7 @@ export const useFsOnlineStatus = () => {
     'keybase.1.NotifyFS.FSSubscriptionNotify',
     action => {
       const {clientID, topic} = action.payload.params
-      if (clientID === FS.clientID && topic === T.RPCGen.SubscriptionTopic.onlineStatus) {
+      if (clientID === fsClientID && topic === T.RPCGen.SubscriptionTopic.onlineStatus) {
         loadOnlineStatus(1)
       }
     },
@@ -1062,7 +1063,7 @@ export const useFsDownloadStatus = () => {
     'keybase.1.NotifyFS.FSSubscriptionNotify',
     action => {
       const {clientID, topic} = action.payload.params
-      if (clientID === FS.clientID && topic === T.RPCGen.SubscriptionTopic.downloadStatus) {
+      if (clientID === fsClientID && topic === T.RPCGen.SubscriptionTopic.downloadStatus) {
         loadDownloadStatus?.()
       }
     },

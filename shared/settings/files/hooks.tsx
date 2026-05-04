@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {clientID as fsClientID} from '@/stores/fs'
+import {clientID as fsClientID} from '@/fs/common/client'
 
 type FilesSettings = {
   isLoading: boolean

@@ -43,6 +43,7 @@ import {useWaitingState} from '@/stores/waiting'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
 import {handleConvoEngineIncoming} from '@/chat/inbox/engine'
+import {fsUserIn, fsUserOut} from '@/fs/common/lifecycle'
 import {
   onChatRouteChanged,
   onChatInboxSynced,
@@ -336,11 +337,10 @@ const onNavStateChanged = (nextNavState: RouterState['navState'], previousNavSta
   const wasScreen = fsRouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
   const isScreen = fsRouteNames.includes(Util.getVisibleScreen(next)?.name ?? '')
   if (wasScreen !== isScreen) {
-    const {dispatch} = useFSState.getState()
     if (wasScreen) {
-      dispatch.userOut()
+      fsUserOut()
     } else {
-      dispatch.userIn()
+      fsUserIn(useFSState.getState().dispatch.checkKbfsDaemonRpcStatus)
     }
   }
 

@@ -12,11 +12,9 @@ import {
   refreshMountDirsDesktop as refreshMountDirsInPlatform,
   setSfmiBannerDismissedDesktop as setSfmiBannerDismissedInPlatform,
 } from '@/stores/fs-platform'
-import {
-  clientID as fsClientID,
-  errorToActionOrThrow as defaultErrorToActionOrThrow,
-  useFSState,
-} from '@/stores/fs'
+import {clientID as fsClientID} from './client'
+import {errorToActionOrThrow as defaultErrorToActionOrThrow} from './error-state'
+import {useFSState} from '@/stores/fs'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useShellState} from '@/stores/shell'
 

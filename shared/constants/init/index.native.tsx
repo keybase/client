@@ -3,7 +3,6 @@ import {ignorePromise, neverThrowPromiseFunc} from '../utils'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
-import {useFSState} from '@/stores/fs'
 import {useRouterState} from '@/stores/router'
 import {useShellState} from '@/stores/shell'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
@@ -17,6 +16,7 @@ import {NotifyPopup} from '@/util/misc'
 import logger from '@/logger'
 import {Linking} from 'react-native'
 import {isAndroid} from '@/constants/platform.native'
+import {afterKbfsDaemonRpcStatusChanged} from '@/fs/common/lifecycle'
 import {logState, setThreadInputCommandStatus} from '@/constants/router'
 import {setupAudioMode} from '@/util/audio.native'
 import {
@@ -395,7 +395,7 @@ export const initPlatformListener = () => {
   }
 
   if (isAndroid) {
-    useFSState.getState().dispatch.afterKbfsDaemonRpcStatusChanged()
+    afterKbfsDaemonRpcStatusChanged()
   }
 
   initSharedSubscriptions()
