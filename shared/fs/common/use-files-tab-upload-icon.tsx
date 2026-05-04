@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {useFSState} from '@/stores/fs'
 import {clientID as fsClientID, makeUUID} from './client'
+import {useKbfsDaemonStatus} from './daemon'
 import {useFsErrorActionOrThrow} from './error-state'
 
 const filesTabBadgeToUploadIcon = (badge: T.RPCGen.FilesTabBadge): T.FS.UploadIcon | undefined => {
@@ -20,7 +20,7 @@ const filesTabBadgeToUploadIcon = (badge: T.RPCGen.FilesTabBadge): T.FS.UploadIc
 }
 
 export const useFilesTabUploadIcon = () => {
-  const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
+  const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
   const connectedRef = React.useRef(connected)
   const generationRef = React.useRef(0)
   const errorToActionOrThrow = useFsErrorActionOrThrow()

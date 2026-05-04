@@ -14,8 +14,7 @@ import Rows from './rows/rows-container'
 import {useFsErrorActionOrThrow, useFsPathItem, useFsTlf, useFsUpload} from '../common'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {useFSState} from '@/stores/fs'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {uploadFromDragAndDropDesktop as uploadFromDragAndDropInPlatform} from '@/stores/fs-platform'
 
 type OwnProps = {
@@ -28,7 +27,7 @@ const Container = (ownProps: OwnProps) => {
   const filter = useModalHeaderState(s => s.folderViewFilter)
   const _pathItem = useFsPathItem(path)
   const tlf = useFsTlf(path)
-  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const _kbfsDaemonStatus = Kbfs.useKbfsDaemonStatus()
   const resetBannerType = Kbfs.resetBannerTypeFromTlf(tlf)
   const props = {
     filter,

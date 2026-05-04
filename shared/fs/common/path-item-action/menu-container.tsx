@@ -16,7 +16,7 @@ import {
   useFsReloadTlfs,
   useFsWatchDownloadForMobile,
 } from '../hooks'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useOpenPathInSystemFileManagerDesktop, useSystemFileManagerIntegration} from '../sfmi'
 import {useCurrentUserState} from '@/stores/current-user'
 

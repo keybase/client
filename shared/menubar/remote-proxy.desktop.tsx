@@ -9,15 +9,14 @@ import KB2 from '@/util/electron.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import type {Props, Conversation, RemoteTlfUpdates} from './index.desktop'
 import {useColorScheme} from 'react-native'
-import {errorToActionOrThrow} from '@/fs/common/error-state'
-import {useFSState} from '@/stores/fs'
+import {useFsErrorActionOrThrow} from '@/fs/common/error-state'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useFollowerState} from '@/stores/followers'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useNotifState} from '@/stores/notifications'
 import type * as NotifConstants from '@/stores/notifications'
-import {useFsOverallSyncStatus, useFsUploadStatus} from '@/fs/common/status'
+import {useFsOverallSyncStatus, useFsUploadStatus, useKbfsDaemonStatus} from '@/fs/common/status'
 import {useNonFolderSyncingPaths} from '@/fs/common/use-non-folder-syncing-paths'
 import {
   fuseStatusToDriverStatus,
@@ -227,6 +226,7 @@ function useMenubarTlfUpdates(
   kbfsDaemonRpcStatus: T.FS.KbfsDaemonRpcStatus,
   menuWindowShownCount: number
 ) {
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
   const shouldClearTlfUpdates = !loggedIn || userSwitching
   const [tlfUpdateState, setTlfUpdateState] = React.useState<TlfUpdateState>(() => ({
     shouldClear: shouldClearTlfUpdates,
@@ -293,6 +293,7 @@ function useMenubarSfmiEnabled(
   kbfsDaemonRpcStatus: T.FS.KbfsDaemonRpcStatus,
   menuWindowShownCount: number
 ) {
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
   const [enabled, setEnabled] = React.useState(false)
 
   React.useEffect(() => {
@@ -322,7 +323,7 @@ function useMenubarSfmiEnabled(
     return () => {
       canceled = true
     }
-  }, [loggedIn, userSwitching, kbfsDaemonRpcStatus, menuWindowShownCount])
+  }, [errorToActionOrThrow, loggedIn, userSwitching, kbfsDaemonRpcStatus, menuWindowShownCount])
 
   return enabled
 }
@@ -335,7 +336,7 @@ function useMenubarRemoteProps(): Props {
       return {badgeState, httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount}
     })
   )
-  const kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const kbfsDaemonStatus = useKbfsDaemonStatus()
   const overallSyncStatus = useFsOverallSyncStatus()
   const uploads = useFsUploadStatus()
   const navBadgesMap = useNotifState(s => s.navBadges)

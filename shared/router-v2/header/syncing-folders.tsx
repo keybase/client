@@ -1,9 +1,8 @@
-import * as Constants from '@/stores/fs'
+import * as Constants from '@/constants/fs'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import PieSlice from '@/fs/common/pie-slice'
-import {useFSState} from '@/stores/fs'
-import {useFsOverallSyncStatus} from '@/fs/common/status'
+import {useFsOverallSyncStatus, useKbfsDaemonStatus} from '@/fs/common/status'
 
 type OwnProps = {
   negative?: boolean
@@ -29,7 +28,7 @@ const SyncingFolders = (props: Props) =>
 
 const SyncFolders = (op: OwnProps) => {
   const syncingFoldersProgress = useFsOverallSyncStatus().syncingFoldersProgress
-  const online = useFSState(s => s.kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline)
+  const online = useKbfsDaemonStatus().onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline
   const {negative} = op
 
   if (syncingFoldersProgress.bytesTotal === 0) {

@@ -3,7 +3,7 @@ import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
 import {useFsPathMetadata, useFsTlf, TlfInfoLine, Filename} from '@/fs/common'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 export type OwnProps = {

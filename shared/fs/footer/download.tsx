@@ -4,7 +4,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import DownloadWrapper from './download-wrapper'
 import {formatDurationFromNowTo} from '@/util/timestamp'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 export type Props = {

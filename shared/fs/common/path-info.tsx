@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import {useFsPathInfo} from './hooks'
 import * as Kb from '@/common-adapters'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useSystemFileManagerIntegration} from './sfmi'
 
 type PathInfoProps = {

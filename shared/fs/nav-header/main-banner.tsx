@@ -1,9 +1,8 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
-import {useFsErrorActionOrThrow, useFsOverallSyncStatus} from '../common'
+import * as FS from '@/constants/fs'
+import {useFsErrorActionOrThrow, useFsOverallSyncStatus, useKbfsDaemonStatus} from '../common'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
@@ -55,7 +54,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const ConnectedBanner = () => {
-  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const _kbfsDaemonStatus = useKbfsDaemonStatus()
   const _overallSyncStatus = useFsOverallSyncStatus()
   const _name = useCurrentUserState(s => s.username)
   const errorToActionOrThrow = useFsErrorActionOrThrow()

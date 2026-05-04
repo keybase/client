@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useFsLoadedPathItems} from './hooks'
 
 const statBatchSize = 10

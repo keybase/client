@@ -10,7 +10,7 @@ import {
   useSystemFileManagerIntegration,
 } from '../common'
 import {hasShare} from '../common/path-item-action/layout'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {path: T.FS.Path}
 

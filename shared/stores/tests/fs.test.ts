@@ -1,16 +1,10 @@
 /// <reference types="jest" />
+import * as FS from '@/constants/fs'
 import * as T from '@/constants/types'
-import {useConfigState} from '../config'
+import {errorToActionOrThrowWithHandlers} from '@/fs/common/error-state'
+import {makeEditID} from '@/fs/common/client'
+import {resetBannerTypeFromTlf} from '@/fs/common/tlf'
 import {useCurrentUserState} from '../current-user'
-import {
-  computeBadgeNumberForTlfList,
-  errorToActionOrThrowWithHandlers,
-  getUploadIconForTlfType,
-  makeEditID,
-  resetBannerTypeFromTlf,
-  unknownTlf,
-  useFSState,
-} from '../fs'
 
 const normalConflictState = {
   localViewTlfPaths: [],
@@ -20,7 +14,7 @@ const normalConflictState = {
 } satisfies T.FS.ConflictStateNormalView
 
 const makeTlf = (p: Partial<T.FS.Tlf> = {}): T.FS.Tlf => ({
-  ...unknownTlf,
+  ...FS.unknownTlf,
   conflictState: p.conflictState ?? normalConflictState,
   name: p.name ?? 'alice,bob',
   resetParticipants: p.resetParticipants ?? [],
@@ -28,20 +22,16 @@ const makeTlf = (p: Partial<T.FS.Tlf> = {}): T.FS.Tlf => ({
 })
 
 beforeEach(() => {
-  useConfigState.setState({loggedIn: false, userSwitching: false} as any)
   useCurrentUserState.getState().dispatch.setBootstrap({
     deviceID: 'device-id',
     deviceName: 'test-device',
     uid: 'uid',
     username: 'alice',
   })
-  useFSState.getState().dispatch.resetState()
 })
 
 afterEach(() => {
-  useConfigState.setState({loggedIn: false, userSwitching: false} as any)
   useCurrentUserState.getState().dispatch.resetState()
-  useFSState.getState().dispatch.resetState()
 })
 
 test('makeEditID returns distinct non-empty edit identifiers', () => {
@@ -96,7 +86,7 @@ test('computeBadgeNumberForTlfList counts only new non-ignored TLFs', () => {
     ['old', makeTlf({isNew: false})],
   ])
 
-  expect(computeBadgeNumberForTlfList(tlfList)).toBe(1)
+  expect(FS.computeBadgeNumberForTlfList(tlfList)).toBe(1)
 })
 
 test('getUploadIconForTlfType derives conflict, uploading, and offline upload status', () => {
@@ -123,7 +113,7 @@ test('getUploadIconForTlfType derives conflict, uploading, and offline upload st
     writingToJournal: new Map<T.FS.Path, T.RPCGen.UploadState>(),
   }
 
-  expect(getUploadIconForTlfType(baseStatus, baseUploads, tlfList, tlfType)).toBe(
+  expect(FS.getUploadIconForTlfType(baseStatus, baseUploads, tlfList, tlfType)).toBe(
     T.FS.UploadIcon.UploadingStuck
   )
 
@@ -131,11 +121,11 @@ test('getUploadIconForTlfType derives conflict, uploading, and offline upload st
     ...baseUploads,
     syncingPaths: new Set([T.FS.stringToPath('/keybase/private/alice,bob/file')]),
   }
-  expect(getUploadIconForTlfType(baseStatus, activeUploads, new Map(), tlfType)).toBe(
+  expect(FS.getUploadIconForTlfType(baseStatus, activeUploads, new Map(), tlfType)).toBe(
     T.FS.UploadIcon.Uploading
   )
   expect(
-    getUploadIconForTlfType(
+    FS.getUploadIconForTlfType(
       {...baseStatus, onlineStatus: T.FS.KbfsDaemonOnlineStatus.Offline},
       activeUploads,
       new Map(),

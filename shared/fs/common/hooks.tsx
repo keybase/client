@@ -6,8 +6,7 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import {NavigationContext} from '@react-navigation/core'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
-import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {RPCError} from '@/util/errors'
 import isEqual from 'lodash/isEqual'
 import {
@@ -30,6 +29,7 @@ import {
 import {requestPermissionsToWrite} from '@/util/platform-specific'
 import {SystemFileManagerIntegrationProvider} from './sfmi'
 import {clientID as fsClientID, makeUUID} from './client'
+import {useFsDaemonActions, useKbfsDaemonStatus} from './daemon'
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
 
@@ -540,7 +540,7 @@ const useFsLoadOnMountAndFocus = ({
   load: () => void
   reloadKey?: unknown
 }) => {
-  const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
+  const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
   const focused = useSafeIsFocused()
   const lastLoadRef = React.useRef<{reloadKey?: unknown; time: number}>({time: 0})
   const loadOnMountAndFocus = React.useEffectEvent(() => {
@@ -621,7 +621,7 @@ const useFsSubscriptionEffect = ({
   subscribe: (subscriptionID: string) => Promise<unknown>
   subscriptionKey: string
 }) => {
-  const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
+  const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
   const focused = useSafeIsFocused()
   const routeData = React.useContext(FsDataContext)
   const username = useCurrentUserState(s => s.username)
@@ -949,7 +949,7 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
 }
 
 export const useFsOnlineStatus = () => {
-  const onlineStatusChanged = useFSState(s => s.dispatch.onlineStatusChanged)
+  const {onlineStatusChanged} = useFsDaemonActions()
   const focused = useSafeIsFocused()
   const loadOnlineStatus = React.useEffectEvent((retries: number) => {
     const checkOnlineStatus = async (remainingRetries: number): Promise<void> => {

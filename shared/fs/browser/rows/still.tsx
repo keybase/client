@@ -10,7 +10,7 @@ import {
   useFsPathItem,
   useFsUploadStatus,
 } from '@/fs/common'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource

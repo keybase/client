@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as Kbfs from '@/fs/common'
 import {openURL as openUrl} from '@/util/misc'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {
   path: T.FS.Path

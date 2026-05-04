@@ -3,7 +3,7 @@ import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import {ensureError} from '@/util/errors'
 import {useConfigState} from '@/stores/config'
-import {useFSState} from '@/stores/fs'
+import {useFsDaemonActions} from './daemon'
 import isObject from 'lodash/isObject'
 
 const noopSoftError = () => {}
@@ -69,20 +69,6 @@ export const errorToActionOrThrowWithHandlers = (
   throw ensureError(error)
 }
 
-export const errorToActionOrThrow = (error: unknown, path?: T.FS.Path) => {
-  const {checkKbfsDaemonRpcStatus} = useFSState.getState().dispatch
-  return errorToActionOrThrowWithHandlers(
-    {
-      checkKbfsDaemonRpcStatus,
-      redbar: redbarToGlobalError,
-      setPathSoftError: noopSoftError,
-      setTlfSoftError: noopSoftError,
-    },
-    error,
-    path
-  )
-}
-
 const makeEmptySoftErrors = (): T.FS.SoftErrors => ({
   pathErrors: new Map(),
   tlfErrors: new Map(),
@@ -101,6 +87,7 @@ type FsErrorContextType = {
 const FsErrorContext = React.createContext<FsErrorContextType | null>(null)
 
 export const FsErrorProvider = ({children}: {children: React.ReactNode}) => {
+  const {checkKbfsDaemonRpcStatus} = useFsDaemonActions()
   const [errors, setErrors] = React.useState<ReadonlyArray<string>>([])
   const [softErrors, setSoftErrors] = React.useState<T.FS.SoftErrors>(makeEmptySoftErrors)
 
@@ -136,14 +123,13 @@ export const FsErrorProvider = ({children}: {children: React.ReactNode}) => {
     })
   }
 
-  const handleError = (error: unknown, path?: T.FS.Path) => {
-    const {checkKbfsDaemonRpcStatus} = useFSState.getState().dispatch
+  const handleError = React.useEffectEvent((error: unknown, path?: T.FS.Path) => {
     errorToActionOrThrowWithHandlers(
       {checkKbfsDaemonRpcStatus, redbar, setPathSoftError, setTlfSoftError},
       error,
       path
     )
-  }
+  })
 
   return (
     <FsErrorContext.Provider
@@ -181,8 +167,21 @@ export const useFsRedbarActions = () => {
 }
 
 export const useFsErrorActionOrThrow = () => {
+  const {checkKbfsDaemonRpcStatus} = useFsDaemonActions()
   const routeErrors = React.useContext(FsErrorContext)
-  return routeErrors?.errorToActionOrThrow ?? errorToActionOrThrow
+  const defaultErrorToActionOrThrow = React.useEffectEvent((error: unknown, path?: T.FS.Path) => {
+    errorToActionOrThrowWithHandlers(
+      {
+        checkKbfsDaemonRpcStatus,
+        redbar: redbarToGlobalError,
+        setPathSoftError: noopSoftError,
+        setTlfSoftError: noopSoftError,
+      },
+      error,
+      path
+    )
+  })
+  return routeErrors?.errorToActionOrThrow ?? defaultErrorToActionOrThrow
 }
 
 export const useFsSoftErrors = () => React.useContext(FsErrorContext)?.softErrors

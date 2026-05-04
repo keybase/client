@@ -31,7 +31,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
-import {useFSState} from '@/stores/fs'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useProvisionState} from '@/stores/provision'
 import {useShellState} from '@/stores/shell'
@@ -43,7 +42,6 @@ import {useWaitingState} from '@/stores/waiting'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
 import {handleConvoEngineIncoming} from '@/chat/inbox/engine'
-import {fsUserIn, fsUserOut} from '@/fs/common/lifecycle'
 import {
   onChatRouteChanged,
   onChatInboxSynced,
@@ -185,14 +183,9 @@ const onGregorReachableChanged = (gregorReachable: ConfigState['gregorReachable'
   }
 }
 
-const onInstallerRanCountChanged = () => {
-  useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
-}
-
 const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
   if (loggedIn) {
     ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
-    useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
   } else {
     clearSignupEmail()
     clearSignupDeviceNameDraft()
@@ -304,7 +297,6 @@ const namespaceToTeamBuilderRoute = {
   people: 'peopleTeamBuilder',
   teams: 'teamsTeamBuilder',
 } as const
-const fsRouteNames: ReadonlyArray<string> = ['fsRoot', 'barePreview']
 
 const onNavStateChanged = (nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
   const next = nextNavState as Util.NavState
@@ -332,16 +324,6 @@ const onNavStateChanged = (nextNavState: RouterState['navState'], previousNavSta
   ) {
     const {dispatch} = useShellState.getState()
     dispatch.setFsCriticalUpdate(false)
-  }
-
-  const wasScreen = fsRouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
-  const isScreen = fsRouteNames.includes(Util.getVisibleScreen(next)?.name ?? '')
-  if (wasScreen !== isScreen) {
-    if (wasScreen) {
-      fsUserOut()
-    } else {
-      fsUserIn(useFSState.getState().dispatch.checkKbfsDaemonRpcStatus)
-    }
   }
 
   if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
@@ -413,7 +395,6 @@ export const initSharedSubscriptions = () => {
   _sharedUnsubs.push(
     subscribeValue(useConfigState, s => s.loadOnStartPhase, onLoadOnStartPhaseChanged),
     subscribeValue(useConfigState, s => s.gregorReachable, onGregorReachableChanged),
-    subscribeValue(useConfigState, s => s.installerRanCount, onInstallerRanCountChanged),
     subscribeValue(useConfigState, s => s.loggedIn, onLoggedInChanged),
     subscribeValue(useConfigState, s => s.revokedTrigger, onRevokedTriggerChanged),
     subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged)

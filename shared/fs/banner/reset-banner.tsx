@@ -4,7 +4,7 @@ import {folderNameWithoutUsers} from '@/util/kbfs'
 import * as Kb from '@/common-adapters'
 import * as RowTypes from '@/fs/browser/rows/types'
 import {useFsErrorActionOrThrow, useFsTlf} from '@/fs/common'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {navToProfile} from '@/constants/router'
 
 type OwnProps = {path: T.FS.Path}

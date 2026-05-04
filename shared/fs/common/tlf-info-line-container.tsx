@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import TlfInfoLine from './tlf-info-line'
 import {useFsTlf} from './hooks'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 export type OwnProps = {

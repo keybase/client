@@ -4,11 +4,11 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {NotifyPopup} from '@/util/misc'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {useFSState} from '@/stores/fs'
 import {useNotifState} from '@/stores/notifications'
 import isEqual from 'lodash/isEqual'
 import {clientID as fsClientID, makeUUID} from './client'
-import {errorToActionOrThrow} from './error-state'
+import {FsDaemonProvider, useFsDaemonActions, useKbfsDaemonStatus} from './daemon'
+import {useFsErrorActionOrThrow} from './error-state'
 
 type FsStatusState = {
   generation: number
@@ -50,7 +50,11 @@ const unsubscribe = (subscriptionID: string) => {
   )
 }
 
-const subscribeNonPath = (subscriptionID: string, topic: T.RPCGen.SubscriptionTopic) => {
+const subscribeNonPath = (
+  subscriptionID: string,
+  topic: T.RPCGen.SubscriptionTopic,
+  errorToActionOrThrow: (error: unknown, path?: T.FS.Path) => void
+) => {
   const f = async () => {
     try {
       await T.RPCGen.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
@@ -75,8 +79,13 @@ const getJournalWaitDuration = (endEstimate: number | undefined, lower: number, 
   return diff < lower ? lower : diff > upper ? upper : diff
 }
 
-export const FsStatusProvider = ({children}: {children: React.ReactNode}) => {
-  const connected = useFSState(s => s.kbfsDaemonStatus.rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected)
+const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
+  const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
+  const {checkKbfsDaemonRpcStatus} = useFsDaemonActions()
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const subscriptionErrorToActionOrThrow = React.useEffectEvent((error: unknown) => {
+    errorToActionOrThrow(error)
+  })
   const [fsStatusState, setFsStatusState] = React.useState(makeInitialFsStatusState)
   const connectedRef = React.useRef(connected)
   const fsStatusStateRef = React.useRef(fsStatusState)
@@ -216,7 +225,7 @@ export const FsStatusProvider = ({children}: {children: React.ReactNode}) => {
         useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
       }
       if (shouldRefreshDaemonStatus) {
-        useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
+        checkKbfsDaemonRpcStatus()
       }
     }
     C.ignorePromise(f())
@@ -287,9 +296,21 @@ export const FsStatusProvider = ({children}: {children: React.ReactNode}) => {
     const settingsSubID = makeUUID()
     const uploadStatusSubID = makeUUID()
     const journalStatusSubID = makeUUID()
-    subscribeNonPath(settingsSubID, T.RPCGen.SubscriptionTopic.settings)
-    subscribeNonPath(uploadStatusSubID, T.RPCGen.SubscriptionTopic.uploadStatus)
-    subscribeNonPath(journalStatusSubID, T.RPCGen.SubscriptionTopic.journalStatus)
+    subscribeNonPath(
+      settingsSubID,
+      T.RPCGen.SubscriptionTopic.settings,
+      subscriptionErrorToActionOrThrow
+    )
+    subscribeNonPath(
+      uploadStatusSubID,
+      T.RPCGen.SubscriptionTopic.uploadStatus,
+      subscriptionErrorToActionOrThrow
+    )
+    subscribeNonPath(
+      journalStatusSubID,
+      T.RPCGen.SubscriptionTopic.journalStatus,
+      subscriptionErrorToActionOrThrow
+    )
     return () => {
       unsubscribe(settingsSubID)
       unsubscribe(uploadStatusSubID)
@@ -344,3 +365,11 @@ export const useFsUploadStatus = () => React.useContext(FsUploadStatusContext) ?
 
 export const useFsOverallSyncStatus = () =>
   React.useContext(FsOverallSyncStatusContext) ?? emptyFsStatusState.overallSyncStatus
+
+export const FsStatusProvider = ({children}: {children: React.ReactNode}) => (
+  <FsDaemonProvider>
+    <FsStatusDataProvider>{children}</FsStatusDataProvider>
+  </FsDaemonProvider>
+)
+
+export {useFsDaemonActions, useKbfsDaemonStatus} from './daemon'

@@ -5,8 +5,7 @@ import Browser from './browser'
 import {NormalPreview} from './filepreview'
 import * as Kbfs from './common'
 import * as SimpleScreens from './simple-screens'
-import {useFSState} from '@/stores/fs'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 
 type ChooseComponentProps = {
   emitBarePreview: () => void
@@ -66,7 +65,7 @@ type OwnProps = {
 const ConnectedInner = (ownProps: OwnProps) => {
   const path = ownProps.path ?? FS.defaultPath
   const _pathItem = Kbfs.useFsPathItem(path)
-  const kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const kbfsDaemonStatus = Kbfs.useKbfsDaemonStatus()
   const navigateUp = C.Router2.navigateUp
   const navigateAppend = C.Router2.navigateAppend
   const emitBarePreview = () => {

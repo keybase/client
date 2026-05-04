@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {FsDataProvider} from './hooks'
 import {FsErrorProvider} from './error-state'
 import PathInfo from './path-info'

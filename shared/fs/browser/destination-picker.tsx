@@ -9,7 +9,7 @@ import Root from './root'
 import {FsBrowserEditProvider, useFsBrowserEdits} from './edit-state'
 import {FsBrowserSortProvider} from './sort-state'
 import Rows from './rows/rows-container'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useConfigState} from '@/stores/config'
 import {makeUUID} from '@/util/uuid'
 

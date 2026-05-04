@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {navigateAppend} from '@/constants/router'
 import {useFsPathItem} from '@/fs/common'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 
 type Props = {
   lastClosedTlf?: string

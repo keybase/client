@@ -1,9 +1,8 @@
 import * as T from '@/constants/types'
 import PathStatusIcon from './path-status-icon'
-import {useFSState} from '@/stores/fs'
 import {useFsPathItem, useFsTlf, useFsTlfs} from './hooks'
-import {useFsUploadStatus} from './status'
-import * as FS from '@/stores/fs'
+import {useFsUploadStatus, useKbfsDaemonStatus} from './status'
+import * as FS from '@/constants/fs'
 
 type OwnPropsPathItem = {
   loadOnMount?: boolean
@@ -19,7 +18,7 @@ const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
   })
   const _tlf = useFsTlf(ownProps.path, {loadOnMount: ownProps.loadOnMount})
   const _uploads = useFsUploadStatus().syncingPaths
-  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const _kbfsDaemonStatus = useKbfsDaemonStatus()
   const props = {
     isFolder: _pathItem.type === T.FS.PathType.Folder,
     showTooltipOnPressMobile: ownProps.showTooltipOnPressMobile,
@@ -41,7 +40,7 @@ type OwnPropsTlfType = {
 const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
   const tlfs = useFsTlfs()
   const _uploads = useFsUploadStatus()
-  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const _kbfsDaemonStatus = useKbfsDaemonStatus()
   const _tlfList = ownProps.tlfType ? FS.getTlfListFromType(tlfs, ownProps.tlfType) : new Map()
   const props = {
     isFolder: true,

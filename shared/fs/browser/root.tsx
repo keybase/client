@@ -5,7 +5,7 @@ import Tlf from './rows/tlf'
 import {useFsTlfs} from '../common'
 import SfmiBanner from '../banner/system-file-manager-integration-banner/container'
 import {WrapRow} from './rows/rows'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {
