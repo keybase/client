@@ -100,7 +100,8 @@ Value KBBridge::binaryFromBytes(Runtime &runtime, const char *ptr, size_t size,
   }
 
   Value arrayBufferArg(std::move(arrayBuffer));
-  return uint8ArrayCtor(runtime).callAsConstructor(runtime, &arrayBufferArg, 1);
+  return uint8ArrayCtor(runtime).callAsConstructor(runtime,
+                                                  std::move(arrayBufferArg));
 }
 
 static std::string mpToString(msgpack::object &o) {
