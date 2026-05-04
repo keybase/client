@@ -39,36 +39,6 @@ declare global {
   var __PROFILE__: boolean
   var rpcOnGo: undefined | ((msg: unknown) => void)
   var rpcOnJs: undefined | ((objs: unknown, count: number) => void)
-  var kbJSIExperimentConfig:
-    | undefined
-    | {
-        inboundBinaryMode: number
-        inboundBinaryModeName: string
-        outboundTypedArrayFastPath: boolean
-        perf: boolean
-      }
-  var kbJSIPerf:
-    | undefined
-    | {
-        makeBinary: (
-          size?: number,
-          mode?: 'uint8Array' | 'arrayBuffer' | 'wrappedUint8Array'
-        ) => unknown
-        reset: () => boolean
-        roundTrip: (
-          value: unknown,
-          iterations?: number,
-          mode?: 'uint8Array' | 'arrayBuffer' | 'wrappedUint8Array'
-        ) => {
-          bytes: number
-          decodeNs: number
-          encodeNs: number
-          iterations: number
-          mode: string
-          value: unknown
-        }
-        stats: () => Record<string, number | string>
-      }
   // RN
   var __turboModuleProxy: unknown
 }

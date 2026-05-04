@@ -5,7 +5,6 @@
 // include with #undef/#pragma push/pop to handle the conflict safely.
 #pragma once
 #include <ReactCommon/CallInvoker.h>
-#include "react-native-kb-experiments.h"
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
@@ -51,58 +50,16 @@ private:
   std::function<void(void *ptr, size_t size)> writeToGo_;
   std::vector<uint8_t> combinedBuf_;
 
-  enum class BinaryMode {
-    uint8ArrayCtor,
-    mutableArrayBuffer,
-    mutableWrappedUint8Array,
-  };
-
   void resetCaches(facebook::jsi::Runtime &runtime);
   facebook::jsi::Function &uint8ArrayCtor(facebook::jsi::Runtime &runtime);
   facebook::jsi::Value binaryFromBytes(facebook::jsi::Runtime &runtime,
-                                       const char *ptr, size_t size,
-                                       BinaryMode mode);
+                                       const char *ptr, size_t size);
   facebook::jsi::Value convertMPToJSI(facebook::jsi::Runtime &runtime,
                                       void *mpObj);
   void convertJSIToMP(facebook::jsi::Runtime &runtime,
                       const facebook::jsi::Value &value, void *packer);
   void packAndSend(facebook::jsi::Runtime &runtime,
                    const facebook::jsi::Value &value);
-
-#ifdef KB_JSI_EXPERIMENTS_ENABLED
-  void installExperimentBindings(facebook::jsi::Runtime &runtime);
-#endif
-
-#if KB_JSI_PERF
-  struct PerfCounters {
-    std::atomic<uint64_t> rpcOnGoCalls{0};
-    std::atomic<uint64_t> rpcOnGoBytes{0};
-    std::atomic<uint64_t> encodeNs{0};
-    std::atomic<uint64_t> frameNs{0};
-    std::atomic<uint64_t> writeToGoNs{0};
-    std::atomic<uint64_t> onDataCalls{0};
-    std::atomic<uint64_t> onDataBytes{0};
-    std::atomic<uint64_t> inboundMessages{0};
-    std::atomic<uint64_t> unpackNs{0};
-    std::atomic<uint64_t> convertMPToJSINs{0};
-    std::atomic<uint64_t> rpcOnJsCalls{0};
-    std::atomic<uint64_t> rpcOnJsNs{0};
-  };
-
-  PerfCounters perf_;
-
-  void installPerfBindings(facebook::jsi::Runtime &runtime);
-  void resetPerfCounters();
-  facebook::jsi::Value perfStats(facebook::jsi::Runtime &runtime);
-  facebook::jsi::Value perfRoundTrip(facebook::jsi::Runtime &runtime,
-                                     const facebook::jsi::Value *arguments,
-                                     size_t count);
-  facebook::jsi::Value perfMakeBinary(facebook::jsi::Runtime &runtime,
-                                      const facebook::jsi::Value *arguments,
-                                      size_t count);
-  facebook::jsi::Value convertMPToJSIPerf(facebook::jsi::Runtime &runtime,
-                                          void *mpObj, BinaryMode mode);
-#endif
 };
 
 } // namespace kb
