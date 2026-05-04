@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import {bodyToJSON} from '@/constants/rpc-utils'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -8,6 +7,7 @@ import * as Teams from '@/constants/teams'
 import logger from '@/logger'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '@/teams/use-teams-list'
+import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from './manage-channels-badge'
 import {useConversationThreadSelector} from './thread-context'
 
 type ChatTeamState = {
@@ -46,14 +46,6 @@ type ChatManageChannelsBadgeState = {
   showBadge: boolean
 }
 
-type ChosenChannelsStoreState = {
-  loaded: boolean
-  loading: boolean
-  teamnames: ReadonlySet<string>
-}
-
-const chosenChannelsGregorKey = 'chosenChannelsForTeam'
-
 export type ChatTeam = ChatTeamState & {
   reload: () => Promise<void>
 }
@@ -68,7 +60,6 @@ export type ChatTeamNames = ChatTeamNamesState & {
 
 export type ChatManageChannelsBadge = ChatManageChannelsBadgeState & {
   dismiss: () => Promise<void>
-  reload: () => Promise<void>
 }
 
 const emptyChatTeamState: ChatTeamStateInternal = {
@@ -93,41 +84,11 @@ const makeEmptyChatTeamNamesState = (): ChatTeamNamesStateInternal => ({
   teamnames: new Map<T.Teams.TeamID, string>(),
 })
 
-const makeEmptyChosenChannelsStoreState = (): ChosenChannelsStoreState => ({
-  loaded: false,
-  loading: false,
-  teamnames: new Set<string>(),
-})
-
 const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
 
 const parseTeamIDsKey = (teamIDsKey: string): Array<T.Teams.TeamID> =>
   teamIDsKey ? teamIDsKey.split(',').map(teamID => teamID as T.Teams.TeamID) : []
-
-const getChosenChannelsTeams = (
-  items: ReadonlyArray<{item?: T.RPCGen.Gregor1.Item | null}> | null | undefined
-): Set<string> => {
-  const chosenChannels = items?.find(item => item.item?.category === chosenChannelsGregorKey)
-  const parsed = bodyToJSON(chosenChannels?.item?.body)
-  return new Set(
-    Array.isArray(parsed) ? parsed.filter((teamname): teamname is string => typeof teamname === 'string') : []
-  )
-}
-
-const areStringSetsEqual = (left: ReadonlySet<string>, right: ReadonlySet<string>) => {
-  if (left.size !== right.size) {
-    return false
-  }
-  for (const value of left) {
-    if (!right.has(value)) {
-      return false
-    }
-  }
-  return true
-}
-
-const chosenChannelsReloadStaleMs = 30_000
 
 const roleAndDetailsFromMap = (
   map: T.RPCGen.TeamRoleMapAndVersion,
@@ -582,139 +543,35 @@ export const useChatManageChannelsBadge = (
 ): ChatManageChannelsBadge => {
   const username = useCurrentUserState(s => s.username)
   const validTeamID = loadableTeamID(teamID)
-  const [chosenChannelsState, setChosenChannelsState] =
-    React.useState<ChosenChannelsStoreState>(() => makeEmptyChosenChannelsStoreState())
-  const chosenChannelsStateRef = React.useRef(chosenChannelsState)
-  const chosenChannelsInFlightRef = React.useRef<Promise<void> | undefined>(undefined)
-  const chosenChannelsLoadedAtRef = React.useRef(0)
-
-  const updateChosenChannelsState = React.useCallback((nextState: ChosenChannelsStoreState) => {
-    const currentState = chosenChannelsStateRef.current
-    if (
-      currentState.loaded === nextState.loaded &&
-      currentState.loading === nextState.loading &&
-      areStringSetsEqual(currentState.teamnames, nextState.teamnames)
-    ) {
-      return
-    }
-    chosenChannelsStateRef.current = nextState
-    if (nextState.loaded) {
-      chosenChannelsLoadedAtRef.current = Date.now()
-    }
-    setChosenChannelsState(nextState)
-  }, [])
-
-  const setChosenChannelsFromItems = React.useCallback(
-    (items: ReadonlyArray<{item?: T.RPCGen.Gregor1.Item | null}> | null | undefined) => {
-      updateChosenChannelsState({
-        loaded: true,
-        loading: false,
-        teamnames: getChosenChannelsTeams(items),
-      })
-    },
-    [updateChosenChannelsState]
-  )
-  const showBadge =
-    !!validTeamID && !!teamname && chosenChannelsState.loaded
-      ? !chosenChannelsState.teamnames.has(teamname)
-      : false
+  const chosenChannelsTeamnames = useChosenChannelsTeamnames()
+  const [optimisticDismissedKey, setOptimisticDismissedKey] = React.useState('')
+  const canLoad = !!validTeamID && !!teamname && !!username
+  const optimisticKey = `${username}:${teamname}`
+  const showBadge = canLoad
+    ? !chosenChannelsTeamnames.has(teamname) && optimisticDismissedKey !== optimisticKey
+    : false
   const state = {
-    loading: !!validTeamID && !!teamname && chosenChannelsState.loading,
+    loading: false,
     showBadge,
   }
 
-  const reload = React.useCallback(async () => {
-    if (!validTeamID || !teamname || !username) {
-      updateChosenChannelsState(makeEmptyChosenChannelsStoreState())
-      return
-    }
-    if (chosenChannelsInFlightRef.current) {
-      await chosenChannelsInFlightRef.current
-      return
-    }
-    const currentState = chosenChannelsStateRef.current
-    updateChosenChannelsState({...currentState, loading: true})
-    const request = (async () => {
-      try {
-        const pushState = await T.RPCGen.gregorGetStateRpcPromise()
-        setChosenChannelsFromItems(pushState.items)
-      } catch (error) {
-        logger.warn('Failed to load chosen channel state', error)
-        updateChosenChannelsState({
-          ...chosenChannelsStateRef.current,
-          loading: false,
-        })
-      }
-    })()
-    chosenChannelsInFlightRef.current = request
-    try {
-      await request
-    } finally {
-      if (chosenChannelsInFlightRef.current === request) {
-        chosenChannelsInFlightRef.current = undefined
-      }
-    }
-  }, [setChosenChannelsFromItems, teamname, updateChosenChannelsState, username, validTeamID])
-
-  const loadIfStale = React.useCallback(
-    async (force = false) => {
-      if (!validTeamID || !teamname || !username) {
-        updateChosenChannelsState(makeEmptyChosenChannelsStoreState())
-        return
-      }
-      const isFresh =
-        chosenChannelsStateRef.current.loaded &&
-        Date.now() - chosenChannelsLoadedAtRef.current < chosenChannelsReloadStaleMs
-      if (!force && isFresh) {
-        return
-      }
-      await reload()
-    },
-    [reload, teamname, updateChosenChannelsState, username, validTeamID]
-  )
-
   const dismiss = React.useCallback(async () => {
-    if (!validTeamID || !teamname) {
+    if (!canLoad) {
       return
     }
-    await loadIfStale(true)
-    const chosenChannels = new Set(chosenChannelsStateRef.current.teamnames)
-    if (chosenChannels.has(teamname)) {
+    const nextTeamnames = new Set(chosenChannelsTeamnames)
+    if (nextTeamnames.has(teamname)) {
       return
     }
-    chosenChannels.add(teamname)
-    updateChosenChannelsState({
-      loaded: true,
-      loading: false,
-      teamnames: chosenChannels,
-    })
+    nextTeamnames.add(teamname)
+    setOptimisticDismissedKey(optimisticKey)
     try {
-      await T.RPCGen.gregorUpdateCategoryRpcPromise({
-        body: JSON.stringify([...chosenChannels]),
-        category: chosenChannelsGregorKey,
-        dtime: {offset: 0, time: 0},
-      })
+      await updateChosenChannelsTeamnames(nextTeamnames)
     } catch (error) {
       logger.warn(`Failed to update chosen channel state for ${teamname}`, error)
-      await loadIfStale(true)
+      setOptimisticDismissedKey(key => (key === optimisticKey ? '' : key))
     }
-  }, [loadIfStale, teamname, updateChosenChannelsState, validTeamID])
+  }, [canLoad, chosenChannelsTeamnames, optimisticKey, teamname])
 
-  React.useEffect(() => {
-    void loadIfStale()
-  }, [loadIfStale])
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      if (validTeamID && teamname) {
-        void loadIfStale()
-      }
-    }, [loadIfStale, teamname, validTeamID])
-  )
-  useEngineActionListener('keybase.1.gregorUI.pushState', action => {
-    if (validTeamID && teamname) {
-      setChosenChannelsFromItems(action.payload.params.state.items)
-    }
-  })
-
-  return {...state, dismiss, reload}
+  return {...state, dismiss}
 }

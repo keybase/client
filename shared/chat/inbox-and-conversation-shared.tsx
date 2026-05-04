@@ -8,6 +8,8 @@ import Conversation from './conversation/container'
 import InfoPanel, {type Panel} from './conversation/info-panel'
 import type {ThreadSearchRouteProps} from './conversation/thread-search-route'
 import {useInboxLayoutState} from './inbox/layout-state'
+import type {NavState} from '@/constants/router'
+import logger from '@/logger'
 
 export type InboxAndConversationProps = ThreadSearchRouteProps & {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -26,29 +28,29 @@ export function InboxAndConversationShell(props: Props) {
   const infoPanel = props.infoPanel
   const validConvoID = conversationIDKey && conversationIDKey !== Chat.noConversationIDKey
   const lastValidCIDRef = React.useRef(validConvoID ? conversationIDKey : '')
-  const lastAutoSelectedCIDRef = React.useRef('')
-  const selectNextConvo = useInboxLayoutState(s => {
+  const chatTabSelected = C.useRouterState(s => {
+    const storedTab = C.Router2.getTab(s.navState as NavState | undefined)
+    return (storedTab ?? C.Router2.getTab()) === C.Tabs.chatTab
+  })
+  const firstSmallTeam = useInboxLayoutState(s => {
     if (validConvoID) {
       return null
     }
     const first = s.layout?.smallTeams?.[0]
-    return first?.convID === lastValidCIDRef.current ? null : first?.convID
+    return first?.convID
   })
 
   React.useEffect(() => {
     if (validConvoID) {
       lastValidCIDRef.current = conversationIDKey
-      lastAutoSelectedCIDRef.current = ''
       return
     }
-    if (selectNextConvo && lastAutoSelectedCIDRef.current !== selectNextConvo) {
-      lastAutoSelectedCIDRef.current = selectNextConvo
-      // need to defer , not sure why, shouldn't be
-      setTimeout(() => {
-        C.Router2.navigateToThread(selectNextConvo, 'findNewestConversationFromLayout')
-      }, 100)
+    if (!chatTabSelected || !firstSmallTeam || firstSmallTeam === lastValidCIDRef.current) {
+      return
     }
-  }, [conversationIDKey, selectNextConvo, validConvoID])
+    logger.info(`InboxAndConversationShell: auto-selecting first chat thread: ${firstSmallTeam}`)
+    C.Router2.navigateToThread(firstSmallTeam, 'findNewestConversationFromLayout')
+  }, [chatTabSelected, conversationIDKey, firstSmallTeam, validConvoID])
 
   return (
     <Kb.KeyboardAvoidingView2>

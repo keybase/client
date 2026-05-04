@@ -3,6 +3,7 @@ import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {getVisibleScreen} from '@/constants/router'
 import {useIsFocused} from '@react-navigation/core'
+import logger from '@/logger'
 import {
   type ThreadLoadStatusOptions,
   type ThreadLoadStatusReporter,
@@ -80,6 +81,10 @@ export const ConversationThreadLoadStatusProvider = (
     currentIDRef.current = id
   }, [id])
   const routeFocused = useIsFocused()
+  const routeFocusedRef = React.useRef(routeFocused)
+  React.useLayoutEffect(() => {
+    routeFocusedRef.current = routeFocused
+  }, [routeFocused])
   const previousRouteFocusedRef = React.useRef(routeFocused)
   const blurredToScreenNameRef = React.useRef<string | undefined>(undefined)
   const threadLoadGenerationRef = React.useRef(0)
@@ -191,6 +196,9 @@ export const ConversationThreadLoadStatusProvider = (
   })
 
   React.useEffect(() => {
+    logger.info(
+      `ConversationThreadLoadStatusProvider: selecting thread: ${id} focused=${routeFocusedRef.current} skipThreadLoad=${initialSkipThreadLoadOnSelection}`
+    )
     selectConversation()
   }, [id, initialSkipThreadLoadOnSelection])
 
