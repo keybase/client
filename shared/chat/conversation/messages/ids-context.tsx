@@ -12,6 +12,7 @@ const defaultValue = {
 } satisfies MessageContextValue
 
 export const MessageContext = React.createContext<MessageContextValue>(defaultValue)
+MessageContext.displayName = 'MessageContext'
 
 // Convenience hooks for accessing individual values
 export const useOrdinal = () => React.useContext(MessageContext).ordinal

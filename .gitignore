@@ -90,3 +90,5 @@ go/keybase_openbsd
 .cursor
 .claude/settings.local.json
 .*-mcp
+CLAUDE.md
+.tsOuts

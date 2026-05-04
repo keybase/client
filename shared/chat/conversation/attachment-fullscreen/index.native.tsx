@@ -50,11 +50,11 @@ const FullscreenVideo = (p: {
 
 const Fullscreen = function Fullscreen(p: Props) {
   const {showHeader: _showHeader = true} = p
-  const data = useData(p.ordinal)
+  const data = useData(p.conversationIDKey, p.messageID, p.initialMessage)
   const {isVideo, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
   const {onNextAttachment, onPreviousAttachment} = data
+  const {hasMessageID} = data
   const [loaded, setLoaded] = React.useState(false)
-  const {ordinal} = message
   const [showHeader, setShowHeader] = React.useState(_showHeader)
   const toggleHeader = () => {
     setShowHeader(s => !s)
@@ -77,15 +77,15 @@ const Fullscreen = function Fullscreen(p: Props) {
   const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
   const srcDims = imgSrc === path
     ? {height: data.fullHeight, width: data.fullWidth}
-    : {height: data.previewWidth, width: data.previewHeight}
+    : {height: data.previewHeight, width: data.previewWidth}
 
-  const {showPopup, popup} = useMessagePopup({ordinal})
+  const {showPopup, popup} = useMessagePopup({conversationIDKey: p.conversationIDKey, message})
 
   const onSwipe = (left: boolean) => {
     if (left) {
-      onNextAttachment()
+      onNextAttachment?.()
     } else {
-      onPreviousAttachment()
+      onPreviousAttachment?.()
     }
   }
 
@@ -121,8 +121,8 @@ const Fullscreen = function Fullscreen(p: Props) {
     }
   }
 
-  if (path) {
-    if (isVideo) {
+  if (isVideo) {
+    if (path) {
       content = (
         <FullscreenVideo
           key={path}
@@ -133,18 +133,18 @@ const Fullscreen = function Fullscreen(p: Props) {
           onLoaded={() => setLoaded(true)}
         />
       )
-    } else {
-      content = (
-        <Kb.ZoomableImage
-          src={imgSrc}
-          style={styles.zoomableBox}
-          onSwipe={onSwipe}
-          onTap={toggleHeader}
-          srcDims={srcDims}
-          boxCacheKey="chat-attach"
-        />
-      )
     }
+  } else if (imgSrc) {
+    content = (
+      <Kb.ZoomableImage
+        src={imgSrc}
+        style={styles.zoomableBox}
+        onSwipe={hasMessageID ? onSwipe : undefined}
+        onTap={toggleHeader}
+        srcDims={srcDims}
+        boxCacheKey="chat-attach"
+      />
+    )
   }
 
   if (!loaded && isVideo) {
@@ -181,7 +181,7 @@ const Fullscreen = function Fullscreen(p: Props) {
   return (
     <Kb.Box2
       direction="vertical"
-          relative={true}
+      relative={true}
       style={{backgroundColor: Kb.Styles.globalColors.blackOrBlack}}
       fullWidth={true}
       fullHeight={true}
@@ -199,7 +199,12 @@ const Fullscreen = function Fullscreen(p: Props) {
           </Kb.Text>
         </Kb.Box2>
       </Animated.View>
-      <Kb.IconButton icon="iconfont-ellipsis" style={styles.headerFooter} onClick={showPopup} />
+      <Kb.IconButton
+        disabled={!hasMessageID}
+        icon="iconfont-ellipsis"
+        style={styles.headerFooter}
+        onClick={hasMessageID ? showPopup : undefined}
+      />
       {popup}
     </Kb.Box2>
   )

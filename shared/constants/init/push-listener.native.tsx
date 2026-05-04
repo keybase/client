@@ -23,6 +23,7 @@ type DataCommon = {
 type DataReadMessage = DataCommon & {
   type: 'chat.readmessage'
   b: string | number
+  i?: string
 }
 type DataNewMessage = DataCommon & {
   type: 'chat.newmessage'
@@ -45,7 +46,26 @@ type DataChatExtension = DataCommon & {
   type: 'chat.extension'
   convID?: string
 }
-type Data = DataReadMessage | DataNewMessage | DataNewMessageSilent2 | DataFollow | DataChatExtension
+type DataDeviceRevoked = DataCommon & {
+  type: 'device.revoked'
+  device_id?: string
+}
+type DataDeviceNew = DataCommon & {
+  type: 'device.new'
+  device_id?: string
+}
+type DataAutoreset = DataCommon & {
+  type: 'autoreset'
+}
+type Data =
+  | DataReadMessage
+  | DataNewMessage
+  | DataNewMessageSilent2
+  | DataFollow
+  | DataChatExtension
+  | DataDeviceRevoked
+  | DataDeviceNew
+  | DataAutoreset
 
 type PushN = Data & {
   message?: string
@@ -83,6 +103,7 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
         const badges = typeof data.b === 'string' ? parseInt(data.b) : data.b
         return {
           badges,
+          forUid: data.i,
           type: 'chat.readmessage',
         } as const
       }
@@ -117,6 +138,30 @@ const normalizePush = (_n?: object): T.Push.PushNotification | undefined => {
               type: 'follow',
               userInteraction,
               username: data.username,
+            }
+          : undefined
+      case 'device.revoked':
+        return forUid
+          ? {
+              forUid,
+              type: 'device.revoked',
+              userInteraction,
+            }
+          : undefined
+      case 'device.new':
+        return forUid
+          ? {
+              forUid,
+              type: 'device.new',
+              userInteraction,
+            }
+          : undefined
+      case 'autoreset':
+        return forUid
+          ? {
+              forUid,
+              type: 'autoreset',
+              userInteraction,
             }
           : undefined
       case 'chat.extension':
@@ -220,7 +265,7 @@ export const initPushListener = () => {
 
   usePushState.getState().dispatch.initialPermissionsCheck()
 
-  // When current-user.uid changes, run pending push if it was for this account
+  // When current-user.uid changes, run pending push if it was for this account.
   useCurrentUserState.subscribe((s, old) => {
     if (s.uid === old.uid) return
     const pushState = usePushState.getState()
@@ -229,13 +274,25 @@ export const initPushListener = () => {
     const forUid = (pending as {forUid?: string}).forUid
     if (!forUid || forUid !== s.uid) return
     pushState.dispatch.clearPendingPushNotification()
+    useConfigState.getState().dispatch.setUserSwitching(false)
     pushState.dispatch.handlePush(pending)
   })
 
-  // Clear pending push on logout
+  useConfigState.subscribe((s, old) => {
+    if (s.configuredAccounts === old.configuredAccounts || s.userSwitching) return
+    const pushState = usePushState.getState()
+    const pending = pushState.pendingPushNotification
+    if (!pending || !('forUid' in pending)) return
+    const forUid = (pending as {forUid?: string}).forUid
+    if (!forUid || forUid === useCurrentUserState.getState().uid) return
+    const account = s.configuredAccounts.find(acc => acc.uid === forUid)
+    if (!account?.hasStoredSecret) return
+    pushState.dispatch.handlePush(pending)
+  })
+
   useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
-    if (!s.loggedIn) {
+    if (!s.loggedIn && !s.userSwitching) {
       usePushState.getState().dispatch.clearPendingPushNotification()
     }
   })

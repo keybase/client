@@ -1,17 +1,17 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useConversationThreadSelector} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemInviteAccepted}
 
 function SystemInviteAcceptedContainer(p: OwnProps) {
   const {message} = p
   const {role} = message
-  const teamID = ConvoState.useChatContext(s => s.meta.teamID)
+  const teamID = useConversationThreadSelector(s => s.meta.teamID)
   const you = useCurrentUserState(s => s.username)
   const navigateAppend = C.Router2.navigateAppend
   const onViewTeam = () => {

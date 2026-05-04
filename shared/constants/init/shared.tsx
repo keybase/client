@@ -13,21 +13,19 @@ declare global {
 
   var __hmr_oneTimeInitDone: boolean | undefined
 
-  var __hmr_chatStores: Map<unknown, unknown> | undefined
-
   var __hmr_TBstores: Map<unknown, unknown> | undefined
 }
-import type * as UseChatStateType from '@/stores/chat'
+import type * as UseBlockButtonsStateType from '@/chat/blocking/block-buttons-state'
 import type * as UseNotificationsStateType from '@/stores/notifications'
 import type * as UseUsersStateType from '@/stores/users'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {getTBStore} from '@/stores/team-building'
-import {getSelectedConversation} from '@/constants/chat/common'
+import {serviceStaticConfigToStaticConfig} from '@/constants/chat/static-config'
 import {emitDeepLink} from '@/router-v2/linking'
 import {ignorePromise} from '../utils'
 import {isMobile, isPhone, serverConfigFileName} from '../platform'
 import {useAvatarState} from '@/common-adapters/avatar/store'
-import {useChatState} from '@/stores/chat'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
@@ -44,18 +42,16 @@ import {useUsersState} from '@/stores/users'
 import {useWaitingState} from '@/stores/waiting'
 import {useRouterState} from '@/stores/router'
 import * as Util from '@/constants/router'
+import {handleConvoEngineIncoming} from '@/chat/inbox/engine'
 import {
-  getConvoState,
+  onChatRouteChanged,
   onChatInboxSynced,
   onGetInboxConvsUnboxed,
   onGetInboxUnverifiedConvs,
   onInboxLayoutChanged,
   onIncomingInboxUIItem,
-  handleConvoEngineIncoming,
-  onRouteChanged as onConvoRouteChanged,
   syncBadgeState,
-  syncGregorExplodingModes,
-} from '@/stores/convostate'
+} from '@/chat/inbox/metadata'
 import {clearSignupEmail} from '@/people/signup-email'
 import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
 import {clearNavBadges} from '@/teams/actions'
@@ -85,6 +81,21 @@ const subscribeValue = <State, Value>(
 type ConfigState = ReturnType<typeof useConfigState.getState>
 type DaemonState = ReturnType<typeof useDaemonState.getState>
 type RouterState = ReturnType<typeof useRouterState.getState>
+
+const bootstrapStatusKey = (bootstrap?: DaemonState['bootstrapStatus']) =>
+  bootstrap
+    ? [
+        bootstrap.registered ? '1' : '0',
+        bootstrap.loggedIn ? '1' : '0',
+        bootstrap.uid,
+        bootstrap.username,
+        bootstrap.deviceID,
+        bootstrap.deviceName,
+        bootstrap.fullname,
+        bootstrap.httpSrvInfo?.address ?? '',
+        bootstrap.httpSrvInfo?.token ?? '',
+      ].join('\x00')
+    : ''
 
 const loadConfiguredAccountsForBootstrap = () => {
   const configState = useConfigState.getState()
@@ -147,8 +158,7 @@ const refreshStartupChat = () => {
   // On phone, let the focused inbox screen trigger the first refresh so hidden chatRoot
   // mounts behind a pushed conversation do not pay inbox startup cost.
   if (!isPhone && useCurrentUserState.getState().username) {
-    const {inboxRefresh} = useChatState.getState().dispatch
-    ignorePromise(inboxRefresh('bootstrap'))
+    ignorePromise(useInboxLayoutState.getState().dispatch.refresh('bootstrap'))
   }
 }
 
@@ -165,7 +175,11 @@ const onLoadOnStartPhaseChanged = (loadOnStartPhase: ConfigState['loadOnStartPha
 
 const onGregorReachableChanged = (gregorReachable: ConfigState['gregorReachable']) => {
   // Re-get info about our account if you log in/we're done handshaking/became reachable
-  if (gregorReachable === T.RPCGen.Reachable.yes && useDaemonState.getState().handshakeWaiters.size === 0) {
+  if (
+    gregorReachable === T.RPCGen.Reachable.yes &&
+    useDaemonState.getState().handshakeWaiters.size === 0 &&
+    !useConfigState.getState().userSwitching
+  ) {
     ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
   }
 }
@@ -181,6 +195,10 @@ const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
   } else {
     clearSignupEmail()
     clearSignupDeviceNameDraft()
+    const {useBlockButtonsState} = require(
+      '@/chat/blocking/block-buttons-state'
+    ) as typeof UseBlockButtonsStateType
+    useBlockButtonsState.getState().dispatch.resetState()
   }
   loadConfiguredAccountsForBootstrap()
   if (!useConfigState.getState().loggedInCausedbyStartup) {
@@ -202,14 +220,32 @@ const onConfiguredAccountsChanged = (configuredAccounts: ConfigState['configured
   }
 }
 
-const onUserActiveChanged = () => {
-  const cs = getConvoState(getSelectedConversation())
-  cs.dispatch.markThreadAsRead()
+const loadChatStaticConfig = () => {
+  const {chatBuiltinCommands, chatDeletableByDeleteHistory} = useConfigState.getState()
+  if (chatBuiltinCommands && chatDeletableByDeleteHistory) {
+    return
+  }
+  const {handshakeVersion, dispatch} = useDaemonState.getState()
+  const f = async () => {
+    const name = 'chat.loadStatic'
+    dispatch.wait(name, handshakeVersion, true)
+    try {
+      const staticConfig = serviceStaticConfigToStaticConfig(await T.RPCChat.localGetStaticConfigRpcPromise())
+      if (!staticConfig) {
+        logger.error('chat.loadStaticConfig: missing required static config')
+        return
+      }
+      useConfigState.getState().dispatch.setChatStaticConfig(staticConfig)
+    } finally {
+      dispatch.wait(name, handshakeVersion, false)
+    }
+  }
+  ignorePromise(f())
 }
 
 const onHandshakeVersionChanged = () => {
   useDarkModeState.getState().dispatch.loadDarkPrefs()
-  useChatState.getState().dispatch.loadStaticConfig()
+  loadChatStaticConfig()
   loadConfiguredAccountsForBootstrap()
 }
 
@@ -218,7 +254,7 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
     return
   }
 
-  const {deviceID, deviceName, loggedIn, uid, username, userReacjis} = bootstrap
+  const {deviceID, deviceName, loggedIn, uid, username} = bootstrap
   useCurrentUserState.getState().dispatch.setBootstrap({deviceID, deviceName, uid, username})
 
   const configDispatch = useConfigState.getState().dispatch
@@ -228,13 +264,16 @@ const onBootstrapStatusChanged = (bootstrap: DaemonState['bootstrapStatus']) => 
   if (loggedIn) {
     configDispatch.setUserSwitching(false)
   }
+  if (!loggedIn && useConfigState.getState().userSwitching) {
+    logger.info('[Bootstrap] ignoring loggedIn=false result during account switch')
+    return
+  }
   configDispatch.setLoggedIn(loggedIn, false)
 
   if (bootstrap.httpSrvInfo) {
     configDispatch.setHTTPSrvInfo(bootstrap.httpSrvInfo.address, bootstrap.httpSrvInfo.token)
   }
 
-  useChatState.getState().dispatch.updateUserReacjis(userReacjis)
 }
 
 const onHandshakeStateChanged = (handshakeState: DaemonState['handshakeState']) => {
@@ -309,7 +348,7 @@ const onNavStateChanged = (nextNavState: RouterState['navState'], previousNavSta
     clearNavBadges()
   }
 
-  onConvoRouteChanged(prev, next)
+  onChatRouteChanged(prev, next)
 }
 
 export const onEngineConnected = () => {
@@ -381,12 +420,10 @@ export const initSharedSubscriptions = () => {
   )
 
   _sharedUnsubs.push(
-    subscribeValue(useShellState, s => s.active, onUserActiveChanged)
-  )
-
-  _sharedUnsubs.push(
     subscribeValue(useDaemonState, s => s.handshakeVersion, onHandshakeVersionChanged),
-    subscribeValue(useDaemonState, s => s.bootstrapStatus, onBootstrapStatusChanged),
+    subscribeValue(useDaemonState, s => bootstrapStatusKey(s.bootstrapStatus), () =>
+      onBootstrapStatusChanged(useDaemonState.getState().bootstrapStatus)
+    ),
     subscribeValue(useDaemonState, s => s.handshakeState, onHandshakeStateChanged)
   )
 
@@ -402,12 +439,12 @@ export const initSharedSubscriptions = () => {
 // This is to defer loading stores we don't need immediately.
 export const _onEngineIncoming = (action: EngineGen.Actions) => {
   const routeConvoEngineIncoming = (engineAction: EngineGen.Actions) => {
-    const result = handleConvoEngineIncoming(engineAction, useChatState.getState().staticConfig)
+    const result = handleConvoEngineIncoming(engineAction)
     if (result.inboxUIItem) {
       onIncomingInboxUIItem(result.inboxUIItem)
     }
     if (result.userReacjis) {
-      useChatState.getState().dispatch.updateUserReacjis(result.userReacjis)
+      useDaemonState.getState().dispatch.updateUserReacjis(result.userReacjis)
     }
   }
 
@@ -424,22 +461,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
 
         const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
         useNotifState.getState().dispatch.onEngineIncomingImpl(action)
-
-        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
-        useChatState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.NotifyTeam.teamMetadataUpdate':
-    case 'keybase.1.NotifyTeam.teamChangedByID':
-      {
-        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
-        useChatState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.NotifyTeam.teamRoleMapChanged':
-      {
-        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
-        useChatState.getState().dispatch.onEngineIncomingImpl(action)
       }
       break
     case 'keybase.1.gregorUI.pushState': {
@@ -457,12 +478,13 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
       if (goodState.length !== items.length) {
         logger.warn('Lost some messages in filtering out nonNull gregor items')
       }
-      syncGregorExplodingModes(goodState)
+      const {useBlockButtonsState} = require(
+        '@/chat/blocking/block-buttons-state'
+      ) as typeof UseBlockButtonsStateType
+      useBlockButtonsState.getState().dispatch.updateFromGregorItems(state.items)
 
       const {useNotifState} = require('@/stores/notifications') as typeof UseNotificationsStateType
       useNotifState.getState().dispatch.onEngineIncomingImpl(action)
-      const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
-      useChatState.getState().dispatch.onEngineIncomingImpl(action)
       break
     }
     case 'chat.1.NotifyChat.ChatSetTeamRetention':
@@ -521,7 +543,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.chatUi.chatCommandMarkdown':
     case 'chat.1.chatUi.chatGiphyToggleResultWindow':
     case 'chat.1.chatUi.chatCommandStatus':
-    case 'chat.1.chatUi.chatBotCommandsUpdateStatus':
     case 'chat.1.chatUi.chatGiphySearchResults':
     case 'chat.1.NotifyChat.ChatParticipantsInfo':
     case 'chat.1.NotifyChat.ChatConvUpdate':
@@ -534,13 +555,16 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.NotifyChat.ChatSetConvRetention':
       routeConvoEngineIncoming(action)
       break
-    case 'chat.1.chatUi.chatMaybeMentionUpdate':
-    case 'chat.1.NotifyChat.ChatIdentifyUpdate':
+    case 'chat.1.NotifyChat.ChatIdentifyUpdate': {
+      const {update} = action.payload.params
+      const usernames = update.CanonicalName.split(',')
+      const broken = (update.breaks.breaks || []).map(b => b.user.username)
+      const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
+      useUsersState.getState().dispatch.updates(updates)
+      break
+    }
     case 'chat.1.NotifyChat.ChatInboxStale':
-      {
-        const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
-        useChatState.getState().dispatch.onEngineIncomingImpl(action)
-      }
+      ignorePromise(useInboxLayoutState.getState().dispatch.refresh('inboxStale'))
       break
     case 'chat.1.chatUi.chatInboxUnverified':
       onGetInboxUnverifiedConvs(action)
@@ -551,15 +575,15 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.NotifyChat.ChatInboxSynced':
       useWaitingState.getState().dispatch.clear(S.waitingKeyChatInboxSyncStarted)
       ignorePromise(
-        onChatInboxSynced(action, async reason => useChatState.getState().dispatch.inboxRefresh(reason))
+        onChatInboxSynced(action, async reason => useInboxLayoutState.getState().dispatch.refresh(reason))
       )
       break
     case 'chat.1.chatUi.chatInboxLayout': {
-      const {inboxHasLoaded, dispatch} = useChatState.getState()
-      dispatch.updateInboxLayout(action.payload.params.layout)
-      const {inboxLayout} = useChatState.getState()
-      if (inboxLayout) {
-        onInboxLayoutChanged(inboxLayout, inboxHasLoaded)
+      const {hasLoaded, dispatch} = useInboxLayoutState.getState()
+      dispatch.updateLayout(action.payload.params.layout)
+      const {layout} = useInboxLayoutState.getState()
+      if (layout) {
+        onInboxLayoutChanged(layout, hasLoaded)
       }
       break
     }

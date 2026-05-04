@@ -1,14 +1,20 @@
 import * as C from '@/constants'
 import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
 import * as Teams from '@/constants/teams'
-import * as Chat from '@/stores/chat'
-import * as ConvoState from '@/stores/convostate'
+import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {setMemberPublicity} from '@/teams/actions'
 import {useTeamsListMap} from '@/teams/use-teams-list'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
+import {
+  useConversationThreadDismissJourneycard,
+  useConversationThreadID,
+  useConversationThreadMessage,
+  useConversationThreadSelector,
+} from '../../../thread-context'
 
 type Action = {label: string; onClick: () => void} | 'wave'
 type OwnProps = {ordinal: T.Chat.Ordinal}
@@ -17,18 +23,18 @@ const emptyJourney = Chat.makeMessageJourneycard({})
 
 const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {ordinal} = ownProps
-  const m = ConvoState.useChatContext(s => s.messageMap.get(ordinal))
+  const m = useConversationThreadMessage(ordinal)
   const message = m?.type === 'journeycard' ? m : emptyJourney
-  const conv = ConvoState.useChatContext(s => s.meta)
+  const conv = useConversationThreadSelector(s => s.meta)
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const teamMetaByID = useTeamsListMap()
   const teamMeta = teamMetaByID.get(teamID) ?? Teams.makeTeamMeta({id: teamID})
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
-  const isBigTeam = Chat.useChatState(s => getIsBigTeam(s.inboxLayout, teamID))
+  const isBigTeam = useInboxLayoutState(s => getIsBigTeam(s.layout, teamID))
   const navigateAppend = C.Router2.navigateAppend
   const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({name: 'team', params: {teamID}})
-  const dismissJourneycard = ConvoState.useChatContext(s => s.dispatch.dismissJourneycard)
+  const dismissJourneycard = useConversationThreadDismissJourneycard()
   const _onDismiss = (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) =>
     dismissJourneycard(cardType, ordinal)
   const previewConversation = C.Router2.previewConversation
@@ -47,7 +53,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const onGoToChannel = (channelName: string) => _onGoToChannel(channelName, teamname)
   const onPublishTeam = () => _onPublishTeam(teamID)
 
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const {cardType} = message
   let textComponent: React.ReactNode
   let image: Kb.IconType | undefined
@@ -155,6 +161,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
                 <Kb.WaveButton
                   key="wave"
                   conversationIDKey={conversationIDKey}
+                  tlfName={conv.tlfname}
                   small={true}
                   style={styles.buttonSpace}
                   disabled={!!deactivateButtons}

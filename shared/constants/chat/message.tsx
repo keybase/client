@@ -1,7 +1,6 @@
 // Message related constants
 import * as T from '../types'
 import * as TeamsUtil from '@/constants/teams'
-import type * as ConvoConstants from '@/stores/convostate'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
 import type * as MessageTypes from '@/constants/types/chat/message'
@@ -11,6 +10,7 @@ import invert from 'lodash/invert'
 import {isIOS, isMobile} from '@/constants/platform'
 
 const noString = new HiddenString('')
+type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
 
 const statusSimplifiedToString = invert(T.RPCStellar.PaymentStatus) as {
   [K in T.RPCStellar.PaymentStatus]: keyof typeof T.RPCStellar.PaymentStatus
@@ -89,7 +89,7 @@ export const getMessageID = (m: T.RPCChat.UIMessage) => {
 }
 
 export const getPaymentMessageInfo = (
-  accountsInfoMap: ConvoConstants.ConvoState['accountsInfoMap'],
+  accountsInfoMap: AccountsInfoMap,
   message: T.Chat.MessageSendPayment | T.Chat.MessageText
 ): T.Chat.ChatPaymentInfo | undefined => {
   const maybePaymentInfo = accountsInfoMap.get(message.id)
@@ -1327,7 +1327,7 @@ export const upgradeMessage = (
 }
 
 export const shouldShowPopup = (
-  accountsInfoMap?: ConvoConstants.ConvoState['accountsInfoMap'],
+  accountsInfoMap?: AccountsInfoMap,
   message?: T.Chat.Message
 ) => {
   switch (message?.type) {

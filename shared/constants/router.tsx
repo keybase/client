@@ -1,9 +1,9 @@
 import type * as React from 'react'
 import * as T from './types'
-import type * as ConvoRegistryType from '@/stores/convo-registry'
-import type * as ConvoStateType from '@/stores/convostate'
-import type * as UseChatStateType from '@/stores/chat'
+import type * as ChatInboxMetadataType from '@/chat/inbox/metadata'
+import type * as InboxLayoutStateType from '@/chat/inbox/layout-state'
 import type * as UseCurrentUserStateType from '@/stores/current-user'
+import type {ThreadInputAction} from '@/chat/conversation/thread-search-route'
 import * as Tabs from './tabs'
 import {
   StackActions,
@@ -83,11 +83,6 @@ const uiParticipantsToParticipantInfo = (
     }
   })
   return participantInfo
-}
-
-const getConvoState = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const {getConvoState} = require('@/stores/convostate') as typeof ConvoStateType
-  return getConvoState(conversationIDKey)
 }
 
 export const getRootState = (): NavState | undefined => {
@@ -509,7 +504,7 @@ export const createConversation = (
         return
       }
 
-      const {metasReceived} = require('@/stores/convostate') as typeof ConvoStateType
+      const {metasReceived} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
       const meta = Meta.inboxUIItemToConversationMeta(uiConv)
       if (meta) {
         metasReceived([meta])
@@ -517,13 +512,14 @@ export const createConversation = (
 
       const participantInfo = uiParticipantsToParticipantInfo(uiConv.participants ?? [])
       if (participantInfo.all.length > 0) {
-        getConvoState(conversationIDKey).dispatch.setParticipants(participantInfo)
+        const {participantInfoReceived} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
+        participantInfoReceived(conversationIDKey, participantInfo, meta)
       }
 
       navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
 
-      const {useChatState} = require('@/stores/chat') as typeof UseChatStateType
-      ignorePromise(useChatState.getState().dispatch.inboxRefresh('joinedAConversation'))
+      const {useInboxLayoutState} = require('@/chat/inbox/layout-state') as typeof InboxLayoutStateType
+      ignorePromise(useInboxLayoutState.getState().dispatch.refresh('joinedAConversation'))
     } catch (error) {
       if (error instanceof RPCError) {
         const fields = error.fields as Array<{key?: string}> | undefined
@@ -554,15 +550,15 @@ export const previewConversation = (p: PreviewConversationParams) => {
     const {participants, teamname, highlightMessageID} = p
     if (teamname || !participants) return
 
-    const {chatStores} = require('@/stores/convo-registry') as typeof ConvoRegistryType
+    const {useInboxMetadataState} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
     const toFind = [...participants].sort().join(',')
     const toFindN = participants.length
-    for (const cs of chatStores.values()) {
-      const names = cs.getState().participants.name
+    for (const [conversationIDKey, participantInfo] of useInboxMetadataState.getState().participants) {
+      const names = participantInfo.name
       if (names.length !== toFindN) continue
       const participantSet = [...names].sort().join(',')
       if (participantSet === toFind) {
-        navigateToThread(cs.getState().id, 'justCreated', highlightMessageID)
+        navigateToThread(conversationIDKey, 'justCreated', highlightMessageID)
         return
       }
     }
@@ -627,7 +623,7 @@ export const previewConversation = (p: PreviewConversationParams) => {
       })
       const meta = Meta.inboxUIItemToConversationMeta(results2.conv)
       if (meta) {
-        const {metasReceived} = require('@/stores/convostate') as typeof ConvoStateType
+        const {metasReceived} = require('@/chat/inbox/metadata') as typeof ChatInboxMetadataType
         metasReceived([meta])
       }
 
@@ -708,8 +704,96 @@ export const setChatRootParams = (params: Partial<NonNullable<KBRootParamList['c
   })
 }
 
+const getVisibleThreadScreen = () => {
+  const visiblePath = getVisiblePath()
+  for (let i = visiblePath.length - 1; i >= 0; --i) {
+    const route = visiblePath[i]
+    if (route?.name === threadRouteName) {
+      return route
+    }
+  }
+  return undefined
+}
+
+export const clearThreadHighlightMessageID = () => {
+  const n = _getNavigator()
+  if (!n) return
+  const visible = getVisibleThreadScreen()
+  if (!visible?.key || visible.name !== threadRouteName) return
+  n.dispatch({
+    ...CommonActions.setParams({highlightMessageID: undefined}),
+    source: visible.key,
+  })
+}
+
+type ThreadInputActionRequest =
+  | {type: 'commandStatus'; info?: T.Chat.CommandStatusInfo}
+  | {type: 'injectText'; text?: string}
+  | {type: 'setEditing'; ordinal: T.Chat.Ordinal}
+  | {type: 'setReplyTo'; ordinal: T.Chat.Ordinal}
+
+const makeThreadInputAction = (action: ThreadInputActionRequest): ThreadInputAction => ({
+  ...action,
+  key: makeUUID(),
+})
+
+const setThreadInputAction = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  action: ThreadInputActionRequest
+) => {
+  const n = _getNavigator()
+  if (!n) return
+  const visible = getVisibleThreadScreen()
+  const params = visible?.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
+  if (!visible?.key || visible.name !== threadRouteName || params?.conversationIDKey !== conversationIDKey) {
+    return
+  }
+  n.dispatch({
+    ...CommonActions.setParams({inputAction: makeThreadInputAction(action)}),
+    source: visible.key,
+  })
+}
+
+export const clearThreadInputAction = (key?: string) => {
+  const n = _getNavigator()
+  if (!n) return
+  const visible = getVisibleThreadScreen()
+  if (!visible?.key || visible.name !== threadRouteName) return
+  const params = visible.params as {inputAction?: ThreadInputAction} | undefined
+  if (key && params?.inputAction?.key !== key) {
+    return
+  }
+  n.dispatch({
+    ...CommonActions.setParams({inputAction: undefined}),
+    source: visible.key,
+  })
+}
+
+export const setThreadInputCommandStatus = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  info?: T.Chat.CommandStatusInfo
+) => {
+  setThreadInputAction(conversationIDKey, {info, type: 'commandStatus'})
+}
+
+export const setThreadInputEditing = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  ordinal: T.Chat.Ordinal
+) => {
+  setThreadInputAction(conversationIDKey, {ordinal, type: 'setEditing'})
+}
+
+export const setThreadInputReplyTo = (
+  conversationIDKey: T.Chat.ConversationIDKey,
+  ordinal: T.Chat.Ordinal
+) => {
+  setThreadInputAction(conversationIDKey, {ordinal, type: 'setReplyTo'})
+}
+
 type ThreadNavParams = {
   createConversationError?: T.Chat.CreateConversationError
+  highlightMessageID?: T.Chat.MessageID
+  inputAction?: ThreadInputAction
   threadSearch?: {query?: string}
 }
 
@@ -753,6 +837,8 @@ const navToThread = (conversationIDKey: T.Chat.ConversationIDKey, navParams?: Th
   const params = {
     conversationIDKey,
     createConversationError: navParams?.createConversationError,
+    highlightMessageID: navParams?.highlightMessageID,
+    inputAction: navParams?.inputAction,
     threadSearch: navParams?.threadSearch,
   }
 
@@ -788,10 +874,9 @@ export const navigateToThread = (
   reason: NavigateToThreadReason,
   highlightMessageID?: T.Chat.MessageID,
   threadSearchQuery?: string,
-  createConversationError?: T.Chat.CreateConversationError
+  createConversationError?: T.Chat.CreateConversationError,
+  inputPrefillText?: string
 ) => {
-  getConvoState(conversationIDKey).dispatch.prepareToNavigateToThread(highlightMessageID)
-
   if (reason === 'navChanged') {
     return
   }
@@ -806,7 +891,24 @@ export const navigateToThread = (
   }
 
   const threadSearch = threadSearchQuery ? {query: threadSearchQuery} : undefined
-  const navParams = {createConversationError, threadSearch}
+  const inputAction =
+    inputPrefillText !== undefined ? makeThreadInputAction({text: inputPrefillText, type: 'injectText'}) : undefined
+  const navParams = {
+    createConversationError,
+    highlightMessageID,
+    inputAction,
+    threadSearch,
+  }
+  const sameVisibleThread = visibleRouteName === threadRouteName && visibleConvo === conversationIDKey
+  if (sameVisibleThread && (highlightMessageID || inputAction)) {
+    const sameThreadParams = {conversationIDKey, ...navParams}
+    if (isSplit) {
+      setChatRootParams(sameThreadParams)
+    } else {
+      navigateAppend({name: threadRouteName, params: sameThreadParams}, true)
+    }
+    return
+  }
   if (isSplit) {
     navToThread(conversationIDKey, navParams)
   } else if (reason === 'push' || reason === 'savedLastState') {
@@ -822,7 +924,13 @@ export const navigateToThread = (
     navigateAppend(
       {
         name: threadRouteName,
-        params: {conversationIDKey, createConversationError, threadSearch},
+        params: {
+          conversationIDKey,
+          createConversationError,
+          highlightMessageID,
+          inputAction,
+          threadSearch,
+        },
       },
       replace
     )

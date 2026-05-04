@@ -1,21 +1,20 @@
-import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import Prompt from './prompt'
+import {
+  useConversationThreadUnfurlResolvePrompt,
+  useConversationThreadSelector,
+} from '@/chat/conversation/thread-context'
+
+const emptySet = new Set<string>()
 
 function UnfurlPromptListContainer({messageID}: {messageID: T.Chat.MessageID}) {
-  const {unfurlResolvePrompt, promptDomains} = ConvoState.useChatContext(
-    C.useShallow(s => {
-      const unfurlResolvePrompt = s.dispatch.unfurlResolvePrompt
-      const promptDomains = s.unfurlPrompt.get(messageID)
-      return {promptDomains, unfurlResolvePrompt}
-    })
-  )
+  const promptDomains = useConversationThreadSelector(s => s.unfurlPrompt.get(messageID) ?? emptySet)
+  const unfurlResolvePrompt = useConversationThreadUnfurlResolvePrompt()
   const _setPolicy = (domain: string, result: T.RPCChat.UnfurlPromptResult) => {
     unfurlResolvePrompt(messageID, domain, result)
   }
-  const prompts = [...(promptDomains ?? [])].map(domain => ({
+  const prompts = [...promptDomains].map(domain => ({
     domain,
     onAccept: () =>
       _setPolicy(domain, {

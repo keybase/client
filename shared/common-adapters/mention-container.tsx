@@ -1,4 +1,4 @@
-import * as Chat from '@/stores/chat'
+import * as Chat from '@/constants/chat'
 import Mention, {type OwnProps} from './mention'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'

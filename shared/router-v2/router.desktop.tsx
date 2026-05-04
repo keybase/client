@@ -106,14 +106,12 @@ const useConnectNavToState = () => {
           window.DEBUGNavigator = C.Router2.navigationRef.current
           window.DEBUGRouter2 = C.Router2
           window.KBCONSTANTS = require('@/constants')
-          window.KBINBOX = require('@/stores/chat')
-          window.KBCONVOSTATE = require('@/stores/convostate')
+          window.KBINBOX = require('@/constants/chat')
           registerDebugClear(() => {
             window.DEBUGNavigator = undefined
             window.DEBUGRouter2 = undefined
             window.KBCONSTANTS = undefined
             window.KBINBOX = undefined
-            window.KBCONVOSTATE = undefined
           })
         }
       }

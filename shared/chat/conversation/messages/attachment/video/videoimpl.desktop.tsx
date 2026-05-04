@@ -22,7 +22,7 @@ const VideoImpl = (p: Props) => {
 
   const onDoubleClick = () => {
     ref.current?.pause()
-    openFullscreen()
+    openFullscreen?.()
   }
 
   const ref = React.useRef<HTMLVideoElement | null>(null)
@@ -41,7 +41,7 @@ const VideoImpl = (p: Props) => {
     <video
       ref={ref}
       autoPlay={true}
-      onDoubleClick={onDoubleClick}
+      onDoubleClick={openFullscreen ? onDoubleClick : undefined}
       height={height}
       width={width}
       poster={previewURL}

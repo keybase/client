@@ -1,12 +1,13 @@
 import * as Channels from './channels'
-import * as ConvoState from '@/stores/convostate'
 import * as Commands from './commands'
 import * as Emoji from './emoji'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Users from './users'
+import * as InputState from '../input-state'
 import type * as Common from './common'
 import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input'
+import {useConversationThreadID} from '../../thread-context'
 
 const positionFallbacks = ['bottom center'] as const
 
@@ -46,11 +47,10 @@ const suggestorToMarker = {
 
 type UseSuggestorsProps = Pick<
   Props,
-  'onChangeText' | 'suggestBotCommandsUpdateStatus' | 'suggestionOverlayStyle'
+  'onChangeText' | 'suggestionOverlayStyle'
 > & {
   suggestionListStyle: Kb.Styles.StylesCrossPlatform
   suggestionSpinnerStyle: Kb.Styles.StylesCrossPlatform
-  expanded: boolean
   inputRef: React.RefObject<InputRef | null>
   onKeyDown?: (evt: React.KeyboardEvent) => void
 }
@@ -67,22 +67,35 @@ type UseSyncInputProps = {
   setFilter: React.Dispatch<React.SetStateAction<string>>
   selectedItemRef: React.RefObject<undefined | SelectedType>
   lastTextRef: React.RefObject<string>
+  setCommandInputSnapshot: (snapshot: Commands.CommandInputSnapshot) => void
   setLastText: (text: string) => void
 }
 
 const useSyncInput = (p: UseSyncInputProps) => {
-  const {inputRef, active, setActive, setFilter, selectedItemRef, setLastText, lastTextRef} = p
+  const {
+    inputRef,
+    active,
+    setActive,
+    setFilter,
+    selectedItemRef,
+    setCommandInputSnapshot,
+    setLastText,
+    lastTextRef,
+  } = p
   const setInactive = () => {
     setActive('')
     setFilter('')
   }
 
-  const getWordAtCursor = () => {
+  const getInputSnapshot = (): Commands.CommandInputSnapshot => ({
+    selection: inputRef.current?.getSelection(),
+    text: lastTextRef.current,
+  })
+
+  const getWordAtCursor = (inputSnapshot: Commands.CommandInputSnapshot) => {
     if (inputRef.current) {
       const useSpaces = active === 'commands'
-      const input = inputRef.current
-      const selection = input.getSelection()
-      const text = lastTextRef.current
+      const {selection, text} = inputSnapshot
       // eslint-disable-next-line
       if (!selection || selection.start === null) {
         return null
@@ -123,7 +136,9 @@ const useSyncInput = (p: UseSyncInputProps) => {
     triggerIDRef.current = setTimeout(() => {
       // inside a timeout so selection will settle, there was a problem where
       // desktop would get the previous selection on arrowleft / arrowright
-      const cursorInfo = getWordAtCursor()
+      const inputSnapshot = getInputSnapshot()
+      setCommandInputSnapshot(inputSnapshot)
+      const cursorInfo = getWordAtCursor(inputSnapshot)
       if (!cursorInfo) {
         setInactive()
         return
@@ -171,7 +186,9 @@ const useSyncInput = (p: UseSyncInputProps) => {
       return
     }
     const input = inputRef.current
-    const cursorInfo = getWordAtCursor()
+    const inputSnapshot = getInputSnapshot()
+    setCommandInputSnapshot(inputSnapshot)
+    const cursorInfo = getWordAtCursor(inputSnapshot)
     const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
 
     let transformedText: {
@@ -279,20 +296,38 @@ const useHandleKeyEvents = (p: UseHandleKeyEventsProps) => {
 export const useSuggestors = (p: UseSuggestorsProps) => {
   const selectedItemRef = React.useRef<undefined | SelectedType>(undefined)
   const lastTextRef = React.useRef('')
+  const [commandInputSnapshot, setCommandInputSnapshot] = React.useState<Commands.CommandInputSnapshot>({
+    selection: undefined,
+    text: '',
+  })
+  const setCommandInputSnapshotIfChanged = (snapshot: Commands.CommandInputSnapshot) => {
+    setCommandInputSnapshot(previous =>
+      previous.text === snapshot.text &&
+      previous.selection?.start === snapshot.selection?.start &&
+      previous.selection?.end === snapshot.selection?.end
+        ? previous
+        : snapshot
+    )
+  }
   const setLastText = (text: string) => {
     lastTextRef.current = text
+    setCommandInputSnapshot(previous => (previous.text === text ? previous : {...previous, text}))
   }
   const [active, setActive] = React.useState<ActiveType>('')
   const [filter, setFilter] = React.useState('')
-  const {inputRef, suggestionListStyle, suggestionOverlayStyle, expanded} = p
+  const suppressCommandSuggestions = InputState.useConversationInput(s => !!s.commandMarkdown || s.giphyWindow)
+  const {inputRef, suggestionListStyle, suggestionOverlayStyle} = p
   const {onChangeText: onChangeTextProps} = p
-  const {suggestBotCommandsUpdateStatus, suggestionSpinnerStyle} = p
+  const {suggestionSpinnerStyle} = p
+  const conversationIDKey = useConversationThreadID()
+  const botCommandsUpdateState = Commands.useBotCommandsUpdateState(conversationIDKey)
   const {triggerTransform, checkTrigger, setInactive} = useSyncInput({
     active,
     inputRef,
     lastTextRef,
     selectedItemRef,
     setActive,
+    setCommandInputSnapshot: setCommandInputSnapshotIfChanged,
     setFilter,
     setLastText,
   })
@@ -322,7 +357,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   }
 
   const onChangeText = (text: string) => {
-    lastTextRef.current = text
+    setLastText(text)
     onChangeTextProps(text)
     checkTrigger()
   }
@@ -341,14 +376,14 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
   }
 
   const listProps = {
-    expanded,
+    conversationIDKey,
     filter,
     listStyle: suggestionListStyle,
     onSelected,
     setOnMoveRef,
     setOnSubmitRef,
     spinnerStyle: suggestionSpinnerStyle,
-    suggestBotCommandsUpdateStatus,
+    suggestBotCommandsUpdateStatus: botCommandsUpdateState.status,
   }
 
   let content: React.ReactNode = null
@@ -357,7 +392,14 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
       content = <Channels.List {...listProps} />
       break
     case 'commands':
-      content = <Commands.List {...listProps} inputRef={inputRef} lastTextRef={lastTextRef} />
+      content = (
+        <Commands.List
+          {...listProps}
+          botSettings={botCommandsUpdateState.settings}
+          inputSnapshot={commandInputSnapshot}
+          suppressCommandSuggestions={suppressCommandSuggestions}
+        />
+      )
       break
     case 'emoji':
       content = <Emoji.List {...listProps} />
@@ -381,6 +423,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     onKeyDown,
     onSelectionChange: onSelectionChange2,
     popup,
+    suggestionsShowing: !!content,
   }
 }
 
@@ -392,7 +435,6 @@ type PopupProps = {
 }
 const Popup = (p: PopupProps) => {
   const {children, suggestionOverlayStyle, setInactive, inputRef} = p
-  const conversationIdKey = ConvoState.useChatContext(s => s.id)
 
   const attachRef = inputRef as React.RefObject<Kb.MeasureRef | null>
 
@@ -408,13 +450,7 @@ const Popup = (p: PopupProps) => {
       containerStyle={suggestionOverlayStyle}
       style={suggestionOverlayStyle}
     >
-      {Kb.Styles.isMobile ? (
-        <ConvoState.ChatProvider id={conversationIdKey}>
-          <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2>
-        </ConvoState.ChatProvider>
-      ) : (
-        children
-      )}
+      {Kb.Styles.isMobile ? <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2> : children}
     </Kb.Popup>
   )
 }

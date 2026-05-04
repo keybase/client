@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Message from '@/constants/chat/message'
-import * as ConvoState from '@/stores/convostate'
 import type * as Styles from '@/styles'
 import * as T from '@/constants/types'
 import * as React from 'react'
@@ -8,6 +7,13 @@ import * as Kb from '@/common-adapters'
 import {RPCError} from '@/util/errors'
 import {formatTimeForMessages} from '@/util/timestamp'
 import {useCurrentUserState} from '@/stores/current-user'
+import {useConversationCenter} from './center-context'
+import {cancelActiveThreadSearchRPC, searchInboxRPC} from '../search-rpc'
+import {
+  useConversationThreadID,
+  useConversationThreadSelector,
+  useConversationThreadToggleSearch,
+} from './thread-context'
 import {useThreadSearchRoute} from './thread-search-route'
 
 type OwnProps = {style?: Styles.StylesCrossPlatform}
@@ -23,13 +29,10 @@ type SearchState = {
 
 const useCommon = (ownProps: CommonProps) => {
   const {conversationIDKey, initialQuery, style} = ownProps
-  const {loadMessagesCentered, toggleThreadSearch} = ConvoState.useChatContext(
-    C.useShallow(s => ({
-      loadMessagesCentered: s.dispatch.loadMessagesCentered,
-      toggleThreadSearch: s.dispatch.toggleThreadSearch,
-    }))
-  )
+  const toggleThreadSearch = useConversationThreadToggleSearch()
+  const {centerOnMessage, clearCenter} = useConversationCenter()
   const onToggleThreadSearch = () => {
+    clearCenter()
     toggleThreadSearch()
   }
 
@@ -53,9 +56,16 @@ const useCommon = (ownProps: CommonProps) => {
   const flushTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const pendingHitsRef = React.useRef<Array<T.Chat.Message>>([])
   const pendingReplaceHitsRef = React.useRef<Array<T.Chat.Message> | undefined>(undefined)
+  const lastOrdinal = useConversationThreadSelector(
+    s => s.messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+  )
+  const lastOrdinalRef = React.useRef(lastOrdinal)
   React.useEffect(() => {
     hitsRef.current = messageHits
   }, [messageHits])
+  React.useEffect(() => {
+    lastOrdinalRef.current = lastOrdinal
+  }, [lastOrdinal])
 
   const clearPendingFlush = React.useEffectEvent(() => {
     if (flushTimeoutRef.current) {
@@ -72,8 +82,7 @@ const useCommon = (ownProps: CommonProps) => {
     }
 
     const {deviceName, username} = useCurrentUserState.getState()
-    const getLastOrdinal = () =>
-      ConvoState.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? T.Chat.numberToOrdinal(0)
+    const getLastOrdinal = () => lastOrdinalRef.current
     const updateIfCurrent = (updater: (state: SearchState) => SearchState) => {
       if (searchOrdinalRef.current !== requestOrdinal) {
         return
@@ -123,7 +132,7 @@ const useCommon = (ownProps: CommonProps) => {
 
     const f = async () => {
       try {
-        await T.RPCChat.localSearchInboxRpcListener({
+        await searchInboxRPC({
           incomingCallMap: {
             'chat.1.chatUi.chatSearchDone': onDone,
             'chat.1.chatUi.chatSearchHit': hit => {
@@ -163,31 +172,13 @@ const useCommon = (ownProps: CommonProps) => {
               updateIfCurrent(state => ({...state, status: 'inprogress'}))
             },
           },
-          params: {
-            identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
-            namesOnly: false,
-            opts: {
-              afterContext: 0,
-              beforeContext: 0,
-              convID: ConvoState.getConvoState(conversationIDKey).getConvID(),
-              isRegex: false,
-              matchMentions: false,
-              maxBots: 0,
-              maxConvsHit: 0,
-              maxConvsSearched: 0,
-              maxHits: 1000,
-              maxMessages: -1,
-              maxNameConvs: 0,
-              maxTeams: 0,
-              reindexMode: T.RPCChat.ReIndexingMode.postsearchSync,
-              sentAfter: 0,
-              sentBefore: 0,
-              sentBy: '',
-              sentTo: '',
-              skipBotCache: false,
-            },
-            query,
+          opts: {
+            convID: T.Chat.isValidConversationIDKey(conversationIDKey)
+              ? T.Chat.keyToConversationID(conversationIDKey)
+              : new Uint8Array(0),
+            maxHits: 1000,
           },
+          query,
         })
       } catch (error) {
         if (error instanceof RPCError) {
@@ -215,7 +206,7 @@ const useCommon = (ownProps: CommonProps) => {
   const [selectResult] = React.useState(() => (index: number) => {
     const message = hitsRef.current[index]
     if (message?.id) {
-      loadMessagesCentered(message.id, 'always')
+      centerOnMessage(message.id, 'always')
     }
     setSelectedIndex(index)
   })
@@ -271,7 +262,7 @@ const useCommon = (ownProps: CommonProps) => {
     return () => {
       searchOrdinalRef.current += 1
       clearPendingFlush()
-      C.ignorePromise(T.RPCChat.localCancelActiveSearchRpcPromise().catch(() => {}))
+      C.ignorePromise(cancelActiveThreadSearchRPC().catch(() => {}))
     }
   }, [])
 
@@ -315,7 +306,7 @@ type SearchHit = {
 }
 
 const useThreadSearchCommonProps = (p: OwnProps): CommonProps => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const initialQuery = useThreadSearchRoute()?.query ?? ''
   return {...p, conversationIDKey, initialQuery}
 }

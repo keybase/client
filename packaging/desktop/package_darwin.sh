@@ -113,7 +113,6 @@ app_executable_path="$out_dir/Keybase.app/Contents/MacOS/Keybase"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
-# TODO build and publish an arm64 version
 # The KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
 installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.94-darwin.tgz"
 # KeybaseUpdater.app is the native updater UI (prompt dialogs)

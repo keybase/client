@@ -1,35 +1,31 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from './sizes'
 import type * as T from '@/constants/types'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
-import {useChatManageChannelsBadge} from '@/chat/conversation/team-hooks'
 
 type Props = {
+  showBadge: boolean
   teamname: string
   teamID: T.Teams.TeamID
 }
 
 const BigTeamHeader = (props: Props) => {
-  const {teamID, teamname} = props
-  const {showBadge: badgeSubscribe} = useChatManageChannelsBadge(teamID, teamname)
+  const {showBadge, teamID, teamname} = props
   const navigateAppend = C.Router2.navigateAppend
   const onClick = () => navigateAppend({name: 'team', params: {teamID}})
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     return (
-      <ConvoState.ChatProvider id="" canBeNull={true}>
-        <TeamMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          teamID={teamID}
-          hasHeader={true}
-          isSmallTeam={false}
-        />
-      </ConvoState.ChatProvider>
+      <TeamMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        teamID={teamID}
+        hasHeader={true}
+        isSmallTeam={false}
+      />
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
@@ -60,7 +56,10 @@ const BigTeamHeader = (props: Props) => {
           color={Kb.Styles.globalColors.black_35}
           type="iconfont-gear"
         />
-        <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([styles.badge, badgeSubscribe && styles.badgeVisible])} />
+        <Kb.Box2
+          direction="vertical"
+          style={Kb.Styles.collapseStyles([styles.badge, showBadge && styles.badgeVisible])}
+        />
       </Kb.ClickableBox2>
     </Kb.Box2>
   )

@@ -675,7 +675,6 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 		hmi, hmiErr := m.getHostMessageInfo(ctx, update.Metadata.ConversationID)
 		if hmiErr != nil {
 			m.Debug(ctx, "handleUpdate: failed to get host message info: %s", hmiErr)
-			status.ConvID = update.Metadata.ConversationID.ConvIDStr()
 		} else {
 			status.ConvID = hmi.ConvID.ConvIDStr()
 		}

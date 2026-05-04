@@ -4,14 +4,6 @@
 
 Keybase is on RN 0.83.4 with New Architecture and Hermes enabled. RN's public TurboModule Codegen surface still does not document ArrayBuffer or typed-array parameters, but RN's C++ JSI API exposes MutableBuffer, ArrayBuffer, direct buffer data access, NativeState, and runtime data. The evaluation should focus on our pure C++ JSI bridge in react-native-kb, not on moving the RPC pipe to normal TurboModule methods.
 
-## Progress
-
-- [x] Added build-time experiment switches so baseline and prototype bridge implementations can be built separately.
-- [x] Added an optional outbound Uint8Array fast path controlled by `KB_JSI_OUTBOUND_TYPED_ARRAY_FASTPATH`.
-- [x] Added benchmark-only measurement hooks controlled by `KB_JSI_PERF`.
-- [x] Added inbound binary prototypes controlled by `KB_JSI_INBOUND_BINARY_MODE`.
-- [ ] Run the benchmark-only workflow on a machine with installed JS/native toolchains.
-
 ## Evaluation Targets
 
 - Benchmark current bridge costs in react-native-kb: rpcOnGo, rpcOnJs, msgpack encode/decode, object/map walking, string conversion, binary payload handling, JNI/ObjC copies, and batching.

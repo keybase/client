@@ -1,12 +1,12 @@
 import * as C from '@/constants'
-import * as Chat from '@/stores/chat'
-import * as ConvoState from '@/stores/convostate'
+import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import ReactButton from './react-button'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {MessageContext} from './ids-context'
 import {useUsersState} from '@/stores/users'
+import {useConversationThreadID, useConversationThreadMessage, useConversationThreadMessageActions} from '../thread-context'
 
 const positionFallbacks = ['bottom center', 'left center'] as const
 
@@ -33,20 +33,22 @@ type Section = {
 const ReactionTooltip = (p: OwnProps) => {
   const {ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
-  const reactions = ConvoState.useChatContext(s => {
-    const message = s.messageMap.get(ordinal)
-    return message && Chat.isMessageWithReactions(message) ? message.reactions : undefined
-  })
+  const message = useConversationThreadMessage(ordinal)
+  const reactions = message && Chat.isMessageWithReactions(message) ? message.reactions : undefined
   const usersInfo = useUsersState(s => (reactions ? s.infoMap : emptyUsersInfo))
-  const toggleMessageReaction = ConvoState.useChatContext(s => s.dispatch.toggleMessageReaction)
+  const {toggleMessageReaction} = useConversationThreadMessageActions()
+  const conversationIDKey = useConversationThreadID()
+  const hasMessageID = !!message && !!T.Chat.messageIDToNumber(message.id)
 
-  const navigateAppend = ConvoState.useChatNavigateAppend()
   const onAddReaction = () => {
+    if (!message || !T.Chat.messageIDToNumber(message.id)) {
+      return
+    }
     onHidden()
-    navigateAppend(conversationIDKey => ({
+    C.Router2.navigateAppend({
       name: 'chatChooseEmoji',
-      params: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
-    }))
+      params: {conversationIDKey, onPickAddToMessageID: message.id, pickKey: 'reaction'},
+    })
   }
 
   let reactionsToShow = [...(reactions?.keys() ?? emptyReactions.keys())]
@@ -71,7 +73,6 @@ const ReactionTooltip = (p: OwnProps) => {
     reactionsToShow = reactionsToShow.filter(r => r.emoji === emoji)
   }
   const insets = Kb.useSafeAreaInsets()
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
   const messageContext = {isHighlighted: false, ordinal}
   if (!visible) {
     return null
@@ -114,47 +115,50 @@ const ReactionTooltip = (p: OwnProps) => {
       propagateOutsideClicks={true}
       style={styles.overlay}
     >
-      {/* need context since this uses a portal... */}
-      <ConvoState.ChatProvider id={conversationIDKey}>
-        <MessageContext value={messageContext}>
-          <Kb.Box2
-            onMouseLeave={onMouseLeave}
-            onMouseOver={onMouseOver}
-            direction="vertical"
-            gap="tiny"
-            style={Kb.Styles.collapseStyles([styles.listContainer, {paddingBottom: insets.bottom}])}
-          >
-            {Kb.Styles.isMobile && (
-              <Kb.Box2 direction="horizontal">
-                <Kb.Text type="BodySemiboldLink" onClick={onHidden} style={styles.closeButton}>
-                  Close
-                </Kb.Text>
-                <Kb.Box2 direction="horizontal" flex={1} />
-              </Kb.Box2>
-            )}
-            <Kb.SectionList
-              alwaysBounceVertical={false}
-              initialNumToRender={19} // Keeps height from trashing on mobile
-              sections={sections}
-              stickySectionHeadersEnabled={true}
-              contentContainerStyle={styles.list}
-              renderItem={renderItem}
-              renderSectionHeader={renderSectionHeader}
-            />
-            {Kb.Styles.isMobile && (
-              <Kb.ButtonBar style={styles.addReactionButtonBar}>
-                <Kb.Button mode="Secondary" fullWidth={true} onClick={onAddReaction} label="Add a reaction">
-                  <Kb.Icon
-                    type="iconfont-reacji"
-                    color={Kb.Styles.globalColors.blue}
-                    style={styles.addReactionButtonIcon}
-                  />
-                </Kb.Button>
-              </Kb.ButtonBar>
-            )}
-          </Kb.Box2>
-        </MessageContext>
-      </ConvoState.ChatProvider>
+      <MessageContext value={messageContext}>
+        <Kb.Box2
+          onMouseLeave={onMouseLeave}
+          onMouseOver={onMouseOver}
+          direction="vertical"
+          gap="tiny"
+          style={Kb.Styles.collapseStyles([styles.listContainer, {paddingBottom: insets.bottom}])}
+        >
+          {Kb.Styles.isMobile && (
+            <Kb.Box2 direction="horizontal">
+              <Kb.Text type="BodySemiboldLink" onClick={onHidden} style={styles.closeButton}>
+                Close
+              </Kb.Text>
+              <Kb.Box2 direction="horizontal" flex={1} />
+            </Kb.Box2>
+          )}
+          <Kb.SectionList
+            alwaysBounceVertical={false}
+            initialNumToRender={19} // Keeps height from trashing on mobile
+            sections={sections}
+            stickySectionHeadersEnabled={true}
+            contentContainerStyle={styles.list}
+            renderItem={renderItem}
+            renderSectionHeader={renderSectionHeader}
+          />
+          {Kb.Styles.isMobile && (
+            <Kb.ButtonBar style={styles.addReactionButtonBar}>
+              <Kb.Button
+                disabled={!hasMessageID}
+                mode="Secondary"
+                fullWidth={true}
+                onClick={hasMessageID ? onAddReaction : undefined}
+                label="Add a reaction"
+              >
+                <Kb.Icon
+                  type="iconfont-reacji"
+                  color={Kb.Styles.globalColors.blue}
+                  style={styles.addReactionButtonIcon}
+                />
+              </Kb.Button>
+            </Kb.ButtonBar>
+          )}
+        </Kb.Box2>
+      </MessageContext>
     </Kb.Popup>
   )
 }

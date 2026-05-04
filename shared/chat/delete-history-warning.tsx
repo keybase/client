@@ -1,17 +1,37 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
+import * as T from '@/constants/types'
+import {useConversationMeta} from './conversation/data-hooks'
+import logger from '@/logger'
 
-const DeleteHistoryWarning = () => {
+type Props = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+}
+
+const DeleteHistoryWarning = (props: Props) => {
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
   }
   const clearModals = C.Router2.clearModals
-  const messageDeleteHistory = ConvoState.useChatContext(s => s.dispatch.messageDeleteHistory)
+  const {tlfname} = useConversationMeta(conversationIDKey)
   const onDeleteHistory = () => {
     clearModals()
-    messageDeleteHistory()
+    const f = async () => {
+      if (!tlfname) {
+        logger.warn('Deleting message history for non-existent TLF:')
+        return
+      }
+      await T.RPCChat.localPostDeleteHistoryByAgeRpcPromise({
+        age: 0,
+        conversationID: T.Chat.keyToConversationID(conversationIDKey),
+        identifyBehavior: T.RPCGen.TLFIdentifyBehavior.chatGui,
+        tlfName: tlfname,
+        tlfPublic: false,
+      })
+    }
+    C.ignorePromise(f())
   }
 
   return (

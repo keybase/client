@@ -5,9 +5,8 @@ package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 // Install status describes state of install for a component or service.

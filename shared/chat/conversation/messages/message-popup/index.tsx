@@ -1,15 +1,18 @@
 import * as C from '@/constants'
-import * as ConvoState from '@/stores/convostate'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import AttachmentMessage from './attachment'
 import JourneycardMessage from './journeycard'
 import TextMessage from './text'
-import type * as T from '@/constants/types'
+import {useConversationMessage} from '../../data-hooks'
+import {useConversationThreadMessage} from '../../thread-context'
+import * as T from '@/constants/types'
 
 type Props = {
   ordinal: T.Chat.Ordinal
   attachTo?: React.RefObject<Kb.MeasureRef | null>
+  conversationIDKey?: T.Chat.ConversationIDKey
+  message?: T.Chat.Message
   mode?: 'modal' | 'bottomsheet'
   onHidden: () => void
   position: Kb.Styles.Position
@@ -17,9 +20,9 @@ type Props = {
   visible: boolean
 }
 
-function MessagePopup(p: Props) {
-  const {ordinal, attachTo, onHidden, position, style, visible, mode} = p
-  const type = ConvoState.useChatContext(s => s.messageMap.get(ordinal)?.type)
+function MessagePopupLoaded(p: Props & {message?: T.Chat.Message}) {
+  const {ordinal, attachTo, conversationIDKey, message, onHidden, position, style, visible, mode} = p
+  const type = message?.type
   switch (type) {
     case 'text':
     case 'setChannelname':
@@ -38,6 +41,8 @@ function MessagePopup(p: Props) {
       return (
         <TextMessage
           ordinal={ordinal}
+          conversationIDKey={conversationIDKey}
+          message={message}
           attachTo={attachTo}
           mode={mode}
           onHidden={onHidden}
@@ -50,6 +55,8 @@ function MessagePopup(p: Props) {
       return (
         <JourneycardMessage
           attachTo={attachTo}
+          conversationIDKey={conversationIDKey}
+          message={message}
           mode={mode}
           ordinal={ordinal}
           onHidden={onHidden}
@@ -62,6 +69,8 @@ function MessagePopup(p: Props) {
       return (
         <AttachmentMessage
           attachTo={attachTo}
+          conversationIDKey={conversationIDKey}
+          message={message}
           mode={mode}
           ordinal={ordinal}
           onHidden={onHidden}
@@ -82,18 +91,28 @@ function MessagePopup(p: Props) {
   }
 }
 
+function ThreadMessagePopup(p: Props) {
+  const message = useConversationThreadMessage(p.ordinal)
+  return <MessagePopupLoaded {...p} message={message} />
+}
+
 // Mobile only
-type ModalProps = {ordinal: T.Chat.Ordinal}
+type ModalProps = {conversationIDKey?: T.Chat.ConversationIDKey; messageID: T.Chat.MessageID}
 export const MessagePopupModal = (p: ModalProps) => {
-  const {ordinal} = p
+  const {messageID} = p
+  const conversationIDKey = p.conversationIDKey ?? T.Chat.noConversationIDKey
+  const message = useConversationMessage(conversationIDKey, messageID)
+  const ordinal = message?.ordinal
   const {pop} = C.useNav()
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo} = p
-    return pop ? (
-      <MessagePopup
+    return pop && ordinal !== undefined ? (
+      <MessagePopupLoaded
         ordinal={ordinal}
         key="popup"
         attachTo={attachTo}
+        conversationIDKey={conversationIDKey}
+        message={message}
         mode="modal"
         onHidden={pop}
         position="top right"
@@ -102,7 +121,7 @@ export const MessagePopupModal = (p: ModalProps) => {
     ) : null
   }
   const {popup, popupAnchor, showPopup, showingPopup} = Kb.usePopup2(makePopup)
-  if (!showingPopup) {
+  if (!showingPopup && ordinal !== undefined) {
     showPopup()
   }
 
@@ -114,27 +133,36 @@ export const MessagePopupModal = (p: ModalProps) => {
 }
 
 export const useMessagePopup = (p: {
-  ordinal: T.Chat.Ordinal
+  conversationIDKey?: T.Chat.ConversationIDKey
+  message?: T.Chat.Message
+  ordinal?: T.Chat.Ordinal
   shouldShow?: () => boolean
   style?: Kb.Styles.StylesCrossPlatform
 }) => {
-  const conversationIDKey = ConvoState.useChatContext(s => s.id)
-  const {ordinal, shouldShow, style} = p
+  const {conversationIDKey, message, ordinal, shouldShow, style} = p
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
+    const popupOrdinal = message?.ordinal ?? ordinal
+    if (popupOrdinal === undefined) {
+      return null
+    }
+    if (message && !T.Chat.messageIDToNumber(message.id)) {
+      return null
+    }
+    const Popup = conversationIDKey && message ? MessagePopupLoaded : ThreadMessagePopup
     return (shouldShow?.() ?? true) ? (
-      <ConvoState.ChatProvider id={conversationIDKey}>
-        <MessagePopup
-          ordinal={ordinal}
-          key="popup"
-          attachTo={attachTo}
-          mode="bottomsheet"
-          onHidden={hidePopup}
-          position="top right"
-          style={style}
-          visible={true}
-        />
-      </ConvoState.ChatProvider>
+      <Popup
+        ordinal={popupOrdinal}
+        key="popup"
+        attachTo={attachTo}
+        conversationIDKey={conversationIDKey}
+        message={message}
+        mode="bottomsheet"
+        onHidden={hidePopup}
+        position="top right"
+        style={style}
+        visible={true}
+      />
     ) : null
   }
   return Kb.usePopup2(makePopup)

@@ -2,20 +2,27 @@ import * as React from 'react'
 
 type FocusRefType = null | {focus: () => void}
 
-export const FocusContext = React.createContext<{
+type FocusContextType = {
   focusInput: () => void
   setInputRef: (inputRef: FocusRefType) => void
-}>({focusInput: () => {}, setInputRef: () => {}})
+}
+
+export const FocusContext = React.createContext<FocusContextType>({
+  focusInput: () => {},
+  setInputRef: () => {},
+})
+FocusContext.displayName = 'FocusContext'
 
 export const FocusProvider = function FocusProvider({children}: {children: React.ReactNode}) {
   const inputRef = React.useRef<FocusRefType>(null)
-  const setInputRef = (r: FocusRefType) => {
-    inputRef.current = r
-  }
-  const focusInput = () => {
-    inputRef.current?.focus()
-  }
-  const value = {focusInput, setInputRef}
+  const [value] = React.useState<FocusContextType>(() => ({
+    focusInput: () => {
+      inputRef.current?.focus()
+    },
+    setInputRef: r => {
+      inputRef.current = r
+    },
+  }))
   return <FocusContext value={value}>{children}</FocusContext>
 }
 
@@ -25,31 +32,34 @@ type ScrollType = {
   scrollToBottom: () => void
 }
 type ScrollRefType = null | ScrollType
-export const ScrollContext = React.createContext<
-  ScrollType & {
-    setScrollRef: (scrollRef: ScrollRefType) => void
-  }
->({
+
+type ScrollContextType = ScrollType & {
+  setScrollRef: (scrollRef: ScrollRefType) => void
+}
+
+export const ScrollContext = React.createContext<ScrollContextType>({
   scrollDown: () => {},
   scrollToBottom: () => {},
   scrollUp: () => {},
   setScrollRef: () => {},
 })
+ScrollContext.displayName = 'ScrollContext'
 
 export const ScrollProvider = function ScrollProvider({children}: {children: React.ReactNode}) {
   const scrollRef = React.useRef<ScrollRefType>(null)
-  const setScrollRef = (r: ScrollRefType) => {
-    scrollRef.current = r
-  }
-  const scrollUp = () => {
-    scrollRef.current?.scrollUp()
-  }
-  const scrollDown = () => {
-    scrollRef.current?.scrollDown()
-  }
-  const scrollToBottom = () => {
-    scrollRef.current?.scrollToBottom()
-  }
-  const value = {scrollDown, scrollToBottom, scrollUp, setScrollRef}
+  const [value] = React.useState<ScrollContextType>(() => ({
+    scrollDown: () => {
+      scrollRef.current?.scrollDown()
+    },
+    scrollToBottom: () => {
+      scrollRef.current?.scrollToBottom()
+    },
+    scrollUp: () => {
+      scrollRef.current?.scrollUp()
+    },
+    setScrollRef: r => {
+      scrollRef.current = r
+    },
+  }))
   return <ScrollContext value={value}>{children}</ScrollContext>
 }

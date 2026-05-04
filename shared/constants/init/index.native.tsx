@@ -17,7 +17,7 @@ import {NotifyPopup} from '@/util/misc'
 import logger from '@/logger'
 import {Linking} from 'react-native'
 import {isAndroid} from '@/constants/platform.native'
-import {logState} from '@/constants/router'
+import {logState, setThreadInputCommandStatus} from '@/constants/router'
 import {setupAudioMode} from '@/util/audio.native'
 import {
   fsCacheDir,
@@ -29,8 +29,6 @@ import {
 import {initPushListener, getStartupDetailsFromInitialPush} from './push-listener.native'
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {noConversationIDKey} from '../types/chat/common'
-import {getSelectedConversation} from '../chat/common'
-import {getConvoState, getConvoUIState} from '@/stores/convostate'
 import {requestLocationPermission} from '@/util/platform-specific/index.native'
 import * as ScreenCapture from 'expo-screen-capture'
 import {getSecureFlagSetting} from '@/constants/platform.native'
@@ -159,7 +157,7 @@ const ensureBackgroundTask = () => {
 }
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.ConversationIDKey, text: string) => {
-  getConvoUIState(conversationIDKey).dispatch.setCommandStatusInfo({
+  setThreadInputCommandStatus(conversationIDKey, {
     actions: [T.RPCChat.UICommandStatusActionTyp.appsettings],
     displayText: text,
     displayType: T.RPCChat.UICommandStatusDisplayTyp.error,
@@ -270,12 +268,6 @@ export const initPlatformListener = () => {
 
     logger.info(`setting app state on service to: ${logState}`)
     s.dispatch.changedFocus(appFocused)
-
-    if (appFocused && old.mobileAppState !== 'active') {
-      const {dispatch} = getConvoState(getSelectedConversation())
-      dispatch.loadMoreMessages({reason: 'foregrounding'})
-      dispatch.markThreadAsRead()
-    }
   })
 
   const configureAndroidCacheDir = () => {

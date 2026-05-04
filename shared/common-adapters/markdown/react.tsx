@@ -24,6 +24,7 @@ interface State {
   disallowAnimation?: boolean
   messageType?: T.Chat.MessageType
   paragraphTextClassName?: string
+  selectable?: boolean
   styleOverride?: StyleOverride
   virtualText?: boolean
   key?: string | number | undefined
@@ -339,6 +340,7 @@ const reactComponentsForMarkdownType = {
             state.inBlockQuote && markdownStyles.quoteStyleText,
           ])}
           allowFontScaling={state.allowFontScaling}
+          selectable={state.selectable}
         >
           {output(node['content'], state)}
         </Text>

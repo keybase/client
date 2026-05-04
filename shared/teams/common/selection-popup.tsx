@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import {isBigTeam as getIsBigTeam} from '@/constants/chat/helpers'
-import * as Chat from '@/stores/chat'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -192,7 +192,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const {selectedMembers} = useTeamSelectionState()
-  const isBigTeam = Chat.useChatState(s => getIsBigTeam(s.inboxLayout, teamID))
+  const isBigTeam = useInboxLayoutState(s => getIsBigTeam(s.layout, teamID))
   const navigateAppend = C.Router2.navigateAppend
   if (!selectedMembers.size) {
     // we shouldn't be rendered
