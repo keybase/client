@@ -52,8 +52,12 @@ const useSafeIsFocused = () => {
       if (!navigation) {
         return () => {}
       }
-      const unsubscribeFocus = navigation.addListener('focus', listener)
-      const unsubscribeBlur = navigation.addListener('blur', listener)
+      const wrappedListener = () => {
+        console.log('[FS loop debug] useSafeIsFocused nav event', {isFocused: navigation.isFocused()})
+        listener()
+      }
+      const unsubscribeFocus = navigation.addListener('focus', wrappedListener)
+      const unsubscribeBlur = navigation.addListener('blur', wrappedListener)
       return () => {
         unsubscribeFocus()
         unsubscribeBlur()
@@ -61,11 +65,17 @@ const useSafeIsFocused = () => {
     },
     [navigation]
   )
-  return React.useSyncExternalStore(
+  const focused = React.useSyncExternalStore(
     subscribe,
     () => navigation?.isFocused() ?? true,
     () => true
   )
+  const prevFocusedRef = React.useRef(focused)
+  if (prevFocusedRef.current !== focused) {
+    console.log('[FS loop debug] useSafeIsFocused CHANGED', {prev: prevFocusedRef.current, next: focused})
+    prevFocusedRef.current = focused
+  }
+  return focused
 }
 
 type FsSubscription = {
@@ -542,26 +552,29 @@ const useFsLoadOnMountAndFocus = ({
   const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
   const focused = useSafeIsFocused()
   const lastLoadRef = React.useRef<{reloadKey?: unknown; time: number}>({time: 0})
-  const loadOnMountAndFocus = React.useEffectEvent(() => {
+  const loadOnMountAndFocus = React.useEffectEvent((trigger: string) => {
     if (!connected || !enabled || !focused) {
+      console.log('[FS loop debug] loadOnMountAndFocus SKIP', {trigger, reloadKey, connected, enabled, focused})
       return
     }
     const now = Date.now()
     const lastLoad = lastLoadRef.current
     if (Object.is(lastLoad.reloadKey, reloadKey) && now - lastLoad.time < 250) {
+      console.log('[FS loop debug] loadOnMountAndFocus THROTTLED', {trigger, reloadKey, elapsed: now - lastLoad.time})
       return
     }
+    console.log('[FS loop debug] loadOnMountAndFocus LOADING', {trigger, reloadKey})
     lastLoadRef.current = {reloadKey, time: now}
     load()
   })
   const [stableLoadOnMountAndFocus] = React.useState(() => () => {
-    loadOnMountAndFocus()
+    loadOnMountAndFocus('focusEffect')
   })
   React.useEffect(() => {
-    if (connected && enabled && focused) {
-      loadOnMountAndFocus()
+    if (connected && enabled) {
+      loadOnMountAndFocus('effect')
     }
-  }, [connected, enabled, focused, reloadKey])
+  }, [connected, enabled, reloadKey])
   C.Router2.useSafeFocusEffect(stableLoadOnMountAndFocus)
 }
 
@@ -621,7 +634,6 @@ const useFsSubscriptionEffect = ({
   subscriptionKey: string
 }) => {
   const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
-  const focused = useSafeIsFocused()
   const routeData = React.useContext(FsDataContext)
   const username = useCurrentUserState(s => s.username)
   const subscriptionManager = routeData?.subscriptionManager
@@ -631,7 +643,7 @@ const useFsSubscriptionEffect = ({
   })
   const subscribeEvent = React.useEffectEvent(subscribe)
   React.useEffect(() => {
-    if (!connected || !enabled || !focused) {
+    if (!connected || !enabled) {
       return
     }
 
@@ -698,7 +710,7 @@ const useFsSubscriptionEffect = ({
       }
       releaseFsSubscription(manager, subscriptionKey, currentSubscription)
     }
-  }, [connected, enabled, errorPath, focused, subscriptionKey, subscriptionManager, username])
+  }, [connected, enabled, errorPath, subscriptionKey, subscriptionManager, username])
 }
 
 const useFsPathSubscriptionEffect = (
@@ -852,6 +864,7 @@ export const useFsFolderChildren = (
         updatedPath === T.FS.pathToString(path) &&
         topics?.includes(T.RPCGen.PathSubscriptionTopic.children)
       ) {
+        console.log('[FS loop debug] FSSubscriptionNotifyPath -> loadFolderChildren', {path})
         loadFolderChildren(path, initialLoadRecursive)
       }
     },
@@ -860,6 +873,7 @@ export const useFsFolderChildren = (
   useFsLoadOnMountAndFocus({
     enabled: shouldLoad,
     load: () => {
+      console.log('[FS loop debug] useFsFolderChildren load called', {path, initialLoadRecursive})
       loadFolderChildren?.(path, initialLoadRecursive)
     },
     reloadKey: `${path}:${initialLoadRecursive ? 'recursive' : 'shallow'}`,
