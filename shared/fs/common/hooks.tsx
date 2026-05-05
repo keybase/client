@@ -942,7 +942,7 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
   )
   React.useEffect(() => {
     loadCurrentTlf()
-  }, [active, loadAdditionalTlf, tlfPathToLoad])
+  }, [active, tlfPathToLoad])
   C.Router2.useSafeFocusEffect(stableLoadCurrentTlf)
   return tlf
 }
