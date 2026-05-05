@@ -12,7 +12,13 @@ export const useOpen = (props: Props) => {
   const nav = useSafeNavigation()
 
   if (!props.destinationPickerSource) {
-    return () => nav.safeNavigateAppend({name: 'fsRoot', params: {path: props.path}})
+    const knownType = pathItem.type !== T.FS.PathType.Unknown ? pathItem.type : undefined
+    const knownTimestamp = pathItem.type === T.FS.PathType.File ? pathItem.lastModifiedTimestamp : undefined
+    return () =>
+      nav.safeNavigateAppend({
+        name: 'fsRoot',
+        params: {initialLastModifiedTimestamp: knownTimestamp, initialPathType: knownType, path: props.path},
+      })
   }
 
   const destinationPickerSource = props.destinationPickerSource

@@ -202,10 +202,26 @@ const setTlfs = (setFsSharedData: SetFsSharedData, updater: (prevTlfs: T.FS.Tlfs
   )
 }
 
-export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
+export const FsDataProvider = ({
+  children,
+  initialLastModifiedTimestamp,
+  initialPath,
+  initialPathType,
+}: {
+  children: React.ReactNode
+  initialLastModifiedTimestamp?: number
+  initialPath?: T.FS.Path
+  initialPathType?: T.FS.PathType
+}) => {
   const username = useCurrentUserState(s => s.username)
   return (
-    <FsDataProviderForUsername key={username} username={username}>
+    <FsDataProviderForUsername
+      key={username}
+      username={username}
+      initialLastModifiedTimestamp={initialLastModifiedTimestamp}
+      initialPath={initialPath}
+      initialPathType={initialPathType}
+    >
       {children}
     </FsDataProviderForUsername>
   )
@@ -213,14 +229,31 @@ export const FsDataProvider = ({children}: {children: React.ReactNode}) => {
 
 const FsDataProviderForUsername = ({
   children,
+  initialLastModifiedTimestamp,
+  initialPath,
+  initialPathType,
   username,
 }: {
   children: React.ReactNode
+  initialLastModifiedTimestamp?: number
+  initialPath?: T.FS.Path
+  initialPathType?: T.FS.PathType
   username: string
 }) => {
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const {setPathSoftError, setTlfSoftError} = useFsSoftErrorActions()
-  const [fsSharedData, setFsSharedData] = React.useState(makeEmptyFsSharedData)
+  const [fsSharedData, setFsSharedData] = React.useState(() => {
+    if (initialPath && initialPathType === T.FS.PathType.File) {
+      const pathItems = new Map<T.FS.Path, T.FS.PathItem>()
+      pathItems.set(initialPath, {
+        ...FS.emptyFile,
+        lastModifiedTimestamp: initialLastModifiedTimestamp ?? 0,
+        name: T.FS.getPathName(initialPath),
+      })
+      return {...makeEmptyFsSharedData(), pathItems}
+    }
+    return makeEmptyFsSharedData()
+  })
   const [subscriptionManager] = React.useState<FsSubscriptionManager>(() => ({subscriptions: new Map()}))
   const seenDownloadIDsRef = React.useRef(new Set<string>())
   const loadingDownloadInfosRef = React.useRef(new Set<string>())
@@ -824,9 +857,12 @@ export const useFsScreenCoordinator = (path: T.FS.Path) => {
   const routeData = React.useContext(FsDataContext)
   const focused = useSafeIsFocused()
   const pathIsItem = isPathItem(path)
+  const pathItem = useFsPathItem(path)
+  const isFile = pathItem.type === T.FS.PathType.File
+  const isMaybeFolder = !isFile
 
   useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat, focused && pathIsItem)
-  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.children, focused && pathIsItem)
+  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.children, focused && pathIsItem && isMaybeFolder)
   useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites, focused)
 
   useEngineActionListener(
@@ -836,7 +872,7 @@ export const useFsScreenCoordinator = (path: T.FS.Path) => {
       if (clientID !== fsClientID || updatedPath !== T.FS.pathToString(path)) {
         return
       }
-      if (topics?.includes(T.RPCGen.PathSubscriptionTopic.children)) {
+      if (isMaybeFolder && topics?.includes(T.RPCGen.PathSubscriptionTopic.children)) {
         routeData?.loadFolderChildren(path, true)
       }
       if (topics?.includes(T.RPCGen.PathSubscriptionTopic.stat)) {
@@ -863,7 +899,7 @@ export const useFsScreenCoordinator = (path: T.FS.Path) => {
   })
 
   useFsLoadOnMountAndFocus({
-    enabled: pathIsItem && !!routeData,
+    enabled: pathIsItem && !!routeData && isMaybeFolder,
     load: () => routeData?.loadFolderChildren(path, true),
     reloadKey: path,
   })
@@ -1122,11 +1158,14 @@ export const useFsFileContext = (
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const fileContextVersionRef = React.useRef(0)
   const [urlError, setUrlError] = React.useState('')
-  const reloadKey = `${path}:${pathItem.type}:${pathItem.lastModifiedTimestamp}:${urlError}`
+  const reloadKey = `${path}:${pathItem.type}:${urlError}`
   const [fileContextState, setFileContextState] = React.useState<{
     fileContext: T.FS.FileContext
     reloadKey: string
-  }>(() => ({fileContext: FS.emptyFileContext, reloadKey}))
+  }>(() => ({
+    fileContext: FS.emptyFileContext,
+    reloadKey,
+  }))
   const fileContext =
     fileContextState.reloadKey === reloadKey ? fileContextState.fileContext : FS.emptyFileContext
   React.useEffect(() => {
