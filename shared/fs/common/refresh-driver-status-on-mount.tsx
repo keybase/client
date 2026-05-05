@@ -6,7 +6,7 @@ const RefreshDriverStatusOnMount = () => {
 
   React.useEffect(() => {
     refreshDriverStatusDesktop()
-  }, [])
+  }, [refreshDriverStatusDesktop])
 
   return null
 }

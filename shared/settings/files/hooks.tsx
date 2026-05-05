@@ -29,10 +29,8 @@ const useFiles = () => {
         spaceAvailableNotificationThreshold: next.spaceAvailableNotificationThreshold,
         syncOnCellular: next.syncOnCellular,
       })
-      return next
     } catch {
       setSettings(s => ({...s, isLoading: false}))
-      return undefined
     }
   })
   React.useEffect(() => {

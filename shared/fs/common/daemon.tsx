@@ -27,7 +27,9 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
   const userSwitching = useConfigState(s => s.userSwitching)
   const installerRanCount = useConfigState(s => s.installerRanCount)
   const navState = useRouterState(s => s.navState as RouterConstants.NavState | undefined)
-  const [kbfsDaemonStatus, setKbfsDaemonStatus] = React.useState(Constants.unknownKbfsDaemonStatus)
+  const [kbfsDaemonStatus, setKbfsDaemonStatus] = React.useState<T.FS.KbfsDaemonStatus>(
+    Constants.unknownKbfsDaemonStatus
+  )
   const kbfsDaemonStatusRef = React.useRef(kbfsDaemonStatus)
   const previousNavStateRef = React.useRef(navState)
   const waitForKbfsDaemonInProgressRef = React.useRef(false)
