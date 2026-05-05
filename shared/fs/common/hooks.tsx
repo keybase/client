@@ -52,12 +52,8 @@ const useSafeIsFocused = () => {
       if (!navigation) {
         return () => {}
       }
-      const wrappedListener = () => {
-        console.log('[FS loop debug] useSafeIsFocused nav event', {isFocused: navigation.isFocused()})
-        listener()
-      }
-      const unsubscribeFocus = navigation.addListener('focus', wrappedListener)
-      const unsubscribeBlur = navigation.addListener('blur', wrappedListener)
+      const unsubscribeFocus = navigation.addListener('focus', listener)
+      const unsubscribeBlur = navigation.addListener('blur', listener)
       return () => {
         unsubscribeFocus()
         unsubscribeBlur()
@@ -65,17 +61,11 @@ const useSafeIsFocused = () => {
     },
     [navigation]
   )
-  const focused = React.useSyncExternalStore(
+  return React.useSyncExternalStore(
     subscribe,
     () => navigation?.isFocused() ?? true,
     () => true
   )
-  const prevFocusedRef = React.useRef(focused)
-  if (prevFocusedRef.current !== focused) {
-    console.log('[FS loop debug] useSafeIsFocused CHANGED', {prev: prevFocusedRef.current, next: focused})
-    prevFocusedRef.current = focused
-  }
-  return focused
 }
 
 type FsSubscription = {
@@ -552,27 +542,24 @@ const useFsLoadOnMountAndFocus = ({
   const connected = useKbfsDaemonStatus().rpcStatus === T.FS.KbfsDaemonRpcStatus.Connected
   const focused = useSafeIsFocused()
   const lastLoadRef = React.useRef<{reloadKey?: unknown; time: number}>({time: 0})
-  const loadOnMountAndFocus = React.useEffectEvent((trigger: string) => {
+  const loadOnMountAndFocus = React.useEffectEvent(() => {
     if (!connected || !enabled || !focused) {
-      console.log('[FS loop debug] loadOnMountAndFocus SKIP', {trigger, reloadKey, connected, enabled, focused})
       return
     }
     const now = Date.now()
     const lastLoad = lastLoadRef.current
     if (Object.is(lastLoad.reloadKey, reloadKey) && now - lastLoad.time < 250) {
-      console.log('[FS loop debug] loadOnMountAndFocus THROTTLED', {trigger, reloadKey, elapsed: now - lastLoad.time})
       return
     }
-    console.log('[FS loop debug] loadOnMountAndFocus LOADING', {trigger, reloadKey})
     lastLoadRef.current = {reloadKey, time: now}
     load()
   })
   const [stableLoadOnMountAndFocus] = React.useState(() => () => {
-    loadOnMountAndFocus('focusEffect')
+    loadOnMountAndFocus()
   })
   React.useEffect(() => {
     if (connected && enabled) {
-      loadOnMountAndFocus('effect')
+      loadOnMountAndFocus()
     }
   }, [connected, enabled, reloadKey])
   C.Router2.useSafeFocusEffect(stableLoadOnMountAndFocus)
@@ -803,83 +790,14 @@ export const useFsRefreshTlf = (path: T.FS.Path) => {
   }
 }
 
-export const useFsPathItem = (path: T.FS.Path, options?: FsPathItemOptions) => {
-  const routeData = React.useContext(FsDataContext)
-  const pathItems = useLoadedPathItems()
-  const focused = useSafeIsFocused()
-  const shouldSubscribe = options?.subscribe ?? (options?.loadOnMount !== false)
-  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat, shouldSubscribe)
-  const pathItem = FS.getPathItem(pathItems, path)
-  const loadPathMetadata = routeData?.loadPathMetadata
-  const shouldLoad = !!loadPathMetadata && isPathItem(path) && options?.loadOnMount !== false
-  useEngineActionListener(
-    'keybase.1.NotifyFS.FSSubscriptionNotifyPath',
-    action => {
-      const {clientID, path: updatedPath, topics} = action.payload.params
-      if (
-        loadPathMetadata &&
-        clientID === fsClientID &&
-        updatedPath === T.FS.pathToString(path) &&
-        topics?.includes(T.RPCGen.PathSubscriptionTopic.stat)
-      ) {
-        loadPathMetadata(path)
-      }
-    },
-    shouldLoad && focused
-  )
-  useFsLoadOnMountAndFocus({
-    enabled: shouldLoad,
-    load: () => {
-      loadPathMetadata?.(path)
-    },
-    reloadKey: path,
-  })
-  return pathItem
-}
+export const useFsPathItem = (path: T.FS.Path, _options?: FsPathItemOptions) =>
+  FS.getPathItem(useLoadedPathItems(), path)
 
-export const useFsPathMetadata = (path: T.FS.Path, options?: FsPathItemOptions) =>
-  useFsPathItem(path, options)
+export const useFsPathMetadata = (path: T.FS.Path, _options?: FsPathItemOptions) =>
+  useFsPathItem(path)
 
-export const useFsFolderChildren = (
-  path: T.FS.Path,
-  options?: {
-    initialLoadRecursive?: boolean
-  }
-) => {
-  const routeData = React.useContext(FsDataContext)
-  const pathItems = useLoadedPathItems()
-  const focused = useSafeIsFocused()
-  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.children)
-  const pathItem = FS.getPathItem(pathItems, path)
-  const loadFolderChildren = routeData?.loadFolderChildren
-  const initialLoadRecursive = !!options?.initialLoadRecursive
-  const shouldLoad = !!loadFolderChildren && isPathItem(path)
-  useEngineActionListener(
-    'keybase.1.NotifyFS.FSSubscriptionNotifyPath',
-    action => {
-      const {clientID, path: updatedPath, topics} = action.payload.params
-      if (
-        loadFolderChildren &&
-        clientID === fsClientID &&
-        updatedPath === T.FS.pathToString(path) &&
-        topics?.includes(T.RPCGen.PathSubscriptionTopic.children)
-      ) {
-        console.log('[FS loop debug] FSSubscriptionNotifyPath -> loadFolderChildren', {path})
-        loadFolderChildren(path, initialLoadRecursive)
-      }
-    },
-    shouldLoad && focused
-  )
-  useFsLoadOnMountAndFocus({
-    enabled: shouldLoad,
-    load: () => {
-      console.log('[FS loop debug] useFsFolderChildren load called', {path, initialLoadRecursive})
-      loadFolderChildren?.(path, initialLoadRecursive)
-    },
-    reloadKey: `${path}:${initialLoadRecursive ? 'recursive' : 'shallow'}`,
-  })
-  return pathItem
-}
+export const useFsFolderChildren = (path: T.FS.Path, _options?: {initialLoadRecursive?: boolean}) =>
+  FS.getPathItem(useLoadedPathItems(), path)
 
 export const useFsChildren = (path: T.FS.Path, initialLoadRecursive?: boolean) =>
   useFsFolderChildren(path, {initialLoadRecursive})
@@ -900,29 +818,61 @@ export const useFsFolderChildItems = (
   return {childItems, childPaths, pathItem}
 }
 
-export const useFsTlfs = () => {
+export const useFsTlfs = () => useLoadedTlfs()
+
+export const useFsScreenCoordinator = (path: T.FS.Path) => {
   const routeData = React.useContext(FsDataContext)
-  const loadTlfs = routeData?.loadTlfs
   const focused = useSafeIsFocused()
-  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites, !!loadTlfs)
-  const tlfs = useLoadedTlfs()
+  const pathIsItem = isPathItem(path)
+
+  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.stat, focused && pathIsItem)
+  useFsPathSubscriptionEffect(path, T.RPCGen.PathSubscriptionTopic.children, focused && pathIsItem)
+  useFsNonPathSubscriptionEffect(T.RPCGen.SubscriptionTopic.favorites, focused)
+
+  useEngineActionListener(
+    'keybase.1.NotifyFS.FSSubscriptionNotifyPath',
+    action => {
+      const {clientID, path: updatedPath, topics} = action.payload.params
+      if (clientID !== fsClientID || updatedPath !== T.FS.pathToString(path)) {
+        return
+      }
+      if (topics?.includes(T.RPCGen.PathSubscriptionTopic.children)) {
+        routeData?.loadFolderChildren(path, true)
+      }
+      if (topics?.includes(T.RPCGen.PathSubscriptionTopic.stat)) {
+        routeData?.loadPathMetadata(path)
+      }
+    },
+    focused && pathIsItem
+  )
+
   useEngineActionListener(
     'keybase.1.NotifyFS.FSSubscriptionNotify',
     action => {
       const {clientID, topic} = action.payload.params
       if (clientID === fsClientID && topic === T.RPCGen.SubscriptionTopic.favorites) {
-        loadTlfs?.()
+        routeData?.loadTlfs()
       }
     },
-    !!loadTlfs && focused
+    focused
   )
+
   useFsLoadOnMountAndFocus({
-    enabled: !!loadTlfs,
-    load: () => {
-      loadTlfs?.()
-    },
+    enabled: !!routeData,
+    load: () => routeData?.loadTlfs(),
   })
-  return tlfs
+
+  useFsLoadOnMountAndFocus({
+    enabled: pathIsItem && !!routeData,
+    load: () => routeData?.loadFolderChildren(path, true),
+    reloadKey: path,
+  })
+
+  useFsLoadOnMountAndFocus({
+    enabled: pathIsItem && !!routeData,
+    load: () => routeData?.loadPathMetadata(path),
+    reloadKey: path,
+  })
 }
 
 export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => {

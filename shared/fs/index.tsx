@@ -64,6 +64,7 @@ type OwnProps = {
 
 const ConnectedInner = (ownProps: OwnProps) => {
   const path = ownProps.path ?? FS.defaultPath
+  Kbfs.useFsScreenCoordinator(path)
   const _pathItem = Kbfs.useFsPathItem(path)
   const kbfsDaemonStatus = Kbfs.useKbfsDaemonStatus()
   const navigateUp = C.Router2.navigateUp

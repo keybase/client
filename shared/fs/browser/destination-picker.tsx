@@ -112,7 +112,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       ? () => browserEdits.newFolderRow(parentPath)
       : undefined
 
-  FsCommon.useFsTlfs()
+  FsCommon.useFsScreenCoordinator(parentPath)
   FsCommon.useFsOnlineStatus()
 
   return (

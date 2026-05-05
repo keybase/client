@@ -22,7 +22,7 @@ export const StillCommon = (
 ) => (
   <Kb.ListItem
     type="Small"
-    statusIcon={<PathStatusIcon path={props.path} loadOnMount={false} subscribe={false} />}
+    statusIcon={<PathStatusIcon path={props.path} />}
     icon={
       <ItemIcon
         loadOnMount={false}

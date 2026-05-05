@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import TlfInfoLine from './tlf-info-line'
-import {useFsTlf} from './hooks'
+import {useFsTlfs} from './hooks'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -11,7 +11,7 @@ export type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const _tlf = useFsTlf(ownProps.path)
+  const _tlf = FS.getTlfFromPath(useFsTlfs(), ownProps.path)
   const _username = useCurrentUserState(s => s.username)
   const resetParticipants = _tlf === FS.unknownTlf ? undefined : _tlf.resetParticipants
   const props = {

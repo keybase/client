@@ -1,22 +1,17 @@
 import * as T from '@/constants/types'
 import PathStatusIcon from './path-status-icon'
-import {useFsPathItem, useFsTlf, useFsTlfs} from './hooks'
+import {useFsPathItem, useFsTlfs} from './hooks'
 import {useFsUploadStatus, useKbfsDaemonStatus} from './status'
 import * as FS from '@/constants/fs'
 
 type OwnPropsPathItem = {
-  loadOnMount?: boolean
   path: T.FS.Path
   showTooltipOnPressMobile?: boolean
-  subscribe?: boolean
 }
 
 const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
-  const _pathItem = useFsPathItem(ownProps.path, {
-    loadOnMount: ownProps.loadOnMount,
-    subscribe: ownProps.subscribe,
-  })
-  const _tlf = useFsTlf(ownProps.path, {loadOnMount: ownProps.loadOnMount})
+  const _pathItem = useFsPathItem(ownProps.path)
+  const _tlf = FS.getTlfFromPath(useFsTlfs(), ownProps.path)
   const _uploads = useFsUploadStatus().syncingPaths
   const _kbfsDaemonStatus = useKbfsDaemonStatus()
   const props = {
@@ -53,20 +48,13 @@ const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
 }
 
 type OwnProps = {
-  loadOnMount?: boolean
   path: T.FS.Path
   showTooltipOnPressMobile?: boolean
-  subscribe?: boolean
 }
 
 const PathStatusIconConnected = (props: OwnProps) =>
   T.FS.getPathLevel(props.path) > 2 ? (
-    <PathStatusIconPathItem
-      path={props.path}
-      loadOnMount={props.loadOnMount}
-      showTooltipOnPressMobile={props.showTooltipOnPressMobile}
-      subscribe={props.subscribe}
-    />
+    <PathStatusIconPathItem path={props.path} showTooltipOnPressMobile={props.showTooltipOnPressMobile} />
   ) : (
     <PathStatusIconTlfType tlfType={T.FS.getTlfTypeFromPath(props.path)} />
   )
