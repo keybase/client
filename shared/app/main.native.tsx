@@ -6,14 +6,17 @@ import OutOfDate from './out-of-date'
 import RuntimeStats from './runtime-stats'
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet'
 import {FsStatusProvider} from '@/fs/common/status'
+import {SystemFileManagerIntegrationProvider} from '@/fs/common/sfmi'
 
 const Main = () => {
   return (
     <FsStatusProvider>
-      <BottomSheetModalProvider>
-        <Router />
-        <PortalHost name="popup-root" />
-      </BottomSheetModalProvider>
+      <SystemFileManagerIntegrationProvider>
+        <BottomSheetModalProvider>
+          <Router />
+          <PortalHost name="popup-root" />
+        </BottomSheetModalProvider>
+      </SystemFileManagerIntegrationProvider>
       <ResetModal />
       <GlobalError />
       <OutOfDate />

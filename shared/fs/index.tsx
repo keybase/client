@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import Browser from './browser'
@@ -8,7 +7,6 @@ import * as SimpleScreens from './simple-screens'
 import * as FS from '@/constants/fs'
 
 type ChooseComponentProps = {
-  emitBarePreview: () => void
   kbfsDaemonStatus: T.FS.KbfsDaemonStatus
   lastClosedPublicBannerTlf?: string
   path: T.FS.Path
@@ -16,16 +14,7 @@ type ChooseComponentProps = {
 }
 
 const ChooseComponent = (props: ChooseComponentProps) => {
-  const {emitBarePreview} = props
-
   const {fileContext, onUrlError} = Kbfs.useFsFileContext(props.path)
-  const viewType: T.RPCGen.GUIViewType = fileContext.viewType
-  const bare = C.isMobile && viewType === T.RPCGen.GUIViewType.image
-  React.useEffect(() => {
-    if (bare) {
-      emitBarePreview()
-    }
-  }, [bare, emitBarePreview])
 
   Kbfs.useFsOnlineStatus()
   Kbfs.useFsTlf(props.path)
@@ -45,15 +34,9 @@ const ChooseComponent = (props: ChooseComponentProps) => {
       return <SimpleScreens.Loading />
     default:
       if (fileContext === FS.emptyFileContext) {
-        // We don't have it yet, so don't render.
         return <SimpleScreens.Loading />
       }
-      return bare ? (
-        // doesn't matter here as we do a navigateAppend for bare views
-        <SimpleScreens.Loading />
-      ) : (
-        <NormalPreview path={props.path} onUrlError={onUrlError} />
-      )
+      return <NormalPreview path={props.path} onUrlError={onUrlError} />
   }
 }
 
@@ -69,23 +52,14 @@ const ConnectedInner = (ownProps: OwnProps) => {
   Kbfs.useFsScreenCoordinator(path)
   const _pathItem = Kbfs.useFsPathItem(path)
   const kbfsDaemonStatus = Kbfs.useKbfsDaemonStatus()
-  const navigateUp = C.Router2.navigateUp
-  const navigateAppend = C.Router2.navigateAppend
-  const emitBarePreview = () => {
-    navigateUp()
-    navigateAppend({name: 'barePreview', params: {path}})
-  }
   const isDefinitelyFolder = T.FS.getPathElements(path).length <= 3 && !FS.hasSpecialFileElement(path)
   const props = {
-    emitBarePreview: emitBarePreview,
-    kbfsDaemonStatus: kbfsDaemonStatus,
+    kbfsDaemonStatus,
     lastClosedPublicBannerTlf: ownProps.lastClosedPublicBannerTlf,
     path,
     pathType: isDefinitelyFolder ? T.FS.PathType.Folder : _pathItem.type,
   }
-  return (
-    <ChooseComponent {...props} />
-  )
+  return <ChooseComponent {...props} />
 }
 
 const Connected = (ownProps: OwnProps) => (
