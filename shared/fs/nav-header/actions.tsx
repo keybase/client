@@ -18,6 +18,7 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
       setFolderViewFilter: s.dispatch.setFolderViewFilter,
     }))
   )
+  Kbfs.useFsScreenCoordinator(props.path)
   const hasSoftError = !!Kbfs.useFsSoftError(props.path)
   React.useEffect(() => {
     if (!Kb.Styles.isMobile) {
