@@ -117,11 +117,13 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
     fsStatusStateRef.current = fsStatusState
   }, [fsStatusState])
 
-  const isCurrentGeneration = React.useEffectEvent((generation: number) =>
-    generation === generationRef.current && connectedRef.current
+  const isCurrentGeneration = React.useEffectEvent(
+    (generation: number) => generation === generationRef.current && connectedRef.current
   )
-  const getStatusStateForCurrentGeneration = React.useEffectEvent((status: FsStatusState) =>
-    status.generation === generationRef.current ? status : makeInitialFsStatusState(generationRef.current)
+  const getStatusStateForCurrentGeneration = React.useCallback(
+    (status: FsStatusState) =>
+      status.generation === generationRef.current ? status : makeInitialFsStatusState(generationRef.current),
+    []
   )
 
   const loadSettings = React.useEffectEvent(() => {
@@ -242,8 +244,9 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   })
 
   const syncStatusChanged = React.useEffectEvent((status: T.RPCGen.FolderSyncStatus) => {
-    const {overallSyncStatus, spaceAvailableNotificationThreshold} =
-      getStatusStateForCurrentGeneration(fsStatusStateRef.current)
+    const {overallSyncStatus, spaceAvailableNotificationThreshold} = getStatusStateForCurrentGeneration(
+      fsStatusStateRef.current
+    )
     const diskSpaceStatus = status.outOfSyncSpace
       ? T.FS.DiskSpaceStatus.Error
       : status.localDiskBytesAvailable < spaceAvailableNotificationThreshold
@@ -306,11 +309,7 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
     const settingsSubID = makeUUID()
     const uploadStatusSubID = makeUUID()
     const journalStatusSubID = makeUUID()
-    subscribeNonPath(
-      settingsSubID,
-      T.RPCGen.SubscriptionTopic.settings,
-      subscriptionErrorToActionOrThrow
-    )
+    subscribeNonPath(settingsSubID, T.RPCGen.SubscriptionTopic.settings, subscriptionErrorToActionOrThrow)
     subscribeNonPath(
       uploadStatusSubID,
       T.RPCGen.SubscriptionTopic.uploadStatus,
