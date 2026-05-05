@@ -75,6 +75,19 @@ export const SystemFileManagerIntegrationProvider = ({
   )
   const appFocusedRef = React.useRef(appFocused)
   const sfmiStateRef = React.useRef(sfmiState)
+  const [prevConnected, setPrevConnected] = React.useState(connected)
+  const [prevKextError, setPrevKextError] = React.useState(initialKextPermissionError)
+
+  if (connected !== prevConnected) {
+    setPrevConnected(connected)
+    if (!connected) {
+      setSfmiState(makeInitialSfmiStateWithPermissionError(initialKextPermissionError))
+    }
+  }
+  if (!connected && initialKextPermissionError !== prevKextError) {
+    setPrevKextError(initialKextPermissionError)
+    setSfmiState(makeInitialSfmiStateWithPermissionError(initialKextPermissionError))
+  }
 
   React.useEffect(() => {
     sfmiStateRef.current = sfmiState
@@ -163,7 +176,10 @@ export const SystemFileManagerIntegrationProvider = ({
   })
 
   const refreshDriverStatusDesktop = React.useEffectEvent(() => {
-    C.ignorePromise(refreshDriverStatus())
+    const f = async () => {
+      await refreshDriverStatus()
+    }
+    C.ignorePromise(f())
   })
 
   const reloadSfmi = React.useEffectEvent(() => {
@@ -234,14 +250,14 @@ export const SystemFileManagerIntegrationProvider = ({
   })
 
   const driverEnable = React.useEffectEvent((isRetry?: boolean) => {
-    setSfmiState(s =>
-      C.produce(s, draft => {
-        if (draft.driverStatus.type === T.FS.DriverStatusType.Disabled) {
-          draft.driverStatus.isEnabling = true
-        }
-      })
-    )
     const f = async () => {
+      setSfmiState(s =>
+        C.produce(s, draft => {
+          if (draft.driverStatus.type === T.FS.DriverStatusType.Disabled) {
+            draft.driverStatus.isEnabling = true
+          }
+        })
+      )
       setSfmiBannerDismissed(false)
       try {
         const result = await afterDriverEnabledInPlatform(!!isRetry)
@@ -262,13 +278,10 @@ export const SystemFileManagerIntegrationProvider = ({
   })
 
   React.useEffect(() => {
-    if (connected) {
-      loadSettings()
-      refreshDriverStatusDesktop()
-    } else {
-      setSfmiState(makeInitialSfmiStateWithPermissionError(initialKextPermissionError))
-    }
-  }, [connected, initialKextPermissionError])
+    if (!connected) return
+    loadSettings()
+    refreshDriverStatusDesktop()
+  }, [connected])
 
   React.useEffect(() => {
     const wasFocused = appFocusedRef.current
@@ -276,14 +289,14 @@ export const SystemFileManagerIntegrationProvider = ({
     if (wasFocused || !appFocused) {
       return
     }
-    const {driverStatus} = sfmiState
+    const {driverStatus} = sfmiStateRef.current
     if (
       driverStatus.type === T.FS.DriverStatusType.Disabled &&
       driverStatus.kextPermissionError
     ) {
       driverEnable(true)
     }
-  }, [appFocused, sfmiState.driverStatus])
+  }, [appFocused])
 
   React.useEffect(() => {
     const listener = () => {

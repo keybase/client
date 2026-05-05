@@ -294,15 +294,12 @@ function useMenubarSfmiEnabled(
   menuWindowShownCount: number
 ) {
   const errorToActionOrThrow = useFsErrorActionOrThrow()
-  const [enabled, setEnabled] = React.useState(false)
+  const disabled = !loggedIn || userSwitching || kbfsDaemonRpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected
+  const [rawEnabled, setRawEnabled] = React.useState(false)
+  const enabled = disabled ? false : rawEnabled
 
   React.useEffect(() => {
-    if (
-      !loggedIn ||
-      userSwitching ||
-      kbfsDaemonRpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected
-    ) {
-      setEnabled(false)
+    if (disabled) {
       return
     }
 
@@ -311,7 +308,7 @@ function useMenubarSfmiEnabled(
       try {
         const status = await refreshDriverStatusInPlatform()
         if (!canceled) {
-          setEnabled(fuseStatusToDriverStatus(status).type === T.FS.DriverStatusType.Enabled)
+          setRawEnabled(fuseStatusToDriverStatus(status).type === T.FS.DriverStatusType.Enabled)
         }
       } catch (error) {
         if (!canceled) {
@@ -323,7 +320,7 @@ function useMenubarSfmiEnabled(
     return () => {
       canceled = true
     }
-  }, [errorToActionOrThrow, loggedIn, userSwitching, kbfsDaemonRpcStatus, menuWindowShownCount])
+  }, [errorToActionOrThrow, loggedIn, userSwitching, kbfsDaemonRpcStatus, menuWindowShownCount, disabled])
 
   return enabled
 }

@@ -221,7 +221,7 @@ const FsDataProviderForUsername = ({
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const {setPathSoftError, setTlfSoftError} = useFsSoftErrorActions()
   const [fsSharedData, setFsSharedData] = React.useState(makeEmptyFsSharedData)
-  const subscriptionManagerRef = React.useRef<FsSubscriptionManager>({subscriptions: new Map()})
+  const [subscriptionManager] = React.useState<FsSubscriptionManager>(() => ({subscriptions: new Map()}))
   const seenDownloadIDsRef = React.useRef(new Set<string>())
   const loadingDownloadInfosRef = React.useRef(new Set<string>())
   const loadingPathMetadataRef = React.useRef(new Set<T.FS.Path>())
@@ -229,13 +229,12 @@ const FsDataProviderForUsername = ({
   const loadingAdditionalTlfsRef = React.useRef(new Set<T.FS.Path>())
   const loadTlfsInProgressRef = React.useRef(false)
   const {downloads, downloadInfos, pathItems, tlfs} = fsSharedData
-  const subscriptionManager = subscriptionManagerRef.current
 
   React.useEffect(() => {
     return () => {
-      resetFsSubscriptionManager(subscriptionManagerRef.current)
+      resetFsSubscriptionManager(subscriptionManager)
     }
-  }, [])
+  }, [subscriptionManager])
 
   const loadDownloadInfo = (downloadID: string) => {
     const loadingDownloadInfos = loadingDownloadInfosRef.current

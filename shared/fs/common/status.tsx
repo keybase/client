@@ -91,11 +91,23 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   const fsStatusStateRef = React.useRef(fsStatusState)
   const generationRef = React.useRef(0)
   const pollJournalStatusPollingRef = React.useRef(false)
+  const [currentGeneration, setCurrentGeneration] = React.useState(0)
+  const [prevConnected, setPrevConnected] = React.useState(connected)
+
+  if (connected !== prevConnected) {
+    setPrevConnected(connected)
+    if (!connected) {
+      setCurrentGeneration(g => g + 1)
+    }
+  }
+
+  React.useEffect(() => {
+    generationRef.current = currentGeneration
+  }, [currentGeneration])
 
   React.useEffect(() => {
     connectedRef.current = connected
     if (!connected) {
-      generationRef.current++
       pollJournalStatusPollingRef.current = false
       useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
     }
@@ -195,7 +207,6 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
     const generation = generationRef.current
 
     const f = async () => {
-      let shouldRefreshDaemonStatus = false
       try {
         while (isCurrentGeneration(generation)) {
           const {syncingPaths, totalSyncingBytes, endEstimate} =
@@ -221,11 +232,10 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
         if (generation === generationRef.current) {
           pollJournalStatusPollingRef.current = false
         }
-        shouldRefreshDaemonStatus = isCurrentGeneration(generation)
         useNotifState.getState().dispatch.badgeApp('kbfsUploading', false)
-      }
-      if (shouldRefreshDaemonStatus) {
-        checkKbfsDaemonRpcStatus()
+        if (isCurrentGeneration(generation)) {
+          checkKbfsDaemonRpcStatus()
+        }
       }
     }
     C.ignorePromise(f())
@@ -350,7 +360,7 @@ const FsStatusDataProvider = ({children}: {children: React.ReactNode}) => {
   )
 
   const visibleFsStatusState =
-    connected && fsStatusState.generation === generationRef.current ? fsStatusState : emptyFsStatusState
+    connected && fsStatusState.generation === currentGeneration ? fsStatusState : emptyFsStatusState
 
   return (
     <FsOverallSyncStatusContext.Provider value={visibleFsStatusState.overallSyncStatus}>
