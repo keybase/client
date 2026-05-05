@@ -27,7 +27,6 @@ import {
   finishedRegularDownloadMobile as finishedRegularDownloadInPlatform,
 } from '@/stores/fs-platform'
 import {requestPermissionsToWrite} from '@/util/platform-specific'
-import {SystemFileManagerIntegrationProvider} from './sfmi'
 import {clientID as fsClientID, makeUUID} from './client'
 import {useFsDaemonActions, useKbfsDaemonStatus} from './daemon'
 
@@ -540,26 +539,24 @@ const FsDataProviderForUsername = ({
   }
 
   return (
-    <SystemFileManagerIntegrationProvider>
-      <FsDataContext.Provider
-        value={{
-          downloads,
-          downloadInfos,
-          loadAdditionalTlf,
-          loadDownloadInfo,
-          loadDownloadStatus,
-          loadFolderChildren,
-          loadPathMetadata,
-          loadTlfs,
-          pathItems,
-          recordDownloadStarted,
-          subscriptionManager,
-          tlfs,
-        }}
-      >
-        {children}
-      </FsDataContext.Provider>
-    </SystemFileManagerIntegrationProvider>
+    <FsDataContext.Provider
+      value={{
+        downloads,
+        downloadInfos,
+        loadAdditionalTlf,
+        loadDownloadInfo,
+        loadDownloadStatus,
+        loadFolderChildren,
+        loadPathMetadata,
+        loadTlfs,
+        pathItems,
+        recordDownloadStarted,
+        subscriptionManager,
+        tlfs,
+      }}
+    >
+      {children}
+    </FsDataContext.Provider>
   )
 }
 

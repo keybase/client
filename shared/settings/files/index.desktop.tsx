@@ -206,10 +206,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const FilesSettingsContainer = () => (
-  <Kbfs.SystemFileManagerIntegrationProvider>
-    <FilesSettings />
-  </Kbfs.SystemFileManagerIntegrationProvider>
-)
-
-export default FilesSettingsContainer
+export default FilesSettings
