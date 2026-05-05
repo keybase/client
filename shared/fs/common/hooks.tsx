@@ -558,10 +558,10 @@ const useFsLoadOnMountAndFocus = ({
     loadOnMountAndFocus()
   })
   React.useEffect(() => {
-    if (connected && enabled) {
+    if (connected && enabled && focused) {
       loadOnMountAndFocus()
     }
-  }, [connected, enabled, reloadKey])
+  }, [connected, enabled, focused, reloadKey])
   C.Router2.useSafeFocusEffect(stableLoadOnMountAndFocus)
 }
 
