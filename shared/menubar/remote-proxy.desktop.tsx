@@ -294,7 +294,11 @@ function useMenubarSfmiEnabled(
   menuWindowShownCount: number
 ) {
   const errorToActionOrThrow = useFsErrorActionOrThrow()
-  const disabled = !loggedIn || userSwitching || kbfsDaemonRpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected
+  const disabled =
+    !loggedIn ||
+    userSwitching ||
+    kbfsDaemonRpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected ||
+    menuWindowShownCount <= 0
   const [rawEnabled, setRawEnabled] = React.useState(false)
   const enabled = disabled ? false : rawEnabled
 
