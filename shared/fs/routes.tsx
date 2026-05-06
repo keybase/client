@@ -71,7 +71,7 @@ const noShrinkStyle = {flexShrink: 0} as const
 export const newRoutes = defineRouteMap({
   fsFilePreview: C.makeScreen(FsFilePreview, {
     getOptions: (ownProps?) => {
-      const path = ownProps?.route.params?.path ?? FS.defaultPath
+      const path = ownProps?.route.params.path ?? FS.defaultPath
       return C.isMobile
         ? {header: () => <MobileHeader path={path} />}
         : {

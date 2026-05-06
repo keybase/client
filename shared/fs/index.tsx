@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as T from '@/constants/types'
 import Browser from './browser'
 import {NormalPreview} from './filepreview'
