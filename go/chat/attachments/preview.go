@@ -13,6 +13,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
+	"path/filepath"
 	"strings"
 
 	"github.com/keybase/client/go/chat/types"
@@ -31,12 +32,21 @@ const (
 	previewImageHeight = 640
 )
 
+func isAudioExtension(basename string) bool {
+	switch strings.ToLower(filepath.Ext(basename)) {
+	case ".m4a", ".mp3", ".aac", ".ogg", ".flac", ".wav":
+		return true
+	}
+	return false
+}
+
 type PreviewRes struct {
 	Source            []byte
 	ContentType       string
 	BaseWidth         int
 	BaseHeight        int
 	BaseDurationMs    int
+	BaseIsAudio       bool
 	PreviewWidth      int
 	PreviewHeight     int
 	PreviewDurationMs int

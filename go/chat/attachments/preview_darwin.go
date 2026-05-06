@@ -137,6 +137,18 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	}
 	log.Debug(ctx, "previewVideo: length: %d duration: %ds", result.imageLength, duration)
 	if result.imageLength == 0 {
+		// Audio-only files (e.g. M4A) have no video track, so no thumbnail, but AVFoundation
+		// can still read their duration. Return a blank preview carrying the real duration so
+		// the snippet and UI show the correct length instead of "00:00".
+		if duration > 1 {
+			blank, blankErr := previewVideoBlank(ctx, log, src, basename)
+			if blankErr != nil {
+				return res, blankErr
+			}
+			blank.BaseDurationMs = duration
+			blank.BaseIsAudio = isAudioExtension(basename)
+			return blank, nil
+		}
 		return res, errors.New("no data returned from native")
 	}
 	localDat := make([]byte, result.imageLength)
