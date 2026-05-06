@@ -13,9 +13,6 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
-import android.view.View
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.content.IntentCompat
 import android.webkit.MimeTypeMap
 import com.facebook.react.ReactActivity
@@ -89,21 +86,6 @@ class MainActivity : ReactActivity() {
         updateIsUsingHardwareKeyboard()
 
         scheduleHandleIntent()
-
-        // edgeToEdgeEnabled=true in gradle.properties causes RN to call
-        // WindowCompat.setDecorFitsSystemWindows(false) on all API levels, which breaks
-        // adjustResize. Manually apply insets so the keyboard pushes content up.
-        val rootView = findViewById<View>(android.R.id.content)
-        ViewCompat.setOnApplyWindowInsetsListener(rootView) { _, insets ->
-            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-            val sysBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            rootView.setPadding(
-                sysBarInsets.left,
-                sysBarInsets.top,
-                sysBarInsets.right,
-                maxOf(imeInsets.bottom, sysBarInsets.bottom))
-            insets
-        }
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
