@@ -49,6 +49,7 @@ function SectionListImpl<ItemT, SectionT>(
   return (
     <NativeSectionList
       overScrollMode="never"
+      contentInsetAdjustmentBehavior="automatic"
       getItemLayout={getItemLayout}
       onViewableItemsChanged={onViewableItemsChanged}
       onScrollToIndexFailed={noop}
