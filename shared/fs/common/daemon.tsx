@@ -12,7 +12,7 @@ type FsDaemonActions = {
   onlineStatusChanged: (onlineStatus: T.RPCGen.KbfsOnlineStatus) => void
 }
 
-const fsRouteNames: ReadonlyArray<string> = ['fsRoot']
+const fsRouteNames: ReadonlyArray<string> = ['fsRoot', 'fsFilePreview']
 
 const emptyFsDaemonActions: FsDaemonActions = {
   checkKbfsDaemonRpcStatus: () => {},
