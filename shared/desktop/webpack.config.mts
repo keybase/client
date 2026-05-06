@@ -224,9 +224,9 @@ const makeCsp = (isDev: boolean) =>
     "form-action 'none'",
     // object-src needed for <embed> PDF rendering via the KBFS local HTTP server; constrained to localhost only
     'object-src http://127.0.0.1:*',
-    'frame-src http://127.0.0.1:*',
+    "frame-src 'none'",
     `font-src ${joinCspSources(["'self'", isDev && devServerURL.slice(0, -1)])}`,
-    "media-src 'self' http://127.0.0.1:*",
+    'media-src http://127.0.0.1:*',
     `img-src ${joinCspSources([
       "'self'",
       'data:',
