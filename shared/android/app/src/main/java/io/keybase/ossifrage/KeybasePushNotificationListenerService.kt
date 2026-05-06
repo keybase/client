@@ -16,7 +16,6 @@ import io.keybase.ossifrage.MainActivity.Companion.setupKBRuntime
 import io.keybase.ossifrage.modules.NativeLogger
 import keybase.Keybase
 import com.reactnativekb.KbModule
-import me.leolin.shortcutbadger.ShortcutBadger
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -149,12 +148,6 @@ class KeybasePushNotificationListenerService : FirebaseMessagingService() {
                         goProcessingSucceeded = false
                     }
 
-                    // For silent pushes the notifier is null so DisplayChatNotification is
-                    // never called and KBPushNotifier cannot apply the badge. Apply it here
-                    // after Go has validated the target UID, mirroring Pusher.swift on iOS.
-                    if (goProcessingSucceeded && dontNotify && n.badgeCount >= 0) {
-                        ShortcutBadger.applyCount(applicationContext, n.badgeCount)
-                    }
 
                     val isReactNativeRunning = try {
                         com.reactnativekb.KbModule.isReactNativeRunning()
