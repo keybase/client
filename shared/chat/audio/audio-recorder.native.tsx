@@ -7,7 +7,7 @@ import * as InputState from '@/chat/conversation/input-area/input-state'
 import {colors} from '@/styles/colors'
 import * as Reanimated from 'react-native-reanimated'
 import {AmpTracker} from './amptracker'
-import {usePanGesture, GestureDetector, type PanGestureEvent} from 'react-native-gesture-handler'
+import {usePanGesture, GestureDetector, type PanGestureActiveEvent} from 'react-native-gesture-handler'
 import {View} from 'react-native'
 import {formatAudioRecordDuration} from '@/util/timestamp'
 import {useAudioRecorder, useAudioRecorderState, AudioModule, AudioQuality, IOSOutputFormat} from 'expo-audio'
@@ -183,7 +183,7 @@ const useIconAndOverlay = (p: {
     maxPointers: 1,
     minDistance: 0,
     minPointers: 1,
-    onFinalize: (_e: unknown, _success: boolean) => {
+    onFinalize: (_e: unknown) => {
       'worklet'
       const diff = Date.now() - panStartSV.value
       startedSV.set(0)
@@ -215,7 +215,7 @@ const useIconAndOverlay = (p: {
         panStartSV.set(Date.now())
       }
     },
-    onUpdate: (e: PanGestureEvent) => {
+    onUpdate: (e: PanGestureActiveEvent) => {
       'worklet'
       if (lockedSV.value || canceledSV.value) {
         return
