@@ -259,6 +259,140 @@ def _diff_snapshots(before: dict, after: dict, prefix: str = "") -> list:
     return changes
 
 
+FS_SELECTION_USE_TYPO_METRICS = 1 << 7
+
+
+def _apply_patches(font, patches: dict) -> list[str]:
+    """Apply buildConfig patches to an open TTFont. Returns list of change descriptions."""
+    changes = []
+    os2_patches = patches.get("OS/2", {})
+    if os2_patches:
+        os2 = font["OS/2"]
+        if "USE_TYPO_METRICS" in os2_patches:
+            target = bool(os2_patches["USE_TYPO_METRICS"])
+            current = bool(os2.fsSelection & FS_SELECTION_USE_TYPO_METRICS)
+            if target != current:
+                if target:
+                    os2.fsSelection |= FS_SELECTION_USE_TYPO_METRICS
+                else:
+                    os2.fsSelection &= ~FS_SELECTION_USE_TYPO_METRICS
+                changes.append(f"OS/2.fsSelection USE_TYPO_METRICS → {target}")
+        for field in ("sTypoAscender", "sTypoDescender", "sTypoLineGap",
+                      "usWinAscent", "usWinDescent",
+                      "yStrikeoutPosition", "yStrikeoutSize"):
+            if field in os2_patches:
+                old = getattr(os2, field)
+                setattr(os2, field, os2_patches[field])
+                if old != os2_patches[field]:
+                    changes.append(f"OS/2.{field}: {old} → {os2_patches[field]}")
+    hhea_patches = patches.get("hhea", {})
+    if hhea_patches:
+        hhea = font["hhea"]
+        for field in ("ascender", "descender", "lineGap"):
+            if field in hhea_patches:
+                old = getattr(hhea, field)
+                setattr(hhea, field, hhea_patches[field])
+                if old != hhea_patches[field]:
+                    changes.append(f"hhea.{field}: {old} → {hhea_patches[field]}")
+    post_patches = patches.get("post", {})
+    if post_patches:
+        post = font["post"]
+        for field in ("underlinePosition", "underlineThickness"):
+            if field in post_patches:
+                old = getattr(post, field)
+                setattr(post, field, post_patches[field])
+                if old != post_patches[field]:
+                    changes.append(f"post.{field}: {old} → {post_patches[field]}")
+    return changes
+
+
+def cmd_build_text(args):
+    manifest = json.loads(Path(args.manifest).read_text())
+    repo_root = Path(args.manifest).resolve().parent.parent.parent
+    build_cfg = manifest.get("buildConfig", {})
+    platform: str = args.platform
+
+    if platform == "android":
+        out_dir = repo_root / build_cfg.get("androidOutputDir", "shared/fonts/generated/android")
+    else:
+        out_dir = repo_root / build_cfg.get("outputDir", "shared/fonts/generated")
+
+    global_patches = build_cfg.get("patches", {})
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    errors = 0
+    for entry in manifest.get("textFonts", []):
+        src = repo_root / entry["source"]
+        if not src.exists():
+            print(f"ERROR: source not found: {src}", file=sys.stderr)
+            errors += 1
+            continue
+        dest = out_dir / src.name
+        font = _ttfont(str(src))
+        per_font_patches: dict = entry.get("patches", {})
+        if platform == "android":
+            android_patches: dict = entry.get("androidPatches", {})
+            per_font_patches = {
+                table: {**per_font_patches.get(table, {}), **android_patches.get(table, {})}
+                for table in set(list(per_font_patches.keys()) + list(android_patches.keys()))
+            }
+        merged: dict = {}
+        for table in set(list(global_patches.keys()) + list(per_font_patches.keys())):
+            merged[table] = {**global_patches.get(table, {}), **per_font_patches.get(table, {})}
+        changes = _apply_patches(font, merged)
+        font.save(str(dest))
+        font.close()
+        tag = f"  [{', '.join(changes)}]" if changes else "  (no changes)"
+        print(f"  {src.name} → {dest}{tag}", file=sys.stderr)
+
+    if errors:
+        print(f"build-text: {errors} error(s)", file=sys.stderr)
+        sys.exit(1)
+    else:
+        print(f"build-text: wrote {out_dir}", file=sys.stderr)
+
+
+def cmd_verify_text(args):
+    manifest = json.loads(Path(args.manifest).read_text())
+    expected = json.loads(Path(args.metrics).read_text())
+    repo_root = Path(args.manifest).resolve().parent.parent.parent
+
+    # verify-text checks the generated dir if it exists, otherwise the source
+    build_cfg = manifest.get("buildConfig", {})
+    generated_dir = repo_root / build_cfg.get("outputDir", "shared/fonts/generated")
+
+    failures: list[str] = []
+    checked = 0
+    for entry in manifest.get("textFonts", []):
+        font_id = entry["id"]
+        if font_id not in expected.get("fonts", {}):
+            print(f"  SKIP {font_id}: not in metrics.json", file=sys.stderr)
+            continue
+        src = repo_root / entry["source"]
+        generated = generated_dir / Path(entry["source"]).name
+        path = generated if generated.exists() else src
+        if not path.exists():
+            failures.append(f"{font_id}: source not found at {path}")
+            continue
+        actual = _metric_snapshot(str(path))
+        exp = expected["fonts"][font_id]
+        mismatches = _diff_snapshots(exp, actual)
+        if mismatches:
+            for m in mismatches:
+                failures.append(f"{font_id}: {m['field']} expected={m['before']} got={m['after']}")
+        else:
+            print(f"  OK  {font_id} ({path.name})", file=sys.stderr)
+        checked += 1
+
+    if failures:
+        print(f"\nverify-text: {len(failures)} failure(s):", file=sys.stderr)
+        for f in failures:
+            print(f"  FAIL {f}", file=sys.stderr)
+        sys.exit(1)
+    else:
+        print(f"verify-text: all {checked} fonts pass", file=sys.stderr)
+
+
 def cmd_inspect(args):
     inputs: list[str] = []
     for pattern in args.inputs:
@@ -296,6 +430,17 @@ def main():
     p_inspect.add_argument("--output", default="-", metavar="FILE",
                            help="Output JSON file (default: stdout)")
     p_inspect.set_defaults(func=cmd_inspect)
+
+    p_build = sub.add_parser("build-text", help="Build text fonts from canonical inputs")
+    p_build.add_argument("--manifest", required=True, metavar="FILE")
+    p_build.add_argument("--platform", default="all", choices=["all", "android"],
+                         help="Target platform (default: all; 'android' applies androidPatches)")
+    p_build.set_defaults(func=cmd_build_text)
+
+    p_verify = sub.add_parser("verify-text", help="Verify text fonts against manifest and metrics")
+    p_verify.add_argument("--manifest", required=True, metavar="FILE")
+    p_verify.add_argument("--metrics", required=True, metavar="FILE")
+    p_verify.set_defaults(func=cmd_verify_text)
 
     p_snap = sub.add_parser("snapshot-metrics", help="Generate metrics.json from current fonts")
     p_snap.add_argument("--manifest", required=True, metavar="FILE",
