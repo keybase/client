@@ -152,6 +152,7 @@ export const settingsDesktopTabRoutes = defineRouteMap({
   [Settings.settingsDisplayTab]: sharedNewRoutes[Settings.settingsDisplayTab],
   [Settings.settingsFeedbackTab]: sharedNewRoutes[Settings.settingsFeedbackTab],
   [Settings.settingsFsTab]: sharedNewRoutes[Settings.settingsFsTab],
+  ...(__DEV__ ? {[Settings.settingsTypographyTab]: sharedNewRoutes[Settings.settingsTypographyTab]} : {}),
   [Settings.settingsGitTab]: sharedNewRoutes[Settings.settingsGitTab],
   [Settings.settingsNotificationsTab]: sharedNewRoutes[Settings.settingsNotificationsTab],
   [Settings.settingsScreenprotectorTab]: sharedNewRoutes[Settings.settingsScreenprotectorTab],
