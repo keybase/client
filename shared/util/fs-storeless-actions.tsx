@@ -11,12 +11,13 @@ import {
 } from '@/stores/fs-platform'
 
 const noopSoftError = () => {}
+const setGlobalError = (msg: string) => useConfigState.getState().dispatch.setGlobalError(new Error(msg))
 
 const errorToGlobalActionOrThrow = (error: unknown, path?: T.FS.Path) =>
   errorToActionOrThrowWithHandlers(
     {
-      checkKbfsDaemonRpcStatus: () => {},
-      redbar: error => useConfigState.getState().dispatch.setGlobalError(new Error(error)),
+      checkKbfsDaemonRpcStatus: () => setGlobalError('Keybase Files is not responding'),
+      redbar: setGlobalError,
       setPathSoftError: noopSoftError,
       setTlfSoftError: noopSoftError,
     },
