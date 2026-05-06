@@ -1,38 +1,12 @@
 import * as T from '@/constants/types'
 import Upload from './upload'
 import {useUploadCountdown} from './use-upload-countdown'
-import * as C from '@/constants'
-import {useFSState} from '@/stores/fs'
+import {useFsUploadStatus, useKbfsDaemonStatus} from '../common'
 import {useNonFolderSyncingPaths} from '../common/use-non-folder-syncing-paths'
 
-// NOTE flip this to show a button to debug the upload banner animations.
-const enableDebugUploadBanner = false as boolean
-
-const getDebugToggleShow = () => {
-  if (!(__DEV__ && enableDebugUploadBanner)) {
-    return undefined
-  }
-
-  const journalUpdate = useFSState.getState().dispatch.journalUpdate
-  let showing = false
-  return () => {
-    journalUpdate(
-      showing ? [] : [T.FS.stringToPath('/keybase')],
-      showing ? 0 : 1,
-      showing ? undefined : Date.now() + 1000 * 60 * 60
-    )
-    showing = !showing
-  }
-}
-
 const UpoadContainer = () => {
-  const {kbfsDaemonStatus, uploads} = useFSState(
-    C.useShallow(s => {
-      const {kbfsDaemonStatus, uploads} = s
-      return {kbfsDaemonStatus, uploads}
-    })
-  )
-  const debugToggleShow = getDebugToggleShow()
+  const kbfsDaemonStatus = useKbfsDaemonStatus()
+  const uploads = useFsUploadStatus()
 
   // We just use syncingPaths rather than merging with writingToJournal here
   // since journal status comes a bit slower, and merging the two causes
@@ -45,8 +19,7 @@ const UpoadContainer = () => {
     // We just use syncingPaths rather than merging with writingToJournal here
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
-    debugToggleShow,
-    endEstimate: enableDebugUploadBanner ? (uploads.endEstimate || 0) + 32000 : uploads.endEstimate || 0,
+    endEstimate: uploads.endEstimate || 0,
     fileName: filePaths.length === 1 ? T.FS.getPathName(filePaths[0] || T.FS.stringToPath('')) : undefined,
     files: filePaths.length,
     isOnline: kbfsDaemonStatus.onlineStatus !== T.FS.KbfsDaemonOnlineStatus.Offline,

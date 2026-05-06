@@ -31,7 +31,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useFollowerState} from '@/stores/followers'
-import {useFSState} from '@/stores/fs'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {useProvisionState} from '@/stores/provision'
 import {useShellState} from '@/stores/shell'
@@ -184,14 +183,9 @@ const onGregorReachableChanged = (gregorReachable: ConfigState['gregorReachable'
   }
 }
 
-const onInstallerRanCountChanged = () => {
-  useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
-}
-
 const onLoggedInChanged = (loggedIn: ConfigState['loggedIn']) => {
   if (loggedIn) {
     ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
-    useFSState.getState().dispatch.checkKbfsDaemonRpcStatus()
   } else {
     clearSignupEmail()
     clearSignupDeviceNameDraft()
@@ -303,7 +297,6 @@ const namespaceToTeamBuilderRoute = {
   people: 'peopleTeamBuilder',
   teams: 'teamsTeamBuilder',
 } as const
-const fsRouteNames: ReadonlyArray<string> = ['fsRoot', 'barePreview']
 
 const onNavStateChanged = (nextNavState: RouterState['navState'], previousNavState: RouterState['navState']) => {
   const next = nextNavState as Util.NavState
@@ -331,17 +324,6 @@ const onNavStateChanged = (nextNavState: RouterState['navState'], previousNavSta
   ) {
     const {dispatch} = useShellState.getState()
     dispatch.setFsCriticalUpdate(false)
-  }
-
-  const wasScreen = fsRouteNames.includes(Util.getVisibleScreen(prev)?.name ?? '')
-  const isScreen = fsRouteNames.includes(Util.getVisibleScreen(next)?.name ?? '')
-  if (wasScreen !== isScreen) {
-    const {dispatch} = useFSState.getState()
-    if (wasScreen) {
-      dispatch.userOut()
-    } else {
-      dispatch.userIn()
-    }
   }
 
   if (prev && Util.getTab(prev) === Tabs.teamsTab && next && Util.getTab(next) !== Tabs.teamsTab) {
@@ -413,7 +395,6 @@ export const initSharedSubscriptions = () => {
   _sharedUnsubs.push(
     subscribeValue(useConfigState, s => s.loadOnStartPhase, onLoadOnStartPhaseChanged),
     subscribeValue(useConfigState, s => s.gregorReachable, onGregorReachableChanged),
-    subscribeValue(useConfigState, s => s.installerRanCount, onInstallerRanCountChanged),
     subscribeValue(useConfigState, s => s.loggedIn, onLoggedInChanged),
     subscribeValue(useConfigState, s => s.revokedTrigger, onRevokedTriggerChanged),
     subscribeValue(useConfigState, s => s.configuredAccounts, onConfiguredAccountsChanged)
@@ -490,26 +471,6 @@ export const _onEngineIncoming = (action: EngineGen.Actions) => {
     case 'chat.1.NotifyChat.ChatSetTeamRetention':
       {
         routeConvoEngineIncoming(action)
-      }
-      break
-    case 'keybase.1.NotifyFS.FSOverallSyncStatusChanged':
-      {
-        useFSState.getState().dispatch.onEngineIncomingImpl(action)
-      }
-      break
-    case 'keybase.1.NotifyFS.FSSubscriptionNotify':
-      {
-        switch (action.payload.params.topic) {
-          case T.RPCGen.SubscriptionTopic.journalStatus:
-          case T.RPCGen.SubscriptionTopic.onlineStatus:
-          case T.RPCGen.SubscriptionTopic.downloadStatus:
-          case T.RPCGen.SubscriptionTopic.uploadStatus:
-          case T.RPCGen.SubscriptionTopic.settings: {
-            useFSState.getState().dispatch.onEngineIncomingImpl(action)
-            break
-          }
-          default:
-        }
       }
       break
     case 'keybase.1.NotifyEmailAddress.emailAddressVerified':

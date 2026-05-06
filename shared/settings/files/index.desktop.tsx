@@ -5,8 +5,7 @@ import * as Platform from '@/constants/platform'
 import * as Kbfs from '@/fs/common'
 import RefreshDriverStatusOnMount from '@/fs/common/refresh-driver-status-on-mount'
 import useFiles from './hooks'
-import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 type Props = ReturnType<typeof useFiles>
 
@@ -53,13 +52,7 @@ const SyncNotificationSetting = (
 }
 
 const FinderIntegration = () => {
-  const {driverStatus, preferredMountDirs, driverDisable} = useFSState(
-    C.useShallow(s => ({
-      driverDisable: s.dispatch.driverDisable,
-      driverStatus: s.sfmi.driverStatus,
-      preferredMountDirs: s.sfmi.preferredMountDirs,
-    }))
-  )
+  const {driverDisable, driverStatus, preferredMountDirs} = Kbfs.useSystemFileManagerIntegration()
   const navigateAppend = C.Router2.navigateAppend
   const onShowKextPermissionPopup = () => {
     navigateAppend({name: 'kextPermission', params: {}})

@@ -12,7 +12,7 @@ type NormalPreviewProps = {
 const NormalPreview = (props: NormalPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
     <Kbfs.Errs />
-    <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.greyContainer}>
+    <Kb.Box2 direction="vertical" centerChildren={true} flex={1} style={styles.container}>
       <View path={props.path} onUrlError={props.onUrlError} />
     </Kb.Box2>
     <Footer path={props.path} />
@@ -24,10 +24,17 @@ export default NormalPreview
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      greyContainer: {
-        backgroundColor: Kb.Styles.globalColors.blueLighter3,
-        flexShrink: 1,
-        width: '100%',
-      },
+      container: Kb.Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Kb.Styles.globalColors.blueLighter3,
+          flexShrink: 1,
+          width: '100%',
+        },
+        isMobile: {
+          backgroundColor: Kb.Styles.globalColors.black,
+          flexShrink: 1,
+          width: '100%',
+        },
+      }),
     }) as const
 )

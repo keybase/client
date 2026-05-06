@@ -1,8 +1,7 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
-import {useFsPathItem} from '../common'
+import * as FS from '@/constants/fs'
+import {useFsPathItem, useKbfsDaemonStatus} from '../common'
 import {useFsBrowserSort} from '../browser/sort-state'
 
 type OwnProps = {
@@ -33,7 +32,7 @@ const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const pathItem = useFsPathItem(path)
   const {setSortSetting, sortSetting} = useFsBrowserSort(path)
-  const _kbfsDaemonStatus = useFSState(s => s.kbfsDaemonStatus)
+  const _kbfsDaemonStatus = useKbfsDaemonStatus()
 
   const shownSortSetting = FS.showSortSetting(path, pathItem, _kbfsDaemonStatus) ? sortSetting : undefined
   const makePopup = (p: Kb.Popup2Parms) => {

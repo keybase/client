@@ -3,8 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as Kbfs from '@/fs/common'
 import {openURL as openUrl} from '@/util/misc'
-import * as FS from '@/stores/fs'
-import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {
   path: T.FS.Path
@@ -13,6 +12,7 @@ type OwnProps = {
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
+  const openPathInSystemFileManagerDesktop = Kbfs.useOpenPathInSystemFileManagerDesktop()
   const _tlf = Kbfs.useFsTlf(path)
   const navigateAppend = C.Router2.navigateAppend
   const onFinishResolving = () => {

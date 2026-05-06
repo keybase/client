@@ -160,6 +160,7 @@ const appTabsScreenOptions = (
 ) => {
   return {
     headerShown: false,
+    overrideScrollViewContentInsetAdjustmentBehavior: true,
     tabBarActiveIndicatorEnabled: false,
     tabBarBadge: getBadgeNumber(routeName, navBadges, hasPermissions),
     tabBarBadgeStyle: {

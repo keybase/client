@@ -2,9 +2,15 @@ import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
-import {LastModifiedLine, Filename, useFsDismissUpload, useFsDownloadIntent, useFsPathItem} from '@/fs/common'
-import {useFSState} from '@/stores/fs'
-import * as FS from '@/stores/fs'
+import {
+  LastModifiedLine,
+  Filename,
+  useFsDismissUpload,
+  useFsDownloadIntent,
+  useFsPathItem,
+  useFsUploadStatus,
+} from '@/fs/common'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
@@ -28,7 +34,7 @@ const StillContainer = (p: OwnProps) => {
   const {destinationPickerSource, path} = p
   const _pathItem = useFsPathItem(path, {loadOnMount: false, subscribe: false})
   const dismissUpload = useFsDismissUpload()
-  const _uploads = useFSState(s => s.uploads)
+  const _uploads = useFsUploadStatus()
   const writingToJournalUploadState = _uploads.writingToJournal.get(path)
   const onOpen = useOpen({destinationPickerSource, path})
 

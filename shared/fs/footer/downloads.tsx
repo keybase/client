@@ -2,12 +2,10 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as Kbfs from '../common'
 import Download from './download'
-import {useFSState} from '@/stores/fs'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 const Mobile = () => {
-  Kbfs.useFsDownloadStatus()
-  const downloadIDs = useFSState(s => s.downloads.regularDownloads)
+  const downloadIDs = Kbfs.useFsDownloadStatus().regularDownloads
   return downloadIDs.length ? (
     <>
       <Kb.Divider />
@@ -30,8 +28,7 @@ const Mobile = () => {
 }
 
 const Desktop = () => {
-  Kbfs.useFsDownloadStatus()
-  const downloadIDs = useFSState(s => s.downloads.regularDownloads)
+  const downloadIDs = Kbfs.useFsDownloadStatus().regularDownloads
   const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop(C.downloadFolder)
   return downloadIDs.length ? (
     <>

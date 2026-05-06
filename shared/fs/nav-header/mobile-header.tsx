@@ -6,7 +6,7 @@ import type * as T from '@/constants/types'
 import {useModalHeaderState} from '@/stores/modal-header'
 import Actions from './actions'
 import MainBanner from './main-banner'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 
 /*
  *

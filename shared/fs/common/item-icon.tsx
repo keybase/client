@@ -2,7 +2,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon'
 import {useFsDownloadIntent, useFsPathItem, useFsTlfs} from './hooks'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 
 export type Size = 96 | 48 | 32 | 16
 type SizeString = '96' | '48' | '32' | '16'

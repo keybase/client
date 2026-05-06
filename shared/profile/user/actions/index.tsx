@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import FollowButton from './follow-button'
 import ChatButton from '@/chat/chat-button'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useFeaturedBot} from '@/util/featured-bots'
 

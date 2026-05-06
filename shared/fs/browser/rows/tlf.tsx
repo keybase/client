@@ -2,8 +2,8 @@ import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
-import {useFsPathMetadata, useFsTlf, TlfInfoLine, Filename} from '@/fs/common'
-import * as FS from '@/stores/fs'
+import {TlfInfoLine, Filename} from '@/fs/common'
+import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
 export type OwnProps = {
@@ -14,20 +14,12 @@ export type OwnProps = {
   tlfType: T.FS.TlfType
 }
 
-// TODO dont do this pattern
-const FsPathMetadataLoader = ({path}: {path: T.FS.Path}) => {
-  useFsPathMetadata(path)
-  return null
-}
-
 const TLFContainer = (p: OwnProps) => {
   const {tlfType, name, mixedMode, destinationPickerSource, disabled} = p
   const username = useCurrentUserState(s => s.username)
   const path = FS.tlfTypeAndNameToPath(tlfType, name)
-  const tlf = useFsTlf(path, {loadOnMount: false})
   const _usernames = FS.getUsernamesFromTlfName(name).filter(name => name !== username)
   const onOpen = useOpen({destinationPickerSource, path})
-  const loadPathMetadata = tlf.syncConfig.mode !== T.FS.TlfSyncMode.Disabled
   // Only include the user if they're the only one
   const usernames = !_usernames.length ? [username] : _usernames
 
@@ -63,7 +55,6 @@ const TLFContainer = (p: OwnProps) => {
 
   return (
     <>
-      {!!loadPathMetadata && <FsPathMetadataLoader path={path} />}
       <StillCommon
         path={path}
         inDestinationPicker={!!destinationPickerSource}

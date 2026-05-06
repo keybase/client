@@ -222,10 +222,11 @@ const makeCsp = (isDev: boolean) =>
     "default-src 'none'",
     "base-uri 'none'",
     "form-action 'none'",
-    "object-src 'none'",
-    'frame-src http://127.0.0.1:*',
+    // object-src needed for <embed> PDF rendering via the KBFS local HTTP server; constrained to localhost only
+    'object-src http://127.0.0.1:*',
+    "frame-src 'none'",
     `font-src ${joinCspSources(["'self'", isDev && devServerURL.slice(0, -1)])}`,
-    "media-src 'self' http://127.0.0.1:*",
+    'media-src http://127.0.0.1:*',
     `img-src ${joinCspSources([
       "'self'",
       'data:',
@@ -393,9 +394,7 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
           port: devServerPort,
         },
       },
-      static: [
-        {directory: rootDir, publicPath: '/', watch: false},
-      ],
+      static: [{directory: rootDir, publicPath: '/', watch: false}],
     },
     entry: viewEntries.reduce<Record<string, string>>((map, name: string) => {
       map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`

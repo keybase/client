@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {formatTimeForFS} from '@/util/timestamp'
 import {useFsPathItem} from './hooks'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 
 export type OwnProps = {
   path: T.FS.Path

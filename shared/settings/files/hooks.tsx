@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {clientID as fsClientID, useFSState} from '@/stores/fs'
+import {clientID as fsClientID} from '@/fs/common/client'
 
 type FilesSettings = {
   isLoading: boolean
@@ -33,10 +33,6 @@ const useFiles = () => {
       setSettings(s => ({...s, isLoading: false}))
     }
   })
-  const refreshGlobalSettings = React.useEffectEvent(() => {
-    useFSState.getState().dispatch.loadSettings()
-  })
-
   React.useEffect(() => {
     let canceled = false
     const f = async () => {
@@ -74,7 +70,6 @@ const useFiles = () => {
       try {
         await T.RPCGen.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({threshold})
         await loadSettings(true)
-        refreshGlobalSettings()
       } catch {
         setSettings(s => ({...s, isLoading: false}))
       }
@@ -89,7 +84,6 @@ const useFiles = () => {
           C.waitingKeyFSSetSyncOnCellular
         )
         await loadSettings(true)
-        refreshGlobalSettings()
       } catch {}
     }
     C.ignorePromise(f())

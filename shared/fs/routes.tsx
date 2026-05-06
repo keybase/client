@@ -2,13 +2,14 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 import {Filename, ItemIcon} from './common'
 import {OriginalOrCompressedButton} from '@/incoming-share'
 import {defineRouteMap} from '@/constants/types/router'
 
 const FsRoot = React.lazy(async () => import('.'))
+const FsFilePreview = React.lazy(async () => import('./filepreview/file-preview-screen'))
 
 const DestPickerHeaderLeft = ({source}: {source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource}) => {
   const clearModals = C.Router2.clearModals
@@ -68,6 +69,17 @@ const destPickerDesktopHeaderStyle = Kb.Styles.padding(
 const noShrinkStyle = {flexShrink: 0} as const
 
 export const newRoutes = defineRouteMap({
+  fsFilePreview: C.makeScreen(FsFilePreview, {
+    getOptions: (ownProps?) => {
+      const path = ownProps?.route.params.path ?? FS.defaultPath
+      return C.isMobile
+        ? {header: () => <MobileHeader path={path} />}
+        : {
+            headerTitle: () => <Title path={path} />,
+            title: T.FS.getPathName(path),
+          }
+    },
+  }),
   fsRoot: C.makeScreen(FsRoot, {
     getOptions: (ownProps?) => {
       // strange edge case where the root can actually have no params
@@ -88,13 +100,6 @@ export const newRoutes = defineRouteMap({
 })
 
 export const newModalRoutes = defineRouteMap({
-  barePreview: C.makeScreen(
-    React.lazy(async () => {
-      const {BarePreview} = await import('./filepreview')
-      return {default: BarePreview}
-    }),
-    {getOptions: {headerShown: false}}
-  ),
   confirmDelete: C.makeScreen(React.lazy(async () => import('./common/path-item-action/confirm-delete'))),
   destinationPicker: C.makeScreen(
     React.lazy(async () => import('./browser/destination-picker')),

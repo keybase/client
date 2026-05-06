@@ -502,12 +502,6 @@ export type SoftErrors = Readonly<{
   tlfErrors: ReadonlyMap<Path, SoftError>
 }>
 
-export type Settings = Readonly<{
-  loaded: boolean
-  sfmiBannerDismissed: boolean
-  spaceAvailableNotificationThreshold: number
-}>
-
 export type PathInfo = Readonly<{
   deeplinkPath: string
   platformAfterMountPath: string

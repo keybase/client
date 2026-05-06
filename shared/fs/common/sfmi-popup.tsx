@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useFuseClosedSourceConsent} from './hooks'
-import {useFSState} from '@/stores/fs'
+import {useSystemFileManagerIntegration} from './sfmi'
 
 type Props = {
   mode: 'Icon' | 'Button'
@@ -11,9 +11,7 @@ type Props = {
 
 const SFMIPopup = (props: Props) => {
   const {invert} = props
-  const sfmi = useFSState(s => s.sfmi)
-  const driverEnable = useFSState(s => s.dispatch.driverEnable)
-  const {driverStatus} = sfmi
+  const {driverEnable, driverStatus} = useSystemFileManagerIntegration()
   const {type} = driverStatus
   const isEnabling = type === T.FS.DriverStatusType.Disabled ? driverStatus.isEnabling : false
   const enableDriver = () => driverEnable()

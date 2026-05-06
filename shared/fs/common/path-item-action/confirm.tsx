@@ -2,7 +2,7 @@ import * as T from '@/constants/types'
 import type {FloatingMenuProps, OnDownloadStarted} from './types'
 import * as Kb from '@/common-adapters'
 import {useFsDownload, useFsPathItem} from '../hooks'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps

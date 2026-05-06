@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useFsErrorActionOrThrow, useFsFolderChildren, useFsRefreshTlf, useFsTlf} from '../common'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {
   tlfPath: T.FS.Path

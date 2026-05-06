@@ -2,11 +2,15 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {PathItemAction, LastModifiedLine, ItemIcon, type ClickableProps} from '../common'
-import {useFsDownload, useFsErrorActionOrThrow, useFsFileContext} from '../common'
+import {
+  useFsDownload,
+  useFsErrorActionOrThrow,
+  useFsFileContext,
+  useOpenPathInSystemFileManagerDesktop,
+  useSystemFileManagerIntegration,
+} from '../common'
 import {hasShare} from '../common/path-item-action/layout'
-import * as FS from '@/stores/fs'
-import {useFSState} from '@/stores/fs'
-import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import * as FS from '@/constants/fs'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -20,7 +24,9 @@ const Container = (ownProps: OwnProps) => {
   const {fileContext, pathItem} = useFsFileContext(path)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const _download = useFsDownload()
-  const sfmiEnabled = useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
+  const {driverStatus} = useSystemFileManagerIntegration()
+  const openPathInSystemFileManagerDesktop = useOpenPathInSystemFileManagerDesktop()
+  const sfmiEnabled = driverStatus.type === T.FS.DriverStatusType.Enabled
   const download = () => {
     _download(path, 'download')
   }

@@ -1,8 +1,8 @@
 import * as React from 'react'
-import {useFSState} from '@/stores/fs'
+import {useSystemFileManagerIntegration} from './sfmi'
 
 const RefreshDriverStatusOnMount = () => {
-  const refreshDriverStatusDesktop = useFSState(s => s.dispatch.refreshDriverStatusDesktop)
+  const {refreshDriverStatusDesktop} = useSystemFileManagerIntegration()
 
   React.useEffect(() => {
     refreshDriverStatusDesktop()

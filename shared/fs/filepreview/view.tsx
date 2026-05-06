@@ -7,7 +7,7 @@ import TextView from './text-view'
 import AVView from './av-view'
 import PdfView from './pdf-view'
 import * as Kb from '@/common-adapters'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {useFsFileContext} from '../common'
 
 type Props = {

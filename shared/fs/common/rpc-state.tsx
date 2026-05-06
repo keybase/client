@@ -319,8 +319,16 @@ export const makePathItemsFromDirents = ({
     progress: T.FS.ProgressType.Loaded,
   }
 
+  // KBFS returns the file itself as the sole entry when listing a file path.
+  // Detect this by checking if the only entry's name matches the path's own name.
+  const rootPathName = T.FS.getPathName(rootPath)
+  const looksLikeFileListing = entries.length === 1 && entries[0]?.name === rootPathName
   return new Map<T.FS.Path, T.FS.PathItem>([
-    ...(T.FS.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder] as const] : []),
-    ...entries.map(direntToPathAndPathItem),
+    ...(T.FS.getPathLevel(rootPath) > 2 &&
+    rootPathItem.type !== T.FS.PathType.File &&
+    !looksLikeFileListing
+      ? [[rootPath, rootFolder] as const]
+      : []),
+    ...(looksLikeFileListing ? [] : entries.map(direntToPathAndPathItem)),
   ])
 }

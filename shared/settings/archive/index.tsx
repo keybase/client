@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 import {showShareActionSheet} from '@/util/platform-specific'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {

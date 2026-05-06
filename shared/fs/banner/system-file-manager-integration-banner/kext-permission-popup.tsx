@@ -3,12 +3,11 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
-import {useFSState} from '@/stores/fs'
 import {openSecurityPreferencesDesktop as openSecurityPreferencesInPlatform} from '@/stores/fs-platform'
 
 const InstallSecurityPrefs = () => {
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
-  const driverStatus = useFSState(s => s.sfmi.driverStatus)
+  const {driverStatus} = Kbfs.useSystemFileManagerIntegration()
   const onCancel = C.Router2.navigateUp
   const openSecurityPrefs = () => {
     const f = async () => {
@@ -120,4 +119,10 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default InstallSecurityPrefs
+const InstallSecurityPrefsContainer = () => (
+  <Kbfs.SystemFileManagerIntegrationProvider initialKextPermissionError={true}>
+    <InstallSecurityPrefs />
+  </Kbfs.SystemFileManagerIntegrationProvider>
+)
+
+export default InstallSecurityPrefsContainer

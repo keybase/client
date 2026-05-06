@@ -16,10 +16,9 @@ import {
   useFsReloadTlfs,
   useFsWatchDownloadForMobile,
 } from '../hooks'
-import {useFSState} from '@/stores/fs'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
+import {useOpenPathInSystemFileManagerDesktop, useSystemFileManagerIntegration} from '../sfmi'
 import {useCurrentUserState} from '@/stores/current-user'
-import {openPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {
   downloadID?: string
@@ -66,7 +65,9 @@ const Container = (op: OwnProps) => {
   const cancelDownload = useFsCancelDownload()
   const dismissDownload = useFsDismissDownload()
   const download = useFsDownload()
-  const sfmiEnabled = useFSState(s => s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled)
+  const {driverStatus} = useSystemFileManagerIntegration()
+  const openPathInSystemFileManagerDesktop = useOpenPathInSystemFileManagerDesktop()
+  const sfmiEnabled = driverStatus.type === T.FS.DriverStatusType.Enabled
   const newFolderRow = browserEdits?.newFolderRow
   const startRename = browserEdits?.startRename
   const username = useCurrentUserState(s => s.username)

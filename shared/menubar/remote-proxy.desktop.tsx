@@ -9,14 +9,19 @@ import KB2 from '@/util/electron.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import type {Props, Conversation, RemoteTlfUpdates} from './index.desktop'
 import {useColorScheme} from 'react-native'
-import {errorToActionOrThrow, useFSState} from '@/stores/fs'
+import {useFsErrorActionOrThrow} from '@/fs/common/error-state'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useFollowerState} from '@/stores/followers'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
 import {useNotifState} from '@/stores/notifications'
 import type * as NotifConstants from '@/stores/notifications'
+import {useFsOverallSyncStatus, useFsUploadStatus, useKbfsDaemonStatus} from '@/fs/common/status'
 import {useNonFolderSyncingPaths} from '@/fs/common/use-non-folder-syncing-paths'
+import {
+  fuseStatusToDriverStatus,
+  refreshDriverStatusDesktop as refreshDriverStatusInPlatform,
+} from '@/stores/fs-platform'
 
 const {showTray} = KB2.functions
 
@@ -221,6 +226,7 @@ function useMenubarTlfUpdates(
   kbfsDaemonRpcStatus: T.FS.KbfsDaemonRpcStatus,
   menuWindowShownCount: number
 ) {
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
   const shouldClearTlfUpdates = !loggedIn || userSwitching
   const [tlfUpdateState, setTlfUpdateState] = React.useState<TlfUpdateState>(() => ({
     shouldClear: shouldClearTlfUpdates,
@@ -281,6 +287,48 @@ function useMenubarTlfUpdates(
   return currentTlfUpdateState.tlfUpdates
 }
 
+function useMenubarSfmiEnabled(
+  loggedIn: boolean,
+  userSwitching: boolean,
+  kbfsDaemonRpcStatus: T.FS.KbfsDaemonRpcStatus,
+  menuWindowShownCount: number
+) {
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const disabled =
+    !loggedIn ||
+    userSwitching ||
+    kbfsDaemonRpcStatus !== T.FS.KbfsDaemonRpcStatus.Connected ||
+    menuWindowShownCount <= 0
+  const [rawEnabled, setRawEnabled] = React.useState(false)
+  const enabled = disabled ? false : rawEnabled
+
+  React.useEffect(() => {
+    if (disabled) {
+      return
+    }
+
+    let canceled = false
+    const f = async () => {
+      try {
+        const status = await refreshDriverStatusInPlatform()
+        if (!canceled) {
+          setRawEnabled(fuseStatusToDriverStatus(status).type === T.FS.DriverStatusType.Enabled)
+        }
+      } catch (error) {
+        if (!canceled) {
+          errorToActionOrThrow(error)
+        }
+      }
+    }
+    C.ignorePromise(f())
+    return () => {
+      canceled = true
+    }
+  }, [errorToActionOrThrow, loggedIn, userSwitching, kbfsDaemonRpcStatus, menuWindowShownCount, disabled])
+
+  return enabled
+}
+
 function useMenubarRemoteProps(): Props {
   const username = useCurrentUserState(s => s.username)
   const {badgeState, httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount} = useConfigState(
@@ -289,12 +337,9 @@ function useMenubarRemoteProps(): Props {
       return {badgeState, httpSrv, loggedIn, outOfDate, userSwitching, windowShownCount}
     })
   )
-  const {kbfsDaemonStatus, overallSyncStatus, sfmi, uploads} = useFSState(
-    C.useShallow(s => {
-      const {kbfsDaemonStatus, overallSyncStatus, sfmi, uploads} = s
-      return {kbfsDaemonStatus, overallSyncStatus, sfmi, uploads}
-    })
-  )
+  const kbfsDaemonStatus = useKbfsDaemonStatus()
+  const overallSyncStatus = useFsOverallSyncStatus()
+  const uploads = useFsUploadStatus()
   const navBadgesMap = useNotifState(s => s.navBadges)
   const {widgetList, inboxHasLoaded, inboxRefresh} = useInboxLayoutState(
     C.useShallow(s => ({
@@ -307,8 +352,13 @@ function useMenubarRemoteProps(): Props {
   const conversationsToSend = useWidgetConversationList(widgetList, badgeState)
   const isDarkMode = useColorScheme() === 'dark'
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
-  const kbfsEnabled = sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
   const menuWindowShownCount = windowShownCount.get('menu') ?? 0
+  const kbfsEnabled = useMenubarSfmiEnabled(
+    loggedIn,
+    userSwitching,
+    kbfsDaemonStatus.rpcStatus,
+    menuWindowShownCount
+  )
   const tlfUpdates = useMenubarTlfUpdates(
     loggedIn,
     userSwitching,

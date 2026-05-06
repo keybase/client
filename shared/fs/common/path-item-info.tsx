@@ -6,7 +6,7 @@ import ItemIcon from './item-icon'
 import CommaSeparatedName from './comma-separated-name'
 import {pluralize} from '@/util/string'
 import {useFsFolderChildItems, useFsOnlineStatus, useFsPathItem, useFsSoftError} from './hooks'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 
 type Props = {
   containerStyle?: Kb.Styles.StylesCrossPlatform

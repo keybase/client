@@ -1,6 +1,6 @@
 ## Rules
 - No `Co-Authored-By` in commits. Ever.
-- "Was working before" = base branch (`nojima/HOTPOT-next-670-clean` or `master`), not previous commit.
+- "Was working before" = base branch, not previous commit. Base branch is almost always `nojima/HOTPOT-next-670-clean-2` (not `master`). Always run `gh pr view --json baseRefName` to confirm before any `git diff` or `git log` comparison.
 - Never use `npm`. Always `yarn`.
 - Never silently drop features/behavior — ask first, present options.
 - No DOM elements (`<div>`, `<span>`, etc.) in plain `.tsx` files — use `Kb.*`. Guard desktop-only DOM with `Styles.isMobile`.

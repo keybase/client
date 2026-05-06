@@ -167,7 +167,7 @@
     "babel-preset-expo": "55.0.19",
     "cross-env": "10.1.0",
     "css-loader": "7.1.4",
-    "electron": "41.4.0",
+    "electron": "41.5.0",
     "@eslint/compat": "2.0.5",
     "@eslint/js": "10.0.1",
     "eslint": "10.3.0",

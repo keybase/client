@@ -25,7 +25,7 @@ import {
 import {useCurrentUserState} from '@/stores/current-user'
 import {useRoute} from '@react-navigation/native'
 import {getRouteParamsFromRoute, type RootRouteProps} from '@/router-v2/route-params'
-import {unboxRows} from '@/chat/inbox/metadata'
+import {metasReceived, unboxRows} from '@/chat/inbox/metadata'
 
 const useHintText = (p: {
   isExploding: boolean
@@ -202,6 +202,9 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
   const sendTyping = C.useThrottledCallback(sendTypingRaw, 1000)
 
   const updateDraftRaw = (text: string) => {
+    // Immediately update local meta.draft so switching back to this thread
+    // before the async unbox completes won't re-inject the old stale draft.
+    metasReceived([{...meta, draft: text}])
     const f = async () => {
       await T.RPCChat.localUpdateUnsentTextRpcPromise({
         conversationID: convoID,
@@ -212,6 +215,12 @@ const ConnectedPlatformInput = function ConnectedPlatformInput() {
     C.ignorePromise(f())
   }
   const updateDraft = C.useThrottledCallback(updateDraftRaw, 200, {trailing: true})
+  // Flush any pending draft save before cancel fires on unmount (hooks cleanup runs in reverse order)
+  React.useLayoutEffect(() => {
+    return () => {
+      updateDraft.flush()
+    }
+  }, [updateDraft])
 
   const textValueRef = React.useRef('')
   const onChangeText = (text: string) => {

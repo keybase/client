@@ -3,39 +3,26 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
-import {useFSState} from '@/stores/fs'
-import * as FS from '@/stores/fs'
-import {ignorePromise} from '@/constants/utils'
-import {setSfmiBannerDismissedDesktop as setSfmiBannerDismissedInPlatform} from '@/stores/fs-platform'
+import * as FS from '@/constants/fs'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 type OwnProps = {alwaysShow?: boolean}
 
 const SFMIContainer = (op: OwnProps) => {
-  const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
-  const {driverStatus, driverEnable, driverDisable, settings} = useFSState(
-    C.useShallow(s => ({
-      driverDisable: s.dispatch.driverDisable,
-      driverEnable: s.dispatch.driverEnable,
-      driverStatus: s.sfmi.driverStatus,
-      settings: s.settings,
-    }))
-  )
+  const {
+    driverDisable,
+    driverEnable,
+    driverStatus,
+    settingsLoaded,
+    setSfmiBannerDismissed,
+    sfmiBannerDismissed,
+  } = Kbfs.useSystemFileManagerIntegration()
   const onDisable = () => driverDisable()
-  const onDismiss = () => {
-    const f = async () => {
-      try {
-        await setSfmiBannerDismissedInPlatform(true)
-      } catch (e) {
-        errorToActionOrThrow(e)
-      }
-    }
-    ignorePromise(f())
-  }
+  const onDismiss = () => setSfmiBannerDismissed(true)
   const onEnable = driverEnable
   const alwaysShow = op.alwaysShow
 
-  if (!FS.sfmiInfoLoaded(settings, driverStatus)) {
+  if (!FS.sfmiInfoLoaded({loaded: settingsLoaded}, driverStatus)) {
     return alwaysShow ? (
       <Banner
         background={Background.Blue}
@@ -48,22 +35,21 @@ const SFMIContainer = (op: OwnProps) => {
 
   switch (driverStatus.type) {
     case T.FS.DriverStatusType.Disabled:
-      return alwaysShow || !settings.sfmiBannerDismissed ? (
+      return alwaysShow || !sfmiBannerDismissed ? (
         <Disabled
           driverStatus={driverStatus}
           onEnable={onEnable}
           alwaysShow={alwaysShow}
-          settings={settings}
           onDismiss={onDismiss}
         />
       ) : null
     case T.FS.DriverStatusType.Enabled:
-      return alwaysShow || !settings.sfmiBannerDismissed ? (
+      return alwaysShow || !sfmiBannerDismissed ? (
         <Enabled
           driverStatus={driverStatus}
           onDisable={onDisable}
           alwaysShow={alwaysShow}
-          settings={settings}
+          sfmiBannerDismissed={sfmiBannerDismissed}
           onDismiss={onDismiss}
         />
       ) : null
@@ -242,7 +228,8 @@ const DokanOutdated = (props: {driverStatus: T.FS.DriverStatus; onDisable: () =>
 type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
-  const displayingMountDir = useFSState(s => s.sfmi.preferredMountDirs[0] ?? '')
+  const {preferredMountDirs} = Kbfs.useSystemFileManagerIntegration()
+  const displayingMountDir = preferredMountDirs[0] ?? ''
   const open = displayingMountDir
     ? () => openLocalPathInSystemFileManagerDesktop(displayingMountDir, errorToActionOrThrow)
     : undefined
@@ -270,10 +257,10 @@ const Enabled = (props: {
   driverStatus: T.FS.DriverStatus
   onDisable: () => void
   alwaysShow?: boolean
-  settings: T.FS.Settings
+  sfmiBannerDismissed: boolean
   onDismiss: () => void
 }) => {
-  const {driverStatus, onDisable, alwaysShow, settings, onDismiss} = props
+  const {driverStatus, onDisable, alwaysShow, sfmiBannerDismissed, onDismiss} = props
   if (driverStatus.type !== T.FS.DriverStatusType.Enabled) {
     return <ThisShouldNotHappen />
   }
@@ -292,7 +279,7 @@ const Enabled = (props: {
       />
     )
   }
-  if (alwaysShow || !settings.sfmiBannerDismissed) {
+  if (alwaysShow || !sfmiBannerDismissed) {
     return <JustEnabled onDismiss={alwaysShow ? undefined : onDismiss} />
   }
   return null
@@ -302,7 +289,6 @@ const Disabled = (props: {
   driverStatus: T.FS.DriverStatus
   onEnable: () => void
   alwaysShow?: boolean
-  settings: T.FS.Settings
   onDismiss: () => void
 }) => {
   const {driverStatus, onEnable, alwaysShow, onDismiss} = props

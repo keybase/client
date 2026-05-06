@@ -3,7 +3,7 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import ChooseView from './choose-view'
 import type {SizeType} from '@/common-adapters/icon'
-import * as FS from '@/stores/fs'
+import * as FS from '@/constants/fs'
 
 export type ClickableProps = {
   onClick: () => void
