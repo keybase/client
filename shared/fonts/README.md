@@ -4,9 +4,9 @@
 
 ### Keybase text fonts (`keybase-*.ttf`)
 The Keybase text fonts are derived from a Mark Simonson Studio typeface renamed to
-`Keybase`, then processed through Font Squirrel and `ttfautohint`. The repo does not
-contain the original licensed `.glyphs` or `.ufo` source files — only the processed
-TTFs. See [Open Questions](#open-questions) below.
+`Keybase`, then processed through Font Squirrel and `ttfautohint`. **Only the processed
+TTFs exist in the repo — no `.glyphs`, `.ufo`, or other source files are available.**
+The TTFs are therefore the canonical inputs for the build pipeline.
 
 ### Source Code Pro (`SourceCodePro-*.ttf`)
 Adobe Source Code Pro, imported binaries. No modifications.

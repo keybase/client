@@ -14,13 +14,13 @@
         "sTypoLineGap": 0,
         "usWinAscent": 2210,
         "usWinDescent": 736,
-        "yStrikeoutPosition": 592,
+        "yStrikeoutPosition": 560,
         "yStrikeoutSize": 131,
         "usWeightClass": 500,
         "fsSelection": 64,
         "USE_TYPO_METRICS": false,
-        "sxHeight": 483,
-        "sCapHeight": 667
+        "sxHeight": 989,
+        "sCapHeight": 1366
       },
       "post": {
         "underlinePosition": -766,
@@ -41,13 +41,13 @@
         "sTypoLineGap": 0,
         "usWinAscent": 2210,
         "usWinDescent": 736,
-        "yStrikeoutPosition": 592,
+        "yStrikeoutPosition": 560,
         "yStrikeoutSize": 131,
         "usWeightClass": 500,
         "fsSelection": 1,
         "USE_TYPO_METRICS": false,
-        "sxHeight": 483,
-        "sCapHeight": 667
+        "sxHeight": 989,
+        "sCapHeight": 1366
       },
       "post": {
         "underlinePosition": -766,
@@ -68,13 +68,13 @@
         "sTypoLineGap": 0,
         "usWinAscent": 2210,
         "usWinDescent": 767,
-        "yStrikeoutPosition": 592,
+        "yStrikeoutPosition": 571,
         "yStrikeoutSize": 152,
         "usWeightClass": 600,
         "fsSelection": 64,
         "USE_TYPO_METRICS": false,
-        "sxHeight": 483,
-        "sCapHeight": 667
+        "sxHeight": 989,
+        "sCapHeight": 1366
       },
       "post": {
         "underlinePosition": -826,
@@ -95,13 +95,13 @@
         "sTypoLineGap": 0,
         "usWinAscent": 2210,
         "usWinDescent": 767,
-        "yStrikeoutPosition": 592,
+        "yStrikeoutPosition": 571,
         "yStrikeoutSize": 152,
         "usWeightClass": 600,
         "fsSelection": 1,
         "USE_TYPO_METRICS": false,
-        "sxHeight": 483,
-        "sCapHeight": 667
+        "sxHeight": 989,
+        "sCapHeight": 1366
       },
       "post": {
         "underlinePosition": -826,
@@ -122,13 +122,13 @@
         "sTypoLineGap": 0,
         "usWinAscent": 2210,
         "usWinDescent": 794,
-        "yStrikeoutPosition": 592,
+        "yStrikeoutPosition": 585,
         "yStrikeoutSize": 180,
         "usWeightClass": 700,
         "fsSelection": 32,
         "USE_TYPO_METRICS": false,
-        "sxHeight": 483,
-        "sCapHeight": 667
+        "sxHeight": 989,
+        "sCapHeight": 1366
       },
       "post": {
         "underlinePosition": -916,
@@ -149,13 +149,13 @@
         "sTypoLineGap": 0,
         "usWinAscent": 2210,
         "usWinDescent": 794,
-        "yStrikeoutPosition": 592,
+        "yStrikeoutPosition": 585,
         "yStrikeoutSize": 180,
         "usWeightClass": 700,
         "fsSelection": 33,
         "USE_TYPO_METRICS": false,
-        "sxHeight": 483,
-        "sCapHeight": 667
+        "sxHeight": 989,
+        "sCapHeight": 1366
       },
       "post": {
         "underlinePosition": -916,
@@ -176,13 +176,13 @@
         "sTypoLineGap": 0,
         "usWinAscent": 2210,
         "usWinDescent": 824,
-        "yStrikeoutPosition": 592,
+        "yStrikeoutPosition": 601,
         "yStrikeoutSize": 213,
         "usWeightClass": 800,
         "fsSelection": 64,
         "USE_TYPO_METRICS": false,
-        "sxHeight": 483,
-        "sCapHeight": 667
+        "sxHeight": 989,
+        "sCapHeight": 1366
       },
       "post": {
         "underlinePosition": -1012,

@@ -279,7 +279,8 @@ def _apply_patches(font, patches: dict) -> list[str]:
                 changes.append(f"OS/2.fsSelection USE_TYPO_METRICS → {target}")
         for field in ("sTypoAscender", "sTypoDescender", "sTypoLineGap",
                       "usWinAscent", "usWinDescent",
-                      "yStrikeoutPosition", "yStrikeoutSize"):
+                      "yStrikeoutPosition", "yStrikeoutSize",
+                      "sxHeight", "sCapHeight"):
             if field in os2_patches:
                 old = getattr(os2, field)
                 setattr(os2, field, os2_patches[field])
@@ -307,6 +308,7 @@ def _apply_patches(font, patches: dict) -> list[str]:
 
 
 def cmd_build_text(args):
+    import shutil
     manifest = json.loads(Path(args.manifest).read_text())
     repo_root = Path(args.manifest).resolve().parent.parent.parent
     build_cfg = manifest.get("buildConfig", {})
@@ -344,6 +346,22 @@ def cmd_build_text(args):
         font.close()
         tag = f"  [{', '.join(changes)}]" if changes else "  (no changes)"
         print(f"  {src.name} → {dest}{tag}", file=sys.stderr)
+
+        # Copy to platform destinations where the target directory exists.
+        # For android platform, use the "android" output key; otherwise copy to all
+        # non-android outputs (ios + electron) when building the default platform.
+        outputs: dict = entry.get("outputs", {})
+        copy_keys = ["android"] if platform == "android" else [k for k in outputs if k != "android"]
+        for key in copy_keys:
+            out_path_rel = outputs.get(key)
+            if not out_path_rel:
+                continue
+            out_path = repo_root / out_path_rel
+            if out_path == dest:
+                continue  # already the staging dest
+            if out_path.parent.exists():
+                shutil.copy2(str(dest), str(out_path))
+                print(f"    → {key}: {out_path}", file=sys.stderr)
 
     if errors:
         print(f"build-text: {errors} error(s)", file=sys.stderr)
