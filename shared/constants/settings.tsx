@@ -20,6 +20,7 @@ export const settingsLogOutTab = 'settingsTabs.logOutTab'
 export const settingsUpdatePaymentTab = 'settingsTabs.updatePaymentTab'
 export const settingsWalletsTab = 'settingsTabs.walletsTab'
 export const settingsContactsTab = 'settingsTabs.contactsTab'
+export const settingsTypographyTab = 'settingsTabs.typographyTab'
 
 export type SettingsTab =
   | typeof settingsAccountTab

@@ -131,6 +131,14 @@ export const sharedNewRoutes = defineRouteMap({
   },
   keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
+  ...(__DEV__
+    ? {
+        [Settings.settingsTypographyTab]: {
+          getOptions: {title: 'Typography'},
+          screen: React.lazy(async () => import('./typography')),
+        },
+      }
+    : {}),
 })
 
 export const settingsDesktopTabRoutes = defineRouteMap({

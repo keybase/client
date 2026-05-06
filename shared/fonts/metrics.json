@@ -1,0 +1,275 @@
+{
+  "_comment": "Generated snapshot \u2014 do not edit by hand. Run: yarn font:snapshot-metrics",
+  "fonts": {
+    "keybase-medium": {
+      "unitsPerEm": 2048,
+      "hhea": {
+        "ascender": 2210,
+        "descender": -736,
+        "lineGap": 0
+      },
+      "OS/2": {
+        "sTypoAscender": 1618,
+        "sTypoDescender": -430,
+        "sTypoLineGap": 0,
+        "usWinAscent": 2210,
+        "usWinDescent": 736,
+        "yStrikeoutPosition": 592,
+        "yStrikeoutSize": 131,
+        "usWeightClass": 500,
+        "fsSelection": 64,
+        "USE_TYPO_METRICS": false,
+        "sxHeight": 483,
+        "sCapHeight": 667
+      },
+      "post": {
+        "underlinePosition": -766,
+        "underlineThickness": 131,
+        "italicAngle": 0.0
+      }
+    },
+    "keybase-medium-italic": {
+      "unitsPerEm": 2048,
+      "hhea": {
+        "ascender": 2210,
+        "descender": -736,
+        "lineGap": 0
+      },
+      "OS/2": {
+        "sTypoAscender": 1618,
+        "sTypoDescender": -430,
+        "sTypoLineGap": 0,
+        "usWinAscent": 2210,
+        "usWinDescent": 736,
+        "yStrikeoutPosition": 592,
+        "yStrikeoutSize": 131,
+        "usWeightClass": 500,
+        "fsSelection": 1,
+        "USE_TYPO_METRICS": false,
+        "sxHeight": 483,
+        "sCapHeight": 667
+      },
+      "post": {
+        "underlinePosition": -766,
+        "underlineThickness": 131,
+        "italicAngle": -12.5
+      }
+    },
+    "keybase-semibold": {
+      "unitsPerEm": 2048,
+      "hhea": {
+        "ascender": 2210,
+        "descender": -767,
+        "lineGap": 0
+      },
+      "OS/2": {
+        "sTypoAscender": 1618,
+        "sTypoDescender": -430,
+        "sTypoLineGap": 0,
+        "usWinAscent": 2210,
+        "usWinDescent": 767,
+        "yStrikeoutPosition": 592,
+        "yStrikeoutSize": 152,
+        "usWeightClass": 600,
+        "fsSelection": 64,
+        "USE_TYPO_METRICS": false,
+        "sxHeight": 483,
+        "sCapHeight": 667
+      },
+      "post": {
+        "underlinePosition": -826,
+        "underlineThickness": 151,
+        "italicAngle": 0.0
+      }
+    },
+    "keybase-semibold-italic": {
+      "unitsPerEm": 2048,
+      "hhea": {
+        "ascender": 2210,
+        "descender": -767,
+        "lineGap": 0
+      },
+      "OS/2": {
+        "sTypoAscender": 1618,
+        "sTypoDescender": -430,
+        "sTypoLineGap": 0,
+        "usWinAscent": 2210,
+        "usWinDescent": 767,
+        "yStrikeoutPosition": 592,
+        "yStrikeoutSize": 152,
+        "usWeightClass": 600,
+        "fsSelection": 1,
+        "USE_TYPO_METRICS": false,
+        "sxHeight": 483,
+        "sCapHeight": 667
+      },
+      "post": {
+        "underlinePosition": -826,
+        "underlineThickness": 151,
+        "italicAngle": -12.5
+      }
+    },
+    "keybase-bold": {
+      "unitsPerEm": 2048,
+      "hhea": {
+        "ascender": 2210,
+        "descender": -794,
+        "lineGap": 0
+      },
+      "OS/2": {
+        "sTypoAscender": 1618,
+        "sTypoDescender": -430,
+        "sTypoLineGap": 0,
+        "usWinAscent": 2210,
+        "usWinDescent": 794,
+        "yStrikeoutPosition": 592,
+        "yStrikeoutSize": 180,
+        "usWeightClass": 700,
+        "fsSelection": 32,
+        "USE_TYPO_METRICS": false,
+        "sxHeight": 483,
+        "sCapHeight": 667
+      },
+      "post": {
+        "underlinePosition": -916,
+        "underlineThickness": 180,
+        "italicAngle": 0.0
+      }
+    },
+    "keybase-bold-italic": {
+      "unitsPerEm": 2048,
+      "hhea": {
+        "ascender": 2210,
+        "descender": -794,
+        "lineGap": 0
+      },
+      "OS/2": {
+        "sTypoAscender": 1618,
+        "sTypoDescender": -430,
+        "sTypoLineGap": 0,
+        "usWinAscent": 2210,
+        "usWinDescent": 794,
+        "yStrikeoutPosition": 592,
+        "yStrikeoutSize": 180,
+        "usWeightClass": 700,
+        "fsSelection": 33,
+        "USE_TYPO_METRICS": false,
+        "sxHeight": 483,
+        "sCapHeight": 667
+      },
+      "post": {
+        "underlinePosition": -916,
+        "underlineThickness": 180,
+        "italicAngle": -12.5
+      }
+    },
+    "keybase-extrabold": {
+      "unitsPerEm": 2048,
+      "hhea": {
+        "ascender": 2210,
+        "descender": -824,
+        "lineGap": 0
+      },
+      "OS/2": {
+        "sTypoAscender": 1618,
+        "sTypoDescender": -430,
+        "sTypoLineGap": 0,
+        "usWinAscent": 2210,
+        "usWinDescent": 824,
+        "yStrikeoutPosition": 592,
+        "yStrikeoutSize": 213,
+        "usWeightClass": 800,
+        "fsSelection": 64,
+        "USE_TYPO_METRICS": false,
+        "sxHeight": 483,
+        "sCapHeight": 667
+      },
+      "post": {
+        "underlinePosition": -1012,
+        "underlineThickness": 212,
+        "italicAngle": 0.0
+      }
+    },
+    "sourcecodepro-medium": {
+      "unitsPerEm": 1000,
+      "hhea": {
+        "ascender": 984,
+        "descender": -273,
+        "lineGap": 0
+      },
+      "OS/2": {
+        "sTypoAscender": 750,
+        "sTypoDescender": -250,
+        "sTypoLineGap": 0,
+        "usWinAscent": 984,
+        "usWinDescent": 273,
+        "yStrikeoutPosition": 288,
+        "yStrikeoutSize": 50,
+        "usWeightClass": 500,
+        "fsSelection": 0,
+        "USE_TYPO_METRICS": false,
+        "sxHeight": 480,
+        "sCapHeight": 660
+      },
+      "post": {
+        "underlinePosition": -75,
+        "underlineThickness": 50,
+        "italicAngle": 0.0
+      }
+    },
+    "sourcecodepro-semibold": {
+      "unitsPerEm": 1000,
+      "hhea": {
+        "ascender": 984,
+        "descender": -273,
+        "lineGap": 0
+      },
+      "OS/2": {
+        "sTypoAscender": 750,
+        "sTypoDescender": -250,
+        "sTypoLineGap": 0,
+        "usWinAscent": 984,
+        "usWinDescent": 273,
+        "yStrikeoutPosition": 288,
+        "yStrikeoutSize": 50,
+        "usWeightClass": 600,
+        "fsSelection": 0,
+        "USE_TYPO_METRICS": false,
+        "sxHeight": 480,
+        "sCapHeight": 660
+      },
+      "post": {
+        "underlinePosition": -75,
+        "underlineThickness": 50,
+        "italicAngle": 0.0
+      }
+    },
+    "kb": {
+      "unitsPerEm": 1024,
+      "hhea": {
+        "ascender": 962,
+        "descender": -148,
+        "lineGap": 0
+      },
+      "OS/2": {
+        "sTypoAscender": 960,
+        "sTypoDescender": -64,
+        "sTypoLineGap": 0,
+        "usWinAscent": 962,
+        "usWinDescent": 148,
+        "yStrikeoutPosition": 264,
+        "yStrikeoutSize": 50,
+        "usWeightClass": 400,
+        "fsSelection": 64,
+        "USE_TYPO_METRICS": false,
+        "sxHeight": null,
+        "sCapHeight": null
+      },
+      "post": {
+        "underlinePosition": 10,
+        "underlineThickness": 0,
+        "italicAngle": 0.0
+      }
+    }
+  }
+}
