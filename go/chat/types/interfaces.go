@@ -444,6 +444,7 @@ type AttachmentUploader interface {
 
 type NativeVideoHelper interface {
 	ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error)
+	AudioAmps(ctx context.Context, filename string) ([]float64, error)
 }
 
 // ShareConversation holds data for donating a conversation to the iOS share sheet.

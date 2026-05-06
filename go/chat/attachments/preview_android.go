@@ -21,17 +21,13 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 		return res, err
 	}
 	log.Debug(ctx, "previewVideo: size: %d duration: %d", len(dat), duration)
+	if len(dat) == 0 && duration > 1 && isAudioExtension(basename) {
+		amps, _ := nvh.AudioAmps(ctx, basename)
+		return previewAudio(duration, amps)
+	}
 	if len(dat) == 0 {
 		log.Debug(ctx, "failed to generate preview from native, using blank image")
-		blank, blankErr := previewVideoBlank(ctx, log, src, basename)
-		if blankErr != nil {
-			return res, blankErr
-		}
-		if duration > 1 {
-			blank.BaseDurationMs = duration
-			blank.BaseIsAudio = isAudioExtension(basename)
-		}
-		return blank, nil
+		return previewVideoBlank(ctx, log, src, basename)
 	}
 	imagePreview, err := previewImage(ctx, log, bytes.NewReader(dat), basename, "image/jpeg")
 	if err != nil {

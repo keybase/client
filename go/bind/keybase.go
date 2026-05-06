@@ -5,9 +5,11 @@ package keybase
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net"
 	"os"
 	"path/filepath"
@@ -102,6 +104,9 @@ type PushNotifier interface {
 type NativeVideoHelper interface {
 	Thumbnail(filename string) []byte
 	Duration(filename string) int
+	// AudioAmps returns IEEE 754 float32 samples encoded as little-endian bytes,
+	// representing RMS amplitude values in [0,1] for waveform visualization.
+	AudioAmps(filename string) []byte
 }
 
 // ShareIntentDonator is implemented by the native iOS layer to donate INSendMessageIntent
@@ -187,6 +192,19 @@ func newVideoHelper(nvh NativeVideoHelper) videoHelper {
 
 func (v videoHelper) ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error) {
 	return v.nvh.Thumbnail(filename), v.nvh.Duration(filename), nil
+}
+
+func (v videoHelper) AudioAmps(ctx context.Context, filename string) ([]float64, error) {
+	data := v.nvh.AudioAmps(filename)
+	if len(data) == 0 || len(data)%4 != 0 {
+		return nil, nil
+	}
+	amps := make([]float64, len(data)/4)
+	for i := range amps {
+		bits := binary.LittleEndian.Uint32(data[i*4:])
+		amps[i] = float64(math.Float32frombits(bits))
+	}
+	return amps, nil
 }
 
 type ExternalDNSNSFetcher interface {
