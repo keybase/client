@@ -52,6 +52,18 @@ Build Android fonts (separate because they need different underline patches):
 yarn font:build-android
 ```
 
+Build icon font (`kb.ttf`) for all platforms (iOS, Electron) from SVGs in `shared/images/iconfont/`:
+
+```sh
+yarn font:build-icon
+```
+
+Build icon font for Android:
+
+```sh
+yarn font:build-icon-android
+```
+
 Other commands:
 
 ```sh

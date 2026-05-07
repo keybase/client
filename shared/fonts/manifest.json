@@ -149,6 +149,8 @@
     "id": "kb",
     "source": "shared/images/iconfont/*.svg",
     "output": "shared/fonts/kb.ttf",
-    "generator": "shared/desktop/yarn-helper/font.mts"
+    "outputs": ["shared/fonts/kb.ttf", "shared/fonts/ios/kb.ttf", "shared/fonts/electron/kb.ttf"],
+    "androidOutput": "shared/fonts/android/kb.ttf",
+    "generator": "shared/tools/fonts/font_tool.py"
   }
 }
