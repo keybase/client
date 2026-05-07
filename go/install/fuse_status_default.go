@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build (!darwin && !windows) || ios
-// +build !darwin,!windows ios
 
 package install
 

@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
-import {useState as useRecoverState} from '@/constants/recover-password'
-import {useSignupState} from '@/constants/signup'
-import {useProvisionState} from '@/constants/provision'
+import {startRecoverPassword} from '@/login/recover-password/flow'
+import useRequestAutoInvite from '@/signup/use-request-auto-invite'
+import {useProvisionState} from '@/stores/provision'
 
 const needPasswordError = 'passphrase cannot be empty'
 
@@ -13,27 +13,26 @@ const ReloginContainer = () => {
   const _users = useConfigState(s => s.configuredAccounts)
   const perror = useConfigState(s => s.loginError)
   const pselectedUser = useConfigState(s => s.defaultUsername)
-  const startRecoverPassword = useRecoverState(s => s.dispatch.startRecoverPassword)
   const onForgotPassword = (username: string) => {
     startRecoverPassword({username})
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onFeedback = () => {
-    navigateAppend('signupSendFeedbackLoggedOut')
+    navigateAppend({name: 'signupSendFeedbackLoggedOut', params: {}})
   }
   const onLogin = useConfigState(s => s.dispatch.login)
-  const requestAutoInvite = useSignupState(s => s.dispatch.requestAutoInvite)
+  const requestAutoInvite = useRequestAutoInvite()
   const onSignup = () => requestAutoInvite()
   const onSomeoneElse = useProvisionState(s => s.dispatch.startProvision)
   const error = perror?.desc || ''
-  const loggedInMap = React.useMemo(
-    () => new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret])),
-    [_users]
-  )
+  const loggedInMap = new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret]))
   const users = sortBy(_users, 'username')
 
   const [password, setPassword] = React.useState('')
-  const [selectedUser, setSelectedUser] = React.useState(pselectedUser)
+  const [selectedUserState, setSelectedUserState] = React.useState({
+    defaultUsername: pselectedUser,
+    username: pselectedUser,
+  })
   const [showTyping, setShowTyping] = React.useState(false)
 
   const setLoginError = useConfigState(s => s.dispatch.setLoginError)
@@ -55,31 +54,31 @@ const ReloginContainer = () => {
 
   const [gotNeedPasswordError, setGotNeedPasswordError] = React.useState(false)
 
-  const onSubmit = React.useCallback(() => {
+  if (selectedUserState.defaultUsername !== pselectedUser) {
+    setSelectedUserState({defaultUsername: pselectedUser, username: pselectedUser})
+  }
+
+  const selectedUser =
+    selectedUserState.defaultUsername === pselectedUser ? selectedUserState.username : pselectedUser
+  const setSelectedUser = (username: string) =>
+    setSelectedUserState(state => ({...state, username}))
+
+  if (!gotNeedPasswordError && error === needPasswordError) {
+    setGotNeedPasswordError(true)
+  }
+
+  const onSubmit = () => {
     onLogin(selectedUser, password)
-  }, [selectedUser, password, onLogin])
+  }
 
-  const selectedUserChange = React.useCallback(
-    (user: string) => {
-      setLoginError()
-      setPassword('')
-      setSelectedUser(user)
-      if (loggedInMap.get(user)) {
-        onLogin(user, '')
-      }
-    },
-    [setLoginError, setPassword, setSelectedUser, onLogin, loggedInMap]
-  )
-
-  React.useEffect(() => {
-    setSelectedUser(pselectedUser)
-  }, [pselectedUser, setSelectedUser])
-
-  React.useEffect(() => {
-    if (error === needPasswordError) {
-      setGotNeedPasswordError(true)
+  const selectedUserChange = (user: string) => {
+    setLoginError()
+    setPassword('')
+    setSelectedUser(user)
+    if (loggedInMap.get(user)) {
+      onLogin(user, '')
     }
-  }, [error, setGotNeedPasswordError])
+  }
 
   return (
     <Login

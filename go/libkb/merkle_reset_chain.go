@@ -41,7 +41,7 @@ func importResetChainFromServer(m MetaContext, jw *jsonw.Wrapper) (urc unverifie
 	if err != nil {
 		return nil, err
 	}
-	for i := 0; i < chainLen; i++ {
+	for i := range chainLen {
 		s, err := jw.AtIndex(i).GetString()
 		if err != nil {
 			return nil, err
@@ -98,7 +98,7 @@ func (mr *MerkleResets) verifyAndLoad(m MetaContext, urc unverifiedResetChain) (
 
 	defer m.VTrace(VLog1, "MerkleResets#verifyAndLoad", &err)()
 
-	mkerr := func(f string, a ...interface{}) error {
+	mkerr := func(f string, a ...any) error {
 		return MerkleClientError{m: fmt.Sprintf(f, a...), t: merkleErrorBadResetChain}
 	}
 

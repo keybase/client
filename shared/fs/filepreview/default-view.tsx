@@ -2,9 +2,15 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {PathItemAction, LastModifiedLine, ItemIcon, type ClickableProps} from '../common'
+import {
+  useFsDownload,
+  useFsErrorActionOrThrow,
+  useFsFileContext,
+  useOpenPathInSystemFileManagerDesktop,
+  useSystemFileManagerIntegration,
+} from '../common'
 import {hasShare} from '../common/path-item-action/layout'
 import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
 
 type OwnProps = {path: T.FS.Path}
 
@@ -15,20 +21,17 @@ const Share = (p: ClickableProps) => {
 
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const {pathItem, sfmiEnabled, _download, openPathInSystemFileManagerDesktop, fileContext} = useFSState(
-    C.useShallow(s => ({
-      _download: s.dispatch.download,
-      fileContext: s.fileContext.get(path) || FS.emptyFileContext,
-      openPathInSystemFileManagerDesktop: s.dispatch.dynamic.openPathInSystemFileManagerDesktop,
-      pathItem: FS.getPathItem(s.pathItems, path),
-      sfmiEnabled: s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled,
-    }))
-  )
+  const {fileContext, pathItem} = useFsFileContext(path)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const _download = useFsDownload()
+  const {driverStatus} = useSystemFileManagerIntegration()
+  const openPathInSystemFileManagerDesktop = useOpenPathInSystemFileManagerDesktop()
+  const sfmiEnabled = driverStatus.type === T.FS.DriverStatusType.Enabled
   const download = () => {
     _download(path, 'download')
   }
   const showInSystemFileManager = () => {
-    openPathInSystemFileManagerDesktop?.(path)
+    openPathInSystemFileManagerDesktop(path, errorToActionOrThrow)
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
@@ -113,7 +116,6 @@ const styles = Kb.Styles.styleSheetCreate(
           alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.white,
           flex: 1,
-          justifyContent: 'center',
         },
         isMobile: {
           paddingLeft: Kb.Styles.globalMargins.large,

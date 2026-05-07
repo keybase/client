@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import DownloadWrapper from './download-wrapper'
 import {formatDurationFromNowTo} from '@/util/timestamp'
 import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 export type Props = {
   downloadID: string
@@ -14,16 +14,17 @@ export type Props = {
 
 const getProgress = (dlState: T.FS.DownloadState) => (
   <Kb.Box2 style={styles.progress} direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny">
-    <Kb.Box style={styles.tubeBox}>
-      <Kb.Box style={styles.tube} />
-      <Kb.Box
+    <Kb.Box2 direction="vertical" flex={1} relative={true}>
+      <Kb.Box2 direction="vertical" style={styles.tube} />
+      <Kb.Box2
+        direction="vertical"
         style={Kb.Styles.collapseStyles([
           styles.tube,
           styles.tubeStuffing,
           {width: `${Math.round(100 * dlState.progress)}%`},
         ])}
       />
-    </Kb.Box>
+    </Kb.Box2>
     <Kb.Text type="BodyTinySemibold" negative={true}>
       {formatDurationFromNowTo(dlState.endEstimate)}
     </Kb.Text>
@@ -32,16 +33,11 @@ const getProgress = (dlState: T.FS.DownloadState) => (
 
 const Download = (props: Props) => {
   const dlInfo = Kbfs.useFsDownloadInfo(props.downloadID)
-  const {dlState, openLocalPathInSystemFileManagerDesktop, dismissDownload, cancelDownload} = useFSState(
-    C.useShallow(s => ({
-      cancelDownload: s.dispatch.cancelDownload,
-      dismissDownload: s.dispatch.dismissDownload,
-      dlState: s.downloads.state.get(props.downloadID) || FS.emptyDownloadState,
-      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
-    }))
-  )
+  const dlState = Kbfs.useFsDownloadState(props.downloadID)
+  const dismissDownload = Kbfs.useFsDismissDownload()
+  const cancelDownload = Kbfs.useFsCancelDownload()
   const open = dlState.localPath
-    ? () => openLocalPathInSystemFileManagerDesktop?.(dlState.localPath)
+    ? () => openLocalPathInSystemFileManagerDesktop(dlState.localPath)
     : () => {}
   const dismiss = () => dismissDownload(props.downloadID)
   const cancel = () => cancelDownload(props.downloadID)
@@ -62,7 +58,7 @@ const Download = (props: Props) => {
             color={Kb.Styles.globalColors.black_20}
           />
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" style={styles.nameAndProgress}>
+        <Kb.Box2 direction="vertical" flex={1} style={styles.nameAndProgress}>
           <Kb.Text
             type="BodySmallSemibold"
             onClick={C.isMobile ? undefined : open}
@@ -113,7 +109,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       nameAndProgress: {
-        flex: 1,
         flexShrink: 1,
         minWidth: 0,
       },
@@ -128,10 +123,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderRadius: 4.5,
         height: 4,
         width: '100%',
-      },
-      tubeBox: {
-        flex: 1,
-        position: 'relative',
       },
       tubeStuffing: {
         backgroundColor: Kb.Styles.globalColors.white,

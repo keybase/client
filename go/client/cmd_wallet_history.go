@@ -70,7 +70,7 @@ func (c *cmdWalletHistory) Run() (err error) {
 		return err
 	}
 	dui := c.G().UI.GetDumbOutputUI()
-	lineUnescaped := func(format string, args ...interface{}) {
+	lineUnescaped := func(format string, args ...any) {
 		_, _ = dui.PrintfUnescaped(format+"\n", args...)
 	}
 	// `payments` is sorted most recent first.

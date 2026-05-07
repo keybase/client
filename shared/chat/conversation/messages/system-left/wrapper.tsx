@@ -1,21 +1,19 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
 import type SystemLeftType from './container'
 
-const SystemLeft = React.memo(function SystemLeft(p: Props) {
-  const {ordinal} = p
-  const common = useCommon(ordinal)
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+function SystemLeft(p: Props) {
+  const {ordinal, isCenteredHighlight} = p
+  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const {message} = wrapper.messageData
 
-  if (message?.type !== 'systemLeft') return null
+  if (message.type !== 'systemLeft') return null
 
   const {default: SystemLeft} = require('./container') as {default: typeof SystemLeftType}
   return (
-    <WrapperMessage {...p} {...common}>
+    <WrapperMessage {...p} {...wrapper}>
       <SystemLeft />
     </WrapperMessage>
   )
-})
+}
 
 export default SystemLeft

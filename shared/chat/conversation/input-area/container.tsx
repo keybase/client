@@ -1,17 +1,21 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import Normal from './normal2'
+import * as Chat from '@/constants/chat'
+import {PerfProfiler} from '@/perf/react-profiler'
+import Normal from './normal'
 import Preview from './preview'
 import ThreadSearch from '../search'
+import {useThreadSearchRoute} from '../thread-search-route'
+import {useConversationThreadID, useConversationThreadSelector} from '../thread-context'
 
 const InputAreaContainer = () => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
-  const showThreadSearch = Chat.useChatContext(s => s.threadSearchInfo.visible)
-  const {membershipType, resetParticipants, wasFinalizedBy} = Chat.useChatContext(
-    C.useShallow(s => {
-      const {membershipType, resetParticipants, wasFinalizedBy} = s.meta
-      return {membershipType, resetParticipants, wasFinalizedBy}
-    })
+  const conversationIDKey = useConversationThreadID()
+  const showThreadSearch = !!useThreadSearchRoute()
+  const {membershipType, resetParticipants, wasFinalizedBy} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      membershipType: s.meta.membershipType,
+      resetParticipants: s.meta.resetParticipants,
+      wasFinalizedBy: s.meta.wasFinalizedBy,
+    }))
   )
 
   let noInput = resetParticipants.size > 0 || !!wasFinalizedBy
@@ -33,6 +37,6 @@ const InputAreaContainer = () => {
   if (showThreadSearch && C.isMobile) {
     return <ThreadSearch />
   }
-  return <Normal />
+  return <PerfProfiler id="ChatInput"><Normal /></PerfProfiler>
 }
 export default InputAreaContainer

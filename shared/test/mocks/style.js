@@ -1,0 +1,2 @@
+/* global module */
+module.exports = {}

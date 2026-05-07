@@ -227,9 +227,9 @@ type noLogTB struct {
 	testing.TB
 }
 
-func (tb noLogTB) Log(args ...interface{}) {}
+func (tb noLogTB) Log(args ...any) {}
 
-func (tb noLogTB) Logf(format string, args ...interface{}) {}
+func (tb noLogTB) Logf(format string, args ...any) {}
 
 func BenchmarkMDJournalBasic(b *testing.B) {
 	runBenchmarkOverMetadataVers(b, benchmarkMDJournalBasic)
@@ -253,7 +253,6 @@ func benchmarkMDJournalBasicBody(b *testing.B, ver kbfsmd.MetadataVer, mdCount i
 
 func benchmarkMDJournalBasic(b *testing.B, ver kbfsmd.MetadataVer) {
 	for _, mdCount := range []int{1, 10, 100, 1000, 10000} {
-		mdCount := mdCount // capture range variable.
 		name := fmt.Sprintf("mdCount=%d", mdCount)
 		b.Run(name, func(b *testing.B) {
 			b.StopTimer()
@@ -301,7 +300,7 @@ func testMDJournalBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err)
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 
-	for i := 0; i < mdCount; i++ {
+	for i := range mdCount {
 		require.Equal(t, mds[i].bareMd, ibrmds[i].RootMetadata, "i=%d", i)
 		require.Equal(t, mds[i].extra, ibrmds[i].extra, "i=%d", i)
 	}
@@ -850,7 +849,7 @@ func testMDJournalBranchConversionPreservesUnknownFields(t *testing.T, ver kbfsm
 	mdCount := 5
 	prevRoot := kbfsmd.FakeID(1)
 	ctx := context.Background()
-	for i := 0; i < mdCount; i++ {
+	for i := range mdCount {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := makeMDForTest(t, ver, id, revision, j.uid, signer, prevRoot)
 		mdID, _, err := j.put(ctx, signer, ekg, bsplit, md, false)

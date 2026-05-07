@@ -65,21 +65,21 @@ func NewUnsafeBlindedSHA512_256v1Encoder() *UnsafeBlindedSHA512_256v1Encoder {
 	return &UnsafeBlindedSHA512_256v1Encoder{enc: codec.NewEncoderBytes(nil, &mh), dec: codec.NewDecoderBytes(nil, &mh), sha: sha512.New512_256()}
 }
 
-func (e *UnsafeBlindedSHA512_256v1Encoder) EncodeTo(o interface{}, out *[]byte) (err error) {
+func (e *UnsafeBlindedSHA512_256v1Encoder) EncodeTo(o any, out *[]byte) (err error) {
 	e.enc.ResetBytes(out)
 	return e.enc.Encode(o)
 }
 
-func (e *UnsafeBlindedSHA512_256v1Encoder) Encode(o interface{}) (out []byte, err error) {
+func (e *UnsafeBlindedSHA512_256v1Encoder) Encode(o any) (out []byte, err error) {
 	return out, e.EncodeTo(o, &out)
 }
 
-func (e *UnsafeBlindedSHA512_256v1Encoder) Decode(dest interface{}, src []byte) error {
+func (e *UnsafeBlindedSHA512_256v1Encoder) Decode(dest any, src []byte) error {
 	e.dec.ResetBytes(src)
 	return e.dec.Decode(dest)
 }
 
-func (e *UnsafeBlindedSHA512_256v1Encoder) HashGeneric(o interface{}, ret *Hash) error {
+func (e *UnsafeBlindedSHA512_256v1Encoder) HashGeneric(o any, ret *Hash) error {
 	err := e.EncodeTo(o, &e.encBuf)
 	if err != nil {
 		return err
@@ -90,7 +90,7 @@ func (e *UnsafeBlindedSHA512_256v1Encoder) HashGeneric(o interface{}, ret *Hash)
 	return nil
 }
 
-func (e *UnsafeBlindedSHA512_256v1Encoder) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
+func (e *UnsafeBlindedSHA512_256v1Encoder) EncodeAndHashGeneric(o any) ([]byte, Hash, error) {
 	enc, err := e.Encode(o)
 	if err != nil {
 		return nil, nil, err
@@ -124,19 +124,19 @@ func NewBlindedSHA512_256v1Encoder() *BlindedSHA512_256v1Encoder {
 	return &BlindedSHA512_256v1Encoder{mh: mh}
 }
 
-func (e *BlindedSHA512_256v1Encoder) EncodeTo(o interface{}, out *[]byte) (err error) {
+func (e *BlindedSHA512_256v1Encoder) EncodeTo(o any, out *[]byte) (err error) {
 	return codec.NewEncoderBytes(out, &e.mh).Encode(o)
 }
 
-func (e *BlindedSHA512_256v1Encoder) Encode(o interface{}) (out []byte, err error) {
+func (e *BlindedSHA512_256v1Encoder) Encode(o any) (out []byte, err error) {
 	return out, e.EncodeTo(o, &out)
 }
 
-func (e *BlindedSHA512_256v1Encoder) Decode(dest interface{}, src []byte) error {
+func (e *BlindedSHA512_256v1Encoder) Decode(dest any, src []byte) error {
 	return codec.NewDecoderBytes(src, &e.mh).Decode(dest)
 }
 
-func (e *BlindedSHA512_256v1Encoder) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
+func (e *BlindedSHA512_256v1Encoder) EncodeAndHashGeneric(o any) ([]byte, Hash, error) {
 	enc, err := e.Encode(o)
 	if err != nil {
 		return nil, nil, err
@@ -147,7 +147,7 @@ func (e *BlindedSHA512_256v1Encoder) EncodeAndHashGeneric(o interface{}) ([]byte
 	return enc, hasher.Sum(nil), nil
 }
 
-func (e *BlindedSHA512_256v1Encoder) HashGeneric(o interface{}, ret *Hash) error {
+func (e *BlindedSHA512_256v1Encoder) HashGeneric(o any, ret *Hash) error {
 	enc, err := e.Encode(o)
 	if err != nil {
 		return err

@@ -1,9 +1,9 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import * as React from 'react'
-import {useFSState} from '@/constants/fs'
 import * as FS from '@/constants/fs'
+import {makeUUID} from '@/util/uuid'
+import {useFsErrorActionOrThrow} from '../error-state'
 
 export type Props = {
   onBack: () => void
@@ -31,12 +31,25 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {path, mode} = ownProps
-  const deleteFile = useFSState(s => s.dispatch.deleteFile)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const navigateUp = C.Router2.navigateUp
   const onBack = navigateUp
-  const onDelete = React.useCallback(() => {
+  const onDelete = () => {
     if (path !== FS.defaultPath) {
-      deleteFile(path)
+      const f = async () => {
+        const opID = makeUUID()
+        try {
+          await T.RPCGen.SimpleFSSimpleFSRemoveRpcPromise({
+            opID,
+            path: FS.pathToRPCPath(path),
+            recursive: true,
+          })
+          await T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})
+        } catch (error) {
+          errorToActionOrThrow(error, path)
+        }
+      }
+      C.ignorePromise(f())
     }
     // If this is a screen menu, then we're deleting the folder we're in,
     // and we need to navigate up twice.
@@ -46,7 +59,7 @@ const Container = (ownProps: OwnProps) => {
     } else {
       navigateUp()
     }
-  }, [deleteFile, navigateUp, mode, path])
+  }
   const props = {
     onBack,
     onDelete,

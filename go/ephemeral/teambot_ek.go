@@ -124,7 +124,7 @@ func fetchLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID) (metad
 
 	var parsedResponse teambot.TeambotKeyResponse
 	gotResult := false
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		apiArg := libkb.APIArg{
 			Endpoint:    "teambot/key",
 			SessionType: libkb.APISessionTypeREQUIRED,

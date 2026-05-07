@@ -1,9 +1,8 @@
-import * as React from 'react'
-import {Image2} from '@/common-adapters'
-import QRCodeGen from 'qrcode-generator'
+import {Image} from '@/common-adapters'
+import generateQRDataURL from '@/util/qr-code'
 
 const Kb = {
-  Image2,
+  Image,
 }
 
 type Props = {
@@ -11,14 +10,11 @@ type Props = {
   cellSize?: 8 | 10 // we ONLY allow even numbers else you'll get fractional pixels and it looks blurry
 }
 
-const QrImage = React.memo(function QrImage(p: Props) {
+function QrImage(p: Props) {
   const {code, cellSize = 8} = p
-  const qr = QRCodeGen(4, 'L')
-  qr.addData(code)
-  qr.make()
-  const size = qr.getModuleCount() * (cellSize / 2) // retina
-  const url = qr.createDataURL(cellSize)
-  return <Kb.Image2 src={url} style={{height: size, width: size}} />
-})
+  const {url, moduleCount} = generateQRDataURL(code, cellSize)
+  const size = moduleCount * (cellSize / 2) // retina
+  return <Kb.Image src={url} style={{height: size, width: size}} />
+}
 
 export default QrImage

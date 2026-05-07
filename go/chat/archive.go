@@ -786,7 +786,6 @@ func (c *ChatArchiver) ArchiveChat(ctx context.Context, arg chat1.ArchiveChatJob
 	//    - Messages are rendered in a text format and attachments are downloaded to the archive path.
 	eg.SetLimit(10)
 	for _, conv := range convs {
-		conv := conv
 		eg.Go(func() error {
 			return c.archiveConv(ctx, arg, &jobInfo, conv)
 		})

@@ -45,14 +45,15 @@ function createResizeObserver() {
         const triggered = new Set<Element>()
         // eslint-disable-next-line
         for (let i = 0; i < allEntries.length; i++) {
-          // @ts-ignore
-          if (triggered.has(allEntries[i].target)) continue
-          // @ts-ignore
-          triggered.add(allEntries[i].target)
-          // @ts-ignore
-          const cbs = callbacks.get(allEntries[i].target)
+          const entry = allEntries[i]
+          if (!entry) {
+            continue
+          }
+          if (triggered.has(entry.target)) continue
+          triggered.add(entry.target)
+          const cbs = callbacks.get(entry.target)
           // eslint-disable-next-line
-          cbs?.forEach(cb => cb(allEntries[i]!, obs))
+          cbs?.forEach(cb => cb(entry, obs))
         }
         allEntries = []
         ticking = false

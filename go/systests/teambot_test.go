@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -21,11 +22,8 @@ func checkNewTeambotKeyNotifications(tc *libkb.TestContext, notifications *teamN
 	for {
 		select {
 		case arg := <-notifications.newTeambotKeyCh:
-			for _, expectedArg := range expectedArgs {
-				if expectedArg == arg {
-					matches[arg] = struct{}{}
-					break
-				}
+			if slices.Contains(expectedArgs, arg) {
+				matches[arg] = struct{}{}
 			}
 			// make don't have any unexpected notifications
 			if len(matches) <= numFound {

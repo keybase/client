@@ -34,7 +34,7 @@ func (m *MockCodec) EXPECT() *MockCodecMockRecorder {
 }
 
 // Decode mocks base method.
-func (m *MockCodec) Decode(buf []byte, obj interface{}) error {
+func (m *MockCodec) Decode(buf []byte, obj any) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Decode", buf, obj)
 	ret0, _ := ret[0].(error)
@@ -48,7 +48,7 @@ func (mr *MockCodecMockRecorder) Decode(buf, obj interface{}) *gomock.Call {
 }
 
 // Encode mocks base method.
-func (m *MockCodec) Encode(obj interface{}) ([]byte, error) {
+func (m *MockCodec) Encode(obj any) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Encode", obj)
 	ret0, _ := ret[0].([]byte)
@@ -63,7 +63,7 @@ func (mr *MockCodecMockRecorder) Encode(obj interface{}) *gomock.Call {
 }
 
 // RegisterIfaceSliceType mocks base method.
-func (m *MockCodec) RegisterIfaceSliceType(rt reflect.Type, code ExtCode, typer func(interface{}) reflect.Value) {
+func (m *MockCodec) RegisterIfaceSliceType(rt reflect.Type, code ExtCode, typer func(any) reflect.Value) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "RegisterIfaceSliceType", rt, code, typer)
 }

@@ -2204,13 +2204,13 @@ func TestUnits(t *testing.T) {
 	}
 }
 
-type failer func(string, ...interface{})
+type failer func(string, ...any)
 
 func runPvlTest(t *testing.T, unit *interpUnitTest) {
 	tc := libkb.SetupTest(t, unit.name, 1)
 	defer tc.Cleanup()
 
-	fail := func(f string, arg ...interface{}) {
+	fail := func(f string, arg ...any) {
 		f2 := fmt.Sprintf("[%v] ", unit.name) + f
 		t.Fatalf(f2, arg...)
 	}

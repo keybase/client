@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"sort"
 	"time"
 
@@ -1221,7 +1222,7 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 	}
 
 	payload := make(libkb.JSONPayload)
-	payload["sigs"] = []interface{}{sigParent, sigSub}
+	payload["sigs"] = []any{sigParent, sigSub}
 
 	var ratchetSet hidden.RatchetBlindingKeySet
 	if parentRatchet != nil {
@@ -2154,9 +2155,7 @@ type sigPayloadArgs struct {
 func (t *Team) sigPayload(sigMulti []libkb.SigMultiItem, args sigPayloadArgs) libkb.JSONPayload {
 	payload := libkb.JSONPayload{}
 	// copy the prepayload so we don't mutate it
-	for k, v := range args.prePayload {
-		payload[k] = v
-	}
+	maps.Copy(payload, args.prePayload)
 	payload["sigs"] = sigMulti
 	if args.secretBoxes != nil {
 		payload["per_team_key"] = args.secretBoxes
@@ -2439,7 +2438,7 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 	mctx := libkb.NewMetaContext(ctx, g)
 	defer mctx.Trace("RetryIfPossible", &err)()
 	const nRetries = 3
-	for i := 0; i < nRetries; i++ {
+	for i := range nRetries {
 		mctx.Debug("| RetryIfPossible(%v)", i)
 		err = post(mctx.Ctx(), i)
 		switch {
@@ -2495,7 +2494,7 @@ func isTeamBadGenerationError(err error) bool {
 	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCTeamBadGeneration)
 }
 
-func (t *Team) marshal(incoming interface{}) ([]byte, error) {
+func (t *Team) marshal(incoming any) ([]byte, error) {
 	var data []byte
 	mh := codec.MsgpackHandle{WriteExt: true}
 	enc := codec.NewEncoderBytes(&data, &mh)

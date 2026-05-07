@@ -1,0 +1,10 @@
+appId: keybase.ios
+---
+- swipe:
+    start: "1%, 50%"
+    end: "80%, 50%"
+    duration: 400
+- extendedWaitUntil:
+    visible:
+      text: ".*Crypto"
+    timeout: 10000

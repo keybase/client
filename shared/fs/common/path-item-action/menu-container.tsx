@@ -1,70 +1,84 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
-import * as Kbfs from '@/fs/common/hooks'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Util from '@/util/kbfs'
 import Header from './header'
-import type {FloatingMenuProps} from './types'
+import type {FloatingMenuProps, OnDownloadStarted} from './types'
+import {useFsBrowserEdits} from '@/fs/browser/edit-state'
 import {getRootLayout, getShareLayout} from './layout'
-import {useFSState} from '@/constants/fs'
+import {useFsErrorActionOrThrow} from '../error-state'
+import {
+  useFsCancelDownload,
+  useFsDismissDownload,
+  useFsDownload,
+  useFsFileContext,
+  useFsReloadTlfs,
+  useFsWatchDownloadForMobile,
+} from '../hooks'
 import * as FS from '@/constants/fs'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useOpenPathInSystemFileManagerDesktop, useSystemFileManagerIntegration} from '../sfmi'
+import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {
+  downloadID?: string
+  downloadIntent?: T.FS.DownloadIntent
   floatingMenuProps: FloatingMenuProps
+  previousView: T.FS.PathItemActionMenuView
   path: T.FS.Path
   mode: 'row' | 'screen'
+  onDownloadStarted: OnDownloadStarted
+  setView: (view: T.FS.PathItemActionMenuView) => void
+  view: T.FS.PathItemActionMenuView
 }
 
 const needConfirm = (pathItem: T.FS.PathItem) =>
   pathItem.type === T.FS.PathType.File && pathItem.size > 50 * 1024 * 1024
 
+const folderRPCFromPath = (path: T.FS.Path): T.RPCGen.FolderHandle | undefined => {
+  const pathElems = T.FS.getPathElements(path)
+  if (!pathElems.length) {
+    return undefined
+  }
+  const visibility = T.FS.getVisibilityFromElems(pathElems)
+  if (visibility === undefined) {
+    return undefined
+  }
+  const name = T.FS.getPathNameFromElems(pathElems)
+  if (!name) {
+    return undefined
+  }
+  return {
+    created: false,
+    folderType: T.FS.getRPCFolderTypeFromVisibility(visibility),
+    name,
+  }
+}
+
 const Container = (op: OwnProps) => {
-  const {path, mode, floatingMenuProps} = op
+  const {downloadID, downloadIntent, path, mode, floatingMenuProps, onDownloadStarted, setView, view} = op
   const {hide, containerStyle, attachTo, visible} = floatingMenuProps
-  Kbfs.useFsFileContext(path)
-  const data = useFSState(
-    C.useShallow(s => {
-      const pathItem = FS.getPathItem(s.pathItems, path)
-      const pathItemActionMenu = s.pathItemActionMenu
-      const fileContext = s.fileContext.get(path) || FS.emptyFileContext
-      const {cancelDownload, setPathItemActionMenuView, download, newFolderRow} = s.dispatch
-      const {favoriteIgnore, startRename, dismissDownload, setMoveOrCopySource, showMoveOrCopy} = s.dispatch
-      const {openPathInSystemFileManagerDesktop} = s.dispatch.dynamic
-      const sfmiEnabled = s.sfmi.driverStatus.type === T.FS.DriverStatusType.Enabled
-      return {
-        cancelDownload,
-        dismissDownload,
-        download,
-        favoriteIgnore,
-        fileContext,
-        newFolderRow,
-        openPathInSystemFileManagerDesktop,
-        pathItem,
-        pathItemActionMenu,
-        setMoveOrCopySource,
-        setPathItemActionMenuView,
-        sfmiEnabled,
-        showMoveOrCopy,
-        startRename,
-      }
-    })
-  )
-
-  const {pathItem, pathItemActionMenu, fileContext, cancelDownload} = data
-  const {setPathItemActionMenuView, download, newFolderRow, openPathInSystemFileManagerDesktop} = data
-  const {sfmiEnabled, favoriteIgnore, startRename, dismissDownload, setMoveOrCopySource, showMoveOrCopy} = data
-
-  const {downloadID, downloadIntent, view} = pathItemActionMenu
+  const {fileContext, pathItem} = useFsFileContext(path)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const reloadTlfs = useFsReloadTlfs()
+  const browserEdits = useFsBrowserEdits()
+  const cancelDownload = useFsCancelDownload()
+  const dismissDownload = useFsDismissDownload()
+  const download = useFsDownload()
+  const {driverStatus} = useSystemFileManagerIntegration()
+  const openPathInSystemFileManagerDesktop = useOpenPathInSystemFileManagerDesktop()
+  const sfmiEnabled = driverStatus.type === T.FS.DriverStatusType.Enabled
+  const newFolderRow = browserEdits?.newFolderRow
+  const startRename = browserEdits?.startRename
   const username = useCurrentUserState(s => s.username)
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const layout = getLayout(mode, path, pathItem, fileContext, username)
   const cancel = () => {
-    C.isMobile && downloadID && cancelDownload(downloadID)
+    if (C.isMobile && downloadID) {
+      cancelDownload(downloadID)
+    }
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const saving = downloadID && downloadIntent === T.FS.DownloadIntent.CameraRoll
   const sharing = downloadID && downloadIntent === T.FS.DownloadIntent.Share
 
@@ -77,7 +91,7 @@ const Container = (op: OwnProps) => {
     cancel()
   }
   const hideAndCancelAfter = (f: () => void) => hideAfter(cancelAfter(f))
-  const itemNewFolder = layout.newFolder
+  const itemNewFolder = layout.newFolder && newFolderRow
     ? ([
         {
           icon: 'iconfont-folder-new',
@@ -89,7 +103,7 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const openChat = cancelAfter(() => {
     previewConversation({
       reason: 'files',
@@ -111,16 +125,18 @@ const Container = (op: OwnProps) => {
           {
             icon: 'iconfont-finder',
             onClick: hideAndCancelAfter(() => {
-              openPathInSystemFileManagerDesktop?.(path)
+              openPathInSystemFileManagerDesktop(path, errorToActionOrThrow)
             }),
             title: 'Show in ' + C.fileUIName,
           },
         ] as const)
       : []
 
+  const fileContextLoading =
+    C.isMobile && pathItem.type === T.FS.PathType.File && fileContext === FS.emptyFileContext
   const itemSave = (() => {
-    if (!layout.saveMedia) return []
-    if (saving) {
+    if (!layout.saveMedia && !fileContextLoading) return []
+    if (saving || fileContextLoading) {
       return [
         {
           disabled: true,
@@ -133,11 +149,11 @@ const Container = (op: OwnProps) => {
     } else {
       const onClick = needConfirm(pathItem)
         ? () => {
-            setPathItemActionMenuView(T.FS.PathItemActionMenuView.ConfirmSaveMedia)
+            setView(T.FS.PathItemActionMenuView.ConfirmSaveMedia)
             cancel()
           }
         : () => {
-            download(path, 'saveMedia')
+            download(path, 'saveMedia', onDownloadStarted)
             cancel()
           }
       return [{icon: 'iconfont-download-2', onClick, title: 'Save'}] as const
@@ -149,7 +165,7 @@ const Container = (op: OwnProps) => {
         {
           icon: 'iconfont-share',
           onClick: () => {
-            setPathItemActionMenuView(T.FS.PathItemActionMenuView.Share)
+            setView(T.FS.PathItemActionMenuView.Share)
           },
           title: 'Share...',
         },
@@ -161,7 +177,9 @@ const Container = (op: OwnProps) => {
         {
           icon: 'iconfont-chat',
           onClick: hideAndCancelAfter(() => {
-            path && navigateAppend({props: {sendPaths: [path]}, selected: 'chatSendToChat'})
+            if (path) {
+              navigateAppend({name: 'chatSendToChat', params: {sendPaths: [path]}})
+            }
           }),
           subTitle: `The ${
             pathItem.type === T.FS.PathType.Folder ? 'folder' : 'file'
@@ -187,9 +205,9 @@ const Container = (op: OwnProps) => {
       const conf = needConfirm(pathItem)
       const onClick = cancelAfter(() => {
         if (conf) {
-          setPathItemActionMenuView(T.FS.PathItemActionMenuView.ConfirmSendToOtherApp)
+          setView(T.FS.PathItemActionMenuView.ConfirmSendToOtherApp)
         } else {
-          download(path, 'share')
+          download(path, 'share', onDownloadStarted)
         }
       })
       return [{icon: 'iconfont-share', onClick, title: 'Send to another app'}] as const
@@ -208,12 +226,45 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
+  const itemMoveOrCopy = layout.moveOrCopy
+    ? ([
+        {
+          icon: 'iconfont-copy',
+          onClick: hideAndCancelAfter(() => {
+            navigateAppend({
+              name: 'destinationPicker',
+              params: {
+                parentPath: T.FS.getPathParent(path),
+                source: {path, type: T.FS.DestinationPickerSource.MoveOrCopy},
+              },
+            })
+          }),
+          title: 'Move or Copy',
+        },
+      ] as const)
+    : []
+
   const ignoreNeedsToWait = C.Waiting.useAnyWaiting([C.waitingKeyFSFolderList, C.waitingKeyFSStat])
+  const ignoreFolder = () => {
+    const folder = folderRPCFromPath(path)
+    if (!folder) {
+      return
+    }
+    const f = async () => {
+      try {
+        await T.RPCGen.favoriteFavoriteIgnoreRpcPromise({folder})
+        reloadTlfs()
+      } catch (error) {
+        errorToActionOrThrow(error, path)
+      }
+    }
+    C.ignorePromise(f())
+  }
   const ignoreTlf = layout.ignoreTlf
     ? ignoreNeedsToWait
       ? ('disabled' as const)
       : cancelAfter(() => {
-          favoriteIgnore(path)
+          ignoreFolder()
         })
     : undefined
   const itemIgnore = ignoreTlf
@@ -230,7 +281,7 @@ const Container = (op: OwnProps) => {
       ] as const)
     : []
 
-  const itemRename = layout.rename
+  const itemRename = layout.rename && startRename
     ? ([
         {
           icon: 'iconfont-edit',
@@ -248,7 +299,7 @@ const Container = (op: OwnProps) => {
           danger: true,
           icon: 'iconfont-trash',
           onClick: hideAfter(() => {
-            navigateAppend({props: {mode, path}, selected: 'confirmDelete'})
+            navigateAppend({name: 'confirmDelete', params: {mode, path}})
           }),
           title: 'Delete',
         },
@@ -259,8 +310,8 @@ const Container = (op: OwnProps) => {
     path && layout.archive && pathItem.type === T.FS.PathType.Folder
       ? () => {
           navigateAppend({
-            props: {path, type: 'fsPath' as const},
-            selected: 'archiveModal',
+            name: 'archiveModal',
+            params: {path, type: 'fsPath' as const},
           })
         }
       : undefined
@@ -270,19 +321,6 @@ const Container = (op: OwnProps) => {
           icon: 'iconfont-folder-downloads',
           onClick: hideAfter(() => onArchive()),
           title: 'Backup folder',
-        },
-      ] as const)
-    : []
-
-  const itemMoveOrCopy = layout.moveOrCopy
-    ? ([
-        {
-          icon: 'iconfont-copy',
-          onClick: hideAndCancelAfter(() => {
-            setMoveOrCopySource(path)
-            showMoveOrCopy(T.FS.getPathParent(path))
-          }),
-          title: 'Copy or move',
         },
       ] as const)
     : []
@@ -304,15 +342,19 @@ const Container = (op: OwnProps) => {
     ...itemDelete,
   ]
 
-  const justDoneWithIntent = Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
+  const justDoneWithIntent = useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
   React.useEffect(() => {
-    justDoneWithIntent && hide()
+    if (justDoneWithIntent) {
+      hide()
+    }
   }, [justDoneWithIntent, hide])
 
-  const userInitiatedHide = React.useCallback(() => {
+  const userInitiatedHide = () => {
     hide()
-    downloadID && dismissDownload(downloadID)
-  }, [downloadID, hide, dismissDownload])
+    if (downloadID) {
+      dismissDownload(downloadID)
+    }
+  }
 
   return (
     <Kb.FloatingMenu

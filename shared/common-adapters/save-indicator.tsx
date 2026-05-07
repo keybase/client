@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import Box from './box'
+import {Box2} from './box'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 
 const Kb = {
-  Box,
+  Box2,
   Icon,
   ProgressIndicator,
   Text,
@@ -14,42 +14,49 @@ const Kb = {
 
 type SaveState = 'init' | 'saving' | 'saved'
 
+type IndicatorState = {
+  saving: boolean
+  state: SaveState
+}
+
 export type Props = {
   saving: boolean
   style?: Styles.StylesCrossPlatform
 }
 
 const defaultStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
   height: Styles.globalMargins.medium,
-  justifyContent: 'center',
 } as const
 
 const SaveIndicator = (props: Props) => {
   const {saving, style} = props
-  const [state, setState] = React.useState<SaveState>('init')
-  const lastSavingRef = React.useRef(saving)
+  const [indicatorState, setIndicatorState] = React.useState<IndicatorState>(() => ({
+    saving,
+    state: 'init',
+  }))
+
+  let currentIndicatorState = indicatorState
+  if (currentIndicatorState.saving !== saving) {
+    currentIndicatorState = {
+      saving,
+      state: saving ? 'saving' : 'saved',
+    }
+    setIndicatorState(currentIndicatorState)
+  }
+  const {state} = currentIndicatorState
 
   React.useEffect(() => {
-    let id = 0
-    if (lastSavingRef.current !== saving) {
-      if (saving) {
-        setState('saving')
-      } else {
-        setState('saved')
-        id = setTimeout(() => {
-          setState('init')
-        }, 1000) as unknown as number
-      }
-
-      lastSavingRef.current = saving
+    if (state !== 'saved') {
+      return undefined
     }
 
+    const id = setTimeout(() => {
+      setIndicatorState(state => (state.state === 'saved' ? {...state, state: 'init'} : state))
+    }, 1000)
     return () => {
       clearTimeout(id)
     }
-  }, [saving])
+  }, [state])
 
   let content: React.ReactNode = null
   switch (state) {
@@ -71,7 +78,7 @@ const SaveIndicator = (props: Props) => {
       break
   }
 
-  return <Kb.Box style={Styles.collapseStyles([defaultStyle, style])}>{content}</Kb.Box>
+  return <Kb.Box2 direction="horizontal" centerChildren={true} style={Styles.collapseStyles([defaultStyle, style])}>{content}</Kb.Box2>
 }
 
 export default SaveIndicator

@@ -156,7 +156,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 		secretNote bool
 		publicMemo bool
 	}{}
-	log := func(format string, args ...interface{}) {
+	log := func(format string, args ...any) {
 		mctx.Debug("bpl: "+format, args...)
 	}
 
@@ -774,7 +774,7 @@ func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg
 		amount     bool
 		secretNote bool
 	}{}
-	log := func(format string, args ...interface{}) {
+	log := func(format string, args ...any) {
 		mctx.Debug("brl: "+format, args...)
 	}
 
@@ -875,7 +875,7 @@ type buildPaymentAmountResult struct {
 var zeroOrNoAmountRE = regexp.MustCompile(`^0*\.?0*$`)
 
 func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg buildPaymentAmountArg) (res buildPaymentAmountResult) {
-	log := func(format string, args ...interface{}) {
+	log := func(format string, args ...any) {
 		mctx.Debug("bpl: "+format, args...)
 	}
 	res.asset = stellar1.AssetNative()

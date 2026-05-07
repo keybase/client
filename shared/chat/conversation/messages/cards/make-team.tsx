@@ -1,10 +1,11 @@
-import * as Chat from '@/constants/chat2'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {useConversationThreadID} from '../../thread-context'
 
 const MakeTeam = () => {
-  const navigateAppend = Chat.useChatNavigateAppend()
+  const conversationIDKey = useConversationThreadID()
   const onShowNewTeamDialog = () =>
-    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatShowNewTeamDialog'}))
+    C.Router2.navigateAppend({name: 'chatShowNewTeamDialog', params: {conversationIDKey}})
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
@@ -36,7 +37,7 @@ const MakeTeam = () => {
           </Kb.Box2>
         </Kb.ClickableBox>
       </Kb.Box2>
-      <Kb.Icon type="icon-illustration-teams-80" style={styles.image} />
+      <Kb.ImageIcon type="icon-illustration-teams-80" style={styles.image} />
     </Kb.Box2>
   )
 }

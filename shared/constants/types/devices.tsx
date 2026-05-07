@@ -1,4 +1,3 @@
-import type * as T from '.'
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export type DeviceID = string
 
@@ -16,10 +15,24 @@ export type Device = {
   type: DeviceType
 }
 
-export type State = T.Immutable<{
-  deviceMap: Map<DeviceID, Device>
-  isNew: Set<string>
-}>
+export const numBackgrounds = 10
+export const deviceNumberToIconNumber = (deviceNumberOfType: number) =>
+  (((deviceNumberOfType % numBackgrounds) + 1) as IconNumber)
+
+export const nextDeviceIconNumbers = (
+  devices: ReadonlyArray<Pick<Device, 'deviceNumberOfType' | 'type'>>
+): {desktop: IconNumber; mobile: IconNumber} => {
+  const result = {backup: 1, desktop: 1, mobile: 1}
+  devices.forEach(device => {
+    if (device.deviceNumberOfType >= result[device.type]) {
+      result[device.type] = device.deviceNumberOfType + 1
+    }
+  })
+  return {
+    desktop: deviceNumberToIconNumber(result.desktop),
+    mobile: deviceNumberToIconNumber(result.mobile),
+  }
+}
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match
 export function stringToDeviceType(s: string): DeviceType {

@@ -711,7 +711,7 @@ func (cache *DiskBlockCacheLocal) evictUntilBytesAvailableLocked(
 	if !cache.useLimiter() {
 		return true, nil
 	}
-	for i := 0; i < maxEvictionsPerPut; i++ {
+	for range maxEvictionsPerPut {
 		select {
 		// Ensure we don't loop infinitely
 		case <-ctx.Done():
@@ -1198,7 +1198,7 @@ func (cache *DiskBlockCacheLocal) evictFromTLFLocked(ctx context.Context,
 	blockIDs := make(blockIDsByTime, 0, numElements)
 	var brokenIDs []kbfsblock.ID
 
-	for i := 0; i < numElements; i++ {
+	for range numElements {
 		if !iter.Next() {
 			break
 		}
@@ -1323,7 +1323,7 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 				defer iter.Release()
 
 				var brokenIDs []kbfsblock.ID
-				for i := 0; i < numElements; i++ {
+				for range numElements {
 					if !iter.Next() {
 						break
 					}

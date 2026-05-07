@@ -28,7 +28,7 @@ func makeBodyHashIndexKey(bodyHash chat1.Hash) libkb.DbKey {
 // seen, to prevent replays. If the header hash is new, add it to the set.
 func CheckAndRecordBodyHash(ctx context.Context, g *globals.Context, bodyHash chat1.Hash, uniqueMsgID chat1.MessageID, uniqueConvID chat1.ConversationID) error {
 	bodyHashKey := makeBodyHashIndexKey(bodyHash)
-	bodyHashValue := []byte(fmt.Sprintf("%s:%s", uniqueConvID, uniqueMsgID))
+	bodyHashValue := fmt.Appendf(nil, "%s:%s", uniqueConvID, uniqueMsgID)
 	existingVal, found, err := g.LocalChatDb.GetRaw(bodyHashKey)
 	// Log errors as warnings, and skip this check. That prevents a corrupt
 	// leveldb cache from breaking chat.

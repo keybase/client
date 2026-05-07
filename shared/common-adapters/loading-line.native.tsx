@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import Animated, {withRepeat, useSharedValue, withTiming, useAnimatedStyle, withDelay} from './reanimated'
 
-const LoadingLine = React.memo(function LoadingLine() {
+function LoadingLine() {
   'use no memo'
   const opacity = useSharedValue(1)
   React.useEffect(() => {
@@ -16,7 +16,7 @@ const LoadingLine = React.memo(function LoadingLine() {
     }
   })
   return <Animated.View style={[styles.line, animatedStyle]} />
-})
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

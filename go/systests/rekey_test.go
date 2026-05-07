@@ -37,7 +37,7 @@ func (d *deviceWrapper) KID() keybase1.KID {
 }
 
 func (d *deviceWrapper) start(numClones int) {
-	for i := 0; i < numClones; i++ {
+	for range numClones {
 		d.clones = append(d.clones, cloneContext(d.tctx))
 	}
 	d.stopCh = make(chan error)
@@ -275,7 +275,7 @@ func (rkt *rekeyTester) confirmNoRekeyUIActivity(dw *deviceWrapper, hours int, f
 		}
 	}
 
-	for i := 0; i < hours; i++ {
+	for i := range hours {
 		assertNoActivity(i)
 		rkt.fakeClock.Advance(time.Hour)
 	}

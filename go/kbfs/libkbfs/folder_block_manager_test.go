@@ -248,7 +248,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	// Do a bunch of operations.
 	kbfsOps := config.KBFSOps()
 	testPointersPerGCThreshold := 10
-	for i := 0; i < testPointersPerGCThreshold; i++ {
+	for range testPointersPerGCThreshold {
 		_, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 		require.NoError(t, err, "Couldn't create dir: %+v", err)
 		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
@@ -791,7 +791,7 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 	ops.fbm.numPointersPerGCThreshold = 1
 
 	numCycles := 4
-	for i := 0; i < numCycles; i++ {
+	for range numCycles {
 		_, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 		require.NoError(t, err, "Couldn't create dir: %+v", err)
 		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())

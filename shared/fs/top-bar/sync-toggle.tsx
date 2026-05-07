@@ -2,8 +2,8 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import {useFsErrorActionOrThrow, useFsFolderChildren, useFsRefreshTlf, useFsTlf} from '../common'
 import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
 
 type OwnProps = {
   tlfPath: T.FS.Path
@@ -11,62 +11,74 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
-  const {_tlfPathItem, _tlfs, setTlfSyncConfig} = useFSState(
-    C.useShallow(s => ({
-      _tlfPathItem: FS.getPathItem(s.pathItems, ownProps.tlfPath),
-      _tlfs: s.tlfs,
-      setTlfSyncConfig: s.dispatch.setTlfSyncConfig,
-    }))
-  )
+  const tlfPathItem = useFsFolderChildren(tlfPath)
+  const tlf = useFsTlf(tlfPath)
+  const errorToActionOrThrow = useFsErrorActionOrThrow()
+  const refreshTlf = useFsRefreshTlf(tlfPath)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyFSSyncToggle)
 
-  const enableSync = () => {
-    setTlfSyncConfig(tlfPath, true)
+  const setTlfSyncConfig = (enabled: boolean) => {
+    const f = async () => {
+      try {
+        await T.RPCGen.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
+          {
+            config: {mode: enabled ? T.RPCGen.FolderSyncMode.enabled : T.RPCGen.FolderSyncMode.disabled},
+            path: FS.pathToRPCPath(tlfPath),
+          },
+          C.waitingKeyFSSyncToggle
+        )
+        refreshTlf()
+      } catch (error) {
+        errorToActionOrThrow(error, tlfPath)
+      }
+    }
+    C.ignorePromise(f())
   }
-  const syncConfig = FS.getTlfFromPath(_tlfs, tlfPath).syncConfig
+
+  const enableSync = () => {
+    setTlfSyncConfig(true)
+  }
+  const syncConfig = tlf.syncConfig
   // Disable sync when the TLF is empty and it's not enabled yet.
   // Band-aid fix for when new user has a non-exisitent TLF which we
   // can't enable sync for yet.
   const hideSyncToggle =
     syncConfig.mode === T.FS.TlfSyncMode.Disabled &&
-    _tlfPathItem.type === T.FS.PathType.Folder &&
-    !_tlfPathItem.children.size
+    tlfPathItem.type === T.FS.PathType.Folder &&
+    !tlfPathItem.children.size
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup, showPopup} = p
-      const disableSync = () => {
-        setTlfSyncConfig(tlfPath, false)
-      }
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          position="bottom left"
-          closeOnSelect={false}
-          containerStyle={styles.floating}
-          header={<Confirm waiting={waiting} disableSync={disableSync} showPopup={showPopup} />}
-          items={
-            Kb.Styles.isMobile
-              ? [
-                  {
-                    danger: true,
-                    disabled: waiting,
-                    icon: 'iconfont-cloud',
-                    inProgress: waiting,
-                    onClick: disableSync,
-                    style: waiting ? {opacity: 0.3} : undefined,
-                    title: waiting ? 'Unsyncing' : 'Yes, unsync',
-                  } as const,
-                ]
-              : []
-          }
-        />
-      )
-    },
-    [waiting, setTlfSyncConfig, tlfPath]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup, showPopup} = p
+    const disableSync = () => {
+      setTlfSyncConfig(false)
+    }
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        position="bottom left"
+        closeOnSelect={false}
+        containerStyle={styles.floating}
+        header={<Confirm waiting={waiting} disableSync={disableSync} showPopup={showPopup} />}
+        items={
+          Kb.Styles.isMobile
+            ? [
+                {
+                  danger: true,
+                  disabled: waiting,
+                  icon: 'iconfont-cloud',
+                  inProgress: waiting,
+                  onClick: disableSync,
+                  style: waiting ? {opacity: 0.3} : undefined,
+                  title: waiting ? 'Unsyncing' : 'Yes, unsync',
+                } as const,
+              ]
+            : []
+        }
+      />
+    )
+  }
   const {showPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return !hideSyncToggle ? (
     <>

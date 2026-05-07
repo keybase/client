@@ -5,8 +5,9 @@ package stellar1
 
 import (
 	"context"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type PaymentNotificationArg struct {

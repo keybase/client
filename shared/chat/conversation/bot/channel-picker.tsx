@@ -49,7 +49,7 @@ type RowProps = {
   selected: boolean
 }
 const Row = ({description, disabled, name, onToggle, selected}: RowProps) => (
-  <Kb.ListItem2
+  <Kb.ListItem
     type="Small"
     firstItem={false}
     body={
@@ -98,10 +98,7 @@ const ChannelPicker = (props: Props) => {
     setDisableDone(false)
   }, [allSelected, installInConvs, setDisableDone])
 
-  const channels = React.useMemo(
-    () => getChannels(props.channelMetas, searchText),
-    [props.channelMetas, searchText]
-  )
+  const channels = getChannels(props.channelMetas, searchText)
   const rows = channels.map(meta => (
     <Row
       disabled={allSelected}
@@ -128,7 +125,7 @@ const ChannelPicker = (props: Props) => {
       </Kb.Box2>
       <Kb.ScrollView style={styles.rowsContainer}>
         <Kb.Box2 direction="horizontal" style={{backgroundColor: Kb.Styles.globalColors.blueGrey}}>
-          <Kb.ListItem2
+          <Kb.ListItem
             type="Small"
             firstItem={true}
             body={<Kb.Text type="BodyBold">All channels</Kb.Text>}
@@ -145,10 +142,6 @@ const ChannelPicker = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      channelCheckbox: {
-        marginRight: Kb.Styles.globalMargins.tiny,
-        paddingTop: 0,
-      },
       channelHash: {
         alignSelf: 'center',
         color: Kb.Styles.globalColors.black_50,

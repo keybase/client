@@ -1,19 +1,22 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import TeamMenu from './menu-container'
 import {pluralize} from '@/util/string'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useCurrentUserState} from '@/constants/current-user'
-import {useTeamsState} from '@/constants/teams'
+import {useCurrentUserState} from '@/stores/current-user'
+import {makeAddMembersWizard} from '../add-members-wizard/state'
+import {useLoadedTeam} from './use-loaded-team'
+import {setMemberPublicity} from '@/teams/actions'
 
 const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
-  const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const onAdd = () => startAddMembersWizard(teamID)
+  const nav = useSafeNavigation()
+  const onAdd = () =>
+    nav.safeNavigateAppend({
+      name: 'teamAddToTeamFromWhere',
+      params: {wizard: makeAddMembersWizard(teamID)},
+    })
   return (
     <Kb.Button
       label="Add/Invite people"
@@ -25,20 +28,12 @@ const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {
     />
   )
 }
-type FeatureTeamCardProps = {teamID: T.Teams.TeamID}
-const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
-  const {setJustFinishedAddMembersWizard, setMemberPublicity} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      setJustFinishedAddMembersWizard: s.dispatch.setJustFinishedAddMembersWizard,
-      setMemberPublicity: s.dispatch.setMemberPublicity,
-    }))
-  )
+type FeatureTeamCardProps = {
+  teamID: T.Teams.TeamID
+  onDismiss: () => void
+}
+const FeatureTeamCard = ({teamID, onDismiss}: FeatureTeamCardProps) => {
   const onFeature = () => setMemberPublicity(teamID, true)
-  const onNoThanks = React.useCallback(() => {
-    setJustFinishedAddMembersWizard(false)
-  }, [setJustFinishedAddMembersWizard])
-  // Automatically dismisses this when the user navigates away
-  React.useEffect(() => onNoThanks, [onNoThanks])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsSetMemberPublicity(teamID))
   return (
     <Kb.Box2
@@ -50,9 +45,9 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
       alignSelf="flex-end"
       fullWidth={true}
     >
-      <Kb.Box style={styles.illustration}>
-        <Kb.Icon type="icon-illustration-teams-feature-profile-460-64" />
-      </Kb.Box>
+      <Kb.Box2 direction="vertical" fullWidth={true} overflow="hidden" style={styles.illustration}>
+        <Kb.ImageIcon type="icon-illustration-teams-feature-profile-460-64" />
+      </Kb.Box2>
       <Kb.Text type="BodySemibold">Feature team on your profile?</Kb.Text>
       <Kb.Text type="BodySmall">{"So your friends or coworkers know of your team's existence."}</Kb.Text>
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
@@ -67,7 +62,7 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
         <Kb.Button
           label="Later"
           type="Dim"
-          onClick={onNoThanks}
+          onClick={onDismiss}
           small={true}
           style={Kb.Styles.globalStyles.flexOne}
         />
@@ -78,6 +73,8 @@ const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
 
 type HeaderTitleProps = {
   teamID: T.Teams.TeamID
+  justFinishedAddWizard: boolean
+  onClearJustFinishedAddWizard: () => void
 }
 
 const roleDisplay = {
@@ -92,41 +89,30 @@ const roleDisplay = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID} = props
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => ({
-      activityLevel: s.activityLevels.teams.get(teamID) || 'none',
-      details: s.teamDetails.get(teamID),
-      justFinishedAddWizard: s.addMembersWizard.justFinished,
-      meta: Teams.getTeamMeta(s, teamID),
-      yourOperations: Teams.getCanPerformByID(s, teamID),
-    }))
-  )
-  const {activityLevel, details, justFinishedAddWizard} = teamsState
-  const {meta, yourOperations} = teamsState
-  useActivityLevels()
+  const {teamDetails: details, teamMeta: meta, yourOperations} = useLoadedTeam(teamID)
+  const {teams: activityByTeam} = useActivityLevels()
+  const activityLevel = activityByTeam.get(teamID) || 'none'
 
   const {onEditAvatar, onRename, onAddSelf, onChat, onEditDescription} = useHeaderCallbacks(teamID)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return <TeamMenu attachTo={attachTo} onHidden={hidePopup} teamID={teamID} visible={true} />
-    },
-    [teamID]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return <TeamMenu attachTo={attachTo} onHidden={hidePopup} teamID={teamID} visible={true} />
+  }
   const {showPopup: tmshowPopup, popupAnchor: tmpopupAnchor, popup: tmpopup} = Kb.usePopup2(makePopup)
 
   const avatar = (
     <Kb.Avatar
-      editable={!!onEditAvatar}
-      onEditAvatarClick={onEditAvatar}
+      onClick={onEditAvatar}
       teamname={meta.teamname}
       size={96}
       style={Kb.Styles.collapseStyles([
         styles.alignSelfFlexStart,
-        onEditAvatar && styles.marginBottomRightTiny, // space for edit icon
+        onEditAvatar && styles.marginBottomRightTiny,
         onEditAvatar && styles.clickable,
       ])}
-    />
+    >
+      {!!onEditAvatar && <Kb.Icon type="iconfont-edit" style={styles.editTeamAvatar} />}
+    </Kb.Avatar>
   )
 
   const topDescriptors = (
@@ -186,7 +172,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const bottomDescriptorsAndButtons = (
     <>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Kb.Styles.isPhone}>
-        {!!details?.description && (
+        {!!details.description && (
           <Kb.Text
             type="Body"
             lineClamp={3}
@@ -220,8 +206,11 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   )
 
   const addInviteAndLinkBox =
-    justFinishedAddWizard && !meta.showcasing ? (
-      <FeatureTeamCard teamID={props.teamID} />
+    props.justFinishedAddWizard && !meta.showcasing ? (
+      <FeatureTeamCard
+        teamID={props.teamID}
+        onDismiss={props.onClearJustFinishedAddWizard}
+      />
     ) : (
       <Kb.Box2
         direction="vertical"
@@ -269,6 +258,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         direction="vertical"
         alignItems="flex-start"
         alignSelf="flex-start"
+        flex={1}
         style={styles.flexShrinkGrow}
       >
         {topDescriptors}
@@ -282,31 +272,29 @@ export default HeaderTitle
 
 const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
   const nav = useSafeNavigation()
-  const {addMembersWizardPushMembers, meta, startAddMembersWizard, yourOperations} = Teams.useTeamsState(
-    C.useShallow(s => ({
-      addMembersWizardPushMembers: s.dispatch.addMembersWizardPushMembers,
-      meta: Teams.getTeamMeta(s, teamID),
-      startAddMembersWizard: s.dispatch.startAddMembersWizard,
-      yourOperations: Teams.getCanPerformByID(s, teamID),
-    }))
-  )
+  const {teamMeta: meta, yourOperations} = useLoadedTeam(teamID)
   const yourUsername = useCurrentUserState(s => s.username)
 
   const onAddSelf = () => {
-    startAddMembersWizard(teamID)
-    addMembersWizardPushMembers([{assertion: yourUsername, role: 'writer'}])
+    nav.safeNavigateAppend({
+      name: 'teamAddToTeamConfirm',
+      params: {
+        wizard: makeAddMembersWizard(teamID, {
+          addingMembers: [{assertion: yourUsername, role: 'writer'}],
+        }),
+      },
+    })
   }
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onChat = () => previewConversation({reason: 'teamHeader', teamname: meta.teamname})
   const onEditAvatar = yourOperations.editTeamDescription
-    ? () =>
-        nav.safeNavigateAppend({props: {sendChatNotification: true, teamID}, selected: 'profileEditAvatar'})
+    ? () => nav.safeNavigateAppend({name: 'profileEditAvatar', params: {sendChatNotification: true, teamID}})
     : undefined
   const onEditDescription = yourOperations.editTeamDescription
-    ? () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamEditTeamInfo'})
+    ? () => nav.safeNavigateAppend({name: 'teamEditTeamInfo', params: {teamID}})
     : undefined
   const onRename = yourOperations.renameTeam
-    ? () => nav.safeNavigateAppend({props: {teamname: meta.teamname}, selected: 'teamRename'})
+    ? () => nav.safeNavigateAppend({name: 'teamRename', params: {teamname: meta.teamname}})
     : undefined
   return {
     onAddSelf,
@@ -387,13 +375,26 @@ const styles = Kb.Styles.styleSheetCreate(
       clickable: Kb.Styles.platformStyles({
         isElectron: {...Kb.Styles.desktopStyles.windowDraggingClickable},
       }),
+      editTeamAvatar: Kb.Styles.platformStyles({
+        common: {
+          backgroundColor: Kb.Styles.globalColors.blue,
+          borderColor: Kb.Styles.globalColors.white,
+          borderRadius: 100,
+          borderStyle: 'solid',
+          borderWidth: 2,
+          bottom: -6,
+          color: Kb.Styles.globalColors.whiteOrWhite,
+          padding: 4,
+          position: 'absolute',
+          right: -6,
+        },
+      }),
       flexShrink: {flexShrink: 1},
       flexShrinkGrow: {
-        flexGrow: 1,
         flexShrink: 1,
       },
       header: {flexShrink: 1},
-      illustration: {borderRadius: 4, overflow: 'hidden', width: '100%'},
+      illustration: {borderRadius: 4, width: '100%'},
       marginBottomRightTiny: {
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,

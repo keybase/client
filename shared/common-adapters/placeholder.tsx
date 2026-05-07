@@ -1,5 +1,5 @@
 import * as Styles from '@/styles'
-import Box from './box'
+import {Box2} from './box'
 
 type PlaceholderProps = {
   style?: Styles.StylesCrossPlatform
@@ -7,7 +7,8 @@ type PlaceholderProps = {
 }
 
 const Placeholder = (props: PlaceholderProps) => (
-  <Box
+  <Box2
+    direction="vertical"
     style={Styles.collapseStyles([
       styles.placeholder,
       props.style,

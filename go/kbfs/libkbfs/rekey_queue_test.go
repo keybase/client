@@ -44,7 +44,7 @@ func TestRekeyQueueBasic(t *testing.T) {
 	var names []string
 
 	// Create a few shared folders
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		writers := []string{u1.String(), u2.String()}
 		if i > 0 {
 			writers = append(writers, u3.String())

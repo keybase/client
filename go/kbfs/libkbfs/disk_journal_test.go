@@ -43,7 +43,7 @@ func TestDiskJournalOrdinals(t *testing.T) {
 
 	codec := kbfscodec.NewMsgpack()
 	j, err := makeDiskJournal(
-		codec, tempdir, reflect.TypeOf(testJournalEntry{}))
+		codec, tempdir, reflect.TypeFor[testJournalEntry]())
 	require.NoError(t, err)
 
 	readEarliest := func() (journalOrdinal, error) {
@@ -115,7 +115,7 @@ func TestDiskJournalClear(t *testing.T) {
 
 	codec := kbfscodec.NewMsgpack()
 	j, err := makeDiskJournal(
-		codec, tempdir, reflect.TypeOf(testJournalEntry{}))
+		codec, tempdir, reflect.TypeFor[testJournalEntry]())
 	require.NoError(t, err)
 
 	o, err := j.appendJournalEntry(nil, testJournalEntry{1})
@@ -146,7 +146,7 @@ func TestDiskJournalMoveEmpty(t *testing.T) {
 
 	codec := kbfscodec.NewMsgpack()
 	j, err := makeDiskJournal(
-		codec, oldDir, reflect.TypeOf(testJournalEntry{}))
+		codec, oldDir, reflect.TypeFor[testJournalEntry]())
 	require.NoError(t, err)
 	require.Equal(t, oldDir, j.dir)
 
@@ -169,7 +169,7 @@ func TestDiskJournalMove(t *testing.T) {
 
 	codec := kbfscodec.NewMsgpack()
 	j, err := makeDiskJournal(
-		codec, oldDir, reflect.TypeOf(testJournalEntry{}))
+		codec, oldDir, reflect.TypeFor[testJournalEntry]())
 	require.NoError(t, err)
 	require.Equal(t, oldDir, j.dir)
 

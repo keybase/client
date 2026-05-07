@@ -1,15 +1,18 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
+import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import Participant from './participant'
-import {useUsersState} from '@/constants/users'
+import {useUsersState} from '@/stores/users'
+import {navToProfile} from '@/constants/router'
+import {useChatTeamMembers} from '../team-hooks'
+import {useConversationMetadata} from '../data-hooks'
 
 type Props = {
   commonSections: ReadonlyArray<Section>
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 type Item =
@@ -30,48 +33,43 @@ type Item =
 type Section = Kb.SectionType<Item>
 
 const MembersTab = (props: Props) => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const {conversationIDKey} = props
   const infoMap = useUsersState(s => s.infoMap)
-  const {channelname, teamID, teamname} = Chat.useChatContext(
-    C.useShallow(s => {
-      const {meta} = s
-      const {teamID, channelname, teamname} = meta
-      return {channelname, teamID, teamname}
-    })
-  )
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
+  const {channelname, teamID, teamname} = meta
 
-  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const {loading: loadingTeamMembers, members: teamMembers} = useChatTeamMembers(teamID)
   const isGeneral = channelname === 'general'
-  const showAuditingBanner = isGeneral && !teamMembers
+  const showAuditingBanner = isGeneral && loadingTeamMembers
   const refreshParticipants = C.useRPC(T.RPCChat.localRefreshParticipantsRpcPromise)
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const participants = Chat.useChatContext(
-    C.useShallow(s => Chat.getBotsAndParticipants(s.meta, s.participants).participants)
-  )
-  const [lastTeamName, setLastTeamName] = React.useState('')
+  const participants = getBotsAndParticipants(meta, participantInfo, teamMembers).participants
+  const lastTeamNameRef = React.useRef('')
   React.useEffect(() => {
-    if (lastTeamName !== teamname) {
-      setLastTeamName(teamname)
-      if (teamname) {
-        refreshParticipants(
-          [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
-          () => {},
-          () => {}
-        )
-      }
+    if (lastTeamNameRef.current === teamname) {
+      return
     }
-  }, [conversationIDKey, lastTeamName, refreshParticipants, teamname])
+    lastTeamNameRef.current = teamname
+    if (teamname) {
+      refreshParticipants(
+        [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+        () => {},
+        () => {}
+      )
+    }
+  }, [conversationIDKey, refreshParticipants, teamname])
 
   const showSpinner = !participants.length
   const participantsItems = participants
     .map(
       p =>
         ({
-          fullname: (infoMap.get(p) || {fullname: ''}).fullname || participantInfo.contactName.get(p) || '',
-          isAdmin:
-            teamname && teamMembers ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
-          isOwner:
-            teamname && teamMembers ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
+          fullname:
+            (infoMap.get(p) || {fullname: ''}).fullname ||
+            teamMembers.get(p)?.fullName ||
+            participantInfo.contactName.get(p) ||
+            '',
+          isAdmin: teamname ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'admin') : false,
+          isOwner: teamname ? Teams.userIsRoleInTeamWithInfo(teamMembers, p, 'owner') : false,
           key: `user-${p}`,
           type: 'member',
           username: p,
@@ -88,8 +86,7 @@ const MembersTab = (props: Props) => {
       return l.username.localeCompare(r.username)
     })
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onShowProfile = showUserProfile
+  const onShowProfile = navToProfile
 
   const participantSection: Section = {
     data: showSpinner

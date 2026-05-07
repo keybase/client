@@ -153,15 +153,13 @@ const removeGlobalHandler = (): void => {
 }
 
 export function useHotKey(keys: Array<string> | string, cb: (key: string) => void) {
-  const keysArr = React.useMemo(() => {
+  const keysArr = (() => {
     const arr = typeof keys === 'string' ? [keys] : keys
     return arr.filter(k => k.length > 0)
-  }, [keys])
+  })()
 
-  const register = React.useCallback(() => {
-    if (keysArr.length === 0) {
-      return
-    }
+  C.Router2.useSafeFocusEffect(() => {
+    if (keysArr.length === 0) return
     ensureGlobalHandler()
     keysArr.forEach(key => {
       const normalizedKey = key.toLowerCase().trim()
@@ -172,37 +170,49 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
       }
       cbs.push(cb)
     })
-  }, [keysArr, cb])
-
-  const unregister = React.useCallback(() => {
-    keysArr.forEach(key => {
-      const normalizedKey = key.toLowerCase().trim()
-      const cbs = keyToCBStack.get(normalizedKey)
-      if (!cbs) return
-      const idx = cbs.indexOf(cb)
-      if (idx !== -1) {
-        cbs.splice(idx, 1)
-      }
-      if (cbs.length === 0) {
-        keyToCBStack.delete(normalizedKey)
-      }
-    })
-    removeGlobalHandler()
-  }, [keysArr, cb])
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      register()
-      return () => {
-        unregister()
-      }
-    }, [register, unregister])
-  )
+    return () => {
+      keysArr.forEach(key => {
+        const normalizedKey = key.toLowerCase().trim()
+        const cbs = keyToCBStack.get(normalizedKey)
+        if (!cbs) return
+        const idx = cbs.indexOf(cb)
+        if (idx !== -1) {
+          cbs.splice(idx, 1)
+        }
+        if (cbs.length === 0) {
+          keyToCBStack.delete(normalizedKey)
+        }
+      })
+      removeGlobalHandler()
+    }
+  })
 
   React.useEffect(() => {
-    register()
+    if (keysArr.length === 0) return
+    ensureGlobalHandler()
+    keysArr.forEach(key => {
+      const normalizedKey = key.toLowerCase().trim()
+      let cbs = keyToCBStack.get(normalizedKey)
+      if (!cbs) {
+        cbs = []
+        keyToCBStack.set(normalizedKey, cbs)
+      }
+      cbs.push(cb)
+    })
     return () => {
-      unregister()
+      keysArr.forEach(key => {
+        const normalizedKey = key.toLowerCase().trim()
+        const cbs = keyToCBStack.get(normalizedKey)
+        if (!cbs) return
+        const idx = cbs.indexOf(cb)
+        if (idx !== -1) {
+          cbs.splice(idx, 1)
+        }
+        if (cbs.length === 0) {
+          keyToCBStack.delete(normalizedKey)
+        }
+      })
+      removeGlobalHandler()
     }
-  }, [register, unregister])
+  }, [keysArr, cb])
 }

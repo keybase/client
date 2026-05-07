@@ -1,4 +1,4 @@
-import * as RPCTypes from './rpc-gen'
+import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type * as Devices from './devices'
 import {isWindows} from '../platform'
 // lets not create cycles in flow, lets discuss how to fix this
@@ -329,13 +329,13 @@ export type DownloadState = Readonly<{
 
 export type DownloadInfo = Readonly<{
   filename: string
+  intent?: DownloadIntent
   isRegularDownload: boolean
   path: Path
   startTime: number
 }>
 
 export type Downloads = Readonly<{
-  info: ReadonlyMap<string, DownloadInfo>
   regularDownloads: ReadonlyArray<string>
   state: ReadonlyMap<string, DownloadState>
 }>
@@ -357,6 +357,7 @@ export enum MobilePickType {
   Photo = 'photo',
   Video = 'video',
   Mixed = 'mixed',
+  File = 'file',
 }
 
 export enum FileEditType {
@@ -422,12 +423,6 @@ export enum PathItemActionMenuView {
   ConfirmSaveMedia = 'confirm-save-media',
   ConfirmSendToOtherApp = 'confirm-send-to-other-app',
 }
-export type PathItemActionMenu = Readonly<{
-  downloadID: string | undefined
-  downloadIntent: DownloadIntent | undefined
-  previousView: PathItemActionMenuView
-  view: PathItemActionMenuView
-}>
 
 export enum DriverStatusType {
   Unknown = 'unknown',
@@ -505,14 +500,6 @@ export enum SoftError {
 export type SoftErrors = Readonly<{
   pathErrors: ReadonlyMap<Path, SoftError>
   tlfErrors: ReadonlyMap<Path, SoftError>
-}>
-
-export type Settings = Readonly<{
-  isLoading: boolean
-  loaded: boolean
-  sfmiBannerDismissed: boolean
-  spaceAvailableNotificationThreshold: number
-  syncOnCellular: boolean
 }>
 
 export type PathInfo = Readonly<{

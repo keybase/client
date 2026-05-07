@@ -1,11 +1,9 @@
 import type * as React from 'react'
-import type {AvatarSize} from '@/common-adapters/avatar'
 import type * as Kb from '@/common-adapters'
 
 export type Props = {
-  avatarSize?: AvatarSize
+  avatarSize?: 128 | 96 | 64 | 48 | 32 | 24 | 16
   avatarBackgroundStyle?: Kb.Styles.StylesCrossPlatform
-  lighterPlaceholders?: boolean
   onAvatarClicked?: () => void
   outerStyle?: Kb.Styles.StylesCrossPlatform
   style?: Kb.Styles.StylesCrossPlatform

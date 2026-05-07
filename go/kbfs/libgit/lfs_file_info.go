@@ -38,6 +38,6 @@ func (lfi *lfsFileInfo) IsDir() bool {
 	return false
 }
 
-func (lfi *lfsFileInfo) Sys() interface{} {
+func (lfi *lfsFileInfo) Sys() any {
 	return nil
 }

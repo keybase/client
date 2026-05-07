@@ -1,0 +1,6 @@
+appId: keybase.ios
+---
+# The "More" screen itself serves as the settings page on mobile.
+# Just ensure we're back on the More screen.
+- assertVisible:
+    text: ".*Crypto"

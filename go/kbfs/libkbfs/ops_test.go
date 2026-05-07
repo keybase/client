@@ -160,7 +160,7 @@ func TestWriteRangeUnknownFields(t *testing.T) {
 // of opPointerizer and RegisterOps. registerOpsFuture is used by
 // testStructUnknownFields.
 
-func opPointerizerFuture(iface interface{}) reflect.Value {
+func opPointerizerFuture(iface any) reflect.Value {
 	switch op := iface.(type) {
 	default:
 		return reflect.ValueOf(iface)
@@ -184,15 +184,15 @@ func opPointerizerFuture(iface interface{}) reflect.Value {
 }
 
 func registerOpsFuture(codec kbfscodec.Codec) {
-	codec.RegisterType(reflect.TypeOf(createOpFuture{}), createOpCode)
-	codec.RegisterType(reflect.TypeOf(rmOpFuture{}), rmOpCode)
-	codec.RegisterType(reflect.TypeOf(renameOpFuture{}), renameOpCode)
-	codec.RegisterType(reflect.TypeOf(syncOpFuture{}), syncOpCode)
-	codec.RegisterType(reflect.TypeOf(setAttrOpFuture{}), setAttrOpCode)
-	codec.RegisterType(reflect.TypeOf(resolutionOpFuture{}), resolutionOpCode)
-	codec.RegisterType(reflect.TypeOf(rekeyOpFuture{}), rekeyOpCode)
-	codec.RegisterType(reflect.TypeOf(gcOpFuture{}), gcOpCode)
-	codec.RegisterIfaceSliceType(reflect.TypeOf(opsList{}), opsListCode,
+	codec.RegisterType(reflect.TypeFor[createOpFuture](), createOpCode)
+	codec.RegisterType(reflect.TypeFor[rmOpFuture](), rmOpCode)
+	codec.RegisterType(reflect.TypeFor[renameOpFuture](), renameOpCode)
+	codec.RegisterType(reflect.TypeFor[syncOpFuture](), syncOpCode)
+	codec.RegisterType(reflect.TypeFor[setAttrOpFuture](), setAttrOpCode)
+	codec.RegisterType(reflect.TypeFor[resolutionOpFuture](), resolutionOpCode)
+	codec.RegisterType(reflect.TypeFor[rekeyOpFuture](), rekeyOpCode)
+	codec.RegisterType(reflect.TypeFor[gcOpFuture](), gcOpCode)
+	codec.RegisterIfaceSliceType(reflect.TypeFor[opsList](), opsListCode,
 		opPointerizerFuture)
 }
 
@@ -475,7 +475,7 @@ func TestGcOpUnknownFields(t *testing.T) {
 }
 
 type testOps struct {
-	Ops []interface{}
+	Ops []any
 }
 
 // Tests that ops can be serialized and deserialized as extensions.
@@ -625,13 +625,13 @@ func TestOpsCollapseWriteRange(t *testing.T) {
 	const fileSize = uint64(1000)
 	const numWrites = 25
 	const maxWriteSize = uint64(50)
-	for i := 0; i < numAttempts; i++ {
+	for range numAttempts {
 		// Make a "file" where dirty bytes are represented by trues.
 		var file [fileSize]bool
 		var lastByte uint64
 		var lastByteIsTruncate bool
 		var syncOps []*syncOp
-		for j := 0; j < numWrites; j++ {
+		for range numWrites {
 			// Start a new syncOp?
 			if len(syncOps) == 0 || rand.Int()%5 == 0 { //nolint:gosec // G404: Test data generation, not security-sensitive
 				syncOps = append(syncOps, &syncOp{})
@@ -643,10 +643,7 @@ func TestOpsCollapseWriteRange(t *testing.T) {
 			var length uint64
 			if rand.Int()%5 > 0 { //nolint:gosec // G404: Test data generation, not security-sensitive
 				// A write, not a truncate
-				maxLen := fileSize - off
-				if maxLen > maxWriteSize {
-					maxLen = maxWriteSize
-				}
+				maxLen := min(fileSize-off, maxWriteSize)
 				maxLen--
 				if maxLen == 0 {
 					maxLen = 1

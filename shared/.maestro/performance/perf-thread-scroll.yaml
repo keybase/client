@@ -1,0 +1,20 @@
+appId: keybase.ios
+---
+- launchApp:
+    stopApp: true
+    arguments:
+      PERF_FPS_MONITOR: 'true'
+
+- runFlow: ../subflows/navigate-to-thread.yaml
+
+- repeat:
+    times: 10
+    commands:
+      - swipe:
+          id: 'messageList'
+          direction: DOWN
+          duration: 400
+          waitToSettleTimeoutMs: 50
+
+# Press Home to trigger app background → flushes profiler data
+- pressKey: Home

@@ -1,26 +1,12 @@
-import * as C from '@/constants'
-import * as React from 'react'
 import {Banner, BannerParagraph} from './banner'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
+import {navToProfile} from '@/constants/router'
 
 const Kb = {Banner}
 type Props = {users?: Array<string>}
 type ProofBrokenBannerNonEmptyProps = {users: Array<string>}
 
 const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = useTrackerState(s => s.dispatch.showUser)
-  const onClickUsername = React.useCallback(
-    (username: string) => {
-      if (C.isMobile) {
-        showUserProfile(username)
-      } else {
-        showUser(username, true)
-      }
-    },
-    [showUser, showUserProfile]
-  )
+  const onClickUsername = (username: string) => navToProfile(username)
   const content: Array<string | {text: string; onClick: () => void}> =
     props.users.length === 1
       ? [
@@ -41,8 +27,8 @@ const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
                   ...(index === length - 1
                     ? [{onClick: () => onClickUsername(user), text: user}]
                     : index === length - 2
-                    ? [{onClick: () => onClickUsername(user), text: user}, ', and ']
-                    : [{onClick: () => onClickUsername(user), text: user}, ', ']),
+                      ? [{onClick: () => onClickUsername(user), text: user}, ', and ']
+                      : [{onClick: () => onClickUsername(user), text: user}, ', ']),
                 ],
                 []
               )),

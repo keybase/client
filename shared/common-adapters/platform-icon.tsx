@@ -1,6 +1,8 @@
 import type * as T from '@/constants/types'
-import Box from './box'
-import Icon, {type IconType} from './icon'
+import {Box2} from './box'
+import IconAuto from './icon-auto'
+import type {IconType} from './icon.constants-gen'
+import ImageIcon from './image-icon'
 import {isMobile} from '@/constants/platform'
 
 type Props = {
@@ -48,9 +50,9 @@ const getSpecForPlatform = (platform: T.More.PlatformsExpandedType): IconSpec =>
 const Render = ({platform, overlay, style}: Props) => {
   const iconSpec = getSpecForPlatform(platform)
   return (
-    <Box style={{position: 'relative', ...style}}>
-      <Icon type={iconSpec.icon} />
-      <Icon
+    <Box2 direction="vertical" relative={true} style={style}>
+      <ImageIcon type={iconSpec.icon} />
+      <IconAuto
         type={overlay}
         style={{
           bottom: iconSpec.offsetBottom,
@@ -58,7 +60,7 @@ const Render = ({platform, overlay, style}: Props) => {
           right: iconSpec.offsetRight,
         }}
       />
-    </Box>
+    </Box2>
   )
 }
 

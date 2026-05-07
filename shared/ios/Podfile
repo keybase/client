@@ -3,8 +3,9 @@ require File.join(File.dirname(`node --print "require.resolve('react-native/pack
 
 require 'json'
 podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
-ENV['RCT_USE_RN_DEP'] = '1' if podfile_properties['ios.buildReactNativeFromSource'] != 'true' && podfile_properties['newArchEnabled'] != 'false'
-ENV['RCT_USE_PREBUILT_RNCORE'] = '1' if podfile_properties['ios.buildReactNativeFromSource'] != 'true' && podfile_properties['newArchEnabled'] != 'false'
+ENV['RCT_USE_RN_DEP'] ||= '1' if podfile_properties['ios.buildReactNativeFromSource'] != 'true'
+ENV['RCT_USE_PREBUILT_RNCORE'] ||= '1' if podfile_properties['ios.buildReactNativeFromSource'] != 'true'
+ENV['RCT_HERMES_V1_ENABLED'] ||= '1' if podfile_properties['expo.useHermesV1'] == 'true'
 platform :ios,  min_ios_version_supported
 
 prepare_react_native_project!
@@ -30,10 +31,29 @@ target 'Keybase' do
        installer,
        config[:reactNativePath],
        :mac_catalyst_enabled => false,
-       # :ccache_enabled => true
+       :ccache_enabled => false
      )
 
    end
+
+end
+
+# Expo sets alwaysOutOfDate on its "Configure project" build phase during
+# integrate_user_targets (which runs after post_install). Use post_integrate
+# to clear it afterward. The phase already has proper input/output paths so
+# Xcode's dependency analysis works fine.
+post_integrate do |installer|
+  # Clear Expo's alwaysOutOfDate flag — it has proper input/output paths
+  # so Xcode's dependency analysis works fine.
+  project = Xcodeproj::Project.open(File.join(__dir__, 'Keybase.xcodeproj'))
+  project.native_targets.each do |target|
+    target.build_phases.each do |phase|
+      if phase.respond_to?(:name) && phase.name&.include?('[Expo] Configure project')
+        phase.always_out_of_date = '0'
+      end
+    end
+  end
+  project.save
 end
 
 target 'KeybaseShare' do

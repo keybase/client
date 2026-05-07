@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import type * as NavHeader from './nav-header'
+import {defineRouteMap} from '@/constants/types/router'
 
-export const newRoutes = {
+export const newRoutes = defineRouteMap({
   gitRoot: C.makeScreen(
     React.lazy(async () => import('.')),
     {
@@ -18,12 +19,14 @@ export const newRoutes = {
           },
     }
   ),
-}
+})
 
-export const newModalRoutes = {
-  gitDeleteRepo: C.makeScreen(React.lazy(async () => import('./delete-repo'))),
-  gitNewRepo: C.makeScreen(React.lazy(async () => import('./new-repo'))),
+export const newModalRoutes = defineRouteMap({
+  gitDeleteRepo: C.makeScreen(React.lazy(async () => import('./delete-repo')), {
+    getOptions: {title: 'Delete repo?'},
+  }),
+  gitNewRepo: C.makeScreen(React.lazy(async () => import('./new-repo')), {
+    getOptions: {title: 'New repository'},
+  }),
   gitSelectChannel: C.makeScreen(React.lazy(async () => import('./select-channel'))),
-}
-
-export type RootParamListGit = C.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+})

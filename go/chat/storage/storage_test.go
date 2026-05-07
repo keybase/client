@@ -78,7 +78,7 @@ func makeMsgRange(maxMsgs int) (res []chat1.MessageUnboxed) {
 
 func addMsgs(num int, msgs []chat1.MessageUnboxed) []chat1.MessageUnboxed {
 	maxID := msgs[0].GetMessageID()
-	for i := 0; i < num; i++ {
+	for i := range num {
 		msgs = append([]chat1.MessageUnboxed{MakeText(chat1.MessageID(int(maxID)+i+1), "addMsgs junk text")}, //nolint:gosec // G115: Test code generating sequential MessageIDs, safe to convert
 			msgs...)
 	}
@@ -126,7 +126,7 @@ func doRandomBench(b *testing.B, storage *Storage, uid gregor1.UID, num, length 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		mustMerge(b, storage, conv.Metadata.ConversationID, uid, msgs)
-		for j := 0; j < 300; j++ {
+		for range 300 {
 
 			b.StopTimer()
 			var bi *big.Int
@@ -718,7 +718,7 @@ func TestStorageTypeFilter(t *testing.T) {
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
 	restexts := utils.FilterByType(res.Messages, &query, true)
 	require.Equal(t, len(textmsgs), len(restexts), "wrong amount of text messages")
-	for i := 0; i < len(restexts); i++ {
+	for i := range restexts {
 		require.Equal(t, textmsgs[i].GetMessageID(), restexts[i].GetMessageID(), "msg mismatch")
 	}
 }

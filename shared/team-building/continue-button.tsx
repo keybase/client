@@ -19,9 +19,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   continueText: {
     color: Kb.Styles.globalColors.white,
   },
-  rabbitEmoji: {
-    marginLeft: Kb.Styles.globalMargins.xtiny,
-  },
 }))
 
 export default ContinueButton

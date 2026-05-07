@@ -94,7 +94,7 @@ func MakeExtraOrBust(prefix string, t require.TestingT) Extra {
 
 // CurrentStruct is an interface for the current version of a struct
 // type.
-type CurrentStruct interface{}
+type CurrentStruct any
 
 // FutureStruct is an interface for a hypothetical future version of a
 // struct type.

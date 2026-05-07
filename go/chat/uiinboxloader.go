@@ -34,7 +34,7 @@ type UIInboxLoader struct {
 	eg      errgroup.Group
 
 	clock                 clockwork.Clock
-	transmitCh            chan interface{}
+	transmitCh            chan any
 	layoutCh              chan chat1.InboxLayoutReselectMode
 	bigTeamUnboxCh        chan []chat1.ConversationID
 	convTransmitBatch     map[chat1.ConvIDStr]chat1.ConversationLocal
@@ -79,7 +79,7 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 	if h.started {
 		return
 	}
-	h.transmitCh = make(chan interface{}, 1000)
+	h.transmitCh = make(chan any, 1000)
 	h.layoutCh = make(chan chat1.InboxLayoutReselectMode, 1000)
 	h.bigTeamUnboxCh = make(chan []chat1.ConversationID, 1000)
 	h.stopCh = make(chan struct{})
@@ -256,7 +256,7 @@ func (h *UIInboxLoader) flushFailed(r failedResponse) {
 	}
 }
 
-func (h *UIInboxLoader) transmitOnce(imsg interface{}) {
+func (h *UIInboxLoader) transmitOnce(imsg any) {
 	switch msg := imsg.(type) {
 	case unverifiedResponse:
 		_ = h.flushConvBatch()
@@ -556,10 +556,7 @@ func hashSortedConvs(convs []types.ShareConversation) uint64 {
 	for _, conv := range sorted {
 		h.Write([]byte(conv.ConvID))
 		buf := make([]byte, 8)
-		lastSend := conv.LastSendTime
-		if lastSend < 0 {
-			lastSend = 0
-		}
+		lastSend := max(conv.LastSendTime, 0)
 		// lastSend is in [0, maxint64] here; conversion to uint64 is safe (G115)
 		binary.BigEndian.PutUint64(buf, uint64(lastSend)) //nolint:gosec // G115: clamped above
 		h.Write(buf)

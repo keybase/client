@@ -23,23 +23,18 @@ const Spoiler = (p: Props) => {
     }
   }, [key])
 
-  const onClick = React.useCallback(
-    (e: React.BaseSyntheticEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setShown(s => {
-        spoilerState.set(key, !s)
-        return !s
-      })
-    },
-    [key]
-  )
+  const onClick = (e: React.BaseSyntheticEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setShown(s => {
+      spoilerState.set(key, !s)
+      return !s
+    })
+  }
 
   const smallContent = content.substring(0, 10)
   const len = smallContent.length
-  const masked = React.useMemo(() => {
-    return Array(len).fill('•').join('')
-  }, [len])
+  const masked = Array(len).fill('•').join('')
 
   return (
     <Text
@@ -76,12 +71,6 @@ const styles = Styles.styleSheetCreate(() => {
         borderRadius: Styles.borderRadius,
         paddingLeft: 2,
         paddingRight: 2,
-      },
-    }),
-    tip: Styles.platformStyles({
-      isElectron: {
-        alignItems: 'flex-start',
-        display: 'inline-flex',
       },
     }),
   } as const

@@ -1,11 +1,12 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
-import * as FS from '@/constants/fs/util'
-import * as Teams from '@/constants/teams'
+import * as FS from '@/constants/fs'
 import capitalize from 'lodash/capitalize'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
+import {useLoadedTeam} from './use-loaded-team'
+import {makeAddMembersWizard} from '../add-members-wizard/state'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -80,25 +81,25 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const {teamname, role, memberCount} = Teams.useTeamsState(s => Teams.getTeamMeta(s, teamID))
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
+  const {teamDetails, teamMeta, yourOperations} = useLoadedTeam(teamID)
+  const {teamname, role, memberCount} = teamMeta
   const canDeleteTeam = yourOperations.deleteTeam
   const canInvite = yourOperations.manageMembers
-  const canLeaveTeam = Teams.useTeamsState(s => !Teams.isLastOwner(s, teamID) && role !== 'none')
+  const ownerCount = [...teamDetails.members.values()].filter(member => member.type === 'owner').length
+  const canLeaveTeam = role !== 'none' && !(role === 'owner' && ownerCount <= 1)
   const canViewFolder = !yourOperations.joinTeam
-  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
+  const navigateAppend = C.Router2.navigateAppend
   const onAddOrInvitePeople = () => {
-    startAddMembersWizard(teamID)
+    navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
   }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
   const onDeleteTeam = () => {
-    navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
+    navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
   }
   const onLeaveTeam = () => {
-    navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'})
+    navigateAppend({name: 'teamReallyLeaveTeam', params: {teamID}})
   }
   const onOpenFolder = (teamname: string) => {
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
+    FS.navToPath(T.FS.stringToPath(`/keybase/team/${teamname}`))
   }
 
   const items: Kb.MenuItems = ['Divider']
@@ -137,10 +138,10 @@ const Container = (ownProps: OwnProps) => {
   const props = {
     attachTo: ownProps.attachTo,
     items,
-    memberCount: memberCount,
+    memberCount,
     onHidden: ownProps.onHidden,
     role: role as T.Teams.TeamRoleType,
-    teamname: teamname,
+    teamname,
     visible: ownProps.visible,
   }
   return <TeamMenu {...props} />

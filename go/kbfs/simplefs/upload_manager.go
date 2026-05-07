@@ -142,7 +142,7 @@ func (m *uploadManager) doStart(ctx context.Context,
 	basename := filepath.Base(sourceLocalPath)
 
 renameLoop:
-	for i := 0; i < uploadSuffixMax; i++ {
+	for i := range uploadSuffixMax {
 		name := basename
 		if i > 0 {
 			name = fmt.Sprintf("%s (%d)", basename, i)

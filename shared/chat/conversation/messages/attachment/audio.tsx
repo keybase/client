@@ -1,11 +1,8 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useOrdinal} from '../ids-context'
 import AudioPlayer from '@/chat/audio/audio-player'
-import {useFSState} from '@/constants/fs'
-
-const missingMessage = Chat.makeMessageAttachment()
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 const messageAttachmentHasProgress = (message: T.Chat.MessageAttachment) => {
   return (
@@ -14,21 +11,13 @@ const messageAttachmentHasProgress = (message: T.Chat.MessageAttachment) => {
     message.transferState !== 'mobileSaving'
   )
 }
-const AudioAttachment = () => {
-  const ordinal = useOrdinal()
-
-  // TODO not message
-  const message = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    return m?.type === 'attachment' ? m : missingMessage
-  })
+const AudioAttachment = ({message}: {message: T.Chat.MessageAttachment}) => {
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = messageAttachmentHasProgress(message)
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
-  )
   const onShowInFinder = () => {
-    message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
+    if (message.downloadPath) {
+      openLocalPathInSystemFileManagerDesktop(message.downloadPath)
+    }
   }
   const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
   const showInFinder = !!message.downloadPath && !Kb.Styles.isMobile

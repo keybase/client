@@ -1,14 +1,15 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
-import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Common from '@/teams/common'
 import {pluralize} from '@/util/string'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useModalHeaderState} from '@/stores/modal-header'
+import {LoadedTeamProvider, useLoadedTeam} from '../use-loaded-team'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -17,6 +18,7 @@ type Props = {
 
 const getChannelsForList = (
   channels: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>,
+  channelParticipants: Map<T.Chat.ConversationIDKey, T.Chat.ParticipantInfo>,
   usernames: string[]
 ) => {
   const processed = [...channels.values()].reduce(
@@ -29,8 +31,7 @@ const getChannelsForList = (
   const convIDKeysAvailable = sortedList
     .map(c => c.conversationIDKey)
     .filter(convIDKey => {
-      // TODO not reactive
-      const participants = Chat.getConvoState(convIDKey).participants.all
+      const participants = channelParticipants.get(convIDKey)?.all ?? []
       // At least one person is not in the channel
       return usernames.some(member => !participants.includes(member))
     })
@@ -41,24 +42,20 @@ const getChannelsForList = (
   }
 }
 
-const AddToChannels = React.memo(function AddToChannels(props: Props) {
+const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const teamID = props.teamID
   const myUsername = useCurrentUserState(s => s.username)
-  const justMe = React.useMemo(() => [myUsername], [myUsername])
+  const justMe = [myUsername]
   const usernames = props.usernames ?? justMe
   const mode = props.usernames ? 'others' : 'self'
   const nav = useSafeNavigation()
+  const {yourOperations} = useLoadedTeam(teamID)
 
-  const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
-  const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = React.useMemo(
-    () => getChannelsForList(channelMetas, usernames),
-    [channelMetas, usernames]
-  )
-
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      C.ignorePromise(reloadChannels())
-    }, [reloadChannels])
+  const {channelMetas, channelParticipants, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
+  const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(
+    channelMetas,
+    channelParticipants,
+    usernames
   )
 
   const [filter, setFilter] = React.useState('')
@@ -71,11 +68,12 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => {
-      // TODO not reactive
-      const p = Chat.getConvoState(c.conversationIDKey).participants
+      const p = channelParticipants.get(c.conversationIDKey)
+      const participants = p?.name.length ? p.name : (p?.all ?? [])
       return {
         channelMeta: c,
-        numMembers: p.name.length || p.all.length || 0,
+        numMembers: participants.length,
+        participants,
         type: 'channel' as const,
       }
     }),
@@ -126,7 +124,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
 
   const rowHeight = Kb.Styles.isMobile ? (mode === 'self' ? 56 : 56) : mode === 'self' ? 48 : 48
 
-  const itemHeight = React.useMemo(() => {
+  const itemHeight = (() => {
     const headerHeight = filtering ? 0 : Kb.Styles.isMobile ? 48 : 40
     const getItemLayout = (index: number, item?: T.Unpacked<typeof items>) => {
       return item?.type === 'header'
@@ -138,7 +136,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
           }
     }
     return {getItemLayout, type: 'variable' as const}
-  }, [rowHeight, filtering])
+  })()
 
   const renderItem = (_: unknown, item: T.Unpacked<typeof items>) => {
     switch (item.type) {
@@ -147,6 +145,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
         return (
           <HeaderRow
             key="{header}"
+            canCreateChannel={yourOperations.createChannel}
             mode={mode}
             teamID={teamID}
             onSelectAll={allSelected ? undefined : onSelectAll}
@@ -168,73 +167,81 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
             mode={mode}
             reloadChannels={reloadChannels}
             usernames={usernames}
+            participants={item.participants}
+            canDeleteChannel={yourOperations.deleteChannel}
+            canEditChannelDescription={yourOperations.editChannelDescription}
           />
         )
     }
   }
 
-  // channel rows use activity levels
-  Common.useActivityLevels()
-
   // TODO: alternate title when there aren't channels yet?
   const title =
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
-  return (
-    <Kb.Modal
-      mode="DefaultFullHeight"
-      header={{
-        hideBorder: Kb.Styles.isMobile,
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onCancel} style={{flexShrink: 0}}>
-            Cancel
-          </Kb.Text>
-        ) : undefined,
-        rightButton:
-          Kb.Styles.isMobile && mode === 'others' ? (
-            waiting ? (
-              <Kb.ProgressIndicator type="Large" />
-            ) : (
-              <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
-                Add
-              </Kb.Text>
-            )
-          ) : undefined,
-        title: <Common.ModalTitle teamID={teamID} title={title} />,
-      }}
-      footer={
-        Kb.Styles.isMobile || mode === 'self'
-          ? undefined
-          : {
-              content: (
-                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  <Kb.Button
-                    type="Dim"
-                    label="Cancel"
-                    onClick={onCancel}
-                    style={Kb.Styles.globalStyles.flexOne}
-                    disabled={waiting}
-                  />
-                  <Kb.Button
-                    label={
-                      numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'
-                    }
-                    onClick={onFinish}
-                    disabled={!numSelected}
-                    style={Kb.Styles.globalStyles.flexOne}
-                    waiting={waiting}
-                  />
-                </Kb.Box2>
-              ),
-            }
+  const desktopFooter =
+    !Kb.Styles.isMobile && mode !== 'self' ? (
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+          <Kb.Button
+            type="Dim"
+            label="Cancel"
+            onClick={onCancel}
+            style={Kb.Styles.globalStyles.flexOne}
+            disabled={waiting}
+          />
+          <Kb.Button
+            label={numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'}
+            onClick={onFinish}
+            disabled={!numSelected}
+            style={Kb.Styles.globalStyles.flexOne}
+            waiting={waiting}
+          />
+        </Kb.Box2>
+      </Kb.Box2>
+    ) : null
+
+  React.useEffect(() => {
+    if (mode !== 'others') return
+    const handleFinish = () => {
+      if (!selected.size) {
+        nav.safeNavigateUp()
+        return
       }
-      allowOverflow={true}
-      noScrollView={true}
-      onClose={onCancel}
-    >
+      setWaiting(true)
+      submit(
+        [{conversations: [...selected].map(T.Chat.keyToConversationID), usernames}],
+        () => {
+          setWaiting(false)
+          nav.safeNavigateUp()
+        },
+        error => {
+          console.error(error)
+          setWaiting(false)
+        }
+      )
+    }
+    useModalHeaderState.setState({
+      actionEnabled: numSelected > 0,
+      actionWaiting: waiting,
+      onAction: handleFinish,
+      title,
+    })
+    return () => {
+      useModalHeaderState.setState({
+        actionEnabled: false,
+        actionWaiting: false,
+        onAction: undefined,
+        title: '',
+      })
+    }
+  }, [mode, waiting, selected, submit, usernames, nav, numSelected, title])
+
+  return (
+    <Common.ActivityLevelsProvider>
       {loadingChannels && !channelMetas.size ? (
-        <Kb.Box style={styles.spinnerContainer}>
+        <Kb.Box2 direction="vertical" style={styles.spinnerContainer}>
           <Kb.ProgressIndicator type="Large" />
-        </Kb.Box>
+        </Kb.Box2>
       ) : (
         <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
@@ -256,24 +263,25 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
             />
           </Kb.Box2>
           <Kb.BoxGrow2>
-            <Kb.List2 items={items} renderItem={renderItem} itemHeight={itemHeight} />
+            <Kb.List items={items} renderItem={renderItem} itemHeight={itemHeight} />
           </Kb.BoxGrow2>
         </Kb.Box2>
       )}
-    </Kb.Modal>
+      {desktopFooter}
+    </Common.ActivityLevelsProvider>
   )
-})
+}
 
-const HeaderRow = React.memo(function HeaderRow(p: {
+const HeaderRow = function HeaderRow(p: {
+  canCreateChannel: boolean
   teamID: T.Teams.TeamID
   mode: 'others' | 'self'
   onSelectAll?: () => void
   onSelectNone?: () => void
 }) {
-  const {mode, teamID, onSelectAll, onSelectNone} = p
+  const {canCreateChannel, mode, teamID, onSelectAll, onSelectNone} = p
   const nav = useSafeNavigation()
-  const onCreate = () => nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
-  const canCreate = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).createChannel)
+  const onCreate = () => nav.safeNavigateAppend({name: 'chatCreateChannel', params: {teamID}})
 
   return (
     <Kb.Box2
@@ -285,15 +293,16 @@ const HeaderRow = React.memo(function HeaderRow(p: {
     >
       <Kb.BoxGrow2 />
       <Kb.Button
-        disabled={!canCreate}
+        disabled={!canCreateChannel}
         label="Create channel"
         small={true}
         mode="Secondary"
         onClick={onCreate}
-        icon="iconfont-new"
-      />
+      >
+        <Kb.Icon type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.blueDark} />
+      </Kb.Button>
       {mode === 'self' || (!onSelectAll && !onSelectNone) ? (
-        <Kb.Box /> // box so that the other item aligns to the left
+        <Kb.Box2 direction="vertical" /> // box so that the other item aligns to the left
       ) : (
         <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
           {onSelectAll ? 'Select all' : 'Clear'}
@@ -301,56 +310,55 @@ const HeaderRow = React.memo(function HeaderRow(p: {
       )}
     </Kb.Box2>
   )
-})
+}
 
-const SelfChannelActions = React.memo(function SelfChannelActions(p: {
+const SelfChannelActions = function SelfChannelActions(p: {
+  canDeleteChannel: boolean
+  canEditChannelDescription: boolean
   meta: T.Chat.ConversationMeta
   reloadChannels: () => Promise<void>
   selfMode: boolean
 }) {
-  const {meta, reloadChannels, selfMode} = p
+  const {canDeleteChannel, canEditChannelDescription, meta, reloadChannels, selfMode} = p
   const nav = useSafeNavigation()
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, meta.teamID))
-  const isAdmin = yourOperations.deleteChannel
-  const canEdit = yourOperations.editChannelDescription
   const inChannel = meta.membershipType === 'active'
 
   const [waiting, setWaiting] = React.useState(false)
-  const stopWaiting = React.useCallback(() => setWaiting(false), [])
+  const stopWaiting = () => setWaiting(false)
 
-  const onEditChannel = React.useCallback(() => {
+  const onEditChannel = () => {
     nav.safeNavigateAppend({
-      props: {
+      name: 'teamEditChannel',
+      params: {
         channelname: meta.channelname,
         conversationIDKey: meta.conversationIDKey,
         description: meta.description,
         teamID: meta.teamID,
       },
-      selected: 'teamEditChannel',
     })
-  }, [nav, meta])
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onChannelSettings = React.useCallback(() => {
+  }
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
+  const onChannelSettings = () => {
     clearModals()
     navigateAppend({
-      props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
-      selected: 'teamChannel',
+      name: 'teamChannel',
+      params: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
     })
-  }, [meta, clearModals, navigateAppend])
-  const onDelete = React.useCallback(() => {
+  }
+  const onDelete = () => {
     // TODO: consider not using the confirm modal
     nav.safeNavigateAppend({
-      props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
-      selected: 'teamDeleteChannel',
+      name: 'teamDeleteChannel',
+      params: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
     })
-  }, [nav, meta])
+  }
 
   const joinRPC = C.useRPC(T.RPCChat.localJoinConversationByIDLocalRpcPromise)
   const leaveRPC = C.useRPC(T.RPCChat.localLeaveConversationLocalRpcPromise)
 
   const convID = T.Chat.keyToConversationID(meta.conversationIDKey)
-  const onLeave = React.useCallback(() => {
+  const onLeave = () => {
     setWaiting(true)
     leaveRPC(
       [{convID}],
@@ -361,8 +369,8 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
       },
       stopWaiting
     )
-  }, [convID, leaveRPC, reloadChannels, stopWaiting])
-  const onJoin = React.useCallback(() => {
+  }
+  const onJoin = () => {
     setWaiting(true)
     joinRPC(
       [{convID}],
@@ -373,36 +381,33 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
       },
       stopWaiting
     )
-  }, [convID, joinRPC, reloadChannels, stopWaiting])
+  }
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const menuItems = [
-        {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
-        ...(isAdmin
-          ? [
-              {
-                icon: 'iconfont-nav-2-settings' as const,
-                onClick: onChannelSettings,
-                title: 'Channel settings',
-              },
-              {danger: true, icon: 'iconfont-remove' as const, onClick: onDelete, title: 'Delete'},
-            ]
-          : []),
-      ]
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={hidePopup}
-          closeOnSelect={true}
-          items={menuItems}
-        />
-      )
-    },
-    [onEditChannel, onChannelSettings, onDelete, isAdmin]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    const menuItems = [
+      {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
+      ...(canDeleteChannel
+        ? [
+            {
+              icon: 'iconfont-nav-2-settings' as const,
+              onClick: onChannelSettings,
+              title: 'Channel settings',
+            },
+            {danger: true, icon: 'iconfont-remove' as const, onClick: onDelete, title: 'Delete'},
+          ]
+        : []),
+    ]
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        visible={true}
+        onHidden={hidePopup}
+        closeOnSelect={true}
+        items={menuItems}
+      />
+    )
+  }
   const {popupAnchor, showPopup, popup} = Kb.usePopup2(makePopup)
   const [buttonMousedOver, setMouseover] = React.useState(false)
   return (
@@ -414,25 +419,25 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
       style={Kb.Styles.collapseStyles([selfMode && !Kb.Styles.isMobile && styles.channelRowSelfMode])}
     >
       {popup}
-      {
+      <Kb.Box2
+        direction="horizontal"
+        onMouseOver={() => setMouseover(true)}
+        onMouseLeave={() => setMouseover(false)}
+      >
         <Kb.Button
           disabled={meta.channelname === 'general'}
-          disabledStopClick={true}
           type={buttonMousedOver && inChannel ? 'Default' : 'Success'}
           mode={inChannel ? 'Secondary' : 'Primary'}
           label={inChannel ? (buttonMousedOver ? 'Leave' : 'In') : 'Join'}
-          icon={inChannel && !buttonMousedOver ? 'iconfont-check' : undefined}
-          iconSizeType={inChannel && !buttonMousedOver ? 'Tiny' : undefined}
-          onMouseEnter={Kb.Styles.isMobile ? undefined : () => setMouseover(true)}
-          onMouseLeave={Kb.Styles.isMobile ? undefined : () => setMouseover(false)}
           onClick={inChannel ? onLeave : onJoin}
           small={true}
-          style={styles.joinLeaveButton}
           waiting={waiting}
-        />
-      }
-      {canEdit && (
-        <Kb.Button
+        >
+          {inChannel && !buttonMousedOver ? <Kb.Icon type="iconfont-check" sizeType="Tiny" /> : undefined}
+        </Kb.Button>
+      </Kb.Box2>
+      {canEditChannelDescription && (
+        <Kb.IconButton
           icon="iconfont-ellipsis"
           iconColor={Kb.Styles.globalColors.black_50}
           onClick={showPopup}
@@ -444,43 +449,59 @@ const SelfChannelActions = React.memo(function SelfChannelActions(p: {
       )}
     </Kb.Box2>
   )
-})
+}
 
 type ChannelRowProps = {
+  canDeleteChannel: boolean
+  canEditChannelDescription: boolean
   channelMeta: T.Chat.ConversationMeta
   selected: boolean
   onSelect: (conviID: T.Chat.ConversationIDKey) => void
   mode: 'self' | 'others'
+  participants: ReadonlyArray<string>
   reloadChannels: () => Promise<void>
   usernames: string[]
   rowHeight: number
 }
-const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
-  const {channelMeta, mode, selected, onSelect: _onSelect, reloadChannels, usernames, rowHeight} = p
+const ChannelRow = function ChannelRow(p: ChannelRowProps) {
+  const {
+    canDeleteChannel,
+    canEditChannelDescription,
+    channelMeta,
+    mode,
+    participants,
+    selected,
+    onSelect: _onSelect,
+    reloadChannels,
+    usernames,
+    rowHeight,
+  } = p
   const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
-  const participants = Chat.useConvoState(conversationIDKey, s => {
-    const {name, all} = s.participants
-    return name.length ? name : all
-  })
-  const activityLevel = Teams.useTeamsState(
-    s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
-  )
+  const {channels: activityByChannel} = Common.useActivityLevels()
+  const activityLevel = activityByChannel.get(channelMeta.conversationIDKey) || 'none'
   const allInChannel = usernames.every(member => participants.includes(member))
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onPreviewChannel = () =>
     previewConversation({
       conversationIDKey: channelMeta.conversationIDKey,
       reason: 'manageView',
     })
 
-  const onSelect = React.useCallback(() => {
+  const onSelect = () => {
     _onSelect(conversationIDKey)
-  }, [_onSelect, conversationIDKey])
+  }
 
   return Kb.Styles.isMobile ? (
     <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect} style={{height: rowHeight}}>
-      <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="tiny">
+      <Kb.Box2
+        direction="horizontal"
+        style={styles.item}
+        alignItems="center"
+        fullWidth={true}
+        gap="tiny"
+        justifyContent="space-between"
+      >
         <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
           #{channelMeta.channelname}
         </Kb.Text>
@@ -489,7 +510,13 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
         </Kb.Box2>
         <Common.ParticipantMeta numParticipants={participants.length} />
         {selfMode ? (
-          <SelfChannelActions selfMode={selfMode} meta={channelMeta} reloadChannels={reloadChannels} />
+          <SelfChannelActions
+            canDeleteChannel={canDeleteChannel}
+            canEditChannelDescription={canEditChannelDescription}
+            selfMode={selfMode}
+            meta={channelMeta}
+            reloadChannels={reloadChannels}
+          />
         ) : (
           <Kb.CheckCircle
             checked={selected || allInChannel}
@@ -505,7 +532,7 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
       </Kb.Box2>
     </Kb.ClickableBox>
   ) : (
-    <Kb.ListItem2
+    <Kb.ListItem
       fullDivider={true}
       onMouseDown={
         selfMode || channelMeta.channelname === 'general' || allInChannel
@@ -527,7 +554,13 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
             <Kb.Box2 direction="horizontal">
               <Common.ParticipantMeta numParticipants={participants.length} />
             </Kb.Box2>
-            <SelfChannelActions selfMode={selfMode} meta={channelMeta} reloadChannels={reloadChannels} />
+            <SelfChannelActions
+              canDeleteChannel={canDeleteChannel}
+              canEditChannelDescription={canEditChannelDescription}
+              selfMode={selfMode}
+              meta={channelMeta}
+              reloadChannels={reloadChannels}
+            />
           </Kb.Box2>
         ) : (
           <Kb.CheckCircle
@@ -570,7 +603,7 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
       ])}
     />
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   channelRowContainer: {marginLeft: 16, marginRight: 8},
@@ -589,13 +622,25 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {height: 48},
   }),
   item: Kb.Styles.platformStyles({
-    common: {justifyContent: 'space-between'},
     isElectron: {...Kb.Styles.padding(0, Kb.Styles.globalMargins.small)},
     isMobile: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
     },
   }),
-  joinLeaveButton: {width: 63},
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   searchFilterContainer: Kb.Styles.platformStyles({
     isElectron: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
   }),
@@ -604,5 +649,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.globalStyles.flexBoxCenter,
   },
 }))
+
+const AddToChannels = (props: Props) => (
+  <LoadedTeamProvider teamID={props.teamID}>
+    <AddToChannelsBody {...props} />
+  </LoadedTeamProvider>
+)
 
 export default AddToChannels

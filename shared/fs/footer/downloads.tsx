@@ -2,11 +2,10 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as Kbfs from '../common'
 import Download from './download'
-import {useFSState} from '@/constants/fs'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 const Mobile = () => {
-  Kbfs.useFsDownloadStatus()
-  const downloadIDs = useFSState(s => s.downloads.regularDownloads)
+  const downloadIDs = Kbfs.useFsDownloadStatus().regularDownloads
   return downloadIDs.length ? (
     <>
       <Kb.Divider />
@@ -29,14 +28,8 @@ const Mobile = () => {
 }
 
 const Desktop = () => {
-  Kbfs.useFsDownloadStatus()
-  const {downloadIDs, openLocalPathInSystemFileManagerDesktop} = useFSState(
-    C.useShallow(s => ({
-      downloadIDs: s.downloads.regularDownloads,
-      openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
-    }))
-  )
-  const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
+  const downloadIDs = Kbfs.useFsDownloadStatus().regularDownloads
+  const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop(C.downloadFolder)
   return downloadIDs.length ? (
     <>
       <Kb.Divider />
@@ -64,7 +57,7 @@ const Desktop = () => {
             />
           </Kb.WithTooltip>
         )}
-        <Kb.Box style={styles.space} />
+        <Kb.Box2 direction="horizontal" flex={1} />
         <Kb.WithTooltip tooltip="Open Downloads folder">
           <Kb.Icon
             type="iconfont-folder-downloads"
@@ -95,7 +88,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderRadius: 4,
         marginLeft: Kb.Styles.globalMargins.xtiny,
       },
-      space: {flex: 1},
     }) as const
 )
 

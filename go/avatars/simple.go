@@ -2,6 +2,7 @@ package avatars
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -63,14 +64,12 @@ func (s *SimpleSource) makeRes(res *keybase1.LoadAvatarsRes, apiRes apiAvatarRes
 	allocRes(res, names)
 	for index, rec := range apiRes.Pictures {
 		u := names[index]
-		for format, url := range rec {
-			res.Picmap[u][format] = url
-		}
+		maps.Copy(res.Picmap[u], rec)
 	}
 	return nil
 }
 
-func (s *SimpleSource) debug(m libkb.MetaContext, msg string, args ...interface{}) {
+func (s *SimpleSource) debug(m libkb.MetaContext, msg string, args ...any) {
 	m.Debug("Avatars.SimpleSource: %s", fmt.Sprintf(msg, args...))
 }
 

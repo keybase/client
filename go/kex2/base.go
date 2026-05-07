@@ -14,7 +14,7 @@ import (
 )
 
 type LogContext interface {
-	Debug(format string, args ...interface{})
+	Debug(format string, args ...any)
 }
 
 type baseDevice struct {

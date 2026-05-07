@@ -1,7 +1,7 @@
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
-import {errors as transportErrors} from 'framed-msgpack-rpc'
+import {errors as transportErrors} from '@/engine/rpc-transport'
 import RPCError from './rpcerror'
 
 function isRPCErrorLike(err: object): err is RPCErrorLike {
@@ -30,6 +30,31 @@ export function convertToError(err: unknown, method?: string): Error | RPCError 
   } catch {
     return new Error(`Unknown error`)
   }
+}
+
+const errorMessage = (error: unknown) => {
+  if (error && typeof error === 'object') {
+    const message = (error as {message?: unknown}).message
+    if (typeof message === 'string') {
+      return message
+    }
+    const desc = (error as {desc?: unknown}).desc
+    if (typeof desc === 'string') {
+      return desc
+    }
+  }
+  return String(error)
+}
+
+export function ensureError(error: unknown): Error {
+  if (error instanceof Error) {
+    return error
+  }
+  const nativeError = new Error(errorMessage(error), {cause: error})
+  if (error && typeof error === 'object') {
+    Object.assign(nativeError, error)
+  }
+  return nativeError
 }
 
 type RPCErrorLike = {
@@ -93,12 +118,7 @@ function isRPCError(error: RPCError | Error): error is RPCError {
 }
 
 export function isEOFError(error: RPCError | Error) {
-  return (
-    isRPCError(error) &&
-    error.code &&
-    (error.code as number) === transportErrors['EOF'] &&
-    error.message === transportErrors.msg[transportErrors['EOF']]
-  )
+  return isRPCError(error) && (error.code as number) === transportErrors['EOF']
 }
 
 const ignoredMsgs = ['context deadline exceeded in method keybase.1.SimpleFS.simpleFSSyncStatus']

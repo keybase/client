@@ -77,7 +77,7 @@ func generateIKey(length int, plusOffset int) (str string, err error) {
 	}
 
 	var buf []byte
-	for i := 0; i < length; i++ {
+	for i := range length {
 		if i == plusOffset {
 			buf = append(buf, '+')
 		} else {

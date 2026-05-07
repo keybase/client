@@ -1,14 +1,15 @@
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
 import * as RowSizes from '../../sizes'
 import type {Props} from '.'
+import {View} from 'react-native'
 import {RectButton} from 'react-native-gesture-handler'
 import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
-import {View} from 'react-native'
 import {useOpenedRowState} from '../../opened-row-state'
+import {useInboxRowSmall} from '@/stores/inbox-rows'
+import {hideConversation, markConversationUnread, muteConversation} from '@/chat/conversation/status-actions'
 
 const actionWidth = 64
 
@@ -47,54 +48,39 @@ const Action = (p: {
   )
 }
 
-const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+function SwipeConvActions(p: Props) {
+  const {conversationIDKey} = p
   const isOpened = useOpenedRowState(s => s.openedRow === conversationIDKey)
   const wasOpenRef = React.useRef(isOpened)
   const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
   const swipeableRef = React.useRef<SwipeableMethods | null>(null)
-  const closeOpenedRow = React.useCallback(() => {
+  const closeOpenedRow = () => {
     if (isOpened) {
       setOpenedRow(Chat.noConversationIDKey)
     }
-  }, [isOpened, setOpenedRow])
-  const {children} = p
+  }
+  const {children, onPress} = p
 
-  const setMarkAsUnread = Chat.useChatContext(s => s.dispatch.setMarkAsUnread)
-  const onMarkConversationAsUnread = C.useEvent(() => {
-    setMarkAsUnread()
-  })
+  const isMuted = useInboxRowSmall(conversationIDKey).isMuted
 
-  const mute = Chat.useChatContext(s => s.dispatch.mute)
-  const onMuteConversation = C.useEvent(() => {
-    mute(!isMuted)
-  })
-
-  const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
-  const onHideConversation = C.useEvent(() => {
-    hideConversation(true)
-  })
-
-  const isMuted = Chat.useChatContext(s => s.meta.isMuted)
-
-  const onMarkAsUnread = C.useEvent(() => {
-    onMarkConversationAsUnread()
+  const onMarkAsUnread = () => {
+    markConversationUnread(conversationIDKey)
     closeOpenedRow()
-  })
+  }
 
-  const onMute = C.useEvent(() => {
-    onMuteConversation()
+  const onMute = () => {
+    muteConversation(conversationIDKey, !isMuted)
     closeOpenedRow()
-  })
+  }
 
-  const onHide = C.useEvent(() => {
-    onHideConversation()
+  const onHide = () => {
+    hideConversation(conversationIDKey, true)
     closeOpenedRow()
-  })
+  }
 
-  const onSwipeableOpenStartDrag = React.useCallback(() => {
+  const onSwipeableOpenStartDrag = () => {
     setOpenedRow(conversationIDKey)
-  }, [setOpenedRow, conversationIDKey])
+  }
 
   React.useEffect(() => {
     if (!isOpened && wasOpenRef.current) {
@@ -106,38 +92,47 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     wasOpenRef.current = isOpened
   }, [isOpened])
 
-  const renderRightActions = React.useCallback(
-    (progress: Reanimated.SharedValue<number>) => {
-      return (
-        <View style={[styles.container, {width: 3 * actionWidth}]}>
-          <Action
-            text="Unread"
-            color={Kb.Styles.globalColors.blue}
-            iconType="iconfont-envelope-solid"
-            onClick={onMarkAsUnread}
-            offset={0}
-            progress={progress}
-          />
-          <Action
-            text={isMuted ? 'Unmute' : 'Mute'}
-            color={Kb.Styles.globalColors.orange}
-            iconType="iconfont-shh"
-            onClick={onMute}
-            offset={1}
-            progress={progress}
-          />
-          <Action
-            text="Hide"
-            color={Kb.Styles.globalColors.greyDarker}
-            iconType="iconfont-hide"
-            onClick={onHide}
-            offset={2}
-            progress={progress}
-          />
-        </View>
-      )
-    },
-    [isMuted, onMarkAsUnread, onMute, onHide]
+  const renderRightActions = (progress: Reanimated.SharedValue<number>) => {
+    return (
+      <View style={[styles.container, {width: 3 * actionWidth}]}>
+        <Action
+          text="Unread"
+          color={Kb.Styles.globalColors.blue}
+          iconType="iconfont-envelope-solid"
+          onClick={onMarkAsUnread}
+          offset={0}
+          progress={progress}
+        />
+        <Action
+          text={isMuted ? 'Unmute' : 'Mute'}
+          color={Kb.Styles.globalColors.orange}
+          iconType="iconfont-shh"
+          onClick={onMute}
+          offset={1}
+          progress={progress}
+        />
+        <Action
+          text="Hide"
+          color={Kb.Styles.globalColors.greyDarker}
+          iconType="iconfont-hide"
+          onClick={onHide}
+          offset={2}
+          progress={progress}
+        />
+      </View>
+    )
+  }
+
+  const inner = onPress ? (
+    <RectButton onPress={onPress} style={styles.touchable} testID="inboxRow">
+      <View accessible={false} style={styles.touchable}>
+        {children}
+      </View>
+    </RectButton>
+  ) : (
+    <View style={styles.touchable} testID="inboxRow">
+      {children}
+    </View>
   )
 
   return (
@@ -147,10 +142,10 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
       renderRightActions={renderRightActions}
       containerStyle={styles.row}
     >
-      {children}
+      {inner}
     </Swipeable>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -179,6 +174,10 @@ const styles = Kb.Styles.styleSheetCreate(
       row: {
         flexShrink: 0,
         height: RowSizes.smallRowHeight,
+      },
+      touchable: {
+        height: RowSizes.smallRowHeight,
+        width: '100%',
       },
     }) as const
 )

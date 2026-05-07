@@ -1,7 +1,7 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
+import {PerfProfiler} from '@/perf/react-profiler'
 import Banner from '../bottom-banner'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '@/chat/blocking/invitation-to-block'
@@ -9,9 +9,13 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import ThreadSearch from '../search'
+import {useConversationCenter} from '../center-context'
+import {useConversationThreadID, useConversationThreadSelector, useConversationThreadToggleSearch} from '../thread-context'
+import {useThreadSearchRoute} from '../thread-search-route'
 import {readImageFromClipboard} from '@/util/clipboard.desktop'
 import '../conversation.css'
 import {indefiniteArticle} from '@/util/string'
+import {makePasteAttachment} from '../attachment-actions'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -20,7 +24,7 @@ const Offline = () => (
 )
 
 const LoadingLine = () => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const showLoader = C.Waiting.useAnyWaiting([
     C.waitingKeyChatThreadLoad(conversationIDKey),
     C.waitingKeyChatInboxSyncStarted,
@@ -28,46 +32,40 @@ const LoadingLine = () => {
   return showLoader ? <Kb.LoadingLine /> : null
 }
 
-const Conversation = React.memo(function Conversation() {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
-  const navigateAppend = Chat.useChatNavigateAppend()
-  const onAttach = React.useCallback(
-    (paths: Array<string>) => {
-      const pathAndOutboxIDs = paths.map(p => ({path: p}))
-      navigateAppend(conversationIDKey => ({
-        props: {conversationIDKey, pathAndOutboxIDs},
-        selected: 'chatAttachmentGetTitles',
-      }))
-    },
-    [navigateAppend]
-  )
-  const showThreadSearch = Chat.useChatContext(s => s.threadSearchInfo.visible)
-  const cannotWrite = Chat.useChatContext(s => s.meta.cannotWrite)
-  const threadLoadedOffline = Chat.useChatContext(s => s.meta.offline)
-  const dragAndDropRejectReason = Chat.useChatContext(s => {
-    const meta = s.meta
-    const {cannotWrite, minWriterRole} = meta
-    return cannotWrite
-      ? `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
-      : undefined
-  })
-  const attachmentPasted = Chat.useChatContext(s => s.dispatch.attachmentPasted)
-  const onPaste = React.useCallback(
-    (e: React.SyntheticEvent) => {
-      readImageFromClipboard(e)
-        .then(clipboardData => {
-          if (clipboardData) {
-            attachmentPasted(clipboardData)
-          }
-        })
-        .catch(() => {})
-    },
-    [attachmentPasted]
-  )
-  const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
-  const onToggleThreadSearch = React.useCallback(() => {
+const Conversation = function Conversation() {
+  const conversationIDKey = useConversationThreadID()
+  const navigateAppend = C.Router2.navigateAppend
+  const onAttach = (paths: Array<string>) => {
+    const pathAndOutboxIDs = paths.map(p => ({path: p}))
+    navigateAppend({
+      name: 'chatAttachmentGetTitles',
+      params: {conversationIDKey, pathAndOutboxIDs},
+    })
+  }
+  const showThreadSearch = !!useThreadSearchRoute()
+  const meta = useConversationThreadSelector(s => s.meta)
+  const {cannotWrite, minWriterRole} = meta
+  const threadLoadedOffline = meta.offline
+  const dragAndDropRejectReason = cannotWrite
+    ? `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
+    : undefined
+  const onPaste = (e: React.SyntheticEvent) => {
+    readImageFromClipboard(e)
+      .then(clipboardData => {
+        if (clipboardData) {
+          makePasteAttachment(conversationIDKey, clipboardData)
+        }
+      })
+      .catch(() => {})
+  }
+  const toggleThreadSearch = useConversationThreadToggleSearch()
+  const {clearCenter} = useConversationCenter()
+  const onToggleThreadSearch = () => {
+    if (showThreadSearch) {
+      clearCenter()
+    }
     toggleThreadSearch()
-  }, [toggleThreadSearch])
+  }
   Kb.useHotKey('mod+f', onToggleThreadSearch)
 
   return (
@@ -79,7 +77,7 @@ const Conversation = React.memo(function Conversation() {
         rejectReason={dragAndDropRejectReason}
       >
         {threadLoadedOffline && <Offline />}
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
           <ListArea />
           <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
             <ThreadLoadStatus />
@@ -94,17 +92,13 @@ const Conversation = React.memo(function Conversation() {
       </Kb.DragAndDrop>
     </div>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
-        flex: 1,
-        position: 'relative',
-      },
-      innerContainer: {
         flex: 1,
         position: 'relative',
       },
@@ -118,4 +112,10 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Conversation
+const ConversationWithProfiler = () => (
+  <PerfProfiler id="Conversation">
+    <Conversation />
+  </PerfProfiler>
+)
+
+export default ConversationWithProfiler

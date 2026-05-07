@@ -151,7 +151,7 @@ func updateCoords(t *testing.T, livelocation *maps.LiveLocationTracker, coords [
 		livelocation.LocationUpdate(context.TODO(), c)
 		allCoords = append(allCoords, c)
 	}
-	for i := 0; i < len(coords); i++ {
+	for range coords {
 		select {
 		case <-coordsCh:
 		case <-time.After(20 * time.Second):

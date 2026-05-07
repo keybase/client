@@ -1,66 +1,56 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import type * as React from 'react'
 import FollowButton from './follow-button'
 import ChatButton from '@/chat/chat-button'
-import {useBotsState} from '@/constants/bots'
-import {useTrackerState} from '@/constants/tracker2'
 import * as FS from '@/constants/fs'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useFeaturedBot} from '@/util/featured-bots'
 
-type OwnProps = {username: string}
+type OwnProps = {
+  blocked: boolean
+  followThem: boolean
+  followsYou: boolean
+  guiID: string
+  hidFromFollowers: boolean
+  onReload: () => void
+  state: T.Tracker.DetailsState
+  username: string
+}
 
 const Container = (ownProps: OwnProps) => {
-  const username = ownProps.username
-  const d = useTrackerState(s => s.getDetails(username))
-  const followThem = useFollowerState(s => s.following.has(username))
-  const followsYou = useFollowerState(s => s.followers.has(username))
-  const isBot = useBotsState(s => s.featuredBotsMap.has(username))
-
-  const _guiID = d.guiID
+  const {blocked, followThem, followsYou, guiID, hidFromFollowers, onReload, state, username} = ownProps
+  const isBot = !!useFeaturedBot(username)
   const _you = useCurrentUserState(s => s.username)
-  const blocked = d.blocked
-  const hidFromFollowers = d.hidFromFollowers
-  const state = d.state
 
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const _onAddToTeam = (username: string) => navigateAppend({props: {username}, selected: 'profileAddToTeam'})
+  const navigateAppend = C.Router2.navigateAppend
+  const _onAddToTeam = (username: string) => navigateAppend({name: 'profileAddToTeam', params: {username}})
   const _onBrowsePublicFolder = (username: string) =>
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/public/${username}`))
-  const _onEditProfile = () => navigateAppend('profileEdit')
+    FS.navToPath(T.FS.stringToPath(`/keybase/public/${username}`))
+  const _onEditProfile = () => navigateAppend({name: 'profileEdit', params: {}})
 
-  const changeFollow = useTrackerState(s => s.dispatch.changeFollow)
-  const _onFollow = changeFollow
+  const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
+  const _onFollow = (follow: boolean) => {
+    followUser([{follow, guiID}, C.waitingKeyTracker], onReload, () => {})
+  }
   const _onInstallBot = (username: string) => {
-    navigateAppend({props: {botUsername: username}, selected: 'chatInstallBotPick'})
+    navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
   }
   const _onManageBlocking = (username: string) =>
-    navigateAppend({props: {username}, selected: 'chatBlockingModal'})
+    navigateAppend({name: 'chatBlockingModal', params: {username}})
   const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
-  const showUser = useTrackerState(s => s.dispatch.showUser)
-  const _onReload = (username: string) => {
-    showUser(username, false)
-  }
-  const onAccept = () => _onFollow(_guiID, true)
+    FS.navToPath(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
+  const onAccept = () => _onFollow(true)
   const onAddToTeam = () => _onAddToTeam(username)
   const onBrowsePublicFolder = () => _onBrowsePublicFolder(username)
   const onEditProfile = _you === username ? _onEditProfile : undefined
-  const onFollow = () => _onFollow(_guiID, true)
+  const onFollow = () => _onFollow(true)
   const onInstallBot = () => _onInstallBot(username)
   const onManageBlocking = () => _onManageBlocking(username)
   const onOpenPrivateFolder = () => _onOpenPrivateFolder(_you, username)
-  const onReload = () => _onReload(username)
-  const onUnfollow = () => _onFollow(_guiID, false)
+  const onUnfollow = () => _onFollow(false)
 
-  const getFeaturedBots = useBotsState(s => s.dispatch.getFeaturedBots)
-  // load featured bots on first render
-  React.useEffect(() => {
-    // TODO likely don't do this all the time, just once
-    getFeaturedBots()
-  }, [getFeaturedBots])
   if (blocked) {
     return (
       <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
@@ -183,48 +173,38 @@ type DropdownProps = {
 const DropdownButton = (p: DropdownProps) => {
   const {onInstallBot, onAddToTeam, onBrowsePublicFolder, onUnfollow} = p
   const {onManageBlocking, blockedOrHidFromFollowers, isBot, onOpenPrivateFolder} = p
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      const items: Kb.MenuItems = [
-        isBot
-          ? {icon: 'iconfont-nav-2-robot', onClick: onInstallBot, title: 'Install bot in team or chat'}
-          : {icon: 'iconfont-people', onClick: onAddToTeam, title: 'Add to team...'},
-        {icon: 'iconfont-folder-open', onClick: onOpenPrivateFolder, title: 'Open private folder'},
-        {icon: 'iconfont-folder-public', onClick: onBrowsePublicFolder, title: 'Browse public folder'},
-        onUnfollow && {icon: 'iconfont-wave', onClick: onUnfollow, title: 'Unfollow'},
-        {
-          danger: true,
-          icon: 'iconfont-remove',
-          onClick: onManageBlocking,
-          title: blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
-        },
-      ].reduce<Kb.MenuItems>((arr, i) => {
-        i && arr.push(i as Kb.MenuItem)
-        return arr
-      }, [])
-      return (
-        <Kb.FloatingMenu
-          closeOnSelect={true}
-          attachTo={attachTo}
-          items={items}
-          onHidden={hidePopup}
-          position="bottom right"
-          visible={true}
-        />
-      )
-    },
-    [
-      blockedOrHidFromFollowers,
-      isBot,
-      onAddToTeam,
-      onBrowsePublicFolder,
-      onInstallBot,
-      onManageBlocking,
-      onOpenPrivateFolder,
-      onUnfollow,
-    ]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    const items: Kb.MenuItems = [
+      isBot
+        ? {icon: 'iconfont-nav-2-robot', onClick: onInstallBot, title: 'Install bot in team or chat'}
+        : {icon: 'iconfont-people', onClick: onAddToTeam, title: 'Add to team...'},
+      {icon: 'iconfont-folder-open', onClick: onOpenPrivateFolder, title: 'Open private folder'},
+      {icon: 'iconfont-folder-public', onClick: onBrowsePublicFolder, title: 'Browse public folder'},
+      onUnfollow && {icon: 'iconfont-wave', onClick: onUnfollow, title: 'Unfollow'},
+      {
+        danger: true,
+        icon: 'iconfont-remove',
+        onClick: onManageBlocking,
+        title: blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
+      },
+    ].reduce<Kb.MenuItems>((arr, i) => {
+      if (i) {
+        arr.push(i as Kb.MenuItem)
+      }
+      return arr
+    }, [])
+    return (
+      <Kb.FloatingMenu
+        closeOnSelect={true}
+        attachTo={attachTo}
+        items={items}
+        onHidden={hidePopup}
+        position="bottom right"
+        visible={true}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
@@ -240,7 +220,6 @@ const DropdownButton = (p: DropdownProps) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  chatIcon: {marginRight: Kb.Styles.globalMargins.tiny},
   dropdownButton: {minWidth: undefined},
 }))
 

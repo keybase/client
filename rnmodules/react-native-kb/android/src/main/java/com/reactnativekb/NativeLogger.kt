@@ -12,21 +12,20 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.WritableArray
 
 class NativeLogger(reactContext: ReactApplicationContext?) : ReactContextBaseJavaModule(reactContext) {
-    @Override
     override fun getName(): String {
         return NAME
     }
 
     companion object {
-        private val NAME: String = "NativeLogger"
-        private val RN_NAME: String = "ReactNativeJS"
+        private const val NAME: String = "NativeLogger"
+        private const val RN_NAME: String = "ReactNativeJS"
         fun rawLog(tag: String, jsonLog: String) {
             Log.i(tag + NAME, jsonLog)
         }
 
         private fun formatLine(tagPrefix: String, toLog: String): String {
             // Copies the Style JS outputs in native/logger.native.tsx
-            return tagPrefix + NAME + ": [" + System.currentTimeMillis() + ",\"" + toLog + "\"]"
+            return "${tagPrefix}${NAME}: [${System.currentTimeMillis()},\"$toLog\"]"
         }
 
         fun error(log: String) {

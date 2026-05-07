@@ -24,6 +24,7 @@ export type Loggers = {
 const localLog = isMobile ? (__DEV__ ? console.log.bind(console) : noop) : console.log.bind(console)
 const localWarn = console.warn.bind(console)
 const localError = console.error.bind(console)
+const isJest = typeof process !== 'undefined' && !!process.env['JEST_WORKER_ID']
 
 // inject for convenience
 if (__DEV__) {
@@ -59,7 +60,9 @@ class AggregateLoggerImpl {
   private timerID: undefined | ReturnType<typeof setTimeout>
 
   private resetPeriodic = () => {
-    this.timerID && clearTimeout(this.timerID)
+    if (this.timerID) {
+      clearTimeout(this.timerID)
+    }
     // we wait, then want a good opportunity
     this.timerID = setTimeout(() => {
       requestIdleCallback(
@@ -91,7 +94,9 @@ class AggregateLoggerImpl {
     }
 
     this.allLoggers = [this._action, this._debug, this._error, this._info, this._warn]
-    this.resetPeriodic()
+    if (!isJest) {
+      this.resetPeriodic()
+    }
   }
 
   dump = async (periodic: boolean = false) => {

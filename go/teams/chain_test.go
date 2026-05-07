@@ -221,7 +221,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 
 	// Check once before and after serializing and deserializing
 	mctx := libkb.NewMetaContextForTest(tc)
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		if i == 0 {
 			t.Logf("testing fresh")
 		} else {
@@ -309,7 +309,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 	mctx := libkb.NewMetaContextForTest(tc)
 
 	// Check once before and after serializing and deserializing
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		require.Equal(t, "t_bfaadb41", string(state.LatestLastNamePart()))
 		require.False(t, state.IsSubteam())
 		ptk, err := state.GetLatestPerTeamKey(mctx)
@@ -359,7 +359,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 	}
 }
 
-func encode(input interface{}) ([]byte, error) {
+func encode(input any) ([]byte, error) {
 	mh := codec.MsgpackHandle{WriteExt: true}
 	var data []byte
 	enc := codec.NewEncoderBytes(&data, &mh)
@@ -369,7 +369,7 @@ func encode(input interface{}) ([]byte, error) {
 	return data, nil
 }
 
-func decode(data []byte, res interface{}) error {
+func decode(data []byte, res any) error {
 	mh := codec.MsgpackHandle{WriteExt: true}
 	dec := codec.NewDecoderBytes(data, &mh)
 	err := dec.Decode(res)
@@ -505,7 +505,7 @@ func TestMemberCtime(t *testing.T) {
 
 	// user had a bunch of non-NONE roles, we should return the first join time
 	points = nil
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		points = append(points,
 			keybase1.UserLogPoint{
 				Role: keybase1.TeamRole_WRITER,

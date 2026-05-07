@@ -140,7 +140,7 @@ func (c *cmdWalletCancelAll) Run() (err error) {
 	}
 
 	// start maxConsumers workers
-	for i := 0; i < maxConsumers; i++ {
+	for range maxConsumers {
 		c.group.Go(func() error {
 			for txID := range ingestChannel {
 				res, err := cli.ClaimCLILocal(context.TODO(), stellar1.ClaimCLILocalArg{TxID: txID})

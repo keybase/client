@@ -1,78 +1,77 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat'
+import {getBotsAndParticipants} from '@/constants/chat/helpers'
 import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
+import {useNavigation} from '@react-navigation/native'
+import {useEngineActionListener} from '@/engine/action-listener'
 import {
   useAttachmentSections,
   type Item as AttachmentItem,
 } from '../../chat/conversation/info-panel/attachments'
-import {SelectionPopup, useChannelParticipants} from '../common'
+import {SelectionPopup, useAllChannelMetas, useChannelParticipants, ActivityLevelsProvider} from '../common'
+import {ChannelSelectionProvider} from '../common/selection-state'
 import ChannelTabs, {type TabKey} from './tabs'
 import ChannelHeader from './header'
 import ChannelMemberRow from './rows'
 import BotRow from '../team/rows/bot-row/bot'
 import SettingsList from '../../chat/conversation/info-panel/settings'
 import EmptyRow from '../team/rows/empty-row'
-import {useBotsState} from '@/constants/bots'
-import {useUsersState} from '@/constants/users'
+import {LoadedTeamChannelsProvider} from '../common/use-loaded-team-channels'
+import {useUsersState} from '@/stores/users'
+import {LoadedTeamProvider, useLoadedTeam} from '../team/use-loaded-team'
+import {unboxRows} from '@/chat/inbox/metadata'
 
 export type OwnProps = {
   teamID: T.Teams.TeamID
   conversationIDKey: T.Chat.ConversationIDKey
   selectedTab?: TabKey
+  selectedMembers?: Array<string>
 }
 
+const emptyParticipantInfo: T.Chat.ParticipantInfo = {all: [], contactName: new Map(), name: []}
+
 const useLoadDataForChannelPage = (
-  teamID: T.Teams.TeamID,
   conversationIDKey: T.Chat.ConversationIDKey,
   selectedTab: TabKey,
   meta: T.Chat.ConversationMeta,
-  participants: ReadonlyArray<string>,
-  bots: ReadonlyArray<string>
+  participants: ReadonlyArray<string>
 ) => {
   const prevSelectedTabRef = React.useRef(selectedTab)
-  const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
-  const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
+  const prevParticipantsRef = React.useRef(participants)
+  const loadedBlockStateForConvRef = React.useRef(false)
   const getBlockState = useUsersState(s => s.dispatch.getBlockState)
-  const unboxRows = Chat.useChatState(s => s.dispatch.unboxRows)
   React.useEffect(() => {
-    if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'members') {
+    loadedBlockStateForConvRef.current = false
+  }, [conversationIDKey])
+  React.useEffect(() => {
+    const participantsChanged =
+      participants.length !== prevParticipantsRef.current.length ||
+      participants.some((participant, index) => participant !== prevParticipantsRef.current[index])
+    if (
+      selectedTab === 'members' &&
+      (!loadedBlockStateForConvRef.current || selectedTab !== prevSelectedTabRef.current || participantsChanged)
+    ) {
       if (meta.conversationIDKey === 'EMPTY') {
         unboxRows([conversationIDKey])
       }
-      getMembers(teamID)
       getBlockState(participants)
+      loadedBlockStateForConvRef.current = true
     }
+    prevParticipantsRef.current = participants
   }, [
-    unboxRows,
     getBlockState,
-    getMembers,
     selectedTab,
     conversationIDKey,
     meta.conversationIDKey,
     participants,
-    teamID,
   ])
-  const searchFeaturedBots = useBotsState(s => s.dispatch.searchFeaturedBots)
-  React.useEffect(() => {
-    if (selectedTab !== prevSelectedTabRef.current && selectedTab === 'bots') {
-      // Load any bots that aren't in the featured bots map already
-      bots
-        .filter(botUsername => !featuredBotsMap.has(botUsername))
-        .map(botUsername => searchFeaturedBots(botUsername))
-    }
-  }, [selectedTab, searchFeaturedBots, conversationIDKey, bots, featuredBotsMap])
 
   React.useEffect(() => {
     prevSelectedTabRef.current = selectedTab
   }, [selectedTab])
-
-  const loadTeamChannelList = Teams.useTeamsState(s => s.dispatch.loadTeamChannelList)
-  React.useEffect(() => {
-    loadTeamChannelList(teamID)
-  }, [loadTeamChannelList, teamID])
 }
 
 // keep track during session
@@ -85,12 +84,9 @@ const useTabsState = (
 ): [TabKey, (t: TabKey) => void] => {
   const defaultSelectedTab = lastSelectedTabs[conversationIDKey] ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
-  const setSelectedTab = React.useCallback(
-    (t: TabKey) => {
-      _setSelectedTab(t)
-    },
-    [_setSelectedTab]
-  )
+  const setSelectedTab = (t: TabKey) => {
+    _setSelectedTab(t)
+  }
 
   React.useEffect(() => {
     lastSelectedTabs[conversationIDKey] = selectedTab
@@ -101,9 +97,9 @@ const useTabsState = (
   React.useEffect(() => {
     if (conversationIDKey !== prevConvIDRef.current) {
       prevConvIDRef.current = conversationIDKey
-      setSelectedTab(defaultSelectedTab)
+      _setSelectedTab(defaultSelectedTab)
     }
-  }, [conversationIDKey, setSelectedTab, defaultSelectedTab])
+  }, [conversationIDKey, defaultSelectedTab])
   return [selectedTab, setSelectedTab]
 }
 
@@ -116,6 +112,7 @@ type Item =
   | {type: 'load-more'}
   | {type: 'header-section'}
   | {type: 'headerSection'}
+  | {type: 'membersLoading'}
   | {type: 'membersSection'; username: string}
   | {type: 'membersEmpty'}
   | {type: 'membersFew'}
@@ -128,23 +125,58 @@ type Item =
 
 type Section = Kb.SectionType<Item>
 
-const emptyMapForUseSelector = new Map<string, T.Teams.MemberInfo>()
-const Channel = (props: OwnProps) => {
+const useNavigateAwayOnDeletedTeam = (teamID: T.Teams.TeamID) => {
+  const navUpToScreen = C.Router2.navUpToScreen
+  useEngineActionListener('keybase.1.NotifyTeam.teamDeleted', action => {
+    if (action.payload.params.teamID === teamID) {
+      navUpToScreen('teamsRoot')
+    }
+  })
+  useEngineActionListener('keybase.1.NotifyTeam.teamExit', action => {
+    if (action.payload.params.teamID === teamID) {
+      navUpToScreen('teamsRoot')
+    }
+  })
+}
+
+const ChannelBody = (props: OwnProps) => {
   const teamID = props.teamID
   const conversationIDKey = props.conversationIDKey
   const providedTab = props.selectedTab
+  const navigation = useNavigation()
 
-  const meta = Chat.useConvoState(conversationIDKey, s => s.meta)
-  const {bots, participants: _participants} = Chat.useConvoState(
-    conversationIDKey,
-    C.useDeep(s => Chat.getBotsAndParticipants(meta, s.participants, true /* sort */))
+  const {channelMetas, channelParticipants: channelParticipantsByConv} = useAllChannelMetas(teamID)
+  const meta = channelMetas.get(conversationIDKey) ?? Chat.makeConversationMeta()
+  const {loading: loadingTeam, teamDetails, yourOperations} = useLoadedTeam(teamID)
+  const teamMembers = teamDetails.members
+  const participantInfo = channelParticipantsByConv.get(conversationIDKey) ?? emptyParticipantInfo
+  const {bots, participants: _participants} = getBotsAndParticipants(
+    meta,
+    participantInfo,
+    teamMembers,
+    true /* sort */
   )
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
-  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
-  useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants, bots)
-  const participants = useChannelParticipants(teamID, conversationIDKey)
+  const channelParticipants = useChannelParticipants(teamID, conversationIDKey)
+  const generalMembersLoading = meta.channelname === 'general' && loadingTeam && teamMembers.size === 0
+  const participants: ReadonlyArray<string> =
+    meta.channelname === 'general' && teamMembers.size > 0 ? _participants : channelParticipants
+  useLoadDataForChannelPage(conversationIDKey, selectedTab, meta, participants)
+
+  React.useEffect(() => {
+    if (!props.selectedMembers?.length) {
+      return
+    }
+    if (meta.channelname === 'general' && teamMembers.size === 0) {
+      return
+    }
+    const channelParticipantsSet = new Set(participants)
+    const nextSelectedMembers = props.selectedMembers.filter(username => channelParticipantsSet.has(username))
+    if (nextSelectedMembers.length !== props.selectedMembers.length) {
+      navigation.setParams({selectedMembers: nextSelectedMembers.length ? nextSelectedMembers : undefined})
+    }
+  }, [meta.channelname, navigation, participants, props.selectedMembers, teamMembers.size])
 
   // Make the actual sections (consider farming this out into another function or file)
   const headerSection: Section = {
@@ -155,8 +187,6 @@ const Channel = (props: OwnProps) => {
       ) : item.type === 'headerTabs' ? (
         <ChannelTabs
           admin={yourOperations.manageMembers}
-          teamID={teamID}
-          conversationIDKey={conversationIDKey}
           selectedTab={selectedTab}
           setSelectedTab={setSelectedTab}
         />
@@ -164,7 +194,7 @@ const Channel = (props: OwnProps) => {
   }
 
   const {sections: attachmentSections} = useAttachmentSections(
-    {commonSections: []},
+    {commonSections: [], conversationIDKey},
     selectedTab === 'attachments', // load data immediately
     true // variable width
   )
@@ -173,21 +203,26 @@ const Channel = (props: OwnProps) => {
   switch (selectedTab) {
     case 'members': {
       sections.push({
-        data: participants.map(p => ({type: 'membersSection', username: p})),
+        data: generalMembersLoading
+          ? [{type: 'membersLoading'}]
+          : participants.map(p => ({type: 'membersSection', username: p})),
         renderItem: ({index, item}: {index: number; item: Item}) =>
           item.type === 'membersSection' ? (
             <ChannelMemberRow
               conversationIDKey={conversationIDKey}
               teamID={teamID}
               username={item.username}
+              participantInfo={participantInfo}
               firstItem={index === 0}
               isGeneral={meta.channelname === 'general'}
             />
+          ) : item.type === 'membersLoading' ? (
+            <Kb.ProgressIndicator type="Large" />
           ) : null,
-        title: `Members (${participants.length})`,
+        title: generalMembersLoading ? 'Members' : `Members (${participants.length})`,
       } as const)
 
-      if (participants.length === 0) {
+      if (!generalMembersLoading && participants.length === 0) {
         sections.push({
           data: [{type: 'membersEmpty'}],
           renderItem: () => (
@@ -247,7 +282,9 @@ const Channel = (props: OwnProps) => {
     case 'settings': {
       sections.push({
         data: [{type: 'settings'}],
-        renderItem: () => <SettingsList isPreview={isPreview} commonSections={[]} />,
+        renderItem: () => (
+          <SettingsList isPreview={isPreview} commonSections={[]} conversationIDKey={conversationIDKey} />
+        ),
       } as const)
       break
     }
@@ -255,44 +292,45 @@ const Channel = (props: OwnProps) => {
   }
 
   return (
-    <Kb.Box style={styles.container}>
-      <Kb.SectionList
-        renderSectionHeader={({section}) =>
-          section.title ? <Kb.SectionDivider label={section.title} /> : null
-        }
-        stickySectionHeadersEnabled={Kb.Styles.isMobile}
-        sections={sections}
-        contentContainerStyle={styles.listContentContainer}
-        style={styles.list}
-      />
-      <SelectionPopup selectedTab={selectedTab === 'members' ? 'channelMembers' : ''} teamID={teamID} />
-    </Kb.Box>
+    <LoadedTeamChannelsProvider teamID={teamID} teamname={meta.teamname}>
+      <ChannelSelectionProvider
+        selectedMembers={props.selectedMembers}
+        onSelectedMembersChange={selectedMembers => navigation.setParams({selectedMembers})}
+      >
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1} relative={true}>
+          <Kb.SectionList
+            renderSectionHeader={({section}) =>
+              section.title ? <Kb.SectionDivider label={section.title} /> : null
+            }
+            stickySectionHeadersEnabled={Kb.Styles.isMobile}
+            sections={sections}
+            contentContainerStyle={styles.listContentContainer}
+          />
+          <SelectionPopup
+            selectedTab={selectedTab === 'members' ? 'channelMembers' : ''}
+            teamID={teamID}
+            conversationIDKey={conversationIDKey}
+          />
+        </Kb.Box2>
+      </ChannelSelectionProvider>
+    </LoadedTeamChannelsProvider>
+  )
+}
+
+const Channel = (props: OwnProps) => {
+  useNavigateAwayOnDeletedTeam(props.teamID)
+  return (
+    <LoadedTeamProvider teamID={props.teamID}>
+      <ActivityLevelsProvider>
+        <ChannelBody {...props} />
+      </ActivityLevelsProvider>
+    </LoadedTeamProvider>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      backButton: {
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
-        top: 0,
-      },
-      container: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'stretch',
-        flex: 1,
-        height: '100%',
-        position: 'relative',
-        width: '100%',
-      },
-      endAnchor: {
-        flex: 1,
-        height: 0,
-      },
-      header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
-      list: {},
       listContentContainer: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.globalStyles.fillAbsolute,
@@ -304,9 +342,6 @@ const styles = Kb.Styles.styleSheetCreate(
           flexGrow: 1,
         },
       }),
-      smallHeader: {
-        ...Kb.Styles.padding(0, Kb.Styles.globalMargins.xlarge),
-      },
     }) as const
 )
 

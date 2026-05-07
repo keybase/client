@@ -1,8 +1,10 @@
 import Avatar from '.'
-import {avatarSizes, type AvatarSize} from './hooks'
 import {Box2} from '../box'
 import Text from '../text'
 import * as Styles from '@/styles'
+
+type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
+const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 
 const Kb = {
   Avatar,
@@ -30,7 +32,7 @@ const AvatarLine = (props: Props) => {
   return (
     <Kb.Box2 direction={reverse[props.layout]} style={styles.container} alignSelf={props.alignSelf}>
       {!!extra && (
-        <Kb.Box2 direction={props.layout} alignItems="center" style={styles.overflowBox}>
+        <Kb.Box2 direction={props.layout} alignItems="center" justifyContent="flex-end" style={styles.overflowBox}>
           <Kb.Text type={getTextSize(props.size)} style={styles.text}>
             +{extra}
           </Kb.Text>
@@ -42,7 +44,6 @@ const AvatarLine = (props: Props) => {
             size={props.size}
             username={username}
             key={username}
-            borderColor={Kb.Styles.globalColors.white}
             style={styles.avatar}
           />
         ))
@@ -56,44 +57,42 @@ const getTextSize = (size: AvatarSize) => (size >= 48 ? 'BodySmallBold' : 'BodyT
 const getSizeStyle = (size: AvatarSize) => ({
   horizontal: Kb.Styles.styleSheetCreate(() => ({
     avatar: {
-      marginRight: -size / 3,
+      marginRight: -Math.round(size / 3),
     },
     container: {
       marginLeft: 2,
-      marginRight: size / 3 + 2,
+      marginRight: Math.round(size / 3) + 2,
     },
     overflowBox: {
       backgroundColor: Kb.Styles.globalColors.grey,
       borderBottomRightRadius: size,
       borderTopRightRadius: size,
       height: size,
-      justifyContent: 'flex-end',
-      paddingLeft: size / 2,
+      paddingLeft: Math.round(size / 2),
     },
     text: {
       color: Kb.Styles.globalColors.black_50,
-      paddingRight: size / 5,
+      paddingRight: Math.round(size / 5),
     },
   })),
   vertical: Kb.Styles.styleSheetCreate(() => ({
     avatar: {
-      marginBottom: -size / 3,
+      marginBottom: -Math.round(size / 3),
     },
     container: {
-      marginBottom: size / 3 + 2,
+      marginBottom: Math.round(size / 3) + 2,
       marginTop: 2,
     },
     overflowBox: {
       backgroundColor: Kb.Styles.globalColors.grey,
       borderBottomLeftRadius: size,
       borderBottomRightRadius: size,
-      justifyContent: 'flex-end',
-      paddingTop: size / 2,
+      paddingTop: Math.round(size / 2),
       width: size,
     },
     text: {
       color: Kb.Styles.globalColors.black_50,
-      paddingBottom: size / 5,
+      paddingBottom: Math.round(size / 5),
     },
   })),
 })

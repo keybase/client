@@ -2,7 +2,7 @@ import * as Shared from './shared'
 import {colors as lightColors} from './colors'
 import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
-import {useDarkModeState} from '@/constants/darkmode'
+import {useDarkModeState} from '@/stores/darkmode'
 import {isIOS, isTablet} from '@/constants/platform'
 
 const font = isIOS
@@ -57,7 +57,7 @@ export const styleSheetCreate = (f: () => MapToStyles): unknown =>
 
 export const collapseStyles = (
   styles: ReadonlyArray<unknown>
-): undefined | unknown | ReadonlyArray<object | null | false> => {
+): undefined | object | ReadonlyArray<unknown> => {
   // if we have no / singular values we pass those on in the hopes they're consts
   const nonNull = styles.filter(s => {
     if (!s) {
@@ -74,7 +74,7 @@ export const collapseStyles = (
   }
   if (nonNull.length === 1) {
     const s = nonNull[0]
-    if (typeof s === 'object') {
+    if (s && typeof s === 'object') {
       return s
     }
   }
@@ -89,7 +89,7 @@ export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/const
 export * from './shared'
 export * from './styles-base'
 export {themed as globalColors} from './colors'
-export {default as classNames} from 'classnames'
+export {default as classNames} from './class-names'
 export const borderRadius = 6
 export const dimensionWidth = Dimensions.get('window').width
 export const dimensionHeight = Dimensions.get('window').height

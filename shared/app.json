@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Keybase",
+    "slug": "keybase",
+    "version": "6.7.0",
+    "scheme": "keybase",
+    "ios": {
+      "bundleIdentifier": "keybase.ios"
+    },
+    "android": {
+      "package": "io.keybase.ossifrage"
+    }
+  }
+}

@@ -5,7 +5,7 @@ export type Props = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
   visible: boolean
   onHidden: () => void
-  onSelect: (mediaType: 'photo' | 'video' | 'mixed', location: 'camera' | 'library') => void
+  onSelect: (mediaType: 'photo' | 'video' | 'mixed' | 'file', location: 'camera' | 'library' | 'file') => void
 }
 
 export declare const FilePickerPopup: (p: Props) => React.ReactNode

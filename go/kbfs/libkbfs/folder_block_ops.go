@@ -553,10 +553,7 @@ func (fbo *folderBlockOps) GetCleanEncodedBlocksSizeSum(ctx context.Context,
 
 	numChunks := (len(ptrs) + numBlockSizesPerChunk - 1) /
 		numBlockSizesPerChunk
-	numWorkers := numBlockSizeWorkersMax
-	if numChunks < numWorkers {
-		numWorkers = numChunks
-	}
+	numWorkers := min(numChunks, numBlockSizeWorkersMax)
 
 	currChunk := make([]data.BlockPointer, 0, numBlockSizesPerChunk)
 	for _, ptr := range ptrs {

@@ -15,10 +15,10 @@ import (
 
 // Log is the logging interface for the process package
 type Log interface {
-	Debugf(s string, args ...interface{})
-	Infof(s string, args ...interface{})
-	Warningf(s string, args ...interface{})
-	Errorf(s string, args ...interface{})
+	Debugf(s string, args ...any)
+	Infof(s string, args ...any)
+	Warningf(s string, args ...any)
+	Errorf(s string, args ...any)
 }
 
 type (

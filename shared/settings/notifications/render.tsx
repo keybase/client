@@ -1,9 +1,25 @@
 import * as Kb from '@/common-adapters'
-import useNotifications from './hooks'
 import Group from '../group'
-import {usePushState} from '@/constants/push'
+import {usePushState} from '@/stores/push'
 
-type Props = ReturnType<typeof useNotifications>
+type Props = {
+  allowEdit: boolean
+  groups: ReadonlyMap<
+    string,
+    {
+      settings: ReadonlyArray<{
+        description: string
+        name: string
+        subscribed: boolean
+      }>
+      unsub: boolean
+    }
+  >
+  onClickYourAccount: () => void
+  onToggle: (groupName: string, name: string) => void
+  onToggleUnsubscribeAll: (groupName: string) => void
+  showEmailSection: boolean
+}
 
 const EmailSection = (props: Pick<Props, 'allowEdit' | 'onToggle' | 'onToggleUnsubscribeAll' | 'groups'>) => (
   <Group
@@ -31,18 +47,19 @@ const PhoneSection = (props: Props) => (
     unsubscribedFromAll={props.groups.get('app_push')!.unsub}
   />
 )
-const Notifications = () => {
-  const props = useNotifications()
+const Notifications = (props: Props) => {
   const mobileHasPermissions = usePushState(s => s.hasPermissions)
-  return !props.groups.get('email')?.settings ? (
-    <Kb.Box2 direction="vertical" style={styles.loading}>
+  const hasLoadedGroups = props.groups.size > 0
+  const emailGroup = props.groups.get('email')
+  return !hasLoadedGroups ? (
+    <Kb.Box2 direction="vertical" justifyContent="center" flex={1} style={styles.loading}>
       <Kb.ProgressIndicator type="Small" style={{width: Kb.Styles.globalMargins.medium}} />
     </Kb.Box2>
   ) : (
-    <Kb.Box style={styles.main}>
-      {props.showEmailSection ? (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.main}>
+      {emailGroup ? (
         <EmailSection {...props} />
-      ) : (
+      ) : !props.showEmailSection ? (
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="Header">Email notifications</Kb.Text>
           <Kb.Text type="BodySmall">
@@ -53,29 +70,28 @@ const Notifications = () => {
             and add an email address.
           </Kb.Text>
         </Kb.Box2>
-      )}
+      ) : null}
       {(!Kb.Styles.isMobile || mobileHasPermissions) && !!props.groups.get('app_push')?.settings ? (
         <>
           <Kb.Divider style={styles.divider} />
           <PhoneSection {...props} />
         </>
       ) : null}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      checkbox: {marginRight: 0, marginTop: Kb.Styles.globalMargins.xtiny},
       divider: {
         marginBottom: Kb.Styles.globalMargins.small,
         marginLeft: -Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
       },
-      loading: {alignItems: 'center', flex: 1, justifyContent: 'center'},
+      loading: {alignItems: 'center'},
       main: Kb.Styles.platformStyles({
-        common: {flex: 1, padding: Kb.Styles.globalMargins.small, paddingRight: 0, width: '100%'},
+        common: {flex: 1, padding: Kb.Styles.globalMargins.small, paddingRight: 0},
         isElectron: Kb.Styles.desktopStyles.scrollable,
       }),
     }) as const

@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import type {Props} from '.'
 
 const Prompt = () => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.promptContainer}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.promptContainer} justifyContent="center">
     <Kb.Text type="BodySmallSemibold">Select attachment</Kb.Text>
   </Kb.Box2>
 )
@@ -12,7 +12,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       promptContainer: {
         alignItems: 'center',
-        justifyContent: 'center',
         paddingBottom: 24,
         paddingTop: 24,
       },
@@ -37,6 +36,11 @@ const FilePickerPopup = (p: Props) => {
           onClick: () => p.onSelect('photo', 'library'),
           title: 'Choose photos from library',
         },
+        {
+          icon: 'iconfont-attachment',
+          onClick: () => p.onSelect('file', 'file'),
+          title: 'Choose a file',
+        },
       ] as const)
     : ([
         {
@@ -55,20 +59,24 @@ const FilePickerPopup = (p: Props) => {
           onClick: () => p.onSelect('video', 'library'),
           title: 'Video from library',
         },
+        {
+          icon: 'iconfont-attachment',
+          onClick: () => p.onSelect('file', 'file'),
+          title: 'Choose a file',
+        },
       ] as const)
 
   const header = <Prompt />
   return (
-    <Kb.FloatingModalContext.Provider value="bottomsheet">
-      <Kb.FloatingMenu
-        header={header}
-        attachTo={p.attachTo}
-        items={items}
-        onHidden={p.onHidden}
-        visible={p.visible}
-        closeOnSelect={true}
-      />
-    </Kb.FloatingModalContext.Provider>
+    <Kb.FloatingMenu
+      header={header}
+      attachTo={p.attachTo}
+      items={items}
+      mode="bottomsheet"
+      onHidden={p.onHidden}
+      visible={p.visible}
+      closeOnSelect={true}
+    />
   )
 }
 

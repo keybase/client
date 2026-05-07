@@ -25,7 +25,7 @@ func (e MerkleStoreError) Error() string {
 	return fmt.Sprintf("MerkleStore: %s", e.msg)
 }
 
-func NewMerkleStoreError(msgf string, a ...interface{}) MerkleStoreError {
+func NewMerkleStoreError(msgf string, a ...any) MerkleStoreError {
 	return MerkleStoreError{msg: fmt.Sprintf(msgf, a...)}
 }
 

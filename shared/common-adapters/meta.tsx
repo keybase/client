@@ -1,6 +1,6 @@
 import {Box2} from './box'
 import Text from './text'
-import Icon from './icon'
+import IconAuto from './icon-auto'
 import type {IconType} from './icon.constants-gen'
 import * as Styles from '@/styles'
 
@@ -28,7 +28,7 @@ const Meta = (props: Props) => (
       props.size === 'Small' && styles.containerSmall,
     ])}
   >
-    {!!props.icon && <Icon color={props.iconColor} sizeType="Small" style={styles.icon} type={props.icon} />}
+    {!!props.icon && <IconAuto color={props.iconColor} sizeType="Small" style={styles.icon} type={props.icon} />}
     <Text
       type={typeof props.title === 'number' ? 'BodySmallBold' : 'BodyTinyBold'}
       style={Styles.collapseStyles([

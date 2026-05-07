@@ -287,12 +287,12 @@ type ServerErrorUnwrapper struct{}
 var _ rpc.ErrorUnwrapper = ServerErrorUnwrapper{}
 
 // MakeArg implements rpc.ErrorUnwrapper.
-func (eu ServerErrorUnwrapper) MakeArg() interface{} {
+func (eu ServerErrorUnwrapper) MakeArg() any {
 	return &keybase1.Status{}
 }
 
 // UnwrapError implements rpc.ErrorUnwrapper.
-func (eu ServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchError error) {
+func (eu ServerErrorUnwrapper) UnwrapError(arg any) (appError error, dispatchError error) {
 	s, ok := arg.(*keybase1.Status)
 	if !ok {
 		return nil, errors.New("Error converting arg to keybase1.Status object in ServerErrorUnwrapper.UnwrapError")

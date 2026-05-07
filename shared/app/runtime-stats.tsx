@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useConfigState} from '@/constants/config'
+import {useConfigState} from '@/stores/config'
 
 const isIPhoneX = false as boolean
 // import lagRadar from 'lag-radar'

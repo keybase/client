@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build !darwin && !windows
-// +build !darwin,!windows
 
 package client
 

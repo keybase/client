@@ -9,6 +9,9 @@ import Foundation
 import Intents
 import Keybasego
 import UIKit
+import os
+
+private let log = Logger(subsystem: "com.keybase.app", category: "share")
 
 private struct ShareConversation: Decodable {
   let convID: String
@@ -29,31 +32,29 @@ private struct ShareConversation: Decodable {
 class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProtocol {
   func deleteAllDonations() {
     INInteraction.deleteAll { _ in }
-    NSLog("ShareIntentDonator: deleteAllDonations completed")
+    log.info("ShareIntentDonator: deleteAllDonations completed")
   }
 
   func deleteDonation(_ conversationID: String?) {
     guard let id = conversationID, !id.isEmpty else { return }
     INInteraction.delete(with: id, completion: nil)
-    NSLog("ShareIntentDonator: deleteDonation completed for %@", id)
+    log.info("ShareIntentDonator: deleteDonation completed for \(id, privacy: .public)")
   }
 
   func donateShareConversations(_ conversationsJSON: String?) {
     guard let json = conversationsJSON, let data = json.data(using: .utf8) else {
-      NSLog("ShareIntentDonator: donateShareConversations: nil or invalid JSON")
+      log.info("ShareIntentDonator: donateShareConversations: nil or invalid JSON")
       return
     }
     guard let conversations = try? JSONDecoder().decode([ShareConversation].self, from: data) else {
-      NSLog("ShareIntentDonator: donateShareConversations: JSON decode failed")
+      log.info("ShareIntentDonator: donateShareConversations: JSON decode failed")
       return
     }
     guard !conversations.isEmpty else {
-      NSLog("ShareIntentDonator: donateShareConversations: empty conversations array")
+      log.info("ShareIntentDonator: donateShareConversations: empty conversations array")
       return
     }
-    NSLog(
-      "ShareIntentDonator: donateShareConversations: donating %d conversations", conversations.count
-    )
+    log.info("ShareIntentDonator: donateShareConversations: donating \(conversations.count) conversations")
     donateConversations(conversations)
   }
 
@@ -99,9 +100,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
   }
 
   /// Loads avatar URL(s) and composites them. Apple requires a non-nil image for share sheet suggestions.
-  private func loadAvatars(
-    urls: [URL], intent: INSendMessageIntent, completion: @escaping () -> Void
-  ) {
+  private func loadAvatars(urls: [URL], intent: INSendMessageIntent, completion: @escaping () -> Void) {
     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
       let images = urls.compactMap { (try? Data(contentsOf: $0)).flatMap { UIImage(data: $0) } }
       if let combined = self?.compositeAvatarImages(images), let data = combined.pngData() {
@@ -133,8 +132,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
     let size: CGFloat = 192
     let circleSize = size * 0.65
     let leftRect = CGRect(origin: .zero, size: CGSize(width: circleSize, height: circleSize))
-    let rightRect = CGRect(
-      x: size - circleSize, y: size - circleSize, width: circleSize, height: circleSize)
+    let rightRect = CGRect(x: size - circleSize, y: size - circleSize, width: circleSize, height: circleSize)
     let fullRect = CGRect(origin: .zero, size: CGSize(width: size, height: size))
     let format = UIGraphicsImageRendererFormat()
     format.opaque = false
@@ -147,8 +145,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
         let scale = max(size / imgSize.width, size / imgSize.height)
         let scaledW = imgSize.width * scale
         let scaledH = imgSize.height * scale
-        let drawRect = CGRect(
-          x: (size - scaledW) / 2, y: (size - scaledH) / 2, width: scaledW, height: scaledH)
+        let drawRect = CGRect(x: (size - scaledW) / 2, y: (size - scaledH) / 2, width: scaledW, height: scaledH)
         self.drawImageInCircle(img, in: fullRect, drawRect: drawRect, context: cgContext)
       } else {
         self.drawImageInCircle(images[0], in: leftRect, drawRect: leftRect, context: cgContext)
@@ -158,9 +155,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
   }
 
   /// Draws an image clipped to an oval. Uses aspect fill when drawRect differs from clip rect.
-  private func drawImageInCircle(
-    _ image: UIImage, in clipRect: CGRect, drawRect: CGRect, context: CGContext
-  ) {
+  private func drawImageInCircle(_ image: UIImage, in clipRect: CGRect, drawRect: CGRect, context: CGContext) {
     context.saveGState()
     UIBezierPath(ovalIn: clipRect).addClip()
     image.draw(in: drawRect)
@@ -171,9 +166,7 @@ class ShareIntentDonatorImpl: NSObject, Keybasego.KeybaseShareIntentDonatorProto
     let interaction = INInteraction(intent: intent, response: nil)
     interaction.donate { error in
       if let error = error {
-        NSLog(
-          "ShareIntentDonator: donateIntent failed for %@: %@",
-          intent.conversationIdentifier ?? "?", error.localizedDescription)
+        log.error("ShareIntentDonator: donateIntent failed for \(intent.conversationIdentifier ?? "?", privacy: .public): \(error.localizedDescription, privacy: .public)")
       }
     }
   }

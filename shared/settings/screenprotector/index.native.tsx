@@ -5,14 +5,13 @@ import {isAndroid, getSecureFlagSetting, setSecureFlagSetting} from '@/constants
 
 const Screenprotector = () => {
   const [secureFlag, setSecureFlag] = React.useState<undefined | boolean>(undefined)
-  const isMounted = C.useIsMounted()
 
   C.useOnMountOnce(() => {
     getSecureFlagSetting()
       .then(secureFlag => {
-        isMounted() && setSecureFlag(secureFlag)
+        setSecureFlag(secureFlag)
+        return undefined
       })
-      .then(() => {})
       .catch(() => {})
   })
 
@@ -20,7 +19,7 @@ const Screenprotector = () => {
     const f = async () => {
       setSecureFlag(nextValue)
       const success = await setSecureFlagSetting(nextValue)
-      if (success && isMounted()) {
+      if (success) {
         setSecureFlag(nextValue)
       }
     }

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import PieSlice from './pie-slice'
@@ -46,7 +45,7 @@ function getColor(status: T.FS.LocalConflictStatusType | T.FS.NonUploadStaticSyn
 
 function getTooltip(statusIcon: T.FS.PathStatusIcon, isFolder: boolean): string {
   if (typeof statusIcon === 'number') {
-    return 'Syncing ' + Math.floor(statusIcon * 100) + '%...'
+    return 'Syncing ' + String(Math.floor(statusIcon * 100)) + '%...'
   }
 
   switch (statusIcon) {
@@ -71,7 +70,7 @@ function getTooltip(statusIcon: T.FS.PathStatusIcon, isFolder: boolean): string 
   }
 }
 
-const PathStatusIcon = React.memo(function PathStatusIcon(props: Props) {
+function PathStatusIcon(props: Props) {
   return props.statusIcon ? (
     <Kb.WithTooltip
       tooltip={getTooltip(props.statusIcon, props.isFolder)}
@@ -87,7 +86,6 @@ const PathStatusIcon = React.memo(function PathStatusIcon(props: Props) {
         <UploadIcon uploadIcon={props.statusIcon} style={styles.iconNonFont} />
       ) : (
         <Kb.Icon
-          fixOverdraw={true}
           type={getIcon(props.statusIcon)}
           sizeType="Small"
           style={styles.iconFont}
@@ -96,11 +94,11 @@ const PathStatusIcon = React.memo(function PathStatusIcon(props: Props) {
       )}
     </Kb.WithTooltip>
   ) : props.isTlfType ? (
-    <Kb.Icon fixOverdraw={true} type="iconfont-root" sizeType="Small" style={styles.iconFont} />
+    <Kb.Icon type="iconfont-root" sizeType="Small" style={styles.iconFont} />
   ) : (
-    <Kb.Box style={styles.placeholder} />
+    <Kb.Box2 direction="vertical" style={styles.placeholder} />
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   iconFont: {

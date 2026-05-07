@@ -1,10 +1,8 @@
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat'
 import Mention, {type OwnProps} from './mention'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
-import {useFollowerState} from '@/constants/followers'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useFollowerState} from '@/stores/followers'
+import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
 
 const Container = (ownProps: OwnProps) => {
   let {username} = ownProps
@@ -24,19 +22,13 @@ const Container = (ownProps: OwnProps) => {
     }
   })()
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = useTrackerState(s => s.dispatch.showUser)
-  const _onClick = () => {
-    if (C.isMobile) {
-      showUserProfile(username)
-    } else {
-      showUser(username, true)
-    }
-  }
+  const _onClick = () => navToProfile(username)
   const onClick = Chat.isSpecialMention(username) ? undefined : _onClick
 
   const props = {
+    allowFontScaling: ownProps.allowFontScaling,
     onClick,
+    style: ownProps.style,
     theme,
     username,
   }

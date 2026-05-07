@@ -3,64 +3,64 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import WalletPopup from './wallet-popup'
-import * as Wallets from '@/constants/wallets'
-import {useState as useWalletsState} from '@/constants/wallets'
-import {useConfigState} from '@/constants/config'
+import {loadAccountsWaitingKey} from '@/constants/strings'
+import {copyToClipboard} from '@/util/storeless-actions'
 
-type OwnProps = {accountID: string}
+type OwnProps = {
+  accountID: string
+  name: string
+}
 
 const ReallyRemoveAccountPopup = (props: OwnProps) => {
-  const {accountID} = props
-  const waiting = C.Waiting.useAnyWaiting(Wallets.loadAccountsWaitingKey)
-  const name = useWalletsState(s => s.accountMap.get(accountID)?.name) ?? ''
+  const {accountID, name} = props
+  const waiting = C.Waiting.useAnyWaiting(loadAccountsWaitingKey)
   const [showingToast, setShowToast] = React.useState(false)
   const attachmentRef = React.useRef<Kb.MeasureRef | null>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
 
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-
-  const [sk, setSK] = React.useState('')
+  const [secretKeyState, setSecretKeyState] = React.useState({accountID: '', sk: ''})
+  const sk = secretKeyState.accountID === accountID ? secretKeyState.sk : ''
   const loading = !sk
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onCancel = () => {
-    navigateUp()
-  }
-  const removeAccount = useWalletsState(s => s.dispatch.removeAccount)
+  const deleteAccount = C.useRPC(T.RPCStellar.localDeleteWalletAccountLocalRpcPromise)
+  const navigateUp = C.Router2.navigateUp
   const onFinish = () => {
-    removeAccount(accountID)
-    navigateUp()
+    deleteAccount([{accountID, userAcknowledged: 'yes'}, loadAccountsWaitingKey], () => {
+      navigateUp()
+    }, () => {})
   }
 
   React.useEffect(() => {
-    setSK('')
+    let canceled = false
     getSecretKey(
       [{accountID}],
       r => {
-        setSK(r)
+        if (!canceled) {
+          setSecretKeyState({accountID, sk: r})
+        }
       },
       () => {}
     )
+    return () => {
+      canceled = true
+    }
   }, [getSecretKey, accountID])
 
-  const onCopy = React.useCallback(() => {
+  const onCopy = () => {
     setShowToast(true)
     setShowToastFalseLater()
     copyToClipboard(sk)
-  }, [copyToClipboard, setShowToastFalseLater, sk])
+  }
   return (
     <WalletPopup
-      onExit={onCancel}
-      backButtonType="cancel"
       containerStyle={styles.background}
-      headerStyle={Kb.Styles.collapseStyles([styles.background, styles.header])}
       bottomButtons={[
         <Kb.Button
           fullWidth={Kb.Styles.isMobile}
           key={0}
           label="Copy secret key"
           onClick={onCopy}
-          type="Wallet"
+          type="Default"
           ref={attachmentRef}
           waiting={loading}
           disabled={waiting}
@@ -78,8 +78,8 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
       safeAreaViewBottomStyle={styles.background}
       safeAreaViewTopStyle={styles.background}
     >
-      <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
-        <Kb.Icon
+      <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
+        <Kb.ImageIcon
           type={Kb.Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
           style={styles.icon}
         />
@@ -115,8 +115,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   background: Kb.Styles.platformStyles({
     common: {backgroundColor: Kb.Styles.globalColors.yellow},
   }),
-  flexOne: {flex: 1},
-  header: {borderBottomWidth: 0},
   icon: Kb.Styles.platformStyles({
     common: {marginBottom: Kb.Styles.globalMargins.large},
     isElectron: {marginTop: Kb.Styles.globalMargins.medium},

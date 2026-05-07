@@ -132,6 +132,7 @@ export const downloadFolder = env.XDG_DOWNLOAD_DIR || KB2.constants.downloadFold
 
 // Empty string means let the service figure out the right directory.
 export const pprofDir = ''
+export const fsCacheDir = ''
 export const version = __VERSION__
 export {runMode}
 

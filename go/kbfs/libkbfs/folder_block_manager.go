@@ -464,10 +464,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	// Round up to find the number of chunks.
 	numChunks := (len(ptrs) + numPointersToDowngradePerChunk - 1) /
 		numPointersToDowngradePerChunk
-	numWorkers := numChunks
-	if numWorkers > maxParallelBlockPuts {
-		numWorkers = maxParallelBlockPuts
-	}
+	numWorkers := min(numChunks, maxParallelBlockPuts)
 	chunks := make(chan []data.BlockPointer, numChunks)
 
 	var wg sync.WaitGroup
@@ -515,16 +512,13 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	}
 
 	for start := 0; start < len(ptrs); start += numPointersToDowngradePerChunk {
-		end := start + numPointersToDowngradePerChunk
-		if end > len(ptrs) {
-			end = len(ptrs)
-		}
+		end := min(start+numPointersToDowngradePerChunk, len(ptrs))
 		chunks <- ptrs[start:end]
 	}
 	close(chunks)
 
 	var zeroRefCounts []kbfsblock.ID
-	for i := 0; i < numChunks; i++ {
+	for range numChunks {
 		result := <-chunkResults
 		if result.err != nil {
 			// deferred cancel will stop the other workers.
@@ -897,10 +891,9 @@ func (fbm *folderBlockManager) getMostRecentGCRevision(
 	// we need to walk backwards to find the latest gcOp.
 	endRev := head.Revision()
 	for {
-		startRev := endRev - maxMDsAtATime + 1 // (kbfsmd.Revision is signed)
-		if startRev < kbfsmd.RevisionInitial {
-			startRev = kbfsmd.RevisionInitial
-		}
+		startRev := max(
+			// (kbfsmd.Revision is signed)
+			endRev-maxMDsAtATime+1, kbfsmd.RevisionInitial)
 
 		rmds, err := getMDRange(
 			ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, startRev,
@@ -964,10 +957,7 @@ func (fbm *folderBlockManager) getUnreferencedBlocks(
 	startRev := earliestRev + 1
 outer:
 	for {
-		endRev := startRev + maxMDsAtATime
-		if endRev > mostRecentRev {
-			endRev = mostRecentRev
-		}
+		endRev := min(startRev+maxMDsAtATime, mostRecentRev)
 
 		rmds, err := getMDRange(
 			ctx, fbm.config, fbm.id, kbfsmd.NullBranchID, startRev,
@@ -1375,10 +1365,7 @@ func (fbm *folderBlockManager) doChunkedGetNonLiveBlocks(
 	// Round up to find the number of chunks.
 	numChunks := (len(ptrs) + numPointersToDowngradePerChunk - 1) /
 		numPointersToDowngradePerChunk
-	numWorkers := numChunks
-	if numWorkers > maxParallelBlockPuts {
-		numWorkers = maxParallelBlockPuts
-	}
+	numWorkers := min(numChunks, maxParallelBlockPuts)
 	chunks := make(chan []data.BlockPointer, numChunks)
 
 	eg, groupCtx := errgroup.WithContext(ctx)
@@ -1414,10 +1401,7 @@ func (fbm *folderBlockManager) doChunkedGetNonLiveBlocks(
 	}
 
 	for start := 0; start < len(ptrs); start += numPointersToDowngradePerChunk {
-		end := start + numPointersToDowngradePerChunk
-		if end > len(ptrs) {
-			end = len(ptrs)
-		}
+		end := min(start+numPointersToDowngradePerChunk, len(ptrs))
 		chunks <- ptrs[start:end]
 	}
 	close(chunks)

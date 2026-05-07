@@ -34,7 +34,6 @@ func TestComputeSkipPointers(t *testing.T) {
 		}},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(fmt.Sprintf("%+v", tt.in), func(t *testing.T) {
 			actual := ComputeSkipPointers(tt.in)
 			if !reflect.DeepEqual(actual, tt.out) {

@@ -4,13 +4,13 @@ import type {Props} from './participant-rekey.types'
 
 const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked: (s: string) => void}) => (
   <Kb.ClickableBox onClick={() => onUsernameClicked(username)}>
-    <Kb.Box style={styles.row}>
+    <Kb.Box2 direction="horizontal" alignItems="center" style={styles.row}>
       <Kb.Avatar
         username={username}
         size={48}
         style={{marginRight: Kb.Styles.globalMargins.small, padding: 4}}
       />
-      <Kb.Box style={styles.innerRow}>
+      <Kb.Box2 direction="vertical" justifyContent="center" flex={1} style={styles.innerRow}>
         <Kb.ConnectedUsernames inline={true} backgroundMode="Terminal" type="BodyBold" usernames={username} />
         <Kb.Text
           type="BodySmall"
@@ -19,18 +19,19 @@ const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked
         >
           Can rekey this chat by opening the Keybase app.
         </Kb.Text>
-      </Kb.Box>
-    </Kb.Box>
+      </Kb.Box2>
+    </Kb.Box2>
   </Kb.ClickableBox>
 )
 
 const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) => (
-  <Kb.Box style={styles.container}>
-    <Kb.Box
+  <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-start" flex={1} style={styles.container}>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      justifyContent="center"
       style={{
-        ...Kb.Styles.globalStyles.flexBoxRow,
         backgroundColor: Kb.Styles.globalColors.red,
-        justifyContent: 'center',
       }}
     >
       <Kb.Text
@@ -41,41 +42,32 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
       >
         This conversation is waiting for a participant to open their Keybase app.
       </Kb.Text>
-    </Kb.Box>
+    </Kb.Box2>
     <NativeScrollView style={{flex: 1, paddingTop: 8}}>
-      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 8}}>
-        <Kb.Box>
+      <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="center" style={{marginLeft: 8}}>
+        <Kb.Box2 direction="vertical" fullWidth={true}>
           {rekeyers.map(username => (
             <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />
           ))}
-        </Kb.Box>
-      </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
     </NativeScrollView>
-  </Kb.Box>
+  </Kb.Box2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'stretch',
         backgroundColor: Kb.Styles.globalColors.blueDarker2,
-        flex: 1,
-        justifyContent: 'flex-start',
       },
       innerRow: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: 1,
-        flex: 1,
-        justifyContent: 'center',
         minHeight: 56,
       },
       row: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
-          alignItems: 'center',
           minHeight: 56,
         },
         isElectron: {

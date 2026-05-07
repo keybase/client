@@ -1,21 +1,11 @@
 import type * as React from 'react'
-import type * as T from '@/constants/types'
+import type {ChatRootInboxRefresh, ConversationIDKey} from '@/constants/types/chat'
+import type {InboxSearchController} from './use-inbox-search'
 
-export type Props = {
-  allowShowFloatingButton: boolean
-  selectedConversationIDKey: T.Chat.ConversationIDKey
-  inboxNumSmallRows: number
-  isSearching: boolean
-  navKey: string
-  neverLoaded: boolean
-  onNewChat: () => void
-  onUntrustedInboxVisible: (conversationIDKeys: Array<T.Chat.ConversationIDKey>) => void
-  rows: Array<T.Chat.ChatInboxRowItem>
-  setInboxNumSmallRows: (rows: number) => void
-  smallTeamsExpanded: boolean
-  toggleSmallTeamsExpanded: () => void
-  unreadIndices: Map<number, number>
-  unreadTotal: number
+type Props = {
+  conversationIDKey?: ConversationIDKey
+  refreshInbox?: ChatRootInboxRefresh
+  search?: InboxSearchController
 }
 
 declare const Inbox: (p: Props) => React.ReactNode

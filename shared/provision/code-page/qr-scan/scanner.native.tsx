@@ -9,7 +9,7 @@ type Props = {
 }
 
 const QRScanner = (p: Props): React.ReactElement | null => {
-  const [scanned, setScanned] = React.useState<boolean>(false)
+  const [scanned, setScanned] = React.useState(false)
   const [permission, requestPermission] = useCameraPermissions()
 
   React.useEffect(() => {

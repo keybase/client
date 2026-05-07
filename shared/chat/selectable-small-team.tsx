@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {FilteredTopLine} from './top-line'
-import {BottomLine} from './inbox/row/small-team/bottom-line'
+import {BottomLine} from './inbox/row/small-team'
 import {Avatars, TeamAvatar} from './avatars'
 import type * as T from '@/constants/types'
-import {SnippetContext} from './inbox/row/small-team/contexts'
 
 type Props = {
   backgroundColor?: string
+  conversationIDKey: T.Chat.ConversationIDKey
   isMuted: boolean
   isSelected: boolean
   onSelectConversation: () => void
@@ -25,8 +25,8 @@ type Props = {
 
 const SelectableSmallTeam = (props: Props) => {
   const [isHovered, setIsHovered] = React.useState(false)
-  const _onMouseLeave = React.useCallback(() => setIsHovered(false), [])
-  const _onMouseOver = React.useCallback(() => setIsHovered(true), [])
+  const _onMouseLeave = () => setIsHovered(false)
+  const _onMouseOver = () => setIsHovered(true)
 
   if (!props.teamname && props.participants.length === 0) {
     return (
@@ -84,9 +84,13 @@ const SelectableSmallTeam = (props: Props) => {
             usernameColor={props.usernameColor}
           />
           {!props.numSearchHits && (
-            <SnippetContext.Provider value={props.snippet ?? ''}>
-              <BottomLine isSelected={props.isSelected} allowBold={false} />
-            </SnippetContext.Provider>
+            <BottomLine
+              conversationIDKey={props.conversationIDKey}
+              snippet={props.snippet}
+              snippetDecoration={props.snippetDecoration}
+              isSelected={props.isSelected}
+              allowBold={false}
+            />
           )}
         </Kb.Box2>
         {props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}

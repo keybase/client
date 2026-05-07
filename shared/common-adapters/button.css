@@ -1,58 +1,56 @@
-/* Handles Button's hover effects on desktop */
+/* Button hover effects — uses ::after pseudo-element instead of underlay div */
 
-.button__border {
-  border: 1px solid var(--color-black_20);
-}
-.button__border_blue:hover {
-  border: 1px solid rgba(77, 142, 255, 0.3);
-}
-.button__border_red:hover {
-  border: 1px solid rgba(255, 77, 97, 0.3);
-}
-.button__border_green:hover {
-  border: 1px solid rgba(55, 189, 153, 0.3);
-}
-.button__border_purple:hover {
-  border: 1px solid rgba(112, 78, 186, 0.3);
-}
-.button__border_black:hover {
-  border: 1px solid rgba(0, 0, 0, 0.3);
-}
-
-.button__underlay {
+/* Primary hover: darken overlay */
+.button--primary::after {
+  content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  top: 0;
-  border-radius: 4px;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
   transition: background-color 0.2s ease-out;
 }
-.button__underlay_black10:hover {
+.button--primary:not(.button--disabled):hover::after {
   background-color: var(--color-black_10);
 }
-.button__underlay_blue:hover {
+
+/* Secondary: border + colored hover */
+.button--secondary {
+  border: 1px solid var(--color-black_20);
+  transition: border 0.3s ease-out;
+}
+.button--secondary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: background-color 0.2s ease-out;
+}
+
+/* Secondary border hover by type */
+.button--secondary.button--type-Default:not(.button--disabled):hover {
+  border-color: rgba(77, 142, 255, 0.3);
+}
+.button--secondary.button--type-Success:not(.button--disabled):hover {
+  border-color: rgba(55, 189, 153, 0.3);
+}
+.button--secondary.button--type-Danger:not(.button--disabled):hover {
+  border-color: rgba(255, 77, 97, 0.3);
+}
+.button--secondary.button--type-Dim:not(.button--disabled):hover {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Secondary background hover by type */
+.button--secondary.button--type-Default:not(.button--disabled):hover::after {
   background-color: rgba(76, 142, 255, 0.05);
 }
-.button__underlay_red:hover {
-  background-color: rgba(255, 77, 97, 0.05);
-}
-.button__underlay_green:hover {
+.button--secondary.button--type-Success:not(.button--disabled):hover::after {
   background-color: rgba(55, 189, 153, 0.05);
 }
-.button__underlay_purple:hover {
-  background-color: rgba(112, 78, 186, 0.05);
+.button--secondary.button--type-Danger:not(.button--disabled):hover::after {
+  background-color: rgba(255, 77, 97, 0.05);
 }
-.button__underlay_black:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-@media (prefers-color-scheme: dark) {
-  .button__underlay_black:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-  }
-}
-
-.button__underlay_yellow:hover {
-  background-color: rgba(255, 248, 90, 0.05);
+.button--secondary.button--type-Dim:not(.button--disabled):hover::after {
+  background-color: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.05));
 }

@@ -218,7 +218,7 @@ func parseTlfHandle(
 ) {
 	// Limit to one non-canonical name for now.
 outer:
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		h, err = tlfhandle.ParseHandle(ctx, kbpki, mdOps, osg, tlfName, t)
 		switch err := errors.Cause(err).(type) {
 		case nil:

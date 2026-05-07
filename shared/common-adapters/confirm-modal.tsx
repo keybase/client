@@ -1,8 +1,7 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
 import ButtonBar from './button-bar'
-import Icon from '@/common-adapters/icon'
-import Modal from './modal'
+import IconAuto from '@/common-adapters/icon-auto'
 import Text from '@/common-adapters/text'
 import WaitingButton from './waiting-button'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
@@ -27,55 +26,12 @@ export type Props = {
 }
 
 const ConfirmModal = (props: Props) => (
-  <Modal
-    header={
-      Styles.isMobile && props.onCancel
-        ? {
-            leftButton: (
-              <Text type="BodyBigLink" onClick={props.onCancel}>
-                Cancel
-              </Text>
-            ),
-          }
-        : undefined
-    }
-    banners={
-      props.error ? (
-        <Banner key="error" color="red">
-          <BannerParagraph bannerColor="red" content={props.error} />
-        </Banner>
-      ) : null
-    }
-    footer={{
-      content: (
-        <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-          {!Styles.isMobile && (
-            <WaitingButton
-              key="cancel"
-              disabled={!props.onCancel || props.waiting}
-              type="Dim"
-              label="Cancel"
-              onClick={props.onCancel}
-              style={styles.button}
-              waitingKey={props.waitingKey}
-            />
-          )}
-          <WaitingButton
-            key="confirm"
-            disabled={props.onConfirmDeactivated || !props.onConfirm}
-            type="Danger"
-            label={props.confirmText || 'Confirm'}
-            onClick={props.onConfirm}
-            style={styles.button}
-            waitingKey={props.waitingKey}
-            waiting={props.waiting}
-          />
-        </ButtonBar>
-      ),
-      hideBorder: Styles.isMobile,
-    }}
-    mode="Wide"
-  >
+  <>
+    {props.error ? (
+      <Banner key="error" color="red">
+        <BannerParagraph bannerColor="red" content={props.error} />
+      </Banner>
+    ) : null}
     <Box2
       alignItems="center"
       direction="vertical"
@@ -85,13 +41,14 @@ const ConfirmModal = (props: Props) => (
       noShrink={true}
     >
       {props.icon && (
-        <Icon
-          boxStyle={styles.icon}
-          color={props.iconColor ? props.iconColor : Styles.globalColors.black_50}
-          fontSize={Styles.isMobile ? 64 : 48}
-          style={styles.icon}
-          type={props.icon}
-        />
+        <Box2 direction="vertical" style={styles.icon}>
+          <IconAuto
+            color={props.iconColor ? props.iconColor : Styles.globalColors.black_50}
+            fontSize={Styles.isMobile ? 64 : 48}
+            style={styles.icon}
+            type={props.icon}
+          />
+        </Box2>
       )}
       {props.header && (
         <Box2 alignItems="center" direction="vertical" style={styles.icon} noShrink={true}>
@@ -112,7 +69,32 @@ const ConfirmModal = (props: Props) => (
       )}
       {props.content}
     </Box2>
-  </Modal>
+    <Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Styles.isMobile ? styles.modalFooterNoBorder : styles.modalFooter}>
+      <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+        {!Styles.isMobile && (
+          <WaitingButton
+            key="cancel"
+            disabled={!props.onCancel || props.waiting}
+            type="Dim"
+            label="Cancel"
+            onClick={props.onCancel}
+            style={styles.button}
+            waitingKey={props.waitingKey}
+          />
+        )}
+        <WaitingButton
+          key="confirm"
+          disabled={props.onConfirmDeactivated || !props.onConfirm}
+          type="Danger"
+          label={props.confirmText || 'Confirm'}
+          onClick={props.onConfirm}
+          style={styles.button}
+          waitingKey={props.waitingKey}
+          waiting={props.waiting}
+        />
+      </ButtonBar>
+    </Box2>
+  </>
 )
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -128,6 +110,31 @@ const styles = Styles.styleSheetCreate(() => ({
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,
   },
+  modalFooter: Styles.platformStyles({
+    common: {
+      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Styles.borderRadius,
+      borderBottomRightRadius: Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
+  modalFooterNoBorder: Styles.platformStyles({
+    common: {
+      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Styles.borderRadius,
+      borderBottomRightRadius: Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
   text: {
     color: Styles.globalColors.black,
     margin: Styles.globalMargins.small,

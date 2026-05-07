@@ -376,10 +376,7 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID, stopCh chan struct{}) error
 			// charging through conversations
 			duration := bgLoaderInitDelay
 			if task.attempt > 0 {
-				duration = bgLoaderErrDelay - time.Since(task.lastAttemptAt)
-				if duration < bgLoaderInitDelay {
-					duration = bgLoaderInitDelay
-				}
+				duration = max(bgLoaderErrDelay-time.Since(task.lastAttemptAt), bgLoaderInitDelay)
 			}
 			// Make sure we aren't suspended (also make sure we don't get shutdown). Charge through if
 			// neither have any data on them.

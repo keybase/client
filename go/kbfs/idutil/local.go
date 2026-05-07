@@ -6,6 +6,7 @@ package idutil
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -41,7 +42,7 @@ func (lu *LocalUser) GetCurrentVerifyingKey() kbfscrypto.VerifyingKey {
 // LocalUsers suitable to use with KeybaseDaemonLocal.
 func MakeLocalUsers(users []kbname.NormalizedUsername) []LocalUser {
 	localUsers := make([]LocalUser, len(users))
-	for i := 0; i < len(users); i++ {
+	for i := range users {
 		verifyingKey := MakeLocalUserVerifyingKeyOrBust(users[i])
 		cryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(users[i])
 		localUsers[i] = LocalUser{
@@ -107,23 +108,17 @@ func (lu LocalUser) DeepCopy() LocalUser {
 	copy(luCopy.CryptPublicKeys, lu.CryptPublicKeys)
 
 	luCopy.KIDNames = make(map[keybase1.KID]string, len(lu.KIDNames))
-	for k, v := range lu.KIDNames {
-		luCopy.KIDNames[k] = v
-	}
+	maps.Copy(luCopy.KIDNames, lu.KIDNames)
 
 	luCopy.RevokedVerifyingKeys = make(
 		map[kbfscrypto.VerifyingKey]RevokedKeyInfo,
 		len(lu.RevokedVerifyingKeys))
-	for k, v := range lu.RevokedVerifyingKeys {
-		luCopy.RevokedVerifyingKeys[k] = v
-	}
+	maps.Copy(luCopy.RevokedVerifyingKeys, lu.RevokedVerifyingKeys)
 
 	luCopy.RevokedCryptPublicKeys = make(
 		map[kbfscrypto.CryptPublicKey]RevokedKeyInfo,
 		len(lu.RevokedCryptPublicKeys))
-	for k, v := range lu.RevokedCryptPublicKeys {
-		luCopy.RevokedCryptPublicKeys[k] = v
-	}
+	maps.Copy(luCopy.RevokedCryptPublicKeys, lu.RevokedCryptPublicKeys)
 
 	luCopy.Asserts = make([]string, len(lu.Asserts))
 	copy(luCopy.Asserts, lu.Asserts)
@@ -138,7 +133,7 @@ func makeLocalTeams(
 	localTeams []TeamInfo,
 ) {
 	localTeams = make([]TeamInfo, len(teams))
-	for index := 0; index < len(teams); index++ {
+	for index := range teams {
 		i := index + startingIndex
 		cryptKey := MakeLocalTLFCryptKeyOrBust(
 			tlf.SingleTeam.String()+"/"+string(teams[index]),
@@ -154,7 +149,7 @@ func makeLocalTeams(
 		// If this is a subteam, set the root ID.
 		if strings.Contains(string(teams[index]), ".") {
 			parts := strings.SplitN(string(teams[index]), ".", 2)
-			for j := 0; j < index; j++ {
+			for j := range index {
 				if parts[0] == string(localTeams[j].Name) {
 					localTeams[index].RootID = localTeams[j].TID
 					break

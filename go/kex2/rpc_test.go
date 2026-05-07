@@ -42,11 +42,11 @@ func newMockProvisioner(t *testing.T) *mockProvisioner {
 
 type nullLogOutput struct{}
 
-func (n *nullLogOutput) Error(_ string, _ ...interface{})   {}
-func (n *nullLogOutput) Warning(_ string, _ ...interface{}) {}
-func (n *nullLogOutput) Info(_ string, _ ...interface{})    {}
-func (n *nullLogOutput) Debug(_ string, _ ...interface{})   {}
-func (n *nullLogOutput) Profile(_ string, _ ...interface{}) {}
+func (n *nullLogOutput) Error(_ string, _ ...any)   {}
+func (n *nullLogOutput) Warning(_ string, _ ...any) {}
+func (n *nullLogOutput) Info(_ string, _ ...any)    {}
+func (n *nullLogOutput) Debug(_ string, _ ...any)   {}
+func (n *nullLogOutput) Profile(_ string, _ ...any) {}
 
 var _ rpc.LogOutput = (*nullLogOutput)(nil)
 
@@ -213,7 +213,7 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 
 	secretCh <- s2
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		if e, eof := <-ch; !eof {
 			t.Fatalf("got unexpected channel close (try %d)", i)
 		} else if e != nil {
@@ -332,7 +332,7 @@ func TestFullProtocolY(t *testing.T) {
 
 	secretCh <- s1
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		if e, eof := <-ch; !eof {
 			t.Fatalf("got unexpected channel close (try %d)", i)
 		} else if e != nil {

@@ -1,17 +1,17 @@
 import * as React from 'react'
-import {Box2Measure} from './box'
+import {Box2} from './box'
 import Icon from './icon'
-import Button, {type Props as ButtonProps} from './button'
-import Text, {type TextMeasureRef, type LineClampType, type TextType} from './text'
+import Button, {type ButtonProps} from './button'
+import Text from './text'
+import type {LineClampType, TextType} from './text.shared'
 import Toast from './toast'
-import {useTimeout} from './use-timers'
 import * as Styles from '@/styles'
 import logger from '@/logger'
 import type {MeasureRef} from './measure-ref'
-import {useConfigState} from '@/constants/config'
+import {copyToClipboard, showShareActionSheet} from '@/util/storeless-actions'
 
 const Kb = {
-  Box2Measure,
+  Box2,
   Button,
   Icon,
   Text,
@@ -31,22 +31,52 @@ type Props = {
   textType?: TextType
   placeholderText?: string
   shareSheet?: boolean // (mobile only) show share sheet instead of copying
-  loadText?: () => void
+  loadText?: (onLoaded?: (text: string) => void) => void
 }
 
 const CopyText = (props: Props) => {
   const {withReveal, text, loadText, onCopy, hideOnCopy} = props
   const [revealed, setRevealed] = React.useState(!props.withReveal)
   const [showingToast, setShowingToast] = React.useState(false)
-  const [requestedCopy, setRequestedCopy] = React.useState(false)
   const shareSheet = props.shareSheet && Styles.isMobile
-  const setShowingToastFalseLater = useTimeout(() => setShowingToast(false), 1500)
-  const [lastShowingToast, setLastShowingToast] = React.useState(showingToast)
+  const copyRequestIDRef = React.useRef(0)
+  const copyOnLoadedRequestIDRef = React.useRef(0)
+  const popupAnchor = React.useRef<MeasureRef | null>(null)
 
-  if (lastShowingToast !== showingToast) {
-    setLastShowingToast(showingToast)
-    showingToast && setShowingToastFalseLater()
+  const doCopy = (t: string) => {
+    if (shareSheet) {
+      showShareActionSheet('', t, 'text/plain')
+    } else {
+      setShowingToast(true)
+      copyToClipboard(t)
+    }
+    onCopy?.()
+    if (hideOnCopy) {
+      setRevealed(false)
+    }
   }
+  const doCopyLoadedText = React.useEffectEvent((loadedText: string) => {
+    doCopy(loadedText)
+  })
+
+  React.useEffect(() => {
+    return () => {
+      copyRequestIDRef.current += 1
+      copyOnLoadedRequestIDRef.current = 0
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (!showingToast) {
+      return undefined
+    }
+    const id = setTimeout(() => {
+      setShowingToast(false)
+    }, 1500)
+    return () => {
+      clearTimeout(id)
+    }
+  }, [showingToast])
 
   React.useEffect(() => {
     if (!withReveal && !text) {
@@ -59,45 +89,40 @@ const CopyText = (props: Props) => {
     }
   }, [withReveal, text, loadText])
 
-  const popupAnchor = React.useRef<MeasureRef | null>(null)
-  const textRef = React.useRef<TextMeasureRef | null>(null)
-  const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
-  const showShareActionSheet = useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
-  const copy = React.useCallback(() => {
+  React.useEffect(() => {
+    const requestID = copyOnLoadedRequestIDRef.current
+    if (!requestID || !text || copyRequestIDRef.current !== requestID) {
+      return
+    }
+    copyRequestIDRef.current = requestID + 1
+    copyOnLoadedRequestIDRef.current = 0
+    doCopyLoadedText(text)
+  }, [text])
+
+  const copy = () => {
     if (!text) {
       if (!loadText) {
         logger.warn('no text to copy and no loadText method provided')
         return
       }
-      setRequestedCopy(true)
+      const requestID = copyRequestIDRef.current + 1
+      copyRequestIDRef.current = requestID
+      copyOnLoadedRequestIDRef.current = requestID
+      loadText(loadedText => {
+        if (
+          copyRequestIDRef.current === requestID &&
+          copyOnLoadedRequestIDRef.current === requestID &&
+          loadedText
+        ) {
+          copyRequestIDRef.current = requestID + 1
+          copyOnLoadedRequestIDRef.current = 0
+          doCopy(loadedText)
+        }
+      })
     } else {
-      if (shareSheet) {
-        showShareActionSheet?.('', text, 'text/plain')
-      } else {
-        setShowingToast(true)
-        textRef.current?.highlightText()
-        copyToClipboard(text)
-      }
-      onCopy?.()
-      if (hideOnCopy) {
-        setRevealed(false)
-      }
+      doCopy(text)
     }
-  }, [showShareActionSheet, copyToClipboard, text, loadText, shareSheet, onCopy, hideOnCopy])
-
-  React.useEffect(() => {
-    if (requestedCopy && loadText) {
-      // we're requesting a copy
-      if (!text) {
-        // no text has been loaded
-        loadText()
-      } else {
-        // we want to copy something + have something to copy
-        copy() // props.text exists so this will not cause a recursive loop
-        setRequestedCopy(false)
-      }
-    }
-  }, [requestedCopy, text, copy, loadText])
+  }
 
   const reveal = () => {
     if (!props.text && props.loadText) {
@@ -118,7 +143,7 @@ const CopyText = (props: Props) => {
       : undefined
 
   return (
-    <Kb.Box2Measure
+    <Kb.Box2
       ref={popupAnchor}
       direction="horizontal"
       style={Styles.collapseStyles([
@@ -139,8 +164,6 @@ const CopyText = (props: Props) => {
         selectable={true}
         center={true}
         style={Styles.collapseStyles([styles.text, props.disabled && styles.textDisabled])}
-        allowHighlightText={true}
-        textRef={textRef}
       >
         {isRevealed && (props.text || props.placeholderText)
           ? props.text || props.placeholderText
@@ -152,19 +175,14 @@ const CopyText = (props: Props) => {
         </Kb.Text>
       )}
       {!props.disabled && (
-        <Kb.Button
-          type={props.buttonType || 'Default'}
-          style={styles.button}
-          onClick={copy}
-          labelContainerStyle={styles.buttonLabelContainer}
-        >
+        <Kb.Button type={props.buttonType || 'Default'} style={styles.button} onClick={copy}>
           <Kb.Icon
             type={shareSheet ? 'iconfont-share' : 'iconfont-clipboard'}
             color={Styles.globalColors.whiteOrWhite}
           />
         </Kb.Button>
       )}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
 }
 
@@ -176,12 +194,15 @@ const styles = Styles.styleSheetCreate(
         common: {
           alignSelf: 'stretch',
           borderBottomLeftRadius: 0,
+          borderBottomRightRadius: Styles.borderRadius,
           borderTopLeftRadius: 0,
+          borderTopRightRadius: Styles.borderRadius,
           height: undefined,
           marginLeft: 'auto',
           minWidth: undefined,
           paddingLeft: Styles.globalMargins.xsmall,
           paddingRight: Styles.globalMargins.xsmall,
+          width: undefined,
         },
         isElectron: {
           display: 'flex',
@@ -195,9 +216,6 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.tiny,
         },
       }),
-      buttonLabelContainer: {
-        height: undefined,
-      },
       container: Styles.platformStyles({
         common: {
           alignItems: 'center',

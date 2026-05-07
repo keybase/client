@@ -1,21 +1,19 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
 import type SetDescriptionType from './container'
 
-const SetDescription = React.memo(function SetDescription(p: Props) {
-  const {ordinal} = p
-  const common = useCommon(ordinal)
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+function WrapperSetDescription(p: Props) {
+  const {ordinal, isCenteredHighlight} = p
+  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const {message} = wrapper.messageData
 
-  if (message?.type !== 'setDescription') return null
+  if (message.type !== 'setDescription') return null
 
-  const {default: SetDescription} = require('./container') as {default: typeof SetDescriptionType}
+  const {default: SetDescriptionComponent} = require('./container') as {default: typeof SetDescriptionType}
   return (
-    <WrapperMessage {...p} {...common}>
-      <SetDescription message={message} />
+    <WrapperMessage {...p} {...wrapper}>
+      <SetDescriptionComponent message={message} />
     </WrapperMessage>
   )
-})
+}
 
-export default SetDescription
+export default WrapperSetDescription

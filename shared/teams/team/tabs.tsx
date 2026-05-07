@@ -1,18 +1,13 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as Teams from '@/constants/teams'
+import {isBigTeam} from '@/constants/chat/helpers'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import type {Tab as TabType} from '@/common-adapters/tabs'
+import {useLoadedTeam} from './use-loaded-team'
 
 type TeamTabsProps = {
   admin: boolean
-  error?: string
   isBig: boolean
-  loading: boolean
-  newRequests: number
-  numInvites: number
-  numRequests: number
   numSubteams: number
   resetUserCount: number
   selectedTab?: T.Teams.TabKey
@@ -45,7 +40,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box style={styles.container}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
         {Kb.Styles.isMobile ? (
           <Kb.ScrollView
             horizontal={true}
@@ -57,8 +52,7 @@ const TeamTabs = (props: TeamTabsProps) => {
         ) : (
           tabContent
         )}
-      </Kb.Box>
-      {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -71,13 +65,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   container: {backgroundColor: Kb.Styles.globalColors.white},
-  inlineProgressIndicator: {
-    height: 17,
-    position: 'absolute',
-    right: Kb.Styles.globalMargins.small,
-    top: Kb.Styles.globalMargins.small,
-    width: 17,
-  },
   tab: Kb.Styles.platformStyles({
     isElectron: {flexGrow: 1},
     isMobile: {
@@ -100,46 +87,20 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {selectedTab, setSelectedTab, teamID} = ownProps
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => {
-      const teamMeta = Teams.getTeamMeta(s, teamID)
-      const resetUserCount = Teams.getTeamResetUsers(s, teamMeta.teamname).size
-      return {
-        error: s.errorInAddToTeam,
-        newTeamRequests: s.newTeamRequests,
-        resetUserCount,
-        teamDetails: s.teamDetails.get(teamID),
-        teamMeta,
-        yourOperations: Teams.getCanPerformByID(s, teamID),
-      }
-    })
-  )
-  const {error, newTeamRequests, resetUserCount, teamDetails} = teamsState
-  const {teamMeta, yourOperations} = teamsState
-
+  const {teamDetails, yourOperations} = useLoadedTeam(teamID)
+  const resetUserCount = [...teamDetails.members.values()].filter(member => member.status === 'reset').length
   const admin = yourOperations.manageMembers
-  const isBig = Chat.useChatState(s => Chat.isBigTeam(s, teamID))
-  const loading = C.Waiting.useAnyWaiting([
-    C.waitingKeyTeamsTeam(teamID),
-    C.waitingKeyTeamsTeamTars(teamMeta.teamname),
-  ])
-  const numInvites = teamDetails?.invites.size ?? 0
-  const numRequests = teamDetails?.requests.size ?? 0
-  const numSubteams = teamDetails?.subteams.size ?? 0
+  const isBig = useInboxLayoutState(s => isBigTeam(s.layout, teamID))
+  const numSubteams = teamDetails.subteams.size
   const showSubteams = yourOperations.manageSubteams
   const props = {
-    admin: admin,
-    error: error,
-    isBig: isBig,
-    loading: loading,
-    newRequests: newTeamRequests.get(ownProps.teamID)?.size ?? 0,
-    numInvites: numInvites,
-    numRequests: numRequests,
-    numSubteams: numSubteams,
-    resetUserCount: resetUserCount,
-    selectedTab: selectedTab,
-    setSelectedTab: setSelectedTab,
-    showSubteams: showSubteams,
+    admin,
+    isBig,
+    numSubteams,
+    resetUserCount,
+    selectedTab,
+    setSelectedTab,
+    showSubteams,
   }
   return <TeamTabs {...props} />
 }

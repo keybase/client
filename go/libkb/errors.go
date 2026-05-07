@@ -68,7 +68,7 @@ type ProofErrorImpl struct {
 	Desc   string
 }
 
-func NewProofError(s keybase1.ProofStatus, d string, a ...interface{}) *ProofErrorImpl {
+func NewProofError(s keybase1.ProofStatus, d string, a ...any) *ProofErrorImpl {
 	// Don't do string interpolation if there are no substitution arguments.
 	// Fixes double-interpolation when deserializing an object.
 	if len(a) == 0 {
@@ -118,7 +118,7 @@ func (t TorSessionRequiredError) Error() string {
 	return "We can't send out PII in Tor-Strict mode; but it's needed for this operation"
 }
 
-func NewProofAPIError(s keybase1.ProofStatus, u string, d string, a ...interface{}) *ProofAPIError {
+func NewProofAPIError(s keybase1.ProofStatus, u string, d string, a ...any) *ProofAPIError {
 	base := NewProofError(s, d, a...)
 	return &ProofAPIError{*base, u}
 }
@@ -185,14 +185,14 @@ func (e AssertionParseError) Error() string {
 	return e.err
 }
 
-func NewAssertionParseError(s string, a ...interface{}) AssertionParseError {
+func NewAssertionParseError(s string, a ...any) AssertionParseError {
 	return AssertionParseError{
 		reason: AssertionParseErrorReasonGeneric,
 		err:    fmt.Sprintf(s, a...),
 	}
 }
 
-func NewAssertionParseErrorWithReason(reason AssertionParseErrorReason, s string, a ...interface{}) AssertionParseError {
+func NewAssertionParseErrorWithReason(reason AssertionParseErrorReason, s string, a ...any) AssertionParseError {
 	return AssertionParseError{
 		reason: reason,
 		err:    fmt.Sprintf(s, a...),
@@ -214,7 +214,7 @@ func (e AssertionCheckError) Error() string {
 	return e.err
 }
 
-func NewAssertionCheckError(s string, a ...interface{}) AssertionCheckError {
+func NewAssertionCheckError(s string, a ...any) AssertionCheckError {
 	return AssertionCheckError{
 		err: fmt.Sprintf(s, a...),
 	}
@@ -230,7 +230,7 @@ func (e NeedInputError) Error() string {
 	return e.err
 }
 
-func NewNeedInputError(s string, a ...interface{}) AssertionParseError {
+func NewNeedInputError(s string, a ...any) AssertionParseError {
 	return AssertionParseError{
 		err: fmt.Sprintf(s, a...),
 	}
@@ -692,7 +692,7 @@ func (e ServerChainError) Error() string {
 	return e.msg
 }
 
-func NewServerChainError(d string, a ...interface{}) ServerChainError {
+func NewServerChainError(d string, a ...any) ServerChainError {
 	return ServerChainError{fmt.Sprintf(d, a...)}
 }
 
@@ -1234,7 +1234,7 @@ func (r ReverseSigError) Error() string {
 	return fmt.Sprintf("Error in reverse signature: %s", r.msg)
 }
 
-func NewReverseSigError(msgf string, a ...interface{}) ReverseSigError {
+func NewReverseSigError(msgf string, a ...any) ReverseSigError {
 	return ReverseSigError{msg: fmt.Sprintf(msgf, a...)}
 }
 
@@ -1447,7 +1447,7 @@ func (e UntrackError) Error() string {
 	return fmt.Sprintf("Unfollow error: %s", e.err)
 }
 
-func NewUntrackError(d string, a ...interface{}) UntrackError {
+func NewUntrackError(d string, a ...any) UntrackError {
 	return UntrackError{
 		err: fmt.Sprintf(d, a...),
 	}
@@ -2342,7 +2342,7 @@ func (e PerUserKeyImportError) Error() string {
 	return fmt.Sprintf("per-user-key import error: %s", e.msg)
 }
 
-func NewPerUserKeyImportError(format string, args ...interface{}) PerUserKeyImportError {
+func NewPerUserKeyImportError(format string, args ...any) PerUserKeyImportError {
 	return PerUserKeyImportError{
 		msg: fmt.Sprintf(format, args...),
 	}
@@ -2450,7 +2450,7 @@ func (e ImplicitTeamDisplayNameError) Error() string {
 	return fmt.Sprintf("Error parsing implicit team name: %s", e.msg)
 }
 
-func NewImplicitTeamDisplayNameError(format string, args ...interface{}) ImplicitTeamDisplayNameError {
+func NewImplicitTeamDisplayNameError(format string, args ...any) ImplicitTeamDisplayNameError {
 	return ImplicitTeamDisplayNameError{fmt.Sprintf(format, args...)}
 }
 
@@ -2913,7 +2913,7 @@ func (e HiddenChainDataMissingError) Error() string {
 	return fmt.Sprintf("hidden chain data missing error: %s", e.note)
 }
 
-func NewHiddenChainDataMissingError(format string, args ...interface{}) HiddenChainDataMissingError {
+func NewHiddenChainDataMissingError(format string, args ...any) HiddenChainDataMissingError {
 	return HiddenChainDataMissingError{fmt.Sprintf(format, args...)}
 }
 
@@ -2941,7 +2941,7 @@ type HiddenMerkleError struct {
 	t HiddenMerkleErrorType
 }
 
-func NewHiddenMerkleError(t HiddenMerkleErrorType, format string, args ...interface{}) HiddenMerkleError {
+func NewHiddenMerkleError(t HiddenMerkleErrorType, format string, args ...any) HiddenMerkleError {
 	return HiddenMerkleError{
 		t: t,
 		m: fmt.Sprintf(format, args...),

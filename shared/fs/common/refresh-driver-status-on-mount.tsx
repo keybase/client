@@ -1,13 +1,12 @@
 import * as React from 'react'
-import {useFSState} from '@/constants/fs'
+import {useSystemFileManagerIntegration} from './sfmi'
 
 const RefreshDriverStatusOnMount = () => {
-  const refreshDriverStatusDesktop = useFSState(s => s.dispatch.dynamic.refreshDriverStatusDesktop)
-  const refresh = React.useCallback(() => refreshDriverStatusDesktop?.(), [refreshDriverStatusDesktop])
+  const {refreshDriverStatusDesktop} = useSystemFileManagerIntegration()
 
   React.useEffect(() => {
-    refresh()
-  }, [refresh])
+    refreshDriverStatusDesktop()
+  }, [refreshDriverStatusDesktop])
 
   return null
 }

@@ -113,7 +113,7 @@ func (p *RandomPortRangeListenerSource) GetListener() (listener net.Listener, ad
 	p.Lock()
 	defer p.Unlock()
 	localhost := "127.0.0.1"
-	for i := 0; i < maxRandomTries; i++ {
+	for range maxRandomTries {
 		if p.pinnedPort > 0 {
 			address = fmt.Sprintf("%s:%d", localhost, p.pinnedPort)
 			if listener, err = net.Listen("tcp", address); err != nil {

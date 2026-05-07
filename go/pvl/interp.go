@@ -325,7 +325,7 @@ func validateScript(m metaContext, script *scriptT, service keybase1.ProofType, 
 	// Does not validate each instruction's format. (That is done when running it)
 	// Validate each instruction's "error" field.
 
-	logerr := func(m metaContext, service keybase1.ProofType, whichscript int, pc int, format string, arg ...interface{}) libkb.ProofError {
+	logerr := func(m metaContext, service keybase1.ProofType, whichscript int, pc int, format string, arg ...any) libkb.ProofError {
 		debugWithPosition(m, service, whichscript, pc, format, arg...)
 		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL, format, arg...)
 	}
@@ -1012,7 +1012,7 @@ func runCSSSelectorInner(m metaContext, html *goquery.Selection,
 func runSelectorJSONInner(m metaContext, state scriptState, selectedObject *jsonw.Wrapper,
 	selectors []keybase1.SelectorEntry,
 ) ([]string, libkb.ProofError) {
-	logger := func(format string, args ...interface{}) {
+	logger := func(format string, args ...any) {
 		debugWithState(m, state, format, args...)
 	}
 	jsonResults, perr := jsonhelpers.AtSelectorPath(selectedObject, selectors, logger, libkb.NewInvalidPVLSelectorError)

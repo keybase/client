@@ -490,7 +490,7 @@ func (c *Client) outboxSend() {
 		return
 	}
 	var index int
-	for index = 0; index < len(msgs); index++ {
+	for index = range msgs {
 		m := msgs[index]
 		// Look for a message that we already have in our state and skip
 		ibm := m.ToInBandMessage()

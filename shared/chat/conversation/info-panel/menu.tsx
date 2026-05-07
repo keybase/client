@@ -1,17 +1,24 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
-import * as Teams from '@/constants/teams'
-import * as React from 'react'
+import type * as React from 'react'
 import * as T from '@/constants/types'
 import * as InfoPanelCommon from './common'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
-import {TeamsSubscriberMountOnly} from '@/teams/subscriber'
-import {useUsersState} from '@/constants/users'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useUsersState} from '@/stores/users'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useConfigState} from '@/stores/config'
+import {useChatManageChannelsBadge, useChatTeam} from '../team-hooks'
+import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
+import {hexToUint8Array} from '@/util/uint8array'
+import {hideConversation, joinConversation, muteConversation} from '../status-actions'
+import {useConversationMarkAsUnread, useConversationMetadata} from '../data-hooks'
+
+const isHexBytes = (s: string) => s.length > 0 && s.length % 2 === 0 && /^[0-9a-fA-F]+$/.test(s)
 
 export type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
+  conversationIDKey?: T.Chat.ConversationIDKey
   onHidden: () => void
   floatingMenuContainerStyle?: Kb.Styles.StylesCrossPlatform
   hasHeader: boolean
@@ -20,18 +27,21 @@ export type OwnProps = {
   visible: boolean
 }
 
-const InfoPanelMenuConnectorVisible = React.memo(function InfoPanelMenuConnectorVisible(p: OwnProps) {
+const InfoPanelMenuConnectorVisible = function InfoPanelMenuConnectorVisible(p: OwnProps) {
   const {visible} = p
   return visible ? <InfoPanelMenuConnector {...p} /> : null
-})
+}
 
-const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
-  const {isSmallTeam, pteamID} = p
+const useData = (p: {
+  conversationIDKey: T.Chat.ConversationIDKey
+  isSmallTeam: boolean
+  pteamID: string | undefined
+}) => {
+  const {conversationIDKey, isSmallTeam, pteamID} = p
   const username = useCurrentUserState(s => s.username)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const meta = Chat.useChatContext(s => s.meta)
-  const teamMeta = Teams.useTeamsState(s => (pteamID ? Teams.getTeamMeta(s, pteamID) : undefined))
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
+  const {teamname: loadedTeamname} = useChatTeam(pteamID ?? T.Teams.noTeamID)
   const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
 
@@ -73,86 +83,87 @@ const useData = (p: {isSmallTeam: boolean; pteamID: string | undefined}) => {
     }
   } else if (pteamID) {
     const teamID = pteamID
-    const teamname = teamMeta?.teamname ?? ''
+    const teamname = loadedTeamname
     return {...common, teamID, teamname}
   }
   return {...common}
 }
 
-const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: OwnProps) {
+const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const {attachTo, onHidden, floatingMenuContainerStyle, hasHeader} = p
   const {isSmallTeam, teamID: pteamID} = p
+  const conversationIDKey = p.conversationIDKey ?? Chat.noConversationIDKey
   const visible = true
 
-  const data = useData({isSmallTeam, pteamID})
+  const data = useData({conversationIDKey, isSmallTeam, pteamID})
   const {teamname, teamID, channelname, isInChannel, ignored, fullname} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
 
-  const teamsState = Teams.useTeamsState(
-    C.useShallow(s => ({
-      addTeamWithChosenChannels: s.dispatch.addTeamWithChosenChannels,
-      badgeSubscribe: !Teams.isTeamWithChosenChannels(s, teamname),
-      canAddPeople: Teams.getCanPerformByID(s, teamID).manageMembers,
-      manageChatChannels: s.dispatch.manageChatChannels,
-      startAddMembersWizard: s.dispatch.startAddMembersWizard,
-    }))
+  const {yourOperations} = useChatTeam(teamID, teamname)
+  const {dismiss: dismissManageChannelsBadge, showBadge: badgeSubscribe} = useChatManageChannelsBadge(
+    teamID,
+    teamname
   )
-  const {addTeamWithChosenChannels, badgeSubscribe, canAddPeople} = teamsState
-  const {manageChatChannels, startAddMembersWizard} = teamsState
-  const onAddPeople = React.useCallback(() => {
-    teamID && startAddMembersWizard(teamID)
-  }, [startAddMembersWizard, teamID])
-  const navigateAppend = Chat.useChatNavigateAppend()
-  const onBlockConv = React.useCallback(() => {
-    navigateAppend(conversationIDKey => ({
-      props: {
+  const routerNavigateAppend = C.Router2.navigateAppend
+  const canAddPeople = yourOperations.manageMembers
+  const onAddPeople = () => {
+    if (teamID) {
+      routerNavigateAppend({
+        name: 'teamAddToTeamFromWhere',
+        params: {wizard: makeAddMembersWizard(teamID)},
+      })
+    }
+  }
+  const onBlockConv = () => {
+    routerNavigateAppend({
+      name: 'chatBlockingModal',
+      params: {
         blockUserByDefault: participants.length === 1,
         conversationIDKey,
         others: participants,
         team: teamname,
       },
-      selected: 'chatBlockingModal',
-    }))
-  }, [navigateAppend, teamname, participants])
+    })
+  }
 
-  const onJoinChannel = Chat.useChatContext(s => s.dispatch.joinConversation)
-  const onLeaveChannel = Chat.useChatContext(s => s.dispatch.leaveConversation)
-  const onLeaveTeam = React.useCallback(
-    () => teamID && navigateAppend(() => ({props: {teamID}, selected: 'teamReallyLeaveTeam'})),
-    [navigateAppend, teamID]
-  )
-  const onManageChannels = React.useCallback(() => {
-    manageChatChannels(teamID)
-    addTeamWithChosenChannels(teamID)
-  }, [manageChatChannels, addTeamWithChosenChannels, teamID])
-  const {clearModals, _navigateAppend} = C.useRouterState(
-    C.useShallow(s => ({
-      _navigateAppend: s.dispatch.navigateAppend,
-      clearModals: s.dispatch.clearModals,
-    }))
-  )
-  const markTeamAsRead = Chat.useChatContext(s => s.dispatch.markTeamAsRead)
-  const onMarkAsRead = React.useCallback(() => {
+  const onJoinChannel = () => joinConversation(conversationIDKey)
+  const onLeaveChannel = () => C.Router2.leaveConversation(conversationIDKey)
+  const onLeaveTeam = () => teamID && routerNavigateAppend({name: 'teamReallyLeaveTeam', params: {teamID}})
+  const onManageChannels = () => {
+    routerNavigateAppend({name: 'teamAddToChannels', params: {teamID}})
+    void dismissManageChannelsBadge()
+  }
+  const clearModals = C.Router2.clearModals
+  const loggedIn = useConfigState(s => s.loggedIn)
+  const teamIDString = T.Teams.teamIDToString(teamID)
+  const canMarkTLFAsRead = isHexBytes(teamIDString)
+  const onMarkAsRead = () => {
     clearModals()
-    markTeamAsRead(teamID)
-  }, [clearModals, markTeamAsRead, teamID])
-  const setMarkAsUnread = Chat.useChatContext(s => s.dispatch.setMarkAsUnread)
-  const onMarkAsUnread = React.useCallback(() => {
+    const f = async () => {
+      if (!loggedIn || !canMarkTLFAsRead) {
+        return
+      }
+      const tlfID = hexToUint8Array(teamIDString)
+      await T.RPCChat.localMarkTLFAsReadLocalRpcPromise({tlfID})
+    }
+    C.ignorePromise(f())
+  }
+  const setMarkAsUnread = useConversationMarkAsUnread(conversationIDKey)
+  const onMarkAsUnread = () => {
     clearModals()
     setMarkAsUnread()
-  }, [clearModals, setMarkAsUnread])
-  const onViewTeam = React.useCallback(() => {
+  }
+  const onViewTeam = () => {
     clearModals()
-    navigateAppend(() => ({props: {teamID}, selected: 'team'}))
-  }, [clearModals, navigateAppend, teamID])
-  const hideConversation = Chat.useChatContext(s => s.dispatch.hideConversation)
-  const onHideConv = React.useCallback(() => {
-    hideConversation(true)
-  }, [hideConversation])
-  const onMuteConv = Chat.useChatContext(s => s.dispatch.mute)
-  const onUnhideConv = React.useCallback(() => {
-    hideConversation(false)
-  }, [hideConversation])
+    routerNavigateAppend({name: 'team', params: {teamID}})
+  }
+  const onHideConv = () => {
+    hideConversation(conversationIDKey, true)
+  }
+  const onMuteConv = (muted: boolean) => muteConversation(conversationIDKey, muted)
+  const onUnhideConv = () => {
+    hideConversation(conversationIDKey, false)
+  }
 
   const isGeneralChannel = !!(channelname && channelname === 'general')
   const hasChannelSection = !isSmallTeam && !hasHeader
@@ -216,7 +227,6 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     ),
   } as const
 
-  const conversationIDKey = Chat.useChatContext(s => s.id)
   const hideItem = (() => {
     if (!conversationIDKey) {
       return null
@@ -271,14 +281,14 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const isAdhoc = (isSmallTeam && !conversationIDKey) || !!(teamType === 'adhoc')
   const onArchive = () => {
     if (isAdhoc && conversationIDKey) {
-      _navigateAppend({
-        props: {conversationIDKey, type: 'chatID' as const},
-        selected: 'archiveModal',
+      routerNavigateAppend({
+        name: 'archiveModal',
+        params: {conversationIDKey, type: 'chatID' as const},
       })
     } else if (teamname) {
-      _navigateAppend({
-        props: {teamname, type: 'chatTeam' as const},
-        selected: 'archiveModal',
+      routerNavigateAppend({
+        name: 'archiveModal',
+        params: {teamname, type: 'chatTeam' as const},
       })
     }
   }
@@ -301,13 +311,14 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       onClick: onBlockConv,
       title: 'Block',
     } as const)
-    conversationIDKey &&
+    if (conversationIDKey) {
       items.push({
         icon: 'iconfont-folder-downloads',
         iconIsVisible: false,
         onClick: onArchive,
         title: 'Backup conversation',
       } as const)
+    }
   } else {
     if (hasChannelSection) {
       items.push(channelHeader)
@@ -340,7 +351,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     if (hasChannelSection) {
       items.push(teamHeader)
     }
-    if (!isSmallTeam) {
+    if (!isSmallTeam && canMarkTLFAsRead) {
       // Only show if we have multiple channels
       items.push({
         icon: 'iconfont-envelope',
@@ -374,37 +385,34 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
 
   const header = hasHeader ? (
     isAdhoc && conversationIDKey ? (
-      <AdhocHeader isMuted={!!isMuted} fullname={fullname ?? ''} />
+      <AdhocHeader conversationIDKey={conversationIDKey} isMuted={!!isMuted} fullname={fullname ?? ''} />
     ) : teamname && teamID ? (
       <TeamHeader isMuted={!!isMuted} teamname={teamname} teamID={teamID} onViewTeam={onViewTeam} />
     ) : null
   ) : null
 
   return (
-    <>
-      <TeamsSubscriberMountOnly />
-      <Kb.FloatingMenu
-        attachTo={attachTo}
-        containerStyle={floatingMenuContainerStyle}
-        visible={visible}
-        items={items}
-        header={header}
-        onHidden={onHidden}
-        position="bottom left"
-        closeOnSelect={true}
-      />
-    </>
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      containerStyle={floatingMenuContainerStyle}
+      visible={visible}
+      items={items}
+      header={header}
+      onHidden={onHidden}
+      position="bottom left"
+      closeOnSelect={true}
+    />
   )
-})
+}
 
 type AdhocHeaderProps = {
+  conversationIDKey: T.Chat.ConversationIDKey
   fullname: string
   isMuted: boolean
 }
 
 const AdhocHeader = (props: AdhocHeaderProps) => {
-  const meta = Chat.useChatContext(s => s.meta)
-  const participants = Chat.useChatContext(s => s.participants)
+  const {meta, participants} = useConversationMetadata(props.conversationIDKey)
   const {channelHumans} = InfoPanelCommon.useHumans(participants, meta)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
@@ -474,21 +482,6 @@ const TeamHeader = (props: TeamHeaderProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      badge: Kb.Styles.platformStyles({
-        common: {
-          backgroundColor: Kb.Styles.globalColors.blue,
-          borderRadius: 6,
-          height: 8,
-          margin: 6,
-          width: 8,
-        },
-        isElectron: {
-          margin: 4,
-          marginTop: 5,
-          position: 'absolute',
-          right: Kb.Styles.globalMargins.tiny,
-        },
-      }),
       channelHeader: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGreyLight,
@@ -529,28 +522,12 @@ const styles = Kb.Styles.styleSheetCreate(
           wordBreak: 'break-word',
         } as const,
       }),
-      muteAction: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-      },
-      noTopborder: {
-        borderTopWidth: 0,
-      },
       teamHeader: {
         borderStyle: 'solid',
         borderTopColor: Kb.Styles.globalColors.black_10,
         borderTopWidth: 1,
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      teamText: {
-        flex: 1,
-        justifyContent: 'space-between',
-      },
-      text: Kb.Styles.platformStyles({
-        isMobile: {
-          color: Kb.Styles.globalColors.blueDark,
-        },
-      }),
     }) as const
 )
 

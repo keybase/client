@@ -483,16 +483,16 @@ type StellarSender interface {
 }
 
 type ConvConversationBackedStorage interface {
-	Put(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, data interface{}) error
-	PutToKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, data interface{}) error
-	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, res interface{},
+	Put(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, data any) error
+	PutToKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, data any) error
+	Get(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, name string, res any,
 		createConvIfMissing bool) (bool, *chat1.ConversationLocal, error)
-	GetFromKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, dest interface{}) (bool, error)
+	GetFromKnownConv(ctx context.Context, uid gregor1.UID, conv chat1.ConversationLocal, dest any) (bool, error)
 }
 
 type UserConversationBackedStorage interface {
-	Put(ctx context.Context, uid gregor1.UID, name string, data interface{}) error
-	Get(ctx context.Context, uid gregor1.UID, name string, res interface{}) (bool, error)
+	Put(ctx context.Context, uid gregor1.UID, name string, data any) error
+	Get(ctx context.Context, uid gregor1.UID, name string, res any) (bool, error)
 }
 
 type WhitelistExemption interface {

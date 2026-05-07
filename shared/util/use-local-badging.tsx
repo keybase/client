@@ -25,14 +25,12 @@ export const useLocalBadging = (storeSet: ReadonlySet<string> | undefined, clear
     })
   }
 
-  C.Router2.useSafeFocusEffect(
-    React.useCallback(() => {
-      clearStoreBadges()
-      return () => {
-        setBadged(noBadges)
-      }
-    }, [clearStoreBadges])
-  )
+  C.Router2.useSafeFocusEffect(() => {
+    clearStoreBadges()
+    return () => {
+      setBadged(noBadges)
+    }
+  })
 
   return {badged}
 }

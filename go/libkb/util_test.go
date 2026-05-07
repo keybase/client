@@ -221,7 +221,7 @@ func TestSecureRandomRndRange(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			r, err := s.RndRange(test.lo, test.hi)
 			if test.shouldErr {
 				require.Error(t, err)
@@ -247,7 +247,7 @@ func TestThrottleBatch(t *testing.T) {
 	clock := clockwork.NewFakeClock()
 	throttleBatchClock = clock
 	ch := make(chan int, 100)
-	handler := func(arg interface{}) {
+	handler := func(arg any) {
 		v, ok := arg.(int)
 		require.True(t, ok)
 		ch <- v
@@ -268,14 +268,14 @@ func TestThrottleBatch(t *testing.T) {
 		default:
 		}
 	}
-	batcher := func(batchedInt interface{}, singleInt interface{}) interface{} {
+	batcher := func(batchedInt any, singleInt any) any {
 		batched, ok := batchedInt.(int)
 		require.True(t, ok)
 		single, ok := singleInt.(int)
 		require.True(t, ok)
 		return batched + single
 	}
-	reset := func() interface{} {
+	reset := func() any {
 		return 0
 	}
 

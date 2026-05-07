@@ -1,9 +1,8 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
 import * as Styles from '@/styles'
-import {useConfigState} from '@/constants/config'
 import WaitingButton from '@/common-adapters/waiting-button'
 import Icon from '@/common-adapters/icon'
+import {showMain} from '@/util/storeless-actions'
 
 // pulled in from common-adapters/profile-card
 const Kb = {
@@ -19,8 +18,7 @@ type Props = {
 }
 
 const ChatButton = ({small, style, username, afterClick}: Props) => {
-  const showMain = useConfigState(s => s.dispatch.showMain)
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const chat = () => {
     afterClick?.()
     showMain()

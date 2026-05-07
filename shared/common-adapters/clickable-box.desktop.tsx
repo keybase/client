@@ -1,15 +1,12 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import type {MeasureRef} from './measure-ref'
 import type {Props as _Props, Props2} from './clickable-box'
 import type {_StylesCrossPlatform} from '@/styles/css'
 
 type Props = _Props & {children: React.ReactNode}
 
-const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
-  props: Props,
-  ref: React.Ref<MeasureRef | null>
-) {
+const ClickableBox = (props: Props & {ref?: React.Ref<HTMLDivElement | null>}) => {
+  const {ref} = props
   const [mouseDown, setMouseDown] = React.useState(false)
   const [mouseIn, setMouseIn] = React.useState(false)
 
@@ -51,6 +48,7 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
     onDoubleClick,
     className,
     tooltip,
+    ref: _ref,
     ...otherProps
   } = props
 
@@ -80,20 +78,9 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
     )
   }
 
-  const divRef = React.useRef<HTMLDivElement>(null)
-
-  React.useImperativeHandle(ref, () => {
-    return {
-      divRef,
-      measure() {
-        return divRef.current?.getBoundingClientRect()
-      },
-    }
-  }, [])
-
   return (
     <div
-      ref={divRef}
+      ref={ref}
       className={Styles.classNames(className, {tooltip})}
       data-tooltip={tooltip}
       {...passThroughProps}
@@ -115,7 +102,7 @@ const ClickableBox = React.forwardRef<MeasureRef, Props>(function ClickableBox(
       {children}
     </div>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -145,30 +132,17 @@ const styles = Styles.styleSheetCreate(
 
 export default ClickableBox
 
-export const ClickableBox2 = React.forwardRef<MeasureRef, Props2>(function ClickableBox2(
-  p: Props2,
-  ref: React.Ref<MeasureRef | null>
-) {
-  const {onClick, children, style, className, onMouseOver} = p
-  const divRef = React.useRef<HTMLDivElement>(null)
-
-  React.useImperativeHandle(ref, () => {
-    return {
-      divRef,
-      measure() {
-        return divRef.current?.getBoundingClientRect()
-      },
-    }
-  })
+export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<HTMLDivElement | null>}) => {
+  const {onClick, children, style, className, onMouseOver, ref} = p
   return (
     <div
       onClick={onClick}
       onMouseOver={onMouseOver}
       style={Styles.castStyleDesktop(style)}
-      ref={divRef}
+      ref={ref}
       className={Styles.classNames('clickable-box2', className)}
     >
       {children}
     </div>
   )
-})
+}

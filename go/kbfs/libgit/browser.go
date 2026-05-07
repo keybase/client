@@ -224,7 +224,7 @@ func (b *Browser) Open(filename string) (f billy.File, err error) {
 	}
 
 	defer translateGitError(&err)
-	for i := 0; i < maxSymlinkLevels; i++ {
+	for range maxSymlinkLevels {
 		fi, err := b.Lstat(filename)
 		if err != nil {
 			return nil, err
@@ -305,8 +305,8 @@ func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
 		return nil, errors.New("Empty repo")
 	}
 
-	if strings.HasPrefix(filename, AutogitCommitPrefix) {
-		commit := strings.TrimPrefix(filename, AutogitCommitPrefix)
+	if after, ok := strings.CutPrefix(filename, AutogitCommitPrefix); ok {
+		commit := after
 		hash := plumbing.NewHash(commit)
 		f, err := b.getCommitFile(context.Background(), hash)
 		if err != nil {
@@ -366,7 +366,7 @@ func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
 // Stat implements the billy.Filesystem interface for Browser.
 func (b *Browser) Stat(filename string) (fi os.FileInfo, err error) {
 	defer translateGitError(&err)
-	for i := 0; i < maxSymlinkLevels; i++ {
+	for range maxSymlinkLevels {
 		fi, err := b.Lstat(filename)
 		if err != nil {
 			return nil, err

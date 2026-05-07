@@ -1,7 +1,9 @@
-import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
+import {ignorePromise} from '@/constants/utils'
+import {muteConversationPromise} from '../../status-actions'
+import {useConversationMeta} from '../../data-hooks'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 
@@ -30,7 +32,7 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
           checked={!channelWide}
           label=""
           labelComponent={
-            <Kb.Box2 direction="vertical" style={{flex: 1}}>
+            <Kb.Box2 direction="vertical" flex={1}>
               <Kb.Text type="Body">
                 Ignore <Kb.Text type="BodySemibold">@here</Kb.Text> and{' '}
                 <Kb.Text type="BodySemibold">@channel</Kb.Text> mentions {ignoreMentionsSuffix}
@@ -100,29 +102,89 @@ const UnmutedNotificationPrefs = (props: UnmutedProps) => {
   )
 }
 
-const Notifications = () => {
-  const meta = Chat.useChatContext(s => s.meta)
+const Notifications = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey} = props
+  const meta = useConversationMeta(conversationIDKey)
   const [channelWide, setChannelWide] = React.useState(meta.notificationsGlobalIgnoreMentions)
   const [desktop, setDesktop] = React.useState(meta.notificationsDesktop)
   const [mobile, setMobile] = React.useState(meta.notificationsMobile)
   const [muted, setMuted] = React.useState(meta.isMuted)
   const [saving, setSaving] = React.useState(false)
-  const delayUnsave = Kb.useTimeout(() => setSaving(false), 100)
-  const updateNotificationSettings = Chat.useChatContext(s => s.dispatch.updateNotificationSettings)
+  const [saveError, setSaveError] = React.useState('')
+  const latestSaveIDRef = React.useRef(0)
+  const startSave = () => {
+    const saveID = latestSaveIDRef.current + 1
+    latestSaveIDRef.current = saveID
+    setSaveError('')
+    setSaving(true)
+    return saveID
+  }
+  const finishSave = (saveID: number) => {
+    if (latestSaveIDRef.current === saveID) {
+      setSaving(false)
+    }
+  }
+  const failSave = (saveID: number, error: unknown) => {
+    if (latestSaveIDRef.current !== saveID) {
+      return
+    }
+    setSaveError(
+      error instanceof Error && error.message ? error.message : 'Failed to save notification settings.'
+    )
+    setSaving(false)
+  }
   const saveNotifications = (
     desktop: T.Chat.NotificationsType,
     mobile: T.Chat.NotificationsType,
     channelWide: boolean
   ) => {
-    setSaving(true)
-    updateNotificationSettings(desktop, mobile, channelWide)
-    delayUnsave()
+    const saveID = startSave()
+    const f = async () => {
+      try {
+        await T.RPCChat.localSetAppNotificationSettingsLocalRpcPromise({
+          channelWide,
+          convID: T.Chat.keyToConversationID(conversationIDKey),
+          settings: [
+            {
+              deviceType: T.RPCGen.DeviceType.desktop,
+              enabled: desktop === 'onWhenAtMentioned',
+              kind: T.RPCChat.NotificationKind.atmention,
+            },
+            {
+              deviceType: T.RPCGen.DeviceType.desktop,
+              enabled: desktop === 'onAnyActivity',
+              kind: T.RPCChat.NotificationKind.generic,
+            },
+            {
+              deviceType: T.RPCGen.DeviceType.mobile,
+              enabled: mobile === 'onWhenAtMentioned',
+              kind: T.RPCChat.NotificationKind.atmention,
+            },
+            {
+              deviceType: T.RPCGen.DeviceType.mobile,
+              enabled: mobile === 'onAnyActivity',
+              kind: T.RPCChat.NotificationKind.generic,
+            },
+          ],
+        })
+        finishSave(saveID)
+      } catch (error) {
+        failSave(saveID, error)
+      }
+    }
+    ignorePromise(f())
   }
-  const mute = Chat.useChatContext(s => s.dispatch.mute)
   const saveMuted = (muted: boolean) => {
-    setSaving(true)
-    mute(muted)
-    delayUnsave()
+    const saveID = startSave()
+    const f = async () => {
+      try {
+        await muteConversationPromise(conversationIDKey, muted)
+        finishSave(saveID)
+      } catch (error) {
+        failSave(saveID, error)
+      }
+    }
+    ignorePromise(f())
   }
 
   const [lastMeta, setLastMeta] = React.useState<undefined | T.Chat.ConversationMeta>()
@@ -166,7 +228,13 @@ const Notifications = () => {
           }}
         />
       )}
-      <Kb.SaveIndicator saving={saving} />
+      {saveError ? (
+        <Kb.Banner color="red">
+          <Kb.BannerParagraph bannerColor="red" content={saveError} />
+        </Kb.Banner>
+      ) : (
+        <Kb.SaveIndicator saving={saving} />
+      )}
     </Kb.Box2>
   )
 }

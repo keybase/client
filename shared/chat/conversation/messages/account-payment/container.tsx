@@ -1,8 +1,9 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import MarkdownMemo from '@/wallets/markdown-memo'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useConversationThreadSelector} from '../../thread-context'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -44,8 +45,10 @@ type OwnProps = {
   message: T.Chat.MessageSendPayment | T.Chat.MessageRequestPayment
 }
 
+type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
+
 const getRequestMessageInfo = (
-  accountsInfoMap: Chat.ConvoState['accountsInfoMap'],
+  accountsInfoMap: AccountsInfoMap,
   message: T.Chat.MessageRequestPayment
 ) => {
   const maybeRequestInfo = accountsInfoMap.get(message.id)
@@ -62,7 +65,7 @@ const getRequestMessageInfo = (
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const you = useCurrentUserState(s => s.username)
-  const accountsInfoMap = Chat.useChatContext(s => s.accountsInfoMap)
+  const accountsInfoMap = useConversationThreadSelector(s => s.accountsInfoMap)
 
   const stateProps = (() => {
     const youAreSender = ownProps.message.author === you
@@ -140,7 +143,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           {balanceChange}
         </Kb.Text>
       )}
-      {showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
+      {showCoinsIcon && <Kb.ImageIcon type="icon-stellar-coins-stacked-16" />}
     </Kb.Box2>
   )
   const contents = loading ? (
@@ -229,11 +232,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {justifyContent: 'space-between'},
       }),
-      button: {
-        alignSelf: 'flex-start',
-        marginTop: Kb.Styles.globalMargins.xtiny,
-      },
-      buttonText: {color: Kb.Styles.globalColors.white},
       flexWrap: {flexWrap: 'wrap'},
       lineThrough: {textDecorationLine: 'line-through'},
       memo: Kb.Styles.platformStyles({
@@ -252,9 +250,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       purple: {color: Kb.Styles.globalColors.purpleDark},
       purpleOrWhite: {color: Kb.Styles.globalColors.purpleDarkOrWhite},
-      tooltipText: Kb.Styles.platformStyles({
-        isElectron: {wordBreak: 'normal'},
-      }),
     }) as const
 )
 

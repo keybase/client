@@ -38,7 +38,7 @@ const Rover = () => {
           left: transBackgroundX(x),
         }}
       >
-        <Kb.Icon style={styles.background} type="icon-illustration-mars-rover-background" allowLazy={false} />
+        <Kb.ImageIcon style={styles.background} type="icon-illustration-mars-rover-background" />
       </div>
       <div
         style={{
@@ -47,7 +47,7 @@ const Rover = () => {
           left: transRoverX(x),
         }}
       >
-        <Kb.Icon type="icon-illustration-mars-rover" allowLazy={false} />
+        <Kb.ImageIcon type="icon-illustration-mars-rover" />
       </div>
       <div
         style={{
@@ -56,7 +56,7 @@ const Rover = () => {
           left: transForegroundX(x),
         }}
       >
-        <Kb.Icon style={styles.foreground} type="icon-illustration-mars-rover-foreground" allowLazy={false} />
+        <Kb.ImageIcon style={styles.foreground} type="icon-illustration-mars-rover-foreground" />
       </div>
     </div>
   )

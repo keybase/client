@@ -87,7 +87,7 @@ func TestRandomIDInRange(t *testing.T) {
 	t.Log("Test that the distribution of IDs is roughly uniform.")
 	buckets := make([]int, 16)
 	numIds := 100000
-	for i := 0; i < numIds; i++ {
+	for range numIds {
 		id, err := MakeRandomIDInRange(0, 1.0, UseMathRandForTest)
 		require.NoError(t, err)
 		asInt := idToInt(id)

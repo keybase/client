@@ -56,7 +56,7 @@ func TestChatOutbox(t *testing.T) {
 	conv := makeConvo(gregor1.Time(5), 1, 1)
 
 	prevOrdinal := outboxOrdinalStart
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		obr, err := ob.PushMessage(context.TODO(), conv.GetConvID(), makeMsgPlaintext("hi", uid),
 			nil, nil, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		require.Equal(t, obr.Ordinal, prevOrdinal)
@@ -164,7 +164,7 @@ func TestChatOutboxPurge(t *testing.T) {
 
 	prevOrdinal := outboxOrdinalStart
 	ephemeralMetadata := &chat1.MsgEphemeralMetadata{Lifetime: 0}
-	for i := 0; i < 9; i++ {
+	for i := range 9 {
 		// send some exploding and some non exploding msgs
 		if i > 3 {
 			ephemeralMetadata = nil
@@ -193,7 +193,7 @@ func TestChatOutboxPurge(t *testing.T) {
 
 	// Mark 6/9 records as an error, three of these are ephemeral message, 3
 	// regular messages.
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		errRec := chat1.OutboxStateError{
 			Message: "failed",
 			Typ:     chat1.OutboxErrorType_MISC,
@@ -234,7 +234,7 @@ func TestChatOutboxMarkConv(t *testing.T) {
 	var obrs []chat1.OutboxRecord
 	conv := makeConvo(gregor1.Time(5), 1, 1)
 	conv2 := makeConvo(gregor1.Time(5), 1, 1)
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		convID := conv.GetConvID()
 		if i%2 == 0 {
 			convID = conv2.GetConvID()
@@ -294,7 +294,7 @@ func TestChatOutboxCancelMessagesWithPredicate(t *testing.T) {
 	ctx := context.TODO()
 
 	conv := makeConvo(gregor1.Time(5), 1, 1)
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		_, err := ob.PushMessage(ctx, conv.GetConvID(),
 			makeMsgPlaintext(fmt.Sprintf("hi%d", i), uid),
 			nil, nil, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)

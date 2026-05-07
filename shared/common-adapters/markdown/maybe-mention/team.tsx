@@ -1,19 +1,20 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
 import * as T from '@/constants/types'
-import {useTeamsState} from '@/constants/teams'
 import * as React from 'react'
-import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
+import Text from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import {Box2} from '@/common-adapters/box'
 import * as Styles from '@/styles'
 import TeamInfo from '@/profile/user/teams/teaminfo'
-import type {MeasureRef} from 'common-adapters/measure-ref'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
+import {showTeamByName} from '@/teams/team-page-actions'
 
 const Kb = {Box2, Styles, Text}
 
 type OwnProps = {
   allowFontScaling?: boolean
   channel: string
+  mentionInfo?: T.RPCChat.UITeamMention | null
   name: string
   style?: StylesTextCrossPlatform
 }
@@ -21,12 +22,7 @@ type OwnProps = {
 const noAdmins: Array<string> = []
 
 const TeamMention = (ownProps: OwnProps) => {
-  const {allowFontScaling, name, channel, style} = ownProps
-  const maybeMentionInfo = Chat.useChatState(s =>
-    s.maybeMentionMap.get(Chat.getTeamMentionName(name, channel))
-  )
-  const mentionInfo =
-    maybeMentionInfo?.status === T.RPCChat.UIMaybeMentionStatus.team ? maybeMentionInfo.team : null
+  const {allowFontScaling, name, channel, mentionInfo, style} = ownProps
   const _convID = mentionInfo ? mentionInfo.convID : undefined
   const description = mentionInfo?.description || ''
   const inTeam = !!mentionInfo && mentionInfo.inTeam
@@ -35,15 +31,15 @@ const TeamMention = (ownProps: OwnProps) => {
   const publicAdmins = mentionInfo?.publicAdmins || noAdmins
   const resolved = !!mentionInfo
 
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
-  const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const previewConversation = C.Router2.previewConversation
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
   const _onViewTeam = (teamname: string) => {
     clearModals()
-    showTeamByName(teamname)
+    void showTeamByName(teamname)
   }
-  const joinTeam = useTeamsState(s => s.dispatch.joinTeam)
-  const onJoinTeam = joinTeam
+  const onJoinTeam = (teamname: string) =>
+    navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
 
   const convID = _convID ? T.Chat.stringToConversationIDKey(_convID) : undefined
   const onChat = convID
@@ -93,7 +89,7 @@ const TeamMention = (ownProps: OwnProps) => {
 
   const popups = (
     <TeamInfo
-      attachTo={mentionRef}
+      attachTo={Kb.Styles.isMobile ? undefined : mentionRef}
       description={description}
       inTeam={inTeam}
       isOpen={isOpen}

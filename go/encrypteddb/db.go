@@ -48,7 +48,7 @@ func New(g *libkb.GlobalContext, getDB DbFn, getSecretBoxKey KeyFn) *EncryptedDB
 }
 
 func DecodeBox(ctx context.Context, b []byte, getSecretBoxKey KeyFn,
-	res interface{},
+	res any,
 ) error {
 	// Decode encrypted box
 	var boxed boxedData
@@ -77,7 +77,7 @@ func DecodeBox(ctx context.Context, b []byte, getSecretBoxKey KeyFn,
 // Get a value
 // Decodes into res
 // Returns (found, err). Res is valid only if (found && err == nil)
-func (i *EncryptedDB) Get(ctx context.Context, key libkb.DbKey, res interface{}) (bool, error) {
+func (i *EncryptedDB) Get(ctx context.Context, key libkb.DbKey, res any) (bool, error) {
 	var err error
 	db := i.getDB(i.G())
 	b, found, err := db.GetRaw(key)
@@ -93,7 +93,7 @@ func (i *EncryptedDB) Get(ctx context.Context, key libkb.DbKey, res interface{})
 	return true, nil
 }
 
-func EncodeBox(ctx context.Context, data interface{}, getSecretBoxKey KeyFn) ([]byte, error) {
+func EncodeBox(ctx context.Context, data any, getSecretBoxKey KeyFn) ([]byte, error) {
 	dat, err := libkb.MPackEncode(data)
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func EncodeBox(ctx context.Context, data interface{}, getSecretBoxKey KeyFn) ([]
 	return dat, nil
 }
 
-func (i *EncryptedDB) Put(ctx context.Context, key libkb.DbKey, data interface{}) error {
+func (i *EncryptedDB) Put(ctx context.Context, key libkb.DbKey, data any) error {
 	db := i.getDB(i.G())
 	dat, err := EncodeBox(ctx, data, i.getSecretBoxKey)
 	if err != nil {

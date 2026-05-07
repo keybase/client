@@ -1,8 +1,8 @@
 import * as React from 'react'
-import {useProfileState} from '@/constants/profile'
 import * as Kb from '@/common-adapters'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '@/util/timestamp'
 import {addTicker, removeTicker} from '@/util/second-timer'
+import {navToProfile} from '@/constants/router'
 
 type Props = {
   explodesAt: number
@@ -36,19 +36,15 @@ const ExplodingPopupHeader = (props: Props) => {
     }
   }, [explodesAt])
 
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onUsernameClicked = React.useCallback(
-    (user: string) => {
-      showUserProfile(user)
-      onHidden()
-    },
-    [showUserProfile, onHidden]
-  )
+  const onUsernameClicked = (user: string) => {
+    navToProfile(user)
+    onHidden()
+  }
 
   const [now] = React.useState(() => Date.now())
 
   const {author, botUsername, deviceName, deviceRevokedAt, hideTimer, timestamp} = props
-  const icon = <Kb.Icon style={styles.headerIcon} type={headerIconType} />
+  const icon = <Kb.ImageIcon style={styles.headerIcon} type={headerIconType} />
   const info = (
     <Kb.Box2 direction="vertical" style={styles.messageInfoContainer} fullWidth={true}>
       <Kb.Box2 direction="horizontal">
@@ -88,13 +84,9 @@ const ExplodingPopupHeader = (props: Props) => {
           {formatTimeForPopup(timestamp)}
         </Kb.Text>
         {deviceRevokedAt ? (
-          <Kb.PopupHeaderText
-            color={Kb.Styles.globalColors.white}
-            backgroundColor={Kb.Styles.globalColors.blue}
-            style={styles.revokedAt}
-          >
+          <Kb.Text center={true} type="BodySmallSemibold" style={Kb.Styles.collapseStyles([styles.popupHeaderText, styles.revokedAt])}>
             Device revoked on {formatTimeForRevoked(deviceRevokedAt)}
-          </Kb.PopupHeaderText>
+          </Kb.Text>
         ) : null}
       </Kb.Box2>
     </Kb.Box2>
@@ -171,6 +163,14 @@ const styles = Kb.Styles.styleSheetCreate(
           minWidth: 200,
         },
       }),
+      popupHeaderText: {
+        backgroundColor: Kb.Styles.globalColors.blue,
+        color: Kb.Styles.globalColors.white,
+        paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.tiny,
+      },
       revokedAt: {
         borderBottomLeftRadius: 3,
         borderBottomRightRadius: 3,

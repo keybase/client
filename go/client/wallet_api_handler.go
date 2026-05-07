@@ -432,7 +432,7 @@ func (w *walletAPIHandler) sendPathPayment(ctx context.Context, c Call, wr io.Wr
 }
 
 // encodeResult JSON encodes a successful result to the wr writer.
-func (w *walletAPIHandler) encodeResult(call Call, result interface{}, wr io.Writer) error {
+func (w *walletAPIHandler) encodeResult(call Call, result any, wr io.Writer) error {
 	return encodeResult(call, result, wr, w.indent)
 }
 

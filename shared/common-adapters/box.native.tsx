@@ -1,11 +1,8 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import {View} from 'react-native'
 import type {Box2Props} from './box'
-import type {MeasureRef} from './measure-ref'
 import Reanimated from 'react-native-reanimated'
-
-export const Box = View
 
 type Margins = keyof typeof Styles.globalMargins
 const marginKeys = Object.keys(Styles.globalMargins) as Array<Margins>
@@ -16,9 +13,11 @@ const hgapStartStyles = new Map(marginKeys.map(gap => [gap, {paddingLeft: Styles
 const vgapStartStyles = new Map(marginKeys.map(gap => [gap, {paddingTop: Styles.globalMargins[gap]}]))
 const hgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingRight: Styles.globalMargins[gap]}]))
 const vgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingBottom: Styles.globalMargins[gap]}]))
+const paddingStyles = new Map(marginKeys.map(p => [p, {padding: Styles.globalMargins[p]}]))
 
 const useBox2Shared = (p: Box2Props) => {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = p
+  const {flex, justifyContent, overflow, padding, relative} = p
   const {collapsable = true, onLayout, pointerEvents, children, gap, gapStart, gapEnd} = p
   const {style: _style} = p
   const horizontal = direction === 'horizontal' || direction === 'horizontalReverse'
@@ -70,6 +69,38 @@ const useBox2Shared = (p: Box2Props) => {
       break
     default:
   }
+  let justifyContentStyle: Styles.StylesCrossPlatform = null
+  switch (justifyContent) {
+    case 'center':
+      justifyContentStyle = styles.justifyContentCenter
+      break
+    case 'flex-start':
+      justifyContentStyle = styles.justifyContentStart
+      break
+    case 'flex-end':
+      justifyContentStyle = styles.justifyContentEnd
+      break
+    case 'space-between':
+      justifyContentStyle = styles.justifyContentBetween
+      break
+    case 'space-around':
+      justifyContentStyle = styles.justifyContentAround
+      break
+    case 'space-evenly':
+      justifyContentStyle = styles.justifyContentEvenly
+      break
+    default:
+  }
+  let overflowStyle: Styles.StylesCrossPlatform = null
+  switch (overflow) {
+    case 'hidden':
+      overflowStyle = styles.overflowHidden
+      break
+    case 'visible':
+      overflowStyle = styles.overflowVisible
+      break
+    default:
+  }
 
   const style = Styles.collapseStyles([
     directionStyle,
@@ -79,7 +110,12 @@ const useBox2Shared = (p: Box2Props) => {
     centerChildren && styles.centeredChildren,
     alignSelfStyle,
     alignItemsStyle,
+    justifyContentStyle,
     noShrink && styles.noShrink,
+    flex != null && (flex === 1 ? styles.flex1 : {flex}),
+    relative && styles.relative,
+    overflowStyle,
+    padding && paddingStyles.get(padding),
     gap && horizontal && hgapStyles.get(gap),
     gap && !horizontal && vgapStyles.get(gap),
     gap && gapStart && horizontal && hgapStartStyles.get(gap),
@@ -100,36 +136,18 @@ const useBox2Shared = (p: Box2Props) => {
   }
 }
 
-export const Box2 = (p: Box2Props) => {
-  const props = useBox2Shared(p)
-  return <View {...props} />
-}
-
-export const Box2Div = () => {
-  throw new Error('Wrong platform')
-}
-
-export const Box2View = React.forwardRef<View, Box2Props>(function Box2View(p, ref) {
-  const props = useBox2Shared(p)
+export const Box2 = (p: Box2Props & {ref?: React.Ref<View>}) => {
+  const {ref, ...rest} = p
+  const props = useBox2Shared(rest)
   return <View {...props} ref={ref} />
-})
+}
 
-export const Box2Animated = React.forwardRef<View, Box2Props>(function Box2Animated(p, ref) {
-  const props = useBox2Shared(p)
+export const Box2Animated = (p: Box2Props & {ref?: React.Ref<View>}) => {
+  const {ref, ...rest} = p
+  const props = useBox2Shared(rest)
   return <Reanimated.View {...props} ref={ref} />
-})
+}
 
-export const Box2Measure = React.forwardRef<MeasureRef, Box2Props>(function Box2(p, _ref) {
-  React.useImperativeHandle(_ref, () => {
-    // we don't use this in mobile for now, and likely never
-    return {
-      divRef: {current: null},
-    }
-  }, [])
-
-  const props = useBox2Shared(p)
-  return <View {...props} />
-})
 
 const common = {
   alignItems: 'stretch',
@@ -150,6 +168,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  flex1: {flex: 1},
   fullHeight: {height: '100%', maxHeight: '100%'},
   fullWidth: {maxWidth: '100%', width: '100%'},
   hbox: {
@@ -160,9 +179,18 @@ const styles = {
     ...Styles.globalStyles.flexBoxRowReverse,
     ...common,
   },
+  justifyContentAround: {justifyContent: 'space-around'},
+  justifyContentBetween: {justifyContent: 'space-between'},
+  justifyContentCenter: {justifyContent: 'center'},
+  justifyContentEnd: {justifyContent: 'flex-end'},
+  justifyContentEvenly: {justifyContent: 'space-evenly'},
+  justifyContentStart: {justifyContent: 'flex-start'},
   noShrink: {
     flexShrink: 0,
   },
+  overflowHidden: {overflow: 'hidden'},
+  overflowVisible: {overflow: 'visible'},
+  relative: {position: 'relative'},
   vbox: {
     ...Styles.globalStyles.flexBoxColumn,
     ...common,
@@ -173,4 +201,3 @@ const styles = {
   },
 } as const
 
-export default Box

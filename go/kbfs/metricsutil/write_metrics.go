@@ -21,7 +21,7 @@ import (
 // io.Writer.
 func WriteMetrics(r metrics.Registry, w io.Writer) {
 	var namedMetrics namedMetricSlice
-	r.Each(func(name string, i interface{}) {
+	r.Each(func(name string, i any) {
 		namedMetrics = append(namedMetrics, namedMetric{name, i})
 	})
 
@@ -82,7 +82,7 @@ func WriteMetrics(r metrics.Registry, w io.Writer) {
 
 type namedMetric struct {
 	name string
-	m    interface{}
+	m    any
 }
 
 // namedMetricSlice is a slice of namedMetrics that implements sort.Interface.

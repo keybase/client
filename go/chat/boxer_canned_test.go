@@ -162,7 +162,7 @@ func (cm cannedMessage) SenderDeviceID(t *testing.T) gregor1.DeviceID {
 	return did
 }
 
-func (cm cannedMessage) unhex(t *testing.T, out interface{}, inHex string) {
+func (cm cannedMessage) unhex(t *testing.T, out any, inHex string) {
 	bytes, err := hex.DecodeString(inHex)
 	require.NoError(t, err)
 	mh := codec.MsgpackHandle{WriteExt: true}

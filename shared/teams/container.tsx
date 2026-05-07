@@ -1,29 +1,36 @@
 import * as C from '@/constants'
 import * as Teams from '@/constants/teams'
-import * as React from 'react'
+import {useNotifState} from '@/stores/notifications'
 import * as Kb from '@/common-adapters'
-import * as T from '@/constants/types'
-import * as FS from '@/constants/fs'
+import type * as T from '@/constants/types'
 import Main from './main'
-import openURL from '@/util/open-url'
-import {useTeamsSubscribe} from './subscriber'
-import {useActivityLevels} from './common'
+import {ActivityLevelsProvider, useActivityLevels} from './common'
+import {useTeamsList} from './use-teams-list'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useConfigState} from '@/constants/config'
+import {makeNewTeamWizard} from './new-team/wizard/state'
+import {useNavigation} from '@react-navigation/native'
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+
+type TeamsRootParamList = {
+  teamsRoot: {
+    filter?: string
+    sort?: T.Teams.TeamListSort
+  }
+}
 
 const orderTeams = (
-  teams: ReadonlyMap<string, T.Teams.TeamMeta>,
-  newRequests: T.Immutable<Teams.State['newTeamRequests']>,
-  teamIDToResetUsers: T.Immutable<Teams.State['teamIDToResetUsers']>,
-  newTeams: T.Immutable<Teams.State['newTeams']>,
+  teams: ReadonlyArray<T.Teams.TeamMeta>,
+  newRequests: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>,
+  teamIDToResetUsers: ReadonlyMap<T.Teams.TeamID, ReadonlySet<string>>,
+  newTeams: ReadonlySet<T.Teams.TeamID>,
   sortOrder: T.Immutable<T.Teams.TeamListSort>,
   activityLevels: T.Immutable<T.Teams.ActivityLevels>,
   filter: string
 ): Array<T.Teams.TeamMeta> => {
   const filterLC = filter.toLowerCase().trim()
   const teamsFiltered = filter
-    ? [...teams.values()].filter(meta => meta.teamname.toLowerCase().includes(filterLC))
-    : [...teams.values()]
+    ? teams.filter(meta => meta.teamname.toLowerCase().includes(filterLC))
+    : [...teams]
   return teamsFiltered.sort((a, b) => {
     const sizeDiff =
       Teams.getTeamRowBadgeCount(newRequests, teamIDToResetUsers, b.id) -
@@ -46,83 +53,58 @@ const orderTeams = (
   })
 }
 
-const Connected = () => {
-  const data = Teams.useTeamsState(
+type Props = {
+  filter?: string
+  sort?: T.Teams.TeamListSort
+}
+
+const Connected = ({filter = '', sort = 'role'}: Props) => {
+  const {reload, teams} = useTeamsList()
+  const activityLevels = useActivityLevels()
+  const {deletedTeams, newTeamRequests, newTeams, teamIDToResetUsers} = useNotifState(
     C.useShallow(s => {
-      const {deletedTeams, activityLevels, teamMeta, teamListFilter, dispatch} = s
-      const {newTeamRequests, newTeams, teamListSort, teamIDToResetUsers} = s
-      const {getTeams, launchNewTeamWizardOrModal, manageChatChannels} = dispatch
       return {
-        activityLevels,
-        deletedTeams,
-        getTeams,
-        launchNewTeamWizardOrModal,
-        manageChatChannels,
-        newTeamRequests,
-        newTeams,
-        teamIDToResetUsers,
-        teamListFilter,
-        teamListSort,
-        teamMeta,
+        deletedTeams: s.deletedTeams,
+        newTeamRequests: s.newTeamRequests,
+        newTeams: s.newTeams,
+        teamIDToResetUsers: s.teamIDToResetUsers,
       }
     })
   )
-  const {activityLevels, deletedTeams, newTeamRequests, newTeams} = data
-  const {teamIDToResetUsers, teamListFilter: filter, teamListSort: sortOrder, teamMeta: _teams} = data
-  const {getTeams, launchNewTeamWizardOrModal, manageChatChannels} = data
 
-  const loaded = !C.Waiting.useAnyWaiting(C.waitingKeyTeamsLoaded)
-
-  const updateGregorCategory = useConfigState(s => s.dispatch.updateGregorCategory)
-  const onHideChatBanner = () => {
-    updateGregorCategory('sawChatBanner', 'true')
-  }
-  const onOpenFolder = (teamname: T.Teams.Teamname) => {
-    FS.makeActionForOpenPathInFilesTab(T.FS.stringToPath(`/keybase/team/${teamname}`))
-  }
-  const onReadMore = () => {
-    openURL('https://keybase.io/blog/introducing-keybase-teams')
-  }
-
-  const teams = React.useMemo(
-    () =>
-      orderTeams(_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter),
-    [_teams, newTeamRequests, teamIDToResetUsers, newTeams, sortOrder, activityLevels, filter]
-  )
-
-  const loadTeams = getTeams
-
-  // subscribe to teams changes
-  useTeamsSubscribe()
-  // reload activity levels
-  useActivityLevels(true)
+  const orderedTeams = orderTeams(teams, newTeamRequests, teamIDToResetUsers, newTeams, sort, activityLevels, filter)
+  const teamItems = orderedTeams.map(teamMeta => ({
+    activityLevel: activityLevels.teams.get(teamMeta.id) || 'none',
+    badgeCount: Teams.getTeamRowBadgeCount(newTeamRequests, teamIDToResetUsers, teamMeta.id),
+    id: teamMeta.id,
+    isNew: newTeams.has(teamMeta.id),
+    teamMeta,
+  }))
 
   const nav = useSafeNavigation()
-  const onCreateTeam = () => launchNewTeamWizardOrModal()
-  const onJoinTeam = () => nav.safeNavigateAppend('teamJoinTeamDialog')
-
-  const onManageChat = (teamID: T.Teams.TeamID) => manageChatChannels(teamID)
-  const onViewTeam = (teamID: T.Teams.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const navigation = useNavigation<NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>>()
+  const onCreateTeam = () =>
+    nav.safeNavigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}})
+  const onJoinTeam = () => nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}})
 
   return (
-    <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={loadTeams}>
+    <Kb.Reloadable waitingKeys={C.waitingKeyTeamsLoaded} onReload={reload}>
       <Main
         onCreateTeam={onCreateTeam}
         onJoinTeam={onJoinTeam}
-        onManageChat={onManageChat}
-        onViewTeam={onViewTeam}
         deletedTeams={deletedTeams}
-        loaded={loaded}
-        newTeamRequests={newTeamRequests}
-        newTeams={newTeams}
-        onHideChatBanner={onHideChatBanner}
-        onOpenFolder={onOpenFolder}
-        onReadMore={onReadMore}
-        teams={teams}
-        teamresetusers={teamIDToResetUsers}
+        onChangeSort={sortOrder => navigation.setParams({filter, sort: sortOrder})}
+        sortOrder={sort}
+        teams={teamItems}
       />
     </Kb.Reloadable>
   )
 }
 
-export default Connected
+const Container = (props: Props) => (
+  <ActivityLevelsProvider>
+    <Connected {...props} />
+  </ActivityLevelsProvider>
+)
+
+export default Container

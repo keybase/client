@@ -1,35 +1,33 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import type * as T from '@/constants/types'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useChatTeam} from '../../team-hooks'
+import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
+import {useConversationShowInfoPanel, useConversationThreadSelector} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemCreateTeam}
 
-const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(p: OwnProps) {
+function SystemCreateTeamContainer(p: OwnProps) {
   const {creator} = p.message
-  const {showInfoPanel, teamID, teamname} = Chat.useChatContext(
-    C.useShallow(s => {
-      const {teamID, teamname} = s.meta
-      const {showInfoPanel} = s.dispatch
-      return {showInfoPanel, teamID, teamname}
-    })
+  const {teamID, teamname} = useConversationThreadSelector(
+    C.useShallow(s => ({teamID: s.meta.teamID, teamname: s.meta.teamname}))
   )
-  const role = Teams.useTeamsState(s => Teams.getRole(s, teamID))
+  const showInfoPanel = useConversationShowInfoPanel()
+  const {role} = useChatTeam(teamID, teamname)
   const you = useCurrentUserState(s => s.username)
   const isAdmin = Teams.isAdmin(role) || Teams.isOwner(role)
   const team = teamname
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onViewTeam = React.useCallback(() => {
+  const navigateAppend = C.Router2.navigateAppend
+  const onViewTeam = () => {
     if (teamID) {
-      navigateAppend({props: {teamID}, selected: 'team'})
+      navigateAppend({name: 'team', params: {teamID}})
     } else {
       showInfoPanel(true, 'settings')
     }
-  }, [showInfoPanel, navigateAppend, teamID])
+  }
 
   return (
     <UserNotice>
@@ -40,7 +38,7 @@ const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(
       <AddInvite isAdmin={isAdmin} teamID={teamID} />
     </UserNotice>
   )
-})
+}
 
 const ManageComponent = (props: {isAdmin: boolean; onViewTeam: () => void}) => {
   const {isAdmin, onViewTeam} = props
@@ -55,10 +53,14 @@ const ManageComponent = (props: {isAdmin: boolean; onViewTeam: () => void}) => {
     return null
   }
 }
-const AddInvite = (props: {teamID: string; isAdmin: boolean}) => {
+const AddInvite = (props: {teamID: T.Teams.TeamID; isAdmin: boolean}) => {
   const {teamID, isAdmin} = props
-  const startAddMembersWizard = Teams.useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const onAddInvite = () => startAddMembersWizard(teamID)
+  const navigateAppend = C.Router2.navigateAppend
+  const onAddInvite = () => {
+    if (teamID) {
+      navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
+    }
+  }
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (isAdmin) {
     return (

@@ -191,7 +191,7 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team, didRun bool) {
 			}
 			err := json.Unmarshal(link, &outer)
 			require.NoError(t, err)
-			var inner interface{}
+			var inner any
 
 			err = jsonw.EnsureMaxDepthBytesDefault([]byte(outer.PayloadJSON))
 			if err != nil {

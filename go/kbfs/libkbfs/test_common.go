@@ -111,23 +111,23 @@ func MakeTestBlockServerOrBust(t logger.TestLogBackend, c *ConfigLocal,
 // in rpc and use that instead.
 
 type testLogger interface {
-	Logf(format string, args ...interface{})
+	Logf(format string, args ...any)
 }
 
 type testLogOutput struct {
 	t testLogger
 }
 
-func (t testLogOutput) log(ch string, fmts string, args []interface{}) {
+func (t testLogOutput) log(ch string, fmts string, args []any) {
 	fmts = fmt.Sprintf("[%s] %s", ch, fmts)
 	t.t.Logf(fmts, args...)
 }
 
-func (t testLogOutput) Info(fmt string, args ...interface{})    { t.log("I", fmt, args) }
-func (t testLogOutput) Error(fmt string, args ...interface{})   { t.log("E", fmt, args) }
-func (t testLogOutput) Debug(fmt string, args ...interface{})   { t.log("D", fmt, args) }
-func (t testLogOutput) Warning(fmt string, args ...interface{}) { t.log("W", fmt, args) }
-func (t testLogOutput) Profile(fmt string, args ...interface{}) { t.log("P", fmt, args) }
+func (t testLogOutput) Info(fmt string, args ...any)    { t.log("I", fmt, args) }
+func (t testLogOutput) Error(fmt string, args ...any)   { t.log("E", fmt, args) }
+func (t testLogOutput) Debug(fmt string, args ...any)   { t.log("D", fmt, args) }
+func (t testLogOutput) Warning(fmt string, args ...any) { t.log("W", fmt, args) }
+func (t testLogOutput) Profile(fmt string, args ...any) { t.log("P", fmt, args) }
 
 func newTestRPCLogFactory(t testLogger) rpc.LogFactory {
 	return rpc.NewSimpleLogFactory(testLogOutput{t}, nil)

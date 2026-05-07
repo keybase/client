@@ -31,14 +31,14 @@ func (brh blockRetrievalHeap) Swap(i, j int) {
 	brh[j].index = j
 }
 
-func (brh *blockRetrievalHeap) Push(item interface{}) {
+func (brh *blockRetrievalHeap) Push(item any) {
 	n := len(*brh)
 	retrieval := item.(*blockRetrieval)
 	retrieval.index = n
 	*brh = append(*brh, retrieval)
 }
 
-func (brh *blockRetrievalHeap) Pop() interface{} {
+func (brh *blockRetrievalHeap) Pop() any {
 	old := *brh
 	n := len(old)
 	x := old[n-1]

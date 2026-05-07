@@ -38,7 +38,7 @@ type Config struct {
 
 	// ConstructValueContainer constructs a new empty value for the value in a KeyValuePair, so that the
 	// decoding routine has the correct type template.
-	ConstructValueContainer func() interface{}
+	ConstructValueContainer func() any
 }
 
 // NewConfig makes a new config object. It takes a a Hasher, logChildrenPerNode
@@ -47,7 +47,7 @@ type Config struct {
 // split into multiple nodes (at a lower level in the tree), keyByteLength the
 // length of the Keys which the tree will store, and a ConstructValueContainer function (so that
 // typed values can be pulled out of the Merkle Tree).
-func NewConfig(e Encoder, useBlindedValueHashes bool, logChildrenPerNode uint8, maxValuesPerLeaf int, keysByteLength int, constructValueFunc func() interface{}) (Config, error) {
+func NewConfig(e Encoder, useBlindedValueHashes bool, logChildrenPerNode uint8, maxValuesPerLeaf int, keysByteLength int, constructValueFunc func() any) (Config, error) {
 	childrenPerNode := 1 << logChildrenPerNode
 	if (keysByteLength*8)%int(logChildrenPerNode) != 0 {
 		return Config{}, NewInvalidConfigError("The key bit length does not divide logChildrenPerNode")
@@ -76,14 +76,14 @@ type KeySpecificSecret []byte
 // Encoder is an interface for cryptographically hashing MerkleTree data
 // structures. It also manages blinding secrets.
 type Encoder interface {
-	Decode(dest interface{}, src []byte) error
-	Encode(src interface{}) (dst []byte, err error)
+	Decode(dest any, src []byte) error
+	Encode(src any) (dst []byte, err error)
 	// takes as input a []byte pointer dst to avoid creating new objects
-	EncodeTo(o interface{}, dst *[]byte) (err error)
+	EncodeTo(o any, dst *[]byte) (err error)
 
-	EncodeAndHashGeneric(interface{}) (encoded []byte, hash Hash, err error)
+	EncodeAndHashGeneric(any) (encoded []byte, hash Hash, err error)
 	// takes as input an hash pointer ret to avoid creating new objects
-	HashGeneric(o interface{}, ret *Hash) error
+	HashGeneric(o any, ret *Hash) error
 
 	GenerateMasterSecret(Seqno) (MasterSecret, error)
 	ComputeKeySpecificSecret(MasterSecret, Key) KeySpecificSecret

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Box, {Box2} from './box'
+import {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
 import * as Styles from '@/styles'
@@ -27,7 +27,9 @@ export const BannerParagraph = (props: BannerParagraphProps) => (
   >
     {(Array.isArray(props.content) ? props.content : [props.content])
       .reduce<Array<_Segment | string>>((arr, s) => {
-        s && arr.push(s)
+        if (s) {
+          arr.push(s)
+        }
         return arr
       }, [])
       .map(segment => (typeof segment === 'string' ? {text: segment} : segment))
@@ -111,7 +113,7 @@ export const Banner = (props: BannerProps) => (
       )}
     </Box2>
     {!!props.onClose && (
-      <Box key="iconBox" style={styles.iconContainer}>
+      <Box2 direction="vertical" key="iconBox" style={styles.iconContainer}>
         <Icon
           padding="xtiny"
           sizeType="Small"
@@ -120,7 +122,7 @@ export const Banner = (props: BannerProps) => (
           hoverColor={colorToIconHoverColor()[props.color]}
           onClick={props.onClose}
         />
-      </Box>
+      </Box2>
     )}
   </Box2>
 )

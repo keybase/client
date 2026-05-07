@@ -132,7 +132,7 @@ type CommandLine interface {
 	GetBool(string, bool) (bool, bool)
 }
 
-type Server interface{}
+type Server any
 
 type DBKeySet map[DbKey]struct{}
 
@@ -163,15 +163,15 @@ type LocalDb interface {
 }
 
 type KVStorer interface {
-	GetInto(obj interface{}, id DbKey) (found bool, err error)
-	PutObj(id DbKey, aliases []DbKey, obj interface{}) (err error)
+	GetInto(obj any, id DbKey) (found bool, err error)
+	PutObj(id DbKey, aliases []DbKey, obj any) (err error)
 	Delete(id DbKey) error
 	KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error)
 }
 
 type JSONReader interface {
 	GetStringAtPath(string) (string, bool)
-	GetInterfaceAtPath(string) (interface{}, error)
+	GetInterfaceAtPath(string) (any, error)
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
 	GetFloatAtPath(string) (float64, bool)
@@ -273,7 +273,7 @@ type Command interface {
 	GetUsage() Usage
 }
 
-type JSONPayload map[string]interface{}
+type JSONPayload map[string]any
 
 type APIRes struct {
 	Status     *jsonw.Wrapper
@@ -393,15 +393,15 @@ type SaltpackUI interface {
 }
 
 type LogUI interface {
-	Debug(format string, args ...interface{})
-	Info(format string, args ...interface{})
-	Warning(format string, args ...interface{})
-	Notice(format string, args ...interface{})
-	Errorf(format string, args ...interface{})
-	Critical(format string, args ...interface{})
+	Debug(format string, args ...any)
+	Info(format string, args ...any)
+	Warning(format string, args ...any)
+	Notice(format string, args ...any)
+	Errorf(format string, args ...any)
+	Critical(format string, args ...any)
 }
 
-type LogFunc func(format string, args ...interface{})
+type LogFunc func(format string, args ...any)
 
 type GPGUI interface {
 	keybase1.GpgUiInterface
@@ -473,8 +473,8 @@ type TerminalUI interface {
 	OutputDesc(OutputDescriptor, string) error
 	OutputWriter() io.Writer
 	UnescapedOutputWriter() io.Writer
-	Printf(fmt string, args ...interface{}) (int, error)
-	PrintfUnescaped(fmt string, args ...interface{}) (int, error)
+	Printf(fmt string, args ...any) (int, error)
+	PrintfUnescaped(fmt string, args ...any) (int, error)
 	// Prompt strings are not escaped: they should not be used to show unescaped user-originated data.
 	Prompt(PromptDescriptor, string) (string, error)
 	PromptForConfirmation(prompt string) error
@@ -485,9 +485,9 @@ type TerminalUI interface {
 }
 
 type DumbOutputUI interface {
-	Printf(fmt string, args ...interface{}) (int, error)
-	PrintfStderr(fmt string, args ...interface{}) (int, error)
-	PrintfUnescaped(fmt string, args ...interface{}) (int, error)
+	Printf(fmt string, args ...any) (int, error)
+	PrintfStderr(fmt string, args ...any) (int, error)
+	PrintfUnescaped(fmt string, args ...any) (int, error)
 }
 
 type UI interface {
@@ -949,15 +949,15 @@ type LRUKeyer interface {
 }
 
 type LRUer interface {
-	Get(context.Context, LRUContext, LRUKeyer) (interface{}, error)
-	Put(context.Context, LRUContext, LRUKeyer, interface{}) error
+	Get(context.Context, LRUContext, LRUKeyer) (any, error)
+	Put(context.Context, LRUContext, LRUKeyer, any) error
 	OnLogout(mctx MetaContext) error
 	OnDbNuke(mctx MetaContext) error
 }
 
 type MemLRUer interface {
-	Get(key interface{}) (interface{}, bool)
-	Put(key, value interface{}) bool
+	Get(key any) (any, bool)
+	Put(key, value any) bool
 	OnLogout(mctx MetaContext) error
 	OnDbNuke(mctx MetaContext) error
 }
@@ -980,9 +980,9 @@ type UsernamePackage struct {
 
 type SkinnyLogger interface {
 	// Error logs a message at error level, with formatting args
-	Errorf(format string, args ...interface{})
+	Errorf(format string, args ...any)
 	// Debug logs a message at debug level, with formatting args.
-	Debug(format string, args ...interface{})
+	Debug(format string, args ...any)
 }
 
 type UIDMapper interface {

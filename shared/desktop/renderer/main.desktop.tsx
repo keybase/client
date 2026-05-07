@@ -3,7 +3,7 @@ import './globals.desktop'
 import {isDarwin, isWindows} from '@/constants/platform'
 import '@/util/why-did-you-render'
 import KB2, {waitOnKB2Loaded} from '@/util/electron.desktop'
-import * as DarkMode from '@/constants/darkmode'
+import * as DarkMode from '@/stores/darkmode'
 
 waitOnKB2Loaded(() => {
   const {setSystemSupported, setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch

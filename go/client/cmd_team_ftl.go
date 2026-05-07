@@ -55,8 +55,8 @@ func (c *cmdTeamFTL) Run() error {
 }
 
 func (c *cmdTeamFTL) parseTeamGenerations(s string) (gens []keybase1.PerTeamKeyGeneration, err error) {
-	v := strings.Split(s, ",")
-	for _, e := range v {
+	v := strings.SplitSeq(s, ",")
+	for e := range v {
 		i, err := strconv.Atoi(e)
 		if err != nil {
 			return nil, err

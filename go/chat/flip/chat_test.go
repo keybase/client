@@ -50,13 +50,13 @@ func (c *chatClient) ServerTime(context.Context) (time.Time, error) {
 	return c.Clock().Now(), nil
 }
 
-func testPrintf(fmtString string, args ...interface{}) {
+func testPrintf(fmtString string, args ...any) {
 	if testing.Verbose() {
 		fmt.Printf(fmtString, args...)
 	}
 }
 
-func (c *chatClient) CLogf(ctx context.Context, fmtString string, args ...interface{}) {
+func (c *chatClient) CLogf(ctx context.Context, fmtString string, args ...any) {
 	testPrintf(fmtString+"\n", args...)
 }
 
@@ -153,7 +153,7 @@ func (c *chatClient) run(ctx context.Context, ch chat1.ConversationID) {
 }
 
 func (s *chatServer) makeAndRunClients(ctx context.Context, ch chat1.ConversationID, nClients int) []*chatClient {
-	for i := 0; i < nClients; i++ {
+	for range nClients {
 		cli := s.newClient()
 		go cli.run(ctx, ch)
 	}
@@ -167,7 +167,7 @@ func forAllClients(clients []*chatClient, f func(c *chatClient)) {
 }
 
 func nTimes(n int, f func()) {
-	for i := 0; i < n; i++ {
+	for range n {
 		f()
 	}
 }

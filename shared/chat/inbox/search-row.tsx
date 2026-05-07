@@ -1,81 +1,78 @@
-import * as React from 'react'
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Kb from '@/common-adapters'
 import ChatFilterRow from './filter-row'
+import NewChatButton from './new-chat-button'
 import StartNewChat from './row/start-new-chat'
+import {isEmptyInboxLayout, useInboxLayoutState} from './layout-state'
+import type {InboxSearchController} from './use-inbox-search'
 
-type OwnProps = {headerContext: 'chat-header' | 'inbox-header'}
+type OwnProps = {
+  search: Pick<
+    InboxSearchController,
+    'cancelSearch' | 'isSearching' | 'moveSelectedIndex' | 'query' | 'selectResult' | 'setQuery' | 'startSearch'
+  >
+  forceShowFilter?: boolean
+  showSearch: boolean
+  showNewChatButton?: boolean
+}
 
-export default React.memo(function InboxSearchRow(ownProps: OwnProps) {
-  const {headerContext} = ownProps
-  const hasLoadedEmptyInbox = Chat.useChatState(
-    s =>
-      s.inboxHasLoaded &&
-      !!s.inboxLayout &&
-      (s.inboxLayout.smallTeams || []).length === 0 &&
-      (s.inboxLayout.bigTeams || []).length === 0
+export default function InboxSearchRow(ownProps: OwnProps) {
+  const {forceShowFilter, search, showNewChatButton, showSearch} = ownProps
+  const {cancelSearch, isSearching, moveSelectedIndex, query, selectResult, setQuery, startSearch} = search
+  const chatState = useInboxLayoutState(
+    C.useShallow(s => {
+      const hasLoadedEmptyInbox = s.hasLoaded && isEmptyInboxLayout(s.layout)
+      return {
+        showEmptyInbox: hasLoadedEmptyInbox,
+      }
+    })
   )
-  const showEmptyInbox = Chat.useChatState(s => !s.inboxSearch && hasLoadedEmptyInbox)
-  const showStartNewChat = !C.isMobile && showEmptyInbox
-  const isSearching = Chat.useChatState(s => !!s.inboxSearch)
-  const showFilter = !showEmptyInbox
+  const {showEmptyInbox} = chatState
+  const showStartNewChat = !showNewChatButton && !C.isMobile && !isSearching && showEmptyInbox
+  const showFilter = !!forceShowFilter || isSearching || !showEmptyInbox
 
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const onBack = React.useCallback(() => {
-    navigateUp()
-  }, [navigateUp])
+  const appendNewChatBuilder = C.Router2.appendNewChatBuilder
+  const navigateUp = C.Router2.navigateUp
 
-  const [query, setQuery] = React.useState('')
-  const inboxSearchSelect = Chat.useChatState(s => s.dispatch.inboxSearchSelect)
-  const inboxSearch = Chat.useChatState(s => s.dispatch.inboxSearch)
-  const inboxSearchMoveSelectedIndex = Chat.useChatState(s => s.dispatch.inboxSearchMoveSelectedIndex)
-  const onEnsureSelection = React.useCallback(() => {
-    inboxSearchSelect()
-  }, [inboxSearchSelect])
+  const filter = showFilter ? (
+    <ChatFilterRow
+      isSearching={isSearching}
+      onCancelSearch={cancelSearch}
+      onSelectUp={() => moveSelectedIndex(false)}
+      onSelectDown={() => moveSelectedIndex(true)}
+      onEnsureSelection={selectResult}
+      onQueryChanged={setQuery}
+      query={query}
+      showSearch={showSearch}
+      startSearch={startSearch}
+    />
+  ) : null
 
-  const appendNewChatBuilder = C.useRouterState(s => s.appendNewChatBuilder)
-  const onNewChat = React.useCallback(() => {
-    appendNewChatBuilder()
-  }, [appendNewChatBuilder])
-  const onQueryChanged = React.useCallback(
-    (q: string) => {
-      setQuery(q)
-      inboxSearch(q)
-    },
-    [inboxSearch]
-  )
-  const onSelectDown = React.useCallback(() => {
-    inboxSearchMoveSelectedIndex(true)
-  }, [inboxSearchMoveSelectedIndex])
-  const onSelectUp = React.useCallback(() => {
-    inboxSearchMoveSelectedIndex(false)
-  }, [inboxSearchMoveSelectedIndex])
-
-  const [lastSearching, setLastSearching] = React.useState(isSearching)
-  if (lastSearching !== isSearching) {
-    setLastSearching(isSearching)
-    if (!isSearching) {
-      setQuery('')
-    }
+  if (showNewChatButton) {
+    return (
+      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.row}>
+        <Kb.BoxGrow2>{filter}</Kb.BoxGrow2>
+        <NewChatButton />
+      </Kb.Box2>
+    )
   }
-
-  const showNewChat = headerContext === 'chat-header'
-  const showSearch = headerContext === 'chat-header' ? !C.isTablet : C.isMobile
 
   return (
     <>
-      {!!showStartNewChat && <StartNewChat onBack={onBack} onNewChat={onNewChat} />}
-      {!!showFilter && (
-        <ChatFilterRow
-          onSelectUp={onSelectUp}
-          onSelectDown={onSelectDown}
-          onEnsureSelection={onEnsureSelection}
-          onQueryChanged={onQueryChanged}
-          query={query}
-          showNewChat={showNewChat}
-          showSearch={showSearch}
-        />
-      )}
+      {!!showStartNewChat && <StartNewChat onBack={navigateUp} onNewChat={appendNewChatBuilder} />}
+      {filter}
     </>
   )
-})
+}
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      row: {
+        alignItems: 'center',
+        height: '100%',
+        paddingRight: Kb.Styles.globalMargins.tiny,
+        width: '100%',
+      },
+    }) as const
+)

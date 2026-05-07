@@ -1,12 +1,10 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Teams from '@/constants/teams'
-import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import {useSafeSubmit} from '@/util/safe-submit'
-import type * as T from '@/constants/types'
-import {useTeamsSubscribe, useTeamDetailsSubscribeMountOnly} from '@/teams/subscriber'
+import * as T from '@/constants/types'
 import LastOwnerDialog from './last-owner'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 export type Props = {
   error: string
@@ -20,7 +18,7 @@ export type Props = {
 const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.name} size={64} />
-    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.iconContainer}>
+    <Kb.Box2 direction="horizontal" centerChildren={true} overflow="hidden" style={styles.iconContainer}>
       <Kb.Icon
         type="iconfont-leave"
         color={Kb.Styles.globalColors.white}
@@ -42,7 +40,6 @@ const ReallyLeaveTeam = (props: Props) => {
   )
   const [leavePermanently, setLeavePermanently] = React.useState(false)
   const onLeave = () => props.onLeave(leavePermanently)
-  useTeamsSubscribe()
   return (
     <Kb.ConfirmModal
       error={props.error}
@@ -102,19 +99,10 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 24,
         marginRight: -46,
         marginTop: -20,
-        overflow: 'hidden',
         width: 24,
         zIndex: 1,
       },
       prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
-      spinnerContainer: {
-        alignItems: 'center',
-        flex: 1,
-        padding: Kb.Styles.globalMargins.xlarge,
-      },
-      spinnerProgressIndicator: {
-        width: Kb.Styles.globalMargins.medium,
-      },
     }) as const
 )
 
@@ -122,31 +110,41 @@ type OwnProps = {teamID: T.Teams.TeamID}
 
 const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID
-  const {teamname} = useTeamsState(s => Teams.getTeamMeta(s, teamID))
-  const {settings, members} = useTeamsState(s => s.teamDetails.get(teamID) ?? Teams.emptyTeamDetails)
-  const open = settings.open
-  const lastOwner = useTeamsState(s => Teams.isLastOwner(s, teamID))
-  const stillLoadingTeam = !members
-  const leaving = C.Waiting.useAnyWaiting(C.waitingKeyTeamsLeaveTeam(teamname))
-  const error = C.Waiting.useAnyErrors(C.waitingKeyTeamsLeaveTeam(teamname))
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onDeleteTeam = React.useCallback(() => {
+  const {loading, teamDetails, teamMeta} = useLoadedTeam(teamID)
+  const teamname = teamMeta.teamname
+  const open = teamDetails.settings.open
+  const lastOwner =
+    teamMeta.role === 'owner' && [...teamDetails.members.values()].filter(member => member.type === 'owner').length < 2
+  const leaveTeamRPC = C.useRPC(T.RPCGen.teamsTeamLeaveRpcPromise)
+  const stillLoadingTeam = loading
+  const waitingKey = C.waitingKeyTeamsLeaveTeam(teamname)
+  const leaving = C.Waiting.useAnyWaiting(waitingKey)
+  const error = C.Waiting.useAnyErrors(waitingKey)
+  const navigateUp = C.Router2.navigateUp
+  const navigateAppend = C.Router2.navigateAppend
+  const navUpToScreen = C.Router2.navUpToScreen
+  const clearModals = C.Router2.clearModals
+  const onDeleteTeam = () => {
     navigateUp()
-    navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
-  }, [navigateUp, navigateAppend, teamID])
-  const leaveTeam = useTeamsState(s => s.dispatch.leaveTeam)
-  const _onLeave = React.useCallback(
-    (permanent: boolean) => {
-      leaveTeam(teamname, permanent, 'teams')
-    },
-    [leaveTeam, teamname]
-  )
+    navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
+  }
+  const _onLeave = (permanent: boolean) => {
+    if (!teamname) {
+      return
+    }
+    leaveTeamRPC(
+      [{name: teamname, permanent}, waitingKey],
+      () => {
+        clearModals()
+        navUpToScreen('teamsRoot')
+      },
+      () => {}
+    )
+  }
   const _onBack = navigateUp
   const onBack = leaving ? () => {} : _onBack
-  const onLeave = useSafeSubmit(_onLeave, !leaving)
+  const onLeave = useSafeSubmit(_onLeave, !leaving && !loading && !!teamname)
 
-  useTeamDetailsSubscribeMountOnly(teamID)
   return lastOwner ? (
     <LastOwnerDialog
       onBack={onBack}

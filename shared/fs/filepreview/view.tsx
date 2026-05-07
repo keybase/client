@@ -1,5 +1,5 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import DefaultView from './default-view'
@@ -8,7 +8,7 @@ import AVView from './av-view'
 import PdfView from './pdf-view'
 import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import {useFsFileContext} from '../common'
 
 type Props = {
   path: T.FS.Path
@@ -26,12 +26,7 @@ const FilePreviewView = (p: Props) => {
 }
 
 const FilePreviewViewContent = ({path, onUrlError}: Props) => {
-  const {pathItem, fileContext} = useFSState(
-    C.useShallow(s => ({
-      fileContext: s.fileContext.get(path) || FS.emptyFileContext,
-      pathItem: FS.getPathItem(s.pathItems, path),
-    }))
-  )
+  const {fileContext, pathItem} = useFsFileContext(path)
   const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(
     pathItem.lastModifiedTimestamp
   )
@@ -57,21 +52,22 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   }
 
   const reloadBanner = loadedLastModifiedTimestamp !== pathItem.lastModifiedTimestamp && (
-    <Kb.Box style={styles.bannerContainer}>
+    <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={styles.bannerContainer}>
       <Kb.Banner color="blue" style={styles.banner}>
         <Kb.BannerParagraph
           bannerColor="blue"
           content={['The content of this file has updated. ', {onClick: reload, text: 'Reload'}, '.']}
         />
       </Kb.Banner>
-    </Kb.Box>
+    </Kb.Box2>
   )
 
   // Electron caches <img> aggressively and doesn't really probe server to
   // find out if resource has updated. So embed timestamp into URL to force a
   // reload when needed.
   const url = fileContext.url + `&unused_field_ts=${loadedLastModifiedTimestamp}`
-  switch (fileContext.viewType) {
+  const viewType: T.RPCGen.GUIViewType = fileContext.viewType
+  switch (viewType) {
     case T.RPCGen.GUIViewType.default: {
       // mobile client only supports heic now
       if (C.isIOS && Chat.isPathHEIC(pathItem.name)) {
@@ -140,8 +136,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       bannerContainer: {
-        position: 'relative',
-        width: '100%',
         zIndex: 200, // needed for mobile
       },
       container: {

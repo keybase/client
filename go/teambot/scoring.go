@@ -23,7 +23,7 @@ func (i rankedSearchItem) Score(query string) (score float64) {
 	if !i.item.IsPromoted {
 		return 0
 	}
-	for _, qtok := range strings.Split(query, " ") {
+	for qtok := range strings.SplitSeq(query, " ") {
 		score += opensearch.ScoreName(i.item.BotAlias, qtok)
 		score += opensearch.ScoreName(i.item.BotUsername, qtok)
 		score += opensearch.ScoreDescription(i.item.Description, qtok)

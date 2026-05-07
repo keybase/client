@@ -54,7 +54,7 @@ func TestFeatureFlagSet(t *testing.T) {
 	require.True(t, on)
 
 	fakeClock.Advance(time.Hour * 10)
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		on, err = tc.G.FeatureFlags.EnabledWithError(m, testFeature)
 		require.NoError(t, err)
 		require.False(t, on)

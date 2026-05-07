@@ -144,7 +144,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 	}
 
 	// We get two push states, one from the local send, and one from receiving broadcast
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		select {
 		case pushArg := <-em.stateCh:
 			checkState(pushArg.State)

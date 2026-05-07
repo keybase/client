@@ -35,7 +35,7 @@ type opts struct {
 	Pause                time.Duration
 }
 
-func logError(f string, args ...interface{}) {
+func logError(f string, args ...any) {
 	s := fmt.Sprintf(f, args...)
 	if s[len(s)-1] != '\n' {
 		s += "\n"

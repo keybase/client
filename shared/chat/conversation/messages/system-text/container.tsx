@@ -1,10 +1,9 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 
 type OwnProps = {text: string}
 
-const SystemTextContainer = React.memo(function SystemTextContainer(p: OwnProps) {
+function SystemTextContainer(p: OwnProps) {
   const {text} = p
   return (
     <UserNotice>
@@ -13,7 +12,7 @@ const SystemTextContainer = React.memo(function SystemTextContainer(p: OwnProps)
       </Kb.Text>
     </UserNotice>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

@@ -56,7 +56,7 @@ func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public
 	if public {
 		visibility = keybase1.TLFVisibility_PUBLIC
 	}
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		if visibility == keybase1.TLFVisibility_PUBLIC {
 			var pres keybase1.CanonicalTLFNameAndIDWithBreaks
 			pres, err = t.PublicCanonicalTLFNameAndID(ctx, tlfName)

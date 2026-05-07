@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"maps"
 	"sync"
 	"time"
 
@@ -1644,9 +1645,7 @@ func (fs *KBFSOpsStandard) findTeamByID(
 	// Copy the ops list so we don't have to hold opsLock when calling
 	// `getRootNode()` (which can lead to deadlocks).
 	ops := make(map[data.FolderBranch]*folderBranchOps)
-	for fb, fbo := range fs.ops {
-		ops[fb] = fbo
-	}
+	maps.Copy(ops, fs.ops)
 	fs.opsLock.Unlock()
 
 	// We have to search for the tid since we don't know the old name

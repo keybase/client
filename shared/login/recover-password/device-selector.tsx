@@ -1,22 +1,23 @@
 import SelectOtherDevice from '@/provision/select-other-device'
-import {useState as useRecoverState} from '@/constants/recover-password'
+import type {Device} from '@/stores/provision'
+import {
+  cancelRecoverPassword,
+  submitRecoverPasswordDeviceSelect,
+  submitRecoverPasswordNoDevice,
+} from './flow'
 
-const RecoverPasswordDeviceSelector = () => {
-  const devices = useRecoverState(s => s.devices)
-  const submitDeviceSelect = useRecoverState(s => s.dispatch.dynamic.submitDeviceSelect)
-  const cancel = useRecoverState(s => s.dispatch.dynamic.cancel)
+type Props = {route: {params: {devices: ReadonlyArray<Device>}}}
+
+const RecoverPasswordDeviceSelector = ({route}: Props) => {
+  const {devices} = route.params
   const onBack = () => {
-    cancel?.()
+    cancelRecoverPassword()
   }
   const onResetAccount = () => {
-    submitDeviceSelect?.('')
+    submitRecoverPasswordNoDevice()
   }
   const onSelect = (name: string) => {
-    if (submitDeviceSelect) {
-      submitDeviceSelect(name)
-    } else {
-      console.log('Missing device select?')
-    }
+    submitRecoverPasswordDeviceSelect(devices.find(device => device.name === name)?.id)
   }
   const props = {
     devices,

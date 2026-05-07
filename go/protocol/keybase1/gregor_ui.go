@@ -6,9 +6,10 @@ package keybase1
 import (
 	"context"
 	"fmt"
+	"time"
+
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"time"
 )
 
 type PushReason int

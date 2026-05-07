@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import Box from './box'
+import {Box2} from './box'
 
-const Kb = {Box}
+const Kb = {Box2}
 
 type Props = {
   direction?: 'row' | 'column'
@@ -43,33 +43,40 @@ const ButtonBar = (props: Props) => {
     minHeight: Styles.isMobile ? (props.small ? 64 : 72) : props.small ? 44 : 64,
   }
 
+  const isColumn = (props.direction ?? 'row') === 'column'
   const style = Styles.collapseStyles([
     {
-      alignItems: (props.fullWidth ?? false) ? 'stretch' : 'center',
-      width: '100%',
       ...(Styles.isTablet ? {maxWidth: 460} : {}),
-      ...((props.direction ?? 'row') === 'column'
-        ? {...Styles.globalStyles.flexBoxColumn}
-        : {
-            ...Styles.globalStyles.flexBoxRow,
+      ...(!isColumn
+        ? {
             justifyContent: props.align ?? 'center',
             ...minHeight,
-          }),
+          }
+        : undefined),
     },
     props.style,
   ])
 
-  return <Kb.Box style={style}>{childrenWithSpacing}</Kb.Box>
+  return (
+    <Kb.Box2
+      direction={isColumn ? 'vertical' : 'horizontal'}
+      fullWidth={true}
+      alignItems={(props.fullWidth ?? false) ? 'stretch' : 'center'}
+      style={style}
+    >
+      {childrenWithSpacing}
+    </Kb.Box2>
+  )
 }
 
 // Note explicitly not using globalMargins here. We don't necessarily want this spacing to change ever
-const BigSpacer = () => <Kb.Box style={bigSpacerStyle} />
+const BigSpacer = () => <Kb.Box2 direction="vertical" style={bigSpacerStyle} />
 const bigSpacerStyle = {
   flexShrink: 0,
   height: 8,
   width: 8,
 }
-const SmallSpacer = () => <Kb.Box style={smallSpacerStyle} />
+const SmallSpacer = () => <Kb.Box2 direction="vertical" style={smallSpacerStyle} />
 const smallSpacerStyle = {
   flexShrink: 0,
   height: Styles.isMobile ? 8 : 4,

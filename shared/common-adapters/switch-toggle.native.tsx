@@ -5,8 +5,7 @@ import type {Props} from './switch-toggle'
 
 const SwitchToggle = (props: Props) => {
   const {on: _on} = props
-  const getOffset = React.useCallback(() => (_on ? enabledOffset : disabledOffset), [_on])
-  const [offset] = React.useState(new NativeAnimated.Value(getOffset()))
+  const [offset] = React.useState(new NativeAnimated.Value(_on ? enabledOffset : disabledOffset))
   const animationRef = React.useRef<NativeAnimated.CompositeAnimation | undefined>(undefined)
 
   React.useEffect(() => {
@@ -14,11 +13,11 @@ const SwitchToggle = (props: Props) => {
     animationRef.current = NativeAnimated.timing(offset, {
       duration: 100,
       easing: NativeEasing.linear,
-      toValue: getOffset(),
+      toValue: _on ? enabledOffset : disabledOffset,
       useNativeDriver: false,
     })
     animationRef.current.start()
-  }, [getOffset, offset])
+  }, [_on, offset])
 
   return (
     <NativeAnimated.View

@@ -36,22 +36,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       paddingLeft: Kb.Styles.globalMargins.tiny,
     },
   }),
-  timeBadge: Kb.Styles.platformStyles({
-    common: {
-      borderColor: Kb.Styles.globalColors.white,
-      borderRadius: 3,
-      borderStyle: 'solid',
-    },
-    isElectron: {
-      borderWidth: 1,
-      cursor: 'pointer',
-      marginLeft: -11,
-      marginTop: -6,
-    },
-    isMobile: {
-      borderWidth: 2,
-      marginLeft: -5,
-      marginTop: -1,
-    },
-  }),
 }))

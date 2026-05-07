@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/keybase/client/go/chat/utils"
@@ -136,13 +137,7 @@ func (d *chatNotificationDisplay) matchFilters(convID chat1.ConversationID) bool
 		// No filters - every message is relayed.
 		return true
 	}
-	for _, v := range d.filtersNormalized {
-		if convID.Eq(v) {
-			return true
-		}
-	}
-	// None of our filters matched.
-	return false
+	return slices.ContainsFunc(d.filtersNormalized, convID.Eq)
 }
 
 func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {

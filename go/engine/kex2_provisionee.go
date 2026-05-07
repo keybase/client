@@ -94,7 +94,7 @@ type kex2LogContext struct {
 	log logger.Logger
 }
 
-func (k kex2LogContext) Debug(format string, args ...interface{}) {
+func (k kex2LogContext) Debug(format string, args ...any) {
 	k.log.Debug(format, args...)
 }
 

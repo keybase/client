@@ -36,17 +36,17 @@ class KBInstallReferrerListener internal constructor(_context: Context) : Native
 
     override fun onInstallReferrerSetupFinished(responseCode: Int) {
         Log.e("KBIR", "KBInstallReferrerListener#onInstallReferrerSetupFinished: got code $responseCode")
-        executor.execute(Runnable {
+        executor.execute {
             when (responseCode) {
                 InstallReferrerClient.InstallReferrerResponse.OK -> {
                     // Connection established
                     handleReferrerResponseOK()
-                    return@Runnable
+                    return@execute
                 }
 
                 InstallReferrerClient.InstallReferrerResponse.SERVICE_DISCONNECTED -> {
                     reconnect()
-                    return@Runnable
+                    return@execute
                 }
 
                 InstallReferrerClient.InstallReferrerResponse.FEATURE_NOT_SUPPORTED, InstallReferrerClient.InstallReferrerResponse.SERVICE_UNAVAILABLE, InstallReferrerClient.InstallReferrerResponse.DEVELOPER_ERROR ->             // other issues, can't do much here....
@@ -54,7 +54,7 @@ class KBInstallReferrerListener internal constructor(_context: Context) : Native
 
                 else -> callback!!.callbackWithString("")
             }
-        })
+        }
     }
 
     private fun handleReferrerResponseOK() {

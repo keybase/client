@@ -2,8 +2,9 @@ import * as React from 'react'
 import * as SM from '@khanacademy/simple-markdown'
 import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
-import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
-import Box from '@/common-adapters/box'
+import Text from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
+import {Box2} from '@/common-adapters/box'
 import Spoiler from './spoiler'
 import NativeEmoji from '@/common-adapters/emoji/native-emoji'
 import type {StyleOverride} from '.'
@@ -181,7 +182,7 @@ const InlineCode = (p: {children: React.ReactNode; state: State}) => {
 const Fence = (p: {children: React.ReactNode; state: State}) => {
   const {children, state} = p
   return Styles.isMobile ? (
-    <Box>
+    <Box2 direction="vertical" fullWidth={true}>
       <Text
         type="Body"
         style={Styles.collapseStyles([markdownStyles.codeSnippetBlockTextStyle, state.styleOverride?.fence])}
@@ -189,11 +190,12 @@ const Fence = (p: {children: React.ReactNode; state: State}) => {
       >
         {children}
       </Text>
-    </Box>
+    </Box2>
   ) : (
     <Text
       type="Body"
       style={Styles.collapseStyles([markdownStyles.codeSnippetBlockStyle, state.styleOverride?.fence])}
+      allowFontScaling={state.allowFontScaling}
     >
       {children}
     </Text>
@@ -211,7 +213,7 @@ const reactComponentsForMarkdownType = {
       // nodes together into a single string output.
       let lastResult: React.ReactNode = null
       for (let i = 0; i < arr.length; i++) {
-        state.key = '' + i
+        state.key = String(i)
         const nodeOut = output(arr[i]!, state)
         if (typeof nodeOut === 'string' && typeof lastResult === 'string') {
           lastResult = lastResult + nodeOut
@@ -233,9 +235,9 @@ const reactComponentsForMarkdownType = {
       state.inBlockQuote = true
 
       const ret = (
-        <Box key={state.key} style={markdownStyles.quoteStyle}>
+        <Box2 direction="vertical" fullWidth={true} key={state.key} style={markdownStyles.quoteStyle}>
           {output(node['content'], state)}
-        </Box>
+        </Box2>
       )
       state.inBlockQuote = oldInBlockQuote
       return ret
@@ -266,6 +268,7 @@ const reactComponentsForMarkdownType = {
             state.insideStrong && markdownStyles.boldStyle,
             state.styleOverride?.em,
           ])}
+          allowFontScaling={state.allowFontScaling}
         >
           {output(node['content'], state)}
         </Text>
@@ -284,6 +287,7 @@ const reactComponentsForMarkdownType = {
         size={state.styleOverride?.emojiSize?.size ?? 16}
         key={state.key}
         disableSelecting={state.virtualText}
+        allowFontScaling={state.allowFontScaling}
         style={state.styleOverride?.emoji}
       />
     ),

@@ -1,19 +1,26 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
+import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
+import * as T from '@/constants/types'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
-import {HeaderLeftArrow} from '@/common-adapters/header-hoc'
+import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {Keyboard} from 'react-native'
-// import {DebugChatDumpContext} from '@/constants/chat2/debug'
+import type {SFSymbol} from 'sf-symbols-typescript'
+// import {DebugChatDumpContext} from '@/constants/chat/debug'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
-import {useUsersState} from '@/constants/users'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useUsersState} from '@/stores/users'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useConfigState} from '@/stores/config'
+import {navToProfile} from '@/constants/router'
+import {showConversationInfoPanel, toggleConversationThreadSearch} from '../thread-context'
+import {useConversationMetadata} from '../data-hooks'
+import {muteConversation} from '../status-actions'
 
-export const HeaderAreaRight = () => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+type HeaderConversationProps = {conversationIDKey: T.Chat.ConversationIDKey}
+
+export const HeaderAreaRight = (props: HeaderConversationProps) => {
+  const {conversationIDKey} = props
   const pendingWaiting =
     conversationIDKey === Chat.pendingWaitingConversationIDKey ||
     conversationIDKey === Chat.pendingErrorConversationIDKey
@@ -37,16 +44,14 @@ export const HeaderAreaRight = () => {
   //   </>
   // ) : null
 
-  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
-  const onShowInfoPanel = React.useCallback(() => showInfoPanel(true, undefined), [showInfoPanel])
-  const toggleThreadSearch = Chat.useChatContext(s => s.dispatch.toggleThreadSearch)
-  const onToggleThreadSearch = React.useCallback(() => {
+  const onShowInfoPanel = () => showConversationInfoPanel(conversationIDKey, true, undefined)
+  const onToggleThreadSearch = () => {
     // fix a race with the keyboard going away and coming back quickly
     Keyboard.dismiss()
     setTimeout(() => {
-      toggleThreadSearch()
+      toggleConversationThreadSearch(conversationIDKey)
     }, 100)
-  }, [toggleThreadSearch])
+  }
 
   return (
     <Kb.Box2
@@ -66,10 +71,14 @@ enum HeaderType {
   User,
 }
 
-const HeaderBranchContainer = React.memo(function HeaderBranchContainer() {
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const type = Chat.useChatContext(s => {
-    const meta = s.meta
+const HeaderBranchContainer = function HeaderBranchContainer() {
+  return <HeaderBranchContainerInner conversationIDKey={Chat.noConversationIDKey} />
+}
+
+const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: HeaderConversationProps) {
+  const {conversationIDKey} = props
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
+  const type = (() => {
     const teamName = meta.teamname
     if (teamName) {
       return HeaderType.Team
@@ -79,53 +88,77 @@ const HeaderBranchContainer = React.memo(function HeaderBranchContainer() {
       participant => participant.endsWith('@phone') || participant.endsWith('@email')
     )
     return isPhoneOrEmail ? HeaderType.PhoneEmail : HeaderType.User
-  })
+  })()
 
   switch (type) {
     case HeaderType.Team:
-      return <ChannelHeader />
+      return <ChannelHeader conversationIDKey={conversationIDKey} />
     case HeaderType.PhoneEmail:
-      return <PhoneOrEmailHeader />
+      return <PhoneOrEmailHeader conversationIDKey={conversationIDKey} />
     case HeaderType.User:
-      return <UsernameHeader />
+      return <UsernameHeader conversationIDKey={conversationIDKey} />
   }
-})
+}
 export default HeaderBranchContainer
 
-const BadgeHeaderLeftArray = (p: HeaderBackButtonProps) => {
-  const badgeNumber = useBackBadge()
-  return <HeaderLeftArrow badgeNumber={badgeNumber} {...p} />
+const BadgeHeaderLeftArray = (p: HeaderBackButtonProps & HeaderConversationProps) => {
+  const {conversationIDKey, ...rest} = p
+  const badgeNumber = useBackBadge(conversationIDKey)
+  return <HeaderLeftButton badgeNumber={badgeNumber} {...rest} />
 }
 
-export const headerNavigationOptions = (route: {params?: {conversationIDKey?: string}}) => {
+const sfIcon = (name: SFSymbol) => ({name, type: 'sfSymbol' as const})
+
+export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.Chat.ConversationIDKey}}) => {
   const conversationIDKey = route.params?.conversationIDKey ?? Chat.noConversationIDKey
   return {
-    headerLeft: (props: HeaderBackButtonProps) => {
-      const {onLabelLayout, labelStyle, ...rest} = props
-      return (
-        <Chat.ChatProvider id={conversationIDKey}>
-          <BadgeHeaderLeftArray {...rest} />
-        </Chat.ChatProvider>
-      )
-    },
-    headerRight: () => (
-      <Chat.ChatProvider id={conversationIDKey}>
-        <HeaderAreaRight />
-      </Chat.ChatProvider>
-    ),
-    headerTitle: () => (
-      <Chat.ChatProvider id={conversationIDKey}>
-        <HeaderBranchContainer />
-      </Chat.ChatProvider>
-    ),
+    // iOS 26: headerLeft omitted — native back button comes from tabStackOptions (headerBackVisible: true).
+    // BadgeHeaderUpdater in container.tsx drives unstable_headerLeftItems for the badge count.
+    ...(!Kb.Styles.isIOS
+      ? {
+          headerLeft: (props: HeaderBackButtonProps) => {
+            const {labelStyle, ...rest} = props
+            return <BadgeHeaderLeftArray {...rest} conversationIDKey={conversationIDKey} />
+          },
+        }
+      : {}),
+    // iOS 26: two separate native buttons (each gets its own glass pill).
+    ...(Kb.Styles.isIOS
+      ? {
+          unstable_headerRightItems: () => [
+            {
+              icon: sfIcon('magnifyingglass'),
+              label: 'Search',
+              onPress: () => {
+                Keyboard.dismiss()
+                setTimeout(() => toggleConversationThreadSearch(conversationIDKey), 100)
+              },
+              type: 'button' as const,
+            },
+            {
+              icon: sfIcon('info.circle'),
+              label: 'Info',
+              onPress: () => showConversationInfoPanel(conversationIDKey, true, undefined),
+              type: 'button' as const,
+            },
+          ],
+        }
+      : {
+          headerRight: () => <HeaderAreaRight conversationIDKey={conversationIDKey} />,
+        }),
+    headerTitle: () => <HeaderBranchContainerInner conversationIDKey={conversationIDKey} />,
   }
 }
 
-export const useBackBadge = () => {
+export const useBackBadge = (conversationIDKey: T.Chat.ConversationIDKey) => {
   const visiblePath = C.Router2.getVisiblePath()
   const onTopOfInbox = visiblePath[visiblePath.length - 2]?.name === 'chatRoot'
-  const conversationIDKey = Chat.useChatContext(s => s.id)
-  const badgeNumber = Chat.useChatState(s => s.getBackCount(conversationIDKey))
+  const badgeState = useConfigState(s => s.badgeState)
+  const badgeNumber =
+    badgeState?.conversations?.reduce((count, conversation) => {
+      const id = T.Chat.conversationIDToKey(conversation.convID)
+      return id === conversationIDKey ? count : count + conversation.badgeCount
+    }, 0) ?? 0
   if (!onTopOfInbox) return 0
   return badgeNumber
 }
@@ -133,12 +166,12 @@ export const useBackBadge = () => {
 const shhIconColor = Kb.Styles.globalColors.black_20
 const shhIconFontSize = 24
 
-const ShhIcon = React.memo(function ShhIcon() {
-  const isMuted = Chat.useChatContext(s => s.meta.isMuted)
-  const mute = Chat.useChatContext(s => s.dispatch.mute)
-  const unMuteConversation = React.useCallback(() => {
-    mute(false)
-  }, [mute])
+const ShhIcon = function ShhIcon(props: HeaderConversationProps) {
+  const {conversationIDKey} = props
+  const isMuted = useConversationMetadata(conversationIDKey).meta.isMuted
+  const unMuteConversation = () => {
+    muteConversation(conversationIDKey, false)
+  }
   return isMuted ? (
     <Kb.Icon
       type="iconfont-shh"
@@ -148,37 +181,32 @@ const ShhIcon = React.memo(function ShhIcon() {
       onClick={unMuteConversation}
     />
   ) : null
-})
-
-const useMaxWidthStyle = () => {
-  const {width} = useSafeAreaFrame()
-  const hasBadge = useBackBadge() > 0
-  const w = width - 140 - (hasBadge ? 40 : 0)
-  return React.useMemo(() => ({maxWidth: w, minWidth: w}), [w])
 }
 
-const ChannelHeader = () => {
-  const {channelname, smallTeam, teamname, teamID} = Chat.useChatContext(
-    C.useShallow(s => {
-      const meta = s.meta
-      const {channelname, teamname, teamType, teamID} = meta
-      const smallTeam = teamType !== 'big'
-      return {channelname, smallTeam, teamID, teamname}
-    })
-  )
+const useMaxWidthStyle = (conversationIDKey: T.Chat.ConversationIDKey) => {
+  const {width} = useSafeAreaFrame()
+  const hasBadge = useBackBadge(conversationIDKey) > 0
+  const w = width - 140 - (hasBadge ? 40 : 0)
+  return {maxWidth: w, minWidth: w}
+}
+
+const ChannelHeader = (props: HeaderConversationProps) => {
+  const {conversationIDKey} = props
+  const {channelname, teamname, teamType, teamID} = useConversationMetadata(conversationIDKey).meta
+  const smallTeam = teamType !== 'big'
   const textType = smallTeam ? 'BodyBig' : Kb.Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onClick = React.useCallback(() => {
-    navigateAppend({props: {teamID}, selected: 'team'})
-  }, [navigateAppend, teamID])
-  const maxWidthStyle = useMaxWidthStyle()
+  const navigateAppend = C.Router2.navigateAppend
+  const onClick = () => {
+    navigateAppend({name: 'team', params: {teamID}})
+  }
+  const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
 
   return (
     <Kb.Box2 direction="vertical" style={maxWidthStyle}>
       <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
         <Kb.Avatar
           teamname={teamname || undefined}
-          size={smallTeam ? 16 : (12 as 16) /* not really allowed a one off */}
+          size={16}
         />
         <Kb.Text
           type={textType}
@@ -190,14 +218,14 @@ const ChannelHeader = () => {
           &nbsp;
           {teamname}
         </Kb.Text>
-        {smallTeam && <ShhIcon />}
+        {smallTeam && <ShhIcon conversationIDKey={conversationIDKey} />}
       </Kb.Box2>
       {!smallTeam && (
         <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
           <Kb.Text type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
             #{channelname}
           </Kb.Text>
-          <ShhIcon />
+          <ShhIcon conversationIDKey={conversationIDKey} />
         </Kb.Box2>
       )}
     </Kb.Box2>
@@ -205,32 +233,21 @@ const ChannelHeader = () => {
 }
 
 const emptyArray = new Array<string>()
-const UsernameHeader = () => {
+const UsernameHeader = (props: HeaderConversationProps) => {
+  const {conversationIDKey} = props
   const you = useCurrentUserState(s => s.username)
   const infoMap = useUsersState(s => s.infoMap)
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const {participants, theirFullname} = Chat.useChatContext(
-    C.useShallow(s => {
-      const meta = s.meta
-      const participants = meta.teamname ? emptyArray : participantInfo.name
-      const theirFullname =
-        participants.length === 2
-          ? participants
-              .filter(username => username !== you)
-              .map(username => infoMap.get(username)?.fullname)[0]
-          : undefined
-      return {participants, theirFullname}
-    })
-  )
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const onShowProfile = React.useCallback(
-    (username: string) => {
-      showUserProfile(username)
-    },
-    [showUserProfile]
-  )
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
+  const participants = meta.teamname ? emptyArray : participantInfo.name
+  const theirFullname =
+    participants.length === 2
+      ? participants.filter(username => username !== you).map(username => infoMap.get(username)?.fullname)[0]
+      : undefined
+  const onShowProfile = (username: string) => {
+    navToProfile(username)
+  }
 
-  const maxWidthStyle = useMaxWidthStyle()
+  const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
 
   return (
     <Kb.Box2
@@ -238,11 +255,11 @@ const UsernameHeader = () => {
       style={Kb.Styles.collapseStyles([styles.usernameHeaderContainer, maxWidthStyle])}
     >
       {!!theirFullname && (
-        <Kb.Text lineClamp={1} type="BodyBig" fixOverdraw={true}>
+        <Kb.Text lineClamp={1} type="BodyBig">
           {theirFullname}
         </Kb.Text>
       )}
-      <Kb.Box2 direction="horizontal" style={styles.nameMutedContainer}>
+      <Kb.Box2 direction="horizontal" style={styles.nameMutedContainer} justifyContent="center">
         <Kb.ConnectedUsernames
           colorFollowing={true}
           inline={false}
@@ -254,20 +271,20 @@ const UsernameHeader = () => {
           onUsernameClicked={onShowProfile}
           skipSelf={participants.length > 1}
         />
-        <ShhIcon />
+        <ShhIcon conversationIDKey={conversationIDKey} />
       </Kb.Box2>
     </Kb.Box2>
   )
 }
 
-const PhoneOrEmailHeader = () => {
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const meta = Chat.useChatContext(s => s.meta)
+const PhoneOrEmailHeader = (props: HeaderConversationProps) => {
+  const {conversationIDKey} = props
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
   const name = participantInfo.contactName.get(phoneOrEmail)
-  const maxWidthStyle = useMaxWidthStyle()
+  const maxWidthStyle = useMaxWidthStyle(conversationIDKey)
   return (
     <Kb.Box2
       direction="vertical"
@@ -277,7 +294,7 @@ const PhoneOrEmailHeader = () => {
         <Kb.Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
           {formattedPhoneOrEmail}
         </Kb.Text>
-        <ShhIcon />
+        <ShhIcon conversationIDKey={conversationIDKey} />
       </Kb.Box2>
       {!!name && <Kb.Text type="BodyTiny">{name}</Kb.Text>}
     </Kb.Box2>
@@ -288,7 +305,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       center: {
-        backgroundColor: Kb.Styles.globalColors.fastBlank,
         justifyContent: 'center',
         textAlign: 'center',
       },
@@ -308,7 +324,6 @@ const styles = Kb.Styles.styleSheetCreate(
       lessMargins: {marginBottom: -5},
       nameMutedContainer: {
         alignItems: 'center',
-        justifyContent: 'center',
       },
       shhIcon: {marginLeft: Kb.Styles.globalMargins.xtiny},
       usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},

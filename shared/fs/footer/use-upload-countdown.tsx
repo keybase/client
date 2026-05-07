@@ -30,93 +30,88 @@ enum Mode {
 const tickInterval = 1000
 const initialGlueTTL = 2
 
+type UploadCountdownState = {
+  glueTTL: number
+  inputKey: string
+  mode: Mode
+}
+
+const makeInputKey = (isOnline: boolean, files: number, totalSyncingBytes: number, endEstimate: number) =>
+  `${isOnline}:${files}:${totalSyncingBytes}:${endEstimate}`
+
+const updateCountdownState = (
+  state: UploadCountdownState,
+  isUploading: boolean,
+  displayDuration: number,
+  inputKey: string,
+  isTick = false
+): UploadCountdownState => {
+  if (state.inputKey === inputKey && !isTick) {
+    return state
+  }
+  switch (state.mode) {
+    case Mode.Hidden:
+      if (isUploading) {
+        return {glueTTL: initialGlueTTL, inputKey, mode: Mode.CountDown}
+      }
+      return state.inputKey === inputKey ? state : {...state, inputKey}
+    case Mode.CountDown:
+      if (isUploading) {
+        return state.inputKey === inputKey ? state : {...state, inputKey}
+      }
+      return {glueTTL: state.glueTTL, inputKey, mode: state.glueTTL > 0 ? Mode.Sticky : Mode.Hidden}
+    case Mode.Sticky: {
+      if (isUploading) {
+        return {glueTTL: initialGlueTTL, inputKey, mode: Mode.CountDown}
+      }
+      if (displayDuration !== 0) {
+        return state.inputKey === inputKey ? state : {...state, inputKey}
+      }
+      if (!isTick) {
+        return state.inputKey === inputKey ? state : {...state, inputKey}
+      }
+      const glueTTL = Math.max(0, state.glueTTL - 1)
+      return glueTTL > 0 ? {glueTTL, inputKey, mode: Mode.Sticky} : {glueTTL, inputKey, mode: Mode.Hidden}
+    }
+  }
+}
+
 export const useUploadCountdown = (p: UploadCountdownHOCProps) => {
   const {endEstimate, files, fileName, isOnline, totalSyncingBytes, debugToggleShow, smallMode} = p
-  const tickerID = React.useRef<ReturnType<typeof setInterval>>(undefined)
 
-  const [displayDuration, setDisplayDuration] = React.useState(0)
-  const [glueTTL, setGlueTTL] = React.useState(0)
-  const [mode, setMode] = React.useState(Mode.Hidden)
   const [now, setNow] = React.useState(() => Date.now())
-
-  const tick = React.useCallback(() => {
-    setNow(Date.now())
-  }, [])
-
-  // Idempotently start the ticker. If the ticker has already been started,
-  // this is a no-op.
-  const startTicker = React.useCallback(() => {
-    if (tickerID.current) {
-      return
-    }
-    tickerID.current = setInterval(tick, tickInterval)
-  }, [tick])
-
-  // Idempotently stop the ticker. If the ticker is not running, this is a
-  // no-op.
-  const stopTicker = React.useCallback(() => {
-    if (!tickerID.current) {
-      return
-    }
-    clearInterval(tickerID.current)
-    tickerID.current = undefined
-  }, [])
+  const displayDuration = endEstimate ? endEstimate - now : 0
+  const isUploading = isOnline && (!!files || !!totalSyncingBytes)
+  const inputKey = makeInputKey(isOnline, files, totalSyncingBytes, endEstimate || 0)
+  const [countdownState, setCountdownState] = React.useState<UploadCountdownState>(() =>
+    updateCountdownState({glueTTL: 0, inputKey: '', mode: Mode.Hidden}, isUploading, displayDuration, inputKey)
+  )
+  const visibleCountdownState = updateCountdownState(countdownState, isUploading, displayDuration, inputKey)
+  if (visibleCountdownState !== countdownState) {
+    setCountdownState(visibleCountdownState)
+  }
 
   React.useEffect(() => {
+    if (visibleCountdownState.mode === Mode.Hidden) {
+      return
+    }
+    const tickerID = setInterval(() => {
+      const nextNow = Date.now()
+      setNow(nextNow)
+      setCountdownState(state =>
+        updateCountdownState(state, isUploading, endEstimate ? endEstimate - nextNow : 0, inputKey, true)
+      )
+    }, tickInterval)
     return () => {
-      stopTicker()
+      clearInterval(tickerID)
     }
-  }, [stopTicker])
-
-  React.useEffect(() => {
-    const isUploading = isOnline && (!!files || !!totalSyncingBytes)
-    const newDisplayDuration = endEstimate ? endEstimate - now : 0
-    switch (mode) {
-      case Mode.Hidden:
-        if (isUploading) {
-          startTicker()
-          setDisplayDuration(newDisplayDuration)
-          setGlueTTL(initialGlueTTL)
-          setMode(Mode.CountDown)
-        } else {
-          stopTicker()
-        }
-        return
-      case Mode.CountDown:
-        if (isUploading) {
-          setDisplayDuration(newDisplayDuration)
-        } else {
-          setDisplayDuration(newDisplayDuration)
-          setMode(glueTTL > 0 ? Mode.Sticky : Mode.Hidden)
-        }
-        return
-      case Mode.Sticky:
-        if (isUploading) {
-          setDisplayDuration(newDisplayDuration)
-          setGlueTTL(initialGlueTTL)
-          setMode(Mode.CountDown)
-        } else {
-          setDisplayDuration(newDisplayDuration)
-          if (newDisplayDuration === 0) {
-            const newGlueTTL = Math.max(0, glueTTL - 1)
-            if (newGlueTTL > 0) {
-              setGlueTTL(newGlueTTL)
-            } else {
-              setMode(Mode.Hidden)
-            }
-          }
-        }
-        return
-      default:
-        return
-    }
-  }, [isOnline, files, totalSyncingBytes, endEstimate, glueTTL, mode, startTicker, now, stopTicker])
+  }, [endEstimate, inputKey, isUploading, visibleCountdownState.mode])
 
   return {
     debugToggleShow,
     fileName,
     files,
-    showing: mode !== Mode.Hidden,
+    showing: visibleCountdownState.mode !== Mode.Hidden,
     smallMode,
     timeLeft: formatDuration(displayDuration),
     totalSyncingBytes,

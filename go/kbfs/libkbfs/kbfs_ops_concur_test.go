@@ -95,7 +95,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
 	ops.mdWriterLock = kbfssync.MakeLeveledMutex(
 		kbfssync.MutexLevel(fboMDWriter), cl)
-	for i := 0; i < n; i++ {
+	for range n {
 		go func() {
 			_, _, _, err := ops.getRootNode(ctxStallGetForTLF)
 			c <- err
@@ -114,7 +114,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	// Now let the first one complete.  The second one should find the
 	// MD in the cache, and thus never call MDOps.Get().
 	close(getUnstallCh)
-	for i := 0; i < n; i++ {
+	for range n {
 		err := <-c
 		require.NoError(t, err, "Got an error doing concurrent MD gets: err=(%s)", err)
 	}
@@ -197,7 +197,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 
 	fileNodes := make([]Node, nFiles)
 	kbfsOps := config.KBFSOps()
-	for i := 0; i < nFiles; i++ {
+	for i := range nFiles {
 		name := fmt.Sprintf("file%d", i)
 		fileNode, _, err := kbfsOps.CreateFile(
 			ctx, rootNode, testPPS(name), false, NoExcl)
@@ -208,7 +208,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	expectedData := make([][]byte, len(fileNodes))
 	for i, fileNode := range fileNodes {
 		data := make([]byte, initialWriteBytes)
-		for j := 0; j < initialWriteBytes; j++ {
+		for j := range initialWriteBytes {
 			data[j] = byte(initialWriteBytes * (i + 1))
 		}
 		err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -231,7 +231,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	}
 
 	for i, fileNode := range fileNodes {
-		for j := 0; j < nOneByteWrites; j++ {
+		for j := range nOneByteWrites {
 			// now make sure we can write the file and see the new
 			// byte we wrote
 			newData := []byte{byte(nOneByteWrites * (j + 2))}
@@ -349,7 +349,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	var data []byte
 	// Write 2 blocks worth of data
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		data = append(data, byte(i))
 	}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -1184,7 +1184,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	ctx2, cancel2 := context.WithCancel(ctx)
 	go func() {
 		// let the first initialBlocks blocks through.
-		for i := 0; i < initialBlocks; i++ {
+		for range initialBlocks {
 			select {
 			case <-readyChan:
 			case <-ctx.Done():
@@ -1192,7 +1192,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 			}
 		}
 
-		for i := 0; i < initialBlocks; i++ {
+		for range initialBlocks {
 			select {
 			case goChan <- struct{}{}:
 			case <-ctx.Done():
@@ -1200,7 +1200,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 			}
 		}
 
-		for i := 0; i < initialBlocks; i++ {
+		for range initialBlocks {
 			select {
 			case <-finishChan:
 			case <-ctx.Done():
@@ -1214,7 +1214,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 		nowNBlocks = b.numBlocks()
 
 		// Let each parallel block worker block on readyChan.
-		for i := 0; i < maxParallelBlockPuts; i++ {
+		for range maxParallelBlockPuts {
 			select {
 			case <-readyChan:
 			case <-ctx.Done():
@@ -1402,7 +1402,7 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 
 	firstData := make([]byte, 30)
 	// Write 2 blocks worth of data
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		firstData[i] = byte(i)
 	}
 
@@ -1435,7 +1435,7 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 		require.NoError(t, err, "Couldn't create file: %v", err)
 		data := make([]byte, 30)
 		// Write 2 blocks worth of data
-		for j := 0; j < 30; j++ {
+		for j := range 30 {
 			data[j] = byte(j + 30*i)
 		}
 		err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -1531,7 +1531,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	var data []byte
 
 	t.Log("Write 2 blocks worth of data")
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		data = append(data, byte(i))
 	}
 	err = kbfsOps.Write(ctx, fileNodes[0], data, 0)
@@ -1589,7 +1589,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 		require.NoError(t, err, "Couldn't create file: %v", err)
 		data := make([]byte, 30)
 		// Write 2 blocks worth of data
-		for j := 0; j < 30; j++ {
+		for j := range 30 {
 			data[j] = byte(j + 30*i)
 		}
 		err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -1859,7 +1859,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	require.NoError(t, err, "Couldn't sync file: %v", err)
 
 	data := make([]byte, 30)
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		data[i] = 1
 	}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -1946,7 +1946,7 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 	require.NoError(t, err, "Couldn't sync file: %v", err)
 
 	data := make([]byte, 30)
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		data[i] = 1
 	}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -2042,7 +2042,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 
 	var data []byte
 	// Write some data
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		data = append(data, byte(i))
 	}
 	err = kbfsOps.Write(ctx, fileNode2, data, 0)
@@ -2372,7 +2372,7 @@ func TestKBFSOpsConcurMultiblockOverwriteWithCanceledSync(t *testing.T) {
 	require.NoError(t, err, "Couldn't create file: %v", err)
 
 	data := make([]byte, 30)
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		data[i] = 1
 	}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -2383,7 +2383,7 @@ func TestKBFSOpsConcurMultiblockOverwriteWithCanceledSync(t *testing.T) {
 
 	// Over write the data to cause the leaf blocks to be unreferenced.
 	data2 := make([]byte, 30)
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		data2[i] = byte(i + 30)
 	}
 	err = kbfsOps.Write(ctx, fileNode, data2, 0)
@@ -2408,7 +2408,7 @@ func TestKBFSOpsConcurMultiblockOverwriteWithCanceledSync(t *testing.T) {
 	}
 
 	data3 := make([]byte, 30)
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		data3[i] = byte(i + 60)
 	}
 	err = kbfsOps.Write(ctx, fileNode, data3, 0)
@@ -2434,7 +2434,7 @@ func TestKBFSOpsConcurMultiblockOverwriteWithCanceledSync(t *testing.T) {
 	}
 
 	data4 := make([]byte, 30)
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		data4[i] = byte(i + 90)
 	}
 	err = kbfsOps.Write(ctx, fileNode, data4, 0)

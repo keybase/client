@@ -3,6 +3,21 @@ import type {Props} from './video'
 import * as Styles from '@/styles'
 import {useCheckURL} from './video.shared'
 
+const normalizeURL = (url: string) => {
+  const isWindowsPath = /^[a-zA-Z]:[\\/]/.test(url)
+  if (url.startsWith('/') || isWindowsPath) {
+    let path = url.replace(/\\/g, '/')
+    if (isWindowsPath && !path.startsWith('/')) {
+      path = '/' + path
+    }
+    return encodeURI(`file://${path}`).replace(/#/g, '%23')
+  }
+  if (url.startsWith('file://') && (url.includes(' ') || url.includes('#'))) {
+    return encodeURI(url).replace(/#/g, '%23')
+  }
+  return url
+}
+
 const Video = (props: Props) => {
   const {onUrlError} = props
 
@@ -18,11 +33,15 @@ const Video = (props: Props) => {
 
   const onVideoClick = () => {
     if (videoRef.current) {
-      videoRef.current.paused ? videoRef.current.play().catch(() => {}) : videoRef.current.pause()
+      if (videoRef.current.paused) {
+        videoRef.current.play().catch(() => {})
+      } else {
+        videoRef.current.pause()
+      }
     }
   }
 
-  const url = encodeURI(props.url)
+  const url = normalizeURL(props.url)
   const content = (
     <div style={Styles.castStyleDesktop(Styles.collapseStyles([styles.container, props.style]))}>
       <video
@@ -52,14 +71,6 @@ const styles = Styles.styleSheetCreate(() => ({
     overflow: 'hidden',
     width: '100%',
   },
-  video: Styles.platformStyles({
-    isElectron: {
-      maxHeight: '100%',
-      maxWidth: '100%',
-      objectFit: 'contain',
-      position: 'absolute',
-    },
-  }),
 }))
 
 export default Video

@@ -468,7 +468,7 @@ func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
 			errs = append(errs, err)
 		}
 	} else {
-		syncSettings, ok := syncSettings.(map[string]interface{})
+		syncSettings, ok := syncSettings.(map[string]any)
 		if !ok {
 			errs = append(errs, fmt.Errorf("Failed to coerce ui.importContacts in migration"))
 		} else {
@@ -1122,12 +1122,12 @@ func (g *GlobalContext) GetMyClientDetails() keybase1.ClientDetails {
 }
 
 type UnforwardedLoggerWithLegacyInterface interface {
-	Debug(s string, args ...interface{})
-	Error(s string, args ...interface{})
-	Errorf(s string, args ...interface{})
-	Warning(s string, args ...interface{})
-	Info(s string, args ...interface{})
-	Profile(s string, args ...interface{})
+	Debug(s string, args ...any)
+	Error(s string, args ...any)
+	Errorf(s string, args ...any)
+	Warning(s string, args ...any)
+	Info(s string, args ...any)
+	Profile(s string, args ...any)
 }
 
 func (g *GlobalContext) GetUnforwardedLogger() (log UnforwardedLoggerWithLegacyInterface) {

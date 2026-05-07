@@ -1,17 +1,15 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
-import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
 import type SystemSBSResolvedType from './container'
 import type SystemJoinedType from '../system-joined/container'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
 
-const WrapperSystemInvite = React.memo(function WrapperSystemInvite(p: Props) {
-  const {ordinal} = p
-  const common = useCommon(ordinal)
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+function WrapperSystemInvite(p: Props) {
+  const {ordinal, isCenteredHighlight} = p
+  const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
+  const {message} = wrapper.messageData
   const you = useCurrentUserState(s => s.username)
 
-  if (message?.type !== 'systemSBSResolved') return null
+  if (message.type !== 'systemSBSResolved') return null
 
   const youAreAuthor = you === message.author
   const {default: SystemSBSResolved} = require('./container') as {default: typeof SystemSBSResolvedType}
@@ -26,10 +24,10 @@ const WrapperSystemInvite = React.memo(function WrapperSystemInvite(p: Props) {
   )
 
   return (
-    <WrapperMessage {...p} {...common}>
+    <WrapperMessage {...p} {...wrapper}>
       {child}
     </WrapperMessage>
   )
-})
+}
 
 export default WrapperSystemInvite

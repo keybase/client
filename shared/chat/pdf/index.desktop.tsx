@@ -1,42 +1,64 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as React from 'react'
+import {useNavigation} from '@react-navigation/native'
 import type {Props} from '.'
-import {useFSState} from '@/constants/fs'
+import * as T from '@/constants/types'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {attachmentDownloadMessage, takePDFMessage} from '../conversation/attachment-actions'
+import {useConversationMessage} from '../conversation/data-hooks'
 
 const ChatPDF = (props: Props) => {
-  const {ordinal} = props
-  const message = Chat.useChatContext(s => s.messageMap.get(ordinal))
+  const {messageID} = props
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
+  const [initialMessage] = React.useState(() => takePDFMessage(conversationIDKey, messageID))
+  const loadedMessage = useConversationMessage(conversationIDKey, messageID)
+  const message = loadedMessage?.type === 'attachment' ? loadedMessage : initialMessage
   const title = message?.title || message?.fileName || 'PDF'
-  const url = message?.fileURL
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
-  )
+  const url = props.url ?? message?.fileURL
+  const navigation = useNavigation()
+  const canDownload = !!message
 
-  const attachmentDownload = Chat.useChatContext(s => s.dispatch.attachmentDownload)
-  const onDownload = React.useCallback(() => {
-    message && attachmentDownload(message.ordinal)
-    openLocalPathInSystemFileManagerDesktop?.(C.downloadFolder)
-  }, [openLocalPathInSystemFileManagerDesktop, attachmentDownload, message])
+  const onDownload = () => {
+    if (message) {
+      attachmentDownloadMessage(conversationIDKey, message)
+    }
+    openLocalPathInSystemFileManagerDesktop(C.downloadFolder)
+  }
+
+  React.useEffect(() => {
+    navigation.setOptions({title})
+  }, [navigation, title])
+
   return (
-    <Kb.Modal2
-      header={{
-        title: <Kb.Text type="BodyBig">{title}</Kb.Text>,
-      }}
-      footer={{
-        content: (
-          <Kb.ButtonBar small={true}>
-            <Kb.Button type="Default" label="Download" onClick={onDownload} />
-          </Kb.ButtonBar>
-        ),
-      }}
-    >
+    <>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <embed src={url} width="100%" height="100%" />
       </Kb.Box2>
-    </Kb.Modal2>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
+        <Kb.ButtonBar small={true}>
+          <Kb.Button type="Default" label="Download" onClick={onDownload} disabled={!canDownload} />
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    </>
   )
 }
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  modalFooter: Kb.Styles.platformStyles({
+    common: {
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
+      borderStyle: 'solid' as const,
+      borderTopColor: Kb.Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Kb.Styles.borderRadius,
+      borderBottomRightRadius: Kb.Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
+}))
 
 export default ChatPDF

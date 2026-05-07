@@ -29,6 +29,7 @@ export type Props = {
   // mobile only
   bounces?: boolean
   contentInset?: {top?: number; left?: number; bottom?: number; right?: number}
+  contentInsetAdjustmentBehavior?: 'automatic' | 'scrollableAxes' | 'never' | 'always'
   centerContent?: boolean
   zoomScale?: number
   minimumZoomScale?: number
@@ -51,6 +52,6 @@ export interface ScrollViewRef {
   scrollToEnd: (options: {animated?: boolean; duration?: number}) => void
 }
 
-declare const ScrollView: React.ForwardRefExoticComponent<Props & React.RefAttributes<ScrollViewRef>>
+declare function ScrollView(props: Props): React.ReactElement
 
 export default ScrollView

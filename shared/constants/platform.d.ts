@@ -30,4 +30,5 @@ export const pprofDir: string
 export const serverConfigFileName: string
 export const shortcutSymbol: string
 export const realDeviceName: string
+export const fsCacheDir: string
 export const uses24HourClock: boolean

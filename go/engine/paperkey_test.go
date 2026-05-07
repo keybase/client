@@ -108,7 +108,7 @@ func testPaperKeyMulti(t *testing.T, upgradePerUserKey bool) {
 
 	fu, _, _ := CreateAndSignupFakeUserCustomArg(tc, "login", f)
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		uis := libkb.UIs{
 			LogUI:    tc.G.UI.GetLogUI(),
 			LoginUI:  &libkb.TestLoginUI{},

@@ -1,16 +1,10 @@
 .cl-entry {
   background-color: transparent;
   &:hover {
-    background-color: var(--color-blueLighter2);
+    background-color: light-dark(var(--color-blueLighter2), #140d03);
     .cl-icon-container {
       background: transparent;
     }
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .cl-entry:hover {
-    background-color: #140d03;
   }
 }
 

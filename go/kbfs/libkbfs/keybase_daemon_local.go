@@ -38,7 +38,7 @@ var _ favoriteStore = diskFavoriteClient{}
 func (c diskFavoriteClient) favkey(
 	uid keybase1.UID, folder keybase1.FolderHandle,
 ) []byte {
-	return []byte(fmt.Sprintf("%s:%s", uid, folder.ToString()))
+	return fmt.Appendf(nil, "%s:%s", uid, folder.ToString())
 }
 
 func (c diskFavoriteClient) FavoriteAdd(

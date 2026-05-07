@@ -16,7 +16,7 @@ import (
 func TestFastForwardBasic(t *testing.T) {
 	var busyWork []fileOp
 	iters := 100
-	for i := 0; i < iters; i++ {
+	for i := range iters {
 		name := fmt.Sprintf("a%d", i)
 		busyWork = append(busyWork, mkfile(name, "hello"), rm(name))
 	}

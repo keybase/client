@@ -13,8 +13,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"os"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -1126,7 +1128,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 
 		// Create a bunch of blank convos
 		convs := make(map[chat1.ConvIDStr]bool)
-		for i := 0; i < numconvs; i++ {
+		for i := range numconvs {
 			created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[i+1]).user())
 			convs[created.Id.ConvIDStr()] = true
@@ -1153,7 +1155,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 			require.Fail(t, "no inbox received")
 		}
 		// Get all convos
-		for i := 0; i < numconvs; i++ {
+		for range numconvs {
 			select {
 			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
@@ -1167,7 +1169,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		// Send a bunch of messages
 		t.Logf("messages in convos test")
 		convs = make(map[chat1.ConvIDStr]bool)
-		for i := 0; i < numconvs; i++ {
+		for i := range numconvs {
 			conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[i+1]).user())
 			convs[conv.Id.ConvIDStr()] = true
@@ -1204,7 +1206,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 			require.Fail(t, "no inbox received")
 		}
 		// Get all convos
-		for i := 0; i < numconvs; i++ {
+		for range numconvs {
 			select {
 			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
@@ -2379,9 +2381,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 					refMap.Reactions[emoji] = chat1.UIReactionDesc{
 						Users: make(map[string]chat1.Reaction),
 					}
-					for username, reaction := range users {
-						refMap.Reactions[emoji].Users[username] = reaction
-					}
+					maps.Copy(refMap.Reactions[emoji].Users, users)
 				}
 				require.Equal(t, refMap, reactionUpdate.Reactions)
 			}
@@ -2973,7 +2973,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		t.Logf("send a bunch of messages")
 		numMsgs := 5
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
-		for i := 0; i < numMsgs; i++ {
+		for range numMsgs {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		}
 
@@ -3016,7 +3016,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			require.Fail(t, "no thread cb")
 		}
 		recvRemote := func() bool {
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				clock.Advance(20 * time.Minute)
 				select {
 				case res := <-ui.ThreadCb:
@@ -3067,7 +3067,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			require.Fail(t, "no thread cb")
 		}
 		recvRemote = func() bool {
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				clock.Advance(20 * time.Minute)
 				select {
 				case res := <-ui.ThreadCb:
@@ -3091,7 +3091,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			require.Fail(t, "GetThread never finished")
 		}
 
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			p.Num = 50
 			cb = make(chan struct{})
 			go func() {
@@ -3126,7 +3126,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 				}
 			}
 			recvRemote = func() bool {
-				for j := 0; j < 5; j++ {
+				for range 5 {
 					clock.Advance(20 * time.Minute)
 					if i == 0 {
 						select {
@@ -3179,7 +3179,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		t.Logf("send a bunch of messages")
 		numMsgs := 20
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
-		for i := 0; i < numMsgs; i++ {
+		for range numMsgs {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		}
 
@@ -3470,7 +3470,7 @@ func TestChatSrvGetUnreadLine(t *testing.T) {
 		assertUnreadline := func(ctx context.Context, g *globals.ChatContext, user *kbtest.FakeUser,
 			readMsgID, unreadLineID chat1.MessageID,
 		) {
-			for i := 0; i < 1; i++ {
+			for i := range 1 {
 				if i == 0 {
 					require.NoError(t, g.ConvSource.Clear(ctx, conv.Id, user.GetUID().ToBytes(), nil))
 				}
@@ -3712,7 +3712,7 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 			require.Fail(t, "no thread cb")
 		}
 		recvRemote := func() bool {
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				clock.Advance(20 * time.Minute)
 				select {
 				case res := <-ui.ThreadCb:
@@ -3857,7 +3857,7 @@ func TestChatSrvGetThreadNonblockOldPages(t *testing.T) {
 		}
 		numMsgs := 20
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
-		for i := 0; i < numMsgs; i++ {
+		for range numMsgs {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		}
 		select {
@@ -3917,7 +3917,7 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 		t.Logf("send a bunch of messages")
 		numMsgs := 20
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
-		for i := 0; i < numMsgs; i++ {
+		for range numMsgs {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		}
 
@@ -3981,7 +3981,7 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		numMsgs := 20
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
-		for i := 0; i < numMsgs; i++ {
+		for range numMsgs {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		}
 		require.NoError(t,
@@ -4072,7 +4072,7 @@ func TestChatSrvGetInboxNonblockChatUIError(t *testing.T) {
 		})
 	require.NoError(t, err)
 	waitForThreadStale := func() {
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			tc.Context().FetchRetrier.Force(ctx)
 			select {
 			case <-listener0.threadsStale:
@@ -4145,7 +4145,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		numMsgs := 20
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
-		for i := 0; i < numMsgs; i++ {
+		for range numMsgs {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
 			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 		}
@@ -4185,7 +4185,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 			return ri
 		})
 		waitForThreadsStale := func() {
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				tc.Context().FetchRetrier.Force(ctx)
 				select {
 				case updates := <-listener0.threadsStale:
@@ -4282,12 +4282,7 @@ func TestChatSrvMakePreview(t *testing.T) {
 }
 
 func inMessageTypes(x chat1.MessageType, ys []chat1.MessageType) bool {
-	for _, y := range ys {
-		if x == y {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(ys, x)
 }
 
 func consumeNewPendingMsg(t *testing.T, listener *serverChatListener) {
@@ -4524,7 +4519,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		consumeAllMsgJoins := func(listener *serverChatListener) {
 			msgMap := make(map[chat1.MessageType]bool)
 			rounds := 2
-			for i := 0; i < rounds; i++ {
+			for range rounds {
 				select {
 				case msg := <-listener.newMessageRemote:
 					t.Logf("recvd: %v convID: %s", msg.Message.GetMessageType(), msg.ConvID)
@@ -5328,7 +5323,7 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 			// convB: expire policy
 			// convC: retain policy
 			var convs []chat1.ConversationInfoLocal
-			for i := 0; i < 3; i++ {
+			for i := range 3 {
 				t.Logf("creating conv %v", i)
 				var topicName *string
 				if i > 0 {
@@ -5505,7 +5500,7 @@ func TestChatSrvEphemeralTeamRetention(t *testing.T) {
 		// convB: expire policy
 		// convC: retain policy
 		var convs []chat1.ConversationInfoLocal
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			t.Logf("creating conv %v", i)
 			var topicName *string
 			if i > 0 {
@@ -6661,7 +6656,7 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 		t.Logf("user 2 gets PUK and tries to do stuff")
 		require.NoError(t, users[2].Login(g2))
 		kickTeamRekeyd(g2, t)
-		for i := 0; i < 200; i++ {
+		for range 200 {
 			_, err = ctc.as(t, users[2]).chatLocalHandler().PostLocal(ctx2, chat1.PostLocalArg{
 				ConversationID: conv.Id,
 				Msg: chat1.MessagePlaintext{
@@ -7548,7 +7543,7 @@ func TestMessageDrafts(t *testing.T) {
 	require.NoError(t, err)
 
 	worked := false
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		ibres, err = ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(),
 			chat1.GetInboxAndUnboxLocalArg{
 				Query: &chat1.GetInboxLocalQuery{

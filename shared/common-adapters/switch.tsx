@@ -1,7 +1,7 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from './clickable-box'
-import Box, {Box2} from './box'
+import {Box2} from './box'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import SwitchToggle from './switch-toggle'
@@ -10,7 +10,6 @@ import type {MeasureRef} from './measure-ref'
 import type {TextType} from './text.shared'
 
 const Kb = {
-  Box,
   Box2,
   ClickableBox,
   ProgressIndicator,
@@ -60,7 +59,8 @@ const getStyle = (props: Props) =>
     props.style,
   ])
 
-const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props, ref) {
+function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
+  const {ref} = props
   const content = (
     <>
       <Kb.ClickableBox onClick={props.disabled ? undefined : props.onClick} ref={ref}>
@@ -75,8 +75,8 @@ const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props,
           ] as const)}
         />
       </Kb.ClickableBox>
-      {!!props.gapInBetween && <Kb.Box style={styles.gap} />}
-      {!!props.gapSize && <Kb.Box style={{width: props.gapSize}} />}
+      {!!props.gapInBetween && <Kb.Box2 direction="vertical" flex={1} />}
+      {!!props.gapSize && <Kb.Box2 direction="vertical" style={{width: props.gapSize}} />}
       {typeof props.label === 'string' ? (
         <LabelContainer {...props}>
           <Kb.Text type={props.labelType ?? 'BodySemibold'}>{props.label}</Kb.Text>
@@ -94,7 +94,7 @@ const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props,
   )
 
   return Styles.isMobile || !props.labelTooltip ? (
-    <Kb.Box style={getStyle(props)}>{content}</Kb.Box>
+    <Kb.Box2 direction={props.align !== 'right' ? 'horizontal' : 'horizontalReverse'} fullWidth={true} style={Styles.collapseStyles([styles.container, props.style])}>{content}</Kb.Box2>
   ) : (
     <Kb.WithTooltip
       containerStyle={getStyle(props)}
@@ -104,7 +104,7 @@ const Switch = React.forwardRef<MeasureRef, Props>(function Switch(props: Props,
       {content}
     </Kb.WithTooltip>
   )
-})
+}
 
 export default Switch
 
@@ -121,7 +121,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   disabled: {opacity: 0.3},
-  gap: {flex: 1},
   labelContainer: {flexShrink: 1},
   switch: Styles.platformStyles({
     isMobile: {

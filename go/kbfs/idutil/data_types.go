@@ -5,6 +5,8 @@
 package idutil
 
 import (
+	"maps"
+
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -95,21 +97,15 @@ func (ui UserInfo) DeepCopy() UserInfo {
 		[]kbfscrypto.CryptPublicKey, len(ui.CryptPublicKeys))
 	copy(copyUI.CryptPublicKeys, ui.CryptPublicKeys)
 	copyUI.KIDNames = make(map[keybase1.KID]string, len(ui.KIDNames))
-	for k, v := range ui.KIDNames {
-		copyUI.KIDNames[k] = v
-	}
+	maps.Copy(copyUI.KIDNames, ui.KIDNames)
 	copyUI.RevokedVerifyingKeys = make(
 		map[kbfscrypto.VerifyingKey]RevokedKeyInfo,
 		len(ui.RevokedVerifyingKeys))
-	for k, v := range ui.RevokedVerifyingKeys {
-		copyUI.RevokedVerifyingKeys[k] = v
-	}
+	maps.Copy(copyUI.RevokedVerifyingKeys, ui.RevokedVerifyingKeys)
 	copyUI.RevokedCryptPublicKeys = make(
 		map[kbfscrypto.CryptPublicKey]RevokedKeyInfo,
 		len(ui.RevokedCryptPublicKeys))
-	for k, v := range ui.RevokedCryptPublicKeys {
-		copyUI.RevokedCryptPublicKeys[k] = v
-	}
+	maps.Copy(copyUI.RevokedCryptPublicKeys, ui.RevokedCryptPublicKeys)
 	return copyUI
 }
 

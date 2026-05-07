@@ -13,9 +13,9 @@ import (
 )
 
 type kidContainerType interface {
-	makeZero() interface{}
-	makeFromKID(kid keybase1.KID) interface{}
-	decode(codec *kbfscodec.CodecMsgpack, data []byte) (interface{}, error)
+	makeZero() any
+	makeFromKID(kid keybase1.KID) any
+	decode(codec *kbfscodec.CodecMsgpack, data []byte) (any, error)
 }
 
 // Make sure the kid container type encodes and decodes properly with
@@ -59,17 +59,17 @@ func testKidContainerTypeEncodeDecodeZero(t *testing.T, kt kidContainerType) {
 
 type verifyingKeyType struct{}
 
-func (verifyingKeyType) makeZero() interface{} {
+func (verifyingKeyType) makeZero() any {
 	return VerifyingKey{}
 }
 
-func (verifyingKeyType) makeFromKID(kid keybase1.KID) interface{} {
+func (verifyingKeyType) makeFromKID(kid keybase1.KID) any {
 	return MakeVerifyingKey(kid)
 }
 
 func (verifyingKeyType) decode(
 	codec *kbfscodec.CodecMsgpack, data []byte,
-) (interface{}, error) {
+) (any, error) {
 	k := VerifyingKey{}
 	err := codec.Decode(data, &k)
 	return k, err
@@ -86,8 +86,8 @@ func TestVerifyingKeyEncodeDecodeZero(t *testing.T) {
 }
 
 type byte32ContainerType interface {
-	makeZero() interface{}
-	makeFromData(data [32]byte) interface{}
+	makeZero() any
+	makeFromData(data [32]byte) any
 }
 
 func testByte32ContainerEncodeDecode(t *testing.T, bt byte32ContainerType) {
@@ -112,11 +112,11 @@ func testByte32ContainerEncodeDecode(t *testing.T, bt byte32ContainerType) {
 
 type tlfPrivateKeyType struct{}
 
-func (tlfPrivateKeyType) makeZero() interface{} {
+func (tlfPrivateKeyType) makeZero() any {
 	return TLFPrivateKey{}
 }
 
-func (tlfPrivateKeyType) makeFromData(data [32]byte) interface{} {
+func (tlfPrivateKeyType) makeFromData(data [32]byte) any {
 	return MakeTLFPrivateKey(data)
 }
 
@@ -128,11 +128,11 @@ func TestTLFPrivateKeyEncodeDecode(t *testing.T) {
 
 type tlfPublicKeyType struct{}
 
-func (tlfPublicKeyType) makeZero() interface{} {
+func (tlfPublicKeyType) makeZero() any {
 	return TLFPublicKey{}
 }
 
-func (tlfPublicKeyType) makeFromData(data [32]byte) interface{} {
+func (tlfPublicKeyType) makeFromData(data [32]byte) any {
 	return MakeTLFPublicKey(data)
 }
 
@@ -144,11 +144,11 @@ func TestTLFPublicKeyEncodeDecode(t *testing.T) {
 
 type tlfEphemeralPrivateKeyType struct{}
 
-func (tlfEphemeralPrivateKeyType) makeZero() interface{} {
+func (tlfEphemeralPrivateKeyType) makeZero() any {
 	return TLFEphemeralPrivateKey{}
 }
 
-func (tlfEphemeralPrivateKeyType) makeFromData(data [32]byte) interface{} {
+func (tlfEphemeralPrivateKeyType) makeFromData(data [32]byte) any {
 	return MakeTLFEphemeralPrivateKey(data)
 }
 
@@ -160,17 +160,17 @@ func TestTLFEphemeralPrivateKeyEncodeDecode(t *testing.T) {
 
 type cryptPublicKeyType struct{}
 
-func (cryptPublicKeyType) makeZero() interface{} {
+func (cryptPublicKeyType) makeZero() any {
 	return CryptPublicKey{}
 }
 
-func (cryptPublicKeyType) makeFromKID(kid keybase1.KID) interface{} {
+func (cryptPublicKeyType) makeFromKID(kid keybase1.KID) any {
 	return MakeCryptPublicKey(kid)
 }
 
 func (cryptPublicKeyType) decode(
 	codec *kbfscodec.CodecMsgpack, data []byte,
-) (interface{}, error) {
+) (any, error) {
 	k := CryptPublicKey{}
 	err := codec.Decode(data, &k)
 	return k, err
@@ -190,11 +190,11 @@ func TestCryptPublicKeyEncodeDecodeZero(t *testing.T) {
 
 type tlfEphemeralPublicKeyType struct{}
 
-func (tlfEphemeralPublicKeyType) makeZero() interface{} {
+func (tlfEphemeralPublicKeyType) makeZero() any {
 	return TLFEphemeralPublicKey{}
 }
 
-func (tlfEphemeralPublicKeyType) makeFromData(data [32]byte) interface{} {
+func (tlfEphemeralPublicKeyType) makeFromData(data [32]byte) any {
 	return MakeTLFEphemeralPublicKey(data)
 }
 
@@ -206,11 +206,11 @@ func TestTLFEphemeralPublicKeyEncodeDecode(t *testing.T) {
 
 type tlfCryptKeyServerHalfType struct{}
 
-func (tlfCryptKeyServerHalfType) makeZero() interface{} {
+func (tlfCryptKeyServerHalfType) makeZero() any {
 	return TLFCryptKeyServerHalf{}
 }
 
-func (tlfCryptKeyServerHalfType) makeFromData(data [32]byte) interface{} {
+func (tlfCryptKeyServerHalfType) makeFromData(data [32]byte) any {
 	return MakeTLFCryptKeyServerHalf(data)
 }
 
@@ -222,11 +222,11 @@ func TestTLFCryptKeyServerHalfEncodeDecode(t *testing.T) {
 
 type tlfCryptKeyClientHalfType struct{}
 
-func (tlfCryptKeyClientHalfType) makeZero() interface{} {
+func (tlfCryptKeyClientHalfType) makeZero() any {
 	return TLFCryptKeyClientHalf{}
 }
 
-func (tlfCryptKeyClientHalfType) makeFromData(data [32]byte) interface{} {
+func (tlfCryptKeyClientHalfType) makeFromData(data [32]byte) any {
 	return MakeTLFCryptKeyClientHalf(data)
 }
 
@@ -238,11 +238,11 @@ func TestTLFCryptKeyClientHalfEncodeDecode(t *testing.T) {
 
 type tlfCryptKeyType struct{}
 
-func (tlfCryptKeyType) makeZero() interface{} {
+func (tlfCryptKeyType) makeZero() any {
 	return TLFCryptKey{}
 }
 
-func (tlfCryptKeyType) makeFromData(data [32]byte) interface{} {
+func (tlfCryptKeyType) makeFromData(data [32]byte) any {
 	return MakeTLFCryptKey(data)
 }
 
@@ -268,11 +268,11 @@ func TestRandomTLFCryptKeyServerHalf(t *testing.T) {
 
 type blockCryptKeyServerHalfType struct{}
 
-func (blockCryptKeyServerHalfType) makeZero() interface{} {
+func (blockCryptKeyServerHalfType) makeZero() any {
 	return TLFCryptKey{}
 }
 
-func (blockCryptKeyServerHalfType) makeFromData(data [32]byte) interface{} {
+func (blockCryptKeyServerHalfType) makeFromData(data [32]byte) any {
 	return MakeTLFCryptKey(data)
 }
 
@@ -284,11 +284,11 @@ func TestBlockCryptKeyServerHalfEncodeDecode(t *testing.T) {
 
 type blockCryptKeyType struct{}
 
-func (blockCryptKeyType) makeZero() interface{} {
+func (blockCryptKeyType) makeZero() any {
 	return TLFCryptKey{}
 }
 
-func (blockCryptKeyType) makeFromData(data [32]byte) interface{} {
+func (blockCryptKeyType) makeFromData(data [32]byte) any {
 	return MakeTLFCryptKey(data)
 }
 

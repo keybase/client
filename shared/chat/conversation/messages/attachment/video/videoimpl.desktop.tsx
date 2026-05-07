@@ -1,13 +1,13 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from './videoimpl'
-import {useState} from './use-state'
-import {maxWidth, maxHeight} from '../shared'
+import {getAttachmentPreviewSize, maxWidth, maxHeight} from '../shared'
 
 // its important we use explicit height/width so we never CLS while loading
 const VideoImpl = (p: Props) => {
-  const {openFullscreen, allowPlay} = p
-  const {previewURL, height, width, url, videoDuration} = useState()
+  const {allowPlay, message, openFullscreen} = p
+  const {fileURL: url, videoDuration} = message
+  const {previewURL, height, width} = getAttachmentPreviewSize(message)
   const [showPoster, setShowPoster] = React.useState(true)
   const [lastUrl, setLastUrl] = React.useState(url)
 
@@ -16,22 +16,22 @@ const VideoImpl = (p: Props) => {
     setShowPoster(true)
   }
 
-  const onPress = React.useCallback(() => {
+  const onPress = () => {
     setShowPoster(false)
-  }, [])
+  }
 
-  const onDoubleClick = React.useCallback(() => {
+  const onDoubleClick = () => {
     ref.current?.pause()
-    openFullscreen()
-  }, [openFullscreen])
+    openFullscreen?.()
+  }
 
   const ref = React.useRef<HTMLVideoElement | null>(null)
 
   return showPoster ? (
     <div onClick={onPress} style={styles.posterContainer}>
-      <Kb.Image2 src={previewURL} style={{height, width}} />
-      {allowPlay ? <Kb.Icon type="icon-play-64" style={styles.playButton} /> : null}
-      <Kb.Box2 direction="vertical" style={styles.durationContainer}>
+      <Kb.Image src={previewURL} style={{height, width}} />
+      {allowPlay ? <Kb.ImageIcon type="icon-play-64" style={styles.playButton} /> : null}
+      <Kb.Box2 direction="vertical" overflow="hidden" style={styles.durationContainer}>
         <Kb.Text type="BodyTinyBold" style={styles.durationText}>
           {videoDuration}
         </Kb.Text>
@@ -41,7 +41,7 @@ const VideoImpl = (p: Props) => {
     <video
       ref={ref}
       autoPlay={true}
-      onDoubleClick={onDoubleClick}
+      onDoubleClick={openFullscreen ? onDoubleClick : undefined}
       height={height}
       width={width}
       poster={previewURL}
@@ -59,19 +59,11 @@ const VideoImpl = (p: Props) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      downloadIcon: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'inline-flex',
-          opacity: 0.75,
-          paddingTop: 2,
-        },
-      }),
       durationContainer: {
         alignSelf: 'flex-end',
         backgroundColor: Kb.Styles.globalColors.black_50,
         borderRadius: 2,
         bottom: Kb.Styles.globalMargins.tiny,
-        overflow: 'hidden',
         padding: 1,
         position: 'absolute',
         right: Kb.Styles.globalMargins.tiny,
@@ -80,17 +72,6 @@ const styles = Kb.Styles.styleSheetCreate(
         color: Kb.Styles.globalColors.white,
         paddingLeft: 3,
         paddingRight: 3,
-      },
-      infoIcon: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'inline-flex',
-          opacity: 0.75,
-          paddingTop: 2,
-        },
-      }),
-      link: {
-        color: Kb.Styles.globalColors.black_50,
-        flexGrow: 1,
       },
       playButton: {
         left: '50%',
@@ -104,7 +85,6 @@ const styles = Kb.Styles.styleSheetCreate(
         flexShrink: 1,
         position: 'relative',
       },
-      tipText: {color: Kb.Styles.globalColors.white_75},
       video: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.globalStyles.rounded,

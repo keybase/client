@@ -8,7 +8,8 @@
 #ifdef RCT_NEW_ARCH_ENABLED
 #import <RNKbSpec/RNKbSpec.h>
 #import <React/RCTCallInvokerModule.h>
-@interface Kb : RCTEventEmitter <NativeKbSpec,RCTCallInvokerModule>
+#import <ReactCommon/RCTTurboModuleWithJSIBindings.h>
+@interface Kb : RCTEventEmitter <NativeKbSpec,RCTCallInvokerModule,RCTTurboModuleWithJSIBindings>
 @end
 #else
 #endif // RCT_NEW_ARCH_ENABLED

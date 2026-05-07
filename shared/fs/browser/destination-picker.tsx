@@ -6,136 +6,126 @@ import * as RowCommon from './rows/common'
 import * as T from '@/constants/types'
 import NavHeaderTitle from '@/fs/nav-header/title'
 import Root from './root'
+import {FsBrowserEditProvider, useFsBrowserEdits} from './edit-state'
+import {FsBrowserSortProvider} from './sort-state'
 import Rows from './rows/rows-container'
-import {OriginalOrCompressedButton} from '@/incoming-share'
-import {useFSState} from '@/constants/fs'
 import * as FS from '@/constants/fs'
+import {useConfigState} from '@/stores/config'
+import {makeUUID} from '@/util/uuid'
 
-type OwnProps = {index: number}
-
-const getIndex = (ownProps: OwnProps) => ownProps.index
-const getDestinationParentPath = (dp: T.FS.DestinationPicker, ownProps: OwnProps): T.FS.Path =>
-  dp.destinationParentPath[getIndex(ownProps)] ||
-  (dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy
-    ? T.FS.getPathParent(dp.source.path)
-    : T.FS.stringToPath('/keybase'))
-
-const canWrite = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) =>
-  T.FS.getPathLevel(getDestinationParentPath(dp, ownProps)) > 2 &&
-  FS.getPathItem(pathItems, getDestinationParentPath(dp, ownProps)).writable
-
-const canCopy = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) => {
-  if (!canWrite(dp, pathItems, ownProps)) {
-    return false
-  }
-  if (dp.source.type === T.FS.DestinationPickerSource.IncomingShare) {
-    return true
-  }
-  if (dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy) {
-    const source: T.FS.MoveOrCopySource = dp.source
-    return getDestinationParentPath(dp, ownProps) !== T.FS.getPathParent(source.path)
-  }
-  return undefined
+type OwnProps = {
+  parentPath: T.FS.Path
+  source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
 }
 
-const canMove = (dp: T.FS.DestinationPicker, pathItems: T.FS.PathItems, ownProps: OwnProps) =>
-  canCopy(dp, pathItems, ownProps) &&
-  dp.source.type === T.FS.DestinationPickerSource.MoveOrCopy &&
-  FS.pathsInSameTlf(dp.source.path, getDestinationParentPath(dp, ownProps))
-
 const canBackUp = C.isMobile
-  ? (dp: T.FS.DestinationPicker, ownProps: OwnProps) =>
-      T.FS.getPathLevel(getDestinationParentPath(dp, ownProps)) > 1
+  ? (parentPath: T.FS.Path) => T.FS.getPathLevel(parentPath) > 1
   : () => false
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
-  const {destPicker, pathItems, newFolderRow, moveOrCopy} = useFSState(
-    C.useShallow(s => ({
-      destPicker: s.destinationPicker,
-      moveOrCopy: s.dispatch.moveOrCopy,
-      newFolderRow: s.dispatch.newFolderRow,
-      pathItems: s.pathItems,
-    }))
-  )
-  const isShare = destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare
-  const headerRightButton =
-    destPicker.source.type === T.FS.DestinationPickerSource.IncomingShare ? (
-      <OriginalOrCompressedButton incomingShareItems={destPicker.source.source} />
-    ) : undefined
+  const {parentPath, source} = ownProps
+  const parentPathItem = FsCommon.useFsPathMetadata(parentPath)
+  const browserEdits = useFsBrowserEdits()
+  const errorToActionOrThrow = FsCommon.useFsErrorActionOrThrow()
+  const isWritable = T.FS.getPathLevel(parentPath) > 2 && parentPathItem.writable
+  const isShare = source.type === T.FS.DestinationPickerSource.IncomingShare
+  const isMoveOrCopy = source.type === T.FS.DestinationPickerSource.MoveOrCopy
+  const isCopyable =
+    isWritable && (isShare || (isMoveOrCopy && parentPath !== T.FS.getPathParent(source.path)))
+  const isMovable = isCopyable && isMoveOrCopy && FS.pathsInSameTlf(source.path, parentPath)
 
   const nav = useSafeNavigation()
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const dispatchProps = {
-    _onBackUp: (currentPath: T.FS.Path) =>
-      FS.makeActionsForDestinationPickerOpen(getIndex(ownProps) + 1, T.FS.getPathParent(currentPath)),
-    _onCopyHere: (destinationParentPath: T.FS.Path) => {
-      moveOrCopy(destinationParentPath, 'copy')
-      clearModals()
-      nav.safeNavigateAppend({props: {path: destinationParentPath}, selected: 'fsRoot'})
-    },
-    _onMoveHere: (destinationParentPath: T.FS.Path) => {
-      moveOrCopy(destinationParentPath, 'move')
-      clearModals()
-      nav.safeNavigateAppend({props: {path: destinationParentPath}, selected: 'fsRoot'})
-    },
-    _onNewFolder: (destinationParentPath: T.FS.Path) => {
-      newFolderRow(destinationParentPath)
-    },
-    onBack: () => {
-      navigateUp()
-    },
-    onCancel: () => {
-      clearModals()
-    },
-  }
+  const clearModals = C.Router2.clearModals
+  const moveOrCopy = (type: 'move' | 'copy') => {
+    const f = async () => {
+      const params =
+        source.type === T.FS.DestinationPickerSource.MoveOrCopy
+          ? [
+              {
+                dest: FS.pathToRPCPath(T.FS.pathConcat(parentPath, T.FS.getPathName(source.path))),
+                opID: makeUUID(),
+                overwriteExistingFiles: false,
+                src: FS.pathToRPCPath(source.path),
+              },
+            ]
+          : source.source
+              .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
+              .filter(({originalPath}) => !!originalPath)
+              .map(({originalPath, scaledPath}) => ({
+                dest: FS.pathToRPCPath(
+                  T.FS.pathConcat(
+                    parentPath,
+                    T.FS.getLocalPathName(originalPath)
+                    // We use the local path name here since we only care about file name.
+                  )
+                ),
+                opID: makeUUID(),
+                overwriteExistingFiles: false,
+                src: {
+                  PathType: T.RPCGen.PathType.local,
+                  local: T.FS.getNormalizedLocalPath(
+                    useConfigState.getState().incomingShareUseOriginal
+                      ? originalPath
+                      : scaledPath || originalPath
+                  ),
+                } as T.RPCGen.Path,
+              }))
 
-  const index = getIndex(ownProps)
-  const showHeaderBackInsteadOfCancel = isShare // && index > 0
-  const targetName = FS.getDestinationPickerPathName(destPicker)
-  // If we are are dealing with incoming share, the first view is root,
-  // so rely on the header back button instead of showing a separate row
-  // for going to parent directory.
-  const onBack = showHeaderBackInsteadOfCancel ? dispatchProps.onBack : undefined
+      try {
+        const rpc =
+          type === 'move'
+            ? T.RPCGen.SimpleFSSimpleFSMoveRpcPromise
+            : T.RPCGen.SimpleFSSimpleFSCopyRecursiveRpcPromise
+        await Promise.all(params.map(async param => rpc(param)))
+        await Promise.all(params.map(async ({opID}) => T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})))
+      } catch (error) {
+        errorToActionOrThrow(error, parentPath)
+      }
+    }
+    C.ignorePromise(f())
+  }
   const onBackUp =
-    isShare || !canBackUp(destPicker, ownProps)
+    isShare || !canBackUp(parentPath)
       ? undefined
-      : () => dispatchProps._onBackUp(getDestinationParentPath(destPicker, ownProps))
-  const onCancel = showHeaderBackInsteadOfCancel ? undefined : dispatchProps.onCancel
-  const onCopyHere = canCopy(destPicker, pathItems, ownProps)
-    ? () => dispatchProps._onCopyHere(getDestinationParentPath(destPicker, ownProps))
+      : () =>
+          nav.safeNavigateAppend({
+            name: 'destinationPicker',
+            params: {parentPath: T.FS.getPathParent(parentPath), source},
+          })
+  const onCancel = isShare ? undefined : () => clearModals()
+  const onCopyHere = isCopyable
+    ? () => {
+        moveOrCopy('copy')
+        clearModals()
+        nav.safeNavigateAppend({name: 'fsRoot', params: {path: parentPath}})
+      }
     : undefined
-  const onMoveHere = canMove(destPicker, pathItems, ownProps)
-    ? () => dispatchProps._onMoveHere(getDestinationParentPath(destPicker, ownProps))
+  const onMoveHere = isMovable
+    ? () => {
+        moveOrCopy('move')
+        clearModals()
+        nav.safeNavigateAppend({name: 'fsRoot', params: {path: parentPath}})
+      }
     : undefined
   const onNewFolder =
-    canWrite(destPicker, pathItems, ownProps) && !isShare
-      ? () => dispatchProps._onNewFolder(getDestinationParentPath(destPicker, ownProps))
+    isWritable && !isShare && browserEdits?.newFolderRow
+      ? () => browserEdits.newFolderRow(parentPath)
       : undefined
-  const parentPath = getDestinationParentPath(destPicker, ownProps)
 
-  FsCommon.useFsPathMetadata(parentPath)
-  FsCommon.useFsTlfs()
+  FsCommon.useFsScreenCoordinator(parentPath)
   FsCommon.useFsOnlineStatus()
+
   return (
-    <Kb.Modal
-      header={{
-        hideBorder: true,
-        leftButton: makeLeftButton(onCancel, onBack),
-        rightButton: headerRightButton,
-        title: makeTitle(targetName, parentPath),
-      }}
-      noScrollView={true}
-      mode="Wide"
-    >
+    <>
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true} fullHeight={true}>
         {!Kb.Styles.isMobile && (
-          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader}>
-            <NavHeaderTitle inDestinationPicker={true} path={parentPath} />
+          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader} justifyContent="space-between">
+            <NavHeaderTitle destinationPickerSource={source} inDestinationPicker={true} path={parentPath} />
             {!!onNewFolder && <NewFolder onNewFolder={onNewFolder} />}
           </Kb.Box2>
         )}
         <Kb.Divider key="dheader" />
+        <FsCommon.Errs />
         {!!onBackUp && (
           <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={onBackUp}>
             <Kb.Icon
@@ -149,9 +139,8 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         )}
         {!!onCopyHere && (
           <Kb.ClickableBox key="copy" style={styles.actionRowContainer} onClick={onCopyHere}>
-            <Kb.Icon
+            <Kb.ImageIcon
               type="icon-folder-copy-32"
-              color={Kb.Styles.globalColors.blue}
               style={RowCommon.rowStyles.pathItemIcon}
             />
             <Kb.Text type="BodySemibold" style={styles.actionText}>
@@ -161,9 +150,8 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         )}
         {!!onMoveHere && (
           <Kb.ClickableBox key="move" style={styles.actionRowContainer} onClick={onMoveHere}>
-            <Kb.Icon
+            <Kb.ImageIcon
               type="icon-folder-move-32"
-              color={Kb.Styles.globalColors.blue}
               style={RowCommon.rowStyles.pathItemIcon}
             />
             <Kb.Text type="BodySemibold" style={styles.actionText}>
@@ -172,9 +160,9 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
           </Kb.ClickableBox>
         )}
         {parentPath === FS.defaultPath ? (
-          <Root destinationPickerIndex={index} />
+          <Root destinationPickerSource={source} />
         ) : (
-          <Rows path={parentPath} destinationPickerIndex={index} />
+          <Rows path={parentPath} destinationPickerSource={source} />
         )}
         {Kb.Styles.isMobile && <Kb.Divider key="dfooter" />}
         {(!Kb.Styles.isMobile || onNewFolder) && (
@@ -193,9 +181,21 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
-    </Kb.Modal>
+    </>
   )
 }
+
+const Screen = (props: OwnProps) => (
+  <FsCommon.FsErrorProvider>
+    <FsCommon.FsDataProvider>
+      <FsBrowserEditProvider>
+        <FsBrowserSortProvider>
+          <ConnectedDestinationPicker {...props} />
+        </FsBrowserSortProvider>
+      </FsBrowserEditProvider>
+    </FsCommon.FsDataProvider>
+  </FsCommon.FsErrorProvider>
+)
 
 const NewFolder = (p: {onNewFolder?: () => void}) => {
   const {onNewFolder} = p
@@ -206,50 +206,6 @@ const NewFolder = (p: {onNewFolder?: () => void}) => {
         Create new folder
       </Kb.Text>
     </Kb.ClickableBox>
-  )
-}
-
-const makeLeftButton = (onCancel?: () => void, onBack?: () => void) => {
-  if (!Kb.Styles.isMobile) {
-    return undefined
-  }
-  if (onCancel) {
-    return (
-      <Kb.Text type="BodyBigLink" onClick={onCancel}>
-        Cancel
-      </Kb.Text>
-    )
-  }
-  if (onBack) {
-    return (
-      <Kb.Text type="BodyBigLink" onClick={onBack}>
-        Back
-      </Kb.Text>
-    )
-  }
-  return undefined
-}
-
-const makeTitle = (targetName: string, parentPath: T.FS.Path) => {
-  if (Kb.Styles.isMobile) {
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-        <FsCommon.Filename type="BodyTiny" filename={targetName} />
-        <Kb.Text type="BodyBig">Save in...</Kb.Text>
-      </Kb.Box2>
-    )
-  }
-  return (
-    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.desktopHeader} gap="xtiny">
-      <Kb.Text type="Header" style={{flexShrink: 0}}>
-        {'Move or Copy "'}
-      </Kb.Text>
-      <FsCommon.ItemIcon size={16} path={T.FS.pathConcat(parentPath, targetName)} />
-      <FsCommon.Filename type="Header" filename={targetName} />
-      <Kb.Text type="Header" style={{flexShrink: 0}}>
-        {'"'}
-      </Kb.Text>
-    </Kb.Box2>
   )
 }
 
@@ -270,10 +226,8 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       anotherHeader: {
         height: 48,
-        justifyContent: 'space-between',
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
-      desktopHeader: Kb.Styles.padding(Kb.Styles.globalMargins.medium, Kb.Styles.globalMargins.medium, 10),
       footer: Kb.Styles.platformStyles({
         common: {
           height: 64,
@@ -296,4 +250,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default ConnectedDestinationPicker
+export default Screen

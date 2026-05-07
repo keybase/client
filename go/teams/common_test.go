@@ -66,7 +66,7 @@ func setupNTestsWithPukless(t *testing.T, n, nPukless int) ([]*kbtest.FakeUser, 
 	require.True(t, n >= nPukless, "more pukless users than total users requested")
 	var fus []*kbtest.FakeUser
 	var tcs []*libkb.TestContext
-	for i := 0; i < n; i++ {
+	for i := range n {
 		tc := SetupTest(t, "team", 1)
 		tcs = append(tcs, &tc)
 		if i >= n-nPukless {

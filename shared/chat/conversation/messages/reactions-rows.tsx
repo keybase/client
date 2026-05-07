@@ -1,68 +1,52 @@
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as Message from '@/constants/chat/message'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmojiRow from './emoji-row'
-import ReactButton from './react-button'
+import ReactButton, {NewReactionButton} from './react-button'
 import ReactionTooltip from './reaction-tooltip'
 import type * as T from '@/constants/types'
 import {useOrdinal} from './ids-context'
 import {Keyboard} from 'react-native'
 
-const getOrderedReactions = (reactions?: T.Chat.Reactions) => {
-  if (!reactions) {
-    return []
-  }
-  const scoreMap = new Map(
-    [...reactions.entries()].map(([key, value]) => {
-      return [
-        key,
-        value.users.reduce(
-          (minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp),
-          Infinity
-        ),
-      ]
-    })
-  )
-  return [...reactions.keys()].sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
+const emptyEmojis: ReadonlyArray<string> = []
+
+type OwnProps = {
+  hasUnfurls: boolean
+  messageType: T.Chat.MessageType
+  onReact: (emoji: string) => void
+  onReply: () => void
+  reactions?: T.Chat.Reactions
 }
 
-const ReactionsRowContainer = React.memo(function ReactionsRowContainer() {
-  const ordinal = useOrdinal()
-  const reactions = Chat.useChatContext(
-    C.useDeep(s => {
-      const message = s.messageMap.get(ordinal)
-      const reactions = message?.reactions
-      return reactions
-    })
+function ReactionsRowContainer(p: OwnProps) {
+  const {hasUnfurls, messageType, onReact, onReply, reactions} = p
+  const emojis = React.useMemo(
+    () => (reactions?.size ? Message.getReactionOrder(reactions) : emptyEmojis),
+    [reactions]
   )
-
-  const emojis = React.useMemo(() => {
-    return getOrderedReactions(reactions)
-  }, [reactions])
 
   return emojis.length === 0 ? null : (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
-      {emojis.map((emoji, idx) => (
-        <RowItem key={String(idx)} emoji={emoji} />
-      ))}
+      {emojis.map((emoji, idx) => {
+        const reaction = reactions?.get(emoji)
+        return reaction ? (
+          <RowItem key={emoji || String(idx)} emoji={emoji} onReact={onReact} reaction={reaction} />
+        ) : null
+      })}
       {Kb.Styles.isMobile ? (
-        <ReactButton showBorder={true} style={styles.button} />
+        <NewReactionButton style={styles.button} />
       ) : (
-        <EmojiRow className={Kb.Styles.classNames([btnClassName, newBtnClassName])} style={styles.emojiRow} />
+        <EmojiRow
+          className={Kb.Styles.classNames([btnClassName, newBtnClassName])}
+          hasUnfurls={hasUnfurls}
+          messageType={messageType}
+          onReact={onReact}
+          onReply={onReply}
+          style={styles.emojiRow}
+        />
       )}
     </Kb.Box2>
   )
-})
-
-export type Props = {
-  activeEmoji: string
-  emojis: Array<string>
-  ordinal: T.Chat.Ordinal
-  setActiveEmoji: (s: string) => void
-  setHideMobileTooltip: () => void
-  setShowMobileTooltip: () => void
-  showMobileTooltip: boolean
 }
 
 const btnClassName = 'WrapperMessage-emojiButton'
@@ -70,21 +54,25 @@ const newBtnClassName = 'WrapperMessage-newEmojiButton'
 
 type IProps = {
   emoji: string
+  onReact: (emoji: string) => void
+  reaction: T.Chat.ReactionDesc
 }
-const RowItem = React.memo(function RowItem(p: IProps) {
+function RowItem(p: IProps) {
   const ordinal = useOrdinal()
-  const {emoji} = p
+  const {emoji, onReact, reaction} = p
 
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showingPopup, setShowingPopup] = React.useState(false)
 
-  const showPopup = React.useCallback(() => {
-    Kb.Styles.isMobile && Keyboard.dismiss()
+  const showPopup = () => {
+    if (Kb.Styles.isMobile) {
+      Keyboard.dismiss()
+    }
     setShowingPopup(true)
-  }, [])
-  const hidePopup = React.useCallback(() => {
+  }
+  const hidePopup = () => {
     setShowingPopup(false)
-  }, [])
+  }
 
   const popup = showingPopup ? (
     <ReactionTooltip
@@ -97,17 +85,19 @@ const RowItem = React.memo(function RowItem(p: IProps) {
   ) : null
 
   return (
-    <Kb.Box2Measure direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
+    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
       <ReactButton
         className={btnClassName}
         emoji={emoji}
         onLongPress={Kb.Styles.isMobile ? showPopup : undefined}
+        reaction={reaction}
         style={styles.button}
+        toggleReaction={onReact}
       />
       {popup}
-    </Kb.Box2Measure>
+    </Kb.Box2>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -128,7 +118,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.tiny,
         paddingRight: Kb.Styles.globalMargins.xtiny,
       },
-      visibilityHidden: Kb.Styles.platformStyles({isElectron: {visibility: 'hidden'}}),
     }) as const
 )
 

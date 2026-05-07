@@ -19,7 +19,7 @@ type traceLogger struct {
 // the right options are turned on.
 
 func (tl traceLogger) LazyTrace(
-	ctx context.Context, format string, args ...interface{},
+	ctx context.Context, format string, args ...any,
 ) {
 	if tr, ok := trace.FromContext(ctx); ok {
 		tr.LazyPrintf(format, args...)

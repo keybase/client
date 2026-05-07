@@ -1,23 +1,27 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import {zoomImage} from '@/constants/chat/helpers'
 import * as React from 'react'
-import * as Teams from '@/constants/teams'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useChatTeam} from './team-hooks'
+import {useConversationCenter} from './center-context'
+import {useConversationThreadID, useConversationThreadSelector} from './thread-context'
+import logger from '@/logger'
+import {RPCError} from '@/util/errors'
 
-const PinnedMessage = React.memo(function PinnedMessage() {
-  const {conversationIDKey, teamname, pinnedMsg, replyJump, onIgnore, pinMessage} = Chat.useChatContext(
-    C.useShallow(s => {
-      const {meta, dispatch, id: conversationIDKey} = s
-      const teamname = meta.teamname
-      const pinnedMsg = meta.pinnedMsg
-      const {pinMessage, replyJump, ignorePinnedMessage: onIgnore} = dispatch
-      return {conversationIDKey, onIgnore, pinMessage, pinnedMsg, replyJump, teamname}
-    })
+const PinnedMessage = function PinnedMessage() {
+  const conversationIDKey = useConversationThreadID()
+  const {pinnedMsg, teamID, teamname} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      pinnedMsg: s.meta.pinnedMsg,
+      teamID: s.meta.teamID,
+      teamname: s.meta.teamname,
+    }))
   )
+  const {centerOnMessage} = useConversationCenter()
   const you = useCurrentUserState(s => s.username)
-  const yourOperations = Teams.useTeamsState(s => Teams.getCanPerform(s, teamname))
+  const {yourOperations} = useChatTeam(teamID, teamname)
   const unpinning = C.Waiting.useAnyWaiting(C.waitingKeyChatUnpin(conversationIDKey))
   const {message, pinnerUsername} = pinnedMsg ?? {}
   const {id: messageID, author, type} = message ?? {}
@@ -31,27 +35,49 @@ const PinnedMessage = React.memo(function PinnedMessage() {
   const yourMessage = pinnerUsername === you
   const dismissUnpins = yourMessage || canAdminDelete
 
-  const onClick = React.useCallback(() => {
-    messageID && replyJump(messageID)
-  }, [replyJump, messageID])
-  const onUnpin = React.useCallback(() => {
-    pinMessage()
-  }, [pinMessage])
+  const onClick = () => {
+    if (messageID) {
+      centerOnMessage(messageID, 'flash')
+    }
+  }
+  const onUnpin = () => {
+    const f = async () => {
+      try {
+        await T.RPCChat.localUnpinMessageRpcPromise(
+          {convID: T.Chat.keyToConversationID(conversationIDKey)},
+          C.waitingKeyChatUnpin(conversationIDKey)
+        )
+      } catch (error) {
+        if (error instanceof RPCError) {
+          logger.error(`pinMessage: ${error.message}`)
+        }
+      }
+    }
+    C.ignorePromise(f())
+  }
+  const onIgnore = () => {
+    const f = async () => {
+      await T.RPCChat.localIgnorePinnedMessageRpcPromise({
+        convID: T.Chat.keyToConversationID(conversationIDKey),
+      })
+    }
+    C.ignorePromise(f())
+  }
   const closeref = React.useRef<Kb.MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)
   const _onDismiss = dismissUnpins ? onUnpin : onIgnore
-  const onDismiss = React.useCallback(() => {
+  const onDismiss = () => {
     setShowPopup(false)
     _onDismiss()
-  }, [_onDismiss])
+  }
 
-  const onIconClick = React.useCallback(() => {
+  const onIconClick = () => {
     if (dismissUnpins) {
       setShowPopup(true)
     } else {
       onDismiss()
     }
-  }, [dismissUnpins, onDismiss])
+  }
 
   if (!(type === 'text' || type === 'attachment')) {
     return null
@@ -59,19 +85,19 @@ const PinnedMessage = React.memo(function PinnedMessage() {
   if (!text) {
     return null
   }
-  const sizing = imageWidth && imageHeight ? Chat.zoomImage(imageWidth, imageHeight, 30) : undefined
+  const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 30) : undefined
   const pin = (
     <Kb.ClickableBox className="hover_container" onClick={onClick} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
         <Kb.Box2 direction="horizontal" style={styles.blueBar} />
         {!!imageURL && (
-          <Kb.Box2 direction="vertical" style={styles.imageContainer}>
-            <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
-              <Kb.Image2 src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
-            </Kb.Box>
+          <Kb.Box2 direction="vertical" overflow="hidden" relative={true}>
+            <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
+              <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
+            </Kb.Box2>
           </Kb.Box2>
         )}
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
             <Kb.Text type="BodyTinyBold" style={styles.author}>
               {author}
@@ -89,21 +115,21 @@ const PinnedMessage = React.memo(function PinnedMessage() {
             <Kb.ProgressIndicator type="Small" />
           </Kb.Box2>
         ) : (
-          <Kb.Icon
-            onClick={onIconClick}
-            type="iconfont-close"
-            sizeType="Small"
-            style={styles.close}
-            boxStyle={styles.close}
-            ref={closeref}
-          />
+          <Kb.Box2 direction="vertical" ref={closeref} style={styles.close}>
+            <Kb.Icon
+              onClick={onIconClick}
+              type="iconfont-close"
+              sizeType="Small"
+              color={Kb.Styles.globalColors.black_20}
+            />
+          </Kb.Box2>
         )}
       </Kb.Box2>
     </Kb.ClickableBox>
   )
   const popup = (
     <UnpinPrompt
-      attachTo={closeref}
+      attachTo={Kb.Styles.isMobile ? undefined : closeref}
       onHidden={() => setShowPopup(false)}
       onUnpin={onDismiss}
       visible={showPopup}
@@ -115,7 +141,7 @@ const PinnedMessage = React.memo(function PinnedMessage() {
       {popup}
     </>
   )
-})
+}
 
 type UnpinProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -174,10 +200,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderStyle: 'solid',
         width: '100%',
       },
-      imageContainer: {
-        overflow: 'hidden',
-        position: 'relative',
-      },
       label: {color: Kb.Styles.globalColors.blueDark},
       popup: Kb.Styles.platformStyles({
         common: {
@@ -186,10 +208,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: Kb.Styles.globalMargins.small,
         },
         isElectron: {maxWidth: 200},
-      }),
-      styleOverride: Kb.Styles.platformStyles({
-        common: {color: Kb.Styles.globalColors.black_50},
-        isElectron: {transition: 'color 0.25s ease-in-out'},
       }),
       text: Kb.Styles.platformStyles({
         common: {color: Kb.Styles.globalColors.black_50},

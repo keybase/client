@@ -16,16 +16,12 @@ const WebView = (props: WebViewProps) => {
 
     const onDomReady = () => {
       if (!ref) return
-      css &&
-        ref
-          .insertCSS(css)
-          .then(() => {})
-          .catch(() => {})
-      javaScript &&
-        ref
-          .executeJavaScript(javaScript)
-          .then(() => {})
-          .catch(() => {})
+      if (css) {
+        ref.insertCSS(css).catch(() => {})
+      }
+      if (javaScript) {
+        ref.executeJavaScript(javaScript).catch(() => {})
+      }
 
       ref.removeEventListener('dom-ready', onDomReady)
     }

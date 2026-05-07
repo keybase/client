@@ -4,23 +4,22 @@ import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import * as Kbfs from '@/fs/common'
 import RefreshDriverStatusOnMount from '@/fs/common/refresh-driver-status-on-mount'
-import RefreshSettings from './refresh-settings'
 import useFiles from './hooks'
 import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 type Props = ReturnType<typeof useFiles>
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
 export const defaultNotificationThreshold = 100 * 1024 ** 2
 
 const SyncNotificationSetting = (
-  p: Pick<Props, 'spaceAvailableNotificationThreshold' | 'areSettingsLoading'>
+  p: Pick<
+    Props,
+    'spaceAvailableNotificationThreshold' | 'areSettingsLoading' | 'setSpaceAvailableNotificationThreshold'
+  >
 ) => {
-  const setSpaceAvailableNotificationThreshold = useFSState(
-    s => s.dispatch.setSpaceAvailableNotificationThreshold
-  )
   const onChangedSyncNotifications = (selectedIdx: number) =>
-    setSpaceAvailableNotificationThreshold(allowedNotificationThresholds[selectedIdx] ?? 0)
+    p.setSpaceAvailableNotificationThreshold(allowedNotificationThresholds[selectedIdx] ?? 0)
   const {spaceAvailableNotificationThreshold, areSettingsLoading} = p
   return (
     <Kb.Box2 direction="horizontal" alignItems="center">
@@ -53,22 +52,14 @@ const SyncNotificationSetting = (
 }
 
 const FinderIntegration = () => {
-  const {driverStatus, preferredMountDirs, driverDisable, openLocalPathInSystemFileManagerDesktop} =
-    useFSState(
-      C.useShallow(s => ({
-        driverDisable: s.dispatch.driverDisable,
-        driverStatus: s.sfmi.driverStatus,
-        openLocalPathInSystemFileManagerDesktop: s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop,
-        preferredMountDirs: s.sfmi.preferredMountDirs,
-      }))
-    )
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const {driverDisable, driverStatus, preferredMountDirs} = Kbfs.useSystemFileManagerIntegration()
+  const navigateAppend = C.Router2.navigateAppend
   const onShowKextPermissionPopup = () => {
-    navigateAppend('kextPermission')
+    navigateAppend({name: 'kextPermission', params: {}})
   }
   const displayingMountDir = preferredMountDirs[0] || ''
   const openMount = displayingMountDir
-    ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
+    ? () => openLocalPathInSystemFileManagerDesktop(displayingMountDir)
     : undefined
   const disable = driverDisable
 
@@ -80,8 +71,8 @@ const FinderIntegration = () => {
   return Platform.isDarwin || Platform.isWindows ? (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.finderIntegrationContent}>
-        <Kb.Box>
-          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
             <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
             {isPending && <Kb.ProgressIndicator style={styles.spinner} />}
             {driverStatus.type === T.FS.DriverStatusType.Disabled && driverStatus.kextPermissionError && (
@@ -124,7 +115,7 @@ const FinderIntegration = () => {
               </Kb.Box2>
             </Kb.Box2>
           )}
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.Box2>
       <Kb.Divider style={styles.divider} />
     </>
@@ -137,12 +128,11 @@ const FilesSettings = () => {
   return (
     <>
       <RefreshDriverStatusOnMount />
-      <RefreshSettings />
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         <FinderIntegration />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
-          <Kb.Box>
-            <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.contentHeader}>
               <Kb.Text type="Header">File sync</Kb.Text>
             </Kb.Box2>
             <Kb.Checkbox
@@ -155,13 +145,14 @@ const FilesSettings = () => {
                 <SyncNotificationSetting
                   spaceAvailableNotificationThreshold={props.spaceAvailableNotificationThreshold}
                   areSettingsLoading={props.areSettingsLoading}
+                  setSpaceAvailableNotificationThreshold={props.setSpaceAvailableNotificationThreshold}
                 />
               }
               checked={props.spaceAvailableNotificationThreshold !== 0}
               disabled={props.areSettingsLoading}
               style={styles.syncNotificationCheckbox}
             />
-          </Kb.Box>
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     </>

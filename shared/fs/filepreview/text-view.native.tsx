@@ -18,10 +18,6 @@ const TextView = (props: Props) => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      progressContainer: {
-        justifyContent: 'center',
-        position: 'absolute',
-      },
       webview: {
         backgroundColor: Kb.Styles.globalColors.white,
         height: '100%',

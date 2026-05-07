@@ -1,11 +1,11 @@
 import * as React from 'react'
-import Box from './box'
+import {Box2} from './box'
 import lottie from 'lottie-web'
 import type {Props, AnimationType} from './animation'
 
 const defaultDimension = 16
 
-const Animation = React.memo(function Animation(props: Props) {
+function Animation(props: Props) {
   const {style, width, height, animationType} = props
   const elementRef = React.useRef<HTMLDivElement>(null)
   const lottieInstance = React.useRef<null | ReturnType<typeof lottie.loadAnimation>>(null)
@@ -26,7 +26,7 @@ const Animation = React.memo(function Animation(props: Props) {
     }
   }, [animationType])
   return (
-    <Box className={props.className} style={props.containerStyle}>
+    <Box2 direction="vertical" className={props.className} style={props.containerStyle}>
       <div
         style={
           {
@@ -37,8 +37,8 @@ const Animation = React.memo(function Animation(props: Props) {
         }
         ref={elementRef}
       />
-    </Box>
+    </Box2>
   )
-})
+}
 
 export default Animation

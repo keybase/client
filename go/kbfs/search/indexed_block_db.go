@@ -206,7 +206,7 @@ func (db *IndexedBlockDb) GetNextDocIDs(n int) ([]string, error) {
 	defer db.docIDLock.Unlock()
 
 	res := make([]string, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		res[i] = strconv.FormatInt(db.maxDocID+int64(i+1), 16)
 	}
 

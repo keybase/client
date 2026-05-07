@@ -9,49 +9,86 @@ import {wrapErrors} from '@/util/debug'
 // needed for tsc
 export type {WritableDraft} from 'immer'
 
-type HasReset = {dispatch: {resetDeleteMe?: boolean; resetState: 'default' | (() => void)}}
+type HasReset = {
+  dispatch: {
+    resetDeleteMe?: boolean
+    resetState: (isDebug?: boolean) => void
+  }
+}
+
+export const defaultReset = () => {}
 
 const resetters: ((isDebug?: boolean) => void)[] = []
 const resettersAndDelete: ((isDebug?: boolean) => void)[] = []
+const externalResetters = new Map<string, () => void>()
+
+// HMR store registry — preserves store instances across hot module reloads
+// Uses globalThis so the registry survives module re-evaluation during HMR
+// eslint-disable-next-line
+const _hmrRegistry: Map<string, unknown> = __DEV__ ? ((globalThis as any).__ZUSTAND_HMR__ ??= new Map()) : new Map()
 
 // Auto adds immer and keeps track of resets
 export const createZustand = <T extends HasReset>(
-  initializer: StateCreator<T, [['zustand/immer', never]]>
+  hmrKeyOrInitializer: string | StateCreator<T, [['zustand/immer', never]]>,
+  maybeInitializer?: StateCreator<T, [['zustand/immer', never]]>
 ) => {
+  const hmrKey = typeof hmrKeyOrInitializer === 'string' ? hmrKeyOrInitializer : undefined
+  const initializer = typeof hmrKeyOrInitializer === 'string' ? maybeInitializer! : hmrKeyOrInitializer
+
   const f = immerZustand(initializer)
   const store = create<T, [['zustand/immer', never]]>(f)
+
+  // During HMR, return the existing store to preserve state and subscribers
+  if (__DEV__ && hmrKey && _hmrRegistry.has(hmrKey)) {
+    return _hmrRegistry.get(hmrKey) as typeof store
+  }
   // includes dispatch, custom overrides typically don't
   const initialState = store.getState()
   // wrap so we log all exceptions
 
   const dispatches = Object.keys(initialState.dispatch)
   const unsafeISD = (initialState as {dispatch: {[key: string]: unknown}}).dispatch
+  const hasDefaultReset = initialState.dispatch.resetState === defaultReset
   for (const d of dispatches) {
     const orig = unsafeISD[d]
-    if (typeof orig === 'function') {
+    if (typeof orig === 'function' && orig !== defaultReset) {
       unsafeISD[d] = wrapErrors(orig as () => void, d)
       // copy over things like .cancel etc
       Object.assign(unsafeISD[d] as object, orig)
     }
   }
-
-  const reset = initialState.dispatch.resetState
-  let resetFunc: () => void
-  if (reset === 'default') {
+  let resetFunc: (isDebug?: boolean) => void
+  if (hasDefaultReset) {
     resetFunc = () => {
       // eslint-disable-next-line
-      store.setState(initialState as any, true)
+      store.setState({...initialState, dispatch: initialDispatch} as any, true)
     }
+    unsafeISD['resetState'] = wrapErrors(resetFunc, 'resetState')
   } else {
+    const reset = initialState.dispatch.resetState
+    if (typeof reset !== 'function') {
+      throw new Error('createZustand requires dispatch.resetState or Z.defaultReset')
+    }
     resetFunc = reset
   }
+
+  const initialDispatch = {...unsafeISD} as T['dispatch']
 
   if (initialState.dispatch.resetDeleteMe) {
     resettersAndDelete.push(resetFunc)
   } else {
     resetters.push(resetFunc)
   }
+
+  if (__DEV__ && hmrKey) {
+    _hmrRegistry.set(hmrKey, store)
+  }
+
   return store
+}
+
+export const registerExternalResetter = (key: string, resetter: () => void) => {
+  externalResetters.set(key, resetter)
 }
 
 export const resetAllStores = (isDebug?: boolean) => {
@@ -62,9 +99,12 @@ export const resetAllStores = (isDebug?: boolean) => {
     resetter(isDebug)
   }
   resettersAndDelete.length = 0
+  for (const resetter of externalResetters.values()) {
+    resetter()
+  }
 }
 
-export type ImmerStateCreator<T> = StateCreator<T, [['zustand/immer', never]]>
+export type ImmerStateCreator<T extends HasReset> = StateCreator<T, [['zustand/immer', never]]>
 export {useShallow} from 'zustand/react/shallow'
 
 export function useDeep<S, U>(selector: (state: S) => U): (state: S) => U {

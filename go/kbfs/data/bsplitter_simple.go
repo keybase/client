@@ -66,7 +66,7 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 	// attempts), because the overhead is not constant across
 	// different Contents lengths (probably due to variable length
 	// encoding of the buffer size).
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		block.Contents = fullData[:maxSize]
 		encodedBlock, err := codec.Encode(block)
 		if err != nil {
@@ -96,10 +96,9 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 	// the number of realistic indirect pointers you can fit into the
 	// default block size.  TODO: calculate this number more exactly
 	// during initialization for a given `maxSize`.
-	maxPtrs := int(.75 * float64(maxSize/int64(BPSize))) //nolint:gosec // G115: maxSize is bounded by config
-	if maxPtrs < 2 {
-		maxPtrs = 2
-	}
+	maxPtrs := max(
+		//nolint:gosec // G115: maxSize is bounded by config
+		int(.75*float64(maxSize/int64(BPSize))), 2)
 
 	maxDirEntriesPerBlock, err := getMaxDirEntriesPerBlock()
 	if err != nil {

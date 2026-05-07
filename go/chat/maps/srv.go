@@ -28,11 +28,11 @@ func NewSrv(g *globals.Context, httpSrv *manager.Srv) *Srv {
 	return s
 }
 
-func (s *Srv) debug(msg string, args ...interface{}) {
+func (s *Srv) debug(msg string, args ...any) {
 	s.G().GetLog().Debug("Maps.Srv: %s", fmt.Sprintf(msg, args...))
 }
 
-func (s *Srv) makeError(w http.ResponseWriter, code int, msg string, args ...interface{}) {
+func (s *Srv) makeError(w http.ResponseWriter, code int, msg string, args ...any) {
 	s.debug("serve: error code: %d msg %s", code, fmt.Sprintf(msg, args...))
 	w.WriteHeader(code)
 }

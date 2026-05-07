@@ -2,11 +2,11 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {TeamAvatar} from './avatars'
 import {pluralize} from '@/util/string'
-import {BottomLine} from './inbox/row/small-team/bottom-line'
+import {BottomLine} from './inbox/row/small-team'
 import type * as T from '@/constants/types'
-import {SnippetContext} from './inbox/row/small-team/contexts'
 
 type Props = {
+  conversationIDKey: T.Chat.ConversationIDKey
   isSelected: boolean
   numSearchHits?: number
   maxSearchHits?: number
@@ -22,8 +22,8 @@ type Props = {
 const SelectableBigTeamChannel = (props: Props) => {
   const [isHovered, setIsHovered] = React.useState(false)
 
-  const _onMouseLeave = React.useCallback(() => setIsHovered(false), [])
-  const _onMouseOver = React.useCallback(() => setIsHovered(true), [])
+  const _onMouseLeave = () => setIsHovered(false)
+  const _onMouseOver = () => setIsHovered(true)
   const _getSearchHits = () => {
     if (!props.numSearchHits) {
       return ''
@@ -38,7 +38,7 @@ const SelectableBigTeamChannel = (props: Props) => {
   const rowLoadedContent = (
     <>
       <TeamAvatar teamname={props.teamname} isMuted={false} isSelected={false} isHovered={isHovered} />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer}>
+      <Kb.Box2 direction="vertical" fullWidth={true} overflow="hidden" style={styles.textContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Text
             type="BodySemibold"
@@ -68,9 +68,13 @@ const SelectableBigTeamChannel = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         {!props.numSearchHits && (
-          <SnippetContext.Provider value={props.snippet ?? ''}>
-            <BottomLine isSelected={props.isSelected} allowBold={false} />
-          </SnippetContext.Provider>
+          <BottomLine
+            conversationIDKey={props.conversationIDKey}
+            snippet={props.snippet}
+            snippetDecoration={props.snippetDecoration}
+            isSelected={props.isSelected}
+            allowBold={false}
+          />
         )}
         {!!props.numSearchHits && (
           <Kb.Text
@@ -159,7 +163,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       textContainer: {
         flexShrink: 1,
-        overflow: 'hidden',
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
     }) as const

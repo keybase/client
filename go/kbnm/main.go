@@ -20,10 +20,10 @@ var Version = "dev"
 
 // Response from the kbnm service
 type Response struct {
-	Client  int         `json:"client"`
-	Status  string      `json:"status"`
-	Message string      `json:"message"`
-	Result  interface{} `json:"result,omitempty"`
+	Client  int    `json:"client"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Result  any    `json:"result,omitempty"`
 }
 
 // Request to the kbnm service
@@ -77,7 +77,7 @@ func process(h *handler, in nativemessaging.JSONDecoder, out nativemessaging.JSO
 	return abortErr
 }
 
-func exit(code int, msg string, a ...interface{}) {
+func exit(code int, msg string, a ...any) {
 	fmt.Fprintf(os.Stderr, msg+"\n", a...)
 	os.Exit(code)
 }

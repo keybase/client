@@ -76,11 +76,11 @@ func (t *testUI) UnescapedOutputWriter() io.Writer {
 	return t
 }
 
-func (t *testUI) Printf(f string, args ...interface{}) (int, error) {
+func (t *testUI) Printf(f string, args ...any) (int, error) {
 	return t.PrintfUnescaped(f, args...)
 }
 
-func (t *testUI) PrintfUnescaped(f string, args ...interface{}) (int, error) {
+func (t *testUI) PrintfUnescaped(f string, args ...any) (int, error) {
 	s := fmt.Sprintf(f, args...)
 	t.G().Log.Debug("Terminal Printf: %s", s)
 	return len(s), nil
@@ -154,7 +154,7 @@ type testDeviceSet struct {
 }
 
 func (d *testDevice) startService(numClones int) {
-	for i := 0; i < numClones; i++ {
+	for range numClones {
 		d.clones = append(d.clones, cloneContext(d.tctx))
 	}
 	d.stopCh = make(chan error)

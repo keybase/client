@@ -1,5 +1,6 @@
 import type * as T from '@/constants/types'
 import type * as React from 'react'
+import type {BrowserEditSession} from '../edit-state'
 
 export enum RowType {
   TlfType,
@@ -30,7 +31,7 @@ export type TlfRowItem = {
 }
 
 export type StillRowItem = {
-  editID?: T.FS.EditID // empty if not being renamed
+  editSession?: BrowserEditSession // empty if not being renamed
   key: string
   lastModifiedTimestamp: number
   name: string
@@ -40,8 +41,7 @@ export type StillRowItem = {
 }
 
 export type NewFolderRowItem = {
-  editType: T.FS.EditType
-  editID: T.FS.EditID
+  editSession: BrowserEditSession
   key: string
   name: string
   rowType: RowType.NewFolder

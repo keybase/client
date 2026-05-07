@@ -11,7 +11,7 @@ import (
 )
 
 type VerifyContext interface {
-	Debug(format string, args ...interface{})
+	Debug(format string, args ...any)
 }
 
 type (

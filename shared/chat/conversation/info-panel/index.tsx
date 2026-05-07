@@ -1,7 +1,9 @@
-import * as Chat from '@/constants/chat2'
+import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
+import type * as T from '@/constants/types'
+import {navigateToInbox} from '@/constants/router'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
 import MembersList from './members'
@@ -9,45 +11,54 @@ import BotsList from './bot'
 import AttachmentsList from './attachments'
 import {infoPanelWidthElectron, infoPanelWidthTablet} from './common'
 import type {Tab as TabType} from '@/common-adapters/tabs'
+import {useChatTeam} from '../team-hooks'
+import {showConversationInfoPanel} from '../thread-context'
+import {useConversationMeta} from '../data-hooks'
 
 type Props = {
+  conversationIDKey?: T.Chat.ConversationIDKey
   tab?: 'settings' | 'members' | 'attachments' | 'bots'
 }
 
 const InfoPanelConnector = (ownProps: Props) => {
-  const storeSelectedTab = Chat.useChatState(s => s.infoPanelSelectedTab)
-  const setInfoPanelTab = Chat.useChatState(s => s.dispatch.setInfoPanelTab)
-  const initialTab = ownProps.tab ?? storeSelectedTab
-  const conversationIDKey = Chat.useChatContext(s => s.id)
-  const meta = Chat.useConvoState(conversationIDKey, s => s.meta)
+  const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
+  return <InfoPanelConnectorInner {...ownProps} conversationIDKey={conversationIDKey} />
+}
+
+const InfoPanelConnectorInner = (ownProps: Props & {conversationIDKey: T.Chat.ConversationIDKey}) => {
+  const {conversationIDKey} = ownProps
+  const meta = useConversationMeta(conversationIDKey)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
-  const yourRole = Teams.useTeamsState(s => Teams.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname
   const teamname = meta.teamname
+  const {role: yourRole} = useChatTeam(meta.teamID, teamname)
 
-  const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab ?? 'members')
-  const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
+  const [uncontrolledSelectedTab, onSelectTab] = React.useState<Panel>(() => ownProps.tab ?? 'members')
+  const selectedTab = ownProps.tab ?? uncontrolledSelectedTab
 
-  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
-  const clearAttachmentView = Chat.useConvoState(conversationIDKey, s => s.dispatch.clearAttachmentView)
-  const onCancel = () => {
-    showInfoPanel(false, undefined)
-    clearAttachmentView()
-  }
-  const onGoToInbox = Chat.useChatState(s => s.dispatch.navigateToInbox)
-
-  if (lastSNO !== shouldNavigateOut) {
-    setLastSNO(shouldNavigateOut)
-    if (!lastSNO && shouldNavigateOut) {
-      onGoToInbox()
-    }
-  }
-
+  const hideInfoPanel = React.useEffectEvent(() => {
+    showConversationInfoPanel(conversationIDKey, false, undefined)
+  })
   React.useEffect(() => {
-    if (selectedTab === storeSelectedTab) return
-    setInfoPanelTab(selectedTab)
-  }, [selectedTab, storeSelectedTab, setInfoPanelTab])
+    return () => {
+      // Only call showInfoPanel(false) on mobile where the panel is a separate route.
+      // On desktop the panel is inline and this cleanup fires during StrictMode
+      // double-effect, which immediately hides the panel.
+      if (Kb.Styles.isMobile) {
+        hideInfoPanel()
+      }
+    }
+  }, [])
+
+  const lastShouldNavigateOutRef = React.useRef(shouldNavigateOut)
+  React.useEffect(() => {
+    const lastShouldNavigateOut = lastShouldNavigateOutRef.current
+    lastShouldNavigateOutRef.current = shouldNavigateOut
+    if (!lastShouldNavigateOut && shouldNavigateOut) {
+      navigateToInbox()
+    }
+  }, [shouldNavigateOut])
 
   const getTabs = (): Array<TabType<Panel>> => {
     const showSettings = !isPreview || Teams.isAdmin(yourRole) || Teams.isOwner(yourRole)
@@ -65,7 +76,11 @@ const InfoPanelConnector = (ownProps: Props) => {
       data: [{type: 'header-item'}],
       renderItem: () => (
         <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
-          {teamname && channelname ? <TeamHeader /> : <AdhocHeader />}
+          {teamname && channelname ? (
+            <TeamHeader conversationIDKey={conversationIDKey} />
+          ) : (
+            <AdhocHeader conversationIDKey={conversationIDKey} />
+          )}
         </Kb.Box2>
       ),
     },
@@ -107,16 +122,22 @@ const InfoPanelConnector = (ownProps: Props) => {
   let sectionList: React.ReactNode
   switch (selectedTab) {
     case 'settings':
-      sectionList = <SettingsList isPreview={isPreview} commonSections={commonSections} />
+      sectionList = (
+        <SettingsList
+          conversationIDKey={conversationIDKey}
+          isPreview={isPreview}
+          commonSections={commonSections}
+        />
+      )
       break
     case 'members':
-      sectionList = <MembersList commonSections={commonSections} />
+      sectionList = <MembersList conversationIDKey={conversationIDKey} commonSections={commonSections} />
       break
     case 'attachments':
-      sectionList = <AttachmentsList commonSections={commonSections} />
+      sectionList = <AttachmentsList conversationIDKey={conversationIDKey} commonSections={commonSections} />
       break
     case 'bots':
-      sectionList = <BotsList commonSections={commonSections} />
+      sectionList = <BotsList conversationIDKey={conversationIDKey} commonSections={commonSections} />
       break
     default:
       sectionList = null
@@ -134,9 +155,6 @@ const InfoPanelConnector = (ownProps: Props) => {
   } else {
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-        {Kb.Styles.isMobile && (
-          <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" customCancelText="Done" />
-        )}
         {sectionList}
       </Kb.Box2>
     )

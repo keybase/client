@@ -23,7 +23,7 @@ func (m metaContext) getStubDNS() *stubDNSEngine {
 	return m.stubDNS
 }
 
-func debugWithState(m metaContext, state scriptState, format string, arg ...interface{}) {
+func debugWithState(m metaContext, state scriptState, format string, arg ...any) {
 	s := fmt.Sprintf(format, arg...)
 	m.Debug("PVL @(service:%v script:%v pc:%v) %v",
 		debugServiceToString(state.Service), state.WhichScript, state.PC, s)
@@ -34,13 +34,13 @@ func debugWithStateError(m metaContext, state scriptState, err libkb.ProofError)
 		debugServiceToString(state.Service), state.WhichScript, state.PC, err.GetProofStatus(), err.GetDesc())
 }
 
-func debugWithPosition(m metaContext, service keybase1.ProofType, whichscript int, pc int, format string, arg ...interface{}) {
+func debugWithPosition(m metaContext, service keybase1.ProofType, whichscript int, pc int, format string, arg ...any) {
 	s := fmt.Sprintf(format, arg...)
 	m.Debug("PVL @(service:%v script:%v pc:%v) %v",
 		debugServiceToString(service), whichscript, pc, s)
 }
 
-func debug(m metaContext, format string, arg ...interface{}) {
+func debug(m metaContext, format string, arg ...any) {
 	s := fmt.Sprintf(format, arg...)
 	m.Debug("PVL %v", s)
 }

@@ -135,7 +135,7 @@ func (d *delegateID3UI) checkSuccess() {
 	}
 	n := 10
 	wait := 2 * time.Millisecond
-	for i := 0; i < n; i++ {
+	for range n {
 		if check() {
 			return
 		}

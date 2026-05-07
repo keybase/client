@@ -46,14 +46,14 @@ func TestImplicitRaceCreateTLFs(t *testing.T) {
 	tlfid1 := newImplicitTLFID(true)
 	n := 4
 	doneCh := make(chan struct{}, n+1)
-	for i := 0; i < n; i++ {
+	for range n {
 		go func() {
 			err = CreateTLF(context.TODO(), tc.G, keybase1.CreateTLFArg{TeamID: createdTeam.ID, TlfID: tlfid1})
 			require.NoError(t, err)
 			doneCh <- struct{}{}
 		}()
 	}
-	for i := 0; i < n; i++ {
+	for i := range n {
 		select {
 		case <-doneCh:
 		case <-time.After(time.Minute):
@@ -76,7 +76,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 
 	numKBUsers := 3
 	var usernames []string
-	for i := 0; i < numKBUsers; i++ {
+	for range numKBUsers {
 		u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 		require.NoError(t, err)
 		usernames = append(usernames, u.Username)
@@ -372,7 +372,7 @@ func TestLoggedOutPublicTeamLoad(t *testing.T) {
 	err = tc.Logout()
 	require.NoError(t, err)
 
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		_, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 			ID:     createdTeam.ID,
 			Public: true,

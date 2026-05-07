@@ -1,8 +1,6 @@
-import type * as Chat from '@/constants/chat2'
-import {useTeamsState} from '@/constants/teams'
-import * as React from 'react'
 import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
+import {useChatTeamMembers} from '../team-hooks'
 
 export const infoPanelWidthElectron = 320
 const infoPanelWidthPhone = Styles.dimensionWidth
@@ -21,25 +19,19 @@ export function infoPanelWidth() {
 const isBot = (type: T.Teams.TeamRoleType) => type === 'bot' || type === 'restrictedbot'
 
 export const useTeamHumans = (teamID: T.Teams.TeamID) => {
-  const [lastTID, setLastTID] = React.useState('')
-  const getMembers = useTeamsState(s => s.dispatch.getMembers)
-  if (lastTID !== teamID) {
-    setLastTID(teamID)
-    getMembers(teamID)
-  }
-  const teamMembers = useTeamsState(s => s.teamIDToMembers.get(teamID))
-  const bots = React.useMemo(() => {
+  const {members: teamMembers} = useChatTeamMembers(teamID)
+  const bots = (() => {
     const ret = new Set<string>()
-    teamMembers?.forEach(({type}, username) => isBot(type) && ret.add(username))
+    teamMembers.forEach(({type}, username) => isBot(type) && ret.add(username))
     return ret
-  }, [teamMembers])
-  const teamHumanCount = (teamMembers?.size ?? 0) - bots.size
+  })()
+  const teamHumanCount = teamMembers.size - bots.size
   return {bots, teamHumanCount}
 }
 
 export const useHumans = (
-  participantInfo: Chat.ConvoState['participants'],
-  meta: Chat.ConvoState['meta']
+  participantInfo: T.Chat.ParticipantInfo,
+  meta: T.Chat.ConversationMeta
 ) => {
   const {teamType, teamID} = meta
   const {bots, teamHumanCount} = useTeamHumans(teamID)

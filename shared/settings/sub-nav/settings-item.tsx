@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 type SettingsItemProps = {
@@ -15,11 +15,11 @@ type SettingsItemProps = {
   selected: boolean
 }
 
-const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) {
+function SettingsItem(props: SettingsItemProps) {
   const {onClick: _onClick, type, selected} = props
-  const onClick = React.useCallback(() => {
+  const onClick = () => {
     _onClick(type)
-  }, [_onClick, type])
+  }
   return (
     <Kb.ClickableBox
       onClick={onClick}
@@ -38,7 +38,7 @@ const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) 
         />
       ) : null}
       <Kb.Box2 direction="vertical">
-        <Kb.Text2
+        <Kb.Text
           type="BodySemibold"
           style={Kb.Styles.collapseStyles([
             selected ? styles.selectedText : styles.itemText,
@@ -46,8 +46,8 @@ const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) 
           ])}
         >
           {props.text}
-        </Kb.Text2>
-        {props.text && props.subText && <Kb.Text2 type="BodySmall">{props.subText}</Kb.Text2>}
+        </Kb.Text>
+        {props.text && props.subText && <Kb.Text type="BodySmall">{props.subText}</Kb.Text>}
       </Kb.Box2>
       {props.inProgress && <Kb.ProgressIndicator style={styles.progress} />}
       {!!props.badgeNumber && props.badgeNumber > 0 && (
@@ -55,7 +55,7 @@ const SettingsItem = React.memo(function SettingsItem(props: SettingsItemProps) 
       )}
     </Kb.ClickableBox>
   )
-})
+}
 export default SettingsItem
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

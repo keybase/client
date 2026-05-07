@@ -173,7 +173,7 @@ func TestLoaderKeyGen(t *testing.T) {
 
 	t.Logf("rotate the key a bunch of times")
 	// Rotate the key by removing and adding B from the team
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username)
 		require.NoError(t, err)
 
@@ -369,7 +369,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	defer cleanup()
 
 	// Require that a team is at this seqno
-	requireSeqno := func(team *keybase1.TeamData, seqno int, dots ...interface{}) {
+	requireSeqno := func(team *keybase1.TeamData, seqno int, dots ...any) {
 		require.NotNil(t, team, dots...)
 		require.Equal(t, keybase1.Seqno(seqno), TeamSigChainState{inner: team.Chain}.GetLatestSeqno(), dots...)
 	}
@@ -593,7 +593,7 @@ func TestLoaderInferWantMembers(t *testing.T) {
 	defer cleanup()
 
 	// Require that a team is at this seqno
-	requireSeqno := func(team *keybase1.TeamData, seqno int, dots ...interface{}) {
+	requireSeqno := func(team *keybase1.TeamData, seqno int, dots ...any) {
 		require.NotNil(t, team, dots...)
 		require.Equal(t, keybase1.Seqno(seqno), TeamSigChainState{inner: team.Chain}.GetLatestSeqno(), dots...)
 	}

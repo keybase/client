@@ -60,7 +60,7 @@ func TestChatSubteamRename(t *testing.T) {
 		versMap := make(map[chat1.ConvIDStr]chat1.ConversationVers)
 		var convs []chat1.ConversationInfoLocal
 		for _, name := range []string{subteamName.String(), subSubteamName.String()} {
-			for i := 0; i < 2; i++ {
+			for i := range 2 {
 				t.Logf("creating conv %v, subteam: %vv", i, name)
 				var topicName *string
 				if i > 0 {

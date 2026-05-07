@@ -1,46 +1,53 @@
-import * as Chat from '@/constants/chat2'
-import * as React from 'react'
+import * as C from '@/constants'
 import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import UserNotice from '../user-notice'
 import {getAddedUsernames} from '../system-users-added-to-conv/container'
 import {indefiniteArticle} from '@/util/string'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useChatTeamMembers} from '../../team-hooks'
+import {useConversationShowInfoPanel, useConversationThreadID, useConversationThreadSelector} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
 
-const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContainer(p: OwnProps) {
+function SystemAddedToTeamContainer(p: OwnProps) {
   const {message} = p
   const {addee, adder, author, bulkAdds, role: _role, timestamp} = message
-  const meta = Chat.useChatContext(s => s.meta)
-  const {teamID, teamname, teamType} = meta
-  const authorIsAdmin = Teams.useTeamsState(s => Teams.userIsRoleInTeam(s, teamID, author, 'admin'))
-  const authorIsOwner = Teams.useTeamsState(s => Teams.userIsRoleInTeam(s, teamID, author, 'owner'))
+  const conversationIDKey = useConversationThreadID()
+  const {teamID, teamname, teamType} = useConversationThreadSelector(
+    C.useShallow(s => ({
+      teamID: s.meta.teamID,
+      teamType: s.meta.teamType,
+      teamname: s.meta.teamname,
+    }))
+  )
+  const showInfoPanel = useConversationShowInfoPanel()
+  const {members: teamMembers} = useChatTeamMembers(teamID)
+  const authorRole = teamMembers.get(author)?.type
+  const authorIsAdmin = authorRole === 'admin'
+  const authorIsOwner = authorRole === 'owner'
   const you = useCurrentUserState(s => s.username)
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'
-
-  const showInfoPanel = Chat.useChatContext(s => s.dispatch.showInfoPanel)
-  const onManageNotifications = React.useCallback(() => {
+  const onManageNotifications = () => {
     showInfoPanel(true, 'settings')
-  }, [showInfoPanel])
+  }
 
-  const navigateAppend = Chat.useChatNavigateAppend()
-  const onViewBot = React.useCallback(() => {
-    navigateAppend(conversationIDKey => ({
-      props: {botUsername: addee, conversationIDKey},
-      selected: 'chatInstallBot',
-    }))
-  }, [navigateAppend, addee])
+  const onViewBot = () => {
+    C.Router2.navigateAppend({
+      name: 'chatInstallBot',
+      params: {botUsername: addee, conversationIDKey},
+    })
+  }
 
-  const onViewTeam = React.useCallback(() => {
+  const onViewTeam = () => {
     if (teamID) {
-      navigateAppend(() => ({props: {teamID}, selected: 'team'}))
+      C.Router2.navigateAppend({name: 'team', params: {teamID}})
     } else {
       showInfoPanel(true, 'settings')
     }
-  }, [navigateAppend, showInfoPanel, teamID])
+  }
 
   const role = _role !== 'none' && isBot(_role) ? Teams.typeToLabel[_role].toLowerCase() : null
   const mc = (
@@ -92,7 +99,7 @@ const SystemAddedToTeamContainer = React.memo(function SystemAddedToTeamContaine
       </Kb.Text>
     </UserNotice>
   )
-})
+}
 
 type Props = {
   addee: string
@@ -120,11 +127,11 @@ const ManageComponent = (props: Props) => {
   }
   if (addee === you) {
     return (
-      <Kb.Box style={{...Kb.Styles.globalStyles.flexBoxColumn}}>
+      <Kb.Box2 direction="vertical">
         <Kb.Text onClick={onManageNotifications} type={textType}>
           Manage phone and computer notifications
         </Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
     )
   } else if (bot) {
     return (

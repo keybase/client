@@ -2,9 +2,9 @@ import * as Contacts from 'expo-contacts'
 import * as React from 'react'
 import {e164ToDisplay} from '@/util/phone-numbers'
 import logger from '@/logger'
-import {getDefaultCountryCode} from 'react-native-kb'
-import {useSettingsContactsState} from '@/constants/settings-contacts'
-import {getE164} from '@/constants/settings-phone'
+import * as Localization from 'expo-localization'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
+import {getE164} from '@/util/phone-numbers'
 
 // Contact info coming from the native contacts library.
 export type Contact = {
@@ -41,17 +41,14 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
     logger.debug(`Got region from state: ${regionFromState}, no need to call NativeModules.`)
     region = regionFromState
   } else {
-    try {
-      let defaultCountryCode = await getDefaultCountryCode()
+    {
+      let defaultCountryCode = Localization.getLocales()[0].regionCode?.toLowerCase() ?? ''
       if (__DEV__ && !defaultCountryCode) {
         // behavior of parsing can be unexpectedly different with no country code.
         // iOS sim + android emu don't supply country codes, so use this one.
         defaultCountryCode = 'us'
       }
       region = defaultCountryCode
-    } catch (error_) {
-      const error = error_ as {message: string}
-      logger.warn(`Error loading default country code: ${error.message}`)
     }
   }
 
@@ -81,41 +78,42 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<Contact>, 
   return [mapped, region]
 }
 
+type ContactsLoadState =
+  | {contacts: Array<Contact>; errorMessage?: undefined; key: string; region: string}
+  | {contacts?: undefined; errorMessage: string; key: string; region?: undefined}
+
 const useContacts = () => {
-  const [contacts, setContacts] = React.useState<Array<Contact>>([])
-  const [region, setRegion] = React.useState('')
-  const [errorMessage, setErrorMessage] = React.useState<string | undefined>()
-  const [noAccessPermanent, setNoAccessPermanent] = React.useState(false)
-  const [loading, setLoading] = React.useState(true)
+  const [loadState, setLoadState] = React.useState<ContactsLoadState | undefined>()
 
   const permStatus = useSettingsContactsState(s => s.permissionStatus)
   const savedRegion = useSettingsContactsState(s => s.userCountryCode)
+  const contactsKey = permStatus === 'granted' ? savedRegion || '' : undefined
 
   React.useEffect(() => {
-    if (permStatus === 'granted') {
-      setNoAccessPermanent(false)
-      fetchContacts(savedRegion || '')
-        .then(
-          ([contacts, region]) => {
-            setContacts(contacts)
-            setRegion(region)
-            setErrorMessage(undefined)
-            setLoading(false)
-          },
-          (_err: unknown) => {
-            const err = _err as {message: string}
-            logger.warn('Error fetching contacts:', err)
-            setErrorMessage(err.message)
-            setLoading(false)
-          }
-        )
-        .catch(() => {})
-    } else if (permStatus === 'denied') {
-      setErrorMessage('Keybase does not have permission to access your contacts.')
-      setNoAccessPermanent(true)
-      setLoading(false)
+    if (contactsKey === undefined) {
+      return
     }
-  }, [setErrorMessage, setContacts, permStatus, savedRegion])
+    let canceled = false
+    fetchContacts(contactsKey)
+      .then(
+        ([contacts, region]) => {
+          if (!canceled) {
+            setLoadState({contacts, key: contactsKey, region})
+          }
+        },
+        (_err: unknown) => {
+          const err = _err as {message: string}
+          logger.warn('Error fetching contacts:', err)
+          if (!canceled) {
+            setLoadState({errorMessage: err.message, key: contactsKey})
+          }
+        }
+      )
+      .catch(() => {})
+    return () => {
+      canceled = true
+    }
+  }, [contactsKey])
 
   const requestPermissions = useSettingsContactsState(s => s.dispatch.requestPermissions)
   React.useEffect(() => {
@@ -123,10 +121,18 @@ const useContacts = () => {
     // whether to dispatch `createRequestContactPermissions` so we never
     // dispatch more than once.
     if (permStatus === 'unknown' || permStatus === 'undetermined') {
-      setNoAccessPermanent(false)
       requestPermissions(false)
     }
   }, [requestPermissions, permStatus])
+
+  const visibleLoadState = loadState?.key === contactsKey ? loadState : undefined
+  const noAccessPermanent = permStatus === 'denied'
+  const errorMessage = noAccessPermanent
+    ? 'Keybase does not have permission to access your contacts.'
+    : visibleLoadState?.errorMessage
+  const loading = permStatus === 'granted' ? !visibleLoadState : !noAccessPermanent
+  const contacts = visibleLoadState?.contacts ?? []
+  const region = visibleLoadState?.region ?? ''
 
   return {contacts, errorMessage, loading, noAccessPermanent, region}
 }

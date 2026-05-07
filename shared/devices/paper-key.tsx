@@ -27,7 +27,7 @@ const PaperKey = () => {
       .catch(() => {})
   }, 500)
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -46,13 +46,7 @@ const PaperKey = () => {
         </Kb.Text>
         <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true}>
           {paperkey ? (
-            <Kb.Text
-              center={true}
-              type="Header"
-              selectable={true}
-              style={styles.text}
-              textBreakStrategy="simple"
-            >
+            <Kb.Text center={true} type="Header" selectable={true} style={styles.text}>
               {paperkey}
             </Kb.Text>
           ) : (
@@ -86,7 +80,6 @@ const styles = Kb.Styles.styleSheetCreate(
         maxWidth: Kb.Styles.isMobile ? undefined : 560,
         padding: Kb.Styles.globalMargins.medium,
       },
-      header: {position: 'absolute'},
       intro: {textAlign: 'center'},
       keyBox: {
         backgroundColor: Kb.Styles.globalColors.white,

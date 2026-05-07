@@ -1,29 +1,29 @@
-import * as Chat from '@/constants/chat2'
-import {useTeamsState} from '@/constants/teams'
-import * as React from 'react'
+import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
+import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 
 type Props = {
+  conversationIDKey: T.Chat.ConversationIDKey
   isAdmin: boolean
   isGeneralChannel: boolean
+  teamID: T.Teams.TeamID
 }
 
 const AddPeople = (p: Props) => {
-  const {isGeneralChannel, isAdmin} = p
-  const teamID = Chat.useChatContext(s => s.meta.teamID)
-  const startAddMembersWizard = useTeamsState(s => s.dispatch.startAddMembersWizard)
-  const navigateAppend = Chat.useChatNavigateAppend()
-  const onAddPeople = React.useCallback(() => {
-    startAddMembersWizard(teamID)
-  }, [startAddMembersWizard, teamID])
-  const onAddToChannel = React.useCallback(() => {
-    navigateAppend(conversationIDKey => ({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}))
-  }, [navigateAppend, teamID])
+  const {conversationIDKey, isGeneralChannel, isAdmin, teamID} = p
+  const onAddPeople = () => {
+    if (teamID) {
+      C.Router2.navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
+    }
+  }
+  const onAddToChannel = () => {
+    C.Router2.navigateAppend({name: 'chatAddToChannel', params: {conversationIDKey, teamID}})
+  }
 
   let directAction: undefined | (() => void)
   let directLabel: string | undefined
-  if (!isGeneralChannel) {
-  } else {
+  if (isGeneralChannel) {
     directAction = onAddPeople
     directLabel = 'Add people to team'
   }
@@ -32,29 +32,26 @@ const AddPeople = (p: Props) => {
     directLabel = 'Add members to channel'
   }
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      if (!isGeneralChannel) {
-        // general channel & small teams don't need a menu
-        const items: Kb.MenuItems = [
-          {icon: 'iconfont-people', onClick: onAddPeople, title: 'To team'},
-          {icon: 'iconfont-hash', onClick: onAddToChannel, title: 'To channel'},
-        ]
-        return (
-          <Kb.FloatingMenu
-            attachTo={attachTo}
-            visible={true}
-            items={items}
-            onHidden={hidePopup}
-            position="bottom left"
-            closeOnSelect={true}
-          />
-        )
-      } else return null
-    },
-    [isGeneralChannel, onAddPeople, onAddToChannel]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    if (!isGeneralChannel) {
+      // general channel & small teams don't need a menu
+      const items: Kb.MenuItems = [
+        {icon: 'iconfont-people', onClick: onAddPeople, title: 'To team'},
+        {icon: 'iconfont-hash', onClick: onAddToChannel, title: 'To channel'},
+      ]
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          visible={true}
+          items={items}
+          onHidden={hidePopup}
+          position="bottom left"
+          closeOnSelect={true}
+        />
+      )
+    } else return null
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

@@ -4,9 +4,9 @@ import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import BotMenu from './bot-menu'
-import {useBotsState} from '@/constants/bots'
-import {useTrackerState} from '@/constants/tracker2'
-import {useProfileState} from '@/constants/profile'
+import {useFeaturedBot} from '@/util/featured-bots'
+import {navToProfile} from '@/constants/router'
+import {useLoadedTeam} from '../../use-loaded-team'
 
 export type Props = {
   botAlias: string
@@ -14,8 +14,8 @@ export type Props = {
   description: string
   onClick: () => void
   onEdit: () => void
+  onOpenProfile: () => void
   onRemove: () => void
-  onShowTracker: () => void
   ownerTeam?: string
   ownerUser?: string
   roleType: T.Teams.TeamRoleType
@@ -48,7 +48,7 @@ export const TeamBotRow = (props: Props) => {
       <Kb.Text
         type="BodySmallSemibold"
         style={{color: Kb.Styles.globalColors.black}}
-        onClick={props.onShowTracker}
+        onClick={props.onOpenProfile}
       >
         {props.botAlias || props.username}
       </Kb.Text>
@@ -68,22 +68,22 @@ export const TeamBotRow = (props: Props) => {
     </Kb.Box2>
   )
 
-  // TODO: switch this to a ListItem2 so that we get dividers, free styling, etc
+  // TODO: switch this to a ListItem so that we get dividers, free styling, etc
   return (
-    <Kb.Box style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
-      <Kb.Box style={styles.innerContainerTop}>
-        <Kb.Box style={styles.clickable}>
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={Kb.Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.innerContainerTop}>
+        <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
           <Kb.Avatar
             username={props.username}
             size={Kb.Styles.isMobile ? 48 : 32}
-            onClick={props.onShowTracker}
+            onClick={props.onOpenProfile}
           />
-          <Kb.Box style={styles.nameContainer}>
-            <Kb.Box style={Kb.Styles.globalStyles.flexBoxRow}>{usernameDisplay}</Kb.Box>
-            <Kb.Box style={styles.nameContainerInner}>{descriptionLabel}</Kb.Box>
-          </Kb.Box>
-        </Kb.Box>
-        <Kb.Box2Measure direction="vertical" style={styles.menuIconContainer} ref={popupAnchor}>
+          <Kb.Box2 direction="vertical" style={styles.nameContainer}>
+            <Kb.Box2 direction="horizontal" fullWidth={true}>{usernameDisplay}</Kb.Box2>
+            <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">{descriptionLabel}</Kb.Box2>
+          </Kb.Box2>
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.menuIconContainer} ref={popupAnchor}>
           {(active || C.isLargeScreen) && (
             // Desktop & mobile large screen - display on the far right of the first row
             // Also when user is active
@@ -99,58 +99,34 @@ export const TeamBotRow = (props: Props) => {
             />
           )}
           <BotMenu
-            attachTo={popupAnchor}
+            attachTo={Kb.Styles.isMobile ? undefined : popupAnchor}
             canManageBots={props.canManageBots}
             visible={showMenu}
             onEdit={props.onEdit}
             onRemove={props.onRemove}
             onHidden={_onHideMenu}
           />
-        </Kb.Box2Measure>
-      </Kb.Box>
-    </Kb.Box>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  buttonBarContainer: {...Kb.Styles.globalStyles.flexBoxRow, flexShrink: 1},
-  clickable: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    flexGrow: 1,
-  },
   container: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
     backgroundColor: Kb.Styles.globalColors.white,
     flex: 1,
     height: '100%',
     position: 'relative',
-    width: '100%',
   },
   containerReset: {
     backgroundColor: Kb.Styles.globalColors.blueLighter2,
   },
-  crownIcon: {
-    marginRight: Kb.Styles.globalMargins.xtiny,
-  },
   fullNameLabel: {marginRight: Kb.Styles.globalMargins.xtiny},
-  innerContainerBottom: {...Kb.Styles.globalStyles.flexBoxRow, flexShrink: 1},
   innerContainerTop: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-    alignItems: 'center',
     flexShrink: 0,
     height: Kb.Styles.isMobile ? 56 : 48,
-    width: '100%',
-  },
-  lockedOutOrDeleted: {
-    ...Kb.Styles.globalStyles.fontBold,
-    backgroundColor: Kb.Styles.globalColors.red,
-    color: Kb.Styles.globalColors.white,
-    marginRight: Kb.Styles.globalMargins.xtiny,
-    paddingLeft: Kb.Styles.globalMargins.xtiny,
-    paddingRight: Kb.Styles.globalMargins.xtiny,
   },
   menuButtonDesktop: {
     marginLeft: Kb.Styles.globalMargins.small,
@@ -166,13 +142,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     top: 12,
   },
   menuIconContainer: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
     flexShrink: 1,
     height: '100%',
   },
-  nameContainer: {...Kb.Styles.globalStyles.flexBoxColumn, marginLeft: Kb.Styles.globalMargins.small},
-  nameContainerInner: {...Kb.Styles.globalStyles.flexBoxRow, alignItems: 'center'},
+  nameContainer: {marginLeft: Kb.Styles.globalMargins.small},
 }))
 
 type OwnProps = {
@@ -184,11 +157,10 @@ const blankInfo = Teams.initialMemberInfo
 
 const Container = (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = Teams.useTeamsState(s => s.teamDetails.get(teamID))
-  const canManageBots = Teams.useTeamsState(s => Teams.getCanPerformByID(s, teamID).manageBots)
-  const map = teamDetails?.members
-  const info: T.Teams.MemberInfo = map?.get(ownProps.username) || blankInfo
-  const _bot = useBotsState(s => s.featuredBotsMap.get(ownProps.username))
+  const {teamDetails, yourOperations} = useLoadedTeam(teamID)
+  const info: T.Teams.MemberInfo = teamDetails.members.get(ownProps.username) || blankInfo
+  const canManageBots = yourOperations.manageBots
+  const _bot = useFeaturedBot(ownProps.username)
   const bot = _bot ?? {
     botAlias: info.fullName,
     botUsername: ownProps.username,
@@ -206,29 +178,21 @@ const Container = (ownProps: OwnProps) => {
   const roleType = info.type
   const status = info.status
   const username = info.username
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const showUser = useTrackerState(s => s.dispatch.showUser)
-  const _onShowTracker = (username: string) => {
-    if (C.isMobile) {
-      showUserProfile(username)
-    } else {
-      showUser(username, true)
-    }
-  }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const onOpenProfile = () => navToProfile(ownProps.username)
+  const navigateAppend = C.Router2.navigateAppend
   const onClick = () => {
-    navigateAppend({props: ownProps, selected: 'teamMember'})
+    navigateAppend({name: 'teamMember', params: ownProps})
   }
   const onEdit = () => {
     navigateAppend({
-      props: {botUsername: ownProps.username, teamID: ownProps.teamID},
-      selected: 'chatInstallBot',
+      name: 'chatInstallBot',
+      params: {botUsername: ownProps.username, teamID: ownProps.teamID},
     })
   }
   const onRemove = () => {
     navigateAppend({
-      props: {botUsername: ownProps.username, teamID: ownProps.teamID},
-      selected: 'chatConfirmRemoveBot',
+      name: 'chatConfirmRemoveBot',
+      params: {botUsername: ownProps.username, teamID: ownProps.teamID},
     })
   }
   const props = {
@@ -237,8 +201,8 @@ const Container = (ownProps: OwnProps) => {
     description: description,
     onClick: onClick,
     onEdit: onEdit,
+    onOpenProfile: onOpenProfile,
     onRemove: onRemove,
-    onShowTracker: () => _onShowTracker(ownProps.username),
     ownerTeam: ownerTeam,
     ownerUser: ownerUser,
     roleType: roleType,

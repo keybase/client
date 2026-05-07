@@ -76,7 +76,7 @@ func testCRInitPtrs(n int) (currPtr byte, ptrs []data.BlockPointer,
 ) {
 	currPtr = byte(42)
 	revPtrs = make(map[data.BlockPointer]data.BlockPointer)
-	for i := 0; i < n; i++ {
+	for range n {
 		ptr := data.BlockPointer{ID: kbfsblock.FakeID(currPtr)}
 		currPtr++
 		ptrs = append(ptrs, ptr)
@@ -578,7 +578,7 @@ func TestCRChainsCollapsedSyncOps(t *testing.T) {
 
 	var so1, so2 *syncOp
 	var err error
-	for i := uint64(0); i < numWrites; i++ {
+	for range numWrites {
 		so1, err = newSyncOp(expected[file1Unref])
 		require.NoError(t, err)
 		so1.Writes = append(so1.Writes, WriteRange{Off: currOff, Len: writeLen})

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -1864,10 +1865,8 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		if err != nil {
 			return false, err
 		}
-		for _, uv := range uvs {
-			if uv == meUV {
-				return true, nil
-			}
+		if slices.Contains(uvs, meUV) {
+			return true, nil
 		}
 		return false, nil
 	}
@@ -1900,11 +1899,9 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		if len(owners) > 1 {
 			return true, nil
 		}
-		for _, owner := range owners {
-			if owner == meUV {
-				g.Log.CDebugf(ctx, "hasOtherOwner: I am the sole owner")
-				return false, nil
-			}
+		if slices.Contains(owners, meUV) {
+			g.Log.CDebugf(ctx, "hasOtherOwner: I am the sole owner")
+			return false, nil
 		}
 		return true, nil
 	}

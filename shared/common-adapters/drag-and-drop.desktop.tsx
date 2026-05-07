@@ -110,16 +110,6 @@ const styles = Styles.styleSheetCreate(
           padding: Styles.globalMargins.large,
         },
       }),
-      icon: {
-        position: 'relative',
-        top: 2,
-      },
-      iconContainer: {
-        backgroundColor: Styles.globalColors.blue,
-        borderRadius: 100,
-        height: 48,
-        width: 48,
-      },
     }) as const
 )
 

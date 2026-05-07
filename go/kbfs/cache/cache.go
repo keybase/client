@@ -123,7 +123,7 @@ func NewLRUEvictedCache(maxBytes int) Cache {
 		maxBytes: maxBytes,
 	}
 	c.data = &lru.Cache{
-		OnEvicted: func(key lru.Key, value interface{}) {
+		OnEvicted: func(key lru.Key, value any) {
 			// No locking is needed in this function because we do them in
 			// public methods Get/Add, and RemoveOldest() is only called in the
 			// Add method.

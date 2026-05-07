@@ -3,12 +3,13 @@ import type {Props} from './you-rekey'
 
 const YouRekey = ({onRekey}: Props) => {
   return (
-    <Kb.Box style={styles.container}>
-      <Kb.Box
+    <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-start" flex={1} style={styles.container}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        justifyContent="center"
         style={{
-          ...Kb.Styles.globalStyles.flexBoxRow,
           backgroundColor: Kb.Styles.globalColors.red,
-          justifyContent: 'center',
         }}
       >
         <Kb.Text
@@ -18,11 +19,11 @@ const YouRekey = ({onRekey}: Props) => {
         >
           This conversation needs to be rekeyed.
         </Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
       <Kb.ButtonBar>
-        <Kb.Button backgroundColor="blue" onClick={onRekey} label="Rekey" />
+        <Kb.Button onClick={onRekey} label="Rekey" style={styles.primaryOnBlue} labelStyle={styles.primaryOnBlueLabel} />
       </Kb.ButtonBar>
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
@@ -30,12 +31,10 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'stretch',
         backgroundColor: Kb.Styles.globalColors.blueDarker2,
-        flex: 1,
-        justifyContent: 'flex-start',
       },
+      primaryOnBlue: {backgroundColor: Kb.Styles.globalColors.white},
+      primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
     }) as const
 )
 

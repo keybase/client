@@ -1,61 +1,43 @@
-import * as C from '@/constants'
-import {useTeamsState} from '@/constants/teams'
-import * as T from '@/constants/types'
-import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as C from '@/constants'
+import type * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
 import OpenMeta from './openmeta'
 import {default as TeamInfo, type Props as TIProps} from './teaminfo'
-import {useTrackerState} from '@/constants/tracker2'
-import {useCurrentUserState} from '@/constants/current-user'
+import {useCurrentUserState} from '@/stores/current-user'
+import {useTeamsList} from '@/teams/use-teams-list'
+import {showTeamByName} from '@/teams/team-page-actions'
 
-type OwnProps = {username: string}
+type OwnProps = {
+  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
+  username: string
+}
 
 const noTeams = new Array<T.Tracker.TeamShowcase>()
 
 const Container = (ownProps: OwnProps) => {
-  const d = useTrackerState(s => s.getDetails(ownProps.username))
-  const _isYou = useCurrentUserState(s => s.username === ownProps.username)
-  const teamsState = useTeamsState(
-    C.useShallow(s => ({
-      _roles: s.teamRoleMap.roles,
-      _teamNameToID: s.teamNameToID,
-      _youAreInTeams: s.teamnames.size > 0,
-      joinTeam: s.dispatch.joinTeam,
-      showTeamByName: s.dispatch.showTeamByName,
-    }))
-  )
-  const {joinTeam, showTeamByName, _roles} = teamsState
-  const {_teamNameToID, _youAreInTeams} = teamsState
-  const teamShowcase = d.teamShowcase || noTeams
-  const {clearModals, navigateAppend} = C.useRouterState(
-    C.useShallow(s => ({
-      clearModals: s.dispatch.clearModals,
-      navigateAppend: s.dispatch.navigateAppend,
-    }))
-  )
-  const _onEdit = () => {
-    navigateAppend('profileShowcaseTeamOffer')
+  const isYou = useCurrentUserState(s => s.username === ownProps.username)
+  const {teams} = useTeamsList()
+  const teamNameToID = React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
+  const teamNames = React.useMemo(() => new Set(teams.map(team => team.teamname)), [teams])
+  const youAreInTeams = teams.length > 0
+  const teamShowcase = ownProps.teamShowcase || noTeams
+  const {clearModals, navigateAppend} = C.Router2
+  const onEditTeams = () => {
+    navigateAppend({name: 'profileShowcaseTeamOffer', params: {}})
   }
-  const onJoinTeam = joinTeam
+  const onJoinTeam = (teamname: string) =>
+    navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
   const onViewTeam = (teamname: string) => {
     clearModals()
-    showTeamByName(teamname)
+    const teamID = teamNameToID.get(teamname)
+    if (teamID) {
+      navigateAppend({name: 'team', params: {teamID}})
+      return
+    }
+    void showTeamByName(teamname)
   }
-  const onEdit = _isYou && _youAreInTeams ? _onEdit : undefined
-  const teamMeta = teamShowcase.reduce<{
-    [key: string]: {
-      inTeam: boolean
-      teamID: T.Teams.TeamID
-    }
-  }>((map, t) => {
-    const teamID = _teamNameToID.get(t.name) || T.Teams.noTeamID
-    map[t.name] = {
-      inTeam: !!((_roles.get(teamID)?.role || 'none') !== 'none'),
-      teamID,
-    }
-    return map
-  }, {})
-
+  const onEdit = isYou && youAreInTeams ? onEditTeams : undefined
   return onEdit || teamShowcase.length > 0 ? (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.showcases}>
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
@@ -69,7 +51,7 @@ const Container = (ownProps: OwnProps) => {
           {...t}
           onJoinTeam={onJoinTeam}
           onViewTeam={() => onViewTeam(t.name)}
-          inTeam={teamMeta[t.name]?.inTeam ?? false}
+          inTeam={teamNames.has(t.name)}
         />
       ))}
     </Kb.Box2>
@@ -78,13 +60,10 @@ const Container = (ownProps: OwnProps) => {
 
 const TeamShowcase = (props: Omit<TIProps, 'visible' | 'onHidden'>) => {
   const {name, isOpen} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return <TeamInfo {...props} attachTo={attachTo} onHidden={hidePopup} visible={true} />
-    },
-    [props]
-  )
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return <TeamInfo {...props} attachTo={attachTo} onHidden={hidePopup} visible={true} />
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <Kb.ClickableBox ref={popupAnchor} onClick={showPopup}>
@@ -106,7 +85,7 @@ const ShowcaseTeamsOffer = (p: {onEdit: () => void}) => (
   <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
     <Kb.ClickableBox onClick={p.onEdit}>
       <Kb.Box2 direction="horizontal" gap="tiny">
-        <Kb.Icon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
+        <Kb.ImageIcon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
         <Kb.Text style={styles.youFeatureTeam} type="BodyPrimaryLink">
           {"Feature the teams you're in"}
         </Kb.Text>

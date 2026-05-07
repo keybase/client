@@ -37,7 +37,7 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 	m := libkb.NewMetaContext(ctx, t.G())
 	defer m.Trace(fmt.Sprintf("Script(%s)", arg.Script), &err)()
 	args := arg.Args
-	log := func(format string, args ...interface{}) {
+	log := func(format string, args ...any) {
 		t.G().Log.CInfof(ctx, format, args...)
 	}
 	defer time.Sleep(100 * time.Millisecond) // Without this CInfof often doesn't reach the CLI
@@ -93,7 +93,7 @@ func (t *DebuggingHandler) FirstStep(ctx context.Context, arg keybase1.FirstStep
 	client := t.rpcClient()
 	cbArg := keybase1.SecondStepArg{Val: arg.Val + 1, SessionID: arg.SessionID}
 	var cbReply int
-	err = client.Call(ctx, "keybase.1.debugging.secondStep", []interface{}{cbArg}, &cbReply, 0)
+	err = client.Call(ctx, "keybase.1.debugging.secondStep", []any{cbArg}, &cbReply, 0)
 	if err != nil {
 		return
 	}

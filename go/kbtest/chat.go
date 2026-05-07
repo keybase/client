@@ -117,7 +117,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 		tlfKeys: make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey),
 		Msgs:    make(map[chat1.ConvIDStr][]*chat1.MessageBoxed),
 	}
-	for i := 0; i < numUsers; i++ {
+	for range numUsers {
 		kbTc := externalstest.SetupTest(t, "chat_"+name, 0)
 		tc := ChatTestContext{
 			TestContext: kbTc,
@@ -201,8 +201,8 @@ func CanonicalTlfNameForTest(tlfName string) keybase1.CanonicalTlfName {
 	// TODO: implement rest when we need it
 	var names []string
 	nameMap := make(map[string]bool)
-	rawNames := strings.Split(tlfName, ",")
-	for _, rn := range rawNames {
+	rawNames := strings.SplitSeq(tlfName, ",")
+	for rn := range rawNames {
 		if nameMap[rn] {
 			continue
 		}
@@ -227,7 +227,7 @@ func (m *TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, err
 	defer m.Unlock()
 	tlfID, ok := m.world.tlfs[cname]
 	if !ok {
-		for _, n := range strings.Split(string(cname), ",") {
+		for n := range strings.SplitSeq(string(cname), ",") {
 			if m.world.Users[n] == nil {
 				return "", fmt.Errorf("user %s not found", n)
 			}

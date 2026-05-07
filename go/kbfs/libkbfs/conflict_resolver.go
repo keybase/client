@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	sysPath "path"
 	"runtime/debug"
@@ -1968,7 +1969,8 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 				"merged path for old parent %v", chain.mostRecent)
 		}
 		mergedPathNewParent := mergedNodeCache.PathFromNode(node)
-		symPath := "./"
+		var symPath strings.Builder
+		symPath.WriteString("./")
 		newParentStart := 0
 	outer:
 		for i := len(mergedPathOldParent.Path) - 1; i >= 0; i-- {
@@ -1987,17 +1989,17 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 					break outer
 				}
 			}
-			symPath += "../"
+			symPath.WriteString("../")
 		}
 		// Move up directories starting from beyond the common parent,
 		// to right before the actual node.
 		for i := newParentStart + 1; i < len(mergedPathNewParent.Path)-1; i++ {
-			symPath += mergedPathNewParent.Path[i].Name.Plaintext() + "/"
+			symPath.WriteString(mergedPathNewParent.Path[i].Name.Plaintext() + "/")
 		}
-		symPath += mergedInfo.newName
+		symPath.WriteString(mergedInfo.newName)
 
 		err = cr.convertCreateIntoSymlinkOrCopy(ctx, original, unmergedInfo,
-			chain, unmergedChains, mergedChains, symPath)
+			chain, unmergedChains, mergedChains, symPath.String())
 		if err != nil {
 			return nil, err
 		}
@@ -3090,9 +3092,7 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 		updates[original] = chain.mostRecent
 		ptrs = append(ptrs, chain.mostRecent)
 	}
-	for ptr, chain := range chainsToAdd {
-		mergedChains.byMostRecent[ptr] = chain
-	}
+	maps.Copy(mergedChains.byMostRecent, chainsToAdd)
 
 	// If any nodes changed only in the unmerged branch, make sure we
 	// update the pointers in the local ops (e.g., renameOp.Renamed)
@@ -3391,7 +3391,7 @@ func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 //     failure to the DB.
 func (cr *ConflictResolver) recordFinishResolve(
 	ctx context.Context, ci conflictInput,
-	panicVar interface{}, receivedErr error,
+	panicVar any, receivedErr error,
 ) {
 	db, key, _, wasStuck, err := cr.isStuckWithDbAndConflicts()
 	if err != nil {

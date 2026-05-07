@@ -273,7 +273,7 @@ func (link *SCChainLink) UnmarshalPayload() (res SCChainLinkPayload, err error) 
 }
 
 type SCChainLinkPayload struct {
-	Body                SCPayloadBody                `json:"body,omitempty"`
+	Body                SCPayloadBody                `json:"body"`
 	Ctime               int                          `json:"ctime,omitempty"` // UnixTime
 	ExpireIn            int                          `json:"expire_in,omitempty"`
 	Prev                *string                      `json:"prev,omitempty"`

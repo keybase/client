@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"maps"
 	"sync"
 	"time"
 
@@ -78,9 +79,7 @@ func (upc *unflushedPathCache) getUnflushedPaths() unflushedPathsMap {
 	// Only need to deep-copy the outer level of the map; the inner
 	// level (per-revision) shouldn't be modified us once it's set,
 	// and the caller isn't supposed to modify it.
-	for k, v := range upc.unflushedPaths {
-		cache[k] = v
-	}
+	maps.Copy(cache, upc.unflushedPaths)
 	return cache
 }
 
@@ -395,13 +394,11 @@ func (upc *unflushedPathCache) initialize(ctx context.Context,
 	// Only need to deep-copy the outer level of the map; the inner
 	// level (per-revision) shouldn't be modified us once it's set,
 	// and the caller isn't supposed to modify it.
-	for k, v := range unflushedPaths {
-		initialUnflushedPaths[k] = v
-	}
+	maps.Copy(initialUnflushedPaths, unflushedPaths)
 
 	// Try to drain the queue a few times.  We may be unable to if we
 	// are continuously racing with MD puts.
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		queue := upc.setCacheIfPossible(unflushedPaths, cpp)
 		if len(queue) == 0 {
 			// Return the paths corresponding only to the original set

@@ -5,7 +5,6 @@ import * as T from '@/constants/types'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
-import {useBotsState} from '@/constants/bots'
 
 type Props = {botUsername: string}
 
@@ -35,24 +34,14 @@ const BotTeamPicker = (props: Props) => {
     )
   }
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const onClose = () => {
-    clearModals()
-  }
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const navigateAppend = C.Router2.navigateAppend
   const onSelect = (convID: T.RPCChat.ConversationID) => {
     const conversationIDKey = T.Chat.conversationIDToKey(convID)
     navigateAppend({
-      props: {botUsername, conversationIDKey},
-      selected: 'chatInstallBot',
+      name: 'chatInstallBot',
+      params: {botUsername, conversationIDKey},
     })
   }
-
-  const getFeaturedBots = useBotsState(s => s.dispatch.getFeaturedBots)
-  C.useOnMountOnce(() => {
-    getFeaturedBots()
-  })
-
   const renderResult = (index: number, item: T.RPCChat.ConvSearchHit) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)}>
@@ -70,17 +59,7 @@ const BotTeamPicker = (props: Props) => {
     )
   }
   return (
-    <Kb.Modal
-      onClose={onClose}
-      header={{
-        leftButton: Kb.Styles.isMobile ? (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {'Cancel'}
-          </Kb.Text>
-        ) : undefined,
-        title: 'Add to team or chat',
-      }}
-    >
+    <>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.SearchFilter
@@ -100,16 +79,16 @@ const BotTeamPicker = (props: Props) => {
               {error}
             </Kb.Text>
           ) : (
-            <Kb.List2
+            <Kb.List
               indexAsKey={true}
               items={results}
-              itemHeight={{sizeType: 'Large', type: 'fixedListItem2Auto'}}
+              itemHeight={{sizeType: 'Large', type: 'fixedListItemAuto'}}
               renderItem={renderResult}
             />
           )}
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Modal>
+    </>
   )
 }
 

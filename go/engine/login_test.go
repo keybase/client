@@ -98,7 +98,7 @@ func TestLoginAndSwitchWithoutLogout(t *testing.T) {
 		err := u.SwitchTo(tc.G, false)
 		require.NoError(t, err)
 	}
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		swtch(u1)
 		swtch(u2)
 	}
@@ -614,7 +614,7 @@ func TestProvisionAutoreset(t *testing.T) {
 
 	// Rather than sleeping we'll wait for autoreset by analyzing its state
 	var lastErr error
-	for i := 0; i < 60; i++ {
+	for range 60 {
 		// up to 60 iters * 100ms = 6s
 		lastErr = assertAutoreset(tcX, userX.UID(), libkb.AutoresetEventReady)
 		if lastErr == nil {
@@ -1560,7 +1560,7 @@ func TestProvisionGPGSign(t *testing.T) {
 	// this test sometimes fails at the GPG level with a "Bad signature" error,
 	// so we're going to retry it several times to hopefully get past it.
 	attempts := 10
-	for i := 0; i < attempts; i++ {
+	for i := range attempts {
 		tc := SetupEngineTest(t, "login")
 		defer tc.Cleanup()
 
@@ -1672,7 +1672,7 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 	// this test sometimes fails at the GPG level with a "Bad signature" error,
 	// so we're going to retry it several times to hopefully get past it.
 	attempts := 10
-	for i := 0; i < attempts; i++ {
+	for i := range attempts {
 		tc := SetupEngineTest(t, "login")
 		defer tc.Cleanup()
 
@@ -1739,7 +1739,7 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 	// this test sometimes fails at the GPG level with a "Bad signature" error,
 	// so we're going to retry it several times to hopefully get past it.
 	attempts := 10
-	for i := 0; i < attempts; i++ {
+	for i := range attempts {
 		tc := SetupEngineTest(t, "login")
 		defer tc.Cleanup()
 
@@ -2427,7 +2427,7 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 func TestProvisionMultipleUsers(t *testing.T) {
 	// make some users with synced pgp keys
 	users := make([]*FakeUser, 3)
-	for i := 0; i < len(users); i++ {
+	for i := range users {
 		tc := SetupEngineTest(t, "login")
 		users[i] = createFakeUserWithPGPOnly(t, tc)
 		Logout(tc)
@@ -3512,7 +3512,7 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 	// this test sometimes fails at the GPG level with a "Bad signature" error,
 	// so we're going to retry it several times to hopefully get past it.
 	attempts := 10
-	for i := 0; i < attempts; i++ {
+	for i := range attempts {
 		tc := SetupEngineTest(t, "login")
 		defer tc.Cleanup()
 
@@ -3999,7 +3999,7 @@ func newTestProvisionUIGPGSign() *testProvisionUI {
 	return ui
 }
 
-func (u *testProvisionUI) printf(format string, a ...interface{}) {
+func (u *testProvisionUI) printf(format string, a ...any) {
 	if !u.verbose {
 		return
 	}

@@ -1,11 +1,13 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import {useProfileState} from '@/constants/profile'
-import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {Props} from '.'
 import type {ImageInfo} from '@/util/expo-image-picker.native'
+import {fixCrop} from '@/util/crop'
+import {getNextRouteAfterAvatar} from '@/teams/new-team/wizard/state'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {uploadTeamAvatar} from '@/teams/actions'
 
 type TeamProps = {
   createdTeam?: boolean
@@ -50,23 +52,26 @@ export default (ownProps: Props): Ret => {
   const sperror = C.Waiting.useAnyErrors(C.waitingKeyProfileUploadAvatar)
   const sendChatNotification = ownProps.sendChatNotification ?? false
   const submitting = C.Waiting.useAnyWaiting(C.waitingKeyProfileUploadAvatar)
-  const teamname = Teams.useTeamsState(s => (teamID ? Teams.getTeamNameFromID(s, teamID) : undefined) ?? '')
+  const {teamMeta} = useLoadedTeam(teamID ?? T.Teams.noTeamID, !!teamID)
+  const teamname = teamMeta.teamname
+  const parentTeamID = ownProps.newTeamWizard?.parentTeamID ?? T.Teams.noTeamID
+  const {teamMeta: parentTeamMeta} = useLoadedTeam(parentTeamID, parentTeamID !== T.Teams.noTeamID)
 
   const dispatchClearWaiting = C.Waiting.useDispatchClearWaiting()
   React.useEffect(() => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
   }, [dispatchClearWaiting])
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
+  const navigateUp = C.Router2.navigateUp
+  const navigateAppend = C.Router2.navigateAppend
   const onBack = () => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
     navigateUp()
   }
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
+  const clearModals = C.Router2.clearModals
   const onClose = () => {
     dispatchClearWaiting(C.waitingKeyProfileUploadAvatar)
     clearModals()
   }
-  const uploadTeamAvatar = Teams.useTeamsState(s => s.dispatch.uploadTeamAvatar)
   const onSaveTeamAvatar = (
     _filename: string,
     teamname: string,
@@ -77,19 +82,45 @@ export default (ownProps: Props): Ret => {
     uploadTeamAvatar(teamname, filename, sendChatNotification, crop)
   }
 
-  const uploadAvatar = useProfileState(s => s.dispatch.uploadAvatar)
+  const uploadAvatar = C.useRPC(T.RPCGen.userUploadUserAvatarRpcPromise)
 
   const onSaveUserAvatar = (_filename: string, crop?: T.RPCGen.ImageCropRect) => {
     const filename = Kb.Styles.unnormalizePath(_filename)
-    uploadAvatar(filename, crop)
+    uploadAvatar([{crop: fixCrop(crop), filename}, C.waitingKeyProfileUploadAvatar], () => navigateUp(), () => {})
   }
-  const setTeamWizardAvatar = Teams.useTeamsState(s => s.dispatch.setTeamWizardAvatar)
+  const parentTeamMemberCount = parentTeamMeta.memberCount
   const onSaveWizardAvatar = (_filename: string, crop?: T.Teams.AvatarCrop) => {
+    if (!ownProps.newTeamWizard) {
+      return
+    }
     const filename = Kb.Styles.unnormalizePath(_filename)
-    setTeamWizardAvatar(crop, filename)
+    const wizard = {
+      ...ownProps.newTeamWizard,
+      avatarCrop: crop,
+      avatarFilename: filename,
+    }
+    navigateAppend(
+      {
+        name: 'profileEditAvatar',
+        params: {...ownProps, newTeamWizard: wizard},
+      },
+      true
+    )
+    navigateAppend(getNextRouteAfterAvatar(wizard, parentTeamMemberCount))
   }
   const onSkip = () => {
-    setTeamWizardAvatar()
+    const wizard = ownProps.newTeamWizard
+    if (!wizard) {
+      return
+    }
+    navigateAppend(
+      {
+        name: 'profileEditAvatar',
+        params: {...ownProps, newTeamWizard: wizard},
+      },
+      true
+    )
+    navigateAppend(getNextRouteAfterAvatar(wizard, parentTeamMemberCount))
   }
 
   let error = ''

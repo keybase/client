@@ -58,7 +58,7 @@ func TestLookupUsernameOnly(t *testing.T) {
 
 	uidMap := NewUIDMap(10)
 
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		results, err := uidMap.MapUIDsToUsernamePackages(context.TODO(), tc.G, uids, 0, 0, false)
 		require.NoError(t, err)
 		for j, test := range tests {
@@ -108,7 +108,7 @@ func TestLookupUsernameConcurrent(t *testing.T) {
 
 		uidMap := NewUIDMap(10)
 
-		for i := 0; i < 4; i++ {
+		for i := range 4 {
 			results, err := uidMap.MapUIDsToUsernamePackages(context.TODO(), tc.G, uids, 0, 0, false)
 			require.NoError(t, err)
 			for j, test := range tests {

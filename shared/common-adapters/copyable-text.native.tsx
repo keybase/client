@@ -2,7 +2,7 @@ import * as React from 'react'
 import type {Props as PropsCommon} from './copyable-text'
 import {useTimeout} from './use-timers'
 import Text from './text'
-import Box from './box'
+import {Box2} from './box'
 import {TouchableHighlight} from 'react-native'
 import * as Styles from '@/styles'
 import * as Clipboard from 'expo-clipboard'
@@ -28,58 +28,55 @@ const CopyableText = (props: Props) => {
       onPress={() => handleCopy()}
       style={props.style}
     >
-      <Box style={styleBase}>
+      <Box2 direction="vertical" fullWidth={true} alignItems="flex-start" relative={true} style={styles.base}>
         <Text style={{...styleText, ...props.textStyle}} type="BodySmall">
           {props.value}
         </Text>
-        <Box style={styleCopyToastContainer}>
-          <Box style={styleCopyToast}>
+        <Box2 direction="vertical" alignItems="center" style={styles.copyToastContainer}>
+          <Box2 direction="horizontal" alignItems="center" style={styles.copyToast}>
             <Text style={styleCopyToastText} type="Body">
               {hasCopied ? 'Copied!' : 'Tap to copy'}
             </Text>
-          </Box>
-        </Box>
-      </Box>
+          </Box2>
+        </Box2>
+      </Box2>
     </TouchableHighlight>
   )
 }
 
-const styleBase = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'flex-start',
-  backgroundColor: Styles.globalColors.greyLight,
-  borderColor: Styles.globalColors.black_10,
-  borderRadius: 3,
-  borderWidth: 1,
-  // Guarantee that the first line of text is shown above the 'Tap to Copy' toast
-  minHeight: Styles.globalMargins.medium + Styles.globalMargins.tiny + 2 * Styles.globalMargins.small + 24,
-  padding: 10,
-  position: 'relative',
-} as const
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      base: {
+        backgroundColor: Styles.globalColors.greyLight,
+        borderColor: Styles.globalColors.black_10,
+        borderRadius: 3,
+        borderWidth: 1,
+        // Guarantee that the first line of text is shown above the 'Tap to Copy' toast
+        minHeight:
+          Styles.globalMargins.medium + Styles.globalMargins.tiny + 2 * Styles.globalMargins.small + 24,
+        padding: 10,
+      },
+      copyToast: {
+        backgroundColor: Styles.globalColors.black_50,
+        borderRadius: Styles.globalMargins.large,
+        height: Styles.globalMargins.medium + Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.medium,
+      },
+      copyToastContainer: {
+        bottom: Styles.globalMargins.small,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+      },
+    }) as const
+)
 
 const styleText = {
   ...Styles.globalStyles.fontTerminal,
   color: Styles.globalColors.black,
 }
-
-const styleCopyToastContainer = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  bottom: Styles.globalMargins.small,
-  left: 0,
-  position: 'absolute',
-  right: 0,
-} as const
-
-const styleCopyToast = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: Styles.globalColors.black_50,
-  borderRadius: Styles.globalMargins.large,
-  height: Styles.globalMargins.medium + Styles.globalMargins.tiny,
-  paddingLeft: Styles.globalMargins.medium,
-  paddingRight: Styles.globalMargins.medium,
-} as const
 
 const styleCopyToastText = {
   color: Styles.globalColors.white,

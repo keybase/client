@@ -1,6 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -9,34 +7,44 @@ import {useTeamLinkPopup} from './common'
 import {pluralize} from '@/util/string'
 import capitalize from 'lodash/capitalize'
 import {useSafeNavigation} from '@/util/safe-navigation'
+import {navToProfile} from '@/constants/router'
 
 type Props = {teamname: string}
+type TeamInfoResult = {teamname: string; info?: T.RPCGen.UntrustedTeamInfo}
 
 const ExternalTeam = (props: Props) => {
   const teamname = props.teamname
 
   const getTeamInfo = C.useRPC(T.RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
-  const [teamInfo, setTeamInfo] = React.useState<T.RPCGen.UntrustedTeamInfo | undefined>()
-  const [waiting, setWaiting] = React.useState(false)
+  const [teamInfoResult, setTeamInfoResult] = React.useState<TeamInfoResult | undefined>()
+  const requestIDRef = React.useRef(0)
 
   React.useEffect(() => {
-    setWaiting(true)
+    requestIDRef.current += 1
+    const requestID = requestIDRef.current
     getTeamInfo(
       [{teamName: {parts: teamname.split('.')}}], // TODO this should just take a string
       result => {
-        // Note: set all state variables in both of these cases even if they're
-        // not changing from defaults. The user might be stacking these pages on
-        // top of one another, in which case react will preserve state from
-        // previously rendered teams.
-        setWaiting(false)
-        setTeamInfo(result)
+        if (requestIDRef.current === requestID) {
+          setTeamInfoResult({info: result, teamname})
+        }
       },
       _ => {
-        setWaiting(false)
-        setTeamInfo(undefined)
+        if (requestIDRef.current === requestID) {
+          setTeamInfoResult({teamname})
+        }
       }
     )
+    return () => {
+      if (requestIDRef.current === requestID) {
+        requestIDRef.current += 1
+      }
+    }
   }, [getTeamInfo, teamname])
+
+  const visibleTeamInfoResult = teamInfoResult?.teamname === teamname ? teamInfoResult : undefined
+  const teamInfo = visibleTeamInfoResult?.info
+  const waiting = !visibleTeamInfoResult
 
   if (teamInfo) {
     return (
@@ -135,7 +143,7 @@ const Header = ({info}: ExternalTeamProps) => {
   const nav = useSafeNavigation()
   const teamname = info.name.parts?.join('.')
   const onJoin = () =>
-    nav.safeNavigateAppend({props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'})
+    nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: teamname}})
   const {popupAnchor, showPopup, popup} = useTeamLinkPopup(teamname || '')
 
   const metaInfo = (
@@ -174,18 +182,17 @@ const Header = ({info}: ExternalTeamProps) => {
 }
 
 const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem: boolean}) => {
-  const previewConversation = Chat.useChatState(s => s.dispatch.previewConversation)
+  const previewConversation = C.Router2.previewConversation
   const onChat = () => previewConversation({participants: [member.username], reason: 'teamMember'})
   const roleString = Teams.teamRoleByEnum[member.role]
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       firstItem={firstItem}
       type="Large"
       icon={<Kb.Avatar size={32} username={member.username} />}
-      onClick={() => showUserProfile(member.username)}
+      onClick={() => navToProfile(member.username)}
       body={
-        <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.memberBody}>
+        <Kb.Box2 direction="vertical" alignItems="flex-start" flex={1} style={styles.memberBody}>
           <Kb.ConnectedUsernames type="BodyBold" usernames={member.username} colorFollowing={true} />
           <Kb.Box2 direction="horizontal" alignItems="center" alignSelf="flex-start">
             {!!member.fullName && (
@@ -201,6 +208,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
             {[T.RPCGen.TeamRole.admin, T.RPCGen.TeamRole.owner].includes(member.role) && (
               <Kb.Icon
                 type={`iconfont-crown-${roleString}` as Kb.IconType}
+                color={roleString === 'owner' ? Kb.Styles.globalColors.yellowDark : Kb.Styles.globalColors.black_35}
                 sizeType="Small"
                 style={styles.crownIcon}
               />
@@ -209,7 +217,7 @@ const Member = ({member, firstItem}: {member: T.RPCGen.TeamMemberRole; firstItem
           </Kb.Box2>
         </Kb.Box2>
       }
-      action={<Kb.Button type="Dim" mode="Secondary" onClick={onChat} icon="iconfont-chat" small={true} />}
+      action={<Kb.IconButton type="Dim" mode="Secondary" onClick={onChat} icon="iconfont-chat" small={true} />}
       onlyShowActionOnHover="fade"
     />
   )
@@ -235,7 +243,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
   },
   memberBody: {
-    flex: 1,
     paddingRight: Kb.Styles.globalMargins.tiny,
   },
   meta: Kb.Styles.platformStyles({

@@ -39,6 +39,6 @@ func (sfi *submoduleFileInfo) IsDir() bool {
 	return false
 }
 
-func (sfi *submoduleFileInfo) Sys() interface{} {
+func (sfi *submoduleFileInfo) Sys() any {
 	return nil
 }

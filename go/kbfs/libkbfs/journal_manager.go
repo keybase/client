@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -96,7 +97,7 @@ type JournalManagerStatus struct {
 	UnflushedBytes    int64
 	UnflushedPaths    []string
 	EndEstimate       *time.Time
-	DiskLimiterStatus interface{}
+	DiskLimiterStatus any
 	Conflicts         []ConflictJournalRecord `json:",omitempty"`
 	ClearedConflicts  []ConflictJournalRecord `json:",omitempty"`
 }
@@ -550,9 +551,7 @@ func (j *JournalManager) insertConflictJournalLocked(
 	for _, k := range toDel {
 		delete(j.clearedConflictTlfs, k)
 	}
-	for k, v := range toAdd {
-		j.clearedConflictTlfs[k] = v
-	}
+	maps.Copy(j.clearedConflictTlfs, toAdd)
 
 	j.clearedConflictTlfs[key] = val
 	j.tlfJournals[fakeTlfID] = tj
@@ -778,10 +777,7 @@ func (j *JournalManager) EnableExistingJournals(
 
 	// Initialize many TLF journals at once to overlap disk latency as
 	// much as possible.
-	numWorkers := 100
-	if numWorkers > len(fileInfos) {
-		numWorkers = len(fileInfos)
-	}
+	numWorkers := min(100, len(fileInfos))
 	for i := 0; i < numWorkers; i++ {
 		eg.Go(worker)
 	}

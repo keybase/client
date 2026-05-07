@@ -19,16 +19,16 @@ func (v *versionUI) GetDumbOutputUI() libkb.DumbOutputUI {
 	return v
 }
 
-func (v *versionUI) Printf(format string, args ...interface{}) (n int, err error) {
+func (v *versionUI) Printf(format string, args ...any) (n int, err error) {
 	return v.PrintfUnescaped(format, args...)
 }
 
-func (v *versionUI) PrintfUnescaped(format string, args ...interface{}) (n int, err error) {
+func (v *versionUI) PrintfUnescaped(format string, args ...any) (n int, err error) {
 	v.outbuf = append(v.outbuf, fmt.Sprintf(format, args...))
 	return 0, nil
 }
 
-func (v *versionUI) PrintfStderr(format string, args ...interface{}) (n int, err error) {
+func (v *versionUI) PrintfStderr(format string, args ...any) (n int, err error) {
 	return 0, nil
 }
 

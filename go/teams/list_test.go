@@ -253,7 +253,6 @@ func TestComputeValidity(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.desc, func(t *testing.T) {
 			gotIsValid, gotValidityDescription := tt.i.md.ComputeValidity(tt.now, tt.i.userLog)
 			require.Equal(t, tt.expectedIsValid, gotIsValid)

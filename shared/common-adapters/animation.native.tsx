@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Box from './box'
+import {Box2} from './box'
 import LottieView from 'lottie-react-native'
 import type {Props, AnimationType} from './animation'
 // prettier-ignore
@@ -8,7 +8,7 @@ type AnimationObject = {
   nm: string; ddd: number; assets: unknown[]; layers: unknown[]
 }
 
-const Animation = React.memo(function Animation(props: Props) {
+function Animation(props: Props) {
   const {animationType} = props
   const [data] = React.useState(
     () => require('./animation-data.json') as {[key in AnimationType]: AnimationObject}
@@ -16,11 +16,11 @@ const Animation = React.memo(function Animation(props: Props) {
   const source = data[animationType]
 
   return (
-    <Box style={props.containerStyle}>
+    <Box2 direction="vertical" style={props.containerStyle}>
       <LottieView autoPlay={true} loop={true} source={source} style={props.style ?? noStyle} />
-    </Box>
+    </Box2>
   )
-})
+}
 
 const noStyle = {flexGrow: 1, flexShrink: 1}
 

@@ -9,6 +9,7 @@ package tlfhandle
 import (
 	"context"
 	"fmt"
+	"maps"
 	"reflect"
 	"sort"
 	"strings"
@@ -128,12 +129,8 @@ func (h Handle) IsReader(user keybase1.UID) bool {
 func (h Handle) ResolvedUsersMap() map[keybase1.UserOrTeamID]kbname.NormalizedUsername {
 	m := make(map[keybase1.UserOrTeamID]kbname.NormalizedUsername,
 		len(h.resolvedReaders)+len(h.resolvedWriters))
-	for k, v := range h.resolvedReaders {
-		m[k] = v
-	}
-	for k, v := range h.resolvedWriters {
-		m[k] = v
-	}
+	maps.Copy(m, h.resolvedReaders)
+	maps.Copy(m, h.resolvedWriters)
 	return m
 }
 
@@ -426,14 +423,10 @@ func (h Handle) DeepCopy() *Handle {
 	}
 
 	hCopy.resolvedWriters = make(map[keybase1.UserOrTeamID]kbname.NormalizedUsername, len(h.resolvedWriters))
-	for k, v := range h.resolvedWriters {
-		hCopy.resolvedWriters[k] = v
-	}
+	maps.Copy(hCopy.resolvedWriters, h.resolvedWriters)
 
 	hCopy.resolvedReaders = make(map[keybase1.UserOrTeamID]kbname.NormalizedUsername, len(h.resolvedReaders))
-	for k, v := range h.resolvedReaders {
-		hCopy.resolvedReaders[k] = v
-	}
+	maps.Copy(hCopy.resolvedReaders, h.resolvedReaders)
 
 	return &hCopy
 }

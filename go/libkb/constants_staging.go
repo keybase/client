@@ -2,7 +2,6 @@
 // this source code is governed by the included BSD license.
 
 //go:build staging
-// +build staging
 
 package libkb
 

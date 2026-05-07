@@ -90,7 +90,7 @@ type mockNodeMatcher struct {
 	node *MockNode
 }
 
-func (m mockNodeMatcher) Matches(x interface{}) bool {
+func (m mockNodeMatcher) Matches(x any) bool {
 	n, ok := x.(*MockNode)
 	if !ok {
 		return false

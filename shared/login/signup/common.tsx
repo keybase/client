@@ -45,20 +45,7 @@ export const ContinueButton = ({
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      avatar: {marginBottom: Kb.Styles.isMobile ? Kb.Styles.globalMargins.xtiny : 0},
       buttonBar: {maxWidth: 460, padding: 0, paddingTop: Kb.Styles.globalMargins.medium},
-      header: {
-        backgroundColor: Kb.Styles.globalColors.transparent,
-        borderBottomWidth: 0,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-      },
-      input: {maxWidth: 460, width: '100%'},
-      inputContainer: {alignItems: 'center', alignSelf: 'stretch'},
-      inputErrorStyle: {minHeight: 0},
-      inputInnerStyle: {width: '100%'},
       wrapper: {paddingLeft: Kb.Styles.globalMargins.medium, paddingRight: Kb.Styles.globalMargins.medium},
     }) as const
 )

@@ -465,10 +465,7 @@ func (md *MDServerMemory) getRangeLocked(ctx context.Context, id tlf.ID,
 		return nil, nil, nil
 	}
 
-	startI := int(start - blockList.initialRevision)
-	if startI < 0 {
-		startI = 0
-	}
+	startI := max(int(start-blockList.initialRevision), 0)
 	endI := int(stop - blockList.initialRevision + 1)
 	blocks := blockList.blocks
 	if endI > len(blocks) {

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/keybase/cli"
@@ -96,11 +97,9 @@ func (c *CmdSimpleFSSyncEnable) Run() error {
 			return fmt.Errorf("Must disable full syncing on %s first", arg.Path)
 		}
 
-		for _, p := range res.Config.Paths {
-			if p == subpath {
-				// Already enabled.
-				return nil
-			}
+		if slices.Contains(res.Config.Paths, subpath) {
+			// Already enabled.
+			return nil
 		}
 
 		arg.Config.Mode = keybase1.FolderSyncMode_PARTIAL

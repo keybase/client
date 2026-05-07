@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 
 type Props = {
   height: number
@@ -14,11 +14,13 @@ const LocationMap = (props: Props) => {
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const onLoad = () => {
     setMapLoaded(true)
-    !!props.onLoad && props.onLoad()
+    if (props.onLoad) {
+      props.onLoad()
+    }
   }
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-      {!!mapSrc && <Kb.Image2 src={mapSrc} style={{height, width}} onLoad={onLoad} />}
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" justifyContent="center" style={styles.container}>
+      {!!mapSrc && <Kb.Image src={mapSrc} style={{height, width}} onLoad={onLoad} />}
       {!mapLoaded && <Kb.ProgressIndicator style={styles.loading} />}
       <Kb.Banner color="white" style={styles.banner}>
         <Kb.BannerParagraph
@@ -48,10 +50,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         ...Kb.Styles.globalStyles.fillAbsolute,
-        justifyContent: 'center',
-      },
-      learn: {
-        color: Kb.Styles.globalColors.blueDark,
       },
       loading: {
         bottom: '50%',
@@ -65,10 +63,5 @@ const styles = Kb.Styles.styleSheetCreate(
         top: '50%',
         width: 24,
       },
-      mapImage: Kb.Styles.platformStyles({
-        isTablet: {
-          resizeMode: 'cover',
-        },
-      }),
     }) as const
 )

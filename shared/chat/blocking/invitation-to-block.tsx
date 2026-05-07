@@ -1,43 +1,77 @@
-import * as Chat from '@/constants/chat2'
-import {useProfileState} from '@/constants/profile'
+import * as C from '@/constants'
+import {isAssertion} from '@/constants/chat/helpers'
 import * as Kb from '@/common-adapters'
-import {useSafeNavigation} from '@/util/safe-navigation'
-import {useCurrentUserState} from '@/constants/current-user'
+import * as React from 'react'
+import {useCurrentUserState} from '@/stores/current-user'
+import {navToProfile} from '@/constants/router'
+import * as T from '@/constants/types'
+import logger from '@/logger'
+import {RPCError} from '@/util/errors'
+import {useBlockButtonsInfo} from './block-buttons-state'
+import {
+  useConversationThreadID,
+  useConversationThreadSelector,
+} from '../conversation/thread-context'
+
+const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
+  const f = async () => {
+    try {
+      await T.RPCGen.userDismissBlockButtonsRpcPromise({tlfID: teamID})
+    } catch (error) {
+      if (error instanceof RPCError) {
+        logger.error(`Couldn't dismiss block buttons: ${error.message}`)
+      }
+    }
+  }
+  C.ignorePromise(f())
+}
 
 const BlockButtons = () => {
-  const nav = useSafeNavigation()
-  const conversationIDKey = Chat.useChatContext(s => s.id)
-
-  const team = Chat.useChatContext(s => s.meta.teamname)
-  const teamID = Chat.useChatContext(s => s.meta.teamID)
-  const blockButtonInfo = Chat.useChatState(s => {
-    const blockButtonsMap = s.blockButtonsMap
-    return teamID ? blockButtonsMap.get(teamID) : undefined
-  })
-  const participantInfo = Chat.useChatContext(s => s.participants)
+  const navigateAppend = C.Router2.navigateAppend
+  const conversationIDKey = useConversationThreadID()
+  const {messageMap, messageOrdinals, participantInfo, team, teamID, tlfname} =
+    useConversationThreadSelector(
+      C.useShallow(s => ({
+        messageMap: s.messageMap,
+        messageOrdinals: s.messageOrdinals,
+        participantInfo: s.participants,
+        team: s.meta.teamname,
+        teamID: s.meta.teamID,
+        tlfname: s.meta.tlfname,
+      }))
+    )
+  const blockButtonInfo = useBlockButtonsInfo(teamID)
   const currentUser = useCurrentUserState(s => s.username)
-  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
-  const dismissBlockButtons = Chat.useChatContext(s => s.dispatch.dismissBlockButtons)
+  const hasOwnMessage =
+    !!currentUser &&
+    [...(messageOrdinals ?? [])].some(ordinal => messageMap.get(ordinal)?.author === currentUser)
+
+  React.useEffect(() => {
+    if (hasOwnMessage && blockButtonInfo && teamID) {
+      dismissBlockButtons(teamID)
+    }
+  }, [blockButtonInfo, hasOwnMessage, teamID])
+
   if (!blockButtonInfo) {
     return null
   }
   const adder = blockButtonInfo.adder
   const others = (team ? participantInfo.all : participantInfo.name).filter(
-    person => person !== currentUser && person !== adder && !Chat.isAssertion(person)
+    person => person !== currentUser && person !== adder && !isAssertion(person)
   )
 
-  const onViewProfile = () => showUserProfile(adder)
-  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
+  const onViewProfile = () => navToProfile(adder)
+  const onViewTeam = () => navigateAppend({name: 'team', params: {teamID}})
   const onBlock = () =>
-    nav.safeNavigateAppend({
-      props: {
+    navigateAppend({
+      name: 'chatBlockingModal',
+      params: {
         blockUserByDefault: true,
         conversationIDKey,
         others: others,
         team: team,
         username: adder,
       },
-      selected: 'chatBlockingModal',
     })
   const onDismiss = () => dismissBlockButtons(teamID)
 
@@ -50,6 +84,7 @@ const BlockButtons = () => {
       <Kb.WaveButton
         small={true}
         conversationIDKey={conversationIDKey}
+        tlfName={tlfname}
         toMany={others.length > 0 || !!team}
         style={styles.waveButton}
       />
@@ -86,6 +121,7 @@ const BlockButtons = () => {
       direction="vertical"
       centerChildren={true}
       gap="tiny"
+      relative={true}
       style={styles.dismissContainer}
       fullWidth={true}
     >
@@ -93,7 +129,12 @@ const BlockButtons = () => {
         <Kb.Text type="BodySmall">
           {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
         </Kb.Text>
-        <Kb.Icon style={styles.dismissIcon} type="iconfont-close" onClick={onDismiss} />
+        <Kb.Icon
+          style={styles.dismissIcon}
+          type="iconfont-close"
+          color={Kb.Styles.globalColors.black_20}
+          onClick={onDismiss}
+        />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.buttonContainer}>
         {buttonRow}
@@ -133,7 +174,6 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.blueGrey,
         paddingBottom: Kb.Styles.globalMargins.xsmall,
         paddingTop: Kb.Styles.globalMargins.xsmall,
-        position: 'relative',
       },
       dismissIcon: {
         position: 'absolute',

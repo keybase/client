@@ -163,7 +163,7 @@ func (fis fileInfoSys) EntryInfo() data.EntryInfo {
 }
 
 // Sys implements the os.FileInfo interface for FileInfo.
-func (fi *FileInfo) Sys() interface{} {
+func (fi *FileInfo) Sys() any {
 	return fileInfoSys{fi}
 }
 
@@ -214,7 +214,7 @@ func (fif *FileInfoFast) IsDir() bool {
 }
 
 // Sys implements the os.FileInfo interface.
-func (fif *FileInfoFast) Sys() interface{} {
+func (fif *FileInfoFast) Sys() any {
 	return fif
 }
 

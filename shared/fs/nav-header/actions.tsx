@@ -3,24 +3,27 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
-import * as FS from '@/constants/fs'
-import {useFSState} from '@/constants/fs'
+import {useModalHeaderState} from '@/stores/modal-header'
+import {FsBrowserEditProvider} from '../browser/edit-state'
 
 type Props = {
   onTriggerFilterMobile: () => void
   path: T.FS.Path
 }
 
-const FsNavHeaderRightActions = (props: Props) => {
-  const {softErrors, setFolderViewFilter} = useFSState(
+const FsNavHeaderRightActionsInner = (props: Props) => {
+  const {folderViewFilter, setFolderViewFilter} = useModalHeaderState(
     C.useShallow(s => ({
+      folderViewFilter: s.folderViewFilter,
       setFolderViewFilter: s.dispatch.setFolderViewFilter,
-      softErrors: s.softErrors,
     }))
   )
-  const hasSoftError = !!FS.getSoftError(softErrors, props.path)
+  Kbfs.useFsScreenCoordinator(props.path)
+  const hasSoftError = !!Kbfs.useFsSoftError(props.path)
   React.useEffect(() => {
-    !Kb.Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
+    if (!Kb.Styles.isMobile) {
+      setFolderViewFilter() // mobile is handled in mobile-header.tsx
+    }
   }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
 
   return !hasSoftError ? (
@@ -29,7 +32,12 @@ const FsNavHeaderRightActions = (props: Props) => {
       {Kb.Styles.isMobile ? (
         <Kbfs.FolderViewFilterIcon path={props.path} onClick={props.onTriggerFilterMobile} />
       ) : (
-        <Kbfs.FolderViewFilter path={props.path} style={styles.folderViewFilter} />
+        <Kbfs.FolderViewFilter
+          filter={folderViewFilter}
+          onChangeFilter={setFolderViewFilter}
+          path={props.path}
+          style={styles.folderViewFilter}
+        />
       )}
       <Kbfs.OpenInSystemFileManager path={props.path} />
       <Kbfs.PathItemAction
@@ -41,6 +49,16 @@ const FsNavHeaderRightActions = (props: Props) => {
     </Kb.Box2>
   ) : null
 }
+
+const FsNavHeaderRightActions = (props: Props) => (
+  <Kbfs.FsErrorProvider>
+    <Kbfs.FsDataProvider>
+      <FsBrowserEditProvider>
+        <FsNavHeaderRightActionsInner {...props} />
+      </FsBrowserEditProvider>
+    </Kbfs.FsDataProvider>
+  </Kbfs.FsErrorProvider>
+)
 
 export default FsNavHeaderRightActions
 

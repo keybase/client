@@ -1,156 +1,145 @@
-import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
 import * as React from 'react'
-import {useIsHighlighted, useOrdinal} from '../ids-context'
+import {useIsHighlighted} from '../ids-context'
 import * as Kb from '@/common-adapters'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import {formatDurationShort} from '@/util/timestamp'
-import SharedTimer, {type SharedTimerID} from './shared-timers'
+import SharedTimer from './shared-timers'
 import {animationDuration} from './exploding-height-retainer'
+import type * as T from '@/constants/types'
 
-export type OwnProps = {onClick?: () => void}
+export type OwnProps = {
+  exploded: boolean
+  exploding: boolean
+  explodesAt: number
+  messageKey: string
+  onClick?: () => void
+  submitState?: T.Chat.Message['submitState']
+}
 
-const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: OwnProps) {
-  const {onClick} = p
-  const ordinal = useOrdinal()
-  const [now, setNow] = React.useState(() => Date.now())
-
-  const {exploding, exploded, submitState, explodesAt, messageKey} = Chat.useChatContext(
-    C.useShallow(s => {
-      const message = s.messageMap.get(ordinal)
-      if (!message || (message.type !== 'text' && message.type !== 'attachment') || !message.exploding) {
-        return {
-          exploded: false,
-          explodesAt: 0,
-          exploding: false,
-          messageKey: '',
-          submitState: '',
-        }
-      }
-      const messageKey = Chat.getMessageKey(message)
-      const {exploding, exploded, submitState, explodingTime: explodesAt} = message
-      return {
-        exploded,
-        explodesAt,
-        exploding,
-        messageKey,
-        submitState,
-      }
-    })
+function ExplodingMetaContainer(p: OwnProps) {
+  const pending = isPendingSubmitState(p.submitState)
+  return (
+    <ExplodingMetaInner
+      {...p}
+      key={`${p.messageKey}:${pending ? 'pending' : 'active'}`}
+      pending={pending}
+    />
   )
-  const pending = submitState === 'pending' || submitState === 'failed'
+}
 
-  const lastMessageKeyRef = React.useRef(messageKey)
-  const [mode, setMode] = React.useState<Mode>('none')
+type ExplodingMetaInnerProps = OwnProps & {pending: boolean}
+type Mode = 'none' | 'countdown' | 'boom' | 'hidden'
+type TimerState = {
+  exploded: boolean
+  inter: number
+  mode: Mode
+  now: number
+}
 
-  React.useEffect(() => {
-    if (messageKey !== lastMessageKeyRef.current) {
-      lastMessageKeyRef.current = messageKey
-      setMode('none')
+const isPendingSubmitState = (submitState?: T.Chat.Message['submitState']) =>
+  submitState === 'pending' || submitState === 'failed'
+
+const cappedLoopInterval = (difference: number) => Math.min(getLoopInterval(difference), 60000)
+
+const makeInitialTimerState = (p: {
+  exploded: boolean
+  explodesAt: number
+  pending: boolean
+}): TimerState => {
+  const now = Date.now()
+  if (p.pending) {
+    return {exploded: p.exploded, inter: 0, mode: 'none', now}
+  }
+  const difference = p.explodesAt - now
+  if (difference <= 0 || p.exploded) {
+    return {exploded: p.exploded, inter: 0, mode: 'hidden', now}
+  }
+  return {exploded: p.exploded, inter: cappedLoopInterval(difference), mode: 'countdown', now}
+}
+
+function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
+  const {exploded, exploding, explodesAt, messageKey, onClick, pending} = p
+  const [timerState, setTimerState] = React.useState<TimerState>(() =>
+    makeInitialTimerState({exploded, explodesAt, pending})
+  )
+
+  let currentTimerState = timerState
+  if (timerState.exploded !== exploded) {
+    currentTimerState = {
+      ...timerState,
+      exploded,
+      inter: exploded && !timerState.exploded ? 0 : timerState.inter,
+      mode: exploded && !timerState.exploded ? 'boom' : timerState.mode,
     }
-  }, [messageKey])
+    setTimerState(currentTimerState)
+  }
+  const {inter, mode, now} = currentTimerState
 
-  const sharedTimerIDRef = React.useRef<SharedTimerID>(0)
+  const sharedTimerIDRef = React.useRef(0)
   const sharedTimerKeyRef = React.useRef('')
   const isParentHighlighted = useIsHighlighted()
-
-  const _secondLoop = React.useCallback(() => {
-    const n = Date.now()
-    setNow(n)
-    const difference = explodesAt - n
-    if (difference <= 0 || exploded) {
-      if (mode === 'countdown') {
-        setMode('boom')
-      }
-      return
-    }
-  }, [exploded, explodesAt, mode, setMode])
-
-  const [inter, setInter] = React.useState(0)
-  const updateLoop = React.useCallback(() => {
-    setNow(Date.now())
-    if (pending) {
-      setInter(0)
-      return
-    }
-
-    const difference = explodesAt - Date.now()
-    if (difference <= 0 || exploded) {
-      setMode('boom')
-      setInter(0)
-      return
-    }
-    // we don't need a timer longer than 60000 (android complains also)
-    setInter(Math.min(getLoopInterval(difference), 60000))
-  }, [exploded, explodesAt, pending, setMode])
 
   React.useEffect(() => {
     if (!inter) return () => {}
 
     if (inter < 1000) {
       // switch to 'seconds' mode
-      const id = addTicker(_secondLoop)
+      const id = addTicker(() => {
+        const n = Date.now()
+        const difference = explodesAt - n
+        setTimerState(state => {
+          if (difference <= 0 || exploded) {
+            return state.mode === 'countdown' ? {...state, mode: 'boom', now: n} : {...state, now: n}
+          }
+          return {...state, now: n}
+        })
+      })
       return () => {
         removeTicker(id)
       }
     } else {
       const id = setTimeout(() => {
-        updateLoop()
+        const n = Date.now()
+        if (pending) {
+          setTimerState(state => ({...state, inter: 0, now: n}))
+          return
+        }
+        const difference = explodesAt - n
+        if (difference <= 0 || exploded) {
+          setTimerState(state => ({...state, inter: 0, mode: 'boom', now: n}))
+          return
+        }
+        // we don't need a timer longer than 60000 (android complains also)
+        setTimerState(state => ({...state, inter: cappedLoopInterval(difference), now: n}))
       }, inter)
       return () => {
         clearTimeout(id)
       }
     }
-  }, [inter, _secondLoop, updateLoop])
+  }, [inter, explodesAt, exploded, pending])
 
-  const _setHidden = React.useCallback(() => {
-    mode !== 'hidden' && setMode('hidden')
-  }, [mode, setMode])
-
-  const _setCountdown = React.useCallback(() => {
-    if (mode === 'countdown') return
-    setMode('countdown')
-    updateLoop()
-  }, [mode, setMode, updateLoop])
-
-  const hideOrStart = React.useCallback(() => {
-    if (mode === 'none' && !pending && (Date.now() >= explodesAt || exploded)) {
-      _setHidden()
-      return
+  React.useEffect(() => {
+    if (!exploded || mode !== 'boom') {
+      return undefined
     }
-    !pending && _setCountdown()
-  }, [_setCountdown, _setHidden, exploded, explodesAt, mode, pending])
-
-  React.useEffect(() => {
-    hideOrStart()
-  }, [hideOrStart])
-
-  const lastPendingRef = React.useRef(pending)
-  React.useEffect(() => {
-    if (!pending && lastPendingRef.current) {
-      hideOrStart()
+    if (sharedTimerIDRef.current) {
+      SharedTimer.removeObserver(messageKey, sharedTimerIDRef.current)
     }
-    lastPendingRef.current = pending
-  }, [hideOrStart, pending])
-
-  const lastExplodedRef = React.useRef(exploded)
-  React.useEffect(() => {
-    if (exploded && !lastExplodedRef.current) {
-      setMode('boom')
-      sharedTimerIDRef.current && SharedTimer.removeObserver(messageKey, sharedTimerIDRef.current)
-      sharedTimerKeyRef.current = messageKey
-      sharedTimerIDRef.current = SharedTimer.addObserver(() => setMode('hidden'), {
+    sharedTimerKeyRef.current = messageKey
+    sharedTimerIDRef.current = SharedTimer.addObserver(
+      () => setTimerState(state => ({...state, mode: 'hidden'})),
+      {
         key: sharedTimerKeyRef.current,
         ms: animationDuration,
-      })
-    }
-    lastExplodedRef.current = exploded
+      }
+    )
 
     return () => {
-      sharedTimerIDRef.current &&
+      if (sharedTimerIDRef.current) {
         SharedTimer.removeObserver(sharedTimerKeyRef.current, sharedTimerIDRef.current)
+      }
     }
-  }, [exploded, messageKey, setMode, sharedTimerIDRef, sharedTimerKeyRef])
+  }, [exploded, messageKey, mode])
 
   const backgroundColor = pending
     ? Kb.Styles.globalColors.black
@@ -210,13 +199,11 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
       {children}
     </Kb.ClickableBox>
   )
-})
+}
 
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
-
-type Mode = 'none' | 'countdown' | 'boom' | 'hidden'
 
 const getLoopInterval = (diff: number) => {
   let nearestUnit: number = 0
@@ -282,19 +269,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       countdownContainerHighlighted: {backgroundColor: Kb.Styles.globalColors.blackOrBlack},
       countdownHighlighted: {color: Kb.Styles.globalColors.whiteOrWhite},
-      explodingTooltip: {marginRight: -Kb.Styles.globalMargins.xxtiny},
       hidden: {opacity: 0},
-      progressContainer: Kb.Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        isElectron: {width: 28},
-        isMobile: {
-          height: 15,
-          width: 32,
-        },
-      }),
     }) as const
 )
 

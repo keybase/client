@@ -160,7 +160,7 @@ func TestLookupUsernameAndDevice(t *testing.T) {
 		require.Equal(t, typ, keybase1.DeviceTypeV2_DESKTOP, "right type")
 	}
 
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		test()
 		test()
 		fakeClock.Advance(10 * time.Hour)
@@ -185,7 +185,7 @@ func TestLookupUID(t *testing.T) {
 		require.Equal(t, uid, uid2)
 	}
 
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		test()
 		test()
 		fakeClock.Advance(10 * time.Hour)

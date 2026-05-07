@@ -1,6 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
-import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import Rover from './background'
@@ -11,8 +9,18 @@ import type * as T from '@/constants/types'
 import {Bot} from '../conversation/info-panel/bot'
 import {TeamAvatar} from '../avatars'
 import {inboxWidth} from '../inbox/row/sizes'
+import {
+  inboxSearchMaxTextMessages,
+  inboxSearchPreviewSectionSize,
+  type InboxSearchController,
+  type InboxSearchVisibleResultCounts,
+} from '../inbox/use-inbox-search'
+import {showTeamByName} from '@/teams/team-page-actions'
 
-type OwnProps = {header?: React.ReactElement | null}
+type OwnProps = {
+  header?: React.ReactElement | null
+  search: Pick<InboxSearchController, 'searchInfo' | 'selectResult' | 'setVisibleResultCounts'>
+}
 
 type NameResult = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -42,28 +50,21 @@ type OpenTeamResult = {
 
 type Item = NameResult | TextResult | BotResult | OpenTeamResult
 
-const emptySearch = Chat.makeInboxSearchInfo()
-
-export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
-  const _inboxSearch = Chat.useChatState(s => s.inboxSearch ?? emptySearch)
-  const toggleInboxSearch = Chat.useChatState(s => s.dispatch.toggleInboxSearch)
-  const inboxSearchSelect = Chat.useChatState(s => s.dispatch.inboxSearchSelect)
-  const onCancel = React.useCallback(() => {
-    toggleInboxSearch(false)
-  }, [toggleInboxSearch])
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
-  const onInstallBot = React.useCallback(
-    (username: string) => {
-      navigateAppend({props: {botUsername: username}, selected: 'chatInstallBotPick'})
-    },
-    [navigateAppend]
-  )
-  const onSelectConversation = React.useCallback(
-    (conversationIDKey: T.Chat.ConversationIDKey, selectedIndex: number, query: string) => {
-      inboxSearchSelect(conversationIDKey, query.length > 0 ? query : undefined, selectedIndex)
-    },
-    [inboxSearchSelect]
-  )
+export default function InboxSearchContainer(ownProps: OwnProps) {
+  const {
+    search: {searchInfo: _inboxSearch, selectResult, setVisibleResultCounts},
+  } = ownProps
+  const navigateAppend = C.Router2.navigateAppend
+  const onInstallBot = (username: string) => {
+    navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
+  }
+  const onSelectConversation = (
+    conversationIDKey: T.Chat.ConversationIDKey,
+    selectedIndex: number,
+    query: string
+  ) => {
+    selectResult(conversationIDKey, query.length > 0 ? query : undefined, selectedIndex)
+  }
   const {header} = ownProps
   const {indexPercent, nameResults: _nameResults, nameResultsUnread, nameStatus, textStatus} = _inboxSearch
   const {botsResults: _botsResults, botsResultsSuggested, botsStatus} = _inboxSearch
@@ -76,29 +77,18 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
   const [openTeamsAll, setOpenTeamsAll] = React.useState(false)
   const [openTeamsCollapsed, setOpenTeamsCollapsed] = React.useState(false)
   const [textCollapsed, setTextCollapsed] = React.useState(false)
-  const toggleCollapseName = React.useCallback(() => {
-    setNameCollapsed(s => !s)
-  }, [])
-  const toggleCollapseText = React.useCallback(() => {
-    setTextCollapsed(s => !s)
-  }, [])
-  const toggleCollapseOpenTeams = React.useCallback(() => {
-    setOpenTeamsCollapsed(s => !s)
-  }, [])
-  const toggleOpenTeamsAll = React.useCallback(() => {
-    setOpenTeamsAll(s => !s)
-  }, [])
-  const toggleCollapseBots = React.useCallback(() => {
-    setBotsCollapsed(s => !s)
-  }, [])
-  const toggleBotsAll = React.useCallback(() => {
-    setBotsAll(s => !s)
-  }, [])
+  const toggleCollapseName = () => setNameCollapsed(s => !s)
+  const toggleCollapseText = () => setTextCollapsed(s => !s)
+  const toggleCollapseOpenTeams = () => setOpenTeamsCollapsed(s => !s)
+  const toggleOpenTeamsAll = () => setOpenTeamsAll(s => !s)
+  const toggleCollapseBots = () => setBotsCollapsed(s => !s)
+  const toggleBotsAll = () => setBotsAll(s => !s)
 
-  const renderOpenTeams = (h: {item: Item; index: number}) => {
-    const {item} = h
+  const renderOpenTeams: Section['renderItem'] = ({item, index, section}) => {
     if (item.type !== 'openTeam') return null
+    const fullSection = section as Section
     const {hit} = item
+    const realIndex = index + fullSection.indexOffset
     return (
       <OpenTeamRow
         description={hit.description}
@@ -106,18 +96,23 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
         memberCount={hit.memberCount}
         inTeam={hit.inTeam}
         publicAdmins={hit.publicAdmins}
-        isSelected={false}
+        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
       />
     )
   }
 
-  const renderBots = (h: {item: Item; index: number}) => {
-    const {item, index} = h
+  const renderBots: Section['renderItem'] = ({item, index, section}) => {
     if (item.type !== 'bot') return null
+    const fullSection = section as Section
+    const realIndex = index + fullSection.indexOffset
     return (
-      <Chat.ChatProvider id={Chat.noConversationIDKey} key={index} canBeNull={true}>
-        <Bot {...item.bot} onClick={onInstallBot} firstItem={index === 0} hideHover={true} />
-      </Chat.ChatProvider>
+      <Bot
+        {...item.bot}
+        onClick={onInstallBot}
+        firstItem={index === 0}
+        hideHover={true}
+        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
+      />
     )
   }
 
@@ -143,8 +138,14 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const renderTeamHeader = (section: Section) => {
-    const showMore = _openTeamsResults.length > 3 && !openTeamsCollapsed
+  const renderHeaderWithMore = (
+    section: Section,
+    resultsLength: number,
+    collapsed: boolean,
+    showAll: boolean,
+    toggleAll: () => void
+  ) => {
+    const showMore = resultsLength > 3 && !collapsed
     const label = (
       <Kb.Box2 direction="horizontal" gap="xtiny">
         <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
@@ -152,11 +153,11 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
           <Kb.Text
             onClick={(e: React.BaseSyntheticEvent) => {
               e.stopPropagation()
-              toggleOpenTeamsAll()
+              toggleAll()
             }}
             type="BodySmallSecondaryLink"
           >
-            {!openTeamsAll ? '(more)' : '(less)'}
+            {!showAll ? '(more)' : '(less)'}
           </Kb.Text>
         )}
       </Kb.Box2>
@@ -171,33 +172,11 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     )
   }
 
-  const renderBotsHeader = (section: Section) => {
-    const showMore = _botsResults.length > 3 && !botsCollapsed
-    const label = (
-      <Kb.Box2 direction="horizontal" gap="xtiny">
-        <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
-        {showMore && (
-          <Kb.Text
-            onClick={(e: React.BaseSyntheticEvent) => {
-              e.stopPropagation()
-              toggleBotsAll()
-            }}
-            type="BodySmallSecondaryLink"
-          >
-            {!botsAll ? '(more)' : '(less)'}
-          </Kb.Text>
-        )}
-      </Kb.Box2>
-    )
-    return (
-      <Kb.SectionDivider
-        collapsed={section.isCollapsed}
-        label={label}
-        onToggleCollapsed={section.onCollapse}
-        showSpinner={section.status === 'inprogress'}
-      />
-    )
-  }
+  const renderTeamHeader = (section: Section) =>
+    renderHeaderWithMore(section, _openTeamsResults.length, openTeamsCollapsed, openTeamsAll, toggleOpenTeamsAll)
+
+  const renderBotsHeader = (section: Section) =>
+    renderHeaderWithMore(section, _botsResults.length, botsCollapsed, botsAll, toggleBotsAll)
 
   const renderTextHeader = (section: Section) => {
     const ratio = indexPercent / 100.0
@@ -246,37 +225,33 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
 
     if (h.item.type !== 'text' && h.item.type !== 'name') return null
 
-    const {item: _item, section, index} = h
-    const item = _item
+    const {item, section, index} = h
     const numHits = item.type === 'text' ? item.numHits : undefined
     const realIndex = index + section.indexOffset
     return item.sizeType === 'big' ? (
-      <Chat.ChatProvider id={item.conversationIDKey}>
-        <SelectableBigTeamChannel
-          isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
-          name={item.name}
-          numSearchHits={numHits}
-          maxSearchHits={Chat.inboxSearchMaxTextMessages}
-          onSelectConversation={() => section.onSelect(item, realIndex)}
-        />
-      </Chat.ChatProvider>
+      <SelectableBigTeamChannel
+        conversationIDKey={item.conversationIDKey}
+        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
+        name={item.name}
+        numSearchHits={numHits}
+        maxSearchHits={inboxSearchMaxTextMessages}
+        onSelectConversation={() => section.onSelect(item, realIndex)}
+      />
     ) : (
-      <Chat.ChatProvider id={item.conversationIDKey}>
-        <SelectableSmallTeam
-          isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
-          name={item.name}
-          numSearchHits={numHits}
-          maxSearchHits={Chat.inboxSearchMaxTextMessages}
-          onSelectConversation={() => section.onSelect(item, realIndex)}
-        />
-      </Chat.ChatProvider>
+      <SelectableSmallTeam
+        conversationIDKey={item.conversationIDKey}
+        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
+        name={item.name}
+        numSearchHits={numHits}
+        maxSearchHits={inboxSearchMaxTextMessages}
+        onSelectConversation={() => section.onSelect(item, realIndex)}
+      />
     )
   }
 
   const selectName = (item: Item, index: number) => {
     if (item.type !== 'name') return
     onSelectConversation(item.conversationIDKey, index, '')
-    onCancel()
   }
 
   const nameResults: Array<NameResult> = nameCollapsed
@@ -313,10 +288,32 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     ? []
     : openTeamsAll
       ? _openTeamsResults
-      : _openTeamsResults.slice(0, 3)
+      : _openTeamsResults.slice(0, inboxSearchPreviewSectionSize)
 
-  const botsResults = botsCollapsed ? [] : botsAll ? _botsResults : _botsResults.slice(0, 3)
+  const botsResults =
+    botsCollapsed ? [] : botsAll ? _botsResults : _botsResults.slice(0, inboxSearchPreviewSectionSize)
   const indexOffset = botsResults.length + openTeamsResults.length + nameResults.length
+
+  const visibleResultCounts = React.useMemo<InboxSearchVisibleResultCounts>(
+    () => ({
+      bots: botsResults.length,
+      names: nameResults.length,
+      openTeams: openTeamsResults.length,
+      text: textCollapsed || nameResultsUnread ? 0 : _textResults.length,
+    }),
+    [
+      botsResults.length,
+      nameResults.length,
+      openTeamsResults.length,
+      textCollapsed,
+      nameResultsUnread,
+      _textResults.length,
+    ]
+  )
+
+  React.useLayoutEffect(() => {
+    setVisibleResultCounts(visibleResultCounts)
+  }, [setVisibleResultCounts, visibleResultCounts])
 
   const nameSection: Section = {
     data: nameResults,
@@ -347,7 +344,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
     onCollapse: toggleCollapseBots,
     onSelect: selectBot,
     renderHeader: renderBotsHeader,
-    renderItem: renderBots as Section['renderItem'],
+    renderItem: renderBots,
     status: botsStatus,
     title: botsResultsSuggested ? 'Suggested bots' : 'Featured bots',
   }
@@ -374,6 +371,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
       <Rover />
       <Kb.SectionList
         ListHeaderComponent={header}
+        contentInsetAdjustmentBehavior={Kb.Styles.isMobile ? 'automatic' : undefined}
         stickySectionHeadersEnabled={true}
         renderSectionHeader={({section}: {section: Section}) => section.renderHeader(section)}
         keyboardShouldPersistTaps="handled"
@@ -381,7 +379,7 @@ export default React.memo(function InboxSearchContainer(ownProps: OwnProps) {
       />
     </Kb.Box2>
   )
-})
+}
 
 type SectionExtra = {
   indexOffset: number
@@ -408,36 +406,32 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
   const {name, description, memberCount, publicAdmins, inTeam, isSelected} = p
   const showingDueToSelect = React.useRef(false)
-  const joinTeam = useTeamsState(s => s.dispatch.joinTeam)
-  const showTeamByName = useTeamsState(s => s.dispatch.showTeamByName)
 
-  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <TeamInfo
-          attachTo={attachTo}
-          description={description}
-          inTeam={inTeam}
-          isOpen={true}
-          name={name}
-          membersCount={memberCount}
-          position="right center"
-          onChat={undefined}
-          onHidden={hidePopup}
-          onJoinTeam={() => joinTeam(name)}
-          onViewTeam={() => {
-            clearModals()
-            showTeamByName(name)
-          }}
-          publicAdmins={publicAdmins}
-          visible={true}
-        />
-      )
-    },
-    [showTeamByName, joinTeam, description, inTeam, memberCount, name, publicAdmins, clearModals]
-  )
+  const clearModals = C.Router2.clearModals
+  const navigateAppend = C.Router2.navigateAppend
+  const makePopup = (p: Kb.Popup2Parms) => {
+    const {attachTo, hidePopup} = p
+    return (
+      <TeamInfo
+        attachTo={attachTo}
+        description={description}
+        inTeam={inTeam}
+        isOpen={true}
+        name={name}
+        membersCount={memberCount}
+        position="right center"
+        onChat={undefined}
+        onHidden={hidePopup}
+        onJoinTeam={() => navigateAppend({name: 'teamJoinTeamDialog', params: {initialTeamname: name}})}
+        onViewTeam={() => {
+          clearModals()
+          void showTeamByName(name)
+        }}
+        publicAdmins={publicAdmins}
+        visible={true}
+      />
+    )
+  }
   const {hidePopup, showingPopup, popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
 
   React.useEffect(() => {
@@ -452,7 +446,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
 
   return (
     <Kb.ClickableBox onClick={showPopup} style={{width: '100%'}}>
-      <Kb.Box2Measure
+      <Kb.Box2
         direction="horizontal"
         fullWidth={true}
         ref={popupAnchor}
@@ -469,12 +463,10 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         onMouseOver={() => setHovering(true)}
       >
         <TeamAvatar teamname={name} isMuted={false} isSelected={isSelected} isHovered={hovering} />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
           <Kb.Text
             type="BodySemibold"
-            style={Kb.Styles.collapseStyles([
-              {color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black},
-            ])}
+            style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black}}
             title={name}
             lineClamp={Kb.Styles.isMobile ? 1 : undefined}
             ellipsizeMode="tail"
@@ -483,9 +475,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
           </Kb.Text>
           <Kb.Text
             type="BodySmall"
-            style={Kb.Styles.collapseStyles([
-              {color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50},
-            ])}
+            style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black_50}}
             title={`#${description}`}
             lineClamp={1}
             ellipsizeMode="tail"
@@ -493,7 +483,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             {description}
           </Kb.Text>
         </Kb.Box2>
-      </Kb.Box2Measure>
+      </Kb.Box2>
       {popup}
     </Kb.ClickableBox>
   )
@@ -504,7 +494,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
           backgroundColor: Kb.Styles.globalColors.blueGrey,
           borderRightColor: Kb.Styles.globalColors.black_10,
           borderRightWidth: 1,

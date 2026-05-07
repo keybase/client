@@ -8,7 +8,7 @@ import keybase1 "github.com/keybase/client/go/protocol/keybase1"
 type logEntry struct {
 	level  keybase1.LogLevel
 	format string
-	args   []interface{}
+	args   []any
 }
 
 type extLogger interface {
@@ -50,7 +50,7 @@ func (f *logFwd) Remove(x extLogger) {
 	f.removeCh <- x
 }
 
-func (f *logFwd) Log(level keybase1.LogLevel, format string, args []interface{}) {
+func (f *logFwd) Log(level keybase1.LogLevel, format string, args []any) {
 	f.logCh <- &logEntry{level: level, format: format, args: args}
 }
 

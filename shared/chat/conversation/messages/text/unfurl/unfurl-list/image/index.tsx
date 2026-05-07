@@ -1,9 +1,9 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters/index'
-import * as Chat from '@/constants/chat2'
+import {clampImageSize} from '@/constants/chat/helpers'
 import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 import {Video} from './video'
-import openURL from '@/util/open-url'
+import {openURL} from '@/util/misc'
 
 export type Props = {
   autoplayVideo: boolean
@@ -20,11 +20,13 @@ export type Props = {
 const UnfurlImage = (p: Props) => {
   const {autoplayVideo, isVideo, linkURL, onClick, url, style, widthPadding} = p
 
-  const onOpenURL = React.useCallback(() => {
-    linkURL && openURL(linkURL)
-  }, [linkURL])
+  const onOpenURL = () => {
+    if (linkURL) {
+      openURL(linkURL)
+    }
+  }
   const maxSize = Math.min(maxWidth, 320) - (widthPadding || 0)
-  const {height, width} = Chat.clampImageSize(p.width, p.height, maxSize, 320)
+  const {height, width} = clampImageSize(p.width, p.height, maxSize, 320)
 
   return isVideo ? (
     <Video
@@ -43,7 +45,7 @@ const UnfurlImage = (p: Props) => {
     />
   ) : (
     <Kb.ClickableBox onClick={onClick || onOpenURL}>
-      <Kb.Image2
+      <Kb.Image
         src={url}
         style={Kb.Styles.collapseStyles([
           styles.video,

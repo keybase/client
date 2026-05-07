@@ -53,7 +53,6 @@ func TestRelTime(t *testing.T) {
 		{now, mustAddLongDuration(t, now, "1000000000Y"), "1000000000 years"},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.out, func(t *testing.T) {
 			actual := RelTime(tt.a, tt.b, "", "")
 			require.Equal(t, tt.out, actual)

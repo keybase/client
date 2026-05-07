@@ -7,7 +7,7 @@ type Props = {
 }
 
 const UnreadShortcut = (props: Props) => (
-  <Kb.ClickableBox onClick={props.onClick} style={styles.container}>
+  <Kb.ClickableBox2 onClick={props.onClick} style={styles.container}>
     <Kb.Box2
       direction="horizontal"
       gap="tiny"
@@ -20,7 +20,7 @@ const UnreadShortcut = (props: Props) => (
         {props.unreadCount} unread {pluralize('message', props.unreadCount)}
       </Kb.Text>
     </Kb.Box2>
-  </Kb.ClickableBox>
+  </Kb.ClickableBox2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(

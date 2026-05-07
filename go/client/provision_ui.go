@@ -275,7 +275,7 @@ func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.Promp
 	_, _ = p.parent.PrintfUnescaped("%s", ColorString(p.G(), "magenta", "************************************************************\n"))
 	_ = p.parent.Output("\n\n\n")
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		name, err := PromptWithChecker(PromptDescriptorProvisionDeviceName, p.parent, "Enter a public name for this device", false, libkb.CheckDeviceName)
 		if err != nil {
 			return "", err

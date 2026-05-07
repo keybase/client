@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sort"
+	"maps"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -164,7 +165,7 @@ type JourneyCardManagerSingleUser struct {
 	encryptedDB *encrypteddb.EncryptedDB
 }
 
-type logFn func(ctx context.Context, format string, args ...interface{})
+type logFn func(ctx context.Context, format string, args ...any)
 
 func NewJourneyCardManagerSingleUser(g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID) *JourneyCardManagerSingleUser {
 	lru, err := lru.New(200)
@@ -237,7 +238,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		// Journey cards are gated by either client-side flag KEYBASE_DEBUG_JOURNEYCARD or server-driven flag 'journeycard'.
 		return nil, nil
 	}
-	debugDebug := func(ctx context.Context, format string, args ...interface{}) {
+	debugDebug := func(ctx context.Context, format string, args ...any) {
 		if debug {
 			cc.Debug(ctx, format, args...)
 		}
@@ -1235,9 +1236,7 @@ func (j *journeycardData) MutateConv(convID chat1.ConversationID, apply func(jou
 func (j *journeycardData) SetLockin(cardType chat1.JourneycardType, convID chat1.ConversationID) (res journeycardData) {
 	res = *j
 	res.Lockin = make(map[chat1.JourneycardType]chat1.ConversationID)
-	for k, v := range j.Lockin {
-		res.Lockin[k] = v
-	}
+	maps.Copy(res.Lockin, j.Lockin)
 	res.Lockin[cardType] = convID
 	return res
 }
@@ -1269,18 +1268,14 @@ func (j *journeycardData) hasDismissed(cardType chat1.JourneycardType) bool {
 func (j *journeycardData) PrepareToMutateDismissals() (res journeycardData) {
 	res = *j
 	res.Dismissals = make(map[chat1.JourneycardType]bool)
-	for k, v := range j.Dismissals {
-		res.Dismissals[k] = v
-	}
+	maps.Copy(res.Dismissals, j.Dismissals)
 	return res
 }
 
 func (j *journeycardConvData) PrepareToMutatePositions() (res journeycardConvData) {
 	res = *j
 	res.Positions = make(map[chat1.JourneycardType]*journeyCardPosition)
-	for k, v := range j.Positions {
-		res.Positions[k] = v
-	}
+	maps.Copy(res.Positions, j.Positions)
 	return res
 }
 
@@ -1336,14 +1331,9 @@ func init() {
 	for s := range chat1.ConversationMemberStatusRevMap {
 		allConvMemberStatuses = append(allConvMemberStatuses, s)
 	}
-	sort.Slice(allConvMemberStatuses, func(i, j int) bool { return allConvMemberStatuses[i] < allConvMemberStatuses[j] })
+	slices.Sort(allConvMemberStatuses)
 }
 
 func memberStatusListContains(a []chat1.ConversationMemberStatus, v chat1.ConversationMemberStatus) bool {
-	for _, el := range a {
-		if el == v {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(a, v)
 }

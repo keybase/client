@@ -1,5 +1,5 @@
-import * as Chat from '@/constants/chat2'
 import * as Kb from '@/common-adapters'
+import {useReactionRowTopReacjis} from '@/chat/user-reacjis'
 
 type Props = {
   onHidden: () => void
@@ -8,7 +8,7 @@ type Props = {
 }
 
 const ReactionItem = (props: Props) => {
-  const _topReacjis = Chat.useChatState(s => s.userReacjis.topReacjis)
+  const topReacjis = useReactionRowTopReacjis()
   const onReact = (emoji: string) => {
     props.onReact(emoji)
     props.onHidden()
@@ -20,9 +20,8 @@ const ReactionItem = (props: Props) => {
       props.showPicker()
     }, 100)
   }
-  const topReacjis = _topReacjis.slice(0, 5)
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} flex={1} style={styles.container} justifyContent="space-between">
       {topReacjis.map((r, idx) => (
         <Kb.ClickableBox key={r.name || idx} onClick={() => onReact(r.name)} style={styles.clickableBox}>
           <Kb.Emoji userReacji={r} noAnim={true} showTooltip={false} size={28} />
@@ -45,8 +44,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       container: {
         alignItems: 'center',
-        flex: 1,
-        justifyContent: 'space-between',
         paddingLeft: Kb.Styles.globalMargins.small,
         paddingRight: Kb.Styles.globalMargins.small,
       },

@@ -11,7 +11,7 @@ func ClearSecretsOnDeprovision(mctx MetaContext, username NormalizedUsername) er
 
 	epick := FirstErrorPicker{}
 
-	var logger func(string, ...interface{})
+	var logger func(string, ...any)
 	if mctx.UIs().LogUI == nil {
 		logger = mctx.Info
 	} else {

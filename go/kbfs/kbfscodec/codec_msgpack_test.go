@@ -15,7 +15,7 @@ import (
 func TestCodecEncodeMap(t *testing.T) {
 	m1 := make(map[int]int)
 	m2 := make(map[int]int)
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		m1[i] = 1
 		m2[9-i] = 1
 	}

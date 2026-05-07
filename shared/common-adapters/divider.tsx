@@ -1,10 +1,11 @@
-import Box from './box'
+import {Box2} from './box'
 import * as Styles from '@/styles'
 
 import type {Props} from './divider.d'
 
 const Divider = (props: Props) => (
-  <Box
+  <Box2
+    direction="vertical"
     style={Styles.collapseStyles([
       styles.divider,
       props.vertical ? styles.vertical : styles.horizontal,

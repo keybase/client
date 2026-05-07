@@ -1,64 +1,54 @@
-// Cache in the module. This can get called from multiple places and env vars can get lost
-const skipAnimation = require('./common-adapters/skip-animations')
-const enableWDYR = require('./util/why-did-you-render-enabled')
+const reactCompilerPlugin = 'babel-plugin-react-compiler'
+const moduleResolverPlugin = ['module-resolver', {alias: {'@': './'}}]
 
-let isElectron = null
-let isReactNative = null
-let isTest = null
+const makeElectronConfig = isTest => ({
+  presets: [
+    ['@babel/preset-env', {targets: {node: 'current'}}],
+    ...(isTest ? [['@babel/preset-react', {runtime: 'automatic'}], '@babel/preset-flow'] : []),
+    '@babel/preset-typescript',
+  ],
+  plugins: [
+    reactCompilerPlugin, // must run first!
+  ],
+})
+
+const makeReactNativeConfig = () => ({
+  plugins: [
+    reactCompilerPlugin, // must run first!
+    moduleResolverPlugin,
+  ],
+  presets: [['babel-preset-expo', {unstable_transformImportMeta: true, jsxRuntime: 'automatic'}]],
+  sourceMaps: true,
+})
+
+const detectPlatform = (apiEnv, callerName) => {
+  if (apiEnv === 'test') {
+    return 'electron'
+  }
+  if (apiEnv === 'test-rn') {
+    return 'react-native'
+  }
+  return !callerName || callerName === 'metro' ? 'react-native' : 'electron'
+}
 
 module.exports = function (api /*: any */) {
   const apiEnv = api.env()
-  const isDev = apiEnv === 'development'
+  const callerName = api.caller(c => c?.name ?? null)
+  const platform = detectPlatform(apiEnv, callerName)
+  const isTest = apiEnv === 'test' || apiEnv === 'test-rn'
 
-  if (apiEnv === 'test') {
-    isTest = true
-    isElectron = true
-  } else if (apiEnv === 'test-rn') {
-    isTest = true
-    isReactNative = true
-  } else {
-    api.caller(c => {
-      // console.error('KB: Babel config detected caller: ', c, c && c.name, api.env())
-      if (!c || c.name === 'metro') {
-        isReactNative = true
-      } else {
-        isElectron = true
-      }
-    })
-  }
+  api.cache.using(() => `${apiEnv}:${callerName ?? 'unknown'}:${platform}`)
 
-  api.cache(true)
+  // console.error('KB babel.config.js ', {apiEnv, callerName, platform})
 
-  // console.error('KB babel.config.js ', {isElectron, isReactNative, apiEnv})
-
-  if (!isElectron && !isReactNative) {
-    throw new Error('MUST have env var BABEL_PLATFORM to all babel')
-  }
-  if (isElectron && isReactNative) {
-    throw new Error('Packager is confused about babel platform')
-  }
-
-  // this is used just for our node side but not any bundling
-  if (isElectron) {
+  if (platform === 'electron') {
     // console.error('KB babel.config.js for Electron')
-    return {
-      presets: [
-        isTest ? ['@babel/preset-env', {targets: {node: 'current'}}] : '@babel/preset-env',
-        '@babel/preset-typescript',
-      ],
-      plugins: [
-        'babel-plugin-react-compiler', // must run first!
-      ],
-    }
-  } else if (isReactNative) {
-    // console.error('KB babel.config.js for ReactNative')
-    return {
-      plugins: [
-        'babel-plugin-react-compiler', // must run first!
-        ['module-resolver', {alias: {'@': './'}}],
-      ],
-      presets: [['babel-preset-expo', {unstable_transformImportMeta: true, jsxRuntime: 'automatic'}]],
-      sourceMaps: true,
-    }
+    return makeElectronConfig(isTest)
   }
+  if (platform === 'react-native') {
+    // console.error('KB babel.config.js for ReactNative')
+    return makeReactNativeConfig()
+  }
+
+  throw new Error(`Unable to determine Babel platform from env/caller: ${apiEnv}/${callerName ?? 'unknown'}`)
 }

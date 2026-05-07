@@ -942,7 +942,7 @@ func TestInclusionExtensionProofsPass(t *testing.T) {
 	verifier := NewMerkleProofVerifier(cfg)
 
 	numTests := 50
-	for j := 0; j < numTests; j++ {
+	for range numTests {
 		startSeqno := Seqno(randSrc.Intn(int(maxSeqno)-1) + 1)
 		endSeqno := Seqno(randSrc.Intn(int(maxSeqno)-1) + 1)
 		if startSeqno > endSeqno {

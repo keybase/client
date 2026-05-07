@@ -9,7 +9,7 @@ import (
 )
 
 func retryOnEphemeralRace(mctx libkb.MetaContext, fn func(mctx libkb.MetaContext) error) (err error) {
-	for attempt := 0; attempt < 5; attempt++ {
+	for attempt := range 5 {
 		if err = fn(mctx); err == nil {
 			return nil
 		}

@@ -292,7 +292,7 @@ func openAppDarwin(bin string, appPath string, retryDelay time.Duration, log pro
 	// We need to try 10 times because Gatekeeper has some issues, for example,
 	// http://www.openradar.me/23614087
 	var err error
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		err = tryOpen()
 		if err == nil {
 			break

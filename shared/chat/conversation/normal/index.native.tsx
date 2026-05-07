@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
 import {PortalHost} from '@/common-adapters/portal.native'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
@@ -11,8 +10,10 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import type {LayoutEvent} from '@/common-adapters/box'
-import {MaxInputAreaContext} from '../input-area/normal2/max-input-area-context'
+import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
+import {PerfProfiler} from '@/perf/react-profiler'
 import logger from '@/logger'
+import {useConversationThreadID, useConversationThreadSelector} from '../thread-context'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -21,7 +22,7 @@ const Offline = () => (
 )
 
 const LoadingLine = () => {
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   const showLoader = C.Waiting.useAnyWaiting([
     C.waitingKeyChatThreadLoad(conversationIDKey),
     C.waitingKeyChatInboxSyncStarted,
@@ -29,18 +30,18 @@ const LoadingLine = () => {
   return showLoader ? <Kb.LoadingLine /> : null
 }
 
-const Conversation = React.memo(function Conversation() {
+const Conversation = function Conversation() {
   const [maxInputArea, setMaxInputArea] = React.useState(0)
-  const onLayout = React.useCallback((e: LayoutEvent) => {
+  const onLayout = (e: LayoutEvent) => {
     setMaxInputArea(e.nativeEvent.layout.height)
-  }, [])
+  }
 
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const conversationIDKey = useConversationThreadID()
   logger.info(`Conversation: rendering convID: ${conversationIDKey}`)
 
   const innerComponent = (
     <Kb.BoxGrow onLayout={onLayout}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
+      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
         <ThreadLoadStatus />
         <PinnedMessage />
         <ListArea />
@@ -48,9 +49,9 @@ const Conversation = React.memo(function Conversation() {
       </Kb.Box2>
       <InvitationToBlock />
       <Banner />
-      <MaxInputAreaContext.Provider value={maxInputArea}>
+      <MaxInputAreaContext value={maxInputArea}>
         <InputArea />
-      </MaxInputAreaContext.Provider>
+      </MaxInputAreaContext>
     </Kb.BoxGrow>
   )
 
@@ -59,28 +60,25 @@ const Conversation = React.memo(function Conversation() {
   const windowHeight = useSafeAreaFrame().height
   const height = windowHeight - insets.top - headerHeight
 
-  const safeStyle = React.useMemo(
-    () =>
-      Kb.Styles.isAndroid
-        ? {paddingBottom: insets.bottom}
-        : {
-            height,
-            maxHeight: height,
-            minHeight: height,
-            paddingBottom: Kb.Styles.isTablet ? 0 : insets.bottom,
-          },
-    [height, insets.bottom]
-  )
+  const safeStyle = Kb.Styles.isAndroid
+    ? {paddingBottom: insets.bottom}
+    : {
+        height,
+        maxHeight: height,
+        minHeight: height,
+        paddingBottom: Kb.Styles.isTablet ? 0 : insets.bottom,
+      }
 
-  const threadLoadedOffline = Chat.useChatContext(s => s.meta.offline)
+  const threadLoadedOffline = useConversationThreadSelector(s => s.meta.offline)
 
   const content = (
     <Kb.Box2
       direction="vertical"
-      style={styles.innerContainer}
+      flex={1}
       fullWidth={true}
       fullHeight={true}
       key={conversationIDKey}
+          relative={true}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {threadLoadedOffline && <Offline />}
@@ -90,41 +88,30 @@ const Conversation = React.memo(function Conversation() {
     </Kb.Box2>
   )
 
-  return Kb.Styles.isAndroid ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-      {content}
-    </Kb.Box2>
-  ) : (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-      <Kb.KeyboardAvoidingView2
-        extraPadding={Kb.Styles.isTablet ? -65 : -insets.bottom}
-        behavior="translate-with-padding"
-      >
-        {content}
-      </Kb.KeyboardAvoidingView2>
-    </Kb.Box2>
+  return (
+    <PerfProfiler id="Conversation">
+      {Kb.Styles.isAndroid ? (
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
+          {content}
+        </Kb.Box2>
+      ) : (
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
+          <Kb.KeyboardAvoidingView2
+            extraPadding={Kb.Styles.isTablet ? -65 : -insets.bottom}
+            behavior="padding"
+          >
+            {content}
+          </Kb.KeyboardAvoidingView2>
+        </Kb.Box2>
+      )}
+    </PerfProfiler>
   )
-})
+}
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      innerContainer: {
-        flex: 1,
-        position: 'relative',
-      },
       offline: {padding: Kb.Styles.globalMargins.xxtiny},
-      outerContainer: Kb.Styles.platformStyles({
-        isTablet: {
-          flex: 1,
-          position: 'relative',
-        },
-      }),
-      sav: {
-        flexGrow: 1,
-        maxHeight: '100%',
-        position: 'relative',
-      },
     }) as const
 )
 

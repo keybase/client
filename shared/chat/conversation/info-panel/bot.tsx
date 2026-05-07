@@ -1,11 +1,16 @@
 import * as C from '@/constants'
-import * as Chat from '@/constants/chat2'
+import * as ChatCommon from '@/constants/chat/common'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type * as T from '@/constants/types'
-import {getFeaturedSorted, useBotsState} from '@/constants/bots'
-import {useUsersState} from '@/constants/users'
+import * as T from '@/constants/types'
+import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
+import {useUsersState} from '@/stores/users'
+import {useChatTeam, useChatTeamMembers} from '../team-hooks'
+import logger from '@/logger'
+import {useBotSettings} from '../bot/settings'
+import {getInboxConversationMeta, participantInfoReceived} from '@/chat/inbox/metadata'
+import {useConversationMetadata} from '../data-hooks'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey
@@ -35,29 +40,57 @@ type Section = Kb.SectionType<Item>
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
-  const settings = Chat.useChatContext(s => s.botSettings.get(username))
-  const editBotSettings = Chat.useChatContext(s => s.dispatch.editBotSettings)
+  const {settings, setSettings} = useBotSettings(conversationIDKey, username)
+  const editBotSettings = C.useRPC(T.RPCChat.localSetBotMemberSettingsRpcPromise)
+  const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
   return (
     <Kb.WaitingButton
       disabled={!settings}
       type="Dim"
       mode="Secondary"
-      icon="iconfont-new"
       tooltip="Add to this channel"
       onClick={e => {
         e.preventDefault()
         // if settings aren't loaded, don't even try to do anything
         if (settings && !settings.convs?.includes(conversationIDKey)) {
+          const nextSettings = {
+            cmds: settings.cmds,
+            convs: [conversationIDKey].concat(settings.convs ?? []),
+            mentions: settings.mentions,
+          }
           editBotSettings(
-            username,
-            settings.cmds,
-            settings.mentions,
-            [conversationIDKey].concat(settings.convs ?? [])
+            [
+              {
+                botSettings: nextSettings,
+                convID: T.Chat.keyToConversationID(conversationIDKey),
+                username,
+              },
+              C.waitingKeyChatBotAdd,
+            ],
+            () => {
+              setSettings(nextSettings)
+              previewConversationByID(
+                [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+                preview => {
+                  participantInfoReceived(
+                    conversationIDKey,
+                    ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
+                    getInboxConversationMeta(conversationIDKey)
+                  )
+                },
+                () => {}
+              )
+            },
+            error => {
+              logger.info(`AddToChannel: failed to edit bot settings: ${error.message}`)
+            }
           )
         }
       }}
       waitingKey={C.waitingKeyChatBotAdd}
-    />
+    >
+      <Kb.Icon type="iconfont-new" sizeType="Small" color={Kb.Styles.globalColors.black} />
+    </Kb.WaitingButton>
   )
 }
 
@@ -65,6 +98,7 @@ type BotProps = T.RPCGen.FeaturedBot & {
   description?: string
   firstItem?: boolean
   hideHover?: boolean
+  isSelected?: boolean
   showChannelAdd?: boolean
   showTeamAdd?: boolean
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -73,20 +107,20 @@ type BotProps = T.RPCGen.FeaturedBot & {
 export const Bot = (props: BotProps) => {
   const {botAlias, description, botUsername} = props
   const {ownerTeam, ownerUser} = props
-  const {onClick, firstItem} = props
+  const {onClick, firstItem, isSelected} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
-  const refreshBotSettings = Chat.useChatContext(s => s.dispatch.refreshBotSettings)
-  React.useEffect(() => {
-    if (conversationIDKey && showChannelAdd) {
-      // fetch bot settings if trying to show the add to channel button
-      refreshBotSettings(botUsername)
-    }
-  }, [conversationIDKey, botUsername, refreshBotSettings, showChannelAdd])
+  const primaryColor = isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black
+  const secondaryColor = isSelected ? Kb.Styles.globalColors.white : undefined
 
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
       {description !== '' && (
-        <Kb.Text type="BodySmall" lineClamp={1} onClick={() => onClick(botUsername)}>
+        <Kb.Text
+          type="BodySmall"
+          lineClamp={1}
+          style={secondaryColor ? {color: secondaryColor} : undefined}
+          onClick={() => onClick(botUsername)}
+        >
           {description}
         </Kb.Text>
       )}
@@ -96,12 +130,16 @@ export const Bot = (props: BotProps) => {
   const usernameDisplay = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start">
       <Kb.Text type="BodySmall" lineClamp={1}>
-        <Kb.Text type="BodySmallSemibold" style={{color: Kb.Styles.globalColors.black}}>
+        <Kb.Text type="BodySmallSemibold" style={{color: primaryColor}}>
           {botAlias || botUsername}
         </Kb.Text>
-        <Kb.Text type="BodySmall">&nbsp;• by&nbsp;</Kb.Text>
+        <Kb.Text type="BodySmall" style={secondaryColor ? {color: secondaryColor} : undefined}>
+          &nbsp;• by&nbsp;
+        </Kb.Text>
         {ownerTeam ? (
-          <Kb.Text type="BodySmall">{`${ownerTeam}`}</Kb.Text>
+          <Kb.Text type="BodySmall" style={secondaryColor ? {color: secondaryColor} : undefined}>
+            {`${ownerTeam}`}
+          </Kb.Text>
         ) : (
           <Kb.ConnectedUsernames
             inline={true}
@@ -115,17 +153,17 @@ export const Bot = (props: BotProps) => {
     </Kb.Box2>
   )
   return (
-    <Kb.ListItem2
+    <Kb.ListItem
       containerStyleOverride={styles.listItemContainer}
       onClick={() => onClick(botUsername)}
       type="Large"
       firstItem={!!firstItem}
       icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={botUsername} />}
       hideHover={!!props.hideHover}
-      style={{backgroundColor: Kb.Styles.globalColors.white}}
+      style={{backgroundColor: isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white}}
       action={
         showTeamAdd ? (
-          <Kb.Button type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />
+          <Kb.IconButton type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />
         ) : showChannelAdd && conversationIDKey ? (
           <AddToChannel conversationIDKey={conversationIDKey} username={botUsername} />
         ) : null
@@ -150,7 +188,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginRight: Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
       },
-      addButton: {marginLeft: Kb.Styles.globalMargins.tiny},
       botHeaders: {
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginLeft: Kb.Styles.globalMargins.small,
@@ -165,53 +202,92 @@ const styles = Kb.Styles.styleSheetCreate(
           marginRight: Kb.Styles.globalMargins.tiny,
         },
       }),
-      divider: Kb.Styles.platformStyles({
-        common: {marginTop: Kb.Styles.globalMargins.tiny},
-        isElectron: {marginLeft: 56},
-        isMobile: {marginLeft: 81},
-      }),
       listItemContainer: {paddingRight: Kb.Styles.globalMargins.tiny},
-      row: {
-        alignItems: 'center',
-        flex: 1,
-        marginRight: Kb.Styles.globalMargins.tiny,
-      },
-      rowContainer: Kb.Styles.platformStyles({
-        common: {
-          minHeight: 48,
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
-        },
-        isElectron: {
-          ...Kb.Styles.desktopStyles.clickable,
-        },
-      }),
     }) as const
 )
 
 type Props = {
   commonSections: ReadonlyArray<Section>
+  conversationIDKey: T.Chat.ConversationIDKey
 }
 
 const BotTab = (props: Props) => {
-  const meta = Chat.useChatContext(s => s.meta)
+  const {conversationIDKey} = props
+  const {meta, participants: participantInfo} = useConversationMetadata(conversationIDKey)
   const {teamID, teamname, teamType, botAliases} = meta
-  const yourOperations = Teams.useTeamsState(s => (teamname ? Teams.getCanPerformByID(s, teamID) : undefined))
-  let canManageBots = false
-  if (teamname) {
-    canManageBots = yourOperations?.manageBots ?? false
-  } else {
-    canManageBots = true
-  }
+  const {yourOperations} = useChatTeam(teamID, teamname)
+  const canManageBots = teamname ? yourOperations.manageBots : true
   const adhocTeam = teamType === 'adhoc'
-  const participantInfo = Chat.useChatContext(s => s.participants)
-  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(teamID))
+  const {members: teamMembers, reload: reloadTeamMembers} = useChatTeamMembers(teamID)
+  const previewConversationByID = C.useRPC(T.RPCChat.localPreviewConversationByIDLocalRpcPromise)
+  const mutationWaiting = C.Waiting.useAnyWaiting([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+  const mutationError = C.Waiting.useAnyErrors([C.waitingKeyChatBotAdd, C.waitingKeyChatBotRemove])
+  const wasMutationWaitingRef = React.useRef(mutationWaiting)
+  const repairedAdhocParticipantsRef = React.useRef<T.Chat.ConversationIDKey | undefined>(undefined)
   const participantsAll = participantInfo.all
+  React.useEffect(() => {
+    if (
+      !adhocTeam ||
+      participantInfo.name.length > 0 ||
+      participantsAll.length === 0 ||
+      repairedAdhocParticipantsRef.current === conversationIDKey ||
+      !T.Chat.isValidConversationIDKey(conversationIDKey)
+    ) {
+      return
+    }
+    repairedAdhocParticipantsRef.current = conversationIDKey
+    previewConversationByID(
+      [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+      preview => {
+        participantInfoReceived(
+          conversationIDKey,
+          ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
+          getInboxConversationMeta(conversationIDKey)
+        )
+      },
+      () => {}
+    )
+  }, [
+    adhocTeam,
+    conversationIDKey,
+    participantInfo.name.length,
+    participantsAll.length,
+    previewConversationByID,
+  ])
+
+  React.useEffect(() => {
+    const mutationJustFinished = wasMutationWaitingRef.current && !mutationWaiting
+    wasMutationWaitingRef.current = mutationWaiting
+    if (!mutationJustFinished || mutationError || !T.Chat.isValidConversationIDKey(conversationIDKey)) {
+      return
+    }
+    previewConversationByID(
+      [{convID: T.Chat.keyToConversationID(conversationIDKey)}],
+      preview => {
+        participantInfoReceived(
+          conversationIDKey,
+          ChatCommon.uiParticipantsToParticipantInfo(preview.conv.participants ?? []),
+          getInboxConversationMeta(conversationIDKey)
+        )
+      },
+      () => {}
+    )
+    if (!adhocTeam) {
+      C.ignorePromise(reloadTeamMembers())
+    }
+  }, [
+    adhocTeam,
+    conversationIDKey,
+    mutationError,
+    mutationWaiting,
+    previewConversationByID,
+    reloadTeamMembers,
+  ])
 
   let botUsernames: Array<string> = []
   if (adhocTeam) {
     botUsernames = participantsAll.filter(p => !participantInfo.name.includes(p))
-  } else if (teamMembers) {
+  } else {
     botUsernames = [...teamMembers.values()]
       .filter(
         p =>
@@ -222,16 +298,16 @@ const BotTab = (props: Props) => {
       .sort((l, r) => l.localeCompare(r))
   }
 
-  const featuredBotsMap = useBotsState(s => s.featuredBotsMap)
-  const featuredBots: Array<Item> = getFeaturedSorted(featuredBotsMap)
+  const {featuredBots: loadedFeaturedBots, loadedAllBots, loadNextBotPage, loadingBots} = useFeaturedBotPage()
+  const featuredBotsMap = new Map(loadedFeaturedBots.map(bot => [bot.botUsername, bot] as const))
+  const featuredBots: Array<Item> = getFeaturedSorted(loadedFeaturedBots)
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
-        !(!adhocTeam && teamMembers && Teams.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
+        (adhocTeam || !Teams.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
     )
     .map((bot, index) => ({...bot, index, type: 'featuredBot'}))
   const infoMap = useUsersState(s => s.infoMap)
-  const loadedAllBots = useBotsState(s => s.featuredBotsLoaded)
 
   const usernamesToFeaturedBots = (usernames: string[]): Array<ItemBot> =>
     usernames.map(
@@ -257,31 +333,16 @@ const BotTab = (props: Props) => {
 
   const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
-  const navigateAppend = Chat.useChatNavigateAppend()
-  const conversationIDKey = Chat.useChatContext(s => s.id)
+  const navigateAppend = C.Router2.navigateAppend
   const onBotAdd = () => {
-    navigateAppend(conversationIDKey => ({props: {conversationIDKey}, selected: 'chatSearchBots'}))
+    navigateAppend({name: 'chatSearchBots', params: {conversationIDKey}})
   }
   const onBotSelect = (username: string) => {
-    navigateAppend(conversationIDKey => ({
-      props: {botUsername: username, conversationIDKey},
-      selected: 'chatInstallBot',
-    }))
+    navigateAppend({
+      name: 'chatInstallBot',
+      params: {botUsername: username, conversationIDKey},
+    })
   }
-  const loadNextBotPage = useBotsState(s => s.dispatch.loadNextBotPage)
-  const onLoadMoreBots = () => loadNextBotPage()
-  const loadingBots = !featuredBotsMap.size
-
-  const featuredBotsLength = featuredBots.length
-  const [lastFBL, setLastFBL] = React.useState(-1)
-  React.useEffect(() => {
-    if (lastFBL !== featuredBotsLength) {
-      setLastFBL(featuredBotsLength)
-      if (featuredBotsLength === 0 && !loadedAllBots) {
-        loadNextBotPage()
-      }
-    }
-  }, [featuredBotsLength, lastFBL, loadedAllBots, loadNextBotPage])
 
   const items: Array<Item> = [
     ...(canManageBots ? ([addBotButton] as const) : []),
@@ -349,7 +410,7 @@ const BotTab = (props: Props) => {
               mode="Secondary"
               type="Default"
               style={styles.addBot}
-              onClick={onLoadMoreBots}
+              onClick={loadNextBotPage}
             />
           )
         }

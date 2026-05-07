@@ -54,7 +54,7 @@ func parsePermissionsV1(permsStr string) (permissionsV1, error) {
 	if len(permsStr) == 0 {
 		return perms, nil
 	}
-	for _, p := range strings.Split(permsStr, ",") {
+	for p := range strings.SplitSeq(permsStr, ",") {
 		switch p {
 		case PermRead:
 			perms.read = true

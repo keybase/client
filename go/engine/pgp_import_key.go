@@ -405,7 +405,7 @@ func (e *PGPKeyImportEngine) push(m libkb.MetaContext) (err error) {
 
 	m.UIs().LogUI.Info("Generated new PGP key:")
 	d := e.bundle.VerboseDescription()
-	for _, line := range strings.Split(d, "\n") {
+	for line := range strings.SplitSeq(d, "\n") {
 		m.UIs().LogUI.Info("  %s", line)
 	}
 

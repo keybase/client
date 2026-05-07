@@ -1,9 +1,11 @@
-import * as Chat from '@/constants/chat2'
+import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
-import Text, {type StylesTextCrossPlatform} from '@/common-adapters/text'
+import Text from '@/common-adapters/text'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import Mention from '../../mention-container'
 import TeamMention from './team'
 import UnknownMention from './unknown'
+import {useMaybeMentionInfo} from './context'
 
 const Kb = {Mention, Text}
 
@@ -40,7 +42,7 @@ const MaybeMention = (props: Props) => {
         />
       )
     case T.RPCChat.UIMaybeMentionStatus.user:
-      return <Kb.Mention username={props.name} />
+      return <Kb.Mention allowFontScaling={props.allowFontScaling} username={props.name} />
     case T.RPCChat.UIMaybeMentionStatus.team:
       return (
         <TeamMention
@@ -48,6 +50,7 @@ const MaybeMention = (props: Props) => {
           style={props.style}
           name={props.name}
           channel={props.channel}
+          mentionInfo={props.info.team}
         />
       )
   }
@@ -62,10 +65,9 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {name, channel} = ownProps
-  const info = Chat.useChatState(s => s.maybeMentionMap.get(Chat.getTeamMentionName(name, channel)))
-  const resolveMaybeMention = Chat.useChatContext(s => s.dispatch.resolveMaybeMention)
+  const info = useMaybeMentionInfo(name, channel)
   const onResolve = () => {
-    resolveMaybeMention(channel, name)
+    ignorePromise(T.RPCChat.localResolveMaybeMentionRpcPromise({mention: {channel, name}}))
   }
   const props = {
     allowFontScaling: ownProps.allowFontScaling,

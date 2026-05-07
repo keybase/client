@@ -17,8 +17,8 @@ import (
 
 // Log is log interface for this package
 type Log interface {
-	Debugf(s string, args ...interface{})
-	Infof(s string, args ...interface{})
+	Debugf(s string, args ...any)
+	Infof(s string, args ...any)
 }
 
 // VerifyDetachedFileAtPath verifies a file

@@ -18,19 +18,19 @@ import (
 
 type errorClient struct{}
 
-func (e errorClient) Call(_ context.Context, method string, _ interface{},
-	_ interface{}, _ time.Duration,
+func (e errorClient) Call(_ context.Context, method string, _ any,
+	_ any, _ time.Duration,
 ) error {
 	return fmt.Errorf("errorClient: Call %s", method)
 }
 
-func (e errorClient) CallCompressed(_ context.Context, method string, _ interface{},
-	_ interface{}, _ rpc.CompressionType, _ time.Duration,
+func (e errorClient) CallCompressed(_ context.Context, method string, _ any,
+	_ any, _ rpc.CompressionType, _ time.Duration,
 ) error {
 	return fmt.Errorf("errorClient: Call %s", method)
 }
 
-func (e errorClient) Notify(_ context.Context, method string, _ interface{}, _ time.Duration) error {
+func (e errorClient) Notify(_ context.Context, method string, _ any, _ time.Duration) error {
 	return fmt.Errorf("errorClient: Notify %s", method)
 }
 

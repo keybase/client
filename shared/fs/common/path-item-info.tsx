@@ -5,8 +5,7 @@ import TlfInfoLine from './tlf-info-line-container'
 import ItemIcon from './item-icon'
 import CommaSeparatedName from './comma-separated-name'
 import {pluralize} from '@/util/string'
-import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} from './hooks'
-import {useFSState} from '@/constants/fs'
+import {useFsFolderChildItems, useFsOnlineStatus, useFsPathItem, useFsSoftError} from './hooks'
 import * as FS from '@/constants/fs'
 
 type Props = {
@@ -15,14 +14,12 @@ type Props = {
 }
 
 const getNumberOfFilesAndFolders = (
-  pathItems: T.FS.PathItems,
-  path: T.FS.Path
+  pathItem: T.FS.PathItem,
+  childItems: ReadonlyArray<T.FS.PathItem>
 ): {folders: number; files: number; loaded: boolean} => {
-  const pathItem = FS.getPathItem(pathItems, path)
   return pathItem.type === T.FS.PathType.Folder
-    ? [...pathItem.children].reduce(
-        ({folders, files, loaded}, p) => {
-          const item = FS.getPathItem(pathItems, T.FS.pathConcat(path, p))
+    ? childItems.reduce(
+        ({folders, files, loaded}, item) => {
           const isFolder = item.type === T.FS.PathType.Folder
           const isFile = item.type !== T.FS.PathType.Folder && item !== FS.unknownPathItem
           return {
@@ -37,9 +34,8 @@ const getNumberOfFilesAndFolders = (
 }
 
 const FilesAndFoldersCount = (props: Props) => {
-  useFsChildren(props.path)
-  const pathItems = useFSState(s => s.pathItems)
-  const {files, folders, loaded} = getNumberOfFilesAndFolders(pathItems, props.path)
+  const {childItems, pathItem} = useFsFolderChildItems(props.path)
+  const {files, folders, loaded} = getNumberOfFilesAndFolders(pathItem, childItems)
   return loaded ? (
     <Kb.Text type="BodySmall">
       {folders ? `${folders} ${pluralize('Folder')}${files ? ', ' : ''}` : undefined}
@@ -78,8 +74,7 @@ const SoftErrorBanner = ({path}: {path: T.FS.Path}) => {
 
 const PathItemInfo = (props: Props) => {
   useFsOnlineStatus() // when used in chat, we don't have this from Files tab
-  useFsPathMetadata(props.path)
-  const pathItem = useFSState(s => FS.getPathItem(s.pathItems, props.path))
+  const pathItem = useFsPathItem(props.path)
   const name = (
     <CommaSeparatedName
       center={true}
@@ -93,7 +88,7 @@ const PathItemInfo = (props: Props) => {
       <SoftErrorBanner path={props.path} />
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={props.containerStyle}>
         <ItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
-        <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
+        <Kb.Box2 direction="horizontal" style={styles.nameTextBox} justifyContent="center">{name}</Kb.Box2>
         {pathItem.type === T.FS.PathType.File && (
           <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
@@ -111,9 +106,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       nameTextBox: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
           flexWrap: 'wrap',
-          justifyContent: 'center',
         },
         isElectron: {
           textAlign: 'center',

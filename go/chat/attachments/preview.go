@@ -98,8 +98,8 @@ func previewVideoBlank(ctx context.Context, log utils.DebugLabeler, src io.Reade
 ) (res *PreviewRes, err error) {
 	const width, height = 300, 150
 	img := image.NewNRGBA(image.Rect(0, 0, width, height))
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
+	for y := range height {
+		for x := range width {
 			img.Set(x, y, color.NRGBA{
 				R: 0,
 				G: 0,
@@ -276,18 +276,12 @@ func previewDimensions(origBounds image.Rectangle) (uint, uint) {
 	newWidth, newHeight := origWidth, origHeight
 	// Preserve aspect ratio
 	if origWidth > previewImageWidth {
-		newHeight = origHeight * previewImageWidth / origWidth
-		if newHeight < 1 {
-			newHeight = 1
-		}
+		newHeight = max(origHeight*previewImageWidth/origWidth, 1)
 		newWidth = previewImageWidth
 	}
 
 	if newHeight > previewImageHeight {
-		newWidth = newWidth * previewImageHeight / newHeight
-		if newWidth < 1 {
-			newWidth = 1
-		}
+		newWidth = max(newWidth*previewImageHeight/newHeight, 1)
 		newHeight = previewImageHeight
 	}
 

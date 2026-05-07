@@ -2,22 +2,58 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SignupScreen, errorBanner} from './common'
-import {useSignupState} from '@/constants/signup'
-import {useProvisionState} from '@/constants/provision'
+import {useProvisionState} from '@/stores/provision'
+import * as T from '@/constants/types'
+import {RPCError} from '@/util/errors'
+import {ignorePromise} from '@/constants/utils'
+import logger from '@/logger'
+import {isValidUsername} from '@/util/simple-validators'
+import type {StaticScreenProps} from '@react-navigation/core'
+import {clearSignupDeviceNameDraft} from './device-name-draft'
 
-const ConnectedEnterUsername = () => {
-  const error = useSignupState(s => s.usernameError)
-  const initialUsername = useSignupState(s => s.username)
-  const usernameTaken = useSignupState(s => s.usernameTaken)
-  const checkUsername = useSignupState(s => s.dispatch.checkUsername)
+type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
+
+const ConnectedEnterUsername = (p: Props) => {
+  const initialUsername = p.route.params.username ?? ''
+  const inviteCode = p.route.params.inviteCode ?? ''
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeySignup)
-  const navigateUp = C.useRouterState(s => s.dispatch.navigateUp)
-  const restartSignup = useSignupState(s => s.dispatch.restartSignup)
+  const {navigateAppend, navigateUp} = C.Router2
   const onBack = () => {
-    restartSignup()
+    clearSignupDeviceNameDraft()
     navigateUp()
   }
-  const onContinue = checkUsername
+  const [error, setError] = React.useState('')
+  const [usernameTaken, setUsernameTaken] = React.useState('')
+  const onUsernameChange = () => {
+    setError('')
+    setUsernameTaken('')
+  }
+  const onContinue = (username: string) => {
+    onUsernameChange()
+    const localError = isValidUsername(username)
+    if (localError) {
+      setError(localError)
+      return
+    }
+    const f = async () => {
+      logger.info(`checking ${username}`)
+      try {
+        await T.RPCGen.signupCheckUsernameAvailableRpcPromise({username}, C.waitingKeySignup)
+        logger.info(`${username} success`)
+        navigateAppend({name: 'signupEnterDevicename', params: {inviteCode, username}})
+      } catch (error_) {
+        if (error_ instanceof RPCError) {
+          logger.warn(`${username} error: ${error_.message}`)
+          if (error_.code === T.RPCGen.StatusCode.scbadsignupusernametaken) {
+            setUsernameTaken(username)
+            return
+          }
+          setError(error_.code === T.RPCGen.StatusCode.scinputerror ? C.usernameHint : error_.desc)
+        }
+      }
+    }
+    ignorePromise(f())
+  }
 
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
   const onLogin = (initUsername: string) => {
@@ -29,29 +65,36 @@ const ConnectedEnterUsername = () => {
     onBack,
     onContinue,
     onLogin,
+    onUsernameChange,
     usernameTaken,
     waiting,
   }
   return <EnterUsername {...props} />
 }
 
-type Props = {
+type EnterUsernameProps = {
   error: string
   initialUsername?: string
   onBack: () => void
   onContinue: (username: string) => void
   onLogin: (username: string) => void
+  onUsernameChange: () => void
   usernameTaken?: string
   waiting: boolean
 }
 
-const EnterUsername = (props: Props) => {
+const EnterUsername = (props: EnterUsernameProps) => {
   const [username, onChangeUsername] = React.useState(props.initialUsername || '')
   const [acceptedEULA, setAcceptedEULA] = React.useState(false)
+  const eulaUrlProps = Kb.useClickURL('https://keybase.io/docs/acceptable-use-policy')
   const usernameTrimmed = username.trim()
   const disabled = !usernameTrimmed || usernameTrimmed === props.usernameTaken || !acceptedEULA
+  const _onChangeUsername = (username: string) => {
+    onChangeUsername(username)
+    props.onUsernameChange()
+  }
   const onContinue = () => {
-    if (disabled) {
+    if (disabled || props.waiting) {
       return
     }
     onChangeUsername(usernameTrimmed) // maybe trim the input
@@ -62,7 +105,7 @@ const EnterUsername = (props: Props) => {
       I accept the{' '}
       <Kb.Text
         type={Kb.Styles.isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'}
-        onClickURL="https://keybase.io/docs/acceptable-use-policy"
+        {...eulaUrlProps}
       >
         Keybase Acceptable Use Policy
       </Kb.Text>
@@ -111,19 +154,19 @@ const EnterUsername = (props: Props) => {
           alignItems="center"
           gap={Kb.Styles.isMobile ? 'small' : 'medium'}
           direction="vertical"
-          style={styles.body}
+          flex={1}
           fullWidth={true}
         >
           <Kb.Avatar size={C.isLargeScreen ? 96 : 64} />
           <Kb.Box2 direction="vertical" fullWidth={Kb.Styles.isPhone} gap="tiny">
-            <Kb.LabeledInput
-              placeholderInline={true}
+            <Kb.Input3
               autoFocus={true}
               containerStyle={styles.input}
               placeholder="Pick a username"
               maxLength={C.maxUsernameLength}
-              onChangeText={onChangeUsername}
+              onChangeText={_onChangeUsername}
               onEnterKeyDown={onContinue}
+              value={username}
             />
             <Kb.Text type="BodySmall">Your username is unique and can not be changed in the future.</Kb.Text>
           </Kb.Box2>
@@ -135,9 +178,6 @@ const EnterUsername = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  body: {
-    flex: 1,
-  },
   input: Kb.Styles.platformStyles({
     isElectron: {width: 368},
     isTablet: {width: 368},

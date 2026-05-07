@@ -30,7 +30,7 @@ type arbitraryNested struct {
 	Boring arbitraryMsg `codec:"b" json:"b"`
 }
 
-var associatedDataInputs = []interface{}{
+var associatedDataInputs = []any{
 	"",
 	nil,
 	map[string]map[float64]map[string]string{"first": {2.22000222: {"third": "fourth"}}},
@@ -89,7 +89,7 @@ func zeroOpenWhole(plaintext []byte) ([]byte, error) {
 	return OpenWhole(plaintext, zeroSecretboxKey(), zeroVerifyKey(), testingPrefix(), zeroNonce())
 }
 
-func zeroSealWithAssociatedData(plaintext []byte, associatedData interface{}) []byte {
+func zeroSealWithAssociatedData(plaintext []byte, associatedData any) []byte {
 	res, err := SealWithAssociatedData(plaintext, associatedData, zeroSecretboxKey(), zeroSignKey(), testingPrefix(), zeroNonce())
 	if err != nil {
 		// this should never actually error
@@ -98,7 +98,7 @@ func zeroSealWithAssociatedData(plaintext []byte, associatedData interface{}) []
 	return res
 }
 
-func zeroOpenWithAssociatedData(plaintext []byte, associatedData interface{}) ([]byte, error) {
+func zeroOpenWithAssociatedData(plaintext []byte, associatedData any) ([]byte, error) {
 	return OpenWithAssociatedData(plaintext, associatedData, zeroSecretboxKey(), zeroVerifyKey(), testingPrefix(), zeroNonce())
 }
 
@@ -240,7 +240,7 @@ func TestBadSecretbox(t *testing.T) {
 	// Then also test a secretbox that's long enough to be real, but has an
 	// invalid authenticator (just a bunch of constant bytes).
 	badAuthenticatorPacket := []byte{0xc6, 0, 0, 0, 100}
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		badAuthenticatorPacket = append(badAuthenticatorPacket, 42)
 	}
 	_, err = openPacket(badAuthenticatorPacket, zeroSecretboxKey(), zeroVerifyKey(), testingPrefix(), zeroChunkNonce(0))

@@ -29,7 +29,7 @@ func NewDevConversationBackedStorage(g *globals.Context, ri func() chat1.RemoteI
 	}
 }
 
-func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID, name string, src interface{}) (err error) {
+func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID, name string, src any) (err error) {
 	defer s.Trace(ctx, &err, "Put(%s)", name)()
 	un, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
 	if err != nil {
@@ -63,7 +63,7 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID, name string,
-	dest interface{},
+	dest any,
 ) (found bool, err error) {
 	defer s.Trace(ctx, &err, "Get(%s)", name)()
 	un, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))

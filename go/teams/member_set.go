@@ -3,6 +3,7 @@ package teams
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -69,9 +70,7 @@ func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase
 	if err := set.loadMembers(ctx, g, req, true /* forcePoll*/); err != nil {
 		return nil, err
 	}
-	for uv, settings := range req.RestrictedBots {
-		set.restrictedBotSettings[uv] = settings
-	}
+	maps.Copy(set.restrictedBotSettings, req.RestrictedBots)
 	return set, nil
 }
 
@@ -100,15 +99,9 @@ func (m *memberSet) appendMemberSet(other *memberSet) {
 	m.RestrictedBots = append(m.RestrictedBots, other.RestrictedBots...)
 	m.None = append(m.None, other.None...)
 
-	for k, v := range other.recipients {
-		m.recipients[k] = v
-	}
-	for k, v := range other.restrictedBotRecipients {
-		m.restrictedBotRecipients[k] = v
-	}
-	for k, v := range other.restrictedBotSettings {
-		m.restrictedBotSettings[k] = v
-	}
+	maps.Copy(m.recipients, other.recipients)
+	maps.Copy(m.restrictedBotRecipients, other.restrictedBotRecipients)
+	maps.Copy(m.restrictedBotSettings, other.restrictedBotSettings)
 }
 
 func (m *memberSet) nonAdmins() []member {

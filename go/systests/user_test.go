@@ -146,13 +146,13 @@ func (n *signupTerminalUI) OutputDesc(od libkb.OutputDescriptor, s string) error
 	return nil
 }
 
-func (n *signupTerminalUI) Printf(f string, args ...interface{}) (int, error) {
+func (n *signupTerminalUI) Printf(f string, args ...any) (int, error) {
 	s := fmt.Sprintf(f, args...)
 	n.G().Log.Debug("Terminal Printf: %s", s)
 	return len(s), nil
 }
 
-func (n *signupTerminalUI) PrintfUnescaped(f string, args ...interface{}) (int, error) {
+func (n *signupTerminalUI) PrintfUnescaped(f string, args ...any) (int, error) {
 	s := fmt.Sprintf(f, args...)
 	n.G().Log.Debug("Terminal PrintfUnescaped: %s", s)
 	return len(s), nil

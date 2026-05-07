@@ -170,13 +170,14 @@ func (i ItemAndMetadata) RemindTimes() []gregor.TimeOrOffset {
 }
 
 func (i ItemAndMetadata) String() string {
-	rts := "[ "
+	var rts strings.Builder
+	rts.WriteString("[ ")
 	for _, rt := range i.RemindTimes() {
-		rts += fmt.Sprintf("[%s,%s]", rt.Time(), rt.Offset())
+		rts.WriteString(fmt.Sprintf("[%s,%s]", rt.Time(), rt.Offset()))
 	}
-	rts += "]"
+	rts.WriteString("]")
 	return fmt.Sprintf("MD: %s Cat: %s DTime: %s RTs: %s Body: %s", i.Metadata(),
-		i.Category(), i.DTime(), rts, i.Body())
+		i.Category(), i.DTime(), rts.String(), i.Body())
 }
 
 func (s StateUpdateMessage) Metadata() gregor.Metadata { return s.Md_ }

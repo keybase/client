@@ -19,4 +19,4 @@ BEGIN {
 }
 END {
   print "}";
-}' >"$script_dir/electron-sums.tsx"
+}' >"$script_dir/electron-sums.mts"

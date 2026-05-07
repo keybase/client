@@ -191,7 +191,7 @@ type CoinType = {
 const CoinFlipResultCoin = (props: CoinType) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.commonContainer}>
     <Kb.Box2 direction="vertical" style={styles.coin} centerChildren={true}>
-      <Kb.Icon type={props.coin ? 'icon-coin-heads-48-48' : 'icon-coin-tails-48-48'} />
+      <Kb.ImageIcon type={props.coin ? 'icon-coin-heads-48-48' : 'icon-coin-tails-48-48'} />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" centerChildren={true}>
       <Kb.Text selectable={true} type="Header">
@@ -211,7 +211,7 @@ const CoinFlipResultHands = (props: HandType) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.handTarget}>
+        <Kb.Box2 direction="vertical" fullHeight={true} justifyContent="space-around" style={styles.handTarget}>
           {handsWithCards.map(hand => (
             <Kb.Box2 key={hand.target} alignSelf="flex-start" alignItems="stretch" direction="vertical">
               <Kb.Text selectable={true} type="BodyBig">
@@ -365,7 +365,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       handTarget: {
         height: 'auto',
-        justifyContent: 'space-around',
         paddingRight: Kb.Styles.globalMargins.tiny,
       },
       listContainer: {

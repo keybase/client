@@ -36,7 +36,7 @@ var nl = []byte{'\n'}
 // makePad makes a whitespace pad that is l bytes long.
 func makePad(l int) []byte {
 	ret := make([]byte, l)
-	for i := 0; i < l; i++ {
+	for i := range l {
 		ret[i] = ' '
 	}
 	return ret
