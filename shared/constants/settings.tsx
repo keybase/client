@@ -21,6 +21,7 @@ export const settingsUpdatePaymentTab = 'settingsTabs.updatePaymentTab'
 export const settingsWalletsTab = 'settingsTabs.walletsTab'
 export const settingsContactsTab = 'settingsTabs.contactsTab'
 export const settingsTypographyTab = 'settingsTabs.typographyTab'
+export const settingsIconsTab = 'settingsTabs.iconsTab'
 
 export type SettingsTab =
   | typeof settingsAccountTab

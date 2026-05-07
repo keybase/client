@@ -188,6 +188,12 @@ function SettingsNav() {
                 },
                 text: 'Typography',
               } as const,
+              {
+                onClick: () => {
+                  navigateAppend({name: Settings.settingsIconsTab, params: {}})
+                },
+                text: 'Icons',
+              } as const,
             ]
           : []),
         {

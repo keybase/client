@@ -137,6 +137,10 @@ export const sharedNewRoutes = defineRouteMap({
           getOptions: {title: 'Typography'},
           screen: React.lazy(async () => import('./typography')),
         },
+        [Settings.settingsIconsTab]: {
+          getOptions: {title: 'Icons'},
+          screen: React.lazy(async () => import('./icons')),
+        },
       }
     : {}),
 })
@@ -152,7 +156,12 @@ export const settingsDesktopTabRoutes = defineRouteMap({
   [Settings.settingsDisplayTab]: sharedNewRoutes[Settings.settingsDisplayTab],
   [Settings.settingsFeedbackTab]: sharedNewRoutes[Settings.settingsFeedbackTab],
   [Settings.settingsFsTab]: sharedNewRoutes[Settings.settingsFsTab],
-  ...(__DEV__ ? {[Settings.settingsTypographyTab]: sharedNewRoutes[Settings.settingsTypographyTab]} : {}),
+  ...(__DEV__
+    ? {
+        [Settings.settingsTypographyTab]: sharedNewRoutes[Settings.settingsTypographyTab],
+        [Settings.settingsIconsTab]: sharedNewRoutes[Settings.settingsIconsTab],
+      }
+    : {}),
   [Settings.settingsGitTab]: sharedNewRoutes[Settings.settingsGitTab],
   [Settings.settingsNotificationsTab]: sharedNewRoutes[Settings.settingsNotificationsTab],
   [Settings.settingsScreenprotectorTab]: sharedNewRoutes[Settings.settingsScreenprotectorTab],
