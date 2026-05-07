@@ -186,7 +186,7 @@ const appTabsScreenOptions = (
     tabBarIcon: getNativeTabIcon(routeName),
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
     tabBarLabelVisibilityMode: 'labeled' as const,
-    tabBarMinimizeBehavior: 'never' as const, // until this actually works on all screens, not sure why it only
+    tabBarMinimizeBehavior: 'none' as const, // until this actually works on all screens, not sure why it only
     tabBarStyle: {backgroundColor: isDarkMode ? colors.greyDarkest : colors.blueDark},
     // works on chat inbox now
     title: tabToLabel.get(routeName) ?? routeName,
