@@ -5,7 +5,7 @@ import * as React from 'react'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
 import {useChosenChannelsTeamnames} from '@/chat/conversation/manage-channels-badge'
 import {useNavigation, type NavigationProp} from '@react-navigation/native'
-import type {NativeBottomTabNavigationProp} from '@react-navigation/bottom-tabs/unstable'
+import type {BottomTabNavigationProp} from '@react-navigation/bottom-tabs'
 import {PerfProfiler} from '@/perf/react-profiler'
 import * as RowSizes from './row/sizes'
 import BigTeamsDivider from './row/big-teams-divider'
@@ -85,7 +85,7 @@ function InboxBody(p: ControlledInboxProps) {
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
   const headComponent = C.isTablet ? null : <SearchRow search={search} showSearch={C.isMobile} />
-  const navigation = useNavigation<NavigationProp<RootParamList, 'chatRoot'>>()
+  const navigation = useNavigation() as NavigationProp<RootParamList, 'chatRoot'>
   const chosenChannelsTeamnames = useChosenChannelsTeamnames()
   const listExtraData = React.useMemo(
     () => ({
@@ -196,7 +196,7 @@ function InboxBody(p: ControlledInboxProps) {
     if (!useTabBottomAccessory) {
       return
     }
-    const parent = navigation.getParent<NativeBottomTabNavigationProp<RootParamList> | undefined>()
+    const parent = navigation.getParent() as BottomTabNavigationProp<RootParamList> | undefined
     parent?.setOptions({bottomAccessory: showFloatingDivider ? renderBottomAccessory : undefined})
     return () => {
       parent?.setOptions({bottomAccessory: undefined})

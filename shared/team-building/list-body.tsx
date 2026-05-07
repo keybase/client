@@ -401,7 +401,7 @@ export const ListBody = ({
   onFinishTeamBuilding,
   enterInputCounter,
 }: ListBodyProps) => {
-  const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
+  const {params} = (useRoute() as RootRouteProps<'peopleTeamBuilder'>)
   const recommendedHideYourself = params.recommendedHideYourself ?? false
   const teamID = params.teamID
   const ResultRow = namespace === 'people' ? PeopleResult : UserResult

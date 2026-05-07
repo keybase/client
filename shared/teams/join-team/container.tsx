@@ -33,9 +33,8 @@ const ContainerInner = ({initialTeamname, success: successParam}: OwnProps) => {
   const [successTeamName, setSuccessTeamName] = React.useState('')
   const [name, _setName] = React.useState(initialTeamname ?? '')
   const joinTeam = C.useRPC(T.RPCGen.teamsTeamAcceptInviteOrRequestAccessRpcListener)
-  const navigation = useNavigation<
-    NativeStackNavigationProp<TeamJoinTeamDialogParamList, 'teamJoinTeamDialog'>
-  >()
+  const navigation =
+    useNavigation() as NativeStackNavigationProp<TeamJoinTeamDialogParamList, 'teamJoinTeamDialog'>
   const navigateUp = C.Router2.navigateUp
   const success = !!successParam
   const handoffToInviteRef = React.useRef(false)

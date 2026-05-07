@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import {useColorScheme, Image} from 'react-native'
 import {useNavigation} from '@react-navigation/native'
 import {useIsFocused} from '@react-navigation/core'
-import type {NativeBottomTabNavigationProp} from '@react-navigation/bottom-tabs/unstable'
+import type {BottomTabNavigationProp} from '@react-navigation/bottom-tabs'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
 import type {RootParamList} from '@/router-v2/route-params'
 import Upload from './upload'
@@ -79,7 +79,7 @@ const UploadContainer = () => {
 
   React.useEffect(() => {
     if (!useTabBottomAccessory || !isFocused) return
-    const parent = navigation.getParent<NativeBottomTabNavigationProp<RootParamList> | undefined>()
+    const parent = navigation.getParent() as BottomTabNavigationProp<RootParamList> | undefined
     parent?.setOptions({bottomAccessory: np.showing ? renderBottomAccessory : undefined})
     return () => {
       parent?.setOptions({bottomAccessory: undefined})

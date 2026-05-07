@@ -2878,6 +2878,34 @@ PODS:
     - React-perflogger (= 0.83.4)
     - React-utils (= 0.83.4)
     - SocketRocket
+  - ReactNavigation (8.0.0-alpha.21):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - RNCMaskedView (0.3.2):
     - boost
     - DoubleConversion
@@ -2934,7 +2962,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNGestureHandler (3.0.0-beta.3):
+  - RNGestureHandler (3.0.0-nightly-20260506-312f27748):
     - boost
     - DoubleConversion
     - fast_float
@@ -3336,6 +3364,7 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios/ReactAppDependencyProvider`)
   - ReactCodegen (from `build/generated/ios/ReactCodegen`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "ReactNavigation (from `../node_modules/@react-navigation/native`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
@@ -3583,6 +3612,8 @@ EXTERNAL SOURCES:
     :path: build/generated/ios/ReactCodegen
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  ReactNavigation:
+    :path: "../node_modules/@react-navigation/native"
   RNCMaskedView:
     :path: "../node_modules/@react-native-masked-view/masked-view"
   RNCPicker:
@@ -3716,9 +3747,10 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 2b19d66e5ddfe8dc7afb6338a4626156cbf2bab1
   ReactCodegen: d6c9a8bda218917454530b681464c8556e896a34
   ReactCommon: cbb4e1e2bff77892671eae8eb52154dcebf02280
+  ReactNavigation: d22277947428e3bed2f88fc68ad9d4a99d5ce9b0
   RNCMaskedView: d707a83784c67099b54b37d056ababb2767ce15e
   RNCPicker: 35fc66f352403cdfe99d53b541f5180482ca2bc5
-  RNGestureHandler: d4ab2d812e9fae76169abe994b6f215f8f231143
+  RNGestureHandler: af1f63d7c1507da8abdc83f572e56bcf300327f7
   RNReanimated: 879497d7fcda8c61e52b1f00ebc7ce9fd97e3cc0
   RNScreens: e902eba58a27d3ad399a495d578e8aba3ea0f490
   RNWorklets: 534af667da0c0049e0060ae43f03c7df8cc9a6e0

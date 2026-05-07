@@ -45,7 +45,7 @@ const splitAndSortDevices = (devices: ReadonlyArray<T.Devices.Device>) =>
 const itemHeight = {height: 48, type: 'fixed'} as const
 
 function ReloadableDevices() {
-  const navigation = useNavigation<NativeStackNavigationProp<DevicesRootParamList, 'devicesRoot'>>()
+  const navigation = useNavigation() as unknown as NativeStackNavigationProp<DevicesRootParamList, 'devicesRoot'>
   const [devices, setDevices] = React.useState<Array<T.Devices.Device>>([])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const loadDevicesRPC = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
