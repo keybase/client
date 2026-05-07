@@ -112,15 +112,15 @@ const androidTabIcons = new Map<Tabs.Tab, number>([
   [Tabs.fsTab, require('../images/icons/icon-nav-folders-32.png')],
   [Tabs.peopleTab, require('../images/icons/icon-nav-people-32.png')],
   [Tabs.settingsTab, require('../images/icons/icon-nav-settings-32.png')],
-  [Tabs.teamsTab, require('../images/icons/icon-folder-team-32.png')],
+  [Tabs.teamsTab, require('../images/icons/icon-nav-teams-32.png')],
 ])
 
 const iosTabIcons = new Map<Tabs.Tab, {active: SFSymbol; inactive: SFSymbol}>([
-  [Tabs.chatTab, {active: 'message.fill', inactive: 'message'}],
+  [Tabs.chatTab, {active: 'bubble.fill', inactive: 'bubble'}],
   [Tabs.fsTab, {active: 'folder.fill', inactive: 'folder'}],
-  [Tabs.peopleTab, {active: 'person.crop.circle.fill', inactive: 'person.crop.circle'}],
-  [Tabs.settingsTab, {active: 'ellipsis.circle.fill', inactive: 'ellipsis.circle'}],
-  [Tabs.teamsTab, {active: 'person.3.fill', inactive: 'person.3'}],
+  [Tabs.peopleTab, {active: 'person.crop.rectangle.fill', inactive: 'person.crop.rectangle'}],
+  [Tabs.settingsTab, {active: 'line.3.horizontal.circle.fill', inactive: 'line.3.horizontal'}],
+  [Tabs.teamsTab, {active: 'person.2.fill', inactive: 'person.2'}],
 ])
 
 const getNativeTabIcon = (tab: Tabs.Tab) => {
@@ -160,28 +160,32 @@ const appTabsScreenOptions = (
   return {
     headerShown: false,
     overrideScrollViewContentInsetAdjustmentBehavior: true,
-    tabBarActiveIndicatorEnabled: false,
     tabBarBadge: getBadgeNumber(routeName, navBadges, hasPermissions),
     tabBarBadgeStyle: {
       backgroundColor: isLiquidGlassSupported ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.orange,
     },
     ...(C.isIOS
-      ? isLiquidGlassSupported
-        ? {
-            tabBarBlurEffect: Common.tabBarBlurEffect,
-          }
-        : {
-            tabBarActiveTintColor: Kb.Styles.globalColors.whiteOrWhite,
-            tabBarInactiveTintColor: isDarkMode ? colors.black : colors.blueDarker,
-            tabBarMinimizeBehavior: Common.tabBarMinimizeBehavior,
-          }
+      ? {
+          tabBarActiveIndicatorEnabled: false,
+          ...(isLiquidGlassSupported
+            ? {
+                tabBarBlurEffect: Common.tabBarBlurEffect,
+              }
+            : {
+                tabBarActiveTintColor: Kb.Styles.globalColors.whiteOrWhite,
+                tabBarInactiveTintColor: isDarkMode ? colors.black : colors.blueDarker,
+                tabBarMinimizeBehavior: Common.tabBarMinimizeBehavior,
+              }),
+        }
       : {
+          tabBarActiveIndicatorColor: 'rgba(255,255,255,0.15)',
+          tabBarActiveIndicatorEnabled: true,
           tabBarActiveTintColor: Kb.Styles.globalColors.white,
           tabBarInactiveTintColor: Kb.Styles.globalColors.blueLighter,
         }),
     tabBarIcon: getNativeTabIcon(routeName),
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
-    tabBarLabelVisibilityMode: C.isTablet ? ('labeled' as const) : ('unlabeled' as const),
+    tabBarLabelVisibilityMode: 'labeled' as const,
     tabBarMinimizeBehavior: 'never' as const, // until this actually works on all screens, not sure why it only
     tabBarStyle: {backgroundColor: isDarkMode ? colors.greyDarkest : colors.blueDark},
     // works on chat inbox now
