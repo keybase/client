@@ -6,6 +6,8 @@ import glob
 import json
 import re
 import sys
+import time
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 # --- Icon font build constants (match shared/desktop/yarn-helper/font.mts) ---
@@ -117,6 +119,45 @@ def _draw_svg_path(d: str, pen) -> None:
             idx += 1  # unknown command, skip
 
     ensure_closed()
+
+
+def _build_icon_glyph(svg_path: str, size: int) -> tuple:
+    """
+    Parse one SVG icon file and return (TTGlyph, advance_width, lsb).
+    size is the icon grid size (8, 16, or 24).
+    """
+    from fontTools.pens.ttGlyphPen import TTGlyphPen
+    from fontTools.pens.transformPen import TransformPen
+    from fontTools.pens.cu2quPen import Cu2QuPen
+
+    scale = _ICON_FONT_HEIGHT / size
+    # SVG y=0 (top) maps to TYPO_ASCENT; 24-size icons shift lower to match original fontforge placement
+    y_shift = _ICON_TYPO_ASCENT
+    if size == 24:
+        y_shift -= _ICON_24_EXTRA_SHIFT
+
+    # Pen chain: SVG path commands → transform → cubic→quadratic → TTGlyph
+    tt_pen = TTGlyphPen(None)
+    cu2qu_pen = Cu2QuPen(tt_pen, max_err=1.0, reverse_direction=False)
+    transform_pen = TransformPen(cu2qu_pen, (scale, 0, 0, -scale, 0, y_shift))
+
+    ns = 'http://www.w3.org/2000/svg'
+    tree = ET.parse(svg_path)
+    root = tree.getroot()
+
+    for elem in root.iter(f'{{{ns}}}path'):
+        d = elem.get('d', '').strip()
+        if d:
+            _draw_svg_path(d, transform_pen)
+
+    advance_width = int(round(size * scale))  # = 1024 for all sizes
+    glyph = tt_pen.glyph(dropImpliedOnCurves=True)
+    if glyph.numberOfContours != 0:
+        glyph.recalcBounds(None)
+        lsb = glyph.xMin
+    else:
+        lsb = 0
+    return glyph, advance_width, lsb
 
 
 def _ttfont(path: str):
@@ -489,8 +530,140 @@ def cmd_build_text(args):
     else:
         # Touch a sentinel file so webpack's filesystem cache knows fonts changed.
         sentinel = repo_root / "shared" / "fonts" / ".font-build-stamp"
-        sentinel.write_text(str(__import__('time').time()) + "\n")
+        sentinel.write_text(str(time.time()) + "\n")
         print(f"build-text: wrote {out_dir}", file=sys.stderr)
+
+
+def cmd_build_icon(args):
+    from fontTools.fontBuilder import FontBuilder
+    from fontTools.ttLib.tables._g_l_y_f import Glyph as TTGlyph
+
+    manifest = json.loads(Path(args.manifest).read_text())
+    repo_root = Path(args.manifest).resolve().parent.parent.parent
+    icon_cfg = manifest.get("iconFont", {})
+    iconfont_dir = repo_root / "shared" / "images" / "iconfont"
+
+    # Collect and sort SVG files by counter
+    entries = []
+    for svg_file in sorted(iconfont_dir.glob("*.svg")):
+        m = _ICON_FILENAME_RE.match(svg_file.name)
+        if not m:
+            continue
+        counter, name, size = int(m.group(1)), m.group(2), int(m.group(3))
+        entries.append((counter, name, size, svg_file))
+    entries.sort(key=lambda e: e[0])
+
+    if not entries:
+        print("ERROR: no SVG files found", file=sys.stderr)
+        sys.exit(1)
+
+    # Build glyph data
+    glyph_order = [".notdef"]
+    char_map: dict[int, str] = {}
+    glyph_data: dict = {}
+    h_metrics: dict = {}
+
+    # .notdef: empty glyph
+    empty = TTGlyph()
+    empty.numberOfContours = 0
+    empty.coordinates = []
+    empty.flags = []
+    empty.components = []
+    glyph_data[".notdef"] = empty
+    h_metrics[".notdef"] = (_ICON_FONT_HEIGHT, 0)
+
+    seen_counters: set[int] = set()
+    errors = 0
+    for counter, name, size, svg_path in entries:
+        if counter in seen_counters:
+            print(f"ERROR: duplicate counter {counter} in {svg_path.name}", file=sys.stderr)
+            errors += 1
+            continue
+        seen_counters.add(counter)
+
+        glyph_name = f"uni{(_ICON_BASE_CHAR_CODE + counter - 1):04X}"
+        codepoint = _ICON_BASE_CHAR_CODE + counter - 1
+        glyph_order.append(glyph_name)
+        char_map[codepoint] = glyph_name
+
+        try:
+            glyph, adv, lsb = _build_icon_glyph(str(svg_path), size)
+            glyph_data[glyph_name] = glyph
+            h_metrics[glyph_name] = (adv, lsb)
+        except Exception as e:
+            print(f"ERROR building glyph for {svg_path.name}: {e}", file=sys.stderr)
+            errors += 1
+            glyph_data[glyph_name] = empty
+            h_metrics[glyph_name] = (_ICON_FONT_HEIGHT, 0)
+
+    if errors:
+        print(f"build-icon: {errors} error(s)", file=sys.stderr)
+        sys.exit(1)
+
+    # Assemble font
+    fb = FontBuilder(_ICON_FONT_HEIGHT, isTTF=True)
+    fb.setupGlyphOrder(glyph_order)
+    fb.setupCharacterMap(char_map)
+    fb.setupGlyf(glyph_data)
+    fb.setupHorizontalMetrics(h_metrics)
+    fb.setupHorizontalHeader(
+        ascent=_ICON_HHEA_ASCENT,
+        descent=_ICON_HHEA_DESCENT,
+    )
+    fb.setupNameTable({
+        "familyName": "kb",
+        "styleName": "Regular",
+    })
+    fb.setupOS2(
+        sTypoAscender=_ICON_TYPO_ASCENT,
+        sTypoDescender=_ICON_TYPO_DESCENT,
+        sTypoLineGap=0,
+        usWinAscent=_ICON_WIN_ASCENT,
+        usWinDescent=_ICON_WIN_DESCENT,
+        fsType=0,
+        fsSelection=0,
+    )
+    fb.setupPost(keepGlyphNames=False)
+    from fontTools.ttLib.tables._g_a_s_p import table__g_a_s_p
+    gasp = table__g_a_s_p()
+    gasp.version = 1
+    gasp.gaspRange = {65535: 15}
+    fb.font["gasp"] = gasp
+
+    # Determine output paths from manifest iconFont config
+    outputs = icon_cfg.get("outputs", [icon_cfg.get("output", "")])
+    if isinstance(outputs, str):
+        outputs = [outputs]
+
+    platform: str = args.platform
+    android_output = icon_cfg.get("androidOutput", "")
+
+    wrote = []
+    if platform == "android":
+        if android_output:
+            out_path = repo_root / android_output
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            fb.font.save(str(out_path))
+            wrote.append(str(out_path))
+        else:
+            print("WARNING: --platform android but iconFont.androidOutput not set in manifest", file=sys.stderr)
+    else:
+        for rel in outputs:
+            if not rel:
+                continue
+            out_path = repo_root / rel
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            fb.font.save(str(out_path))
+            wrote.append(str(out_path))
+
+    for w in wrote:
+        print(f"  wrote {w}", file=sys.stderr)
+    print(f"build-icon: {len(entries)} glyphs, {len(wrote)} output(s)", file=sys.stderr)
+
+    # Touch sentinel so webpack notices font change
+    if wrote:
+        sentinel = repo_root / "shared" / "fonts" / ".font-build-stamp"
+        sentinel.write_text(str(time.time()) + "\n")
 
 
 def cmd_verify_text(args):
@@ -596,6 +769,12 @@ def main():
     p_diff.add_argument("--output", default="-", metavar="FILE",
                         help="Output JSON file (default: stdout)")
     p_diff.set_defaults(func=cmd_diff_metrics)
+
+    p_icon = sub.add_parser("build-icon", help="Build kb.ttf icon font from SVGs")
+    p_icon.add_argument("--manifest", required=True, metavar="FILE")
+    p_icon.add_argument("--platform", default="all", choices=["all", "android"],
+                        help="Target platform (default: all; 'android' writes androidOutput)")
+    p_icon.set_defaults(func=cmd_build_icon)
 
     args = parser.parse_args()
     args.func(args)
