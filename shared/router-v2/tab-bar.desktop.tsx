@@ -213,7 +213,7 @@ const TabBadge = (p: {name: Tabs.Tab}) => {
   const {name} = p
   const badgeNumbers = useNotifState(s => s.navBadges)
   const fsCriticalUpdate = useShellState(s => s.fsCriticalUpdate)
-  const badge = (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
+  const badge = 42 // (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
   return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
 }
 
@@ -283,17 +283,13 @@ function Tab(props: TabProps) {
           'tab-tooltip',
           'tooltip-top-right'
         )}
-          relative={true}
+        relative={true}
         style={styles.tab}
         tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
       >
         <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
         <Kb.Box2 direction="horizontal" justifyContent="flex-end" relative={true}>
-          <Kb.Icon
-            className="tab-icon"
-            type={Tabs.desktopTabMeta[tab].icon}
-            sizeType="Big"
-          />
+          <Kb.Icon className="tab-icon" type={Tabs.desktopTabMeta[tab].icon} sizeType="Big" />
           {tab === Tabs.fsTab && <FilesTabBadge />}
         </Kb.Box2>
         <Kb.Text className="tab-label" type="BodySmallSemibold">
