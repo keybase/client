@@ -4,8 +4,119 @@
 import argparse
 import glob
 import json
+import re
 import sys
 from pathlib import Path
+
+# --- Icon font build constants (match shared/desktop/yarn-helper/font.mts) ---
+_ICON_FONT_HEIGHT = 1024
+_ICON_DESCENT = _ICON_FONT_HEIGHT // 16          # 64
+_ICON_BASE_CHAR_CODE = 0xe900
+_ICON_WIN_ASCENT = _ICON_FONT_HEIGHT - _ICON_DESCENT + 2   # 962
+_ICON_WIN_DESCENT = _ICON_DESCENT * 2 + 20                 # 148
+_ICON_TYPO_ASCENT = _ICON_FONT_HEIGHT - _ICON_DESCENT      # 960
+_ICON_TYPO_DESCENT = -_ICON_DESCENT                        # -64
+_ICON_HHEA_ASCENT = _ICON_WIN_ASCENT                       # 962
+_ICON_HHEA_DESCENT = -_ICON_WIN_DESCENT                    # -148
+_ICON_24_EXTRA_SHIFT = 22
+_ICON_FILENAME_RE = re.compile(r'^(\d+)-kb-iconfont-(.*?)-(\d+)\.svg$')
+
+
+def _draw_svg_path(d: str, pen) -> None:
+    """Parse an SVG path `d` string and draw into a fonttools SegmentPen."""
+    tokens = re.findall(
+        r'[MmLlHhVvCcSsQqTtZz]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?',
+        d
+    )
+    idx = 0
+    cmd = ''
+    cx, cy = 0.0, 0.0
+    prev_x2, prev_y2 = 0.0, 0.0
+    contour_open = False
+
+    def nums(n: int) -> list:
+        nonlocal idx
+        result = [float(tokens[idx + i]) for i in range(n)]
+        idx += n
+        return result
+
+    def ensure_closed():
+        nonlocal contour_open
+        if contour_open:
+            pen.endPath()
+            contour_open = False
+
+    while idx < len(tokens):
+        t = tokens[idx]
+        if re.match(r'[A-Za-z]', t):
+            cmd = t
+            idx += 1
+
+        if cmd in ('M', 'm'):
+            ensure_closed()
+            x, y = nums(2)
+            if cmd == 'm':
+                x, y = cx + x, cy + y
+            pen.moveTo((x, y))
+            contour_open = True
+            cx, cy = x, y
+            prev_x2, prev_y2 = cx, cy
+            # Subsequent coords in an M sequence are implicit L/l
+            cmd = 'L' if cmd == 'M' else 'l'
+        elif cmd in ('L', 'l'):
+            x, y = nums(2)
+            if cmd == 'l':
+                x, y = cx + x, cy + y
+            pen.lineTo((x, y))
+            cx, cy = x, y
+            prev_x2, prev_y2 = cx, cy
+        elif cmd in ('H', 'h'):
+            x, = nums(1)
+            if cmd == 'h':
+                x = cx + x
+            pen.lineTo((x, cy))
+            cx = x
+            prev_x2, prev_y2 = cx, cy
+        elif cmd in ('V', 'v'):
+            y, = nums(1)
+            if cmd == 'v':
+                y = cy + y
+            pen.lineTo((cx, y))
+            cy = y
+            prev_x2, prev_y2 = cx, cy
+        elif cmd in ('C', 'c'):
+            x1, y1, x2, y2, x, y = nums(6)
+            if cmd == 'c':
+                x1, y1 = cx + x1, cy + y1
+                x2, y2 = cx + x2, cy + y2
+                x, y = cx + x, cy + y
+            pen.curveTo((x1, y1), (x2, y2), (x, y))
+            cx, cy = x, y
+            prev_x2, prev_y2 = x2, y2
+        elif cmd in ('S', 's'):
+            x2_rel, y2_rel, x_rel, y_rel = nums(4)
+            if cmd == 's':
+                x2_final = cx + x2_rel
+                y2_final = cy + y2_rel
+                x_final = cx + x_rel
+                y_final = cy + y_rel
+            else:
+                x2_final, y2_final = x2_rel, y2_rel
+                x_final, y_final = x_rel, y_rel
+            x1_final = 2 * cx - prev_x2
+            y1_final = 2 * cy - prev_y2
+            pen.curveTo((x1_final, y1_final), (x2_final, y2_final), (x_final, y_final))
+            prev_x2, prev_y2 = x2_final, y2_final
+            cx, cy = x_final, y_final
+        elif cmd in ('Z', 'z'):
+            if contour_open:
+                pen.closePath()
+                contour_open = False
+            prev_x2, prev_y2 = cx, cy
+        else:
+            idx += 1  # unknown command, skip
+
+    ensure_closed()
 
 
 def _ttfont(path: str):
