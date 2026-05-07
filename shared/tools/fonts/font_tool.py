@@ -189,6 +189,17 @@ def _build_icon_glyph(svg_path: str, size: int) -> tuple:
     glyph = tt_pen.glyph(dropImpliedOnCurves=True)
     if glyph.numberOfContours != 0:
         glyph.recalcBounds(None)
+        glyph_width = glyph.xMax - glyph.xMin
+        if glyph_width > advance_width:
+            # Scale down uniformly around the horizontal center so the glyph
+            # fits within the advance width (some SVGs have content that extends
+            # slightly outside their viewBox).
+            fit_scale = advance_width / glyph_width
+            center_x = advance_width / 2
+            dx = center_x * (1 - fit_scale)
+            glyph.coordinates.scale((fit_scale, fit_scale))
+            glyph.coordinates.translate((dx, 0))
+            glyph.recalcBounds(None)
         lsb = glyph.xMin
     else:
         lsb = 0
