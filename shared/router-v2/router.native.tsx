@@ -116,11 +116,11 @@ const androidTabIcons = new Map<Tabs.Tab, number>([
 ])
 
 const iosTabIcons = new Map<Tabs.Tab, {active: SFSymbol; inactive: SFSymbol}>([
-  [Tabs.chatTab, {active: 'message.fill', inactive: 'message'}],
+  [Tabs.chatTab, {active: 'bubble.fill', inactive: 'bubble'}],
   [Tabs.fsTab, {active: 'folder.fill', inactive: 'folder'}],
-  [Tabs.peopleTab, {active: 'person.crop.circle.fill', inactive: 'person.crop.circle'}],
-  [Tabs.settingsTab, {active: 'ellipsis.circle.fill', inactive: 'ellipsis.circle'}],
-  [Tabs.teamsTab, {active: 'person.3.fill', inactive: 'person.3'}],
+  [Tabs.peopleTab, {active: 'person.crop.rectangle.fill', inactive: 'person.crop.rectangle'}],
+  [Tabs.settingsTab, {active: 'line.3.horizontal.circle.fill', inactive: 'line.3.horizontal'}],
+  [Tabs.teamsTab, {active: 'person.2.fill', inactive: 'person.2'}],
 ])
 
 const getNativeTabIcon = (tab: Tabs.Tab) => {
