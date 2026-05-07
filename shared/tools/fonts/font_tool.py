@@ -36,6 +36,14 @@ def _draw_svg_path(d: str, pen) -> None:
     prev_x2, prev_y2 = 0.0, 0.0
     contour_open = False
 
+    def is_numeric(t: str) -> bool:
+        return not re.match(r'[A-Za-z]', t)
+
+    def has_nums(n: int) -> bool:
+        if idx + n > len(tokens):
+            return False
+        return all(is_numeric(tokens[idx + i]) for i in range(n))
+
     def nums(n: int) -> list:
         nonlocal idx
         result = [float(tokens[idx + i]) for i in range(n)]
@@ -48,11 +56,17 @@ def _draw_svg_path(d: str, pen) -> None:
             pen.endPath()
             contour_open = False
 
+    _cmd_nums = {'M': 2, 'm': 2, 'L': 2, 'l': 2, 'H': 1, 'h': 1, 'V': 1, 'v': 1,
+                 'C': 6, 'c': 6, 'S': 4, 's': 4, 'Q': 4, 'q': 4, 'T': 2, 't': 2}
+
     while idx < len(tokens):
         t = tokens[idx]
         if re.match(r'[A-Za-z]', t):
             cmd = t
             idx += 1
+        elif cmd in _cmd_nums and not has_nums(_cmd_nums[cmd]):
+            # Implicit repeat but next token is a command letter — stop repeating.
+            continue
 
         if cmd in ('M', 'm'):
             ensure_closed()
@@ -136,19 +150,40 @@ def _build_icon_glyph(svg_path: str, size: int) -> tuple:
     if size == 24:
         y_shift -= _ICON_24_EXTRA_SHIFT
 
-    # Pen chain: SVG path commands → transform → cubic→quadratic → TTGlyph
     tt_pen = TTGlyphPen(None)
     cu2qu_pen = Cu2QuPen(tt_pen, max_err=1.0, reverse_direction=False)
-    transform_pen = TransformPen(cu2qu_pen, (scale, 0, 0, -scale, 0, y_shift))
 
     ns = 'http://www.w3.org/2000/svg'
     tree = ET.parse(svg_path)
     root = tree.getroot()
 
+    # Build a parent map so we can walk up from <path> to collect <g transform="translate(...)">
+    parent_map = {child: parent for parent in root.iter() for child in parent}
+
+    _translate_re = re.compile(r'translate\(\s*([-\d.]+)(?:[,\s]\s*([-\d.]+))?\s*\)')
+
     for elem in root.iter(f'{{{ns}}}path'):
         d = elem.get('d', '').strip()
-        if d:
-            _draw_svg_path(d, transform_pen)
+        if not d:
+            continue
+
+        # Accumulate translate offsets from ancestor <g> elements (innermost first)
+        tx, ty = 0.0, 0.0
+        node = parent_map.get(elem)
+        while node is not None and node is not root:
+            t_attr = node.get('transform', '')
+            if t_attr:
+                m = _translate_re.search(t_attr)
+                if m:
+                    tx += float(m.group(1))
+                    ty += float(m.group(2) or 0)
+            node = parent_map.get(node)
+
+        # Compose SVG translate into the scale+flip affine matrix:
+        #   x_font = (x_svg + tx) * scale
+        #   y_font = y_shift - (y_svg + ty) * scale
+        transform_pen = TransformPen(cu2qu_pen, (scale, 0, 0, -scale, tx * scale, y_shift - ty * scale))
+        _draw_svg_path(d, transform_pen)
 
     advance_width = int(round(size * scale))  # = 1024 for all sizes
     glyph = tt_pen.glyph(dropImpliedOnCurves=True)
