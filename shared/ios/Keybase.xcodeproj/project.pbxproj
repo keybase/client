@@ -95,7 +95,7 @@
 		37E0D88322A5C7FA008CA4ED /* keybase-semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-semibold.ttf"; path = "../fonts/ios/keybase-semibold.ttf"; sourceTree = "<group>"; };
 		37E0D88422A5C7FA008CA4ED /* keybase-bold-italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "keybase-bold-italic.ttf"; path = "../fonts/ios/keybase-bold-italic.ttf"; sourceTree = "<group>"; };
 		37E0D88522A5C7FA008CA4ED /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "SourceCodePro-Semibold.ttf"; path = "../fonts/ios/SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
-		37E0D88622A5C7FB008CA4ED /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = kb.ttf; path = "../fonts/ios/kb.ttf"; sourceTree = "<group>"; };
+		37E0D88622A5C7FB008CA4ED /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = kb.ttf; path = ../fonts/ios/kb.ttf; sourceTree = "<group>"; };
 		37E0D88722A5C7FB008CA4ED /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "SourceCodePro-Medium.ttf"; path = "../fonts/ios/SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
 		37E0D89222A5C83B008CA4ED /* keybasemessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = keybasemessage.wav; path = ../sounds/keybasemessage.wav; sourceTree = "<group>"; };
 		60B93983273F902C00A226FF /* keybase.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = keybase.xcframework; sourceTree = "<group>"; };
