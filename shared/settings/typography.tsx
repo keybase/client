@@ -102,7 +102,7 @@ const SampleRow = ({
 
 const Typography = () => {
   const [selectedType, setSelectedType] = React.useState<TextType | 'all'>('all')
-  const [decoration, setDecoration] = React.useState<Decoration>('none')
+  const [decoration, setDecoration] = React.useState<Decoration>('strikethrough')
   const [sampleIdx, setSampleIdx] = React.useState(0)
   const [darkBg, setDarkBg] = React.useState(false)
 

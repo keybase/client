@@ -351,6 +351,7 @@ def cmd_build_text(args):
         # For android platform, use the "android" output key; otherwise copy to all
         # non-android outputs (ios + electron) when building the default platform.
         outputs: dict = entry.get("outputs", {})
+        electron_patches: dict = entry.get("electronPatches", {})
         copy_keys = ["android"] if platform == "android" else [k for k in outputs if k != "android"]
         for key in copy_keys:
             out_path_rel = outputs.get(key)
@@ -359,7 +360,15 @@ def cmd_build_text(args):
             out_path = repo_root / out_path_rel
             if out_path == dest:
                 continue  # already the staging dest
-            if out_path.parent.exists():
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            if key == "electron" and electron_patches and platform != "android":
+                efont = _ttfont(str(dest))
+                echanges = _apply_patches(efont, electron_patches)
+                efont.save(str(out_path))
+                efont.close()
+                etag = f"  [{', '.join(echanges)}]" if echanges else ""
+                print(f"    → {key}: {out_path}{etag}", file=sys.stderr)
+            elif out_path.parent.exists():
                 shutil.copy2(str(dest), str(out_path))
                 print(f"    → {key}: {out_path}", file=sys.stderr)
 
@@ -367,6 +376,9 @@ def cmd_build_text(args):
         print(f"build-text: {errors} error(s)", file=sys.stderr)
         sys.exit(1)
     else:
+        # Touch a sentinel file so webpack's filesystem cache knows fonts changed.
+        sentinel = repo_root / "shared" / "fonts" / ".font-build-stamp"
+        sentinel.write_text(str(__import__('time').time()) + "\n")
         print(f"build-text: wrote {out_dir}", file=sys.stderr)
 
 
