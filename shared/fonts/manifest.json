@@ -1,0 +1,156 @@
+{
+  "_comment": "Declarative source-to-output mapping. 'source' is the canonical input (currently the checked-in TTF). 'outputs' lists per-platform asset destinations relative to repo root. iOS uses shared/fonts/ios/, Electron uses shared/fonts/electron/ (may have electronPatches), Android uses shared/fonts/android/ with per-font underlinePosition patches.",
+  "buildConfig": {
+    "_comment": "outputDir is relative to repo root. patches applies to all text fonts. androidOutputDir holds Android-specific generated fonts until a platform-agnostic underline metric is decided (Phase 4). Set USE_TYPO_METRICS to true once metrics policy is finalized.",
+    "outputDir": "shared/fonts/generated",
+    "androidOutputDir": "shared/fonts/generated/android",
+    "patches": {
+      "OS/2": {
+        "USE_TYPO_METRICS": false
+      }
+    }
+  },
+  "textFonts": [
+    {
+      "id": "keybase-medium",
+      "family": "Keybase",
+      "weight": 500,
+      "italic": false,
+      "source": "shared/fonts/keybase-medium.ttf",
+      "provenance": "Mark Simonson Studio font renamed to Keybase, processed via Font Squirrel and ttfautohint",
+      "patches": {"OS/2": {"sxHeight": 989, "sCapHeight": 1366, "yStrikeoutPosition": 460}},
+      "androidPatches": {"post": {"underlinePosition": -292}},
+      "outputs": {
+        "ios":      "shared/fonts/ios/keybase-medium.ttf",
+        "android":  "shared/fonts/android/keybase-medium.ttf",
+        "electron": "shared/fonts/electron/keybase-medium.ttf"
+      }
+    },
+    {
+      "id": "keybase-medium-italic",
+      "family": "Keybase",
+      "weight": 500,
+      "italic": true,
+      "source": "shared/fonts/keybase-medium-italic.ttf",
+      "provenance": "Mark Simonson Studio font renamed to Keybase, processed via Font Squirrel and ttfautohint",
+      "patches": {"OS/2": {"sxHeight": 989, "sCapHeight": 1366, "yStrikeoutPosition": 460}},
+      "androidPatches": {"post": {"underlinePosition": -292}},
+      "outputs": {
+        "ios":      "shared/fonts/ios/keybase-medium-italic.ttf",
+        "android":  "shared/fonts/android/keybase-medium_italic.ttf",
+        "electron": "shared/fonts/electron/keybase-medium-italic.ttf"
+      }
+    },
+    {
+      "id": "keybase-semibold",
+      "family": "Keybase",
+      "weight": 600,
+      "italic": false,
+      "source": "shared/fonts/keybase-semibold.ttf",
+      "provenance": "Mark Simonson Studio font renamed to Keybase, processed via Font Squirrel and ttfautohint",
+      "patches": {"OS/2": {"sxHeight": 989, "sCapHeight": 1366, "yStrikeoutPosition": 471}},
+      "androidPatches": {"post": {"underlinePosition": -352}},
+      "outputs": {
+        "ios":      "shared/fonts/ios/keybase-semibold.ttf",
+        "android":  "shared/fonts/android/keybase-semibold.ttf",
+        "electron": "shared/fonts/electron/keybase-semibold.ttf"
+      }
+    },
+    {
+      "id": "keybase-semibold-italic",
+      "family": "Keybase",
+      "weight": 600,
+      "italic": true,
+      "source": "shared/fonts/keybase-semibold-italic.ttf",
+      "provenance": "Mark Simonson Studio font renamed to Keybase, processed via Font Squirrel and ttfautohint",
+      "patches": {"OS/2": {"sxHeight": 989, "sCapHeight": 1366, "yStrikeoutPosition": 471}},
+      "androidPatches": {"post": {"underlinePosition": -352}},
+      "outputs": {
+        "ios":      "shared/fonts/ios/keybase-semibold-italic.ttf",
+        "android":  "shared/fonts/android/keybase-semibold_italic.ttf",
+        "electron": "shared/fonts/electron/keybase-semibold-italic.ttf"
+      }
+    },
+    {
+      "id": "keybase-bold",
+      "family": "Keybase",
+      "weight": 700,
+      "italic": false,
+      "source": "shared/fonts/keybase-bold.ttf",
+      "provenance": "Mark Simonson Studio font renamed to Keybase, processed via Font Squirrel and ttfautohint",
+      "patches": {"OS/2": {"sxHeight": 989, "sCapHeight": 1366, "yStrikeoutPosition": 485}},
+      "androidPatches": {"post": {"underlinePosition": -446}},
+      "electronPatches": {"hhea": {"ascender": 2180}},
+      "outputs": {
+        "ios":      "shared/fonts/ios/keybase-bold.ttf",
+        "android":  "shared/fonts/android/keybase_bold.ttf",
+        "electron": "shared/fonts/electron/keybase-bold.ttf"
+      }
+    },
+    {
+      "id": "keybase-bold-italic",
+      "family": "Keybase",
+      "weight": 700,
+      "italic": true,
+      "source": "shared/fonts/keybase-bold-italic.ttf",
+      "provenance": "Mark Simonson Studio font renamed to Keybase, processed via Font Squirrel and ttfautohint",
+      "patches": {"OS/2": {"sxHeight": 989, "sCapHeight": 1366, "yStrikeoutPosition": 485}},
+      "androidPatches": {"post": {"underlinePosition": -446}},
+      "electronPatches": {"hhea": {"ascender": 2180}},
+      "outputs": {
+        "ios":      "shared/fonts/ios/keybase-bold-italic.ttf",
+        "android":  "shared/fonts/android/keybase_bold_italic.ttf",
+        "electron": "shared/fonts/electron/keybase-bold-italic.ttf"
+      }
+    },
+    {
+      "id": "keybase-extrabold",
+      "family": "Keybase",
+      "weight": 800,
+      "italic": false,
+      "source": "shared/fonts/keybase-extrabold.ttf",
+      "provenance": "Mark Simonson Studio font renamed to Keybase, processed via Font Squirrel and ttfautohint",
+      "patches": {"OS/2": {"sxHeight": 989, "sCapHeight": 1366, "yStrikeoutPosition": 501}},
+      "androidPatches": {"post": {"underlinePosition": -542}},
+      "outputs": {
+        "ios":      "shared/fonts/ios/keybase-extrabold.ttf",
+        "android":  "shared/fonts/android/keybase-extrabold.ttf",
+        "electron": "shared/fonts/electron/keybase-extrabold.ttf"
+      }
+    },
+    {
+      "id": "sourcecodepro-medium",
+      "family": "Source Code Pro",
+      "weight": 500,
+      "italic": false,
+      "source": "shared/fonts/SourceCodePro-Medium.ttf",
+      "provenance": "Adobe Source Code Pro, imported binary",
+      "outputs": {
+        "ios":      "shared/fonts/ios/SourceCodePro-Medium.ttf",
+        "android":  "shared/fonts/android/SourceCodePro-Medium.ttf",
+        "electron": "shared/fonts/electron/SourceCodePro-Medium.ttf"
+      }
+    },
+    {
+      "id": "sourcecodepro-semibold",
+      "family": "Source Code Pro",
+      "weight": 600,
+      "italic": false,
+      "source": "shared/fonts/SourceCodePro-Semibold.ttf",
+      "provenance": "Adobe Source Code Pro, imported binary",
+      "outputs": {
+        "ios":      "shared/fonts/ios/SourceCodePro-Semibold.ttf",
+        "android":  "shared/fonts/android/SourceCodePro-Semibold.ttf",
+        "electron": "shared/fonts/electron/SourceCodePro-Semibold.ttf"
+      }
+    }
+  ],
+  "iconFont": {
+    "id": "kb",
+    "source": "shared/images/iconfont/*.svg",
+    "output": "shared/fonts/kb.ttf",
+    "outputs": ["shared/fonts/kb.ttf", "shared/fonts/ios/kb.ttf", "shared/fonts/electron/kb.ttf"],
+    "androidOutput": "shared/fonts/android/kb.ttf",
+    "generator": "shared/tools/fonts/font_tool.py"
+  }
+}

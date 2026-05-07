@@ -131,6 +131,18 @@ export const sharedNewRoutes = defineRouteMap({
   },
   keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
   makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
+  ...(__DEV__
+    ? {
+        [Settings.settingsTypographyTab]: {
+          getOptions: {title: 'Typography'},
+          screen: React.lazy(async () => import('./typography')),
+        },
+        [Settings.settingsIconsTab]: {
+          getOptions: {title: 'Icons'},
+          screen: React.lazy(async () => import('./icons')),
+        },
+      }
+    : {}),
 })
 
 export const settingsDesktopTabRoutes = defineRouteMap({
@@ -144,6 +156,12 @@ export const settingsDesktopTabRoutes = defineRouteMap({
   [Settings.settingsDisplayTab]: sharedNewRoutes[Settings.settingsDisplayTab],
   [Settings.settingsFeedbackTab]: sharedNewRoutes[Settings.settingsFeedbackTab],
   [Settings.settingsFsTab]: sharedNewRoutes[Settings.settingsFsTab],
+  ...(__DEV__
+    ? {
+        [Settings.settingsTypographyTab]: sharedNewRoutes[Settings.settingsTypographyTab],
+        [Settings.settingsIconsTab]: sharedNewRoutes[Settings.settingsIconsTab],
+      }
+    : {}),
   [Settings.settingsGitTab]: sharedNewRoutes[Settings.settingsGitTab],
   [Settings.settingsNotificationsTab]: sharedNewRoutes[Settings.settingsNotificationsTab],
   [Settings.settingsScreenprotectorTab]: sharedNewRoutes[Settings.settingsScreenprotectorTab],

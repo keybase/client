@@ -180,6 +180,22 @@ function SettingsNav() {
           },
           text: 'About',
         },
+        ...(__DEV__
+          ? [
+              {
+                onClick: () => {
+                  navigateAppend({name: Settings.settingsTypographyTab, params: {}})
+                },
+                text: 'Typography',
+              } as const,
+              {
+                onClick: () => {
+                  navigateAppend({name: Settings.settingsIconsTab, params: {}})
+                },
+                text: 'Icons',
+              } as const,
+            ]
+          : []),
         {
           onClick: () => {
             navigateAppend({name: Settings.settingsLogOutTab, params: {}})

@@ -1,7 +1,8 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
-import {isTablet, isIOS} from '@/constants/platform'
+import {isTablet, isIOS, isAndroid} from '@/constants/platform'
+import {SafeAreaView as RNScreensSafeAreaView} from 'react-native-screens/experimental'
 import type {GetOptions, GetOptionsParams} from '@/constants/types/router'
 
 const modalOffset = isIOS ? 40 : 0
@@ -13,6 +14,13 @@ type LayoutProps = {
 }
 
 const TabScreenWrapper = ({children}: {children: React.ReactNode}) => {
+  if (isAndroid) {
+    return (
+      <RNScreensSafeAreaView edges={{bottom: true}} style={styles.tabScreen}>
+        {children}
+      </RNScreensSafeAreaView>
+    )
+  }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tabScreen}>
       {children}

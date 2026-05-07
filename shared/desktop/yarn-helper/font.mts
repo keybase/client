@@ -3,22 +3,11 @@ import fs from 'fs'
 import path from 'path'
 import {execSync} from 'child_process'
 import prettier from 'prettier'
-import crypto from 'crypto'
-import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
 
-const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const commands = {
-  'update-icon-font': {
-    code: () => updateIconFont(false),
-    help: 'Update our font sizes automatically',
-  },
-  'update-web-font': {
-    code: () => updateIconFont(true),
-    help: 'Update our web font automatically',
-  },
   'update-icon-constants': {
     code: updateIconConstants,
     help: 'Update icon.constants-gen.tsx and icon.css with new/removed files',
@@ -34,9 +23,6 @@ const paths = {
   iconPng: path.resolve(__dirname, '../../images/icons'),
   illustrationPng: path.resolve(__dirname, '../../images/illustrations'),
   releasePng: path.resolve(__dirname, '../../images/releases'),
-  fonts: path.resolve(__dirname, '../../fonts'),
-  webFonts: path.resolve(__dirname, '../../fonts-for-web'),
-  webFontsCss: path.resolve(__dirname, '../../fonts-for-web/fonts_custom.styl'),
   iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants-gen.shared.tsx'),
   iconConstantsdts: path.resolve(__dirname, '../../common-adapters/icon.constants-gen.d.ts'),
   iconCss: path.resolve(__dirname, '../../common-adapters/icon.css'),
@@ -49,9 +35,6 @@ const pngAssetDirPaths = [
   {assetDirPath: paths.releasePng, insertFn: insertReleaseAssets},
 ]
 
-const fontHeight = 1024
-const descentFraction = 16 // Source: https://icomoon.io/#docs/font-metrics
-const descent = fontHeight / descentFraction
 const baseCharCode = 0xe900
 
 const iconfontRegex = /^(\d+)-kb-iconfont-(.*)-(\d+).svg$/
@@ -98,206 +81,6 @@ const getSvgNames = (skipUnmatchedFile: boolean) => {
       return arr
     }, new Array<Infos>())
     .sort((x, y) => x.counter - y.counter)
-}
-
-const getSvgPaths = (skipUnmatchedFile: boolean) =>
-  getSvgNames(skipUnmatchedFile).map(i => path.resolve(paths.iconfont, i.filePath))
-
-/*
- * This function will read all of the SVG files specified above, and generate a
- * single ttf iconfont from the svgs. webfonts-generator will write the file to
- * `dest`.
- *
- * For config options: https://github.com/sunflowerdeath/webfonts-generator
- */
-type FontResult = {ttf: string; woff: string; svg: string}
-function updateIconFont(web: boolean) {
-  if (!web) {
-    // Check if fontforge is installed, required to generate the font
-    try {
-      execSync('fontforge')
-    } catch (error_) {
-      const error = error_ as {message?: string}
-      const message = String(error.message)
-      if (message.includes('not found')) {
-        throw new Error(
-          'FontForge is required to generate the icon font. Run `yarn`, install FontForge CLI globally, and try again.',
-          {cause: error_}
-        )
-      }
-      if (error_ instanceof Error) {
-        throw error_
-      }
-      throw new Error(message, {cause: error_})
-    }
-  }
-
-  let webfontsGenerator: (...a: Array<unknown>) => void
-  try {
-    webfontsGenerator = require('webfonts-generator') as typeof webfontsGenerator
-  } catch (e) {
-    console.error('\n\n\n\n>> Web fonts generation is optional, install manually to install it << \n\n\n')
-    throw e
-  }
-  const svgFilePaths = getSvgPaths(true /* print skipped */)
-  const svgFilenames = getSvgNames(false /* print skipped */)
-  /*
-   * NOTE: Since icon counters can be non-sequential, we need to tell our font generator which codepoint to use for each icon.
-   * This is done by setting `codepoints` object where the keys are character codes (hexidecimal) and the values are icon names
-   *
-   * { [name of svg file]: charCode }
-   *
-   * Example
-   * { "127-kb-iconfont-nav-2-files-24": "0xe97e" }
-   */
-  const seenCounters = new Set()
-  const codepointsMap = svgFilenames.reduce((pointsMap, {counter, filePath}) => {
-    // Character code value converted from decimal to hexidecimal
-    const charCodeHex = computeCounter(counter).toString(16)
-    const {name} = path.parse(filePath)
-    if (seenCounters.has(counter)) {
-      throw new Error(`There are two SVGs with the same index number ${counter}`)
-    }
-    seenCounters.add(counter)
-    return {
-      ...pointsMap,
-      [name]: `0x${charCodeHex}`,
-    }
-  }, {})
-
-  if (web) {
-    try {
-      fs.mkdirSync(paths.webFonts)
-    } catch {}
-  }
-
-  webfontsGenerator(
-    {
-      // An intermediate svgfont will be generated and then converted to TTF by webfonts-generator
-      types: web ? ['svg', 'ttf', 'woff'] : ['ttf'],
-      files: svgFilePaths,
-      dest: paths.fonts,
-      startCodepoint: baseCharCode,
-      fontName: 'kb',
-      classSelector: 'icon-kb',
-      css: false,
-      html: false,
-      writeFiles: false,
-      codepoints: codepointsMap,
-      formatOptions: {
-        ttf: {ts: 0, version: `${Date.now()}.0`}, // MUST use a unique version else windows installer does the WRONG THING
-        // Setting descent to zero on font generation will prevent the final
-        // glyphs from being shifted down
-        svg: {
-          fontHeight,
-          descent: 0,
-        },
-      },
-    },
-    (error: unknown, result: FontResult) =>
-      error ? fontsGeneratedError(error) : fontsGeneratedSuccess(web, result)
-  )
-  console.log('Created new font')
-}
-
-const fontsGeneratedSuccess = (web: boolean, result: FontResult) => {
-  console.log('Generator success')
-  if (web) {
-    generateWebCSS(result)
-  } else {
-    console.log('Webfont generated successfully... updating constants and flow types')
-    fs.writeFileSync(path.join(paths.fonts, 'kb.ttf'), result.ttf)
-    setFontMetrics()
-    updateIconConstants()
-      .then(() => {})
-      .catch(() => {})
-  }
-}
-
-const generateWebCSS = (result: FontResult) => {
-  const svgFilenames = getSvgNames(false /* print skipped */)
-  const rules = svgFilenames.reduce<{[key: string]: number}>((map, {counter, name}) => {
-    map[`kb-iconfont-${name}`] = computeCounter(counter)
-    return map
-  }, {})
-
-  const typeToFormat = {
-    ttf: 'truetype',
-    woff: 'woff',
-    svg: 'svg',
-  }
-
-  // hash and write
-  const types = (['ttf', 'woff', 'svg'] as const).map(type => {
-    const hash = crypto.createHash('md5')
-    hash.update(result[type])
-    try {
-      fs.writeFileSync(path.join(paths.webFonts, `kb.${type}`), result[type])
-    } catch (e) {
-      console.error(e)
-    }
-    return {type, hash: hash.digest('hex'), format: typeToFormat[type]}
-  })
-  const urls = types
-    .map(type => `url('/fonts/kb.${type.type}?${type.hash}') format('${type.format}')`)
-    .join(',\n')
-
-  const css = `
-/*
- This file is how we serve our custom Coinbase, etc., fonts on the website
-
- ALSO see fonts.styl
- SOURCE:
-  1. Go to client and run \`yarn update-web-font\`
-  2. Copy client/shared/fonts-for-web/fonts_custom.styl here
-  3. Copy fonts to public/fonts
-*/
-
-@font-face {
-  font-family: "kb";
-  src: ${urls};
-  font-weight: normal;
-  font-style: normal;
-}
-
-[class^="icon-kb-iconfont-"], [class*=" icon-kb-iconfont-"] {
-  /* use !important to prevent issues with browser extensions that change fonts */
-  font-family: 'kb' !important;
-  speak: none;
-  font-style: normal;
-  font-weight: normal;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1;
-  font-size: 16px;
-
-  /* Better Font Rendering =========== */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-${Object.keys(rules)
-  .map(
-    name => `.icon-${name}:before {
-  content: "\\${rules[name]?.toString(16)}";
-}`
-  )
-  .join('\n')}`
-
-  try {
-    fs.writeFileSync(paths.webFontsCss, css, 'utf8')
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-const fontsGeneratedError = (error: unknown) => {
-  console.log(
-    `webfonts-generator failed to generate ttf iconfont file. Check that all svgs exist and the destination directory exits. ${String(
-      error
-    )}`
-  )
-  process.exit(1)
 }
 
 type IconInfo = {
@@ -508,83 +291,6 @@ ${Object.keys(icons).reduce((res, name) => {
       'utf8'
     )
     fs.writeFileSync(paths.iconCss, iconCss, 'utf8')
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-/*
- * The final ttf output from webfonts-generator will not set the GASP or OS2/Metrics table in TTF metadata correctly.
- * GASP will help with pixel alignment and antialiasing
- * OS2/Metrics will set the ascent and descent values in metadata (rather than on the glyphs)
- * To fix this, we need to force the following values using fontforge.
- *
- * ---
- * OS/2 Table
- * Documentation: https://docs.microsoft.com/en-us/typography/opentype/spec/os2ver1
- * ---
- * WinAscent: ${fontHeight - descent + 2}
- * WinDescent: ${descent * 2 + 20}
- * TypoAscent: ${fontHeight - descent}
- * TypoDescent: -${descent}
- * HHeadAscent: ${fontHeight - descent + 2}
- * HHeadDescent: -${descent * 2 + 20}
- *
- * ---
- * GASP Table
- * This is *super* important for anti-aliasing and grid snapping.
- * If this is not set successfully then the icons will be visually blurry.
- * Documentation: https://docs.microsoft.com/en-us/typography/opentype/spec/gasp#sample-gasp-table
- * ---
- * PixelSize: 65535
- * FlagValue:
- *  0 means neither grid-fit nor anti-alias
- *  1 means grid-fit but no anti-alias.
- *  2 means no grid-fit but anti-alias.
- *  3 means both grid-fit and anti-alias.
- *
- */
-const setFontMetrics = () => {
-  /*
-   * Arguments:
-   * $1: path to kb.ttf
-   * $2: ascent value
-   * $3: descent value
-   */
-  const kbTtf = path.resolve(paths.fonts, 'kb.ttf')
-  // Nav icons need to be shifted more because the grid size is 24.
-  // Without shifting to -(64 + 21) the nav icons will be aligned on
-  // a half pixel which will cause blurriness.
-  const icon24 = getSvgNames(true)
-    .filter(({size}) => size === '24')
-    .map(({filePath}) => `'${filePath.replace('.svg', '')}'`)
-  const icon24First = icon24[0]
-  const icon24Last = icon24.at(-1)
-  let script = `
-  Open('${kbTtf}');
-  SetOS2Value('WinAscent', ${fontHeight - descent + 2});
-  SetOS2Value('WinDescent', ${descent * 2 + 20});
-  SetOS2Value('TypoAscent', ${fontHeight - descent});
-  SetOS2Value('TypoLineGap', ${0});
-  SetOS2Value('TypoDescent', ${-descent});
-  SetOS2Value('HHeadAscent', ${fontHeight - descent + 2});
-  SetOS2Value('HHeadDescent', ${-(descent * 2 + 20)});
-  SetGasp(65535, 15);
-  SelectAll();
-  Move(0, ${-descent});
-  SelectNone();
-  Select(${icon24First}, ${icon24Last});
-  Move(0, ${-22});
-  ScaleToEm(${fontHeight - descent}, ${descent});
-  Generate('${kbTtf}');
-  `
-  script = script
-    .split('\n')
-    .map(x => x.trim())
-    .join(' ')
-  const command = `fontforge -lang ff -c "${script}"`
-  try {
-    execSync(command, {encoding: 'utf8', env: process.env})
   } catch (e) {
     console.error(e)
   }

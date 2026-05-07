@@ -51,7 +51,6 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import keybase.Keybase
-import me.leolin.shortcutbadger.ShortcutBadger
 import keybase.Keybase.readArr
 import keybase.Keybase.version
 import keybase.Keybase.writeArr
@@ -453,7 +452,7 @@ class KbModule(reactContext: ReactApplicationContext?) : KbSpec(reactContext), T
 
     @ReactMethod
     override fun setApplicationIconBadgeNumber(badge: Double) {
-        ShortcutBadger.applyCount(reactContext, badge.toInt())
+        // Android manages badge counts automatically via notification channels.
     }
 
     @ReactMethod

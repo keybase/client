@@ -21,7 +21,6 @@ import androidx.core.app.RemoteInput
 import androidx.core.graphics.drawable.IconCompat
 import keybase.ChatNotification
 import keybase.PushNotifier
-import me.leolin.shortcutbadger.ShortcutBadger
 import java.io.BufferedInputStream
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -157,13 +156,11 @@ class KBPushNotifier internal constructor(private val context: Context, private 
             io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification2 notifications are disabled!")
             return
         }
+        if (chatNotification.badgeCount >= 0) {
+            builder.setNumber(chatNotification.badgeCount.toInt())
+        }
         val notification = builder.build()
         notificationManager.notify(chatNotification.convID, 0, notification)
-        // Apply badge count now that Go has confirmed this notification is for the
-        // active account (targetUID check passed in HandleBackgroundNotification).
-        if (chatNotification.badgeCount >= 0) {
-            ShortcutBadger.applyCount(context, chatNotification.badgeCount.toInt())
-        }
         } catch (e: Exception) {
             io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification2 exception: " + e.message)
         }

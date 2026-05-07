@@ -339,6 +339,7 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
       type: 'filesystem',
       buildDependencies: {
         config: [configPath, babelConfigPath],
+        fonts: [path.resolve(__dirname, '../fonts/.font-build-stamp')],
       },
     },
     context: rootDir,

@@ -283,17 +283,13 @@ function Tab(props: TabProps) {
           'tab-tooltip',
           'tooltip-top-right'
         )}
-          relative={true}
+        relative={true}
         style={styles.tab}
         tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
       >
         <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
         <Kb.Box2 direction="horizontal" justifyContent="flex-end" relative={true}>
-          <Kb.Icon
-            className="tab-icon"
-            type={Tabs.desktopTabMeta[tab].icon}
-            sizeType="Big"
-          />
+          <Kb.Icon className="tab-icon" type={Tabs.desktopTabMeta[tab].icon} sizeType="Big" />
           {tab === Tabs.fsTab && <FilesTabBadge />}
         </Kb.Box2>
         <Kb.Text className="tab-label" type="BodySmallSemibold">
