@@ -1,7 +1,7 @@
 import * as S from '@/constants/strings'
 import * as Tabs from '@/constants/tabs'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '@/constants/utils'
-import {navUpToScreen, switchTab} from '@/constants/router'
+import {navUpToScreen, switchTab, getRootState} from '@/constants/router'
 import {emitDeepLink} from '@/router-v2/linking'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -74,7 +74,14 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
 
     const {conversationIDKey, unboxPayload, membersType} = notification
 
-    emitDeepLink(`keybase://convid/${conversationIDKey}`)
+    const rootState = getRootState()
+    const topRoute = rootState?.routes?.at(-1)
+    const alreadyOnConv =
+      topRoute?.name === 'chatConversation' &&
+      (topRoute.params as {conversationIDKey?: string} | undefined)?.conversationIDKey === conversationIDKey
+    if (!alreadyOnConv) {
+      emitDeepLink(`keybase://convid/${conversationIDKey}`)
+    }
     if (unboxPayload && membersType && !isIOS) {
       try {
         await T.RPCChat.localUnboxMobilePushNotificationRpcPromise({

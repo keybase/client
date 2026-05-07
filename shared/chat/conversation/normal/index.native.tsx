@@ -98,7 +98,7 @@ const Conversation = function Conversation() {
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
           <Kb.KeyboardAvoidingView2
             extraPadding={Kb.Styles.isTablet ? -65 : -insets.bottom}
-            behavior="translate-with-padding"
+            behavior="padding"
           >
             {content}
           </Kb.KeyboardAvoidingView2>
