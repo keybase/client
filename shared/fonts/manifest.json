@@ -80,7 +80,7 @@
       "provenance": "Mark Simonson Studio font renamed to Keybase, processed via Font Squirrel and ttfautohint",
       "patches": {"OS/2": {"sxHeight": 989, "sCapHeight": 1366, "yStrikeoutPosition": 485}},
       "androidPatches": {"post": {"underlinePosition": -446}},
-      "electronPatches": {"hhea": {"ascender": 1750}},
+      "electronPatches": {"hhea": {"ascender": 2180}},
       "outputs": {
         "ios":      "shared/fonts/ios/keybase-bold.ttf",
         "android":  "shared/fonts/android/keybase_bold.ttf",
@@ -96,7 +96,7 @@
       "provenance": "Mark Simonson Studio font renamed to Keybase, processed via Font Squirrel and ttfautohint",
       "patches": {"OS/2": {"sxHeight": 989, "sCapHeight": 1366, "yStrikeoutPosition": 485}},
       "androidPatches": {"post": {"underlinePosition": -446}},
-      "electronPatches": {"hhea": {"ascender": 1750}},
+      "electronPatches": {"hhea": {"ascender": 2180}},
       "outputs": {
         "ios":      "shared/fonts/ios/keybase-bold-italic.ttf",
         "android":  "shared/fonts/android/keybase_bold_italic.ttf",

@@ -64,8 +64,7 @@ function Badge(p: Badge2Props) {
               type="BodyTinyBold"
               style={Styles.collapseStyles([
                 styles.text,
-                {fontSize} as const,
-                Styles.isMobile ? ({height, lineHeight: height} as const) : ({lineHeight: '1', paddingTop: 2} as const),
+                {fontSize, height, lineHeight: height} as const,
                 badgeNumberStyle,
               ])}
             >
@@ -99,8 +98,11 @@ function Badge(p: Badge2Props) {
             type="BodyTinyBold"
             style={Styles.collapseStyles([
               styles.text,
-              {fontSize} as const,
-              Styles.isMobile ? ({height, lineHeight: height} as const) : ({lineHeight: '1', paddingTop: 2} as const),
+              {
+                fontSize: fontSize,
+                height: height,
+                lineHeight: Styles.isMobile ? height : `${height}px`,
+              } as const,
               badgeNumberStyle,
             ])}
           >
