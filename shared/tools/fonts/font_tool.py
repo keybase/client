@@ -167,9 +167,9 @@ def _build_icon_glyph(svg_path: str, size: int) -> tuple:
         if not d:
             continue
 
-        # Accumulate translate offsets from ancestor <g> elements (innermost first)
+        # Accumulate translate offsets from the element itself and ancestor <g> elements
         tx, ty = 0.0, 0.0
-        node = parent_map.get(elem)
+        node = elem  # start with the element itself, then walk ancestors
         while node is not None and node is not root:
             t_attr = node.get('transform', '')
             if t_attr:
