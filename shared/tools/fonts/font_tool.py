@@ -613,6 +613,8 @@ def cmd_build_icon(args):
     fb.setupNameTable({
         "familyName": "kb",
         "styleName": "Regular",
+        "fullName": "kb",
+        "psName": "kb",
     })
     fb.setupOS2(
         sTypoAscender=_ICON_TYPO_ASCENT,
