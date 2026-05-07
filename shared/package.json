@@ -76,7 +76,8 @@
     "maestro-test-perf-thread": "MAESTRO_CLI_NO_ANALYTICS=1 ./perf/run-maestro.sh --flow performance/perf-thread-scroll.yaml",
     "desktop-perf-thread": "node perf/run-desktop-perf.js --flow thread",
     "desktop-perf-inbox": "node perf/run-desktop-perf.js --flow inbox",
-    "desktop-perf-compare": "node perf/compare-perf.js"
+    "desktop-perf-compare": "node perf/compare-perf.js",
+    "sim:push-chat": "bash tools/sim-push-chat.sh"
   },
   "keywords": [],
   "author": "",
