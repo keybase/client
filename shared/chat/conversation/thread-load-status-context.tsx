@@ -130,7 +130,6 @@ export const ConversationThreadLoadStatusProvider = (
     })
   }
 
-
   useEngineActionListener('chat.1.NotifyChat.ChatThreadsStale', action => {
     const hasStaleThread = (action.payload.params.updates ?? []).some(
       update => T.Chat.conversationIDToKey(update.convID) === id
