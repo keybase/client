@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
+index d7afe44..c9816ee 100644
+--- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
++++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
+@@ -85,7 +85,8 @@ - (void)initState
+   [self resetProps];
+ 
+   _controller = [[RNSTabBarController alloc] initWithTabsHostComponentView:self];
+-  RCTAssert([_controller addNavigationStateObserver:self],
++  BOOL observerRegistered = [_controller addNavigationStateObserver:self];
++  RCTAssert(observerRegistered,
+             @"[RNScreens] Failed to register RNSTabsHostComponentView as navigation state observer");
+ 
+   _reactSubviews = [NSMutableArray new];

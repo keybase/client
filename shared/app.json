@@ -9,6 +9,14 @@
     },
     "android": {
       "package": "io.keybase.ossifrage"
-    }
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-audio",
+      "expo-image",
+      "expo-localization",
+      "expo-mail-composer",
+      "expo-video"
+    ]
   }
 }

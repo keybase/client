@@ -1,0 +1,44 @@
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js b/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js
+index 8c6a647..0f07d38 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js
++++ b/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js
+@@ -36,6 +36,10 @@ export function BottomTabViewNative({
+   }
+   const [pendingNavigation, setPendingNavigation] = React.useState(null);
+   const previousRouteKeyRef = React.useRef(focusedRouteKey);
++  const [navStateRequest, setNavStateRequest] = React.useState(() => ({
++    selectedScreenKey: state.routes[state.index].key,
++    baseProvenance: 0,
++  }));
+   React.useEffect(() => {
+     const previousRouteKey = previousRouteKeyRef.current;
+     if (previousRouteKey !== focusedRouteKey && descriptors[previousRouteKey]?.options.popToTopOnBlur) {
+@@ -168,9 +172,14 @@ export function BottomTabViewNative({
+       tabBarItemActiveIndicatorEnabled: currentOptions?.tabBarActiveIndicatorEnabled,
+       tabBarItemRippleColor: currentOptions?.tabBarRippleColor,
+       experimentalControlNavigationStateInJS: false,
+-      onNativeFocusChange: e => {
+-        const route = state.routes.find(route => route.key === e.nativeEvent.tabKey);
++      navStateRequest: navStateRequest,
++      onTabSelected: e => {
++        const route = state.routes.find(route => route.key === e.nativeEvent.selectedScreenKey);
+         if (route) {
++          setNavStateRequest({
++            selectedScreenKey: e.nativeEvent.selectedScreenKey,
++            baseProvenance: e.nativeEvent.provenance,
++          });
+           const event = navigation.emit({
+             type: 'tabPress',
+             target: route.key,
+@@ -271,9 +280,8 @@ export function BottomTabViewNative({
+           onDidAppear: () => onTransitionEnd({
+             route
+           }),
+-          tabKey: route.key,
+-          icon: icon,
+-          selectedIcon: selectedIcon?.ios ?? selectedIcon?.shared,
++          screenKey: route.key,
++          ios: {icon: icon?.ios, selectedIcon: selectedIcon?.ios ?? selectedIcon?.shared},
+           tabBarItemBadgeBackgroundColor: badgeBackgroundColor,
+           tabBarItemBadgeTextColor: badgeTextColor,
+           tabBarItemAccessibilityLabel: tabBarAccessibilityLabel,
