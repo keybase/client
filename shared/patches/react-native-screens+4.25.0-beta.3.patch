@@ -12,31 +12,3 @@ index d7afe44..c9816ee 100644
              @"[RNScreens] Failed to register RNSTabsHostComponentView as navigation state observer");
  
    _reactSubviews = [NSMutableArray new];
-diff --git a/node_modules/react-native-screens/lib/commonjs/components/tabs/host/useTabsHost.js b/node_modules/react-native-screens/lib/commonjs/components/tabs/host/useTabsHost.js
-index 610113c..2a5f674 100644
---- a/node_modules/react-native-screens/lib/commonjs/components/tabs/host/useTabsHost.js
-+++ b/node_modules/react-native-screens/lib/commonjs/components/tabs/host/useTabsHost.js
-@@ -21,7 +21,6 @@ function useTabsHost({
-     }
-   }, []);
-   const onTabSelectedCallback = _react.default.useCallback(event => {
--    _private.RNSLog.log(`TabsHost [${componentNodeHandle.current ?? -1}] onTabSelected: ${JSON.stringify(event.nativeEvent)}`);
-     onTabSelected?.(event);
-   }, [onTabSelected]);
-   return {
-diff --git a/node_modules/react-native-screens/src/components/tabs/host/useTabsHost.ts b/node_modules/react-native-screens/src/components/tabs/host/useTabsHost.ts
-index b7821d4..e11ab95 100644
---- a/node_modules/react-native-screens/src/components/tabs/host/useTabsHost.ts
-+++ b/node_modules/react-native-screens/src/components/tabs/host/useTabsHost.ts
-@@ -33,11 +33,6 @@ export function useTabsHost<T extends TabsHostPlatformNativeComponentProps>({
- 
-   const onTabSelectedCallback = React.useCallback(
-     (event: NativeSyntheticEvent<TabSelectedEvent>) => {
--      RNSLog.log(
--        `TabsHost [${
--          componentNodeHandle.current ?? -1
--        }] onTabSelected: ${JSON.stringify(event.nativeEvent)}`,
--      );
-       onTabSelected?.(event);
-     },
-     [onTabSelected],
