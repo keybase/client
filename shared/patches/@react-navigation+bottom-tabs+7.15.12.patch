@@ -1,0 +1,17 @@
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+index dfcee2b..ecd0692 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
++++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+@@ -108,9 +108,10 @@ export function NativeBottomTabView({
+       tabBarItemActiveIndicatorColor: activeIndicatorColor,
+       tabBarItemActiveIndicatorEnabled: currentOptions?.tabBarActiveIndicatorEnabled,
+       tabBarItemRippleColor: currentOptions?.tabBarRippleColor,
++      navStateRequest: {selectedScreenKey: state.routes[state.index]?.key ?? '', baseProvenance: 0},
+       experimentalControlNavigationStateInJS: false,
+-      onNativeFocusChange: e => {
+-        const route = state.routes.find(route => route.key === e.nativeEvent.tabKey);
++      onTabSelected: e => {
++        const route = state.routes.find(route => route.key === e.nativeEvent.selectedScreenKey);
+         if (route) {
+           navigation.emit({
+             type: 'tabPress',

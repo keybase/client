@@ -1,31 +1,3 @@
-diff --git a/node_modules/react-native-screens/lib/commonjs/components/tabs/host/TabsHost.ios.js b/node_modules/react-native-screens/lib/commonjs/components/tabs/host/TabsHost.ios.js
-index 38d479f..16fc008 100644
---- a/node_modules/react-native-screens/lib/commonjs/components/tabs/host/TabsHost.ios.js
-+++ b/node_modules/react-native-screens/lib/commonjs/components/tabs/host/TabsHost.ios.js
-@@ -36,14 +36,22 @@ function TabsHost(props) {
-     nativeContainerStyle,
-     onTabSelected,
-     navStateRequest,
-+    onNativeFocusChange: legacyOnNativeFocusChange,
-     ...filteredBaseProps
-   } = baseProps;
-   const componentNodeRef = _react.default.useRef(null);
-+  // Compat shim: bottom-tabs <=7.x passes onNativeFocusChange({tabKey}) instead of onTabSelected({selectedScreenKey}).
-+  const wrappedOnTabSelected = _react.default.useCallback((event) => {
-+    onTabSelected?.(event);
-+    if (legacyOnNativeFocusChange) {
-+      legacyOnNativeFocusChange({nativeEvent: {tabKey: event.nativeEvent.selectedScreenKey}});
-+    }
-+  }, [onTabSelected, legacyOnNativeFocusChange]);
-   const {
-     onTabSelected: onTabSelectedCallback
-   } = (0, _useTabsHost.useTabsHost)({
-     componentNodeRef,
--    onTabSelected
-+    onTabSelected: wrappedOnTabSelected
-   });
-   const [bottomAccessoryEnvironment, setBottomAccessoryEnvironment] = (0, _react.useState)('regular');
-   return /*#__PURE__*/_react.default.createElement(_TabsHostIOSNativeComponent.default, _extends({
 diff --git a/node_modules/react-native-screens/lib/commonjs/components/tabs/screen/TabsScreen.ios.js b/node_modules/react-native-screens/lib/commonjs/components/tabs/screen/TabsScreen.ios.js
 index 2bd1918..f456b9c 100644
 --- a/node_modules/react-native-screens/lib/commonjs/components/tabs/screen/TabsScreen.ios.js
@@ -64,34 +36,6 @@ index 2bd1918..f456b9c 100644
      isTitleUndefined: baseProps.title === null || baseProps.title === undefined,
      standardAppearance: mapAppearanceToNativeProp(ios?.standardAppearance),
      scrollEdgeAppearance: mapAppearanceToNativeProp(ios?.scrollEdgeAppearance),
-diff --git a/node_modules/react-native-screens/lib/module/components/tabs/host/TabsHost.ios.js b/node_modules/react-native-screens/lib/module/components/tabs/host/TabsHost.ios.js
-index 4a3ecf5..fbffcb0 100644
---- a/node_modules/react-native-screens/lib/module/components/tabs/host/TabsHost.ios.js
-+++ b/node_modules/react-native-screens/lib/module/components/tabs/host/TabsHost.ios.js
-@@ -29,14 +29,22 @@ function TabsHost(props) {
-     nativeContainerStyle,
-     onTabSelected,
-     navStateRequest,
-+    onNativeFocusChange: legacyOnNativeFocusChange,
-     ...filteredBaseProps
-   } = baseProps;
-   const componentNodeRef = React.useRef(null);
-+  // Compat shim: bottom-tabs <=7.x passes onNativeFocusChange({tabKey}) instead of onTabSelected({selectedScreenKey}).
-+  const wrappedOnTabSelected = React.useCallback((event) => {
-+    onTabSelected?.(event);
-+    if (legacyOnNativeFocusChange) {
-+      legacyOnNativeFocusChange({nativeEvent: {tabKey: event.nativeEvent.selectedScreenKey}});
-+    }
-+  }, [onTabSelected, legacyOnNativeFocusChange]);
-   const {
-     onTabSelected: onTabSelectedCallback
-   } = useTabsHost({
-     componentNodeRef,
--    onTabSelected
-+    onTabSelected: wrappedOnTabSelected
-   });
-   const [bottomAccessoryEnvironment, setBottomAccessoryEnvironment] = useState('regular');
-   return /*#__PURE__*/React.createElement(TabsHostIOSNativeComponent, _extends({
 diff --git a/node_modules/react-native-screens/lib/module/components/tabs/screen/TabsScreen.ios.js b/node_modules/react-native-screens/lib/module/components/tabs/screen/TabsScreen.ios.js
 index 481a849..4d5619b 100644
 --- a/node_modules/react-native-screens/lib/module/components/tabs/screen/TabsScreen.ios.js
@@ -130,38 +74,6 @@ index 481a849..4d5619b 100644
      isTitleUndefined: baseProps.title === null || baseProps.title === undefined,
      standardAppearance: mapAppearanceToNativeProp(ios?.standardAppearance),
      scrollEdgeAppearance: mapAppearanceToNativeProp(ios?.scrollEdgeAppearance),
-diff --git a/node_modules/react-native-screens/src/components/tabs/host/TabsHost.ios.tsx b/node_modules/react-native-screens/src/components/tabs/host/TabsHost.ios.tsx
-index 248d242..c44bcb3 100644
---- a/node_modules/react-native-screens/src/components/tabs/host/TabsHost.ios.tsx
-+++ b/node_modules/react-native-screens/src/components/tabs/host/TabsHost.ios.tsx
-@@ -29,16 +29,26 @@ function TabsHost(props: TabsHostProps) {
-     nativeContainerStyle,
-     onTabSelected,
-     navStateRequest,
-+    // @ts-ignore - compat shim for bottom-tabs <=7.x
-+    onNativeFocusChange: legacyOnNativeFocusChange,
-     ...filteredBaseProps
-   } = baseProps;
- 
-   const componentNodeRef =
-     React.useRef<React.Component<TabsHostIOSNativeComponentProps>>(null);
- 
-+  // Compat shim: bottom-tabs <=7.x passes onNativeFocusChange({tabKey}) instead of onTabSelected({selectedScreenKey}).
-+  const wrappedOnTabSelected = React.useCallback((event: Parameters<NonNullable<typeof onTabSelected>>[0]) => {
-+    onTabSelected?.(event);
-+    if (legacyOnNativeFocusChange) {
-+      (legacyOnNativeFocusChange as Function)({nativeEvent: {tabKey: event.nativeEvent.selectedScreenKey}});
-+    }
-+  }, [onTabSelected, legacyOnNativeFocusChange]);
-+
-   const { onTabSelected: onTabSelectedCallback } =
-     useTabsHost<TabsHostIOSNativeComponentProps>({
-       componentNodeRef,
--      onTabSelected,
-+      onTabSelected: wrappedOnTabSelected,
-     });
- 
-   const [bottomAccessoryEnvironment, setBottomAccessoryEnvironment] =
 diff --git a/node_modules/react-native-screens/src/components/tabs/screen/TabsScreen.ios.tsx b/node_modules/react-native-screens/src/components/tabs/screen/TabsScreen.ios.tsx
 index 6a13603..b71a75a 100644
 --- a/node_modules/react-native-screens/src/components/tabs/screen/TabsScreen.ios.tsx
