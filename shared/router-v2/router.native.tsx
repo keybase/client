@@ -12,8 +12,7 @@ import logger from '@/logger'
 import {Platform, StatusBar, View} from 'react-native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer, type NavigationProp} from '@react-navigation/native'
-// NAV8: import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
-import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable' // NAV7
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
@@ -47,8 +46,7 @@ const tabToLabel = new Map<string, string>([
 // just to get badge rollups
 const tabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
-// NAV8: const Tab = createBottomTabNavigator()
-const Tab = createNativeBottomTabNavigator() // NAV7
+const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
 

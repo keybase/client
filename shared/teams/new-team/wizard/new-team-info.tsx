@@ -37,7 +37,7 @@ type TeamWizard2TeamInfoParamList = {
 
 const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
   const navigation =
-    useNavigation<NativeStackNavigationProp<TeamWizard2TeamInfoParamList, 'teamWizard2TeamInfo'>>()
+    useNavigation() as NativeStackNavigationProp<TeamWizard2TeamInfoParamList, 'teamWizard2TeamInfo'>
   const parentTeamID = teamWizardState.parentTeamID ?? T.Teams.noTeamID
   const {
     teamMeta: {teamname: loadedParentName},

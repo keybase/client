@@ -99,7 +99,7 @@ type TeamWizard5ChannelsParamList = {
 
 const WizardCreateChannels = ({wizard: initialWizard}: WizardProps) => {
   const navigation =
-    useNavigation<NativeStackNavigationProp<TeamWizard5ChannelsParamList, 'teamWizard5Channels'>>()
+    useNavigation() as NativeStackNavigationProp<TeamWizard5ChannelsParamList, 'teamWizard5Channels'>
   const navigateAppend = C.Router2.navigateAppend
   return (
     <CreateChannelsModal

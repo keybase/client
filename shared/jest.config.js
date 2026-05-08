@@ -19,6 +19,7 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/$1',
     '^@/logger$': '<rootDir>/test/mocks/logger.js',
     '^@react-navigation/core$': '<rootDir>/test/mocks/react-navigation-core.js',
+    '^@react-navigation/native$': '<rootDir>/test/mocks/react-navigation-native.js',
     '^react-native$': '<rootDir>/test/mocks/react-native.js',
   },
   setupFiles: ['<rootDir>/jest.setup.js'],

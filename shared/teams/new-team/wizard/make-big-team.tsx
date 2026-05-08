@@ -14,7 +14,7 @@ type TeamWizard4TeamSizeParamList = {
 
 const MakeBigTeam = ({wizard: initialWizard}: Props) => {
   const navigation =
-    useNavigation<NativeStackNavigationProp<TeamWizard4TeamSizeParamList, 'teamWizard4TeamSize'>>()
+    useNavigation() as NativeStackNavigationProp<TeamWizard4TeamSizeParamList, 'teamWizard4TeamSize'>
   const navigateAppend = C.Router2.navigateAppend
   const onSubmit = (isBig: boolean) => {
     const wizard = {...initialWizard, isBig}

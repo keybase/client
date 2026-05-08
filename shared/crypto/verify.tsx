@@ -136,7 +136,7 @@ export const useVerifyState = (params?: CryptoInputRouteParams) => {
 }
 
 export const VerifyInput = (_props: unknown) => {
-  const {params} = useRoute<RootRouteProps<'verifyTab'>>()
+  const {params} = useRoute() as RootRouteProps<'verifyTab'>
   const controller = useVerifyState(params)
   const navigateAppend = C.Router2.navigateAppend
 
@@ -204,7 +204,7 @@ export const VerifyOutput = ({route}: {route: {params: CommonOutputRouteParams}}
 }
 
 export const VerifyIO = () => {
-  const {params} = useRoute<RootRouteProps<'verifyTab'>>()
+  const {params} = useRoute() as RootRouteProps<'verifyTab'>
   const controller = useVerifyState(params)
   return (
     <DragAndDrop

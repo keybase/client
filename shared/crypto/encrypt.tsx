@@ -555,7 +555,7 @@ const EncryptOutputBody = ({params}: {params: EncryptOutputRouteParams}) => (
 )
 
 export const EncryptInput = (_props: unknown) => {
-  const {params} = useRoute<RootRouteProps<'encryptTab'>>()
+  const {params} = useRoute() as RootRouteProps<'encryptTab'>
   return <EncryptInputBody params={params} />
 }
 
@@ -564,7 +564,7 @@ export const EncryptOutput = ({route}: {route: {params: EncryptOutputRouteParams
 }
 
 export const EncryptIO = () => {
-  const {params} = useRoute<RootRouteProps<'encryptTab'>>()
+  const {params} = useRoute() as RootRouteProps<'encryptTab'>
   const controller = useEncryptScreenState(params)
   const appendEncryptRecipientsBuilder = C.Router2.appendEncryptRecipientsBuilder
 

@@ -1,10 +1,10 @@
-diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-index dfcee2b..dd1b37a 100644
---- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-+++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-@@ -23,6 +23,10 @@ export function NativeBottomTabView({
-   } = useTheme();
-   const focusedRouteKey = state.routes[state.index].key;
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js b/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js
+index 8c6a647..0f07d38 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js
++++ b/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js
+@@ -36,6 +36,10 @@ export function BottomTabViewNative({
+   }
+   const [pendingNavigation, setPendingNavigation] = React.useState(null);
    const previousRouteKeyRef = React.useRef(focusedRouteKey);
 +  const [navStateRequest, setNavStateRequest] = React.useState(() => ({
 +    selectedScreenKey: state.routes[state.index].key,
@@ -13,7 +13,7 @@ index dfcee2b..dd1b37a 100644
    React.useEffect(() => {
      const previousRouteKey = previousRouteKeyRef.current;
      if (previousRouteKey !== focusedRouteKey && descriptors[previousRouteKey]?.options.popToTopOnBlur) {
-@@ -109,9 +113,14 @@ export function NativeBottomTabView({
+@@ -168,9 +172,14 @@ export function BottomTabViewNative({
        tabBarItemActiveIndicatorEnabled: currentOptions?.tabBarActiveIndicatorEnabled,
        tabBarItemRippleColor: currentOptions?.tabBarRippleColor,
        experimentalControlNavigationStateInJS: false,
@@ -27,11 +27,11 @@ index dfcee2b..dd1b37a 100644
 +            selectedScreenKey: e.nativeEvent.selectedScreenKey,
 +            baseProvenance: e.nativeEvent.provenance,
 +          });
-           navigation.emit({
+           const event = navigation.emit({
              type: 'tabPress',
-             target: route.key
-@@ -190,9 +199,8 @@ export function NativeBottomTabView({
-             closing: true,
+             target: route.key,
+@@ -271,9 +280,8 @@ export function BottomTabViewNative({
+           onDidAppear: () => onTransitionEnd({
              route
            }),
 -          tabKey: route.key,
@@ -41,4 +41,4 @@ index dfcee2b..dd1b37a 100644
 +          ios: {icon: icon?.ios, selectedIcon: selectedIcon?.ios ?? selectedIcon?.shared},
            tabBarItemBadgeBackgroundColor: badgeBackgroundColor,
            tabBarItemBadgeTextColor: badgeTextColor,
-           badgeValue: tabBarBadge?.toString(),
+           tabBarItemAccessibilityLabel: tabBarAccessibilityLabel,

@@ -144,7 +144,7 @@ const SignOutputBanner = ({state}: {state: CommonOutputRouteParams}) => (
 )
 
 export const SignInput = (_props: unknown) => {
-  const {params} = useRoute<RootRouteProps<'signTab'>>()
+  const {params} = useRoute() as RootRouteProps<'signTab'>
   const controller = useSignState(params)
   const blurCBRef = React.useRef(() => {})
   const navigateAppend = C.Router2.navigateAppend
@@ -217,7 +217,7 @@ export const SignOutput = ({route}: {route: {params: CommonOutputRouteParams}}) 
 }
 
 export const SignIO = () => {
-  const {params} = useRoute<RootRouteProps<'signTab'>>()
+  const {params} = useRoute() as RootRouteProps<'signTab'>
   const controller = useSignState(params)
   return (
     <DragAndDrop

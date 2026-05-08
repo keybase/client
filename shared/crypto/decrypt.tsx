@@ -136,7 +136,7 @@ export const useDecryptState = (params?: CryptoInputRouteParams) => {
 }
 
 export const DecryptInput = (_props: unknown) => {
-  const {params} = useRoute<RootRouteProps<'decryptTab'>>()
+  const {params} = useRoute() as RootRouteProps<'decryptTab'>
   const controller = useDecryptState(params)
   const navigateAppend = C.Router2.navigateAppend
 
@@ -207,7 +207,7 @@ export const DecryptOutput = ({route}: {route: {params: CommonOutputRouteParams}
 }
 
 export const DecryptIO = () => {
-  const {params} = useRoute<RootRouteProps<'decryptTab'>>()
+  const {params} = useRoute() as RootRouteProps<'decryptTab'>
   const controller = useDecryptState(params)
   return (
     <DragAndDrop

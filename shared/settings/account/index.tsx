@@ -183,13 +183,10 @@ type AddedBannerState = {
 const AccountSettings = ({route}: Props) => {
   const addedEmailFromRoute = route.params?.addedEmailBannerEmail
   const addedPhoneFromRoute = !!route.params?.addedPhoneBanner
-  const navigation =
-    useNavigation<
-      NavigationProp<
-        Record<typeof settingsAccountTab, SettingsAccountRouteParams | undefined>,
-        typeof settingsAccountTab
-      >
-    >()
+  const navigation = useNavigation() as NavigationProp<
+    Record<typeof settingsAccountTab, SettingsAccountRouteParams | undefined>,
+    typeof settingsAccountTab
+  >
   const isFocused = useIsFocused()
   const emails = useSettingsEmailState(s => s.emails)
   const phones = useSettingsPhoneState(s => s.phones)

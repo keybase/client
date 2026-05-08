@@ -21,9 +21,7 @@ type TeamWizardSubteamMembersParamList = {
 
 const AddSubteamMembers = ({wizard: wizardState}: Props) => {
   const navigation =
-    useNavigation<
-      NativeStackNavigationProp<TeamWizardSubteamMembersParamList, 'teamWizardSubteamMembers'>
-    >()
+    useNavigation() as NativeStackNavigationProp<TeamWizardSubteamMembersParamList, 'teamWizardSubteamMembers'>
   const [selectedMembers, setSelectedMembers] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()
