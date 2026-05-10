@@ -96,26 +96,22 @@ function InboxBody(p: ControlledInboxProps) {
   )
 
   const listRef = React.useRef<LegendListRef | null>(null)
+
+  const getSize = React.useCallback((item: RowItem) => {
+    switch (item.type) {
+      case 'small': return RowSizes.smallRowHeight
+      case 'big': return RowSizes.bigRowHeight
+      case 'bigHeader': return RowSizes.bigHeaderHeight
+      case 'divider': return RowSizes.dividerHeight(item.showButton)
+      case 'teamBuilder': return 120
+    }
+  }, [])
+
   const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} =
-    useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
+    useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal, getSize})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 1000)
 
-  React.useEffect(() => {
-    applyUnreadAndFloating()
-  }, [applyUnreadAndFloating])
-
-  const itemHeight = {
-    getSize: (item: RowItem) => {
-      switch (item.type) {
-        case 'small': return RowSizes.smallRowHeight
-        case 'big': return RowSizes.bigRowHeight
-        case 'bigHeader': return RowSizes.bigHeaderHeight
-        case 'divider': return RowSizes.dividerHeight(item.showButton)
-        case 'teamBuilder': return 120
-      }
-    },
-    type: 'perItem' as const,
-  }
+  const itemHeight = {getSize, type: 'perItem' as const}
 
   const renderItem = (_index: number, item: RowItem): React.ReactElement | null => {
     const row = item

@@ -48,42 +48,68 @@ const calcUnreadShortcut = (unreadIndices: ReadonlyMap<number, number>, lastVisi
     : {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
 }
 
+// Compute divider Y offset from known item sizes, avoiding LegendList's internal
+// positions array which is lazily recomputed after data changes.
+const getDividerYOffset = (rows: ArrayLike<RowItem>, getSize: (item: RowItem) => number): number => {
+  let offset = 0
+  for (let i = 0; i < rows.length; i++) {
+    const item = rows[i]!
+    if (item.type !== 'small') return offset
+    offset += getSize(item)
+  }
+  return -1
+}
+
 const shouldShowFloating = (
   rows: ArrayLike<RowItem>,
-  listRef: React.RefObject<{getState: () => {end: number; positionAtIndex: (index: number) => number}} | null>
+  getSize: (item: RowItem) => number,
+  listRef: React.RefObject<{getState: () => {scroll: number; scrollLength: number}} | null>
 ): boolean => {
   const state = listRef.current?.getState()
-  if (!state || state.end <= 0) return false
-  for (let i = 0; i < rows.length; i++) {
-    if (rows[i]?.type !== 'small') return state.positionAtIndex(i) > state.end
-  }
-  return false
+  if (!state || state.scrollLength <= 0) return false
+  const dividerY = getDividerYOffset(rows, getSize)
+  if (dividerY < 0) return false
+  return dividerY > state.scroll + state.scrollLength
 }
 
 export function useUnreadShortcut(p: {
   rows: ReadonlyArray<RowItem>
   unreadIndices: ReadonlyMap<number, number>
   unreadTotal: number
+  getSize: (item: RowItem) => number
   listRef: React.RefObject<{
-    getState: () => {end: number; positionAtIndex: (index: number) => number}
+    getState: () => {end: number; scroll: number; scrollLength: number}
     scrollToIndex: (params: {animated?: boolean; index: number; viewPosition?: number}) => Promise<void>
   } | null>
 }) {
-  const {rows, unreadIndices, unreadTotal, listRef} = p
+  const {rows, unreadIndices, unreadTotal, getSize, listRef} = p
   const [showFloating, setShowFloating] = React.useState(false)
   const [showUnread, setShowUnread] = React.useState(false)
   const [unreadCount, setUnreadCount] = React.useState(0)
   const firstOffscreenIdxRef = React.useRef(-1)
-  const lastVisibleIdxRef = React.useRef(-1)
 
-  const applyUnreadAndFloating = React.useCallback(() => {
-    const lastVisibleIdx = lastVisibleIdxRef.current
+  // Captures latest rows/getSize/etc. — recreated when deps change.
+  const applyImpl = React.useCallback(() => {
+    const state = listRef.current?.getState()
+    const lastVisibleIdx = state?.end ?? -1
     const info = calcUnreadShortcut(unreadIndices, lastVisibleIdx)
     setShowUnread(info.showUnread)
     setUnreadCount(info.unreadCount)
     firstOffscreenIdxRef.current = info.firstOffscreenIdx
-    setShowFloating(shouldShowFloating(rows, listRef))
-  }, [listRef, unreadIndices, rows])
+    setShowFloating(shouldShowFloating(rows, getSize, listRef))
+  }, [listRef, unreadIndices, rows, getSize])
+
+  // Always points to the latest applyImpl. Updated in a layout effect so it's
+  // current before any post-paint callbacks (e.g. the 100ms minimumViewTime timeout
+  // in LegendList's onViewableItemsChanged) fire.
+  const applyRef = React.useRef(applyImpl)
+  React.useLayoutEffect(() => {
+    applyRef.current = applyImpl
+  })
+
+  // Stable function safe to use in onViewChanged — avoids stale closure issue where
+  // LegendList's minimumViewTime setTimeout fires with an old callback capturing old rows.
+  const applyUnreadAndFloating = React.useCallback(() => applyRef.current(), [])
 
   const scrollToUnread = () => {
     if (firstOffscreenIdxRef.current <= 0) {
@@ -92,11 +118,12 @@ export function useUnreadShortcut(p: {
     void listRef.current?.scrollToIndex({animated: true, index: firstOffscreenIdxRef.current, viewPosition: 0.5})
   }
 
+  // Re-run when data changes (rows, unreadIndices, unreadTotal).
   React.useEffect(() => {
-    applyUnreadAndFloating()
-  }, [applyUnreadAndFloating, unreadTotal])
+    applyImpl()
+  }, [applyImpl, unreadTotal])
 
-  return {applyUnreadAndFloating, lastVisibleIdxRef, scrollToUnread, showFloating, showUnread, unreadCount}
+  return {applyUnreadAndFloating, scrollToUnread, showFloating, showUnread, unreadCount}
 }
 
 export function useScrollUnbox(
