@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js b/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js
-index 8c6a647..0f07d38 100644
+index 8c6a647..bc2aea8 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js
 @@ -36,6 +36,10 @@ export function BottomTabViewNative({
@@ -13,7 +13,22 @@ index 8c6a647..0f07d38 100644
    React.useEffect(() => {
      const previousRouteKey = previousRouteKeyRef.current;
      if (previousRouteKey !== focusedRouteKey && descriptors[previousRouteKey]?.options.popToTopOnBlur) {
-@@ -168,9 +172,14 @@ export function BottomTabViewNative({
+@@ -147,9 +151,11 @@ export function BottomTabViewNative({
+     },
+     children: [tabBarPosition === 'top' || tabBarPosition === 'left' ? tabBarElement : null, /*#__PURE__*/_jsx(Tabs.Host, {
+       tabBarHidden: hasCustomTabBar || shouldHideTabBar,
+-      bottomAccessory: bottomAccessory ? environment => bottomAccessory({
+-        placement: environment
+-      }) : undefined,
++      ios: {
++        bottomAccessory: bottomAccessory ? environment => bottomAccessory({
++          placement: environment
++        }) : undefined,
++      },
+       tabBarItemLabelVisibilityMode: currentOptions?.tabBarLabelVisibilityMode,
+       tabBarControllerMode: tabBarControllerMode,
+       tabBarMinimizeBehavior: tabBarMinimizeBehavior,
+@@ -168,9 +174,14 @@ export function BottomTabViewNative({
        tabBarItemActiveIndicatorEnabled: currentOptions?.tabBarActiveIndicatorEnabled,
        tabBarItemRippleColor: currentOptions?.tabBarRippleColor,
        experimentalControlNavigationStateInJS: false,
@@ -30,7 +45,7 @@ index 8c6a647..0f07d38 100644
            const event = navigation.emit({
              type: 'tabPress',
              target: route.key,
-@@ -271,9 +280,8 @@ export function BottomTabViewNative({
+@@ -271,9 +282,8 @@ export function BottomTabViewNative({
            onDidAppear: () => onTransitionEnd({
              route
            }),

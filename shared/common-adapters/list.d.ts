@@ -2,7 +2,16 @@ import type * as React from 'react'
 import type {CustomStyles} from '@/styles'
 import type {LegendListRef as _LegendListRef} from '@legendapp/list/react'
 
-export type LegendListRef = _LegendListRef
+export type LegendListState = {
+  end: number
+  positionAtIndex: (index: number) => number
+  scroll: number
+  start: number
+}
+
+export type LegendListRef = _LegendListRef & {
+  getState: () => LegendListState
+}
 
 // List differs from list in that on desktop it uses LegendList.
 

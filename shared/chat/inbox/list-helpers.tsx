@@ -48,13 +48,14 @@ const calcUnreadShortcut = (unreadIndices: ReadonlyMap<number, number>, lastVisi
     : {firstOffscreenIdx: -1, showUnread: false, unreadCount: 0}
 }
 
-const shouldShowFloating = (rows: ArrayLike<RowItem>, lastVisibleIdx: number): boolean => {
-  if (lastVisibleIdx < 0) return false
-  // Find the first non-small row (the divider). Show floating if it's beyond the last visible index.
-  // This is invariant to row shifts: when small teams expand, the divider moves right, so
-  // lastVisibleIdx < dividerIdx becomes true even without a new scroll event.
+const shouldShowFloating = (
+  rows: ArrayLike<RowItem>,
+  listRef: React.RefObject<{getState: () => {end: number; positionAtIndex: (index: number) => number}} | null>
+): boolean => {
+  const state = listRef.current?.getState()
+  if (!state || state.end <= 0) return false
   for (let i = 0; i < rows.length; i++) {
-    if (rows[i]?.type !== 'small') return lastVisibleIdx < i
+    if (rows[i]?.type !== 'small') return state.positionAtIndex(i) > state.end
   }
   return false
 }
@@ -64,6 +65,7 @@ export function useUnreadShortcut(p: {
   unreadIndices: ReadonlyMap<number, number>
   unreadTotal: number
   listRef: React.RefObject<{
+    getState: () => {end: number; positionAtIndex: (index: number) => number}
     scrollToIndex: (params: {animated?: boolean; index: number; viewPosition?: number}) => Promise<void>
   } | null>
 }) {
@@ -80,8 +82,8 @@ export function useUnreadShortcut(p: {
     setShowUnread(info.showUnread)
     setUnreadCount(info.unreadCount)
     firstOffscreenIdxRef.current = info.firstOffscreenIdx
-    setShowFloating(shouldShowFloating(rows, lastVisibleIdx))
-  }, [unreadIndices, rows])
+    setShowFloating(shouldShowFloating(rows, listRef))
+  }, [listRef, unreadIndices, rows])
 
   const scrollToUnread = () => {
     if (firstOffscreenIdxRef.current <= 0) {
