@@ -96,7 +96,7 @@ function InboxBody(p: ControlledInboxProps) {
   )
 
   const listRef = React.useRef<LegendListRef | null>(null)
-  const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} =
+  const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating, lastVisibleIdxRef} =
     useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 1000)
 
@@ -142,6 +142,10 @@ function InboxBody(p: ControlledInboxProps) {
 
   const onViewChanged = (data: ViewableItemsData) => {
     onScrollUnbox(data)
+    const lastVisible = data.viewableItems.at(-1)?.index
+    if (lastVisible !== undefined && lastVisible >= 0) {
+      lastVisibleIdxRef.current = lastVisible
+    }
     applyUnreadAndFloating()
   }
 

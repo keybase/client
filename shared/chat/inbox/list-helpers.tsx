@@ -64,7 +64,6 @@ export function useUnreadShortcut(p: {
   unreadIndices: ReadonlyMap<number, number>
   unreadTotal: number
   listRef: React.RefObject<{
-    getState: () => {end: number}
     scrollToIndex: (params: {animated?: boolean; index: number; viewPosition?: number}) => Promise<void>
   } | null>
 }) {
@@ -76,15 +75,13 @@ export function useUnreadShortcut(p: {
   const lastVisibleIdxRef = React.useRef(-1)
 
   const applyUnreadAndFloating = React.useCallback(() => {
-    const fromList = listRef.current?.getState().end ?? -1
-    if (fromList >= 0) lastVisibleIdxRef.current = fromList
     const lastVisibleIdx = lastVisibleIdxRef.current
     const info = calcUnreadShortcut(unreadIndices, lastVisibleIdx)
     setShowUnread(info.showUnread)
     setUnreadCount(info.unreadCount)
     firstOffscreenIdxRef.current = info.firstOffscreenIdx
     setShowFloating(shouldShowFloating(rows, lastVisibleIdx))
-  }, [listRef, unreadIndices, rows])
+  }, [unreadIndices, rows])
 
   const scrollToUnread = () => {
     if (firstOffscreenIdxRef.current <= 0) {

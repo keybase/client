@@ -21,7 +21,7 @@ export const darkTheme: Theme = {
   colors: {
     background: darkColors.white,
     border: darkColors.black_10,
-    card: undefined as unknown as string,
+    card: darkColors.white,
     notification: darkColors.black,
     primary: darkColors.black,
     text: darkColors.black,
@@ -38,7 +38,7 @@ export const lightTheme: Theme = {
   colors: {
     background: colors.white,
     border: colors.black_10,
-    card: undefined as unknown as string,
+    card: colors.white,
     notification: colors.black,
     primary: colors.black,
     text: colors.black,
