@@ -11,19 +11,15 @@ const isLiquidGlassActive = (C.isIOS && C.isPhone && _isLiquidGlassSupported) as
 export const BottomAccessory = ({children}: {children: React.ReactNode}) => {
   const navigation = useNavigation()
   const isFocused = useIsFocused()
-  const childrenRef = React.useRef<React.ReactNode>(children)
-  childrenRef.current = children
-
-  const renderFn = React.useCallback(() => childrenRef.current, [])
 
   React.useEffect(() => {
     if (!isLiquidGlassActive || !isFocused) return
     const parent = navigation.getParent() as BottomTabNavigationProp<RootParamList> | undefined
-    parent?.setOptions({bottomAccessory: renderFn})
+    parent?.setOptions({bottomAccessory: (): React.ReactNode => children})
     return () => {
       parent?.setOptions({bottomAccessory: undefined})
     }
-  }, [isFocused, navigation, renderFn])
+  }, [children, isFocused, navigation])
 
   if (isLiquidGlassActive) return null
   return <>{children}</>
