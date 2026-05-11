@@ -11,10 +11,18 @@ import {
   useConversationAttachmentActions,
 } from '../../attachment-actions'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {showConversationInfoPanel, useConversationThreadMessage} from '../../thread-context'
+import {
+  showConversationInfoPanel,
+  useConversationThreadMessage,
+  useConversationThreadSelector,
+} from '../../thread-context'
 import {useConversationMetadata} from '../../data-hooks'
+import type {ChatRootRouteParams} from '@/chat/inbox-and-conversation-shared'
+import {useRoute, type RouteProp} from '@react-navigation/native'
+
+type ChatRootRoute = RouteProp<{chatRoot: ChatRootRouteParams}, 'chatRoot'>
 import type {MessagePopupItems} from './hooks'
-import {useHeader, useHeaderForMessage, useItems, useStorelessItems} from './hooks'
+import {useHeader, useHeaderForMessage, useItems, useModeration, useStorelessItems} from './hooks'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -40,12 +48,15 @@ const PopAttachLoaded = (ownProps: OwnProps & {
   actions: AttachmentActions
   conversationIDKey: T.Chat.ConversationIDKey
   header: React.ReactNode
+  infoPanelShowing: boolean
+  isTeam: boolean
   itemsData: MessagePopupItems
   message: T.Chat.MessageAttachment
+  numPart: number
 }) => {
   const {actions, attachTo, conversationIDKey, header, itemsData: i, message, mode} = ownProps
-  const {onHidden, position, style, visible} = ownProps
-  const {downloadPath, attachmentType, id} = message
+  const {infoPanelShowing, isTeam, numPart, onHidden, position, style, visible} = ownProps
+  const {author, downloadPath, attachmentType, id} = message
   const pending = !!message.transferState
   const clearModals = C.Router2.clearModals
 
@@ -74,6 +85,13 @@ const PopAttachLoaded = (ownProps: OwnProps & {
   const {itemBot, itemReaction, itemCopyLink, itemReply, itemEdit, itemForward, itemPin, itemUnread} = i
   const {itemExplode, itemDelete, itemKick, itemProfile} = i
 
+  const {itemBlock, itemFilter, itemFlag, itemReport} = useModeration(
+    author,
+    conversationIDKey,
+    isTeam,
+    numPart
+  )
+
   const itemFinder = onShowInFinder
     ? ([{icon: 'iconfont-finder', onClick: onShowInFinder, title: `Show in ${fileUIName}`}] as const)
     : []
@@ -94,7 +112,9 @@ const PopAttachLoaded = (ownProps: OwnProps & {
     ? ([{disabled: pending, icon: 'iconfont-share', onClick: onShareAttachment, title: 'Share'}] as const)
     : []
   const itemMedia = [{icon: 'iconfont-camera', onClick: onAllMedia, title: 'All media'}] as const
-  const itemJump = [{icon: 'iconfont-search', onClick: onJump, title: 'Jump to message'}] as const
+  const itemJump = infoPanelShowing
+    ? ([{icon: 'iconfont-search', onClick: onJump, title: 'Jump to message'}] as const)
+    : []
 
   const topSection = [...itemSave, ...itemShare, ...itemDelete, ...itemExplode]
 
@@ -115,6 +135,10 @@ const PopAttachLoaded = (ownProps: OwnProps & {
     ...itemProfile,
     ...itemKick,
     ...itemPin,
+    ...itemBlock,
+    ...itemFilter,
+    ...itemReport,
+    ...itemFlag,
   ]
 
   const snapPoints = [8 * 40 + 25]
@@ -143,6 +167,11 @@ const PopAttachThread = (ownProps: OwnProps) => {
     useConversationAttachmentActions()
   const itemsData = useItems(ordinal, onHidden)
   const header = useHeader(ordinal, onHidden)
+  const {params} = useRoute<ChatRootRoute>()
+  const infoPanelShowing = !!params.infoPanel
+  const {meta, participantInfo} = useConversationThreadSelector(
+    C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))
+  )
   return (
     <PopAttachLoaded
       {...ownProps}
@@ -153,8 +182,11 @@ const PopAttachThread = (ownProps: OwnProps) => {
       }}
       conversationIDKey={message.conversationIDKey}
       header={header}
+      infoPanelShowing={infoPanelShowing}
+      isTeam={!!meta.teamname}
       itemsData={itemsData}
       message={message}
+      numPart={participantInfo.all.length}
     />
   )
 }
@@ -176,7 +208,10 @@ const PopAttachStoreless = (ownProps: OwnProps & {
         share: () => messageAttachmentNativeShareMessage(conversationIDKey, message),
       }}
       header={header}
+      infoPanelShowing={false}
+      isTeam={!!meta.teamname}
       itemsData={itemsData}
+      numPart={participantInfo.all.length}
     />
   )
 }

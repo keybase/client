@@ -6,7 +6,7 @@ import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/u
 import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
-import {getEditStyle, ShowToastAfterSaving} from './shared'
+import {getEditStyle, messageAttachmentHasProgress, ShowToastAfterSaving} from './shared'
 import {makeUUID} from '@/util/uuid'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {showPDFViewer, useConversationAttachmentActions} from '../../attachment-actions'
@@ -87,8 +87,7 @@ function FileContainer(p: OwnProps) {
       : transferState === 'downloading'
         ? Kb.Styles.globalColors.blue
         : ''
-  const hasProgress =
-    !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'
+  const hasProgress = messageAttachmentHasProgress(transferState)
 
   const errorMsg = transferErrMsg || ''
   const fileName = _fileName

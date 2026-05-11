@@ -276,6 +276,59 @@ const useItemsForMessage = (p: {
 
 export type MessagePopupItems = ReturnType<typeof useItemsForMessage>
 
+export const useModeration = (
+  author: string,
+  conversationIDKey: T.Chat.ConversationIDKey,
+  isTeam: boolean,
+  numPart: number
+) => {
+  const you = useCurrentUserState(s => s.username)
+  const yourMessage = author === you
+  const canModerate = !!author && !yourMessage
+  const blockModalSingle = !isTeam && numPart === 2
+  const blockTitle = isTeam ? 'Report user' : 'Block user'
+
+  const openBlockingModal = React.useCallback(
+    (extraProps?: {filterUserByDefault?: boolean; flagUserByDefault?: boolean; reportsUserByDefault?: boolean}) => {
+      C.Router2.navigateAppend({
+        name: 'chatBlockingModal',
+        params: {
+          blockUserByDefault: true,
+          context: blockModalSingle ? 'message-popup-single' : 'message-popup',
+          conversationIDKey,
+          username: author,
+          ...extraProps,
+        },
+      })
+    },
+    [blockModalSingle, conversationIDKey, author]
+  )
+
+  const onUserBlock = canModerate ? () => openBlockingModal() : undefined
+  const onUserFilter = C.isIOS && canModerate ? () => openBlockingModal({filterUserByDefault: true}) : undefined
+  const onUserReport = C.isIOS && canModerate ? () => openBlockingModal({reportsUserByDefault: true}) : undefined
+  const onUserFlag =
+    C.isIOS && canModerate
+      ? () => openBlockingModal({flagUserByDefault: true, reportsUserByDefault: true})
+      : undefined
+
+  const itemBlock = onUserBlock
+    ? ([{danger: true, icon: 'iconfont-user-block' as const, onClick: onUserBlock, title: blockTitle}] as const)
+    : []
+  const itemFilter = onUserFilter
+    ? ([{danger: true, icon: 'iconfont-user-block' as const, onClick: onUserFilter, title: 'Filter user'}] as const)
+    : []
+  const itemReport =
+    !isTeam && onUserReport
+      ? ([{danger: true, icon: 'iconfont-user-block' as const, onClick: onUserReport, title: 'Report user'}] as const)
+      : []
+  const itemFlag = onUserFlag
+    ? ([{danger: true, icon: 'iconfont-user-block' as const, onClick: onUserFlag, title: 'Flag content'}] as const)
+    : []
+
+  return {itemBlock, itemFilter, itemFlag, itemReport}
+}
+
 const useThreadItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const conversationIDKey = useConversationThreadID()
   const message = useConversationThreadMessage(ordinal) ?? emptyText
