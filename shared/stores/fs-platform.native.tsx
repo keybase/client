@@ -19,10 +19,10 @@ export const pickAndUploadMobile = async (
     return
   }
   const result = await launchImageLibraryAsync(type, true, true)
-  if (!result || result.canceled) {
+  if (result.canceled) {
     return
   }
-  for (const asset of result.assets ?? []) {
+  for (const asset of result.assets) {
     upload(parentPath, Styles.unnormalizePath(asset.uri))
   }
 }
@@ -32,10 +32,10 @@ export const pickDocumentsMobile = async (
   upload: (parentPath: T.FS.Path, localPath: string) => void
 ) => {
   const result = await pickDocumentsAsync(true)
-  if (!result || result.canceled) {
+  if (result.canceled) {
     return
   }
-  ;(result.assets ?? []).forEach(asset => upload(parentPath, Styles.unnormalizePath(asset.uri)))
+  result.assets.forEach(asset => upload(parentPath, Styles.unnormalizePath(asset.uri)))
 }
 
 export const finishedDownloadWithIntentMobile = async (

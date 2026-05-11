@@ -4,9 +4,6 @@ const defaultOptions = {
   allowsEditing: false,
   exif: false,
   quality: 0.4,
-  // even though this is marked as deprecated if its not set it will IGNORE ALL OTHER SETTINGS we pass here
-  videoExportPreset: ImagePicker.VideoExportPreset.HighestQuality,
-  videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
 } as const
 
 const mediaTypeToImagePickerMediaType = (
@@ -14,16 +11,28 @@ const mediaTypeToImagePickerMediaType = (
 ): Array<ImagePicker.MediaType> =>
   mediaType === 'photo' ? ['images'] : mediaType === 'video' ? ['videos'] : ['images', 'videos']
 
+const canceled: ImagePicker.ImagePickerResult = {assets: null, canceled: true}
+
+const guardUndefined = (res: ImagePicker.ImagePickerResult | undefined, name: string) => {
+  if (!res) {
+    // Expo 56 beta: native module returns undefined in some cases; treat as canceled.
+    // Rebuild the dev client if this persists.
+    console.error(`[expo-image-picker] ${name} returned undefined`)
+    return canceled
+  }
+  return res
+}
+
 export const launchCameraAsync = async (
   mediaType: 'photo' | 'video' | 'mixed',
   askPermAndRetry: boolean = true
 ): Promise<ImagePicker.ImagePickerResult> => {
+  let res: ImagePicker.ImagePickerResult | undefined
   try {
-    const res = await ImagePicker.launchCameraAsync({
+    res = await ImagePicker.launchCameraAsync({
       ...defaultOptions,
       mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
     })
-    return res
   } catch (e) {
     if (!askPermAndRetry) {
       throw e
@@ -36,6 +45,7 @@ export const launchCameraAsync = async (
     } catch {}
     return launchCameraAsync(mediaType, false)
   }
+  return guardUndefined(res, 'launchCameraAsync')
 }
 
 export const launchImageLibraryAsync = async (
@@ -43,14 +53,14 @@ export const launchImageLibraryAsync = async (
   askPermAndRetry: boolean = true,
   allowsMultipleSelection: boolean = false
 ): Promise<ImagePicker.ImagePickerResult> => {
+  let res: ImagePicker.ImagePickerResult | undefined
   try {
-    const res = await ImagePicker.launchImageLibraryAsync({
+    res = await ImagePicker.launchImageLibraryAsync({
       ...defaultOptions,
       allowsMultipleSelection,
       ...(mediaType === 'video' ? {allowsEditing: true, allowsMultipleSelection: false} : {}),
       mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
     })
-    return res
   } catch (e) {
     if (!askPermAndRetry) {
       throw e
@@ -60,6 +70,7 @@ export const launchImageLibraryAsync = async (
     } catch {}
     return launchImageLibraryAsync(mediaType, false, allowsMultipleSelection)
   }
+  return guardUndefined(res, 'launchImageLibraryAsync')
 }
 export type ImagePickerResult = ImagePicker.ImagePickerResult
 export type ImageInfo = {
