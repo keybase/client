@@ -32,7 +32,8 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
     if (transferState !== lastTransferStateRef.current) {
       // was downloading and now not
       if (
-        (lastTransferStateRef.current === 'mobileSaving' || lastTransferStateRef.current === 'downloading') &&
+        (lastTransferStateRef.current === 'mobileSaving' ||
+          (!C.isMobile && lastTransferStateRef.current === 'downloading')) &&
         !transferState
       ) {
         setShowingToast(true)
