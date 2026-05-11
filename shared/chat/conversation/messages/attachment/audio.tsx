@@ -3,7 +3,6 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useOrdinal} from '../ids-context'
 import AudioPlayer from '@/chat/audio/audio-player'
-import {useFSState} from '@/constants/fs'
 import {Title, TransferIcon, ShowToastAfterSaving, messageAttachmentHasProgress} from './shared'
 
 const missingMessage = Chat.makeMessageAttachment()
@@ -18,14 +17,7 @@ const AudioAttachment = () => {
   })
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)
   const hasProgress = messageAttachmentHasProgress(message.transferState)
-  const openLocalPathInSystemFileManagerDesktop = useFSState(
-    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
-  )
-  const onShowInFinder = () => {
-    message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
-  }
   const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
-  const showInFinder = !!message.downloadPath && !Kb.Styles.isMobile
   const showTitle = !!(message.decoratedText?.stringValue() ?? message.title)
 
   const toastTargetRef = React.useRef<Kb.MeasureRef | null>(null)
@@ -44,7 +36,7 @@ const AudioAttachment = () => {
         <TransferIcon style={Kb.Styles.isMobile ? styles.transferIcon : undefined} />
       </Kb.Box2Measure>
       {showTitle ? <Title /> : null}
-      {!showInFinder && (progressLabel || hasProgress) ? (
+      {progressLabel || hasProgress ? (
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
           {progressLabel ? (
             <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
@@ -61,20 +53,12 @@ const AudioAttachment = () => {
           </Kb.Text>
         </Kb.Box2>
       )}
-      {showInFinder && (
-        <Kb.Text type="BodySmallPrimaryLink" onClick={onShowInFinder} style={styles.linkStyle}>
-          Show in {Kb.Styles.fileUIName}
-        </Kb.Text>
-      )}
     </Kb.Box2>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   error: {color: Kb.Styles.globalColors.redDark},
-  linkStyle: {
-    color: Kb.Styles.globalColors.black_50,
-  },
   progressLabelStyle: {
     color: Kb.Styles.globalColors.black_50,
     marginRight: Kb.Styles.globalMargins.tiny,
