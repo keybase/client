@@ -54,7 +54,7 @@ const PopAttach = (ownProps: OwnProps) => {
     })
   )
 
-  const {itemBlock, itemFilter, itemFlag, itemReport} = useModeration(ordinal, author, conversationIDKey)
+  const {itemBlock, itemFilter, itemFlag, itemReport} = useModeration(author, conversationIDKey)
   const infoPanelShowing = Chat.useChatState(s => s.infoPanelShowing)
 
   const onJump = React.useCallback(() => {

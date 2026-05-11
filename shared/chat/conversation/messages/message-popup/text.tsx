@@ -73,7 +73,7 @@ const PopText = (ownProps: OwnProps) => {
       return {messageReplyPrivately, numPart, teamType}
     })
   )
-  const {itemBlock, itemFilter, itemFlag, itemReport} = useModeration(ordinal, author, conversationIDKey)
+  const {itemBlock, itemFilter, itemFlag, itemReport} = useModeration(author, conversationIDKey)
   const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopy = React.useCallback(() => {
     text && copyToClipboard(text)

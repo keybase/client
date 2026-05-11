@@ -271,7 +271,6 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
 }
 
 export const useModeration = (
-  ordinal: T.Chat.Ordinal,
   author: string,
   conversationIDKey: T.Chat.ConversationIDKey
 ) => {
