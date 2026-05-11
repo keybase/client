@@ -52,8 +52,7 @@ const calcUnreadShortcut = (unreadIndices: ReadonlyMap<number, number>, lastVisi
 // positions array which is lazily recomputed after data changes.
 const getDividerYOffset = (rows: ArrayLike<RowItem>, getSize: (item: RowItem) => number): number => {
   let offset = 0
-  for (let i = 0; i < rows.length; i++) {
-    const item = rows[i]!
+  for (const item of Array.from(rows)) {
     if (item.type !== 'small') return offset
     offset += getSize(item)
   }
