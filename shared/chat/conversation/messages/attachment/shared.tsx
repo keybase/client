@@ -17,6 +17,10 @@ type Props = {
 export const maxWidth = Kb.Styles.isMobile ? Math.min(356, Kb.Styles.dimensionWidth - 70) : 356
 export const maxHeight = 320
 
+export const messageAttachmentHasProgress = (transferState: T.Chat.MessageAttachmentTransferState) => {
+  return !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'
+}
+
 export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => {
   const [showingToast, setShowingToast] = React.useState(false)
   const lastTransferStateRef = React.useRef(transferState)
@@ -26,7 +30,8 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
     if (transferState !== lastTransferStateRef.current) {
       // was downloading and now not
       if (
-        (lastTransferStateRef.current === 'mobileSaving' || lastTransferStateRef.current === 'downloading') &&
+        (lastTransferStateRef.current === 'mobileSaving' ||
+          (!C.isMobile && lastTransferStateRef.current === 'downloading')) &&
         !transferState
       ) {
         setShowingToast(true)
@@ -82,13 +87,22 @@ export const TransferIcon = (p: {
       default:
     }
   }
-  const {attachmentDownload, messageAttachmentNativeSave} = useConversationAttachmentActions()
-  const download = C.isMobile ? messageAttachmentNativeSave : attachmentDownload
+  const {attachmentDownload, messageAttachmentNativeSave, messageAttachmentNativeShare} =
+    useConversationAttachmentActions()
+  const isMobileAudio = C.isMobile && message.attachmentType === 'audio'
   const onDownload = () => {
     if (!hasMessageID) {
       return
     }
-    download(ordinal)
+    if (C.isMobile) {
+      if (isMobileAudio) {
+        messageAttachmentNativeShare(ordinal)
+      } else {
+        messageAttachmentNativeSave(ordinal)
+      }
+    } else {
+      attachmentDownload(ordinal)
+    }
   }
 
   const onFinder = () => {
@@ -96,15 +110,31 @@ export const TransferIcon = (p: {
       openLocalPathInSystemFileManagerDesktop(downloadPath)
     }
   }
+  const mobileStyle = Kb.Styles.collapseStyles([style, {left: -48, opacity: 0.6}])
 
   switch (state) {
     case 'doneWithPath':
+      if (isMobileAudio) {
+        return (
+          <Kb.Icon
+            className="hover-opacity-full"
+            type="iconfont-share"
+            color={Kb.Styles.globalColors.blue}
+            fontSize={20}
+            hint="Share"
+            onClick={onDownload}
+            style={mobileStyle}
+            padding="small"
+          />
+        )
+      }
       return Kb.Styles.isMobile ? null : (
         <Kb.Icon
           className="hover-opacity-full"
           type="iconfont-finder"
           color={Kb.Styles.globalColors.blue}
           fontSize={20}
+          hint="Open folder"
           onClick={onFinder}
           style={style}
         />
@@ -118,6 +148,7 @@ export const TransferIcon = (p: {
           type="iconfont-download"
           color={Kb.Styles.globalColors.green}
           fontSize={20}
+          hint="Downloading"
           style={style}
         />
       )
@@ -125,14 +156,11 @@ export const TransferIcon = (p: {
       return hasMessageID ? (
         <Kb.Icon
           className="hover-opacity-full"
-          type="iconfont-download"
+          type={isMobileAudio ? 'iconfont-share' : 'iconfont-download'}
           color={Kb.Styles.globalColors.blue}
           fontSize={20}
           onClick={onDownload}
-          // violates encapsulation but how this works with padding is annoying currently
-          style={
-            Kb.Styles.isMobile ? Kb.Styles.collapseStyles([style, {left: -48, opacity: 0.6}]) : undefined
-          }
+          style={Kb.Styles.isMobile ? mobileStyle : undefined}
           padding={Kb.Styles.isMobile ? 'small' : undefined}
         />
       ) : null

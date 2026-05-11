@@ -51,7 +51,7 @@ const FullscreenVideo = (p: {
 const Fullscreen = function Fullscreen(p: Props) {
   const {showHeader: _showHeader = true} = p
   const data = useData(p.conversationIDKey, p.messageID, p.initialMessage)
-  const {isVideo, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
+  const {isPlayableMedia, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
   const {onNextAttachment, onPreviousAttachment} = data
   const {hasMessageID} = data
   const [loaded, setLoaded] = React.useState(false)
@@ -74,7 +74,7 @@ const Fullscreen = function Fullscreen(p: Props) {
       .catch(() => {})
   }
 
-  const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
+  const imgSrc = usePreviewFallback(path, previewPath, isPlayableMedia, data.showPreview, preload)
   const srcDims = imgSrc === path
     ? {height: data.fullHeight, width: data.fullWidth}
     : {height: data.previewHeight, width: data.previewWidth}
@@ -121,7 +121,7 @@ const Fullscreen = function Fullscreen(p: Props) {
     }
   }
 
-  if (isVideo) {
+  if (isPlayableMedia) {
     if (path) {
       content = (
         <FullscreenVideo
@@ -147,7 +147,7 @@ const Fullscreen = function Fullscreen(p: Props) {
     )
   }
 
-  if (!loaded && isVideo) {
+  if (!loaded && isPlayableMedia) {
     spinner = (
       <Kb.Box2
         direction="vertical"

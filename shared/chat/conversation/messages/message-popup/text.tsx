@@ -15,7 +15,7 @@ import {
   useConversationThreadSelector,
 } from '../../thread-context'
 import type {MessagePopupItems} from './hooks'
-import {useHeader, useHeaderForMessage, useItems, useStorelessItems} from './hooks'
+import {useHeader, useHeaderForMessage, useItems, useModeration, useStorelessItems} from './hooks'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -82,8 +82,7 @@ const PopTextLoaded = (ownProps: OwnProps & {
   const {teamType, teamname} = meta
   const isTeam = !!teamname
   const numPart = ownProps.participantInfo.all.length
-  const canReplyPrivately = ['small', 'big'].includes(teamType) || numPart > 2
-  const navigateAppend = C.Router2.navigateAppend
+  const canReplyPrivately = teamType === 'small' || teamType === 'big' || numPart > 2
   const onCopy = () => {
     if (text) {
       copyToClipboard(text)
@@ -94,63 +93,8 @@ const PopTextLoaded = (ownProps: OwnProps & {
   const mapUnfurl = Chat.getMapUnfurl(message)
   const onViewMap =
     mapUnfurl?.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone ? () => openURL(mapUnfurl.url) : undefined
-  const blockModalSingle = !isTeam && numPart === 2
 
-  const _onUserReport = () => {
-    navigateAppend({
-      name: 'chatBlockingModal',
-      params: {
-        blockUserByDefault: true,
-        context: blockModalSingle ? 'message-popup-single' : 'message-popup',
-        conversationIDKey,
-        reportsUserByDefault: true,
-        username: author,
-      },
-    })
-  }
-  const onUserReport = C.isIOS && author && !yourMessage ? _onUserReport : undefined
-
-  const _onUserFlag = () => {
-    navigateAppend({
-      name: 'chatBlockingModal',
-      params: {
-        blockUserByDefault: true,
-        context: blockModalSingle ? 'message-popup-single' : 'message-popup',
-        conversationIDKey,
-        flagUserByDefault: true,
-        reportsUserByDefault: true,
-        username: author,
-      },
-    })
-  }
-  const onUserFlag = C.isIOS && author && !yourMessage ? _onUserFlag : undefined
-
-  const _onUserBlock = () => {
-    navigateAppend({
-      name: 'chatBlockingModal',
-      params: {
-        blockUserByDefault: true,
-        context: blockModalSingle ? 'message-popup-single' : 'message-popup',
-        conversationIDKey,
-        username: author,
-      },
-    })
-  }
-  const onUserBlock = author && !yourMessage ? _onUserBlock : undefined
-
-  const _onUserFilter = () => {
-    navigateAppend({
-      name: 'chatBlockingModal',
-      params: {
-        blockUserByDefault: true,
-        context: blockModalSingle ? 'message-popup-single' : 'message-popup',
-        conversationIDKey,
-        filterUserByDefault: true,
-        username: author,
-      },
-    })
-  }
-  const onUserFilter = C.isIOS && author && !yourMessage ? _onUserFilter : undefined
+  const {itemBlock, itemFilter, itemFlag, itemReport} = useModeration(author, conversationIDKey, isTeam, numPart)
 
   const {itemReaction, itemBot, itemCopyLink, itemReply, itemEdit, itemForward, itemPin, itemUnread} = i
   const {itemDelete, itemExplode, itemKick, itemProfile} = i
@@ -164,50 +108,6 @@ const PopTextLoaded = (ownProps: OwnProps & {
   const itemReplyPrivately = onReplyPrivately
     ? ([{icon: 'iconfont-reply', onClick: onReplyPrivately, title: 'Reply privately'}] as const)
     : []
-
-  const itemBlock = !yourMessage && onUserBlock
-    ? ([
-        {
-          danger: true,
-          icon: 'iconfont-user-block',
-          onClick: onUserBlock,
-          title: isTeam ? 'Report user' : 'Block user',
-        },
-      ] as const)
-    : []
-  const itemFilter =
-    !yourMessage && onUserFilter
-      ? ([
-          {
-            danger: true,
-            icon: 'iconfont-user-block',
-            onClick: onUserFilter,
-            title: 'Filter user',
-          },
-        ] as const)
-      : []
-  const itemReport =
-    !yourMessage && !isTeam && onUserReport
-      ? ([
-          {
-            danger: true,
-            icon: 'iconfont-user-block',
-            onClick: onUserReport,
-            title: 'Report user',
-          },
-        ] as const)
-      : []
-  const itemFlag =
-    !yourMessage && onUserFlag
-      ? ([
-          {
-            danger: true,
-            icon: 'iconfont-user-block',
-            onClick: onUserFlag,
-            title: 'Flag content',
-          },
-        ] as const)
-      : []
 
   const items = [
     ...itemReaction,

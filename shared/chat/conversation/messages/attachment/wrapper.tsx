@@ -14,7 +14,7 @@ export function WrapperAttachmentAudio(p: Props) {
   const {default: AudioAttachment} = require('./audio') as {default: typeof AudioAttachmentType}
   return (
     <WrapperMessage {...p} {...wrapper}>
-      <AudioAttachment message={message} />
+      <AudioAttachment message={message} ordinal={ordinal} />
     </WrapperMessage>
   )
 }
