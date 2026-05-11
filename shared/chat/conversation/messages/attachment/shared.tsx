@@ -19,6 +19,10 @@ export const maxHeight = 320
 
 export const missingMessage = Chat.makeMessageAttachment()
 
+export const messageAttachmentHasProgress = (transferState: T.Chat.MessageAttachmentTransferState) => {
+  return !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'
+}
+
 export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => {
   const [showingToast, setShowingToast] = React.useState(false)
   const lastTransferStateRef = React.useRef(transferState)
@@ -67,50 +71,70 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
 export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
   const {style} = p
   const ordinal = useOrdinal()
-  const state = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    if (m?.type !== 'attachment') {
-      return 'none'
-    }
+  const {attachmentType, downloadPath, state} = Chat.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal)
+      if (m?.type !== 'attachment') {
+        return {attachmentType: 'file' as const, downloadPath: '', state: 'none' as const}
+      }
 
-    if (m.downloadPath?.length) {
-      return 'doneWithPath'
-    }
-    if (m.transferProgress === 1) {
-      return 'done'
-    }
-    switch (m.transferState) {
-      case 'downloading':
-      case 'mobileSaving':
-        return 'downloading'
-      default:
-        return 'none'
-    }
-  })
+      if (m.downloadPath?.length) {
+        return {attachmentType: m.attachmentType, downloadPath: m.downloadPath, state: 'doneWithPath' as const}
+      }
+      if (m.transferProgress === 1) {
+        return {attachmentType: m.attachmentType, downloadPath: m.downloadPath, state: 'done' as const}
+      }
+      switch (m.transferState) {
+        case 'downloading':
+        case 'mobileSaving':
+          return {attachmentType: m.attachmentType, downloadPath: m.downloadPath, state: 'downloading' as const}
+        default:
+          return {attachmentType: m.attachmentType, downloadPath: m.downloadPath, state: 'none' as const}
+      }
+    })
+  )
 
-  const downloadPath = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    if (m?.type === 'attachment') {
-      return m.downloadPath
-    }
-    return ''
-  })
-
-  const download = Chat.useChatContext(s =>
-    C.isMobile ? s.dispatch.messageAttachmentNativeSave : s.dispatch.attachmentDownload
+  const {attachmentDownload, messageAttachmentNativeSave, messageAttachmentNativeShare} = Chat.useChatContext(
+    s => s.dispatch
   )
   const onDownload = React.useCallback(() => {
-    download(ordinal)
-  }, [ordinal, download])
+    if (C.isMobile) {
+      if (attachmentType === 'audio') {
+        messageAttachmentNativeShare(ordinal)
+      } else {
+        messageAttachmentNativeSave(ordinal)
+      }
+    } else {
+      attachmentDownload(ordinal)
+    }
+  }, [ordinal, attachmentType, messageAttachmentNativeShare, messageAttachmentNativeSave, attachmentDownload])
 
   const openFinder = useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
   const onFinder = React.useCallback(() => {
     downloadPath && openFinder?.(downloadPath)
   }, [openFinder, downloadPath])
+  const isMobileAudio = C.isMobile && attachmentType === 'audio'
 
   switch (state) {
     case 'doneWithPath':
-      return Kb.Styles.isMobile ? null : (
+      if (isMobileAudio) {
+        return (
+          <Kb.Icon
+            className="hover-opacity-full"
+            type="iconfont-share"
+            color={Kb.Styles.globalColors.blue}
+            fontSize={20}
+            hint="Share"
+            onClick={onDownload}
+            style={Kb.Styles.collapseStyles([style, {left: -48, opacity: 0.6}])}
+            padding="small"
+          />
+        )
+      }
+      if (Kb.Styles.isMobile) {
+        return null
+      }
+      return (
         <Kb.Icon
           className="hover-opacity-full"
           type="iconfont-finder"
@@ -138,7 +162,7 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
       return (
         <Kb.Icon
           className="hover-opacity-full"
-          type="iconfont-download"
+          type={isMobileAudio ? 'iconfont-share' : 'iconfont-download'}
           color={Kb.Styles.globalColors.blue}
           fontSize={20}
           onClick={onDownload}

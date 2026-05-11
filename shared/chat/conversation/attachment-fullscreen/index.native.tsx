@@ -13,7 +13,7 @@ import {Image} from 'expo-image'
 const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const {showHeader: _showHeader = true} = p
   const data = useData(p.ordinal)
-  const {isVideo, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
+  const {isPlayableMedia, onClose, message, path, previewHeight, onAllMedia, previewPath} = data
   const {onNextAttachment, onPreviousAttachment} = data
   const [loaded, setLoaded] = React.useState(false)
   const {ordinal} = message
@@ -36,7 +36,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
       .catch(() => {})
   }, [])
 
-  const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
+  const imgSrc = usePreviewFallback(path, previewPath, isPlayableMedia, data.showPreview, preload)
   const srcDims = React.useMemo(() => {
     return imgSrc === path
       ? {height: data.fullHeight, width: data.fullWidth}
@@ -92,7 +92,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   )
 
   if (path) {
-    if (isVideo) {
+    if (isPlayableMedia) {
       content = (
         <View style={styles.videoWrapper} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
           <Video
@@ -125,7 +125,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     }
   }
 
-  if (!loaded && isVideo) {
+  if (!loaded && isPlayableMedia) {
     spinner = (
       <Kb.Box2
         direction="vertical"

@@ -13,7 +13,7 @@ const audioAmpsCount = 60
 
 func isAudioExtension(basename string) bool {
 	switch strings.ToLower(filepath.Ext(basename)) {
-	case ".m4a", ".mp3", ".aac", ".ogg", ".flac", ".wav":
+	case ".m4a", ".mp3", ".aac", ".ogg", ".flac", ".wav", ".opus", ".aiff", ".caf":
 		return true
 	}
 	return false

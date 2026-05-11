@@ -22,7 +22,10 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	}
 	log.Debug(ctx, "previewVideo: size: %d duration: %d", len(dat), duration)
 	if len(dat) == 0 && duration > 1 && isAudioExtension(basename) {
-		amps, _ := nvh.AudioAmps(ctx, basename)
+		amps, ampErr := nvh.AudioAmps(ctx, basename)
+		if ampErr != nil {
+			log.Debug(ctx, "previewVideo: AudioAmps failed: %v", ampErr)
+		}
 		return previewAudio(duration, amps)
 	}
 	if len(dat) == 0 {
