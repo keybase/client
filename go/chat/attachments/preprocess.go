@@ -278,6 +278,8 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 			p.PreviewDim = &Dimension{Width: previewRes.PreviewWidth, Height: previewRes.PreviewHeight}
 		}
 		p.BaseDurationMs = previewRes.BaseDurationMs
+		p.BaseIsAudio = previewRes.BaseIsAudio
+		p.PreviewAudioAmps = previewRes.AudioAmps
 		p.PreviewDurationMs = previewRes.PreviewDurationMs
 	}
 

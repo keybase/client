@@ -33,7 +33,8 @@ For each commit in master since the last merge:
 1. **Inspect the diff:**
    ```bash
    git show <commit> --stat
-   git show <commit>
+   git show <commit> --name-only   # full file list first
+   git show <commit>               # full diff
    ```
 
 2. **Determine applicability.** A commit may:
@@ -52,6 +53,8 @@ For each commit in master since the last merge:
    - **New util/helper added:** Add it to the equivalent location in the refactored structure
    - **Config/type change:** Find all usages in the branch and update accordingly
 
+5. **Cover ALL file types.** A single commit often touches multiple languages. For each commit, verify you've addressed every file in `git show <commit> --name-only` — TS/TSX, Go, Kotlin, Swift, Java, tests, etc. Missing one language (e.g. applying TS changes but skipping Go) is a common failure mode.
+
 ## When to Stop and Ask
 
 Stop and ask the user before proceeding when:
@@ -69,12 +72,51 @@ If a commit is already applied or clearly irrelevant, document the skip inline:
 SKIP <hash> "<title>" — reason (already applied in <our-commit> / not relevant)
 ```
 
+## Final Cross-Reference Check
+
+Before validating, do a completeness pass to catch anything missed:
+
+```bash
+# 1. List every file touched across ALL master commits being merged
+git show <commit1> <commit2> ... --name-only | sort -u
+
+# 2. For each file, confirm one of:
+#    - Applied: we made an equivalent change
+#    - Skipped: documented reason (already done / not relevant)
+#    - N/A: the feature doesn't exist in our branch and that's intentional
+```
+
+Work through this list explicitly, file by file. If any file has no status, investigate before marking done.
+
 ## Validation
 
-After all commits are processed, from `shared/`:
+After all commits are processed:
+
+**TypeScript** (from `shared/`):
 ```bash
 yarn lint
 yarn tsc
 ```
 
+**Go** (from `go/`):
+```bash
+go build ./...
+```
+
 Fix any issues before reporting done. If lint or tsc surfaces problems in unrelated code, note them separately — don't silently expand scope.
+
+## Alternative: git merge + Conflict Resolution
+
+For large batches of master commits, `git merge origin/master` can be more efficient — it surfaces exactly what conflicts:
+
+```bash
+git merge origin/master
+# Resolve each conflict file using the skill logic:
+# - Our branch's structure wins (keep our patterns, interfaces, imports)
+# - Master's intent is applied (keep the new behavior/logic)
+# - Never blindly accept "ours" or "theirs" — understand what each side does
+git add <resolved-files>
+git merge --continue
+```
+
+Use this approach when there are many commits and the conflict markers clearly show the divergence. Use the per-commit approach when conflicts are ambiguous or when you need to understand each change's intent before applying it.
