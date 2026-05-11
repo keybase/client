@@ -2,10 +2,7 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
 import {useChosenChannelsTeamnames} from '@/chat/conversation/manage-channels-badge'
-import {useNavigation, type NavigationProp} from '@react-navigation/native'
-import type {BottomTabNavigationProp} from '@react-navigation/bottom-tabs'
 import {PerfProfiler} from '@/perf/react-profiler'
 import * as RowSizes from './row/sizes'
 import BigTeamsDivider from './row/big-teams-divider'
@@ -17,15 +14,12 @@ import UnreadShortcut from './unread-shortcut'
 import type * as T from '@/constants/types'
 import {Alert} from 'react-native'
 import type {LegendListRef} from '@/common-adapters'
-import type {RootParamList} from '@/router-v2/route-params'
 import {makeRow} from './row'
 import {useOpenedRowState} from './row/opened-row-state'
 import type {InboxSearchController} from './use-inbox-search'
 import {useInboxSearch} from './use-inbox-search'
 import {useInboxState} from './use-inbox-state'
 import {type RowItem, type ViewableItemsData, viewabilityConfig, getItemType, keyExtractor, useUnreadShortcut, useScrollUnbox} from './list-helpers'
-
-const isLiquidGlassSupported = _isLiquidGlassSupported as boolean
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <>
@@ -85,7 +79,6 @@ function InboxBody(p: ControlledInboxProps) {
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
   const headComponent = C.isTablet ? null : <SearchRow search={search} showSearch={C.isMobile} />
-  const navigation = useNavigation() as NavigationProp<RootParamList, 'chatRoot'>
   const chosenChannelsTeamnames = useChosenChannelsTeamnames()
   const listExtraData = React.useMemo(
     () => ({
@@ -181,26 +174,9 @@ function InboxBody(p: ControlledInboxProps) {
     ),
     [promptSmallTeamsNum, scrollToBigTeams]
   )
-  const renderBottomAccessory = React.useCallback(
-    () => renderFloatingDivider(true),
-    [renderFloatingDivider]
-  )
-  const useTabBottomAccessory = C.isIOS && C.isPhone && isLiquidGlassSupported
   const showFloatingDivider = showFloating && !isSearching && allowShowFloatingButton
 
-  React.useEffect(() => {
-    if (!useTabBottomAccessory) {
-      return
-    }
-    const parent = navigation.getParent() as BottomTabNavigationProp<RootParamList> | undefined
-    parent?.setOptions({bottomAccessory: showFloatingDivider ? renderBottomAccessory : undefined})
-    return () => {
-      parent?.setOptions({bottomAccessory: undefined})
-    }
-  }, [navigation, renderBottomAccessory, showFloatingDivider, useTabBottomAccessory])
-
   const noChats = !neverLoaded && !isSearching && !rows.length && <NoChats onNewChat={onNewChat} />
-  const floatingDivider = showFloatingDivider && !useTabBottomAccessory && renderFloatingDivider()
 
   return (
     <Kb.ErrorBoundary>
@@ -231,7 +207,11 @@ function InboxBody(p: ControlledInboxProps) {
           />
         )}
         {noChats}
-        {floatingDivider || (rows.length === 0 && !neverLoaded && <NoRowsBuildTeam />)}
+        {showFloatingDivider ? (
+          <Kb.BottomAccessory>{renderFloatingDivider(true)}</Kb.BottomAccessory>
+        ) : (
+          rows.length === 0 && !neverLoaded && <NoRowsBuildTeam />
+        )}
         {showUnread && !isSearching && !showFloating && (
           <UnreadShortcut onClick={scrollToUnread} unreadCount={unreadCount} />
         )}
