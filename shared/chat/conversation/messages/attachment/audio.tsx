@@ -26,7 +26,7 @@ const AudioAttachment = () => {
   }
   const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
   const showInFinder = !!message.downloadPath && !Kb.Styles.isMobile
-  const showTitle = !!message.title
+  const showTitle = !!(message.decoratedText?.stringValue() ?? message.title)
 
   const toastTargetRef = React.useRef<Kb.MeasureRef | null>(null)
 

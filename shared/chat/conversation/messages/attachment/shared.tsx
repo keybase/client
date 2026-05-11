@@ -114,64 +114,46 @@ export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
     downloadPath && openFinder?.(downloadPath)
   }, [openFinder, downloadPath])
   const isMobileAudio = C.isMobile && attachmentType === 'audio'
+  const mobileStyle = Kb.Styles.collapseStyles([style, {left: -48, opacity: 0.6}])
+  const renderIcon = (
+    type: Kb.IconType,
+    color: string,
+    hint?: string,
+    onClick?: () => void,
+    useMobileStyle?: boolean
+  ) => (
+    <Kb.Icon
+      className="hover-opacity-full"
+      type={type}
+      color={color}
+      fontSize={20}
+      hint={hint}
+      onClick={onClick}
+      style={useMobileStyle ? mobileStyle : style}
+      padding={useMobileStyle ? 'small' : undefined}
+    />
+  )
 
   switch (state) {
     case 'doneWithPath':
       if (isMobileAudio) {
-        return (
-          <Kb.Icon
-            className="hover-opacity-full"
-            type="iconfont-share"
-            color={Kb.Styles.globalColors.blue}
-            fontSize={20}
-            hint="Share"
-            onClick={onDownload}
-            style={Kb.Styles.collapseStyles([style, {left: -48, opacity: 0.6}])}
-            padding="small"
-          />
-        )
+        return renderIcon('iconfont-share', Kb.Styles.globalColors.blue, 'Share', onDownload, true)
       }
       if (Kb.Styles.isMobile) {
         return null
       }
-      return (
-        <Kb.Icon
-          className="hover-opacity-full"
-          type="iconfont-finder"
-          color={Kb.Styles.globalColors.blue}
-          fontSize={20}
-          hint="Open folder"
-          onClick={onFinder}
-          style={style}
-        />
-      )
+      return renderIcon('iconfont-finder', Kb.Styles.globalColors.blue, 'Open folder', onFinder)
     case 'done':
       return null
     case 'downloading':
-      return (
-        <Kb.Icon
-          className="hover-opacity-full"
-          type="iconfont-download"
-          color={Kb.Styles.globalColors.green}
-          fontSize={20}
-          hint="Downloading"
-          style={style}
-        />
-      )
+      return renderIcon('iconfont-download', Kb.Styles.globalColors.green, 'Downloading')
     case 'none':
-      return (
-        <Kb.Icon
-          className="hover-opacity-full"
-          type={isMobileAudio ? 'iconfont-share' : 'iconfont-download'}
-          color={Kb.Styles.globalColors.blue}
-          fontSize={20}
-          onClick={onDownload}
-          // violates encapsulation but how this works with padding is annoying currently
-          style={
-            Kb.Styles.isMobile ? Kb.Styles.collapseStyles([style, {left: -48, opacity: 0.6}]) : undefined
-          }
-          padding={Kb.Styles.isMobile ? 'small' : undefined}
-        />
+      return renderIcon(
+        isMobileAudio ? 'iconfont-share' : 'iconfont-download',
+        Kb.Styles.globalColors.blue,
+        undefined,
+        onDownload,
+        Kb.Styles.isMobile
       )
   }
 }
@@ -308,10 +290,10 @@ export const useAttachmentState = () => {
       C.useShallow(s => {
         const m = s.messageMap.get(ordinal)
         const message = m?.type === 'attachment' ? m : missingMessage
-        const {isCollapsed, title, fileName: fileNameRaw, transferProgress} = message
+        const {decoratedText, isCollapsed, title, fileName: fileNameRaw, transferProgress} = message
         const {deviceType, inlineVideoPlayable, transferState, submitState} = message
         const isEditing = s.editing === ordinal
-        const showTitle = !!title
+        const showTitle = !!(decoratedText?.stringValue() ?? title)
         const fileName =
           deviceType === 'desktop' ? fileNameRaw : `${inlineVideoPlayable ? 'Video' : 'Image'} from mobile`
 
