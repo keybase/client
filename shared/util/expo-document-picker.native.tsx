@@ -7,5 +7,5 @@ export const pickDocumentsAsync = async (
     copyToCacheDirectory: true,
     multiple: allowsMultipleSelection,
   })
-  return res ?? {assets: null, canceled: true}
+  return res
 }

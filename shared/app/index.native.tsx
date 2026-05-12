@@ -121,7 +121,8 @@ if (__DEV__ && !globalThis.DEBUGmadeEngine) {
 // once per module
 let inited = false
 const useInit = () => {
-  if (!inited) {
+  React.useEffect(() => {
+    if (inited) return
     inited = true
     initDarkMode()
     Animated.addWhitelistedNativeProps({text: true})
@@ -136,11 +137,6 @@ const useInit = () => {
     }, onEngineIncoming)
     initPlatformListener()
     eng.listenersAreReady()
-  }
-
-  // On mobile there is no installer — deferred to avoid setState-during-render
-  // warning (FsDaemonProvider subscribes to installerRanCount)
-  React.useEffect(() => {
     useConfigState.getState().dispatch.installerRan()
   }, [])
 }
