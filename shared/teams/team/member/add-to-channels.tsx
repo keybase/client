@@ -49,6 +49,12 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
   const mode = props.usernames ? 'others' : 'self'
   const nav = useSafeNavigation()
 
+  const getMembers = Teams.useTeamsState(s => s.dispatch.getMembers)
+  const teamMembersLoaded = Teams.useTeamsState(s => s.teamIDToMembers.has(teamID))
+  React.useEffect(() => {
+    if (!teamMembersLoaded) getMembers(teamID)
+  }, [teamID, teamMembersLoaded, getMembers])
+
   const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
   const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = React.useMemo(
     () => getChannelsForList(channelMetas, usernames),
@@ -70,15 +76,7 @@ const AddToChannels = React.memo(function AddToChannels(props: Props) {
 
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
-    ...channels.map(c => {
-      // TODO not reactive
-      const p = Chat.getConvoState(c.conversationIDKey).participants
-      return {
-        channelMeta: c,
-        numMembers: p.name.length || p.all.length || 0,
-        type: 'channel' as const,
-      }
-    }),
+    ...channels.map(c => ({channelMeta: c, type: 'channel' as const})),
   ]
 
   const [numItems, setNumItems] = React.useState(0)
@@ -459,10 +457,18 @@ const ChannelRow = React.memo(function ChannelRow(p: ChannelRowProps) {
   const {channelMeta, mode, selected, onSelect: _onSelect, reloadChannels, usernames, rowHeight} = p
   const {conversationIDKey} = channelMeta
   const selfMode = mode === 'self'
-  const participants = Chat.useConvoState(conversationIDKey, s => {
-    const {name, all} = s.participants
-    return name.length ? name : all
-  })
+  const participantsAll = Chat.useConvoState(conversationIDKey, s => s.participants.all)
+  const teamMembers = Teams.useTeamsState(s => s.teamIDToMembers.get(channelMeta.teamID))
+  const participants = React.useMemo(
+    () =>
+      teamMembers
+        ? participantsAll.filter(u => {
+            const m = teamMembers.get(u)
+            return !m || (m.type !== 'bot' && m.type !== 'restrictedbot')
+          })
+        : participantsAll,
+    [participantsAll, teamMembers]
+  )
   const activityLevel = Teams.useTeamsState(
     s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
   )
