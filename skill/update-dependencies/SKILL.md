@@ -19,31 +19,24 @@ These are pinned to the Expo SDK version — do not touch:
 
 ### 1. Check what's outdated
 
-```bash
-cd shared && yarn outdated
-```
-
-This shows current, wanted, and latest versions.
-
-### 2. Check pre-release packages manually
-
-`yarn outdated` does **not** show updates for packages currently on a pre-release version (beta, alpha, dev, canary, rc). After running `yarn outdated`, also check these packages manually:
+Run the following script from `shared/` — it checks all packages including pre-release ones, and handles cases where the current version is *ahead* of the `latest` dist-tag (e.g., expo 56.x while latest still points to 55.x):
 
 ```bash
-cd shared && yarn info @legendapp/list versions
+cd shared && python3 ../.claude/skills/update-dependencies/check-outdated.py
 ```
 
-For each pre-release package in `package.json`, run `yarn info <package> versions` and pick the most recent version in the same pre-release line (e.g., still beta if currently beta). Do not promote to stable unless intentional.
+**Important:** The `latest` dist-tag on npm sometimes lags behind the version line the project tracks (e.g., expo 56.x while npm `latest` still points to 55.x). The script handles this by comparing semver and never suggesting a downgrade. Always sanity-check results — if a "latest" version is lower than current, it's a false positive.
 
-Packages currently on pre-release lines that need manual checking:
+Packages currently on pre-release lines:
 
 - `@legendapp/list` — beta
 - `@typescript/native-preview` — dev builds
 - `react-native-gesture-handler` — beta
+- `@react-navigation/*` — alpha
+- `expo` — preview
+- `eslint-plugin-react-compiler` — rc
 
-If `yarn outdated` shows a pre-release version or you suspect one exists for other packages, check with `yarn info <package> versions`.
-
-Choose the most recent **stable** version unless the project already tracks a pre-release line.
+**Note on `eslint-plugin-react-compiler` rc versions:** npm may have rc.1-hash variants that sort after rc.2 alphabetically but are older. Verify manually if the script suggests downgrading to a hash-tagged rc.
 
 ### 3. Edit package.json with exact versions
 

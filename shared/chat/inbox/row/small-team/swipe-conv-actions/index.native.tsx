@@ -4,9 +4,8 @@ import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
 import * as RowSizes from '../../sizes'
 import type {Props} from '.'
-import {View} from 'react-native'
-import {RectButton} from 'react-native-gesture-handler'
-import Swipeable, {type SwipeableMethods} from 'react-native-gesture-handler/ReanimatedSwipeable'
+import {Pressable, View} from 'react-native'
+import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row.native'
 import {useOpenedRowState} from '../../opened-row-state'
 import {useInboxRowSmall} from '@/stores/inbox-rows'
 import {hideConversation, markConversationUnread, muteConversation} from '@/chat/conversation/status-actions'
@@ -38,12 +37,12 @@ const Action = (p: {
 
   return (
     <Reanimated.default.View style={[styles.action, as]}>
-      <RectButton style={[styles.rightAction, {backgroundColor: color as string}]} onPress={onClick}>
+      <Pressable style={[styles.rightAction, {backgroundColor: color as string}]} onPress={onClick}>
         <Kb.Icon type={iconType} color={Kb.Styles.globalColors.white} />
         <Kb.Text type="BodySmall" style={styles.actionText}>
           {text}
         </Kb.Text>
-      </RectButton>
+      </Pressable>
     </Reanimated.default.View>
   )
 }
@@ -124,11 +123,11 @@ function SwipeConvActions(p: Props) {
   }
 
   const inner = onPress ? (
-    <RectButton onPress={onPress} style={styles.touchable} testID="inboxRow">
+    <Pressable onPress={onPress} style={styles.touchable} testID="inboxRow">
       <View accessible={false} style={styles.touchable}>
         {children}
       </View>
-    </RectButton>
+    </Pressable>
   ) : (
     <View style={styles.touchable} testID="inboxRow">
       {children}
