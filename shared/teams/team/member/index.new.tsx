@@ -326,7 +326,7 @@ const TeamMember = (props: OwnProps) => {
     title: makeTitle(isMe ? 'You are not in:' : `${username} is not in:`),
   }
 
-  const sections: Array<Section> = [nodesInSection, nodesNotInSection]
+  const sections: Array<Section> = nodesNotIn.length > 0 ? [nodesInSection, nodesNotInSection] : [nodesInSection]
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container} relative={true}>
       {errors.length > 0 && (
@@ -817,9 +817,9 @@ export const TeamMemberHeader = (props: Props) => {
             style={styles.headerTextContainer}
           >
             <Kb.Box2 direction="horizontal" gap="small">
-              <Kb.Avatar size={64} username={username} />
+              <Kb.Avatar size={64} username={username} onClick={onViewProfile} />
               <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.headerText}>
-                <Kb.ConnectedUsernames type="Header" usernames={username} />
+                <Kb.ConnectedUsernames type="Header" usernames={username} onUsernameClicked={onViewProfile} />
                 {!!member.fullName && (
                   <Kb.Text type="BodySemibold" lineClamp={1}>
                     {member.fullName}

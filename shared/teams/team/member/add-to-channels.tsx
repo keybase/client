@@ -49,7 +49,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const usernames = props.usernames ?? justMe
   const mode = props.usernames ? 'others' : 'self'
   const nav = useSafeNavigation()
-  const {yourOperations} = useLoadedTeam(teamID)
+  const {yourOperations, teamDetails} = useLoadedTeam(teamID)
 
   const {channelMetas, channelParticipants, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
   const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(
@@ -69,7 +69,11 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
     ...(filtering ? [] : [{type: 'header' as const}]),
     ...channels.map(c => {
       const p = channelParticipants.get(c.conversationIDKey)
-      const participants = p?.name.length ? p.name : (p?.all ?? [])
+      const allParticipants = p?.name.length ? p.name : (p?.all ?? [])
+      const participants = allParticipants.filter(u => {
+        const m = teamDetails.members.get(u)
+        return !m || (m.type !== 'bot' && m.type !== 'restrictedbot')
+      })
       return {
         channelMeta: c,
         numMembers: participants.length,

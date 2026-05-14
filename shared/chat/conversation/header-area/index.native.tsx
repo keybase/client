@@ -44,7 +44,12 @@ export const HeaderAreaRight = (props: HeaderConversationProps) => {
   //   </>
   // ) : null
 
-  const onShowInfoPanel = () => showConversationInfoPanel(conversationIDKey, true, undefined)
+  const onShowInfoPanel = () => {
+    Keyboard.dismiss()
+    setTimeout(() => {
+      showConversationInfoPanel(conversationIDKey, true, undefined)
+    }, 100)
+  }
   const onToggleThreadSearch = () => {
     // fix a race with the keyboard going away and coming back quickly
     Keyboard.dismiss()
@@ -138,7 +143,12 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
             {
               icon: sfIcon('info.circle'),
               label: 'Info',
-              onPress: () => showConversationInfoPanel(conversationIDKey, true, undefined),
+              onPress: () => {
+                Keyboard.dismiss()
+                setTimeout(() => {
+                  showConversationInfoPanel(conversationIDKey, true, undefined)
+                }, 100)
+              },
               type: 'button' as const,
             },
           ],
