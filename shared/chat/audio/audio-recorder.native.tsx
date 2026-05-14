@@ -7,10 +7,9 @@ import * as InputState from '@/chat/conversation/input-area/input-state'
 import {colors} from '@/styles/colors'
 import * as Reanimated from 'react-native-reanimated'
 import {AmpTracker} from './amptracker'
-import {usePanGesture, GestureDetector, type PanGestureActiveEvent} from 'react-native-gesture-handler'
-import {View} from 'react-native'
+import {PanResponder, View, type GestureResponderEvent, type PanResponderGestureState} from 'react-native'
 import {formatAudioRecordDuration} from '@/util/timestamp'
-import {useAudioRecorder, useAudioRecorderState, AudioModule, AudioQuality, IOSOutputFormat} from 'expo-audio'
+import {AudioModule, AudioQuality, IOSOutputFormat} from 'expo-audio'
 import {setupAudioMode} from '@/util/audio.native'
 import logger from '@/logger'
 import * as Haptics from 'expo-haptics'
@@ -81,6 +80,110 @@ const useTooltip = () => {
   return {flashTip, tooltip}
 }
 
+type MicButtonProps = {
+  startedSV: SVN
+  fadeSV: SVN
+  canceledSV: SVN
+  lockedSV: SVN
+  dragXSV: SVN
+  dragYSV: SVN
+  startRecording: () => void
+  onCancelRecording: () => void
+  onFlashTip: () => void
+  sendRecording: () => void
+  onReset: () => void
+}
+
+const MicButton = (p: MicButtonProps) => {
+  'use no memo'
+  const {startedSV, fadeSV, canceledSV, lockedSV, dragXSV, dragYSV,
+    startRecording, onCancelRecording, onFlashTip, sendRecording, onReset} = p
+
+  const panStartRef = React.useRef(0)
+  const overlayTimeoutIdRef = React.useRef(0)
+  const cbRef = React.useRef({onCancelRecording, onFlashTip, sendRecording, onReset, startRecording})
+
+  // useState factory captures only plain mutable locals — no React refs transitively.
+  // We swap them out from useLayoutEffect, which is not subject to render-phase lint rules.
+  const [ctx] = React.useState(() => {
+    let _grant = () => {}
+    let _move = (_e: GestureResponderEvent, _gs: PanResponderGestureState) => {}
+    let _release = () => {}
+    let _terminate = () => {}
+    return {
+      panHandlers: PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => _grant(),
+        onPanResponderMove: (e, gs) => _move(e, gs),
+        onPanResponderRelease: () => _release(),
+        onPanResponderTerminate: () => _terminate(),
+      }).panHandlers,
+      set(
+        grant: () => void,
+        move: (e: GestureResponderEvent, gs: PanResponderGestureState) => void,
+        release: () => void,
+        terminate: () => void,
+      ) {
+        _grant = grant
+        _move = move
+        _release = release
+        _terminate = terminate
+      },
+    }
+  })
+
+  // All ref/SharedValue accesses live here — useLayoutEffect is post-render, not during render.
+  React.useLayoutEffect(() => {
+    cbRef.current = {onCancelRecording, onFlashTip, sendRecording, onReset, startRecording}
+    ctx.set(
+      () => {
+        overlayTimeoutIdRef.current = setTimeout(() => {
+          if (startedSV.value) return
+          startedSV.set(1)
+          fadeSV.set(withSpring(1, {duration: 200}))
+          cbRef.current.startRecording()
+        }, 200) as unknown as number
+        if (!panStartRef.current) panStartRef.current = Date.now()
+      },
+      (_e: GestureResponderEvent, gs: PanResponderGestureState) => {
+        if (lockedSV.value || canceledSV.value) return
+        const maxCancelDrift = -120
+        const maxLockDrift = -100
+        dragYSV.set(interpolate(gs.dy, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP))
+        dragXSV.set(interpolate(gs.dx, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP))
+        if (gs.dx < maxCancelDrift) canceledSV.set(1)
+        else if (gs.dy < maxLockDrift) lockedSV.set(1)
+      },
+      () => {
+        const diff = Date.now() - panStartRef.current
+        startedSV.set(0)
+        panStartRef.current = 0
+        clearTimeout(overlayTimeoutIdRef.current)
+        overlayTimeoutIdRef.current = 0
+        const wasCancel = canceledSV.value === 1
+        const panLocked = lockedSV.value === 1
+        if (wasCancel) { cbRef.current.onCancelRecording(); return }
+        if (diff < 200) { cbRef.current.onFlashTip(); return }
+        if (!panLocked) { cbRef.current.sendRecording(); cbRef.current.onReset() }
+      },
+      () => {
+        startedSV.set(0)
+        panStartRef.current = 0
+        clearTimeout(overlayTimeoutIdRef.current)
+        overlayTimeoutIdRef.current = 0
+        cbRef.current.onCancelRecording()
+      },
+    )
+  })
+
+  return (
+    <View {...ctx.panHandlers}>
+      <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
+    </View>
+  )
+}
+
 const useIconAndOverlay = (p: {
   flashTip: () => void
   startRecording: () => void
@@ -146,102 +249,20 @@ const useIconAndOverlay = (p: {
     onCancelRecording()
   }
 
-  const [iconVisible, setIconVisible] = React.useState(false)
-
-  // work around bug in gesture handler where it crashes on mount
-  React.useEffect(() => {
-    const id = setTimeout(() => {
-      setIconVisible(true)
-      return () => {
-        clearTimeout(id)
-      }
-    }, 1000)
-  }, [])
-  const panStartSV = useSharedValue(0)
-
-  const overlayTimeoutIdRef = React.useRef(0)
-  const showOverlay = () => {
-    // we get this multiple times for some reason
-    if (startedSV.value) {
-      return
-    }
-    startedSV.set(1)
-    fadeSV.set(withSpring(1, {duration: 200}))
-    startRecording()
-  }
-  const setupOverlayTimeout = () => {
-    overlayTimeoutIdRef.current = setTimeout(() => {
-      showOverlay()
-    }, 200) as unknown as number
-  }
-  const cleanupOverlayTimeout = () => {
-    clearTimeout(overlayTimeoutIdRef.current)
-    overlayTimeoutIdRef.current = 0
-  }
-
-  const gesture = usePanGesture({
-    maxPointers: 1,
-    minDistance: 0,
-    minPointers: 1,
-    onFinalize: (_e: unknown) => {
-      'worklet'
-      const diff = Date.now() - panStartSV.value
-      startedSV.set(0)
-      panStartSV.set(0)
-      runOnJS(cleanupOverlayTimeout)()
-      const needTip = diff < 200
-      const wasCancel = canceledSV.value === 1
-      const panLocked = lockedSV.value === 1
-      if (wasCancel) {
-        runOnJS(onCancelRecording)()
-        return
-      }
-
-      if (needTip) {
-        runOnJS(onFlashTip)()
-        return
-      }
-
-      if (!panLocked) {
-        runOnJS(sendRecording)()
-        onReset()
-        fadeSV.set(withTiming(0, {duration: 200}))
-      }
-    },
-    onTouchesDown: () => {
-      'worklet'
-      runOnJS(setupOverlayTimeout)()
-      if (!panStartSV.value) {
-        panStartSV.set(Date.now())
-      }
-    },
-    onUpdate: (e: PanGestureActiveEvent) => {
-      'worklet'
-      if (lockedSV.value || canceledSV.value) {
-        return
-      }
-      const maxCancelDrift = -120
-      const maxLockDrift = -100
-      dragYSV.set(interpolate(e.translationY, [maxLockDrift, 0], [maxLockDrift, 0], Extrapolation.CLAMP))
-      dragXSV.set(interpolate(e.translationX, [maxCancelDrift, 0], [maxCancelDrift, 0], Extrapolation.CLAMP))
-      if (e.translationX < maxCancelDrift) {
-        canceledSV.set(1)
-      } else if (e.translationY < maxLockDrift) {
-        lockedSV.set(1)
-      }
-    },
-  })
-
-  const icon = iconVisible ? (
-    <View>
-      <GestureDetector gesture={gesture}>
-        <Kb.Box2 direction="vertical" collapsable={false}>
-          <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
-        </Kb.Box2>
-      </GestureDetector>
-    </View>
-  ) : (
-    <Kb.Icon type="iconfont-mic" style={styles.iconStyle} />
+  const icon = (
+    <MicButton
+      startedSV={startedSV}
+      fadeSV={fadeSV}
+      canceledSV={canceledSV}
+      lockedSV={lockedSV}
+      dragXSV={dragXSV}
+      dragYSV={dragYSV}
+      startRecording={startRecording}
+      onCancelRecording={onCancelRecording}
+      onFlashTip={onFlashTip}
+      sendRecording={sendRecording}
+      onReset={onReset}
+    />
   )
 
   const durationStyle = useAnimatedStyle(() => ({
@@ -317,20 +338,21 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
   const [staged, setStaged] = React.useState(false)
   const [stagedRecording, setStagedRecording] = React.useState({duration: 0, path: ''})
 
-  const recorder = useAudioRecorder(recordingOptions)
-  const recorderState = useAudioRecorderState(recorder, 100)
+  // Recorder is created lazily on startRecording and released on stop/reset/unmount.
+  // This avoids holding a native SharedRef across unrelated navigations (e.g. photo picker).
+  const recorderRef = React.useRef<InstanceType<typeof AudioModule.AudioRecorder> | null>(null)
+  const meteringIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
 
-  React.useEffect(() => {
-    const inamp = recorderState.metering
-    if (inamp === undefined) {
-      return
+  const releaseRecorder = React.useCallback(() => {
+    if (meteringIntervalRef.current !== null) {
+      clearInterval(meteringIntervalRef.current)
+      meteringIntervalRef.current = null
     }
-    const amp = 10 ** (inamp * 0.05)
-    ampTracker.addAmp(amp)
-    const maxScale = 8
-    const minScale = 3
-    ampSV.set(withTiming(minScale + amp * (maxScale - minScale), {duration: 100}))
-  }, [recorderState, ampTracker, ampSV])
+    if (recorderRef.current) {
+      recorderRef.current.release()
+      recorderRef.current = null
+    }
+  }, [])
 
   const stopRecording = async () => {
     const needsTeardown = hasSetupRecording.current
@@ -340,9 +362,14 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     }
     recordEndRef.current = Date.now()
 
-    if (recordStartRef.current > 0) {
+    if (meteringIntervalRef.current !== null) {
+      clearInterval(meteringIntervalRef.current)
+      meteringIntervalRef.current = null
+    }
+
+    if (recordStartRef.current > 0 && recorderRef.current) {
       try {
-        await recorder.stop()
+        await recorderRef.current.stop()
       } catch (e) {
         console.log('Recording stopping fail', e)
       }
@@ -353,6 +380,7 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
     try {
       await stopRecording()
     } catch {}
+    releaseRecorder()
     ampTracker.reset()
     const path = pathRef.current
     pathRef.current = ''
@@ -403,6 +431,8 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
       hasSetupRecording.current = true
       vibrate(true)
 
+      const recorder = new AudioModule.AudioRecorder(recordingOptions)
+      recorderRef.current = recorder
       await recorder.prepareToRecordAsync()
       const audioPath = recorder.uri?.replace(/^file:\/\//, '')
       if (!audioPath) {
@@ -413,6 +443,17 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
       recorder.record()
       recordStartRef.current = Date.now()
       recordEndRef.current = recordStartRef.current
+
+      meteringIntervalRef.current = setInterval(() => {
+        const status = recorderRef.current?.getStatus()
+        const inamp = status?.metering
+        if (inamp === undefined) return
+        const amp = 10 ** (inamp * 0.05)
+        ampTracker.addAmp(amp)
+        const maxScale = 8
+        const minScale = 3
+        ampSV.set(withTiming(minScale + amp * (maxScale - minScale), {duration: 100}))
+      }, 100)
     }
 
     impl()
@@ -480,11 +521,12 @@ const useRecorder = (p: {ampSV: SVN; setShowAudioSend: (s: boolean) => void; sho
   React.useEffect(() => {
     return () => {
       setShowAudioSend(false)
+      releaseRecorder()
       onResetEvent()
         .then(() => {})
         .catch(() => {})
     }
-  }, [setShowAudioSend])
+  }, [setShowAudioSend, releaseRecorder])
 
   return {audioSend, cancelRecording, sendRecording, stageRecording, staged, startRecording}
 }

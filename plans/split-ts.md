@@ -4,7 +4,7 @@
 
 **Goal:** Replace the single `shared/tsconfig.json` with per-platform configs so that `dom` APIs are forbidden in native code, native-only APIs are forbidden in desktop code, and the `.d.ts` type stubs are eliminated in favor of auto-generated `paths` that resolve directly to platform implementation files.
 
-**Architecture:** A generator script (`shared/tools/gen-ts-paths.mjs`) scans the filesystem for modules that have `.desktop.tsx`/`.native.tsx` variants but no plain `.tsx`, then writes `tsconfig.paths.desktop.json` and `tsconfig.paths.native.json`. Each platform tsconfig extends `tsconfig.base.json` plus its generated paths file (TypeScript 5.0 array `extends`). The generated files are gitignored and regenerated before every type-check. Because TypeScript `paths` only intercept non-relative import specifiers, this works cleanly for the `@/*` alias style used throughout the codebase.
+**Architecture:** A generator script (`shared/tools/gen-ts-paths.mjs`) scans the filesystem for modules that have `.desktop.tsx`/`.native.tsx` variants but no plain `.tsx`, then writes `tsconfig.paths.desktop.json` and `tsconfig.paths.native.json`. Each platform tsconfig extends `tsconfig.base.json` plus its generated paths file (TypeScript 5.0 array `extends`). The generated files are checked into the repo and must be regenerated (by running the generator script) whenever platform-split files are added or removed. Because TypeScript `paths` only intercept non-relative import specifiers, this works cleanly for the `@/*` alias style used throughout the codebase.
 
 **Tech Stack:** TypeScript (`tsgo`), tsconfig `extends` array (TS 5.0+), Node ESM script, `yarn` scripts
 
@@ -18,12 +18,11 @@
 | `shared/tsconfig.base.json` | Create — platform-agnostic compiler options |
 | `shared/tsconfig.desktop.json` | Create — desktop lib/types, extends base + generated paths |
 | `shared/tsconfig.native.json` | Create — native lib/types, extends base + generated paths |
-| `shared/tsconfig.paths.desktop.json` | Generated (gitignored) — `@/foo` → `./foo.desktop` mappings |
-| `shared/tsconfig.paths.native.json` | Generated (gitignored) — `@/foo` → `./foo.native` mappings |
+| `shared/tsconfig.paths.desktop.json` | Generated (checked in) — `@/foo` → `./foo.desktop` mappings |
+| `shared/tsconfig.paths.native.json` | Generated (checked in) — `@/foo` → `./foo.native` mappings |
 | `shared/tools/gen-ts-paths.mjs` | Create — generator script |
 | `shared/package.json` | Modify `tsc` script to run generator then both platform configs |
 | `shared/**/*.d.ts` | Delete — replaced by generated paths (keep only non-platform stubs) |
-| `.gitignore` | Modify — add generated paths files |
 
 ---
 
@@ -206,31 +205,29 @@ git commit -m "build: add gen-ts-paths.mjs to generate per-platform tsconfig pat
 
 ---
 
-### Task 3: Gitignore the generated paths files
+### Task 3: Commit the generated paths files
 
 **Files:**
-- Modify: root `.gitignore` or `shared/.gitignore`
+- Commit: `shared/tsconfig.paths.desktop.json`, `shared/tsconfig.paths.native.json`
 
-- [ ] **Step 1: Check which gitignore to update**
+The generated paths files are checked into the repo so they are available without running the generator first (e.g. in CI before `node tools/gen-ts-paths.mjs` has run). The generator script must still be run whenever platform-split files are added or removed to keep them up to date.
+
+- [ ] **Step 1: Gitignore only the build output dirs**
+
+Add to whichever `.gitignore` covers `shared/`:
+```
+shared/.tsOuts/
+```
 
 ```bash
 ls /Users/chrisnojima/go/src/github.com/keybase/client/shared/.gitignore 2>/dev/null && echo "shared gitignore exists" || echo "use root"
 ```
 
-- [ ] **Step 2: Add entries**
-
-Add to whichever `.gitignore` covers `shared/`:
-```
-shared/tsconfig.paths.desktop.json
-shared/tsconfig.paths.native.json
-shared/.tsOuts/
-```
-
-- [ ] **Step 3: Commit**
+- [ ] **Step 2: Commit the generated files**
 
 ```bash
-git add .gitignore
-git commit -m "chore: gitignore generated tsconfig paths files and tsOuts"
+cd shared && git add tsconfig.paths.desktop.json tsconfig.paths.native.json
+git commit -m "build: add generated tsconfig paths files"
 ```
 
 ---
@@ -550,7 +547,7 @@ git commit -m "build: yarn tsc generates paths and checks desktop + native confi
 - [x] **tsconfig.base.json** has all platform-agnostic options, no lib/types
 - [x] **tsconfig.desktop.json** adds `dom`, `webpack-env`, excludes `.native.*` files
 - [x] **tsconfig.native.json** drops `dom`/`webpack-env`, excludes `.desktop.*` and `./desktop/`
-- [x] **Generated paths files** are gitignored
+- [x] **Generated paths files** are checked into the repo
 - [x] **Platform-split .d.ts stubs** deleted; non-platform stubs (`globals.d.ts` etc.) kept
 - [x] **tsconfig.json** is editor fallback extending desktop
 - [x] **yarn tsc** runs generator then both platform configs

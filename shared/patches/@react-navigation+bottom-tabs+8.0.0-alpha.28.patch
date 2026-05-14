@@ -1,0 +1,59 @@
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js b/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js
+index 8c6a647..bc2aea8 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js
++++ b/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabViewNativeImpl.js
+@@ -36,6 +36,10 @@ export function BottomTabViewNative({
+   }
+   const [pendingNavigation, setPendingNavigation] = React.useState(null);
+   const previousRouteKeyRef = React.useRef(focusedRouteKey);
++  const [navStateRequest, setNavStateRequest] = React.useState(() => ({
++    selectedScreenKey: state.routes[state.index].key,
++    baseProvenance: 0,
++  }));
+   React.useEffect(() => {
+     const previousRouteKey = previousRouteKeyRef.current;
+     if (previousRouteKey !== focusedRouteKey && descriptors[previousRouteKey]?.options.popToTopOnBlur) {
+@@ -147,9 +151,11 @@ export function BottomTabViewNative({
+     },
+     children: [tabBarPosition === 'top' || tabBarPosition === 'left' ? tabBarElement : null, /*#__PURE__*/_jsx(Tabs.Host, {
+       tabBarHidden: hasCustomTabBar || shouldHideTabBar,
+-      bottomAccessory: bottomAccessory ? environment => bottomAccessory({
+-        placement: environment
+-      }) : undefined,
++      ios: {
++        bottomAccessory: bottomAccessory ? environment => bottomAccessory({
++          placement: environment
++        }) : undefined,
++      },
+       tabBarItemLabelVisibilityMode: currentOptions?.tabBarLabelVisibilityMode,
+       tabBarControllerMode: tabBarControllerMode,
+       tabBarMinimizeBehavior: tabBarMinimizeBehavior,
+@@ -168,9 +174,14 @@ export function BottomTabViewNative({
+       tabBarItemActiveIndicatorEnabled: currentOptions?.tabBarActiveIndicatorEnabled,
+       tabBarItemRippleColor: currentOptions?.tabBarRippleColor,
+       experimentalControlNavigationStateInJS: false,
+-      onNativeFocusChange: e => {
+-        const route = state.routes.find(route => route.key === e.nativeEvent.tabKey);
++      navStateRequest: navStateRequest,
++      onTabSelected: e => {
++        const route = state.routes.find(route => route.key === e.nativeEvent.selectedScreenKey);
+         if (route) {
++          setNavStateRequest({
++            selectedScreenKey: e.nativeEvent.selectedScreenKey,
++            baseProvenance: e.nativeEvent.provenance,
++          });
+           const event = navigation.emit({
+             type: 'tabPress',
+             target: route.key,
+@@ -271,9 +282,8 @@ export function BottomTabViewNative({
+           onDidAppear: () => onTransitionEnd({
+             route
+           }),
+-          tabKey: route.key,
+-          icon: icon,
+-          selectedIcon: selectedIcon?.ios ?? selectedIcon?.shared,
++          screenKey: route.key,
++          ios: {icon: icon?.ios, selectedIcon: selectedIcon?.ios ?? selectedIcon?.shared},
+           tabBarItemBadgeBackgroundColor: badgeBackgroundColor,
+           tabBarItemBadgeTextColor: badgeTextColor,
+           tabBarItemAccessibilityLabel: tabBarAccessibilityLabel,

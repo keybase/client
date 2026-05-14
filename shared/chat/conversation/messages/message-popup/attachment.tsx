@@ -167,7 +167,7 @@ const PopAttachThread = (ownProps: OwnProps) => {
     useConversationAttachmentActions()
   const itemsData = useItems(ordinal, onHidden)
   const header = useHeader(ordinal, onHidden)
-  const {params} = useRoute<ChatRootRoute>()
+  const {params} = useRoute() as ChatRootRoute
   const infoPanelShowing = !!params.infoPanel
   const {meta, participantInfo} = useConversationThreadSelector(
     C.useShallow(s => ({meta: s.meta, participantInfo: s.participants}))

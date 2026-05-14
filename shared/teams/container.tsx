@@ -82,7 +82,7 @@ const Connected = ({filter = '', sort = 'role'}: Props) => {
   }))
 
   const nav = useSafeNavigation()
-  const navigation = useNavigation<NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>>()
+  const navigation = useNavigation() as NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>
   const onCreateTeam = () =>
     nav.safeNavigateAppend({name: 'teamWizard1TeamPurpose', params: {wizard: makeNewTeamWizard()}})
   const onJoinTeam = () => nav.safeNavigateAppend({name: 'teamJoinTeamDialog', params: {}})

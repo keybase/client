@@ -121,24 +121,24 @@ if (__DEV__ && !globalThis.DEBUGmadeEngine) {
 // once per module
 let inited = false
 const useInit = () => {
-  if (inited) return
-  inited = true
-  initDarkMode()
-  Animated.addWhitelistedNativeProps({text: true})
-  install()
-  const {batch} = C.useWaitingState.getState().dispatch
-  const eng = makeEngine(batch, c => {
-    if (c) {
-      onEngineConnected()
-    } else {
-      onEngineDisconnected()
-    }
-  }, onEngineIncoming)
-  initPlatformListener()
-  eng.listenersAreReady()
-
-  // On mobile there is no installer
-  useConfigState.getState().dispatch.installerRan()
+  React.useEffect(() => {
+    if (inited) return
+    inited = true
+    initDarkMode()
+    Animated.addWhitelistedNativeProps({text: true})
+    install()
+    const {batch} = C.useWaitingState.getState().dispatch
+    const eng = makeEngine(batch, c => {
+      if (c) {
+        onEngineConnected()
+      } else {
+        onEngineDisconnected()
+      }
+    }, onEngineIncoming)
+    initPlatformListener()
+    eng.listenersAreReady()
+    useConfigState.getState().dispatch.installerRan()
+  }, [])
 }
 
 // reanimated has issues updating shared values with this on seemingly w/ zoom toolkit

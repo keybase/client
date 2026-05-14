@@ -1,10 +1,9 @@
 import type {RootParamList as KBRootParamList} from './route-params'
+import type {PrivateValueStore} from '@react-navigation/core'
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace ReactNavigation {
-    interface RootParamList extends KBRootParamList {}
-  }
+declare module '@react-navigation/core' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  interface RootNavigator extends PrivateValueStore<[KBRootParamList, unknown, unknown]> {}
 }
 
 export {}

@@ -43,7 +43,7 @@ type TeamAddToTeamConfirmParamList = {
 
 const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
   const navigation =
-    useNavigation<NativeStackNavigationProp<TeamAddToTeamConfirmParamList, 'teamAddToTeamConfirm'>>()
+    useNavigation() as NativeStackNavigationProp<TeamAddToTeamConfirmParamList, 'teamAddToTeamConfirm'>
   const [wizardState, setWizardState] = React.useState(() => ({
     initialWizard,
     wizard: initialWizard,

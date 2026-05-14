@@ -38,7 +38,7 @@ const desktopOptions = {
 }
 
 export default {
-  freezeOnBlur: false,
+  inactiveBehavior: 'none' as const,
   ...(Kb.Styles.isMobile ? mobileOptions : desktopOptions),
   headerTitle: () => (
     <Kb.Text type="BodyBig" center={true}>

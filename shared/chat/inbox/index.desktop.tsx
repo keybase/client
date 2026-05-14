@@ -233,8 +233,13 @@ function InboxBody(props: ControlledInboxProps) {
   const scrollDiv = React.useRef<HTMLDivElement | null>(null)
   const listRef = React.useRef<LegendListRef | null>(null)
 
-  const {showFloating, showUnread, unreadCount, scrollToUnread, lastVisibleIdxRef, applyUnreadAndFloating} =
-    useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal})
+  const getSize = React.useCallback(
+    (item: RowItem) => getRowHeight(item.type, item.type === 'divider' && item.showButton),
+    []
+  )
+
+  const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} =
+    useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal, getSize})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 200)
 
   // onViewableItemsChanged doesn't fire on initial render, only on scroll.
@@ -254,13 +259,9 @@ function InboxBody(props: ControlledInboxProps) {
     }
   }, [rows, onUntrustedInboxVisible])
 
-  const itemHeight = {
-    getSize: (item: RowItem) => getRowHeight(item.type, item.type === 'divider' && item.showButton),
-    type: 'perItem' as const,
-  }
+  const itemHeight = {getSize, type: 'perItem' as const}
 
   const onViewChanged = (data: ViewableItemsData) => {
-    lastVisibleIdxRef.current = data.viewableItems.at(-1)?.index ?? -1
     applyUnreadAndFloating()
     onScrollUnbox(data)
   }

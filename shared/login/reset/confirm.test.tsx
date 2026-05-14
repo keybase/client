@@ -69,7 +69,7 @@ describe('ConfirmReset', () => {
     })
     mockSetOptions.mockReset()
     mockSubmitResetPrompt.mockReset()
-    ;(useNavigation as jest.Mock).mockReturnValue({
+    ;(useNavigation as unknown as jest.Mock).mockReturnValue({
       addListener: mockAddListener,
       setOptions: mockSetOptions,
     })

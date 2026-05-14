@@ -126,7 +126,7 @@ const doInjectText = (inputRef: React.RefObject<InputRef | null>, text: string, 
 }
 
 const ConnectedPlatformInput = function ConnectedPlatformInput() {
-  const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
+  const route = useRoute() as RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>
   const params = getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)
   const infoPanelShowing = !!(params && typeof params === 'object' && 'infoPanel' in params && params.infoPanel)
   const uiData = InputState.useConversationInput(

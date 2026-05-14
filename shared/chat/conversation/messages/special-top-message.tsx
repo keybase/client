@@ -113,16 +113,15 @@ const ErrorMessage = () => {
 function SpecialTopMessage() {
   const username = useCurrentUserState(s => s.username)
   const conversationIDKey = useConversationThreadID()
-  const {messageOrdinals, meta, moreToLoadBack, participants} = useConversationThreadSelector(
+  const {firstOrdinal, hasLoadedEver, meta, moreToLoadBack, participants} = useConversationThreadSelector(
     C.useShallow(s => ({
-      messageOrdinals: s.messageOrdinals,
+      firstOrdinal: s.messageOrdinals?.[0] ?? T.Chat.numberToOrdinal(0),
+      hasLoadedEver: s.messageOrdinals !== undefined,
       meta: s.meta,
       moreToLoadBack: s.moreToLoadBack,
       participants: s.participants,
     }))
   )
-  const hasLoadedEver = messageOrdinals !== undefined
-  const ordinal = messageOrdinals?.[0] ?? T.Chat.numberToOrdinal(0)
   const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
   const loadMoreType = moreToLoadBack ? 'moreToLoad' : 'noMoreToLoad'
   const pendingState =
@@ -142,32 +141,6 @@ function SpecialTopMessage() {
   const showRetentionNotice =
     retentionPolicy.type !== 'retain' &&
     !(retentionPolicy.type === 'inherit' && teamRetentionPolicy.type === 'retain')
-  // we defer showing this so it doesn't flash so much
-  const [allowDigging, setAllowDigging] = React.useState(false)
-  const lastOrdinalRef = React.useRef(ordinal)
-
-  const digTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  React.useEffect(() => {
-    if (ordinal !== lastOrdinalRef.current) {
-      setAllowDigging(false)
-      lastOrdinalRef.current = ordinal
-      if (digTimerRef.current) {
-        clearTimeout(digTimerRef.current)
-      }
-      digTimerRef.current = setTimeout(() => {
-        setAllowDigging(true)
-      }, 3000)
-    }
-  }, [ordinal])
-
-  React.useEffect(() => {
-    return () => {
-      if (digTimerRef.current) {
-        clearTimeout(digTimerRef.current)
-        digTimerRef.current = undefined
-      }
-    }
-  }, [])
 
   const openPrivateFolder = () => {
     FS.navToPath(T.FS.stringToPath(`/keybase/private/${username}`))
@@ -198,7 +171,7 @@ function SpecialTopMessage() {
           <MakeTeamCard />
         </Kb.Box2>
       )}
-      {allowDigging && loadMoreType === 'moreToLoad' && pendingState === 'done' && (
+      {loadMoreType === 'moreToLoad' && pendingState === 'done' && (
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <Kb.Text type="BodyBig">
             <Kb.NativeEmoji size={16} emojiName=":moyai:" />
@@ -208,7 +181,7 @@ function SpecialTopMessage() {
       )}
       {!Kb.Styles.isMobile || usingFlashList ? null : (
         // special case here with the sep. The flatlist and flashlist invert the leading-trailing, see useStateFast
-        <Separator trailingItem={T.Chat.numberToOrdinal(0)} leadingItem={ordinal} />
+        <Separator trailingItem={T.Chat.numberToOrdinal(0)} leadingItem={firstOrdinal} />
       )}
     </Kb.Box2>
   )

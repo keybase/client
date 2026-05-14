@@ -4,10 +4,7 @@ import * as InputState from '../../../input-area/input-state'
 import type {Props} from '.'
 import {useOrdinal} from '../../ids-context'
 import {useConversationThreadToggleSearch} from '../../../thread-context'
-import Swipeable, {
-  type SwipeableMethods,
-  SwipeDirection,
-} from 'react-native-gesture-handler/ReanimatedSwipeable'
+import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row.native'
 import {Pressable, Keyboard} from 'react-native'
 import {FocusContext} from '@/chat/conversation/normal/context'
 import * as Reanimated from 'react-native-reanimated'
@@ -51,11 +48,9 @@ function LongPressable(props: Props) {
   }
 
   const swipeRef = React.useRef<SwipeableMethods | null>(null)
-  const onSwipeableWillOpen = (dir: SwipeDirection) => {
-    if (dir === SwipeDirection.LEFT) {
-      swipeRef.current?.close()
-      onSwipeLeft()
-    }
+  const onSwipeableWillOpen = () => {
+    swipeRef.current?.close()
+    onSwipeLeft()
   }
 
   return (
@@ -63,8 +58,6 @@ function LongPressable(props: Props) {
       ref={swipeRef}
       renderRightActions={makeAction}
       onSwipeableWillOpen={onSwipeableWillOpen}
-      overshootRight={false}
-      dragOffsetFromLeftEdge={1000}
     >
       {inner}
     </Swipeable>

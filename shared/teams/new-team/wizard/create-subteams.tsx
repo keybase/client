@@ -18,7 +18,7 @@ type TeamWizard6SubteamsParamList = {
 
 const CreateSubteams = ({wizard: wizardState}: Props) => {
   const navigation =
-    useNavigation<NativeStackNavigationProp<TeamWizard6SubteamsParamList, 'teamWizard6Subteams'>>()
+    useNavigation() as NativeStackNavigationProp<TeamWizard6SubteamsParamList, 'teamWizard6Subteams'>
   const navigateAppend = C.Router2.navigateAppend
   const teamname = wizardState.name
   const initialSubteams = wizardState.subteams ?? ['', '', '']

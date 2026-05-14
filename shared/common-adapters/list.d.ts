@@ -5,6 +5,7 @@ import type {LegendListRef as _LegendListRef} from '@legendapp/list/react'
 export type LegendListState = {
   end: number
   scroll: number
+  scrollLength: number
   start: number
 }
 

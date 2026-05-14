@@ -15,7 +15,7 @@ type TeamWizard1TeamPurposeParamList = {
 
 const TeamPurpose = ({wizard: wizardParam}: Props) => {
   const navigation =
-    useNavigation<NativeStackNavigationProp<TeamWizard1TeamPurposeParamList, 'teamWizard1TeamPurpose'>>()
+    useNavigation() as NativeStackNavigationProp<TeamWizard1TeamPurposeParamList, 'teamWizard1TeamPurpose'>
   const navigateAppend = C.Router2.navigateAppend
   const wizard = wizardParam ?? makeNewTeamWizard()
   const onSubmit = (teamType: T.Teams.TeamWizardTeamType) => {

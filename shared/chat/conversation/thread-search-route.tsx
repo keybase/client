@@ -30,7 +30,7 @@ const isThreadSearchRouteParams = (
     Object.prototype.hasOwnProperty.call(params, 'inputAction'))
 
 export const useChatThreadRouteParams = (): ThreadSearchRouteProps | undefined => {
-  const route = useRoute<RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>>()
+  const route = useRoute() as RootRouteProps<'chatConversation'> | RootRouteProps<'chatRoot'>
   const params = getRouteParamsFromRoute<'chatConversation' | 'chatRoot'>(route)
   return isThreadSearchRouteParams(params) ? params : undefined
 }

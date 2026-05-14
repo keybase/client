@@ -1,25 +1,14 @@
-import * as C from '@/constants'
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useColorScheme, Image} from 'react-native'
-import {useNavigation} from '@react-navigation/native'
-import {useIsFocused} from '@react-navigation/core'
-import type {NativeBottomTabNavigationProp} from '@react-navigation/bottom-tabs/unstable'
-import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
-import type {RootParamList} from '@/router-v2/route-params'
 import Upload from './upload'
 import {useUploadCountdown} from './use-upload-countdown'
 import {useFsUploadStatus, useKbfsDaemonStatus} from '../common'
 import {useNonFolderSyncingPaths} from '../common/use-non-folder-syncing-paths'
 
-const isLiquidGlassSupported = _isLiquidGlassSupported as boolean
-
 const lightPatternImage = require('../../images/upload-pattern-80.png') as number
 const darkPatternImage = require('../../images/dark-upload-pattern-80.png') as number
 
-// Self-contained: subscribes to upload state directly so it re-renders on its own
-// without needing the parent to swap the bottomAccessory callback every tick.
 const UploadAccessory = () => {
   const kbfsDaemonStatus = useKbfsDaemonStatus()
   const uploads = useFsUploadStatus()
@@ -58,8 +47,6 @@ const UploadAccessory = () => {
   )
 }
 
-const renderBottomAccessory = () => <UploadAccessory />
-
 const UploadContainer = () => {
   const kbfsDaemonStatus = useKbfsDaemonStatus()
   const uploads = useFsUploadStatus()
@@ -73,21 +60,8 @@ const UploadContainer = () => {
     totalSyncingBytes: uploads.totalSyncingBytes,
   })
 
-  const useTabBottomAccessory = C.isIOS && C.isPhone && isLiquidGlassSupported
-  const navigation = useNavigation()
-  const isFocused = useIsFocused()
-
-  React.useEffect(() => {
-    if (!useTabBottomAccessory || !isFocused) return
-    const parent = navigation.getParent<NativeBottomTabNavigationProp<RootParamList> | undefined>()
-    parent?.setOptions({bottomAccessory: np.showing ? renderBottomAccessory : undefined})
-    return () => {
-      parent?.setOptions({bottomAccessory: undefined})
-    }
-  }, [isFocused, navigation, np.showing, useTabBottomAccessory])
-
-  if (useTabBottomAccessory) {
-    return null
+  if (np.showing) {
+    return <Kb.BottomAccessory><UploadAccessory /></Kb.BottomAccessory>
   }
   return <Upload {...np} />
 }

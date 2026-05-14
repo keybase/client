@@ -41,7 +41,6 @@ const ConversationInner = function ConversationInner() {
         }
     }
   })()
-
   switch (type) {
     case 'error':
       return <Error />

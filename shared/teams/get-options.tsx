@@ -24,9 +24,9 @@ const useHeaderActions = () => {
 }
 
 const TeamsFilter = () => {
-  const route = useRoute<RouteProp<TeamsRootParamList, 'teamsRoot'>>()
+  const route = useRoute() as RouteProp<TeamsRootParamList, 'teamsRoot'>
   const params = route.params
-  const navigation = useNavigation<NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>>()
+  const navigation = useNavigation() as NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>
   const filterValue = params.filter ?? ''
   const {teams} = useTeamsList()
   const numTeams = teams.length

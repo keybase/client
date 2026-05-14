@@ -28,7 +28,7 @@ const Header = () => {
 }
 
 const Header2 = () => {
-  const {params} = useRoute<ChatRootRoute>()
+  const {params} = useRoute() as ChatRootRoute
   const username = useCurrentUserState(s => s.username)
   const infoPanelShowing = !!params.infoPanel
   const conversationIDKey = params.conversationIDKey ?? Chat.noConversationIDKey

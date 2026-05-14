@@ -8,58 +8,35 @@ description: Use when updating npm/yarn dependencies in shared/package.json. Use
 ## Packages to NEVER update with this skill
 
 These are pinned to the Expo SDK version — do not touch:
+
 - `react`, `react-dom`, `react-is`, `react-test-renderer` — must match Expo SDK
-- `react-native` — must stay on the minor version Expo SDK expects (e.g., Expo 55 → react-native 0.83.x). Do NOT update across minor versions.
-- `@react-native/babel-preset`, `@react-native/eslint-config`, `@react-native/metro-config` — must match the `react-native` version (e.g., react-native 0.83.x → these stay at 0.83.x). Do NOT update across minor versions.
+- `react-native` — must stay on the minor version Expo SDK expects (e.g., Expo 56 → react-native 0.85.x). Do NOT update across minor versions.
+- `@react-native/babel-preset`, `@react-native/eslint-config`, `@react-native/metro-config` — must match the `react-native` version (e.g., react-native 0.85.x → these stay at 0.85.x). Do NOT update across minor versions.
 
 `expo` and `expo-*` packages **can** be updated, but update them all together in one pass since they are versioned in sync.
-
-## Packages held back — always skip and announce
-
-These are outdated but blocked due to known compatibility issues. Always echo that you are skipping them:
-
-```
-Skipping react-error-boundary — held back: v6.x not compatible with our bundling setup
-```
-
-- **`react-error-boundary`** — v6.x not compatible with our bundling setup
-
-## ESLint 10 notes
-
-ESLint was upgraded to v10. The following were added to support it:
-- `@eslint/js` — previously bundled with ESLint 9, now a separate package
-- `@eslint/compat` — used in `eslint.config.mjs` via `fixupConfigRules` to wrap `eslint-plugin-react` (which still uses deprecated `context.getFilename()` API removed in ESLint 10)
-
-If updating `eslint-plugin-react` to a version that supports ESLint 10 natively, remove the `fixupConfigRules` wrapper in `eslint.config.mjs` and potentially drop `@eslint/compat`.
 
 ## Process
 
 ### 1. Check what's outdated
 
-```bash
-cd shared && yarn outdated
-```
-
-This shows current, wanted, and latest versions.
-
-### 2. Check pre-release packages manually
-
-`yarn outdated` does **not** show updates for packages currently on a pre-release version (beta, alpha, dev, canary, rc). After running `yarn outdated`, also check these packages manually:
+Run the following script from `shared/` — it checks all packages including pre-release ones, and handles cases where the current version is *ahead* of the `latest` dist-tag (e.g., expo 56.x while latest still points to 55.x):
 
 ```bash
-cd shared && yarn info @legendapp/list versions
+cd shared && python3 ../.claude/skills/update-dependencies/check-outdated.py
 ```
 
-For each pre-release package in `package.json`, run `yarn info <package> versions` and pick the most recent version in the same pre-release line (e.g., still beta if currently beta). Do not promote to stable unless intentional.
+**Important:** The `latest` dist-tag on npm sometimes lags behind the version line the project tracks (e.g., expo 56.x while npm `latest` still points to 55.x). The script handles this by comparing semver and never suggesting a downgrade. Always sanity-check results — if a "latest" version is lower than current, it's a false positive.
 
-Packages currently on pre-release lines that need manual checking:
+Packages currently on pre-release lines:
+
 - `@legendapp/list` — beta
 - `@typescript/native-preview` — dev builds
 - `react-native-gesture-handler` — beta
+- `@react-navigation/*` — alpha
+- `expo` — preview
+- `eslint-plugin-react-compiler` — rc
 
-If `yarn outdated` shows a pre-release version or you suspect one exists for other packages, check with `yarn info <package> versions`.
-
-Choose the most recent **stable** version unless the project already tracks a pre-release line.
+**Note on `eslint-plugin-react-compiler` rc versions:** npm may have rc.1-hash variants that sort after rc.2 alphabetically but are older. Verify manually if the script suggests downgrading to a hash-tagged rc.
 
 ### 3. Edit package.json with exact versions
 
@@ -93,4 +70,4 @@ This regenerates `shared/desktop/electron-sums.mts` with the correct SHA256 chec
 
 - `lodash` types (`@types/lodash`, `@types/lodash-es`) can be updated independently of lodash itself.
 - `@types/react`, `@types/react-dom`, `@types/react-is` should stay in sync with their runtime counterparts — update only if the runtime version changed.
-- Packages with versions matching the `expo` SDK pattern (e.g., `55.x.x`) are `expo-*` packages and can be updated together.
+- Packages with versions matching the `expo` SDK pattern (e.g., `56.x.x`) are `expo-*` packages and can be updated together.
