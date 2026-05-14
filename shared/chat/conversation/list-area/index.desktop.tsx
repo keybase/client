@@ -264,19 +264,14 @@ const useScrolling = (p: {
       markInitiallyLoadedThreadAsRead()
     }
 
+    setDidFirstLoad(true)
     if (centeredOrdinal) {
       lockedToBottomRef.current = false
       scrollToCentered()
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setDidFirstLoad(true)
-        })
-      })
     } else {
       scrollToBottomSync()
       requestAnimationFrame(() => {
         scrollToBottomSync()
-        setDidFirstLoad(true)
       })
     }
   }, [loaded, centeredOrdinal, markInitiallyLoadedThreadAsRead, scrollToBottomSync, scrollToCentered])
