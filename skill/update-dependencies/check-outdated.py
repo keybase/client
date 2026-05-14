@@ -35,7 +35,9 @@ def get_latest(name, current):
             cur_pre = next((k for k in PRE_KEYWORDS if k in current), None)
             prefix = current.split('-')[0]
             matching = [v for v in all_versions if cur_pre in v and v.startswith(prefix)]
-            latest = matching[-1] if matching else current
+            latest = max(matching, key=semver_key) if matching else current
+            if semver_key(latest) < semver_key(current):
+                latest = current
         else:
             cur_major_minor = '.'.join(current.split('.')[:2])
             stable = [v for v in all_versions
