@@ -266,6 +266,12 @@ export const onChatRouteChanged = (
 
 export const hydrateInboxLayout = (layout: T.RPCChat.UIInboxLayout) => {
   syncInboxRowsFromLayout(layout)
+  const missingSnippetIds = (layout.smallTeams ?? [])
+    .filter(row => !row.snippet)
+    .map(row => T.Chat.stringToConversationIDKey(row.convID))
+  if (missingSnippetIds.length > 0) {
+    queueMetaToRequest(missingSnippetIds)
+  }
 }
 
 export const hydrateInboxConversations = (inboxUIItems: ReadonlyArray<T.RPCChat.InboxUIItem>) => {

@@ -254,7 +254,7 @@ export const syncInboxRowsFromLayout = (layout: T.RPCChat.UIInboxLayout) => {
       small.draft = row.draft || ''
       small.hasBadge = small.badgeCount > 0
       small.hasUnread = small.unreadCount > 0
-      small.isDecryptingSnippet = !!id && !snippet
+      small.isDecryptingSnippet = !!id && !snippet && small.trustedState !== 'trusted'
       small.isMuted = row.isMuted
       small.snippet = snippet
       small.snippetDecoration = row.snippetDecoration
