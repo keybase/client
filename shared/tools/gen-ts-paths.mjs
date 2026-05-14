@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import {readdirSync, statSync, writeFileSync, existsSync} from 'fs'
-import {join, relative, dirname, basename, extname} from 'path'
+import {readdirSync, writeFileSync, existsSync} from 'fs'
+import {join, relative} from 'path'
 import {fileURLToPath} from 'url'
 
 const sharedDir = join(fileURLToPath(import.meta.url), '..', '..')
@@ -18,13 +18,6 @@ function walk(dir, results = []) {
     }
   }
   return results
-}
-
-function stripExt(file) {
-  for (const ext of EXTENSIONS) {
-    if (file.endsWith(ext)) return file.slice(0, -ext.length)
-  }
-  return file
 }
 
 // Collect all files
