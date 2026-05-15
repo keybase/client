@@ -35,8 +35,8 @@ function buildPaths(platform) {
       // e.g. /shared/styles/index.desktop.tsx → base = /shared/styles/index
       const base = file.slice(0, -suffix.length)
 
-      // Check if a plain variant exists (foo.tsx / foo.ts / foo.mts)
-      const hasPlain = EXTENSIONS.some(e => existsSync(base + e))
+      // Check if a plain variant exists (foo.tsx / foo.ts / foo.mts / foo.d.ts)
+      const hasPlain = EXTENSIONS.some(e => existsSync(base + e)) || existsSync(base + '.d.ts')
       if (hasPlain) continue
 
       // Generate the @/* key and value
@@ -44,6 +44,22 @@ function buildPaths(platform) {
       const key = `@/${rel}`               // e.g. "@/styles/index"
       const value = `./${rel}.${platform}` // e.g. "./styles/index.desktop"
       paths[key] = [value]
+
+      // If rel ends with /index, also emit a bare-directory entry
+      // but only when no index.d.ts exists (which would provide types via @/* catch-all)
+      const parts = rel.split('/')
+      if (parts[parts.length - 1] === 'index') {
+        const bareRel = parts.slice(0, -1).join('/')
+        if (bareRel) {
+          const dirPath = join(sharedDir, bareRel)
+          const hasIndexDts = existsSync(join(dirPath, 'index.d.ts'))
+          if (!hasIndexDts) {
+            const bareKey = `@/${bareRel}`
+            const bareValue = `./${bareRel}/index.${platform}`
+            paths[bareKey] = [bareValue]
+          }
+        }
+      }
     }
   }
 
