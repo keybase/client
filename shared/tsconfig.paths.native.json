@@ -52,6 +52,9 @@
       "@/router-v2/screen-layout": [
         "./router-v2/screen-layout.native"
       ],
+      "@/settings/make-icons.page": [
+        "./settings/make-icons.page.native"
+      ],
       "@/teams/common/contacts-list": [
         "./teams/common/contacts-list.native"
       ],

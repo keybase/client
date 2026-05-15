@@ -6,11 +6,10 @@ import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/type
 import type {ParamListBase} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 
-// Desktop-only: window and DOM event properties available in Electron
+// Desktop-only: DOM event properties available in Electron via nativeEvent
 type DesktopMouseNativeEvent = {screenX: number; screenY: number; target: EventTarget | null}
 type DesktopKeyboardEvent = {key: string; stopImmediatePropagation: () => void}
-type DesktopWindow = {addEventListener: (type: string, handler: (e: DesktopKeyboardEvent) => void, capture?: boolean) => void; removeEventListener: (type: string, handler: (e: DesktopKeyboardEvent) => void, capture?: boolean) => void}
-const _win = (global as {window?: DesktopWindow}).window
+const _win = global.window as {addEventListener: (type: string, handler: (e: DesktopKeyboardEvent) => void, capture?: boolean) => void; removeEventListener: (type: string, handler: (e: DesktopKeyboardEvent) => void, capture?: boolean) => void} | undefined
 
 type ModalHeaderProps = {
   title?: React.ReactNode

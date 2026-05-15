@@ -63,7 +63,7 @@ export const isMac = false
 export const getModKey = (_e: {metaKey: boolean; ctrlKey: boolean}): boolean => {
   return false
 }
-export const isDebuggingInChrome = typeof (global as {location?: unknown}).location !== 'undefined'
+export const isDebuggingInChrome = typeof global.location !== 'undefined'
 
 export const defaultUseNativeFrame = true
 export const fileUIName = 'File Explorer'

@@ -130,7 +130,7 @@ export const sharedNewRoutes = defineRouteMap({
     screen: React.lazy(async () => import('./db-nuke.confirm')),
   },
   keybaseLinkError: {screen: React.lazy(async () => import('../deeplinks/error'))},
-  makeIcons: {screen: React.lazy(async () => import('./make-icons.page'))},
+  makeIcons: {screen: React.lazy(async () => import('@/settings/make-icons.page'))},
   ...(__DEV__
     ? {
         [Settings.settingsTypographyTab]: {

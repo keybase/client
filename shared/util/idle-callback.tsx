@@ -26,8 +26,7 @@ function timeoutFallback(cb: (info: TimeoutInfo) => void): number {
   }, 20) as unknown as number
 }
 
-const _global = global as {window?: {requestIdleCallback?: CBType}}
-const _window = typeof _global.window !== 'undefined' ? _global.window : undefined
+const _window = global.window
 
 const useFallback =
   !_window?.requestIdleCallback ||

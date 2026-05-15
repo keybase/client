@@ -6,6 +6,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
 
 const ignores = [
+  '**/*.d.ts',
   'babel.config.js',
   'common-adapters/icon.constants-gen.desktop.tsx',
   'common-adapters/icon.constants-gen.native.tsx',
@@ -185,12 +186,11 @@ export default [
   })),
   ...tseslint.configs.recommendedTypeChecked.map(config => ({
     ...config,
-    files: ['**/*.mts', '**/*.ts', '**/*.tsx', '**/*.d.ts', '**/*.native.tsx', '**/*.desktop.tsx'],
+    files: ['**/*.mts', '**/*.ts', '**/*.tsx', '**/*.native.tsx', '**/*.desktop.tsx'],
     languageOptions: {
       ...config.languageOptions,
       parserOptions: {
-        project: ['./tsconfig.json'],
-        //tsconfigRootDir: __dirname,
+        project: ['./tsconfig.native.json', './tsconfig.desktop.json'],
       },
     },
   })),

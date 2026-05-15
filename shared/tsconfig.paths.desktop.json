@@ -145,6 +145,9 @@
       "@/settings/common": [
         "./settings/common.desktop"
       ],
+      "@/settings/make-icons.page": [
+        "./settings/make-icons.page.desktop"
+      ],
       "@/tracker/index": [
         "./tracker/index.desktop"
       ],
