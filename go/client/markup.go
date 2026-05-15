@@ -47,7 +47,7 @@ var spaceRE = regexp.MustCompile(`[[:space:]]+`)
 // specify replaces arbitrary strings of whitespace with
 // a single ' ' character. Also strips off leading and trailing
 // whitespace.
-func spacify(s string) string {
+func specify(s string) string {
 	v := spaceRE.Split(s, -1)
 	if len(v) > 0 && v[0] == "" {
 		v = v[1:]
@@ -62,7 +62,7 @@ func spacify(s string) string {
 // Output a paragraph to the io.Writer, applying the proper
 // formatting.
 func (p Paragraph) Output(out io.Writer) {
-	s := []byte(spacify(string(p.data)))
+	s := []byte(specify(string(p.data)))
 	if len(s) == 0 {
 		_, _ = out.Write(nl)
 		return
