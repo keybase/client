@@ -1,0 +1,19 @@
+{
+  "extends": ["./tsconfig.base.json", "./tsconfig.paths.native.json"],
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "types": ["jest", "node"],
+    "outDir": "./.tsOuts/.tsOut-native/emit",
+    "tsBuildInfoFile": "./.tsOuts/.tsOut-native/cache"
+  },
+  "include": ["./**/*.mts", "./**/*.mjs", "./**/*.ts", "./**/*.tsx"],
+  "exclude": [
+    "**/node_modules",
+    "./desktop",
+    "./**/*.desktop.tsx",
+    "./**/*.desktop.ts",
+    "./common-adapters/icon.constants-gen.desktop.tsx",
+    "./common-adapters/icon.constants-gen.native.tsx",
+    "./common-adapters/icon.constants-gen.shared.tsx"
+  ]
+}
