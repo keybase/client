@@ -1,12 +1,12 @@
 import * as Styles from '@/styles'
 import Badge from './badge'
-import ClickableBox from './clickable-box'
+import ClickableBox from '@/common-adapters/clickable-box'
 import Divider from './divider'
 import IconAuto from './icon-auto'
-import type {IconType} from './icon.constants-gen'
-import ProgressIndicator from './progress-indicator'
-import Text from './text'
-import {Box2} from './box'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
+import ProgressIndicator from '@/common-adapters/progress-indicator'
+import Text from '@/common-adapters/text'
+import {Box2} from '@/common-adapters/box'
 import capitalize from 'lodash/capitalize'
 
 const Kb = {

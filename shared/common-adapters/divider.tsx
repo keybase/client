@@ -1,7 +1,10 @@
-import {Box2} from './box'
+import {Box2} from '@/common-adapters/box'
 import * as Styles from '@/styles'
 
-import type {Props} from './divider.d'
+type Props = {
+  style?: Styles.StylesCrossPlatform
+  vertical?: boolean
+}
 
 const Divider = (props: Props) => (
   <Box2

@@ -1,7 +1,7 @@
 import * as React from 'react'
-import Popup from '../popup'
+import Popup from '@/common-adapters/popup'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
-import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
+import MenuLayout, {type MenuItems as _MenuItems} from '@/common-adapters/floating-menu/menu-layout'
 import * as Styles from '@/styles'
 import {useNavigation, type NavigationProp, type ParamListBase} from '@react-navigation/native'
 

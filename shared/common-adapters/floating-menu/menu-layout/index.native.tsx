@@ -1,3 +1,4 @@
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import {TouchableOpacity, Keyboard} from 'react-native'
 import Badge from '@/common-adapters/badge'
@@ -11,7 +12,47 @@ import ScrollView from '@/common-adapters/scroll-view'
 import {BottomSheetScrollView} from '@/common-adapters/popup/bottom-sheet'
 import ProgressIndicator from '@/common-adapters/progress-indicator'
 import {useOnMountOnce} from '@/constants/react'
-import type {MenuItem, MenuLayoutProps} from '.'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
+
+export type MenuItem = {
+  backgroundColor?: Styles.Color
+  danger?: boolean
+  decoration?: React.ReactNode
+  disabled?: boolean
+  icon?: IconType
+  iconIsVisible?: boolean
+  iconStyle?: Styles.StylesCrossPlatform
+  isBadged?: boolean
+  isSelected?: boolean
+  inProgress?: boolean
+  newTag?: boolean
+  onClick?: (evt?: React.SyntheticEvent) => void
+  onPress?: never
+  progressIndicator?: boolean
+  style?: Styles.StylesCrossPlatform
+  subTitle?: string
+  rightTitle?: string
+  title: string
+  unWrapped?: boolean
+  view?: React.ReactNode
+}
+
+export type _InnerMenuItem = MenuItem | 'Divider' | undefined
+export type MenuItems = Array<_InnerMenuItem>
+
+export type MenuLayoutProps = {
+  isModal: false | 'modal' | 'bottomsheet'
+  backgroundColor?: Styles.Color
+  items: ReadonlyArray<_InnerMenuItem>
+  header?: React.ReactNode
+  onHidden: () => void
+  closeOnClick?: boolean
+  style?: object
+  listStyle?: object
+  closeText?: string
+  textColor?: Styles.Color
+  safeProviderStyle?: Styles.StylesCrossPlatform
+}
 import {default as SafeAreaView, useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import noop from 'lodash/noop'

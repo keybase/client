@@ -1,14 +1,17 @@
 import * as React from 'react'
-import type {Props as PropsCommon} from './copyable-text'
+type PropsCommon = {
+  value: string
+  style?: object
+}
 import {useTimeout} from './use-timers'
-import Text from './text'
-import {Box2} from './box'
+import Text from '@/common-adapters/text'
+import {Box2} from '@/common-adapters/box'
 import {TouchableHighlight} from 'react-native'
 import * as Styles from '@/styles'
 import * as Clipboard from 'expo-clipboard'
 
 export type Props = {
-  textStyle: object
+  textStyle?: object
 } & PropsCommon
 
 const CopyableText = (props: Props) => {

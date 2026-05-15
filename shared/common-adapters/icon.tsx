@@ -1,8 +1,8 @@
 import './icon.css'
 import * as Styles from '@/styles'
-import {iconMeta} from './icon.constants-gen'
-import type {IconType} from './icon.constants-gen'
-export type {IconType} from './icon.constants-gen'
+import {iconMeta} from '@/common-adapters/icon.constants-gen'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
+export type {IconType} from '@/common-adapters/icon.constants-gen'
 import type {Text as RNTextType} from 'react-native'
 
 export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'

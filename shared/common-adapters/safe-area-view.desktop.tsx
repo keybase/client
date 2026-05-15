@@ -1,5 +1,10 @@
-import type {Props} from './safe-area-view'
+import type * as React from 'react'
+import type * as Styles from '@/styles'
 
+type Props = {
+  children?: React.ReactNode
+  style?: Styles.StylesCrossPlatform
+}
 const RenderChildren = (props: Props): React.ReactNode => props.children || null
 export const useSafeAreaInsets = () => ({
   bottom: 0,

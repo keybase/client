@@ -1,11 +1,28 @@
+import type {MeasureRef} from '../measure-ref'
 import * as React from 'react'
-import {Box2} from '../box'
-import FloatingBox from './floating-box'
+import {Box2} from '@/common-adapters/box'
+import FloatingBox from '@/common-adapters/popup/floating-box'
 import Icon from '../icon'
 import {EscapeHandler} from '../key-event-handler.desktop'
 import * as Styles from '@/styles'
-import type {PopupProps} from '.'
 
+
+export type PopupProps = {
+  children: React.ReactNode
+  onHidden?: () => void
+  attachTo?: React.RefObject<MeasureRef | null>
+  position?: Styles.Position
+  positionFallbacks?: ReadonlyArray<Styles.Position>
+  propagateOutsideClicks?: boolean
+  matchDimension?: boolean
+  remeasureHint?: number
+  offset?: number
+  style?: Styles.StylesCrossPlatform
+  containerStyle?: Styles.StylesCrossPlatform
+  visible?: boolean
+  hideKeyboard?: boolean
+  snapPoints?: Array<string | number>
+}
 const Kb = {
   Box2,
   EscapeHandler,

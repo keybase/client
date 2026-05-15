@@ -1,8 +1,13 @@
 import * as React from 'react'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import * as Styles from '@/styles'
-import type {Props} from './switch-toggle'
 
+
+type Props = {
+  color: 'green' | 'blue' | 'red'
+  on: boolean
+  style?: Styles.StylesCrossPlatform
+}
 const SwitchToggle = (props: Props) => {
   const {on: _on} = props
   const [offset] = React.useState(new NativeAnimated.Value(_on ? enabledOffset : disabledOffset))

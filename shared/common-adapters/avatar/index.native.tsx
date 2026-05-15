@@ -8,7 +8,7 @@ import {Pressable, View} from 'react-native'
 import {useColorScheme} from 'react-native'
 import {navToProfile} from '@/constants/router'
 import {iconTypeToImgSet} from './icon-to-img-set'
-import type {IconType} from '../icon.constants-gen'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 import type * as React from 'react'
 import type * as T from '@/constants/types'
 

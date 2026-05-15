@@ -1,7 +1,12 @@
-import Animation from './animation'
-import type {Props} from './progress-indicator'
+import Animation from '@/common-adapters/animation'
 import * as Styles from '@/styles'
 
+
+type Props = {
+  style?: Styles.StylesCrossPlatform
+  white?: boolean
+  type?: 'Small' | 'Large' | 'Huge'
+}
 const Kb = {
   Animation,
 }

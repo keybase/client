@@ -7,8 +7,68 @@
       "@/app/main": [
         "./app/main.desktop"
       ],
+      "@/common-adapters/animation": [
+        "./common-adapters/animation.desktop"
+      ],
+      "@/common-adapters/avatar/index": [
+        "./common-adapters/avatar/index.desktop"
+      ],
+      "@/common-adapters/avatar": [
+        "./common-adapters/avatar/index.desktop"
+      ],
+      "@/common-adapters/back-button": [
+        "./common-adapters/back-button.desktop"
+      ],
+      "@/common-adapters/bottom-accessory": [
+        "./common-adapters/bottom-accessory.desktop"
+      ],
       "@/common-adapters/bottom-sheet": [
         "./common-adapters/bottom-sheet.desktop"
+      ],
+      "@/common-adapters/box": [
+        "./common-adapters/box.desktop"
+      ],
+      "@/common-adapters/checkbox": [
+        "./common-adapters/checkbox.desktop"
+      ],
+      "@/common-adapters/choice-list": [
+        "./common-adapters/choice-list.desktop"
+      ],
+      "@/common-adapters/clickable-box": [
+        "./common-adapters/clickable-box.desktop"
+      ],
+      "@/common-adapters/copyable-text": [
+        "./common-adapters/copyable-text.desktop"
+      ],
+      "@/common-adapters/drag-and-drop": [
+        "./common-adapters/drag-and-drop.desktop"
+      ],
+      "@/common-adapters/emoji/custom-emoji": [
+        "./common-adapters/emoji/custom-emoji.desktop"
+      ],
+      "@/common-adapters/emoji/native-emoji": [
+        "./common-adapters/emoji/native-emoji.desktop"
+      ],
+      "@/common-adapters/floating-menu/menu-layout/index": [
+        "./common-adapters/floating-menu/menu-layout/index.desktop"
+      ],
+      "@/common-adapters/floating-menu/menu-layout": [
+        "./common-adapters/floating-menu/menu-layout/index.desktop"
+      ],
+      "@/common-adapters/floating-picker": [
+        "./common-adapters/floating-picker.desktop"
+      ],
+      "@/common-adapters/header-buttons": [
+        "./common-adapters/header-buttons.desktop"
+      ],
+      "@/common-adapters/hot-key": [
+        "./common-adapters/hot-key.desktop"
+      ],
+      "@/common-adapters/icon.constants-gen": [
+        "./common-adapters/icon.constants-gen.desktop"
+      ],
+      "@/common-adapters/image": [
+        "./common-adapters/image.desktop"
       ],
       "@/common-adapters/index": [
         "./common-adapters/index.desktop"
@@ -16,11 +76,77 @@
       "@/common-adapters": [
         "./common-adapters/index.desktop"
       ],
+      "@/common-adapters/input3": [
+        "./common-adapters/input3.desktop"
+      ],
       "@/common-adapters/key-event-handler": [
         "./common-adapters/key-event-handler.desktop"
       ],
+      "@/common-adapters/keyboard-avoiding-view": [
+        "./common-adapters/keyboard-avoiding-view.desktop"
+      ],
+      "@/common-adapters/list": [
+        "./common-adapters/list.desktop"
+      ],
+      "@/common-adapters/loading-line": [
+        "./common-adapters/loading-line.desktop"
+      ],
+      "@/common-adapters/popup/bottom-sheet": [
+        "./common-adapters/popup/bottom-sheet.desktop"
+      ],
+      "@/common-adapters/popup/floating-box/index": [
+        "./common-adapters/popup/floating-box/index.desktop"
+      ],
+      "@/common-adapters/popup/floating-box": [
+        "./common-adapters/popup/floating-box/index.desktop"
+      ],
       "@/common-adapters/popup/floating-box/relative-floating-box": [
         "./common-adapters/popup/floating-box/relative-floating-box.desktop"
+      ],
+      "@/common-adapters/popup/index": [
+        "./common-adapters/popup/index.desktop"
+      ],
+      "@/common-adapters/popup": [
+        "./common-adapters/popup/index.desktop"
+      ],
+      "@/common-adapters/progress-indicator": [
+        "./common-adapters/progress-indicator.desktop"
+      ],
+      "@/common-adapters/radio-button": [
+        "./common-adapters/radio-button.desktop"
+      ],
+      "@/common-adapters/safe-area-view": [
+        "./common-adapters/safe-area-view.desktop"
+      ],
+      "@/common-adapters/scroll-view": [
+        "./common-adapters/scroll-view.desktop"
+      ],
+      "@/common-adapters/switch-toggle": [
+        "./common-adapters/switch-toggle.desktop"
+      ],
+      "@/common-adapters/text-url": [
+        "./common-adapters/text-url.desktop"
+      ],
+      "@/common-adapters/text": [
+        "./common-adapters/text.desktop"
+      ],
+      "@/common-adapters/text.styles": [
+        "./common-adapters/text.styles.desktop"
+      ],
+      "@/common-adapters/toast": [
+        "./common-adapters/toast.desktop"
+      ],
+      "@/common-adapters/video": [
+        "./common-adapters/video.desktop"
+      ],
+      "@/common-adapters/web-view": [
+        "./common-adapters/web-view.desktop"
+      ],
+      "@/common-adapters/with-tooltip": [
+        "./common-adapters/with-tooltip.desktop"
+      ],
+      "@/common-adapters/zoomable-image": [
+        "./common-adapters/zoomable-image.desktop"
       ],
       "@/crypto/sub-nav/left-nav": [
         "./crypto/sub-nav/left-nav.desktop"

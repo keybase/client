@@ -1118,3 +1118,5 @@ export const iconMeta = {
   'release-5.4.0-emoji': {imagesDir: 'releases', ...(isMobile ? {get require(): number {return require('../images/releases/release-5.4.0-emoji.png')}} : {})},
   'release-5.4.0-pony': {imagesDir: 'releases', ...(isMobile ? {get require(): number {return require('../images/releases/release-5.4.0-pony.png')}} : {})}
 }
+
+export type IconType = keyof typeof iconMeta

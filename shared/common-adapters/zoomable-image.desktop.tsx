@@ -1,8 +1,24 @@
 import * as React from 'react'
+import type * as Styles from '@/styles'
 import Toast from './toast.desktop'
-import {Box2} from './box'
-import Text from './text'
-import type {Props} from './zoomable-image'
+import {Box2} from '@/common-adapters/box'
+import Text from '@/common-adapters/text'
+
+type Props = {
+  src: string
+  style?: Styles.StylesCrossPlatform
+  zoomRatio?: number
+  onLoaded?: () => void
+  onError?: () => void
+  onIsZoomed?: (z: boolean) => void
+  dragPan?: boolean
+  forceDims?: {height: number; width: number}
+  onChanged?: (e: {height: number; width: number; x: number; y: number; scale: number}) => void
+  onSwipe?: (left: boolean) => void
+  onTap?: () => void
+  srcDims?: {height: number; width: number}
+  boxCacheKey?: string
+}
 const Kb = {
   Box2,
   Text,

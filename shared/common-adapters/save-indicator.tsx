@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2} from './box'
+import {Box2} from '@/common-adapters/box'
 import Icon from './icon'
-import ProgressIndicator from './progress-indicator'
-import Text from './text'
+import ProgressIndicator from '@/common-adapters/progress-indicator'
+import Text from '@/common-adapters/text'
 
 const Kb = {
   Box2,

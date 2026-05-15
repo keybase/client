@@ -2,8 +2,14 @@ import * as Styles from '@/styles'
 import {Box2} from '@/common-adapters/box'
 import WithTooltip from '@/common-adapters/with-tooltip'
 import Image from '@/common-adapters/image'
-import type {Props} from './custom-emoji'
 
+
+export type Props = {
+  size: number
+  src: string
+  alias?: string
+  style?: Styles.StylesCrossPlatform
+}
 const Kb = {
   Box2,
   Image,

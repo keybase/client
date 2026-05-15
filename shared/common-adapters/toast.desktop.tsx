@@ -1,10 +1,19 @@
+import type {MeasureRef} from './measure-ref'
 import * as C from '@/constants'
 import * as React from 'react'
-import type {Props} from './toast'
-import Popup from './popup'
+import Popup from '@/common-adapters/popup'
 import * as Styles from '@/styles'
 import './toast.css'
 
+
+type Props = {
+  children: React.ReactNode
+  className?: string
+  containerStyle?: Styles.StylesCrossPlatform
+  visible: boolean
+  attachTo?: React.RefObject<MeasureRef | null>
+  position?: Styles.Position
+}
 const positionFallbacks = [] as const
 
 const Toast = (props: Props) => {

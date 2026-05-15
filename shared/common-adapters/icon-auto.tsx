@@ -1,6 +1,6 @@
 import type * as Styles from '@/styles'
-import {iconMeta} from './icon.constants-gen'
-import type {IconType} from './icon.constants-gen'
+import {iconMeta} from '@/common-adapters/icon.constants-gen'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
 import Icon, {type SizeType} from './icon'
 import ImageIcon from './image-icon'
 

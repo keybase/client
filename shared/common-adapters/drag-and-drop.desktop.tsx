@@ -1,13 +1,24 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Styles from '@/styles'
-import {Box2} from './box'
+import {Box2} from '@/common-adapters/box'
 import Icon from './icon'
-import Text from './text'
+import Text from '@/common-adapters/text'
 import logger from '@/logger'
-import type {Props} from './drag-and-drop'
 import KB2 from '@/util/electron.desktop'
 
+
+type Props = {
+  allowFolders?: boolean
+  children: React.ReactNode
+  containerStyle?: Styles.StylesCrossPlatform
+  disabled?: boolean
+  fullHeight?: boolean
+  fullWidth?: boolean
+  onAttach?: (array: Array<string>) => void
+  prompt?: string
+  rejectReason?: string
+}
 const {isDirectory, getPathForFile} = KB2.functions
 
 const DragAndDrop = (props: Props) => {

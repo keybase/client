@@ -309,10 +309,19 @@ export const KeyboardAvoidingView2 = (p: KAVProps) => {
 }
 */
 
+import type * as React from 'react'
 import {KeyboardAvoidingView} from 'react-native-keyboard-controller'
-import type {Props} from './keyboard-avoiding-view'
 import * as Styles from '@/styles'
 import {useHeaderHeight} from '@react-navigation/elements'
+
+type Props = {
+  children?: React.ReactNode
+  extraOffset?: number
+  extraPadding?: number
+  compensateNotBeingOnBottom?: boolean
+  behavior?: 'height' | 'position' | 'padding'
+  style?: Styles.StylesCrossPlatform
+}
 
 const useSafeHeaderHeight = () => {
   try {

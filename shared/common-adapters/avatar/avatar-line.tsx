@@ -1,6 +1,6 @@
-import Avatar from '.'
-import {Box2} from '../box'
-import Text from '../text'
+import Avatar from '@/common-adapters/avatar'
+import {Box2} from '@/common-adapters/box'
+import Text from '@/common-adapters/text'
 import * as Styles from '@/styles'
 
 type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16

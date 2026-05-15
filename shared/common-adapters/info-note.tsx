@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import {Box2} from './box'
+import {Box2} from '@/common-adapters/box'
 import Icon from './icon'
 import * as Styles from '@/styles'
 

@@ -1,4 +1,3 @@
-import type {Props} from './zoomable-image'
 import * as Styles from '@/styles'
 import * as React from 'react'
 import Image from './image.native'
@@ -11,6 +10,22 @@ import {
   type CommonZoomState,
   type SwipeDirection,
 } from 'react-native-zoom-toolkit'
+
+type Props = {
+  src: string
+  style?: Styles.StylesCrossPlatform
+  zoomRatio?: number
+  onLoaded?: () => void
+  onError?: () => void
+  onIsZoomed?: (z: boolean) => void
+  dragPan?: boolean
+  forceDims?: {height: number; width: number}
+  onChanged?: (e: {height: number; width: number; x: number; y: number; scale: number}) => void
+  onSwipe?: (left: boolean) => void
+  onTap?: () => void
+  srcDims?: {height: number; width: number}
+  boxCacheKey?: string
+}
 
 function ZoomableImage(p: Props) {
   const {src, style, onChanged: onZoom, onSwipe: _onSwipe, onTap} = p

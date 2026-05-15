@@ -2,9 +2,20 @@ import * as C from '@/constants'
 import type * as React from 'react'
 import * as Styles from '@/styles'
 import Icon from './icon'
-import Text from './text'
-import type {Props} from './back-button'
+import Text from '@/common-adapters/text'
 
+
+type Props = {
+  badgeNumber?: number
+  hideBackLabel?: boolean
+  onClick?: () => void
+  disabled?: boolean
+  onPress?: never
+  iconColor?: Styles.Color
+  textStyle?: Styles.StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
+  title?: string
+}
 const Kb = {
   Icon,
   Text,

@@ -1,4 +1,4 @@
-import {Box2} from './box'
+import {Box2} from '@/common-adapters/box'
 import * as Styles from '@/styles'
 
 type Props = {

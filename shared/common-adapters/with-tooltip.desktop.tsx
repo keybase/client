@@ -1,11 +1,25 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2} from './box'
-import Toast from './toast'
-import Text from './text'
-import type {Props} from './with-tooltip'
+import {Box2} from '@/common-adapters/box'
+import Toast from '@/common-adapters/toast'
+import Text from '@/common-adapters/text'
 import type {MeasureRef} from './measure-ref'
 
+
+type Props = {
+  backgroundColor?: string
+  disabled?: boolean
+  tooltip: string | React.ReactNode
+  multiline?: boolean
+  containerStyle?: Styles.StylesCrossPlatform
+  children: React.ReactNode
+  position?: Styles.Position
+  className?: string
+  toastClassName?: string
+  toastStyle?: Styles.StylesCrossPlatform
+  textStyle?: Styles.StylesCrossPlatform
+  showOnPressMobile?: boolean
+}
 const IGNORE_FOR_PROFILING = false as boolean
 
 const Kb = {

@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import Text from './text'
+import Text from '@/common-adapters/text'
 import {backgroundModeIsNegative} from './text.shared'
 import type {TextType, Background, StylesTextCrossPlatform, AllowedColors, LineClampType, TextTypeBold} from './text.shared'
 import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'

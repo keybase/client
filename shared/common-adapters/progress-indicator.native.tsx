@@ -1,7 +1,12 @@
-import type {Props} from './progress-indicator'
 import {ActivityIndicator} from 'react-native'
+import type * as Styles from '@/styles'
 import {globalColors, collapseStyles} from '@/styles'
 
+type Props = {
+  style?: Styles.StylesCrossPlatform
+  white?: boolean
+  type?: 'Small' | 'Large' | 'Huge'
+}
 const ProgressIndicator = (p: Props) => {
   const size = p.type === 'Large' ? 'large' : 'small'
 

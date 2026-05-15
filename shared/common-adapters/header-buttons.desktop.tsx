@@ -1,5 +1,8 @@
+import type {ColorValue} from 'react-native'
+import type {HeaderOptions} from '@react-navigation/elements'
+export type HeaderBackButtonProps = Parameters<NonNullable<HeaderOptions['headerLeft']>>[0]
 import * as Styles from '@/styles'
-import BackButton from './back-button'
+import BackButton from '@/common-adapters/back-button'
 import {Box2} from '@/common-adapters/box'
 import Text from '@/common-adapters/text'
 import {useNavigation} from '@react-navigation/native'
@@ -47,7 +50,7 @@ const styles = Styles.styleSheetCreate(() => ({
 
 export function HeaderLeftButton(hp: {
   canGoBack?: boolean
-  tintColor?: string
+  tintColor?: ColorValue
   onPress?: () => void
   badgeNumber?: number
   mode?: 'back' | 'cancel'
@@ -61,7 +64,7 @@ export function HeaderLeftButton(hp: {
       badgeNumber={hp.badgeNumber ?? 0}
       mode={hp.mode ?? 'back'}
       onAction={hp.onPress ?? nav.goBack}
-      iconColor={hp.tintColor}
+      iconColor={hp.tintColor as string | undefined}
     />
   )
 }

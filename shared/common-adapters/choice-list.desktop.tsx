@@ -1,11 +1,23 @@
-import {Box2} from './box'
-import ClickableBox from './clickable-box'
-import Text from './text'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
+import {Box2} from '@/common-adapters/box'
+import ClickableBox from '@/common-adapters/clickable-box'
+import Text from '@/common-adapters/text'
 import IconAuto from './icon-auto'
 import * as Styles from '@/styles'
-import type {Props} from './choice-list'
 import './choice-list.css'
 
+
+type Option = {
+  title: string
+  description: string
+  icon: IconType
+  onClick: () => void
+  onPress?: never
+}
+
+type Props = {
+  options: Array<Option>
+}
 const Kb = {
   Box2,
   ClickableBox,

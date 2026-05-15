@@ -1,5 +1,5 @@
-import {Box2} from './box'
-import Text from './text'
+import {Box2} from '@/common-adapters/box'
+import Text from '@/common-adapters/text'
 import * as Styles from '@/styles'
 
 const Kb = {

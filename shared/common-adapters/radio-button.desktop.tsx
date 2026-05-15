@@ -1,8 +1,16 @@
+import type * as React from 'react'
 import * as Styles from '@/styles'
-import Text from './text'
-import type {Props} from './radio-button'
+import Text from '@/common-adapters/text'
 import './radio-button.css'
 
+
+type Props = {
+  label: string | React.ReactNode
+  onSelect: (selected: boolean) => void
+  selected: boolean
+  style?: object
+  disabled?: boolean
+}
 const Kb = {
   Text,
 }

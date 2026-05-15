@@ -1,8 +1,8 @@
-import Toast from './toast'
-import {Box2} from './box'
+import Toast from '@/common-adapters/toast'
+import {Box2} from '@/common-adapters/box'
 import IconAuto from './icon-auto'
-import type {IconType} from './icon.constants-gen'
-import Text from './text'
+import type {IconType} from '@/common-adapters/icon.constants-gen'
+import Text from '@/common-adapters/text'
 import type {MeasureRef} from './measure-ref'
 import * as Styles from '@/styles'
 

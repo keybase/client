@@ -1,6 +1,11 @@
 import * as Styles from '@/styles'
-import type {Props} from './switch-toggle'
 
+
+type Props = {
+  color: 'green' | 'blue' | 'red'
+  on: boolean
+  style?: Styles.StylesCrossPlatform
+}
 const SwitchToggle = (props: Props) => (
   <div
     style={

@@ -1,4 +1,3 @@
-import type {Props} from './native-emoji'
 import {type EmojiData} from '.'
 import {emojiData} from './data'
 import {spriteSheetWidth, spriteSheetHeight} from '../markdown/emoji-gen'
@@ -7,6 +6,14 @@ import * as Styles from '@/styles'
 // Just the single set we use
 import emojiSet from 'emoji-datasource-apple/img/apple/sheets/64.png'
 
+
+export type Props = {
+  size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
+  emojiName: string
+  disableSelecting?: boolean
+  allowFontScaling?: boolean
+  style?: Styles.StylesCrossPlatform
+}
 const unifiedToNative = (unified: string) =>
   String.fromCodePoint(...unified.split('-').map(u => Number(`0x${u}`)))
 

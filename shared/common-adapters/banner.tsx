@@ -1,7 +1,7 @@
 import * as React from 'react'
-import {Box2} from './box'
+import {Box2} from '@/common-adapters/box'
 import Icon from './icon'
-import Text from './text'
+import Text from '@/common-adapters/text'
 import * as Styles from '@/styles'
 
 type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey' | 'white'

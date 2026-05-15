@@ -1,6 +1,10 @@
 import * as Styles from '@/styles'
-import type {Props} from './copyable-text'
 
+
+type Props = {
+  value: string
+  style?: object
+}
 const CopyableText = ({value, style}: Props) => {
   return (
     <textarea

@@ -25,20 +25,146 @@
       "@/chat/conversation/input-area/normal/moremenu-popup": [
         "./chat/conversation/input-area/normal/moremenu-popup.native"
       ],
+      "@/common-adapters/animation": [
+        "./common-adapters/animation.native"
+      ],
+      "@/common-adapters/avatar/index": [
+        "./common-adapters/avatar/index.native"
+      ],
+      "@/common-adapters/avatar": [
+        "./common-adapters/avatar/index.native"
+      ],
+      "@/common-adapters/back-button": [
+        "./common-adapters/back-button.native"
+      ],
+      "@/common-adapters/bottom-accessory": [
+        "./common-adapters/bottom-accessory.native"
+      ],
+      "@/common-adapters/box": [
+        "./common-adapters/box.native"
+      ],
+      "@/common-adapters/checkbox": [
+        "./common-adapters/checkbox.native"
+      ],
+      "@/common-adapters/choice-list": [
+        "./common-adapters/choice-list.native"
+      ],
+      "@/common-adapters/clickable-box": [
+        "./common-adapters/clickable-box.native"
+      ],
+      "@/common-adapters/copyable-text": [
+        "./common-adapters/copyable-text.native"
+      ],
+      "@/common-adapters/drag-and-drop": [
+        "./common-adapters/drag-and-drop.native"
+      ],
+      "@/common-adapters/emoji/custom-emoji": [
+        "./common-adapters/emoji/custom-emoji.native"
+      ],
+      "@/common-adapters/emoji/native-emoji": [
+        "./common-adapters/emoji/native-emoji.native"
+      ],
+      "@/common-adapters/floating-menu/menu-layout/index": [
+        "./common-adapters/floating-menu/menu-layout/index.native"
+      ],
+      "@/common-adapters/floating-menu/menu-layout": [
+        "./common-adapters/floating-menu/menu-layout/index.native"
+      ],
+      "@/common-adapters/floating-picker": [
+        "./common-adapters/floating-picker.native"
+      ],
+      "@/common-adapters/header-buttons": [
+        "./common-adapters/header-buttons.native"
+      ],
+      "@/common-adapters/hot-key": [
+        "./common-adapters/hot-key.native"
+      ],
+      "@/common-adapters/icon.constants-gen": [
+        "./common-adapters/icon.constants-gen.native"
+      ],
+      "@/common-adapters/image": [
+        "./common-adapters/image.native"
+      ],
       "@/common-adapters/index": [
         "./common-adapters/index.native"
       ],
       "@/common-adapters": [
         "./common-adapters/index.native"
       ],
+      "@/common-adapters/input3": [
+        "./common-adapters/input3.native"
+      ],
+      "@/common-adapters/keyboard-avoiding-view": [
+        "./common-adapters/keyboard-avoiding-view.native"
+      ],
+      "@/common-adapters/list": [
+        "./common-adapters/list.native"
+      ],
+      "@/common-adapters/loading-line": [
+        "./common-adapters/loading-line.native"
+      ],
+      "@/common-adapters/popup/bottom-sheet": [
+        "./common-adapters/popup/bottom-sheet.native"
+      ],
+      "@/common-adapters/popup/floating-box/index": [
+        "./common-adapters/popup/floating-box/index.native"
+      ],
+      "@/common-adapters/popup/floating-box": [
+        "./common-adapters/popup/floating-box/index.native"
+      ],
+      "@/common-adapters/popup/index": [
+        "./common-adapters/popup/index.native"
+      ],
+      "@/common-adapters/popup": [
+        "./common-adapters/popup/index.native"
+      ],
       "@/common-adapters/portal": [
         "./common-adapters/portal.native"
+      ],
+      "@/common-adapters/progress-indicator": [
+        "./common-adapters/progress-indicator.native"
+      ],
+      "@/common-adapters/radio-button": [
+        "./common-adapters/radio-button.native"
+      ],
+      "@/common-adapters/safe-area-view": [
+        "./common-adapters/safe-area-view.native"
+      ],
+      "@/common-adapters/scroll-view": [
+        "./common-adapters/scroll-view.native"
       ],
       "@/common-adapters/swipeable-row": [
         "./common-adapters/swipeable-row.native"
       ],
+      "@/common-adapters/switch-toggle": [
+        "./common-adapters/switch-toggle.native"
+      ],
+      "@/common-adapters/text-url": [
+        "./common-adapters/text-url.native"
+      ],
       "@/common-adapters/text.meta": [
         "./common-adapters/text.meta.native"
+      ],
+      "@/common-adapters/text": [
+        "./common-adapters/text.native"
+      ],
+      "@/common-adapters/text.styles": [
+        "./common-adapters/text.styles.native"
+      ],
+      "@/common-adapters/toast": [
+        "./common-adapters/toast.native"
+      ],
+      "@/common-adapters/video": [
+        "./common-adapters/video.native"
+      ],
+      "@/common-adapters/web-view": [
+        "./common-adapters/web-view.native"
+      ],
+      "@/common-adapters/with-tooltip": [
+        "./common-adapters/with-tooltip.native"
+      ],
+      "@/common-adapters/zoomable-image": [
+        "./common-adapters/zoomable-image.native"
       ],
       "@/constants/init/push-listener": [
         "./constants/init/push-listener.native"

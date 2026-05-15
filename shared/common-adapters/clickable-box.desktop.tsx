@@ -1,11 +1,46 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import type {Props as _Props, Props2} from './clickable-box'
 import type {_StylesCrossPlatform} from '@/styles/css'
+import type {MeasureRef} from './measure-ref'
 
+
+type _Props = {
+  className?: string
+  children?: React.ReactNode
+  style?: Styles.StylesCrossPlatform
+  onClick?: (event: React.BaseSyntheticEvent) => void
+  onDoubleClick?: (event: React.BaseSyntheticEvent) => void
+  onPress?: never
+  onLongPress?: (event: React.BaseSyntheticEvent) => void
+  underlayColor?: string
+  onPressIn?: () => void
+  onPressOut?: () => void
+  feedback?: boolean
+  activeOpacity?: number
+  hoverColor?: string
+  onMouseOver?: (event: React.MouseEvent) => void
+  onMouseEnter?: (event: React.MouseEvent) => void
+  onMouseLeave?: (event: React.MouseEvent) => void
+  onMouseDown?: (event: React.MouseEvent) => void
+  onMouseMove?: (event: React.MouseEvent) => void
+  onMouseUp?: (event: React.MouseEvent) => void
+  title?: string
+  tooltip?: string
+}
+
+type Props2 = {
+  onLongPress?: () => void
+  hitSlop?: number
+  testID?: string
+  onMouseOver?: (event: React.MouseEvent) => void
+  onClick?: () => void
+  children: React.ReactNode
+  className?: string
+  style?: Styles.StylesCrossPlatform
+}
 type Props = _Props & {children: React.ReactNode}
 
-const ClickableBox = (props: Props & {ref?: React.Ref<HTMLDivElement | null>}) => {
+const ClickableBox = (props: Props & {ref?: React.Ref<MeasureRef>}) => {
   const {ref} = props
   const [mouseDown, setMouseDown] = React.useState(false)
   const [mouseIn, setMouseIn] = React.useState(false)
@@ -80,7 +115,7 @@ const ClickableBox = (props: Props & {ref?: React.Ref<HTMLDivElement | null>}) =
 
   return (
     <div
-      ref={ref}
+      ref={ref as React.Ref<HTMLDivElement>}
       className={Styles.classNames(className, {tooltip})}
       data-tooltip={tooltip}
       {...passThroughProps}
@@ -132,14 +167,14 @@ const styles = Styles.styleSheetCreate(
 
 export default ClickableBox
 
-export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<HTMLDivElement | null>}) => {
+export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<MeasureRef>}) => {
   const {onClick, children, style, className, onMouseOver, ref} = p
   return (
     <div
       onClick={onClick}
       onMouseOver={onMouseOver}
       style={Styles.castStyleDesktop(style)}
-      ref={ref}
+      ref={ref as React.Ref<HTMLDivElement>}
       className={Styles.classNames('clickable-box2', className)}
     >
       {children}

@@ -1,8 +1,8 @@
 import * as Styles from '@/styles'
-import Text from './text'
-import {Box2} from './box'
+import Text from '@/common-adapters/text'
+import {Box2} from '@/common-adapters/box'
 import ProgressBar from './progress-bar'
-import ProgressIndicator from './progress-indicator'
+import ProgressIndicator from '@/common-adapters/progress-indicator'
 
 const Kb = {
   Box2,

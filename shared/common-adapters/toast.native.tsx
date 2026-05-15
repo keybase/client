@@ -1,14 +1,23 @@
+import type {MeasureRef} from './measure-ref'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2} from './box'
-import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
-import Popup from './popup'
+import {Box2} from '@/common-adapters/box'
+import {KeyboardAvoidingView2} from '@/common-adapters/keyboard-avoiding-view'
+import Popup from '@/common-adapters/popup'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
-import type {Props} from './toast'
 import {colors, darkColors} from '@/styles/colors'
 import {useColorScheme} from 'react-native'
 
+
+type Props = {
+  children: React.ReactNode
+  className?: string
+  containerStyle?: Styles.StylesCrossPlatform
+  visible: boolean
+  attachTo?: React.RefObject<MeasureRef | null>
+  position?: Styles.Position
+}
 const Kb = {
   Box2,
   KeyboardAvoidingView2,

@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
-import NativeEmoji from './native-emoji'
+import NativeEmoji from '@/common-adapters/emoji/native-emoji'
 import type * as ED from './slow-data'
 import type * as Styles from '@/styles'
-import CustomEmoji from './custom-emoji'
+import CustomEmoji from '@/common-adapters/emoji/custom-emoji'
 
 const Kb = {
   NativeEmoji,
