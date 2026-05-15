@@ -25,6 +25,12 @@
       "@/chat/conversation/input-area/normal/moremenu-popup": [
         "./chat/conversation/input-area/normal/moremenu-popup.native"
       ],
+      "@/common-adapters/index": [
+        "./common-adapters/index.native"
+      ],
+      "@/common-adapters": [
+        "./common-adapters/index.native"
+      ],
       "@/common-adapters/portal": [
         "./common-adapters/portal.native"
       ],

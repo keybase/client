@@ -378,8 +378,8 @@ const User = (props: {username: string}) => {
   )
 
   // desktop only
-  const wrapperRef = React.useRef<MeasureRef | null>(null)
-  useResizeObserver(wrapperRef, e => setWidth(e.contentRect.width))
+  const wrapperRef = React.useRef<MeasureRef>(null)
+  useResizeObserver(wrapperRef as unknown as React.RefObject<Element>, e => setWidth(e.contentRect.width))
 
   const errorFilter = (e: RPCError) => e.code !== T.RPCGen.StatusCode.scresolutionfailed
 

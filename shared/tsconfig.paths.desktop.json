@@ -10,6 +10,12 @@
       "@/common-adapters/bottom-sheet": [
         "./common-adapters/bottom-sheet.desktop"
       ],
+      "@/common-adapters/index": [
+        "./common-adapters/index.desktop"
+      ],
+      "@/common-adapters": [
+        "./common-adapters/index.desktop"
+      ],
       "@/common-adapters/key-event-handler": [
         "./common-adapters/key-event-handler.desktop"
       ],
