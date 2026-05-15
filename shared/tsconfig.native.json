@@ -14,6 +14,9 @@
     "./**/*.desktop.ts",
     "./common-adapters/icon.constants-gen.desktop.tsx",
     "./common-adapters/icon.constants-gen.native.tsx",
-    "./common-adapters/icon.constants-gen.shared.tsx"
+    "./common-adapters/icon.constants-gen.shared.tsx",
+    "./settings/make-icons.page.tsx",
+    "./chat/conversation/normal/container.test.tsx",
+    "./common-adapters/markdown/index.test.tsx"
   ]
 }

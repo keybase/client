@@ -77,10 +77,10 @@ if (__DEV__) {
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
 
-  window.console.log = noop
-  window.console.warn = noop
-  window.console.error = noop
-  window.console.info = noop
+  global.console.log = noop
+  global.console.warn = noop
+  global.console.error = noop
+  global.console.info = noop
 
   config.forceImmediateLogging = false
   config.printOutstandingRPCs = false

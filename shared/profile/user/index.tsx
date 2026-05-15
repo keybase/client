@@ -12,6 +12,7 @@ import type {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
 import {SiteIcon} from '../generic/shared'
 import useResizeObserver from '@/util/use-resize-observer'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 import useUserData from './hooks'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
@@ -377,7 +378,7 @@ const User = (props: {username: string}) => {
   )
 
   // desktop only
-  const wrapperRef = React.useRef<HTMLDivElement>(null)
+  const wrapperRef = React.useRef<MeasureRef | null>(null)
   useResizeObserver(wrapperRef, e => setWidth(e.contentRect.width))
 
   const errorFilter = (e: RPCError) => e.code !== T.RPCGen.StatusCode.scresolutionfailed

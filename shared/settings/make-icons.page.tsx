@@ -1,4 +1,7 @@
-// dev only helper
+declare const document: {
+  body: {style: {backgroundColor: string}; appendChild: (el: Element) => void}
+  getElementById: (id: string) => {cloneNode: (deep: boolean) => Element; remove: () => void} | null
+}
 import * as Kb from '@/common-adapters'
 // import * as C from '@/constants'
 // import * as React from 'react'
@@ -72,8 +75,8 @@ const Screen = __DEV__
 
         const dte = document.getElementById('divToExport')
         if (!dte) return
-        const copy = dte.cloneNode(true) as HTMLDivElement
-        copy.id = 'iconCopy'
+        const copy = dte.cloneNode(true)
+        ;(copy as {id: string}).id = 'iconCopy'
         document.body.appendChild(copy)
 
         const root = document.getElementById('root')
@@ -82,9 +85,9 @@ const Screen = __DEV__
         setTimeout(() => {
           DEVwriteMenuIcons?.()
           setTimeout(() => {
-            document.body.appendChild(root)
+            document.body.appendChild(root as unknown as Element)
             document.body.style.backgroundColor = oldbg
-            copy.remove()
+            ;(copy as {remove: () => void}).remove()
           }, 500)
         }, 100)
       }

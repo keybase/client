@@ -1,7 +1,9 @@
-export type UseResizeObserverCallback = (entry: ResizeObserverEntry, observer: ResizeObserver) => unknown
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 
-declare function useResizeObserver<T extends Element>(
-  target: React.RefObject<T> | React.ForwardedRef<T> | T | null,
+export type UseResizeObserverCallback = (entry: {contentRect: {width: number; height: number}}, observer: unknown) => unknown
+
+declare function useResizeObserver<T extends MeasureRef>(
+  target: React.RefObject<T | null> | T | null,
   callback: UseResizeObserverCallback
-): ResizeObserver
+): unknown
 export default useResizeObserver

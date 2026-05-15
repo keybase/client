@@ -1,10 +1,11 @@
 // https://github.com/jaredLunde/react-hook/blob/master/packages/resize-observer/src/index.tsx
 import * as React from 'react'
-import type {UseResizeObserverCallback} from './use-resize-observer'
+
+type InternalCallback = (entry: ResizeObserverEntry, observer: ResizeObserver) => unknown
 
 function useResizeObserver<T extends Element>(
   target: React.RefObject<T> | React.ForwardedRef<T> | T | null,
-  callback: UseResizeObserverCallback
+  callback: InternalCallback
 ): ResizeObserver {
   const resizeObserver = getResizeObserver()
   const storedCallback = React.useRef(callback)
@@ -36,7 +37,7 @@ function createResizeObserver() {
   let ticking = false
   let allEntries: ResizeObserverEntry[] = []
 
-  const callbacks: Map<unknown, Array<UseResizeObserverCallback>> = new Map()
+  const callbacks: Map<unknown, Array<InternalCallback>> = new Map()
 
   const observer = new window.ResizeObserver((entries: ResizeObserverEntry[], obs: ResizeObserver) => {
     allEntries = allEntries.concat(entries)
@@ -64,13 +65,13 @@ function createResizeObserver() {
 
   return {
     observer,
-    subscribe(target: Element, callback: UseResizeObserverCallback) {
+    subscribe(target: Element, callback: InternalCallback) {
       observer.observe(target)
       const cbs = callbacks.get(target) ?? []
       cbs.push(callback)
       callbacks.set(target, cbs)
     },
-    unsubscribe(target: Element, callback: UseResizeObserverCallback) {
+    unsubscribe(target: Element, callback: InternalCallback) {
       const cbs = callbacks.get(target) ?? []
       if (cbs.length === 1) {
         observer.unobserve(target)

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global console */
 import {readdirSync, writeFileSync, existsSync} from 'fs'
 import {join, relative} from 'path'
 import {fileURLToPath} from 'url'

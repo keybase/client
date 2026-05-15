@@ -218,15 +218,18 @@ const AddEmojiModalWrapper = (routableProps: RoutableProps) => {
   return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} />
 }
 
+type DesktopDataTransfer = {types: ReadonlyArray<string>; files: Array<File>}
 const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
   const [dragOver, setDragOver] = React.useState(false)
-  const onDragOver = (e: React.DragEvent) => e.dataTransfer.types.includes('Files') && setDragOver(true)
+  const onDragOver = (e: React.DragEvent) =>
+    ((e.dataTransfer as unknown) as DesktopDataTransfer).types.includes('Files') && setDragOver(true)
   const onDragLeave = () => setDragOver(false)
   const onDrop = (e: React.DragEvent) => {
-    if (!e.dataTransfer.types.includes('Files')) {
+    const dt = (e.dataTransfer as unknown) as DesktopDataTransfer
+    if (!dt.types.includes('Files')) {
       return
     }
-    const filesToAdd = Array.from(e.dataTransfer.files)
+    const filesToAdd = Array.from(dt.files)
       .filter(file => file.type.startsWith('image/'))
       .map(file => getPathForFile?.(file) ?? '')
       .filter(Boolean)

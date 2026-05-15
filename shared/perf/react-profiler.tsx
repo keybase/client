@@ -84,8 +84,8 @@ export function resetProfiler() {
   samples.length = 0
 }
 
-if (__DEV__ && typeof window !== 'undefined') {
-  ;(window as any).__perfReact = {aggregate, reset: resetProfiler}
+if (__DEV__ && typeof (global as {window?: unknown}).window !== 'undefined') {
+  ;((global as unknown) as {window: {__perfReact?: unknown}}).window.__perfReact = {aggregate, reset: resetProfiler}
 }
 
 const onRender = (

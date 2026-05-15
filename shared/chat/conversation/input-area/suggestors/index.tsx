@@ -128,7 +128,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
     return null
   }
 
-  const triggerIDRef = React.useRef<number>(undefined)
+  const triggerIDRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
   const checkTrigger = () => {
     if (triggerIDRef.current) {
       clearTimeout(triggerIDRef.current)
