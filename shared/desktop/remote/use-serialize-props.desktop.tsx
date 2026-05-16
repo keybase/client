@@ -9,8 +9,10 @@ import type {RemoteComponentName} from '@/desktop/remote/remote-component.deskto
 const {rendererNewProps} = KB2.functions
 
 // set this to true to see details of the serialization process
-const debugSerializer: boolean = __DEV__ && (false)
+const debugSerializer = __DEV__ && false
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 if (debugSerializer) {
+  // eslint-disable-next-line no-console
   console.log('\n\n\n\n\n\nDEBUGGING REMOTE SERIALIZER')
 }
 
@@ -29,7 +31,9 @@ export default function useSerializeProps<P extends object>(
   const throttledSend = C.useThrottledCallback(
     (nextPropsStr: string, forceUpdateVersion: number) => {
       if (nextPropsStr === lastSent.current && forceUpdateVersion === lastForceUpdate.current) return
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (debugSerializer) {
+        // eslint-disable-next-line no-console
         console.log('[useSerializeProps]: throttled send', nextPropsStr.length)
       }
       rendererNewProps?.({propsStr: nextPropsStr, windowComponent, windowParam})

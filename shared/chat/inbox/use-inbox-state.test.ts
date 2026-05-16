@@ -15,6 +15,7 @@ let mockInboxLayoutState: MockInboxLayoutState
 
 jest.mock('@/constants', () => {
   const React = require('react')
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   const actual = jest.requireActual('@/constants') as typeof import('@/constants')
   return {
     ...actual,

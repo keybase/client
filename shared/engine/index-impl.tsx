@@ -6,7 +6,7 @@ import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import type {CustomResponseIncomingCallMapType, BatchParams} from '@/engine/index.shared'
 import type {IncomingCallMapType} from '@/constants/rpc/rpc-gen'
-import type {SessionIDKey, MethodKey} from '@/engine/types'
+import type {SessionIDKey, MethodKey, ResponseType} from '@/engine/types'
 import {initEngine, initEngineListener} from '@/engine/require'
 import {isMobile} from '@/constants/platform'
 import {printOutstandingRPCs} from '@/local-debug'
@@ -181,7 +181,7 @@ class Engine {
       this._handleCancel(seqid)
     } else {
       const session = this._sessionsMap[String(sessionID)]
-      if (session?.incomingCall(method as keyof IncomingCallMapType, param, response as import('@/engine/types').ResponseType | undefined)) {
+      if (session?.incomingCall(method as keyof IncomingCallMapType, param, response as ResponseType | undefined)) {
         // Part of a session?
       } else {
         // Dispatch as an action
@@ -252,7 +252,7 @@ class Engine {
             }
             cb(args[0], args[1])
           }
-        this._rpcClient.invoke(method, param || [{}], callback(method))
+        this._rpcClient.invoke(method, param, callback(method))
       },
       sessionID,
       waitingKey,

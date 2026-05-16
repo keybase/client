@@ -1,5 +1,4 @@
 import * as Kb from '@/common-adapters'
-import type * as React from 'react'
 import type {Props} from '@/login/forms/container.shared'
 const Container = ({children, style, outerStyle}: Props) => {
   return (

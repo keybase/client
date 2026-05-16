@@ -1,4 +1,3 @@
-import type * as React from 'react'
 import * as Styles from '@/styles'
 import {typeStyles, negativeColors} from '@/common-adapters/text.meta.native'
 import {Text as RNText} from 'react-native'

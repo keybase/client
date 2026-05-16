@@ -229,7 +229,7 @@ const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
         <Kb.Text type="Body" style={styles.assertionTextContainer}>
           <Kb.Text
             type="BodyPrimaryLink"
-            onClick={a.siteURL ? async () => openUrl(a.siteURL) : undefined}
+            onClick={a.siteURL ? () => { void openUrl(a.siteURL) } : undefined}
             style={Kb.Styles.collapseStyles([
               styles.assertionValue,
               a.state === 'revoked' && styles.strikeThrough,
@@ -244,7 +244,7 @@ const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
           type={stateToIcon(a.state)}
           fontSize={20}
           color={assertionColorToColor(a.color)}
-          onClick={a.proofURL ? async () => openUrl(a.proofURL) : undefined}
+          onClick={a.proofURL ? () => { void openUrl(a.proofURL) } : undefined}
         />
       </Kb.Box2>
       {!!a.metas.length && (

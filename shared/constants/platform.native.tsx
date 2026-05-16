@@ -45,25 +45,25 @@ export const setSecureFlagSetting = async (secure: boolean): Promise<boolean> =>
 // Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.
 // Android only field that tells us if there is a lock screen.
 export const isDeviceSecureAndroid = androidIsDeviceSecure
-export const runMode = 'prod'
+export const runMode: string = 'prod'
 export const pathSep = '/'
 
 export const isIOS = Platform.OS === 'ios'
 export const isAndroid = !isIOS
-export const isMobile = true
-export const isTablet = Platform.OS === 'ios' && Platform.isPad
-export const isPhone = !isTablet
+export const isMobile: boolean = true
+export const isTablet: boolean = Platform.OS === 'ios' && Platform.isPad
+export const isPhone: boolean = !isTablet
 
-export const isDarwin = false
-export const isElectron = false
-export const isLinux = false
-export const isWindows = false
-export const isMac = false
+export const isDarwin: boolean = false
+export const isElectron: boolean = false
+export const isLinux: boolean = false
+export const isWindows: boolean = false
+export const isMac: boolean = false
 
 export const getModKey = (_e: {metaKey: boolean; ctrlKey: boolean}): boolean => {
   return false
 }
-export const isDebuggingInChrome = typeof global.location !== 'undefined'
+export const isDebuggingInChrome: boolean = typeof global.location !== 'undefined'
 
 export const defaultUseNativeFrame = true
 export const fileUIName = 'File Explorer'
@@ -77,7 +77,7 @@ export const realDeviceName = Constants.deviceName ?? ''
 const windowHeight = Dimensions.get('window').height
 // isLargeScreen means you have at larger screen like iPhone 6,7 or Pixel
 // See https://material.io/devices/
-export const isLargeScreen = windowHeight >= 667
+export const isLargeScreen: boolean = windowHeight >= 667
 
 const _dir = `${fsCacheDir}/Keybase`
 export const logFileDir = _dir

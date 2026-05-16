@@ -1,4 +1,3 @@
-import type * as React from 'react'
 import {RelativeFloatingBox} from '@/common-adapters/popup/floating-box/relative-floating-box.desktop'
 import noop from 'lodash/noop'
 import type {Props} from '@/common-adapters/popup/floating-box/index.shared'

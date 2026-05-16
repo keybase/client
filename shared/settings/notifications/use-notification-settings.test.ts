@@ -3,6 +3,7 @@
 // useRPC is exported as a re-export getter (non-configurable), so we mock the
 // module to make it a plain configurable property that jest.spyOn can wrap.
 jest.mock('@/constants', () => ({
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   ...(jest.requireActual('@/constants') as typeof import('@/constants')),
   useRPC: jest.fn(),
 }))

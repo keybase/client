@@ -1,4 +1,3 @@
-import type * as React from 'react'
 import * as Styles from '@/styles'
 import {TouchableOpacity, Keyboard} from 'react-native'
 import Badge from '@/common-adapters/badge'
