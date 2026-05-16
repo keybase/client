@@ -5,12 +5,12 @@ jest.mock('../../constants/router', () => ({
   switchTab: jest.fn(),
 }))
 
-import * as T from '@/constants/types'
-import {loadSettings} from '@/settings/load-settings'
-import {resetAllStores} from '@/util/zustand'
-import {useConfigState} from '@/stores/config'
-import {useSettingsEmailState} from '@/stores/settings-email'
-import {useSettingsPhoneState} from '@/stores/settings-phone'
+import * as T from '../../constants/types'
+import {loadSettings} from '../../settings/load-settings'
+import {resetAllStores} from '../../util/zustand'
+import {useConfigState} from '../config'
+import {useSettingsEmailState} from '../settings-email'
+import {useSettingsPhoneState} from '../settings-phone'
 
 describe('settings loading', () => {
   afterEach(() => {

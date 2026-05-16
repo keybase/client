@@ -1,8 +1,8 @@
 import type * as T from '@/constants/types'
-import {Box2} from '@/common-adapters/box'
-import IconAuto from '@/common-adapters/icon-auto'
-import type {IconType} from '@/common-adapters/icon.constants-gen'
-import ImageIcon from '@/common-adapters/image-icon'
+import {Box2} from './box'
+import IconAuto from './icon-auto'
+import type {IconType} from './icon.constants-gen'
+import ImageIcon from './image-icon'
 import {isMobile} from '@/constants/platform'
 
 type Props = {

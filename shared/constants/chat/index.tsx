@@ -1,6 +1,6 @@
-export * from '@/constants/chat/common'
-export * from '@/constants/chat/meta'
-export * from '@/constants/chat/message'
+export * from './common'
+export * from './meta'
+export * from './message'
 export type {RefreshReason} from '@/constants/types/chat'
 
 export {

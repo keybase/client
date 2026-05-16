@@ -1,7 +1,7 @@
 // This hook creates a remote brower window when mounted
 import * as React from 'react'
 import KB2 from '@/util/electron.desktop'
-import type {RemoteComponentName} from '@/desktop/remote/remote-component.desktop'
+import type {RemoteComponentName} from './remote-component.desktop'
 
 const {makeRenderer, closeRenderer} = KB2.functions
 

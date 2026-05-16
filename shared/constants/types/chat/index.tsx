@@ -1,8 +1,8 @@
 import type * as T from '@/constants/types'
-import * as Common from '@/constants/types/chat/common'
+import * as Common from './common'
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
-import * as _Message from '@/constants/types/chat/message'
-import type * as Meta from '@/constants/types/chat/meta'
+import * as _Message from './message'
+import type * as Meta from './meta'
 import {uint8ArrayToHex, hexToUint8Array} from '@/util/uint8array'
 
 // Static config data we use for various things
@@ -215,6 +215,6 @@ export const rpcOutboxIDToOutboxID = (outboxID: T.RPCChat.OutboxID): _Message.Ou
 export const outboxIDToRpcOutboxID = (outboxID: _Message.OutboxID): T.RPCChat.OutboxID =>
   hexToUint8Array(_Message.outboxIDToString(outboxID))
 
-export * from '@/constants/types/chat/message'
-export * from '@/constants/types/chat/common'
-export type * from '@/constants/types/chat/meta'
+export * from './message'
+export * from './common'
+export type * from './meta'

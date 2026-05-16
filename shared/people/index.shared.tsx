@@ -2,11 +2,10 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import Announcement from '@/people/announcement'
-import FollowNotification from '@/people/follow-notification'
-import FollowSuggestions from '@/people/follow-suggestions'
-import Todo from '@/people/todo'
-import {clearSignupEmail} from '@/people/signup-email'
+import Announcement from './announcement'
+import FollowNotification from './follow-notification'
+import FollowSuggestions from './follow-suggestions'
+import Todo from './todo'
 
 export type Props = {
   dismissAnnouncement: (id: T.RPCGen.HomeScreenAnnouncementID) => void
@@ -23,7 +22,8 @@ export type Props = {
   myUsername: string
 }
 export type WrapProps = {waiting: boolean} & Props
-// import WotTask from '@/people/wot-task'
+import {clearSignupEmail} from './signup-email'
+// import WotTask from './wot-task'
 
 const renderPeopleItem = (item: T.Immutable<T.People.PeopleScreenItem>, props: Props): React.ReactNode => {
   switch (item.type) {

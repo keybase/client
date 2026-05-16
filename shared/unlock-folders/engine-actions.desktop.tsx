@@ -2,7 +2,7 @@ import type * as EngineGen from '@/constants/rpc'
 import * as T from '@/constants/types'
 import {getEngine} from '@/engine/require'
 import logger from '@/logger'
-import type {UnlockFolderDevice} from '@/unlock-folders/store'
+import type {UnlockFolderDevice} from './store'
 
 const rpcDevicesToUnlockFolderDevices = (devices: ReadonlyArray<T.RPCGen.Device>): Array<UnlockFolderDevice> =>
   devices.map(({name, type, deviceID}) => ({

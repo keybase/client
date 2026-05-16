@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import DeviceIcon from '@/devices/device-icon'
+import DeviceIcon from './device-icon'
 import type * as T from '@/constants/types'
 import {formatTimeRelativeToNow} from '@/util/timestamp'
 

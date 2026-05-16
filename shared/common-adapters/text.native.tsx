@@ -1,8 +1,7 @@
 import * as Styles from '@/styles'
-import {typeStyles, negativeColors} from '@/common-adapters/text.meta.native'
+import {typeStyles, negativeColors} from './text.meta.native'
+import type {Props} from './text.shared'
 import {Text as RNText} from 'react-native'
-import type {Props} from '@/common-adapters/text.shared'
-
 
 export function Text(p: Props) {
   const type = p.type ?? 'BodySmall'

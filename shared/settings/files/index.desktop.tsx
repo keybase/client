@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
 import * as Kbfs from '@/fs/common'
 import RefreshDriverStatusOnMount from '@/fs/common/refresh-driver-status-on-mount'
-import useFiles from '@/settings/files/hooks'
+import useFiles from './hooks'
 import * as FS from '@/constants/fs'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 type Props = ReturnType<typeof useFiles>

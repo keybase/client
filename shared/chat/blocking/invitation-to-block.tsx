@@ -7,11 +7,11 @@ import {navToProfile} from '@/constants/router'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
-import {useBlockButtonsInfo} from '@/chat/blocking/block-buttons-state'
+import {useBlockButtonsInfo} from './block-buttons-state'
 import {
   useConversationThreadID,
   useConversationThreadSelector,
-} from '@/chat/conversation/thread-context'
+} from '../conversation/thread-context'
 
 const dismissBlockButtons = (teamID: T.RPCGen.TeamID) => {
   const f = async () => {

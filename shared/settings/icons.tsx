@@ -1,7 +1,7 @@
 // Dev-only icon browser. Gated by __DEV__ in nav and routes — never visible in production.
 import * as Kb from '@/common-adapters'
-import {iconMeta} from '@/common-adapters/icon.constants-gen'
-import type {IconType} from '@/common-adapters/icon.constants-gen'
+import {iconMeta} from '@/common-adapters/icon.constants-gen.shared'
+import type {IconType} from '@/common-adapters/icon.constants-gen.d'
 import * as React from 'react'
 
 const iconfontTypes: ReadonlyArray<IconType> = (Object.keys(iconMeta) as Array<IconType>)

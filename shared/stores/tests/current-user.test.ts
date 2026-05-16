@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-import {resetAllStores} from '@/util/zustand'
-import {useCurrentUserState} from '@/stores/current-user'
+import {resetAllStores} from '../../util/zustand'
+import {useCurrentUserState} from '../current-user'
 
 afterEach(() => {
   resetAllStores()

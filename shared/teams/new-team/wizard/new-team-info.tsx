@@ -4,11 +4,11 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
-import {FloatingRolePicker} from '@/teams/role-picker'
-import {type NewTeamWizard} from '@/teams/new-team/wizard/state'
+import {FloatingRolePicker} from '../../role-picker'
+import {type NewTeamWizard} from './state'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
-import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {useLoadedTeam} from '../../team/use-loaded-team'
 
 const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
   switch (status) {

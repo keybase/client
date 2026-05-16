@@ -1,10 +1,10 @@
 import * as React from 'react'
-import {useIsHighlighted} from '@/chat/conversation/messages/ids-context'
+import {useIsHighlighted} from '../ids-context'
 import * as Kb from '@/common-adapters'
 import {addTicker, removeTicker} from '@/util/second-timer'
 import {formatDurationShort} from '@/util/timestamp'
-import SharedTimer from '@/chat/conversation/messages/wrapper/shared-timers'
-import {animationDuration} from '@/chat/conversation/messages/wrapper/exploding-height-retainer'
+import SharedTimer from './shared-timers'
+import {animationDuration} from './exploding-height-retainer'
 import type * as T from '@/constants/types'
 
 export type OwnProps = {

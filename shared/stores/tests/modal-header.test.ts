@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {useModalHeaderState} from '@/stores/modal-header'
+import {useModalHeaderState} from '../modal-header'
 
 afterEach(() => {
   jest.restoreAllMocks()
@@ -39,7 +39,7 @@ test('resetState restores the modal header defaults', () => {
 test('device badge actions update local badge state and dismiss device badge notifications', () => {
   const dismiss = jest
     .spyOn(T.RPCGen, 'deviceDismissDeviceChangeNotificationsRpcPromise')
-    .mockResolvedValue(undefined)
+    .mockResolvedValue(undefined as never)
   const store = useModalHeaderState
 
   store.getState().dispatch.setDeviceBadges(new Set(['device-1', 'device-2']))

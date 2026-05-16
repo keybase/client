@@ -8,7 +8,7 @@ import {
   goodDeviceRE,
   normalizeDeviceRE,
   useProvisionState,
-} from '@/stores/provision'
+} from '../provision'
 
 beforeEach(() => {
   resetAllStores()

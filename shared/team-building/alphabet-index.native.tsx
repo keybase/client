@@ -1,13 +1,7 @@
 import * as React from 'react'
 import {View, type NativeSyntheticEvent, type NativeTouchEvent} from 'react-native'
 import * as Kb from '@/common-adapters'
-export type Props = {
-  labels: Array<string>
-  showNumSection: boolean
-  measureKey?: unknown // change this when the position of AlphabetIndex on the screen changes
-  onScroll: (label: string) => void
-  style?: Kb.Styles.StylesCrossPlatform
-}
+import type {Props} from './alphabet-index.shared'
 
 const stubTrue = () => true
 const initMeasureRef = {height: -1, pageY: -1}

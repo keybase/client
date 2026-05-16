@@ -1,17 +1,8 @@
-import type * as Styles from '@/styles'
 import * as React from 'react'
-import {Box2} from '@/common-adapters/box'
+import {Box2} from './box'
 import LottieView from 'lottie-react-native'
-import type {AnimationType} from '@/common-adapters/animation.shared'
-
-type Props = {
-  animationType: AnimationType
-  className?: string
-  containerStyle?: Styles.StylesCrossPlatform
-  height?: number
-  style?: Styles.StylesCrossPlatform
-  width?: number
-}
+import type {Props, AnimationType} from './animation.shared'
+// prettier-ignore
 type AnimationObject = {
   v: string; fr: number; ip: number; op: number; w: number; h: number;
   nm: string; ddd: number; assets: unknown[]; layers: unknown[]
@@ -34,5 +25,3 @@ function Animation(props: Props) {
 const noStyle = {flexGrow: 1, flexShrink: 1}
 
 export default Animation
-
-export type * from '@/common-adapters/animation.shared'

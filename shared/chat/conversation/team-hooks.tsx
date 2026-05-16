@@ -7,8 +7,8 @@ import * as Teams from '@/constants/teams'
 import logger from '@/logger'
 import * as React from 'react'
 import {useTeamsListMap, useTeamsRoleMap} from '@/teams/use-teams-list'
-import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from '@/chat/conversation/manage-channels-badge'
-import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import {updateChosenChannelsTeamnames, useChosenChannelsTeamnames} from './manage-channels-badge'
+import {useConversationThreadSelector} from './thread-context'
 
 type ChatTeamState = {
   allowPromote: boolean
@@ -88,7 +88,7 @@ const loadableTeamID = (teamID: T.Teams.TeamID) =>
   teamID && teamID !== T.Teams.noTeamID && teamID !== T.Teams.newTeamWizardTeamID ? teamID : undefined
 
 const parseTeamIDsKey = (teamIDsKey: string): Array<T.Teams.TeamID> =>
-  teamIDsKey ? teamIDsKey.split(',').map(teamID => teamID) : []
+  teamIDsKey ? teamIDsKey.split(',').map(teamID => teamID as T.Teams.TeamID) : []
 
 const roleAndDetailsFromMap = (
   map: T.RPCGen.TeamRoleMapAndVersion,
@@ -516,7 +516,7 @@ export const ChatTeamProvider = (props: React.PropsWithChildren) => {
   const sameAsOuter = outer?.teamID === teamID
   const team = useChatTeamRaw(teamID, teamname, enabled && !sameAsOuter)
   const members = useChatTeamMembersRaw(teamID, enabled && !sameAsOuter)
-  const value: ChatTeamContextValue = sameAsOuter ? outer : {members, team, teamID}
+  const value: ChatTeamContextValue = sameAsOuter ? outer! : {members, team, teamID}
   return <ChatTeamContext.Provider value={value}>{children}</ChatTeamContext.Provider>
 }
 

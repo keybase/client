@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import Modal from '@/profile/modal'
+import Modal from './modal'
 
 const ProveWebsiteChoice = () => {
   const navigateAppend = C.Router2.navigateAppend

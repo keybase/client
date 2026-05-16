@@ -3,19 +3,19 @@ import {getMessageKey} from '@/constants/chat/helpers'
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as InputState from '@/chat/conversation/input-area/input-state'
-import * as RowMetadata from '@/chat/conversation/messages/row-metadata'
-import {MessageContext, useOrdinal} from '@/chat/conversation/messages/ids-context'
-import EmojiRow from '@/chat/conversation/messages/emoji-row'
-import ExplodingHeightRetainer from '@/chat/conversation/messages/wrapper/exploding-height-retainer'
-import ExplodingMeta from '@/chat/conversation/messages/wrapper/exploding-meta'
-import LongPressable from '@/chat/conversation/messages/wrapper/long-pressable'
-import {useMessagePopup} from '@/chat/conversation/messages/message-popup'
-import ReactionsRow from '@/chat/conversation/messages/reactions-rows'
-import SendIndicator from '@/chat/conversation/messages/wrapper/send-indicator'
+import * as InputState from '../../input-area/input-state'
+import * as RowMetadata from '../row-metadata'
+import {MessageContext, useOrdinal} from '../ids-context'
+import EmojiRow from '../emoji-row'
+import ExplodingHeightRetainer from './exploding-height-retainer'
+import ExplodingMeta from './exploding-meta'
+import LongPressable from './long-pressable'
+import {useMessagePopup} from '../message-popup'
+import ReactionsRow from '../reactions-rows'
+import SendIndicator from './send-indicator'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
-import {useEdited} from '@/chat/conversation/messages/wrapper/edited'
+import {useEdited} from './edited'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {formatTimeForChat} from '@/util/timestamp'
@@ -24,9 +24,9 @@ import {
   useConversationThreadActions,
   useConversationThreadMessageActions,
   useConversationThreadSelector,
-} from '@/chat/conversation/thread-context'
-import type {ConversationInputState} from '@/chat/conversation/input-area/input-state'
-import {useChatTeamMembers} from '@/chat/conversation/team-hooks'
+} from '../../thread-context'
+import type {ConversationInputState} from '../../input-area/input-state'
+import {useChatTeamMembers} from '../../team-hooks'
 
 type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>
 type PaymentStatusMap = ReadonlyMap<T.Wallets.PaymentID, T.Chat.ChatPaymentInfo>
@@ -101,7 +101,7 @@ const emptyAuthorData: FlatAuthorData = {
   botAlias: '',
   isAdhocBot: false,
   showUsername: '',
-  teamID: '',
+  teamID: '' as T.Teams.TeamID,
   teamType: 'adhoc',
   teamname: '',
   timestamp: 0,
@@ -571,7 +571,7 @@ function TextAndSiblings(p: TSProps) {
         className: Kb.Styles.classNames({
           TextAndSiblings: true,
           systemMessage: type.startsWith('system'),
-           
+          // eslint-disable-next-line sort-keys
           active: showingPopup || showingPicker,
         }),
         onContextMenu: shouldShowPopup ? showPopup : undefined,

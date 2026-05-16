@@ -8,8 +8,8 @@ import {
   cancelAttachmentUploads,
   uploadAttachments,
   uploadAttachmentsFromDragAndDrop,
-} from '@/chat/conversation/attachment-actions'
-import {getConversationClientPrev, useConversationExplodingMode, useConversationMeta} from '@/chat/conversation/data-hooks'
+} from './attachment-actions'
+import {getConversationClientPrev, useConversationExplodingMode, useConversationMeta} from './data-hooks'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey

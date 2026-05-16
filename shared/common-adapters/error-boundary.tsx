@@ -1,8 +1,8 @@
 import * as React from 'react'
-import {Box2} from '@/common-adapters/box'
-import ScrollView from '@/common-adapters/scroll-view'
-import Text from '@/common-adapters/text'
-import Icon from '@/common-adapters/icon'
+import {Box2} from './box'
+import ScrollView from './scroll-view'
+import Text from './text'
+import Icon from './icon'
 import logger from '@/logger'
 import * as Styles from '@/styles'
 

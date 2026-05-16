@@ -6,12 +6,12 @@ import {
   sortAccounts,
   toAccount,
   type Account,
-} from '@/wallets/account-utils'
+} from './account-utils'
 
 const makeRPCAccount = (
   overrides?: Partial<T.RPCStellar.WalletAccountLocal>
 ): T.RPCStellar.WalletAccountLocal => ({
-  accountID: 'acct-1',
+  accountID: 'acct-1' as T.RPCStellar.AccountID,
   accountMode: T.RPCStellar.AccountMode.user,
   accountModeEditable: true,
   balanceDescription: '1.00 XLM',
@@ -32,7 +32,7 @@ const makeRPCAccount = (
 })
 
 const makeAccount = (overrides?: Partial<Account>): Account => ({
-  accountID: 'acct-1',
+  accountID: 'acct-1' as T.RPCStellar.AccountID,
   balanceDescription: '1.00 XLM',
   deviceReadOnly: false,
   isDefault: false,
@@ -44,7 +44,7 @@ test('toAccount keeps only the wallet fields used by the UI', () => {
   expect(
     toAccount(
       makeRPCAccount({
-        accountID: 'acct-2',
+        accountID: 'acct-2' as T.RPCStellar.AccountID,
         balanceDescription: '7.25 XLM',
         deviceReadOnly: true,
         isDefault: false,
@@ -63,9 +63,9 @@ test('toAccount keeps only the wallet fields used by the UI', () => {
 test('sortAccounts keeps the default account first, then sorts remaining accounts by name', () => {
   expect(
     sortAccounts([
-      makeAccount({accountID: 'acct-2', name: 'Zulu'}),
-      makeAccount({accountID: 'acct-3', isDefault: true, name: 'Middle'}),
-      makeAccount({accountID: 'acct-1', name: 'Alpha'}),
+      makeAccount({accountID: 'acct-2' as T.RPCStellar.AccountID, name: 'Zulu'}),
+      makeAccount({accountID: 'acct-3' as T.RPCStellar.AccountID, isDefault: true, name: 'Middle'}),
+      makeAccount({accountID: 'acct-1' as T.RPCStellar.AccountID, name: 'Alpha'}),
     ]).map(a => a.accountID)
   ).toEqual(['acct-3', 'acct-1', 'acct-2'])
 })
@@ -74,7 +74,7 @@ test('remove-account route params carry the account fields the confirmation moda
   expect(
     makeRemoveAccountRouteParams(
       makeAccount({
-        accountID: 'acct-9',
+        accountID: 'acct-9' as T.RPCStellar.AccountID,
         balanceDescription: '9.99 XLM',
         name: 'Vacation',
       })
@@ -89,7 +89,7 @@ test('remove-account route params carry the account fields the confirmation moda
 test('really-remove-account route params only carry the fields used on the final screen', () => {
   expect(
     makeReallyRemoveAccountRouteParams({
-      accountID: 'acct-5',
+      accountID: 'acct-5' as T.RPCStellar.AccountID,
       name: 'Emergency',
     })
   ).toEqual({

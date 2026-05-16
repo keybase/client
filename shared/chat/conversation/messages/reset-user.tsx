@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {navToProfile} from '@/constants/router'
-import {useConversationThreadID, useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import {useConversationThreadID, useConversationThreadSelector} from '../thread-context'
 
 const ResetUser = () => {
   const {meta, participantInfo} = useConversationThreadSelector(

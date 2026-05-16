@@ -1,8 +1,8 @@
 /// <reference types="jest" />
 import * as Tabs from '@/constants/tabs'
 import {resetAllStores} from '@/util/zustand'
-import {useCurrentUserState} from '@/stores/current-user'
-import {useNotifState} from '@/stores/notifications'
+import {useCurrentUserState} from '../current-user'
+import {useNotifState} from '../notifications'
 
 beforeEach(() => {
   useCurrentUserState.getState().dispatch.setBootstrap({

@@ -1,6 +1,6 @@
-import {Box2} from '@/common-adapters/box'
+import {Box2} from './box'
 import * as Styles from '@/styles'
-import {timeline_grey} from '@/common-adapters/timeline-marker.meta'
+import {timeline_grey} from './timeline-marker.meta'
 
 const Kb = {
   Box2,

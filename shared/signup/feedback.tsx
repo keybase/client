@@ -1,9 +1,9 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import FeedbackForm from '@/settings/feedback/index'
-import {SignupScreen, errorBanner} from '@/signup/common'
-import {useSendFeedback} from '@/settings/feedback/shared'
+import FeedbackForm from '../settings/feedback/index'
+import {SignupScreen, errorBanner} from './common'
+import {useSendFeedback} from '../settings/feedback/shared'
 import {useConfigState} from '@/stores/config'
 
 const SignupFeedback = () => {

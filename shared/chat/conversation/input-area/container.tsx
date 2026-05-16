@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import {PerfProfiler} from '@/perf/react-profiler'
-import Normal from '@/chat/conversation/input-area/normal'
-import Preview from '@/chat/conversation/input-area/preview'
-import ThreadSearch from '@/chat/conversation/search'
-import {useThreadSearchRoute} from '@/chat/conversation/thread-search-route'
-import {useConversationThreadID, useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import Normal from './normal'
+import Preview from './preview'
+import ThreadSearch from '../search'
+import {useThreadSearchRoute} from '../thread-search-route'
+import {useConversationThreadID, useConversationThreadSelector} from '../thread-context'
 
 const InputAreaContainer = () => {
   const conversationIDKey = useConversationThreadID()

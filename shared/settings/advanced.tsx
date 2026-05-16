@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import {ProxySettings} from '@/settings/proxy'
+import {ProxySettings} from './proxy'
 import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/settings'
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
@@ -10,7 +10,7 @@ import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {pprofDir} from '@/constants/platform'
 import {clearLocalLogs} from '@/util/misc'
 import {useWaitingState} from '@/stores/waiting'
-import {useRandomPWState} from '@/settings/use-random-pw'
+import {useRandomPWState} from './use-random-pw'
 
 let initialUseNativeFrame: boolean | undefined
 

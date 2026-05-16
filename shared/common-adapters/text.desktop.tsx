@@ -1,9 +1,7 @@
-import type * as React from 'react'
 import * as Styles from '@/styles'
-import {linkTypes} from '@/common-adapters/text.shared'
+import {linkTypes} from './text.shared'
+import type {Props} from './text.shared'
 import './text.css'
-import type {Props} from '@/common-adapters/text.shared'
-
 
 export function Text(p: Props) {
   const type = p.type ?? 'BodySmall'

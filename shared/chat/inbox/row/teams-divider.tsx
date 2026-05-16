@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as RowSizes from '@/chat/inbox/row/sizes'
+import * as RowSizes from './sizes'
 
 type Props = {
   badgeCount?: number

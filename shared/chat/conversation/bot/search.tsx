@@ -5,7 +5,7 @@ import debounce from 'lodash/debounce'
 import * as T from '@/constants/types'
 import * as S from '@/constants/strings'
 import logger from '@/logger'
-import {Bot} from '@/chat/conversation/info-panel/bot'
+import {Bot} from '../info-panel/bot'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; teamID?: T.Teams.TeamID}

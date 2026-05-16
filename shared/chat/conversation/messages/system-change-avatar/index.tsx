@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import UserNotice from '@/chat/conversation/messages/user-notice'
+import UserNotice from '../user-notice'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {

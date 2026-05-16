@@ -1,5 +1,5 @@
 import type {CSSProperties} from 'react'
-import type {ViewStyle} from 'react-native'
+import type {TextStyle, ViewStyle} from 'react-native'
 
 export const urlEscapeFilePath = (path: string) => {
   if (path.startsWith('file://')) {
@@ -11,4 +11,4 @@ export const urlEscapeFilePath = (path: string) => {
 }
 
 export const castStyleDesktop = (style: unknown): CSSProperties | undefined => style as CSSProperties | undefined
-export const castStyleNative = (style: unknown): ViewStyle | undefined => style as ViewStyle | undefined
+export const castStyleNative = (style: unknown): (TextStyle & ViewStyle) | undefined => style as (TextStyle & ViewStyle) | undefined

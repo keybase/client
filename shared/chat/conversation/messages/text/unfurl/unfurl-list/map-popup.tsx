@@ -4,8 +4,8 @@ import * as T from '@/constants/types'
 import {openURL} from '@/util/misc'
 import LocationMap from '@/chat/location-map'
 import {useConfigState} from '@/stores/config'
-import {sendTextToConversation} from '@/chat/conversation/send-actions'
-import {useConversationMeta} from '@/chat/conversation/data-hooks'
+import {sendTextToConversation} from '../../../../send-actions'
+import {useConversationMeta} from '../../../../data-hooks'
 
 type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey

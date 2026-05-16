@@ -19,3 +19,5 @@ export default function InboxAndConversationNative(props: InboxAndConversationPr
     </>
   )
 }
+
+export type {ChatRootRouteParams} from '@/chat/inbox-and-conversation-shared'

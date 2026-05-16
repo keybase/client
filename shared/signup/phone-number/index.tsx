@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {SignupScreen, errorBanner} from '@/signup/common'
-import {useAddPhoneNumber} from '@/signup/phone-number/use-verification'
+import {SignupScreen, errorBanner} from '../common'
+import {useAddPhoneNumber} from './use-verification'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 
 type BodyProps = {

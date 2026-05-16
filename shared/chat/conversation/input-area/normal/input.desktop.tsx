@@ -2,19 +2,22 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as InputState from '@/chat/conversation/input-area/input-state'
-import SetExplodingMessagePopup from '@/chat/conversation/input-area/normal/set-explode-popup'
-import Typing from '@/chat/conversation/input-area/normal/typing'
+import * as InputState from '../input-state'
+import SetExplodingMessagePopup from './set-explode-popup'
+import Typing from './typing'
+import type {Props as InputLowLevelProps, TextInfo, RefType} from './input.shared'
+import type {PlatformInputProps as Props} from './input.shared'
+export type {Selection, RefType, TextInfo, PlatformInputProps} from './input.shared'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {formatDurationShort} from '@/util/timestamp'
-import {useSuggestors} from '@/chat/conversation/input-area/suggestors'
+import {useSuggestors} from '../suggestors'
 import {ScrollContext} from '@/chat/conversation/normal/context'
 import {getTextStyle} from '@/common-adapters/text.styles'
 import {useColorScheme} from 'react-native'
 import KB2 from '@/util/electron.desktop'
-import {useConversationThreadID} from '@/chat/conversation/thread-context'
-import type {Props as InputLowLevelProps, TextInfo, RefType, PlatformInputProps as Props} from '@/chat/conversation/input-area/normal/input.shared'
+import {useConversationThreadID} from '../../thread-context'
+
 const {getPathForFile} = KB2.functions
 
 const maybeParseInt = (input: string | number, radix: number): number =>
@@ -675,5 +678,3 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 export default PlatformInput
-
-export type * from '@/chat/conversation/input-area/normal/input.shared'

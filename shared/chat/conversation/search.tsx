@@ -7,14 +7,14 @@ import * as Kb from '@/common-adapters'
 import {RPCError} from '@/util/errors'
 import {formatTimeForMessages} from '@/util/timestamp'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useConversationCenter} from '@/chat/conversation/center-context'
-import {cancelActiveThreadSearchRPC, searchInboxRPC} from '@/chat/search-rpc'
+import {useConversationCenter} from './center-context'
+import {cancelActiveThreadSearchRPC, searchInboxRPC} from '../search-rpc'
 import {
   useConversationThreadID,
   useConversationThreadSelector,
   useConversationThreadToggleSearch,
-} from '@/chat/conversation/thread-context'
-import {useThreadSearchRoute} from '@/chat/conversation/thread-search-route'
+} from './thread-context'
+import {useThreadSearchRoute} from './thread-search-route'
 
 type OwnProps = {style?: Styles.StylesCrossPlatform}
 type CommonProps = OwnProps & {

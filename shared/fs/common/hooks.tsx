@@ -15,20 +15,20 @@ import {
   makeEntry,
   makePathItemsFromDirents,
   updatePathItem,
-} from '@/fs/common/rpc-state'
+} from './rpc-state'
 import {
   useFsErrorActionOrThrow,
   useFsRedbarActions,
   useFsSoftErrorActions,
   useFsSoftErrors,
-} from '@/fs/common/error-state'
+} from './error-state'
 import {
   finishedDownloadWithIntentMobile as finishedDownloadWithIntentInPlatform,
   finishedRegularDownloadMobile as finishedRegularDownloadInPlatform,
 } from '@/stores/fs-platform'
 import {requestPermissionsToWrite} from '@/util/platform-specific'
-import {clientID as fsClientID, makeUUID} from '@/fs/common/client'
-import {useFsDaemonActions, useKbfsDaemonStatus} from '@/fs/common/daemon'
+import {clientID as fsClientID, makeUUID} from './client'
+import {useFsDaemonActions, useKbfsDaemonStatus} from './daemon'
 
 const isPathItem = (path: T.FS.Path) => T.FS.getPathLevel(path) > 2 || FS.hasSpecialFileElement(path)
 

@@ -4,9 +4,15 @@ import * as React from 'react'
 import * as C from '@/constants'
 import KB2 from '@/util/electron.desktop'
 import {useConfigState} from '@/stores/config'
-import type {RemoteComponentName} from '@/desktop/remote/remote-component.desktop'
+import type {RemoteComponentName} from './remote-component.desktop'
 
 const {rendererNewProps} = KB2.functions
+
+// set this to true to see details of the serialization process
+const debugSerializer: boolean = __DEV__ && (false as boolean)
+if (debugSerializer) {
+  console.log('\n\n\n\n\n\nDEBUGGING REMOTE SERIALIZER')
+}
 
 export default function useSerializeProps<P extends object>(
   props: P,
@@ -23,6 +29,9 @@ export default function useSerializeProps<P extends object>(
   const throttledSend = C.useThrottledCallback(
     (nextPropsStr: string, forceUpdateVersion: number) => {
       if (nextPropsStr === lastSent.current && forceUpdateVersion === lastForceUpdate.current) return
+      if (debugSerializer) {
+        console.log('[useSerializeProps]: throttled send', nextPropsStr.length)
+      }
       rendererNewProps?.({propsStr: nextPropsStr, windowComponent, windowParam})
       lastSent.current = nextPropsStr
       lastForceUpdate.current = forceUpdateVersion

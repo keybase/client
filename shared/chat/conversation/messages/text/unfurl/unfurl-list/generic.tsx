@@ -1,8 +1,8 @@
 import * as Kb from '@/common-adapters/index'
 import * as T from '@/constants/types'
-import UnfurlImage from '@/chat/conversation/messages/text/unfurl/unfurl-list/image'
+import UnfurlImage from './image'
 import {formatTimeForMessages} from '@/util/timestamp'
-import {useActions} from '@/chat/conversation/messages/text/unfurl/unfurl-list/use-state'
+import {useActions} from './use-state'
 
 function UnfurlGeneric(p: {
   author: string

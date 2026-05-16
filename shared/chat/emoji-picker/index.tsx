@@ -169,7 +169,7 @@ const getSectionsAndBookmarks = (
   }
 
   getEmojiSections(emojisPerLine).forEach(section => {
-    const categoryIcon = emojiData.categoryIcons[section.title]
+    const categoryIcon = emojiData.categoryIcons[section.title] as Kb.IconType | undefined
     if (categoryIcon) {
       bookmarks.push({
         coveredSectionKeys: new Set([section.key]),

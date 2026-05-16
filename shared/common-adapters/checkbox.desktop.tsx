@@ -1,24 +1,10 @@
-import type {TextType} from '@/common-adapters/text.shared'
-import {Box2} from '@/common-adapters/box'
-import ClickableBox from '@/common-adapters/clickable-box'
-import Icon from '@/common-adapters/icon'
-import Text from '@/common-adapters/text'
+import {Box2} from './box'
+import ClickableBox from './clickable-box'
+import Icon from './icon'
+import Text from './text'
+import type {Props} from './checkbox.shared'
 import * as Styles from '@/styles'
 
-
-type Props = {
-  key?: string
-  label?: string | React.ReactNode
-  checkboxColor?: Styles.Color
-  checkboxStyle?: Styles.StylesCrossPlatform
-  labelComponent?: React.ReactNode
-  labelSubtitle?: string
-  labelType?: TextType
-  onCheck?: (newCheckedValue: boolean) => void
-  checked: boolean
-  style?: Styles.StylesCrossPlatform
-  disabled?: boolean
-}
 const Kb = {
   Box2,
   ClickableBox,

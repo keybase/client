@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-import classNames from '@/styles/class-names'
+import classNames from './class-names'
 
 test('joins string arguments and skips falsey values', () => {
   expect(classNames('alpha', undefined, false, '', null, 'beta')).toBe('alpha beta')

@@ -5,8 +5,8 @@ import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {pluralize} from '@/util/string'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {useChatTeamMembers} from '@/chat/conversation/team-hooks'
-import {useConversationMetadata} from '@/chat/conversation/data-hooks'
+import {useChatTeamMembers} from '../team-hooks'
+import {useConversationMetadata} from '../data-hooks'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; teamID: T.Teams.TeamID}
 

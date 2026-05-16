@@ -44,7 +44,7 @@ const cachedDecoders: Record<string, TextDecoder> = {
 export const uint8ArrayToString = (array: Uint8Array | ArrayBuffer, encoding = 'utf8'): string => {
   assertUint8ArrayOrArrayBuffer(array)
   cachedDecoders[encoding] ??= new globalThis.TextDecoder(encoding)
-  return cachedDecoders[encoding].decode(array)
+  return cachedDecoders[encoding]!.decode(array)
 }
 
 const base64UrlToBase64 = (base64url: string) => {

@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import WalletPopup from '@/wallets/wallet-popup'
+import WalletPopup from './wallet-popup'
 import {loadAccountsWaitingKey} from '@/constants/strings'
 import {copyToClipboard} from '@/util/storeless-actions'
 

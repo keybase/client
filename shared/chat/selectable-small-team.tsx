@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {FilteredTopLine} from '@/chat/top-line'
-import {BottomLine} from '@/chat/inbox/row/small-team'
-import {Avatars, TeamAvatar} from '@/chat/avatars'
+import {FilteredTopLine} from './top-line'
+import {BottomLine} from './inbox/row/small-team'
+import {Avatars, TeamAvatar} from './avatars'
 import type * as T from '@/constants/types'
 
 type Props = {

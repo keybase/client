@@ -108,7 +108,7 @@ export function resetWarnings<State extends CommonState>(state: State): State {
     ...state,
     errorMessage: '',
     warningMessage: '',
-  }
+  } as State
 }
 
 export function resetOutput<State extends CommonState>(state: State): State {
@@ -123,7 +123,7 @@ export function resetOutput<State extends CommonState>(state: State): State {
     outputStatus: undefined,
     outputType: undefined,
     outputValid: false,
-  }
+  } as State
 }
 
 export function beginRun<State extends CommonState>(state: State): State {
@@ -134,7 +134,7 @@ export function beginRun<State extends CommonState>(state: State): State {
     inProgress: true,
     outputStatus: 'pending',
     outputValid: false,
-  }
+  } as State
 }
 
 export function clearInputState<State extends CommonState>(state: State): State {
@@ -143,7 +143,7 @@ export function clearInputState<State extends CommonState>(state: State): State 
     input: '',
     inputType: 'text',
     outputValid: true,
-  }
+  } as State
 }
 
 export function nextInputState<State extends CommonState>(
@@ -157,7 +157,7 @@ export function nextInputState<State extends CommonState>(
     inputType: type,
     outputValid: state.input === value,
   }
-  return (type === 'file' ? resetOutput(next) : next)
+  return (type === 'file' ? resetOutput(next) : next) as State
 }
 
 export function nextOpenedFileState<State extends CommonState>(state: State, path: string): State {
@@ -165,7 +165,7 @@ export function nextOpenedFileState<State extends CommonState>(state: State, pat
     ...resetOutput(state),
     input: path,
     inputType: 'file',
-  }
+  } as State
 }
 
 export function useCommittedState<State>(createInitialState: () => State) {

@@ -77,3 +77,5 @@ export function HeaderLeftButton(hp: {
     />
   )
 }
+
+export type * from '@/common-adapters/header-buttons.shared'

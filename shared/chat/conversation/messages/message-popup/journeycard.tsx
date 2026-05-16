@@ -2,12 +2,12 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type * as React from 'react'
 import type {Position, StylesCrossPlatform} from '@/styles'
-import {dismissConversationJourneycard} from '@/chat/conversation/message-actions'
+import {dismissConversationJourneycard} from '../../message-actions'
 import {
   useConversationThreadDismissJourneycard,
   useConversationThreadID,
   useConversationThreadMessage,
-} from '@/chat/conversation/thread-context'
+} from '../../thread-context'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>

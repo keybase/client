@@ -7,7 +7,7 @@ import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
 import {metasReceived, participantInfoReceived} from '@/chat/inbox/metadata'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
-import {List} from '@/chat/conversation/input-area/suggestors/channels'
+import {List} from './channels'
 
 const mockCommonList = jest.fn((_p: unknown) => null)
 const mockUseChatTeamNames = jest.fn((teamIDs: ReadonlyArray<unknown>) => ({
@@ -130,7 +130,7 @@ afterEach(() => {
 test('channel suggestions load mutual teams when the suggestor mounts', async () => {
   jest.spyOn(T.RPCChat, 'localGetMutualTeamsLocalRpcPromise').mockResolvedValue({
     offline: false,
-    teamIDs: ['team-alpha', 'team-beta'],
+    teamIDs: ['team-alpha' as T.Teams.TeamID, 'team-beta' as T.Teams.TeamID],
   })
 
   renderChannels()

@@ -4,10 +4,10 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '@/fs/common'
-import ConversationList from '@/chat/send-to-chat/conversation-list/conversation-list'
-import ChooseConversation from '@/chat/send-to-chat/conversation-list/choose-conversation'
+import ConversationList from './conversation-list/conversation-list'
+import ChooseConversation from './conversation-list/choose-conversation'
 import {useCurrentUserState} from '@/stores/current-user'
-import {uploadAttachments} from '@/chat/conversation/attachment-actions'
+import {uploadAttachments} from '../conversation/attachment-actions'
 
 type Props = {
   canBack?: boolean

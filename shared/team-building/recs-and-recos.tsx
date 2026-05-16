@@ -1,11 +1,11 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import AlphabetIndex from '@/team-building/alphabet-index'
-import PeopleResult from '@/team-building/search-result/people-result'
-import UserResult from '@/team-building/search-result/user-result'
-import type * as Types from '@/team-building/types'
-import {ContactsImportButton} from '@/team-building/contacts'
+import AlphabetIndex from './alphabet-index'
+import PeopleResult from './search-result/people-result'
+import UserResult from './search-result/user-result'
+import type * as Types from './types'
+import {ContactsImportButton} from './contacts'
 
 type RefType = React.RefObject<Kb.SectionListRef<Types.ResultData, Types.SearchRecSection> | null>
 type TeamSoFar = ReadonlyArray<{userId: string}>

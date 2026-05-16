@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {BotCommandUpdateStatus} from '@/chat/conversation/input-area/suggestors/shared'
+import type {Props} from './suggestion-list.shared'
+import {BotCommandUpdateStatus} from './shared'
 import type {LegendListRef} from '@/common-adapters'
-import type {Props} from '@/chat/conversation/input-area/suggestors/suggestion-list.shared'
 
 const SuggestionList = <I,>(props: Props<I>) => {
   const listRef = React.useRef<LegendListRef>(null)

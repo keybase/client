@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {Wrapper, ContinueButton} from '@/login/signup/common'
+import {Wrapper, ContinueButton} from './common'
 import type {StaticScreenProps} from '@react-navigation/core'
 
 type Props = StaticScreenProps<{errorCode?: number; errorMessage?: string}>

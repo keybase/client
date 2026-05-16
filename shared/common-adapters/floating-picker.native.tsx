@@ -1,22 +1,11 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import SafeAreaView from '@/common-adapters/safe-area-view'
+import SafeAreaView from './safe-area-view'
 import {Picker} from '@react-native-picker/picker'
-import {Box2} from '@/common-adapters/box'
-import Popup from '@/common-adapters/popup'
-import Text from '@/common-adapters/text'
-type Props<T extends string | number = string> = {
-  header?: React.ReactNode
-  items: Array<{label: string; value: T}>
-  onCancel?: () => void
-  onDone?: () => void
-  onHidden: () => void
-  onSelect: (v: T | undefined) => void
-  prompt?: React.ReactNode
-  promptString?: string
-  selectedValue?: T
-  visible: boolean
-}
+import {Box2} from './box'
+import Popup from './popup'
+import Text from './text'
+import type {Props} from './floating-picker.shared'
 
 const Kb = {
   Box2,

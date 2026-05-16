@@ -2,5 +2,5 @@
 import '../desktop/renderer/globals.desktop'
 import {waitOnKB2Loaded} from '@/util/electron.desktop'
 waitOnKB2Loaded(() => {
-  import('@/tracker/main2.desktop').then(() => {}).catch(() => {})
+  import('./main2.desktop').then(() => {}).catch(() => {})
 })

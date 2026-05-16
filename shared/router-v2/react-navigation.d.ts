@@ -1,4 +1,4 @@
-import type {RootParamList as KBRootParamList} from '@/router-v2/route-params'
+import type {RootParamList as KBRootParamList} from './route-params'
 import type {PrivateValueStore} from '@react-navigation/core'
 
 declare module '@react-navigation/core' {

@@ -2,12 +2,12 @@ import * as C from '@/constants'
 import * as Teams from '@/constants/teams'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import UserNotice from '@/chat/conversation/messages/user-notice'
-import {getAddedUsernames} from '@/chat/conversation/messages/system-users-added-to-conv/container'
+import UserNotice from '../user-notice'
+import {getAddedUsernames} from '../system-users-added-to-conv/container'
 import {indefiniteArticle} from '@/util/string'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useChatTeamMembers} from '@/chat/conversation/team-hooks'
-import {useConversationShowInfoPanel, useConversationThreadID, useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import {useChatTeamMembers} from '../../team-hooks'
+import {useConversationShowInfoPanel, useConversationThreadID, useConversationThreadSelector} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemAddedToTeam}
 

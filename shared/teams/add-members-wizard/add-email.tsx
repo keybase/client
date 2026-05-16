@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {addMembersToWizard, type AddMembersWizard} from '@/teams/add-members-wizard/state'
+import {addMembersToWizard, type AddMembersWizard} from './state'
 
 type Props = {
   wizard: AddMembersWizard

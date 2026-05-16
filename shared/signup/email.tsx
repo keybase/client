@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {SignupScreen, errorBanner} from '@/signup/common'
+import {SignupScreen, errorBanner} from './common'
 import {useAddEmail} from '@/settings/account/use-add-email'
 import {usePushState} from '@/stores/push'
 import {setSignupEmail} from '@/people/signup-email'

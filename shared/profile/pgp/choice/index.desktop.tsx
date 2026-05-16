@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
 import Modal from '@/profile/modal'
-import {validatePgpInfo} from '@/profile/pgp/validation'
+import {validatePgpInfo} from '../validation'
 
 type GeneratePgpArgs = {
   pgpEmail1: string

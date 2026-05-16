@@ -7,8 +7,8 @@ import * as T from '@/constants/types'
 import * as React from 'react'
 import chunk from 'lodash/chunk'
 import {formatAudioRecordDuration, formatTimeForMessages} from '@/util/timestamp'
-import {infoPanelWidth} from '@/chat/conversation/info-panel/common'
-import {useMessagePopup} from '@/chat/conversation/messages/message-popup'
+import {infoPanelWidth} from './common'
+import {useMessagePopup} from '../messages/message-popup'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {RPCError} from '@/util/errors'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -17,7 +17,7 @@ import {
   attachmentDownloadMessage,
   messageAttachmentNativeShareMessage,
   showAttachmentPreview,
-} from '@/chat/conversation/attachment-actions'
+} from '../attachment-actions'
 
 type Props = {
   commonSections: ReadonlyArray<Section>

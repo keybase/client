@@ -1,6 +1,7 @@
 {
   "extends": ["./tsconfig.base.json", "./tsconfig.paths.desktop.json"],
   "compilerOptions": {
+    "moduleSuffixes": [".desktop", ""],
     "lib": ["ESNext", "dom"],
     "types": ["jest", "node", "webpack-env"],
     "outDir": "./.tsOuts/.tsOut-desktop/emit",

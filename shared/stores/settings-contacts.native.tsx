@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {addNotificationRequest} from 'react-native-kb'
 import logger from '@/logger'
-import type {State} from '@/stores/settings-contacts.shared'
+import type {Store, State} from './settings-contacts.shared'
 import {RPCError} from '@/util/errors'
 import * as Localization from 'expo-localization'
 import {getE164} from '@/util/phone-numbers'
@@ -14,8 +14,6 @@ import {navigateAppend} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useWaitingState} from '@/stores/waiting'
-
-type Store = Omit<State, 'dispatch'>
 
 const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
 
@@ -52,6 +50,8 @@ const nativeContactsToContacts = (contacts: Contacts.ContactResponse, countryCod
   }, [])
 }
 
+// When the notif is tapped we are only passed the message, use this as a marker
+// so we can handle it correctly.
 const contactNotifMarker = 'Your contact'
 const makeContactsResolvedMessage = (cts: T.Immutable<Array<T.RPCGen.ProcessedContact>>) => {
   if (cts.length === 0) {
@@ -156,6 +156,7 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
           return
         }
 
+        // get permissions if we haven't loaded them for some reason
         let {permissionStatus} = get()
         if (permissionStatus === 'unknown') {
           permissionStatus = (await Contacts.getPermissionsAsync()).status
@@ -173,6 +174,7 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
           return
         }
 
+        // feature enabled and permission granted
         let mapped: T.RPCChat.Keybase1.Contact[]
         let defaultCountryCode = ''
         try {
@@ -182,6 +184,8 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
 
           defaultCountryCode = Localization.getLocales()[0].regionCode?.toLowerCase() ?? ''
           if (__DEV__ && !defaultCountryCode) {
+            // behavior of parsing can be unexpectedly different with no country code.
+            // iOS sim + android emu don't supply country codes, so use this one.
             defaultCountryCode = 'us'
           }
           mapped = nativeContactsToContacts(_contacts, defaultCountryCode)

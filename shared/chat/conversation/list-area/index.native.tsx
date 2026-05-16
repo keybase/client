@@ -1,30 +1,30 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as Hooks from '@/chat/conversation/list-area/hooks'
+import * as Hooks from './hooks'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import Separator from '@/chat/conversation/messages/separator'
-import SpecialBottomMessage from '@/chat/conversation/messages/special-bottom-message'
-import SpecialTopMessage from '@/chat/conversation/messages/special-top-message'
-import type {ItemType} from '@/chat/conversation/list-area/index.shared'
+import Separator from '../messages/separator'
+import SpecialBottomMessage from '../messages/special-bottom-message'
+import SpecialTopMessage from '../messages/special-top-message'
+import type {ItemType} from './index.shared'
 import {FlatList} from 'react-native'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
-import {MessageRow} from '@/chat/conversation/messages/wrapper'
-import {mobileTypingContainerHeight} from '@/chat/conversation/input-area/normal/typing'
+import {MessageRow} from '../messages/wrapper'
+import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 // import {useChatDebugDump} from '@/constants/chat/debug'
-import {usingFlashList} from '@/chat/conversation/list-area/flashlist-config'
+import {usingFlashList} from './flashlist-config'
 import {PerfProfiler} from '@/perf/react-profiler'
-import {ScrollContext} from '@/chat/conversation/normal/context'
+import {ScrollContext} from '../normal/context'
 import noop from 'lodash/noop'
-import * as RowMetadata from '@/chat/conversation/messages/row-metadata'
-import {useConversationCenter} from '@/chat/conversation/center-context'
+import * as RowMetadata from '../messages/row-metadata'
+import {useConversationCenter} from '../center-context'
 import {
   useConversationThreadID,
   useConversationThreadLoadOlderMessagesDueToScroll,
   useConversationThreadSelector,
   useConversationThreadStore,
-} from '@/chat/conversation/thread-context'
-import {useThreadLoadStatusOptionsGetter} from '@/chat/conversation/thread-load-status-context'
+} from '../thread-context'
+import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
 // import {useDebugLayout} from '@/util/debug-react'
 
 // TODO if we bring flashlist back bring back the patch

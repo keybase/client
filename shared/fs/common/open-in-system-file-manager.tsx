@@ -1,12 +1,12 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import {useFsErrorActionOrThrow} from '@/fs/common/error-state'
-import SystemFileManagerIntegrationPopup from '@/fs/common/sfmi-popup'
+import {useFsErrorActionOrThrow} from './error-state'
+import SystemFileManagerIntegrationPopup from './sfmi-popup'
 import {
   useOpenPathInSystemFileManagerDesktop,
   useSystemFileManagerIntegration,
-} from '@/fs/common/sfmi'
+} from './sfmi'
 
 type Props = {path: T.FS.Path}
 

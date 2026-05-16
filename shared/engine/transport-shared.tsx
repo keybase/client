@@ -1,7 +1,7 @@
 // Classes used to handle RPCs. Ability to inject delays into calls to/from server
 import {printRPC, printRPCWaitingSession} from '@/local-debug'
 import {requestIdleCallback} from '@/util/idle-callback'
-import * as LocalConsole from '@/engine/local-console'
+import * as LocalConsole from './local-console'
 import {
   RPCTransport,
   type ErrorType,
@@ -9,7 +9,7 @@ import {
   type IncomingRPCCallbackType,
   type InvokeType,
   type PayloadType,
-} from '@/engine/rpc-transport'
+} from './rpc-transport'
 
 // Logging for rpcs
 function rpcLog(info: {method: string; reason: string; extra?: object; type: string}): void {
@@ -143,7 +143,7 @@ abstract class LocalTransport extends TransportShared {
 
 function sharedCreateClient(nativeTransport: TransportShared): {invoke: InvokeType; transport: TransportShared} {
   const rpcClient = {
-    invoke: nativeTransport.invoke.bind(nativeTransport),
+    invoke: nativeTransport.invoke.bind(nativeTransport) as InvokeType,
     transport: nativeTransport,
   }
 

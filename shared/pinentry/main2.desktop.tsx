@@ -1,9 +1,9 @@
 import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import type * as T from '@/constants/types'
-import Pinentry from '@/pinentry/index.desktop'
-import loadRemoteComponent from '@/desktop/remote/component-loader.desktop'
-import {getRemoteComponentParam, RemoteDarkModeSync} from '@/desktop/remote/remote-component.desktop'
+import Pinentry from './index.desktop'
+import loadRemoteComponent from '../desktop/remote/component-loader.desktop'
+import {getRemoteComponentParam, RemoteDarkModeSync} from '../desktop/remote/remote-component.desktop'
 
 export type ProxyProps = {
   cancelLabel?: string

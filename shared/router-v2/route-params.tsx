@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
-import type {routes, modalRoutes, loggedOutRoutes} from '@/router-v2/routes'
+import type {routes, modalRoutes, loggedOutRoutes} from './routes'
 
 // tsgo bug: StaticParamList is the idiomatic React Navigation equivalent of _ExtractParams,
 // but tsgo reports "TS2315: Type 'StaticParamList' is not generic" (works fine with regular tsc).

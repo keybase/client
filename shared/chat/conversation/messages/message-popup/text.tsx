@@ -6,16 +6,16 @@ import * as T from '@/constants/types'
 import type {Position, StylesCrossPlatform} from '@/styles'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {openURL} from '@/util/misc'
-import {replyPrivatelyToConversationMessage} from '@/chat/conversation/message-actions'
-import {useConversationMetadata} from '@/chat/conversation/data-hooks'
+import {replyPrivatelyToConversationMessage} from '../../message-actions'
+import {useConversationMetadata} from '../../data-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {
   useConversationThreadMessage,
   useConversationThreadMessageActions,
   useConversationThreadSelector,
-} from '@/chat/conversation/thread-context'
-import type {MessagePopupItems} from '@/chat/conversation/messages/message-popup/hooks'
-import {useHeader, useHeaderForMessage, useItems, useModeration, useStorelessItems} from '@/chat/conversation/messages/message-popup/hooks'
+} from '../../thread-context'
+import type {MessagePopupItems} from './hooks'
+import {useHeader, useHeaderForMessage, useItems, useModeration, useStorelessItems} from './hooks'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>

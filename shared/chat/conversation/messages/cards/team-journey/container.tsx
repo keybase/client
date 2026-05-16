@@ -4,7 +4,7 @@ import * as Teams from '@/constants/teams'
 import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {renderWelcomeMessage} from '@/chat/conversation/messages/cards/team-journey/util'
+import {renderWelcomeMessage} from './util'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {setMemberPublicity} from '@/teams/actions'
 import {useTeamsListMap} from '@/teams/use-teams-list'
@@ -14,7 +14,7 @@ import {
   useConversationThreadID,
   useConversationThreadMessage,
   useConversationThreadSelector,
-} from '@/chat/conversation/thread-context'
+} from '../../../thread-context'
 
 type Action = {label: string; onClick: () => void} | 'wave'
 type OwnProps = {ordinal: T.Chat.Ordinal}

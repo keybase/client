@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {useConversationMeta} from '@/chat/conversation/data-hooks'
+import {useConversationMeta} from './conversation/data-hooks'
 import logger from '@/logger'
 
 type Props = {

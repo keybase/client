@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {formatTimeForPopup} from '@/util/timestamp'
-import {mapChatJobs, mapKBFSJobs, updateChatProgress} from '@/settings/archive/job-state'
+import {mapChatJobs, mapKBFSJobs, updateChatProgress} from './job-state'
 
 const noConversationCommands = {
   typ: T.RPCChat.ConversationCommandGroupsTyp.none,

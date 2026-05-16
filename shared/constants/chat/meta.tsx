@@ -1,8 +1,8 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
-import {shallowEqual} from '@/constants/utils'
+import {shallowEqual} from '../utils'
 import * as T from '@/constants/types'
 import * as Teams from '@/constants/teams'
-import * as Message from '@/constants/chat/message'
+import * as Message from './message'
 import {base64ToUint8Array, uint8ArrayToHex} from '@/util/uint8array'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -406,17 +406,17 @@ export const makeConversationMeta = (): T.Chat.ConversationMeta => ({
   retentionPolicy: Teams.makeRetentionPolicy(),
   snippet: '',
   snippetDecorated: undefined,
-  snippetDecoration: T.RPCChat.SnippetDecoration.none,
-  status: T.RPCChat.ConversationStatus.unfiled,
+  snippetDecoration: T.RPCChat.SnippetDecoration.none as T.RPCChat.SnippetDecoration,
+  status: T.RPCChat.ConversationStatus.unfiled as T.RPCChat.ConversationStatus,
   supersededBy: T.Chat.noConversationIDKey,
   supersedes: T.Chat.noConversationIDKey,
   teamID: '',
   teamRetentionPolicy: Teams.makeRetentionPolicy(),
-  teamType: 'adhoc',
+  teamType: 'adhoc' as T.Chat.TeamType,
   teamname: '',
   timestamp: 0,
   tlfname: '',
-  trustedState: 'untrusted',
+  trustedState: 'untrusted' as T.Chat.MetaTrustedState,
   wasFinalizedBy: '',
 })
 

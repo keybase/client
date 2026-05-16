@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useFsPathItem} from '@/fs/common/hooks'
+import {useFsPathItem} from './hooks'
 
 type Props = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource

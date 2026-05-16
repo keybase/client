@@ -4,8 +4,9 @@ import * as React from 'react'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as T from '@/constants/types'
 import {SignupScreen} from '@/signup/common'
+import type {ButtonType} from '@/common-adapters/button'
 import {enterResetPipeline} from '@/login/reset/account-reset'
-import {startRecoverPassword, submitRecoverPasswordReset} from '@/login/recover-password/flow'
+import {startRecoverPassword, submitRecoverPasswordReset} from './flow'
 
 export type Props = {
   resetPassword?: boolean
@@ -48,7 +49,7 @@ const PromptReset = (props: Props) => {
         {
           label: props.resetPassword ? 'Send a link' : 'Start account reset',
           onClick: onContinue,
-          type: 'Default',
+          type: 'Default' as ButtonType,
           waitingKey: C.waitingKeyAutoresetEnterPipeline,
         },
       ]}

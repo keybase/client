@@ -203,3 +203,5 @@ const styles = {
   },
 } as const
 
+
+export type * from '@/common-adapters/box.shared'

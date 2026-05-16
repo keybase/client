@@ -9,7 +9,7 @@ import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {LoadedTeamProvider, useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {LoadedTeamProvider, useLoadedTeam} from '../use-loaded-team'
 
 type Props = {
   teamID: T.Teams.TeamID

@@ -2,15 +2,15 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as Crypto from '@/constants/crypto'
 import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
-import cryptoTeamBuilder from '@/team-building/page'
-import {TeamBuilderScreen} from '@/team-building/page'
+import cryptoTeamBuilder from '../team-building/page'
+import {TeamBuilderScreen} from '../team-building/page'
 import type {StaticScreenProps} from '@react-navigation/core'
 import {defineRouteMap} from '@/constants/types/router'
 import type {
   CommonOutputRouteParams,
   CryptoInputRouteParams,
-} from '@/crypto/helpers'
-import type {CryptoTeamBuilderResult, EncryptOutputRouteParams, EncryptRouteParams} from '@/crypto/encrypt'
+} from './helpers'
+import type {CryptoTeamBuilderResult, EncryptOutputRouteParams, EncryptRouteParams} from './encrypt'
 
 type CryptoTeamBuilderRouteParams = Parameters<typeof cryptoTeamBuilder.screen>[0]['route']['params'] & {
   teamBuilderNonce?: string
@@ -18,56 +18,56 @@ type CryptoTeamBuilderRouteParams = Parameters<typeof cryptoTeamBuilder.screen>[
 }
 
 const DecryptInputScreen = React.lazy(async () => {
-  const {DecryptInput} = await import('@/crypto/decrypt')
+  const {DecryptInput} = await import('./decrypt')
   return {
     default: (_p: StaticScreenProps<CryptoInputRouteParams>) => <DecryptInput />,
   }
 })
 
 const EncryptInputScreen = React.lazy(async () => {
-  const {EncryptInput} = await import('@/crypto/encrypt')
+  const {EncryptInput} = await import('./encrypt')
   return {
     default: (_p: StaticScreenProps<EncryptRouteParams>) => <EncryptInput />,
   }
 })
 
 const SignInputScreen = React.lazy(async () => {
-  const {SignInput} = await import('@/crypto/sign')
+  const {SignInput} = await import('./sign')
   return {
     default: (_p: StaticScreenProps<CryptoInputRouteParams>) => <SignInput />,
   }
 })
 
 const VerifyInputScreen = React.lazy(async () => {
-  const {VerifyInput} = await import('@/crypto/verify')
+  const {VerifyInput} = await import('./verify')
   return {
     default: (_p: StaticScreenProps<CryptoInputRouteParams>) => <VerifyInput />,
   }
 })
 
 const DecryptOutputScreen = React.lazy(async () => {
-  const {DecryptOutput} = await import('@/crypto/decrypt')
+  const {DecryptOutput} = await import('./decrypt')
   return {
     default: (p: StaticScreenProps<CommonOutputRouteParams>) => <DecryptOutput route={p.route} />,
   }
 })
 
 const EncryptOutputScreen = React.lazy(async () => {
-  const {EncryptOutput} = await import('@/crypto/encrypt')
+  const {EncryptOutput} = await import('./encrypt')
   return {
     default: (p: StaticScreenProps<EncryptOutputRouteParams>) => <EncryptOutput route={p.route} />,
   }
 })
 
 const SignOutputScreen = React.lazy(async () => {
-  const {SignOutput} = await import('@/crypto/sign')
+  const {SignOutput} = await import('./sign')
   return {
     default: (p: StaticScreenProps<CommonOutputRouteParams>) => <SignOutput route={p.route} />,
   }
 })
 
 const VerifyOutputScreen = React.lazy(async () => {
-  const {VerifyOutput} = await import('@/crypto/verify')
+  const {VerifyOutput} = await import('./verify')
   return {
     default: (p: StaticScreenProps<CommonOutputRouteParams>) => <VerifyOutput route={p.route} />,
   }
@@ -116,7 +116,7 @@ export const newRoutes = defineRouteMap({
   },
   cryptoRoot: {
     getOptions: C.isMobile ? {title: 'Crypto'} : {title: 'Crypto tools'},
-    screen: React.lazy(async () => import('@/crypto/sub-nav')),
+    screen: React.lazy(async () => import('./sub-nav')),
   },
 })
 

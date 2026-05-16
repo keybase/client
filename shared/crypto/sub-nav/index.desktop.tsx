@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Crypto from '@/constants/crypto'
 import * as Common from '@/router-v2/common.desktop'
-import LeftNav from '@/crypto/sub-nav/left-nav.desktop'
+import LeftNav from './left-nav.desktop'
 import {
   useNavigationBuilder,
   TabRouter,
@@ -18,26 +18,26 @@ import {defineRouteMap} from '@/constants/types/router'
 const cryptoSubRoutes = defineRouteMap({
   [Crypto.decryptTab]: {
     screen: React.lazy(async () => {
-      const {DecryptIO} = await import('@/crypto/decrypt')
+      const {DecryptIO} = await import('../decrypt')
       return {default: DecryptIO}
     }),
   },
   [Crypto.encryptTab]: {
     screen: React.lazy(async () => {
-      const {EncryptIO} = await import('@/crypto/encrypt')
+      const {EncryptIO} = await import('../encrypt')
       return {default: EncryptIO}
     }),
   },
   [Crypto.signTab]: {
     screen: React.lazy(async () => {
-      const {SignIO} = await import('@/crypto/sign')
+      const {SignIO} = await import('../sign')
       return {default: SignIO}
     }),
   },
 
   [Crypto.verifyTab]: {
     screen: React.lazy(async () => {
-      const {VerifyIO} = await import('@/crypto/verify')
+      const {VerifyIO} = await import('../verify')
       return {default: VerifyIO}
     }),
   },

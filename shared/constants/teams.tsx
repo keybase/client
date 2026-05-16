@@ -1,4 +1,4 @@
-import * as T from '@/constants/types'
+import * as T from './types'
 import invert from 'lodash/invert'
 
 export const makeRetentionPolicy = (
@@ -149,7 +149,7 @@ export const emptyInviteInfo = Object.freeze<T.Teams.InviteInfo>({
   username: '',
 })
 
- 
+/* eslint-disable sort-keys */
 const teamRoleToCompare = {
   owner: 6,
   admin: 5,
@@ -159,18 +159,18 @@ const teamRoleToCompare = {
   restrictedbot: 1,
   none: 0,
 }
- 
+/* eslint-enable sort-keys */
 export const compareTeamRoles = (a: T.Teams.MaybeTeamRoleType, b: T.Teams.MaybeTeamRoleType) => {
   return teamRoleToCompare[b] - teamRoleToCompare[a]
 }
 
- 
+/* eslint-disable sort-keys */
 const activityLevelToCompare = {
   active: 2,
   recently: 1,
   none: 0,
 }
- 
+/* eslint-enable sort-keys */
 export const compareActivityLevels = (
   a: T.Teams.ActivityLevel | undefined,
   b: T.Teams.ActivityLevel | undefined

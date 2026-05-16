@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {InfoIcon} from '@/signup/common'
+import {InfoIcon} from './common'
 import {usePushState} from '@/stores/push'
 import {setSignupEmail} from '@/people/signup-email'
 import {defineRouteMap} from '@/constants/types/router'
@@ -44,7 +44,7 @@ const PhoneSkipButton = () => {
 export const newRoutes = defineRouteMap({
   signupEnterDevicename: {
     getOptions: {title: 'Name this device'},
-    screen: React.lazy(async () => import('@/signup/device-name')),
+    screen: React.lazy(async () => import('./device-name')),
   },
   signupEnterUsername: {
     getOptions: {
@@ -60,11 +60,11 @@ export const newRoutes = defineRouteMap({
       ),
       title: 'Create account',
     },
-    screen: React.lazy(async () => import('@/signup/username')),
+    screen: React.lazy(async () => import('./username')),
   },
   signupSendFeedbackLoggedOut: {
     getOptions: {title: 'Send feedback'},
-    screen: React.lazy(async () => import('@/signup/feedback')),
+    screen: React.lazy(async () => import('./feedback')),
   },
 })
 
@@ -72,18 +72,18 @@ export const newRoutes = defineRouteMap({
 export const newModalRoutes = defineRouteMap({
   signupEnterEmail: {
     getOptions: {headerLeft: () => null, headerRight: () => <EmailSkipButton />, title: 'Your email address'},
-    screen: React.lazy(async () => import('@/signup/email')),
+    screen: React.lazy(async () => import('./email')),
   },
   signupEnterPhoneNumber: {
     getOptions: {headerLeft: () => null, headerRight: () => <PhoneSkipButton />, title: 'Your phone number'},
-    screen: React.lazy(async () => import('@/signup/phone-number')),
+    screen: React.lazy(async () => import('./phone-number')),
   },
   signupSendFeedbackLoggedIn: {
     getOptions: {title: 'Send feedback'},
-    screen: React.lazy(async () => import('@/signup/feedback')),
+    screen: React.lazy(async () => import('./feedback')),
   },
   signupVerifyPhoneNumber: {
     getOptions: {title: 'Verify phone number'},
-    screen: React.lazy(async () => import('@/signup/phone-number/verify')),
+    screen: React.lazy(async () => import('./phone-number/verify')),
   },
 })

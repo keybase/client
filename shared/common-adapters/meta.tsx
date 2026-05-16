@@ -1,7 +1,7 @@
-import {Box2} from '@/common-adapters/box'
-import Text from '@/common-adapters/text'
-import IconAuto from '@/common-adapters/icon-auto'
-import type {IconType} from '@/common-adapters/icon.constants-gen'
+import {Box2} from './box'
+import Text from './text'
+import IconAuto from './icon-auto'
+import type {IconType} from './icon.constants-gen'
 import * as Styles from '@/styles'
 
 type Props = {

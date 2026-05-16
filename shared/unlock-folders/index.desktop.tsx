@@ -1,10 +1,10 @@
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
-import DeviceList from '@/unlock-folders/device-list.desktop'
-import DragHeader from '@/desktop/remote/drag-header.desktop'
-import PaperKeyInput from '@/unlock-folders/paper-key-input.desktop'
-import Success from '@/unlock-folders/success.desktop'
-import type {UnlockFolderDevice} from '@/unlock-folders/store'
+import DeviceList from './device-list.desktop'
+import DragHeader from '../desktop/remote/drag-header.desktop'
+import PaperKeyInput from './paper-key-input.desktop'
+import Success from './success.desktop'
+import type {UnlockFolderDevice} from './store'
 
 type Phase = 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success'
 

@@ -1,14 +1,7 @@
 // https://github.com/jaredLunde/react-hook/blob/master/packages/intersection-observer/src/index.tsx
 import * as React from 'react'
-import type {MockIntersectionObserverEntry} from '@/util/use-intersection-observer.shared'
-export interface IntersectionObserverOptions {
-  root?: HTMLElement | null
-  pollInterval?: number | null
-  useMutationObserver?: boolean
-  rootMargin?: string
-  threshold?: number | number[]
-  initialIsIntersecting?: boolean
-}
+import type {IntersectionObserverOptions, MockIntersectionObserverEntry} from './use-intersection-observer.shared'
+
 function useIntersectionObserver<T extends HTMLElement = HTMLElement>(
   target: React.RefObject<T> | T | null,
   options: IntersectionObserverOptions = {}

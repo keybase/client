@@ -1,13 +1,13 @@
 // Types related to a message
-import type * as Common from '@/constants/types/chat/common'
+import type * as Common from './common'
 import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type * as RPCStellarTypes from '@/constants/rpc/rpc-stellar-gen'
-import type * as WalletTypes from '@/constants/types/wallets'
-import type * as TeamTypes from '@/constants/types/teams'
+import type * as WalletTypes from '../wallets'
+import type * as TeamTypes from '../teams'
 import type HiddenString from '@/util/hidden-string'
 import type * as T from '@/constants/types'
-import type {DeviceType} from '@/constants/types/devices'
-import type {ServiceIdWithContact} from '@/constants/types/team-building'
+import type {DeviceType} from '../devices'
+import type {ServiceIdWithContact} from '../team-building'
 import type {Opaque} from '@/constants/types/ts'
 
 // The actual ID the server uses for operations (edit, delete etc)

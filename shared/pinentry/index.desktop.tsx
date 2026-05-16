@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import DragHeader from '@/desktop/remote/drag-header.desktop'
+import DragHeader from '../desktop/remote/drag-header.desktop'
 
 export type Props = {
   onSubmit: (password: string) => void

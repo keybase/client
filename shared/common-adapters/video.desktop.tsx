@@ -1,17 +1,8 @@
 import * as React from 'react'
+import type {Props} from './video.shared'
 import * as Styles from '@/styles'
-import {useCheckURL} from '@/common-adapters/video.shared'
+import {useCheckURL} from './video.shared'
 
-
-type Props = {
-  hideControls?: boolean
-  onUrlError?: (err: string) => void
-  style?: Styles.StylesCrossPlatform
-  url: string
-  allowFile?: boolean
-  muted?: boolean
-  autoPlay?: boolean
-}
 const normalizeURL = (url: string) => {
   const isWindowsPath = /^[a-zA-Z]:[\\/]/.test(url)
   if (url.startsWith('/') || isWindowsPath) {

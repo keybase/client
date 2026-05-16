@@ -1,9 +1,10 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import UserCard from '@/login/user-card'
+import UserCard from '../user-card'
 import {errorBanner, SignupScreen} from '@/signup/common'
-import type {Props} from '@/login/relogin/index.shared'
+import type {Props} from './index.shared'
+
 const other = 'Someone else...'
 
 const UserRow = ({user, hasStoredSecret}: {user: string; hasStoredSecret: boolean}) => (

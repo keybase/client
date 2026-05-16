@@ -3,7 +3,7 @@ import {useSafeSubmit} from '@/util/safe-submit'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import debounce from 'lodash/debounce'
-import {SignupScreen, errorBanner} from '@/signup/common'
+import {SignupScreen, errorBanner} from '../signup/common'
 import * as Provision from '@/stores/provision'
 import * as T from '@/constants/types'
 

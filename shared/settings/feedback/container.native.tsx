@@ -5,11 +5,19 @@ import * as React from 'react'
 import Feedback from '.'
 import logger from '@/logger'
 import {Platform} from 'react-native'
-import {getExtraChatLogsForLogSend} from '@/settings/feedback/shared'
+import {getExtraChatLogsForLogSend} from './shared'
 import {isAndroid, version, pprofDir} from '@/constants/platform'
 import {logSend, appVersionName, appVersionCode} from 'react-native-kb'
+import type {Props as OwnProps} from './container.shared'
 import {usePushState} from '@/stores/push'
-import type {Props as OwnProps} from '@/settings/feedback/container.shared'
+
+export type Props = {
+  chat: object
+  feedback?: string
+  loggedOut: boolean
+  push: object
+  status: object
+}
 
 const mobileOsVersion = Platform.Version
 
@@ -93,5 +101,3 @@ const Connected = (ownProps: OwnProps) => {
 }
 
 export default Connected
-
-export type * from '@/settings/feedback/container.shared'

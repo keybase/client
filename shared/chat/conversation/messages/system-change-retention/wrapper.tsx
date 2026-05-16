@@ -1,5 +1,5 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
-import type SystemChangeRetentionType from '@/chat/conversation/messages/system-change-retention/container'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import type SystemChangeRetentionType from './container'
 
 function SystemChangeRetention(p: Props) {
   const {ordinal, isCenteredHighlight} = p

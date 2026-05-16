@@ -1,14 +1,10 @@
 import * as Styles from '@/styles'
+import type {Props} from './copyable-text.shared'
 
-
-type Props = {
-  value: string
-  style?: object
-}
 const CopyableText = ({value, style}: Props) => {
   return (
     <textarea
-      style={Styles.collapseStyles([styles.base, style])}
+      style={Styles.collapseStyles([styles.base, style]) as React.CSSProperties}
       readOnly={true}
       value={value}
       onClick={e => {

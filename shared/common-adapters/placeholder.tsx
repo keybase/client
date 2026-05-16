@@ -1,5 +1,5 @@
 import * as Styles from '@/styles'
-import {Box2} from '@/common-adapters/box'
+import {Box2} from './box'
 
 type PlaceholderProps = {
   style?: Styles.StylesCrossPlatform

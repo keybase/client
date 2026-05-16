@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-import {resetAllStores} from '@/util/zustand'
-import {useDarkModeState} from '@/stores/darkmode'
+import {resetAllStores} from '../../util/zustand'
+import {useDarkModeState} from '../darkmode'
 
 jest.mock('@/util/electron.desktop', () => ({
   __esModule: true,

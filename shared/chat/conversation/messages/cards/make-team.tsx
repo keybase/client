@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {useConversationThreadID} from '@/chat/conversation/thread-context'
+import {useConversationThreadID} from '../../thread-context'
 
 const MakeTeam = () => {
   const conversationIDKey = useConversationThreadID()

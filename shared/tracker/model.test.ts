@@ -6,7 +6,7 @@ import {
   updateTrackerDetailsReset,
   updateTrackerDetailsResult,
   updateTrackerDetailsRow,
-} from '@/tracker/model'
+} from './model'
 
 const makeIdentifyRow = (
   overrides: Partial<T.RPCGen.Identify3Row> = {}

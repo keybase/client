@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {type LayoutChangeEvent, View, Pressable, Text} from 'react-native'
-import {debugClear} from '@/util/debug'
+import {debugClear} from './debug'
 
 const ENABLE_UNMOUNT_ALL = __DEV__ && (false as boolean)
 
@@ -47,7 +47,7 @@ export const useUnmountAll = ENABLE_UNMOUNT_ALL
 
 export const useDebugLayout = __DEV__
   ? (cb?: () => void) => {
-      const sizeRef = React.useRef<[number, number]>([0, 0])
+      const sizeRef = React.useRef([0 as number, 0 as number] as const)
       return (e: LayoutChangeEvent) => {
         const height = e.nativeEvent.layout.height
         const width = e.nativeEvent.layout.width

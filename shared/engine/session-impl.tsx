@@ -3,11 +3,11 @@ import {
   type CustomResponseIncomingCallMap,
   type IncomingCallMapType,
 } from '@/constants/rpc/rpc-gen'
-import {rpcLog, type InvokeType} from '@/engine/index.platform'
-import {IncomingRequest, OutgoingRequest} from '@/engine/request'
+import {rpcLog, type InvokeType} from './index.platform'
+import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '@/util/errors'
-import {getEngine} from '@/engine/require'
-import type {SessionID, ResponseType, EndHandlerType, MethodKey} from '@/engine/types'
+import {getEngine} from './require'
+import type {SessionID, ResponseType, EndHandlerType, MethodKey} from './types'
 
 type WaitingKey = string | ReadonlyArray<string>
 
@@ -118,7 +118,7 @@ class Session {
   }
 
   // Start the session normally. Tells engine we're done at the end
-  start(method: MethodKey, param: object, callback: (() => void) | undefined) {
+  start(method: MethodKey, param: object | undefined, callback: (() => void) | undefined) {
     this._startMethod = method
     this._startCallback = callback
 
@@ -129,9 +129,8 @@ class Session {
       this.end()
     }
 
-    // Add the sessionID
     const wrappedParam = {
-      ...param,
+      ...(param ?? {}),
       sessionID: this.getId(),
     }
 
@@ -154,7 +153,7 @@ class Session {
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
-  incomingCall(method: keyof IncomingCallMapType, param: object, response?: ResponseType): boolean {
+  incomingCall(method: MethodKey, param: object, response?: ResponseType): boolean {
     rpcLog({
       extra: {
         id: this.getId(),
@@ -166,7 +165,7 @@ class Session {
       type: 'engineInternal',
     })
 
-    let handler = this._incomingCallMap[method] as
+    let handler = (this._incomingCallMap as {[key: string]: unknown})[method] as
       | undefined
       | ((param: object | undefined, request: ResponseType) => void)
 

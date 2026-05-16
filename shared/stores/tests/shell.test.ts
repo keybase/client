@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-import {defaultUseNativeFrame} from '@/constants/platform'
-import {useShellState} from '@/stores/shell'
+import {defaultUseNativeFrame} from '../../constants/platform'
+import {useShellState} from '../shell'
 
 const defaultWindowState = {
   dockHidden: false,

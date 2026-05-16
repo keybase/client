@@ -11,10 +11,10 @@ import ScrollView from '@/common-adapters/scroll-view'
 import {BottomSheetScrollView} from '@/common-adapters/popup/bottom-sheet'
 import ProgressIndicator from '@/common-adapters/progress-indicator'
 import {useOnMountOnce} from '@/constants/react'
+import type {MenuItem, MenuLayoutProps} from './index.shared'
 import {default as SafeAreaView, useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import noop from 'lodash/noop'
-import type {MenuItem, MenuLayoutProps, _InnerMenuItem} from '@/common-adapters/floating-menu/menu-layout/index.shared'
 
 const Kb = {
   Badge,
@@ -322,5 +322,3 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default MenuLayout
-
-export type * from '@/common-adapters/floating-menu/menu-layout/index.shared'

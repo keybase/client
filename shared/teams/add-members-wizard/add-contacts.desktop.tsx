@@ -1,4 +1,4 @@
-import type {AddMembersWizard} from '@/teams/add-members-wizard/state'
+import type {AddMembersWizard} from './state'
 
 const AddContacts = (_: {wizard: AddMembersWizard}) => null
 export default AddContacts

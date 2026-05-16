@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {Props} from '@/chat/pdf/index.shared'
+import type {Props} from './index.shared'
+
 const ChatPDF = (props: Props) => {
   const {url} = props
   const [error, setError] = React.useState('')

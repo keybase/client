@@ -5,11 +5,11 @@ import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import {isDarwin} from '@/constants/platform.desktop'
 import KB2 from '@/util/electron.desktop'
-import {configOverload} from '@/desktop/app/dynamic-config'
-import MainWindow from '@/desktop/app/main-window.desktop'
-import devTools from '@/desktop/app/dev-tools.desktop'
-import installer from '@/desktop/app/installer.desktop'
-import menuBar from '@/desktop/app/menu-bar.desktop'
+import {configOverload} from './dynamic-config'
+import MainWindow from './main-window.desktop'
+import devTools from './dev-tools.desktop'
+import installer from './installer.desktop'
+import menuBar from './menu-bar.desktop'
 import {makeEngine} from '@/engine'
 import {
   installCrashReporter,
@@ -23,8 +23,8 @@ import {
   registerOpenHandlers,
   registerPowerMonitorEvents,
   registerSecondInstanceHandler,
-} from '@/desktop/app/app-events.desktop'
-import {setupIPCHandlers} from '@/desktop/app/ipc-handlers.desktop'
+} from './app-events.desktop'
+import {setupIPCHandlers} from './ipc-handlers.desktop'
 
 type DeferredLaunch = {
   saltpackFilePath?: string

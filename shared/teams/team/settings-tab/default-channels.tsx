@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
 import {ChannelsWidget} from '@/teams/common'
-import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {useLoadedTeam} from '../use-loaded-team'
 
 type Props = {
   teamID: T.Teams.TeamID

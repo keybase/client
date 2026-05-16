@@ -1,6 +1,6 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
-import type SystemSBSResolvedType from '@/chat/conversation/messages/system-sbs-resolve/container'
-import type SystemJoinedType from '@/chat/conversation/messages/system-joined/container'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import type SystemSBSResolvedType from './container'
+import type SystemJoinedType from '../system-joined/container'
 import {useCurrentUserState} from '@/stores/current-user'
 
 function WrapperSystemInvite(p: Props) {

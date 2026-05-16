@@ -1,11 +1,11 @@
 import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
-import * as Common from '@/chat/conversation/input-area/suggestors/common'
+import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import {useUsersState} from '@/stores/users'
-import {useChatTeamMembers} from '@/chat/conversation/team-hooks'
+import {useChatTeamMembers} from '../../team-hooks'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
-import {useConversationMetadata} from '@/chat/conversation/data-hooks'
+import {useConversationMetadata} from '../../data-hooks'
 
 export const transformer = (
   input: {

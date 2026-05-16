@@ -1,7 +1,8 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {getAttachmentPreviewSize, maxWidth, maxHeight} from '@/chat/conversation/messages/attachment/shared'
-import type {Props} from '@/chat/conversation/messages/attachment/video/videoimpl.shared'
+import type {Props} from './videoimpl.shared'
+import {getAttachmentPreviewSize, maxWidth, maxHeight} from '../shared'
+
 // its important we use explicit height/width so we never CLS while loading
 const VideoImpl = (p: Props) => {
   const {allowPlay, message, openFullscreen} = p

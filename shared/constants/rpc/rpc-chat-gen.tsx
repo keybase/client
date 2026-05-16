@@ -2,9 +2,9 @@
 
 // This file is auto-generated. Run `yarn update-protocol` to regenerate it.
 import {getEngine as engine, getEngineListener} from '@/engine/require'
-import * as Gregor1 from '@/constants/rpc/rpc-gregor-gen'
-import * as Keybase1 from '@/constants/rpc/rpc-gen'
-import * as Stellar1 from '@/constants/rpc/rpc-stellar-gen'
+import * as Gregor1 from './rpc-gregor-gen'
+import * as Keybase1 from './rpc-gen'
+import * as Stellar1 from './rpc-stellar-gen'
 export {Gregor1}
 export {Keybase1}
 export {Stellar1}

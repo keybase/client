@@ -1,11 +1,6 @@
 import * as Styles from '@/styles'
+import type {Props} from './switch-toggle.shared'
 
-
-type Props = {
-  color: 'green' | 'blue' | 'red'
-  on: boolean
-  style?: Styles.StylesCrossPlatform
-}
 const SwitchToggle = (props: Props) => (
   <div
     style={
@@ -16,7 +11,7 @@ const SwitchToggle = (props: Props) => (
           paddingLeft: enabledOffset,
         },
         props.style,
-      ])
+      ]) as React.CSSProperties
     }
   >
     <div style={styles.inner} />

@@ -1,6 +1,6 @@
-import {themed as globalColors} from '@/styles/colors'
+import {themed as globalColors} from './colors'
 import {isMobile, isIOS, isAndroid, isTablet, isPhone, isElectron} from '@/constants/platform'
-import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from '@/styles/css'
+import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 import type {Background} from '@/common-adapters/text.shared'
 
  

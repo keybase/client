@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
-import * as Common from '@/chat/conversation/input-area/suggestors/common'
+import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConfigState} from '@/stores/config'
-import type {Selection as InputSelection} from '@/chat/conversation/input-area/normal/input'
-import {useConversationMeta} from '@/chat/conversation/data-hooks'
+import type {Selection as InputSelection} from '../normal/input.shared'
+import {useConversationMeta} from '../../data-hooks'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {
   return command.username ? '!' : '/'

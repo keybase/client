@@ -1,5 +1,6 @@
+import type {FeatureFlags} from './feature-flags.shared'
 import {featureFlagsOverride} from '@/local-debug.native'
-import type {FeatureFlags} from '@/util/feature-flags.shared'
+
 const features = featureFlagsOverride.split(',')
 
 const featureOn = (key: keyof FeatureFlags) => features.includes(key)

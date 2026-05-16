@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import UserNotice from '@/chat/conversation/messages/user-notice'
+import UserNotice from '../user-notice'
 import * as T from '@/constants/types'
 import * as dateFns from 'date-fns'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useChatTeam} from '@/chat/conversation/team-hooks'
-import {useConversationShowInfoPanel, useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import {useChatTeam} from '../../team-hooks'
+import {useConversationShowInfoPanel, useConversationThreadSelector} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemChangeRetention}
 

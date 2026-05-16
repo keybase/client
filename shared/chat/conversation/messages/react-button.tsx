@@ -1,13 +1,13 @@
 import * as C from '@/constants'
 import type {StylesCrossPlatform} from '@/styles'
-import {useOrdinal} from '@/chat/conversation/messages/ids-context'
+import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {colors, darkColors} from '@/styles/colors'
 import {useColorScheme} from 'react-native'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as T from '@/constants/types'
-import {useConversationThreadID, useConversationThreadMessage} from '@/chat/conversation/thread-context'
+import {useConversationThreadID, useConversationThreadMessage} from '../thread-context'
 
 export type OwnProps = {
   className?: string

@@ -1,3 +1,5 @@
+import type * as Styles from '@/styles'
+
 export type AnimationType =
   | 'darkMessageStatusEncrypting'
   | 'darkMessageStatusEncryptingExploding'
@@ -18,3 +20,12 @@ export type AnimationType =
   | 'spinner'
   | 'spinnerWhite'
   | 'typing'
+
+export type Props = {
+  animationType: AnimationType
+  className?: string
+  containerStyle?: Styles.StylesCrossPlatform
+  height?: number
+  style?: Styles.StylesCrossPlatform
+  width?: number
+}

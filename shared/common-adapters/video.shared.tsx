@@ -1,6 +1,7 @@
+import type * as Styles from '@/styles'
 import type * as React from 'react'
-import {Box2} from '@/common-adapters/box'
-import Text from '@/common-adapters/text'
+import {Box2} from './box'
+import Text from './text'
 
 const Kb = {
   Box2,
@@ -46,6 +47,16 @@ const isAllowedFilePath = (url: string, allowFile?: boolean) => {
 
 const urlIsOK = (url: string, allowFile?: boolean) =>
   isAllowedHostURL(url) || (hasAllowedChars(url) && isAllowedFilePath(url, allowFile))
+
+export type Props = {
+  hideControls?: boolean
+  onUrlError?: (err: string) => void
+  style?: Styles.StylesCrossPlatform
+  url: string
+  allowFile?: boolean
+  muted?: boolean
+  autoPlay?: boolean
+}
 
 export const useCheckURL = (children: React.ReactElement, url: string, allowFile?: boolean) => {
   const ok = urlIsOK(url, allowFile)

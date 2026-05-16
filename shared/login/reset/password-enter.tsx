@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
 import {useConfigState} from '@/stores/config'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {enterResetPipeline} from '@/login/reset/account-reset'
+import {enterResetPipeline} from './account-reset'
 
 type Props = {route: {params: {username: string}}}
 

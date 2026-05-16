@@ -23,7 +23,7 @@ jest.mock('@/stores/provision', () => ({
   },
 }))
 
-import {enterResetPipeline, startAccountReset, submitResetPrompt} from '@/login/reset/account-reset'
+import {enterResetPipeline, startAccountReset, submitResetPrompt} from './account-reset'
 
 const {navigateAppend: mockNavigateAppend, navUpToScreen: mockNavUpToScreen} = require('@/constants/router') as {
   navigateAppend: jest.Mock
@@ -63,13 +63,13 @@ test('enterResetPipeline exposes a submit handler for the confirm screen and sta
           complete: {hasWallet: true},
           t: T.RPCGen.ResetPromptType.complete,
         },
-      },
+      } as any,
       {result} as any
     )
     await new Promise<void>(resolve => {
       finishListener = resolve
     })
-    return undefined
+    return undefined as any
   })
 
   try {
@@ -132,13 +132,13 @@ test('submitResetPrompt sends cancel responses back to the login flow', async ()
           complete: {hasWallet: false},
           t: T.RPCGen.ResetPromptType.complete,
         },
-      },
+      } as any,
       {result} as any
     )
     await new Promise<void>(resolve => {
       finishListener = resolve
     })
-    return undefined
+    return undefined as any
   })
 
   try {
@@ -167,13 +167,13 @@ test('submitResetPrompt sends nothing responses back to the login flow', async (
           complete: {hasWallet: false},
           t: T.RPCGen.ResetPromptType.complete,
         },
-      },
+      } as any,
       {result} as any
     )
     await new Promise<void>(resolve => {
       finishListener = resolve
     })
-    return undefined
+    return undefined as any
   })
 
   try {
@@ -202,13 +202,13 @@ test('enterResetPipeline disposes an unconsumed reset prompt when the listener e
           complete: {hasWallet: false},
           t: T.RPCGen.ResetPromptType.complete,
         },
-      },
+      } as any,
       {result} as any
     )
     await new Promise<void>(resolve => {
       finishListener = resolve
     })
-    return undefined
+    return undefined as any
   })
 
   enterResetPipeline({username: 'alice'})

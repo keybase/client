@@ -1,13 +1,13 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {type Props} from '@/profile/edit-avatar/index.shared'
+import {type Props} from './index.shared'
 import {useNavigation} from '@react-navigation/native'
 import {launchImageLibraryAsync, type ImageInfo} from '@/util/expo-image-picker.native'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {CropZoom, type CropZoomRefType} from 'react-native-zoom-toolkit'
 import {ModalTitle} from '@/teams/common'
-import useHooks from '@/profile/edit-avatar/hooks'
+import useHooks from './hooks'
 
 const AvatarUploadWrapper = (p: Props) => {
   const {newTeamWizard} = p

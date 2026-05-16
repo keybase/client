@@ -6,8 +6,8 @@ import {useShellState} from '@/stores/shell'
 import {RPCError} from '@/util/errors'
 import {isMobile} from '@/constants/platform'
 import * as React from 'react'
-import {ensureInboxSearchMetas} from '@/chat/inbox/metadata'
-import {cancelActiveInboxSearchRPC, searchInboxRPC} from '@/chat/search-rpc'
+import {ensureInboxSearchMetas} from './metadata'
+import {cancelActiveInboxSearchRPC, searchInboxRPC} from '../search-rpc'
 
 export const inboxSearchMaxTextMessages = 25
 export const inboxSearchMaxTextResults = 50

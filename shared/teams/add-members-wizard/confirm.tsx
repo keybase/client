@@ -6,25 +6,25 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import capitalize from 'lodash/capitalize'
-import {FloatingRolePicker} from '@/teams/role-picker'
-import {useDefaultChannels} from '@/teams/team/settings-tab/default-channels'
-import {ChannelsWidget} from '@/teams/common'
+import {FloatingRolePicker} from '../role-picker'
+import {useDefaultChannels} from '../team/settings-tab/default-channels'
+import {ChannelsWidget} from '../common'
 import {pluralize} from '@/util/string'
 import logger from '@/logger'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {createNewTeamFromWizard} from '@/teams/new-team/wizard/state'
-import {onTeamCreated} from '@/teams/create-team-effects'
+import {createNewTeamFromWizard} from '../new-team/wizard/state'
+import {onTeamCreated} from '../create-team-effects'
 import {RPCError} from '@/util/errors'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
-import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {useLoadedTeam} from '../team/use-loaded-team'
 import {
   removeWizardMember,
   setWizardDefaultChannels,
   setWizardIndividualRole,
   setWizardRole,
   type AddMembersWizard,
-} from '@/teams/add-members-wizard/state'
+} from './state'
 
 type DisabledRoles = React.ComponentProps<typeof FloatingRolePicker>['disabledRoles']
 const disabledRolesForNonKeybasePlural = {

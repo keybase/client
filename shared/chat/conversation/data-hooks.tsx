@@ -11,8 +11,8 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {uint8ArrayToString} from '@/util/uint8array'
 import logger from '@/logger'
-import {loadThreadNonblock, markConversationRead} from '@/chat/conversation/thread-rpc'
-import {setConversationOrangeLine} from '@/chat/conversation/orange-line-context'
+import {loadThreadNonblock, markConversationRead} from './thread-rpc'
+import {setConversationOrangeLine} from './orange-line-context'
 
 const emptyConversationMeta = Meta.makeConversationMeta()
 const emptyParticipantInfo: T.Chat.ParticipantInfo = {

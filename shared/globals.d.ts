@@ -41,9 +41,4 @@ declare global {
   var rpcOnJs: undefined | ((objs: unknown, count: number) => void)
   // RN
   var __turboModuleProxy: unknown
-  // @types/react declares DataTransfer as empty; native builds need these for drag-and-drop code in shared files
-  interface DataTransfer {
-    types: ReadonlyArray<string>
-    files: Array<File>
-  }
 }

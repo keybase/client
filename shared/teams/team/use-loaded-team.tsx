@@ -3,8 +3,8 @@ import {useEngineActionListener} from '@/engine/action-listener'
 import logger from '@/logger'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
-import {useTeamsRoleMap} from '@/teams/use-teams-list'
-import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '@/teams/use-cached-resource'
+import {useTeamsRoleMap} from '../use-teams-list'
+import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../use-cached-resource'
 
 type LoadedTeam = {
   loading: boolean

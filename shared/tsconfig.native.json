@@ -1,6 +1,7 @@
 {
   "extends": ["./tsconfig.base.json", "./tsconfig.paths.native.json"],
   "compilerOptions": {
+    "moduleSuffixes": [".native", ""],
     "lib": ["ESNext"],
     "types": ["jest", "node"],
     "outDir": "./.tsOuts/.tsOut-native/emit",

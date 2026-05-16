@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as InputState from '@/chat/conversation/input-area/input-state'
+import * as InputState from './input-area/input-state'
 import {openAppSettings} from '@/util/storeless-actions'
 
 const empty = {

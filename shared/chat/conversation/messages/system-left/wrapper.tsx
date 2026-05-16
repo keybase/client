@@ -1,5 +1,5 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
-import type SystemLeftType from '@/chat/conversation/messages/system-left/container'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import type SystemLeftType from './container'
 
 function SystemLeft(p: Props) {
   const {ordinal, isCenteredHighlight} = p

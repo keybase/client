@@ -1,4 +1,6 @@
 import type * as React from 'react'
+import type {MenuLayoutProps, MenuItem} from './index.shared'
+export type {MenuItem, MenuItems, MenuLayoutProps, _InnerMenuItem} from './index.shared'
 import {Box2} from '@/common-adapters/box'
 import ClickableBox from '@/common-adapters/clickable-box'
 import Divider from '@/common-adapters/divider'
@@ -10,8 +12,6 @@ import Badge from '@/common-adapters/badge'
 import ProgressIndicator from '@/common-adapters/progress-indicator'
 import * as Styles from '@/styles'
 import './menu-layout.css'
-import type {MenuItem, MenuLayoutProps, _InnerMenuItem} from '@/common-adapters/floating-menu/menu-layout/index.shared'
-
 
 const MenuLayout = (props: MenuLayoutProps) => {
   const renderDivider = (index: number) => (
@@ -190,5 +190,3 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default MenuLayout
-
-export type * from '@/common-adapters/floating-menu/menu-layout/index.shared'

@@ -3,7 +3,7 @@
 
 import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
 import {act, cleanup, renderHook} from '@testing-library/react'
-import {useDebouncedCallback, useThrottledCallback} from '@/util/use-debounce'
+import {useDebouncedCallback, useThrottledCallback} from './use-debounce'
 
 const advance = (ms: number) => {
   act(() => {

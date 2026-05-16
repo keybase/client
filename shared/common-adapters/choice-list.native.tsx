@@ -1,23 +1,11 @@
-import type {IconType} from '@/common-adapters/icon.constants-gen'
-import {Box2} from '@/common-adapters/box'
-import ClickableBox from '@/common-adapters/clickable-box'
-import IconAuto from '@/common-adapters/icon-auto'
-import Text from '@/common-adapters/text'
+import {Box2} from './box'
+import ClickableBox from './clickable-box'
+import IconAuto from './icon-auto'
+import Text from './text'
 import * as React from 'react'
 import * as Styles from '@/styles'
+import type {Props} from './choice-list.shared'
 
-
-type Option = {
-  title: string
-  description: string
-  icon: IconType
-  onClick: () => void
-  onPress?: never
-}
-
-type Props = {
-  options: Array<Option>
-}
 const Kb = {Box2, ClickableBox, IconAuto, Text}
 
 const makeOptionsKey = (options: Props['options']) =>

@@ -1,9 +1,9 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {showAttachmentPreview} from '@/chat/conversation/attachment-actions'
-import {useConversationThreadID} from '@/chat/conversation/thread-context'
-import ImageImpl from '@/chat/conversation/messages/attachment/image/imageimpl'
+import {showAttachmentPreview} from '../../../attachment-actions'
+import {useConversationThreadID} from '../../../thread-context'
+import ImageImpl from './imageimpl'
 import {
   getAttachmentDisplayFileName,
   ShowToastAfterSaving,
@@ -12,7 +12,7 @@ import {
   Collapsed,
   Transferring,
   TransferIcon,
-} from '@/chat/conversation/messages/attachment/shared'
+} from '../shared'
 import {Keyboard} from 'react-native'
 
 type Props = {

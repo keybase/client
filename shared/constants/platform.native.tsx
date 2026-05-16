@@ -51,8 +51,8 @@ export const pathSep = '/'
 export const isIOS = Platform.OS === 'ios'
 export const isAndroid = !isIOS
 export const isMobile: boolean = true
-export const isTablet: boolean = Platform.OS === 'ios' && Platform.isPad
-export const isPhone: boolean = !isTablet
+export const isTablet = Platform.OS === 'ios' && Platform.isPad
+export const isPhone = !isTablet
 
 export const isDarwin: boolean = false
 export const isElectron: boolean = false
@@ -63,7 +63,7 @@ export const isMac: boolean = false
 export const getModKey = (_e: {metaKey: boolean; ctrlKey: boolean}): boolean => {
   return false
 }
-export const isDebuggingInChrome: boolean = typeof global.location !== 'undefined'
+export const isDebuggingInChrome = typeof location !== 'undefined'
 
 export const defaultUseNativeFrame = true
 export const fileUIName = 'File Explorer'
@@ -77,7 +77,7 @@ export const realDeviceName = Constants.deviceName ?? ''
 const windowHeight = Dimensions.get('window').height
 // isLargeScreen means you have at larger screen like iPhone 6,7 or Pixel
 // See https://material.io/devices/
-export const isLargeScreen: boolean = windowHeight >= 667
+export const isLargeScreen = windowHeight >= 667
 
 const _dir = `${fsCacheDir}/Keybase`
 export const logFileDir = _dir

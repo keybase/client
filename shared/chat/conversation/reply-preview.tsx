@@ -1,8 +1,8 @@
 import {zoomImage} from '@/constants/chat/helpers'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as InputState from '@/chat/conversation/input-area/input-state'
-import {useConversationThreadMessage} from '@/chat/conversation/thread-context'
+import * as InputState from './input-area/input-state'
+import {useConversationThreadMessage} from './thread-context'
 
 const ReplyPreview = () => {
   const rordinal = InputState.useConversationInput(s => s.replyTo)

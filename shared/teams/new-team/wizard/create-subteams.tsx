@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import * as C from '@/constants'
-import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from '@/teams/new-team/wizard/state'
+import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 

@@ -3,7 +3,7 @@ import * as TB from '@/stores/team-building'
 import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
 import type * as T from '@/constants/types'
-import ContinueButton from '@/team-building/continue-button'
+import ContinueButton from './continue-button'
 import {searchWaitingKey} from '@/constants/strings'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 

@@ -1,9 +1,9 @@
 import {Reloadable} from '@/common-adapters'
 import * as C from '@/constants'
-import Render from '@/settings/notifications/render'
-import useNotifications from '@/settings/notifications/hooks'
-import useNotificationSettings from '@/settings/notifications/use-notification-settings'
-import {loadSettings} from '@/settings/load-settings'
+import Render from './render'
+import useNotifications from './hooks'
+import useNotificationSettings from './use-notification-settings'
+import {loadSettings} from '../load-settings'
 
 const Notifications = () => {
   const notificationSettings = useNotificationSettings()

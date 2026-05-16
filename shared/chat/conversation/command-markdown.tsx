@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import * as InputState from '@/chat/conversation/input-area/input-state'
+import * as InputState from './input-area/input-state'
 
 const CommandMarkdown = () => {
   const md = InputState.useConversationInput(s => s.commandMarkdown)

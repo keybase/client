@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import PieSlice from '@/fs/common/pie-slice'
-import UploadIcon from '@/fs/common/upload-icon'
+import PieSlice from './pie-slice'
+import UploadIcon from './upload-icon'
 
 type Props = {
   isTlfType?: boolean

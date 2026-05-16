@@ -11,8 +11,8 @@ import * as ExpoLocation from 'expo-location'
 import {ignorePromise} from '@/constants/utils'
 import {openAppSettings} from '@/util/storeless-actions'
 import {setThreadInputCommandStatus} from '@/constants/router'
-import {sendTextToConversation} from '@/chat/conversation/send-actions'
-import {useConversationMeta} from '@/chat/conversation/data-hooks'
+import {sendTextToConversation} from '../send-actions'
+import {useConversationMeta} from '../data-hooks'
 
 const LocationButton = (props: {
   disabled: boolean

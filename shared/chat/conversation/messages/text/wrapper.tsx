@@ -1,11 +1,11 @@
 import * as Kb from '@/common-adapters'
-import {useReply} from '@/chat/conversation/messages/text/reply'
-import {useBottom} from '@/chat/conversation/messages/text/bottom'
-import {useOrdinal} from '@/chat/conversation/messages/ids-context'
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
+import {useReply} from './reply'
+import {useBottom} from './bottom'
+import {useOrdinal} from '../ids-context'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
 import type {StyleOverride} from '@/common-adapters/markdown'
-import {sharedStyles} from '@/chat/conversation/messages/shared-styles'
-import {useConversationCenter} from '@/chat/conversation/center-context'
+import {sharedStyles} from '../shared-styles'
+import {useConversationCenter} from '../../center-context'
 
 let _sentHighlighted: Kb.Styles.StylesCrossPlatform | undefined
 const getSentHighlighted = () => {
@@ -29,13 +29,13 @@ const getStyle = (
 
 function MessageMarkdown({style, text}: {style: Kb.Styles.StylesCrossPlatform; text: string}) {
   const ordinal = useOrdinal()
-  const styleOverride = Kb.Styles.isMobile ? ({paragraph: style} as StyleOverride) : undefined
+  const styleOverride = Kb.Styles.isMobile ? {paragraph: style} : undefined
 
   return (
     <Kb.Markdown
       messageType="text"
       style={style}
-      styleOverride={styleOverride}
+      styleOverride={styleOverride as StyleOverride}
       allowFontScaling={true}
       context={String(ordinal)}
     >

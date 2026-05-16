@@ -5,7 +5,7 @@ import {addTicker, removeTicker} from '@/util/second-timer'
 import * as C from '@/constants'
 import {useConfigState} from '@/stores/config'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {enterResetPipeline} from '@/login/reset/account-reset'
+import {enterResetPipeline} from './account-reset'
 import {formatDurationForAutoreset as formatDuration} from '@/util/timestamp'
 
 type Props = {endTime?: number; pipelineStarted: boolean; username: string}

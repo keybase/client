@@ -3,8 +3,7 @@
 // useRPC is exported as a re-export getter (non-configurable), so we mock the
 // module to make it a plain configurable property that jest.spyOn can wrap.
 jest.mock('@/constants', () => ({
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  ...(jest.requireActual('@/constants') as typeof import('@/constants')),
+  ...(jest.requireActual('@/constants') as object),
   useRPC: jest.fn(),
 }))
 
@@ -20,7 +19,7 @@ import {
   buildNotificationSavePayload,
   toggleNotificationGroup,
   default as useNotificationSettings,
-} from '@/settings/notifications/use-notification-settings'
+} from './use-notification-settings'
 
 const makeChatGlobalSettings = (settings: {[key: string]: boolean} = {}) =>
   ({settings} as T.RPCChat.GlobalAppNotificationSettings)
@@ -56,13 +55,7 @@ const makeSubscriptionsResponse = () =>
   }) as T.RPCGen.APIRes
 
 const snapshotGroups = (groups: UseNotificationSettingsResult['groups']) =>
-  [...groups.entries()].reduce<Record<
-      string,
-      {
-        settings: Array<{description: string; name: string; subscribed: boolean}>
-        unsub: boolean
-      }
-    >>(
+  [...groups.entries()].reduce(
     (acc, [group, value]) => ({
       ...acc,
       [group]: {
@@ -74,7 +67,13 @@ const snapshotGroups = (groups: UseNotificationSettingsResult['groups']) =>
         unsub: value.unsub,
       },
     }),
-    {}
+    {} as Record<
+      string,
+      {
+        settings: Array<{description: string; name: string; subscribed: boolean}>
+        unsub: boolean
+      }
+    >
   )
 
 afterEach(() => {

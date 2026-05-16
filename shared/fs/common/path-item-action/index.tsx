@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import ChooseView from '@/fs/common/path-item-action/choose-view'
+import ChooseView from './choose-view'
 import type {SizeType} from '@/common-adapters/icon'
 import * as FS from '@/constants/fs'
 

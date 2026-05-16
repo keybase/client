@@ -1,12 +1,9 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import Header from '@/router-v2/header/index.desktop'
+import Header from './header/index.desktop'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
-import {TabActions, type NavigationContainerRef} from '@react-navigation/core'
-import type {ParamListBase} from '@react-navigation/native'
-import type {NavState} from '@/constants/router'
-
-type SubnavNavigation = Pick<NavigationContainerRef<ParamListBase>, 'dispatch' | 'emit'>
+import {TabActions} from '@react-navigation/core'
+import type {useSubnavTabAction as useSubnavTabActionType} from './common.shared'
 
 export const headerDefaultStyle = {}
 export const tabBarStyle = {
@@ -45,7 +42,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export const useSubnavTabAction = (navigation: SubnavNavigation, state: NavState) => {
+export const useSubnavTabAction: useSubnavTabActionType = (navigation, state) => {
   const routesRef = React.useRef(state?.routes)
   const stateKeyRef = React.useRef(state?.key)
   React.useEffect(() => {

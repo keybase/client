@@ -3,9 +3,9 @@ import * as R from '@/constants/remote'
 import * as Electron from 'electron'
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import flags from '@/util/feature-flags'
-import {closeWindows} from '@/desktop/app/main-window.desktop'
+import {closeWindows} from './main-window.desktop'
 import {isDarwin, isLinux} from '@/constants/platform'
-import {ctlQuit} from '@/desktop/app/ctl.desktop'
+import {ctlQuit} from './ctl.desktop'
 
 const reallyQuit = () => {
   closeWindows()

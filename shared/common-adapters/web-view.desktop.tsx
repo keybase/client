@@ -1,9 +1,9 @@
 import * as React from 'react'
-import type {WebViewProps} from '@/common-adapters/web-view.shared'
+import type {WebViewProps} from './web-view.shared'
+export type {WebViewProps, WebViewInjections} from './web-view.shared'
 // this class isn't used at all afaik
 
 // not properly exposed in electron yet
-
 type WebviewTag = ReturnType<Document['createElement']>
 
 const WebView = (props: WebViewProps) => {
@@ -39,5 +39,3 @@ const WebView = (props: WebViewProps) => {
 }
 
 export default WebView
-
-export type * from '@/common-adapters/web-view.shared'

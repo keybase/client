@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import useContacts, {type Contact as _Contact} from '@/teams/common/use-contacts.native'
+import useContacts, {type Contact as _Contact} from './use-contacts.native'
 import {mapGetEnsureValue} from '@/util/map'
 
 type Item = Contact
@@ -161,5 +161,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 // convenience exports of stuff likely used with this component
 export type Contact = _Contact
 export {useContacts}
-export {default as EnableContactsPopup} from '@/teams/common/enable-contacts'
+export {default as EnableContactsPopup} from './enable-contacts'
 export default ContactsList

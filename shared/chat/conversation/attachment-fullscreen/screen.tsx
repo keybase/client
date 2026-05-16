@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import * as React from 'react'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
-import Full from '@/chat/conversation/attachment-fullscreen/index.shared'
-import {takeAttachmentPreviewMessage} from '@/chat/conversation/attachment-actions'
+import Full from '.'
+import {takeAttachmentPreviewMessage} from '../attachment-actions'
 
 type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey

@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useMessagePopup} from '@/chat/conversation/messages/message-popup'
-import type {Props} from '@/chat/conversation/attachment-fullscreen/index.shared'
-import {useData, usePreviewFallback} from '@/chat/conversation/attachment-fullscreen/hooks'
+import {useMessagePopup} from '../messages/message-popup'
+import type {Props} from './index.shared'
+import {useData, usePreviewFallback} from './hooks'
 import type {StyleOverride} from '@/common-adapters/markdown'
 
 type ArrowProps = {

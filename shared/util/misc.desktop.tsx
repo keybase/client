@@ -1,7 +1,7 @@
 import logger from '@/logger'
 import {navigateAppend} from '@/constants/router'
 import debounce from 'lodash/debounce'
-import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '@/util/electron.desktop'
+import KB2, {type OpenDialogOptions, type SaveDialogOptions} from './electron.desktop'
 
 const {openURL: openURLImpl, showOpenDialog, showSaveDialog} = KB2.functions
 

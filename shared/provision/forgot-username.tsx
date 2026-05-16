@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {SignupScreen, errorBanner} from '@/signup/common'
+import {SignupScreen, errorBanner} from '../signup/common'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'

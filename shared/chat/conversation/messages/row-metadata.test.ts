@@ -6,7 +6,7 @@ import {
   getMessageRowType,
   getMessageShowUsername,
   getPreviousOrdinal,
-} from '@/chat/conversation/messages/row-metadata'
+} from './row-metadata'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const outboxID = T.Chat.stringToOutboxID('outbox-1')

@@ -55,7 +55,7 @@ export const desktopTabMeta = {
   [settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
   [teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
 
-   
+  // eslint-disable-next-line
   [loginTab]: undefined,
   [searchTab]: undefined,
 } as const

@@ -4,7 +4,7 @@ import * as SM from '@khanacademy/simple-markdown'
 import {BareErrorBoundary} from '@/common-adapters/error-boundary'
 import Text from '@/common-adapters/text'
 import logger from '@/logger'
-import {emojiIndexByChar, emojiRegex, commonTlds} from '@/common-adapters/markdown/emoji-gen'
+import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
 import {
   reactOutput,
   previewOutput,
@@ -12,7 +12,7 @@ import {
   markdownStyles,
   serviceOnlyOutput,
   serviceOnlyNoWrapOutput,
-} from '@/common-adapters/markdown/react'
+} from './react'
 import type * as T from '@/constants/types'
 import type {StylesTextCrossPlatform, LineClampType} from '@/common-adapters/text.shared'
 

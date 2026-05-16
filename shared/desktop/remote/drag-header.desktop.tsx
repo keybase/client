@@ -24,7 +24,7 @@ const DragHeader = (props: Props) => {
             maybeWindowDraggingStyle,
             styles.defaultContainer,
             props.style,
-          ])
+          ]) as React.CSSProperties
         }
       >
         {props.children}
@@ -48,7 +48,7 @@ const DragHeader = (props: Props) => {
             maybeWindowDraggingStyle,
             styles.strongContainer,
             props.style,
-          ])
+          ]) as React.CSSProperties
         }
       >
         {props.title && (

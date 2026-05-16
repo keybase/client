@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import AudioVideo from '@/chat/audio/audio-video'
+import AudioVideo from './audio-video'
 import {formatAudioRecordDuration} from '@/util/timestamp'
 
 type VisProps = {

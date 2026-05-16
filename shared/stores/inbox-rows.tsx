@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as Common from '@/constants/chat/common'
 import * as Z from '@/util/zustand'
-import {useCurrentUserState} from '@/stores/current-user'
+import {useCurrentUserState} from './current-user'
 import {shallowEqual} from '@/constants/utils'
 
 export type InboxRowBig = {

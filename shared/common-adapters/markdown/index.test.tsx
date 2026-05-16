@@ -5,7 +5,7 @@ import {expect, test} from '@jest/globals'
 import {fireEvent} from '@testing-library/dom'
 import {render, screen} from '@testing-library/react'
 import * as T from '@/constants/types'
-import Markdown, {getMarkdownOutputKind, isAllEmoji, parseMarkdown, shouldUseParser} from '@/common-adapters/markdown/index'
+import Markdown, {getMarkdownOutputKind, isAllEmoji, parseMarkdown, shouldUseParser} from './index'
 
 const makeServiceDecorationTag = (payload: unknown) =>
   `$>kb$${Buffer.from(JSON.stringify(payload)).toString('base64')}$<kb$`
@@ -99,7 +99,7 @@ test('parseMarkdown parses block quotes as nested content', () => {
   expect(ast[0]?.type).toBe('blockQuote')
   const nested = ast[0]?.['content'] as Array<{type: string; content: Array<{type: string; content: string}>}>
   expect(nested[0]?.type).toBe('paragraph')
-  expect((nested[0]?.['content'])?.[0]).toMatchObject({
+  expect((nested[0]?.['content'] as Array<{content: string; type: string}> | undefined)?.[0]).toMatchObject({
     content: 'quoted line',
     type: 'text',
   })

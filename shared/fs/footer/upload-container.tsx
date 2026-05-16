@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
-import Upload from '@/fs/footer/upload'
-import {useUploadCountdown} from '@/fs/footer/use-upload-countdown'
-import {useFsUploadStatus, useKbfsDaemonStatus} from '@/fs/common'
-import {useNonFolderSyncingPaths} from '@/fs/common/use-non-folder-syncing-paths'
+import Upload from './upload'
+import {useUploadCountdown} from './use-upload-countdown'
+import {useFsUploadStatus, useKbfsDaemonStatus} from '../common'
+import {useNonFolderSyncingPaths} from '../common/use-non-folder-syncing-paths'
 
 const UpoadContainer = () => {
   const kbfsDaemonStatus = useKbfsDaemonStatus()

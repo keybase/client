@@ -10,7 +10,7 @@ import {
   setNamed,
   setNamedScoped,
   clearOwner,
-} from '@/stores/flow-handles'
+} from '../flow-handles'
 
 afterEach(() => {
   jest.restoreAllMocks()

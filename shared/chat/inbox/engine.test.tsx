@@ -1,8 +1,8 @@
 /// <reference types="jest" />
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {handleConvoEngineIncoming} from '@/chat/inbox/engine'
-import {getInboxConversationMeta, getInboxConversationParticipants, syncBadgeState} from '@/chat/inbox/metadata'
+import {handleConvoEngineIncoming} from './engine'
+import {getInboxConversationMeta, getInboxConversationParticipants, syncBadgeState} from './metadata'
 import {useConfigState} from '@/stores/config'
 import {
   syncInboxRowBadgeState,

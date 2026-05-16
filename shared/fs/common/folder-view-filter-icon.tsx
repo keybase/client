@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import type * as Styles from '@/styles'
-import {useFsPathItem} from '@/fs/common/hooks'
+import {useFsPathItem} from './hooks'
 import * as FS from '@/constants/fs'
 
 type Props = {

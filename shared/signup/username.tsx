@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {SignupScreen, errorBanner} from '@/signup/common'
+import {SignupScreen, errorBanner} from './common'
 import {useProvisionState} from '@/stores/provision'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
@@ -9,7 +9,7 @@ import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
 import {isValidUsername} from '@/util/simple-validators'
 import type {StaticScreenProps} from '@react-navigation/core'
-import {clearSignupDeviceNameDraft} from '@/signup/device-name-draft'
+import {clearSignupDeviceNameDraft} from './device-name-draft'
 
 type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
 

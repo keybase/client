@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import {useSafeSubmit} from '@/util/safe-submit'
-import SelectOtherDevice from '@/provision/select-other-device'
+import SelectOtherDevice from './select-other-device'
 import {useProvisionState} from '@/stores/provision'
 import {startAccountReset} from '@/login/reset/account-reset'
 

@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import peopleTeamBuilder from '@/team-building/page'
-import ProfileSearch from '@/profile/search'
+import peopleTeamBuilder from '../team-building/page'
+import ProfileSearch from '../profile/search'
 import {useCurrentUserState} from '@/stores/current-user'
 import {settingsLogOutTab} from '@/constants/settings'
 import {defineRouteMap} from '@/constants/types/router'
@@ -20,7 +20,7 @@ export const newRoutes = defineRouteMap({
       headerRight: Kb.Styles.isMobile ? () => <HeaderAvatar /> : undefined,
       headerTitle: () => <ProfileSearch />,
     },
-    screen: React.lazy(async () => import('@/people/container')),
+    screen: React.lazy(async () => import('./container')),
   },
 })
 
@@ -40,7 +40,7 @@ const AccountSignOutButton = () => {
 export const newModalRoutes = defineRouteMap({
   accountSwitcher: {
     getOptions: {headerRight: () => <AccountSignOutButton />},
-    screen: React.lazy(async () => import('@/router-v2/account-switcher')),
+    screen: React.lazy(async () => import('../router-v2/account-switcher')),
   },
   peopleTeamBuilder,
 })

@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import Notifications from '@/settings/notifications/render'
-import useNotifications from '@/settings/notifications/hooks'
-import useNotificationSettings from '@/settings/notifications/use-notification-settings'
+import Notifications from './render'
+import useNotifications from './hooks'
+import useNotificationSettings from './use-notification-settings'
 import {Reloadable} from '@/common-adapters'
-import {loadSettings} from '@/settings/load-settings'
+import {loadSettings} from '../load-settings'
 import {usePushState} from '@/stores/push'
 
 const MobileNotifications = () => {

@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import * as Kbfs from '@/fs/common'
-import Download from '@/fs/footer/download'
+import * as Kbfs from '../common'
+import Download from './download'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 
 const Mobile = () => {

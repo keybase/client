@@ -2,10 +2,11 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import NativeScrollView from '@/common-adapters/scroll-view.native'
 import * as React from 'react'
-import Dropdown from '@/login/relogin/dropdown.native'
-import UserCard from '@/login/user-card'
-import type {Input3Props} from '@/common-adapters/input3'
-import type {Props} from '@/login/relogin/index.shared'
+import Dropdown from './dropdown.native'
+import UserCard from '../user-card'
+import type {Input3Props} from '@/common-adapters/input3.shared'
+import type {Props} from './index.shared'
+
 const LoginRender = (props: Props) => {
   const [scrollViewHeight, setScrollViewHeight] = React.useState<number | undefined>(undefined)
   const inputProps: Input3Props = {

@@ -1,21 +1,12 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2} from '@/common-adapters/box'
+import {Box2} from './box'
+import type {Props} from './video.shared'
 import {StatusBar} from 'react-native'
 import {useVideoPlayer, VideoView} from 'expo-video'
 import {useEventListener} from 'expo'
-import {useCheckURL} from '@/common-adapters/video.shared'
+import {useCheckURL} from './video.shared'
 
-
-type Props = {
-  hideControls?: boolean
-  onUrlError?: (err: string) => void
-  style?: Styles.StylesCrossPlatform
-  url: string
-  allowFile?: boolean
-  muted?: boolean
-  autoPlay?: boolean
-}
 const Kb = {Box2}
 
 // There seems to be a race between navigation animation and the measurement stuff

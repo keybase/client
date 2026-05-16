@@ -8,8 +8,10 @@ import * as React from 'react'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {useShellState} from '@/stores/shell'
-import {OrangeLineContext, SetOrangeLineContext, setConversationOrangeLine} from '@/chat/conversation/orange-line-context'
-import NormalWrapper from '@/chat/conversation/normal/container'
+import {OrangeLineContext, SetOrangeLineContext, setConversationOrangeLine} from '../orange-line-context'
+import NormalWrapper from './container'
+
+type ConstantsModule = typeof C
 
 let mockConversationIDKey: T.Chat.ConversationIDKey
 let mockLoaded = true
@@ -81,7 +83,7 @@ jest.mock('.', () => {
 })
 
 jest.mock('@/constants', () => {
-  const actual = jest.requireActual('@/constants')
+  const actual = jest.requireActual('@/constants') as ConstantsModule
   return {...actual, Router2: {...actual.Router2, navigateAppend: jest.fn()}}
 })
 
@@ -517,7 +519,7 @@ test('matching manage channels action navigates to add channels for the team', (
 
 test('manage channels action ignores mismatched team names', () => {
   mockLoaded = false
-  mockMeta = {...makeMeta(convID), teamID: 'team-id', teamname: 'keybase'}
+  mockMeta = {...makeMeta(convID), teamID: 'team-id' as T.Teams.TeamID, teamname: 'keybase'}
   const navigateAppend = getNavigateAppend()
 
   render(<NormalWrapper />)
@@ -543,7 +545,7 @@ test('manage channels action ignores conversations without a real team ID', () =
 
 test('manage channels action ignores empty team names', () => {
   mockLoaded = false
-  mockMeta = {...makeMeta(convID), teamID: 'team-id', teamname: ''}
+  mockMeta = {...makeMeta(convID), teamID: 'team-id' as T.Teams.TeamID, teamname: ''}
   const navigateAppend = getNavigateAppend()
 
   render(<NormalWrapper />)

@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2} from '@/common-adapters/box'
-import IconAuto from '@/common-adapters/icon-auto'
-import Text from '@/common-adapters/text'
-import {getTextStyle} from '@/common-adapters/text.styles'
+import {Box2} from './box'
+import IconAuto from './icon-auto'
+import Text from './text'
+import {getTextStyle} from './text.styles'
 import {TextInput as NativeTextInput} from 'react-native'
 import {isIOS} from '@/constants/platform'
 import {useColorScheme} from 'react-native'
-import type {Input3Props, Input3Ref} from '@/common-adapters/input3.shared'
+import type {Input3Props, Input3Ref} from './input3.shared'
 
 function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
   const {autoCapitalize, autoCorrect, autoFocus, containerStyle, decoration, disabled} = props
@@ -150,5 +150,3 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default Input3
-
-export type * from '@/common-adapters/input3.shared'

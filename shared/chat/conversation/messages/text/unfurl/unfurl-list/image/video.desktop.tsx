@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
-import type {Props} from '@/chat/conversation/messages/text/unfurl/unfurl-list/image/video.shared'
+import type {Props} from './video.shared'
+
 export const Video = (p: Props) => {
   const {autoPlay, onClick, height, width, style, url} = p
   const videoRef = React.useRef<HTMLVideoElement | null>(null)

@@ -1,4 +1,4 @@
-import * as Common from '@/chat/conversation/input-area/suggestors/common'
+import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import {type EmojiData, RPCToEmojiData, emojiData} from '@/common-adapters/emoji'
 import {useUserEmoji} from '@/chat/user-emoji'

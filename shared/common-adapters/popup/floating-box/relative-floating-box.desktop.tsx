@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import ReactDOM from 'react-dom'
-import {EscapeHandler} from '@/common-adapters/key-event-handler.desktop'
-import type {MeasureRef} from '@/common-adapters/measure-ref'
+import {EscapeHandler} from '../../key-event-handler.desktop'
+import type {MeasureRef} from '../../measure-ref'
 
 type ComputedStyle = {
   position: Styles._StylesCrossPlatform['position']

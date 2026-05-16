@@ -1,13 +1,13 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import TeamMenu from '@/teams/team/menu-container'
+import TeamMenu from './menu-container'
 import {pluralize} from '@/util/string'
-import {Activity, useActivityLevels, useTeamLinkPopup} from '@/teams/common'
+import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
 import type * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
-import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
-import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {makeAddMembersWizard} from '../add-members-wizard/state'
+import {useLoadedTeam} from './use-loaded-team'
 import {setMemberPublicity} from '@/teams/actions'
 
 const AddPeopleButton = ({teamID}: {teamID: T.Teams.TeamID}) => {

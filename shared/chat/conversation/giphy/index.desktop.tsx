@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import UnfurlImage from '@/chat/conversation/messages/text/unfurl/unfurl-list/image'
-import {getMargins, scaledWidth} from '@/chat/conversation/giphy/width'
-import {useHooks} from '@/chat/conversation/giphy/hooks'
+import UnfurlImage from '../messages/text/unfurl/unfurl-list/image'
+import {getMargins, scaledWidth} from './width'
+import {useHooks} from './hooks'
 
 const gridHeight = 100
 

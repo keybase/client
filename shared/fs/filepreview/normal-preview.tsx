@@ -1,8 +1,8 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as Kbfs from '@/fs/common'
-import Footer from '@/fs/footer/footer'
-import View from '@/fs/filepreview/view'
+import * as Kbfs from '../common'
+import Footer from '../footer/footer'
+import View from './view'
 
 type NormalPreviewProps = {
   path: T.FS.Path

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2} from '@/common-adapters/box'
+import {Box2} from './box'
 
 const Kb = {Box2}
 

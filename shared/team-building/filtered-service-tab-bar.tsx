@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import type * as T from '@/constants/types'
-import {ServiceTabBar} from '@/team-building/service-tab-bar'
+import {ServiceTabBar} from './service-tab-bar'
 import * as TeamBuilding from '@/stores/team-building'
 
 const getVisibleServices = (filterServices?: Array<T.TB.ServiceIdWithContact>) =>

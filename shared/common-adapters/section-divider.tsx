@@ -1,10 +1,10 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2} from '@/common-adapters/box'
-import Text from '@/common-adapters/text'
-import Icon from '@/common-adapters/icon'
-import ProgressIndicator from '@/common-adapters/progress-indicator'
-import ClickableBox from '@/common-adapters/clickable-box'
+import {Box2} from './box'
+import Text from './text'
+import Icon from './icon'
+import ProgressIndicator from './progress-indicator'
+import ClickableBox from './clickable-box'
 
 const Kb = {
   Box2,

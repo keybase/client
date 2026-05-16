@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 import type * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {createTBStore} from '@/stores/team-building'
+import {createTBStore} from '../team-building'
 
 afterEach(() => {
   resetAllStores()
@@ -14,7 +14,7 @@ const makeUser = (id: string): T.TB.User =>
     serviceId: 'keybase',
     serviceMap: {keybase: id},
     username: id,
-  })
+  }) as T.TB.User
 
 test('users can be added and removed from teamSoFar', () => {
   const store = createTBStore('teams')

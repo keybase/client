@@ -2,8 +2,7 @@ import * as Styles from '@/styles'
 import {Box2} from '@/common-adapters/box'
 import WithTooltip from '@/common-adapters/with-tooltip'
 import Image from '@/common-adapters/image'
-import type {Props} from '@/common-adapters/emoji/custom-emoji.shared'
-
+import type {Props} from './custom-emoji.shared'
 
 const Kb = {
   Box2,

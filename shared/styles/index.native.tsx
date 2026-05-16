@@ -1,10 +1,10 @@
-import * as Shared from '@/styles/shared'
-import {colors as lightColors} from '@/styles/colors'
-import styleSheetCreateProxy, {type MapToStyles} from '@/styles/style-sheet-proxy'
+import * as Shared from './shared'
+import {colors as lightColors} from './colors'
+import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
 import {useDarkModeState} from '@/stores/darkmode'
 import {isIOS, isTablet} from '@/constants/platform'
-import type * as CSS from '@/styles/css'
+import type * as CSS from './css'
 
 const font = isIOS
   ? {
@@ -90,12 +90,12 @@ export const collapseStylesDesktop = collapseStyles
 export const transition = (..._properties: Array<string>) => ({})
 
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
-export * from '@/styles/shared'
-export * from '@/styles/styles-base'
-export {themed as globalColors} from '@/styles/colors'
-export {default as classNames} from '@/styles/class-names'
+export * from './shared'
+export * from './styles-base'
+export {themed as globalColors} from './colors'
+export {default as classNames} from './class-names'
 export type StylesCrossPlatform = CSS.StylesCrossPlatform
-export type {Color, _StylesCrossPlatform, _StylesDesktop, _StylesMobile, CustomStyles} from '@/styles/css'
+export type {Color, _StylesCrossPlatform, _StylesDesktop, _StylesMobile, CustomStyles} from './css'
 export type CollapsibleStyle = CSS.StylesCrossPlatform | false | '' | 0 | null | undefined
 export type Position =
   | 'top left'

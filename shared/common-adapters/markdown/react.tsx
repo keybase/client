@@ -5,10 +5,10 @@ import * as Styles from '@/styles'
 import Text from '@/common-adapters/text'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 import {Box2} from '@/common-adapters/box'
-import Spoiler from '@/common-adapters/markdown/spoiler'
+import Spoiler from './spoiler'
 import NativeEmoji from '@/common-adapters/emoji/native-emoji'
 import type {StyleOverride} from '.'
-import type {default as ServiceDecorationType} from '@/common-adapters/markdown/service-decoration'
+import type {default as ServiceDecorationType} from './service-decoration'
 const SimpleMarkdown = SM.default
 
 let ServiceDecoration: typeof ServiceDecorationType = () => {

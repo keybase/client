@@ -1,46 +1,8 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import type {RefreshControlProps, GestureResponderEvent} from 'react-native'
-import type {ScrollViewRef} from '@/common-adapters/scroll-view.shared'
+import type {Props} from './scroll-view.shared'
+export type {ScrollViewRef} from './scroll-view.shared'
 
-
-export type ScrollEvent = {
-  nativeEvent?: {
-    contentSize: {height: number; width: number}
-    zoomScale: number
-    contentOffset: {x: number; y: number}
-  }
-  currentTarget?: HTMLDivElement
-}
-
-type Props = {
-  children?: React.ReactNode
-  contentContainerStyle?: Styles.StylesCrossPlatform
-  style?: Styles.StylesCrossPlatform
-  onScroll?: (event: ScrollEvent) => void
-  className?: string
-  ref?: React.Ref<ScrollViewRef>
-  showsVerticalScrollIndicator?: boolean
-  showsHorizontalScrollIndicator?: boolean
-  bounces?: boolean
-  contentInset?: {top?: number; left?: number; bottom?: number; right?: number}
-  contentInsetAdjustmentBehavior?: 'automatic' | 'scrollableAxes' | 'never' | 'always'
-  centerContent?: boolean
-  zoomScale?: number
-  minimumZoomScale?: number
-  maximumZoomScale?: number
-  onLayout?: (...a: Array<unknown>) => void
-  scrollEventThrottle?: number
-  scrollsToTop?: boolean
-  indicatorStyle?: string
-  alwaysBounceVertical?: boolean
-  alwaysBounceHorizontal?: boolean
-  horizontal?: boolean
-  snapToInterval?: number
-  refreshControl?: React.ReactElement<RefreshControlProps>
-  onTouchStart?: (e: GestureResponderEvent) => void
-  onTouchEnd?: (e: GestureResponderEvent) => void
-}
 function ScrollView(props: Props) {
   const {className, contentContainerStyle, onScroll, style, children, ref} = props
   const {showsHorizontalScrollIndicator, showsVerticalScrollIndicator} = props
@@ -93,5 +55,3 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 export default ScrollView
-
-export type * from '@/common-adapters/scroll-view.shared'

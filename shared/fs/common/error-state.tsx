@@ -3,7 +3,7 @@ import * as Constants from '@/constants/fs'
 import * as T from '@/constants/types'
 import {ensureError} from '@/util/errors'
 import {useConfigState} from '@/stores/config'
-import {useFsDaemonActions} from '@/fs/common/daemon'
+import {useFsDaemonActions} from './daemon'
 import isObject from 'lodash/isObject'
 
 const noopSoftError = () => {}

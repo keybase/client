@@ -222,7 +222,7 @@ export const pathTypeToTextType = (type: T.FS.PathType) =>
 export const getPathItem = (
   pathItems: T.Immutable<Map<T.FS.Path, T.FS.PathItem>>,
   path: T.Immutable<T.FS.Path>
-): T.Immutable<T.FS.PathItem> => pathItems.get(path) || (unknownPathItem)
+): T.Immutable<T.FS.PathItem> => pathItems.get(path) || (unknownPathItem as T.FS.PathItem)
 
 export const getTlfPath = (path: T.FS.Path): T.FS.Path => {
   const elems = T.FS.getPathElements(path)

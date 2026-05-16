@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import UserCard from '@/login/user-card'
-import {SignupScreen, errorBanner} from '@/signup/common'
+import UserCard from '../login/user-card'
+import {SignupScreen, errorBanner} from '../signup/common'
 import {startRecoverPassword} from '@/login/recover-password/flow'
 import {useProvisionState} from '@/stores/provision'
 

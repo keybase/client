@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import WalletPopup from '@/wallets/wallet-popup'
-import {makeReallyRemoveAccountRouteParams} from '@/wallets/account-utils'
+import WalletPopup from './wallet-popup'
+import {makeReallyRemoveAccountRouteParams} from './account-utils'
 
 type OwnProps = {
   accountID: string

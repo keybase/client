@@ -8,11 +8,11 @@ import {useConfigState} from '@/stores/config'
 import {FloatingRolePicker} from '@/teams/role-picker'
 import {pluralize} from '@/util/string'
 import type {RPCError} from '@/util/errors'
-import RetentionPicker from '@/teams/team/settings-tab/retention'
-import DefaultChannels from '@/teams/team/settings-tab/default-channels'
+import RetentionPicker from './retention'
+import DefaultChannels from './default-channels'
 import isEqual from 'lodash/isEqual'
-import {useLoadedTeam} from '@/teams/team/use-loaded-team'
-import {useSettingsTabState} from '@/teams/team/settings-tab/use-settings'
+import {useLoadedTeam} from '../use-loaded-team'
+import {useSettingsTabState} from './use-settings'
 
 type Props = {
   allowOpenTrigger: number

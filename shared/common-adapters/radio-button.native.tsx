@@ -1,16 +1,9 @@
 import type * as React from 'react'
-import ClickableBox from '@/common-adapters/clickable-box'
-import Text from '@/common-adapters/text'
+import ClickableBox from './clickable-box'
+import Text from './text'
 import * as Styles from '@/styles'
+import type {Props} from './radio-button.shared'
 
-
-type Props = {
-  label: string | React.ReactNode
-  onSelect: (selected: boolean) => void
-  selected: boolean
-  style?: object
-  disabled?: boolean
-}
 const Kb = {
   ClickableBox,
   Text,

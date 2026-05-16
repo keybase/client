@@ -4,7 +4,7 @@ import * as C from '@/constants'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 // ios must animated plain colors not the dynamic ones
 import colors, {darkColors} from '@/styles/colors'
-import type {Props} from '@/chat/conversation/messages/wrapper/exploding-height-retainer/index.shared'
+import type {Props} from './index.shared'
 import {useColorScheme} from 'react-native'
 
 // If this image changes, some hard coded dimensions

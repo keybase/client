@@ -6,7 +6,7 @@ import {EnterEmailBody} from '@/signup/email'
 import {EnterPhoneNumberBody} from '@/signup/phone-number'
 import VerifyBody from '@/signup/phone-number/verify-body'
 import {useAddPhoneNumber, usePhoneVerification} from '@/signup/phone-number/use-verification'
-import {useAddEmail} from '@/settings/account/use-add-email'
+import {useAddEmail} from './use-add-email'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 import {settingsAccountTab} from '@/constants/settings'
 

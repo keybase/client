@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {useThreadLoadStatus} from '@/chat/conversation/thread-load-status-context'
-import {useConversationThreadID} from '@/chat/conversation/thread-context'
+import {useThreadLoadStatus} from './thread-load-status-context'
+import {useConversationThreadID} from './thread-context'
 
 const ValidatedStatus = () => {
   const [visible, setVisible] = React.useState(true)

@@ -6,7 +6,7 @@ import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
 import logger from '@/logger'
-import {useConversationMessage} from '@/chat/conversation/data-hooks'
+import {useConversationMessage} from './data-hooks'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey; messageID: T.Chat.MessageID}
 

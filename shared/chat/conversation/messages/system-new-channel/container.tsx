@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import UserNotice from '@/chat/conversation/messages/user-notice'
-import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import UserNotice from '../user-notice'
+import {useConversationThreadSelector} from '../../thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemNewChannel}
 

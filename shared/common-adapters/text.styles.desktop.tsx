@@ -1,5 +1,5 @@
 import * as Styles from '@/styles'
-import type {MetaType, TextType, TextStyle} from '@/common-adapters/text.shared'
+import type {MetaType, TextType, TextStyle} from './text.shared'
 
 function fontSizeToSizeStyle(fontSize: 12 | 13 | 14 | 15 | 16 | 17 | 18 | 20 | 24 | 28) {
   const hm = {

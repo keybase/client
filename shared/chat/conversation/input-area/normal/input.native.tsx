@@ -2,16 +2,17 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AudioRecorder from '@/chat/audio/audio-recorder.native'
-import FilePickerPopup from '@/chat/conversation/input-area/filepicker-popup'
-import MoreMenuPopup from '@/chat/conversation/input-area/normal/moremenu-popup.native'
-import SetExplodingMessagePicker from '@/chat/conversation/input-area/normal/set-explode-popup'
-import Typing from '@/chat/conversation/input-area/normal/typing'
+import FilePickerPopup from '../filepicker-popup'
+import MoreMenuPopup from './moremenu-popup.native'
+import SetExplodingMessagePicker from './set-explode-popup'
+import Typing from './typing'
 import logger from '@/logger'
 import type * as ImagePicker from 'expo-image-picker'
 import type {LayoutEvent} from '@/common-adapters/box'
+import type {Props as InputLowLevelProps, PlatformInputProps as Props, TextInfo, RefType} from './input.shared'
 import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
 import {Keyboard, TextInput, type NativeSyntheticEvent, type TextInputSelectionChangeEventData, useColorScheme} from 'react-native'
-import {MaxInputAreaContext} from '@/chat/conversation/input-area/normal/max-input-area-context'
+import {MaxInputAreaContext} from './max-input-area-context'
 import {
   default as Animated,
   skipAnimations,
@@ -24,12 +25,12 @@ import {getTextStyle} from '@/common-adapters/text.styles'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker.native'
 import {onHWKeyPressed, registerPasteImage, removeOnHWKeyPressed} from 'react-native-kb'
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
-import {standardTransformer} from '@/chat/conversation/input-area/suggestors/common'
+import {standardTransformer} from '../suggestors/common'
 import {filePickerError} from '@/util/storeless-actions'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
-import {useSuggestors} from '@/chat/conversation/input-area/suggestors'
-import {useConversationThreadID} from '@/chat/conversation/thread-context'
-import type {RefType, TextInfo, Props as InputLowLevelProps, PlatformInputProps as Props} from '@/chat/conversation/input-area/normal/input.shared'
+import {useSuggestors} from '../suggestors'
+import {useConversationThreadID} from '../../thread-context'
+
 // Low-level TextInput wrapper
 
 export function Input(p: InputLowLevelProps) {
@@ -796,5 +797,3 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 export default PlatformInput
-
-export type * from '@/chat/conversation/input-area/normal/input.shared'

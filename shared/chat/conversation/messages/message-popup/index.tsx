@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
-import AttachmentMessage from '@/chat/conversation/messages/message-popup/attachment'
-import JourneycardMessage from '@/chat/conversation/messages/message-popup/journeycard'
-import TextMessage from '@/chat/conversation/messages/message-popup/text'
-import {useConversationMessage} from '@/chat/conversation/data-hooks'
-import {useConversationThreadMessage} from '@/chat/conversation/thread-context'
+import AttachmentMessage from './attachment'
+import JourneycardMessage from './journeycard'
+import TextMessage from './text'
+import {useConversationMessage} from '../../data-hooks'
+import {useConversationThreadMessage} from '../../thread-context'
 import * as T from '@/constants/types'
 
 type Props = {

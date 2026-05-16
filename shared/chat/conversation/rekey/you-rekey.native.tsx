@@ -1,5 +1,6 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from '@/chat/conversation/rekey/you-rekey.shared'
+import type {Props} from './you-rekey.shared'
+
 const YouRekey = ({onEnterPaperkey}: Props) => (
   <Kb.Box2 direction="vertical">
     <Kb.Banner color="red">

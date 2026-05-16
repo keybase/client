@@ -262,7 +262,7 @@ const Header = () => (
 const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<IncludeSetIndividually>) => {
   const {presetRole} = props
   const filteredRole = filterRole(presetRole)
-  const presetSelectedRole = filteredRole ?? ('reader')
+  const presetSelectedRole = filteredRole ?? ('reader' as Role<IncludeSetIndividually>)
   const [selectedRole, setSelectedRole] = React.useState(presetSelectedRole)
   const [previousPresetRole, setPreviousPresetRole] = React.useState(presetRole)
   if (previousPresetRole !== presetRole) {
@@ -288,7 +288,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
           const onSelect = disabled ? undefined : () => setSelectedRole(role)
           return (
             <RoleRowWrapper
-              key={role}
+              key={role as string}
               role={role}
               disabledReason={disabled}
               onSelect={onSelect}
@@ -307,7 +307,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
             disabled={selectedRole === presetRole}
             waiting={props.waiting}
             label={selectedRole === 'setIndividually' ? 'Set Individually' : `Save`}
-            onClick={selectedRole === presetRole ? () => {} : () => props.onConfirm(selectedRole as Role<IncludeSetIndividually>)}
+            onClick={selectedRole === presetRole ? () => {} : () => props.onConfirm(selectedRole)}
           />
         </Kb.ButtonBar>
       </Kb.Box2>

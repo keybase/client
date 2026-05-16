@@ -3,7 +3,7 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import AudioPlayer from '@/chat/audio/audio-player'
-import {Title, TransferIcon, ShowToastAfterSaving, messageAttachmentHasProgress} from '@/chat/conversation/messages/attachment/shared'
+import {Title, TransferIcon, ShowToastAfterSaving, messageAttachmentHasProgress} from './shared'
 
 const AudioAttachment = ({message, ordinal}: {message: T.Chat.MessageAttachment; ordinal: T.Chat.Ordinal}) => {
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(message.transferState)

@@ -5,9 +5,9 @@ import * as Style from '@/styles'
 import * as T from '@/constants/types'
 import upperFirst from 'lodash/upperFirst'
 import {indefiniteArticle} from '@/util/string'
-import {useChatTeam} from '@/chat/conversation/team-hooks'
+import {useChatTeam} from '../../team-hooks'
 import {ignorePromise} from '@/constants/utils'
-import {useConversationMeta} from '@/chat/conversation/data-hooks'
+import {useConversationMeta} from '../../data-hooks'
 
 const positionFallbacks = ['bottom center'] as const
 

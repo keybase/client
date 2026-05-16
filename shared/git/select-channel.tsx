@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {useAllChannelMetas} from '@/teams/common/channel-hooks'
+import {useAllChannelMetas} from '../teams/common/channel-hooks'
 
 type OwnProps = {
   teamID: T.Teams.TeamID

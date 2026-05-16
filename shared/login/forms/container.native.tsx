@@ -1,6 +1,7 @@
+import type {Props} from './container.shared'
 import * as Kb from '@/common-adapters'
 import NativeScrollView from '@/common-adapters/scroll-view.native'
-import type {Props} from '@/login/forms/container.shared'
+
 const Container = ({children, style, outerStyle}: Props) => {
   return (
     <NativeScrollView style={{...styles.container, ...outerStyle}}>

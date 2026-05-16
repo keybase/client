@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Crypto from '@/constants/crypto'
-import NavRow from '@/crypto/sub-nav/nav-row'
+import NavRow from './nav-row'
 
 type Row = (typeof Crypto.Tabs)[number] & {
   isSelected: boolean

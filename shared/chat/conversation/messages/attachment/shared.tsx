@@ -3,10 +3,10 @@ import {clampImageSize} from '@/constants/chat/helpers'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import {sharedStyles} from '@/chat/conversation/messages/shared-styles'
+import {sharedStyles} from '../shared-styles'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {useConversationAttachmentActions} from '@/chat/conversation/attachment-actions'
-import {useConversationThreadMessageActions} from '@/chat/conversation/thread-context'
+import {useConversationAttachmentActions} from '../../attachment-actions'
+import {useConversationThreadMessageActions} from '../../thread-context'
 
 type Props = {
   transferState: T.Chat.MessageAttachmentTransferState

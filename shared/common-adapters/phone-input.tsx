@@ -1,16 +1,17 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import NativeEmoji from '@/common-adapters/emoji/native-emoji'
-import Text from '@/common-adapters/text'
-import {Box2} from '@/common-adapters/box'
-import FloatingMenu from '@/common-adapters/floating-menu'
-import SearchFilter from '@/common-adapters/search-filter'
-import Input3, {type Input3Ref} from '@/common-adapters/input3'
-import FloatingPicker from '@/common-adapters/floating-picker'
-import ProgressIndicator from '@/common-adapters/progress-indicator'
-import ClickableBox from '@/common-adapters/clickable-box'
-import Icon from '@/common-adapters/icon'
-import {usePopup2, type Popup2Parms} from '@/common-adapters/popup/use-popup'
+import NativeEmoji from './emoji/native-emoji'
+import Text from './text'
+import {Box2} from './box'
+import FloatingMenu from './floating-menu'
+import SearchFilter from './search-filter'
+import Input3 from './input3'
+import type {Input3Ref} from './input3.shared'
+import FloatingPicker from './floating-picker'
+import ProgressIndicator from './progress-indicator'
+import ClickableBox from './clickable-box'
+import Icon from './icon'
+import {usePopup2, type Popup2Parms} from './popup/use-popup'
 import {isIOS, isMobile} from '@/constants/platform'
 import {
   countryData,
@@ -20,7 +21,7 @@ import {
   validateNumber,
   type CountryData,
 } from '@/util/phone-numbers'
-import type {MeasureRef} from '@/common-adapters/measure-ref'
+import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box2,

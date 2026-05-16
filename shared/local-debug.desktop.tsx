@@ -1,5 +1,5 @@
 import noop from 'lodash/noop'
-import KB2 from '@/util/electron.desktop'
+import KB2 from './util/electron.desktop'
 import {debugWarning} from '@/util/debug-warning'
 
 let config = {

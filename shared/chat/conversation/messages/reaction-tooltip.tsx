@@ -2,11 +2,11 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
-import ReactButton from '@/chat/conversation/messages/react-button'
+import ReactButton from './react-button'
 import * as T from '@/constants/types'
-import {MessageContext} from '@/chat/conversation/messages/ids-context'
+import {MessageContext} from './ids-context'
 import {useUsersState} from '@/stores/users'
-import {useConversationThreadID, useConversationThreadMessage, useConversationThreadMessageActions} from '@/chat/conversation/thread-context'
+import {useConversationThreadID, useConversationThreadMessage, useConversationThreadMessageActions} from '../thread-context'
 
 const positionFallbacks = ['bottom center', 'left center'] as const
 

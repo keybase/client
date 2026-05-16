@@ -1,4 +1,4 @@
-import type TeamJourneyType from '@/chat/conversation/messages/cards/team-journey/container'
+import type TeamJourneyType from './container'
 import type * as T from '@/constants/types'
 
 type Props = {ordinal: T.Chat.Ordinal}

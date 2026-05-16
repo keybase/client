@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import type * as CSS from '@/styles/css'
 import type colors from '@/styles/colors'
-import type {MeasureRef} from '@/common-adapters/measure-ref'
+import type {MeasureRef} from './measure-ref'
 
 /* eslint-disable sort-keys */
 const _allTextTypes = {

@@ -8,7 +8,7 @@ import {defineRouteMap} from '@/constants/types/router'
 import {getNextRouteAfterAvatar} from '@/teams/new-team/wizard/state'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
-const Title = React.lazy(async () => import('@/profile/search'))
+const Title = React.lazy(async () => import('./search'))
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -97,7 +97,7 @@ const EditAvatarWizardHeaderRight = ({
 
 export const newRoutes = defineRouteMap({
   profile: C.makeScreen(
-    React.lazy(async () => import('@/profile/user')),
+    React.lazy(async () => import('./user')),
     {
       getOptions: {
         headerShown: true,
@@ -115,7 +115,7 @@ export const newRoutes = defineRouteMap({
 
 export const newModalRoutes = defineRouteMap({
   profileAddToTeam: C.makeScreen(
-    React.lazy(async () => import('@/profile/add-to-team')),
+    React.lazy(async () => import('./add-to-team')),
     {
       getOptions: {
         modalStyle: {height: 560},
@@ -124,10 +124,10 @@ export const newModalRoutes = defineRouteMap({
       },
     }
   ),
-  profileEdit: C.makeScreen(React.lazy(async () => import('@/profile/edit-profile')), {
+  profileEdit: C.makeScreen(React.lazy(async () => import('./edit-profile')), {
     getOptions: {modalStyle: {height: 450, width: 350}, title: 'Edit Profile'},
   }),
-  profileEditAvatar: C.makeScreen(React.lazy(async () => import('@/profile/edit-avatar')), {
+  profileEditAvatar: C.makeScreen(React.lazy(async () => import('./edit-avatar')), {
     getOptions: ({route}) => ({
       headerLeft: () => (
         <EditAvatarHeaderLeft wizard={route.params.wizard} showBack={route.params.showBack} />
@@ -143,20 +143,20 @@ export const newModalRoutes = defineRouteMap({
       ),
     }),
   }),
-  profileImport: C.makeScreen(React.lazy(async () => import('@/profile/pgp/import'))),
-  profilePgp: C.makeScreen(React.lazy(async () => import('@/profile/pgp/choice')), {
+  profileImport: C.makeScreen(React.lazy(async () => import('./pgp/import'))),
+  profilePgp: C.makeScreen(React.lazy(async () => import('./pgp/choice')), {
     getOptions: {modalStyle: {height: 485, width: 560}},
   }),
-  profileProofsList: C.makeScreen(React.lazy(async () => import('@/profile/generic/proofs-list')), {
+  profileProofsList: C.makeScreen(React.lazy(async () => import('./generic/proofs-list')), {
     getOptions: {modalStyle: {height: 485, width: 560}, title: 'Prove your...'},
   }),
-  profileProveWebsiteChoice: C.makeScreen(React.lazy(async () => import('@/profile/prove-website-choice')), {
+  profileProveWebsiteChoice: C.makeScreen(React.lazy(async () => import('./prove-website-choice')), {
     getOptions: {modalStyle: profileModalStyle},
   }),
-  profileRevoke: C.makeScreen(React.lazy(async () => import('@/profile/revoke')), {
+  profileRevoke: C.makeScreen(React.lazy(async () => import('./revoke')), {
     getOptions: {modalStyle: profileModalStyle},
   }),
-  profileShowcaseTeamOffer: C.makeScreen(React.lazy(async () => import('@/profile/showcase-team-offer')), {
+  profileShowcaseTeamOffer: C.makeScreen(React.lazy(async () => import('./showcase-team-offer')), {
     getOptions: {modalStyle: {maxHeight: 600, maxWidth: 600}, title: 'Feature your teams'},
   }),
 })

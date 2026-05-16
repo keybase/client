@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import type {UploadProps} from './upload.shared'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import {useColorScheme} from 'react-native'
-import type {UploadProps} from '@/fs/footer/upload.shared'
+
 const lightPatternImage = require('../../images/upload-pattern-80.png') as number
 const darkPatternImage = require('../../images/dark-upload-pattern-80.png') as number
 

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {type AddMembersWizard} from '@/teams/add-members-wizard/state'
+import {type AddMembersWizard} from './state'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {

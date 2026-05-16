@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import UserNotice from '@/chat/conversation/messages/user-notice'
+import UserNotice from '../user-notice'
 
 type OwnProps = {text: string}
 

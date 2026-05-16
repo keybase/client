@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type {AllowedColors} from '@/common-adapters/text.shared'
-import SelectableSmallTeam from '@/chat/selectable-small-team'
+import SelectableSmallTeam from './selectable-small-team'
 import {useInboxRowSmall} from '@/stores/inbox-rows'
 import type * as T from '@/constants/types'
 

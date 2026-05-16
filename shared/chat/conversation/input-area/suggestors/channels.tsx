@@ -1,13 +1,13 @@
 import * as C from '@/constants'
 import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
-import * as Common from '@/chat/conversation/input-area/suggestors/common'
+import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import {useChatTeamNames} from '@/chat/conversation/team-hooks'
+import {useChatTeamNames} from '../../team-hooks'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as React from 'react'
-import {useConversationMetadata} from '@/chat/conversation/data-hooks'
+import {useConversationMetadata} from '../../data-hooks'
 
 export const transformer = (
   {channelname, teamname}: {channelname: string; teamname?: string},

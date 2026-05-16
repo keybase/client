@@ -3,7 +3,7 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as FS from '@/constants/fs'
 import {makeUUID} from '@/util/uuid'
-import {useFsErrorActionOrThrow} from '@/fs/common/error-state'
+import {useFsErrorActionOrThrow} from '../error-state'
 
 export type Props = {
   onBack: () => void

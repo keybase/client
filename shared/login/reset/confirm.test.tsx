@@ -51,7 +51,7 @@ jest.mock('./account-reset', () => ({
 }))
 
 import {useNavigation} from '@react-navigation/native'
-import ConfirmReset from '@/login/reset/confirm'
+import ConfirmReset from './confirm'
 
 describe('ConfirmReset', () => {
   let beforeRemove: undefined | (() => void)

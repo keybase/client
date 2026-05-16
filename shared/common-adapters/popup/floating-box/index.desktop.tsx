@@ -1,7 +1,6 @@
-import {RelativeFloatingBox} from '@/common-adapters/popup/floating-box/relative-floating-box.desktop'
+import type {Props} from './index.shared'
+import {RelativeFloatingBox} from './relative-floating-box.desktop'
 import noop from 'lodash/noop'
-import type {Props} from '@/common-adapters/popup/floating-box/index.shared'
-
 
 const FloatingBox = (props: Props) => {
   const {attachTo, disableEscapeKey, position, positionFallbacks, children, offset} = props

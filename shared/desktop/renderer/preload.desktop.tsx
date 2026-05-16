@@ -8,7 +8,7 @@ import {
   type SaveDialogOptions,
 } from '@/util/electron.desktop'
 import type * as RPCTypes from '@/constants/rpc/rpc-gen'
-import type {Action} from '@/desktop/app/ipctypes'
+import type {Action} from '../app/ipctypes'
 
 const isRenderer = process.type === 'renderer'
 const isDarwin = process.platform === 'darwin'

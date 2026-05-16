@@ -1,13 +1,13 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
-import Normal from '@/chat/conversation/normal/container'
-import NoConversation from '@/chat/conversation/no-conversation'
-import Error from '@/chat/conversation/error'
-import YouAreReset from '@/chat/conversation/you-are-reset'
-import Rekey from '@/chat/conversation/rekey/container'
-import type {ThreadSearchRouteProps} from '@/chat/conversation/thread-search-route'
+import Normal from './normal/container'
+import NoConversation from './no-conversation'
+import Error from './error'
+import YouAreReset from './you-are-reset'
+import Rekey from './rekey/container'
+import type {ThreadSearchRouteProps} from './thread-search-route'
 import type * as T from '@/constants/types'
-import {LiveConversationThreadProvider, useConversationThreadID, useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import {LiveConversationThreadProvider, useConversationThreadID, useConversationThreadSelector} from './thread-context'
 
 type Props = ThreadSearchRouteProps & {
   conversationIDKey?: T.Chat.ConversationIDKey

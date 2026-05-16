@@ -1,6 +1,6 @@
 // Incoming and outgoing requests that are in a session
-import type {MethodKey, ResponseType} from '@/engine/types'
-import type {InvokeType} from '@/engine/index.platform'
+import type {MethodKey, ResponseType} from './types'
+import type {InvokeType} from './index.platform'
 import type {RPCError} from '@/util/errors'
 
 type SimpleWaiting = (waiting: boolean, err?: RPCError) => void
@@ -48,12 +48,12 @@ class IncomingRequest extends Request {
   }
 
   result(...args: Array<unknown>) {
-    this._response?.result(...args)
+    this._response?.result?.(...args)
     this._cleanup()
   }
 
   error(...args: Array<unknown>) {
-    this._response?.error(...args)
+    this._response?.error?.(...args)
     this._cleanup()
   }
 

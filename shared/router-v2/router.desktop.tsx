@@ -1,19 +1,19 @@
-import * as Common from '@/router-v2/common.desktop'
+import * as Common from './common.desktop'
 import * as C from '@/constants'
 import {useConfigState} from '@/stores/config'
 import {useDarkModeState} from '@/stores/darkmode'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Shared from '@/router-v2/router.shared'
+import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
 import logger from '@/logger'
-import Header from '@/router-v2/header/index.desktop'
+import Header from './header/index.desktop'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer} from '@react-navigation/native'
-import {createLeftTabNavigator} from '@/router-v2/left-tab-navigator.desktop'
-import {createLinkingConfig} from '@/router-v2/linking'
+import {createLeftTabNavigator} from './left-tab-navigator.desktop'
+import {createLinkingConfig} from './linking'
 import {handleAppLink} from '@/constants/deeplinks'
-import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from '@/router-v2/routes'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
 import {registerDebugClear} from '@/util/debug'
 import {useDaemonState} from '@/stores/daemon'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -21,7 +21,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
 
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
-import {makeLayout} from '@/router-v2/screen-layout.desktop'
+import {makeLayout} from './screen-layout.desktop'
 import './router.css'
 
 const Tab = createLeftTabNavigator()
@@ -43,7 +43,7 @@ const tabComponents: Record<string, React.ComponentType> = {}
 for (const tab of Tabs.desktopTabs) {
   const nav = createNativeStackNavigator({
     initialRouteName: tabRoots[tab],
-    screenOptions: Common.defaultNavigationOptions,
+    screenOptions: Common.defaultNavigationOptions as NativeStackNavigationOptions,
     screens: tabScreensConfig,
   })
   tabComponents[tab] = nav.getComponent()

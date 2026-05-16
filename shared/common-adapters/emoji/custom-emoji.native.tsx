@@ -1,7 +1,6 @@
+import type {Props} from './custom-emoji.shared'
 import Image from '@/common-adapters/image'
 import * as Styles from '@/styles'
-import type {Props} from '@/common-adapters/emoji/custom-emoji.shared'
-
 
 const CustomEmoji = (props: Props) => {
   const {size, src, style} = props

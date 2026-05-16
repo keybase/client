@@ -1,6 +1,6 @@
-import type CoinFlipType from '@/chat/conversation/messages/text/coinflip'
-import type UnfurlListType from '@/chat/conversation/messages/text/unfurl/unfurl-list'
-import type UnfurlPromptListType from '@/chat/conversation/messages/text/unfurl/prompt-list/container'
+import type CoinFlipType from './coinflip'
+import type UnfurlListType from './unfurl/unfurl-list'
+import type UnfurlPromptListType from './unfurl/prompt-list/container'
 import type * as T from '@/constants/types'
 
 type Props = {

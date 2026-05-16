@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-import {handleUnlockFoldersEngineAction} from '@/unlock-folders/engine-actions.desktop'
+import {handleUnlockFoldersEngineAction} from './engine-actions.desktop'
 
 const mockOpen = jest.fn()
 const mockCreateSession = jest.fn()

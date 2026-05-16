@@ -9,8 +9,8 @@ import {
   getEmojiStr,
   type EmojiData,
 } from '@/common-adapters/emoji'
-import {AliasInput, Modal, type AliasRef} from '@/teams/emojis/common'
-import {useEmojiState} from '@/teams/emojis/use-emoji'
+import {AliasInput, Modal, type AliasRef} from './common'
+import {useEmojiState} from './use-emoji'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
 import {ensureError} from '@/util/errors'
 

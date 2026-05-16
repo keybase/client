@@ -1,4 +1,4 @@
-import TeamInviteByContact from '@/teams/invite-by-contact/team-invite-by-contacts.native'
+import TeamInviteByContact from './team-invite-by-contacts.native'
 
 type OwnProps = {teamID: string}
 const ConnectedTeamInviteByContact = (props: OwnProps) => {

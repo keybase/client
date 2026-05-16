@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
-import {submitResetPrompt} from '@/login/reset/account-reset'
+import {submitResetPrompt} from './account-reset'
 
 type Props = {route: {params: {hasWallet: boolean; resetKey: string}}}
 

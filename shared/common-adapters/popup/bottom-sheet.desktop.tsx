@@ -1,7 +1,7 @@
 // Desktop stubs for mobile-only bottom sheet components
-export type BottomSheetBackdropProps = object
 export const BottomSheetView = () => null
 export const BottomSheetModal = () => null
 export const BottomSheetBackdrop = () => null
 export const BottomSheetScrollView = () => null
 export const BottomSheetHandle = () => null
+export type BottomSheetBackdropProps = Record<string, never>

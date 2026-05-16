@@ -1,4 +1,4 @@
-import * as T from '@/constants/types'
+import * as T from './types'
 import {uint8ArrayToString} from '@/util/uint8array'
 
 type Device = {

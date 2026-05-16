@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-import {resetAllStores} from '@/util/zustand'
-import {usePushState} from '@/stores/push'
+import {resetAllStores} from '../../util/zustand'
+import {usePushState} from '../push'
 
 afterEach(() => {
   resetAllStores()

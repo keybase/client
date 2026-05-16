@@ -1,18 +1,8 @@
-import type {StylesCrossPlatform} from '@/styles'
 import * as React from 'react'
-import LoadingStateView from '@/common-adapters/loading-state-view'
+import LoadingStateView from './loading-state-view'
+import type {Props} from './image.shared'
 import {Image as ExpoImage, type ImageLoadEventData, type ImageErrorEventData} from 'expo-image'
 
-
-type Props = {
-  contentFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down'
-  src: number | string | Array<{uri: string; width: number; height: number}>
-  style?: StylesCrossPlatform
-  showLoadingStateUntilLoaded?: boolean
-  onLoad?: (e: {target?: unknown; source?: {width: number; height: number}}) => void
-  onError?: () => void
-  allowDownscaling?: boolean
-}
 const Image = (p: Props) => {
   const {showLoadingStateUntilLoaded, src, onLoad, onError, style, contentFit = 'contain', allowDownscaling} = p
   const [loading, setLoading] = React.useState(!showLoadingStateUntilLoaded)

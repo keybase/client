@@ -1,9 +1,9 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import * as RowTypes from '@/fs/browser/rows/types'
-import Loading from '@/fs/top-bar/loading'
-import Sort from '@/fs/top-bar/sort'
-import SyncToggle from '@/fs/top-bar/sync-toggle'
+import * as RowTypes from '../browser/rows/types'
+import Loading from './loading'
+import Sort from './sort'
+import SyncToggle from './sync-toggle'
 
 type Props = {
   path: T.FS.Path

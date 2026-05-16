@@ -1,8 +1,8 @@
 import Router from '@/router-v2/router'
-import ResetModal from '@/login/reset/modal'
-import GlobalError from '@/app/global-errors'
-import OutOfDate from '@/app/out-of-date'
-import RemoteProxies from '@/desktop/remote/proxies.desktop'
+import ResetModal from '../login/reset/modal'
+import GlobalError from './global-errors'
+import OutOfDate from './out-of-date'
+import RemoteProxies from '../desktop/remote/proxies.desktop'
 import {FsStatusProvider} from '@/fs/common/status'
 import {SystemFileManagerIntegrationProvider} from '@/fs/common/sfmi'
 

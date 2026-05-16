@@ -1,23 +1,12 @@
 import * as C from '@/constants'
 import {Pressable, Keyboard} from 'react-native'
-import Badge from '@/common-adapters/badge'
-import {Box2} from '@/common-adapters/box'
-import Icon from '@/common-adapters/icon'
+import Badge from './badge'
+import {Box2} from './box'
+import Icon from './icon'
 import * as Styles from '@/styles'
+import type {Props} from './back-button.shared'
 import noop from 'lodash/noop'
 
-
-type Props = {
-  badgeNumber?: number
-  hideBackLabel?: boolean
-  onClick?: () => void
-  disabled?: boolean
-  onPress?: never
-  iconColor?: Styles.Color
-  textStyle?: Styles.StylesCrossPlatform
-  style?: Styles.StylesCrossPlatform
-  title?: string
-}
 const Kb = {
   Badge,
   Box2,

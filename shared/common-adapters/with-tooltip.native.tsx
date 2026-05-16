@@ -1,11 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {Portal} from '@/common-adapters/portal.native'
-import {useTimeout} from '@/common-adapters/use-timers'
-import {Box2} from '@/common-adapters/box'
-import ClickableBox from '@/common-adapters/clickable-box'
-import Text from '@/common-adapters/text'
+import {Portal} from './portal.native'
+import {useTimeout} from './use-timers'
+import {Box2} from './box'
+import ClickableBox from './clickable-box'
+import Text from './text'
 import * as Styles from '@/styles'
+import type {Props} from './with-tooltip.shared'
 import {View} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
@@ -15,21 +16,6 @@ import {useSafeAreaFrame} from 'react-native-safe-area-context'
 // relative-popup-hoc.native.js. Also, this only supports "bottom center" and
 // "top center" for now.
 
-
-type Props = {
-  backgroundColor?: string
-  disabled?: boolean
-  tooltip: string | React.ReactNode
-  multiline?: boolean
-  containerStyle?: Styles.StylesCrossPlatform
-  children: React.ReactNode
-  position?: Styles.Position
-  className?: string
-  toastClassName?: string
-  toastStyle?: Styles.StylesCrossPlatform
-  textStyle?: Styles.StylesCrossPlatform
-  showOnPressMobile?: boolean
-}
 const Kb = {
   Box2,
   ClickableBox,

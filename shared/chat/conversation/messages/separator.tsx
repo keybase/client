@@ -2,12 +2,12 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as RowMetadata from '@/chat/conversation/messages/row-metadata'
+import * as RowMetadata from './row-metadata'
 import * as T from '@/constants/types'
 import {formatTimeForConversationList} from '@/util/timestamp'
-import {OrangeLineContext} from '@/chat/conversation/orange-line-context'
+import {OrangeLineContext} from '../orange-line-context'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import {useConversationThreadSelector} from '../thread-context'
 
 const missingMessage = Chat.makeMessageDeleted({})
 const noOrdinal = T.Chat.numberToOrdinal(0)

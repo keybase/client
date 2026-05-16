@@ -5,8 +5,8 @@ import * as FS from '@/constants/fs'
 import capitalize from 'lodash/capitalize'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
-import {useLoadedTeam} from '@/teams/team/use-loaded-team'
-import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
+import {useLoadedTeam} from './use-loaded-team'
+import {makeAddMembersWizard} from '../add-members-wizard/state'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>

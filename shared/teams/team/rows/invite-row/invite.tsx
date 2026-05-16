@@ -3,7 +3,7 @@ import type * as T from '@/constants/types'
 import {formatPhoneNumber} from '@/util/phone-numbers'
 import * as Teams from '@/constants/teams'
 import {removePendingInvite} from '@/teams/actions'
-import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {useLoadedTeam} from '../../use-loaded-team'
 
 export type Props = {
   isKeybaseUser?: boolean

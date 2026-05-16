@@ -3,10 +3,10 @@ import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import Recipients from '@/crypto/recipients'
+import Recipients from './recipients'
 import {openURL} from '@/util/misc'
-import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from '@/crypto/input'
-import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from '@/crypto/output'
+import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
+import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from './output'
 import {
   type CommonOutputRouteParams,
   type CryptoInputRouteParams,
@@ -21,7 +21,7 @@ import {
   resetWarnings,
   useCommittedState,
   useSeededCryptoInput,
-} from '@/crypto/helpers'
+} from './helpers'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'

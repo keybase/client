@@ -6,10 +6,10 @@ import {isPathSaltpack, isPathSaltpackEncrypted, isPathSaltpackSigned} from '@/u
 import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
-import {getEditStyle, messageAttachmentHasProgress, ShowToastAfterSaving} from '@/chat/conversation/messages/attachment/shared'
+import {getEditStyle, messageAttachmentHasProgress, ShowToastAfterSaving} from './shared'
 import {makeUUID} from '@/util/uuid'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {showPDFViewer, useConversationAttachmentActions} from '@/chat/conversation/attachment-actions'
+import {showPDFViewer, useConversationAttachmentActions} from '../../attachment-actions'
 
 type OwnProps = {
   isEditing: boolean

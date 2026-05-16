@@ -2,9 +2,9 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Kbfs from '@/fs/common'
+import * as Kbfs from '../common'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {FsBrowserEditProvider} from '@/fs/browser/edit-state'
+import {FsBrowserEditProvider} from '../browser/edit-state'
 
 type Props = {
   onTriggerFilterMobile: () => void

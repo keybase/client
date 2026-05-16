@@ -3,11 +3,11 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Util from '@/util/kbfs'
-import Header from '@/fs/common/path-item-action/header'
-import type {FloatingMenuProps, OnDownloadStarted} from '@/fs/common/path-item-action/types'
+import Header from './header'
+import type {FloatingMenuProps, OnDownloadStarted} from './types'
 import {useFsBrowserEdits} from '@/fs/browser/edit-state'
-import {getRootLayout, getShareLayout} from '@/fs/common/path-item-action/layout'
-import {useFsErrorActionOrThrow} from '@/fs/common/error-state'
+import {getRootLayout, getShareLayout} from './layout'
+import {useFsErrorActionOrThrow} from '../error-state'
 import {
   useFsCancelDownload,
   useFsDismissDownload,
@@ -15,9 +15,9 @@ import {
   useFsFileContext,
   useFsReloadTlfs,
   useFsWatchDownloadForMobile,
-} from '@/fs/common/hooks'
+} from '../hooks'
 import * as FS from '@/constants/fs'
-import {useOpenPathInSystemFileManagerDesktop, useSystemFileManagerIntegration} from '@/fs/common/sfmi'
+import {useOpenPathInSystemFileManagerDesktop, useSystemFileManagerIntegration} from '../sfmi'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {

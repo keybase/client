@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import {useConfigState} from '@/stores/config'
-import Login from '@/login/relogin/index.shared'
+import Login from '.'
 import sortBy from 'lodash/sortBy'
 import {startRecoverPassword} from '@/login/recover-password/flow'
 import useRequestAutoInvite from '@/signup/use-request-auto-invite'

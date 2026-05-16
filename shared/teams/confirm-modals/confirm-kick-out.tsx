@@ -5,9 +5,9 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import setRouteParamsIfPresent from '@/teams/common/set-route-params-if-present'
-import {useLoadedTeam} from '@/teams/team/use-loaded-team'
-import {useTeamsListMap} from '@/teams/use-teams-list'
+import setRouteParamsIfPresent from '../common/set-route-params-if-present'
+import {useLoadedTeam} from '../team/use-loaded-team'
+import {useTeamsListMap} from '../use-teams-list'
 
 type Props = {
   members: string[]

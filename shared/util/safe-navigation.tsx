@@ -8,7 +8,7 @@ export const useSafeNavigation = () => {
   const navigateAppend = C.Router2.navigateAppend
   return {
     safeNavigateAppend: (path: NavigateAppendType, replace?: boolean) =>
-      isFocused && navigateAppend(path, replace),
+      isFocused && navigateAppend(path as never, replace),
     safeNavigateUp: () => isFocused && navigateUp(),
   }
 }

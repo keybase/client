@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import {errorToActionOrThrowWithHandlers} from '@/fs/common/error-state'
 import {makeEditID} from '@/fs/common/client'
 import {resetBannerTypeFromTlf} from '@/fs/common/tlf'
-import {useCurrentUserState} from '@/stores/current-user'
+import {useCurrentUserState} from '../current-user'
 
 const normalConflictState = {
   localViewTlfPaths: [],

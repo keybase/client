@@ -32,3 +32,5 @@ const styles = Kb.Styles.styleSheetCreate(
       },
     }) as const
 )
+
+export type {ChatRootRouteParams} from '@/chat/inbox-and-conversation-shared'

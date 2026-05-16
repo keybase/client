@@ -1,19 +1,10 @@
-import type {MeasureRef} from '@/common-adapters/measure-ref'
 import * as C from '@/constants'
 import * as React from 'react'
-import Popup from '@/common-adapters/popup'
+import type {Props} from './toast.shared'
+import Popup from './popup'
 import * as Styles from '@/styles'
 import './toast.css'
 
-
-type Props = {
-  children: React.ReactNode
-  className?: string
-  containerStyle?: Styles.StylesCrossPlatform
-  visible: boolean
-  attachTo?: React.RefObject<MeasureRef | null>
-  position?: Styles.Position
-}
 const positionFallbacks = [] as const
 
 const Toast = (props: Props) => {
@@ -49,7 +40,7 @@ const Toast = (props: Props) => {
           props.className,
           'fadeBox'
         )}
-        style={Styles.collapseStyles([styles.container, props.containerStyle])}
+        style={Styles.collapseStyles([styles.container, props.containerStyle]) as React.CSSProperties}
       >
         {props.children}
       </div>

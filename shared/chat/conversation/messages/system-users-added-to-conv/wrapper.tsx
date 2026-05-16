@@ -1,5 +1,5 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
-import type SystemUsersAddedToConvType from '@/chat/conversation/messages/system-users-added-to-conv/container'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import type SystemUsersAddedToConvType from './container'
 
 function SystemUsersAddedToConv(p: Props) {
   const {ordinal, isCenteredHighlight} = p

@@ -1,6 +1,7 @@
-import * as RowSizes from '@/chat/inbox/row/sizes'
+import * as RowSizes from '../../sizes'
 import * as Kb from '@/common-adapters'
-import type {Props} from '@/chat/inbox/row/small-team/swipe-conv-actions/index.shared'
+import type {Props} from './index.shared'
+
 const SwipeConvActions = (props: Props) => {
   return <div style={styles.row}>{props.children}</div>
 }

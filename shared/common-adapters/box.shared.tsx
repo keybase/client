@@ -1,6 +1,7 @@
 import type {NativeSyntheticEvent} from 'react-native'
 import type * as React from 'react'
 import type * as Styles from '@/styles'
+export type {MeasureRef} from './measure-ref'
 
 export type Box2Props = {
   alignItems?: 'center' | 'flex-start' | 'flex-end' | 'stretch'

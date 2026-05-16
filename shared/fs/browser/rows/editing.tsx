@@ -1,8 +1,8 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {rowStyles} from '@/fs/browser/rows/common'
+import {rowStyles} from './common'
 import * as T from '@/constants/types'
-import type {BrowserEditSession} from '@/fs/browser/edit-state'
+import type {BrowserEditSession} from '../edit-state'
 
 type Props = {
   editSession: BrowserEditSession

@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import {Splash} from '@/login/loading'
+import {Splash} from '../login/loading'
 import type {Theme} from '@react-navigation/native'
 import {colors, darkColors} from '@/styles/colors'
 

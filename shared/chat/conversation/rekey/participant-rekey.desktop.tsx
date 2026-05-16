@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from '@/chat/conversation/rekey/participant-rekey.types'
+import type {Props} from './participant-rekey.types'
 
 const Row = (props: {username: string; onUsernameClicked: (s: string) => void}) => (
   <Kb.ClickableBox onClick={() => props.onUsernameClicked(props.username)}>

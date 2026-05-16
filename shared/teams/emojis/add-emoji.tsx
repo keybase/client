@@ -3,10 +3,10 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {AliasInput, Modal} from '@/teams/emojis/common'
+import {AliasInput, Modal} from './common'
 import {pickImages} from '@/util/misc'
 import kebabCase from 'lodash/kebabCase'
-import {useEmojiState} from '@/teams/emojis/use-emoji'
+import {useEmojiState} from './use-emoji'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {useNavigation} from '@react-navigation/native'
 import KB2 from '@/util/electron'
@@ -220,15 +220,13 @@ const AddEmojiModalWrapper = (routableProps: RoutableProps) => {
 
 const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
   const [dragOver, setDragOver] = React.useState(false)
-  const onDragOver = (e: React.DragEvent) =>
-    e.dataTransfer.types.includes('Files') && setDragOver(true)
+  const onDragOver = (e: React.DragEvent) => e.dataTransfer.types.includes('Files') && setDragOver(true)
   const onDragLeave = () => setDragOver(false)
   const onDrop = (e: React.DragEvent) => {
-    const dt = e.dataTransfer
-    if (!dt.types.includes('Files')) {
+    if (!e.dataTransfer.types.includes('Files')) {
       return
     }
-    const filesToAdd = Array.from(dt.files)
+    const filesToAdd = Array.from(e.dataTransfer.files)
       .filter(file => file.type.startsWith('image/'))
       .map(file => getPathForFile?.(file) ?? '')
       .filter(Boolean)

@@ -1,12 +1,4 @@
-import type * as Styles from '@/styles'
+import type {Props} from './alphabet-index.shared'
 
-type Props = {
-  labels: Array<string>
-  showNumSection: boolean
-  measureKey?: unknown
-  onScroll: (label: string) => void
-  style?: Styles.StylesCrossPlatform
-}
-
-const AlphabetIndex = (_props: Props) => null
+const AlphabetIndex = (_p: Props) => null
 export default AlphabetIndex

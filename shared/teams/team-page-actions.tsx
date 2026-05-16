@@ -4,8 +4,8 @@ import {isMobile} from '@/constants/platform'
 import {clearModals, navigateAppend, navigateToInbox, previewConversation} from '@/constants/router'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'
-import {addToTeam} from '@/teams/actions'
-import {onTeamCreated} from '@/teams/create-team-effects'
+import {addToTeam} from './actions'
+import {onTeamCreated} from './create-team-effects'
 
 type UsersToAdd = Array<{assertion: string; role: T.Teams.TeamRoleType}>
 

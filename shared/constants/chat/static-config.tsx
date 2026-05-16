@@ -1,4 +1,4 @@
-import * as Message from '@/constants/chat/message'
+import * as Message from './message'
 import * as T from '@/constants/types'
 
 const emptyBuiltinCommands = (): T.Chat.StaticConfig['builtinCommands'] => ({

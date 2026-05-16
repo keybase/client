@@ -6,7 +6,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {useCurrentUserState} from '@/stores/current-user'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
 import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
-import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {useLoadedTeam} from '../use-loaded-team'
 import {joinConversation} from '@/chat/conversation/status-actions'
 
 type Props = {

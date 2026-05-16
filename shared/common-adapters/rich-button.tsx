@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 
-import {Box2} from '@/common-adapters/box'
-import ClickableBox from '@/common-adapters/clickable-box'
-import Text from '@/common-adapters/text'
-import type {IconType} from '@/common-adapters/icon.constants-gen'
-import IconAuto from '@/common-adapters/icon-auto'
+import {Box2} from './box'
+import ClickableBox from './clickable-box'
+import Text from './text'
+import type {IconType} from './icon.constants-gen'
+import IconAuto from './icon-auto'
 
 type Props = {
   icon: IconType

@@ -4,8 +4,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import {useNavigation} from '@react-navigation/native'
-import setRouteParamsIfPresent from '@/teams/common/set-route-params-if-present'
-import {useLoadedTeamChannels} from '@/teams/common/use-loaded-team-channels'
+import setRouteParamsIfPresent from '../common/set-route-params-if-present'
+import {useLoadedTeamChannels} from '../common/use-loaded-team-channels'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 type Props = {

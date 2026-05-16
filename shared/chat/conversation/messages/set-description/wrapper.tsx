@@ -1,5 +1,5 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
-import type SetDescriptionType from '@/chat/conversation/messages/set-description/container'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import type SetDescriptionType from './container'
 
 function WrapperSetDescription(p: Props) {
   const {ordinal, isCenteredHighlight} = p

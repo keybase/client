@@ -4,7 +4,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {openURL as openUrl} from '@/util/misc'
 import upperFirst from 'lodash/upperFirst'
-import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {useLoadedTeam} from '../team/use-loaded-team'
 import {createNewTeamAndNavigate} from '@/teams/team-page-actions'
 
 const openSubteamInfo = () => openUrl('https://book.keybase.io/docs/teams/design')

@@ -1,17 +1,9 @@
-import type * as Styles from '@/styles'
 import * as React from 'react'
-import {Box2} from '@/common-adapters/box'
+import {Box2} from './box'
 import lottie from 'lottie-web'
-import type {AnimationType} from '@/common-adapters/animation.shared'
+import type {Props, AnimationType} from './animation.shared'
+export type {AnimationType} from './animation.shared'
 
-type Props = {
-  animationType: AnimationType
-  className?: string
-  containerStyle?: Styles.StylesCrossPlatform
-  height?: number
-  style?: Styles.StylesCrossPlatform
-  width?: number
-}
 const defaultDimension = 16
 
 function Animation(props: Props) {
@@ -51,5 +43,3 @@ function Animation(props: Props) {
 }
 
 export default Animation
-
-export type * from '@/common-adapters/animation.shared'

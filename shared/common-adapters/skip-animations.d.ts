@@ -1,2 +1,2 @@
-declare const skipAnimations: boolean
-export = skipAnimations
+declare const skip: boolean
+export default skip

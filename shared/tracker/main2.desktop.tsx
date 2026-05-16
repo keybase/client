@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as R from '@/constants/remote'
-import * as RemoteGen from '@/constants/remote-actions'
-import Tracker from '@/tracker/index.desktop'
-import loadRemoteComponent from '@/desktop/remote/component-loader.desktop'
-import {getRemoteComponentParam, RemoteDarkModeSync} from '@/desktop/remote/remote-component.desktop'
-import type {Props as TrackerProps} from '@/tracker/index.desktop'
+import * as RemoteGen from '../constants/remote-actions'
+import Tracker from './index.desktop'
+import loadRemoteComponent from '../desktop/remote/component-loader.desktop'
+import {getRemoteComponentParam, RemoteDarkModeSync} from '../desktop/remote/remote-component.desktop'
+import type {Props as TrackerProps} from './index.desktop'
 import KB2 from '@/util/electron.desktop'
 
 const {closeWindow} = KB2.functions

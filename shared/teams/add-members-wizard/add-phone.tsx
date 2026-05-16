@@ -2,9 +2,9 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {usePhoneNumberList} from '@/teams/common'
+import {usePhoneNumberList} from '../common'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
-import {addMembersToWizard, type AddMembersWizard} from '@/teams/add-members-wizard/state'
+import {addMembersToWizard, type AddMembersWizard} from './state'
 
 const waitingKey = 'phoneLookup'
 

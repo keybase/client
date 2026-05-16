@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {SignupScreen, errorBanner} from '@/signup/common'
+import {SignupScreen, errorBanner} from '../signup/common'
 import {useProvisionState} from '@/stores/provision'
 
 const Container = () => {

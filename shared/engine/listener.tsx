@@ -1,9 +1,9 @@
-import {getEngine} from '@/engine/require'
+import {getEngine} from './require'
 import {ensureError, RPCError} from '@/util/errors'
 import {printOutstandingRPCs} from '@/local-debug'
-import type {CommonResponseHandler} from '@/engine/types'
+import type {CommonResponseHandler} from './types'
 import {wrapErrors} from '@/util/debug'
-import type {ErrorType} from '@/engine/rpc-transport'
+import type {ErrorType} from './rpc-transport'
 
 type WaitingKey = string | ReadonlyArray<string>
 

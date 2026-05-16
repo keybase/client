@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-import shallowEqual from '@/util/shallow-equal'
+import shallowEqual from './shallow-equal'
 
 test('returns true for the same reference', () => {
   const value = {a: 1}

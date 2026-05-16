@@ -1,6 +1,7 @@
 import * as Kb from '@/common-adapters'
-import {PeoplePageList} from '@/people/index.shared'
-import type {WrapProps} from '@/people/index.shared'
+import {PeoplePageList} from './index.shared'
+import type {WrapProps} from './index.shared'
+
 function People(props: WrapProps) {
   const {waiting, ...rest} = props
   return (

@@ -2,7 +2,7 @@
 
 // This file is auto-generated. Run `yarn update-protocol` to regenerate it.
 import {getEngine as engine, getEngineListener} from '@/engine/require'
-import * as Gregor1 from '@/constants/rpc/rpc-gregor-gen'
+import * as Gregor1 from './rpc-gregor-gen'
 export {Gregor1}
 type WaitingKey = string | ReadonlyArray<string>
 type SimpleError = {code?: number, desc?: string}

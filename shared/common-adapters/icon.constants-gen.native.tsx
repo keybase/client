@@ -1,7 +1,16 @@
 // @ts-nocheck
-import {iconMeta as _iconMeta} from '@/common-adapters/icon.constants-gen.shared'
-export type {IconType} from '@/common-adapters/icon.constants-gen.shared'
-import type {IconType} from '@/common-adapters/icon.constants-gen.shared'
-import type {IconMeta} from '@/common-adapters/icon.constants-gen.shared-2'
+import {iconMeta as _iconMeta} from './icon.constants-gen.shared'
+export type IconType = keyof typeof _iconMeta
 
-export const iconMeta: Record<IconType, IconMeta> = _iconMeta
+type ReqOut = string | number
+type IconMeta = {
+  isFont?: boolean
+  gridSize?: number
+  extension?: string
+  charCode?: number
+  nameDark?: string
+  imagesDir?: string
+  require?: ReqOut
+  requireDark?: ReqOut
+}
+export const iconMeta: {[k in IconType]: IconMeta} = _iconMeta

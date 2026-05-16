@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from '@/chat/conversation/input-area/normal/set-explode-popup/index.shared'
-import useHooks from '@/chat/conversation/input-area/normal/set-explode-popup/hooks'
+import type {Props} from './index.shared'
+import useHooks from './hooks'
 
 const Prompt = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle} justifyContent="center">

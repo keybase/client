@@ -4,7 +4,7 @@ import {act, cleanup, renderHook} from '@testing-library/react'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {useBotCommandsUpdateState} from '@/chat/conversation/input-area/suggestors/commands'
+import {useBotCommandsUpdateState} from './commands'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))

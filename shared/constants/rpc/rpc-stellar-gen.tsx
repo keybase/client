@@ -2,7 +2,7 @@
 
 // This file is auto-generated. Run `yarn update-protocol` to regenerate it.
 import {getEngine as engine} from '@/engine/require'
-import * as Keybase1 from '@/constants/rpc/rpc-gen'
+import * as Keybase1 from './rpc-gen'
 export {Keybase1}
 type WaitingKey = string | ReadonlyArray<string>
 type SimpleError = {code?: number, desc?: string}

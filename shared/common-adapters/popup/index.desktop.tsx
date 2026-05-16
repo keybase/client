@@ -1,11 +1,11 @@
 import * as React from 'react'
-import {Box2} from '@/common-adapters/box'
-import FloatingBox from '@/common-adapters/popup/floating-box'
-import Icon from '@/common-adapters/icon'
-import {EscapeHandler} from '@/common-adapters/key-event-handler.desktop'
+import {Box2} from '../box'
+import FloatingBox from './floating-box'
+import Icon from '../icon'
+import {EscapeHandler} from '../key-event-handler.desktop'
 import * as Styles from '@/styles'
-import type {PopupProps} from '@/common-adapters/popup/index.shared'
-
+import type {PopupProps} from './index.shared'
+export type {PopupProps} from './index.shared'
 
 const Kb = {
   Box2,
@@ -129,5 +129,3 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 export default Popup
-
-export type * from '@/common-adapters/popup/index.shared'

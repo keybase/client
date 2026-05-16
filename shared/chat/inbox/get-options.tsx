@@ -1,6 +1,6 @@
 import * as Common from '@/router-v2/common'
 import * as Kb from '@/common-adapters'
-import {HeaderNewChatButton} from '@/chat/inbox/new-chat-button'
+import {HeaderNewChatButton} from './new-chat-button'
 
 const buttonWidth = 132
 

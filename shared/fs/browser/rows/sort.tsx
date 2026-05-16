@@ -1,5 +1,5 @@
 import * as T from '@/constants/types'
-import * as RowTypes from '@/fs/browser/rows/types'
+import * as RowTypes from './types'
 import logger from '@/logger'
 
 export type SortableRowItem = RowTypes.StillRowItem | RowTypes.NewFolderRowItem | RowTypes.TlfRowItem

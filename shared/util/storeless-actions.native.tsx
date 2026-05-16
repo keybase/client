@@ -60,7 +60,7 @@ export const persistRoute = (clear: boolean, immediate: boolean, isStartupLoaded
     const ap = getVisiblePath()
     ap.some((r: ReturnType<typeof getVisiblePath>[number]) => {
       if (r.name === 'chatConversation') {
-        const rParams = r.params as {conversationIDKey?: T.Chat.ConversationIDKey} | undefined
+        const rParams = r.params as undefined | {conversationIDKey?: T.Chat.ConversationIDKey}
         param = {selectedConversationIDKey: rParams?.conversationIDKey}
         return true
       }

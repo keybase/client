@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {pluralize} from '@/util/string'
-import setRouteParamsIfPresent from '@/teams/common/set-route-params-if-present'
+import setRouteParamsIfPresent from '../common/set-route-params-if-present'
 import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 type Props = {

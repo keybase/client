@@ -1,4 +1,4 @@
-import type * as ChatTypes from '@/constants/types/chat'
+import type * as ChatTypes from './chat'
 import type * as RPCChatTypes from '@/constants/rpc/rpc-chat-gen'
 
 export type PushNotification =

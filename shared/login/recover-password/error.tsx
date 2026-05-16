@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
 import {useConfigState} from '@/stores/config'
 
@@ -23,7 +24,7 @@ const ConnectedError = ({route}: Props) => {
         {
           label: 'Back',
           onClick: onBack,
-          type: 'Default',
+          type: 'Default' as ButtonType,
         },
       ]}
       onBack={onBack}

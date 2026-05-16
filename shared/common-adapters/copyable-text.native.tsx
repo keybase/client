@@ -1,11 +1,8 @@
 import * as React from 'react'
-type PropsCommon = {
-  value: string
-  style?: object
-}
-import {useTimeout} from '@/common-adapters/use-timers'
-import Text from '@/common-adapters/text'
-import {Box2} from '@/common-adapters/box'
+import type {Props as PropsCommon} from './copyable-text.shared'
+import {useTimeout} from './use-timers'
+import Text from './text'
+import {Box2} from './box'
 import {TouchableHighlight} from 'react-native'
 import * as Styles from '@/styles'
 import * as Clipboard from 'expo-clipboard'

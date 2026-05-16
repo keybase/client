@@ -1,5 +1,5 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
-import type SystemSimpleToComplexType from '@/chat/conversation/messages/system-simple-to-complex/container'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import type SystemSimpleToComplexType from './container'
 
 function WrapperSystemSimpleToComplex(p: Props) {
   const {ordinal, isCenteredHighlight} = p

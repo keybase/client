@@ -1,8 +1,9 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
-import {startRecoverPassword} from '@/login/recover-password/flow'
+import {startRecoverPassword} from './flow'
 
 type Props = {route: {params: {deviceName: string; deviceType: T.RPCGen.DeviceType; username: string}}}
 
@@ -27,7 +28,7 @@ const ConnectedExplainDevice = ({route}: Props) => {
         {
           label: 'Got it',
           onClick: onComplete,
-          type: 'Default',
+          type: 'Default' as ButtonType,
         },
       ]}
       noBackground={true}

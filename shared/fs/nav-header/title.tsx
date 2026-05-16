@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import * as Kbfs from '@/fs/common'
+import * as Kbfs from '../common'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as FS from '@/constants/fs'
 

@@ -2,13 +2,13 @@ import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import DefaultView from '@/fs/filepreview/default-view'
-import TextView from '@/fs/filepreview/text-view'
-import AVView from '@/fs/filepreview/av-view'
-import PdfView from '@/fs/filepreview/pdf-view'
+import DefaultView from './default-view'
+import TextView from './text-view'
+import AVView from './av-view'
+import PdfView from './pdf-view'
 import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
-import {useFsFileContext} from '@/fs/common'
+import {useFsFileContext} from '../common'
 
 type Props = {
   path: T.FS.Path

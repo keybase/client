@@ -4,11 +4,11 @@ import * as Teams from '@/constants/teams'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import Participant from '@/chat/conversation/info-panel/participant'
+import Participant from './participant'
 import {useUsersState} from '@/stores/users'
 import {navToProfile} from '@/constants/router'
-import {useChatTeamMembers} from '@/chat/conversation/team-hooks'
-import {useConversationMetadata} from '@/chat/conversation/data-hooks'
+import {useChatTeamMembers} from '../team-hooks'
+import {useConversationMetadata} from '../data-hooks'
 
 type Props = {
   commonSections: ReadonlyArray<Section>

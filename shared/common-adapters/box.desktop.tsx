@@ -1,9 +1,8 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import type {MeasureRef} from '@/common-adapters/measure-ref'
+import type {Box2Props, MeasureRef} from './box.shared'
+export type {LayoutEvent} from './box.shared'
 import './box.css'
-import type {Box2Props} from '@/common-adapters/box.shared'
-
 
 export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink, ref} = p
@@ -68,5 +67,3 @@ export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
 }
 
 export const Box2Animated = Box2
-
-export type * from '@/common-adapters/box.shared'

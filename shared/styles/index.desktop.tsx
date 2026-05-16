@@ -1,7 +1,7 @@
-import * as Shared from '@/styles/shared'
-import styleSheetCreateProxy from '@/styles/style-sheet-proxy'
-import type * as CSS from '@/styles/css'
-import {themed, colors, darkColors} from '@/styles/colors'
+import * as Shared from './shared'
+import styleSheetCreateProxy from './style-sheet-proxy'
+import type * as CSS from './css'
+import {themed, colors, darkColors} from './colors'
 import {getAssetPath} from '@/constants/platform.desktop'
 
 const fontCommon = {
@@ -204,14 +204,14 @@ export const collapseStyles = (styles: ReadonlyArray<unknown>): object | undefin
 export const collapseStylesDesktop = collapseStyles
 
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
-export * from '@/styles/shared'
-export * from '@/styles/styles-base'
+export * from './shared'
+export * from './styles-base'
 
-export {themed as globalColors} from '@/styles/colors'
+export {themed as globalColors} from './colors'
 export const borderRadius = 4
-export {default as classNames} from '@/styles/class-names'
+export {default as classNames} from './class-names'
 export type StylesCrossPlatform = CSS.StylesCrossPlatform
-export type {Color, CustomStyles, _StylesCrossPlatform, _StylesDesktop, _StylesMobile} from '@/styles/css'
+export type {Color, CustomStyles, _StylesCrossPlatform, _StylesDesktop, _StylesMobile} from './css'
 export type CollapsibleStyle = CSS.StylesCrossPlatform | false | '' | 0 | null | undefined
 export type Position =
   | 'top left'

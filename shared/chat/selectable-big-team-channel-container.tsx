@@ -1,5 +1,5 @@
 import {useInboxRowBig} from '@/stores/inbox-rows'
-import SelectableBigTeamChannel from '@/chat/selectable-big-team-channel'
+import SelectableBigTeamChannel from './selectable-big-team-channel'
 import type * as T from '@/constants/types'
 
 type OwnProps = {

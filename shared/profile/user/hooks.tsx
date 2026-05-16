@@ -5,7 +5,7 @@ import {useColorScheme} from 'react-native'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
 import {editAvatar} from '@/util/misc'
-import {useProofSuggestions} from '@/profile/use-proof-suggestions'
+import {useProofSuggestions} from '../use-proof-suggestions'
 import {useTrackerProfile} from '@/tracker/use-profile'
 
 const headerBackgroundColorType = (

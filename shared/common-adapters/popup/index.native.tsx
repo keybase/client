@@ -1,16 +1,16 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2} from '@/common-adapters/box'
+import {Box2} from '../box'
 import {Keyboard} from 'react-native'
-import {Portal} from '@/common-adapters/portal.native'
+import {Portal} from '../portal.native'
 import {
   BottomSheetModal,
   BottomSheetView,
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
-} from '@/common-adapters/popup/bottom-sheet'
+} from './bottom-sheet'
 import {FullWindowOverlay} from 'react-native-screens'
-import type {PopupProps} from '@/common-adapters/popup/index.shared'
+import type {PopupProps} from './index.shared'
 
 const defaultSnapPoints = ['75%']
 
@@ -116,5 +116,3 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default Popup
-
-export type * from '@/common-adapters/popup/index.shared'

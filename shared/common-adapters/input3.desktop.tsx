@@ -1,12 +1,13 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2} from '@/common-adapters/box'
-import IconAuto from '@/common-adapters/icon-auto'
-import Text from '@/common-adapters/text'
-import {getTextStyle} from '@/common-adapters/text.styles'
+import {Box2} from './box'
+import IconAuto from './icon-auto'
+import Text from './text'
+import {getTextStyle} from './text.styles'
 import {useColorScheme} from 'react-native'
 import './input.css'
-import type {Input3Props, Input3Ref} from '@/common-adapters/input3.shared'
+import type {Input3Props, Input3Ref} from './input3.shared'
+export type {Input3Props, Input3Ref} from './input3.shared'
 
 function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
   const {autoCapitalize, autoCorrect, autoFocus, containerStyle, decoration, disabled} = props
@@ -108,7 +109,7 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
           rowsMax && {maxHeight: rowsMax * lineHeight},
           growAndScroll && styles.growAndScroll,
           inputStyle,
-        ])
+        ]) as React.CSSProperties
       }
     />
   ) : (
@@ -117,7 +118,7 @@ function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
       ref={inputRef as React.RefObject<HTMLInputElement>}
       type={secureTextEntry ? 'password' : 'text'}
       style={
-        Styles.collapseStyles([textStyle, styles.noChrome, styles.singleline, inputStyle])
+        Styles.collapseStyles([textStyle, styles.noChrome, styles.singleline, inputStyle]) as React.CSSProperties
       }
     />
   )
@@ -199,5 +200,3 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default Input3
-
-export type * from '@/common-adapters/input3.shared'

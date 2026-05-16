@@ -1,8 +1,8 @@
 import * as Kb from '@/common-adapters'
-import QRLines from '@/provision/code-page/qr-scan/lines'
-import QRNotAuthorized from '@/provision/code-page/qr-scan/not-authorized'
-import QRScanner from '@/provision/code-page/qr-scan/scanner.native'
-import useQR from '@/provision/code-page/qr-scan/hooks'
+import QRLines from './lines'
+import QRNotAuthorized from './not-authorized'
+import QRScanner from './scanner.native'
+import useQR from './hooks'
 
 const QRScan = () => {
   const {waiting, onSubmitTextCode} = useQR()

@@ -1,15 +1,9 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as C from '@/constants'
-import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/types/router'
 import type {ParamListBase} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
-
-// Desktop-only: DOM event properties available in Electron via nativeEvent
-type DesktopMouseNativeEvent = {screenX: number; screenY: number; target: EventTarget | null}
-type DesktopKeyboardEvent = {key: string; stopImmediatePropagation: () => void}
-const _win = global.window as {addEventListener: (type: string, handler: (e: DesktopKeyboardEvent) => void, capture?: boolean) => void; removeEventListener: (type: string, handler: (e: DesktopKeyboardEvent) => void, capture?: boolean) => void} | undefined
 
 type ModalHeaderProps = {
   title?: React.ReactNode
@@ -43,22 +37,22 @@ const mouseResetValue = -9999
 const mouseDistanceThreshold = 5
 
 const useMouseClick = (navigation: NativeStackNavigationProp<ParamListBase>, noClose?: boolean) => {
-  const backgroundRef = React.useRef<MeasureRef | null>(null)
+  const backgroundRef = React.useRef<HTMLDivElement>(null)
   // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
   // window around to count
   const [mouseDownX, setMouseDownX] = React.useState(mouseResetValue)
   const [mouseDownY, setMouseDownY] = React.useState(mouseResetValue)
   const onMouseDown = (e: React.MouseEvent) => {
-    const {screenX, screenY, target} = (e.nativeEvent as unknown) as DesktopMouseNativeEvent
-    if (target !== (backgroundRef.current as unknown as EventTarget | null)) {
+    const {screenX, screenY, target} = e.nativeEvent
+    if (target !== backgroundRef.current) {
       return
     }
     setMouseDownX(screenX)
     setMouseDownY(screenY)
   }
   const onMouseUp = (e: React.MouseEvent) => {
-    const {screenX, screenY, target} = (e.nativeEvent as unknown) as DesktopMouseNativeEvent
-    if (target !== (backgroundRef.current as unknown as EventTarget | null)) {
+    const {screenX, screenY, target} = e.nativeEvent
+    if (target !== backgroundRef.current) {
       return
     }
     const xDist = Math.abs(screenX - mouseDownX)
@@ -105,14 +99,14 @@ const ModalWrapper = (p: ModalWrapperProps) => {
 
   React.useEffect(() => {
     if (!topMostModal || overlayNoClose) return
-    const handler = (e: DesktopKeyboardEvent) => {
+    const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopImmediatePropagation()
         navigation.pop()
       }
     }
-    _win?.addEventListener('keydown', handler, true)
-    return () => _win?.removeEventListener('keydown', handler, true)
+    window.addEventListener('keydown', handler, true)
+    return () => window.removeEventListener('keydown', handler, true)
   }, [topMostModal, overlayNoClose, navigation])
 
   const titleNode = typeof headerTitle === 'function'

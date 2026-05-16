@@ -2,7 +2,7 @@
 import * as T from '@/constants/types'
 import RPCError from '@/util/rpcerror'
 import {resetAllStores} from '@/util/zustand'
-import {makePhoneError, useSettingsPhoneState} from '@/stores/settings-phone'
+import {makePhoneError, useSettingsPhoneState} from '../settings-phone'
 
 afterEach(() => {
   jest.restoreAllMocks()

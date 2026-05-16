@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import SuggestionList from '@/chat/conversation/input-area/suggestors/suggestion-list'
+import SuggestionList from './suggestion-list'
 import type * as T from '@/constants/types'
 
 export type TransformerData = {

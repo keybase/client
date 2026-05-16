@@ -1,5 +1,5 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
-import type SetChannelnameType from '@/chat/conversation/messages/set-channelname/container'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import type SetChannelnameType from './container'
 
 function WrapperSetChannelname(p: Props) {
   const {ordinal, isCenteredHighlight} = p

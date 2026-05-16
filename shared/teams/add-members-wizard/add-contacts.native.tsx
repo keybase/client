@@ -3,10 +3,10 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
-import ContactsList, {useContacts, EnableContactsPopup} from '@/teams/common/contacts-list.native'
+import ContactsList, {useContacts, EnableContactsPopup} from '../common/contacts-list.native'
 import {useModalHeaderState} from '@/stores/modal-header'
-import type {Contact} from '@/teams/common/contacts-list.native'
-import {addMembersToWizard, type AddMembersWizard} from '@/teams/add-members-wizard/state'
+import type {Contact} from '../common/contacts-list.native'
+import {addMembersToWizard, type AddMembersWizard} from './state'
 
 const AddContacts = ({wizard}: {wizard: AddMembersWizard}) => {
   const navigateUp = C.Router2.navigateUp

@@ -1,5 +1,5 @@
 // Message related constants
-import * as T from '@/constants/types'
+import * as T from '../types'
 import * as TeamsUtil from '@/constants/teams'
 import HiddenString from '@/util/hidden-string'
 import logger from '@/logger'
@@ -763,7 +763,7 @@ const uiMessageToSystemMessage = (
 export const maxAmpsLength = 60
 const previewSpecs = (preview?: T.RPCChat.AssetMetadata, full?: T.RPCChat.AssetMetadata) => {
   const res: T.Chat.PreviewSpec = {
-    attachmentType: 'file',
+    attachmentType: 'file' as T.Chat.AttachmentType,
     audioAmps: [],
     audioDuration: 0,
     height: 0,
@@ -894,7 +894,7 @@ const validUIMessagetoMessage = (
               currentUsername,
               getLastOrdinal,
               currentDeviceName
-            ))
+            ) as T.Chat.MessageReplyTo)
           : undefined,
         text: new HiddenString(rawText),
         unfurls: m.unfurls?.length ? new Map(m.unfurls.map(u => [u.url, u])) : undefined,

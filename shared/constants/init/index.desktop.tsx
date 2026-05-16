@@ -17,7 +17,7 @@ import {skipAppFocusActions} from '@/local-debug.desktop'
 import {NotifyPopup} from '@/util/misc'
 import {noKBFSFailReason} from '@/constants/config'
 import {afterKbfsDaemonRpcStatusChanged} from '@/fs/common/lifecycle'
-import {initSharedSubscriptions, _onEngineIncoming, onEngineConnected as onSharedEngineConnected} from '@/constants/init/shared'
+import {initSharedSubscriptions, _onEngineIncoming, onEngineConnected as onSharedEngineConnected} from './shared'
 import {dumpLogs} from '@/util/storeless-actions'
 
 const {activeChanged, requestWindowsStartService} = KB2.functions
@@ -82,7 +82,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
     }
     case 'keybase.1.NotifyService.shutdown': {
       const {code} = action.payload.params
-      if (isWindows && code !== (T.RPCGen.ExitCode.restart)) {
+      if (isWindows && code !== (T.RPCGen.ExitCode.restart as number)) {
         console.log('Quitting due to service shutdown with code: ', code)
         // Quit just the app, not the service
         quitApp?.()
@@ -282,4 +282,4 @@ export const initPlatformListener = () => {
   initSharedSubscriptions()
 }
 
-export {onEngineConnected, onEngineDisconnected} from '@/constants/init/shared'
+export {onEngineConnected, onEngineDisconnected} from './shared'

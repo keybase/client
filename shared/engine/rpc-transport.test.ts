@@ -6,7 +6,7 @@ import {
   errors,
   type IncomingRPCCallbackType,
   type RPCMessage,
-} from '@/engine/rpc-transport'
+} from './rpc-transport'
 
 class TestTransport extends RPCTransport {
   private _connected = true
