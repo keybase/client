@@ -1,8 +1,8 @@
 // Helper for cross platform yarn run script commands
-import buildCommands from '@/desktop/yarn-helper/build.mts'
-import electronComands from '@/desktop/yarn-helper/electron.mts'
-import fontCommands from '@/desktop/yarn-helper/font.mts'
-import prettierCommands from '@/desktop/yarn-helper/prettier.mts'
+import buildCommands from './build.mts'
+import electronComands from './electron.mts'
+import fontCommands from './font.mts'
+import prettierCommands from './prettier.mts'
 import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'

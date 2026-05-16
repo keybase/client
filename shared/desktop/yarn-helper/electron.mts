@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url'
 import webpack from 'webpack'
 import WebpackDevServer from 'webpack-dev-server'
 import type {Configuration, MultiStats, Stats} from 'webpack'
-import rootConfig from '@/desktop/webpack.config.mts'
+import rootConfig from '../webpack.config.mts'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
