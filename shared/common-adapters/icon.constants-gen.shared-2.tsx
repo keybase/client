@@ -8,6 +8,3 @@ export type IconMeta = {
   require?: string | number
   requireDark?: string | number
 }
-
-export type {IconType} from './icon.constants-gen.shared.tsx'
-export {iconMeta} from './icon.constants-gen.shared.tsx'
