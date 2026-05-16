@@ -1,4 +1,4 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
 import type SystemChangeAvatarType from '.'
 
 function SystemChangeAvatar(p: Props) {

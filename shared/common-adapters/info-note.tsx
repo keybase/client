@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import {Box2} from '@/common-adapters/box'
-import Icon from './icon'
+import Icon from '@/common-adapters/icon'
 import * as Styles from '@/styles'
 
 export type Props = {

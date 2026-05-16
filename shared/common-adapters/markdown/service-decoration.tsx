@@ -3,18 +3,18 @@ import type * as React from 'react'
 import * as C from '@/constants'
 import {emitDeepLink} from '@/router-v2/linking'
 import * as Styles from '@/styles'
-import Channel from './channel'
+import Channel from '@/common-adapters/markdown/channel'
 import KbfsPath from '@/fs/common/kbfs-path'
-import MaybeMention from './maybe-mention'
-import Mention from '../mention-container'
-import PaymentStatus from '../../chat/payments/status'
+import MaybeMention from '@/common-adapters/markdown/maybe-mention'
+import Mention from '@/common-adapters/mention-container'
+import PaymentStatus from '@/chat/payments/status'
 import Text from '@/common-adapters/text'
-import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
+import type {StylesTextCrossPlatform, TextType} from '@/common-adapters/text.shared'
 import {useClickURL} from '@/common-adapters/text-url'
 import WithTooltip from '@/common-adapters/with-tooltip'
 import type {StyleOverride} from '.'
 import {RPCToEmojiData, default as Emoji} from '@/common-adapters/emoji'
-import {parseServiceDecoration} from './service-decoration-parser'
+import {parseServiceDecoration} from '@/common-adapters/markdown/service-decoration-parser'
 
 const prefix = 'keybase://'
 const linkIsKeybaseLink = (link: string) => link.startsWith(prefix)
@@ -102,7 +102,7 @@ const WarningLink = (props: WarningLinkProps) => {
 const URLText = (p: {
   url: string
   className?: string
-  type?: string
+  type?: TextType
   style?: Styles.StylesCrossPlatform
   title?: string
   children?: React.ReactNode
@@ -111,7 +111,7 @@ const URLText = (p: {
   return (
     <Text
       className={p.className}
-      type={p.type as any}
+      type={p.type}
       style={p.style}
       title={p.title}
       {...urlProps}

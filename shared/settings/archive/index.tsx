@@ -13,7 +13,7 @@ import {
   mapChatJobs,
   mapKBFSJobs,
   updateChatProgress,
-} from './job-state'
+} from '@/settings/archive/job-state'
 
 const loadChatJobs = async () => {
   const res = await T.RPCChat.localArchiveChatListRpcPromise({

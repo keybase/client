@@ -2,28 +2,7 @@ import type * as Styles from '@/styles'
 import * as React from 'react'
 import {Box2} from '@/common-adapters/box'
 import lottie from 'lottie-web'
-
-
-export type AnimationType =
-  | 'darkMessageStatusEncrypting'
-  | 'darkMessageStatusEncryptingExploding'
-  | 'darkMessageStatusError'
-  | 'darkMessageStatusSending'
-  | 'darkMessageStatusSendingExploding'
-  | 'darkMessageStatusSent'
-  | 'darkExploding'
-  | 'disconnected'
-  | 'exploding'
-  | 'loadingInfinity'
-  | 'messageStatusEncrypting'
-  | 'messageStatusEncryptingExploding'
-  | 'messageStatusError'
-  | 'messageStatusSending'
-  | 'messageStatusSendingExploding'
-  | 'messageStatusSent'
-  | 'spinner'
-  | 'spinnerWhite'
-  | 'typing'
+import type {AnimationType} from '@/common-adapters/animation.shared'
 
 type Props = {
   animationType: AnimationType
@@ -72,3 +51,5 @@ function Animation(props: Props) {
 }
 
 export default Animation
+
+export type * from '@/common-adapters/animation.shared'

@@ -5,7 +5,7 @@ import {Box2} from '@/common-adapters/box'
 import ClickableBox from '@/common-adapters/clickable-box'
 import Text from '@/common-adapters/text'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
-import IconAuto from './icon-auto'
+import IconAuto from '@/common-adapters/icon-auto'
 
 type Props = {
   icon: IconType

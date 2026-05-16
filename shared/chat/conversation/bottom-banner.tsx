@@ -10,8 +10,8 @@ import {showShareActionSheet} from '@/util/platform-specific'
 import {
   useConversationThreadID,
   useConversationThreadSelector,
-} from './thread-context'
-import {useBottomBannerState} from './bottom-banner-state'
+} from '@/chat/conversation/thread-context'
+import {useBottomBannerState} from '@/chat/conversation/bottom-banner-state'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 

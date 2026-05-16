@@ -2,7 +2,7 @@
 
 import {expect, test} from '@jest/globals'
 import * as T from '@/constants/types'
-import {parseServiceDecoration} from './service-decoration-parser'
+import {parseServiceDecoration} from '@/common-adapters/markdown/service-decoration-parser'
 
 const encodeServiceDecoration = (payload: unknown) => Buffer.from(JSON.stringify(payload)).toString('base64')
 

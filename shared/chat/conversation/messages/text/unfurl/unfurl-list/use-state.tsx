@@ -1,5 +1,5 @@
 import type * as T from '@/constants/types'
-import {useConversationThreadMessageActions} from '../../../../thread-context'
+import {useConversationThreadMessageActions} from '@/chat/conversation/thread-context'
 
 export const useActions = (youAreAuthor: boolean, messageID: T.Chat.MessageID, ordinal: T.Chat.Ordinal) => {
   const {toggleMessageCollapse, unfurlRemove} = useConversationThreadMessageActions()

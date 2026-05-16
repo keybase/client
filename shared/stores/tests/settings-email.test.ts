@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import {resetAllStores} from '@/util/zustand'
-import {useSettingsEmailState} from '../settings-email'
+import {useSettingsEmailState} from '@/stores/settings-email'
 
 afterEach(() => {
   jest.restoreAllMocks()
@@ -15,7 +15,7 @@ test('email change notifications populate the email map and verification updates
       isVerified: false,
       lastVerifyEmailDate: 0,
       visibility: 0,
-    } as any,
+    },
   ])
 
   expect(useSettingsEmailState.getState().emails.get('alice@example.com')?.isVerified).toBe(false)

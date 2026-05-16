@@ -65,7 +65,7 @@ const ZoneRow = ({type, fs, lh}: {type: TextType; fs: number; lh: number}) => {
                 position: 'absolute',
                 right: 0,
                 top: b.from,
-              } as object,
+              },
             })}
           />
         ))}
@@ -86,7 +86,7 @@ const ZoneRow = ({type, fs, lh}: {type: TextType; fs: number; lh: number}) => {
                 position: 'absolute',
                 right: 0,
                 top: l.top,
-              } as object,
+              },
             })}
           />
         ))}
@@ -206,7 +206,7 @@ const CenteringSection = () => (
                   position: 'absolute',
                   right: 0,
                   top: h / 2,
-                } as object,
+                },
               })}
             />
           </Kb.Box2>
@@ -351,8 +351,8 @@ const SampleRow = ({textType, decoration, sample}: {textType: TextType; decorati
 
   const textStyle = Kb.Styles.platformStyles({
     isElectron: {
-      ...(lineThrough ? ({textDecoration: 'line-through'} as object) : {}),
-      ...(underline ? ({textDecoration: lineThrough ? 'underline line-through' : 'underline'} as object) : {}),
+      ...(lineThrough ? ({textDecoration: 'line-through'}) : {}),
+      ...(underline ? ({textDecoration: lineThrough ? 'underline line-through' : 'underline'}) : {}),
     },
     isMobile: {
       ...(lineThrough ? {textDecorationLine: underline ? 'underline line-through' : 'line-through'} : {}),
@@ -464,7 +464,7 @@ const Typography = () => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  bold: Kb.Styles.platformStyles({isElectron: {fontWeight: 'bold'} as object, isMobile: {fontWeight: 'bold'}}),
+  bold: Kb.Styles.platformStyles({isElectron: {fontWeight: 'bold'}, isMobile: {fontWeight: 'bold'}}),
   centeredBox: {
     backgroundColor: Kb.Styles.globalColors.blue_10,
     borderColor: Kb.Styles.globalColors.blue,
@@ -478,12 +478,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   hint: {color: Kb.Styles.globalColors.black_50, marginBottom: 4},
   innerDivider: {marginBottom: Kb.Styles.globalMargins.xtiny, marginTop: Kb.Styles.globalMargins.xtiny},
   inlineRow: {flexWrap: 'wrap'},
-  italic: Kb.Styles.platformStyles({isElectron: {fontStyle: 'italic'} as object, isMobile: {fontStyle: 'italic'}}),
+  italic: Kb.Styles.platformStyles({isElectron: {fontStyle: 'italic'}, isMobile: {fontStyle: 'italic'}}),
   label: {color: Kb.Styles.globalColors.black_50, minWidth: 100},
   lightBg: {backgroundColor: Kb.Styles.globalColors.white},
   metricsText: {color: Kb.Styles.globalColors.blue, fontFamily: 'monospace' as const, marginTop: 2},
   bothDecoration: Kb.Styles.platformStyles({
-    isElectron: {textDecoration: 'underline line-through'} as object,
+    isElectron: {textDecoration: 'underline line-through'},
     isMobile: {textDecorationLine: 'underline line-through'},
   }),
   paraRow: {
@@ -500,11 +500,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   samples: {padding: Kb.Styles.globalMargins.small},
   strikethrough: Kb.Styles.platformStyles({
-    isElectron: {textDecoration: 'line-through'} as object,
+    isElectron: {textDecoration: 'line-through'},
     isMobile: {textDecorationLine: 'line-through'},
   }),
   underline: Kb.Styles.platformStyles({
-    isElectron: {textDecoration: 'underline'} as object,
+    isElectron: {textDecoration: 'underline'},
     isMobile: {textDecorationLine: 'underline'},
   }),
   wrap: {flexWrap: 'wrap'},
@@ -513,7 +513,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     borderBottomWidth: 1,
   },
   zoneText: Kb.Styles.platformStyles({
-    isElectron: {position: 'absolute', top: 0} as object,
+    isElectron: {position: 'absolute', top: 0},
   }),
 }))
 

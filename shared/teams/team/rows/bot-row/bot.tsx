@@ -3,10 +3,10 @@ import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import BotMenu from './bot-menu'
+import BotMenu from '@/teams/team/rows/bot-row/bot-menu'
 import {useFeaturedBot} from '@/util/featured-bots'
 import {navToProfile} from '@/constants/router'
-import {useLoadedTeam} from '../../use-loaded-team'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 export type Props = {
   botAlias: string

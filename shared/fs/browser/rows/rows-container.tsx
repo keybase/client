@@ -1,14 +1,14 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import * as RowTypes from './types'
-import {sortRowItems, type SortableRowItem} from './sort'
-import Rows, {type Props} from './rows'
-import {asRows as topBarAsRow} from '../../top-bar'
+import * as RowTypes from '@/fs/browser/rows/types'
+import {sortRowItems, type SortableRowItem} from '@/fs/browser/rows/sort'
+import Rows, {type Props} from '@/fs/browser/rows/rows'
+import {asRows as topBarAsRow} from '@/fs/top-bar'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useFsBrowserEdits, type BrowserEditSession} from '../edit-state'
-import {useFsBrowserSort} from '../sort-state'
-import {useFsFolderChildItems, useFsTlfs} from '../../common'
+import {useFsBrowserEdits, type BrowserEditSession} from '@/fs/browser/edit-state'
+import {useFsBrowserSort} from '@/fs/browser/sort-state'
+import {useFsFolderChildItems, useFsTlfs} from '@/fs/common'
 
 type OwnProps = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource

@@ -5,7 +5,7 @@ import {
   clearAllEngineActionListeners,
   notifyEngineActionListeners,
   subscribeToEngineAction,
-} from './action-listener'
+} from '@/engine/action-listener'
 
 afterEach(() => {
   jest.restoreAllMocks()

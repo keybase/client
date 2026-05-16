@@ -1,8 +1,8 @@
 import {navigateAppend} from '@/constants/router'
 import {isIOS} from '@/constants/platform.native'
-import {pickDocumentsAsync} from './expo-document-picker.native'
-import {launchImageLibraryAsync, type ImageInfo} from './expo-image-picker.native'
-import type {OpenDialogOptions, SaveDialogOptions} from './electron.desktop'
+import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
+import {launchImageLibraryAsync, type ImageInfo} from '@/util/expo-image-picker.native'
+import type {OpenDialogOptions, SaveDialogOptions} from '@/util/electron.desktop'
 import * as SMS from 'expo-sms'
 import {Linking} from 'react-native'
 import {addNotificationRequest, clearLocalLogs as clearLocalLogsNative} from 'react-native-kb'
@@ -66,7 +66,7 @@ export const pickSave = (_options: SaveDialogOptions): never => {
   throw new Error('No supported platform')
 }
 
-export function NotifyPopup(title: string, _opts?: NotifyPopupOpts): void {
+export function NotifyPopup(title: string, _opts?: NotifyPopupOpts, _rateLimitSeconds?: number, _rateLimitKey?: string, _onClick?: () => void, _onClose?: () => void): void {
   console.log('NotifyPopup: ', title)
   addNotificationRequest({
     body: title,

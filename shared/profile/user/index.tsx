@@ -1,19 +1,19 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as React from 'react'
-import Actions from './actions'
+import Actions from '@/profile/user/actions'
 import Assertion from '@/tracker/assertion'
 import Bio from '@/tracker/bio'
-import Friend from './friend'
-import Teams from './teams'
+import Friend from '@/profile/user/friend'
+import Teams from '@/profile/user/teams'
 import chunk from 'lodash/chunk'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
-import {SiteIcon} from '../generic/shared'
+import {SiteIcon} from '@/profile/generic/shared'
 import useResizeObserver from '@/util/use-resize-observer'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
-import useUserData from './hooks'
+import useUserData from '@/profile/user/hooks'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
@@ -379,7 +379,7 @@ const User = (props: {username: string}) => {
 
   // desktop only
   const wrapperRef = React.useRef<MeasureRef>(null)
-  useResizeObserver(wrapperRef as unknown as React.RefObject<Element>, e => setWidth(e.contentRect.width))
+  useResizeObserver(wrapperRef as React.RefObject<HTMLDivElement>, (e: {contentRect: {width: number}}) => setWidth(e.contentRect.width))
 
   const errorFilter = (e: RPCError) => e.code !== T.RPCGen.StatusCode.scresolutionfailed
 

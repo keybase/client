@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import useContacts, {type Contact} from '../common/use-contacts.native'
-import {InviteByContact, type ContactRowProps} from './index.native'
+import useContacts, {type Contact} from '@/teams/common/use-contacts.native'
+import {InviteByContact, type ContactRowProps} from '@/teams/invite-by-contact/index.native'
 import {getE164} from '@/util/phone-numbers'
 import {openSMS} from '@/util/misc'
 import logger from '@/logger'
-import {useLoadedTeam} from '../team/use-loaded-team'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.
@@ -126,7 +126,7 @@ const TeamInviteByContact = (props: Props) => {
                 sms: {
                   f: contact.name || '',
                   n: contact.valueFormatted || contact.value,
-                } as T.RPCGen.SeitanKeyLabelSms,
+                },
                 t: 1,
               },
               role: T.RPCGen.TeamRole[selectedRole],

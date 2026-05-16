@@ -6,7 +6,7 @@ import * as InputState from '@/chat/conversation/input-area/input-state'
 // we need to use the raw colors to animate
 import {colors} from '@/styles/colors'
 import * as Reanimated from 'react-native-reanimated'
-import {AmpTracker} from './amptracker'
+import {AmpTracker} from '@/chat/audio/amptracker'
 import {PanResponder, View, type GestureResponderEvent, type PanResponderGestureState} from 'react-native'
 import {formatAudioRecordDuration} from '@/util/timestamp'
 import {AudioModule, AudioQuality, IOSOutputFormat} from 'expo-audio'
@@ -14,7 +14,7 @@ import {setupAudioMode} from '@/util/audio.native'
 import logger from '@/logger'
 import * as Haptics from 'expo-haptics'
 import {File} from 'expo-file-system'
-import AudioSend from './audio-send.native'
+import AudioSend from '@/chat/audio/audio-send.native'
 import {useConversationSendActions} from '@/chat/conversation/send-actions'
 
 const {useSharedValue, Extrapolation, useAnimatedStyle} = Reanimated

@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {getAttachmentPreviewSize} from '../shared'
+import {getAttachmentPreviewSize} from '@/chat/conversation/messages/attachment/shared'
 
 const ImageImpl = ({message}: {message: T.Chat.MessageAttachment}) => {
   const {previewURL, height, width} = getAttachmentPreviewSize(message, true)

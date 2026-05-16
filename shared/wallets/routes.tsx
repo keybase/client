@@ -10,6 +10,6 @@ export const newRoutes = defineRouteMap({
 })
 
 export const newModalRoutes = defineRouteMap({
-  reallyRemoveAccount: C.makeScreen(React.lazy(async () => import('./really-remove-account'))),
-  removeAccount: C.makeScreen(React.lazy(async () => import('./remove-account'))),
+  reallyRemoveAccount: C.makeScreen(React.lazy(async () => import('@/wallets/really-remove-account'))),
+  removeAccount: C.makeScreen(React.lazy(async () => import('@/wallets/remove-account'))),
 })

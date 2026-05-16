@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
-import {useBotConversationIDKey, useRefreshBotMembershipOnSuccess} from './install'
+import {useBotConversationIDKey, useRefreshBotMembershipOnSuccess} from '@/chat/conversation/bot/install'
 
 type Props = {
   botUsername: string

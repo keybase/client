@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {joinConversation} from '../status-actions'
-import {useConversationThreadID, useConversationThreadSelector} from '../thread-context'
+import {joinConversation} from '@/chat/conversation/status-actions'
+import {useConversationThreadID, useConversationThreadSelector} from '@/chat/conversation/thread-context'
 
 const Preview = () => {
   const conversationIDKey = useConversationThreadID()

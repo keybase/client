@@ -1,6 +1,6 @@
 import * as Message from '@/constants/chat/message'
 import * as T from '@/constants/types'
-import {getUsernameToShow} from './separator-utils'
+import {getUsernameToShow} from '@/chat/conversation/messages/separator-utils'
 
 const emptyOrdinal = T.Chat.numberToOrdinal(0)
 

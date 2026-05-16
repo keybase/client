@@ -7,68 +7,122 @@
       "@/app/main": [
         "./app/main.desktop"
       ],
-      "@/common-adapters/animation": [
-        "./common-adapters/animation.desktop"
+      "@/chat/audio/audio-video": [
+        "./chat/audio/audio-video.desktop"
       ],
-      "@/common-adapters/avatar/index": [
-        "./common-adapters/avatar/index.desktop"
+      "@/chat/conversation/attachment-fullscreen/index": [
+        "./chat/conversation/attachment-fullscreen/index.desktop"
       ],
-      "@/common-adapters/avatar": [
-        "./common-adapters/avatar/index.desktop"
+      "@/chat/conversation/attachment-fullscreen": [
+        "./chat/conversation/attachment-fullscreen/index.desktop"
       ],
-      "@/common-adapters/back-button": [
-        "./common-adapters/back-button.desktop"
+      "@/chat/conversation/giphy/index": [
+        "./chat/conversation/giphy/index.desktop"
       ],
-      "@/common-adapters/bottom-accessory": [
-        "./common-adapters/bottom-accessory.desktop"
+      "@/chat/conversation/giphy": [
+        "./chat/conversation/giphy/index.desktop"
+      ],
+      "@/chat/conversation/header-area/index": [
+        "./chat/conversation/header-area/index.desktop"
+      ],
+      "@/chat/conversation/header-area": [
+        "./chat/conversation/header-area/index.desktop"
+      ],
+      "@/chat/conversation/input-area/filepicker-popup/index": [
+        "./chat/conversation/input-area/filepicker-popup/index.desktop"
+      ],
+      "@/chat/conversation/input-area/filepicker-popup": [
+        "./chat/conversation/input-area/filepicker-popup/index.desktop"
+      ],
+      "@/chat/conversation/input-area/location-popup": [
+        "./chat/conversation/input-area/location-popup.desktop"
+      ],
+      "@/chat/conversation/input-area/normal/input": [
+        "./chat/conversation/input-area/normal/input.desktop"
+      ],
+      "@/chat/conversation/input-area/normal/set-explode-popup/index": [
+        "./chat/conversation/input-area/normal/set-explode-popup/index.desktop"
+      ],
+      "@/chat/conversation/input-area/normal/set-explode-popup": [
+        "./chat/conversation/input-area/normal/set-explode-popup/index.desktop"
+      ],
+      "@/chat/conversation/input-area/suggestors/suggestion-list": [
+        "./chat/conversation/input-area/suggestors/suggestion-list.desktop"
+      ],
+      "@/chat/conversation/list-area/index": [
+        "./chat/conversation/list-area/index.desktop"
+      ],
+      "@/chat/conversation/list-area": [
+        "./chat/conversation/list-area/index.desktop"
+      ],
+      "@/chat/conversation/messages/attachment/image/imageimpl": [
+        "./chat/conversation/messages/attachment/image/imageimpl.desktop"
+      ],
+      "@/chat/conversation/messages/attachment/video/videoimpl": [
+        "./chat/conversation/messages/attachment/video/videoimpl.desktop"
+      ],
+      "@/chat/conversation/messages/text/unfurl/unfurl-list/image/video": [
+        "./chat/conversation/messages/text/unfurl/unfurl-list/image/video.desktop"
+      ],
+      "@/chat/conversation/messages/wrapper/exploding-height-retainer/index": [
+        "./chat/conversation/messages/wrapper/exploding-height-retainer/index.desktop"
+      ],
+      "@/chat/conversation/messages/wrapper/exploding-height-retainer": [
+        "./chat/conversation/messages/wrapper/exploding-height-retainer/index.desktop"
+      ],
+      "@/chat/conversation/messages/wrapper/long-pressable/index": [
+        "./chat/conversation/messages/wrapper/long-pressable/index.desktop"
+      ],
+      "@/chat/conversation/messages/wrapper/long-pressable": [
+        "./chat/conversation/messages/wrapper/long-pressable/index.desktop"
+      ],
+      "@/chat/conversation/normal/index": [
+        "./chat/conversation/normal/index.desktop"
+      ],
+      "@/chat/conversation/normal": [
+        "./chat/conversation/normal/index.desktop"
+      ],
+      "@/chat/conversation/rekey/participant-rekey": [
+        "./chat/conversation/rekey/participant-rekey.desktop"
+      ],
+      "@/chat/conversation/rekey/you-rekey": [
+        "./chat/conversation/rekey/you-rekey.desktop"
+      ],
+      "@/chat/create-channel/index": [
+        "./chat/create-channel/index.desktop"
+      ],
+      "@/chat/create-channel": [
+        "./chat/create-channel/index.desktop"
+      ],
+      "@/chat/inbox/index": [
+        "./chat/inbox/index.desktop"
+      ],
+      "@/chat/inbox": [
+        "./chat/inbox/index.desktop"
+      ],
+      "@/chat/inbox/row/small-team/swipe-conv-actions/index": [
+        "./chat/inbox/row/small-team/swipe-conv-actions/index.desktop"
+      ],
+      "@/chat/inbox/row/small-team/swipe-conv-actions": [
+        "./chat/inbox/row/small-team/swipe-conv-actions/index.desktop"
+      ],
+      "@/chat/inbox/use-header-portal": [
+        "./chat/inbox/use-header-portal.desktop"
+      ],
+      "@/chat/inbox-search/background": [
+        "./chat/inbox-search/background.desktop"
+      ],
+      "@/chat/location-map": [
+        "./chat/location-map.desktop"
+      ],
+      "@/chat/pdf/index": [
+        "./chat/pdf/index.desktop"
+      ],
+      "@/chat/pdf": [
+        "./chat/pdf/index.desktop"
       ],
       "@/common-adapters/bottom-sheet": [
         "./common-adapters/bottom-sheet.desktop"
-      ],
-      "@/common-adapters/box": [
-        "./common-adapters/box.desktop"
-      ],
-      "@/common-adapters/checkbox": [
-        "./common-adapters/checkbox.desktop"
-      ],
-      "@/common-adapters/choice-list": [
-        "./common-adapters/choice-list.desktop"
-      ],
-      "@/common-adapters/clickable-box": [
-        "./common-adapters/clickable-box.desktop"
-      ],
-      "@/common-adapters/copyable-text": [
-        "./common-adapters/copyable-text.desktop"
-      ],
-      "@/common-adapters/drag-and-drop": [
-        "./common-adapters/drag-and-drop.desktop"
-      ],
-      "@/common-adapters/emoji/custom-emoji": [
-        "./common-adapters/emoji/custom-emoji.desktop"
-      ],
-      "@/common-adapters/emoji/native-emoji": [
-        "./common-adapters/emoji/native-emoji.desktop"
-      ],
-      "@/common-adapters/floating-menu/menu-layout/index": [
-        "./common-adapters/floating-menu/menu-layout/index.desktop"
-      ],
-      "@/common-adapters/floating-menu/menu-layout": [
-        "./common-adapters/floating-menu/menu-layout/index.desktop"
-      ],
-      "@/common-adapters/floating-picker": [
-        "./common-adapters/floating-picker.desktop"
-      ],
-      "@/common-adapters/header-buttons": [
-        "./common-adapters/header-buttons.desktop"
-      ],
-      "@/common-adapters/hot-key": [
-        "./common-adapters/hot-key.desktop"
-      ],
-      "@/common-adapters/icon.constants-gen": [
-        "./common-adapters/icon.constants-gen.desktop"
-      ],
-      "@/common-adapters/image": [
-        "./common-adapters/image.desktop"
       ],
       "@/common-adapters/index": [
         "./common-adapters/index.desktop"
@@ -76,77 +130,26 @@
       "@/common-adapters": [
         "./common-adapters/index.desktop"
       ],
-      "@/common-adapters/input3": [
-        "./common-adapters/input3.desktop"
-      ],
       "@/common-adapters/key-event-handler": [
         "./common-adapters/key-event-handler.desktop"
-      ],
-      "@/common-adapters/keyboard-avoiding-view": [
-        "./common-adapters/keyboard-avoiding-view.desktop"
-      ],
-      "@/common-adapters/list": [
-        "./common-adapters/list.desktop"
-      ],
-      "@/common-adapters/loading-line": [
-        "./common-adapters/loading-line.desktop"
-      ],
-      "@/common-adapters/popup/bottom-sheet": [
-        "./common-adapters/popup/bottom-sheet.desktop"
-      ],
-      "@/common-adapters/popup/floating-box/index": [
-        "./common-adapters/popup/floating-box/index.desktop"
-      ],
-      "@/common-adapters/popup/floating-box": [
-        "./common-adapters/popup/floating-box/index.desktop"
       ],
       "@/common-adapters/popup/floating-box/relative-floating-box": [
         "./common-adapters/popup/floating-box/relative-floating-box.desktop"
       ],
-      "@/common-adapters/popup/index": [
-        "./common-adapters/popup/index.desktop"
+      "@/constants/init/index": [
+        "./constants/init/index.desktop"
       ],
-      "@/common-adapters/popup": [
-        "./common-adapters/popup/index.desktop"
+      "@/constants/init": [
+        "./constants/init/index.desktop"
       ],
-      "@/common-adapters/progress-indicator": [
-        "./common-adapters/progress-indicator.desktop"
+      "@/constants/platform": [
+        "./constants/platform.desktop"
       ],
-      "@/common-adapters/radio-button": [
-        "./common-adapters/radio-button.desktop"
+      "@/crypto/sub-nav/index": [
+        "./crypto/sub-nav/index.desktop"
       ],
-      "@/common-adapters/safe-area-view": [
-        "./common-adapters/safe-area-view.desktop"
-      ],
-      "@/common-adapters/scroll-view": [
-        "./common-adapters/scroll-view.desktop"
-      ],
-      "@/common-adapters/switch-toggle": [
-        "./common-adapters/switch-toggle.desktop"
-      ],
-      "@/common-adapters/text-url": [
-        "./common-adapters/text-url.desktop"
-      ],
-      "@/common-adapters/text": [
-        "./common-adapters/text.desktop"
-      ],
-      "@/common-adapters/text.styles": [
-        "./common-adapters/text.styles.desktop"
-      ],
-      "@/common-adapters/toast": [
-        "./common-adapters/toast.desktop"
-      ],
-      "@/common-adapters/video": [
-        "./common-adapters/video.desktop"
-      ],
-      "@/common-adapters/web-view": [
-        "./common-adapters/web-view.desktop"
-      ],
-      "@/common-adapters/with-tooltip": [
-        "./common-adapters/with-tooltip.desktop"
-      ],
-      "@/common-adapters/zoomable-image": [
-        "./common-adapters/zoomable-image.desktop"
+      "@/crypto/sub-nav": [
+        "./crypto/sub-nav/index.desktop"
       ],
       "@/crypto/sub-nav/left-nav": [
         "./crypto/sub-nav/left-nav.desktop"
@@ -229,6 +232,48 @@
       "@/desktop/renderer/remote-event-handler": [
         "./desktop/renderer/remote-event-handler.desktop"
       ],
+      "@/engine/index": [
+        "./engine/index.desktop"
+      ],
+      "@/engine": [
+        "./engine/index.desktop"
+      ],
+      "@/engine/index.platform": [
+        "./engine/index.platform.desktop"
+      ],
+      "@/engine/session": [
+        "./engine/session.desktop"
+      ],
+      "@/fs/filepreview/pdf-view": [
+        "./fs/filepreview/pdf-view.desktop"
+      ],
+      "@/fs/filepreview/text-view": [
+        "./fs/filepreview/text-view.desktop"
+      ],
+      "@/fs/footer/download-wrapper": [
+        "./fs/footer/download-wrapper.desktop"
+      ],
+      "@/fs/footer/upload": [
+        "./fs/footer/upload.desktop"
+      ],
+      "@/local-debug": [
+        "./local-debug.desktop"
+      ],
+      "@/login/forms/container": [
+        "./login/forms/container.desktop"
+      ],
+      "@/login/relogin/index": [
+        "./login/relogin/index.desktop"
+      ],
+      "@/login/relogin": [
+        "./login/relogin/index.desktop"
+      ],
+      "@/login/user-card/index": [
+        "./login/user-card/index.desktop"
+      ],
+      "@/login/user-card": [
+        "./login/user-card/index.desktop"
+      ],
       "@/menubar/index": [
         "./menubar/index.desktop"
       ],
@@ -243,6 +288,12 @@
       ],
       "@/menubar/remote-proxy": [
         "./menubar/remote-proxy.desktop"
+      ],
+      "@/people/index": [
+        "./people/index.desktop"
+      ],
+      "@/people": [
+        "./people/index.desktop"
       ],
       "@/pinentry/index": [
         "./pinentry/index.desktop"
@@ -259,6 +310,33 @@
       "@/pinentry/remote-proxy": [
         "./pinentry/remote-proxy.desktop"
       ],
+      "@/profile/edit-avatar/index": [
+        "./profile/edit-avatar/index.desktop"
+      ],
+      "@/profile/edit-avatar": [
+        "./profile/edit-avatar/index.desktop"
+      ],
+      "@/profile/pgp/choice/index": [
+        "./profile/pgp/choice/index.desktop"
+      ],
+      "@/profile/pgp/choice": [
+        "./profile/pgp/choice/index.desktop"
+      ],
+      "@/profile/pgp/import/index": [
+        "./profile/pgp/import/index.desktop"
+      ],
+      "@/profile/pgp/import": [
+        "./profile/pgp/import/index.desktop"
+      ],
+      "@/provision/code-page/qr-scan/index": [
+        "./provision/code-page/qr-scan/index.desktop"
+      ],
+      "@/provision/code-page/qr-scan": [
+        "./provision/code-page/qr-scan/index.desktop"
+      ],
+      "@/router-v2/common": [
+        "./router-v2/common.desktop"
+      ],
       "@/router-v2/header/index": [
         "./router-v2/header/index.desktop"
       ],
@@ -267,6 +345,9 @@
       ],
       "@/router-v2/left-tab-navigator": [
         "./router-v2/left-tab-navigator.desktop"
+      ],
+      "@/router-v2/router": [
+        "./router-v2/router.desktop"
       ],
       "@/router-v2/screen-layout": [
         "./router-v2/screen-layout.desktop"
@@ -277,8 +358,62 @@
       "@/settings/common": [
         "./settings/common.desktop"
       ],
+      "@/settings/delete-confirm/check-passphrase": [
+        "./settings/delete-confirm/check-passphrase.desktop"
+      ],
+      "@/settings/feedback/container": [
+        "./settings/feedback/container.desktop"
+      ],
+      "@/settings/files/index": [
+        "./settings/files/index.desktop"
+      ],
+      "@/settings/files": [
+        "./settings/files/index.desktop"
+      ],
       "@/settings/make-icons.page": [
         "./settings/make-icons.page.desktop"
+      ],
+      "@/settings/notifications/index": [
+        "./settings/notifications/index.desktop"
+      ],
+      "@/settings/notifications": [
+        "./settings/notifications/index.desktop"
+      ],
+      "@/settings/screenprotector/index": [
+        "./settings/screenprotector/index.desktop"
+      ],
+      "@/settings/screenprotector": [
+        "./settings/screenprotector/index.desktop"
+      ],
+      "@/settings/subheading": [
+        "./settings/subheading.desktop"
+      ],
+      "@/stores/fs-platform": [
+        "./stores/fs-platform.desktop"
+      ],
+      "@/stores/push": [
+        "./stores/push.desktop"
+      ],
+      "@/stores/settings-contacts": [
+        "./stores/settings-contacts.desktop"
+      ],
+      "@/styles/index": [
+        "./styles/index.desktop"
+      ],
+      "@/styles": [
+        "./styles/index.desktop"
+      ],
+      "@/team-building/alphabet-index": [
+        "./team-building/alphabet-index.desktop"
+      ],
+      "@/team-building/service-tab-bar": [
+        "./team-building/service-tab-bar.desktop"
+      ],
+      "@/teams/add-members-wizard/add-contacts": [
+        "./teams/add-members-wizard/add-contacts.desktop"
+      ],
+      "@/teams/invite-by-contact/container": [
+        "./teams/invite-by-contact/container.desktop"
       ],
       "@/tracker/index": [
         "./tracker/index.desktop"
@@ -328,8 +463,32 @@
       "@/util/drag-drop": [
         "./util/drag-drop.desktop"
       ],
+      "@/util/electron": [
+        "./util/electron.desktop"
+      ],
+      "@/util/feature-flags": [
+        "./util/feature-flags.desktop"
+      ],
+      "@/util/misc": [
+        "./util/misc.desktop"
+      ],
+      "@/util/platform-specific/index": [
+        "./util/platform-specific/index.desktop"
+      ],
+      "@/util/platform-specific": [
+        "./util/platform-specific/index.desktop"
+      ],
       "@/util/platform-specific/input-monitor": [
         "./util/platform-specific/input-monitor.desktop"
+      ],
+      "@/util/storeless-actions": [
+        "./util/storeless-actions.desktop"
+      ],
+      "@/util/use-intersection-observer": [
+        "./util/use-intersection-observer.desktop"
+      ],
+      "@/util/use-resize-observer": [
+        "./util/use-resize-observer.desktop"
       ]
     }
   }

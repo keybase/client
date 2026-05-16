@@ -6,9 +6,9 @@ import {NotifyPopup} from '@/util/misc'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useNotifState} from '@/stores/notifications'
 import isEqual from 'lodash/isEqual'
-import {clientID as fsClientID, makeUUID} from './client'
-import {FsDaemonProvider, useFsDaemonActions, useKbfsDaemonStatus} from './daemon'
-import {useFsErrorActionOrThrow} from './error-state'
+import {clientID as fsClientID, makeUUID} from '@/fs/common/client'
+import {FsDaemonProvider, useFsDaemonActions, useKbfsDaemonStatus} from '@/fs/common/daemon'
+import {useFsErrorActionOrThrow} from '@/fs/common/error-state'
 
 type FsStatusState = {
   generation: number
@@ -381,4 +381,4 @@ export const FsStatusProvider = ({children}: {children: React.ReactNode}) => (
   </FsDaemonProvider>
 )
 
-export {useFsDaemonActions, useKbfsDaemonStatus} from './daemon'
+export {useFsDaemonActions, useKbfsDaemonStatus} from '@/fs/common/daemon'

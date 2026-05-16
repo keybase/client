@@ -6,9 +6,9 @@ import * as Platforms from '@/constants/platform'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Tabs from '@/constants/tabs'
-import * as Common from './common.desktop'
-import AccountSwitcher from './account-switcher'
-import RuntimeStats from '../app/runtime-stats'
+import * as Common from '@/router-v2/common.desktop'
+import AccountSwitcher from '@/router-v2/account-switcher'
+import RuntimeStats from '@/app/runtime-stats'
 import {openURL} from '@/util/misc'
 import {isLinux} from '@/constants/platform'
 import KB2 from '@/util/electron.desktop'
@@ -45,7 +45,7 @@ const Header = () => {
   const fullname = useUsersState(s => s.infoMap.get(username)?.fullname ?? '')
 
   const logoutToLoggedOutFlow = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
-  const onHelp = () => openURL('https://book.keybase.io')
+  const onHelp = async () => openURL('https://book.keybase.io')
   const onQuit = () => {
     if (!__DEV__) {
       if (isLinux) {

@@ -8,9 +8,9 @@ import * as Kb from '@/common-adapters'
 import {FloatingRolePicker, sendNotificationFooter} from '@/teams/role-picker'
 import {getRolePickerDisabledReasons} from '@/teams/role-picker-utils'
 import {formatTimeRelativeToNow} from '@/util/timestamp'
-import MenuHeader from '../menu-header.new'
+import MenuHeader from '@/teams/team/rows/menu-header.new'
 import {navToProfile} from '@/constants/router'
-import {useLoadedTeam} from '../../use-loaded-team'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 import {ignoreRequest, removeMember} from '@/teams/actions'
 
 const positionFallbacks = ['left center', 'top left'] as const

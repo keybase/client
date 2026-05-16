@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as R from '@/constants/remote'
-import * as RemoteGen from '../constants/remote-actions'
-import UnlockFolders from './index.desktop'
-import loadRemoteComponent from '../desktop/remote/component-loader.desktop'
-import {RemoteDarkModeSync} from '../desktop/remote/remote-component.desktop'
-import type {UnlockFolderDevice} from './store'
+import * as RemoteGen from '@/constants/remote-actions'
+import UnlockFolders from '@/unlock-folders/index.desktop'
+import loadRemoteComponent from '@/desktop/remote/component-loader.desktop'
+import {RemoteDarkModeSync} from '@/desktop/remote/remote-component.desktop'
+import type {UnlockFolderDevice} from '@/unlock-folders/store'
 
 export type ProxyProps = {
   darkMode: boolean

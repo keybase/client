@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {SignupScreen, errorBanner} from './common'
+import {SignupScreen, errorBanner} from '@/signup/common'
 import * as Provision from '@/stores/provision'
 import {usePushState} from '@/stores/push'
 import * as T from '@/constants/types'
@@ -14,7 +14,7 @@ import {
   clearSignupDeviceNameDraft,
   getSignupDeviceNameDraft,
   setSignupDeviceNameDraft,
-} from './device-name-draft'
+} from '@/signup/device-name-draft'
 
 type Props = StaticScreenProps<{inviteCode?: string; username?: string}>
 

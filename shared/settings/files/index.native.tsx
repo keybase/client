@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import useFiles from './hooks'
+import useFiles from '@/settings/files/hooks'
 import * as FS from '@/constants/fs'
 type Props = ReturnType<typeof useFiles>
 

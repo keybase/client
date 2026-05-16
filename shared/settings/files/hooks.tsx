@@ -1,4 +1,4 @@
-import {defaultNotificationThreshold} from '.'
+import {defaultNotificationThreshold} from '@/settings/files'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'

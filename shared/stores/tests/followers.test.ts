@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import {resetAllStores} from '@/util/zustand'
-import {useFollowerState} from '../followers'
+import {useFollowerState} from '@/stores/followers'
 
 afterEach(() => {
   jest.restoreAllMocks()

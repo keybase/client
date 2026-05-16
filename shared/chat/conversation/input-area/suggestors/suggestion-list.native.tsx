@@ -1,9 +1,9 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import noop from 'lodash/noop'
-import type {Props} from './suggestion-list'
-import {BotCommandUpdateStatus} from './shared'
+import {BotCommandUpdateStatus} from '@/chat/conversation/input-area/suggestors/shared'
 import {FlatList} from 'react-native'
+import type {Props} from '@/chat/conversation/input-area/suggestors/suggestion-list.shared'
 
 function SuggestionList<I>(props: Props<I>) {
   if (

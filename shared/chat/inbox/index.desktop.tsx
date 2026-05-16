@@ -11,20 +11,20 @@ import {
   keyExtractor,
   useUnreadShortcut,
   useScrollUnbox,
-} from './list-helpers'
-import BigTeamsDivider from './row/big-teams-divider'
-import BuildTeam from './row/build-team'
-import InboxSearch from '../inbox-search'
-import ConnectedTeamsDivider from './row/teams-divider-container'
-import UnreadShortcut from './unread-shortcut'
+} from '@/chat/inbox/list-helpers'
+import BigTeamsDivider from '@/chat/inbox/row/big-teams-divider'
+import BuildTeam from '@/chat/inbox/row/build-team'
+import InboxSearch from '@/chat/inbox-search'
+import ConnectedTeamsDivider from '@/chat/inbox/row/teams-divider-container'
+import UnreadShortcut from '@/chat/inbox/unread-shortcut'
 import * as Kb from '@/common-adapters'
 import type {LegendListRef} from '@/common-adapters'
 import {createPortal} from 'react-dom'
-import {inboxWidth, smallRowHeight, getRowHeight} from './row/sizes'
-import {makeRow} from './row'
-import type {InboxSearchController} from './use-inbox-search'
-import {useInboxSearch} from './use-inbox-search'
-import {useInboxState} from './use-inbox-state'
+import {inboxWidth, smallRowHeight, getRowHeight} from '@/chat/inbox/row/sizes'
+import {makeRow} from '@/chat/inbox/row'
+import type {InboxSearchController} from '@/chat/inbox/use-inbox-search'
+import {useInboxSearch} from '@/chat/inbox/use-inbox-search'
+import {useInboxState} from '@/chat/inbox/use-inbox-state'
 import './inbox.css'
 
 const widths = [10, 80, 2, 66]

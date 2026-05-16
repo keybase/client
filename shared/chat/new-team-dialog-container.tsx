@@ -1,9 +1,9 @@
 import * as C from '@/constants'
-import {CreateNewTeam} from '../teams/new-team'
+import {CreateNewTeam} from '@/teams/new-team'
 import {useCurrentUserState} from '@/stores/current-user'
 import {createNewTeamAndNavigate} from '@/teams/team-page-actions'
 import * as T from '@/constants/types'
-import {useConversationParticipants} from './conversation/data-hooks'
+import {useConversationParticipants} from '@/chat/conversation/data-hooks'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
 

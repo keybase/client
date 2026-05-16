@@ -1,1 +1,1 @@
-export {default} from '../no-pgp.native'
+export {default} from '@/profile/pgp/no-pgp.native'

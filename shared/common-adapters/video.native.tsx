@@ -4,7 +4,7 @@ import {Box2} from '@/common-adapters/box'
 import {StatusBar} from 'react-native'
 import {useVideoPlayer, VideoView} from 'expo-video'
 import {useEventListener} from 'expo'
-import {useCheckURL} from './video.shared'
+import {useCheckURL} from '@/common-adapters/video.shared'
 
 
 type Props = {

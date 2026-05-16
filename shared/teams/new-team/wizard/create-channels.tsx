@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import * as C from '@/constants'
-import {type NewTeamWizard} from './state'
+import {type NewTeamWizard} from '@/teams/new-team/wizard/state'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 

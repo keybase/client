@@ -1,6 +1,6 @@
 import * as RPCTypes from '@/constants/rpc/rpc-gen'
-import type * as Devices from './devices'
-import {isWindows} from '../platform'
+import type * as Devices from '@/constants/types/devices'
+import {isWindows} from '@/constants/platform'
 // lets not create cycles in flow, lets discuss how to fix this
 // import {type Actions} from '@/actions/fs-gen'
 

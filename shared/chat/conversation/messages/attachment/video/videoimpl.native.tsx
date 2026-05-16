@@ -1,12 +1,11 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {ShowToastAfterSaving} from '../shared'
+import {ShowToastAfterSaving} from '@/chat/conversation/messages/attachment/shared'
 import {useVideoPlayer, VideoView} from 'expo-video'
 import {useEventListener} from 'expo'
 import {Pressable} from 'react-native'
-import type {Props} from './videoimpl'
-import {getAttachmentPreviewSize} from '../shared'
-
+import {getAttachmentPreviewSize} from '@/chat/conversation/messages/attachment/shared'
+import type {Props} from '@/chat/conversation/messages/attachment/video/videoimpl.shared'
 const VideoImpl = (p: Props) => {
   const {allowPlay, message, showPopup} = p
   const {fileURL: url, transferState, videoDuration} = message

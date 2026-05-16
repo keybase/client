@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {PortalHost, Portal} from '@/common-adapters/portal.native'
-import AudioPlayer from './audio-player'
-import type {AmpTracker} from './amptracker'
+import AudioPlayer from '@/chat/audio/audio-player'
+import type {AmpTracker} from '@/chat/audio/amptracker'
 
 type Props = {
   cancelRecording: () => void

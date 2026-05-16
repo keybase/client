@@ -1,7 +1,7 @@
 /// <reference types="jest" />
-import {RPCError} from '../../util/errors'
-import {resetAllStores} from '../../util/zustand'
-import {useWaitingState} from '../waiting'
+import {RPCError} from '@/util/errors'
+import {resetAllStores} from '@/util/zustand'
+import {useWaitingState} from '@/stores/waiting'
 
 afterEach(() => {
   resetAllStores()

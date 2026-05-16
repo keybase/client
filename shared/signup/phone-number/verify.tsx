@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {SignupScreen} from '../common'
+import {SignupScreen} from '@/signup/common'
 import {e164ToDisplay} from '@/util/phone-numbers'
-import VerifyBody from './verify-body'
-import {usePhoneVerification} from './use-verification'
+import VerifyBody from '@/signup/phone-number/verify-body'
+import {usePhoneVerification} from '@/signup/phone-number/use-verification'
 
 type Props = {route: {params: {phoneNumber: string}}}
 

@@ -2,13 +2,13 @@ import * as C from '@/constants'
 import * as Teams from '@/constants/teams'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {useChannelSelectionState} from '../common/selection-state'
-import MenuHeader from '../team/rows/menu-header.new'
+import {useChannelSelectionState} from '@/teams/common/selection-state'
+import MenuHeader from '@/teams/team/rows/menu-header.new'
 import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
-import {useLoadedTeam} from '../team/use-loaded-team'
-import {getRolePickerDisabledReasons} from '../role-picker-utils'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {getRolePickerDisabledReasons} from '@/teams/role-picker-utils'
 
 type Props = {
   conversationIDKey: T.Chat.ConversationIDKey

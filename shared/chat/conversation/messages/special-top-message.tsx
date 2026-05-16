@@ -1,18 +1,18 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import Separator from './separator'
-import HelloBotCard from './cards/hello-bot'
-import MakeTeamCard from './cards/make-team'
-import NewChatCard from './cards/new-chat'
-import ProfileResetNotice from './system-profile-reset-notice'
-import RetentionNotice from './retention-notice'
-import {useChatThreadRouteParams} from '../thread-search-route'
+import Separator from '@/chat/conversation/messages/separator'
+import HelloBotCard from '@/chat/conversation/messages/cards/hello-bot'
+import MakeTeamCard from '@/chat/conversation/messages/cards/make-team'
+import NewChatCard from '@/chat/conversation/messages/cards/new-chat'
+import ProfileResetNotice from '@/chat/conversation/messages/system-profile-reset-notice'
+import RetentionNotice from '@/chat/conversation/messages/retention-notice'
+import {useChatThreadRouteParams} from '@/chat/conversation/thread-search-route'
 import {
   useConversationThreadID,
   useConversationThreadSelector,
-} from '../thread-context'
-import {usingFlashList} from '../list-area/flashlist-config'
+} from '@/chat/conversation/thread-context'
+import {usingFlashList} from '@/chat/conversation/list-area/flashlist-config'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 
@@ -35,7 +35,7 @@ const ErrorMessage = () => {
   let onCreateWithoutThem: (() => void) | undefined
   if (createConversationError) {
     const {allowedUsers, code, disallowedUsers, message} = createConversationError
-    if (code === (T.RPCGen.StatusCode.scteamcontactsettingsblock as number)) {
+    if (code === (T.RPCGen.StatusCode.scteamcontactsettingsblock)) {
       if (disallowedUsers.length === 1 && allowedUsers.length === 0) {
         // One-on-one conversation.
         createConversationErrorHeader = `You cannot start a conversation with @${disallowedUsers[0]}.`

@@ -1,6 +1,6 @@
 import './check-circle.css'
 import * as Styles from '@/styles'
-import Icon from './icon'
+import Icon from '@/common-adapters/icon'
 
 const Kb = {Icon}
 

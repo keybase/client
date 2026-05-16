@@ -7,7 +7,7 @@ import {
   type ThreadLoadStatusReporter,
   useConversationThreadLoadMoreMessages,
   useConversationThreadSelectedConversation,
-} from './thread-context'
+} from '@/chat/conversation/thread-context'
 
 type ThreadLoadStatusState = {
   conversationIDKey: T.Chat.ConversationIDKey

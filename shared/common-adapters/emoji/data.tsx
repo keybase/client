@@ -1,4 +1,4 @@
-import type * as ED from './slow-data'
+import type * as ED from '@/common-adapters/emoji/slow-data'
 
 export const emojiData = {
   get categories() {

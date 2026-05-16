@@ -4,8 +4,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {openURL} from '@/util/misc'
-import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
-import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from './output'
+import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from '@/crypto/input'
+import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from '@/crypto/output'
 import {
   beginRun,
   clearInputState,
@@ -16,14 +16,14 @@ import {
   resetWarnings,
   useCommittedState,
   useSeededCryptoInput,
-} from './helpers'
+} from '@/crypto/helpers'
 import {
   createCommonState,
   getStatusCodeMessage,
   type CommonOutputRouteParams,
   type CryptoInputRouteParams,
   type CommonState,
-} from './helpers'
+} from '@/crypto/helpers'
 import {RPCError} from '@/util/errors'
 import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'

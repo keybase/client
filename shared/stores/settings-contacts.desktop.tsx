@@ -1,7 +1,7 @@
 import * as Z from '@/util/zustand'
-import type {Store, State} from './settings-contacts'
+import type {State} from '@/stores/settings-contacts.shared'
 
-const initialStore: Store = {
+const initialStore: Omit<State, 'dispatch'> = {
   alreadyOnKeybase: [],
   importError: '',
   importPromptDismissed: false,

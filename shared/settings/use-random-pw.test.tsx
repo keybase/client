@@ -4,7 +4,7 @@ import {act, cleanup, renderHook, waitFor} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
-import {useRandomPWState} from './use-random-pw'
+import {useRandomPWState} from '@/settings/use-random-pw'
 
 afterEach(() => {
   cleanup()

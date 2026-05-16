@@ -1,4 +1,4 @@
-import type {MeasureRef} from './measure-ref'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'

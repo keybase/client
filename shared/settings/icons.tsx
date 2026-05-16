@@ -1,6 +1,6 @@
 // Dev-only icon browser. Gated by __DEV__ in nav and routes — never visible in production.
 import * as Kb from '@/common-adapters'
-import {iconMeta} from '@/common-adapters/icon.constants-gen.shared'
+import {iconMeta} from '@/common-adapters/icon.constants-gen'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import * as React from 'react'
 

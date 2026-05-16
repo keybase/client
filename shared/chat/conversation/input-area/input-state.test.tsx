@@ -8,8 +8,8 @@ import {act, cleanup, renderHook} from '@testing-library/react'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {resetAllStores} from '@/util/zustand'
 import {useCurrentUserState} from '@/stores/current-user'
-import {ConversationInputProvider, useConversationInput} from './input-state'
-import {ConversationThreadProvider, useConversationThreadActions} from '../thread-context'
+import {ConversationInputProvider, useConversationInput} from '@/chat/conversation/input-area/input-state'
+import {ConversationThreadProvider, useConversationThreadActions} from '@/chat/conversation/thread-context'
 
 let mockRouteParams: Record<string, unknown> = {}
 jest.mock('@react-navigation/native', () => ({

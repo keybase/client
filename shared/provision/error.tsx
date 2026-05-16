@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
-import LoginContainer from '../login/forms/container'
+import LoginContainer from '@/login/forms/container'
 import {openURL} from '@/util/misc'
 import * as T from '@/constants/types'
 import {type ProvisionRouteError, useProvisionState} from '@/stores/provision'

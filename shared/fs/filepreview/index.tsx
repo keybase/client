@@ -1,3 +1,3 @@
-import NormalPreview from './normal-preview'
+import NormalPreview from '@/fs/filepreview/normal-preview'
 
 export {NormalPreview}

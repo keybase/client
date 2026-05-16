@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from '@/team-building/shared'
 import {ScrollView} from 'react-native'
-import type {Props, IconProps} from './service-tab-bar'
 import {useColorScheme} from 'react-native'
+import type {IconProps, Props} from '@/team-building/service-tab-bar.shared'
 import {
   useSharedValue,
   useAnimatedStyle,

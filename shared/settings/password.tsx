@@ -3,8 +3,8 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
-import {useRequestLogout} from './use-request-logout'
-import {useRandomPWState} from './use-random-pw'
+import {useRequestLogout} from '@/settings/use-request-logout'
+import {useRandomPWState} from '@/settings/use-random-pw'
 
 type Props = {
   error: string

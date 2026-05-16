@@ -1,16 +1,16 @@
-import {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
-import {newRoutes as cryptoNewRoutes, newModalRoutes as cryptoNewModalRoutes} from '../crypto/routes'
-import {newRoutes as deviceNewRoutes, newModalRoutes as deviceNewModalRoutes} from '../devices/routes'
+import {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '@/chat/routes'
+import {newRoutes as cryptoNewRoutes, newModalRoutes as cryptoNewModalRoutes} from '@/crypto/routes'
+import {newRoutes as deviceNewRoutes, newModalRoutes as deviceNewModalRoutes} from '@/devices/routes'
 import {newRoutes as fsNewRoutes, newModalRoutes as fsNewModalRoutes} from '@/fs/routes'
-import {newRoutes as gitNewRoutes, newModalRoutes as gitNewModalRoutes} from '../git/routes'
-import {newRoutes as _loggedOutRoutes, newModalRoutes as loginNewModalRoutes} from '../login/routes'
-import {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '../people/routes'
-import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
-import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
-import {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} from '../signup/routes'
-import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
-import {newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
-import {newModalRoutes as incomingShareNewModalRoutes} from '../incoming-share/routes'
+import {newRoutes as gitNewRoutes, newModalRoutes as gitNewModalRoutes} from '@/git/routes'
+import {newRoutes as _loggedOutRoutes, newModalRoutes as loginNewModalRoutes} from '@/login/routes'
+import {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '@/people/routes'
+import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '@/profile/routes'
+import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '@/settings/routes'
+import {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} from '@/signup/routes'
+import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '@/teams/routes'
+import {newModalRoutes as walletsNewModalRoutes} from '@/wallets/routes'
+import {newModalRoutes as incomingShareNewModalRoutes} from '@/incoming-share/routes'
 import type * as React from 'react'
 import * as Tabs from '@/constants/tabs'
 import {defineRouteMap} from '@/constants/types/router'
@@ -122,7 +122,7 @@ type CheckedRouteEntry<Routes extends Record<string, RouteDef>> = Routes[keyof R
 
 function toNavOptions(opts: GetOptionsRet): NativeStackNavigationOptions {
   if (!opts) return {}
-  return opts as NativeStackNavigationOptions
+  return opts
 }
 
 export function routeMapToStaticScreens<const RS extends Record<string, RouteDef>>(

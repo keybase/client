@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import {Box2} from '@/common-adapters/box'
 import Toast from '@/common-adapters/toast'
 import Text from '@/common-adapters/text'
-import type {MeasureRef} from './measure-ref'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 
 
 type Props = {

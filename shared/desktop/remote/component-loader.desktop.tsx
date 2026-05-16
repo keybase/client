@@ -10,7 +10,7 @@ import {initDesktopStyles} from '@/styles/index.desktop'
 import KB2 from '@/util/electron.desktop'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
-import {type RemoteComponentName, useRemotePropsReceiver} from './remote-component.desktop'
+import {type RemoteComponentName, useRemotePropsReceiver} from '@/desktop/remote/remote-component.desktop'
 
 setServiceDecoration(ServiceDecoration)
 

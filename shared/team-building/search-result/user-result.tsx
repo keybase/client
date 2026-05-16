@@ -1,8 +1,8 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import CommonResult, {type ResultProps} from './common-result'
-import YouResult from './you-result'
-import HellobotResult from './hellobot-result'
+import CommonResult, {type ResultProps} from '@/team-building/search-result/common-result'
+import YouResult from '@/team-building/search-result/you-result'
+import HellobotResult from '@/team-building/search-result/hellobot-result'
 
 const UserResult = function UserResult(props: ResultProps) {
   if (props.isYou) {

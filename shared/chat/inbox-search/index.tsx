@@ -1,20 +1,20 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import Rover from './background'
-import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
-import SelectableSmallTeam from '../selectable-small-team-container'
-import TeamInfo from '../../profile/user/teams/teaminfo'
+import Rover from '@/chat/inbox-search/background'
+import SelectableBigTeamChannel from '@/chat/selectable-big-team-channel-container'
+import SelectableSmallTeam from '@/chat/selectable-small-team-container'
+import TeamInfo from '@/profile/user/teams/teaminfo'
 import type * as T from '@/constants/types'
-import {Bot} from '../conversation/info-panel/bot'
-import {TeamAvatar} from '../avatars'
-import {inboxWidth} from '../inbox/row/sizes'
+import {Bot} from '@/chat/conversation/info-panel/bot'
+import {TeamAvatar} from '@/chat/avatars'
+import {inboxWidth} from '@/chat/inbox/row/sizes'
 import {
   inboxSearchMaxTextMessages,
   inboxSearchPreviewSectionSize,
   type InboxSearchController,
   type InboxSearchVisibleResultCounts,
-} from '../inbox/use-inbox-search'
+} from '@/chat/inbox/use-inbox-search'
 import {showTeamByName} from '@/teams/team-page-actions'
 
 type OwnProps = {

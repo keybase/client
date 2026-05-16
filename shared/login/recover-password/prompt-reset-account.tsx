@@ -1,4 +1,4 @@
-import PromptReset from './prompt-reset-shared'
+import PromptReset from '@/login/recover-password/prompt-reset-shared'
 
 type Props = {route: {params: {skipPassword: boolean; username: string}}}
 

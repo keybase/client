@@ -1,11 +1,11 @@
 import * as React from 'react'
-export {default as ParticipantMeta} from './meta'
-export {default as Activity, useActivityLevels, ActivityLevelsProvider, ModalTitle} from './activity'
-export {ChannelsWidget} from './channels-widget'
-export {useAllChannelMetas, useChannelParticipants} from './channel-hooks'
-export {default as SelectionPopup} from './selection-popup'
-export {default as EnableContactsPopup} from './enable-contacts'
-export {default as useTeamLinkPopup} from './use-team-link-popup'
+export {default as ParticipantMeta} from '@/teams/common/meta'
+export {default as Activity, useActivityLevels, ActivityLevelsProvider, ModalTitle} from '@/teams/common/activity'
+export {ChannelsWidget} from '@/teams/common/channels-widget'
+export {useAllChannelMetas, useChannelParticipants} from '@/teams/common/channel-hooks'
+export {default as SelectionPopup} from '@/teams/common/selection-popup'
+export {default as EnableContactsPopup} from '@/teams/common/enable-contacts'
+export {default as useTeamLinkPopup} from '@/teams/common/use-team-link-popup'
 
 export const usePhoneNumberList = () => {
   const [phoneNumbers, setPhoneNumbers] = React.useState([{key: 0, phoneNumber: '', valid: false}])

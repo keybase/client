@@ -1,7 +1,7 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import PathItemInfo from '../path-item-info'
-import PathInfo from '../path-info'
+import PathItemInfo from '@/fs/common/path-item-info'
+import PathInfo from '@/fs/common/path-info'
 
 export type Props = {path: T.FS.Path}
 

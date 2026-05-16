@@ -2,11 +2,11 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useNavigation} from '@react-navigation/native'
-import type {Props} from '.'
+import type {Props} from '@/chat/pdf/index.shared'
 import * as T from '@/constants/types'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {attachmentDownloadMessage, takePDFMessage} from '../conversation/attachment-actions'
-import {useConversationMessage} from '../conversation/data-hooks'
+import {attachmentDownloadMessage, takePDFMessage} from '@/chat/conversation/attachment-actions'
+import {useConversationMessage} from '@/chat/conversation/data-hooks'
 
 const ChatPDF = (props: Props) => {
   const {messageID} = props

@@ -1,11 +1,11 @@
 import * as Message from '@/constants/chat/message'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import EmojiRow from './emoji-row'
-import ReactButton, {NewReactionButton} from './react-button'
-import ReactionTooltip from './reaction-tooltip'
+import EmojiRow from '@/chat/conversation/messages/emoji-row'
+import ReactButton, {NewReactionButton} from '@/chat/conversation/messages/react-button'
+import ReactionTooltip from '@/chat/conversation/messages/reaction-tooltip'
 import type * as T from '@/constants/types'
-import {useOrdinal} from './ids-context'
+import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {Keyboard} from 'react-native'
 
 const emptyEmojis: ReadonlyArray<string> = []

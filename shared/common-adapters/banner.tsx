@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Box2} from '@/common-adapters/box'
-import Icon from './icon'
+import Icon from '@/common-adapters/icon'
 import Text from '@/common-adapters/text'
 import * as Styles from '@/styles'
 

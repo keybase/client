@@ -19,7 +19,7 @@ import {
   syncInboxParticipantsFromParticipantMap,
   updateInboxConversationMeta,
   unboxRows,
-} from './metadata'
+} from '@/chat/inbox/metadata'
 
 type ConvoEngineIncomingResult = {
   handled: boolean

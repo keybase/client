@@ -26,7 +26,7 @@ import {
   useConversationThreadMessageActions,
   useConversationThreadSelector,
   useConversationThreadStore,
-} from './thread-context'
+} from '@/chat/conversation/thread-context'
 
 jest.mock('@/stores/inbox-rows', () => ({
   flushInboxRowUpdates: jest.fn(),
@@ -249,7 +249,7 @@ const makeUIPaymentInfo = (): T.RPCChat.UIPaymentInfo =>
     toUsername: 'bob',
     worth: '$1.00',
     worthAtSendTime: '$1.00',
-  }) as T.RPCChat.UIPaymentInfo
+  })
 
 const makeUIRequestInfo = (): T.RPCChat.UIRequestInfo => ({
   amount: '1',

@@ -2,7 +2,7 @@ import logger from '@/logger'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
 import {errors as transportErrors} from '@/engine/rpc-transport'
-import RPCError from './rpcerror'
+import RPCError from '@/util/rpcerror'
 
 function isRPCErrorLike(err: object): err is RPCErrorLike {
   return Object.hasOwn(err, 'desc') && Object.hasOwn(err, 'code')
@@ -118,7 +118,7 @@ function isRPCError(error: RPCError | Error): error is RPCError {
 }
 
 export function isEOFError(error: RPCError | Error) {
-  return isRPCError(error) && (error.code as number) === transportErrors['EOF']
+  return isRPCError(error) && (error.code) === transportErrors['EOF']
 }
 
 const ignoredMsgs = ['context deadline exceeded in method keybase.1.SimpleFS.simpleFSSyncStatus']

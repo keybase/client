@@ -3,10 +3,10 @@ import type * as React from 'react'
 import type {Pressable as PressableType, Text as RNTextType, View as ViewType} from 'react-native'
 import * as Styles from '@/styles'
 import type AnimationType from '@/common-adapters/animation'
-import type {MeasureRef} from './measure-ref'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import type {default as WithTooltipType} from '@/common-adapters/with-tooltip'
-import type {default as IconComp} from './icon'
+import type {default as IconComp} from '@/common-adapters/icon'
 
 export type ButtonType = 'Default' | 'Success' | 'Danger' | 'Dim'
 

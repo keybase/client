@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type {ChatInboxRowItem} from '../rowitem'
+import type {ChatInboxRowItem} from '@/chat/inbox/rowitem'
 import {useConfigState} from '@/stores/config'
 import {useInboxRowsState} from '@/stores/inbox-rows'
-import TeamsDivider from './teams-divider'
+import TeamsDivider from '@/chat/inbox/row/teams-divider'
 
 type Props = Omit<React.ComponentProps<typeof TeamsDivider>, 'badgeCount'> & {
   rows: ReadonlyArray<ChatInboxRowItem>

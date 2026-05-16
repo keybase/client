@@ -2,7 +2,7 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters/index'
 import {clampImageSize} from '@/constants/chat/helpers'
 import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
-import {Video} from './video'
+import {Video} from '@/chat/conversation/messages/text/unfurl/unfurl-list/image/video'
 import {openURL} from '@/util/misc'
 
 export type Props = {

@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import {colors, darkColors} from '@/styles/colors'
 import {WebView} from 'react-native-webview'
 import noop from 'lodash/noop'
-import {useHooks} from './hooks'
+import {useHooks} from '@/chat/conversation/giphy/hooks'
 import {useColorScheme} from 'react-native'
 
 const GiphySearch = () => {

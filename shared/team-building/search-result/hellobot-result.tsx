@@ -2,7 +2,7 @@ import type * as React from 'react'
 import {previewConversation} from '@/constants/router'
 import {useTBContext} from '@/stores/team-building'
 import * as Kb from '@/common-adapters'
-import CommonResult, {type ResultProps} from './common-result'
+import CommonResult, {type ResultProps} from '@/team-building/search-result/common-result'
 
 const HellobotResult = function HellobotResult(props: ResultProps) {
   const cancelTeamBuilding = useTBContext(s => s.dispatch.cancelTeamBuilding)

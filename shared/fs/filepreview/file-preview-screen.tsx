@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
-import * as Kbfs from '../common'
-import * as SimpleScreens from '../simple-screens'
-import NormalPreview from './normal-preview'
+import * as Kbfs from '@/fs/common'
+import * as SimpleScreens from '@/fs/simple-screens'
+import NormalPreview from '@/fs/filepreview/normal-preview'
 
 type OwnProps = {
   initialLastModifiedTimestamp?: number

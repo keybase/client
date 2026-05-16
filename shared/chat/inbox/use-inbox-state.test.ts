@@ -15,9 +15,7 @@ let mockInboxLayoutState: MockInboxLayoutState
 
 jest.mock('@/constants', () => {
   const React = require('react')
-  const actual = jest.requireActual('@/constants') as Record<string, unknown> & {
-    Router2: Record<string, unknown>
-  }
+  const actual = jest.requireActual('@/constants') as typeof import('@/constants')
   return {
     ...actual,
     Router2: {
@@ -76,7 +74,7 @@ import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
 import {act, cleanup, renderHook} from '@testing-library/react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {useInboxState} from './use-inbox-state'
+import {useInboxState} from '@/chat/inbox/use-inbox-state'
 
 let mockLoadInboxNumSmallRows: jest.Mock
 let mockInboxRefresh: jest.Mock

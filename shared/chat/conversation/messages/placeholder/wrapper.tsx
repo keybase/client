@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {WrapperMessage, useWrapperMessage, type Props} from '../wrapper/wrapper'
+import {WrapperMessage, useWrapperMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
 
 const baseWidth = Kb.Styles.isMobile ? 100 : 150
 const mult = Kb.Styles.isMobile ? 5 : 10

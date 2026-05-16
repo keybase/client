@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import {resetAllStores} from '@/util/zustand'
-import {useRouterState} from '../router'
+import {useRouterState} from '@/stores/router'
 
 afterEach(() => {
   resetAllStores()

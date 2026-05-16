@@ -2,7 +2,7 @@
 import * as RemoteGen from '@/constants/remote-actions'
 import {resetAllStores} from '@/util/zustand'
 
-import {eventFromRemoteWindows, registerRemoteActionHandler} from './remote-event-handler.desktop'
+import {eventFromRemoteWindows, registerRemoteActionHandler} from '@/desktop/renderer/remote-event-handler.desktop'
 
 afterEach(() => {
   resetAllStores()

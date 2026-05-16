@@ -1,7 +1,7 @@
 import logger from '@/logger'
 import * as T from '@/constants/types'
-import {navigateAppend, navigateToThread, navToProfile, previewConversation, switchTab} from './router'
-import * as Tabs from './tabs'
+import {navigateAppend, navigateToThread, navToProfile, previewConversation, switchTab} from '@/constants/router'
+import * as Tabs from '@/constants/tabs'
 import {showTeamByName} from '@/teams/team-page-actions'
 
 const prefix = 'keybase://'

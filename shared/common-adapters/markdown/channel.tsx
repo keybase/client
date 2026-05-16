@@ -1,7 +1,7 @@
 import type * as T from '@/constants/types'
 import {previewConversation} from '@/constants/router'
 import Text from '@/common-adapters/text'
-import type {StylesTextCrossPlatform} from '../text.shared'
+import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
 
 type OwnProps = {
   name: string

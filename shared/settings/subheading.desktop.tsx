@@ -1,6 +1,9 @@
 import * as Kb from '@/common-adapters'
+import type * as React from 'react'
+export type Props = {
+  children?: React.ReactNode
+}
 
-import type {Props} from './subheading'
 
 function SubHeading({children}: Props) {
   return (

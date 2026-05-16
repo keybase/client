@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {Activity, useActivityLevels, useChannelParticipants} from '@/teams/common'
 import {useTeamSelectionState} from '@/teams/common/selection-state'
-import {useLoadedTeam} from '../../use-loaded-team'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 import {pluralize} from '@/util/string'
 import {useSafeNavigation} from '@/util/safe-navigation'
 

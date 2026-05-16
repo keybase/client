@@ -5,23 +5,23 @@ import {useConfigState} from '@/stores/config'
 import {useDarkModeState} from '@/stores/darkmode'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Shared from './router.shared'
+import * as Shared from '@/router-v2/router.shared'
 import * as Tabs from '@/constants/tabs'
-import * as Common from './common.native'
+import * as Common from '@/router-v2/common.native'
 import logger from '@/logger'
 import {Platform, StatusBar, View} from 'react-native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer, type NavigationProp} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
-import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from './routes'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots, routeMapToStaticScreens} from '@/router-v2/routes'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import type {SFSymbol} from 'sf-symbols-typescript'
-import {makeLayout} from './screen-layout.native'
-import {useRootKey} from './hooks.native'
-import {createLinkingConfig} from './linking'
-import type {RootParamList} from './route-params'
+import {makeLayout} from '@/router-v2/screen-layout.native'
+import {useRootKey} from '@/router-v2/hooks.native'
+import {createLinkingConfig} from '@/router-v2/linking'
+import type {RootParamList} from '@/router-v2/route-params'
 import {handleAppLink} from '@/constants/deeplinks'
 import {useDaemonState} from '@/stores/daemon'
 import {useNotifState} from '@/stores/notifications'
@@ -215,7 +215,7 @@ const loggedOutScreenOptions = {
 const loggedOutScreensConfig = routeMapToStaticScreens(loggedOutRoutes, makeLayout, false, true, false)
 const loggedOutNav = createNativeStackNavigator({
   initialRouteName: 'login',
-  screenOptions: loggedOutScreenOptions as NativeStackNavigationOptions,
+  screenOptions: loggedOutScreenOptions,
   screens: loggedOutScreensConfig,
 })
 const LoggedOut = loggedOutNav.getComponent()

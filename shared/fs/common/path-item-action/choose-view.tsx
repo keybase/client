@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
-import type {FloatingMenuProps, OnDownloadStarted} from './types'
-import Menu from './menu-container'
-import Confirm from './confirm'
+import type {FloatingMenuProps, OnDownloadStarted} from '@/fs/common/path-item-action/types'
+import Menu from '@/fs/common/path-item-action/menu-container'
+import Confirm from '@/fs/common/path-item-action/confirm'
 
 type OwnProps = {
   downloadID?: string

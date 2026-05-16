@@ -3,9 +3,9 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
-import TeamMenu from '../team/menu-container'
+import TeamMenu from '@/teams/team/menu-container'
 import {pluralize} from '@/util/string'
-import {Activity} from '../common'
+import {Activity} from '@/teams/common'
 
 export type TeamRowItem = {
   activityLevel: T.Teams.ActivityLevel

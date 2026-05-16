@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import {default as Button, type ButtonProps} from './button'
-import type {MeasureRef} from './measure-ref'
+import {default as Button, type ButtonProps} from '@/common-adapters/button'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 
 const Kb = {
   Button,

@@ -39,7 +39,7 @@ jest.mock('@/stores/current-user', () => ({
 
 import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
 import * as T from '@/constants/types'
-import {useInboxLayoutState} from './layout-state'
+import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 
 const emptyLayout: T.RPCChat.UIInboxLayout = {
   bigTeams: [],

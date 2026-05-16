@@ -1,14 +1,17 @@
 // Handles sending requests to the daemon
-import Session, {type CancelHandlerType} from './session'
-import engineListener from './listener'
+import Session, {type CancelHandlerType} from '@/engine/session'
+import type {default as SessionType} from '@/engine/session-impl'
+import engineListener from '@/engine/listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
-import type {SessionIDKey, MethodKey} from './types'
-import {initEngine, initEngineListener} from './require'
+import type {CustomResponseIncomingCallMapType, BatchParams} from '@/engine/index.shared'
+import type {IncomingCallMapType} from '@/constants/rpc/rpc-gen'
+import type {SessionIDKey, MethodKey} from '@/engine/types'
+import {initEngine, initEngineListener} from '@/engine/require'
 import {isMobile} from '@/constants/platform'
 import {printOutstandingRPCs} from '@/local-debug'
-import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
+import {resetClient, createClient, rpcLog, type PayloadType} from '@/engine/index.platform'
+import type {CreateClientType} from '@/engine/index.platform.shared'
 import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '@/constants/rpc'
 
@@ -17,7 +20,7 @@ type WaitingKey = string | ReadonlyArray<string>
 class Engine {
   _onConnectedCB: (c: boolean) => void
   // Tracking outstanding sessions
-  _sessionsMap: {[K in SessionIDKey]: Session} = {}
+  _sessionsMap: {[K in SessionIDKey]: SessionType} = {}
   // Helper we delegate actual calls to
   _rpcClient: CreateClientType
   // Set which actions we don't auto respond with so listeners can themselves
@@ -61,7 +64,7 @@ class Engine {
     this._onEngineIncoming = onEngineIncoming
     this._emitWaiting = emitWaiting
     this._rpcClient = createClient(
-      payload => this._rpcIncoming(payload),
+      (payload: PayloadType) => this._rpcIncoming(payload),
       () => this._onConnected(),
       () => this._onDisconnect()
     )
@@ -178,7 +181,7 @@ class Engine {
       this._handleCancel(seqid)
     } else {
       const session = this._sessionsMap[String(sessionID)]
-      if (session?.incomingCall(method, param, response)) {
+      if (session?.incomingCall(method as keyof IncomingCallMapType, param, response as import('@/engine/types').ResponseType | undefined)) {
         // Part of a session?
       } else {
         // Dispatch as an action
@@ -214,7 +217,7 @@ class Engine {
     // Make a new session and start the request
     const session = this.createSession({
       customResponseIncomingCallMap,
-      dangling: !!this._backgroundSessionMethods[method as MethodKey],
+      dangling: !!this._backgroundSessionMethods[method],
       incomingCallMap,
       waitingKey,
     })
@@ -229,7 +232,7 @@ class Engine {
     cancelHandler?: CancelHandlerType
     dangling?: boolean
     waitingKey?: WaitingKey
-  }): Session {
+  }): SessionType {
     const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false, waitingKey} = p
     const sessionID = this._generateSessionID()
 
@@ -237,7 +240,7 @@ class Engine {
       cancelHandler,
       customResponseIncomingCallMap,
       dangling,
-      endHandler: (session: Session) => this._sessionEnded(session),
+      endHandler: (session: object) => this._sessionEnded(session as SessionType),
       incomingCallMap,
       invoke: (method, param, cb) => {
         const callback =
@@ -247,7 +250,7 @@ class Engine {
             if (args.length > 0 && !!args[0]) {
               args[0] = convertToError(args[0], method)
             }
-            cb(...args)
+            cb(args[0], args[1])
           }
         this._rpcClient.invoke(method, param || [{}], callback(method))
       },
@@ -260,7 +263,7 @@ class Engine {
   }
 
   // Cleanup a session that ended
-  _sessionEnded(session: Session) {
+  _sessionEnded( session: SessionType) {
     rpcLog({
       extra: {
         sessionID: session.getId(),
@@ -288,7 +291,7 @@ class Engine {
     this._listenersAreReady = false
     this._rpcClient = resetClient(
       this._rpcClient,
-      payload => this._rpcIncoming(payload),
+      (payload: PayloadType) => this._rpcIncoming(payload),
       () => this._onConnected(),
       () => this._onDisconnect()
     )

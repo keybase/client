@@ -3,8 +3,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
-import {CreateChannelsModal} from '../new-team/wizard/create-channels'
-import {useLoadedTeam} from '../team/use-loaded-team'
+import {CreateChannelsModal} from '@/teams/new-team/wizard/create-channels'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 type Props = {teamID: T.Teams.TeamID}
 

@@ -1,5 +1,5 @@
 import * as Z from '@/util/zustand'
-import {type Store, type State} from '@/stores/push'
+import {type Store, type State} from '@/stores/push.shared'
 
 export const tokenType = ''
 

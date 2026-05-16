@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import Icon from './icon'
+import Icon from '@/common-adapters/icon'
 import Text from '@/common-adapters/text'
 
 
@@ -35,7 +35,7 @@ function BackButton(props: Props) {
         Styles.collapseStyles([
           props.disabled ? styles.disabledContainer : styles.container,
           props.style,
-        ]) as React.CSSProperties
+        ])
       }
       onClick={_onClick}
     >

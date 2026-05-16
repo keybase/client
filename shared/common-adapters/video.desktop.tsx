@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {useCheckURL} from './video.shared'
+import {useCheckURL} from '@/common-adapters/video.shared'
 
 
 type Props = {

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import Animated, {withRepeat, useSharedValue, withTiming, useAnimatedStyle, withDelay} from './reanimated'
+import Animated, {withRepeat, useSharedValue, withTiming, useAnimatedStyle, withDelay} from '@/common-adapters/reanimated'
 
 function LoadingLine() {
   'use no memo'

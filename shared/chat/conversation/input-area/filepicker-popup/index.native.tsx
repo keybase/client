@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from '.'
+import type {Props} from '@/chat/conversation/input-area/filepicker-popup/index.shared'
 
 const Prompt = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.promptContainer} justifyContent="center">

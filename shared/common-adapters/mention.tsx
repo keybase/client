@@ -1,6 +1,6 @@
 import * as Chat from '@/constants/chat'
 import * as Styles from '@/styles'
-import {WithProfileCardPopup} from './profile-card'
+import {WithProfileCardPopup} from '@/common-adapters/profile-card'
 import Text from '@/common-adapters/text'
 
 export type OwnProps = {

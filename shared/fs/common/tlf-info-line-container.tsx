@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
-import TlfInfoLine from './tlf-info-line'
-import {useFsTlfs} from './hooks'
+import TlfInfoLine from '@/fs/common/tlf-info-line'
+import {useFsTlfs} from '@/fs/common/hooks'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
 

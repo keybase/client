@@ -3,9 +3,9 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
-import {Activity, useActivityLevels, useChannelParticipants} from '../common'
-import {useLoadedTeamChannels} from '../common/use-loaded-team-channels'
-import {useLoadedTeam} from '../team/use-loaded-team'
+import {Activity, useActivityLevels, useChannelParticipants} from '@/teams/common'
+import {useLoadedTeamChannels} from '@/teams/common/use-loaded-team-channels'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
 const useRecentJoins = (conversationIDKey: T.Chat.ConversationIDKey) => {

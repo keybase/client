@@ -5,7 +5,7 @@ import {isMobile} from '@/constants/platform'
 import {useConfigState} from '@/stores/config'
 import type * as UsePushStateType from '@/stores/push'
 import type {LinkingOptions} from '@react-navigation/native'
-import type {RootParamList} from './route-params'
+import type {RootParamList} from '@/router-v2/route-params'
 
 // ---- URL normalization ----
 
@@ -308,7 +308,7 @@ export const createLinkingConfig = (
   // On native this is a no-op since there's no browser URL to update.
   getPathFromState: () => '',
 
-  getStateFromPath: customGetStateFromPath as LinkingOptions<RootParamList>['getStateFromPath'],
+  getStateFromPath: customGetStateFromPath,
 
   prefixes: ['keybase://'],
 

@@ -1,5 +1,5 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemAddedToTeamType from './container'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
+import type SystemAddedToTeamType from '@/chat/conversation/messages/system-added-to-team/container'
 
 function SystemAddedToTeam(p: Props) {
   const {ordinal, isCenteredHighlight} = p

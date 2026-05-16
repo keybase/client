@@ -2,10 +2,10 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
-import {FsDataProvider} from './hooks'
-import {FsErrorProvider} from './error-state'
-import PathInfo from './path-info'
-import PathItemInfo from './path-item-info'
+import {FsDataProvider} from '@/fs/common/hooks'
+import {FsErrorProvider} from '@/fs/common/error-state'
+import PathInfo from '@/fs/common/path-info'
+import PathItemInfo from '@/fs/common/path-item-info'
 
 type Props = {
   knownPathInfo?: T.FS.PathInfo

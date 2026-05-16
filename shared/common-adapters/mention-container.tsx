@@ -1,5 +1,5 @@
 import * as Chat from '@/constants/chat'
-import Mention, {type OwnProps} from './mention'
+import Mention, {type OwnProps} from '@/common-adapters/mention'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'

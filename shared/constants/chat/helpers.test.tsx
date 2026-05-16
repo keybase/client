@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-import {getBotsAndParticipants} from './helpers'
-import {makeConversationMeta} from './meta'
+import {getBotsAndParticipants} from '@/constants/chat/helpers'
+import {makeConversationMeta} from '@/constants/chat/meta'
 import type * as T from '@/constants/types'
 
 const participantInfo: T.Chat.ParticipantInfo = {

@@ -1,6 +1,6 @@
-import * as Platforms from './platform'
-import type * as T from './types'
-import {conversationIDKeyToString} from './types/chat/common'
+import * as Platforms from '@/constants/platform'
+import type * as T from '@/constants/types'
+import {conversationIDKeyToString} from '@/constants/types/chat/common'
 
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const addEmailWaitingKey = 'settings:addEmail'

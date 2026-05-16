@@ -1,5 +1,5 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type PaymentMessageType from './container'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
+import type PaymentMessageType from '@/chat/conversation/messages/account-payment/container'
 
 function WrapperPayment(p: Props) {
   const {ordinal, isCenteredHighlight} = p

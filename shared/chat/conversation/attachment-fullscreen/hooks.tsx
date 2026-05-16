@@ -4,14 +4,14 @@ import {clampImageSize} from '@/constants/chat/helpers'
 import * as Chat from '@/constants/chat'
 import * as T from '@/constants/types'
 import logger from '@/logger'
-import {maxWidth, maxHeight} from '../messages/attachment/shared'
+import {maxWidth, maxHeight} from '@/chat/conversation/messages/attachment/shared'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {
   attachmentDownloadMessage,
   loadNextAttachmentMessage,
-} from '../attachment-actions'
-import {showConversationInfoPanel} from '../thread-context'
-import {useConversationMessage} from '../data-hooks'
+} from '@/chat/conversation/attachment-actions'
+import {showConversationInfoPanel} from '@/chat/conversation/thread-context'
+import {useConversationMessage} from '@/chat/conversation/data-hooks'
 
 const blankMessage = Chat.makeMessageAttachment({})
 export const useData = (

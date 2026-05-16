@@ -1,13 +1,13 @@
-import * as Channels from './channels'
-import * as Commands from './commands'
-import * as Emoji from './emoji'
+import * as Channels from '@/chat/conversation/input-area/suggestors/channels'
+import * as Commands from '@/chat/conversation/input-area/suggestors/commands'
+import * as Emoji from '@/chat/conversation/input-area/suggestors/emoji'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Users from './users'
-import * as InputState from '../input-state'
-import type * as Common from './common'
-import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input'
-import {useConversationThreadID} from '../../thread-context'
+import * as Users from '@/chat/conversation/input-area/suggestors/users'
+import * as InputState from '@/chat/conversation/input-area/input-state'
+import type * as Common from '@/chat/conversation/input-area/suggestors/common'
+import type {PlatformInputProps as Props, RefType as InputRef} from '@/chat/conversation/input-area/normal/input'
+import {useConversationThreadID} from '@/chat/conversation/thread-context'
 
 const positionFallbacks = ['bottom center'] as const
 

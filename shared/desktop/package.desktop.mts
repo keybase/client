@@ -5,11 +5,11 @@ import {packager, type Options} from '@electron/packager'
 import path from 'path'
 import webpack from 'webpack'
 import type {Configuration} from 'webpack'
-import rootConfig from './webpack.config.mts'
+import rootConfig from '@/desktop/webpack.config.mts'
 import {readdir} from 'node:fs/promises'
 import {createRequire} from 'node:module'
 import {fileURLToPath} from 'node:url'
-import {electronChecksums} from './electron-sums.mts'
+import {electronChecksums} from '@/desktop/electron-sums.mts'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))

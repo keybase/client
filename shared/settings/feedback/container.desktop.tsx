@@ -1,9 +1,8 @@
 import * as C from '@/constants'
 import Feedback from '.'
-import type {Props} from './container'
-import {useSendFeedback} from './shared'
+import {useSendFeedback} from '@/settings/feedback/shared'
 import {useConfigState} from '@/stores/config'
-
+import type {Props} from '@/settings/feedback/container.shared'
 const Container = (ownProps: Props) => {
   const {sendFeedback, error} = useSendFeedback()
   const feedback = ownProps.feedback ?? ''
@@ -28,3 +27,5 @@ const Container = (ownProps: Props) => {
 }
 
 export default Container
+
+export type * from '@/settings/feedback/container.shared'

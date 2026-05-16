@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import {useConversationThreadSelector} from './thread-context'
+import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
 
 const ConversationError = () => {
   const text = useConversationThreadSelector(s => s.meta.snippet) ?? ''

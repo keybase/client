@@ -6,8 +6,8 @@ import ProgressIndicator from '@/common-adapters/progress-indicator'
 import Text from '@/common-adapters/text'
 import SwitchToggle from '@/common-adapters/switch-toggle'
 import WithTooltip from '@/common-adapters/with-tooltip'
-import type {MeasureRef} from './measure-ref'
-import type {TextType} from './text.shared'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
+import type {TextType} from '@/common-adapters/text.shared'
 
 const Kb = {
   Box2,

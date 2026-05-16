@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
-import Browser from './browser'
-import {NormalPreview} from './filepreview'
-import * as Kbfs from './common'
-import * as SimpleScreens from './simple-screens'
+import Browser from '@/fs/browser'
+import {NormalPreview} from '@/fs/filepreview'
+import * as Kbfs from '@/fs/common'
+import * as SimpleScreens from '@/fs/simple-screens'
 import * as FS from '@/constants/fs'
 
 type ChooseComponentProps = {

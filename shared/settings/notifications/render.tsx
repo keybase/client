@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import Group from '../group'
+import Group from '@/settings/group'
 import {usePushState} from '@/stores/push'
 
 type Props = {

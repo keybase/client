@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import {useSettingsTabState} from './use-settings'
+import {useSettingsTabState} from '@/teams/team/settings-tab/use-settings'
 
 type Props = {
   isOpenTeam: boolean

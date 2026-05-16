@@ -11,7 +11,7 @@ import {
   type CachedResourceCache,
   createCachedResourceCache,
   useCachedResource,
-} from './use-cached-resource'
+} from '@/teams/use-cached-resource'
 
 type TeamsList = {
   reload: () => void

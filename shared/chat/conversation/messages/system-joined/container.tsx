@@ -1,9 +1,9 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import UserNotice from '../user-notice'
-import {getAddedUsernames} from '../system-users-added-to-conv/container'
+import UserNotice from '@/chat/conversation/messages/user-notice'
+import {getAddedUsernames} from '@/chat/conversation/messages/system-users-added-to-conv/container'
 import {formatTimeForChat} from '@/util/timestamp'
-import {useConversationThreadSelector} from '../../thread-context'
+import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemJoined}
 

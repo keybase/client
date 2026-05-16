@@ -3,8 +3,8 @@
 import {act, cleanup, renderHook} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
-import {useBotSettings} from './settings'
-import {useBotTeamRole} from './install'
+import {useBotSettings} from '@/chat/conversation/bot/settings'
+import {useBotTeamRole} from '@/chat/conversation/bot/install'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 const otherConvID = T.Chat.conversationIDToKey(new Uint8Array([5, 6, 7, 8]))
@@ -69,7 +69,7 @@ test('useBotSettings refreshes only when enabled and hides stale conversation da
 
   const {rerender, result} = renderHook(
     ({enabled, id}) => useBotSettings(id, 'helperbot', enabled),
-    {initialProps: {enabled: false, id: convID as T.Chat.ConversationIDKey | undefined}}
+    {initialProps: {enabled: false, id: convID}}
   )
 
   await act(async () => {

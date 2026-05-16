@@ -1,5 +1,5 @@
 import {spawn} from 'child_process'
-import {keybaseBinPath} from './paths.desktop'
+import {keybaseBinPath} from '@/desktop/app/paths.desktop'
 
 export default function StartWin() {
   console.log('Not connected - starting keybase')

@@ -4,8 +4,8 @@ import {isPhone} from '@/constants/platform'
 import {navigateToInbox, setChatRootParams} from '@/constants/router'
 import logger from '@/logger'
 import {getInboxConversationMeta} from '@/chat/inbox/metadata'
-import {setConversationOrangeLine} from './orange-line-context'
-import {loadThreadMessageIDAtIndex, markConversationRead} from './thread-rpc'
+import {setConversationOrangeLine} from '@/chat/conversation/orange-line-context'
+import {loadThreadMessageIDAtIndex, markConversationRead} from '@/chat/conversation/thread-rpc'
 
 const setConversationStatusPromise = async (
   conversationIDKey: T.Chat.ConversationIDKey,

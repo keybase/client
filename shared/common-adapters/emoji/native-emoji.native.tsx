@@ -1,17 +1,11 @@
 import * as Styles from '@/styles'
 import {isAndroid} from '@/constants/platform'
-import {emojiIndexByName} from '../markdown/emoji-gen'
+import {emojiIndexByName} from '@/common-adapters/markdown/emoji-gen'
 import Text from '@/common-adapters/text'
+import type {Props} from '@/common-adapters/emoji/native-emoji.shared'
 
 
 
-export type Props = {
-  size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
-  emojiName: string
-  disableSelecting?: boolean
-  allowFontScaling?: boolean
-  style?: Styles.StylesCrossPlatform
-}
 const sizes = [16, 18, 22, 24, 26, 28, 32, 36] as const
 const sizeStyle = new Map<(typeof sizes)[number], Styles.StylesCrossPlatform>(
   sizes.map(size => [size, {fontSize: size - 2, lineHeight: undefined}])

@@ -1,8 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import type {Props} from './index'
-import useHook from './hooks'
-
+import useHook from '@/chat/create-channel/hooks'
+import type {Props} from '@/chat/create-channel/index.shared'
 const CreateChannel = (p: Props) => {
   const props = useHook(p)
   return (
@@ -55,3 +54,5 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 export default CreateChannel
+
+export type * from '@/chat/create-channel/index.shared'

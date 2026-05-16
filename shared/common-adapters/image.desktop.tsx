@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import LoadingStateView from './loading-state-view'
+import LoadingStateView from '@/common-adapters/loading-state-view'
 
 
 type Props = {

@@ -104,7 +104,7 @@ export const startRecoverPassword = ({
               slots.submitNoDevice,
               wrapErrors(() => {
                 clear()
-                response.result('' as T.Devices.DeviceID)
+                response.result('')
               })
             )
             navigateAppend({name: 'recoverPasswordDeviceSelector', params: {devices}}, !!replaceRoute)

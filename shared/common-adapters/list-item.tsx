@@ -2,8 +2,8 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import ClickableBox from '@/common-adapters/clickable-box'
 import {Box2} from '@/common-adapters/box'
-import BoxGrow from './box-grow'
-import Divider from './divider'
+import BoxGrow from '@/common-adapters/box-grow'
+import Divider from '@/common-adapters/divider'
 import './list-item.css'
 
 const Kb = {

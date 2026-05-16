@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useDeleteAccount} from '../use-delete-account'
-import {usePasswordCheck} from '../use-password-check'
+import {useDeleteAccount} from '@/settings/use-delete-account'
+import {usePasswordCheck} from '@/settings/use-password-check'
 
 const CheckPassphraseMobile = () => {
   const [password, setPassword] = React.useState('')

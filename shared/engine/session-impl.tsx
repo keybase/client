@@ -3,11 +3,11 @@ import {
   type CustomResponseIncomingCallMap,
   type IncomingCallMapType,
 } from '@/constants/rpc/rpc-gen'
-import {rpcLog, type InvokeType} from './index.platform'
-import {IncomingRequest, OutgoingRequest} from './request'
+import {rpcLog, type InvokeType} from '@/engine/index.platform'
+import {IncomingRequest, OutgoingRequest} from '@/engine/request'
 import {RPCError} from '@/util/errors'
-import {getEngine} from './require'
-import type {SessionID, ResponseType, EndHandlerType, MethodKey} from './types'
+import {getEngine} from '@/engine/require'
+import type {SessionID, ResponseType, EndHandlerType, MethodKey} from '@/engine/types'
 
 type WaitingKey = string | ReadonlyArray<string>
 

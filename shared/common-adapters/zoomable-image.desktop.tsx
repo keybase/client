@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type * as Styles from '@/styles'
-import Toast from './toast.desktop'
+import Toast from '@/common-adapters/toast.desktop'
 import {Box2} from '@/common-adapters/box'
 import Text from '@/common-adapters/text'
 

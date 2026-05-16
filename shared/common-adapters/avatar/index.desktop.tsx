@@ -4,9 +4,9 @@ import type * as React from 'react'
 import type * as T from '@/constants/types'
 import * as Styles from '@/styles'
 import {useConfigState} from '@/stores/config'
-import * as AvatarZus from './store'
+import * as AvatarZus from '@/common-adapters/avatar/store'
 import {navToProfile} from '@/constants/router'
-import {iconTypeToImgSet} from './icon-to-img-set'
+import {iconTypeToImgSet} from '@/common-adapters/avatar/icon-to-img-set'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 
 type Props = {
@@ -85,7 +85,7 @@ function Avatar(p: Props) {
     <div
       className={Styles.classNames('avatar', avatarSizeClassName)}
       onClick={onClick}
-      style={Styles.collapseStyles([onClick && clickableStyle, style]) as React.CSSProperties}
+      style={Styles.collapseStyles([onClick && clickableStyle, style])}
     >
       <div className={Styles.classNames('avatar-inner', avatarSizeClassName)}>
         <div className="avatar-background" />

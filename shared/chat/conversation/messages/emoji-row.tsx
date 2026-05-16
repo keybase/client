@@ -1,16 +1,16 @@
 import * as React from 'react'
-import * as InputState from '../input-area/input-state'
-import {useOrdinal} from './ids-context'
+import * as InputState from '@/chat/conversation/input-area/input-state'
+import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
 import {useReactionRowTopReacjis} from '@/chat/user-reacjis'
-import {showForwardMessagePicker} from '../fwd-msg'
+import {showForwardMessagePicker} from '@/chat/conversation/fwd-msg'
 import {
   useConversationThreadID,
   useConversationThreadMessage,
   useConversationThreadMessageActions,
-} from '../thread-context'
+} from '@/chat/conversation/thread-context'
 
 type OwnProps = {
   className?: string

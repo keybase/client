@@ -1,8 +1,8 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
-import {useFsPathItem, useKbfsDaemonStatus} from '../common'
-import {useFsBrowserSort} from '../browser/sort-state'
+import {useFsPathItem, useKbfsDaemonStatus} from '@/fs/common'
+import {useFsBrowserSort} from '@/fs/browser/sort-state'
 
 type OwnProps = {
   path: T.FS.Path

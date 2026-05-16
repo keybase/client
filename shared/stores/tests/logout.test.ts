@@ -1,7 +1,7 @@
 /// <reference types="jest" />
-import * as T from '../../constants/types'
-import {resetAllStores} from '../../util/zustand'
-import {useLogoutState} from '../logout'
+import * as T from '@/constants/types'
+import {resetAllStores} from '@/util/zustand'
+import {useLogoutState} from '@/stores/logout'
 
 describe('logout store', () => {
   afterEach(() => {

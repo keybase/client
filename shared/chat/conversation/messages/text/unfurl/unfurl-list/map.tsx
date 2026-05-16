@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters/index'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import UnfurlImage from './image'
+import UnfurlImage from '@/chat/conversation/messages/text/unfurl/unfurl-list/image'
 import {formatDurationForLocation} from '@/util/timestamp'
 import {maxWidth} from '@/chat/conversation/messages/attachment/shared'
 

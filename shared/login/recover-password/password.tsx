@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import {UpdatePassword} from '@/settings/password'
-import {submitRecoverPasswordPassword} from './flow'
+import {submitRecoverPasswordPassword} from '@/login/recover-password/flow'
 
 type Props = {route: {params: {error?: string}}}
 

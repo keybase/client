@@ -4,12 +4,12 @@ import * as Common from '@/router-v2/common'
 import {routeMapToScreenElements} from '@/router-v2/routes'
 import {makeLayout} from '@/router-v2/screen-layout.desktop'
 import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
-import LeftNav from './sub-nav/left-nav'
+import LeftNav from '@/settings/sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
-import {settingsDesktopTabRoutes} from './routes'
+import {settingsDesktopTabRoutes} from '@/settings/routes'
 import {settingsAccountTab} from '@/constants/settings'
-import type {SettingsAccountRouteParams} from './routes'
+import type {SettingsAccountRouteParams} from '@/settings/routes'
 
 function LeftTabNavigator({
   initialRouteName,

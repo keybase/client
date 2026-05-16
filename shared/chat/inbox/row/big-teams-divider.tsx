@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
-import * as RowSizes from './sizes'
+import * as RowSizes from '@/chat/inbox/row/sizes'
 import * as T from '@/constants/types'
-import {BigTeamsLabel} from './big-teams-label'
+import {BigTeamsLabel} from '@/chat/inbox/row/big-teams-label'
 import {useConfigState} from '@/stores/config'
 
 type Props = {

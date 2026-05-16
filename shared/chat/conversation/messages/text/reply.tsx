@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {zoomImage} from '@/constants/chat/helpers'
-import {useIsHighlighted} from '../ids-context'
+import {useIsHighlighted} from '@/chat/conversation/messages/ids-context'
 import type * as T from '@/constants/types'
 
 export const useReply = (replyTo?: T.Chat.MessageReplyTo, onClick?: () => void) => {

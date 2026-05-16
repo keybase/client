@@ -1,12 +1,12 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import CoinFlipError from './errors'
-import CoinFlipParticipants from './participants'
-import CoinFlipResult from './results'
+import CoinFlipError from '@/chat/conversation/messages/text/coinflip/errors'
+import CoinFlipParticipants from '@/chat/conversation/messages/text/coinflip/participants'
+import CoinFlipResult from '@/chat/conversation/messages/text/coinflip/results'
 import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import {pluralize} from '@/util/string'
-import {useConversationThreadMessage, useConversationThreadSelector} from '../../../thread-context'
-import {useConversationSendActions} from '../../../send-actions'
+import {useConversationThreadMessage, useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import {useConversationSendActions} from '@/chat/conversation/send-actions'
 
 function CoinFlipContainer() {
   const ordinal = useOrdinal()

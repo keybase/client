@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
-import UserNotice from '../user-notice'
+import UserNotice from '@/chat/conversation/messages/user-notice'
 import type * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useChatTeam} from '../../team-hooks'
+import {useChatTeam} from '@/chat/conversation/team-hooks'
 import {makeAddMembersWizard} from '@/teams/add-members-wizard/state'
-import {useConversationShowInfoPanel, useConversationThreadSelector} from '../../thread-context'
+import {useConversationShowInfoPanel, useConversationThreadSelector} from '@/chat/conversation/thread-context'
 
 type OwnProps = {message: T.Chat.MessageSystemCreateTeam}
 

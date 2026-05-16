@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import Row, {NewContext} from './row'
+import Row, {NewContext} from '@/git/row'
 import sortBy from 'lodash/sortBy'
 import * as T from '@/constants/types'
 import {useLocalBadging} from '@/util/use-local-badging'

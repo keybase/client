@@ -6,11 +6,11 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {getFeaturedSorted, useFeaturedBotPage} from '@/util/featured-bots'
 import {useUsersState} from '@/stores/users'
-import {useChatTeam, useChatTeamMembers} from '../team-hooks'
+import {useChatTeam, useChatTeamMembers} from '@/chat/conversation/team-hooks'
 import logger from '@/logger'
-import {useBotSettings} from '../bot/settings'
+import {useBotSettings} from '@/chat/conversation/bot/settings'
 import {getInboxConversationMeta, participantInfoReceived} from '@/chat/inbox/metadata'
-import {useConversationMetadata} from '../data-hooks'
+import {useConversationMetadata} from '@/chat/conversation/data-hooks'
 
 type AddToChannelProps = {
   conversationIDKey: T.Chat.ConversationIDKey

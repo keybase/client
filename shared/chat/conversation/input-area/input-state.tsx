@@ -3,11 +3,11 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {clearThreadInputAction} from '@/constants/router'
 import {findLast} from '@/util/arrays'
-import {useChatThreadRouteParams, type ThreadInputAction} from '../thread-search-route'
+import {useChatThreadRouteParams, type ThreadInputAction} from '@/chat/conversation/thread-search-route'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {useConversationThreadSelector} from '../thread-context'
-import {useConversationSendActions} from '../send-actions'
+import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import {useConversationSendActions} from '@/chat/conversation/send-actions'
 
 type ConversationInputStore = T.Immutable<{
   commandMarkdown?: T.RPCChat.UICommandMarkdown

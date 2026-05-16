@@ -1,9 +1,8 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type {ButtonType} from '@/common-adapters/button'
 import {SignupScreen} from '@/signup/common'
-import {cancelRecoverPassword, submitRecoverPasswordPaperKey} from './flow'
+import {cancelRecoverPassword, submitRecoverPasswordPaperKey} from '@/login/recover-password/flow'
 
 type Props = {route: {params: {error?: string}}}
 
@@ -26,7 +25,7 @@ const PaperKey = ({route}: Props) => {
           disabled: !paperKey,
           label: 'Continue',
           onClick: onSubmit,
-          type: 'Default' as ButtonType,
+          type: 'Default',
           waitingKey: C.waitingKeyRecoverPassword,
         },
       ]}

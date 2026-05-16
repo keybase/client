@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
-import NavRow from './nav-row'
+import NavRow from '@/crypto/sub-nav/nav-row'
 
 const CryptoSubNav = () => {
   const {navigate} = C.useNav()

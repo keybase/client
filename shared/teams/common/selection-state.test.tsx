@@ -8,7 +8,7 @@ import {
   TeamSelectionProvider,
   useChannelSelectionState,
   useTeamSelectionState,
-} from './selection-state'
+} from '@/teams/common/selection-state'
 
 afterEach(() => {
   cleanup()

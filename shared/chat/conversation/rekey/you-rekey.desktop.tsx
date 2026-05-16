@@ -1,6 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from './you-rekey'
-
+import type {Props} from '@/chat/conversation/rekey/you-rekey.shared'
 const YouRekey = ({onRekey}: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-start" flex={1} style={styles.container}>

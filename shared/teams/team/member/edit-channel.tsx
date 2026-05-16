@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useLoadedTeam} from '../use-loaded-team'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 type Props = {
   channelname: string

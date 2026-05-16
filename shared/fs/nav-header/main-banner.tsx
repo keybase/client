@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
-import {useFsErrorActionOrThrow, useFsOverallSyncStatus, useKbfsDaemonStatus} from '../common'
+import {useFsErrorActionOrThrow, useFsOverallSyncStatus, useKbfsDaemonStatus} from '@/fs/common'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type Props = {

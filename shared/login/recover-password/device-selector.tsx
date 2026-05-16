@@ -4,7 +4,7 @@ import {
   cancelRecoverPassword,
   submitRecoverPasswordDeviceSelect,
   submitRecoverPasswordNoDevice,
-} from './flow'
+} from '@/login/recover-password/flow'
 
 type Props = {route: {params: {devices: ReadonlyArray<Device>}}}
 

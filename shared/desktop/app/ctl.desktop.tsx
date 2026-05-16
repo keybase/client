@@ -1,6 +1,6 @@
 import * as Electron from 'electron'
-import {keybaseBinPath} from './paths.desktop'
-import exec from './exec.desktop'
+import {keybaseBinPath} from '@/desktop/app/paths.desktop'
+import exec from '@/desktop/app/exec.desktop'
 import {isWindows} from '@/constants/platform'
 import {spawn} from 'child_process'
 import {type ExecException} from 'child_process'

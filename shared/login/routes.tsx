@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import {InfoIcon} from '@/signup/common'
-import {newRoutes as provisionRoutes} from '../provision/routes-sub'
-import {sharedNewRoutes as settingsRoutes} from '../settings/routes'
-import {newRoutes as signupRoutes} from './signup/routes'
+import {newRoutes as provisionRoutes} from '@/provision/routes-sub'
+import {sharedNewRoutes as settingsRoutes} from '@/settings/routes'
+import {newRoutes as signupRoutes} from '@/login/signup/routes'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {defineRouteMap} from '@/constants/types/router'
 
@@ -29,7 +29,7 @@ export const newRoutes = defineRouteMap({
   login: {getOptions: {headerShown: false}, screen: React.lazy(async () => import('.'))},
   recoverPasswordDeviceSelector: {
     getOptions: {title: 'Recover password'},
-    screen: React.lazy(async () => import('./recover-password/device-selector')),
+    screen: React.lazy(async () => import('@/login/recover-password/device-selector')),
   },
   recoverPasswordError: {
     getOptions: {
@@ -37,37 +37,37 @@ export const newRoutes = defineRouteMap({
       headerRightActions,
       title: 'Recover password',
     },
-    screen: React.lazy(async () => import('./recover-password/error')),
+    screen: React.lazy(async () => import('@/login/recover-password/error')),
   },
   recoverPasswordExplainDevice: {
     getOptions: recoverPasswordGetOptions,
-    screen: React.lazy(async () => import('./recover-password/explain-device')),
+    screen: React.lazy(async () => import('@/login/recover-password/explain-device')),
   },
   recoverPasswordPaperKey: {
     getOptions: recoverPasswordGetOptions,
-    screen: React.lazy(async () => import('./recover-password/paper-key')),
+    screen: React.lazy(async () => import('@/login/recover-password/paper-key')),
   },
   recoverPasswordPromptResetAccount: {
     getOptions: recoverPasswordGetOptions,
-    screen: React.lazy(async () => import('./recover-password/prompt-reset-account')),
+    screen: React.lazy(async () => import('@/login/recover-password/prompt-reset-account')),
   },
   recoverPasswordPromptResetPassword: {
     getOptions: recoverPasswordGetOptions,
-    screen: React.lazy(async () => import('./recover-password/prompt-reset-password')),
+    screen: React.lazy(async () => import('@/login/recover-password/prompt-reset-password')),
   },
   resetConfirm: {
     getOptions: {gestureEnabled: false, title: 'Account reset'},
-    screen: React.lazy(async () => import('./reset/confirm')),
+    screen: React.lazy(async () => import('@/login/reset/confirm')),
   },
   resetEnterPassword: {
     getOptions: {title: 'Account reset'},
-    screen: React.lazy(async () => import('./reset/password-enter')),
+    screen: React.lazy(async () => import('@/login/reset/password-enter')),
   },
   resetKnowPassword: {
     getOptions: {title: 'Account reset'},
-    screen: React.lazy(async () => import('./reset/password-known')),
+    screen: React.lazy(async () => import('@/login/reset/password-known')),
   },
-  resetWaiting: C.makeScreen(React.lazy(async () => import('./reset/waiting')), {
+  resetWaiting: C.makeScreen(React.lazy(async () => import('@/login/reset/waiting')), {
     getOptions: {title: 'Account reset'},
   }),
   ...provisionRoutes,
@@ -76,14 +76,14 @@ export const newRoutes = defineRouteMap({
 export const newModalRoutes = defineRouteMap({
   proxySettingsModal: {
     getOptions: {title: 'Proxy settings'},
-    screen: React.lazy(async () => import('../settings/proxy')),
+    screen: React.lazy(async () => import('@/settings/proxy')),
   },
   recoverPasswordErrorModal: {
     getOptions: {gestureEnabled: false, title: 'Error'},
-    screen: React.lazy(async () => import('./recover-password/error-modal')),
+    screen: React.lazy(async () => import('@/login/recover-password/error-modal')),
   },
   recoverPasswordSetPassword: {
     getOptions: {gestureEnabled: false, title: 'Set password'},
-    screen: React.lazy(async () => import('./recover-password/password')),
+    screen: React.lazy(async () => import('@/login/recover-password/password')),
   },
 })

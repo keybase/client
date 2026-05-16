@@ -1,5 +1,5 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemInviteAcceptedType from './container'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
+import type SystemInviteAcceptedType from '@/chat/conversation/messages/system-invite-accepted/container'
 
 function WrapperSystemInvite(p: Props) {
   const {ordinal, isCenteredHighlight} = p

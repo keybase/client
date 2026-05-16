@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {clearThreadHighlightMessageID} from '@/constants/router'
-import {useChatThreadRouteParams} from './thread-search-route'
-import {useThreadLoadStatusOptionsGetter} from './thread-load-status-context'
+import {useChatThreadRouteParams} from '@/chat/conversation/thread-search-route'
+import {useThreadLoadStatusOptionsGetter} from '@/chat/conversation/thread-load-status-context'
 import {
   useConversationThreadJumpToRecent,
   useConversationThreadLoadMessagesCentered,
   useConversationThreadSetMarkReadBlocked,
-} from './thread-context'
+} from '@/chat/conversation/thread-context'
 
 type CenterState = {
   center: T.Chat.CenterOrdinal | undefined

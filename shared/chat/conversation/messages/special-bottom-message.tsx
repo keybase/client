@@ -1,7 +1,7 @@
 import * as Chat from '@/constants/chat'
-import {useConversationThreadSelector} from '../thread-context'
-import OldProfileReset from './system-old-profile-reset-notice/container'
-import ResetUser from './reset-user'
+import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
+import OldProfileReset from '@/chat/conversation/messages/system-old-profile-reset-notice/container'
+import ResetUser from '@/chat/conversation/messages/reset-user'
 
 function BottomMessageContainer() {
   const meta = useConversationThreadSelector(s => s.meta)

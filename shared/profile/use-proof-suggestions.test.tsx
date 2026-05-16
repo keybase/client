@@ -5,7 +5,7 @@ import * as T from '@/constants/types'
 import {notifyEngineActionListeners} from '@/engine/action-listener'
 import {useCurrentUserState} from '@/stores/current-user'
 import {resetAllStores} from '@/util/zustand'
-import {useProofSuggestions} from './use-proof-suggestions'
+import {useProofSuggestions} from '@/profile/use-proof-suggestions'
 
 const makeSuggestion = (key: string, belowFold = false): T.RPCGen.ProofSuggestion =>
   ({
@@ -19,7 +19,7 @@ const makeSuggestion = (key: string, belowFold = false): T.RPCGen.ProofSuggestio
     profileIcon: [],
     profileIconDarkmode: [],
     profileText: `${key}-user`,
-  }) as never
+  })
 
 const makeResponse = (
   suggestions: Array<T.RPCGen.ProofSuggestion>

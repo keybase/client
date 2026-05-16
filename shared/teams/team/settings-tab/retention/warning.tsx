@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import type {RetentionEntityType} from '.'
-import {useConfirm} from './use-confirm'
+import {useConfirm} from '@/teams/team/settings-tab/retention/use-confirm'
 
 type Props = {
   entityType: RetentionEntityType

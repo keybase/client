@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import Prompt from './prompt'
+import Prompt from '@/chat/conversation/messages/text/unfurl/prompt-list/prompt'
 import {
   useConversationThreadUnfurlResolvePrompt,
   useConversationThreadSelector,

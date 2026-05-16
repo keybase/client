@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
-import UserNotice from '../user-notice'
-import {useConversationThreadSelector} from '../../thread-context'
+import UserNotice from '@/chat/conversation/messages/user-notice'
+import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
 
 function LeftContainer() {
   const meta = useConversationThreadSelector(s => s.meta)

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {RefreshControlProps, GestureResponderEvent} from 'react-native'
+import type {ScrollViewRef} from '@/common-adapters/scroll-view.shared'
 
 
 export type ScrollEvent = {
@@ -10,11 +11,6 @@ export type ScrollEvent = {
     contentOffset: {x: number; y: number}
   }
   currentTarget?: HTMLDivElement
-}
-
-export type ScrollViewRef = {
-  scrollTo: (arg0: {x: number; y: number; animated?: boolean}) => void
-  scrollToEnd: (options: {animated?: boolean; duration?: number}) => void
 }
 
 type Props = {
@@ -97,3 +93,5 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 export default ScrollView
+
+export type * from '@/common-adapters/scroll-view.shared'

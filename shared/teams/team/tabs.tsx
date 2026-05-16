@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import {isBigTeam} from '@/constants/chat/helpers'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import type {Tab as TabType} from '@/common-adapters/tabs'
-import {useLoadedTeam} from './use-loaded-team'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 type TeamTabsProps = {
   admin: boolean

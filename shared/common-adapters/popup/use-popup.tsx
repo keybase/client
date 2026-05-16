@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {isMobile} from '@/styles'
-import type {MeasureRef} from '../measure-ref'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 
 export type Popup2Parms = {
   attachTo?: React.RefObject<MeasureRef | null>

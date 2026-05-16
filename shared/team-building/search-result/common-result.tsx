@@ -6,7 +6,7 @@ import {
   serviceIdToIconFont,
   serviceMapToArray,
   serviceIdToAvatarIcon,
-} from '../shared'
+} from '@/team-building/shared'
 
 export type ResultProps = {
   bottomRow?: React.ReactNode

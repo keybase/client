@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
-import {muteConversationPromise} from '../../status-actions'
-import {useConversationMeta} from '../../data-hooks'
+import {muteConversationPromise} from '@/chat/conversation/status-actions'
+import {useConversationMeta} from '@/chat/conversation/data-hooks'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 

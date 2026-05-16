@@ -1,11 +1,10 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
-import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from '@/team-building/shared'
 import difference from 'lodash/difference'
 import type * as T from '@/constants/types'
-import type {Props, IconProps} from './service-tab-bar'
 import {useColorScheme} from 'react-native'
-
+import type {IconProps, Props} from '@/team-building/service-tab-bar.shared'
 const getDesktopServicesLayout = (
   services: ReadonlyArray<T.TB.ServiceIdWithContact>,
   selectedService: T.TB.ServiceIdWithContact,

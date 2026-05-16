@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type {RPCError} from './errors'
+import type {RPCError} from '@/util/errors'
 
 type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>> =
   RF extends Promise<infer U> ? U : RF

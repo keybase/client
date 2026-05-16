@@ -1,9 +1,9 @@
 /// <reference types="jest" />
-import {buildInboxRows} from './rows'
+import {buildInboxRows} from '@/chat/inbox/rows'
 import * as T from '@/constants/types'
 
 const smallTeamRow = (convID: string, name = convID): T.RPCChat.UIInboxSmallTeamRow => ({
-  convID: convID as T.RPCChat.ConvIDStr,
+  convID: convID,
   draft: null,
   isMuted: false,
   isTeam: true,
@@ -16,7 +16,7 @@ const smallTeamRow = (convID: string, name = convID): T.RPCChat.UIInboxSmallTeam
 
 const bigTeamLabelRow = (name: string, id: string): T.RPCChat.UIInboxBigTeamRow => ({
   label: {
-    id: id as T.RPCChat.TLFIDStr,
+    id: id,
     name,
   },
   state: T.RPCChat.UIInboxBigTeamRowTyp.label,
@@ -25,7 +25,7 @@ const bigTeamLabelRow = (name: string, id: string): T.RPCChat.UIInboxBigTeamRow 
 const bigTeamChannelRow = (convID: string, teamname: string, channelname: string): T.RPCChat.UIInboxBigTeamRow => ({
   channel: {
     channelname,
-    convID: convID as T.RPCChat.ConvIDStr,
+    convID: convID,
     draft: null,
     isMuted: false,
     teamname,

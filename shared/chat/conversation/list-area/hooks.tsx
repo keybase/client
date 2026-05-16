@@ -1,11 +1,11 @@
 import * as C from '@/constants'
-import JumpToRecent from './jump-to-recent'
-import {useConversationCenter} from '../center-context'
+import JumpToRecent from '@/chat/conversation/list-area/jump-to-recent'
+import {useConversationCenter} from '@/chat/conversation/center-context'
 import {
   useConversationThreadMarkThreadAsRead,
   useConversationThreadSelector,
   useConversationThreadToggleSearch,
-} from '../thread-context'
+} from '@/chat/conversation/thread-context'
 
 export const useActions = () => {
   const markThreadAsRead = useConversationThreadMarkThreadAsRead()

@@ -3,8 +3,8 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
-import type {Props} from '.'
-import {useChatTeam} from '../conversation/team-hooks'
+import type {Props} from '@/chat/create-channel'
+import {useChatTeam} from '@/chat/conversation/team-hooks'
 
 export default (p: Props) => {
   const teamID = p.teamID

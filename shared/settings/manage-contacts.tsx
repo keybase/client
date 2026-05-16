@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {SettingsSection} from './account'
+import {SettingsSection} from '@/settings/account'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import {settingsFeedbackTab} from '@/constants/settings'
 import {openAppSettings} from '@/util/storeless-actions'

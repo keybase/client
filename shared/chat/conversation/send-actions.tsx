@@ -4,12 +4,12 @@ import * as T from '@/constants/types'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
-import {getClientPrevFromThread} from './attachment-actions'
+import {getClientPrevFromThread} from '@/chat/conversation/attachment-actions'
 import {
   useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadSelector,
-} from './thread-context'
+} from '@/chat/conversation/thread-context'
 
 type SendTextParams = {
   clientPrev: T.Chat.MessageID

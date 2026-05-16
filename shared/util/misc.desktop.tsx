@@ -1,7 +1,7 @@
 import logger from '@/logger'
 import {navigateAppend} from '@/constants/router'
 import debounce from 'lodash/debounce'
-import KB2, {type OpenDialogOptions, type SaveDialogOptions} from './electron.desktop'
+import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '@/util/electron.desktop'
 
 const {openURL: openURLImpl, showOpenDialog, showSaveDialog} = KB2.functions
 
@@ -26,7 +26,7 @@ export const openURL = async (url?: string) => {
   return openURLImpl?.(url)
 }
 
-export const openSMS = async (): Promise<unknown> => {
+export const openSMS = async (_phonenos: Array<string>, _body?: string): Promise<unknown> => {
   console.warn('Attempted to open SMS on desktop')
   return Promise.reject(new Error("Can't open SMS on desktop"))
 }

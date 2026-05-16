@@ -3,13 +3,13 @@ import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
-import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
-import {Filename, ItemIcon} from './common'
+import {Actions, MainBanner, MobileHeader, Title} from '@/fs/nav-header'
+import {Filename, ItemIcon} from '@/fs/common'
 import {OriginalOrCompressedButton} from '@/incoming-share'
 import {defineRouteMap} from '@/constants/types/router'
 
 const FsRoot = React.lazy(async () => import('.'))
-const FsFilePreview = React.lazy(async () => import('./filepreview/file-preview-screen'))
+const FsFilePreview = React.lazy(async () => import('@/fs/filepreview/file-preview-screen'))
 
 const DestPickerHeaderLeft = ({source}: {source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource}) => {
   const clearModals = C.Router2.clearModals
@@ -100,9 +100,9 @@ export const newRoutes = defineRouteMap({
 })
 
 export const newModalRoutes = defineRouteMap({
-  confirmDelete: C.makeScreen(React.lazy(async () => import('./common/path-item-action/confirm-delete'))),
+  confirmDelete: C.makeScreen(React.lazy(async () => import('@/fs/common/path-item-action/confirm-delete'))),
   destinationPicker: C.makeScreen(
-    React.lazy(async () => import('./browser/destination-picker')),
+    React.lazy(async () => import('@/fs/browser/destination-picker')),
     {
       getOptions: ({route}) => ({
         headerLeft: () => <DestPickerHeaderLeft source={route.params.source} />,
@@ -117,7 +117,7 @@ export const newModalRoutes = defineRouteMap({
   kextPermission: {
     getOptions: {modalStyle: {width: 700}},
     screen: React.lazy(
-      async () => import('./banner/system-file-manager-integration-banner/kext-permission-popup')
+      async () => import('@/fs/banner/system-file-manager-integration-banner/kext-permission-popup')
     ),
   },
 })

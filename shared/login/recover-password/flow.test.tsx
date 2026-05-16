@@ -16,7 +16,7 @@ import {
   startRecoverPassword,
   submitRecoverPasswordDeviceSelect,
   submitRecoverPasswordReset,
-} from './flow'
+} from '@/login/recover-password/flow'
 
 const {
   clearModals: mockClearModals,
@@ -57,13 +57,13 @@ test('startRecoverPassword exposes device selection handlers', async () => {
       throw new Error('chooseDeviceToRecoverWith handler missing')
     }
     chooseDevice(
-      {devices: [makeRpcDevice('phone', 'device-1', 'mobile')]} as any,
-      chooserResponse as any
+      {devices: [makeRpcDevice('phone', 'device-1', 'mobile')]},
+      chooserResponse
     )
     await new Promise<void>(resolve => {
       finishListener = resolve
     })
-    return undefined as any
+    return undefined
   })
 
   try {
@@ -108,13 +108,13 @@ test('resetAllStores clears pending recover-password handlers', async () => {
       throw new Error('chooseDeviceToRecoverWith handler missing')
     }
     chooseDevice(
-      {devices: [makeRpcDevice('tablet', 'device-2', 'desktop')]} as any,
-      chooserResponse as any
+      {devices: [makeRpcDevice('tablet', 'device-2', 'desktop')]},
+      chooserResponse
     )
     await new Promise<void>(resolve => {
       finishListener = resolve
     })
-    return undefined as any
+    return undefined
   })
 
   try {
@@ -149,7 +149,7 @@ test('reset-password prompt resolves callback and local banner handler', async (
     await new Promise<void>(resolve => {
       finishListener = resolve
     })
-    return undefined as any
+    return undefined
   })
 
   try {

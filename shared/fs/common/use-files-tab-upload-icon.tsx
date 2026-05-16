@@ -2,9 +2,9 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {clientID as fsClientID, makeUUID} from './client'
-import {useKbfsDaemonStatus} from './daemon'
-import {useFsErrorActionOrThrow} from './error-state'
+import {clientID as fsClientID, makeUUID} from '@/fs/common/client'
+import {useKbfsDaemonStatus} from '@/fs/common/daemon'
+import {useFsErrorActionOrThrow} from '@/fs/common/error-state'
 
 const filesTabBadgeToUploadIcon = (badge: T.RPCGen.FilesTabBadge): T.FS.UploadIcon | undefined => {
   switch (badge) {

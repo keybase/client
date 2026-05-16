@@ -1,7 +1,7 @@
 import * as Styles from '@/styles'
 import {iconMeta} from '@/common-adapters/icon.constants-gen'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
-import {typeExtension, getImagesDir} from './icon.shared'
+import {typeExtension, getImagesDir} from '@/common-adapters/icon.shared'
 import type {Image as RNImageType} from 'react-native'
 
 export type ImageIconProps = {

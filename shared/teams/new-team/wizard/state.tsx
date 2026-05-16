@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as T from '@/constants/types'
-import {makeAddMembersWizard, type AddMembersWizard} from '../../add-members-wizard/state'
+import {makeAddMembersWizard, type AddMembersWizard} from '@/teams/add-members-wizard/state'
 
 export type NewTeamWizard = T.Teams.NewTeamWizardState
 

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Platform from '@/constants/platform'
-import SyncingFolders from './syncing-folders'
+import SyncingFolders from '@/router-v2/header/syncing-folders'
 import KB2 from '@/util/electron.desktop'
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'

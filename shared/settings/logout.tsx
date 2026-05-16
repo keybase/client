@@ -3,10 +3,10 @@ import {useSafeSubmit} from '@/util/safe-submit'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import {UpdatePassword, useSubmitNewPassword} from './password'
-import {useRequestLogout} from './use-request-logout'
-import {usePasswordCheck} from './use-password-check'
-import {useRandomPWState} from './use-random-pw'
+import {UpdatePassword, useSubmitNewPassword} from '@/settings/password'
+import {useRequestLogout} from '@/settings/use-request-logout'
+import {usePasswordCheck} from '@/settings/use-password-check'
+import {useRandomPWState} from '@/settings/use-random-pw'
 
 const LogoutContainer = () => {
   const {checkPassword, checkPasswordIsCorrect, reset} = usePasswordCheck()

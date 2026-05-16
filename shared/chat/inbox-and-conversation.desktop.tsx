@@ -1,9 +1,9 @@
 import * as Kb from '@/common-adapters'
-import Inbox from './inbox'
-import {InboxAndConversationShell, type InboxAndConversationProps} from './inbox-and-conversation-shared'
-import {inboxWidth} from './inbox/row/sizes'
-import useInboxHeaderPortal from './inbox/use-header-portal'
-import {useInboxSearch} from './inbox/use-inbox-search'
+import Inbox from '@/chat/inbox'
+import {InboxAndConversationShell, type InboxAndConversationProps} from '@/chat/inbox-and-conversation-shared'
+import {inboxWidth} from '@/chat/inbox/row/sizes'
+import useInboxHeaderPortal from '@/chat/inbox/use-header-portal'
+import {useInboxSearch} from '@/chat/inbox/use-inbox-search'
 
 export default function InboxAndConversationDesktop(props: InboxAndConversationProps) {
   const search = useInboxSearch()

@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as T from '@/constants/types'
-import ParticipantRekey from './participant-rekey'
-import YouRekey from './you-rekey'
+import ParticipantRekey from '@/chat/conversation/rekey/participant-rekey'
+import YouRekey from '@/chat/conversation/rekey/you-rekey'
 import {navToProfile} from '@/constants/router'
-import {useConversationThreadSelector} from '../thread-context'
+import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
 
 const Container = () => {
   const _you = useCurrentUserState(s => s.username)

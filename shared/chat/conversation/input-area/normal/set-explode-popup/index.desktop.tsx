@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from '.'
-import useHooks from './hooks'
-import type {MessageExplodeDescription} from './hooks'
+import type {Props} from '@/chat/conversation/input-area/normal/set-explode-popup/index.shared'
+import useHooks from '@/chat/conversation/input-area/normal/set-explode-popup/hooks'
+import type {MessageExplodeDescription} from '@/chat/conversation/input-area/normal/set-explode-popup/hooks'
 
 const quantityTextStyle = Kb.Styles.platformStyles({
   common: {

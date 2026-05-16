@@ -1,7 +1,7 @@
-import type {TextType} from './text.shared'
+import type {TextType} from '@/common-adapters/text.shared'
 import {Box2} from '@/common-adapters/box'
 import ClickableBox from '@/common-adapters/clickable-box'
-import Icon from './icon'
+import Icon from '@/common-adapters/icon'
 import Text from '@/common-adapters/text'
 import * as Styles from '@/styles'
 

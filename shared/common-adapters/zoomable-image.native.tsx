@@ -1,6 +1,6 @@
 import * as Styles from '@/styles'
 import * as React from 'react'
-import Image from './image.native'
+import Image from '@/common-adapters/image.native'
 import {View, type LayoutChangeEvent} from 'react-native'
 import {useSharedValue, runOnJS} from 'react-native-reanimated'
 import {

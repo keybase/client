@@ -1,7 +1,7 @@
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import {Box2} from '@/common-adapters/box'
 import ClickableBox from '@/common-adapters/clickable-box'
-import IconAuto from './icon-auto'
+import IconAuto from '@/common-adapters/icon-auto'
 import Text from '@/common-adapters/text'
 import * as React from 'react'
 import * as Styles from '@/styles'

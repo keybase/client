@@ -1,5 +1,5 @@
 import type * as RPCTypes from '@/constants/rpc/rpc-gen'
-import type {ConversationIDKey} from './chat'
+import type {ConversationIDKey} from '@/constants/types/chat'
 
 export type TeamID = string
 export const stringToTeamID = (s: string): TeamID => s

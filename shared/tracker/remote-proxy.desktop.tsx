@@ -3,15 +3,15 @@ import * as React from 'react'
 import * as RemoteGen from '@/constants/remote-actions'
 import * as T from '@/constants/types'
 import {generateGUIID, ignorePromise} from '@/constants/utils'
-import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
-import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
+import useSerializeProps from '@/desktop/remote/use-serialize-props.desktop'
+import useBrowserWindow from '@/desktop/remote/use-browser-window.desktop'
 import {useColorScheme} from 'react-native'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {useEngineActionListener} from '@/engine/action-listener'
-import type {Props as TrackerProps} from './index.desktop'
+import type {Props as TrackerProps} from '@/tracker/index.desktop'
 import {
   cloneDetails,
   identifyResultToDetailsState,
@@ -22,7 +22,7 @@ import {
   updateTrackerDetailsRow,
   updateTrackerDetailsSummary,
   updateTrackerDetailsUserCard,
-} from './model'
+} from '@/tracker/model'
 import {registerRemoteActionHandler} from '@/desktop/renderer/remote-event-handler.desktop'
 import logger from '@/logger'
 import {RPCError} from '@/util/errors'

@@ -1,12 +1,12 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import InfoPanelMenu from './menu'
-import * as InfoPanelCommon from './common'
-import AddPeople from './add-people'
-import {useChatTeam} from '../team-hooks'
-import {joinConversation} from '../status-actions'
-import {useConversationMetadata} from '../data-hooks'
+import InfoPanelMenu from '@/chat/conversation/info-panel/menu'
+import * as InfoPanelCommon from '@/chat/conversation/info-panel/common'
+import AddPeople from '@/chat/conversation/info-panel/add-people'
+import {useChatTeam} from '@/chat/conversation/team-hooks'
+import {joinConversation} from '@/chat/conversation/status-actions'
+import {useConversationMetadata} from '@/chat/conversation/data-hooks'
 
 const gearIconSize = Kb.Styles.isMobile ? 24 : 16
 

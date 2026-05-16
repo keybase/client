@@ -13,7 +13,7 @@ import {
   dismissConversationJourneycardRPC,
   postConversationDelete,
   postConversationReaction,
-} from './message-rpc'
+} from '@/chat/conversation/message-rpc'
 
 const formatTextForQuoting = (text: string) =>
   text

@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import GoButton from './go-button'
-import UserBubble from './user-bubble'
+import GoButton from '@/team-building/go-button'
+import UserBubble from '@/team-building/user-bubble'
 import type * as T from '@/constants/types'
 import {e164ToDisplay} from '@/util/phone-numbers'
 

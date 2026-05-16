@@ -1,8 +1,8 @@
 import * as Kb from '@/common-adapters'
-import Menubar from './index.desktop'
-import loadRemoteComponent from '../desktop/remote/component-loader.desktop'
-import {RemoteDarkModeSync} from '../desktop/remote/remote-component.desktop'
-import type {Props} from './index.desktop'
+import Menubar from '@/menubar/index.desktop'
+import loadRemoteComponent from '@/desktop/remote/component-loader.desktop'
+import {RemoteDarkModeSync} from '@/desktop/remote/remote-component.desktop'
+import type {Props} from '@/menubar/index.desktop'
 
 const RemoteMenubar = (p: Props) => (
   <RemoteDarkModeSync darkMode={p.darkMode}>

@@ -2,20 +2,20 @@ import * as C from '@/constants'
 import {type State as ShellState, useShellState} from '@/stores/shell'
 import * as React from 'react'
 import {useEngineActionListener} from '@/engine/action-listener'
-import Normal from '.'
+import Normal from '@/chat/conversation/normal/index.shared'
 import * as T from '@/constants/types'
-import {FocusProvider, ScrollProvider} from './context'
-import {OrangeLineContext, SetOrangeLineContext, useExplicitOrangeLineState} from '../orange-line-context'
-import {ChatTeamProvider} from '../team-hooks'
-import {ConversationCenterProvider} from '../center-context'
-import {ConversationInputProvider} from '../input-area/input-state'
+import {FocusProvider, ScrollProvider} from '@/chat/conversation/normal/context'
+import {OrangeLineContext, SetOrangeLineContext, useExplicitOrangeLineState} from '@/chat/conversation/orange-line-context'
+import {ChatTeamProvider} from '@/chat/conversation/team-hooks'
+import {ConversationCenterProvider} from '@/chat/conversation/center-context'
+import {ConversationInputProvider} from '@/chat/conversation/input-area/input-state'
 import {
   useConversationThreadID,
   useConversationThreadSelector,
-} from '../thread-context'
-import {ConversationThreadLoadStatusProvider} from '../thread-load-status-context'
+} from '@/chat/conversation/thread-context'
+import {ConversationThreadLoadStatusProvider} from '@/chat/conversation/thread-load-status-context'
 import {MaybeMentionProvider} from '@/common-adapters/markdown/maybe-mention/context'
-import {useChatThreadRouteParams} from '../thread-search-route'
+import {useChatThreadRouteParams} from '@/chat/conversation/thread-search-route'
 
 type OrangeLineState = {
   mobileAppState: ShellState['mobileAppState']

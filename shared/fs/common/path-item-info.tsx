@@ -1,11 +1,11 @@
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import LastModifiedLine from './last-modified-line'
-import TlfInfoLine from './tlf-info-line-container'
-import ItemIcon from './item-icon'
-import CommaSeparatedName from './comma-separated-name'
+import LastModifiedLine from '@/fs/common/last-modified-line'
+import TlfInfoLine from '@/fs/common/tlf-info-line-container'
+import ItemIcon from '@/fs/common/item-icon'
+import CommaSeparatedName from '@/fs/common/comma-separated-name'
 import {pluralize} from '@/util/string'
-import {useFsFolderChildItems, useFsOnlineStatus, useFsPathItem, useFsSoftError} from './hooks'
+import {useFsFolderChildItems, useFsOnlineStatus, useFsPathItem, useFsSoftError} from '@/fs/common/hooks'
 import * as FS from '@/constants/fs'
 
 type Props = {

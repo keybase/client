@@ -1,7 +1,7 @@
 import * as T from '@/constants/types'
-import PathStatusIcon from './path-status-icon'
-import {useFsPathItem, useFsTlfs} from './hooks'
-import {useFsUploadStatus, useKbfsDaemonStatus} from './status'
+import PathStatusIcon from '@/fs/common/path-status-icon'
+import {useFsPathItem, useFsTlfs} from '@/fs/common/hooks'
+import {useFsUploadStatus, useKbfsDaemonStatus} from '@/fs/common/status'
 import * as FS from '@/constants/fs'
 
 type OwnPropsPathItem = {

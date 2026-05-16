@@ -2,9 +2,9 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {useDeleteAccount} from '../use-delete-account'
+import {useDeleteAccount} from '@/settings/use-delete-account'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useRandomPWState} from '../use-random-pw'
+import {useRandomPWState} from '@/settings/use-random-pw'
 
 type CheckboxesProps = {
   checkData: boolean

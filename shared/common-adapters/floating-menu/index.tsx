@@ -33,7 +33,7 @@ export type Props = {
 type SafeNavigationHook = <T extends NavigationProp<ParamListBase>>() => T | null
 
 const useSafeNavigation: SafeNavigationHook = Styles.isMobile
-  ? (useNavigation as SafeNavigationHook)
+  ? (useNavigation)
   : () => null
 
 function FloatingMenu(props: Props) {

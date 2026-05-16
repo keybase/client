@@ -1,25 +1,11 @@
-import type {MeasureRef} from '../../measure-ref'
 import * as React from 'react'
 import {Box2} from '@/common-adapters/box'
 import * as Styles from '@/styles'
 import {Keyboard} from 'react-native'
-import {Portal} from '../../portal.native'
+import {Portal} from '@/common-adapters/portal.native'
+import type {Props} from '@/common-adapters/popup/floating-box/index.shared'
 
 
-export type Props = {
-  children?: React.ReactNode
-  onHidden?: () => void
-  attachTo?: React.RefObject<MeasureRef | null>
-  disableEscapeKey?: boolean
-  propagateOutsideClicks?: boolean
-  containerStyle?: Styles.StylesCrossPlatform
-  matchDimension?: boolean
-  remeasureHint?: number
-  position?: Styles.Position
-  positionFallbacks?: ReadonlyArray<Styles.Position>
-  hideKeyboard?: boolean
-  offset?: number
-}
 const Kb = {
   Box2,
   Portal,

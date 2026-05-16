@@ -1,7 +1,7 @@
 import {createPortal} from 'react-dom'
-import SearchRow from './search-row'
-import {useInboxHeaderPortalNode} from './header-portal-state'
-import type {InboxSearchController} from './use-inbox-search'
+import SearchRow from '@/chat/inbox/search-row'
+import {useInboxHeaderPortalNode} from '@/chat/inbox/header-portal-state'
+import type {InboxSearchController} from '@/chat/inbox/use-inbox-search'
 
 export default function useInboxHeaderPortal(search: InboxSearchController) {
   const portalNode = useInboxHeaderPortalNode()

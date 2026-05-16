@@ -30,35 +30,35 @@ const UsernameHeaderRight = () => {
 }
 
 export const newRoutes = {
-  codePage: C.makeScreen(React.lazy(async () => import('./code-page/container')), {
+  codePage: C.makeScreen(React.lazy(async () => import('@/provision/code-page/container')), {
     getOptions: {
       headerLeft: () => <CodePageHeaderLeft />,
       title: '',
     },
   }),
-  error: {getOptions: {title: 'Error'}, screen: React.lazy(async () => import('./error'))},
+  error: {getOptions: {title: 'Error'}, screen: React.lazy(async () => import('@/provision/error'))},
   forgotUsername: {
     getOptions: {title: 'Recover username'},
-    screen: React.lazy(async () => import('./forgot-username')),
+    screen: React.lazy(async () => import('@/provision/forgot-username')),
   },
   // gpgSign,
   paperkey: {
     getOptions: {title: 'Enter paper key'},
-    screen: React.lazy(async () => import('./paper-key')),
+    screen: React.lazy(async () => import('@/provision/paper-key')),
   },
   password: {
     getOptions: {title: 'Enter password'},
-    screen: React.lazy(async () => import('./password')),
+    screen: React.lazy(async () => import('@/provision/password')),
   },
   selectOtherDevice: {
     getOptions: {title: 'Authorize this device'},
-    screen: React.lazy(async () => import('./select-other-device-connected')),
+    screen: React.lazy(async () => import('@/provision/select-other-device-connected')),
   },
   setPublicName: {
     getOptions: {title: 'Name this device'},
-    screen: React.lazy(async () => import('./set-public-name')),
+    screen: React.lazy(async () => import('@/provision/set-public-name')),
   },
-  username: C.makeScreen(React.lazy(async () => import('./username-or-email')), {
+  username: C.makeScreen(React.lazy(async () => import('@/provision/username-or-email')), {
     getOptions: {
       ...(!Kb.Styles.isMobile ? {headerRight: () => <UsernameHeaderRight />} : {}),
       title: 'Log in',

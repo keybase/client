@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
-import {PeoplePageList} from './index.shared'
-import type {WrapProps} from '.'
+import {PeoplePageList} from '@/people/index.shared'
+import type {WrapProps} from '@/people/index.shared'
 import {RefreshControl} from 'react-native'
 
 function People(props: WrapProps) {

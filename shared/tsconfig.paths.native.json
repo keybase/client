@@ -22,68 +22,122 @@
       "@/chat/audio/audio-send": [
         "./chat/audio/audio-send.native"
       ],
+      "@/chat/audio/audio-video": [
+        "./chat/audio/audio-video.native"
+      ],
+      "@/chat/conversation/attachment-fullscreen/index": [
+        "./chat/conversation/attachment-fullscreen/index.native"
+      ],
+      "@/chat/conversation/attachment-fullscreen": [
+        "./chat/conversation/attachment-fullscreen/index.native"
+      ],
+      "@/chat/conversation/giphy/index": [
+        "./chat/conversation/giphy/index.native"
+      ],
+      "@/chat/conversation/giphy": [
+        "./chat/conversation/giphy/index.native"
+      ],
+      "@/chat/conversation/header-area/index": [
+        "./chat/conversation/header-area/index.native"
+      ],
+      "@/chat/conversation/header-area": [
+        "./chat/conversation/header-area/index.native"
+      ],
+      "@/chat/conversation/input-area/filepicker-popup/index": [
+        "./chat/conversation/input-area/filepicker-popup/index.native"
+      ],
+      "@/chat/conversation/input-area/filepicker-popup": [
+        "./chat/conversation/input-area/filepicker-popup/index.native"
+      ],
+      "@/chat/conversation/input-area/location-popup": [
+        "./chat/conversation/input-area/location-popup.native"
+      ],
+      "@/chat/conversation/input-area/normal/input": [
+        "./chat/conversation/input-area/normal/input.native"
+      ],
       "@/chat/conversation/input-area/normal/moremenu-popup": [
         "./chat/conversation/input-area/normal/moremenu-popup.native"
       ],
-      "@/common-adapters/animation": [
-        "./common-adapters/animation.native"
+      "@/chat/conversation/input-area/normal/set-explode-popup/index": [
+        "./chat/conversation/input-area/normal/set-explode-popup/index.native"
       ],
-      "@/common-adapters/avatar/index": [
-        "./common-adapters/avatar/index.native"
+      "@/chat/conversation/input-area/normal/set-explode-popup": [
+        "./chat/conversation/input-area/normal/set-explode-popup/index.native"
       ],
-      "@/common-adapters/avatar": [
-        "./common-adapters/avatar/index.native"
+      "@/chat/conversation/input-area/suggestors/suggestion-list": [
+        "./chat/conversation/input-area/suggestors/suggestion-list.native"
       ],
-      "@/common-adapters/back-button": [
-        "./common-adapters/back-button.native"
+      "@/chat/conversation/list-area/index": [
+        "./chat/conversation/list-area/index.native"
       ],
-      "@/common-adapters/bottom-accessory": [
-        "./common-adapters/bottom-accessory.native"
+      "@/chat/conversation/list-area": [
+        "./chat/conversation/list-area/index.native"
       ],
-      "@/common-adapters/box": [
-        "./common-adapters/box.native"
+      "@/chat/conversation/messages/attachment/image/imageimpl": [
+        "./chat/conversation/messages/attachment/image/imageimpl.native"
       ],
-      "@/common-adapters/checkbox": [
-        "./common-adapters/checkbox.native"
+      "@/chat/conversation/messages/attachment/video/videoimpl": [
+        "./chat/conversation/messages/attachment/video/videoimpl.native"
       ],
-      "@/common-adapters/choice-list": [
-        "./common-adapters/choice-list.native"
+      "@/chat/conversation/messages/text/unfurl/unfurl-list/image/video": [
+        "./chat/conversation/messages/text/unfurl/unfurl-list/image/video.native"
       ],
-      "@/common-adapters/clickable-box": [
-        "./common-adapters/clickable-box.native"
+      "@/chat/conversation/messages/wrapper/exploding-height-retainer/index": [
+        "./chat/conversation/messages/wrapper/exploding-height-retainer/index.native"
       ],
-      "@/common-adapters/copyable-text": [
-        "./common-adapters/copyable-text.native"
+      "@/chat/conversation/messages/wrapper/exploding-height-retainer": [
+        "./chat/conversation/messages/wrapper/exploding-height-retainer/index.native"
       ],
-      "@/common-adapters/drag-and-drop": [
-        "./common-adapters/drag-and-drop.native"
+      "@/chat/conversation/messages/wrapper/long-pressable/index": [
+        "./chat/conversation/messages/wrapper/long-pressable/index.native"
       ],
-      "@/common-adapters/emoji/custom-emoji": [
-        "./common-adapters/emoji/custom-emoji.native"
+      "@/chat/conversation/messages/wrapper/long-pressable": [
+        "./chat/conversation/messages/wrapper/long-pressable/index.native"
       ],
-      "@/common-adapters/emoji/native-emoji": [
-        "./common-adapters/emoji/native-emoji.native"
+      "@/chat/conversation/normal/index": [
+        "./chat/conversation/normal/index.native"
       ],
-      "@/common-adapters/floating-menu/menu-layout/index": [
-        "./common-adapters/floating-menu/menu-layout/index.native"
+      "@/chat/conversation/normal": [
+        "./chat/conversation/normal/index.native"
       ],
-      "@/common-adapters/floating-menu/menu-layout": [
-        "./common-adapters/floating-menu/menu-layout/index.native"
+      "@/chat/conversation/rekey/participant-rekey": [
+        "./chat/conversation/rekey/participant-rekey.native"
       ],
-      "@/common-adapters/floating-picker": [
-        "./common-adapters/floating-picker.native"
+      "@/chat/conversation/rekey/you-rekey": [
+        "./chat/conversation/rekey/you-rekey.native"
       ],
-      "@/common-adapters/header-buttons": [
-        "./common-adapters/header-buttons.native"
+      "@/chat/create-channel/index": [
+        "./chat/create-channel/index.native"
       ],
-      "@/common-adapters/hot-key": [
-        "./common-adapters/hot-key.native"
+      "@/chat/create-channel": [
+        "./chat/create-channel/index.native"
       ],
-      "@/common-adapters/icon.constants-gen": [
-        "./common-adapters/icon.constants-gen.native"
+      "@/chat/inbox/index": [
+        "./chat/inbox/index.native"
       ],
-      "@/common-adapters/image": [
-        "./common-adapters/image.native"
+      "@/chat/inbox": [
+        "./chat/inbox/index.native"
+      ],
+      "@/chat/inbox/row/small-team/swipe-conv-actions/index": [
+        "./chat/inbox/row/small-team/swipe-conv-actions/index.native"
+      ],
+      "@/chat/inbox/row/small-team/swipe-conv-actions": [
+        "./chat/inbox/row/small-team/swipe-conv-actions/index.native"
+      ],
+      "@/chat/inbox/use-header-portal": [
+        "./chat/inbox/use-header-portal.native"
+      ],
+      "@/chat/inbox-search/background": [
+        "./chat/inbox-search/background.native"
+      ],
+      "@/chat/location-map": [
+        "./chat/location-map.native"
+      ],
+      "@/chat/pdf/index": [
+        "./chat/pdf/index.native"
+      ],
+      "@/chat/pdf": [
+        "./chat/pdf/index.native"
       ],
       "@/common-adapters/index": [
         "./common-adapters/index.native"
@@ -91,107 +145,185 @@
       "@/common-adapters": [
         "./common-adapters/index.native"
       ],
-      "@/common-adapters/input3": [
-        "./common-adapters/input3.native"
-      ],
-      "@/common-adapters/keyboard-avoiding-view": [
-        "./common-adapters/keyboard-avoiding-view.native"
-      ],
-      "@/common-adapters/list": [
-        "./common-adapters/list.native"
-      ],
-      "@/common-adapters/loading-line": [
-        "./common-adapters/loading-line.native"
-      ],
-      "@/common-adapters/popup/bottom-sheet": [
-        "./common-adapters/popup/bottom-sheet.native"
-      ],
-      "@/common-adapters/popup/floating-box/index": [
-        "./common-adapters/popup/floating-box/index.native"
-      ],
-      "@/common-adapters/popup/floating-box": [
-        "./common-adapters/popup/floating-box/index.native"
-      ],
-      "@/common-adapters/popup/index": [
-        "./common-adapters/popup/index.native"
-      ],
-      "@/common-adapters/popup": [
-        "./common-adapters/popup/index.native"
-      ],
       "@/common-adapters/portal": [
         "./common-adapters/portal.native"
-      ],
-      "@/common-adapters/progress-indicator": [
-        "./common-adapters/progress-indicator.native"
-      ],
-      "@/common-adapters/radio-button": [
-        "./common-adapters/radio-button.native"
-      ],
-      "@/common-adapters/safe-area-view": [
-        "./common-adapters/safe-area-view.native"
-      ],
-      "@/common-adapters/scroll-view": [
-        "./common-adapters/scroll-view.native"
       ],
       "@/common-adapters/swipeable-row": [
         "./common-adapters/swipeable-row.native"
       ],
-      "@/common-adapters/switch-toggle": [
-        "./common-adapters/switch-toggle.native"
-      ],
-      "@/common-adapters/text-url": [
-        "./common-adapters/text-url.native"
-      ],
       "@/common-adapters/text.meta": [
         "./common-adapters/text.meta.native"
       ],
-      "@/common-adapters/text": [
-        "./common-adapters/text.native"
+      "@/constants/init/index": [
+        "./constants/init/index.native"
       ],
-      "@/common-adapters/text.styles": [
-        "./common-adapters/text.styles.native"
-      ],
-      "@/common-adapters/toast": [
-        "./common-adapters/toast.native"
-      ],
-      "@/common-adapters/video": [
-        "./common-adapters/video.native"
-      ],
-      "@/common-adapters/web-view": [
-        "./common-adapters/web-view.native"
-      ],
-      "@/common-adapters/with-tooltip": [
-        "./common-adapters/with-tooltip.native"
-      ],
-      "@/common-adapters/zoomable-image": [
-        "./common-adapters/zoomable-image.native"
+      "@/constants/init": [
+        "./constants/init/index.native"
       ],
       "@/constants/init/push-listener": [
         "./constants/init/push-listener.native"
       ],
+      "@/constants/platform": [
+        "./constants/platform.native"
+      ],
+      "@/crypto/sub-nav/index": [
+        "./crypto/sub-nav/index.native"
+      ],
+      "@/crypto/sub-nav": [
+        "./crypto/sub-nav/index.native"
+      ],
+      "@/engine/index": [
+        "./engine/index.native"
+      ],
+      "@/engine": [
+        "./engine/index.native"
+      ],
+      "@/engine/index.platform": [
+        "./engine/index.platform.native"
+      ],
+      "@/engine/session": [
+        "./engine/session.native"
+      ],
+      "@/fs/filepreview/pdf-view": [
+        "./fs/filepreview/pdf-view.native"
+      ],
+      "@/fs/filepreview/text-view": [
+        "./fs/filepreview/text-view.native"
+      ],
+      "@/fs/footer/download-wrapper": [
+        "./fs/footer/download-wrapper.native"
+      ],
+      "@/fs/footer/upload": [
+        "./fs/footer/upload.native"
+      ],
+      "@/local-debug": [
+        "./local-debug.native"
+      ],
+      "@/login/forms/container": [
+        "./login/forms/container.native"
+      ],
       "@/login/relogin/dropdown": [
         "./login/relogin/dropdown.native"
+      ],
+      "@/login/relogin/index": [
+        "./login/relogin/index.native"
+      ],
+      "@/login/relogin": [
+        "./login/relogin/index.native"
+      ],
+      "@/login/user-card/index": [
+        "./login/user-card/index.native"
+      ],
+      "@/login/user-card": [
+        "./login/user-card/index.native"
+      ],
+      "@/people/index": [
+        "./people/index.native"
+      ],
+      "@/people": [
+        "./people/index.native"
+      ],
+      "@/profile/edit-avatar/index": [
+        "./profile/edit-avatar/index.native"
+      ],
+      "@/profile/edit-avatar": [
+        "./profile/edit-avatar/index.native"
+      ],
+      "@/profile/pgp/choice/index": [
+        "./profile/pgp/choice/index.native"
+      ],
+      "@/profile/pgp/choice": [
+        "./profile/pgp/choice/index.native"
+      ],
+      "@/profile/pgp/import/index": [
+        "./profile/pgp/import/index.native"
+      ],
+      "@/profile/pgp/import": [
+        "./profile/pgp/import/index.native"
       ],
       "@/profile/pgp/no-pgp": [
         "./profile/pgp/no-pgp.native"
       ],
+      "@/provision/code-page/qr-scan/index": [
+        "./provision/code-page/qr-scan/index.native"
+      ],
+      "@/provision/code-page/qr-scan": [
+        "./provision/code-page/qr-scan/index.native"
+      ],
       "@/provision/code-page/qr-scan/scanner": [
         "./provision/code-page/qr-scan/scanner.native"
+      ],
+      "@/router-v2/common": [
+        "./router-v2/common.native"
       ],
       "@/router-v2/hooks": [
         "./router-v2/hooks.native"
       ],
+      "@/router-v2/router": [
+        "./router-v2/router.native"
+      ],
       "@/router-v2/screen-layout": [
         "./router-v2/screen-layout.native"
       ],
+      "@/settings/delete-confirm/check-passphrase": [
+        "./settings/delete-confirm/check-passphrase.native"
+      ],
+      "@/settings/feedback/container": [
+        "./settings/feedback/container.native"
+      ],
+      "@/settings/files/index": [
+        "./settings/files/index.native"
+      ],
+      "@/settings/files": [
+        "./settings/files/index.native"
+      ],
       "@/settings/make-icons.page": [
         "./settings/make-icons.page.native"
+      ],
+      "@/settings/notifications/index": [
+        "./settings/notifications/index.native"
+      ],
+      "@/settings/notifications": [
+        "./settings/notifications/index.native"
+      ],
+      "@/settings/screenprotector/index": [
+        "./settings/screenprotector/index.native"
+      ],
+      "@/settings/screenprotector": [
+        "./settings/screenprotector/index.native"
+      ],
+      "@/stores/fs-platform": [
+        "./stores/fs-platform.native"
+      ],
+      "@/stores/push": [
+        "./stores/push.native"
+      ],
+      "@/stores/settings-contacts": [
+        "./stores/settings-contacts.native"
+      ],
+      "@/styles/index": [
+        "./styles/index.native"
+      ],
+      "@/styles": [
+        "./styles/index.native"
+      ],
+      "@/team-building/alphabet-index": [
+        "./team-building/alphabet-index.native"
+      ],
+      "@/team-building/service-tab-bar": [
+        "./team-building/service-tab-bar.native"
+      ],
+      "@/teams/add-members-wizard/add-contacts": [
+        "./teams/add-members-wizard/add-contacts.native"
       ],
       "@/teams/common/contacts-list": [
         "./teams/common/contacts-list.native"
       ],
       "@/teams/common/use-contacts": [
         "./teams/common/use-contacts.native"
+      ],
+      "@/teams/invite-by-contact/container": [
+        "./teams/invite-by-contact/container.native"
       ],
       "@/teams/invite-by-contact/index": [
         "./teams/invite-by-contact/index.native"
@@ -205,11 +337,35 @@
       "@/util/audio": [
         "./util/audio.native"
       ],
+      "@/util/electron": [
+        "./util/electron.native"
+      ],
       "@/util/expo-document-picker": [
         "./util/expo-document-picker.native"
       ],
       "@/util/expo-image-picker": [
         "./util/expo-image-picker.native"
+      ],
+      "@/util/feature-flags": [
+        "./util/feature-flags.native"
+      ],
+      "@/util/misc": [
+        "./util/misc.native"
+      ],
+      "@/util/platform-specific/index": [
+        "./util/platform-specific/index.native"
+      ],
+      "@/util/platform-specific": [
+        "./util/platform-specific/index.native"
+      ],
+      "@/util/storeless-actions": [
+        "./util/storeless-actions.native"
+      ],
+      "@/util/use-intersection-observer": [
+        "./util/use-intersection-observer.native"
+      ],
+      "@/util/use-resize-observer": [
+        "./util/use-resize-observer.native"
       ]
     }
   }

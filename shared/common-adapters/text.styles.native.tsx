@@ -1,5 +1,5 @@
 import * as Styles from '@/styles'
-import type {MetaType, TextType, TextStyle} from './text.shared'
+import type {MetaType, TextType, TextStyle} from '@/common-adapters/text.shared'
 
 function fontSizeToSizeStyle(fontSize: number): {fontSize: number; lineHeight: number} {
   const lineHeight = {

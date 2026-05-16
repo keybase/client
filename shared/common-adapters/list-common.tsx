@@ -1,4 +1,4 @@
-import {smallHeight, largeHeight} from './list-item'
+import {smallHeight, largeHeight} from '@/common-adapters/list-item'
 import type {Props} from '@/common-adapters/list'
 
 export function useListProps<T>(p: Props<T>) {

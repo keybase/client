@@ -6,10 +6,10 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useInboxRowsState} from '@/stores/inbox-rows'
 import {useIsFocused} from '@react-navigation/core'
-import type {ChatInboxRowItem} from './rowitem'
-import {useInboxLayout, useInboxRetryState} from './layout-state'
-import {buildInboxRows} from './rows'
-import {queueMetaToRequest} from './metadata'
+import type {ChatInboxRowItem} from '@/chat/inbox/rowitem'
+import {useInboxLayout, useInboxRetryState} from '@/chat/inbox/layout-state'
+import {buildInboxRows} from '@/chat/inbox/rows'
+import {queueMetaToRequest} from '@/chat/inbox/metadata'
 
 const useInboxBadges = (
   inboxRows: ReadonlyArray<ChatInboxRowItem>,

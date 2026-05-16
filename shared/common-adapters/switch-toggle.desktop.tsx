@@ -16,7 +16,7 @@ const SwitchToggle = (props: Props) => (
           paddingLeft: enabledOffset,
         },
         props.style,
-      ]) as React.CSSProperties
+      ])
     }
   >
     <div style={styles.inner} />

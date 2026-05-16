@@ -3,7 +3,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {useSafeSubmit} from '@/util/safe-submit'
 import * as T from '@/constants/types'
-import LastOwnerDialog from './last-owner'
+import LastOwnerDialog from '@/teams/confirm-modals/really-leave-team/last-owner'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 export type Props = {

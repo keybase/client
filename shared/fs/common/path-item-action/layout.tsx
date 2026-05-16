@@ -32,7 +32,7 @@ const empty = {
   saveMedia: false,
   showInSystemFileManager: false,
   // share items
-  // eslint-disable-next-line sort-keys
+   
   sendAttachmentToChat: false,
   sendToOtherApp: false,
   share: false,
@@ -94,7 +94,7 @@ const getRawLayout = (
           C.isMobile && pathItem.type === T.FS.PathType.File && FS.canSaveMedia(pathItem, fileContext),
         showInSystemFileManager: !C.isMobile,
         // share menu items
-        // eslint-disable-next-line sort-keys
+         
         sendAttachmentToChat: pathItem.type === T.FS.PathType.File,
         sendToOtherApp: pathItem.type === T.FS.PathType.File && C.isMobile,
       }

@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {loadAccountsWaitingKey} from '@/constants/strings'
-import {makeRemoveAccountRouteParams, sortAccounts, toAccount, type Account} from './account-utils'
+import {makeRemoveAccountRouteParams, sortAccounts, toAccount, type Account} from '@/wallets/account-utils'
 
 const Row = (p: {account: Account}) => {
   const {account} = p

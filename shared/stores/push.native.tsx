@@ -20,7 +20,7 @@ import {
   requestPushPermissions,
   removeAllPendingNotificationRequests,
 } from 'react-native-kb'
-import {type Store, type State} from '@/stores/push'
+import {type Store, type State} from '@/stores/push.shared'
 import {openAppSettings} from '@/util/storeless-actions'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'

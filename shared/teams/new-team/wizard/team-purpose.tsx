@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {makeNewTeamWizard, type NewTeamWizard} from './state'
+import {makeNewTeamWizard, type NewTeamWizard} from '@/teams/new-team/wizard/state'
 import * as C from '@/constants'
 import {useNavigation} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'

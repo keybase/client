@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import SearchRow from './search-row'
-import {setInboxHeaderPortalContent} from './header-portal-state'
-import type {InboxSearchController} from './use-inbox-search'
+import SearchRow from '@/chat/inbox/search-row'
+import {setInboxHeaderPortalContent} from '@/chat/inbox/header-portal-state'
+import type {InboxSearchController} from '@/chat/inbox/use-inbox-search'
 
 export default function useInboxHeaderPortal(search: InboxSearchController) {
   const content = React.useMemo(

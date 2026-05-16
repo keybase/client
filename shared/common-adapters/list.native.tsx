@@ -2,37 +2,13 @@ import {View} from 'react-native'
 import * as Styles from '@/styles'
 import {LegendList} from '@legendapp/list/react-native'
 import type {LegendListRef as _LegendListRef} from '@legendapp/list/react'
-import {useListProps} from './list-common'
+import {useListProps} from '@/common-adapters/list-common'
+import type {FixedHeight, FixedListItemAuto, LegendListRef, TrueVariable} from '@/common-adapters/list.shared'
 
-
-export type LegendListState = {
-  end: number
-  scroll: number
-  scrollLength: number
-  start: number
-}
-
-export type LegendListRef = _LegendListRef & {
-  getState: () => LegendListState
-}
 
 export type VariableItemHeight<Item> = {
   getItemLayout: (index: number, item?: Item) => {index: number; length: number; offset: number}
   type: 'variable'
-}
-
-export type FixedHeight = {
-  height: number
-  type: 'fixed'
-}
-
-export type FixedListItemAuto = {
-  sizeType: 'Small' | 'Large'
-  type: 'fixedListItemAuto'
-}
-
-export type TrueVariable = {
-  type: 'trueVariable'
 }
 
 export type PerItemHeight<Item> = {
@@ -102,3 +78,5 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default List
+
+export type * from '@/common-adapters/list.shared'

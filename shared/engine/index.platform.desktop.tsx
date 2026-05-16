@@ -1,12 +1,12 @@
 import type {Socket} from 'net'
 import logger from '@/logger'
-import {TransportShared, LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
+import {TransportShared, LocalTransport, sharedCreateClient, rpcLog} from '@/engine/transport-shared'
 import {socketPath} from '@/constants/platform.desktop'
 import {printRPCBytes} from '@/local-debug'
-import type {CreateClientType, IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform'
-import type {RPCMessage} from './rpc-transport'
+import type {RPCMessage, ConnectDisconnectCB, IncomingRPCCallbackType} from '@/engine/rpc-transport'
 import KB2 from '@/util/electron.desktop'
-
+import type {CreateClientType} from '@/engine/index.platform.shared'
+export type {PayloadType, InvokeType, CreateClientType} from '@/engine/index.platform.shared'
 const {engineSend, ipcRendererOn, mainWindowDispatchEngineIncoming} = KB2.functions
 const {isRenderer} = KB2.constants
 

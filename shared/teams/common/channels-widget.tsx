@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import ChannelPopup from '../team/settings-tab/channel-popup'
-import useAutocompleter from './use-autocompleter'
-import {useAllChannelMetas} from './channel-hooks'
+import ChannelPopup from '@/teams/team/settings-tab/channel-popup'
+import useAutocompleter from '@/teams/common/use-autocompleter'
+import {useAllChannelMetas} from '@/teams/common/channel-hooks'
 
 type Props = {
   channels: ReadonlyArray<T.Teams.ChannelNameID>

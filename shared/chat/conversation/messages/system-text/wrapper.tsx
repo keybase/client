@@ -1,5 +1,5 @@
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemTextType from './container'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
+import type SystemTextType from '@/chat/conversation/messages/system-text/container'
 
 function SystemText(p: Props) {
   const {ordinal, isCenteredHighlight} = p

@@ -1,5 +1,5 @@
 import * as Styles from '@/styles'
-import type {TextType} from './text.shared'
+import type {TextType} from '@/common-adapters/text.shared'
 
 export const negativeColors: {[K in TextType]: string} = {
   Body: Styles.globalColors.white,

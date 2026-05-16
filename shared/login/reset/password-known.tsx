@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {SignupScreen} from '@/signup/common'
 import {useSafeNavigation} from '@/util/safe-navigation'
-import {enterResetPipeline} from './account-reset'
+import {enterResetPipeline} from '@/login/reset/account-reset'
 
 type Props = {route: {params: {username: string}}}
 

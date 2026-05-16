@@ -2,13 +2,28 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import Announcement from './announcement'
-import FollowNotification from './follow-notification'
-import FollowSuggestions from './follow-suggestions'
-import type {Props} from '.'
-import Todo from './todo'
-import {clearSignupEmail} from './signup-email'
-// import WotTask from './wot-task'
+import Announcement from '@/people/announcement'
+import FollowNotification from '@/people/follow-notification'
+import FollowSuggestions from '@/people/follow-suggestions'
+import Todo from '@/people/todo'
+import {clearSignupEmail} from '@/people/signup-email'
+
+export type Props = {
+  dismissAnnouncement: (id: T.RPCGen.HomeScreenAnnouncementID) => void
+  followSuggestions: ReadonlyArray<T.People.FollowSuggestion>
+  getData: (markViewed?: boolean, force?: boolean) => void
+  oldItems: T.Immutable<Array<T.People.PeopleScreenItem>>
+  newItems: T.Immutable<Array<T.People.PeopleScreenItem>>
+  onClickUser: (username: string) => void
+  onOpenAccountSwitcher?: () => void
+  resentEmail: string
+  setResentEmail: (email: string) => void
+  signupEmail: string
+  skipTodo: (type: T.People.TodoType) => void
+  myUsername: string
+}
+export type WrapProps = {waiting: boolean} & Props
+// import WotTask from '@/people/wot-task'
 
 const renderPeopleItem = (item: T.Immutable<T.People.PeopleScreenItem>, props: Props): React.ReactNode => {
   switch (item.type) {

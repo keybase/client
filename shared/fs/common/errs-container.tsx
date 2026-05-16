@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useFsErrors, useFsRedbarActions} from './error-state'
+import {useFsErrors, useFsRedbarActions} from '@/fs/common/error-state'
 
 const ErrsContainer = () => {
   const errors = useFsErrors()

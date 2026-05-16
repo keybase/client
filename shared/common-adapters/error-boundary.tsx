@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Box2} from '@/common-adapters/box'
 import ScrollView from '@/common-adapters/scroll-view'
 import Text from '@/common-adapters/text'
-import Icon from './icon'
+import Icon from '@/common-adapters/icon'
 import logger from '@/logger'
 import * as Styles from '@/styles'
 

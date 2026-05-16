@@ -9,20 +9,20 @@ import {
   messageAttachmentNativeSaveMessage,
   messageAttachmentNativeShareMessage,
   useConversationAttachmentActions,
-} from '../../attachment-actions'
+} from '@/chat/conversation/attachment-actions'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {
   showConversationInfoPanel,
   useConversationThreadMessage,
   useConversationThreadSelector,
-} from '../../thread-context'
-import {useConversationMetadata} from '../../data-hooks'
+} from '@/chat/conversation/thread-context'
+import {useConversationMetadata} from '@/chat/conversation/data-hooks'
 import type {ChatRootRouteParams} from '@/chat/inbox-and-conversation-shared'
 import {useRoute, type RouteProp} from '@react-navigation/native'
 
 type ChatRootRoute = RouteProp<{chatRoot: ChatRootRouteParams}, 'chatRoot'>
-import type {MessagePopupItems} from './hooks'
-import {useHeader, useHeaderForMessage, useItems, useModeration, useStorelessItems} from './hooks'
+import type {MessagePopupItems} from '@/chat/conversation/messages/message-popup/hooks'
+import {useHeader, useHeaderForMessage, useItems, useModeration, useStorelessItems} from '@/chat/conversation/messages/message-popup/hooks'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {useTimeout} from './use-timers'
+import {useTimeout} from '@/common-adapters/use-timers'
 
 type Props = {
   delay: number

@@ -1,29 +1,29 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as Hooks from './hooks'
+import * as Hooks from '@/chat/conversation/list-area/hooks'
 import * as React from 'react'
-import * as InputState from '../input-area/input-state'
+import * as InputState from '@/chat/conversation/input-area/input-state'
 import {PerfProfiler} from '@/perf/react-profiler'
 import * as T from '@/constants/types'
-import Separator from '../messages/separator'
-import SpecialBottomMessage from '../messages/special-bottom-message'
-import SpecialTopMessage from '../messages/special-top-message'
+import Separator from '@/chat/conversation/messages/separator'
+import SpecialBottomMessage from '@/chat/conversation/messages/special-bottom-message'
+import SpecialTopMessage from '@/chat/conversation/messages/special-top-message'
 import chunk from 'lodash/chunk'
 import {findLast} from '@/util/arrays'
-import {MessageRow} from '../messages/wrapper'
+import {MessageRow} from '@/chat/conversation/messages/wrapper'
 import {globalMargins} from '@/styles/shared'
-import {FocusContext, ScrollContext} from '../normal/context'
+import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
 import useResizeObserver from '@/util/use-resize-observer.desktop'
 import useIntersectionObserver from '@/util/use-intersection-observer'
 import {copyToClipboard} from '@/util/storeless-actions'
-import {useConversationCenter} from '../center-context'
+import {useConversationCenter} from '@/chat/conversation/center-context'
 import {
   useConversationThreadID,
   useConversationThreadLoadNewerMessagesDueToScroll,
   useConversationThreadLoadOlderMessagesDueToScroll,
   useConversationThreadSelector,
-} from '../thread-context'
-import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
+} from '@/chat/conversation/thread-context'
+import {useThreadLoadStatusOptionsGetter} from '@/chat/conversation/thread-load-status-context'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead

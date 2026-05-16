@@ -5,10 +5,10 @@ import {afterEach, beforeEach, expect, jest, test} from '@jest/globals'
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react'
 import * as T from '@/constants/types'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useDecryptState} from './decrypt'
-import {useEncryptScreenState} from './encrypt'
-import {useSignState} from './sign'
-import {useVerifyState} from './verify'
+import {useDecryptState} from '@/crypto/decrypt'
+import {useEncryptScreenState} from '@/crypto/encrypt'
+import {useSignState} from '@/crypto/sign'
+import {useVerifyState} from '@/crypto/verify'
 
 type HookController = {
   state: {

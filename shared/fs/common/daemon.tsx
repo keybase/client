@@ -5,7 +5,7 @@ import * as RouterConstants from '@/constants/router'
 import * as T from '@/constants/types'
 import {useConfigState} from '@/stores/config'
 import {useRouterState} from '@/stores/router'
-import {afterKbfsDaemonRpcStatusChanged, fsUserIn, fsUserOut} from './lifecycle'
+import {afterKbfsDaemonRpcStatusChanged, fsUserIn, fsUserOut} from '@/fs/common/lifecycle'
 
 type FsDaemonActions = {
   checkKbfsDaemonRpcStatus: () => void

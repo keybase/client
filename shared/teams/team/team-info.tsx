@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useLoadedTeam} from './use-loaded-team'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
 
 type Props = {teamID: T.Teams.TeamID}
 

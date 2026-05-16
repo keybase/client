@@ -4,7 +4,7 @@ type FakeResizeObserver = {
   unobserve: () => void
 }
 
-function useResizeObserver(): FakeResizeObserver {
+function useResizeObserver(_target?: unknown, _callback?: unknown): FakeResizeObserver {
   return {
     disconnect: () => {},
     observe: () => {},

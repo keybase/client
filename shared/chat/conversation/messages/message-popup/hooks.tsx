@@ -7,14 +7,14 @@ import {
   deleteConversationMessage,
   pinConversationMessage,
   toggleConversationMessageReaction,
-} from '../../message-actions'
+} from '@/chat/conversation/message-actions'
 import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import {linkFromConvAndMessage} from '@/constants/deeplinks'
-import {markConversationAsUnread} from '../../data-hooks'
-import {showForwardMessagePicker} from '../../fwd-msg'
+import {markConversationAsUnread} from '@/chat/conversation/data-hooks'
+import {showForwardMessagePicker} from '@/chat/conversation/fwd-msg'
 import {navToProfile, setThreadInputEditing, setThreadInputReplyTo} from '@/constants/router'
-import {SetOrangeLineContext} from '../../orange-line-context'
-import {useChatTeam, useChatTeamMembers} from '../../team-hooks'
+import {SetOrangeLineContext} from '@/chat/conversation/orange-line-context'
+import {useChatTeam, useChatTeamMembers} from '@/chat/conversation/team-hooks'
 import {useCurrentUserState} from '@/stores/current-user'
 import {
   useConversationThreadID,
@@ -22,10 +22,10 @@ import {
   useConversationThreadMessageActions,
   useConversationThreadSelector,
   useConversationThreadSetMarkAsUnread,
-} from '../../thread-context'
-import ExplodingPopupHeader from './exploding-header'
-import MessagePopupHeader from './header'
-import ReactionItem from './reactionitem'
+} from '@/chat/conversation/thread-context'
+import ExplodingPopupHeader from '@/chat/conversation/messages/message-popup/exploding-header'
+import MessagePopupHeader from '@/chat/conversation/messages/message-popup/header'
+import ReactionItem from '@/chat/conversation/messages/message-popup/reactionitem'
 
 const emptyText = Chat.makeMessageText({})
 

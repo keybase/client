@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import MarkdownMemo from '@/wallets/markdown-memo'
 import {useCurrentUserState} from '@/stores/current-user'
-import {useConversationThreadSelector} from '../../thread-context'
+import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
 
 // Props for rendering the loading indicator
 const loadingProps = {

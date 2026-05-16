@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {Props} from './text-view'
-
+import type {Props} from '@/fs/filepreview/text-view.shared'
 const TextView = (props: Props) => {
   const {onUrlError, url} = props
   const [content, setContent] = React.useState('')

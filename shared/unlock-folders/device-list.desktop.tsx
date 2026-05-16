@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {UnlockFolderDevice} from './store'
+import type {UnlockFolderDevice} from '@/unlock-folders/store'
 
 export type Props = {
   devices: ReadonlyArray<UnlockFolderDevice>

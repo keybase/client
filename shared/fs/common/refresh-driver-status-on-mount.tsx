@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {useSystemFileManagerIntegration} from './sfmi'
+import {useSystemFileManagerIntegration} from '@/fs/common/sfmi'
 
 const RefreshDriverStatusOnMount = () => {
   const {refreshDriverStatusDesktop} = useSystemFileManagerIntegration()

@@ -1,15 +1,15 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import {PathItemAction, LastModifiedLine, ItemIcon, type ClickableProps} from '../common'
+import {PathItemAction, LastModifiedLine, ItemIcon, type ClickableProps} from '@/fs/common'
 import {
   useFsDownload,
   useFsErrorActionOrThrow,
   useFsFileContext,
   useOpenPathInSystemFileManagerDesktop,
   useSystemFileManagerIntegration,
-} from '../common'
-import {hasShare} from '../common/path-item-action/layout'
+} from '@/fs/common'
+import {hasShare} from '@/fs/common/path-item-action/layout'
 import * as FS from '@/constants/fs'
 
 type OwnProps = {path: T.FS.Path}

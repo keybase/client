@@ -11,8 +11,8 @@ import {
   useThreadLoadStatus,
   useThreadLoadStatusOptions,
   useThreadLoadStatusReporter,
-} from './thread-load-status-context'
-import {ConversationThreadProvider} from './thread-context'
+} from '@/chat/conversation/thread-load-status-context'
+import {ConversationThreadProvider} from '@/chat/conversation/thread-context'
 
 jest.mock('@/stores/inbox-rows', () => ({
   flushInboxRowUpdates: jest.fn(),

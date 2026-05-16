@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import {Pressable, Keyboard} from 'react-native'
-import Badge from './badge'
+import Badge from '@/common-adapters/badge'
 import {Box2} from '@/common-adapters/box'
-import Icon from './icon'
+import Icon from '@/common-adapters/icon'
 import * as Styles from '@/styles'
 import noop from 'lodash/noop'
 

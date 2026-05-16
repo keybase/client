@@ -1,11 +1,11 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as Kbfs from '../common'
+import * as Kbfs from '@/fs/common'
 import type * as T from '@/constants/types'
 import {useModalHeaderState} from '@/stores/modal-header'
-import Actions from './actions'
-import MainBanner from './main-banner'
+import Actions from '@/fs/nav-header/actions'
+import MainBanner from '@/fs/nav-header/main-banner'
 import * as FS from '@/constants/fs'
 
 /*

@@ -3,7 +3,7 @@ type PropsCommon = {
   value: string
   style?: object
 }
-import {useTimeout} from './use-timers'
+import {useTimeout} from '@/common-adapters/use-timers'
 import Text from '@/common-adapters/text'
 import {Box2} from '@/common-adapters/box'
 import {TouchableHighlight} from 'react-native'

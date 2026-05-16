@@ -1,7 +1,7 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {e164ToDisplay} from '@/util/phone-numbers'
-import UserNotice from '../user-notice'
+import UserNotice from '@/chat/conversation/messages/user-notice'
 import {useCurrentUserState} from '@/stores/current-user'
 
 type OwnProps = {message: T.Chat.MessageSystemSBSResolved}

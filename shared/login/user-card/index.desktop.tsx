@@ -1,10 +1,9 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from '.'
-
+import type {Props} from '@/login/user-card/index.shared'
 const UserCard = (p: Props) => {
   const {avatarSize = 128, outerStyle, onAvatarClicked, username, style, children} = p
   return (
-    <div style={Kb.Styles.collapseStyles([styles.container, outerStyle]) as React.CSSProperties}>
+    <div style={Kb.Styles.collapseStyles([styles.container, outerStyle])}>
       <Kb.Avatar
         size={avatarSize}
         onClick={onAvatarClicked}
@@ -19,7 +18,7 @@ const UserCard = (p: Props) => {
               paddingTop: 30 + avatarSize / 2,
             },
             style,
-          ]) as React.CSSProperties
+          ])
         }
       >
         {children}

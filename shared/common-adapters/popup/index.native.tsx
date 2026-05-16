@@ -1,9 +1,8 @@
-import type {MeasureRef} from '../measure-ref'
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from '@/common-adapters/box'
 import {Keyboard} from 'react-native'
-import {Portal} from '../portal.native'
+import {Portal} from '@/common-adapters/portal.native'
 import {
   BottomSheetModal,
   BottomSheetView,
@@ -11,23 +10,7 @@ import {
   type BottomSheetBackdropProps,
 } from '@/common-adapters/popup/bottom-sheet'
 import {FullWindowOverlay} from 'react-native-screens'
-
-export type PopupProps = {
-  children: React.ReactNode
-  onHidden?: () => void
-  attachTo?: React.RefObject<MeasureRef | null>
-  position?: Styles.Position
-  positionFallbacks?: ReadonlyArray<Styles.Position>
-  propagateOutsideClicks?: boolean
-  matchDimension?: boolean
-  remeasureHint?: number
-  offset?: number
-  style?: Styles.StylesCrossPlatform
-  containerStyle?: Styles.StylesCrossPlatform
-  visible?: boolean
-  hideKeyboard?: boolean
-  snapPoints?: Array<string | number>
-}
+import type {PopupProps} from '@/common-adapters/popup/index.shared'
 
 const defaultSnapPoints = ['75%']
 
@@ -133,3 +116,5 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default Popup
+
+export type * from '@/common-adapters/popup/index.shared'

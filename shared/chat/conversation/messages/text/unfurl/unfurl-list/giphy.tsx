@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters/index'
-import UnfurlImage from './image'
+import UnfurlImage from '@/chat/conversation/messages/text/unfurl/unfurl-list/image'
 import * as T from '@/constants/types'
-import {useActions} from './use-state'
+import {useActions} from '@/chat/conversation/messages/text/unfurl/unfurl-list/use-state'
 
 function UnfurlGiphy(p: {
   author: string

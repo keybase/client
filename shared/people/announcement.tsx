@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {openURL} from '@/util/misc'
 import * as Kb from '@/common-adapters'
-import PeopleItem from './item'
+import PeopleItem from '@/people/item'
 import * as Settings from '@/constants/settings'
 
 type OwnProps = {

@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as RowSizes from './sizes'
+import * as RowSizes from '@/chat/inbox/row/sizes'
 import type * as T from '@/constants/types'
 import TeamMenu from '@/chat/conversation/info-panel/menu'
 

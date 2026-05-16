@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import {settingsAccountTab} from '@/constants/settings'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import type {UseNotificationSettingsResult} from './use-notification-settings'
+import type {UseNotificationSettingsResult} from '@/settings/notifications/use-notification-settings'
 
 const useNotifications = (notificationSettings: UseNotificationSettingsResult) => {
   const {allowEdit, groups, toggle} = notificationSettings

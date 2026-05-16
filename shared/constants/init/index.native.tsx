@@ -1,5 +1,5 @@
 // links all the stores together, stores never import this
-import {ignorePromise, neverThrowPromiseFunc} from '../utils'
+import {ignorePromise, neverThrowPromiseFunc} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useDarkModeState} from '@/stores/darkmode'
@@ -26,9 +26,9 @@ import {
   guiConfig,
   shareListenersRegistered,
 } from 'react-native-kb'
-import {initPushListener, getStartupDetailsFromInitialPush} from './push-listener.native'
-import {initSharedSubscriptions, _onEngineIncoming} from './shared'
-import {noConversationIDKey} from '../types/chat/common'
+import {initPushListener, getStartupDetailsFromInitialPush} from '@/constants/init/push-listener.native'
+import {initSharedSubscriptions, _onEngineIncoming} from '@/constants/init/shared'
+import {noConversationIDKey} from '@/constants/types/chat/common'
 import {requestLocationPermission} from '@/util/platform-specific/index.native'
 import * as ScreenCapture from 'expo-screen-capture'
 import {getSecureFlagSetting} from '@/constants/platform.native'
@@ -87,7 +87,7 @@ const loadStartupDetails = async () => {
         }
         const _rn = item.routeName || undefined
         if (typeof _rn === 'string') {
-          tab = _rn as unknown as typeof tab
+          tab = _rn
         }
       }
     } catch {
@@ -401,4 +401,4 @@ export const initPlatformListener = () => {
   initSharedSubscriptions()
 }
 
-export {onEngineConnected, onEngineDisconnected} from './shared'
+export {onEngineConnected, onEngineDisconnected} from '@/constants/init/shared'

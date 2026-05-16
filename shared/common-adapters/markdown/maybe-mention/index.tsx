@@ -2,10 +2,10 @@ import {ignorePromise} from '@/constants/utils'
 import * as T from '@/constants/types'
 import Text from '@/common-adapters/text'
 import type {StylesTextCrossPlatform} from '@/common-adapters/text.shared'
-import Mention from '../../mention-container'
-import TeamMention from './team'
-import UnknownMention from './unknown'
-import {useMaybeMentionInfo} from './context'
+import Mention from '@/common-adapters/mention-container'
+import TeamMention from '@/common-adapters/markdown/maybe-mention/team'
+import UnknownMention from '@/common-adapters/markdown/maybe-mention/unknown'
+import {useMaybeMentionInfo} from '@/common-adapters/markdown/maybe-mention/context'
 
 const Kb = {Mention, Text}
 

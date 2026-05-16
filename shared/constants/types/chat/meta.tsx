@@ -1,9 +1,9 @@
 // Metadata about a conversation.
 import type * as T from '@/constants/types'
-import type * as Common from './common'
-import type * as Message from './message'
-import type * as TeamTypes from '../teams'
-import type {RetentionPolicy} from '../retention-policy'
+import type * as Common from '@/constants/types/chat/common'
+import type * as Message from '@/constants/types/chat/message'
+import type * as TeamTypes from '@/constants/types/teams'
+import type {RetentionPolicy} from '@/constants/types/retention-policy'
 
 export type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset' | 'notMember'
 export type TeamType = 'small' | 'big' | 'adhoc'

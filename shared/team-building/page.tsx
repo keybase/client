@@ -4,8 +4,8 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import * as C from '@/constants'
-import {ModalTitle as TeamsModalTitle} from '../teams/common'
-import type {TeamBuilderRouteParams} from './container'
+import {ModalTitle as TeamsModalTitle} from '@/teams/common'
+import type {TeamBuilderRouteParams} from '@/team-building/container'
 import {TBProvider, useTBContext} from '@/stores/team-building'
 import {useModalHeaderState} from '@/stores/modal-header'
 
@@ -72,13 +72,13 @@ const HeaderRightUpdater = ({
         unstable_headerRightItems: enabled
           ? () => [{label, onPress: onFinishTeamBuilding, type: 'button' as const}]
           : () => [],
-      } as object)
+      })
     } else {
       useModalHeaderState.setState({actionEnabled: enabled, onAction: onFinishTeamBuilding})
     }
     return () => {
       if (Kb.Styles.isIOS) {
-        navigation.setOptions({unstable_headerRightItems: () => []} as object)
+        navigation.setOptions({unstable_headerRightItems: () => []})
       } else {
         useModalHeaderState.setState({actionEnabled: false, onAction: undefined})
       }
@@ -158,7 +158,7 @@ const getOptions = ({route}: OwnProps) => {
   }
 }
 
-const Building = React.lazy(async () => import('./container'))
+const Building = React.lazy(async () => import('@/team-building/container'))
 export type TeamBuilderScreenProps = StaticScreenProps<TeamBuilderRouteParams> & {
   onComplete?: (users: ReadonlySet<T.TB.User>) => void
 }

@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import TeamsFooter from './footer'
-import TeamRowNew, {type TeamRowItem} from './team-row'
+import TeamsFooter from '@/teams/main/footer'
+import TeamRowNew, {type TeamRowItem} from '@/teams/main/team-row'
 import {PerfProfiler} from '@/perf/react-profiler'
 
 type DeletedTeam = {

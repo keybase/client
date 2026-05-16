@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {Props} from '.'
+import type {Props} from '@/profile/edit-avatar/index.shared'
 import KB2 from '@/util/electron.desktop'
 import './edit-avatar.css'
-import useHooks from './hooks'
+import useHooks from '@/profile/edit-avatar/hooks'
 const {isDirectory, getPathForFile} = KB2.functions
 
 const AVATAR_CONTAINER_SIZE = 300

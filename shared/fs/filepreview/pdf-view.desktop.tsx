@@ -1,6 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from './pdf-view'
-
+import type {Props} from '@/fs/filepreview/pdf-view.shared'
 const PDFView = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>

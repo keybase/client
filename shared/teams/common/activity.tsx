@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
-import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '../use-cached-resource'
+import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '@/teams/use-cached-resource'
 
 const activityToIcon: {[key in 'active' | 'recently']: Kb.IconType} = {
   active: 'iconfont-campfire-burning',

@@ -5,9 +5,9 @@ import * as React from 'react'
 import logger from '@/logger'
 import {ensureError} from '@/util/errors'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {useLoadedTeam} from '../team/use-loaded-team'
-import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '../use-cached-resource'
-import {useLoadedTeamChannels} from './use-loaded-team-channels'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {createCachedResourceCache, type CachedResourceCache, useCachedResource} from '@/teams/use-cached-resource'
+import {useLoadedTeamChannels} from '@/teams/common/use-loaded-team-channels'
 
 type ChannelMetasData = {
   channelMetas: Map<T.Chat.ConversationIDKey, T.Chat.ConversationMeta>

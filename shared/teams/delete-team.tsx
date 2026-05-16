@@ -5,9 +5,9 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import noop from 'lodash/noop'
-import {deleteTeam} from './actions'
-import {useLoadedTeam} from './team/use-loaded-team'
-import {useTeamsList} from './use-teams-list'
+import {deleteTeam} from '@/teams/actions'
+import {useLoadedTeam} from '@/teams/team/use-loaded-team'
+import {useTeamsList} from '@/teams/use-teams-list'
 
 type OwnProps = {teamID: T.Teams.TeamID}
 

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import type * as T from '@/constants/types'
-import type {ChatInboxRowItem} from './rowitem'
+import type {ChatInboxRowItem} from '@/chat/inbox/rowitem'
 
 export type RowItem = ChatInboxRowItem
 

@@ -1,29 +1,12 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Styles from '@/styles'
-import LoadingStateView from './loading-state-view'
+import LoadingStateView from '@/common-adapters/loading-state-view'
 import memoize from 'lodash/memoize'
 import {openURL} from '@/util/misc'
-export type WebViewInjections = {
-  javaScript?: string
-  css?: string
-}
-
-export type WebViewProps = {
-  allowUniversalAccessFromFileURLs?: boolean
-  allowFileAccessFromFileURLs?: boolean
-  allowFileAccess?: boolean
-  originWhitelist?: Array<string>
-  renderLoading?: () => React.ReactElement
-  url: string
-  pinnedURLMode?: boolean
-  injections?: WebViewInjections
-  style?: object
-  showLoadingStateUntilLoaded?: boolean
-  onError?: (err: string) => void
-}
 import {View as NativeView} from 'react-native'
 import {WebView as NativeWebView} from 'react-native-webview'
+import type {WebViewInjections, WebViewProps} from '@/common-adapters/web-view.shared'
 
 const escape = (str?: string): string => (str ? str.replace(/\\/g, '\\\\').replace(/`/g, '\\`') : '')
 
@@ -123,3 +106,5 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 export default KBWebView
+
+export type * from '@/common-adapters/web-view.shared'

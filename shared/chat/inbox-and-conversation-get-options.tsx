@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import InboxAndConvoHeader from './inbox-and-conversation-header'
+import InboxAndConvoHeader from '@/chat/inbox-and-conversation-header'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 
 function TabletHeader() {

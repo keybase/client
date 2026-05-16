@@ -1,6 +1,5 @@
 // Helper to get engine and break require loops
-import type {Engine} from '.'
-
+import type {Engine} from '@/engine/index.shared'
 let _engine: Engine | undefined
 export function initEngine(e: Engine) {
   _engine = e

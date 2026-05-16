@@ -114,6 +114,7 @@ export const {
   printRPC,
   printRPCBytes,
   printRPCStats,
+  printRPCWaitingSession,
   showDevTools,
   skipSecondaryDevtools,
 } = config

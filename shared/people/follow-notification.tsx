@@ -1,4 +1,4 @@
-import PeopleItem from './item'
+import PeopleItem from '@/people/item'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {FollowButton} from '@/settings/contacts-joined'

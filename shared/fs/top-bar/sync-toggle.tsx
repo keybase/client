@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {useFsErrorActionOrThrow, useFsFolderChildren, useFsRefreshTlf, useFsTlf} from '../common'
+import {useFsErrorActionOrThrow, useFsFolderChildren, useFsRefreshTlf, useFsTlf} from '@/fs/common'
 import * as FS from '@/constants/fs'
 
 type OwnProps = {

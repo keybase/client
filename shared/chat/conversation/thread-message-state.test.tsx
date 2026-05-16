@@ -10,7 +10,7 @@ import {
   setMessageErroredInThreadState,
   type OptimisticReaction,
   updateReactionsInThreadState,
-} from './thread-message-state'
+} from '@/chat/conversation/thread-message-state'
 
 type WritableConversationThreadMessageState = Parameters<typeof deleteMessagesFromThreadState>[0]
 type WritableConversationThreadOptimisticState = WritableConversationThreadMessageState & {

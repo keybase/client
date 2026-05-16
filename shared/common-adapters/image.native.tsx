@@ -1,6 +1,6 @@
 import type {StylesCrossPlatform} from '@/styles'
 import * as React from 'react'
-import LoadingStateView from './loading-state-view'
+import LoadingStateView from '@/common-adapters/loading-state-view'
 import {Image as ExpoImage, type ImageLoadEventData, type ImageErrorEventData} from 'expo-image'
 
 

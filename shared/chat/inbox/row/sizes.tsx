@@ -1,7 +1,7 @@
 // In order for the inbox rows to be calculated quickly we use fixed sizes for each type so
 // in order for the list and the rows to ensure they're the same size we keep the sizes here
 import * as Kb from '@/common-adapters'
-import type {ChatInboxRowType} from '../rowitem'
+import type {ChatInboxRowType} from '@/chat/inbox/rowitem'
 
 export const smallRowHeight = Kb.Styles.isMobile ? 64 : 56
 export const bigRowHeight = Kb.Styles.isMobile ? 40 : 24

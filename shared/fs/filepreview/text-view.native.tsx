@@ -1,7 +1,6 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from './text-view'
 import {colors, darkColors} from '@/styles/colors'
-
+import type {Props} from '@/fs/filepreview/text-view.shared'
 const TextView = (props: Props) => (
   <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">
     <Kb.WebView

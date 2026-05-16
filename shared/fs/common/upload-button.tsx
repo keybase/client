@@ -7,8 +7,8 @@ import {
   pickDocumentsMobile as pickDocumentsInPlatform,
   selectFilesToUploadDesktop as selectFilesToUploadInPlatform,
 } from '@/stores/fs-platform'
-import {useFsErrorActionOrThrow} from './error-state'
-import {useFsPathItem, useFsUpload} from './hooks'
+import {useFsErrorActionOrThrow} from '@/fs/common/error-state'
+import {useFsPathItem, useFsUpload} from '@/fs/common/hooks'
 
 type OwnProps = {
   path: T.FS.Path

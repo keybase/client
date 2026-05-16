@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
-import QRLines from './lines'
-import useQR from './hooks'
+import QRLines from '@/provision/code-page/qr-scan/lines'
+import useQR from '@/provision/code-page/qr-scan/hooks'
 
 // Basically only used for storybook
 

@@ -1,6 +1,6 @@
 import type * as T from '@/constants/types'
 import type * as React from 'react'
-import type {BrowserEditSession} from '../edit-state'
+import type {BrowserEditSession} from '@/fs/browser/edit-state'
 
 export enum RowType {
   TlfType,

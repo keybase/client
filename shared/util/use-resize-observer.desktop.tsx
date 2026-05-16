@@ -53,7 +53,7 @@ function createResizeObserver() {
           if (triggered.has(entry.target)) continue
           triggered.add(entry.target)
           const cbs = callbacks.get(entry.target)
-          // eslint-disable-next-line
+           
           cbs?.forEach(cb => cb(entry, obs))
         }
         allEntries = []

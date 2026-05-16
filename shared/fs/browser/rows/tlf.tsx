@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import {useOpen} from '@/fs/common/use-open'
-import {rowStyles, StillCommon} from './common'
+import {rowStyles, StillCommon} from '@/fs/browser/rows/common'
 import * as Kb from '@/common-adapters'
 import {TlfInfoLine, Filename} from '@/fs/common'
 import * as FS from '@/constants/fs'

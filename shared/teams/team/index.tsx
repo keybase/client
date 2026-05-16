@@ -4,13 +4,13 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {useNavigation} from '@react-navigation/native'
 import {useEngineActionListener} from '@/engine/action-listener'
-import {SelectionPopup, ActivityLevelsProvider} from '../common'
-import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '../common/use-loaded-team-channels'
-import {TeamSelectionProvider} from '../common/selection-state'
-import TeamTabs from './tabs'
-import NewTeamHeader from './new-header'
-import Settings from './settings-tab'
-import {LoadedTeamProvider, useLoadedTeam} from './use-loaded-team'
+import {SelectionPopup, ActivityLevelsProvider} from '@/teams/common'
+import {LoadedTeamChannelsProvider, useLoadedTeamChannels} from '@/teams/common/use-loaded-team-channels'
+import {TeamSelectionProvider} from '@/teams/common/selection-state'
+import TeamTabs from '@/teams/team/tabs'
+import NewTeamHeader from '@/teams/team/new-header'
+import Settings from '@/teams/team/settings-tab'
+import {LoadedTeamProvider, useLoadedTeam} from '@/teams/team/use-loaded-team'
 import {
   useMembersSections,
   useBotSections,
@@ -20,7 +20,7 @@ import {
   useEmojiSections,
   type Section,
   type Item,
-} from './rows'
+} from '@/teams/team/rows'
 import {teamSeen} from '@/teams/actions'
 
 type Props = {

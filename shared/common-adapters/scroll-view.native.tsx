@@ -1,17 +1,17 @@
 import type * as React from 'react'
 import {ScrollView, type ScrollViewProps} from 'react-native'
-export type ScrollViewRef = ScrollView
+import type {ScrollViewRef} from '@/common-adapters/scroll-view.shared'
 // Out of the box the ScrollView will consume taps of all children to dismiss the keyboard. This means if you have
 // an input with focus and a button, tapping the button won't work until you click it twice. Setting these defaults
 // changes this behavior: https://github.com/facebook/react-native/issues/4087
 
-function BetterScrollView(props: ScrollViewProps & {ref?: React.Ref<ScrollView>; className?: string}) {
+function BetterScrollView(props: ScrollViewProps & {ref?: React.Ref<ScrollViewRef>; className?: string}) {
   const {ref, ...rest} = props
   const keyboardShouldPersistTaps = props.keyboardShouldPersistTaps ?? 'handled'
   const contentInsetAdjustmentBehavior = props.contentInsetAdjustmentBehavior ?? 'automatic'
   return (
     <ScrollView
-      ref={ref}
+      ref={ref as React.Ref<ScrollView>}
       {...rest}
       contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
       keyboardShouldPersistTaps={keyboardShouldPersistTaps}
@@ -21,3 +21,5 @@ function BetterScrollView(props: ScrollViewProps & {ref?: React.Ref<ScrollView>;
 }
 
 export default BetterScrollView
+
+export type * from '@/common-adapters/scroll-view.shared'

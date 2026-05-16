@@ -4,9 +4,9 @@ import {ignorePromise} from '@/constants/utils'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
-import {makeEditID, makeUUID} from '../common/client'
-import {useFsErrorActionOrThrow} from '../common/error-state'
-import {useFsLoadedPathItems} from '../common/hooks'
+import {makeEditID, makeUUID} from '@/fs/common/client'
+import {useFsErrorActionOrThrow} from '@/fs/common/error-state'
+import {useFsLoadedPathItems} from '@/fs/common/hooks'
 
 export type BrowserEditSession = Readonly<{
   commitEdit: () => void

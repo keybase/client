@@ -8,7 +8,7 @@ import * as FsUtil from '@/util/kbfs'
 import * as TimestampUtil from '@/util/timestamp'
 import Filename from '@/fs/common/filename'
 import KB2 from '@/util/electron.desktop'
-import OutOfDate from './out-of-date'
+import OutOfDate from '@/menubar/out-of-date'
 import Upload from '@/fs/footer/upload'
 import {openURL as openUrl} from '@/util/misc'
 import {Loading} from '@/fs/simple-screens'
@@ -307,7 +307,7 @@ const useMenuItems = (
 
   const ret = (() => {
     const common = [
-      {onClick: () => openUrl(`https://keybase.io/${username || ''}`), title: 'Keybase.io'},
+      {onClick: async () => openUrl(`https://keybase.io/${username || ''}`), title: 'Keybase.io'},
       {
         onClick: () => {
           const version = __VERSION__

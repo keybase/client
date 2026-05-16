@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 import NativeEmoji from '@/common-adapters/emoji/native-emoji'
-import type * as ED from './slow-data'
+import type * as ED from '@/common-adapters/emoji/slow-data'
 import type * as Styles from '@/styles'
 import CustomEmoji from '@/common-adapters/emoji/custom-emoji'
 
@@ -134,5 +134,5 @@ const Emoji = (props: EmojiProps) => {
 }
 
 export default Emoji
-export {emojiData} from './data'
-export {type EmojiData} from './slow-data'
+export {emojiData} from '@/common-adapters/emoji/data'
+export {type EmojiData} from '@/common-adapters/emoji/slow-data'

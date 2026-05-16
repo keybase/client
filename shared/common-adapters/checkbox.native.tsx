@@ -1,6 +1,6 @@
-import type {TextType} from './text.shared'
+import type {TextType} from '@/common-adapters/text.shared'
 import type * as React from 'react'
-import Switch from './switch'
+import Switch from '@/common-adapters/switch'
 import * as Styles from '@/styles'
 
 

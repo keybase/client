@@ -1,5 +1,5 @@
 import {isDebuggingInChrome, isMobile} from '@/constants/platform'
-import skipAnimations from './skip-animations'
+import skipAnimations from '@/common-adapters/skip-animations'
 import type * as R from 'react-native-reanimated'
 
 let useSharedValue: typeof R.useSharedValue
@@ -47,7 +47,7 @@ if (isMobile && !skipAnimations) {
       set: () => {},
       value: a,
     }
-  } as typeof useSharedValue
+  }
   withRepeat = ((a: unknown) => a) as typeof withRepeat
   useAnimatedStyle = ((f: () => object): unknown => f()) as typeof useAnimatedStyle
   withTiming = ((a: unknown) => a) as typeof withTiming

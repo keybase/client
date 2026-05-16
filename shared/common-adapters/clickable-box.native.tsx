@@ -1,7 +1,7 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
 import {Pressable, View, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
-import type {MeasureRef} from './measure-ref'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 
 type Props = {
   className?: string

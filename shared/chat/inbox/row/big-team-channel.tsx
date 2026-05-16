@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as RowSizes from './sizes'
+import * as RowSizes from '@/chat/inbox/row/sizes'
 import * as T from '@/constants/types'
 import {useInboxRowBig} from '@/stores/inbox-rows'
 type Props = {

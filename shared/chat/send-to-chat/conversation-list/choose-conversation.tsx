@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import ConversationList from './conversation-list'
+import ConversationList from '@/chat/send-to-chat/conversation-list/conversation-list'
 
 type Props = {
   convName: string

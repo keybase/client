@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import {useIsHighlighted} from '../ids-context'
+import {useIsHighlighted} from '@/chat/conversation/messages/ids-context'
 
 export const useEdited = (hasBeenEdited: boolean) => {
   const showCenteredHighlight = useIsHighlighted()

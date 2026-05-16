@@ -1,8 +1,8 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import {useFuseClosedSourceConsent} from './hooks'
-import {useSystemFileManagerIntegration} from './sfmi'
+import {useFuseClosedSourceConsent} from '@/fs/common/hooks'
+import {useSystemFileManagerIntegration} from '@/fs/common/sfmi'
 
 type Props = {
   mode: 'Icon' | 'Button'

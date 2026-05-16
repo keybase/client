@@ -1,10 +1,10 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import ChatFilterRow from './filter-row'
-import NewChatButton from './new-chat-button'
-import StartNewChat from './row/start-new-chat'
-import {isEmptyInboxLayout, useInboxLayoutState} from './layout-state'
-import type {InboxSearchController} from './use-inbox-search'
+import ChatFilterRow from '@/chat/inbox/filter-row'
+import NewChatButton from '@/chat/inbox/new-chat-button'
+import StartNewChat from '@/chat/inbox/row/start-new-chat'
+import {isEmptyInboxLayout, useInboxLayoutState} from '@/chat/inbox/layout-state'
+import type {InboxSearchController} from '@/chat/inbox/use-inbox-search'
 
 type OwnProps = {
   search: Pick<

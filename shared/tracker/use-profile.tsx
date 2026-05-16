@@ -18,7 +18,7 @@ import {
   updateTrackerDetailsRow,
   updateTrackerDetailsSummary,
   updateTrackerDetailsUserCard,
-} from './model'
+} from '@/tracker/model'
 
 type Options = {
   reloadOnFocus?: boolean

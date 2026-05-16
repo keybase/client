@@ -1,4 +1,4 @@
-import {rowStyles} from './common'
+import {rowStyles} from '@/fs/browser/rows/common'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 

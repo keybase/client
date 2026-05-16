@@ -2,8 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
 import logger from '@/logger'
 import {useVideoPlayer, VideoView} from 'expo-video'
-import type {Props} from './video'
-
+import type {Props} from '@/chat/conversation/messages/text/unfurl/unfurl-list/image/video.shared'
 export const Video = (props: Props) => {
   const {autoPlay, onClick, url, style, width, height} = props
   const [playing, setPlaying] = React.useState(autoPlay)

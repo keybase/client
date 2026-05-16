@@ -1,10 +1,9 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {UploadProps} from './upload'
 import capitalize from 'lodash/capitalize'
 import './upload.css'
-
+import type {UploadProps} from '@/fs/footer/upload.shared'
 type DrawState = 'showing' | 'hiding' | 'hidden'
 type AnimationState = {
   hideComplete: boolean

@@ -1,6 +1,6 @@
 import * as Styles from '@/styles'
 import type * as T from '@/constants/types'
-import {useChatTeamMembers} from '../team-hooks'
+import {useChatTeamMembers} from '@/chat/conversation/team-hooks'
 
 export const infoPanelWidthElectron = 320
 const infoPanelWidthPhone = Styles.dimensionWidth

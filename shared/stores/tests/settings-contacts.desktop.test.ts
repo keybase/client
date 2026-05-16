@@ -1,6 +1,6 @@
 /// <reference types="jest" />
-import {resetAllStores} from '../../util/zustand'
-import {useSettingsContactsState} from '../settings-contacts'
+import {resetAllStores} from '@/util/zustand'
+import {useSettingsContactsState} from '@/stores/settings-contacts'
 
 afterEach(() => {
   resetAllStores()

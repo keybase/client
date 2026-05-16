@@ -4,7 +4,7 @@ import * as RemoteGen from '@/constants/remote-actions'
 import logger from '@/logger'
 import os from 'os'
 import {isLinux, isWindows, cacheRoot} from '@/constants/platform.desktop'
-import {ctlQuit} from './ctl.desktop'
+import {ctlQuit} from '@/desktop/app/ctl.desktop'
 import {allowMultipleInstances} from '@/local-debug.desktop'
 import KB2 from '@/util/electron.desktop'
 const {env} = KB2.constants

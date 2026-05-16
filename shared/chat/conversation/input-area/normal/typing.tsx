@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as InputState from '../input-state'
+import * as InputState from '@/chat/conversation/input-area/input-state'
 import {useConversationThreadSelector} from '@/chat/conversation/thread-context'
 
 const Names = (props: {names?: ReadonlySet<string>}) => {

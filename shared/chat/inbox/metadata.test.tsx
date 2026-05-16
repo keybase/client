@@ -2,7 +2,7 @@
 import * as T from '@/constants/types'
 import {resetAllStores} from '@/util/zustand'
 import {useConfigState} from '@/stores/config'
-import {forceUnboxRowsForService} from './metadata'
+import {forceUnboxRowsForService} from '@/chat/inbox/metadata'
 
 const convID = T.Chat.conversationIDToKey(new Uint8Array([1, 2, 3, 4]))
 

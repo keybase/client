@@ -15,7 +15,7 @@ import {
   useConversationThreadActions,
   useConversationThreadID,
   useConversationThreadSelector,
-} from './thread-context'
+} from '@/chat/conversation/thread-context'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 

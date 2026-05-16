@@ -1,4 +1,4 @@
-import {Banner, BannerParagraph} from './banner'
+import {Banner, BannerParagraph} from '@/common-adapters/banner'
 import {navToProfile} from '@/constants/router'
 
 const Kb = {Banner}

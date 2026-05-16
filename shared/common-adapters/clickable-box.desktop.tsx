@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {_StylesCrossPlatform} from '@/styles/css'
-import type {MeasureRef} from './measure-ref'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
 
 
 type _Props = {
@@ -130,7 +130,7 @@ const ClickableBox = (props: Props & {ref?: React.Ref<MeasureRef>}) => {
           styles.container,
           onClick || props.onMouseDown ? styles.click : null,
           style,
-        ]) as React.CSSProperties
+        ])
       }
     >
       {underlay}

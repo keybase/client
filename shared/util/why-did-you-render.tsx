@@ -1,5 +1,5 @@
 /// <reference types="@welldone-software/why-did-you-render" />
-import enabled from './why-did-you-render-enabled'
+import enabled from '@/util/why-did-you-render-enabled'
 if (enabled && __DEV__) {
   const Platform = (require('react-native') as {Platform: {OS: string}}).Platform
   // react-scan doesnt work on RN yet

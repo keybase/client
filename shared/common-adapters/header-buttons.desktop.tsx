@@ -1,6 +1,4 @@
 import type {ColorValue} from 'react-native'
-import type {HeaderOptions} from '@react-navigation/elements'
-export type HeaderBackButtonProps = Parameters<NonNullable<HeaderOptions['headerLeft']>>[0]
 import * as Styles from '@/styles'
 import BackButton from '@/common-adapters/back-button'
 import {Box2} from '@/common-adapters/box'
@@ -68,3 +66,5 @@ export function HeaderLeftButton(hp: {
     />
   )
 }
+
+export type * from '@/common-adapters/header-buttons.shared'

@@ -2,13 +2,13 @@ import * as C from '@/constants'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import * as FsCommon from '@/fs/common'
 import * as Kb from '@/common-adapters'
-import * as RowCommon from './rows/common'
+import * as RowCommon from '@/fs/browser/rows/common'
 import * as T from '@/constants/types'
 import NavHeaderTitle from '@/fs/nav-header/title'
-import Root from './root'
-import {FsBrowserEditProvider, useFsBrowserEdits} from './edit-state'
-import {FsBrowserSortProvider} from './sort-state'
-import Rows from './rows/rows-container'
+import Root from '@/fs/browser/root'
+import {FsBrowserEditProvider, useFsBrowserEdits} from '@/fs/browser/edit-state'
+import {FsBrowserSortProvider} from '@/fs/browser/sort-state'
+import Rows from '@/fs/browser/rows/rows-container'
 import * as FS from '@/constants/fs'
 import {useConfigState} from '@/stores/config'
 import {makeUUID} from '@/util/uuid'
@@ -68,7 +68,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
                       ? originalPath
                       : scaledPath || originalPath
                   ),
-                } as T.RPCGen.Path,
+                },
               }))
 
       try {
@@ -76,7 +76,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
           type === 'move'
             ? T.RPCGen.SimpleFSSimpleFSMoveRpcPromise
             : T.RPCGen.SimpleFSSimpleFSCopyRecursiveRpcPromise
-        await Promise.all(params.map(async param => rpc(param)))
+        await Promise.all(params.map(async param => rpc(param as any)))
         await Promise.all(params.map(async ({opID}) => T.RPCGen.SimpleFSSimpleFSWaitRpcPromise({opID})))
       } catch (error) {
         errorToActionOrThrow(error, parentPath)

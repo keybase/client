@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
-import DeviceIcon from '../devices/device-icon'
-import {SignupScreen} from '../signup/common'
+import DeviceIcon from '@/devices/device-icon'
+import {SignupScreen} from '@/signup/common'
 import {type Device} from '@/stores/provision'
 
 type Props = {

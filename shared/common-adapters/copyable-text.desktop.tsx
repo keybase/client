@@ -8,7 +8,7 @@ type Props = {
 const CopyableText = ({value, style}: Props) => {
   return (
     <textarea
-      style={Styles.collapseStyles([styles.base, style]) as React.CSSProperties}
+      style={Styles.collapseStyles([styles.base, style])}
       readOnly={true}
       value={value}
       onClick={e => {

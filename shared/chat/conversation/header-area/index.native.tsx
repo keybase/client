@@ -13,9 +13,9 @@ import {useUsersState} from '@/stores/users'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {navToProfile} from '@/constants/router'
-import {showConversationInfoPanel, toggleConversationThreadSearch} from '../thread-context'
-import {useConversationMetadata} from '../data-hooks'
-import {muteConversation} from '../status-actions'
+import {showConversationInfoPanel, toggleConversationThreadSearch} from '@/chat/conversation/thread-context'
+import {useConversationMetadata} from '@/chat/conversation/data-hooks'
+import {muteConversation} from '@/chat/conversation/status-actions'
 
 type HeaderConversationProps = {conversationIDKey: T.Chat.ConversationIDKey}
 

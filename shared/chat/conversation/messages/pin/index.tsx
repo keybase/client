@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
-import {useConversationCenter} from '../../center-context'
+import {useConversationCenter} from '@/chat/conversation/center-context'
 
 type Props = {messageID: T.Chat.MessageID}
 

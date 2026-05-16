@@ -1,8 +1,8 @@
-import type AudioAttachmentType from './audio'
-import type FileAttachmentType from './file'
-import type ImageAttachmentType from './image'
-import type VideoAttachmentType from './video'
-import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
+import type AudioAttachmentType from '@/chat/conversation/messages/attachment/audio'
+import type FileAttachmentType from '@/chat/conversation/messages/attachment/file'
+import type ImageAttachmentType from '@/chat/conversation/messages/attachment/image'
+import type VideoAttachmentType from '@/chat/conversation/messages/attachment/video'
+import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '@/chat/conversation/messages/wrapper/wrapper'
 
 export function WrapperAttachmentAudio(p: Props) {
   const {ordinal, isCenteredHighlight = false} = p
