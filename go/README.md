@@ -85,7 +85,7 @@ cd $GOPATH/src/github.com/keybase/client/go/test
 ./run_tests.sh
 ```
 
-### Calculate package dependenies
+### Calculate package dependencies
 
 ```bash
 make gen-deps
