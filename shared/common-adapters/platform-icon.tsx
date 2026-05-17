@@ -3,7 +3,6 @@ import {Box2} from './box'
 import IconAuto from './icon-auto'
 import type {IconType} from './icon.constants-gen'
 import ImageIcon from './image-icon'
-import {isMobile} from '@/constants/platform'
 
 type Props = {
   platform: T.More.PlatformsExpandedType

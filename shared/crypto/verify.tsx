@@ -32,7 +32,7 @@ const bannerMessage = Crypto.infoMessage.verify
 const filePrompt = 'Drop a file to verify'
 const inputEmptyWidth = 342
 const inputFileIcon = 'icon-file-saltpack-64' as const
-const inputPlaceholder = C.isMobile
+const inputPlaceholder = isMobile
   ? 'Enter text to verify'
   : 'Enter a signed message, drop a signed file or folder, or'
 
@@ -143,7 +143,7 @@ export const VerifyInput = (_props: unknown) => {
   const onRun = () => {
     const f = async () => {
       const next = await controller.verify()
-      if (C.isMobile) {
+      if (isMobile) {
         navigateAppend({name: Crypto.verifyOutput, params: next})
       }
     }
@@ -163,11 +163,11 @@ export const VerifyInput = (_props: unknown) => {
         onSetInput={controller.setInput}
         onClearInput={controller.clearInput}
       />
-      {C.isMobile ? <InputActionsBar runLabel="Verify" onRun={onRun} /> : null}
+      {isMobile ? <InputActionsBar runLabel="Verify" onRun={onRun} /> : null}
     </>
   )
 
-  return C.isMobile ? (
+  return isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
@@ -180,9 +180,9 @@ export const VerifyOutput = ({route}: {route: {params: CommonOutputRouteParams}}
   const state = route.params
   const content = (
     <>
-      {C.isMobile && state.errorMessage ? <CryptoBanner key="banner" infoMessage={bannerMessage} state={state} /> : null}
+      {isMobile && state.errorMessage ? <CryptoBanner key="banner" infoMessage={bannerMessage} state={state} /> : null}
       <CryptoSignedSender isSelfSigned={false} state={state} />
-      {C.isMobile ? <Kb.Divider /> : null}
+      {isMobile ? <Kb.Divider /> : null}
       <CryptoOutput
         actionLabel="Verify"
         outputFileIcon="icon-file-64"
@@ -194,7 +194,7 @@ export const VerifyOutput = ({route}: {route: {params: CommonOutputRouteParams}}
     </>
   )
 
-  return C.isMobile ? (
+  return isMobile ? (
     content
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.outputDesktopMaxHeight}>

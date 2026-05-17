@@ -87,9 +87,9 @@ const ChannelRow = (props: ChannelRowProps) => {
       <Kb.Text type="BodySmall" lineClamp={1}>
         {channel.description}
       </Kb.Text>
-      <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
+      <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} alignSelf="flex-start" gap="xtiny">
         <Kb.Text type="BodySmall">{membersText}</Kb.Text>
-        {!Kb.Styles.isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
+        {!isMobile && activityLevel !== 'none' && <Kb.Text type="BodySmall">·</Kb.Text>}
         <Activity level={activityLevel} />
       </Kb.Box2>
     </Kb.Box2>
@@ -152,7 +152,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       {...massActionsProps}
       action={actions}
       onlyShowActionOnHover="fade"
-      height={Kb.Styles.isMobile ? 90 : 64}
+      height={isMobile ? 90 : 64}
       type="Large"
       body={body}
       firstItem={isGeneral}

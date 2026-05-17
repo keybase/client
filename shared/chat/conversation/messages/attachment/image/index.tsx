@@ -38,7 +38,7 @@ function Image(p: Props) {
   const collapseIcon = useCollapseIcon(ordinal, isCollapsed, false)
 
   const filename =
-    Kb.Styles.isMobile || !fileName ? null : (
+    isMobile || !fileName ? null : (
       <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="xtiny">
         <Kb.Text type="BodySmall">{fileName}</Kb.Text>
         {collapseIcon}
@@ -53,7 +53,7 @@ function Image(p: Props) {
       <Kb.Box2
         direction="horizontal"
         alignSelf="flex-start"
-        gap={Kb.Styles.isMobile ? undefined : 'small'}
+        gap={isMobile ? undefined : 'small'}
         alignItems="center"
       >
         <Kb.Box2
@@ -79,7 +79,7 @@ function Image(p: Props) {
         <TransferIcon
           message={message}
           ordinal={ordinal}
-          style={Kb.Styles.isMobile ? styles.transferIcon : undefined}
+          style={isMobile ? styles.transferIcon : undefined}
         />
       </Kb.Box2>
     </>
@@ -98,7 +98,7 @@ const styles = Kb.Styles.styleSheetCreate(() => {
     contentContainer: {
       backgroundColor: Kb.Styles.globalColors.black_05_on_white,
       borderRadius: Kb.Styles.borderRadius,
-      maxWidth: Kb.Styles.isMobile ? '100%' : 330,
+      maxWidth: isMobile ? '100%' : 330,
       padding: 3,
     },
     imageContainer: {alignSelf: 'center'},

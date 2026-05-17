@@ -183,7 +183,7 @@ const ThresholdDropdown = (
 
 const FilesSettings = () => {
   const props = useFiles()
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     const {
       onDisableSyncNotifications,
       onEnableSyncNotifications,

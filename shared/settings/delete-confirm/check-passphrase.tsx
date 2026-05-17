@@ -15,7 +15,7 @@ const CheckPassphraseImpl = () => {
   const deleteForever = () => {
     deleteAccountForever(password)
   }
-  const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
+  const keyboardType = showTyping && isAndroid ? 'visible-password' : 'default'
 
   return (
     <>
@@ -117,5 +117,5 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const CheckPassphrase = Kb.Styles.isMobile ? CheckPassphraseImpl : () => null
+const CheckPassphrase = isMobile ? CheckPassphraseImpl : () => null
 export default CheckPassphrase

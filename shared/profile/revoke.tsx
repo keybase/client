@@ -61,7 +61,7 @@ const RevokeProof = (ownProps: OwnProps) => {
           justifyContent="center"
           style={styles.errorBanner}
         >
-          <Kb.Text center={!Kb.Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
+          <Kb.Text center={!isMobile} style={styles.errorBannerText} type="BodySemibold">
             {errorMessage}
           </Kb.Text>
         </Kb.Box2>
@@ -71,7 +71,7 @@ const RevokeProof = (ownProps: OwnProps) => {
           <SiteIcon set={icon} full={true} style={styles.siteIcon} />
           <Kb.ImageIcon type="icon-proof-broken" style={styles.revokeIcon} />
         </Kb.Box2>
-        <Kb.Text center={!Kb.Styles.isMobile} style={styles.platformUsername} type="Header">
+        <Kb.Text center={!isMobile} style={styles.platformUsername} type="Header">
           {platformHandle}
         </Kb.Text>
         {!!platformHandleSubtitle && (
@@ -79,10 +79,10 @@ const RevokeProof = (ownProps: OwnProps) => {
             {platformHandleSubtitle}
           </Kb.Text>
         )}
-        <Kb.Text center={!Kb.Styles.isMobile} style={styles.descriptionText} type="Header">
+        <Kb.Text center={!isMobile} style={styles.descriptionText} type="Header">
           {formatMessage(platform)}
         </Kb.Text>
-        <Kb.Text center={!Kb.Styles.isMobile} style={styles.reminderText} type="Body">
+        <Kb.Text center={!isMobile} style={styles.reminderText} type="Body">
           You can add it again later, if you change your mind.
         </Kb.Text>
         <Kb.ButtonBar>
@@ -103,9 +103,9 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       contentContainer: {
-        margin: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
+        margin: isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
         maxWidth: 512,
-        textAlign: Kb.Styles.isMobile ? undefined : 'center',
+        textAlign: isMobile ? undefined : 'center',
       },
       descriptionText: {marginTop: Kb.Styles.globalMargins.medium},
       errorBanner: {
@@ -133,7 +133,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       reminderText: {marginTop: Kb.Styles.globalMargins.tiny},
       revokeIcon: {bottom: -8, position: 'absolute', right: -10},
-      siteIcon: Kb.Styles.isMobile ? {height: 64, width: 64} : {height: 48, width: 48},
+      siteIcon: isMobile ? {height: 64, width: 64} : {height: 48, width: 48},
     }) as const
 )
 

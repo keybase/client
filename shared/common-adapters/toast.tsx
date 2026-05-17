@@ -34,7 +34,7 @@ const Toast = (props: Props) => {
   const isDarkMode = useColorScheme() === 'dark'
 
   let currentRenderState = renderState
-  if (Styles.isMobile && currentRenderState.visible !== visible) {
+  if (isMobile && currentRenderState.visible !== visible) {
     currentRenderState = {
       dismissedOnBlur: false,
       shouldRender: visible || currentRenderState.shouldRender,
@@ -45,7 +45,7 @@ const Toast = (props: Props) => {
   const {shouldRender} = currentRenderState
 
   React.useEffect(() => {
-    if (Styles.isMobile) return undefined
+    if (isMobile) return undefined
     if (!visible || !lastVisibleRef.current) {
       setDismissedOnBlur(false)
     }
@@ -53,7 +53,7 @@ const Toast = (props: Props) => {
   }, [visible])
 
   React.useEffect(() => {
-    if (!Styles.isMobile) return undefined
+    if (!isMobile) return undefined
     if (!shouldRender) {
       return undefined
     }
@@ -70,7 +70,7 @@ const Toast = (props: Props) => {
   }, [opacity, shouldRender, visible])
 
   React.useEffect(() => {
-    if (!Styles.isMobile) return undefined
+    if (!isMobile) return undefined
     if (visible || !shouldRender) {
       return undefined
     }
@@ -106,9 +106,9 @@ const Toast = (props: Props) => {
     }
   }, [])
 
-  C.Router2.useSafeFocusEffect(Styles.isMobile ? onSafeFocusNative : onSafeFocusDesktop)
+  C.Router2.useSafeFocusEffect(isMobile ? onSafeFocusNative : onSafeFocusDesktop)
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     return (
       <Popup
         attachTo={props.attachTo}

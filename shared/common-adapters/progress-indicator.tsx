@@ -4,7 +4,7 @@ import Animation from './animation'
 import * as Styles from '@/styles'
 
 const ProgressIndicator = (p: Props) => {
-  if (Styles.isMobile) {
+  if (isMobile) {
     const size = p.type === 'Large' ? 'large' : 'small'
     return (
       <ActivityIndicator

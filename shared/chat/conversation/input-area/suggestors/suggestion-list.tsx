@@ -13,7 +13,7 @@ const SuggestionList = <I,>(props: Props<I>) => {
 
   const lastIndexRef = React.useRef(selectedIndex)
   React.useEffect(() => {
-    if (!Kb.Styles.isMobile && lastIndexRef.current !== selectedIndex) {
+    if (!isMobile && lastIndexRef.current !== selectedIndex) {
       void listRef.current?.scrollToIndex({index: selectedIndex})
     }
     lastIndexRef.current = selectedIndex
@@ -27,7 +27,7 @@ const SuggestionList = <I,>(props: Props<I>) => {
     return null
   }
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     const itemRenderer = (index: number) => {
       const i = props.items[index]
       return i ? (props.renderItem(index, i) as React.JSX.Element) : <></>

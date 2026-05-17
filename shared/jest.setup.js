@@ -15,6 +15,10 @@ global.__HOT__ = false
 global.__PROFILE__ = false
 global.__STORYBOOK__ = false
 global.__VERSION__ = 'test'
+global.isMobile = false
+global.isElectron = true
+global.isAndroid = false
+global.isIOS = false
 
 global._fromPreload = {
   constants: {

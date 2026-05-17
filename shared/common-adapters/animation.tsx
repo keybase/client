@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Box2} from './box'
-import * as Styles from '@/styles'
+import type * as Styles from '@/styles'
 import type {Props, AnimationType} from './animation.shared'
 export type {AnimationType} from './animation.shared'
 
@@ -15,13 +15,13 @@ const noStyle = {flexGrow: 1, flexShrink: 1}
 
 function Animation(props: Props) {
   const {animationType} = props
-  const elementRef = React.useRef<{} | null>(null)
+  const elementRef = React.useRef<HTMLDivElement | null>(null)
   const [data] = React.useState(
     () => require('./animation-data.json') as {[key in AnimationType]: AnimationObject}
   )
 
   React.useEffect(() => {
-    if (Styles.isMobile) return
+    if (isMobile) return
     const el = elementRef.current
     if (el) {
       // lottie-web is a CJS UMD module; require() returns module.exports directly (no .default wrapper)
@@ -30,7 +30,7 @@ function Animation(props: Props) {
       }
       const instance = lottie.loadAnimation({
         animationData: data[animationType],
-        container: el as Element,
+        container: el,
       })
       return () => {
         instance.destroy()
@@ -39,7 +39,7 @@ function Animation(props: Props) {
     return undefined
   }, [animationType, data])
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     const {style, width, height} = props
     return (
       <Box2 direction="vertical" className={props.className} style={props.containerStyle}>
@@ -51,7 +51,7 @@ function Animation(props: Props) {
               ...style,
             } as React.CSSProperties
           }
-          ref={elementRef as React.Ref<HTMLDivElement>}
+          ref={elementRef}
         />
       </Box2>
     )

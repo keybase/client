@@ -65,7 +65,7 @@ const styles = Kb.Styles.styleSheetCreate(
       icon: {opacity: 0.3},
       meta: {
         alignSelf: 'center',
-        marginLeft: Kb.Styles.isMobile ? Kb.Styles.globalMargins.xxtiny : Kb.Styles.globalMargins.xtiny,
+        marginLeft: isMobile ? Kb.Styles.globalMargins.xxtiny : Kb.Styles.globalMargins.xtiny,
       },
       text: {
         color: Kb.Styles.globalColors.black_20,

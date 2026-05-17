@@ -65,7 +65,7 @@ function SwipeConvActions(p: Props) {
     wasOpenRef.current = isOpened
   }, [isOpened])
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     return <div style={Kb.Styles.castStyleDesktop(desktopStyles.row)}>{p.children}</div>
   }
 

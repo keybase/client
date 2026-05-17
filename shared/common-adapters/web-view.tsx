@@ -37,7 +37,7 @@ const WebView = (props: WebViewProps) => {
   const webviewRef = React.useRef<ElectronWebviewTag | null>(null)
 
   React.useEffect(() => {
-    if (Styles.isMobile) return
+    if (isMobile) return
     const css = injections?.css || ''
     const javaScript = injections?.javaScript || ''
     const ref = webviewRef.current
@@ -77,12 +77,12 @@ const WebView = (props: WebViewProps) => {
 
   const [forceReload, setForceReload] = React.useState(1)
   C.Router2.useSafeFocusEffect(() => {
-    if (Styles.isMobile) {
+    if (isMobile) {
       setForceReload(a => a + 1)
     }
   })
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     return (
       <webview
         ref={webviewRef as React.Ref<HTMLElement>}

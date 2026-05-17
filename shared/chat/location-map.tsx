@@ -40,7 +40,7 @@ const LocationMap = (props: Props) => {
     </Kb.Box2>
   )
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     return <Kb.Box2 direction="vertical" style={styles.outer}>{inner}</Kb.Box2>
   }
   return inner

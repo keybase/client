@@ -450,7 +450,7 @@ const Popup = (p: PopupProps) => {
       containerStyle={suggestionOverlayStyle}
       style={suggestionOverlayStyle}
     >
-      {Kb.Styles.isMobile ? <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2> : children}
+      {isMobile ? <Kb.KeyboardAvoidingView2>{children}</Kb.KeyboardAvoidingView2> : children}
     </Kb.Popup>
   )
 }

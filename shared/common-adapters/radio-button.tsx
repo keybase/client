@@ -14,7 +14,7 @@ export const RADIOBUTTON_SIZE = 22
 export const RADIOBUTTON_MARGIN = 8
 
 const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     return (
       <div
         style={{...desktopStyles.container, ...(disabled ? {} : Styles.desktopStyles.clickable), ...style}}

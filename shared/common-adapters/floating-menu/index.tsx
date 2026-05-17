@@ -3,7 +3,7 @@ import Popup from '../popup'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import MenuLayout from './menu-layout'
 import type {MenuItems as _MenuItems} from './menu-layout/index.shared'
-import * as Styles from '@/styles'
+import type * as Styles from '@/styles'
 import {useNavigation, type NavigationProp, type ParamListBase} from '@react-navigation/native'
 
 export type MenuItems = _MenuItems
@@ -33,8 +33,8 @@ export type Props = {
 
 type SafeNavigationHook = <T extends NavigationProp<ParamListBase>>() => T | null
 
-const useSafeNavigation: SafeNavigationHook = Styles.isMobile
-  ? (useNavigation as SafeNavigationHook)
+const useSafeNavigation: SafeNavigationHook = isMobile
+  ? (useNavigation)
   : () => null
 
 function FloatingMenu(props: Props) {
@@ -74,7 +74,7 @@ function FloatingMenu(props: Props) {
 
   return (
     <Popup
-      attachTo={mode === 'bottomsheet' && Styles.isMobile ? undefined : props.attachTo}
+      attachTo={mode === 'bottomsheet' && isMobile ? undefined : props.attachTo}
       onHidden={onHidden}
       visible={props.visible}
       position={props.position}

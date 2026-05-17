@@ -53,7 +53,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
         onClick: onToggleSearchable,
         subTitle: searchable
           ? `Don't let friends find you by this ${copyType}.`
-          : `${Kb.Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${copyType}.`,
+          : `${isMobile ? '' : '(Recommended) '}Let friends find you by this ${copyType}.`,
         title: searchable ? 'Make unsearchable' : 'Make searchable',
       })
     }
@@ -90,7 +90,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
         closeText="Cancel"
         visible={true}
         position="bottom right"
-        header={Kb.Styles.isMobile ? header : undefined}
+        header={isMobile ? header : undefined}
         onHidden={hidePopup}
         items={menuItems}
         closeOnSelect={true}
@@ -111,7 +111,7 @@ const EmailPhoneRow = (p: {contactKey: string; onEmailVerificationSuccess: (emai
 
   let subtitle = ''
 
-  if (C.isMobile && hasRecentVerifyEmail && !verified) {
+  if (isMobile && hasRecentVerifyEmail && !verified) {
     subtitle = 'Check your inbox'
   } else {
     if (hasRecentVerifyEmail && !verified) {
@@ -167,9 +167,9 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       badge: {
-        borderRadius: Kb.Styles.isMobile ? 5 : 4,
-        height: Kb.Styles.isMobile ? 10 : 8,
-        width: Kb.Styles.isMobile ? 10 : 8,
+        borderRadius: isMobile ? 5 : 4,
+        height: isMobile ? 10 : 8,
+        width: isMobile ? 10 : 8,
       },
       badgeGearIcon: {
         position: 'absolute',
@@ -181,7 +181,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: 'auto',
       },
       container: {
-        height: Kb.Styles.isMobile ? 48 : 40,
+        height: isMobile ? 48 : 40,
       },
       gearIcon: Kb.Styles.platformStyles({
         isElectron: {...Kb.Styles.desktopStyles.clickable},

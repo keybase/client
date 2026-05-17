@@ -137,7 +137,7 @@ const NativeVideo = (props: Props) => {
 }
 
 const Video = (props: Props) => {
-  if (!Styles.isMobile) return <DesktopVideo {...props} />
+  if (!isMobile) return <DesktopVideo {...props} />
   return <NativeVideo {...props} />
 }
 

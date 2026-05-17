@@ -2,7 +2,6 @@
  * File to stash local debug changes to. Never check this in with changes
  */
 import noop from 'lodash/noop'
-import {isMobile} from '@/constants/platform'
 
 // Mobile-only side effects (disabled yellow box warnings)
 if (isMobile) {

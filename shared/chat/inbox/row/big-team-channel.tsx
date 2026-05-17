@@ -95,7 +95,7 @@ const BigTeamChannel = (props: Props) => {
         <Kb.Box2
           className="hover_background_color_blueGreyDark"
           direction="horizontal"
-          fullWidth={!Kb.Styles.isMobile}
+          fullWidth={!isMobile}
           style={Kb.Styles.collapseStyles([
             styles.channelBackground,
             selected && styles.selectedChannelBackground,

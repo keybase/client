@@ -45,7 +45,7 @@ export type Props = {
 } & ({colorFollowing?: false; type: TextType} | {colorFollowing: boolean; type: TextTypeBold})
 
 // Mobile handles spaces correctly so don't insert anything
-const space = Styles.isMobile ? ` ` : <>&nbsp;</>
+const space = isMobile ? ` ` : <>&nbsp;</>
 
 // common-adapters/profile-card.tsx already imports this, so have it assign
 // this here instead of importing directly to avoid an import cycle.
@@ -221,7 +221,7 @@ const UsernamesText = (p: UsernamesTextProps) => {
   )
 }
 
-const inlineProps = Styles.isMobile ? {lineClamp: 1 as const} : {}
+const inlineProps = isMobile ? {lineClamp: 1 as const} : {}
 
 function Usernames(p: Props) {
   const {backgroundMode, commaColor, inline, containerStyle, className} = p

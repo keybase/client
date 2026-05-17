@@ -7,7 +7,7 @@ import {Text as RNText} from 'react-native'
 import './text.css'
 
 export function Text(p: Props) {
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     const type = p.type ?? 'BodySmall'
     const {textRef} = p
     const setRef = textRef

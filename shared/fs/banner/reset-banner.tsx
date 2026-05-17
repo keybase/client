@@ -56,7 +56,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       style={Kb.Styles.collapseStyles([styles.banner, fixedHeight(getHeight(resetParticipants.length))])}
     >
       <Kb.IconAuto
-        type={C.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
+        type={isMobile ? 'icon-skull-64' : 'icon-skull-48'}
         style={{height: Kb.Styles.globalMargins.xlarge, margin: Kb.Styles.globalMargins.medium}}
       />
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.textIntro}>
@@ -101,7 +101,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="small">
         {resetParticipants.map(p => (
-          <Kb.Box2 direction={C.isMobile ? 'vertical' : 'horizontal'} key={p} gap="tiny">
+          <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} key={p} gap="tiny">
             <Kb.Button
               mode="Secondary"
               label={'View ' + p + "'s profile"}
@@ -153,10 +153,10 @@ export const asRows = (
  * layout changes.
  *
  */
-const addedHeightPerResetUser = C.isMobile
+const addedHeightPerResetUser = isMobile
   ? 2 * Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny + Kb.Styles.globalMargins.small
   : Kb.Styles.globalMargins.large + Kb.Styles.globalMargins.tiny
-const baseHeight = C.isMobile ? 440 : 378 // Change this when layout changes
+const baseHeight = isMobile ? 440 : 378 // Change this when layout changes
 export const getHeight = (numResetUsers: number) => baseHeight + numResetUsers * addedHeightPerResetUser
 
 const fixedHeight = (height: number) => ({
@@ -177,8 +177,8 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {width: Kb.Styles.globalMargins.xlarge * 5},
       }),
       listTextContainer: {
-        ...fixedHeight(C.isMobile ? Kb.Styles.globalMargins.large * 3 : Kb.Styles.globalMargins.large * 2),
-        maxWidth: C.isMobile ? 280 : 400,
+        ...fixedHeight(isMobile ? Kb.Styles.globalMargins.large * 3 : Kb.Styles.globalMargins.large * 2),
+        maxWidth: isMobile ? 280 : 400,
       },
       primaryOnRed: {backgroundColor: Kb.Styles.globalColors.white},
       primaryOnRedLabel: {color: Kb.Styles.globalColors.redDark},

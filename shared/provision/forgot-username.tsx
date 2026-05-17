@@ -55,7 +55,7 @@ const ForgotUsername = () => {
 
   return (
     <SignupScreen
-      hideDesktopHeader={!Kb.Styles.isMobile}
+      hideDesktopHeader={!isMobile}
       banners={
         <>
           {errorBanner(error)}

@@ -188,7 +188,7 @@ const TeamTask = (props: TodoOwnProps) => {
 const GitRepoTask = (props: TodoOwnProps) => {
   const {navigateAppend, switchTab} = useRouterNavigation()
   const onConfirm = (isTeam: boolean) => {
-    if (C.isMobile) {
+    if (isMobile) {
       navigateAppend({name: settingsGitTab, params: {}})
     } else {
       switchTab(C.Tabs.gitTab)

@@ -126,10 +126,10 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
 
   const numSelected = selected.size
 
-  const rowHeight = Kb.Styles.isMobile ? (mode === 'self' ? 56 : 56) : mode === 'self' ? 48 : 48
+  const rowHeight = isMobile ? (mode === 'self' ? 56 : 56) : mode === 'self' ? 48 : 48
 
   const itemHeight = (() => {
-    const headerHeight = filtering ? 0 : Kb.Styles.isMobile ? 48 : 40
+    const headerHeight = filtering ? 0 : isMobile ? 48 : 40
     const getItemLayout = (index: number, item?: T.Unpacked<typeof items>) => {
       return item?.type === 'header'
         ? {index, length: headerHeight, offset: 0}
@@ -183,7 +183,7 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const title =
     mode === 'self' ? 'Browse all channels' : `Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`
   const desktopFooter =
-    !Kb.Styles.isMobile && mode !== 'self' ? (
+    !isMobile && mode !== 'self' ? (
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
           <Kb.Button
@@ -420,7 +420,7 @@ const SelfChannelActions = function SelfChannelActions(p: {
       gap="xtiny"
       fullHeight={true}
       centerChildren={true}
-      style={Kb.Styles.collapseStyles([selfMode && !Kb.Styles.isMobile && styles.channelRowSelfMode])}
+      style={Kb.Styles.collapseStyles([selfMode && !isMobile && styles.channelRowSelfMode])}
     >
       {popup}
       <Kb.Box2
@@ -496,7 +496,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
     _onSelect(conversationIDKey)
   }
 
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect} style={{height: rowHeight}}>
       <Kb.Box2
         direction="horizontal"

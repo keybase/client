@@ -71,7 +71,7 @@ const TeamBox = (props: Props) => {
     prevLastRef.current = last
   }, [prevLastRef, last])
 
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
         <Kb.ScrollView

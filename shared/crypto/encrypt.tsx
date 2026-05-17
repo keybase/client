@@ -32,7 +32,7 @@ const bannerMessage = Crypto.infoMessage.encrypt
 const filePrompt = 'Drop a file to encrypt'
 const inputEmptyWidth = 207
 const inputFileIcon = 'icon-file-64' as const
-const inputPlaceholder = C.isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or'
+const inputPlaceholder = isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or'
 
 const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`
@@ -348,8 +348,8 @@ const EncryptOptionsPanel = ({
     setEncryptOptions({includeSelf: newIncludeSelf, sign: newSign})
   }
 
-  const direction = Kb.Styles.isTablet ? 'horizontal' : Kb.Styles.isMobile ? 'vertical' : 'horizontal'
-  const gap = Kb.Styles.isTablet ? 'medium' : Kb.Styles.isMobile ? 'xtiny' : 'medium'
+  const direction = Kb.Styles.isTablet ? 'horizontal' : isMobile ? 'vertical' : 'horizontal'
+  const gap = Kb.Styles.isTablet ? 'medium' : isMobile ? 'xtiny' : 'medium'
 
   return (
     <Kb.Box2
@@ -460,14 +460,14 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
   const onRun = () => {
     const f = async () => {
       const next = await controller.runEncrypt()
-      if (C.isMobile) {
+      if (isMobile) {
         navigateAppend({name: Crypto.encryptOutput, params: encryptToOutputParams(next)})
       }
     }
     C.ignorePromise(f())
   }
 
-  const options = C.isMobile ? (
+  const options = isMobile ? (
     <InputActionsBar runLabel="Encrypt" blurCBRef={blurCBRef} onRun={onRun}>
       <EncryptOptionsPanel
         hasRecipients={controller.state.meta.hasRecipients}
@@ -515,7 +515,7 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
     </>
   )
 
-  return C.isMobile ? (
+  return isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
@@ -528,7 +528,7 @@ const EncryptOutputBody = ({params}: {params: EncryptOutputRouteParams}) => (
   <Kb.Box2
     direction="vertical"
     fullHeight={true}
-    style={C.isMobile ? undefined : Crypto.outputDesktopMaxHeight}
+    style={isMobile ? undefined : Crypto.outputDesktopMaxHeight}
   >
     <EncryptOutputBanner
       hasRecipients={params.hasRecipients}
@@ -538,7 +538,7 @@ const EncryptOutputBody = ({params}: {params: EncryptOutputRouteParams}) => (
       recipients={params.recipients}
     />
     <CryptoSignedSender isSelfSigned={true} state={params} />
-    {C.isMobile ? <Kb.Divider /> : null}
+    {isMobile ? <Kb.Divider /> : null}
     <CryptoOutput
       actionLabel="Encrypt"
       outputFileIcon="icon-file-saltpack-64"
@@ -602,7 +602,7 @@ export const EncryptIO = () => {
         <Kb.Box2
           direction="vertical"
           fullHeight={true}
-          style={C.isMobile ? undefined : Crypto.outputDesktopMaxHeight}
+          style={isMobile ? undefined : Crypto.outputDesktopMaxHeight}
         >
           <EncryptOutputBanner
             hasRecipients={controller.state.meta.hasRecipients}
@@ -612,7 +612,7 @@ export const EncryptIO = () => {
             recipients={controller.state.recipients}
           />
           <CryptoSignedSender isSelfSigned={true} state={controller.state} />
-          {C.isMobile ? <Kb.Divider /> : null}
+          {isMobile ? <Kb.Divider /> : null}
           <CryptoOutput
             actionLabel="Encrypt"
             outputFileIcon="icon-file-saltpack-64"

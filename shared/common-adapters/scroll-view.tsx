@@ -19,14 +19,14 @@ function ScrollView(props: Props) {
 
   React.useImperativeHandle(outerRef, () => ({
     scrollTo: (args: {x: number; y: number; animated?: boolean}) => {
-      if (Styles.isMobile) {
+      if (isMobile) {
         innerRef.current?.scrollTo(args)
       } else {
         divRef.current?.scrollTo({left: args.x, top: args.y})
       }
     },
     scrollToEnd: (opts?: {animated?: boolean; duration?: number}) => {
-      if (Styles.isMobile) {
+      if (isMobile) {
         innerRef.current?.scrollToEnd(opts)
       } else {
         divRef.current?.scrollTo({left: divRef.current.scrollWidth})
@@ -34,7 +34,7 @@ function ScrollView(props: Props) {
     },
   }))
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     const {className, contentContainerStyle, onScroll, style, children} = rest
     const {showsHorizontalScrollIndicator, showsVerticalScrollIndicator} = rest
     const hideScroll =

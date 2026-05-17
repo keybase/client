@@ -101,10 +101,10 @@ const EnterUsername = (props: EnterUsernameProps) => {
     props.onContinue(usernameTrimmed)
   }
   const eulaLabel = (
-    <Kb.Text type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'} style={{alignSelf: 'center'}}>
+    <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={{alignSelf: 'center'}}>
       I accept the{' '}
       <Kb.Text
-        type={Kb.Styles.isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'}
+        type={isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'}
         {...eulaUrlProps}
       >
         Keybase Acceptable Use Policy
@@ -145,14 +145,14 @@ const EnterUsername = (props: EnterUsernameProps) => {
           waiting: props.waiting,
         },
       ]}
-      footer={Kb.Styles.isMobile ? eulaBlock : undefined}
+      footer={isMobile ? eulaBlock : undefined}
       onBack={props.onBack}
       title="Create account"
     >
       <Kb.ScrollView>
         <Kb.Box2
           alignItems="center"
-          gap={Kb.Styles.isMobile ? 'small' : 'medium'}
+          gap={isMobile ? 'small' : 'medium'}
           direction="vertical"
           flex={1}
           fullWidth={true}
@@ -170,7 +170,7 @@ const EnterUsername = (props: EnterUsernameProps) => {
             />
             <Kb.Text type="BodySmall">Your username is unique and can not be changed in the future.</Kb.Text>
           </Kb.Box2>
-          {!Kb.Styles.isMobile && eulaBlock}
+          {!isMobile && eulaBlock}
         </Kb.Box2>
       </Kb.ScrollView>
     </SignupScreen>

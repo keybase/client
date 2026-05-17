@@ -58,7 +58,7 @@ const promptContainerStyle = {alignItems: 'center'} as const
 const SetExplodePopup = (p: Props) => {
   const props = useHooks(p)
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     const listItems: Kb.MenuItems = props.items.map(it => ({
       disabled: false,
       onClick: () => props.onSelect(it.seconds),

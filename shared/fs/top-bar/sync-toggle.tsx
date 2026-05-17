@@ -62,7 +62,7 @@ const Container = (ownProps: OwnProps) => {
         containerStyle={styles.floating}
         header={<Confirm waiting={waiting} disableSync={disableSync} showPopup={showPopup} />}
         items={
-          Kb.Styles.isMobile
+          isMobile
             ? [
                 {
                   danger: true,
@@ -113,7 +113,7 @@ const Confirm = (props: {showPopup: () => void; disableSync: () => void; waiting
       <Kb.Text key="explain" type="BodySmall" center={true} style={styles.explainText}>
         This will delete your local copies of all the files in this folder.
       </Kb.Text>
-      {!Kb.Styles.isMobile && (
+      {!isMobile && (
         <Kb.Box2
           direction="horizontal"
           style={styles.popupButtonContainer}

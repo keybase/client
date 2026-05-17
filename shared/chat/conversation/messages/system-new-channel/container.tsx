@@ -13,10 +13,10 @@ function SystemNewChannelContainer(p: OwnProps) {
   const onManageChannels = () => navigateAppend({name: 'teamAddToChannels', params: {teamID}})
 
   const descStyleOverride = {
-    link: {fontSize: Kb.Styles.isMobile ? 15 : 13, fontWeight: '600'},
+    link: {fontSize: isMobile ? 15 : 13, fontWeight: '600'},
     paragraph: {
-      color: Kb.Styles.isMobile ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.black_50OrWhite_40,
-      fontSize: Kb.Styles.isMobile ? 15 : 13,
+      color: isMobile ? Kb.Styles.globalColors.black_50 : Kb.Styles.globalColors.black_50OrWhite_40,
+      fontSize: isMobile ? 15 : 13,
     },
   } as const
   return (

@@ -229,7 +229,7 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.tiny,
       },
       label: {
-        minHeight: Kb.Styles.isMobile ? 40 : 32,
+        minHeight: isMobile ? 40 : 32,
         paddingLeft: Kb.Styles.globalMargins.xsmall,
       },
       progressIndicator: {

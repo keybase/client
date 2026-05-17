@@ -27,7 +27,7 @@ const OutOfDate = () => {
   const [mobileCritical, setMobileCritical] = React.useState(false)
 
   React.useEffect(() => {
-    if (!C.isMobile) {
+    if (!isMobile) {
       return
     }
 
@@ -58,8 +58,8 @@ const OutOfDate = () => {
     }
   }, [])
 
-  const critical = C.isMobile ? mobileCritical : outOfDate.critical
-  const message = C.isMobile ? mobileMessage : outOfDate.message
+  const critical = isMobile ? mobileCritical : outOfDate.critical
+  const message = isMobile ? mobileMessage : outOfDate.message
 
   return !critical ? null : (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>
@@ -69,7 +69,7 @@ const OutOfDate = () => {
       <Kb.Box2 direction="vertical" style={styles.messageContainer} fullWidth={true}>
         <Kb.Markdown>{message}</Kb.Markdown>
       </Kb.Box2>
-      {Kb.Styles.isMobile && <Kb.Button label="Update" onClick={openAppStore} />}
+      {isMobile && <Kb.Button label="Update" onClick={openAppStore} />}
     </Kb.Box2>
   )
 }

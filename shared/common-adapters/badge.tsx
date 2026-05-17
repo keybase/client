@@ -21,8 +21,8 @@ export type Badge2Props = {
 
 function Badge(p: Badge2Props) {
   const {border, containerStyle, className, badgeNumberStyle, badgeNumber, badgeStyle} = p
-  const fontSize = p.fontSize ?? (Styles.isMobile ? 12 : 10)
-  const height = p.height ?? (Styles.isMobile ? 20 : 16)
+  const fontSize = p.fontSize ?? (isMobile ? 12 : 10)
+  const height = p.height ?? (isMobile ? 20 : 16)
   const leftRightPadding = p.leftRightPadding ?? (Styles.isPhone ? 5 : 4)
 
   if (border) {
@@ -101,7 +101,7 @@ function Badge(p: Badge2Props) {
               {
                 fontSize: fontSize,
                 height: height,
-                lineHeight: Styles.isMobile ? height : `${height}px`,
+                lineHeight: isMobile ? height : `${height}px`,
               } as const,
               badgeNumberStyle,
             ])}

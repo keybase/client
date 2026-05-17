@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as C from '@/constants'
 import AudioVideo from './audio-video'
 import {formatAudioRecordDuration} from '@/util/timestamp'
 
@@ -34,13 +33,13 @@ const AudioVis = (props: VisProps) => {
         style={{
           backgroundColor: index < threshold ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.black,
           height,
-          marginRight: C.isMobile ? 4 * Kb.Styles.hairlineWidth : 2,
-          width: C.isMobile ? 3 * Kb.Styles.hairlineWidth : 1,
+          marginRight: isMobile ? 4 * Kb.Styles.hairlineWidth : 2,
+          width: isMobile ? 3 * Kb.Styles.hairlineWidth : 1,
         }}
       />
     )
   })
-  return C.isMobile ? (
+  return isMobile ? (
     <Kb.ScrollView
       horizontal={true}
       style={{height: maxHeight, maxWidth: maxWidth}}

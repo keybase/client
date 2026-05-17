@@ -18,7 +18,7 @@ type OwnProps = {
   source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
 }
 
-const canBackUp = C.isMobile
+const canBackUp = isMobile
   ? (parentPath: T.FS.Path) => T.FS.getPathLevel(parentPath) > 1
   : () => false
 
@@ -118,7 +118,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   return (
     <>
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true} fullHeight={true}>
-        {!Kb.Styles.isMobile && (
+        {!isMobile && (
           <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader} justifyContent="space-between">
             <NavHeaderTitle destinationPickerSource={source} inDestinationPicker={true} path={parentPath} />
             {!!onNewFolder && <NewFolder onNewFolder={onNewFolder} />}
@@ -164,8 +164,8 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         ) : (
           <Rows path={parentPath} destinationPickerSource={source} />
         )}
-        {Kb.Styles.isMobile && <Kb.Divider key="dfooter" />}
-        {(!Kb.Styles.isMobile || onNewFolder) && (
+        {isMobile && <Kb.Divider key="dfooter" />}
+        {(!isMobile || onNewFolder) && (
           <Kb.Box2
             key="footer"
             direction="horizontal"
@@ -173,7 +173,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
             fullWidth={true}
             style={styles.footer}
           >
-            {Kb.Styles.isMobile ? (
+            {isMobile ? (
               <NewFolder onNewFolder={onNewFolder} />
             ) : (
               <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />

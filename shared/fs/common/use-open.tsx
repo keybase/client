@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {useFsPathItem} from './hooks'
@@ -16,7 +15,7 @@ export const useOpen = (props: Props) => {
     const knownType = pathItem.type !== T.FS.PathType.Unknown ? pathItem.type : undefined
     const knownTimestamp = pathItem.type === T.FS.PathType.File ? pathItem.lastModifiedTimestamp : undefined
     return () => {
-      if (C.isMobile && knownType === T.FS.PathType.File) {
+      if (isMobile && knownType === T.FS.PathType.File) {
         nav.safeNavigateAppend({
           name: 'fsFilePreview',
           params: {initialLastModifiedTimestamp: knownTimestamp, path: props.path},

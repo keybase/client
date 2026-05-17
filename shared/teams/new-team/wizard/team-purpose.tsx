@@ -30,7 +30,7 @@ const TeamPurpose = ({wizard: wizardParam}: Props) => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.Text type="BodySemibold">What do you need a team for?</Kb.Text>
         <Kb.RichButton

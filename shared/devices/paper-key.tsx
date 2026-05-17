@@ -77,7 +77,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: {
         alignSelf: 'center',
-        maxWidth: Kb.Styles.isMobile ? undefined : 560,
+        maxWidth: isMobile ? undefined : 560,
         padding: Kb.Styles.globalMargins.medium,
       },
       intro: {textAlign: 'center'},

@@ -19,7 +19,7 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const FilePickerPopupImpl = (p: Props) => {
-  const items = Kb.Styles.isIOS
+  const items = isIOS
     ? ([
         {
           icon: 'iconfont-camera',
@@ -80,5 +80,5 @@ const FilePickerPopupImpl = (p: Props) => {
   )
 }
 
-const FilePickerPopup = Kb.Styles.isMobile ? FilePickerPopupImpl : () => null
+const FilePickerPopup = isMobile ? FilePickerPopupImpl : () => null
 export default FilePickerPopup

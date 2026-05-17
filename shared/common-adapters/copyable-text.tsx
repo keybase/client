@@ -14,7 +14,7 @@ const CopyableText = (props: Props) => {
   const [hasCopied, setHasCopied] = React.useState(false)
   const setHasCopiedFalseLater = useTimeout(() => setHasCopied(false), 5000)
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     return (
       <textarea
         style={Styles.castStyleDesktop(Styles.collapseStyles([styles.base, props.style]))}

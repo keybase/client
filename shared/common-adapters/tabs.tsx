@@ -93,7 +93,7 @@ const styles = Styles.styleSheetCreate(() => ({
     borderBottomWidth: 1,
     borderStyle: 'solid',
     flex: 1,
-    maxHeight: Styles.isMobile ? 48 : 40,
+    maxHeight: isMobile ? 48 : 40,
   },
   divider: {
     ...Styles.globalStyles.flexBoxRow,

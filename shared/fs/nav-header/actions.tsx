@@ -21,7 +21,7 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
   Kbfs.useFsScreenCoordinator(props.path)
   const hasSoftError = !!Kbfs.useFsSoftError(props.path)
   React.useEffect(() => {
-    if (!Kb.Styles.isMobile) {
+    if (!isMobile) {
       setFolderViewFilter() // mobile is handled in mobile-header.tsx
     }
   }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
@@ -29,7 +29,7 @@ const FsNavHeaderRightActionsInner = (props: Props) => {
   return !hasSoftError ? (
     <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
       <Kbfs.UploadButton path={props.path} style={styles.uploadButton} />
-      {Kb.Styles.isMobile ? (
+      {isMobile ? (
         <Kbfs.FolderViewFilterIcon path={props.path} onClick={props.onTriggerFilterMobile} />
       ) : (
         <Kbfs.FolderViewFilter

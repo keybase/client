@@ -3,7 +3,7 @@ import * as Meta from '@/constants/chat/meta'
 import {isBigTeam} from '@/constants/chat/helpers'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import * as T from '@/constants/types'
-import * as Kb from '@/common-adapters'
+import type * as Kb from '@/common-adapters'
 import * as React from 'react'
 import EmptyRow from './empty-row'
 import LoadingRow from './loading'
@@ -168,7 +168,7 @@ export const useInvitesSections = (
         item.type === 'invite-requests' ? (
           <RequestRow {...item} teamID={teamID} firstItem={index === 0} />
         ) : null,
-      title: Kb.Styles.isMobile ? `Requests (${details.requests.size})` : undefined,
+      title: isMobile ? `Requests (${details.requests.size})` : undefined,
     } satisfies Section
     sections.push(requestsSection)
   }
@@ -383,7 +383,7 @@ export const useEmojiSections = (teamID: T.Teams.TeamID, shouldActuallyLoad: boo
   } as const)
 
   if (customEmoji.length) {
-    if (!Kb.Styles.isMobile) {
+    if (!isMobile) {
       sections.push({
         data: [{type: 'emoji-header'}],
         renderItem: () => <EmojiHeader />,

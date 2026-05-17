@@ -179,7 +179,7 @@ const ContainerInner = (ownProps: OwnProps) => {
       preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null
       break
     default: {
-      if (C.isIOS && path && Chat.isPathHEIC(path)) {
+      if (isIOS && path && Chat.isPathHEIC(path)) {
         preview = <Kb.ZoomableImage src={path} style={styles.image} boxCacheKey="getTitlesHeicImg" />
       } else {
         preview = (
@@ -201,7 +201,7 @@ const ContainerInner = (ownProps: OwnProps) => {
         <Kb.ClickableBox2 style={styles.container2} onClick={() => inputRef.current?.blur()}>
           <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
             <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
-            {pathAndInfos.length > 0 && !Kb.Styles.isMobile && (
+            {pathAndInfos.length > 0 && !isMobile && (
               <Kb.Box2 direction="vertical" style={styles.filename}>
                 <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
                 <Kb.Text type="BodySmall" center={true}>
@@ -212,7 +212,7 @@ const ContainerInner = (ownProps: OwnProps) => {
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
               <Kb.Input3
                 ref={inputRef}
-                autoFocus={!Kb.Styles.isMobile}
+                autoFocus={!isMobile}
                 onClick={(e: React.BaseSyntheticEvent) => {
                   e.stopPropagation()
                 }}
@@ -231,7 +231,7 @@ const ContainerInner = (ownProps: OwnProps) => {
           </Kb.Box2>
         </Kb.ClickableBox2>
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
-          {!Kb.Styles.isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
+          {!isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (
             <Kb.WaitingButton fullWidth={!multiUpload} onClick={onSubmit} label="Send" />
           ) : (
@@ -249,7 +249,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       boxGrow: {
         flexShrink: 1,
-        marginBottom: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : 0,
+        marginBottom: isMobile ? Kb.Styles.globalMargins.small : 0,
         width: '100%',
       },
       buttonContainer: Kb.Styles.platformStyles({

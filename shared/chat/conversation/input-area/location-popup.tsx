@@ -187,7 +187,7 @@ const LocationPopupMobile = (props: LocationPopupProps) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   return <LocationPopupInner conversationIDKey={conversationIDKey} />
 }
-const LocationPopup = Kb.Styles.isMobile ? LocationPopupMobile : () => null
+const LocationPopup = isMobile ? LocationPopupMobile : () => null
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

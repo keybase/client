@@ -419,7 +419,7 @@ const NativeFullscreen = (p: Props) => {
 }
 
 const Fullscreen = (p: Props) => {
-  if (!Kb.Styles.isMobile) return <DesktopFullscreen {...p} />
+  if (!isMobile) return <DesktopFullscreen {...p} />
   return <NativeFullscreen {...p} />
 }
 

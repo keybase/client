@@ -12,7 +12,7 @@ import type * as React from 'react'
 function BackButton(props: Props) {
   const navigateUp = C.Router2.navigateUp
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     const onBack = props.disabled ? noop : props.onClick ?? (() => navigateUp())
     const _onClick = (event: React.BaseSyntheticEvent) => {
       event.preventDefault()

@@ -1,7 +1,6 @@
 import * as Tabs from '@/constants/tabs'
 import {isSplit} from '@/constants/chat/layout'
 import {isValidConversationIDKey} from '@/constants/types/chat/common'
-import {isMobile} from '@/constants/platform'
 import {useConfigState} from '@/stores/config'
 import type * as UsePushStateType from '@/stores/push'
 import type {LinkingOptions} from '@react-navigation/native'

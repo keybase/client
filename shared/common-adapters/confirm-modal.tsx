@@ -44,7 +44,7 @@ const ConfirmModal = (props: Props) => (
         <Box2 direction="vertical" style={styles.icon}>
           <IconAuto
             color={props.iconColor ? props.iconColor : Styles.globalColors.black_50}
-            fontSize={Styles.isMobile ? 64 : 48}
+            fontSize={isMobile ? 64 : 48}
             style={styles.icon}
             type={props.icon}
           />
@@ -69,9 +69,9 @@ const ConfirmModal = (props: Props) => (
       )}
       {props.content}
     </Box2>
-    <Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Styles.isMobile ? styles.modalFooterNoBorder : styles.modalFooter}>
+    <Box2 direction="vertical" centerChildren={true} fullWidth={true} style={isMobile ? styles.modalFooterNoBorder : styles.modalFooter}>
       <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-        {!Styles.isMobile && (
+        {!isMobile && (
           <WaitingButton
             key="cancel"
             disabled={!props.onCancel || props.waiting}

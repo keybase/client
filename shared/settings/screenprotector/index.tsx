@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {isAndroid, getSecureFlagSetting, setSecureFlagSetting} from '@/constants/platform'
+import {getSecureFlagSetting, setSecureFlagSetting} from '@/constants/platform'
 
 let disableScreenshotInitialValue: boolean | undefined
 
@@ -13,7 +13,7 @@ const Screenprotector = () => {
   const submitDisableSpellcheck = C.useRPC(T.RPCGen.configGuiSetValueRpcPromise)
 
   C.useOnMountOnce(() => {
-    if (!Kb.Styles.isMobile) return
+    if (!isMobile) return
     getSecureFlagSetting()
       .then(v => {
         setSecureFlag(v)
@@ -23,7 +23,7 @@ const Screenprotector = () => {
   })
 
   React.useEffect(() => {
-    if (Kb.Styles.isMobile) return
+    if (isMobile) return
     if (disableScreenshot === undefined) {
       loadDisableScreenshot(
         [{path: 'ui.disableScreenshot'}],
@@ -44,7 +44,7 @@ const Screenprotector = () => {
     }
   }, [disableScreenshot, loadDisableScreenshot])
 
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     const changeSecureFlagOption = (nextValue: boolean) => {
       const f = async () => {
         setSecureFlag(nextValue)

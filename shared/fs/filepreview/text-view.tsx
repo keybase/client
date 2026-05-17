@@ -8,7 +8,7 @@ const TextView = (props: Props) => {
 
   const [content, setContent] = React.useState('')
   React.useEffect(() => {
-    if (Kb.Styles.isMobile) return
+    if (isMobile) return
     const req = new XMLHttpRequest()
     req.onreadystatechange = () => {
       try {
@@ -25,7 +25,7 @@ const TextView = (props: Props) => {
     } catch {}
   }, [onUrlError, url])
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     return (
       <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={styles.container}>
         <Kb.Box2 style={styles.innerContainer} direction="horizontal" alignItems="flex-start">

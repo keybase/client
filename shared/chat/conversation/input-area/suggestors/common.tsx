@@ -109,7 +109,7 @@ export function List<T>(p: ListProps<T>) {
         suggestBotCommandsUpdateStatus={suggestBotCommandsUpdateStatus}
       />
       {loading && (
-        <Kb.ProgressIndicator type={Kb.Styles.isMobile ? undefined : 'Large'} style={spinnerStyle} />
+        <Kb.ProgressIndicator type={isMobile ? undefined : 'Large'} style={spinnerStyle} />
       )}
     </>
   )

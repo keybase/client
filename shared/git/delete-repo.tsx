@@ -133,7 +133,7 @@ const Container = (ownProps: OwnProps) => {
             <Kb.WaitingButton
               type="Danger"
               onClick={onSubmit}
-              label={Kb.Styles.isMobile ? 'Delete' : 'Delete this repository'}
+              label={isMobile ? 'Delete' : 'Delete this repository'}
               disabled={!matchesName()}
               waitingKey={waitingKey}
             />

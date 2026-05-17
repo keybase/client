@@ -20,7 +20,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     minHeight: 24,
   },
   container: {
-    height: Kb.Styles.isMobile ? 32 : 24,
+    height: isMobile ? 32 : 24,
     marginLeft: Kb.Styles.globalMargins.tiny,
   },
 

@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import type {Props} from './pdf-view.shared'
 
@@ -24,4 +23,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   webview: {height: '100%', width: '100%'},
 }))
 
-export default Kb.Styles.isMobile ? (C.isIOS ? PdfViewNative : () => null) : PDFViewDesktop
+export default isMobile ? (isIOS ? PdfViewNative : () => null) : PDFViewDesktop

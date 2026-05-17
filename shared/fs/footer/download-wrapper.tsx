@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Styles from '@/styles'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import type {Props} from './download-wrapper.shared'
 
@@ -29,7 +28,7 @@ const DownloadWrapper = (props: Props): React.ReactNode => {
   }
 
   React.useEffect(() => {
-    if (!Styles.isMobile) return
+    if (!isMobile) return
     if (props.isFirst && props.done) {
       ensureStarted()
     } else {
@@ -40,7 +39,7 @@ const DownloadWrapper = (props: Props): React.ReactNode => {
     }
   })
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     return props.children
   }
 

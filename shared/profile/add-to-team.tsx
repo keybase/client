@@ -250,7 +250,7 @@ const AddToTeam = (ownProps: OwnProps) => {
             isTeam={false}
             size={16}
             style={{
-              marginLeft: Kb.Styles.isMobile ? Kb.Styles.globalMargins.xxtiny : Kb.Styles.globalMargins.tiny,
+              marginLeft: isMobile ? Kb.Styles.globalMargins.xxtiny : Kb.Styles.globalMargins.tiny,
               marginRight: Kb.Styles.globalMargins.tiny,
             }}
             username={them}
@@ -314,10 +314,10 @@ const AddToTeam = (ownProps: OwnProps) => {
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
         <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-          {!Kb.Styles.isMobile && <Kb.Button type="Dim" onClick={onBack} label="Cancel" />}
+          {!isMobile && <Kb.Button type="Dim" onClick={onBack} label="Cancel" />}
           <Kb.WaitingButton
             disabled={selectedTeamCount === 0}
-            fullWidth={Kb.Styles.isMobile}
+            fullWidth={isMobile}
             style={styles.addButton}
             onClick={onSave}
             label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
@@ -347,7 +347,7 @@ const TeamRow = (props: RowProps) => {
         <Kb.Box2 direction="vertical" relative={true} style={{display: 'flex'}}>
           <Kb.Avatar
             isTeam={true}
-            size={Kb.Styles.isMobile ? 48 : 32}
+            size={isMobile ? 48 : 32}
             style={{marginRight: Kb.Styles.globalMargins.tiny}}
             teamname={props.name}
           />
@@ -371,7 +371,7 @@ const TeamRow = (props: RowProps) => {
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-      {!Kb.Styles.isMobile && <Kb.Divider style={styles.divider} />}
+      {!isMobile && <Kb.Divider style={styles.divider} />}
     </Kb.ClickableBox>
   )
 }

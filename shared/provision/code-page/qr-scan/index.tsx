@@ -7,7 +7,7 @@ import useQR from './hooks'
 const QRScan = () => {
   const {waiting, onSubmitTextCode} = useQR()
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     return (
       <Kb.Box2 direction="vertical" justifyContent="center" relative={true} style={styles.container}>
         <QRLines canScan={true} />

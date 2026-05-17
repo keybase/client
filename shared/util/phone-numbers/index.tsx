@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import libphonenumber from 'google-libphonenumber'
@@ -61,7 +60,7 @@ const load = () => {
         example: phoneUtil.format(phoneUtil.getExampleNumber(curr.alpha2), PNF.NATIONAL),
         name: curr.name,
         pickerText:
-          (C.isMobile ? `${curr.emoji} ` : '') +
+          (isMobile ? `${curr.emoji} ` : '') +
           `${curr.name} ${curr.countryCallingCodes[0]?.replace(' ', '\xa0') ?? ''}`,
       }
 

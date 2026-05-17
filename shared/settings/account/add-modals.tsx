@@ -69,7 +69,7 @@ export const Email = () => {
           onChangeSearchable={onChangeSearchable}
           onContinue={onContinue}
           iconType={
-            Kb.Styles.isMobile
+            isMobile
               ? C.isLargeScreen
                 ? 'icon-email-add-96'
                 : 'icon-email-add-64'
@@ -84,7 +84,7 @@ export const Email = () => {
         style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}
       >
         <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-          {!Kb.Styles.isMobile && (
+          {!isMobile && (
             <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
           )}
           <Kb.Button
@@ -157,7 +157,7 @@ export const Phone = () => {
           searchable={searchable}
           onChangeSearchable={onChangeSearchable}
           iconType={
-            Kb.Styles.isMobile
+            isMobile
               ? C.isLargeScreen
                 ? 'icon-phone-number-add-96'
                 : 'icon-phone-number-add-64'
@@ -167,7 +167,7 @@ export const Phone = () => {
       </Kb.Box2>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={Kb.Styles.collapseStyles([styles.modalFooter, styles.footer])}>
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            {!Kb.Styles.isMobile && (
+            {!isMobile && (
               <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
             )}
             <Kb.Button
@@ -267,7 +267,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       body: {
         ...Kb.Styles.padding(
-          Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.xlarge,
+          isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.xlarge,
           Kb.Styles.globalMargins.small,
           0
         ),

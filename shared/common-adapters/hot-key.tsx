@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import * as Styles from '@/styles'
 import {isMac} from '@/constants/platform'
 
 // Desktop-only keyboard shortcut system. On mobile, useHotKey is a no-op.
@@ -209,13 +208,13 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
   })()
 
   C.Router2.useSafeFocusEffect(() => {
-    if (Styles.isMobile || keysArr.length === 0) return
+    if (isMobile || keysArr.length === 0) return
     registerKeys(keysArr, cb)
     return () => unregisterKeys(keysArr, cb)
   })
 
   React.useEffect(() => {
-    if (Styles.isMobile || keysArr.length === 0) return
+    if (isMobile || keysArr.length === 0) return
     registerKeys(keysArr, cb)
     return () => unregisterKeys(keysArr, cb)
   }, [keysArr, cb])

@@ -4,7 +4,6 @@ import * as Tabs from '@/constants/tabs'
 import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {getTab, getVisiblePath} from '@/constants/router'
-import {isAndroid} from '@/constants/platform.native'
 import {showShareActionSheet as showShareActionSheetImpl} from '@/util/platform-specific'
 
 export const copyToClipboard = (text: string) => {

@@ -360,7 +360,7 @@ const SampleRow = ({textType, decoration, sample}: {textType: TextType; decorati
     },
   })
 
-  const onTextLayout = Kb.Styles.isMobile
+  const onTextLayout = isMobile
     ? (e: {nativeEvent: {lines: ReadonlyArray<{ascender: number; capHeight: number; descender: number; width: number; height: number; xHeight: number}>}}) => {
         const lines = e.nativeEvent.lines
         if (!lines.length) return
@@ -382,7 +382,7 @@ const SampleRow = ({textType, decoration, sample}: {textType: TextType; decorati
           onTextLayout={onTextLayout}
         >{sample}</Kb.Text>
       </Kb.Box2>
-      {Kb.Styles.isMobile && metrics ? (
+      {isMobile && metrics ? (
         <Kb.Text type="BodyTiny" style={styles.metricsText}>
           {`asc:${metrics.ascender.toFixed(1)} desc:${metrics.descender.toFixed(1)} cap:${metrics.capHeight.toFixed(1)} x:${metrics.xHeight.toFixed(1)} w:${metrics.width.toFixed(1)} h:${metrics.height.toFixed(1)} lines:${metrics.lineCount}`}
         </Kb.Text>

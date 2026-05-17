@@ -15,7 +15,7 @@ export default function InboxAndConversation(props: InboxAndConversationProps) {
       search={search}
     />
   )
-  const leftPane = Kb.Styles.isMobile ? (
+  const leftPane = isMobile ? (
     inbox
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={styles.inboxPane}>

@@ -29,7 +29,7 @@ export function AliasInput(props: AliasInputProps & {ref?: React.Ref<AliasRef>})
           ref={inputRef}
           error={!!error}
           disabled={disabled}
-          textType={Kb.Styles.isMobile ? 'BodySemibold' : 'Body'}
+          textType={isMobile ? 'BodySemibold' : 'Body'}
           containerStyle={Kb.Styles.collapseStyles([styles.aliasInput, !small && styles.aliasInputLarge])}
           onChangeText={onChangeAlias}
           onEnterKeyDown={onEnterKeyDown}
@@ -64,11 +64,11 @@ export const Modal = (props: ModalProps) => {
     <>
       <Kb.Box2
         direction="vertical"
-        fullHeight={Kb.Styles.isMobile}
-        fullWidth={Kb.Styles.isMobile}
+        fullHeight={isMobile}
+        fullWidth={isMobile}
         style={Kb.Styles.collapseStyles([
           styles.container,
-          !Kb.Styles.isMobile && props.desktopHeight !== undefined && {height: props.desktopHeight},
+          !isMobile && props.desktopHeight !== undefined && {height: props.desktopHeight},
         ])}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer} relative={true}>

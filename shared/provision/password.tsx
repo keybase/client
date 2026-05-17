@@ -25,7 +25,7 @@ const Password = () => {
 
   return (
     <SignupScreen
-      hideDesktopHeader={!Kb.Styles.isMobile}
+      hideDesktopHeader={!isMobile}
       banners={
         <>
           {resetEmailSent ? (
@@ -49,7 +49,7 @@ const Password = () => {
         },
       ]}
       onBack={onBack}
-      title={C.isMobile ? 'Enter password' : 'Enter your password'}
+      title={isMobile ? 'Enter password' : 'Enter your password'}
       contentContainerStyle={styles.contentContainer}
     >
       <Kb.ScrollView

@@ -96,6 +96,10 @@ const makeDefineValues = (isDev: boolean, isHot: boolean, isProfile: boolean, fi
   __DEV__: isDev,
   __HOT__: isHot,
   __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env['APP_VERSION']),
+  isMobile: JSON.stringify(false),
+  isElectron: JSON.stringify(true),
+  isAndroid: JSON.stringify(false),
+  isIOS: JSON.stringify(false),
 })
 
 const makeBabelLoader = (isDev: boolean, isHot: boolean, nodeThread: boolean): RuleSetRule['use'] => [

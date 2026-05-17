@@ -87,5 +87,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-const AlphabetIndex = Kb.Styles.isMobile ? AlphabetIndexImpl : () => null
+const AlphabetIndex = isMobile ? AlphabetIndexImpl : () => null
 export default AlphabetIndex

@@ -4,7 +4,7 @@ import {getAttachmentPreviewSize} from '../shared'
 
 const ImageImpl = ({message}: {message: T.Chat.MessageAttachment}) => {
   const {previewURL, height, width} = getAttachmentPreviewSize(message, true)
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     // explicit height/width so we never CLS while loading
     return (
       <img

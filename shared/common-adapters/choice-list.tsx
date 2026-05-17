@@ -20,7 +20,7 @@ const ChoiceList = (props: Props) => {
   }))
   const activeIndex = active.optionsKey === optionsKey ? active.index : undefined
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
         {options.map((op, idx) => {

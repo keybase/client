@@ -16,7 +16,7 @@ const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
     <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
       {p.children}
     </Kb.Box2>
-    {Kb.Styles.isMobile && <Kb.Button label="Close" onClick={p.onBack} />}
+    {isMobile && <Kb.Button label="Close" onClick={p.onBack} />}
   </LoginContainer>
 )
 
@@ -156,7 +156,7 @@ const RenderError = ({route}: Props) => {
                 {' - Use '}
                 <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the command line to log in
               </Kb.Text>
-              {!Kb.Styles.isMobile && (
+              {!isMobile && (
                 <Kb.Text center={true} type="Body">
                   {' - Install GPG on this machine and import your PGP private key into it'}
                 </Kb.Text>
@@ -225,7 +225,7 @@ const RenderError = ({route}: Props) => {
               <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the device with the corresponding PGP
               private key
             </Kb.Text>
-            {!Kb.Styles.isMobile && (
+            {!isMobile && (
               <Kb.Text center={true} type="Body">
                 {' - Install GPG, put your PGP private key on this machine and try again'}
               </Kb.Text>

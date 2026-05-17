@@ -620,7 +620,7 @@ const InstallBotPopup = (props: Props) => {
       } else if (installScreen) {
         setInstallScreen(false)
       } else {
-        if (Kb.Styles.isMobile) {
+        if (isMobile) {
           navigateUp()
         } else {
           clearModals()

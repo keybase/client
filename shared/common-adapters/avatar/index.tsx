@@ -95,7 +95,7 @@ function Avatar(p: Props) {
   const onClick =
     _onClick === 'profile' ? (username ? () => navToProfile(username) : undefined) : _onClick
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     const avatarSizeClassName = `avatar-${isTeam ? 'team' : 'user'}-size-${size}`
 
     let bgImage: string | undefined

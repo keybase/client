@@ -54,7 +54,7 @@ function WithTooltip(p: Props) {
     }
   })
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     const onMouseEnter = () => setDesktopVisible(true)
     const onMouseLeave = () => setDesktopVisible(false)
 
@@ -72,7 +72,7 @@ function WithTooltip(p: Props) {
         className={toastClassName}
       >
         <Kb.Text
-          center={!Styles.isMobile}
+          center={!isMobile}
           type="BodySmall"
           style={Styles.collapseStyles([desktopStyles.text, textStyle])}
         >

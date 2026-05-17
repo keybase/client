@@ -20,14 +20,14 @@ const TopBar = (props: Props) => (
     gapEnd={true}
     alignItems="center"
   >
-    {!Kb.Styles.isMobile && <Sort path={props.path} />}
+    {!isMobile && <Sort path={props.path} />}
     <Loading path={props.path} />
     <Kb.Box2 direction="horizontal" flex={1} />
     {T.FS.getPathLevel(props.path) === 3 && <SyncToggle tlfPath={props.path} />}
   </Kb.Box2>
 )
 
-const height = Kb.Styles.isMobile ? 40 : 32
+const height = isMobile ? 40 : 32
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

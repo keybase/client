@@ -57,7 +57,7 @@ const RoverNative = () => (
   </Kb.Box2>
 )
 
-const Rover = Kb.Styles.isMobile ? RoverNative : RoverDesktop
+const Rover = isMobile ? RoverNative : RoverDesktop
 
 const desktopCommon = {bottom: 0, left: 0, position: 'absolute'} as const
 

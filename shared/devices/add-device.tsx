@@ -70,7 +70,7 @@ export default function AddDevice(ownProps: OwnProps) {
             </Kb.Text>
           </Kb.Box2>
           <Kb.Box2
-            direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
+            direction={isMobile ? 'vertical' : 'horizontal'}
             gap="mediumLarge"
             style={styles.deviceOptions}
             gapEnd={true}
@@ -105,7 +105,7 @@ type DeviceOptionProps = {
   onClick: () => void
   type: 'computer' | 'paper key' | 'phone'
 }
-const bigIcon = C.isLargeScreen && Kb.Styles.isMobile
+const bigIcon = C.isLargeScreen && isMobile
 const getIconType = (deviceType: DeviceOptionProps['type'], iconNumber?: number) => {
   let iconType: string
   const size = bigIcon ? 96 : 64
@@ -131,12 +131,12 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
       className="hover_background_color_blueLighter2"
       style={Kb.Styles.collapseStyles([
         styles.deviceOption,
-        Kb.Styles.isMobile && highlight && styles.deviceOptionHighlighted,
+        isMobile && highlight && styles.deviceOptionHighlighted,
       ])}
       direction="vertical"
       centerChildren={true}
       gap="xtiny"
-      gapEnd={!Kb.Styles.isMobile}
+      gapEnd={!isMobile}
     >
       <Kb.ImageIcon type={getIconType(type, iconNumber)} />
       <Kb.Text type="BodySemibold">
@@ -155,7 +155,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       borderStyle: 'solid',
       borderWidth: 1,
       padding: Kb.Styles.globalMargins.tiny,
-      width: Kb.Styles.isMobile ? 192 : 168,
+      width: isMobile ? 192 : 168,
     },
     isElectron: {
       ...Kb.Styles.transition('background-color'),

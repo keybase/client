@@ -40,7 +40,7 @@ export const PaperKey = (props: Props) => {
 
   return (
     <SignupScreen
-      hideDesktopHeader={!Kb.Styles.isMobile}
+      hideDesktopHeader={!isMobile}
       banners={errorBanner(props.error)}
       buttons={[
         {
@@ -53,13 +53,13 @@ export const PaperKey = (props: Props) => {
       ]}
       noBackground={true}
       onBack={props.onBack}
-      title={C.isMobile ? 'Enter paper key' : 'Enter your paper key'}
+      title={isMobile ? 'Enter paper key' : 'Enter your paper key'}
     >
       <Kb.Box2
         direction="vertical"
         style={styles.contents}
-        centerChildren={!Kb.Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
-        gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
+        centerChildren={!isAndroid /* android keyboardAvoiding doesnt work well */}
+        gap={isMobile ? 'tiny' : 'medium'}
       >
         <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
           <Kb.ImageIcon type="icon-paper-key-64" />

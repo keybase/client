@@ -91,7 +91,7 @@ const ManageContactsBanner = () => {
           <Kb.BannerParagraph bannerColor="green" content={[{onClick: onStartChat, text: 'Start a chat'}]} />
         </Kb.Banner>
       )}
-      {(status === 'denied' || (Kb.Styles.isAndroid && status !== 'granted' && contactsImported)) && (
+      {(status === 'denied' || (isAndroid && status !== 'granted' && contactsImported)) && (
         <Kb.Banner color="red">
           <Kb.BannerParagraph
             bannerColor="red"

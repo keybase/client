@@ -49,13 +49,13 @@ export {Picker}
 // NOTE: this doesn't seem to work well when debugging w/ chrome. aka if you scroll and set a value
 // the native component will undo it a bunch and its very finnicky. works fine outside of that it seems
 const FloatingPicker = <T extends string | number>(props: Props<T>): React.ReactNode => {
-  if (!Styles.isMobile || !props.visible) {
+  if (!isMobile || !props.visible) {
     return null
   }
 
   return (
     <Kb.Popup
-      key={Styles.isAndroid ? props.selectedValue || 0 : undefined}
+      key={isAndroid ? props.selectedValue || 0 : undefined}
       onHidden={props.onHidden}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="flex-end" style={styles.menu}>

@@ -22,7 +22,7 @@ function Backdrop(props: BottomSheetBackdropProps) {
 }
 
 const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode => {
-  return Styles.isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
+  return isIOS ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
 }
 
 function DesktopPopupPositioned(props: PopupProps) {
@@ -75,7 +75,7 @@ function NativePopupPositioned(props: PopupProps) {
 }
 
 function PopupPositioned(props: PopupProps) {
-  return Styles.isMobile ? <NativePopupPositioned {...props} /> : <DesktopPopupPositioned {...props} />
+  return isMobile ? <NativePopupPositioned {...props} /> : <DesktopPopupPositioned {...props} />
 }
 
 function PopupCentered(props: PopupProps) {
@@ -166,7 +166,7 @@ function Popup(props: PopupProps) {
   if (props.attachTo) {
     return <PopupPositioned {...props} />
   }
-  if (Styles.isMobile) {
+  if (isMobile) {
     if (!props.onHidden) {
       return <PopupPortal {...props} />
     }

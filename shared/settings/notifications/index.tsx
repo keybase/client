@@ -65,7 +65,7 @@ const Notifications = () => {
     notificationSettings.refresh()
   }
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     return (
       <Reloadable
         onBack={undefined}

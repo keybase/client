@@ -78,7 +78,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
   }
 
   const isAvatar = !!(username || teamname) && !props.icon
-  const commonHeight = size === 'big' ? 64 : Styles.isMobile ? 48 : 32
+  const commonHeight = size === 'big' ? 64 : isMobile ? 48 : 32
   const adapterProps = getAdapterProps(size || 'default')
 
   const showFollowing = !props.horizontal && !props.hideFollowingOverlay && !!username
@@ -136,7 +136,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
                 : styles.hIconStyle
               : {height: adapterProps.iconSize, width: adapterProps.iconSize}
           }
-          fontSize={props.horizontal ? (Styles.isMobile ? 48 : 32) : adapterProps.iconSize}
+          fontSize={props.horizontal ? (isMobile ? 48 : 32) : adapterProps.iconSize}
         />
       </Box2>
     )
@@ -154,7 +154,7 @@ const NameWithIcon = (props: NameWithIconProps) => {
       onUsernameClicked={props.clickType === 'onClick' ? onClick : 'profile'}
       type={props.horizontal ? 'BodyBold' : adapterProps.titleType}
       containerStyle={Styles.collapseStyles([
-        !props.horizontal && !Styles.isMobile && styles.vUsernameContainerStyle,
+        !props.horizontal && !isMobile && styles.vUsernameContainerStyle,
         size === 'smaller' && styles.smallerWidthTextContainer,
       ] as const)}
       inline={!props.horizontal}

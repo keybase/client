@@ -1,19 +1,13 @@
 import * as React from 'react'
-import * as Styles from '@/styles'
+import type * as ExpoAudioModule from 'expo-audio'
+import type * as ExpoModule from 'expo'
 import type {Props} from './audio-video.shared'
 
-type VideoEl = {
-  pause: () => void
-  play: () => Promise<void>
-  currentTime: number
-  duration: number
-}
-
 const MobileAudioVideo = (props: Props) => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const {useAudioPlayer} = require('expo-audio') as typeof import('expo-audio')
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const {useEventListener} = require('expo') as typeof import('expo')
+   
+  const {useAudioPlayer} = require('expo-audio') as typeof ExpoAudioModule
+
+  const {useEventListener} = require('expo') as typeof ExpoModule
 
   const {url, paused, onPositionUpdated, onEnded} = props
   const player = useAudioPlayer(url)
@@ -40,6 +34,8 @@ const MobileAudioVideo = (props: Props) => {
 
   return null
 }
+
+type VideoEl = {pause: () => void; play: () => Promise<void>; currentTime: number; duration: number}
 
 const DesktopAudioVideo = (props: Props) => {
   const {url, paused, onPositionUpdated, onEnded} = props
@@ -68,14 +64,14 @@ const DesktopAudioVideo = (props: Props) => {
 
   return (
     <video
-      ref={vidRef as unknown as React.Ref<HTMLVideoElement>}
+      ref={vidRef as React.Ref<HTMLVideoElement>}
       src={url}
       style={{height: 0, width: 0}}
-      onTimeUpdate={onTimeUpdate as React.ReactEventHandler<HTMLVideoElement>}
+      onTimeUpdate={onTimeUpdate}
       onEnded={onEnded}
     />
   )
 }
 
-const AudioVideo = Styles.isMobile ? MobileAudioVideo : DesktopAudioVideo
+const AudioVideo = isMobile ? MobileAudioVideo : DesktopAudioVideo
 export default AudioVideo

@@ -64,7 +64,7 @@ const Dropdown = (props: Props) => {
       <Kb.Text key="text" type="Header" style={styles.orangeText}>
         {label(value)}
       </Kb.Text>
-      {Kb.Styles.isAndroid ? null : (
+      {isAndroid ? null : (
         <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.icon} sizeType="Tiny" />
       )}
     </>
@@ -84,7 +84,7 @@ const Dropdown = (props: Props) => {
 
   // on android we immediately choose, on ios you have to close the modal to choose
   React.useEffect(() => {
-    if (Kb.Styles.isAndroid) {
+    if (isAndroid) {
       selected(value)
     }
   }, [value, selected])
@@ -97,7 +97,7 @@ const Dropdown = (props: Props) => {
     </Picker>
   )
 
-  if (Kb.Styles.isIOS) {
+  if (isIOS) {
     return (
       <TouchableWithoutFeedback onPress={() => showModal(true)}>
         <View style={styles.container}>

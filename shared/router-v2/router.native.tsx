@@ -162,7 +162,7 @@ const appTabsScreenOptions = (
     tabBarBadgeStyle: {
       backgroundColor: isLiquidGlassSupported ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.orange,
     },
-    ...(C.isIOS
+    ...(isIOS
       ? {
           tabBarActiveIndicatorEnabled: false,
           ...(isLiquidGlassSupported

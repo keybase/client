@@ -9,7 +9,7 @@ import type {Input3Props, Input3Ref} from './input3.shared'
 export type {Input3Props, Input3Ref} from './input3.shared'
 
 // Desktop only CSS import
-if (!Styles.isMobile) {
+if (!isMobile) {
   require('./input.css')
 }
 
@@ -301,7 +301,7 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
 }
 
 function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
-  if (!Styles.isMobile) return <DesktopInput3 {...props} />
+  if (!isMobile) return <DesktopInput3 {...props} />
   return <NativeInput3 {...props} />
 }
 

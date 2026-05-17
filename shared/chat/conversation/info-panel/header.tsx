@@ -8,7 +8,7 @@ import {useChatTeam} from '../team-hooks'
 import {joinConversation} from '../status-actions'
 import {useConversationMetadata} from '../data-hooks'
 
-const gearIconSize = Kb.Styles.isMobile ? 24 : 16
+const gearIconSize = isMobile ? 24 : 16
 
 const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
   const {conversationIDKey} = props

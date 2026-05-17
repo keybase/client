@@ -23,7 +23,7 @@ const SwitchToggle = (props: Props) => {
   const animationRef = React.useRef<NativeAnimated.CompositeAnimation | undefined>(undefined)
 
   React.useEffect(() => {
-    if (!Styles.isMobile) return
+    if (!isMobile) return
     animationRef.current?.stop()
     animationRef.current = NativeAnimated.timing(offset, {
       duration: 100,
@@ -34,7 +34,7 @@ const SwitchToggle = (props: Props) => {
     animationRef.current.start()
   }, [_on, offset])
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     const outerStyle: React.CSSProperties = {
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',

@@ -1,5 +1,5 @@
 import * as T from '@/constants/types'
-import {isLinux, isMobile} from '@/constants/platform'
+import {isLinux} from '@/constants/platform'
 import {navigateAppend} from '@/constants/router'
 
 // Prefetch Constants

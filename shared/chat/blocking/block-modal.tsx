@@ -61,7 +61,7 @@ const CheckboxRow = (props: CheckboxRowProps) => (
       <Kb.WithTooltip
         tooltip={props.info}
         showOnPressMobile={true}
-        position={Kb.Styles.isMobile ? 'bottom center' : 'top center'}
+        position={isMobile ? 'bottom center' : 'top center'}
         multiline={true}
       >
         <Kb.Icon type="iconfont-question-mark" color="grey" />
@@ -476,7 +476,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
         extraData={newBlocks}
         itemHeight={itemHeight}
         style={
-          Kb.Styles.isMobile
+          isMobile
             ? styles.grow
             : getListHeightStyle(
                 otherUsernames?.length ?? 0,
@@ -486,7 +486,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
       />
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            {!Kb.Styles.isMobile && (
+            {!isMobile && (
               <Kb.Button fullWidth={true} label="Cancel" onClick={navigateUp} type="Dim" />
             )}
             <Kb.WaitingButton label="Finish" onClick={onClickFinish} fullWidth={true} type="Danger" />

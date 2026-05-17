@@ -63,7 +63,7 @@ export const CreateNewTeam = (props: Props) => {
             maxLength={16}
             disabled={waiting}
             onEnterKeyDown={disabled ? undefined : onSubmitCb}
-            autoFocus={!Kb.Styles.isMobile /* keyboard can cover the "join subteam" box on mobile */}
+            autoFocus={!isMobile /* keyboard can cover the "join subteam" box on mobile */}
           />
           {isSubteam && (
             <Kb.Text type="BodySmall" style={!name && Kb.Styles.globalStyles.opacity0}>

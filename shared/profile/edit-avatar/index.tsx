@@ -10,7 +10,7 @@ import './edit-avatar.css'
 
 // Desktop-only helpers loaded conditionally at module level (no runtime error on mobile since
 // these values are only referenced inside the desktop branch)
-const KB2 = !Kb.Styles.isMobile
+const KB2 = !isMobile
   ? (require('@/util/electron.desktop').default as {
       functions: {
         isDirectory?: (path: string) => Promise<boolean>
@@ -353,8 +353,8 @@ const NativeAvatarUploadWrapper = (p: Props) => {
     navigation.setOptions({
       headerTitle: () => {
         if (teamID) {
-          const title = hasImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
-          if (Kb.Styles.isMobile) {
+          const title = hasImage && isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
+          if (isMobile) {
             return <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />
           }
           return <Kb.Text type="BodyBig">{title}</Kb.Text>
@@ -490,7 +490,7 @@ function NativeAvatarZoom(p: {src?: string; width: number; height: number; ref?:
 }
 
 const AvatarUploadWrapper = (p: Props) => {
-  if (!Kb.Styles.isMobile) return <DesktopEditAvatar {...p} />
+  if (!isMobile) return <DesktopEditAvatar {...p} />
   return <NativeAvatarUploadWrapper {...p} />
 }
 

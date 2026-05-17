@@ -27,7 +27,7 @@ const NativeKeyboardAvoidingView = (p: Props): React.ReactNode => {
   const keyboardVerticalOffset = headerHeight + (extraOffset ?? 0)
   return (
     <KeyboardAvoidingView
-      behavior={behavior ?? (Styles.isIOS ? 'padding' : 'height')}
+      behavior={behavior ?? (isIOS ? 'padding' : 'height')}
       keyboardVerticalOffset={keyboardVerticalOffset}
       pointerEvents="box-none"
       style={styles.keyboard}
@@ -37,7 +37,7 @@ const NativeKeyboardAvoidingView = (p: Props): React.ReactNode => {
   )
 }
 
-export const KeyboardAvoidingView2 = Styles.isMobile ? NativeKeyboardAvoidingView : DesktopKeyboardAvoidingView
+export const KeyboardAvoidingView2 = isMobile ? NativeKeyboardAvoidingView : DesktopKeyboardAvoidingView
 export default KeyboardAvoidingView2
 
 const styles = Styles.styleSheetCreate(() => ({

@@ -137,7 +137,7 @@ const box2SharedProps = (p: Box2Props) => {
 }
 
 export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink, ref} = p
     const {flex, justifyContent, overflow, padding, relative} = p
     const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children} = p
@@ -205,7 +205,7 @@ export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
 }
 
 export const Box2Animated = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
-  if (!Styles.isMobile) return <Box2 {...p} />
+  if (!isMobile) return <Box2 {...p} />
   const {ref, ...rest} = p
   const props = box2SharedProps(rest)
   const {default: Reanimated} = require('react-native-reanimated') as {

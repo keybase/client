@@ -39,8 +39,8 @@ const PaperKey = ({route}: Props) => {
           fullWidth={true}
           flex={1}
           style={styles.contents}
-          centerChildren={!Kb.Styles.isAndroid /* android keyboardAvoiding doesnt work well */}
-          gap={Kb.Styles.isMobile ? 'tiny' : 'medium'}
+          centerChildren={!isAndroid /* android keyboardAvoiding doesnt work well */}
+          gap={isMobile ? 'tiny' : 'medium'}
         >
           <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
             <Kb.ImageIcon type="icon-paper-key-96" />
@@ -68,7 +68,7 @@ const PaperKey = ({route}: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   contents: {
-    maxWidth: Kb.Styles.isMobile ? '100%' : 460,
+    maxWidth: isMobile ? '100%' : 460,
     width: '100%',
   },
   inputContainer: {

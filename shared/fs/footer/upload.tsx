@@ -37,14 +37,14 @@ const Upload = (props: UploadProps) => {
 
   // Derive desktop draw state; update on showing change (setState-during-render pattern)
   let desktopHideComplete = animationState.hideComplete
-  if (!Kb.Styles.isMobile && animationState.lastShowing !== _showing) {
+  if (!isMobile && animationState.lastShowing !== _showing) {
     desktopHideComplete = false
     setAnimationState({hideComplete: false, lastShowing: _showing})
   }
 
   // Desktop: delay hiding until animation completes
   React.useEffect(() => {
-    if (Kb.Styles.isMobile || _showing || desktopHideComplete) return
+    if (isMobile || _showing || desktopHideComplete) return
     const id = setTimeout(() => {
       setAnimationState(s => (s.lastShowing === _showing ? {...s, hideComplete: true} : s))
     }, 300)
@@ -53,7 +53,7 @@ const Upload = (props: UploadProps) => {
 
   // Native: show/hide animation
   React.useEffect(() => {
-    if (!Kb.Styles.isMobile) return
+    if (!isMobile) return
     mountedRef.current = true
     const stopAnimation = (animation: keyof typeof animationsRef.current) => {
       const a = animationsRef.current[animation]
@@ -122,7 +122,7 @@ const Upload = (props: UploadProps) => {
     }
   }, [_showing, backgroundTop, uploadTop])
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     const drawState: DrawState = _showing ? 'showing' : desktopHideComplete ? 'hidden' : 'hiding'
     const height = 40
     const offset = smallMode && C.isDarwin ? 13 : 0

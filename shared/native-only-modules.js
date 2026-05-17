@@ -8,6 +8,8 @@
 // When a merged .tsx file adds a new native-only package in an isMobile branch, add it here.
 module.exports = [
   'lottie-react-native',
+  'expo-audio',
+  'expo-location',
   'expo-video',
   'react-native-zoom-toolkit',
   '@gorhom/bottom-sheet',

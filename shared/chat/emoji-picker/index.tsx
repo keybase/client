@@ -54,7 +54,7 @@ const getFrequentSection = (
   }
 }
 
-const singleEmojiWidth = C.isMobile ? 32 : 26
+const singleEmojiWidth = isMobile ? 32 : 26
 const emojiPadding = 5
 const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
 const maxEmojiSearchResults = 50
@@ -289,7 +289,7 @@ function EmojiPicker(props: Props) {
         })}
       </Kb.Box2>
     )
-    return Kb.Styles.isMobile ? (
+    return isMobile ? (
       <Kb.ScrollView key="bookmark" horizontal={true} style={styles.bookmarkScrollView}>
         {content}
       </Kb.ScrollView>

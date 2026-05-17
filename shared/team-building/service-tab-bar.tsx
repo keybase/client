@@ -451,5 +451,5 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export const ServiceTabBar = Kb.Styles.isMobile ? ServiceTabBarNative : ServiceTabBarDesktop
+export const ServiceTabBar = isMobile ? ServiceTabBarNative : ServiceTabBarDesktop
 export default ServiceTabBar

@@ -70,12 +70,12 @@ const VerifyPhoneHeaderLeft = () => {
 const SettingsRootDesktop = React.lazy(async () => import('./root-desktop-tablet'))
 const EmptySettingsScreen = () => <></>
 const ManageContactsScreen: React.ComponentType =
-  C.isMobile ? React.lazy(async () => import('./manage-contacts')) : EmptySettingsScreen
+  isMobile ? React.lazy(async () => import('./manage-contacts')) : EmptySettingsScreen
 const emptyFeedbackParams: FeedbackRouteParams = {}
 
 const feedback = {
   ...C.makeScreen(React.lazy(async () => import('./feedback/container')), {
-    getOptions: C.isMobile ? {headerShown: true, title: 'Feedback'} : {},
+    getOptions: isMobile ? {headerShown: true, title: 'Feedback'} : {},
   }),
   initialParams: emptyFeedbackParams,
 }
@@ -90,11 +90,11 @@ export const sharedNewRoutes = defineRouteMap({
     screen: React.lazy(async () => import('./account')),
   },
   [Settings.settingsAdvancedTab]: {
-    getOptions: C.isMobile ? {title: 'Advanced'} : undefined,
+    getOptions: isMobile ? {title: 'Advanced'} : undefined,
     screen: React.lazy(async () => import('./advanced')),
   },
   [Settings.settingsArchiveTab]: {
-    getOptions: C.isMobile ? {title: 'Backup'} : undefined,
+    getOptions: isMobile ? {title: 'Backup'} : undefined,
     screen: React.lazy(async () => import('./archive')),
   },
   [Settings.settingsChatTab]: {
@@ -102,7 +102,7 @@ export const sharedNewRoutes = defineRouteMap({
     screen: React.lazy(async () => import('./chat')),
   },
   [Settings.settingsCryptoTab]: {
-    getOptions: C.isMobile ? {title: 'Crypto'} : {title: 'Crypto tools'},
+    getOptions: isMobile ? {title: 'Crypto'} : {title: 'Crypto tools'},
     screen: React.lazy(async () => import('../crypto/sub-nav')),
   },
   [Settings.settingsDevicesTab]: devicesRoutes.devicesRoot,
@@ -112,7 +112,7 @@ export const sharedNewRoutes = defineRouteMap({
   },
   [Settings.settingsFeedbackTab]: feedback,
   [Settings.settingsFsTab]: {
-    getOptions: C.isMobile ? {title: 'Files'} : undefined,
+    getOptions: isMobile ? {title: 'Files'} : undefined,
     screen: React.lazy(async () => import('./files')),
   },
   [Settings.settingsGitTab]: gitRoutes.gitRoot,
@@ -170,7 +170,7 @@ export const settingsDesktopTabRoutes = defineRouteMap({
 
 const sharedNewModalRoutes = {
   [Settings.settingsLogOutTab]: C.makeScreen(React.lazy(async () => import('./logout')), {
-    getOptions: C.isMobile ? undefined : {title: 'Do you know your password?'},
+    getOptions: isMobile ? undefined : {title: 'Do you know your password?'},
   }),
   [Settings.settingsPasswordTab]: C.makeScreen(React.lazy(async () => import('./password')), {
     getOptions: {title: 'Password'},
@@ -184,14 +184,14 @@ const sharedNewModalRoutes = {
       const {Email} = await import('./account/add-modals')
       return {default: Email}
     }),
-    {getOptions: C.isMobile ? {title: 'Add email address'} : {title: 'Add an email address'}}
+    {getOptions: isMobile ? {title: 'Add email address'} : {title: 'Add an email address'}}
   ),
   settingsAddPhone: C.makeScreen(
     React.lazy(async () => {
       const {Phone} = await import('./account/add-modals')
       return {default: Phone}
     }),
-    {getOptions: C.isMobile ? {title: 'Add phone number'} : {title: 'Add a phone number'}}
+    {getOptions: isMobile ? {title: 'Add phone number'} : {title: 'Add a phone number'}}
   ),
   settingsDeleteAddress: C.makeScreen(React.lazy(async () => import('./account/confirm-delete'))),
   settingsVerifyPhone: C.makeScreen(
@@ -201,7 +201,7 @@ const sharedNewModalRoutes = {
     }),
     {
       getOptions: ({route}) => ({
-        headerLeft: Kb.Styles.isMobile ? () => <VerifyPhoneHeaderLeft /> : undefined,
+        headerLeft: isMobile ? () => <VerifyPhoneHeaderLeft /> : undefined,
         headerStyle: {backgroundColor: Kb.Styles.globalColors.blue},
         headerTitle: () => <VerifyPhoneHeaderTitle phoneNumber={route.params.phoneNumber} />,
       }),
@@ -212,7 +212,7 @@ const sharedNewModalRoutes = {
 const WebLinks = React.lazy(async () => import('./web-links'))
 
 export const newRoutes = defineRouteMap({
-  settingsRoot: C.isMobile
+  settingsRoot: isMobile
     ? C.isPhone
       ? {getOptions: {title: 'More'}, screen: React.lazy(async () => import('./root-phone'))}
       : {getOptions: {title: 'Settings'}, screen: SettingsRootDesktop}
@@ -238,7 +238,7 @@ export const newModalRoutes = defineRouteMap({
   ),
   modalFeedback: feedback,
   settingsContactsJoined: C.makeScreen(React.lazy(async () => import('./contacts-joined'))),
-  settingsPushPrompt: C.isMobile
+  settingsPushPrompt: isMobile
     ? C.makeScreen(React.lazy(async () => import('./notifications/push-prompt')), {
         getOptions: {
           headerLeft: () => null,

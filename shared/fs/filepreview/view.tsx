@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -70,7 +69,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   switch (viewType) {
     case T.RPCGen.GUIViewType.default: {
       // mobile client only supports heic now
-      if (C.isIOS && Chat.isPathHEIC(pathItem.name)) {
+      if (isIOS && Chat.isPathHEIC(pathItem.name)) {
         return (
           <>
             {reloadBanner}
@@ -111,7 +110,7 @@ const FilePreviewViewContent = ({path, onUrlError}: Props) => {
         </>
       )
     case T.RPCGen.GUIViewType.pdf:
-      return !C.isAndroid ? (
+      return !isAndroid ? (
         <>
           {reloadBanner}
           <PdfView url={url} onUrlError={onUrlError} />

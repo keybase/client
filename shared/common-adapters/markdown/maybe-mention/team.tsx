@@ -72,7 +72,7 @@ const TeamMention = (ownProps: OwnProps) => {
     <Kb.Text
       textRef={mentionRef}
       type="BodyBold"
-      className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
+      className={Kb.Styles.classNames({'hover-underline': !isMobile})}
       style={Kb.Styles.collapseStyles([style, styles.text])}
       allowFontScaling={allowFontScaling}
       onClick={handleClick}
@@ -89,7 +89,7 @@ const TeamMention = (ownProps: OwnProps) => {
 
   const popups = (
     <TeamInfo
-      attachTo={Kb.Styles.isMobile ? undefined : mentionRef}
+      attachTo={isMobile ? undefined : mentionRef}
       description={description}
       inTeam={inTeam}
       isOpen={isOpen}
@@ -105,7 +105,7 @@ const TeamMention = (ownProps: OwnProps) => {
   )
 
   return resolved ? (
-    Kb.Styles.isMobile ? (
+    isMobile ? (
       <>
         {content}
         {popups}

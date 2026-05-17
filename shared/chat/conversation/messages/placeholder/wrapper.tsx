@@ -2,8 +2,8 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {WrapperMessage, useWrapperMessage, type Props} from '../wrapper/wrapper'
 
-const baseWidth = Kb.Styles.isMobile ? 100 : 150
-const mult = Kb.Styles.isMobile ? 5 : 10
+const baseWidth = isMobile ? 100 : 150
+const mult = isMobile ? 5 : 10
 
 function WrapperPlaceholder(p: Props) {
   const {ordinal, isCenteredHighlight} = p
@@ -26,7 +26,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: {
         alignItems: 'center',
-        height: Kb.Styles.isMobile ? 22 : 17, // to match a line of text
+        height: isMobile ? 22 : 17, // to match a line of text
         width: '100%',
       },
     }) as const

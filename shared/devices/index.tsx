@@ -79,7 +79,7 @@ function ReloadableDevices() {
   const revokedCount = devices.reduce((count, device) => (device.revokedAt ? count + 1 : count), 0)
 
   React.useEffect(() => {
-    if (Kb.Styles.isMobile) {
+    if (isMobile) {
       return
     }
     navigation.setOptions({
@@ -142,7 +142,7 @@ function ReloadableDevices() {
 
   return (
     <Kb.Reloadable
-      onBack={C.isMobile ? onBack : undefined}
+      onBack={isMobile ? onBack : undefined}
       waitingKeys={C.waitingKeyDevices}
       onReload={loadDevices}
       reloadOnMount={true}
@@ -150,7 +150,7 @@ function ReloadableDevices() {
     >
       <NewContext value={badged}>
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true}>
-          {Kb.Styles.isMobile ? (
+          {isMobile ? (
             <Kb.ClickableBox onClick={() => onAddDevice()} style={headerStyles.container}>
               <Kb.Button label="Add a device or paper key" fullWidth={true} />
               {waiting ? (
@@ -196,7 +196,7 @@ const headerStyles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    height: Kb.Styles.isMobile ? 64 : 48,
+    height: isMobile ? 64 : 48,
     justifyContent: 'center',
     paddingLeft: Kb.Styles.globalMargins.small,
     paddingRight: Kb.Styles.globalMargins.small,
@@ -209,16 +209,16 @@ const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => (
     <Kb.Box2 direction="horizontal" style={paperKeyNudgeStyles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={paperKeyNudgeStyles.border}>
         <Kb.IconAuto
-          type={Kb.Styles.isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'}
+          type={isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'}
         />
         <Kb.Box2 direction="vertical" flex={1}>
           <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
-          <Kb.Text type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>
+          <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>
             A paper key can be used to access your account in case you lose all your devices. Keep one in a
             safe place (like a wallet) to keep your data safe.
           </Kb.Text>
         </Kb.Box2>
-        {!Kb.Styles.isMobile && <Kb.Text type="BodyBigLink">Create a paper key</Kb.Text>}
+        {!isMobile && <Kb.Text type="BodyBigLink">Create a paper key</Kb.Text>}
       </Kb.Box2>
     </Kb.Box2>
   </Kb.ClickableBox>

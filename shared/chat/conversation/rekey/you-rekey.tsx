@@ -2,7 +2,7 @@ import * as Kb from '@/common-adapters'
 import type {Props} from './you-rekey.shared'
 
 const YouRekey = (p: Props) => {
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     return (
       <Kb.Box2
         direction="vertical"

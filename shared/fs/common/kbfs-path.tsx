@@ -50,10 +50,10 @@ const KbfsPathPopup = (props: PopupProps) => {
       attachTo={props.attachRef}
       onHidden={props.onHidden}
       position="top center"
-      propagateOutsideClicks={!Kb.Styles.isMobile}
+      propagateOutsideClicks={!isMobile}
       header={header}
       items={
-        Kb.Styles.isMobile
+        isMobile
           ? [
               'Divider',
               {
@@ -87,7 +87,7 @@ const KbfsPath = (props: Props) => {
   const popup = showing ? (
     <KbfsPathPopup attachRef={textRef} visible={showing} onHidden={() => setShowing(false)} {...props} />
   ) : null
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <>
       {text}
       {popup}

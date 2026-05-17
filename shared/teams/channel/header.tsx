@@ -115,7 +115,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 
   const bottomDescriptorsAndButtons = (
     <>
-      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Kb.Styles.isMobile}>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!isMobile}>
         {!!description && (
           <Kb.Text type="Body" lineClamp={3}>
             {description}
@@ -135,7 +135,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           {canEdit && (
             <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
           )}
-          {!Kb.Styles.isMobile && (
+          {!isMobile && (
             <Kb.Button
               label="Add members"
               onClick={onAddMembers}
@@ -167,7 +167,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     return (
       <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backButton}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.outerBoxMobile}>

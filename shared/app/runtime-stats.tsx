@@ -182,11 +182,11 @@ const LogStats = (props: {num?: number}) => {
       direction="vertical"
       style={{
         backgroundColor: 'rgba(0,0,0, 0.3)',
-        minHeight: (Kb.Styles.isMobile ? 12 : 20) * maxBuckets,
+        minHeight: (isMobile ? 12 : 20) * maxBuckets,
       }}
       fullWidth={true}
     >
-      {!Kb.Styles.isMobile && (
+      {!isMobile && (
         <Kb.Text type="BodyTinyBold" style={styles.stat}>
           Logs
         </Kb.Text>
@@ -399,7 +399,7 @@ const RuntimeStatsMobile = ({stats}: Props) => {
 const RuntimeStats = () => {
   const stats = useConfigState(s => s.runtimeStats)
   return stats ? (
-    Kb.Styles.isMobile ? (
+    isMobile ? (
       <RuntimeStatsMobile stats={stats} />
     ) : (
       <RuntimeStatsDesktop stats={stats} />

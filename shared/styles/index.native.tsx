@@ -3,7 +3,7 @@ import {colors as lightColors} from './colors'
 import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
 import {useDarkModeState} from '@/stores/darkmode'
-import {isIOS, isTablet} from '@/constants/platform'
+import {isTablet} from '@/constants/platform'
 import type * as CSS from './css'
 
 const font = isIOS
@@ -89,7 +89,7 @@ export const collapseStylesDesktop = collapseStyles
 
 export const transition = (..._properties: Array<string>) => ({})
 
-export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
+export {isPhone, isTablet, fileUIName} from '@/constants/platform'
 export * from './shared'
 export * from './styles-base'
 export {themed as globalColors} from './colors'

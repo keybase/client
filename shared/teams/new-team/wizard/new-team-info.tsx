@@ -13,7 +13,7 @@ import {useLoadedTeam} from '../../team/use-loaded-team'
 const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
   switch (status) {
     case T.RPCGen.StatusCode.scteambadnamereserveddb:
-      return Kb.Styles.isMobile
+      return isMobile
         ? 'This team name is reserved by the Keybase team. Contact reservations@keybase.io to claim it.'
         : 'This team name is reserved by the Keybase team, possibly for your organization. Contact reservations@keybase.io to claim it.'
 
@@ -82,7 +82,7 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
     teamWizardState.name ? teamWizardState.open : teamWizardState.teamType === 'community'
   )
   const setOpenTeam = () => {
-    if (Kb.Styles.isMobile) {
+    if (isMobile) {
       Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)
     }
     _setOpenTeam(!openTeam)
@@ -178,7 +178,7 @@ const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
             <Kb.Box2 direction="vertical" alignItems="flex-start" style={Kb.Styles.globalStyles.flexOne}>
               <Kb.Text type="Body">Make it an open team</Kb.Text>
               <Kb.Text type="BodySmall">Anyone can join without admin approval.</Kb.Text>
-              {(!Kb.Styles.isMobile || openTeam) && (
+              {(!isMobile || openTeam) && (
                 <Kb.Box2
                   direction="horizontal"
                   gap="xtiny"

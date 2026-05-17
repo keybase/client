@@ -6,7 +6,7 @@ import colors, {darkColors} from '@/styles/colors'
 import type {Props} from './index.shared'
 import {useColorScheme} from 'react-native'
 
-export const animationDuration = Kb.Styles.isMobile ? 1500 : 2000
+export const animationDuration = isMobile ? 1500 : 2000
 
 // Mobile: static ash tile images
 const explodedIllustrationURL =
@@ -240,7 +240,7 @@ const makeEmojiTowerChildren = (numImages: number) => {
   for (let i = 0; i < numImages * 4; i++) {
     const r = Math.random()
     let emoji: string
-    if (Kb.Styles.isAndroid) {
+    if (isAndroid) {
       emoji = r < 0.5 ? '💥' : '💣'
     } else {
       if (r < 0.33) {
@@ -335,7 +335,7 @@ const AshTower = (p: {explodedBy?: string; numImages: number; showExploded: bool
 }
 
 const ExplodingHeightRetainer = (p: Props) => {
-  if (!Kb.Styles.isMobile) return <DesktopExplodingHeightRetainer {...p} />
+  if (!isMobile) return <DesktopExplodingHeightRetainer {...p} />
   return <NativeExplodingHeightRetainer {...p} />
 }
 

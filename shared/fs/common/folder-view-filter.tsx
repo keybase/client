@@ -19,7 +19,7 @@ const FolderViewFilter = (props: Props) => {
       size="small"
       placeholderCentered={true}
       mobileCancelButton={true}
-      focusOnMount={Kb.Styles.isMobile}
+      focusOnMount={isMobile}
       hotkey="f"
       onCancel={props.onCancel}
       onChange={props.onChangeFilter}

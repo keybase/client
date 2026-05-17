@@ -78,7 +78,7 @@ function InboxBody(p: ControlledInboxProps) {
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
   const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
-  const headComponent = C.isTablet ? null : <SearchRow search={search} showSearch={C.isMobile} />
+  const headComponent = C.isTablet ? null : <SearchRow search={search} showSearch={isMobile} />
   const chosenChannelsTeamnames = useChosenChannelsTeamnames()
   const listExtraData = React.useMemo(
     () => ({
@@ -141,7 +141,7 @@ function InboxBody(p: ControlledInboxProps) {
   })
 
   const promptSmallTeamsNum = React.useCallback(() => {
-    if (C.isIOS) {
+    if (isIOS) {
       Alert.prompt(
         'Change shown',
         'Number of conversations to show above this button',
@@ -169,7 +169,7 @@ function InboxBody(p: ControlledInboxProps) {
       <BigTeamsDivider
         inlineLayout={inlineLayout}
         toggle={scrollToBigTeams}
-        onEdit={C.isIOS ? promptSmallTeamsNum : undefined}
+        onEdit={isIOS ? promptSmallTeamsNum : undefined}
       />
     ),
     [promptSmallTeamsNum, scrollToBigTeams]

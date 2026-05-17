@@ -5,7 +5,7 @@ const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked
   <Kb.ClickableBox onClick={() => onUsernameClicked(username)}>
     <Kb.Box2
       direction="horizontal"
-      alignItems={Kb.Styles.isMobile ? 'center' : undefined}
+      alignItems={isMobile ? 'center' : undefined}
       style={styles.row}
     >
       <Kb.Avatar
@@ -15,19 +15,19 @@ const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked
       />
       <Kb.Box2
         direction="vertical"
-        justifyContent={Kb.Styles.isMobile ? 'center' : undefined}
-        flex={Kb.Styles.isMobile ? 1 : undefined}
+        justifyContent={isMobile ? 'center' : undefined}
+        flex={isMobile ? 1 : undefined}
         style={styles.innerRow}
       >
         <Kb.ConnectedUsernames
           inline={true}
-          backgroundMode={Kb.Styles.isMobile ? 'Terminal' : undefined}
+          backgroundMode={isMobile ? 'Terminal' : undefined}
           type="BodyBold"
           usernames={username}
         />
         <Kb.Text
           type="BodySmall"
-          negative={Kb.Styles.isMobile}
+          negative={isMobile}
           style={Kb.Styles.platformStyles({
             isElectron: {lineHeight: '17px'},
             isMobile: {color: Kb.Styles.globalColors.blueLighter_40, lineHeight: 17},
@@ -44,8 +44,8 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
   <Kb.Box2
     direction="vertical"
     fullWidth={true}
-    justifyContent={Kb.Styles.isMobile ? 'flex-start' : undefined}
-    flex={Kb.Styles.isMobile ? 1 : undefined}
+    justifyContent={isMobile ? 'flex-start' : undefined}
+    flex={isMobile ? 1 : undefined}
     style={styles.container}
   >
     <Kb.Box2
@@ -55,7 +55,7 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
       style={{backgroundColor: Kb.Styles.globalColors.red}}
     >
       <Kb.Text
-        center={Kb.Styles.isMobile}
+        center={isMobile}
         negative={true}
         style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
         type="BodySemibold"

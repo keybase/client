@@ -75,7 +75,7 @@ export const TeamBotRow = (props: Props) => {
         <Kb.Box2 direction="horizontal" alignItems="center" flex={1}>
           <Kb.Avatar
             username={props.username}
-            size={Kb.Styles.isMobile ? 48 : 32}
+            size={isMobile ? 48 : 32}
             onClick={props.onOpenProfile}
           />
           <Kb.Box2 direction="vertical" style={styles.nameContainer}>
@@ -90,16 +90,16 @@ export const TeamBotRow = (props: Props) => {
             <Kb.Icon
               onClick={_onShowMenu}
               style={
-                Kb.Styles.isMobile
+                isMobile
                   ? Kb.Styles.collapseStyles([styles.menuButtonMobile, styles.menuButtonMobileSmallTop])
                   : styles.menuButtonDesktop
               }
-              fontSize={Kb.Styles.isMobile ? 20 : 16}
+              fontSize={isMobile ? 20 : 16}
               type="iconfont-ellipsis"
             />
           )}
           <BotMenu
-            attachTo={Kb.Styles.isMobile ? undefined : popupAnchor}
+            attachTo={isMobile ? undefined : popupAnchor}
             canManageBots={props.canManageBots}
             visible={showMenu}
             onEdit={props.onEdit}
@@ -126,7 +126,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   innerContainerTop: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
     flexShrink: 0,
-    height: Kb.Styles.isMobile ? 56 : 48,
+    height: isMobile ? 56 : 48,
   },
   menuButtonDesktop: {
     marginLeft: Kb.Styles.globalMargins.small,

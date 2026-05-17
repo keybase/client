@@ -291,7 +291,7 @@ const useIncomingShareItems = () => {
   // iOS
   const rpc = C.useRPC(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise)
   React.useEffect(() => {
-    if (!C.isIOS) {
+    if (!isIOS) {
       return
     }
 
@@ -305,7 +305,7 @@ const useIncomingShareItems = () => {
   // Android
   const androidShare = useConfigState(s => s.androidShare)
   const androidShareItems =
-    C.isAndroid && androidShare
+    isAndroid && androidShare
       ? androidShare.type === T.RPCGen.IncomingShareType.file
         ? androidShare.urls.map(u => ({originalPath: u, type: T.RPCGen.IncomingShareType.file}))
         : [{content: androidShare.text, type: T.RPCGen.IncomingShareType.text}]

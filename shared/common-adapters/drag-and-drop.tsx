@@ -21,7 +21,7 @@ type DragEvent = {
 const DragAndDrop = (props: Props): React.ReactNode => {
   const [showDropOverlay, setShowDropOverlay] = React.useState(false)
 
-  if (Styles.isMobile) {
+  if (isMobile) {
     return props.children ?? null
   }
 

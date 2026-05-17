@@ -90,12 +90,12 @@ const TextInput = (props: TextProps) => {
     C.ignorePromise(f())
   }
 
-  const rowsMax = Kb.Styles.isMobile ? undefined : value ? undefined : 1
-  const growAndScroll = !Kb.Styles.isMobile && !!value
+  const rowsMax = isMobile ? undefined : value ? undefined : 1
+  const growAndScroll = !isMobile && !!value
   const inputStyle = Kb.Styles.collapseStyles([
     styles.input,
     value ? styles.inputFull : styles.inputEmpty,
-    !value && !Kb.Styles.isMobile && {width: emptyInputWidth},
+    !value && !isMobile && {width: emptyInputWidth},
   ])
   const inputContainerStyle = value ? styles.inputContainer : styles.inputContainerEmpty
 
@@ -116,11 +116,11 @@ const TextInput = (props: TextProps) => {
     <Kb.ClickableBox onClick={onFocusInput} style={styles.containerInputFocus}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
         <Kb.Box2
-          direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
+          direction={isMobile ? 'vertical' : 'horizontal'}
           alignItems="flex-start"
           alignSelf="flex-start"
-          fullWidth={Kb.Styles.isMobile || !!value}
-          fullHeight={Kb.Styles.isMobile || !!value}
+          fullWidth={isMobile || !!value}
+          fullHeight={isMobile || !!value}
           style={styles.inputAndFilePickerContainer}
         >
           <Kb.Input3
@@ -139,10 +139,10 @@ const TextInput = (props: TextProps) => {
             onChangeText={onChangeText}
             ref={inputRef}
           />
-          {!Kb.Styles.isMobile && browseButton}
+          {!isMobile && browseButton}
         </Kb.Box2>
       </Kb.Box2>
-      {!Kb.Styles.isMobile && clearButton}
+      {!isMobile && clearButton}
     </Kb.ClickableBox>
   )
 }
@@ -254,7 +254,7 @@ export const InputActionsBar = ({blurCBRef, children, onRun, runLabel}: RunActio
     }, 100)
   }
 
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <Kb.Box2
       direction="vertical"
       fullWidth={true}

@@ -67,13 +67,13 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
         ) : (
           <Kb.Box2
             alignSelf="center"
-            centerChildren={!Kb.Styles.isMobile}
+            centerChildren={!isMobile}
             direction="vertical"
             fullWidth={true}
             gap="tiny"
             style={styles.emptyContainer}
           >
-            {!Kb.Styles.isMobile && (
+            {!isMobile && (
               <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-mention" />
             )}
             {namespace === 'chat' ? (

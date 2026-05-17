@@ -185,7 +185,7 @@ export function maybeAutoRunTextOperation<State extends CommonState>(
   snapshot: State,
   run: (destinationDir?: string, snapshot?: State) => Promise<unknown>
 ) {
-  if (snapshot.inputType !== 'text' || C.isMobile) return
+  if (snapshot.inputType !== 'text' || isMobile) return
   const f = async () => {
     await run('', snapshot)
   }

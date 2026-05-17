@@ -6,7 +6,7 @@ import useHook from './hooks'
 const CreateChannel = (p: Props) => {
   const props = useHook(p)
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     return (
       <>
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={desktopStyles.boxTop}>

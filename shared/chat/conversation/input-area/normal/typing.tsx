@@ -52,7 +52,7 @@ const Typing = function Typing() {
       showGiphySearch: s.giphyWindow,
     }))
   )
-  const showTypingStatus = !C.isMobile || (!showGiphySearch && !showCommandMarkdown)
+  const showTypingStatus = !isMobile || (!showGiphySearch && !showCommandMarkdown)
   const names = showTypingStatus ? threadTyping : emptySet
   return (
     <Kb.Box2 direction="horizontal" style={styles.isTypingContainer}>

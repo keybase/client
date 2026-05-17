@@ -9,12 +9,12 @@ function People(props: WrapProps) {
     <Kb.ScrollView
       style={styles.container}
       refreshControl={
-        Kb.Styles.isMobile
+        isMobile
           ? <RefreshControl refreshing={waiting} onRefresh={() => props.getData(false, true)} />
           : undefined
       }
     >
-      {!Kb.Styles.isMobile && waiting && <Kb.ProgressIndicator style={styles.progress} />}
+      {!isMobile && waiting && <Kb.ProgressIndicator style={styles.progress} />}
       <PeoplePageList {...rest} />
     </Kb.ScrollView>
   )

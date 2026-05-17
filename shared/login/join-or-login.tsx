@@ -65,7 +65,7 @@ const Intro = () => {
             Join Keybase
           </Kb.Text>
         </Kb.Box2>
-        <Kb.ButtonBar direction="column" fullWidth={Kb.Styles.isMobile} style={styles.buttonBar}>
+        <Kb.ButtonBar direction="column" fullWidth={isMobile} style={styles.buttonBar}>
           <Kb.Button label="Create account" onClick={onSignup} fullWidth={true} />
           <Kb.Button label="Log in" mode="Secondary" onClick={onLogin} fullWidth={true} />
           {isOnline ? null : (

@@ -19,13 +19,13 @@ const nativeStyles = Styles.styleSheetCreate(() => ({
   topSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
 }))
 
-export const SafeAreaViewTop = Styles.isMobile ? SafeAreaViewTopNative : SafeAreaViewTopDesktop
+export const SafeAreaViewTop = isMobile ? SafeAreaViewTopNative : SafeAreaViewTopDesktop
 
 const desktopInsets = {bottom: 0, left: 0, right: 0, top: 0}
-export const useSafeAreaInsets = Styles.isMobile
+export const useSafeAreaInsets = isMobile
   ? useSafeAreaInsetsNative
   : () => desktopInsets
 
 const DesktopSafeAreaView = (props: Props): React.ReactNode => props.children ?? null
 
-export default Styles.isMobile ? SafeAreaView : DesktopSafeAreaView
+export default isMobile ? SafeAreaView : DesktopSafeAreaView

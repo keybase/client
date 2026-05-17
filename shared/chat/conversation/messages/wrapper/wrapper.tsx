@@ -541,7 +541,7 @@ const NormalWrapper = ({
   style: Kb.Styles.StylesCrossPlatform
 }) => {
   return (
-    <Kb.Box2 direction="vertical" flex={1} relative={true} style={style} fullWidth={!Kb.Styles.isMobile}>
+    <Kb.Box2 direction="vertical" flex={1} relative={true} style={style} fullWidth={!isMobile}>
       {children}
     </Kb.Box2>
   )
@@ -562,7 +562,7 @@ function TextAndSiblings(p: TSProps) {
   const {hasReactions, popupAnchor, reactions, sendIndicatorFailed, sendIndicatorID} = p
   const {sendIndicatorSent, type, setShowingPicker, showCoinsIcon, shouldShowPopup} = p
   const {showPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker, submitState} = p
-  const pressableProps = Kb.Styles.isMobile
+  const pressableProps = isMobile
     ? {
         onLongPress: decorate && shouldShowPopup ? showPopup : undefined,
         style: isHighlighted ? {backgroundColor: Kb.Styles.globalColors.yellowOrYellowAlt} : undefined,
@@ -599,7 +599,7 @@ function TextAndSiblings(p: TSProps) {
         flex={1}
         relative={true}
         style={styles.middle}
-        fullWidth={!Kb.Styles.isMobile}
+        fullWidth={!isMobile}
       >
         <NormalWrapper style={styles.background}>
           {content}
@@ -766,7 +766,7 @@ function BottomSide(p: BProps) {
     />
   ) : null
 
-  const canShowDesktopReactionsPopup = !C.isMobile && !hasReactions && canShowReactionsPopup
+  const canShowDesktopReactionsPopup = !isMobile && !hasReactions && canShowReactionsPopup
   const desktopReactionsPopup =
     canShowDesktopReactionsPopup && !showingPopup ? (
       <EmojiRow
@@ -868,7 +868,7 @@ function RightSide(p: RProps) {
   // is fine
 
   const menu =
-    C.isMobile || !shouldShowPopup ? null : (
+    isMobile || !shouldShowPopup ? null : (
       <Kb.Box2
         direction="vertical"
         tooltip="More actions..."
@@ -999,7 +999,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           alignItems: 'flex-start',
           alignSelf: 'flex-start',
-          marginLeft: Kb.Styles.isMobile ? 48 : 56,
+          marginLeft: isMobile ? 48 : 56,
         },
         isElectron: {
           marginBottom: 0,
@@ -1049,7 +1049,7 @@ const styles = Kb.Styles.styleSheetCreate(
       messagePopupContainer: {marginRight: Kb.Styles.globalMargins.small},
       middle: {
         flexShrink: 1,
-        paddingLeft: Kb.Styles.isMobile ? 48 : 56,
+        paddingLeft: isMobile ? 48 : 56,
         paddingRight: 4,
       },
       rightSide: Kb.Styles.platformStyles({

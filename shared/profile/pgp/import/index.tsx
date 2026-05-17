@@ -8,7 +8,7 @@ export default function Import() {
     navigateUp()
   }
 
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     return (
       <Modal onCancel={onCancel}>
         <Kb.Box2 direction="vertical" gap="small" gapEnd={true}>

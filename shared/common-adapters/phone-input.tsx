@@ -12,7 +12,6 @@ import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
 import {usePopup2, type Popup2Parms} from './popup/use-popup'
-import {isIOS, isMobile} from '@/constants/platform'
 import {
   countryData,
   codeToCountry,
@@ -203,7 +202,7 @@ function CountrySelector(p: CountrySelectorProps & {ref?: React.Ref<CountrySelec
     const mobileItems = pickerItems(countryData())
 
     const onSelectFirst = () => {
-      if (Styles.isMobile && mobileItems[0]) {
+      if (isMobile && mobileItems[0]) {
         onSelectMenu(mobileItems[0].value)
       } else if (desktopItems[0]) {
         onSelectMenu(desktopItems[0].alpha2)
@@ -388,7 +387,7 @@ const PhoneInput = (p: Props) => {
     }
   }
 
-  const isSmall = small ?? !Styles.isMobile
+  const isSmall = small ?? !isMobile
 
   // If country is falsey, the input is loading
   if (country === undefined) {
@@ -509,7 +508,7 @@ const PhoneInput = (p: Props) => {
   }
 
   const renderCountrySelector = () => {
-    const isSmall = small ?? !Styles.isMobile
+    const isSmall = small ?? !isMobile
     if (!isSmall) {
       return (
         <Kb.Text

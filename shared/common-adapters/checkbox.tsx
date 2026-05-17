@@ -12,7 +12,7 @@ const CHECKBOX_MARGIN = 8
 const Kb = {Box2, ClickableBox, Icon, Styles, Switch, Text}
 
 const Checkbox = (props: Props) => {
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     return (
       <Kb.ClickableBox
         style={Kb.Styles.collapseStyles([

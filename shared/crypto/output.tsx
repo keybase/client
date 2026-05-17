@@ -43,10 +43,10 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
   const signedByUsername = state.outputSenderUsername
   const signedByFullname = state.outputSenderFullname
 
-  const avatarSize = isSelfSigned ? 16 : Kb.Styles.isMobile ? 32 : 48
+  const avatarSize = isSelfSigned ? 16 : isMobile ? 32 : 48
   const usernameType = isSelfSigned ? 'BodySmallBold' : 'BodyBold'
 
-  const space = Kb.Styles.isMobile ? '' : ' '
+  const space = isMobile ? '' : ' '
   const signedByText = `Signed by ${isSelfSigned ? `${space}you` : ''}`
 
   if (!state.outputStatus) {
@@ -143,7 +143,7 @@ export const OutputInfoBanner = ({outputStatus, children}: OutputInfoProps) =>
       color="grey"
       style={styles.banner}
       textContainerStyle={styles.bannerContainer}
-      narrow={Kb.Styles.isMobile}
+      narrow={isMobile}
     >
       {children}
     </Kb.Banner>
@@ -188,7 +188,7 @@ export const CryptoOutputActionsBar = ({
 
   return state.outputStatus === 'success' ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputActionsBarContainer}>
-      {state.outputType === 'file' && !Kb.Styles.isMobile ? (
+      {state.outputType === 'file' && !isMobile ? (
         <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
           <Kb.Button
             mode="Secondary"
@@ -207,7 +207,7 @@ export const CryptoOutputActionsBar = ({
               mode="Primary"
               label="Reply in chat"
               disabled={actionsDisabled}
-              fullWidth={Kb.Styles.isMobile}
+              fullWidth={isMobile}
               onClick={() => onReplyInChat(state.outputSenderUsername ?? '')}
             />
           ) : null}
@@ -217,17 +217,17 @@ export const CryptoOutputActionsBar = ({
                 Copied to clipboard
               </Kb.Text>
             </Kb.Toast>
-            {Kb.Styles.isMobile && canReplyInChat ? null : (
+            {isMobile && canReplyInChat ? null : (
               <Kb.Button
-                mode={Kb.Styles.isMobile ? 'Primary' : 'Secondary'}
+                mode={isMobile ? 'Primary' : 'Secondary'}
                 label="Copy to clipboard"
                 disabled={actionsDisabled}
-                fullWidth={Kb.Styles.isMobile}
+                fullWidth={isMobile}
                 onClick={copy}
               />
             )}
           </Kb.Box2>
-          {canSaveAsText && !Kb.Styles.isMobile && onSaveAsText ? (
+          {canSaveAsText && !isMobile && onSaveAsText ? (
             <Kb.Button
               mode="Secondary"
               label="Save as TXT"
@@ -284,7 +284,7 @@ const OutputFileDestination = ({
   )
 }
 
-const MobileScroll = Kb.Styles.isMobile ? Kb.ScrollView : React.Fragment
+const MobileScroll = isMobile ? Kb.ScrollView : React.Fragment
 
 export const CryptoOutput = ({
   actionLabel,

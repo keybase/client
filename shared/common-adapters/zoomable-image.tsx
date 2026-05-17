@@ -321,7 +321,7 @@ const NativeZoomableImage = (p: Props) => {
 }
 
 const ZoomableImage = (p: Props) => {
-  if (!Styles.isMobile) return <DesktopZoomableImage {...p} />
+  if (!isMobile) return <DesktopZoomableImage {...p} />
   return <NativeZoomableImage {...p} />
 }
 

@@ -8,7 +8,7 @@ function LoadingLine() {
   'use no memo'
   const opacity = useSharedValue(1)
   React.useEffect(() => {
-    if (!Styles.isMobile) return
+    if (!isMobile) return
     opacity.set(withDelay(1000, withRepeat(withTiming(0, {duration: 600}), -1, true)))
   }, [opacity])
 
@@ -20,7 +20,7 @@ function LoadingLine() {
     }
   })
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     return (
       <Box2 direction="vertical" style={styles.container}>
         <Box2 direction="vertical" fullWidth={true} className="loading-line" style={styles.line} />

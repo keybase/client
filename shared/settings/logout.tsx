@@ -54,7 +54,7 @@ const LogoutContainer = () => {
     setLoggingOut(true)
   }
 
-  const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
+  const keyboardType = showTyping && isAndroid ? 'visible-password' : 'default'
 
   return hasRandomPW === undefined ? (
     <Kb.ProgressIndicator style={styles.progress} type="Huge" />
@@ -76,7 +76,7 @@ const LogoutContainer = () => {
       ) : null}
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container}>
-          {Kb.Styles.isMobile && (
+          {isMobile && (
             <Kb.Text style={styles.headerText} type="Header">
               Do you know your password?
             </Kb.Text>

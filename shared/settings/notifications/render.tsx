@@ -71,7 +71,7 @@ const Notifications = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
       ) : null}
-      {(!Kb.Styles.isMobile || mobileHasPermissions) && !!props.groups.get('app_push')?.settings ? (
+      {(!isMobile || mobileHasPermissions) && !!props.groups.get('app_push')?.settings ? (
         <>
           <Kb.Divider style={styles.divider} />
           <PhoneSection {...props} />

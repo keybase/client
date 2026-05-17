@@ -14,7 +14,7 @@ const noOrdinal = T.Chat.numberToOrdinal(0)
 
 // Single merged selector replacing useStateFast + useState
 const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal) => {
-  const ordinal = Kb.Styles.isMobile ? leadingItem : trailingItem
+  const ordinal = isMobile ? leadingItem : trailingItem
   const orangeOrdinal = React.useContext(OrangeLineContext)
   const you = useCurrentUserState(s => s.username)
 
@@ -39,7 +39,7 @@ const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordi
         (orangeOrdinal === ordinal || (orangeOrdinal < ordinal && orangeOrdinal > previous))
       const isJoinLeave = m.type === 'systemJoined'
       const orangeTime =
-        !C.isMobile && !showUsername && !tooSoon && !isJoinLeave
+        !isMobile && !showUsername && !tooSoon && !isJoinLeave
           ? formatTimeForConversationList(m.timestamp)
           : ''
 

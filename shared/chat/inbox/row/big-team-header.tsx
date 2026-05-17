@@ -71,8 +71,8 @@ const styles = Kb.Styles.styleSheetCreate(
       badge: {
         height: 10,
         position: 'absolute',
-        right: Kb.Styles.isMobile ? 4 : -4,
-        top: Kb.Styles.isMobile ? 7 : -2,
+        right: isMobile ? 4 : -4,
+        top: isMobile ? 7 : -2,
         width: 10,
       },
       badgeVisible: {

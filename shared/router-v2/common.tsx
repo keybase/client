@@ -8,10 +8,10 @@ import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import type {NavState} from '@/constants/router'
 import Header from './header/index'
 
-export const headerDefaultStyle = Kb.Styles.isMobile
+export const headerDefaultStyle = isMobile
   ? {
       get backgroundColor() {
-        return Kb.Styles.isIOS ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.white
+        return isIOS ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.white
       },
       borderBottomColor: Kb.Styles.globalColors.black_10,
       borderBottomWidth: Kb.Styles.hairlineWidth,
@@ -25,15 +25,15 @@ export const tabBarStyle = {
   },
 } as const
 
-export const tabBarBlurEffect = Kb.Styles.isMobile ? ('systemDefault' as const) : undefined
-export const tabBarMinimizeBehavior = Kb.Styles.isMobile ? ('onScrollDown' as const) : undefined
+export const tabBarBlurEffect = isMobile ? ('systemDefault' as const) : undefined
+export const tabBarMinimizeBehavior = isMobile ? ('onScrollDown' as const) : undefined
 
 const actionWidth = 64
 const DEBUGCOLORS = __DEV__ && (false as boolean)
 
 type HeaderLeftProps = Parameters<NonNullable<HeaderOptions['headerLeft']>>[0]
 
-export const defaultNavigationOptions = Kb.Styles.isMobile
+export const defaultNavigationOptions = isMobile
   ? ({
       headerBackButtonDisplayMode: 'minimal',
       headerBackTitle: '',
@@ -70,7 +70,7 @@ export const defaultNavigationOptions = Kb.Styles.isMobile
           {hp.children}
         </Kb.Text>
       ),
-      headerTitleAlign: Kb.Styles.isAndroid ? 'center' : undefined,
+      headerTitleAlign: isAndroid ? 'center' : undefined,
       headerTitleContainerStyle: {
         alignItems: 'stretch',
         flexGrow: 1,
@@ -119,7 +119,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 type SubnavNavigation = Pick<NavigationContainerRef<ParamListBase>, 'dispatch' | 'emit'>
 
 export const useSubnavTabAction = (navigation: SubnavNavigation, state: NavState) => {
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     const routesRef = {current: state?.routes}
     const stateKeyRef = {current: state?.key}
     const navRef = {current: navigation}

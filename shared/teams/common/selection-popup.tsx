@@ -81,16 +81,16 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
   }
   const popup = (
     <Kb.Box2
-      fullWidth={Kb.Styles.isMobile}
+      fullWidth={isMobile}
       direction={Kb.Styles.isPhone ? 'vertical' : 'horizontal'}
       alignItems="center"
       style={Kb.Styles.collapseStyles([
         styles.container,
-        selectedCount && !Kb.Styles.isMobile ? styles.containerShowing : null,
+        selectedCount && !isMobile ? styles.containerShowing : null,
       ])}
       gap={Kb.Styles.isPhone ? 'tiny' : undefined}
       className="selectionPopup"
-      onLayout={Kb.Styles.isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
+      onLayout={isMobile ? event => setHeight(event.nativeEvent.layout.height) : undefined}
     >
       {Kb.Styles.isPhone && (
         <Kb.Text style={styles.topLink} type="BodyBigLink" onClick={onCancel}>
@@ -112,7 +112,7 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
       {Kb.Styles.isPhone && <Kb.Box2 direction="vertical" style={{height: bottom}} />}
     </Kb.Box2>
   )
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <>
       {<Kb.Box2 direction="vertical" style={{height: height > 48 ? height - 48 - bottom : -bottom}} />}
       <Kb.Popup>{popup}</Kb.Popup>
@@ -323,7 +323,7 @@ const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
 
   return (
     <ActionsWrapper>
-      <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Kb.Styles.isMobile} />
+      <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={isMobile} />
     </ActionsWrapper>
   )
 }

@@ -70,17 +70,17 @@ const PopAttachLoaded = (ownProps: OwnProps & {
     clearModals()
     showConversationInfoPanel(conversationIDKey, true, 'attachments')
   }
-  const onDownload = !C.isMobile && !message.downloadPath ? actions.download : undefined
+  const onDownload = !isMobile && !message.downloadPath ? actions.download : undefined
   const onSaveAttachment =
-    C.isMobile && (attachmentType === 'image' || Chat.isImageViewable(message)) ? actions.save : undefined
-  const onShareAttachment = C.isMobile ? actions.share : undefined
+    isMobile && (attachmentType === 'image' || Chat.isImageViewable(message)) ? actions.save : undefined
+  const onShareAttachment = isMobile ? actions.share : undefined
 
   const _onShowInFinder = () => {
     if (downloadPath) {
       openLocalPathInSystemFileManagerDesktop(downloadPath)
     }
   }
-  const onShowInFinder = !C.isMobile && message.downloadPath ? _onShowInFinder : undefined
+  const onShowInFinder = !isMobile && message.downloadPath ? _onShowInFinder : undefined
 
   const {itemBot, itemReaction, itemCopyLink, itemReply, itemEdit, itemForward, itemPin, itemUnread} = i
   const {itemExplode, itemDelete, itemKick, itemProfile} = i

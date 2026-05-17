@@ -15,7 +15,7 @@ function BuildTeam() {
   }
 
   return (
-    <Kb.Box2 direction="vertical" gap={Kb.Styles.isMobile ? 'tiny' : 'xtiny'} style={styles.container}>
+    <Kb.Box2 direction="vertical" gap={isMobile ? 'tiny' : 'xtiny'} style={styles.container}>
       <Kb.Button fullWidth={true} label="Create a team" mode="Secondary" onClick={onCreateTeam} />
       <Kb.Button fullWidth={true} label="Join a team" mode="Secondary" onClick={onJoinTeam} />
     </Kb.Box2>

@@ -1,6 +1,5 @@
 import type {FeatureFlags} from './feature-flags.shared'
 import {featureFlagsOverride} from '@/local-debug'
-import {isMobile} from '@/constants/platform'
 
 const features = (featureFlagsOverride as string | undefined)?.split(',') ?? []
 

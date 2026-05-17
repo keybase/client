@@ -5,7 +5,6 @@ import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {androidAddCompleteDownload, fsCacheDir, fsDownloadDir} from 'react-native-kb'
 import logger from '@/logger'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '@/util/platform-specific'
-import {isAndroid} from '@/constants/platform.native'
 import * as Constants from '@/constants/fs'
 
 const finishedRegularDownloadIDs = new Set<string>()

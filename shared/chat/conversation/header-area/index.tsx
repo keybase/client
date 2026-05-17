@@ -49,7 +49,7 @@ const HeaderAreaRightImpl = (props: HeaderConversationProps) => {
     </Kb.Box2>
   )
 }
-export const HeaderAreaRight = Kb.Styles.isMobile ? HeaderAreaRightImpl : () => null
+export const HeaderAreaRight = isMobile ? HeaderAreaRightImpl : () => null
 
 enum HeaderType {
   Team,
@@ -57,7 +57,7 @@ enum HeaderType {
   User,
 }
 
-const HeaderBranchContainer = Kb.Styles.isMobile
+const HeaderBranchContainer = isMobile
   ? () => <HeaderBranchContainerInner conversationIDKey={Chat.noConversationIDKey} />
   : () => null
 
@@ -96,12 +96,12 @@ const BadgeHeaderLeftArray = (p: HeaderBackButtonProps & HeaderConversationProps
 const sfIcon = (name: SFSymbol) => ({name, type: 'sfSymbol' as const})
 
 export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.Chat.ConversationIDKey}}) => {
-  if (!Kb.Styles.isMobile) return {}
+  if (!isMobile) return {}
   const conversationIDKey = route.params?.conversationIDKey ?? Chat.noConversationIDKey
   return {
     // iOS 26: headerLeft omitted — native back button comes from tabStackOptions (headerBackVisible: true).
     // BadgeHeaderUpdater in container.tsx drives unstable_headerLeftItems for the badge count.
-    ...(!Kb.Styles.isIOS
+    ...(!isIOS
       ? {
           headerLeft: (props: HeaderBackButtonProps) => {
             const {labelStyle, ...rest} = props
@@ -110,7 +110,7 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
         }
       : {}),
     // iOS 26: two separate native buttons (each gets its own glass pill).
-    ...(Kb.Styles.isIOS
+    ...(isIOS
       ? {
           unstable_headerRightItems: () => [
             {
@@ -186,7 +186,7 @@ const ChannelHeader = (props: HeaderConversationProps) => {
   const {conversationIDKey} = props
   const {channelname, teamname, teamType, teamID} = useConversationMetadata(conversationIDKey).meta
   const smallTeam = teamType !== 'big'
-  const textType = smallTeam ? 'BodyBig' : Kb.Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
+  const textType = smallTeam ? 'BodyBig' : isMobile ? 'BodyTinySemibold' : 'BodySemibold'
   const navigateAppend = C.Router2.navigateAppend
   const onClick = () => {
     navigateAppend({name: 'team', params: {teamID}})

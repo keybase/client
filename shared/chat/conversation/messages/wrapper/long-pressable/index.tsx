@@ -28,7 +28,7 @@ function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
   const {focusInput} = React.useContext(FocusContext)
   const swipeRef = React.useRef<SwipeableMethods | null>(null)
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     return <Kb.Box2 direction="horizontal" fullWidth={true} {...props} />
   }
 

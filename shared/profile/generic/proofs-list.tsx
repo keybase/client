@@ -580,7 +580,7 @@ const ProviderPicker = ({
 }) => {
   const [filter, setFilter] = React.useState('')
   const itemHeight = {
-    height: Kb.Styles.isMobile ? 56 : 48,
+    height: isMobile ? 56 : 48,
     type: 'fixed',
   } as const
   const filterRegexp = makeInsertMatcher(filter)
@@ -642,7 +642,7 @@ const ProviderPicker = ({
                     </Kb.Box2>
                     <Kb.Icon
                       color={Kb.Styles.globalColors.black_50}
-                      fontSize={Kb.Styles.isMobile ? 20 : 16}
+                      fontSize={isMobile ? 20 : 16}
                       style={styles.iconArrow}
                       type="iconfont-arrow-right"
                     />
@@ -718,7 +718,7 @@ const EnterUsername = ({
         </Kb.Box2>
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-        {C.isMobile ? null : (
+        {isMobile ? null : (
           <Kb.Text center={true} type="Header">
             {pt.headerText}
           </Kb.Text>
@@ -780,7 +780,7 @@ const GenericEnterUsername = ({
   const unreachable = !!step.proofUrl
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      {!unreachable && !Kb.Styles.isMobile && <Kb.BackButton onClick={onCancel} style={styles.backButton} />}
+      {!unreachable && !isMobile && <Kb.BackButton onClick={onCancel} style={styles.backButton} />}
       <Kb.Box2 alignItems="center" direction="vertical" gap="xtiny" style={styles.serviceIconHeaderContainer}>
         <Kb.Box2 direction="vertical" relative={true}>
           <SiteIcon set={step.genericParams.logoFull} full={true} style={styles.serviceIconFull} />
@@ -849,7 +849,7 @@ const GenericEnterUsername = ({
           </Kb.Text>
         )}
         <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-          {!Kb.Styles.isMobile && !unreachable && (
+          {!isMobile && !unreachable && (
             <Kb.Button type="Dim" onClick={onCancel} label="Cancel" style={styles.buttonSmall} />
           )}
           {unreachable ? (
@@ -965,7 +965,7 @@ const PostProof = ({
               {noteText}
             </Kb.Text>
           )}
-          <Kb.Box2 direction={Kb.Styles.isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
+          <Kb.Box2 direction={isMobile ? 'verticalReverse' : 'horizontal'} gap="small">
             <Kb.Button type="Dim" onClick={onCancel} label="Cancel" />
             {showSubmit ? (
               <Kb.WaitingButton
@@ -1106,7 +1106,7 @@ const Unreachable = ({
     gap="xtiny"
     alignItems="flex-start"
     style={Kb.Styles.collapseStyles([styles.inputBox, styles.unreachableBox])}
-    fullWidth={Kb.Styles.isMobile}
+    fullWidth={isMobile}
   >
     <SiteIcon
       set={serviceIcon}
@@ -1141,7 +1141,7 @@ const UsernameTips = ({platform}: {platform: T.More.PlatformsExpandedType}) =>
   ) : null
 
 const standardText = (name: string) => ({
-  headerText: C.isMobile ? `Prove ${name}` : `Prove your ${name} identity`,
+  headerText: isMobile ? `Prove ${name}` : `Prove your ${name} identity`,
   hintText: `Your ${name} username`,
 })
 
@@ -1318,7 +1318,7 @@ const styles = Kb.Styles.styleSheetCreate(
         alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
-        height: Kb.Styles.isMobile ? 56 : 48,
+        height: isMobile ? 56 : 48,
         justifyContent: 'flex-start',
       },
       description: {...rightColumnStyle},

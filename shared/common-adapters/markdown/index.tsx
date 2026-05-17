@@ -161,7 +161,7 @@ const wrapInParagraph = (parse: SM.Parser, content: string, state: State): Array
   return ret
 }
 
-const isMarkdownMobile = (state: State) => state.isMobile ?? Styles.isMobile
+const isMarkdownMobile = (state: State) => state.isMobile ?? isMobile
 
 const wordBoundaryLookBehind = /\B$/
 // Wraps the match to also check that the behind is not a text, but a boundary (like a space)
@@ -432,7 +432,7 @@ export const parseMarkdown = (
   return parser(source + '\n', {
     disableAutoBlockNewlines: true,
     inline: false,
-    isMobile: options?.isMobile ?? Styles.isMobile,
+    isMobile: options?.isMobile ?? isMobile,
     messageType: options?.messageType,
   })
 }
@@ -471,7 +471,7 @@ function SimpleMarkdownComponent(p: Props) {
   let parseTree: Array<SM.SingleASTNode>
   let output: React.ReactNode
   try {
-    parseTree = parseMarkdown(children ?? '', {isMobile: Styles.isMobile, messageType})
+    parseTree = parseMarkdown(children ?? '', {isMobile: isMobile, messageType})
 
     const state = {
       allowFontScaling,
@@ -528,7 +528,7 @@ function SimpleMarkdownComponent(p: Props) {
         return (
           <Text
             className={paragraphTextClassName}
-            type={Styles.isMobile ? 'Body' : 'BodySmall'}
+            type={isMobile ? 'Body' : 'BodySmall'}
             style={Styles.collapseStyles([markdownStyles.neutralPreviewStyle, style, styleOverride.preview])}
             lineClamp={1 as const}
           >
@@ -543,7 +543,7 @@ function SimpleMarkdownComponent(p: Props) {
   // Mobile doesn't use a wrapper
   return (
     <BareErrorBoundary fallback={<ErrorComponent>{children}</ErrorComponent>}>
-      {Styles.isMobile ? (
+      {isMobile ? (
         inner
       ) : (
         <Text

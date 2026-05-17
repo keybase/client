@@ -14,10 +14,10 @@ const Kb = {
 const CustomEmoji = (props: Props) => {
   const {size, src, alias, style} = props
 
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     const dimensions = {
       height: size,
-      transform: [{translateY: Styles.isAndroid ? 4 : 2}],
+      transform: [{translateY: isAndroid ? 4 : 2}],
       width: size,
       ...style,
     }

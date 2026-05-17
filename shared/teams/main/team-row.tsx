@@ -57,7 +57,7 @@ const TeamRow = function TeamRow(props: Props) {
     </Kb.Box2>
   ) : null
 
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     return (
       <>
         <Kb.ClickableBox onClick={onViewTeam} style={styles.clickableBox}>
@@ -179,7 +179,7 @@ const TeamRow = function TeamRow(props: Props) {
   )
 }
 
-const smallHeight = Kb.Styles.isMobile ? 56 : 48
+const smallHeight = isMobile ? 56 : 48
 const smallIconWidth = 64
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

@@ -2,7 +2,7 @@ import type {Props} from './container.shared'
 import * as Kb from '@/common-adapters'
 
 const Container = ({children, style, outerStyle}: Props) => {
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     return (
       <div style={Kb.Styles.castStyleDesktop({...styles.container, ...outerStyle})}>
         <div style={Kb.Styles.castStyleDesktop({...styles.innerContainer, ...style})}>{children}</div>

@@ -61,9 +61,9 @@ const TLFContainer = (p: OwnProps) => {
         onOpen={disabled ? undefined : onOpen}
         mixedMode={mixedMode}
         writingToJournal={false}
-        body={Kb.Styles.isMobile ? <Kb.Box2 direction="vertical" fullWidth={true} style={rowStyles.itemBox}>{content}</Kb.Box2> : undefined}
+        body={isMobile ? <Kb.Box2 direction="vertical" fullWidth={true} style={rowStyles.itemBox}>{content}</Kb.Box2> : undefined}
         content={
-          !Kb.Styles.isMobile ? (
+          !isMobile ? (
             <>
               {content}
               {avatar}

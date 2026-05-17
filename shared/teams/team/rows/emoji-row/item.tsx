@@ -82,15 +82,15 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
             <Kb.Emoji
               emojiData={RPCToEmojiData(emoji, false)}
               showTooltip={false}
-              size={Kb.Styles.isMobile ? 32 : 26}
+              size={isMobile ? 32 : 26}
             />
             <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
-            {!Kb.Styles.isMobile && emoji.creationInfo && (
+            {!isMobile && emoji.creationInfo && (
               <Kb.Text type="Body" style={styles.date}>
                 {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
               </Kb.Text>
             )}
-            {!Kb.Styles.isMobile && emoji.creationInfo && (
+            {!isMobile && emoji.creationInfo && (
               <Kb.NameWithIcon
                 colorFollowing={true}
                 colorBroken={true}
@@ -119,7 +119,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
         }
         firstItem={firstItem}
         fullDivider={true}
-        height={Kb.Styles.isMobile ? 48 : 42}
+        height={isMobile ? 48 : 42}
       />
     </Kb.Box2>
   )

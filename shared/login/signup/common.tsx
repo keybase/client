@@ -15,7 +15,7 @@ export const Wrapper = (props: Props) => (
       fullHeight={true}
       centerChildren={true}
       style={styles.wrapper}
-      gap={Kb.Styles.isMobile ? 'xtiny' : 'small'}
+      gap={isMobile ? 'xtiny' : 'small'}
     >
       {props.children}
     </Kb.Box2>

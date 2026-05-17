@@ -40,7 +40,7 @@ const Row = (p: {account: Account}) => {
       alignSelf="flex-start"
       alignItems="flex-start"
       style={styles.row}
-      fullWidth={Kb.Styles.isMobile}
+      fullWidth={isMobile}
     >
       <Kb.Text type="BodyBold">
         {name}
@@ -56,7 +56,7 @@ const Row = (p: {account: Account}) => {
         <Kb.Box2
           direction="horizontal"
           alignItems="center"
-          gap={Kb.Styles.isMobile ? undefined : 'tiny'}
+          gap={isMobile ? undefined : 'tiny'}
           style={styles.idContainer}
         >
           <Kb.Text type="Body" title={accountID} lineClamp={1} style={styles.accountID}>
@@ -189,15 +189,15 @@ const styles = Kb.Styles.styleSheetCreate(
       idContainer: {
         alignSelf: 'flex-start',
         flexGrow: 1,
-        maxWidth: Kb.Styles.isMobile ? undefined : 400,
+        maxWidth: isMobile ? undefined : 400,
         width: '100%',
       },
       idCopy: {height: 40},
       label: {flexShrink: 0},
       remove: {alignSelf: 'flex-end'},
       reveal: {
-        maxWidth: Kb.Styles.isMobile ? undefined : 400,
-        width: Kb.Styles.isMobile ? undefined : '100%',
+        maxWidth: isMobile ? undefined : 400,
+        width: isMobile ? undefined : '100%',
       },
       row: Kb.Styles.platformStyles({
         common: {

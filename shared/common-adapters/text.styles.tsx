@@ -229,7 +229,7 @@ const _metaDataNative = (): {[K in TextType]: MetaType} => {
   }
 }
 
-const _metaData = Styles.isMobile ? _metaDataNative : _metaDataDesktop
+const _metaData = isMobile ? _metaDataNative : _metaDataDesktop
 
 let _darkMetaData: {[K in TextType]: MetaType} | undefined
 let _lightMetaData: {[K in TextType]: MetaType} | undefined
@@ -246,7 +246,7 @@ const metaData = (isDarkMode: boolean): {[K in TextType]: MetaType} => {
 
 export function getTextStyle(type: TextType, isDarkMode: boolean): TextStyle {
   const meta = metaData(isDarkMode)[type]
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     const sizeStyle = fontSizeToSizeStyleDesktop(meta.fontSize as Parameters<typeof fontSizeToSizeStyleDesktop>[0])
     const colorStyle = {color: meta.colorForBackground['positive']}
     const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null

@@ -47,13 +47,13 @@ const Container = (ownProps: OwnProps) => {
           {pathItem.name}
         </Kb.Text>
         <Kb.Text type="BodySmall">{FS.humanReadableFileSize(pathItem.size)}</Kb.Text>
-        {C.isMobile && <LastModifiedLine path={path} mode="default" />}
+        {isMobile && <LastModifiedLine path={path} mode="default" />}
         {pathItem.type === T.FS.PathType.Symlink && (
           <Kb.Text type="BodySmall" style={styles.symlink}>
             {'This is a symlink' + (pathItem.linkTarget ? ` to: ${pathItem.linkTarget}.` : '.')}
           </Kb.Text>
         )}
-        {C.isMobile && (
+        {isMobile && (
           <Kb.Text center={true} type="BodySmall" style={styles.noOpenMobile}>
             This document can not be opened on mobile. You can still interact with it using the ••• menu.
           </Kb.Text>
@@ -75,7 +75,7 @@ const Container = (ownProps: OwnProps) => {
             </>
           )
         }
-        {!C.isIOS &&
+        {!isIOS &&
           (sfmiEnabled ? (
             <Kb.Button
               key="open"

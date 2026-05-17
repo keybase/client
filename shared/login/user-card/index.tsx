@@ -4,7 +4,7 @@ import type {Props} from './index.shared'
 const UserCard = (p: Props) => {
   const {outerStyle, onAvatarClicked, username, style, children} = p
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     const {avatarSize = 128} = p
     return (
       <div style={Kb.Styles.collapseStyles([styles.container, outerStyle]) as React.CSSProperties}>

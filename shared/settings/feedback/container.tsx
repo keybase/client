@@ -7,7 +7,7 @@ import Feedback from '.'
 import logger from '@/logger'
 import {Platform} from 'react-native'
 import {getExtraChatLogsForLogSend, useSendFeedback} from './shared'
-import {isAndroid, version, pprofDir} from '@/constants/platform'
+import {version, pprofDir} from '@/constants/platform'
 import type {Props as OwnProps} from './container.shared'
 import {usePushState} from '@/stores/push'
 export type {Props} from './container.shared'
@@ -36,7 +36,7 @@ const Connected = (ownProps: OwnProps) => {
     }
   }, [])
 
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     const push = {pushToken: _push}
     const chat = getExtraChatLogsForLogSend()
     const rnkb = require('react-native-kb') as {

@@ -143,7 +143,7 @@ const Dropdown = (p: DropdownProps) => {
     <>
       <Kb.ClickableBox
         style={styles.dropdown}
-        ref={Style.isMobile ? null : popupAnchor}
+        ref={isMobile ? null : popupAnchor}
         onClick={showPopup}
         underlayColor={Style.globalColors.white_40}
       >
@@ -187,7 +187,7 @@ const styles = Style.styleSheetCreate(
       hidden: {display: 'none'},
       label: {
         alignItems: 'center',
-        minHeight: Style.isMobile ? 40 : 32,
+        minHeight: isMobile ? 40 : 32,
         paddingLeft: Style.globalMargins.xsmall,
         width: '100%',
       },

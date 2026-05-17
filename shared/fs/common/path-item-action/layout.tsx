@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as FS from '@/constants/fs'
 
@@ -56,7 +55,7 @@ const getRawLayout = (
     case T.FS.PathKind.TlfList:
       return {
         ...empty,
-        showInSystemFileManager: !C.isMobile,
+        showInSystemFileManager: !isMobile,
       }
     case T.FS.PathKind.GroupTlf:
     case T.FS.PathKind.TeamTlf:
@@ -71,7 +70,7 @@ const getRawLayout = (
           : {}),
         archive: true,
         ignoreTlf: parsedPath.kind === T.FS.PathKind.TeamTlf || !isMyOwn(parsedPath, me),
-        showInSystemFileManager: !C.isMobile,
+        showInSystemFileManager: !isMobile,
       }
     case T.FS.PathKind.InGroupTlf:
     case T.FS.PathKind.InTeamTlf:
@@ -87,16 +86,16 @@ const getRawLayout = (
           : {}),
         archive: true,
         delete: pathItem.writable,
-        download: pathItem.type === T.FS.PathType.File && !C.isIOS,
+        download: pathItem.type === T.FS.PathType.File && !isIOS,
         moveOrCopy: true,
         rename: pathItem.writable && mode === 'row',
         saveMedia:
-          C.isMobile && pathItem.type === T.FS.PathType.File && FS.canSaveMedia(pathItem, fileContext),
-        showInSystemFileManager: !C.isMobile,
+          isMobile && pathItem.type === T.FS.PathType.File && FS.canSaveMedia(pathItem, fileContext),
+        showInSystemFileManager: !isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys
         sendAttachmentToChat: pathItem.type === T.FS.PathType.File,
-        sendToOtherApp: pathItem.type === T.FS.PathType.File && C.isMobile,
+        sendToOtherApp: pathItem.type === T.FS.PathType.File && isMobile,
       }
     default:
       return empty
@@ -106,7 +105,7 @@ const getRawLayout = (
 const totalShare = (layout: Layout) => (layout.sendAttachmentToChat ? 1 : 0) + (layout.sendToOtherApp ? 1 : 0)
 
 const consolidateShares = (layout: Layout): Layout =>
-  C.isMobile && totalShare(layout) > 1
+  isMobile && totalShare(layout) > 1
     ? {
         ...layout,
         sendAttachmentToChat: false,

@@ -46,7 +46,7 @@ export default function Choice() {
     }
   }, [])
 
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     const onCancel = () => navigateUp()
     return (
       <Modal onCancel={onCancel}>
@@ -283,7 +283,7 @@ const Finished = (props: {
       <Kb.Text type="Body">
         {'Your private key has been written to Keybase\'s local keychain. You can learn to use it with `keybase pgp help` from your terminal. If you have GPG installed, it has also been written to GPG\'s keychain.'}
       </Kb.Text>
-      {Kb.Styles.isMobile ? null : (
+      {isMobile ? null : (
         <textarea style={Kb.Styles.castStyleDesktop(styles.pgpKeyString)} readOnly={true} value={props.pgpKeyString} />
       )}
       {props.promptShouldStoreKeyOnServer && (

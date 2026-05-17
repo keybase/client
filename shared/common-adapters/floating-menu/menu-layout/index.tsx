@@ -23,11 +23,11 @@ import './menu-layout.css'
 const MenuLayout = (props: MenuLayoutProps) => {
   const {bottom: safeBottom} = useSafeAreaInsets()
   useOnMountOnce(() => {
-    if (!Styles.isMobile) return
+    if (!isMobile) return
     Keyboard.dismiss()
   })
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     return <DesktopMenuLayout {...props} />
   }
 

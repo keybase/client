@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import * as Styles from '@/styles'
 import {createPortal} from 'react-dom'
 import SearchRow from './search-row'
 import {useInboxHeaderPortalNode, setInboxHeaderPortalContent} from './header-portal-state'
@@ -15,18 +14,18 @@ export default function useInboxHeaderPortal(search: InboxSearchController) {
   )
 
   React.useEffect(() => {
-    if (!Styles.isMobile || !C.isTablet) return
+    if (!isMobile || !C.isTablet) return
     setInboxHeaderPortalContent(content)
   }, [content])
 
   React.useEffect(() => {
-    if (!Styles.isMobile || !C.isTablet) return
+    if (!isMobile || !C.isTablet) return
     return () => {
       setInboxHeaderPortalContent(null)
     }
   }, [])
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     return portalNode ? createPortal(content, portalNode) : null
   }
 

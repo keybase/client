@@ -103,7 +103,7 @@ const AddSubteamMembers = ({wizard: wizardState}: Props) => {
     }
   }, [doneLabel, onContinue])
 
-  const desktopFooter = !Kb.Styles.isMobile ? (
+  const desktopFooter = !isMobile ? (
     <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
       <Kb.Button label={continueLabel} onClick={onContinue} fullWidth={true} />
     </Kb.Box2>

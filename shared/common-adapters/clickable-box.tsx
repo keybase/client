@@ -9,7 +9,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
   const [mouseDown, setMouseDown] = React.useState(false)
   const [mouseIn, setMouseIn] = React.useState(false)
 
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     const needMouseEnterLeaveHandlers = !!(
       props.hoverColor ||
       props.underlayColor ||
@@ -173,7 +173,7 @@ const nativeStyles = Styles.styleSheetCreate(() => ({
 export default ClickableBox
 
 export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<MeasureRef | null>}) => {
-  if (!Styles.isMobile) {
+  if (!isMobile) {
     const {onClick, children, style, className, onMouseOver, ref} = p
     return (
       <div

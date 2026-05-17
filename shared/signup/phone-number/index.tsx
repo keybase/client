@@ -21,7 +21,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
     <Kb.Box2
       alignItems="center"
       direction="vertical"
-      gap={Kb.Styles.isMobile ? 'small' : 'medium'}
+      gap={isMobile ? 'small' : 'medium'}
       fullWidth={true}
       style={styles.container}
     >
@@ -115,7 +115,7 @@ const ConnectedEnterPhoneNumber = () => {
       showHeaderInfoicon={true}
     >
       <EnterPhoneNumberBody
-        autoFocus={!Kb.Styles.isMobile}
+        autoFocus={!isMobile}
         defaultCountry={defaultCountry}
         onChangeNumber={onChangeNumberCb}
         onContinue={onContinue}

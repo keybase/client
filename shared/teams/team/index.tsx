@@ -242,7 +242,7 @@ const TeamBody = (props: Props) => {
       >
         <Kb.SectionList
           renderSectionHeader={renderSectionHeader}
-          stickySectionHeadersEnabled={Kb.Styles.isMobile}
+          stickySectionHeadersEnabled={isMobile}
           sections={sections}
           contentContainerStyle={styles.listContentContainer}
           style={styles.list}

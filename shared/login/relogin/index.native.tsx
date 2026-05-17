@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import {isAndroidNewerThanM} from '@/constants/platform'
 import * as React from 'react'
 import Dropdown from './dropdown.native'
 import UserCard from '../user-card'
@@ -11,7 +12,7 @@ const LoginRender = (props: Props) => {
   const inputProps: Input3Props = {
     autoFocus: true,
     error: !!props.error,
-    keyboardType: props.showTyping && C.isAndroid ? 'visible-password' : 'default',
+    keyboardType: props.showTyping && isAndroid ? 'visible-password' : 'default',
     onChangeText: password => props.passwordChange(password),
     onEnterKeyDown: () => props.onSubmit(),
     placeholder: 'Password',
@@ -27,7 +28,7 @@ const LoginRender = (props: Props) => {
     >
       <Kb.ScrollView style={styles.scrollView} contentContainerStyle={{minHeight: scrollViewHeight}}>
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" flex={1} style={styles.container}>
-          {C.isAndroid && !C.isDeviceSecureAndroid && !C.isAndroidNewerThanM && (
+          {isAndroid && !C.isDeviceSecureAndroid && !isAndroidNewerThanM && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.deviceNotSecureContainer}>
               <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
                 {"Since you don't have a lock screen, you'll have to type your password everytime."}

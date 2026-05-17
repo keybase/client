@@ -35,7 +35,7 @@ const Container = (ownProps: OwnProps) => {
           {!!followIconType && <Kb.ImageIcon type={followIconType} style={followSizeToStyle[64]} />}
         </Kb.Avatar>
         <Kb.ConnectedUsernames
-          type={Kb.Styles.isMobile ? 'BodySmallBold' : 'BodyBold'}
+          type={isMobile ? 'BodySmallBold' : 'BodyBold'}
           usernames={username}
           onUsernameClicked="profile"
           colorBroken={true}

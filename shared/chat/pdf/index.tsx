@@ -12,7 +12,7 @@ const ChatPDF = (props: Props) => {
   const {messageID} = props
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   const [initialMessage] = React.useState(() =>
-    Kb.Styles.isMobile ? undefined : takePDFMessage(conversationIDKey, messageID)
+    isMobile ? undefined : takePDFMessage(conversationIDKey, messageID)
   )
   const [error, setError] = React.useState('')
   const loadedMessage = useConversationMessage(conversationIDKey, messageID)
@@ -22,11 +22,11 @@ const ChatPDF = (props: Props) => {
   const navigation = useNavigation()
 
   React.useEffect(() => {
-    if (Kb.Styles.isMobile) return
+    if (isMobile) return
     navigation.setOptions({title})
   }, [navigation, title])
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     const canDownload = !!message
     const onDownload = () => {
       if (message) {

@@ -1,5 +1,4 @@
 import * as Styles from '@/styles'
-import {isAndroid} from '@/constants/platform'
 import {emojiIndexByName, spriteSheetWidth, spriteSheetHeight} from '../markdown/emoji-gen'
 import Text from '../text'
 import {type EmojiData} from '.'
@@ -24,7 +23,7 @@ const nameReg = /^(?::([^:]+):)(?::skin-tone-(\d):)?$/
 function EmojiWrapper(props: Props) {
   const {emojiName, size} = props
 
-  if (Styles.isMobile) {
+  if (isMobile) {
     return (
       <Text
         type="Body"
