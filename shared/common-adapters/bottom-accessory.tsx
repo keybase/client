@@ -8,12 +8,12 @@ import type {RootParamList} from '@/router-v2/route-params'
 
 const isLiquidGlassActive = (isIOS && C.isPhone && _isLiquidGlassSupported) as boolean
 
-export const BottomAccessory = ({children}: {children: React.ReactNode}) => {
+const BottomAccessoryMobile = ({children}: {children: React.ReactNode}) => {
   const navigation = useNavigation()
   const isFocused = useIsFocused()
 
   React.useEffect(() => {
-    if (!isMobile || !isLiquidGlassActive || !isFocused) return
+    if (!isFocused) return
     const parent = navigation.getParent() as BottomTabNavigationProp<RootParamList> | undefined
     parent?.setOptions({bottomAccessory: (): React.ReactNode => children})
     return () => {
@@ -21,6 +21,10 @@ export const BottomAccessory = ({children}: {children: React.ReactNode}) => {
     }
   }, [children, isFocused, navigation])
 
-  if (!isMobile || !isLiquidGlassActive) return <>{children}</>
   return null
+}
+
+export const BottomAccessory = ({children}: {children: React.ReactNode}) => {
+  if (!isMobile || !isLiquidGlassActive) return <>{children}</>
+  return <BottomAccessoryMobile>{children}</BottomAccessoryMobile>
 }

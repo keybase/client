@@ -1,4 +1,4 @@
-import type * as React from 'react'
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {TabActions, type NavigationContainerRef} from '@react-navigation/core'
 import type {ParamListBase} from '@react-navigation/native'
@@ -81,8 +81,7 @@ export const defaultNavigationOptions = isMobile
       },
     } as const)
   : {
-      header: (p: NativeStackHeaderProps): React.ReactElement | null =>
-        (Header as unknown as (p: NativeStackHeaderProps) => React.ReactElement | null)(p),
+      header: (p: NativeStackHeaderProps) => <Header {...(p as any)} />,
       headerBackTitle: 'temp',
       headerBackVisible: true,
       headerLeft: (p: object) => <HeaderLeftButton {...p} />,

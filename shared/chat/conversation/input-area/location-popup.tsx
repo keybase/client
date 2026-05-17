@@ -63,7 +63,7 @@ const useWatchPosition = (
     logger.info('[location] perms check due to map')
     const f = async () => {
       try {
-        const ExpoLocation = require(/* webpackIgnore: true */ 'expo-location') as typeof ExpoLocationModule
+        const ExpoLocation = require('expo-location') as typeof ExpoLocationModule
         await (requestLocationPermission as (mode?: T.RPCChat.UIWatchPositionPerm) => Promise<void>)(
           T.RPCChat.UIWatchPositionPerm.base
         )

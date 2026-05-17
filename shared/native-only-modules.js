@@ -18,4 +18,5 @@ module.exports = [
   'react-native-safe-area-context',
   'expo-modules-core',
   'react-native-kb',
+  '@react-native-picker/picker',
 ]
