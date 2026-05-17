@@ -82,6 +82,7 @@ const makeAlias = (isDev: boolean): Record<string, string | false> => {
   // These are in native-only-modules (so Jest gets an empty stub) but webpack
   // needs proper exports so renderer code (e.g. @react-navigation/elements) works.
   alias['react-native-safe-area-context'] = path.resolve(__dirname, './stubs/react-native-safe-area-context.js')
+  alias['@react-native-picker/picker'] = path.resolve(__dirname, './stubs/react-native-picker.js')
 
   if (!isDev) {
     alias['@welldone-software/why-did-you-render'] = false
