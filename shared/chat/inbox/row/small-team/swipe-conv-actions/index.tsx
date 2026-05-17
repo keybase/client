@@ -66,14 +66,7 @@ function SwipeConvActions(p: Props) {
   }, [isOpened])
 
   if (!Kb.Styles.isMobile) {
-    return (
-      <Kb.Box2
-        direction="horizontal"
-        style={desktopStyles.row}
-      >
-        {p.children}
-      </Kb.Box2>
-    )
+    return <div style={Kb.Styles.castStyleDesktop(desktopStyles.row)}>{p.children}</div>
   }
 
   const {children, onPress} = p
