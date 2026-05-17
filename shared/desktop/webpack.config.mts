@@ -349,7 +349,12 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
     cache: {
       type: 'filesystem',
       buildDependencies: {
-        config: [configPath, babelConfigPath],
+        config: [
+          configPath,
+          babelConfigPath,
+          path.resolve(rootDir, 'ignored-modules.js'),
+          path.resolve(rootDir, 'native-only-modules.js'),
+        ],
         fonts: [path.resolve(__dirname, '../fonts/.font-build-stamp')],
       },
     },

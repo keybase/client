@@ -7,7 +7,7 @@ import * as T from '@/constants/types'
 import LocationMap from '@/chat/location-map'
 import {useCurrentUserState} from '@/stores/current-user'
 import {requestLocationPermission} from '@/util/platform-specific'
-import * as ExpoLocation from 'expo-location'
+import type * as ExpoLocationModule from 'expo-location'
 import {ignorePromise} from '@/constants/utils'
 import {openAppSettings} from '@/util/storeless-actions'
 import {setThreadInputCommandStatus} from '@/constants/router'
@@ -63,12 +63,13 @@ const useWatchPosition = (
     logger.info('[location] perms check due to map')
     const f = async () => {
       try {
+        const ExpoLocation = require(/* webpackIgnore: true */ 'expo-location') as typeof ExpoLocationModule
         await (requestLocationPermission as (mode?: T.RPCChat.UIWatchPositionPerm) => Promise<void>)(
           T.RPCChat.UIWatchPositionPerm.base
         )
         const sub = await ExpoLocation.watchPositionAsync(
           {accuracy: ExpoLocation.LocationAccuracy.Highest},
-          (location: ExpoLocation.LocationObject) => {
+          (location: ExpoLocationModule.LocationObject) => {
             const coord = {
               accuracy: Math.floor(location.coords.accuracy ?? 0),
               lat: location.coords.latitude,
