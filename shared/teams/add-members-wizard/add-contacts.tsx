@@ -3,12 +3,12 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
-import ContactsList, {useContacts, EnableContactsPopup} from '../common/contacts-list.native'
 import {useModalHeaderState} from '@/stores/modal-header'
 import type {Contact} from '../common/contacts-list.native'
 import {addMembersToWizard, type AddMembersWizard} from './state'
 
 const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
+  const {default: ContactsList, useContacts, EnableContactsPopup} = require('../common/contacts-list.native') as typeof import('../common/contacts-list.native')
   const navigateUp = C.Router2.navigateUp
   const navUpToScreen = C.Router2.navUpToScreen
   const onBack = () => navigateUp()

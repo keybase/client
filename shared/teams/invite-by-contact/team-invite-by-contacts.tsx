@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import useContacts, {type Contact} from '../common/use-contacts.native'
+import type {Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
 import {getE164} from '@/util/phone-numbers'
 import {openSMS} from '@/util/misc'
@@ -61,6 +61,7 @@ const generateSMSBody = (teamname: string, seitan: string): string => {
 }
 
 const TeamInviteByContactMobile = (props: Props) => {
+  const {default: useContacts} = require('../common/use-contacts.native') as typeof import('../common/use-contacts.native')
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
   const {
