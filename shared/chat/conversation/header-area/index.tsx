@@ -4,7 +4,8 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {HeaderBackButtonProps} from '@react-navigation/elements'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
-import {Keyboard, useWindowDimensions} from 'react-native'
+import {Keyboard} from 'react-native'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import type {SFSymbol} from 'sf-symbols-typescript'
 // import {DebugChatDumpContext} from '@/constants/chat/debug'
 import {assertionToDisplay} from '@/common-adapters/usernames'
@@ -175,7 +176,7 @@ const ShhIcon = function ShhIcon(props: HeaderConversationProps) {
 }
 
 const useMaxWidthStyle = (conversationIDKey: T.Chat.ConversationIDKey) => {
-  const {width} = useWindowDimensions()
+  const {width} = useSafeAreaFrame()
   const hasBadge = useBackBadge(conversationIDKey) > 0
   const w = width - 140 - (hasBadge ? 40 : 0)
   return {maxWidth: w, minWidth: w}
