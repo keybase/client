@@ -54,7 +54,7 @@ const OpenTeamWarning = (props: Props) => {
         <Kb.Button
           type="Danger"
           onClick={onConfirm}
-          label={Kb.Styles.isMobile ? 'Confirm' : `Yes, set to ${isOpenTeam ? 'Open' : 'Private'}`}
+          label={isMobile ? 'Confirm' : `Yes, set to ${isOpenTeam ? 'Open' : 'Private'}`}
           disabled={!enabled}
         />
       </Kb.ButtonBar>

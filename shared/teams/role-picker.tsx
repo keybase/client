@@ -114,7 +114,7 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
   const roleInfo = rolesMetaInfo(role)
 
   const style = {
-    ...(Kb.Styles.isMobile ? {} : {height: selected ? 160 : 42}),
+    ...(isMobile ? {} : {height: selected ? 160 : 42}),
   }
   return (
     <Kb.ClickableBox onClick={onSelect} style={style}>
@@ -279,9 +279,9 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
       direction="vertical"
       alignItems="stretch"
       style={styles.container}
-      fullHeight={Kb.Styles.isMobile}
+      fullHeight={isMobile}
     >
-      {!Kb.Styles.isMobile && <Header />}
+      {!isMobile && <Header />}
       <Kb.ScrollView style={styles.innerScroll}>
         {roles.map(role => {
           const disabled = props.disabledRoles ? props.disabledRoles[role] : undefined
@@ -420,7 +420,7 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const {position, children, open, onCancel, ...rest} = props
   const picker = (
-    <RolePicker<IncludeSetIndividually> {...rest} onCancel={Kb.Styles.isMobile ? undefined : onCancel} />
+    <RolePicker<IncludeSetIndividually> {...rest} onCancel={isMobile ? undefined : onCancel} />
   )
   return (
     <>
@@ -436,10 +436,10 @@ export function FloatingRolePicker<IncludeSetIndividually extends boolean = fals
           <Kb.SafeAreaView>
             <Kb.Box2
               direction="vertical"
-              fullHeight={Kb.Styles.isMobile}
+              fullHeight={isMobile}
               style={styles.opaqueContainer}
             >
-              {Kb.Styles.isMobile && (
+              {isMobile && (
                 <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.popupHeader}>
                   <Kb.Text type="BodyBigLink" onClick={onCancel} style={styles.popupHeaderSide}>
                     Cancel

@@ -568,4 +568,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Kb.Styles.isMobile ? ThreadSearchMobile : ThreadSearchDesktop
+export default isMobile ? ThreadSearchMobile : ThreadSearchDesktop

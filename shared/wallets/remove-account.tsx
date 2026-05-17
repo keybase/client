@@ -24,9 +24,9 @@ const Container = (ownProps: OwnProps) => {
   }
 
   const buttons = [
-    <Kb.Button fullWidth={Kb.Styles.isMobile} key={0} label="Cancel" onClick={onClose} type="Dim" />,
+    <Kb.Button fullWidth={isMobile} key={0} label="Cancel" onClick={onClose} type="Dim" />,
     <Kb.Button
-      fullWidth={Kb.Styles.isMobile}
+      fullWidth={isMobile}
       key={1}
       label="Yes, remove"
       onClick={onDelete}
@@ -36,11 +36,11 @@ const Container = (ownProps: OwnProps) => {
 
   return (
     <WalletPopup
-      bottomButtons={Kb.Styles.isMobile ? buttons.reverse() : buttons}
+      bottomButtons={isMobile ? buttons.reverse() : buttons}
     >
       <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
         <Kb.IconAuto
-          type={Kb.Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
+          type={isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
           style={styles.icon}
         />
         <Kb.Text center={true} style={styles.warningText} type="Header">

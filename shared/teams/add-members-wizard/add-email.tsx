@@ -65,7 +65,7 @@ const AddEmail = (props: Props) => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Kb.Styles.isMobile ? 'tiny' : 'xsmall'}
+        gap={isMobile ? 'tiny' : 'xsmall'}
       >
         <Kb.Text type="Body">Enter one or multiple email addresses:</Kb.Text>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} alignItems="flex-start">

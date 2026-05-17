@@ -43,7 +43,7 @@ const useHintText = (p: {
       teamname: s.meta.teamname,
     }))
   )
-  if (Kb.Styles.isMobile && isExploding) {
+  if (isMobile && isExploding) {
     return C.isLargeScreen ? `Write an exploding message` : 'Exploding message'
   }
   if (cannotWrite) {
@@ -59,7 +59,7 @@ const useHintText = (p: {
   switch (teamType) {
     case 'big':
       if (channelname) {
-        return `Write in ${C.isMobile ? '' : `@${teamname}`}#${channelname}`
+        return `Write in ${isMobile ? '' : `@${teamname}`}#${channelname}`
       }
       break
     case 'small':

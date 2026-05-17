@@ -55,7 +55,7 @@ const Input = (props: Props) => {
   const {focusCounter, onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown} = props
   const prevFocusCounterRef = React.useRef(focusCounter)
   React.useEffect(() => {
-    if (!Kb.Styles.isMobile && focusCounter > prevFocusCounterRef.current && ref.current) {
+    if (!isMobile && focusCounter > prevFocusCounterRef.current && ref.current) {
       ref.current.focus()
     }
     prevFocusCounterRef.current = focusCounter

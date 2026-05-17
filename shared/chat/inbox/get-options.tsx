@@ -4,7 +4,7 @@ import {HeaderNewChatButton} from './new-chat-button'
 
 const buttonWidth = 132
 
-const mobileOptions = Kb.Styles.isIOS
+const mobileOptions = isIOS
   ? {
       // iOS 26: hidesSharedBackground prevents the glass circle around the custom button
       unstable_headerRightItems: () => [
@@ -39,7 +39,7 @@ const desktopOptions = {
 
 export default {
   inactiveBehavior: 'none' as const,
-  ...(Kb.Styles.isMobile ? mobileOptions : desktopOptions),
+  ...(isMobile ? mobileOptions : desktopOptions),
   headerTitle: () => (
     <Kb.Text type="BodyBig" center={true}>
       Chats

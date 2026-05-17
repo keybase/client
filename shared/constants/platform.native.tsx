@@ -48,14 +48,10 @@ export const isDeviceSecureAndroid = androidIsDeviceSecure
 export const runMode: string = 'prod'
 export const pathSep = '/'
 
-export const isIOS = Platform.OS === 'ios'
-export const isAndroid = !isIOS
-export const isMobile: boolean = true
 export const isTablet = Platform.OS === 'ios' && Platform.isPad
 export const isPhone = !isTablet
 
 export const isDarwin: boolean = false
-export const isElectron: boolean = false
 export const isLinux: boolean = false
 export const isWindows: boolean = false
 export const isMac: boolean = false

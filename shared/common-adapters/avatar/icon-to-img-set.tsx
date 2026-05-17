@@ -1,4 +1,3 @@
-import * as Styles from '@/styles'
 import {iconMeta} from '../icon.constants-gen'
 import type {IconType} from '../icon.constants-gen'
 
@@ -82,5 +81,5 @@ function iconTypeToImgSetNative(imgMap: {[key: string]: IconType}, targetSize: n
 }
 
 export const iconTypeToImgSet: (imgMap: {[key: string]: IconType}, targetSize: number) => string = (
-  Styles.isMobile ? iconTypeToImgSetNative : iconTypeToImgSetDesktop
+  isMobile ? iconTypeToImgSetNative : iconTypeToImgSetDesktop
 ) as any

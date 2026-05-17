@@ -20,14 +20,14 @@ const AudioAttachment = ({message, ordinal}: {message: T.Chat.MessageAttachment;
         direction="horizontal"
         alignSelf="flex-start"
         alignItems="center"
-        gap={Kb.Styles.isMobile ? undefined : 'small'}
+        gap={isMobile ? undefined : 'small'}
         ref={toastTargetRef}
       >
         <AudioPlayer big={true} duration={message.audioDuration} url={url} visAmps={message.audioAmps} />
         <TransferIcon
           message={message}
           ordinal={ordinal}
-          style={Kb.Styles.isMobile ? styles.transferIcon : undefined}
+          style={isMobile ? styles.transferIcon : undefined}
         />
       </Kb.Box2>
       {showTitle ? <Title message={message} /> : null}

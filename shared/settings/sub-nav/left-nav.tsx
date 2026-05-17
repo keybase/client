@@ -15,7 +15,7 @@ type Props = {
 const LeftNav = (props: Props) => {
   const {navigate} = props
   const badgeNumbers = useNotifState(s => s.navBadges)
-  const badgeNotifications = usePushState(s => (C.isElectron ? 0 : !s.hasPermissions ? 1 : 0))
+  const badgeNotifications = usePushState(s => (isElectron ? 0 : !s.hasPermissions ? 1 : 0))
 
   const onSignout = () => {
     navigate(Settings.settingsLogOutTab)

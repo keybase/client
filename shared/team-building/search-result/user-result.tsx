@@ -35,7 +35,7 @@ const UserResult = function UserResult(props: ResultProps) {
     />
   )
 }
-const actionButtonSize = Kb.Styles.isMobile ? 22 : Kb.Styles.globalMargins.small
+const actionButtonSize = isMobile ? 22 : Kb.Styles.globalMargins.small
 
 const ActionButton = (props: {
   inTeam: boolean

@@ -134,9 +134,9 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const balanceChangeBox = (
     <Kb.Box2
       direction="horizontal"
-      fullWidth={Kb.Styles.isMobile}
+      fullWidth={isMobile}
       style={styles.amountContainer}
-      gap={Kb.Styles.isMobile ? 'tiny' : 'small'}
+      gap={isMobile ? 'tiny' : 'small'}
     >
       {!!balanceChange && (
         <Kb.Text type="BodyExtrabold" selectable={true} style={{color: balanceChangeColor}}>
@@ -208,10 +208,10 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           </Kb.Text>
         </Kb.Box2>
         {canceled && <Kb.Text type="BodySmall">CANCELED</Kb.Text>}
-        {!Kb.Styles.isMobile && balanceChangeBox}
+        {!isMobile && balanceChangeBox}
       </Kb.Box2>
       <MarkdownMemo memo={memo} style={styles.memo} />
-      {Kb.Styles.isMobile && balanceChangeBox}
+      {isMobile && balanceChangeBox}
     </>
   )
   return (

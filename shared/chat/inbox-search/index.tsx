@@ -96,7 +96,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
         memberCount={hit.memberCount}
         inTeam={hit.inTeam}
         publicAdmins={hit.publicAdmins}
-        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
+        isSelected={!isMobile && selectedIndex === realIndex}
       />
     )
   }
@@ -111,7 +111,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
         onClick={onInstallBot}
         firstItem={index === 0}
         hideHover={true}
-        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
+        isSelected={!isMobile && selectedIndex === realIndex}
       />
     )
   }
@@ -197,7 +197,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
         ) : indexPercent > 0 && indexPercent < 100 ? (
           <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.percentContainer} fullWidth={true}>
             <Kb.Text type="BodyTiny">Indexing...</Kb.Text>
-            {Kb.Styles.isMobile ? (
+            {isMobile ? (
               <Kb.ProgressBar style={styles.progressBar} ratio={ratio} />
             ) : (
               <Kb.WithTooltip
@@ -231,7 +231,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     return item.sizeType === 'big' ? (
       <SelectableBigTeamChannel
         conversationIDKey={item.conversationIDKey}
-        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
+        isSelected={!isMobile && selectedIndex === realIndex}
         name={item.name}
         numSearchHits={numHits}
         maxSearchHits={inboxSearchMaxTextMessages}
@@ -240,7 +240,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
     ) : (
       <SelectableSmallTeam
         conversationIDKey={item.conversationIDKey}
-        isSelected={!Kb.Styles.isMobile && selectedIndex === realIndex}
+        isSelected={!isMobile && selectedIndex === realIndex}
         name={item.name}
         numSearchHits={numHits}
         maxSearchHits={inboxSearchMaxTextMessages}
@@ -371,7 +371,7 @@ export default function InboxSearchContainer(ownProps: OwnProps) {
       <Rover />
       <Kb.SectionList
         ListHeaderComponent={header}
-        contentInsetAdjustmentBehavior={Kb.Styles.isMobile ? 'automatic' : undefined}
+        contentInsetAdjustmentBehavior={isMobile ? 'automatic' : undefined}
         stickySectionHeadersEnabled={true}
         renderSectionHeader={({section}: {section: Section}) => section.renderHeader(section)}
         keyboardShouldPersistTaps="handled"
@@ -400,7 +400,7 @@ const emptyUnreadPlaceholder = {
   type: 'name',
 } as const
 
-const rowHeight = Kb.Styles.isMobile ? 64 : 56
+const rowHeight = isMobile ? 64 : 56
 type OpenTeamProps = T.Chat.InboxSearchOpenTeamHit & {isSelected: boolean}
 const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
@@ -468,7 +468,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             type="BodySemibold"
             style={{color: isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black}}
             title={name}
-            lineClamp={Kb.Styles.isMobile ? 1 : undefined}
+            lineClamp={isMobile ? 1 : undefined}
             ellipsizeMode="tail"
           >
             {name}

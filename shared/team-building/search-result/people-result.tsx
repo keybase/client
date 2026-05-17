@@ -81,7 +81,7 @@ const PeopleResult = function PeopleResult(props: ResultProps) {
     </Kb.WaitingButton>
   )
 
-  const rightButtons = Kb.Styles.isMobile ? [] : [chatButton, dropdown] // don't show action buttons on mobile for space reasons
+  const rightButtons = isMobile ? [] : [chatButton, dropdown] // don't show action buttons on mobile for space reasons
 
   return <CommonResult {...props} rowStyle={styles.rowContainer} rightButtons={rightButtons} />
 }

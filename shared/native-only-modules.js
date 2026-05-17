@@ -1,0 +1,22 @@
+/* global module */
+
+// Native-only React Native packages with no desktop equivalent.
+// Used in two places:
+//   1. ignored-modules.js → webpack aliases them to null-module.js
+//   2. jest.config.js → Jest stubs them with test/mocks/native-module.js
+//
+// When a merged .tsx file adds a new native-only package in an isMobile branch, add it here.
+module.exports = [
+  'lottie-react-native',
+  'expo-audio',
+  'expo-location',
+  'expo-video',
+  'react-native-zoom-toolkit',
+  '@gorhom/bottom-sheet',
+  'react-native-keyboard-controller',
+  'react-native-screens',
+  'react-native-safe-area-context',
+  'expo-modules-core',
+  'react-native-kb',
+  '@react-native-picker/picker',
+]

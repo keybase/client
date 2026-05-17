@@ -26,7 +26,7 @@ type Props = {
 }
 
 const reorderedSkinTones = (currentSkinTone: Props['currentSkinTone']) => {
-  if (Kb.Styles.isMobile || !currentSkinTone) return emojiData.skinTones
+  if (isMobile || !currentSkinTone) return emojiData.skinTones
   const idx = emojiData.skinTones.indexOf(currentSkinTone)
   if (idx === -1) return emojiData.skinTones
   const rest = [...emojiData.skinTones]
@@ -49,11 +49,11 @@ function SkinTonePicker(props: Props) {
         setExpanded(false)
       }}
     >
-      {circle(skinTone, true, Kb.Styles.isMobile && skinTone === props.currentSkinTone)}
+      {circle(skinTone, true, isMobile && skinTone === props.currentSkinTone)}
     </Kb.ClickableBox>
   ))
 
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     expanded ? (
       <Kb.Box2
         direction="horizontal"

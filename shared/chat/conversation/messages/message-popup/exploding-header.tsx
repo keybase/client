@@ -115,7 +115,7 @@ const ExplodingPopupHeader = (props: Props) => {
         <Kb.Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
           <Kb.Icon
             type="iconfont-timer"
-            fontSize={Kb.Styles.isMobile ? 20 : 16}
+            fontSize={isMobile ? 20 : 16}
             color={Kb.Styles.globalColors.white}
           />
           <Kb.Text style={{alignSelf: 'center', color: Kb.Styles.globalColors.white}} type="BodySemibold">
@@ -125,7 +125,7 @@ const ExplodingPopupHeader = (props: Props) => {
       )}
     </Kb.Box2>
   )
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupContainer}>
       {banner}
       {info}
@@ -141,8 +141,8 @@ const ExplodingPopupHeader = (props: Props) => {
   )
 }
 
-const headerIconType = Kb.Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'
-const headerIconHeight = Kb.Styles.isMobile ? 48 : 48
+const headerIconType = isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'
+const headerIconHeight = isMobile ? 48 : 48
 const oneMinuteInS = 60
 
 const styles = Kb.Styles.styleSheetCreate(

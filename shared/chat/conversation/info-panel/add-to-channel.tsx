@@ -113,7 +113,7 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
             }
             return (
               <Kb.ListItem
-                firstItem={!Kb.Styles.isMobile || idx === 0}
+                firstItem={!isMobile || idx === 0}
                 icon={<Kb.Avatar size={32} username={item.username} />}
                 type="Small"
                 onClick={alreadyIn ? undefined : onCheck}
@@ -148,7 +148,7 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
           style={styles.list}
         />
       </Kb.Box2>
-      {Kb.Styles.isMobile ? null : (
+      {isMobile ? null : (
         <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
             <Kb.Button type="Dim" label="Cancel" onClick={onClose} style={Kb.Styles.globalStyles.flexOne} />
@@ -168,7 +168,7 @@ const AddToChannelInner = (props: Props & {conversationIDKey: T.Chat.Conversatio
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   checkCircle: {
-    paddingRight: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny,
+    paddingRight: isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny,
   },
   filterInput: Kb.Styles.platformStyles({
     isElectron: {

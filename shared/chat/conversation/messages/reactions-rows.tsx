@@ -33,7 +33,7 @@ function ReactionsRowContainer(p: OwnProps) {
           <RowItem key={emoji || String(idx)} emoji={emoji} onReact={onReact} reaction={reaction} />
         ) : null
       })}
-      {Kb.Styles.isMobile ? (
+      {isMobile ? (
         <NewReactionButton style={styles.button} />
       ) : (
         <EmojiRow
@@ -65,7 +65,7 @@ function RowItem(p: IProps) {
   const [showingPopup, setShowingPopup] = React.useState(false)
 
   const showPopup = () => {
-    if (Kb.Styles.isMobile) {
+    if (isMobile) {
       Keyboard.dismiss()
     }
     setShowingPopup(true)
@@ -89,7 +89,7 @@ function RowItem(p: IProps) {
       <ReactButton
         className={btnClassName}
         emoji={emoji}
-        onLongPress={Kb.Styles.isMobile ? showPopup : undefined}
+        onLongPress={isMobile ? showPopup : undefined}
         reaction={reaction}
         style={styles.button}
         toggleReaction={onReact}

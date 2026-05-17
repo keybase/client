@@ -25,8 +25,8 @@ export type ButtonProps = {
   labelStyle?: Styles.StylesCrossPlatform
 }
 
-export const regularHeight = Styles.isMobile ? 40 : 32
-export const smallHeight = Styles.isMobile ? 32 : 28
+export const regularHeight = isMobile ? 40 : 32
+export const smallHeight = isMobile ? 32 : 28
 
 // Pre-computed container styles for all 8 mode+type combos
 const baseContainer: Styles._StylesCrossPlatform = Styles.platformStyles({
@@ -98,14 +98,14 @@ const smallStyle = {
   borderRadius: Styles.borderRadius,
   height: smallHeight,
   minWidth: undefined,
-  paddingLeft: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
-  paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
+  paddingLeft: isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
+  paddingRight: isMobile ? Styles.globalMargins.small : Styles.globalMargins.xsmall,
 } satisfies Styles._StylesCrossPlatform
 
 const childrenOnlyStyle = {
   minWidth: undefined,
-  paddingLeft: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
-  paddingRight: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
+  paddingLeft: isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
+  paddingRight: isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
   width: regularHeight,
 } satisfies Styles._StylesCrossPlatform
 
@@ -129,13 +129,13 @@ const progressContainerStyle = {
   justifyContent: 'center' as const,
 } satisfies Styles._StylesCrossPlatform
 
-const progressNormal = {height: Styles.isMobile ? 32 : 24, width: Styles.isMobile ? 32 : 24}
-const progressSmall = {height: Styles.isMobile ? 28 : 20, width: Styles.isMobile ? 28 : 20}
+const progressNormal = {height: isMobile ? 32 : 24, width: isMobile ? 32 : 24}
+const progressSmall = {height: isMobile ? 28 : 20, width: isMobile ? 28 : 20}
 
 const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   const {default: Animation} = require('./animation') as {default: typeof AnimationType}
   const animStyle = small ? progressSmall : progressNormal
-  if (Styles.isMobile) {
+  if (isMobile) {
     const {View} = require('react-native') as {View: typeof ViewType}
     return (
       <View style={Styles.castStyleNative(progressContainerStyle)}>
@@ -267,7 +267,7 @@ const ButtonNative = (props: FullProps) => {
   )
 }
 
-const Button = Styles.isMobile ? ButtonNative : ButtonDesktop
+const Button = isMobile ? ButtonNative : ButtonDesktop
 export default Button
 
 // IconButton — convenience wrapper that renders an Icon as a child

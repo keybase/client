@@ -1,4 +1,4 @@
-import * as Common from './common.desktop'
+import * as Common from './common'
 import * as C from '@/constants'
 import {useConfigState} from '@/stores/config'
 import {useDarkModeState} from '@/stores/darkmode'

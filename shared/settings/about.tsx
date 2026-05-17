@@ -8,7 +8,7 @@ const terms = 'https://keybase.io/_/webview/terms'
 const About = () => {
   const navigateAppend = C.Router2.navigateAppend
   const onShowPrivacyPolicy = () => {
-    if (C.isMobile) {
+    if (isMobile) {
       navigateAppend({
         name: 'webLinks',
         params: {title: 'Privacy Policy', url: privacyPolicy},
@@ -18,7 +18,7 @@ const About = () => {
     }
   }
   const onShowTerms = () => {
-    if (C.isMobile) {
+    if (isMobile) {
       navigateAppend({name: 'webLinks', params: {title: 'Terms', url: terms}})
     } else {
       openUrl(terms)

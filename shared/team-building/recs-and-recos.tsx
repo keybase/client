@@ -53,7 +53,7 @@ const TeamAlphabetIndex = ({recommendations, teamSoFar, sectionListRef}: TeamAlp
             ? recommendations.length - 1
             : recommendations.findIndex(section => section.label === label))) ||
         -1
-      if (sectionIndex >= 0 && Kb.Styles.isMobile) {
+      if (sectionIndex >= 0 && isMobile) {
         sectionListRef.current.scrollToLocation({
           animated: false,
           itemIndex: 0,
@@ -143,7 +143,7 @@ export const RecsAndRecos = (props: RecsAndRecosProps) => {
                 isYou={result.isYou}
                 followingState={result.followingState}
                 highlight={
-                  !Kb.Styles.isMobile &&
+                  !isMobile &&
                   !!highlightDetails &&
                   highlightDetails.section === section &&
                   highlightDetails.index === index
@@ -155,12 +155,12 @@ export const RecsAndRecos = (props: RecsAndRecosProps) => {
             )
           }
           renderSectionHeader={({section: {label}}) =>
-            label && (!Kb.Styles.isMobile || label !== 'Recommendations') ? (
+            label && (!isMobile || label !== 'Recommendations') ? (
               <Kb.SectionDivider label={label} />
             ) : null
           }
         />
-        {Kb.Styles.isMobile && (
+        {isMobile && (
           <TeamAlphabetIndex
             recommendations={recommendations}
             sectionListRef={sectionListRef}

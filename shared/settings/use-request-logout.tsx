@@ -2,7 +2,6 @@ import * as C from '@/constants'
 import {navigateAppend, switchTab} from '@/constants/router'
 import {settingsPasswordTab} from '@/constants/settings'
 import * as T from '@/constants/types'
-import {isMobile} from '@/constants/platform'
 import * as Tabs from '@/constants/tabs'
 import {useLogoutState} from '@/stores/logout'
 

@@ -18,7 +18,7 @@ type WalletPopupProps = {
 const WalletPopup = (props: WalletPopupProps) => {
   return (
     <>
-      {!!props.safeAreaViewTopStyle && Kb.Styles.isMobile && (
+      {!!props.safeAreaViewTopStyle && isMobile && (
         <Kb.SafeAreaViewTop style={props.safeAreaViewTopStyle} />
       )}
       <Kb.Box2 direction="vertical" style={styles.outerContainer}>
@@ -29,7 +29,7 @@ const WalletPopup = (props: WalletPopupProps) => {
         >
           <Kb.Box2
             direction="vertical"
-            fullHeight={!Kb.Styles.isMobile}
+            fullHeight={!isMobile}
             fullWidth={true}
             centerChildren={true}
             style={Kb.Styles.collapseStyles([styles.container, props.containerStyle])}
@@ -38,8 +38,8 @@ const WalletPopup = (props: WalletPopupProps) => {
             {props.bottomButtons && props.bottomButtons.length > 0 && (
               <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
                 <Kb.ButtonBar
-                  direction={props.buttonBarDirection || (Kb.Styles.isMobile ? 'column' : 'row')}
-                  fullWidth={Kb.Styles.isMobile}
+                  direction={props.buttonBarDirection || (isMobile ? 'column' : 'row')}
+                  fullWidth={isMobile}
                   style={Kb.Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
                 >
                   {props.bottomButtons}
@@ -49,7 +49,7 @@ const WalletPopup = (props: WalletPopupProps) => {
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>
-      {!!props.safeAreaViewBottomStyle && Kb.Styles.isMobile && (
+      {!!props.safeAreaViewBottomStyle && isMobile && (
         <Kb.SafeAreaView style={props.safeAreaViewBottomStyle} />
       )}
     </>

@@ -47,8 +47,8 @@ const PieSlice = (props: Props) => {
     <Slice degrees={props.degrees} style={props.style} negative={props.negative} />
   )
 }
-const pieSize = Kb.Styles.isMobile ? 16 : 12
-const pieHalfSize = Kb.Styles.isMobile ? 8 : 6
+const pieSize = isMobile ? 16 : 12
+const pieHalfSize = isMobile ? 8 : 6
 const stylePieHalf = {
   height: pieSize,
   position: 'absolute' as const,

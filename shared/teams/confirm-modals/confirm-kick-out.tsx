@@ -165,11 +165,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     height: 24,
     overflow: 'hidden',
     position: 'absolute',
-    right: Kb.Styles.isMobile ? -24 : 0,
+    right: isMobile ? -24 : 0,
     width: 24,
   },
   iconContainerMany: {
-    right: Kb.Styles.isMobile ? 0 : 20,
+    right: isMobile ? 0 : 20,
   },
   prompt: Kb.Styles.padding(0, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
 }))

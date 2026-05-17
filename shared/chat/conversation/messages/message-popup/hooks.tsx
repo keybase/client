@@ -79,7 +79,7 @@ const useItemsForMessage = (p: {
       },
     })
   }
-  const onAddReaction = C.isMobile ? _onAddReaction : undefined
+  const onAddReaction = isMobile ? _onAddReaction : undefined
 
   const {members: teamMembers} = useChatTeamMembers(teamID)
   const {yourOperations} = useChatTeam(teamID, teamname)
@@ -253,7 +253,7 @@ const useItemsForMessage = (p: {
         {
           icon: 'iconfont-person',
           onClick: onViewProfile,
-          subTitle: C.isMobile ? profileSubtitle : undefined,
+          subTitle: isMobile ? profileSubtitle : undefined,
           title: `View ${author}'s profile`,
         },
       ] as const)
@@ -305,10 +305,10 @@ export const useModeration = (
   )
 
   const onUserBlock = canModerate ? () => openBlockingModal() : undefined
-  const onUserFilter = C.isIOS && canModerate ? () => openBlockingModal({filterUserByDefault: true}) : undefined
-  const onUserReport = C.isIOS && canModerate ? () => openBlockingModal({reportsUserByDefault: true}) : undefined
+  const onUserFilter = isIOS && canModerate ? () => openBlockingModal({filterUserByDefault: true}) : undefined
+  const onUserReport = isIOS && canModerate ? () => openBlockingModal({reportsUserByDefault: true}) : undefined
   const onUserFlag =
-    C.isIOS && canModerate
+    isIOS && canModerate
       ? () => openBlockingModal({flagUserByDefault: true, reportsUserByDefault: true})
       : undefined
 

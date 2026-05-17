@@ -23,7 +23,7 @@ const SplashContainer = () => {
     status = `Loading...  (still trying${failedText})`
   }
 
-  const onFeedback = C.isMobile
+  const onFeedback = isMobile
     ? () => {
         navigateAppend({name: 'feedback', params: {}})
       }

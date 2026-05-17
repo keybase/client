@@ -716,7 +716,7 @@ const NodeInRow = (props: NodeInRowProps) => {
                     direction="horizontal"
                     gap="tiny"
                     alignSelf="flex-start"
-                    gapEnd={Kb.Styles.isMobile}
+                    gapEnd={isMobile}
                     style={styles.paddingBottomMobile}
                   >
                     {!isSmallTeam && (

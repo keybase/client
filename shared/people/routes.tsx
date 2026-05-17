@@ -17,7 +17,7 @@ const HeaderAvatar = () => {
 export const newRoutes = defineRouteMap({
   peopleRoot: {
     getOptions: {
-      headerRight: Kb.Styles.isMobile ? () => <HeaderAvatar /> : undefined,
+      headerRight: isMobile ? () => <HeaderAvatar /> : undefined,
       headerTitle: () => <ProfileSearch />,
     },
     screen: React.lazy(async () => import('./container')),

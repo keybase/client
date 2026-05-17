@@ -64,7 +64,7 @@ const WarningLink = (props: WarningLinkProps) => {
   const {display, punycode, url} = props
   const navigateAppend = C.Router2.navigateAppend
   const urlProps = useClickURL(url)
-  if (Styles.isMobile) {
+  if (isMobile) {
     return (
       <Text
         className="hover-underline"
@@ -254,7 +254,7 @@ const ServiceDecoration = (p: Props) => {
         emojiData={RPCToEmojiData(parsed.emoji, disableEmojiAnimation)}
         showTooltip={!parsed.emoji.isReacji}
         size={
-          parsed.emoji.isBig && !disableBigEmojis ? 32 : parsed.emoji.isReacji && !Styles.isMobile ? 18 : 16
+          parsed.emoji.isBig && !disableBigEmojis ? 32 : parsed.emoji.isReacji && !isMobile ? 18 : 16
         }
         style={styleOverride?.emoji}
       />

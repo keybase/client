@@ -156,7 +156,7 @@ export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => 
   )
 }
 
-const SendToChat = Kb.Styles.isMobile ? MobileSendToChatRoutable : DesktopSendToChat
+const SendToChat = isMobile ? MobileSendToChatRoutable : DesktopSendToChat
 
 export default SendToChat
 

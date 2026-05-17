@@ -60,7 +60,7 @@ const Conversation = function Conversation() {
   const windowHeight = useSafeAreaFrame().height
   const height = windowHeight - insets.top - headerHeight
 
-  const safeStyle = Kb.Styles.isAndroid
+  const safeStyle = isAndroid
     ? {paddingBottom: insets.bottom}
     : {
         height,
@@ -90,7 +90,7 @@ const Conversation = function Conversation() {
 
   return (
     <PerfProfiler id="Conversation">
-      {Kb.Styles.isAndroid ? (
+      {isAndroid ? (
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
           {content}
         </Kb.Box2>

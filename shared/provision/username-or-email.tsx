@@ -70,7 +70,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
 
   return (
     <SignupScreen
-      hideDesktopHeader={!Kb.Styles.isMobile}
+      hideDesktopHeader={!isMobile}
       onRightAction={onGoToSignup}
       rightActionLabel="Create account"
       banners={

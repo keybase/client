@@ -56,7 +56,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
       containerStyle={styles.background}
       bottomButtons={[
         <Kb.Button
-          fullWidth={Kb.Styles.isMobile}
+          fullWidth={isMobile}
           key={0}
           label="Copy secret key"
           onClick={onCopy}
@@ -66,7 +66,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
           disabled={waiting}
         />,
         <Kb.Button
-          fullWidth={Kb.Styles.isMobile}
+          fullWidth={isMobile}
           key={1}
           label="Finish"
           onClick={onFinish}
@@ -80,7 +80,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
     >
       <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
         <Kb.ImageIcon
-          type={Kb.Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
+          type={isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
           style={styles.icon}
         />
         <Kb.Box2 direction="vertical">
@@ -100,7 +100,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
         </Kb.Text>
 
         <Kb.Toast visible={showingToast} attachTo={attachmentRef} position="top center">
-          {Kb.Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color="white" />}
+          {isMobile && <Kb.Icon type="iconfont-clipboard" color="white" />}
           <Kb.Text center={true} type="BodySmall" style={styles.toastText}>
             Copied to clipboard
           </Kb.Text>

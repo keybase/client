@@ -226,7 +226,7 @@ const TeamPickerInner = (props: Props) => {
           />
         </Kb.Box2>
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
-          {Kb.Styles.isMobile ? null : (
+          {isMobile ? null : (
             <Kb.Button fullWidth={true} type="Dim" onClick={onClose} label="Cancel" />
           )}
           <Kb.Button fullWidth={true} onClick={onSubmit} label="Send" />

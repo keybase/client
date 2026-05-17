@@ -151,7 +151,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   const typing = () => focused || !!currentText()
 
   const iconSizeType = () => {
-    return !Styles.isMobile && props.size === 'full-width' ? 'Default' : 'Small'
+    return !isMobile && props.size === 'full-width' ? 'Default' : 'Small'
   }
 
   const iconColor = () => {
@@ -166,7 +166,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
           type={props.icon}
           sizeType={iconSizeType()}
           color={iconColor()}
-          style={Styles.collapseStyles([styles.icon, !Styles.isMobile && props.size === 'small' ? styles.leftIconXTiny : styles.leftIconTiny])}
+          style={Styles.collapseStyles([styles.icon, !isMobile && props.size === 'small' ? styles.leftIconXTiny : styles.leftIconTiny])}
         />
       )
     )
@@ -174,7 +174,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
 
   const input = () => {
     const hotkeyText =
-      props.hotkey && !props.onClick && !focused && !Styles.isMobile
+      props.hotkey && !props.onClick && !focused && !isMobile
         ? ` (${Platforms.shortcutSymbol}${props.hotkey.toUpperCase()})`
         : ''
     return (
@@ -198,7 +198,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   const waiting = () => {
     return (
       !!props.waiting &&
-      (Styles.isMobile ? (
+      (isMobile ? (
         <Kb.ProgressIndicator type="Small" style={styles.spinnerMobile} white={false} />
       ) : (
         <Kb.Animation
@@ -221,7 +221,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     if (!show) {
       return null
     }
-    if (Styles.isMobile) {
+    if (isMobile) {
       return (
         <Kb.ClickableBox2 onClick={props.mobileCancelButton ? clear : cancel} hitSlop={10}>
           <Kb.Icon
@@ -253,8 +253,8 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     <Kb.Box2
       ref={measureRef}
       direction="horizontal"
-      style={Styles.collapseStyles([{alignItems: 'center'}, !Styles.isMobile && {width: '100%'}])}
-      pointerEvents={Styles.isMobile && props.onClick ? 'none' : undefined}
+      style={Styles.collapseStyles([{alignItems: 'center'}, !isMobile && {width: '100%'}])}
+      pointerEvents={isMobile && props.onClick ? 'none' : undefined}
     >
       {leftIcon()}
       {input()}
@@ -263,7 +263,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     </Kb.Box2>
   )
 
-  const content = Styles.isMobile ? (
+  const content = isMobile ? (
     <Kb.ClickableBox2
       data-search-filter={true}
       style={Styles.collapseStyles([
@@ -297,7 +297,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     </Kb.ClickableBox>
   )
 
-  return Styles.isMobile ? (
+  return isMobile ? (
     <Kb.Box2
       direction="horizontal"
       style={Styles.collapseStyles([styles.containerMobile, props.style])}

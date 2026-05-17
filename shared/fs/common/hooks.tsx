@@ -1212,7 +1212,7 @@ export const useFsFileContext = (
   }
 }
 
-export const useFsWatchDownloadForMobile = C.isMobile
+export const useFsWatchDownloadForMobile = isMobile
   ? (downloadID: string, downloadIntent?: T.FS.DownloadIntent): boolean => {
       const dlInfo = useFsDownloadInfo(downloadID)
       const {fileContext} = useFsFileContext(dlInfo.path)

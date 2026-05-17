@@ -28,12 +28,12 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       buttonBar: {
         flexShrink: 0,
-        padding: Kb.Styles.isMobile ? undefined : Kb.Styles.globalMargins.medium,
+        padding: isMobile ? undefined : Kb.Styles.globalMargins.medium,
       },
       container: {
-        minHeight: Kb.Styles.isMobile ? undefined : 450,
-        padding: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.medium,
-        width: Kb.Styles.isMobile ? undefined : 560,
+        minHeight: isMobile ? undefined : 450,
+        padding: isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.medium,
+        width: isMobile ? undefined : 560,
       },
     }) as const
 )

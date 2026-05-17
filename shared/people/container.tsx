@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {useNavigation} from '@react-navigation/native'
-import {isMobile} from '@/constants/platform'
 import type {DebouncedFunc} from 'lodash'
 import debounce from 'lodash/debounce'
 import invert from 'lodash/invert'

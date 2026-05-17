@@ -17,7 +17,7 @@ import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import {ensureError} from '@/util/errors'
 import type {Action} from '../app/ipctypes'
 import type {Engine} from '@/engine'
-import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug.desktop'
+import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug'
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   htmlURL(windowComponent, `param=${windowParam}`)

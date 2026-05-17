@@ -140,7 +140,7 @@ export function useInboxState(
   })
 
   React.useEffect(() => {
-    const ready = loggedIn && !!username && (!C.isMobile || isFocused)
+    const ready = loggedIn && !!username && (!isMobile || isFocused)
     if (!ready || !refreshInbox || handledRefreshNonceRef.current === refreshInbox.nonce) {
       return
     }
@@ -157,7 +157,7 @@ export function useInboxState(
 
   React.useEffect(() => {
     const ready = loggedIn && !!username
-    const shouldRetry = !inboxHasLoaded && ready && (!C.isMobile || isFocused)
+    const shouldRetry = !inboxHasLoaded && ready && (!isMobile || isFocused)
     if (shouldRetry) {
       C.ignorePromise(inboxRefresh('componentNeverLoaded'))
     }
@@ -216,7 +216,7 @@ export function useInboxState(
   }, [inboxNumSmallRowsLoaded, loadInboxNumSmallRows, loggedIn, username])
 
   React.useEffect(() => {
-    const ready = loggedIn && !!username && (!C.isMobile || isFocused)
+    const ready = loggedIn && !!username && (!isMobile || isFocused)
     if (!ready || isSearching || !inboxHasLoaded || inboxRows.length > 0 || inboxRetriedOnCurrentEmpty) {
       return
     }

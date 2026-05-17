@@ -33,7 +33,7 @@ function SettingsItem(props: SettingsItemProps) {
           type={props.icon}
           color={Kb.Styles.globalColors.black_50}
           style={{
-            marginRight: Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny,
+            marginRight: isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.tiny,
           }}
         />
       ) : null}

@@ -302,7 +302,7 @@ const ChannelBody = (props: OwnProps) => {
             renderSectionHeader={({section}) =>
               section.title ? <Kb.SectionDivider label={section.title} /> : null
             }
-            stickySectionHeadersEnabled={Kb.Styles.isMobile}
+            stickySectionHeadersEnabled={isMobile}
             sections={sections}
             contentContainerStyle={styles.listContentContainer}
           />

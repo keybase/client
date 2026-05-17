@@ -53,7 +53,7 @@ export const DropdownButton = (props: DropdownButtonProps) => {
           {
             paddingRight: inline
               ? Styles.globalMargins.tiny
-              : Styles.isMobile
+              : isMobile
                 ? Styles.globalMargins.large
                 : Styles.globalMargins.small,
           },
@@ -68,7 +68,7 @@ export const DropdownButton = (props: DropdownButtonProps) => {
         <Kb.Icon
           type="iconfont-caret-down"
           sizeType="Tiny"
-          style={{marginTop: Styles.isMobile ? 2 : -8}}
+          style={{marginTop: isMobile ? 2 : -8}}
         />
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -221,7 +221,7 @@ const styles = Styles.styleSheetCreate(
         borderColor: Styles.globalColors.black_10,
         borderStyle: 'solid',
         justifyContent: 'center',
-        minHeight: Styles.isMobile ? 40 : 32,
+        minHeight: isMobile ? 40 : 32,
         width: '100%',
       },
       itemClickBox: Styles.platformStyles({
@@ -236,7 +236,7 @@ const styles = Styles.styleSheetCreate(
       measureBox: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
-        ...(Styles.isMobile
+        ...(isMobile
           ? {
               borderColor: Styles.globalColors.black_10,
               color: Styles.globalColors.black_50,

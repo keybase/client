@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as RowTypes from './types'
 import {sortRowItems, type SortableRowItem} from './sort'
@@ -225,7 +224,7 @@ const Container = (o: OwnProps) => {
       // TODO: add `footerRows` and inject these from destination-picker, so that
       // Rows componenet don't need to worry about whether it's in
       // destinationPicker mode or not.
-      (!C.isMobile && inDestinationPicker
+      (!isMobile && inDestinationPicker
         ? [
             {key: 'empty:0', rowType: RowTypes.RowType.Empty} as RowTypes.EmptyRowItem,
             {key: 'empty:1', rowType: RowTypes.RowType.Empty} as RowTypes.EmptyRowItem,

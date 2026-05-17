@@ -203,7 +203,7 @@ export const collapseStyles = (styles: ReadonlyArray<unknown>): object | undefin
 
 export const collapseStylesDesktop = collapseStyles
 
-export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
+export {isPhone, isTablet, fileUIName} from '@/constants/platform'
 export * from './shared'
 export * from './styles-base'
 

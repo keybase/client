@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {pathToRPCPath} from '@/constants/fs'
-import {fsCacheDir, isAndroid} from '@/constants/platform'
+import {fsCacheDir} from '@/constants/platform'
 import {pickSave} from '@/util/misc'
 import * as FsCommon from '@/fs/common'
 import {settingsArchiveTab} from '@/constants/settings'
@@ -61,7 +61,7 @@ const ArchiveModal = (p: Props) => {
   const displayname = p.type === 'chatID' ? chatIDToDisplayname(p.conversationIDKey) : ''
 
   let defaultPath = ''
-  if (C.isElectron) {
+  if (isElectron) {
     defaultPath = `${C.downloadFolder}/kb-archive-`
     switch (type) {
       case 'chatID':
@@ -101,7 +101,7 @@ const ArchiveModal = (p: Props) => {
   const navigateUp = C.Router2.navigateUp
   const switchTab = C.Router2.switchTab
 
-  const canStart = !!((C.isMobile || outpath) && !started)
+  const canStart = !!((isMobile || outpath) && !started)
 
   const onStart = () => {
     if (!canStart) return
@@ -326,7 +326,7 @@ const ArchiveModal = (p: Props) => {
       break
   }
 
-  const output = Kb.Styles.isMobile ? null : (
+  const output = isMobile ? null : (
     <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
         <Kb.Text type="Body">Save To</Kb.Text>
@@ -347,7 +347,7 @@ const ArchiveModal = (p: Props) => {
     <>
       <Kb.ScrollView alwaysBounceVertical={false} style={Kb.Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="small" style={styles.container}>
-          {Kb.Styles.isMobile ? (
+          {isMobile ? (
             <Kb.Text type="Body">Share a copy of your content to another app</Kb.Text>
           ) : (
             <Kb.Text type="Body">Save a copy of your content to your local drive</Kb.Text>
@@ -372,7 +372,7 @@ const ArchiveModal = (p: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {padding: Kb.Styles.isMobile ? 8 : 16},
+  container: {padding: isMobile ? 8 : 16},
   contentContainer: {
     maxWidth: 400,
   },

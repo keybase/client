@@ -18,7 +18,7 @@ const Mention = ({username, theme, style, allowFontScaling, onClick}: Props) => 
     <Text
       type="BodyBold"
       onClick={onClick || undefined}
-      className={Styles.classNames({'hover-underline': !Styles.isMobile})}
+      className={Styles.classNames({'hover-underline': !isMobile})}
       style={Styles.collapseStyles([style, styles[theme || 'none'], styles.text])}
       allowFontScaling={allowFontScaling}
       onLongPress={onLongPress}

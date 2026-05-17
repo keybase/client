@@ -61,7 +61,7 @@ const UploadButton = (props: UploadButtonProps) => {
   // On non-darwin desktop, show menu for file vs directory.
   return (
     <>
-      {C.isMobile ? (
+      {isMobile ? (
         <Kb.Icon type="iconfont-upload" padding="tiny" onClick={showPopup} />
       ) : (
         <Kb.Button onClick={showPopup} label="Upload" ref={popupAnchor} style={props.style} />
@@ -98,7 +98,7 @@ const Container = (ownProps: OwnProps) => {
     }
     C.ignorePromise(f())
   }
-  const openAndUploadDirectory = C.isElectron && !C.isDarwin ? _openAndUploadDirectory : undefined
+  const openAndUploadDirectory = isElectron && !C.isDarwin ? _openAndUploadDirectory : undefined
   const _openAndUploadFile = () => {
     const f = async () => {
       try {
@@ -110,7 +110,7 @@ const Container = (ownProps: OwnProps) => {
     }
     C.ignorePromise(f())
   }
-  const openAndUploadFile = C.isElectron && !C.isDarwin ? _openAndUploadFile : undefined
+  const openAndUploadFile = isElectron && !C.isDarwin ? _openAndUploadFile : undefined
   const _pickAndUploadMixed = () => {
     const f = async () => {
       try {
@@ -121,7 +121,7 @@ const Container = (ownProps: OwnProps) => {
     }
     C.ignorePromise(f())
   }
-  const pickAndUploadMixed = C.isMobile ? _pickAndUploadMixed : undefined
+  const pickAndUploadMixed = isMobile ? _pickAndUploadMixed : undefined
   const _pickAndUploadPhoto = () => {
     const f = async () => {
       try {
@@ -132,7 +132,7 @@ const Container = (ownProps: OwnProps) => {
     }
     C.ignorePromise(f())
   }
-  const pickAndUploadPhoto = C.isAndroid ? _pickAndUploadPhoto : undefined
+  const pickAndUploadPhoto = isAndroid ? _pickAndUploadPhoto : undefined
   const _pickAndUploadVideo = () => {
     const f = async () => {
       try {
@@ -143,7 +143,7 @@ const Container = (ownProps: OwnProps) => {
     }
     C.ignorePromise(f())
   }
-  const pickAndUploadVideo = C.isAndroid ? _pickAndUploadVideo : undefined
+  const pickAndUploadVideo = isAndroid ? _pickAndUploadVideo : undefined
   const _pickAndUploadFileMobile = () => {
     const f = async () => {
       try {
@@ -154,7 +154,7 @@ const Container = (ownProps: OwnProps) => {
     }
     C.ignorePromise(f())
   }
-  const pickAndUploadFileMobile = C.isMobile ? _pickAndUploadFileMobile : undefined
+  const pickAndUploadFileMobile = isMobile ? _pickAndUploadFileMobile : undefined
 
   const props = {
     canUpload: _pathItem.type === T.FS.PathType.Folder && _pathItem.writable,
@@ -162,7 +162,7 @@ const Container = (ownProps: OwnProps) => {
     openAndUploadDirectory,
     openAndUploadFile,
     pickAndUploadFile: pickAndUploadFileMobile,
-    pickAndUploadMixed: C.isIOS ? pickAndUploadMixed : undefined,
+    pickAndUploadMixed: isIOS ? pickAndUploadMixed : undefined,
     pickAndUploadPhoto,
     pickAndUploadVideo,
     style: ownProps.style,

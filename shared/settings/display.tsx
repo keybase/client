@@ -59,7 +59,7 @@ const Display = () => {
               onCheck={doToggleAnimatedEmoji}
             />
           </Kb.Box2>
-          {C.isElectron && (
+          {isElectron && (
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
               <Kb.Text type="Header">Navigation</Kb.Text>
               <Kb.Checkbox

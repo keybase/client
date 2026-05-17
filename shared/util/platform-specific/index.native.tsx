@@ -5,7 +5,6 @@ import * as FileSystem from 'expo-file-system'
 import {addNotificationRequest} from 'react-native-kb'
 import logger from '@/logger'
 import {ActionSheetIOS} from 'react-native'
-import {isIOS, isAndroid} from '@/constants/platform.native'
 import {androidShare, androidShareText} from 'react-native-kb'
 
 export const requestPermissionsToWrite = async () => {

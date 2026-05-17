@@ -83,7 +83,7 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
         placeholderText="Add channels"
         icon="iconfont-search"
         onChange={setFilter}
-        size={Kb.Styles.isMobile ? 'full-width' : 'small'}
+        size={isMobile ? 'full-width' : 'small'}
         onKeyDown={onKeyDown}
         value={filter}
         valueControlled={true}
@@ -127,11 +127,11 @@ const ChannelInputMobile = (props: ChannelInputProps) => {
   )
 }
 
-const ChannelInput = Kb.Styles.isMobile ? ChannelInputMobile : ChannelInputDesktop
+const ChannelInput = isMobile ? ChannelInputMobile : ChannelInputDesktop
 
 const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: () => void}) => (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
-    <Kb.Text type={Kb.Styles.isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
+    <Kb.Text type={isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
     {onRemove && (
       <Kb.Icon type="iconfont-remove" onClick={onRemove} color={Kb.Styles.globalColors.black_20} />
     )}

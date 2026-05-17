@@ -38,7 +38,7 @@ const AddFromWhere = ({wizard}: Props) => {
       ) : null}
       <Kb.Box2
         direction="vertical"
-        gap={Kb.Styles.isMobile ? 'tiny' : 'xsmall'}
+        gap={isMobile ? 'tiny' : 'xsmall'}
         style={styles.body}
         fullWidth={true}
       >
@@ -57,7 +57,7 @@ const AddFromWhere = ({wizard}: Props) => {
           description="Enter one or multiple email addresses."
           onClick={onContinueEmail}
         />
-        {Kb.Styles.isMobile && (
+        {isMobile && (
           <Kb.RichButton
             icon="icon-teams-add-phone-contacts-64"
             title="From your contacts"

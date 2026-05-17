@@ -84,7 +84,7 @@ const UseNativeFrame = () => {
       initialUseNativeFrame = useNativeFrame
     }
   }, [useNativeFrame])
-  return C.isMobile ? null : (
+  return isMobile ? null : (
     <>
       <Kb.Checkbox
         checked={!useNativeFrame}
@@ -266,10 +266,10 @@ const Advanced = () => {
               />
             )}
             {C.isLinux ? <UseNativeFrame /> : null}
-            {!C.isMobile && (
+            {!isMobile && (
               <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
             )}
-            {!C.isMobile && (
+            {!isMobile && (
               <Kb.Checkbox
                 label={
                   'Disable spellchecking' +
@@ -366,7 +366,7 @@ const Developer = () => {
       </Kb.Text>
       <Kb.Divider style={styles.divider} />
       <Kb.Button style={styles.developerButtons} type="Danger" label="DB Nuke" onClick={onDBNuke} />
-      {Kb.Styles.isIOS ? (
+      {isIOS ? (
         <Kb.Button
           style={styles.developerButtons}
           mode="Secondary"

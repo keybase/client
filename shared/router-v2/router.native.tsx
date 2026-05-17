@@ -7,7 +7,7 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
-import * as Common from './common.native'
+import * as Common from './common'
 import logger from '@/logger'
 import {Platform, StatusBar, View} from 'react-native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
@@ -162,7 +162,7 @@ const appTabsScreenOptions = (
     tabBarBadgeStyle: {
       backgroundColor: isLiquidGlassSupported ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.orange,
     },
-    ...(C.isIOS
+    ...(isIOS
       ? {
           tabBarActiveIndicatorEnabled: false,
           ...(isLiquidGlassSupported

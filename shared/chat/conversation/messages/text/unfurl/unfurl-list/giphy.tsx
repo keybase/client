@@ -26,7 +26,7 @@ function UnfurlGiphy(p: {
 
   return (
     <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
-      {!Kb.Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
+      {!isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
       <Kb.Box2 style={styles.innerContainer} gap="xtiny" direction="vertical">
         <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal" justifyContent="space-between">
           <Kb.Box2 direction="horizontal" gap="tiny">

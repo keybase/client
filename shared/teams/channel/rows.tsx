@@ -274,7 +274,7 @@ const ChannelMemberRow = (props: Props) => {
       {...massActionsProps}
       action={anySelected ? null : actions}
       onlyShowActionOnHover="fade"
-      height={Kb.Styles.isMobile ? 64 : 48}
+      height={isMobile ? 64 : 48}
       type="Large"
       body={body}
       firstItem={props.firstItem}

@@ -5,10 +5,7 @@ const {env, platform} = KB2.constants
 
 export const isNewArch: boolean = false
 export const androidIsTestDevice: boolean = false
-export const isMobile: boolean = false
 export const isPhone: boolean = false
-export const isAndroid: boolean = false
-export const isIOS: boolean = false
 export const isLargeScreen: boolean = true
 export const isTablet: boolean = false
 export const isDebuggingInChrome: boolean = true
@@ -17,7 +14,6 @@ export const dokanPath = KB2.constants.dokanPath
 export const windowsBinPath = KB2.constants.windowsBinPath
 export const pathSep = KB2.constants.pathSep
 
-export const isElectron: boolean = true
 export const isDarwin = platform === 'darwin'
 export const isWindows = platform === 'win32'
 export const isLinux = platform === 'linux'
@@ -156,3 +152,11 @@ const uses24HourClockF = () => {
 }
 export const uses24HourClock = uses24HourClockF()
 export const getAssetPath = (...a: Array<string>) => KB2.constants.assetRoot + a.join('/')
+export const getSecureFlagSetting = async (): Promise<boolean> => {
+  await Promise.resolve()
+  return false
+}
+export const setSecureFlagSetting = async (_secure: boolean): Promise<boolean> => {
+  await Promise.resolve()
+  return false
+}

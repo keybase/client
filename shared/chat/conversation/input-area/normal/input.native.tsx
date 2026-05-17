@@ -105,7 +105,7 @@ export function Input(p: InputLowLevelProps) {
   const style = (() => {
     let textStyle = getTextStyle(textType, isDarkMode)
     // RN TextInput plays better without this
-    if (Kb.Styles.isIOS) {
+    if (isIOS) {
       const {lineHeight, ...rest} = textStyle
       textStyle = rest
     }

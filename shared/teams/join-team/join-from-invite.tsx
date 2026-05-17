@@ -136,7 +136,7 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
             <Kb.Box2
               direction="horizontal"
               style={styles.meta}
-              fullWidth={!Kb.Styles.isMobile}
+              fullWidth={!isMobile}
               centerChildren={true}
             >
               <Kb.Meta backgroundColor={Kb.Styles.globalColors.green} title="open" size="Small" />
@@ -176,7 +176,7 @@ const JoinFromInviteInner = ({inviteDetails: initialInviteDetails, inviteID = ''
           />
           <Kb.Text type="BodySmall"> invited you.</Kb.Text>
         </Kb.Box2>
-        {Kb.Styles.isMobile && (
+        {isMobile && (
           <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.laterBox}>
             <Kb.Button label="Later" type="Dim" onClick={onClose} style={styles.button} />
           </Kb.Box2>

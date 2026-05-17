@@ -14,7 +14,7 @@ const FsFilePreview = React.lazy(async () => import('./filepreview/file-preview-
 const DestPickerHeaderLeft = ({source}: {source: T.FS.MoveOrCopySource | T.FS.IncomingShareSource}) => {
   const clearModals = C.Router2.clearModals
   const navigateUp = C.Router2.navigateUp
-  if (!Kb.Styles.isMobile) return null
+  if (!isMobile) return null
   if (source.type === T.FS.DestinationPickerSource.IncomingShare) {
     return (
       <Kb.Text type="BodyBigLink" onClick={navigateUp}>
@@ -40,7 +40,7 @@ const DestPickerHeaderTitle = (props: {
 }) => {
   const {parentPath, source} = props
   const targetName = FS.getDestinationPickerPathName(source)
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
         <Filename type="BodyTiny" filename={targetName} />
@@ -72,7 +72,7 @@ export const newRoutes = defineRouteMap({
   fsFilePreview: C.makeScreen(FsFilePreview, {
     getOptions: (ownProps?) => {
       const path = ownProps?.route.params.path ?? FS.defaultPath
-      return C.isMobile
+      return isMobile
         ? {header: () => <MobileHeader path={path} />}
         : {
             headerTitle: () => <Title path={path} />,
@@ -85,7 +85,7 @@ export const newRoutes = defineRouteMap({
       // strange edge case where the root can actually have no params
       const params = ownProps?.route.params
       const path = params?.path ?? FS.defaultPath
-      return C.isMobile
+      return isMobile
         ? {
             header: () => <MobileHeader path={path} />,
           }

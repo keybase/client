@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
-import {isTablet, isIOS, isAndroid} from '@/constants/platform'
+import {isTablet} from '@/constants/platform'
 import {SafeAreaView as RNScreensSafeAreaView} from 'react-native-screens/experimental'
 import type {GetOptions, GetOptionsParams} from '@/constants/types/router'
 

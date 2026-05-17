@@ -144,7 +144,7 @@ export function NewReactionButton(p: NewReactionButtonProps) {
   )
 }
 
-const markdownOverride: StyleOverride = Kb.Styles.isMobile
+const markdownOverride: StyleOverride = isMobile
   ? {
       customEmoji: {
         height: 20,
@@ -155,7 +155,7 @@ const markdownOverride: StyleOverride = Kb.Styles.isMobile
         fontSize: 15,
       },
       emojiSize: {size: 24},
-      paragraph: C.isAndroid ? ({height: 28, textAlignVertical: 'center'} as StyleOverride['paragraph']) : {},
+      paragraph: isAndroid ? ({height: 28, textAlignVertical: 'center'} as StyleOverride['paragraph']) : {},
     }
   : {
       customEmoji: {height: 18, width: 18},
@@ -182,7 +182,7 @@ const styles = Kb.Styles.styleSheetCreate(
           alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.white,
           borderWidth: 1,
-          height: Kb.Styles.isMobile ? 30 : 26,
+          height: isMobile ? 30 : 26,
           justifyContent: 'center',
           minWidth: 40,
           paddingLeft: 6,

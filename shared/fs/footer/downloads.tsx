@@ -91,4 +91,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Kb.Styles.isMobile ? Mobile : Desktop
+export default isMobile ? Mobile : Desktop

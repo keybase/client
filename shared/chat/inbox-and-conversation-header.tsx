@@ -181,7 +181,7 @@ const Header2 = () => {
     <Kb.Box2 direction="horizontal" style={styles.left}>
       {C.isTablet ? (
         <Kb.BoxGrow2>{headerPortalContent}</Kb.BoxGrow2>
-      ) : !Kb.Styles.isMobile ? (
+      ) : !isMobile ? (
         <Kb.BoxGrow2>
           <div
             style={Kb.Styles.castStyleDesktop(styles.searchPortal)}
@@ -189,7 +189,7 @@ const Header2 = () => {
           />
         </Kb.BoxGrow2>
       ) : null}
-      {!C.isElectron && !C.isTablet && <NewChatButton />}
+      {!isElectron && !C.isTablet && <NewChatButton />}
     </Kb.Box2>
   )
 

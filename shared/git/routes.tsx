@@ -7,7 +7,7 @@ export const newRoutes = defineRouteMap({
   gitRoot: C.makeScreen(
     React.lazy(async () => import('.')),
     {
-      getOptions: C.isMobile
+      getOptions: isMobile
         ? {title: 'Git'}
         : () => {
             const {HeaderTitle, HeaderRightActions} = require('./nav-header') as typeof NavHeader

@@ -48,7 +48,7 @@ const SectionDivider = (props: Props) => {
     children
   )
 }
-const height = Styles.isMobile ? 40 : 32
+const height = isMobile ? 40 : 32
 SectionDivider.height = height
 
 const styles = Styles.styleSheetCreate(() => ({

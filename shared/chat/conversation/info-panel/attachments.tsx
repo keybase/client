@@ -256,7 +256,7 @@ const DocViewRow = (props: DocViewRowProps) => {
           </Kb.Text>
         </Kb.Box2>
       )}
-      {Kb.Styles.isMobile && item.message && popup}
+      {isMobile && item.message && popup}
     </Kb.Box2>
   )
 }
@@ -668,7 +668,7 @@ export const useAttachmentSections = (
   const clearModals = C.Router2.clearModals
 
   const jumpToAttachment = (messageID: T.Chat.MessageID) => {
-    if (C.isMobile) {
+    if (isMobile) {
       clearModals()
     }
     C.Router2.navigateToThread(conversationIDKey, 'misc', messageID)
@@ -715,7 +715,7 @@ export const useAttachmentSections = (
   const onMediaClick = (message: T.Chat.MessageAttachment) => showAttachmentPreview(conversationIDKey, message)
 
   const onDocDownload = (message: T.Chat.MessageAttachment) => {
-    if (Kb.Styles.isMobile) {
+    if (isMobile) {
       messageAttachmentNativeShareMessage(conversationIDKey, message)
     } else if (!message.downloadPath) {
       attachmentDownloadMessage(conversationIDKey, message)
@@ -855,7 +855,7 @@ export const useAttachmentSections = (
               jumpToAttachment(m.id)
             },
             onDownload: () => onDocDownload(m),
-            onShowInFinder: !C.isMobile && m.downloadPath ? () => onShowInFinder(m) : undefined,
+            onShowInFinder: !isMobile && m.downloadPath ? () => onShowInFinder(m) : undefined,
             progress: m.transferProgress,
             type: 'doc',
           }))

@@ -158,7 +158,7 @@ const EmptyRow = (props: Props) => {
           .istanbul, ...
         </Kb.Text>
       )}
-      <Kb.Box2 direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
+      <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} gap="tiny">
         {props.type === 'members' && notIn && (
           <Kb.Button small={true} mode="Primary" label="Add yourself" onClick={onAddSelf} waiting={waiting} />
         )}

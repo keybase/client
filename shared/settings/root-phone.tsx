@@ -159,7 +159,7 @@ function SettingsNav() {
           },
           text: 'Notifications',
         },
-        ...(C.isAndroid
+        ...(isAndroid
           ? [
               {
                 onClick: () => {

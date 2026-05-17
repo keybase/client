@@ -97,7 +97,7 @@ export const TeamRequestRow = (props: Props) => {
                 style={styleCharm}
                 backgroundColor={reset ? Kb.Styles.globalColors.red : Kb.Styles.globalColors.orange}
               />
-              {Kb.Styles.isMobile ? (
+              {isMobile ? (
                 C.isLargeScreen && (
                   <Kb.Text type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>
                     {fullName !== '' && `${fullName}`}

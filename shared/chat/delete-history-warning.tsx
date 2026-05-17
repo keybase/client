@@ -43,27 +43,27 @@ const DeleteHistoryWarning = (props: Props) => {
           styles.box,
         ])}
       >
-        <Kb.ImageIcon type={Kb.Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
+        <Kb.ImageIcon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
         <Kb.Text style={{padding: Kb.Styles.globalMargins.small}} type="Header">
           Delete conversation history?
         </Kb.Text>
-        <Kb.Text center={Kb.Styles.isMobile} style={styles.text} type="Body">
+        <Kb.Text center={isMobile} style={styles.text} type="Body">
           You are about to delete all the messages in this conversation. For everyone.
         </Kb.Text>
-        <Kb.Box2 direction={Kb.Styles.isMobile ? 'verticalReverse' : 'horizontal'} style={styles.buttonBox}>
+        <Kb.Box2 direction={isMobile ? 'verticalReverse' : 'horizontal'} style={styles.buttonBox}>
           <Kb.Button
             type="Dim"
             style={styles.button}
             onClick={onCancel}
             label="Cancel"
-            fullWidth={Kb.Styles.isMobile}
+            fullWidth={isMobile}
           />
           <Kb.Button
             type="Danger"
             style={styles.button}
             onClick={onDeleteHistory}
             label="Yes, clear for everyone"
-            fullWidth={Kb.Styles.isMobile}
+            fullWidth={isMobile}
           />
         </Kb.Box2>
       </Kb.Box2>

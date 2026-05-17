@@ -62,7 +62,7 @@ function FileContainer(p: OwnProps) {
     if (!hasMessageID) {
       return
     }
-    if (C.isMobile) {
+    if (isMobile) {
       messageAttachmentNativeShare(ordinal, true)
     } else if (!downloadPath) {
       if (fileType === 'application/pdf') {
@@ -80,7 +80,7 @@ function FileContainer(p: OwnProps) {
     }
   }
 
-  const arrowColor = C.isMobile
+  const arrowColor = isMobile
     ? ''
     : downloadPath
       ? Kb.Styles.globalColors.green
@@ -92,7 +92,7 @@ function FileContainer(p: OwnProps) {
   const errorMsg = transferErrMsg || ''
   const fileName = _fileName
   const isSaltpackFile = !!fileName && isPathSaltpack(fileName)
-  const onShowInFinder = !C.isMobile && downloadPath ? _onShowInFinder : undefined
+  const onShowInFinder = !isMobile && downloadPath ? _onShowInFinder : undefined
   const showMessageMenu = hasMessageID ? p.showPopup : undefined
 
   const progressLabel = Chat.messageAttachmentTransferStateToProgressLabel(transferState)
@@ -104,7 +104,7 @@ function FileContainer(p: OwnProps) {
       : undefined
   const actionTitle = captialize(cryptoRoute?.replace('Tab', ''))
 
-  const styleOverride = Kb.Styles.isMobile
+  const styleOverride = isMobile
     ? ({paragraph: getEditStyle(isEditing)} as StyleOverride)
     : undefined
 
@@ -157,7 +157,7 @@ function FileContainer(p: OwnProps) {
             )}
           </Kb.Box2>
         </Kb.Box2>
-        {!Kb.Styles.isMobile && isSaltpackFile && cryptoRoute && (
+        {!isMobile && isSaltpackFile && cryptoRoute && (
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.saltpackOperationContainer}>
             <Kb.Button
               mode="Secondary"

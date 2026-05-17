@@ -115,7 +115,7 @@ const Activity = (p: Props) => {
       direction="horizontal"
       gap="xtiny"
       alignItems="center"
-      fullWidth={Kb.Styles.isMobile}
+      fullWidth={isMobile}
       style={style}
     >
       <Kb.Icon
@@ -142,7 +142,7 @@ export const ModalTitle = ({title, teamID, newTeamWizard}: ModalTitleProps) => {
   const avatarFilepath = isNewTeamWizard ? newTeamWizard?.avatarFilename : undefined
   const avatarCrop = isNewTeamWizard ? newTeamWizard?.avatarCrop : undefined
 
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <Kb.Box2 direction="vertical" alignItems="center">
       {!!displayTeamname && (
         <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">

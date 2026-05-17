@@ -7,7 +7,7 @@ import {setSignupEmail} from '@/people/signup-email'
 import {defineRouteMap} from '@/constants/types/router'
 
 const EmailSkipButton = () => {
-  const showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
+  const showPushPrompt = usePushState(s => isMobile && !s.hasPermissions && s.showPushPrompt)
   const clearModals = C.Router2.clearModals
   const navigateAppend = C.Router2.navigateAppend
   return (

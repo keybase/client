@@ -44,13 +44,13 @@ const Suggestions = ({namespace, selectedService}: SuggestionsProps) => {
   return (
     <Kb.Box2
       alignSelf="center"
-      centerChildren={!Kb.Styles.isMobile}
+      centerChildren={!isMobile}
       direction="vertical"
       fullWidth={true}
       gap="tiny"
       style={styles.emptyContainer}
     >
-      {!Kb.Styles.isMobile && (
+      {!isMobile && (
         <Kb.Icon
           fontSize={48}
           type={Shared.serviceIdToIconFont(selectedService)}
@@ -285,7 +285,7 @@ const useListBodyData = ({
 
   const showResults = !!searchString
   const showRecs = !searchString && !!recommendationResults && selectedService === 'keybase'
-  const showingContactsButton = C.isMobile && contactsPermissionStatus !== 'denied' && !contactsImported
+  const showingContactsButton = isMobile && contactsPermissionStatus !== 'denied' && !contactsImported
   const recommendations = showRecs
     ? sortAndSplitRecommendations(recommendationResults, showingContactsButton)
     : undefined
@@ -464,7 +464,7 @@ export const ListBody = ({
         keyboardShouldPersistTaps="handled"
         keyProperty="key"
         onEndReached={onEndReached}
-        itemHeight={{height: Kb.Styles.isMobile ? 64 : 48, type: 'fixed'}}
+        itemHeight={{height: isMobile ? 64 : 48, type: 'fixed'}}
         renderItem={(index: number, result: (typeof searchResults)[number]) => (
           <ResultRow
             key={result.username}
@@ -479,7 +479,7 @@ export const ListBody = ({
             isPreExistingTeamMember={result.isPreExistingTeamMember}
             isYou={result.isYou}
             followingState={result.followingState}
-            highlight={!Kb.Styles.isMobile && index === highlightedIndex}
+            highlight={!isMobile && index === highlightedIndex}
             userId={result.userId}
             onAdd={onAdd}
             onRemove={onRemove}

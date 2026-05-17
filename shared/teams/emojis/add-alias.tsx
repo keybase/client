@@ -159,7 +159,7 @@ type ChooseEmojiProps = {
   conversationIDKey: T.Chat.ConversationIDKey
   onChoose: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
 }
-const ChooseEmoji = Kb.Styles.isMobile
+const ChooseEmoji = isMobile
   ? (props: ChooseEmojiProps) => {
       const pickKey = 'addAlias'
       const pickedEmoji = usePickerState(s => s.pickerMap.get(pickKey))
@@ -236,14 +236,14 @@ const SelectedEmoji = (props: SelectedEmojiProps) => {
       {props.chosen ? (
         <Kb.Emoji emoji={props.chosen.renderableEmoji} showTooltip={false} size={singleEmojiWidth} />
       ) : (
-        <Kb.Icon type="iconfont-emoji" fontSize={Kb.Styles.isMobile ? 20 : 16} />
+        <Kb.Icon type="iconfont-emoji" fontSize={isMobile ? 20 : 16} />
       )}
     </Kb.Box2>
   )
 }
 
-const emojiWidthWithPadding = Kb.Styles.isMobile ? 40 : 32
-const singleEmojiWidth = Kb.Styles.isMobile ? (24 as const) : (16 as const)
+const emojiWidthWithPadding = isMobile ? 40 : 32
+const singleEmojiWidth = isMobile ? (24 as const) : (16 as const)
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: Kb.Styles.platformStyles({

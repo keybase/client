@@ -9,7 +9,7 @@ import {useLoadedTeam} from './team/use-loaded-team'
 type OwnProps = {teamID: string}
 
 const malformedEmailErrorMessage = (malformed: ReadonlyArray<string>) =>
-  C.isMobile
+  isMobile
     ? `Error parsing email: ${malformed[0]}`
     : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`
 
@@ -53,7 +53,7 @@ const Container = (ownProps: OwnProps) => {
           setErrorMessage(malformedEmailErrorMessage(malformed))
           return
         }
-        if (C.isMobile) {
+        if (isMobile) {
           navigateUp()
         } else {
           C.Router2.clearModals()

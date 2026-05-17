@@ -51,9 +51,9 @@ const TeamWithPopup = (props: Props) => {
 
   const popup = showPopup && (
     <>
-      <DelayedMounting delay={Styles.isMobile ? 0 : 500}>
+      <DelayedMounting delay={isMobile ? 0 : 500}>
         <TeamInfo
-          attachTo={Styles.isMobile ? undefined : popupRef}
+          attachTo={isMobile ? undefined : popupRef}
           description={description}
           inTeam={isMember}
           isOpen={isOpen}

@@ -28,7 +28,7 @@ export default function InboxSearchRow(ownProps: OwnProps) {
     })
   )
   const {showEmptyInbox} = chatState
-  const showStartNewChat = !showNewChatButton && !C.isMobile && !isSearching && showEmptyInbox
+  const showStartNewChat = !showNewChatButton && !isMobile && !isSearching && showEmptyInbox
   const showFilter = !!forceShowFilter || isSearching || !showEmptyInbox
 
   const appendNewChatBuilder = C.Router2.appendNewChatBuilder

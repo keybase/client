@@ -19,7 +19,7 @@ type BigButtonProps = {
 const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) => (
   <Kb.ClickableBox onClick={waiting ? undefined : onClick}>
     <Kb.Box2
-      direction={Kb.Styles.isMobile ? 'horizontal' : 'vertical'}
+      direction={isMobile ? 'horizontal' : 'vertical'}
       style={styles.bigButton}
       className="hover_background_color_blueLighter2"
     >
@@ -72,13 +72,13 @@ const Troubleshooting = (props: Props) => {
           style={Kb.Styles.globalStyles.flexOne}
         >
           <Kb.Box2 direction="horizontal" style={styles.headerSide}>
-            {Kb.Styles.isMobile ? (
+            {isMobile ? (
               <Kb.Text type="BodySemiboldLink" onClick={onBack}>
                 Back
               </Kb.Text>
             ) : null}
           </Kb.Box2>
-          <Kb.Text type={Kb.Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+          <Kb.Text type={isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
             Troubleshooting
           </Kb.Text>
           <Kb.Box2 direction="horizontal" style={styles.headerSide} />
@@ -87,7 +87,7 @@ const Troubleshooting = (props: Props) => {
       <Kb.Box2 direction="vertical" gap="small" alignItems="center">
         <Kb.Box2 direction="vertical" style={styles.bodyMargins}>
           <Kb.Text type="Body" center={true}>
-            This appears to be a new {Kb.Styles.isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
+            This appears to be a new {isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
             {
               "backup or uninstalled Keybase. Either way, Keybase keys aren't backed up, so this is now a totally"
             }
@@ -98,7 +98,7 @@ const Troubleshooting = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2
-          direction={Kb.Styles.isMobile ? 'vertical' : 'horizontal'}
+          direction={isMobile ? 'vertical' : 'horizontal'}
           style={styles.buttonBar}
           gap="xsmall"
         >
@@ -118,7 +118,7 @@ const Troubleshooting = (props: Props) => {
           />
         </Kb.Box2>
       </Kb.Box2>
-      {!Kb.Styles.isMobile && (
+      {!isMobile && (
         <Kb.Box2
           direction="vertical"
           centerChildren={true}

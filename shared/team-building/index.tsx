@@ -51,7 +51,7 @@ const findUserById = (users: ReadonlyArray<T.TB.User> | undefined, userId: strin
   users?.find(user => user.id === userId)
 
 const shouldShowContactsBanner = (filterServices: ReadonlyArray<T.TB.ServiceIdWithContact> | undefined) =>
-  Kb.Styles.isMobile && (!filterServices || filterServices.includes('phone'))
+  isMobile && (!filterServices || filterServices.includes('phone'))
 
 const noop = () => {}
 
@@ -271,10 +271,10 @@ const TeamBuilding = ({
             onEnterKeyDown={onEnterKeyDown}
             placeholder={'Search ' + serviceIdToSearchPlaceholder(selectedService)}
             searchString={searchString}
-            focusOnMount={!Kb.Styles.isMobile || selectedService !== 'keybase'}
+            focusOnMount={!isMobile || selectedService !== 'keybase'}
             focusCounter={focusInputCounter}
           />
-          {namespace === 'people' && !Kb.Styles.isMobile && (
+          {namespace === 'people' && !isMobile && (
             <FilteredServiceTabBar
               filterServices={filterServices}
               selectedService={selectedService}
@@ -329,7 +329,7 @@ const TeamBuilding = ({
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {teamBox}
         {errorBanner}
-        {(namespace !== 'people' || Kb.Styles.isMobile) && (
+        {(namespace !== 'people' || isMobile) && (
           <FilteredServiceTabBar
             filterServices={filterServices}
             selectedService={selectedService}

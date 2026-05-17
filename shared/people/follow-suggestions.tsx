@@ -13,7 +13,7 @@ const FollowSuggestions = (props: Props) => (
       Consider following...
     </Kb.Text>
     <Kb.ScrollView
-      {...(Kb.Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
+      {...(isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
       contentContainerStyle={styles.scrollViewContainer}
     >
       {props.suggestions.map(suggestion => (

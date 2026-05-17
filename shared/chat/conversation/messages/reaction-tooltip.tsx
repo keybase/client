@@ -69,7 +69,7 @@ const ReactionTooltip = (p: OwnProps) => {
     .filter((r): r is {earliestTimestamp: number; emoji: string; reaction: T.Chat.ReactionDesc; users: Array<ListItem>} => !!r.reaction)
     .sort((a, b) => a.earliestTimestamp - b.earliestTimestamp)
     .map(({emoji, reaction, users}) => ({emoji, reaction, users}))
-  if (!C.isMobile && emoji) {
+  if (!isMobile && emoji) {
     reactionsToShow = reactionsToShow.filter(r => r.emoji === emoji)
   }
   const insets = Kb.useSafeAreaInsets()
@@ -123,7 +123,7 @@ const ReactionTooltip = (p: OwnProps) => {
           gap="tiny"
           style={Kb.Styles.collapseStyles([styles.listContainer, {paddingBottom: insets.bottom}])}
         >
-          {Kb.Styles.isMobile && (
+          {isMobile && (
             <Kb.Box2 direction="horizontal">
               <Kb.Text type="BodySemiboldLink" onClick={onHidden} style={styles.closeButton}>
                 Close
@@ -140,7 +140,7 @@ const ReactionTooltip = (p: OwnProps) => {
             renderItem={renderItem}
             renderSectionHeader={renderSectionHeader}
           />
-          {Kb.Styles.isMobile && (
+          {isMobile && (
             <Kb.ButtonBar style={styles.addReactionButtonBar}>
               <Kb.Button
                 disabled={!hasMessageID}

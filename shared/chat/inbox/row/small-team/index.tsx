@@ -94,7 +94,7 @@ const SmallTeam = (p: Props) => {
 
   return (
     <SwipeConvActions conversationIDKey={conversationIDKey} onPress={onSelectConversation}>
-      {Kb.Styles.isMobile ? (
+      {isMobile ? (
         <Kb.Box2 direction="vertical" style={containerStyle}>
           {rowContents}
         </Kb.Box2>
@@ -140,7 +140,7 @@ const TopLine = (p: TopLineProps) => {
     styles.name,
     showBold && styles.bold,
     {color: usernameColor},
-    Kb.Styles.isMobile && {backgroundColor},
+    isMobile && {backgroundColor},
   ])
   const teamContainerStyle = Kb.Styles.collapseStyles([
     styles.teamTextStyle,
@@ -177,7 +177,7 @@ const TopLine = (p: TopLineProps) => {
       <Kb.Text key="timestamp" type="BodyTiny" className="conversation-timestamp" style={timestampStyle}>
         {timestampText}
       </Kb.Text>
-      {!Kb.Styles.isMobile && (
+      {!isMobile && (
         <TopLineGear conversationIDKey={conversationIDKey} subColor={subColor} isSelected={isSelected} />
       )}
       {hasBadge ? <Kb.Box2 direction="horizontal" key="unreadDot" style={styles.unreadDotStyle} /> : null}
@@ -299,7 +299,7 @@ const BottomLineDisplay = (p: BottomLineDisplayProps) => {
   }
 
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={Kb.Styles.isMobile ? {backgroundColor} : undefined}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={isMobile ? {backgroundColor} : undefined}>
       {hasResetUsers && (
         <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Kb.Styles.globalColors.red} />
       )}
@@ -439,7 +439,7 @@ const SnippetDecorationIcon = (p: {type: Kb.IconType; color: string}) => (
   <Kb.Icon
     color={p.color}
     type={p.type}
-    fontSize={Kb.Styles.isMobile ? 16 : 12}
+    fontSize={isMobile ? 16 : 12}
     style={styles.snippetDecoration}
   />
 )
@@ -497,7 +497,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       insideContainer: {
         flexGrow: 1,
-        height: Kb.Styles.isMobile ? 21 : 17,
+        height: isMobile ? 21 : 17,
       },
       name: {paddingRight: Kb.Styles.globalMargins.tiny},
       nameContainer: {

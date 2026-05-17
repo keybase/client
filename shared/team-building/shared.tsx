@@ -1,5 +1,4 @@
 import type * as T from '@/constants/types'
-import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import * as TeamBuilding from '@/stores/team-building'
 
@@ -39,13 +38,13 @@ const services: {
     searchPlaceholder: 'Hacker News',
   },
   keybase: {
-    avatarIcon: Kb.Styles.isMobile
+    avatarIcon: isMobile
       ? 'icon-placeholder-avatar-circular-48'
       : 'icon-placeholder-avatar-circular-32',
     icon: 'iconfont-contact-book',
     label: 'Keybase and contacts',
-    longLabel: Kb.Styles.isMobile ? ['Keybase &', 'Contacts'] : ['A Keybase', 'user'],
-    searchPlaceholder: Kb.Styles.isMobile ? 'Keybase & contacts' : 'Keybase',
+    longLabel: isMobile ? ['Keybase &', 'Contacts'] : ['A Keybase', 'user'],
+    searchPlaceholder: isMobile ? 'Keybase & contacts' : 'Keybase',
   },
   phone: {
     badge: true,

@@ -6,7 +6,7 @@ type Props = {
 }
 
 const StartNewChat = (props: Props) => {
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     return (
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} justifyContent="center" style={styles.container} relative={true}>
         <Kb.ClickableBox2 style={styles.clickableBox} onClick={props.onNewChat}>
@@ -41,7 +41,7 @@ const styles = Kb.Styles.styleSheetCreate(
         flexDirection: 'row',
       },
       container: {
-        backgroundColor: Kb.Styles.isMobile
+        backgroundColor: isMobile
           ? undefined
           : Kb.Styles.globalColors.blueGrey,
         minHeight: 48,

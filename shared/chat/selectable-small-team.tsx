@@ -99,7 +99,7 @@ const SelectableSmallTeam = (props: Props) => {
   )
 }
 
-const rowHeight = Kb.Styles.isMobile ? 64 : 56
+const rowHeight = isMobile ? 64 : 56
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   badge: {

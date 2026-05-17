@@ -108,7 +108,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
             />
             {assertion.state !== 'valid' && (
               <Kb.Icon
-                fontSize={Styles.isMobile ? 12 : 10}
+                fontSize={isMobile ? 12 : 10}
                 style={styles.brokenBadge}
                 type="iconfont-proof-broken"
                 color={Styles.globalColors.red}
@@ -264,15 +264,15 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
     return children()
   }
   const popup = showing && (
-    <DelayedMounting delay={Styles.isMobile ? 0 : 300}>
+    <DelayedMounting delay={isMobile ? 0 : 300}>
       <Kb.FloatingMenu
-        attachTo={Styles.isMobile ? undefined : popupAnchor}
+        attachTo={isMobile ? undefined : popupAnchor}
         closeOnSelect={true}
         onHidden={onHide}
         position="top center"
-        offset={Styles.isMobile ? 0 : 10}
+        offset={isMobile ? 0 : 10}
         positionFallbacks={positionFallbacks}
-        propagateOutsideClicks={!Styles.isMobile}
+        propagateOutsideClicks={!isMobile}
         remeasureHint={remeasureHint}
         visible={showing}
         header={
@@ -288,7 +288,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
       />
     </DelayedMounting>
   )
-  return Styles.isMobile ? (
+  return isMobile ? (
     <>
       {children(onShow)}
       {popup}

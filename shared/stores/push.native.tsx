@@ -12,7 +12,6 @@ import * as Z from '@/util/zustand'
 import logger from '@/logger'
 import * as T from '@/constants/types'
 import {isDevApplePushToken} from '@/local-debug'
-import {isIOS} from '@/constants/platform'
 import {
   checkPushPermissions,
   getRegistrationToken,

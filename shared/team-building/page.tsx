@@ -19,7 +19,7 @@ const TBHeaderRight = ({
   const {enabled, onAction} = useModalHeaderState(
     C.useShallow(s => ({enabled: s.actionEnabled, onAction: s.onAction}))
   )
-  if (!Kb.Styles.isMobile) return null
+  if (!isMobile) return null
   if (namespace === 'teams') {
     return (
       <Kb.Text
@@ -60,13 +60,13 @@ const HeaderRightUpdater = ({
   const navigation = useNavigation()
   const hasTeamSoFar = useTBContext(s => s.teamSoFar.size > 0)
   React.useEffect(() => {
-    if (!Kb.Styles.isMobile) return
+    if (!isMobile) return
     if (namespace !== 'teams' && namespace !== 'chat' && namespace !== 'crypto') return
     const enabled = hasTeamSoFar && !!onFinishTeamBuilding
     if (!onFinishTeamBuilding) {
       useModalHeaderState.setState({actionEnabled: false, onAction: undefined})
     }
-    if (Kb.Styles.isIOS) {
+    if (isIOS) {
       const label = namespace === 'teams' ? 'Add' : (goButtonLabel ?? 'Start')
       navigation.setOptions({
         unstable_headerRightItems: enabled
@@ -77,7 +77,7 @@ const HeaderRightUpdater = ({
       useModalHeaderState.setState({actionEnabled: enabled, onAction: onFinishTeamBuilding})
     }
     return () => {
-      if (Kb.Styles.isIOS) {
+      if (isIOS) {
         navigation.setOptions({unstable_headerRightItems: () => []} as object)
       } else {
         useModalHeaderState.setState({actionEnabled: false, onAction: undefined})
@@ -125,7 +125,7 @@ const getOptions = ({route}: OwnProps) => {
   if (namespace === 'people') {
     return {
       ...common,
-      headerShown: Kb.Styles.isMobile,
+      headerShown: isMobile,
       modalStyle: {height: 560, width: '100%'},
       overlayAvoidTabs: true,
       overlayStyle: {
@@ -142,7 +142,7 @@ const getOptions = ({route}: OwnProps) => {
     return {
       ...common,
       // iOS: headerRight omitted; HeaderRightUpdater drives unstable_headerRightItems dynamically
-      headerRight: Kb.Styles.isIOS ? undefined : () => <TBHeaderRight namespace={namespace} />,
+      headerRight: isIOS ? undefined : () => <TBHeaderRight namespace={namespace} />,
       headerTitle: () => (
         <TeamsModalTitle teamID={route.params.teamID ?? T.Teams.noTeamID} title="Search people" />
       ),
@@ -152,7 +152,7 @@ const getOptions = ({route}: OwnProps) => {
   return {
     ...common,
     // iOS: headerRight omitted; HeaderRightUpdater drives unstable_headerRightItems dynamically
-    headerRight: Kb.Styles.isIOS
+    headerRight: isIOS
       ? undefined
       : () => <TBHeaderRight namespace={namespace} goButtonLabel={goButtonLabel} />,
   }

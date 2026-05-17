@@ -3,8 +3,8 @@ import * as Kb from '@/common-adapters'
 import {LiquidGlassView, isLiquidGlassSupported} from '@callstack/liquid-glass'
 import {isEmptyInboxLayout, useInboxLayoutState} from './layout-state'
 
-const rainbowHeight = C.isElectron ? 32 : 36
-const rainbowWidth = C.isElectron ? 80 : 96
+const rainbowHeight = isElectron ? 32 : 36
+const rainbowWidth = isElectron ? 80 : 96
 const colorBarCommon = {
   height: rainbowHeight / 4,
   position: 'absolute',
@@ -43,7 +43,7 @@ const HeaderNewChatButton = () => {
   )
 
   // eslint-disable-next-line
-  if (C.isIOS && isLiquidGlassSupported) {
+  if (isIOS && isLiquidGlassSupported) {
     return (
       <LiquidGlassView
         interactive={true}

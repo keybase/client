@@ -35,26 +35,26 @@ const Container = (ownProps: OwnProps) => {
         navigateToInbox()
         break
       case T.RPCGen.AppLinkType.files:
-        switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.fsTab)
-        if (C.isMobile) {
+        switchTab(isMobile ? C.Tabs.settingsTab : C.Tabs.fsTab)
+        if (isMobile) {
           navigateAppend({name: Settings.settingsFsTab, params: {}})
         }
         break
       case T.RPCGen.AppLinkType.wallet:
         switchTab(C.Tabs.settingsTab)
-        if (C.isMobile) {
+        if (isMobile) {
           navigateAppend({name: Settings.settingsWalletsTab, params: {}})
         }
         break
       case T.RPCGen.AppLinkType.git:
-        switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.gitTab)
-        if (C.isMobile) {
+        switchTab(isMobile ? C.Tabs.settingsTab : C.Tabs.gitTab)
+        if (isMobile) {
           navigateAppend({name: Settings.settingsGitTab, params: {}})
         }
         break
       case T.RPCGen.AppLinkType.devices:
-        switchTab(C.isMobile ? C.Tabs.settingsTab : C.Tabs.devicesTab)
-        if (C.isMobile) {
+        switchTab(isMobile ? C.Tabs.settingsTab : C.Tabs.devicesTab)
+        if (isMobile) {
           navigateAppend({name: Settings.settingsDevicesTab, params: {}})
         }
         break

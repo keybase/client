@@ -3,14 +3,14 @@
 import * as Kb from '@/common-adapters'
 import type {ChatInboxRowType} from '../rowitem'
 
-export const smallRowHeight = Kb.Styles.isMobile ? 64 : 56
-export const bigRowHeight = Kb.Styles.isMobile ? 40 : 24
+export const smallRowHeight = isMobile ? 64 : 56
+export const bigRowHeight = isMobile ? 40 : 24
 export const bigHeaderHeight = 32
-export const floatingDivider = Kb.Styles.isMobile ? 48 : 40
+export const floatingDivider = isMobile ? 48 : 40
 export const inboxWidth = Kb.Styles.globalStyles.mediumSubNavWidth
 
 export const dividerHeight = (showingButton: boolean) => {
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     return showingButton ? 68 : 44
   } else {
     return showingButton ? 84 : 41

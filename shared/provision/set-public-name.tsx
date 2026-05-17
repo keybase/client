@@ -20,7 +20,7 @@ const SetPublicName = () => {
     }
   }
   const iconNumbers = T.Devices.nextDeviceIconNumbers(devices)
-  const deviceIconNumber = C.isMobile ? iconNumbers.mobile : iconNumbers.desktop
+  const deviceIconNumber = isMobile ? iconNumbers.mobile : iconNumbers.desktop
 
   const [deviceName, setDeviceName] = React.useState(C.defaultDevicename)
   const [readyToShowError, setReadyToShowError] = React.useState(false)
@@ -42,13 +42,13 @@ const SetPublicName = () => {
     debouncedSetReadyToShowError(true)
   }
 
-  const maybeIcon = Kb.Styles.isMobile
+  const maybeIcon = isMobile
     ? C.isLargeScreen
       ? `icon-phone-background-${deviceIconNumber}-96`
       : `icon-phone-background-${deviceIconNumber}-64`
     : `icon-computer-background-${deviceIconNumber}-96`
 
-  const defaultIcon = Kb.Styles.isMobile
+  const defaultIcon = isMobile
     ? C.isLargeScreen
       ? `icon-phone-96`
       : `icon-phone-64`
@@ -56,7 +56,7 @@ const SetPublicName = () => {
 
   return (
     <SignupScreen
-      hideDesktopHeader={!Kb.Styles.isMobile}
+      hideDesktopHeader={!isMobile}
       banners={errorBanner(error)}
       buttons={[
         {
@@ -68,7 +68,7 @@ const SetPublicName = () => {
         },
       ]}
       onBack={ponBack}
-      title={Kb.Styles.isMobile ? 'Name this device' : 'Name this computer'}
+      title={isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
         <Kb.ImageIcon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />

@@ -14,7 +14,7 @@ type Props = {
 }
 
 // this is a function of how much space is taken up by the rest of the elements
-export const maxWidth = Kb.Styles.isMobile ? Math.min(356, Kb.Styles.dimensionWidth - 70) : 356
+export const maxWidth = isMobile ? Math.min(356, Kb.Styles.dimensionWidth - 70) : 356
 export const maxHeight = 320
 
 export const messageAttachmentHasProgress = (transferState: T.Chat.MessageAttachmentTransferState) => {
@@ -31,7 +31,7 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
       // was downloading and now not
       if (
         (lastTransferStateRef.current === 'mobileSaving' ||
-          (!C.isMobile && lastTransferStateRef.current === 'downloading')) &&
+          (!isMobile && lastTransferStateRef.current === 'downloading')) &&
         !transferState
       ) {
         setShowingToast(true)
@@ -89,12 +89,12 @@ export const TransferIcon = (p: {
   }
   const {attachmentDownload, messageAttachmentNativeSave, messageAttachmentNativeShare} =
     useConversationAttachmentActions()
-  const isMobileAudio = C.isMobile && message.attachmentType === 'audio'
+  const isMobileAudio = isMobile && message.attachmentType === 'audio'
   const onDownload = () => {
     if (!hasMessageID) {
       return
     }
-    if (C.isMobile) {
+    if (isMobile) {
       if (isMobileAudio) {
         messageAttachmentNativeShare(ordinal)
       } else {
@@ -128,7 +128,7 @@ export const TransferIcon = (p: {
           />
         )
       }
-      return Kb.Styles.isMobile ? null : (
+      return isMobile ? null : (
         <Kb.Icon
           className="hover-opacity-full"
           type="iconfont-finder"
@@ -160,8 +160,8 @@ export const TransferIcon = (p: {
           color={Kb.Styles.globalColors.blue}
           fontSize={20}
           onClick={onDownload}
-          style={Kb.Styles.isMobile ? mobileStyle : undefined}
-          padding={Kb.Styles.isMobile ? 'small' : undefined}
+          style={isMobile ? mobileStyle : undefined}
+          padding={isMobile ? 'small' : undefined}
         />
       ) : null
   }
@@ -223,7 +223,7 @@ export const getAttachmentPreviewSize = (
 export const Title = ({message}: {message: T.Chat.MessageAttachment}) => {
   const title = message.decoratedText?.stringValue() ?? message.title
 
-  const styleOverride = Kb.Styles.isMobile
+  const styleOverride = isMobile
     ? {paragraph: {backgroundColor: Kb.Styles.globalColors.black_05_on_white}}
     : undefined
 
@@ -288,7 +288,7 @@ const useCollapseIconDesktop = (ordinal: T.Chat.Ordinal, isCollapsed: boolean, i
 }
 const useCollapseIconMobile = (_ordinal: T.Chat.Ordinal, _isCollapsed: boolean, _isWhite: boolean) => null
 
-export const useCollapseIcon = C.isMobile ? useCollapseIconMobile : useCollapseIconDesktop
+export const useCollapseIcon = isMobile ? useCollapseIconMobile : useCollapseIconDesktop
 
 export const Collapsed = ({isCollapsed, ordinal}: {isCollapsed: boolean; ordinal: T.Chat.Ordinal}) => {
   const onCollapse = useCollapseAction(ordinal)

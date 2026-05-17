@@ -1,4 +1,4 @@
-import * as Styles from '@/styles'
+import type * as Styles from '@/styles'
 import {iconMeta} from './icon.constants-gen'
 import type {IconType} from './icon.constants-gen'
 import {typeExtension, getImagesDir} from './icon.shared'
@@ -72,8 +72,8 @@ const ImageIconNative = (props: ImageIconProps) => {
   }
   if (!source) return null
 
-  return <RNImage source={source} style={style as any} />
+  return <RNImage source={source} style={style} />
 }
 
-const ImageIcon = Styles.isMobile ? ImageIconNative : ImageIconDesktop
+const ImageIcon = isMobile ? ImageIconNative : ImageIconDesktop
 export default ImageIcon

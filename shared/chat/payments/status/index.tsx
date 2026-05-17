@@ -95,7 +95,7 @@ const PaymentStatus = (props: Props) => {
       visible={showPopup}
     />
   ) : null
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <>
       {text}
       {popups}

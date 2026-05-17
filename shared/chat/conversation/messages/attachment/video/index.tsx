@@ -38,7 +38,7 @@ function Video(p: Props) {
   const collapseIcon = useCollapseIcon(ordinal, isCollapsed, false)
 
   const filename =
-    Kb.Styles.isMobile || !fileName ? null : (
+    isMobile || !fileName ? null : (
       <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="xtiny">
         <Kb.Text type="BodySmall">{fileName}</Kb.Text>
         {collapseIcon}
@@ -53,7 +53,7 @@ function Video(p: Props) {
       <Kb.Box2
         direction="horizontal"
         alignSelf="flex-start"
-        gap={Kb.Styles.isMobile ? undefined : 'small'}
+        gap={isMobile ? undefined : 'small'}
         alignItems="center"
         ref={toastTargetRef}
       >
@@ -78,7 +78,7 @@ function Video(p: Props) {
         <TransferIcon
           message={message}
           ordinal={ordinal}
-          style={Kb.Styles.isMobile ? styles.transferIcon : undefined}
+          style={isMobile ? styles.transferIcon : undefined}
         />
       </Kb.Box2>
     </>
@@ -102,12 +102,12 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: {
         alignSelf: 'center',
-        paddingRight: Kb.Styles.isMobile ? 0 : Kb.Styles.globalMargins.tiny,
+        paddingRight: isMobile ? 0 : Kb.Styles.globalMargins.tiny,
       },
       contentContainer: {
         backgroundColor: Kb.Styles.globalColors.black_05_on_white,
         borderRadius: Kb.Styles.borderRadius,
-        maxWidth: Kb.Styles.isMobile ? '100%' : 356 + 3 * 2,
+        maxWidth: isMobile ? '100%' : 356 + 3 * 2,
         padding: 3,
       },
       transferIcon: {left: -32, position: 'absolute'},

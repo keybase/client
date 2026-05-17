@@ -9,7 +9,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 const CodePageHeaderLeft = () => {
   const currentDeviceAlreadyProvisioned = useCurrentUserState(s => !!s.deviceName)
   const navigateUp = C.Router2.navigateUp
-  if (!Kb.Styles.isMobile) return null
+  if (!isMobile) return null
   return (
     <Kb.Text type="BodyBig" onClick={navigateUp}>
       {currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
@@ -60,7 +60,7 @@ export const newRoutes = {
   },
   username: C.makeScreen(React.lazy(async () => import('./username-or-email')), {
     getOptions: {
-      ...(!Kb.Styles.isMobile ? {headerRight: () => <UsernameHeaderRight />} : {}),
+      ...(!isMobile ? {headerRight: () => <UsernameHeaderRight />} : {}),
       title: 'Log in',
     },
   }),

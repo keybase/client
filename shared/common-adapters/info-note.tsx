@@ -20,7 +20,7 @@ const InfoNote = (props: Props) => (
       <Icon
         color={props.color || Styles.globalColors.black_10}
         type="iconfont-info"
-        fontSize={Styles.isMobile ? 22 : 16}
+        fontSize={isMobile ? 22 : 16}
       />
       <Box2 direction="vertical" style={{backgroundColor: props.color || Styles.globalColors.black_10, height: 1, width: 24}} />
     </Box2>

@@ -115,7 +115,7 @@ export const newRoutes = defineRouteMap({
     screen: VerifyInputScreen,
   },
   cryptoRoot: {
-    getOptions: C.isMobile ? {title: 'Crypto'} : {title: 'Crypto tools'},
+    getOptions: isMobile ? {title: 'Crypto'} : {title: 'Crypto tools'},
     screen: React.lazy(async () => import('./sub-nav')),
   },
 })

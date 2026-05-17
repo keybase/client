@@ -7,9 +7,9 @@ const ChannelRow = () => (
     <Kb.InfoNote>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Text type="BodySmall" center={true} style={styles.text}>
-          {sentence1} {Kb.Styles.isMobile && sentence2}
+          {sentence1} {isMobile && sentence2}
         </Kb.Text>
-        {!Kb.Styles.isMobile && (
+        {!isMobile && (
           <Kb.Text type="BodySmall" center={true} style={styles.text}>
             {sentence2}
           </Kb.Text>

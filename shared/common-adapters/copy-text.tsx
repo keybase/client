@@ -38,7 +38,7 @@ const CopyText = (props: Props) => {
   const {withReveal, text, loadText, onCopy, hideOnCopy} = props
   const [revealed, setRevealed] = React.useState(!props.withReveal)
   const [showingToast, setShowingToast] = React.useState(false)
-  const shareSheet = props.shareSheet && Styles.isMobile
+  const shareSheet = props.shareSheet && isMobile
   const copyRequestIDRef = React.useRef(0)
   const copyOnLoadedRequestIDRef = React.useRef(0)
   const popupAnchor = React.useRef<MeasureRef | null>(null)
@@ -153,8 +153,8 @@ const CopyText = (props: Props) => {
       ])}
     >
       <Kb.Toast position="top center" attachTo={popupAnchor} visible={showingToast}>
-        {Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
-        <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
+        {isMobile && <Kb.Icon type="iconfont-clipboard" color={Styles.globalColors.whiteOrWhite} />}
+        <Kb.Text type={isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard
         </Kb.Text>
       </Kb.Toast>

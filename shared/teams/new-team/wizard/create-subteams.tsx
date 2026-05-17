@@ -60,7 +60,7 @@ const CreateSubteams = ({wizard: wizardState}: Props) => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.Text type="BodySmall">
           Subteams are cryptographically distinct, and can welcome people who aren’t elsewhere in your team

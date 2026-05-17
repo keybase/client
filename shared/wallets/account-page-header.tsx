@@ -13,7 +13,7 @@ type Props = {
 const AccountPageHeader = (props: Props) => (
   <Kb.Box2 direction="horizontal" centerChildren={true} flex={1}>
     <Kb.Box2 direction="vertical">
-      {Kb.Styles.isMobile && !!props.accountName && (
+      {isMobile && !!props.accountName && (
         <Kb.Text center={true} type="BodySmallSemibold">
           {props.accountName}
         </Kb.Text>

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Crypto from '@/constants/crypto'
-import * as Common from '@/router-v2/common.desktop'
+import * as Common from '@/router-v2/common'
 import LeftNav from './left-nav.desktop'
 import {
   useNavigationBuilder,
