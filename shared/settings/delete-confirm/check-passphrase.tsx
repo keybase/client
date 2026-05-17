@@ -4,14 +4,12 @@ import * as Kb from '@/common-adapters'
 import {useDeleteAccount} from '../use-delete-account'
 import {usePasswordCheck} from '../use-password-check'
 
-const CheckPassphrase = () => {
+const CheckPassphraseImpl = () => {
   const [password, setPassword] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(false)
   const {checkPassword, checkPasswordIsCorrect} = usePasswordCheck()
   const deleteAccountForever = useDeleteAccount()
   const waitingKey = C.Waiting.useAnyWaiting(C.waitingKeySettingsGeneric)
-
-  if (!Kb.Styles.isMobile) return null
 
   const onCheckPassword = checkPassword
   const deleteForever = () => {
@@ -119,4 +117,5 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
+const CheckPassphrase = Kb.Styles.isMobile ? CheckPassphraseImpl : () => null
 export default CheckPassphrase

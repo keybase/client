@@ -18,9 +18,7 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const FilePickerPopup = (p: Props) => {
-  if (!Kb.Styles.isMobile) return null
-
+const FilePickerPopupImpl = (p: Props) => {
   const items = Kb.Styles.isIOS
     ? ([
         {
@@ -82,4 +80,5 @@ const FilePickerPopup = (p: Props) => {
   )
 }
 
+const FilePickerPopup = Kb.Styles.isMobile ? FilePickerPopupImpl : () => null
 export default FilePickerPopup

@@ -9,7 +9,7 @@ const isValidMeasure = (m: typeof initMeasureRef) => m.height >= 0 && m.pageY >=
 const updateMeasure = (m: typeof initMeasureRef, newM: typeof initMeasureRef) =>
   isValidMeasure(newM) ? newM : m
 
-const AlphabetIndex = (props: Props) => {
+const AlphabetIndexImpl = (props: Props) => {
   const topSectionRef = React.useRef<View>(null)
   const sectionMeasureRef = React.useRef(initMeasureRef)
   const currIndex = React.useRef(-1)
@@ -23,8 +23,6 @@ const AlphabetIndex = (props: Props) => {
   React.useEffect(() => {
     storeMeasure()
   }, [storeMeasure, props.measureKey])
-
-  if (!Kb.Styles.isMobile) return null
 
   const {labels, onScroll, showNumSection} = props
   const handleTouch = (evt: NativeSyntheticEvent<NativeTouchEvent>) => {
@@ -89,4 +87,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
+const AlphabetIndex = Kb.Styles.isMobile ? AlphabetIndexImpl : () => null
 export default AlphabetIndex

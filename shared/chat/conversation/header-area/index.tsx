@@ -18,9 +18,8 @@ import {muteConversation} from '../status-actions'
 
 type HeaderConversationProps = {conversationIDKey: T.Chat.ConversationIDKey}
 
-export const HeaderAreaRight = (props: HeaderConversationProps) => {
+const HeaderAreaRightImpl = (props: HeaderConversationProps) => {
   const {conversationIDKey} = props
-  if (!Kb.Styles.isMobile) return null
   const pendingWaiting =
     conversationIDKey === Chat.pendingWaitingConversationIDKey ||
     conversationIDKey === Chat.pendingErrorConversationIDKey
@@ -49,6 +48,7 @@ export const HeaderAreaRight = (props: HeaderConversationProps) => {
     </Kb.Box2>
   )
 }
+export const HeaderAreaRight = Kb.Styles.isMobile ? HeaderAreaRightImpl : () => null
 
 enum HeaderType {
   Team,
@@ -56,10 +56,9 @@ enum HeaderType {
   User,
 }
 
-const HeaderBranchContainer = function HeaderBranchContainer() {
-  if (!Kb.Styles.isMobile) return null
-  return <HeaderBranchContainerInner conversationIDKey={Chat.noConversationIDKey} />
-}
+const HeaderBranchContainer = Kb.Styles.isMobile
+  ? () => <HeaderBranchContainerInner conversationIDKey={Chat.noConversationIDKey} />
+  : () => null
 
 const HeaderBranchContainerInner = function HeaderBranchContainerInner(props: HeaderConversationProps) {
   const {conversationIDKey} = props
