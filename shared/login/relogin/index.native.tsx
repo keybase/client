@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import NativeScrollView from '@/common-adapters/scroll-view.native'
 import * as React from 'react'
 import Dropdown from './dropdown.native'
 import UserCard from '../user-card'
@@ -26,7 +25,7 @@ const LoginRender = (props: Props) => {
       onLayout={evt => setScrollViewHeight(evt.nativeEvent.layout.height)}
       style={Kb.Styles.globalStyles.flexOne}
     >
-      <NativeScrollView style={styles.scrollView} contentContainerStyle={{minHeight: scrollViewHeight}}>
+      <Kb.ScrollView style={styles.scrollView} contentContainerStyle={{minHeight: scrollViewHeight}}>
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" flex={1} style={styles.container}>
           {C.isAndroid && !C.isDeviceSecureAndroid && !C.isAndroidNewerThanM && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.deviceNotSecureContainer}>
@@ -92,7 +91,7 @@ const LoginRender = (props: Props) => {
             />
           </Kb.Box2>
         </Kb.Box2>
-      </NativeScrollView>
+      </Kb.ScrollView>
     </Kb.Box2>
   )
 }

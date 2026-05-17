@@ -1,0 +1,85 @@
+import * as Kb from '@/common-adapters'
+import type {Props} from './index.shared'
+
+const Prompt = () => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.promptContainer} justifyContent="center">
+    <Kb.Text type="BodySmallSemibold">Select attachment</Kb.Text>
+  </Kb.Box2>
+)
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      promptContainer: {
+        alignItems: 'center',
+        paddingBottom: 24,
+        paddingTop: 24,
+      },
+    }) as const
+)
+
+const FilePickerPopup = (p: Props) => {
+  if (!Kb.Styles.isMobile) return null
+
+  const items = Kb.Styles.isIOS
+    ? ([
+        {
+          icon: 'iconfont-camera',
+          onClick: () => p.onSelect('mixed', 'camera'),
+          title: 'Take photo or video',
+        },
+        {
+          icon: 'iconfont-video-library',
+          onClick: () => p.onSelect('video', 'library'),
+          title: 'Choose video from library',
+        },
+        {
+          icon: 'iconfont-photo-library',
+          onClick: () => p.onSelect('photo', 'library'),
+          title: 'Choose photos from library',
+        },
+        {
+          icon: 'iconfont-attachment',
+          onClick: () => p.onSelect('file', 'file'),
+          title: 'Choose a file',
+        },
+      ] as const)
+    : ([
+        {
+          icon: 'iconfont-camera',
+          onClick: () => p.onSelect('photo', 'camera'),
+          title: 'Take photo',
+        },
+        {icon: 'iconfont-film', onClick: () => p.onSelect('video', 'camera'), title: 'Take video'},
+        {
+          icon: 'iconfont-photo-library',
+          onClick: () => p.onSelect('photo', 'library'),
+          title: 'Photo from library',
+        },
+        {
+          icon: 'iconfont-video-library',
+          onClick: () => p.onSelect('video', 'library'),
+          title: 'Video from library',
+        },
+        {
+          icon: 'iconfont-attachment',
+          onClick: () => p.onSelect('file', 'file'),
+          title: 'Choose a file',
+        },
+      ] as const)
+
+  const header = <Prompt />
+  return (
+    <Kb.FloatingMenu
+      header={header}
+      attachTo={p.attachTo}
+      items={items}
+      mode="bottomsheet"
+      onHidden={p.onHidden}
+      visible={p.visible}
+      closeOnSelect={true}
+    />
+  )
+}
+
+export default FilePickerPopup

@@ -1,0 +1,73 @@
+import * as Styles from '@/styles'
+import {Box2} from '@/common-adapters/box'
+import WithTooltip from '@/common-adapters/with-tooltip'
+import Image from '@/common-adapters/image'
+import type {Props} from './custom-emoji.shared'
+
+const Kb = {
+  Box2,
+  Image,
+  Styles,
+  WithTooltip,
+}
+
+const CustomEmoji = (props: Props) => {
+  const {size, src, alias, style} = props
+
+  if (Kb.Styles.isMobile) {
+    const dimensions = {
+      height: size,
+      transform: [{translateY: Styles.isAndroid ? 4 : 2}],
+      width: size,
+      ...style,
+    }
+    return <Image key={size} src={src} style={dimensions} />
+  }
+
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      alignItems="center"
+      style={Kb.Styles.collapseStyles([
+        styles.emoji,
+        {
+          height: size,
+          width: size,
+          ...style,
+        },
+      ])}
+    >
+      <Kb.WithTooltip tooltip={alias ?? null} containerStyle={styles.tooltipContainer}>
+        <Kb.Image
+          src={src}
+          style={Kb.Styles.collapseStyles([
+            {
+              maxHeight: size,
+              width: size,
+            },
+          ])}
+        />
+      </Kb.WithTooltip>
+    </Kb.Box2>
+  )
+}
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      emoji: Kb.Styles.platformStyles({
+        isElectron: {
+          display: 'inline-flex',
+          justifyContent: 'center',
+          verticalAlign: 'middle',
+        },
+      }),
+      tooltipContainer: Kb.Styles.platformStyles({
+        isElectron: {
+          justifyContent: 'center',
+        },
+      }),
+    }) as const
+)
+
+export default CustomEmoji

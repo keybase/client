@@ -156,3 +156,11 @@ const uses24HourClockF = () => {
 }
 export const uses24HourClock = uses24HourClockF()
 export const getAssetPath = (...a: Array<string>) => KB2.constants.assetRoot + a.join('/')
+export const getSecureFlagSetting = async (): Promise<boolean> => {
+  await Promise.resolve()
+  return false
+}
+export const setSecureFlagSetting = async (_secure: boolean): Promise<boolean> => {
+  await Promise.resolve()
+  return false
+}

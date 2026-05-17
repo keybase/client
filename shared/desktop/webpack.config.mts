@@ -42,6 +42,7 @@ const nullLoadedAssetDirectories = [
   path.resolve(__dirname, '../images/icons'),
 ]
 const resourceAssetDirectories = [
+  path.resolve(__dirname, '../images'),
   path.resolve(__dirname, '../images/illustrations'),
   path.resolve(__dirname, '../images/install'),
 ]
@@ -73,8 +74,14 @@ const makeAlias = (isDev: boolean): Record<string, string | false> => {
     {
       'react-native$': 'react-native-web',
       'react-native-reanimated': false,
+      'react-native/Libraries/Image/resolveAssetSource': nullModulePath,
     }
   )
+
+  // Override the null-module for packages that need a real stub on desktop.
+  // These are in native-only-modules (so Jest gets an empty stub) but webpack
+  // needs proper exports so renderer code (e.g. @react-navigation/elements) works.
+  alias['react-native-safe-area-context'] = path.resolve(__dirname, './stubs/react-native-safe-area-context.js')
 
   if (!isDev) {
     alias['@welldone-software/why-did-you-render'] = false
