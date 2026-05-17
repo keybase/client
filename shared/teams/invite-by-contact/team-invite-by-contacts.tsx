@@ -60,7 +60,7 @@ const generateSMSBody = (teamname: string, seitan: string): string => {
   return `Join the ${team} on Keybase. Copy this message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\ninstall: keybase.io/_/go`
 }
 
-const TeamInviteByContact = (props: Props) => {
+const TeamInviteByContactMobile = (props: Props) => {
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
   const {
@@ -212,6 +212,11 @@ const TeamInviteByContact = (props: Props) => {
       teamName={teamname}
     />
   )
+}
+
+const TeamInviteByContact = (props: Props) => {
+  if (!isMobile) return null
+  return <TeamInviteByContactMobile {...props} />
 }
 
 export default TeamInviteByContact

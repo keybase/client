@@ -8,7 +8,7 @@ import {useModalHeaderState} from '@/stores/modal-header'
 import type {Contact} from '../common/contacts-list.native'
 import {addMembersToWizard, type AddMembersWizard} from './state'
 
-const AddContacts = ({wizard}: {wizard: AddMembersWizard}) => {
+const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
   const navigateUp = C.Router2.navigateUp
   const navUpToScreen = C.Router2.navUpToScreen
   const onBack = () => navigateUp()
@@ -117,6 +117,11 @@ const AddContacts = ({wizard}: {wizard: AddMembersWizard}) => {
       <EnableContactsPopup noAccess={noAccessPermanent} onClose={onBack} />
     </>
   )
+}
+
+const AddContacts = (props: {wizard: AddMembersWizard}) => {
+  if (!isMobile) return null
+  return <AddContactsMobile {...props} />
 }
 
 export default AddContacts

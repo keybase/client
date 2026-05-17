@@ -27,6 +27,7 @@ export const launchCameraAsync = async (
   mediaType: 'photo' | 'video' | 'mixed',
   askPermAndRetry: boolean = true
 ): Promise<ImagePicker.ImagePickerResult> => {
+  if (!isMobile) return canceled
   let res: ImagePicker.ImagePickerResult | undefined
   try {
     res = await ImagePicker.launchCameraAsync({
@@ -53,6 +54,7 @@ export const launchImageLibraryAsync = async (
   askPermAndRetry: boolean = true,
   allowsMultipleSelection: boolean = false
 ): Promise<ImagePicker.ImagePickerResult> => {
+  if (!isMobile) return canceled
   let res: ImagePicker.ImagePickerResult | undefined
   try {
     res = await ImagePicker.launchImageLibraryAsync({

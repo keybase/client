@@ -8,7 +8,7 @@ type Props = {
   style: Kb.Styles.StylesCrossPlatform
 }
 
-const QRScanner = (p: Props): React.ReactElement | null => {
+const QRScannerMobile = (p: Props): React.ReactElement | null => {
   const [scanned, setScanned] = React.useState(false)
   const [permission, requestPermission] = useCameraPermissions()
 
@@ -47,5 +47,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.greyLight,
   },
 }))
+
+const QRScanner = (p: Props): React.ReactElement | null => {
+  if (!isMobile) return null
+  return <QRScannerMobile {...p} />
+}
 
 export default QRScanner

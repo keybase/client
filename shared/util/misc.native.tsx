@@ -1,6 +1,6 @@
 import {navigateAppend} from '@/constants/router'
 import {pickDocumentsAsync} from './expo-document-picker.native'
-import {launchImageLibraryAsync, type ImageInfo} from './expo-image-picker.native'
+import {launchImageLibraryAsync, type ImageInfo} from './expo-image-picker'
 import type {OpenDialogOptions, SaveDialogOptions} from './electron.desktop'
 import * as SMS from 'expo-sms'
 import {Linking} from 'react-native'

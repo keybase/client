@@ -1,6 +1,6 @@
 import * as Styles from '@/styles'
 import * as T from '@/constants/types'
-import {launchImageLibraryAsync} from '@/util/expo-image-picker.native'
+import {launchImageLibraryAsync} from '@/util/expo-image-picker'
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {androidAddCompleteDownload, fsCacheDir, fsDownloadDir} from 'react-native-kb'
 import logger from '@/logger'

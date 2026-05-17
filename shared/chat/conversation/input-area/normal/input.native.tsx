@@ -22,7 +22,7 @@ import {
 } from '@/common-adapters/reanimated'
 import {formatDurationShort} from '@/util/timestamp'
 import {getTextStyle} from '@/common-adapters/text.styles'
-import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker.native'
+import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker'
 import {onHWKeyPressed, registerPasteImage, removeOnHWKeyPressed} from 'react-native-kb'
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
 import {standardTransformer} from '../suggestors/common'
