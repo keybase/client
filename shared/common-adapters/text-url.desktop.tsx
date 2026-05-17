@@ -7,7 +7,7 @@ export function useClickURL(url: string | undefined) {
   return {
     onClick: (e: React.BaseSyntheticEvent) => {
       e.stopPropagation()
-      openURL(url)
+      void openURL(url)
     },
     onContextMenu: (e: React.BaseSyntheticEvent) => {
       e.stopPropagation()

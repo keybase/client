@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from '.'
+import type {Props} from './index.shared'
 
 const UserCard = (p: Props) => {
   const {avatarSize = 128, outerStyle, onAvatarClicked, username, style, children} = p

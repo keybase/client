@@ -3,7 +3,7 @@ import {Box2} from '@/common-adapters/box'
 import * as Styles from '@/styles'
 import {Keyboard} from 'react-native'
 import {Portal} from '../../portal.native'
-import type {Props} from '.'
+import type {Props} from './index.shared'
 
 const Kb = {
   Box2,

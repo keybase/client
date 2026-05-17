@@ -1,8 +1,10 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
 import {View} from 'react-native'
-import type {Box2Props} from './box'
 import Reanimated from 'react-native-reanimated'
+import type {MeasureRef} from '@/common-adapters/measure-ref'
+import type {Box2Props} from '@/common-adapters/box.shared'
+
 
 type Margins = keyof typeof Styles.globalMargins
 const marginKeys = Object.keys(Styles.globalMargins) as Array<Margins>
@@ -136,16 +138,16 @@ const useBox2Shared = (p: Box2Props) => {
   }
 }
 
-export const Box2 = (p: Box2Props & {ref?: React.Ref<View>}) => {
+export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
   const {ref, ...rest} = p
   const props = useBox2Shared(rest)
-  return <View {...props} ref={ref} />
+  return <View {...props} ref={ref as React.Ref<View>} />
 }
 
-export const Box2Animated = (p: Box2Props & {ref?: React.Ref<View>}) => {
+export const Box2Animated = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
   const {ref, ...rest} = p
   const props = useBox2Shared(rest)
-  return <Reanimated.View {...props} ref={ref} />
+  return <Reanimated.View {...props} ref={ref as React.Ref<View>} />
 }
 
 
@@ -201,3 +203,5 @@ const styles = {
   },
 } as const
 
+
+export type * from '@/common-adapters/box.shared'

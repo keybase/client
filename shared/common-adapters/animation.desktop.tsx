@@ -1,7 +1,8 @@
 import * as React from 'react'
 import {Box2} from './box'
 import lottie from 'lottie-web'
-import type {Props, AnimationType} from './animation'
+import type {Props, AnimationType} from './animation.shared'
+export type {AnimationType} from './animation.shared'
 
 const defaultDimension = 16
 

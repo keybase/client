@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {Props} from './text-view'
+import type {Props} from './text-view.shared'
 
 const TextView = (props: Props) => {
   const {onUrlError, url} = props

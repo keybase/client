@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box2} from './box'
 import LottieView from 'lottie-react-native'
-import type {Props, AnimationType} from './animation'
+import type {Props, AnimationType} from './animation.shared'
 // prettier-ignore
 type AnimationObject = {
   v: string; fr: number; ip: number; op: number; w: number; h: number;

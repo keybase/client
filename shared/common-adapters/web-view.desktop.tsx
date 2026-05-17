@@ -1,5 +1,6 @@
 import * as React from 'react'
-import type {WebViewProps} from './web-view'
+import type {WebViewProps} from './web-view.shared'
+export type {WebViewProps, WebViewInjections} from './web-view.shared'
 // this class isn't used at all afaik
 
 // not properly exposed in electron yet

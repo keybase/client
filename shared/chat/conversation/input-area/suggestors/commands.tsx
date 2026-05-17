@@ -4,7 +4,7 @@ import * as Common from './common'
 import * as Kb from '@/common-adapters'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useConfigState} from '@/stores/config'
-import type {Selection as InputSelection} from '../normal/input'
+import type {Selection as InputSelection} from '../normal/input.shared'
 import {useConversationMeta} from '../../data-hooks'
 
 const getCommandPrefix = (command: T.RPCChat.ConversationCommand) => {

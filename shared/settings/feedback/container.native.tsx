@@ -8,7 +8,7 @@ import {Platform} from 'react-native'
 import {getExtraChatLogsForLogSend} from './shared'
 import {isAndroid, version, pprofDir} from '@/constants/platform'
 import {logSend, appVersionName, appVersionCode} from 'react-native-kb'
-import type {Props as OwnProps} from './container'
+import type {Props as OwnProps} from './container.shared'
 import {usePushState} from '@/stores/push'
 
 export type Props = {

@@ -36,7 +36,7 @@ test('rekey refresh actions forward the device list to unlock folders', () => {
 
 test('delegateRekeyUI creates a dangling session and returns its id', () => {
   const response = {result: jest.fn()}
-  mockCreateSession.mockReturnValue({id: 42})
+  mockCreateSession.mockReturnValue({getId: () => 42, id: 42})
 
   handleUnlockFoldersEngineAction(
     {

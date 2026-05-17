@@ -6,7 +6,7 @@ import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import * as Styles from '@/styles'
-import type {Props} from './with-tooltip'
+import type {Props} from './with-tooltip.shared'
 import {View} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 

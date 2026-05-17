@@ -5,7 +5,7 @@ import {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
 import logger from '@/logger'
-import type {Props} from './drag-and-drop'
+import type {Props} from './drag-and-drop.shared'
 import KB2 from '@/util/electron.desktop'
 
 const {isDirectory, getPathForFile} = KB2.functions

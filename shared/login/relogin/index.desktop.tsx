@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import UserCard from '../user-card'
 import {errorBanner, SignupScreen} from '@/signup/common'
-import type {Props} from '.'
+import type {Props} from './index.shared'
 
 const other = 'Someone else...'
 

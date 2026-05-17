@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import Feedback from '.'
-import type {Props} from './container'
+import type {Props} from './container.shared'
+export type {Props} from './container.shared'
 import {useSendFeedback} from './shared'
 import {useConfigState} from '@/stores/config'
 

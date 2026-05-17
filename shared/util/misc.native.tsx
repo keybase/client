@@ -62,11 +62,11 @@ export const pickFiles = async (_options: OpenDialogOptions): Promise<Array<stri
   return result.canceled ? [] : result.assets.map(a => a.uri)
 }
 
-export const pickSave = (_options: SaveDialogOptions): never => {
-  throw new Error('No supported platform')
+export const pickSave = async (_options: SaveDialogOptions): Promise<string> => {
+  return await Promise.reject(new Error('No supported platform'))
 }
 
-export function NotifyPopup(title: string, _opts?: NotifyPopupOpts): void {
+export function NotifyPopup(title: string, _opts?: NotifyPopupOpts, _rateLimitSeconds?: number, _rateLimitKey?: string, _onClick?: () => void, _onClose?: () => void): void {
   console.log('NotifyPopup: ', title)
   addNotificationRequest({
     body: title,

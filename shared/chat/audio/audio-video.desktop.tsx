@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type {Props} from './audio-video'
+import type {Props} from './audio-video.shared'
 
 const AudioVideo = (props: Props) => {
   const {url, paused, onPositionUpdated, onEnded} = props

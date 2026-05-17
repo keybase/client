@@ -45,7 +45,7 @@ const Header = () => {
   const fullname = useUsersState(s => s.infoMap.get(username)?.fullname ?? '')
 
   const logoutToLoggedOutFlow = useConfigState(s => s.dispatch.logoutToLoggedOutFlow)
-  const onHelp = () => openURL('https://book.keybase.io')
+  const onHelp = () => { void openURL('https://book.keybase.io') }
   const onQuit = () => {
     if (!__DEV__) {
       if (isLinux) {

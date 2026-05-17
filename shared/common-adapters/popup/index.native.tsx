@@ -10,7 +10,7 @@ import {
   type BottomSheetBackdropProps,
 } from './bottom-sheet'
 import {FullWindowOverlay} from 'react-native-screens'
-import type {PopupProps} from '.'
+import type {PopupProps} from './index.shared'
 
 const defaultSnapPoints = ['75%']
 

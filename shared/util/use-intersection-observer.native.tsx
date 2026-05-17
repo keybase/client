@@ -1,4 +1,4 @@
-import type {MockIntersectionObserverEntry} from './use-intersection-observer'
+import type {MockIntersectionObserverEntry} from './use-intersection-observer.shared'
 function useIntersectionObserver(): MockIntersectionObserverEntry {
   return {
     boundingClientRect: null,

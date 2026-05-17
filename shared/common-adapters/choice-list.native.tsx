@@ -4,7 +4,7 @@ import IconAuto from './icon-auto'
 import Text from './text'
 import * as React from 'react'
 import * as Styles from '@/styles'
-import type {Props} from './choice-list'
+import type {Props} from './choice-list.shared'
 
 const Kb = {Box2, ClickableBox, IconAuto, Text}
 

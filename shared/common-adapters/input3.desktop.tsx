@@ -6,7 +6,8 @@ import Text from './text'
 import {getTextStyle} from './text.styles'
 import {useColorScheme} from 'react-native'
 import './input.css'
-import type {Input3Props, Input3Ref} from './input3'
+import type {Input3Props, Input3Ref} from './input3.shared'
+export type {Input3Props, Input3Ref} from './input3.shared'
 
 function Input3(props: Input3Props & {ref?: React.Ref<Input3Ref>}) {
   const {autoCapitalize, autoCorrect, autoFocus, containerStyle, decoration, disabled} = props

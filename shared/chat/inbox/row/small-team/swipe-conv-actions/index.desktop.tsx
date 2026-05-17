@@ -1,6 +1,6 @@
 import * as RowSizes from '../../sizes'
 import * as Kb from '@/common-adapters'
-import type {Props} from '.'
+import type {Props} from './index.shared'
 
 const SwipeConvActions = (props: Props) => {
   return <div style={styles.row}>{props.children}</div>

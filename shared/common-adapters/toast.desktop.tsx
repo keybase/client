@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
-import type {Props} from './toast'
+import type {Props} from './toast.shared'
 import Popup from './popup'
 import * as Styles from '@/styles'
 import './toast.css'

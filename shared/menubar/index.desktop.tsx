@@ -307,11 +307,11 @@ const useMenuItems = (
 
   const ret = (() => {
     const common = [
-      {onClick: () => openUrl(`https://keybase.io/${username || ''}`), title: 'Keybase.io'},
+      {onClick: () => { void openUrl(`https://keybase.io/${username || ''}`) }, title: 'Keybase.io'},
       {
         onClick: () => {
           const version = __VERSION__
-          openUrl(
+          void openUrl(
             `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(version)}`
           )
         },
@@ -319,7 +319,7 @@ const useMenuItems = (
       },
       {
         onClick: () => {
-          openUrl('https://keybase.io/docs')
+          void openUrl('https://keybase.io/docs')
           hideWindow?.()
         },
         title: 'Help',

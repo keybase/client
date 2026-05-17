@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 
-import type {Props} from './subheading'
+import type {Props} from './subheading.shared'
 
 function SubHeading({children}: Props) {
   return (

@@ -5,7 +5,7 @@ import {Box2} from './box'
 import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
 import Popup from './popup'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
-import type {Props} from './toast'
+import type {Props} from './toast.shared'
 import {colors, darkColors} from '@/styles/colors'
 import {useColorScheme} from 'react-native'
 

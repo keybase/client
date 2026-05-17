@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
-import type {Props} from '.'
+import type {Props} from './index.shared'
 import {useChatTeam} from '../conversation/team-hooks'
 
 export default (p: Props) => {

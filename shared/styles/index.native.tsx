@@ -4,44 +4,50 @@ import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
 import {useDarkModeState} from '@/stores/darkmode'
 import {isIOS, isTablet} from '@/constants/platform'
+import type * as CSS from './css'
 
 const font = isIOS
   ? {
-      fontBold: {fontFamily: 'Keybase', fontWeight: '700'},
-      fontExtrabold: {fontFamily: 'Keybase', fontWeight: '800'},
-      fontRegular: {fontFamily: 'Keybase', fontWeight: '500'},
-      fontSemibold: {fontFamily: 'Keybase', fontWeight: '600'},
-      fontTerminal: {fontFamily: 'Source Code Pro Medium'},
-      fontTerminalSemibold: {fontFamily: 'Source Code Pro Semibold', fontWeight: '600'},
-      italic: {fontStyle: 'italic'},
+      fontBold: {fontFamily: 'Keybase' as const, fontWeight: '700' as const},
+      fontExtrabold: {fontFamily: 'Keybase' as const, fontWeight: '800' as const},
+      fontRegular: {fontFamily: 'Keybase' as const, fontWeight: '500' as const},
+      fontSemibold: {fontFamily: 'Keybase' as const, fontWeight: '600' as const},
+      fontTerminal: {fontFamily: 'Source Code Pro Medium' as const},
+      fontTerminalSemibold: {fontFamily: 'Source Code Pro Semibold' as const, fontWeight: '600' as const},
+      italic: {fontStyle: 'italic' as const},
     }
   : {
       // The fontFamily name must match the font file's name exactly on Android.
-      fontBold: {fontFamily: 'keybase', fontWeight: '700'},
-      fontExtrabold: {fontFamily: 'keybase-extrabold', fontWeight: '800'},
-      fontRegular: {fontFamily: 'keybase-medium', fontWeight: '500'},
-      fontSemibold: {fontFamily: 'keybase-semibold', fontWeight: '600'},
-      fontTerminal: {fontFamily: 'SourceCodePro-Medium'},
-      fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semibold', fontWeight: '600'},
-      italic: {fontStyle: 'italic'},
+      fontBold: {fontFamily: 'keybase' as const, fontWeight: '700' as const},
+      fontExtrabold: {fontFamily: 'keybase-extrabold' as const, fontWeight: '800' as const},
+      fontRegular: {fontFamily: 'keybase-medium' as const, fontWeight: '500' as const},
+      fontSemibold: {fontFamily: 'keybase-semibold' as const, fontWeight: '600' as const},
+      fontTerminal: {fontFamily: 'SourceCodePro-Medium' as const},
+      fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semibold' as const, fontWeight: '600' as const},
+      italic: {fontStyle: 'italic' as const},
     }
 
 const util = {
   ...Shared.util,
-  largeWidthPercent: '70%',
+  largeWidthPercent: '70%' as const,
   loadingTextStyle: {
     backgroundColor: lightColors.greyLight,
     height: 16,
   },
-  mediumSubNavWidth: isTablet ? 270 : '100%',
-  mediumWidth: isTablet ? 460 : '100%',
-  shortSubNavWidth: isTablet ? 162 : '100%',
+  mediumSubNavWidth: (isTablet ? 270 : '100%') as CSS.DimensionValue,
+  mediumWidth: (isTablet ? 460 : '100%') as CSS.DimensionValue,
+  shortSubNavWidth: (isTablet ? 162 : '100%') as CSS.DimensionValue,
 }
 
 export const desktopStyles = {
-  scrollable: {
-    // TODO remove this style entirely, use ScrollView
-  },
+  boxShadow: {},
+  clickable: {},
+  editable: {},
+  fadeOpacity: {},
+  noSelect: {},
+  scrollable: {},
+  windowDragging: {},
+  windowDraggingClickable: {},
 }
 
 export const mobileStyles = {}
@@ -52,19 +58,18 @@ export const globalStyles = {
 }
 
 export const hairlineWidth = StyleSheet.hairlineWidth
-export const styleSheetCreate = (f: () => MapToStyles): unknown =>
-  styleSheetCreateProxy(f, o => StyleSheet.create(o as any) as MapToStyles)
+type NamedStyles = {[key: string]: CSS._StylesCrossPlatform}
+export function styleSheetCreate<const O extends NamedStyles>(f: () => O): O
+export function styleSheetCreate(f: () => NamedStyles): NamedStyles {
+  return styleSheetCreateProxy(f, o => StyleSheet.create(o as any) as MapToStyles) as unknown as NamedStyles
+}
 
-export const collapseStyles = (
-  styles: ReadonlyArray<unknown>
-): undefined | object | ReadonlyArray<unknown> => {
-  // if we have no / singular values we pass those on in the hopes they're consts
+export const collapseStyles = (styles: ReadonlyArray<unknown>): CSS.StylesCrossPlatform => {
   const nonNull = styles.filter(s => {
     if (!s) {
       return false
     }
-    // has a value?
-    for (const _ in s) {
+    for (const _ in s as object) {
       return true
     }
     return false
@@ -75,34 +80,46 @@ export const collapseStyles = (
   if (nonNull.length === 1) {
     const s = nonNull[0]
     if (s && typeof s === 'object') {
-      return s
+      return s as CSS.StylesCrossPlatform
     }
   }
-  // rn allows falsy values so let memoized values through
-  return styles
+  return styles as CSS.StylesCrossPlatform
 }
 export const collapseStylesDesktop = collapseStyles
 
-export const transition = () => ({})
+export const transition = (..._properties: Array<string>) => ({})
 
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '@/constants/platform'
 export * from './shared'
 export * from './styles-base'
 export {themed as globalColors} from './colors'
 export {default as classNames} from './class-names'
+export type StylesCrossPlatform = CSS.StylesCrossPlatform
+export type {Color, _StylesCrossPlatform, _StylesDesktop, _StylesMobile, CustomStyles} from './css'
+export type CollapsibleStyle = CSS.StylesCrossPlatform | false | '' | 0 | null | undefined
+export type Position =
+  | 'top left'
+  | 'top right'
+  | 'bottom right'
+  | 'bottom left'
+  | 'right center'
+  | 'left center'
+  | 'top center'
+  | 'bottom center'
+  | 'center center'
 export const borderRadius = 6
 export const dimensionWidth = Dimensions.get('window').width
 export const dimensionHeight = Dimensions.get('window').height
 export const headerExtraHeight = isTablet ? 16 : 0
 
-export const undynamicColor = (_col: string) => {
+export const undynamicColor = (_col: string): string => {
   const isDarkMode = useDarkModeState.getState().isDarkMode()
   const col = _col as string | {dynamic?: {dark: string; light: string}}
   // try and unwrap, some things (toggle?) don't seems to like mixed dynamic colors
   if (typeof col !== 'string' && col.dynamic) {
     return col.dynamic[isDarkMode ? 'dark' : 'light']
   }
-  return col
+  return col as string
 }
 
 export const normalizePath = (p: string) => {

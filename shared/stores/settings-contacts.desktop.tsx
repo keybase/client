@@ -1,5 +1,5 @@
 import * as Z from '@/util/zustand'
-import type {Store, State} from './settings-contacts'
+import type {Store, State} from './settings-contacts.shared'
 
 const initialStore: Store = {
   alreadyOnKeybase: [],

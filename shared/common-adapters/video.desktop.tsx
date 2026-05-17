@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type {Props} from './video'
+import type {Props} from './video.shared'
 import * as Styles from '@/styles'
 import {useCheckURL} from './video.shared'
 

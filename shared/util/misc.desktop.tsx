@@ -26,7 +26,7 @@ export const openURL = async (url?: string) => {
   return openURLImpl?.(url)
 }
 
-export const openSMS = async (): Promise<unknown> => {
+export const openSMS = async (_phonenos: Array<string>, _body?: string): Promise<unknown> => {
   console.warn('Attempted to open SMS on desktop')
   return Promise.reject(new Error("Can't open SMS on desktop"))
 }

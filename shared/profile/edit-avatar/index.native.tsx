@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {type Props} from '.'
+import {type Props} from './index.shared'
 import {useNavigation} from '@react-navigation/native'
 import {launchImageLibraryAsync, type ImageInfo} from '@/util/expo-image-picker.native'
 import {useSafeNavigation} from '@/util/safe-navigation'

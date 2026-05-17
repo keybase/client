@@ -3,7 +3,7 @@ import Session, {type CancelHandlerType} from './session'
 import engineListener from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
+import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from './index.shared'
 import type {SessionIDKey, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
 import {isMobile} from '@/constants/platform'
@@ -203,7 +203,7 @@ class Engine {
   // An outgoing call. ONLY called by the flow-type rpc helpers
   _rpcOutgoing(p: {
     method: string
-    params: object
+    params: object | undefined
     callback: (...args: Array<any>) => void
     incomingCallMap?: IncomingCallMapType
     customResponseIncomingCallMap?: CustomResponseIncomingCallMapType
@@ -237,7 +237,7 @@ class Engine {
       cancelHandler,
       customResponseIncomingCallMap,
       dangling,
-      endHandler: (session: Session) => this._sessionEnded(session),
+      endHandler: session => this._sessionEnded(session),
       incomingCallMap,
       invoke: (method, param, cb) => {
         const callback =
@@ -247,9 +247,9 @@ class Engine {
             if (args.length > 0 && !!args[0]) {
               args[0] = convertToError(args[0], method)
             }
-            cb(...args)
+            cb(args[0], args[1])
           }
-        this._rpcClient.invoke(method, param || [{}], callback(method))
+        this._rpcClient.invoke(method, param, callback(method))
       },
       sessionID,
       waitingKey,
@@ -260,7 +260,7 @@ class Engine {
   }
 
   // Cleanup a session that ended
-  _sessionEnded(session: Session) {
+  _sessionEnded(session: {getId: () => number; _startMethod?: string}) {
     rpcLog({
       extra: {
         sessionID: session.getId(),

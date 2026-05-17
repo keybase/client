@@ -1,4 +1,2 @@
-import * as Impl from './session-impl'
-
-const Session = Impl.default
-export default Session
+export {default} from './session-impl'
+export type {CancelHandlerType} from './session-impl'

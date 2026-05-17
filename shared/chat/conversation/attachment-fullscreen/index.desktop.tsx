@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useMessagePopup} from '../messages/message-popup'
-import type {Props} from '.'
+import type {Props} from './index.shared'
 import {useData, usePreviewFallback} from './hooks'
 import type {StyleOverride} from '@/common-adapters/markdown'
 

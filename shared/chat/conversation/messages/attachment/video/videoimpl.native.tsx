@@ -4,7 +4,7 @@ import {ShowToastAfterSaving} from '../shared'
 import {useVideoPlayer, VideoView} from 'expo-video'
 import {useEventListener} from 'expo'
 import {Pressable} from 'react-native'
-import type {Props} from './videoimpl'
+import type {Props} from './videoimpl.shared'
 import {getAttachmentPreviewSize} from '../shared'
 
 const VideoImpl = (p: Props) => {

@@ -1,4 +1,4 @@
-import type {Props} from './native-emoji'
+import type {Props} from './native-emoji.shared'
 import {type EmojiData} from '.'
 import {emojiData} from './data'
 import {spriteSheetWidth, spriteSheetHeight} from '../markdown/emoji-gen'

@@ -3,21 +3,21 @@ import KB2 from '@/util/electron.desktop'
 
 const {env, platform} = KB2.constants
 
-export const isNewArch = false
-export const androidIsTestDevice = false
-export const isMobile = false
-export const isPhone = false
-export const isAndroid = false
-export const isIOS = false
-export const isLargeScreen = true
-export const isTablet = false
-export const isDebuggingInChrome = true
+export const isNewArch: boolean = false
+export const androidIsTestDevice: boolean = false
+export const isMobile: boolean = false
+export const isPhone: boolean = false
+export const isAndroid: boolean = false
+export const isIOS: boolean = false
+export const isLargeScreen: boolean = true
+export const isTablet: boolean = false
+export const isDebuggingInChrome: boolean = true
 
 export const dokanPath = KB2.constants.dokanPath
 export const windowsBinPath = KB2.constants.windowsBinPath
 export const pathSep = KB2.constants.pathSep
 
-export const isElectron = true
+export const isElectron: boolean = true
 export const isDarwin = platform === 'darwin'
 export const isWindows = platform === 'win32'
 export const isLinux = platform === 'linux'
@@ -27,9 +27,9 @@ export const getModKey = (e: {metaKey: boolean; ctrlKey: boolean}): boolean => {
   return isMac ? e.metaKey : e.ctrlKey
 }
 
-export const isDeviceSecureAndroid = false
-export const isAndroidNewerThanN = false
-export const isAndroidNewerThanM = false
+export const isDeviceSecureAndroid: boolean = false
+export const isAndroidNewerThanN: boolean = false
+export const isAndroidNewerThanM: boolean = false
 export const shortcutSymbol = isDarwin ? '⌘' : 'Ctrl-'
 export const realDeviceName = ''
 

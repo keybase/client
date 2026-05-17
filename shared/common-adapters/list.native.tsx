@@ -1,7 +1,7 @@
 import {View} from 'react-native'
 import * as Styles from '@/styles'
 import {LegendList} from '@legendapp/list/react-native'
-import type {Props} from './list'
+import type {Props} from './list.shared'
 import {useListProps} from './list-common'
 
 function List<T>({ref, ...p}: Props<T>) {

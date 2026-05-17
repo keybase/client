@@ -4,4 +4,5 @@ export {
   BottomSheetBackdrop,
   BottomSheetScrollView,
   BottomSheetHandle,
+  type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import type {Props} from './image'
+import type {Props} from './image.shared'
 import LoadingStateView from './loading-state-view'
 
 const onDragStart = (e: React.BaseSyntheticEvent) => e.preventDefault()

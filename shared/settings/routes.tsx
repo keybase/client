@@ -8,7 +8,7 @@ import * as Settings from '@/constants/settings'
 import {defineRouteMap} from '@/constants/types/router'
 import {usePushState} from '@/stores/push'
 import {e164ToDisplay} from '@/util/phone-numbers'
-import type {Props as FeedbackRouteParams} from './feedback/container'
+import type {Props as FeedbackRouteParams} from './feedback/container.shared'
 
 export type SettingsAccountRouteParams = {
   addedEmailBannerEmail?: string

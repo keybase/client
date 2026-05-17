@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type {Props} from './videoimpl'
+import type {Props} from './videoimpl.shared'
 import {getAttachmentPreviewSize, maxWidth, maxHeight} from '../shared'
 
 // its important we use explicit height/width so we never CLS while loading

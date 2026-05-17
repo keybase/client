@@ -4,7 +4,7 @@ import * as Styles from '@/styles'
 import LoadingStateView from './loading-state-view'
 import memoize from 'lodash/memoize'
 import {openURL} from '@/util/misc'
-import type {WebViewInjections, WebViewProps} from './web-view'
+import type {WebViewInjections, WebViewProps} from './web-view.shared'
 import {View as NativeView} from 'react-native'
 import {WebView as NativeWebView} from 'react-native-webview'
 

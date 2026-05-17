@@ -162,7 +162,7 @@ function createColorObject(mode: 'light' | 'dark') {
   for (const [_key, val] of Object.entries(colorDefs)) {
     const key = _key as keyof typeof colorDefs
     const color = val[mode]
-    result[key] = color as string
+    result[key] = color
   }
 
   for (const [_key, val] of Object.entries(colorVariants)) {

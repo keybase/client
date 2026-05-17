@@ -3,7 +3,7 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import Icon from './icon'
 import Text from './text'
-import type {Props} from './back-button'
+import type {Props} from './back-button.shared'
 
 const Kb = {
   Icon,

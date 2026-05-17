@@ -3,7 +3,7 @@ import {isMobile, isIOS, isAndroid, isTablet, isPhone, isElectron} from '@/const
 import type {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 import type {Background} from '@/common-adapters/text.shared'
 
-/* eslint-disable sort-keys */
+ 
 export const globalMargins = {
   xxtiny: 2,
   xtiny: 4,
@@ -15,7 +15,7 @@ export const globalMargins = {
   large: 40,
   xlarge: 64,
 } as const
-/* eslint-enable sort-keys */
+ 
 
 export const backgroundModeToColor = {
   get Announcements() {
@@ -170,7 +170,7 @@ export function platformStyles<
   return out
 }
 
-/* eslint-disable sort-keys */
+ 
 export const padding = (top: number, right?: number, bottom?: number, left?: number) => ({
   paddingTop: top,
   paddingRight: right !== undefined ? right : top,

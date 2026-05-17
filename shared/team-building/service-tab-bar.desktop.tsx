@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters/index'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import difference from 'lodash/difference'
 import type * as T from '@/constants/types'
-import type {Props, IconProps} from './service-tab-bar'
+import type {Props, IconProps} from './service-tab-bar.shared'
 import {useColorScheme} from 'react-native'
 
 const getDesktopServicesLayout = (

@@ -13,7 +13,7 @@ import {indefiniteArticle} from '@/util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {assertionToDisplay} from '@/common-adapters/usernames'
 import {FocusContext, ScrollContext} from '@/chat/conversation/normal/context'
-import type {RefType as InputRef} from './input'
+import type {RefType as InputRef} from './input.shared'
 import {useConversationCenter} from '../../center-context'
 import {
   useConversationThreadID,

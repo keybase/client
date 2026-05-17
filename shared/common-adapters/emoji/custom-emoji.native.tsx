@@ -1,4 +1,4 @@
-import type {Props} from './custom-emoji'
+import type {Props} from './custom-emoji.shared'
 import Image from '@/common-adapters/image'
 import * as Styles from '@/styles'
 

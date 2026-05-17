@@ -102,7 +102,7 @@ export const openPathInSystemFileManagerDesktop = async (
   _directMountDir: string
 ) => {}
 
-export const refreshDriverStatusDesktop = async () => {
+export const refreshDriverStatusDesktop = async (): Promise<T.RPCGen.FuseStatus | undefined> => {
   await Promise.resolve()
   return undefined
 }
@@ -114,14 +114,18 @@ export const refreshMountDirsDesktop = async () => {
 
 export const setSfmiBannerDismissedDesktop = async (_dismissed: boolean) => {}
 
-export const afterDriverEnabledDesktop = async (_isRetry: boolean) => {
+export const afterDriverEnabledDesktop = async (
+  _isRetry: boolean
+): Promise<'noop' | 'refresh' | 'kextPermissionError' | 'kextPermissionErrorRetry'> => {
   await Promise.resolve()
-  return 'noop' as const
+  return 'noop'
 }
 
-export const afterDriverDisableDesktop = async (_driverStatus: T.FS.DriverStatus) => {
+export const afterDriverDisableDesktop = async (
+  _driverStatus: T.FS.DriverStatus
+): Promise<'noop' | 'disabling' | 'refresh'> => {
   await Promise.resolve()
-  return 'noop' as const
+  return 'noop'
 }
 
 export const afterDriverDisablingDesktop = async (_driverStatus: T.FS.DriverStatus) => {}

@@ -1,4 +1,4 @@
-import type {Props} from './container'
+import type {Props} from './container.shared'
 import * as Kb from '@/common-adapters'
 
 const Container = ({children, style, outerStyle}: Props) => {

@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import noop from 'lodash/noop'
-import type {Props} from './suggestion-list'
+import type {Props} from './suggestion-list.shared'
 import {BotCommandUpdateStatus} from './shared'
 import {FlatList} from 'react-native'
 

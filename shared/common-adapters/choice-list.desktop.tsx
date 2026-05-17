@@ -3,7 +3,7 @@ import ClickableBox from './clickable-box'
 import Text from './text'
 import IconAuto from './icon-auto'
 import * as Styles from '@/styles'
-import type {Props} from './choice-list'
+import type {Props} from './choice-list.shared'
 import './choice-list.css'
 
 const Kb = {

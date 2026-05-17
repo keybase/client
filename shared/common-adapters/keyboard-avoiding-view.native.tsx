@@ -15,7 +15,7 @@ import {
   type ViewStyle,
 } from 'react-native'
 import {useHeaderHeight} from '@react-navigation/elements'
-import type {Props as KAVProps} from './keyboard-avoiding-view'
+import type {Props as KAVProps} from './keyboard-avoiding-view.shared'
 import * as React from 'react'
 import {getKeyboardUp} from '@/styles/keyboard-state'
 import {isTablet} from '@/constants/platform'
@@ -310,7 +310,7 @@ export const KeyboardAvoidingView2 = (p: KAVProps) => {
 */
 
 import {KeyboardAvoidingView} from 'react-native-keyboard-controller'
-import type {Props} from './keyboard-avoiding-view'
+import type {Props} from './keyboard-avoiding-view.shared'
 import * as Styles from '@/styles'
 import {useHeaderHeight} from '@react-navigation/elements'
 

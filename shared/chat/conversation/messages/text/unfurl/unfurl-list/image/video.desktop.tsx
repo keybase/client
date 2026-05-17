@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters/index'
-import type {Props} from './video'
+import type {Props} from './video.shared'
 
 export const Video = (p: Props) => {
   const {autoPlay, onClick, height, width, style, url} = p

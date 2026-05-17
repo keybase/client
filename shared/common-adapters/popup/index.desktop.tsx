@@ -4,7 +4,8 @@ import FloatingBox from './floating-box'
 import Icon from '../icon'
 import {EscapeHandler} from '../key-event-handler.desktop'
 import * as Styles from '@/styles'
-import type {PopupProps} from '.'
+import type {PopupProps} from './index.shared'
+export type {PopupProps} from './index.shared'
 
 const Kb = {
   Box2,

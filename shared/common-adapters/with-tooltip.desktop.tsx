@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import {Box2} from './box'
 import Toast from './toast'
 import Text from './text'
-import type {Props} from './with-tooltip'
+import type {Props} from './with-tooltip.shared'
 import type {MeasureRef} from './measure-ref'
 
 const IGNORE_FOR_PROFILING = false as boolean

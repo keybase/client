@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import type {Props} from './scroll-view'
+import type {Props} from './scroll-view.shared'
+export type {ScrollViewRef} from './scroll-view.shared'
 
 function ScrollView(props: Props) {
   const {className, contentContainerStyle, onScroll, style, children, ref} = props

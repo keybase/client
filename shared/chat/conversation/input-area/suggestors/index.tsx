@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as Users from './users'
 import * as InputState from '../input-state'
 import type * as Common from './common'
-import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input'
+import type {PlatformInputProps as Props, RefType as InputRef} from '../normal/input.shared'
 import {useConversationThreadID} from '../../thread-context'
 
 const positionFallbacks = ['bottom center'] as const
@@ -128,7 +128,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
     return null
   }
 
-  const triggerIDRef = React.useRef<number>(undefined)
+  const triggerIDRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
   const checkTrigger = () => {
     if (triggerIDRef.current) {
       clearTimeout(triggerIDRef.current)

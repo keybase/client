@@ -1,4 +1,4 @@
-import type {Props} from '.'
+import type {Props} from './index.shared'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
 import noop from 'lodash/noop'
 

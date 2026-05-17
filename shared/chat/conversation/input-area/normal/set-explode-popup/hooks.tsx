@@ -1,6 +1,6 @@
 import * as Chat from '@/constants/chat'
 import type * as T from '@/constants/types'
-import type {Props} from '.'
+import type {Props} from './index.shared'
 import {useConversationThreadSelector} from '../../../thread-context'
 
 export type MessageExplodeDescription = {

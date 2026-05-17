@@ -48,12 +48,12 @@ class IncomingRequest extends Request {
   }
 
   result(...args: Array<unknown>) {
-    this._response?.result(...args)
+    this._response?.result?.(...args)
     this._cleanup()
   }
 
   error(...args: Array<unknown>) {
-    this._response?.error(...args)
+    this._response?.error?.(...args)
     this._cleanup()
   }
 

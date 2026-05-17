@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {UploadProps} from './upload'
+import type {UploadProps} from './upload.shared'
 import capitalize from 'lodash/capitalize'
 import './upload.css'
 

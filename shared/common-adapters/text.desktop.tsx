@@ -1,6 +1,6 @@
 import * as Styles from '@/styles'
 import {linkTypes} from './text.shared'
-import type {Props} from './text'
+import type {Props} from './text.shared'
 import './text.css'
 
 export function Text(p: Props) {

@@ -1,7 +1,22 @@
-import Switch from './switch'
-import type {Props} from './checkbox'
+import type {TextType} from '@/common-adapters/text.shared'
+import type * as React from 'react'
+import Switch from '@/common-adapters/switch'
 import * as Styles from '@/styles'
 
+
+type Props = {
+  key?: string
+  label?: string | React.ReactNode
+  checkboxColor?: Styles.Color
+  checkboxStyle?: Styles.StylesCrossPlatform
+  labelComponent?: React.ReactNode
+  labelSubtitle?: string
+  labelType?: TextType
+  onCheck?: (newCheckedValue: boolean) => void
+  checked: boolean
+  style?: Styles.StylesCrossPlatform
+  disabled?: boolean
+}
 const Checkbox = (props: Props) => (
   <Switch
     align="left"

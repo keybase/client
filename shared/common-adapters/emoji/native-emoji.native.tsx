@@ -3,7 +3,7 @@ import {isAndroid} from '@/constants/platform'
 import {emojiIndexByName} from '../markdown/emoji-gen'
 import Text from '../text'
 
-import type {Props} from './native-emoji'
+import type {Props} from './native-emoji.shared'
 
 const sizes = [16, 18, 22, 24, 26, 28, 32, 36] as const
 const sizeStyle = new Map<(typeof sizes)[number], Styles.StylesCrossPlatform>(

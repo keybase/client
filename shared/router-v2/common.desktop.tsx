@@ -3,7 +3,7 @@ import * as Kb from '@/common-adapters'
 import Header from './header/index.desktop'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {TabActions} from '@react-navigation/core'
-import type {useSubnavTabAction as useSubnavTabActionType} from './common'
+import type {useSubnavTabAction as useSubnavTabActionType} from './common.shared'
 
 export const headerDefaultStyle = {}
 export const tabBarStyle = {
@@ -42,7 +42,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export const useSubnavTabAction: typeof useSubnavTabActionType = (navigation, state) => {
+export const useSubnavTabAction: useSubnavTabActionType = (navigation, state) => {
   const routesRef = React.useRef(state?.routes)
   const stateKeyRef = React.useRef(state?.key)
   React.useEffect(() => {

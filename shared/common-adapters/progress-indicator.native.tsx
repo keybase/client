@@ -1,4 +1,4 @@
-import type {Props} from './progress-indicator'
+import type {Props} from './progress-indicator.shared'
 import {ActivityIndicator} from 'react-native'
 import {globalColors, collapseStyles} from '@/styles'
 

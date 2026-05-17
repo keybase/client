@@ -36,7 +36,7 @@ export const handleUnlockFoldersEngineAction = (
         },
       })
       const {response} = action.payload
-      response.result(session.id)
+      response.result(session.getId())
       break
     }
   }

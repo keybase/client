@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {Props} from '.'
+import type {Props} from './index.shared'
 import KB2 from '@/util/electron.desktop'
 import './edit-avatar.css'
 import useHooks from './hooks'

@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from './text-view'
+import type {Props} from './text-view.shared'
 import {colors, darkColors} from '@/styles/colors'
 
 const TextView = (props: Props) => (

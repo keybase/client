@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import * as Styles from '@/styles'
-import type {Props} from './switch-toggle'
+import type {Props} from './switch-toggle.shared'
 
 const SwitchToggle = (props: Props) => {
   const {on: _on} = props

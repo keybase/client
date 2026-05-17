@@ -1,7 +1,8 @@
 import type {CSSProperties} from 'react'
 import * as Styles from '@/styles'
 import {LegendList} from '@legendapp/list/react'
-import type {Props} from './list'
+import type {Props} from './list.shared'
+export type {LegendListRef, Props} from './list.shared'
 import {useListProps} from './list-common'
 
 function List<T>({ref, ...p}: Props<T>) {

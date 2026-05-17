@@ -20,14 +20,12 @@ module.exports = {
     '^@/logger$': '<rootDir>/test/mocks/logger.js',
     '^@react-navigation/core$': '<rootDir>/test/mocks/react-navigation-core.js',
     '^@react-navigation/native$': '<rootDir>/test/mocks/react-navigation-native.js',
+    '^lottie-web$': '<rootDir>/test/mocks/lottie-web.js',
     '^react-native$': '<rootDir>/test/mocks/react-native.js',
   },
   setupFiles: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'node',
-  testMatch: [
-    '<rootDir>/**/*.test.ts',
-    '<rootDir>/**/*.test.tsx',
-  ],
+  testMatch: ['<rootDir>/**/*.test.ts', '<rootDir>/**/*.test.tsx'],
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
     '<rootDir>/desktop/dist/',

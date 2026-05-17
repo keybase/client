@@ -1,0 +1,26 @@
+{
+  "extends": ["./tsconfig.base.json", "./tsconfig.paths.desktop.json"],
+  "compilerOptions": {
+    "moduleSuffixes": [".desktop", ""],
+    "lib": ["ESNext", "dom"],
+    "types": ["jest", "node", "webpack-env"],
+    "outDir": "./.tsOuts/.tsOut-desktop/emit",
+    "tsBuildInfoFile": "./.tsOuts/.tsOut-desktop/cache"
+  },
+  "include": ["./**/*.mts", "./**/*.mjs", "./**/*.ts", "./**/*.tsx"],
+  "exclude": [
+    "**/node_modules",
+    "./desktop/dist",
+    "./desktop/build",
+    "./**/*.native.tsx",
+    "./**/*.native.ts",
+    "./**/*.android.tsx",
+    "./**/*.android.ts",
+    "./**/*.ios.tsx",
+    "./**/*.ios.ts",
+    "./common-adapters/icon.constants-gen.desktop.tsx",
+    "./common-adapters/icon.constants-gen.native.tsx",
+    "./common-adapters/icon.constants-gen.shared.tsx",
+    "./globals.native.d.ts"
+  ]
+}

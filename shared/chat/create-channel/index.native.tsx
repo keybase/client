@@ -1,6 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
-import type {Props} from './index'
+import type {Props} from './index.shared'
 import useHook from './hooks'
 
 const CreateChannel = (p: Props) => {

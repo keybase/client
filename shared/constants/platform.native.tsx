@@ -45,20 +45,20 @@ export const setSecureFlagSetting = async (secure: boolean): Promise<boolean> =>
 // Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.
 // Android only field that tells us if there is a lock screen.
 export const isDeviceSecureAndroid = androidIsDeviceSecure
-export const runMode = 'prod'
+export const runMode: string = 'prod'
 export const pathSep = '/'
 
 export const isIOS = Platform.OS === 'ios'
 export const isAndroid = !isIOS
-export const isMobile = true
+export const isMobile: boolean = true
 export const isTablet = Platform.OS === 'ios' && Platform.isPad
 export const isPhone = !isTablet
 
-export const isDarwin = false
-export const isElectron = false
-export const isLinux = false
-export const isWindows = false
-export const isMac = false
+export const isDarwin: boolean = false
+export const isElectron: boolean = false
+export const isLinux: boolean = false
+export const isWindows: boolean = false
+export const isMac: boolean = false
 
 export const getModKey = (_e: {metaKey: boolean; ctrlKey: boolean}): boolean => {
   return false

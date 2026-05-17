@@ -1,6 +1,6 @@
 import * as React from 'react'
 import LoadingStateView from './loading-state-view'
-import type {Props} from './image'
+import type {Props} from './image.shared'
 import {Image as ExpoImage, type ImageLoadEventData, type ImageErrorEventData} from 'expo-image'
 
 const Image = (p: Props) => {

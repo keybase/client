@@ -2,7 +2,7 @@ import * as React from 'react'
 import Toast from './toast.desktop'
 import {Box2} from './box'
 import Text from './text'
-import type {Props} from './zoomable-image'
+import type {Props} from './zoomable-image.shared'
 const Kb = {
   Box2,
   Text,

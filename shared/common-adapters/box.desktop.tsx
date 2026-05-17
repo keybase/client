@@ -1,9 +1,10 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import type {Box2Props} from './box'
+import type {Box2Props, MeasureRef} from './box.shared'
+export type {LayoutEvent} from './box.shared'
 import './box.css'
 
-export const Box2 = (p: Box2Props & {ref?: React.Ref<HTMLDivElement>}) => {
+export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink, ref} = p
   const {flex, justifyContent, overflow, padding, relative} = p
   const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children} = p
@@ -45,7 +46,7 @@ export const Box2 = (p: Box2Props & {ref?: React.Ref<HTMLDivElement>}) => {
 
   return (
     <div
-      ref={ref}
+      ref={ref as React.Ref<HTMLDivElement>}
       className={className}
       data-tooltip={tooltip}
       onContextMenu={onContextMenu}

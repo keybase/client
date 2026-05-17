@@ -5,7 +5,7 @@ import {Picker} from '@react-native-picker/picker'
 import {Box2} from './box'
 import Popup from './popup'
 import Text from './text'
-import type {Props} from './floating-picker'
+import type {Props} from './floating-picker.shared'
 
 const Kb = {
   Box2,

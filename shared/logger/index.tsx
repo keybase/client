@@ -118,7 +118,7 @@ class AggregateLoggerImpl {
       // NativeTransport forwards responses to the renderer without processing
       // them locally, so RPCs sent from node never get responses.
       try {
-        if (typeof process !== 'undefined' && process.type !== 'renderer') {
+        if (typeof process !== 'undefined' && process['type'] !== 'renderer') {
           return await Promise.resolve()
         }
         const {hasEngine} = require('../engine/require') as {hasEngine: typeof HasEngineType}

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {View, type NativeSyntheticEvent, type NativeTouchEvent} from 'react-native'
 import * as Kb from '@/common-adapters'
-import type {Props} from './alphabet-index'
+import type {Props} from './alphabet-index.shared'
 
 const stubTrue = () => true
 const initMeasureRef = {height: -1, pageY: -1}

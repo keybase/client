@@ -4,7 +4,7 @@ import Badge from './badge'
 import {Box2} from './box'
 import Icon from './icon'
 import * as Styles from '@/styles'
-import type {Props} from './back-button'
+import type {Props} from './back-button.shared'
 import noop from 'lodash/noop'
 
 const Kb = {

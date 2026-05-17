@@ -1,7 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as InputState from '../../../input-area/input-state'
-import type {Props} from '.'
+import type {Props} from './index.shared'
 import {useOrdinal} from '../../ids-context'
 import {useConversationThreadToggleSearch} from '../../../thread-context'
 import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row.native'

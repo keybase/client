@@ -1,5 +1,6 @@
 import type * as React from 'react'
-import type {MenuLayoutProps, MenuItem} from '.'
+import type {MenuLayoutProps, MenuItem} from './index.shared'
+export type {MenuItem, MenuItems, MenuLayoutProps, _InnerMenuItem} from './index.shared'
 import {Box2} from '@/common-adapters/box'
 import ClickableBox from '@/common-adapters/clickable-box'
 import Divider from '@/common-adapters/divider'

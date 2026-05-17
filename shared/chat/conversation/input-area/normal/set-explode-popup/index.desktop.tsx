@@ -1,5 +1,5 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from '.'
+import type {Props} from './index.shared'
 import useHooks from './hooks'
 import type {MessageExplodeDescription} from './hooks'
 

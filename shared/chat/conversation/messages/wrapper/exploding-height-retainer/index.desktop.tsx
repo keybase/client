@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {Props} from '.'
+import type {Props} from './index.shared'
 import {useColorScheme} from 'react-native'
 
 export const animationDuration = 2000

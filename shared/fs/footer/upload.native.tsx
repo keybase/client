@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {UploadProps} from './upload'
+import type {UploadProps} from './upload.shared'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import {useColorScheme} from 'react-native'
 

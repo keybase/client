@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
-import type {Props} from './download-wrapper'
+import type {Props} from './download-wrapper.shared'
 
 const DownloadNativeWrapper: React.FC<Props> = props => {
   const [opacity] = React.useState(new NativeAnimated.Value(1))

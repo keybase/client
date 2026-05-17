@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {Box2} from './box'
-import type {Props} from './video'
+import type {Props} from './video.shared'
 import {StatusBar} from 'react-native'
 import {useVideoPlayer, VideoView} from 'expo-video'
 import {useEventListener} from 'expo'

@@ -13,41 +13,41 @@ const font = {
   fontBold: {
     ...fontCommon,
     fontFamily: 'Keybase',
-    fontWeight: 700,
+    fontWeight: '700' as const,
   },
   fontExtrabold: {
     ...fontCommon,
     fontFamily: 'Keybase',
-    fontWeight: 800,
+    fontWeight: '800' as const,
   },
   fontRegular: {
     ...fontCommon,
     fontFamily: 'Keybase',
-    fontWeight: 500,
+    fontWeight: '500' as const,
   },
   fontSemibold: {
     ...fontCommon,
     fontFamily: 'Keybase',
-    fontWeight: 600,
+    fontWeight: '600' as const,
   },
   fontTerminal: {
     ...fontCommon,
     fontFamily: 'Source Code Pro',
-    fontWeight: 500,
+    fontWeight: '500' as const,
   },
   fontTerminalSemibold: {
     ...fontCommon,
     fontFamily: 'Source Code Pro',
-    fontWeight: 600,
+    fontWeight: '600' as const,
   },
   italic: {
-    fontStyle: 'italic',
+    fontStyle: 'italic' as const,
   },
 }
 
 const util = {
   ...Shared.util,
-  largeWidthPercent: '70%',
+  largeWidthPercent: '70%' as const,
   loadingTextStyle: {
     // this won't really work with dark mode
     backgroundColor: colors.greyLight,
@@ -70,18 +70,18 @@ export const desktopStyles = {
   get boxShadow() {
     return {boxShadow: `0 2px 5px 0 ${themed.black_20OrBlack}`}
   },
-  clickable: {cursor: 'pointer'},
-  editable: {cursor: 'text'},
-  fadeOpacity: {transition: 'opacity .25s ease-in-out'},
-  noSelect: {userSelect: 'none'},
-  scrollable: {overflowY: 'auto'},
+  clickable: {cursor: 'pointer' as const},
+  editable: {cursor: 'text' as const},
+  fadeOpacity: {transition: 'opacity .25s ease-in-out' as const},
+  noSelect: {userSelect: 'none' as const},
+  scrollable: {overflowY: 'auto' as const},
   windowDragging: {
     // allow frameless window dragging
-    WebkitAppRegion: 'drag',
+    WebkitAppRegion: 'drag' as const,
   },
   windowDraggingClickable: {
     // allow things in frameless regions to be clicked and not dragged
-    WebkitAppRegion: 'no-drag',
+    WebkitAppRegion: 'no-drag' as const,
   },
 }
 
@@ -173,9 +173,10 @@ export const initDesktopStyles = () => {
 
 export const hairlineWidth = 1
 
-type NamedStyles = {[key: string]: CSS._StylesCrossPlatform}
-export function styleSheetCreate<O extends NamedStyles>(styles: () => O) {
-  return styleSheetCreateProxy(styles, o => o)
+type NamedStyles = Record<string, CSS._StylesCrossPlatform>
+export function styleSheetCreate<const O extends NamedStyles>(styles: () => O): O
+export function styleSheetCreate(styles: () => NamedStyles): NamedStyles {
+  return styleSheetCreateProxy(styles, o => o) as NamedStyles
 }
 
 export const collapseStyles = (styles: ReadonlyArray<unknown>): object | undefined => {
@@ -210,6 +211,18 @@ export {themed as globalColors} from './colors'
 export const borderRadius = 4
 export {default as classNames} from './class-names'
 export type StylesCrossPlatform = CSS.StylesCrossPlatform
+export type {Color, CustomStyles, _StylesCrossPlatform, _StylesDesktop, _StylesMobile} from './css'
+export type CollapsibleStyle = CSS.StylesCrossPlatform | false | '' | 0 | null | undefined
+export type Position =
+  | 'top left'
+  | 'top right'
+  | 'bottom right'
+  | 'bottom left'
+  | 'right center'
+  | 'left center'
+  | 'top center'
+  | 'bottom center'
+  | 'center center'
 export const dimensionWidth = 0
 export const dimensionHeight = 0
 export const headerExtraHeight = 0

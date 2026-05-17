@@ -1,5 +1,5 @@
 import {featureFlagsOverride} from '@/local-debug.desktop'
-import type {FeatureFlags} from './feature-flags'
+import type {FeatureFlags} from './feature-flags.shared'
 
 const features = featureFlagsOverride?.split(',') || []
 

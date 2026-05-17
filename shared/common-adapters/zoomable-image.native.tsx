@@ -1,4 +1,4 @@
-import type {Props} from './zoomable-image'
+import type {Props} from './zoomable-image.shared'
 import * as Styles from '@/styles'
 import * as React from 'react'
 import Image from './image.native'

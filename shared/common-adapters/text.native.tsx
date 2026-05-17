@@ -1,6 +1,6 @@
 import * as Styles from '@/styles'
 import {typeStyles, negativeColors} from './text.meta.native'
-import type {Props} from './text'
+import type {Props} from './text.shared'
 import {Text as RNText} from 'react-native'
 
 export function Text(p: Props) {

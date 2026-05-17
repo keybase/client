@@ -45,10 +45,10 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export function HeaderLeftButton(hp: {
-  canGoBack?: boolean
-  tintColor?: string
-  onPress?: () => void
+export type {HeaderBackButtonProps} from './header-buttons.shared'
+import type {HeaderBackButtonProps} from './header-buttons.shared'
+
+export function HeaderLeftButton(hp: HeaderBackButtonProps & {
   badgeNumber?: number
   mode?: 'back' | 'cancel'
   autoDetectCanGoBack?: boolean
@@ -61,7 +61,7 @@ export function HeaderLeftButton(hp: {
       badgeNumber={hp.badgeNumber ?? 0}
       mode={hp.mode ?? 'back'}
       onAction={hp.onPress ?? nav.goBack}
-      iconColor={hp.tintColor}
+      iconColor={hp.tintColor as string | undefined}
     />
   )
 }

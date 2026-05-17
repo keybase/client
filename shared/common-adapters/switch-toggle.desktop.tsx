@@ -1,5 +1,5 @@
 import * as Styles from '@/styles'
-import type {Props} from './switch-toggle'
+import type {Props} from './switch-toggle.shared'
 
 const SwitchToggle = (props: Props) => (
   <div

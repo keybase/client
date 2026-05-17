@@ -1,5 +1,5 @@
 import Animation from './animation'
-import type {Props} from './progress-indicator'
+import type {Props} from './progress-indicator.shared'
 import * as Styles from '@/styles'
 
 const Kb = {

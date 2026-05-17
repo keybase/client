@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type {Props as PropsCommon} from './copyable-text'
+import type {Props as PropsCommon} from './copyable-text.shared'
 import {useTimeout} from './use-timers'
 import Text from './text'
 import {Box2} from './box'
@@ -8,7 +8,7 @@ import * as Styles from '@/styles'
 import * as Clipboard from 'expo-clipboard'
 
 export type Props = {
-  textStyle: object
+  textStyle?: object
 } & PropsCommon
 
 const CopyableText = (props: Props) => {

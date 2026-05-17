@@ -1,4 +1,4 @@
-import type {Props} from './container'
+import type {Props} from './container.shared'
 import * as Kb from '@/common-adapters'
 import NativeScrollView from '@/common-adapters/scroll-view.native'
 

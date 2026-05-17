@@ -1,1 +1,1 @@
-export const headerNavigationOptions = (/*route*/) => ({})
+export const headerNavigationOptions = (_route: unknown) => ({})

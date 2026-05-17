@@ -1,4 +1,6 @@
-look for opportunities to use gap in all boxes
+look for platform splits that can go away
+jump in inbox below tab
+go screen by screen and find cleanup
 any leftover zustand store
 ios push to convo broken
 ts split maybe
