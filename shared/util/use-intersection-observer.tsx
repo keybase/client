@@ -2,9 +2,19 @@
 import * as React from 'react'
 import type {IntersectionObserverOptions, MockIntersectionObserverEntry} from './use-intersection-observer.shared'
 
-function useIntersectionObserver<T extends HTMLElement = HTMLElement>(
-  target: React.RefObject<T> | T | null,
-  options: IntersectionObserverOptions = {}
+const mobileStub: MockIntersectionObserverEntry = {
+  boundingClientRect: null,
+  intersectionRatio: null,
+  intersectionRect: null,
+  isIntersecting: false,
+  rootBounds: null,
+  target: null,
+  time: null,
+}
+
+function useIntersectionObserverDesktop<T extends HTMLElement = HTMLElement>(
+  target: React.RefObject<T> | T | null | undefined,
+  options: IntersectionObserverOptions
 ): MockIntersectionObserverEntry | IntersectionObserverEntry {
   const {
     root = null,
@@ -66,6 +76,22 @@ function useIntersectionObserver<T extends HTMLElement = HTMLElement>(
   }, [target, root, rootMargin, pollInterval, useMutationObserver, thresholdKey])
 
   return entry
+}
+
+function useIntersectionObserverMobile(): MockIntersectionObserverEntry {
+  return mobileStub
+}
+
+function useIntersectionObserver<T extends HTMLElement = HTMLElement>(
+  target?: React.RefObject<T> | T | null,
+  options: IntersectionObserverOptions = {}
+): MockIntersectionObserverEntry | IntersectionObserverEntry {
+  if (isMobile) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    return useIntersectionObserverMobile()
+  }
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  return useIntersectionObserverDesktop(target, options)
 }
 
 function createIntersectionObserver({

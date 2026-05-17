@@ -1,6 +1,6 @@
 /// <reference types="webpack-env" />
 // Entry point to the chrome part of the app
-import Main from '@/app/main.desktop'
+import Main from '@/app/main'
 // order of the above must NOT change. needed for patching / hot loading to be correct
 import * as C from '@/constants'
 import * as React from 'react'
@@ -19,7 +19,7 @@ import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {useDarkModeState} from '@/stores/darkmode'
 import {initPlatformListener, onEngineIncoming} from '@/constants/init/index.desktop'
 import {eventFromRemoteWindows} from './remote-event-handler.desktop'
-import type {default as NewMainType} from '../../app/main.desktop'
+import type {default as NewMainType} from '../../app/main'
 import {dumpLogs} from '@/util/storeless-actions'
 setServiceDecoration(ServiceDecoration)
 
@@ -167,12 +167,12 @@ const setupHMR = () => {
 
   const refreshMain = () => {
     try {
-      const {default: NewMain} = require('../../app/main.desktop') as {default: typeof NewMainType}
+      const {default: NewMain} = require('../../app/main') as {default: typeof NewMainType}
       render(NewMain)
     } catch {}
   }
 
-  module.hot.accept(['../../app/main.desktop'], refreshMain)
+  module.hot.accept(['../../app/main'], refreshMain)
   module.hot.accept(['../../common-adapters/index'], () => {})
 }
 

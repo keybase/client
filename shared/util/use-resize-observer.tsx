@@ -3,7 +3,13 @@ import * as React from 'react'
 
 type InternalCallback = (entry: ResizeObserverEntry, observer: ResizeObserver) => unknown
 
-function useResizeObserver<T extends Element>(
+type FakeResizeObserver = {
+  disconnect: () => void
+  observe: () => void
+  unobserve: () => void
+}
+
+function useResizeObserverDesktop<T extends Element>(
   target: React.RefObject<T> | React.ForwardedRef<T> | T | null,
   callback: InternalCallback
 ): ResizeObserver {
@@ -33,16 +39,38 @@ function useResizeObserver<T extends Element>(
   return resizeObserver.observer
 }
 
+const fakeResizeObserver: FakeResizeObserver = {
+  disconnect: () => {},
+  observe: () => {},
+  unobserve: () => {},
+}
+
+function useResizeObserverMobile(_target?: unknown, _callback?: unknown): FakeResizeObserver {
+  return fakeResizeObserver
+}
+
+function useResizeObserver<T extends Element>(
+  target: React.RefObject<T> | React.ForwardedRef<T> | T | null,
+  callback: InternalCallback
+): ResizeObserver | FakeResizeObserver {
+  if (isMobile) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    return useResizeObserverMobile(target, callback)
+  }
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  return useResizeObserverDesktop(target, callback)
+}
+
 function createResizeObserver() {
   let ticking = false
   let allEntries: ResizeObserverEntry[] = []
 
   const callbacks: Map<unknown, Array<InternalCallback>> = new Map()
 
-  const observer = new window.ResizeObserver((entries: ResizeObserverEntry[], obs: ResizeObserver) => {
+  const observer = new ResizeObserver((entries: ResizeObserverEntry[], obs: ResizeObserver) => {
     allEntries = allEntries.concat(entries)
     if (!ticking) {
-      window.requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
         const triggered = new Set<Element>()
         // eslint-disable-next-line
         for (let i = 0; i < allEntries.length; i++) {
@@ -53,7 +81,7 @@ function createResizeObserver() {
           if (triggered.has(entry.target)) continue
           triggered.add(entry.target)
           const cbs = callbacks.get(entry.target)
-           
+
           cbs?.forEach(cb => cb(entry, obs))
         }
         allEntries = []
