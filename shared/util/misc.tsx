@@ -1,19 +1,12 @@
 import debounce from 'lodash/debounce'
 import logger from '@/logger'
 import {navigateAppend} from '@/constants/router'
+import KB2Default from './electron'
 import type {OpenDialogOptions, SaveDialogOptions} from './electron'
 import type {ImageInfo} from './expo-image-picker'
-
-// ─── Desktop imports (runtime-guarded) ────────────────────────────────────
-
-type KB2Functions = {
-  openURL?: (url: string, options?: {activate: boolean}) => Promise<void>
-  showOpenDialog?: (options: OpenDialogOptions) => Promise<Array<string>>
-  showSaveDialog?: (options: SaveDialogOptions) => Promise<string>
-}
-
-const _getDesktopFunctions = (): KB2Functions =>
-  (require('./electron') as {default: {functions: KB2Functions}}).default.functions
+import {Linking} from 'react-native'
+import {clearLocalLogs as clearLocalLogsNative, addNotificationRequest} from 'react-native-kb'
+import {filePickerError} from '@/util/storeless-actions'
 
 // ─── openURL ────────────────────────────────────────────────────────────────
 
@@ -23,11 +16,9 @@ export const openURL = async (url?: string): Promise<void> => {
     return
   }
   if (isMobile) {
-    const {Linking} = require('react-native') as {Linking: {openURL: (url: string) => Promise<void>}}
     Linking.openURL(url).catch((err: unknown) => console.warn('An error occurred', err))
   } else {
-    const {openURL: openURLImpl} = _getDesktopFunctions()
-    return openURLImpl?.(url)
+    return KB2Default.functions.openURL?.(url)
   }
 }
 
@@ -51,7 +42,6 @@ export const openSMS = async (phonenos: Array<string>, body?: string): Promise<u
 
 export const clearLocalLogs = async (): Promise<void> => {
   if (!isMobile || !isIOS) return
-  const {clearLocalLogs: clearLocalLogsNative} = require('react-native-kb') as {clearLocalLogs: () => Promise<void>}
   return clearLocalLogsNative()
 }
 
@@ -73,7 +63,6 @@ export const editAvatar = (): void => {
           navigateAppend({name: 'profileEditAvatar', params: {image: first}})
         }
       } catch (error) {
-        const {filePickerError} = require('@/util/storeless-actions') as {filePickerError: (e: Error) => void}
         filePickerError(new Error(String(error)))
       }
     }
@@ -91,7 +80,7 @@ export const pickImages = async (title: string): Promise<Array<string>> => {
     const result = await imagePickerMod.launchImageLibraryAsync('photo')
     return result.canceled ? [] : result.assets.map(a => a.uri)
   } else {
-    const {showOpenDialog} = _getDesktopFunctions()
+    const {showOpenDialog} = KB2Default.functions
     if (!showOpenDialog) return []
     return showOpenDialog({
       allowFiles: true,
@@ -110,7 +99,7 @@ export const pickFiles = async (options: OpenDialogOptions): Promise<Array<strin
     const result = await docPickerMod.pickDocumentsAsync(true)
     return result.canceled ? [] : result.assets.map(a => a.uri)
   } else {
-    const {showOpenDialog} = _getDesktopFunctions()
+    const {showOpenDialog} = KB2Default.functions
     if (!showOpenDialog) return []
     return showOpenDialog(options)
   }
@@ -122,7 +111,7 @@ export const pickSave = async (options: SaveDialogOptions): Promise<string> => {
   if (isMobile) {
     return Promise.reject(new Error('No supported platform'))
   } else {
-    const {showSaveDialog} = _getDesktopFunctions()
+    const {showSaveDialog} = KB2Default.functions
     if (!showSaveDialog) return [] as unknown as string
     return showSaveDialog(options)
   }
@@ -150,7 +139,6 @@ export function NotifyPopup(
 ): void {
   if (isMobile) {
     console.log('NotifyPopup: ', title)
-    const {addNotificationRequest} = require('react-native-kb') as {addNotificationRequest: (opts: {body: string; id: string}) => Promise<void>}
     addNotificationRequest({
       body: title,
       id: Math.floor(Math.random() * 2 ** 32).toString(),

@@ -10,6 +10,7 @@ import {getExtraChatLogsForLogSend, useSendFeedback} from './shared'
 import {version, pprofDir} from '@/constants/platform'
 import type {Props as OwnProps} from './container.shared'
 import {usePushState} from '@/stores/push'
+import {appVersionName, appVersionCode, logSend} from 'react-native-kb'
 export type {Props} from './container.shared'
 
 const mobileOsVersion = Platform.Version
@@ -39,19 +40,6 @@ const Connected = (ownProps: OwnProps) => {
   if (isMobile) {
     const push = {pushToken: _push}
     const chat = getExtraChatLogsForLogSend()
-    const rnkb = require('react-native-kb') as {
-      appVersionName: string
-      appVersionCode: string
-      logSend: (
-        extra: string,
-        feedback: string,
-        sendLogs: boolean,
-        sendMaxBytes: boolean,
-        traceDir: string,
-        cpuProfileDir: string
-      ) => Promise<string>
-    }
-    const {appVersionName, appVersionCode, logSend} = rnkb
     const _status = {
       appVersionCode,
       appVersionName,

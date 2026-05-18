@@ -11,6 +11,9 @@ import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useWaitingState} from '@/stores/waiting'
 import type {Store, State} from './settings-contacts.shared'
+import * as Contacts from 'expo-contacts'
+import {getLocales} from 'expo-localization'
+import {addNotificationRequest} from 'react-native-kb'
 
 const initialStore: Store = {
   alreadyOnKeybase: [],
@@ -37,27 +40,6 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
       ...initialStore,
       dispatch,
     }
-  }
-
-  type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
-  const Contacts = require('expo-contacts') as {
-    getPermissionsAsync: () => Promise<{status: PermissionStatus}>
-    requestPermissionsAsync: () => Promise<{status: PermissionStatus}>
-    getContactsAsync: (opts: {fields: string[]}) => Promise<{
-      data: Array<{
-        name?: string
-        phoneNumbers?: Array<{number?: string; countryCode?: string; label?: string}>
-        emails?: Array<{email?: string; label?: string}>
-      }>
-    }>
-    Fields: {Name: string; PhoneNumbers: string; Emails: string}
-    PermissionStatus: {GRANTED: PermissionStatus}
-  }
-  const Localization = require('expo-localization') as {
-    getLocales: () => Array<{regionCode?: string | null}>
-  }
-  const {addNotificationRequest} = require('react-native-kb') as {
-    addNotificationRequest: (opts: {body: string; id: string}) => Promise<void>
   }
 
   const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
@@ -221,7 +203,7 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
             fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
           })
 
-          defaultCountryCode = Localization.getLocales()[0]?.regionCode?.toLowerCase() ?? ''
+          defaultCountryCode = (getLocales()[0].regionCode ?? '').toLowerCase()
           if (__DEV__ && !defaultCountryCode) {
             defaultCountryCode = 'us'
           }

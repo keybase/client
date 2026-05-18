@@ -21,4 +21,6 @@ module.exports = [
   '@react-native-picker/picker',
   'expo-clipboard',
   'expo-image',
+  'expo-contacts',
+  'expo-localization',
 ]

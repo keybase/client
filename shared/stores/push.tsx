@@ -13,12 +13,11 @@ import {useLogoutState} from '@/stores/logout'
 import {useWaitingState} from '@/stores/waiting'
 import {openAppSettings} from '@/util/storeless-actions'
 import {type Store, type State} from './push.shared'
+import {isDevApplePushToken} from '@/local-debug'
+import {checkPushPermissions, getRegistrationToken, iosGetHasShownPushPrompt, requestPushPermissions, removeAllPendingNotificationRequests} from 'react-native-kb'
 
 export const tokenType = isMobile
-  ? (() => {
-      const {isDevApplePushToken} = require('@/local-debug') as {isDevApplePushToken: boolean}
-      return isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
-    })()
+  ? isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
   : ''
 
 const desktopInitialStore: Store = {
@@ -59,20 +58,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       ...initialStore,
       dispatch,
     }
-  }
-
-  const {
-    checkPushPermissions,
-    getRegistrationToken,
-    iosGetHasShownPushPrompt,
-    requestPushPermissions,
-    removeAllPendingNotificationRequests,
-  } = require('react-native-kb') as {
-    checkPushPermissions: () => Promise<boolean>
-    getRegistrationToken: () => Promise<string>
-    iosGetHasShownPushPrompt: () => Promise<boolean>
-    requestPushPermissions: () => Promise<void>
-    removeAllPendingNotificationRequests: () => void
   }
 
   const monsterStorageKey = 'shownMonsterPushPrompt'
