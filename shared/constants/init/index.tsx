@@ -4,7 +4,7 @@ import {ignorePromise, neverThrowPromiseFunc} from '@/constants/utils'
 import {useConfigState} from '@/stores/config'
 import {useDaemonState} from '@/stores/daemon'
 import {useRouterState} from '@/stores/router'
-import {useShellState} from '@/stores/shell'
+import {useShellState, type ConnectionType} from '@/stores/shell'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import * as T from '@/constants/types'
 import type * as EngineGen from '@/constants/rpc'
@@ -36,14 +36,15 @@ const _getOpenAtLoginKey = () =>
 
 // ─── Native-only imports (runtime-guarded) ────────────────────────────────────
 
-const _getNative = async () => {
-  const ExpoLocation = await import('expo-location')
-  const ExpoTaskManager = await import('expo-task-manager')
-  const NetInfo = await import('@react-native-community/netinfo')
-  const {Linking} = await import('react-native')
-  const {setupAudioMode} = await import('@/util/audio.native')
-  const {requestLocationPermission} = await import('@/util/platform-specific')
-  const ScreenCapture = await import('expo-screen-capture')
+// Use require() instead of await import() to avoid triggering Metro's importAll,
+// which iterates all lazy getters (including PushNotificationIOS) before native modules are registered.
+const _getNative = () => {
+  const ExpoLocation = require('expo-location') as ExpoLocationModule
+  const ExpoTaskManager = require('expo-task-manager') as ExpoTaskManagerModule
+  const NetInfo = require('@react-native-community/netinfo') as NetInfoModule
+  const {Linking} = require('react-native') as {Linking: {getInitialURL: () => Promise<string | null>}}
+  const {setupAudioMode} = require('@/util/audio.native') as {setupAudioMode: (allowRecord: boolean) => Promise<void>}
+  const {requestLocationPermission} = require('@/util/platform-specific') as {requestLocationPermission: (perm?: unknown) => Promise<void>}
   const {
     fsCacheDir,
     fsDownloadDir,
@@ -57,7 +58,7 @@ const _getNative = async () => {
     guiConfig: string
     shareListenersRegistered: () => void
   }
-  return {ExpoLocation, ExpoTaskManager, Linking, NetInfo, ScreenCapture, androidAppColorSchemeChanged, fsCacheDir, fsDownloadDir, guiConfig, requestLocationPermission, setupAudioMode, shareListenersRegistered}
+  return {ExpoLocation, ExpoTaskManager, Linking, NetInfo, androidAppColorSchemeChanged, fsCacheDir, fsDownloadDir, guiConfig, requestLocationPermission, setupAudioMode, shareListenersRegistered}
 }
 
 const _getNativeSync = () => {
@@ -80,6 +81,15 @@ const _getNativeSync = () => {
 // ─── Location tracking (native only) ─────────────────────────────────────────
 
 type ExpoLocationObject = {coords: {accuracy: number | null; latitude: number; longitude: number}}
+type ExpoLocationModule = {
+  startLocationUpdatesAsync: (taskName: string, options: object) => Promise<void>
+  stopLocationUpdatesAsync: (taskName: string) => Promise<void>
+}
+type NetInfoModule = {
+  fetch: () => Promise<{type: ConnectionType}>
+  addEventListener: (cb: (state: {type: ConnectionType}) => void) => () => void
+  NetInfoStateType: {none: ConnectionType}
+}
 type ExpoTaskManagerModule = {
   defineTask: (taskName: string, cb: (params: {data: unknown; error: unknown}) => Promise<void>) => void
 }
@@ -124,7 +134,7 @@ const setPermissionDeniedCommandStatus = (conversationIDKey: T.Chat.Conversation
 const onChatWatchPosition = async (
   action: EngineGen.EngineAction<'chat.1.chatUi.chatWatchPosition'>
 ) => {
-  const {ExpoLocation, ExpoTaskManager, requestLocationPermission} = await _getNative()
+  const {ExpoLocation, ExpoTaskManager, requestLocationPermission} = _getNative()
   const response = action.payload.response
   response.result(0)
   try {
@@ -159,7 +169,7 @@ const onChatWatchPosition = async (
 }
 
 const onChatClearWatch = async () => {
-  const {ExpoLocation, ExpoTaskManager} = await _getNative()
+  const {ExpoLocation, ExpoTaskManager} = _getNative()
   locationRefs--
   if (locationRefs <= 0) {
     try {
@@ -177,7 +187,7 @@ const onChatClearWatch = async () => {
 
 const loadStartupDetails = async () => {
   logger.info('[Startup] loadStartupDetails: starting')
-  const {guiConfig, Linking} = await _getNative()
+  const {guiConfig, Linking} = _getNative()
   const {getStartupDetailsFromInitialPush} = await import('./push-listener.native')
 
   const [routeState, initialUrl, push] = await Promise.all([
@@ -439,7 +449,7 @@ const _initNativePlatformListener = () => {
   useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     const f = async () => {
-      const {NetInfo} = await _getNative()
+      const {NetInfo} = _getNative()
       const {type} = await NetInfo.fetch()
       useShellState.getState().dispatch.osNetworkStatusChanged(
         type !== NetInfo.NetInfoStateType.none,
@@ -516,19 +526,13 @@ const _initNativePlatformListener = () => {
   const {initPushListener} = require('./push-listener.native') as {initPushListener: () => void}
   initPushListener()
 
-  const netInfoSetup = async () => {
-    const {NetInfo} = await _getNative()
-    NetInfo.addEventListener(({type}) => {
-      useShellState.getState().dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
-    })
-  }
-  ignorePromise(netInfoSetup())
+  const {NetInfo} = _getNative()
+  NetInfo.addEventListener(({type}) => {
+    useShellState.getState().dispatch.osNetworkStatusChanged(type !== NetInfo.NetInfoStateType.none, type)
+  })
 
-  const initAudioModes = async () => {
-    const {setupAudioMode} = await _getNative()
-    ignorePromise(setupAudioMode(false))
-  }
-  ignorePromise(initAudioModes())
+  const {setupAudioMode} = _getNative()
+  ignorePromise(setupAudioMode(false))
 
   if (isAndroid) {
     const daemonState = useDaemonState.getState()
