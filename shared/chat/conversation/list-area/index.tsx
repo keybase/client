@@ -453,7 +453,7 @@ const useDesktopItems = (p: {
 
 const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const InputState = require('../input-area/input-state') as {useConversationInput: <X>(selector: (s: {editing: T.Chat.Ordinal}) => X) => X}
-  const {useIntersectionObserver} = require('@/util/use-intersection-observer') as {useIntersectionObserver: (ref: React.RefObject<Element | null>, options?: object) => {isIntersecting: boolean}}
+  const useIntersectionObserver = (require('@/util/use-intersection-observer') as {default: (ref: React.RefObject<Element | null>, options?: object) => {isIntersecting: boolean}}).default
   const useResizeObserver = (require('@/util/use-resize-observer') as {default: (ref: React.RefObject<Element | null>, cb: (e: {contentRect: {height: number}}) => void) => void}).default
 
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
@@ -628,9 +628,7 @@ if (colorWaypoints) {
 }
 
 const DesktopOrdinalWaypoint = function DesktopOrdinalWaypoint(p: DesktopOrdinalWaypointProps) {
-  const {useIntersectionObserver} = require('@/util/use-intersection-observer') as {
-    useIntersectionObserver: (ref: React.RefObject<Element | null>, options?: {root?: WaypointElement}) => {isIntersecting: boolean}
-  }
+  const useIntersectionObserver = (require('@/util/use-intersection-observer') as {default: (ref: React.RefObject<Element | null>, options?: {root?: WaypointElement}) => {isIntersecting: boolean}}).default
   const {ordinals, id, rowRenderer} = p
   const estimatedHeight = 40 * ordinals.length
   const [height, setHeight] = React.useState(-1)
