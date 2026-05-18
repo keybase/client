@@ -175,13 +175,13 @@ const ProfileCard = ({
   const _changeFollow = (follow: boolean) =>
     followUser([{follow, guiID: userDetails.guiID}, C.waitingKeyTracker], () => loadProfile(false), () => {})
 
+  const {default: FollowButton} = require('../profile/user/actions/follow-button') as {
+    default: typeof FollowButtonType
+  }
+
   const openProfile = () => {
     navToProfile(username)
     onHide?.()
-  }
-
-  const {default: FollowButton} = require('../profile/user/actions/follow-button') as {
-    default: typeof FollowButtonType
   }
 
   return (

@@ -7,18 +7,11 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {ModalTitle} from '@/teams/common'
 import useHooks from './hooks'
 import './edit-avatar.css'
+import KB2 from '@/util/electron'
+import {launchImageLibraryAsync} from '@/util/expo-image-picker'
+import {CropZoom, type CropZoomRefType} from 'react-native-zoom-toolkit'
 
-// Desktop-only helpers loaded conditionally at module level (no runtime error on mobile since
-// these values are only referenced inside the desktop branch)
-const KB2 = !isMobile
-  ? (require('@/util/electron.desktop').default as {
-      functions: {
-        isDirectory?: (path: string) => Promise<boolean>
-        getPathForFile?: (file: {name?: string; size?: number}) => string
-      }
-    })
-  : undefined
-const desktopFns = KB2?.functions ?? {}
+const desktopFns = isMobile ? ({} as typeof KB2.functions) : KB2.functions
 
 const AVATAR_CONTAINER_SIZE = 300
 
@@ -41,7 +34,7 @@ const getFile = async (fileList: FileListLike | undefined): Promise<string> => {
   if (!file) {
     return ''
   }
-  const path = getPathForFile?.(file) ?? ''
+  const path = getPathForFile?.(file as unknown as File) ?? ''
   if (!path) {
     return ''
   }
@@ -233,12 +226,6 @@ const NativeAvatarUploadWrapper = (p: Props) => {
   const onChooseNewAvatar = () => {
     const f = async () => {
       try {
-        const {launchImageLibraryAsync} = require('@/util/expo-image-picker') as {
-          launchImageLibraryAsync: (type: string) => Promise<{
-            canceled: boolean
-            assets?: Array<{uri: string; width: number; height: number; type?: string}>
-          }>
-        }
         const result = await launchImageLibraryAsync('photo')
         const first = result.assets?.reduce<ImageInfo | undefined>((acc, a) => {
           if (!acc && (a.type === 'image' || a.type === 'video')) {
@@ -263,12 +250,6 @@ const NativeAvatarUploadWrapper = (p: Props) => {
     if (!wizard && noImage) {
       const f = async () => {
         try {
-          const {launchImageLibraryAsync} = require('@/util/expo-image-picker') as {
-            launchImageLibraryAsync: (type: string) => Promise<{
-              canceled: boolean
-              assets?: Array<{uri: string; width: number; height: number; type?: string}>
-            }>
-          }
           const result = await launchImageLibraryAsync('photo')
           const first = result.assets?.reduce<ImageInfo | undefined>((acc, a) => {
             if (!acc && (a.type === 'image' || a.type === 'video')) {
@@ -423,19 +404,6 @@ function NativeAvatarZoom(p: {src?: string; width: number; height: number; ref?:
   const {src, width, height, ref} = p
   const resolution = {height, width}
 
-  // Load CropZoom lazily (native only)
-  const {CropZoom, type: _unused} = require('react-native-zoom-toolkit') as {
-    CropZoom: React.ComponentType<{
-      cropSize: {width: number; height: number}
-      resolution: {width: number; height: number}
-      ref?: React.Ref<{crop: (size: number) => {resize?: {width: number}; crop: {originX: number; originY: number; width: number; height: number}}}>
-      panMode?: string
-      minScale?: number
-      children?: React.ReactNode
-    }>
-    type: unknown
-  }
-  type CropZoomRefType = {crop: (size: number) => {resize?: {width: number}; crop: {originX: number; originY: number; width: number; height: number}}}
 
   React.useImperativeHandle(ref, () => {
     return {

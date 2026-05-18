@@ -19,4 +19,13 @@ module.exports = [
   'expo-modules-core',
   'react-native-kb',
   '@react-native-picker/picker',
+  'expo-clipboard',
+  'expo-image',
+  'expo-contacts',
+  'expo-localization',
+  'expo-media-library',
+  'expo-file-system',
+  '@callstack/liquid-glass',
+  'react-native-screens/experimental',
+  '@react-navigation/bottom-tabs',
 ]

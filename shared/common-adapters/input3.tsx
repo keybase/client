@@ -4,14 +4,13 @@ import {Box2} from './box'
 import IconAuto from './icon-auto'
 import Text from './text'
 import {getTextStyle} from './text.styles'
-import {useColorScheme} from 'react-native'
+import {useColorScheme, TextInput as _TextInputReal} from 'react-native'
+const NativeTextInput = _TextInputReal as unknown as React.ComponentType<{autoCapitalize?: string; autoCorrect?: boolean; autoFocus?: boolean; blurOnSubmit?: boolean; editable?: boolean; keyboardType?: string; maxLength?: number; multiline?: boolean; onBlur?: () => void; onChangeText?: (text: string) => void; onFocus?: () => void; onSubmitEditing?: () => void; placeholder?: string; placeholderTextColor?: string; ref?: React.Ref<InputLikeRef>; returnKeyType?: string; secureTextEntry?: boolean; selectTextOnFocus?: boolean; style?: Styles.StylesCrossPlatform; textContentType?: string; underlineColorAndroid?: string; value?: string}>
 import type {Input3Props, Input3Ref} from './input3.shared'
 export type {Input3Props, Input3Ref} from './input3.shared'
 
 // Desktop only CSS import
-if (!isMobile) {
-  require('./input.css')
-}
+import './input.css'
 
 // Stub types to avoid DOM lib dependency in native tsconfig
 type InputLikeRef = {
@@ -207,34 +206,6 @@ const NativeInput3 = (props: Input3Props & {ref?: React.Ref<Input3Ref>}) => {
     },
     focus: () => inputRef.current?.focus?.(),
   }))
-
-  const {isIOS} = require('@/constants/platform') as {isIOS: boolean}
-  const {TextInput: NativeTextInput} = require('react-native') as {
-    TextInput: React.ComponentType<{
-      autoCapitalize?: string
-      autoCorrect?: boolean
-      autoFocus?: boolean
-      blurOnSubmit?: boolean
-      editable?: boolean
-      keyboardType?: string
-      maxLength?: number
-      multiline?: boolean
-      onBlur?: () => void
-      onChangeText?: (text: string) => void
-      onFocus?: () => void
-      onSubmitEditing?: () => void
-      placeholder?: string
-      placeholderTextColor?: string
-      ref?: React.Ref<InputLikeRef>
-      returnKeyType?: string
-      secureTextEntry?: boolean
-      selectTextOnFocus?: boolean
-      style?: Styles.StylesCrossPlatform
-      textContentType?: string
-      underlineColorAndroid?: string
-      value?: string
-    }>
-  }
 
   let textStyle = getTextStyle(textType, isDarkMode)
   if (isIOS) {

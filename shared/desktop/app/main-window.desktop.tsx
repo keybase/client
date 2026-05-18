@@ -4,11 +4,11 @@ import * as R from '@/constants/remote'
 import * as fs from 'fs'
 import menuHelper from './menu-helper.desktop'
 import {showDevTools} from '@/local-debug'
-import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '@/constants/platform.desktop'
+import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '@/constants/platform'
 import logger from '@/logger'
 import debounce from 'lodash/debounce'
 import {htmlURL, preloadPath} from './html-root.desktop'
-import KB2 from '@/util/electron.desktop'
+import KB2 from '@/util/electron'
 
 const {env} = KB2.constants
 

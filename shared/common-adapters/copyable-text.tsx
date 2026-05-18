@@ -4,6 +4,7 @@ import {useTimeout} from './use-timers'
 import Text from './text'
 import {Box2} from './box'
 import {TouchableHighlight} from 'react-native'
+import {setStringAsync} from 'expo-clipboard'
 import * as Styles from '@/styles'
 
 export type Props = {
@@ -30,9 +31,6 @@ const CopyableText = (props: Props) => {
   }
 
   const handleCopy = () => {
-    const {setStringAsync} = require('expo-clipboard') as {
-      setStringAsync: (text: string) => Promise<boolean>
-    }
     setStringAsync(props.value)
       .then(() => {})
       .catch(() => {})

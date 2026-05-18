@@ -1,6 +1,7 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
 import {View} from 'react-native'
+import Reanimated from 'react-native-reanimated'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type {Box2Props} from '@/common-adapters/box.shared'
 export type {LayoutEvent} from '@/common-adapters/box.shared'
@@ -208,9 +209,6 @@ export const Box2Animated = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
   if (!isMobile) return <Box2 {...p} />
   const {ref, ...rest} = p
   const props = box2SharedProps(rest)
-  const {default: Reanimated} = require('react-native-reanimated') as {
-    default: {View: React.ComponentType<ReturnType<typeof box2SharedProps> & {ref?: React.Ref<View>}>}
-  }
   return <Reanimated.View {...props} ref={ref as React.Ref<View>} />
 }
 

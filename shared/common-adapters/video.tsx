@@ -3,6 +3,8 @@ import type {Props} from './video.shared'
 import * as Styles from '@/styles'
 import {Box2} from './box'
 import {StatusBar} from 'react-native'
+import {useVideoPlayer, VideoView} from 'expo-video'
+import {useEventListener} from 'expo'
 import {useCheckURL} from './video.shared'
 
 // Desktop: normalize file paths to file:// URLs
@@ -82,27 +84,6 @@ const NativeVideo = (props: Props) => {
   const {url: _url, allowFile, muted, onUrlError, autoPlay} = props
   const url = Styles.urlEscapeFilePath(_url)
   const uri = allowFile ? Styles.normalizePath(url) : url
-
-  const {useVideoPlayer, VideoView} = require('expo-video') as {
-    useVideoPlayer: (
-      uri: string,
-      init?: (p: {muted: boolean; play: () => void}) => void
-    ) => {muted: boolean; play: () => void}
-    VideoView: React.ComponentType<{
-      player: {muted: boolean; play: () => void}
-      nativeControls?: boolean
-      contentFit?: string
-      onFullscreenExit?: () => void
-      style?: Styles.StylesCrossPlatform
-    }>
-  }
-  const {useEventListener} = require('expo') as {
-    useEventListener: (
-      emitter: {muted: boolean; play: () => void},
-      event: string,
-      handler: (e: {status?: string; error?: unknown}) => void
-    ) => void
-  }
 
   const player = useVideoPlayer(uri, p => {
     p.muted = muted ?? false

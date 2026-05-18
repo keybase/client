@@ -125,8 +125,8 @@ const descriptionForTodoItem = (todo: T.RPCGen.HomeScreenTodo) => {
     case t.verifyAllEmail:
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
     case t.verifyAllPhoneNumber: {
-      const {e164ToDisplay} = require('@/util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
       const p = todo.verifyAllPhoneNumber
+      const {e164ToDisplay} = require('@/util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
       return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
     }
     default: {

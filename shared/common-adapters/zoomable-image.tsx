@@ -3,6 +3,10 @@ import * as Styles from '@/styles'
 import * as React from 'react'
 import Toast from './toast'
 import Text from './text'
+import {View} from 'react-native'
+import {useSharedValue, runOnJS} from 'react-native-reanimated'
+import {fitContainer, ResumableZoom, useImageResolution} from 'react-native-zoom-toolkit'
+import ImageNative from './image'
 
 // Desktop: normalize file paths to file:// URLs
 const normalizeSrc = (src: string) => {
@@ -190,44 +194,6 @@ type NativeSwipeDirection = 'left' | 'right' | 'up' | 'down'
 
 const NativeZoomableImage = (p: Props) => {
   const {src, style, onChanged: onZoom, onSwipe: _onSwipe, onTap} = p
-
-  const {View} = require('react-native') as {
-    View: React.ComponentType<{
-      style?: Styles.StylesCrossPlatform
-      onLayout?: (e: NativeLayoutEvent) => void
-      children?: React.ReactNode
-    }>
-  }
-  const {useSharedValue, runOnJS} = require('react-native-reanimated') as {
-    useSharedValue: (v: number) => {set: (v: number) => void; get: () => number}
-    runOnJS: <T extends object>(fn: T) => T
-  }
-  const {fitContainer, ResumableZoom, useImageResolution} = require('react-native-zoom-toolkit') as {
-    fitContainer: (
-      ratio: number,
-      container: {width: number; height: number}
-    ) => {width: number; height: number}
-    ResumableZoom: React.ComponentType<{
-      maxScale?: number
-      extendGestures?: boolean
-      onTap?: () => void
-      onUpdate?: (s: NativeCommonZoomState) => void
-      onSwipe?: (dir: NativeSwipeDirection) => void
-      panMode?: string
-      children?: React.ReactNode
-    }>
-    useImageResolution: (opts: {uri: string}) => {
-      isFetching: boolean
-      resolution?: {width: number; height: number}
-    }
-  }
-  const ImageNative = require('./image').default as React.ComponentType<{
-    contentFit?: string
-    src: string
-    style?: Styles.StylesCrossPlatform
-    showLoadingStateUntilLoaded?: boolean
-    allowDownscaling?: boolean
-  }>
 
   const {isFetching, resolution} = useImageResolution({uri: src})
   const srcDims = p.srcDims?.width && p.srcDims.height ? p.srcDims : undefined

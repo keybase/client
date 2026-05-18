@@ -66,7 +66,13 @@ if (debugWebpack) {
 }
 
 const makeAlias = (isDev: boolean): Record<string, string | false> => {
-  const alias = ignoredModules.reduce<Record<string, string | false>>(
+  // Sort longest-first so subpath entries (e.g. 'foo/bar') are inserted into
+  // the alias object before their parent package ('foo'). webpack's enhanced-resolve
+  // checks aliases in insertion order and uses the first match; a shorter prefix
+  // like 'foo' would otherwise intercept 'foo/bar' and append '/bar' to the
+  // null-module path, producing a non-existent path.
+  const sortedModules = [...ignoredModules].sort((a, b) => b.length - a.length)
+  const alias = sortedModules.reduce<Record<string, string | false>>(
     (acc, name: string) => {
       acc[name] = nullModulePath
       return acc
@@ -169,7 +175,14 @@ const makeRules = ({
       }) satisfies RuleSetRule
   ),
   {
-    exclude: /\/dist\//,
+    // Native-only files must never be parsed by webpack on desktop: they use @/ imports
+    // that babel-module-resolver can't transform (babel ignores *.native.* files), so
+    // webpack would see the raw @/ alias and fail to resolve it.
+    test: /\.(native|ios|android)\.(ts|js)x?$/,
+    use: ['null-loader'],
+  },
+  {
+    exclude: [/\/dist\//, /\.(native|ios|android)\.(ts|js)x?$/],
     test: /\.(ts|js)x?$/,
     use: makeBabelLoader(isDev, isHot, nodeThread),
   },

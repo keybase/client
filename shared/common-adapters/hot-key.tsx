@@ -156,7 +156,7 @@ const handleKeyDown = (e: KeyEvent): void => {
 
 let globalHandlerAttached = false
 
-const doc = (globalThis as {document?: DocEventTarget}).document
+const doc = (globalThis as unknown as {document?: DocEventTarget}).document
 
 const ensureGlobalHandler = (): void => {
   if (!globalHandlerAttached) {

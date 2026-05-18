@@ -5,6 +5,7 @@ import {useConfigState} from '@/stores/config'
 import type * as UsePushStateType from '@/stores/push'
 import type {LinkingOptions} from '@react-navigation/native'
 import type {RootParamList} from './route-params'
+import {Linking} from 'react-native'
 
 // ---- URL normalization ----
 
@@ -254,9 +255,7 @@ export const createLinkingConfig = (
     let deepLinkUrl: string | null = null
     if (isMobile) {
       try {
-         
-        const RN: {Linking: {getInitialURL: () => Promise<string | null>}} = require('react-native')
-        deepLinkUrl = await RN.Linking.getInitialURL()
+        deepLinkUrl = await Linking.getInitialURL()
       } catch {}
     }
 
@@ -342,27 +341,22 @@ export const createLinkingConfig = (
     // On native, listen for RN Linking 'url' events (warm-start deep links)
     let removeLinkingSub: (() => void) | undefined
     if (isMobile) {
-      try {
-         
-        const RN: {Linking: {addEventListener: (type: string, handler: (e: {url: string}) => void) => {remove: () => void}}} = require('react-native')
-        const {Linking} = RN
-        const sub = Linking.addEventListener('url', ({url}: {url: string}) => {
-          const normalized = normalizeUrl(url)
-          if (!normalized) return
-          // Profile deep links need imperative navigation to properly set up
-          // the back stack. State-based linking may not create intermediate screens.
-          if (normalized.startsWith('keybase://profile/')) {
-            handleAppLink(normalized)
-            return
-          }
-          if (isHandledByLinkingConfig(normalized)) {
-            dedupedListener(normalized)
-          } else {
-            handleAppLink(normalized)
-          }
-        })
-        removeLinkingSub = () => sub.remove()
-      } catch {}
+      const sub = Linking.addEventListener('url', ({url}: {url: string}) => {
+        const normalized = normalizeUrl(url)
+        if (!normalized) return
+        // Profile deep links need imperative navigation to properly set up
+        // the back stack. State-based linking may not create intermediate screens.
+        if (normalized.startsWith('keybase://profile/')) {
+          handleAppLink(normalized)
+          return
+        }
+        if (isHandledByLinkingConfig(normalized)) {
+          dedupedListener(normalized)
+        } else {
+          handleAppLink(normalized)
+        }
+      })
+      removeLinkingSub = () => sub.remove()
     }
 
     return () => {

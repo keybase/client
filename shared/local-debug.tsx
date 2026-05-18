@@ -48,7 +48,7 @@ if (__DEV__) {
 }
 
 if (!isMobile) {
-  const KB2 = require('./util/electron.desktop').default as {
+  const KB2 = require('./util/electron').default as {
     constants: {configOverload?: Partial<typeof config>}
   }
   config = {...config, ...KB2.constants.configOverload}
