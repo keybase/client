@@ -3,10 +3,10 @@ import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import logger from '@/logger'
 import os from 'os'
-import {isLinux, isWindows, cacheRoot} from '@/constants/platform.desktop'
+import {isLinux, isWindows, cacheRoot} from '@/constants/platform'
 import {ctlQuit} from './ctl.desktop'
 import {allowMultipleInstances} from '@/local-debug'
-import KB2 from '@/util/electron.desktop'
+import KB2 from '@/util/electron'
 const {env} = KB2.constants
 
 const isPathSaltpack = (p: string) =>

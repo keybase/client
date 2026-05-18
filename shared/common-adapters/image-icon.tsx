@@ -13,7 +13,7 @@ export type ImageIconProps = {
 
 const ImageIconDesktop = (props: ImageIconProps) => {
   const {type, style, className, allowLazy = true} = props
-  const {getAssetPath} = require('@/constants/platform.desktop') as {
+  const {getAssetPath} = require('@/constants/platform') as {
     getAssetPath: (...a: Array<string>) => string
   }
   const hasDarkVariant = !!iconMeta[type].nameDark
