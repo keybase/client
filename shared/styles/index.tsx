@@ -218,7 +218,7 @@ export const initDesktopStyles = () => {
 
   // Measure the child element, if it is not
   // 30px wide the scrollbars are obtrusive.
-  const scrollbarWidth = 30 - (parent.firstChild as unknown as HTMLDivElement).clientWidth
+  const scrollbarWidth = 30 - ((parent.firstChild as unknown as HTMLDivElement).clientWidth ?? 0)
   if (scrollbarWidth) {
     document.body.classList.add('layout-scrollbar-obtrusive')
   }

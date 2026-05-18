@@ -5,7 +5,9 @@ export type {IconType} from './icon.constants-gen'
 export type {WebViewProps, WebViewInjections} from './web-view'
 export type {AnimationType} from './animation'
 
-export const LayoutAnimation = {} as unknown as typeof NativeLayoutAnimation
+export const LayoutAnimation: typeof NativeLayoutAnimation = isMobile
+  ? (require('react-native') as {LayoutAnimation: typeof NativeLayoutAnimation}).LayoutAnimation
+  : ({} as typeof NativeLayoutAnimation)
 export const ReAnimated = {}
 
 export {
@@ -21,7 +23,8 @@ export {BottomAccessory} from './bottom-accessory'
 export {default as BackButton} from './back-button'
 export {default as Badge} from './badge'
 export {Banner, BannerParagraph} from './banner'
-export {Box2, Box2Animated, type LayoutEvent} from './box'
+export {Box2, Box2Animated} from './box'
+export type {LayoutEvent} from './box'
 export type {MeasureRef} from './measure-ref'
 export {default as ButtonBar} from './button-bar'
 export {default as Button, IconButton} from './button'
@@ -49,7 +52,8 @@ export {useHotKey} from './hot-key'
 export {default as Image} from './image'
 export {default as ImageIcon} from './image-icon'
 export {default as InfoNote} from './info-note'
-export {default as Input3, type Input3Ref, type Input3Props} from './input3'
+export {default as Input3} from './input3'
+export type {Input3Ref, Input3Props} from './input3'
 export {KeyboardAvoidingView2} from './keyboard-avoiding-view'
 export {default as List, type LegendListRef} from './list'
 export {

@@ -39,7 +39,7 @@ interface DataTransfer {
 interface Element {}
 interface HTMLElement extends Element {}
 interface HTMLDivElement extends HTMLElement {
-  clientWidth: number
+  clientWidth?: number
 }
 
 interface DOMRectReadOnly {
@@ -108,6 +108,9 @@ interface DOMElement extends DOMNode {
 }
 interface DOMTextNode extends DOMNode {}
 declare var document: {
+  activeElement: unknown
+  addEventListener(type: string, listener: (e: unknown) => void, useCapture?: boolean): void
+  removeEventListener(type: string, listener: (e: unknown) => void, useCapture?: boolean): void
   head: {appendChild(el: DOMElement): void}
   body: {appendChild(el: DOMElement): void; removeChild(el: DOMElement): void; classList: {add(c: string): void}}
   createElement(tag: string): DOMElement
