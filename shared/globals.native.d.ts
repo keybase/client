@@ -38,7 +38,9 @@ interface DataTransfer {
 // Desktop build excludes this file so declare class is safe (no conflict with lib.dom).
 interface Element {}
 interface HTMLElement extends Element {}
-interface HTMLDivElement extends HTMLElement {}
+interface HTMLDivElement extends HTMLElement {
+  clientWidth: number
+}
 
 interface DOMRectReadOnly {
   readonly width: number
@@ -91,3 +93,23 @@ declare class IntersectionObserver {
 
 declare function requestAnimationFrame(callback: FrameRequestCallback): number
 type FrameRequestCallback = (time: number) => void
+
+// Stub for document used in merged initDesktopStyles (desktop-only at runtime, guarded by !isMobile)
+interface DOMNode {
+  firstChild: DOMElement | null
+  appendChild(child: DOMNode): DOMNode
+  removeChild(child: DOMNode): DOMNode
+}
+interface DOMElement extends DOMNode {
+  setAttribute(k: string, v: string): void
+  classList: {add(c: string): void}
+  clientWidth: number
+  appendChild(child: DOMNode): DOMNode
+}
+interface DOMTextNode extends DOMNode {}
+declare var document: {
+  head: {appendChild(el: DOMElement): void}
+  body: {appendChild(el: DOMElement): void; removeChild(el: DOMElement): void; classList: {add(c: string): void}}
+  createElement(tag: string): DOMElement
+  createTextNode(text: string): DOMTextNode
+}

@@ -1,0 +1,363 @@
+import * as Shared from './shared'
+import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
+import {themed, colors, darkColors} from './colors'
+import {StyleSheet, Dimensions} from 'react-native'
+import {useDarkModeState} from '@/stores/darkmode'
+import {isTablet} from '@/constants/platform'
+import type * as CSS from './css'
+
+// ─── Font definitions ─────────────────────────────────────────────────────────
+
+const fontCommonDesktop = {
+  WebkitFontSmoothing: 'antialiased',
+  textRendering: 'optimizeLegibility',
+}
+
+const fontDesktop = {
+  fontBold: {
+    ...fontCommonDesktop,
+    fontFamily: 'Keybase',
+    fontWeight: '700' as const,
+  },
+  fontExtrabold: {
+    ...fontCommonDesktop,
+    fontFamily: 'Keybase',
+    fontWeight: '800' as const,
+  },
+  fontRegular: {
+    ...fontCommonDesktop,
+    fontFamily: 'Keybase',
+    fontWeight: '500' as const,
+  },
+  fontSemibold: {
+    ...fontCommonDesktop,
+    fontFamily: 'Keybase',
+    fontWeight: '600' as const,
+  },
+  fontTerminal: {
+    ...fontCommonDesktop,
+    fontFamily: 'Source Code Pro',
+    fontWeight: '500' as const,
+  },
+  fontTerminalSemibold: {
+    ...fontCommonDesktop,
+    fontFamily: 'Source Code Pro',
+    fontWeight: '600' as const,
+  },
+  italic: {
+    fontStyle: 'italic' as const,
+  },
+}
+
+const fontNativeIOS = {
+  fontBold: {fontFamily: 'Keybase' as const, fontWeight: '700' as const},
+  fontExtrabold: {fontFamily: 'Keybase' as const, fontWeight: '800' as const},
+  fontRegular: {fontFamily: 'Keybase' as const, fontWeight: '500' as const},
+  fontSemibold: {fontFamily: 'Keybase' as const, fontWeight: '600' as const},
+  fontTerminal: {fontFamily: 'Source Code Pro Medium' as const},
+  fontTerminalSemibold: {fontFamily: 'Source Code Pro Semibold' as const, fontWeight: '600' as const},
+  italic: {fontStyle: 'italic' as const},
+}
+
+const fontNativeAndroid = {
+  // The fontFamily name must match the font file's name exactly on Android.
+  fontBold: {fontFamily: 'keybase' as const, fontWeight: '700' as const},
+  fontExtrabold: {fontFamily: 'keybase-extrabold' as const, fontWeight: '800' as const},
+  fontRegular: {fontFamily: 'keybase-medium' as const, fontWeight: '500' as const},
+  fontSemibold: {fontFamily: 'keybase-semibold' as const, fontWeight: '600' as const},
+  fontTerminal: {fontFamily: 'SourceCodePro-Medium' as const},
+  fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semibold' as const, fontWeight: '600' as const},
+  italic: {fontStyle: 'italic' as const},
+}
+
+const font = isMobile ? (isIOS ? fontNativeIOS : fontNativeAndroid) : fontDesktop
+
+// ─── Utility styles ───────────────────────────────────────────────────────────
+
+const utilDesktop = {
+  ...Shared.util,
+  largeWidthPercent: '70%' as const,
+  loadingTextStyle: {
+    // this won't really work with dark mode
+    backgroundColor: colors.greyLight,
+    height: 16,
+    marginBottom: Shared.globalMargins.tiny,
+    marginTop: Shared.globalMargins.tiny,
+  },
+  mediumSubNavWidth: 260,
+  mediumWidth: 400,
+  shortSubNavWidth: 160,
+}
+
+const utilNative = {
+  ...Shared.util,
+  largeWidthPercent: '70%' as const,
+  loadingTextStyle: {
+    backgroundColor: colors.greyLight,
+    height: 16,
+  },
+  mediumSubNavWidth: (isTablet ? 270 : '100%') as CSS.DimensionValue,
+  mediumWidth: (isTablet ? 460 : '100%') as CSS.DimensionValue,
+  shortSubNavWidth: (isTablet ? 162 : '100%') as CSS.DimensionValue,
+}
+
+const util = isMobile ? utilNative : utilDesktop
+
+export const globalStyles = {
+  ...font,
+  ...util,
+}
+
+// ─── Platform-specific style collections ──────────────────────────────────────
+
+export const mobileStyles = {}
+export const desktopStyles = isMobile
+  ? {
+      boxShadow: {},
+      clickable: {},
+      editable: {},
+      fadeOpacity: {},
+      noSelect: {},
+      scrollable: {},
+      windowDragging: {},
+      windowDraggingClickable: {},
+    }
+  : {
+      get boxShadow() {
+        return {boxShadow: `0 2px 5px 0 ${themed.black_20OrBlack}`}
+      },
+      clickable: {cursor: 'pointer' as const},
+      editable: {cursor: 'text' as const},
+      fadeOpacity: {transition: 'opacity .25s ease-in-out' as const},
+      noSelect: {userSelect: 'none' as const},
+      scrollable: {overflowY: 'auto' as const},
+      windowDragging: {
+        // allow frameless window dragging
+        WebkitAppRegion: 'drag' as const,
+      },
+      windowDraggingClickable: {
+        // allow things in frameless regions to be clicked and not dragged
+        WebkitAppRegion: 'no-drag' as const,
+      },
+    }
+
+// ─── Transition helpers ───────────────────────────────────────────────────────
+
+export const transition = (...properties: Array<string>) =>
+  isMobile ? {} : {transition: properties.map(p => `${p} 0.1s ease-out`).join(', ')}
+
+export const transitionColor = () => (isMobile ? {} : {transition: 'background 0.2s linear'})
+
+// ─── Desktop initializer (DOM manipulation — desktop only) ────────────────────
+
+export const initDesktopStyles = () => {
+  if (isMobile) return
+  const {getAssetPath} = require('@/constants/platform') as {getAssetPath: (...a: Array<string>) => string}
+  const head = document.head
+  const colorNames = Object.keys(colors).sort() as Array<keyof typeof colors>
+  const colorVars = `
+        :root { ${colorNames
+          .reduce((s, name) => {
+            const light = colors[name] as string
+            const dark = darkColors[name] as string
+            s.push(`--color-${name}: ${light === dark ? light : `light-dark(${light}, ${dark})`};`)
+            return s
+          }, new Array<string>())
+          .join(' ')} }
+`
+  const helpers = colorNames.reduce((s, name) => {
+    return (
+      s +
+      `.color_${name} {color: var(--color-${name});}\n` +
+      `.color_${name}_important {color: var(--color-${name}) !important;}\n` +
+      `.hover_color_${name}:hover:not(.spoiler .hover_color_${name}) {color: var(--color-${name});}\n` +
+      `.hover_container:hover .hover_contained_color_${name}:not(.spoiler .hover_contained_color_${name}) {color: var(--color-${name}) !important;}\n` +
+      `.background_color_${name} {background-color: var(--color-${name});}\n` +
+      `.hover_background_color_${name}:hover:not(.spoiler .hover_background_color_${name}) {background-color: var(--color-${name});}\n`
+    )
+  }, '')
+  const colorStyle = document.createElement('style')
+  colorStyle.appendChild(document.createTextNode(colorVars))
+  head.appendChild(colorStyle)
+
+  const helperStyle = document.createElement('style')
+  helperStyle.appendChild(document.createTextNode(helpers))
+  head.appendChild(helperStyle)
+
+  // Generate background-image CSS classes with dark mode variants
+  const makeImgSet = (dir: string, name: string) => {
+    const url = getAssetPath('images', dir, name)
+    return `-webkit-image-set(url('${url}') 1x)`
+  }
+  const makeMultiResImgSet = (baseName: string) => {
+    const ext = baseName.slice(baseName.lastIndexOf('.'))
+    const base = baseName.slice(0, baseName.lastIndexOf('.'))
+    const images = [1, 2, 3].map(
+      mult => `url('${getAssetPath('images', base)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
+    )
+    return `-webkit-image-set(${images.join(', ')})`
+  }
+  const imageCss =
+    `.ashes-bg { background-image: ${makeImgSet('icons', 'pattern-ashes-desktop-400-68.png')}; }\n` +
+    `@media (prefers-color-scheme: dark) { .ashes-bg { background-image: ${makeImgSet('icons', 'dark-pattern-ashes-desktop-400-68.png')}; } }\n` +
+    `.upload-bg { background-image: ${makeMultiResImgSet('upload-pattern-80.png')}; }\n` +
+    `@media (prefers-color-scheme: dark) { .upload-bg { background-image: ${makeMultiResImgSet('dark-upload-pattern-80.png')}; } }\n`
+  const imageStyle = document.createElement('style')
+  imageStyle.appendChild(document.createTextNode(imageCss))
+  head.appendChild(imageStyle)
+
+  // https://www.filamentgroup.com/lab/scrollbars/
+  const parent = document.createElement('div')
+  parent.setAttribute('style', 'width:30px;height:30px;')
+  parent.classList.add('scrollbar-test')
+
+  const child = document.createElement('div')
+  child.setAttribute('style', 'width:100%;height:40px')
+  parent.appendChild(child)
+  document.body.appendChild(parent)
+
+  // Measure the child element, if it is not
+  // 30px wide the scrollbars are obtrusive.
+  const scrollbarWidth = 30 - (parent.firstChild as unknown as HTMLDivElement).clientWidth
+  if (scrollbarWidth) {
+    document.body.classList.add('layout-scrollbar-obtrusive')
+  }
+
+  document.body.removeChild(parent)
+}
+
+// ─── hairlineWidth ────────────────────────────────────────────────────────────
+
+export const hairlineWidth = isMobile ? StyleSheet.hairlineWidth : 1
+
+// ─── styleSheetCreate ─────────────────────────────────────────────────────────
+
+type NamedStyles = Record<string, CSS._StylesCrossPlatform>
+export function styleSheetCreate<const O extends NamedStyles>(styles: () => O): O
+export function styleSheetCreate(styles: () => NamedStyles): NamedStyles {
+  if (isMobile) {
+    return styleSheetCreateProxy(styles, o => StyleSheet.create(o as unknown as Parameters<typeof StyleSheet.create>[0]) as MapToStyles) as unknown as NamedStyles
+  }
+  return styleSheetCreateProxy(styles, o => o) as NamedStyles
+}
+
+// ─── collapseStyles ───────────────────────────────────────────────────────────
+
+export const collapseStyles = isMobile
+  ? (styles: ReadonlyArray<unknown>): CSS.StylesCrossPlatform => {
+      const nonNull = styles.filter(s => {
+        if (!s) {
+          return false
+        }
+        for (const _ in s as object) {
+          return true
+        }
+        return false
+      })
+      if (!nonNull.length) {
+        return undefined
+      }
+      if (nonNull.length === 1) {
+        const s = nonNull[0]
+        if (s && typeof s === 'object') {
+          return s as CSS.StylesCrossPlatform
+        }
+      }
+      return styles as CSS.StylesCrossPlatform
+    }
+  : (styles: ReadonlyArray<unknown>): CSS.StylesCrossPlatform => {
+      // fast path for a single style that passes. Often we do stuff like
+      // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
+      // case we can just take styles.myStyle and not render thrash
+      const valid = styles.filter(s => {
+        return !!s && Object.keys(s).length
+      })
+      if (valid.length === 0) {
+        return undefined
+      }
+      if (valid.length === 1) {
+        const s = valid[0]
+        if (typeof s === 'object') {
+          return s as CSS.StylesCrossPlatform
+        }
+      }
+
+      // jenkins doesn't support flat yet
+      const s = Object.assign({}, ...styles.flat()) as CSS.StylesCrossPlatform
+      return s && Object.keys(s).length ? s : undefined
+    }
+
+// Desktop-specific version that always returns a plain object (for use with DOM style props).
+export const collapseStylesDesktop = (styles: ReadonlyArray<unknown>): object | undefined => {
+  const valid = styles.filter(s => {
+    return !!s && Object.keys(s).length
+  })
+  if (valid.length === 0) {
+    return undefined
+  }
+  if (valid.length === 1) {
+    const s = valid[0]
+    if (typeof s === 'object') {
+      return s as object
+    }
+  }
+  const s = Object.assign({}, ...styles.flat()) as object
+  return Object.keys(s).length ? s : undefined
+}
+
+// ─── Platform constants ───────────────────────────────────────────────────────
+
+export const borderRadius = isMobile ? 6 : 4
+export const dimensionWidth = isMobile ? Dimensions.get('window').width : 0
+export const dimensionHeight = isMobile ? Dimensions.get('window').height : 0
+export const headerExtraHeight = isMobile ? (isTablet ? 16 : 0) : 0
+
+// ─── Path utilities ───────────────────────────────────────────────────────────
+
+export const normalizePath = (p: string) => {
+  if (!isMobile) return p
+  if (p.startsWith('/')) {
+    return `file://${p}`
+  }
+  return p
+}
+
+export const unnormalizePath = (p: string) => {
+  if (!isMobile) return p
+  if (p.startsWith('file://')) {
+    return p.slice('file://'.length)
+  }
+  return p
+}
+
+export const undynamicColor = (col: string): string => {
+  if (!isMobile) return col
+  const isDarkMode = useDarkModeState.getState().isDarkMode()
+  const c = col as string | {dynamic?: {dark: string; light: string}}
+  // try and unwrap, some things (toggle?) don't seem to like mixed dynamic colors
+  if (typeof c !== 'string' && c.dynamic) {
+    return c.dynamic[isDarkMode ? 'dark' : 'light']
+  }
+  return c as string
+}
+
+// ─── Re-exports ───────────────────────────────────────────────────────────────
+
+export {isPhone, isTablet, fileUIName} from '@/constants/platform'
+export * from './shared'
+export * from './styles-base'
+export {themed as globalColors} from './colors'
+export {default as classNames} from './class-names'
+export type StylesCrossPlatform = CSS.StylesCrossPlatform
+export type {Color, CustomStyles, _StylesCrossPlatform, _StylesDesktop, _StylesMobile} from './css'
+export type CollapsibleStyle = CSS.StylesCrossPlatform | false | '' | 0 | null | undefined
+export type Position =
+  | 'top left'
+  | 'top right'
+  | 'bottom right'
+  | 'bottom left'
+  | 'right center'
+  | 'left center'
+  | 'top center'
+  | 'bottom center'
+  | 'center center'
