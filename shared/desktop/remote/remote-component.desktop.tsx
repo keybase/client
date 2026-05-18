@@ -22,7 +22,7 @@ type RemotePropsReceiverState<P> = {
   value: P | null
 }
 
-export const getRemoteComponentParam = () => new URLSearchParams(window.location.search).get('param') ?? ''
+export const getRemoteComponentParam = () => new URLSearchParams(window!.location.search).get('param') ?? ''
 
 export const useRemoteDarkModeSync = (darkMode: boolean) => {
   const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)

@@ -1,5 +1,5 @@
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SetChannelnameType from './container'
+import SetChannelnameComponent from './container'
 
 function WrapperSetChannelname(p: Props) {
   const {ordinal, isCenteredHighlight} = p
@@ -9,7 +9,6 @@ function WrapperSetChannelname(p: Props) {
   if (message.type !== 'setChannelname') return null
   if (message.newChannelname === 'general') return null
 
-  const {default: SetChannelnameComponent} = require('./container') as {default: typeof SetChannelnameType}
   return (
     <WrapperMessage {...p} {...wrapper}>
       <SetChannelnameComponent message={message} />

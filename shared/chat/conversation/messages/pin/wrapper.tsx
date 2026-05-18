@@ -1,5 +1,5 @@
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type PinType from '.'
+import PinComponent from '.'
 
 function WrapperPin(p: Props) {
   const {ordinal, isCenteredHighlight} = p
@@ -8,7 +8,6 @@ function WrapperPin(p: Props) {
 
   if (message.type !== 'pin') return null
 
-  const {default: PinComponent} = require('.') as {default: typeof PinType}
   return (
     <WrapperMessage {...p} {...wrapper}>
       <PinComponent messageID={message.pinnedMessageID} />

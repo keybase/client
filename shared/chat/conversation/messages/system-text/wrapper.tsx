@@ -1,14 +1,13 @@
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemTextType from './container'
+import SystemText from './container'
 
-function SystemText(p: Props) {
+function WrapperSystemText(p: Props) {
   const {ordinal, isCenteredHighlight} = p
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
   if (message.type !== 'systemText') return null
 
-  const {default: SystemText} = require('./container') as {default: typeof SystemTextType}
   return (
     <WrapperMessage {...p} {...wrapper}>
       <SystemText text={message.text.stringValue()} />
@@ -16,4 +15,4 @@ function SystemText(p: Props) {
   )
 }
 
-export default SystemText
+export default WrapperSystemText

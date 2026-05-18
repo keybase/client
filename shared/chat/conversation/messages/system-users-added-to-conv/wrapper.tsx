@@ -1,16 +1,13 @@
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemUsersAddedToConvType from './container'
+import SystemUsersAddedToConv from './container'
 
-function SystemUsersAddedToConv(p: Props) {
+function WrapperSystemUsersAddedToConv(p: Props) {
   const {ordinal, isCenteredHighlight} = p
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
   if (message.type !== 'systemUsersAddedToConversation') return null
 
-  const {default: SystemUsersAddedToConv} = require('./container') as {
-    default: typeof SystemUsersAddedToConvType
-  }
   return (
     <WrapperMessage {...p} {...wrapper}>
       <SystemUsersAddedToConv message={message} />
@@ -18,4 +15,4 @@ function SystemUsersAddedToConv(p: Props) {
   )
 }
 
-export default SystemUsersAddedToConv
+export default WrapperSystemUsersAddedToConv

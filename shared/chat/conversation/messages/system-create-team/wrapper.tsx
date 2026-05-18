@@ -1,14 +1,13 @@
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemCreateTeamType from './container'
+import SystemCreateTeam from './container'
 
-function SystemCreateTeam(p: Props) {
+function WrapperSystemCreateTeam(p: Props) {
   const {ordinal, isCenteredHighlight} = p
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
   if (message.type !== 'systemCreateTeam') return null
 
-  const {default: SystemCreateTeam} = require('./container') as {default: typeof SystemCreateTeamType}
   return (
     <WrapperMessage {...p} {...wrapper}>
       <SystemCreateTeam message={message} />
@@ -16,4 +15,4 @@ function SystemCreateTeam(p: Props) {
   )
 }
 
-export default SystemCreateTeam
+export default WrapperSystemCreateTeam

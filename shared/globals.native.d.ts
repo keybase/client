@@ -10,6 +10,7 @@ declare var window:
       ) => number
       cancelIdleCallback?: (handle: number) => void
       addEventListener: (event: string, cb: () => void) => void
+      location: {search: string}
     }
   | undefined
 
@@ -94,6 +95,11 @@ declare class IntersectionObserver {
 declare function requestAnimationFrame(callback: FrameRequestCallback): number
 type FrameRequestCallback = (time: number) => void
 
+// Stub for keyboard event key property used in desktop key handler (desktop-only at runtime)
+interface KeyboardEvent {
+  readonly key: string
+}
+
 // Stub for document used in merged initDesktopStyles (desktop-only at runtime, guarded by !isMobile)
 interface DOMNode {
   firstChild: DOMElement | null
@@ -109,10 +115,17 @@ interface DOMElement extends DOMNode {
 interface DOMTextNode extends DOMNode {}
 declare var document: {
   activeElement: unknown
-  addEventListener(type: string, listener: (e: unknown) => void, useCapture?: boolean): void
-  removeEventListener(type: string, listener: (e: unknown) => void, useCapture?: boolean): void
+  addEventListener(type: string, listener: (e: any) => void, useCapture?: boolean): void
+  removeEventListener(type: string, listener: (e: any) => void, useCapture?: boolean): void
+  getElementById(id: string): DOMElement | null
   head: {appendChild(el: DOMElement): void}
-  body: {appendChild(el: DOMElement): void; removeChild(el: DOMElement): void; classList: {add(c: string): void}}
+  body: {
+    appendChild(el: DOMElement): void
+    removeChild(el: DOMElement): void
+    classList: {add(c: string): void}
+    addEventListener(type: string, listener: (e: any) => void, useCapture?: boolean): void
+    removeEventListener(type: string, listener: (e: any) => void, useCapture?: boolean): void
+  }
   createElement(tag: string): DOMElement
   createTextNode(text: string): DOMTextNode
 }

@@ -1,13 +1,15 @@
-import type * as React from 'react'
 import Router from '@/router-v2/router'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors'
 import OutOfDate from './out-of-date'
 import {FsStatusProvider} from '@/fs/common/status'
 import {SystemFileManagerIntegrationProvider} from '@/fs/common/sfmi'
+import RemoteProxies from '../desktop/remote/proxies.desktop'
+import {PortalHost} from '@/common-adapters/portal.native'
+import RuntimeStats from './runtime-stats'
+import {BottomSheetModalProvider} from '@gorhom/bottom-sheet'
 
 const DesktopMain = function DesktopMain() {
-  const {default: RemoteProxies} = require('../desktop/remote/proxies.desktop') as {default: React.ComponentType}
   return (
     <FsStatusProvider>
       <SystemFileManagerIntegrationProvider>
@@ -22,13 +24,6 @@ const DesktopMain = function DesktopMain() {
 }
 
 const NativeMain = () => {
-  const {PortalHost} = require('@/common-adapters/portal.native') as {
-    PortalHost: React.ComponentType<{name?: string; children?: React.ReactNode}>
-  }
-  const RuntimeStats = (require('./runtime-stats') as {default: React.ComponentType}).default
-  const {BottomSheetModalProvider} = require('@gorhom/bottom-sheet') as {
-    BottomSheetModalProvider: React.ComponentType<{children: React.ReactNode}>
-  }
   return (
     <FsStatusProvider>
       <SystemFileManagerIntegrationProvider>

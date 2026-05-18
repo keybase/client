@@ -1,14 +1,13 @@
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemChangeAvatarType from '.'
+import SystemChangeAvatar from '.'
 
-function SystemChangeAvatar(p: Props) {
+function WrapperSystemChangeAvatar(p: Props) {
   const {ordinal, isCenteredHighlight} = p
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
   if (message.type !== 'systemChangeAvatar') return null
 
-  const {default: SystemChangeAvatar} = require('.') as {default: typeof SystemChangeAvatarType}
   return (
     <WrapperMessage {...p} {...wrapper}>
       <SystemChangeAvatar message={message} />
@@ -16,4 +15,4 @@ function SystemChangeAvatar(p: Props) {
   )
 }
 
-export default SystemChangeAvatar
+export default WrapperSystemChangeAvatar

@@ -1,5 +1,5 @@
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import type SystemSimpleToComplexType from './container'
+import SystemSimpleToComplex from './container'
 
 function WrapperSystemSimpleToComplex(p: Props) {
   const {ordinal, isCenteredHighlight} = p
@@ -7,10 +7,6 @@ function WrapperSystemSimpleToComplex(p: Props) {
   const {message} = wrapper.messageData
 
   if (message.type !== 'systemSimpleToComplex') return null
-
-  const {default: SystemSimpleToComplex} = require('./container') as {
-    default: typeof SystemSimpleToComplexType
-  }
 
   return (
     <WrapperMessage {...p} {...wrapper}>
