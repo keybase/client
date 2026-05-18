@@ -1,21 +1,29 @@
 import * as T from '@/constants/types'
-import * as ExpoLocation from 'expo-location'
-import * as MediaLibrary from 'expo-media-library'
-import * as FileSystem from 'expo-file-system'
-import {addNotificationRequest} from 'react-native-kb'
 import logger from '@/logger'
-import {ActionSheetIOS} from 'react-native'
-import {androidShare, androidShareText} from 'react-native-kb'
 
 export const requestPermissionsToWrite = async () => {
+  if (!isMobile) {
+    return Promise.resolve(true)
+  }
   if (isAndroid) {
+    const MediaLibrary = require('expo-media-library') as {
+      requestPermissionsAsync: (writeOnly: boolean) => Promise<{granted: boolean}>
+    }
     const p = await MediaLibrary.requestPermissionsAsync(false)
     return p.granted ? Promise.resolve() : Promise.reject(new Error('Unable to acquire storage permissions'))
   }
   return Promise.resolve()
 }
 
-export const requestLocationPermission = async (mode: T.RPCChat.UIWatchPositionPerm) => {
+export const requestLocationPermission = async (mode?: T.RPCChat.UIWatchPositionPerm) => {
+  if (!isMobile) {
+    return Promise.resolve()
+  }
+  const ExpoLocation = require('expo-location') as {
+    requestForegroundPermissionsAsync: () => Promise<{status: string; ios?: {scope: string}}>
+    requestBackgroundPermissionsAsync: () => Promise<{status: string}>
+    PermissionStatus: {GRANTED: string}
+  }
   if (isIOS) {
     logger.info('[location] Requesting location perms', mode)
     switch (mode) {
@@ -36,30 +44,45 @@ export const requestLocationPermission = async (mode: T.RPCChat.UIWatchPositionP
         }
         break
       }
+      default:
+        break
     }
   } else if (isAndroid) {
-    const androidBGPerms = await ExpoLocation.requestForegroundPermissionsAsync()
-    if (androidBGPerms.status !== ExpoLocation.PermissionStatus.GRANTED) {
+    const ExpoLocationA = require('expo-location') as {
+      requestForegroundPermissionsAsync: () => Promise<{status: string}>
+      PermissionStatus: {GRANTED: string}
+    }
+    const androidBGPerms = await ExpoLocationA.requestForegroundPermissionsAsync()
+    if (androidBGPerms.status !== ExpoLocationA.PermissionStatus.GRANTED) {
       throw new Error('Unable to acquire location permissions')
     }
   }
 }
 
 export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+  if (!isMobile) {
+    return Promise.reject(new Error('Save Attachment to camera roll - unsupported on this platform'))
+  }
   const fileURL = 'file://' + filePath
   const saveType: 'video' | 'photo' = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
+  const MediaLibrary = require('expo-media-library') as {
+    saveToLibraryAsync: (fileURL: string) => Promise<void>
+  }
+  const FileSystem = require('expo-file-system') as {
+    deleteAsync: (path: string, opts: {idempotent: boolean}) => Promise<void>
+  }
+  const {addNotificationRequest} = require('react-native-kb') as {
+    addNotificationRequest: (opts: {body: string; id: string}) => Promise<void>
+  }
   try {
     try {
-      // see it we can keep going anyways, android perms are needed sometimes and sometimes not w/ 33
       await requestPermissionsToWrite()
     } catch {}
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
     await MediaLibrary.saveToLibraryAsync(fileURL)
     logger.info(logPrefix + 'Success')
   } catch (e) {
-    // This can fail if the user backgrounds too quickly, so throw up a local notification
-    // just in case to get their attention.
     addNotificationRequest({
       body: `Failed to save ${saveType} to camera roll`,
       id: Math.floor(Math.random() * 2 ** 32).toString(),
@@ -80,18 +103,34 @@ export const showShareActionSheet = async (options: {
   message?: string
   mimeType: string
 }) => {
+  if (!isMobile) {
+    return Promise.reject(new Error('Show Share Action - unsupported on this platform'))
+  }
   if (isIOS) {
-    return new Promise((resolve, reject) => {
+    const {ActionSheetIOS} = require('react-native') as {
+      ActionSheetIOS: {
+        showShareActionSheetWithOptions: (
+          opts: {message?: string; url?: string},
+          failureCallback: (error: Error) => void,
+          successCallback: (success: boolean, method: string) => void
+        ) => void
+      }
+    }
+    return new Promise<void>((resolve, reject) => {
       ActionSheetIOS.showShareActionSheetWithOptions(
         {
           message: options.message,
           url: options.filePath,
         },
         reject,
-        resolve
+        () => resolve()
       )
     })
   } else {
+    const {androidShare, androidShareText} = require('react-native-kb') as {
+      androidShare: (filePath: string, mimeType: string) => Promise<void>
+      androidShareText: (text: string, mimeType: string) => Promise<void>
+    }
     if (!options.filePath && options.message) {
       try {
         await androidShareText(options.message, options.mimeType)
@@ -109,3 +148,5 @@ export const showShareActionSheet = async (options: {
     }
   }
 }
+
+export const watchPositionForMap = async () => Promise.resolve(() => {})

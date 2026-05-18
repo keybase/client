@@ -1,5 +1,8 @@
 import * as S from '@/constants/strings'
+import * as T from '@/constants/types'
 import * as Tabs from '@/constants/tabs'
+import * as Z from '@/util/zustand'
+import logger from '@/logger'
 import {ignorePromise, neverThrowPromiseFunc, timeoutPromise} from '@/constants/utils'
 import {navUpToScreen, switchTab, getRootState} from '@/constants/router'
 import {emitDeepLink} from '@/router-v2/linking'
@@ -8,23 +11,24 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {useDaemonState} from '@/stores/daemon'
 import {useLogoutState} from '@/stores/logout'
 import {useWaitingState} from '@/stores/waiting'
-import * as Z from '@/util/zustand'
-import logger from '@/logger'
-import * as T from '@/constants/types'
-import {isDevApplePushToken} from '@/local-debug'
-import {
-  checkPushPermissions,
-  getRegistrationToken,
-  iosGetHasShownPushPrompt,
-  requestPushPermissions,
-  removeAllPendingNotificationRequests,
-} from 'react-native-kb'
-import {type Store, type State} from '@/stores/push.shared'
 import {openAppSettings} from '@/util/storeless-actions'
+import {type Store, type State} from './push.shared'
 
-export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
+export const tokenType = isMobile
+  ? (() => {
+      const {isDevApplePushToken} = require('@/local-debug') as {isDevApplePushToken: boolean}
+      return isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
+    })()
+  : ''
 
-const initialStore: Store = {
+const desktopInitialStore: Store = {
+  hasPermissions: false,
+  justSignedUp: false,
+  showPushPrompt: false,
+  token: '',
+}
+
+const mobileInitialStore: Store = {
   hasPermissions: true,
   justSignedUp: false,
   pendingPushNotification: undefined,
@@ -32,8 +36,47 @@ const initialStore: Store = {
   token: '',
 }
 
-const monsterStorageKey = 'shownMonsterPushPrompt'
+const initialStore: Store = isMobile ? mobileInitialStore : desktopInitialStore
+
 export const usePushState = Z.createZustand<State>('push', (set, get) => {
+  if (!isMobile) {
+    const dispatch: State['dispatch'] = {
+      checkPermissions: async () => {
+        return Promise.resolve(false)
+      },
+      clearPendingPushNotification: () => {},
+      deleteToken: () => {},
+      handlePush: () => {},
+      initialPermissionsCheck: () => {},
+      rejectPermissions: () => {},
+      requestPermissions: () => {},
+      resetState: Z.defaultReset,
+      setPendingPushNotification: () => {},
+      setPushToken: () => {},
+      showPermissionsPrompt: () => {},
+    }
+    return {
+      ...initialStore,
+      dispatch,
+    }
+  }
+
+  const {
+    checkPushPermissions,
+    getRegistrationToken,
+    iosGetHasShownPushPrompt,
+    requestPushPermissions,
+    removeAllPendingNotificationRequests,
+  } = require('react-native-kb') as {
+    checkPushPermissions: () => Promise<boolean>
+    getRegistrationToken: () => Promise<string>
+    iosGetHasShownPushPrompt: () => Promise<boolean>
+    requestPushPermissions: () => Promise<void>
+    removeAllPendingNotificationRequests: () => void
+  }
+
+  const monsterStorageKey = 'shownMonsterPushPrompt'
+
   const neverShowMonsterAgain = async () => {
     await T.RPCGen.configGuiSetValueRpcPromise({
       path: `ui.${monsterStorageKey}`,
@@ -65,7 +108,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
     if (notification.type !== 'chat.newmessage') {
       return
     }
-    // We only care if the user clicked while in session
     if (!notification.userInteraction) {
       logger.warn('[Push] handleLoudMessage: ignore non userInteraction')
       return
@@ -96,7 +138,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
   }
 
   const dispatch: State['dispatch'] = {
-    // Call when we foreground and on app start, action is undefined on app start. Returns if you have permissions
     checkPermissions: async () => {
       const permissions = await checkPermissionsFromNative()
       if (permissions.alert || permissions.badge) {
@@ -202,7 +243,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
               await handleLoudMessage(notification)
               break
             case 'follow':
-              // We only care if the user clicked while in session
               if (notification.userInteraction) {
                 const {username} = notification
                 emitDeepLink(`keybase://profile/show/${username}`)
@@ -216,9 +256,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
               }
               break
             case 'autoreset':
-              // The ResetModal is always mounted and self-shows when autoreset.active
-              // is true (driven by Gregor/badge state sync). The account switch above
-              // is sufficient; no explicit navigation needed.
               break
             case 'chat.extension':
               {
@@ -245,7 +282,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       const f = async () => {
         const hasPermissions = await get().dispatch.checkPermissions()
         if (hasPermissions) {
-          // Get the token
           await requestPermissionsFromNative()
           fetchIOSTokenIfNeeded()
         } else {
@@ -282,7 +318,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
         if (isIOS) {
           const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
           if (shownPushPrompt) {
-            // we've already shown the prompt, take them to settings
             openAppSettings()
             get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
             return
@@ -364,10 +399,6 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
         s.justSignedUp = !!p.justSignedUp
       })
       const monsterPrompt = async () => {
-        // Monster push prompt
-        // We've just started up, we don't have the permissions, we're logged in and we
-        // haven't just signed up. This handles the scenario where the push notifications
-        // permissions checker finishes after the routeToInitialScreen is done.
         if (
           p.show &&
           useConfigState.getState().loggedIn &&

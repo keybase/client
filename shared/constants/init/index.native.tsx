@@ -28,7 +28,7 @@ import {
 import {initPushListener, getStartupDetailsFromInitialPush} from './push-listener.native'
 import {initSharedSubscriptions, _onEngineIncoming} from './shared'
 import {noConversationIDKey} from '../types/chat/common'
-import {requestLocationPermission} from '@/util/platform-specific/index.native'
+import {requestLocationPermission} from '@/util/platform-specific'
 import * as ScreenCapture from 'expo-screen-capture'
 import {getSecureFlagSetting} from '@/constants/platform.native'
 import {persistRoute} from '@/util/storeless-actions'

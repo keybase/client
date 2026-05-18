@@ -1,21 +1,16 @@
-import * as Contacts from 'expo-contacts'
-import {ignorePromise} from '@/constants/utils'
-import {importContactsWaitingKey} from '@/constants/strings'
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
-import {addNotificationRequest} from 'react-native-kb'
 import logger from '@/logger'
-import type {Store, State} from './settings-contacts.shared'
+import {ignorePromise} from '@/constants/utils'
+import {importContactsWaitingKey} from '@/constants/strings'
 import {RPCError} from '@/util/errors'
-import * as Localization from 'expo-localization'
 import {getE164} from '@/util/phone-numbers'
 import {pluralize} from '@/util/string'
 import {navigateAppend} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useWaitingState} from '@/stores/waiting'
-
-const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
+import type {Store, State} from './settings-contacts.shared'
 
 const initialStore: Store = {
   alreadyOnKeybase: [],
@@ -27,53 +22,99 @@ const initialStore: Store = {
   waitingToShowJoinedModal: false,
 }
 
-const nativeContactsToContacts = (contacts: Contacts.ContactResponse, countryCode: string) => {
-  return contacts.data.reduce<Array<T.RPCGen.Contact>>((ret, contact) => {
-    const {name, phoneNumbers = [], emails = []} = contact
-
-    const components = phoneNumbers.reduce<T.RPCGen.ContactComponent[]>((res, pn) => {
-      const formatted = getE164(pn.number || '', pn.countryCode || countryCode)
-      if (formatted) {
-        res.push({
-          label: pn.label,
-          phoneNumber: formatted,
-        })
-      }
-      return res
-    }, [])
-    components.push(...emails.map(e => ({email: e.email, label: e.label})))
-    if (components.length) {
-      ret.push({components, name})
-    }
-
-    return ret
-  }, [])
-}
-
-// When the notif is tapped we are only passed the message, use this as a marker
-// so we can handle it correctly.
-const contactNotifMarker = 'Your contact'
-const makeContactsResolvedMessage = (cts: T.Immutable<Array<T.RPCGen.ProcessedContact>>) => {
-  if (cts.length === 0) {
-    return ''
-  }
-  switch (cts.length) {
-    case 1:
-      return `${contactNotifMarker} ${cts[0]?.contactName ?? ''} joined Keybase!`
-    case 2:
-      return `${contactNotifMarker}s ${cts[0]?.contactName ?? ''} and ${
-        cts[1]?.contactName ?? ''
-      } joined Keybase!`
-    default: {
-      const lenMinusTwo = cts.length - 2
-      return `${contactNotifMarker}s ${cts[0]?.contactName ?? ''}, ${
-        cts[1]?.contactName ?? ''
-      }, and ${lenMinusTwo} ${pluralize('other', lenMinusTwo)} joined Keybase!`
-    }
-  }
-}
-
 export const useSettingsContactsState = Z.createZustand<State>('settings-contacts', (set, get) => {
+  if (!isMobile) {
+    const dispatch: State['dispatch'] = {
+      editContactImportEnabled: () => {},
+      importContactsLater: () => {},
+      loadContactImportEnabled: () => {},
+      loadContactPermissions: () => {},
+      manageContactsCache: () => {},
+      requestPermissions: () => {},
+      resetState: Z.defaultReset,
+    }
+    return {
+      ...initialStore,
+      dispatch,
+    }
+  }
+
+  type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
+  const Contacts = require('expo-contacts') as {
+    getPermissionsAsync: () => Promise<{status: PermissionStatus}>
+    requestPermissionsAsync: () => Promise<{status: PermissionStatus}>
+    getContactsAsync: (opts: {fields: string[]}) => Promise<{
+      data: Array<{
+        name?: string
+        phoneNumbers?: Array<{number?: string; countryCode?: string; label?: string}>
+        emails?: Array<{email?: string; label?: string}>
+      }>
+    }>
+    Fields: {Name: string; PhoneNumbers: string; Emails: string}
+    PermissionStatus: {GRANTED: PermissionStatus}
+  }
+  const Localization = require('expo-localization') as {
+    getLocales: () => Array<{regionCode?: string | null}>
+  }
+  const {addNotificationRequest} = require('react-native-kb') as {
+    addNotificationRequest: (opts: {body: string; id: string}) => Promise<void>
+  }
+
+  const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
+
+  const nativeContactsToContacts = (
+    contacts: {
+      data: Array<{
+        name?: string
+        phoneNumbers?: Array<{number?: string; countryCode?: string; label?: string}>
+        emails?: Array<{email?: string; label?: string}>
+      }>
+    },
+    countryCode: string
+  ) => {
+    return contacts.data.reduce<Array<T.RPCGen.Contact>>((ret, contact) => {
+      const {name, phoneNumbers = [], emails = []} = contact
+
+      const components = phoneNumbers.reduce<T.RPCGen.ContactComponent[]>((res, pn) => {
+        const formatted = getE164(pn.number || '', pn.countryCode || countryCode)
+        if (formatted) {
+          res.push({
+            label: pn.label ?? '',
+            phoneNumber: formatted,
+          })
+        }
+        return res
+      }, [])
+      components.push(...emails.map(e => ({email: e.email ?? '', label: e.label ?? ''})))
+      if (components.length) {
+        ret.push({components, name: name ?? ''})
+      }
+
+      return ret
+    }, [])
+  }
+
+  const contactNotifMarker = 'Your contact'
+  const makeContactsResolvedMessage = (cts: T.Immutable<Array<T.RPCGen.ProcessedContact>>) => {
+    if (cts.length === 0) {
+      return ''
+    }
+    switch (cts.length) {
+      case 1:
+        return `${contactNotifMarker} ${cts[0]?.contactName ?? ''} joined Keybase!`
+      case 2:
+        return `${contactNotifMarker}s ${cts[0]?.contactName ?? ''} and ${
+          cts[1]?.contactName ?? ''
+        } joined Keybase!`
+      default: {
+        const lenMinusTwo = cts.length - 2
+        return `${contactNotifMarker}s ${cts[0]?.contactName ?? ''}, ${
+          cts[1]?.contactName ?? ''
+        }, and ${lenMinusTwo} ${pluralize('other', lenMinusTwo)} joined Keybase!`
+      }
+    }
+  }
+
   const dispatch: State['dispatch'] = {
     editContactImportEnabled: (enable, fromSettings) => {
       if (fromSettings) {
@@ -156,7 +197,6 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
           return
         }
 
-        // get permissions if we haven't loaded them for some reason
         let {permissionStatus} = get()
         if (permissionStatus === 'unknown') {
           permissionStatus = (await Contacts.getPermissionsAsync()).status
@@ -174,7 +214,6 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
           return
         }
 
-        // feature enabled and permission granted
         let mapped: T.RPCChat.Keybase1.Contact[]
         let defaultCountryCode = ''
         try {
@@ -182,10 +221,8 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
             fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
           })
 
-          defaultCountryCode = Localization.getLocales()[0].regionCode?.toLowerCase() ?? ''
+          defaultCountryCode = Localization.getLocales()[0]?.regionCode?.toLowerCase() ?? ''
           if (__DEV__ && !defaultCountryCode) {
-            // behavior of parsing can be unexpectedly different with no country code.
-            // iOS sim + android emu don't supply country codes, so use this one.
             defaultCountryCode = 'us'
           }
           mapped = nativeContactsToContacts(_contacts, defaultCountryCode)
@@ -241,7 +278,7 @@ export const useSettingsContactsState = Z.createZustand<State>('settings-contact
       const f = async () => {
         const {decrement, increment} = useWaitingState.getState().dispatch
         increment(importContactsWaitingKey)
-        const status = (await Contacts.requestPermissionsAsync()).status
+        const {status} = await Contacts.requestPermissionsAsync()
 
         if (status === Contacts.PermissionStatus.GRANTED && thenToggleImportOn) {
           get().dispatch.editContactImportEnabled(true, fromSettings)
