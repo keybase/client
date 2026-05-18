@@ -1,13 +1,14 @@
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import SystemJoined from './container'
+import type SystemJoinedType from './container'
 
-function WrapperSystemJoined(p: Props) {
+function SystemJoined(p: Props) {
   const {ordinal, isCenteredHighlight} = p
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
   if (message.type !== 'systemJoined') return null
 
+  const {default: SystemJoined} = require('./container') as {default: typeof SystemJoinedType}
   return (
     <WrapperMessage {...p} {...wrapper}>
       <SystemJoined message={message} />
@@ -15,4 +16,4 @@ function WrapperSystemJoined(p: Props) {
   )
 }
 
-export default WrapperSystemJoined
+export default SystemJoined

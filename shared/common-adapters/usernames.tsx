@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import Text from './text'
 import {backgroundModeIsNegative} from './text.shared'
 import type {TextType, Background, StylesTextCrossPlatform, AllowedColors, LineClampType, TextTypeBold} from './text.shared'
-import {e164ToDisplay} from '@/util/phone-numbers'
+import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import {useUsersState} from '@/stores/users'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -304,6 +304,7 @@ export const assertionToDisplay = (assertion: string): string => {
     }
     // phone number
     try {
+      const {e164ToDisplay} = require('@/util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
       return e164ToDisplay('+' + noSuffix)
     } catch {
       return '+' + noSuffix

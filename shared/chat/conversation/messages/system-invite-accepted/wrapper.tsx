@@ -1,5 +1,5 @@
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import SystemInviteAccepted from './container'
+import type SystemInviteAcceptedType from './container'
 
 function WrapperSystemInvite(p: Props) {
   const {ordinal, isCenteredHighlight} = p
@@ -8,6 +8,7 @@ function WrapperSystemInvite(p: Props) {
 
   if (message.type !== 'systemInviteAccepted') return null
 
+  const {default: SystemInviteAccepted} = require('./container') as {default: typeof SystemInviteAcceptedType}
   return (
     <WrapperMessage {...p} {...wrapper}>
       <SystemInviteAccepted key="systemInviteAccepted" message={message} />

@@ -5,7 +5,7 @@ import * as Styles from '@/styles'
 import Text from './text'
 import type {TextType} from './text.shared'
 import DelayedMounting from './delayed-mounting'
-import TeamInfo from '../profile/user/teams/teaminfo'
+import type TeamInfoType from '../profile/user/teams/teaminfo'
 import * as T from '@/constants/types'
 import type {MeasureRef} from './measure-ref'
 import {useLoadedTeam} from '@/teams/team/use-loaded-team'
@@ -46,6 +46,8 @@ const TeamWithPopup = (props: Props) => {
     props.onPopupVisibleChange?.(true)
     setShowPopup(true)
   }
+
+  const {default: TeamInfo} = require('../profile/user/teams/teaminfo') as {default: typeof TeamInfoType}
 
   const popup = showPopup && (
     <>

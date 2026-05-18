@@ -1,5 +1,5 @@
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import SetDescriptionComponent from './container'
+import type SetDescriptionType from './container'
 
 function WrapperSetDescription(p: Props) {
   const {ordinal, isCenteredHighlight} = p
@@ -8,6 +8,7 @@ function WrapperSetDescription(p: Props) {
 
   if (message.type !== 'setDescription') return null
 
+  const {default: SetDescriptionComponent} = require('./container') as {default: typeof SetDescriptionType}
   return (
     <WrapperMessage {...p} {...wrapper}>
       <SetDescriptionComponent message={message} />

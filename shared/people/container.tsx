@@ -14,7 +14,7 @@ import * as T from '@/constants/types'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
-import {e164ToDisplay} from '@/util/phone-numbers'
+import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 import {navToProfile} from '@/constants/router'
 import {clearSignupEmail, useSignupEmail} from './signup-email'
 
@@ -126,6 +126,7 @@ const descriptionForTodoItem = (todo: T.RPCGen.HomeScreenTodo) => {
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
     case t.verifyAllPhoneNumber: {
       const p = todo.verifyAllPhoneNumber
+      const {e164ToDisplay} = require('@/util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
       return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
     }
     default: {

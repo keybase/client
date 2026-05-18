@@ -1,6 +1,6 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
 import {useDarkModeState} from '@/stores/darkmode'
-import {DynamicColorIOS} from 'react-native'
+import type {DynamicColorIOS as DynamicColorIOSType} from 'react-native'
 import type {Opaque} from '@/constants/types/ts'
 
 // Define all colors with their light/dark variants in one place
@@ -189,6 +189,9 @@ type Names = keyof Color
 const names = Object.keys(colors) as Array<Names>
 let iosDynamicColors: Color
 if (isIOS) {
+  const {DynamicColorIOS} = require('react-native') as {
+    DynamicColorIOS: typeof DynamicColorIOSType
+  }
   iosDynamicColors = names.reduce<{[key: string]: unknown}>((obj, name) => {
     obj[name] =
       DynamicColorIOS({dark: darkColors[name], light: colors[name]})

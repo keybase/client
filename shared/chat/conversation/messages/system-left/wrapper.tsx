@@ -1,13 +1,14 @@
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import SystemLeft from './container'
+import type SystemLeftType from './container'
 
-function WrapperSystemLeft(p: Props) {
+function SystemLeft(p: Props) {
   const {ordinal, isCenteredHighlight} = p
   const wrapper = useWrapperMessageWithMessage(ordinal, isCenteredHighlight)
   const {message} = wrapper.messageData
 
   if (message.type !== 'systemLeft') return null
 
+  const {default: SystemLeft} = require('./container') as {default: typeof SystemLeftType}
   return (
     <WrapperMessage {...p} {...wrapper}>
       <SystemLeft />
@@ -15,4 +16,4 @@ function WrapperSystemLeft(p: Props) {
   )
 }
 
-export default WrapperSystemLeft
+export default SystemLeft

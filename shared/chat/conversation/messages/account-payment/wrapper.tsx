@@ -1,5 +1,5 @@
 import {WrapperMessage, useWrapperMessageWithMessage, type Props} from '../wrapper/wrapper'
-import PaymentMessage from './container'
+import type PaymentMessageType from './container'
 
 function WrapperPayment(p: Props) {
   const {ordinal, isCenteredHighlight} = p
@@ -8,6 +8,7 @@ function WrapperPayment(p: Props) {
 
   if (message.type !== 'requestPayment' && message.type !== 'sendPayment') return null
 
+  const {default: PaymentMessage} = require('./container') as {default: typeof PaymentMessageType}
   return (
     <WrapperMessage {...p} {...wrapper}>
       <PaymentMessage message={message} />

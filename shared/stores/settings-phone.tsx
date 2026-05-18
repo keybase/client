@@ -2,7 +2,7 @@ import type * as T from '@/constants/types'
 import * as RPCGen from '@/constants/rpc/rpc-gen'
 import * as Z from '@/util/zustand'
 import type {RPCError} from '@/util/errors'
-import {e164ToDisplay} from '@/util/phone-numbers'
+import type {e164ToDisplay as e164ToDisplayType} from '@/util/phone-numbers'
 
 export const makePhoneRow = (): PhoneRow => ({
   displayNumber: '',
@@ -13,6 +13,7 @@ export const makePhoneRow = (): PhoneRow => ({
 })
 
 const toPhoneRow = (p: T.RPCGen.UserPhoneNumber) => {
+  const {e164ToDisplay} = require('@/util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
   return {
     ...makePhoneRow(),
     displayNumber: e164ToDisplay(p.phoneNumber),

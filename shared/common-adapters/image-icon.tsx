@@ -2,8 +2,8 @@ import type * as Styles from '@/styles'
 import {iconMeta} from './icon.constants-gen'
 import type {IconType} from './icon.constants-gen'
 import {typeExtension, getImagesDir} from './icon.shared'
-import {Image as RNImage, useColorScheme} from 'react-native'
-import {getAssetPath} from '@/constants/platform'
+import type {Image as RNImageType} from 'react-native'
+import type {getAssetPath as getAssetPathType} from '@/constants/platform'
 
 export type ImageIconProps = {
   type: IconType
@@ -13,6 +13,7 @@ export type ImageIconProps = {
 }
 
 const ImageIconDesktop = (props: ImageIconProps) => {
+  const {getAssetPath} = require('@/constants/platform') as {getAssetPath: typeof getAssetPathType}
   const {type, style, className, allowLazy = true} = props
   const hasDarkVariant = !!iconMeta[type].nameDark
   const ext = typeExtension(type)
@@ -57,6 +58,10 @@ const ImageIconDesktop = (props: ImageIconProps) => {
 }
 
 const ImageIconNative = (props: ImageIconProps) => {
+  const {Image: RNImage, useColorScheme} = require('react-native') as {
+    Image: typeof RNImageType
+    useColorScheme: () => 'light' | 'dark' | null | undefined
+  }
   const {type, style} = props
   const isDarkMode = useColorScheme() === 'dark'
 

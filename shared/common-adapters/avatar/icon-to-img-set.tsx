@@ -1,6 +1,6 @@
 import {iconMeta} from '../icon.constants-gen'
 import type {IconType} from '../icon.constants-gen'
-import {getAssetPath} from '@/constants/platform'
+import type {getAssetPath as getAssetPathType} from '@/constants/platform'
 
 type MultMap = {
   [1]?: number
@@ -49,6 +49,7 @@ function getMultsMap(imgMap: {[size: string]: unknown}, targetSize: number): Mul
 }
 
 function iconTypeToImgSetDesktop(imgMap: {[key: string]: IconType}, targetSize: number) {
+  const {getAssetPath} = require('@/constants/platform') as {getAssetPath: typeof getAssetPathType}
   const multsMap = getMultsMap(imgMap, targetSize)
   const keys = Object.keys(multsMap) as unknown as Array<keyof typeof multsMap>
   const sets = keys
