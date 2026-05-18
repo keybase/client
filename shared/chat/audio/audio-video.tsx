@@ -1,14 +1,9 @@
 import * as React from 'react'
-import type * as ExpoAudioModule from 'expo-audio'
-import type * as ExpoModule from 'expo'
+import {useAudioPlayer} from 'expo-audio'
+import {useEventListener} from 'expo'
 import type {Props} from './audio-video.shared'
 
 const MobileAudioVideo = (props: Props) => {
-   
-  const {useAudioPlayer} = require('expo-audio') as typeof ExpoAudioModule
-
-  const {useEventListener} = require('expo') as typeof ExpoModule
-
   const {url, paused, onPositionUpdated, onEnded} = props
   const player = useAudioPlayer(url)
 

@@ -13,6 +13,13 @@ import {useConversationThreadID, useConversationThreadSelector, useConversationT
 import {useThreadSearchRoute} from '../thread-search-route'
 import {indefiniteArticle} from '@/util/string'
 import {makePasteAttachment} from '../attachment-actions'
+import {readImageFromClipboard} from '@/util/clipboard.desktop'
+import ThreadSearch from '../search'
+import '../conversation.css'
+import {PortalHost} from '@/common-adapters/portal.native'
+import {useSafeAreaInsets, useSafeAreaFrame} from 'react-native-safe-area-context'
+import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
+import logger from '@/logger'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -30,11 +37,6 @@ const LoadingLine = () => {
 }
 
 const DesktopConversation = function DesktopConversation() {
-  const {readImageFromClipboard} = require('@/util/clipboard.desktop') as {readImageFromClipboard: (e: React.SyntheticEvent) => Promise<Uint8Array | undefined>}
-  const ThreadSearch = (require('../search') as {default: React.ComponentType<{style: object}>}).default
-
-  require('../conversation.css')
-
   const conversationIDKey = useConversationThreadID()
   const navigateAppend = C.Router2.navigateAppend
   const onAttach = (paths: Array<string>) => {
@@ -103,13 +105,6 @@ const DesktopConversationWithProfiler = () => (
 )
 
 const NativeConversation = function NativeConversation() {
-  const {PortalHost} = require('@/common-adapters/portal.native') as {PortalHost: React.ComponentType<{name: string}>}
-  const {useSafeAreaInsets, useSafeAreaFrame} = require('react-native-safe-area-context') as {
-    useSafeAreaInsets: () => {top: number; bottom: number}
-    useSafeAreaFrame: () => {height: number}
-  }
-  const {MaxInputAreaContext} = require('../input-area/normal/max-input-area-context') as {MaxInputAreaContext: React.Context<number>}
-  const logger = require('@/logger').default as {info: (s: string) => void}
   type LayoutEvent = {nativeEvent: {layout: {height: number}}}
 
   const [maxInputArea, setMaxInputArea] = React.useState(0)

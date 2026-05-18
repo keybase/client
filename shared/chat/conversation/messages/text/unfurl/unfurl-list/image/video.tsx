@@ -1,6 +1,8 @@
 import * as Kb from '@/common-adapters/index'
 import * as React from 'react'
 import type {Props} from './video.shared'
+import logger from '@/logger'
+import {useVideoPlayer, VideoView} from 'expo-video'
 
 // Stub type to avoid dom lib dependency in native tsconfig
 type VideoElementRef = {
@@ -59,21 +61,6 @@ const DesktopVideo = (p: Props) => {
 }
 
 const NativeVideo = (props: Props) => {
-  const logger = require('@/logger').default as {error: (s: string) => void}
-  const {useVideoPlayer, VideoView} = require('expo-video') as {
-    useVideoPlayer: (uri: string, cb: (p: {loop: boolean; muted: boolean; play: () => void}) => void) => {
-      play: () => void
-      pause: () => void
-      addListener: (event: string, cb: (data: {status: string; error?: unknown}) => void) => {remove: () => void}
-    }
-    VideoView: React.ComponentType<{
-      player: ReturnType<typeof useVideoPlayer>
-      nativeControls: boolean
-      contentFit: string
-      style: object
-    }>
-  }
-
   const {autoPlay, onClick, url, style, width, height} = props
   const [playing, setPlaying] = React.useState(autoPlay)
   const [lastAutoPlay, setLastAutoPlay] = React.useState(autoPlay)
@@ -111,7 +98,7 @@ const NativeVideo = (props: Props) => {
       }
     })
     return () => sub.remove()
-  }, [player, logger])
+  }, [player])
 
   const _onClick = () => {
     if (onClick) {

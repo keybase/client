@@ -1,6 +1,12 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useHooks} from './hooks'
+import {getMargins, scaledWidth} from './width'
+import UnfurlImage from '../messages/text/unfurl/unfurl-list/image'
+import {colors, darkColors} from '@/styles/colors'
+import {WebView} from 'react-native-webview'
+import {useColorScheme} from 'react-native'
+import noop from 'lodash/noop'
 
 // Stub type to avoid dom lib dependency in native tsconfig
 type DivRef = {
@@ -9,19 +15,6 @@ type DivRef = {
 }
 
 const DesktopGiphySearch = () => {
-  const {getMargins, scaledWidth} = require('./width') as {
-    getMargins: (w: number, widths: Array<number>) => Array<number>
-    scaledWidth: (w: number) => number
-  }
-  const UnfurlImage = (require('../messages/text/unfurl/unfurl-list/image') as {default: React.ComponentType<{
-    autoplayVideo: boolean
-    height: number
-    isVideo: boolean
-    onClick: () => void
-    style: object
-    url: string
-    width: number
-  }>}).default
   const gridHeight = 100
   const props = useHooks()
   const [width, setWidth] = React.useState<number | undefined>(undefined)
@@ -107,21 +100,6 @@ const DesktopGiphySearch = () => {
 }
 
 const NativeGiphySearch = () => {
-  const {colors, darkColors} = require('@/styles/colors') as {
-    colors: Record<string, string>
-    darkColors: Record<string, string>
-  }
-  const {WebView} = require('react-native-webview') as {WebView: React.ComponentType<{
-    onMessage: () => void
-    injectedJavaScript: string
-    allowsInlineMediaPlayback: boolean
-    source: {uri: string}
-    automaticallyAdjustContentInsets: boolean
-    mediaPlaybackRequiresUserAction: boolean
-  }>}
-  const {useColorScheme} = require('react-native') as {useColorScheme: () => string | null}
-  const noop = require('lodash/noop') as () => void
-
   const p = useHooks()
   const source = {uri: p.galleryURL}
   const darkMode = useColorScheme() === 'dark'

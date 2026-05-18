@@ -2,6 +2,9 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from './videoimpl.shared'
 import {getAttachmentPreviewSize, ShowToastAfterSaving, maxHeight, maxWidth} from '../shared'
+import {useVideoPlayer, VideoView} from 'expo-video'
+import {useEventListener} from 'expo'
+import {Pressable} from 'react-native'
 
 // Stub type to avoid dom lib dependency in native tsconfig
 type VideoElementRef = {
@@ -61,26 +64,6 @@ const DesktopVideoImpl = (p: Props) => {
 }
 
 const NativeVideoImpl = (p: Props) => {
-  const {useVideoPlayer, VideoView} = require('expo-video') as {
-    useVideoPlayer: (uri: string, cb: (pl: {loop: boolean}) => void) => {
-      play: () => void
-      replay: () => void
-    }
-    VideoView: React.ComponentType<{
-      player: ReturnType<typeof useVideoPlayer>
-      nativeControls: boolean
-      contentFit: string
-      style: object
-    }>
-  }
-  const {useEventListener} = require('expo') as {useEventListener: (player: unknown, event: string, cb: () => void) => void}
-  const {Pressable} = require('react-native') as {Pressable: React.ComponentType<{
-    onPress: () => void
-    style: object
-    onLongPress?: () => void
-    children?: React.ReactNode
-  }>}
-
   const {allowPlay, message, showPopup} = p
   const {fileURL: url, transferState, videoDuration} = message
   const {previewURL, height, width} = getAttachmentPreviewSize(message)
