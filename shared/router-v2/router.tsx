@@ -26,7 +26,10 @@ import * as Constants from '@/constants/router'
 import {useNotifState} from '@/stores/notifications'
 import {usePushState} from '@/stores/push'
 import {colors} from '@/styles/colors'
-import type {createBottomTabNavigator as CreateBottomTabNavigator} from '@react-navigation/bottom-tabs'
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
+import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
+import {StatusBar, View, useColorScheme} from 'react-native'
+const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
 
 // ─── Desktop ──────────────────────────────────────────────────────────────────
 
@@ -282,12 +285,6 @@ if (isMobile) {
   }
 }
 
-let isLiquidGlassSupported = false
-if (isMobile) {
-  const mod = require('@callstack/liquid-glass') as {isLiquidGlassSupported: boolean}
-  isLiquidGlassSupported = mod.isLiquidGlassSupported as boolean
-}
-
 const tabToLabel = new Map<string, string>([
   [Tabs.chatTab, 'Chat'],
   [Tabs.fsTab, 'Files'],
@@ -446,10 +443,7 @@ const appTabsScreenOptions = (
 }
 
 function AppTabsNative() {
-  const {createBottomTabNavigator} = require('@react-navigation/bottom-tabs') as {
-    createBottomTabNavigator: typeof CreateBottomTabNavigator
-  }
-  const Tab = React.useMemo(() => createBottomTabNavigator(), [createBottomTabNavigator])
+  const Tab = React.useMemo(() => createBottomTabNavigator(), [])
   const navBadges = useNotifState(s => s.navBadges)
   const hasPermissions = usePushState(s => s.hasPermissions)
   const isDarkMode = useDarkModeState(s => s.isDarkMode())
@@ -552,12 +546,6 @@ if (isMobile) {
 const nativeLinkingConfig = isMobile ? createLinkingConfig(handleAppLink) : undefined
 
 function NativeRouter() {
-  const {StatusBar, View, useColorScheme} = require('react-native') as {
-    StatusBar: React.ComponentType<{barStyle?: string}>
-    View: React.ComponentType<{style?: object}>
-    useColorScheme: () => 'light' | 'dark' | null | undefined
-  }
-
   const everLoadedRef = React.useRef(false)
   const loggedInLoaded = useDaemonState(s => {
     const loaded = everLoadedRef.current || s.handshakeState === 'done'

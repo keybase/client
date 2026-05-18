@@ -25,4 +25,7 @@ module.exports = [
   'expo-localization',
   'expo-media-library',
   'expo-file-system',
+  '@callstack/liquid-glass',
+  'react-native-screens/experimental',
+  '@react-navigation/bottom-tabs',
 ]

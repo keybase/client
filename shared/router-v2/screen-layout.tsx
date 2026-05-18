@@ -5,6 +5,7 @@ import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-con
 import type {GetOptions, GetOptionsParams, GetOptionsRet} from '@/constants/types/router'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
 import type {ParamListBase} from '@react-navigation/native'
+import {SafeAreaView as RNScreensSafeAreaView} from 'react-native-screens/experimental'
 
 type ModalWrapperProps = {
   children: React.ReactNode
@@ -22,9 +23,6 @@ type LayoutProps = {
 
 const TabScreenWrapper = ({children}: {children: React.ReactNode}) => {
   if (isAndroid) {
-    const {SafeAreaView: RNScreensSafeAreaView} = require('react-native-screens/experimental') as {
-      SafeAreaView: React.ComponentType<{edges: {bottom: boolean}; style: object; children?: React.ReactNode}>
-    }
     return (
       <RNScreensSafeAreaView edges={{bottom: true}} style={styles.tabScreen}>
         {children}

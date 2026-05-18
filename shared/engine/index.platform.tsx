@@ -2,10 +2,11 @@ import logger from '@/logger'
 import {TransportShared, LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
 import type {CreateClientType, IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform.shared'
 import type {RPCMessage} from './rpc-transport'
-import type {KB2} from '@/util/electron'
+import KB2 from '@/util/electron'
 import type {Socket} from 'net'
-
-const getKB2 = () => (require('@/util/electron') as {default: KB2}).default
+import {printRPCBytes} from '@/local-debug'
+import {socketPath} from '@/constants/platform'
+import {getNativeEmitter, notifyJSReady, engineReset} from 'react-native-kb'
 
 // Desktop transport — only instantiated when !isMobile
 class NativeTransport extends TransportShared {
@@ -30,7 +31,6 @@ class NativeTransport extends TransportShared {
     if (!this._socket) {
       throw new Error('write attempt with no active stream')
     }
-    const {printRPCBytes} = require('@/local-debug') as {printRPCBytes: boolean}
     const framed = this.encodeMessage(message)
     if (printRPCBytes) {
       logger.debug('[RPC] Writing', framed.length)
@@ -48,8 +48,7 @@ class NativeTransport extends TransportShared {
   }
 
   override packetizeData(m: Uint8Array) {
-    const {printRPCBytes} = require('@/local-debug') as {printRPCBytes: boolean}
-    const {mainWindowDispatchEngineIncoming} = getKB2().functions
+    const {mainWindowDispatchEngineIncoming} = KB2.functions
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length)
     }
@@ -74,7 +73,6 @@ class NativeTransport extends TransportShared {
     }
     this._connecting = true
 
-    const {socketPath} = require('@/constants/platform') as {socketPath: string}
     const socket = require('net').connect({path: socketPath}) as Socket
     let settled = false
 
@@ -136,7 +134,7 @@ class NativeTransport extends TransportShared {
 
 class ProxyNativeTransport extends LocalTransport {
   protected writeMessage(message: RPCMessage) {
-    const {engineSend} = getKB2().functions
+    const {engineSend} = KB2.functions
     engineSend?.(message)
   }
 }
@@ -161,11 +159,6 @@ function createClient(
   disconnectCallback: ConnectDisconnectCB
 ) {
   if (isMobile) {
-    const {getNativeEmitter, notifyJSReady} = require('react-native-kb') as {
-      getNativeEmitter: () => {addListener: (event: string, cb: (payload: string) => void) => void}
-      notifyJSReady: () => void
-    }
-
     const client = sharedCreateClient(
       new NativeTransportMobile(incomingRPCCallback, connectCallback, disconnectCallback)
     )
@@ -203,8 +196,8 @@ function createClient(
     return client
   }
 
-  const {ipcRendererOn} = getKB2().functions
-  const {isRenderer} = getKB2().constants
+  const {ipcRendererOn} = KB2.functions
+  const {isRenderer} = KB2.constants
 
   if (!isRenderer) {
     return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
@@ -233,12 +226,11 @@ function resetClient(
   disconnectCallback: ConnectDisconnectCB
 ) {
   if (isMobile) {
-    const {engineReset} = require('react-native-kb') as {engineReset: () => void}
     engineReset()
     return client
   }
 
-  const {isRenderer} = getKB2().constants
+  const {isRenderer} = KB2.constants
 
   if (isRenderer) {
     client.transport.reset()
