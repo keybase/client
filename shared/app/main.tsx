@@ -6,7 +6,8 @@ import {FsStatusProvider} from '@/fs/common/status'
 import {SystemFileManagerIntegrationProvider} from '@/fs/common/sfmi'
 
 const DesktopMain = function DesktopMain() {
-  const RemoteProxies = (require('../desktop/remote/proxies.desktop') as typeof import('../desktop/remote/proxies.desktop')).default
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
+  const RemoteProxies = (require('../desktop/remote/proxies.desktop') as any).default as React.ComponentType
   return (
     <FsStatusProvider>
       <SystemFileManagerIntegrationProvider>

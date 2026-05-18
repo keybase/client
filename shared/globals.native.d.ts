@@ -23,55 +23,59 @@ interface DataTransfer {
   readonly types: ReadonlyArray<string>
 }
 
-declare function requestAnimationFrame(callback: () => void): number
-
-// Minimal DOM element stubs for desktop-only branches of merged files
-interface Element {
-  tagName?: string
-}
+// Stubs for DOM observer/element types used in merged platform files.
+// Desktop build excludes this file so declare class is safe (no conflict with lib.dom).
+interface Element {}
 interface HTMLElement extends Element {}
 
-// Minimal stubs for browser observer APIs used in desktop-only branches of merged files
-interface IntersectionObserverEntry {
-  readonly boundingClientRect: DOMRectReadOnly | null
-  readonly intersectionRatio: number
-  readonly intersectionRect: DOMRectReadOnly | null
-  readonly isIntersecting: boolean
-  readonly rootBounds: DOMRectReadOnly | null
-  readonly target: Element
-  readonly time: number
+interface DOMRectReadOnly {
+  readonly width: number
+  readonly height: number
+  readonly top: number
+  readonly left: number
+  readonly bottom: number
+  readonly right: number
+  readonly x: number
+  readonly y: number
 }
-type IntersectionObserverCallback = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => void
+
+interface ResizeObserverEntry {
+  readonly target: Element
+  readonly contentRect: DOMRectReadOnly
+}
+declare class ResizeObserver {
+  constructor(callback: (entries: ResizeObserverEntry[], observer: ResizeObserver) => void)
+  disconnect(): void
+  observe(target: Element): void
+  unobserve(target: Element): void
+}
+
+type IntersectionObserverCallback = (
+  entries: IntersectionObserverEntry[],
+  observer: IntersectionObserver
+) => void
 interface IntersectionObserverInit {
-  root?: Element | null
+  root?: Element | Document | null
   rootMargin?: string
   threshold?: number | number[]
 }
+interface IntersectionObserverEntry {
+  readonly isIntersecting: boolean
+  readonly target: Element
+  readonly time: number
+  readonly intersectionRatio: number
+  readonly rootBounds: DOMRectReadOnly | null
+  readonly boundingClientRect: DOMRectReadOnly
+  readonly intersectionRect: DOMRectReadOnly
+}
 declare class IntersectionObserver {
+  readonly POLL_INTERVAL: number | null | undefined
+  readonly USE_MUTATION_OBSERVER: boolean | undefined
   constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit)
   observe(target: Element): void
   unobserve(target: Element): void
   disconnect(): void
-  POLL_INTERVAL?: number | null
-  USE_MUTATION_OBSERVER?: boolean
 }
-interface ResizeObserverEntry {
-  readonly contentRect: DOMRectReadOnly
-  readonly target: Element
-}
-declare class ResizeObserver {
-  constructor(callback: (entries: ResizeObserverEntry[], observer: ResizeObserver) => void)
-  observe(target: Element): void
-  unobserve(target: Element): void
-  disconnect(): void
-}
-interface DOMRectReadOnly {
-  readonly x: number
-  readonly y: number
-  readonly width: number
-  readonly height: number
-  readonly top: number
-  readonly right: number
-  readonly bottom: number
-  readonly left: number
-}
+
+declare function requestAnimationFrame(callback: FrameRequestCallback): number
+type FrameRequestCallback = (time: number) => void

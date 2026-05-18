@@ -18,8 +18,10 @@ export function useClickURL(url: string | undefined) {
       },
     } as const
   }
-  const KB2 = require('@/util/electron.desktop') as typeof import('@/util/electron.desktop')
-  const {showContextMenu} = KB2.default.functions
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
+  const {showContextMenu} = (require('@/util/electron.desktop') as any).default.functions as {
+    showContextMenu?: (url: string) => void
+  }
   return {
     onClick: (e: React.BaseSyntheticEvent) => {
       e.stopPropagation()
