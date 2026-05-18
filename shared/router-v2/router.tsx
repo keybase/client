@@ -552,11 +552,11 @@ if (isMobile) {
 const nativeLinkingConfig = isMobile ? createLinkingConfig(handleAppLink) : undefined
 
 function NativeRouter() {
-  const {StatusBar, View} = require('react-native') as {
+  const {StatusBar, View, useColorScheme} = require('react-native') as {
     StatusBar: React.ComponentType<{barStyle?: string}>
     View: React.ComponentType<{style?: object}>
+    useColorScheme: () => 'light' | 'dark' | null | undefined
   }
-  const {useRootKey} = require('./hooks.native') as {useRootKey: () => string}
 
   const everLoadedRef = React.useRef(false)
   const loggedInLoaded = useDaemonState(s => {
@@ -601,7 +601,20 @@ function NativeRouter() {
     })
   )
   const bar = barStyle === 'default' ? null : <StatusBar barStyle={barStyle} />
-  const rootKey = useRootKey()
+  // Inline useRootKey (from hooks.native.tsx — can't require *.native files from shared code)
+  const nativeIsDarkMode = useColorScheme() === 'dark'
+  const nativeUsername = useCurrentUserState(s => s.username)
+  const [nativeNavKey, setNativeNavKey] = React.useState('')
+  const nativePrevUsernameRef = React.useRef(nativeUsername)
+  React.useEffect(() => {
+    const prev = nativePrevUsernameRef.current
+    nativePrevUsernameRef.current = nativeUsername
+    if (prev && nativeUsername && prev !== nativeUsername) {
+      setNativeNavKey(nativeUsername)
+    }
+  }, [nativeUsername])
+  const nativeDarkSuffix = isAndroid ? (nativeIsDarkMode ? '-dark' : '-light') : ''
+  const rootKey = nativeNavKey ? `${nativeNavKey}${nativeDarkSuffix}` : ''
 
   if (!loggedInLoaded || (loggedIn && !startupLoaded)) {
     return (

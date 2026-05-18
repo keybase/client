@@ -169,7 +169,14 @@ const makeRules = ({
       }) satisfies RuleSetRule
   ),
   {
-    exclude: /\/dist\//,
+    // Native-only files must never be parsed by webpack on desktop: they use @/ imports
+    // that babel-module-resolver can't transform (babel ignores *.native.* files), so
+    // webpack would see the raw @/ alias and fail to resolve it.
+    test: /\.(native|ios|android)\.(ts|js)x?$/,
+    use: ['null-loader'],
+  },
+  {
+    exclude: [/\/dist\//, /\.(native|ios|android)\.(ts|js)x?$/],
     test: /\.(ts|js)x?$/,
     use: makeBabelLoader(isDev, isHot, nodeThread),
   },
