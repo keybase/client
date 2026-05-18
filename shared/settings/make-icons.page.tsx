@@ -13,7 +13,7 @@ type DOMDoc = {
   }
   getElementById: (id: string) => DOMElement | null
 }
-const doc = (globalThis as {document?: DOMDoc}).document
+const doc = (globalThis as unknown as {document?: DOMDoc}).document
 
 const Icon = (_p: {badge: number}) => null
 const DEVwriteMenuIcons = (() => {}) as undefined | (() => void)

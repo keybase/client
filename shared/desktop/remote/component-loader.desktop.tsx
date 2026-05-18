@@ -7,7 +7,7 @@ import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop
 import {disableDragDrop} from '@/util/drag-drop.desktop'
 import ErrorBoundary from '@/common-adapters/error-boundary'
 import {initDesktopStyles} from '@/styles/index.desktop'
-import KB2 from '@/util/electron.desktop'
+import KB2 from '@/util/electron'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
 import {type RemoteComponentName, useRemotePropsReceiver} from './remote-component.desktop'

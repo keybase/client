@@ -131,20 +131,26 @@ export type KB2 = {
   }
 }
 
+// ─── Desktop implementation ────────────────────────────────────────────────
+
 const kb2Waiters = new Array<() => void>()
 
 export const injectPreload = (kb2: KB2) => {
-  // eslint-disable-next-line
-  if (!kb2?.constants?.assetRoot) {
+  if (!kb2.constants.assetRoot) {
     throw new Error('Invalid kb2 injected')
   }
-
-  while (kb2Waiters.length) {
-    kb2Waiters.shift()?.()
+  if (!isMobile) {
+    while (kb2Waiters.length) {
+      kb2Waiters.shift()?.()
+    }
   }
 }
 
 export const waitOnKB2Loaded = (cb: () => void) => {
+  if (isMobile) {
+    cb()
+    return
+  }
   if (globalThis._fromPreload) {
     cb()
   } else {
@@ -152,12 +158,12 @@ export const waitOnKB2Loaded = (cb: () => void) => {
   }
 }
 
-const getStashed = () => {
+const getStashed = (): KB2 => {
   if (!globalThis._fromPreload) throw new Error('KB2 not injected!')
   return globalThis._fromPreload as KB2
 }
 
-const theKB2: KB2 = {
+const desktopKB2: KB2 = {
   get constants() {
     return getStashed().constants
   },
@@ -166,4 +172,20 @@ const theKB2: KB2 = {
   },
 }
 
+// Native stub — only the subset of functions available on mobile.
+// Typed as KB2 so callers don't need to narrow; they guard with isMobile at runtime.
+const nativeKB2: KB2 = {
+  functions: {
+    darwinCopyToChatTempUploadFile: undefined,
+    getPathForFile: undefined,
+    isDirectory: undefined,
+    setNativeTheme: undefined,
+    mainWindowDispatch: (_action) => {},
+  },
+  get constants(): KB2['constants'] {
+    throw new Error('KB2.constants is not available on mobile')
+  },
+}
+
+const theKB2: KB2 = isMobile ? nativeKB2 : desktopKB2
 export default theKB2

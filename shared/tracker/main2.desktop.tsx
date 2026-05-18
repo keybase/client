@@ -6,7 +6,7 @@ import Tracker from './index.desktop'
 import loadRemoteComponent from '../desktop/remote/component-loader.desktop'
 import {getRemoteComponentParam, RemoteDarkModeSync} from '../desktop/remote/remote-component.desktop'
 import type {Props as TrackerProps} from './index.desktop'
-import KB2 from '@/util/electron.desktop'
+import KB2 from '@/util/electron'
 
 const {closeWindow} = KB2.functions
 

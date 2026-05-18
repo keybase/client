@@ -562,7 +562,7 @@ const GiphyButton = function GiphyButton() {
 }
 
 const fileListToPaths = (f: HtmlFileList): Array<string> => {
-  const KB2 = require('@/util/electron.desktop') as {default: {functions: {getPathForFile?: (f: File) => string}}}
+  const KB2 = require('@/util/electron') as {default: {functions: {getPathForFile?: (f: File) => string}}}
   const {getPathForFile} = KB2.default.functions
   return Array.from(f).map(f => getPathForFile?.(f as File) ?? '')
 }

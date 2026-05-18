@@ -11,7 +11,7 @@ import './edit-avatar.css'
 // Desktop-only helpers loaded conditionally at module level (no runtime error on mobile since
 // these values are only referenced inside the desktop branch)
 const KB2 = !isMobile
-  ? (require('@/util/electron.desktop').default as {
+  ? (require('@/util/electron').default as {
       functions: {
         isDirectory?: (path: string) => Promise<boolean>
         getPathForFile?: (file: {name?: string; size?: number}) => string

@@ -3,7 +3,7 @@ import logger from '@/logger'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import {useDarkModeState} from '@/stores/darkmode'
-import KB2 from '@/util/electron.desktop'
+import KB2 from '@/util/electron'
 
 const {ipcRendererOn, showInactive} = KB2.functions
 

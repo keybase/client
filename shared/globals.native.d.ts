@@ -9,8 +9,19 @@ declare var window:
         opts?: {timeout?: number}
       ) => number
       cancelIdleCallback?: (handle: number) => void
+      addEventListener: (event: string, cb: () => void) => void
     }
   | undefined
+
+// Stub for Web Notification API used in merged util/misc.tsx (desktop-only at runtime)
+declare class Notification {
+  onclick: (() => void) | null
+  onclose: (() => void) | null
+  constructor(title: string, options?: {body?: string; silent?: boolean})
+}
+
+// Stub for navigator.onLine used in merged desktop-only init code (guarded by !isMobile)
+declare var navigator: {onLine: boolean}
 
 // Minimal File/DataTransfer stubs for shared files that use these types
 // (actual drag-and-drop only runs on desktop, but the code is in shared files)

@@ -496,8 +496,8 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
       } | null
     }
     e.preventDefault()
-    const doc = (globalThis as {document?: DocGlobal}).document
-    const win = (globalThis as {window?: WinGlobal}).window
+    const doc = (globalThis as unknown as {document?: DocGlobal}).document
+    const win = (globalThis as unknown as {window?: WinGlobal}).window
     const sel = win?.getSelection()
     if (!sel || !doc) return
     const temp = sel.getRangeAt(0).cloneContents()
@@ -534,7 +534,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
       return
     }
 
-    const sel = (globalThis as {getSelection?: () => {isCollapsed: boolean} | null}).getSelection?.()
+    const sel = (globalThis as unknown as {getSelection?: () => {isCollapsed: boolean} | null}).getSelection?.()
     if (sel?.isCollapsed) {
       focusInput()
     }

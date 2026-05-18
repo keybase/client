@@ -1,9 +1,9 @@
 import * as T from '@/constants/types'
 import {ignorePromise} from '@/constants/utils'
 import logger from '@/logger'
-import type {KB2} from '@/util/electron.desktop'
+import type {KB2} from '@/util/electron'
 
-const getKB2 = () => (require('@/util/electron.desktop') as {default: KB2}).default
+const getKB2 = () => (require('@/util/electron') as {default: KB2}).default
 
 export const copyToClipboard = (text: string) => {
   if (isMobile) {

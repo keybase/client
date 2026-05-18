@@ -2,7 +2,7 @@ import * as Shared from './shared'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import type * as CSS from './css'
 import {themed, colors, darkColors} from './colors'
-import {getAssetPath} from '@/constants/platform.desktop'
+import {getAssetPath} from '@/constants/platform'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',

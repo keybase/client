@@ -2,10 +2,10 @@ import logger from '@/logger'
 import {TransportShared, LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
 import type {CreateClientType, IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform.shared'
 import type {RPCMessage} from './rpc-transport'
-import type {KB2} from '@/util/electron.desktop'
+import type {KB2} from '@/util/electron'
 import type {Socket} from 'net'
 
-const getKB2 = () => (require('@/util/electron.desktop') as {default: KB2}).default
+const getKB2 = () => (require('@/util/electron') as {default: KB2}).default
 
 // Desktop transport — only instantiated when !isMobile
 class NativeTransport extends TransportShared {
@@ -74,7 +74,7 @@ class NativeTransport extends TransportShared {
     }
     this._connecting = true
 
-    const {socketPath} = require('@/constants/platform.desktop') as {socketPath: string}
+    const {socketPath} = require('@/constants/platform') as {socketPath: string}
     const socket = require('net').connect({path: socketPath}) as Socket
     let settled = false
 

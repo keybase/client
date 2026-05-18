@@ -55,9 +55,9 @@ const DesktopAudioVideo = (props: Props) => {
     }
   }, [paused])
 
-  const onTimeUpdate = (e: React.SyntheticEvent<{currentTime: number; duration: number}>) => {
-    const ct = e.currentTarget.currentTime
-    const dur = e.currentTarget.duration
+  const onTimeUpdate = () => {
+    const ct = vidRef.current?.currentTime ?? 0
+    const dur = vidRef.current?.duration ?? 0
     if (dur === 0) return
     onPositionUpdated(ct / dur)
   }

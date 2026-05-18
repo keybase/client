@@ -20,7 +20,7 @@ import {useUnmountAll} from '@/util/debug-react'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
 import {install} from 'react-native-kb'
 import * as DarkMode from '@/stores/darkmode'
-import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index.native'
+import {initPlatformListener, onEngineConnected, onEngineDisconnected, onEngineIncoming} from '@/constants/init/index'
 import logger from '@/logger'
 
 logger.info('INIT App index module load')

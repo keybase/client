@@ -2,7 +2,7 @@
 import './globals.desktop'
 import {isDarwin, isWindows} from '@/constants/platform'
 import '@/util/why-did-you-render'
-import KB2, {waitOnKB2Loaded} from '@/util/electron.desktop'
+import KB2, {waitOnKB2Loaded} from '@/util/electron'
 import * as DarkMode from '@/stores/darkmode'
 
 waitOnKB2Loaded(() => {

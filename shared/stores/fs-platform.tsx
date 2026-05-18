@@ -1,16 +1,16 @@
 import * as T from '@/constants/types'
 import * as Constants from '@/constants/fs'
 import logger from '@/logger'
-import type {KB2} from '@/util/electron.desktop'
+import type {KB2} from '@/util/electron'
 
-const getKB2 = () => (require('@/util/electron.desktop') as {default: KB2}).default
+const getKB2 = () => (require('@/util/electron') as {default: KB2}).default
 
 // Desktop-only exports (stubs on mobile)
 export const fuseStatusToDriverStatus = (status?: T.RPCGen.FuseStatus): T.FS.DriverStatus => {
   if (isMobile || !status) {
     return Constants.defaultDriverStatus
   }
-  const {isWindows} = require('@/constants/platform.desktop') as {isWindows: boolean}
+  const {isWindows} = require('@/constants/platform') as {isWindows: boolean}
 
   const getUninstallExecPath = isWindows
     ? (s: T.RPCGen.FuseStatus) => {
@@ -57,7 +57,7 @@ export const openPathInSystemFileManagerDesktop = async (
     return
   }
 
-  const {isWindows, pathSep} = require('@/constants/platform.desktop') as {isWindows: boolean; pathSep: string}
+  const {isWindows, pathSep} = require('@/constants/platform') as {isWindows: boolean; pathSep: string}
   const {uint8ArrayToHex} = require('@/util/uint8array') as {uint8ArrayToHex: (b: Uint8Array) => string}
   const {join} = require('@/util/path') as {join: (...args: string[]) => string}
   const {openPathInFinder} = getKB2().functions
@@ -99,7 +99,7 @@ export const refreshDriverStatusDesktop = async (): Promise<T.RPCGen.FuseStatus 
     await Promise.resolve()
     return undefined
   }
-  const {isWindows} = require('@/constants/platform.desktop') as {isWindows: boolean}
+  const {isWindows} = require('@/constants/platform') as {isWindows: boolean}
   const {windowsCheckMountFromOtherDokanInstall} = getKB2().functions
 
   let status = await T.RPCGen.installFuseStatusRpcPromise({
@@ -136,7 +136,7 @@ export const afterDriverEnabledDesktop = async (
     await Promise.resolve()
     return 'noop'
   }
-  const {isWindows} = require('@/constants/platform.desktop') as {isWindows: boolean}
+  const {isWindows} = require('@/constants/platform') as {isWindows: boolean}
   const {ExitCodeFuseKextPermissionError} = require('@/constants/values') as {ExitCodeFuseKextPermissionError: number}
   const {installCachedDokan} = getKB2().functions
 
@@ -166,7 +166,7 @@ export const afterDriverDisableDesktop = async (
     await Promise.resolve()
     return 'noop'
   }
-  const {isWindows} = require('@/constants/platform.desktop') as {isWindows: boolean}
+  const {isWindows} = require('@/constants/platform') as {isWindows: boolean}
   const {uninstallKBFSDialog, uninstallDokanDialog} = getKB2().functions
 
   if (isWindows) {
@@ -188,7 +188,7 @@ export const afterDriverDisablingDesktop = async (driverStatus: T.FS.DriverStatu
   if (isMobile) {
     return
   }
-  const {isWindows} = require('@/constants/platform.desktop') as {isWindows: boolean}
+  const {isWindows} = require('@/constants/platform') as {isWindows: boolean}
   const {relaunchApp, exitApp, uninstallDokan} = getKB2().functions
 
   if (isWindows) {
@@ -229,7 +229,7 @@ export const uploadFromDragAndDropDesktop = async (localPaths: Array<string>) =>
     await Promise.resolve()
     return localPaths
   }
-  const {isDarwin} = require('@/constants/platform.desktop') as {isDarwin: boolean}
+  const {isDarwin} = require('@/constants/platform') as {isDarwin: boolean}
   const {darwinCopyToKBFSTempUploadFile} = getKB2().functions
 
   if (isDarwin && darwinCopyToKBFSTempUploadFile) {

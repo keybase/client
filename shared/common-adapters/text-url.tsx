@@ -10,18 +10,18 @@ export function useClickURL(url: string | undefined) {
     }
     return {
       onClick: () => {
-        openURL(url)
+        void openURL(url)
       },
       onLongPress: () => {
         Alert.alert('', url, [
-          {onPress: () => openURL(url), text: 'Open'},
+          {onPress: () => { void openURL(url) }, text: 'Open'},
           {onPress: () => { void setStringAsync(url) }, text: 'Copy'},
           {text: 'Cancel'},
         ])
       },
     } as const
   }
-  const {default: {functions: {showContextMenu}}} = require('@/util/electron.desktop') as {
+  const {default: {functions: {showContextMenu}}} = require('@/util/electron') as {
     default: {functions: {showContextMenu?: (url: string) => void}}
   }
   return {

@@ -1,5 +1,5 @@
 import fs from 'fs'
-import {serverConfigFileName, jsonDebugFileName} from '@/constants/platform.desktop'
+import {serverConfigFileName, jsonDebugFileName} from '@/constants/platform'
 const getConfigOverload = () => {
   let config: {[key: string]: unknown} = {}
   // Load overrides from server config

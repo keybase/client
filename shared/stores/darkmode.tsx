@@ -81,7 +81,7 @@ export const useDarkModeState = Z.createZustand<State>('darkmode', (set, get) =>
         // update Electron's nativeTheme
         const f = async () => {
           try {
-            const {default: KB2} = await import('@/util/electron.desktop')
+            const {default: KB2} = await import('@/util/electron')
             switch (p) {
               case 'system':
                 await KB2.functions.setNativeTheme?.('system')
