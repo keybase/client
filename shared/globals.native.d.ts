@@ -27,6 +27,7 @@ interface DataTransfer {
 // Desktop build excludes this file so declare class is safe (no conflict with lib.dom).
 interface Element {}
 interface HTMLElement extends Element {}
+interface HTMLDivElement extends HTMLElement {}
 
 interface DOMRectReadOnly {
   readonly width: number

@@ -1,8 +1,9 @@
 import * as React from 'react'
-import * as Kb from '@/common-adapters'
+import * as C from '@/constants'
 import * as Crypto from '@/constants/crypto'
+import * as Kb from '@/common-adapters'
 import * as Common from '@/router-v2/common'
-import LeftNav from './left-nav.desktop'
+import NavRow from './nav-row'
 import {
   useNavigationBuilder,
   TabRouter,
@@ -10,11 +11,10 @@ import {
 } from '@react-navigation/core'
 import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
 import {routeMapToScreenElements} from '@/router-v2/routes'
-import {makeLayout} from '@/router-v2/screen-layout.desktop'
+import {makeLayout} from '@/router-v2/screen-layout'
 import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
 import {defineRouteMap} from '@/constants/types/router'
 
-/* Desktop SubNav */
 const cryptoSubRoutes = defineRouteMap({
   [Crypto.decryptTab]: {
     screen: React.lazy(async () => {
@@ -34,7 +34,6 @@ const cryptoSubRoutes = defineRouteMap({
       return {default: SignIO}
     }),
   },
-
   [Crypto.verifyTab]: {
     screen: React.lazy(async () => {
       const {VerifyIO} = await import('../verify')
@@ -42,6 +41,9 @@ const cryptoSubRoutes = defineRouteMap({
     }),
   },
 })
+
+type LeftNavProps = {onClick: (tab: string) => void; selected: string}
+
 function LeftTabNavigator({
   initialRouteName,
   children,
@@ -50,6 +52,7 @@ function LeftTabNavigator({
 }: Parameters<typeof useNavigationBuilder>[1] & {
   backBehavior: 'initialRoute' | 'firstRoute' | 'history' | 'order' | 'none'
 }) {
+  const {default: LeftNav} = require('./left-nav.desktop') as {default: React.ComponentType<LeftNavProps>}
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
@@ -84,18 +87,13 @@ function LeftTabNavigator({
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  box: {backgroundColor: Kb.Styles.globalColors.white},
-  nav: {width: 180},
-}))
-
 type NavType = NavigatorTypeBagBase & {
   ParamList: {
     [key in keyof typeof cryptoSubRoutes]: {}
   }
 }
 
-export const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as () => TypedNavigator<NavType>
+const createLeftTabNavigator = createNavigatorFactory(LeftTabNavigator) as unknown as () => TypedNavigator<NavType>
 const TabNavigator = createLeftTabNavigator()
 const makeOptions = (rd: RouteDef) => {
   return ({route, navigation}: GetOptionsParams) => {
@@ -104,11 +102,51 @@ const makeOptions = (rd: RouteDef) => {
     return {...opt}
   }
 }
-const cryptoScreens = routeMapToScreenElements(cryptoSubRoutes, TabNavigator.Screen, makeLayout, makeOptions, false, false, false)
-const CryptoSubNavigator = () => (
+const cryptoScreens = routeMapToScreenElements(
+  cryptoSubRoutes,
+  TabNavigator.Screen,
+  makeLayout,
+  makeOptions,
+  false,
+  false,
+  false
+)
+const DesktopCryptoSubNavigator = () => (
   <TabNavigator.Navigator initialRouteName={Crypto.encryptTab} backBehavior="none">
     {cryptoScreens}
   </TabNavigator.Navigator>
 )
 
-export default CryptoSubNavigator
+const NativeCryptoSubNav = () => {
+  const {navigate} = C.useNav()
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="tiny" style={styles.container}>
+      {Crypto.Tabs.map(t => (
+        <NavRow
+          key={t.tab}
+          tab={t.tab}
+          title={t.title}
+          illustration={t.illustration}
+          description={t.description}
+          onClick={() => navigate(t.tab)}
+        />
+      ))}
+    </Kb.Box2>
+  )
+}
+
+const styles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      box: {backgroundColor: Kb.Styles.globalColors.white},
+      container: {
+        backgroundColor: Kb.Styles.globalColors.blueGrey,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.xsmall,
+      },
+      nav: {width: 180},
+    }) as const
+)
+
+export default isMobile ? NativeCryptoSubNav : DesktopCryptoSubNavigator

@@ -21,7 +21,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
 
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
-import {makeLayout} from './screen-layout.desktop'
+import {makeLayout} from './screen-layout'
 import './router.css'
 
 const Tab = createLeftTabNavigator()
