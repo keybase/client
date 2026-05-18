@@ -62,7 +62,7 @@ const useDesktopScrolling = (p: {
   centeredOrdinal: T.Chat.Ordinal | undefined
 }) => {
   const InputState = require('../input-area/input-state') as {useConversationInput: <X>(selector: (s: {editing: T.Chat.Ordinal}) => X) => X}
-  const chunk = (require('lodash/chunk') as {default: <T>(arr: Array<T>, size: number) => Array<Array<T>>}).default
+  const chunk = require('lodash/chunk') as <T>(arr: Array<T>, size: number) => Array<Array<T>>
 
   const {listRef, setListRef: _setListRef, containsLatestMessage} = p
   const containsLatestMessageRef = React.useRef(containsLatestMessage)
@@ -377,7 +377,7 @@ const useDesktopItems = (p: {
   centeredOrdinal: T.Chat.Ordinal | undefined
   editingOrdinal: T.Chat.Ordinal | undefined
 }) => {
-  const chunk = (require('lodash/chunk') as {default: <T>(arr: Array<T>, size: number) => Array<Array<T>>}).default
+  const chunk = require('lodash/chunk') as <T>(arr: Array<T>, size: number) => Array<Array<T>>
   const {centeredHighlightOrdinal, centeredOrdinal, editingOrdinal, messageOrdinals} = p
   const waypointData = React.useMemo(() => {
     const items: Array<{key: string; ordinals: Array<T.Chat.Ordinal>}> = []
@@ -742,7 +742,7 @@ const useNativeScrolling = (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.RefObject<RNFlatListRef | null>
 }) => {
-  const noop = (require('lodash/noop') as {default: () => void}).default
+  const noop = require('lodash/noop') as () => void
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = useConversationThreadLoadOlderMessagesDueToScroll()
@@ -801,7 +801,7 @@ const NativeConversationList = function NativeConversationList() {
   const {usingFlashList} = require('./flashlist-config') as {usingFlashList: boolean}
   const {mobileTypingContainerHeight} = require('../input-area/normal/typing') as {mobileTypingContainerHeight: number}
   const {useConversationThreadStore} = require('../thread-context') as {useConversationThreadStore: () => {getState: () => {messageMap: Map<T.Chat.Ordinal, T.Chat.Message>; messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>}}}
-  const noop = (require('lodash/noop') as {default: () => void}).default
+  const noop = require('lodash/noop') as () => void
 
   const List = FlatList
 

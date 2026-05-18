@@ -120,7 +120,7 @@ const NativeGiphySearch = () => {
     mediaPlaybackRequiresUserAction: boolean
   }>}
   const {useColorScheme} = require('react-native') as {useColorScheme: () => string | null}
-  const noop = (require('lodash/noop') as {default: () => void}).default
+  const noop = require('lodash/noop') as () => void
 
   const p = useHooks()
   const source = {uri: p.galleryURL}
