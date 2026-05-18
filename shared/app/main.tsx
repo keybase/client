@@ -1,3 +1,4 @@
+import type * as React from 'react'
 import Router from '@/router-v2/router'
 import ResetModal from '../login/reset/modal'
 import GlobalError from './global-errors'
@@ -6,8 +7,7 @@ import {FsStatusProvider} from '@/fs/common/status'
 import {SystemFileManagerIntegrationProvider} from '@/fs/common/sfmi'
 
 const DesktopMain = function DesktopMain() {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
-  const RemoteProxies = (require('../desktop/remote/proxies.desktop') as any).default as React.ComponentType
+  const {default: RemoteProxies} = require('../desktop/remote/proxies.desktop') as {default: React.ComponentType}
   return (
     <FsStatusProvider>
       <SystemFileManagerIntegrationProvider>
@@ -22,9 +22,13 @@ const DesktopMain = function DesktopMain() {
 }
 
 const NativeMain = () => {
-  const {PortalHost} = require('@/common-adapters/portal.native') as typeof import('@/common-adapters/portal.native')
-  const RuntimeStats = (require('./runtime-stats') as typeof import('./runtime-stats')).default
-  const {BottomSheetModalProvider} = require('@gorhom/bottom-sheet') as typeof import('@gorhom/bottom-sheet')
+  const {PortalHost} = require('@/common-adapters/portal.native') as {
+    PortalHost: React.ComponentType<{name?: string; children?: React.ReactNode}>
+  }
+  const RuntimeStats = (require('./runtime-stats') as {default: React.ComponentType}).default
+  const {BottomSheetModalProvider} = require('@gorhom/bottom-sheet') as {
+    BottomSheetModalProvider: React.ComponentType<{children: React.ReactNode}>
+  }
   return (
     <FsStatusProvider>
       <SystemFileManagerIntegrationProvider>

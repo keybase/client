@@ -10,7 +10,7 @@ export {
   BottomSheetBackdrop,
   BottomSheetScrollView,
   type BottomSheetBackdropProps,
-} from './popup/bottom-sheet.native'
+} from './popup/bottom-sheet'
 export {default as Animation} from './animation'
 export {default as Avatar} from './avatar/index'
 export {default as AvatarLine} from './avatar/avatar-line'
@@ -44,14 +44,13 @@ export {default as FloatingPicker} from './floating-picker'
 export {usePopup2, type Popup2Parms} from './popup/use-popup'
 export {HeaderLeftButton} from './header-buttons'
 export {useHotKey} from './hot-key'
-export {default as Image} from './image.native'
+export {default as Image} from './image'
 export {default as ImageIcon} from './image-icon'
 export {default as InfoNote} from './info-note'
 export {default as Input3} from './input3'
 export type {Input3Ref, Input3Props} from './input3'
 export {KeyboardAvoidingView2} from './keyboard-avoiding-view'
-export {default as List} from './list.native'
-export type {LegendListRef} from './list.shared'
+export {default as List, type LegendListRef} from './list'
 export {
   default as ListItem,
   largeHeight as largeListItemHeight,

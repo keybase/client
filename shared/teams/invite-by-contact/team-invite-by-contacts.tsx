@@ -1,12 +1,42 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
-import type {Contact} from '../common/use-contacts.native'
-import {InviteByContact, type ContactRowProps} from './index.native'
 import {getE164} from '@/util/phone-numbers'
 import {openSMS} from '@/util/misc'
 import logger from '@/logger'
 import {useLoadedTeam} from '../team/use-loaded-team'
+
+type Contact = {
+  id: string
+  name: string
+  pictureUri?: string
+  type: 'phone' | 'email'
+  value: string
+  valueFormatted?: string
+}
+
+type ContactRowProps = Contact & {
+  id: string
+  alreadyInvited: boolean
+  loading: boolean
+  onClick: () => void
+}
+
+type InviteByContactProps = {
+  selectedRole: T.Teams.TeamRoleType
+  onRoleChange: (newRole: T.Teams.TeamRoleType) => void
+  teamName: string
+  listItems: Array<ContactRowProps>
+  errorMessage?: string
+}
+
+type UseContactsResult = {
+  contacts: Array<Contact>
+  errorMessage?: string
+  loading: boolean
+  noAccessPermanent: boolean
+  region: string
+}
 
 // Seitan invite names (labels) look like this: "[name] ([phone number])". Try
 // to derive E164 phone number based on seitan invite name and user's region.
@@ -61,7 +91,8 @@ const generateSMSBody = (teamname: string, seitan: string): string => {
 }
 
 const TeamInviteByContactMobile = (props: Props) => {
-  const {default: useContacts} = require('../common/use-contacts.native') as typeof import('../common/use-contacts.native')
+  const {InviteByContact} = require('./index.native') as {InviteByContact: React.ComponentType<InviteByContactProps>}
+  const {default: useContacts} = require('../common/use-contacts.native') as {default: () => UseContactsResult}
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
   const {

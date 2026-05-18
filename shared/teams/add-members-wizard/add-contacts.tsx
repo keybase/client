@@ -4,11 +4,32 @@ import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import {useModalHeaderState} from '@/stores/modal-header'
-import type {Contact} from '../common/contacts-list.native'
 import {addMembersToWizard, type AddMembersWizard} from './state'
 
+type Contact = {
+  id: string
+  name: string
+  pictureUri?: string
+  type: 'phone' | 'email'
+  value: string
+  valueFormatted?: string
+}
+
+type ContactsListProps = {
+  onSelect: (contact: Contact, checked: boolean) => void
+  search: string
+  selectedEmails: Set<string>
+  selectedPhones: Set<string>
+}
+
+type ContactsModule = {
+  default: React.ComponentType<ContactsListProps>
+  useContacts: () => {contacts: Array<Contact>; loading: boolean; noAccessPermanent: boolean}
+  EnableContactsPopup: React.ComponentType<{noAccess: boolean; onClose: () => void}>
+}
+
 const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
-  const {default: ContactsList, useContacts, EnableContactsPopup} = require('../common/contacts-list.native') as typeof import('../common/contacts-list.native')
+  const {default: ContactsList, useContacts, EnableContactsPopup} = require('../common/contacts-list.native') as ContactsModule
   const navigateUp = C.Router2.navigateUp
   const navUpToScreen = C.Router2.navUpToScreen
   const onBack = () => navigateUp()
