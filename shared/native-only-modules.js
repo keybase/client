@@ -23,4 +23,6 @@ module.exports = [
   'expo-image',
   'expo-contacts',
   'expo-localization',
+  'expo-media-library',
+  'expo-file-system',
 ]

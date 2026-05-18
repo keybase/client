@@ -1,17 +1,21 @@
 import * as T from '@/constants/types'
 import * as Constants from '@/constants/fs'
 import logger from '@/logger'
-import type {KB2} from '@/util/electron'
-
-const getKB2 = () => (require('@/util/electron') as {default: KB2}).default
+import KB2 from '@/util/electron'
+import {isWindows, pathSep, isDarwin} from '@/constants/platform'
+import {uint8ArrayToHex} from '@/util/uint8array'
+import {join} from '@/util/path'
+import {ExitCodeFuseKextPermissionError} from '@/constants/values'
+import {unnormalizePath} from '@/styles'
+import {launchImageLibraryAsync} from '@/util/expo-image-picker'
+import {saveAttachmentToCameraRoll, showShareActionSheet} from '@/util/platform-specific'
+import {fsCacheDir, fsDownloadDir, androidAddCompleteDownload} from 'react-native-kb'
 
 // Desktop-only exports (stubs on mobile)
 export const fuseStatusToDriverStatus = (status?: T.RPCGen.FuseStatus): T.FS.DriverStatus => {
   if (isMobile || !status) {
     return Constants.defaultDriverStatus
   }
-  const {isWindows} = require('@/constants/platform') as {isWindows: boolean}
-
   const getUninstallExecPath = isWindows
     ? (s: T.RPCGen.FuseStatus) => {
         const field = s.status.fields?.find(({key}) => key === 'uninstallString')
@@ -33,7 +37,7 @@ export const openLocalPathInSystemFileManagerDesktop = async (localPath: string)
   if (isMobile) {
     return
   }
-  const {openPathInFinder, getPathType} = getKB2().functions
+  const {openPathInFinder, getPathType} = KB2.functions
   if (!getPathType) {
     return
   }
@@ -57,10 +61,7 @@ export const openPathInSystemFileManagerDesktop = async (
     return
   }
 
-  const {isWindows, pathSep} = require('@/constants/platform') as {isWindows: boolean; pathSep: string}
-  const {uint8ArrayToHex} = require('@/util/uint8array') as {uint8ArrayToHex: (b: Uint8Array) => string}
-  const {join} = require('@/util/path') as {join: (...args: string[]) => string}
-  const {openPathInFinder} = getKB2().functions
+  const {openPathInFinder} = KB2.functions
 
   const escapeBackslash = isWindows
     ? (pathElem: string): string =>
@@ -99,8 +100,7 @@ export const refreshDriverStatusDesktop = async (): Promise<T.RPCGen.FuseStatus 
     await Promise.resolve()
     return undefined
   }
-  const {isWindows} = require('@/constants/platform') as {isWindows: boolean}
-  const {windowsCheckMountFromOtherDokanInstall} = getKB2().functions
+  const {windowsCheckMountFromOtherDokanInstall} = KB2.functions
 
   let status = await T.RPCGen.installFuseStatusRpcPromise({
     bundleVersion: '',
@@ -136,9 +136,7 @@ export const afterDriverEnabledDesktop = async (
     await Promise.resolve()
     return 'noop'
   }
-  const {isWindows} = require('@/constants/platform') as {isWindows: boolean}
-  const {ExitCodeFuseKextPermissionError} = require('@/constants/values') as {ExitCodeFuseKextPermissionError: number}
-  const {installCachedDokan} = getKB2().functions
+  const {installCachedDokan} = KB2.functions
 
   const isKextPermissionError = (result: T.RPCGen.InstallResult): boolean =>
     result.componentResults?.findIndex(
@@ -166,8 +164,7 @@ export const afterDriverDisableDesktop = async (
     await Promise.resolve()
     return 'noop'
   }
-  const {isWindows} = require('@/constants/platform') as {isWindows: boolean}
-  const {uninstallKBFSDialog, uninstallDokanDialog} = getKB2().functions
+  const {uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions
 
   if (isWindows) {
     if (driverStatus.type !== T.FS.DriverStatusType.Enabled) {
@@ -188,8 +185,7 @@ export const afterDriverDisablingDesktop = async (driverStatus: T.FS.DriverStatu
   if (isMobile) {
     return
   }
-  const {isWindows} = require('@/constants/platform') as {isWindows: boolean}
-  const {relaunchApp, exitApp, uninstallDokan} = getKB2().functions
+  const {relaunchApp, exitApp, uninstallDokan} = KB2.functions
 
   if (isWindows) {
     if (driverStatus.type !== T.FS.DriverStatusType.Enabled) {
@@ -211,7 +207,7 @@ export const openSecurityPreferencesDesktop = async () => {
   if (isMobile) {
     return
   }
-  const {openURL} = getKB2().functions
+  const {openURL} = KB2.functions
   await openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
 }
 
@@ -220,7 +216,7 @@ export const selectFilesToUploadDesktop = async (type: T.FS.OpenDialogType, pare
     await Promise.resolve()
     return [] as string[]
   }
-  const {selectFilesToUploadDialog} = getKB2().functions
+  const {selectFilesToUploadDialog} = KB2.functions
   return await (selectFilesToUploadDialog?.(type, parentPath) ?? Promise.resolve([]))
 }
 
@@ -229,8 +225,7 @@ export const uploadFromDragAndDropDesktop = async (localPaths: Array<string>) =>
     await Promise.resolve()
     return localPaths
   }
-  const {isDarwin} = require('@/constants/platform') as {isDarwin: boolean}
-  const {darwinCopyToKBFSTempUploadFile} = getKB2().functions
+  const {darwinCopyToKBFSTempUploadFile} = KB2.functions
 
   if (isDarwin && darwinCopyToKBFSTempUploadFile) {
     const dir = await T.RPCGen.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
@@ -248,13 +243,6 @@ export const pickAndUploadMobile = async (
   if (!isMobile || type === T.FS.MobilePickType.File) {
     return
   }
-  const {unnormalizePath} = require('@/styles') as {unnormalizePath: (path: string) => string}
-  const {launchImageLibraryAsync} = require('@/util/expo-image-picker') as {
-    launchImageLibraryAsync: (type: T.FS.MobilePickType, multiple: boolean, resize: boolean) => Promise<{
-      canceled: boolean
-      assets: Array<{uri: string}>
-    }>
-  }
   const result = await launchImageLibraryAsync(type, true, true)
   if (result.canceled) {
     return
@@ -271,12 +259,8 @@ export const pickDocumentsMobile = async (
   if (!isMobile) {
     return
   }
-  const {unnormalizePath} = require('@/styles') as {unnormalizePath: (path: string) => string}
   const {pickDocumentsAsync} = require('@/util/expo-document-picker.native') as {
-    pickDocumentsAsync: (multiple: boolean) => Promise<{
-      canceled: boolean
-      assets: Array<{uri: string}>
-    }>
+    pickDocumentsAsync: (multiple: boolean) => Promise<{canceled: boolean; assets: Array<{uri: string}>}>
   }
   const result = await pickDocumentsAsync(true)
   if (result.canceled) {
@@ -292,10 +276,6 @@ export const finishedDownloadWithIntentMobile = async (
 ) => {
   if (!isMobile) {
     return
-  }
-  const {saveAttachmentToCameraRoll, showShareActionSheet} = require('@/util/platform-specific') as {
-    saveAttachmentToCameraRoll: (filePath: string, mimeType: string) => Promise<void>
-    showShareActionSheet: (opts: {filePath?: string; mimeType: string}) => Promise<unknown>
   }
   switch (downloadIntent) {
     case T.FS.DownloadIntent.CameraRoll:
@@ -314,10 +294,6 @@ export const finishedDownloadWithIntentMobile = async (
 export const afterKbfsDaemonRpcStatusChangedMobile = async () => {
   if (!isMobile || !isAndroid) {
     return
-  }
-  const {fsCacheDir, fsDownloadDir} = require('react-native-kb') as {
-    fsCacheDir: string
-    fsDownloadDir: string
   }
   await T.RPCGen.SimpleFSSimpleFSConfigureDownloadRpcPromise({
     cacheDirOverride: fsCacheDir,
@@ -343,16 +319,6 @@ export const finishedRegularDownloadMobile = async (
     return
   }
   finishedRegularDownloadIDs.add(downloadID)
-
-  const {androidAddCompleteDownload} = require('react-native-kb') as {
-    androidAddCompleteDownload: (opts: {
-      description: string
-      mime: string
-      path: string
-      showNotification: boolean
-      title: string
-    }) => Promise<void>
-  }
 
   try {
     await androidAddCompleteDownload({
