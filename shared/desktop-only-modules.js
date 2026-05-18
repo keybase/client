@@ -7,4 +7,5 @@ module.exports = [
   'lottie-web',
   'react-dom',
   '@legendapp/list/react',
+  'emoji-datasource-apple/img/apple/sheets/64.png',
 ]
