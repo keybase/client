@@ -86,6 +86,7 @@ function DesktopInput(p: InputLowLevelProps) {
   const isDarkMode = useColorScheme() === 'dark'
 
   const [value, setValue] = React.useState('')
+  // this isn't a value react can set on the input, so we need to drive it manually
   const selectionRef = React.useRef({end: 0, start: 0})
   const inputSingleRef = React.useRef<HtmlInputRef>(null)
   const inputMultiRef = React.useRef<HtmlTextAreaRef>(null)
@@ -130,9 +131,11 @@ function DesktopInput(p: InputLowLevelProps) {
       isFocused: () => !!i && (globalThis as {document?: {activeElement: unknown}}).document?.activeElement === i,
       transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean): void => {
         const ti = fn({selection: selectionRef.current, text: value})
+        // defer since we can do this in other renders
         setTimeout(() => {
           setValue(ti.text)
           selectionRef.current = {end: ti.selection?.end ?? 0, start: ti.selection?.start ?? 0}
+          // defer this else we'll get onSelect called and wipe it out
           setTimeout(() => {
             if (i && ti.selection) {
               if (typeof ti.selection.start === 'number') {
@@ -173,7 +176,7 @@ function DesktopInput(p: InputLowLevelProps) {
       const paddingStyles = padding ? Kb.Styles.padding(Kb.Styles.globalMargins[padding]) : {}
 
       return Kb.Styles.collapseStyles([
-        desktopInputLowLevelStyles.noChrome,
+        desktopInputLowLevelStyles.noChrome, // noChrome comes before because we want lineHeight set in multiline
         textStyle,
         desktopInputLowLevelStyles.multiline,
         heightStyles,
@@ -183,7 +186,7 @@ function DesktopInput(p: InputLowLevelProps) {
     } else {
       return Kb.Styles.collapseStyles([
         textStyle,
-        desktopInputLowLevelStyles.noChrome,
+        desktopInputLowLevelStyles.noChrome, // noChrome comes after to unset lineHeight in singleline
         _style,
       ])
     }
@@ -261,6 +264,7 @@ const desktopInputLowLevelStyles = Kb.Styles.styleSheetCreate(() => ({
 
 // ==================== NATIVE LOW-LEVEL INPUT ====================
 
+// Low-level TextInput wrapper
 function NativeInput(p: InputLowLevelProps) {
   type RNTextInput = {
     blur: () => void
@@ -340,6 +344,7 @@ function NativeInput(p: InputLowLevelProps) {
 
   const style = (() => {
     let textStyle = getTextStyle(textType, isDarkMode)
+    // RN TextInput plays better without this
     if (isIOS) {
       const {lineHeight, ...rest} = textStyle
       textStyle = rest
@@ -414,7 +419,7 @@ const nativeInputLowLevelStyles = Kb.Styles.styleSheetCreate(() => ({
   multiline: Kb.Styles.platformStyles({
     isMobile: {
       height: undefined,
-      textAlignVertical: 'top',
+      textAlignVertical: 'top', // android centers by default
     },
   }),
   singleline: {padding: 0},
@@ -1180,7 +1185,7 @@ const NativePlatformInput = (p: Props) => {
 
   const [showAudioSend, setShowAudioSend] = React.useState(false)
   const [height, setHeight] = React.useState(0)
-  const [expanded, setExpanded] = React.useState(false)
+  const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
   const inputRef = React.useRef<RefType | null>(null)
   const maxInputArea = React.useContext(MaxInputAreaContext)
   const preferredExpandedSuggestionListHeight = maxInputArea
@@ -1258,6 +1263,9 @@ const NativePlatformInput = (p: Props) => {
   })
 
   React.useEffect(() => {
+    // Enter should send a message like on desktop, when a hardware keyboard's
+    // attached.  On Android we get "hardware" keypresses from soft keyboards,
+    // so check whether a soft keyboard's up.
     const cb = (hwKeyEvent: {pressedKey: string}) => {
       switch (hwKeyEvent.pressedKey) {
         case 'enter':
@@ -1303,6 +1311,7 @@ const NativePlatformInput = (p: Props) => {
   const {popup: popupMenu, showPopup} = Kb.usePopup2(makePopup)
 
   const ourShowMenu = (menu: MenuType) => {
+    // Hide the keyboard on mobile when showing the menu.
     Keyboard.dismiss()
     whichMenu.current = menu
     showPopup()

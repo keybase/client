@@ -29,6 +29,7 @@ export const getModKey = (e: {metaKey: boolean; ctrlKey: boolean}): boolean => {
 }
 
 export const defaultUseNativeFrame: boolean = isMobile ? true : isDarwin || isLinux
+// For storyshots, we only want to test macOS
 export const fileUIName: string = isMobile
   ? 'File Explorer'
   : isDarwin
@@ -71,10 +72,14 @@ const _mobileOsVersionNumber: number = isMobile
 
 export const isAndroidNewerThanM: boolean = isAndroid && _mobileOsVersionNumber > 22
 export const isAndroidNewerThanN: boolean = isAndroid && _mobileOsVersionNumber >= 26
+// Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.
+// Android only field that tells us if there is a lock screen.
 export const isDeviceSecureAndroid: boolean = isMobile ? _getRNKB().androidIsDeviceSecure : false
 export const androidIsTestDevice: boolean = isMobile ? _getRNKB().androidIsTestDevice : false
 export const isNewArch: boolean = isMobile ? !!global.__turboModuleProxy : false
 
+// isLargeScreen means you have at larger screen like iPhone 6,7 or Pixel
+// See https://material.io/devices/
 export const isLargeScreen: boolean = isMobile
   ? (() => {
       const {Dimensions} = require('react-native') as {Dimensions: {get: (name: string) => {height: number; width: number}}}
@@ -188,7 +193,7 @@ export const serverConfigFileName: string = isMobile
 
 // Native-specific dir exports
 export const logFileDir: string = isMobile ? `${_getRNKB().fsCacheDir}/Keybase` : ''
-// pprofDir is '' on desktop (let service figure it out), and cache dir on native
+// Empty string means let the service figure out the right directory.
 export const pprofDir: string = isMobile ? `${_getRNKB().fsCacheDir}/Keybase` : ''
 export const fsCacheDir: string = isMobile ? _getRNKB().fsCacheDir : ''
 export const downloadFolder: string = isMobile
@@ -233,6 +238,7 @@ export const getSecureFlagSetting = async (): Promise<boolean> => {
     const RPCGen = await import('@/constants/rpc/rpc-gen')
     const screenProtectorConfigKey = 'ui.screenprotector'
     const value = await RPCGen.configGuiGetValueRpcPromise({path: screenProtectorConfigKey})
+    // Default to secure (true) if not explicitly set
     if (!value.isNull && value.b === false) return false
     return true
   } catch {

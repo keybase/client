@@ -9,6 +9,7 @@ const NativeTextInput = _TextInputReal as unknown as React.ComponentType<{autoCa
 import type {Input3Props, Input3Ref} from './input3.shared'
 export type {Input3Props, Input3Ref} from './input3.shared'
 
+// Desktop only CSS import
 import './input.css'
 
 // Stub types to avoid DOM lib dependency in native tsconfig

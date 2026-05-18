@@ -313,6 +313,8 @@ function DesktopInboxBody(props: ControlledInboxProps) {
     useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal, getSize})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 200)
 
+  // onViewableItemsChanged doesn't fire on initial render, only on scroll.
+  // Unbox the initially visible rows when rows first become available.
   const didInitialUnboxRef = React.useRef(false)
   React.useEffect(() => {
     if (didInitialUnboxRef.current || rows.length === 0) return

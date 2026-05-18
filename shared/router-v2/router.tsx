@@ -126,7 +126,7 @@ if (!isMobile) {
 
   const desktopRootScreenOptions = {
     headerLeft: () => <HeaderLeftButton mode="cancel" />,
-    headerShown: false,
+    headerShown: false, // eventually do this after we pull apart modal2 etc
     presentation: 'transparentModal' as const,
     title: '',
   } satisfies NativeStackNavigationOptions

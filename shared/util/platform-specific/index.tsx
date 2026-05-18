@@ -61,12 +61,15 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   const logPrefix = '[saveAttachmentToCameraRoll] '
   try {
     try {
+      // see it we can keep going anyways, android perms are needed sometimes and sometimes not w/ 33
       await requestPermissionsToWrite()
     } catch {}
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
     await MediaLibrary.saveToLibraryAsync(fileURL)
     logger.info(logPrefix + 'Success')
   } catch (e) {
+    // This can fail if the user backgrounds too quickly, so throw up a local notification
+    // just in case to get their attention.
     addNotificationRequest({
       body: `Failed to save ${saveType} to camera roll`,
       id: Math.floor(Math.random() * 2 ** 32).toString(),

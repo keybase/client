@@ -8,6 +8,7 @@ import {printRPCBytes} from '@/local-debug'
 import {socketPath} from '@/constants/platform'
 import {getNativeEmitter, notifyJSReady, engineReset} from 'react-native-kb'
 
+// used by node
 // Desktop transport — only instantiated when !isMobile
 class NativeTransport extends TransportShared {
   private _socket?: Socket
@@ -190,6 +191,8 @@ function createClient(
       }
     })
 
+    // Signal that JS is ready to send/receive RPCs
+    // This sets up native infrastructure and starts bidirectional communication
     logger.info('JS engine ready, notifying native side')
     notifyJSReady()
 
@@ -226,6 +229,7 @@ function resetClient(
   disconnectCallback: ConnectDisconnectCB
 ) {
   if (isMobile) {
+    // Tell the RN bridge to reset itself
     engineReset()
     return client
   }

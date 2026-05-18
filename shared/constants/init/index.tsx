@@ -219,13 +219,16 @@ const loadStartupDetails = async () => {
   let link = ''
   let tab = ''
 
+  // Top priority, push
   if (push) {
     logger.info('initialState: push', push.startupConversation, push.startupFollowUser)
     conversation = push.startupConversation
     followUser = push.startupFollowUser ?? ''
   } else if (initialUrl) {
+    // Second priority, deep link
     link = initialUrl
   } else if (routeState) {
+    // Last priority, saved from last session
     try {
       const item = JSON.parse(routeState) as
         | undefined
@@ -248,6 +251,7 @@ const loadStartupDetails = async () => {
     }
   }
 
+  // never allow this case
   if (tab === 'blank') tab = ''
 
   useConfigState.getState().dispatch.setStartupDetails({
@@ -257,6 +261,7 @@ const loadStartupDetails = async () => {
     tab: tab as Tabs.Tab,
   })
 
+  // Clear last value to be extra safe bad things don't hose us forever (don't block startup)
   ignorePromise(
     T.RPCGen.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
@@ -329,6 +334,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
         const {code} = action.payload.params
         if (isWindows && code !== (T.RPCGen.ExitCode.restart as number)) {
           console.log('Quitting due to service shutdown with code: ', code)
+          // Quit just the app, not the service
           _getDesktop().KB2.functions.quitApp?.()
         }
         break
@@ -346,6 +352,7 @@ export const onEngineIncoming = (action: EngineGen.Actions) => {
         const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
         const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
         NotifyPopup('Client out of date!', {body}, 60 * 60)
+        // This is from the API server. Consider notifications from server always critical.
         useConfigState
           .getState()
           .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
@@ -422,6 +429,8 @@ const _initNativePlatformListener = () => {
     if (isAndroid && fsCacheDir && fsDownloadDir) {
       ignorePromise(
         T.RPCChat.localConfigureFileAttachmentDownloadLocalRpcPromise({
+          // Android's cache dir is (when I tried) [app]/cache but Go side uses
+          // [app]/.cache by default, which can't be used for sharing to other apps.
           cacheDirOverride: fsCacheDir,
           downloadDirOverride: fsDownloadDir,
         })
@@ -477,6 +486,7 @@ const _initNativePlatformListener = () => {
   useShellState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     if (s.mobileAppState === 'active') {
+      // only reload on foreground
       useSettingsContactsState.getState().dispatch.loadContactPermissions()
     }
   })
@@ -490,6 +500,7 @@ const _initNativePlatformListener = () => {
     })
   }
 
+  // we call this when we're logged in.
   let calledShareListenersRegistered = false
   useRouterState.subscribe((s, old) => {
     const next = s.navState
@@ -504,6 +515,8 @@ const _initNativePlatformListener = () => {
     }
   })
 
+  // Default to screen capture prevention on Android (matches native default of secure).
+  // Once daemon is ready, sync with the user's saved preference.
   if (isAndroid) {
     const ScreenCapture = require('expo-screen-capture') as {preventScreenCaptureAsync: (tag: string) => Promise<void>}
     ignorePromise(ScreenCapture.preventScreenCaptureAsync('screenprotector'))
@@ -521,6 +534,7 @@ const _initNativePlatformListener = () => {
     })
   }
 
+  // Start this immediately instead of waiting so we can do more things in parallel
   ignorePromise(loadStartupDetails())
 
   const {initPushListener} = require('./push-listener.native') as {initPushListener: () => void}
@@ -656,6 +670,7 @@ const _initDesktopPlatformListener = () => {
           }
           wait(waitKey, version, false)
         } catch (error_) {
+          // error will be logged in bootstrap check
           getEngine().reset()
           const error = error_ as {message?: string}
           wait(waitKey, version, false, error.message || 'windows pipe owner fail', true)
