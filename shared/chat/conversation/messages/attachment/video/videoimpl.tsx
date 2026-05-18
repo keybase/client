@@ -1,6 +1,7 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import type {Props} from './videoimpl.shared'
+import {usePosterState, sharedStyles} from './videoimpl.shared'
 import {getAttachmentPreviewSize, ShowToastAfterSaving, maxHeight, maxWidth} from '../shared'
 import {useVideoPlayer, VideoView} from 'expo-video'
 import {useEventListener} from 'expo'
@@ -15,31 +16,20 @@ const DesktopVideoImpl = (p: Props) => {
   const {allowPlay, message, openFullscreen} = p
   const {fileURL: url, videoDuration} = message
   const {previewURL, height, width} = getAttachmentPreviewSize(message)
-  const [showPoster, setShowPoster] = React.useState(true)
-  const [lastUrl, setLastUrl] = React.useState(url)
-
-  if (lastUrl !== url) {
-    setLastUrl(url)
-    setShowPoster(true)
-  }
-
-  const onPress = () => {
-    setShowPoster(false)
-  }
+  const {showPoster, reveal} = usePosterState(url)
+  const ref = React.useRef<VideoElementRef | null>(null)
 
   const onDoubleClick = () => {
     ref.current?.pause()
     openFullscreen?.()
   }
 
-  const ref = React.useRef<VideoElementRef | null>(null)
-
   return showPoster ? (
-    <div onClick={onPress} style={desktopStyles.posterContainer}>
+    <div onClick={reveal} style={desktopStyles.posterContainer}>
       <Kb.Image src={previewURL} style={{height, width}} />
-      {allowPlay ? <Kb.ImageIcon type="icon-play-64" style={desktopStyles.playButton} /> : null}
-      <Kb.Box2 direction="vertical" overflow="hidden" style={desktopStyles.durationContainer}>
-        <Kb.Text type="BodyTinyBold" style={desktopStyles.durationText}>
+      {allowPlay ? <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} /> : null}
+      <Kb.Box2 direction="vertical" overflow="hidden" style={sharedStyles.durationContainer}>
+        <Kb.Text type="BodyTinyBold" style={sharedStyles.durationText}>
           {videoDuration}
         </Kb.Text>
       </Kb.Box2>
@@ -67,22 +57,15 @@ const NativeVideoImpl = (p: Props) => {
   const {allowPlay, message, showPopup} = p
   const {fileURL: url, transferState, videoDuration} = message
   const {previewURL, height, width} = getAttachmentPreviewSize(message)
+  const {showPoster, reveal} = usePosterState(url)
   const sourceUri = `${url}&contentforce=true`
 
   const player = useVideoPlayer(sourceUri, pl => {
     pl.loop = false
   })
 
-  const [showPoster, setShowPoster] = React.useState(true)
-  const [lastUrl, setLastUrl] = React.useState(url)
-
-  if (lastUrl !== url) {
-    setLastUrl(url)
-    setShowPoster(true)
-  }
-
   const onPress = () => {
-    setShowPoster(false)
+    reveal()
     player.play()
   }
 
@@ -100,9 +83,9 @@ const NativeVideoImpl = (p: Props) => {
             style={Kb.Styles.collapseStyles([nativeStyles.posterContainer, {height, width}])}
           >
             <Kb.Image src={previewURL} style={Kb.Styles.collapseStyles([nativeStyles.poster, {height, width}])} />
-            {allowPlay ? <Kb.ImageIcon type="icon-play-64" style={nativeStyles.playButton} /> : null}
-            <Kb.Box2 direction="vertical" overflow="hidden" style={nativeStyles.durationContainer}>
-              <Kb.Text type="BodyTinyBold" style={nativeStyles.durationText}>
+            {allowPlay ? <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} /> : null}
+            <Kb.Box2 direction="vertical" overflow="hidden" style={sharedStyles.durationContainer}>
+              <Kb.Text type="BodyTinyBold" style={sharedStyles.durationText}>
                 {videoDuration}
               </Kb.Text>
             </Kb.Box2>
@@ -123,27 +106,6 @@ const NativeVideoImpl = (p: Props) => {
 const desktopStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      durationContainer: {
-        alignSelf: 'flex-end',
-        backgroundColor: Kb.Styles.globalColors.black_50,
-        borderRadius: 2,
-        bottom: Kb.Styles.globalMargins.tiny,
-        padding: 1,
-        position: 'absolute',
-        right: Kb.Styles.globalMargins.tiny,
-      },
-      durationText: {
-        color: Kb.Styles.globalColors.white,
-        paddingLeft: 3,
-        paddingRight: 3,
-      },
-      playButton: {
-        left: '50%',
-        marginLeft: -32,
-        marginTop: -32,
-        position: 'absolute',
-        top: '50%',
-      },
       posterContainer: {
         display: 'flex',
         flexShrink: 1,
@@ -163,27 +125,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
 const nativeStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      durationContainer: {
-        alignSelf: 'flex-end',
-        backgroundColor: Kb.Styles.globalColors.black_50,
-        borderRadius: 2,
-        bottom: Kb.Styles.globalMargins.tiny,
-        padding: 1,
-        position: 'absolute',
-        right: Kb.Styles.globalMargins.tiny,
-      },
-      durationText: {
-        color: Kb.Styles.globalColors.white,
-        paddingLeft: 3,
-        paddingRight: 3,
-      },
-      playButton: {
-        left: '50%',
-        marginLeft: -32,
-        marginTop: -32,
-        position: 'absolute',
-        top: '50%',
-      },
       poster: {
         backgroundColor: Kb.Styles.globalColors.black_05_on_white,
         opacity: 1,

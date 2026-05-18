@@ -1,6 +1,7 @@
 import * as Kb from '@/common-adapters/index'
 import * as React from 'react'
 import type {Props} from './video.shared'
+import {usePlayState, sharedStyles} from './video.shared'
 import logger from '@/logger'
 import {useVideoPlayer, VideoView} from 'expo-video'
 
@@ -13,15 +14,7 @@ type VideoElementRef = {
 const DesktopVideo = (p: Props) => {
   const {autoPlay, onClick, height, width, style, url} = p
   const videoRef = React.useRef<VideoElementRef | null>(null)
-  const [playing, setPlaying] = React.useState(autoPlay)
-  const [lastAutoPlay, setLastAutoPlay] = React.useState(autoPlay)
-  const [lastUrl, setLastUrl] = React.useState(url)
-
-  if (lastAutoPlay !== autoPlay || lastUrl !== url) {
-    setLastAutoPlay(autoPlay)
-    setLastUrl(url)
-    setPlaying(autoPlay)
-  }
+  const {playing, setPlaying} = usePlayState(url, autoPlay)
 
   const _onClick = () => {
     if (onClick) {
@@ -44,8 +37,8 @@ const DesktopVideo = (p: Props) => {
 
   return (
     <Kb.Box2 direction="horizontal" relative={true} style={desktopStyles.container}>
-      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([desktopStyles.absoluteContainer, {height, width}])}>
-        {!playing && <Kb.ImageIcon type="icon-play-64" style={desktopStyles.playButton} />}
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([sharedStyles.absoluteContainer, {height, width}])}>
+        {!playing && <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} />}
       </Kb.Box2>
       <video
         ref={videoRef as React.RefObject<HTMLVideoElement>}
@@ -62,15 +55,7 @@ const DesktopVideo = (p: Props) => {
 
 const NativeVideo = (props: Props) => {
   const {autoPlay, onClick, url, style, width, height} = props
-  const [playing, setPlaying] = React.useState(autoPlay)
-  const [lastAutoPlay, setLastAutoPlay] = React.useState(autoPlay)
-  const [lastUrl, setLastUrl] = React.useState(url)
-
-  if (lastAutoPlay !== autoPlay || lastUrl !== url) {
-    setLastAutoPlay(autoPlay)
-    setLastUrl(url)
-    setPlaying(autoPlay)
-  }
+  const {playing, setPlaying} = usePlayState(url, autoPlay)
 
   const uri = url.length > 0 ? url : 'https://'
   const sourceUri = `${uri}&autoplay=${autoPlay ? 'true' : 'false'}&contentforce=true`
@@ -116,8 +101,8 @@ const NativeVideo = (props: Props) => {
         contentFit="contain"
         style={(Kb.Styles.collapseStyles([nativeStyles.player, style]) ?? {}) as object}
       />
-      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([nativeStyles.absoluteContainer, {height, width}])}>
-        {!playing && <Kb.ImageIcon type="icon-play-64" style={nativeStyles.playButton} />}
+      <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([sharedStyles.absoluteContainer, {height, width}])}>
+        {!playing && <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} />}
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -126,24 +111,8 @@ const NativeVideo = (props: Props) => {
 const desktopStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      absoluteContainer: {
-        left: 0,
-        position: 'absolute',
-        top: 0,
-      },
       container: {
         alignSelf: 'flex-start',
-      },
-      playButton: {
-        bottom: '50%',
-        left: '50%',
-        marginBottom: -32,
-        marginLeft: -32,
-        marginRight: -32,
-        marginTop: -32,
-        position: 'absolute',
-        right: '50%',
-        top: '50%',
       },
     }) as const
 )
@@ -151,25 +120,9 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
 const nativeStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      absoluteContainer: {
-        left: 0,
-        position: 'absolute',
-        top: 0,
-      },
       container: {
         alignSelf: 'flex-start',
         position: 'relative',
-      },
-      playButton: {
-        bottom: '50%',
-        left: '50%',
-        marginBottom: -32,
-        marginLeft: -32,
-        marginRight: -32,
-        marginTop: -32,
-        position: 'absolute',
-        right: '50%',
-        top: '50%',
       },
       player: {
         position: 'relative',

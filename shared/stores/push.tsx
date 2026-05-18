@@ -223,11 +223,13 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
               }
               break
             case 'chat.newmessageSilent_2':
+              // entirely handled by go on ios and in onNotification on Android
               break
             case 'chat.newmessage':
               await handleLoudMessage(notification)
               break
             case 'follow':
+              // We only care if the user clicked while in session
               if (notification.userInteraction) {
                 const {username} = notification
                 emitDeepLink(`keybase://profile/show/${username}`)
@@ -267,6 +269,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
       const f = async () => {
         const hasPermissions = await get().dispatch.checkPermissions()
         if (hasPermissions) {
+          // Get the token
           await requestPermissionsFromNative()
           fetchIOSTokenIfNeeded()
         } else {
@@ -303,6 +306,7 @@ export const usePushState = Z.createZustand<State>('push', (set, get) => {
         if (isIOS) {
           const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
           if (shownPushPrompt) {
+            // we've already shown the prompt, take them to settings
             openAppSettings()
             get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
             return
