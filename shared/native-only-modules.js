@@ -19,4 +19,6 @@ module.exports = [
   'expo-modules-core',
   'react-native-kb',
   '@react-native-picker/picker',
+  'expo-clipboard',
+  'expo-image',
 ]
