@@ -1,5 +1,6 @@
 import * as React from 'react'
 import type {BottomSheetModalProps, BottomSheetBackdropProps, BottomSheetHandleProps} from '@gorhom/bottom-sheet'
+import * as _gorhomRaw from '@gorhom/bottom-sheet'
 
 type NativeMethods = {present: () => void; forceClose: () => void}
 type BackdropProps = BottomSheetBackdropProps & {disappearsOnIndex?: number; appearsOnIndex?: number; opacity?: number}
@@ -13,7 +14,7 @@ type GorhomModule = {
   BottomSheetHandle: React.ComponentType<HandleProps>
 }
 
-const _gorhom: GorhomModule | null = isMobile ? (require('@gorhom/bottom-sheet') as GorhomModule) : null
+const _gorhom: GorhomModule | null = isMobile ? (_gorhomRaw as unknown as GorhomModule) : null
 
 export const BottomSheetView = (_p: {children?: React.ReactNode}) => {
   if (!isMobile) return null

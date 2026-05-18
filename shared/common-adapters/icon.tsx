@@ -3,7 +3,7 @@ import * as Styles from '@/styles'
 import {iconMeta} from './icon.constants-gen'
 import type {IconType} from './icon.constants-gen'
 export type {IconType} from './icon.constants-gen'
-import type {Text as RNTextType} from 'react-native'
+import {Text as RNText} from 'react-native'
 
 export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
 
@@ -73,7 +73,6 @@ const nativeBaseStyle: Styles._StylesCrossPlatform = {
 }
 
 const IconNative = (props: IconProps) => {
-  const {Text: RNText} = require('react-native') as {Text: typeof RNTextType}
   const {type, color, fontSize, sizeType, style, onClick, padding} = props
   const meta = iconMeta[type]
   if (!meta.isFont) return null

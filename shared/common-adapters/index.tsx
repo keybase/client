@@ -1,4 +1,4 @@
-import type {LayoutAnimation as NativeLayoutAnimation} from 'react-native'
+import {LayoutAnimation as NativeLayoutAnimation} from 'react-native'
 
 export type {MenuItem, MenuItems} from './floating-menu/menu-layout/index'
 export type {IconType} from './icon.constants-gen'
@@ -6,7 +6,7 @@ export type {WebViewProps, WebViewInjections} from './web-view'
 export type {AnimationType} from './animation'
 
 export const LayoutAnimation: typeof NativeLayoutAnimation = isMobile
-  ? (require('react-native') as {LayoutAnimation: typeof NativeLayoutAnimation}).LayoutAnimation
+  ? NativeLayoutAnimation
   : ({} as typeof NativeLayoutAnimation)
 export const ReAnimated = {}
 

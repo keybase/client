@@ -17,8 +17,8 @@ import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import WithTooltip from './with-tooltip'
 import DelayedMounting from './delayed-mounting'
-import {type default as FollowButtonType} from '../profile/user/actions/follow-button'
-import type ChatButtonType from '../chat/chat-button'
+import FollowButton from '../profile/user/actions/follow-button'
+import ChatButton from '../chat/chat-button'
 import type {MeasureRef} from './measure-ref'
 import {navToProfile} from '@/constants/router'
 import {useTrackerProfile} from '@/tracker/use-profile'
@@ -134,7 +134,6 @@ const ProfileCard = ({
   onLayoutChange,
   username,
 }: Props) => {
-  const {default: ChatButton} = require('../chat/chat-button') as {default: typeof ChatButtonType}
   const {details: userDetails, loadProfile} = useTrackerProfile(username)
   const followThem = useFollowerState(s => s.following.has(username))
   const followsYou = useFollowerState(s => s.followers.has(username))
@@ -178,10 +177,6 @@ const ProfileCard = ({
   const openProfile = () => {
     navToProfile(username)
     onHide?.()
-  }
-
-  const {default: FollowButton} = require('../profile/user/actions/follow-button') as {
-    default: typeof FollowButtonType
   }
 
   return (

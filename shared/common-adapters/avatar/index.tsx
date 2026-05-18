@@ -6,6 +6,7 @@ import * as AvatarZus from './store'
 import {Pressable, View} from 'react-native'
 import {useColorScheme} from 'react-native'
 import {navToProfile} from '@/constants/router'
+import {Image} from 'expo-image'
 import {iconTypeToImgSet} from './icon-to-img-set'
 import type {IconType} from '../icon.constants-gen'
 import type * as React from 'react'
@@ -155,16 +156,6 @@ function Avatar(p: Props) {
     const mode = isDarkMode ? 'dark' : 'light'
     const imgSize = size <= 64 ? 192 : size <= 96 ? 256 : 960
     source = {uri: `http://${address}/av?typ=${typ}&name=${name}&format=square_${imgSize}&mode=${mode}&token=${token}&count=${counter}`}
-  }
-
-  const {Image} = require('expo-image') as {
-    Image: React.ComponentType<{
-      source: {uri: string} | number
-      style?: Styles.StylesCrossPlatform
-      recyclingKey?: string
-      cachePolicy?: string
-      onError?: () => void
-    }>
   }
 
   const placeholderSource = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, size) as unknown as number
