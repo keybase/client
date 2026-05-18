@@ -26,6 +26,10 @@ import {makeRow} from './row'
 import type {InboxSearchController} from './use-inbox-search'
 import {useInboxSearch} from './use-inbox-search'
 import {useInboxState} from './use-inbox-state'
+import {createPortal} from 'react-dom'
+import SearchRow from './search-row'
+import {useOpenedRowState} from './row/opened-row-state'
+import {Alert} from 'react-native'
 
 // Stub types to avoid dom lib dependency in native tsconfig
 type InboxDivRef = {
@@ -79,7 +83,6 @@ const DesktopDragLine = (p: {
   toggleSmallTeamsExpanded: () => void
   setInboxNumSmallRows: (n: number) => void
 }) => {
-  const {createPortal} = require('react-dom') as {createPortal: (node: React.ReactNode, container: Element) => React.ReactPortal}
   const {rows, inboxNumSmallRows, showButton, scrollDiv, hiddenCount} = p
   const {smallTeamsExpanded, toggleSmallTeamsExpanded, setInboxNumSmallRows} = p
   const [dragY, setDragY] = React.useState(-1)
@@ -415,16 +418,6 @@ function DesktopInboxBody(props: ControlledInboxProps) {
 
 // Native InboxBody
 function NativeInboxBody(p: ControlledInboxProps) {
-  const SearchRow = (require('./search-row') as {default: React.ComponentType<{search: InboxSearchController; showSearch: boolean}>}).default
-  const {useOpenedRowState} = require('./row/opened-row-state') as {
-    useOpenedRowState: <T>(s: (state: {dispatch: {setOpenRow: (id: string) => void}}) => T) => T
-  }
-  const {Alert} = require('react-native') as {
-    Alert: {
-      prompt: (title: string, message: string, cb: (s: string) => void, type: string, defaultValue: string) => void
-    }
-  }
-
   const {search} = p
   const inbox = useInboxState(p.conversationIDKey, search.isSearching, p.refreshInbox)
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
@@ -507,7 +500,7 @@ function NativeInboxBody(p: ControlledInboxProps) {
         String(inboxNumSmallRows)
       )
     }
-  }, [Alert, inboxNumSmallRows, setInboxNumSmallRows])
+  }, [inboxNumSmallRows, setInboxNumSmallRows])
 
   const scrollToBigTeams = React.useCallback(() => {
     if (smallTeamsExpanded) {

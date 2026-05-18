@@ -13,12 +13,24 @@ import {ScrollContext} from '../normal/context'
 import {useConversationCenter} from '../center-context'
 import {
   useConversationThreadID,
+  useConversationThreadLoadNewerMessagesDueToScroll,
   useConversationThreadLoadOlderMessagesDueToScroll,
   useConversationThreadSelector,
+  useConversationThreadStore,
 } from '../thread-context'
 import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
 import {findLast} from '@/util/arrays'
 import {getMessageRowType} from '../messages/row-metadata'
+import * as InputState from '../input-area/input-state'
+import chunk from 'lodash/chunk'
+import useIntersectionObserver from '@/util/use-intersection-observer'
+import useResizeObserver from '@/util/use-resize-observer'
+import {copyToClipboard} from '@/util/storeless-actions'
+import {FocusContext} from '../normal/context'
+import noop from 'lodash/noop'
+import {FlatList} from 'react-native'
+import {usingFlashList} from './flashlist-config'
+import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 
 // ==================== DESKTOP ====================
 
@@ -61,9 +73,6 @@ const useDesktopScrolling = (p: {
   setListRef: (r: ScrollDivRef | null) => void
   centeredOrdinal: T.Chat.Ordinal | undefined
 }) => {
-  const InputState = require('../input-area/input-state') as {useConversationInput: <X>(selector: (s: {editing: T.Chat.Ordinal}) => X) => X}
-  const chunk = require('lodash/chunk') as <T>(arr: Array<T>, size: number) => Array<Array<T>>
-
   const {listRef, setListRef: _setListRef, containsLatestMessage} = p
   const containsLatestMessageRef = React.useRef(containsLatestMessage)
   React.useEffect(() => {
@@ -72,7 +81,6 @@ const useDesktopScrolling = (p: {
   const {messageOrdinals, centeredOrdinal, loaded} = p
   const numOrdinals = messageOrdinals.length
   const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
-  const {useConversationThreadLoadNewerMessagesDueToScroll} = require('../thread-context') as {useConversationThreadLoadNewerMessagesDueToScroll: () => (n: number, opts: unknown) => void}
   const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
   const loadNewerMessages = C.useThrottledCallback(() => {
     loadNewerMessagesDueToScroll(numOrdinals, getThreadLoadStatusOptions())
@@ -377,7 +385,6 @@ const useDesktopItems = (p: {
   centeredOrdinal: T.Chat.Ordinal | undefined
   editingOrdinal: T.Chat.Ordinal | undefined
 }) => {
-  const chunk = require('lodash/chunk') as <T>(arr: Array<T>, size: number) => Array<Array<T>>
   const {centeredHighlightOrdinal, centeredOrdinal, editingOrdinal, messageOrdinals} = p
   const waypointData = React.useMemo(() => {
     const items: Array<{key: string; ordinals: Array<T.Chat.Ordinal>}> = []
@@ -418,7 +425,7 @@ const useDesktopItems = (p: {
     })
 
     return items
-  }, [centeredOrdinal, messageOrdinals, chunk])
+  }, [centeredOrdinal, messageOrdinals])
 
   const rowRenderer = (ordinal: T.Chat.Ordinal) => {
     return (
@@ -452,10 +459,6 @@ const useDesktopItems = (p: {
 }
 
 const DesktopThreadWrapper = function DesktopThreadWrapper() {
-  const InputState = require('../input-area/input-state') as {useConversationInput: <X>(selector: (s: {editing: T.Chat.Ordinal}) => X) => X}
-  const useIntersectionObserver = (require('@/util/use-intersection-observer') as {default: (ref: React.RefObject<Element | null>, options?: object) => {isIntersecting: boolean}}).default
-  const useResizeObserver = (require('@/util/use-resize-observer') as {default: (ref: React.RefObject<Element | null>, cb: (e: {contentRect: {height: number}}) => void) => void}).default
-
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const conversationIDKey = useConversationThreadID()
   const data = useConversationThreadSelector(
@@ -515,14 +518,11 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     })
     const tc = tempDiv.textContent
     if (tc) {
-      const {copyToClipboard} = require('@/util/storeless-actions') as {copyToClipboard: (s: string) => void}
       copyToClipboard(tc)
     }
     tempDiv.remove()
   }
-  const {focusInput} = React.useContext(
-    (require('../normal/context') as {FocusContext: React.Context<{focusInput: () => void}>}).FocusContext
-  )
+  const {focusInput} = React.useContext(FocusContext)
   const handleListClick = (ev: React.MouseEvent) => {
     const target = ev.target as unknown as WaypointElement | null
     const tagName = (target as {tagName?: string} | null)?.tagName?.toUpperCase()
@@ -554,7 +554,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     useResizeObserver,
   })
 
-  void useIntersectionObserver
 
   return (
     <Kb.ErrorBoundary>
@@ -628,7 +627,6 @@ if (colorWaypoints) {
 }
 
 const DesktopOrdinalWaypoint = function DesktopOrdinalWaypoint(p: DesktopOrdinalWaypointProps) {
-  const useIntersectionObserver = (require('@/util/use-intersection-observer') as {default: (ref: React.RefObject<Element | null>, options?: {root?: WaypointElement}) => {isIntersecting: boolean}}).default
   const {ordinals, id, rowRenderer} = p
   const estimatedHeight = 40 * ordinals.length
   const [height, setHeight] = React.useState(-1)
@@ -642,8 +640,8 @@ const DesktopOrdinalWaypoint = function DesktopOrdinalWaypoint(p: DesktopOrdinal
     }
     setRef(ref)
   })
-  const root = wRef?.closest('.chat-scroller') as WaypointElement | undefined
-  const {isIntersecting} = useIntersectionObserver(wRef as unknown as React.RefObject<Element | null>, {root})
+  const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
+  const {isIntersecting} = useIntersectionObserver(wRef as unknown as React.RefObject<HTMLElement>, {root})
   const renderMessages = height < 0 || isIntersecting
   let content: React.ReactElement
 
@@ -740,7 +738,6 @@ const useNativeScrolling = (p: {
   conversationIDKey: T.Chat.ConversationIDKey
   listRef: React.RefObject<RNFlatListRef | null>
 }) => {
-  const noop = require('lodash/noop') as () => void
   const {listRef, centeredOrdinal, messageOrdinals} = p
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = useConversationThreadLoadOlderMessagesDueToScroll()
@@ -752,7 +749,7 @@ const useNativeScrolling = (p: {
   const {setScrollRef} = React.useContext(ScrollContext)
   React.useEffect(() => {
     setScrollRef({scrollDown: noop, scrollToBottom, scrollUp: noop})
-  }, [setScrollRef, scrollToBottom, noop])
+  }, [setScrollRef, scrollToBottom])
 
   const lastScrollToCentered = React.useRef(-1)
   React.useEffect(() => {
@@ -795,13 +792,7 @@ const useNativeScrolling = (p: {
 const maintainVisibleContentPosition = {autoscrollToTopThreshold: 1, minIndexForVisible: 0}
 
 const NativeConversationList = function NativeConversationList() {
-  const {FlatList} = require('react-native') as {FlatList: React.ComponentType<Record<string, unknown> & {ref?: React.Ref<RNFlatListRef>}>}
-  const {usingFlashList} = require('./flashlist-config') as {usingFlashList: boolean}
-  const {mobileTypingContainerHeight} = require('../input-area/normal/typing') as {mobileTypingContainerHeight: number}
-  const {useConversationThreadStore} = require('../thread-context') as {useConversationThreadStore: () => {getState: () => {messageMap: Map<T.Chat.Ordinal, T.Chat.Message>; messageTypeMap: Map<T.Chat.Ordinal, T.Chat.RenderMessageType>}}}
-  const noop = require('lodash/noop') as () => void
-
-  const List = FlatList
+  const List = FlatList as unknown as React.ComponentType<Record<string, unknown> & {ref?: React.Ref<RNFlatListRef>}>
 
   const debugWhichList = __DEV__ ? (
     <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>

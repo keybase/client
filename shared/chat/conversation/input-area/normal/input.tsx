@@ -14,6 +14,23 @@ import {ScrollContext} from '@/chat/conversation/normal/context'
 import {getTextStyle} from '@/common-adapters/text.styles'
 import {useColorScheme} from 'react-native'
 import {useConversationThreadID} from '../../thread-context'
+import {TextInput, Keyboard} from 'react-native'
+import {registerPasteImage, removeOnHWKeyPressed, onHWKeyPressed} from 'react-native-kb'
+import {EmojiPickerDesktop} from '@/chat/emoji-picker/container'
+import KB2 from '@/util/electron'
+import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
+import AudioRecorder from '@/chat/audio/audio-recorder.native'
+import {usePickerState} from '@/chat/emoji-picker/use-picker'
+import {skipAnimations, useSharedValue, useAnimatedStyle, withTiming, default as Reanimated} from '@/common-adapters/reanimated'
+import FilePickerPopup from '../filepicker-popup'
+import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker'
+import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
+import {filePickerError} from '@/util/storeless-actions'
+import {AudioSendWrapper} from '@/chat/audio/audio-send.native'
+import {standardTransformer} from '../suggestors/common'
+import logger from '@/logger'
+import {MaxInputAreaContext} from './max-input-area-context'
+import MoreMenuPopup from './moremenu-popup.native'
 
 // ==================== DESKTOP LOW-LEVEL INPUT ====================
 
@@ -252,37 +269,6 @@ function NativeInput(p: InputLowLevelProps) {
     isFocused: () => boolean
     setNativeProps: (props: {selection?: {start: number; end?: number}}) => void
   }
-  type RNKeyboard = {dismiss: () => void}
-  const {TextInput, Keyboard} = require('react-native') as {
-    TextInput: React.ComponentType<{
-      ref?: React.Ref<RNTextInput>
-      style?: object | null
-      multiline?: boolean
-      numberOfLines?: number
-      placeholder?: string
-      value?: string
-      onChangeText?: (text: string) => void
-      onSelectionChange?: (e: {nativeEvent: {selection: {start: number; end: number}}}) => void
-      onBlur?: ((e: unknown) => void) | undefined
-      onFocus?: ((e: unknown) => void) | undefined
-      autoFocus?: boolean
-      autoCorrect?: boolean
-      autoCapitalize?: string
-      editable?: boolean
-      readOnly?: boolean
-      selection?: {start: number; end?: number} | undefined
-      scrollEnabled?: boolean
-      keyboardType?: string
-      returnKeyType?: string
-      blurOnSubmit?: boolean
-    }>
-    Keyboard: RNKeyboard
-  }
-  const {registerPasteImage, removeOnHWKeyPressed, onHWKeyPressed} = require('react-native-kb') as {
-    registerPasteImage: (cb: (uris: Array<string>) => void) => () => void
-    removeOnHWKeyPressed: () => void
-    onHWKeyPressed: (cb: (e: {pressedKey: string}) => void) => void
-  }
 
   const {style: _style, onChangeText: _onChangeText, multiline, placeholder, ref} = p
   const {textType = 'Body', rowsMax, rowsMin, padding, disabled, onPasteImage} = p
@@ -397,7 +383,7 @@ function NativeInput(p: InputLowLevelProps) {
     return () => {
       dereg()
     }
-  }, [onPaste, Keyboard, registerPasteImage])
+  }, [onPaste])
 
   void removeOnHWKeyPressed
   void onHWKeyPressed
@@ -499,7 +485,6 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
 
 type EmojiButtonProps = {inputRef: InputRefType}
 const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
-  const {EmojiPickerDesktop} = require('@/chat/emoji-picker/container') as {EmojiPickerDesktop: React.ComponentType<{conversationIDKey: string; onPickAction: (s: string) => void; onDidPick: () => void}>}
   const {inputRef} = p
   const conversationIDKey = useConversationThreadID()
   const insertEmoji = (emojiColons: string) => {
@@ -562,8 +547,7 @@ const GiphyButton = function GiphyButton() {
 }
 
 const fileListToPaths = (f: HtmlFileList): Array<string> => {
-  const KB2 = require('@/util/electron') as {default: {functions: {getPathForFile?: (f: File) => string}}}
-  const {getPathForFile} = KB2.default.functions
+  const {getPathForFile} = KB2.functions
   return Array.from(f).map(f => getPathForFile?.(f as File) ?? '')
 }
 
@@ -723,7 +707,6 @@ const SideButtons = (p: SideButtonsProps) => {
 }
 
 const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
-  const {KeyEventHandler} = require('@/common-adapters/key-event-handler.desktop') as {KeyEventHandler: React.ComponentType<{onKeyDown: (e: DesktopKeyboardEvent) => void; onKeyPress: (e: DesktopKeyboardEvent) => void; children: React.ReactNode}>}
   const {cannotWrite, explodingModeSeconds, onCancelEditing, setExplodingMode} = p
   const {showReplyPreview, hintText, setInputRef, isEditing, onSubmit} = p
   const htmlInputRef = React.useRef<HtmlInputRef | null>(null)
@@ -785,7 +768,7 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
   return (
     <>
       {popup}
-      <KeyEventHandler onKeyDown={globalKeyDownPressHandler} onKeyPress={globalKeyDownPressHandler}>
+      <KeyEventHandler onKeyDown={globalKeyDownPressHandler as never} onKeyPress={globalKeyDownPressHandler as never}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={desktopStyles.container}>
           <Kb.Box2
             direction="horizontal"
@@ -939,9 +922,6 @@ type NativeButtonsProps = Pick<
 }
 
 const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
-  const AudioRecorder = (require('@/chat/audio/audio-recorder.native') as {default: React.ComponentType<{showAudioSend: boolean; setShowAudioSend: (s: boolean) => void}>}).default
-  const {usePickerState} = require('@/chat/emoji-picker/use-picker') as {usePickerState: <T>(s: (state: {pickerMap: Map<string, {emojiStr: string}>; dispatch: {updatePickerMap: (k: string, v: undefined) => void}}) => T) => T}
-
   const {insertText, ourShowMenu, onSubmit, onCancelEditing} = p
   const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
   const {showAudioSend, setShowAudioSend} = p
@@ -1032,13 +1012,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
 }
 
 const NativeAnimatedExpand = (() => {
-  const {skipAnimations, useSharedValue, useAnimatedStyle, withTiming, default: Animated} = require('@/common-adapters/reanimated') as {
-    skipAnimations: boolean
-    useSharedValue: (v: number) => {set: (v: number) => void; value: number}
-    useAnimatedStyle: (fn: () => object) => object
-    withTiming: (v: number | string) => number | string
-    default: {View: React.ComponentType<{style?: object | Array<object>; pointerEvents?: string; children?: React.ReactNode}>}
-  }
+  const Animated = Reanimated
   if (skipAnimations) {
     return function NativeAnimatedExpand() {
       return null
@@ -1094,22 +1068,14 @@ type NativeChatFilePickerProps = {
   hidePopup: () => void
 }
 const NativeChatFilePicker = (p: NativeChatFilePickerProps) => {
-  const FilePickerPopup = (require('../filepicker-popup') as {default: React.ComponentType<{attachTo?: React.RefObject<Kb.MeasureRef | null>; visible: boolean; onHidden: () => void; onSelect: (mediaType: string, location: string) => void}>}).default
-  const {launchCameraAsync, launchImageLibraryAsync} = require('@/util/expo-image-picker') as {
-    launchCameraAsync: (mediaType: string) => Promise<{canceled: boolean; assets: Array<{uri: string}>}>
-    launchImageLibraryAsync: (mediaType: string, allowMultiple: boolean, allowVideo: boolean) => Promise<{canceled: boolean; assets: Array<{uri: string}>}>
-  }
-  const {pickDocumentsAsync} = require('@/util/expo-document-picker.native') as {
-    pickDocumentsAsync: (allowMultiple: boolean) => Promise<{canceled: boolean; assets: Array<{uri: string}>}>
-  }
-  const {filePickerError} = require('@/util/storeless-actions') as {filePickerError: (e: Error) => void}
 
   const {attachTo, showingPopup, hidePopup} = p
   const conversationIDKey = useConversationThreadID()
   const launchNativeImagePicker = (mediaType: string, location: string) => {
     const f = async () => {
-      const handleSelection = (result: {canceled: boolean; assets: Array<{uri: string}>}) => {
-        if (result.canceled || result.assets.length === 0) {
+      const mt = mediaType as 'photo' | 'video' | 'mixed'
+      const handleSelection = (result: {canceled: boolean; assets: Array<{uri: string}> | null}) => {
+        if (result.canceled || !result.assets || result.assets.length === 0) {
           return
         }
         const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
@@ -1122,7 +1088,7 @@ const NativeChatFilePicker = (p: NativeChatFilePickerProps) => {
       switch (location) {
         case 'camera':
           try {
-            const res = await launchCameraAsync(mediaType)
+            const res = await launchCameraAsync(mt)
             handleSelection(res)
           } catch (error) {
             filePickerError(new Error(String(error)))
@@ -1130,7 +1096,7 @@ const NativeChatFilePicker = (p: NativeChatFilePickerProps) => {
           break
         case 'library':
           try {
-            const res = await launchImageLibraryAsync(mediaType, true, true)
+            const res = await launchImageLibraryAsync(mt, true, true)
             handleSelection(res)
           } catch (error) {
             filePickerError(new Error(String(error)))
@@ -1171,14 +1137,7 @@ type NativeAnimatedInputProps = Omit<InputLowLevelProps, 'ref'> & {
   reservedHeight?: number
 }
 const NativeAnimatedInput = (() => {
-  const {skipAnimations, useSharedValue, useAnimatedStyle, withTiming, default: Animated} = require('@/common-adapters/reanimated') as {
-    skipAnimations: boolean
-    useSharedValue: (v: number) => {set: (v: number) => void; value: number}
-    useAnimatedStyle: (fn: () => object) => object
-    withTiming: (v: number | string) => number | string
-    default: {View: React.ComponentType<{style?: object | Array<object>; pointerEvents?: string; children?: React.ReactNode}>}
-  }
-  const {MaxInputAreaContext} = require('./max-input-area-context') as {MaxInputAreaContext: React.Context<number>}
+  const Animated = Reanimated
   if (skipAnimations) {
     return function NativeAnimatedInput(p: NativeAnimatedInputProps) {
       const {expanded: _expanded, inputRef, reservedHeight: _reservedHeight, ...rest} = p
@@ -1216,15 +1175,6 @@ const NativeAnimatedInput = (() => {
 })()
 
 const NativePlatformInput = (p: Props) => {
-  const {AudioSendWrapper} = require('@/chat/audio/audio-send.native') as {AudioSendWrapper: React.ComponentType<object>}
-  const {Keyboard} = require('react-native') as {Keyboard: {dismiss: () => void}}
-  const {onHWKeyPressed, removeOnHWKeyPressed} = require('react-native-kb') as {
-    onHWKeyPressed: (cb: (e: {pressedKey: string}) => void) => void
-    removeOnHWKeyPressed: () => void
-  }
-  const {standardTransformer} = require('../suggestors/common') as {standardTransformer: (text: string, opts: {position: {start: number | null; end: number | null}; text: string}, replaceWord: boolean) => TextInfo}
-  const logger = require('@/logger').default as {info: (s: string, ...args: unknown[]) => void}
-  const {MaxInputAreaContext} = require('./max-input-area-context') as {MaxInputAreaContext: React.Context<number>}
   type LayoutEvent = {nativeEvent: {layout: {height: number}}}
 
 
@@ -1329,17 +1279,15 @@ const NativePlatformInput = (p: Props) => {
     return () => {
       removeOnHWKeyPressed()
     }
-  }, [onQueueSubmit, onHWKeyPressed, removeOnHWKeyPressed, standardTransformer])
+  }, [onQueueSubmit])
 
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     switch (whichMenu.current) {
       case 'filepickerpopup':
         return <NativeChatFilePicker attachTo={attachTo} showingPopup={true} hidePopup={hidePopup} />
-      case 'moremenu': {
-        const MoreMenuPopup = (require('./moremenu-popup.native') as {default: React.ComponentType<{onHidden: () => void; visible: boolean}>}).default
+      case 'moremenu':
         return <MoreMenuPopup onHidden={hidePopup} visible={true} />
-      }
       default:
         return (
           <SetExplodingMessagePopup

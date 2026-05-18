@@ -5,6 +5,11 @@ import logger from '@/logger'
 import type {Props} from './index.shared'
 import {useData, usePreviewFallback} from './hooks'
 import type {StyleOverride} from '@/common-adapters/markdown'
+import {ShowToastAfterSaving} from '../messages/attachment/shared'
+import {Animated, View} from 'react-native'
+import {useSafeAreaFrame} from 'react-native-safe-area-context'
+import {Image} from 'expo-image'
+import {useVideoPlayer, VideoView} from 'expo-video'
 
 // Stub type to avoid DOM lib dependency in native tsconfig
 type VideoRef = {pause?: () => void}
@@ -168,10 +173,6 @@ const DesktopFullscreen = (p: Props) => {
 type GestureEvent = {
   nativeEvent: {touches: Array<unknown>; pageX: number}
 }
-type AnimatedValue = {
-  addListener?: (cb: (v: {value: number}) => void) => string
-  removeAllListeners?: () => void
-}
 
 const NativeFullscreenVideo = (p: {
   path: string
@@ -181,29 +182,6 @@ const NativeFullscreenVideo = (p: {
   onLoaded: () => void
 }) => {
   const {path, previewHeight, onTouchStart, onTouchEnd, onLoaded} = p
-
-  const {useVideoPlayer, VideoView} = require('expo-video') as {
-    useVideoPlayer: (uri: string) => {
-      addListener: (
-        event: string,
-        cb: (e: {status?: string; error?: unknown}) => void
-      ) => {remove: () => void}
-    }
-    VideoView: React.ComponentType<{
-      player: unknown
-      nativeControls?: boolean
-      contentFit?: string
-      style?: Kb.Styles.StylesCrossPlatform
-    }>
-  }
-  const {View} = require('react-native') as {
-    View: React.ComponentType<{
-      style?: Kb.Styles.StylesCrossPlatform
-      onTouchStart?: (e: GestureEvent) => void
-      onTouchEnd?: (e: GestureEvent) => void
-      children?: React.ReactNode
-    }>
-  }
 
   const sourceUri = `${path}&contentforce=true`
   const player = useVideoPlayer(sourceUri)
@@ -243,36 +221,13 @@ const NativeFullscreen = (p: Props) => {
   const {hasMessageID} = data
   const [loaded, setLoaded] = React.useState(false)
   const [showHeader, setShowHeader] = React.useState(_showHeader)
-  const fadeAnimRef = React.useRef<AnimatedValue | null>(null)
-  const [fadeAnim, setFadeAnim] = React.useState<AnimatedValue | null>(null)
-
-  const {ShowToastAfterSaving} = require('../messages/attachment/shared') as {
-    ShowToastAfterSaving: React.ComponentType<{transferState: unknown}>
-  }
-  const {Animated} = require('react-native') as {
-    Animated: {
-      Value: new (v: number) => AnimatedValue
-      View: React.ComponentType<{
-        style?: Array<Kb.Styles.StylesCrossPlatform | {opacity: AnimatedValue | number}>
-        children?: React.ReactNode
-      }>
-      timing: (
-        val: AnimatedValue,
-        opts: {toValue: number; duration: number; useNativeDriver: boolean}
-      ) => {start: () => void}
-    }
-  }
-  const {useSafeAreaFrame} = require('react-native-safe-area-context') as {
-    useSafeAreaFrame: () => {width: number; height: number}
-  }
-  const {Image} = require('expo-image') as {
-    Image: {prefetch: (path: string) => Promise<void>}
-  }
+  const fadeAnimRef = React.useRef<Animated.Value | null>(null)
+  const [fadeAnim, setFadeAnim] = React.useState<Animated.Value | null>(null)
 
   React.useEffect(() => {
     fadeAnimRef.current = new Animated.Value(1)
     setFadeAnim(fadeAnimRef.current)
-  }, [Animated])
+  }, [])
 
   React.useEffect(() => {
     if (fadeAnim) {
@@ -282,7 +237,7 @@ const NativeFullscreen = (p: Props) => {
         useNativeDriver: true,
       }).start()
     }
-  }, [showHeader, fadeAnim, Animated])
+  }, [showHeader, fadeAnim])
 
   const preload = (src: string, onLoad: () => void, onError: () => void) => {
     const f = async () => {
