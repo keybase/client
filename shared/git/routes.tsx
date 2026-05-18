@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as C from '@/constants'
-import type * as NavHeader from './nav-header'
+import * as NavHeader from './nav-header'
 import {defineRouteMap} from '@/constants/types/router'
 
 export const newRoutes = defineRouteMap({
@@ -10,7 +10,7 @@ export const newRoutes = defineRouteMap({
       getOptions: isMobile
         ? {title: 'Git'}
         : () => {
-            const {HeaderTitle, HeaderRightActions} = require('./nav-header') as typeof NavHeader
+            const {HeaderTitle, HeaderRightActions} = NavHeader
             return {
               headerRightActions: HeaderRightActions,
               headerTitle: HeaderTitle,

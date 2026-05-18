@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import type {ImageLoadEventData, ImageErrorEventData} from 'expo-image'
+import {Image as ExpoImage} from 'expo-image'
 import type {Props} from './image.shared'
 import LoadingStateView from './loading-state-view'
 
@@ -34,18 +35,7 @@ const DesktopImage = (p: Props) => {
   )
 }
 
-type ExpoImageProps = {
-  source: Props['src']
-  style?: Props['style']
-  onLoad?: (e?: ImageLoadEventData) => void
-  contentFit?: Props['contentFit']
-  onError?: (e?: ImageErrorEventData) => void
-  allowDownscaling?: boolean
-  recyclingKey?: string
-}
-
 const NativeImage = (p: Props) => {
-  const {Image: ExpoImage} = require('expo-image') as {Image: React.ComponentType<ExpoImageProps>}
   const {showLoadingStateUntilLoaded, src, onLoad, onError, style, contentFit = 'contain', allowDownscaling} = p
   const [loading, setLoading] = React.useState(!showLoadingStateUntilLoaded)
   const [lastSrc, setLastSrc] = React.useState(src)

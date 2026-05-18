@@ -3,7 +3,7 @@ import styleSheetCreateProxy, {type MapToStyles} from './style-sheet-proxy'
 import {themed, colors, darkColors} from './colors'
 import {StyleSheet, Dimensions} from 'react-native'
 import {useDarkModeState} from '@/stores/darkmode'
-import {isTablet} from '@/constants/platform'
+import {isTablet, getAssetPath} from '@/constants/platform'
 import type * as CSS from './css'
 
 // ─── Font definitions ─────────────────────────────────────────────────────────
@@ -152,7 +152,6 @@ export const transitionColor = () => (isMobile ? {} : {transition: 'background 0
 
 export const initDesktopStyles = () => {
   if (isMobile) return
-  const {getAssetPath} = require('@/constants/platform') as {getAssetPath: (...a: Array<string>) => string}
   const head = document.head
   const colorNames = Object.keys(colors).sort() as Array<keyof typeof colors>
   const colorVars = `

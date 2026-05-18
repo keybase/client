@@ -1,6 +1,7 @@
 import {isDebuggingInChrome} from '@/constants/platform'
 import skipAnimations from './skip-animations'
 import type * as R from 'react-native-reanimated'
+import * as rnrModule from 'react-native-reanimated'
 
 let useSharedValue: typeof R.useSharedValue
 let withRepeat: typeof R.withRepeat
@@ -16,7 +17,7 @@ let withSpring: typeof R.withSpring
 let useReducedMotion: typeof R.useReducedMotion
 
 if (isMobile && !skipAnimations) {
-  const rnr = require('react-native-reanimated') as typeof R
+  const rnr = rnrModule as unknown as typeof R
   Animated = rnr.default
   createAnimatedComponent = rnr.default.createAnimatedComponent
   useAnimatedStyle = rnr.useAnimatedStyle as typeof useAnimatedStyle

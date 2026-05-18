@@ -14,6 +14,7 @@ import {routeMapToScreenElements} from '@/router-v2/routes'
 import {makeLayout} from '@/router-v2/screen-layout'
 import type {RouteDef, GetOptionsParams} from '@/constants/types/router'
 import {defineRouteMap} from '@/constants/types/router'
+import LeftNav from './left-nav.desktop'
 
 const cryptoSubRoutes = defineRouteMap({
   [Crypto.decryptTab]: {
@@ -42,8 +43,6 @@ const cryptoSubRoutes = defineRouteMap({
   },
 })
 
-type LeftNavProps = {onClick: (tab: string) => void; selected: string}
-
 function LeftTabNavigator({
   initialRouteName,
   children,
@@ -52,7 +51,6 @@ function LeftTabNavigator({
 }: Parameters<typeof useNavigationBuilder>[1] & {
   backBehavior: 'initialRoute' | 'firstRoute' | 'history' | 'order' | 'none'
 }) {
-  const {default: LeftNav} = require('./left-nav.desktop') as {default: React.ComponentType<LeftNavProps>}
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,

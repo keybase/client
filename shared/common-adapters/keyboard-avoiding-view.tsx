@@ -1,26 +1,19 @@
 import type * as React from 'react'
 import type {Props} from './keyboard-avoiding-view.shared'
 import * as Styles from '@/styles'
+import {useHeaderHeight} from '@react-navigation/elements'
+import {KeyboardAvoidingView} from 'react-native-keyboard-controller'
 
 const DesktopKeyboardAvoidingView = (p: Props): React.ReactNode => p.children || null
 
 // Custom hook — only called when NativeKeyboardAvoidingView renders (mobile only)
 function useSafeHeaderHeight(): number {
-  const {useHeaderHeight} = require('@react-navigation/elements') as {useHeaderHeight: () => number}
   // useHeaderHeight throws when rendered outside a navigator; default to 0
   // eslint-disable-next-line react-hooks/rules-of-hooks
   try { return useHeaderHeight() } catch { return 0 }
 }
 
 const NativeKeyboardAvoidingView = (p: Props): React.ReactNode => {
-  type KAVType = React.ComponentType<{
-    behavior?: string
-    keyboardVerticalOffset?: number
-    pointerEvents?: string
-    style?: Styles.StylesCrossPlatform
-    children?: React.ReactNode
-  }>
-  const {KeyboardAvoidingView} = require('react-native-keyboard-controller') as {KeyboardAvoidingView: KAVType}
 
   const headerHeight = useSafeHeaderHeight()
   const {extraOffset, behavior, children} = p

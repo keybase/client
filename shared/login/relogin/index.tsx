@@ -4,6 +4,7 @@ import * as Kb from '@/common-adapters'
 import UserCard from '../user-card'
 import {errorBanner, SignupScreen} from '@/signup/common'
 import {isAndroidNewerThanM} from '@/constants/platform'
+import Dropdown from './dropdown.native'
 import type {Props} from './index.shared'
 
 // Desktop login
@@ -157,8 +158,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
 // Native login
 
 const NativeLoginRender = (props: Props) => {
-  type DropdownProps = {type: string; value: string; onClick: (option: string) => void; onOther: () => void; options: Props['users']}
-  const {default: Dropdown} = require('./dropdown.native') as {default: React.ComponentType<DropdownProps>}
   const [scrollViewHeight, setScrollViewHeight] = React.useState<number | undefined>(undefined)
   const inputProps = {
     autoFocus: true,

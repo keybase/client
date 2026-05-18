@@ -4,27 +4,29 @@ import {Box2} from '@/common-adapters/box'
 import {Keyboard} from 'react-native'
 import noop from 'lodash/noop'
 import type {Props} from './index.shared'
+import type {MeasureRef} from '../../measure-ref'
+import {Portal} from '../../portal.native'
 
 type RFBProps = {
-  attachTo: Props['attachTo']
-  disableEscapeKey: Props['disableEscapeKey']
-  position: string
-  positionFallbacks: Props['positionFallbacks']
-  matchDimension: boolean
+  attachTo?: React.RefObject<MeasureRef | null>
+  position: Styles.Position
+  positionFallbacks?: ReadonlyArray<Styles.Position>
+  matchDimension?: boolean
   onClosePopup: () => void
-  remeasureHint: Props['remeasureHint']
-  propagateOutsideClicks: Props['propagateOutsideClicks']
-  style: Props['containerStyle']
-  offset: Props['offset']
-  children?: React.ReactNode
+  propagateOutsideClicks?: boolean
+  remeasureHint?: number
+  style?: Styles.StylesCrossPlatform
+  children: React.ReactNode
+  disableEscapeKey?: boolean
+  offset?: number
 }
 
 const DesktopFloatingBox = (props: Props) => {
+  const {attachTo, disableEscapeKey, position, positionFallbacks, children, offset} = props
+  const {onHidden, remeasureHint, propagateOutsideClicks, containerStyle, matchDimension} = props
   const {RelativeFloatingBox} = require('./relative-floating-box.desktop') as {
     RelativeFloatingBox: React.ComponentType<RFBProps>
   }
-  const {attachTo, disableEscapeKey, position, positionFallbacks, children, offset} = props
-  const {onHidden, remeasureHint, propagateOutsideClicks, containerStyle, matchDimension} = props
 
   return (
     <RelativeFloatingBox
@@ -44,10 +46,7 @@ const DesktopFloatingBox = (props: Props) => {
   )
 }
 
-type PortalProps = {hostName?: string; children?: React.ReactNode}
-
 const NativeFloatingBox = (p: Props) => {
-  const {Portal} = require('../../portal.native') as {Portal: React.ComponentType<PortalProps>}
   const {hideKeyboard, children, containerStyle} = p
   const [lastHK, setLastHK] = React.useState(hideKeyboard)
   if (lastHK !== hideKeyboard) {
