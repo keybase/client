@@ -1,21 +1,38 @@
-import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import UnfurlImage from '../messages/text/unfurl/unfurl-list/image'
-import {getMargins, scaledWidth} from './width'
+import * as React from 'react'
 import {useHooks} from './hooks'
 
-const gridHeight = 100
+// Stub type to avoid dom lib dependency in native tsconfig
+type DivRef = {
+  getBoundingClientRect: () => DOMRect
+  clientWidth: number
+}
 
-const GiphySearch = () => {
+const DesktopGiphySearch = () => {
+  const {getMargins, scaledWidth} = require('./width') as {
+    getMargins: (w: number, widths: Array<number>) => Array<number>
+    scaledWidth: (w: number) => number
+  }
+  const UnfurlImage = (require('../messages/text/unfurl/unfurl-list/image') as {default: React.ComponentType<{
+    autoplayVideo: boolean
+    height: number
+    isVideo: boolean
+    onClick: () => void
+    style: object
+    url: string
+    width: number
+  }>}).default
+  const gridHeight = 100
   const props = useHooks()
   const [width, setWidth] = React.useState<number | undefined>(undefined)
-  const divRef = React.useRef<HTMLDivElement>(null)
+  const divRef = React.useRef<DivRef | null>(null)
   const learnMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/chat/linkpreviews')
 
   React.useEffect(() => {
     if (!divRef.current) return
-    const cs = getComputedStyle(divRef.current)
-    setWidth(divRef.current.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight))
+    const gc = (globalThis as {getComputedStyle?: (el: unknown) => {paddingLeft: string; paddingRight: string}}).getComputedStyle
+    const cs = gc?.(divRef.current)
+    setWidth(divRef.current.clientWidth - parseFloat(cs?.paddingLeft ?? '0') - parseFloat(cs?.paddingRight ?? '0'))
   }, [])
 
   let margins: Array<number> = []
@@ -32,7 +49,7 @@ const GiphySearch = () => {
     <Kb.Box2 direction="vertical" relative={true} style={styles.outerContainer}>
       <Kb.Box2
         direction="vertical"
-        ref={divRef}
+        ref={divRef as React.RefObject<DivRef>}
         style={Kb.Styles.collapseStyles([
           styles.scrollContainer,
           Kb.Styles.platformStyles({isElectron: {overflowY: width ? 'auto' : 'scroll'}}),
@@ -89,6 +106,53 @@ const GiphySearch = () => {
   )
 }
 
+const NativeGiphySearch = () => {
+  const {colors, darkColors} = require('@/styles/colors') as {
+    colors: Record<string, string>
+    darkColors: Record<string, string>
+  }
+  const {WebView} = require('react-native-webview') as {WebView: React.ComponentType<{
+    onMessage: () => void
+    injectedJavaScript: string
+    allowsInlineMediaPlayback: boolean
+    source: {uri: string}
+    automaticallyAdjustContentInsets: boolean
+    mediaPlaybackRequiresUserAction: boolean
+  }>}
+  const {useColorScheme} = require('react-native') as {useColorScheme: () => string | null}
+  const noop = (require('lodash/noop') as {default: () => void}).default
+
+  const p = useHooks()
+  const source = {uri: p.galleryURL}
+  const darkMode = useColorScheme() === 'dark'
+  const injectedJavaScript = `
+(function() {
+    window.document.querySelector("body").style.backgroundColor = "${
+      darkMode ? darkColors['white'] : colors['white']
+    }";
+})();
+`
+
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={nativeStyles.container}>
+      {p.previews ? (
+        <WebView
+          onMessage={noop}
+          injectedJavaScript={injectedJavaScript}
+          allowsInlineMediaPlayback={true}
+          source={source}
+          automaticallyAdjustContentInsets={false}
+          mediaPlaybackRequiresUserAction={false}
+        />
+      ) : (
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
+          <Kb.ProgressIndicator />
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
+  )
+}
+
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
@@ -116,7 +180,6 @@ const styles = Kb.Styles.styleSheetCreate(
           lineHeight: 17,
         },
       }),
-
       loadingContainer: {
         minHeight: 200,
       },
@@ -144,4 +207,11 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default GiphySearch
+const nativeStyles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {height: 80},
+    }) as const
+)
+
+export default isMobile ? NativeGiphySearch : DesktopGiphySearch

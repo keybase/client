@@ -1,5 +1,7 @@
 import * as C from '@/constants'
+import * as Chat from '@/constants/chat'
 import * as React from 'react'
+import * as RowSizes from './row/sizes'
 import type * as T from '@/constants/types'
 import {useChosenChannelsTeamnames} from '@/chat/conversation/manage-channels-badge'
 import {PerfProfiler} from '@/perf/react-profiler'
@@ -19,42 +21,57 @@ import ConnectedTeamsDivider from './row/teams-divider-container'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '@/common-adapters'
 import type {LegendListRef} from '@/common-adapters'
-import {createPortal} from 'react-dom'
 import {inboxWidth, smallRowHeight, getRowHeight} from './row/sizes'
 import {makeRow} from './row'
 import type {InboxSearchController} from './use-inbox-search'
 import {useInboxSearch} from './use-inbox-search'
 import {useInboxState} from './use-inbox-state'
-import './inbox.css'
+
+// Stub types to avoid dom lib dependency in native tsconfig
+type InboxDivRef = {
+  firstElementChild: InboxDivRef | null
+  getBoundingClientRect: () => DOMRect
+  scrollTop: number
+  scrollBy: (opts: {behavior?: string; top: number}) => void
+  addEventListener: (event: string, handler: (e: InboxDragEvent) => void) => void
+  removeEventListener: (event: string, handler: (e: InboxDragEvent) => void) => void
+}
+type InboxDragEvent = {
+  preventDefault: () => void
+  dataTransfer?: {types: Array<string>; setData: (key: string, val: string) => void}
+  clientY: number
+}
+
+// Desktop-only: DragLine + FakeRow + FakeRemovingRow
 
 const widths = [10, 80, 2, 66]
 const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]!
 
-const FakeRow = ({idx}: {idx: number}) => (
-  <Kb.Box2 direction="horizontal" style={styles.fakeRow}>
-    <Kb.Box2 direction="vertical" style={styles.fakeAvatar} />
-    <Kb.Box2 direction="vertical" justifyContent="space-around" flex={1} style={styles.fakeText}>
+const DesktopFakeRow = ({idx}: {idx: number}) => (
+  <Kb.Box2 direction="horizontal" style={desktopStyles.fakeRow}>
+    <Kb.Box2 direction="vertical" style={desktopStyles.fakeAvatar} />
+    <Kb.Box2 direction="vertical" justifyContent="space-around" flex={1} style={desktopStyles.fakeText}>
       <Kb.Box2
         direction="vertical"
-        style={Kb.Styles.collapseStyles([styles.fakeTextTop, {width: stableWidth(idx) / 4}])}
+        style={Kb.Styles.collapseStyles([desktopStyles.fakeTextTop, {width: stableWidth(idx) / 4}])}
         alignSelf="flex-start"
       />
       <Kb.Box2
         direction="vertical"
-        style={Kb.Styles.collapseStyles([styles.fakeTextBottom, {width: stableWidth(idx)}])}
+        style={Kb.Styles.collapseStyles([desktopStyles.fakeTextBottom, {width: stableWidth(idx)}])}
         alignSelf="flex-start"
       />
     </Kb.Box2>
   </Kb.Box2>
 )
 
-const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow} />
+const DesktopFakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={desktopStyles.fakeRemovingRow} />
 
 const dragKey = 'application/keybase_inbox'
 
-const DragLine = (p: {
+const DesktopDragLine = (p: {
   rows: ReadonlyArray<RowItem>
-  scrollDiv: React.RefObject<HTMLDivElement | null>
+  scrollDiv: React.RefObject<InboxDivRef | null>
   inboxNumSmallRows: number
   showButton: boolean
   hiddenCount: number
@@ -62,6 +79,7 @@ const DragLine = (p: {
   toggleSmallTeamsExpanded: () => void
   setInboxNumSmallRows: (n: number) => void
 }) => {
+  const {createPortal} = require('react-dom') as {createPortal: (node: React.ReactNode, container: Element) => React.ReactPortal}
   const {rows, inboxNumSmallRows, showButton, scrollDiv, hiddenCount} = p
   const {smallTeamsExpanded, toggleSmallTeamsExpanded, setInboxNumSmallRows} = p
   const [dragY, setDragY] = React.useState(-1)
@@ -94,14 +112,14 @@ const DragLine = (p: {
     if (!d) {
       return
     }
-    const onDragOver = (e: DragEvent) => {
+    const onDragOver = (e: InboxDragEvent) => {
       e.preventDefault()
       if (
         scrollDiv.current &&
         (e.dataTransfer?.types.length ?? 0) > 0 &&
         e.dataTransfer?.types[0] === dragKey
       ) {
-        const scrollableDiv = scrollDiv.current.firstElementChild as HTMLDivElement | null
+        const scrollableDiv = scrollDiv.current.firstElementChild as InboxDivRef | null
         if (scrollableDiv) {
           const dy = e.clientY - scrollDiv.current.getBoundingClientRect().top + scrollableDiv.scrollTop
           const dvt = inboxNumSmallRows * smallRowHeight - scrollableDiv.scrollTop
@@ -109,7 +127,7 @@ const DragLine = (p: {
         }
       }
     }
-    const onDrop = (e: DragEvent) => {
+    const onDrop = (e: InboxDragEvent) => {
       e.preventDefault()
       goodDropRef.current = true
     }
@@ -121,8 +139,8 @@ const DragLine = (p: {
     }
   }, [scrollDiv, throttledDragUpdate, inboxNumSmallRows])
 
-  const onDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    e.dataTransfer.setData(dragKey, dragKey)
+  const onDragStart = (e: React.DragEvent) => {
+    ;(e.dataTransfer as unknown as {setData: (k: string, v: string) => void}).setData(dragKey, dragKey)
     goodDropRef.current = false
   }
   const onDragEnd = () => {
@@ -146,7 +164,7 @@ const DragLine = (p: {
           <Kb.Box2
             direction="vertical"
             style={Kb.Styles.collapseStyles([
-              styles.fakeRowContainer,
+              desktopStyles.fakeRowContainer,
               {
                 height: (expandingRows.length || removingRows.length) * smallRowHeight,
                 top: overlayTop,
@@ -154,18 +172,18 @@ const DragLine = (p: {
             ])}
           >
             {expandingRows.map((_, idx) => (
-              <FakeRow idx={idx} key={idx} />
+              <DesktopFakeRow idx={idx} key={idx} />
             ))}
             {removingRows.map((_, idx) => (
-              <FakeRemovingRow key={idx} />
+              <DesktopFakeRemovingRow key={idx} />
             ))}
           </Kb.Box2>,
-          scrollDiv.current
+          scrollDiv.current as unknown as Element
         )
       : null
 
   return (
-    <div style={styles.dragLineWrapper}>
+    <div style={desktopStyles.dragLineWrapper}>
       {showButton && !smallTeamsExpanded && (
         <>
           <div
@@ -173,15 +191,15 @@ const DragLine = (p: {
             draggable={true}
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
-            style={Kb.Styles.castStyleDesktop(styles.grabber)}
+            style={Kb.Styles.castStyleDesktop(desktopStyles.grabber)}
           >
-            <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
-              <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
-              <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
-              <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+            <Kb.Box2 className="grabLines" direction="vertical" style={desktopStyles.grabberLineContainer}>
+              <Kb.Box2 direction="horizontal" style={desktopStyles.grabberLine} />
+              <Kb.Box2 direction="horizontal" style={desktopStyles.grabberLine} />
+              <Kb.Box2 direction="horizontal" style={desktopStyles.grabberLine} />
             </Kb.Box2>
           </div>
-          <Kb.Box2 direction="vertical" style={styles.spacer} />
+          <Kb.Box2 direction="vertical" style={desktopStyles.spacer} />
         </>
       )}
       <ConnectedTeamsDivider
@@ -197,6 +215,55 @@ const DragLine = (p: {
     </div>
   )
 }
+
+// Native-only components
+
+const NativeNoChats = (props: {onNewChat: () => void}) => (
+  <>
+    <Kb.Box2
+      direction="vertical"
+      gapStart={true}
+      gap="small"
+      justifyContent="flex-end"
+      style={nativeStyles.noChatsContainer}
+    >
+      <Kb.ImageIcon type="icon-fancy-encrypted-phone-mobile-226-96" />
+      <Kb.Box2 direction="vertical">
+        <Kb.Text type="BodySmall" center={true}>
+          All conversations are
+        </Kb.Text>
+        <Kb.Text type="BodySmall" center={true}>
+          end-to-end encrypted.
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.Box2>
+    <Kb.Box2 direction="vertical" gapStart={true} gap="medium" style={nativeStyles.newChat}>
+      <Kb.Button
+        fullWidth={true}
+        onClick={props.onNewChat}
+        mode="Primary"
+        label="Start a new chat"
+        style={nativeStyles.button}
+      />
+    </Kb.Box2>
+  </>
+)
+
+const NativeNoRowsBuildTeam = () => {
+  const isLoading = C.useWaitingState(s => [...s.counts.keys()].some(k => k.startsWith('chat:')))
+  return isLoading ? null : <BuildTeam />
+}
+
+const NativeLoadingLine = () => {
+  const isLoading = C.Waiting.useAnyWaiting([C.waitingKeyChatInboxRefresh, C.waitingKeyChatInboxSyncStarted])
+  return isLoading ? (
+    <Kb.Box2 direction="vertical" style={nativeStyles.loadingContainer}>
+      <Kb.LoadingLine />
+    </Kb.Box2>
+  ) : null
+}
+
+// Shared types
 
 type InboxProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
@@ -218,7 +285,8 @@ function InboxWithSearch(props: {
   return <InboxBody conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} search={search} />
 }
 
-function InboxBody(props: ControlledInboxProps) {
+// Desktop InboxBody
+function DesktopInboxBody(props: ControlledInboxProps) {
   const {conversationIDKey, refreshInbox, search} = props
   const inbox = useInboxState(conversationIDKey, search.isSearching, refreshInbox)
   const {smallTeamsExpanded, rows, unreadIndices, unreadTotal, inboxNumSmallRows} = inbox
@@ -230,7 +298,7 @@ function InboxBody(props: ControlledInboxProps) {
     [chosenChannelsTeamnames, selectedConversationIDKey]
   )
 
-  const scrollDiv = React.useRef<HTMLDivElement | null>(null)
+  const scrollDiv = React.useRef<InboxDivRef | null>(null)
   const listRef = React.useRef<LegendListRef | null>(null)
 
   const getSize = React.useCallback(
@@ -242,8 +310,6 @@ function InboxBody(props: ControlledInboxProps) {
     useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal, getSize})
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 200)
 
-  // onViewableItemsChanged doesn't fire on initial render, only on scroll.
-  // Unbox the initially visible rows when rows first become available.
   const didInitialUnboxRef = React.useRef(false)
   React.useEffect(() => {
     if (didInitialUnboxRef.current || rows.length === 0) return
@@ -273,7 +339,7 @@ function InboxBody(props: ControlledInboxProps) {
       toggleSmallTeamsExpanded()
     }
 
-    const scrollableDiv = scrollDiv.current.firstElementChild as HTMLDivElement | null
+    const scrollableDiv = scrollDiv.current.firstElementChild as InboxDivRef | null
     if (!scrollableDiv) return
 
     const top = inboxNumSmallRows * smallRowHeight
@@ -288,7 +354,7 @@ function InboxBody(props: ControlledInboxProps) {
   const renderItem = (_index: number, item: RowItem): React.ReactElement | null => {
     if (item.type === 'divider') {
       return (
-        <DragLine
+        <DesktopDragLine
           rows={rows}
           scrollDiv={scrollDiv}
           inboxNumSmallRows={inboxNumSmallRows}
@@ -313,12 +379,12 @@ function InboxBody(props: ControlledInboxProps) {
 
   return (
     <Kb.ErrorBoundary>
-      <Kb.Box2 direction="vertical" className="inbox-hover-container" style={styles.container}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
+      <Kb.Box2 direction="vertical" className="inbox-hover-container" style={desktopStyles.container}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={desktopStyles.body}>
           {search.isSearching ? (
             <InboxSearch search={search} />
           ) : (
-            <div data-testid="inbox-list" style={styles.list} ref={scrollDiv}>
+            <div data-testid="inbox-list" style={desktopStyles.list} ref={scrollDiv as React.RefObject<HTMLDivElement>}>
               {rows.length ? (
                 <Kb.List
                   items={rows}
@@ -347,6 +413,170 @@ function InboxBody(props: ControlledInboxProps) {
   )
 }
 
+// Native InboxBody
+function NativeInboxBody(p: ControlledInboxProps) {
+  const SearchRow = (require('./search-row') as {default: React.ComponentType<{search: InboxSearchController; showSearch: boolean}>}).default
+  const {useOpenedRowState} = require('./row/opened-row-state') as {
+    useOpenedRowState: <T>(s: (state: {dispatch: {setOpenRow: (id: string) => void}}) => T) => T
+  }
+  const {Alert} = require('react-native') as {
+    Alert: {
+      prompt: (title: string, message: string, cb: (s: string) => void, type: string, defaultValue: string) => void
+    }
+  }
+
+  const {search} = p
+  const inbox = useInboxState(p.conversationIDKey, search.isSearching, p.refreshInbox)
+  const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
+  const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
+  const {neverLoaded, onNewChat, inboxNumSmallRows, setInboxNumSmallRows} = inbox
+  const headComponent = C.isTablet ? null : <SearchRow search={search} showSearch={isMobile} />
+  const chosenChannelsTeamnames = useChosenChannelsTeamnames()
+  const listExtraData = React.useMemo(
+    () => ({
+      chosenChannelsTeamnames,
+      selectedConversationIDKey: C.isTablet ? selectedConversationIDKey : undefined,
+    }),
+    [chosenChannelsTeamnames, selectedConversationIDKey]
+  )
+
+  const listRef = React.useRef<LegendListRef | null>(null)
+
+  const getSize = React.useCallback((item: RowItem) => {
+    switch (item.type) {
+      case 'small': return RowSizes.smallRowHeight
+      case 'big': return RowSizes.bigRowHeight
+      case 'bigHeader': return RowSizes.bigHeaderHeight
+      case 'divider': return RowSizes.dividerHeight(item.showButton)
+      case 'teamBuilder': return 120
+    }
+  }, [])
+
+  const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} =
+    useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal, getSize})
+  const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 1000)
+
+  const itemHeight = {getSize, type: 'perItem' as const}
+
+  const renderItem = (_index: number, item: RowItem): React.ReactElement | null => {
+    const row = item
+    let element: React.ReactElement | null
+    if (row.type === 'divider') {
+      element = (
+        <ConnectedTeamsDivider
+          rows={rows}
+          showButton={row.showButton}
+          hiddenCount={row.hiddenCount}
+          toggle={toggleSmallTeamsExpanded}
+          smallTeamsExpanded={smallTeamsExpanded}
+        />
+      )
+    } else if (row.type === 'teamBuilder') {
+      element = <BuildTeam />
+    } else {
+      const isSelected = 'conversationIDKey' in row && selectedConversationIDKey === row.conversationIDKey
+      element = makeRow(row, isSelected, chosenChannelsTeamnames)
+    }
+
+    return <PerfProfiler id={`InboxRow-${row.type}`}>{element}</PerfProfiler>
+  }
+
+  const onViewChanged = (data: ViewableItemsData) => {
+    onScrollUnbox(data)
+    applyUnreadAndFloating()
+  }
+
+  const setOpenRow = useOpenedRowState(s => s.dispatch.setOpenRow)
+
+  C.Router2.useSafeFocusEffect(() => {
+    setOpenRow(Chat.noConversationIDKey)
+  })
+
+  const promptSmallTeamsNum = React.useCallback(() => {
+    if (isIOS) {
+      Alert.prompt(
+        'Change shown',
+        'Number of conversations to show above this button',
+        ns => {
+          const n = parseInt(ns, 10)
+          if (n > 0) {
+            setInboxNumSmallRows(n)
+          }
+        },
+        'plain-text',
+        String(inboxNumSmallRows)
+      )
+    }
+  }, [Alert, inboxNumSmallRows, setInboxNumSmallRows])
+
+  const scrollToBigTeams = React.useCallback(() => {
+    if (smallTeamsExpanded) {
+      toggleSmallTeamsExpanded()
+    }
+    void listRef.current?.scrollToIndex({animated: true, index: inboxNumSmallRows, viewPosition: 0.5})
+  }, [inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded])
+
+  const renderFloatingDivider = React.useCallback(
+    (inlineLayout = false) => (
+      <BigTeamsDivider
+        inlineLayout={inlineLayout}
+        toggle={scrollToBigTeams}
+        onEdit={isIOS ? promptSmallTeamsNum : undefined}
+      />
+    ),
+    [promptSmallTeamsNum, scrollToBigTeams]
+  )
+  const showFloatingDivider = showFloating && !isSearching && allowShowFloatingButton
+
+  const noChats = !neverLoaded && !isSearching && !rows.length && <NativeNoChats onNewChat={onNewChat} />
+
+  return (
+    <Kb.ErrorBoundary>
+      <PerfProfiler id="Inbox">
+        <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.container}>
+          <NativeLoadingLine />
+          {isSearching ? (
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <InboxSearch header={headComponent} search={search} />
+            </Kb.Box2>
+          ) : (
+            <Kb.List
+              testID="inboxList"
+              ListHeaderComponent={headComponent}
+              items={rows}
+              itemHeight={itemHeight}
+              estimatedItemHeight={64}
+              getItemType={getItemType}
+              recycleItems={true}
+              keyExtractor={keyExtractor}
+              keyboardShouldPersistTaps="handled"
+              onViewableItemsChanged={onViewChanged}
+              viewabilityConfig={viewabilityConfig}
+              ref={listRef}
+              renderItem={renderItem}
+              drawDistance={250}
+              extraData={listExtraData}
+            />
+          )}
+          {noChats}
+          {showFloatingDivider ? (
+            <Kb.BottomAccessory>{renderFloatingDivider(true)}</Kb.BottomAccessory>
+          ) : (
+            rows.length === 0 && !neverLoaded && <NativeNoRowsBuildTeam />
+          )}
+          {showUnread && !isSearching && !showFloating && (
+            <UnreadShortcut onClick={scrollToUnread} unreadCount={unreadCount} />
+          )}
+        </Kb.Box2>
+      </PerfProfiler>
+    </Kb.ErrorBoundary>
+  )
+}
+
+function InboxBody(props: ControlledInboxProps) {
+  return isMobile ? <NativeInboxBody {...props} /> : <DesktopInboxBody {...props} />
+}
+
 function Inbox(props: InboxProps) {
   return props.search ? (
     <InboxBody conversationIDKey={props.conversationIDKey} refreshInbox={props.refreshInbox} search={props.search} />
@@ -355,7 +585,7 @@ function Inbox(props: InboxProps) {
   )
 }
 
-const styles = Kb.Styles.styleSheetCreate(
+const desktopStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       body: {
@@ -464,6 +694,42 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 8,
         position: 'absolute',
         width: '100%',
+      },
+    }) as const
+)
+
+const nativeStyles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      button: {width: '100%'},
+      container: Kb.Styles.platformStyles({
+        common: {
+          flexGrow: 1,
+          position: 'relative',
+        },
+        isTablet: {
+          backgroundColor: Kb.Styles.globalColors.blueGrey,
+          maxWidth: Kb.Styles.globalStyles.mediumSubNavWidth,
+        },
+      }),
+      loadingContainer: {
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        zIndex: 1000,
+      },
+      newChat: {
+        ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+        flexShrink: 0,
+        width: '100%',
+      },
+      noChatsContainer: {
+        alignItems: 'center',
+        paddingBottom: Kb.Styles.globalMargins.large,
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+        paddingTop: Kb.Styles.globalMargins.large,
       },
     }) as const
 )
