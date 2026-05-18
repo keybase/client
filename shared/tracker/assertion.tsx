@@ -64,10 +64,10 @@ const Container = (ownProps: OwnProps) => {
   const onCreateProof = notAUser ? undefined : isSuggestion ? _onCreateProof : undefined
 
   const openProof = () => {
-    openUrl(proofURL)
+    void openUrl(proofURL)
   }
   const openSite = () => {
-    openUrl(siteURL)
+    void openUrl(siteURL)
   }
 
   const onShowProof = notAUser || !proofURL ? undefined : openProof

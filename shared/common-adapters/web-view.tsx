@@ -126,7 +126,7 @@ const WebView = (props: WebViewProps) => {
                     return true
                   }
                   if (request.navigationType === 'click') {
-                    openURL(request.url)
+                    void openURL(request.url)
                   }
                   return false
                 }

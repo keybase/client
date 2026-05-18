@@ -25,7 +25,7 @@ const Container = (ownProps: OwnProps) => {
   const navigateToInbox = C.Router2.navigateToInbox
   const onConfirm = () => {
     if (url) {
-      openURL(url)
+      void openURL(url)
     }
 
     switch (appLink) {

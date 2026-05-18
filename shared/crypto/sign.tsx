@@ -135,7 +135,7 @@ const SignOutputBanner = ({state}: {state: CommonOutputRouteParams}) => (
   <OutputInfoBanner outputStatus={state.outputStatus}>
     <Kb.Text type="BodySmallSemibold" center={true}>
       This is your signed {state.outputType === 'file' ? 'file' : 'message'}, using{' '}
-      <Kb.Text type="BodySecondaryLink" underline={true} onClick={() => openURL(Crypto.saltpackDocumentation)}>
+      <Kb.Text type="BodySecondaryLink" underline={true} onClick={() => { void openURL(Crypto.saltpackDocumentation) }}>
         Saltpack
       </Kb.Text>
       . Anyone who has it can verify you signed it.

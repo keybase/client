@@ -12,15 +12,13 @@ const desktopOnlySet = new Set(desktopOnlyModules)
 
 config.resolver = {
   ...config.resolver,
-  assetExts: [...config.resolver.assetExts, 'css'],
-  sourceExts: [...config.resolver.sourceExts, 'css'],
   extraNodeModules: ignoredModules.reduce((acc, name) => {
     acc[name] = nullModule
     return acc
   }, {}),
   resolveRequest: (context, moduleName, platform) => {
-    // Null out desktop-only packages and any explicit .desktop platform imports
-    if (desktopOnlySet.has(moduleName) || moduleName.endsWith('.desktop')) {
+    // Null out desktop-only packages, explicit .desktop platform imports, and CSS (desktop-only)
+    if (desktopOnlySet.has(moduleName) || moduleName.endsWith('.desktop') || moduleName.endsWith('.css')) {
       return {type: 'sourceFile', filePath: nullModule}
     }
     return context.resolveRequest(context, moduleName, platform)

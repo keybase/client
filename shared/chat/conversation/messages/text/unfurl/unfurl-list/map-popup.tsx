@@ -28,7 +28,7 @@ const UnfurlMapPopupInner = (props: Props) => {
   }
   const onViewURL = () => {
     onClose()
-    openURL(url)
+    void openURL(url)
   }
   const onStopSharing = () => {
     onClose()

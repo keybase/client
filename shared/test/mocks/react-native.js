@@ -16,6 +16,7 @@ exports.StyleSheet = {
 }
 
 exports.NativeModules = {}
+exports.TurboModuleRegistry = {get: () => null, getEnforcing: () => ({})}
 exports.findNodeHandle = () => null
 
 // Minimal Animated stub — needed by @react-navigation/elements which calls

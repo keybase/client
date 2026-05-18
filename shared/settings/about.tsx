@@ -14,14 +14,14 @@ const About = () => {
         params: {title: 'Privacy Policy', url: privacyPolicy},
       })
     } else {
-      openUrl(privacyPolicy)
+      void openUrl(privacyPolicy)
     }
   }
   const onShowTerms = () => {
     if (isMobile) {
       navigateAppend({name: 'webLinks', params: {title: 'Terms', url: terms}})
     } else {
-      openUrl(terms)
+      void openUrl(terms)
     }
   }
 

@@ -28,7 +28,7 @@ function NewCard(outerProps: Props) {
         text: 'Use this chat to store secure notes such as credit card numbers, passwords, or secret keys.',
       }
     : {
-        action: () => openUrl('https://book.keybase.io/docs/chat/crypto'),
+        action: () => { void openUrl('https://book.keybase.io/docs/chat/crypto') },
         icon: iconEncrypted,
         label: 'Read more',
         text: 'This conversation is end-to-end encrypted.',

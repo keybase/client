@@ -304,7 +304,7 @@ const Container = ({platform, reason = 'profile'}: Props) => {
                     service: genericService ?? '',
                     username: currentUsernameRef.current,
                   })
-                  openUrl(proof)
+                  void openUrl(proof)
                   afterCheckProofRef.current()
                 }
               },
@@ -547,7 +547,7 @@ const Container = ({platform, reason = 'profile'}: Props) => {
             onCancel={closeModal}
             onSubmit={username => {
               if (step.proofUrl) {
-                openUrl(step.proofUrl)
+                void openUrl(step.proofUrl)
                 return
               }
               currentUsernameRef.current = username
@@ -978,7 +978,7 @@ const PostProof = ({
                 onClick={() => {
                   setShowSubmit(true)
                   if (url) {
-                    openUrl(url)
+                    void openUrl(url)
                   }
                 }}
                 label={proofActionText}

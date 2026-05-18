@@ -49,10 +49,10 @@ const RenderError = ({route}: Props) => {
     navigateUp()
   }
   const onKBHome = () => {
-    openURL('https://keybase.io/')
+    void openURL('https://keybase.io/')
   }
   const onPasswordReset = () => {
-    openURL('https://keybase.io/#password-reset')
+    void openURL('https://keybase.io/#password-reset')
   }
   const onAccountReset = () => _onAccountReset(username)
 

@@ -405,7 +405,7 @@ const EncryptOutputBanner = ({
         outputType === 'file' ? 'file' : 'message',
         ', using ',
         {
-          onClick: () => openURL(Crypto.saltpackDocumentation),
+          onClick: () => { void openURL(Crypto.saltpackDocumentation) },
           text: 'Saltpack',
         },
         '.',

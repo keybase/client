@@ -15,7 +15,7 @@ export const InfoIcon = (props: InfoIconProps) => {
   const navigateAppend = C.Router2.navigateAppend
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
-    const onDocumentation = () => openURL('https://book.keybase.io/docs')
+    const onDocumentation = () => { void openURL('https://book.keybase.io/docs') }
     const onFeedback = () => {
       navigateAppend({
         name: loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut',

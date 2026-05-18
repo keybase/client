@@ -94,7 +94,7 @@ function ConnectedRow(ownProps: OwnProps) {
 
   const onClickDevice = () => {
     if (lastEditUser) {
-      openURL(`https://keybase.io/${lastEditUser}/devices`)
+      void openURL(`https://keybase.io/${lastEditUser}/devices`)
     }
   }
 

@@ -7,7 +7,7 @@ import upperFirst from 'lodash/upperFirst'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {createNewTeamAndNavigate} from '@/teams/team-page-actions'
 
-const openSubteamInfo = () => openUrl('https://book.keybase.io/docs/teams/design')
+const openSubteamInfo = () => { void openUrl('https://book.keybase.io/docs/teams/design') }
 
 type Props = {
   baseTeam?: string // if set we're creating a subteam of this teamname

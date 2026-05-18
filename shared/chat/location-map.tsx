@@ -33,7 +33,7 @@ const LocationMap = (props: Props) => {
           bannerColor="white"
           content={[
             'Your location is protected. ',
-            {onClick: () => openURL('https://book.keybase.io/docs/chat/location'), text: 'Learn more'},
+            {onClick: () => { void openURL('https://book.keybase.io/docs/chat/location') }, text: 'Learn more'},
           ]}
         />
       </Kb.Banner>

@@ -121,7 +121,7 @@ const WebAuthTokenLogin = () => {
     generateWebAuthToken(
       [undefined],
       link => {
-        openURL(link)
+        void openURL(link)
       },
       () => {}
     )
