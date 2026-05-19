@@ -26,7 +26,7 @@ type RoutableProps = {
 }
 
 // don't prefill on mobile since it's always a long random string.
-const filePathToDefaultAlias = Kb.Styles.isMobile
+const filePathToDefaultAlias = isMobile
   ? () => ''
   : (path: string) => {
       const name = T.FS.getLocalPathName(path)
@@ -170,7 +170,7 @@ export const AddEmojiModal = (props: Props) => {
   const hasEmojis = emojisToAdd.length > 0
   const navigation = useNavigation()
   React.useEffect(() => {
-    if (!Kb.Styles.isMobile) return
+    if (!isMobile) return
     if (hasEmojis) {
       navigation.setOptions({
         headerLeft: () => (
@@ -193,8 +193,8 @@ export const AddEmojiModal = (props: Props) => {
     <Modal
       bannerImage="icon-illustration-emoji-add-460-96"
       desktopHeight={537}
-      footerButtonLabel={Kb.Styles.isMobile ? 'Choose Images' : undefined}
-      footerButtonOnClick={Kb.Styles.isMobile ? pick : undefined}
+      footerButtonLabel={isMobile ? 'Choose Images' : undefined}
+      footerButtonOnClick={isMobile ? pick : undefined}
     >
       <AddEmojiPrompt addFiles={addFiles} />
     </Modal>
@@ -257,7 +257,7 @@ const AddEmojiPrompt = (props: AddEmojiPromptProps) => {
       style={styles.contentContainer}
       gap="small"
     >
-      {Kb.Styles.isMobile ? (
+      {isMobile ? (
         <Kb.Text type="Body" center={true}>
           Choose images from your library
         </Kb.Text>
@@ -274,7 +274,7 @@ const AddEmojiPrompt = (props: AddEmojiPromptProps) => {
           </Kb.Text>
         </Kb.Box2>
       )}
-      {!Kb.Styles.isMobile && (
+      {!isMobile && (
         <Kb.Box2
           direction="vertical"
           style={Kb.Styles.collapseStyles([styles.dropArea, dragOver && styles.dropAreaDragOver])}
@@ -407,8 +407,8 @@ const AddEmojiAliasAndConfirm = (props: AddEmojiAliasAndConfirmProps) => {
   )
 }
 
-const emojiToAddRowHeightNoError = Kb.Styles.isMobile ? 48 : 40
-const emojiToAddRowHeightWithError = Kb.Styles.isMobile ? 70 : 60
+const emojiToAddRowHeightNoError = isMobile ? 48 : 40
+const emojiToAddRowHeightWithError = isMobile ? 70 : 60
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   addEmojiIconContainer: Kb.Styles.platformStyles({

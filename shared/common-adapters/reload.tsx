@@ -39,7 +39,7 @@ function Reload(props: ReloadProps) {
   const toggle = () => setExpanded(e => !e)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.style}>
-      {Styles.isMobile && props.onBack && (
+      {isMobile && props.onBack && (
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.header}>
           <Kb.BackButton onClick={props.onBack} />
           <Kb.Box2 direction="horizontal" centerChildren={true} flex={1}>

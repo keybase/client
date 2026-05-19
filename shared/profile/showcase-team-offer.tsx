@@ -24,9 +24,9 @@ const Container = () => {
   return (
     <>
       <Kb.Box2 direction="vertical" style={styles.container}>
-        {!Kb.Styles.isMobile && <ShowcaseTeamOfferHeader />}
+        {!isMobile && <ShowcaseTeamOfferHeader />}
         <Kb.ScrollView>
-          {Kb.Styles.isMobile && <ShowcaseTeamOfferHeader />}
+          {isMobile && <ShowcaseTeamOfferHeader />}
           {sortedTeams.map(teamMeta => (
             <TeamRow
               key={teamMeta.id}
@@ -64,7 +64,7 @@ const TeamRow = (p: RowProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
-        <Kb.Avatar isTeam={true} size={Kb.Styles.isMobile ? 48 : 32} teamname={name} />
+        <Kb.Avatar isTeam={true} size={isMobile ? 48 : 32} teamname={name} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
             <Kb.Text type="BodySemibold" lineClamp={1}>
@@ -99,7 +99,7 @@ const TeamRow = (p: RowProps) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
-      {!Kb.Styles.isMobile && <Kb.Divider style={{marginLeft: 48}} />}
+      {!isMobile && <Kb.Divider style={{marginLeft: 48}} />}
     </Kb.Box2>
   )
 }
@@ -158,7 +158,7 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingRight: Kb.Styles.globalMargins.small,
           paddingTop: Kb.Styles.globalMargins.tiny,
         },
-        isMobile: {minHeight: Kb.Styles.isMobile ? 64 : 48},
+        isMobile: {minHeight: isMobile ? 64 : 48},
       }),
       teamText: {alignSelf: 'flex-start'},
     }) as const

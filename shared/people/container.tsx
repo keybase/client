@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import type {IconType} from '@/common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {useNavigation} from '@react-navigation/native'
-import {isMobile} from '@/constants/platform'
 import type {DebouncedFunc} from 'lodash'
 import debounce from 'lodash/debounce'
 import invert from 'lodash/invert'
@@ -126,8 +125,8 @@ const descriptionForTodoItem = (todo: T.RPCGen.HomeScreenTodo) => {
     case t.verifyAllEmail:
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
     case t.verifyAllPhoneNumber: {
-      const {e164ToDisplay} = require('@/util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
       const p = todo.verifyAllPhoneNumber
+      const {e164ToDisplay} = require('@/util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
       return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
     }
     default: {

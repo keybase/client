@@ -48,7 +48,7 @@ const Invite = (props: {onDismiss: () => void}) => {
       : openShareSheet
   const caption = `Last step: summon ${theirName}!`
 
-  if (C.isMobile) {
+  if (isMobile) {
     return (
       <BannerBox color={Kb.Styles.globalColors.blue} gap="xtiny">
         <Kb.Text center={true} type="BodySmallSemibold" negative={true}>

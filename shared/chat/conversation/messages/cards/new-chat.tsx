@@ -28,7 +28,7 @@ function NewCard(outerProps: Props) {
         text: 'Use this chat to store secure notes such as credit card numbers, passwords, or secret keys.',
       }
     : {
-        action: () => openUrl('https://book.keybase.io/docs/chat/crypto'),
+        action: () => { void openUrl('https://book.keybase.io/docs/chat/crypto') },
         icon: iconEncrypted,
         label: 'Read more',
         text: 'This conversation is end-to-end encrypted.',
@@ -102,7 +102,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       header: {
-        maxWidth: Kb.Styles.isMobile ? 126 : undefined,
+        maxWidth: isMobile ? 126 : undefined,
       },
       icon: Kb.Styles.platformStyles({
         isElectron: {
@@ -111,15 +111,15 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       image: {
-        alignSelf: Kb.Styles.isMobile ? 'center' : undefined,
-        marginTop: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : -Kb.Styles.globalMargins.xsmall,
+        alignSelf: isMobile ? 'center' : undefined,
+        marginTop: isMobile ? Kb.Styles.globalMargins.tiny : -Kb.Styles.globalMargins.xsmall,
         paddingRight: Kb.Styles.globalMargins.medium,
       },
       imageLower: {
-        marginLeft: Kb.Styles.isMobile ? -65 : undefined,
-        marginTop: Kb.Styles.isMobile ? -20 : 39,
+        marginLeft: isMobile ? -65 : undefined,
+        marginTop: isMobile ? -20 : 39,
       },
-      link: {color: Kb.Styles.isMobile ? Kb.Styles.globalColors.blueLighter : undefined},
+      link: {color: isMobile ? Kb.Styles.globalColors.blueLighter : undefined},
       textContainer: {padding: Kb.Styles.globalMargins.medium},
     }) as const
 )

@@ -77,8 +77,8 @@ const BlockButtons = () => {
 
   const buttonRow = (
     <Kb.ButtonBar
-      fullWidth={Kb.Styles.isMobile}
-      direction={Kb.Styles.isMobile ? 'column' : 'row'}
+      fullWidth={isMobile}
+      direction={isMobile ? 'column' : 'row'}
       style={styles.button}
     >
       <Kb.WaveButton
@@ -116,7 +116,7 @@ const BlockButtons = () => {
       />
     </Kb.ButtonBar>
   )
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <Kb.Box2
       direction="vertical"
       centerChildren={true}

@@ -7,7 +7,7 @@ import upperFirst from 'lodash/upperFirst'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {createNewTeamAndNavigate} from '@/teams/team-page-actions'
 
-const openSubteamInfo = () => openUrl('https://book.keybase.io/docs/teams/design')
+const openSubteamInfo = () => { void openUrl('https://book.keybase.io/docs/teams/design') }
 
 type Props = {
   baseTeam?: string // if set we're creating a subteam of this teamname
@@ -63,7 +63,7 @@ export const CreateNewTeam = (props: Props) => {
             maxLength={16}
             disabled={waiting}
             onEnterKeyDown={disabled ? undefined : onSubmitCb}
-            autoFocus={!Kb.Styles.isMobile /* keyboard can cover the "join subteam" box on mobile */}
+            autoFocus={!isMobile /* keyboard can cover the "join subteam" box on mobile */}
           />
           {isSubteam && (
             <Kb.Text type="BodySmall" style={!name && Kb.Styles.globalStyles.opacity0}>

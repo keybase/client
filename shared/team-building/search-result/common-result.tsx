@@ -149,7 +149,7 @@ const CommonResult = (props: CommonResultProps) => {
   )
 }
 
-const avatarSize = Kb.Styles.isMobile ? 48 : 32
+const avatarSize = isMobile ? 48 : 32
 const dotSeparator = '•'
 
 const isPreExistingTeamMemberText = (prettyName: string, username: string) =>
@@ -208,7 +208,7 @@ const ServicesIcons = (props: ServicesIconsProps) => {
   const serviceIds = serviceMapToArray(props.services)
   const firstIconNoMargin = shouldOmitFirstIconMargin(props)
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={Kb.Styles.isMobile} justifyContent="flex-start">
+    <Kb.Box2 direction="horizontal" fullWidth={isMobile} justifyContent="flex-start">
       {serviceIds.map((serviceName, index) => {
         const iconStyle =
           firstIconNoMargin && index === 0
@@ -254,7 +254,7 @@ const FormatPrettyName = (props: {
   ) : null
 
 const MobileScrollView = ({children}: {children: React.ReactNode}) =>
-  Kb.Styles.isMobile ? (
+  isMobile ? (
     <Kb.ScrollView
       horizontal={true}
       showsHorizontalScrollIndicator={false}
@@ -353,7 +353,7 @@ const Username = (props: {
   )
 }
 
-export const userResultHeight = Kb.Styles.isMobile ? Kb.Styles.globalMargins.xlarge : 48
+export const userResultHeight = isMobile ? Kb.Styles.globalMargins.xlarge : 48
 const styles = Kb.Styles.styleSheetCreate(() => ({
   actionButtonsHighlighted: Kb.Styles.platformStyles({
     isElectron: {

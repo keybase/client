@@ -34,7 +34,7 @@ const bannerMessage = Crypto.infoMessage.sign
 const filePrompt = 'Drop a file to sign'
 const inputEmptyWidth = 207
 const inputFileIcon = 'icon-file-64' as const
-const inputPlaceholder = C.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'
+const inputPlaceholder = isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'
 
 const onError = (state: CommonState, errorMessage: string): CommonState => ({
   ...resetOutput(state),
@@ -135,7 +135,7 @@ const SignOutputBanner = ({state}: {state: CommonOutputRouteParams}) => (
   <OutputInfoBanner outputStatus={state.outputStatus}>
     <Kb.Text type="BodySmallSemibold" center={true}>
       This is your signed {state.outputType === 'file' ? 'file' : 'message'}, using{' '}
-      <Kb.Text type="BodySecondaryLink" underline={true} onClick={() => openURL(Crypto.saltpackDocumentation)}>
+      <Kb.Text type="BodySecondaryLink" underline={true} onClick={() => { void openURL(Crypto.saltpackDocumentation) }}>
         Saltpack
       </Kb.Text>
       . Anyone who has it can verify you signed it.
@@ -155,7 +155,7 @@ export const SignInput = (_props: unknown) => {
   const onRun = () => {
     const f = async () => {
       const next = await controller.sign()
-      if (C.isMobile) {
+      if (isMobile) {
         navigateAppend({name: Crypto.signOutput, params: next})
       }
     }
@@ -176,11 +176,11 @@ export const SignInput = (_props: unknown) => {
         onSetInput={controller.setInput}
         onClearInput={controller.clearInput}
       />
-      {C.isMobile ? <InputActionsBar runLabel="Sign" blurCBRef={blurCBRef} onRun={onRun} /> : null}
+      {isMobile ? <InputActionsBar runLabel="Sign" blurCBRef={blurCBRef} onRun={onRun} /> : null}
     </>
   )
 
-  return C.isMobile ? (
+  return isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
@@ -195,7 +195,7 @@ export const SignOutput = ({route}: {route: {params: CommonOutputRouteParams}}) 
     <>
       <SignOutputBanner state={route.params} />
       <CryptoSignedSender isSelfSigned={true} state={state} />
-      {C.isMobile ? <Kb.Divider /> : null}
+      {isMobile ? <Kb.Divider /> : null}
       <CryptoOutput
         actionLabel="Sign"
         outputFileIcon="icon-file-saltpack-64"
@@ -207,7 +207,7 @@ export const SignOutput = ({route}: {route: {params: CommonOutputRouteParams}}) 
     </>
   )
 
-  return C.isMobile ? (
+  return isMobile ? (
     content
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.outputDesktopMaxHeight}>

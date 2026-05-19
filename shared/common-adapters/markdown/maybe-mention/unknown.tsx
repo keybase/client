@@ -71,7 +71,7 @@ const UnknownMention = (props: Props) => {
     <Kb.Text
       textRef={mentionRef}
       type="BodySemibold"
-      className={Kb.Styles.classNames({'hover-underline': !Styles.isMobile})}
+      className={Kb.Styles.classNames({'hover-underline': !isMobile})}
       allowFontScaling={props.allowFontScaling}
       style={Kb.Styles.collapseStyles([props.style, styles.text])}
       onClick={handleMouseOver}
@@ -82,7 +82,7 @@ const UnknownMention = (props: Props) => {
 
   const popups = (
     <UnknownMentionPopup
-      attachTo={Kb.Styles.isMobile ? undefined : mentionRef}
+      attachTo={isMobile ? undefined : mentionRef}
       onHidden={handleMouseLeave}
       onResolve={onResolve}
       text={text}
@@ -90,7 +90,7 @@ const UnknownMention = (props: Props) => {
     />
   )
 
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <>
       {content}
       {popups}

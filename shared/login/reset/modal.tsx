@@ -67,7 +67,7 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
           style={Kb.Styles.globalStyles.flexOne}
         >
           <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
-          <Kb.Text type={Kb.Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+          <Kb.Text type={isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
             Account reset initiated
           </Kb.Text>
           <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
@@ -87,7 +87,7 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
           centerChildren={true}
         >
           <Kb.ImageIcon
-            type={Kb.Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
+            type={isMobile ? 'icon-skull-64' : 'icon-skull-48'}
             style={styles.skullIcon}
           />
           <Kb.Text type="Body" center={true}>
@@ -111,7 +111,7 @@ const ResetModalImpl = ({endTime}: {endTime: number}) => {
     </>
   )
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     return (
       <Kb.Popup onHidden={() => {}} style={styles.desktopCover}>
         <Kb.Box2 direction="vertical" style={styles.desktopModal}>

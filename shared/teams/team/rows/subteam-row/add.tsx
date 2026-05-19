@@ -28,7 +28,7 @@ const AddSubteam = ({setSubteamFilter, subteamFilter, teamID}: Props) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew} justifyContent="space-between">
       <Kb.Button mode="Secondary" label="Create subteam" onClick={onCreateSubteam} small={true} />
-      {!Kb.Styles.isMobile && (
+      {!isMobile && (
         <Kb.SearchFilter
           size="small"
           placeholderText="Filter"

@@ -61,7 +61,7 @@ const useData = () => {
     if (error) {
       setExpandedError(error)
     }
-    if (!C.isMobile) {
+    if (!isMobile) {
       clearCountdown()
     }
   }
@@ -74,14 +74,14 @@ const useData = () => {
     const id = setTimeout(
       () => {
         setDetails(detailsForError(error))
-        if (!C.isMobile) {
+        if (!isMobile) {
           setSummary(summaryForError(error))
         }
       },
       error ? 0 : 7000
     ) // if it's set, do it immediately, if it's cleared set it in a bit
     const newError = !!error
-    if (!C.isMobile) {
+    if (!isMobile) {
       if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current)
       countdownTimerRef.current = undefined
       if (newError) {
@@ -121,7 +121,7 @@ const GlobalError = () => {
   }
 
   if (daemonError) {
-    if (C.isMobile) {
+    if (isMobile) {
       return null
     }
     if (ignoreDisconnectOverlay) {
@@ -144,7 +144,7 @@ const GlobalError = () => {
     )
   }
 
-  if (C.isMobile) {
+  if (isMobile) {
     return (
       <Kb.Box2
         direction="vertical"

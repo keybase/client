@@ -74,7 +74,7 @@ const Container = (op: OwnProps) => {
   const getLayout = view === T.FS.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const layout = getLayout(mode, path, pathItem, fileContext, username)
   const cancel = () => {
-    if (C.isMobile && downloadID) {
+    if (isMobile && downloadID) {
       cancelDownload(downloadID)
     }
   }
@@ -133,7 +133,7 @@ const Container = (op: OwnProps) => {
       : []
 
   const fileContextLoading =
-    C.isMobile && pathItem.type === T.FS.PathType.File && fileContext === FS.emptyFileContext
+    isMobile && pathItem.type === T.FS.PathType.File && fileContext === FS.emptyFileContext
   const itemSave = (() => {
     if (!layout.saveMedia && !fileContextLoading) return []
     if (saving || fileContextLoading) {

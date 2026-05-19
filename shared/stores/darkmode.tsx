@@ -1,7 +1,6 @@
 import * as T from '@/constants/types'
 import * as Z from '@/util/zustand'
 import {Appearance} from 'react-native'
-import {isMobile} from '@/constants/platform'
 
 export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
 
@@ -82,7 +81,7 @@ export const useDarkModeState = Z.createZustand<State>('darkmode', (set, get) =>
         // update Electron's nativeTheme
         const f = async () => {
           try {
-            const {default: KB2} = await import('@/util/electron.desktop')
+            const {default: KB2} = await import('@/util/electron')
             switch (p) {
               case 'system':
                 await KB2.functions.setNativeTheme?.('system')

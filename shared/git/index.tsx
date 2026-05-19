@@ -192,7 +192,7 @@ const Container = (ownProps: OwnProps) => {
     <Kb.Reloadable waitingKeys={C.waitingKeyGitLoading} onBack={undefined} onReload={load}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
-        {Kb.Styles.isMobile && (
+        {isMobile && (
           <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={showPopup}>
             <Kb.Icon
               type="iconfont-new"

@@ -27,7 +27,7 @@ const ErrorMessage = () => {
   const _onBack = () => {
     navigateToInbox()
   }
-  const onBack = Kb.Styles.isMobile ? _onBack : undefined
+  const onBack = isMobile ? _onBack : undefined
 
   let createConversationDisallowedUsers: ReadonlyArray<string> = []
   let createConversationErrorDescription = ''
@@ -74,8 +74,8 @@ const ErrorMessage = () => {
           {createConversationDisallowedUsers.map((username, idx) => (
             <Kb.ListItem
               key={username}
-              type={Kb.Styles.isMobile ? 'Large' : 'Small'}
-              icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={username} />}
+              type={isMobile ? 'Large' : 'Small'}
+              icon={<Kb.Avatar size={isMobile ? 48 : 32} username={username} />}
               firstItem={idx === 0}
               body={
                 <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -90,7 +90,7 @@ const ErrorMessage = () => {
         {createConversationErrorDescription}
       </Kb.Text>
       <Kb.ButtonBar
-        direction={Kb.Styles.isMobile ? 'column' : 'row'}
+        direction={isMobile ? 'column' : 'row'}
         fullWidth={true}
         style={styles.buttonBar}
       >
@@ -178,7 +178,7 @@ function SpecialTopMessage() {
           <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
         </Kb.Box2>
       )}
-      {!Kb.Styles.isMobile || usingFlashList ? null : (
+      {!isMobile || usingFlashList ? null : (
         // special case here with the sep. The flatlist and flashlist invert the leading-trailing, see useStateFast
         <Separator trailingItem={T.Chat.numberToOrdinal(0)} leadingItem={firstOrdinal} />
       )}

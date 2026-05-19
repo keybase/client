@@ -1,4 +1,3 @@
-import {isMobile} from '@/constants/platform'
 export const debugWarning = (s: string, ...w: Array<unknown>) => {
   if (isMobile) {
     for (let i = 0; i < 10; ++i) {

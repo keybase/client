@@ -1,5 +1,4 @@
 import * as React from 'react'
-import {isMobile} from '@/styles'
 import type {MeasureRef} from '../measure-ref'
 
 export type Popup2Parms = {

@@ -42,7 +42,7 @@ const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
           style={styles.headerButton}
         />
       </Kb.Box2>
-      {!Kb.Styles.isMobile && (
+      {!isMobile && (
         <Kb.SearchFilter
           size="small"
           placeholderText="Filter"

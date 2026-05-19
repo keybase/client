@@ -1,4 +1,4 @@
-import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '@/util/electron.desktop'
+import KB2, {type OpenDialogOptions, type SaveDialogOptions} from '@/util/electron'
 import {showDockIcon, closeWindows, getMainWindow} from './main-window.desktop'
 import * as Electron from 'electron'
 import * as R from '@/constants/remote'
@@ -9,7 +9,7 @@ import path from 'path'
 import fse from 'fs-extra'
 import {spawn, execFile, exec} from 'child_process'
 import startWinService from './start-win-service.desktop'
-import {isDarwin, isLinux, isWindows, socketPath, fileUIName, dokanPath, windowsBinPath} from '@/constants/platform.desktop'
+import {isDarwin, isLinux, isWindows, socketPath, fileUIName, dokanPath, windowsBinPath} from '@/constants/platform'
 import {ctlQuit} from './ctl.desktop'
 import logger from '@/logger'
 import {htmlURL, preloadPath} from './html-root.desktop'
@@ -17,7 +17,7 @@ import * as RPCTypes from '@/constants/rpc/rpc-gen'
 import {ensureError} from '@/util/errors'
 import type {Action} from '../app/ipctypes'
 import type {Engine} from '@/engine'
-import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug.desktop'
+import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '@/local-debug'
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   htmlURL(windowComponent, `param=${windowParam}`)

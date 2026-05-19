@@ -45,7 +45,7 @@ const InfoPanelConnectorInner = (ownProps: Props & {conversationIDKey: T.Chat.Co
       // Only call showInfoPanel(false) on mobile where the panel is a separate route.
       // On desktop the panel is inline and this cleanup fires during StrictMode
       // double-effect, which immediately hides the panel.
-      if (Kb.Styles.isMobile) {
+      if (isMobile) {
         hideInfoPanel()
       }
     }

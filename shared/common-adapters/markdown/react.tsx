@@ -181,7 +181,7 @@ const InlineCode = (p: {children: React.ReactNode; state: State}) => {
 
 const Fence = (p: {children: React.ReactNode; state: State}) => {
   const {children, state} = p
-  return Styles.isMobile ? (
+  return isMobile ? (
     <Box2 direction="vertical" fullWidth={true}>
       <Text
         type="Body"
@@ -312,7 +312,7 @@ const reactComponentsForMarkdownType = {
   },
   newline: {
     react: (_node: Node, output: SM.ReactOutput, state: State): React.ReactNode =>
-      !Styles.isMobile || state.inParagraph ? (
+      !isMobile || state.inParagraph ? (
         output({content: '\n', type: 'text'}, state)
       ) : (
         <Text

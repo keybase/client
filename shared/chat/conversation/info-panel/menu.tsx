@@ -421,7 +421,7 @@ const AdhocHeader = (props: AdhocHeaderProps) => {
         isMuted={props.isMuted}
         participantOne={channelHumans[0]}
         participantTwo={channelHumans[1]}
-        singleSize={Kb.Styles.isMobile ? 48 : 32}
+        singleSize={isMobile ? 48 : 32}
       />
       <Kb.Box2 alignItems="flex-start" direction="vertical">
         <Kb.ConnectedUsernames

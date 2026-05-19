@@ -1,4 +1,3 @@
-import * as C from '@/constants'
 import * as React from 'react'
 import {useColorScheme} from 'react-native'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -17,6 +16,6 @@ export const useRootKey = () => {
       setNavKey(username)
     }
   }, [username])
-  const darkSuffix = C.isAndroid ? (isDarkMode ? '-dark' : '-light') : ''
+  const darkSuffix = isAndroid ? (isDarkMode ? '-dark' : '-light') : ''
   return navKey ? `${navKey}${darkSuffix}` : ''
 }

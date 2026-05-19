@@ -113,9 +113,9 @@ export const waitingKeyUsersReportUser = 'users:reportUser'
 export const waitingKeyPushPermissionsRequesting = 'push:permissionsRequesting'
 
 export const defaultDevicename =
-  (Platforms.isAndroid ? 'Android Device' : undefined) ||
-  (Platforms.isIOS ? 'iOS Device' : undefined) ||
+  (isAndroid ? 'Android Device' : undefined) ||
+  (isIOS ? 'iOS Device' : undefined) ||
   (Platforms.isDarwin ? 'Mac Device' : undefined) ||
   (Platforms.isWindows ? 'Windows Device' : undefined) ||
   (Platforms.isLinux ? 'Linux Device' : undefined) ||
-  (Platforms.isMobile ? 'Mobile Device' : 'Home Computer')
+  (isMobile ? 'Mobile Device' : 'Home Computer')

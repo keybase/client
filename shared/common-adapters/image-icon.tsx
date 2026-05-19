@@ -1,8 +1,9 @@
-import * as Styles from '@/styles'
+import type * as Styles from '@/styles'
 import {iconMeta} from './icon.constants-gen'
 import type {IconType} from './icon.constants-gen'
 import {typeExtension, getImagesDir} from './icon.shared'
 import type {Image as RNImageType} from 'react-native'
+import type {getAssetPath as getAssetPathType} from '@/constants/platform'
 
 export type ImageIconProps = {
   type: IconType
@@ -12,10 +13,8 @@ export type ImageIconProps = {
 }
 
 const ImageIconDesktop = (props: ImageIconProps) => {
+  const {getAssetPath} = require('@/constants/platform') as {getAssetPath: typeof getAssetPathType}
   const {type, style, className, allowLazy = true} = props
-  const {getAssetPath} = require('@/constants/platform.desktop') as {
-    getAssetPath: (...a: Array<string>) => string
-  }
   const hasDarkVariant = !!iconMeta[type].nameDark
   const ext = typeExtension(type)
   const imagesDir = getImagesDir(type)
@@ -72,8 +71,8 @@ const ImageIconNative = (props: ImageIconProps) => {
   }
   if (!source) return null
 
-  return <RNImage source={source} style={style as any} />
+  return <RNImage source={source} style={style} />
 }
 
-const ImageIcon = Styles.isMobile ? ImageIconNative : ImageIconDesktop
+const ImageIcon = isMobile ? ImageIconNative : ImageIconDesktop
 export default ImageIcon

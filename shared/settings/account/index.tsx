@@ -91,7 +91,7 @@ const Password = ({randomPW}: {randomPW?: boolean}) => {
   const hasPassword = !randomPW
   let passwordLabel: string
   if (hasPassword) {
-    passwordLabel = Kb.Styles.isMobile ? 'Change' : 'Change password'
+    passwordLabel = isMobile ? 'Change' : 'Change password'
   } else {
     passwordLabel = 'Set a password'
   }
@@ -121,7 +121,7 @@ const WebAuthTokenLogin = () => {
     generateWebAuthToken(
       [undefined],
       link => {
-        openURL(link)
+        void openURL(link)
       },
       () => {}
     )

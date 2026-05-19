@@ -81,7 +81,7 @@ const SelectChannel = (ownProps: OwnProps) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    width: Kb.Styles.isMobile ? '100%' : 300,
+    width: isMobile ? '100%' : 300,
   },
   innerContainer: {
     paddingBottom: Kb.Styles.globalMargins.xtiny,

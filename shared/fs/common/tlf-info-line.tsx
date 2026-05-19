@@ -45,7 +45,7 @@ const resetText = (props: Props) => {
     <Kb.Text
       type="BodySmallError"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-      lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
+      lineClamp={props.mode === 'row' && isMobile ? 1 : undefined}
     >
       {text}
     </Kb.Text>
@@ -58,7 +58,7 @@ const getPrefixText = (props: Props) =>
       <Kb.Text
         type="BodySmall"
         style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-        lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
+        lineClamp={props.mode === 'row' && isMobile ? 1 : undefined}
       >
         {props.tlfType}/
       </Kb.Text>
@@ -70,14 +70,14 @@ const timeText = (props: Props) =>
     <Kb.Text
       type="BodySmall"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-      lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
+      lineClamp={props.mode === 'row' && isMobile ? 1 : undefined}
     >
       {formatTimeForFS(props.tlfMtime, props.mode !== 'row')}
     </Kb.Text>
   ) : null
 
 const getText = (props: Props) => {
-  if (Kb.Styles.isMobile && props.mixedMode) {
+  if (isMobile && props.mixedMode) {
     // on mobile in fs root, don't show reset text, and only show time text
     // if reset badge isn't shown, i.e. not self reset
     return props.reset !== true ? timeText(props) : null
@@ -98,7 +98,7 @@ const TlfInfoLine = (props: Props) => {
     <Kb.Text
       type="BodySmall"
       style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-      lineClamp={props.mode === 'row' && Kb.Styles.isMobile ? 1 : undefined}
+      lineClamp={props.mode === 'row' && isMobile ? 1 : undefined}
     >
       •&nbsp;
     </Kb.Text>

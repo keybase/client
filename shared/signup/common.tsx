@@ -15,7 +15,7 @@ export const InfoIcon = (props: InfoIconProps) => {
   const navigateAppend = C.Router2.navigateAppend
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
-    const onDocumentation = () => openURL('https://book.keybase.io/docs')
+    const onDocumentation = () => { void openURL('https://book.keybase.io/docs') }
     const onFeedback = () => {
       navigateAppend({
         name: loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut',
@@ -150,7 +150,7 @@ type SignupScreenProps = {
 
 // Screens with header + body bg color (i.e. all but join-or-login)
 export const SignupScreen = (props: SignupScreenProps) => {
-  const showDesktopHeader = !Kb.Styles.isMobile && !props.hideDesktopHeader
+  const showDesktopHeader = !isMobile && !props.hideDesktopHeader
 
   return (
     <Kb.Box2
@@ -177,7 +177,7 @@ export const SignupScreen = (props: SignupScreenProps) => {
           onRightAction={props.onRightAction}
         />
       )}
-      {Kb.Styles.isMobile && props.header}
+      {isMobile && props.header}
       <Kb.Box2
         alignItems="center"
         direction="vertical"
@@ -206,7 +206,7 @@ export const SignupScreen = (props: SignupScreenProps) => {
         {!!props.buttons && (
           <Kb.ButtonBar
             direction="column"
-            fullWidth={Kb.Styles.isMobile && !Kb.Styles.isTablet}
+            fullWidth={isMobile && !Kb.Styles.isTablet}
             style={styles.buttonBar}
           >
             {props.buttons.map(b =>
@@ -261,7 +261,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       body: {
         ...Kb.Styles.padding(
-          Kb.Styles.isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.xlarge,
+          isMobile ? Kb.Styles.globalMargins.small : Kb.Styles.globalMargins.xlarge,
           Kb.Styles.globalMargins.small
         ),
         flex: 1,

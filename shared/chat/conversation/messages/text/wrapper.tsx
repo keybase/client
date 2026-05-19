@@ -29,7 +29,7 @@ const getStyle = (
 
 function MessageMarkdown({style, text}: {style: Kb.Styles.StylesCrossPlatform; text: string}) {
   const ordinal = useOrdinal()
-  const styleOverride = Kb.Styles.isMobile ? {paragraph: style} : undefined
+  const styleOverride = isMobile ? {paragraph: style} : undefined
 
   return (
     <Kb.Markdown

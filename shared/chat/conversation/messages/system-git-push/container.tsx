@@ -186,7 +186,7 @@ const styles = Kb.Styles.styleSheetCreate(
       marker: {
         flexShrink: 0,
         marginRight: Kb.Styles.globalMargins.xtiny,
-        ...(Kb.Styles.isMobile ? {marginTop: -3} : null),
+        ...(isMobile ? {marginTop: -3} : null),
         minWidth: 0,
       },
       repoText: {color: Kb.Styles.globalColors.black_50},

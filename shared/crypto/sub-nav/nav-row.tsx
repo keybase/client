@@ -64,7 +64,7 @@ const NavRow = (props: Props) => {
       <Kb.RichButton title={title} description={description} icon={illustration} onClick={onClick} />
     ) : null
 
-  return Kb.Styles.isMobile ? mobileRow : desktopRow
+  return isMobile ? mobileRow : desktopRow
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({

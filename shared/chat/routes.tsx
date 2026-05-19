@@ -73,10 +73,10 @@ const BotInstallHeaderLeft = () => {
       </Kb.Text>
     )
   }
-  if (Kb.Styles.isMobile || subScreen === 'install') {
+  if (isMobile || subScreen === 'install') {
     const label =
       subScreen === 'install' ? (
-        Kb.Styles.isMobile ? (
+        isMobile ? (
           'Back'
         ) : (
           <Kb.Icon type="iconfont-arrow-left" />
@@ -98,7 +98,7 @@ const BotInstallHeaderLeft = () => {
 const AddToChannelHeaderTitle = ({teamID}: {teamID: T.Teams.TeamID}) => {
   const title = useModalHeaderState(s => s.title)
   const displayTitle = title || 'Add to channel'
-  if (Kb.Styles.isMobile) return <>{displayTitle}</>
+  if (isMobile) return <>{displayTitle}</>
   return <ModalTitle teamID={teamID} title={displayTitle} />
 }
 
@@ -106,7 +106,7 @@ const AddToChannelHeaderRight = () => {
   const {enabled, waiting, onAction} = useModalHeaderState(
     C.useShallow(s => ({enabled: s.actionEnabled, onAction: s.onAction, waiting: s.actionWaiting}))
   )
-  if (!Kb.Styles.isMobile) return null
+  if (!isMobile) return null
   return (
     <Kb.Text
       type="BodyBigLink"
@@ -183,7 +183,7 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./conversation/attachment-fullscreen/screen')),
     {
       getOptions: {
-        ...(C.isIOS ? {orientation: 'all', presentation: 'transparentModal'} : {}),
+        ...(isIOS ? {orientation: 'all', presentation: 'transparentModal'} : {}),
         headerShown: false,
         modalStyle: {flex: 1, maxHeight: 9999, width: '100%'},
         overlayStyle: {
@@ -241,7 +241,7 @@ export const newModalRoutes = defineRouteMap({
   ),
   chatInfoPanel: makeChatScreen(
     React.lazy(async () => import('./conversation/info-panel')),
-    {getOptions: C.isMobile ? undefined : {modalStyle: {height: '80%', width: '80%'}}}
+    {getOptions: isMobile ? undefined : {modalStyle: {height: '80%', width: '80%'}}}
   ),
   chatInstallBot: makeChatScreen(
     React.lazy(async () => import('./conversation/bot/install')),
@@ -249,7 +249,7 @@ export const newModalRoutes = defineRouteMap({
       getOptions: {
         headerLeft: () => <BotInstallHeaderLeft />,
         headerTitle: () => <BotInstallHeaderTitle />,
-        ...(C.isMobile ? undefined : {modalStyle: {height: 660, maxHeight: 660}}),
+        ...(isMobile ? undefined : {modalStyle: {height: 660, maxHeight: 660}}),
       },
       skipProvider: true,
     }
@@ -276,7 +276,7 @@ export const newModalRoutes = defineRouteMap({
     React.lazy(async () => import('./pdf')),
     {
       getOptions: p => ({
-        headerRight: C.isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
+        headerRight: isMobile ? () => <PDFShareButton url={p.route.params.url} /> : undefined,
         modalStyle: {height: '80%', maxHeight: '80%', width: '80%'},
         overlayStyle: {alignSelf: 'stretch'},
         title: 'PDF',

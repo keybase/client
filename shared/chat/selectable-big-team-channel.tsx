@@ -47,7 +47,7 @@ const SelectableBigTeamChannel = (props: Props) => {
               {color: props.isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black},
             ])}
             title={props.teamname}
-            lineClamp={Kb.Styles.isMobile ? 1 : undefined}
+            lineClamp={isMobile ? 1 : undefined}
             ellipsizeMode="tail"
           >
             {props.teamname}
@@ -60,7 +60,7 @@ const SelectableBigTeamChannel = (props: Props) => {
               {color: props.isSelected ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.black},
             ])}
             title={`#${props.channelname}`}
-            lineClamp={Kb.Styles.isMobile ? 1 : undefined}
+            lineClamp={isMobile ? 1 : undefined}
             ellipsizeMode="tail"
           >
             &nbsp;#
@@ -110,7 +110,7 @@ const SelectableBigTeamChannel = (props: Props) => {
   )
 }
 
-const rowHeight = Kb.Styles.isMobile ? 64 : 56
+const rowHeight = isMobile ? 64 : 56
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>

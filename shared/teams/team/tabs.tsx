@@ -41,7 +41,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-        {Kb.Styles.isMobile ? (
+        {isMobile ? (
           <Kb.ScrollView
             horizontal={true}
             contentContainerStyle={{minWidth: '100%'}}

@@ -81,7 +81,7 @@ const Container = (ownProps: OwnProps) => {
   return shownSortSetting ? (
     <>
       <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" centerChildren={Kb.Styles.isMobile}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" centerChildren={isMobile}>
           <Kb.Icon type="iconfont-arrow-full-down" padding="xtiny" sizeType="Small" />
           <Kb.Text type="BodySmallSemibold" style={styles.sortText}>
             {getTextFromSortSetting(shownSortSetting)}

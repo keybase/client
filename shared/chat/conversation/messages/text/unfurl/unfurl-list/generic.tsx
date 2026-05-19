@@ -26,7 +26,7 @@ function UnfurlGeneric(p: {
   const {description, publishTime, favicon, media, siteName, title, url} = generic
   const {height, width, isVideo, url: mediaUrl} = media || {height: 0, isVideo: false, url: '', width: 0}
   const showImageOnSide =
-    !Kb.Styles.isMobile && height >= width && !isVideo && (title.length > 0 || !!description)
+    !isMobile && height >= width && !isVideo && (title.length > 0 || !!description)
   const imageLocation = isCollapsed ? 'collapsed' : showImageOnSide ? 'side' : width > 0 && height > 0 ? 'bottom' : 'none'
 
   const publisher = (
@@ -79,7 +79,7 @@ function UnfurlGeneric(p: {
           linkURL={url}
           height={height}
           width={width}
-          widthPadding={Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : undefined}
+          widthPadding={isMobile ? Kb.Styles.globalMargins.tiny : undefined}
           style={styles.bottomImage}
           isVideo={isVideo}
           autoplayVideo={false}
@@ -96,7 +96,7 @@ function UnfurlGeneric(p: {
 
   return (
     <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
-      {!Kb.Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
+      {!isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
       <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical" fullWidth={true}>
         {publisher}
         <Kb.Text type="BodyPrimaryLink" style={styles.url} {...titleUrlProps}>

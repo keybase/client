@@ -37,7 +37,7 @@ const Checkboxes = (props: CheckboxesProps) => (
 
 const DeleteConfirm = () => {
   const {randomPW, reload} = useRandomPWState()
-  const needsMobilePassphraseCheck = Kb.Styles.isMobile && randomPW !== true
+  const needsMobilePassphraseCheck = isMobile && randomPW !== true
   const deleteAccountForever = useDeleteAccount()
   const username = useCurrentUserState(s => s.username)
   const [checkData, setCheckData] = React.useState(false)

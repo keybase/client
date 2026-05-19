@@ -35,7 +35,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       header: {
-        maxWidth: Kb.Styles.isMobile ? 126 : undefined,
+        maxWidth: isMobile ? 126 : undefined,
       },
       image: Kb.Styles.platformStyles({
         common: {

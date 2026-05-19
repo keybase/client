@@ -2,7 +2,6 @@ import * as T from '@/constants/types'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import logger from '@/logger'
 import {emitDeepLink} from '@/router-v2/linking'
-import {isAndroid, isIOS} from '@/constants/platform'
 import {
   getRegistrationToken,
   setApplicationIconBadgeNumber,

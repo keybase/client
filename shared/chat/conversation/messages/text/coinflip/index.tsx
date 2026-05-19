@@ -51,7 +51,7 @@ function CoinFlipContainer() {
 
   const statusText = showParticipants ? (
     <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
-      {!Kb.Styles.isMobile && (
+      {!isMobile && (
         <Kb.Text selectable={true} type="BodySmall">
           Secured by{' '}
         </Kb.Text>
@@ -65,7 +65,7 @@ function CoinFlipContainer() {
     <Kb.Box2 direction="vertical">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
         <Kb.Text selectable={true} type="BodySmallSemibold">
-          {!Kb.Styles.isMobile && 'Collecting '}commitments: {numParticipants}
+          {!isMobile && 'Collecting '}commitments: {numParticipants}
         </Kb.Text>
         {phase === T.RPCChat.UICoinFlipPhase.reveals && (
           <Kb.Icon type="iconfont-check" color={Kb.Styles.globalColors.green} sizeType="Small" />
@@ -74,7 +74,7 @@ function CoinFlipContainer() {
       {phase === T.RPCChat.UICoinFlipPhase.reveals && (
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
           <Kb.Text selectable={true} type="BodySmallSemibold">
-            {!Kb.Styles.isMobile && 'Collecting '}secrets: {revealSummary}
+            {!isMobile && 'Collecting '}secrets: {revealSummary}
           </Kb.Text>
         </Kb.Box2>
       )}

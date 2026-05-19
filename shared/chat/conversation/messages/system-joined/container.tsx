@@ -33,7 +33,7 @@ const MultiUserJoinedNotice = (p: {
 }) => {
   const {who, join, isBigTeam, channelname, teamname, timestamp} = p
 
-  const shorten = Kb.Styles.isMobile && who.length > 1
+  const shorten = isMobile && who.length > 1
   const joinStr = ` ${join ? 'joined' : 'left'}${shorten ? '' : isBigTeam ? ` #${channelname}` : ` ${teamname}`}`
 
   const ts = timestamp ? (

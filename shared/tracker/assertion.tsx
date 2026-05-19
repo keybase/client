@@ -64,10 +64,10 @@ const Container = (ownProps: OwnProps) => {
   const onCreateProof = notAUser ? undefined : isSuggestion ? _onCreateProof : undefined
 
   const openProof = () => {
-    openUrl(proofURL)
+    void openUrl(proofURL)
   }
   const openSite = () => {
-    openUrl(siteURL)
+    void openUrl(siteURL)
   }
 
   const onShowProof = notAUser || !proofURL ? undefined : openProof
@@ -375,7 +375,7 @@ const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
   const label = (
     <Kb.Text
       type="BodyPrimaryLink"
-      onClick={Kb.Styles.isMobile ? undefined : showPopup}
+      onClick={isMobile ? undefined : showPopup}
       tooltip={popup ? undefined : 'Stellar Federation Address'}
       style={Kb.Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(color)}])}
     >
@@ -383,7 +383,7 @@ const StellarValue = (p: {value: string; color: T.Tracker.AssertionColor}) => {
     </Kb.Text>
   )
 
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     label
   ) : (
     <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.tooltip}>
@@ -478,7 +478,7 @@ const AssertionSiteIcon = (p: SIProps) => {
   if (full) {
     return child
   }
-  if (!Kb.Styles.isMobile && isSuggestion) {
+  if (!isMobile && isSuggestion) {
     child = <HoverOpacity>{child}</HoverOpacity>
   }
   return (

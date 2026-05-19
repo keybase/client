@@ -119,7 +119,7 @@ const CodePageContainer = () => {
             style={currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight}
           />
         </Kb.Box2>
-        {!currentDeviceAlreadyProvisioned && !Kb.Styles.isMobile && (
+        {!currentDeviceAlreadyProvisioned && !isMobile && (
           <>
             <Kb.BackButton
               onClick={onBack}
@@ -176,7 +176,7 @@ const CodePageContainer = () => {
         <Kb.Box2
           alignItems="center"
           direction="vertical"
-          gap={Kb.Styles.isMobile ? 'medium' : 'small'}
+          gap={isMobile ? 'medium' : 'small'}
           gapEnd={!showHeyWaitInFooter}
           fullWidth={true}
         >
@@ -192,7 +192,7 @@ const CodePageContainer = () => {
               waitingKey={C.waitingKeyProvision}
             />
           )}
-          {tab !== 'enterText' && inModal() && !Kb.Styles.isMobile && (
+          {tab !== 'enterText' && inModal() && !isMobile && (
             <Kb.WaitingButton
               fullWidth={true}
               type={buttonType()}
@@ -242,7 +242,7 @@ const CodePageContainer = () => {
 
   // Workaround for no modals while logged out: display just the troubleshooting modal if we're on mobile and it's open;
   // When we're on desktop being newly provisioned, it's in this._body()
-  if (Kb.Styles.isMobile && troubleshooting) {
+  if (isMobile && troubleshooting) {
     return troubleshootingContent()
   }
   const content = body()
@@ -261,7 +261,7 @@ const CodePageContainer = () => {
 export type DeviceType = 'mobile' | 'desktop'
 export type Tab = 'QR' | 'enterText' | 'viewText'
 
-const currentDeviceType: DeviceType = Kb.Styles.isMobile ? 'mobile' : 'desktop'
+const currentDeviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
 
 const textType = 'BodySemibold'
 
@@ -281,7 +281,7 @@ const SwitchTab = (props: {
   if (props.selected === 'QR') {
     label = 'Type secret instead'
     if (currentDeviceType === 'mobile' && props.otherDevice.type === 'mobile') {
-      tab = (props.currentDeviceAlreadyProvisioned ? Kb.Styles.isMobile : !Kb.Styles.isMobile)
+      tab = (props.currentDeviceAlreadyProvisioned ? isMobile : !isMobile)
         ? 'viewText'
         : 'enterText'
     } else if (currentDeviceType === 'mobile') {
@@ -532,12 +532,12 @@ const styles = Kb.Styles.styleSheetCreate(
       enterTextButton: {
         marginLeft: Kb.Styles.globalMargins.small,
         marginRight: Kb.Styles.globalMargins.small,
-        maxWidth: Kb.Styles.isMobile ? undefined : 460,
+        maxWidth: isMobile ? undefined : 460,
         width: '90%',
       },
       enterTextColor: {color: Kb.Styles.globalColors.greenDark},
       enterTextContainer: {
-        alignItems: Kb.Styles.isMobile ? 'stretch' : 'center',
+        alignItems: isMobile ? 'stretch' : 'center',
         alignSelf: 'stretch',
       },
       enterTextContainer2: Kb.Styles.platformStyles({
@@ -606,7 +606,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           // MUST be white, else darkmode messes up the qr code
           backgroundColor: Kb.Styles.globalColors.whiteOrWhite,
-          borderRadius: C.isAndroid ? 0 : 8, // If this is set to ANYTHING other than 0 android DOESN"T WORK!!!!!! The qr scanner totally breaks
+          borderRadius: isAndroid ? 0 : 8, // If this is set to ANYTHING other than 0 android DOESN"T WORK!!!!!! The qr scanner totally breaks
           flexDirection: 'column',
           padding: 4,
         },

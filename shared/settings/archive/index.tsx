@@ -126,7 +126,7 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
 
   const {started, progress, outPath, context, status} = job
   const done = status === T.RPCChat.ArchiveChatJobStatus.complete
-  const sub = Kb.Styles.isMobile ? (
+  const sub = isMobile ? (
     <Kb.Text type="BodyBold" lineClamp={1}>
       {context}
     </Kb.Text>
@@ -141,7 +141,7 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
     actions = (
       <Kb.Box2 direction="vertical" style={styles.action}>
         <Kb.Text type="BodySmall">{started}</Kb.Text>
-        {Kb.Styles.isMobile ? (
+        {isMobile ? (
           <Kb.Text type="BodyPrimaryLink" onClick={onShare}>
             Share
           </Kb.Text>
@@ -160,13 +160,13 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
 
     let pauseOrResume: React.ReactNode
     if (isPaused || isErr) {
-      pauseOrResume = Kb.Styles.isMobile ? (
+      pauseOrResume = isMobile ? (
         <Kb.Icon type="iconfont-play" onClick={onResume} />
       ) : (
         <Kb.Button label={isPaused ? 'Resume' : 'Retry'} onClick={onResume} small={true} />
       )
     } else if (job.status === T.RPCChat.ArchiveChatJobStatus.running) {
-      pauseOrResume = Kb.Styles.isMobile ? (
+      pauseOrResume = isMobile ? (
         <Kb.Icon type="iconfont-pause" onClick={onPause} />
       ) : (
         <Kb.Button label="Pause" onClick={onPause} small={true} />
@@ -176,7 +176,7 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
     actions = (
       <Kb.Box2 direction="horizontal" style={styles.action} gap="tiny">
         {pauseOrResume}
-        {Kb.Styles.isMobile ? (
+        {isMobile ? (
           <Kb.Icon color={Kb.Styles.globalColors.red} type="iconfont-remove" onClick={onCancel} />
         ) : (
           <Kb.Button type="Danger" label="Cancel" onClick={onCancel} small={true} />
@@ -191,7 +191,7 @@ function ChatJob(p: {index: number; job: ChatArchiveJob; loadChat: () => Promise
       type="Small"
       body={
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-          <Kb.Box2 direction="vertical" style={{padding: Kb.Styles.isMobile ? 4 : 8, width: 32}}>
+          <Kb.Box2 direction="vertical" style={{padding: isMobile ? 4 : 8, width: 32}}>
             <Kb.Icon type="iconfont-chat" />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.jobLeft} gap="xtiny">
@@ -227,14 +227,14 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
   })
 
   const onShowFinder = () => {
-    if (Kb.Styles.isMobile) {
+    if (isMobile) {
       return
     }
     openLocalPathInSystemFileManagerDesktop(job.zipFilePath)
   }
 
   const onShare = () => {
-    if (!Kb.Styles.isMobile) {
+    if (!isMobile) {
       return
     }
     showShareActionSheet({filePath: job.zipFilePath, mimeType: 'application/zip'})
@@ -299,12 +299,12 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
               <Kb.Text type="BodyBold" lineClamp={1} style={{flexShrink: 1}} ellipsizeMode="head">
                 {job.gitRepo ?? job.kbfsPath}
               </Kb.Text>
-              {C.isMobile ? null : <Kb.Box2 direction="horizontal" style={{flex: 1}} />}
-              {C.isMobile ? null : job.bytesTotal ? (
+              {isMobile ? null : <Kb.Box2 direction="horizontal" style={{flex: 1}} />}
+              {isMobile ? null : job.bytesTotal ? (
                 <Kb.Text type="BodySmall">{FS.humanReadableFileSize(job.bytesTotal)}</Kb.Text>
               ) : null}
               <Kb.Text type="BodySmall" style={{flexShrink: 0}}>
-                {C.isMobile
+                {isMobile
                   ? formatTimeForConversationList(job.started.getTime())
                   : formatTimeForChat(job.started.getTime())}
               </Kb.Text>
@@ -324,7 +324,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
                   <Kb.Icon type="iconfont-exclamation" color={Kb.Styles.globalColors.red} fontSize={14} />
                 </Kb.WithTooltip>
               )}
-              {!C.isMobile && revisionBehindStr && (
+              {!isMobile && revisionBehindStr && (
                 <Kb.WithTooltip tooltip={revisionBehindStr}>
                   <Kb.Icon
                     type="iconfont-exclamation"
@@ -337,7 +337,7 @@ function KBFSJob(p: {index: number; job: KBFSArchiveJob}) {
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2 direction="vertical" alignItems="flex-end" style={styles.kbfsJobRight}>
-            {C.isMobile ? (
+            {isMobile ? (
               <Kb.Box2 direction="horizontal" alignItems="center" style={{padding: 8}}>
                 {job.phase === 'Done' ? (
                   <Kb.Icon onClick={showPopup} type="iconfont-ellipsis" />
@@ -407,7 +407,7 @@ const Archive = () => {
             job.status === T.RPCChat.ArchiveChatJobStatus.complete
               ? [
                   T.RPCChat.localArchiveChatDeleteRpcPromise({
-                    deleteOutputPath: C.isMobile,
+                    deleteOutputPath: isMobile,
                     identifyBehavior: T.RPCGen.TLFIdentifyBehavior.unset,
                     jobID: job.id,
                   }),
@@ -442,7 +442,7 @@ const Archive = () => {
     <Kb.ScrollView style={styles.scroll}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-          {Kb.Styles.isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
+          {isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}
           <Kb.Box2 direction="vertical" flex={1} style={styles.jobs} fullWidth={true} alignItems="center">
             <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
               {
@@ -450,21 +450,21 @@ const Archive = () => {
               }
             </Kb.Text>
           </Kb.Box2>
-          {C.isMobile ? (
+          {isMobile ? (
             <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" gap="xtiny">
               <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
-                <Kb.Button small={C.isMobile} label="Backup all chat" onClick={archiveChat} />
-                <Kb.Button small={C.isMobile} label="Backup all files" onClick={archiveFS} />
+                <Kb.Button small={isMobile} label="Backup all chat" onClick={archiveChat} />
+                <Kb.Button small={isMobile} label="Backup all files" onClick={archiveFS} />
               </Kb.Box2>
               <Kb.Box2 direction="horizontal" alignSelf="center">
-                <Kb.Button small={C.isMobile} label="Backup all Git repos" onClick={archiveGit} />
+                <Kb.Button small={isMobile} label="Backup all Git repos" onClick={archiveGit} />
               </Kb.Box2>
             </Kb.Box2>
           ) : (
             <Kb.Box2 direction="horizontal" alignSelf="center" gap="xtiny">
-              <Kb.Button small={C.isMobile} label="Backup all chat" onClick={archiveChat} />
-              <Kb.Button small={C.isMobile} label="Backup all files" onClick={archiveFS} />
-              <Kb.Button small={C.isMobile} label="Backup all Git repos" onClick={archiveGit} />
+              <Kb.Button small={isMobile} label="Backup all chat" onClick={archiveChat} />
+              <Kb.Button small={isMobile} label="Backup all files" onClick={archiveFS} />
+              <Kb.Button small={isMobile} label="Backup all Git repos" onClick={archiveGit} />
             </Kb.Box2>
           )}
         </Kb.Box2>
@@ -501,7 +501,7 @@ const Archive = () => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   action: {flexShrink: 0},
   clear: {alignSelf: 'flex-start', marginTop: 16},
-  container: {padding: Kb.Styles.isMobile ? 8 : 16},
+  container: {padding: isMobile ? 8 : 16},
   errorTip: {justifyContent: 'center'},
   jobLeft: {flexShrink: 1},
   jobs: {

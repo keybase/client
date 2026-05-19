@@ -43,7 +43,7 @@ const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void
         <Kb.ImageIcon type="icon-illustration-teams-96" />
       </Kb.Box2>
     </Kb.ClickableBox>
-    {props.empty && !Kb.Styles.isMobile && (
+    {props.empty && !isMobile && (
       <Kb.Text type="BodySmall" style={styles.emptyNote}>
         Keybase team chats are encrypted – unlike Slack – and work for any size group, from casual friends to
         large communities.
@@ -98,7 +98,7 @@ const SortHeader = ({onChangeSort, sortOrder}: {onChangeSort: Props['onChangeSor
   )
 }
 
-const teamRowHeight = Kb.Styles.isMobile ? 72 : 48
+const teamRowHeight = isMobile ? 72 : 48
 const teamRowItemHeight = {height: teamRowHeight, type: 'fixed' as const}
 
 type TeamItem = TeamRowItem
@@ -126,7 +126,7 @@ const Teams = function Teams(p: Props) {
   const renderItem = (_index: number, item: TeamItem) => {
     return (
       <PerfProfiler id="TeamRow">
-        <TeamRowNew showChat={!Kb.Styles.isMobile} {...item} />
+        <TeamRowNew showChat={!isMobile} {...item} />
       </PerfProfiler>
     )
   }

@@ -1,0 +1,121 @@
+// https://github.com/jaredLunde/react-hook/blob/master/packages/resize-observer/src/index.tsx
+import * as React from 'react'
+
+type InternalCallback = (entry: ResizeObserverEntry, observer: ResizeObserver) => unknown
+
+type FakeResizeObserver = {
+  disconnect: () => void
+  observe: () => void
+  unobserve: () => void
+}
+
+function useResizeObserverDesktop<T extends Element>(
+  target: React.RefObject<T> | React.ForwardedRef<T> | T | null,
+  callback: InternalCallback
+): ResizeObserver {
+  const resizeObserver = getResizeObserver()
+  const storedCallback = React.useRef(callback)
+  // eslint-disable-next-line
+  storedCallback.current = callback
+
+  React.useLayoutEffect(() => {
+    let didUnsubscribe = false
+    const targetEl = target && 'current' in target ? target.current : target
+    if (!targetEl) return () => {}
+
+    function cb(entry: ResizeObserverEntry, observer: ResizeObserver) {
+      if (didUnsubscribe) return
+      storedCallback.current(entry, observer)
+    }
+
+    resizeObserver.subscribe(targetEl as Element, cb)
+
+    return () => {
+      didUnsubscribe = true
+      resizeObserver.unsubscribe(targetEl as Element, cb)
+    }
+  }, [target, resizeObserver, storedCallback])
+
+  return resizeObserver.observer
+}
+
+const fakeResizeObserver: FakeResizeObserver = {
+  disconnect: () => {},
+  observe: () => {},
+  unobserve: () => {},
+}
+
+function useResizeObserverMobile(_target?: unknown, _callback?: unknown): FakeResizeObserver {
+  return fakeResizeObserver
+}
+
+function useResizeObserver<T extends Element>(
+  target: React.RefObject<T> | React.ForwardedRef<T> | T | null,
+  callback: InternalCallback
+): ResizeObserver | FakeResizeObserver {
+  if (isMobile) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    return useResizeObserverMobile(target, callback)
+  }
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  return useResizeObserverDesktop(target, callback)
+}
+
+function createResizeObserver() {
+  let ticking = false
+  let allEntries: ResizeObserverEntry[] = []
+
+  const callbacks: Map<unknown, Array<InternalCallback>> = new Map()
+
+  const observer = new ResizeObserver((entries: ResizeObserverEntry[], obs: ResizeObserver) => {
+    allEntries = allEntries.concat(entries)
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const triggered = new Set<Element>()
+        // eslint-disable-next-line
+        for (let i = 0; i < allEntries.length; i++) {
+          const entry = allEntries[i]
+          if (!entry) {
+            continue
+          }
+          if (triggered.has(entry.target)) continue
+          triggered.add(entry.target)
+          const cbs = callbacks.get(entry.target)
+
+          cbs?.forEach(cb => cb(entry, obs))
+        }
+        allEntries = []
+        ticking = false
+      })
+    }
+    ticking = true
+  })
+
+  return {
+    observer,
+    subscribe(target: Element, callback: InternalCallback) {
+      observer.observe(target)
+      const cbs = callbacks.get(target) ?? []
+      cbs.push(callback)
+      callbacks.set(target, cbs)
+    },
+    unsubscribe(target: Element, callback: InternalCallback) {
+      const cbs = callbacks.get(target) ?? []
+      if (cbs.length === 1) {
+        observer.unobserve(target)
+        callbacks.delete(target)
+        return
+      }
+      const cbIndex = cbs.indexOf(callback)
+      if (cbIndex !== -1) cbs.splice(cbIndex, 1)
+      callbacks.set(target, cbs)
+    },
+  }
+}
+
+let _resizeObserver: ReturnType<typeof createResizeObserver> | undefined
+
+const getResizeObserver = () =>
+  !_resizeObserver ? (_resizeObserver = createResizeObserver()) : _resizeObserver
+
+export default useResizeObserver

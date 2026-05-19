@@ -59,7 +59,7 @@ const ExternalTeam = (props: Props) => {
       {waiting ? (
         <Kb.Box2
           direction="horizontal"
-          gap={Kb.Styles.isMobile ? 'small' : 'tiny'}
+          gap={isMobile ? 'small' : 'tiny'}
           fullWidth={true}
           alignItems="center"
         >
@@ -147,8 +147,8 @@ const Header = ({info}: ExternalTeamProps) => {
   const {popupAnchor, showPopup, popup} = useTeamLinkPopup(teamname || '')
 
   const metaInfo = (
-    <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Kb.Styles.isMobile ? 'small' : 'tiny'}>
-      <Kb.Box2 direction="vertical" alignSelf="stretch" gap={Kb.Styles.isMobile ? 'xtiny' : 'xxtiny'}>
+    <Kb.Box2 direction="vertical" alignSelf="stretch" gap={isMobile ? 'small' : 'tiny'}>
+      <Kb.Box2 direction="vertical" alignSelf="stretch" gap={isMobile ? 'xtiny' : 'xxtiny'}>
         {!!info.description && <Kb.Text type="Body">{info.description}</Kb.Text>}
         <Kb.Text type="BodySmall">
           {info.numMembers.toLocaleString()} {pluralize('member', info.numMembers)}
@@ -170,13 +170,13 @@ const Header = ({info}: ExternalTeamProps) => {
         <Kb.Box2 direction="vertical" gap="xxtiny" alignSelf="flex-start">
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
             <Kb.Text type="Header">{teamname}</Kb.Text>
-            {!Kb.Styles.isMobile && openMeta}
+            {!isMobile && openMeta}
           </Kb.Box2>
-          {Kb.Styles.isMobile && openMeta}
-          {!Kb.Styles.isMobile && metaInfo}
+          {isMobile && openMeta}
+          {!isMobile && metaInfo}
         </Kb.Box2>
       </Kb.Box2>
-      {Kb.Styles.isMobile && metaInfo}
+      {isMobile && metaInfo}
     </Kb.Box2>
   )
 }

@@ -36,7 +36,7 @@ type Props = {
 
 const LabelContainer = (props: Props) =>
   // We put the tooltip on the whole thing on desktop.
-  Styles.isMobile && props.labelTooltip ? (
+  isMobile && props.labelTooltip ? (
     <Kb.WithTooltip
       tooltip={props.labelTooltip}
       containerStyle={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.labelContainer])}
@@ -93,7 +93,7 @@ function Switch(props: Props & {ref?: React.Ref<MeasureRef>}) {
     </>
   )
 
-  return Styles.isMobile || !props.labelTooltip ? (
+  return isMobile || !props.labelTooltip ? (
     <Kb.Box2 direction={props.align !== 'right' ? 'horizontal' : 'horizontalReverse'} fullWidth={true} style={Styles.collapseStyles([styles.container, props.style])}>{content}</Kb.Box2>
   ) : (
     <Kb.WithTooltip

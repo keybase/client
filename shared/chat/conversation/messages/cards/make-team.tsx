@@ -63,7 +63,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       header: {
-        maxWidth: Kb.Styles.isMobile ? 126 : undefined,
+        maxWidth: isMobile ? 126 : undefined,
       },
       icon: Kb.Styles.platformStyles({
         isElectron: {
@@ -75,7 +75,7 @@ const styles = Kb.Styles.styleSheetCreate(
         alignSelf: 'center',
         paddingRight: Kb.Styles.globalMargins.small,
       },
-      link: {color: Kb.Styles.isMobile ? Kb.Styles.globalColors.greenLight : undefined},
+      link: {color: isMobile ? Kb.Styles.globalColors.greenLight : undefined},
       textContainer: {padding: Kb.Styles.globalMargins.medium},
     }) as const
 )

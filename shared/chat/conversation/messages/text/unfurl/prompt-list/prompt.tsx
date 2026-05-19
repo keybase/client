@@ -9,7 +9,7 @@ export type Props = {
   onNever: () => void
 }
 
-const promptIcon = Kb.Styles.isMobile
+const promptIcon = isMobile
   ? 'icon-fancy-unfurl-preview-mobile-128-128'
   : 'icon-fancy-unfurl-preview-desktop-96-96'
 
@@ -17,7 +17,7 @@ const UnfurlPrompt = (p: Props) => {
   const {onAlways, onAccept, onOnetime, domain, onNotnow, onNever} = p
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-      {!Kb.Styles.isMobile && <Kb.ImageIcon type={promptIcon} style={styles.icon} />}
+      {!isMobile && <Kb.ImageIcon type={promptIcon} style={styles.icon} />}
       <Kb.Box2 direction="vertical" style={styles.choiceContainer} gap="xtiny">
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>

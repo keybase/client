@@ -35,7 +35,7 @@ const MakeBigTeam = ({wizard: initialWizard}: Props) => {
         direction="vertical"
         fullWidth={true}
         style={styles.body}
-        gap={Kb.Styles.isMobile ? 'xsmall' : 'tiny'}
+        gap={isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.RichButton
           description="With multiple roles and channels. Big team chats appear in the lower section in the inbox."

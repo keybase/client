@@ -7,7 +7,7 @@ import {usePushState} from '@/stores/push'
 import {setSignupEmail} from '@/people/signup-email'
 
 const ConnectedEnterEmail = () => {
-  const _showPushPrompt = usePushState(s => C.isMobile && !s.hasPermissions && s.showPushPrompt)
+  const _showPushPrompt = usePushState(s => isMobile && !s.hasPermissions && s.showPushPrompt)
   const {error, submitEmail, waiting} = useAddEmail()
   const clearModals = C.Router2.clearModals
   const navigateAppend = C.Router2.navigateAppend
@@ -89,7 +89,7 @@ export const EnterEmailBody = (props: BodyProps) => (
     <Kb.Box2
       alignItems="center"
       direction="vertical"
-      gap={Kb.Styles.isMobile ? 'small' : 'medium'}
+      gap={isMobile ? 'small' : 'medium'}
       fullWidth={true}
       style={Kb.Styles.globalStyles.flexOne}
     >

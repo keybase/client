@@ -15,7 +15,7 @@ type Props = {
 
 const ButtonBar = (props: Props) => {
   const _spacing = () => {
-    if ((props.direction ?? 'row') === 'row' && props.small && !Styles.isMobile) {
+    if ((props.direction ?? 'row') === 'row' && props.small && !isMobile) {
       return SmallSpacer
     }
     return BigSpacer
@@ -40,7 +40,7 @@ const ButtonBar = (props: Props) => {
   }, [])
 
   const minHeight = {
-    minHeight: Styles.isMobile ? (props.small ? 64 : 72) : props.small ? 44 : 64,
+    minHeight: isMobile ? (props.small ? 64 : 72) : props.small ? 44 : 64,
   }
 
   const isColumn = (props.direction ?? 'row') === 'column'
@@ -79,8 +79,8 @@ const bigSpacerStyle = {
 const SmallSpacer = () => <Kb.Box2 direction="vertical" style={smallSpacerStyle} />
 const smallSpacerStyle = {
   flexShrink: 0,
-  height: Styles.isMobile ? 8 : 4,
-  width: Styles.isMobile ? 8 : 4,
+  height: isMobile ? 8 : 4,
+  width: isMobile ? 8 : 4,
 }
 
 export default ButtonBar

@@ -231,8 +231,8 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
               <Kb.Box2
                 direction="vertical"
                 fullWidth={true}
-                gap={Kb.Styles.isMobile ? 'small' : undefined}
-                gapStart={Kb.Styles.isMobile}
+                gap={isMobile ? 'small' : undefined}
+                gapStart={isMobile}
                 style={styles.checkboxIndented}
               >
                 <Kb.Checkbox label="You follow them, or..." checked={true} disabled={true} />
@@ -253,7 +253,7 @@ const Security = ({allowEdit, groups, refresh, toggle}: NotificationSettingsStat
                 <Kb.Box2
                   direction="vertical"
                   fullWidth={true}
-                  gap={Kb.Styles.isMobile ? 'small' : undefined}
+                  gap={isMobile ? 'small' : undefined}
                   gapStart={false}
                   gapEnd={true}
                 >
@@ -437,7 +437,7 @@ const Sound = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
       sound: s.notifySound,
     }))
   )
-  const showDesktopSound = !C.isMobile && !C.isLinux
+  const showDesktopSound = !isMobile && !C.isLinux
   const showMobileSound = !!groups.get('sound')?.settings.length
   if (!showDesktopSound && !showMobileSound) return null
   return (
@@ -465,7 +465,7 @@ const Sound = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
 }
 
 const Misc = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
-  const showMisc = C.isMac || C.isIOS
+  const showMisc = C.isMac || isIOS
   if (!showMisc) return null
   return (
     <>
@@ -511,7 +511,7 @@ const TeamRow = (p: {checked: boolean; isOpen: boolean; name: string; onCheck: (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
         <Kb.Checkbox checked={checked} onCheck={checked => onCheck(checked)} style={styles.teamCheckbox} />
-        <Kb.Avatar isTeam={true} size={Kb.Styles.isMobile ? 32 : 24} teamname={name} />
+        <Kb.Avatar isTeam={true} size={isMobile ? 32 : 24} teamname={name} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
             <Kb.Text type="BodySemibold" lineClamp={1}>
@@ -573,7 +573,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   teamRowContainer: {
     paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingLeft: Kb.Styles.isMobile ? Kb.Styles.globalMargins.large : 48,
+    paddingLeft: isMobile ? Kb.Styles.globalMargins.large : 48,
     paddingRight: Kb.Styles.globalMargins.small,
     paddingTop: Kb.Styles.globalMargins.xtiny,
   },

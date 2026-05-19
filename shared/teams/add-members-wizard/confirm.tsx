@@ -274,7 +274,7 @@ const AddMoreMembers = ({wizard}: {wizard: AddMembersWizard}) => {
           visible={true}
           items={[
             {onClick: onAddKeybase, title: 'From Keybase'},
-            ...(Kb.Styles.isMobile ? [{onClick: onAddContacts, title: 'From contacts'}] : []),
+            ...(isMobile ? [{onClick: onAddContacts, title: 'From contacts'}] : []),
             {onClick: onAddEmail, title: 'By email address'},
             {onClick: onAddPhone, title: 'By phone number'},
           ]}
@@ -342,17 +342,17 @@ const AddingMembers = ({
 }) => {
   const {addingMembers} = wizard
   const [expanded, setExpanded] = React.useState(false)
-  const showDivider = Kb.Styles.isMobile && addingMembers.length > 4
-  const aboveDivider = C.isMobile ? addingMembers.slice(0, 4) : addingMembers
-  const belowDivider = C.isMobile && expanded ? addingMembers.slice(4) : []
+  const showDivider = isMobile && addingMembers.length > 4
+  const aboveDivider = isMobile ? addingMembers.slice(0, 4) : addingMembers
+  const belowDivider = isMobile && expanded ? addingMembers.slice(4) : []
   const toggleExpanded = () => {
-    if (Kb.Styles.isMobile) {
+    if (isMobile) {
       Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)
     }
     setExpanded(!expanded)
   }
   const content = (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap={Kb.Styles.isMobile ? 'tiny' : 'xtiny'}>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap={isMobile ? 'tiny' : 'xtiny'}>
       {aboveDivider.map(toAdd => (
         <AddingMember
           key={toAdd.assertion}
@@ -389,7 +389,7 @@ const AddingMembers = ({
         ))}
     </Kb.Box2>
   )
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.addingMembers}>
         {content}

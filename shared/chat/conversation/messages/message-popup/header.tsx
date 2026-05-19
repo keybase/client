@@ -3,7 +3,7 @@ import {formatTimeForPopup, formatTimeForRevoked} from '@/util/timestamp'
 import type * as T from '@/constants/types'
 import {navToProfile} from '@/constants/router'
 
-const iconNameForDeviceType = Kb.Styles.isMobile
+const iconNameForDeviceType = isMobile
   ? (deviceType: string, isRevoked: boolean, isLocation: boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
@@ -33,7 +33,7 @@ const iconNameForDeviceType = Kb.Styles.isMobile
       }
     }
 
-const headerIconHeight = Kb.Styles.isMobile ? 96 : 48
+const headerIconHeight = isMobile ? 96 : 48
 
 type Props = {
   author: string
@@ -60,8 +60,8 @@ const MessagePopupHeader = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
-      {Kb.Styles.isMobile ? null : <Kb.ImageIcon type={iconName} style={styles.headerIcon} />}
-      {Kb.Styles.isMobile ? null : (
+      {isMobile ? null : <Kb.ImageIcon type={iconName} style={styles.headerIcon} />}
+      {isMobile ? null : (
         <Kb.Box2 direction="horizontal">
           <Kb.Text
             type="BodySmall"
@@ -121,7 +121,7 @@ const MessagePopupHeader = (props: Props) => {
       )}
       <Kb.Divider
         style={{
-          marginBottom: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : 0,
+          marginBottom: isMobile ? Kb.Styles.globalMargins.tiny : 0,
           marginTop: Kb.Styles.globalMargins.tiny,
           width: '100%',
         }}

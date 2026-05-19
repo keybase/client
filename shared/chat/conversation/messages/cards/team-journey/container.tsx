@@ -91,7 +91,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
       {
         const otherChannelsForPopular = otherChannelsBase
           .filter(({membershipType}) => joinableStatuses.has(membershipType))
-          .slice(0, C.isMobile ? 2 : 3)
+          .slice(0, isMobile ? 2 : 3)
           .map(info => info.channelname)
         actions = otherChannelsForPopular.map(chan => ({
           label: `#${chan}`,
@@ -221,7 +221,7 @@ const TeamJourneyHeader = (props: HeaderProps) => {
         </Kb.Text>
         <Kb.Text type="BodyTiny">• System message</Kb.Text>
       </Kb.Box2>
-      {!Kb.Styles.isMobile && !deactivateButtons && (
+      {!isMobile && !deactivateButtons && (
         <Kb.Icon type="iconfont-close" color={Kb.Styles.globalColors.black_20} onClick={onDismiss} fontSize={12} />
       )}
     </Kb.Box2>
@@ -283,7 +283,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {marginTop: -33},
       }),
       teamnameText: {color: Kb.Styles.globalColors.black},
-      text: {maxWidth: Kb.Styles.isMobile ? '70%' : 320},
+      text: {maxWidth: isMobile ? '70%' : 320},
     }) as const
 )
 

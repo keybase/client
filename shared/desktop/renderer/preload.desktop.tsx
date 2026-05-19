@@ -6,7 +6,7 @@ import {
   type KB2,
   type OpenDialogOptions,
   type SaveDialogOptions,
-} from '@/util/electron.desktop'
+} from '@/util/electron'
 import type * as RPCTypes from '@/constants/rpc/rpc-gen'
 import type {Action} from '../app/ipctypes'
 

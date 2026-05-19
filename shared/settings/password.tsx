@@ -40,7 +40,7 @@ export const UpdatePassword = (props: Props) => {
 
   const canSubmit = () => !errorSaving && password.length >= 8 && password === passwordConfirm
 
-  const keyboardType = showTyping && Kb.Styles.isAndroid ? 'visible-password' : 'default'
+  const keyboardType = showTyping && isAndroid ? 'visible-password' : 'default'
   const notification = props.error
     ? props.error
     : props.hasPGPKeyOnServer

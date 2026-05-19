@@ -42,6 +42,7 @@ const nullLoadedAssetDirectories = [
   path.resolve(__dirname, '../images/icons'),
 ]
 const resourceAssetDirectories = [
+  path.resolve(__dirname, '../images'),
   path.resolve(__dirname, '../images/illustrations'),
   path.resolve(__dirname, '../images/install'),
 ]
@@ -65,7 +66,13 @@ if (debugWebpack) {
 }
 
 const makeAlias = (isDev: boolean): Record<string, string | false> => {
-  const alias = ignoredModules.reduce<Record<string, string | false>>(
+  // Sort longest-first so subpath entries (e.g. 'foo/bar') are inserted into
+  // the alias object before their parent package ('foo'). webpack's enhanced-resolve
+  // checks aliases in insertion order and uses the first match; a shorter prefix
+  // like 'foo' would otherwise intercept 'foo/bar' and append '/bar' to the
+  // null-module path, producing a non-existent path.
+  const sortedModules = [...ignoredModules].sort((a, b) => b.length - a.length)
+  const alias = sortedModules.reduce<Record<string, string | false>>(
     (acc, name: string) => {
       acc[name] = nullModulePath
       return acc
@@ -73,8 +80,15 @@ const makeAlias = (isDev: boolean): Record<string, string | false> => {
     {
       'react-native$': 'react-native-web',
       'react-native-reanimated': false,
+      'react-native/Libraries/Image/resolveAssetSource': nullModulePath,
     }
   )
+
+  // Override the null-module for packages that need a real stub on desktop.
+  // These are in native-only-modules (so Jest gets an empty stub) but webpack
+  // needs proper exports so renderer code (e.g. @react-navigation/elements) works.
+  alias['react-native-safe-area-context'] = path.resolve(__dirname, './stubs/react-native-safe-area-context.js')
+  alias['@react-native-picker/picker'] = path.resolve(__dirname, './stubs/react-native-picker.js')
 
   if (!isDev) {
     alias['@welldone-software/why-did-you-render'] = false
@@ -89,6 +103,10 @@ const makeDefineValues = (isDev: boolean, isHot: boolean, isProfile: boolean, fi
   __DEV__: isDev,
   __HOT__: isHot,
   __VERSION__: isDev ? JSON.stringify('Development') : JSON.stringify(process.env['APP_VERSION']),
+  isMobile: JSON.stringify(false),
+  isElectron: JSON.stringify(true),
+  isAndroid: JSON.stringify(false),
+  isIOS: JSON.stringify(false),
 })
 
 const makeBabelLoader = (isDev: boolean, isHot: boolean, nodeThread: boolean): RuleSetRule['use'] => [
@@ -157,7 +175,14 @@ const makeRules = ({
       }) satisfies RuleSetRule
   ),
   {
-    exclude: /\/dist\//,
+    // Native-only files must never be parsed by webpack on desktop: they use @/ imports
+    // that babel-module-resolver can't transform (babel ignores *.native.* files), so
+    // webpack would see the raw @/ alias and fail to resolve it.
+    test: /\.(native|ios|android)\.(ts|js)x?$/,
+    use: ['null-loader'],
+  },
+  {
+    exclude: [/\/dist\//, /\.(native|ios|android)\.(ts|js)x?$/],
     test: /\.(ts|js)x?$/,
     use: makeBabelLoader(isDev, isHot, nodeThread),
   },
@@ -338,7 +363,12 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
     cache: {
       type: 'filesystem',
       buildDependencies: {
-        config: [configPath, babelConfigPath],
+        config: [
+          configPath,
+          babelConfigPath,
+          path.resolve(rootDir, 'ignored-modules.js'),
+          path.resolve(rootDir, 'native-only-modules.js'),
+        ],
         fonts: [path.resolve(__dirname, '../fonts/.font-build-stamp')],
       },
     },

@@ -1,5 +1,4 @@
 import * as T from '@/constants/types'
-import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {useSafeNavigation} from '@/util/safe-navigation'
 
@@ -51,7 +50,7 @@ const NoAccess = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
       <Kb.IconAuto
-        type={C.isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
+        type={isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
       />
       <Kb.Text type="Header" style={styles.textYouDontHave}>
         {"You don't have access to this folder or file."}
@@ -73,7 +72,7 @@ const NonExistent = (props: Props) => (
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
       <Kb.IconAuto
         type={
-          C.isMobile
+          isMobile
             ? 'icon-fancy-folder-file-inexistant-mobile-188-120'
             : 'icon-fancy-folder-file-inexistant-desktop-153-94'
         }

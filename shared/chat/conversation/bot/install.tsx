@@ -248,7 +248,7 @@ const InstallBotPopup = (props: Props) => {
   const navigateUp = C.Router2.navigateUp
   const [pendingMutation, setPendingMutation] = React.useState<'add' | 'edit' | undefined>()
   const onLearn = () => {
-    openURL('https://book.keybase.io/docs/chat/restricted-bots')
+    void openURL('https://book.keybase.io/docs/chat/restricted-bots')
   }
   const onInstall = () => {
     if (!conversationIDKey) {
@@ -620,7 +620,7 @@ const InstallBotPopup = (props: Props) => {
       } else if (installScreen) {
         setInstallScreen(false)
       } else {
-        if (Kb.Styles.isMobile) {
+        if (isMobile) {
           navigateUp()
         } else {
           clearModals()

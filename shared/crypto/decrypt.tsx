@@ -32,7 +32,7 @@ const bannerMessage = Crypto.infoMessage.decrypt
 const filePrompt = 'Drop a file to decrypt'
 const inputEmptyWidth = 320
 const inputFileIcon = 'icon-file-saltpack-64' as const
-const inputPlaceholder = C.isMobile
+const inputPlaceholder = isMobile
   ? 'Enter text to decrypt'
   : 'Enter ciphertext, drop an encrypted file or folder, or'
 
@@ -143,7 +143,7 @@ export const DecryptInput = (_props: unknown) => {
   const onRun = () => {
     const f = async () => {
       const next = await controller.decrypt()
-      if (C.isMobile) {
+      if (isMobile) {
         navigateAppend({name: Crypto.decryptOutput, params: next})
       }
     }
@@ -166,7 +166,7 @@ export const DecryptInput = (_props: unknown) => {
     </>
   )
 
-  return C.isMobile ? (
+  return isMobile ? (
     <Kb.KeyboardAvoidingView2>
       {contents}
       <InputActionsBar runLabel="Decrypt" onRun={onRun} />
@@ -182,9 +182,9 @@ export const DecryptOutput = ({route}: {route: {params: CommonOutputRouteParams}
   const state = route.params
   const content = (
     <>
-      {C.isMobile && state.errorMessage ? <CryptoBanner key="banner" infoMessage={bannerMessage} state={state} /> : null}
+      {isMobile && state.errorMessage ? <CryptoBanner key="banner" infoMessage={bannerMessage} state={state} /> : null}
       <CryptoSignedSender key="sender" isSelfSigned={false} state={state} />
-      {C.isMobile ? <Kb.Divider key="div" /> : null}
+      {isMobile ? <Kb.Divider key="div" /> : null}
       <CryptoOutput
         key="output"
         actionLabel="Decrypt"
@@ -197,7 +197,7 @@ export const DecryptOutput = ({route}: {route: {params: CommonOutputRouteParams}
     </>
   )
 
-  return C.isMobile ? (
+  return isMobile ? (
     content
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.outputDesktopMaxHeight}>

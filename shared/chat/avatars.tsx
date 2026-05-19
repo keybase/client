@@ -9,7 +9,7 @@ const OverlayIcon = function OverlayIcon(p: {
 }) {
   const {isHovered, isMuted, isSelected, isLocked} = p
 
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     const type = isMuted
       ? isSelected
         ? 'icon-shh-active-26-21'
@@ -74,7 +74,7 @@ const Avatars = function Avatars(p: Props) {
   const leftStyle = {left: 0, position: 'absolute', top: 0} as const
   const rightStyle = Kb.Styles.collapseStyles([
     {bottom: 0, position: 'absolute', right: 0} as const,
-    !Kb.Styles.isMobile && backgroundColor && {borderRadius: '50%', boxShadow: `0px 0px 0px 2px ${backgroundColor}`},
+    !isMobile && backgroundColor && {borderRadius: '50%', boxShadow: `0px 0px 0px 2px ${backgroundColor}`},
   ])
 
   const containerStyle = Kb.Styles.collapseStyles([styles.container, {height: singleSize, width: singleSize}])

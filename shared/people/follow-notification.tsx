@@ -60,7 +60,7 @@ const FollowNotification = (props: Props) => {
               ]
             : undefined
         }
-        icon={<Kb.Avatar username={username} onClick={onClick} size={Kb.Styles.isMobile ? 48 : 32} />}
+        icon={<Kb.Avatar username={username} onClick={onClick} size={isMobile ? 48 : 32} />}
         iconContainerStyle={styles.iconContainer}
         when={props.notificationTime}
         contentStyle={styles.peopleItem}
@@ -109,7 +109,7 @@ function MultiFollowNotification(props: Props) {
         </Kb.Text>
       )}
       <Kb.ScrollView
-        {...(Kb.Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
+        {...(isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
         contentContainerStyle={styles.scrollViewContainer}
       >
         {usernames.map(username => (

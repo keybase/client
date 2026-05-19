@@ -13,7 +13,7 @@ import {
   navigateUp,
   setChatRootParams,
 } from '@/constants/router'
-import {isMobile, isPhone} from '@/constants/platform'
+import {isPhone} from '@/constants/platform'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
 import type {DebouncedFunc} from 'lodash'

@@ -2,7 +2,7 @@
 // Listens for requests from the main process (which proxies requests from other windows) to kick off an update
 import * as React from 'react'
 import * as C from '@/constants'
-import KB2 from '@/util/electron.desktop'
+import KB2 from '@/util/electron'
 import {useConfigState} from '@/stores/config'
 import type {RemoteComponentName} from './remote-component.desktop'
 

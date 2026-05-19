@@ -9,7 +9,7 @@ export const infoPanelWidthTablet = 350
 export function infoPanelWidth() {
   if (Styles.isTablet) {
     return infoPanelWidthTablet
-  } else if (Styles.isMobile) {
+  } else if (isMobile) {
     return infoPanelWidthPhone
   } else {
     return infoPanelWidthElectron

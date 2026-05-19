@@ -59,6 +59,6 @@ const ConnectedHeaderRightActions = () => {
 }
 
 export default {
-  headerRightActions: !Kb.Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
+  headerRightActions: !isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
   title: 'Teams',
 }

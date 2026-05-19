@@ -3,7 +3,7 @@ import logger from '@/logger'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import {useDarkModeState} from '@/stores/darkmode'
-import KB2 from '@/util/electron.desktop'
+import KB2 from '@/util/electron'
 
 const {ipcRendererOn, showInactive} = KB2.functions
 
@@ -22,7 +22,7 @@ type RemotePropsReceiverState<P> = {
   value: P | null
 }
 
-export const getRemoteComponentParam = () => new URLSearchParams(window.location.search).get('param') ?? ''
+export const getRemoteComponentParam = () => new URLSearchParams(window!.location.search).get('param') ?? ''
 
 export const useRemoteDarkModeSync = (darkMode: boolean) => {
   const setSystemDarkMode = useDarkModeState(s => s.dispatch.setSystemDarkMode)

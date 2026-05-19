@@ -13,7 +13,7 @@ const Title = React.lazy(async () => import('./search'))
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      overlay: {width: Kb.Styles.isMobile ? undefined : 500},
+      overlay: {width: isMobile ? undefined : 500},
     }) as const
 )
 
@@ -51,7 +51,7 @@ const EditAvatarHeaderRight = ({
     navigateAppend(getNextRouteAfterAvatar(wizardState, parentTeamMemberCount))
   }
   if (!wizard) return null
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     return <Kb.Text type="BodyBigLink" onClick={onSkip}>Skip</Kb.Text>
   }
   return <Kb.Button label="Skip" mode="Secondary" onClick={onSkip} style={skipButtonStyle} type="Default" />
@@ -70,8 +70,8 @@ const EditAvatarHeaderTitle = ({
   wizard?: boolean
 }) => {
   if (teamID) {
-    const title = hasImage && C.isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
-    if (Kb.Styles.isMobile) {
+    const title = hasImage && isIOS ? 'Zoom and pan' : wizard ? 'Upload avatar' : 'Change avatar'
+    if (isMobile) {
       return <ModalTitle teamID={teamID} title={title} newTeamWizard={newTeamWizard} />
     }
     return <Kb.Text type="BodyBig">{title}</Kb.Text>

@@ -22,7 +22,7 @@ export type IconProps = {
 
 const sizeToFontDesktop = {Big: 24, Bigger: 36, Default: 16, Huge: 48, Small: 12, Tiny: 8} as const
 const sizeToFontMobile = {Big: 32, Bigger: 48, Default: 20, Huge: 64, Small: 16, Tiny: 10} as const
-const sizeToFont = Styles.isMobile ? sizeToFontMobile : sizeToFontDesktop
+const sizeToFont = isMobile ? sizeToFontMobile : sizeToFontDesktop
 
 const cssVarToColorName = (cssVar: string): string | undefined => {
   const match = /^var\(--color-(.+)\)$/.exec(cssVar)
@@ -101,5 +101,5 @@ const IconNative = (props: IconProps) => {
   )
 }
 
-const Icon = Styles.isMobile ? IconNative : IconDesktop
+const Icon = isMobile ? IconNative : IconDesktop
 export default Icon

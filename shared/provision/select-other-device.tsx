@@ -13,11 +13,11 @@ type Props = {
 
 type Item = {type: 'header'} | {device: Device; type: 'device'} | {type: 'reset'}
 
-const deviceSmallHeight = Kb.Styles.isMobile ? 56 : 48
+const deviceSmallHeight = isMobile ? 56 : 48
 // "or" text with padding (~36) + ListItem Small
 const resetHeight = 36 + deviceSmallHeight
 // Header text with padding
-const headerHeight = Kb.Styles.isMobile ? 80 : 90
+const headerHeight = isMobile ? 80 : 90
 
 const getItemHeight = (item: Item | undefined): number => {
   switch (item?.type) {
@@ -61,7 +61,7 @@ const SelectOtherDevice = (props: Props) => {
             {!passwordRecovery && (
               <Kb.Text center={true} type="Body">
                 For security reasons, you need to authorize this{' '}
-                {Kb.Styles.isMobile ? 'phone' : 'computer'} with another device or a paper key.
+                {isMobile ? 'phone' : 'computer'} with another device or a paper key.
               </Kb.Text>
             )}
             <Kb.Text center={true} type="Body">
@@ -115,11 +115,11 @@ const SelectOtherDevice = (props: Props) => {
 
   return (
     <SignupScreen
-      hideDesktopHeader={!Kb.Styles.isMobile}
+      hideDesktopHeader={!isMobile}
       noBackground={true}
       onBack={onBack}
       title={
-        passwordRecovery ? 'Recover password' : `Authorize this ${Kb.Styles.isMobile ? 'device' : 'computer'}`
+        passwordRecovery ? 'Recover password' : `Authorize this ${isMobile ? 'device' : 'computer'}`
       }
       contentContainerStyle={Kb.Styles.padding(0)}
     >

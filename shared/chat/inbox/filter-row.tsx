@@ -38,7 +38,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
   }
 
   const onEnterKeyDown = (e?: React.BaseSyntheticEvent) => {
-    if (!Kb.Styles.isMobile) {
+    if (!isMobile) {
       if (e) {
         e.preventDefault()
         e.stopPropagation()
@@ -76,7 +76,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
       showXOverride={true}
       value={filter}
       valueControlled={true}
-      focusOnMount={Kb.Styles.isMobile}
+      focusOnMount={isMobile}
       onChange={onChange}
       onCancel={onCancelSearch}
       onKeyDown={onKeyDown}
@@ -87,12 +87,12 @@ function ConversationFilterInput(ownProps: OwnProps) {
       <Kb.ClickableBox2 onClick={startSearch} style={styles.searchPlaceholder}>
         <Kb.Icon
           type="iconfont-search"
-          sizeType={Kb.Styles.isMobile ? 'Small' : 'Default'}
+          sizeType={isMobile ? 'Small' : 'Default'}
           color={Kb.Styles.globalColors.black_50}
           style={styles.searchPlaceholderIcon}
         />
         <Kb.Text type="BodySemibold" style={styles.searchPlaceholderText}>
-          {Kb.Styles.isMobile ? 'Search' : 'Search (\u2318K)'}
+          {isMobile ? 'Search' : 'Search (\u2318K)'}
         </Kb.Text>
       </Kb.ClickableBox2>
     </Kb.Box2>
@@ -101,7 +101,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
     <Kb.Box2
       direction="horizontal"
       centerChildren={!Kb.Styles.isTablet}
-      gap={Kb.Styles.isMobile ? 'small' : showSearch ? 'xtiny' : undefined}
+      gap={isMobile ? 'small' : showSearch ? 'xtiny' : undefined}
       style={Kb.Styles.collapseStyles([
         styles.containerNotFiltering,
         !Kb.Styles.isPhone && styles.whiteBg,

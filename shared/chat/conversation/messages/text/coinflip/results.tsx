@@ -152,7 +152,7 @@ const Card = (props: CardType) => (
     <Kb.Box2 direction="horizontal">
       <Kb.Text
         selectable={true}
-        type={Kb.Styles.isMobile ? 'BodySmall' : 'Body'}
+        type={isMobile ? 'BodySmall' : 'Body'}
         style={{color: suits[cards[props.card].suit].color}}
       >
         {cards[props.card].value}
@@ -160,7 +160,7 @@ const Card = (props: CardType) => (
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
       <Kb.Icon
-        fontSize={Kb.Styles.isMobile ? 10 : 12}
+        fontSize={isMobile ? 10 : 12}
         type={suits[cards[props.card].suit].icon}
         color={suits[cards[props.card].suit].color}
         style={styles.cardSuit}
@@ -301,9 +301,9 @@ const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => (
 const paragraphOverrides = {
   paragraph: {
     // These are Header's styles.
-    fontSize: Kb.Styles.isMobile ? 20 : 18,
+    fontSize: isMobile ? 20 : 18,
     fontWeight: '700',
-    lineHeight: Kb.Styles.isMobile ? 24 : undefined,
+    lineHeight: isMobile ? 24 : undefined,
   } as const,
 }
 

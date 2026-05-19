@@ -7,7 +7,6 @@ import {usePushState} from '@/stores/push'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
 import {ignorePromise} from '@/constants/utils'
-import * as Platforms from '@/constants/platform'
 import logger from '@/logger'
 import type {StaticScreenProps} from '@react-navigation/core'
 import {
@@ -58,7 +57,7 @@ const ConnectedEnterDevicename = (p: Props) => {
           params: {
             botToken: '',
             deviceName: devicename,
-            deviceType: Platforms.isMobile ? T.RPCGen.DeviceType.mobile : T.RPCGen.DeviceType.desktop,
+            deviceType: isMobile ? T.RPCGen.DeviceType.mobile : T.RPCGen.DeviceType.desktop,
             email: '',
             genPGPBatch: false,
             genPaper: false,
@@ -141,18 +140,18 @@ const EnterDevicename = (props: EnterDevicenameProps) => {
       banners={errorBanner(props.error)}
       buttons={[{disabled, label: 'Continue', onClick: onContinue, type: 'Success', waiting: props.waiting}]}
       onBack={props.onBack}
-      title={Kb.Styles.isMobile ? 'Name this device' : 'Name this computer'}
+      title={isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2
         alignItems="center"
         direction="vertical"
-        gap={Kb.Styles.isMobile ? 'small' : 'medium'}
+        gap={isMobile ? 'small' : 'medium'}
         fullWidth={true}
         style={Kb.Styles.globalStyles.flexOne}
       >
         <Kb.ImageIcon
           type={
-            Kb.Styles.isMobile
+            isMobile
               ? C.isLargeScreen
                 ? 'icon-phone-background-1-96'
                 : 'icon-phone-background-1-64'

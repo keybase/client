@@ -1,4 +1,13 @@
-/* global module */
+/* global module, require */
+
+// Native-only packages stubbed in desktop/test environments.
+// The same list is used by webpack (ignored-modules.js → null-module.js).
+// Add new native packages to native-only-modules.js, not here.
+const nativeOnlyModules = require('./native-only-modules')
+const nativeModuleStub = '<rootDir>/test/mocks/native-module.js'
+const nativeModuleMapper = Object.fromEntries(
+  nativeOnlyModules.map(name => [`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, nativeModuleStub])
+)
 
 module.exports = {
   moduleFileExtensions: [
@@ -14,6 +23,7 @@ module.exports = {
     'node',
   ],
   moduleNameMapper: {
+    ...nativeModuleMapper,
     '\\.(css)$': '<rootDir>/test/mocks/style.js',
     '\\.(png|jpe?g|gif|svg)$': '<rootDir>/test/mocks/file.js',
     '^@/(.*)$': '<rootDir>/$1',
@@ -40,6 +50,6 @@ module.exports = {
     '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|@react-native-community|@react-navigation)/)',
+    'node_modules/(?!(react-native|@react-native|@react-native-community|@react-navigation|expo(-[a-z-]+)?|lottie-react-native|react-native-safe-area-context|react-native-screens|react-native-webview|react-native-keyboard-controller|react-native-zoom-toolkit|react-native-kb|@gorhom|@callstack|@legendapp|sf-symbols-typescript)/)',
   ],
 }

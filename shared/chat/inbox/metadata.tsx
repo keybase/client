@@ -10,7 +10,6 @@ import {
 } from '@/constants/router'
 import type * as Router2 from '@/constants/router'
 import logger from '@/logger'
-import {isMobile} from '@/constants/platform'
 import {ignorePromise, timeoutPromise} from '@/constants/utils'
 import {RPCError} from '@/util/errors'
 import * as Z from '@/util/zustand'

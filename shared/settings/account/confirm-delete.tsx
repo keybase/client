@@ -47,10 +47,10 @@ const DeleteModal = (props: OwnProps) => {
 
   const icon =
     itemType === 'email'
-      ? Kb.Styles.isMobile
+      ? isMobile
         ? 'icon-email-remove-96'
         : 'icon-email-remove-64'
-      : Kb.Styles.isMobile
+      : isMobile
         ? 'icon-phone-number-remove-96'
         : 'icon-phone-number-remove-64'
 

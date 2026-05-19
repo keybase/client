@@ -79,9 +79,9 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
           <Text type="Header">Something went wrong...</Text>
           <Text type="Body">
             Please submit a bug report by
-            {Styles.isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
+            {isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
           </Text>
-          {!Styles.isMobile && (
+          {!isMobile && (
             <Box2
               direction="vertical"
               style={{

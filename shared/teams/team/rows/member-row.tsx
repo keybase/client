@@ -246,7 +246,7 @@ export const TeamMemberRow = (props: Props) => {
       {...massActionsProps}
       action={anySelected ? null : actions}
       onlyShowActionOnHover="fade"
-      height={Kb.Styles.isMobile ? 56 : 48}
+      height={isMobile ? 56 : 48}
       type="Large"
       body={body}
       firstItem={props.firstItem}

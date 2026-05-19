@@ -32,7 +32,7 @@ const _itemRenderer = (index: number, row: Row) => {
           styles.results,
           {
             backgroundColor:
-              !Kb.Styles.isMobile && row.isSelected
+              !isMobile && row.isSelected
                 ? Kb.Styles.globalColors.blue
                 : Kb.Styles.globalColors.white,
           },

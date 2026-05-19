@@ -1,6 +1,5 @@
 import * as Kb from '@/common-adapters'
 import * as Kbfs from '../common'
-import * as C from '@/constants'
 import * as T from '@/constants/types'
 import DownloadWrapper from './download-wrapper'
 import {formatDurationFromNowTo} from '@/util/timestamp'
@@ -61,9 +60,9 @@ const Download = (props: Props) => {
         <Kb.Box2 direction="vertical" flex={1} style={styles.nameAndProgress}>
           <Kb.Text
             type="BodySmallSemibold"
-            onClick={C.isMobile ? undefined : open}
+            onClick={isMobile ? undefined : open}
             style={styles.filename}
-            lineClamp={C.isMobile ? 1 : undefined}
+            lineClamp={isMobile ? 1 : undefined}
           >
             {dlInfo.filename}
           </Kb.Text>

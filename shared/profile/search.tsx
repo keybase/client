@@ -9,9 +9,9 @@ const ProfileSearch = () => {
       <Kb.SearchFilter
         hotkey="k"
         icon="iconfont-search"
-        onFocus={Kb.Styles.isMobile ? undefined : onSearch}
-        onClick={!Kb.Styles.isMobile ? undefined : onSearch}
-        placeholderText={Kb.Styles.isMobile ? 'Search' : 'Search people'}
+        onFocus={isMobile ? undefined : onSearch}
+        onClick={!isMobile ? undefined : onSearch}
+        placeholderText={isMobile ? 'Search' : 'Search people'}
         size="full-width"
         style={styles.filter}
       />

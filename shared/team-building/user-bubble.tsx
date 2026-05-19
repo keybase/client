@@ -9,7 +9,7 @@ export type Props = {
   onRemove: () => void
 }
 
-const removeSize = Kb.Styles.isMobile ? 22 : 16
+const removeSize = isMobile ? 22 : 16
 
 const UserBubble = (props: Props) => {
   const isKeybase = props.service === 'keybase'
@@ -54,7 +54,7 @@ const RemoveBubble = ({onRemove}: {onRemove: () => void}) => (
     <Kb.Icon
       type="iconfont-close"
       color={Kb.Styles.globalColors.black_50_on_white}
-      fontSize={Kb.Styles.isMobile ? 14 : 12}
+      fontSize={isMobile ? 14 : 12}
       style={styles.removeIcon}
       className="hover_color_black"
     />

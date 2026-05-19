@@ -66,7 +66,7 @@ const SubteamMembersHeaderRight = () => {
   const {onAction, title} = useModalHeaderState(
     C.useShallow(s => ({onAction: s.onAction, title: s.title}))
   )
-  if (!Kb.Styles.isMobile) return null
+  if (!isMobile) return null
   return (
     <Kb.Box2 direction="horizontal" style={{width: 48}} justifyContent="flex-end">
       <Kb.Text type="BodyBigLink" onClick={onAction}>
@@ -193,7 +193,7 @@ const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
     }
     C.ignorePromise(f())
   }
-  if (Kb.Styles.isMobile) {
+  if (isMobile) {
     return waiting ? (
       <Kb.ProgressIndicator />
     ) : (
@@ -217,7 +217,7 @@ const AddFromWhereHeaderRight = ({wizard}: {wizard: AddMembersWizard}) => {
 
 const AddFromWhereHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => (
   <ModalTitle
-    title={Kb.Styles.isMobile ? 'Add/Invite people' : 'Add or invite people'}
+    title={isMobile ? 'Add/Invite people' : 'Add or invite people'}
     teamID={wizard.teamID}
     newTeamWizard={wizard.newTeamWizard}
   />
@@ -284,10 +284,10 @@ export const newModalRoutes = defineRouteMap({
   openTeamWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/open-team-warning'))),
   retentionWarning: C.makeScreen(React.lazy(async () => import('./team/settings-tab/retention/warning'))),
   teamAddEmoji: C.makeScreen(React.lazy(async () => import('./emojis/add-emoji')), {
-    getOptions: {headerLeft: Kb.Styles.isMobile ? () => <HeaderLeftButton mode="cancel" /> : undefined, title: 'Add emoji'},
+    getOptions: {headerLeft: isMobile ? () => <HeaderLeftButton mode="cancel" /> : undefined, title: 'Add emoji'},
   }),
   teamAddEmojiAlias: makeChatScreen(React.lazy(async () => import('./emojis/add-alias')), {
-    getOptions: {headerLeft: Kb.Styles.isMobile ? () => <HeaderLeftButton mode="cancel" /> : undefined, title: 'Add an alias'},
+    getOptions: {headerLeft: isMobile ? () => <HeaderLeftButton mode="cancel" /> : undefined, title: 'Add an alias'},
   }),
   teamAddToChannels: C.makeScreen(React.lazy(async () => import('./team/member/add-to-channels')), {
     getOptions: ({route}) => ({

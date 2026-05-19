@@ -104,12 +104,12 @@ const ListItem = (props: Props) => (
   </Kb.ClickableBox>
 )
 
-export const smallHeight = Styles.isMobile ? 56 : 48
-export const largeHeight = Styles.isMobile ? 64 : 56
-const smallIconWidth = Styles.isMobile ? 64 : 64
-const largeIconWidth = Styles.isMobile ? 72 : 72
-const statusIconWidth = Styles.isMobile ? 48 : 44
-const afterStatusIconItemLeftDistance = statusIconWidth - (Styles.isMobile ? 10 : 14)
+export const smallHeight = isMobile ? 56 : 48
+export const largeHeight = isMobile ? 64 : 56
+const smallIconWidth = isMobile ? 64 : 64
+const largeIconWidth = isMobile ? 72 : 72
+const statusIconWidth = isMobile ? 48 : 44
+const afterStatusIconItemLeftDistance = statusIconWidth - (isMobile ? 10 : 14)
 
 const styles = Styles.styleSheetCreate(() => {
   const _styles = {

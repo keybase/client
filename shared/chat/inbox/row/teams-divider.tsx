@@ -16,7 +16,7 @@ function TeamsDivider(props: Props) {
   const {badgeCount = 0, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
   let {hiddenCount} = props
 
-  if (!Kb.Styles.isMobile) {
+  if (!isMobile) {
     hiddenCount += hiddenCountDelta ?? 0
   }
 

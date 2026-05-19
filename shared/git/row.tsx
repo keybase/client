@@ -94,7 +94,7 @@ function ConnectedRow(ownProps: OwnProps) {
 
   const onClickDevice = () => {
     if (lastEditUser) {
-      openURL(`https://keybase.io/${lastEditUser}/devices`)
+      void openURL(`https://keybase.io/${lastEditUser}/devices`)
     }
   }
 
@@ -123,7 +123,7 @@ function ConnectedRow(ownProps: OwnProps) {
           <Kb.ClickableBox
             onClick={onToggleExpand}
             style={expanded ? styles.rowClickExpanded : styles.rowClick}
-            hoverColor={Kb.Styles.isMobile ? undefined : Kb.Styles.globalColors.transparent}
+            hoverColor={isMobile ? undefined : Kb.Styles.globalColors.transparent}
             underlayColor={Kb.Styles.globalColors.transparent}
           >
             <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowTop}>
@@ -133,7 +133,7 @@ function ConnectedRow(ownProps: OwnProps) {
                 sizeType="Tiny"
               />
               <Kb.Avatar
-                size={Kb.Styles.isMobile ? 48 : 32}
+                size={isMobile ? 48 : 32}
                 isTeam={!!teamname}
                 teamname={teamname}
                 username={teamname ? undefined : you}
@@ -180,7 +180,7 @@ function ConnectedRow(ownProps: OwnProps) {
                   <Kb.Avatar
                     username={lastEditUser}
                     size={16}
-                    style={{marginLeft: Kb.Styles.isMobile ? 0 : 4}}
+                    style={{marginLeft: isMobile ? 0 : 4}}
                   />
                 )}
                 {!!teamname && !!lastEditUser && (
@@ -194,10 +194,10 @@ function ConnectedRow(ownProps: OwnProps) {
                     />
                   </Kb.Box2>
                 )}
-                {Kb.Styles.isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
+                {isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
                 <Kb.Text type="BodySmall">
                   <Kb.Text type="BodySmall">
-                    {Kb.Styles.isMobile
+                    {isMobile
                       ? 'Signed and encrypted using device'
                       : ', signed and encrypted using device'}
                   </Kb.Text>

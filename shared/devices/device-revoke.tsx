@@ -37,24 +37,24 @@ const EndangeredTLFList = (props: {endangeredTLFs: Array<string>}) => {
 
 const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: () => void}) => (
   <Kb.Box2
-    direction={Kb.Styles.isMobile ? 'vertical' : 'horizontalReverse'}
-    fullWidth={Kb.Styles.isMobile}
+    direction={isMobile ? 'vertical' : 'horizontalReverse'}
+    fullWidth={isMobile}
     gap="tiny"
   >
     <Kb.WaitingButton
-      fullWidth={Kb.Styles.isMobile}
+      fullWidth={isMobile}
       type="Danger"
       label="Yes, delete it"
       waitingKey={C.waitingKeyDevices}
       onClick={onSubmit}
     />
-    <Kb.Button fullWidth={Kb.Styles.isMobile} type="Dim" onClick={onCancel} label="Cancel" />
+    <Kb.Button fullWidth={isMobile} type="Dim" onClick={onCancel} label="Cancel" />
   </Kb.Box2>
 )
 
 const getIcon = (deviceType: T.Devices.DeviceType, iconNumber: T.Devices.IconNumber) => {
   let iconType: Kb.IconType
-  const size = Kb.Styles.isMobile ? 64 : 48
+  const size = isMobile ? 64 : 48
   switch (deviceType) {
     case 'backup':
       iconType = `icon-paper-key-revoke-${size}`
@@ -69,7 +69,7 @@ const getIcon = (deviceType: T.Devices.DeviceType, iconNumber: T.Devices.IconNum
   if (Kb.isValidIconType(iconType)) {
     return iconType
   }
-  return Kb.Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
+  return isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
 }
 
 const rpcDeviceToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device => ({
@@ -122,7 +122,7 @@ const useRevoke = (device: T.Devices.Device) => {
             C.waitingKeyDevices
           )
           useConfigState.getState().dispatch.revoke(deviceName, wasCurrentDevice)
-          navUpToScreen(C.isMobile ? settingsDevicesTab : 'devicesRoot')
+          navUpToScreen(isMobile ? settingsDevicesTab : 'devicesRoot')
         } catch {}
       }
     }
@@ -240,7 +240,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
         )}
         ?
       </Kb.Text>
-      <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Kb.Styles.isMobile}>
+      <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={isMobile}>
         {!props.waiting && <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />}
       </Kb.Box2>
       <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />

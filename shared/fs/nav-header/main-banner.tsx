@@ -33,7 +33,7 @@ const Banner = (props: Props) => {
             bannerColor="red"
             content={[
               'Your ',
-              Kb.Styles.isMobile ? 'phone' : 'computer',
+              isMobile ? 'phone' : 'computer',
               ' is out of space and some folders could not be properly synced. Make some space and ',
               {onClick: props.onRetry, text: 'retry the sync'},
               '.',

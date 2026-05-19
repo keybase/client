@@ -34,7 +34,7 @@ const FollowButton = (props: Props) => {
         {...otherProps}
       />
     )
-    if (Kb.Styles.isMobile) {
+    if (isMobile) {
       return button
     }
     return (

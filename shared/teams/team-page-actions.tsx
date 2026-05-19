@@ -1,6 +1,5 @@
 import * as S from '@/constants/strings'
 import * as T from '@/constants/types'
-import {isMobile} from '@/constants/platform'
 import {clearModals, navigateAppend, navigateToInbox, previewConversation} from '@/constants/router'
 import logger from '@/logger'
 import {useConfigState} from '@/stores/config'

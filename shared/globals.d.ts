@@ -41,4 +41,10 @@ declare global {
   var rpcOnJs: undefined | ((objs: unknown, count: number) => void)
   // RN
   var __turboModuleProxy: unknown
+  // Platform globals — injected by webpack DefinePlugin / Metro Babel plugin.
+  // No import needed; use these identifiers directly.
+  var isMobile: boolean
+  var isElectron: boolean
+  var isAndroid: boolean
+  var isIOS: boolean
 }

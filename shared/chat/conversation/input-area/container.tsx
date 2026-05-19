@@ -34,7 +34,7 @@ const InputAreaContainer = () => {
   if (isPreview) {
     return <Preview />
   }
-  if (showThreadSearch && C.isMobile) {
+  if (showThreadSearch && isMobile) {
     return <ThreadSearch />
   }
   return <PerfProfiler id="ChatInput"><Normal /></PerfProfiler>

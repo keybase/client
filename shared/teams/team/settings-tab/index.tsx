@@ -131,8 +131,8 @@ const OpenTeam = (props: {
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.openTeam}>
             <Kb.Text type="Body">Make this an open team</Kb.Text>
             <Kb.Box2
-              direction={C.isMobile ? 'vertical' : 'horizontal'}
-              alignItems={C.isMobile ? 'flex-start' : 'center'}
+              direction={isMobile ? 'vertical' : 'horizontal'}
+              alignItems={isMobile ? 'flex-start' : 'center'}
               alignSelf="flex-start"
             >
               <Kb.Text style={styles.joinAs} type="BodySmall">

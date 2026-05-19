@@ -7,7 +7,6 @@ import type * as MessageTypes from '@/constants/types/chat/message'
 import type {ServiceId} from '@/util/platforms'
 import {noConversationIDKey} from '@/constants/types/chat/common'
 import invert from 'lodash/invert'
-import {isIOS, isMobile} from '@/constants/platform'
 
 const noString = new HiddenString('')
 type AccountsInfoMap = ReadonlyMap<T.RPCChat.MessageID, T.Chat.ChatRequestInfo | T.Chat.ChatPaymentInfo>

@@ -24,7 +24,7 @@ const TLFTypeContainer = (p: OwnProps) => {
         <Kb.Text
           type={FS.pathTypeToTextType(T.FS.PathType.Folder)}
           style={rowStyles.rowText}
-          lineClamp={Kb.Styles.isMobile ? 1 : undefined}
+          lineClamp={isMobile ? 1 : undefined}
         >
           {T.FS.getPathName(path)}
         </Kb.Text>

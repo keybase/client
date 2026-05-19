@@ -62,16 +62,16 @@ const Container = () => {
     <>
       <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-          {Kb.Styles.isMobile && <MobileHeader {...props} />}
+          {isMobile && <MobileHeader {...props} />}
           <Kb.Divider style={styles.divider} />
-          {Kb.Styles.isMobile ? (
+          {isMobile ? (
             <AccountsRows {...props} />
           ) : (
             <Kb.ScrollView style={styles.desktopScrollview} className="accountSwitcherScrollView">
               <AccountsRows {...props} />
             </Kb.ScrollView>
           )}
-          {props.accountRows.length > 0 && !Kb.Styles.isMobile && <Kb.Divider style={styles.divider} />}
+          {props.accountRows.length > 0 && !isMobile && <Kb.Divider style={styles.divider} />}
         </Kb.Box2>
       </Kb.ScrollView>
     </>
@@ -152,8 +152,8 @@ const AccountRow = (props: AccountRowProps) => {
       }
   return (
     <Kb.ListItem
-      type={Kb.Styles.isMobile ? 'Large' : 'Small'}
-      icon={<Kb.Avatar size={Kb.Styles.isMobile ? 48 : 32} username={props.entry.account.username} />}
+      type={isMobile ? 'Large' : 'Small'}
+      icon={<Kb.Avatar size={isMobile ? 48 : 32} username={props.entry.account.username} />}
       firstItem={true}
       body={
         <Kb.Box2 direction="vertical" fullWidth={true} style={waiting ? styles.waiting : undefined}>

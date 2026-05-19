@@ -236,7 +236,7 @@ const Tabs = (p: TabsProps) => {
 }
 
 const widthToDimensions = (width: number) => {
-  const singleItemWidth = Kb.Styles.isMobile ? 134 : 120
+  const singleItemWidth = isMobile ? 134 : 120
   const itemsInARow = Math.floor(Math.max(1, width / singleItemWidth))
   const itemWidth = Math.floor(width / itemsInARow)
   return {itemWidth, itemsInARow}
@@ -300,7 +300,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
       />
     </Kb.ButtonBar>
   ) : null
-  return Kb.Styles.isMobile ? (
+  return isMobile ? (
     <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="space-around" style={styles.bioAndProofs}>
       {!!props.reason && (
         <Kb.Text
@@ -412,7 +412,7 @@ const User = (props: {username: string}) => {
   }, [selectedTab, p.following, p.followers, width, itemsInARow, itemWidth, p.userIsYou, p.username])
 
   const containerStyle = {
-    paddingTop: (Kb.Styles.isAndroid ? 56 : Kb.Styles.isTablet ? 80 : Kb.Styles.isIOS ? 46 : 80) + insetTop,
+    paddingTop: (isAndroid ? 56 : Kb.Styles.isTablet ? 80 : isIOS ? 46 : 80) + insetTop,
   }
 
   const loadingFollowing = p.following === undefined

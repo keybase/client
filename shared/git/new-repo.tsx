@@ -212,7 +212,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           flex: 1,
           height: '100%',
-          padding: Kb.Styles.isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
+          padding: isMobile ? Kb.Styles.globalMargins.tiny : Kb.Styles.globalMargins.large,
         },
         isElectron: {maxWidth: 400},
         isTablet: {

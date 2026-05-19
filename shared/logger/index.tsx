@@ -2,7 +2,6 @@ import * as T from '@/constants/types'
 import Logger from './ring-logger'
 import noop from 'lodash/noop'
 import type {hasEngine as HasEngineType} from '../engine/require'
-import {isMobile} from '@/constants/platform'
 import {requestIdleCallback} from '@/util/idle-callback'
 
 export type Timestamp = number
