@@ -56,7 +56,6 @@ const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 
 const InstallBotPopup = (props: Props) => {
   const {botUsername, conversationIDKey} = props
-
   // state
   const [installScreen, setInstallScreen] = React.useState(false)
   const [channelPickerScreen, setChannelPickerScreen] = React.useState(false)
@@ -201,6 +200,7 @@ const InstallBotPopup = (props: Props) => {
           botAlias={featured.botAlias}
           horizontal={true}
           metaOne={featured.description}
+          onClick="profile"
           username={botUsername}
           size="big"
         />
@@ -228,7 +228,7 @@ const InstallBotPopup = (props: Props) => {
   )
   const usernameContent = !featured && (
     <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
-      <Kb.NameWithIcon horizontal={true} username={botUsername} size="big" />
+      <Kb.NameWithIcon horizontal={true} onClick="profile" username={botUsername} size="big" />
       {inTeam && isBot && !inTeamUnrestricted && (
         <PermsList
           channelMetas={channelMetas}

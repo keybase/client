@@ -15,7 +15,7 @@ import {
 import {useSafeAreaInsets} from '@/common-adapters/safe-area-view'
 import {FloatingModalContext} from './context'
 import {FullWindowOverlay} from 'react-native-screens'
-import {useNavigation, type NavigationProp, type ParamListBase} from '@react-navigation/native'
+import {NavigationContext} from '@react-navigation/core'
 
 const Kb = {
   Box2,
@@ -61,10 +61,11 @@ const FullWindow = ({children}: {children?: React.ReactNode}): React.ReactNode =
 
 const defaultSnapPoints = ['75%']
 
-type SafeNavigationHook = <T extends NavigationProp<ParamListBase>>() => T | null
-
-const useSafeNavigation: SafeNavigationHook = Styles.isMobile
-  ? (useNavigation as SafeNavigationHook)
+// useNavigation() throws when called outside a navigator (e.g. inside a gorhom
+// portal rendered at popup-root, which is a sibling to the router). Using the
+// context directly returns undefined instead of throwing.
+const useSafeNavigation = Styles.isMobile
+  ? () => React.useContext(NavigationContext) ?? null
   : () => null
 
 const FloatingMenu = React.memo(function FloatingMenu(props: Props) {
