@@ -22,7 +22,7 @@ const UnfurlImage = (p: Props) => {
 
   const onOpenURL = () => {
     if (linkURL) {
-      openURL(linkURL)
+      void openURL(linkURL)
     }
   }
   const maxSize = Math.min(maxWidth, 320) - (widthPadding || 0)

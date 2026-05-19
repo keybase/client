@@ -54,7 +54,21 @@ yarn tsc
 yarn pod-install
 ```
 
-Fix any issues before proceeding.
+**Lint/tsc failures after a dep update are caused by the update** — do not try to prove they are pre-existing. The branch is clean before the update starts, so any new errors are ours to fix. Fix them before proceeding. If the failures are large or unclear, stop and ask for guidance rather than guessing.
+
+### 4a. Check for duplicate package installs
+
+After `yarn`, run:
+
+```bash
+cd shared && python3 ../.claude/skills/update-dependencies/check-dupes.py
+```
+
+This finds packages where a nested `node_modules` contains a **newer** version than what's installed at the top level — the case where bumping our pin in `package.json` would let yarn deduplicate. It ignores nested installs that are older (locked by their parent packages, not fixable by bumping our pins).
+
+**If duplicates are found:** Update the version in `package.json` to the suggested version, then re-run `yarn`.
+
+**Why this matters:** Packages that use `React.createContext()` or other module-level singletons break silently when installed twice — the provider uses one instance and the consumer reads a different one. Classic symptom: "Couldn't determine focus state. Is your component inside a screen in a navigator?" (`useIsFocused` from `@react-navigation/core`).
 
 ### 5. If updating `electron`
 
@@ -71,3 +85,4 @@ This regenerates `shared/desktop/electron-sums.mts` with the correct SHA256 chec
 - `lodash` types (`@types/lodash`, `@types/lodash-es`) can be updated independently of lodash itself.
 - `@types/react`, `@types/react-dom`, `@types/react-is` should stay in sync with their runtime counterparts — update only if the runtime version changed.
 - Packages with versions matching the `expo` SDK pattern (e.g., `56.x.x`) are `expo-*` packages and can be updated together.
+- **`@react-navigation/core` must track what `@react-navigation/native` actually resolves**, not just the surface number of the other nav packages. `@react-navigation/native` (alpha.24) and `@react-navigation/core` (alpha.15/alpha.16) use different numbering — they are NOT in sync by design. Always check-outdated on `@react-navigation/core` and accept upgrades the script finds, even if the number looks unrelated to the other nav alpha versions. Skipping this causes duplicate installs and React context identity mismatches at runtime.

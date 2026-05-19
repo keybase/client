@@ -31,7 +31,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     navigateAppend({name: 'fsRoot', params: {path: FS.rebasePathToDifferentTlf(path, tlfPath)}})
   }
   const onHelp = () => {
-    openUrl('https://book.keybase.io/docs/files/details#conflict-resolution')
+    void openUrl('https://book.keybase.io/docs/files/details#conflict-resolution')
   }
   const onStartResolving = () => {
     const f = async () => {
