@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as React from 'react'
+import {View} from 'react-native'
 import {useNavigation} from '@react-navigation/native'
 import {useIsFocused} from '@react-navigation/core'
 import type {BottomTabNavigationProp} from '@react-navigation/bottom-tabs'
@@ -15,7 +16,13 @@ const BottomAccessoryMobile = ({children}: {children: React.ReactNode}) => {
   React.useEffect(() => {
     if (!isFocused) return
     const parent = navigation.getParent() as BottomTabNavigationProp<RootParamList> | undefined
-    parent?.setOptions({bottomAccessory: (): React.ReactNode => children})
+    parent?.setOptions({
+      bottomAccessory: (): React.ReactNode => (
+        <View style={{alignItems: 'stretch', bottom: 0, flexDirection: 'row', left: 0, position: 'absolute', right: 0, top: 0}}>
+          {children}
+        </View>
+      ),
+    })
     return () => {
       parent?.setOptions({bottomAccessory: undefined})
     }

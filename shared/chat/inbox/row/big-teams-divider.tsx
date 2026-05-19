@@ -25,25 +25,41 @@ const BigTeamsDivider = (props: Props) => {
       }}
       style={containerStyle}
     >
-      <Kb.Box2
-        direction="horizontal"
-        justifyContent="flex-start"
-        style={styles.dividerBox}
-        className="color_black_20 hover_color_black_50"
-      >
-        <BigTeamsLabel />
-        {badgeCount > 0 && <Kb.Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
-        <Kb.Box2 direction="horizontal" alignItems="flex-start" justifyContent="center" style={styles.icon}>
-          <Kb.Icon type="iconfont-arrow-up" color="inherit" fontSize={isMobile ? 20 : 16} />
+      {inlineLayout ? (
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          alignItems="center"
+          justifyContent="flex-start"
+          gap="xtiny"
+          style={styles.dividerBoxInline}
+          className="color_black_20 hover_color_black_50"
+        >
+          <Kb.Icon type="iconfont-arrow-up" color="inherit" fontSize={20} />
+          <Kb.Text type="BodySmallSemibold">Big teams</Kb.Text>
+          {badgeCount > 0 && <Kb.Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
         </Kb.Box2>
-        {onEdit ? (
-          <Kb.BoxGrow2>
-            <Kb.Box2 fullWidth={true} direction="vertical" alignItems="flex-end" justifyContent="center">
-              <Kb.Icon type="iconfont-ellipsis" fontSize={isMobile ? 20 : 16} onClick={onEdit} />
-            </Kb.Box2>
-          </Kb.BoxGrow2>
-        ) : null}
-      </Kb.Box2>
+      ) : (
+        <Kb.Box2
+          direction="horizontal"
+          justifyContent="flex-start"
+          style={styles.dividerBox}
+          className="color_black_20 hover_color_black_50"
+        >
+          <BigTeamsLabel />
+          {badgeCount > 0 && <Kb.Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
+          <Kb.Box2 direction="horizontal" alignItems="flex-start" justifyContent="center" style={styles.icon}>
+            <Kb.Icon type="iconfont-arrow-up" color="inherit" fontSize={isMobile ? 20 : 16} />
+          </Kb.Box2>
+          {onEdit ? (
+            <Kb.BoxGrow2>
+              <Kb.Box2 fullWidth={true} direction="vertical" alignItems="flex-end" justifyContent="center">
+                <Kb.Icon type="iconfont-ellipsis" fontSize={isMobile ? 20 : 16} onClick={onEdit} />
+              </Kb.Box2>
+            </Kb.BoxGrow2>
+          ) : null}
+        </Kb.Box2>
+      )}
     </Kb.ClickableBox2>
   )
 }
@@ -76,13 +92,22 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       inlineContainer: Kb.Styles.platformStyles({
         isMobile: {
+          backgroundColor: 'transparent',
           bottom: undefined,
+          flex: 1,
+          flexShrink: 1,
+          height: '100%',
           left: undefined,
           position: 'relative',
           right: undefined,
-          width: '100%',
         },
       }),
+      dividerBoxInline: {
+        flex: 1,
+        height: '100%',
+        paddingLeft: Kb.Styles.globalMargins.small,
+        paddingRight: Kb.Styles.globalMargins.small,
+      },
       dividerBox: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',

@@ -447,8 +447,13 @@ function NativeInboxBody(p: ControlledInboxProps) {
     }
   }, [])
 
-  const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} =
-    useUnreadShortcut({listRef, rows, unreadIndices, unreadTotal, getSize})
+  const {showFloating, showUnread, unreadCount, scrollToUnread, applyUnreadAndFloating} = useUnreadShortcut({
+    listRef,
+    rows,
+    unreadIndices,
+    unreadTotal,
+    getSize,
+  })
   const onScrollUnbox = useScrollUnbox(onUntrustedInboxVisible, 1000)
 
   const itemHeight = {getSize, type: 'perItem' as const}
@@ -492,7 +497,7 @@ function NativeInboxBody(p: ControlledInboxProps) {
       Alert.prompt(
         'Change shown',
         'Number of conversations to show above this button',
-        ns => {
+        (ns: string) => {
           const n = parseInt(ns, 10)
           if (n > 0) {
             setInboxNumSmallRows(n)
@@ -511,17 +516,8 @@ function NativeInboxBody(p: ControlledInboxProps) {
     void listRef.current?.scrollToIndex({animated: true, index: inboxNumSmallRows, viewPosition: 0.5})
   }, [inboxNumSmallRows, smallTeamsExpanded, toggleSmallTeamsExpanded])
 
-  const renderFloatingDivider = React.useCallback(
-    (inlineLayout = false) => (
-      <BigTeamsDivider
-        inlineLayout={inlineLayout}
-        toggle={scrollToBigTeams}
-        onEdit={isIOS ? promptSmallTeamsNum : undefined}
-      />
-    ),
-    [promptSmallTeamsNum, scrollToBigTeams]
-  )
   const showFloatingDivider = showFloating && !isSearching && allowShowFloatingButton
+  const showUnreadBanner = showUnread && !isSearching
 
   const noChats = !neverLoaded && !isSearching && !rows.length && <NativeNoChats onNewChat={onNewChat} />
 
@@ -554,13 +550,21 @@ function NativeInboxBody(p: ControlledInboxProps) {
             />
           )}
           {noChats}
-          {showFloatingDivider ? (
-            <Kb.BottomAccessory>{renderFloatingDivider(true)}</Kb.BottomAccessory>
+          {showFloatingDivider || showUnreadBanner ? (
+            <Kb.BottomAccessory>
+              {showUnreadBanner && (
+                <UnreadShortcut inlineLayout={true} onClick={scrollToUnread} unreadCount={unreadCount} />
+              )}
+              {showFloatingDivider && (
+                <BigTeamsDivider
+                  inlineLayout={true}
+                  toggle={scrollToBigTeams}
+                  onEdit={isIOS ? promptSmallTeamsNum : undefined}
+                />
+              )}
+            </Kb.BottomAccessory>
           ) : (
             rows.length === 0 && !neverLoaded && <NativeNoRowsBuildTeam />
-          )}
-          {showUnread && !isSearching && !showFloating && (
-            <UnreadShortcut onClick={scrollToUnread} unreadCount={unreadCount} />
           )}
         </Kb.Box2>
       </PerfProfiler>
@@ -696,6 +700,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
 const nativeStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      accessoryRow: {flex: 1},
       button: {width: '100%'},
       container: Kb.Styles.platformStyles({
         common: {
