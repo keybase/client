@@ -6,6 +6,7 @@ import ReactButton from './react-button'
 import type * as T from '@/constants/types'
 import {MessageContext} from './ids-context'
 import {useUsersState} from '@/constants/users'
+import {useProfileState} from '@/constants/profile'
 
 const positionFallbacks = ['bottom center', 'left center'] as const
 
@@ -73,6 +74,30 @@ const ReactionTooltip = (p: OwnProps) => {
     () => ({canFixOverdraw: false, isHighlighted: false, ordinal}),
     [ordinal]
   )
+  const showUserProfile = useProfileState(s => s.dispatch.showUserProfile)
+  const onClickUser = React.useCallback(
+    (username: string) => {
+      onHidden()
+      showUserProfile(username)
+    },
+    [onHidden, showUserProfile]
+  )
+  const renderItem = React.useCallback(
+    ({item}: {item: ListItem}) => (
+      <Kb.NameWithIcon
+        colorFollowing={true}
+        containerStyle={styles.userContainer}
+        horizontal={true}
+        metaOne={item.fullName}
+        onClick={onClickUser}
+        clickType="onClick"
+        withProfileCardPopup={false}
+        username={item.username}
+      />
+    ),
+    [onClickUser]
+  )
+
   if (!visible) {
     return null
   }
@@ -142,19 +167,6 @@ type ListItem = {
   fullName: string
   key: string
   username: string
-}
-
-const renderItem = ({item}: {item: ListItem}) => {
-  return (
-    <Kb.NameWithIcon
-      key={item.key}
-      colorFollowing={true}
-      containerStyle={styles.userContainer}
-      horizontal={true}
-      metaOne={item.fullName}
-      username={item.username}
-    />
-  )
 }
 
 const renderSectionHeader = ({
