@@ -120,3 +120,10 @@ git merge --continue
 ```
 
 Use this approach when there are many commits and the conflict markers clearly show the divergence. Use the per-commit approach when conflicts are ambiguous or when you need to understand each change's intent before applying it.
+
+## Merge History
+
+| Date | Branch | Last master commit merged |
+|------|--------|--------------------------|
+| 2026-05-04 | nojima/HOTPOT-next-670-clean-2 | 0a255e2f88 (fix race on HUD after a command) |
+| 2026-05-19 | nojima/HOTPOT-next-670-clean-2 | 44af33002554ea4f81d4bca766fe642ad154e883 (fix UI bugs) |
