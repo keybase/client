@@ -33,7 +33,6 @@ import type {ScrollViewProps} from 'react-native'
 import {usingFlashList} from './flashlist-config'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {KeyboardChatScrollView} from 'react-native-keyboard-controller'
-import {useSharedValue} from 'react-native-reanimated'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 
 // ==================== DESKTOP ====================
@@ -892,6 +891,8 @@ const NativeConversationList = function NativeConversationList() {
     [threadStore]
   )
 
+  const insets = useSafeAreaInsets()
+
   const {scrollToCentered, scrollToBottom, onEndReached} = useNativeScrolling({
     centeredOrdinal: centeredOrdinalOrNone,
     conversationIDKey,
@@ -957,13 +958,6 @@ const NativeConversationList = function NativeConversationList() {
 
   const onViewableItemsChanged = useNativeSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
 
-  const insets = useSafeAreaInsets()
-
-  const extraContentPaddingSV = useSharedValue(insets.bottom)
-  React.useEffect(() => {
-    extraContentPaddingSV.value = insets.bottom
-  }, [extraContentPaddingSV, insets.bottom])
-
   const renderScrollComponent = React.useCallback(
     (props: ScrollViewProps) => (
       <KeyboardChatScrollView
@@ -971,21 +965,18 @@ const NativeConversationList = function NativeConversationList() {
         contentInsetAdjustmentBehavior="never"
         inverted={true}
         offset={insets.bottom}
-        extraContentPadding={extraContentPaddingSV}
         {...props}
       />
     ),
-    [insets.bottom, extraContentPaddingSV]
+    [insets.bottom]
   )
 
-  const nativeContentContainer = Kb.Styles.styleSheetCreate(
-    () =>
-      ({
-        contentContainer: {
-          paddingBottom: 0,
-          paddingTop: mobileTypingContainerHeight,
-        },
-      }) as const
+  const nativeContentContainerStyle = React.useMemo(
+    () => ({
+      paddingBottom: 0,
+      paddingTop: mobileTypingContainerHeight + insets.bottom,
+    }),
+    [insets.bottom]
   )
 
   return (
@@ -1001,7 +992,7 @@ const NativeConversationList = function NativeConversationList() {
             ListFooterComponent={SpecialTopMessage}
             ItemSeparatorComponent={Separator}
             overScrollMode="never"
-            contentContainerStyle={nativeContentContainer.contentContainer}
+            contentContainerStyle={nativeContentContainerStyle}
             data={messageOrdinals}
             getItemType={getItemType}
             inverted={true}
