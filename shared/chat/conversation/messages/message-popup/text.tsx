@@ -92,7 +92,9 @@ const PopTextLoaded = (ownProps: OwnProps & {
   const onReplyPrivately = !yourMessage && canReplyPrivately ? ownProps.onReplyPrivately : undefined
   const mapUnfurl = Chat.getMapUnfurl(message)
   const onViewMap =
-    mapUnfurl?.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone ? () => openURL(mapUnfurl.url) : undefined
+    mapUnfurl?.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone
+      ? async () => openURL(mapUnfurl.url)
+      : undefined
 
   const {itemBlock, itemFilter, itemFlag, itemReport} = useModeration(author, conversationIDKey, isTeam, numPart)
 
