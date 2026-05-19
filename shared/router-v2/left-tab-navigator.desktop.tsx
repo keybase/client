@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import TabBar from './tab-bar.desktop'
+import './router.css'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import type {TypedNavigator, NavigatorTypeBagBase} from '@react-navigation/native'
 import type * as Tabs from '@/constants/tabs'
