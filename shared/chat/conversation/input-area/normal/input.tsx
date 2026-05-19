@@ -21,7 +21,13 @@ import KB2 from '@/util/electron'
 import {KeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import AudioRecorder from '@/chat/audio/audio-recorder.native'
 import {usePickerState} from '@/chat/emoji-picker/use-picker'
-import {skipAnimations, useSharedValue, useAnimatedStyle, withTiming, default as Reanimated} from '@/common-adapters/reanimated'
+import {
+  skipAnimations,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  default as Reanimated,
+} from '@/common-adapters/reanimated'
 import FilePickerPopup from '../filepicker-popup'
 import {launchCameraAsync, launchImageLibraryAsync} from '@/util/expo-image-picker'
 import {pickDocumentsAsync} from '@/util/expo-document-picker.native'
@@ -128,7 +134,8 @@ function DesktopInput(p: InputLowLevelProps) {
       getSelection: () => {
         return selectionRef.current
       },
-      isFocused: () => !!i && (globalThis as {document?: {activeElement: unknown}}).document?.activeElement === i,
+      isFocused: () =>
+        !!i && (globalThis as {document?: {activeElement: unknown}}).document?.activeElement === i,
       transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean): void => {
         const ti = fn({selection: selectionRef.current, text: value})
         // defer since we can do this in other renders
@@ -237,9 +244,18 @@ function DesktopInput(p: InputLowLevelProps) {
   // commonProps uses stub types so need to cast for JSX compatibility
   const desktopCommonProps = commonProps as unknown as React.HTMLAttributes<HTMLElement>
   return multiline ? (
-    <textarea {...desktopCommonProps} style={Kb.Styles.castStyleDesktop(style)} ref={inputMultiRef as React.RefObject<HTMLTextAreaElement>} rows={rows} />
+    <textarea
+      {...desktopCommonProps}
+      style={Kb.Styles.castStyleDesktop(style)}
+      ref={inputMultiRef as React.RefObject<HTMLTextAreaElement>}
+      rows={rows}
+    />
   ) : (
-    <input {...desktopCommonProps} ref={inputSingleRef as React.RefObject<HTMLInputElement>} style={Kb.Styles.castStyleDesktop(style)} />
+    <input
+      {...desktopCommonProps}
+      ref={inputSingleRef as React.RefObject<HTMLInputElement>}
+      style={Kb.Styles.castStyleDesktop(style)}
+    />
   )
 }
 
@@ -590,7 +606,12 @@ const FileButton = function FileButton(p: {setHtmlInputRef: (i: HtmlInputRef | n
   }
 
   return (
-    <Kb.Box2 direction="vertical" style={desktopStyles.icon} tooltip="Attachment" className="tooltip-top-left">
+    <Kb.Box2
+      direction="vertical"
+      style={desktopStyles.icon}
+      tooltip="Attachment"
+      className="tooltip-top-left"
+    >
       <Kb.Icon onClick={filePickerOpen} type="iconfont-attachment" />
       <input type="file" style={desktopStyles.hidden} ref={setRef} onChange={pickFile} multiple={true} />
     </Kb.Box2>
@@ -773,7 +794,10 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
   return (
     <>
       {popup}
-      <KeyEventHandler onKeyDown={globalKeyDownPressHandler as never} onKeyPress={globalKeyDownPressHandler as never}>
+      <KeyEventHandler
+        onKeyDown={globalKeyDownPressHandler as never}
+        onKeyPress={globalKeyDownPressHandler as never}
+      >
         <Kb.Box2 direction="vertical" fullWidth={true} style={desktopStyles.container}>
           <Kb.Box2
             direction="horizontal"
@@ -807,7 +831,10 @@ const DesktopPlatformInput = function DesktopPlatformInput(p: Props) {
                 autoFocus={false}
                 ref={setRefs}
                 placeholder={hintText}
-                style={Kb.Styles.collapseStyles([desktopStyles.input, isEditing && desktopStyles.inputEditing])}
+                style={Kb.Styles.collapseStyles([
+                  desktopStyles.input,
+                  isEditing && desktopStyles.inputEditing,
+                ])}
                 onChangeText={onChangeText}
                 multiline={true}
                 rowsMin={1}
@@ -1048,18 +1075,10 @@ const NativeAnimatedExpand = (() => {
       return (
         <Kb.ClickableBox onClick={expandInput} style={nativeStyles.iconContainer}>
           <Animated.View style={[nativeStyles.iconTop, topStyle]} pointerEvents="none">
-            <Kb.Icon
-              type="iconfont-arrow-full-up"
-              fontSize={18}
-              color={Kb.Styles.globalColors.black_35}
-            />
+            <Kb.Icon type="iconfont-arrow-full-up" fontSize={18} color={Kb.Styles.globalColors.black_35} />
           </Animated.View>
           <Animated.View style={[nativeStyles.iconBottom, bottomStyle]} pointerEvents="none">
-            <Kb.Icon
-              type="iconfont-arrow-full-up"
-              fontSize={18}
-              color={Kb.Styles.globalColors.black_35}
-            />
+            <Kb.Icon type="iconfont-arrow-full-up" fontSize={18} color={Kb.Styles.globalColors.black_35} />
           </Animated.View>
         </Kb.ClickableBox>
       )
@@ -1073,7 +1092,6 @@ type NativeChatFilePickerProps = {
   hidePopup: () => void
 }
 const NativeChatFilePicker = (p: NativeChatFilePickerProps) => {
-
   const {attachTo, showingPopup, hidePopup} = p
   const conversationIDKey = useConversationThreadID()
   const launchNativeImagePicker = (mediaType: string, location: string) => {
@@ -1182,7 +1200,6 @@ const NativeAnimatedInput = (() => {
 const NativePlatformInput = (p: Props) => {
   type LayoutEvent = {nativeEvent: {layout: {height: number}}}
 
-
   const [showAudioSend, setShowAudioSend] = React.useState(false)
   const [height, setHeight] = React.useState(0)
   const [expanded, setExpanded] = React.useState(false) // updates immediately, used for the icon etc
@@ -1204,7 +1221,10 @@ const NativePlatformInput = (p: Props) => {
     !!height && {marginBottom: height},
     expanded && {maxHeight: expandedSuggestionListHeight},
   ])
-  const suggestionSpinnerStyle = Kb.Styles.collapseStyles([nativeStyles.suggestionSpinnerStyle, !!height && {marginBottom: height}])
+  const suggestionSpinnerStyle = Kb.Styles.collapseStyles([
+    nativeStyles.suggestionSpinnerStyle,
+    !!height && {marginBottom: height},
+  ])
   const {
     popup: suggestorPopup,
     onChangeText,
@@ -1373,7 +1393,10 @@ const NativePlatformInput = (p: Props) => {
         {!suggestorPopup && <Typing />}
         <Kb.Box2
           direction="vertical"
-          style={Kb.Styles.collapseStyles([nativeStyles.container, isExploding && nativeStyles.explodingContainer])}
+          style={Kb.Styles.collapseStyles([
+            nativeStyles.container,
+            isExploding && nativeStyles.explodingContainer,
+          ])}
           fullWidth={true}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={nativeStyles.inputContainer}>

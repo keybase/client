@@ -29,8 +29,12 @@ import {copyToClipboard} from '@/util/storeless-actions'
 import {FocusContext} from '../normal/context'
 import noop from 'lodash/noop'
 import {FlatList} from 'react-native'
+import type {ScrollViewProps} from 'react-native'
 import {usingFlashList} from './flashlist-config'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
+import {KeyboardChatScrollView} from 'react-native-keyboard-controller'
+import {useSharedValue} from 'react-native-reanimated'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 
 // ==================== DESKTOP ====================
 
@@ -953,6 +957,27 @@ const NativeConversationList = function NativeConversationList() {
 
   const onViewableItemsChanged = useNativeSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
 
+  const insets = useSafeAreaInsets()
+
+  const extraContentPaddingSV = useSharedValue(insets.bottom)
+  React.useEffect(() => {
+    extraContentPaddingSV.value = insets.bottom
+  }, [extraContentPaddingSV, insets.bottom])
+
+  const renderScrollComponent = React.useCallback(
+    (props: ScrollViewProps) => (
+      <KeyboardChatScrollView
+        automaticallyAdjustContentInsets={false}
+        contentInsetAdjustmentBehavior="never"
+        inverted={true}
+        offset={insets.bottom}
+        extraContentPadding={extraContentPaddingSV}
+        {...props}
+      />
+    ),
+    [insets.bottom, extraContentPaddingSV]
+  )
+
   const nativeContentContainer = Kb.Styles.styleSheetCreate(
     () =>
       ({
@@ -986,6 +1011,7 @@ const NativeConversationList = function NativeConversationList() {
             keyboardShouldPersistTaps="handled"
             keyExtractor={keyExtractor}
             ref={listRef}
+            renderScrollComponent={renderScrollComponent}
             maintainVisibleContentPosition={
               // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
               numOrdinals ? maintainVisibleContentPosition : undefined
