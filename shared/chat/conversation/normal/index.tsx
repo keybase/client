@@ -9,7 +9,11 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import {useConversationCenter} from '../center-context'
-import {useConversationThreadID, useConversationThreadSelector, useConversationThreadToggleSearch} from '../thread-context'
+import {
+  useConversationThreadID,
+  useConversationThreadSelector,
+  useConversationThreadToggleSearch,
+} from '../thread-context'
 import {useThreadSearchRoute} from '../thread-search-route'
 import {indefiniteArticle} from '@/util/string'
 import {makePasteAttachment} from '../attachment-actions'
@@ -174,7 +178,7 @@ const NativeConversation = function NativeConversation() {
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
           <Kb.KeyboardAvoidingView2
             extraPadding={Kb.Styles.isTablet ? -65 : -insets.bottom}
-            behavior="padding"
+            behavior="translate-with-padding"
           >
             {content}
           </Kb.KeyboardAvoidingView2>
