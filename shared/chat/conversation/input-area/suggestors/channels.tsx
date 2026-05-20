@@ -3,7 +3,6 @@ import * as Meta from '@/constants/chat/meta'
 import * as T from '@/constants/types'
 import * as Common from './common'
 import * as Kb from '@/common-adapters'
-import {useChatTeamNames} from '../../team-hooks'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {useCurrentUserState} from '@/stores/current-user'
 import * as React from 'react'
@@ -45,7 +44,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<ChannelType>) => {
 }
 
 const noChannel: Array<{channelname: string}> = []
-const noMutualTeams: ReadonlyArray<T.Teams.TeamID> = []
+const noMutualTeams: ReadonlyArray<T.RPCChat.SharedTeam> = []
 
 const useMutualTeams = (
   conversationIDKey: T.Chat.ConversationIDKey,
@@ -56,7 +55,7 @@ const useMutualTeams = (
   const [loaded, setLoaded] = React.useState<
     | {
         conversationIDKey: T.Chat.ConversationIDKey
-        teamIDs: ReadonlyArray<T.Teams.TeamID>
+        teams: ReadonlyArray<T.RPCChat.SharedTeam>
       }
     | undefined
   >()
@@ -77,13 +76,13 @@ const useMutualTeams = (
         if (requestIDRef.current !== requestID) {
           return
         }
-        setLoaded({conversationIDKey, teamIDs: results.teamIDs ?? noMutualTeams})
+        setLoaded({conversationIDKey, teams: results.teams ?? noMutualTeams})
       },
       () => {
         if (requestIDRef.current !== requestID) {
           return
         }
-        setLoaded({conversationIDKey, teamIDs: noMutualTeams})
+        setLoaded({conversationIDKey, teams: noMutualTeams})
       }
     )
     return () => {
@@ -93,20 +92,14 @@ const useMutualTeams = (
     }
   }, [conversationIDKey, loadMutualTeams, participants, shouldLoad, username])
 
-  return shouldLoad && loaded?.conversationIDKey === conversationIDKey ? loaded.teamIDs : noMutualTeams
+  return shouldLoad && loaded?.conversationIDKey === conversationIDKey
+    ? loaded.teams
+    : noMutualTeams
 }
 
-const getChannelSuggestions = (
-  teamname: string,
-  mutualTeams: ReadonlyArray<T.Teams.TeamID>,
-  mutualTeamnamesByID: ReadonlyMap<T.Teams.TeamID, string>
-) => {
+const getChannelSuggestions = (teamname: string, mutualTeams: ReadonlyArray<T.RPCChat.SharedTeam>) => {
   if (!teamname) {
-    const mutualTeamnames = new Set(
-      mutualTeams
-        .map(teamID => mutualTeamnamesByID.get(teamID))
-        .filter((maybeTeamname): maybeTeamname is string => !!maybeTeamname)
-    )
+    const mutualTeamnames = new Set(mutualTeams.map(team => team.name))
     if (!mutualTeamnames.size) {
       return noChannel
     }
@@ -139,7 +132,6 @@ const getChannelSuggestions = (
 const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: string) => {
   const {meta, participants} = useConversationMetadata(conversationIDKey)
   const mutualTeams = useMutualTeams(conversationIDKey, meta, participants)
-  const {teamnames: mutualTeamnamesByID, loading: loadingMutualTeamnames} = useChatTeamNames(mutualTeams)
   const {teamID} = meta
 
   const suggestChannelsLoading = C.Waiting.useAnyWaiting([
@@ -149,12 +141,12 @@ const useDataSource = (conversationIDKey: T.Chat.ConversationIDKey, filter: stri
   const fil = filter.toLowerCase()
   // don't include 'small' here to ditch the single #general suggestion
   const teamname = meta.teamType === 'big' ? meta.teamname : ''
-  const suggestChannels = getChannelSuggestions(teamname, mutualTeams, mutualTeamnamesByID)
+  const suggestChannels = getChannelSuggestions(teamname, mutualTeams)
 
   // TODO this will thrash always
   return {
     items: suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)),
-    loading: suggestChannelsLoading || loadingMutualTeamnames,
+    loading: suggestChannelsLoading,
   }
 }
 type ChannelType = {

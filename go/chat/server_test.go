@@ -5031,7 +5031,7 @@ func TestChatSrvMutualTeamsLocal(t *testing.T) {
 		t.Logf("check that users share no mutual teams")
 		emptyMutualTeamsRes, err := ctc.as(t, users[0]).chatLocalHandler().GetMutualTeamsLocal(ctx, []string{users[1].Username})
 		require.NoError(t, err)
-		require.Equal(t, 0, len(emptyMutualTeamsRes.TeamIDs))
+		require.Equal(t, 0, len(emptyMutualTeamsRes.Teams))
 
 		t.Logf("create team with both users")
 		conv2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
@@ -5044,8 +5044,9 @@ func TestChatSrvMutualTeamsLocal(t *testing.T) {
 
 		getMutualTeamsRes, err := ctc.as(t, users[0]).chatLocalHandler().GetMutualTeamsLocal(ctx, []string{users[1].Username})
 		require.NoError(t, err)
-		require.Equal(t, 1, len(getMutualTeamsRes.TeamIDs))
-		require.Equal(t, teamID2, getMutualTeamsRes.TeamIDs[0])
+		require.Equal(t, 1, len(getMutualTeamsRes.Teams))
+		require.Equal(t, teamID2, getMutualTeamsRes.Teams[0].TeamID)
+		require.Equal(t, conv2.TlfName, getMutualTeamsRes.Teams[0].Name)
 	})
 }
 

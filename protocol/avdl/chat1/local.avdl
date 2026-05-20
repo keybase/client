@@ -1103,6 +1103,10 @@ protocol local {
   }
   GetTLFConversationsLocalRes getTLFConversationsLocal(string tlfName, TopicType topicType, ConversationMembersType membersType);
 
+  record SharedTeam {
+    keybase1.TeamID teamID;
+    string name;
+  }
   record GetChannelMembershipsLocalRes {
     array<ChannelNameMention> channels;
     boolean offline;
@@ -1112,7 +1116,7 @@ protocol local {
 
 
   record GetMutualTeamsLocalRes {
-    array<keybase1.TeamID> teamIDs;
+    array<SharedTeam> teams;
     boolean offline;
     array<RateLimit> rateLimits;
   }

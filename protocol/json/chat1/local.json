@@ -3309,6 +3309,20 @@
     },
     {
       "type": "record",
+      "name": "SharedTeam",
+      "fields": [
+        {
+          "type": "keybase1.TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetChannelMembershipsLocalRes",
       "fields": [
         {
@@ -3338,9 +3352,9 @@
         {
           "type": {
             "type": "array",
-            "items": "keybase1.TeamID"
+            "items": "SharedTeam"
           },
-          "name": "teamIDs"
+          "name": "teams"
         },
         {
           "type": "boolean",

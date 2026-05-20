@@ -1,12 +1,15 @@
 import * as C from '@/constants'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {type BackgroundColorType} from '.'
+import * as React from 'react'
 import {useColorScheme} from 'react-native'
 import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
 import {editAvatar} from '@/util/misc'
 import {useProofSuggestions} from '../use-proof-suggestions'
 import {useTrackerProfile} from '@/tracker/use-profile'
+import {RPCError} from '@/util/errors'
+import logger from '@/logger'
 
 const headerBackgroundColorType = (
   state: T.Tracker.DetailsState,
@@ -30,6 +33,7 @@ const headerBackgroundColorType = (
 
 const useUserData = (username: string) => {
   const myName = useCurrentUserState(s => s.username)
+  const usernameKey = username.toLowerCase()
   const userIsYou = username === myName
   const {proofSuggestions, reload: reloadProofSuggestions} = useProofSuggestions(userIsYou)
   const {
@@ -40,7 +44,51 @@ const useUserData = (username: string) => {
   } = useTrackerProfile(username, {
     reloadOnFocus: true,
   })
+  const requestIDRef = React.useRef(0)
+  const [sharedTeamsState, setSharedTeamsState] = React.useState<{
+    teams?: ReadonlyArray<T.RPCChat.SharedTeam>
+    usernameKey: string
+  }>({teams: undefined, usernameKey})
   const notAUser = d.state === 'notAUserYet'
+
+  React.useEffect(() => {
+    if (!myName || !username || username === myName || notAUser) {
+      return
+    }
+    const requestUsernameKey = usernameKey
+    const requestID = requestIDRef.current + 1
+    requestIDRef.current = requestID
+    const f = async () => {
+      try {
+        const res = await T.RPCChat.localGetMutualTeamsLocalRpcPromise(
+          {usernames: [requestUsernameKey]},
+          C.waitingKeyTrackerSharedTeams(requestUsernameKey)
+        )
+        if (requestIDRef.current !== requestID) {
+          return
+        }
+        const teams = res.teams ?? []
+        setSharedTeamsState({teams, usernameKey: requestUsernameKey})
+      } catch (error) {
+        if (requestIDRef.current !== requestID) {
+          return
+        }
+        if (error instanceof RPCError) {
+          logger.error(`Error loading shared teams: ${error.message}`)
+        } else {
+          logger.error('Error loading shared teams: non-RPC error', error)
+        }
+      }
+    }
+    C.ignorePromise(f())
+    return () => {
+      if (requestIDRef.current === requestID) {
+        requestIDRef.current += 1
+      }
+    }
+  }, [d.guiID, myName, notAUser, username, usernameKey])
+
+  const sharedTeams = sharedTeamsState.usernameKey === usernameKey ? sharedTeamsState.teams : undefined
 
   const commonProps = {
     _assertions: undefined,
@@ -64,6 +112,7 @@ const useUserData = (username: string) => {
     service: '',
     state: d.state,
     stellarHidden: d.stellarHidden,
+    sharedTeams,
     teamShowcase: d.teamShowcase,
     userIsYou,
     username,
@@ -231,6 +280,7 @@ const useUserData = (username: string) => {
     serviceIcon: stateProps.serviceIcon,
     state: stateProps.state,
     stellarHidden: stateProps.stellarHidden,
+    sharedTeams: stateProps.sharedTeams,
     suggestions: stateProps._suggestions ? stateProps._suggestions.filter(s => !s.belowFold) : undefined,
     teamShowcase: stateProps.teamShowcase,
     title: stateProps.title,

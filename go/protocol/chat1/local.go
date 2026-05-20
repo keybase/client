@@ -5355,6 +5355,18 @@ func (o GetTLFConversationsLocalRes) DeepCopy() GetTLFConversationsLocalRes {
 	}
 }
 
+type SharedTeam struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Name   string          `codec:"name" json:"name"`
+}
+
+func (o SharedTeam) DeepCopy() SharedTeam {
+	return SharedTeam{
+		TeamID: o.TeamID.DeepCopy(),
+		Name:   o.Name,
+	}
+}
+
 type GetChannelMembershipsLocalRes struct {
 	Channels   []ChannelNameMention `codec:"channels" json:"channels"`
 	Offline    bool                 `codec:"offline" json:"offline"`
@@ -5390,24 +5402,24 @@ func (o GetChannelMembershipsLocalRes) DeepCopy() GetChannelMembershipsLocalRes 
 }
 
 type GetMutualTeamsLocalRes struct {
-	TeamIDs    []keybase1.TeamID `codec:"teamIDs" json:"teamIDs"`
-	Offline    bool              `codec:"offline" json:"offline"`
-	RateLimits []RateLimit       `codec:"rateLimits" json:"rateLimits"`
+	Teams      []SharedTeam `codec:"teams" json:"teams"`
+	Offline    bool         `codec:"offline" json:"offline"`
+	RateLimits []RateLimit  `codec:"rateLimits" json:"rateLimits"`
 }
 
 func (o GetMutualTeamsLocalRes) DeepCopy() GetMutualTeamsLocalRes {
 	return GetMutualTeamsLocalRes{
-		TeamIDs: (func(x []keybase1.TeamID) []keybase1.TeamID {
+		Teams: (func(x []SharedTeam) []SharedTeam {
 			if x == nil {
 				return nil
 			}
-			ret := make([]keybase1.TeamID, len(x))
+			ret := make([]SharedTeam, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.TeamIDs),
+		})(o.Teams),
 		Offline: o.Offline,
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {

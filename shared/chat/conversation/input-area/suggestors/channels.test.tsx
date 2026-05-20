@@ -10,16 +10,6 @@ import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import {List} from './channels'
 
 const mockCommonList = jest.fn((_p: unknown) => null)
-const mockUseChatTeamNames = jest.fn((teamIDs: ReadonlyArray<unknown>) => ({
-  loading: false,
-  reload: jest.fn(),
-  teamnames: new Map(
-    teamIDs.map(teamID => [
-      teamID as T.Teams.TeamID,
-      teamID === 'team-alpha' ? 'alpha' : 'beta',
-    ] as const)
-  ),
-}))
 
 jest.mock('./common', () => ({
   List: (p: unknown) => mockCommonList(p),
@@ -29,10 +19,6 @@ jest.mock('./common', () => ({
     fixSuggestionHeight: {},
     suggestionBase: {},
   },
-}))
-
-jest.mock('../../team-hooks', () => ({
-  useChatTeamNames: (teamIDs: ReadonlyArray<unknown>) => mockUseChatTeamNames(teamIDs),
 }))
 
 jest.mock('@/stores/inbox-rows', () => ({
@@ -124,13 +110,15 @@ afterEach(() => {
   jest.restoreAllMocks()
   resetAllStores()
   mockCommonList.mockClear()
-  mockUseChatTeamNames.mockClear()
 })
 
 test('channel suggestions load mutual teams when the suggestor mounts', async () => {
   jest.spyOn(T.RPCChat, 'localGetMutualTeamsLocalRpcPromise').mockResolvedValue({
     offline: false,
-    teamIDs: ['team-alpha' as T.Teams.TeamID, 'team-beta' as T.Teams.TeamID],
+    teams: [
+      {name: 'alpha', teamID: 'team-alpha' as T.Teams.TeamID},
+      {name: 'beta', teamID: 'team-beta' as T.Teams.TeamID},
+    ],
   })
 
   renderChannels()
@@ -143,7 +131,6 @@ test('channel suggestions load mutual teams when the suggestor mounts', async ()
     {usernames: ['bob', 'carol']},
     expect.any(String)
   )
-  expect(mockUseChatTeamNames).toHaveBeenLastCalledWith(['team-alpha', 'team-beta'])
   expect(mockCommonList.mock.calls.at(-1)?.[0]).toEqual(
     expect.objectContaining({
       items: [

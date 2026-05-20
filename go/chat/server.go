@@ -3038,7 +3038,6 @@ func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (r
 	if err != nil {
 		return res, err
 	}
-
 	providedUIDs := make([]keybase1.UID, 0, len(usernames))
 	for _, username := range usernames {
 		providedUIDs = append(providedUIDs, libkb.GetUIDByUsername(h.G().GlobalContext, username))
@@ -3057,7 +3056,13 @@ func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (r
 		return res, err
 	}
 
+	type matchedTeam struct {
+		mtime gregor1.Time
+		team  chat1.SharedTeam
+	}
+
 	// loop through convs
+	var matchedTeams []matchedTeam
 	var resLock sync.Mutex
 	pipeliner := pipeliner.NewPipeliner(4)
 	for _, conv := range inbox.ConvsUnverified {
@@ -3094,14 +3099,26 @@ func (h *Server) GetMutualTeamsLocal(ctx context.Context, usernames []string) (r
 			}
 			if allOK {
 				resLock.Lock()
-				res.TeamIDs = append(res.TeamIDs,
-					keybase1.TeamID(conv.Conv.Metadata.IdTriple.Tlfid.String()))
+				matchedTeams = append(matchedTeams, matchedTeam{
+					mtime: conv.GetMtime(),
+					team: chat1.SharedTeam{
+						TeamID: keybase1.TeamID(conv.Conv.Metadata.IdTriple.Tlfid.String()),
+						Name:   utils.GetRemoteConvTLFName(conv),
+					},
+				})
 				resLock.Unlock()
 			}
 			pipeliner.CompleteOne(nil)
 		}(conv)
 	}
 	err = pipeliner.Flush(ctx)
+	sort.Slice(matchedTeams, func(i, j int) bool {
+		return matchedTeams[i].mtime > matchedTeams[j].mtime
+	})
+	res.Teams = make([]chat1.SharedTeam, 0, len(matchedTeams))
+	for _, matched := range matchedTeams {
+		res.Teams = append(res.Teams, matched.team)
+	}
 	return res, err
 }
 
