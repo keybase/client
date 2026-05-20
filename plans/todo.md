@@ -1,9 +1,6 @@
-look for platform splits that can go away
-jump in inbox below tab
 go screen by screen and find cleanup
 any leftover zustand store
 ios push to convo broken
-ts split maybe
 legend list for chat thread desktop
 legend list for chat thread native
 update deps

@@ -9725,11 +9725,6 @@ react-native-worklets@0.8.3:
     convert-source-map "^2.0.0"
     semver "^7.7.3"
 
-react-native-zoom-toolkit@5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/react-native-zoom-toolkit/-/react-native-zoom-toolkit-5.0.1.tgz#7d01a1c0859fb0a5dd4f3bfd486de84ac83538ea"
-  integrity sha512-itDL8OkyJpoZVXypbSNwULNcjIvoOXEpyf1C0rrzpmYmVkPEqN1OsFhTYWDEZ5hUPnTZ6RwhZtxnjfrn1tBLWA==
-
 react-native@0.85.3:
   version "0.85.3"
   resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.85.3.tgz#4a3d25c63a2fd320ffb093e20269cf47d585d483"
