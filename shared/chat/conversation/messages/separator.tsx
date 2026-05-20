@@ -49,7 +49,6 @@ const useSeparatorData = (trailingItem: T.Chat.Ordinal) => {
 }
 
 type Props = {
-  leadingItem?: T.Chat.Ordinal
   trailingItem: T.Chat.Ordinal
 }
 
