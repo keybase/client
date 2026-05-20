@@ -151,6 +151,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   )
   React.useEffect(() => () => {
     onScroll.cancel()
+    clearTimeout(scrollStopTimerRef.current)
   }, [onScroll])
 
   // Load older messages when scrolled near the top (first 3 items visible)
@@ -292,11 +293,11 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   }
 
   // When a centeredOrdinal is set at mount, start there; otherwise start at the end
-  const initialScrollIndex = centeredOrdinal !== undefined
-    ? {
-        index: Math.max(0, sortedIndexOf(messageOrdinals as unknown as number[], centeredOrdinal as unknown as number)),
-        viewPosition: 0.5 as const,
-      }
+  const _centeredIdx = centeredOrdinal !== undefined
+    ? sortedIndexOf(messageOrdinals as unknown as number[], centeredOrdinal as unknown as number)
+    : -1
+  const initialScrollIndex = _centeredIdx >= 0
+    ? {index: _centeredIdx, viewPosition: 0.5 as const}
     : undefined
 
   return (
@@ -323,8 +324,8 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           style={{...Kb.Styles.castStyleDesktop(desktopStyles.list), opacity: didFirstLoad ? 1 : 0}}
           initialScrollAtEnd={initialScrollIndex === undefined}
           initialScrollIndex={initialScrollIndex}
-          maintainScrollAtEnd={centeredOrdinal ? false : {on: {dataChange: true}}}
-          maintainVisibleContentPosition={centeredOrdinal ? undefined : {data: true}}
+          maintainScrollAtEnd={centeredOrdinal !== undefined ? false : {on: {dataChange: true}}}
+          maintainVisibleContentPosition={centeredOrdinal !== undefined ? undefined : {data: true}}
           onLoad={onLoad}
           onScroll={onScroll as unknown as (e: unknown) => void}
           onEndReached={onEndReached}
