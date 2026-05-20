@@ -12,7 +12,9 @@ const UnreadShortcut = (props: Props) => (
     <Kb.Box2
       direction="horizontal"
       gap="tiny"
-      centerChildren={true}
+      centerChildren={!props.inlineLayout}
+      justifyContent={props.inlineLayout ? 'flex-start' : undefined}
+      alignItems="center"
       fullWidth={true}
       style={props.inlineLayout ? styles.unreadShortcutInline : styles.unreadShortcut}
     >
@@ -52,6 +54,7 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.orange_90,
         flex: 1,
         paddingBottom: Kb.Styles.globalMargins.tiny,
+        paddingLeft: Kb.Styles.globalMargins.small,
         paddingTop: Kb.Styles.globalMargins.tiny,
       },
     }) as const

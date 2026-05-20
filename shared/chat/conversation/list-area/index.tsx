@@ -29,8 +29,11 @@ import {copyToClipboard} from '@/util/storeless-actions'
 import {FocusContext} from '../normal/context'
 import noop from 'lodash/noop'
 import {FlatList} from 'react-native'
+import type {ScrollViewProps} from 'react-native'
 import {usingFlashList} from './flashlist-config'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
+import {KeyboardChatScrollView} from 'react-native-keyboard-controller'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 
 // ==================== DESKTOP ====================
 
@@ -888,6 +891,8 @@ const NativeConversationList = function NativeConversationList() {
     [threadStore]
   )
 
+  const insets = useSafeAreaInsets()
+
   const {scrollToCentered, scrollToBottom, onEndReached} = useNativeScrolling({
     centeredOrdinal: centeredOrdinalOrNone,
     conversationIDKey,
@@ -953,14 +958,25 @@ const NativeConversationList = function NativeConversationList() {
 
   const onViewableItemsChanged = useNativeSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
 
-  const nativeContentContainer = Kb.Styles.styleSheetCreate(
-    () =>
-      ({
-        contentContainer: {
-          paddingBottom: 0,
-          paddingTop: mobileTypingContainerHeight,
-        },
-      }) as const
+  const renderScrollComponent = React.useCallback(
+    (props: ScrollViewProps) => (
+      <KeyboardChatScrollView
+        automaticallyAdjustContentInsets={false}
+        contentInsetAdjustmentBehavior="never"
+        inverted={true}
+        offset={insets.bottom}
+        {...props}
+      />
+    ),
+    [insets.bottom]
+  )
+
+  const nativeContentContainerStyle = React.useMemo(
+    () => ({
+      paddingBottom: 0,
+      paddingTop: mobileTypingContainerHeight + insets.bottom,
+    }),
+    [insets.bottom]
   )
 
   return (
@@ -976,7 +992,7 @@ const NativeConversationList = function NativeConversationList() {
             ListFooterComponent={SpecialTopMessage}
             ItemSeparatorComponent={Separator}
             overScrollMode="never"
-            contentContainerStyle={nativeContentContainer.contentContainer}
+            contentContainerStyle={nativeContentContainerStyle}
             data={messageOrdinals}
             getItemType={getItemType}
             inverted={true}
@@ -986,6 +1002,7 @@ const NativeConversationList = function NativeConversationList() {
             keyboardShouldPersistTaps="handled"
             keyExtractor={keyExtractor}
             ref={listRef}
+            renderScrollComponent={renderScrollComponent}
             maintainVisibleContentPosition={
               // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
               numOrdinals ? maintainVisibleContentPosition : undefined

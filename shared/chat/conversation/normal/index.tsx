@@ -9,7 +9,11 @@ import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message'
 import ThreadLoadStatus from '../load-status'
 import {useConversationCenter} from '../center-context'
-import {useConversationThreadID, useConversationThreadSelector, useConversationThreadToggleSearch} from '../thread-context'
+import {
+  useConversationThreadID,
+  useConversationThreadSelector,
+  useConversationThreadToggleSearch,
+} from '../thread-context'
 import {useThreadSearchRoute} from '../thread-search-route'
 import {indefiniteArticle} from '@/util/string'
 import {makePasteAttachment} from '../attachment-actions'
@@ -19,6 +23,7 @@ import '../conversation.css'
 import {PortalHost} from '@/common-adapters/portal.native'
 import {useSafeAreaInsets, useSafeAreaFrame} from 'react-native-safe-area-context'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
+import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import logger from '@/logger'
 
 const Offline = () => (
@@ -108,78 +113,53 @@ const NativeConversation = function NativeConversation() {
   type LayoutEvent = {nativeEvent: {layout: {height: number}}}
 
   const [maxInputArea, setMaxInputArea] = React.useState(0)
-  const onLayout = (e: LayoutEvent) => {
+  const onContentLayout = (e: LayoutEvent) => {
     setMaxInputArea(e.nativeEvent.layout.height)
   }
 
   const conversationIDKey = useConversationThreadID()
   logger.info(`Conversation: rendering convID: ${conversationIDKey}`)
 
-  const innerComponent = (
-    <Kb.BoxGrow onLayout={onLayout}>
-      <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
-        <ThreadLoadStatus />
-        <PinnedMessage />
-        <ListArea />
-        <LoadingLine />
-      </Kb.Box2>
-      <InvitationToBlock />
-      <Banner />
-      <MaxInputAreaContext value={maxInputArea}>
-        <InputArea />
-      </MaxInputAreaContext>
-    </Kb.BoxGrow>
-  )
-
   const insets = useSafeAreaInsets()
   const headerHeight = Kb.Styles.isTablet ? 115 : 44
   const windowHeight = useSafeAreaFrame().height
   const height = windowHeight - insets.top - headerHeight
 
-  const safeStyle = isAndroid
-    ? {paddingBottom: insets.bottom}
-    : {
-        height,
-        maxHeight: height,
-        minHeight: height,
-        paddingBottom: Kb.Styles.isTablet ? 0 : insets.bottom,
-      }
+  const safeStyle = {height, maxHeight: height, minHeight: height}
 
   const threadLoadedOffline = useConversationThreadSelector(s => s.meta.offline)
 
-  const content = (
-    <Kb.Box2
-      direction="vertical"
-      flex={1}
-      fullWidth={true}
-      fullHeight={true}
-      key={conversationIDKey}
-      relative={true}
-    >
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        {threadLoadedOffline && <Offline />}
-        {innerComponent}
-      </Kb.Box2>
-      <PortalHost name="convOverlay" />
-    </Kb.Box2>
-  )
+  const stickyOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
 
   return (
     <PerfProfiler id="Conversation">
-      {isAndroid ? (
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-          {content}
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle} relative={true}>
+        {threadLoadedOffline && <Offline />}
+        <Kb.Box2
+          direction="vertical"
+          flex={1}
+          fullWidth={true}
+          key={conversationIDKey}
+          onLayout={onContentLayout}
+          relative={true}
+          style={styles.listContainer}
+        >
+          <ThreadLoadStatus />
+          <PinnedMessage />
+          <ListArea />
+          <LoadingLine />
         </Kb.Box2>
-      ) : (
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-          <Kb.KeyboardAvoidingView2
-            extraPadding={Kb.Styles.isTablet ? -65 : -insets.bottom}
-            behavior="padding"
-          >
-            {content}
-          </Kb.KeyboardAvoidingView2>
-        </Kb.Box2>
-      )}
+        <KeyboardStickyView offset={stickyOffset}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+            <InvitationToBlock />
+            <Banner />
+            <MaxInputAreaContext value={maxInputArea}>
+              <InputArea />
+            </MaxInputAreaContext>
+          </Kb.Box2>
+        </KeyboardStickyView>
+        <PortalHost name="convOverlay" />
+      </Kb.Box2>
     </PerfProfiler>
   )
 }
@@ -205,10 +185,12 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      inputContainer: {
+        backgroundColor: Kb.Styles.globalColors.white,
+      },
+      listContainer: {backgroundColor: Kb.Styles.globalColors.white},
       offline: {padding: Kb.Styles.globalMargins.xxtiny},
     }) as const
 )
-
-void styles
 
 export default isMobile ? NativeConversation : DesktopConversationWithProfiler
