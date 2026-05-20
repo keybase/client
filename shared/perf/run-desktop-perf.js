@@ -61,7 +61,8 @@ const flows = {
       await page.click('[data-testid="inbox-list"] > :first-child')
       await page.waitForSelector('[data-testid="message-list"]', {timeout: 10000})
     },
-    scrollSelector: '[data-testid="message-list"]',
+    // LegendList renders an inner scroll container as first child of the testid div
+    scrollSelector: '[data-testid="message-list"] > :first-child',
   },
 }
 

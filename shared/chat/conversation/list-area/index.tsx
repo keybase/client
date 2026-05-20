@@ -185,7 +185,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   React.useEffect(() => {
     if (!loaded) return
-    if (centeredOrdinal) {
+    if (centeredOrdinal !== undefined) {
       if (lastScrolledCenteredRef.current === centeredOrdinal) return
       const idx = sortedIndexOf(messageOrdinalsRef.current as unknown as number[], centeredOrdinal as unknown as number)
       if (idx < 0) return
