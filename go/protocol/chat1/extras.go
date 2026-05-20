@@ -1914,6 +1914,10 @@ func (r *SearchInboxRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *GetSharedConversationsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (t TyperInfo) String() string {
 	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceID)
 }

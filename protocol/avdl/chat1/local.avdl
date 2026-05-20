@@ -1103,6 +1103,12 @@ protocol local {
   }
   GetTLFConversationsLocalRes getTLFConversationsLocal(string tlfName, TopicType topicType, ConversationMembersType membersType);
 
+  record GetSharedConversationsLocalRes {
+    array<UnverifiedInboxUIItem> conversations;
+    boolean offline;
+  }
+  GetSharedConversationsLocalRes getSharedConversationsLocal(string username);
+
   record GetChannelMembershipsLocalRes {
     array<ChannelNameMention> channels;
     boolean offline;

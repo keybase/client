@@ -20,6 +20,7 @@ export const noDetails: T.Tracker.Details = {
   hidFromFollowers: false,
   reason: '',
   resetBrokeTrack: false,
+  sharedConversations: undefined,
   state: 'unknown' as const,
   stellarHidden: false,
   teamShowcase: [],
@@ -356,6 +357,28 @@ export const useTrackerState = Z.createZustand<State>((set, get) => {
         }
       }
       ignorePromise(loadFollowing())
+
+      const loadSharedChats = async () => {
+        if (inTracker) return
+        const myUsername = storeRegistry.getState('current-user').username
+        if (!myUsername || assertion === myUsername) return
+        try {
+          const res = await T.RPCChat.localGetSharedConversationsLocalRpcPromise(
+            {username: assertion},
+            S.waitingKeyTrackerProfileLoad
+          )
+          set(s => {
+            const d = s.usernameToDetails.get(assertion)
+            if (!d) return
+            d.sharedConversations = res.conversations ?? []
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`Error loading shared chats: ${error.message}`)
+          }
+        }
+      }
+      ignorePromise(loadSharedChats())
     },
     loadNonUserProfile: assertion => {
       const f = async () => {

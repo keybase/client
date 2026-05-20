@@ -1803,6 +1803,80 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	return res, nil
 }
 
+func (h *Server) GetSharedConversationsLocal(ctx context.Context, arg chat1.GetSharedConversationsLocalArg) (res chat1.GetSharedConversationsLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, &err, "GetSharedConversationsLocal(%s)", arg.Username)()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	targetKeybaseUID, err := h.G().GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(arg.Username))
+	if err != nil {
+		h.Debug(ctx, "GetSharedConversationsLocal: failed to lookup UID for %s: %v", arg.Username, err)
+		return res, err
+	}
+	targetUID := gregor1.UID(targetKeybaseUID.ToBytes())
+
+	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil)
+	if err != nil {
+		return res, err
+	}
+	var filtered []types.RemoteConversation
+	for _, conv := range ib.ConvsUnverified {
+		if conv.Conv.GetTopicType() != chat1.TopicType_CHAT {
+			continue
+		}
+		if conv.Conv.ReaderInfo.Status != chat1.ConversationMemberStatus_ACTIVE {
+			continue
+		}
+		if conv.Conv.Metadata.Status == chat1.ConversationStatus_BLOCKED ||
+			conv.Conv.Metadata.Status == chat1.ConversationStatus_REPORTED {
+			continue
+		}
+		var found bool
+		switch conv.Conv.GetMembersType() {
+		case chat1.ConversationMembersType_TEAM:
+			// AllList is not maintained for TEAM convs; use participant source which
+			// calls RefreshParticipantsRemote to get actual team channel membership.
+			memberUIDs, perr := h.G().ParticipantsSource.Get(ctx, uid, conv.GetConvID(),
+				types.InboxSourceDataSourceAll)
+			if perr != nil {
+				h.Debug(ctx, "GetSharedConversationsLocal: failed to get participants for %s: %v",
+					conv.ConvIDStr, perr)
+				continue
+			}
+			for _, memberUID := range memberUIDs {
+				if memberUID.Eq(targetUID) {
+					found = true
+					break
+				}
+			}
+		default:
+			// For IMPTEAMNATIVE and other types, AllList is populated by the server.
+			for _, memberUID := range conv.Conv.Metadata.AllList {
+				if memberUID.Eq(targetUID) {
+					found = true
+					break
+				}
+			}
+		}
+		if found {
+			filtered = append(filtered, conv)
+		}
+	}
+	sort.Slice(filtered, func(i, j int) bool {
+		return filtered[i].Conv.GetMtime() > filtered[j].Conv.GetMtime()
+	})
+	for _, conv := range filtered {
+		res.Conversations = append(res.Conversations, utils.PresentRemoteConversation(ctx, h.G(), uid, conv))
+	}
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
+	return res, nil
+}
+
 func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetChannelMembershipsLocalArg) (res chat1.GetChannelMembershipsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,

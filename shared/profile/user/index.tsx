@@ -6,6 +6,7 @@ import Assertion from '@/tracker2/assertion'
 import Bio from '@/tracker2/bio'
 import Friend from './friend'
 import Teams from './teams'
+import SharedChats from './shared-chats'
 import chunk from 'lodash/chunk'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
@@ -272,6 +273,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
         <Proofs {...props} />
         {addIdentity}
       </Kb.Box2>
+      {!props.notAUser && <SharedChats username={props.username} />}
     </Kb.Box2>
   ) : (
     <>
@@ -294,6 +296,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
           {addIdentity}
         </Kb.Box2>
       </Kb.Box2>
+      {!props.notAUser && <SharedChats username={props.username} />}
     </>
   )
 }

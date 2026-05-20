@@ -74,6 +74,7 @@ export type Details = T.Immutable<{
   teamShowcase?: ReadonlyArray<TeamShowcase>
   username: string
   resetBrokeTrack: boolean
+  sharedConversations?: ReadonlyArray<T.RPCChat.UnverifiedInboxUIItem>
   webOfTrustEntries?: ReadonlyArray<WebOfTrustEntry>
 }>
 

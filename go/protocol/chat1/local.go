@@ -7123,6 +7123,15 @@ type GetMutualTeamsLocalArg struct {
 	Usernames []string `codec:"usernames" json:"usernames"`
 }
 
+type GetSharedConversationsLocalArg struct {
+	Username string `codec:"username" json:"username"`
+}
+
+type GetSharedConversationsLocalRes struct {
+	Conversations []UnverifiedInboxUIItem `codec:"conversations" json:"conversations"`
+	Offline       bool                    `codec:"offline" json:"offline"`
+}
+
 type SetAppNotificationSettingsLocalArg struct {
 	ConvID      ConversationID                `codec:"convID" json:"convID"`
 	ChannelWide bool                          `codec:"channelWide" json:"channelWide"`
@@ -7590,6 +7599,7 @@ type LocalInterface interface {
 	ArchiveChatDelete(context.Context, ArchiveChatDeleteArg) error
 	ArchiveChatPause(context.Context, ArchiveChatPauseArg) error
 	ArchiveChatResume(context.Context, ArchiveChatResumeArg) error
+	GetSharedConversationsLocal(context.Context, GetSharedConversationsLocalArg) (GetSharedConversationsLocalRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -9481,6 +9491,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getSharedConversationsLocal": {
+				MakeArg: func() any {
+					var ret [1]GetSharedConversationsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
+					typedArgs, ok := args.(*[1]GetSharedConversationsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetSharedConversationsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetSharedConversationsLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -10166,5 +10191,10 @@ func (c LocalClient) ArchiveChatPause(ctx context.Context, __arg ArchiveChatPaus
 
 func (c LocalClient) ArchiveChatResume(ctx context.Context, __arg ArchiveChatResumeArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.archiveChatResume", []any{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetSharedConversationsLocal(ctx context.Context, __arg GetSharedConversationsLocalArg) (res GetSharedConversationsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getSharedConversationsLocal", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

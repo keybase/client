@@ -8578,3 +8578,102 @@ func TestChatSrvGetLastActiveAt(t *testing.T) {
 		require.NotZero(t, lastActiveAt)
 	})
 }
+
+func TestChatSrvGetSharedConversationsLocal(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvGetSharedConversationsLocal", 3)
+		defer ctc.cleanup()
+		users := ctc.users()
+		ctx0 := ctc.as(t, users[0]).startCtx
+
+		getShared := func(asUser *kbtest.FakeUser, target string) []chat1.UnverifiedInboxUIItem {
+			res, err := ctc.as(t, asUser).chatLocalHandler().GetSharedConversationsLocal(
+				ctc.as(t, asUser).startCtx,
+				chat1.GetSharedConversationsLocalArg{Username: target})
+			require.NoError(t, err)
+			return res.Conversations
+		}
+
+		t.Logf("no shared conversations yet")
+		require.Equal(t, 0, len(getShared(users[0], users[1].Username)))
+
+		t.Logf("create a shared CHAT conversation")
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
+		convs := getShared(users[0], users[1].Username)
+		require.Equal(t, 1, len(convs))
+		require.Equal(t, conv.Id.ConvIDStr(), convs[0].ConvID)
+
+		t.Logf("unrelated user returns empty")
+		require.Equal(t, 0, len(getShared(users[0], users[2].Username)))
+
+		t.Logf("DEV conversation is excluded")
+		mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_DEV, mt, users[1])
+		require.Equal(t, 1, len(getShared(users[0], users[1].Username)))
+
+		t.Logf("blocked conversation is excluded")
+		_, err := ctc.as(t, users[0]).chatLocalHandler().SetConversationStatusLocal(ctx0,
+			chat1.SetConversationStatusLocalArg{
+				ConversationID: conv.Id,
+				Status:         chat1.ConversationStatus_BLOCKED,
+			})
+		require.NoError(t, err)
+		require.Equal(t, 0, len(getShared(users[0], users[1].Username)))
+	})
+}
+
+func TestChatSrvGetSharedConversationsLocalLeftStatus(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		// LEFT member status only applies to explicit team channels
+		if mt != chat1.ConversationMembersType_TEAM {
+			return
+		}
+		ctc := makeChatTestContext(t, "TestChatSrvGetSharedConversationsLocalLeftStatus", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		ctx0 := ctc.as(t, users[0]).startCtx
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		// Create team (general channel) with both users
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
+
+		// Create an extra channel and have users[1] join it via a post
+		topicName := "shared-extra"
+		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx0,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "joining"}))
+		require.NoError(t, err)
+		// Drain listener0 up through the TEXT to ensure inbox reflects users[1] in ActiveList
+		consumeNewMsgWhileIgnoring(t, listener0, chat1.MessageType_TEXT,
+			[]chat1.MessageType{chat1.MessageType_JOIN, chat1.MessageType_SYSTEM},
+			chat1.ChatActivitySource_REMOTE)
+
+		// Both channels (general + extra) appear
+		res, err := ctc.as(t, users[0]).chatLocalHandler().GetSharedConversationsLocal(ctx0,
+			chat1.GetSharedConversationsLocalArg{Username: users[1].Username})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(res.Conversations))
+
+		// users[0] leaves the extra channel
+		_, err = ctc.as(t, users[0]).chatLocalHandler().LeaveConversationLocal(ctx0, ncres.Conv.GetConvID())
+		require.NoError(t, err)
+		consumeLeaveConv(t, listener0)
+
+		// Left channel is excluded; only general remains
+		res, err = ctc.as(t, users[0]).chatLocalHandler().GetSharedConversationsLocal(ctx0,
+			chat1.GetSharedConversationsLocalArg{Username: users[1].Username})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(res.Conversations))
+		require.Equal(t, conv.Id.ConvIDStr(), res.Conversations[0].ConvID)
+	})
+}
