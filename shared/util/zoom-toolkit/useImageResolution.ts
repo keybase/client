@@ -11,25 +11,26 @@ export type FetchImageResolutionResult = {
 }
 
 export default function useImageResolution(source: Source | number): FetchImageResolutionResult {
-  const [isFetching, setIsFetching] = useState<boolean>(true)
-  const [error, setError] = useState<Error | undefined>(undefined)
+  const deps = JSON.stringify(source)
+  const [resolvedDeps, setResolvedDeps] = useState('')
   const [resolution, setResolution] = useState<SizeVector<number> | undefined>(undefined)
+  const [error, setError] = useState<Error | undefined>(undefined)
+  const isFetching = resolvedDeps !== deps
 
   const onSuccess = (width: number, height: number) => {
     setResolution({width, height})
-    setIsFetching(false)
+    setResolvedDeps(deps)
   }
 
   const onFailure = (e: Error) => {
     setError(e)
-    setIsFetching(false)
+    setResolvedDeps(deps)
   }
 
-  const deps = JSON.stringify(source)
   useEffect(() => {
-    setIsFetching(true)
     if (typeof source === 'number') {
       const {width, height} = Image.resolveAssetSource(source)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       onSuccess(width, height)
       return
     }

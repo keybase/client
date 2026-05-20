@@ -57,13 +57,13 @@ const ResumableZoom = ({
   }, [maxScale, userMaxScale])
 
   useDerivedValue(() => {
-    extendedSize.width.value = extendGestures
+    extendedSize.width.set(extendGestures
       ? Math.max(rootSize.width.value, childSize.width.value)
-      : childSize.width.value
+      : childSize.width.value)
 
-    extendedSize.height.value = extendGestures
+    extendedSize.height.set(extendGestures
       ? Math.max(rootSize.height.value, childSize.height.value)
-      : childSize.height.value
+      : childSize.height.value)
   }, [extendGestures, rootSize, childSize])
 
   const boundsFn: BoundsFuction = (optionalScale) => {
@@ -158,13 +158,13 @@ const ResumableZoom = ({
     .onEnd(onDoubleTapEnd)
 
   const measureRoot = (e: LayoutChangeEvent) => {
-    rootSize.width.value = e.nativeEvent.layout.width
-    rootSize.height.value = e.nativeEvent.layout.height
+    rootSize.width.set(e.nativeEvent.layout.width)
+    rootSize.height.set(e.nativeEvent.layout.height)
   }
 
   const measureChild = (e: LayoutChangeEvent) => {
-    childSize.width.value = e.nativeEvent.layout.width
-    childSize.height.value = e.nativeEvent.layout.height
+    childSize.width.set(e.nativeEvent.layout.width)
+    childSize.height.set(e.nativeEvent.layout.height)
   }
 
   const detectorStyle = useAnimatedStyle(() => {

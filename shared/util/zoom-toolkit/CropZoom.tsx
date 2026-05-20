@@ -70,8 +70,8 @@ const CropZoomInner = (props: CropZoomProps, ref: React.ForwardedRef<CropZoomRef
   }
 
   const measureRootContainer = (e: LayoutChangeEvent) => {
-    rootSize.width.value = e.nativeEvent.layout.width
-    rootSize.height.value = e.nativeEvent.layout.height
+    rootSize.width.set(e.nativeEvent.layout.width)
+    rootSize.height.set(e.nativeEvent.layout.height)
   }
 
   const {gesturesEnabled, onTouchesDown, onTouchesMove, onTouchesUp, onPinchStart, onPinchUpdate, onPinchEnd} =

@@ -21,14 +21,12 @@ export const getCropRotatedSize = (options: Options): SizeVector<number> => {
   'worklet'
   const {crop, angle, resolution} = options
   const cropAspectRatio = crop.width / crop.height
-  let base = crop
-
   const flipped = angle % Math.PI === 0
   const aspectRatio = resolution.width / resolution.height
   const inverseAspectRatio = resolution.height / resolution.width
 
   const currentAspectRatio = flipped ? aspectRatio : inverseAspectRatio
-  base = getRatioSize(currentAspectRatio, {
+  const base = getRatioSize(currentAspectRatio, {
     width: cropAspectRatio >= 1 ? undefined : crop.width,
     height: cropAspectRatio >= 1 ? crop.height : undefined,
   })

@@ -51,14 +51,14 @@ export const usePanCommons = (options: PanCommmonOptions) => {
 
   const onPanStart = (e: PanGestureEvent) => {
     'worklet'
-    userCallbacks.onPanStart && runOnJS(userCallbacks.onPanStart)(e)
+    if (userCallbacks.onPanStart) runOnJS(userCallbacks.onPanStart)(e)
     cancelAnimation(translate.x)
     cancelAnimation(translate.y)
-    offset.x.value = translate.x.value
-    offset.y.value = translate.y.value
-    time.value = performance.now()
-    position.x.value = e.absoluteX
-    position.y.value = e.absoluteY
+    offset.x.set(translate.x.value)
+    offset.y.set(translate.y.value)
+    time.set(performance.now())
+    position.x.set(e.absoluteX)
+    position.y.set(e.absoluteY)
   }
 
   const onPanChange = (e: PanGestureUpdadeEvent) => {
@@ -68,8 +68,8 @@ export const usePanCommons = (options: PanCommmonOptions) => {
     const {x: boundX, y: boundY} = boundFn()
     const exceedX = Math.max(0, Math.abs(toX) - boundX)
     const exceedY = Math.max(0, Math.abs(toY) - boundY)
-    isWithinBoundX.value = exceedX === 0
-    isWithinBoundY.value = exceedY === 0
+    isWithinBoundX.set(exceedX === 0)
+    isWithinBoundY.set(exceedY === 0)
 
     if ((exceedX > 0 || exceedY > 0) && onOverPanning) {
       const ex = Math.sign(toX) * exceedX
@@ -79,27 +79,27 @@ export const usePanCommons = (options: PanCommmonOptions) => {
 
     if (panMode !== 'friction') {
       const isFree = panMode === 'free'
-      translate.x.value = isFree ? toX : clamp(toX, -1 * boundX, boundX)
-      translate.y.value = isFree ? toY : clamp(toY, -1 * boundY, boundY)
+      translate.x.set(isFree ? toX : clamp(toX, -1 * boundX, boundX))
+      translate.y.set(isFree ? toY : clamp(toY, -1 * boundY, boundY))
       return
     }
 
     const overScrollFraction = Math.max(container.width.value, container.height.value) * 1.5
 
     if (isWithinBoundX.value) {
-      translate.x.value = toX
+      translate.x.set(toX)
     } else {
       const fraction = Math.abs(Math.abs(toX) - boundX) / overScrollFraction
       const frictionX = friction(clamp(fraction, 0, 1))
-      translate.x.value += e.changeX * frictionX
+      translate.x.set(translate.x.value + e.changeX * frictionX)
     }
 
     if (isWithinBoundY.value) {
-      translate.y.value = toY
+      translate.y.set(toY)
     } else {
       const fraction = Math.abs(Math.abs(toY) - boundY) / overScrollFraction
       const frictionY = friction(clamp(fraction, 0, 1))
-      translate.y.value += e.changeY * frictionY
+      translate.y.set(translate.y.value + e.changeY * frictionY)
     }
   }
 
@@ -119,7 +119,7 @@ export const usePanCommons = (options: PanCommmonOptions) => {
       }
     }
 
-    userCallbacks.onPanEnd && runOnJS(userCallbacks.onPanEnd)(e)
+    if (userCallbacks.onPanEnd) runOnJS(userCallbacks.onPanEnd)(e)
 
     const {x: boundX, y: boundY} = boundFn()
     const clampX: [number, number] = [-1 * boundX, boundX]
@@ -131,23 +131,27 @@ export const usePanCommons = (options: PanCommmonOptions) => {
     const decayConfigX = {velocity: e.velocityX, clamp: clampX}
     const decayConfigY = {velocity: e.velocityY, clamp: clampY}
 
-    translate.x.value = decayX ? withDecay(decayConfigX) : withTiming(toX)
-    translate.y.value = decayY ? withDecay(decayConfigY) : withTiming(toY)
+    translate.x.set(decayX ? withDecay(decayConfigX) : withTiming(toX))
+    translate.y.set(decayY ? withDecay(decayConfigY) : withTiming(toY))
 
     const restX = Math.abs(Math.abs(translate.x.value) - boundX)
     const restY = Math.abs(Math.abs(translate.y.value) - boundY)
-    gestureEnd.value = restX > restY ? translate.x.value : translate.y.value
+    gestureEnd.set(restX > restY ? translate.x.value : translate.y.value)
 
     if (decayX || decayY) {
       const config = restX > restY ? decayConfigX : decayConfigY
-      gestureEnd.value = withDecay(config, finished => {
-        finished && onGestureEnd && runOnJS(onGestureEnd)()
-      })
+      gestureEnd.set(
+        withDecay(config, (finished: boolean | undefined) => {
+          if (finished && onGestureEnd) runOnJS(onGestureEnd)()
+        })
+      )
     } else {
       const toValue = restX > restY ? toX : toY
-      gestureEnd.value = withTiming(toValue, undefined, finished => {
-        finished && onGestureEnd && runOnJS(onGestureEnd)()
-      })
+      gestureEnd.set(
+        withTiming(toValue, undefined, (finished: boolean | undefined) => {
+          if (finished && onGestureEnd) runOnJS(onGestureEnd)()
+        })
+      )
     }
   }
 

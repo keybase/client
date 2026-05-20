@@ -91,29 +91,29 @@ export const usePinchCommons = (options: PinchOptions) => {
     if (e.numberOfTouches !== 2) return
     const touchOne = e.allTouches[0]!
     const touchTwo = e.allTouches[1]!
-    currentFocal.x.value = (touchOne.absoluteX + touchTwo.absoluteX) / 2
-    currentFocal.y.value = (touchOne.absoluteY + touchTwo.absoluteY) / 2
+    currentFocal.x.set((touchOne.absoluteX + touchTwo.absoluteX) / 2)
+    currentFocal.y.set((touchOne.absoluteY + touchTwo.absoluteY) / 2)
     state.activate()
   }
 
   const onPinchStart = (e: PinchGestureEvent) => {
     'worklet'
     runOnJS(switchGesturesState)(false)
-    userCallbacks.onPinchStart && runOnJS(userCallbacks.onPinchStart)(e)
+    if (userCallbacks.onPinchStart) runOnJS(userCallbacks.onPinchStart)(e)
 
     cancelAnimation(translate.x)
     cancelAnimation(translate.y)
     cancelAnimation(scale)
 
-    initialFocal.x.value = currentFocal.x.value
-    initialFocal.y.value = currentFocal.y.value
+    initialFocal.x.set(currentFocal.x.value)
+    initialFocal.y.set(currentFocal.y.value)
 
-    origin.x.value = e.focalX - container.width.value / 2
-    origin.y.value = e.focalY - container.height.value / 2
+    origin.x.set(e.focalX - container.width.value / 2)
+    origin.y.set(e.focalY - container.height.value / 2)
 
-    offset.x.value = translate.x.value
-    offset.y.value = translate.y.value
-    scaleOffset.value = scale.value
+    offset.x.set(translate.x.value)
+    offset.y.set(translate.y.value)
+    scaleOffset.set(scale.value)
   }
 
   const onPinchUpdate = (e: PinchGestueUpdateEvent) => {
@@ -139,9 +139,9 @@ export const usePinchCommons = (options: PinchOptions) => {
     const clampedX = clamp(toX, -1 * boundX, boundX)
     const clampedY = clamp(toY, -1 * boundY, boundY)
 
-    translate.x.value = pinchClamp ? clampedX : toX
-    translate.y.value = pinchClamp ? clampedY : toY
-    scale.value = toScale
+    translate.x.set(pinchClamp ? clampedX : toX)
+    translate.y.set(pinchClamp ? clampedY : toY)
+    scale.set(toScale)
   }
 
   const reset = (toX: number, toY: number, toScale: number) => {
@@ -155,24 +155,28 @@ export const usePinchCommons = (options: PinchOptions) => {
     const areScalesNotEqual = scale.value !== toScale
     const toValue = areTXNotEqual || areTYNotEqual || areScalesNotEqual ? 1 : 0
 
-    translate.x.value = withTiming(toX)
-    translate.y.value = withTiming(toY)
+    translate.x.set(withTiming(toX))
+    translate.y.set(withTiming(toY))
     // Patch: removed scaleOffset.value = scale.value here (caused double-pinch bug)
-    scale.value = withTiming(toScale, undefined, finished => {
-      finished && runOnJS(switchGesturesState)(true)
-    })
+    scale.set(
+      withTiming(toScale, undefined, (finished: boolean | undefined) => {
+        if (finished) runOnJS(switchGesturesState)(true)
+      })
+    )
 
-    gestureEnd.value = withTiming(toValue, undefined, finished => {
-      gestureEnd.value = 0
-      if (finished && userCallbacks.onGestureEnd !== undefined) {
-        runOnJS(userCallbacks.onGestureEnd)()
-      }
-    })
+    gestureEnd.set(
+      withTiming(toValue, undefined, (finished: boolean | undefined) => {
+        gestureEnd.set(0)
+        if (finished && userCallbacks.onGestureEnd !== undefined) {
+          runOnJS(userCallbacks.onGestureEnd)()
+        }
+      })
+    )
   }
 
   const onPinchEnd = (e: PinchGestureEvent) => {
     'worklet'
-    userCallbacks.onPinchEnd && runOnJS(userCallbacks.onPinchEnd)(e)
+    if (userCallbacks.onPinchEnd) runOnJS(userCallbacks.onPinchEnd)(e)
 
     const toScale = clamp(scale.value, minScale, maxScale.value)
     const deltaY =
