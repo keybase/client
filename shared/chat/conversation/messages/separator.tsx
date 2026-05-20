@@ -13,8 +13,8 @@ const missingMessage = Chat.makeMessageDeleted({})
 const noOrdinal = T.Chat.numberToOrdinal(0)
 
 // Single merged selector replacing useStateFast + useState
-const useSeparatorData = (trailingItem: T.Chat.Ordinal, leadingItem: T.Chat.Ordinal) => {
-  const ordinal = isMobile ? leadingItem : trailingItem
+const useSeparatorData = (trailingItem: T.Chat.Ordinal) => {
+  const ordinal = trailingItem
   const orangeOrdinal = React.useContext(OrangeLineContext)
   const you = useCurrentUserState(s => s.username)
 
@@ -54,8 +54,8 @@ type Props = {
 }
 
 function SeparatorConnector(p: Props) {
-  const {leadingItem, trailingItem} = p
-  const data = useSeparatorData(trailingItem, leadingItem ?? T.Chat.numberToOrdinal(0))
+  const {trailingItem} = p
+  const data = useSeparatorData(trailingItem)
   const {ordinal, orangeLineAbove, orangeTime} = data
 
   if (!ordinal || !orangeLineAbove) return null
