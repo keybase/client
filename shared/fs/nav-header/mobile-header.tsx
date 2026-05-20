@@ -55,7 +55,7 @@ const NavMobileHeaderInner = (props: Props) => {
   return props.path === FS.defaultPath ? (
     <Kb.SafeAreaViewTop>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny">
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny" style={styles.rootContainer}>
           <Kb.Text type="BodyBig">Files</Kb.Text>
           <FilesTabStatusIcon />
         </Kb.Box2>
@@ -114,6 +114,10 @@ const styles = Kb.Styles.styleSheetCreate(
         padding: Kb.Styles.globalMargins.tiny,
         paddingBottom: Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xxtiny,
       },
+      rootContainer: Kb.Styles.platformStyles({
+        isAndroid: {height: 56},
+        isIOS: {height: 44},
+      }),
       expandedTopContainer: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
