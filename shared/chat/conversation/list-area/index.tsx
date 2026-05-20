@@ -52,6 +52,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const {containsLatestMessage, messageOrdinals, loaded} = data
 
   const listRef = React.useRef<LegendListRef | null>(null)
+  const wrapperRef = React.useRef<HTMLDivElement | null>(null)
   const [didFirstLoad, setDidFirstLoad] = React.useState(false)
 
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
@@ -108,6 +109,26 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     setScrollRef({scrollDown, scrollToBottom, scrollUp})
   }, [scrollDown, scrollToBottom, scrollUp, setScrollRef])
 
+  const isScrollingRef = React.useRef(false)
+  const scrollStopTimerRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
+  const onScroll = C.useThrottledCallback(
+    (_event: unknown) => {
+      clearTimeout(scrollStopTimerRef.current)
+      scrollStopTimerRef.current = setTimeout(() => {
+        isScrollingRef.current = false
+        ;(wrapperRef.current as unknown as {classList: {remove: (c: string) => void}} | null)?.classList.remove('scroll-ignore-pointer')
+      }, 200)
+      if (!isScrollingRef.current) {
+        isScrollingRef.current = true
+        ;(wrapperRef.current as unknown as {classList: {add: (c: string) => void}} | null)?.classList.add('scroll-ignore-pointer')
+      }
+    },
+    100,
+    {leading: true, trailing: true}
+  )
+  React.useEffect(() => () => {
+    onScroll.cancel()
+  }, [onScroll])
 
   // Load older messages when scrolled near the top (first 3 items visible)
   const onViewableItemsChanged = C.useDebouncedCallback(
@@ -262,6 +283,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         style={Kb.Styles.castStyleDesktop(desktopStyles.container)}
         onClick={handleListClick}
         onCopyCapture={onCopyCapture}
+        ref={wrapperRef}
       >
         <LegendList
           key={conversationIDKey}
@@ -282,6 +304,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           maintainScrollAtEnd={centeredOrdinal ? false : {on: {dataChange: true}}}
           maintainVisibleContentPosition={{data: true}}
           onLoad={onLoad}
+          onScroll={onScroll as unknown as (e: unknown) => void}
           onEndReached={onEndReached}
           onViewableItemsChanged={onViewableItemsChanged as unknown as (info: unknown) => void}
         />

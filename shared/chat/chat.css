@@ -28,6 +28,6 @@
   }
 }
 
-.scroll-ignore-pointer {
+.scroll-ignore-pointer .WrapperMessage-hoverBox {
   pointer-events: none;
 }
