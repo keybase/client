@@ -480,6 +480,7 @@ if (isMobile) {
 
   const rootStackScreenOptions = {
     headerBackButtonDisplayMode: 'minimal',
+    headerTitleAlign: isAndroid ? 'center' : undefined,
   } satisfies NativeStackNavigationOptions
 
   const modalScreenOptions = ({
