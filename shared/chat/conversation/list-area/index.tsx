@@ -38,6 +38,29 @@ const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
 
 // ==================== DESKTOP ====================
 
+const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
+  const {centeredHighlightOrdinal} = useConversationCenter()
+  const editingOrdinal = InputState.useConversationInput(s => s.editing)
+  const isHighlighted = centeredHighlightOrdinal === ordinal || editingOrdinal === ordinal
+  return (
+    <div
+      data-ordinal={ordinal}
+      className={Kb.Styles.classNames(
+        'hover-container',
+        'WrapperMessage',
+        'WrapperMessage-hoverBox',
+        'WrapperMessage-decorated',
+        'WrapperMessage-hoverColor',
+        {highlighted: isHighlighted}
+      )}
+    >
+      <Separator trailingItem={ordinal} />
+      <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
+    </div>
+  )
+})
+HighlightableRow.displayName = 'HighlightableRow'
+
 const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
   const conversationIDKey = useConversationThreadID()
@@ -48,7 +71,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
       messageOrdinals: s.messageOrdinals ?? noOrdinals,
     }))
   )
-  const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
+  const {centeredOrdinal} = useConversationCenter()
   const {containsLatestMessage, messageOrdinals, loaded} = data
 
   const listRef = React.useRef<LegendListRef | null>(null)
@@ -151,21 +174,41 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     onEndReached.cancel()
   }, [onEndReached])
 
-  // Scroll to centered ordinal when it changes (search / thread navigation)
-  const prevCenteredOrdinalRef = React.useRef(centeredOrdinal)
+  // Scroll to centered ordinal when it changes (search / thread navigation).
+  // Use a "last scrolled to" ref rather than a "did it change" ref so we still
+  // scroll when loaded becomes true after centeredOrdinal was already set.
+  const lastScrolledCenteredRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
+  React.useLayoutEffect(() => {
+    lastScrolledCenteredRef.current = undefined
+  }, [conversationIDKey])
+
   React.useEffect(() => {
-    const changed = prevCenteredOrdinalRef.current !== centeredOrdinal
-    prevCenteredOrdinalRef.current = centeredOrdinal
-    if (!changed || !loaded) return
+    if (!loaded) return
     if (centeredOrdinal) {
+      if (lastScrolledCenteredRef.current === centeredOrdinal) return
       const idx = sortedIndexOf(messageOrdinalsRef.current as unknown as number[], centeredOrdinal as unknown as number)
-      if (idx >= 0) {
-        void listRef.current?.scrollToIndex({animated: true, index: idx, viewPosition: 0.5})
+      if (idx < 0) return
+      lastScrolledCenteredRef.current = centeredOrdinal
+      const target = centeredOrdinal
+      const doScrollToCenter = async () => {
+        for (let attempt = 0; attempt < 4; attempt++) {
+          const el = wrapperRef.current?.querySelector(`[data-ordinal="${target}"]`)
+          if (el) {
+            el.scrollIntoView({behavior: 'instant', block: 'center'})
+            return
+          }
+          void listRef.current?.scrollToIndex({animated: false, index: idx, viewPosition: 0.5})
+          await new Promise<void>(r => setTimeout(r, 100))
+        }
       }
-    } else if (containsLatestMessage) {
-      void listRef.current?.scrollToEnd({animated: false})
+      void doScrollToCenter()
+    } else if (lastScrolledCenteredRef.current !== undefined) {
+      lastScrolledCenteredRef.current = undefined
+      if (containsLatestMessage) {
+        void listRef.current?.scrollToEnd({animated: false})
+      }
     }
-  }, [centeredOrdinal, loaded, containsLatestMessage])
+  }, [centeredOrdinal, loaded, containsLatestMessage, messageOrdinals])
 
   // Scroll to the message being edited
   const lastEditingOrdinalRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
@@ -193,29 +236,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     }
   }, [markInitiallyLoadedThreadAsRead])
 
-  // Extra data drives re-renders for highlight/edit state changes
-  const extraData = React.useMemo(
-    () => ({centeredHighlightOrdinal, editingOrdinal}),
-    [centeredHighlightOrdinal, editingOrdinal]
-  )
-
   const renderItem = React.useCallback(
-    ({item: ordinal}: {item: T.Chat.Ordinal}) => (
-      <div
-        className={Kb.Styles.classNames(
-          'hover-container',
-          'WrapperMessage',
-          'WrapperMessage-hoverBox',
-          'WrapperMessage-decorated',
-          'WrapperMessage-hoverColor',
-          {highlighted: centeredHighlightOrdinal === ordinal || editingOrdinal === ordinal}
-        )}
-      >
-        <Separator trailingItem={ordinal} />
-        <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
-      </div>
-    ),
-    [centeredHighlightOrdinal, editingOrdinal]
+    ({item: ordinal}: {item: T.Chat.Ordinal}) => <HighlightableRow ordinal={ordinal} />,
+    []
   )
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
@@ -297,12 +320,11 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           recycleItems={true}
           drawDistance={250}
           estimatedItemSize={72}
-          extraData={extraData}
           style={{...Kb.Styles.castStyleDesktop(desktopStyles.list), opacity: didFirstLoad ? 1 : 0}}
           initialScrollAtEnd={initialScrollIndex === undefined}
           initialScrollIndex={initialScrollIndex}
           maintainScrollAtEnd={centeredOrdinal ? false : {on: {dataChange: true}}}
-          maintainVisibleContentPosition={{data: true}}
+          maintainVisibleContentPosition={centeredOrdinal ? undefined : {data: true}}
           onLoad={onLoad}
           onScroll={onScroll as unknown as (e: unknown) => void}
           onEndReached={onEndReached}
