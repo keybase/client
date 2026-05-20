@@ -52,8 +52,8 @@ const DesktopAudioVideo = (props: Props) => {
 
   const onTimeUpdate = () => {
     const ct = vidRef.current?.currentTime ?? 0
-    const dur = vidRef.current?.duration ?? 0
-    if (dur === 0) return
+    const dur = vidRef.current?.duration
+    if (!dur) return
     onPositionUpdated(ct / dur)
   }
 
