@@ -57,13 +57,14 @@ const ResumableZoom = ({
   }, [maxScale, userMaxScale])
 
   useDerivedValue(() => {
-    extendedSize.width.set(extendGestures
+    // eslint-disable-next-line react-hooks/immutability
+    extendedSize.width.value = extendGestures
       ? Math.max(rootSize.width.value, childSize.width.value)
-      : childSize.width.value)
-
-    extendedSize.height.set(extendGestures
+      : childSize.width.value
+    // eslint-disable-next-line react-hooks/immutability
+    extendedSize.height.value = extendGestures
       ? Math.max(rootSize.height.value, childSize.height.value)
-      : childSize.height.value)
+      : childSize.height.value
   }, [extendGestures, rootSize, childSize])
 
   const boundsFn: BoundsFuction = (optionalScale) => {

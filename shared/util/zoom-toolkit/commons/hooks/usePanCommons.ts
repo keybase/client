@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 import {
   cancelAnimation,
   withTiming,
@@ -54,11 +55,11 @@ export const usePanCommons = (options: PanCommmonOptions) => {
     if (userCallbacks.onPanStart) runOnJS(userCallbacks.onPanStart)(e)
     cancelAnimation(translate.x)
     cancelAnimation(translate.y)
-    offset.x.set(translate.x.value)
-    offset.y.set(translate.y.value)
-    time.set(performance.now())
-    position.x.set(e.absoluteX)
-    position.y.set(e.absoluteY)
+    offset.x.value = translate.x.value
+    offset.y.value = translate.y.value
+    time.value = performance.now()
+    position.x.value = e.absoluteX
+    position.y.value = e.absoluteY
   }
 
   const onPanChange = (e: PanGestureUpdadeEvent) => {
@@ -68,8 +69,8 @@ export const usePanCommons = (options: PanCommmonOptions) => {
     const {x: boundX, y: boundY} = boundFn()
     const exceedX = Math.max(0, Math.abs(toX) - boundX)
     const exceedY = Math.max(0, Math.abs(toY) - boundY)
-    isWithinBoundX.set(exceedX === 0)
-    isWithinBoundY.set(exceedY === 0)
+    isWithinBoundX.value = exceedX === 0
+    isWithinBoundY.value = exceedY === 0
 
     if ((exceedX > 0 || exceedY > 0) && onOverPanning) {
       const ex = Math.sign(toX) * exceedX
@@ -79,27 +80,27 @@ export const usePanCommons = (options: PanCommmonOptions) => {
 
     if (panMode !== 'friction') {
       const isFree = panMode === 'free'
-      translate.x.set(isFree ? toX : clamp(toX, -1 * boundX, boundX))
-      translate.y.set(isFree ? toY : clamp(toY, -1 * boundY, boundY))
+      translate.x.value = isFree ? toX : clamp(toX, -1 * boundX, boundX)
+      translate.y.value = isFree ? toY : clamp(toY, -1 * boundY, boundY)
       return
     }
 
     const overScrollFraction = Math.max(container.width.value, container.height.value) * 1.5
 
     if (isWithinBoundX.value) {
-      translate.x.set(toX)
+      translate.x.value = toX
     } else {
       const fraction = Math.abs(Math.abs(toX) - boundX) / overScrollFraction
       const frictionX = friction(clamp(fraction, 0, 1))
-      translate.x.set(translate.x.value + e.changeX * frictionX)
+      translate.x.value += e.changeX * frictionX
     }
 
     if (isWithinBoundY.value) {
-      translate.y.set(toY)
+      translate.y.value = toY
     } else {
       const fraction = Math.abs(Math.abs(toY) - boundY) / overScrollFraction
       const frictionY = friction(clamp(fraction, 0, 1))
-      translate.y.set(translate.y.value + e.changeY * frictionY)
+      translate.y.value += e.changeY * frictionY
     }
   }
 
@@ -131,27 +132,23 @@ export const usePanCommons = (options: PanCommmonOptions) => {
     const decayConfigX = {velocity: e.velocityX, clamp: clampX}
     const decayConfigY = {velocity: e.velocityY, clamp: clampY}
 
-    translate.x.set(decayX ? withDecay(decayConfigX) : withTiming(toX))
-    translate.y.set(decayY ? withDecay(decayConfigY) : withTiming(toY))
+    translate.x.value = decayX ? withDecay(decayConfigX) : withTiming(toX)
+    translate.y.value = decayY ? withDecay(decayConfigY) : withTiming(toY)
 
     const restX = Math.abs(Math.abs(translate.x.value) - boundX)
     const restY = Math.abs(Math.abs(translate.y.value) - boundY)
-    gestureEnd.set(restX > restY ? translate.x.value : translate.y.value)
+    gestureEnd.value = restX > restY ? translate.x.value : translate.y.value
 
     if (decayX || decayY) {
       const config = restX > restY ? decayConfigX : decayConfigY
-      gestureEnd.set(
-        withDecay(config, (finished: boolean | undefined) => {
-          if (finished && onGestureEnd) runOnJS(onGestureEnd)()
-        })
-      )
+      gestureEnd.value = withDecay(config, (finished: boolean | undefined) => {
+        if (finished && onGestureEnd) runOnJS(onGestureEnd)()
+      })
     } else {
       const toValue = restX > restY ? toX : toY
-      gestureEnd.set(
-        withTiming(toValue, undefined, (finished: boolean | undefined) => {
-          if (finished && onGestureEnd) runOnJS(onGestureEnd)()
-        })
-      )
+      gestureEnd.value = withTiming(toValue, undefined, (finished: boolean | undefined) => {
+        if (finished && onGestureEnd) runOnJS(onGestureEnd)()
+      })
     }
   }
 
