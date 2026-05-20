@@ -32,4 +32,5 @@ module.exports = [
   '@callstack/liquid-glass',
   'react-native-screens/experimental',
   '@react-navigation/bottom-tabs',
+  'react-native-gesture-handler',
 ]

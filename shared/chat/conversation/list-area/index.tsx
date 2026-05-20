@@ -6,7 +6,6 @@ import * as T from '@/constants/types'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
-import type {ItemType} from './index.shared'
 import {MessageRow} from '../messages/wrapper'
 import {PerfProfiler} from '@/perf/react-profiler'
 import {ScrollContext} from '../normal/context'
@@ -19,479 +18,48 @@ import {
   useConversationThreadStore,
 } from '../thread-context'
 import {useThreadLoadStatusOptionsGetter} from '../thread-load-status-context'
-import {findLast} from '@/util/arrays'
 import {getMessageRowType} from '../messages/row-metadata'
 import * as InputState from '../input-area/input-state'
-import chunk from 'lodash/chunk'
-import useIntersectionObserver from '@/util/use-intersection-observer'
-import useResizeObserver from '@/util/use-resize-observer'
+import sortedIndexOf from 'lodash/sortedIndexOf'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {FocusContext} from '../normal/context'
 import noop from 'lodash/noop'
+import {LegendList} from '@legendapp/list/react'
+import type {LegendListRef} from '@/common-adapters'
 import {FlatList} from 'react-native'
 import type {ScrollViewProps} from 'react-native'
 import {usingFlashList} from './flashlist-config'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {KeyboardChatScrollView} from 'react-native-keyboard-controller'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
+import type {ItemType} from './index.shared'
+
+const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
 
 // ==================== DESKTOP ====================
 
-// Stub types to avoid dom lib dependency in native tsconfig
-type ScrollDivRef = {
-  scrollTop: number
-  scrollHeight: number
-  clientHeight: number
-  offsetHeight: number
-  classList: {add: (s: string) => void; remove: (s: string) => void}
-  getBoundingClientRect: () => DOMRect
-  querySelectorAll: (sel: string) => ArrayLike<WaypointElement>
-  addEventListener: (event: string, handler: (...args: Array<unknown>) => void, opts?: {passive?: boolean}) => void
-  removeEventListener: (event: string, handler: (...args: Array<unknown>) => void) => void
-  closest: (sel: string) => unknown
-}
-type RNFlatListRef = {
-  scrollToOffset: (opts: {animated: boolean; offset: number}) => void
-  scrollToItem: (opts: {animated: boolean; item: unknown; viewPosition?: number}) => void
-}
-type WaypointElement = {
-  getBoundingClientRect: () => DOMRect
-  scrollIntoView: (opts: {block: string; inline: string}) => void
-  dataset: Record<string, string | undefined>
-  closest: (sel: string) => WaypointElement | null | undefined
-  tagName?: string
-}
-
-// Infinite scrolling list.
-// We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
-const scrollOrdinalKey = 'scroll-ordinal-key'
-const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
-const ordinalsInAWaypoint = 10
-
-// We load the first thread automatically so in order to mark it read
-// we send an action on the first mount once
-let markedInitiallyLoaded = false
-
-const useDesktopScrolling = (p: {
-  containsLatestMessage: boolean
-  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
-  listRef: React.RefObject<ScrollDivRef | null>
-  loaded: boolean
-  setListRef: (r: ScrollDivRef | null) => void
-  centeredOrdinal: T.Chat.Ordinal | undefined
-}) => {
-  const {listRef, setListRef: _setListRef, containsLatestMessage} = p
-  const containsLatestMessageRef = React.useRef(containsLatestMessage)
-  React.useEffect(() => {
-    containsLatestMessageRef.current = containsLatestMessage
-  }, [containsLatestMessage])
-  const {messageOrdinals, centeredOrdinal, loaded} = p
-  const numOrdinals = messageOrdinals.length
-  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
-  const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
-  const loadNewerMessages = C.useThrottledCallback(() => {
-    loadNewerMessagesDueToScroll(numOrdinals, getThreadLoadStatusOptions())
-  }, 200)
-  // if we scroll up try and keep the position
-  const scrollBottomOffsetRef = React.useRef<number | undefined>(undefined)
-
-  const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
-  const loadOlderMessages = React.useCallback((numOrdinals: number) => {
-    loadOlderMessagesDueToScroll(numOrdinals, getThreadLoadStatusOptions())
-  }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
-  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
-  // pixels away from top/bottom to load/be locked
-  const listEdgeSlopBottom = 10
-  const listEdgeSlopTop = 1000
-  const isScrollingRef = React.useRef(false)
-  const ignoreOnScrollRef = React.useRef(false)
-  const lockedToBottomRef = React.useRef(true)
-  // so we can turn pointer events on / off
-  const pointerWrapperRef = React.useRef<ScrollDivRef | null>(null)
-  const setPointerWrapperRef = (r: ScrollDivRef | null) => {
-    pointerWrapperRef.current = r
-  }
-  const numOrdinalsRef = React.useRef(numOrdinals)
-  const loadOlderMessagesRef = React.useRef(loadOlderMessages)
-  const loadNewerMessagesRef = React.useRef(loadNewerMessages)
-
-  const [isLockedToBottom] = React.useState(() => () => {
-    return lockedToBottomRef.current
-  })
-
-  const adjustScrollAndIgnoreOnScroll = (fn: () => void) => {
-    ignoreOnScrollRef.current = true
-    fn()
-  }
-
-  const [checkForLoadMoreThrottled] = React.useState(() => () => {
-    const list = listRef.current
-    if (list) {
-      if (list.scrollTop < listEdgeSlopTop) {
-        loadOlderMessagesRef.current(numOrdinalsRef.current)
-      } else if (
-        !containsLatestMessageRef.current &&
-        !lockedToBottomRef.current &&
-        list.scrollTop > list.scrollHeight - list.clientHeight - listEdgeSlopBottom
-      ) {
-        loadNewerMessagesRef.current()
-      }
-    }
-  })
-
-  const [scrollToBottomSync] = React.useState(() => () => {
-    lockedToBottomRef.current = true
-    const list = listRef.current
-    if (list) {
-      adjustScrollAndIgnoreOnScroll(() => {
-        list.scrollTop = list.scrollHeight - list.clientHeight
-      })
-    }
-  })
-
-  const [scrollToBottom] = React.useState(() => () => {
-    scrollToBottomSync()
-    setTimeout(() => {
-      requestAnimationFrame(scrollToBottomSync)
-    }, 1)
-  })
-
-  const [performScrollToCentered] = React.useState(() => () => {
-    const list = listRef.current
-    const waypoint = list?.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)[0] as WaypointElement | undefined
-    if (!list || !waypoint) return
-    const listRect = list.getBoundingClientRect()
-    const waypointRect = waypoint.getBoundingClientRect()
-    const targetScrollTop =
-      list.scrollTop + (waypointRect.top - listRect.top) - listRect.height / 2 + waypointRect.height / 2
-    const clamped = Math.max(0, Math.min(targetScrollTop, list.scrollHeight - list.clientHeight))
-    adjustScrollAndIgnoreOnScroll(() => {
-      list.scrollTop = clamped
-    })
-  })
-
-  const [scrollToCentered] = React.useState(() => () => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        performScrollToCentered()
-        setTimeout(performScrollToCentered, 50)
-      })
-    })
-  })
-
-  const [scrollDown] = React.useState(() => () => {
-    const list = listRef.current
-    if (list) {
-      adjustScrollAndIgnoreOnScroll(() => {
-        list.scrollTop += list.clientHeight
-      })
-    }
-  })
-
-  const [scrollUp] = React.useState(() => () => {
-    lockedToBottomRef.current = false
-    const list = listRef.current
-    if (list) {
-      adjustScrollAndIgnoreOnScroll(() => {
-        list.scrollTop -= list.clientHeight
-        checkForLoadMoreThrottled()
-      })
-    }
-  })
-
-  const scrollCheckRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
-  React.useEffect(() => {
-    return () => {
-      clearTimeout(scrollCheckRef.current)
-    }
-  }, [])
-
-  // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
-  const onScrollThrottled = C.useThrottledCallback(
-    () => {
-      clearTimeout(scrollCheckRef.current)
-      scrollCheckRef.current = setTimeout(() => {
-        if (isScrollingRef.current) {
-          isScrollingRef.current = false
-          if (pointerWrapperRef.current) {
-            pointerWrapperRef.current.classList.remove('scroll-ignore-pointer')
-          }
-
-          const list = listRef.current
-          // are we locked on the bottom? only lock if we have latest messages
-          if (list && !centeredOrdinal && containsLatestMessageRef.current) {
-            lockedToBottomRef.current =
-              list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlopBottom
-          }
-        }
-      }, 200)
-
-      if (!isScrollingRef.current) {
-        // starting a scroll
-        isScrollingRef.current = true
-        if (pointerWrapperRef.current) {
-          pointerWrapperRef.current.classList.add('scroll-ignore-pointer')
-        }
-      }
-    },
-    100,
-    {leading: true, trailing: true}
-  )
-
-  const onScrollThrottledRef = React.useRef(onScrollThrottled)
-  React.useEffect(() => {
-    numOrdinalsRef.current = numOrdinals
-    loadOlderMessagesRef.current = loadOlderMessages
-    loadNewerMessagesRef.current = loadNewerMessages
-    onScrollThrottledRef.current = onScrollThrottled
-  }, [numOrdinals, loadOlderMessages, loadNewerMessages, onScrollThrottled])
-
-  // we did it so we should ignore it
-  const programaticScrollRef = React.useRef(false)
-
-  const [onScroll] = React.useState(() => () => {
-    if (programaticScrollRef.current) {
-      programaticScrollRef.current = false
-      return
-    }
-    if (listRef.current) {
-      scrollBottomOffsetRef.current = Math.max(0, listRef.current.scrollHeight - listRef.current.scrollTop)
-    } else {
-      scrollBottomOffsetRef.current = undefined
-    }
-    if (ignoreOnScrollRef.current) {
-      ignoreOnScrollRef.current = false
-      return
-    }
-    // quickly set to false to assume we're not locked. if we are the throttled one will set it to true
-    lockedToBottomRef.current = false
-    checkForLoadMoreThrottled()
-    onScrollThrottledRef.current()
-  })
-
-  const setListRef = (list: ScrollDivRef | null) => {
-    if (listRef.current) {
-      listRef.current.removeEventListener('scroll', onScroll)
-    }
-    if (list) {
-      list.addEventListener('scroll', onScroll, {passive: true})
-    }
-    _setListRef(list)
-  }
-
-  React.useEffect(() => {
-    return () => {
-      onScrollThrottled.cancel()
-    }
-  }, [onScrollThrottled])
-
-  const [didFirstLoad, setDidFirstLoad] = React.useState(false)
-
-  const prevLoadedRef = React.useRef(false)
-  // Handle scrolling when loaded becomes true. Scroll to centered ordinal if present, else bottom
-  React.useLayoutEffect(() => {
-    const justLoaded = loaded && !prevLoadedRef.current
-    prevLoadedRef.current = loaded
-
-    if (!justLoaded) return
-
-    if (!markedInitiallyLoaded) {
-      markedInitiallyLoaded = true
-      markInitiallyLoadedThreadAsRead()
-    }
-
-    setDidFirstLoad(true)
-    if (centeredOrdinal) {
-      lockedToBottomRef.current = false
-      scrollToCentered()
-    } else {
-      scrollToBottomSync()
-      requestAnimationFrame(() => {
-        scrollToBottomSync()
-      })
-    }
-  }, [loaded, centeredOrdinal, markInitiallyLoadedThreadAsRead, scrollToBottomSync, scrollToCentered])
-
-  const firstOrdinal = messageOrdinals[0]
-  const prevFirstOrdinalRef = React.useRef(firstOrdinal)
-  const ordinalsLength = messageOrdinals.length
-  const prevOrdinalLengthRef = React.useRef(ordinalsLength)
-
-  // called after dom update, to apply value
-  React.useLayoutEffect(() => {
-    const list = listRef.current
-    // no items? don't be locked
-    if (!ordinalsLength) {
-      lockedToBottomRef.current = false
-      return
-    }
-
-    // detect if older messages were added (first ordinal changed = content added at top)
-    const olderMessagesAdded = prevFirstOrdinalRef.current !== firstOrdinal
-    prevFirstOrdinalRef.current = firstOrdinal
-
-    // didn't scroll up
-    if (ordinalsLength === prevOrdinalLengthRef.current) {
-      return
-    }
-    prevOrdinalLengthRef.current = ordinalsLength
-    // maintain scroll position only when older messages added at top
-    // when newer messages added at bottom, browser naturally keeps position
-    if (
-      olderMessagesAdded &&
-      list &&
-      !centeredOrdinal && // ignore this if we're scrolling and we're doing a search
-      !isLockedToBottom() &&
-      scrollBottomOffsetRef.current !== undefined
-    ) {
-      programaticScrollRef.current = true
-      const newTop = list.scrollHeight - scrollBottomOffsetRef.current
-      list.scrollTop = newTop
-    }
-    return undefined
-    // we want this to fire when the ordinals change
-  }, [centeredOrdinal, ordinalsLength, isLockedToBottom, listRef, firstOrdinal])
-
-  // Also handle centered ordinal changing while already loaded (e.g. from thread search results)
-  const prevCenteredOrdinal = React.useRef(centeredOrdinal)
-  const wasLoadedRef = React.useRef(loaded)
-  React.useEffect(() => {
-    const wasLoaded = wasLoadedRef.current
-    const changed = prevCenteredOrdinal.current !== centeredOrdinal
-    prevCenteredOrdinal.current = centeredOrdinal
-    wasLoadedRef.current = loaded
-
-    // Only scroll if we were already loaded and ordinal changed
-    // (the load effect handles scrolling when loaded transitions to true)
-    if (!wasLoaded || !loaded || !changed) return
-
-    if (centeredOrdinal) {
-      lockedToBottomRef.current = false
-      scrollToCentered()
-    } else if (containsLatestMessage) {
-      lockedToBottomRef.current = true
-      scrollToBottom()
-    }
-  }, [centeredOrdinal, loaded, containsLatestMessage, scrollToCentered, scrollToBottom])
-
-  const {setScrollRef} = React.useContext(ScrollContext)
-  React.useEffect(() => {
-    setScrollRef({scrollDown, scrollToBottom, scrollUp})
-  }, [scrollDown, scrollToBottom, scrollUp, setScrollRef])
-
-  // go to editing message
+const HighlightableRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
+  const {centeredHighlightOrdinal} = useConversationCenter()
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
-  const lastEditingOrdinalRef = React.useRef(0)
-  React.useEffect(() => {
-    if (lastEditingOrdinalRef.current === editingOrdinal) return
-    lastEditingOrdinalRef.current = editingOrdinal
-    if (!editingOrdinal) return
-    const idx = messageOrdinals.indexOf(editingOrdinal)
-    if (idx !== -1) {
-      const waypoints = listRef.current?.querySelectorAll('[data-key]')
-      if (waypoints) {
-        // find an id that should be our parent
-        const toFind = Math.floor(T.Chat.ordinalToNumber(editingOrdinal) / ordinalsInAWaypoint)
-        const allWaypoints = Array.from(waypoints) as Array<WaypointElement>
-        const found = findLast(allWaypoints, w => {
-          const key = w.dataset['key']
-          return key !== undefined && parseInt(key, 10) === toFind
-        })
-        found?.scrollIntoView({block: 'center', inline: 'nearest'})
-      }
-    }
-  }, [editingOrdinal, messageOrdinals, listRef])
-
-  void chunk
-
-  return {didFirstLoad, isLockedToBottom, scrollToBottom, setListRef, setPointerWrapperRef}
-}
-
-const useDesktopItems = (p: {
-  centeredHighlightOrdinal: T.Chat.Ordinal | undefined
-  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
-  centeredOrdinal: T.Chat.Ordinal | undefined
-  editingOrdinal: T.Chat.Ordinal | undefined
-}) => {
-  const {centeredHighlightOrdinal, centeredOrdinal, editingOrdinal, messageOrdinals} = p
-  const waypointData = React.useMemo(() => {
-    const items: Array<{key: string; ordinals: Array<T.Chat.Ordinal>}> = []
-    const numOrdinals = messageOrdinals.length
-
-    let ordinals: Array<T.Chat.Ordinal> = []
-    let lastBucket: number | undefined
-    let baseIndex = 0 // this is used to de-dupe the waypoint around the centered ordinal
-    messageOrdinals.forEach((ordinal, idx) => {
-      // Centered ordinal is where we want the view to be centered on when jumping around in the thread.
-      const isCenteredOrdinal = ordinal === centeredOrdinal
-
-      // We want to keep the mapping of ordinal to bucket fixed always
-      const bucket = Math.floor(T.Chat.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
-      if (lastBucket === undefined) {
-        lastBucket = bucket
-      }
-      const needNextWaypoint = bucket !== lastBucket
-      const isLastItem = idx === numOrdinals - 1
-      if (needNextWaypoint || isLastItem || isCenteredOrdinal) {
-        if (isLastItem && !isCenteredOrdinal) {
-          // we don't want to add the centered ordinal here, since it will go into its own waypoint
-          ordinals.push(ordinal)
-        }
-        if (ordinals.length) {
-          // don't allow buckets to be too big; sends can put more ordinals than expected in one bucket
-          const chunks = chunk(ordinals, ordinalsInAWaypoint)
-          chunks.forEach((toAdd, cidx) => {
-            const key = `${lastBucket || ''}:${cidx + baseIndex}`
-            items.push({key, ordinals: toAdd})
-          })
-          // we pass previous so the OrdinalWaypoint can render the top item correctly
-          ordinals = []
-          lastBucket = bucket
-        }
-      }
-      // If this is the centered ordinal, it goes into its own waypoint so we can easily scroll to it
-      if (isCenteredOrdinal) {
-        items.push({key: scrollOrdinalKey, ordinals: [ordinal]})
-        lastBucket = 0
-        baseIndex++ // push this up if we drop the centered ordinal waypoint
-      } else {
-        ordinals.push(ordinal)
-      }
-    })
-
-    return items
-  }, [centeredOrdinal, messageOrdinals])
-
-  const rowRenderer = (ordinal: T.Chat.Ordinal) => {
-    return (
-      <div
-        key={String(ordinal)}
-        data-debug={String(ordinal)}
-        className={Kb.Styles.classNames(
-          'hover-container',
-          'WrapperMessage',
-          'WrapperMessage-hoverBox',
-          'WrapperMessage-decorated',
-          'WrapperMessage-hoverColor',
-          {highlighted: centeredHighlightOrdinal === ordinal || editingOrdinal === ordinal}
-        )}
-      >
-        <Separator trailingItem={ordinal} />
-        <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
-      </div>
-    )
-  }
-
-  const items = [
-    <SpecialTopMessage key="specialTop" />,
-    ...waypointData.map(({key, ordinals}) => (
-      <DesktopOrdinalWaypoint key={key} id={key} rowRenderer={rowRenderer} ordinals={ordinals} />
-    )),
-    <SpecialBottomMessage key="specialBottom" />,
-  ]
-
-  return items
-}
+  const isHighlighted = centeredHighlightOrdinal === ordinal || editingOrdinal === ordinal
+  return (
+    <div
+      data-ordinal={ordinal}
+      className={Kb.Styles.classNames(
+        'hover-container',
+        'WrapperMessage',
+        'WrapperMessage-hoverBox',
+        'WrapperMessage-decorated',
+        'WrapperMessage-hoverColor',
+        {highlighted: isHighlighted}
+      )}
+    >
+      <Separator trailingItem={ordinal} />
+      <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
+    </div>
+  )
+})
+HighlightableRow.displayName = 'HighlightableRow'
 
 const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const editingOrdinal = InputState.useConversationInput(s => s.editing)
@@ -503,22 +71,192 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
       messageOrdinals: s.messageOrdinals ?? noOrdinals,
     }))
   )
-  const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
+  const {centeredOrdinal} = useConversationCenter()
   const {containsLatestMessage, messageOrdinals, loaded} = data
-  const listRef = React.useRef<ScrollDivRef | null>(null)
-  const _setListRef = (r: ScrollDivRef | null) => {
-    listRef.current = r
-  }
-  const {isLockedToBottom, scrollToBottom, setListRef, didFirstLoad, setPointerWrapperRef} = useDesktopScrolling({
-    centeredOrdinal,
-    containsLatestMessage,
-    listRef,
-    loaded,
-    messageOrdinals,
-    setListRef: _setListRef,
-  })
+
+  const listRef = React.useRef<LegendListRef | null>(null)
+  const wrapperRef = React.useRef<HTMLDivElement | null>(null)
+  const [didFirstLoad, setDidFirstLoad] = React.useState(false)
+
+  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
+  const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
+  const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
+  const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
+  const threadStore = useConversationThreadStore()
+
+  // Stable refs for values used inside stable callbacks
+  const containsLatestMessageRef = React.useRef(containsLatestMessage)
+  React.useEffect(() => {
+    containsLatestMessageRef.current = containsLatestMessage
+  }, [containsLatestMessage])
+
+  const numOrdinalsRef = React.useRef(messageOrdinals.length)
+  React.useEffect(() => {
+    numOrdinalsRef.current = messageOrdinals.length
+  }, [messageOrdinals.length])
+
+  const messageOrdinalsRef = React.useRef(messageOrdinals)
+  React.useEffect(() => {
+    messageOrdinalsRef.current = messageOrdinals
+  }, [messageOrdinals])
+
+  // Item type for LegendList recycling pool separation
+  const getItemType = React.useCallback(
+    (ordinal: T.Chat.Ordinal) => {
+      const {messageMap, messageTypeMap} = threadStore.getState()
+      const message = messageMap.get(ordinal)
+      return message ? getMessageRowType(message, messageTypeMap.get(ordinal)) : (messageTypeMap.get(ordinal) ?? 'text')
+    },
+    [threadStore]
+  )
+
+  // Imperative scroll for ScrollContext
+  const scrollToBottom = React.useCallback(() => {
+    void listRef.current?.scrollToEnd({animated: false})
+  }, [])
+
+  const scrollUp = React.useCallback(() => {
+    const state = listRef.current?.getState()
+    if (!state) return
+    void listRef.current?.scrollToOffset({animated: false, offset: Math.max(0, state.scroll - state.scrollLength)})
+  }, [])
+
+  const scrollDown = React.useCallback(() => {
+    const state = listRef.current?.getState()
+    if (!state) return
+    void listRef.current?.scrollToOffset({animated: false, offset: state.scroll + state.scrollLength})
+  }, [])
+
+  const {setScrollRef} = React.useContext(ScrollContext)
+  React.useEffect(() => {
+    setScrollRef({scrollDown, scrollToBottom, scrollUp})
+  }, [scrollDown, scrollToBottom, scrollUp, setScrollRef])
+
+  const isScrollingRef = React.useRef(false)
+  const scrollStopTimerRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
+  const onScroll = C.useThrottledCallback(
+    (_event: unknown) => {
+      clearTimeout(scrollStopTimerRef.current)
+      scrollStopTimerRef.current = setTimeout(() => {
+        isScrollingRef.current = false
+        ;(wrapperRef.current as unknown as {classList: {remove: (c: string) => void}} | null)?.classList.remove('scroll-ignore-pointer')
+      }, 200)
+      if (!isScrollingRef.current) {
+        isScrollingRef.current = true
+        ;(wrapperRef.current as unknown as {classList: {add: (c: string) => void}} | null)?.classList.add('scroll-ignore-pointer')
+      }
+    },
+    100,
+    {leading: true, trailing: true}
+  )
+  React.useEffect(() => () => {
+    onScroll.cancel()
+    clearTimeout(scrollStopTimerRef.current)
+  }, [onScroll])
+
+  // Load older messages when scrolled near the top (first 3 items visible)
+  const onViewableItemsChanged = C.useDebouncedCallback(
+    ({viewableItems}: {viewableItems: Array<{index: number; item: T.Chat.Ordinal}>}) => {
+      if ((viewableItems[0]?.index ?? Infinity) < 3) {
+        loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
+      }
+    },
+    200
+  )
+
+  // Load newer messages when scrolled to the end (only when not at latest)
+  const onEndReached = C.useThrottledCallback(() => {
+    if (!containsLatestMessageRef.current) {
+      loadNewerMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
+    }
+  }, 200)
+
+  React.useEffect(() => () => {
+    onEndReached.cancel()
+  }, [onEndReached])
+
+  // Scroll to centered ordinal when it changes (search / thread navigation).
+  // Use a "last scrolled to" ref rather than a "did it change" ref so we still
+  // scroll when loaded becomes true after centeredOrdinal was already set.
+  const lastScrolledCenteredRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
+  React.useLayoutEffect(() => {
+    lastScrolledCenteredRef.current = undefined
+  }, [conversationIDKey])
+
+  React.useEffect(() => {
+    if (!loaded) return
+    if (centeredOrdinal !== undefined) {
+      if (lastScrolledCenteredRef.current === centeredOrdinal) return
+      const idx = sortedIndexOf(messageOrdinalsRef.current as unknown as number[], centeredOrdinal as unknown as number)
+      if (idx < 0) return
+      lastScrolledCenteredRef.current = centeredOrdinal
+      const target = centeredOrdinal
+      const doScrollToCenter = async () => {
+        for (let attempt = 0; attempt < 4; attempt++) {
+          const el = (
+            wrapperRef.current as unknown as
+              | {querySelector: (s: string) => {scrollIntoView: (o: object) => void} | null}
+              | null
+          )?.querySelector(`[data-ordinal="${target}"]`)
+          if (el) {
+            el.scrollIntoView({behavior: 'instant', block: 'center'})
+            return
+          }
+          void listRef.current?.scrollToIndex({animated: false, index: idx, viewPosition: 0.5})
+          await new Promise<void>(resolve => setTimeout(resolve, 100))
+        }
+      }
+      void doScrollToCenter()
+    } else if (lastScrolledCenteredRef.current !== undefined) {
+      lastScrolledCenteredRef.current = undefined
+      if (containsLatestMessage) {
+        void listRef.current?.scrollToEnd({animated: false})
+      }
+    }
+  }, [centeredOrdinal, loaded, containsLatestMessage, messageOrdinals])
+
+  // Scroll to the message being edited
+  const lastEditingOrdinalRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
+  React.useEffect(() => {
+    if (lastEditingOrdinalRef.current === editingOrdinal) return
+    lastEditingOrdinalRef.current = editingOrdinal
+    if (!editingOrdinal) return
+    const idx = sortedIndexOf(messageOrdinalsRef.current as unknown as number[], editingOrdinal as unknown as number)
+    if (idx >= 0) {
+      void listRef.current?.scrollToIndex({animated: true, index: idx, viewPosition: 0.5})
+    }
+  }, [editingOrdinal])
+
+  // Mark thread as read after initial load (once per conversation)
+  const markedReadRef = React.useRef(false)
+  React.useLayoutEffect(() => {
+    markedReadRef.current = false
+  }, [conversationIDKey])
+
+  const onLoad = React.useCallback(() => {
+    setDidFirstLoad(true)
+    if (!markedReadRef.current) {
+      markedReadRef.current = true
+      markInitiallyLoadedThreadAsRead()
+    }
+  }, [markInitiallyLoadedThreadAsRead])
+
+  const renderItem = React.useCallback(
+    ({item: ordinal}: {item: T.Chat.Ordinal}) => <HighlightableRow ordinal={ordinal} />,
+    []
+  )
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
+
+  const {focusInput} = React.useContext(FocusContext)
+  const handleListClick = (ev: React.MouseEvent) => {
+    const target = ev.target as {closest?: (s: string) => unknown; tagName?: string} | null
+    const tagName = target?.tagName?.toUpperCase()
+    if (tagName === 'INPUT' || tagName === 'TEXTAREA' || target?.closest?.('[data-search-filter="true"]')) return
+    const sel = (globalThis as unknown as {getSelection?: () => {isCollapsed: boolean} | null}).getSelection?.()
+    if (sel?.isCollapsed) focusInput()
+  }
+
   const onCopyCapture = (e: React.BaseSyntheticEvent) => {
     type DocGlobal = {
       createElement: (tag: string) => {
@@ -557,174 +295,50 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     }
     tempDiv.remove()
   }
-  const {focusInput} = React.useContext(FocusContext)
-  const handleListClick = (ev: React.MouseEvent) => {
-    const target = ev.target as unknown as WaypointElement | null
-    const tagName = (target as {tagName?: string} | null)?.tagName?.toUpperCase()
-    if (
-      tagName === 'INPUT' ||
-      tagName === 'TEXTAREA' ||
-      target?.closest('[data-search-filter="true"]')
-    ) {
-      return
-    }
 
-    const sel = (globalThis as unknown as {getSelection?: () => {isCollapsed: boolean} | null}).getSelection?.()
-    if (sel?.isCollapsed) {
-      focusInput()
-    }
-  }
-
-  const items = useDesktopItems({
-    centeredHighlightOrdinal,
-    centeredOrdinal,
-    editingOrdinal,
-    messageOrdinals,
-  })
-  const setListContents = useDesktopHandleListResize({
-    centeredOrdinal,
-    isLockedToBottom,
-    scrollToBottom,
-    setPointerWrapperRef,
-    useResizeObserver,
-  })
-
+  // When a centeredOrdinal is set at mount, start there; otherwise start at the end
+  const _centeredIdx = centeredOrdinal !== undefined
+    ? sortedIndexOf(messageOrdinals as unknown as number[], centeredOrdinal as unknown as number)
+    : -1
+  const initialScrollIndex = _centeredIdx >= 0
+    ? {index: _centeredIdx, viewPosition: 0.5 as const}
+    : undefined
 
   return (
     <Kb.ErrorBoundary>
       <div
+        data-testid="message-list"
         style={Kb.Styles.castStyleDesktop(desktopStyles.container)}
         onClick={handleListClick}
         onCopyCapture={onCopyCapture}
+        ref={wrapperRef}
       >
-        <div
-          data-testid="message-list"
-          className="chat-scroller"
+        <LegendList
           key={conversationIDKey}
-          style={Kb.Styles.castStyleDesktop(
-            Kb.Styles.collapseStyles([desktopStyles.list, {opacity: didFirstLoad ? 1 : 0}])
-          )}
-          ref={setListRef as (r: HTMLDivElement | null) => void}
-        >
-          <div style={Kb.Styles.castStyleDesktop(desktopStyles.listContents)} ref={setListContents as React.Ref<HTMLDivElement>}>
-            {items}
-          </div>
-        </div>
+          ref={listRef as React.Ref<LegendListRef>}
+          data={messageOrdinals as unknown as T.Chat.Ordinal[]}
+          renderItem={renderItem}
+          keyExtractor={(ordinal: T.Chat.Ordinal) => String(ordinal)}
+          getItemType={getItemType}
+          ListHeaderComponent={SpecialTopMessage}
+          ListFooterComponent={SpecialBottomMessage}
+          recycleItems={true}
+          drawDistance={250}
+          estimatedItemSize={72}
+          style={{...Kb.Styles.castStyleDesktop(desktopStyles.list), opacity: didFirstLoad ? 1 : 0}}
+          initialScrollAtEnd={initialScrollIndex === undefined}
+          initialScrollIndex={initialScrollIndex}
+          maintainScrollAtEnd={centeredOrdinal !== undefined ? false : {on: {dataChange: true}}}
+          maintainVisibleContentPosition={centeredOrdinal !== undefined ? undefined : {data: true}}
+          onLoad={onLoad}
+          onScroll={onScroll as unknown as (e: unknown) => void}
+          onEndReached={onEndReached}
+          onViewableItemsChanged={onViewableItemsChanged as unknown as (info: unknown) => void}
+        />
         {jumpToRecent}
       </div>
     </Kb.ErrorBoundary>
   )
-}
-
-const useDesktopHandleListResize = (p: {
-  centeredOrdinal: T.Chat.Ordinal | undefined
-  isLockedToBottom: () => boolean
-  scrollToBottom: () => void
-  setPointerWrapperRef: (r: ScrollDivRef | null) => void
-  useResizeObserver: (ref: React.RefObject<Element | null>, cb: (e: {contentRect: {height: number}}) => void) => void
-}) => {
-  const {isLockedToBottom, scrollToBottom, setPointerWrapperRef, centeredOrdinal, useResizeObserver} = p
-  const lastResizeHeightRef = React.useRef(0)
-  const onListSizeChanged = function onListSizeChanged(contentRect: {height: number}) {
-    const {height} = contentRect
-    if (height !== lastResizeHeightRef.current) {
-      lastResizeHeightRef.current = height
-      if (isLockedToBottom() && !centeredOrdinal) {
-        scrollToBottom()
-      }
-    }
-  }
-
-  const pointerWrapperRef = React.useRef<ScrollDivRef | null>(null)
-  const setListContents = (listContents: ScrollDivRef | null) => {
-    setPointerWrapperRef(listContents)
-    pointerWrapperRef.current = listContents
-  }
-
-  useResizeObserver(pointerWrapperRef as React.RefObject<Element | null>, e => onListSizeChanged(e.contentRect))
-
-  return setListContents
-}
-
-type DesktopOrdinalWaypointProps = {
-  id: string
-  rowRenderer: (ordinal: T.Chat.Ordinal) => React.ReactNode
-  ordinals: Array<T.Chat.Ordinal>
-}
-
-const colorWaypoints = __DEV__ && (false as boolean)
-const waypointColors = new Array<string>()
-if (colorWaypoints) {
-  for (let i = 0; i < 10; ++i) {
-    console.log('COLOR WAYPOINTS ON!!!!!!!!!!!!!!!!')
-    waypointColors.push(`rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`)
-  }
-}
-
-// Render unmeasured waypoints once so initial scroll positioning uses real heights.
-// After measuring, off-screen waypoints can collapse back to placeholders.
-const DesktopOrdinalWaypoint = function DesktopOrdinalWaypoint(p: DesktopOrdinalWaypointProps) {
-  const {ordinals, id, rowRenderer} = p
-  const estimatedHeight = 40 * ordinals.length
-  const [height, setHeight] = React.useState(-1)
-  const [wRef, setRef] = React.useState<ScrollDivRef | null>(null)
-  const [setContentRef] = React.useState(() => (ref: ScrollDivRef | null) => {
-    if (ref) {
-      const height = ref.offsetHeight
-      if (height) {
-        setHeight(oldHeight => (oldHeight === height ? oldHeight : height))
-      }
-    }
-    setRef(ref)
-  })
-  const root = wRef?.closest('.chat-scroller') as HTMLElement | undefined
-  const {isIntersecting} = useIntersectionObserver(wRef as unknown as React.RefObject<HTMLElement>, {root})
-  const renderMessages = height < 0 || isIntersecting
-  let content: React.ReactElement
-
-  if (renderMessages) {
-    content = <DesktopContent key={id} id={id} ref={setContentRef} ordinals={ordinals} rowRenderer={rowRenderer} />
-  } else {
-    content = <DesktopDummy key={id} id={id} height={height < 0 ? estimatedHeight : height} ref={setRef} />
-  }
-
-  if (colorWaypoints) {
-    let cidx = parseInt(id)
-    if (isNaN(cidx)) cidx = 0
-    cidx = cidx % waypointColors.length
-    return <div style={{backgroundColor: waypointColors[cidx]}}>{content}</div>
-  } else {
-    return content
-  }
-}
-
-type DesktopContentType = {
-  id: string
-  ordinals: Array<T.Chat.Ordinal>
-  rowRenderer: (o: T.Chat.Ordinal) => React.ReactNode
-  ref?: React.Ref<ScrollDivRef>
-}
-function DesktopContent(p: DesktopContentType) {
-  const {id, ordinals, rowRenderer, ref} = p
-  // Apply data-key to the dom node so we can search for editing messages
-  return (
-    <PerfProfiler id="MessageWaypoint">
-      <div data-key={id} ref={ref as React.Ref<HTMLDivElement>}>
-        {ordinals.map((o): React.ReactNode => rowRenderer(o))}
-      </div>
-    </PerfProfiler>
-  )
-}
-
-type DesktopDummyType = {
-  id: string
-  height: number
-  ref?: React.Ref<ScrollDivRef>
-}
-function DesktopDummy(p: DesktopDummyType) {
-  const {id, height, ref} = p
-  // Apply data-key to the dom node so we can search for editing messages
-  return <div data-key={id} style={{contentVisibility: 'auto', height}} ref={ref as React.Ref<HTMLDivElement>} />
 }
 
 const desktopStyles = Kb.Styles.styleSheetCreate(
@@ -732,29 +346,24 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
     ({
       container: Kb.Styles.platformStyles({
         isElectron: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          // containment hints so we can scroll faster
-          contain: 'layout style',
-          flex: 1,
-          position: 'relative',
+          bottom: 0,
+          left: 0,
+          overflow: 'hidden',
+          position: 'absolute',
+          right: 0,
+          top: 0,
         },
       }),
       list: Kb.Styles.platformStyles({
         isElectron: {
-          ...Kb.Styles.globalStyles.fillAbsolute,
+          height: '100%',
           outline: 'none',
-          overflowX: 'hidden',
           overflowY: 'auto',
           overscrollBehavior: 'contain',
           paddingBottom: 16,
-          // get our own layer so we can scroll faster
-          willChange: 'transform',
-        },
-      }),
-      listContents: Kb.Styles.platformStyles({
-        isElectron: {
-          contain: 'layout style',
+          scrollbarGutter: 'stable',
           width: '100%',
+          willChange: 'transform',
         },
       }),
     }) as const
@@ -767,6 +376,11 @@ const DesktopThreadWrapperWithProfiler = () => (
 )
 
 // ==================== NATIVE ====================
+
+type RNFlatListRef = {
+  scrollToOffset: (opts: {animated: boolean; offset: number}) => void
+  scrollToItem: (opts: {animated: boolean; item: unknown; viewPosition?: number}) => void
+}
 
 const useInvertedMessageOrdinals = (messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>) => {
   const source = messageOrdinals ?? noOrdinals
@@ -1053,7 +667,5 @@ const useNativeSafeOnViewableItemsChanged = (onEndReached: () => void, numOrdina
   )
   return onViewableItemsChanged
 }
-
-export const DEBUGDump = () => {}
 
 export default isMobile ? NativeConversationList : DesktopThreadWrapperWithProfiler
