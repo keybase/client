@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/pipeliner"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -542,8 +543,21 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job *comma
 		s := commandsStorage{
 			Version: storageVersion,
 		}
-		for _, cconv := range botInfo.CommandConvs {
-			ad := b.getConvAdvertisement(ctx, cconv.ConvID, cconv.Uid, cconv.UntrustedTeamRole, cconv.Typ)
+		ads := make([]*storageCommandAdvertisement, len(botInfo.CommandConvs))
+		pipe := pipeliner.NewPipeliner(5)
+		for i, cconv := range botInfo.CommandConvs {
+			if err := pipe.WaitForRoom(ctx); err != nil {
+				return err
+			}
+			go func() {
+				ads[i] = b.getConvAdvertisement(ctx, cconv.ConvID, cconv.Uid, cconv.UntrustedTeamRole, cconv.Typ)
+				pipe.CompleteOne(nil)
+			}()
+		}
+		if err := pipe.Flush(ctx); err != nil {
+			return err
+		}
+		for _, ad := range ads {
 			if ad != nil {
 				s.Advertisements = append(s.Advertisements, *ad)
 			}
