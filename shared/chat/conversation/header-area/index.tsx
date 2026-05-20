@@ -103,6 +103,7 @@ export const headerNavigationOptions = (route: {params?: {conversationIDKey?: T.
     // BadgeHeaderUpdater in container.tsx drives unstable_headerLeftItems for the badge count.
     ...(!isIOS
       ? {
+          headerBackVisible: false,
           headerLeft: (props: HeaderBackButtonProps) => {
             const {labelStyle, ...rest} = props
             return <BadgeHeaderLeftArray {...rest} conversationIDKey={conversationIDKey} />
