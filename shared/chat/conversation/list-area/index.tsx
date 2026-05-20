@@ -193,13 +193,17 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
       const target = centeredOrdinal
       const doScrollToCenter = async () => {
         for (let attempt = 0; attempt < 4; attempt++) {
-          const el = wrapperRef.current?.querySelector(`[data-ordinal="${target}"]`)
+          const el = (
+            wrapperRef.current as unknown as
+              | {querySelector: (s: string) => {scrollIntoView: (o: object) => void} | null}
+              | null
+          )?.querySelector(`[data-ordinal="${target}"]`)
           if (el) {
             el.scrollIntoView({behavior: 'instant', block: 'center'})
             return
           }
           void listRef.current?.scrollToIndex({animated: false, index: idx, viewPosition: 0.5})
-          await new Promise<void>(r => setTimeout(r, 100))
+          await new Promise<void>(resolve => setTimeout(resolve, 100))
         }
       }
       void doScrollToCenter()
