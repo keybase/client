@@ -5,7 +5,7 @@ import Toast from './toast'
 import Text from './text'
 import {View} from 'react-native'
 import {useSharedValue, runOnJS} from 'react-native-reanimated'
-import {fitContainer, ResumableZoom, useImageResolution} from 'react-native-zoom-toolkit'
+import {fitContainer, ResumableZoom, useImageResolution} from '@/util/zoom-toolkit'
 import ImageNative from './image'
 
 // Desktop: normalize file paths to file:// URLs

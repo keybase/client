@@ -137,7 +137,6 @@
     "react-native-web": "0.21.2",
     "react-native-webview": "13.16.1",
     "react-native-worklets": "0.8.3",
-    "react-native-zoom-toolkit": "5.0.1",
     "zustand": "5.0.13"
   },
   "devDependencies": {

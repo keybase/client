@@ -9,7 +9,7 @@ import useHooks from './hooks'
 import './edit-avatar.css'
 import KB2 from '@/util/electron'
 import {launchImageLibraryAsync} from '@/util/expo-image-picker'
-import {CropZoom, type CropZoomRefType} from 'react-native-zoom-toolkit'
+import {CropZoom, type CropZoomRefType} from '@/util/zoom-toolkit'
 
 const desktopFns = isMobile ? ({} as typeof KB2.functions) : KB2.functions
 
