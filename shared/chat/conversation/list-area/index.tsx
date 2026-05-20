@@ -304,7 +304,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           style={{...Kb.Styles.castStyleDesktop(desktopStyles.list), opacity: didFirstLoad ? 1 : 0}}
           initialScrollAtEnd={initialScrollIndex === undefined}
           initialScrollIndex={initialScrollIndex}
-          maintainScrollAtEnd={centeredOrdinal ? false : {on: {dataChange: true, itemLayout: true}}}
+          maintainScrollAtEnd={centeredOrdinal ? false : {on: {dataChange: true}}}
           maintainVisibleContentPosition={{data: true}}
           onLoad={onLoad}
           onScroll={onScroll as unknown as (e: unknown) => void}
