@@ -11,7 +11,6 @@ module.exports = [
   'expo-audio',
   'expo-location',
   'expo-video',
-  'react-native-zoom-toolkit',
   '@gorhom/bottom-sheet',
   'react-native-keyboard-controller',
   'react-native-screens',
