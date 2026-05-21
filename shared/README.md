@@ -16,7 +16,7 @@ If you really want to install Keybase, please return to the [top level Readme.md
 Run within the `shared/` directory to setup our dependencies:
 
 ```sh
-yarn modules
+./install-modules
 ```
 
 ### Desktop

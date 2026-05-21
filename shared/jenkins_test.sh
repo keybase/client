@@ -51,7 +51,7 @@ js_tests() {
 	rm -rf node_modules
 
 	echo 'yarn install'
-	yarn modules
+	./install-modules
 	check_rc $? 'yarn install fail' 1
 
 	echo 'checking no mutated yarn.lock file'
