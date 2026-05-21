@@ -204,7 +204,7 @@ helpers.rootLinuxNode(env, {
                 }
                 dir ('protocol') {
                   sh "yarn cache clean avdl-compiler"
-                  sh "yarn --frozen-lockfile"
+                  sh "yarn install --immutable"
                   sh "make clean"
                   sh "make"
                 }

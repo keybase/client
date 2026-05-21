@@ -15,7 +15,7 @@ json/%.json: avdl/%.avdl
 .config: yarn.lock
 	rm -rf node_modules
 	yarn cache clean avdl-compiler
-	yarn --pure-lockfile
+	yarn install --immutable
 	touch $@
 config: .config
 
