@@ -28,6 +28,7 @@ import {LegendList} from '@legendapp/list/react'
 import type {LegendListRef} from '@/common-adapters'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import {KeyboardChatLegendList} from '@legendapp/list/keyboard-chat'
+import {useSharedValue} from 'react-native-reanimated'
 
 const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
 
@@ -372,6 +373,57 @@ const DesktopThreadWrapperWithProfiler = () => (
 
 // ==================== NATIVE ====================
 
+// Toggle to replace real rows with colored debug boxes.
+const DEBUG_LEGEND = false
+// Toggle extra logging (independent of debug boxes).
+const DEBUG_LOG = false
+
+const DEBUG_FIXED_HEIGHT = 72
+const debugColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#F0A500', '#98D8C8'] as const
+// XOR-fold so adjacent ordinals (which differ by ~1) land on different color buckets
+const debugColor = (o: T.Chat.Ordinal) => {
+  const n = Number(o)
+  return debugColors[((n ^ (n >> 3) ^ (n >> 7)) & 0xff) % debugColors.length] ?? '#ccc'
+}
+
+const DebugTopHeader = () => (
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    style={{alignItems: 'center', backgroundColor: '#222', height: 48, justifyContent: 'center'}}
+  >
+    <Kb.Text type="BodySmallSemibold" style={{color: '#fff'}}>── LIST HEADER ──</Kb.Text>
+  </Kb.Box2>
+)
+
+const DebugRow = React.memo(({ordinal, index}: {ordinal: T.Chat.Ordinal; index: number}) => {
+  const color = debugColor(ordinal)
+  const isTop = index === 0
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={{
+        alignItems: 'center',
+        backgroundColor: color,
+        borderTopColor: isTop ? '#000' : 'transparent',
+        borderTopWidth: isTop ? 3 : 0,
+        height: DEBUG_FIXED_HEIGHT,
+        justifyContent: 'center',
+      }}
+      onLayout={e => {
+        const measured = e.nativeEvent.layout.height
+        if (Math.abs(measured - DEBUG_FIXED_HEIGHT) > 0.5) {
+          console.log(`[LegendDebug] DebugRow ordinal=${ordinal} expected=${DEBUG_FIXED_HEIGHT} measured=${measured}`)
+        }
+      }}
+    >
+      <Kb.Text type="BodySmall" style={{color: '#000'}}>{isTop ? `TOP: ${ordinal}` : String(ordinal)}</Kb.Text>
+    </Kb.Box2>
+  )
+})
+DebugRow.displayName = 'DebugRow'
+
 const NativeMobileRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
   const {centeredHighlightOrdinal} = useConversationCenter()
   return (
@@ -402,6 +454,10 @@ const NativeConversationList = function NativeConversationList() {
   const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
   const threadStore = useConversationThreadStore()
   const insets = useSafeAreaInsets()
+  const contentInsetEndAdjustment = useSharedValue(insets.bottom)
+  React.useEffect(() => {
+    contentInsetEndAdjustment.value = insets.bottom
+  }, [contentInsetEndAdjustment, insets.bottom])
 
   // Stable refs for values used inside stable callbacks
   const containsLatestMessageRef = React.useRef(containsLatestMessage)
@@ -411,6 +467,15 @@ const NativeConversationList = function NativeConversationList() {
 
   const numOrdinalsRef = React.useRef(messageOrdinals.length)
   React.useEffect(() => {
+    const prev = numOrdinalsRef.current
+    const curr = messageOrdinals.length
+    if (DEBUG_LOG && prev !== curr) {
+      const scroll = listRef.current?.getState().scroll ?? 0
+      const prevFirst = messageOrdinalsRef.current[0]
+      const currFirst = messageOrdinals[0]
+      const prependInfo = currFirst !== prevFirst ? ` firstOrd=${prevFirst}→${currFirst}` : ''
+      console.log(`[LegendDebug] ordinals ${prev}→${curr} (+${curr - prev})${prependInfo}  scroll=${scroll.toFixed(1)}`)
+    }
     numOrdinalsRef.current = messageOrdinals.length
   }, [messageOrdinals.length])
 
@@ -437,14 +502,19 @@ const NativeConversationList = function NativeConversationList() {
     setScrollRef({scrollDown: noop, scrollToBottom, scrollUp: noop})
   }, [setScrollRef, scrollToBottom])
 
-  // Load older messages when scrolled near the top (first 3 items visible)
-  const onViewableItemsChanged = C.useDebouncedCallback(
-    ({viewableItems}: {viewableItems: Array<{index: number; item: T.Chat.Ordinal}>}) => {
-      if ((viewableItems[0]?.index ?? Infinity) < 3) {
-        loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
-      }
+  const onStartReached = C.useThrottledCallback(() => {
+    if (DEBUG_LOG) {
+      const scroll = listRef.current?.getState().scroll ?? 0
+      console.log(`[LegendDebug] onStartReached  count=${numOrdinalsRef.current}  scroll=${scroll.toFixed(1)}`)
+    }
+    loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
+  }, 200)
+
+  React.useEffect(
+    () => () => {
+      onStartReached.cancel()
     },
-    200
+    [onStartReached]
   )
 
   // Load newer messages when scrolled to the end (only when not at latest)
@@ -492,7 +562,39 @@ const NativeConversationList = function NativeConversationList() {
     markedReadRef.current = false
   }, [conversationIDKey])
 
+  React.useEffect(() => {
+    if (!DEBUG_LOG) return
+    const unsubs: Array<() => void> = []
+    const t = setTimeout(() => {
+      const state = listRef.current?.getState()
+      if (!state) return
+      unsubs.push(state.listen('totalSize', v => {
+        const scroll = listRef.current?.getState().scroll ?? 0
+        console.log(`[LegendDebug] totalSize=${v.toFixed(1)}  scroll=${scroll.toFixed(1)}`)
+      }))
+      unsubs.push(state.listen('scrollAdjust', v => {
+        const scroll = listRef.current?.getState().scroll ?? 0
+        console.log(`[LegendDebug] scrollAdjust=${(v ?? 0).toFixed(1)}  scroll=${scroll.toFixed(1)}`)
+      }))
+      unsubs.push(state.listen('scrollAdjustPending', v => {
+        if (v) {
+          const scroll = listRef.current?.getState().scroll ?? 0
+          console.log(`[LegendDebug] scrollAdjustPending=${v.toFixed(1)}  scroll=${scroll.toFixed(1)}`)
+        }
+      }))
+      console.log('[LegendDebug] state listeners attached')
+    }, 300)
+    return () => {
+      clearTimeout(t)
+      unsubs.forEach(fn => fn())
+    }
+  }, [])
+
   const onLoad = React.useCallback(() => {
+    if (DEBUG_LOG) {
+      const scroll = listRef.current?.getState().scroll ?? 0
+      console.log(`[LegendDebug] onLoad  scroll=${scroll.toFixed(1)}`)
+    }
     if (!markedReadRef.current) {
       markedReadRef.current = true
       markInitiallyLoadedThreadAsRead()
@@ -500,7 +602,9 @@ const NativeConversationList = function NativeConversationList() {
   }, [markInitiallyLoadedThreadAsRead])
 
   const renderItem = React.useCallback(
-    ({item: ordinal}: {item: T.Chat.Ordinal}) => <NativeMobileRow ordinal={ordinal} />,
+    DEBUG_LEGEND
+      ? ({item: ordinal, index}: {item: T.Chat.Ordinal; index: number}) => <DebugRow ordinal={ordinal} index={index} />
+      : ({item: ordinal}: {item: T.Chat.Ordinal}) => <NativeMobileRow ordinal={ordinal} />,
     []
   )
 
@@ -518,28 +622,30 @@ const NativeConversationList = function NativeConversationList() {
       <PerfProfiler id="MessageList">
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
           <KeyboardChatLegendList
-            key={conversationIDKey}
-            ref={listRef}
-            data={messageOrdinals as unknown as T.Chat.Ordinal[]}
-            renderItem={renderItem}
-            keyExtractor={(ordinal: T.Chat.Ordinal) => String(ordinal)}
-            getItemType={getItemType}
-            ListHeaderComponent={SpecialTopMessage}
-            ListFooterComponent={SpecialBottomMessage}
-            recycleItems={true}
-            drawDistance={250}
-            estimatedItemSize={72}
-            initialScrollAtEnd={initialScrollIndex === undefined}
-            initialScrollIndex={initialScrollIndex}
-            maintainScrollAtEnd={centeredOrdinal !== undefined ? false : {on: {dataChange: true}}}
-            maintainVisibleContentPosition={centeredOrdinal !== undefined ? undefined : {data: true}}
-            onLoad={onLoad}
-            onEndReached={onEndReached}
-            onViewableItemsChanged={onViewableItemsChanged as unknown as (info: unknown) => void}
-            keyboardDismissMode="on-drag"
-            keyboardShouldPersistTaps="handled"
-            offset={insets.bottom}
-            testID="messageList"
+              key={conversationIDKey}
+              ref={listRef}
+              data={messageOrdinals as unknown as T.Chat.Ordinal[]}
+              renderItem={renderItem}
+              keyExtractor={(ordinal: T.Chat.Ordinal) => String(ordinal)}
+              getItemType={getItemType}
+              ListHeaderComponent={DEBUG_LEGEND ? DebugTopHeader : SpecialTopMessage}
+              ListFooterComponent={SpecialBottomMessage}
+              recycleItems={false}
+              drawDistance={250}
+              estimatedItemSize={DEBUG_LEGEND ? DEBUG_FIXED_HEIGHT : 72}
+              initialScrollAtEnd={initialScrollIndex === undefined}
+              initialScrollIndex={initialScrollIndex}
+              alignItemsAtEnd={true}
+              maintainScrollAtEnd={centeredOrdinal !== undefined ? false : {on: {dataChange: true}}}
+              maintainVisibleContentPosition={centeredOrdinal !== undefined ? undefined : {data: true, size: false}}
+              onLoad={onLoad}
+              onStartReached={onStartReached}
+              onEndReached={onEndReached}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+              contentInsetEndAdjustment={contentInsetEndAdjustment}
+              offset={insets.bottom}
+              testID="messageList"
           />
           {jumpToRecent}
         </Kb.Box2>
