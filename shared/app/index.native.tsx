@@ -13,6 +13,7 @@ import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-con
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import {enableFreeze} from 'react-native-screens'
+import {Image as ExpoImage} from 'expo-image'
 import {setKeyboardUp} from '@/styles/keyboard-state'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
@@ -27,6 +28,10 @@ logger.info('INIT App index module load')
 
 enableFreeze(true)
 setServiceDecoration(ServiceDecoration)
+// SDWebImage (used by expo-image) flushes its memory cache on iOS memory warnings, but
+// the simulator never sends memory warnings. Cap the cache so loading hundreds of chat
+// images doesn't exhaust VM in the simulator. On a real device this is a safety net only.
+ExpoImage.configureCache({maxMemoryCost: 100 * 1024 * 1024})
 
 module.hot?.accept(() => {
   console.log('accepted update in shared/index.native')

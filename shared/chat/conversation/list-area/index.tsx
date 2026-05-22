@@ -631,7 +631,7 @@ const NativeConversationList = function NativeConversationList() {
               ListHeaderComponent={DEBUG_LEGEND ? DebugTopHeader : SpecialTopMessage}
               ListFooterComponent={SpecialBottomMessage}
               recycleItems={false}
-              drawDistance={250}
+              drawDistance={250} // limits simultaneously-mounted items (analog to FlatList windowSize=3)
               estimatedItemSize={DEBUG_LEGEND ? DEBUG_FIXED_HEIGHT : 72}
               initialScrollAtEnd={initialScrollIndex === undefined}
               initialScrollIndex={initialScrollIndex}
