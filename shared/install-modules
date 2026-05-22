@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-yarn_path="$(grep '^yarnPath:' "$dir/.yarnrc.yml" | awk '{print $2}')"
-node "$dir/$yarn_path" install --immutable
-node "$dir/$yarn_path" run postinstall

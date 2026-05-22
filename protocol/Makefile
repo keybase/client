@@ -10,11 +10,12 @@ json/%.json: avdl/%.avdl
 	$(AVDL2JSON) -i $< -o $@~ && mv $@~ $@
 
 # Real file target (not phony) so Make can compare to yarn.lock and only reinstall
-# when the lockfile changes. Yarn 4 pins git deps by commit hash in the lockfile,
-# so a hash change triggers an automatic refetch without needing cache clean.
+# when the lockfile changes. Clear only the git dep from cache so Yarn refetches it
+# (avdl-compiler); other packages stay cached. Add more names if we add git deps.
 .config: yarn.lock
 	rm -rf node_modules
-	yarn install --immutable
+	yarn cache clean avdl-compiler
+	yarn --pure-lockfile
 	touch $@
 config: .config
 

@@ -51,9 +51,7 @@ main.jsbundle
 .eslintcache
 .metro-health-check*
 .expo
-.yarn/*
-!.yarn/releases
-!.yarn/plugins
+.yarn
 
 coverage-ts
 temp.log

@@ -51,7 +51,8 @@ js_tests() {
 	rm -rf node_modules
 
 	echo 'yarn install'
-	./install-modules
+	yarn install --network-concurrency 1 --prefer-offline --pure-lockfile --ignore-optional --ignore-engines
+	yarn modules --ignore-engines
 	check_rc $? 'yarn install fail' 1
 
 	echo 'checking no mutated yarn.lock file'
