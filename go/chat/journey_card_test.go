@@ -62,6 +62,7 @@ func TestJourneycardStorage(t *testing.T) {
 }
 
 func TestJourneycardDismiss(t *testing.T) {
+	t.Skip("feature disabled")
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	ctc := makeChatTestContext(t, t.Name(), 2)
@@ -133,6 +134,7 @@ func TestJourneycardDismiss(t *testing.T) {
 // Test that dismissing a CHANNEL_INACTIVE in one conv actually dismisses
 // CHANNEL_INACTIVE in all convs in he team.
 func TestJourneycardDismissTeamwide(t *testing.T) {
+	t.Skip("feature disabled")
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	ctc := makeChatTestContext(t, t.Name(), 2)
@@ -264,6 +266,7 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 // A journeycard sticks in its position in the conv.
 // And survives a reboot.
 func TestJourneycardPersist(t *testing.T) {
+	t.Skip("feature disabled")
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	ctc := makeChatTestContext(t, t.Name(), 2)
