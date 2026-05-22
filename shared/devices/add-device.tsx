@@ -54,48 +54,46 @@ export default function AddDevice(ownProps: OwnProps) {
     addNewDevice('mobile')
   }
   return (
-    <>
-      <Kb.ScrollView alwaysBounceVertical={false}>
+    <Kb.ScrollView alwaysBounceVertical={false}>
+      <Kb.Box2
+        direction="vertical"
+        gap="medium"
+        alignItems="center"
+        style={styles.container}
+        gapStart={true}
+        gapEnd={true}
+      >
+        <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
+          <Kb.Text type="Body" center={true}>
+            Protect your account by having more devices and paper keys.
+          </Kb.Text>
+        </Kb.Box2>
         <Kb.Box2
-          direction="vertical"
-          gap="medium"
-          alignItems="center"
-          style={styles.container}
-          gapStart={true}
+          direction={isMobile ? 'vertical' : 'horizontal'}
+          gap="mediumLarge"
+          style={styles.deviceOptions}
           gapEnd={true}
         >
-          <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
-            <Kb.Text type="Body" center={true}>
-              Protect your account by having more devices and paper keys.
-            </Kb.Text>
-          </Kb.Box2>
-          <Kb.Box2
-            direction={isMobile ? 'vertical' : 'horizontal'}
-            gap="mediumLarge"
-            style={styles.deviceOptions}
-            gapEnd={true}
-          >
-            <DeviceOption
-              iconNumber={iconNumbers.desktop}
-              onClick={onAddComputer}
-              type="computer"
-              highlight={highlight.includes('computer')}
-            />
-            <DeviceOption
-              iconNumber={iconNumbers.mobile}
-              onClick={onAddPhone}
-              type="phone"
-              highlight={highlight.includes('phone')}
-            />
-            <DeviceOption
-              onClick={onAddPaperKey}
-              type="paper key"
-              highlight={highlight.includes('paper key')}
-            />
-          </Kb.Box2>
+          <DeviceOption
+            iconNumber={iconNumbers.desktop}
+            onClick={onAddComputer}
+            type="computer"
+            highlight={highlight.includes('computer')}
+          />
+          <DeviceOption
+            iconNumber={iconNumbers.mobile}
+            onClick={onAddPhone}
+            type="phone"
+            highlight={highlight.includes('phone')}
+          />
+          <DeviceOption
+            onClick={onAddPaperKey}
+            type="paper key"
+            highlight={highlight.includes('paper key')}
+          />
         </Kb.Box2>
-      </Kb.ScrollView>
-    </>
+      </Kb.Box2>
+    </Kb.ScrollView>
   )
 }
 
