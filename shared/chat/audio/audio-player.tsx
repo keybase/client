@@ -69,8 +69,13 @@ const AudioPlayer = (props: Props) => {
   const {duration, big, maxWidth, url, visAmps} = props
   const [playedRatio, setPlayedRatio] = React.useState(0)
   const [paused, setPaused] = React.useState(true)
+  // Only mount AudioVideo after the user first taps play; calling useAudioPlayer
+  // unconditionally for every message in the list spawns CoreMedia threads per
+  // message and exhausts VM memory.
+  const [everPlayed, setEverPlayed] = React.useState(false)
   const onClick = () => {
     if (paused) {
+      setEverPlayed(true)
       setPaused(false)
     } else {
       setPaused(true)
@@ -104,7 +109,7 @@ const AudioPlayer = (props: Props) => {
         <AudioVis height={big ? 32 : 18} amps={visAmps} maxWidth={maxWidth} playedRatio={playedRatio} />
         <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
       </Kb.Box2>
-      {url.length > 0 && (
+      {url.length > 0 && everPlayed && (
         <AudioVideo url={url} paused={paused} onPositionUpdated={onPositionUpdated} onEnded={onEnded} />
       )}
     </Kb.Box2>
