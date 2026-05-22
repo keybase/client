@@ -114,12 +114,12 @@ const darwinCopyToKBFSTempUploadFile = async (options: {originalFilePath: string
     throw new Error('unsupported platform')
   }
   const dst = path.join(options.dir, path.basename(options.originalFilePath))
-  await fs.promises.copyFile(options.originalFilePath, dst)
+  await fs.promises.cp(options.originalFilePath, dst, {recursive: true})
   return dst
 }
 
 const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string; dst: string}) => {
-  await fs.promises.copyFile(options.originalFilePath, options.dst)
+  await fs.promises.cp(options.originalFilePath, options.dst, {recursive: true})
   return true
 }
 
