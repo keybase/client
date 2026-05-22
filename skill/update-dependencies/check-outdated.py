@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Run from shared/: python3 ../.claude/skills/update-dependencies/check-outdated.py
-import json, subprocess
+import json, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
 
 with open('package.json') as f:
@@ -30,7 +30,13 @@ def get_latest(name, current):
     try:
         r = subprocess.run(['yarn', 'info', name, 'versions', '--json'],
                           capture_output=True, text=True, timeout=15)
-        all_versions = json.loads(r.stdout).get('data', [])
+        if r.returncode != 0:
+            raise RuntimeError(f'yarn info exited {r.returncode}: {r.stderr.strip() or r.stdout.strip()}')
+        raw = r.stdout.strip()
+        if not raw:
+            raise RuntimeError('yarn info returned empty output')
+        parsed = json.loads(raw)
+        all_versions = parsed.get('data', [])
         if is_pre:
             cur_pre = next((k for k in PRE_KEYWORDS if k in current), None)
             prefix = current.split('-')[0]
@@ -74,3 +80,10 @@ print('\n=== PINNED (skipped) ===')
 for name, cur, lat, kind in results:
     if name in PINNED:
         print(f'  {name}: {cur}')
+
+errors = [(name, lat) for name, cur, lat, kind in results if kind == 'error']
+if errors:
+    print('\n=== ERRORS (script broken — fix before trusting results) ===', file=sys.stderr)
+    for name, msg in errors:
+        print(f'  {name}: {msg}', file=sys.stderr)
+    sys.exit(1)
