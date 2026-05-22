@@ -47,6 +47,11 @@ function SwipeConvActions(p: Props) {
   const swipeableRef = React.useRef<SwipeableMethods | null>(null)
   const isMuted = useInboxRowSmall(conversationIDKey).isMuted
 
+  React.useLayoutEffect(() => {
+    swipeableRef.current?.reset()
+    wasOpenRef.current = false
+  }, [conversationIDKey])
+
   React.useEffect(() => {
     if (!isOpened && wasOpenRef.current) {
       swipeableRef.current?.close()

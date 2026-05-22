@@ -3,6 +3,7 @@ import {Animated, PanResponder, View, type GestureResponderEvent, type PanRespon
 
 export type SwipeableMethods = {
   close: () => void
+  reset: () => void
 }
 
 type Props = {
@@ -30,12 +31,9 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
   const openWidthRef = React.useRef(0)
 
   // progress = -translationX / openWidth, naturally 0→1 as row opens
-  const progress = React.useMemo(
-    () => Animated.divide(Animated.multiply(translationX, -1), openWidthAnim) as Animated.AnimatedDivision<number>,
-    // stable refs — memo never invalidates
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  )
+  const progress = React.useRef(
+    Animated.divide(Animated.multiply(translationX, -1), openWidthAnim) as Animated.AnimatedDivision<number>
+  ).current
 
   const startTranslationRef = React.useRef(0)
   const wasClosedOnGrantRef = React.useRef(true)
@@ -47,8 +45,10 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
     let _move = (_dx: number, _vx: number) => {}
     let _release = (_dx: number, _vx: number) => {}
     let _close = () => {}
+    let _reset = () => {}
     return {
       close: () => _close(),
+      reset: () => _reset(),
       panHandlers: PanResponder.create({
         onMoveShouldSetPanResponder: (_e: GestureResponderEvent, gs: PanResponderGestureState) =>
           Math.abs(gs.dx) > Math.abs(gs.dy) && Math.abs(gs.dx) > 5,
@@ -64,17 +64,19 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
         grant: () => void,
         move: (dx: number, vx: number) => void,
         release: (dx: number, vx: number) => void,
-        close: () => void
+        close: () => void,
+        reset: () => void
       ) {
         _grant = grant
         _move = move
         _release = release
         _close = close
+        _reset = reset
       },
     }
   })
 
-  React.useImperativeHandle(ref, () => ({close: ctx.close}))
+  React.useImperativeHandle(ref, () => ({close: ctx.close, reset: ctx.reset}))
 
   React.useLayoutEffect(() => {
     cbRef.current = {onSwipeableOpenStartDrag, onSwipeableWillOpen}
@@ -109,6 +111,11 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
       () => {
         translationXRef.current = 0
         Animated.spring(translationX, {...springConfig, toValue: 0}).start()
+      },
+      () => {
+        translationX.stopAnimation()
+        translationX.setValue(0)
+        translationXRef.current = 0
       }
     )
   })

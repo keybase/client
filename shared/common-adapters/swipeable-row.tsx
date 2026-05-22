@@ -3,6 +3,7 @@ import type {Animated} from 'react-native'
 
 export type SwipeableMethods = {
   close: () => void
+  reset: () => void
 }
 
 type Props = {
