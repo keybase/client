@@ -2,7 +2,6 @@
 import fs from 'fs'
 import path from 'path'
 import {execSync} from 'child_process'
-import prettier from 'prettier'
 import {fileURLToPath} from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -274,22 +273,8 @@ ${Object.keys(icons).reduce((res, name) => {
 `
 
   try {
-    fs.writeFileSync(
-      paths.iconConstantsdts,
-      await prettier.format(iconConstantsdts, {
-        ...(await prettier.resolveConfig(paths.iconConstantsdts)),
-        parser: 'typescript',
-      }),
-      'utf8'
-    )
-    fs.writeFileSync(
-      paths.iconConstants,
-      await prettier.format(iconConstants, {
-        ...(await prettier.resolveConfig(paths.iconConstants)),
-        parser: 'typescript',
-      }),
-      'utf8'
-    )
+    fs.writeFileSync(paths.iconConstantsdts, iconConstantsdts, 'utf8')
+    fs.writeFileSync(paths.iconConstants, iconConstants, 'utf8')
     fs.writeFileSync(paths.iconCss, iconCss, 'utf8')
   } catch (e) {
     console.error(e)
