@@ -30,7 +30,7 @@ import {FlatList} from 'react-native'
 import type {ScrollViewProps} from 'react-native'
 import {usingFlashList} from './flashlist-config'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
-import {KeyboardChatScrollView} from 'react-native-keyboard-controller'
+import {KeyboardChatScrollView, useKeyboardState, useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import type {ItemType} from './index.shared'
 
@@ -397,9 +397,18 @@ const useNativeScrolling = (p: {
   const numOrdinals = messageOrdinals.length
   const loadOlderMessages = useConversationThreadLoadOlderMessagesDueToScroll()
   const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
-  const [scrollToBottom] = React.useState(() => () => {
-    listRef.current?.scrollToOffset({animated: false, offset: 0})
-  })
+
+  // KeyboardChatScrollView sets contentInset.top = K - insets.bottom and
+  // contentOffset.y = -(K - insets.bottom) when keyboard is open. Scrolling to
+  // offset=0 would place content K-insets.bottom pixels lower (behind the keyboard).
+  // We compute the correct resting offset: keyboardHeight.value (negative) + insets.bottom.
+  // When keyboard is closed keyboardHeight.value = 0 so the result is clamped to 0.
+  const {height: keyboardAnimHeight} = useReanimatedKeyboardAnimation()
+  const {bottom: insetsBottom} = useSafeAreaInsets()
+  const scrollToBottom = React.useCallback(() => {
+    const offset = Math.min(keyboardAnimHeight.value + insetsBottom, 0)
+    listRef.current?.scrollToOffset({animated: false, offset})
+  }, [insetsBottom, keyboardAnimHeight, listRef])
 
   const {setScrollRef} = React.useContext(ScrollContext)
   React.useEffect(() => {
@@ -445,10 +454,15 @@ const useNativeScrolling = (p: {
   }
 }
 
-// This keeps the list stable when data changes. If we don't do this it will jump around
-// when new messages come in and its very easy to get this to cause an unstoppable loop of
-// quick janking up and down
-const maintainVisibleContentPosition = {autoscrollToTopThreshold: 1, minIndexForVisible: 0}
+// When the keyboard is open, KeyboardChatScrollView sets contentOffset.y = -(K-insets.bottom)
+// (negative, inside contentInset.top). Two problems arise without special handling:
+// 1. autoscrollToTopThreshold=1 fires (because -(K-I) <= 1) and scrolls to y=0, stripping the
+//    keyboard offset and hiding new messages behind the keyboard.
+// 2. maintainVisibleContentPosition adjusts contentOffset by the new message's height when it is
+//    inserted, creating a visible gap between the newest message and the input area.
+// Solution: disable MPV entirely when keyboard is visible. New messages appear naturally at the
+// content-inset boundary (already in view), and a layout effect re-scrolls as a safety net.
+const maintainVisibleContentPositionClosed = {autoscrollToTopThreshold: 1, minIndexForVisible: 0}
 
 const NativeConversationList = function NativeConversationList() {
   const List = FlatList as unknown as React.ComponentType<Record<string, unknown> & {ref?: React.Ref<RNFlatListRef>}>
@@ -507,6 +521,7 @@ const NativeConversationList = function NativeConversationList() {
   )
 
   const insets = useSafeAreaInsets()
+  const isKeyboardVisible = useKeyboardState((s: {isVisible: boolean}) => s.isVisible)
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useNativeScrolling({
     centeredOrdinal: centeredOrdinalOrNone,
@@ -516,6 +531,30 @@ const NativeConversationList = function NativeConversationList() {
   })
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
+
+  // When keyboard is open, maintainVisibleContentPosition adjusts contentOffset by the new
+  // message height when a message is added, undoing the scrollToBottom from onSubmit.
+  // Defer the re-scroll past the native MPV adjustment (which runs on the UI thread after
+  // React's commit) so the newest message stays visible.
+  const prevNumOrdinalsRef = React.useRef(numOrdinals)
+  React.useLayoutEffect(() => {
+    prevNumOrdinalsRef.current = numOrdinals
+  }, [conversationIDKey])
+  const isKeyboardVisibleRef = React.useRef(isKeyboardVisible)
+  isKeyboardVisibleRef.current = isKeyboardVisible
+  React.useLayoutEffect(() => {
+    const prev = prevNumOrdinalsRef.current
+    prevNumOrdinalsRef.current = numOrdinals
+    if (numOrdinals > prev && isKeyboardVisibleRef.current) {
+      const id = setTimeout(() => {
+        if (isKeyboardVisibleRef.current) {
+          scrollToBottom()
+        }
+      }, 0)
+      return () => clearTimeout(id)
+    }
+    return undefined
+  }, [numOrdinals, scrollToBottom])
 
   const lastCenteredOrdinal = React.useRef(0)
   React.useEffect(() => {
@@ -621,7 +660,9 @@ const NativeConversationList = function NativeConversationList() {
             windowSize={3}
             maintainVisibleContentPosition={
               // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
-              numOrdinals ? maintainVisibleContentPosition : undefined
+              // Disable MPV entirely when keyboard is visible: MPV's offset adjustment for newly
+              // inserted messages conflicts with the keyboard-driven contentOffset.
+              numOrdinals && !isKeyboardVisible ? maintainVisibleContentPositionClosed : undefined
             }
           />
           {jumpToRecent}
