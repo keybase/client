@@ -10,7 +10,7 @@ const MakeTeam = () => {
     <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
         <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
-          Make it a team? You&apos;ll be able to add and delete members as you wish.
+          {"Make it a team? You'll be able to add and delete members as you wish."}
         </Kb.Text>
         <Kb.ClickableBox onClick={onShowNewTeamDialog}>
           <Kb.Box2
