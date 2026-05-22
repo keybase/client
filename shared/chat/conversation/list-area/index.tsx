@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Hooks from './hooks'
 import * as React from 'react'
-import * as T from '@/constants/types'
+import type * as T from '@/constants/types'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
@@ -26,13 +26,9 @@ import {FocusContext} from '../normal/context'
 import noop from 'lodash/noop'
 import {LegendList} from '@legendapp/list/react'
 import type {LegendListRef} from '@/common-adapters'
-import {FlatList} from 'react-native'
-import type {ScrollViewProps} from 'react-native'
-import {usingFlashList} from './flashlist-config'
-import {mobileTypingContainerHeight} from '../input-area/normal/typing'
-import {KeyboardChatScrollView} from 'react-native-keyboard-controller'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
-import type {ItemType} from './index.shared'
+import {KeyboardChatLegendList} from '@legendapp/list/keyboard-chat'
+import {useSharedValue} from 'react-native-reanimated'
 
 const noOrdinals: ReadonlyArray<T.Chat.Ordinal> = []
 
@@ -377,295 +373,285 @@ const DesktopThreadWrapperWithProfiler = () => (
 
 // ==================== NATIVE ====================
 
-type RNFlatListRef = {
-  scrollToOffset: (opts: {animated: boolean; offset: number}) => void
-  scrollToItem: (opts: {animated: boolean; item: unknown; viewPosition?: number}) => void
+// Toggle to replace real rows with colored debug boxes.
+const DEBUG_LEGEND = false
+// Toggle extra logging (independent of debug boxes).
+const DEBUG_LOG = false
+
+const DEBUG_FIXED_HEIGHT = 72
+const debugColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#F0A500', '#98D8C8'] as const
+// XOR-fold so adjacent ordinals (which differ by ~1) land on different color buckets
+const debugColor = (o: T.Chat.Ordinal) => {
+  const n = Number(o)
+  return debugColors[((n ^ (n >> 3) ^ (n >> 7)) & 0xff) % debugColors.length] ?? '#ccc'
 }
 
-const useInvertedMessageOrdinals = (messageOrdinals?: ReadonlyArray<T.Chat.Ordinal>) => {
-  const source = messageOrdinals ?? noOrdinals
-  return React.useMemo(() => (source.length > 1 ? [...source].reverse() : source), [source])
-}
+const DebugTopHeader = () => (
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    style={{alignItems: 'center', backgroundColor: '#222', height: 48, justifyContent: 'center'}}
+  >
+    <Kb.Text type="BodySmallSemibold" style={{color: '#fff'}}>── LIST HEADER ──</Kb.Text>
+  </Kb.Box2>
+)
 
-const useNativeScrolling = (p: {
-  centeredOrdinal: T.Chat.Ordinal
-  messageOrdinals: ReadonlyArray<T.Chat.Ordinal>
-  conversationIDKey: T.Chat.ConversationIDKey
-  listRef: React.RefObject<RNFlatListRef | null>
-}) => {
-  const {listRef, centeredOrdinal, messageOrdinals} = p
-  const numOrdinals = messageOrdinals.length
-  const loadOlderMessages = useConversationThreadLoadOlderMessagesDueToScroll()
+const DebugRow = React.memo(({ordinal, index}: {ordinal: T.Chat.Ordinal; index: number}) => {
+  const color = debugColor(ordinal)
+  const isTop = index === 0
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={{
+        alignItems: 'center',
+        backgroundColor: color,
+        borderTopColor: isTop ? '#000' : 'transparent',
+        borderTopWidth: isTop ? 3 : 0,
+        height: DEBUG_FIXED_HEIGHT,
+        justifyContent: 'center',
+      }}
+      onLayout={e => {
+        const measured = e.nativeEvent.layout.height
+        if (Math.abs(measured - DEBUG_FIXED_HEIGHT) > 0.5) {
+          console.log(`[LegendDebug] DebugRow ordinal=${ordinal} expected=${DEBUG_FIXED_HEIGHT} measured=${measured}`)
+        }
+      }}
+    >
+      <Kb.Text type="BodySmall" style={{color: '#000'}}>{isTop ? `TOP: ${ordinal}` : String(ordinal)}</Kb.Text>
+    </Kb.Box2>
+  )
+})
+DebugRow.displayName = 'DebugRow'
+
+const NativeMobileRow = React.memo(({ordinal}: {ordinal: T.Chat.Ordinal}) => {
+  const {centeredHighlightOrdinal} = useConversationCenter()
+  return (
+    <>
+      <Separator trailingItem={ordinal} />
+      <MessageRow isCenteredHighlight={centeredHighlightOrdinal === ordinal} ordinal={ordinal} />
+    </>
+  )
+})
+NativeMobileRow.displayName = 'NativeMobileRow'
+
+const NativeConversationList = function NativeConversationList() {
+  const conversationIDKey = useConversationThreadID()
+  const data = useConversationThreadSelector(
+    C.useShallow(s => ({
+      containsLatestMessage: !s.moreToLoadForward,
+      loaded: s.loaded,
+      messageOrdinals: s.messageOrdinals ?? noOrdinals,
+    }))
+  )
+  const {centeredOrdinal} = useConversationCenter()
+  const {containsLatestMessage, loaded, messageOrdinals} = data
+
+  const listRef = React.useRef<React.ElementRef<typeof KeyboardChatLegendList> | null>(null)
+  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
+  const loadOlderMessagesDueToScroll = useConversationThreadLoadOlderMessagesDueToScroll()
+  const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
   const getThreadLoadStatusOptions = useThreadLoadStatusOptionsGetter()
-  const [scrollToBottom] = React.useState(() => () => {
-    listRef.current?.scrollToOffset({animated: false, offset: 0})
-  })
+  const threadStore = useConversationThreadStore()
+  const insets = useSafeAreaInsets()
+  const contentInsetEndAdjustment = useSharedValue(insets.bottom)
+  React.useEffect(() => {
+    contentInsetEndAdjustment.value = insets.bottom
+  }, [contentInsetEndAdjustment, insets.bottom])
+
+  // Stable refs for values used inside stable callbacks
+  const containsLatestMessageRef = React.useRef(containsLatestMessage)
+  React.useEffect(() => {
+    containsLatestMessageRef.current = containsLatestMessage
+  }, [containsLatestMessage])
+
+  const numOrdinalsRef = React.useRef(messageOrdinals.length)
+  React.useEffect(() => {
+    const prev = numOrdinalsRef.current
+    const curr = messageOrdinals.length
+    if (DEBUG_LOG && prev !== curr) {
+      const scroll = listRef.current?.getState().scroll ?? 0
+      const prevFirst = messageOrdinalsRef.current[0]
+      const currFirst = messageOrdinals[0]
+      const prependInfo = currFirst !== prevFirst ? ` firstOrd=${prevFirst}→${currFirst}` : ''
+      console.log(`[LegendDebug] ordinals ${prev}→${curr} (+${curr - prev})${prependInfo}  scroll=${scroll.toFixed(1)}`)
+    }
+    numOrdinalsRef.current = messageOrdinals.length
+  }, [messageOrdinals.length])
+
+  const messageOrdinalsRef = React.useRef(messageOrdinals)
+  React.useEffect(() => {
+    messageOrdinalsRef.current = messageOrdinals
+  }, [messageOrdinals])
+
+  const getItemType = React.useCallback(
+    (ordinal: T.Chat.Ordinal) => {
+      const {messageMap, messageTypeMap} = threadStore.getState()
+      const message = messageMap.get(ordinal)
+      return message ? getMessageRowType(message, messageTypeMap.get(ordinal)) : (messageTypeMap.get(ordinal) ?? 'text')
+    },
+    [threadStore]
+  )
+
+  const scrollToBottom = React.useCallback(() => {
+    void listRef.current?.scrollToEnd({animated: false})
+  }, [])
 
   const {setScrollRef} = React.useContext(ScrollContext)
   React.useEffect(() => {
     setScrollRef({scrollDown: noop, scrollToBottom, scrollUp: noop})
   }, [setScrollRef, scrollToBottom])
 
-  // only scroll to center once per
-  const lastScrollToCentered = React.useRef(-1)
-  React.useEffect(() => {
-    if (T.Chat.ordinalToNumber(centeredOrdinal) < 0) {
-      lastScrollToCentered.current = -1
+  const onStartReached = C.useThrottledCallback(() => {
+    if (DEBUG_LOG) {
+      const scroll = listRef.current?.getState().scroll ?? 0
+      console.log(`[LegendDebug] onStartReached  count=${numOrdinalsRef.current}  scroll=${scroll.toFixed(1)}`)
     }
-  }, [centeredOrdinal])
+    loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
+  }, 200)
 
-  const centeredOrdinalRef = React.useRef(centeredOrdinal)
-  React.useEffect(() => {
-    centeredOrdinalRef.current = centeredOrdinal
-  }, [centeredOrdinal])
-  const [scrollToCentered] = React.useState(() => () => {
-    setTimeout(() => {
-      const list = listRef.current
-      if (!list) {
-        return
-      }
-      const co = centeredOrdinalRef.current
-      if (lastScrollToCentered.current === co) {
-        return
-      }
-
-      lastScrollToCentered.current = co
-      list.scrollToItem({animated: false, item: co, viewPosition: 0.5})
-    }, 100)
-  })
-
-  const onEndReached = () => {
-    loadOlderMessages(numOrdinals, getThreadLoadStatusOptions())
-  }
-
-  return {
-    onEndReached,
-    scrollToBottom,
-    scrollToCentered,
-  }
-}
-
-// This keeps the list stable when data changes. If we don't do this it will jump around
-// when new messages come in and its very easy to get this to cause an unstoppable loop of
-// quick janking up and down
-const maintainVisibleContentPosition = {autoscrollToTopThreshold: 1, minIndexForVisible: 0}
-
-const NativeConversationList = function NativeConversationList() {
-  const List = FlatList as unknown as React.ComponentType<Record<string, unknown> & {ref?: React.Ref<RNFlatListRef>}>
-
-  const debugWhichList = __DEV__ ? (
-    <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
-      {usingFlashList ? 'FLASH' : 'old'}
-    </Kb.Text>
-  ) : null
-
-  const conversationIDKey = useConversationThreadID()
-  const listData = useConversationThreadSelector(
-    C.useShallow(s => ({
-      loaded: s.loaded,
-      messageOrdinals: s.messageOrdinals,
-    }))
-  )
-  const {centeredHighlightOrdinal, centeredOrdinal} = useConversationCenter()
-  const noCenteredOrdinal = T.Chat.numberToOrdinal(-1)
-  const centeredOrdinalOrNone = centeredOrdinal ?? noCenteredOrdinal
-  const centeredHighlightOrdinalOrNone = centeredHighlightOrdinal ?? noCenteredOrdinal
-  const {loaded} = listData
-
-  const messageOrdinals = useInvertedMessageOrdinals(listData.messageOrdinals)
-
-  const listRef = React.useRef<RNFlatListRef | null>(null)
-  const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
-  const keyExtractor = (ordinal: ItemType) => {
-    return String(ordinal)
-  }
-
-  const renderItem = (info?: {item?: ItemType}) => {
-    const ordinal = info?.item
-    if (!ordinal) {
-      return null
-    }
-    return <MessageRow isCenteredHighlight={centeredHighlightOrdinalOrNone === ordinal} ordinal={ordinal} />
-  }
-
-  const numOrdinals = messageOrdinals.length
-
-  const threadStore = useConversationThreadStore()
-  const getItemType = React.useCallback(
-    (ordinal: T.Chat.Ordinal) => {
-      if (!ordinal) {
-        return 'null'
-      }
-      const {messageMap, messageTypeMap} = threadStore.getState()
-      const message = messageMap.get(ordinal)
-      return message
-        ? getMessageRowType(message, messageTypeMap.get(ordinal))
-        : (messageTypeMap.get(ordinal) ?? 'text')
+  React.useEffect(
+    () => () => {
+      onStartReached.cancel()
     },
-    [threadStore]
+    [onStartReached]
   )
 
-  const insets = useSafeAreaInsets()
+  // Load newer messages when scrolled to the end (only when not at latest)
+  const onEndReached = C.useThrottledCallback(() => {
+    if (!containsLatestMessageRef.current) {
+      loadNewerMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
+    }
+  }, 200)
 
-  const {scrollToCentered, scrollToBottom, onEndReached} = useNativeScrolling({
-    centeredOrdinal: centeredOrdinalOrNone,
-    conversationIDKey,
-    listRef,
-    messageOrdinals,
-  })
+  React.useEffect(
+    () => () => {
+      onEndReached.cancel()
+    },
+    [onEndReached]
+  )
+
+  // Scroll to centered ordinal when it changes (search / thread navigation)
+  const lastScrolledCenteredRef = React.useRef<T.Chat.Ordinal | undefined>(undefined)
+  React.useLayoutEffect(() => {
+    lastScrolledCenteredRef.current = undefined
+  }, [conversationIDKey])
+
+  React.useEffect(() => {
+    if (!loaded) return
+    if (centeredOrdinal !== undefined) {
+      if (lastScrolledCenteredRef.current === centeredOrdinal) return
+      const idx = sortedIndexOf(
+        messageOrdinalsRef.current as unknown as number[],
+        centeredOrdinal as unknown as number
+      )
+      if (idx < 0) return
+      lastScrolledCenteredRef.current = centeredOrdinal
+      void listRef.current?.scrollToIndex({animated: false, index: idx, viewPosition: 0.5})
+    } else if (lastScrolledCenteredRef.current !== undefined) {
+      lastScrolledCenteredRef.current = undefined
+      if (containsLatestMessage) {
+        void listRef.current?.scrollToEnd({animated: false})
+      }
+    }
+  }, [centeredOrdinal, loaded, containsLatestMessage, messageOrdinals])
+
+  // Mark thread as read after initial load (once per conversation)
+  const markedReadRef = React.useRef(false)
+  React.useLayoutEffect(() => {
+    markedReadRef.current = false
+  }, [conversationIDKey])
+
+  React.useEffect(() => {
+    if (!DEBUG_LOG) return
+    const unsubs: Array<() => void> = []
+    const t = setTimeout(() => {
+      const state = listRef.current?.getState()
+      if (!state) return
+      unsubs.push(state.listen('totalSize', v => {
+        const scroll = listRef.current?.getState().scroll ?? 0
+        console.log(`[LegendDebug] totalSize=${v.toFixed(1)}  scroll=${scroll.toFixed(1)}`)
+      }))
+      unsubs.push(state.listen('scrollAdjust', v => {
+        const scroll = listRef.current?.getState().scroll ?? 0
+        console.log(`[LegendDebug] scrollAdjust=${(v ?? 0).toFixed(1)}  scroll=${scroll.toFixed(1)}`)
+      }))
+      unsubs.push(state.listen('scrollAdjustPending', v => {
+        if (v) {
+          const scroll = listRef.current?.getState().scroll ?? 0
+          console.log(`[LegendDebug] scrollAdjustPending=${v.toFixed(1)}  scroll=${scroll.toFixed(1)}`)
+        }
+      }))
+      console.log('[LegendDebug] state listeners attached')
+    }, 300)
+    return () => {
+      clearTimeout(t)
+      unsubs.forEach(fn => fn())
+    }
+  }, [])
+
+  const onLoad = React.useCallback(() => {
+    if (DEBUG_LOG) {
+      const scroll = listRef.current?.getState().scroll ?? 0
+      console.log(`[LegendDebug] onLoad  scroll=${scroll.toFixed(1)}`)
+    }
+    if (!markedReadRef.current) {
+      markedReadRef.current = true
+      markInitiallyLoadedThreadAsRead()
+    }
+  }, [markInitiallyLoadedThreadAsRead])
+
+  const renderItem = React.useCallback(
+    DEBUG_LEGEND
+      ? ({item: ordinal, index}: {item: T.Chat.Ordinal; index: number}) => <DebugRow ordinal={ordinal} index={index} />
+      : ({item: ordinal}: {item: T.Chat.Ordinal}) => <NativeMobileRow ordinal={ordinal} />,
+    []
+  )
 
   const jumpToRecent = Hooks.useJumpToRecent(scrollToBottom, messageOrdinals.length)
 
-  const lastCenteredOrdinal = React.useRef(0)
-  React.useEffect(() => {
-    if (lastCenteredOrdinal.current === centeredOrdinalOrNone) {
-      return
-    }
-    lastCenteredOrdinal.current = centeredOrdinalOrNone
-    if (centeredOrdinalOrNone > 0) {
-      const id = setTimeout(() => {
-        scrollToCentered()
-      }, 200)
-      return () => {
-        clearTimeout(id)
-      }
-    }
-    return undefined
-  }, [centeredOrdinalOrNone, scrollToCentered])
-
-  const prevLoadedRef = React.useRef(false)
-  const markedLoadedThreadRef = React.useRef(false)
-  React.useLayoutEffect(() => {
-    prevLoadedRef.current = false
-    markedLoadedThreadRef.current = false
-  }, [conversationIDKey])
-  React.useLayoutEffect(() => {
-    const justLoaded = loaded && !prevLoadedRef.current
-    prevLoadedRef.current = loaded
-
-    if (!justLoaded) return
-
-    if (!markedLoadedThreadRef.current) {
-      markedLoadedThreadRef.current = true
-      markInitiallyLoadedThreadAsRead()
-    }
-
-    if (centeredOrdinalOrNone > 0) {
-      scrollToCentered()
-      setTimeout(() => {
-        scrollToCentered()
-      }, 100)
-    } else if (numOrdinals > 0) {
-      scrollToBottom()
-      setTimeout(() => {
-        scrollToBottom()
-      }, 100)
-    }
-  }, [
-    centeredOrdinalOrNone,
-    loaded,
-    markInitiallyLoadedThreadAsRead,
-    numOrdinals,
-    scrollToBottom,
-    scrollToCentered,
-  ])
-
-  const onViewableItemsChanged = useNativeSafeOnViewableItemsChanged(onEndReached, messageOrdinals.length)
-
-  const renderScrollComponent = React.useCallback(
-    (props: ScrollViewProps) => (
-      <KeyboardChatScrollView
-        automaticallyAdjustContentInsets={false}
-        contentInsetAdjustmentBehavior="never"
-        inverted={true}
-        offset={insets.bottom}
-        {...props}
-      />
-    ),
-    [insets.bottom]
-  )
-
-  const nativeContentContainerStyle = React.useMemo(
-    () => ({
-      paddingBottom: 0,
-      paddingTop: mobileTypingContainerHeight + insets.bottom,
-    }),
-    [insets.bottom]
-  )
+  const _centeredIdx =
+    centeredOrdinal !== undefined
+      ? sortedIndexOf(messageOrdinals as unknown as number[], centeredOrdinal as unknown as number)
+      : -1
+  const initialScrollIndex =
+    _centeredIdx >= 0 ? {index: _centeredIdx, viewPosition: 0.5 as const} : undefined
 
   return (
     <Kb.ErrorBoundary>
       <PerfProfiler id="MessageList">
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
-          <List
-            key={conversationIDKey}
-            testID="messageList"
-            onScrollToIndexFailed={noop}
-            estimatedItemSize={72}
-            ListHeaderComponent={SpecialBottomMessage}
-            ListFooterComponent={SpecialTopMessage}
-            ItemSeparatorComponent={Separator}
-            overScrollMode="never"
-            contentContainerStyle={nativeContentContainerStyle}
-            data={messageOrdinals}
-            getItemType={getItemType}
-            inverted={true}
-            renderItem={renderItem}
-            onViewableItemsChanged={onViewableItemsChanged.current}
-            keyboardDismissMode="on-drag"
-            keyboardShouldPersistTaps="handled"
-            keyExtractor={keyExtractor}
-            ref={listRef}
-            renderScrollComponent={renderScrollComponent}
-            maintainVisibleContentPosition={
-              // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
-              numOrdinals ? maintainVisibleContentPosition : undefined
-            }
+          <KeyboardChatLegendList
+              key={conversationIDKey}
+              ref={listRef}
+              data={messageOrdinals as unknown as T.Chat.Ordinal[]}
+              renderItem={renderItem}
+              keyExtractor={(ordinal: T.Chat.Ordinal) => String(ordinal)}
+              getItemType={getItemType}
+              ListHeaderComponent={DEBUG_LEGEND ? DebugTopHeader : SpecialTopMessage}
+              ListFooterComponent={SpecialBottomMessage}
+              recycleItems={false}
+              drawDistance={250}
+              estimatedItemSize={DEBUG_LEGEND ? DEBUG_FIXED_HEIGHT : 72}
+              initialScrollAtEnd={initialScrollIndex === undefined}
+              initialScrollIndex={initialScrollIndex}
+              alignItemsAtEnd={true}
+              maintainScrollAtEnd={centeredOrdinal !== undefined ? false : {on: {dataChange: true}}}
+              maintainVisibleContentPosition={centeredOrdinal !== undefined ? undefined : {data: true, size: false}}
+              onLoad={onLoad}
+              onStartReached={onStartReached}
+              onEndReached={onEndReached}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+              contentInsetEndAdjustment={contentInsetEndAdjustment}
+              offset={insets.bottom}
+              testID="messageList"
           />
           {jumpToRecent}
-          {debugWhichList}
         </Kb.Box2>
       </PerfProfiler>
     </Kb.ErrorBoundary>
   )
-}
-
-const minTimeDelta = 1000
-const minDistanceFromEnd = 10
-
-const useNativeSafeOnViewableItemsChanged = (onEndReached: () => void, numOrdinals: number) => {
-  const nextCallbackRef = React.useRef(new Date().getTime())
-  const onEndReachedRef = React.useRef(onEndReached)
-  React.useEffect(() => {
-    onEndReachedRef.current = onEndReached
-  }, [onEndReached])
-  const numOrdinalsRef = React.useRef(numOrdinals)
-  React.useEffect(() => {
-    numOrdinalsRef.current = numOrdinals
-    nextCallbackRef.current = new Date().getTime() + minTimeDelta
-  }, [numOrdinals])
-
-  // this can't change ever, so we have to use refs to keep in sync
-  const onViewableItemsChanged = React.useRef(
-    ({viewableItems}: {viewableItems: Array<{index: number | null}>}) => {
-      const idx = viewableItems.at(-1)?.index ?? 0
-      const lastIdx = numOrdinalsRef.current - 1
-      const offset = numOrdinalsRef.current > 50 ? minDistanceFromEnd : 1
-      const deltaIdx = idx - lastIdx + offset
-      // not far enough from the end
-      if (deltaIdx < 0) {
-        return
-      }
-      const t = new Date().getTime()
-      const deltaT = t - nextCallbackRef.current
-      // enough time elapsed?
-      if (deltaT > 0) {
-        nextCallbackRef.current = t + minTimeDelta
-        onEndReachedRef.current()
-      }
-    }
-  )
-  return onViewableItemsChanged
 }
 
 export default isMobile ? NativeConversationList : DesktopThreadWrapperWithProfiler
