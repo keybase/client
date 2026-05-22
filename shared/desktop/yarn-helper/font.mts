@@ -21,7 +21,6 @@ const paths = {
   iconfont: path.resolve(__dirname, '../../images/iconfont'),
   iconPng: path.resolve(__dirname, '../../images/icons'),
   illustrationPng: path.resolve(__dirname, '../../images/illustrations'),
-  releasePng: path.resolve(__dirname, '../../images/releases'),
   iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants-gen.shared.tsx'),
   iconConstantsdts: path.resolve(__dirname, '../../common-adapters/icon.constants-gen.d.ts'),
   iconCss: path.resolve(__dirname, '../../common-adapters/icon.css'),
@@ -31,7 +30,6 @@ const paths = {
 const pngAssetDirPaths = [
   {assetDirPath: paths.iconPng, insertFn: insertIconAssets},
   {assetDirPath: paths.illustrationPng, insertFn: insertIllustrationAssets},
-  {assetDirPath: paths.releasePng, insertFn: insertReleaseAssets},
 ]
 
 const baseCharCode = 0xe900
@@ -139,23 +137,6 @@ function insertIllustrationAssets(illustrationFiles: Array<string>) {
         isFont: false,
         nameDark: undefined,
         require: `'../images/illustrations/${i}'`,
-        requireDark: undefined,
-      },
-    }
-  }, {})
-}
-
-function insertReleaseAssets(releaseFiles: Array<string>) {
-  return releaseFiles.reduce<{[key: string]: IconInfo}>((prevIcons, i) => {
-    const shortName = i.slice(0, -4)
-    return {
-      ...prevIcons,
-      [shortName]: {
-        extension: i.slice(-3),
-        imagesDir: `'releases'`,
-        isFont: false,
-        nameDark: undefined,
-        require: `'../images/releases/${i}'`,
         requireDark: undefined,
       },
     }
