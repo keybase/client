@@ -29,20 +29,21 @@ const Container = (ownProps: OwnProps) => {
   const tlf = useFsTlf(path)
   const _kbfsDaemonStatus = Kbfs.useKbfsDaemonStatus()
   const resetBannerType = Kbfs.resetBannerTypeFromTlf(tlf)
-  const props = {
-    filter,
-    lastClosedPublicBannerTlf: ownProps.lastClosedPublicBannerTlf,
-    offlineUnsynced: FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),
-    path,
-    resetBannerType,
-    writable: _pathItem.writable,
-  }
+  const offlineUnsynced = FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path)
+  const writable = _pathItem.writable
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1}}>
       <Kb.KeyboardAvoidingView2>
         <Kbfs.Errs />
-        <BrowserContent {...props} />
-        <Footer path={props.path} />
+        <BrowserContent
+          filter={filter}
+          lastClosedPublicBannerTlf={ownProps.lastClosedPublicBannerTlf}
+          offlineUnsynced={offlineUnsynced}
+          path={path}
+          resetBannerType={resetBannerType}
+          writable={writable}
+        />
+        <Footer path={path} />
       </Kb.KeyboardAvoidingView2>
     </Kb.Box2>
   )

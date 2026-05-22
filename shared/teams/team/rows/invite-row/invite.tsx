@@ -86,17 +86,13 @@ const Container = (ownProps: OwnProps) => {
   const {teamDetails} = useLoadedTeam(teamID)
   const invites = teamDetails.invites
 
-  const _onCancelInvite = (inviteID: string) => {
-    removePendingInvite(teamID, inviteID)
-  }
-
   const user = [...invites].find(invite => invite.id === ownProps.id) || Teams.emptyInviteInfo
 
   let label = user.username || user.name || user.email || user.phone
   let subLabel: undefined | string = user.name ? user.phone || user.email : undefined
   const role = user.role
   const isKeybaseUser = !!user.username
-  const onCancelInvite = () => _onCancelInvite(ownProps.id)
+  const onCancelInvite = () => removePendingInvite(teamID, ownProps.id)
   if (!subLabel && labelledInviteRegex.test(label)) {
     const match = labelledInviteRegex.exec(label)!
     label = match[1] ?? ''
@@ -106,15 +102,7 @@ const Container = (ownProps: OwnProps) => {
     label = label === user.phone ? formatPhoneNumber('+' + label) : label
     subLabel = subLabel === user.phone ? formatPhoneNumber('+' + subLabel) : subLabel
   } catch {}
-  const props = {
-    firstItem: ownProps.firstItem,
-    isKeybaseUser,
-    label,
-    onCancelInvite,
-    role,
-    subLabel,
-  }
-  return <TeamInviteRow {...props} />
+  return <TeamInviteRow firstItem={ownProps.firstItem} isKeybaseUser={isKeybaseUser} label={label} onCancelInvite={onCancelInvite} role={role} subLabel={subLabel} />
 }
 
 export default Container

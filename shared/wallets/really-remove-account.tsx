@@ -23,10 +23,9 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const loading = !sk
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
   const deleteAccount = C.useRPC(T.RPCStellar.localDeleteWalletAccountLocalRpcPromise)
-  const navigateUp = C.Router2.navigateUp
   const onFinish = () => {
     deleteAccount([{accountID, userAcknowledged: 'yes'}, loadAccountsWaitingKey], () => {
-      navigateUp()
+      C.Router2.navigateUp()
     }, () => {})
   }
 

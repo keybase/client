@@ -34,7 +34,6 @@ function Video(p: Props) {
         showAttachmentPreview(conversationIDKey, message)
       }
     : undefined
-  const containerStyle = styles.container
   const collapseIcon = useCollapseIcon(ordinal, isCollapsed, false)
 
   const filename =
@@ -89,7 +88,7 @@ function Video(p: Props) {
       direction="vertical"
       fullWidth={true}
       relative={true}
-      style={containerStyle}
+      style={styles.container}
       alignItems="flex-start"
     >
       {isCollapsed ? <Collapsed isCollapsed={isCollapsed} ordinal={ordinal} /> : content}

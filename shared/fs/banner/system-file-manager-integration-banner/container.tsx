@@ -17,9 +17,7 @@ const SFMIContainer = (op: OwnProps) => {
     setSfmiBannerDismissed,
     sfmiBannerDismissed,
   } = Kbfs.useSystemFileManagerIntegration()
-  const onDisable = () => driverDisable()
   const onDismiss = () => setSfmiBannerDismissed(true)
-  const onEnable = driverEnable
   const alwaysShow = op.alwaysShow
 
   if (!FS.sfmiInfoLoaded({loaded: settingsLoaded}, driverStatus)) {
@@ -38,7 +36,7 @@ const SFMIContainer = (op: OwnProps) => {
       return alwaysShow || !sfmiBannerDismissed ? (
         <Disabled
           driverStatus={driverStatus}
-          onEnable={onEnable}
+          onEnable={driverEnable}
           alwaysShow={alwaysShow}
           onDismiss={onDismiss}
         />
@@ -47,7 +45,7 @@ const SFMIContainer = (op: OwnProps) => {
       return alwaysShow || !sfmiBannerDismissed ? (
         <Enabled
           driverStatus={driverStatus}
-          onDisable={onDisable}
+          onDisable={driverDisable}
           alwaysShow={alwaysShow}
           sfmiBannerDismissed={sfmiBannerDismissed}
           onDismiss={onDismiss}

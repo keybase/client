@@ -387,24 +387,16 @@ function NativeInput(p: InputLowLevelProps) {
     return Kb.Styles.collapseStyles([commonStyle, ...lineStyle, _style])
   })()
 
-  const onPasteImageImpl = (uris: Array<string>) => {
-    if (onPasteImage) {
-      onPasteImage(uris)
-    }
-  }
-
-  const onPaste = onPasteImage ? onPasteImageImpl : undefined
-
   React.useEffect(() => {
-    if (!onPaste) return
+    if (!onPasteImage) return
     const dereg = registerPasteImage(uris => {
       Keyboard.dismiss()
-      onPaste(uris)
+      onPasteImage(uris)
     })
     return () => {
       dereg()
     }
-  }, [onPaste])
+  }, [onPasteImage])
 
   void removeOnHWKeyPressed
   void onHWKeyPressed
@@ -558,11 +550,10 @@ const EmojiButton = function EmojiButton(p: EmojiButtonProps) {
 
 const GiphyButton = function GiphyButton() {
   const toggleGiphyPrefill = InputState.useConversationInputDispatch(s => s.toggleGiphyPrefill)
-  const onGiphyToggle = toggleGiphyPrefill
 
   return (
     <Kb.Box2 direction="vertical" style={desktopStyles.icon} tooltip="GIF" className="tooltip-top-left">
-      <Kb.Icon onClick={onGiphyToggle} type="iconfont-gif" />
+      <Kb.Icon onClick={toggleGiphyPrefill} type="iconfont-gif" />
     </Kb.Box2>
   )
 }

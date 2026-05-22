@@ -4,23 +4,14 @@ import {afterKbfsDaemonRpcStatusChangedMobile as afterKbfsDaemonRpcStatusChanged
 import {clientID as fsClientID} from './client'
 
 export const afterKbfsDaemonRpcStatusChanged = () => {
-  const f = async () => {
-    await afterKbfsDaemonRpcStatusChangedInPlatform()
-  }
-  ignorePromise(f())
+  ignorePromise(afterKbfsDaemonRpcStatusChangedInPlatform())
 }
 
 export const fsUserIn = (checkKbfsDaemonRpcStatus: () => void) => {
-  const f = async () => {
-    await T.RPCGen.SimpleFSSimpleFSUserInRpcPromise({clientID: fsClientID})
-  }
-  ignorePromise(f())
+  ignorePromise(T.RPCGen.SimpleFSSimpleFSUserInRpcPromise({clientID: fsClientID}))
   checkKbfsDaemonRpcStatus()
 }
 
 export const fsUserOut = () => {
-  const f = async () => {
-    await T.RPCGen.SimpleFSSimpleFSUserOutRpcPromise({clientID: fsClientID})
-  }
-  ignorePromise(f())
+  ignorePromise(T.RPCGen.SimpleFSSimpleFSUserOutRpcPromise({clientID: fsClientID}))
 }

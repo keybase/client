@@ -32,8 +32,8 @@ export const TeamBotRow = (props: Props) => {
   const popupAnchor = React.useRef<Kb.MeasureRef | null>(null)
   const [showMenu, setShowMenu] = React.useState(false)
 
-  const _onShowMenu = () => setShowMenu(true)
-  const _onHideMenu = () => setShowMenu(false)
+  const onShowMenu = () => setShowMenu(true)
+  const onHideMenu = () => setShowMenu(false)
   const active = props.status === 'active'
   if (props.description.length > 0) {
     descriptionLabel = (
@@ -88,7 +88,7 @@ export const TeamBotRow = (props: Props) => {
             // Desktop & mobile large screen - display on the far right of the first row
             // Also when user is active
             <Kb.Icon
-              onClick={_onShowMenu}
+              onClick={onShowMenu}
               style={
                 isMobile
                   ? Kb.Styles.collapseStyles([styles.menuButtonMobile, styles.menuButtonMobileSmallTop])
@@ -104,7 +104,7 @@ export const TeamBotRow = (props: Props) => {
             visible={showMenu}
             onEdit={props.onEdit}
             onRemove={props.onRemove}
-            onHidden={_onHideMenu}
+            onHidden={onHideMenu}
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -171,45 +171,32 @@ const Container = (ownProps: OwnProps) => {
     rank: 0,
   }
 
-  const {botAlias, description} = bot
-
-  const ownerTeam = bot.ownerTeam || undefined
-  const ownerUser = bot.ownerUser || undefined
-  const roleType = info.type
-  const status = info.status
-  const username = info.username
-  const onOpenProfile = () => navToProfile(ownProps.username)
-  const navigateAppend = C.Router2.navigateAppend
-  const onClick = () => {
-    navigateAppend({name: 'teamMember', params: ownProps})
-  }
-  const onEdit = () => {
-    navigateAppend({
-      name: 'chatInstallBot',
-      params: {botUsername: ownProps.username, teamID: ownProps.teamID},
-    })
-  }
-  const onRemove = () => {
-    navigateAppend({
-      name: 'chatConfirmRemoveBot',
-      params: {botUsername: ownProps.username, teamID: ownProps.teamID},
-    })
-  }
-  const props = {
-    botAlias: botAlias,
-    canManageBots: canManageBots,
-    description: description,
-    onClick: onClick,
-    onEdit: onEdit,
-    onOpenProfile: onOpenProfile,
-    onRemove: onRemove,
-    ownerTeam: ownerTeam,
-    ownerUser: ownerUser,
-    roleType: roleType,
-    status: status,
-    username: username,
-  }
-  return <TeamBotRow {...props} />
+  return (
+    <TeamBotRow
+      botAlias={bot.botAlias}
+      canManageBots={canManageBots}
+      description={bot.description}
+      onClick={() => C.Router2.navigateAppend({name: 'teamMember', params: ownProps})}
+      onEdit={() =>
+        C.Router2.navigateAppend({
+          name: 'chatInstallBot',
+          params: {botUsername: ownProps.username, teamID: ownProps.teamID},
+        })
+      }
+      onOpenProfile={() => navToProfile(ownProps.username)}
+      onRemove={() =>
+        C.Router2.navigateAppend({
+          name: 'chatConfirmRemoveBot',
+          params: {botUsername: ownProps.username, teamID: ownProps.teamID},
+        })
+      }
+      ownerTeam={bot.ownerTeam || undefined}
+      ownerUser={bot.ownerUser || undefined}
+      roleType={info.type}
+      status={info.status}
+      username={info.username}
+    />
+  )
 }
 
 export default Container

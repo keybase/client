@@ -86,14 +86,7 @@ const ConnectedEnterDevicename = (p: Props) => {
     ignorePromise(f())
   }
 
-  const props = {
-    error,
-    initialDevicename,
-    onBack: navigateUp,
-    onContinue,
-    waiting,
-  }
-  return <EnterDevicename {...props} />
+  return <EnterDevicename error={error} initialDevicename={initialDevicename} onBack={navigateUp} onContinue={onContinue} waiting={waiting} />
 }
 
 export default ConnectedEnterDevicename

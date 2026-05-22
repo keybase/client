@@ -86,8 +86,6 @@ const MembersTab = (props: Props) => {
       return l.username.localeCompare(r.username)
     })
 
-  const onShowProfile = navToProfile
-
   const participantSection: Section = {
     data: showSpinner
       ? [{type: 'spinnerItem'} as const]
@@ -108,7 +106,7 @@ const MembersTab = (props: Props) => {
             isAdmin={item.isAdmin}
             isOwner={item.isOwner}
             username={item.username}
-            onShowProfile={onShowProfile}
+            onShowProfile={navToProfile}
             firstItem={index === 0}
           />
         )

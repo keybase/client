@@ -28,9 +28,6 @@ const useContactsProps = () => {
     }))
   )
 
-  const onAskForContactsLater = importContactsLater
-  const onLoadContactsSetting = loadContactImportEnabled
-
   const onImportContactsPermissionsGranted = () => {
     editContactImportEnabled(true, false)
   }
@@ -48,11 +45,11 @@ const useContactsProps = () => {
   return {
     contactsImported,
     contactsPermissionStatus,
+    importContactsLater,
     isImportPromptDismissed,
+    loadContactImportEnabled,
     numContactsImported,
-    onAskForContactsLater,
     onImportContacts,
-    onLoadContactsSetting,
   }
 }
 
@@ -65,15 +62,14 @@ export const ContactsBanner = (props: {
   const {
     contactsImported,
     contactsPermissionStatus,
+    importContactsLater,
     isImportPromptDismissed,
+    loadContactImportEnabled,
     numContactsImported,
-    onAskForContactsLater,
     onImportContacts,
-    onLoadContactsSetting,
   } = useContactsProps()
 
-  const fetchUserRecs = useTBContext(s => s.dispatch.fetchUserRecs)
-  const onRedoRecs = fetchUserRecs
+  const onRedoRecs = useTBContext(s => s.dispatch.fetchUserRecs)
   const prevNumContactsImportedRef = React.useRef(numContactsImported)
 
   // Redo search if # of imported contacts changes
@@ -89,9 +85,9 @@ export const ContactsBanner = (props: {
   // the current config setting.
   React.useEffect(() => {
     if (contactsImported === undefined) {
-      onLoadContactsSetting()
+      loadContactImportEnabled()
     }
-  }, [contactsImported, onLoadContactsSetting])
+  }, [contactsImported, loadContactImportEnabled])
 
   // If we've imported contacts already, or the user has dismissed the message,
   // then there's nothing for us to do.
@@ -123,7 +119,7 @@ export const ContactsBanner = (props: {
           <Kb.Button
             label="Skip"
             mode="Secondary"
-            onClick={onAskForContactsLater}
+            onClick={importContactsLater}
             small={true}
             style={styles.secondaryOnBlue}
             labelStyle={styles.secondaryOnBlueLabel}

@@ -18,31 +18,21 @@ const Container = ({route}: Props) => {
     phoneNumber,
   })
 
-  const _onContinue = (phoneNumber: string, code: string) => {
-    verifyPhoneNumber(phoneNumber, code)
-  }
-  const _onResend = (phoneNumber: string) => {
-    resendVerificationForPhone(phoneNumber)
-  }
   const navigateUp = C.Router2.navigateUp
-  const onBack = () => {
-    navigateUp()
-  }
-  const ponContinue = (code: string) => _onContinue(phoneNumber, code)
-  const onResend = () => _onResend(phoneNumber)
+  const onResend = () => resendVerificationForPhone(phoneNumber)
 
   const [code, onChangeCode] = React.useState('')
   const disabled = !code
   const onContinue = disabled
     ? () => {}
     : () => {
-        ponContinue(code)
+        verifyPhoneNumber(phoneNumber, code)
       }
 
   const displayPhone = e164ToDisplay(phoneNumber)
   return (
     <SignupScreen
-      onBack={onBack}
+      onBack={navigateUp}
       banners={
         error ? (
           <Kb.Banner key="error" color="red">
@@ -60,7 +50,7 @@ const Container = ({route}: Props) => {
       headerStyle={styles.container}
       header={
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" relative={true} style={styles.headerContainer}>
-          <Kb.Text type="BodyBigLink" style={styles.backButton} onClick={onBack}>
+          <Kb.Text type="BodyBigLink" style={styles.backButton} onClick={navigateUp}>
             Back
           </Kb.Text>
           <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>

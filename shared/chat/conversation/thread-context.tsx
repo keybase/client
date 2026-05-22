@@ -1820,10 +1820,7 @@ export const LiveConversationThreadProvider = (p: ConversationThreadProviderProp
   <ConversationThreadProviderInner {...p} />
 )
 
-export const useConversationThreadSetExplodingMode = () => {
-  const {setExplodingMode} = useConversationThreadActions()
-  return setExplodingMode
-}
+export const useConversationThreadSetExplodingMode = () => useConversationThreadActions().setExplodingMode
 
 const displayMessageCache = new WeakMap<
   T.Chat.Message,
@@ -1853,15 +1850,9 @@ export const getConversationThreadDisplayMessage = (
 export const useConversationThreadMessage = (ordinal: T.Chat.Ordinal) =>
   useConversationThreadSelector(snapshot => getConversationThreadDisplayMessage(snapshot, ordinal))
 
-export const useConversationThreadLoadMoreMessages = () => {
-  const {loadMoreMessages} = useConversationThreadActions()
-  return loadMoreMessages
-}
+export const useConversationThreadLoadMoreMessages = () => useConversationThreadActions().loadMoreMessages
 
-const useConversationThreadMessagesClear = () => {
-  const {messagesClear} = useConversationThreadActions()
-  return messagesClear
-}
+const useConversationThreadMessagesClear = () => useConversationThreadActions().messagesClear
 
 export const useConversationThreadLoadOlderMessagesDueToScroll = () => {
   const threadStore = useConversationThreadStore()
@@ -1953,20 +1944,11 @@ export const useConversationThreadJumpToRecent = () => {
   return jumpToRecent
 }
 
-export const useConversationThreadMarkThreadAsRead = () => {
-  const {markThreadAsRead} = useConversationThreadActions()
-  return markThreadAsRead
-}
+export const useConversationThreadMarkThreadAsRead = () => useConversationThreadActions().markThreadAsRead
 
-export const useConversationThreadSetMarkAsUnread = () => {
-  const {setMarkAsUnread} = useConversationThreadActions()
-  return setMarkAsUnread
-}
+export const useConversationThreadSetMarkAsUnread = () => useConversationThreadActions().setMarkAsUnread
 
-export const useConversationThreadSetMarkReadBlocked = () => {
-  const {setMarkReadBlocked} = useConversationThreadActions()
-  return setMarkReadBlocked
-}
+export const useConversationThreadSetMarkReadBlocked = () => useConversationThreadActions().setMarkReadBlocked
 
 export const useConversationThreadMessageActions = () => {
   const {messageDelete, messageReplyPrivately, toggleMessageCollapse, toggleMessageReaction, unfurlRemove} =

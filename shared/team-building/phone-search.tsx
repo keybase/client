@@ -50,49 +50,47 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   }
 
   return (
-    <>
-      <Kb.Box2 direction="vertical" gap="tiny" style={styles.containerStyle} fullWidth={true}>
-        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} flex={1}>
-          <Kb.PhoneInput
-            // Supply a key to force reset the PhoneInput state after a user is added
-            key={phoneInputKey}
-            autoFocus={true}
-            defaultCountry={defaultCountry}
-            onChangeNumber={onChangeNumberCb}
-            onEnterKeyDown={_onContinue}
-          />
-          {!!user && canSubmit && !!user.serviceMap.keybase ? (
-            <UserMatchMention username={user.serviceMap.keybase} />
-          ) : (
-            <Kb.Box2
-              alignSelf="center"
-              centerChildren={!isMobile}
-              direction="vertical"
-              fullWidth={true}
-              gap="tiny"
-              style={styles.emptyContainer}
-            >
-              {!isMobile && (
-                <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
-              )}
-              {namespace === 'chat' ? (
-                <Kb.Text type="BodySmall" style={styles.helperText}>
-                  Start a chat with any phone contact, then tell them to install Keybase. Your messages will
-                  unlock after they sign up.
-                </Kb.Text>
-              ) : (
-                <Kb.Text type="BodySmall" style={styles.helperText}>
-                  Add any phone contact, then tell them to install Keybase. They will automatically join the
-                  team after they sign up.
-                </Kb.Text>
-              )}
-            </Kb.Box2>
-          )}
-          {waiting && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
-        </Kb.Box2>
-        <ContinueButton label={props.continueLabel} onClick={_onContinue} disabled={!canSubmit} />
+    <Kb.Box2 direction="vertical" gap="tiny" style={styles.containerStyle} fullWidth={true}>
+      <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} flex={1}>
+        <Kb.PhoneInput
+          // Supply a key to force reset the PhoneInput state after a user is added
+          key={phoneInputKey}
+          autoFocus={true}
+          defaultCountry={defaultCountry}
+          onChangeNumber={onChangeNumberCb}
+          onEnterKeyDown={_onContinue}
+        />
+        {!!user && canSubmit && !!user.serviceMap.keybase ? (
+          <UserMatchMention username={user.serviceMap.keybase} />
+        ) : (
+          <Kb.Box2
+            alignSelf="center"
+            centerChildren={!isMobile}
+            direction="vertical"
+            fullWidth={true}
+            gap="tiny"
+            style={styles.emptyContainer}
+          >
+            {!isMobile && (
+              <Kb.Icon color={Kb.Styles.globalColors.black_20} fontSize={48} type="iconfont-number-pad" />
+            )}
+            {namespace === 'chat' ? (
+              <Kb.Text type="BodySmall" style={styles.helperText}>
+                Start a chat with any phone contact, then tell them to install Keybase. Your messages will
+                unlock after they sign up.
+              </Kb.Text>
+            ) : (
+              <Kb.Text type="BodySmall" style={styles.helperText}>
+                Add any phone contact, then tell them to install Keybase. They will automatically join the
+                team after they sign up.
+              </Kb.Text>
+            )}
+          </Kb.Box2>
+        )}
+        {waiting && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
       </Kb.Box2>
-    </>
+      <ContinueButton label={props.continueLabel} onClick={_onContinue} disabled={!canSubmit} />
+    </Kb.Box2>
   )
 }
 

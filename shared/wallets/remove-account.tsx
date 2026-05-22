@@ -11,20 +11,15 @@ type OwnProps = {
 
 const Container = (ownProps: OwnProps) => {
   const {accountID, balanceDescription, name} = ownProps
-  const navigateUp = C.Router2.navigateUp
-  const onClose = () => {
-    navigateUp()
-  }
-  const navigateAppend = C.Router2.navigateAppend
   const onDelete = () => {
-    navigateAppend(
+    C.Router2.navigateAppend(
       {name: 'reallyRemoveAccount', params: makeReallyRemoveAccountRouteParams({accountID, name})},
       true
     )
   }
 
   const buttons = [
-    <Kb.Button fullWidth={isMobile} key={0} label="Cancel" onClick={onClose} type="Dim" />,
+    <Kb.Button fullWidth={isMobile} key={0} label="Cancel" onClick={C.Router2.navigateUp} type="Dim" />,
     <Kb.Button
       fullWidth={isMobile}
       key={1}

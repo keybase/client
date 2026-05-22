@@ -61,45 +61,43 @@ type ModalProps = {
 
 export const Modal = (props: ModalProps) => {
   return (
-    <>
-      <Kb.Box2
-        direction="vertical"
-        fullHeight={isMobile}
-        fullWidth={isMobile}
-        style={Kb.Styles.collapseStyles([
-          styles.container,
-          !isMobile && props.desktopHeight !== undefined && {height: props.desktopHeight},
-        ])}
-      >
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer} relative={true}>
-          <Kb.ImageIcon type={props.bannerImage} style={styles.bannerImage} />
-          {!!props.bannerError && (
-            <Kb.Banner color="red" style={styles.bannerError}>
-              {props.bannerError}
-            </Kb.Banner>
-          )}
-        </Kb.Box2>
-        {props.children}
-        {props.footerButtonLabel && (
-          <Kb.Box2
-            direction="vertical"
-            centerChildren={true}
-            style={styles.footerContainer}
-            gap="small"
-            fullWidth={true}
-          >
-            <Kb.Button
-              mode="Primary"
-              label={props.footerButtonLabel}
-              fullWidth={true}
-              onClick={props.footerButtonOnClick}
-              disabled={!props.footerButtonOnClick}
-              waiting={props.footerButtonWaiting}
-            />
-          </Kb.Box2>
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={isMobile}
+      fullWidth={isMobile}
+      style={Kb.Styles.collapseStyles([
+        styles.container,
+        !isMobile && props.desktopHeight !== undefined && {height: props.desktopHeight},
+      ])}
+    >
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bannerContainer} relative={true}>
+        <Kb.ImageIcon type={props.bannerImage} style={styles.bannerImage} />
+        {!!props.bannerError && (
+          <Kb.Banner color="red" style={styles.bannerError}>
+            {props.bannerError}
+          </Kb.Banner>
         )}
       </Kb.Box2>
-    </>
+      {props.children}
+      {props.footerButtonLabel && (
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          style={styles.footerContainer}
+          gap="small"
+          fullWidth={true}
+        >
+          <Kb.Button
+            mode="Primary"
+            label={props.footerButtonLabel}
+            fullWidth={true}
+            onClick={props.footerButtonOnClick}
+            disabled={!props.footerButtonOnClick}
+            waiting={props.footerButtonWaiting}
+          />
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
   )
 }
 

@@ -74,19 +74,18 @@ const ConfirmKickOut = (props: Props) => {
   }, [members, reload, removeMember, subteamIDs, subteamsToo, teamID])
 
   const wasWaitingRef = React.useRef(waiting)
-  const navigateUp = C.Router2.navigateUp
   React.useEffect(() => {
     if (wasWaitingRef.current && !waiting && !waitingError) {
       setRouteParamsIfPresent(navigation, 'team', {selectedMembers: undefined})
       setKickedVisible(true)
       setTimeout(() => {
-        navigateUp()
+        C.Router2.navigateUp()
       }, 1000)
     }
     if (wasWaitingRef.current !== waiting) {
       wasWaitingRef.current = waiting
     }
-  }, [navigateUp, navigation, waiting, waitingError])
+  }, [navigation, waiting, waitingError])
 
   const prompt = (
     <Kb.Text center={true} type="Header" style={styles.prompt}>

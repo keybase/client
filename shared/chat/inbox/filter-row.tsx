@@ -54,10 +54,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
     }
   }
 
-  const onHotKeys = () => {
-    appendNewChatBuilder()
-  }
-  Kb.useHotKey('mod+n', onHotKeys)
+  Kb.useHotKey('mod+n', appendNewChatBuilder)
   Kb.useHotKey('mod+k', startSearch)
 
   React.useEffect(() => {

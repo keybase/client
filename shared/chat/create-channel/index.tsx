@@ -40,7 +40,7 @@ const CreateChannel = (p: Props) => {
               placeholder="Channel name"
               value={props.channelname}
               onEnterKeyDown={props.onSubmit}
-              onChangeText={channelname => props.onChannelnameChange(channelname)}
+              onChangeText={props.onChannelnameChange}
             />
             <Kb.Input3
               autoFocus={false}
@@ -53,7 +53,7 @@ const CreateChannel = (p: Props) => {
               placeholder="Add a description or topic..."
               value={props.description}
               onEnterKeyDown={props.onSubmit}
-              onChangeText={description => props.onDescriptionChange(description)}
+              onChangeText={props.onDescriptionChange}
             />
           </Kb.Box2>
           <Kb.ButtonBar fullWidth={true} style={desktopStyles.buttonBar}>
@@ -82,7 +82,7 @@ const CreateChannel = (p: Props) => {
             autoFocus={true}
             placeholder="Channel name"
             value={props.channelname}
-            onChangeText={channelname => props.onChannelnameChange(channelname)}
+            onChangeText={props.onChannelnameChange}
           />
           <Kb.Input3
             autoCorrect={true}
@@ -94,7 +94,7 @@ const CreateChannel = (p: Props) => {
             maxLength={280}
             placeholder="Add a description or topic..."
             value={props.description}
-            onChangeText={description => props.onDescriptionChange(description)}
+            onChangeText={props.onDescriptionChange}
           />
         </Kb.Box2>
         <Kb.ButtonBar fullWidth={true} style={nativeStyles.buttonBar}>

@@ -184,8 +184,7 @@ export function kbfsNotification(
     console.log(`KBFS failed to initialize its disk cache. Please send logs.`)
     const title = `KBFS: Disk cache not initialized`
     const body = `Please Send Feedback to Keybase`
-    const rateLimitKey = body
-    notify(title, {body}, 10, rateLimitKey)
+    notify(title, {body}, 10, body)
   }
 
   // KBFS fires a notification when it changes state between connected

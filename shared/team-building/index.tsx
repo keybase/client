@@ -229,7 +229,6 @@ const TeamBuilding = ({
     userResults,
   })
 
-  const onClose = cancelTeamBuilding
   const onClear = () => onChangeText('')
 
   const waitingForCreate = C.Waiting.useAnyWaiting(C.waitingKeyChatCreating)
@@ -265,7 +264,7 @@ const TeamBuilding = ({
         <>
           <Input
             onChangeText={onChangeText}
-            onClear={namespace === 'people' && !searchString ? onClose : onClear}
+            onClear={namespace === 'people' && !searchString ? cancelTeamBuilding : onClear}
             onDownArrowKeyDown={onDownArrowKeyDown}
             onUpArrowKeyDown={onUpArrowKeyDown}
             onEnterKeyDown={onEnterKeyDown}
@@ -325,28 +324,26 @@ const TeamBuilding = ({
   const showContactsBanner = shouldShowContactsBanner(filterServices)
 
   return (
-    <>
-      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-        {teamBox}
-        {errorBanner}
-        {(namespace !== 'people' || isMobile) && (
-          <FilteredServiceTabBar
-            filterServices={filterServices}
-            selectedService={selectedService}
-            onChangeService={onChangeService}
-            offset={offset}
-          />
-        )}
-        {showContactsBanner && (
-          <ContactsBanner
-            namespace={namespace}
-            onRedoSearch={() => onChangeText(searchString)}
-            selectedService={selectedService}
-          />
-        )}
-        {content}
-      </Kb.Box2>
-    </>
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+      {teamBox}
+      {errorBanner}
+      {(namespace !== 'people' || isMobile) && (
+        <FilteredServiceTabBar
+          filterServices={filterServices}
+          selectedService={selectedService}
+          onChangeService={onChangeService}
+          offset={offset}
+        />
+      )}
+      {showContactsBanner && (
+        <ContactsBanner
+          namespace={namespace}
+          onRedoSearch={() => onChangeText(searchString)}
+          selectedService={selectedService}
+        />
+      )}
+      {content}
+    </Kb.Box2>
   )
 }
 

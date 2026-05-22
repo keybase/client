@@ -88,15 +88,14 @@ const Container = (ownProps: OwnProps) => {
   const ownerCount = [...teamDetails.members.values()].filter(member => member.type === 'owner').length
   const canLeaveTeam = role !== 'none' && !(role === 'owner' && ownerCount <= 1)
   const canViewFolder = !yourOperations.joinTeam
-  const navigateAppend = C.Router2.navigateAppend
   const onAddOrInvitePeople = () => {
-    navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
+    C.Router2.navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: makeAddMembersWizard(teamID)}})
   }
   const onDeleteTeam = () => {
-    navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
+    C.Router2.navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
   }
   const onLeaveTeam = () => {
-    navigateAppend({name: 'teamReallyLeaveTeam', params: {teamID}})
+    C.Router2.navigateAppend({name: 'teamReallyLeaveTeam', params: {teamID}})
   }
   const onOpenFolder = (teamname: string) => {
     FS.navToPath(T.FS.stringToPath(`/keybase/team/${teamname}`))
@@ -135,16 +134,17 @@ const Container = (ownProps: OwnProps) => {
     })
   }
 
-  const props = {
-    attachTo: ownProps.attachTo,
-    items,
-    memberCount,
-    onHidden: ownProps.onHidden,
-    role: role as T.Teams.TeamRoleType,
-    teamname,
-    visible: ownProps.visible,
-  }
-  return <TeamMenu {...props} />
+  return (
+    <TeamMenu
+      attachTo={ownProps.attachTo}
+      items={items}
+      memberCount={memberCount}
+      onHidden={ownProps.onHidden}
+      role={role as T.Teams.TeamRoleType}
+      teamname={teamname}
+      visible={ownProps.visible}
+    />
+  )
 }
 
 export default Container

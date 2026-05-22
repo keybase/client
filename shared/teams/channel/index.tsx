@@ -83,10 +83,7 @@ const useTabsState = (
   providedTab?: TabKey
 ): [TabKey, (t: TabKey) => void] => {
   const defaultSelectedTab = lastSelectedTabs[conversationIDKey] ?? providedTab ?? defaultTab
-  const [selectedTab, _setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
-  const setSelectedTab = (t: TabKey) => {
-    _setSelectedTab(t)
-  }
+  const [selectedTab, setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
 
   React.useEffect(() => {
     lastSelectedTabs[conversationIDKey] = selectedTab
@@ -97,7 +94,7 @@ const useTabsState = (
   React.useEffect(() => {
     if (conversationIDKey !== prevConvIDRef.current) {
       prevConvIDRef.current = conversationIDKey
-      _setSelectedTab(defaultSelectedTab)
+      setSelectedTab(defaultSelectedTab)
     }
   }, [conversationIDKey, defaultSelectedTab])
   return [selectedTab, setSelectedTab]

@@ -279,31 +279,28 @@ const Container = (ownProps: OwnProps) => {
       }
     )
   }
-  const previewConversation = C.Router2.previewConversation
   const onChat = () => {
     if (username) {
-      previewConversation({participants: [username], reason: 'teamInvite'})
+      C.Router2.previewConversation({participants: [username], reason: 'teamInvite'})
     }
   }
-  const onOpenProfile = () => {
-    navToProfile(username)
-  }
-  const props = {
-    _notifLabel: _notifLabel,
-    ctime: ownProps.ctime,
-    disabledReasonsForRolePicker: disabledReasonsForRolePicker,
-    firstItem: ownProps.firstItem,
-    fullName: fullName,
-    letIn: letIn,
-    onChat: onChat,
-    onIgnoreRequest: () => _onIgnoreRequest(teamname),
-    onOpenProfile: onOpenProfile,
-    reset: ownProps.reset,
-    teamID: ownProps.teamID,
-    username: ownProps.username,
-    waiting: waiting,
-  }
-  return <RequestRowStateWrapper {...props} />
+  return (
+    <RequestRowStateWrapper
+      _notifLabel={_notifLabel}
+      ctime={ownProps.ctime}
+      disabledReasonsForRolePicker={disabledReasonsForRolePicker}
+      firstItem={ownProps.firstItem}
+      fullName={fullName}
+      letIn={letIn}
+      onChat={onChat}
+      onIgnoreRequest={() => _onIgnoreRequest(teamname)}
+      onOpenProfile={() => navToProfile(username)}
+      reset={ownProps.reset}
+      teamID={ownProps.teamID}
+      username={ownProps.username}
+      waiting={waiting}
+    />
+  )
 }
 
 export default Container

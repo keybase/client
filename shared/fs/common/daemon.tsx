@@ -123,12 +123,8 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
   })
 
   const [actions] = React.useState<FsDaemonActions>(() => ({
-    checkKbfsDaemonRpcStatus: () => {
-      checkKbfsDaemonRpcStatus()
-    },
-    onlineStatusChanged: onlineStatus => {
-      onlineStatusChanged(onlineStatus)
-    },
+    checkKbfsDaemonRpcStatus: () => checkKbfsDaemonRpcStatus(),
+    onlineStatusChanged: onlineStatus => onlineStatusChanged(onlineStatus),
   }))
 
   React.useEffect(() => {
@@ -136,10 +132,7 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
       asyncGenerationRef.current++
       waitForKbfsDaemonInProgressRef.current = false
       kbfsDaemonStatusRef.current = Constants.unknownKbfsDaemonStatus
-      const f = () => {
-        setKbfsDaemonStatus(Constants.unknownKbfsDaemonStatus)
-      }
-      f()
+      setKbfsDaemonStatus(Constants.unknownKbfsDaemonStatus)
       return
     }
     checkKbfsDaemonRpcStatus()

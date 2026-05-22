@@ -34,7 +34,6 @@ function Image(p: Props) {
         showAttachmentPreview(conversationIDKey, message)
       }
     : undefined
-  const containerStyle = styles.container
   const collapseIcon = useCollapseIcon(ordinal, isCollapsed, false)
 
   const filename =
@@ -86,7 +85,7 @@ function Image(p: Props) {
   )
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} alignItems="flex-start">
       {isCollapsed ? <Collapsed isCollapsed={isCollapsed} ordinal={ordinal} /> : content}
     </Kb.Box2>
   )

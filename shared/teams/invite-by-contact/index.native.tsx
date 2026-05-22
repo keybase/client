@@ -58,14 +58,7 @@ export type InviteByContactProps = {
 
 export const InviteByContact = (props: InviteByContactProps) => {
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
-  const controlRolePicker = (open: boolean) => {
-      setRolePickerOpen(open)
-    }
-
   const [filterValue, setFilterValue] = React.useState('')
-  const onFilterChange = (newValue: string) => {
-      setFilterValue(newValue)
-    }
 
   let {listItems} = props
   // Remember if we have any data before appying filtering.
@@ -97,7 +90,7 @@ export const InviteByContact = (props: InviteByContactProps) => {
               autoFocus={true}
               keyboardType="email-address"
               value={filterValue}
-              onChangeText={onFilterChange}
+              onChangeText={setFilterValue}
               placeholder="Search"
               hideBorder={true}
             />
@@ -106,13 +99,13 @@ export const InviteByContact = (props: InviteByContactProps) => {
             presetRole={props.selectedRole}
             onConfirm={role => {
               props.onRoleChange(role)
-              controlRolePicker(false)
+              setRolePickerOpen(false)
             }}
             open={isRolePickerOpen}
             position="bottom center"
             disabledRoles={{owner: 'Cannot invite an owner via email.'}}
           />
-          <Kb.ClickableBox onClick={() => controlRolePicker(true)} style={styles.rolePickerBox}>
+          <Kb.ClickableBox onClick={() => setRolePickerOpen(true)} style={styles.rolePickerBox}>
             <Kb.Text center={true} type="BodySmall">
               Users will be invited to {props.teamName} as
               <Kb.Text type="BodySmallPrimaryLink">{' ' + props.selectedRole + 's'}</Kb.Text>.

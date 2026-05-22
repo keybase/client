@@ -321,10 +321,6 @@ function EmojiPicker(props: Props) {
     </Kb.Box2>
   )
 
-  const getEmojiWidthWithPadding = () => {
-    return emojiWidthWithPadding
-  }
-
   const renderSectionHeader = ({section}: {section: Section}) => {
     return section.key === 'not-found' ? makeNotFound() : getSectionHeader(section.title)
   }
@@ -340,9 +336,7 @@ function EmojiPicker(props: Props) {
     return sections[sectionIndex]?.key === 'not-found' ? notFoundHeight : 32
   }
   const emojisPerLine = getEmojisPerLine(props.width)
-  const renderItem = (p: {item: Row}) => {
-    return getEmojiRow(p.item, emojisPerLine)
-  }
+  const renderItem = (p: {item: Row}) => getEmojiRow(p.item, emojisPerLine)
   const getFilterResults = getResultFilter(props.customEmojiGroups)
   // For filtered results, we have <= `maxEmojiSearchResults` emojis
   // to render. Render them directly rather than going through chunkData
@@ -394,7 +388,7 @@ function EmojiPicker(props: Props) {
       >
         <Kb.SectionList
           ref={sectionListRef}
-          getItemHeight={getEmojiWidthWithPadding}
+          getItemHeight={() => emojiWidthWithPadding}
           getSectionHeaderHeight={getSectionHeaderHeight}
           keyboardShouldPersistTaps="handled"
           initialNumToRender={14}

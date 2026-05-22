@@ -11,9 +11,8 @@ const Row = (p: {account: Account}) => {
   const [sk, setSK] = React.useState('')
   const [err, setErr] = React.useState('')
   const getSecretKey = C.useRPC(T.RPCStellar.localGetWalletAccountSecretKeyLocalRpcPromise)
-  const navigateAppend = C.Router2.navigateAppend
   const onRemove = () => {
-    navigateAppend({name: 'removeAccount', params: makeRemoveAccountRouteParams(account)})
+    C.Router2.navigateAppend({name: 'removeAccount', params: makeRemoveAccountRouteParams(account)})
   }
   const onCopied = () => {
     setSK('')
@@ -141,11 +140,7 @@ const Container = () => {
     }
   )
 
-  const sortedAccounts = sortAccounts(accounts)
-
   const loading = C.Waiting.useAnyWaiting(loadAccountsWaitingKey)
-
-  const rows = sortedAccounts.map(a => <Row account={a} key={a.accountID} />)
 
   return (
     <Kb.ScrollView style={styles.scroll}>
@@ -167,7 +162,7 @@ const Container = () => {
             It looks like you never setup your Stellar wallet, enjoy this empty space for a little while
           </Kb.Text>
         )}
-        {acceptedDisclaimer ? rows : null}
+        {acceptedDisclaimer ? sortAccounts(accounts).map(a => <Row account={a} key={a.accountID} />) : null}
       </Kb.Box2>
     </Kb.ScrollView>
   )

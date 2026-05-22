@@ -285,8 +285,7 @@ const useHeaderCallbacks = (teamID: T.Teams.TeamID) => {
       },
     })
   }
-  const previewConversation = C.Router2.previewConversation
-  const onChat = () => previewConversation({reason: 'teamHeader', teamname: meta.teamname})
+  const onChat = () => C.Router2.previewConversation({reason: 'teamHeader', teamname: meta.teamname})
   const onEditAvatar = yourOperations.editTeamDescription
     ? () => nav.safeNavigateAppend({name: 'profileEditAvatar', params: {sendChatNotification: true, teamID}})
     : undefined

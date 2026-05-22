@@ -32,7 +32,6 @@ const EditTeamDescription = (props: Props) => {
     }
   }, [origDescription])
 
-  const navigateUp = C.Router2.navigateUp
   const onSave = () => {
     setError('')
     editTeamDescription(
@@ -41,12 +40,11 @@ const EditTeamDescription = (props: Props) => {
       error => setError(error.message)
     )
   }
-  const onClose = () => navigateUp()
 
   const wasWaitingRef = React.useRef(waiting)
   React.useEffect(() => {
-    if (!waiting && wasWaitingRef.current && !error) navigateUp()
-  }, [waiting, wasWaitingRef, navigateUp, error])
+    if (!waiting && wasWaitingRef.current && !error) C.Router2.navigateUp()
+  }, [waiting, wasWaitingRef, error])
 
   React.useEffect(() => {
     wasWaitingRef.current = waiting
@@ -78,7 +76,7 @@ const EditTeamDescription = (props: Props) => {
       </Kb.ScrollView>
       <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.modalFooter}>
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            <Kb.Button label="Cancel" onClick={onClose} type="Dim" />
+            <Kb.Button label="Cancel" onClick={C.Router2.navigateUp} type="Dim" />
             <Kb.Button
               disabled={description === origDescription}
               label="Save"
