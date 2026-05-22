@@ -32,9 +32,9 @@ const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const pathItem = useFsPathItem(path)
   const {setSortSetting, sortSetting} = useFsBrowserSort(path)
-  const _kbfsDaemonStatus = useKbfsDaemonStatus()
+  const kbfsDaemonStatus = useKbfsDaemonStatus()
 
-  const shownSortSetting = FS.showSortSetting(path, pathItem, _kbfsDaemonStatus) ? sortSetting : undefined
+  const shownSortSetting = FS.showSortSetting(path, pathItem, kbfsDaemonStatus) ? sortSetting : undefined
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
     const sortByNameAsc =

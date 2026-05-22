@@ -15,11 +15,10 @@ const MoreMenuPopup = (props: Props) => {
   const onLocationShare = () => {
     C.Router2.navigateAppend({name: 'chatLocationPreview', params: {conversationIDKey}})
   }
-  const injectIntoInputAndFocus = (text: string) => injectIntoInput(text, true)
-  const onCoinFlip = () => injectIntoInputAndFocus('/flip ')
-  const onGiphy = () => injectIntoInputAndFocus('/giphy ')
-  const onInsertSlashCommand = () => injectIntoInputAndFocus('/')
-  const onSpoiler = () => injectIntoInputAndFocus('!>spoiler<!')
+  const onCoinFlip = () => injectIntoInput('/flip ', true)
+  const onGiphy = () => injectIntoInput('/giphy ', true)
+  const onInsertSlashCommand = () => injectIntoInput('/', true)
+  const onSpoiler = () => injectIntoInput('!>spoiler<!', true)
 
   const items: Kb.MenuItems = [
     {

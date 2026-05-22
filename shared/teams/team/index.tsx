@@ -221,10 +221,6 @@ const TeamBody = (props: Props) => {
       />
     ) : null
 
-  const getItemHeight = () => {
-    return 48
-  }
-
   return (
     <TeamSelectionProvider
       selectedMembers={props.selectedMembers}
@@ -246,7 +242,7 @@ const TeamBody = (props: Props) => {
           sections={sections}
           contentContainerStyle={styles.listContentContainer}
           style={styles.list}
-          getItemHeight={getItemHeight}
+          getItemHeight={() => 48}
         />
         <SelectionPopup
           selectedTab={

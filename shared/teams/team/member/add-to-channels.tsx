@@ -45,8 +45,7 @@ const getChannelsForList = (
 const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const teamID = props.teamID
   const myUsername = useCurrentUserState(s => s.username)
-  const justMe = [myUsername]
-  const usernames = props.usernames ?? justMe
+  const usernames = React.useMemo(() => props.usernames ?? [myUsername], [props.usernames, myUsername])
   const mode = props.usernames ? 'others' : 'self'
   const nav = useSafeNavigation()
   const {yourOperations, teamDetails} = useLoadedTeam(teamID)
@@ -126,21 +125,20 @@ const AddToChannelsBody = function AddToChannelsBody(props: Props) {
 
   const numSelected = selected.size
 
-  const rowHeight = isMobile ? (mode === 'self' ? 56 : 56) : mode === 'self' ? 48 : 48
+  const rowHeight = isMobile ? 56 : 48
 
-  const itemHeight = (() => {
-    const headerHeight = filtering ? 0 : isMobile ? 48 : 40
-    const getItemLayout = (index: number, item?: T.Unpacked<typeof items>) => {
-      return item?.type === 'header'
+  const headerHeight = filtering ? 0 : isMobile ? 48 : 40
+  const itemHeight = {
+    getItemLayout: (index: number, item?: T.Unpacked<typeof items>) =>
+      item?.type === 'header'
         ? {index, length: headerHeight, offset: 0}
         : {
             index,
             length: rowHeight,
             offset: headerHeight + (index > 0 ? index - 1 : index) * rowHeight,
-          }
-    }
-    return {getItemLayout, type: 'variable' as const}
-  })()
+          },
+    type: 'variable' as const,
+  }
 
   const renderItem = (_: unknown, item: T.Unpacked<typeof items>) => {
     switch (item.type) {

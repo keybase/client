@@ -67,15 +67,13 @@ const TeamAlphabetIndex = ({recommendations, teamSoFar, sectionListRef}: TeamAlp
     return null
   }
   return (
-    <>
-        <AlphabetIndex
-          labels={labels}
-          showNumSection={showNumSection}
-          onScroll={onScrollToSection}
-          style={styles.alphabetIndex}
-          measureKey={!!teamSoFar.length}
-        />
-    </>
+    <AlphabetIndex
+      labels={labels}
+      showNumSection={showNumSection}
+      onScroll={onScrollToSection}
+      style={styles.alphabetIndex}
+      measureKey={!!teamSoFar.length}
+    />
   )
 }
 

@@ -305,8 +305,7 @@ const useMenuItems = (
   const {showBadges, navBadges, daemonHandshakeState, username, kbfsEnabled, openApp} = p
   const startingUp = daemonHandshakeState !== 'done'
 
-  const ret = (() => {
-    const common = [
+  const common = [
       {onClick: () => { void openUrl(`https://keybase.io/${username || ''}`) }, title: 'Keybase.io'},
       {
         onClick: () => {
@@ -342,14 +341,14 @@ const useMenuItems = (
       },
     ]
 
-    if (startingUp) {
-      return common
-    }
+  if (startingUp) {
+    return common
+  }
 
-    const openAppItem = [{onClick: () => openApp(), title: 'Open main app'}, 'Divider'] as const
+  const openAppItem = [{onClick: () => openApp(), title: 'Open main app'}, 'Divider'] as const
 
-    if (showBadges) {
-      return [
+  if (showBadges) {
+    return [
         {
           onClick: () => openApp(C.Tabs.gitTab),
           title: 'Git',
@@ -380,10 +379,8 @@ const useMenuItems = (
           : []),
         ...common,
       ] as const
-    }
-    return [...openAppItem, ...common] as const
-  })()
-  return ret
+  }
+  return [...openAppItem, ...common] as const
 }
 
 const IconBar = (p: Props & {showBadges?: boolean}) => {
@@ -508,32 +505,30 @@ const LoggedOut = (p: {daemonHandshakeState: T.Config.DaemonHandshakeState; logg
     R.remoteDispatch(RemoteGen.createShowMain())
   }
   return (
-    <>
-      <Kb.BoxGrow>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          fullHeight={true}
-          centerChildren={true}
-          style={styles.loggedOutContainer}
-        >
-          <Kb.Box2 direction="vertical">
-            <Kb.ImageIcon
-              type="icon-keybase-logo-logged-out-64"
-              style={styles.logo}
-            />
-            <Kb.Text type="Body" style={styles.loggedOutText}>
-              {text}
-            </Kb.Text>
-            {fullyLoggedOut ? (
-              <Kb.ButtonBar direction="row">
-                <Kb.Button label="Log in" onClick={logIn} />
-              </Kb.ButtonBar>
-            ) : null}
-          </Kb.Box2>
+    <Kb.BoxGrow>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        fullHeight={true}
+        centerChildren={true}
+        style={styles.loggedOutContainer}
+      >
+        <Kb.Box2 direction="vertical">
+          <Kb.ImageIcon
+            type="icon-keybase-logo-logged-out-64"
+            style={styles.logo}
+          />
+          <Kb.Text type="Body" style={styles.loggedOutText}>
+            {text}
+          </Kb.Text>
+          {fullyLoggedOut ? (
+            <Kb.ButtonBar direction="row">
+              <Kb.Button label="Log in" onClick={logIn} />
+            </Kb.ButtonBar>
+          ) : null}
         </Kb.Box2>
-      </Kb.BoxGrow>
-    </>
+      </Kb.Box2>
+    </Kb.BoxGrow>
   )
 }
 

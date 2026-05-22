@@ -43,11 +43,7 @@ type OwnProps = {
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const syncConfig = useFsTlf(path).syncConfig
-  const props = {
-    ...ownProps,
-    syncEnabled: syncConfig.mode === T.FS.TlfSyncMode.Enabled,
-  }
-  return <OfflineFolder {...props} />
+  return <OfflineFolder path={path} syncEnabled={syncConfig.mode === T.FS.TlfSyncMode.Enabled} />
 }
 
 export default Container

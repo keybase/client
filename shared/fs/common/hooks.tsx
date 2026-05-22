@@ -584,9 +584,7 @@ const useFsLoadOnMountAndFocus = ({
     lastLoadRef.current = {reloadKey, time: now}
     load()
   })
-  const [stableLoadOnMountAndFocus] = React.useState(() => () => {
-    loadOnMountAndFocus()
-  })
+  const [stableLoadOnMountAndFocus] = React.useState(() => () => loadOnMountAndFocus())
   React.useEffect(() => {
     if (connected && enabled && focused) {
       loadOnMountAndFocus()
@@ -928,9 +926,7 @@ export const useFsTlf = (path: T.FS.Path, options?: {loadOnMount?: boolean}) => 
       loadAdditionalTlf(tlfPathToLoad)
     }
   })
-  const [stableLoadCurrentTlf] = React.useState(() => () => {
-    loadCurrentTlf()
-  })
+  const [stableLoadCurrentTlf] = React.useState(() => () => loadCurrentTlf())
   Kb.useInterval(
     () => {
       loadCurrentTlf()

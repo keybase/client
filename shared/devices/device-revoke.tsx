@@ -207,13 +207,6 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const type = device.type
   const iconNumber = T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType)
 
-  const props = {
-    endangeredTLFs,
-    iconNumber,
-    onCancel,
-    onSubmit,
-    waiting,
-  }
   return (
     <Kb.Box2
       direction="vertical"
@@ -224,7 +217,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
       style={styles.container}
     >
       <Kb.NameWithIcon
-        icon={getIcon(type, props.iconNumber)}
+        icon={getIcon(type, iconNumber)}
         title={device.name}
         titleStyle={styles.headerName}
         size="small"
@@ -241,10 +234,10 @@ const DeviceRevoke = (ownProps: OwnProps) => {
         ?
       </Kb.Text>
       <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={isMobile}>
-        {!props.waiting && <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />}
+        {!waiting && <EndangeredTLFList endangeredTLFs={endangeredTLFs} />}
       </Kb.Box2>
-      <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
-      {props.waiting && (
+      <ActionButtons onCancel={onCancel} onSubmit={onSubmit} />
+      {waiting && (
         <Kb.Text center={true} type="BodySmallItalic">
           Calculating any side effects...
         </Kb.Text>

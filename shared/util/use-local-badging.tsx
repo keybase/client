@@ -9,12 +9,7 @@ export const useLocalBadging = (storeSet: ReadonlySet<string> | undefined, clear
   const [badged, setBadged] = React.useState(storeSet?.size ? storeSet : noBadges)
 
   // keep adding if we got new ones
-  const toAdd = [...(storeSet ?? new Set<string>())].reduce((arr, n) => {
-    if (!badged.has(n)) {
-      arr.push(n)
-    }
-    return arr
-  }, new Array<string>())
+  const toAdd = [...(storeSet ?? new Set<string>())].filter(n => !badged.has(n))
   if (toAdd.length) {
     setBadged(s => {
       const next = new Set(s)

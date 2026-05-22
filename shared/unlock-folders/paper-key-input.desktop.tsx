@@ -10,7 +10,6 @@ export type Props = {
 
 const PaperKeyInput = (props: Props) => {
   const [paperkey, setPaperkey] = React.useState('')
-  const errorText = props.paperkeyError
 
   return (
     <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
@@ -20,10 +19,10 @@ const PaperKeyInput = (props: Props) => {
         multiline={true}
         rowsMax={3}
         onChangeText={setPaperkey}
-        error={!!errorText}
+        error={!!props.paperkeyError}
         placeholder="Enter your paper key"
       />
-      {!!errorText && <Kb.Text type="BodySmallError">{errorText}</Kb.Text>}
+      {!!props.paperkeyError && <Kb.Text type="BodySmallError">{props.paperkeyError}</Kb.Text>}
       <Kb.Button
         label="Continue"
         style={styles.button}

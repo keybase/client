@@ -11,7 +11,6 @@ import {useFollowerState} from '@/stores/followers'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useConfigState} from '@/stores/config'
 import {useEngineActionListener} from '@/engine/action-listener'
-import type {Props as TrackerProps} from './index.desktop'
 import {
   cloneDetails,
   identifyResultToDetailsState,
@@ -29,11 +28,6 @@ import {RPCError} from '@/util/errors'
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
-
-type ProxyProps = Omit<
-  TrackerProps,
-  'onAccept' | 'onChat' | 'onClose' | 'onFollow' | 'onIgnoreFor24Hours' | 'onReload'
->
 
 type PopupState = {
   showTrackerSet: Set<string>
@@ -73,32 +67,7 @@ const RemoteTracker = (props: {details: T.Tracker.Details; trackerUsername: stri
   const following = useFollowerState(s => s.following)
   const username = useCurrentUserState(s => s.username)
   const httpSrv = useConfigState(s => s.httpSrv)
-  const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
-  const {hidFromFollowers, location, reason, teamShowcase} = details
   const isDarkMode = useColorScheme() === 'dark'
-  const blocked = blockMap.get(trackerUsername)?.chatBlocked || false
-
-  const p: ProxyProps = {
-    assertions: assertions ? [...assertions.values()] : undefined,
-    bio,
-    blocked,
-    darkMode: isDarkMode,
-    followThem: following.has(trackerUsername),
-    followersCount,
-    followingCount,
-    followsYou: followers.has(trackerUsername),
-    fullname,
-    guiID,
-    hidFromFollowers,
-    httpSrvAddress: httpSrv.address,
-    httpSrvToken: httpSrv.token,
-    isYou: username === trackerUsername,
-    location,
-    reason,
-    state: details.state,
-    teamShowcase,
-    trackerUsername,
-  }
 
   const windowComponent = 'tracker'
   const windowParam = trackerUsername
@@ -110,7 +79,31 @@ const RemoteTracker = (props: {details: T.Tracker.Details; trackerUsername: stri
     windowTitle: `Tracker - ${trackerUsername}`,
   })
 
-  useSerializeProps(p, windowComponent, windowParam)
+  useSerializeProps(
+    {
+      assertions: details.assertions ? [...details.assertions.values()] : undefined,
+      bio: details.bio,
+      blocked: blockMap.get(trackerUsername)?.chatBlocked || false,
+      darkMode: isDarkMode,
+      followThem: following.has(trackerUsername),
+      followersCount: details.followersCount,
+      followingCount: details.followingCount,
+      followsYou: followers.has(trackerUsername),
+      fullname: details.fullname,
+      guiID: details.guiID,
+      hidFromFollowers: details.hidFromFollowers,
+      httpSrvAddress: httpSrv.address,
+      httpSrvToken: httpSrv.token,
+      isYou: username === trackerUsername,
+      location: details.location,
+      reason: details.reason,
+      state: details.state,
+      teamShowcase: details.teamShowcase,
+      trackerUsername,
+    },
+    windowComponent,
+    windowParam
+  )
 
   return null
 }

@@ -24,10 +24,6 @@ const emptyParticipantInfo = Chat.uiParticipantsToParticipantInfo([])
 const emptyParticipants: ReadonlyArray<string> = []
 
 const Header = () => {
-  return <Header2 />
-}
-
-const Header2 = () => {
   const {params} = useRoute() as ChatRootRoute
   const username = useCurrentUserState(s => s.username)
   const infoPanelShowing = !!params.infoPanel

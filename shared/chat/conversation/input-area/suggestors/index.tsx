@@ -334,14 +334,8 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
 
   // tell list to move the selection
   const onMoveRef = React.useRef<(up: boolean) => void>(undefined)
-  const setOnMoveRef = (r: (up: boolean) => void) => {
-    onMoveRef.current = r
-  }
   // tell list we want to submit the selection, true if it selected anything
   const onSubmitRef = React.useRef<() => boolean>(undefined)
-  const setOnSubmitRef = (r: () => boolean) => {
-    onSubmitRef.current = r
-  }
 
   const {onKeyDown} = useHandleKeyEvents({
     active,
@@ -366,10 +360,6 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     checkTrigger()
   }
 
-  const onSelectionChange2 = (_selection: Common.TransformerData['position']) => {
-    checkTrigger()
-  }
-
   const onSelected = (item: unknown, final: boolean) => {
     selectedItemRef.current = item as SelectedType
     triggerTransform(item as SelectedType, final)
@@ -380,8 +370,12 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     filter,
     listStyle: suggestionListStyle,
     onSelected,
-    setOnMoveRef,
-    setOnSubmitRef,
+    setOnMoveRef: (r: (up: boolean) => void) => {
+      onMoveRef.current = r
+    },
+    setOnSubmitRef: (r: () => boolean) => {
+      onSubmitRef.current = r
+    },
     spinnerStyle: suggestionSpinnerStyle,
     suggestBotCommandsUpdateStatus: botCommandsUpdateState.status,
   }
@@ -421,7 +415,7 @@ export const useSuggestors = (p: UseSuggestorsProps) => {
     onChangeText,
     onFocus,
     onKeyDown,
-    onSelectionChange: onSelectionChange2,
+    onSelectionChange: (_selection: Common.TransformerData['position']) => { checkTrigger() },
     popup,
     suggestionsShowing: !!content,
   }

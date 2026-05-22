@@ -60,20 +60,15 @@ function ReloadableDevices() {
     )
   })
 
-  const newlyChangedItemIds = badged
-
   const navigateAppend = C.Router2.navigateAppend
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
     // We don't have navigateAppend in upgraded routes
     navigateAppend({name: 'deviceAdd', params: {highlight}})
   }
   const navigateUp = C.Router2.navigateUp
-  const onBack = () => {
-    navigateUp()
-  }
 
-  const activeCount = devices.reduce((count, device) => (!device.revokedAt ? count + 1 : count), 0)
-  const revokedCount = devices.reduce((count, device) => (device.revokedAt ? count + 1 : count), 0)
+  const revokedCount = devices.filter(d => d.revokedAt).length
+  const activeCount = devices.length - revokedCount
 
   React.useEffect(() => {
     if (isMobile) {
@@ -84,21 +79,12 @@ function ReloadableDevices() {
     })
   }, [activeCount, navigation, revokedCount])
 
-  const {showPaperKeyNudge, hasNewlyRevoked, revokedItems, _items} = (() => {
-    const [revoked, normal] = splitAndSortDevices(devices)
-    const canRevoke = activeCount > 1
-    const revokedItems = revoked.map(device => deviceToItem(device, canRevoke))
-    const newlyRevokedIds = intersect(new Set(revokedItems.map(d => d.key)), newlyChangedItemIds)
-    const hasNewlyRevoked = newlyRevokedIds.size > 0
-    const showPaperKeyNudge = !!devices.length && !devices.some(device => device.type === 'backup')
-    const _items = normal.map(device => deviceToItem(device, canRevoke)) as Array<Item>
-    return {
-      _items,
-      hasNewlyRevoked,
-      revokedItems,
-      showPaperKeyNudge,
-    }
-  })()
+  const [revoked, normal] = splitAndSortDevices(devices)
+  const canRevoke = activeCount > 1
+  const revokedItems = revoked.map(device => deviceToItem(device, canRevoke))
+  const hasNewlyRevoked = intersect(new Set(revokedItems.map(d => d.key)), badged).size > 0
+  const showPaperKeyNudge = !!devices.length && !devices.some(device => device.type === 'backup')
+  const activeItems = normal.map(device => deviceToItem(device, canRevoke)) as Array<Item>
 
   const [revokedExpanded, setRevokeExpanded] = React.useState(false)
   const toggleExpanded = () => setRevokeExpanded(p => !p)
@@ -132,14 +118,14 @@ function ReloadableDevices() {
   }
 
   const items: Array<Item> = [
-    ..._items,
-    ...(_items.length ? [{key: 'revokedHeader', type: 'revokedHeader'} as const] : []),
+    ...activeItems,
+    ...(activeItems.length ? [{key: 'revokedHeader', type: 'revokedHeader'} as const] : []),
     ...(revokedExpanded ? [{key: 'revokedNote', type: 'revokedNote'} as const, ...revokedItems] : []),
   ]
 
   return (
     <Kb.Reloadable
-      onBack={isMobile ? onBack : undefined}
+      onBack={isMobile ? navigateUp : undefined}
       waitingKeys={C.waitingKeyDevices}
       onReload={loadDevices}
       reloadOnMount={true}

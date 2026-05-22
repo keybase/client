@@ -3,7 +3,6 @@ import * as T from '@/constants/types'
 import libphonenumber from 'google-libphonenumber'
 
 const PNF = libphonenumber.PhoneNumberFormat
-const PhoneNumberFormat = PNF
 
 const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
 const ValidationResult = libphonenumber.PhoneNumberUtil.ValidationResult
@@ -200,7 +199,7 @@ export const getE164 = (phoneNumber: string, countryCode?: string) => {
     if (reason !== ValidationResult.IS_POSSIBLE) {
       return null
     }
-    return phoneUtil.format(parsed, PhoneNumberFormat.E164)
+    return phoneUtil.format(parsed, PNF.E164)
   } catch {
     return null
   }

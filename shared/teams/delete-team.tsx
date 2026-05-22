@@ -23,13 +23,8 @@ const DeleteTeamContainer = (op: OwnProps) => {
         .filter(name => !!name)
     : undefined
 
-  const navigateUp = C.Router2.navigateUp
-  const _onBack = navigateUp
-  const onBack = deleteWaiting ? noop : _onBack
-  const _onDelete = () => {
-    deleteTeam(teamID)
-  }
-  const onDelete = useSafeSubmit(_onDelete, !deleteWaiting)
+  const onBack = deleteWaiting ? noop : C.Router2.navigateUp
+  const onDelete = useSafeSubmit(() => deleteTeam(teamID), !deleteWaiting)
 
   const [checks, setChecks] = React.useState({
     checkChats: false,

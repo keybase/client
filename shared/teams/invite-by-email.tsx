@@ -18,10 +18,8 @@ const Container = (ownProps: OwnProps) => {
   const {
     teamMeta: {teamname},
   } = useLoadedTeam(teamID)
-  const name = teamname
   const waitingKey = C.waitingKeyTeamsAddToTeamByEmail(teamname) || ''
   const inviteToTeamByEmail = C.useRPC(T.RPCGen.teamsTeamAddEmailsBulkRpcPromise)
-  const navigateUp = C.Router2.navigateUp
 
   const [invitees, setInvitees] = React.useState('')
   const [role, setRole] = React.useState<T.Teams.TeamRoleType>('reader')
@@ -54,7 +52,7 @@ const Container = (ownProps: OwnProps) => {
           return
         }
         if (isMobile) {
-          navigateUp()
+          C.Router2.navigateUp()
         } else {
           C.Router2.clearModals()
         }
@@ -78,7 +76,7 @@ const Container = (ownProps: OwnProps) => {
         </Kb.Text>
         <Kb.Box2 direction="horizontal" alignItems="center" style={{margin: Kb.Styles.globalMargins.tiny}}>
           <Kb.Text style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
-            Add these team members to {name} as:
+            Add these team members to {teamname} as:
           </Kb.Text>
           <FloatingRolePicker
             presetRole={role}

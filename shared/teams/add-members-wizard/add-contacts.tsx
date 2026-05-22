@@ -30,9 +30,7 @@ type ContactsModule = {
 
 const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
   const {default: ContactsList, useContacts, EnableContactsPopup} = require('../common/contacts-list.native') as ContactsModule
-  const navigateUp = C.Router2.navigateUp
-  const navUpToScreen = C.Router2.navUpToScreen
-  const onBack = () => navigateUp()
+  const onBack = C.Router2.navigateUp
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
   const [selectedEmails, setSelectedEmails] = React.useState(new Set<string>())
@@ -85,7 +83,7 @@ const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
                     role: 'writer',
                   }))
                 )
-                navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
+                C.Router2.navUpToScreen({name: 'teamAddToTeamConfirm', params: {wizard: nextWizard}}, true)
               } catch (err) {
                 setWaiting(false)
                 setError(err instanceof Error ? err.message : String(err))
@@ -112,7 +110,7 @@ const AddContactsMobile = ({wizard}: {wizard: AddMembersWizard}) => {
     return () => {
       useModalHeaderState.setState({actionEnabled: false, actionWaiting: false, onAction: undefined, title: ''})
     }
-  }, [waiting, selectedEmails, selectedPhones, toAssertionsRPC, navUpToScreen, noneSelected, wizard])
+  }, [waiting, selectedEmails, selectedPhones, toAssertionsRPC, noneSelected, wizard])
 
   return (
     <>

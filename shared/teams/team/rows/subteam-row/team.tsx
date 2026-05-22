@@ -22,15 +22,16 @@ const SubteamTeamRow = ({teamID, teamMeta: providedTeamMeta}: Props) => {
       teamIDToResetUsers: s.teamIDToResetUsers,
     }))
   )
-  const item = {
-    activityLevel: activityByTeam.get(teamID) || 'none',
-    badgeCount: Teams.getTeamRowBadgeCount(newTeamRequests, teamIDToResetUsers, teamID),
-    id: teamID,
-    isNew,
-    teamMeta,
-  }
 
-  return <TeamRow {...item} />
+  return (
+    <TeamRow
+      activityLevel={activityByTeam.get(teamID) || 'none'}
+      badgeCount={Teams.getTeamRowBadgeCount(newTeamRequests, teamIDToResetUsers, teamID)}
+      id={teamID}
+      isNew={isNew}
+      teamMeta={teamMeta}
+    />
+  )
 }
 
 export default SubteamTeamRow

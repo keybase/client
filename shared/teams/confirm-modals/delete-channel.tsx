@@ -52,7 +52,6 @@ const DeleteChannel = (props: Props) => {
   }
   const waitingKey = C.waitingKeyTeamsDeleteChannel(teamID)
   const waitingError = C.Waiting.useAnyErrors(waitingKey)
-  const clearModals = C.Router2.clearModals
   const navigation = useNavigation()
 
   const deleteChannel = React.useCallback(
@@ -79,14 +78,13 @@ const DeleteChannel = (props: Props) => {
         await deleteChannel(channelID)
       }
       setRouteParamsIfPresent(navigation, 'team', {selectedChannels: undefined})
-      clearModals()
+      C.Router2.clearModals()
     }
     C.ignorePromise(f())
-  }, [channelIDs, clearModals, deleteChannel, navigation])
+  }, [channelIDs, deleteChannel, navigation])
 
-  const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
-    navigateUp()
+    C.Router2.navigateUp()
   }
 
   return (

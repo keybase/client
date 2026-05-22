@@ -10,10 +10,6 @@ const SignupFeedback = () => {
   const {error: sendError, sendFeedback: onSendFeedback} = useSendFeedback()
   const loggedOut = useConfigState(s => !s.loggedIn)
   const sending = C.Waiting.useAnyWaiting(C.waitingKeySettingsSendFeedback)
-  const navigateUp = C.Router2.navigateUp
-  const onBack = () => {
-    navigateUp()
-  }
   const [feedbackSent, setFeedbackSent] = React.useState(false)
 
   return (
@@ -29,7 +25,7 @@ const SignupFeedback = () => {
         </>
       }
       title="Send feedback"
-      onBack={onBack}
+      onBack={C.Router2.navigateUp}
       showHeaderInfoicon={false}
       showHeaderInfoiconRow={!loggedOut}
     >

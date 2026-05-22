@@ -18,20 +18,17 @@ export const dividerHeight = (showingButton: boolean) => {
 }
 
 export const getRowHeight = (type: ChatInboxRowType, showingDividerButton: boolean) => {
-  const exhaustive = (type: ChatInboxRowType, showingDividerButton: boolean) => {
-    switch (type) {
-      case 'bigHeader':
-        return bigHeaderHeight
-      case 'big':
-        return bigRowHeight
-      case 'small':
-        return smallRowHeight
-      case 'divider':
-        return dividerHeight(showingDividerButton)
-      case 'teamBuilder':
-      default:
-        return 92
-    }
+  switch (type) {
+    case 'bigHeader':
+      return bigHeaderHeight
+    case 'big':
+      return bigRowHeight
+    case 'small':
+      return smallRowHeight
+    case 'divider':
+      return dividerHeight(showingDividerButton)
+    case 'teamBuilder':
+    default:
+      return 92
   }
-  return exhaustive(type, showingDividerButton)
 }

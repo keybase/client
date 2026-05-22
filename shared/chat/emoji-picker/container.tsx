@@ -109,8 +109,7 @@ const WrapperMobile = (props: Props) => {
   const onLayout = (evt: LayoutEvent) => setWidth(evt.nativeEvent.layout.width)
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
-  const navigateUp = C.Router2.navigateUp
-  const onCancel = navigateUp
+  const onCancel = C.Router2.navigateUp
   const addEmoji = () =>
     C.Router2.navigateAppend({
       name: 'teamAddEmoji',
@@ -274,9 +273,7 @@ const EmojiPickerDesktopInner = (props: Props) => {
   )
 }
 
-export const EmojiPickerDesktop = (props: Props) => {
-  return <EmojiPickerDesktopInner {...props} />
-}
+export const EmojiPickerDesktop = EmojiPickerDesktopInner
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
@@ -335,18 +332,13 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const Routable = (props: RoutableProps) => {
-  return <RoutableInner {...props} />
-}
-
-const RoutableInner = (props: RoutableProps) => {
   const small = props.small
   const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageID, pickKey} = props
   const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
   const onPickAction = (emojiStr: string, renderableEmoji: RenderableEmoji) => {
     updatePickerMap(pickKey, {emojiStr, renderableEmoji})
   }
-  const navigateUp = C.Router2.navigateUp
-  const onDidPick = navigateUp
+  const onDidPick = C.Router2.navigateUp
 
   C.useOnMountOnce(() => {
     Keyboard.dismiss()

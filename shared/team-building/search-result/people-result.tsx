@@ -22,36 +22,31 @@ const PeopleResult = function PeopleResult(props: ResultProps) {
   const blocked = useUsersState(s => s.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 
-  const navigateAppend = C.Router2.navigateAppend
   const onMenuAddToTeam = () => {
     if (keybaseUsername) {
-      navigateAppend({name: 'profileAddToTeam', params: {username: keybaseUsername}})
+      C.Router2.navigateAppend({name: 'profileAddToTeam', params: {username: keybaseUsername}})
     }
   }
 
-  const navigateUp = C.Router2.navigateUp
   const onOpenPrivateFolder = () => {
-    navigateUp()
-    FS.navToPath(
-      T.FS.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
-    )
+    C.Router2.navigateUp()
+    FS.navToPath(T.FS.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`))
   }
 
   const onBrowsePublicFolder = () => {
-    navigateUp()
+    C.Router2.navigateUp()
     FS.navToPath(T.FS.stringToPath(`/keybase/public/${decoratedUsername}`))
   }
 
   const onManageBlocking = () => {
     if (keybaseUsername) {
-      navigateAppend({name: 'chatBlockingModal', params: {username: keybaseUsername}})
+      C.Router2.navigateAppend({name: 'chatBlockingModal', params: {username: keybaseUsername}})
     }
   }
 
-  const previewConversation = C.Router2.previewConversation
   const onChat = () => {
-    navigateUp()
-    previewConversation({participants: [decoratedUsername], reason: 'search'})
+    C.Router2.navigateUp()
+    C.Router2.previewConversation({participants: [decoratedUsername], reason: 'search'})
   }
 
   const resultIsMe = keybaseUsername === myUsername

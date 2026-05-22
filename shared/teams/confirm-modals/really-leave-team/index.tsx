@@ -120,13 +120,9 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const waitingKey = C.waitingKeyTeamsLeaveTeam(teamname)
   const leaving = C.Waiting.useAnyWaiting(waitingKey)
   const error = C.Waiting.useAnyErrors(waitingKey)
-  const navigateUp = C.Router2.navigateUp
-  const navigateAppend = C.Router2.navigateAppend
-  const navUpToScreen = C.Router2.navUpToScreen
-  const clearModals = C.Router2.clearModals
   const onDeleteTeam = () => {
-    navigateUp()
-    navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
+    C.Router2.navigateUp()
+    C.Router2.navigateAppend({name: 'teamDeleteTeam', params: {teamID}})
   }
   const _onLeave = (permanent: boolean) => {
     if (!teamname) {
@@ -135,14 +131,13 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
     leaveTeamRPC(
       [{name: teamname, permanent}, waitingKey],
       () => {
-        clearModals()
-        navUpToScreen('teamsRoot')
+        C.Router2.clearModals()
+        C.Router2.navUpToScreen('teamsRoot')
       },
       () => {}
     )
   }
-  const _onBack = navigateUp
-  const onBack = leaving ? () => {} : _onBack
+  const onBack = leaving ? () => {} : C.Router2.navigateUp
   const onLeave = useSafeSubmit(_onLeave, !leaving && !loading && !!teamname)
 
   return lastOwner ? (

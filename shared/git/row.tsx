@@ -106,7 +106,6 @@ function ConnectedRow(ownProps: OwnProps) {
   }
 
   const canEdit = canDelete && !!teamname
-  const url = gitURL
   // TODO use ListItem
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -160,7 +159,7 @@ function ConnectedRow(ownProps: OwnProps) {
               >
                 <Kb.Text type="Body">Clone:</Kb.Text>
                 <Kb.Box2 direction="horizontal" style={styles.copyTextContainer}>
-                  <Kb.CopyText text={url} containerStyle={{width: '100%'}} />
+                  <Kb.CopyText text={gitURL} containerStyle={{width: '100%'}} />
                 </Kb.Box2>
               </Kb.Box2>
               <Kb.Box2

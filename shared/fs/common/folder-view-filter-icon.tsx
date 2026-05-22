@@ -21,11 +21,7 @@ type OwnProps = Omit<Props, 'pathItem'>
 const Container = (ownProps: OwnProps) => {
   const {path} = ownProps
   const pathItem = useFsPathItem(path)
-  const props = {
-    ...ownProps,
-    pathItem,
-  }
-  return <FolderViewFilterIcon {...props} />
+  return <FolderViewFilterIcon {...ownProps} pathItem={pathItem} />
 }
 
 export default Container

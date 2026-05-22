@@ -66,10 +66,9 @@ const FilePickerPopupImpl = (p: Props) => {
         },
       ] as const)
 
-  const header = <Prompt />
   return (
     <Kb.FloatingMenu
-      header={header}
+      header={<Prompt />}
       attachTo={p.attachTo}
       items={items}
       mode="bottomsheet"

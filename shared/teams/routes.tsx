@@ -130,7 +130,6 @@ const ConfirmHeaderTitle = ({wizard}: {wizard: AddMembersWizard}) => {
 
 const ConfirmHeaderLeft = ({wizard}: {wizard: AddMembersWizard}) => {
   const newTeam = wizard.teamID === T.Teams.newTeamWizardTeamID
-  const clearModals = C.Router2.clearModals
   if (newTeam) {
     return (
       <Kb.Icon
@@ -140,7 +139,7 @@ const ConfirmHeaderLeft = ({wizard}: {wizard: AddMembersWizard}) => {
     )
   }
   return (
-    <Kb.Text type="BodyBigLink" onClick={clearModals}>
+    <Kb.Text type="BodyBigLink" onClick={C.Router2.clearModals}>
       Cancel
     </Kb.Text>
   )
@@ -148,17 +147,13 @@ const ConfirmHeaderLeft = ({wizard}: {wizard: AddMembersWizard}) => {
 
 const AddFromWhereHeaderLeft = ({wizard}: {wizard: AddMembersWizard}) => {
   const newTeam = wizard.teamID === T.Teams.newTeamWizardTeamID
-  const clearModals = C.Router2.clearModals
-  const navigateUp = C.Router2.navigateUp
   if (newTeam) {
-    return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
+    return <Kb.Icon type="iconfont-arrow-left" onClick={C.Router2.navigateUp} />
   }
-  return <Kb.Text type="BodyBigLink" onClick={clearModals}>Cancel</Kb.Text>
+  return <Kb.Text type="BodyBigLink" onClick={C.Router2.clearModals}>Cancel</Kb.Text>
 }
 
 const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
-  const clearModals = C.Router2.clearModals
-  const navigateAppend = C.Router2.navigateAppend
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyTeamsCreation)
   const onSkip = () => {
     const newTeamWizard = wizard.newTeamWizard
@@ -169,20 +164,20 @@ const AddFromWhereSkip = ({wizard}: {wizard: AddMembersWizard}) => {
       ...wizard,
       newTeamWizard: {...newTeamWizard, error: undefined},
     }
-    navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: cleanWizard}}, true)
+    C.Router2.navigateAppend({name: 'teamAddToTeamFromWhere', params: {wizard: cleanWizard}}, true)
     const f = async () => {
       try {
         const teamID = await createNewTeamFromWizard(newTeamWizard, cleanWizard.addingMembers)
         onTeamCreated(teamID)
-        navigateAppend({name: 'team', params: {teamID}})
-        clearModals()
+        C.Router2.navigateAppend({name: 'team', params: {teamID}})
+        C.Router2.clearModals()
       } catch (err) {
         const errorMessage = err instanceof RPCError ? err.desc : String(err)
         const erroredWizard: AddMembersWizard = {
           ...wizard,
           newTeamWizard: {...newTeamWizard, error: errorMessage},
         }
-        navigateAppend(
+        C.Router2.navigateAppend(
           {
             name: 'teamAddToTeamFromWhere',
             params: {wizard: erroredWizard},
@@ -235,16 +230,14 @@ const NewTeamInfoHeaderTitle = ({wizard}: {wizard: NewTeamWizard}) => {
 
 const NewTeamInfoHeaderLeft = ({wizard}: {wizard: NewTeamWizard}) => {
   const isSubteam = wizard.teamType === 'subteam'
-  const clearModals = C.Router2.clearModals
-  const navigateUp = C.Router2.navigateUp
   if (isSubteam) {
     return (
-      <Kb.Text type="BodyBigLink" onClick={clearModals}>
+      <Kb.Text type="BodyBigLink" onClick={C.Router2.clearModals}>
         Cancel
       </Kb.Text>
     )
   }
-  return <Kb.Icon type="iconfont-arrow-left" onClick={navigateUp} />
+  return <Kb.Icon type="iconfont-arrow-left" onClick={C.Router2.navigateUp} />
 }
 
 export const newRoutes = defineRouteMap({

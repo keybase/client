@@ -2,7 +2,6 @@
 import buildCommands from './build.mts'
 import electronComands from './electron.mts'
 import fontCommands from './font.mts'
-import prettierCommands from './prettier.mts'
 import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'
@@ -26,7 +25,6 @@ const commands: {[key: string]: Command} = {
   ...buildCommands,
   ...fontCommands,
   ...electronComands,
-  ...prettierCommands,
   help: {
     code: () => {
       const keys = Object.keys(commands) as Array<keyof typeof commands>

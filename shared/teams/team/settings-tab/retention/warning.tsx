@@ -131,13 +131,7 @@ const Container = (ownProps: OwnProps) => {
   const navigateUp = C.Router2.navigateUp
   const openModal = useConfirm(s => s.dispatch.openModal)
   const closeModal = useConfirm(s => s.dispatch.closeModal)
-
-  const onBack = () => {
-    navigateUp()
-  }
-
-  const entityType = ownProps.entityType
-  const policy = ownProps.policy
+  const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
 
   C.Router2.useSafeFocusEffect(
     () => {
@@ -148,20 +142,19 @@ const Container = (ownProps: OwnProps) => {
     }
   )
 
-  const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
   const onConfirm = () => {
     navigateUp()
-    updateConfirm(policy)
+    updateConfirm(ownProps.policy)
   }
-  const props = {
-    ...ownProps,
-    entityType,
-    exploding: policy.type === 'explode',
-    onBack,
-    onConfirm,
-    timePeriod: policy.title,
-  }
-  return <RetentionWarning {...props} />
+  return (
+    <RetentionWarning
+      entityType={ownProps.entityType}
+      exploding={ownProps.policy.type === 'explode'}
+      onBack={navigateUp}
+      onConfirm={onConfirm}
+      timePeriod={ownProps.policy.title}
+    />
+  )
 }
 
 export default Container

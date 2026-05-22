@@ -318,48 +318,41 @@ const Container = (ownProps: OwnProps) => {
       )
     }
   }
-  const previewConversation = C.Router2.previewConversation
   const onChat = () => {
     if (username) {
-      previewConversation({participants: [username], reason: 'teamMember'})
+      C.Router2.previewConversation({participants: [username], reason: 'teamMember'})
     }
   }
-  const navigateAppend = C.Router2.navigateAppend
   const onClick = () => {
-    navigateAppend({name: 'teamMember', params: {teamID, username}})
+    C.Router2.navigateAppend({name: 'teamMember', params: {teamID, username}})
   }
   const onOpenProfile = () => {
     if (username) {
       navToProfile(username)
     }
   }
-  const onReAddToTeam = () => {
-    reAddToTeam(teamID, username)
-  }
-  const onRemoveFromTeam = () => {
-    removeMember(teamID, username)
-  }
-  const props = {
-    firstItem,
-    fullName: fullName,
-    needsPUK: needsPUK,
-    onBlock: onBlock,
-    onChat: onChat,
-    onClick: onClick,
-    onOpenProfile: onOpenProfile,
-    onReAddToTeam: onReAddToTeam,
-    onRemoveFromTeam: onRemoveFromTeam,
-    roleType: roleType,
-    status: status,
-    teamID: teamID,
-    username: username,
-    waitingForAdd: waitingForAdd,
-    waitingForRemove: waitingForRemove,
-    you: you,
-    youCanEditRole: youCanEditRole,
-    youCanManageMembers: youCanManageMembers,
-  }
-  return <TeamMemberRow {...props} />
+  return (
+    <TeamMemberRow
+      firstItem={firstItem}
+      fullName={fullName}
+      needsPUK={needsPUK}
+      onBlock={onBlock}
+      onChat={onChat}
+      onClick={onClick}
+      onOpenProfile={onOpenProfile}
+      onReAddToTeam={() => reAddToTeam(teamID, username)}
+      onRemoveFromTeam={() => removeMember(teamID, username)}
+      roleType={roleType}
+      status={status}
+      teamID={teamID}
+      username={username}
+      waitingForAdd={waitingForAdd}
+      waitingForRemove={waitingForRemove}
+      you={you}
+      youCanEditRole={youCanEditRole}
+      youCanManageMembers={youCanManageMembers}
+    />
+  )
 }
 
 export default Container

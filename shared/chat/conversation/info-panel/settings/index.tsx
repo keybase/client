@@ -42,16 +42,15 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     u => u !== username && !isAssertion(u)
   )
 
-  const navigateAppend = C.Router2.navigateAppend
   const onShowClearConversationDialog = () => {
-    navigateAppend({name: 'chatDeleteHistoryWarning', params: {conversationIDKey}})
+    C.Router2.navigateAppend({name: 'chatDeleteHistoryWarning', params: {conversationIDKey}})
   }
 
   const onHideConv = () => setConversationHidden(conversationIDKey, true)
   const onUnhideConv = () => setConversationHidden(conversationIDKey, false)
   const onShowBlockConversationDialog = () => {
     if (membersForBlock.length) {
-      navigateAppend({
+      C.Router2.navigateAppend({
         name: 'chatBlockingModal',
         params: {
           blockUserByDefault: true,
@@ -65,12 +64,8 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     }
   }
 
-  const onLeaveConversation = () => {
-    C.Router2.leaveConversation(conversationIDKey)
-  }
-
   const onArchive = () => {
-    navigateAppend({
+    C.Router2.navigateAppend({
       name: 'archiveModal',
       params: {conversationIDKey, type: 'chatID' as const},
     })
@@ -99,7 +94,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             type="Default"
             mode="Secondary"
             label="Leave channel"
-            onClick={onLeaveConversation}
+            onClick={() => C.Router2.leaveConversation(conversationIDKey)}
             style={styles.smallButton}
             waiting={spinnerForLeave}
           >

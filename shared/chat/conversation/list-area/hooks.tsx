@@ -8,11 +8,7 @@ import {
 } from '../thread-context'
 
 export const useActions = () => {
-  const markThreadAsRead = useConversationThreadMarkThreadAsRead()
-  const markInitiallyLoadedThreadAsRead = () => {
-    markThreadAsRead()
-  }
-
+  const markInitiallyLoadedThreadAsRead = useConversationThreadMarkThreadAsRead()
   return {markInitiallyLoadedThreadAsRead}
 }
 

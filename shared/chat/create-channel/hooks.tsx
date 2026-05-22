@@ -11,9 +11,8 @@ export default (p: Props) => {
   const navToChatOnSuccess = p.navToChatOnSuccess ?? true
   const [errorText, setErrorText] = React.useState('')
   const {teamname} = useChatTeam(teamID)
-  const navigateUp = C.Router2.navigateUp
+  const onBack = C.Router2.navigateUp
   const previewConversation = C.Router2.previewConversation
-  const onBack = navigateUp
   const [channelname, onChannelnameChange] = React.useState('')
   const [description, onDescriptionChange] = React.useState('')
 

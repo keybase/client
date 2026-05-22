@@ -22,8 +22,7 @@ const ForgotUsername = () => {
   const recoverUsernameWithEmail = C.useRPC(T.RPCGen.accountRecoverUsernameWithEmailRpcPromise)
   const recoverUsernameWithPhone = C.useRPC(T.RPCGen.accountRecoverUsernameWithPhoneRpcPromise)
 
-  const navigateUp = C.Router2.navigateUp
-  const onBack = navigateUp
+  const onBack = C.Router2.navigateUp
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvisionForgotUsername)
   const [forgotUsernameResult, setForgotUsernameResult] = React.useState('')
 

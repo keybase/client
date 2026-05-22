@@ -21,8 +21,7 @@ type OwnProps = {
 const Container = (ownProps: OwnProps) => {
   const {appLink, badged, confirmLabel, dismissAnnouncement, dismissable, getData, iconUrl, id, text, url} =
     ownProps
-  const {navigateAppend, switchTab} = C.Router2
-  const navigateToInbox = C.Router2.navigateToInbox
+  const {navigateAppend, switchTab, navigateToInbox} = C.Router2
   const onConfirm = () => {
     if (url) {
       void openURL(url)

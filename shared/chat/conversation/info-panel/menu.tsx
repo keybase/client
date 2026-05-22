@@ -93,7 +93,6 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   const {attachTo, onHidden, floatingMenuContainerStyle, hasHeader} = p
   const {isSmallTeam, teamID: pteamID} = p
   const conversationIDKey = p.conversationIDKey ?? Chat.noConversationIDKey
-  const visible = true
 
   const data = useData({conversationIDKey, isSmallTeam, pteamID})
   const {teamname, teamID, channelname, isInChannel, ignored, fullname} = data
@@ -127,7 +126,6 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
   }
 
   const onJoinChannel = () => joinConversation(conversationIDKey)
-  const onLeaveChannel = () => C.Router2.leaveConversation(conversationIDKey)
   const onLeaveTeam = () => teamID && routerNavigateAppend({name: 'teamReallyLeaveTeam', params: {teamID}})
   const onManageChannels = () => {
     routerNavigateAppend({name: 'teamAddToChannels', params: {teamID}})
@@ -344,7 +342,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
       items.push({
         icon: 'iconfont-leave',
         iconIsVisible: false,
-        onClick: () => onLeaveChannel(),
+        onClick: () => C.Router2.leaveConversation(conversationIDKey),
         title: 'Leave channel',
       } as const)
     }
@@ -395,7 +393,7 @@ const InfoPanelMenuConnector = function InfoPanelMenuConnector(p: OwnProps) {
     <Kb.FloatingMenu
       attachTo={attachTo}
       containerStyle={floatingMenuContainerStyle}
-      visible={visible}
+      visible={true}
       items={items}
       header={header}
       onHidden={onHidden}

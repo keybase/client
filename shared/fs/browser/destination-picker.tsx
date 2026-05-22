@@ -116,72 +116,70 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   FsCommon.useFsOnlineStatus()
 
   return (
-    <>
-      <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true} fullHeight={true}>
-        {!isMobile && (
-          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader} justifyContent="space-between">
-            <NavHeaderTitle destinationPickerSource={source} inDestinationPicker={true} path={parentPath} />
-            {!!onNewFolder && <NewFolder onNewFolder={onNewFolder} />}
-          </Kb.Box2>
-        )}
-        <Kb.Divider key="dheader" />
-        <FsCommon.Errs />
-        {!!onBackUp && (
-          <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={onBackUp}>
-            <Kb.Icon
-              type="iconfont-folder-up"
-              color={Kb.Styles.globalColors.black_50}
-              fontSize={32}
-              style={RowCommon.rowStyles.pathItemIcon}
-            />
-            <Kb.Text type="BodySemibold">..</Kb.Text>
-          </Kb.ClickableBox>
-        )}
-        {!!onCopyHere && (
-          <Kb.ClickableBox key="copy" style={styles.actionRowContainer} onClick={onCopyHere}>
-            <Kb.ImageIcon
-              type="icon-folder-copy-32"
-              style={RowCommon.rowStyles.pathItemIcon}
-            />
-            <Kb.Text type="BodySemibold" style={styles.actionText}>
-              {isShare ? 'Save here' : 'Copy here'}
-            </Kb.Text>
-          </Kb.ClickableBox>
-        )}
-        {!!onMoveHere && (
-          <Kb.ClickableBox key="move" style={styles.actionRowContainer} onClick={onMoveHere}>
-            <Kb.ImageIcon
-              type="icon-folder-move-32"
-              style={RowCommon.rowStyles.pathItemIcon}
-            />
-            <Kb.Text type="BodySemibold" style={styles.actionText}>
-              Move here
-            </Kb.Text>
-          </Kb.ClickableBox>
-        )}
-        {parentPath === FS.defaultPath ? (
-          <Root destinationPickerSource={source} />
-        ) : (
-          <Rows path={parentPath} destinationPickerSource={source} />
-        )}
-        {isMobile && <Kb.Divider key="dfooter" />}
-        {(!isMobile || onNewFolder) && (
-          <Kb.Box2
-            key="footer"
-            direction="horizontal"
-            centerChildren={true}
-            fullWidth={true}
-            style={styles.footer}
-          >
-            {isMobile ? (
-              <NewFolder onNewFolder={onNewFolder} />
-            ) : (
-              <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
-            )}
-          </Kb.Box2>
-        )}
-      </Kb.Box2>
-    </>
+    <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true} fullHeight={true}>
+      {!isMobile && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader} justifyContent="space-between">
+          <NavHeaderTitle destinationPickerSource={source} inDestinationPicker={true} path={parentPath} />
+          {!!onNewFolder && <NewFolder onNewFolder={onNewFolder} />}
+        </Kb.Box2>
+      )}
+      <Kb.Divider key="dheader" />
+      <FsCommon.Errs />
+      {!!onBackUp && (
+        <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={onBackUp}>
+          <Kb.Icon
+            type="iconfont-folder-up"
+            color={Kb.Styles.globalColors.black_50}
+            fontSize={32}
+            style={RowCommon.rowStyles.pathItemIcon}
+          />
+          <Kb.Text type="BodySemibold">..</Kb.Text>
+        </Kb.ClickableBox>
+      )}
+      {!!onCopyHere && (
+        <Kb.ClickableBox key="copy" style={styles.actionRowContainer} onClick={onCopyHere}>
+          <Kb.ImageIcon
+            type="icon-folder-copy-32"
+            style={RowCommon.rowStyles.pathItemIcon}
+          />
+          <Kb.Text type="BodySemibold" style={styles.actionText}>
+            {isShare ? 'Save here' : 'Copy here'}
+          </Kb.Text>
+        </Kb.ClickableBox>
+      )}
+      {!!onMoveHere && (
+        <Kb.ClickableBox key="move" style={styles.actionRowContainer} onClick={onMoveHere}>
+          <Kb.ImageIcon
+            type="icon-folder-move-32"
+            style={RowCommon.rowStyles.pathItemIcon}
+          />
+          <Kb.Text type="BodySemibold" style={styles.actionText}>
+            Move here
+          </Kb.Text>
+        </Kb.ClickableBox>
+      )}
+      {parentPath === FS.defaultPath ? (
+        <Root destinationPickerSource={source} />
+      ) : (
+        <Rows path={parentPath} destinationPickerSource={source} />
+      )}
+      {isMobile && <Kb.Divider key="dfooter" />}
+      {(!isMobile || onNewFolder) && (
+        <Kb.Box2
+          key="footer"
+          direction="horizontal"
+          centerChildren={true}
+          fullWidth={true}
+          style={styles.footer}
+        >
+          {isMobile ? (
+            <NewFolder onNewFolder={onNewFolder} />
+          ) : (
+            <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
+          )}
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
   )
 }
 

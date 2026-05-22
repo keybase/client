@@ -89,20 +89,18 @@ const Container = (ownProps: OwnProps) => {
   const {selectedTab, setSelectedTab, teamID} = ownProps
   const {teamDetails, yourOperations} = useLoadedTeam(teamID)
   const resetUserCount = [...teamDetails.members.values()].filter(member => member.status === 'reset').length
-  const admin = yourOperations.manageMembers
   const isBig = useInboxLayoutState(s => isBigTeam(s.layout, teamID))
-  const numSubteams = teamDetails.subteams.size
-  const showSubteams = yourOperations.manageSubteams
-  const props = {
-    admin,
-    isBig,
-    numSubteams,
-    resetUserCount,
-    selectedTab,
-    setSelectedTab,
-    showSubteams,
-  }
-  return <TeamTabs {...props} />
+  return (
+    <TeamTabs
+      admin={yourOperations.manageMembers}
+      isBig={isBig}
+      numSubteams={teamDetails.subteams.size}
+      resetUserCount={resetUserCount}
+      selectedTab={selectedTab}
+      setSelectedTab={setSelectedTab}
+      showSubteams={yourOperations.manageSubteams}
+    />
+  )
 }
 
 export default Container

@@ -55,21 +55,8 @@ const ConnectedEnterUsername = (p: Props) => {
     ignorePromise(f())
   }
 
-  const startProvision = useProvisionState(s => s.dispatch.startProvision)
-  const onLogin = (initUsername: string) => {
-    startProvision(initUsername)
-  }
-  const props = {
-    error,
-    initialUsername,
-    onBack,
-    onContinue,
-    onLogin,
-    onUsernameChange,
-    usernameTaken,
-    waiting,
-  }
-  return <EnterUsername {...props} />
+  const onLogin = useProvisionState(s => s.dispatch.startProvision)
+  return <EnterUsername error={error} initialUsername={initialUsername} onBack={onBack} onContinue={onContinue} onLogin={onLogin} onUsernameChange={onUsernameChange} usernameTaken={usernameTaken} waiting={waiting} />
 }
 
 type EnterUsernameProps = {

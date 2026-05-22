@@ -33,25 +33,16 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
   const isBigTeam = useInboxLayoutState(s => getIsBigTeam(s.layout, teamID))
   const navigateAppend = C.Router2.navigateAppend
-  const _onAuthorClick = (teamID: T.Teams.TeamID) => navigateAppend({name: 'team', params: {teamID}})
   const dismissJourneycard = useConversationThreadDismissJourneycard()
-  const _onDismiss = (cardType: T.RPCChat.JourneycardType, ordinal: T.Chat.Ordinal) =>
-    dismissJourneycard(cardType, ordinal)
-  const previewConversation = C.Router2.previewConversation
-  const _onGoToChannel = (channelname: string, teamname: string) =>
-    previewConversation({channelname, reason: 'journeyCardPopular', teamname})
-  const _onManageChannels = (teamID: string) =>
-    navigateAppend({name: 'teamAddToChannels', params: {teamID}})
-
-  const _onPublishTeam = (teamID: string) => {
+  const onAuthorClick = () => navigateAppend({name: 'team', params: {teamID}})
+  const onBrowseChannels = () => navigateAppend({name: 'teamAddToChannels', params: {teamID}})
+  const onDismiss = () => dismissJourneycard(message.cardType, message.ordinal)
+  const onGoToChannel = (channelName: string) =>
+    C.Router2.previewConversation({channelname: channelName, reason: 'journeyCardPopular', teamname})
+  const onPublishTeam = () => {
     navigateAppend({name: 'profileShowcaseTeamOffer', params: {}})
     setMemberPublicity(teamID, true)
   }
-  const onAuthorClick = () => _onAuthorClick(teamID)
-  const onBrowseChannels = () => _onManageChannels(teamID)
-  const onDismiss = () => _onDismiss(message.cardType, message.ordinal)
-  const onGoToChannel = (channelName: string) => _onGoToChannel(channelName, teamname)
-  const onPublishTeam = () => _onPublishTeam(teamID)
 
   const conversationIDKey = useConversationThreadID()
   const {cardType} = message

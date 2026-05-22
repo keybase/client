@@ -19,13 +19,10 @@ function useAutocompleter<U>(
   React.useEffect(() => {
     prevFilterLCaseRef.current = filterLCase
   }, [filterLCase])
-  const itemsFiltered = (() => {
-    let itemsFiltered = filterLCase
-      ? items.filter(item => item.label.toLowerCase().includes(filterLCase))
-      : items
-    itemsFiltered = itemsFiltered.slice(0, 5)
-    return itemsFiltered
-  })()
+  const itemsFiltered = (filterLCase
+    ? items.filter(item => item.label.toLowerCase().includes(filterLCase))
+    : items
+  ).slice(0, 5)
 
   const makePopup = (p: Kb.Popup2Parms) => {
       const {attachTo, hidePopup} = p

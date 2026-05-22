@@ -10,10 +10,7 @@ type Props = {
 
 const DeleteHistoryWarning = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
-  const navigateUp = C.Router2.navigateUp
-  const onCancel = () => {
-    navigateUp()
-  }
+  const onCancel = C.Router2.navigateUp
   const clearModals = C.Router2.clearModals
   const {tlfname} = useConversationMeta(conversationIDKey)
   const onDeleteHistory = () => {
@@ -35,39 +32,37 @@ const DeleteHistoryWarning = (props: Props) => {
   }
 
   return (
-    <>
-      <Kb.Box2
-        direction="vertical"
-        style={Kb.Styles.collapseStyles([
-          styles.padding,
-          styles.box,
-        ])}
-      >
-        <Kb.ImageIcon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
-        <Kb.Text style={{padding: Kb.Styles.globalMargins.small}} type="Header">
-          Delete conversation history?
-        </Kb.Text>
-        <Kb.Text center={isMobile} style={styles.text} type="Body">
-          You are about to delete all the messages in this conversation. For everyone.
-        </Kb.Text>
-        <Kb.Box2 direction={isMobile ? 'verticalReverse' : 'horizontal'} style={styles.buttonBox}>
-          <Kb.Button
-            type="Dim"
-            style={styles.button}
-            onClick={onCancel}
-            label="Cancel"
-            fullWidth={isMobile}
-          />
-          <Kb.Button
-            type="Danger"
-            style={styles.button}
-            onClick={onDeleteHistory}
-            label="Yes, clear for everyone"
-            fullWidth={isMobile}
-          />
-        </Kb.Box2>
+    <Kb.Box2
+      direction="vertical"
+      style={Kb.Styles.collapseStyles([
+        styles.padding,
+        styles.box,
+      ])}
+    >
+      <Kb.ImageIcon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
+      <Kb.Text style={{padding: Kb.Styles.globalMargins.small}} type="Header">
+        Delete conversation history?
+      </Kb.Text>
+      <Kb.Text center={isMobile} style={styles.text} type="Body">
+        You are about to delete all the messages in this conversation. For everyone.
+      </Kb.Text>
+      <Kb.Box2 direction={isMobile ? 'verticalReverse' : 'horizontal'} style={styles.buttonBox}>
+        <Kb.Button
+          type="Dim"
+          style={styles.button}
+          onClick={onCancel}
+          label="Cancel"
+          fullWidth={isMobile}
+        />
+        <Kb.Button
+          type="Danger"
+          style={styles.button}
+          onClick={onDeleteHistory}
+          label="Yes, clear for everyone"
+          fullWidth={isMobile}
+        />
       </Kb.Box2>
-    </>
+    </Kb.Box2>
   )
 }
 

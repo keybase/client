@@ -144,15 +144,12 @@ const RowsWithAutoLoad = (props: Props) => {
   // this, otherwise we'd get taller-than content rows when going into a
   // smaller folder from a larger one.
   const {items} = props
-  const listKey = (() => {
-    const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
-    return (
-      items
-        .slice(0, index === -1 ? items.length : index)
-        .map(row => getRowHeight(row).toString())
-        .join('-') + `:${items.length}`
-    )
-  })()
+  const headerEndIndex = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
+  const listKey =
+    items
+      .slice(0, headerEndIndex === -1 ? items.length : headerEndIndex)
+      .map(row => getRowHeight(row).toString())
+      .join('-') + `:${items.length}`
   return <Rows {...props} listKey={listKey} />
 }
 

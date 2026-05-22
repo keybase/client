@@ -1,7 +1,6 @@
 import {default as fs, promises as fsp} from 'fs'
 import path from 'path'
 import type {EmojiData} from 'emoji-datasource-apple'
-import prettier from 'prettier'
 import {fileURLToPath} from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -149,12 +148,7 @@ export const emojiIndexByChar: {[key: string]: string}  = JSON.parse(\`${JSON.st
   )}\`)
 export const commonTlds = ${JSON.stringify(commonTlds)}
 `
-  const options = await prettier.resolveConfig(p)
-  const formatted = await prettier.format(data, {
-    ...options,
-    parser: 'typescript',
-  })
-  fs.writeFileSync(p, formatted, {encoding: 'utf8'})
+  fs.writeFileSync(p, data, {encoding: 'utf8'})
 }
 
 buildEmojiFile()

@@ -17,9 +17,6 @@ const LeftNav = (props: Props) => {
   const badgeNumbers = useNotifState(s => s.navBadges)
   const badgeNotifications = usePushState(s => (isElectron ? 0 : !s.hasPermissions ? 1 : 0))
 
-  const onSignout = () => {
-    navigate(Settings.settingsLogOutTab)
-  }
   return (
     <Kb.ScrollView style={styles.container}>
         {Kb.Styles.isTablet && (
@@ -149,7 +146,7 @@ const LeftNav = (props: Props) => {
         />
         {/* TODO: Do something with logoutInProgress once Offline is
         removed from the settings page. */}
-        <SettingsItem text="Sign out" selected={false} type={'nope'} onClick={onSignout} />
+        <SettingsItem text="Sign out" selected={false} type={'nope'} onClick={() => navigate(Settings.settingsLogOutTab)} />
     </Kb.ScrollView>
   )
 }
