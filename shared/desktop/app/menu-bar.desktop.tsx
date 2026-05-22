@@ -84,7 +84,7 @@ const MenuBar = () => {
     // ready event fires. We manage the dock icon ourselves, so this flag
     // prevents menubar from changing the state.
     showDockIcon: true,
-    showOnAllWorkspaces: true,
+    showOnAllWorkspaces: false,
   })
 
   const updateIcon = () => {
@@ -130,6 +130,7 @@ const MenuBar = () => {
   })
 
   mb.on('ready', () => {
+    mb.window?.setVisibleOnAllWorkspaces(true, {visibleOnFullScreen: true, skipTransformProcessType: true})
     mb.window
       ?.loadURL(htmlFile)
       .then(() => {})
