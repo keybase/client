@@ -162,7 +162,7 @@ function insertReleaseAssets(releaseFiles: Array<string>) {
   }, {})
 }
 
-async function updateIconConstants() {
+function updateIconConstants() {
   console.log('Generating icon constants (from the following directories)')
   console.log('\t*' + pngAssetDirPaths.map(({assetDirPath}) => assetDirPath).join('\n\t*'))
 

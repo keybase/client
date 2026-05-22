@@ -132,7 +132,6 @@ export const FsDaemonProvider = ({children}: {children: React.ReactNode}) => {
       asyncGenerationRef.current++
       waitForKbfsDaemonInProgressRef.current = false
       kbfsDaemonStatusRef.current = Constants.unknownKbfsDaemonStatus
-      setKbfsDaemonStatus(Constants.unknownKbfsDaemonStatus)
       return
     }
     checkKbfsDaemonRpcStatus()

@@ -45,7 +45,7 @@ const getChannelsForList = (
 const AddToChannelsBody = function AddToChannelsBody(props: Props) {
   const teamID = props.teamID
   const myUsername = useCurrentUserState(s => s.username)
-  const usernames = props.usernames ?? [myUsername]
+  const usernames = React.useMemo(() => props.usernames ?? [myUsername], [props.usernames, myUsername])
   const mode = props.usernames ? 'others' : 'self'
   const nav = useSafeNavigation()
   const {yourOperations, teamDetails} = useLoadedTeam(teamID)
