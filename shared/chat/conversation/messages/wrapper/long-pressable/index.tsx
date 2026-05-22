@@ -1,23 +1,19 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as InputState from '../../../input-area/input-state'
-import * as Reanimated from 'react-native-reanimated'
-import {Pressable, Keyboard} from 'react-native'
+import {Animated, Pressable, Keyboard} from 'react-native'
 import type {Props} from './index.shared'
 import {useOrdinal} from '../../ids-context'
 import {useConversationThreadToggleSearch} from '../../../thread-context'
 import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row'
 import {FocusContext} from '@/chat/conversation/normal/context'
 
-function ReplyIcon({progress}: {progress: Reanimated.SharedValue<number>}) {
-  const as = Reanimated.useAnimatedStyle(() => {
-    const opacity = Reanimated.interpolate(progress.value, [0, -20], [0, 1], Reanimated.Extrapolation.CLAMP)
-    return {opacity}
-  })
+function ReplyIcon({progress}: {progress: Animated.Value}) {
+  const opacity = progress.interpolate({inputRange: [-20, 0], outputRange: [1, 0], extrapolate: 'clamp'})
   return (
-    <Reanimated.default.View style={[styles.reply, as]}>
+    <Animated.View style={[styles.reply, {opacity}]}>
       <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
-    </Reanimated.default.View>
+    </Animated.View>
   )
 }
 
@@ -43,8 +39,8 @@ function LongPressable(props: Props & {ref?: React.Ref<Kb.MeasureRef>}) {
   )
 
   const makeAction = (
-    _progress: Reanimated.SharedValue<number>,
-    translation: Reanimated.SharedValue<number>
+    _progress: Animated.AnimatedDivision<number>,
+    translation: Animated.Value
   ) => <ReplyIcon progress={translation} />
 
   const onSwipeLeft = () => {

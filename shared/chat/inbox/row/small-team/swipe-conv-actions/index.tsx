@@ -1,10 +1,9 @@
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Reanimated from 'react-native-reanimated'
 import * as RowSizes from '../../sizes'
 import type {Props} from './index.shared'
-import {Pressable, View} from 'react-native'
+import {Animated, Pressable, View} from 'react-native'
 import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row'
 import {useOpenedRowState} from '../../opened-row-state'
 import {useInboxRowSmall} from '@/stores/inbox-rows'
@@ -18,32 +17,25 @@ const Action = (p: {
   color: Kb.Styles.Color
   iconType: Kb.IconType
   onClick: () => void
-  progress: Reanimated.SharedValue<number>
+  progress: Animated.AnimatedDivision<number>
 }) => {
   'use no memo'
   const {text, color, iconType, onClick, progress, offset} = p
-  const as = Reanimated.useAnimatedStyle(() => {
-    const ratio = progress.value
-    const translateX = Reanimated.interpolate(
-      ratio,
-      [0, 1],
-      [actionWidth, (2 - offset) * -actionWidth],
-      Reanimated.Extrapolation.CLAMP
-    )
-    return {
-      transform: [{translateX}],
-    }
+  const translateX = progress.interpolate({
+    extrapolate: 'clamp',
+    inputRange: [0, 1],
+    outputRange: [actionWidth, (2 - offset) * -actionWidth],
   })
 
   return (
-    <Reanimated.default.View style={[nativeStyles.action, as]}>
+    <Animated.View style={[nativeStyles.action, {transform: [{translateX}]}]}>
       <Pressable style={[nativeStyles.rightAction, {backgroundColor: color as string}]} onPress={onClick}>
         <Kb.Icon type={iconType} color={Kb.Styles.globalColors.white} />
         <Kb.Text type="BodySmall" style={nativeStyles.actionText}>
           {text}
         </Kb.Text>
       </Pressable>
-    </Reanimated.default.View>
+    </Animated.View>
   )
 }
 
@@ -54,6 +46,11 @@ function SwipeConvActions(p: Props) {
   const setOpenedRow = useOpenedRowState(s => s.dispatch.setOpenRow)
   const swipeableRef = React.useRef<SwipeableMethods | null>(null)
   const isMuted = useInboxRowSmall(conversationIDKey).isMuted
+
+  React.useLayoutEffect(() => {
+    swipeableRef.current?.reset()
+    wasOpenRef.current = false
+  }, [conversationIDKey])
 
   React.useEffect(() => {
     if (!isOpened && wasOpenRef.current) {
@@ -96,7 +93,7 @@ function SwipeConvActions(p: Props) {
     setOpenedRow(conversationIDKey)
   }
 
-  const renderRightActions = (progress: Reanimated.SharedValue<number>) => {
+  const renderRightActions = (progress: Animated.AnimatedDivision<number>) => {
     return (
       <View style={[nativeStyles.container, {width: 3 * actionWidth}]}>
         <Action

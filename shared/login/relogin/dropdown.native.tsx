@@ -153,13 +153,9 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       picker: Kb.Styles.platformStyles({
         isAndroid: {
+          ...Kb.Styles.globalStyles.fillAbsolute,
           backgroundColor: Kb.Styles.globalColors.transparent,
-          bottom: 0,
           color: Kb.Styles.globalColors.transparent,
-          left: 0,
-          position: 'absolute',
-          right: 0,
-          top: 0,
         },
         isIOS: {backgroundColor: Kb.Styles.globalColors.white},
       }),

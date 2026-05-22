@@ -1,37 +1,39 @@
 import * as React from 'react'
-import * as Reanimated from 'react-native-reanimated'
-import {PanResponder, View, type GestureResponderEvent, type PanResponderGestureState, type ViewStyle} from 'react-native'
+import {Animated, PanResponder, View, type GestureResponderEvent, type PanResponderGestureState, type ViewStyle} from 'react-native'
 
 export type SwipeableMethods = {
   close: () => void
+  reset: () => void
 }
 
 type Props = {
   children?: React.ReactNode
   renderRightActions?: (
-    progress: Reanimated.SharedValue<number>,
-    translation: Reanimated.SharedValue<number>
+    progress: Animated.AnimatedDivision<number>,
+    translation: Animated.Value
   ) => React.ReactNode
   onSwipeableOpenStartDrag?: () => void
   onSwipeableWillOpen?: (direction: 'left') => void
   containerStyle?: ViewStyle
 }
 
+const springConfig = {friction: 20, tension: 150, useNativeDriver: false} as const
+
 const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function SwipeableRow(props, ref) {
   'use no memo'
   const {children, renderRightActions, onSwipeableOpenStartDrag, onSwipeableWillOpen, containerStyle} = props
 
-  const translationX = Reanimated.useSharedValue(0)
-  const openWidthSV = Reanimated.useSharedValue(0)
+  const translationX = React.useRef(new Animated.Value(0)).current
+  // Separate ref for current value since Animated.Value has no sync .value read
+  const translationXRef = React.useRef(0)
+  // openWidthAnim drives progress; start at 1 to avoid divide-by-zero before onLayout
+  const openWidthAnim = React.useRef(new Animated.Value(1)).current
+  const openWidthRef = React.useRef(0)
 
-  const progress = Reanimated.useDerivedValue(() =>
-    Reanimated.interpolate(
-      -translationX.value,
-      [0, openWidthSV.value > 0 ? openWidthSV.value : 1],
-      [0, 1],
-      Reanimated.Extrapolation.CLAMP
-    )
-  )
+  // progress = -translationX / openWidth, naturally 0→1 as row opens
+  const progress = React.useRef(
+    Animated.divide(Animated.multiply(translationX, -1), openWidthAnim) as Animated.AnimatedDivision<number>
+  ).current
 
   const startTranslationRef = React.useRef(0)
   const wasClosedOnGrantRef = React.useRef(true)
@@ -43,40 +45,45 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
     let _move = (_dx: number, _vx: number) => {}
     let _release = (_dx: number, _vx: number) => {}
     let _close = () => {}
+    let _reset = () => {}
     return {
+      close: () => _close(),
+      reset: () => _reset(),
       panHandlers: PanResponder.create({
-        onStartShouldSetPanResponder: () => false,
         onMoveShouldSetPanResponder: (_e: GestureResponderEvent, gs: PanResponderGestureState) =>
           Math.abs(gs.dx) > Math.abs(gs.dy) && Math.abs(gs.dx) > 5,
         onPanResponderGrant: () => _grant(),
         onPanResponderMove: (_e: GestureResponderEvent, gs: PanResponderGestureState) => _move(gs.dx, gs.vx),
-        onPanResponderRelease: (_e: GestureResponderEvent, gs: PanResponderGestureState) => _release(gs.dx, gs.vx),
+        onPanResponderRelease: (_e: GestureResponderEvent, gs: PanResponderGestureState) =>
+          _release(gs.dx, gs.vx),
         onPanResponderTerminate: (_e: GestureResponderEvent, gs: PanResponderGestureState) =>
           _release(gs.dx, gs.vx),
+        onStartShouldSetPanResponder: () => false,
       }).panHandlers,
-      close: () => _close(),
       set(
         grant: () => void,
         move: (dx: number, vx: number) => void,
         release: (dx: number, vx: number) => void,
-        close: () => void
+        close: () => void,
+        reset: () => void
       ) {
         _grant = grant
         _move = move
         _release = release
         _close = close
+        _reset = reset
       },
     }
   })
 
-  React.useImperativeHandle(ref, () => ({close: ctx.close}))
+  React.useImperativeHandle(ref, () => ({close: ctx.close, reset: ctx.reset}))
 
   React.useLayoutEffect(() => {
     cbRef.current = {onSwipeableOpenStartDrag, onSwipeableWillOpen}
     ctx.set(
       () => {
-        startTranslationRef.current = translationX.value
-        wasClosedOnGrantRef.current = translationX.value > -5
+        startTranslationRef.current = translationXRef.current
+        wasClosedOnGrantRef.current = translationXRef.current > -5
         hasFiredOpenStartDragRef.current = false
       },
       (dx, _vx) => {
@@ -85,28 +92,35 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
           hasFiredOpenStartDragRef.current = true
           cbRef.current.onSwipeableOpenStartDrag?.()
         }
-        translationX.set(newX)
+        translationXRef.current = newX
+        translationX.setValue(newX)
       },
       (dx, vx) => {
         const newX = Math.min(0, startTranslationRef.current + dx)
-        const width = openWidthSV.value
+        const width = openWidthRef.current
         const shouldOpen = width > 0 && (newX < -(width * 0.4) || vx < -0.5)
         if (shouldOpen) {
-          translationX.set(Reanimated.withSpring(-width, {duration: 300}))
+          translationXRef.current = -width
+          Animated.spring(translationX, {...springConfig, toValue: -width}).start()
           cbRef.current.onSwipeableWillOpen?.('left')
         } else {
-          translationX.set(Reanimated.withSpring(0, {duration: 300}))
+          translationXRef.current = 0
+          Animated.spring(translationX, {...springConfig, toValue: 0}).start()
         }
       },
       () => {
-        translationX.set(Reanimated.withSpring(0, {duration: 300}))
+        translationXRef.current = 0
+        Animated.spring(translationX, {...springConfig, toValue: 0}).start()
+      },
+      () => {
+        translationX.stopAnimation()
+        translationX.setValue(0)
+        translationXRef.current = 0
       }
     )
   })
 
-  const animStyle = Reanimated.useAnimatedStyle(() => ({
-    transform: [{translateX: translationX.value}],
-  }))
+  const animStyle = React.useMemo(() => ({transform: [{translateX: translationX}]}), [translationX])
 
   return (
     <View style={[{overflow: 'hidden'}, containerStyle]}>
@@ -117,16 +131,18 @@ const SwipeableRow = React.forwardRef<SwipeableMethods, Props>(function Swipeabl
           <View
             style={{flexDirection: 'row'}}
             onLayout={e => {
-              openWidthSV.set(e.nativeEvent.layout.width)
+              const w = e.nativeEvent.layout.width
+              openWidthRef.current = w
+              openWidthAnim.setValue(w > 0 ? w : 1)
             }}
           >
             {renderRightActions(progress, translationX)}
           </View>
         </View>
       )}
-      <Reanimated.default.View style={animStyle} {...ctx.panHandlers}>
+      <Animated.View style={animStyle} {...ctx.panHandlers}>
         {children}
-      </Reanimated.default.View>
+      </Animated.View>
     </View>
   )
 })
