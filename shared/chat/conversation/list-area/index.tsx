@@ -476,6 +476,7 @@ const NativeConversationList = function NativeConversationList() {
 
   const listRef = React.useRef<RNFlatListRef | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
+
   const keyExtractor = (ordinal: ItemType) => {
     return String(ordinal)
   }
@@ -617,6 +618,7 @@ const NativeConversationList = function NativeConversationList() {
             keyExtractor={keyExtractor}
             ref={listRef}
             renderScrollComponent={renderScrollComponent}
+            windowSize={3}
             maintainVisibleContentPosition={
               // MUST do this else if you come into a new thread it'll slowly scroll down when it loads
               numOrdinals ? maintainVisibleContentPosition : undefined

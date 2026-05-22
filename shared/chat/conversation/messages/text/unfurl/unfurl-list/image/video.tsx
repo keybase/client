@@ -53,12 +53,18 @@ const DesktopVideo = (p: Props) => {
   )
 }
 
-const NativeVideo = (props: Props) => {
-  const {autoPlay, onClick, url, style, width, height} = props
-  const {playing, setPlaying} = usePlayState(url, autoPlay)
+// Separated into its own component so useVideoPlayer is only called when the
+// player is needed. Calling it unconditionally for every unfurl in the list
+// spawns CoreMedia threads per message and exhausts VM memory.
+type NativeActiveVideoProps = {
+  sourceUri: string
+  autoPlay: boolean
+  playing: boolean
+  style: object
+}
 
-  const uri = url.length > 0 ? url : 'https://'
-  const sourceUri = `${uri}&autoplay=${autoPlay ? 'true' : 'false'}&contentforce=true`
+const NativeActiveVideo = (props: NativeActiveVideoProps) => {
+  const {sourceUri, autoPlay, playing, style} = props
 
   const player = useVideoPlayer(sourceUri, p => {
     p.loop = true
@@ -85,22 +91,50 @@ const NativeVideo = (props: Props) => {
     return () => sub.remove()
   }, [player])
 
+  return (
+    <VideoView
+      player={player}
+      nativeControls={false}
+      contentFit="contain"
+      style={(Kb.Styles.collapseStyles([nativeStyles.player, style]) ?? {}) as object}
+    />
+  )
+}
+
+const NativeVideo = (props: Props) => {
+  const {autoPlay, onClick, url, style, width, height} = props
+  const {playing, setPlaying} = usePlayState(url, autoPlay)
+  // Activate the player when autoPlay is true or the user first taps play.
+  // Reset when URL changes so a new source gets a fresh player.
+  const [active, setActive] = React.useState(autoPlay)
+  const [lastUrl, setLastUrl] = React.useState(url)
+  if (lastUrl !== url) {
+    setLastUrl(url)
+    setActive(autoPlay)
+  }
+
+  const uri = url.length > 0 ? url : 'https://'
+  const sourceUri = `${uri}&autoplay=${autoPlay ? 'true' : 'false'}&contentforce=true`
+
   const _onClick = () => {
     if (onClick) {
       onClick()
       return
     }
+    setActive(true)
     setPlaying(p => !p)
   }
 
   return (
     <Kb.ClickableBox onClick={_onClick} style={Kb.Styles.collapseStyles([style, nativeStyles.container])}>
-      <VideoView
-        player={player}
-        nativeControls={false}
-        contentFit="contain"
-        style={(Kb.Styles.collapseStyles([nativeStyles.player, style]) ?? {}) as object}
-      />
+      {active && (
+        <NativeActiveVideo
+          sourceUri={sourceUri}
+          autoPlay={autoPlay}
+          playing={playing}
+          style={style}
+        />
+      )}
       <Kb.Box2 direction="vertical" style={Kb.Styles.collapseStyles([sharedStyles.absoluteContainer, {height, width}])}>
         {!playing && <Kb.ImageIcon type="icon-play-64" style={sharedStyles.playButton} />}
       </Kb.Box2>
