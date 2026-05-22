@@ -4,7 +4,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import colors from 'colors'
-import json5 from 'json5'
 
 type EnabledCallType = 'promise' | 'incoming' | 'engineListener' | 'custom'
 type EnabledCalls = Record<string, Partial<Record<EnabledCallType, boolean>>>
@@ -137,7 +136,7 @@ type CompileActionsArgs = {
 }
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const enabledCalls = json5.parse(
+const enabledCalls = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'enabled-calls.json'), 'utf8')
 ) as EnabledCalls
 

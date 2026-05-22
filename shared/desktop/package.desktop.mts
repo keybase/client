@@ -1,4 +1,3 @@
-import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
 import os from 'os'
 import {packager, type Options} from '@electron/packager'
@@ -159,8 +158,8 @@ async function main() {
       console.log('TEMP_SKIP_BUILD true@!!')
     }
   } else {
-    rimrafSync(desktopPath('dist'))
-    rimrafSync(desktopPath('build'))
+    fs.removeSync(desktopPath('dist'))
+    fs.removeSync(desktopPath('build'))
   }
 
   copySync('Icon.png', 'build/desktop/Icon.png')
@@ -213,7 +212,7 @@ async function startPack() {
     await copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png', '.html'])
     fs.removeSync(desktopPath('build/desktop/dist/fonts'))
 
-    rimrafSync(desktopPath('release'))
+    fs.removeSync(desktopPath('release'))
 
     const aps = [[platform, arch]]
     await Promise.all(
