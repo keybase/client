@@ -1467,6 +1467,10 @@ export const useTeamsState = Z.createZustand<State>((set, get) => {
           get().dispatch.setChannelCreationError(error.desc)
           return
         }
+        const visibleScreen = getVisibleScreen()
+        if (visibleScreen?.name === 'chatCreateChannel' || visibleScreen?.name === 'teamCreateChannels') {
+          clearModals()
+        }
         get().dispatch.loadTeamChannelList(teamID)
         set(s => {
           s.creatingChannels = false
