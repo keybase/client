@@ -88,12 +88,8 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 700,
       },
       enablingContainer: {
+        ...Kb.Styles.globalStyles.fillAbsolute,
         backgroundColor: Kb.Styles.globalColors.black_63,
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
       },
       image: {
         width: 408,

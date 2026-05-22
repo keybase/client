@@ -197,11 +197,7 @@ const nativeStyles = Styles.styleSheetCreate(() => ({
     width: 140,
   },
   wrapper: {
+    ...Styles.globalStyles.fillAbsolute,
     alignItems: 'center',
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
   },
 }))

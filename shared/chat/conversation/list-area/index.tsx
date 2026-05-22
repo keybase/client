@@ -346,12 +346,8 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
     ({
       container: Kb.Styles.platformStyles({
         isElectron: {
-          bottom: 0,
-          left: 0,
+          ...Kb.Styles.globalStyles.fillAbsolute,
           overflow: 'hidden',
-          position: 'absolute',
-          right: 0,
-          top: 0,
         },
       }),
       list: Kb.Styles.platformStyles({

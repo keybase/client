@@ -473,11 +473,7 @@ const nativeStyles = Styles.styleSheetCreate(
         justifyContent: 'flex-end',
       },
       progressIndicator: {
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
+        ...Styles.globalStyles.fillAbsolute,
       },
       safeArea: {backgroundColor: Styles.globalColors.white},
       safeProvider: {
