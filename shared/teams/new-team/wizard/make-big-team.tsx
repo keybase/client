@@ -1,20 +1,14 @@
 import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
-import {useNavigation} from '@react-navigation/native'
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import {useTypedNavigation} from '@/util/typed-navigation'
 
 type Props = {
   wizard: NewTeamWizard
 }
 
-type TeamWizard4TeamSizeParamList = {
-  teamWizard4TeamSize: {wizard: NewTeamWizard}
-}
-
 const MakeBigTeam = ({wizard: initialWizard}: Props) => {
-  const navigation =
-    useNavigation() as NativeStackNavigationProp<TeamWizard4TeamSizeParamList, 'teamWizard4TeamSize'>
+  const navigation = useTypedNavigation('teamWizard4TeamSize')
   const navigateAppend = C.Router2.navigateAppend
   const onSubmit = (isBig: boolean) => {
     const wizard = {...initialWizard, isBig}

@@ -4,8 +4,7 @@ import type * as T from '@/constants/types'
 import {pluralize} from '@/util/string'
 import * as C from '@/constants'
 import {type NewTeamWizard} from './state'
-import {useNavigation} from '@react-navigation/native'
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import {useTypedNavigation} from '@/util/typed-navigation'
 
 type Props = {
   initialChannels?: ReadonlyArray<string>
@@ -93,13 +92,8 @@ type WizardProps = {
   wizard: NewTeamWizard
 }
 
-type TeamWizard5ChannelsParamList = {
-  teamWizard5Channels: {wizard: NewTeamWizard}
-}
-
 const WizardCreateChannels = ({wizard: initialWizard}: WizardProps) => {
-  const navigation =
-    useNavigation() as NativeStackNavigationProp<TeamWizard5ChannelsParamList, 'teamWizard5Channels'>
+  const navigation = useTypedNavigation('teamWizard5Channels')
   const navigateAppend = C.Router2.navigateAppend
   return (
     <CreateChannelsModal

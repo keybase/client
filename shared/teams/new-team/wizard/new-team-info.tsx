@@ -6,8 +6,7 @@ import {pluralize} from '@/util/string'
 import {InlineDropdown} from '@/common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
 import {type NewTeamWizard} from './state'
-import {useNavigation} from '@react-navigation/native'
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import {useTypedNavigation} from '@/util/typed-navigation'
 import {useLoadedTeam} from '../../team/use-loaded-team'
 
 const getTeamTakenMessage = (status: T.RPCGen.StatusCode): string => {
@@ -31,13 +30,8 @@ type Props = {
   wizard: NewTeamWizard
 }
 
-type TeamWizard2TeamInfoParamList = {
-  teamWizard2TeamInfo: {wizard: NewTeamWizard}
-}
-
 const NewTeamInfo = ({wizard: teamWizardState}: Props) => {
-  const navigation =
-    useNavigation() as NativeStackNavigationProp<TeamWizard2TeamInfoParamList, 'teamWizard2TeamInfo'>
+  const navigation = useTypedNavigation('teamWizard2TeamInfo')
   const parentTeamID = teamWizardState.parentTeamID ?? T.Teams.noTeamID
   const {
     teamMeta: {teamname: loadedParentName},
