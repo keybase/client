@@ -6,12 +6,12 @@ import EmailPhoneRow from './email-phone-row'
 import logger from '@/logger'
 import {openURL} from '@/util/misc'
 import {loadSettings} from '../load-settings'
-import {useNavigation, type NavigationProp} from '@react-navigation/native'
+import {useTypedNavigation} from '@/util/typed-navigation'
 import {useIsFocused} from '@react-navigation/core'
 import {useConfigState} from '@/stores/config'
 import {makePhoneError, useSettingsPhoneState} from '@/stores/settings-phone'
 import {useSettingsEmailState} from '@/stores/settings-email'
-import {type settingsAccountTab, settingsPasswordTab} from '@/constants/settings'
+import {settingsPasswordTab} from '@/constants/settings'
 import type {SettingsAccountRouteParams} from '../routes'
 import {useRandomPWState} from '../use-random-pw'
 
@@ -183,10 +183,7 @@ type AddedBannerState = {
 const AccountSettings = ({route}: Props) => {
   const addedEmailFromRoute = route.params?.addedEmailBannerEmail
   const addedPhoneFromRoute = !!route.params?.addedPhoneBanner
-  const navigation = useNavigation() as NavigationProp<
-    Record<typeof settingsAccountTab, SettingsAccountRouteParams | undefined>,
-    typeof settingsAccountTab
-  >
+  const navigation = useTypedNavigation('settingsTabs.accountTab')
   const isFocused = useIsFocused()
   const emails = useSettingsEmailState(s => s.emails)
   const phones = useSettingsPhoneState(s => s.phones)

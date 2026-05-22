@@ -1,18 +1,10 @@
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
 import {HeaderRightActions} from './main/header'
 import {useSafeNavigation} from '@/util/safe-navigation'
 import {makeNewTeamWizard} from './new-team/wizard/state'
 import {useTeamsList} from './use-teams-list'
-import {useNavigation, useRoute} from '@react-navigation/native'
-import type {RouteProp} from '@react-navigation/native'
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
-
-type TeamsRootParams = {
-  filter?: string
-  sort?: T.Teams.TeamListSort
-}
-type TeamsRootParamList = {teamsRoot: TeamsRootParams}
+import {useRoute} from '@react-navigation/native'
+import {useTypedNavigation} from '@/util/typed-navigation'
 
 const useHeaderActions = () => {
   const nav = useSafeNavigation()
@@ -24,9 +16,9 @@ const useHeaderActions = () => {
 }
 
 const TeamsFilter = () => {
-  const route = useRoute() as RouteProp<TeamsRootParamList, 'teamsRoot'>
+  const route = useRoute('teamsRoot')
   const params = route.params
-  const navigation = useNavigation() as NativeStackNavigationProp<TeamsRootParamList, 'teamsRoot'>
+  const navigation = useTypedNavigation('teamsRoot')
   const filterValue = params.filter ?? ''
   const {teams} = useTeamsList()
   const numTeams = teams.length

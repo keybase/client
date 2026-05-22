@@ -3,8 +3,7 @@ import * as Kb from '@/common-adapters'
 import {pluralize} from '@/util/string'
 import * as C from '@/constants'
 import {newTeamWizardToAddMembersWizard, type NewTeamWizard} from './state'
-import {useNavigation} from '@react-navigation/native'
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import {useTypedNavigation} from '@/util/typed-navigation'
 
 const cleanSubteamName = (name: string) => name.replace(/[^0-9a-zA-Z_]/, '')
 
@@ -12,13 +11,8 @@ type Props = {
   wizard: NewTeamWizard
 }
 
-type TeamWizard6SubteamsParamList = {
-  teamWizard6Subteams: {wizard: NewTeamWizard}
-}
-
 const CreateSubteams = ({wizard: wizardState}: Props) => {
-  const navigation =
-    useNavigation() as NativeStackNavigationProp<TeamWizard6SubteamsParamList, 'teamWizard6Subteams'>
+  const navigation = useTypedNavigation('teamWizard6Subteams')
   const navigateAppend = C.Router2.navigateAppend
   const teamname = wizardState.name
   const initialSubteams = wizardState.subteams ?? ['', '', '']

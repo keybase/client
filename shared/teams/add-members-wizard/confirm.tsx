@@ -15,8 +15,7 @@ import {useSafeNavigation} from '@/util/safe-navigation'
 import {createNewTeamFromWizard} from '../new-team/wizard/state'
 import {onTeamCreated} from '../create-team-effects'
 import {RPCError} from '@/util/errors'
-import {useNavigation} from '@react-navigation/native'
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack'
+import {useTypedNavigation} from '@/util/typed-navigation'
 import {useLoadedTeam} from '../team/use-loaded-team'
 import {
   removeWizardMember,
@@ -37,13 +36,8 @@ const disabledRolesSubteam = {
   owner: 'Subteams cannot have owners.',
 }
 
-type TeamAddToTeamConfirmParamList = {
-  teamAddToTeamConfirm: {wizard: AddMembersWizard}
-}
-
 const AddMembersConfirm = ({wizard: initialWizard}: Props) => {
-  const navigation =
-    useNavigation() as NativeStackNavigationProp<TeamAddToTeamConfirmParamList, 'teamAddToTeamConfirm'>
+  const navigation = useTypedNavigation('teamAddToTeamConfirm')
   const [wizardState, setWizardState] = React.useState(() => ({
     initialWizard,
     wizard: initialWizard,
