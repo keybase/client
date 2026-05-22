@@ -1,5 +1,5 @@
 import type * as React from 'react'
-import type * as Reanimated from 'react-native-reanimated'
+import type {Animated} from 'react-native'
 
 export type SwipeableMethods = {
   close: () => void
@@ -8,8 +8,8 @@ export type SwipeableMethods = {
 type Props = {
   children?: React.ReactNode
   renderRightActions?: (
-    progress: Reanimated.SharedValue<number>,
-    translation: Reanimated.SharedValue<number>
+    progress: Animated.AnimatedDivision<number>,
+    translation: Animated.Value
   ) => React.ReactNode
   onSwipeableOpenStartDrag?: () => void
   onSwipeableWillOpen?: (direction: 'left') => void

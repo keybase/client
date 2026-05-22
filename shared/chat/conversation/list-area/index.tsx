@@ -532,12 +532,17 @@ const NativeConversationList = function NativeConversationList() {
   // message height when a message is added, undoing the scrollToBottom from onSubmit.
   // Defer the re-scroll past the native MPV adjustment (which runs on the UI thread after
   // React's commit) so the newest message stays visible.
+  const numOrdinalsRef = React.useRef(numOrdinals)
   const prevNumOrdinalsRef = React.useRef(numOrdinals)
-  React.useLayoutEffect(() => {
-    prevNumOrdinalsRef.current = numOrdinals
-  }, [conversationIDKey])
   const isKeyboardVisibleRef = React.useRef(isKeyboardVisible)
-  isKeyboardVisibleRef.current = isKeyboardVisible
+  React.useLayoutEffect(() => { numOrdinalsRef.current = numOrdinals })
+  React.useLayoutEffect(() => { isKeyboardVisibleRef.current = isKeyboardVisible })
+  // Resets baseline on conversation switch using a ref so numOrdinals is not a dep
+  // (adding it would make this fire alongside the sibling effect, collapsing prev === current
+  // and preventing the scroll-to-bottom from triggering on the first new message).
+  React.useLayoutEffect(() => {
+    prevNumOrdinalsRef.current = numOrdinalsRef.current
+  }, [conversationIDKey])
   React.useLayoutEffect(() => {
     const prev = prevNumOrdinalsRef.current
     prevNumOrdinalsRef.current = numOrdinals
