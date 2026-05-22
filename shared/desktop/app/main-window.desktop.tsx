@@ -99,6 +99,8 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
 const changeDock = (show: boolean) => {
   const dock = Electron.app.dock
   if (!dock) return
+  windowState.dockHidden = !show
+  R.remoteDispatch(RemoteGen.createUpdateWindowState({windowState}))
   if (show) {
     dock
       .show()
@@ -107,9 +109,6 @@ const changeDock = (show: boolean) => {
   } else {
     dock.hide()
   }
-
-  windowState.dockHidden = !show
-  R.remoteDispatch(RemoteGen.createUpdateWindowState({windowState}))
 }
 
 export const showDockIcon = () => changeDock(true)

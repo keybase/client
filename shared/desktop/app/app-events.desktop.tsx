@@ -5,6 +5,7 @@ import logger from '@/logger'
 import os from 'os'
 import {isLinux, isWindows, cacheRoot} from '@/constants/platform'
 import {ctlQuit} from './ctl.desktop'
+import {showDockIcon} from './main-window.desktop'
 import {allowMultipleInstances} from '@/local-debug'
 import KB2 from '@/util/electron'
 const {env} = KB2.constants
@@ -187,11 +188,7 @@ export const getStartupProcessArgs = () => {
 
 const handleActivate = (getMainWindow: () => Electron.BrowserWindow | null) => {
   getMainWindow()?.show()
-  const dock = Electron.app.dock
-  dock
-    ?.show()
-    .then(() => {})
-    .catch(() => {})
+  showDockIcon()
 }
 
 const handleQuitting = (event: Electron.Event) => {

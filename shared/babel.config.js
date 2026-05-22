@@ -22,7 +22,7 @@ const makePlatformPlugin = defines => babel => {
 const makeElectronConfig = (isTest, platformPlugin) => ({
   presets: [
     ['@babel/preset-env', {targets: {node: 'current'}}],
-    ...(isTest ? [['@babel/preset-react', {runtime: 'automatic'}], '@babel/preset-flow'] : []),
+    ...(isTest ? [['@babel/preset-react', {runtime: 'automatic'}]] : []),
     '@babel/preset-typescript',
   ],
   plugins: [
