@@ -55,7 +55,7 @@
     "rn-jsbuild-ios": "mkdir -p ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output ios/dist/main.jsbundle --sourcemap-output ios/dist/main.jsbundle.sourcemap",
     "rn-jsbuild-android": "mkdir -p android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output android/dist/main.jsbundle --sourcemap-output android/dist/main.jsbundle.sourcemap",
     "tsc": "./node_modules/.bin/tsgo --project ./tsconfig.desktop.json && ./node_modules/.bin/tsgo --project ./tsconfig.native.json",
-    "modules": "./install-modules",
+    "modules": "yarn install --pure-lockfile --ignore-optional --ignore-scripts && yarn postinstall && cd node_modules/@typescript/native-preview && yarn install",
     "log-to-trace": "node desktop/yarn-helper/log-to-trace.mts",
     "pod-clean": "pod cache clean --all ; rm -rf ios/build; rm -rf ios/Pods; rm -f ios/.xcode.env.local; rm -rf ../rnmodules/react-native-kb/node_modules",
     "pod-install": "cd ios; pod install --repo-update",
@@ -202,6 +202,9 @@
     "webpack-dev-server": "5.2.4",
     "webpack-merge": "6.0.1"
   },
+  "resolutions": {
+    "**/@types/react": "19.2.14"
+  },
   "typecoverage": {
     "detail": true,
     "strict": true
@@ -210,6 +213,5 @@
     "autolinking": {
       "exclude": []
     }
-  },
-  "packageManager": "yarn@4.15.0"
+  }
 }
