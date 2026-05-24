@@ -12,8 +12,12 @@ const commands = {
     help: 'Update icon.constants-gen.tsx and icon.css with new/removed files',
   },
   'unused-assets': {
-    code: unusedAssets,
+    code: () => unusedAssets(),
     help: 'Find unused assets',
+  },
+  'delete-unused-assets': {
+    code: () => unusedAssets(true),
+    help: 'Delete all unused assets and regenerate icon constants',
   },
 }
 
@@ -262,39 +266,140 @@ ${Object.keys(icons).reduce((res, name) => {
   }
 }
 
-function unusedAssets() {
-  const allFiles = fs.readdirSync(paths.iconPng)
+function unusedAssets(deleteFiles = false) {
+  const sharedRoot = path.resolve(__dirname, '../..')
 
-  // map of root name => [files]
-  const images: {[key: string]: Array<string>} = {}
-  allFiles.forEach(f => {
-    const parsed = path.parse(f)
-    if (!['.jpg', '.png'].includes(parsed.ext)) {
-      return
-    }
+  // Generated/tool files that reference assets by definition — exclude from search
+  const excludedFromSearch = [
+    'common-adapters/icon.constants-gen.shared.tsx',
+    'common-adapters/icon.constants-gen.d.ts',
+    'common-adapters/icon.css',
+    'desktop/yarn-helper/font.mts',
+  ].map(f => path.resolve(sharedRoot, f))
 
-    let root = parsed.name
-    const atFiles = root.match(/(.*)@[23]x$/)
-    if (atFiles) {
-      root = atFiles[1] ?? ''
-    }
+  // Collect candidate asset dirs: {dir, files[], nameExtractor}
+  type AssetDir = {dir: string; files: Array<string>; nameOf: (filename: string) => string | undefined}
 
-    let ir = images[root]
-    if (!ir) {
-      ir = []
-      images[root] = ir
-    }
-    ir.push(f)
-  })
+  const imageDirs: Array<AssetDir> = [
+    {
+      dir: paths.iconPng,
+      files: fs.readdirSync(paths.iconPng),
+      // strip @2x/@3x suffix and extension → the icon name used in code
+      nameOf: f => {
+        const parsed = path.parse(f)
+        if (!['.jpg', '.png'].includes(parsed.ext)) return undefined
+        return parsed.name.replace(/@[23]x$/, '')
+      },
+    },
+    {
+      dir: paths.illustrationPng,
+      files: fs.readdirSync(paths.illustrationPng),
+      nameOf: f => {
+        const parsed = path.parse(f)
+        if (!['.jpg', '.png'].includes(parsed.ext)) return undefined
+        return parsed.name.replace(/@[23]x$/, '')
+      },
+    },
+    {
+      dir: path.resolve(__dirname, '../../images/iconfont'),
+      files: fs.readdirSync(path.resolve(__dirname, '../../images/iconfont')),
+      // e.g. "1-kb-iconfont-add-16.svg" → "iconfont-add"
+      nameOf: f => {
+        const m = f.match(/^\d+-kb-(iconfont-.*)-\d+\.svg$/)
+        return m ? m[1] : undefined
+      },
+    },
+  ]
 
-  Object.keys(images).forEach(image => {
-    const command = `ag --ignore "./common-adapters/icon.constants-gen.tsx" "${image}"`
-    try {
-      execSync(command, {encoding: 'utf8', env: process.env})
-    } catch {
-      console.log(image, images[image]?.join('\n'))
+  // Collect all TS/TSX source files to grep (excluding generated files and node_modules)
+  const sourceFiles = execSync(
+    `find "${sharedRoot}" -type f \\( -name "*.ts" -o -name "*.tsx" \\) ! -path "*/node_modules/*"`,
+    {encoding: 'utf8'}
+  )
+    .trim()
+    .split('\n')
+    .filter(f => !excludedFromSearch.includes(f))
+
+  // Write source file list to a temp file so xargs can read it without hitting ARG_MAX
+  const tmpList = '/tmp/asset-check-sources.txt'
+  fs.writeFileSync(tmpList, sourceFiles.join('\n') + '\n')
+
+  // First pass: find which names are referenced in source.
+  // Also check prefixes to catch dynamically-constructed icon names like:
+  //   `icon-phone-revoke-background-${n}-${size}`
+  // A prefix match on "icon-phone-revoke-background-" is enough to flag the whole family.
+  const usedNames = new Set<string>()
+  for (const {files, nameOf} of imageDirs) {
+    const seen = new Set<string>()
+    for (const f of files) {
+      const name = nameOf(f)
+      if (!name || seen.has(name)) continue
+      seen.add(name)
+
+      // Check the full name first, then progressively shorter prefixes to catch
+      // dynamically-constructed names like `icon-phone-revoke-background-${n}-${size}`
+      let found = false
+      const segments = name.split('-')
+      for (let keep = segments.length; keep >= 2 && !found; keep--) {
+        const candidate = segments.slice(0, keep).join('-') + (keep < segments.length ? '-' : '')
+        try {
+          execSync(`xargs grep -ql "${candidate}" < "${tmpList}"`, {encoding: 'utf8'})
+          found = true
+        } catch { /* not found */ }
+      }
+
+      if (found) usedNames.add(name)
     }
-  })
+  }
+
+  // Light/dark icons are paired: if either half is used, both must be kept.
+  // Propagate usage across the pair before deciding what's unused.
+  for (const name of [...usedNames]) {
+    const darkSibling = name.startsWith('icon-dark-') ? name.replace('icon-dark-', 'icon-') : name.replace(/^icon-/, 'icon-dark-')
+    usedNames.add(darkSibling)
+  }
+
+  const unused: Array<{name: string; files: Array<string>}> = []
+  for (const {files, nameOf} of imageDirs) {
+    const seen = new Set<string>()
+    for (const f of files) {
+      const name = nameOf(f)
+      if (!name || seen.has(name)) continue
+      seen.add(name)
+      if (!usedNames.has(name)) {
+        unused.push({name, files: files.filter(file => nameOf(file) === name)})
+      }
+    }
+  }
+
+  if (unused.length === 0) {
+    console.log('No unused assets found.')
+    return
+  }
+
+  if (!deleteFiles) {
+    console.log(`Found ${unused.length} unused asset(s):\n`)
+    for (const {name, files} of unused) {
+      console.log(`  ${name}`)
+      for (const f of files) console.log(`    ${f}`)
+    }
+    return
+  }
+
+  // Delete mode: remove each file and its siblings
+  let deleted = 0
+  for (const {dir, files, nameOf} of imageDirs) {
+    for (const f of files) {
+      const name = nameOf(f)
+      if (!name) continue
+      if (unused.some(u => u.name === name)) {
+        fs.rmSync(path.join(dir, f))
+        deleted++
+      }
+    }
+  }
+  console.log(`Deleted ${deleted} file(s) across ${unused.length} unused asset(s).`)
+  updateIconConstants()
 }
 
 export default commands

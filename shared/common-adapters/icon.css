@@ -31,12 +31,10 @@
 .icon-gen-iconfont-chat::before {content: "\e90e";}
 .icon-gen-iconfont-check::before {content: "\e90f";}
 .icon-gen-iconfont-clipboard::before {content: "\e910";}
-.icon-gen-iconfont-clock-solid::before {content: "\e911";}
 .icon-gen-iconfont-close::before {content: "\e912";}
 .icon-gen-iconfont-compose::before {content: "\e913";}
 .icon-gen-iconfont-crown-admin::before {content: "\e914";}
 .icon-gen-iconfont-crown-owner::before {content: "\e915";}
-.icon-gen-iconfont-dollar-sign::before {content: "\e916";}
 .icon-gen-iconfont-download-2::before {content: "\e917";}
 .icon-gen-iconfont-download::before {content: "\e918";}
 .icon-gen-iconfont-edit::before {content: "\e919";}
@@ -44,7 +42,6 @@
 .icon-gen-iconfont-emoji::before {content: "\e91b";}
 .icon-gen-iconfont-exclamation::before {content: "\e91c";}
 .icon-gen-iconfont-finder::before {content: "\e91e";}
-.icon-gen-iconfont-fire::before {content: "\e91f";}
 .icon-gen-iconfont-folder-downloads::before {content: "\e920";}
 .icon-gen-iconfont-folder-dropdown::before {content: "\e921";}
 .icon-gen-iconfont-folder-new::before {content: "\e922";}
@@ -55,8 +52,6 @@
 .icon-gen-iconfont-folder-public-me::before {content: "\e927";}
 .icon-gen-iconfont-folder-up::before {content: "\e928";}
 .icon-gen-iconfont-gear::before {content: "\e929";}
-.icon-gen-iconfont-hamburger::before {content: "\e92a";}
-.icon-gen-iconfont-hand-wave::before {content: "\e92b";}
 .icon-gen-iconfont-identity-bitcoin::before {content: "\e92c";}
 .icon-gen-iconfont-identity-devices::before {content: "\e92d";}
 .icon-gen-iconfont-identity-facebook::before {content: "\e92e";}
@@ -80,11 +75,9 @@
 .icon-gen-iconfont-proof-good::before {content: "\e94c";}
 .icon-gen-iconfont-proof-pending::before {content: "\e94d";}
 .icon-gen-iconfont-proof-placeholder::before {content: "\e94e";}
-.icon-gen-iconfont-qr-code::before {content: "\e94f";}
 .icon-gen-iconfont-question-mark::before {content: "\e950";}
 .icon-gen-iconfont-reacji::before {content: "\e951";}
 .icon-gen-iconfont-stellar-request::before {content: "\e955";}
-.icon-gen-iconfont-refresh::before {content: "\e956";}
 .icon-gen-iconfont-remove::before {content: "\e957";}
 .icon-gen-iconfont-search::before {content: "\e958";}
 .icon-gen-iconfont-shh::before {content: "\e959";}
@@ -93,15 +86,10 @@
 .icon-gen-iconfont-success::before {content: "\e95c";}
 .icon-gen-iconfont-team-join::before {content: "\e95d";}
 .icon-gen-iconfont-team-leave::before {content: "\e95e";}
-.icon-gen-iconfont-text-code::before {content: "\e95f";}
-.icon-gen-iconfont-thunderbolt::before {content: "\e960";}
 .icon-gen-iconfont-clock::before {content: "\e961";}
-.icon-gen-iconfont-clock-reversed::before {content: "\e962";}
 .icon-gen-iconfont-timer::before {content: "\e963";}
 .icon-gen-iconfont-trash::before {content: "\e964";}
-.icon-gen-iconfont-upload-2::before {content: "\e966";}
 .icon-gen-iconfont-upload::before {content: "\e967";}
-.icon-gen-iconfont-wrenches::before {content: "\e969";}
 .icon-gen-iconfont-return::before {content: "\e96a";}
 .icon-gen-iconfont-contact-card::before {content: "\e96d";}
 .icon-gen-iconfont-contact-book::before {content: "\e96e";}
@@ -117,7 +105,6 @@
 .icon-gen-iconfont-heart::before {content: "\e978";}
 .icon-gen-iconfont-spade::before {content: "\e979";}
 .icon-gen-iconfont-reload::before {content: "\e97a";}
-.icon-gen-iconfont-phone-contact::before {content: "\e97b";}
 .icon-gen-iconfont-nav-2-people::before {content: "\e97c";}
 .icon-gen-iconfont-nav-2-chat::before {content: "\e97d";}
 .icon-gen-iconfont-nav-2-files::before {content: "\e97e";}
@@ -127,7 +114,6 @@
 .icon-gen-iconfont-nav-2-devices::before {content: "\e982";}
 .icon-gen-iconfont-nav-2-settings::before {content: "\e983";}
 .icon-gen-iconfont-nav-2-more::before {content: "\e984";}
-.icon-gen-iconfont-wallet-transfer::before {content: "\e985";}
 .icon-gen-iconfont-filter::before {content: "\e986";}
 .icon-gen-iconfont-app-close::before {content: "\e987";}
 .icon-gen-iconfont-app-maximize::before {content: "\e988";}
@@ -138,15 +124,9 @@
 .icon-gen-iconfont-password::before {content: "\e98d";}
 .icon-gen-iconfont-wave-2::before {content: "\e98e";}
 .icon-gen-iconfont-mailbox::before {content: "\e98f";}
-.icon-gen-iconfont-calculate::before {content: "\e990";}
-.icon-gen-iconfont-calculator::before {content: "\e991";}
-.icon-gen-iconfont-expand::before {content: "\e992";}
-.icon-gen-iconfont-collapse::before {content: "\e993";}
 .icon-gen-iconfont-block::before {content: "\e994";}
 .icon-gen-iconfont-reply::before {content: "\e995";}
 .icon-gen-iconfont-number-pad::before {content: "\e996";}
-.icon-gen-iconfont-radio::before {content: "\e997";}
-.icon-gen-iconfont-radio-solid::before {content: "\e998";}
 .icon-gen-iconfont-app-un-maximize::before {content: "\e999";}
 .icon-gen-iconfont-unhide::before {content: "\e99a";}
 .icon-gen-iconfont-nav-2-robot::before {content: "\e99b";}
@@ -176,7 +156,6 @@
 .icon-gen-iconfont-campfire-burning::before {content: "\e9b3";}
 .icon-gen-iconfont-campfire-out::before {content: "\e9b4";}
 .icon-gen-iconfont-envelope::before {content: "\e9b5";}
-.icon-gen-iconfont-person-raisedarms::before {content: "\e9b6";}
 .icon-gen-iconfont-typing::before {content: "\e9b7";}
 .icon-gen-iconfont-pawprint::before {content: "\e9b8";}
 .icon-gen-iconfont-apple::before {content: "\e9b9";}
@@ -186,7 +165,6 @@
 .icon-gen-iconfont-checkbox::before {content: "\e9bd";}
 .icon-gen-iconfont-flag::before {content: "\e9be";}
 .icon-gen-iconfont-copy::before {content: "\e9bf";}
-.icon-gen-iconfont-share-android::before {content: "\e9c0";}
 .icon-gen-iconfont-envelope-solid::before {content: "\e9c2";}
 .icon-gen-iconfont-mic-solid::before {content: "\e9c3";}
 .icon-gen-iconfont-film-solid::before {content: "\e9c4";}
