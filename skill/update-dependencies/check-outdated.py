@@ -19,9 +19,16 @@ def semver_key(v):
     import re
     m = re.match(r'(\d+)\.(\d+)\.(\d+)(?:[.-](.+))?', v)
     if not m:
-        return (0, 0, 0, v)
+        return (0, 0, 0, [])
     major, minor, patch, pre = int(m.group(1)), int(m.group(2)), int(m.group(3)), m.group(4) or ''
-    return (major, minor, patch, pre)
+    # Parse pre-release segments numerically so beta.9 < beta.56, alpha.9 < alpha.29
+    def part_key(p):
+        try:
+            return (0, int(p))
+        except ValueError:
+            return (1, p)
+    pre_parts = [part_key(p) for p in re.split(r'[.\-]', pre)] if pre else []
+    return (major, minor, patch, pre_parts)
 
 def get_latest(name, current):
     if name in SKIP or current.startswith('file:'):
