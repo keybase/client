@@ -137,10 +137,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   bigButton: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      borderColor: Kb.Styles.globalColors.black_10,
-      borderRadius: 4,
-      borderStyle: 'solid',
-      borderWidth: 1,
+      ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, 4),
       position: 'relative',
     },
     isElectron: {

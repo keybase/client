@@ -263,10 +263,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           ...Kb.Styles.globalStyles.flexBoxColumn,
           alignContent: 'center',
-          borderColor: Kb.Styles.globalColors.black_10,
-          borderRadius: 4,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, 4),
           flexGrow: 1,
           marginBottom: Kb.Styles.globalMargins.small,
           marginTop: Kb.Styles.globalMargins.small,

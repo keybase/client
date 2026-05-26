@@ -207,10 +207,7 @@ const paperKeyNudgeStyles = Kb.Styles.styleSheetCreate(
     ({
       border: Kb.Styles.platformStyles({
         common: {
-          borderColor: Kb.Styles.globalColors.black_05,
-          borderRadius: Kb.Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.black_05, 1, Kb.Styles.borderRadius),
           flex: 1,
         },
         isElectron: {
