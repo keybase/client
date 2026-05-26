@@ -1272,9 +1272,7 @@ const filterProvider = (p: Provider, filter: RegExp) =>
 
 const rightColumnStyle = Kb.Styles.platformStyles({
   isElectron: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
+    ...Kb.Styles.textEllipsis,
   },
 })
 

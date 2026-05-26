@@ -129,9 +129,7 @@ const styles = Kb.Styles.styleSheetCreate(
           maxWidth: '70%',
         },
         isElectron: {
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
       }),
       filteredRow: Kb.Styles.platformStyles({
@@ -156,9 +154,7 @@ const styles = Kb.Styles.styleSheetCreate(
           flexShrink: 1,
         },
         isElectron: {
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
       }),
       textContainer: {

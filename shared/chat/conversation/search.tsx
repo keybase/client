@@ -535,9 +535,7 @@ const styles = Kb.Styles.styleSheetCreate(
           display: 'inline',
           flex: 1,
           marginLeft: Kb.Styles.globalMargins.tiny,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
       }),
       inputContainer: Kb.Styles.platformStyles({

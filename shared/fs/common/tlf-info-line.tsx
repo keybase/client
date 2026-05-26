@@ -136,9 +136,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       textRow: Kb.Styles.platformStyles({
         isElectron: {
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
         isMobile: {
           flexShrink: 1,

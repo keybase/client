@@ -102,9 +102,7 @@ const styles = Kb.Styles.styleSheetCreate(
           color: Kb.Styles.globalColors.white,
         },
         isElectron: {
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
       }),
       nameAndProgress: {

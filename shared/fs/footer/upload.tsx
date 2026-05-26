@@ -256,10 +256,8 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           color: Kb.Styles.globalColors.whiteOrWhite,
           maxWidth: '100%',
-          overflow: 'hidden',
           textAlign: 'center',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
       }),
       toggleButton: {position: 'absolute'},
