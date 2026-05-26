@@ -635,7 +635,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   chatBadge: {
     backgroundColor: Kb.Styles.globalColors.blue,
-    borderRadius: 4,
+    borderRadius: Kb.Styles.borderRadius,
     ...Kb.Styles.size(8),
   },
   chatContainer: {

@@ -81,7 +81,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   outerContainer: Kb.Styles.platformStyles({
     isElectron: {
-      borderRadius: 4,
+      borderRadius: Kb.Styles.borderRadius,
       height: 560,
       width: 400,
     },

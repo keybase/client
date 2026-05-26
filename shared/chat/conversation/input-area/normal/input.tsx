@@ -900,7 +900,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.white,
         borderColor: Kb.Styles.globalColors.black_20,
-        borderRadius: 4,
+        borderRadius: Kb.Styles.borderRadius,
         borderStyle: 'solid',
         borderWidth: 1,
         marginLeft: Kb.Styles.globalMargins.small,

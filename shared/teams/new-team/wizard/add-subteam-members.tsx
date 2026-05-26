@@ -158,7 +158,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   search: {
-    borderRadius: 4,
+    borderRadius: Kb.Styles.borderRadius,
   },
   searchContainer: Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
 }))

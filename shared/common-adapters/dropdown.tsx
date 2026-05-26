@@ -254,7 +254,7 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           border: `1px solid ${Styles.globalColors.blue}`,
-          borderRadius: 4,
+          borderRadius: Styles.borderRadius,
           maxHeight: 300,
           width: 270,
         },

@@ -1305,7 +1305,7 @@ const styles = Kb.Styles.styleSheetCreate(
       container: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
           overflow: 'hidden',
         },
         isMobile: {

@@ -20,7 +20,7 @@ type StyleEntry = {
   platform: string | null
   line: number
   props: Record<string, string>   // literal CSS props in source
-  helperCalls: HelperCall[]       // spread helper calls found in this style object
+  helperCalls?: HelperCall[]      // spread helper calls found in this style object
 }
 
 type ExtractOutput = {

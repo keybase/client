@@ -315,7 +315,7 @@ const styles = Kb.Styles.styleSheetCreate(
           padding: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
           marginBottom: Kb.Styles.globalMargins.xsmall,
           marginRight: Kb.Styles.globalMargins.small,
           marginTop: Kb.Styles.globalMargins.tiny,
@@ -326,7 +326,7 @@ const styles = Kb.Styles.styleSheetCreate(
           flexGrow: 1,
         },
         isTablet: {
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
           marginBottom: Kb.Styles.globalMargins.xsmall,
           marginRight: Kb.Styles.globalMargins.small,
           marginTop: Kb.Styles.globalMargins.tiny,
@@ -340,7 +340,7 @@ const styles = Kb.Styles.styleSheetCreate(
           padding: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
           height: 184,
           marginBottom: Kb.Styles.globalMargins.xsmall,
           marginRight: Kb.Styles.globalMargins.small,
@@ -352,7 +352,7 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '100%',
         },
         isTablet: {
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
           height: 194,
           marginBottom: Kb.Styles.globalMargins.xsmall,
           marginRight: Kb.Styles.globalMargins.small,
@@ -386,7 +386,7 @@ const styles = Kb.Styles.styleSheetCreate(
         flexShrink: 1,
       },
       header: {flexShrink: 1},
-      illustration: {borderRadius: 4, width: '100%'},
+      illustration: {borderRadius: Kb.Styles.borderRadius, width: '100%'},
       marginBottomRightTiny: {
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,

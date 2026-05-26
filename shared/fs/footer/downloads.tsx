@@ -85,7 +85,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       iconBoxEllipsis: {
         backgroundColor: Kb.Styles.globalColors.black_10,
-        borderRadius: 4,
+        borderRadius: Kb.Styles.borderRadius,
         marginLeft: Kb.Styles.globalMargins.xtiny,
       },
     }) as const

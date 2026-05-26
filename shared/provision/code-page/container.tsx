@@ -540,7 +540,7 @@ const styles = Kb.Styles.styleSheetCreate(
       enterTextContainer2: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.white,
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
           ...Kb.Styles.padding(15, 20),
         },
         isElectron: {maxWidth: 460},
@@ -626,7 +626,7 @@ const styles = Kb.Styles.styleSheetCreate(
       viewTextContainer: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.greenDark,
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
         },
         isElectron: {
           alignItems: 'center',

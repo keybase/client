@@ -115,7 +115,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       listContainer: {
         backgroundColor: Kb.Styles.globalColors.white,
-        borderRadius: 4,
+        borderRadius: Kb.Styles.borderRadius,
       },
     }) as const
 )
