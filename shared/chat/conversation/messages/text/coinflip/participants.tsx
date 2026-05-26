@@ -58,8 +58,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       container: Kb.Styles.platformStyles({
         isElectron: {
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
         },
         isMobile: {
           paddingBottom: Kb.Styles.globalMargins.xtiny,

@@ -696,8 +696,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   tlfContainer: {
     backgroundColor: Kb.Styles.globalColors.white,
     color: Kb.Styles.globalColors.black,
-    paddingBottom: Kb.Styles.globalMargins.tiny,
-    paddingTop: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
   },
   tlfParticipants: {fontSize: 12},
   tlfRowContainer: {

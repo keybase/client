@@ -142,8 +142,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   channelDummyInput: {
     backgroundColor: Kb.Styles.globalColors.black_10,
     borderRadius: Kb.Styles.borderRadius,
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   channelDummyInputText: {color: Kb.Styles.globalColors.black_50},
   container: {

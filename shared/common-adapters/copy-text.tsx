@@ -206,13 +206,11 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           display: 'flex',
           minHeight: 32,
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
+          ...Styles.paddingV(Styles.globalMargins.xtiny),
         },
         isMobile: {
           minHeight: 40,
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          ...Styles.paddingV(Styles.globalMargins.tiny),
         },
       }),
       container: Styles.platformStyles({

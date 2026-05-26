@@ -76,8 +76,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: {backgroundColor: Kb.Styles.globalColors.blueGrey},
         isMobile: {
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
         },
       }),
       containerNoButton: {

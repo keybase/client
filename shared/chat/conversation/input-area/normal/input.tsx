@@ -263,8 +263,7 @@ const desktopInputLowLevelStyles = Kb.Styles.styleSheetCreate(() => ({
   multiline: Kb.Styles.platformStyles({
     isElectron: {
       fieldSizing: 'content',
-      paddingBottom: 0,
-      paddingTop: 0,
+      ...Kb.Styles.paddingV(0),
       resize: 'none',
       width: '100%',
     },

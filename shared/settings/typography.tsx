@@ -489,14 +489,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   paraRow: {
     borderBottomColor: Kb.Styles.globalColors.black_10,
     borderBottomWidth: 1,
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   sampleRow: {
     borderBottomColor: Kb.Styles.globalColors.black_10,
     borderBottomWidth: 1,
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   samples: {padding: Kb.Styles.globalMargins.small},
   strikethrough: Kb.Styles.platformStyles({

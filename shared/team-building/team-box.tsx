@@ -137,12 +137,10 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       scrollContent: Kb.Styles.platformStyles({
         isElectron: {
-          paddingBottom: Kb.Styles.globalMargins.xsmall,
-          paddingTop: Kb.Styles.globalMargins.xsmall,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xsmall),
         },
         isMobile: {
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
         },
       }),
     }) as const

@@ -138,8 +138,7 @@ const styles = Kb.Styles.styleSheetCreate(
       helperText: Kb.Styles.platformStyles({
         common: {textAlign: 'center'},
         isMobile: {
-          paddingBottom: Kb.Styles.globalMargins.small,
-          paddingTop: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
         },
       }),
       loading: {alignSelf: 'center'},

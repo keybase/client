@@ -443,8 +443,7 @@ const styles = Kb.Styles.styleSheetCreate(
       teamRow: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
           width: '100%',
         },
         isElectron: {

@@ -173,8 +173,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       ...Kb.Styles.globalStyles.flexOne,
-      paddingBottom: Kb.Styles.globalMargins.xlarge,
-      paddingTop: Kb.Styles.globalMargins.xlarge,
+      ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xlarge),
     },
   }),
 }))

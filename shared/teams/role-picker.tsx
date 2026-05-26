@@ -391,8 +391,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
 
         isMobile: {
-          paddingBottom: Kb.Styles.globalMargins.small,
-          paddingTop: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
         },
       }),
       rowPadding: Kb.Styles.platformStyles({

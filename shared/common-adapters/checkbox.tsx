@@ -117,8 +117,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-start',
-    paddingBottom: 2,
-    paddingTop: 2,
+    ...Kb.Styles.paddingV(2),
   },
   icon: Kb.Styles.platformStyles({
     isElectron: {
@@ -127,8 +126,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   mobileContainer: {
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   semiTransparent: {opacity: 0.4},
   transparent: {opacity: 0},

@@ -313,8 +313,7 @@ const styles = Styles.styleSheetCreate(
       multiline: Styles.platformStyles({
         isElectron: {
           fieldSizing: 'content',
-          paddingBottom: 0,
-          paddingTop: 0,
+          ...Styles.paddingV(0),
           resize: 'none',
           width: '100%',
         },

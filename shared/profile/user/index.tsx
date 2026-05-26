@@ -683,8 +683,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {minHeight: '100%'},
   }),
   textEmpty: {
-    paddingBottom: Kb.Styles.globalMargins.large,
-    paddingTop: Kb.Styles.globalMargins.large,
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.large),
   },
   typedBackgroundBlue: {backgroundColor: Kb.Styles.globalColors.blue},
   typedBackgroundGreen: {backgroundColor: Kb.Styles.globalColors.green},

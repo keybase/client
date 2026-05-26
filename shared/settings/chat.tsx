@@ -535,8 +535,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   container: Kb.Styles.platformStyles({
     common: {
-      paddingBottom: Kb.Styles.globalMargins.small,
-      paddingTop: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
       width: '100%',
     },
   }),

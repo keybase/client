@@ -28,8 +28,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           alignItems: 'center',
           bottom: 0,
-          paddingBottom: Kb.Styles.globalMargins.small,
-          paddingTop: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
           position: 'absolute',
           width: '100%',
         },
