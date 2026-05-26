@@ -353,11 +353,14 @@ function suggestMarginVCall(props: Record<string, string>): string {
   return `...Kb.Styles.marginV(${props['marginTop']})`
 }
 
-// size(n) — height === width
+// size(n) — height === width, excludes undefined values
 function isSizeGap(props: Record<string, string>): boolean {
+  const v = props['height']
   return (
     'height' in props &&
     'width' in props &&
+    v !== undefined &&
+    v !== 'undefined' &&
     props['height'] === props['width']
   )
 }

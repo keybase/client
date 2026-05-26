@@ -163,7 +163,7 @@ export const paddingH = (n: number) => ({paddingLeft: n, paddingRight: n})
 export const paddingV = (n: number) => ({paddingTop: n, paddingBottom: n})
 export const marginH = (n: number) => ({marginLeft: n, marginRight: n})
 export const marginV = (n: number) => ({marginTop: n, marginBottom: n})
-export const size = (n: number) => ({height: n, width: n})
+export const size = (n: number | `${number}%`) => ({height: n, width: n})
 
 // ─── Font definitions ─────────────────────────────────────────────────────────
 
