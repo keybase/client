@@ -261,10 +261,9 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {fontSize: 9, letterSpacing: -0.2, lineHeight: 13},
       }),
       countdownContainer: {
-        alignItems: 'center',
+        ...Kb.Styles.centered(),
         borderRadius: 10,
         height: 20,
-        justifyContent: 'center',
         width: 20,
       },
       countdownContainerHighlighted: {backgroundColor: Kb.Styles.globalColors.blackOrBlack},

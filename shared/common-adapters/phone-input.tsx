@@ -657,9 +657,8 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       containerLoading: {
-        alignItems: 'center',
+        ...Styles.centered(),
         display: 'flex',
-        justifyContent: 'center',
       },
       containerSmall: {
         backgroundColor: Styles.globalColors.white,

@@ -853,16 +853,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   iconStyle: {padding: Kb.Styles.globalMargins.tiny},
   innerCircleStyle: {
     ...circleAroundIcon(84),
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...Kb.Styles.centered(),
   },
   lockHintStyle: {
     ...centerAroundIcon(32),
   },
   sendRecordingButtonStyle: {
     ...circleAroundIcon(32),
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...Kb.Styles.centered(),
   },
   tooltipContainer: {
     backgroundColor: Kb.Styles.globalColors.black,

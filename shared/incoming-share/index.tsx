@@ -337,8 +337,7 @@ const IncomingShareMain = (props: IncomingShareMainProps) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   footer: {
     ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...Kb.Styles.centered(),
     width: '100%',
   },
   footerIcon: {

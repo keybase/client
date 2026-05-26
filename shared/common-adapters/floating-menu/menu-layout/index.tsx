@@ -453,9 +453,8 @@ const nativeStyles = Styles.styleSheetCreate(
       },
       itemContainer: {
         ...Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
+        ...Styles.centered(),
         height: itemContainerHeight,
-        justifyContent: 'center',
         position: 'relative',
       },
       itemContainerWithSubTitle: {height: itemContainerHeight},

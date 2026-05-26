@@ -414,9 +414,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   addEmojiIconContainer: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
+      ...Kb.Styles.centered(),
       ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, Kb.Styles.globalMargins.xtiny),
-      justifyContent: 'center',
     },
     isElectron: {
       ...Kb.Styles.size(Kb.Styles.globalMargins.mediumLarge),

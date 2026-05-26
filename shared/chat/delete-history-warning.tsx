@@ -71,9 +71,8 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       box: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
+          ...Kb.Styles.centered(),
           backgroundColor: Kb.Styles.globalColors.white,
-          justifyContent: 'center',
           padding: Kb.Styles.globalMargins.small,
         },
         isMobile: {

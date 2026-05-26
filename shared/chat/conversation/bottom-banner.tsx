@@ -173,10 +173,9 @@ const styles = Kb.Styles.styleSheetCreate(
       bannerStyle: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
+          ...Kb.Styles.centered(),
           backgroundColor: Kb.Styles.globalColors.red,
           flexWrap: 'wrap',
-          justifyContent: 'center',
           ...Kb.Styles.padding(8, 24),
         },
         isElectron: {

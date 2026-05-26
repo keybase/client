@@ -414,13 +414,12 @@ const styles = Kb.Styles.styleSheetCreate(
       circle: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
+          ...Kb.Styles.centered(),
           alignSelf: 'center',
           borderRadius: 36,
           cursor: 'pointer',
           flexShrink: 0,
           ...Kb.Styles.size(36),
-          justifyContent: 'center',
           margin: Kb.Styles.globalMargins.small,
         },
       }),
@@ -482,9 +481,8 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       videoWrapper: Kb.Styles.platformStyles({
         isMobile: {
-          alignItems: 'center',
+          ...Kb.Styles.centered(),
           ...Kb.Styles.size('100%'),
-          justifyContent: 'center',
           position: 'relative',
         },
       }),

@@ -487,13 +487,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {textDecorationLine: 'underline line-through'},
   }),
   paraRow: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
-    borderBottomWidth: 1,
+    ...Kb.Styles.bottomDivider(),
     ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   sampleRow: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
-    borderBottomWidth: 1,
+    ...Kb.Styles.bottomDivider(),
     ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   samples: {padding: Kb.Styles.globalMargins.small},
@@ -506,10 +504,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {textDecorationLine: 'underline'},
   }),
   wrap: {flexWrap: 'wrap'},
-  zoneRow: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-  },
+  zoneRow: Kb.Styles.bottomDivider(),
   zoneText: Kb.Styles.platformStyles({
     isElectron: {position: 'absolute', top: 0} as object,
   }),

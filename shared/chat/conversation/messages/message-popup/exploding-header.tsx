@@ -178,8 +178,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       timerBox: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
-          justifyContent: 'center',
+          ...Kb.Styles.centered(),
         },
         isMobile: {height: 46},
       }),

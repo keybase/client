@@ -166,8 +166,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   removeBox: {
     ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...Kb.Styles.centered(),
     padding: Kb.Styles.globalMargins.xtiny,
   },
 }))

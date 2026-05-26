@@ -253,9 +253,8 @@ const styles = Kb.Styles.styleSheetCreate(
       saveState: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.flexBoxRow,
-          alignItems: 'center',
+          ...Kb.Styles.centered(),
           height: 17,
-          justifyContent: 'center',
           marginTop: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {

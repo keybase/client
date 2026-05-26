@@ -174,10 +174,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   header: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid' as const,
-    minHeight: 48,
+    ...Kb.Styles.bottomDivider(48),
   },
   headerSide: {
     flex: 1,

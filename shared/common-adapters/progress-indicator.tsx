@@ -33,8 +33,7 @@ const ProgressIndicator = (p: Props) => {
 }
 
 const nativeStyle = {
-  alignItems: 'center',
-  justifyContent: 'center',
+  ...Styles.centered(),
 } as const
 
 const desktopStyles = Styles.styleSheetCreate(() => ({

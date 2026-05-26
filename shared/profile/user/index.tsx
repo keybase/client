@@ -596,10 +596,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   followTab: Kb.Styles.platformStyles({
     common: {
-      alignItems: 'center',
+      ...Kb.Styles.centered(),
       borderBottomColor: Kb.Styles.globalColors.white,
       borderBottomWidth: 2,
-      justifyContent: 'center',
     },
     isElectron: {
       borderBottomStyle: 'solid',

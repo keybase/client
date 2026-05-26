@@ -174,9 +174,8 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       emojiBox: {
         ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
+        ...Kb.Styles.centered(),
         height: Kb.Styles.globalMargins.small,
-        justifyContent: 'center',
         marginRight: Kb.Styles.globalMargins.xxtiny,
         width: Kb.Styles.globalMargins.small,
       },

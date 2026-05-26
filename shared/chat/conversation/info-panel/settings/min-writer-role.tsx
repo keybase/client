@@ -191,9 +191,8 @@ const styles = Style.styleSheetCreate(
       saveIndicator: Style.platformStyles({
         common: {
           ...Style.globalStyles.flexBoxRow,
-          alignItems: 'center',
+          ...Style.centered(),
           height: 17,
-          justifyContent: 'center',
           marginTop: Style.globalMargins.tiny,
         },
         isMobile: {

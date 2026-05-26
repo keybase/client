@@ -177,10 +177,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   header: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid' as const,
-    minHeight: 48,
+    ...Kb.Styles.bottomDivider(48),
   },
   headerLeft: {
     flex: 1,
@@ -233,7 +230,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.globalStyles.fillAbsolute,
   },
   overlayStyle: Kb.Styles.platformStyles({
-    isElectron: {alignItems: 'center', flexGrow: 1, justifyContent: 'center', pointerEvents: 'none'},
+    isElectron: {...Kb.Styles.centered(), flexGrow: 1, pointerEvents: 'none'},
   }),
   overlayTransparent: {backgroundColor: undefined},
 }))

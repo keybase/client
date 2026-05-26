@@ -32,11 +32,10 @@ export const smallHeight = isMobile ? 32 : 28
 const baseContainer: Styles._StylesCrossPlatform = Styles.platformStyles({
   common: {
     ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
+    ...Styles.centered(),
     borderRadius: Styles.borderRadius,
     gap: Styles.globalMargins.xtiny,
     height: regularHeight,
-    justifyContent: 'center',
   },
   isElectron: {
     cursor: 'pointer',
@@ -123,8 +122,7 @@ const opacity0Style = {opacity: 0} satisfies Styles._StylesCrossPlatform
 const progressContainerStyle = {
   ...Styles.globalStyles.fillAbsolute,
   ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center' as const,
-  justifyContent: 'center' as const,
+  ...Styles.centered(),
 } satisfies Styles._StylesCrossPlatform
 
 const progressNormal = {height: isMobile ? 32 : 24, width: isMobile ? 32 : 24}

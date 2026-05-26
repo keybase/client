@@ -273,10 +273,7 @@ const nativeStyles = {
   alignSelfStart: {alignSelf: 'flex-start'},
   alignSelfStretch: {alignSelf: 'stretch'},
   centered: {alignSelf: 'center'},
-  centeredChildren: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  centeredChildren: Styles.centered(),
   flex1: {flex: 1},
   fullHeight: {height: '100%', maxHeight: '100%'},
   fullWidth: {maxWidth: '100%', width: '100%'},

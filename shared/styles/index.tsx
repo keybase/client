@@ -164,6 +164,13 @@ export const paddingV = (n: number) => ({paddingTop: n, paddingBottom: n})
 export const marginH = (n: number) => ({marginLeft: n, marginRight: n})
 export const marginV = (n: number) => ({marginTop: n, marginBottom: n})
 export const size = (n: number | `${number}%`) => ({height: n, width: n})
+export const centered = () => ({alignItems: 'center' as const, justifyContent: 'center' as const})
+export const bottomDivider = (minHeight?: number) => ({
+  borderBottomColor: globalColors.black_10,
+  borderBottomWidth: 1,
+  borderStyle: 'solid' as const,
+  ...(minHeight !== undefined ? {minHeight} : {}),
+})
 
 // ─── Font definitions ─────────────────────────────────────────────────────────
 

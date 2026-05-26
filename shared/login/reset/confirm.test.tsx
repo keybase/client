@@ -39,6 +39,8 @@ jest.mock('@/common-adapters', () => {
       paddingV: () => ({}),
       platformStyles: (styles: {common?: Record<string, unknown>; isElectron?: Record<string, unknown>}) =>
         styles.common ?? styles.isElectron ?? {},
+      bottomDivider: () => ({}),
+      centered: () => ({}),
       roundedBottom: () => ({}),
       size: () => ({}),
       styleSheetCreate: <T,>(styles: () => T) => styles(),

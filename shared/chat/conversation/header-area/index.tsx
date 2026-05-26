@@ -319,6 +319,6 @@ const styles = Kb.Styles.styleSheetCreate(
         alignItems: 'center',
       },
       shhIcon: {marginLeft: Kb.Styles.globalMargins.xtiny},
-      usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
+      usernameHeaderContainer: Kb.Styles.centered(),
     }) as const
 )

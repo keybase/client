@@ -182,9 +182,8 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
         position: 'relative',
       },
       rightAction: {
-        alignItems: 'center',
+        ...Kb.Styles.centered(),
         height: '100%',
-        justifyContent: 'center',
       },
       row: {
         flexShrink: 0,

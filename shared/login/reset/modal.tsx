@@ -140,10 +140,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   desktopCover: {backgroundColor: Kb.Styles.globalColors.black_20},
   desktopModal: {width: 420},
   header: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid' as const,
-    minHeight: 48,
+    ...Kb.Styles.bottomDivider(48),
   },
   mobileModal: {
     ...Kb.Styles.globalStyles.fillAbsolute,

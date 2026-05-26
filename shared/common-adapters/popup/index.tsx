@@ -196,9 +196,8 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
   cover: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.fillAbsolute,
-    alignItems: 'center',
+    ...Styles.centered(),
     alignSelf: 'stretch',
-    justifyContent: 'center',
     ...Styles.padding(Styles.globalMargins.large, Styles.globalMargins.large, Styles.globalMargins.small),
   },
   positioned: Styles.platformStyles({

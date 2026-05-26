@@ -1473,9 +1473,8 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       },
       explodingWrapper: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
+        ...Kb.Styles.centered(),
         height: 38,
-        justifyContent: 'center',
         width: 36,
       },
       iconBottom: {

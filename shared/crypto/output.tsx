@@ -408,8 +408,7 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.blueGrey,
         },
         isTablet: {
-          alignItems: 'center',
-          justifyContent: 'center',
+          ...Kb.Styles.centered(),
         },
       }),
       outputPlaceholder: {backgroundColor: Kb.Styles.globalColors.blueGreyLight},
