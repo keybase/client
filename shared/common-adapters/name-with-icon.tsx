@@ -272,10 +272,7 @@ const styles = Styles.styleSheetCreate(() => ({
   editTeam: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blue,
-      borderColor: Styles.globalColors.white,
-      borderRadius: 100,
-      borderStyle: 'solid',
-      borderWidth: 2,
+      ...Styles.border(Styles.globalColors.white, 2, 100),
       bottom: -6,
       color: Styles.globalColors.whiteOrWhite,
       padding: 4,

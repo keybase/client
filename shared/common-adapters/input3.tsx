@@ -283,10 +283,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           alignItems: 'center',
           backgroundColor: Styles.globalColors.white,
-          borderColor: Styles.globalColors.black_10,
-          borderRadius: Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Styles.border(Styles.globalColors.black_10, 1, Styles.borderRadius),
           padding: Styles.globalMargins.xtiny,
         },
         isElectron: {

@@ -39,10 +39,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   circleOpen: {
-    borderColor: timeline_grey,
-    borderRadius: circleSize / 2,
-    borderStyle: 'solid',
-    borderWidth: 2,
+    ...Styles.border(timeline_grey, 2, circleSize / 2),
     height: circleSize,
     width: circleSize,
   },

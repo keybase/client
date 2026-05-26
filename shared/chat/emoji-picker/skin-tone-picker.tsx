@@ -112,10 +112,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   circleOuter: {
     backgroundColor: Kb.Styles.globalColors.white,
-    borderColor: Kb.Styles.globalColors.black_10,
-    borderRadius: (Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny) / 2,
-    borderStyle: 'solid',
-    borderWidth: 1,
+    ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, (Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny) / 2),
     height: Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny,
     left: -5,
     position: 'absolute',
@@ -134,10 +131,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   popupContainer: {
     backgroundColor: Kb.Styles.globalColors.white,
-    borderColor: Kb.Styles.globalColors.black_10,
-    borderRadius: Kb.Styles.globalMargins.small,
-    borderStyle: 'solid',
-    borderWidth: 1,
+    ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.globalMargins.small),
     height: 126,
     marginLeft: Kb.Styles.globalMargins.xtiny - 1,
     marginTop: Kb.Styles.globalMargins.xtiny - 1,
