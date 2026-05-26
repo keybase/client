@@ -119,11 +119,8 @@ const AudioPlayer = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xxtiny, Kb.Styles.globalMargins.tiny),
+    ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
     backgroundColor: Kb.Styles.globalColors.white,
-    borderColor: Kb.Styles.globalColors.grey,
-    borderRadius: Kb.Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
   },
   visContainer: {
     alignItems: 'flex-start',

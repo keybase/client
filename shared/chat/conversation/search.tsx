@@ -543,10 +543,7 @@ const styles = Kb.Styles.styleSheetCreate(
       inputContainer: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.white,
-          borderColor: Kb.Styles.globalColors.black_20,
-          borderRadius: Kb.Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, Kb.Styles.borderRadius),
           flex: 1,
         },
         isElectron: {

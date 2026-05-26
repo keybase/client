@@ -318,10 +318,7 @@ const styles = Kb.Styles.styleSheetCreate(
       card: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.whiteOrWhite,
-          borderColor: Kb.Styles.globalColors.black_10OrBlack,
-          borderRadius: Kb.Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.black_10OrBlack, 1, Kb.Styles.borderRadius),
           flexShrink: 0,
           height: 44,
           marginRight: -4,

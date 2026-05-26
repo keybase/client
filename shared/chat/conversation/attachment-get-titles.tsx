@@ -299,10 +299,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       input: Kb.Styles.platformStyles({
         common: {
-          borderColor: Kb.Styles.globalColors.blue,
-          borderRadius: Kb.Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.blue, 1, Kb.Styles.borderRadius),
           maxHeight: 42,
           minHeight: 42,
           padding: Kb.Styles.globalMargins.tiny,

@@ -172,10 +172,7 @@ const styles = Style.styleSheetCreate(
         common: {
           ...Style.globalStyles.flexBoxRow,
           alignItems: 'center',
-          borderColor: Style.globalColors.grey,
-          borderRadius: Style.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Style.border(Style.globalColors.grey, 1, Style.borderRadius),
           minWidth: 220,
           paddingRight: Style.globalMargins.small,
         },
