@@ -5,7 +5,6 @@ import fontCommands from './font.mts'
 import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'
-import {rimrafSync} from 'rimraf'
 import {fileURLToPath} from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -139,7 +138,7 @@ const syncLocalRNModules = () => {
 
     const dest = path.join(nodeModulesRoot, name)
     console.log(`Syncing ${name} from ${path.relative(sharedRoot, source)} to node_modules`)
-    rimrafSync(dest)
+    fs.rmSync(dest, {recursive: true, force: true})
     fs.mkdirSync(path.dirname(dest), {recursive: true})
     fs.cpSync(source, dest, {
       filter: src => {
@@ -253,13 +252,13 @@ const clearAndroidBuild = () => {
   const paths = ['../../android/build']
   for (const p of paths) {
     try {
-      rimrafSync(path.resolve(__dirname, p))
+      fs.rmSync(path.resolve(__dirname, p), {recursive: true, force: true})
     } catch {}
   }
 }
 
 const clearTSCache = () => {
-  rimrafSync(path.resolve(__dirname, '..', '..', '.tsOuts'))
+  fs.rmSync(path.resolve(__dirname, '..', '..', '.tsOuts'), {recursive: true, force: true})
 }
 
 function main() {

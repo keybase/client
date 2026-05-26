@@ -3,15 +3,6 @@ declare module 'emoji-datasource-apple/img/apple/sheets/64.png' {
   export default png
 }
 
-declare module 'fs-extra' {
-  import type {StatSyncFn} from 'fs'
-  export const copy: (src: string, dst: string) => Promise<void>
-  export const copySync: (src: string, dst: string, options?: {dereference?: boolean}) => void
-  export const removeSync: (src: string) => void
-  export const statSync: StatSyncFn
-  export const writeJsonSync: (dst: string, o: {}) => void
-}
-
 declare module 'emoji-datasource-apple' {
   type EmojiSkinTone = '1F3FA' | '1F3FB' | '1F3FC' | '1F3FD' | '1F3FE' | '1F3FF'
   export type EmojiData = {

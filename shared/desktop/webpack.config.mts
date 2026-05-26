@@ -21,13 +21,12 @@ const distDir = path.resolve(__dirname, 'dist')
 const babelConfigPath = path.resolve(rootDir, 'babel.config.js')
 const nullModulePath = path.resolve(__dirname, '../null-module.js')
 const ignoredModules = require('../ignored-modules') as Array<string>
-const enableWDYR = require('../util/why-did-you-render-enabled') as boolean
 const elecVersion = (require('../package.json') as {devDependencies: {electron: string}}).devDependencies
   .electron
 // true if you want to debug unused code. This makes single chunks so you can grep for 'unused harmony' in the output in desktop/dist
 const debugUnusedChunks = false
 const evalDevtools = false
-const debugWebpack = enableWDYR || debugUnusedChunks || evalDevtools || !!process.env['DEBUG_WEBPACK']
+const debugWebpack = debugUnusedChunks || evalDevtools || !!process.env['DEBUG_WEBPACK']
 const devServerPort = 4000
 const devServerDistPath = '/dist'
 const devServerURL = `http://localhost:${devServerPort}/`
@@ -62,10 +61,10 @@ const logWebpackDebug = (...args: Array<unknown>) => {
 }
 
 if (debugWebpack) {
-  logWebpackDebug('*** Webpack debugging on! ***', {enableWDYR, debugUnusedChunks, evalDevtools})
+  logWebpackDebug('*** Webpack debugging on! ***', {debugUnusedChunks, evalDevtools})
 }
 
-const makeAlias = (isDev: boolean): Record<string, string | false> => {
+const makeAlias = (): Record<string, string | false> => {
   // Sort longest-first so subpath entries (e.g. 'foo/bar') are inserted into
   // the alias object before their parent package ('foo'). webpack's enhanced-resolve
   // checks aliases in insertion order and uses the first match; a shorter prefix
@@ -89,10 +88,6 @@ const makeAlias = (isDev: boolean): Record<string, string | false> => {
   // needs proper exports so renderer code (e.g. @react-navigation/elements) works.
   alias['react-native-safe-area-context'] = path.resolve(__dirname, './stubs/react-native-safe-area-context.js')
   alias['@react-native-picker/picker'] = path.resolve(__dirname, './stubs/react-native-picker.js')
-
-  if (!isDev) {
-    alias['@welldone-software/why-did-you-render'] = false
-  }
 
   return alias
 }
@@ -126,7 +121,6 @@ const makeBabelLoader = (isDev: boolean, isHot: boolean, nodeThread: boolean): R
           {
             runtime: 'automatic',
             development: isDev,
-            ...(isDev && enableWDYR ? {importSource: '@welldone-software/why-did-you-render'} : {}),
           },
         ],
         '@babel/preset-typescript',
@@ -144,16 +138,6 @@ const makeRules = ({
   isHot: boolean
   nodeThread: boolean
 }): Array<RuleSetRule> => [
-  ...(isDev && enableWDYR
-    ? []
-    : [
-        {
-          // Don't include why-did-you-render
-          include: /welldone/,
-          test: /\.(ts|js)x?$/,
-          use: ['null-loader'],
-        },
-      ]),
   {
     test: /\.m?js$/,
     resolve: {
@@ -347,7 +331,7 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
   const isProfile = !isDev && !!process.env['PROFILE']
   const fileSuffix = isDev ? '.dev' : isProfile ? '.profile' : ''
   const publicPath = isHot ? devServerDistURL : '../dist/'
-  const alias = makeAlias(isDev)
+  const alias = makeAlias()
   const defines = makeDefineValues(isDev, isHot, isProfile, fileSuffix)
 
   if (isProfile) {
@@ -385,7 +369,7 @@ const config = (_: unknown, {mode}: {mode?: 'development' | 'none' | 'production
     plugins: [
       new webpack.DefinePlugin(defines),
       new webpack.IgnorePlugin({resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/}),
-      ...(enableWDYR ? [] : [new webpack.IgnorePlugin({resourceRegExp: /^lodash$/})]),
+      new webpack.IgnorePlugin({resourceRegExp: /^lodash$/}),
     ],
     resolve: {
       alias,

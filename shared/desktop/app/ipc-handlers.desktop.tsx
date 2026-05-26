@@ -6,7 +6,6 @@ import * as RemoteGen from '@/constants/remote-actions'
 import menuHelper from './menu-helper.desktop'
 import fs from 'fs'
 import path from 'path'
-import fse from 'fs-extra'
 import {spawn, execFile, exec} from 'child_process'
 import startWinService from './start-win-service.desktop'
 import {isDarwin, isLinux, isWindows, socketPath, fileUIName, dokanPath, windowsBinPath} from '@/constants/platform'
@@ -115,12 +114,12 @@ const darwinCopyToKBFSTempUploadFile = async (options: {originalFilePath: string
     throw new Error('unsupported platform')
   }
   const dst = path.join(options.dir, path.basename(options.originalFilePath))
-  await fse.copy(options.originalFilePath, dst)
+  await fs.promises.cp(options.originalFilePath, dst, {recursive: true})
   return dst
 }
 
 const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string; dst: string}) => {
-  await fse.copy(options.originalFilePath, options.dst)
+  await fs.promises.cp(options.originalFilePath, options.dst, {recursive: true})
   return true
 }
 
