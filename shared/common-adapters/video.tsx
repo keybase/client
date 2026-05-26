@@ -1,11 +1,71 @@
 import * as React from 'react'
-import type {Props} from './video.shared'
 import * as Styles from '@/styles'
 import {Box2} from './box'
+import Text from './text'
 import {StatusBar} from 'react-native'
 import {useVideoPlayer, VideoView} from 'expo-video'
 import {useEventListener} from 'expo'
-import {useCheckURL} from './video.shared'
+
+type Props = {
+  hideControls?: boolean
+  onUrlError?: (err: string) => void
+  style?: Styles.StylesCrossPlatform
+  url: string
+  allowFile?: boolean
+  muted?: boolean
+  autoPlay?: boolean
+}
+
+const allowedHosts = new Set(['127.0.0.1', 'localhost'])
+const hasAllowedChars = (url: string) => /^[a-zA-Z0-9=.%:?/&_-]*$/.test(url)
+const hasScheme = (url: string) => /^[a-z][a-z\d+.-]*:/i.test(url)
+
+const isAllowedHostURL = (url: string) => {
+  try {
+    const parsed = new URL(url.startsWith('//') ? `http:${url}` : url)
+    if (allowedHosts.has(parsed.hostname.toLowerCase())) {
+      return true
+    }
+  } catch {}
+  return false
+}
+
+const isAllowedFilePath = (url: string, allowFile?: boolean) => {
+  if (!allowFile || url.startsWith('//')) {
+    return false
+  }
+
+  if (/^[a-z]:\//i.test(url)) {
+    return true
+  }
+
+  if (!hasScheme(url)) {
+    return true
+  }
+
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol === 'file:' && parsed.hostname === '') {
+      return true
+    }
+  } catch {}
+
+  return false
+}
+
+const urlIsOK = (url: string, allowFile?: boolean) =>
+  isAllowedHostURL(url) || (hasAllowedChars(url) && isAllowedFilePath(url, allowFile))
+
+const useCheckURL = (children: React.ReactElement, url: string, allowFile?: boolean) => {
+  const ok = urlIsOK(url, allowFile)
+  return ok ? (
+    children
+  ) : (
+    <Box2 direction="horizontal" fullWidth={true} fullHeight={true} centerChildren={true}>
+      <Text type="BodySmall">Invalid URL: {url}</Text>
+    </Box2>
+  )
+}
 
 // Desktop: normalize file paths to file:// URLs
 const normalizeURL = (url: string) => {

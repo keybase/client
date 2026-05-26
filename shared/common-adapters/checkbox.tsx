@@ -3,8 +3,23 @@ import ClickableBox from './clickable-box'
 import Icon from './icon'
 import Switch from '@/common-adapters/switch'
 import Text from './text'
-import type {Props} from './checkbox.shared'
 import * as Styles from '@/styles'
+import type * as React from 'react'
+import type {TextType} from './text.shared'
+
+type Props = {
+  key?: string
+  label?: string | React.ReactNode
+  checkboxColor?: Styles.Color
+  checkboxStyle?: Styles.StylesCrossPlatform
+  labelComponent?: React.ReactNode
+  labelSubtitle?: string
+  labelType?: TextType
+  onCheck?: (newCheckedValue: boolean) => void
+  checked: boolean
+  style?: Styles.StylesCrossPlatform
+  disabled?: boolean
+}
 
 const CHECKBOX_SIZE = 13
 const CHECKBOX_MARGIN = 8

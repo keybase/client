@@ -5,9 +5,19 @@ import {Box2} from './box'
 import {KeyboardAvoidingView2} from './keyboard-avoiding-view'
 import Popup from './popup'
 import {Animated as NativeAnimated, Easing as NativeEasing, useColorScheme} from 'react-native'
-import type {Props} from './toast.shared'
 import {colors, darkColors} from '@/styles/colors'
 import './toast.css'
+import type {Position, StylesCrossPlatform} from '@/styles'
+import type {MeasureRef} from './measure-ref'
+
+type Props = {
+  children: React.ReactNode
+  className?: string
+  containerStyle?: StylesCrossPlatform
+  visible: boolean
+  attachTo?: React.RefObject<MeasureRef | null>
+  position?: Position
+}
 
 const Kb = {
   Box2,

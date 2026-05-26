@@ -1,5 +1,15 @@
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {Props} from './index.shared'
+
+type Props = {
+  avatarSize?: 128 | 96 | 64 | 48 | 32 | 24 | 16
+  avatarBackgroundStyle?: Kb.Styles.StylesCrossPlatform
+  onAvatarClicked?: () => void
+  outerStyle?: Kb.Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
+  username?: string
+  children?: React.ReactNode
+}
 
 const UserCard = (p: Props) => {
   const {outerStyle, onAvatarClicked, username, style, children} = p

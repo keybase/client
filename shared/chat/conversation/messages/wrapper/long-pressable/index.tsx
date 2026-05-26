@@ -2,8 +2,17 @@ import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as InputState from '../../../input-area/input-state'
 import {Animated, Pressable, Keyboard} from 'react-native'
-import type {Props} from './index.shared'
 import {useOrdinal} from '../../ids-context'
+
+type Props = {
+  children: React.ReactNode
+  onLongPress?: () => void
+  onSwipeLeft?: () => void
+  style?: Kb.Styles.StylesCrossPlatform
+  className?: string
+  onContextMenu?: () => void
+  onMouseOver?: () => void
+}
 import {useConversationThreadToggleSearch} from '../../../thread-context'
 import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row'
 import {FocusContext} from '@/chat/conversation/normal/context'

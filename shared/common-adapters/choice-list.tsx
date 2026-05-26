@@ -4,8 +4,20 @@ import IconAuto from './icon-auto'
 import Text from './text'
 import * as React from 'react'
 import * as Styles from '@/styles'
-import type {Props} from './choice-list.shared'
 import './choice-list.css'
+import type {IconType} from './icon'
+
+type Option = {
+  title: string
+  description: string
+  icon: IconType
+  onClick: () => void
+  onPress?: never
+}
+
+type Props = {
+  options: Array<Option>
+}
 
 const Kb = {Box2, ClickableBox, IconAuto, Text}
 

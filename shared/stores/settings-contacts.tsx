@@ -10,7 +10,30 @@ import {navigateAppend} from '@/constants/router'
 import {useConfigState} from '@/stores/config'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useWaitingState} from '@/stores/waiting'
-import type {Store, State} from './settings-contacts.shared'
+type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
+
+type Store = T.Immutable<{
+  alreadyOnKeybase: Array<T.RPCGen.ProcessedContact>
+  importEnabled?: boolean
+  importError: string
+  importPromptDismissed: boolean
+  importedCount?: number
+  permissionStatus: PermissionStatus
+  userCountryCode?: string
+  waitingToShowJoinedModal: boolean
+}>
+
+type State = Store & {
+  dispatch: {
+    importContactsLater: () => void
+    editContactImportEnabled: (enable: boolean, fromSettings?: boolean) => void
+    loadContactPermissions: () => void
+    loadContactImportEnabled: () => void
+    manageContactsCache: () => void
+    requestPermissions: (thenToggleImportOn?: boolean, fromSettings?: boolean) => void
+    resetState: () => void
+  }
+}
 import * as Contacts from 'expo-contacts'
 import {getLocales} from 'expo-localization'
 import {addNotificationRequest} from 'react-native-kb'

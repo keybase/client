@@ -1,5 +1,9 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from './pdf-view.shared'
+
+type Props = {
+  url: string
+  onUrlError?: (err: string) => void
+}
 
 const PDFViewDesktop = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>

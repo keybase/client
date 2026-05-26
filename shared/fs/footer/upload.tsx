@@ -1,8 +1,17 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {UploadProps} from './upload.shared'
 import {Animated as NativeAnimated, Easing as NativeEasing, useColorScheme} from 'react-native'
+
+type UploadProps = {
+  showing: boolean
+  files: number
+  fileName?: string
+  totalSyncingBytes: number
+  timeLeft: string
+  debugToggleShow?: () => void
+  smallMode?: boolean
+}
 import capitalize from 'lodash/capitalize'
 import './upload.css'
 

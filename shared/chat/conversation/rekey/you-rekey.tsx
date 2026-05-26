@@ -1,5 +1,10 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from './you-rekey.shared'
+
+type Props = {
+  onEnterPaperkey: () => void
+  onBack: () => void
+  onRekey: () => void
+}
 
 const YouRekey = (p: Props) => {
   if (!isMobile) {

@@ -1,6 +1,12 @@
 import * as React from 'react'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
-import type {Props} from './download-wrapper.shared'
+
+type Props = {
+  dismiss: () => void
+  done: boolean
+  isFirst: boolean
+  children: React.ReactNode
+}
 
 const DownloadWrapper = (props: Props): React.ReactNode => {
   const [opacity] = React.useState(() => new NativeAnimated.Value(1))

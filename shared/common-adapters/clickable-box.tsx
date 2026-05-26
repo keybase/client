@@ -1,8 +1,43 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {Pressable, View, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
-import type {Props, Props2, MeasureRef} from './clickable-box.shared'
 import type {_StylesCrossPlatform} from '@/styles/css'
+import type {MeasureRef} from './measure-ref'
+
+type Props = {
+  className?: string
+  children?: React.ReactNode
+  style?: Styles.StylesCrossPlatform
+  onClick?: (event: React.BaseSyntheticEvent) => void
+  onDoubleClick?: (event: React.BaseSyntheticEvent) => void
+  onPress?: never
+  onLongPress?: (event: React.BaseSyntheticEvent) => void
+  underlayColor?: string
+  onPressIn?: () => void
+  onPressOut?: () => void
+  feedback?: boolean
+  activeOpacity?: number
+  hoverColor?: string
+  onMouseOver?: (event: React.MouseEvent) => void
+  onMouseEnter?: (event: React.MouseEvent) => void
+  onMouseLeave?: (event: React.MouseEvent) => void
+  onMouseDown?: (event: React.MouseEvent) => void
+  onMouseMove?: (event: React.MouseEvent) => void
+  onMouseUp?: (event: React.MouseEvent) => void
+  title?: string
+  tooltip?: string
+}
+
+type Props2 = {
+  onLongPress?: () => void
+  hitSlop?: number
+  testID?: string
+  onMouseOver?: (event: React.MouseEvent) => void
+  onClick?: () => void
+  children: React.ReactNode
+  className?: string
+  style?: Styles.StylesCrossPlatform
+}
 
 const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref<MeasureRef | null>}) => {
   const {ref} = props

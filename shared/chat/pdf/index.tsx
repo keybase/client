@@ -2,8 +2,13 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import {useNavigation} from '@react-navigation/native'
-import type {Props} from './index.shared'
 import * as T from '@/constants/types'
+
+type Props = {
+  conversationIDKey?: T.Chat.ConversationIDKey
+  messageID: T.Chat.MessageID
+  url?: string
+}
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 import {attachmentDownloadMessage, takePDFMessage} from '../conversation/attachment-actions'
 import {useConversationMessage} from '../conversation/data-hooks'

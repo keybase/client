@@ -1,11 +1,28 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import type * as T from '@/constants/types'
 import UserCard from '../user-card'
 import {errorBanner, SignupScreen} from '@/signup/common'
 import {isAndroidNewerThanM} from '@/constants/platform'
 import Dropdown from './dropdown.native'
-import type {Props} from './index.shared'
+type Props = {
+  users: Array<T.Config.ConfiguredAccount>
+  onForgotPassword: () => void
+  onSignup: () => void
+  onSomeoneElse: () => void
+  error: string
+  needPassword: boolean
+  password: string
+  showTyping: boolean
+  selectedUser: string
+  selectedUserChange: (selectedUser: string) => void
+  passwordChange: (password: string) => void
+  showTypingChange: (typingChange: boolean) => void
+  onSubmit: () => void
+  onFeedback: () => void
+  onLogin: (user: string, password: string) => void
+}
 
 // Desktop login
 

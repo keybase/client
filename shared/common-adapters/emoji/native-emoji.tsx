@@ -3,7 +3,14 @@ import {emojiIndexByName, spriteSheetWidth, spriteSheetHeight} from '../markdown
 import Text from '../text'
 import {type EmojiData} from '.'
 import {emojiData} from './data'
-import type {Props} from './native-emoji.shared'
+
+type Props = {
+  size: 16 | 18 | 22 | 24 | 26 | 28 | 32 | 36
+  emojiName: string
+  disableSelecting?: boolean
+  allowFontScaling?: boolean
+  style?: Styles.StylesCrossPlatform
+}
 
 const sizes = [16, 18, 22, 24, 26, 28, 32, 36] as const
 const sizeStyle = new Map<(typeof sizes)[number], Styles.StylesCrossPlatform>(

@@ -1,6 +1,21 @@
-import type {Props} from './zoomable-image.shared'
 import * as Styles from '@/styles'
 import * as React from 'react'
+
+type Props = {
+  src: string
+  style?: Styles.StylesCrossPlatform
+  zoomRatio?: number
+  onLoaded?: () => void
+  onError?: () => void
+  onIsZoomed?: (z: boolean) => void
+  dragPan?: boolean
+  forceDims?: {height: number; width: number}
+  onChanged?: (e: {height: number; width: number; x: number; y: number; scale: number}) => void
+  onSwipe?: (left: boolean) => void
+  onTap?: () => void
+  srcDims?: {height: number; width: number}
+  boxCacheKey?: string
+}
 import Toast from './toast'
 import Text from './text'
 import {View} from 'react-native'

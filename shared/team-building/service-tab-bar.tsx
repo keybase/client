@@ -4,7 +4,24 @@ import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, servi
 import difference from 'lodash/difference'
 import {ScrollView} from 'react-native'
 import type * as T from '@/constants/types'
-import type {Props, IconProps} from './service-tab-bar.shared'
+
+type IconProps = {
+  service: T.TB.ServiceIdWithContact
+  label: Array<string>
+  onClick: (s: T.TB.ServiceIdWithContact) => void
+  isActive: boolean
+  minimalBorder?: boolean
+  offset?: SharedValue<number>
+}
+
+type Props = {
+  services: Array<T.TB.ServiceIdWithContact>
+  selectedService: T.TB.ServiceIdWithContact
+  onChangeService: (newService: T.TB.ServiceIdWithContact) => void
+  servicesShown?: number
+  minimalBorder?: boolean
+  offset?: SharedValue<number>
+}
 import {useColorScheme} from 'react-native'
 import {
   useSharedValue,

@@ -3,8 +3,17 @@ import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import colors, {darkColors} from '@/styles/colors'
-import type {Props} from './index.shared'
 import {useColorScheme} from 'react-native'
+import type * as Styles from '@/styles'
+
+type Props = {
+  children?: React.ReactElement
+  explodedBy?: string
+  exploding: boolean
+  messageKey: string
+  style?: Styles.StylesCrossPlatform
+  retainHeight: boolean
+}
 
 export const animationDuration = isMobile ? 1500 : 2000
 
