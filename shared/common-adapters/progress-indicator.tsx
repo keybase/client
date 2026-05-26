@@ -1,7 +1,12 @@
-import type {Props} from './progress-indicator.shared'
 import {ActivityIndicator} from 'react-native'
 import Animation from './animation'
 import * as Styles from '@/styles'
+
+type Props = {
+  style?: Styles.StylesCrossPlatform
+  white?: boolean
+  type?: 'Small' | 'Large' | 'Huge'
+}
 
 const ProgressIndicator = (p: Props) => {
   if (isMobile) {

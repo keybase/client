@@ -3,13 +3,15 @@ import Session, {type CancelHandlerType} from './session'
 import engineListener from './listener'
 import logger from '@/logger'
 import throttle from 'lodash/throttle'
-import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from './index.shared'
 import type {SessionIDKey, MethodKey} from './types'
 import {initEngine, initEngineListener} from './require'
 import {printOutstandingRPCs} from '@/local-debug'
 import {resetClient, createClient, rpcLog, type CreateClientType, type PayloadType} from './index.platform'
 import {type RPCError, convertToError} from '@/util/errors'
 import type * as EngineGen from '@/constants/rpc'
+import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '@/constants/rpc/rpc-all-gen'
+
+export type BatchParams = Array<{key: string | ReadonlyArray<string>; increment: boolean; error?: RPCError}>
 
 type WaitingKey = string | ReadonlyArray<string>
 
@@ -328,3 +330,4 @@ const getEngine = (): Engine => {
 
 export default getEngine
 export {getEngine, makeEngine, Engine}
+export type {IncomingCallMapType, CustomResponseIncomingCallMapType}

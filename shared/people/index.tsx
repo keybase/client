@@ -1,7 +1,167 @@
+import * as C from '@/constants'
+import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {PeoplePageList} from './index.shared'
-import type {WrapProps} from './index.shared'
+import type * as T from '@/constants/types'
+import Announcement from './announcement'
+import FollowNotification from './follow-notification'
+import FollowSuggestions from './follow-suggestions'
+import Todo from './todo'
+import {clearSignupEmail} from './signup-email'
 import {RefreshControl} from 'react-native'
+
+type Props = {
+  dismissAnnouncement: (id: T.RPCGen.HomeScreenAnnouncementID) => void
+  followSuggestions: ReadonlyArray<T.People.FollowSuggestion>
+  getData: (markViewed?: boolean, force?: boolean) => void
+  oldItems: T.Immutable<Array<T.People.PeopleScreenItem>>
+  newItems: T.Immutable<Array<T.People.PeopleScreenItem>>
+  onClickUser: (username: string) => void
+  onOpenAccountSwitcher?: () => void
+  resentEmail: string
+  setResentEmail: (email: string) => void
+  signupEmail: string
+  skipTodo: (type: T.People.TodoType) => void
+  myUsername: string
+}
+type WrapProps = {waiting: boolean} & Props
+
+const renderPeopleItem = (item: T.Immutable<T.People.PeopleScreenItem>, props: Props): React.ReactNode => {
+  switch (item.type) {
+    case 'todo':
+      return (
+        <Todo
+          badged={item.badged}
+          confirmLabel={item.confirmLabel}
+          icon={item.icon}
+          instructions={item.instructions}
+          key={item.todoType}
+          metadata={item.metadata}
+          setResentEmail={props.setResentEmail}
+          skipTodo={props.skipTodo}
+          todoType={item.todoType}
+        />
+      )
+    case 'follow':
+    case 'contact':
+      return (
+        <FollowNotification
+          type={item.type}
+          newFollows={item.newFollows}
+          notificationTime={item.notificationTime}
+          badged={item.badged}
+          numAdditional={item.numAdditional}
+          key={String(item.notificationTime.getTime())}
+          onClickUser={props.onClickUser}
+        />
+      )
+    case 'announcement':
+      return (
+        <Announcement
+          appLink={item.appLink}
+          badged={item.badged}
+          confirmLabel={item.confirmLabel}
+          dismissable={item.dismissable}
+          dismissAnnouncement={props.dismissAnnouncement}
+          getData={props.getData}
+          iconUrl={item.iconUrl}
+          id={item.id}
+          key={item.text}
+          text={item.text}
+          url={item.url}
+        />
+      )
+    default:
+      return null
+  }
+}
+
+const shouldRenderNewItem = (item: T.Immutable<T.People.PeopleScreenItem>, signupEmail: string) =>
+  item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !signupEmail
+
+const PeopleItems = ({
+  items,
+  props,
+}: {
+  items: ReadonlyArray<T.Immutable<T.People.PeopleScreenItem>>
+  props: Props
+}): Array<React.ReactNode> => items.map((item): React.ReactNode => renderPeopleItem(item, props))
+
+function EmailVerificationBanner(props: {signupEmail: string}) {
+  const {signupEmail} = props
+  React.useEffect(
+    () =>
+      () => {
+        if (signupEmail) {
+          clearSignupEmail()
+        }
+      },
+    [signupEmail]
+  )
+
+  if (!signupEmail) {
+    return null
+  }
+
+  if (signupEmail === C.noEmail) {
+    return <Kb.Banner color="green">Welcome to Keybase!</Kb.Banner>
+  }
+  return (
+    <Kb.Banner color="green">{`Welcome to Keybase! A verification link was sent to ${signupEmail}.`}</Kb.Banner>
+  )
+}
+
+function ResentEmailVerificationBanner(props: {
+  resentEmail: string
+  setResentEmail: (email: string) => void
+}) {
+  const {resentEmail, setResentEmail} = props
+  React.useEffect(
+    () =>
+      () => {
+        if (resentEmail) {
+          setResentEmail('')
+        }
+      },
+    [setResentEmail, resentEmail]
+  )
+
+  if (!resentEmail) {
+    return null
+  }
+
+  return (
+    <Kb.Banner color="yellow">
+      <Kb.BannerParagraph
+        bannerColor="yellow"
+        content={`Check your inbox! A verification link was sent to ${resentEmail}.`}
+      />
+    </Kb.Banner>
+  )
+}
+
+function PeoplePageList(props: Props) {
+  const visibleNewItems = props.newItems.filter(item => shouldRenderNewItem(item, props.signupEmail))
+
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
+      <EmailVerificationBanner signupEmail={props.signupEmail} />
+      <ResentEmailVerificationBanner resentEmail={props.resentEmail} setResentEmail={props.setResentEmail} />
+      <PeopleItems items={visibleNewItems} props={props} />
+      {/*Array.from(props.wotUpdates, ([key, item]) => (
+        <WotTask
+          key={key}
+          voucher={item.voucher}
+          vouchee={item.vouchee}
+          status={item.status}
+          onClickUser={props.onClickUser}
+        />
+      ))*/}
+
+      <FollowSuggestions suggestions={props.followSuggestions} />
+      <PeopleItems items={props.oldItems} props={props} />
+    </Kb.Box2>
+  )
+}
 
 function People(props: WrapProps) {
   const {waiting, ...rest} = props

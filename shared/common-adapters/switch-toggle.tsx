@@ -1,7 +1,12 @@
 import * as React from 'react'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import * as Styles from '@/styles'
-import type {Props} from './switch-toggle.shared'
+
+type Props = {
+  color: 'green' | 'blue' | 'red'
+  on: boolean
+  style?: Styles.StylesCrossPlatform
+}
 
 const nativeDisabledOffset = 2
 const nativeEnabledOffset = 22

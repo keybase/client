@@ -4,10 +4,27 @@ import * as Styles from '@/styles'
 import LoadingStateView from './loading-state-view'
 import memoize from 'lodash/memoize'
 import {openURL} from '@/util/misc'
-import type {WebViewInjections, WebViewProps} from './web-view.shared'
-export type {WebViewProps, WebViewInjections} from './web-view.shared'
 import {View as NativeView} from 'react-native'
 import {WebView as NativeWebView} from 'react-native-webview'
+
+export type WebViewInjections = {
+  javaScript?: string
+  css?: string
+}
+
+export type WebViewProps = {
+  allowUniversalAccessFromFileURLs?: boolean
+  allowFileAccessFromFileURLs?: boolean
+  allowFileAccess?: boolean
+  originWhitelist?: Array<string>
+  renderLoading?: () => React.ReactElement
+  url: string
+  pinnedURLMode?: boolean
+  injections?: WebViewInjections
+  style?: object
+  showLoadingStateUntilLoaded?: boolean
+  onError?: (err: string) => void
+}
 
 type ElectronWebviewTag = {
   insertCSS: (css: string) => Promise<void>

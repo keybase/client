@@ -1,8 +1,51 @@
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import type {Props} from './videoimpl.shared'
-import {usePosterState, sharedStyles} from './videoimpl.shared'
+import type * as T from '@/constants/types'
 import {getAttachmentPreviewSize, ShowToastAfterSaving, maxHeight, maxWidth} from '../shared'
+
+type Props = {
+  openFullscreen?: () => void
+  showPopup?: () => void
+  allowPlay: boolean
+  message: T.Chat.MessageAttachment
+}
+
+const usePosterState = (url: string) => {
+  const [showPoster, setShowPoster] = React.useState(true)
+  const [lastUrl, setLastUrl] = React.useState(url)
+  if (lastUrl !== url) {
+    setLastUrl(url)
+    setShowPoster(true)
+  }
+  return {showPoster, reveal: () => setShowPoster(false)}
+}
+
+const sharedStyles = Kb.Styles.styleSheetCreate(
+  () =>
+    ({
+      durationContainer: {
+        alignSelf: 'flex-end',
+        backgroundColor: Kb.Styles.globalColors.black_50,
+        borderRadius: 2,
+        bottom: Kb.Styles.globalMargins.tiny,
+        padding: 1,
+        position: 'absolute',
+        right: Kb.Styles.globalMargins.tiny,
+      },
+      durationText: {
+        color: Kb.Styles.globalColors.white,
+        paddingLeft: 3,
+        paddingRight: 3,
+      },
+      playButton: {
+        left: '50%',
+        marginLeft: -32,
+        marginTop: -32,
+        position: 'absolute',
+        top: '50%',
+      },
+    }) as const
+)
 import {useVideoPlayer, VideoView} from 'expo-video'
 import {useEventListener} from 'expo'
 import {Pressable} from 'react-native'

@@ -1,8 +1,16 @@
 import type * as React from 'react'
-import type {Props} from './keyboard-avoiding-view.shared'
 import * as Styles from '@/styles'
 import {useHeaderHeight} from '@react-navigation/elements'
 import {KeyboardAvoidingView} from 'react-native-keyboard-controller'
+
+type Props = {
+  children: React.ReactNode
+  isModal?: boolean
+  extraOffset?: number
+  extraPadding?: number
+  compensateNotBeingOnBottom?: boolean
+  behavior?: 'height' | 'padding' | 'translate-with-padding'
+}
 
 const DesktopKeyboardAvoidingView = (p: Props): React.ReactNode => p.children || null
 

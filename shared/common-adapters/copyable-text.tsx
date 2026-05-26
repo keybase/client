@@ -1,5 +1,4 @@
 import * as React from 'react'
-import type {Props as PropsCommon} from './copyable-text.shared'
 import {useTimeout} from './use-timers'
 import Text from './text'
 import {Box2} from './box'
@@ -8,8 +7,10 @@ import {setStringAsync} from 'expo-clipboard'
 import * as Styles from '@/styles'
 
 export type Props = {
+  value: string
+  style?: object
   textStyle?: object
-} & PropsCommon
+}
 
 const CopyableText = (props: Props) => {
   const [hasCopied, setHasCopied] = React.useState(false)

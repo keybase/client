@@ -1,7 +1,21 @@
 import logger from '@/logger'
 import {TransportShared, LocalTransport, sharedCreateClient, rpcLog} from './transport-shared'
-import type {CreateClientType, IncomingRPCCallbackType, ConnectDisconnectCB} from './index.platform.shared'
 import type {RPCMessage} from './rpc-transport'
+import type {RPCTransport, InvokeType, PayloadType, ConnectDisconnectCB, IncomingRPCCallbackType} from '@/engine/rpc-transport'
+
+export type {PayloadType, ConnectDisconnectCB, IncomingRPCCallbackType, InvokeType}
+
+export type CreateClientType = {
+  transport: RPCTransport & {
+    needsConnect: boolean
+    reset: () => void
+    close?: () => void
+    send: (message: unknown) => boolean
+    packetizeData: (data: Uint8Array) => void
+    dispatchDecodedMessage: (message: unknown) => void
+  }
+  invoke: InvokeType
+}
 import KB2 from '@/util/electron'
 import type {Socket} from 'net'
 import {printRPCBytes} from '@/local-debug'
@@ -245,5 +259,4 @@ function resetClient(
   return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
 }
 
-export type {CreateClientType, PayloadType, InvokeType} from './index.platform.shared'
 export {resetClient, createClient, rpcLog}

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useMessagePopup} from '../messages/message-popup'
 import logger from '@/logger'
-import type {Props} from './index.shared'
+
 import {useData, usePreviewFallback} from './hooks'
 import type {StyleOverride} from '@/common-adapters/markdown'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
@@ -10,6 +10,14 @@ import {Animated, View} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
 import {Image} from 'expo-image'
 import {useVideoPlayer, VideoView} from 'expo-video'
+import type * as T from '@/constants/types'
+
+type Props = {
+  conversationIDKey: T.Chat.ConversationIDKey
+  initialMessage?: T.Chat.MessageAttachment
+  messageID: T.Chat.MessageID
+  showHeader?: boolean
+}
 
 // Stub type to avoid DOM lib dependency in native tsconfig
 type VideoRef = {pause?: () => void}

@@ -12,7 +12,29 @@ import {useDaemonState} from '@/stores/daemon'
 import {useLogoutState} from '@/stores/logout'
 import {useWaitingState} from '@/stores/waiting'
 import {openAppSettings} from '@/util/storeless-actions'
-import {type Store, type State} from './push.shared'
+type Store = {
+  hasPermissions: boolean
+  justSignedUp: boolean
+  pendingPushNotification?: T.Push.PushNotification
+  showPushPrompt: boolean
+  token: string
+}
+
+type State = Store & {
+  dispatch: {
+    checkPermissions: () => Promise<boolean>
+    clearPendingPushNotification: () => void
+    deleteToken: (version: number) => void
+    handlePush: (notification: T.Push.PushNotification) => void
+    initialPermissionsCheck: () => void
+    rejectPermissions: () => void
+    requestPermissions: () => void
+    resetState: () => void
+    setPendingPushNotification: (notification: T.Push.PushNotification) => void
+    setPushToken: (token: string) => void
+    showPermissionsPrompt: (p: {show?: boolean; persistSkip?: boolean; justSignedUp?: boolean}) => void
+  }
+}
 import {isDevApplePushToken} from '@/local-debug'
 import {checkPushPermissions, getRegistrationToken, iosGetHasShownPushPrompt, requestPushPermissions, removeAllPendingNotificationRequests} from 'react-native-kb'
 

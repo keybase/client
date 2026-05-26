@@ -1,7 +1,12 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import type {Props} from './text-view.shared'
 import {colors, darkColors} from '@/styles/colors'
+
+type Props = {
+  url: string
+  onLoadingStateChange?: (isLoading: boolean) => void
+  onUrlError?: (err: string) => void
+}
 
 const TextView = (props: Props) => {
   const {onUrlError, url} = props

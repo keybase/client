@@ -2,8 +2,14 @@ import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as RowSizes from '../../sizes'
-import type {Props} from './index.shared'
 import {Animated, Pressable, View} from 'react-native'
+import type {ConversationIDKey} from '@/constants/types/chat'
+
+type Props = {
+  children: React.ReactNode
+  conversationIDKey: ConversationIDKey
+  onPress?: () => void
+}
 import Swipeable, {type SwipeableMethods} from '@/common-adapters/swipeable-row'
 import {useOpenedRowState} from '../../opened-row-state'
 import {useInboxRowSmall} from '@/stores/inbox-rows'

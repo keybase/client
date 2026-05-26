@@ -1,5 +1,8 @@
-import type {FeatureFlags} from './feature-flags.shared'
 import {featureFlagsOverride} from '@/local-debug'
+
+type FeatureFlags = {
+  admin: boolean
+}
 
 const features = (featureFlagsOverride as string | undefined)?.split(',') ?? []
 

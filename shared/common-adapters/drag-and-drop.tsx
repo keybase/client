@@ -5,8 +5,19 @@ import {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
 import logger from '@/logger'
-import type {Props} from './drag-and-drop.shared'
 import KB2 from '@/util/electron'
+
+type Props = {
+  allowFolders?: boolean
+  children: React.ReactNode
+  containerStyle?: Styles.StylesCrossPlatform
+  disabled?: boolean
+  fullHeight?: boolean
+  fullWidth?: boolean
+  onAttach?: (array: Array<string>) => void
+  prompt?: string
+  rejectReason?: string
+}
 
 const {isDirectory, getPathForFile} = KB2.functions
 

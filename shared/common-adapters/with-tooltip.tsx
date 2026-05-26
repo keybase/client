@@ -7,10 +7,25 @@ import {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Toast from './toast'
 import Text from './text'
-import type {Props} from './with-tooltip.shared'
 import type {MeasureRef} from './measure-ref'
 import {View} from 'react-native'
 import {useSafeAreaFrame} from 'react-native-safe-area-context'
+import type {StylesCrossPlatform, Position} from '@/styles'
+
+type Props = {
+  backgroundColor?: string
+  disabled?: boolean
+  tooltip: string | React.ReactNode
+  multiline?: boolean
+  containerStyle?: StylesCrossPlatform
+  children: React.ReactNode
+  position?: Position
+  className?: string
+  toastClassName?: string
+  toastStyle?: StylesCrossPlatform
+  textStyle?: StylesCrossPlatform
+  showOnPressMobile?: boolean
+}
 
 const IGNORE_FOR_PROFILING = false as boolean
 

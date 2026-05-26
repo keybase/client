@@ -1,7 +1,13 @@
 import {View} from 'react-native'
 import {SafeAreaView, useSafeAreaInsets as useSafeAreaInsetsNative} from 'react-native-safe-area-context'
-import type {Props} from './safe-area-view.shared'
 import * as Styles from '@/styles'
+import type * as React from 'react'
+import type {StylesCrossPlatform} from '@/styles'
+
+type Props = {
+  children?: React.ReactNode
+  style?: StylesCrossPlatform
+}
 
 const SafeAreaViewTopNative = (p: Props) => {
   const {children, style} = p

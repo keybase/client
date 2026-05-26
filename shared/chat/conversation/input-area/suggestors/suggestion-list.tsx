@@ -2,8 +2,17 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import noop from 'lodash/noop'
-import type {Props} from './suggestion-list.shared'
+import type * as Styles from '@/styles'
 import {BotCommandUpdateStatus} from './shared'
+
+type Props<I> = {
+  items: Array<I>
+  keyExtractor?: (item: I, idx: number) => string
+  renderItem: (index: number, item: I) => React.ReactElement
+  selectedIndex: number
+  style?: Styles.StylesCrossPlatform
+  suggestBotCommandsUpdateStatus?: T.RPCChat.UIBotCommandsUpdateStatusTyp
+}
 import type {LegendListRef} from '@/common-adapters'
 import {FlatList} from 'react-native'
 

@@ -1,10 +1,51 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
 import {ScrollView as NativeScrollView} from 'react-native'
-import type {ScrollViewProps} from 'react-native'
-import type {Props} from './scroll-view.shared'
+import type {ScrollViewProps, RefreshControlProps, GestureResponderEvent} from 'react-native'
+import type {StylesCrossPlatform} from '@/styles'
 
-export type {ScrollViewRef} from './scroll-view.shared'
+export type ScrollViewRef = {
+  scrollTo: (arg0: {x: number; y: number; animated?: boolean}) => void
+  scrollToEnd: (options: {animated?: boolean; duration?: number}) => void
+}
+
+type ScrollEvent = {
+  nativeEvent?: {
+    contentSize: {height: number; width: number}
+    zoomScale: number
+    contentOffset: {x: number; y: number}
+  }
+  currentTarget?: HTMLDivElement
+}
+
+type Props = {
+  children?: React.ReactNode
+  contentContainerStyle?: StylesCrossPlatform
+  style?: StylesCrossPlatform
+  onScroll?: (event: ScrollEvent) => void
+  className?: string
+  ref?: React.Ref<ScrollViewRef>
+  showsVerticalScrollIndicator?: boolean
+  showsHorizontalScrollIndicator?: boolean
+  bounces?: boolean
+  contentInset?: {top?: number; left?: number; bottom?: number; right?: number}
+  contentInsetAdjustmentBehavior?: 'automatic' | 'scrollableAxes' | 'never' | 'always'
+  centerContent?: boolean
+  zoomScale?: number
+  minimumZoomScale?: number
+  maximumZoomScale?: number
+  onLayout?: (...a: Array<unknown>) => void
+  scrollEventThrottle?: number
+  scrollsToTop?: boolean
+  indicatorStyle?: string
+  alwaysBounceVertical?: boolean
+  alwaysBounceHorizontal?: boolean
+  horizontal?: boolean
+  snapToInterval?: number
+  refreshControl?: React.ReactElement<RefreshControlProps>
+  onTouchStart?: (e: GestureResponderEvent) => void
+  onTouchEnd?: (e: GestureResponderEvent) => void
+}
 
 type DivScrollable = {
   scrollTo: (opts: {left?: number; top?: number}) => void

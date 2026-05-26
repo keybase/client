@@ -1,7 +1,13 @@
 import * as React from 'react'
 import {useAudioPlayer} from 'expo-audio'
 import {useEventListener} from 'expo'
-import type {Props} from './audio-video.shared'
+
+type Props = {
+  url: string
+  paused: boolean
+  onPositionUpdated: (ratio: number) => void
+  onEnded: () => void
+}
 
 const MobileAudioVideo = (props: Props) => {
   const {url, paused, onPositionUpdated, onEnded} = props

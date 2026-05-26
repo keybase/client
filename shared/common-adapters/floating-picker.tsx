@@ -5,9 +5,24 @@ import {Picker} from '@react-native-picker/picker'
 import {Box2} from './box'
 import Popup from './popup'
 import Text from './text'
-import type {Props} from './floating-picker.shared'
 
-export type {Props, PickerItem} from './floating-picker.shared'
+export type PickerItem<T> = {
+  label: string
+  value: T
+}
+
+export type Props<T> = {
+  items: PickerItem<T>[]
+  selectedValue?: T
+  onSelect: (t: T | undefined) => void
+  header?: React.ReactNode
+  prompt?: React.ReactNode
+  promptString?: string
+  onHidden: () => void
+  onCancel: () => void
+  onDone: () => void
+  visible: boolean
+}
 
 const Kb = {Box2, Picker, Popup, SafeAreaView, Text}
 

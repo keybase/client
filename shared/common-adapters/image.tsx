@@ -2,8 +2,18 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import type {ImageLoadEventData, ImageErrorEventData} from 'expo-image'
 import {Image as ExpoImage} from 'expo-image'
-import type {Props} from './image.shared'
 import LoadingStateView from './loading-state-view'
+import type {StylesCrossPlatform} from '@/styles'
+
+type Props = {
+  contentFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down'
+  src: number | string | Array<{uri: string; width: number; height: number}>
+  style?: StylesCrossPlatform
+  showLoadingStateUntilLoaded?: boolean
+  onLoad?: (e: {target?: unknown; source?: {width: number; height: number}}) => void
+  onError?: () => void
+  allowDownscaling?: boolean
+}
 
 const onDragStart = (e: React.BaseSyntheticEvent) => e.preventDefault()
 

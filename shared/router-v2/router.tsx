@@ -5,9 +5,10 @@ import {useConfigState} from '@/stores/config'
 import {useDarkModeState} from '@/stores/darkmode'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as Shared from './router.shared'
 import * as Tabs from '@/constants/tabs'
 import logger from '@/logger'
+import {Splash} from '../login/loading'
+import type {Theme} from '@react-navigation/native'
 import {HeaderLeftButton} from '@/common-adapters/header-buttons'
 import {NavigationContainer} from '@react-navigation/native'
 import {createLinkingConfig} from './linking'
@@ -25,11 +26,59 @@ import {useCurrentUserState} from '@/stores/current-user'
 import * as Constants from '@/constants/router'
 import {useNotifState} from '@/stores/notifications'
 import {usePushState} from '@/stores/push'
-import {colors} from '@/styles/colors'
+import {colors, darkColors} from '@/styles/colors'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {isLiquidGlassSupported as _isLiquidGlassSupported} from '@callstack/liquid-glass'
 import {StatusBar, View, useColorScheme} from 'react-native'
 const isLiquidGlassSupported = isMobile ? (_isLiquidGlassSupported as boolean) : false
+
+function SimpleLoading() {
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      style={{backgroundColor: Kb.Styles.globalColors.white}}
+    >
+      <Splash allowFeedback={false} failed="" status="" />
+    </Kb.Box2>
+  )
+}
+
+const darkTheme: Theme = {
+  colors: {
+    background: darkColors.white,
+    border: darkColors.black_10,
+    card: darkColors.white,
+    notification: darkColors.black,
+    primary: darkColors.black,
+    text: darkColors.black,
+  },
+  dark: true,
+  fonts: {
+    bold: Kb.Styles.globalStyles.fontBold,
+    heavy: Kb.Styles.globalStyles.fontExtrabold,
+    medium: Kb.Styles.globalStyles.fontSemibold,
+    regular: Kb.Styles.globalStyles.fontRegular,
+  },
+}
+const lightTheme: Theme = {
+  colors: {
+    background: colors.white,
+    border: colors.black_10,
+    card: colors.white,
+    notification: colors.black,
+    primary: colors.black,
+    text: colors.black,
+  },
+  dark: false,
+  fonts: {
+    bold: Kb.Styles.globalStyles.fontBold,
+    heavy: Kb.Styles.globalStyles.fontExtrabold,
+    medium: Kb.Styles.globalStyles.fontSemibold,
+    regular: Kb.Styles.globalStyles.fontRegular,
+  },
+}
 
 // ─── Desktop ──────────────────────────────────────────────────────────────────
 
@@ -184,7 +233,7 @@ if (!isMobile) {
     screens: {
       loading: {
         if: useIsLoadingDesktop,
-        screen: Shared.SimpleLoading,
+        screen: SimpleLoading,
       },
     },
   })
@@ -268,7 +317,7 @@ function DesktopRouter() {
       onStateChange={onStateChange}
       onUnhandledAction={onUnhandledAction}
       ref={navRef}
-      theme={isDarkMode ? Shared.darkTheme : Shared.lightTheme}
+      theme={isDarkMode ? darkTheme : lightTheme}
     >
       <LoadedTeamsListProvider>
         <DesktopRootComponent />
@@ -608,7 +657,7 @@ function NativeRouter() {
   if (!loggedInLoaded || (loggedIn && !startupLoaded)) {
     return (
       <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.fillAbsolute}>
-        <Shared.SimpleLoading />
+        <SimpleLoading />
       </Kb.Box2>
     )
   }
@@ -623,7 +672,7 @@ function NativeRouter() {
         onStateChange={onStateChange}
         onUnhandledAction={onUnhandledAction}
         ref={navRef}
-        theme={isDarkMode ? Shared.darkTheme : Shared.lightTheme}
+        theme={isDarkMode ? darkTheme : lightTheme}
       >
         <LoadedTeamsListProvider>
           <NativeRootComponent />

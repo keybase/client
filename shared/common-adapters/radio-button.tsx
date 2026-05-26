@@ -2,8 +2,16 @@ import {View} from 'react-native'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import * as Styles from '@/styles'
-import type {Props} from './radio-button.shared'
 import './radio-button.css'
+import type * as React from 'react'
+
+type Props = {
+  label: string | React.ReactNode
+  onSelect: (selected: boolean) => void
+  selected: boolean
+  style?: object
+  disabled?: boolean
+}
 
 const Kb = {
   ClickableBox,

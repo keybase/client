@@ -1,5 +1,12 @@
 import * as Kb from '@/common-adapters'
-import type {Props} from './index.shared'
+import type * as React from 'react'
+
+type Props = {
+  attachTo?: React.RefObject<Kb.MeasureRef | null>
+  visible: boolean
+  onHidden: () => void
+  onSelect: (mediaType: 'photo' | 'video' | 'mixed' | 'file', location: 'camera' | 'library' | 'file') => void
+}
 
 const Prompt = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.promptContainer} justifyContent="center">

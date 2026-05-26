@@ -5,9 +5,21 @@ import Badge from './badge'
 import {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
-import type {Props} from './back-button.shared'
 import noop from 'lodash/noop'
 import type * as React from 'react'
+import type {Color, StylesCrossPlatform} from '@/styles'
+
+type Props = {
+  badgeNumber?: number
+  hideBackLabel?: boolean
+  onClick?: () => void
+  disabled?: boolean
+  onPress?: never
+  iconColor?: Color
+  textStyle?: StylesCrossPlatform
+  style?: StylesCrossPlatform
+  title?: string
+}
 
 function BackButton(props: Props) {
   const navigateUp = C.Router2.navigateUp
