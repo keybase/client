@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import type {StylesCrossPlatform} from '@/styles'
 import SaveIndicator from '@/common-adapters/save-indicator'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useLoadedTeam} from '../../use-loaded-team'
@@ -492,8 +491,8 @@ const RetentionSwitcher = (props: {entityType: RetentionEntityType} & Props) => 
 
 export type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
-  containerStyle?: StylesCrossPlatform
-  dropdownStyle?: StylesCrossPlatform
+  containerStyle?: Kb.Styles.StylesCrossPlatform
+  dropdownStyle?: Kb.Styles.StylesCrossPlatform
   entityType: RetentionEntityType
   showSaveIndicator: boolean
   teamID: T.Teams.TeamID

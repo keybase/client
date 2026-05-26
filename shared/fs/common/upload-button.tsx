@@ -1,7 +1,6 @@
 import * as T from '@/constants/types'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import type * as Styles from '@/styles'
 import {
   pickAndUploadMobile as pickAndUploadInPlatform,
   pickDocumentsMobile as pickDocumentsInPlatform,
@@ -12,7 +11,7 @@ import {useFsPathItem, useFsUpload} from './hooks'
 
 type OwnProps = {
   path: T.FS.Path
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 type UploadButtonProps = {
@@ -24,7 +23,7 @@ type UploadButtonProps = {
   pickAndUploadMixed?: () => void
   pickAndUploadPhoto?: () => void
   pickAndUploadVideo?: () => void
-  style: Styles.StylesCrossPlatform
+  style: Kb.Styles.StylesCrossPlatform
 }
 
 const UploadButton = (props: UploadButtonProps) => {

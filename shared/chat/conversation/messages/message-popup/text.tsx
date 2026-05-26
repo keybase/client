@@ -3,7 +3,6 @@ import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import * as T from '@/constants/types'
-import type {Position, StylesCrossPlatform} from '@/styles'
 import {copyToClipboard} from '@/util/storeless-actions'
 import {openURL} from '@/util/misc'
 import {replyPrivatelyToConversationMessage} from '../../message-actions'
@@ -24,8 +23,8 @@ type OwnProps = {
   mode?: 'modal' | 'bottomsheet'
   ordinal: T.Chat.Ordinal
   onHidden: () => void
-  position: Position
-  style?: StylesCrossPlatform
+  position: Kb.Styles.Position
+  style?: Kb.Styles.StylesCrossPlatform
   visible: boolean
 }
 

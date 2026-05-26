@@ -3,7 +3,6 @@ import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import type * as React from 'react'
 import type * as T from '@/constants/types'
-import {type Position, fileUIName, type StylesCrossPlatform} from '@/styles'
 import {
   attachmentDownloadMessage,
   messageAttachmentNativeSaveMessage,
@@ -31,8 +30,8 @@ type OwnProps = {
   mode?: 'modal' | 'bottomsheet'
   ordinal: T.Chat.Ordinal
   onHidden: () => void
-  position: Position
-  style?: StylesCrossPlatform
+  position: Kb.Styles.Position
+  style?: Kb.Styles.StylesCrossPlatform
   visible: boolean
 }
 
@@ -93,7 +92,7 @@ const PopAttachLoaded = (ownProps: OwnProps & {
   )
 
   const itemFinder = onShowInFinder
-    ? ([{icon: 'iconfont-finder', onClick: onShowInFinder, title: `Show in ${fileUIName}`}] as const)
+    ? ([{icon: 'iconfont-finder', onClick: onShowInFinder, title: `Show in ${Kb.Styles.fileUIName}`}] as const)
     : []
   const itemSave = onSaveAttachment
     ? ([

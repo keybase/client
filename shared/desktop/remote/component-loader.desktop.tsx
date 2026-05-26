@@ -6,7 +6,6 @@ import * as Kb from '@/common-adapters'
 import {GlobalKeyEventHandler} from '@/common-adapters/key-event-handler.desktop'
 import {disableDragDrop} from '@/util/drag-drop.desktop'
 import ErrorBoundary from '@/common-adapters/error-boundary'
-import {initDesktopStyles} from '@/styles'
 import KB2 from '@/util/electron'
 import {setServiceDecoration} from '@/common-adapters/markdown/react'
 import ServiceDecoration from '@/common-adapters/markdown/service-decoration'
@@ -71,7 +70,7 @@ export default function loadRemoteComponent<P>(options: {
   style?: Kb.Styles.StylesCrossPlatform
   showOnProps?: boolean
 }) {
-  initDesktopStyles()
+  Kb.Styles.initDesktopStyles()
   const node = document.getElementById('root')
   if (node) {
     ReactDOM.createRoot(node).render(

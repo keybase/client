@@ -1,5 +1,4 @@
 import * as C from '@/constants'
-import type {StylesCrossPlatform} from '@/styles'
 import {useOrdinal} from './ids-context'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
@@ -14,7 +13,7 @@ export type OwnProps = {
   emoji: string
   onLongPress?: () => void
   reaction: T.Chat.ReactionDesc
-  style?: StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
   toggleReaction?: (emoji: string) => void
 }
 
@@ -34,7 +33,7 @@ function ReactionButton({
   isDarkMode: boolean
   onClick: () => void
   onLongPress?: () => void
-  style?: StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
   text: string
 }) {
   return (
@@ -101,7 +100,7 @@ function ReactButtonContainer(p: OwnProps) {
 }
 
 type NewReactionButtonProps = {
-  style?: StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 export function NewReactionButton(p: NewReactionButtonProps) {

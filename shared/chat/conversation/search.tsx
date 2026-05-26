@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Message from '@/constants/chat/message'
-import type * as Styles from '@/styles'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -16,7 +15,7 @@ import {
 } from './thread-context'
 import {useThreadSearchRoute} from './thread-search-route'
 
-type OwnProps = {style?: Styles.StylesCrossPlatform}
+type OwnProps = {style?: Kb.Styles.StylesCrossPlatform}
 type CommonProps = OwnProps & {
   conversationIDKey: T.Chat.ConversationIDKey
   initialQuery: string
