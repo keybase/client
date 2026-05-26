@@ -1002,8 +1002,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginLeft: isMobile ? 48 : 56,
         },
         isElectron: {
-          marginBottom: 0,
-          marginTop: 0,
+          ...Kb.Styles.marginV(0),
         },
         isMobile: {marginTop: 8},
       }),
