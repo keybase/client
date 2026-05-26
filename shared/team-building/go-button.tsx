@@ -41,8 +41,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   container: {
     alignSelf: 'stretch',
-    marginBottom: Kb.Styles.globalMargins.tiny,
-    marginTop: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
   goTooltipIcon: Kb.Styles.platformStyles({
     isElectron: {

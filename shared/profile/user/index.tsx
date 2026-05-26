@@ -568,8 +568,7 @@ const avatarSize = 128
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   addIdentityButton: {
-    marginBottom: Kb.Styles.globalMargins.xsmall,
-    marginTop: Kb.Styles.globalMargins.xsmall,
+    ...Kb.Styles.marginV(Kb.Styles.globalMargins.xsmall),
   },
   addIdentityContainer: Kb.Styles.platformStyles({
     common: {justifyContent: 'center'},

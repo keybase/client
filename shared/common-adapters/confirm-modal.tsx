@@ -107,8 +107,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   icon: {
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
+    ...Styles.marginV(Styles.globalMargins.small),
   },
   modalFooter: Styles.platformStyles({
     common: {

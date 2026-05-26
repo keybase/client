@@ -75,8 +75,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   primaryOnBlue: {backgroundColor: Kb.Styles.globalColors.white},
   primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
   text: {
-    marginBottom: Kb.Styles.globalMargins.large,
-    marginTop: Kb.Styles.globalMargins.large,
+    ...Kb.Styles.marginV(Kb.Styles.globalMargins.large),
   },
 }))
 

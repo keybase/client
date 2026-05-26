@@ -476,7 +476,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   controls: {padding: Kb.Styles.globalMargins.small},
   darkBg: {backgroundColor: Kb.Styles.globalColors.blueDarker2},
   hint: {color: Kb.Styles.globalColors.black_50, marginBottom: 4},
-  innerDivider: {marginBottom: Kb.Styles.globalMargins.xtiny, marginTop: Kb.Styles.globalMargins.xtiny},
+  innerDivider: {...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny)},
   inlineRow: {flexWrap: 'wrap'},
   italic: Kb.Styles.platformStyles({isElectron: {fontStyle: 'italic'} as object, isMobile: {fontStyle: 'italic'}}),
   label: {color: Kb.Styles.globalColors.black_50, minWidth: 100},

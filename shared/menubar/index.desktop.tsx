@@ -632,8 +632,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {...Kb.Styles.desktopStyles.clickable, position: 'relative'},
   }),
   buttonContainer: {
-    marginBottom: Kb.Styles.globalMargins.tiny,
-    marginTop: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
   chatBadge: {
     backgroundColor: Kb.Styles.globalColors.blue,

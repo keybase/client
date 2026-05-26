@@ -597,8 +597,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     paddingRight: Kb.Styles.globalMargins.tiny,
   },
   whitelistOuter: {
-    marginBottom: Kb.Styles.globalMargins.tiny,
-    marginTop: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
   whitelistRowContainer: Kb.Styles.platformStyles({
     common: {

@@ -70,8 +70,7 @@ const _markdownStyles = Styles.styleSheetCreate(
           common: {
             ...this.codeSnippetStyle,
             backgroundColor: Styles.globalColors.redLighter,
-            marginBottom: Styles.globalMargins.xtiny,
-            marginTop: Styles.globalMargins.xtiny,
+            ...Styles.marginV(Styles.globalMargins.xtiny),
             ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
           },
           isElectron: {
@@ -87,8 +86,7 @@ const _markdownStyles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.redLighter,
           color: Styles.globalColors.black,
           fontSize: 15,
-          marginBottom: Styles.globalMargins.xtiny,
-          marginTop: Styles.globalMargins.xtiny,
+          ...Styles.marginV(Styles.globalMargins.xtiny),
         },
       }),
       codeSnippetStyle: Styles.platformStyles({

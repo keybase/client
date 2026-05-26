@@ -68,8 +68,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   send: {
     alignSelf: 'flex-end',
-    marginBottom: Kb.Styles.globalMargins.tiny,
-    marginTop: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
 }))
 

@@ -17,8 +17,7 @@ const CreateChannel = (p: Props) => {
           <Kb.Text
             type="Header"
             style={{
-              marginBottom: Kb.Styles.globalMargins.tiny,
-              marginTop: Kb.Styles.globalMargins.tiny,
+              ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
             }}
           >
             New chat channel

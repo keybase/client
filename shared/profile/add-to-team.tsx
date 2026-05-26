@@ -396,8 +396,7 @@ const styles = Kb.Styles.styleSheetCreate(
       addToTeamTitle: Kb.Styles.platformStyles({
         common: {marginRight: Kb.Styles.globalMargins.tiny},
         isMobile: {
-          marginBottom: Kb.Styles.globalMargins.tiny,
-          marginTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
         },
       }),
       addUserToTeamsResultsBox: {

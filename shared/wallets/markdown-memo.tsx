@@ -49,8 +49,7 @@ const MarkdownMemo = (props: Props) =>
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
-    marginBottom: Kb.Styles.globalMargins.xxtiny,
-    marginTop: Kb.Styles.globalMargins.xxtiny,
+    ...Kb.Styles.marginV(Kb.Styles.globalMargins.xxtiny),
     maxWidth: '100%',
   },
   memo: Kb.Styles.platformStyles({

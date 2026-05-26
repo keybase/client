@@ -75,8 +75,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   header: {
-    marginBottom: 15,
-    marginTop: 15,
+    ...Kb.Styles.marginV(15),
   },
   illustration: Kb.Styles.platformStyles({
     isElectron: {

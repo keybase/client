@@ -56,8 +56,7 @@ const styles = Styles.styleSheetCreate(() => ({
   text: Styles.platformStyles({
     common: {
       color: Styles.globalColors.white,
-      marginBottom: -1,
-      marginTop: -1,
+      ...Styles.marginV(-1),
     },
     isMobile: {
       fontSize: 12,
