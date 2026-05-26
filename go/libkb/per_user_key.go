@@ -558,8 +558,10 @@ func (s *PerUserKeyring) fetchBoxesLocked(m MetaContext,
 			"generation": I{int(s.currentGenerationLocked())},
 			"device_id":  S{deviceID.String()},
 		},
-		SessionType: APISessionTypeREQUIRED,
-		RetryCount:  5, // It's pretty bad to fail this, so retry.
+		SessionType:     APISessionTypeREQUIRED,
+		InitialTimeout:  HTTPRetryInitialTimeout,
+		RetryMultiplier: HTTPRetryMutliplier,
+		RetryCount:      5, // It's pretty bad to fail this, so retry.
 	}, &resp)
 	if err != nil {
 		return nil, nil, err

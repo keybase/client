@@ -128,10 +128,12 @@ func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 	}
 	var res *APIRes
 	res, err = ss.G().API.Get(m, APIArg{
-		Endpoint:    "key/fetch_private",
-		Args:        hargs,
-		SessionType: APISessionTypeREQUIRED,
-		RetryCount:  5, // It's pretty bad to fail this, so retry.
+		Endpoint:        "key/fetch_private",
+		Args:            hargs,
+		SessionType:     APISessionTypeREQUIRED,
+		InitialTimeout:  HTTPRetryInitialTimeout,
+		RetryMultiplier: HTTPRetryMutliplier,
+		RetryCount:      5, // It's pretty bad to fail this, so retry.
 	})
 	m.Debug("| syncFromServer -> %s", ErrToOk(err))
 	if err != nil {
