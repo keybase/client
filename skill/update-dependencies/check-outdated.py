@@ -45,21 +45,16 @@ def get_latest(name, current):
         parsed = json.loads(raw)
         all_versions = parsed.get('data', [])
         if is_pre:
-            cur_pre = next((k for k in PRE_KEYWORDS if k in current), None)
-            prefix = current.split('-')[0]
-            matching = [v for v in all_versions if cur_pre in v and v.startswith(prefix)]
-            latest = max(matching, key=semver_key) if matching else current
+            # For pre-release, consider all versions on the same major — pre or stable.
+            # This handles graduation (e.g. 56.0.0-preview.x → 56.0.5 stable).
+            cur_major = current.split('.')[0]
+            candidates = [v for v in all_versions if v.split('.')[0] == cur_major]
+            latest = max(candidates, key=semver_key) if candidates else current
             if semver_key(latest) < semver_key(current):
                 latest = current
         else:
-            cur_major_minor = '.'.join(current.split('.')[:2])
-            stable = [v for v in all_versions
-                     if not any(k in v for k in PRE_KEYWORDS)
-                     and v.startswith(cur_major_minor + '.')]
             all_stable = [v for v in all_versions if not any(k in v for k in PRE_KEYWORDS)]
-            same_line_latest = stable[-1] if stable else current
-            overall_latest = all_stable[-1] if all_stable else current
-            latest = overall_latest if semver_key(overall_latest) > semver_key(current) else same_line_latest
+            latest = max(all_stable, key=semver_key) if all_stable else current
             if semver_key(latest) < semver_key(current):
                 latest = current
         return name, current, latest, 'pre' if is_pre else 'stable'
