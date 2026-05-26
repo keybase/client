@@ -560,7 +560,7 @@ func (s *PerUserKeyring) fetchBoxesLocked(m MetaContext,
 		},
 		SessionType:     APISessionTypeREQUIRED,
 		InitialTimeout:  HTTPRetryInitialTimeout,
-		RetryMultiplier: HTTPRetryMutliplier,
+		RetryMultiplier: HTTPRetryMultiplier,
 		RetryCount:      5, // It's pretty bad to fail this, so retry.
 	}, &resp)
 	if err != nil {

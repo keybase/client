@@ -132,7 +132,7 @@ func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRel
 		Args:            hargs,
 		SessionType:     APISessionTypeREQUIRED,
 		InitialTimeout:  HTTPRetryInitialTimeout,
-		RetryMultiplier: HTTPRetryMutliplier,
+		RetryMultiplier: HTTPRetryMultiplier,
 		RetryCount:      5, // It's pretty bad to fail this, so retry.
 	})
 	m.Debug("| syncFromServer -> %s", ErrToOk(err))
