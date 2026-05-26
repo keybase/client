@@ -76,7 +76,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const wrapperRef = React.useRef<HTMLDivElement | null>(null)
-  const [didFirstLoad, setDidFirstLoad] = React.useState(false)
 
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
   const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
@@ -234,7 +233,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   }, [conversationIDKey])
 
   const onLoad = React.useCallback(() => {
-    setDidFirstLoad(true)
     if (!markedReadRef.current) {
       markedReadRef.current = true
       markInitiallyLoadedThreadAsRead()
@@ -325,7 +323,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           recycleItems={true}
           drawDistance={250}
           estimatedItemSize={72}
-          style={{...Kb.Styles.castStyleDesktop(desktopStyles.list), opacity: didFirstLoad ? 1 : 0}}
+          style={Kb.Styles.castStyleDesktop(desktopStyles.list)}
           initialScrollAtEnd={initialScrollIndex === undefined}
           initialScrollIndex={initialScrollIndex}
           maintainScrollAtEnd={centeredOrdinal !== undefined ? false : {on: {dataChange: true}}}
@@ -621,6 +619,7 @@ const NativeConversationList = function NativeConversationList() {
         inverted={true}
         offset={insets.bottom}
         {...props}
+        scrollIndicatorInsets={{top: insets.bottom}}
       />
     ),
     [insets.bottom]
