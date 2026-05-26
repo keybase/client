@@ -146,8 +146,8 @@ function SpecialTopMessage() {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      {loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      {hasLoadedEver && loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
       <Kb.Box2 direction="vertical" style={styles.spacer} />
       {hasOlderResetConversation && <ProfileResetNotice />}
       {pendingState === 'waiting' && (
@@ -156,7 +156,7 @@ function SpecialTopMessage() {
         </Kb.Box2>
       )}
       {pendingState === 'error' && <ErrorMessage />}
-      {loadMoreType === 'noMoreToLoad' && !showRetentionNotice && pendingState === 'done' && (
+      {hasLoadedEver && loadMoreType === 'noMoreToLoad' && !showRetentionNotice && pendingState === 'done' && (
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           {isHelloBotConversation ? (
             <HelloBotCard />
@@ -170,7 +170,7 @@ function SpecialTopMessage() {
           <MakeTeamCard />
         </Kb.Box2>
       )}
-      {loadMoreType === 'moreToLoad' && pendingState === 'done' && (
+      {hasLoadedEver && loadMoreType === 'moreToLoad' && pendingState === 'done' && (
         <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.more}>
           <Kb.Text type="BodyBig">
             <Kb.NativeEmoji size={16} emojiName=":moyai:" />
@@ -190,6 +190,11 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       buttonBar: {padding: Kb.Styles.globalMargins.small},
+      container: Kb.Styles.platformStyles({
+        isElectron: {
+          minHeight: 100,
+        },
+      }),
       errorText: {padding: Kb.Styles.globalMargins.small},
       more: {
         paddingBottom: Kb.Styles.globalMargins.medium,

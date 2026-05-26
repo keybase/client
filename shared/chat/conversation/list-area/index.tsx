@@ -30,7 +30,11 @@ import {FlatList} from 'react-native'
 import type {ScrollViewProps} from 'react-native'
 import {usingFlashList} from './flashlist-config'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
-import {KeyboardChatScrollView, useKeyboardState, useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller'
+import {
+  KeyboardChatScrollView,
+  useKeyboardState,
+  useReanimatedKeyboardAnimation,
+} from 'react-native-keyboard-controller'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import type {ItemType} from './index.shared'
 
@@ -76,7 +80,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const listRef = React.useRef<LegendListRef | null>(null)
   const wrapperRef = React.useRef<HTMLDivElement | null>(null)
-  const [didFirstLoad, setDidFirstLoad] = React.useState(false)
 
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions()
   const loadNewerMessagesDueToScroll = useConversationThreadLoadNewerMessagesDueToScroll()
@@ -105,7 +108,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     (ordinal: T.Chat.Ordinal) => {
       const {messageMap, messageTypeMap} = threadStore.getState()
       const message = messageMap.get(ordinal)
-      return message ? getMessageRowType(message, messageTypeMap.get(ordinal)) : (messageTypeMap.get(ordinal) ?? 'text')
+      return message
+        ? getMessageRowType(message, messageTypeMap.get(ordinal))
+        : (messageTypeMap.get(ordinal) ?? 'text')
     },
     [threadStore]
   )
@@ -118,13 +123,19 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const scrollUp = React.useCallback(() => {
     const state = listRef.current?.getState()
     if (!state) return
-    void listRef.current?.scrollToOffset({animated: false, offset: Math.max(0, state.scroll - state.scrollLength)})
+    void listRef.current?.scrollToOffset({
+      animated: false,
+      offset: Math.max(0, state.scroll - state.scrollLength),
+    })
   }, [])
 
   const scrollDown = React.useCallback(() => {
     const state = listRef.current?.getState()
     if (!state) return
-    void listRef.current?.scrollToOffset({animated: false, offset: state.scroll + state.scrollLength})
+    void listRef.current?.scrollToOffset({
+      animated: false,
+      offset: state.scroll + state.scrollLength,
+    })
   }, [])
 
   const {setScrollRef} = React.useContext(ScrollContext)
@@ -139,30 +150,35 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
       clearTimeout(scrollStopTimerRef.current)
       scrollStopTimerRef.current = setTimeout(() => {
         isScrollingRef.current = false
-        ;(wrapperRef.current as unknown as {classList: {remove: (c: string) => void}} | null)?.classList.remove('scroll-ignore-pointer')
+        ;(
+          wrapperRef.current as unknown as {
+            classList: {remove: (c: string) => void}
+          } | null
+        )?.classList.remove('scroll-ignore-pointer')
       }, 200)
       if (!isScrollingRef.current) {
         isScrollingRef.current = true
-        ;(wrapperRef.current as unknown as {classList: {add: (c: string) => void}} | null)?.classList.add('scroll-ignore-pointer')
+        ;(
+          wrapperRef.current as unknown as {
+            classList: {add: (c: string) => void}
+          } | null
+        )?.classList.add('scroll-ignore-pointer')
       }
     },
     100,
     {leading: true, trailing: true}
   )
-  React.useEffect(() => () => {
-    onScroll.cancel()
-    clearTimeout(scrollStopTimerRef.current)
-  }, [onScroll])
-
-  // Load older messages when scrolled near the top (first 3 items visible)
-  const onViewableItemsChanged = C.useDebouncedCallback(
-    ({viewableItems}: {viewableItems: Array<{index: number; item: T.Chat.Ordinal}>}) => {
-      if ((viewableItems[0]?.index ?? Infinity) < 3) {
-        loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
-      }
+  React.useEffect(
+    () => () => {
+      onScroll.cancel()
+      clearTimeout(scrollStopTimerRef.current)
     },
-    200
+    [onScroll]
   )
+
+  const onStartReached = React.useCallback(() => {
+    loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
+  }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
 
   // Load newer messages when scrolled to the end (only when not at latest)
   const onEndReached = C.useThrottledCallback(() => {
@@ -171,9 +187,12 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     }
   }, 200)
 
-  React.useEffect(() => () => {
-    onEndReached.cancel()
-  }, [onEndReached])
+  React.useEffect(
+    () => () => {
+      onEndReached.cancel()
+    },
+    [onEndReached]
+  )
 
   // Scroll to centered ordinal when it changes (search / thread navigation).
   // Use a "last scrolled to" ref rather than a "did it change" ref so we still
@@ -187,22 +206,29 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     if (!loaded) return
     if (centeredOrdinal !== undefined) {
       if (lastScrolledCenteredRef.current === centeredOrdinal) return
-      const idx = sortedIndexOf(messageOrdinalsRef.current as unknown as number[], centeredOrdinal as unknown as number)
+      const idx = sortedIndexOf(
+        messageOrdinalsRef.current as unknown as number[],
+        centeredOrdinal as unknown as number
+      )
       if (idx < 0) return
       lastScrolledCenteredRef.current = centeredOrdinal
       const target = centeredOrdinal
       const doScrollToCenter = async () => {
         for (let attempt = 0; attempt < 4; attempt++) {
           const el = (
-            wrapperRef.current as unknown as
-              | {querySelector: (s: string) => {scrollIntoView: (o: object) => void} | null}
-              | null
+            wrapperRef.current as unknown as {
+              querySelector: (s: string) => {scrollIntoView: (o: object) => void} | null
+            } | null
           )?.querySelector(`[data-ordinal="${target}"]`)
           if (el) {
             el.scrollIntoView({behavior: 'instant', block: 'center'})
             return
           }
-          void listRef.current?.scrollToIndex({animated: false, index: idx, viewPosition: 0.5})
+          void listRef.current?.scrollToIndex({
+            animated: false,
+            index: idx,
+            viewPosition: 0.5,
+          })
           await new Promise<void>(resolve => setTimeout(resolve, 100))
         }
       }
@@ -221,9 +247,16 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     if (lastEditingOrdinalRef.current === editingOrdinal) return
     lastEditingOrdinalRef.current = editingOrdinal
     if (!editingOrdinal) return
-    const idx = sortedIndexOf(messageOrdinalsRef.current as unknown as number[], editingOrdinal as unknown as number)
+    const idx = sortedIndexOf(
+      messageOrdinalsRef.current as unknown as number[],
+      editingOrdinal as unknown as number
+    )
     if (idx >= 0) {
-      void listRef.current?.scrollToIndex({animated: true, index: idx, viewPosition: 0.5})
+      void listRef.current?.scrollToIndex({
+        animated: true,
+        index: idx,
+        viewPosition: 0.5,
+      })
     }
   }, [editingOrdinal])
 
@@ -234,7 +267,6 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   }, [conversationIDKey])
 
   const onLoad = React.useCallback(() => {
-    setDidFirstLoad(true)
     if (!markedReadRef.current) {
       markedReadRef.current = true
       markInitiallyLoadedThreadAsRead()
@@ -250,10 +282,18 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
 
   const {focusInput} = React.useContext(FocusContext)
   const handleListClick = (ev: React.MouseEvent) => {
-    const target = ev.target as {closest?: (s: string) => unknown; tagName?: string} | null
+    const target = ev.target as {
+      closest?: (s: string) => unknown
+      tagName?: string
+    } | null
     const tagName = target?.tagName?.toUpperCase()
-    if (tagName === 'INPUT' || tagName === 'TEXTAREA' || target?.closest?.('[data-search-filter="true"]')) return
-    const sel = (globalThis as unknown as {getSelection?: () => {isCollapsed: boolean} | null}).getSelection?.()
+    if (tagName === 'INPUT' || tagName === 'TEXTAREA' || target?.closest?.('[data-search-filter="true"]'))
+      return
+    const sel = (
+      globalThis as unknown as {
+        getSelection?: () => {isCollapsed: boolean} | null
+      }
+    ).getSelection?.()
     if (sel?.isCollapsed) focusInput()
   }
 
@@ -261,7 +301,12 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     type DocGlobal = {
       createElement: (tag: string) => {
         appendChild: (n: unknown) => void
-        querySelectorAll: (sel: string) => ArrayLike<{parentNode?: {removeChild?: (n: unknown) => void; replaceChild?: (a: unknown, b: unknown) => void}}>
+        querySelectorAll: (sel: string) => ArrayLike<{
+          parentNode?: {
+            removeChild?: (n: unknown) => void
+            replaceChild?: (a: unknown, b: unknown) => void
+          }
+        }>
         textContent: string | null
         remove: () => void
       }
@@ -297,12 +342,11 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   }
 
   // When a centeredOrdinal is set at mount, start there; otherwise start at the end
-  const _centeredIdx = centeredOrdinal !== undefined
-    ? sortedIndexOf(messageOrdinals as unknown as number[], centeredOrdinal as unknown as number)
-    : -1
-  const initialScrollIndex = _centeredIdx >= 0
-    ? {index: _centeredIdx, viewPosition: 0.5 as const}
-    : undefined
+  const _centeredIdx =
+    centeredOrdinal !== undefined
+      ? sortedIndexOf(messageOrdinals as unknown as number[], centeredOrdinal as unknown as number)
+      : -1
+  const initialScrollIndex = _centeredIdx >= 0 ? {index: _centeredIdx, viewPosition: 0.5 as const} : undefined
 
   return (
     <Kb.ErrorBoundary>
@@ -325,15 +369,18 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           recycleItems={true}
           drawDistance={250}
           estimatedItemSize={72}
-          style={{...Kb.Styles.castStyleDesktop(desktopStyles.list), opacity: didFirstLoad ? 1 : 0}}
+          style={Kb.Styles.castStyleDesktop(desktopStyles.list)}
           initialScrollAtEnd={initialScrollIndex === undefined}
           initialScrollIndex={initialScrollIndex}
-          maintainScrollAtEnd={centeredOrdinal !== undefined ? false : {on: {dataChange: true}}}
+          maintainScrollAtEnd={
+            centeredOrdinal !== undefined ? false : {on: {dataChange: true, itemLayout: true}}
+          }
           maintainVisibleContentPosition={centeredOrdinal !== undefined ? undefined : {data: true}}
           onLoad={onLoad}
           onScroll={onScroll as unknown as (e: unknown) => void}
+          onStartReached={onStartReached}
+          onStartReachedThreshold={2}
           onEndReached={onEndReached}
-          onViewableItemsChanged={onViewableItemsChanged as unknown as (info: unknown) => void}
         />
         {jumpToRecent}
       </div>
@@ -458,10 +505,15 @@ const useNativeScrolling = (p: {
 //    inserted, creating a visible gap between the newest message and the input area.
 // Solution: disable MPV entirely when keyboard is visible. New messages appear naturally at the
 // content-inset boundary (already in view), and a layout effect re-scrolls as a safety net.
-const maintainVisibleContentPositionClosed = {autoscrollToTopThreshold: 1, minIndexForVisible: 0}
+const maintainVisibleContentPositionClosed = {
+  autoscrollToTopThreshold: 1,
+  minIndexForVisible: 0,
+}
 
 const NativeConversationList = function NativeConversationList() {
-  const List = FlatList as unknown as React.ComponentType<Record<string, unknown> & {ref?: React.Ref<RNFlatListRef>}>
+  const List = FlatList as unknown as React.ComponentType<
+    Record<string, unknown> & {ref?: React.Ref<RNFlatListRef>}
+  >
 
   const debugWhichList = __DEV__ ? (
     <Kb.Text type="HeaderBig" style={{backgroundColor: 'red', left: 0, position: 'absolute', top: 0}}>
@@ -535,8 +587,12 @@ const NativeConversationList = function NativeConversationList() {
   const numOrdinalsRef = React.useRef(numOrdinals)
   const prevNumOrdinalsRef = React.useRef(numOrdinals)
   const isKeyboardVisibleRef = React.useRef(isKeyboardVisible)
-  React.useLayoutEffect(() => { numOrdinalsRef.current = numOrdinals })
-  React.useLayoutEffect(() => { isKeyboardVisibleRef.current = isKeyboardVisible })
+  React.useLayoutEffect(() => {
+    numOrdinalsRef.current = numOrdinals
+  })
+  React.useLayoutEffect(() => {
+    isKeyboardVisibleRef.current = isKeyboardVisible
+  })
   // Resets baseline on conversation switch using a ref so numOrdinals is not a dep
   // (adding it would make this fire alongside the sibling effect, collapsing prev === current
   // and preventing the scroll-to-bottom from triggering on the first new message).
@@ -621,6 +677,7 @@ const NativeConversationList = function NativeConversationList() {
         inverted={true}
         offset={insets.bottom}
         {...props}
+        scrollIndicatorInsets={{top: insets.bottom}}
       />
     ),
     [insets.bottom]
