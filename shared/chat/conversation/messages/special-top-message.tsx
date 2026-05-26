@@ -146,7 +146,7 @@ function SpecialTopMessage() {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       {hasLoadedEver && loadMoreType === 'noMoreToLoad' && showRetentionNotice && <RetentionNotice />}
       <Kb.Box2 direction="vertical" style={styles.spacer} />
       {hasOlderResetConversation && <ProfileResetNotice />}
@@ -190,6 +190,11 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       buttonBar: {padding: Kb.Styles.globalMargins.small},
+      container: Kb.Styles.platformStyles({
+        isElectron: {
+          minHeight: 100,
+        },
+      }),
       errorText: {padding: Kb.Styles.globalMargins.small},
       more: {
         paddingBottom: Kb.Styles.globalMargins.medium,
