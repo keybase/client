@@ -29,8 +29,7 @@ export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   botCommandContainer: Kb.Styles.platformStyles({
     isElectron: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
     isMobile: {
       paddingLeft: Kb.Styles.globalMargins.tiny,

@@ -65,8 +65,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBarContainer: Kb.Styles.platformStyles({
     isElectron: {flex: 1, justifyContent: 'flex-end'},
     isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
   }),
   container: Kb.Styles.platformStyles({

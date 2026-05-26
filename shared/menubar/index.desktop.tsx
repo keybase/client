@@ -691,7 +691,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignSelf: 'center',
     marginBottom: Kb.Styles.globalMargins.xsmall,
   },
-  navIcons: {paddingLeft: Kb.Styles.globalMargins.xtiny, paddingRight: Kb.Styles.globalMargins.xtiny},
+  navIcons: {...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny)},
   showMoreContainer: {marginTop: Kb.Styles.globalMargins.tiny},
   tlfContainer: {
     backgroundColor: Kb.Styles.globalColors.white,
@@ -723,8 +723,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     flex: 1,
     maxHeight: 40,
     minHeight: 40,
-    paddingLeft: Kb.Styles.globalMargins.tiny,
-    paddingRight: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
   },
   widgetContainer: {
     backgroundColor: Kb.Styles.globalColors.white,

@@ -45,8 +45,7 @@ const OutOfDate = ({outOfDate}: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   banner: {flexShrink: 0},
   textContainerStyle: {
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
   },
   textCritical: {color: Kb.Styles.globalColors.white},
   textNonCritical: {color: Kb.Styles.globalColors.brown_75},

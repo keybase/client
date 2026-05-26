@@ -144,8 +144,7 @@ const styles = Kb.Styles.styleSheetCreate(
       text: Kb.Styles.platformStyles({
         common: {
           letterSpacing: 0.3,
-          paddingLeft: 2,
-          paddingRight: 2,
+          ...Kb.Styles.paddingH(2),
         },
         isElectron: {
           display: 'inline-block',

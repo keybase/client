@@ -411,8 +411,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       buttonBar: Kb.Styles.platformStyles({
         isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.xsmall,
-          paddingRight: Kb.Styles.globalMargins.xsmall,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
         },
       }),
       container: Kb.Styles.platformStyles({

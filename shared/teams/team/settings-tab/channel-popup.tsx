@@ -112,7 +112,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   header: {
     ...Kb.Styles.padding(19, Kb.Styles.globalMargins.small, 0),
   },
-  searchFilter: {paddingLeft: 0, paddingRight: 0},
+  searchFilter: {...Kb.Styles.paddingH(0)},
 }))
 
 export default ChannelPopup

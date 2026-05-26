@@ -436,8 +436,7 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
       }),
       signedContainerSelf: Kb.Styles.platformStyles({

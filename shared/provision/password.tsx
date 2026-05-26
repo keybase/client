@@ -91,8 +91,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       backgroundColor: Kb.Styles.globalColors.transparent,
     },
     isMobile: {
-      paddingLeft: 0,
-      paddingRight: 0,
+      ...Kb.Styles.paddingH(0),
     },
   }),
   contentContainer: Kb.Styles.platformStyles({isMobile: {...Kb.Styles.padding(0)}}),

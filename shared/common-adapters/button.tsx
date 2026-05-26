@@ -43,15 +43,13 @@ const baseContainer: Styles._StylesCrossPlatform = Styles.platformStyles({
     display: 'inline-flex',
     lineHeight: 'inherit',
     minWidth: 100,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
+    ...Styles.paddingH(Styles.globalMargins.medium),
     position: 'relative' as const,
     userSelect: 'none' as const,
   },
   isMobile: {
     minWidth: 120,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
+    ...Styles.paddingH(Styles.globalMargins.small),
   },
   isTablet: {alignSelf: 'center'},
 })

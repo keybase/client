@@ -38,8 +38,7 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0),
     },
     isAndroid: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
+      ...Styles.paddingH(Styles.globalMargins.small),
     },
     isElectron: {
       paddingLeft: Styles.globalMargins.tiny,

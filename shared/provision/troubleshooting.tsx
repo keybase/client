@@ -183,8 +183,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   headerSide: {
     flex: 1,
-    paddingLeft: Kb.Styles.globalMargins.xsmall,
-    paddingRight: Kb.Styles.globalMargins.xsmall,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
   },
   modalFooterNoBorder: Kb.Styles.platformStyles({
     common: {

@@ -1056,8 +1056,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           borderRadius: Kb.Styles.borderRadius,
           minHeight: 20,
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
         },
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.white_90,

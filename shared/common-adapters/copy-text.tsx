@@ -200,8 +200,7 @@ const styles = Styles.styleSheetCreate(
           height: undefined,
           marginLeft: 'auto',
           minWidth: undefined,
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
+          ...Styles.paddingH(Styles.globalMargins.xsmall),
           width: undefined,
         },
         isElectron: {

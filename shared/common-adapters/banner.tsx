@@ -163,12 +163,10 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.tiny,
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.medium,
-          paddingRight: Styles.globalMargins.medium,
+          ...Styles.paddingH(Styles.globalMargins.medium),
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          ...Styles.paddingH(Styles.globalMargins.small),
         },
       }),
       smallTextContainer: {
@@ -192,12 +190,10 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.tiny,
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.medium,
-          paddingRight: Styles.globalMargins.medium,
+          ...Styles.paddingH(Styles.globalMargins.medium),
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          ...Styles.paddingH(Styles.globalMargins.small),
         },
       }),
       underline: Styles.platformStyles({

@@ -58,8 +58,7 @@ const styles = Styles.styleSheetCreate(() => {
       },
       isElectron: {
         borderRadius: Styles.borderRadius,
-        paddingLeft: 2,
-        paddingRight: 2,
+        ...Styles.paddingH(2),
       },
     }),
     shown: Styles.platformStyles({
@@ -69,8 +68,7 @@ const styles = Styles.styleSheetCreate(() => {
       },
       isElectron: {
         borderRadius: Styles.borderRadius,
-        paddingLeft: 2,
-        paddingRight: 2,
+        ...Styles.paddingH(2),
       },
     }),
   } as const

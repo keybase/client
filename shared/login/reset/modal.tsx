@@ -169,8 +169,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   textContainer: Kb.Styles.platformStyles({
     common: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
     isElectron: {
       ...Kb.Styles.globalStyles.flexOne,

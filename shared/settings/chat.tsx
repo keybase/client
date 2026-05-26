@@ -544,8 +544,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   error: {color: Kb.Styles.globalColors.redDark},
   innerContainer: Kb.Styles.platformStyles({
     common: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
     isElectron: {
       maxWidth: 600,

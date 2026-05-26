@@ -185,14 +185,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   headerLeft: {
     flex: 1,
     justifyContent: 'flex-start',
-    paddingLeft: Kb.Styles.globalMargins.xsmall,
-    paddingRight: Kb.Styles.globalMargins.xsmall,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
   },
   headerRight: {
     flex: 1,
     justifyContent: 'flex-end',
-    paddingLeft: Kb.Styles.globalMargins.xsmall,
-    paddingRight: Kb.Styles.globalMargins.xsmall,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
   },
   hidden: {display: 'none'},
   modalBox: Kb.Styles.platformStyles({

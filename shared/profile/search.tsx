@@ -31,8 +31,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {
       height: 40,
-      paddingLeft: 0,
-      paddingRight: 0,
+      ...Kb.Styles.paddingH(0),
     },
   }),
 }))

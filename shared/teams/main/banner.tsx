@@ -80,8 +80,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   illustration: Kb.Styles.platformStyles({
     isElectron: {
-      paddingLeft: Kb.Styles.globalMargins.large,
-      paddingRight: Kb.Styles.globalMargins.large,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
     },
   }),
   text: Kb.Styles.platformStyles({

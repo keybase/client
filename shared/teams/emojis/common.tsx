@@ -110,20 +110,17 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       height: Kb.Styles.globalMargins.mediumLarge,
-      paddingLeft: Kb.Styles.globalMargins.xsmall,
-      paddingRight: Kb.Styles.globalMargins.xsmall,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
     },
     isMobile: {
       height: Kb.Styles.globalMargins.large,
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
   }),
   aliasInputContainer: {...Kb.Styles.globalStyles.flexGrow, flexShrink: 1},
   aliasInputLarge: Kb.Styles.platformStyles({
     common: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
     isElectron: {
       height: Kb.Styles.globalMargins.large,

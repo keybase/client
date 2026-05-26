@@ -177,8 +177,7 @@ const headerStyles = Kb.Styles.styleSheetCreate(() => ({
     alignItems: 'center',
     height: isMobile ? 64 : 48,
     justifyContent: 'center',
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     position: 'relative',
   },
 }))

@@ -134,8 +134,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   warningText: Kb.Styles.platformStyles({
     common: {color: Kb.Styles.globalColors.brown_75},
     isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.medium,
-      paddingRight: Kb.Styles.globalMargins.medium,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
     },
   }),
 }))

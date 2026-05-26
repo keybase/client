@@ -158,7 +158,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         },
-        isTablet: {paddingLeft: 0, paddingRight: 0},
+        isTablet: {...Kb.Styles.paddingH(0)},
       }),
       searchPlaceholderText: {color: Kb.Styles.globalColors.black_50},
       whiteBg: {backgroundColor: Kb.Styles.globalColors.white},

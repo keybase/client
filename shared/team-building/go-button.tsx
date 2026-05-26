@@ -36,8 +36,8 @@ const GoButton = (props: Props) => (
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   button: Kb.Styles.platformStyles({
-    isElectron: {height: '100%', minWidth: 50, paddingLeft: Kb.Styles.globalMargins.small, paddingRight: Kb.Styles.globalMargins.small},
-    isMobile: {height: '100%', minWidth: 80, paddingLeft: Kb.Styles.globalMargins.tiny, paddingRight: Kb.Styles.globalMargins.tiny},
+    isElectron: {height: '100%', minWidth: 50, ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small)},
+    isMobile: {height: '100%', minWidth: 80, ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny)},
   }),
   container: {
     alignSelf: 'stretch',

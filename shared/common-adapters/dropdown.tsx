@@ -212,8 +212,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           alignItems: 'center',
           flexShrink: 0,
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
+          ...Styles.paddingH(Styles.globalMargins.tiny),
         },
       }),
       itemBox: {

@@ -92,8 +92,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginLeft: Kb.Styles.globalMargins.tiny,
   },
   row: {
-    paddingLeft: Kb.Styles.globalMargins.tiny,
-    paddingRight: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
   },
   scrollContainer: {padding: Kb.Styles.globalMargins.small},
 }))

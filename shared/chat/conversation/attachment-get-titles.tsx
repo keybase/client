@@ -267,8 +267,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           alignItems: 'center',
           flexGrow: 1,
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
           width: '100%',
         },
         isMobile: {flexShrink: 1},
@@ -318,8 +317,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       inputContainer: Kb.Styles.platformStyles({
         isElectron: {
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
       }),
     }) as const

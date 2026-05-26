@@ -130,8 +130,7 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '100%',
         },
         isElectron: {
-          paddingLeft: Kb.Styles.globalMargins.large,
-          paddingRight: Kb.Styles.globalMargins.large,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
         },
       }),
     }) as const

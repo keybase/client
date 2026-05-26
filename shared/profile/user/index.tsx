@@ -574,8 +574,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   addIdentityContainer: Kb.Styles.platformStyles({
     common: {justifyContent: 'center'},
     isElectron: {
-      paddingLeft: Kb.Styles.globalMargins.tiny,
-      paddingRight: Kb.Styles.globalMargins.tiny,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
     },
   }),
   backgroundColor: {
@@ -662,8 +661,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   proofsArea: Kb.Styles.platformStyles({
     isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.medium,
-      paddingRight: Kb.Styles.globalMargins.medium,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
     },
   }),
   proveIt: {paddingTop: Kb.Styles.globalMargins.small},

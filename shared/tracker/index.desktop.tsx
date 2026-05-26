@@ -400,8 +400,7 @@ const styles = Kb.Styles.styleSheetCreate(
       bioContainer: {backgroundColor: Kb.Styles.globalColors.white, flexShrink: 0},
       bioText: Kb.Styles.platformStyles({
         common: {
-          paddingLeft: Kb.Styles.globalMargins.mediumLarge,
-          paddingRight: Kb.Styles.globalMargins.mediumLarge,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.mediumLarge),
         },
         isElectron: {wordBreak: 'break-word'} as const,
       }),

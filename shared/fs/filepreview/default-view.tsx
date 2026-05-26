@@ -118,8 +118,7 @@ const styles = Kb.Styles.styleSheetCreate(
           flex: 1,
         },
         isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.large,
-          paddingRight: Kb.Styles.globalMargins.large,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
         },
       }),
       noOpenMobile: {

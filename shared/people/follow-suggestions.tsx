@@ -38,8 +38,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     paddingTop: Kb.Styles.globalMargins.tiny,
   },
   meta: {
-    paddingLeft: 2,
-    paddingRight: 2,
+    ...Kb.Styles.paddingH(2),
   },
   scrollViewContainer: Kb.Styles.platformStyles({
     common: {

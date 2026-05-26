@@ -119,12 +119,10 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '100%',
         },
         isElectron: {
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
         },
         isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
       }),
       icon: {

@@ -102,8 +102,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       results: Kb.Styles.platformStyles({
         common: {
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
         },
         isMobile: {
           paddingBottom: Kb.Styles.globalMargins.tiny,

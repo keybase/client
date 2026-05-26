@@ -117,8 +117,7 @@ const styles = Kb.Styles.styleSheetCreate(
       typingIconContainer: Kb.Styles.platformStyles({
         isMobile: {
           alignItems: 'center',
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
         },
       }),
     }) as const

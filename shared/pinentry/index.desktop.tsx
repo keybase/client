@@ -40,7 +40,7 @@ const Pinentry = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <DragHeader icon={false} title="" onClose={props.onCancel} windowDragging={true} />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={{paddingLeft: 30, paddingRight: 30}}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={{...Kb.Styles.paddingH(30)}}>
         <Kb.Text type="Body" center={true}>
           {props.prompt}
         </Kb.Text>

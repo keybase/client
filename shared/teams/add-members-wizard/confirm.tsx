@@ -540,8 +540,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       height: 32,
-      paddingLeft: Kb.Styles.globalMargins.tiny,
-      paddingRight: Kb.Styles.globalMargins.tiny,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
     },
     isMobile: {
       height: 40,

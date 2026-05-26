@@ -241,8 +241,7 @@ const styles = Kb.Styles.styleSheetCreate(
       stylesBox: Kb.Styles.platformStyles({
         isElectron: {
           flexShrink: 0,
-          paddingLeft: Kb.Styles.globalMargins.medium,
-          paddingRight: Kb.Styles.globalMargins.medium,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
           position: 'absolute',
         },
       }),

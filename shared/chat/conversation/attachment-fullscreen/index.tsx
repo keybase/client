@@ -444,8 +444,7 @@ const styles = Kb.Styles.styleSheetCreate(
       error: {color: Kb.Styles.globalColors.redDark},
       headerFooter: Kb.Styles.platformStyles({
         common: {
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
         },
         isElectron: {
           alignItems: 'center',
