@@ -545,9 +545,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.topDivider(),
     },
     isElectron: {
-      borderBottomLeftRadius: Kb.Styles.borderRadius,
-      borderBottomRightRadius: Kb.Styles.borderRadius,
-      overflow: 'hidden',
+      ...Kb.Styles.roundedBottom(),
     },
   }),
   radioButton: {marginLeft: Kb.Styles.globalMargins.large},

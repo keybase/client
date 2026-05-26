@@ -116,9 +116,7 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.topDivider(),
     },
     isElectron: {
-      borderBottomLeftRadius: Styles.borderRadius,
-      borderBottomRightRadius: Styles.borderRadius,
-      overflow: 'hidden',
+      ...Styles.roundedBottom(),
     },
   }),
   modalFooterNoBorder: Styles.platformStyles({
@@ -127,9 +125,7 @@ const styles = Styles.styleSheetCreate(() => ({
       minHeight: 56,
     },
     isElectron: {
-      borderBottomLeftRadius: Styles.borderRadius,
-      borderBottomRightRadius: Styles.borderRadius,
-      overflow: 'hidden',
+      ...Styles.roundedBottom(),
     },
   }),
   text: {

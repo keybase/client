@@ -212,9 +212,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.topDivider(),
     },
     isElectron: {
-      borderBottomLeftRadius: Kb.Styles.borderRadius,
-      borderBottomRightRadius: Kb.Styles.borderRadius,
-      overflow: 'hidden',
+      ...Kb.Styles.roundedBottom(),
     },
   }),
   modalFooterNoBorder: Kb.Styles.platformStyles({
@@ -223,9 +221,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       minHeight: 56,
     },
     isElectron: {
-      borderBottomLeftRadius: Kb.Styles.borderRadius,
-      borderBottomRightRadius: Kb.Styles.borderRadius,
-      overflow: 'hidden',
+      ...Kb.Styles.roundedBottom(),
     },
   }),
   overlayAvoidTabs: Kb.Styles.platformStyles({

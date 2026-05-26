@@ -192,9 +192,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       minHeight: 56,
     },
     isElectron: {
-      borderBottomLeftRadius: Kb.Styles.borderRadius,
-      borderBottomRightRadius: Kb.Styles.borderRadius,
-      overflow: 'hidden',
+      ...Kb.Styles.roundedBottom(),
     },
   }),
 }))
