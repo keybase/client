@@ -254,7 +254,7 @@ function isTopDividerGap(props: Record<string, string>): boolean {
     'borderTopWidth' in props &&
     'borderStyle' in props &&
     'minHeight' in props &&
-    (props['borderStyle']?.replace(/['"]/g, '').trim().startsWith('solid') ?? false) &&
+    (props['borderStyle'] ?? '').replace(/['"]/g, '').trim().startsWith('solid') &&
     props['borderTopWidth'] === '1' &&
     props['minHeight'] === '56'
   )
@@ -271,7 +271,7 @@ function isRoundedBottomGap(props: Record<string, string>): boolean {
     'borderBottomLeftRadius' in props &&
     'borderBottomRightRadius' in props &&
     'overflow' in props &&
-    props['overflow']?.replace(/['"]/g, '') === 'hidden' &&
+    (props['overflow'] ?? '').replace(/['"]/g, '') === 'hidden' &&
     bl === br &&
     (bl === 'Kb.Styles.borderRadius' || bl === 'Styles.borderRadius' || bl === 'borderRadius')
   )
@@ -286,9 +286,9 @@ function isTextEllipsisGap(props: Record<string, string>): boolean {
     'overflow' in props &&
     'textOverflow' in props &&
     'whiteSpace' in props &&
-    props['overflow']?.replace(/['"]/g, '') === 'hidden' &&
-    props['textOverflow']?.replace(/['"]/g, '') === 'ellipsis' &&
-    props['whiteSpace']?.replace(/['"]/g, '') === 'nowrap'
+    (props['overflow'] ?? '').replace(/['"]/g, '') === 'hidden' &&
+    (props['textOverflow'] ?? '').replace(/['"]/g, '') === 'ellipsis' &&
+    (props['whiteSpace'] ?? '').replace(/['"]/g, '') === 'nowrap'
   )
 }
 function suggestTextEllipsisCall(_props: Record<string, string>): string {
@@ -711,8 +711,11 @@ function runReport(inputPath: string, outputPath: string) {
   for (const entry of entries) {
     const cats = new Set(Object.keys(entry.props).map(k => PCAT[k] ?? 'o'))
     const present = CAT_KEYS.filter(c => cats.has(c))
-    for (const ci of present) for (const cj of present)
-      coMatrix[CAT_KEYS.indexOf(ci)][CAT_KEYS.indexOf(cj)]++
+    for (const ci of present) for (const cj of present) {
+      const ri = CAT_KEYS.indexOf(ci), rj = CAT_KEYS.indexOf(cj)
+      const row = coMatrix[ri]
+      if (row) row[rj] = (row[rj] ?? 0) + 1
+    }
   }
 
   // File-level stats

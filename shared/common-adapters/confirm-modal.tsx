@@ -113,10 +113,7 @@ const styles = Styles.styleSheetCreate(() => ({
   modalFooter: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-      borderStyle: 'solid' as const,
-      borderTopColor: Styles.globalColors.black_10,
-      borderTopWidth: 1,
-      minHeight: 56,
+      ...Styles.topDivider(),
     },
     isElectron: {
       borderBottomLeftRadius: Styles.borderRadius,
