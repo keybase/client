@@ -7,20 +7,99 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const ROOT = join(__dirname, '..')
 
+type HelperCall = {
+  name: string   // 'border', 'paddingH', 'textEllipsis', etc.
+  call: string   // full source text of the expression
+  args: string[] // argument source texts (empty for property helpers like textEllipsis)
+}
+
 type StyleEntry = {
   file: string
   source: 'styleSheetCreate' | 'platformStyles' | 'inline'
   name: string | null
   platform: string | null
   line: number
-  props: Record<string, string>
+  props: Record<string, string>   // literal CSS props in source
+  helperCalls: HelperCall[]       // spread helper calls found in this style object
 }
 
 type ExtractOutput = {
-  version: 1
+  version: 2
   extractedAt: string
   entries: StyleEntry[]
 }
+
+// ── Helper name detection ────────────────────────────────────────────────────
+
+const KNOWN_HELPERS = new Set([
+  'border', 'padding', 'paddingH', 'paddingV',
+  'marginH', 'marginV', 'size',
+  'roundedBottom', 'topDivider', 'textEllipsis',
+])
+
+function getHelperName(text: string): string | null {
+  const parts = text.split('.')
+  const last = parts[parts.length - 1]
+  return last && KNOWN_HELPERS.has(last) ? last : null
+}
+
+// ── Helper expansion for computed view ──────────────────────────────────────
+
+function expandHelperCall(call: HelperCall): Record<string, string> {
+  const a = call.args
+  switch (call.name) {
+    case 'border': {
+      const color = a[0] ?? ''
+      const width = a[1] ?? '1'
+      const result: Record<string, string> = {
+        borderColor: color,
+        borderWidth: width,
+        borderStyle: "'solid'",
+      }
+      if (a[2]) result['borderRadius'] = a[2]
+      return result
+    }
+    case 'padding': {
+      const t = a[0] ?? '0', r = a[1], b = a[2], l = a[3]
+      if (!r) return {paddingTop: t, paddingRight: t, paddingBottom: t, paddingLeft: t}
+      if (!b) return {paddingTop: t, paddingRight: r, paddingBottom: t, paddingLeft: r}
+      if (!l) return {paddingTop: t, paddingRight: r, paddingBottom: b, paddingLeft: r}
+      return {paddingTop: t, paddingRight: r, paddingBottom: b, paddingLeft: l}
+    }
+    case 'paddingH':   return {paddingLeft: a[0] ?? '0', paddingRight: a[0] ?? '0'}
+    case 'paddingV':   return {paddingTop: a[0] ?? '0', paddingBottom: a[0] ?? '0'}
+    case 'marginH':    return {marginLeft: a[0] ?? '0', marginRight: a[0] ?? '0'}
+    case 'marginV':    return {marginTop: a[0] ?? '0', marginBottom: a[0] ?? '0'}
+    case 'size':       return {height: a[0] ?? '0', width: a[0] ?? '0'}
+    case 'roundedBottom': return {
+      borderBottomLeftRadius: 'Kb.Styles.borderRadius',
+      borderBottomRightRadius: 'Kb.Styles.borderRadius',
+      overflow: "'hidden'",
+    }
+    case 'topDivider': return {
+      borderTopColor: 'Kb.Styles.globalColors.black_10',
+      borderTopWidth: '1',
+      borderStyle: "'solid'",
+      minHeight: '56',
+    }
+    case 'textEllipsis': return {
+      overflow: "'hidden'",
+      textOverflow: "'ellipsis'",
+      whiteSpace: "'nowrap'",
+    }
+    default: return {}
+  }
+}
+
+function computedPropsOf(entry: StyleEntry): Record<string, string> {
+  const result = {...entry.props}
+  for (const call of (entry.helperCalls ?? [])) {
+    Object.assign(result, expandHelperCall(call))
+  }
+  return result
+}
+
+// ── File traversal ───────────────────────────────────────────────────────────
 
 function findTsxFiles(dir: string): string[] {
   const results: string[] = []
@@ -41,19 +120,44 @@ function lineOf(sourceFile: ts.SourceFile, pos: number): number {
   return sourceFile.getLineAndCharacterOfPosition(pos).line + 1
 }
 
-function extractObjectProps(
+// ── Style object extraction ──────────────────────────────────────────────────
+
+function extractStyleContents(
   node: ts.ObjectLiteralExpression,
-  sourceFile: ts.SourceFile
-): Record<string, string> {
+  sf: ts.SourceFile
+): {props: Record<string, string>; helperCalls: HelperCall[]} {
   const props: Record<string, string> = {}
+  const helperCalls: HelperCall[] = []
+
   for (const prop of node.properties) {
     if (ts.isPropertyAssignment(prop)) {
-      const key = prop.name.getText(sourceFile)
-      const val = prop.initializer.getText(sourceFile)
+      const key = prop.name.getText(sf)
+      const val = prop.initializer.getText(sf)
       props[key] = val
+    } else if (ts.isSpreadAssignment(prop)) {
+      const expr = prop.expression
+      if (ts.isCallExpression(expr)) {
+        const callText = expr.expression.getText(sf)
+        const name = getHelperName(callText)
+        if (name) {
+          helperCalls.push({
+            name,
+            call: expr.getText(sf),
+            args: expr.arguments.map(a => a.getText(sf)),
+          })
+        }
+      } else {
+        // Property helper like ...Kb.Styles.textEllipsis (no call parens)
+        const text = expr.getText(sf)
+        const name = getHelperName(text)
+        if (name) {
+          helperCalls.push({name, call: text, args: []})
+        }
+      }
     }
   }
-  return props
+
+  return {props, helperCalls}
 }
 
 function extractFromFile(filePath: string): StyleEntry[] {
@@ -81,8 +185,8 @@ function extractFromFile(filePath: string): StyleEntry[] {
           for (const prop of objNode.properties) {
             if (ts.isPropertyAssignment(prop) && ts.isObjectLiteralExpression(prop.initializer)) {
               const name = prop.name.getText(sf)
-              const props = extractObjectProps(prop.initializer, sf)
-              if (Object.keys(props).length > 0) {
+              const {props, helperCalls} = extractStyleContents(prop.initializer, sf)
+              if (Object.keys(props).length > 0 || helperCalls.length > 0) {
                 entries.push({
                   file: rel,
                   source: 'styleSheetCreate',
@@ -90,6 +194,7 @@ function extractFromFile(filePath: string): StyleEntry[] {
                   platform: null,
                   line: lineOf(sf, prop.getStart(sf)),
                   props,
+                  helperCalls,
                 })
               }
             }
@@ -108,8 +213,8 @@ function extractFromFile(filePath: string): StyleEntry[] {
         for (const prop of arg.properties) {
           if (ts.isPropertyAssignment(prop) && ts.isObjectLiteralExpression(prop.initializer)) {
             const platform = prop.name.getText(sf)
-            const props = extractObjectProps(prop.initializer, sf)
-            if (Object.keys(props).length > 0) {
+            const {props, helperCalls} = extractStyleContents(prop.initializer, sf)
+            if (Object.keys(props).length > 0 || helperCalls.length > 0) {
               entries.push({
                 file: rel,
                 source: 'platformStyles',
@@ -117,6 +222,7 @@ function extractFromFile(filePath: string): StyleEntry[] {
                 platform,
                 line: lineOf(sf, prop.getStart(sf)),
                 props,
+                helperCalls,
               })
             }
           }
@@ -130,8 +236,8 @@ function extractFromFile(filePath: string): StyleEntry[] {
       if (attrName === 'style' && node.initializer && ts.isJsxExpression(node.initializer)) {
         const expr = node.initializer.expression
         if (expr && ts.isObjectLiteralExpression(expr)) {
-          const props = extractObjectProps(expr, sf)
-          if (Object.keys(props).length > 0) {
+          const {props, helperCalls} = extractStyleContents(expr, sf)
+          if (Object.keys(props).length > 0 || helperCalls.length > 0) {
             entries.push({
               file: rel,
               source: 'inline',
@@ -139,6 +245,7 @@ function extractFromFile(filePath: string): StyleEntry[] {
               platform: null,
               line: lineOf(sf, node.getStart(sf)),
               props,
+              helperCalls,
             })
           }
         }
@@ -167,7 +274,7 @@ function runExtract(outputPath: string) {
       // skip unparseable files silently
     }
   }
-  const out: ExtractOutput = {version: 1, extractedAt: new Date().toISOString(), entries}
+  const out: ExtractOutput = {version: 2, extractedAt: new Date().toISOString(), entries}
   writeFileSync(outputPath, JSON.stringify(out, null, 2))
   console.error(`\nExtracted ${entries.length} style objects from ${files.length} files → ${outputPath}`)
 }
@@ -204,7 +311,7 @@ function suggestBorderCall(props: Record<string, string>): string | null {
   if (hasBottomLeft && hasBottomRight) {
     const rLeft = props['borderBottomLeftRadius']
     const rRight = props['borderBottomRightRadius']
-    if (rLeft !== rRight) return null  // asymmetric — border() can't represent this
+    if (rLeft !== rRight) return null
     return `...Kb.Styles.border(${color}, ${width}, ${rLeft}, true)`
   }
   if (hasRadius) {
@@ -216,11 +323,6 @@ function suggestBorderCall(props: Record<string, string>): string | null {
   return `...Kb.Styles.border(${color}, ${width})`
 }
 
-// padding(top, right?, bottom?, left?) matches CSS shorthand logic:
-//   1 arg:  all sides equal
-//   2 args: top/bottom = first, left/right = second
-//   3 args: top, left/right, bottom
-//   4 args: top, right, bottom, left
 function isPaddingGap(props: Record<string, string>): boolean {
   return (
     'paddingTop' in props &&
@@ -237,17 +339,12 @@ function suggestPaddingCall(props: Record<string, string>): string | null {
   const l = props['paddingLeft']
   if (!t || !r || !b || !l) return null
 
-  // 1 arg: all equal
   if (t === r && t === b && t === l) return `...Kb.Styles.padding(${t})`
-  // 2 args: top===bottom, right===left
   if (t === b && r === l) return `...Kb.Styles.padding(${t}, ${r})`
-  // 3 args: right===left
   if (r === l) return `...Kb.Styles.padding(${t}, ${r}, ${b})`
-  // 4 args
   return `...Kb.Styles.padding(${t}, ${r}, ${b}, ${l})`
 }
 
-// topDivider() — borderStyle:'solid', borderTopColor:black_10, borderTopWidth:1, minHeight:56
 function isTopDividerGap(props: Record<string, string>): boolean {
   return (
     'borderTopColor' in props &&
@@ -263,7 +360,6 @@ function suggestTopDividerCall(_props: Record<string, string>): string {
   return '...Kb.Styles.topDivider()'
 }
 
-// roundedBottom() — borderBottomLeftRadius:borderRadius, borderBottomRightRadius:borderRadius, overflow:'hidden'
 function isRoundedBottomGap(props: Record<string, string>): boolean {
   const bl = props['borderBottomLeftRadius']
   const br = props['borderBottomRightRadius']
@@ -280,7 +376,6 @@ function suggestRoundedBottomCall(_props: Record<string, string>): string {
   return '...Kb.Styles.roundedBottom()'
 }
 
-// textEllipsis — overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'
 function isTextEllipsisGap(props: Record<string, string>): boolean {
   return (
     'overflow' in props &&
@@ -295,7 +390,6 @@ function suggestTextEllipsisCall(_props: Record<string, string>): string {
   return '...Kb.Styles.textEllipsis'
 }
 
-// paddingH(n) — paddingLeft === paddingRight, no paddingTop/Bottom
 function isPaddingHGap(props: Record<string, string>): boolean {
   return (
     'paddingLeft' in props &&
@@ -309,7 +403,6 @@ function suggestPaddingHCall(props: Record<string, string>): string {
   return `...Kb.Styles.paddingH(${props['paddingLeft']})`
 }
 
-// paddingV(n) — paddingTop === paddingBottom, no paddingLeft/Right
 function isPaddingVGap(props: Record<string, string>): boolean {
   return (
     'paddingTop' in props &&
@@ -323,7 +416,6 @@ function suggestPaddingVCall(props: Record<string, string>): string {
   return `...Kb.Styles.paddingV(${props['paddingTop']})`
 }
 
-// marginH(n) — marginLeft === marginRight, no marginTop/Bottom, numeric values only
 function isMarginHGap(props: Record<string, string>): boolean {
   const v = props['marginLeft']
   return (
@@ -339,7 +431,6 @@ function suggestMarginHCall(props: Record<string, string>): string {
   return `...Kb.Styles.marginH(${props['marginLeft']})`
 }
 
-// marginV(n) — marginTop === marginBottom, no marginLeft/Right
 function isMarginVGap(props: Record<string, string>): boolean {
   return (
     'marginTop' in props &&
@@ -353,7 +444,6 @@ function suggestMarginVCall(props: Record<string, string>): string {
   return `...Kb.Styles.marginV(${props['marginTop']})`
 }
 
-// size(n) — height === width, excludes undefined values
 function isSizeGap(props: Record<string, string>): boolean {
   const v = props['height']
   return (
@@ -370,8 +460,6 @@ function suggestSizeCall(props: Record<string, string>): string {
 
 // ── Pattern clustering (all props) ───────────────────────────────────────────
 
-// Props already covered by existing helpers — suppress from candidate output
-// since gap detection handles them.
 const HELPER_COVERED_PROP_SETS = [
   new Set(['borderColor', 'borderStyle', 'borderWidth']),
   new Set(['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft']),
@@ -384,10 +472,6 @@ const HELPER_COVERED_PROP_SETS = [
   new Set(['marginTop', 'marginBottom']),
   new Set(['height', 'width']),
 ]
-
-function allPropsCluster(props: Record<string, string>): string {
-  return Object.keys(props).sort().join('+')
-}
 
 function isCoveredByHelper(keys: string[]): boolean {
   const keySet = new Set(keys)
@@ -403,7 +487,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
   const data: ExtractOutput = JSON.parse(readFileSync(inputPath, 'utf-8'))
   console.log(`Loaded ${data.entries.length} style entries from ${inputPath} (extracted ${data.extractedAt})\n`)
 
-  // ── Gap detection: border() ──────────────────────────────────────────────
   if (!helperFilter || helperFilter === 'border') {
     const gaps: HelperGap[] = data.entries
       .filter(e => isBorderGap(e.props))
@@ -411,7 +494,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
         const suggestedCall = suggestBorderCall(e.props)
         return suggestedCall ? [{...e, suggestedCall}] : []
       })
-
     console.log(`=== border() gap detection: ${gaps.length} sites ===\n`)
     for (const g of gaps) {
       const label = g.name ? ` (${g.name})` : ''
@@ -422,7 +504,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
     else console.log()
   }
 
-  // ── Gap detection: padding() ─────────────────────────────────────────────
   if (!helperFilter || helperFilter === 'padding') {
     const gaps: HelperGap[] = data.entries
       .filter(e => isPaddingGap(e.props))
@@ -430,7 +511,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
         const suggestedCall = suggestPaddingCall(e.props)
         return suggestedCall ? [{...e, suggestedCall}] : []
       })
-
     console.log(`=== padding() gap detection: ${gaps.length} sites ===\n`)
     for (const g of gaps) {
       const label = g.name ? ` (${g.name})` : ''
@@ -441,7 +521,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
     else console.log()
   }
 
-  // ── Gap detection: topDivider() ─────────────────────────────────────────
   if (!helperFilter || helperFilter === 'topDivider') {
     const gaps: HelperGap[] = data.entries
       .filter(e => isTopDividerGap(e.props))
@@ -456,7 +535,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
     else console.log()
   }
 
-  // ── Gap detection: roundedBottom() ──────────────────────────────────────
   if (!helperFilter || helperFilter === 'roundedBottom') {
     const gaps: HelperGap[] = data.entries
       .filter(e => isRoundedBottomGap(e.props))
@@ -471,7 +549,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
     else console.log()
   }
 
-  // ── Gap detection: textEllipsis ──────────────────────────────────────────
   if (!helperFilter || helperFilter === 'textEllipsis') {
     const gaps: HelperGap[] = data.entries
       .filter(e => isTextEllipsisGap(e.props))
@@ -486,7 +563,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
     else console.log()
   }
 
-  // ── Gap detection: paddingH() ────────────────────────────────────────────
   if (!helperFilter || helperFilter === 'paddingH') {
     const gaps: HelperGap[] = data.entries
       .filter(e => isPaddingHGap(e.props))
@@ -501,7 +577,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
     else console.log()
   }
 
-  // ── Gap detection: paddingV() ────────────────────────────────────────────
   if (!helperFilter || helperFilter === 'paddingV') {
     const gaps: HelperGap[] = data.entries
       .filter(e => isPaddingVGap(e.props))
@@ -516,7 +591,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
     else console.log()
   }
 
-  // ── Gap detection: marginH() ─────────────────────────────────────────────
   if (!helperFilter || helperFilter === 'marginH') {
     const gaps: HelperGap[] = data.entries
       .filter(e => isMarginHGap(e.props))
@@ -531,7 +605,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
     else console.log()
   }
 
-  // ── Gap detection: marginV() ─────────────────────────────────────────────
   if (!helperFilter || helperFilter === 'marginV') {
     const gaps: HelperGap[] = data.entries
       .filter(e => isMarginVGap(e.props))
@@ -546,7 +619,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
     else console.log()
   }
 
-  // ── Gap detection: size() ────────────────────────────────────────────────
   if (!helperFilter || helperFilter === 'size') {
     const gaps: HelperGap[] = data.entries
       .filter(e => isSizeGap(e.props))
@@ -561,7 +633,6 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
     else console.log()
   }
 
-  // ── Pattern detection: new helper candidates (all props) ─────────────────
   if (!helperFilter) {
     type ClusterInfo = {
       count: number
@@ -574,7 +645,7 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
       const keys = Object.keys(entry.props)
       if (keys.length < 2) continue
       if (isCoveredByHelper(keys)) continue
-      const cluster = allPropsCluster(entry.props)
+      const cluster = keys.sort().join('+')
       const existing = clusters.get(cluster) ?? {count: 0, examples: [], valueSample: {}}
       existing.count++
       if (existing.examples.length < 3) existing.examples.push({file: entry.file, line: entry.line})
@@ -626,6 +697,64 @@ const PCAT: Record<string, string> = {
 }
 const CAT_KEYS = ['s','b','l','z','t','v','o'] as const
 
+type ClusterRow = {key: string; count: number; examples: Array<{file: string; line: number; name: string | null}>; vals: Record<string, string[]>}
+
+function buildClusters(propsList: Array<Record<string, string>>, examplesMeta: Array<{file: string; line: number; name: string | null}>): ClusterRow[] {
+  const clusterMap = new Map<string, ClusterRow>()
+  for (let i = 0; i < propsList.length; i++) {
+    const props = propsList[i]!
+    const meta = examplesMeta[i]!
+    const keys = Object.keys(props).sort()
+    if (keys.length < 2) continue
+    const key = keys.join('+')
+    const cr: ClusterRow = clusterMap.get(key) ?? {key, count: 0, examples: [], vals: {}}
+    cr.count++
+    if (cr.examples.length < 5) cr.examples.push(meta)
+    for (const [k, v] of Object.entries(props)) {
+      cr.vals[k] = [...new Set([...(cr.vals[k] ?? []), v])].slice(0, 4)
+    }
+    clusterMap.set(key, cr)
+  }
+  return [...clusterMap.values()].filter(c => c.count >= 3).sort((a, b) => b.count - a.count)
+}
+
+function buildTopProps(propsList: Array<Record<string, string>>): Array<[string, number]> {
+  const freqMap = new Map<string, number>()
+  for (const props of propsList) for (const k of Object.keys(props)) freqMap.set(k, (freqMap.get(k) ?? 0) + 1)
+  return [...freqMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 80)
+}
+
+function buildCatStats(propsList: Array<Record<string, string>>): Array<{cat: string; count: number}> {
+  const catCounts = new Map<string, number>()
+  for (const props of propsList)
+    for (const k of Object.keys(props))
+      catCounts.set(PCAT[k] ?? 'o', (catCounts.get(PCAT[k] ?? 'o') ?? 0) + 1)
+  return CAT_KEYS.map(c => ({cat: c, count: catCounts.get(c) ?? 0}))
+}
+
+function buildComplexity(propsList: Array<Record<string, string>>): Array<{propCount: number; count: number}> {
+  const complexMap = new Map<number, number>()
+  for (const props of propsList) {
+    const n = Object.keys(props).length
+    complexMap.set(n, (complexMap.get(n) ?? 0) + 1)
+  }
+  return [...complexMap.entries()].sort((a, b) => a[0] - b[0]).map(([propCount, count]) => ({propCount, count}))
+}
+
+function buildCoMatrix(propsList: Array<Record<string, string>>): number[][] {
+  const coMatrix = CAT_KEYS.map(() => CAT_KEYS.map(() => 0))
+  for (const props of propsList) {
+    const cats = new Set(Object.keys(props).map(k => PCAT[k] ?? 'o'))
+    const present = CAT_KEYS.filter(c => cats.has(c))
+    for (const ci of present) for (const cj of present) {
+      const ri = CAT_KEYS.indexOf(ci), rj = CAT_KEYS.indexOf(cj)
+      const row = coMatrix[ri]
+      if (row) row[rj] = (row[rj] ?? 0) + 1
+    }
+  }
+  return coMatrix
+}
+
 function runReport(inputPath: string, outputPath: string) {
   if (!existsSync(inputPath)) {
     console.error(`Input not found: ${inputPath}. Run extract first.`)
@@ -672,67 +801,55 @@ function runReport(inputPath: string, outputPath: string) {
     }
   }
 
-  // Exact-key clustering across all style props
-  type CRow = {key: string; count: number; examples: Array<{file: string; line: number; name: string | null}>; vals: Record<string, string[]>}
-  const clusterMap = new Map<string, CRow>()
+  // Helper usage stats
+  const helperCountMap = new Map<string, number>()
   for (const entry of entries) {
-    const keys = Object.keys(entry.props).sort()
-    if (keys.length < 2) continue
-    const key = keys.join('+')
-    const cr: CRow = clusterMap.get(key) ?? {key, count: 0, examples: [], vals: {}}
-    cr.count++
-    if (cr.examples.length < 5) cr.examples.push({file: entry.file, line: entry.line, name: entry.name})
-    for (const [k, v] of Object.entries(entry.props)) {
-      cr.vals[k] = [...new Set([...(cr.vals[k] ?? []), v])].slice(0, 4)
-    }
-    clusterMap.set(key, cr)
-  }
-  const clusters = [...clusterMap.values()]
-    .filter(c => c.count >= 3)
-    .sort((a, b) => b.count - a.count)
-
-  // Property frequency
-  const freqMap = new Map<string, number>()
-  for (const entry of entries) for (const k of Object.keys(entry.props)) freqMap.set(k, (freqMap.get(k) ?? 0) + 1)
-  const topProps = [...freqMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 80)
-
-  // Category usage counts
-  const catCounts = new Map<string, number>()
-  for (const entry of entries)
-    for (const k of Object.keys(entry.props))
-      catCounts.set(PCAT[k] ?? 'o', (catCounts.get(PCAT[k] ?? 'o') ?? 0) + 1)
-  const catStats = CAT_KEYS.map(c => ({cat: c, count: catCounts.get(c) ?? 0}))
-
-  // Object complexity histogram (how many style objects have N props)
-  const complexMap = new Map<number, number>()
-  for (const entry of entries) {
-    const n = Object.keys(entry.props).length
-    complexMap.set(n, (complexMap.get(n) ?? 0) + 1)
-  }
-  const complexity = [...complexMap.entries()].sort((a, b) => a[0] - b[0]).map(([propCount, count]) => ({propCount, count}))
-
-  // Category co-occurrence matrix
-  const coMatrix = CAT_KEYS.map(() => CAT_KEYS.map(() => 0))
-  for (const entry of entries) {
-    const cats = new Set(Object.keys(entry.props).map(k => PCAT[k] ?? 'o'))
-    const present = CAT_KEYS.filter(c => cats.has(c))
-    for (const ci of present) for (const cj of present) {
-      const ri = CAT_KEYS.indexOf(ci), rj = CAT_KEYS.indexOf(cj)
-      const row = coMatrix[ri]
-      if (row) row[rj] = (row[rj] ?? 0) + 1
+    for (const call of (entry.helperCalls ?? [])) {
+      helperCountMap.set(call.name, (helperCountMap.get(call.name) ?? 0) + 1)
     }
   }
+  const helperUsage = [...helperCountMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({name, count}))
+  const totalHelperCalls = helperUsage.reduce((s, x) => s + x.count, 0)
+  const entriesWithHelpers = entries.filter(e => (e.helperCalls ?? []).length > 0).length
 
-  // File-level stats
-  const fileMap2 = new Map<string, {count: number; totalProps: number; maxProps: number}>()
+  // Build raw datasets (from entry.props only)
+  const rawPropsList = entries.map(e => e.props)
+  const meta = entries.map(e => ({file: e.file, line: e.line, name: e.name}))
+
+  const rawClusters = buildClusters(rawPropsList, meta)
+  const rawTopProps = buildTopProps(rawPropsList)
+  const rawCatStats = buildCatStats(rawPropsList)
+  const rawComplexity = buildComplexity(rawPropsList)
+  const rawCoMatrix = buildCoMatrix(rawPropsList)
+
+  // Build computed datasets (raw props + expanded helper calls)
+  const computedPropsList = entries.map(e => computedPropsOf(e))
+
+  const computedClusters = buildClusters(computedPropsList, meta)
+  const computedTopProps = buildTopProps(computedPropsList)
+  const computedCatStats = buildCatStats(computedPropsList)
+  const computedComplexity = buildComplexity(computedPropsList)
+  const computedCoMatrix = buildCoMatrix(computedPropsList)
+
+  // File-level stats (raw)
+  const fileMap2 = new Map<string, {count: number; totalProps: number; maxProps: number; helperCalls: number}>()
   for (const entry of entries) {
     const n = Object.keys(entry.props).length
-    const fs = fileMap2.get(entry.file) ?? {count: 0, totalProps: 0, maxProps: 0}
-    fs.count++; fs.totalProps += n; fs.maxProps = Math.max(fs.maxProps, n)
+    const hc = (entry.helperCalls ?? []).length
+    const fs = fileMap2.get(entry.file) ?? {count: 0, totalProps: 0, maxProps: 0, helperCalls: 0}
+    fs.count++; fs.totalProps += n; fs.maxProps = Math.max(fs.maxProps, n); fs.helperCalls += hc
     fileMap2.set(entry.file, fs)
   }
   const fileStats = [...fileMap2.entries()]
-    .map(([file, s]) => ({file, count: s.count, avgProps: Math.round(s.totalProps / s.count * 10) / 10, maxProps: s.maxProps}))
+    .map(([file, s]) => ({
+      file,
+      count: s.count,
+      avgProps: Math.round(s.totalProps / s.count * 10) / 10,
+      maxProps: s.maxProps,
+      helperCalls: s.helperCalls,
+    }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 60)
 
@@ -740,7 +857,13 @@ function runReport(inputPath: string, outputPath: string) {
     extractedAt: data.extractedAt,
     totalEntries: entries.length,
     totalFiles: new Set(entries.map(e => e.file)).size,
-    gaps, clusters, topProps, catStats, complexity, coMatrix, fileStats,
+    totalHelperCalls,
+    entriesWithHelpers,
+    helperUsage,
+    gaps,
+    rawClusters, rawTopProps, rawCatStats, rawComplexity, rawCoMatrix,
+    computedClusters, computedTopProps, computedCatStats, computedComplexity, computedCoMatrix,
+    fileStats,
   })
   writeFileSync(outputPath, html, 'utf-8')
   console.error(`Report → ${outputPath}`)
@@ -751,24 +874,38 @@ type ReportInput = {
   extractedAt: string
   totalEntries: number
   totalFiles: number
+  totalHelperCalls: number
+  entriesWithHelpers: number
+  helperUsage: Array<{name: string; count: number}>
   gaps: Array<{helper: string; file: string; line: number; name: string | null; props: Record<string, string>; call: string}>
-  clusters: Array<{key: string; count: number; examples: Array<{file: string; line: number; name: string | null}>; vals: Record<string, string[]>}>
-  topProps: Array<[string, number]>
-  catStats: Array<{cat: string; count: number}>
-  complexity: Array<{propCount: number; count: number}>
-  coMatrix: number[][]
-  fileStats: Array<{file: string; count: number; avgProps: number; maxProps: number}>
+  rawClusters: ClusterRow[]
+  rawTopProps: Array<[string, number]>
+  rawCatStats: Array<{cat: string; count: number}>
+  rawComplexity: Array<{propCount: number; count: number}>
+  rawCoMatrix: number[][]
+  computedClusters: ClusterRow[]
+  computedTopProps: Array<[string, number]>
+  computedCatStats: Array<{cat: string; count: number}>
+  computedComplexity: Array<{propCount: number; count: number}>
+  computedCoMatrix: number[][]
+  fileStats: Array<{file: string; count: number; avgProps: number; maxProps: number; helperCalls: number}>
 }
 
 function buildHtml(d: ReportInput): string {
   const gJ = JSON.stringify(d.gaps)
-  const cJ = JSON.stringify(d.clusters)
-  const pJ = JSON.stringify(d.topProps)
+  const rcJ = JSON.stringify(d.rawClusters)
+  const ccJ = JSON.stringify(d.computedClusters)
+  const rpJ = JSON.stringify(d.rawTopProps)
+  const cpJ = JSON.stringify(d.computedTopProps)
   const pcJ = JSON.stringify(PCAT)
-  const csJ = JSON.stringify(d.catStats)
-  const cxJ = JSON.stringify(d.complexity)
-  const cmJ = JSON.stringify(d.coMatrix)
+  const rcsJ = JSON.stringify(d.rawCatStats)
+  const ccsJ = JSON.stringify(d.computedCatStats)
+  const rcxJ = JSON.stringify(d.rawComplexity)
+  const ccxJ = JSON.stringify(d.computedComplexity)
+  const rcmJ = JSON.stringify(d.rawCoMatrix)
+  const ccmJ = JSON.stringify(d.computedCoMatrix)
   const fsJ = JSON.stringify(d.fileStats)
+  const huJ = JSON.stringify(d.helperUsage)
   const ts = d.extractedAt.slice(0, 16).replace('T', ' ')
 
   return `<!DOCTYPE html>
@@ -779,10 +916,16 @@ function buildHtml(d: ReportInput): string {
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font:13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8fafc;color:#1e293b}
-.hdr{background:#0f172a;color:#f8fafc;padding:12px 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10}
+.hdr{background:#0f172a;color:#f8fafc;padding:12px 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
 .hdr h1{font-size:14px;font-weight:600;margin-right:4px}
 .st{background:rgba(255,255,255,.12);padding:2px 9px;border-radius:10px;font-size:11px;color:#94a3b8}
 .st b{color:#f8fafc}
+.mode-wrap{margin-left:auto;display:flex;align-items:center;gap:6px}
+.mode-lbl{font-size:11px;color:#64748b}
+.mtb{display:flex;border:1px solid #334155;border-radius:5px;overflow:hidden}
+.mt{padding:4px 12px;font-size:11px;font-weight:500;cursor:pointer;background:transparent;color:#94a3b8;border:none;transition:background .15s,color .15s}
+.mt:hover{background:#1e293b;color:#cbd5e1}
+.mt.on{background:#3b82f6;color:#fff}
 .tabs{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;padding:0 20px;position:sticky;top:41px;z-index:9}
 .tab{padding:9px 14px;cursor:pointer;border-bottom:2px solid transparent;font-size:12px;color:#64748b;white-space:nowrap}
 .tab:hover{color:#1e293b}
@@ -805,6 +948,7 @@ code{font-family:'SF Mono',Consolas,monospace;font-size:11px;background:#f1f5f9;
 .cp{cursor:pointer;user-select:none;margin-left:4px;color:#94a3b8;font-size:11px}
 .cp:hover{color:#3b82f6}
 .bdg{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-family:'SF Mono',Consolas,monospace;margin:1px;line-height:1.5}
+.hbdg{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-family:'SF Mono',Consolas,monospace;margin:1px;line-height:1.5;background:#fef9c3;color:#854d0e;border:1px solid #fde68a}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:10px}
 .card{background:#fff;border-radius:6px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06);border:1px solid #f1f5f9}
 .chd{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;flex-wrap:wrap}
@@ -824,6 +968,7 @@ code{font-family:'SF Mono',Consolas,monospace;font-size:11px;background:#f1f5f9;
 @media(max-width:900px){.dgrid{grid-template-columns:1fr}}
 .dcard{background:#fff;border-radius:6px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.06);border:1px solid #f1f5f9}
 .dcard h2{font-size:11px;font-weight:600;color:#64748b;margin-bottom:14px;text-transform:uppercase;letter-spacing:.6px}
+.mode-note{font-size:10px;color:#94a3b8;margin-bottom:12px;font-style:italic}
 </style>
 </head>
 <body>
@@ -832,29 +977,48 @@ code{font-family:'SF Mono',Consolas,monospace;font-size:11px;background:#f1f5f9;
   <span class="st"><b>${d.totalEntries}</b> style objects</span>
   <span class="st"><b>${d.totalFiles}</b> files</span>
   <span class="st"><b>${d.gaps.length}</b> gaps</span>
-  <span class="st"><b>${d.clusters.length}</b> candidates</span>
+  <span class="st"><b>${d.totalHelperCalls}</b> helper calls</span>
   <span class="st" style="color:#475569">${ts}</span>
+  <div class="mode-wrap">
+    <span class="mode-lbl">View:</span>
+    <div class="mtb">
+      <button class="mt on" onclick="setMode(false)">Raw</button>
+      <button class="mt" onclick="setMode(true)">Computed</button>
+    </div>
+  </div>
 </div>
 <div class="tabs">
   <div class="tab on" onclick="sw('gaps')">Gaps <span style="opacity:.6">(${d.gaps.length})</span></div>
-  <div class="tab" onclick="sw('cands')">Candidates <span style="opacity:.6">(${d.clusters.length})</span></div>
+  <div class="tab" onclick="sw('cands')">Candidates</div>
   <div class="tab" onclick="sw('props')">Properties</div>
   <div class="tab" onclick="sw('dist')">Distribution</div>
 </div>
+
 <div id="gaps" class="pane on">
+  <p class="mode-note">Gap detection always shows raw styles — where helpers could be applied but aren't.</p>
   <div class="tb">
     <input id="gs" type="text" placeholder="Filter by file or property…" oninput="rG()">
     <select id="gh" onchange="rG()">
       <option value="">All helpers</option>
       <option value="border">border()</option>
       <option value="padding">padding()</option>
+      <option value="paddingH">paddingH()</option>
+      <option value="paddingV">paddingV()</option>
+      <option value="marginH">marginH()</option>
+      <option value="marginV">marginV()</option>
+      <option value="size">size()</option>
+      <option value="roundedBottom">roundedBottom()</option>
+      <option value="topDivider">topDivider()</option>
+      <option value="textEllipsis">textEllipsis</option>
     </select>
     <span class="lbl" id="gc"></span>
   </div>
   <table><thead><tr><th>File : Line</th><th>Helper</th><th>Name</th><th>Props</th><th>Suggested call</th></tr></thead>
   <tbody id="gb"></tbody></table>
 </div>
+
 <div id="cands" class="pane">
+  <p class="mode-note" id="cands-note"></p>
   <div class="tb">
     <input id="cs" type="text" placeholder="Filter by property…" oninput="rC()">
     <label class="lbl">Min occurrences: <input id="cm" type="number" value="3" min="2" max="200" oninput="rC()"></label>
@@ -862,36 +1026,65 @@ code{font-family:'SF Mono',Consolas,monospace;font-size:11px;background:#f1f5f9;
   </div>
   <div class="cards" id="cg"></div>
 </div>
+
 <div id="props" class="pane">
+  <p class="mode-note" id="props-note"></p>
   <div class="tb">
     <input id="ps" type="text" placeholder="Filter properties…" oninput="rP()">
   </div>
   <div class="bars" id="pb"></div>
 </div>
+
 <div id="dist" class="pane">
+  <p class="mode-note" id="dist-note"></p>
   <div class="dgrid">
     <div class="dcard"><h2>Category Breakdown</h2><div id="donut"></div></div>
     <div class="dcard"><h2>Object Complexity</h2><div id="complex"></div></div>
-    <div class="dcard"><h2>Category Co-occurrence</h2><p style="font-size:11px;color:#94a3b8;margin-bottom:10px">How often two categories appear together in the same style object. Hover a cell for details.</p><div id="heat"></div></div>
-    <div class="dcard" style="padding:0;overflow:hidden"><div style="padding:16px 16px 12px"><h2 style="margin:0">Files by Style Count</h2></div><div id="files"></div></div>
+    <div class="dcard"><h2>Category Co-occurrence</h2><p style="font-size:11px;color:#94a3b8;margin-bottom:10px">How often two categories appear together in the same style object.</p><div id="heat"></div></div>
+    <div class="dcard"><h2>Helper Usage</h2><div id="helpers"></div></div>
+    <div class="dcard" style="grid-column:1/-1;padding:0;overflow:hidden"><div style="padding:16px 16px 12px"><h2 style="margin:0">Files by Style Count</h2></div><div id="files"></div></div>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
 <script>
 var G=${gJ};
-var C=${cJ};
-var P=${pJ};
+var CRaw=${rcJ};
+var CComp=${ccJ};
+var PRaw=${rpJ};
+var PComp=${cpJ};
 var PC=${pcJ};
-var CATS=${csJ};
-var COMPLEX=${cxJ};
-var COMAT=${cmJ};
+var CATSRaw=${rcsJ};
+var CATSComp=${ccsJ};
+var COMPLEXRaw=${rcxJ};
+var COMPLEXComp=${ccxJ};
+var COMATRaw=${rcmJ};
+var COMATComp=${ccmJ};
 var FSTATS=${fsJ};
+var HUSAGE=${huJ};
 var CS={s:{bg:'#dcfce7',fg:'#15803d'},b:{bg:'#dbeafe',fg:'#1d4ed8'},l:{bg:'#ede9fe',fg:'#6d28d9'},z:{bg:'#fef3c7',fg:'#b45309'},t:{bg:'#fce7f3',fg:'#9d174d'},v:{bg:'#ffedd5',fg:'#c2410c'},o:{bg:'#f1f5f9',fg:'#475569'}};
 var CLABELS={s:'Spacing',b:'Border',l:'Layout',z:'Size',t:'Typography',v:'Visual',o:'Other'};
 var CKEYS=['s','b','l','z','t','v','o'];
+var isComp=false;
+var C=CRaw,P=PRaw,CATS=CATSRaw,COMPLEX=COMPLEXRaw,COMAT=COMATRaw;
+function setMode(computed){
+  isComp=computed;
+  C=computed?CComp:CRaw;
+  P=computed?PComp:PRaw;
+  CATS=computed?CATSComp:CATSRaw;
+  COMPLEX=computed?COMPLEXComp:COMPLEXRaw;
+  COMAT=computed?COMATComp:COMATRaw;
+  document.querySelectorAll('.mt').forEach(function(b,i){b.classList.toggle('on',i===(computed?1:0));});
+  var rawNote='Raw mode: shows literal CSS props in source only. Helper calls are not expanded.';
+  var compNote='Computed mode: helper calls are expanded to their constituent CSS props. Reveals true property usage.';
+  var note=computed?compNote:rawNote;
+  ['cands-note','props-note','dist-note'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=note;});
+  render();
+}
 function h(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function ct(p){return PC[p]||'o';}
 function bd(p){var c=CS[ct(p)];return '<span class="bdg" style="background:'+c.bg+';color:'+c.fg+'">'+h(p)+'</span>';}
+function hbd(name){return '<span class="hbdg">'+h(name)+'()</span>';}
 function cfg(p){return CS[ct(p)].fg;}
 function cpBtn(txt){return '<span class="cp" data-cp="'+h(txt)+'" onclick="doCp(this.dataset.cp)" title="Copy">⧉</span>';}
 function doCp(txt){if(navigator.clipboard)navigator.clipboard.writeText(txt);var t=document.getElementById('toast');t.textContent='Copied!';t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1400);}
@@ -899,6 +1092,14 @@ var TAB='gaps';
 function sw(id){TAB=id;document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('on',['gaps','cands','props','dist'][i]===id);});document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id===id);});render();}
 function render(){if(TAB==='gaps')rG();else if(TAB==='cands')rC();else if(TAB==='props')rP();else rD();}
 function v(id){var el=document.getElementById(id);return el?el.value:'';}
+
+var HCOLORS={border:'#1d4ed8',padding:'#15803d',paddingH:'#0d9488',paddingV:'#0d9488',marginH:'#7c3aed',marginV:'#7c3aed',size:'#b45309',roundedBottom:'#be185d',topDivider:'#475569',textEllipsis:'#475569'};
+var HBGS={border:'#dbeafe',padding:'#dcfce7',paddingH:'#ccfbf1',paddingV:'#ccfbf1',marginH:'#ede9fe',marginV:'#ede9fe',size:'#fef3c7',roundedBottom:'#fce7f3',topDivider:'#f1f5f9',textEllipsis:'#f1f5f9'};
+function helperBadge(name){
+  var fg=HCOLORS[name]||'#475569',bg=HBGS[name]||'#f1f5f9';
+  return '<span class="bdg" style="background:'+bg+';color:'+fg+'">'+h(name)+'()</span>';
+}
+
 function rG(){
   var q=(v('gs')||'').toLowerCase(),hf=v('gh');
   var rows=G.filter(function(g){return(!hf||g.helper===hf)&&(!q||g.file.toLowerCase().indexOf(q)>=0||Object.keys(g.props).some(function(k){return k.toLowerCase().indexOf(q)>=0;}));});
@@ -908,10 +1109,10 @@ function rG(){
   tb.innerHTML=rows.map(function(g){
     var ks=Object.keys(g.props);
     var pb=ks.slice(0,5).map(bd).join('')+(ks.length>5?'<span style="color:#94a3b8;font-size:10px"> +'+(ks.length-5)+' more</span>':'');
-    var hb=g.helper==='border'?'<span class="bdg" style="background:#dbeafe;color:#1d4ed8">border()</span>':'<span class="bdg" style="background:#dcfce7;color:#15803d">padding()</span>';
-    return '<tr><td><code>'+h(g.file)+':'+g.line+'</code></td><td>'+hb+'</td><td>'+(g.name?'<code>'+h(g.name)+'</code>':'<span style="color:#94a3b8">—</span>')+'</td><td>'+pb+'</td><td><span class="sg">'+h(g.call)+'</span>'+cpBtn(g.call)+'</td></tr>';
+    return '<tr><td><code>'+h(g.file)+':'+g.line+'</code></td><td>'+helperBadge(g.helper)+'</td><td>'+(g.name?'<code>'+h(g.name)+'</code>':'<span style="color:#94a3b8">—</span>')+'</td><td>'+pb+'</td><td><span class="sg">'+h(g.call)+'</span>'+cpBtn(g.call)+'</td></tr>';
   }).join('');
 }
+
 function rC(){
   var q=(v('cs')||'').toLowerCase(),mn=parseInt(v('cm'))||3;
   var items=C.filter(function(c){return c.count>=mn&&(!q||c.key.toLowerCase().indexOf(q)>=0);});
@@ -927,6 +1128,7 @@ function rC(){
     return '<div class="card"><div class="chd"><span class="cnt">'+c.count+'\xd7</span>'+badges+'</div><div class="cv">'+vals+'</div><div class="ce">'+exs+(more>0?'<div>+'+more+' more</div>':'')+'</div></div>';
   }).join('');
 }
+
 function rP(){
   var q=(v('ps')||'').toLowerCase();
   var items=P.filter(function(pr){return !q||pr[0].toLowerCase().indexOf(q)>=0;});
@@ -937,7 +1139,9 @@ function rP(){
     return '<div class="br"><div class="brl">'+bd(pr[0])+'</div><div class="brt"><div class="brf" style="width:'+Math.round(pr[1]/mx*100)+'%;background:'+c.fg+'"></div></div><div class="brn">'+pr[1]+'</div></div>';
   }).join('');
 }
-function rD(){rDonut();rComplex();rHeat();rFiles();}
+
+function rD(){rDonut();rComplex();rHeat();rHelpers();rFiles();}
+
 function rDonut(){
   var el=document.getElementById('donut');if(!el)return;
   var total=CATS.reduce(function(s,x){return s+x.count;},0)||1;
@@ -957,6 +1161,7 @@ function rDonut(){
   });
   el.innerHTML='<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap"><svg viewBox="0 0 180 180" width="180" height="180" style="flex-shrink:0">'+paths+'<text x="'+cx+'" y="'+(cy+5)+'" text-anchor="middle" fill="#1e293b" font-size="13" font-weight="600">'+total+'</text><text x="'+cx+'" y="'+(cy+17)+'" text-anchor="middle" fill="#94a3b8" font-size="9">prop usages</text></svg><div style="flex:1;min-width:140px">'+legend+'</div></div>';
 }
+
 function rComplex(){
   var el=document.getElementById('complex');if(!el)return;
   var mx=COMPLEX.reduce(function(m,x){return Math.max(m,x.count);},0)||1;
@@ -966,6 +1171,7 @@ function rComplex(){
     return '<div class="br"><div class="brl" style="font-size:11px;color:#64748b;width:72px">'+x.propCount+' prop'+(x.propCount===1?'':'s')+'</div><div class="brt"><div class="brf" style="width:'+pct+'%;background:#3b82f6"></div></div><div class="brn" style="font-size:11px">'+x.count+'</div><div style="font-size:10px;color:#94a3b8;width:34px">'+Math.round(x.count/total*100)+'%</div></div>';
   }).join('')+'</div><p style="font-size:11px;color:#94a3b8;margin-top:10px">'+total+' total style objects</p>';
 }
+
 function rHeat(){
   var el=document.getElementById('heat');if(!el)return;
   var labs=CKEYS.map(function(c){return CLABELS[c];});
@@ -990,12 +1196,27 @@ function rHeat(){
   out+='</tbody></table></div>';
   el.innerHTML=out;
 }
+
+function rHelpers(){
+  var el=document.getElementById('helpers');if(!el)return;
+  if(!HUSAGE.length){el.innerHTML='<div class="empty" style="padding:20px">No helper calls found — run extract on fresh snapshot</div>';return;}
+  var mx=HUSAGE[0].count||1;
+  el.innerHTML='<div style="max-width:420px">'+HUSAGE.map(function(x){
+    var fg=HCOLORS[x.name]||'#475569',bg=HBGS[x.name]||'#f1f5f9';
+    var pct=Math.round(x.count/mx*100);
+    return '<div class="br"><div class="brl"><span class="bdg" style="background:'+bg+';color:'+fg+'">'+h(x.name)+'()</span></div><div class="brt"><div class="brf" style="width:'+pct+'%;background:'+fg+'"></div></div><div class="brn">'+x.count+'</div></div>';
+  }).join('')+'</div>';
+}
+
 function rFiles(){
   var el=document.getElementById('files');if(!el)return;
-  el.innerHTML='<table><thead><tr><th>File</th><th style="text-align:right">Objects</th><th style="text-align:right">Avg props</th><th style="text-align:right">Max props</th></tr></thead><tbody>'+FSTATS.map(function(f){
-    return '<tr><td><code>'+h(f.file)+'</code></td><td style="text-align:right">'+f.count+'</td><td style="text-align:right">'+f.avgProps+'</td><td style="text-align:right">'+f.maxProps+'</td></tr>';
+  el.innerHTML='<table><thead><tr><th>File</th><th style="text-align:right">Objects</th><th style="text-align:right">Avg props</th><th style="text-align:right">Max props</th><th style="text-align:right">Helper calls</th></tr></thead><tbody>'+FSTATS.map(function(f){
+    var hc=f.helperCalls>0?'<b style="color:#854d0e">'+f.helperCalls+'</b>':'<span style="color:#94a3b8">0</span>';
+    return '<tr><td><code>'+h(f.file)+'</code></td><td style="text-align:right">'+f.count+'</td><td style="text-align:right">'+f.avgProps+'</td><td style="text-align:right">'+f.maxProps+'</td><td style="text-align:right">'+hc+'</td></tr>';
   }).join('')+'</tbody></table>';
 }
+
+setMode(false);
 rG();document.getElementById('gc').textContent=G.length+' total';
 </script>
 </body>
@@ -1035,7 +1256,7 @@ if (cmd === 'extract') {
   runReport(input, output)
 } else {
   console.error('Usage: node scripts/analyze-styles.mts extract [--output /tmp/keybase-styles.json]')
-  console.error('       node scripts/analyze-styles.mts analyze [--input /tmp/keybase-styles.json] [--helper border|padding] [--min-count 3]')
+  console.error('       node scripts/analyze-styles.mts analyze [--input /tmp/keybase-styles.json] [--helper border|padding|...] [--min-count 3]')
   console.error('       node scripts/analyze-styles.mts report  [--input /tmp/keybase-styles.json] [--output /tmp/keybase-styles.html]')
   process.exit(1)
 }
