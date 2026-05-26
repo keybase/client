@@ -310,9 +310,7 @@ const styles = Kb.Styles.styleSheetCreate(
       activity: {alignSelf: 'flex-start'},
       addInviteAndLinkBox: Kb.Styles.platformStyles({
         common: {
-          borderColor: Kb.Styles.globalColors.black_10,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.black_10),
           flexShrink: 0,
           padding: Kb.Styles.globalMargins.tiny,
         },
@@ -337,9 +335,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       addInviteAsFeatureTeamBox: Kb.Styles.platformStyles({
         common: {
-          borderColor: Kb.Styles.globalColors.black_10,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.black_10),
           flexShrink: 0,
           padding: Kb.Styles.globalMargins.tiny,
         },
@@ -377,10 +373,7 @@ const styles = Kb.Styles.styleSheetCreate(
       editTeamAvatar: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blue,
-          borderColor: Kb.Styles.globalColors.white,
-          borderRadius: 100,
-          borderStyle: 'solid',
-          borderWidth: 2,
+          ...Kb.Styles.border(Kb.Styles.globalColors.white, 2, 100),
           bottom: -6,
           color: Kb.Styles.globalColors.whiteOrWhite,
           padding: 4,

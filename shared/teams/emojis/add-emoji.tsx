@@ -415,10 +415,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {
       ...Kb.Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
-      borderColor: Kb.Styles.globalColors.black_20,
-      borderRadius: Kb.Styles.globalMargins.xtiny,
-      borderStyle: 'solid',
-      borderWidth: 1,
+      ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, Kb.Styles.globalMargins.xtiny),
       justifyContent: 'center',
     },
     isElectron: {

@@ -159,9 +159,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       marginBottom: Kb.Styles.globalMargins.xtiny,
     },
     isMobile: {
-      borderColor: Kb.Styles.globalColors.black_20,
-      borderStyle: 'solid',
-      borderWidth: 1,
+      ...Kb.Styles.border(Kb.Styles.globalColors.black_20),
     },
   }),
   pillContainer: {

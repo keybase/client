@@ -156,10 +156,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   iconContainer: {
     backgroundColor: Kb.Styles.globalColors.red,
-    borderColor: Kb.Styles.globalColors.white,
-    borderRadius: 12,
-    borderStyle: 'solid',
-    borderWidth: 3,
+    ...Kb.Styles.border(Kb.Styles.globalColors.white, 3, 12),
     bottom: -3,
     height: 24,
     overflow: 'hidden',
