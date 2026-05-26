@@ -131,6 +131,17 @@ export const padding = (top: number, right?: number, bottom?: number, left?: num
   paddingLeft: left !== undefined ? left : right !== undefined ? right : top,
 })
 
+export const border = (color: string, width = 1, radius?: number, justBottom?: boolean) => ({
+  borderColor: color,
+  borderStyle: 'solid' as const,
+  borderWidth: width,
+  ...(radius !== undefined
+    ? justBottom
+      ? {borderBottomLeftRadius: radius, borderBottomRightRadius: radius}
+      : {borderRadius: radius}
+    : {}),
+})
+
 // ─── Font definitions ─────────────────────────────────────────────────────────
 
 const fontCommonDesktop = {
