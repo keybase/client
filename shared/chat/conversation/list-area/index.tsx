@@ -153,15 +153,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     clearTimeout(scrollStopTimerRef.current)
   }, [onScroll])
 
-  // Load older messages when scrolled near the top (first 30 items visible)
-  const onViewableItemsChanged = C.useDebouncedCallback(
-    ({viewableItems}: {viewableItems: Array<{index: number; item: T.Chat.Ordinal}>}) => {
-      if ((viewableItems[0]?.index ?? Infinity) < 30) {
-        loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
-      }
-    },
-    50
-  )
+  const onStartReached = React.useCallback(() => {
+    loadOlderMessagesDueToScroll(numOrdinalsRef.current, getThreadLoadStatusOptions())
+  }, [loadOlderMessagesDueToScroll, getThreadLoadStatusOptions])
 
   // Load newer messages when scrolled to the end (only when not at latest)
   const onEndReached = C.useThrottledCallback(() => {
@@ -330,8 +324,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
           maintainVisibleContentPosition={centeredOrdinal !== undefined ? undefined : {data: true}}
           onLoad={onLoad}
           onScroll={onScroll as unknown as (e: unknown) => void}
+          onStartReached={onStartReached}
+          onStartReachedThreshold={2}
           onEndReached={onEndReached}
-          onViewableItemsChanged={onViewableItemsChanged as unknown as (info: unknown) => void}
         />
         {jumpToRecent}
       </div>
