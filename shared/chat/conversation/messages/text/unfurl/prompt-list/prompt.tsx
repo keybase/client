@@ -72,8 +72,7 @@ const styles = Kb.Styles.styleSheetCreate(
       icon: Kb.Styles.platformStyles({
         isElectron: {
           alignSelf: 'center',
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         },
       }),
     }) as const

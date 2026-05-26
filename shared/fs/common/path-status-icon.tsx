@@ -107,8 +107,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   iconNonFont: Kb.Styles.platformStyles({
     common: {
-      marginLeft: Kb.Styles.globalMargins.xtiny,
-      marginRight: Kb.Styles.globalMargins.xtiny,
+      ...Kb.Styles.marginH(Kb.Styles.globalMargins.xtiny),
     },
     isElectron: {
       height: Kb.Styles.globalMargins.xsmall,

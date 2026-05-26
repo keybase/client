@@ -124,8 +124,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           alignSelf: 'stretch',
           flexGrow: 1,
-          marginLeft: Kb.Styles.globalMargins.tiny,
-          marginRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny),
           width: undefined,
         },
         isPhone: {backgroundColor: Kb.Styles.globalColors.white},

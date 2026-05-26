@@ -207,8 +207,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {width: 360},
         isMobile: {
           flex: 1,
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         },
       }),
       buttonBar: {paddingTop: Kb.Styles.globalMargins.small},

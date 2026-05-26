@@ -159,8 +159,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   buttonBar: {
-    marginLeft: Kb.Styles.globalMargins.medium,
-    marginRight: Kb.Styles.globalMargins.medium,
+    ...Kb.Styles.marginH(Kb.Styles.globalMargins.medium),
   },
   buttonIcon: {
     height: 64,

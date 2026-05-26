@@ -152,8 +152,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   thumbnail: {
     borderRadius: 16,
     height: 32,
-    marginLeft: 16,
-    marginRight: 16,
+    ...Kb.Styles.marginH(16),
     width: 32,
   },
 }))

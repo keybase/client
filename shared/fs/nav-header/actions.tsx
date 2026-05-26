@@ -79,8 +79,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       uploadButton: Kb.Styles.platformStyles({
         isElectron: {
-          marginLeft: Kb.Styles.globalMargins.tiny,
-          marginRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny),
         },
       }),
     }) as const

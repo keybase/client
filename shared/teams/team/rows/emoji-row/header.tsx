@@ -27,8 +27,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     width: 130 + Kb.Styles.globalMargins.small,
   },
   divider: {
-    marginLeft: Kb.Styles.globalMargins.small,
-    marginRight: Kb.Styles.globalMargins.small,
+    ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
     maxHeight: 2,
     minHeight: 2,
   },

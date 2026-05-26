@@ -300,8 +300,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginTop: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         },
       }),
     }) as const
