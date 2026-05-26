@@ -21,8 +21,6 @@
     "font:verify-text": "python3 tools/fonts/font_tool.py verify-text --manifest fonts/manifest.json --metrics fonts/metrics.json",
     "font:diff-metrics": "python3 tools/fonts/font_tool.py diff-metrics",
     "update-protocol": "cd ../protocol && make clean && make",
-    "unused-assets": "yarn run _helper unused-assets",
-    "delete-unused-assets": "yarn run _helper delete-unused-assets",
     "build-treeshake": "yarn run _helper build-treeshake",
     "build-dev": "yarn run _helper build-dev",
     "build-profile": "yarn run _helper build-profile",
