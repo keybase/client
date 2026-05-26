@@ -320,10 +320,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       inputAndFilePickerContainer: Kb.Styles.platformStyles({
         isElectron: {
-          paddingBottom: 0,
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: 0,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, 0, 0, Kb.Styles.globalMargins.tiny),
         },
       }),
       inputContainer: Kb.Styles.platformStyles({
@@ -365,10 +362,7 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingRight: 46,
         },
         isMobile: {
-          paddingBottom: Kb.Styles.globalMargins.xsmall,
-          paddingLeft: Kb.Styles.globalMargins.xsmall,
-          paddingRight: Kb.Styles.globalMargins.xsmall,
-          paddingTop: Kb.Styles.globalMargins.xsmall,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall),
         },
       }),
     }) as const

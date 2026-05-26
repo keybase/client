@@ -92,10 +92,7 @@ const SFMIPopup = (props: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBox: {
-    paddingBottom: Kb.Styles.globalMargins.tiny,
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
-    paddingTop: Kb.Styles.globalMargins.small,
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
   },
   container: {
     ...Kb.Styles.globalStyles.flexBoxColumn,

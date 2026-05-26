@@ -102,10 +102,7 @@ const styles = Kb.Styles.styleSheetCreate(
       backButton: Kb.Styles.platformStyles({
         common: {
           opacity: 1,
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         },
         isAndroid: {paddingRight: Kb.Styles.globalMargins.small},
       }),

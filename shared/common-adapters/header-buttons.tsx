@@ -35,10 +35,7 @@ const styles = Styles.styleSheetCreate(() => ({
   action: Styles.platformStyles({
     common: {
       opacity: 1,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: 0,
-      paddingRight: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
+      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0),
     },
     isAndroid: {
       paddingLeft: Styles.globalMargins.small,

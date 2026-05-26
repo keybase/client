@@ -242,10 +242,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   sectionTitle: {
     backgroundColor: Kb.Styles.globalColors.blueLighter3,
     color: Kb.Styles.globalColors.black_50,
-    paddingBottom: 7,
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
-    paddingTop: 7,
+    ...Kb.Styles.padding(7, Kb.Styles.globalMargins.small),
   },
 }))
 

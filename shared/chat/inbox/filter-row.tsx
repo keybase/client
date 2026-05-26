@@ -156,10 +156,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {flex: 1},
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
         isMobile: {
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         },
         isTablet: {paddingLeft: 0, paddingRight: 0},
       }),

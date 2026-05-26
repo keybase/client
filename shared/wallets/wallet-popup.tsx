@@ -75,10 +75,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       borderRadius: 'inherit',
-      paddingBottom: Kb.Styles.globalMargins.xlarge,
-      paddingLeft: Kb.Styles.globalMargins.medium,
-      paddingRight: Kb.Styles.globalMargins.medium,
-      paddingTop: Kb.Styles.globalMargins.xlarge,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xlarge, Kb.Styles.globalMargins.medium),
       textAlign: 'center',
     },
     isMobile: {},

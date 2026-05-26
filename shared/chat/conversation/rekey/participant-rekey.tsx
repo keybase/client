@@ -57,7 +57,7 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
       <Kb.Text
         center={isMobile}
         negative={true}
-        style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
+        style={{...Kb.Styles.padding(8, 24)}}
         type="BodySemibold"
       >
         This conversation is waiting for a participant to open their Keybase app.

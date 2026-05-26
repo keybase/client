@@ -547,10 +547,7 @@ const styles = Kb.Styles.styleSheetCreate(
           flex: 1,
         },
         isElectron: {
-          paddingBottom: Kb.Styles.globalMargins.xtiny,
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.xtiny,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.tiny),
         },
         isMobile: {padding: Kb.Styles.globalMargins.tiny},
       }),

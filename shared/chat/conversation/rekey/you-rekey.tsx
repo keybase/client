@@ -24,7 +24,7 @@ const YouRekey = (p: Props) => {
         >
           <Kb.Text
             negative={true}
-            style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
+            style={{...Kb.Styles.padding(8, 24)}}
             type="BodySemibold"
           >
             This conversation needs to be rekeyed.

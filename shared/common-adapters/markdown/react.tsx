@@ -72,10 +72,7 @@ const _markdownStyles = Styles.styleSheetCreate(
             backgroundColor: Styles.globalColors.redLighter,
             marginBottom: Styles.globalMargins.xtiny,
             marginTop: Styles.globalMargins.xtiny,
-            paddingBottom: Styles.globalMargins.xtiny,
-            paddingLeft: Styles.globalMargins.tiny,
-            paddingRight: Styles.globalMargins.tiny,
-            paddingTop: Styles.globalMargins.xtiny,
+            ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
           },
           isElectron: {
             ...electronWrapStyle,

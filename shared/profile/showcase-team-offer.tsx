@@ -153,10 +153,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       teamRowContainer: Kb.Styles.platformStyles({
         common: {
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         },
         isMobile: {minHeight: isMobile ? 64 : 48},
       }),

@@ -216,19 +216,53 @@ function suggestBorderCall(props: Record<string, string>): string | null {
   return `...Kb.Styles.border(${color}, ${width})`
 }
 
-// ── Pattern clustering ────────────────────────────────────────────────────────
+// padding(top, right?, bottom?, left?) matches CSS shorthand logic:
+//   1 arg:  all sides equal
+//   2 args: top/bottom = first, left/right = second
+//   3 args: top, left/right, bottom
+//   4 args: top, right, bottom, left
+function isPaddingGap(props: Record<string, string>): boolean {
+  return (
+    'paddingTop' in props &&
+    'paddingRight' in props &&
+    'paddingBottom' in props &&
+    'paddingLeft' in props
+  )
+}
 
-const BORDER_PROPS = new Set([
-  'borderColor', 'borderStyle', 'borderWidth', 'borderRadius',
-  'borderBottomLeftRadius', 'borderBottomRightRadius',
-  'borderTopLeftRadius', 'borderTopRightRadius',
-])
+function suggestPaddingCall(props: Record<string, string>): string | null {
+  const t = props['paddingTop']
+  const r = props['paddingRight']
+  const b = props['paddingBottom']
+  const l = props['paddingLeft']
+  if (!t || !r || !b || !l) return null
 
-function borderCluster(props: Record<string, string>): string {
-  return Object.keys(props)
-    .filter(k => BORDER_PROPS.has(k))
-    .sort()
-    .join('+')
+  // 1 arg: all equal
+  if (t === r && t === b && t === l) return `...Kb.Styles.padding(${t})`
+  // 2 args: top===bottom, right===left
+  if (t === b && r === l) return `...Kb.Styles.padding(${t}, ${r})`
+  // 3 args: right===left
+  if (r === l) return `...Kb.Styles.padding(${t}, ${r}, ${b})`
+  // 4 args
+  return `...Kb.Styles.padding(${t}, ${r}, ${b}, ${l})`
+}
+
+// ── Pattern clustering (all props) ───────────────────────────────────────────
+
+// Props already covered by existing helpers — suppress from candidate output
+// since gap detection handles them.
+const HELPER_COVERED_PROP_SETS = [
+  new Set(['borderColor', 'borderStyle', 'borderWidth']),
+  new Set(['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft']),
+]
+
+function allPropsCluster(props: Record<string, string>): string {
+  return Object.keys(props).sort().join('+')
+}
+
+function isCoveredByHelper(keys: string[]): boolean {
+  const keySet = new Set(keys)
+  return HELPER_COVERED_PROP_SETS.some(covered => [...covered].every(k => keySet.has(k)))
 }
 
 function runAnalyze(inputPath: string, helperFilter: string | null, minCount: number) {
@@ -259,21 +293,44 @@ function runAnalyze(inputPath: string, helperFilter: string | null, minCount: nu
     else console.log()
   }
 
-  // ── Pattern detection: new helper candidates ─────────────────────────────
+  // ── Gap detection: padding() ─────────────────────────────────────────────
+  if (!helperFilter || helperFilter === 'padding') {
+    const gaps: HelperGap[] = data.entries
+      .filter(e => isPaddingGap(e.props))
+      .flatMap(e => {
+        const suggestedCall = suggestPaddingCall(e.props)
+        return suggestedCall ? [{...e, suggestedCall}] : []
+      })
+
+    console.log(`=== padding() gap detection: ${gaps.length} sites ===\n`)
+    for (const g of gaps) {
+      const label = g.name ? ` (${g.name})` : ''
+      console.log(`  ${g.file}:${g.line}${label}`)
+      console.log(`    → ${g.suggestedCall}`)
+    }
+    if (gaps.length === 0) console.log('  (none found)\n')
+    else console.log()
+  }
+
+  // ── Pattern detection: new helper candidates (all props) ─────────────────
   if (!helperFilter) {
-    type ClusterInfo = {count: number; examples: Array<{file: string; line: number; props: Record<string, string>}>; valueSample: Record<string, string[]>}
+    type ClusterInfo = {
+      count: number
+      examples: Array<{file: string; line: number}>
+      valueSample: Record<string, string[]>
+    }
     const clusters = new Map<string, ClusterInfo>()
 
     for (const entry of data.entries) {
-      const cluster = borderCluster(entry.props)
-      if (!cluster) continue
+      const keys = Object.keys(entry.props)
+      if (keys.length < 2) continue
+      if (isCoveredByHelper(keys)) continue
+      const cluster = allPropsCluster(entry.props)
       const existing = clusters.get(cluster) ?? {count: 0, examples: [], valueSample: {}}
       existing.count++
-      if (existing.examples.length < 3) existing.examples.push({file: entry.file, line: entry.line, props: entry.props})
+      if (existing.examples.length < 3) existing.examples.push({file: entry.file, line: entry.line})
       for (const [k, v] of Object.entries(entry.props)) {
-        if (BORDER_PROPS.has(k)) {
-          existing.valueSample[k] = [...new Set([...(existing.valueSample[k] ?? []), v])].slice(0, 5)
-        }
+        existing.valueSample[k] = [...new Set([...(existing.valueSample[k] ?? []), v])].slice(0, 5)
       }
       clusters.set(cluster, existing)
     }
@@ -326,6 +383,6 @@ if (cmd === 'extract') {
   runAnalyze(input, helper, minCount)
 } else {
   console.error('Usage: node scripts/analyze-styles.mts extract [--output /tmp/keybase-styles.json]')
-  console.error('       node scripts/analyze-styles.mts analyze [--input /tmp/keybase-styles.json] [--helper border] [--min-count 3]')
+  console.error('       node scripts/analyze-styles.mts analyze [--input /tmp/keybase-styles.json] [--helper border|padding] [--min-count 3]')
   process.exit(1)
 }

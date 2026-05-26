@@ -199,10 +199,7 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
     alignItems: 'center',
     alignSelf: 'stretch',
     justifyContent: 'center',
-    paddingBottom: Styles.globalMargins.small,
-    paddingLeft: Styles.globalMargins.large,
-    paddingRight: Styles.globalMargins.large,
-    paddingTop: Styles.globalMargins.large,
+    ...Styles.padding(Styles.globalMargins.large, Styles.globalMargins.large, Styles.globalMargins.small),
   },
   positioned: Styles.platformStyles({
     isElectron: {

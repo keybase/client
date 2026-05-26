@@ -572,10 +572,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginRight: Kb.Styles.globalMargins.small,
   },
   teamRowContainer: {
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingLeft: isMobile ? Kb.Styles.globalMargins.large : 48,
-    paddingRight: Kb.Styles.globalMargins.small,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.xtiny, isMobile ? Kb.Styles.globalMargins.large : 48),
   },
   teamText: {
     alignSelf: 'flex-start',
