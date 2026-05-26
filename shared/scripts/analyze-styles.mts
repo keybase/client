@@ -323,14 +323,16 @@ function suggestPaddingVCall(props: Record<string, string>): string {
   return `...Kb.Styles.paddingV(${props['paddingTop']})`
 }
 
-// marginH(n) — marginLeft === marginRight, no marginTop/Bottom
+// marginH(n) — marginLeft === marginRight, no marginTop/Bottom, numeric values only
 function isMarginHGap(props: Record<string, string>): boolean {
+  const v = props['marginLeft']
   return (
     'marginLeft' in props &&
     'marginRight' in props &&
     !('marginTop' in props) &&
     !('marginBottom' in props) &&
-    props['marginLeft'] === props['marginRight']
+    props['marginLeft'] === props['marginRight'] &&
+    v !== undefined && !v.includes("'auto'") && v !== "'auto'"
   )
 }
 function suggestMarginHCall(props: Record<string, string>): string {
