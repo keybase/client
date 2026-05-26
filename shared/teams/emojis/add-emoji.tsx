@@ -419,12 +419,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       justifyContent: 'center',
     },
     isElectron: {
-      height: Kb.Styles.globalMargins.mediumLarge,
-      width: Kb.Styles.globalMargins.mediumLarge,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.mediumLarge),
     },
     isMobile: {
-      height: Kb.Styles.globalMargins.large,
-      width: Kb.Styles.globalMargins.large,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.large),
     },
   }),
   contentContainer: Kb.Styles.platformStyles({
@@ -446,8 +444,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       borderRadius: 30,
       borderStyle: 'dotted',
       borderWidth: 3,
-      height: 175,
-      width: 175,
+      ...Kb.Styles.size(175),
     },
   }),
   dropAreaDragOver: Kb.Styles.platformStyles({
@@ -456,8 +453,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   emojiToAddImage: {
-    height: '100%',
-    width: '100%',
+    ...Kb.Styles.size('100%'),
   },
   emojiToAddImageContainer: Kb.Styles.platformStyles({
     common: {

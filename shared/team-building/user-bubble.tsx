@@ -79,10 +79,9 @@ const styles = Kb.Styles.styleSheetCreate(
           alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.white,
           borderRadius: 100,
-          height: removeSize,
+          ...Kb.Styles.size(removeSize),
           position: 'absolute',
           top: 0,
-          width: removeSize,
         },
         isElectron: {
           cursor: 'pointer',

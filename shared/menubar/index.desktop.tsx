@@ -614,14 +614,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     borderRightColor: 'transparent',
     borderRightWidth: 6,
     borderStyle: 'solid',
-    height: 0,
+    ...Kb.Styles.size(0),
     left: 0,
     marginLeft: 'auto',
     marginRight: 'auto',
     position: 'absolute',
     right: 0,
     top: -6,
-    width: 0,
   },
   badge: {
     position: 'absolute',
@@ -637,8 +636,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   chatBadge: {
     backgroundColor: Kb.Styles.globalColors.blue,
     borderRadius: 4,
-    height: 8,
-    width: 8,
+    ...Kb.Styles.size(8),
   },
   chatContainer: {
     backgroundColor: Kb.Styles.globalColors.white,
@@ -660,13 +658,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   fileFullWidth: {width: '100%'},
   fileIcon: {
     flexShrink: 0,
-    height: 16,
+    ...Kb.Styles.size(16),
     marginRight: Kb.Styles.globalMargins.xtiny,
     position: 'relative',
     top: 1,
-    width: 16,
   },
-  fileIconBadge: {height: 12, width: 12},
+  fileIconBadge: {...Kb.Styles.size(12)},
   fileIconBadgeBox: {marginLeft: -12, marginRight: 12, marginTop: 12, width: 0, zIndex: 100},
   fileUpdateRow: {
     marginTop: Kb.Styles.globalMargins.xtiny,
@@ -727,9 +724,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.white,
     borderTopLeftRadius: Kb.Styles.globalMargins.xtiny,
     borderTopRightRadius: Kb.Styles.globalMargins.xtiny,
-    height: '100%',
+    ...Kb.Styles.size('100%'),
     marginTop: isDarwin ? 13 : 0,
-    width: '100%',
   },
 }))
 

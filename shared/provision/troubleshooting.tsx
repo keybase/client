@@ -162,9 +162,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.marginH(Kb.Styles.globalMargins.medium),
   },
   buttonIcon: {
-    height: 64,
+    ...Kb.Styles.size(64),
     paddingRight: Kb.Styles.globalMargins.small,
-    width: 64,
   },
   buttonText: Kb.Styles.platformStyles({
     isElectron: {

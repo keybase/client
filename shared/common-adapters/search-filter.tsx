@@ -368,14 +368,12 @@ const styles = Styles.styleSheetCreate(() => ({
   removeIconFullWidth: {marginLeft: Styles.globalMargins.xsmall},
   removeIconNonFullWidth: {marginLeft: Styles.globalMargins.tiny},
   spinnerFullWidth: {
-    height: 20,
+    ...Styles.size(20),
     marginLeft: Styles.globalMargins.xsmall,
-    width: 20,
   },
   spinnerMobile: {marginLeft: Styles.globalMargins.tiny},
   spinnerSmall: {
-    height: 16,
+    ...Styles.size(16),
     marginLeft: Styles.globalMargins.tiny,
-    width: 16,
   },
 }))

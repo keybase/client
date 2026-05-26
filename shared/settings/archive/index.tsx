@@ -520,7 +520,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   kbfsProgress: {
     height: Kb.Styles.globalMargins.small,
   },
-  scroll: {height: '100%', width: '100%'},
+  scroll: {...Kb.Styles.size('100%')},
 }))
 
 export default Archive

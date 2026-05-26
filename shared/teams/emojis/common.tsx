@@ -139,8 +139,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   bannerImage: Kb.Styles.platformStyles({
     common: {
-      height: '100%',
-      width: '100%',
+      ...Kb.Styles.size('100%'),
     },
     isElectron: {
       objectFit: 'cover',

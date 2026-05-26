@@ -113,8 +113,7 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.black,
   },
   progressIndicator: {
-    height: 17,
-    width: 17,
+    ...Styles.size(17),
   },
   selected: {
     color: Styles.globalColors.black,

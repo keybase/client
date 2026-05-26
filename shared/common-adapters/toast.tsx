@@ -193,7 +193,7 @@ const nativeStyles = Styles.styleSheetCreate(() => ({
     borderRadius: 140,
     borderWidth: 0,
     display: 'flex',
-    height: 140,
+    ...Styles.size(140),
     justifyContent: 'center',
     margin: Styles.globalMargins.xtiny,
     overflow: 'hidden',

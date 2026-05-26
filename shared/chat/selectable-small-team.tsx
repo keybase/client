@@ -106,8 +106,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.orange,
     borderRadius: 6,
     flexShrink: 0,
-    height: Kb.Styles.globalMargins.tiny,
-    width: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.size(Kb.Styles.globalMargins.tiny),
   },
   container: {
     flexShrink: 0,

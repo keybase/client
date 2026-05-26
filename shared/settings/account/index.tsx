@@ -338,8 +338,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   primaryOnYellow: {backgroundColor: Kb.Styles.globalColors.white},
   primaryOnYellowLabel: {color: Kb.Styles.globalColors.brown_75OrYellow},
   progress: {
-    height: 16,
-    width: 16,
+    ...Kb.Styles.size(16),
   },
   section: Kb.Styles.platformStyles({
     common: {

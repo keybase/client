@@ -55,9 +55,8 @@ const Icons = () => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   cell: {
-    height: CELL_SIZE,
+    ...Kb.Styles.size(CELL_SIZE),
     padding: Kb.Styles.globalMargins.xtiny,
-    width: CELL_SIZE,
   },
   cellLabel: {
     color: Kb.Styles.globalColors.black_50,

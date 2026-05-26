@@ -444,8 +444,7 @@ function NativeAvatarZoom(p: {src?: string; width: number; height: number; ref?:
       overflow="hidden"
       style={{
         borderRadius: avatarSize / 2,
-        height: avatarSize,
-        width: avatarSize,
+        ...Kb.Styles.size(avatarSize),
       }}
     >
       {src ? (
@@ -468,14 +467,13 @@ const hoverStyles = Kb.Styles.styleSheetCreate(
       hoverContainer: Kb.Styles.platformStyles({
         common: {
           alignItems: 'flex-start',
-          height: AVATAR_CONTAINER_SIZE,
+          ...Kb.Styles.size(AVATAR_CONTAINER_SIZE),
           marginBottom: Kb.Styles.globalMargins.small,
           marginTop: Kb.Styles.globalMargins.medium,
           outlineStyle: 'dotted',
           outlineWidth: 4,
           overflow: 'hidden',
           position: 'relative',
-          width: AVATAR_CONTAINER_SIZE,
         },
         isElectron: {
           cursor: 'pointer',

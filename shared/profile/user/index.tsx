@@ -646,8 +646,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {justifyContent: 'center'},
   }),
   innerContainer: {
-    height: '100%',
-    width: '100%',
+    ...Kb.Styles.size('100%'),
   },
   progress: {position: 'absolute'},
   proofs: Kb.Styles.platformStyles({

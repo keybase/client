@@ -36,8 +36,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     alignItems: 'center',
     backgroundColor: Kb.Styles.globalColors.white,
     ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, 16),
-    height: 32,
-    width: 32,
+    ...Kb.Styles.size(32),
   },
 }))
 

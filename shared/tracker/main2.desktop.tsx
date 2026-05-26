@@ -53,9 +53,8 @@ loadRemoteComponent<ProxyProps>({
       backgroundColor: Kb.Styles.globalColors.transparent,
       borderRadius: 8,
       display: 'block',
-      height: '100%',
+      ...Kb.Styles.size('100%'),
       overflow: 'hidden',
-      width: '100%',
     },
   }),
 })

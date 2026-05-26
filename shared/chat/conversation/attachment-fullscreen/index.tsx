@@ -419,10 +419,9 @@ const styles = Kb.Styles.styleSheetCreate(
           borderRadius: 36,
           cursor: 'pointer',
           flexShrink: 0,
-          height: 36,
+          ...Kb.Styles.size(36),
           justifyContent: 'center',
           margin: Kb.Styles.globalMargins.small,
-          width: 36,
         },
       }),
       close: Kb.Styles.platformStyles({
@@ -434,8 +433,7 @@ const styles = Kb.Styles.styleSheetCreate(
       contentsFit: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         flex: 1,
-        height: '100%',
-        width: '100%',
+        ...Kb.Styles.size('100%'),
       },
       disabled: {opacity: 0.3},
       ellipsisContainer: Kb.Styles.platformStyles({
@@ -456,10 +454,9 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.blackOrBlack,
           bottom: Kb.Styles.globalMargins.small,
           flexShrink: 0,
-          height: 34,
+          ...Kb.Styles.size(34),
           left: Kb.Styles.globalMargins.small,
           position: 'absolute',
-          width: 34,
           zIndex: 3,
         },
       }),
@@ -479,26 +476,23 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           cursor: 'normal',
           display: 'block',
-          height: '100%',
+          ...Kb.Styles.size('100%'),
           objectFit: 'scale-down' as const,
-          width: '100%',
         },
       }),
       videoWrapper: Kb.Styles.platformStyles({
         isMobile: {
           alignItems: 'center',
-          height: '100%',
+          ...Kb.Styles.size('100%'),
           justifyContent: 'center',
           position: 'relative',
-          width: '100%',
         },
       }),
       zoomableBox: Kb.Styles.platformStyles({
         isMobile: {
           backgroundColor: Kb.Styles.globalColors.blackOrBlack,
-          height: '100%',
+          ...Kb.Styles.size('100%'),
           position: 'relative',
-          width: '100%',
         },
       }),
     }) as const

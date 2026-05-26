@@ -76,8 +76,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       isTypingAnimation: Kb.Styles.platformStyles({
         isMobile: {
-          height: 16,
-          width: 16,
+          ...Kb.Styles.size(16),
         },
       }),
       isTypingContainer: Kb.Styles.platformStyles({

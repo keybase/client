@@ -243,9 +243,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {
       backgroundColor: Kb.Styles.globalColors.white,
       borderRadius: 100,
-      height: 17,
+      ...Kb.Styles.size(17),
       position: 'absolute',
-      width: 17,
     },
     isElectron: {bottom: -5, right: -5},
     isMobile: {bottom: -5, right: -5},

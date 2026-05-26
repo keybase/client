@@ -92,8 +92,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   scrollView: {
     ...Kb.Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
-    height: '100%',
-    width: '100%',
+    ...Kb.Styles.size('100%'),
   },
   scrollViewContentContainer: {...Kb.Styles.globalStyles.flexBoxColumn, flexGrow: 1},
 }))

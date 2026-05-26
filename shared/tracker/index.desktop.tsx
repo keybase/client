@@ -474,8 +474,7 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           backgroundSize: 'contain',
           flexShrink: 0,
-          height: 16,
-          width: 16,
+          ...Kb.Styles.size(16),
         },
       }),
       spaceUnderButtons: {

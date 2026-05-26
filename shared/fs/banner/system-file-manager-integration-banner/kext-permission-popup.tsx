@@ -100,11 +100,10 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       numberList: Kb.Styles.platformStyles({
         isElectron: {
-          height: 20,
+          ...Kb.Styles.size(20),
           minWidth: 20,
           paddingTop: 1,
           textAlign: 'center',
-          width: 20,
         },
       }),
       numberListContainer: {paddingTop: Kb.Styles.globalMargins.large},

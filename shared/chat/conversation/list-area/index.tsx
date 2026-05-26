@@ -399,13 +399,12 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       }),
       list: Kb.Styles.platformStyles({
         isElectron: {
-          height: '100%',
+          ...Kb.Styles.size('100%'),
           outline: 'none',
           overflowY: 'auto',
           overscrollBehavior: 'contain',
           paddingBottom: 16,
           scrollbarGutter: 'stable',
-          width: '100%',
           willChange: 'transform',
         },
       }),

@@ -223,8 +223,7 @@ const styles = Kb.Styles.styleSheetCreate(
       filename: Kb.Styles.platformStyles({isElectron: {...Kb.Styles.desktopStyles.clickable}}),
       iconStyle: Kb.Styles.platformStyles({
         common: {
-          height: 32,
-          width: 32,
+          ...Kb.Styles.size(32),
         },
         isElectron: {
           display: 'block',

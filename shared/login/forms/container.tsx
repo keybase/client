@@ -45,8 +45,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {
       ...Kb.Styles.globalStyles.flexBoxColumn,
       alignSelf: 'stretch',
-      height: '100%',
-      width: '100%',
+      ...Kb.Styles.size('100%'),
     },
     isMobile: {
       marginTop: Kb.Styles.globalMargins.medium,

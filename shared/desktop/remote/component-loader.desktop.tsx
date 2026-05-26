@@ -56,9 +56,8 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.white,
           display: 'block' as const,
-          height: '100%',
+          ...Kb.Styles.size('100%'),
           overflow: 'hidden',
-          width: '100%',
         },
       }),
       errorFallback: {backgroundColor: Kb.Styles.globalColors.white},

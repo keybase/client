@@ -44,10 +44,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       top: Kb.Styles.globalMargins.tiny,
     },
     isMobile: {
-      height: 26,
+      ...Kb.Styles.size(26),
       right: Kb.Styles.globalMargins.small,
       top: Kb.Styles.globalMargins.small,
-      width: 26,
     },
   }),
   containerBanner: Kb.Styles.platformStyles({

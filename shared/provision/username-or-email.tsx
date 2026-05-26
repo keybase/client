@@ -160,7 +160,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       contentContainer: Kb.Styles.platformStyles({isMobile: {...Kb.Styles.padding(0)}}),
       fill: Kb.Styles.platformStyles({
-        isMobile: {height: '100%', width: '100%'},
+        isMobile: {...Kb.Styles.size('100%')},
         isTablet: {width: 410},
       }),
       forgotUsername: {alignSelf: 'flex-end'},

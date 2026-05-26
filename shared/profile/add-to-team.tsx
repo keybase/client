@@ -258,7 +258,7 @@ const AddToTeam = (ownProps: OwnProps) => {
           <Kb.Text type="Header">{them} to...</Kb.Text>
         </Kb.Box2>
         <Kb.BoxGrow style={{width: '100%'}}>
-          <Kb.ScrollView style={{height: '100%', width: '100%'}}>
+          <Kb.ScrollView style={Kb.Styles.size('100%')}>
             <Kb.Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
               {!waiting ? (
                 teamProfileAddList.length > 0 ? (
@@ -419,8 +419,7 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.white,
           flexGrow: 1,
           flexShrink: 1,
-          height: '100%',
-          width: '100%',
+          ...Kb.Styles.size('100%'),
         },
         isElectron: {maxHeight: '100%'},
       }),

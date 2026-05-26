@@ -269,8 +269,7 @@ const styles = Styles.styleSheetCreate(
       }),
       scrollView: Styles.platformStyles({
         common: {
-          height: '100%',
-          width: '100%',
+          ...Styles.size('100%'),
         },
         isMobile: {
           backgroundColor: Styles.globalColors.white,

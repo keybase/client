@@ -24,7 +24,7 @@ const PdfViewNative = (props: Props) => (
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  webview: {height: '100%', width: '100%'},
+  webview: {...Kb.Styles.size('100%')},
 }))
 
 export default isMobile ? (isIOS ? PdfViewNative : () => null) : PDFViewDesktop

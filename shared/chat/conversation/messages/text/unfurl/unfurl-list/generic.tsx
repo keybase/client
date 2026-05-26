@@ -135,8 +135,7 @@ const styles = Kb.Styles.styleSheetCreate(
       favicon: Kb.Styles.platformStyles({
         common: {
           borderRadius: Kb.Styles.borderRadius,
-          height: 16,
-          width: 16,
+          ...Kb.Styles.size(16),
         },
       }),
       innerContainer: Kb.Styles.platformStyles({
@@ -160,8 +159,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       sideImage: Kb.Styles.platformStyles({
         isElectron: {
-          height: 80,
-          width: 80,
+          ...Kb.Styles.size(80),
         },
       }),
       siteNameContainer: Kb.Styles.platformStyles({

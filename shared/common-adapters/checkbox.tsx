@@ -96,12 +96,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       backgroundColor: Kb.Styles.globalColors.white,
       ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, 2),
       flexShrink: 0,
-      height: CHECKBOX_SIZE,
+      ...Kb.Styles.size(CHECKBOX_SIZE),
       justifyContent: 'center',
       marginRight: CHECKBOX_MARGIN,
       marginTop: 2,
       position: 'relative',
-      width: CHECKBOX_SIZE,
     },
   }),
   checkboxChecked: {

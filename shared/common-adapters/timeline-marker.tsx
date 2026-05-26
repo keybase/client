@@ -28,8 +28,7 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       backgroundColor: timeline_grey,
       borderRadius: circleSize / 2,
-      height: circleSize,
-      width: circleSize,
+      ...Styles.size(circleSize),
     },
     isElectron: {
       border: `solid 2px ${Styles.globalColors.white}`,
@@ -40,8 +39,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   circleOpen: {
     ...Styles.border(timeline_grey, 2, circleSize / 2),
-    height: circleSize,
-    width: circleSize,
+    ...Styles.size(circleSize),
   },
   line: Styles.platformStyles({
     common: {

@@ -240,16 +240,14 @@ const badgeStyles = {
             position: 'absolute',
           },
           isElectron: {
-            height: Kb.Styles.globalMargins.tiny,
+            ...Kb.Styles.size(Kb.Styles.globalMargins.tiny),
             left: Kb.Styles.globalMargins.xsmall - Kb.Styles.globalMargins.xxtiny,
             top: -Kb.Styles.globalMargins.tiny,
-            width: Kb.Styles.globalMargins.tiny,
           },
           isMobile: {
-            height: Kb.Styles.globalMargins.xsmall,
+            ...Kb.Styles.size(Kb.Styles.globalMargins.xsmall),
             left: Kb.Styles.globalMargins.xsmall - Kb.Styles.globalMargins.xtiny,
             top: -Kb.Styles.globalMargins.tiny,
-            width: Kb.Styles.globalMargins.xsmall,
           },
         }),
       }) as const
@@ -267,16 +265,14 @@ const badgeStyles = {
             position: 'absolute',
           },
           isElectron: {
-            height: Kb.Styles.globalMargins.xsmall,
+            ...Kb.Styles.size(Kb.Styles.globalMargins.xsmall),
             left: Kb.Styles.globalMargins.medium - Kb.Styles.globalMargins.xxtiny,
             top: -(Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xxtiny),
-            width: Kb.Styles.globalMargins.xsmall,
           },
           isMobile: {
-            height: Kb.Styles.globalMargins.small,
+            ...Kb.Styles.size(Kb.Styles.globalMargins.small),
             left: Kb.Styles.globalMargins.medium - Kb.Styles.globalMargins.xtiny,
             top: -Kb.Styles.globalMargins.small,
-            width: Kb.Styles.globalMargins.small,
           },
         }),
       }) as const

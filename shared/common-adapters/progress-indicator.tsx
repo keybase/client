@@ -39,16 +39,13 @@ const nativeStyle = {
 
 const desktopStyles = Styles.styleSheetCreate(() => ({
   huge: {
-    height: Styles.globalMargins.xlarge,
-    width: Styles.globalMargins.xlarge,
+    ...Styles.size(Styles.globalMargins.xlarge),
   },
   large: {
-    height: Styles.globalMargins.mediumLarge,
-    width: Styles.globalMargins.mediumLarge,
+    ...Styles.size(Styles.globalMargins.mediumLarge),
   },
   small: {
-    height: Styles.globalMargins.medium,
-    width: Styles.globalMargins.medium,
+    ...Styles.size(Styles.globalMargins.medium),
   },
 }))
 

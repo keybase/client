@@ -62,9 +62,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
   },
   icon: {
-    height: 32,
+    ...Kb.Styles.size(32),
     marginRight: Kb.Styles.globalMargins.tiny,
-    width: 32,
   },
   send: {
     alignSelf: 'flex-end',

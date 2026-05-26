@@ -76,13 +76,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       marginLeft: Kb.Styles.globalMargins.tiny,
     },
     isElectron: {
-      height: Kb.Styles.globalMargins.small,
-      width: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.small),
     },
     isMobile: {
-      height: Kb.Styles.globalMargins.large,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.large),
       marginRight: Kb.Styles.globalMargins.tiny,
-      width: Kb.Styles.globalMargins.large,
     },
   }),
   rowContainer: {

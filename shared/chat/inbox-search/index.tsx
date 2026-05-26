@@ -505,8 +505,7 @@ const styles = Kb.Styles.styleSheetCreate(
           position: 'relative',
         },
         isMobile: {
-          height: '100%',
-          width: '100%',
+          ...Kb.Styles.size('100%'),
         },
       }),
       emptyUnreadPlaceholder: Kb.Styles.platformStyles({

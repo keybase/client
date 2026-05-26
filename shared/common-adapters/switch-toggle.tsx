@@ -83,8 +83,7 @@ const styles = Styles.styleSheetCreate(() => ({
   nativeInner: {
     backgroundColor: Styles.undynamicColor(Styles.globalColors.white),
     borderRadius: 12,
-    height: 24,
-    width: 24,
+    ...Styles.size(24),
   },
   nativeOuter: {
     ...Styles.globalStyles.flexBoxRow,

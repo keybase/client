@@ -69,8 +69,7 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   progress: {
-    height: 20,
-    width: 20,
+    ...Styles.size(20),
   },
 }))
 

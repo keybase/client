@@ -95,29 +95,25 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   absolute: {position: 'absolute'},
   circleCollapsed: {
     borderRadius: Kb.Styles.globalMargins.small / 2,
-    height: Kb.Styles.globalMargins.small,
-    width: Kb.Styles.globalMargins.small,
+    ...Kb.Styles.size(Kb.Styles.globalMargins.small),
   },
   circleExpanded: Kb.Styles.platformStyles({
     isElectron: {
       borderRadius: Kb.Styles.globalMargins.small / 2,
-      height: Kb.Styles.globalMargins.small,
-      width: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.small),
     },
     isMobile: {
       borderRadius: (Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny) / 2,
-      height: Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny,
-      width: Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny),
     },
   }),
   circleOuter: {
     backgroundColor: Kb.Styles.globalColors.white,
     ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, (Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny) / 2),
-    height: Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny,
+    ...Kb.Styles.size(Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny),
     left: -5,
     position: 'absolute',
     top: -5,
-    width: Kb.Styles.globalMargins.mediumLarge - Kb.Styles.globalMargins.xxtiny,
   },
   dotContainerDesktop: {
     padding: Kb.Styles.globalMargins.tiny,
@@ -126,8 +122,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     padding: Kb.Styles.globalMargins.xxtiny,
   },
   dotPlaceholder: {
-    height: Kb.Styles.globalMargins.small * 2,
-    width: Kb.Styles.globalMargins.small * 2,
+    ...Kb.Styles.size(Kb.Styles.globalMargins.small * 2),
   },
   popupContainer: {
     backgroundColor: Kb.Styles.globalColors.white,

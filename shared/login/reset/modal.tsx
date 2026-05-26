@@ -164,8 +164,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   skullIcon: {
-    height: 48,
-    width: 48,
+    ...Kb.Styles.size(48),
   },
   textContainer: Kb.Styles.platformStyles({
     common: {

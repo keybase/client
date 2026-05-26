@@ -121,8 +121,8 @@ const styles = Kb.Styles.styleSheetCreate(
       secondaryOnRedLabel: {color: Kb.Styles.globalColors.white},
       skullIcon: Kb.Styles.platformStyles({
         common: {margin: Kb.Styles.globalMargins.medium},
-        isElectron: {height: 48, width: 48},
-        isMobile: {height: 64, width: 64},
+        isElectron: {...Kb.Styles.size(48)},
+        isMobile: {...Kb.Styles.size(64)},
       }),
       textContainer: Kb.Styles.platformStyles({
         common: {

@@ -380,8 +380,7 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.greyDark,
           borderRadius: 2,
           color: Kb.Styles.globalColors.black,
-          height: 14,
-          width: 14,
+          ...Kb.Styles.size(14),
         },
         isMobile: {
           height: 16,
@@ -398,8 +397,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           backgroundColor: Kb.Styles.globalColors.black,
           color: Kb.Styles.globalColors.white,
-          height: 18,
-          width: 18,
+          ...Kb.Styles.size(18),
         },
         isMobile: {
           height: 20,

@@ -114,9 +114,8 @@ const styles = Kb.Styles.styleSheetCreate(
           borderStyle: 'solid',
           borderTopColor: Kb.Styles.globalColors.black_10,
           borderTopWidth: 1,
-          height: '100%',
+          ...Kb.Styles.size('100%'),
           position: 'relative',
-          width: '100%',
         },
         isElectron: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
