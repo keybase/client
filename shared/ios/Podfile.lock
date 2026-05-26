@@ -1,5 +1,5 @@
 PODS:
-  - EXConstants (56.0.12):
+  - EXConstants (56.0.16):
     - ExpoModulesCore
   - Expo (56.0.0-preview.11):
     - ExpoModulesCore
@@ -66,14 +66,14 @@ PODS:
     - ExpoModulesCore
   - ExpoLocation (56.0.14):
     - ExpoModulesCore
-  - ExpoLogBox (56.0.11):
+  - ExpoLogBox (56.0.12):
     - React-Core
   - ExpoMailComposer (56.0.4):
     - ExpoModulesCore
   - ExpoMediaLibrary (56.0.6):
     - ExpoModulesCore
     - React-Core
-  - ExpoModulesCore (56.0.10):
+  - ExpoModulesCore (56.0.13):
     - ExpoModulesJSI
     - hermes-engine
     - RCTRequired
@@ -97,13 +97,13 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - ExpoModulesJSI (56.0.6):
+  - ExpoModulesJSI (56.0.7):
     - React-Core
     - ReactCommon
-  - ExpoModulesWorklets (56.0.10):
+  - ExpoModulesWorklets (56.0.13):
     - ExpoModulesCore
     - ExpoModulesJSI
-  - ExpoModulesWorkletsAdapter (56.0.10):
+  - ExpoModulesWorkletsAdapter (56.0.13):
     - ExpoModulesCore
     - ExpoModulesJSI
     - ExpoModulesWorklets
@@ -2826,7 +2826,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  EXConstants: ba815e5adce24a9e1d4ab6775e71cbdacec1896b
+  EXConstants: 1c400bb9969f4c9e5ab324553138b74ae47b9efe
   Expo: 4710b638d018109e241005907c3a3eaf010657ec
   ExpoAsset: c2e7b5ba1fe75be683282d6264e38fd7cd8defbb
   ExpoAudio: 7774082d316ceecc2b26efeb10480bea2fa4d67e
@@ -2844,13 +2844,13 @@ SPEC CHECKSUMS:
   ExpoKeepAwake: 359c47a1d9ccc3a3c519bca6e39562cce230c5bb
   ExpoLocalization: cf50efc436b2ec313510131c1ee0e778366d64b0
   ExpoLocation: aa8c8333df2637416623f4d2723f52a268f8e490
-  ExpoLogBox: ecf797402cec66c81ca37410f76673d3b86cd32b
+  ExpoLogBox: 7aa03244fe5eeced5129e4ec7ad5bd9a3994378e
   ExpoMailComposer: ea650b89d3b93c7a277b11a8ab7010a7be6d595e
   ExpoMediaLibrary: 5ab82b8ace3f9ab7ac4ca3b2060bd915a4f1568f
-  ExpoModulesCore: 673b75d1fc0280a28f7dbc14ce85cde0ca52f713
-  ExpoModulesJSI: bfa734e4199cacb4c81c2800f10ae106d8522e1d
-  ExpoModulesWorklets: 3cb8b517ea1012e3f0894edb4c12e60f82f24814
-  ExpoModulesWorkletsAdapter: 39eed1b64e579b995ddaeefb95dab8bbf1f6735b
+  ExpoModulesCore: c1cf3354183914bff690789cd34cfa6415679b5e
+  ExpoModulesJSI: 31051e6e3d88a96cc48747eabad1d4a6a29c554e
+  ExpoModulesWorklets: c755176116ae553ede2268ca6837c31eb4081f8a
+  ExpoModulesWorkletsAdapter: d422554bd34cd74ec46ff13d8e3d9c7b7d9d0241
   ExpoScreenCapture: c388565b6244aec9d96c18941efbee8655b2fec2
   ExpoSMS: 2cebfd889706da39a397d20c8a68abb0ce7f185d
   ExpoTaskManager: 806c27d7d9425bd65795e443cfdd216f3178203a
