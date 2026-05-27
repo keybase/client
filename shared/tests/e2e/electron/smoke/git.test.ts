@@ -1,7 +1,7 @@
 import {test, expect, type Page} from '@playwright/test'
-import {connectToElectron, disconnect} from '../helpers/connect'
-import {navigateToGit} from '../helpers/navigate'
-import {GIT_REPO_LIST} from '../../shared/test-ids'
+import {connectToElectron, disconnect} from '@/tests/e2e/electron/helpers/connect'
+import {navigateToGit} from '@/tests/e2e/electron/helpers/navigate'
+import {GIT_REPO_LIST} from '@/tests/e2e/shared/test-ids'
 
 let page: Page
 

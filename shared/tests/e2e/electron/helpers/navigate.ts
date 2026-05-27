@@ -1,5 +1,5 @@
 import type {Page} from '@playwright/test'
-import * as T from '../../shared/test-ids'
+import * as T from '@/tests/e2e/shared/test-ids'
 
 export async function navigateToChat(page: Page): Promise<void> {
   await page.click('text=Chat')

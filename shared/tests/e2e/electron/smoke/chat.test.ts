@@ -1,7 +1,7 @@
 import {test, expect, type Page} from '@playwright/test'
-import {connectToElectron, disconnect} from '../helpers/connect'
-import {navigateToChat} from '../helpers/navigate'
-import {CHAT_INBOX_LIST, CHAT_INBOX_ROW} from '../../shared/test-ids'
+import {connectToElectron, disconnect} from '@/tests/e2e/electron/helpers/connect'
+import {navigateToChat} from '@/tests/e2e/electron/helpers/navigate'
+import {CHAT_INBOX_LIST, CHAT_INBOX_ROW} from '@/tests/e2e/shared/test-ids'
 
 let page: Page
 
