@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as Kbfs from '../common'
-import * as React from 'react'
+import type * as React from 'react'
 import * as T from '@/constants/types'
 import ConflictBanner from '../banner/conflict-banner'
 import Footer from '../footer/footer'
@@ -24,8 +24,7 @@ type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  React.useEffect(() => { console.log('E2E: Files browser mounted') }, [])
-  const {path} = ownProps
+const {path} = ownProps
   const filter = useModalHeaderState(s => s.folderViewFilter)
   const _pathItem = useFsPathItem(path)
   const tlf = useFsTlf(path)

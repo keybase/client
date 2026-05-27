@@ -94,8 +94,7 @@ type ExpandedState = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  React.useEffect(() => { console.log('E2E: Git screen mounted') }, [])
-  const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
+const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
   const loadGit = C.useRPC(T.RPCGen.gitGetAllGitMetadataRpcPromise)
   const clearGitBadges = C.useRPC(T.RPCGen.gregorDismissCategoryRpcPromise)
   const [error, setError] = React.useState<Error | undefined>()

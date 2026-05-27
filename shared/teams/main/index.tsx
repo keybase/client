@@ -1,5 +1,4 @@
 import * as Kb from '@/common-adapters'
-import * as React from 'react'
 import type * as T from '@/constants/types'
 import TeamsFooter from './footer'
 import TeamRowNew, {type TeamRowItem} from './team-row'
@@ -106,8 +105,7 @@ const teamRowItemHeight = {height: teamRowHeight, type: 'fixed' as const}
 type TeamItem = TeamRowItem
 
 const Teams = function Teams(p: Props) {
-  React.useEffect(() => { console.log('E2E: Teams screen mounted') }, [])
-  const {deletedTeams, teams, onCreateTeam, onJoinTeam, onChangeSort, sortOrder} = p
+const {deletedTeams, teams, onCreateTeam, onJoinTeam, onChangeSort, sortOrder} = p
 
   const listHeader = (
     <>

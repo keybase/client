@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Crypto from '@/constants/crypto'
 import NavRow from './nav-row'
@@ -16,8 +16,7 @@ type Props = {
 }
 
 const SubNav = (props: Props) => {
-  React.useEffect(() => { console.log('E2E: Crypto screen mounted') }, [])
-  const getRows = () =>
+const getRows = () =>
     Crypto.Tabs.map(t => ({
       ...t,
       isSelected: props.selected === t.tab,
