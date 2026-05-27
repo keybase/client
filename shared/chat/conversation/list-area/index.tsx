@@ -83,14 +83,13 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   // If data arrives first, handleInitialScrollDataChange returns early and
   // didFinishInitialScroll never becomes true, leaving readyToRender=false forever.
   // Delaying data by one rAF ensures layout fires before data is fed in.
-  const [layoutReady, setLayoutReady] = React.useState(centeredOrdinal !== undefined)
-  React.useLayoutEffect(() => {
-    if (centeredOrdinal !== undefined) {
-      setLayoutReady(true)
-      return
-    }
-    setLayoutReady(false)
-    const id = requestAnimationFrame(() => setLayoutReady(true))
+  // We track which conversationIDKey has had its layout settle rather than using
+  // a boolean state, so the reset on conversation change is derived (no synchronous
+  // setState inside an effect).
+  const [layoutReadyKey, setLayoutReadyKey] = React.useState('')
+  const layoutReady = layoutReadyKey === conversationIDKey || centeredOrdinal !== undefined
+  React.useEffect(() => {
+    const id = requestAnimationFrame(() => setLayoutReadyKey(conversationIDKey))
     return () => cancelAnimationFrame(id)
   }, [conversationIDKey])
 
