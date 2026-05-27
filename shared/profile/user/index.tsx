@@ -11,8 +11,6 @@ import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
 import {SiteIcon} from '../generic/shared'
-import type {MeasureRef} from '@/common-adapters/measure-ref'
-import useResizeObserver from '@/util/use-resize-observer'
 import useUserData from './hooks'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
@@ -377,9 +375,16 @@ const User = (props: {username: string}) => {
     [username]
   )
 
-  // desktop only
-  const wrapperRef = React.useRef<MeasureRef>(null)
-  useResizeObserver(wrapperRef as React.RefObject<HTMLDivElement>, (e: {contentRect: {width: number}}) => setWidth(e.contentRect.width))
+  const wrapperRef = React.useRef<HTMLDivElement>(null)
+  React.useEffect(() => {
+    const el = wrapperRef.current
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) setWidth(entry.contentRect.width)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   const errorFilter = (e: RPCError) => e.code !== T.RPCGen.StatusCode.scresolutionfailed
 
@@ -547,7 +552,7 @@ const User = (props: {username: string}) => {
         fullHeight={true}
         style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType)])}
       >
-        <Kb.Box2 direction="vertical" style={styles.innerContainer} ref={wrapperRef}>
+        <Kb.Box2 direction="vertical" style={styles.innerContainer} ref={wrapperRef as React.Ref<{getBoundingClientRect: () => DOMRect}>}>
           <Kb.SectionList
             key={p.username}
             stickySectionHeadersEnabled={true}
