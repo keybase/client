@@ -89,7 +89,9 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const [layoutReadyKey, setLayoutReadyKey] = React.useState('')
   const layoutReady = layoutReadyKey === conversationIDKey || centeredOrdinal !== undefined
   React.useEffect(() => {
-    const id = requestAnimationFrame(() => setLayoutReadyKey(conversationIDKey))
+    const id = requestAnimationFrame(() => {
+      setLayoutReadyKey(conversationIDKey)
+    })
     return () => cancelAnimationFrame(id)
   }, [conversationIDKey])
 
