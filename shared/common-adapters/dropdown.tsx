@@ -212,8 +212,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           alignItems: 'center',
           flexShrink: 0,
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
+          ...Styles.paddingH(Styles.globalMargins.tiny),
         },
       }),
       itemBox: {
@@ -255,7 +254,7 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           border: `1px solid ${Styles.globalColors.blue}`,
-          borderRadius: 4,
+          borderRadius: Styles.borderRadius,
           maxHeight: 300,
           width: 270,
         },
@@ -270,8 +269,7 @@ const styles = Styles.styleSheetCreate(
       }),
       scrollView: Styles.platformStyles({
         common: {
-          height: '100%',
-          width: '100%',
+          ...Styles.size('100%'),
         },
         isMobile: {
           backgroundColor: Styles.globalColors.white,

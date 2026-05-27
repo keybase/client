@@ -137,10 +137,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   bigButton: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      borderColor: Kb.Styles.globalColors.black_10,
-      borderRadius: 4,
-      borderStyle: 'solid',
-      borderWidth: 1,
+      ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.borderRadius),
       position: 'relative',
     },
     isElectron: {
@@ -162,13 +159,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   buttonBar: {
-    marginLeft: Kb.Styles.globalMargins.medium,
-    marginRight: Kb.Styles.globalMargins.medium,
+    ...Kb.Styles.marginH(Kb.Styles.globalMargins.medium),
   },
   buttonIcon: {
-    height: 64,
+    ...Kb.Styles.size(64),
     paddingRight: Kb.Styles.globalMargins.small,
-    width: 64,
   },
   buttonText: Kb.Styles.platformStyles({
     isElectron: {
@@ -179,15 +174,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   header: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid' as const,
-    minHeight: 48,
+    ...Kb.Styles.bottomDivider(48),
   },
   headerSide: {
     flex: 1,
-    paddingLeft: Kb.Styles.globalMargins.xsmall,
-    paddingRight: Kb.Styles.globalMargins.xsmall,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
   },
   modalFooterNoBorder: Kb.Styles.platformStyles({
     common: {
@@ -195,9 +186,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       minHeight: 56,
     },
     isElectron: {
-      borderBottomLeftRadius: Kb.Styles.borderRadius,
-      borderBottomRightRadius: Kb.Styles.borderRadius,
-      overflow: 'hidden',
+      ...Kb.Styles.roundedBottom(),
     },
   }),
 }))

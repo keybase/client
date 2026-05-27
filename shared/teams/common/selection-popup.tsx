@@ -384,7 +384,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {
       ...Kb.Styles.desktopStyles.boxShadow,
       ...Kb.Styles.padding(6, Kb.Styles.globalMargins.xsmall),
-      borderRadius: 4,
+      borderRadius: Kb.Styles.borderRadius,
       bottom: -48,
       left: Kb.Styles.globalMargins.tiny,
       right: Kb.Styles.globalMargins.tiny,

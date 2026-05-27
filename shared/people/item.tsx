@@ -88,11 +88,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       backgroundColor: Kb.Styles.globalColors.white,
       borderBottomColor: Kb.Styles.globalColors.black_10,
       borderBottomWidth: 1,
-      paddingBottom: Kb.Styles.globalMargins.xsmall,
-      paddingTop: Kb.Styles.globalMargins.xsmall,
+      borderStyle: 'solid',
+      ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xsmall),
       position: 'relative',
     },
-    isElectron: {borderStyle: 'solid'},
   }),
   containerBadged: {
     backgroundColor: Kb.Styles.globalColors.blueLighter2,

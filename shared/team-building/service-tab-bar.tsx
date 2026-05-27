@@ -437,7 +437,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       moreNetworks3: {
         alignItems: 'center',
         borderColor: Kb.Styles.globalColors.black_20,
-        borderRadius: 4,
+        borderRadius: Kb.Styles.borderRadius,
         borderStyle: 'solid',
         borderWidth: 1,
         display: 'flex',

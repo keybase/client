@@ -281,8 +281,7 @@ const styles = Kb.Styles.styleSheetCreate(
       icon: Kb.Styles.platformStyles({
         isElectron: {
           display: 'inline-block',
-          height: 14,
-          width: 14,
+          ...Kb.Styles.size(14),
         },
       }),
       iconContainer: Kb.Styles.platformStyles({

@@ -140,10 +140,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   desktopCover: {backgroundColor: Kb.Styles.globalColors.black_20},
   desktopModal: {width: 420},
   header: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid' as const,
-    minHeight: 48,
+    ...Kb.Styles.bottomDivider(48),
   },
   mobileModal: {
     ...Kb.Styles.globalStyles.fillAbsolute,
@@ -157,30 +154,22 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      borderStyle: 'solid' as const,
-      borderTopColor: Kb.Styles.globalColors.black_10,
-      borderTopWidth: 1,
-      minHeight: 56,
+      ...Kb.Styles.topDivider(),
     },
     isElectron: {
-      borderBottomLeftRadius: Kb.Styles.borderRadius,
-      borderBottomRightRadius: Kb.Styles.borderRadius,
-      overflow: 'hidden',
+      ...Kb.Styles.roundedBottom(),
     },
   }),
   skullIcon: {
-    height: 48,
-    width: 48,
+    ...Kb.Styles.size(48),
   },
   textContainer: Kb.Styles.platformStyles({
     common: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
     isElectron: {
       ...Kb.Styles.globalStyles.flexOne,
-      paddingBottom: Kb.Styles.globalMargins.xlarge,
-      paddingTop: Kb.Styles.globalMargins.xlarge,
+      ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xlarge),
     },
   }),
 }))

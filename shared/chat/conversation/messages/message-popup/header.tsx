@@ -147,8 +147,7 @@ const styles = Kb.Styles.styleSheetCreate(
       headerIcon: Kb.Styles.platformStyles({
         common: {
           height: headerIconHeight,
-          marginBottom: Kb.Styles.globalMargins.tiny,
-          marginTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
         },
         isElectron: {marginTop: 0},
         isMobile: {marginTop: Kb.Styles.globalMargins.small},

@@ -59,18 +59,15 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     borderStyle: 'solid',
     borderTopColor: Kb.Styles.globalColors.black_10,
     borderTopWidth: 1,
-    paddingLeft: Kb.Styles.globalMargins.tiny,
-    paddingRight: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
   },
   icon: {
-    height: 32,
+    ...Kb.Styles.size(32),
     marginRight: Kb.Styles.globalMargins.tiny,
-    width: 32,
   },
   send: {
     alignSelf: 'flex-end',
-    marginBottom: Kb.Styles.globalMargins.tiny,
-    marginTop: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
 }))
 

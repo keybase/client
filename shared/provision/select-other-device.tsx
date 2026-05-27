@@ -141,14 +141,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {alignSelf: 'center', flexGrow: 1},
     isElectron: {
       maxWidth: 460,
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
   }),
   headerText: Kb.Styles.platformStyles({
     common: {
-      paddingBottom: Kb.Styles.globalMargins.small,
-      paddingTop: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
     },
     isMobile: {
       paddingLeft: Kb.Styles.globalMargins.small,

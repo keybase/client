@@ -568,14 +568,12 @@ const avatarSize = 128
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   addIdentityButton: {
-    marginBottom: Kb.Styles.globalMargins.xsmall,
-    marginTop: Kb.Styles.globalMargins.xsmall,
+    ...Kb.Styles.marginV(Kb.Styles.globalMargins.xsmall),
   },
   addIdentityContainer: Kb.Styles.platformStyles({
     common: {justifyContent: 'center'},
     isElectron: {
-      paddingLeft: Kb.Styles.globalMargins.tiny,
-      paddingRight: Kb.Styles.globalMargins.tiny,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
     },
   }),
   backgroundColor: {
@@ -598,10 +596,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   followTab: Kb.Styles.platformStyles({
     common: {
-      alignItems: 'center',
+      ...Kb.Styles.centered(),
       borderBottomColor: Kb.Styles.globalColors.white,
       borderBottomWidth: 2,
-      justifyContent: 'center',
     },
     isElectron: {
       borderBottomStyle: 'solid',
@@ -648,8 +645,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {justifyContent: 'center'},
   }),
   innerContainer: {
-    height: '100%',
-    width: '100%',
+    ...Kb.Styles.size('100%'),
   },
   progress: {position: 'absolute'},
   proofs: Kb.Styles.platformStyles({
@@ -662,8 +658,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   proofsArea: Kb.Styles.platformStyles({
     isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.medium,
-      paddingRight: Kb.Styles.globalMargins.medium,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
     },
   }),
   proveIt: {paddingTop: Kb.Styles.globalMargins.small},
@@ -685,8 +680,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {minHeight: '100%'},
   }),
   textEmpty: {
-    paddingBottom: Kb.Styles.globalMargins.large,
-    paddingTop: Kb.Styles.globalMargins.large,
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.large),
   },
   typedBackgroundBlue: {backgroundColor: Kb.Styles.globalColors.blue},
   typedBackgroundGreen: {backgroundColor: Kb.Styles.globalColors.green},

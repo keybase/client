@@ -476,7 +476,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   controls: {padding: Kb.Styles.globalMargins.small},
   darkBg: {backgroundColor: Kb.Styles.globalColors.blueDarker2},
   hint: {color: Kb.Styles.globalColors.black_50, marginBottom: 4},
-  innerDivider: {marginBottom: Kb.Styles.globalMargins.xtiny, marginTop: Kb.Styles.globalMargins.xtiny},
+  innerDivider: {...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny)},
   inlineRow: {flexWrap: 'wrap'},
   italic: Kb.Styles.platformStyles({isElectron: {fontStyle: 'italic'} as object, isMobile: {fontStyle: 'italic'}}),
   label: {color: Kb.Styles.globalColors.black_50, minWidth: 100},
@@ -487,16 +487,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {textDecorationLine: 'underline line-through'},
   }),
   paraRow: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.bottomDivider(),
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   sampleRow: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.bottomDivider(),
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   samples: {padding: Kb.Styles.globalMargins.small},
   strikethrough: Kb.Styles.platformStyles({
@@ -508,10 +504,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isMobile: {textDecorationLine: 'underline'},
   }),
   wrap: {flexWrap: 'wrap'},
-  zoneRow: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-  },
+  zoneRow: Kb.Styles.bottomDivider(),
   zoneText: Kb.Styles.platformStyles({
     isElectron: {position: 'absolute', top: 0} as object,
   }),

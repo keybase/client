@@ -94,17 +94,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       ...Kb.Styles.globalStyles.flexBoxColumn,
       ...Kb.Styles.transition('background'),
       backgroundColor: Kb.Styles.globalColors.white,
-      borderColor: Kb.Styles.globalColors.black_20,
-      borderRadius: 2,
-      borderStyle: 'solid',
-      borderWidth: 1,
+      ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, 2),
       flexShrink: 0,
-      height: CHECKBOX_SIZE,
+      ...Kb.Styles.size(CHECKBOX_SIZE),
       justifyContent: 'center',
       marginRight: CHECKBOX_MARGIN,
       marginTop: 2,
       position: 'relative',
-      width: CHECKBOX_SIZE,
     },
   }),
   checkboxChecked: {
@@ -120,8 +116,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-start',
-    paddingBottom: 2,
-    paddingTop: 2,
+    ...Kb.Styles.paddingV(2),
   },
   icon: Kb.Styles.platformStyles({
     isElectron: {
@@ -130,8 +125,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   mobileContainer: {
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   semiTransparent: {opacity: 0.4},
   transparent: {opacity: 0},

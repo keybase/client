@@ -70,12 +70,8 @@ const _markdownStyles = Styles.styleSheetCreate(
           common: {
             ...this.codeSnippetStyle,
             backgroundColor: Styles.globalColors.redLighter,
-            marginBottom: Styles.globalMargins.xtiny,
-            marginTop: Styles.globalMargins.xtiny,
-            paddingBottom: Styles.globalMargins.xtiny,
-            paddingLeft: Styles.globalMargins.tiny,
-            paddingRight: Styles.globalMargins.tiny,
-            paddingTop: Styles.globalMargins.xtiny,
+            ...Styles.marginV(Styles.globalMargins.xtiny),
+            ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
           },
           isElectron: {
             ...electronWrapStyle,
@@ -90,8 +86,7 @@ const _markdownStyles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.redLighter,
           color: Styles.globalColors.black,
           fontSize: 15,
-          marginBottom: Styles.globalMargins.xtiny,
-          marginTop: Styles.globalMargins.xtiny,
+          ...Styles.marginV(Styles.globalMargins.xtiny),
         },
       }),
       codeSnippetStyle: Styles.platformStyles({
@@ -100,8 +95,7 @@ const _markdownStyles = Styles.styleSheetCreate(
           ...Styles.globalStyles.rounded,
           backgroundColor: Styles.globalColors.redLighter,
           color: Styles.globalColors.blueDarkOrBlueLight,
-          paddingLeft: Styles.globalMargins.xtiny,
-          paddingRight: Styles.globalMargins.xtiny,
+          ...Styles.paddingH(Styles.globalMargins.xtiny),
         },
         isElectron: {
           ...electronWrapStyle,

@@ -85,8 +85,7 @@ const AlphabetIndexImpl = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     ...Kb.Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...Kb.Styles.centered(),
   },
   gap: {
     ...Kb.Styles.padding(2, 6, 2, 2),

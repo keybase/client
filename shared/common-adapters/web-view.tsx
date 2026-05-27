@@ -111,7 +111,7 @@ const WebView = (props: WebViewProps) => {
 
   return (
     <>
-      <NativeView style={{height: '100%', opacity, width: '100%'}}>
+      <NativeView style={{...Styles.size('100%'), opacity}}>
         <NativeWebView
           key={String(forceReload)}
           allowUniversalAccessFromFileURLs={allowUniversalAccessFromFileURLs}

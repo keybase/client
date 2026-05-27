@@ -113,18 +113,14 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.black,
   },
   progressIndicator: {
-    height: 17,
-    width: 17,
+    ...Styles.size(17),
   },
   selected: {
     color: Styles.globalColors.black,
   },
   tab: {
     flex: 1,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
+    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, Styles.globalMargins.xtiny),
   },
   tabContainer: Styles.platformStyles({
     isElectron: {

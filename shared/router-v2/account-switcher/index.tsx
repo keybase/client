@@ -206,8 +206,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   signOut: {color: Kb.Styles.globalColors.red},
   text2: {flexShrink: 0},
   userBox: {
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     width: '100%',
   },
   waiting: {opacity: 0.5},

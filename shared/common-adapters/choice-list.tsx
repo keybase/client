@@ -116,13 +116,11 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   icon: {
-    height: 48,
-    width: 48,
+    ...Styles.size(48),
   },
   iconContainer: {
     background: Styles.globalColors.greyLight,
-    height: 80,
-    width: 80,
+    ...Styles.size(80),
   },
   infoContainer: {
     marginLeft: Styles.globalMargins.small,

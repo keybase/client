@@ -104,8 +104,7 @@ function EmojiWrapper(props: Props) {
             backgroundPosition,
             backgroundSize,
             display: 'inline-block',
-            height: size,
-            width: size,
+            ...Styles.size(size),
           },
         })
       )}

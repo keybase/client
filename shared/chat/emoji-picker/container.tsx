@@ -307,8 +307,7 @@ const styles = Kb.Styles.styleSheetCreate(
       footerContainer: Kb.Styles.platformStyles({
         common: {
           flexShrink: 0,
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,

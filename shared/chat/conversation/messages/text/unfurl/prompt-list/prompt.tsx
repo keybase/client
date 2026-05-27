@@ -65,16 +65,14 @@ const styles = Kb.Styles.styleSheetCreate(
           alignSelf: 'flex-start',
           backgroundColor: Kb.Styles.globalColors.blueLighter3,
           borderRadius: Kb.Styles.borderRadius,
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
         },
         isElectron: {maxWidth: 600},
       }),
       icon: Kb.Styles.platformStyles({
         isElectron: {
           alignSelf: 'center',
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         },
       }),
     }) as const

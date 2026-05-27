@@ -174,11 +174,9 @@ const styles = Kb.Styles.styleSheetCreate(
 const headerStyles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
+    ...Kb.Styles.centered(),
     height: isMobile ? 64 : 48,
-    justifyContent: 'center',
-    paddingLeft: Kb.Styles.globalMargins.small,
-    paddingRight: Kb.Styles.globalMargins.small,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     position: 'relative',
   },
 }))
@@ -207,10 +205,7 @@ const paperKeyNudgeStyles = Kb.Styles.styleSheetCreate(
     ({
       border: Kb.Styles.platformStyles({
         common: {
-          borderColor: Kb.Styles.globalColors.black_05,
-          borderRadius: Kb.Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.black_05, 1, Kb.Styles.borderRadius),
           flex: 1,
         },
         isElectron: {

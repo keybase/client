@@ -200,20 +200,17 @@ const styles = Styles.styleSheetCreate(
           height: undefined,
           marginLeft: 'auto',
           minWidth: undefined,
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
+          ...Styles.paddingH(Styles.globalMargins.xsmall),
           width: undefined,
         },
         isElectron: {
           display: 'flex',
           minHeight: 32,
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
+          ...Styles.paddingV(Styles.globalMargins.xtiny),
         },
         isMobile: {
           minHeight: 40,
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          ...Styles.paddingV(Styles.globalMargins.tiny),
         },
       }),
       container: Styles.platformStyles({

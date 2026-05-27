@@ -124,9 +124,8 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
     ({
       container: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
+        ...Kb.Styles.centered(),
         flex: 1,
-        justifyContent: 'center',
       },
       contentBox: {
         alignSelf: 'center',

@@ -263,8 +263,7 @@ const desktopInputLowLevelStyles = Kb.Styles.styleSheetCreate(() => ({
   multiline: Kb.Styles.platformStyles({
     isElectron: {
       fieldSizing: 'content',
-      paddingBottom: 0,
-      paddingTop: 0,
+      ...Kb.Styles.paddingV(0),
       resize: 'none',
       width: '100%',
     },
@@ -901,7 +900,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.white,
         borderColor: Kb.Styles.globalColors.black_20,
-        borderRadius: 4,
+        borderRadius: Kb.Styles.borderRadius,
         borderStyle: 'solid',
         borderWidth: 1,
         marginLeft: Kb.Styles.globalMargins.small,
@@ -1474,9 +1473,8 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
       },
       explodingWrapper: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
+        ...Kb.Styles.centered(),
         height: 38,
-        justifyContent: 'center',
         width: 36,
       },
       iconBottom: {

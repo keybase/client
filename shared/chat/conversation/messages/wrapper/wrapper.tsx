@@ -1002,8 +1002,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginLeft: isMobile ? 48 : 56,
         },
         isElectron: {
-          marginBottom: 0,
-          marginTop: 0,
+          ...Kb.Styles.marginV(0),
         },
         isMobile: {marginTop: 8},
       }),
@@ -1056,8 +1055,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           borderRadius: Kb.Styles.borderRadius,
           minHeight: 20,
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
         },
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.white_90,

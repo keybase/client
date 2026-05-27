@@ -310,14 +310,12 @@ const styles = Kb.Styles.styleSheetCreate(
       activity: {alignSelf: 'flex-start'},
       addInviteAndLinkBox: Kb.Styles.platformStyles({
         common: {
-          borderColor: Kb.Styles.globalColors.black_10,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.black_10),
           flexShrink: 0,
           padding: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
           marginBottom: Kb.Styles.globalMargins.xsmall,
           marginRight: Kb.Styles.globalMargins.small,
           marginTop: Kb.Styles.globalMargins.tiny,
@@ -328,7 +326,7 @@ const styles = Kb.Styles.styleSheetCreate(
           flexGrow: 1,
         },
         isTablet: {
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
           marginBottom: Kb.Styles.globalMargins.xsmall,
           marginRight: Kb.Styles.globalMargins.small,
           marginTop: Kb.Styles.globalMargins.tiny,
@@ -337,14 +335,12 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       addInviteAsFeatureTeamBox: Kb.Styles.platformStyles({
         common: {
-          borderColor: Kb.Styles.globalColors.black_10,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.black_10),
           flexShrink: 0,
           padding: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
           height: 184,
           marginBottom: Kb.Styles.globalMargins.xsmall,
           marginRight: Kb.Styles.globalMargins.small,
@@ -356,7 +352,7 @@ const styles = Kb.Styles.styleSheetCreate(
           width: '100%',
         },
         isTablet: {
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
           height: 194,
           marginBottom: Kb.Styles.globalMargins.xsmall,
           marginRight: Kb.Styles.globalMargins.small,
@@ -377,10 +373,7 @@ const styles = Kb.Styles.styleSheetCreate(
       editTeamAvatar: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blue,
-          borderColor: Kb.Styles.globalColors.white,
-          borderRadius: 100,
-          borderStyle: 'solid',
-          borderWidth: 2,
+          ...Kb.Styles.border(Kb.Styles.globalColors.white, 2, 100),
           bottom: -6,
           color: Kb.Styles.globalColors.whiteOrWhite,
           padding: 4,
@@ -393,7 +386,7 @@ const styles = Kb.Styles.styleSheetCreate(
         flexShrink: 1,
       },
       header: {flexShrink: 1},
-      illustration: {borderRadius: 4, width: '100%'},
+      illustration: {borderRadius: Kb.Styles.borderRadius, width: '100%'},
       marginBottomRightTiny: {
         marginBottom: Kb.Styles.globalMargins.tiny,
         marginRight: Kb.Styles.globalMargins.tiny,

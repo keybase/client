@@ -92,9 +92,7 @@ const styles = Styles.styleSheetCreate(
       inlineStyle: Styles.platformStyles({
         isElectron: {
           display: 'inline',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Styles.textEllipsis,
         },
       }),
     }) as const

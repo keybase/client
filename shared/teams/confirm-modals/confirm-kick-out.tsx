@@ -156,16 +156,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   iconContainer: {
     backgroundColor: Kb.Styles.globalColors.red,
-    borderColor: Kb.Styles.globalColors.white,
-    borderRadius: 12,
-    borderStyle: 'solid',
-    borderWidth: 3,
+    ...Kb.Styles.border(Kb.Styles.globalColors.white, 3, 12),
     bottom: -3,
-    height: 24,
+    ...Kb.Styles.size(24),
     overflow: 'hidden',
     position: 'absolute',
     right: isMobile ? -24 : 0,
-    width: 24,
   },
   iconContainerMany: {
     right: isMobile ? 0 : 20,

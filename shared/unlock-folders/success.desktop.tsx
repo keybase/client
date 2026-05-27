@@ -7,7 +7,7 @@ const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
       <Kb.Text center={true} type="BodySemibold">
         Success!
       </Kb.Text>
-      <Kb.Text center={true} style={{paddingLeft: 40, paddingRight: 40}} type="Body">
+      <Kb.Text center={true} style={{...Kb.Styles.paddingH(40)}} type="Body">
         Your paper key is now rekeying folders for this computer. It takes just a couple minutes but lasts
         forever, like the decision to have a child
       </Kb.Text>

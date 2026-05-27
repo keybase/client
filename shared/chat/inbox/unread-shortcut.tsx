@@ -44,8 +44,7 @@ const styles = Kb.Styles.styleSheetCreate(
       unreadShortcut: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.orange_90,
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
         },
         isElectron: {height: 32},
         isMobile: {height: 40},

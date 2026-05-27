@@ -37,9 +37,8 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       clickableBox: {
-        alignItems: 'center',
+        ...Kb.Styles.centered(),
         height: 50,
-        justifyContent: 'center',
         width: 40,
       },
       container: {

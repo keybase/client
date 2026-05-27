@@ -165,17 +165,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   body: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
-      borderRadius: 4,
+      borderRadius: Kb.Styles.borderRadius,
     },
     isMobile: {...Kb.Styles.globalStyles.flexOne},
   }),
   editTeamAvatar: Kb.Styles.platformStyles({
     common: {
       backgroundColor: Kb.Styles.globalColors.blue,
-      borderColor: Kb.Styles.globalColors.white,
-      borderRadius: 100,
-      borderStyle: 'solid',
-      borderWidth: 2,
+      ...Kb.Styles.border(Kb.Styles.globalColors.white, 2, 100),
       bottom: -6,
       color: Kb.Styles.globalColors.whiteOrWhite,
       padding: 4,
@@ -187,15 +184,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      borderStyle: 'solid' as const,
-      borderTopColor: Kb.Styles.globalColors.black_10,
-      borderTopWidth: 1,
-      minHeight: 56,
+      ...Kb.Styles.topDivider(),
     },
     isElectron: {
-      borderBottomLeftRadius: Kb.Styles.borderRadius,
-      borderBottomRightRadius: Kb.Styles.borderRadius,
-      overflow: 'hidden',
+      ...Kb.Styles.roundedBottom(),
     },
   }),
   subteamNameInput: Kb.Styles.padding(Kb.Styles.globalMargins.tiny),

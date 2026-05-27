@@ -190,7 +190,7 @@ const Avatar = ({
   return (
     <Kb.ImageIcon
       type={serviceIdToAvatarIcon(resultForService)}
-      style={{height: avatarSize, width: avatarSize}}
+      style={Kb.Styles.size(avatarSize)}
     />
   )
 }

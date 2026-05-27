@@ -1,7 +1,6 @@
 import * as Kb from '@/common-adapters'
 import * as Teams from '@/constants/teams'
 import * as React from 'react'
-import * as Style from '@/styles'
 import * as T from '@/constants/types'
 import upperFirst from 'lodash/upperFirst'
 import {indefiniteArticle} from '@/util/string'
@@ -135,7 +134,7 @@ const Dropdown = (p: DropdownProps) => {
     )
   }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
-  const saveIndicatorStyle = Style.collapseStyles([
+  const saveIndicatorStyle = Kb.Styles.collapseStyles([
     styles.saveIndicator,
     hasSaveError ? styles.hidden : null,
   ])
@@ -145,7 +144,7 @@ const Dropdown = (p: DropdownProps) => {
         style={styles.dropdown}
         ref={isMobile ? null : popupAnchor}
         onClick={showPopup}
-        underlayColor={Style.globalColors.white_40}
+        underlayColor={Kb.Styles.globalColors.white_40}
       >
         <Kb.Box2 direction="horizontal" style={styles.label}>
           <Kb.Text type="BodySemibold">{upperFirst(minWriterRole)}</Kb.Text>
@@ -165,19 +164,16 @@ const Display = ({minWriterRole}: {minWriterRole: T.Teams.TeamRoleType}) => (
   </Kb.Text>
 )
 
-const styles = Style.styleSheetCreate(
+const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      dropdown: Style.platformStyles({
+      dropdown: Kb.Styles.platformStyles({
         common: {
-          ...Style.globalStyles.flexBoxRow,
+          ...Kb.Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
-          borderColor: Style.globalColors.grey,
-          borderRadius: Style.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
           minWidth: 220,
-          paddingRight: Style.globalMargins.small,
+          paddingRight: Kb.Styles.globalMargins.small,
         },
         isElectron: {
           marginRight: 45 - 16,
@@ -188,19 +184,18 @@ const styles = Style.styleSheetCreate(
       label: {
         alignItems: 'center',
         minHeight: isMobile ? 40 : 32,
-        paddingLeft: Style.globalMargins.xsmall,
+        paddingLeft: Kb.Styles.globalMargins.xsmall,
         width: '100%',
       },
-      saveIndicator: Style.platformStyles({
+      saveIndicator: Kb.Styles.platformStyles({
         common: {
-          ...Style.globalStyles.flexBoxRow,
-          alignItems: 'center',
+          ...Kb.Styles.globalStyles.flexBoxRow,
+          ...Kb.Styles.centered(),
           height: 17,
-          justifyContent: 'center',
-          marginTop: Style.globalMargins.tiny,
+          marginTop: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          height: Style.globalMargins.medium,
+          height: Kb.Styles.globalMargins.medium,
         },
       }),
     }) as const

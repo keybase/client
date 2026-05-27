@@ -258,7 +258,7 @@ const AddToTeam = (ownProps: OwnProps) => {
           <Kb.Text type="Header">{them} to...</Kb.Text>
         </Kb.Box2>
         <Kb.BoxGrow style={{width: '100%'}}>
-          <Kb.ScrollView style={{height: '100%', width: '100%'}}>
+          <Kb.ScrollView style={Kb.Styles.size('100%')}>
             <Kb.Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
               {!waiting ? (
                 teamProfileAddList.length > 0 ? (
@@ -396,8 +396,7 @@ const styles = Kb.Styles.styleSheetCreate(
       addToTeamTitle: Kb.Styles.platformStyles({
         common: {marginRight: Kb.Styles.globalMargins.tiny},
         isMobile: {
-          marginBottom: Kb.Styles.globalMargins.tiny,
-          marginTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
         },
       }),
       addUserToTeamsResultsBox: {
@@ -411,8 +410,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       buttonBar: Kb.Styles.platformStyles({
         isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.xsmall,
-          paddingRight: Kb.Styles.globalMargins.xsmall,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
         },
       }),
       container: Kb.Styles.platformStyles({
@@ -421,8 +419,7 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.white,
           flexGrow: 1,
           flexShrink: 1,
-          height: '100%',
-          width: '100%',
+          ...Kb.Styles.size('100%'),
         },
         isElectron: {maxHeight: '100%'},
       }),
@@ -435,22 +432,16 @@ const styles = Kb.Styles.styleSheetCreate(
       modalFooter: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          borderStyle: 'solid' as const,
-          borderTopColor: Kb.Styles.globalColors.black_10,
-          borderTopWidth: 1,
-          minHeight: 56,
+          ...Kb.Styles.topDivider(),
         },
         isElectron: {
-          borderBottomLeftRadius: Kb.Styles.borderRadius,
-          borderBottomRightRadius: Kb.Styles.borderRadius,
-          overflow: 'hidden',
+          ...Kb.Styles.roundedBottom(),
         },
       }),
       teamRow: Kb.Styles.platformStyles({
         common: {
           alignItems: 'center',
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
           width: '100%',
         },
         isElectron: {

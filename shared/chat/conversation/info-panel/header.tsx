@@ -192,8 +192,7 @@ const styles = Kb.Styles.styleSheetCreate(
       gear: Kb.Styles.platformStyles({
         common: {
           height: gearIconSize,
-          paddingLeft: 16,
-          paddingRight: 16,
+          ...Kb.Styles.paddingH(16),
         },
         isMobile: {width: gearIconSize + 32},
       }),

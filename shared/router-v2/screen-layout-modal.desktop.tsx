@@ -177,22 +177,17 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   header: {
-    borderBottomColor: Kb.Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid' as const,
-    minHeight: 48,
+    ...Kb.Styles.bottomDivider(48),
   },
   headerLeft: {
     flex: 1,
     justifyContent: 'flex-start',
-    paddingLeft: Kb.Styles.globalMargins.xsmall,
-    paddingRight: Kb.Styles.globalMargins.xsmall,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
   },
   headerRight: {
     flex: 1,
     justifyContent: 'flex-end',
-    paddingLeft: Kb.Styles.globalMargins.xsmall,
-    paddingRight: Kb.Styles.globalMargins.xsmall,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
   },
   hidden: {display: 'none'},
   modalBox: Kb.Styles.platformStyles({
@@ -209,15 +204,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      borderStyle: 'solid' as const,
-      borderTopColor: Kb.Styles.globalColors.black_10,
-      borderTopWidth: 1,
-      minHeight: 56,
+      ...Kb.Styles.topDivider(),
     },
     isElectron: {
-      borderBottomLeftRadius: Kb.Styles.borderRadius,
-      borderBottomRightRadius: Kb.Styles.borderRadius,
-      overflow: 'hidden',
+      ...Kb.Styles.roundedBottom(),
     },
   }),
   modalFooterNoBorder: Kb.Styles.platformStyles({
@@ -226,9 +216,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       minHeight: 56,
     },
     isElectron: {
-      borderBottomLeftRadius: Kb.Styles.borderRadius,
-      borderBottomRightRadius: Kb.Styles.borderRadius,
-      overflow: 'hidden',
+      ...Kb.Styles.roundedBottom(),
     },
   }),
   overlayAvoidTabs: Kb.Styles.platformStyles({
@@ -242,7 +230,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     ...Kb.Styles.globalStyles.fillAbsolute,
   },
   overlayStyle: Kb.Styles.platformStyles({
-    isElectron: {alignItems: 'center', flexGrow: 1, justifyContent: 'center', pointerEvents: 'none'},
+    isElectron: {...Kb.Styles.centered(), flexGrow: 1, pointerEvents: 'none'},
   }),
   overlayTransparent: {backgroundColor: undefined},
 }))

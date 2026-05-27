@@ -139,13 +139,11 @@ const styles = Kb.Styles.styleSheetCreate(
       bold: {...Kb.Styles.globalStyles.fontBold},
       container: {backgroundColor: Kb.Styles.globalColors.white, flexShrink: 0},
       fullNameContainer: {
-        paddingLeft: Kb.Styles.globalMargins.mediumLarge,
-        paddingRight: Kb.Styles.globalMargins.mediumLarge,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.mediumLarge),
       },
       text: Kb.Styles.platformStyles({
         common: {
-          paddingLeft: Kb.Styles.globalMargins.mediumLarge,
-          paddingRight: Kb.Styles.globalMargins.mediumLarge,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.mediumLarge),
         },
         isElectron: {wordBreak: 'break-word'} as const,
       }),

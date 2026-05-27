@@ -38,16 +38,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isMobile: {
       flexGrow: 1,
-      paddingLeft: Kb.Styles.globalMargins.medium,
-      paddingRight: Kb.Styles.globalMargins.medium,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
     },
   }),
   innerContainer: Kb.Styles.platformStyles({
     isElectron: {
       ...Kb.Styles.globalStyles.flexBoxColumn,
       alignSelf: 'stretch',
-      height: '100%',
-      width: '100%',
+      ...Kb.Styles.size('100%'),
     },
     isMobile: {
       marginTop: Kb.Styles.globalMargins.medium,

@@ -265,8 +265,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   emoji: {
     backgroundColor: Kb.Styles.globalColors.white,
     borderRadius: Kb.Styles.globalMargins.xtiny,
-    height: emojiWidthWithPadding,
-    width: emojiWidthWithPadding,
+    ...Kb.Styles.size(emojiWidthWithPadding),
   },
   opacity40: {
     opacity: 0.4,

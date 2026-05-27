@@ -64,7 +64,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   listContainer: {
     backgroundColor: Kb.Styles.globalColors.blueGrey,
-    borderStyle: 'solid',
     flexGrow: 0,
     flexShrink: 0,
     width: 180,

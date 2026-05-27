@@ -142,8 +142,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   channelDummyInput: {
     backgroundColor: Kb.Styles.globalColors.black_10,
     borderRadius: Kb.Styles.borderRadius,
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   channelDummyInputText: {color: Kb.Styles.globalColors.black_50},
   container: {
@@ -159,9 +158,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       marginBottom: Kb.Styles.globalMargins.xtiny,
     },
     isMobile: {
-      borderColor: Kb.Styles.globalColors.black_20,
-      borderStyle: 'solid',
-      borderWidth: 1,
+      ...Kb.Styles.border(Kb.Styles.globalColors.black_20),
     },
   }),
   pillContainer: {

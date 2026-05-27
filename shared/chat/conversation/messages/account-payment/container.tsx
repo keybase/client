@@ -240,12 +240,10 @@ const styles = Kb.Styles.styleSheetCreate(
       progressIndicator: Kb.Styles.platformStyles({
         // Match height of a line of text
         isElectron: {
-          height: 17,
-          width: 17,
+          ...Kb.Styles.size(17),
         },
         isMobile: {
-          height: 22,
-          width: 22,
+          ...Kb.Styles.size(22),
         },
       }),
       purple: {color: Kb.Styles.globalColors.purpleDark},

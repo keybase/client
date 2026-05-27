@@ -1,6 +1,5 @@
 import * as C from '@/constants'
 import * as Message from '@/constants/chat/message'
-import type * as Styles from '@/styles'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
@@ -16,7 +15,7 @@ import {
 } from './thread-context'
 import {useThreadSearchRoute} from './thread-search-route'
 
-type OwnProps = {style?: Styles.StylesCrossPlatform}
+type OwnProps = {style?: Kb.Styles.StylesCrossPlatform}
 type CommonProps = OwnProps & {
   conversationIDKey: T.Chat.ConversationIDKey
   initialQuery: string
@@ -535,25 +534,17 @@ const styles = Kb.Styles.styleSheetCreate(
           display: 'inline',
           flex: 1,
           marginLeft: Kb.Styles.globalMargins.tiny,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
       }),
       inputContainer: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.white,
-          borderColor: Kb.Styles.globalColors.black_20,
-          borderRadius: Kb.Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, Kb.Styles.borderRadius),
           flex: 1,
         },
         isElectron: {
-          paddingBottom: Kb.Styles.globalMargins.xtiny,
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.xtiny,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.tiny),
         },
         isMobile: {padding: Kb.Styles.globalMargins.tiny},
       }),

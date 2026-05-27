@@ -43,8 +43,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   tab: Kb.Styles.platformStyles({
     isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.tiny,
-      paddingRight: Kb.Styles.globalMargins.tiny,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
     },
   }),
   tabContainer: {

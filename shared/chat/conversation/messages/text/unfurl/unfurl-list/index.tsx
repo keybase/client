@@ -22,8 +22,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           alignSelf: 'flex-start',
           flex: 1,
-          marginBottom: Kb.Styles.globalMargins.xtiny,
-          marginTop: Kb.Styles.globalMargins.xtiny,
+          ...Kb.Styles.marginV(Kb.Styles.globalMargins.xtiny),
         },
       }),
     }) as const

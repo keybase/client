@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
-import type {StylesCrossPlatform} from '@/styles'
 import SaveIndicator from '@/common-adapters/save-indicator'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {useLoadedTeam} from '../../use-loaded-team'
@@ -241,10 +240,7 @@ const styles = Kb.Styles.styleSheetCreate(
         common: {
           ...Kb.Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
-          borderColor: Kb.Styles.globalColors.grey,
-          borderRadius: Kb.Styles.borderRadius,
-          borderStyle: 'solid',
-          borderWidth: 1,
+          ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
           marginBottom: Kb.Styles.globalMargins.tiny,
           minWidth: 220,
           paddingRight: Kb.Styles.globalMargins.small,
@@ -256,9 +252,8 @@ const styles = Kb.Styles.styleSheetCreate(
       saveState: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.flexBoxRow,
-          alignItems: 'center',
+          ...Kb.Styles.centered(),
           height: 17,
-          justifyContent: 'center',
           marginTop: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
@@ -496,8 +491,8 @@ const RetentionSwitcher = (props: {entityType: RetentionEntityType} & Props) => 
 
 export type OwnProps = {
   conversationIDKey?: T.Chat.ConversationIDKey
-  containerStyle?: StylesCrossPlatform
-  dropdownStyle?: StylesCrossPlatform
+  containerStyle?: Kb.Styles.StylesCrossPlatform
+  dropdownStyle?: Kb.Styles.StylesCrossPlatform
   entityType: RetentionEntityType
   showSaveIndicator: boolean
   teamID: T.Teams.TeamID

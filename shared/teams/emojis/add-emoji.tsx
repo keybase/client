@@ -414,20 +414,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   addEmojiIconContainer: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      borderColor: Kb.Styles.globalColors.black_20,
-      borderRadius: Kb.Styles.globalMargins.xtiny,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      justifyContent: 'center',
+      ...Kb.Styles.centered(),
+      ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, Kb.Styles.globalMargins.xtiny),
     },
     isElectron: {
-      height: Kb.Styles.globalMargins.mediumLarge,
-      width: Kb.Styles.globalMargins.mediumLarge,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.mediumLarge),
     },
     isMobile: {
-      height: Kb.Styles.globalMargins.large,
-      width: Kb.Styles.globalMargins.large,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.large),
     },
   }),
   contentContainer: Kb.Styles.platformStyles({
@@ -449,8 +443,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       borderRadius: 30,
       borderStyle: 'dotted',
       borderWidth: 3,
-      height: 175,
-      width: 175,
+      ...Kb.Styles.size(175),
     },
   }),
   dropAreaDragOver: Kb.Styles.platformStyles({
@@ -459,8 +452,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   emojiToAddImage: {
-    height: '100%',
-    width: '100%',
+    ...Kb.Styles.size('100%'),
   },
   emojiToAddImageContainer: Kb.Styles.platformStyles({
     common: {

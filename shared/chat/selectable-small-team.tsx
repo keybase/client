@@ -106,8 +106,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.orange,
     borderRadius: 6,
     flexShrink: 0,
-    height: Kb.Styles.globalMargins.tiny,
-    width: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.size(Kb.Styles.globalMargins.tiny),
   },
   container: {
     flexShrink: 0,
@@ -116,12 +115,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   rowContainer: Kb.Styles.platformStyles({
     isElectron: {
       ...Kb.Styles.desktopStyles.clickable,
-      paddingLeft: Kb.Styles.globalMargins.xsmall,
-      paddingRight: Kb.Styles.globalMargins.xsmall,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
     },
     isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
   }),
   spinner: {

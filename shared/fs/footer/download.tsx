@@ -86,7 +86,7 @@ const styles = Kb.Styles.styleSheetCreate(
       download: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.green,
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
         },
         isElectron: {
           height: 32,
@@ -102,9 +102,7 @@ const styles = Kb.Styles.styleSheetCreate(
           color: Kb.Styles.globalColors.white,
         },
         isElectron: {
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
       }),
       nameAndProgress: {

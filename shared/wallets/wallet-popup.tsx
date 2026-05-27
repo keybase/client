@@ -65,8 +65,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBarContainer: Kb.Styles.platformStyles({
     isElectron: {flex: 1, justifyContent: 'flex-end'},
     isMobile: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
   }),
   container: Kb.Styles.platformStyles({
@@ -75,17 +74,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       borderRadius: 'inherit',
-      paddingBottom: Kb.Styles.globalMargins.xlarge,
-      paddingLeft: Kb.Styles.globalMargins.medium,
-      paddingRight: Kb.Styles.globalMargins.medium,
-      paddingTop: Kb.Styles.globalMargins.xlarge,
+      ...Kb.Styles.padding(Kb.Styles.globalMargins.xlarge, Kb.Styles.globalMargins.medium),
       textAlign: 'center',
     },
     isMobile: {},
   }),
   outerContainer: Kb.Styles.platformStyles({
     isElectron: {
-      borderRadius: 4,
+      borderRadius: Kb.Styles.borderRadius,
       height: 560,
       width: 400,
     },
@@ -96,8 +92,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   scrollView: {
     ...Kb.Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
-    height: '100%',
-    width: '100%',
+    ...Kb.Styles.size('100%'),
   },
   scrollViewContentContainer: {...Kb.Styles.globalStyles.flexBoxColumn, flexGrow: 1},
 }))

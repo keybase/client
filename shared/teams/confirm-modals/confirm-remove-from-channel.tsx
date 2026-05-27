@@ -76,9 +76,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   headerIcon: Kb.Styles.platformStyles({
     common: {
       backgroundColor: Kb.Styles.globalColors.red,
-      borderColor: Kb.Styles.globalColors.white,
-      borderStyle: 'solid',
-      borderWidth: 3,
+      ...Kb.Styles.border(Kb.Styles.globalColors.white, 3),
       color: Kb.Styles.globalColors.white,
       padding: 3,
     },

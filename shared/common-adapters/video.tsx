@@ -188,14 +188,12 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.flexBoxCenter,
-    height: '100%',
+    ...Styles.size('100%'),
     maxHeight: '100%',
     maxWidth: '100%',
     overflow: 'hidden',
-    width: '100%',
   },
   video: {
-    height: '100%',
-    width: '100%',
+    ...Styles.size('100%'),
   },
 }))

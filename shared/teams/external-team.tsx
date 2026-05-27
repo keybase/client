@@ -251,8 +251,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   middot: {
-    marginLeft: Kb.Styles.globalMargins.xtiny,
-    marginRight: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.marginH(Kb.Styles.globalMargins.xtiny),
   },
   tabs: {
     backgroundColor: Kb.Styles.globalColors.white,

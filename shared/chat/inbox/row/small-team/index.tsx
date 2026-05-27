@@ -457,11 +457,9 @@ const styles = Kb.Styles.styleSheetCreate(
           color: Kb.Styles.globalColors.black_50,
           display: 'block',
           minHeight: 16,
-          overflow: 'hidden',
           paddingRight: 10,
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
           width: '100%',
+          ...Kb.Styles.textEllipsis,
         },
         isMobile: {
           color: Kb.Styles.globalColors.black_50,
@@ -506,21 +504,17 @@ const styles = Kb.Styles.styleSheetCreate(
       rowContainer: Kb.Styles.platformStyles({
         common: {
           height: '100%',
-          paddingLeft: Kb.Styles.globalMargins.xsmall,
-          paddingRight: Kb.Styles.globalMargins.xsmall,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
         },
         isElectron: Kb.Styles.desktopStyles.clickable,
         isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
       }),
       snippetDecoration: {alignSelf: 'flex-start'} as const,
       teamTextStyle: Kb.Styles.platformStyles({
         isElectron: {
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
       }),
       timestamp: {

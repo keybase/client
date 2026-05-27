@@ -357,8 +357,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.black_20,
   },
   waitingProgress: {
-    height: 48,
-    width: 48,
+    ...Kb.Styles.size(48),
   },
 }))
 

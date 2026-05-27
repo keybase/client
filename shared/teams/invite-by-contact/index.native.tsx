@@ -157,10 +157,9 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       rolePickerBox: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
+        ...Kb.Styles.centered(),
         borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: Kb.Styles.hairlineWidth,
-        justifyContent: 'center',
         marginBottom: Kb.Styles.globalMargins.xtiny,
         padding: Kb.Styles.globalMargins.small,
       },

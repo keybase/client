@@ -335,27 +335,21 @@ const styles = Styles.styleSheetCreate(() => ({
   containerCenter: {justifyContent: 'center'},
   containerMobile: Styles.platformStyles({
     common: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
+      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
     },
     isTablet: {
-      paddingLeft: 0,
-      paddingRight: 0,
+      ...Styles.paddingH(0),
     },
   }),
   containerNonSmall: {
     height: 32,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
+    ...Styles.paddingH(Styles.globalMargins.xsmall),
   },
   containerSmall: {
     height: 28,
     maxWidth: 280,
     minWidth: 80,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
+    ...Styles.paddingH(Styles.globalMargins.tiny),
   },
   dark: {backgroundColor: Styles.globalColors.black_10},
   icon: Styles.platformStyles({
@@ -366,8 +360,7 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexGrow,
     backgroundColor: Styles.globalColors.transparent,
     flexShrink: 1,
-    paddingLeft: 0,
-    paddingRight: 0,
+    ...Styles.paddingH(0),
   },
   leftIconTiny: {marginRight: Styles.globalMargins.tiny},
   leftIconXTiny: {marginRight: Styles.globalMargins.xtiny},
@@ -375,14 +368,12 @@ const styles = Styles.styleSheetCreate(() => ({
   removeIconFullWidth: {marginLeft: Styles.globalMargins.xsmall},
   removeIconNonFullWidth: {marginLeft: Styles.globalMargins.tiny},
   spinnerFullWidth: {
-    height: 20,
+    ...Styles.size(20),
     marginLeft: Styles.globalMargins.xsmall,
-    width: 20,
   },
   spinnerMobile: {marginLeft: Styles.globalMargins.tiny},
   spinnerSmall: {
-    height: 16,
+    ...Styles.size(16),
     marginLeft: Styles.globalMargins.tiny,
-    width: 16,
   },
 }))

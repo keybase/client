@@ -107,21 +107,15 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   icon: {
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
+    ...Styles.marginV(Styles.globalMargins.small),
   },
   modalFooter: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-      borderStyle: 'solid' as const,
-      borderTopColor: Styles.globalColors.black_10,
-      borderTopWidth: 1,
-      minHeight: 56,
+      ...Styles.topDivider(),
     },
     isElectron: {
-      borderBottomLeftRadius: Styles.borderRadius,
-      borderBottomRightRadius: Styles.borderRadius,
-      overflow: 'hidden',
+      ...Styles.roundedBottom(),
     },
   }),
   modalFooterNoBorder: Styles.platformStyles({
@@ -130,9 +124,7 @@ const styles = Styles.styleSheetCreate(() => ({
       minHeight: 56,
     },
     isElectron: {
-      borderBottomLeftRadius: Styles.borderRadius,
-      borderBottomRightRadius: Styles.borderRadius,
-      overflow: 'hidden',
+      ...Styles.roundedBottom(),
     },
   }),
   text: {

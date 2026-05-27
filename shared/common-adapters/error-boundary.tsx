@@ -86,7 +86,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
               direction="vertical"
               style={{
                 backgroundColor: Styles.globalColors.blueDarker2,
-                borderRadius: 4,
+                borderRadius: Styles.borderRadius,
                 minWidth: 100,
                 padding: 10,
               }}

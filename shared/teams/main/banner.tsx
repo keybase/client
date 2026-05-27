@@ -44,10 +44,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       top: Kb.Styles.globalMargins.tiny,
     },
     isMobile: {
-      height: 26,
+      ...Kb.Styles.size(26),
       right: Kb.Styles.globalMargins.small,
       top: Kb.Styles.globalMargins.small,
-      width: 26,
     },
   }),
   containerBanner: Kb.Styles.platformStyles({
@@ -75,13 +74,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   header: {
-    marginBottom: 15,
-    marginTop: 15,
+    ...Kb.Styles.marginV(15),
   },
   illustration: Kb.Styles.platformStyles({
     isElectron: {
-      paddingLeft: Kb.Styles.globalMargins.large,
-      paddingRight: Kb.Styles.globalMargins.large,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
     },
   }),
   text: Kb.Styles.platformStyles({

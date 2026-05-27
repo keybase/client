@@ -63,9 +63,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   container: Kb.Styles.platformStyles({
     isElectron: {
-      height: '100%',
+      ...Kb.Styles.size('100%'),
       marginBottom: 48, // footer height
-      width: '100%',
     },
     isMobile: {
       ...Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
@@ -97,30 +96,23 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     isElectron: {
       borderRadius: 12,
       borderWidth: 2,
-      height: 26,
+      ...Kb.Styles.size(26),
       lineHeight: 26,
-      width: 26,
     },
     isMobile: {
       borderRadius: 16,
       borderWidth: 3.5,
-      height: 34,
+      ...Kb.Styles.size(34),
       lineHeight: 34,
-      width: 34,
     },
   }),
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      borderStyle: 'solid' as const,
-      borderTopColor: Kb.Styles.globalColors.black_10,
-      borderTopWidth: 1,
-      minHeight: 56,
+      ...Kb.Styles.topDivider(),
     },
     isElectron: {
-      borderBottomLeftRadius: Kb.Styles.borderRadius,
-      borderBottomRightRadius: Kb.Styles.borderRadius,
-      overflow: 'hidden',
+      ...Kb.Styles.roundedBottom(),
     },
   }),
 }))

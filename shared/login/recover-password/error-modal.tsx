@@ -6,15 +6,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   modalFooter: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-      borderStyle: 'solid' as const,
-      borderTopColor: Kb.Styles.globalColors.black_10,
-      borderTopWidth: 1,
-      minHeight: 56,
+      ...Kb.Styles.topDivider(),
     },
     isElectron: {
-      borderBottomLeftRadius: Kb.Styles.borderRadius,
-      borderBottomRightRadius: Kb.Styles.borderRadius,
-      overflow: 'hidden',
+      ...Kb.Styles.roundedBottom(),
     },
   }),
   padding: {

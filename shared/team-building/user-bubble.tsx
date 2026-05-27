@@ -66,8 +66,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       bubble: Kb.Styles.platformStyles({
         common: {
-          marginLeft: Kb.Styles.globalMargins.tiny,
-          marginRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.tiny),
         },
         isElectron: {
           flexShrink: 1,
@@ -80,10 +79,9 @@ const styles = Kb.Styles.styleSheetCreate(
           alignItems: 'center',
           backgroundColor: Kb.Styles.globalColors.white,
           borderRadius: 100,
-          height: removeSize,
+          ...Kb.Styles.size(removeSize),
           position: 'absolute',
           top: 0,
-          width: removeSize,
         },
         isElectron: {
           cursor: 'pointer',

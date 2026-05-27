@@ -154,14 +154,13 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.transparent,
         },
         isMobile: {
-          paddingLeft: 0,
-          paddingRight: 0,
+          ...Kb.Styles.paddingH(0),
         },
         isTablet: {alignItems: 'center'},
       }),
       contentContainer: Kb.Styles.platformStyles({isMobile: {...Kb.Styles.padding(0)}}),
       fill: Kb.Styles.platformStyles({
-        isMobile: {height: '100%', width: '100%'},
+        isMobile: {...Kb.Styles.size('100%')},
         isTablet: {width: 410},
       }),
       forgotUsername: {alignSelf: 'flex-end'},

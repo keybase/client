@@ -124,8 +124,7 @@ const _makeDropdownItem = (item: string) => (
     direction="horizontal"
     alignItems="center"
     style={{
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     }}
   >
     <Kb.Text type="BodyBig">{capitalize(item)}</Kb.Text>

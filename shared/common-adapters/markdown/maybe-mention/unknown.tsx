@@ -130,8 +130,7 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.greyLight,
           borderRadius: 2,
           letterSpacing: 0.3,
-          paddingLeft: 2,
-          paddingRight: 2,
+          ...Kb.Styles.paddingH(2),
         },
         isElectron: {
           display: 'inline-block',

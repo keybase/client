@@ -298,8 +298,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       containerMobile: Kb.Styles.platformStyles({
         isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
       }),
       copyTextContainer: {

@@ -152,8 +152,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBar: {alignItems: 'center'},
   checkbox: {
     alignSelf: 'flex-start',
-    marginBottom: Kb.Styles.globalMargins.tiny,
-    marginTop: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
   confirm: {
     alignSelf: 'flex-start',

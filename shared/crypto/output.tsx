@@ -408,8 +408,7 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.blueGrey,
         },
         isTablet: {
-          alignItems: 'center',
-          justifyContent: 'center',
+          ...Kb.Styles.centered(),
         },
       }),
       outputPlaceholder: {backgroundColor: Kb.Styles.globalColors.blueGreyLight},
@@ -436,8 +435,7 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingTop: Kb.Styles.globalMargins.tiny,
         },
         isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
       }),
       signedContainerSelf: Kb.Styles.platformStyles({

@@ -103,31 +103,25 @@ function PathStatusIcon(props: Props) {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   iconFont: {
     alignSelf: 'center',
-    paddingLeft: Kb.Styles.globalMargins.xtiny,
-    paddingRight: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xtiny),
   },
   iconNonFont: Kb.Styles.platformStyles({
     common: {
-      marginLeft: Kb.Styles.globalMargins.xtiny,
-      marginRight: Kb.Styles.globalMargins.xtiny,
+      ...Kb.Styles.marginH(Kb.Styles.globalMargins.xtiny),
     },
     isElectron: {
-      height: Kb.Styles.globalMargins.xsmall,
-      width: Kb.Styles.globalMargins.xsmall,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.xsmall),
     },
     isMobile: {
-      height: Kb.Styles.globalMargins.small,
-      width: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.small),
     },
   }),
   placeholder: Kb.Styles.platformStyles({
     isElectron: {
-      height: Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xtiny,
-      width: Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xtiny,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.xsmall + Kb.Styles.globalMargins.xtiny),
     },
     isMobile: {
-      height: Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny,
-      width: Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny,
+      ...Kb.Styles.size(Kb.Styles.globalMargins.small + Kb.Styles.globalMargins.xtiny),
     },
   }),
 }))

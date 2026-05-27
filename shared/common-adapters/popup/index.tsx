@@ -196,13 +196,9 @@ const desktopStyles = Styles.styleSheetCreate(() => ({
   cover: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.fillAbsolute,
-    alignItems: 'center',
+    ...Styles.centered(),
     alignSelf: 'stretch',
-    justifyContent: 'center',
-    paddingBottom: Styles.globalMargins.small,
-    paddingLeft: Styles.globalMargins.large,
-    paddingRight: Styles.globalMargins.large,
-    paddingTop: Styles.globalMargins.large,
+    ...Styles.padding(Styles.globalMargins.large, Styles.globalMargins.large, Styles.globalMargins.small),
   },
   positioned: Styles.platformStyles({
     isElectron: {

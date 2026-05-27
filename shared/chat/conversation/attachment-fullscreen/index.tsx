@@ -414,15 +414,13 @@ const styles = Kb.Styles.styleSheetCreate(
       circle: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
+          ...Kb.Styles.centered(),
           alignSelf: 'center',
           borderRadius: 36,
           cursor: 'pointer',
           flexShrink: 0,
-          height: 36,
-          justifyContent: 'center',
+          ...Kb.Styles.size(36),
           margin: Kb.Styles.globalMargins.small,
-          width: 36,
         },
       }),
       close: Kb.Styles.platformStyles({
@@ -434,8 +432,7 @@ const styles = Kb.Styles.styleSheetCreate(
       contentsFit: {
         ...Kb.Styles.globalStyles.flexBoxRow,
         flex: 1,
-        height: '100%',
-        width: '100%',
+        ...Kb.Styles.size('100%'),
       },
       disabled: {opacity: 0.3},
       ellipsisContainer: Kb.Styles.platformStyles({
@@ -444,8 +441,7 @@ const styles = Kb.Styles.styleSheetCreate(
       error: {color: Kb.Styles.globalColors.redDark},
       headerFooter: Kb.Styles.platformStyles({
         common: {
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
         },
         isElectron: {
           alignItems: 'center',
@@ -457,10 +453,9 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.blackOrBlack,
           bottom: Kb.Styles.globalMargins.small,
           flexShrink: 0,
-          height: 34,
+          ...Kb.Styles.size(34),
           left: Kb.Styles.globalMargins.small,
           position: 'absolute',
-          width: 34,
           zIndex: 3,
         },
       }),
@@ -480,26 +475,22 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           cursor: 'normal',
           display: 'block',
-          height: '100%',
+          ...Kb.Styles.size('100%'),
           objectFit: 'scale-down' as const,
-          width: '100%',
         },
       }),
       videoWrapper: Kb.Styles.platformStyles({
         isMobile: {
-          alignItems: 'center',
-          height: '100%',
-          justifyContent: 'center',
+          ...Kb.Styles.centered(),
+          ...Kb.Styles.size('100%'),
           position: 'relative',
-          width: '100%',
         },
       }),
       zoomableBox: Kb.Styles.platformStyles({
         isMobile: {
           backgroundColor: Kb.Styles.globalColors.blackOrBlack,
-          height: '100%',
+          ...Kb.Styles.size('100%'),
           position: 'relative',
-          width: '100%',
         },
       }),
     }) as const

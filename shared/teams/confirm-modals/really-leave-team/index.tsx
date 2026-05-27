@@ -77,8 +77,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginBottom: Kb.Styles.globalMargins.small,
         },
         isElectron: {
-          marginLeft: 48,
-          marginRight: 48,
+          ...Kb.Styles.marginH(48),
         },
         isMobile: {
           marginLeft: Kb.Styles.globalMargins.small,

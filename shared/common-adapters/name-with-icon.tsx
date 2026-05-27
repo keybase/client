@@ -272,10 +272,7 @@ const styles = Styles.styleSheetCreate(() => ({
   editTeam: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blue,
-      borderColor: Styles.globalColors.white,
-      borderRadius: 100,
-      borderStyle: 'solid',
-      borderWidth: 2,
+      ...Styles.border(Styles.globalColors.white, 2, 100),
       bottom: -6,
       color: Styles.globalColors.whiteOrWhite,
       padding: 4,
@@ -304,20 +301,17 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   hIconStyle: Styles.platformStyles({
     isElectron: {
-      height: 32,
+      ...Styles.size(32),
       marginRight: Styles.globalMargins.tiny,
-      width: 32,
     },
     isMobile: {
-      height: 48,
+      ...Styles.size(48),
       marginRight: Styles.globalMargins.small,
-      width: 48,
     },
   }),
   hbAvatarStyle: {
-    height: 64,
+    ...Styles.size(64),
     marginRight: Styles.globalMargins.small,
-    width: 64,
   },
   hbContainerStyle: {
     ...Styles.globalStyles.flexBoxRow,
@@ -326,12 +320,10 @@ const styles = Styles.styleSheetCreate(() => ({
   hbIconStyle: Styles.platformStyles({
     common: {marginRight: Styles.globalMargins.small},
     isElectron: {
-      height: 48,
-      width: 48,
+      ...Styles.size(48),
     },
     isMobile: {
-      height: 64,
-      width: 64,
+      ...Styles.size(64),
     },
   }),
   metaStyle: {

@@ -53,7 +53,7 @@ const styleBody = {
 
 const styleTerminal = {
   backgroundColor: Kb.Styles.globalColors.blueDarker2,
-  borderRadius: 4,
+  borderRadius: Kb.Styles.borderRadius,
   boxSizing: 'content-box',
   color: Kb.Styles.globalColors.white,
   marginLeft: -Kb.Styles.globalMargins.medium,

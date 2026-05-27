@@ -304,9 +304,8 @@ const styles = Kb.Styles.styleSheetCreate(() => {
       flexGrow: 0,
     },
     mobileSummaryRow: {
-      alignItems: 'center',
+      ...Kb.Styles.centered(),
       flexShrink: 0,
-      justifyContent: 'center',
       ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
     },
     overlayFill: {

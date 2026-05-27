@@ -316,9 +316,7 @@ const styles = Styles.styleSheetCreate(
     ({
       brokenBadge: Styles.platformStyles({
         common: {
-          borderColor: Styles.globalColors.white,
-          borderStyle: 'solid',
-          borderWidth: Styles.globalMargins.xxtiny,
+          ...Styles.border(Styles.globalColors.white, Styles.globalMargins.xxtiny),
           bottom: -Styles.globalMargins.xxtiny,
           position: 'absolute',
           right: -Styles.globalMargins.xxtiny,

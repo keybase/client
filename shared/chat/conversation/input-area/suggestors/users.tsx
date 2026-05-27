@@ -35,12 +35,8 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   iconPeople: {
     alignItems: 'center',
     backgroundColor: Kb.Styles.globalColors.white,
-    borderColor: Kb.Styles.globalColors.black_10,
-    borderRadius: 16,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    height: 32,
-    width: 32,
+    ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, 16),
+    ...Kb.Styles.size(32),
   },
 }))
 

@@ -142,12 +142,10 @@ const styles = Kb.Styles.styleSheetCreate(
       body: Kb.Styles.platformStyles({
         common: {flex: 1},
         isElectron: {
-          paddingLeft: Kb.Styles.globalMargins.large,
-          paddingRight: Kb.Styles.globalMargins.large,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.large),
         },
         isMobile: {
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
       }),
       button: {flex: 1},

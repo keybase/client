@@ -26,13 +26,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   filter: Kb.Styles.platformStyles({
     isElectron: {
-      marginLeft: Kb.Styles.globalMargins.xsmall,
-      marginRight: Kb.Styles.globalMargins.xsmall,
+      ...Kb.Styles.marginH(Kb.Styles.globalMargins.xsmall),
     },
     isMobile: {
       height: 40,
-      paddingLeft: 0,
-      paddingRight: 0,
+      ...Kb.Styles.paddingH(0),
     },
   }),
 }))

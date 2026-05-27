@@ -186,8 +186,7 @@ const styles = Kb.Styles.styleSheetCreate(
           backgroundColor: Kb.Styles.globalColors.orange,
           borderRadius: Kb.Styles.borderRadius,
           flexShrink: 0,
-          height: 8,
-          width: 8,
+          ...Kb.Styles.size(8),
         },
         isMobile: {
           marginRight: Kb.Styles.globalMargins.tiny,

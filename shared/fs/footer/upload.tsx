@@ -241,8 +241,7 @@ const styles = Kb.Styles.styleSheetCreate(
       stylesBox: Kb.Styles.platformStyles({
         isElectron: {
           flexShrink: 0,
-          paddingLeft: Kb.Styles.globalMargins.medium,
-          paddingRight: Kb.Styles.globalMargins.medium,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.medium),
           position: 'absolute',
         },
       }),
@@ -256,10 +255,8 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {
           color: Kb.Styles.globalColors.whiteOrWhite,
           maxWidth: '100%',
-          overflow: 'hidden',
           textAlign: 'center',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          ...Kb.Styles.textEllipsis,
         },
       }),
       toggleButton: {position: 'absolute'},

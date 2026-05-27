@@ -76,8 +76,7 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       isTypingAnimation: Kb.Styles.platformStyles({
         isMobile: {
-          height: 16,
-          width: 16,
+          ...Kb.Styles.size(16),
         },
       }),
       isTypingContainer: Kb.Styles.platformStyles({
@@ -117,8 +116,7 @@ const styles = Kb.Styles.styleSheetCreate(
       typingIconContainer: Kb.Styles.platformStyles({
         isMobile: {
           alignItems: 'center',
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
         },
       }),
     }) as const

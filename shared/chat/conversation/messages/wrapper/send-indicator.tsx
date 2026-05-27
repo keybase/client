@@ -142,7 +142,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       animationVisible: Kb.Styles.platformStyles({
-        common: {height: 20, opacity: 1, width: 20},
+        common: {...Kb.Styles.size(20), opacity: 1},
         isMobile: {
           backgroundColor: Kb.Styles.globalColors.white,
           borderRadius: 10,

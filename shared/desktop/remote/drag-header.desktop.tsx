@@ -87,8 +87,7 @@ const styles = {
     isElectron: {
       ...Kb.Styles.globalStyles.flexBoxRow,
       ...Kb.Styles.desktopStyles.noSelect,
-      paddingLeft: 10,
-      paddingRight: 10,
+      ...Kb.Styles.paddingH(10),
     },
   }),
   defaultContainer: {

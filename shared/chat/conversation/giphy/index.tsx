@@ -151,8 +151,7 @@ const styles = Kb.Styles.styleSheetCreate(
       instructions: Kb.Styles.platformStyles({
         common: {
           alignSelf: 'center',
-          paddingBottom: Kb.Styles.globalMargins.tiny,
-          paddingTop: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.tiny),
         },
         isElectron: {
           lineHeight: 17,

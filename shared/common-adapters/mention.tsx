@@ -56,8 +56,7 @@ const styles = Styles.styleSheetCreate(() => ({
   text: Styles.platformStyles({
     common: {
       letterSpacing: 0.3,
-      paddingLeft: 2,
-      paddingRight: 2,
+      ...Styles.paddingH(2),
     },
     isElectron: {
       display: 'inline-block',

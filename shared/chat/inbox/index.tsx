@@ -609,9 +609,8 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         isElectron: {
           backgroundColor: Kb.Styles.globalColors.black_10,
           borderRadius: '50%',
-          height: 48,
+          ...Kb.Styles.size(48),
           marginLeft: 8,
-          width: 48,
         },
       }),
       fakeRemovingRow: Kb.Styles.platformStyles({

@@ -66,8 +66,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {
       ...Kb.Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       position: 'relative',
     },
     isElectron: {

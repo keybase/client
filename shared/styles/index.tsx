@@ -131,6 +131,47 @@ export const padding = (top: number, right?: number, bottom?: number, left?: num
   paddingLeft: left !== undefined ? left : right !== undefined ? right : top,
 })
 
+export const border = (color: string, width = 1, radius?: number, justBottom?: boolean) => ({
+  borderColor: color,
+  borderStyle: 'solid' as const,
+  borderWidth: width,
+  ...(radius !== undefined
+    ? justBottom
+      ? {borderBottomLeftRadius: radius, borderBottomRightRadius: radius}
+      : {borderRadius: radius}
+    : {}),
+})
+
+export const topDivider = () => ({
+  borderStyle: 'solid' as const,
+  borderTopColor: globalColors.black_10,
+  borderTopWidth: 1,
+  minHeight: 56,
+})
+
+export const roundedBottom = () => ({
+  borderBottomLeftRadius: borderRadius,
+  borderBottomRightRadius: borderRadius,
+  overflow: 'hidden' as const,
+})
+
+export const textEllipsis = isMobile
+  ? ({} as const)
+  : ({overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'} as const)
+
+export const paddingH = (n: number) => ({paddingLeft: n, paddingRight: n})
+export const paddingV = (n: number) => ({paddingTop: n, paddingBottom: n})
+export const marginH = (n: number) => ({marginLeft: n, marginRight: n})
+export const marginV = (n: number) => ({marginTop: n, marginBottom: n})
+export const size = (n: number | `${number}%`) => ({height: n, width: n})
+export const centered = () => ({alignItems: 'center' as const, justifyContent: 'center' as const})
+export const bottomDivider = (minHeight?: number) => ({
+  borderBottomColor: globalColors.black_10,
+  borderBottomWidth: 1,
+  borderStyle: 'solid' as const,
+  ...(minHeight !== undefined ? {minHeight} : {}),
+})
+
 // ─── Font definitions ─────────────────────────────────────────────────────────
 
 const fontCommonDesktop = {

@@ -434,19 +434,17 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       emoji: {
         ...Kb.Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
+        ...Kb.Styles.centered(),
         borderRadius: 2,
         height: emojiWidthWithPadding,
-        justifyContent: 'center',
         width: emojiWidthWithPadding,
       },
       emojiPlaceholder: {
         width: emojiWidthWithPadding,
       },
       emojiRowContainer: {
-        alignItems: 'center',
+        ...Kb.Styles.centered(),
         height: emojiWidthWithPadding,
-        justifyContent: 'center',
       },
       flexWrap: {
         flexWrap: 'wrap',

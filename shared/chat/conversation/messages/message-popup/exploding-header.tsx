@@ -110,7 +110,7 @@ const ExplodingPopupHeader = (props: Props) => {
         </Kb.Text>
       </Kb.Box2>
       {props.explodesAt === 0 ? null : hideTimer ? (
-        <Kb.ProgressIndicator white={true} style={{height: 17, width: 17}} />
+        <Kb.ProgressIndicator white={true} style={Kb.Styles.size(17)} />
       ) : (
         <Kb.Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
           <Kb.Icon
@@ -178,8 +178,7 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       timerBox: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
-          justifyContent: 'center',
+          ...Kb.Styles.centered(),
         },
         isMobile: {height: 46},
       }),

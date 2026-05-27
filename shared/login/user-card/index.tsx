@@ -92,7 +92,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       alignItems: 'center',
       alignSelf: 'stretch',
       backgroundColor: Kb.Styles.globalColors.white,
-      borderRadius: 4,
+      borderRadius: Kb.Styles.borderRadius,
       padding: 30,
     },
     isMobile: {

@@ -183,11 +183,10 @@ function People(props: WrapProps) {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {...Kb.Styles.globalStyles.fullHeight},
   progress: {
-    height: 24,
+    ...Kb.Styles.size(24),
     left: 40,
     position: 'absolute',
     top: -72,
-    width: 24,
   },
 }))
 

@@ -31,8 +31,7 @@ const styles = Kb.Styles.styleSheetCreate(
       button: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         },
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),

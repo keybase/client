@@ -148,10 +148,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {padding: Kb.Styles.globalMargins.small},
   deviceOption: Kb.Styles.platformStyles({
     common: {
-      borderColor: Kb.Styles.globalColors.black_05,
-      borderRadius: Kb.Styles.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
+      ...Kb.Styles.border(Kb.Styles.globalColors.black_05, 1, Kb.Styles.borderRadius),
       padding: Kb.Styles.globalMargins.tiny,
       width: isMobile ? 192 : 168,
     },

@@ -657,9 +657,8 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       containerLoading: {
-        alignItems: 'center',
+        ...Styles.centered(),
         display: 'flex',
-        justifyContent: 'center',
       },
       containerSmall: {
         backgroundColor: Styles.globalColors.white,
@@ -682,8 +681,7 @@ const styles = Styles.styleSheetCreate(
           maxHeight: 130,
           overflowX: 'hidden',
           overflowY: 'auto',
-          paddingBottom: 0,
-          paddingTop: 0,
+          ...Styles.paddingV(0),
         },
       }),
       countrySelector: {marginRight: Styles.globalMargins.xtiny},

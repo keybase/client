@@ -285,14 +285,12 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       inputContainer: Kb.Styles.platformStyles({
         isElectron: {
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
       }),
       results: Kb.Styles.platformStyles({
         common: {
-          paddingLeft: Kb.Styles.globalMargins.tiny,
-          paddingRight: Kb.Styles.globalMargins.tiny,
+          ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
         },
         isMobile: {paddingBottom: Kb.Styles.globalMargins.tiny},
       }),
@@ -302,8 +300,7 @@ const styles = Kb.Styles.styleSheetCreate(
           marginTop: Kb.Styles.globalMargins.tiny,
         },
         isElectron: {
-          marginLeft: Kb.Styles.globalMargins.small,
-          marginRight: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.marginH(Kb.Styles.globalMargins.small),
         },
       }),
     }) as const

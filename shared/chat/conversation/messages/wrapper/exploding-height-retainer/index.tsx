@@ -4,14 +4,13 @@ import * as C from '@/constants'
 import {Animated as NativeAnimated, Easing as NativeEasing} from 'react-native'
 import colors, {darkColors} from '@/styles/colors'
 import {useColorScheme} from 'react-native'
-import type * as Styles from '@/styles'
 
 type Props = {
   children?: React.ReactElement
   explodedBy?: string
   exploding: boolean
   messageKey: string
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
   retainHeight: boolean
 }
 

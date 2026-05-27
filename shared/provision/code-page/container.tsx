@@ -511,10 +511,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isMobile: {
           flexGrow: 1,
-          paddingBottom: Kb.Styles.globalMargins.small,
-          paddingLeft: Kb.Styles.globalMargins.small,
-          paddingRight: Kb.Styles.globalMargins.small,
-          paddingTop: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.small),
         },
       }),
       deviceIcon: {
@@ -543,11 +540,8 @@ const styles = Kb.Styles.styleSheetCreate(
       enterTextContainer2: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.white,
-          borderRadius: 4,
-          paddingBottom: 15,
-          paddingLeft: 20,
-          paddingRight: 20,
-          paddingTop: 15,
+          borderRadius: Kb.Styles.borderRadius,
+          ...Kb.Styles.padding(15, 20),
         },
         isElectron: {maxWidth: 460},
         isMobile: {width: '100%'},
@@ -577,15 +571,10 @@ const styles = Kb.Styles.styleSheetCreate(
       modalFooter: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
-          borderStyle: 'solid' as const,
-          borderTopColor: Kb.Styles.globalColors.black_10,
-          borderTopWidth: 1,
-          minHeight: 56,
+          ...Kb.Styles.topDivider(),
         },
         isElectron: {
-          borderBottomLeftRadius: Kb.Styles.borderRadius,
-          borderBottomRightRadius: Kb.Styles.borderRadius,
-          overflow: 'hidden',
+          ...Kb.Styles.roundedBottom(),
         },
       }),
       modalFooterNoBorder: Kb.Styles.platformStyles({
@@ -594,9 +583,7 @@ const styles = Kb.Styles.styleSheetCreate(
           minHeight: 56,
         },
         isElectron: {
-          borderBottomLeftRadius: Kb.Styles.borderRadius,
-          borderBottomRightRadius: Kb.Styles.borderRadius,
-          overflow: 'hidden',
+          ...Kb.Styles.roundedBottom(),
         },
       }),
       primaryOnBlueLabel: {color: Kb.Styles.globalColors.blueDark},
@@ -639,23 +626,17 @@ const styles = Kb.Styles.styleSheetCreate(
       viewTextContainer: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.greenDark,
-          borderRadius: 4,
+          borderRadius: Kb.Styles.borderRadius,
         },
         isElectron: {
           alignItems: 'center',
           maxWidth: 460,
-          paddingBottom: 20,
-          paddingLeft: 64,
-          paddingRight: 64,
-          paddingTop: 20,
+          ...Kb.Styles.padding(20, 64),
         },
         isMobile: {
           alignItems: 'center',
           alignSelf: 'stretch',
-          paddingBottom: 20,
-          paddingLeft: 20,
-          paddingRight: 20,
-          paddingTop: 20,
+          ...Kb.Styles.padding(20),
         },
       }),
     }) as const

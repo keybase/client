@@ -159,23 +159,19 @@ const styles = Styles.styleSheetCreate(
         common: {
           flex: 1,
           maxWidth: '100%',
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          ...Styles.paddingV(Styles.globalMargins.tiny),
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.medium,
-          paddingRight: Styles.globalMargins.medium,
+          ...Styles.paddingH(Styles.globalMargins.medium),
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          ...Styles.paddingH(Styles.globalMargins.small),
         },
       }),
       smallTextContainer: {
         flex: 1,
         maxWidth: '100%',
-        paddingBottom: Styles.globalMargins.xxtiny,
-        paddingTop: Styles.globalMargins.xxtiny,
+        ...Styles.paddingV(Styles.globalMargins.xxtiny),
       },
       text: Styles.platformStyles({
         common: {
@@ -188,16 +184,13 @@ const styles = Styles.styleSheetCreate(
         common: {
           flex: 1,
           maxWidth: '100%',
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
+          ...Styles.paddingV(Styles.globalMargins.tiny),
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.medium,
-          paddingRight: Styles.globalMargins.medium,
+          ...Styles.paddingH(Styles.globalMargins.medium),
         },
         isMobile: {
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
+          ...Styles.paddingH(Styles.globalMargins.small),
         },
       }),
       underline: Styles.platformStyles({

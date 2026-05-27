@@ -535,8 +535,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   container: Kb.Styles.platformStyles({
     common: {
-      paddingBottom: Kb.Styles.globalMargins.small,
-      paddingTop: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
       width: '100%',
     },
   }),
@@ -544,8 +543,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   error: {color: Kb.Styles.globalColors.redDark},
   innerContainer: Kb.Styles.platformStyles({
     common: {
-      paddingLeft: Kb.Styles.globalMargins.small,
-      paddingRight: Kb.Styles.globalMargins.small,
+      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
     },
     isElectron: {
       maxWidth: 600,
@@ -572,10 +570,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginRight: Kb.Styles.globalMargins.small,
   },
   teamRowContainer: {
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingLeft: isMobile ? Kb.Styles.globalMargins.large : 48,
-    paddingRight: Kb.Styles.globalMargins.small,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.xtiny, isMobile ? Kb.Styles.globalMargins.large : 48),
   },
   teamText: {
     alignSelf: 'flex-start',
@@ -602,8 +597,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     paddingRight: Kb.Styles.globalMargins.tiny,
   },
   whitelistOuter: {
-    marginBottom: Kb.Styles.globalMargins.tiny,
-    marginTop: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.marginV(Kb.Styles.globalMargins.tiny),
   },
   whitelistRowContainer: Kb.Styles.platformStyles({
     common: {

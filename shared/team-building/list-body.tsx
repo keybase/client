@@ -505,8 +505,7 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       emptyServiceText: Kb.Styles.platformStyles({
         isMobile: {
-          paddingBottom: Kb.Styles.globalMargins.small,
-          paddingTop: Kb.Styles.globalMargins.small,
+          ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
         },
       }),
       list: Kb.Styles.platformStyles({
@@ -515,12 +514,10 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       loadingAnimation: Kb.Styles.platformStyles({
         isElectron: {
-          height: 32,
-          width: 32,
+          ...Kb.Styles.size(32),
         },
         isMobile: {
-          height: 48,
-          width: 48,
+          ...Kb.Styles.size(48),
         },
       }),
       noResults: {

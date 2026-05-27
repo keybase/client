@@ -84,16 +84,14 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     width: isMobile ? '100%' : 300,
   },
   innerContainer: {
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingTop: Kb.Styles.globalMargins.xtiny,
+    ...Kb.Styles.paddingV(Kb.Styles.globalMargins.xtiny),
   },
   radioButton: {
     ...Kb.Styles.globalStyles.flexBoxRow,
     marginLeft: Kb.Styles.globalMargins.tiny,
   },
   row: {
-    paddingLeft: Kb.Styles.globalMargins.tiny,
-    paddingRight: Kb.Styles.globalMargins.tiny,
+    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.tiny),
   },
   scrollContainer: {padding: Kb.Styles.globalMargins.small},
 }))
