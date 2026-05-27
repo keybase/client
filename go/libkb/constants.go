@@ -520,7 +520,7 @@ const (
 // critical idempotent API calls
 const (
 	HTTPRetryInitialTimeout = 1 * time.Second
-	HTTPRetryMutliplier     = 1.5
+	HTTPRetryMultiplier     = 1.5
 	HTTPRetryCount          = 6
 )
 
