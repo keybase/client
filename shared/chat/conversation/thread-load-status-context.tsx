@@ -115,7 +115,13 @@ export const ConversationThreadLoadStatusProvider = (
 
   React.useEffect(() => {
     return () => {
-      threadLoadGenerationRef.current += 1
+      // Only invalidate if the conversation actually changed. In React StrictMode,
+      // effects run twice (mount → cleanup → remount) with the same id — we must not
+      // increment here or the first RPC's callbacks get discarded as stale while the
+      // second (StrictMode) RPC receives no content from the daemon (it deduplicates).
+      if (currentIDRef.current !== id) {
+        threadLoadGenerationRef.current += 1
+      }
     }
   }, [id])
 
