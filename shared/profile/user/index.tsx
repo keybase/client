@@ -375,7 +375,7 @@ const User = (props: {username: string}) => {
     [username]
   )
 
-  const wrapperRef = React.useRef<HTMLDivElement>(null)
+  const wrapperRef = React.useRef<Kb.MeasureRef | null>(null)
   React.useEffect(() => {
     if (isMobile) return
     const el = wrapperRef.current
@@ -383,7 +383,7 @@ const User = (props: {username: string}) => {
     const observer = new ResizeObserver(([entry]) => {
       if (entry) setWidth(entry.contentRect.width)
     })
-    observer.observe(el)
+    observer.observe(el as unknown as Element)
     return () => observer.disconnect()
   }, [])
 
@@ -553,7 +553,7 @@ const User = (props: {username: string}) => {
         fullHeight={true}
         style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType)])}
       >
-        <Kb.Box2 direction="vertical" style={styles.innerContainer} ref={wrapperRef as React.Ref<{getBoundingClientRect: () => DOMRect}>}>
+        <Kb.Box2 direction="vertical" style={styles.innerContainer} ref={wrapperRef}>
           <Kb.SectionList
             key={p.username}
             stickySectionHeadersEnabled={true}

@@ -298,10 +298,12 @@ Use the page URL, not the title — the title stays `"Keybase DEV"` until the ro
 
 ```js
 // Find the main app page by URL
+let mainPage
 for (const ctx of browser.contexts()) {
   for (const p of ctx.pages()) {
-    if (p.url().includes('main.dev.html')) mainPage = p
+    if (p.url().includes('main.dev.html')) { mainPage = p; break }
   }
+  if (mainPage) break
 }
 ```
 
