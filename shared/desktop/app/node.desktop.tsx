@@ -4,8 +4,7 @@ import * as Electron from 'electron'
 import * as R from '@/constants/remote'
 import * as RemoteGen from '@/constants/remote-actions'
 import {isDarwin} from '@/constants/platform'
-import KB2 from '@/util/electron'
-import {configOverload} from './dynamic-config'
+import './dynamic-config'
 import MainWindow from './main-window.desktop'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
@@ -147,6 +146,5 @@ const startApp = () => {
     })
 }
 
-KB2.constants.configOverload = configOverload
 Electron.app.commandLine.appendSwitch('disk-cache-size', '1')
 startApp()

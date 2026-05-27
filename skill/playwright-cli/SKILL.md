@@ -288,6 +288,25 @@ After connecting, you'll see tabs like:
 - Tab 1: Main app (`main.dev.html`) — this is the one you want
 - Tab 2+: Other windows
 
+### Identifying the main app tab
+
+Use the page URL, not the title — the title stays `"Keybase DEV"` until the router navigates and can't be relied on:
+
+- Main app: URL contains `main.dev.html`
+- Menubar: URL contains `menubar.dev.html`
+- Avoid: `devtools://` pages and the `"Keybase DEV"` standalone DevTools window
+
+```js
+// Find the main app page by URL
+let mainPage
+for (const ctx of browser.contexts()) {
+  for (const p of ctx.pages()) {
+    if (p.url().includes('main.dev.html')) { mainPage = p; break }
+  }
+  if (mainPage) break
+}
+```
+
 ### Quirk: snapshot vs eval
 
 `snapshot` always captures the first CDP page (usually the menubar), regardless of which tab is "current". Use `eval` instead — it correctly targets the selected tab.

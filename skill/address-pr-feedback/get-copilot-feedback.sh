@@ -10,7 +10,7 @@ REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
 gh api "repos/$REPO/pulls/$PR/comments" \
   --jq '
     .[]
-    | select(.user.login == "copilot-pull-request-reviewer")
+    | select(.user.login == "Copilot" or .user.login == "copilot-pull-request-reviewer")
     | select(.position != null)
     | "[\(.path):\(.line // .original_line)]\n\(.body)\n"
   '

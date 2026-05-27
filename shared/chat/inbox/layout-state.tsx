@@ -76,8 +76,7 @@ export const useInboxLayoutState = Z.createZustand<State>('chat-inbox-layout', (
             return
           }
           const layout = _layout as T.RPCChat.UIInboxLayout
-          const layoutChanged = !isEqual(s.layout, layout)
-          if (layoutChanged) {
+          if (!isEqual(s.layout, layout)) {
             s.layout = T.castDraft(layout)
           }
           s.hasLoaded = !!layout
