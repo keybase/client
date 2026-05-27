@@ -45,6 +45,7 @@ type Props = {
   refreshControl?: React.ReactElement<RefreshControlProps>
   onTouchStart?: (e: GestureResponderEvent) => void
   onTouchEnd?: (e: GestureResponderEvent) => void
+  testID?: string
 }
 
 type DivScrollable = {

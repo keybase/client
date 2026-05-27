@@ -1,0 +1,18 @@
+appId: keybase.ios
+---
+- tapOn:
+    id: "backButton"
+    optional: true
+    timeout: 500
+- tapOn:
+    id: "backButton"
+    optional: true
+    timeout: 500
+- tapOn:
+    id: "backButton"
+    optional: true
+    timeout: 500
+- tapOn:
+    id: "backButton"
+    optional: true
+    timeout: 500
