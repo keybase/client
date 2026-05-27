@@ -10,32 +10,32 @@ appId: keybase.ios
 - extendedWaitUntil:
     visible:
       id: "people-feed"
-    timeout: 10000
+    timeout: 3000
 
 - tapOn:
     text: "Chat"
 - extendedWaitUntil:
     visible:
       id: "chat-inbox-list"
-    timeout: 10000
+    timeout: 3000
 
 - tapOn:
     text: "Files"
 - extendedWaitUntil:
     visible:
       id: "files-browser"
-    timeout: 10000
+    timeout: 3000
 
 - tapOn:
     text: "Teams"
 - extendedWaitUntil:
     visible:
       id: "teams-list"
-    timeout: 10000
+    timeout: 3000
 
 - tapOn:
     text: "Settings"
 - extendedWaitUntil:
     visible:
       id: "settings-account"
-    timeout: 10000
+    timeout: 3000

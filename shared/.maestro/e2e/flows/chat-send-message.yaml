@@ -8,7 +8,7 @@ appId: keybase.ios
 - extendedWaitUntil:
     visible:
       id: "chat-inbox-list"
-    timeout: 10000
+    timeout: 3000
 
 - tapOn:
     id: "chat-inbox-row"
@@ -17,7 +17,7 @@ appId: keybase.ios
 - extendedWaitUntil:
     visible:
       id: "chat-message-list"
-    timeout: 10000
+    timeout: 3000
 
 - tapOn:
     id: "chat-input"

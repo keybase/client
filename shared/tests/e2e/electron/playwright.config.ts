@@ -2,7 +2,7 @@ import {defineConfig} from '@playwright/test'
 
 export default defineConfig({
   testDir: './',
-  timeout: 30_000,
+  timeout: 15_000,
   retries: 0,
   workers: 1,
   reporter: [['list'], ['html', {outputFolder: '/tmp/playwright-report', open: 'never'}]],

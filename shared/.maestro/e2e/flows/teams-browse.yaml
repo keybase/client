@@ -7,7 +7,7 @@ appId: keybase.ios
 - extendedWaitUntil:
     visible:
       id: "teams-list"
-    timeout: 10000
+    timeout: 3000
 
 - assertVisible:
     id: "teams-list"
@@ -23,6 +23,6 @@ appId: keybase.ios
       - extendedWaitUntil:
           visible:
             text: ".*"
-          timeout: 5000
+          timeout: 3000
       - tapOn:
           id: "backButton"

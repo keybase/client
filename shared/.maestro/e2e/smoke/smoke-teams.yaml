@@ -5,7 +5,7 @@ appId: keybase.ios
 - extendedWaitUntil:
     visible:
       id: "teams-list"
-    timeout: 10000
+    timeout: 3000
 
 - assertVisible:
     id: "teams-list"

@@ -5,7 +5,7 @@ appId: keybase.ios
 - extendedWaitUntil:
     visible:
       id: "chat-inbox-list"
-    timeout: 10000
+    timeout: 3000
 
 - assertVisible:
     id: "chat-inbox-list"

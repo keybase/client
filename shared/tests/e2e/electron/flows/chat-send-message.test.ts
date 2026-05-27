@@ -18,7 +18,7 @@ test('send a message in first conversation', async () => {
 
   // Open first conversation
   await page.getByTestId(CHAT_INBOX_ROW).first().click()
-  await page.waitForSelector(`[data-testid="${CHAT_MESSAGE_LIST}"]`, {timeout: 10_000})
+  await page.waitForSelector(`[data-testid="${CHAT_MESSAGE_LIST}"]`, {timeout: 3_000})
 
   // Type a unique message
   const testMessage = `e2e-test-${Date.now()}`
@@ -33,5 +33,5 @@ test('send a message in first conversation', async () => {
   // Verify message appears in the message list
   await expect(
     page.locator(`[data-testid="${CHAT_MESSAGE_LIST}"]`).getByText(testMessage)
-  ).toBeVisible({timeout: 5_000})
+  ).toBeVisible({timeout: 3_000})
 })

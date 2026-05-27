@@ -8,7 +8,7 @@ appId: keybase.ios
 - extendedWaitUntil:
     visible:
       id: "files-browser"
-    timeout: 10000
+    timeout: 3000
 
 - assertVisible:
     id: "files-browser"

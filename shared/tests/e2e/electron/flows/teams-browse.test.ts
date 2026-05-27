@@ -28,5 +28,5 @@ test('can open a team if one exists', async () => {
   }
   await rows.first().click()
   // After clicking, the teams list should no longer be visible (navigated into team)
-  await expect(page.getByTestId(TEAMS_LIST)).not.toBeVisible({timeout: 5_000})
+  await expect(page.getByTestId(TEAMS_LIST)).not.toBeVisible({timeout: 3_000})
 })

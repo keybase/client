@@ -10,7 +10,7 @@ appId: keybase.ios
 - extendedWaitUntil:
     visible:
       id: "settings-account"
-    timeout: 10000
+    timeout: 3000
 
 - assertVisible:
     id: "settings-account"
