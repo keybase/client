@@ -15,5 +15,5 @@ test.afterAll(async () => {
 
 test('crypto tab renders', async () => {
   await navigateToCrypto(page)
-  await expect(page.getByTestId(CRYPTO_INPUT)).toBeVisible()
+  await expect(page.getByTestId(CRYPTO_INPUT).first()).toBeVisible()
 })

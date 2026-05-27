@@ -15,5 +15,5 @@ test.afterAll(async () => {
 
 test('git tab renders', async () => {
   await navigateToGit(page)
-  await expect(page.getByTestId(GIT_REPO_LIST)).toBeVisible()
+  await expect(page.getByTestId(GIT_REPO_LIST).first()).toBeVisible()
 })

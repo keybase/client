@@ -389,7 +389,7 @@ function DesktopInboxBody(props: ControlledInboxProps) {
           {search.isSearching ? (
             <InboxSearch search={search} />
           ) : (
-            <div data-testid="inbox-list" style={desktopStyles.list} ref={scrollDiv as React.RefObject<HTMLDivElement>}>
+            <div data-testid="chat-inbox-list" style={desktopStyles.list} ref={scrollDiv as React.RefObject<HTMLDivElement>}>
               {rows.length ? (
                 <Kb.List
                   items={rows}

@@ -3,6 +3,7 @@ import type * as T from '@/constants/types'
 import TeamsFooter from './footer'
 import TeamRowNew, {type TeamRowItem} from './team-row'
 import {PerfProfiler} from '@/perf/react-profiler'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type DeletedTeam = {
   teamName: string
@@ -133,7 +134,7 @@ const Teams = function Teams(p: Props) {
 
   return (
     <PerfProfiler id="TeamsList">
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} testID={TestIDs.TEAMS_LIST}>
         <Kb.BoxGrow>
           <Kb.List
             items={teams}

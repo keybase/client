@@ -209,7 +209,7 @@ export default ClickableBox
 
 export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<MeasureRef | null>}) => {
   if (!isMobile) {
-    const {onClick, children, style, className, onMouseOver, ref} = p
+    const {onClick, children, style, className, onMouseOver, ref, testID} = p
     return (
       <div
         onClick={onClick}
@@ -217,6 +217,7 @@ export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<MeasureRef | null>}) 
         style={Styles.castStyleDesktop(style)}
         ref={ref as React.Ref<HTMLDivElement>}
         className={Styles.classNames('clickable-box2', className)}
+        data-testid={testID}
       >
         {children}
       </div>

@@ -15,5 +15,5 @@ test.afterAll(async () => {
 
 test('devices tab renders', async () => {
   await navigateToDevices(page)
-  await expect(page.getByTestId(DEVICES_LIST)).toBeVisible()
+  await expect(page.getByTestId(DEVICES_LIST).first()).toBeVisible()
 })
