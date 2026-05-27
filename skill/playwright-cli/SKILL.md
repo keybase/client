@@ -290,7 +290,20 @@ After connecting, you'll see tabs like:
 
 ### Identifying the main app tab
 
-Tab titles help distinguish windows. The main app window always has a title starting with `"Keybase: "` (e.g. `"Keybase: Chat"`, `"Keybase: People"`). Avoid tabs titled `"Keybase DEV"` — that is the standalone DevTools window, not the app.
+Use the page URL, not the title — the title stays `"Keybase DEV"` until the router navigates and can't be relied on:
+
+- Main app: URL contains `main.dev.html`
+- Menubar: URL contains `menubar.dev.html`
+- Avoid: `devtools://` pages and the `"Keybase DEV"` standalone DevTools window
+
+```js
+// Find the main app page by URL
+for (const ctx of browser.contexts()) {
+  for (const p of ctx.pages()) {
+    if (p.url().includes('main.dev.html')) mainPage = p
+  }
+}
+```
 
 ### Quirk: snapshot vs eval
 
