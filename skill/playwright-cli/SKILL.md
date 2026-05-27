@@ -288,6 +288,10 @@ After connecting, you'll see tabs like:
 - Tab 1: Main app (`main.dev.html`) — this is the one you want
 - Tab 2+: Other windows
 
+### Identifying the main app tab
+
+Tab titles help distinguish windows. The main app window always has a title starting with `"Keybase: "` (e.g. `"Keybase: Chat"`, `"Keybase: People"`). Avoid tabs titled `"Keybase DEV"` — that is the standalone DevTools window, not the app.
+
 ### Quirk: snapshot vs eval
 
 `snapshot` always captures the first CDP page (usually the menubar), regardless of which tab is "current". Use `eval` instead — it correctly targets the selected tab.
