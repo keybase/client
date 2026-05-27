@@ -1,5 +1,5 @@
 diff --git a/node_modules/@legendapp/list/index.js b/node_modules/@legendapp/list/index.js
-index ac2f85c..895e6b4 100644
+index ac2f85c..b511575 100644
 --- a/node_modules/@legendapp/list/index.js
 +++ b/node_modules/@legendapp/list/index.js
 @@ -706,15 +706,24 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -45,8 +45,16 @@ index ac2f85c..895e6b4 100644
      });
      resizeObserver.observe(element);
      const onWindowResize = () => {
+@@ -1604,6 +1615,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+       window.addEventListener("resize", onWindowResize);
+     }
+     return () => {
++      clearTimeout(layoutTimer);
+       resizeObserver.disconnect();
+       if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+         window.removeEventListener("resize", onWindowResize);
 diff --git a/node_modules/@legendapp/list/index.mjs b/node_modules/@legendapp/list/index.mjs
-index 102d6c3..f90a38d 100644
+index 102d6c3..f03da13 100644
 --- a/node_modules/@legendapp/list/index.mjs
 +++ b/node_modules/@legendapp/list/index.mjs
 @@ -685,15 +685,24 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -92,8 +100,16 @@ index 102d6c3..f90a38d 100644
      });
      resizeObserver.observe(element);
      const onWindowResize = () => {
+@@ -1583,6 +1594,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+       window.addEventListener("resize", onWindowResize);
+     }
+     return () => {
++      clearTimeout(layoutTimer);
+       resizeObserver.disconnect();
+       if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+         window.removeEventListener("resize", onWindowResize);
 diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
-index 4b83b25..2cfc3d0 100644
+index 4b83b25..ddd3228 100644
 --- a/node_modules/@legendapp/list/react-native.web.js
 +++ b/node_modules/@legendapp/list/react-native.web.js
 @@ -709,15 +709,24 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -139,8 +155,16 @@ index 4b83b25..2cfc3d0 100644
      });
      resizeObserver.observe(element);
      const onWindowResize = () => {
+@@ -1607,6 +1618,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+       window.addEventListener("resize", onWindowResize);
+     }
+     return () => {
++      clearTimeout(layoutTimer);
+       resizeObserver.disconnect();
+       if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+         window.removeEventListener("resize", onWindowResize);
 diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
-index 8e97838..88ed2f8 100644
+index 8e97838..0981162 100644
 --- a/node_modules/@legendapp/list/react-native.web.mjs
 +++ b/node_modules/@legendapp/list/react-native.web.mjs
 @@ -688,15 +688,24 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -186,8 +210,16 @@ index 8e97838..88ed2f8 100644
      });
      resizeObserver.observe(element);
      const onWindowResize = () => {
+@@ -1586,6 +1597,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+       window.addEventListener("resize", onWindowResize);
+     }
+     return () => {
++      clearTimeout(layoutTimer);
+       resizeObserver.disconnect();
+       if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+         window.removeEventListener("resize", onWindowResize);
 diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
-index 4b83b25..2cfc3d0 100644
+index 4b83b25..ddd3228 100644
 --- a/node_modules/@legendapp/list/react.js
 +++ b/node_modules/@legendapp/list/react.js
 @@ -709,15 +709,24 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -233,8 +265,16 @@ index 4b83b25..2cfc3d0 100644
      });
      resizeObserver.observe(element);
      const onWindowResize = () => {
+@@ -1607,6 +1618,7 @@ var ListComponentScrollView = React3.forwardRef(function ListComponentScrollView
+       window.addEventListener("resize", onWindowResize);
+     }
+     return () => {
++      clearTimeout(layoutTimer);
+       resizeObserver.disconnect();
+       if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+         window.removeEventListener("resize", onWindowResize);
 diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
-index 8e97838..88ed2f8 100644
+index 8e97838..0981162 100644
 --- a/node_modules/@legendapp/list/react.mjs
 +++ b/node_modules/@legendapp/list/react.mjs
 @@ -688,15 +688,24 @@ function Separator({ ItemSeparatorComponent, leadingItem }) {
@@ -280,3 +320,11 @@ index 8e97838..88ed2f8 100644
      });
      resizeObserver.observe(element);
      const onWindowResize = () => {
+@@ -1586,6 +1597,7 @@ var ListComponentScrollView = forwardRef(function ListComponentScrollView2({
+       window.addEventListener("resize", onWindowResize);
+     }
+     return () => {
++      clearTimeout(layoutTimer);
+       resizeObserver.disconnect();
+       if (isWindowScroll && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+         window.removeEventListener("resize", onWindowResize);

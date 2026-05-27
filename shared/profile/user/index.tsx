@@ -377,6 +377,7 @@ const User = (props: {username: string}) => {
 
   const wrapperRef = React.useRef<HTMLDivElement>(null)
   React.useEffect(() => {
+    if (isMobile) return
     const el = wrapperRef.current
     if (!el) return
     const observer = new ResizeObserver(([entry]) => {
