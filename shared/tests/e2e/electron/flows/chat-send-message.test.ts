@@ -1,19 +1,8 @@
-import {test, expect, type Page} from '@playwright/test'
-import {connectToElectron, disconnect} from '@/tests/e2e/electron/helpers/connect'
+import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToChat} from '@/tests/e2e/electron/helpers/navigate'
 import {CHAT_INBOX_ROW, CHAT_MESSAGE_LIST, CHAT_INPUT} from '@/tests/e2e/shared/test-ids'
 
-let page: Page
-
-test.beforeAll(async () => {
-  ;({page} = await connectToElectron())
-})
-
-test.afterAll(async () => {
-  await disconnect()
-})
-
-test('send a message to KB_SMOKE_USER', async ({}, testInfo) => {
+test('send a message to KB_SMOKE_USER', async ({page}, testInfo) => {
   testInfo.annotations.push({type: 'account', description: process.env['KB_SMOKE_USER']!})
 
   const smokeUser = process.env['KB_SMOKE_USER']!

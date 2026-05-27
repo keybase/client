@@ -8,12 +8,12 @@ export default defineConfig({
   outputDir: '../../results/test-results',
   reporter: [
     ['list'],
-    ['html', {outputFolder: '../../results/report', open: 'never', attachmentsBaseURL: '../../results/test-results'}],
+    ['html', {outputFolder: '../../results/report', open: 'never'}],
     ['json', {outputFile: '../../results/report/results.json'}],
   ],
   use: {
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    screenshot: 'off',
     video: 'off',
   },
   projects: [

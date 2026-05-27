@@ -34,6 +34,7 @@
     "start-cold": "yarn run _helper start-cold",
     "start-hot": "yarn run _helper start-hot",
     "start-hot-debug": "KB_ENABLE_REMOTE_DEBUG=1 yarn run _helper start-hot",
+    "start-hot-e2e": "KB_ENABLE_REMOTE_DEBUG=1 KB_E2E_TEST=1 yarn run _helper start-hot",
     "start-prod": "yarn run _helper start-prod",
     "start-profile": "yarn run _helper start-profile",
     "rn-start": "./react-native/packageAndBuild.sh",

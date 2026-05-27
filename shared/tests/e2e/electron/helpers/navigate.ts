@@ -8,6 +8,11 @@ export async function navigateToChat(page: Page): Promise<void> {
 
 export async function navigateToTeams(page: Page): Promise<void> {
   await page.click('text=Teams')
+  // If the tab was left inside a team, clicking the active tab again pops to root
+  const list = page.locator(`[data-testid="${T.TEAMS_LIST}"]`)
+  if (!(await list.isVisible())) {
+    await page.click('text=Teams')
+  }
   await page.waitForSelector(`[data-testid="${T.TEAMS_LIST}"]`, {timeout: 5_000})
 }
 

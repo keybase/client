@@ -1,19 +1,8 @@
-import {test, expect, type Page} from '@playwright/test'
-import {connectToElectron, disconnect} from '@/tests/e2e/electron/helpers/connect'
+import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToCrypto} from '@/tests/e2e/electron/helpers/navigate'
 import {CRYPTO_INPUT} from '@/tests/e2e/shared/test-ids'
 
-let page: Page
-
-test.beforeAll(async () => {
-  ;({page} = await connectToElectron())
-})
-
-test.afterAll(async () => {
-  await disconnect()
-})
-
-test('crypto tab renders', async () => {
+test('crypto tab renders', async ({page}) => {
   await navigateToCrypto(page)
   await expect(page.getByTestId(CRYPTO_INPUT).first()).toBeVisible()
 })

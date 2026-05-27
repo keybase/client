@@ -16,20 +16,13 @@ export async function connectToElectron(): Promise<{browser: Browser; page: Page
 
   const browser = await chromium.connectOverCDP(CDP_ENDPOINT, {timeout: 3_000})
 
-  // Find the main app by URL — tab order varies (DevTools, menubar, main app can be in any index)
-  let mainPage: Page | undefined
-  for (const ctx of browser.contexts()) {
-    for (const p of ctx.pages()) {
-      if (p.url().includes('main.dev.html')) {
-        mainPage = p
-        break
-      }
-    }
-    if (mainPage) break
-  }
+  // KB_E2E_TEST=1 suppresses the menubar widget and devtools windows, so
+  // pages()[0] is always the main app. Keep the URL check as a safety net.
+  const allPages = browser.contexts().flatMap(ctx => ctx.pages())
+  const mainPage = allPages.find(p => p.url().includes('main.dev.html')) ?? allPages[0]
 
   if (!mainPage) {
-    throw new Error('Could not find main app page (main.dev.html). Is the app running with KB_ENABLE_REMOTE_DEBUG=1?')
+    throw new Error('Could not find main app page. Is the app running with KB_ENABLE_REMOTE_DEBUG=1 KB_E2E_TEST=1?')
   }
 
   await mainPage.waitForSelector('text=Chat', {timeout: 3_000})

@@ -1,26 +1,14 @@
-import {test, expect, type Page} from '@playwright/test'
-import {connectToElectron, disconnect} from '@/tests/e2e/electron/helpers/connect'
+import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToSettings} from '@/tests/e2e/electron/helpers/navigate'
 import {SETTINGS_ACCOUNT} from '@/tests/e2e/shared/test-ids'
 
-let page: Page
-
-test.beforeAll(async () => {
-  ;({page} = await connectToElectron())
-})
-
-test.afterAll(async () => {
-  await disconnect()
-})
-
-test('settings nav renders', async () => {
+test('settings nav renders', async ({page}) => {
   await navigateToSettings(page)
   await expect(page.getByTestId(SETTINGS_ACCOUNT)).toBeVisible()
 })
 
-test('can click Account settings', async () => {
+test('can click Account settings', async ({page}) => {
   await navigateToSettings(page)
   await page.click('text=Your account')
-  // The account settings pane should be visible after clicking
   await expect(page.getByTestId(SETTINGS_ACCOUNT)).toBeVisible()
 })
