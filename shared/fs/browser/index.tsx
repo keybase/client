@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '../../tests/e2e/shared/test-ids'
 import * as Kbfs from '../common'
 import type * as React from 'react'
 import * as T from '@/constants/types'
@@ -32,7 +33,7 @@ const Container = (ownProps: OwnProps) => {
   const offlineUnsynced = FS.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path)
   const writable = _pathItem.writable
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1}}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={{flexGrow: 1}} testID={TestIDs.FILES_BROWSER}>
       <Kb.KeyboardAvoidingView2>
         <Kbfs.Errs />
         <BrowserContent

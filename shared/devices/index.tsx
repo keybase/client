@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as TestIDs from '../tests/e2e/shared/test-ids'
 import DeviceRow, {NewContext} from './row'
 import partition from 'lodash/partition'
 import * as T from '@/constants/types'
@@ -132,7 +133,7 @@ function ReloadableDevices() {
       title=""
     >
       <NewContext value={badged}>
-        <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true}>
+        <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true} testID={TestIDs.DEVICES_LIST}>
           {isMobile ? (
             <Kb.ClickableBox onClick={() => onAddDevice()} style={headerStyles.container}>
               <Kb.Button label="Add a device or paper key" fullWidth={true} />

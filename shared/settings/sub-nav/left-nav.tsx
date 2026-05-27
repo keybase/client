@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import SettingsItem from './settings-item'
+import * as TestIDs from '../../tests/e2e/shared/test-ids'
 import * as Settings from '@/constants/settings'
 import {usePushState} from '@/stores/push'
 import {useNotifState} from '@/stores/notifications'
@@ -18,6 +19,7 @@ const LeftNav = (props: Props) => {
   const badgeNotifications = usePushState(s => (isElectron ? 0 : !s.hasPermissions ? 1 : 0))
 
   return (
+    <Kb.Box2 direction="vertical" fullWidth={true} testID={TestIDs.SETTINGS_ACCOUNT}>
     <Kb.ScrollView style={styles.container}>
         {Kb.Styles.isTablet && (
           <>
@@ -148,6 +150,7 @@ const LeftNav = (props: Props) => {
         removed from the settings page. */}
         <SettingsItem text="Sign out" selected={false} type={'nope'} onClick={() => navigate(Settings.settingsLogOutTab)} />
     </Kb.ScrollView>
+    </Kb.Box2>
   )
 }
 

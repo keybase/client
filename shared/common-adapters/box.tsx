@@ -38,6 +38,7 @@ export type Box2Props = {
   gap?: keyof typeof Styles.globalMargins
   gapStart?: boolean
   gapEnd?: boolean
+  testID?: string
   title?: string
   tooltip?: string
 }
@@ -187,7 +188,7 @@ export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
   if (!isMobile) {
     const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink, ref} = p
     const {flex, justifyContent, overflow, padding, relative} = p
-    const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children} = p
+    const {onMouseMove, onMouseDown, onMouseLeave, onMouseUp, onMouseOver, onCopyCapture, children, testID} = p
     const {onContextMenu, gap, gapStart, gapEnd, pointerEvents, onDragLeave, onDragOver, onDrop} = p
     const {style: _style, className: _className, title, tooltip} = p
     const horizontal = direction === 'horizontal' || direction === 'horizontalReverse'
@@ -229,6 +230,7 @@ export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
         ref={ref as React.Ref<HTMLDivElement>}
         className={className}
         data-tooltip={tooltip}
+        data-testid={testID}
         onContextMenu={onContextMenu}
         onCopyCapture={onCopyCapture}
         onDragLeave={onDragLeave}
@@ -246,9 +248,9 @@ export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
     )
   }
 
-  const {ref, ...rest} = p
+  const {ref, testID, ...rest} = p
   const props = box2SharedProps(rest)
-  return <View {...props} ref={ref as React.Ref<View>} />
+  return <View {...props} testID={testID} ref={ref as React.Ref<View>} />
 }
 
 export const Box2Animated = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
