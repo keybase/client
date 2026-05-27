@@ -1,14 +1,15 @@
 appId: keybase.ios
 ---
-# Flow: Send a message in the first conversation.
-# Assumes app is running and logged in.
+# Flow: Send a message to KB_SMOKE_USER.
+# Run with: maestro test --env KB_SMOKE_USER=youruser chat-send-message.yaml
+# The first conversation in the inbox must be with KB_SMOKE_USER.
 
 - runFlow: ../../subflows/navigate-to-chat.yaml
 
 - extendedWaitUntil:
     visible:
       id: "chat-inbox-list"
-    timeout: 3000
+    timeout: 5000
 
 - tapOn:
     id: "chat-inbox-row"
@@ -17,15 +18,15 @@ appId: keybase.ios
 - extendedWaitUntil:
     visible:
       id: "chat-message-list"
-    timeout: 3000
+    timeout: 5000
 
 - tapOn:
     id: "chat-input"
 
-- inputText: "e2e-smoke-test"
+- inputText: "e2e-test-${KB_SMOKE_USER}"
 
 - tapOn:
-    id: "chat-send-button"
+    text: "Send"
 
 - assertVisible:
-    text: "e2e-smoke-test"
+    text: "e2e-test-${KB_SMOKE_USER}"

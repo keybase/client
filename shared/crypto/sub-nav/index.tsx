@@ -3,6 +3,7 @@ import * as C from '@/constants'
 import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as Common from '@/router-v2/common'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import NavRow from './nav-row'
 import {
   useNavigationBuilder,
@@ -118,7 +119,7 @@ const DesktopCryptoSubNavigator = () => (
 const NativeCryptoSubNav = () => {
   const {navigate} = C.useNav()
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="tiny" style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="tiny" style={styles.container} testID={TestIDs.CRYPTO_INPUT}>
       {Crypto.Tabs.map(t => (
         <NavRow
           key={t.tab}

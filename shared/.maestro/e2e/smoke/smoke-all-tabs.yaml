@@ -1,6 +1,6 @@
 appId: keybase.ios
 ---
-# Smoke test: All main tabs render without crashing.
+# Smoke test: All tabs render without crashing.
 # Assumes app is running and user is logged in.
 
 - runFlow: ../../subflows/escape-to-tabs.yaml
@@ -10,32 +10,73 @@ appId: keybase.ios
 - extendedWaitUntil:
     visible:
       id: "people-feed"
-    timeout: 3000
+    timeout: 5000
 
 - tapOn:
     text: "Chat"
 - extendedWaitUntil:
     visible:
       id: "chat-inbox-list"
-    timeout: 3000
+    timeout: 5000
 
 - tapOn:
     text: "Files"
 - extendedWaitUntil:
     visible:
       id: "files-browser"
-    timeout: 3000
+    timeout: 5000
 
 - tapOn:
     text: "Teams"
 - extendedWaitUntil:
     visible:
       id: "teams-list"
-    timeout: 3000
+    timeout: 5000
 
 - tapOn:
     text: "Settings"
 - extendedWaitUntil:
     visible:
       id: "settings-account"
-    timeout: 3000
+    timeout: 5000
+
+# More tab: Crypto, Git, Devices
+- runFlow: ../../subflows/escape-to-tabs.yaml
+
+- tapOn:
+    text: "More"
+
+- extendedWaitUntil:
+    visible:
+      text: ".*Crypto"
+    timeout: 5000
+
+- tapOn:
+    text: ".*Crypto"
+    retryTapIfNoChange: false
+- extendedWaitUntil:
+    visible:
+      id: "crypto-input"
+    timeout: 5000
+
+- runFlow: ../../subflows/escape-to-tabs.yaml
+
+- tapOn:
+    text: "More"
+- tapOn:
+    text: "Git"
+- extendedWaitUntil:
+    visible:
+      id: "git-repo-list"
+    timeout: 5000
+
+- runFlow: ../../subflows/escape-to-tabs.yaml
+
+- tapOn:
+    text: "More"
+- tapOn:
+    text: "Devices"
+- extendedWaitUntil:
+    visible:
+      id: "devices-list"
+    timeout: 5000

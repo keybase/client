@@ -418,6 +418,7 @@ function NativeInput(p: InputLowLevelProps) {
       ref={setInputRef}
       selection={selection}
       style={style as object | null | undefined}
+      testID={T.CHAT_INPUT}
       value={value}
     />
   )

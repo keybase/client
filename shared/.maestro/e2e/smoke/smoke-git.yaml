@@ -1,0 +1,22 @@
+appId: keybase.ios
+---
+- runFlow: ../../subflows/escape-to-tabs.yaml
+
+- tapOn:
+    text: "More"
+
+- extendedWaitUntil:
+    visible:
+      text: "Git"
+    timeout: 5000
+
+- tapOn:
+    text: "Git"
+
+- extendedWaitUntil:
+    visible:
+      id: "git-repo-list"
+    timeout: 5000
+
+- assertVisible:
+    id: "git-repo-list"

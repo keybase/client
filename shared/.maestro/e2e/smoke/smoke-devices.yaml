@@ -1,0 +1,22 @@
+appId: keybase.ios
+---
+- runFlow: ../../subflows/escape-to-tabs.yaml
+
+- tapOn:
+    text: "More"
+
+- extendedWaitUntil:
+    visible:
+      text: "Devices"
+    timeout: 5000
+
+- tapOn:
+    text: "Devices"
+
+- extendedWaitUntil:
+    visible:
+      id: "devices-list"
+    timeout: 5000
+
+- assertVisible:
+    id: "devices-list"
