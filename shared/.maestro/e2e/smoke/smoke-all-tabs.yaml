@@ -1,0 +1,41 @@
+appId: keybase.ios
+---
+# Smoke test: All main tabs render without crashing.
+# Assumes app is running and user is logged in.
+
+- runFlow: ../../subflows/escape-to-tabs.yaml
+
+- tapOn:
+    text: "People"
+- extendedWaitUntil:
+    visible:
+      id: "people-feed"
+    timeout: 10000
+
+- tapOn:
+    text: "Chat"
+- extendedWaitUntil:
+    visible:
+      id: "chat-inbox-list"
+    timeout: 10000
+
+- tapOn:
+    text: "Files"
+- extendedWaitUntil:
+    visible:
+      id: "files-browser"
+    timeout: 10000
+
+- tapOn:
+    text: "Teams"
+- extendedWaitUntil:
+    visible:
+      id: "teams-list"
+    timeout: 10000
+
+- tapOn:
+    text: "Settings"
+- extendedWaitUntil:
+    visible:
+      id: "settings-account"
+    timeout: 10000

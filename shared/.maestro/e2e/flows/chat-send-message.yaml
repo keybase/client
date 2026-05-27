@@ -1,0 +1,31 @@
+appId: keybase.ios
+---
+# Flow: Send a message in the first conversation.
+# Assumes app is running and logged in.
+
+- runFlow: ../../subflows/navigate-to-chat.yaml
+
+- extendedWaitUntil:
+    visible:
+      id: "chat-inbox-list"
+    timeout: 10000
+
+- tapOn:
+    id: "chat-inbox-row"
+    index: 0
+
+- extendedWaitUntil:
+    visible:
+      id: "chat-message-list"
+    timeout: 10000
+
+- tapOn:
+    id: "chat-input"
+
+- inputText: "e2e-smoke-test"
+
+- tapOn:
+    id: "chat-send-button"
+
+- assertVisible:
+    text: "e2e-smoke-test"

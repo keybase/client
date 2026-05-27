@@ -1,0 +1,28 @@
+appId: keybase.ios
+---
+# Flow: View teams list and open first team if available.
+
+- runFlow: ../../subflows/navigate-to-teams.yaml
+
+- extendedWaitUntil:
+    visible:
+      id: "teams-list"
+    timeout: 10000
+
+- assertVisible:
+    id: "teams-list"
+
+- runFlow:
+    when:
+      visible:
+        id: "teams-row"
+    commands:
+      - tapOn:
+          id: "teams-row"
+          index: 0
+      - extendedWaitUntil:
+          visible:
+            text: ".*"
+          timeout: 5000
+      - tapOn:
+          id: "backButton"

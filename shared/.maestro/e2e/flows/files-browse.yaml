@@ -1,0 +1,16 @@
+appId: keybase.ios
+---
+# Flow: Open Files tab and verify browser renders.
+
+- runFlow: ../../subflows/escape-to-tabs.yaml
+
+- tapOn:
+    text: "Files"
+
+- extendedWaitUntil:
+    visible:
+      id: "files-browser"
+    timeout: 10000
+
+- assertVisible:
+    id: "files-browser"

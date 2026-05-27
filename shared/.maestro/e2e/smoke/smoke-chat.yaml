@@ -1,0 +1,11 @@
+appId: keybase.ios
+---
+- runFlow: ../../subflows/navigate-to-chat.yaml
+
+- extendedWaitUntil:
+    visible:
+      id: "chat-inbox-list"
+    timeout: 10000
+
+- assertVisible:
+    id: "chat-inbox-list"

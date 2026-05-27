@@ -1,0 +1,11 @@
+appId: keybase.ios
+---
+- runFlow: ../../subflows/navigate-to-teams.yaml
+
+- extendedWaitUntil:
+    visible:
+      id: "teams-list"
+    timeout: 10000
+
+- assertVisible:
+    id: "teams-list"
