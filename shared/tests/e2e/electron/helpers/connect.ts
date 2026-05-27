@@ -4,7 +4,7 @@ const CDP_ENDPOINT = 'http://localhost:9222'
 
 async function getLoggedInUser(page: Page): Promise<string> {
   const text = await page.locator('.username').first().innerText()
-  // "Hi chrisnojima!" → "chrisnojima"
+  // "Hi exampleuser!" → "exampleuser"
   return text.replace(/^Hi /, '').replace(/!$/, '').trim()
 }
 
