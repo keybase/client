@@ -43,6 +43,7 @@ const splitAndSortDevices = (devices: ReadonlyArray<T.Devices.Device>) =>
 const itemHeight = {height: 48, type: 'fixed'} as const
 
 function ReloadableDevices() {
+  React.useEffect(() => { console.log('E2E: Devices screen mounted') }, [])
   const navigation = useTypedNavigation('devicesRoot')
   const [devices, setDevices] = React.useState<Array<T.Devices.Device>>([])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)

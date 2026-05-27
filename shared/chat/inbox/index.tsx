@@ -421,6 +421,7 @@ function DesktopInboxBody(props: ControlledInboxProps) {
 
 // Native InboxBody
 function NativeInboxBody(p: ControlledInboxProps) {
+  React.useEffect(() => { console.log('E2E: Chat inbox mounted') }, [])
   const {search} = p
   const inbox = useInboxState(p.conversationIDKey, search.isSearching, p.refreshInbox)
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox

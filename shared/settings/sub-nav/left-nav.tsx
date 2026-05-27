@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import SettingsItem from './settings-item'
@@ -14,6 +15,7 @@ type Props = {
 }
 
 const LeftNav = (props: Props) => {
+  React.useEffect(() => { console.log('E2E: Settings nav mounted') }, [])
   const {navigate} = props
   const badgeNumbers = useNotifState(s => s.navBadges)
   const badgeNotifications = usePushState(s => (isElectron ? 0 : !s.hasPermissions ? 1 : 0))

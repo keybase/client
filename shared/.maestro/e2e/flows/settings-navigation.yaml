@@ -1,16 +1,15 @@
 appId: keybase.ios
 ---
-# Flow: Open Settings tab and verify nav renders.
-
-- runFlow: ../../subflows/escape-to-tabs.yaml
-
+- runFlow: ../subflows/escape-to-tabs.yaml
 - tapOn:
-    text: "Settings"
-
+    text: "More"
 - extendedWaitUntil:
     visible:
       id: "settings-account"
     timeout: 3000
-
-- assertVisible:
-    id: "settings-account"
+- tapOn:
+    text: "Account"
+- extendedWaitUntil:
+    visible:
+      text: "Email & phone"
+    timeout: 3000

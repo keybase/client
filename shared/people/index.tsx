@@ -141,6 +141,7 @@ function ResentEmailVerificationBanner(props: {
 }
 
 function PeoplePageList(props: Props) {
+  React.useEffect(() => { console.log('E2E: People screen mounted') }, [])
   const visibleNewItems = props.newItems.filter(item => shouldRenderNewItem(item, props.signupEmail))
 
   return (

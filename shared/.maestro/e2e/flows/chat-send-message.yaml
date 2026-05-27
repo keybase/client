@@ -1,32 +1,29 @@
 appId: keybase.ios
 ---
-# Flow: Send a message to KB_SMOKE_USER.
-# Run with: maestro test --env KB_SMOKE_USER=youruser chat-send-message.yaml
-# The first conversation in the inbox must be with KB_SMOKE_USER.
-
-- runFlow: ../../subflows/navigate-to-chat.yaml
-
+- runFlow: ../subflows/escape-to-tabs.yaml
+# Navigate via Teams first to avoid ambiguity: "Chat" exists both in the tab bar
+# and as a settings item on the More tab. Teams is not a settings item.
+- tapOn:
+    text: "Teams"
+- tapOn:
+    text: "Chat"
 - extendedWaitUntil:
     visible:
       id: "chat-inbox-list"
-    timeout: 5000
-
+    timeout: 3000
 - tapOn:
     id: "chat-inbox-row"
     index: 0
-
 - extendedWaitUntil:
     visible:
       id: "chat-message-list"
-    timeout: 5000
-
+    timeout: 3000
 - tapOn:
     id: "chat-input"
-
 - inputText: "e2e-test-${KB_SMOKE_USER}"
-
 - tapOn:
     text: "Send"
-
-- assertVisible:
-    text: "e2e-test-${KB_SMOKE_USER}"
+- extendedWaitUntil:
+    visible:
+      text: "e2e-test-${KB_SMOKE_USER}"
+    timeout: 3000

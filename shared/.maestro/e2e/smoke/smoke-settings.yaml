@@ -1,14 +1,8 @@
 appId: keybase.ios
 ---
-- runFlow: ../../subflows/escape-to-tabs.yaml
-
 - tapOn:
-    text: "Settings"
-
+    text: "More"
 - extendedWaitUntil:
     visible:
       id: "settings-account"
     timeout: 3000
-
-- assertVisible:
-    id: "settings-account"

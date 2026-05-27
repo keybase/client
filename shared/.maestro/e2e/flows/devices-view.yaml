@@ -1,25 +1,16 @@
 appId: keybase.ios
 ---
-# Flow: Navigate to Devices via More tab and verify list renders.
-# On iOS, Devices is under the "More" section, not a main tab.
-
-- runFlow: ../../subflows/escape-to-tabs.yaml
-
+- runFlow: ../subflows/escape-to-tabs.yaml
 - tapOn:
     text: "More"
-
-- extendedWaitUntil:
-    visible:
-      text: "Devices"
-    timeout: 3000
-
 - tapOn:
-    text: "Devices"
-
+    text: ".*Devices"
+    retryTapIfNoChange: false
 - extendedWaitUntil:
     visible:
       id: "devices-list"
     timeout: 3000
-
-- assertVisible:
-    id: "devices-list"
+- extendedWaitUntil:
+    visible:
+      id: "devices-row"
+    timeout: 3000

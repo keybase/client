@@ -1,23 +1,13 @@
 appId: keybase.ios
 ---
-- runFlow: ../../subflows/escape-to-tabs.yaml
-
 - tapOn:
     text: "More"
-
-- extendedWaitUntil:
-    visible:
-      text: ".*Crypto"
-    timeout: 5000
-
 - tapOn:
     text: ".*Crypto"
     retryTapIfNoChange: false
-
 - extendedWaitUntil:
     visible:
       id: "crypto-input"
-    timeout: 5000
-
-- assertVisible:
-    id: "crypto-input"
+    timeout: 3000
+- tapOn:
+    id: "backButton"

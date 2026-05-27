@@ -1,11 +1,15 @@
 appId: keybase.ios
 ---
-- runFlow: ../../subflows/navigate-to-chat.yaml
-
+- runFlow:
+    when:
+      visible:
+        text: "Teams"
+    commands:
+      - tapOn:
+          text: "Teams"
+- tapOn:
+    text: "Chat"
 - extendedWaitUntil:
     visible:
       id: "chat-inbox-list"
     timeout: 3000
-
-- assertVisible:
-    id: "chat-inbox-list"
