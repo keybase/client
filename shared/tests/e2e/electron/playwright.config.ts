@@ -5,7 +5,8 @@ export default defineConfig({
   timeout: 15_000,
   retries: 0,
   workers: 1,
-  reporter: [['list'], ['html', {outputFolder: '/tmp/playwright-report', open: 'never'}]],
+  outputDir: '../../results/test-results',
+  reporter: [['list'], ['html', {outputFolder: '../../results/report', open: 'never'}]],
   use: {
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
