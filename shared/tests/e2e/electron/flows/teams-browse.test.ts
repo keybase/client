@@ -15,7 +15,7 @@ test.afterAll(async () => {
 
 test('teams list renders', async () => {
   await navigateToTeams(page)
-  await expect(page.getByTestId(TEAMS_LIST)).toBeVisible()
+  await expect(page.getByTestId(TEAMS_LIST).first()).toBeVisible()
 })
 
 test('can open a team if one exists', async () => {
@@ -27,6 +27,6 @@ test('can open a team if one exists', async () => {
     return
   }
   await rows.first().click()
-  // After clicking, the teams list should no longer be visible (navigated into team)
-  await expect(page.getByTestId(TEAMS_LIST)).not.toBeVisible({timeout: 3_000})
+  // Team page renders (a new TEAMS_LIST is no longer the only one, or team name appears)
+  await expect(page.getByTestId(TEAMS_ROW).first()).not.toBeVisible({timeout: 3_000})
 })

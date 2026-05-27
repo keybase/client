@@ -24,6 +24,7 @@ type Props = {
   onMouseDown?: (event: React.MouseEvent) => void
   onMouseMove?: (event: React.MouseEvent) => void
   onMouseUp?: (event: React.MouseEvent) => void
+  testID?: string
   title?: string
   tooltip?: string
 }
@@ -113,6 +114,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
         ref={ref as React.Ref<HTMLDivElement>}
         className={Styles.classNames(className, {tooltip})}
         data-tooltip={tooltip}
+        data-testid={props.testID}
         {...passThroughProps}
         onMouseDown={onMouseDown}
         onMouseEnter={onMouseEnter}
