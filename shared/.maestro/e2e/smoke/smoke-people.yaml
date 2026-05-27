@@ -11,3 +11,4 @@ appId: keybase.ios
     visible:
       id: "people-feed"
     timeout: 3000
+- takeScreenshot: tests/results/ios-debug/smoke-people

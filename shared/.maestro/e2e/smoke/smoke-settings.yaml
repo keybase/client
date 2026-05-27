@@ -6,3 +6,4 @@ appId: keybase.ios
     visible:
       id: "settings-account"
     timeout: 3000
+- takeScreenshot: tests/results/ios-debug/smoke-settings
