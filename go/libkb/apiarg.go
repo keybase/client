@@ -47,7 +47,7 @@ func NewRetryAPIArg(endpoint string) APIArg {
 	return APIArg{
 		Endpoint:        endpoint,
 		InitialTimeout:  HTTPRetryInitialTimeout,
-		RetryMultiplier: HTTPRetryMutliplier,
+		RetryMultiplier: HTTPRetryMultiplier,
 		RetryCount:      HTTPRetryCount,
 	}
 }
