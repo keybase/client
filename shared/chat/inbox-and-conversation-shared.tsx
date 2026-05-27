@@ -49,6 +49,7 @@ export function InboxAndConversationShell(props: Props) {
       return
     }
     logger.info(`InboxAndConversationShell: auto-selecting first chat thread: ${firstSmallTeam}`)
+    lastValidCIDRef.current = firstSmallTeam
     C.Router2.navigateToThread(firstSmallTeam, 'findNewestConversationFromLayout')
   }, [chatTabSelected, conversationIDKey, firstSmallTeam, validConvoID])
 
