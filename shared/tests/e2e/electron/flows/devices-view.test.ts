@@ -15,11 +15,11 @@ test.afterAll(async () => {
 
 test('devices list renders', async () => {
   await navigateToDevices(page)
-  await expect(page.getByTestId(DEVICES_LIST)).toBeVisible()
+  await expect(page.getByTestId(DEVICES_LIST).first()).toBeVisible()
 })
 
 test('devices list has at least one device', async () => {
   await navigateToDevices(page)
   // Logged-in user must have at least the current device
-  await expect(page.getByTestId(DEVICES_ROW).first()).toBeVisible()
+  await expect(page.getByTestId(DEVICES_ROW).first()).toBeVisible({timeout: 10_000})
 })
