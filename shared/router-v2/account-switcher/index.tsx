@@ -155,6 +155,7 @@ const AccountRow = (props: AccountRowProps) => {
       type={isMobile ? 'Large' : 'Small'}
       icon={<Kb.Avatar size={isMobile ? 48 : 32} username={props.entry.account.username} />}
       firstItem={true}
+      action={clicked ? <Kb.ProgressIndicator type="Large" /> : undefined}
       body={
         <Kb.Box2 direction="vertical" fullWidth={true} style={waiting ? styles.waiting : undefined}>
           <Kb.Text type="BodySemibold">{props.entry.account.username}</Kb.Text>
@@ -170,7 +171,6 @@ const AccountRow = (props: AccountRowProps) => {
               )}
             </Kb.Box2>
           )}
-          {clicked && <Kb.ProgressIndicator type="Large" style={styles.progressIndicator} />}
         </Kb.Box2>
       }
       onClick={onClick}
@@ -202,7 +202,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {flexShrink: 1},
     isElectron: {wordBreak: 'break-all'},
   }),
-  progressIndicator: {bottom: 0, position: 'absolute', right: 0},
   signOut: {color: Kb.Styles.globalColors.red},
   text2: {flexShrink: 0},
   userBox: {

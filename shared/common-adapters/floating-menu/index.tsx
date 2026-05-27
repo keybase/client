@@ -4,7 +4,7 @@ import type {MeasureRef} from '@/common-adapters/measure-ref'
 import MenuLayout from './menu-layout'
 import type {MenuItems as _MenuItems} from './menu-layout/index.shared'
 import type * as Styles from '@/styles'
-import {useNavigation, type NavigationProp, type ParamListBase} from '@react-navigation/native'
+import {NavigationContext} from '@react-navigation/core'
 
 export type MenuItems = _MenuItems
 
@@ -31,10 +31,11 @@ export type Props = {
   snapPoints?: Array<string | number>
 }
 
-type SafeNavigationHook = <T extends NavigationProp<ParamListBase>>() => T | null
-
-const useSafeNavigation: SafeNavigationHook = isMobile
-  ? (useNavigation)
+// useNavigation() throws when called outside a navigator (e.g. inside a gorhom
+// portal rendered at popup-root, which is a sibling to the router). Using the
+// context directly returns undefined instead of throwing.
+const useSafeNavigation = isMobile
+  ? () => React.useContext(NavigationContext) ?? null
   : () => null
 
 function FloatingMenu(props: Props) {

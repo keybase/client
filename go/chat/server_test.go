@@ -4770,6 +4770,144 @@ func TestChatSrvTeamChannels(t *testing.T) {
 	})
 }
 
+// TestChatSrvKickedUserStaysRemovedAfterUpdateMembers verifies that an admin
+// channel removal (REMOVED status) is preserved across UpdateMembers calls
+// triggered by unrelated team roster changes. The bot addition in this test
+// acts as the unrelated roster change: it triggers UpdateMembers without
+// adding or restoring users[1] in the channel they were kicked from.
+func TestChatSrvKickedUserStaysRemovedAfterUpdateMembers(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "KickedUserStaysRemovedAfterUpdateMembers", 3)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		ctx := ctc.as(t, users[0]).startCtx
+		ctx1 := ctc.as(t, users[1]).startCtx
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+		ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		// Create team with users[0] and users[1]; users[2] is not yet in the team.
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, ctc.as(t, users[1]).user())
+		consumeNewConversation(t, listener0, conv.Id)
+		consumeNewConversation(t, listener1, conv.Id)
+
+		teamID, err := keybase1.TeamIDFromString(conv.Triple.Tlfid.String())
+		require.NoError(t, err)
+
+		pollForSeqno := func(expectedSeqno keybase1.Seqno) {
+			found := false
+			timeout := time.After(30 * time.Second)
+			for !found {
+				select {
+				case teamChange := <-listener0.teamChangedByID:
+					found = teamChange.TeamID == teamID && teamChange.LatestSeqno == expectedSeqno
+				case <-timeout:
+					require.Failf(t, "teamChangedByID not received", "waiting for seqno %d", expectedSeqno)
+				}
+			}
+		}
+
+		// Create a second channel (this is the first explicit non-default channel,
+		// so it fires 2 SYSTEM messages: one for the new channel and one for the
+		// team type change from simple to multi-channel).
+		topicName := "testchannel"
+		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+		consumeNewConversation(t, listener0, ncres.Conv.GetConvID())
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+
+		// users[1] joins the second channel.
+		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1,
+			chat1.JoinConversationLocalArg{
+				TlfName:    conv.TlfName,
+				TopicType:  chat1.TopicType_CHAT,
+				Visibility: keybase1.TLFVisibility_PRIVATE,
+				TopicName:  topicName,
+			})
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
+		consumeJoinConv(t, listener1)
+		consumeMembersUpdate(t, listener0)
+
+		// users[0] (admin) kicks users[1] from the second channel.
+		_, err = ctc.as(t, users[0]).chatLocalHandler().RemoveFromConversationLocal(ctx,
+			chat1.RemoveFromConversationLocalArg{
+				ConvID:    ncres.Conv.GetConvID(),
+				Usernames: []string{users[1].Username},
+			})
+		require.NoError(t, err)
+		consumeLeaveConv(t, listener1)
+		consumeMembersUpdate(t, listener0)
+
+		// Confirm users[1] is removed from testchannel before triggering UpdateMembers.
+		// The local inbox stores kicks as LEFT (the server stores REMOVED, but the
+		// local cache collapses both into LEFT via MembershipUpdate).
+		ibres, err := ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx1,
+			chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs:      []chat1.ConversationID{ncres.Conv.GetConvID()},
+					MemberStatus: []chat1.ConversationMemberStatus{chat1.ConversationMemberStatus_LEFT},
+				},
+			})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(ibres.Conversations), "testchannel should appear as LEFT (kicked) before UpdateMembers")
+
+		// Trigger an unrelated UpdateMembers by adding users[2] to the team as a bot.
+		// Team seqno: 1=root, 2=add users[1] as writer, 3=add users[2] as bot.
+		err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(ctx, chat1.AddBotMemberArg{
+			ConvID:   conv.Id,
+			Username: users[2].Username,
+			Role:     keybase1.TeamRole_BOT,
+		})
+		require.NoError(t, err)
+		pollForSeqno(3)
+		// Bot joins #general and testchannel; users[0] is active in both and gets
+		// two membersUpdate. users[1] is active only in #general (REMOVED from
+		// testchannel) and gets one membersUpdate.
+		consumeMembersUpdate(t, listener0)
+		consumeMembersUpdate(t, listener0)
+		consumeMembersUpdate(t, listener1)
+
+		// users[1] must still be LEFT (kicked) from testchannel after UpdateMembers.
+		// If the fix regresses, UpdateMembers would silently set users[1] ACTIVE,
+		// joining them back to testchannel, and this query would return 0 results.
+		ibres, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx1,
+			chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs:      []chat1.ConversationID{ncres.Conv.GetConvID()},
+					MemberStatus: []chat1.ConversationMemberStatus{chat1.ConversationMemberStatus_LEFT},
+				},
+			})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(ibres.Conversations),
+			"UpdateMembers must not restore users[1] to testchannel after an admin kick")
+	})
+}
+
 func TestChatSrvTLFConversationsLocal(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "TestChatSrvTLFConversationsLocal", 2)

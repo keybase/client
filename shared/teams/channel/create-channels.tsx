@@ -58,6 +58,7 @@ const CreateChannelsInner = (props: Props) => {
           )
         }
         setSuccess(true)
+        C.Router2.clearModals()
       } catch (error_) {
         if (error_ instanceof RPCError) {
           setError(error_.desc)

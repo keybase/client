@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
-import type * as React from 'react'
+import * as React from 'react'
 import ReactButton from './react-button'
 import * as T from '@/constants/types'
 import {MessageContext} from './ids-context'
@@ -74,6 +74,28 @@ const ReactionTooltip = (p: OwnProps) => {
   }
   const insets = Kb.useSafeAreaInsets()
   const messageContext = {isHighlighted: false, ordinal}
+  const onClickUser = React.useCallback(
+    (username: string) => {
+      onHidden()
+      C.Router2.navToProfile(username)
+    },
+    [onHidden]
+  )
+  const renderItem = React.useCallback(
+    ({item}: {item: ListItem}) => (
+      <Kb.NameWithIcon
+        colorFollowing={true}
+        containerStyle={styles.userContainer}
+        horizontal={true}
+        metaOne={item.fullName}
+        onClick={onClickUser}
+        clickType="onClick"
+        withProfileCardPopup={false}
+        username={item.username}
+      />
+    ),
+    [onClickUser]
+  )
   if (!visible) {
     return null
   }
@@ -167,19 +189,6 @@ type ListItem = {
   fullName: string
   key: string
   username: string
-}
-
-const renderItem = ({item}: {item: ListItem}) => {
-  return (
-    <Kb.NameWithIcon
-      key={item.key}
-      colorFollowing={true}
-      containerStyle={styles.userContainer}
-      horizontal={true}
-      metaOne={item.fullName}
-      username={item.username}
-    />
-  )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
