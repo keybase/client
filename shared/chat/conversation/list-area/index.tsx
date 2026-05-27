@@ -78,6 +78,21 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   const {centeredOrdinal} = useConversationCenter()
   const {containsLatestMessage, messageOrdinals, loaded} = data
 
+  // LegendList deadlock fix: when initialScrollAtEnd=true, data must not arrive
+  // before LegendList's internal ResizeObserver fires (sets queuedInitialLayout).
+  // If data arrives first, handleInitialScrollDataChange returns early and
+  // didFinishInitialScroll never becomes true, leaving readyToRender=false forever.
+  // Delaying data by one rAF ensures layout fires before data is fed in.
+  // We track which conversationIDKey has had its layout settle rather than using
+  // a boolean state, so the reset on conversation change is derived (no synchronous
+  // setState inside an effect).
+  const [layoutReadyKey, setLayoutReadyKey] = React.useState('')
+  const layoutReady = layoutReadyKey === conversationIDKey || centeredOrdinal !== undefined
+  React.useEffect(() => {
+    const id = requestAnimationFrame(() => setLayoutReadyKey(conversationIDKey))
+    return () => cancelAnimationFrame(id)
+  }, [conversationIDKey])
+
   const listRef = React.useRef<LegendListRef | null>(null)
   const wrapperRef = React.useRef<HTMLDivElement | null>(null)
 
@@ -360,7 +375,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
         <LegendList
           key={conversationIDKey}
           ref={listRef as React.Ref<LegendListRef>}
-          data={messageOrdinals as unknown as T.Chat.Ordinal[]}
+          data={(layoutReady ? messageOrdinals : noOrdinals) as unknown as T.Chat.Ordinal[]}
           renderItem={renderItem}
           keyExtractor={(ordinal: T.Chat.Ordinal) => String(ordinal)}
           getItemType={getItemType}
