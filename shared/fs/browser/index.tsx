@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import * as TestIDs from '../../tests/e2e/shared/test-ids'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as Kbfs from '../common'
 import type * as React from 'react'
 import * as T from '@/constants/types'

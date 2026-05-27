@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import * as TestIDs from '../tests/e2e/shared/test-ids'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type * as T from '@/constants/types'
 import Announcement from './announcement'
 import FollowNotification from './follow-notification'

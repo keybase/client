@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as TestIDs from '../tests/e2e/shared/test-ids'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
 import * as T from '@/constants/types'

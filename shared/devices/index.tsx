@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as TestIDs from '../tests/e2e/shared/test-ids'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import DeviceRow, {NewContext} from './row'
 import partition from 'lodash/partition'
 import * as T from '@/constants/types'
