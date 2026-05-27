@@ -1,0 +1,25 @@
+import {test, expect, type Browser, type Page} from '@playwright/test'
+import {connectToElectron, disconnect} from '../helpers/connect'
+import {navigateToChat} from '../helpers/navigate'
+import {CHAT_INBOX_LIST, CHAT_INBOX_ROW} from '../../shared/test-ids'
+
+let browser: Browser
+let page: Page
+
+test.beforeAll(async () => {
+  ;({browser, page} = await connectToElectron())
+})
+
+test.afterAll(async () => {
+  await disconnect()
+})
+
+test('chat tab renders', async () => {
+  await navigateToChat(page)
+  await expect(page.getByTestId(CHAT_INBOX_LIST)).toBeVisible()
+})
+
+test('chat inbox row is visible', async () => {
+  await navigateToChat(page)
+  await expect(page.getByTestId(CHAT_INBOX_ROW).first()).toBeVisible()
+})
