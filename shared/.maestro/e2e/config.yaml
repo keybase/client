@@ -1,0 +1,3 @@
+flows:
+  - "smoke/*.yaml"
+  - "flows/*.yaml"

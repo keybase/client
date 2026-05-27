@@ -75,7 +75,7 @@
     "test:e2e:ios": "MAESTRO_CLI_NO_ANALYTICS=1 maestro test --format junit --output tests/results/ios-report.xml .maestro/e2e/smoke/smoke-all-tabs.yaml",
     "test:e2e:ios:smoke": "MAESTRO_CLI_NO_ANALYTICS=1 maestro test --format junit --output tests/results/ios-report.xml .maestro/e2e/smoke/",
     "test:e2e:ios:flows": "MAESTRO_CLI_NO_ANALYTICS=1 maestro test --format junit --output tests/results/ios-report.xml --env KB_SMOKE_USER=${KB_SMOKE_USER} .maestro/e2e/flows/",
-    "test:e2e:ios:all": "MAESTRO_CLI_NO_ANALYTICS=1 maestro test --format junit --output tests/results/ios-report.xml --env KB_SMOKE_USER=${KB_SMOKE_USER} .maestro/e2e/",
+    "test:e2e:ios:all": "MAESTRO_CLI_NO_ANALYTICS=1 maestro test --config .maestro/e2e/config.yaml --format junit --output tests/results/ios-report.xml --env KB_SMOKE_USER=${KB_SMOKE_USER}",
     "test:e2e:report": "open tests/results/report/index.html",
     "desktop-perf-thread": "node perf/run-desktop-perf.js --flow thread",
     "desktop-perf-inbox": "node perf/run-desktop-perf.js --flow inbox",
