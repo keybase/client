@@ -32,6 +32,7 @@ type DragAndDropProps = {
   inProgress: boolean
   onAttach: (path: string) => void
   prompt: string
+  testID?: string
 }
 
 type RunActionBarProps = {
@@ -206,8 +207,8 @@ export const Input = ({
     />
   )
 
-export const DragAndDrop = ({allowFolders, children, inProgress, onAttach, prompt}: DragAndDropProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+export const DragAndDrop = ({allowFolders, children, inProgress, onAttach, prompt, testID}: DragAndDropProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} testID={testID}>
     <Kb.DragAndDrop
       disabled={inProgress}
       allowFolders={allowFolders}

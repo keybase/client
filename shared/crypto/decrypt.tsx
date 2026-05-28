@@ -168,12 +168,10 @@ export const DecryptInput = (_props: unknown) => {
   )
 
   return isMobile ? (
-    <Kb.Box2 direction="vertical" fullHeight={true} testID={TestIDs.CRYPTO_DECRYPT_INPUT}>
-      <Kb.KeyboardAvoidingView2>
-        {contents}
-        <InputActionsBar runLabel="Decrypt" onRun={onRun} />
-      </Kb.KeyboardAvoidingView2>
-    </Kb.Box2>
+    <Kb.KeyboardAvoidingView2 testID={TestIDs.CRYPTO_DECRYPT_INPUT}>
+      {contents}
+      <InputActionsBar runLabel="Decrypt" onRun={onRun} />
+    </Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
       {contents}
@@ -218,9 +216,9 @@ export const DecryptIO = () => {
       prompt={filePrompt}
       inProgress={controller.state.inProgress}
       onAttach={controller.openFile}
+      testID={TestIDs.CRYPTO_DECRYPT_INPUT}
     >
-      <Kb.Box2 direction="vertical" fullHeight={true} testID={TestIDs.CRYPTO_DECRYPT_INPUT}>
-        <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
+      <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
           <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
           <Input
             allowDirectories={false}
@@ -250,7 +248,6 @@ export const DecryptIO = () => {
           />
           <CryptoOutputActionsBar canReplyInChat={true} canSaveAsText={false} state={controller.state} />
         </Kb.Box2>
-      </Kb.Box2>
     </DragAndDrop>
   )
 }

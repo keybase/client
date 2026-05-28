@@ -10,6 +10,7 @@ type Props = {
   extraPadding?: number
   compensateNotBeingOnBottom?: boolean
   behavior?: 'height' | 'padding' | 'translate-with-padding'
+  testID?: string
 }
 
 const DesktopKeyboardAvoidingView = (p: Props): React.ReactNode => p.children || null
@@ -24,7 +25,7 @@ function useSafeHeaderHeight(): number {
 const NativeKeyboardAvoidingView = (p: Props): React.ReactNode => {
 
   const headerHeight = useSafeHeaderHeight()
-  const {extraOffset, behavior, children} = p
+  const {extraOffset, behavior, children, testID} = p
   const keyboardVerticalOffset = headerHeight + (extraOffset ?? 0)
   return (
     <KeyboardAvoidingView
@@ -32,6 +33,7 @@ const NativeKeyboardAvoidingView = (p: Props): React.ReactNode => {
       keyboardVerticalOffset={keyboardVerticalOffset}
       pointerEvents="box-none"
       style={styles.keyboard}
+      testID={testID}
     >
       {children}
     </KeyboardAvoidingView>

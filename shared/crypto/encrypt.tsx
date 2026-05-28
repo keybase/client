@@ -517,9 +517,7 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
   )
 
   return isMobile ? (
-    <Kb.Box2 direction="vertical" fullHeight={true} testID={TestIDs.CRYPTO_ENCRYPT_INPUT}>
-      <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
-    </Kb.Box2>
+    <Kb.KeyboardAvoidingView2 testID={TestIDs.CRYPTO_ENCRYPT_INPUT}>{content}</Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
       {content}
@@ -572,8 +570,7 @@ export const EncryptIO = () => {
   const appendEncryptRecipientsBuilder = C.Router2.appendEncryptRecipientsBuilder
 
   return (
-    <DragAndDrop allowFolders={true} prompt={filePrompt} inProgress={controller.state.inProgress} onAttach={controller.openFile}>
-      <Kb.Box2 direction="vertical" fullHeight={true} testID={TestIDs.CRYPTO_ENCRYPT_INPUT}>
+    <DragAndDrop allowFolders={true} prompt={filePrompt} inProgress={controller.state.inProgress} onAttach={controller.openFile} testID={TestIDs.CRYPTO_ENCRYPT_INPUT}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
           <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
           <Recipients
@@ -640,7 +637,6 @@ export const EncryptIO = () => {
             }}
           />
         </Kb.Box2>
-      </Kb.Box2>
     </DragAndDrop>
   )
 }

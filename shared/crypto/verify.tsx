@@ -169,9 +169,7 @@ export const VerifyInput = (_props: unknown) => {
   )
 
   return isMobile ? (
-    <Kb.Box2 direction="vertical" fullHeight={true} testID={TestIDs.CRYPTO_VERIFY_INPUT}>
-      <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
-    </Kb.Box2>
+    <Kb.KeyboardAvoidingView2 testID={TestIDs.CRYPTO_VERIFY_INPUT}>{content}</Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
       {content}
@@ -215,8 +213,8 @@ export const VerifyIO = () => {
       prompt={filePrompt}
       inProgress={controller.state.inProgress}
       onAttach={controller.openFile}
+      testID={TestIDs.CRYPTO_VERIFY_INPUT}
     >
-      <Kb.Box2 direction="vertical" fullHeight={true} testID={TestIDs.CRYPTO_VERIFY_INPUT}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
           <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
           <Input
@@ -247,7 +245,6 @@ export const VerifyIO = () => {
           />
           <CryptoOutputActionsBar canReplyInChat={true} canSaveAsText={false} state={controller.state} />
         </Kb.Box2>
-      </Kb.Box2>
     </DragAndDrop>
   )
 }
