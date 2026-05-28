@@ -44,10 +44,7 @@ const dispatchSaltpackFile = (path: string) => {
   R.remoteDispatch(RemoteGen.createSaltpackFileOpen({path}))
 }
 
-const flushDeferredLaunch = (
-  runtime: AppRuntime,
-  getStartupProcessArgs: () => void
-) => {
+const flushDeferredLaunch = (runtime: AppRuntime, getStartupProcessArgs: () => void) => {
   const {startupURL, saltpackFilePath} = runtime.deferredLaunch
   runtime.deferredLaunch = {}
 
@@ -149,4 +146,6 @@ const startApp = () => {
 }
 
 Electron.app.commandLine.appendSwitch('disk-cache-size', '1')
+// Disable OS keychain prompts — we don't use safeStorage
+Electron.app.commandLine.appendSwitch('use-mock-keychain')
 startApp()
