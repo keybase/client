@@ -117,9 +117,9 @@ function buildHtml(results: TestResult[], timestamp: string, title: string): str
         <div class="lbl lbl-r">NOW</div>
       </div>`
     } else if (r.screenshotPath) {
-      visual = `<img class="solo" src="${imageToDataUrl(r.screenshotPath)}" alt="${r.name}">`
+      visual = `<div class="solo-wrap"><img class="solo" src="${imageToDataUrl(r.screenshotPath)}" alt="${r.name}"></div>`
     } else if (r.failureScreenshotPath) {
-      visual = `<img class="solo dim" src="${imageToDataUrl(r.failureScreenshotPath)}" alt="failure">`
+      visual = `<div class="solo-wrap"><img class="solo dim" src="${imageToDataUrl(r.failureScreenshotPath)}" alt="failure"></div>`
     } else {
       visual = `<div class="empty">No screenshot</div>`
     }
@@ -171,38 +171,105 @@ h1{font-size:20px;font-weight:600}
 .badge.pass{background:#d4edda;color:#1a7a3a}.badge.fail{background:#fde8e8;color:#c0392b}
 .badge.diff-low{background:#e8f4fd;color:#1a5fa8}.badge.diff-mid{background:#fff3cd;color:#856404}.badge.diff-high{background:#fde8e8;color:#842029}
 .error{width:100%;font-size:11px;color:#c0392b;background:#fde8e8;padding:3px 8px;border-radius:4px;word-break:break-word}
+.solo-wrap{position:relative;overflow:hidden;background:#000}
 .solo{width:100%;display:block}.dim{opacity:.85}
 .empty{padding:28px;text-align:center;color:#bbb;font-size:12px;background:#fafafa}
 .compare{position:relative;overflow:hidden;cursor:ew-resize;--split:50%;user-select:none}
-.compare img{display:block;width:100%;-webkit-user-drag:none;user-drag:none}
+.compare img,.solo-wrap img{display:block;width:100%;-webkit-user-drag:none;user-drag:none}
 .img-after{position:relative}
-.img-before{position:absolute;top:0;left:0;clip-path:inset(0 calc(100% - var(--split)) 0 0)}
-.handle{position:absolute;top:0;bottom:0;left:var(--split);transform:translateX(-50%);width:3px;background:rgba(255,255,255,.9);pointer-events:none;will-change:left}
+.img-before{position:absolute;top:0;left:0;width:100%;clip-path:inset(0 calc(100% - var(--split)) 0 0)}
+.handle{position:absolute;top:0;bottom:0;left:var(--split);transform:translateX(-50%);width:3px;background:rgba(255,255,255,.9);pointer-events:none}
 .grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .lbl{position:absolute;bottom:8px;font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:3px;background:rgba(0,0,0,.55);color:#fff;pointer-events:none}
-.lbl-l{left:8px}.lbl-r{right:8px}`
+.lbl-l{left:8px}.lbl-r{right:8px}
+.expand-btn{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:5px;padding:5px 8px;font-size:15px;line-height:1;cursor:pointer;opacity:0;transition:opacity .15s;z-index:5}
+.compare:hover .expand-btn,.solo-wrap:hover .expand-btn{opacity:1}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:1000;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.ov-wrap{position:relative}
+.ov-close{position:absolute;top:-38px;right:0;background:none;border:none;color:#fff;font-size:22px;line-height:1;cursor:pointer;opacity:.75;padding:4px 8px}
+.ov-close:hover{opacity:1}
+.ov-compare{position:relative;overflow:hidden;cursor:ew-resize;--split:50%;user-select:none}
+.ov-compare .img-after{display:block;max-height:85vh;max-width:85vw;width:auto;height:auto;-webkit-user-drag:none}
+.ov-compare .img-before{position:absolute;top:0;left:0;width:100%;height:100%;clip-path:inset(0 calc(100% - var(--split)) 0 0);-webkit-user-drag:none}
+.ov-compare .handle{position:absolute;top:0;bottom:0;left:var(--split);transform:translateX(-50%);width:3px;background:rgba(255,255,255,.9);pointer-events:none}
+.ov-compare .grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 6px rgba(0,0,0,.5)}
+.ov-compare .lbl{position:absolute;bottom:10px;font-size:11px;font-weight:700;letter-spacing:.05em;padding:3px 9px;border-radius:3px;background:rgba(0,0,0,.55);color:#fff;pointer-events:none}
+.ov-compare .lbl-l{left:10px}.ov-compare .lbl-r{right:10px}
+.ov-solo{display:block;max-height:90vh;max-width:90vw;width:auto;height:auto}`
 }
 
 export function sliderScript(): string {
   return `<script>
-document.querySelectorAll('.compare').forEach(el => {
+// ── slider ──────────────────────────────────────────────────────────────────
+function initSlider(el) {
   let dragging = false, rect = null
-  // prevent browser image drag on all images inside the slider
   el.querySelectorAll('img').forEach(img => img.addEventListener('dragstart', e => e.preventDefault()))
-
   function move(clientX) {
     const pct = Math.max(0, Math.min(100, (clientX - rect.left) / rect.width * 100))
     el.style.setProperty('--split', pct.toFixed(2) + '%')
   }
-
-  el.addEventListener('mousedown', e => {
-    e.preventDefault()
-    dragging = true
-    rect = el.getBoundingClientRect()
-    move(e.clientX)
-  })
+  el.addEventListener('mousedown', e => { e.preventDefault(); dragging = true; rect = el.getBoundingClientRect(); move(e.clientX) })
   window.addEventListener('mousemove', e => { if (dragging) move(e.clientX) })
   window.addEventListener('mouseup', () => { dragging = false })
+}
+document.querySelectorAll('.compare').forEach(initSlider)
+
+// ── overlay ──────────────────────────────────────────────────────────────────
+const overlay = document.createElement('div')
+overlay.className = 'overlay'
+overlay.innerHTML = '<div class="ov-wrap"><button class="ov-close" title="Close (Esc)">✕</button><div class="ov-inner"></div></div>'
+document.body.appendChild(overlay)
+const ovInner = overlay.querySelector('.ov-inner')
+const ovClose = overlay.querySelector('.ov-close')
+
+function closeOverlay() { overlay.classList.remove('open') }
+ovClose.addEventListener('click', closeOverlay)
+overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay() })
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOverlay() })
+
+function openCompare(afterSrc, beforeSrc) {
+  ovInner.innerHTML = \`<div class="ov-compare">
+    <img class="img-after" src="\${afterSrc}">
+    <img class="img-before" src="\${beforeSrc}">
+    <div class="handle"><div class="grip">⇔</div></div>
+    <div class="lbl lbl-l">BASELINE</div>
+    <div class="lbl lbl-r">NOW</div>
+  </div>\`
+  const cmp = ovInner.querySelector('.ov-compare')
+  cmp.style.setProperty('--split', '50%')
+  initSlider(cmp)
+  overlay.classList.add('open')
+}
+
+function openSolo(src) {
+  ovInner.innerHTML = \`<img class="ov-solo" src="\${src}">\`
+  overlay.classList.add('open')
+}
+
+// ── expand buttons ───────────────────────────────────────────────────────────
+document.querySelectorAll('.compare').forEach(el => {
+  const btn = document.createElement('button')
+  btn.className = 'expand-btn'
+  btn.textContent = '⤢'
+  btn.title = 'Expand'
+  el.appendChild(btn)
+  btn.addEventListener('click', e => {
+    e.stopPropagation()
+    openCompare(el.querySelector('.img-after').src, el.querySelector('.img-before').src)
+  })
+})
+
+document.querySelectorAll('.solo-wrap').forEach(el => {
+  const btn = document.createElement('button')
+  btn.className = 'expand-btn'
+  btn.textContent = '⤢'
+  btn.title = 'Expand'
+  el.appendChild(btn)
+  btn.addEventListener('click', e => {
+    e.stopPropagation()
+    openSolo(el.querySelector('img').src)
+  })
 })
 </script>`
 }

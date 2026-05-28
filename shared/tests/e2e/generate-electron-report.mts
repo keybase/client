@@ -129,7 +129,7 @@ function buildHtml(cases: TestCase[], timestamp: string): string {
   <div class="lbl lbl-r">NOW</div>
 </div>`
     } else if (c.screenshotB64) {
-      visual = `<img class="solo" src="data:image/png;base64,${c.screenshotB64}" alt="${c.label}">`
+      visual = `<div class="solo-wrap"><img class="solo" src="data:image/png;base64,${c.screenshotB64}" alt="${c.label}"></div>`
     } else {
       visual = `<div class="empty">No screenshot</div>`
     }
