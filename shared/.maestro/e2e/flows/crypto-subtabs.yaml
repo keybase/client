@@ -1,0 +1,72 @@
+appId: keybase.ios
+---
+- runFlow: ../subflows/escape-to-tabs.yaml
+- tapOn:
+    text: "More"
+- tapOn:
+    text: ".*Crypto"
+    retryTapIfNoChange: false
+- extendedWaitUntil:
+    visible:
+      id: "crypto-input"
+    timeout: 3000
+
+- tapOn:
+    id: "crypto-nav-encryptTab"
+- extendedWaitUntil:
+    visible:
+      id: "crypto-encrypt-input"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/crypto-subtabs-encrypt-keyboard
+- tapOn:
+    point: "5%,5%"
+- waitForAnimationToEnd:
+    timeout: 500
+- takeScreenshot: tests/results/ios-debug/crypto-subtabs-encrypt
+- tapOn:
+    id: "backButton"
+
+- tapOn:
+    id: "crypto-nav-decryptTab"
+- extendedWaitUntil:
+    visible:
+      id: "crypto-decrypt-input"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/crypto-subtabs-decrypt-keyboard
+- tapOn:
+    point: "5%,5%"
+- waitForAnimationToEnd:
+    timeout: 500
+- takeScreenshot: tests/results/ios-debug/crypto-subtabs-decrypt
+- tapOn:
+    id: "backButton"
+
+- tapOn:
+    id: "crypto-nav-signTab"
+- extendedWaitUntil:
+    visible:
+      id: "crypto-sign-input"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/crypto-subtabs-sign-keyboard
+- tapOn:
+    point: "5%,5%"
+- waitForAnimationToEnd:
+    timeout: 500
+- takeScreenshot: tests/results/ios-debug/crypto-subtabs-sign
+- tapOn:
+    id: "backButton"
+
+- tapOn:
+    id: "crypto-nav-verifyTab"
+- extendedWaitUntil:
+    visible:
+      id: "crypto-verify-input"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/crypto-subtabs-verify-keyboard
+- tapOn:
+    point: "5%,5%"
+- waitForAnimationToEnd:
+    timeout: 500
+- takeScreenshot: tests/results/ios-debug/crypto-subtabs-verify
+- tapOn:
+    id: "backButton"

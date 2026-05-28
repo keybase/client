@@ -4,7 +4,7 @@
 // Usage: node visual-diff-take.js <baseline|current>
 //
 // Prerequisites:
-//   - App running with: KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot
+//   - App running with: KB_ENABLE_REMOTE_DEBUG=1 yarn desktop:start:hot
 //   - Run from shared/ directory (needs node_modules/ws)
 
 const WebSocket = require('ws')

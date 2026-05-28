@@ -23,13 +23,13 @@ yarn modules
 
 The following `yarn run` commands, to build, run or package the app:
 
-| Command    | Description                              |
-| ---------- | ---------------------------------------- |
-| start      | Build a development bundle and start app |
-| start-hot  | Electron with hot reloading              |
-| build-dev  | Build development bundle                 |
-| build-prod | Build prod bundle                        |
-| package    | Package app                              |
+| Command              | Description                              |
+| -------------------- | ---------------------------------------- |
+| desktop:start        | Build a development bundle and start app |
+| desktop:start:hot    | Electron with hot reloading              |
+| desktop:build:dev    | Build development bundle                 |
+| desktop:build:prod   | Build prod bundle                        |
+| desktop:package      | Package app                              |
 
 You can set environment variables for debugging:
 
@@ -62,7 +62,7 @@ Requires `playwright-core` installed globally:
 yarn global add playwright-core
 ```
 
-Start the app with `yarn start-hot-debug`, then see `perf/PERF-TESTING.md` for usage.
+Start the app with `yarn desktop:start:hot:debug`, then see `perf/PERF-TESTING.md` for usage.
 
 ## Other docs
 

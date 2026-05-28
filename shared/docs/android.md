@@ -2,8 +2,8 @@
 
 1. `brew install watchman` (install file watcher)
 1. `adb devices` (should list _exactly_ one device)
-1. `yarn rn-gobuild-android`
-1. `yarn android-debug`
+1. `yarn android:gobuild`
+1. `yarn android:debug`
 
 ## Prereqs
 
@@ -11,7 +11,7 @@ Follow instructions for running an android project at https://reactnative.dev/
 
 ### Installing an NDK version
 
-Additionally an `NDK` version needs to be installed for `yarn rn-gobuild-android` to work.
+Additionally an `NDK` version needs to be installed for `yarn android:gobuild` to work.
 
 **With Android Studio**
 You will already have the `sdkmanager` command line tool installed. So run:
@@ -64,7 +64,7 @@ KERNEL=="kvm", NAME="%k", GROUP="kvm", MODE="0660"
 ## Running
 
 ```sh
-yarn android-debug
+yarn android:debug
 ```
 
 Unless you're modifying the Java files or you're modifying Go files
@@ -132,8 +132,8 @@ adb reverse tcp:8081 tcp:8081
 To recap, you should have run:
 
 1. `adb devices` (should list _exactly_ one device)
-1. `yarn rn-gobuild-android`
-1. `yarn android-debug`
+1. `yarn android:gobuild`
+1. `yarn android:debug`
 
 Happy developing!
 
@@ -143,7 +143,7 @@ Happy developing!
 
 can you see the packager in your computer's browser if you go to localhost:8081?
 
-no -> You aren't runnning the packager, run `yarn rn-start2`
+no -> You aren't runnning the packager, run `yarn rn:start`
 
 yes:
 can you see the packager in android's browser if you go to localhost:8081?

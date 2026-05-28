@@ -370,6 +370,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
     <Kb.ErrorBoundary>
       <div
         data-testid={TestIDs.CHAT_MESSAGE_LIST}
+        className="chat-message-list"
         style={Kb.Styles.castStyleDesktop(desktopStyles.container)}
         onClick={handleListClick}
         onCopyCapture={onCopyCapture}

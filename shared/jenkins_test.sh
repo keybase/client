@@ -59,18 +59,18 @@ js_tests() {
 	git diff --exit-code yarn.lock
 	check_rc $? 'unexpected yarn.lock changes, did you forget to commit it? Do you have an inexact semver?' 1
 
-	yarn build-emoji
-	check_rc $? 'yarn build-emoji failed!' 1
+	yarn gen:emoji
+	check_rc $? 'yarn gen:emoji failed!' 1
 	git diff --exit-code ../go/chat/storage/emoji_codemap.go
-	check_rc $? 'unexpected generated emoji changes, did you forget to yarn build-emoji?' 1
+	check_rc $? 'unexpected generated emoji changes, did you forget to yarn gen:emoji?' 1
 
 	echo 'yarn tsc'
 	yarn tsc --project ./tsconfig.json
 	check_rc $? 'tsc failed!' 1
 
-	echo 'yarn test'
-	yarn test
-	check_rc $? 'yarn test failed!' 1
+	echo 'yarn test:unit'
+	yarn test:unit
+	check_rc $? 'yarn test:unit failed!' 1
 }
 
 js_tests

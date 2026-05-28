@@ -44,7 +44,7 @@ if [ -n "$kbfs_commit" ]; then
 	echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
 	git fetch
 	git reset --hard "origin/$kbfs_commit"
-	# tell gobuild.sh (called via "yarn run rn-gobuild-ios" below) to use our local commit
+	# tell gobuild.sh (called via "yarn run ios:gobuild" below) to use our local commit
 	export LOCAL_KBFS=1
 fi
 
@@ -80,12 +80,12 @@ yarn cache clean
 echo "Cleaning up main node_modules from previous runs"
 rm -rf node_modules
 yarn modules
-yarn pod-clean
-yarn pod-install
+yarn ios:pod:clean
+yarn ios:pod:install
 
 if [ ! "$cache_go_lib" = "1" ]; then
 	echo "Building Go library"
-	CHECK_CI="$check_ci" yarn run rn-gobuild-ios
+	CHECK_CI="$check_ci" yarn run ios:gobuild
 fi
 
 "$client_dir/packaging/manage_react_native_packager.sh" &

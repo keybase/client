@@ -3,6 +3,7 @@ import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender} from './output'
 import {
@@ -168,7 +169,7 @@ export const VerifyInput = (_props: unknown) => {
   )
 
   return isMobile ? (
-    <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
+    <Kb.KeyboardAvoidingView2 testID={TestIDs.CRYPTO_VERIFY_INPUT}>{content}</Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
       {content}
@@ -212,6 +213,7 @@ export const VerifyIO = () => {
       prompt={filePrompt}
       inProgress={controller.state.inProgress}
       onAttach={controller.openFile}
+      testID={TestIDs.CRYPTO_VERIFY_INPUT}
     >
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>

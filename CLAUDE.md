@@ -9,11 +9,14 @@
 - Comments: no refactoring notes; only add when context isn't obvious from code.
 - Exact versions in `package.json` (no `^`/`~`).
 - Keep `react`, `react-dom`, `react-native`, `@react-native/*` in sync with Expo SDK.
-- When updating deps: edit `package.json` → `yarn` → `yarn pod-install`.
+- When updating deps: edit `package.json` → `yarn` → `yarn ios:pod:install`.
 - When updating `electron`: run `shared/desktop/extract-electron-shasums.sh <version>`.
 
 ## Working Directory
 Repo root is `client/`. TS source lives in `shared/`. Always use absolute paths for file ops. For Bash: always `cd shared/` first.
+
+## Superpowers
+- Plans created by superpowers skills go into `plans/` at the repo root.
 
 ## Validation
 After TS changes (from `shared/`): `yarn lint` then `yarn tsc`. When debugging visually, skip until fix is confirmed. Never delete the ESLint cache.

@@ -271,7 +271,7 @@ playwright-cli close
 
 The Electron app must be running with remote debugging enabled:
 ```bash
-cd shared && KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot
+cd shared && KB_ENABLE_REMOTE_DEBUG=1 yarn desktop:start:hot
 ```
 
 ### Connecting

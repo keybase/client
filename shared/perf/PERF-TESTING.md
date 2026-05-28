@@ -8,7 +8,7 @@ Tools and workflows for measuring performance in the Keybase app, covering the d
 
 1. Install Maestro: `curl -Ls "https://get.maestro.mobile.dev" | bash`
 2. iOS Simulator booted (e.g. iPhone 17 Pro)
-3. Metro running with debug logging: `cd shared && yarn rn-start-debug`
+3. Metro running with debug logging: `cd shared && yarn rn:start`
 4. App built and installed on the simulator
 5. App must be logged in (provision manually before first test run)
 
@@ -31,23 +31,26 @@ The flow:
 
 ```bash
 # Quick run (default — skips build, 3 runs, picks median). Use this for JS-only changes.
-cd shared && yarn maestro-test-perf
+cd shared && yarn perf:thread:ios
 
 # Single run (faster, less accurate)
-cd shared && yarn maestro-test-perf --runs 1
+cd shared && yarn perf:thread:ios --runs 1
 
 # Full run (builds the app first). Only needed when native code changes
 # (e.g. files in ios/, android/, rnmodules/, go/bind/).
-cd shared && yarn maestro-test-perf --build
+cd shared && yarn perf:thread:ios --build
 
 # Run teams scroll perf test
-cd shared && yarn maestro-test-perf-teams
+cd shared && yarn perf:teams:ios
+
+# Run inbox scroll perf test
+cd shared && yarn perf:inbox:ios
 
 # Run any Maestro flow
-cd shared && yarn maestro-test --flow performance/perf-inbox-scroll.yaml
+cd shared && yarn perf:ios --flow performance/perf-inbox-scroll.yaml
 
 # Custom simulator
-cd shared && yarn maestro-test-perf --simulator "iPhone 16 Pro"
+cd shared && yarn perf:thread:ios --simulator "iPhone 16 Pro"
 ```
 
 ### Available Flows
@@ -174,25 +177,25 @@ Shared subflows live in `shared/.maestro/subflows/` (e.g. `navigate-to-chat.yaml
 
 ### Prerequisites
 
-- App running with remote debugging: `yarn start-hot-debug`
+- App running with remote debugging: `yarn desktop:start:hot:debug`
 - `playwright-core` installed globally: `yarn global add playwright-core`
 
 ### Automated Thread Scroll Test
 
-Equivalent to `yarn maestro-test-perf-thread` for desktop. Navigates to chat, opens the first conversation, scrolls the message list, and reports FPS + long task metrics.
+Equivalent to `yarn perf:thread:ios` for desktop. Navigates to chat, opens the first conversation, scrolls the message list, and reports FPS + long task metrics.
 
 ```bash
 # Capture (default 3 runs, picks median, saves baseline automatically)
-cd shared && yarn desktop-perf-thread
+cd shared && yarn perf:thread:electron
 
 # Single run (faster)
-cd shared && yarn desktop-perf-thread --runs 1
+cd shared && yarn perf:thread:electron --runs 1
 
 # Skip auto-navigation (if you already have a thread open)
-cd shared && yarn desktop-perf-thread --no-navigate
+cd shared && yarn perf:thread:electron --no-navigate
 
 # Compare two saved baselines (no app connection needed)
-cd shared && yarn desktop-perf-compare <hash-a> <hash-b>
+cd shared && yarn perf:compare <hash-a> <hash-b>
 ```
 
 Baselines are saved to `shared/perf/baselines/<short-git-hash>/` (gitignored):
@@ -204,17 +207,17 @@ Baselines are saved to `shared/perf/baselines/<short-git-hash>/` (gitignored):
 1. Check out the base branch, run capture:
    ```bash
    git checkout master
-   cd shared && yarn desktop-perf-thread
+   cd shared && yarn perf:thread:electron
    ```
    Note the saved baseline hash from the output.
 2. Switch to your feature branch, run capture again:
    ```bash
    git checkout my-feature-branch
-   cd shared && yarn desktop-perf-thread
+   cd shared && yarn perf:thread:electron
    ```
 3. Compare:
    ```bash
-   cd shared && yarn desktop-perf-compare <base-hash> <feature-hash>
+   cd shared && yarn perf:compare <base-hash> <feature-hash>
    ```
 
 Comparison output:
@@ -234,7 +237,7 @@ Memory end    215MB     212MB
 
 ### Manual Workflow (Playwright MCP + Claude)
 
-1. Start the app: `yarn start-hot-debug` (requires Playwright MCP configured)
+1. Start the app: `yarn desktop:start:hot:debug` (requires Playwright MCP configured)
 2. In Claude, close the DevTools tab (`browser_tabs` action=close index=0) and select the app tab
 3. Navigate to the target page via snapshot + click
 4. Read and inject the perf measurement script:
@@ -309,7 +312,7 @@ By default, 3 runs are performed and the median (by `totalDurationMs`) is saved.
 
 ```bash
 # Run the test — baseline is saved automatically (3 runs, median)
-cd shared && yarn maestro-test-perf
+cd shared && yarn perf:thread:ios
 ```
 
 Output includes:
@@ -332,7 +335,7 @@ react-profiler.json  maestro-fps.json
 
 ```bash
 # Compare current run against a saved baseline
-cd shared && yarn maestro-test-perf --compare baselines/<hash>
+cd shared && yarn perf:thread:ios --compare baselines/<hash>
 ```
 
 Output:
@@ -354,8 +357,8 @@ InboxRow-big                  1338      900     -33%     362    210
 1. Check out the **base branch** and run a test (use `--build` only if native code changed):
    ```bash
    git checkout nojima/HOTPOT-next-670-clean
-   cd shared && yarn maestro-test-perf          # JS-only changes
-   cd shared && yarn maestro-test-perf --build   # native code changes
+   cd shared && yarn perf:thread:ios          # JS-only changes
+   cd shared && yarn perf:thread:ios --build  # native code changes
    ```
    Note the saved baseline hash from the output.
 2. Switch to the **feature branch**:
@@ -364,7 +367,7 @@ InboxRow-big                  1338      900     -33%     362    210
    ```
 3. Run with comparison against the saved baseline:
    ```bash
-   cd shared && yarn maestro-test-perf --compare baselines/<base-hash>
+   cd shared && yarn perf:thread:ios --compare baselines/<base-hash>
    ```
 4. Review the side-by-side output. Negative percentages for React metrics and positive for FPS indicate improvement.
 
@@ -374,7 +377,7 @@ Pixel-level comparison of all 8 desktop app tabs between branches to catch visua
 
 ### Prerequisites
 
-- App running with remote debugging: `yarn start-hot-debug`
+- App running with remote debugging: `yarn desktop:start:hot:debug`
 - ImageMagick installed: `brew install imagemagick`
 
 ### Workflow
@@ -384,7 +387,7 @@ Pixel-level comparison of all 8 desktop app tabs between branches to catch visua
 ```bash
 # 1. Check out base branch, start app, take baseline screenshots
 git checkout nojima/HOTPOT-next-670-clean
-# (start app with yarn start-hot-debug)
+# (start app with yarn desktop:start:hot:debug)
 cd shared && node perf/visual-diff-take.js baseline
 
 # 2. Check out feature branch, rebuild, take current screenshots
@@ -398,7 +401,7 @@ cd shared && ./perf/visual-diff-compare.sh
 
 #### Option B: Using Playwright MCP + Claude
 
-1. Start the app: `yarn start-hot-debug`
+1. Start the app: `yarn desktop:start:hot:debug`
 2. In Claude, close DevTools tab and select the app tab
 3. Navigate to each tab and take screenshots:
    - Save baseline set to `/tmp/visual-diff/baseline/`

@@ -3,6 +3,7 @@ import * as Crypto from '@/constants/crypto'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {openURL} from '@/util/misc'
 import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from './output'
@@ -181,7 +182,7 @@ export const SignInput = (_props: unknown) => {
   )
 
   return isMobile ? (
-    <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
+    <Kb.KeyboardAvoidingView2 testID={TestIDs.CRYPTO_SIGN_INPUT}>{content}</Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
       {content}
@@ -225,6 +226,7 @@ export const SignIO = () => {
       prompt={filePrompt}
       inProgress={controller.state.inProgress}
       onAttach={controller.openFile}
+      testID={TestIDs.CRYPTO_SIGN_INPUT}
     >
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>

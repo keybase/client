@@ -7,7 +7,7 @@
 #
 # Prerequisites:
 #   - Maestro CLI installed: curl -Ls "https://get.maestro.mobile.dev" | bash
-#   - Metro running with: yarn rn-start-debug (pipes to /tmp/metro.log)
+#   - Metro running with: yarn rn:start (pipes to /tmp/metro.log)
 #
 # Options:
 #   --build         Build the app before running (default: skip build)
@@ -64,7 +64,7 @@ fi
 
 # Check Metro is running
 if ! grep -q "" /tmp/metro.log 2>/dev/null; then
-  echo "Error: /tmp/metro.log not found. Start Metro with: cd shared && yarn rn-start-debug"
+  echo "Error: /tmp/metro.log not found. Start Metro with: cd shared && yarn rn:start"
   exit 1
 fi
 

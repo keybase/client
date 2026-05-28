@@ -6,7 +6,7 @@ gopath=${GOPATH:-}
 
 cd "$gopath/src/github.com/keybase/client/shared"
 
-yarn run rn-start &
+yarn run rn:start:legacy &
 npm_cmd_pid=$!
 
 while [[ -z "$(pgrep -P $npm_cmd_pid)" ]]

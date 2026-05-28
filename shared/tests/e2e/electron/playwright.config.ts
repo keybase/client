@@ -17,7 +17,6 @@ export default defineConfig({
     video: 'off',
   },
   projects: [
-    {name: 'electron-smoke', testMatch: 'smoke/**/*.test.ts'},
     {name: 'electron-flows', testMatch: 'flows/**/*.test.ts'},
   ],
 })

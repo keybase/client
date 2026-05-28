@@ -25,4 +25,4 @@ Pass asset names (without extension) to the delete script:
 ./skill/keybase-unused-assets/delete-unused-assets.sh icon-foo-bar illustration-welcome
 ```
 
-This removes all variants (`@2x`, `@3x`, etc.) for each name across all asset directories, then runs `yarn update-icon-constants` to regenerate the icon constants files.
+This removes all variants (`@2x`, `@3x`, etc.) for each name across all asset directories, then runs `yarn gen:icon-constants` to regenerate the icon constants files.

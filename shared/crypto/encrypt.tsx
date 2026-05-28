@@ -27,6 +27,7 @@ import logger from '@/logger'
 import {useCurrentUserState} from '@/stores/current-user'
 import type {RootRouteProps} from '@/router-v2/route-params'
 import {useRoute} from '@react-navigation/core'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 const bannerMessage = Crypto.infoMessage.encrypt
 const filePrompt = 'Drop a file to encrypt'
@@ -516,7 +517,7 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
   )
 
   return isMobile ? (
-    <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
+    <Kb.KeyboardAvoidingView2 testID={TestIDs.CRYPTO_ENCRYPT_INPUT}>{content}</Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
       {content}
@@ -569,7 +570,7 @@ export const EncryptIO = () => {
   const appendEncryptRecipientsBuilder = C.Router2.appendEncryptRecipientsBuilder
 
   return (
-    <DragAndDrop allowFolders={true} prompt={filePrompt} inProgress={controller.state.inProgress} onAttach={controller.openFile}>
+    <DragAndDrop allowFolders={true} prompt={filePrompt} inProgress={controller.state.inProgress} onAttach={controller.openFile} testID={TestIDs.CRYPTO_ENCRYPT_INPUT}>
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
           <CryptoBanner infoMessage={bannerMessage} state={controller.state} />

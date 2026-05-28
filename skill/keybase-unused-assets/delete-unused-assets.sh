@@ -40,4 +40,4 @@ done
 
 echo "Deleted $deleted file(s)."
 echo "Regenerating icon constants..."
-cd "$SHARED_ROOT" && yarn update-icon-constants
+cd "$SHARED_ROOT" && yarn gen:icon-constants

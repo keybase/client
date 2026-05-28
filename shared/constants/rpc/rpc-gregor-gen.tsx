@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-// This file is auto-generated. Run `yarn update-protocol` to regenerate it.
+// This file is auto-generated. Run `yarn gen:protocol` to regenerate it.
 
 
 

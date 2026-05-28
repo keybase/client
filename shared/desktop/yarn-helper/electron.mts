@@ -20,38 +20,30 @@ type RendererConfig = Configuration & {
 }
 
 const commands = {
-  'inject-code-prod': {
-    help: 'Copy current code into currently installed Keybase app',
-    shell: 'yarn run package; cp dist/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist/',
-  },
-  'inject-sourcemaps-prod': {
-    help: '[Path to sourcemaps]: Copy sourcemaps into currently installed Keybase app',
-    shell: "a(){ cp '$1'/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a",
-  },
   profile: {
     env: {PROFILE: 'true'},
     help: 'Start electron with profiling react',
-    shell: 'yarn run build-profile && yarn run start-profile',
+    shell: 'yarn run desktop:build:profile && yarn run desktop:start:profile',
   },
   start: {
     help: 'Do a simple dev build',
-    shell: 'yarn run build-dev && yarn run start-cold',
+    shell: 'yarn run desktop:build:dev && yarn run desktop:start:cold',
   },
-  'start-cold': {
+  'start:cold': {
     help: 'Start electron with no hot reloading',
     nodeEnv: 'development',
     shell: `electron ${debugInNode} ${path.resolve(__dirname, '../dist/node.dev.bundle.js')}`,
   },
-  'start-hot': {
+  'start:hot': {
     code: startHot,
     env: {HOT: 'true'},
     help: 'Start electron with renderer HMR and restart on main/preload changes',
   },
-  'start-prod': {
+  'start:prod': {
     help: 'Launch installed Keybase app with console output',
     shell: '/Applications/Keybase.app/Contents/MacOS/Electron',
   },
-  'start-profile': {
+  'start:profile': {
     help: 'Start electron with profile',
     shell: `electron ${path.resolve(__dirname, '../dist/node.profile.bundle.js')}`,
   },
