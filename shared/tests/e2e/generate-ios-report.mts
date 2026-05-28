@@ -9,7 +9,7 @@ const debugDir = 'tests/results/ios-debug'
 const prevDir = 'tests/results/ios-prev'
 const outputPath = 'tests/results/ios-report.html'
 
-type CommandStatus = 'COMPLETED' | 'FAILED' | 'SKIPPED' | string
+type CommandStatus = string
 type CommandEntry = {
   command: Record<string, unknown>
   metadata: {status: CommandStatus; timestamp: number; duration: number; sequenceNumber: number; error?: string}
@@ -78,7 +78,7 @@ function parseTest(name: string): TestResult {
   const failed = commands.find(c => c.metadata.status === 'FAILED')
   const screenshotCaptured = commands.some(c => 'takeScreenshotCommand' in c.command && c.metadata.status === 'COMPLETED')
   const passed = screenshotCaptured && !failed
-  const durationMs = commands.reduce((sum, c) => sum + (c.metadata.duration ?? 0), 0)
+  const durationMs = commands.reduce((sum, c) => sum + c.metadata.duration, 0)
   const errorMessage = failed
     ? (failed.metadata.error ?? `${Object.keys(failed.command)[0] ?? 'unknown'} failed`)
     : !screenshotCaptured ? 'Test did not complete' : null

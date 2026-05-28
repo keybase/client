@@ -1,18 +1,30 @@
 appId: keybase.ios
 ---
-- tapOn:
-    id: "backButton"
-    optional: true
-    timeout: 500
-- tapOn:
-    id: "backButton"
-    optional: true
-    timeout: 500
-- tapOn:
-    id: "backButton"
-    optional: true
-    timeout: 500
-- tapOn:
-    id: "backButton"
-    optional: true
-    timeout: 500
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"

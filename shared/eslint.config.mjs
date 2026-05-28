@@ -26,6 +26,7 @@ const ignores = [
   'react-native/wipe-cache.js',
   'rn-cli.config.js',
   'rn-transformer.js',
+  'tests/results/**',
 ]
 
 const rules = {

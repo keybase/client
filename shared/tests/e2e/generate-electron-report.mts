@@ -37,7 +37,7 @@ function slugify(s: string): string {
 function flattenSpecs(suite: PlaywrightSuite): Array<{suiteName: string; spec: PlaywrightSpec}> {
   const out: Array<{suiteName: string; spec: PlaywrightSpec}> = []
   const name = suite.title.replace(/^.*\//, '').replace(/\.test\.ts$/, '')
-  for (const spec of suite.specs ?? []) out.push({suiteName: name, spec})
+  for (const spec of suite.specs) out.push({suiteName: name, spec})
   for (const child of suite.suites ?? []) out.push(...flattenSpecs(child))
   return out
 }
@@ -75,7 +75,8 @@ function parseReport(report: Report): TestCase[] {
         : null
 
       const screenshotAtt = result.attachments.find(a => a.name === 'screenshot' && a.contentType === 'image/png')
-      const screenshotB64 = screenshotAtt?.body ?? null
+      const screenshotB64 = screenshotAtt?.body
+        ?? (screenshotAtt?.path ? fs.readFileSync(screenshotAtt.path).toString('base64') : null)
 
       const prevPath = path.join(prevDir, `${key}.png`)
       const prevScreenshotPath = fs.existsSync(prevPath) ? prevPath : null

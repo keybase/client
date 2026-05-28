@@ -137,7 +137,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
   }
 
   const {feedback = true, onClick, onPressIn, onPressOut, onLongPress} = props
-  const {style, activeOpacity, children} = props
+  const {style, activeOpacity, children, testID} = props
 
   if (onClick) {
     const clickStyle = Styles.collapseStyles([nativeStyles.box, style])
@@ -150,6 +150,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
           onPressOut={onPressOut}
           onLongPress={onLongPress}
           style={clickStyle}
+          testID={testID}
           activeOpacity={activeOpacity ?? 0.7}
         >
           {children}
@@ -163,7 +164,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
           onPress={onClick}
           onLongPress={onLongPress}
         >
-          <View style={clickStyle}>{children}</View>
+          <View style={clickStyle} testID={testID}>{children}</View>
         </TouchableWithoutFeedback>
       )
     }
@@ -173,7 +174,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
         console.warn("Passed onPress*/on*Press with no onPress, which isn't supported on the native side")
       }
     }
-    return <View style={style}>{children}</View>
+    return <View style={style} testID={testID}>{children}</View>
   }
 }
 

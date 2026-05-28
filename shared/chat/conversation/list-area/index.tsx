@@ -714,7 +714,7 @@ const NativeConversationList = function NativeConversationList() {
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
           <List
             key={conversationIDKey}
-            testID="messageList"
+            testID={TestIDs.CHAT_MESSAGE_LIST}
             onScrollToIndexFailed={noop}
             estimatedItemSize={72}
             ListHeaderComponent={SpecialBottomMessage}

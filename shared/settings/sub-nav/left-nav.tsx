@@ -19,8 +19,7 @@ const {navigate} = props
   const badgeNotifications = usePushState(s => (isElectron ? 0 : !s.hasPermissions ? 1 : 0))
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} testID={TestIDs.SETTINGS_ACCOUNT}>
-    <Kb.ScrollView style={styles.container}>
+    <Kb.ScrollView style={styles.container} testID={TestIDs.SETTINGS_ACCOUNT}>
         {Kb.Styles.isTablet && (
           <>
             <SettingsItem
@@ -150,7 +149,6 @@ const {navigate} = props
         removed from the settings page. */}
         <SettingsItem text="Sign out" selected={false} type={'nope'} onClick={() => navigate(Settings.settingsLogOutTab)} />
     </Kb.ScrollView>
-    </Kb.Box2>
   )
 }
 

@@ -96,7 +96,7 @@ const SmallTeam = (p: Props) => {
   return (
     <SwipeConvActions conversationIDKey={conversationIDKey} onPress={onSelectConversation}>
       {isMobile ? (
-        <Kb.Box2 direction="vertical" style={containerStyle}>
+        <Kb.Box2 direction="vertical" style={containerStyle} testID={TestIDs.CHAT_INBOX_ROW}>
           {rowContents}
         </Kb.Box2>
       ) : (
