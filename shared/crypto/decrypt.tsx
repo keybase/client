@@ -3,6 +3,7 @@ import * as Crypto from '@/constants/crypto'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender} from './output'
 import {
@@ -167,10 +168,12 @@ export const DecryptInput = (_props: unknown) => {
   )
 
   return isMobile ? (
-    <Kb.KeyboardAvoidingView2>
-      {contents}
-      <InputActionsBar runLabel="Decrypt" onRun={onRun} />
-    </Kb.KeyboardAvoidingView2>
+    <Kb.Box2 direction="vertical" fullHeight={true} testID={TestIDs.CRYPTO_DECRYPT_INPUT}>
+      <Kb.KeyboardAvoidingView2>
+        {contents}
+        <InputActionsBar runLabel="Decrypt" onRun={onRun} />
+      </Kb.KeyboardAvoidingView2>
+    </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
       {contents}
@@ -216,7 +219,7 @@ export const DecryptIO = () => {
       inProgress={controller.state.inProgress}
       onAttach={controller.openFile}
     >
-      <Kb.Box2 direction="vertical" fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullHeight={true} testID={TestIDs.CRYPTO_DECRYPT_INPUT}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
           <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
           <Input

@@ -42,7 +42,7 @@ The script never suggests a downgrade. For packages currently on a stable versio
 cd shared && yarn
 yarn lint
 yarn tsc
-yarn pod-install
+yarn ios:pod:install
 ```
 
 **Lint/tsc failures after a dep update are caused by the update** — do not try to prove they are pre-existing. The branch is clean before the update starts, so any new errors are ours to fix. Fix them before proceeding. If the failures are large or unclear, stop and ask for guidance rather than guessing.

@@ -166,7 +166,7 @@ function main() {
 
   if (!fs.existsSync(resultsPath)) {
     console.error(`Results not found: ${resultsPath}`)
-    console.error('Run yarn test:e2e:smoke first.')
+    console.error('Run yarn test:e2e first.')
     process.exit(1)
   }
 

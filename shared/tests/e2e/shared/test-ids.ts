@@ -41,8 +41,16 @@ export const GIT_REPO_LIST = 'git-repo-list'
 export const GIT_REPO_ROW  = 'git-repo-row'
 
 // Crypto
-export const CRYPTO_INPUT  = 'crypto-input'
-export const CRYPTO_OUTPUT = 'crypto-output'
+export const CRYPTO_INPUT         = 'crypto-input'
+export const CRYPTO_OUTPUT        = 'crypto-output'
+export const CRYPTO_NAV_ENCRYPT   = 'crypto-nav-encryptTab'
+export const CRYPTO_NAV_DECRYPT   = 'crypto-nav-decryptTab'
+export const CRYPTO_NAV_SIGN      = 'crypto-nav-signTab'
+export const CRYPTO_NAV_VERIFY    = 'crypto-nav-verifyTab'
+export const CRYPTO_ENCRYPT_INPUT = 'crypto-encrypt-input'
+export const CRYPTO_DECRYPT_INPUT = 'crypto-decrypt-input'
+export const CRYPTO_SIGN_INPUT    = 'crypto-sign-input'
+export const CRYPTO_VERIFY_INPUT  = 'crypto-verify-input'
 
 // Common — keep value matching existing testID="backButton" in .maestro subflows
 export const COMMON_BACK_BUTTON = 'backButton'

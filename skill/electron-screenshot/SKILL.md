@@ -9,7 +9,7 @@ Take a screenshot of the running Electron app via Playwright MCP and display it.
 
 The Electron app must be running with remote debugging enabled:
 ```
-KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot
+KB_ENABLE_REMOTE_DEBUG=1 yarn desktop:start:hot
 ```
 This launches Electron with `--remote-debugging-port=9222`.
 
@@ -30,7 +30,7 @@ This launches Electron with `--remote-debugging-port=9222`.
 
 ## Error Handling
 
-- If Playwright MCP cannot connect, tell the user the Electron app may not be running with remote debugging. Suggest launching with `cd shared && KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot`.
+- If Playwright MCP cannot connect, tell the user the Electron app may not be running with remote debugging. Suggest launching with `cd shared && KB_ENABLE_REMOTE_DEBUG=1 yarn desktop:start:hot`.
 - If `sips` fails, fall back to displaying the original screenshot directly.
 
 ## Notes

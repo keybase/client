@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const commands = {
-  'update-icon-constants': {
+  'update:icon-constants': {
     code: updateIconConstants,
     help: 'Update icon.constants-gen.tsx and icon.css with new/removed files',
   },

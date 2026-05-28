@@ -12,6 +12,7 @@ type Props = {
   title: string
   description: string
   onClick?: (event: React.BaseSyntheticEvent) => void
+  testID?: string
 }
 
 const Kb = {
@@ -28,6 +29,7 @@ const RichButton = (props: Props) => {
     <Kb.ClickableBox
       className="hover_container"
       style={Styles.collapseStyles([styles.containerStyle, isPressing && styles.mobileContainer])}
+      testID={props.testID}
       onClick={props.onClick}
       onPressIn={() => setPressing(true)}
       onPressOut={() => setPressing(false)}

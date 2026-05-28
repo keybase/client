@@ -5,13 +5,14 @@
       "Bash(yarn lint-warn:*)",
       "Bash(yarn prettier:*)",
       "Bash(yarn build-*)",
-      "Bash(yarn package)",
-      "Bash(yarn start*)",
-      "Bash(yarn rn-gobuild*)",
+      "Bash(yarn desktop:package)",
+      "Bash(yarn desktop:start*)",
+      "Bash(yarn android:gobuild)",
+      "Bash(yarn ios:gobuild)",
       "Bash(yarn rn-download-android*)",
       "Bash(yarn tsc)",
       "Bash(yarn tsc:*)",
-      "Bash(yarn pod*)",
+      "Bash(yarn ios:pod*)",
       "Bash(yarn coverage:*)",
       "Bash(yarn maestro*)"
     ]

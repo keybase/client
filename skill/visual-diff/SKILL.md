@@ -12,7 +12,7 @@ Ask the user which platform to test if unclear: **desktop** (Electron via Playwr
 ## Desktop Workflow
 
 ### Prerequisites
-- App running with `KB_ENABLE_REMOTE_DEBUG=1 yarn start-hot`
+- App running with `KB_ENABLE_REMOTE_DEBUG=1 yarn desktop:start:hot`
 - ImageMagick installed (`brew install imagemagick`)
 
 ### Option A: Automated Scripts (preferred)

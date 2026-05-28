@@ -20,6 +20,7 @@ const NavRow = (props: Props) => {
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
+      testID={`crypto-nav-${props.tab}`}
       className={Kb.Styles.classNames({
         background_color_blue: isSelected,
         hover_background_color_blueGreyDark: !isSelected,
@@ -61,7 +62,7 @@ const NavRow = (props: Props) => {
 
   const mobileRow =
     description && illustration ? (
-      <Kb.RichButton title={title} description={description} icon={illustration} onClick={onClick} />
+      <Kb.RichButton testID={`crypto-nav-${props.tab}`} title={title} description={description} icon={illustration} onClick={onClick} />
     ) : null
 
   return isMobile ? mobileRow : desktopRow

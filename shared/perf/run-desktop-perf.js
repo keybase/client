@@ -4,7 +4,7 @@
 // Connects to a running Electron app via CDP, navigates to a screen, scrolls, and saves FPS + React render stats.
 //
 // Prerequisites:
-//   - App running: yarn start-hot-debug
+//   - App running: yarn desktop:start:hot:debug
 //   - playwright-core installed globally: yarn global add playwright-core
 //
 // Capture:  node perf/run-desktop-perf.js [--flow <name>] [--runs N] [--no-navigate]
@@ -118,7 +118,7 @@ async function main() {
   try {
     browser = await playwright.chromium.connectOverCDP('http://localhost:9222')
   } catch (e) {
-    console.error('Failed to connect. Is the app running with yarn start-hot-debug?')
+    console.error('Failed to connect. Is the app running with yarn desktop:start:hot:debug?')
     console.error(e.message)
     process.exit(1)
   }

@@ -10,7 +10,7 @@ Build production bundles for both platforms and analyze them for correct tree-sh
 **Desktop (webpack):**
 ```bash
 # From shared/
-yarn build-prod
+yarn desktop:build:prod
 ```
 Output lands in `shared/desktop/dist/`. Prod bundles have no `.dev` or `.profile` suffix — filter with:
 ```bash
@@ -20,14 +20,14 @@ ls shared/desktop/dist/*.bundle.js | grep -v '\.dev\.' | grep -v '\.profile\.'
 **iOS (Metro):**
 ```bash
 # From shared/
-yarn rn-jsbuild-ios
+yarn ios:jsbundle
 ```
 Output: `shared/ios/dist/main.jsbundle`
 
 **Android (Metro):**
 ```bash
 # From shared/
-yarn rn-jsbuild-android
+yarn android:jsbundle
 ```
 Output: `shared/android/dist/main.jsbundle`
 

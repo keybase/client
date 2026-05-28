@@ -7,12 +7,12 @@ const spaceArg = os.platform() === 'win32' ? ' --max_old_space_size=4096' : ''
 const outputStats = false as boolean
 
 const commands = {
-  'build-dev': {
+  'build:dev': {
     env: {NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
     shell: `${webpackCmd} --mode development --progress --profile`,
   },
-  'build-prod': {
+  'build:prod': {
     env: {
       NO_SERVER: 'true',
       STATS: outputStats ? 'true' : 'false',
@@ -22,7 +22,7 @@ const commands = {
       outputStats ? '--profile --json > webpack-stats.json' : ''
     }`,
   },
-  'build-profile': {
+  'build:profile': {
     env: {NO_SERVER: 'true', PROFILE: 'true'},
     help: 'Make a profile build of the js code',
     shell: `${webpackCmd} --mode production --progress --profile`,
