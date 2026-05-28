@@ -41,9 +41,10 @@
   }
 }
 
-[data-testid='message-list'] [data-index]:has(.WrapperMessage-hoverBox:hover) {
+.chat-message-list [data-index]:has(.WrapperMessage-hoverBox:hover) {
   contain: layout style !important;
   overflow: visible !important;
+  z-index: 1;
 }
 
 .WrapperMessage-hoverBox {
