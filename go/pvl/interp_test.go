@@ -2188,6 +2188,44 @@ var interpUnitTests = []interpUnitTest{
 		errstatus:  keybase1.ProofStatus_CONTENT_FAILURE,
 		errstr:     "Regex did not match (^foo$)",
 	},
+	{
+		name:      "TwitterOEmbed-accepts-xcom",
+		proofinfo: infoTwitterX,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_TWITTER: `[[
+{"regex_capture": {
+  "pattern": "^https://(?:twitter|x)\\.com/([^/]+)/status/(\\d+)(.*)$",
+  "from": "hint_url",
+  "into": ["username_from_url", "tweet_id", "remainder"] } },
+{"assert_compare": {
+  "cmp": "cicmp",
+  "a": "username_from_url",
+  "b": "username_service" } },
+{"fill": {
+  "with": "https://api.twitter.com/1/statuses/oembed.json?id=%{tweet_id}",
+  "into": "our_url" } },
+{"fetch": {
+  "from": "our_url",
+  "kind": "json" } },
+{"selector_json": {
+  "selectors": ["author_url"],
+  "into": "author_url" } },
+{"regex_capture": {
+  "pattern": "^https://(?:twitter|x)\\.com/(.+)$",
+  "from": "author_url",
+  "into": ["author_username"] } },
+{"assert_compare": {
+  "cmp": "cicmp",
+  "a": "author_username",
+  "b": "username_service" } }
+]]`,
+		},
+		service:     keybase1.ProofType_TWITTER,
+		restype:     libkb.XAPIResJSON,
+		urloverride: "https://api.twitter.com/1/statuses/oembed.json?id=5",
+		resjson:     `{"author_url":"https://x.com/kronkinator","html":"<blockquote><p>Verifying myself: I am kronk on Keybase.io. 9JHQ8ZNOFRORQUpmH0jLbNbFClOccMEghH5l /</p></blockquote>"}`,
+		shouldwork:  true,
+	},
 }
 
 func TestUnits(t *testing.T) {
