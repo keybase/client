@@ -8,6 +8,8 @@ Each bucket is a logical group for one or more PRs. Items are ordered easiest-fi
 
 Out of scope = screens that create, delete, add, invite, or remove something. Everything else is in scope even if it requires app state to reach.
 
+**testID rule:** Never wrap existing component content in a new `Kb.Box2` (or any container) just to attach a `testID`. Instead, add the `testID` prop directly to an element that already exists in the component — an input, a scroll view, a pre-existing wrapper, etc.
+
 ---
 
 ## Bucket 1 — Crypto sub-tabs (inputs)
