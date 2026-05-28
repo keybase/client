@@ -907,12 +907,9 @@ type serverTimeboundsRes struct {
 
 func ServerTimeboundsRecommendation(ctx context.Context, g *libkb.GlobalContext) (ret stellar1.TimeboundsRecommendation, err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
-	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/timebounds",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        libkb.HTTPArgs{},
-		RetryCount:  3,
-	}
+	apiArg := libkb.NewRetryAPIArg("stellar/timebounds")
+	apiArg.SessionType = libkb.APISessionTypeREQUIRED
+	apiArg.Args = libkb.HTTPArgs{}
 	var res serverTimeboundsRes
 	if err := mctx.G().API.GetDecode(mctx, apiArg, &res); err != nil {
 		return ret, err
