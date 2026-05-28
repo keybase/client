@@ -5,6 +5,8 @@ type WorkerFixtures = {_electronPage: Page}
 
 export const test = base.extend<{page: Page}, WorkerFixtures>({
   _electronPage: [
+    // Playwright requires object destructuring syntax here — it uses static analysis to
+    // detect fixture dependencies, so a plain identifier like `_fixtures` breaks injection.
     // eslint-disable-next-line no-empty-pattern
     async ({}, setup) => {
       const {page} = await connectToElectron()
