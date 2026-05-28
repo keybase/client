@@ -37,11 +37,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
   scroll: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.fillWidth,
+      ...Kb.Styles.globalStyles.fullWidth,
       maxHeight: maxVisibleRows * teamRowHeight,
     },
   }),
-  scrollContent: Kb.Styles.globalStyles.fillWidth,
+  scrollContent: Kb.Styles.globalStyles.fullWidth,
 }))
 
 export default TeamSection
