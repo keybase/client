@@ -7,6 +7,7 @@ import {useTeamsRoleMap} from '../use-teams-list'
 import {type CachedResourceCache, getCachedResourceCache, useCachedResource} from '../use-cached-resource'
 
 type LoadedTeam = {
+  loaded: boolean
   loading: boolean
   reload: () => Promise<void>
   teamDetails: T.Teams.TeamDetails
@@ -86,7 +87,7 @@ const useLoadedTeamRaw = (
     [cacheMap, validTeamID]
   )
   const initialData = React.useMemo(() => emptyLoadedTeamData(validTeamID), [validTeamID])
-  const {data, loading, reload, clear} = useCachedResource({
+  const {data, loaded, loading, reload, clear} = useCachedResource({
     cache,
     cacheKey: validTeamID,
     enabled: enabled && !!validTeamID,
@@ -144,7 +145,7 @@ const useLoadedTeamRaw = (
     }
   }, subscribeToUpdates)
 
-  return {...data, loading, reload, teamMeta, yourOperations}
+  return {...data, loaded, loading, reload, teamMeta, yourOperations}
 }
 
 export const LoadedTeamProvider = (props: React.PropsWithChildren<{teamID: T.Teams.TeamID}>) => {

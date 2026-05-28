@@ -2,11 +2,12 @@ import * as React from 'react'
 import * as C from '@/constants'
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
-import OpenMeta from './openmeta'
-import {default as TeamInfo, type Props as TIProps} from './teaminfo'
 import {useCurrentUserState} from '@/stores/current-user'
 import {useTeamsList} from '@/teams/use-teams-list'
 import {showTeamByName} from '@/teams/team-page-actions'
+import TeamRow from './team-row'
+import TeamSection from './team-section'
+import useTeamInfoPopup from './use-team-info-popup'
 
 type OwnProps = {
   teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
@@ -38,12 +39,9 @@ const Container = (ownProps: OwnProps) => {
     void showTeamByName(teamname)
   }
   const onEdit = isYou && youAreInTeams ? onEditTeams : undefined
+
   return onEdit || teamShowcase.length > 0 ? (
-    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.showcases}>
-      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-        <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
-        {!!onEdit && <Kb.Icon type="iconfont-edit" onClick={onEdit} />}
-      </Kb.Box2>
+    <TeamSection title="Featured teams" right={!!onEdit && <Kb.Icon type="iconfont-edit" onClick={onEdit} />}>
       {!!onEdit && !teamShowcase.length && <ShowcaseTeamsOffer onEdit={onEdit} />}
       {teamShowcase.map(t => (
         <TeamShowcase
@@ -54,31 +52,23 @@ const Container = (ownProps: OwnProps) => {
           inTeam={teamNames.has(t.name)}
         />
       ))}
-    </Kb.Box2>
+    </TeamSection>
   ) : null
 }
 
-const TeamShowcase = (props: Omit<TIProps, 'visible' | 'onHidden'>) => {
+type TeamShowcaseProps = T.Tracker.TeamShowcase & {
+  inTeam: boolean
+  onJoinTeam: (teamname: string) => void
+  onViewTeam: () => void
+}
+
+const TeamShowcase = (props: TeamShowcaseProps) => {
   const {name, isOpen} = props
-  const makePopup = (p: Kb.Popup2Parms) => {
-    const {attachTo, hidePopup} = p
-    return <TeamInfo {...props} attachTo={attachTo} onHidden={hidePopup} visible={true} />
-  }
-  const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
-  return (
-    <Kb.ClickableBox ref={popupAnchor} onClick={showPopup}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.showcase}>
-        <>
-          {popup}
-          <Kb.Avatar size={32} teamname={props.name} isTeam={true} />
-        </>
-        <Kb.Text type="BodySemiboldLink" style={styles.link}>
-          {name}
-        </Kb.Text>
-        <OpenMeta isOpen={isOpen} />
-      </Kb.Box2>
-    </Kb.ClickableBox>
-  )
+  const {onClick, popup, popupAnchor} = useTeamInfoPopup({
+    popupInfo: props,
+    teamname: name,
+  })
+  return <TeamRow name={name} isOpen={isOpen} onClick={onClick} popup={popup} popupAnchor={popupAnchor} />
 }
 
 const ShowcaseTeamsOffer = (p: {onEdit: () => void}) => (
@@ -97,15 +87,7 @@ const ShowcaseTeamsOffer = (p: {onEdit: () => void}) => (
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      link: {color: Kb.Styles.globalColors.black},
       placeholderTeam: {borderRadius: Kb.Styles.borderRadius},
-      showcase: {alignItems: 'center'},
-      showcases: {
-        alignItems: 'flex-start',
-        flexShrink: 0,
-        paddingBottom: Kb.Styles.globalMargins.small,
-        paddingLeft: Kb.Styles.globalMargins.tiny,
-      },
       youFeatureTeam: {
         alignSelf: 'center',
         color: Kb.Styles.globalColors.black_50,

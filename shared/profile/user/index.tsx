@@ -6,12 +6,14 @@ import Assertion from '@/tracker/assertion'
 import Bio from '@/tracker/bio'
 import Friend from './friend'
 import Teams from './teams'
+import SharedTeams from './shared-teams'
 import chunk from 'lodash/chunk'
 import * as T from '@/constants/types'
 import type {RPCError} from '@/util/errors'
 import upperFirst from 'lodash/upperFirst'
 import {SiteIcon} from '../generic/shared'
 import useUserData from './hooks'
+import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
@@ -47,6 +49,7 @@ export type Props = {
   sbsDescription?: string
   state: T.Tracker.DetailsState
   stellarHidden: boolean
+  sharedTeams?: ReadonlyArray<T.RPCChat.SharedTeam>
   suggestions?: ReadonlyArray<T.Tracker.Assertion>
   teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
   userIsYou: boolean
@@ -192,6 +195,25 @@ const Proofs = (p: BioTeamProofsProps) => {
   )
 }
 
+const TeamSections = (props: {
+  notAUser: boolean
+  sharedTeams?: ReadonlyArray<T.RPCChat.SharedTeam>
+  teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
+  username: string
+}) => (
+  <LoadedTeamsListProvider>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      gap="small"
+      style={styles.teamSections}
+    >
+      <Teams username={props.username} teamShowcase={props.teamShowcase} />
+      {!props.notAUser && <SharedTeams sharedTeams={props.sharedTeams} username={props.username} />}
+    </Kb.Box2>
+  </LoadedTeamsListProvider>
+)
+
 type TabsProps = {
   loadingFollowers: boolean
   loadingFollowing: boolean
@@ -282,6 +304,7 @@ export type BioTeamProofsProps = {
   serviceIcon?: ReadonlyArray<T.Tracker.SiteIcon>
   state: T.Tracker.DetailsState
   stellarHidden: boolean
+  sharedTeams?: ReadonlyArray<T.RPCChat.SharedTeam>
   teamShowcase?: ReadonlyArray<T.Tracker.TeamShowcase>
   fullName?: string
   title: string
@@ -322,7 +345,12 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
       </Kb.Box2>
       <BioLayout {...props} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
-        <Teams teamShowcase={props.teamShowcase} username={props.username} />
+        <TeamSections
+          notAUser={props.notAUser}
+          sharedTeams={props.sharedTeams}
+          teamShowcase={props.teamShowcase}
+          username={props.username}
+        />
         <Proofs {...props} />
         {addIdentity}
       </Kb.Box2>
@@ -349,7 +377,12 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
           <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
             {props.reason}
           </Kb.Text>
-          <Teams teamShowcase={props.teamShowcase} username={props.username} />
+          <TeamSections
+            notAUser={props.notAUser}
+            sharedTeams={props.sharedTeams}
+            teamShowcase={props.teamShowcase}
+            username={props.username}
+          />
           <Proofs {...props} />
           {addIdentity}
         </Kb.Box2>
@@ -477,6 +510,7 @@ const User = (props: {username: string}) => {
               reason={p.reason}
               sbsAvatarUrl={p.sbsAvatarUrl}
               sbsDescription={p.sbsDescription}
+              sharedTeams={p.sharedTeams}
               suggestions={p.suggestions}
               onEditAvatar={p.onEditAvatar}
               notAUser={p.notAUser}
@@ -533,6 +567,7 @@ const User = (props: {username: string}) => {
       p.state,
       p.stellarHidden,
       p.suggestions,
+      p.sharedTeams,
       p.teamShowcase,
       p.title,
       p.username,
@@ -685,6 +720,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {backgroundColor: Kb.Styles.globalColors.white, paddingBottom: Kb.Styles.globalMargins.xtiny},
     isMobile: {minHeight: '100%'},
   }),
+  teamSections: {
+    alignItems: 'flex-start',
+  },
   textEmpty: {
     ...Kb.Styles.paddingV(Kb.Styles.globalMargins.large),
   },

@@ -27,6 +27,8 @@ export const waitingKeyChatMutualTeams = (conversationIDKey: T.Chat.Conversation
 
 export const waitingKeyTracker = 'tracker:waitingKey'
 export const waitingKeyTrackerProfileLoad = 'tracker:profileLoad'
+export const waitingKeyTrackerSharedTeams = (username: string) =>
+  `tracker:sharedTeams:${username.toLowerCase()}`
 
 export const waitingKeyProvision = 'provision:waiting'
 export const waitingKeyProvisionForgotUsername = 'provision:forgotUsername'

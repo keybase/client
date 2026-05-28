@@ -76,7 +76,7 @@ func (s *CachingParticipantSource) Get(ctx context.Context, uid gregor1.UID,
 	ch := s.GetNonblock(ctx, uid, convID, dataSource)
 	for r := range ch {
 		if r.Err != nil {
-			return res, err
+			return res, r.Err
 		}
 		res = r.Uids
 	}

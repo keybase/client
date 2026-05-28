@@ -61,7 +61,7 @@ export type NameWithIconProps = {
 }
 
 // If lineclamping isn't working, try adding a static width in containerStyle
-const NameWithIcon = (props: NameWithIconProps) => {
+export const NameWithIcon = (props: NameWithIconProps) => {
   const {onClick, username = '', teamname, size} = props
   const _onClickWrapper = onClick
     ? (event: React.BaseSyntheticEvent) => {
