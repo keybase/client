@@ -3,6 +3,7 @@ import * as Kb from '@/common-adapters'
 import * as Hooks from './hooks'
 import * as React from 'react'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Separator from '../messages/separator'
 import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
@@ -368,7 +369,7 @@ const DesktopThreadWrapper = function DesktopThreadWrapper() {
   return (
     <Kb.ErrorBoundary>
       <div
-        data-testid="message-list"
+        data-testid={TestIDs.CHAT_MESSAGE_LIST}
         style={Kb.Styles.castStyleDesktop(desktopStyles.container)}
         onClick={handleListClick}
         onCopyCapture={onCopyCapture}
@@ -713,7 +714,7 @@ const NativeConversationList = function NativeConversationList() {
         <Kb.Box2 direction="vertical" fullWidth={true} flex={1} relative={true}>
           <List
             key={conversationIDKey}
-            testID="messageList"
+            testID={TestIDs.CHAT_MESSAGE_LIST}
             onScrollToIndexFailed={noop}
             estimatedItemSize={72}
             ListHeaderComponent={SpecialBottomMessage}

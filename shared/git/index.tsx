@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
 import * as T from '@/constants/types'
@@ -93,7 +94,7 @@ type ExpandedState = {
 }
 
 const Container = (ownProps: OwnProps) => {
-  const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
+const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
   const loadGit = C.useRPC(T.RPCGen.gitGetAllGitMetadataRpcPromise)
   const clearGitBadges = C.useRPC(T.RPCGen.gregorDismissCategoryRpcPromise)
   const [error, setError] = React.useState<Error | undefined>()
@@ -190,7 +191,7 @@ const Container = (ownProps: OwnProps) => {
 
   return (
     <Kb.Reloadable waitingKeys={C.waitingKeyGitLoading} onBack={undefined} onReload={load}>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true} testID={TestIDs.GIT_REPO_LIST}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {isMobile && (
           <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={showPopup}>

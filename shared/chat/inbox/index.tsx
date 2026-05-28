@@ -26,6 +26,7 @@ import {makeRow} from './row'
 import type {InboxSearchController} from './use-inbox-search'
 import {useInboxSearch} from './use-inbox-search'
 import {useInboxState} from './use-inbox-state'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {createPortal} from 'react-dom'
 import SearchRow from './search-row'
 import {useOpenedRowState} from './row/opened-row-state'
@@ -389,7 +390,7 @@ function DesktopInboxBody(props: ControlledInboxProps) {
           {search.isSearching ? (
             <InboxSearch search={search} />
           ) : (
-            <div data-testid="inbox-list" style={desktopStyles.list} ref={scrollDiv as React.RefObject<HTMLDivElement>}>
+            <div data-testid="chat-inbox-list" style={desktopStyles.list} ref={scrollDiv as React.RefObject<HTMLDivElement>}>
               {rows.length ? (
                 <Kb.List
                   items={rows}
@@ -420,7 +421,7 @@ function DesktopInboxBody(props: ControlledInboxProps) {
 
 // Native InboxBody
 function NativeInboxBody(p: ControlledInboxProps) {
-  const {search} = p
+const {search} = p
   const inbox = useInboxState(p.conversationIDKey, search.isSearching, p.refreshInbox)
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
@@ -524,7 +525,7 @@ function NativeInboxBody(p: ControlledInboxProps) {
   return (
     <Kb.ErrorBoundary>
       <PerfProfiler id="Inbox">
-        <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.container}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.container} testID={TestIDs.CHAT_INBOX_LIST}>
           <NativeLoadingLine />
           {isSearching ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>

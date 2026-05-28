@@ -1,0 +1,14 @@
+appId: keybase.ios
+---
+- tapOn:
+    text: "More"
+- tapOn:
+    text: ".*Crypto"
+    retryTapIfNoChange: false
+- extendedWaitUntil:
+    visible:
+      id: "crypto-input"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/smoke-crypto
+- tapOn:
+    id: "backButton"

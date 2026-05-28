@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type * as T from '@/constants/types'
 import Announcement from './announcement'
 import FollowNotification from './follow-notification'
@@ -140,10 +141,10 @@ function ResentEmailVerificationBanner(props: {
 }
 
 function PeoplePageList(props: Props) {
-  const visibleNewItems = props.newItems.filter(item => shouldRenderNewItem(item, props.signupEmail))
+const visibleNewItems = props.newItems.filter(item => shouldRenderNewItem(item, props.signupEmail))
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} relative={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} relative={true} testID={TestIDs.PEOPLE_FEED}>
       <EmailVerificationBanner signupEmail={props.signupEmail} />
       <ResentEmailVerificationBanner resentEmail={props.resentEmail} setResentEmail={props.setResentEmail} />
       <PeopleItems items={visibleNewItems} props={props} />

@@ -2,6 +2,7 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Crypto from '@/constants/crypto'
 import NavRow from './nav-row'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Row = (typeof Crypto.Tabs)[number] & {
   isSelected: boolean
@@ -15,7 +16,7 @@ type Props = {
 }
 
 const SubNav = (props: Props) => {
-  const getRows = () =>
+const getRows = () =>
     Crypto.Tabs.map(t => ({
       ...t,
       isSelected: props.selected === t.tab,
@@ -40,7 +41,7 @@ const SubNav = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} testID={TestIDs.CRYPTO_INPUT}>
       <Kb.Box2 direction="vertical" fullHeight={true} style={styles.listContainer}>
         <Kb.BoxGrow>
           <Kb.List

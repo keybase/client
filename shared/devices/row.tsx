@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import DeviceIcon from './device-icon'
 import type * as T from '@/constants/types'
 import {formatTimeRelativeToNow} from '@/util/timestamp'
@@ -26,6 +27,7 @@ function Container(ownProps: OwnProps) {
   const isRevoked = !!device.revokedByName
 
   return (
+    <Kb.Box2 direction="vertical" fullWidth={true} testID={TestIDs.DEVICES_ROW}>
     <Kb.ListItem
       type="Small"
       firstItem={firstItem}
@@ -56,6 +58,7 @@ function Container(ownProps: OwnProps) {
         </Kb.Box2>
       }
     />
+    </Kb.Box2>
   )
 }
 

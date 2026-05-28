@@ -18,6 +18,7 @@ import {useDaemonState} from '@/stores/daemon'
 import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
 import {makeLayout} from './screen-layout'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack'
 import type {SFSymbol} from 'sf-symbols-typescript'
 import type {NavigationProp} from '@react-navigation/native'
@@ -342,6 +343,14 @@ const tabToLabel = new Map<string, string>([
   [Tabs.settingsTab, 'More'],
 ])
 
+const tabToTestID = new Map<string, string>([
+  [Tabs.chatTab, TestIDs.NAV_TAB_CHAT],
+  [Tabs.fsTab, TestIDs.NAV_TAB_FILES],
+  [Tabs.teamsTab, TestIDs.NAV_TAB_TEAMS],
+  [Tabs.peopleTab, TestIDs.NAV_TAB_PEOPLE],
+  [Tabs.settingsTab, TestIDs.NAV_TAB_SETTINGS],
+])
+
 // just to get badge rollups
 const nativeTabs = C.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab] as const
@@ -483,6 +492,7 @@ const appTabsScreenOptions = (
         }),
     tabBarIcon: getNativeTabIcon(routeName),
     tabBarLabel: tabToLabel.get(routeName) ?? routeName,
+    tabBarTestID: tabToTestID.get(routeName),
     tabBarLabelVisibilityMode: 'labeled' as const,
     tabBarMinimizeBehavior: 'none' as const, // until this actually works on all screens, not sure why it only
     tabBarStyle: {backgroundColor: isDarkMode ? colors.greyDarkest : colors.blueDark},

@@ -45,6 +45,7 @@ module.exports = {
     '<rootDir>/images/',
     '<rootDir>/perf/',
     '<rootDir>/.tsOuts/',
+    '<rootDir>/tests/e2e/electron/',
   ],
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',

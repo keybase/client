@@ -247,7 +247,7 @@ Memory end    215MB     212MB
    ```
 6. Scroll using `browser_press_key` (PageDown x20, PageUp x20) or call:
    ```
-   browser_evaluate: window.__perf.scrollContainer('[data-testid="message-list"]', {distance: 3000})
+   browser_evaluate: window.__perf.scrollContainer('[data-testid="chat-message-list"]', {distance: 3000})
    ```
 7. Stop and get results:
    ```
@@ -258,8 +258,8 @@ Memory end    215MB     212MB
 
 | Selector | Component |
 |----------|-----------|
-| `[data-testid="message-list"]` | Chat message list scroll container |
-| `[data-testid="inbox-list"]` | Inbox/conversation list |
+| `[data-testid="chat-message-list"]` | Chat message list scroll container |
+| `[data-testid="chat-inbox-list"]` | Inbox/conversation list |
 
 ### Desktop Metrics Returned
 

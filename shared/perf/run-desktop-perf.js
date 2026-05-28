@@ -48,21 +48,21 @@ const flows = {
     label: 'Inbox scroll',
     navigate: async page => {
       await page.click('text=Chat')
-      await page.waitForSelector('[data-testid="inbox-list"]', {timeout: 10000})
+      await page.waitForSelector('[data-testid="chat-inbox-list"]', {timeout: 10000})
     },
     // LegendList renders an inner scroll container as first child of the testid div
-    scrollSelector: '[data-testid="inbox-list"] > :first-child',
+    scrollSelector: '[data-testid="chat-inbox-list"] > :first-child',
   },
   thread: {
     label: 'Thread scroll',
     navigate: async page => {
       await page.click('text=Chat')
-      await page.waitForSelector('[data-testid="inbox-list"]', {timeout: 10000})
-      await page.click('[data-testid="inbox-list"] > :first-child')
-      await page.waitForSelector('[data-testid="message-list"]', {timeout: 10000})
+      await page.waitForSelector('[data-testid="chat-inbox-list"]', {timeout: 10000})
+      await page.click('[data-testid="chat-inbox-list"] > :first-child')
+      await page.waitForSelector('[data-testid="chat-message-list"]', {timeout: 10000})
     },
     // LegendList renders an inner scroll container as first child of the testid div
-    scrollSelector: '[data-testid="message-list"] > :first-child',
+    scrollSelector: '[data-testid="chat-message-list"] > :first-child',
   },
 }
 

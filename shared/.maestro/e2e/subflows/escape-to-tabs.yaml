@@ -1,0 +1,30 @@
+appId: keybase.ios
+---
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"
+- runFlow:
+    when:
+      visible:
+        id: "backButton"
+    commands:
+      - tapOn:
+          id: "backButton"

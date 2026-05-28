@@ -87,6 +87,7 @@ go/keybase_netbsd
 go/keybase_openbsd
 
 .playwright-cli
+shared/tests/results/
 .cursor
 .claude/settings.local.json
 .*-mcp

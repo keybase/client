@@ -137,7 +137,9 @@ const startApp = () => {
   Electron.app
     .whenReady()
     .then(() => {
-      menuBar()
+      if (!process.env['KB_E2E_TEST']) {
+        menuBar()
+      }
       runtime.mainWindow = MainWindow()
     })
     .catch((err: unknown) => {

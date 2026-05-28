@@ -1,0 +1,15 @@
+appId: keybase.ios
+---
+- tapOn:
+    id: "backButton"
+    optional: true
+- tapOn:
+    text: "More"
+- tapOn:
+    text: ".*Devices"
+    retryTapIfNoChange: false
+- extendedWaitUntil:
+    visible:
+      id: "devices-list"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/smoke-devices

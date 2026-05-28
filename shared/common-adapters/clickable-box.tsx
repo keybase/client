@@ -24,6 +24,7 @@ type Props = {
   onMouseDown?: (event: React.MouseEvent) => void
   onMouseMove?: (event: React.MouseEvent) => void
   onMouseUp?: (event: React.MouseEvent) => void
+  testID?: string
   title?: string
   tooltip?: string
 }
@@ -85,7 +86,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
       ...otherProps
     } = props
 
-    const {onPress, onLongPress, onPressIn, onPressOut, activeOpacity, feedback, ...passThroughProps} =
+    const {onPress, onLongPress, onPressIn, onPressOut, activeOpacity, feedback, testID: _testID, ...passThroughProps} =
       otherProps
 
     let underlay: React.ReactNode
@@ -113,6 +114,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
         ref={ref as React.Ref<HTMLDivElement>}
         className={Styles.classNames(className, {tooltip})}
         data-tooltip={tooltip}
+        data-testid={props.testID}
         {...passThroughProps}
         onMouseDown={onMouseDown}
         onMouseEnter={onMouseEnter}
@@ -135,7 +137,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
   }
 
   const {feedback = true, onClick, onPressIn, onPressOut, onLongPress} = props
-  const {style, activeOpacity, children} = props
+  const {style, activeOpacity, children, testID} = props
 
   if (onClick) {
     const clickStyle = Styles.collapseStyles([nativeStyles.box, style])
@@ -148,6 +150,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
           onPressOut={onPressOut}
           onLongPress={onLongPress}
           style={clickStyle}
+          testID={testID}
           activeOpacity={activeOpacity ?? 0.7}
         >
           {children}
@@ -161,7 +164,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
           onPress={onClick}
           onLongPress={onLongPress}
         >
-          <View style={clickStyle}>{children}</View>
+          <View style={clickStyle} testID={testID}>{children}</View>
         </TouchableWithoutFeedback>
       )
     }
@@ -171,7 +174,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
         console.warn("Passed onPress*/on*Press with no onPress, which isn't supported on the native side")
       }
     }
-    return <View style={style}>{children}</View>
+    return <View style={style} testID={testID}>{children}</View>
   }
 }
 
@@ -209,7 +212,7 @@ export default ClickableBox
 
 export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<MeasureRef | null>}) => {
   if (!isMobile) {
-    const {onClick, children, style, className, onMouseOver, ref} = p
+    const {onClick, children, style, className, onMouseOver, ref, testID} = p
     return (
       <div
         onClick={onClick}
@@ -217,6 +220,7 @@ export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<MeasureRef | null>}) 
         style={Styles.castStyleDesktop(style)}
         ref={ref as React.Ref<HTMLDivElement>}
         className={Styles.classNames('clickable-box2', className)}
+        data-testid={testID}
       >
         {children}
       </div>

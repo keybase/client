@@ -1,0 +1,12 @@
+appId: keybase.ios
+---
+- tapOn:
+    id: "backButton"
+    optional: true
+- tapOn:
+    text: "Teams"
+- extendedWaitUntil:
+    visible:
+      id: "teams-list"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/smoke-teams

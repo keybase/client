@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import SettingsItem from './settings-item'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as Settings from '@/constants/settings'
 import {usePushState} from '@/stores/push'
 import {useNotifState} from '@/stores/notifications'
@@ -13,12 +14,12 @@ type Props = {
 }
 
 const LeftNav = (props: Props) => {
-  const {navigate} = props
+const {navigate} = props
   const badgeNumbers = useNotifState(s => s.navBadges)
   const badgeNotifications = usePushState(s => (isElectron ? 0 : !s.hasPermissions ? 1 : 0))
 
   return (
-    <Kb.ScrollView style={styles.container}>
+    <Kb.ScrollView style={styles.container} testID={TestIDs.SETTINGS_ACCOUNT}>
         {Kb.Styles.isTablet && (
           <>
             <SettingsItem

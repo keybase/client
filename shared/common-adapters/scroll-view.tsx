@@ -45,6 +45,7 @@ type Props = {
   refreshControl?: React.ReactElement<RefreshControlProps>
   onTouchStart?: (e: GestureResponderEvent) => void
   onTouchEnd?: (e: GestureResponderEvent) => void
+  testID?: string
 }
 
 type DivScrollable = {
@@ -76,7 +77,7 @@ function ScrollView(props: Props) {
   }))
 
   if (!isMobile) {
-    const {className, contentContainerStyle, onScroll, style, children} = rest
+    const {className, contentContainerStyle, onScroll, style, children, testID} = rest
     const {showsHorizontalScrollIndicator, showsVerticalScrollIndicator} = rest
     const hideScroll =
       showsVerticalScrollIndicator === false && showsHorizontalScrollIndicator === false
@@ -91,6 +92,7 @@ function ScrollView(props: Props) {
     return (
       <div
         className={cn}
+        data-testid={testID}
         style={Styles.collapseStylesDesktop([styles.overflowAuto, style]) as React.CSSProperties}
         onScroll={onScroll_ as never}
         ref={divRef as React.RefObject<HTMLDivElement>}

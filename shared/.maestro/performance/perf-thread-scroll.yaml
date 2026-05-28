@@ -11,7 +11,7 @@ appId: keybase.ios
     times: 10
     commands:
       - swipe:
-          id: 'messageList'
+          id: 'chat-message-list'
           direction: DOWN
           duration: 400
           waitToSettleTimeoutMs: 50

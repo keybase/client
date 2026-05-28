@@ -4,6 +4,7 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as RowSizes from '../sizes'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import SwipeConvActions from './swipe-conv-actions'
 import './small-team.css'
 import {Avatars, TeamAvatar} from '@/chat/avatars'
@@ -99,7 +100,7 @@ const SmallTeam = (p: Props) => {
           {rowContents}
         </Kb.Box2>
       ) : (
-        <Kb.ClickableBox2 onClick={onSelectConversation} className={className} testID="inboxRow" style={containerStyle}>
+        <Kb.ClickableBox2 onClick={onSelectConversation} className={className} testID={TestIDs.CHAT_INBOX_ROW} style={containerStyle}>
           {rowContents}
         </Kb.ClickableBox2>
       )}

@@ -8,6 +8,7 @@ import noop from 'lodash/noop'
 import {useSettingsContactsState} from '@/stores/settings-contacts'
 import * as Settings from '@/constants/settings'
 import {usePushState} from '@/stores/push'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useNotifState} from '@/stores/notifications'
 
 const PerfRow = () => {
@@ -209,7 +210,7 @@ function SettingsNav() {
   ]
 
   return (
-    <Kb.ScrollView style={Kb.Styles.globalStyles.fullHeight}>
+    <Kb.ScrollView style={Kb.Styles.globalStyles.fullHeight} testID={TestIDs.SETTINGS_ACCOUNT}>
       {sections.map(section => (
         <React.Fragment key={section.title || '_top'}>
           {section.title ? (

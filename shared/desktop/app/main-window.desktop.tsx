@@ -355,7 +355,7 @@ const MainWindow = () => {
 
   menuHelper(win)
 
-  if (showDevTools) {
+  if (showDevTools && !process.env['KB_E2E_TEST']) {
     win.webContents.openDevTools({mode: 'detach', title: `${__DEV__ ? 'DEV' : 'Prod'} Keybase Devtools`})
   }
 

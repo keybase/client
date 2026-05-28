@@ -1,6 +1,7 @@
 import './team-row.css'
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type * as T from '@/constants/types'
 import logger from '@/logger'
 import TeamMenu from '../team/menu-container'
@@ -118,7 +119,7 @@ const TeamRow = function TeamRow(props: Props) {
 
   return (
     <>
-      <Kb.ClickableBox onClick={onViewTeam} style={styles.clickableBox}>
+      <Kb.ClickableBox onClick={onViewTeam} style={styles.clickableBox} testID={TestIDs.TEAMS_ROW}>
         <Kb.Box2 className="teamRow" direction="horizontal" fullWidth={true} style={styles.row} alignItems="center">
           <Kb.Divider style={styles.divider} />
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.avatarContainer}>

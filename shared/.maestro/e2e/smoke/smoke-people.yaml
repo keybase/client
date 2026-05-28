@@ -1,0 +1,14 @@
+appId: keybase.ios
+---
+- runFlow:
+    when:
+      visible:
+        text: "People"
+    commands:
+      - tapOn:
+          text: "People"
+- extendedWaitUntil:
+    visible:
+      id: "people-feed"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/smoke-people

@@ -62,12 +62,6 @@ fi
 
 # --- Capture mode: run test and save baseline ---
 
-FLOW_PATH="$MAESTRO_DIR/$FLOW"
-if [ ! -f "$FLOW_PATH" ]; then
-  echo "Error: Flow file not found: $FLOW_PATH"
-  exit 1
-fi
-
 # Check Metro is running
 if ! grep -q "" /tmp/metro.log 2>/dev/null; then
   echo "Error: /tmp/metro.log not found. Start Metro with: cd shared && yarn rn-start-debug"
@@ -83,6 +77,17 @@ if ! command -v maestro &>/dev/null; then
     echo "Error: Maestro CLI not found. Install with: curl -Ls \"https://get.maestro.mobile.dev\" | bash"
     exit 1
   fi
+fi
+
+# Check idb is installed (used for settle-free scrolling)
+IDB="$HOME/Library/Python/3.9/bin/idb"
+if ! command -v idb &>/dev/null; then
+  if [ ! -x "$IDB" ]; then
+    echo "Error: idb not found. Install with: brew tap facebook/fb && brew install facebook/fb/idb-companion && pip3 install fb-idb"
+    exit 1
+  fi
+else
+  IDB="idb"
 fi
 
 echo "=== Maestro Performance Test ==="
@@ -127,8 +132,38 @@ for RUN_IDX in $(seq 1 "$NUM_RUNS"); do
   xcrun simctl terminate booted keybase.ios 2>/dev/null || true
   sleep 2
 
-  if ! maestro test "$FLOW_PATH" 2>&1 | tee "$OUTPUT_DIR/maestro.log"; then
-    echo "  (maestro run failed, skipping)"
+  NAVIGATE_FLOW="$MAESTRO_DIR/${FLOW/scroll/navigate}"
+  FLUSH_FLOW="$MAESTRO_DIR/performance/perf-inbox-flush.yaml"
+
+  # 1. Launch app and navigate to inbox
+  if ! maestro test "$NAVIGATE_FLOW" 2>&1 | tee "$OUTPUT_DIR/maestro.log"; then
+    echo "  (maestro navigate failed, skipping)"
+    continue
+  fi
+
+  # 2. Scroll with idb — no per-swipe settle pause
+  UDID=$(xcrun simctl list devices booted | grep -oE '[A-F0-9-]{36}' | head -1)
+  if [[ "$FLOW" == *"thread"* ]]; then
+    # Thread: swipe down first (reveals older messages), then back up
+    for i in $(seq 1 10); do
+      "$IDB" ui swipe --udid "$UDID" 196 500 196 750 --duration 0.3
+    done
+    for i in $(seq 1 10); do
+      "$IDB" ui swipe --udid "$UDID" 196 600 196 150 --duration 0.3
+    done
+  else
+    # Inbox/teams: swipe up first (reveals more items), then back down
+    for i in $(seq 1 10); do
+      "$IDB" ui swipe --udid "$UDID" 196 600 196 150 --duration 0.3
+    done
+    for i in $(seq 1 10); do
+      "$IDB" ui swipe --udid "$UDID" 196 500 196 750 --duration 0.3
+    done
+  fi
+
+  # 3. Press Home to flush profiler data
+  if ! maestro test "$FLUSH_FLOW" 2>&1 | tee -a "$OUTPUT_DIR/maestro.log"; then
+    echo "  (maestro flush failed, skipping)"
     continue
   fi
 
