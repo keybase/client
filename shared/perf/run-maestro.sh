@@ -30,7 +30,7 @@ mkdir -p "$OUTPUT_DIR"
 DO_BUILD=false
 SIMULATOR="iPhone 17 Pro"
 FLOW="performance/perf-inbox-scroll.yaml"
-NUM_RUNS=1
+NUM_RUNS=3
 COMPARE_A=""
 COMPARE_B=""
 
