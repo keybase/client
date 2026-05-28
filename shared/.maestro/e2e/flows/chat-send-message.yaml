@@ -20,6 +20,7 @@ appId: keybase.ios
     timeout: 3000
 - tapOn:
     id: "chat-input"
+- takeScreenshot: tests/results/ios-debug/chat-send-message-keyboard
 - inputText: "e2e-test-${KB_SMOKE_USER}"
 - tapOn:
     text: "Send"

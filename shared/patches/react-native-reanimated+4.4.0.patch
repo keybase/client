@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-reanimated/src/core.ts b/node_modules/react-native-reanimated/src/core.ts
+index a18b111..ae69beb 100644
+--- a/node_modules/react-native-reanimated/src/core.ts
++++ b/node_modules/react-native-reanimated/src/core.ts
+@@ -91,7 +91,7 @@ export function registerEventHandler<TEvent>(
+     'worklet';
+     eventHandler(event);
+     // We call mappers here to make sure view updates can be applied in the same frame after an event.
+-    global.__mapperRun();
++    global.__mapperRun?.();
+   }
+   return ReanimatedModule.registerEventHandler(
+     createSerializable(handleEvent as WorkletFunction),
+@@ -114,7 +114,7 @@ export function subscribeForKeyboardEvents(
+     'worklet';
+     eventHandler(state, height);
+     // We call mappers here to make sure view updates can be applied in the same frame after an event.
+-    global.__mapperRun();
++    global.__mapperRun?.();
+   }
+ 
+   if (__DEV__) {

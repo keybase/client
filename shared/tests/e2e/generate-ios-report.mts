@@ -75,11 +75,11 @@ function imageToDataUrl(filePath: string): string {
 function parseFlow(name: string): ScreenshotResult[] {
   const commands = readCommandsFile(name)
   const failed = commands?.find(c => c.metadata.status === 'FAILED')
-  const passed = !failed
+  const passed = commands != null && commands.length > 0 && !failed
   const durationMs = commands?.reduce((sum, c) => sum + c.metadata.duration, 0) ?? 0
   const errorMessage = failed
     ? (failed.metadata.error ?? `${Object.keys(failed.command)[0] ?? 'unknown'} failed`)
-    : null
+    : (commands == null || commands.length === 0 ? 'No command data found' : null)
   const failureScreenshotPath = passed ? null : findFailureScreenshot(name)
 
   const stepFiles = fs.readdirSync(debugDir)
@@ -96,7 +96,7 @@ function parseFlow(name: string): ScreenshotResult[] {
       prevScreenshotPath: null,
       failureScreenshotPath,
       diff: null,
-      errorMessage: errorMessage ?? (commands ? null : 'No command data found'),
+      errorMessage,
     }]
   }
 

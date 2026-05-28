@@ -40,7 +40,7 @@
     "font:snapshot-metrics": "python3 tools/fonts/font_tool.py snapshot-metrics --manifest fonts/manifest.json --output fonts/metrics.json",
     "font:verify-text": "python3 tools/fonts/font_tool.py verify-text --manifest fonts/manifest.json --metrics fonts/metrics.json",
     "gen:emoji": "node common-adapters/markdown/generate-emoji-parser.mts && cd ../go; go run ./chat/emoji/main.go -i ../shared/node_modules/emoji-datasource-apple/emoji.json -o ../go/chat/storage/emoji_codemap.go",
-    "gen:icon-constants": "yarn run _helper update-icon-constants",
+    "gen:icon-constants": "yarn run _helper update:icon-constants",
     "gen:protocol": "cd ../protocol && make clean && make",
     "help": "yarn run _helper help",
     "ios:gobuild": "./react-native/gobuild.sh ios && yarn postinstall",
