@@ -3,13 +3,17 @@ appId: keybase.ios
 ---
 
 - waitForAnimationToEnd:
-    timeout: 30000
+    timeout: 1000
 
-# If starting inside a conversation, the tab bar is hidden — go back first
+# If starting inside a conversation, the tab bar is hidden — go back first.
+# Re-wait inside the conditional before tapping: the outer waitForAnimationToEnd
+# can return while the element is still transitioning, causing kAXErrorInvalidUIElement.
 - runFlow:
     when:
       visible:
         id: "backButton"
     commands:
+      - waitForAnimationToEnd:
+          timeout: 500
       - tapOn:
           id: "backButton"

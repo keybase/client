@@ -1,0 +1,6 @@
+appId: keybase.ios
+
+---
+
+# Press Home to trigger app background → flushes profiler data
+- pressKey: Home

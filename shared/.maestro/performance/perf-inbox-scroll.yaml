@@ -9,21 +9,8 @@ appId: keybase.ios
 
 - runFlow: ../subflows/navigate-to-chat.yaml
 
-- repeat:
-    times: 3
-    commands:
-      - swipe:
-          id: "inboxList"
-          direction: UP
-          duration: 150
-
-- repeat:
-    times: 3
-    commands:
-      - swipe:
-          id: "inboxList"
-          direction: DOWN
-          duration: 150
+# Scrolling is done by run-maestro.sh via idb to avoid Maestro's per-command
+# app-settle pause, which prevents rapid continuous scrolling.
 
 # Press Home to trigger app background → flushes profiler data
 - pressKey: Home

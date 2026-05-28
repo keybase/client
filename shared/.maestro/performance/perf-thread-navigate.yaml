@@ -1,0 +1,10 @@
+appId: keybase.ios
+
+---
+
+- launchApp:
+    stopApp: true
+    arguments:
+      PERF_FPS_MONITOR: "true"
+
+- runFlow: ../subflows/navigate-to-thread.yaml
