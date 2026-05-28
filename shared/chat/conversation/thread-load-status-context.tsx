@@ -78,6 +78,7 @@ export const ConversationThreadLoadStatusProvider = (
     currentIDRef.current = id
   }, [id])
   const threadLoadGenerationRef = React.useRef(0)
+  const mountedRef = React.useRef(true)
   const threadLoadStatusOptionsRef = React.useRef<ThreadLoadStatusOptionsCache | undefined>(undefined)
   const [threadLoadStatusState, setThreadLoadStatusState] = React.useState<ThreadLoadStatusState>(() => ({
     conversationIDKey: id,
@@ -102,7 +103,7 @@ export const ConversationThreadLoadStatusProvider = (
         return cached.options
       }
       const options = {
-        isThreadLoadCurrent: () => threadLoadGenerationRef.current === generation,
+        isThreadLoadCurrent: () => mountedRef.current && threadLoadGenerationRef.current === generation,
         onThreadLoadStatus,
       }
       threadLoadStatusOptionsRef.current = {generation, options}
@@ -114,11 +115,18 @@ export const ConversationThreadLoadStatusProvider = (
   const {getThreadLoadStatusOptions} = threadLoadStatusActions
 
   React.useEffect(() => {
+    mountedRef.current = true
     return () => {
-      // Only invalidate if the conversation actually changed. In React StrictMode,
-      // effects run twice (mount → cleanup → remount) with the same id — we must not
-      // increment here or the first RPC's callbacks get discarded as stale while the
-      // second (StrictMode) RPC receives no content from the daemon (it deduplicates).
+      mountedRef.current = false
+    }
+  }, [])
+
+  React.useEffect(() => {
+    return () => {
+      // Only invalidate generation when the conversation changes. In React StrictMode,
+      // effects run twice (mount → cleanup → remount) with the same id — incrementing here
+      // would discard the first RPC's callbacks as stale while the daemon deduplicates
+      // the second RPC and sends no data.
       if (currentIDRef.current !== id) {
         threadLoadGenerationRef.current += 1
       }
