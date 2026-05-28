@@ -5,8 +5,7 @@ type WorkerFixtures = {_electronPage: Page}
 
 export const test = base.extend<{page: Page}, WorkerFixtures>({
   _electronPage: [
-    // eslint-disable-next-line no-empty-pattern
-    async ({}, setup) => {
+    async (_fixtures, setup) => {
       const {page} = await connectToElectron()
       await setup(page)
       // Do NOT close — that kills the Electron process

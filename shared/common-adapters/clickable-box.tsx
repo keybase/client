@@ -86,7 +86,7 @@ const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref
       ...otherProps
     } = props
 
-    const {onPress, onLongPress, onPressIn, onPressOut, activeOpacity, feedback, ...passThroughProps} =
+    const {onPress, onLongPress, onPressIn, onPressOut, activeOpacity, feedback, testID: _testID, ...passThroughProps} =
       otherProps
 
     let underlay: React.ReactNode

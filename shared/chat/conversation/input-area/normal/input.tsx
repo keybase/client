@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import * as T from '@/tests/e2e/shared/test-ids'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as ChatTypes from '@/constants/types/chat/message'
 import * as InputState from '../input-state'
 import SetExplodingMessagePopup from './set-explode-popup'
@@ -230,7 +230,7 @@ function DesktopInput(p: InputLowLevelProps) {
   const commonProps = {
     autoFocus,
     className,
-    'data-testid': T.CHAT_INPUT,
+    'data-testid': TestIDs.CHAT_INPUT,
     onChange,
     onCompositionEnd,
     onCompositionStart,
@@ -418,7 +418,7 @@ function NativeInput(p: InputLowLevelProps) {
       ref={setInputRef}
       selection={selection}
       style={style as object | null | undefined}
-      testID={T.CHAT_INPUT}
+      testID={TestIDs.CHAT_INPUT}
       value={value}
     />
   )

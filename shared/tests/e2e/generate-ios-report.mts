@@ -3,6 +3,7 @@ import * as path from 'path'
 import {createRequire} from 'module'
 
 const require = createRequire(import.meta.url)
+// pngjs is a transitive dep (via image-diff etc.) — intentionally not in package.json
 const {PNG} = require('pngjs') as {PNG: {sync: {read: (buf: Buffer) => {data: Buffer; width: number; height: number}}}}
 
 const debugDir = 'tests/results/ios-debug'
@@ -93,6 +94,10 @@ function formatDuration(ms: number): string {
   return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
 }
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 function buildHtml(results: TestResult[], timestamp: string, title: string): string {
   const totalPassed = results.filter(r => r.passed).length
   const totalFailed = results.length - totalPassed
@@ -101,7 +106,7 @@ function buildHtml(results: TestResult[], timestamp: string, title: string): str
 
   const cards = results.map((r, i) => {
     const badge = r.passed ? '<span class="badge pass">PASS</span>' : '<span class="badge fail">FAIL</span>'
-    const error = r.errorMessage ? `<div class="error">${r.errorMessage}</div>` : ''
+    const error = r.errorMessage ? `<div class="error">${escapeHtml(r.errorMessage)}</div>` : ''
     const diff = r.diff
     const deltaBadge = diff
       ? `<span class="badge ${diff.pct < 1 ? 'diff-low' : diff.pct < 5 ? 'diff-mid' : 'diff-high'}" title="${diff.changed.toLocaleString()} of ${diff.total.toLocaleString()} pixels changed">Δ ${diff.pct.toFixed(1)}%</span>`
@@ -125,7 +130,7 @@ function buildHtml(results: TestResult[], timestamp: string, title: string): str
     }
 
     return `<div class="card ${r.passed ? 'ok' : 'fail'}">
-  <div class="hdr">${badge}${deltaBadge}<span class="name">${r.name.replace('smoke-', '')}</span><span class="dur">${formatDuration(r.durationMs)}</span>${error}</div>
+  <div class="hdr">${badge}${deltaBadge}<span class="name">${escapeHtml(r.name.replace('smoke-', ''))}</span><span class="dur">${formatDuration(r.durationMs)}</span>${error}</div>
   ${visual}
 </div>`
   }).join('\n')

@@ -1,6 +1,7 @@
 import * as Chat from '@/constants/chat'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as RowSizes from '../../sizes'
 import {Animated, Pressable, View} from 'react-native'
 import type {ConversationIDKey} from '@/constants/types/chat'
@@ -131,13 +132,13 @@ function SwipeConvActions(p: Props) {
   }
 
   const inner = onPress ? (
-    <Pressable onPress={onPress} style={nativeStyles.touchable} testID="inboxRow">
+    <Pressable onPress={onPress} style={nativeStyles.touchable} testID={TestIDs.CHAT_INBOX_ROW}>
       <View accessible={false} style={nativeStyles.touchable}>
         {children}
       </View>
     </Pressable>
   ) : (
-    <View style={nativeStyles.touchable} testID="inboxRow">
+    <View style={nativeStyles.touchable} testID={TestIDs.CHAT_INBOX_ROW}>
       {children}
     </View>
   )

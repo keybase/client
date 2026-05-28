@@ -4,6 +4,7 @@ import {createRequire} from 'module'
 import {buildPage} from './generate-ios-report.mts'
 
 const require = createRequire(import.meta.url)
+// pngjs is a transitive dep (via image-diff etc.) — intentionally not in package.json
 const {PNG} = require('pngjs') as {PNG: {sync: {read: (buf: Buffer) => {data: Buffer; width: number; height: number}}}}
 
 const resultsPath = 'tests/results/report/results.json'
@@ -105,6 +106,10 @@ function formatDuration(ms: number): string {
   return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
 }
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 function buildHtml(cases: TestCase[], timestamp: string): string {
   const totalPassed = cases.filter(c => c.passed).length
   const totalFailed = cases.length - totalPassed
@@ -113,7 +118,7 @@ function buildHtml(cases: TestCase[], timestamp: string): string {
 
   const cards = cases.map((c, i) => {
     const badge = c.passed ? '<span class="badge pass">PASS</span>' : '<span class="badge fail">FAIL</span>'
-    const error = c.errorMessage ? `<div class="error">${c.errorMessage}</div>` : ''
+    const error = c.errorMessage ? `<div class="error">${escapeHtml(c.errorMessage)}</div>` : ''
     const deltaBadge = c.diff
       ? `<span class="badge ${c.diff.pct < 1 ? 'diff-low' : c.diff.pct < 5 ? 'diff-mid' : 'diff-high'}" title="${c.diff.changed.toLocaleString()} of ${c.diff.total.toLocaleString()} pixels changed">Δ ${c.diff.pct.toFixed(1)}%</span>`
       : ''
@@ -136,7 +141,7 @@ function buildHtml(cases: TestCase[], timestamp: string): string {
     }
 
     return `<div class="card ${c.passed ? 'ok' : 'fail'}">
-  <div class="hdr">${badge}${deltaBadge}<span class="name">${c.label}</span><span class="dur">${formatDuration(c.durationMs)}</span>${error}</div>
+  <div class="hdr">${badge}${deltaBadge}<span class="name">${escapeHtml(c.label)}</span><span class="dur">${formatDuration(c.durationMs)}</span>${error}</div>
   ${visual}
 </div>`
   }).join('\n')
