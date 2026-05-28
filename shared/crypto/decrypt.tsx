@@ -218,7 +218,8 @@ export const DecryptIO = () => {
       onAttach={controller.openFile}
       testID={TestIDs.CRYPTO_DECRYPT_INPUT}
     >
-      <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
+      <Kb.Box2 direction="vertical" fullHeight={true}>
+        <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
           <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
           <Input
             allowDirectories={false}
@@ -248,6 +249,7 @@ export const DecryptIO = () => {
           />
           <CryptoOutputActionsBar canReplyInChat={true} canSaveAsText={false} state={controller.state} />
         </Kb.Box2>
+      </Kb.Box2>
     </DragAndDrop>
   )
 }

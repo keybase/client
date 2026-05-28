@@ -571,6 +571,7 @@ export const EncryptIO = () => {
 
   return (
     <DragAndDrop allowFolders={true} prompt={filePrompt} inProgress={controller.state.inProgress} onAttach={controller.openFile} testID={TestIDs.CRYPTO_ENCRYPT_INPUT}>
+      <Kb.Box2 direction="vertical" fullHeight={true}>
         <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
           <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
           <Recipients
@@ -637,6 +638,7 @@ export const EncryptIO = () => {
             }}
           />
         </Kb.Box2>
+      </Kb.Box2>
     </DragAndDrop>
   )
 }
