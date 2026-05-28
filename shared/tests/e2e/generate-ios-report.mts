@@ -18,8 +18,9 @@ type CommandEntry = {
 
 type DiffResult = {pct: number; changed: number; total: number}
 
-type TestResult = {
+type ScreenshotResult = {
   name: string
+  stem: string
   passed: boolean
   durationMs: number
   screenshotPath: string | null
@@ -71,23 +72,70 @@ function imageToDataUrl(filePath: string): string {
   return `data:image/png;base64,${fs.readFileSync(filePath).toString('base64')}`
 }
 
-function parseTest(name: string): TestResult {
+function parseFlow(name: string): ScreenshotResult[] {
   const commands = readCommandsFile(name)
-  if (!commands || commands.length === 0) {
-    return {name, passed: false, durationMs: 0, screenshotPath: null, prevScreenshotPath: null, failureScreenshotPath: null, diff: null, errorMessage: 'No command data found'}
-  }
-  const failed = commands.find(c => c.metadata.status === 'FAILED')
-  const screenshotCaptured = commands.some(c => 'takeScreenshotCommand' in c.command && c.metadata.status === 'COMPLETED')
-  const passed = screenshotCaptured && !failed
-  const durationMs = commands.reduce((sum, c) => sum + c.metadata.duration, 0)
+  const failed = commands?.find(c => c.metadata.status === 'FAILED')
+  const passed = !failed
+  const durationMs = commands?.reduce((sum, c) => sum + c.metadata.duration, 0) ?? 0
   const errorMessage = failed
     ? (failed.metadata.error ?? `${Object.keys(failed.command)[0] ?? 'unknown'} failed`)
-    : !screenshotCaptured ? 'Test did not complete' : null
-  const screenshotPath = (() => { const p = path.join(debugDir, `${name}.png`); return fs.existsSync(p) ? p : null })()
-  const prevScreenshotPath = (() => { const p = path.join(prevDir, `${name}.png`); return fs.existsSync(p) ? p : null })()
+    : null
   const failureScreenshotPath = passed ? null : findFailureScreenshot(name)
-  const diff = screenshotPath && prevScreenshotPath ? computeDiff(prevScreenshotPath, screenshotPath) : null
-  return {name, passed, durationMs, screenshotPath, prevScreenshotPath, failureScreenshotPath, diff, errorMessage}
+
+  const stepFiles = fs.readdirSync(debugDir)
+    .filter(f => (f === `${name}.png` || (f.startsWith(`${name}-`) && f.endsWith('.png'))))
+    .sort()
+
+  if (stepFiles.length === 0) {
+    return [{
+      name,
+      stem: name,
+      passed,
+      durationMs,
+      screenshotPath: null,
+      prevScreenshotPath: null,
+      failureScreenshotPath,
+      diff: null,
+      errorMessage: errorMessage ?? (commands ? null : 'No command data found'),
+    }]
+  }
+
+  const results: ScreenshotResult[] = stepFiles.map((file, idx) => {
+    const stem = file.replace('.png', '')
+    const screenshotPath = path.join(debugDir, file)
+    const prevPath = path.join(prevDir, file)
+    const prevScreenshotPath = fs.existsSync(prevPath) ? prevPath : null
+    const diff = prevScreenshotPath ? computeDiff(screenshotPath, prevScreenshotPath) : null
+    const label = stem.startsWith(`${name}-`) ? stem.slice(name.length + 1) : stem
+    return {
+      name: `${name} · ${label}`,
+      stem,
+      passed,
+      durationMs: idx === 0 ? durationMs : 0,
+      screenshotPath,
+      prevScreenshotPath,
+      failureScreenshotPath: null,
+      diff,
+      errorMessage: idx === stepFiles.length - 1 ? errorMessage : null,
+    }
+  })
+
+  // If the flow failed and there's a Maestro failure screenshot, append it as a separate card
+  if (!passed && failureScreenshotPath) {
+    results.push({
+      name: `${name} · failure`,
+      stem: `${name}-failure`,
+      passed: false,
+      durationMs: 0,
+      screenshotPath: null,
+      prevScreenshotPath: null,
+      failureScreenshotPath,
+      diff: null,
+      errorMessage,
+    })
+  }
+
+  return results
 }
 
 function formatDuration(ms: number): string {
@@ -98,7 +146,7 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-function buildHtml(results: TestResult[], timestamp: string, title: string): string {
+function buildHtml(results: ScreenshotResult[], timestamp: string, title: string): string {
   const totalPassed = results.filter(r => r.passed).length
   const totalFailed = results.length - totalPassed
   const allPassed = totalFailed === 0
@@ -111,6 +159,7 @@ function buildHtml(results: TestResult[], timestamp: string, title: string): str
     const deltaBadge = diff
       ? `<span class="badge ${diff.pct < 1 ? 'diff-low' : diff.pct < 5 ? 'diff-mid' : 'diff-high'}" title="${diff.changed.toLocaleString()} of ${diff.total.toLocaleString()} pixels changed">Δ ${diff.pct.toFixed(1)}%</span>`
       : ''
+    const durStr = r.durationMs > 0 ? formatDuration(r.durationMs) : ''
 
     let visual: string
     if (r.screenshotPath && r.prevScreenshotPath) {
@@ -130,12 +179,23 @@ function buildHtml(results: TestResult[], timestamp: string, title: string): str
     }
 
     return `<div class="card ${r.passed ? 'ok' : 'fail'}">
-  <div class="hdr">${badge}${deltaBadge}<span class="name">${escapeHtml(r.name.replace('smoke-', ''))}</span><span class="dur">${formatDuration(r.durationMs)}</span>${error}</div>
+  <div class="hdr">${badge}${deltaBadge}<span class="name">${escapeHtml(r.name.replace(/^(smoke|flow)-/, ''))}</span>${durStr ? `<span class="dur">${durStr}</span>` : ''}${error}</div>
   ${visual}
 </div>`
   }).join('\n')
 
   return buildPage(title, allPassed, totalPassed, totalFailed, results.length, hasDiff, timestamp, cards)
+}
+
+function saveBaseline(results: ScreenshotResult[]) {
+  fs.mkdirSync(prevDir, {recursive: true})
+  let saved = 0
+  for (const r of results) {
+    if (!r.screenshotPath || !fs.existsSync(r.screenshotPath)) continue
+    fs.copyFileSync(r.screenshotPath, path.join(prevDir, `${r.stem}.png`))
+    saved++
+  }
+  console.log(`Baseline saved: ${saved} screenshots to ${prevDir}/`)
 }
 
 export function buildPage(title: string, allPassed: boolean, passed: number, failed: number, total: number, hasDiff: boolean, timestamp: string, cards: string): string {
@@ -280,15 +340,24 @@ document.querySelectorAll('.solo-wrap').forEach(el => {
 }
 
 function main() {
+  const isSaveBaseline = process.argv.includes('--save-baseline')
+
   if (!fs.existsSync(debugDir)) { console.error(`Debug dir not found: ${debugDir}`); process.exit(1) }
   const testNames = fs.readdirSync(debugDir)
-    .filter(f => f.startsWith('commands-(smoke-') && f.endsWith(').json'))
+    .filter(f => f.startsWith('commands-(') && f.endsWith(').json'))
     .map(f => f.replace('commands-(', '').replace(').json', ''))
+    .filter(name => name !== 'setup')
     .sort()
   if (testNames.length === 0) { console.error('No test results found in', debugDir); process.exit(1) }
-  const results = testNames.map(parseTest)
+  const results = testNames.flatMap(parseFlow)
+
+  if (isSaveBaseline) {
+    saveBaseline(results)
+    return
+  }
+
   const timestamp = new Date().toLocaleString()
-  const html = buildHtml(results, timestamp, 'Keybase iOS E2E Smoke Tests')
+  const html = buildHtml(results, timestamp, 'Keybase iOS E2E Tests')
   const outDir = path.dirname(outputPath)
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, {recursive: true})
   fs.writeFileSync(outputPath, html)
