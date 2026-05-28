@@ -13,7 +13,7 @@ export default defineConfig({
   ],
   use: {
     trace: 'on-first-retry',
-    screenshot: 'off',
+    screenshot: 'on',
     video: 'off',
   },
   projects: [
