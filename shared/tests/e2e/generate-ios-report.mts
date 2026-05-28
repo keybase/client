@@ -173,9 +173,10 @@ h1{font-size:20px;font-weight:600}
 .error{width:100%;font-size:11px;color:#c0392b;background:#fde8e8;padding:3px 8px;border-radius:4px;word-break:break-word}
 .solo{width:100%;display:block}.dim{opacity:.85}
 .empty{padding:28px;text-align:center;color:#bbb;font-size:12px;background:#fafafa}
-.compare{position:relative;overflow:hidden;cursor:ew-resize;touch-action:none;--split:50%}
-.img-after{display:block;width:100%}
-.img-before{position:absolute;top:0;left:0;width:100%;clip-path:inset(0 calc(100% - var(--split)) 0 0);will-change:clip-path}
+.compare{position:relative;overflow:hidden;cursor:ew-resize;--split:50%;user-select:none}
+.compare img{display:block;width:100%;-webkit-user-drag:none;user-drag:none}
+.img-after{position:relative}
+.img-before{position:absolute;top:0;left:0;clip-path:inset(0 calc(100% - var(--split)) 0 0)}
 .handle{position:absolute;top:0;bottom:0;left:var(--split);transform:translateX(-50%);width:3px;background:rgba(255,255,255,.9);pointer-events:none;will-change:left}
 .grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .lbl{position:absolute;bottom:8px;font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:3px;background:rgba(0,0,0,.55);color:#fff;pointer-events:none}
@@ -185,24 +186,23 @@ h1{font-size:20px;font-weight:600}
 export function sliderScript(): string {
   return `<script>
 document.querySelectorAll('.compare').forEach(el => {
-  let active = false, rect = null, pending = null
-  function update(x) {
-    const pct = Math.max(0, Math.min(100, (x - rect.left) / rect.width * 100))
+  let dragging = false, rect = null
+  // prevent browser image drag on all images inside the slider
+  el.querySelectorAll('img').forEach(img => img.addEventListener('dragstart', e => e.preventDefault()))
+
+  function move(clientX) {
+    const pct = Math.max(0, Math.min(100, (clientX - rect.left) / rect.width * 100))
     el.style.setProperty('--split', pct.toFixed(2) + '%')
   }
-  el.addEventListener('pointerdown', e => {
-    el.setPointerCapture(e.pointerId)
-    active = true
+
+  el.addEventListener('mousedown', e => {
+    e.preventDefault()
+    dragging = true
     rect = el.getBoundingClientRect()
-    update(e.clientX)
+    move(e.clientX)
   })
-  el.addEventListener('pointerup', () => { active = false; rect = null })
-  el.addEventListener('pointermove', e => {
-    if (!active) return
-    if (pending) cancelAnimationFrame(pending)
-    const x = e.clientX
-    pending = requestAnimationFrame(() => { pending = null; update(x) })
-  })
+  window.addEventListener('mousemove', e => { if (dragging) move(e.clientX) })
+  window.addEventListener('mouseup', () => { dragging = false })
 })
 </script>`
 }
