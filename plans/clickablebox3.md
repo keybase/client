@@ -55,7 +55,7 @@ Use `migrate-clickable-box` skill for each chunk. Run `yarn lint && yarn tsc` an
 - [x] `shared/team-building/` (9+)
 
 ### Round 3 — large
-- [ ] `shared/fs/` (10+)
+- [x] `shared/fs/` (10+)
 - [ ] `shared/chat/` (60+)
 
 ### Last — shared primitives

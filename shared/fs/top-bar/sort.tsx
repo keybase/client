@@ -80,14 +80,12 @@ const Container = (ownProps: OwnProps) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return shownSortSetting ? (
     <>
-      <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" centerChildren={isMobile}>
-          <Kb.Icon type="iconfont-arrow-full-down" padding="xtiny" sizeType="Small" />
-          <Kb.Text type="BodySmallSemibold" style={styles.sortText}>
-            {getTextFromSortSetting(shownSortSetting)}
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.ClickableBox>
+      <Kb.ClickableBox3 onClick={showPopup} ref={popupAnchor} direction="horizontal" fullWidth={true} gap="xxtiny" centerChildren={isMobile}>
+        <Kb.Icon type="iconfont-arrow-full-down" padding="xtiny" sizeType="Small" />
+        <Kb.Text type="BodySmallSemibold" style={styles.sortText}>
+          {getTextFromSortSetting(shownSortSetting)}
+        </Kb.Text>
+      </Kb.ClickableBox3>
       {popup}
     </>
   ) : null
