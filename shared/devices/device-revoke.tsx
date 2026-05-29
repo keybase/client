@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import {settingsDevicesTab} from '@/constants/settings'
 import {useCurrentUserState} from '@/stores/current-user'
 import {rpcDeviceDetailToDevice} from './common'
+import {getDeviceRevokeIconType} from './device-icon'
 
 type OwnProps = {device?: T.Devices.Device; deviceID?: T.Devices.DeviceID}
 
@@ -52,23 +53,6 @@ const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: ()
     <Kb.Button fullWidth={isMobile} type="Dim" onClick={onCancel} label="Cancel" />
   </Kb.Box2>
 )
-
-const getIcon = (deviceType: T.Devices.DeviceType, iconNumber: T.Devices.IconNumber) => {
-  const size = isMobile ? 64 : 48
-  const maybeIcon = (
-    {
-      backup: `icon-paper-key-revoke-${size}`,
-      desktop: `icon-computer-revoke-background-${iconNumber}-${size}`,
-      mobile: `icon-phone-revoke-background-${iconNumber}-${size}`,
-    } as const
-  )[deviceType]
-  const fallback = ({
-    backup: `icon-paper-key-revoke-${size}`,
-    desktop: `icon-computer-revoke-${size}`,
-    mobile: `icon-phone-revoke-${size}`,
-  } as const)[deviceType]
-  return Kb.isValidIconType(maybeIcon) ? maybeIcon : fallback
-}
 
 const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => {
   if (!actingDevice || !targetDevice) {
@@ -181,7 +165,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
         fullHeight={true}
         fullWidth={true}
         centerChildren={true}
-        style={styles.container}
+        padding="small"
       >
         <Kb.ProgressIndicator />
       </Kb.Box2>
@@ -198,10 +182,10 @@ const DeviceRevoke = (ownProps: OwnProps) => {
       fullWidth={true}
       gap="small"
       gapEnd={true}
-      style={styles.container}
+      padding="small"
     >
       <Kb.NameWithIcon
-        icon={getIcon(type, iconNumber)}
+        icon={getDeviceRevokeIconType(type, iconNumber)}
         title={device.name}
         titleStyle={styles.headerName}
         size="small"
@@ -233,7 +217,6 @@ const DeviceRevoke = (ownProps: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {padding: Kb.Styles.globalMargins.small},
       endangeredTLFContainer: Kb.Styles.platformStyles({
         isElectron: {alignSelf: 'center'},
         isMobile: {flexGrow: 1},

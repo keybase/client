@@ -25,7 +25,7 @@ const TimelineLabel = (p: {
 }) => {
   const {desc, subDesc, subDescIsName, spacerOnBottom} = p
   return (
-    <Kb.Box2 direction="vertical" style={styles.timelineLabel}>
+    <Kb.Box2 direction="vertical" alignItems="flex-start">
       <Kb.Text type="Body">{desc}</Kb.Text>
       {!!subDesc && subDescIsName && (
         <Kb.Text type="BodySmall">
@@ -167,7 +167,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: 4,
       },
       subDesc: {color: Kb.Styles.globalColors.black},
-      timelineLabel: {alignItems: 'flex-start'},
       timelineLineBottom: {
         backgroundColor: Kb.Styles.globalColors.grey,
         flex: 1,

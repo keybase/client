@@ -40,7 +40,7 @@ export default function AddDevice(ownProps: OwnProps) {
 
   const navigateAppend = C.Router2.navigateAppend
 
-  // don't allow mutliple clicks to add paper key
+  // don't allow multiple clicks to add paper key
   const canAddPaperKeyRef = React.useRef(true)
   const onAddPaperKey = () => {
     if (!canAddPaperKeyRef.current) return

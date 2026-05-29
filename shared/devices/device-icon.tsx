@@ -29,6 +29,26 @@ export const getDeviceIconType = (
   return Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcons[type]
 }
 
+export const getDeviceRevokeIconType = (
+  type: T.Devices.DeviceType,
+  iconNumber: T.Devices.IconNumber
+): Kb.IconType => {
+  const size = isMobile ? 64 : 48
+  const maybeIcon = (
+    {
+      backup: `icon-paper-key-revoke-${size}`,
+      desktop: `icon-computer-revoke-background-${iconNumber}-${size}`,
+      mobile: `icon-phone-revoke-background-${iconNumber}-${size}`,
+    } as const
+  )[type]
+  const fallback = ({
+    backup: `icon-paper-key-revoke-${size}`,
+    desktop: `icon-computer-revoke-${size}`,
+    mobile: `icon-phone-revoke-${size}`,
+  } as const)[type]
+  return Kb.isValidIconType(maybeIcon) ? maybeIcon : fallback
+}
+
 const DeviceIcon = ({current, device, size, style}: Props) => (
   <Kb.ImageIcon
     type={getDeviceIconType(device.type, T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType), size, current)}
