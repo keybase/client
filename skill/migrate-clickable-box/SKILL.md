@@ -86,7 +86,7 @@ Read each matched file fully before classifying.
 </Kb.ClickableBox3>
 ```
 
-**⚠️ `box2_centered` gotcha:** CB3 applies the CSS class `box2_centered` (i.e. `align-self: center`) whenever neither `fullWidth` nor `fullHeight` is set. CB1 did NOT do this. If the original CB was expected to fill its parent, omitting `fullWidth={true}` will shrink it to content-width. Always check the parent layout context before omitting `fullWidth`.
+**⚠️ `box2_centered` / `alignSelf: center` gotcha:** CB3 applies `align-self: center` (desktop: `box2_centered` CSS class; mobile: `nativeStyles.centered = {alignSelf: 'center'}`) whenever neither `fullWidth` nor `fullHeight` is set. CB1 did NOT do this. This affects **both platforms**. If the original CB was expected to fill its parent (e.g. list rows, banners, full-width wrappers), omitting `fullWidth={true}` will shrink it to content-width. Always check the parent layout context — when in doubt, add `fullWidth={true}`.
 
 ### Pattern C — CB with style that encodes flex layout
 

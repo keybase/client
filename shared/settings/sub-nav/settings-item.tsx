@@ -26,6 +26,7 @@ function SettingsItem(props: SettingsItemProps) {
       direction="horizontal"
       alignItems="center"
       relative={true}
+      fullWidth={true}
       style={Kb.Styles.collapseStyles([styles.item, selected && styles.selected] as const)}
     >
       {props.iconComponent ? (
@@ -71,7 +72,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       height: 32,
-      width: '100%',
     },
     isMobile: {
       borderBottomColor: Kb.Styles.globalColors.black_10,
