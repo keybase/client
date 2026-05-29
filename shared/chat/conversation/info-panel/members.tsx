@@ -123,7 +123,6 @@ const MembersTab = (props: Props) => {
       getItemHeight={item => {
         return item?.type === 'member' && item.username ? 56 : 0
       }}
-      renderSectionHeader={({section}) => section.renderSectionHeader?.({section}) ?? null}
       sections={sections}
     />
   )
