@@ -9,8 +9,8 @@ import {intersect} from '@/util/set'
 import {useLocalBadging} from '@/util/use-local-badging'
 import {useModalHeaderState} from '@/stores/modal-header'
 import {HeaderTitle} from './routes'
-import {rpcDeviceToDevice} from './rpc'
 import {useTypedNavigation} from '@/util/typed-navigation'
+import {rpcDeviceDetailToDevice} from './common'
 
 const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   if (a.currentDevice) return -1
@@ -43,7 +43,7 @@ function ReloadableDevices() {
     loadDevicesRPC(
       [undefined, C.waitingKeyDevices],
       results => {
-        setDevices(results?.map(rpcDeviceToDevice) ?? [])
+        setDevices(results?.map(rpcDeviceDetailToDevice) ?? [])
       },
       _ => {}
     )

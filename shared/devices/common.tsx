@@ -1,6 +1,6 @@
 import * as T from '@/constants/types'
 
-export const rpcDeviceToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device => ({
+export const rpcDeviceDetailToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device => ({
   created: d.device.cTime,
   currentDevice: d.currentDevice,
   deviceID: T.Devices.stringToDeviceID(d.device.deviceID),

@@ -18,16 +18,20 @@ digraph simplify {
     "Read all files in scope" [shape=box];
     "Analyze across categories" [shape=box];
     "Ask clarifying questions" [shape=box];
-    "Present findings" [shape=box];
-    "User approves scope?" [shape=diamond];
+    "Present findings by category" [shape=box];
+    "Show flat numbered list of ALL changes" [shape=box];
+    "Ask: proceed, skip, or adjust?" [shape=box];
+    "User approves?" [shape=diamond];
     "Implement changes" [shape=box];
 
     "Read all files in scope" -> "Analyze across categories";
     "Analyze across categories" -> "Ask clarifying questions";
-    "Ask clarifying questions" -> "Present findings";
-    "Present findings" -> "User approves scope?" ;
-    "User approves scope?" -> "Implement changes" [label="yes"];
-    "User approves scope?" -> "Present findings" [label="revise"];
+    "Ask clarifying questions" -> "Present findings by category";
+    "Present findings by category" -> "Show flat numbered list of ALL changes";
+    "Show flat numbered list of ALL changes" -> "Ask: proceed, skip, or adjust?";
+    "Ask: proceed, skip, or adjust?" -> "User approves?" ;
+    "User approves?" -> "Implement changes" [label="yes"];
+    "User approves?" -> "Present findings by category" [label="revise"];
 }
 ```
 
@@ -77,14 +81,26 @@ Before presenting findings, ask these if the answers aren't obvious from the cod
 3. **New files**: Is adding a new file for deduplication okay, or prefer keeping file count flat/lower?
 4. **Priority**: Any specific problem the user wants addressed most?
 
-## Step 4: Present Findings by Category
+## Step 4: Present ALL Findings and Get Approval
 
-Group findings clearly. For each item include:
+**Do not touch any file until the user has seen and approved the full list.**
+
+Group findings clearly by category. For each item include:
 - What the problem is
 - What the fix would be
 - Any tradeoff or risk (e.g., circular import risk if moving a context)
 
-Let the user confirm, skip, or redirect before implementing.
+End with an explicit summary: a flat numbered list of every proposed change, then ask the user to confirm scope before proceeding. Example:
+
+> **Proposed changes (7 total):**
+> 1. Rename `rpcDeviceToDevice` → `rpcDeviceDetailToDevice` in `rpc.tsx` and callers
+> 2. Fold `rpc.tsx` into `index.tsx`; update `device-revoke.tsx` import
+> 3. Refactor `getDeviceIconType` to take `(type, iconNumber, size, current?)` instead of full device
+> 4. ...
+>
+> Shall I proceed with all of these, or adjust scope?
+
+Wait for the user's response. Do not begin any edits until they reply.
 
 ## Step 5: Implement
 
@@ -105,6 +121,23 @@ If a simplification would change any of these things, **stop and discuss it firs
 
 The only exception: if a behavior change is required to fix an outright bug discovered during the review. Raise it separately; do not bundle it with structural changes.
 
+## Shared Helpers: Use `common.tsx`
+
+When two or more files in the same feature folder need a shared helper (data-mapping, RPC conversion, icon resolution, etc.), consolidate into a `common.tsx` in that folder.
+
+**Do not put shared helpers in the feature's `index.tsx`** — sub-views importing from the feature index creates a backwards dependency direction that will cause circular import problems as the feature grows.
+
+```
+devices/
+  common.tsx       ← shared helpers (rpcDeviceDetailToDevice, etc.)
+  index.tsx        ← imports from common.tsx
+  device-revoke.tsx ← imports from common.tsx
+  device-page.tsx
+  ...
+```
+
+This pattern generalises: use `common.tsx` as the name regardless of feature folder. Other typical names like `utils.tsx` or `helpers.tsx` are acceptable if a project already uses them consistently.
+
 ## What NOT to Do
 
 - Don't propose changes that require understanding runtime behavior (don't guess at logic equivalence)
@@ -112,3 +145,4 @@ The only exception: if a behavior change is required to fix an outright bug disc
 - Don't move things that would create circular imports
 - Don't rename exports that have external consumers without confirming first
 - Don't collapse files that serve genuinely different concerns just because they're small
+- Don't put shared helpers in `index.tsx` — sub-views importing from the feature index creates backwards dependencies

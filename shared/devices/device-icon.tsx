@@ -7,14 +7,17 @@ export type Props = {
   size: 32 | 64 | 96
   style?: Kb.Styles.StylesCrossPlatform
 }
-export const getDeviceIconType = (device: Props['device'], size: Props['size'], current?: boolean): Kb.IconType => {
+export const getDeviceIconType = (
+  type: T.Devices.DeviceType,
+  iconNumber: T.Devices.IconNumber,
+  size: 32 | 64 | 96,
+  current?: boolean
+): Kb.IconType => {
   const defaultIcons = {
     backup: `icon-paper-key-${size}`,
     desktop: `icon-computer-${size}`,
     mobile: `icon-phone-${size}`,
   } as const
-  const {type, deviceNumberOfType} = device
-  const iconNumber = T.Devices.deviceNumberToIconNumber(deviceNumberOfType)
   const badge = current ? 'success-' : ''
   const maybeIcon = (
     {
@@ -26,7 +29,10 @@ export const getDeviceIconType = (device: Props['device'], size: Props['size'], 
   return Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcons[type]
 }
 
-const DeviceIcon = (props: Props) => {
-  return <Kb.ImageIcon type={getDeviceIconType(props.device, props.size, props.current)} style={props.style} />
-}
+const DeviceIcon = ({current, device, size, style}: Props) => (
+  <Kb.ImageIcon
+    type={getDeviceIconType(device.type, T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType), size, current)}
+    style={style}
+  />
+)
 export default DeviceIcon

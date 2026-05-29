@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import type * as T from '@/constants/types'
+import * as T from '@/constants/types'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '@/util/timestamp'
 import {getDeviceIconType} from './device-icon'
 
@@ -127,7 +127,7 @@ const DevicePage = (ownProps: OwnProps) => {
       fullWidth={true}
       fullHeight={true}
     >
-      <Kb.NameWithIcon icon={getDeviceIconType(device, 96)} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
+      <Kb.NameWithIcon icon={getDeviceIconType(device.type, T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType), 96)} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
       <Timeline device={device} />
       {device.revokedAt ? null : (
         <Kb.Button

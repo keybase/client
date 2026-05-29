@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {settingsDevicesTab} from '@/constants/settings'
 import {useCurrentUserState} from '@/stores/current-user'
-import {rpcDeviceToDevice} from './rpc'
+import {rpcDeviceDetailToDevice} from './common'
 
 type OwnProps = {device?: T.Devices.Device; deviceID?: T.Devices.DeviceID}
 
@@ -139,7 +139,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
       [undefined, C.waitingKeyDevices],
       results => {
         const hydratedDevice = results
-          ?.map(rpcDeviceToDevice)
+          ?.map(rpcDeviceDetailToDevice)
           .find(candidate => candidate.deviceID === selectedDeviceID)
         if (hydratedDevice) {
           setLoadedDevice(hydratedDevice)

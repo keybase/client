@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import {useProvisionState} from '@/stores/provision'
 import * as T from '@/constants/types'
+import {getDeviceIconType} from './device-icon'
 
 type OwnProps = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
@@ -99,30 +100,16 @@ export default function AddDevice(ownProps: OwnProps) {
 
 type DeviceOptionProps = {
   highlight?: boolean
-  iconNumber?: number
+  iconNumber?: T.Devices.IconNumber
   onClick: () => void
   type: 'computer' | 'paper key' | 'phone'
 }
 const bigIcon = C.isLargeScreen && isMobile
-const getIconType = (deviceType: DeviceOptionProps['type'], iconNumber?: number) => {
-  let iconType: string
-  const size = bigIcon ? 96 : 64
-  switch (deviceType) {
-    case 'computer':
-      iconType = iconNumber ? `icon-computer-background-${iconNumber}-${size}` : `icon-computer-${size}`
-      break
-    case 'paper key':
-      iconType = `icon-paper-key-${size}`
-      break
-    case 'phone':
-      iconType = iconNumber ? `icon-phone-background-${iconNumber}-${size}` : `icon-phone-${size}`
-      break
-  }
-  if (Kb.isValidIconType(iconType)) {
-    return iconType
-  }
-  return bigIcon ? 'icon-computer-96' : 'icon-computer-64'
-}
+const deviceOptionTypeMap = {
+  computer: 'desktop',
+  'paper key': 'backup',
+  phone: 'mobile',
+} as const
 const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps) => (
   <Kb.ClickableBox onClick={onClick}>
     <Kb.Box2
@@ -136,7 +123,7 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
       gap="xtiny"
       gapEnd={!isMobile}
     >
-      <Kb.ImageIcon type={getIconType(type, iconNumber)} />
+      <Kb.ImageIcon type={getDeviceIconType(deviceOptionTypeMap[type], iconNumber ?? (1 as T.Devices.IconNumber), bigIcon ? 96 : 64)} />
       <Kb.Text type="BodySemibold">
         {type === 'paper key' ? 'Create' : 'Add'} a {type === 'phone' ? 'phone or tablet' : type}
       </Kb.Text>
