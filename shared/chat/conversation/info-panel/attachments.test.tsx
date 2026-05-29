@@ -118,7 +118,7 @@ test('attachment gallery loads media, dedupes hits, and loads more from the olde
     typ: T.RPCChat.GalleryItemTyp.media,
   })
   const loadMoreSection = result.current.sections.at(-1)
-  const loadMoreButton = loadMoreSection?.renderItem({
+  const loadMoreButton = loadMoreSection?.renderItem?.({
     index: 0,
     item: {type: 'load-more'},
   } as never) as {props: {onClick: () => void}} | undefined
@@ -150,7 +150,7 @@ test('attachment gallery exposes error retry and empty success states', async ()
   })
 
   const errorSection = result.current.sections.at(-1)
-  const retryButton = errorSection?.renderItem({
+  const retryButton = errorSection?.renderItem?.({
     index: 0,
     item: {type: 'load-more'},
   } as never) as {props: {label: string; onClick: () => void}} | undefined
