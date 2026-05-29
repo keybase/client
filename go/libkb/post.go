@@ -219,20 +219,18 @@ func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType keybase
 		m.Warning("PostDeviceLKS: ppGen < 1 (%d)", ppGen)
 		debug.PrintStack()
 	}
-	arg := APIArg{
-		Endpoint:    "device/update",
-		SessionType: APISessionTypeREQUIRED,
-		Args: HTTPArgs{
-			"device_id":       S{Val: deviceID.String()},
-			"type":            S{Val: deviceType.String()},
-			"lks_server_half": S{Val: serverHalf.EncodeToHex()},
-			"ppgen":           I{Val: int(ppGen)},
-			"lks_client_half": S{Val: clientHalfRecovery},
-			"kid":             S{Val: clientHalfRecoveryKID.String()},
-			"platform":        S{Val: GetPlatformString()},
-		},
-		RetryCount: 10,
+	arg := NewRetryAPIArg("device/update")
+	arg.SessionType = APISessionTypeREQUIRED
+	arg.Args = HTTPArgs{
+		"device_id":       S{Val: deviceID.String()},
+		"type":            S{Val: deviceType.String()},
+		"lks_server_half": S{Val: serverHalf.EncodeToHex()},
+		"ppgen":           I{Val: int(ppGen)},
+		"lks_client_half": S{Val: clientHalfRecovery},
+		"kid":             S{Val: clientHalfRecoveryKID.String()},
+		"platform":        S{Val: GetPlatformString()},
 	}
+	arg.RetryCount = 10
 	_, err := m.G().API.Post(m, arg)
 	if err != nil {
 		m.Info("device/update(%+v) failed: %s", arg.Args, err)

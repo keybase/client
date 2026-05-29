@@ -284,10 +284,10 @@ services:
 
     # validate url and extract username
     { regex_capture: {
-      , pattern: "^https://twitter\\.com/([^/]+)/status/(\\d+)(.*)$"
+      , pattern: "^https://(?:twitter|x)\\.com/([^/]+)/status/(\\d+)(.*)$"
       , from: "hint_url"
       , into: ["username_from_url", "tweet_id", "remainder"]
-      , error: ["BAD_API_URL", "Bad hint from server; URL should start with 'https://twitter.com/%{username_service}/'"] } },
+      , error: ["BAD_API_URL", "Bad hint from server; URL should start with 'https://twitter.com/%{username_service}/' or 'https://x.com/%{username_service}/'"] } },
     { assert_compare: {
       , cmp: "cicmp"
       , a: "username_from_url"
@@ -309,7 +309,7 @@ services:
       , into: "author_url"
       , error: ["CONTENT_MISSING", "Could not find 'author_url' in json"] } },
     { regex_capture: {
-      , pattern: "^https://twitter\\.com/(.+)$"
+      , pattern: "^https://(?:twitter|x)\\.com/(.+)$"
       , from: "author_url"
       , into: ["author_username"]
       , error: ["CONTENT_MISSING", "Could not capture username from author_url"] } },

@@ -189,7 +189,6 @@ const blankCommands: Array<T.RPCChat.ConversationCommand> = []
 
 const InstallBotPopup = (props: Props) => {
   const {botUsername, conversationIDKey} = props
-
   // state
   const [installScreen, setInstallScreen] = React.useState(false)
   const [channelPickerScreen, setChannelPickerScreen] = React.useState(false)
