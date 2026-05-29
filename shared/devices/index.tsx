@@ -2,34 +2,20 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
-import DeviceRow, {NewContext} from './row'
+import DeviceRow, {BadgedDeviceIDsContext} from './row'
 import partition from 'lodash/partition'
 import * as T from '@/constants/types'
 import {intersect} from '@/util/set'
 import {useLocalBadging} from '@/util/use-local-badging'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {HeaderTitle} from './nav-header'
 import {useTypedNavigation} from '@/util/typed-navigation'
+import {rpcDeviceDetailToDevice, HeaderTitle} from './common'
 
 const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   if (a.currentDevice) return -1
   if (b.currentDevice) return 1
   return a.name.localeCompare(b.name)
 }
-
-const rpcDeviceToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device => ({
-  created: d.device.cTime,
-  currentDevice: d.currentDevice,
-  deviceID: T.Devices.stringToDeviceID(d.device.deviceID),
-  deviceNumberOfType: d.device.deviceNumberOfType,
-  lastUsed: d.device.lastUsedTime,
-  name: d.device.name,
-  provisionedAt: d.provisionedAt || undefined,
-  provisionerName: d.provisioner ? d.provisioner.name : undefined,
-  revokedAt: d.revokedAt || undefined,
-  revokedByName: d.revokedByDevice ? d.revokedByDevice.name : undefined,
-  type: T.Devices.stringToDeviceType(d.device.type),
-})
 
 const deviceToItem = (device: T.Devices.Device, canRevoke: boolean) => ({
   canRevoke,
@@ -43,7 +29,7 @@ const splitAndSortDevices = (devices: ReadonlyArray<T.Devices.Device>) =>
 const itemHeight = {height: 48, type: 'fixed'} as const
 
 function ReloadableDevices() {
-const navigation = useTypedNavigation('devicesRoot')
+  const navigation = useTypedNavigation('devicesRoot')
   const [devices, setDevices] = React.useState<Array<T.Devices.Device>>([])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const loadDevicesRPC = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
@@ -55,7 +41,7 @@ const navigation = useTypedNavigation('devicesRoot')
     loadDevicesRPC(
       [undefined, C.waitingKeyDevices],
       results => {
-        setDevices(results?.map(rpcDeviceToDevice) ?? [])
+        setDevices(results?.map(rpcDeviceDetailToDevice) ?? [])
       },
       _ => {}
     )
@@ -63,7 +49,6 @@ const navigation = useTypedNavigation('devicesRoot')
 
   const navigateAppend = C.Router2.navigateAppend
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
-    // We don't have navigateAppend in upgraded routes
     navigateAppend({name: 'deviceAdd', params: {highlight}})
   }
   const navigateUp = C.Router2.navigateUp
@@ -132,24 +117,24 @@ const navigation = useTypedNavigation('devicesRoot')
       reloadOnMount={true}
       title=""
     >
-      <NewContext value={badged}>
+      <BadgedDeviceIDsContext value={badged}>
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true} testID={TestIDs.DEVICES_LIST}>
           {isMobile ? (
-            <Kb.ClickableBox onClick={() => onAddDevice()} style={headerStyles.container}>
+            <Kb.ClickableBox3 onClick={() => onAddDevice()} direction="horizontal" centerChildren={true} relative={true} style={styles.mobileAddHeader}>
               <Kb.Button label="Add a device or paper key" fullWidth={true} />
               {waiting ? (
                 <Kb.Box2 direction="vertical" centerChildren={true} style={styles.progressContainer}>
                   <Kb.ProgressIndicator />
                 </Kb.Box2>
               ) : null}
-            </Kb.ClickableBox>
+            </Kb.ClickableBox3>
           ) : null}
           {showPaperKeyNudge ? <PaperKeyNudge onAddDevice={() => onAddDevice(['paper key'])} /> : null}
           <Kb.BoxGrow2>
             <Kb.List bounces={false} items={items} renderItem={renderItem} itemHeight={itemHeight} keyProperty="key" />
           </Kb.BoxGrow2>
         </Kb.Box2>
-      </NewContext>
+      </BadgedDeviceIDsContext>
     </Kb.Reloadable>
   )
 }
@@ -162,49 +147,11 @@ type Item =
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      progressContainer: {
-        ...Kb.Styles.globalStyles.fillAbsolute,
+      mobileAddHeader: {
+        height: isMobile ? 64 : 48,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       },
-      revokedNote: {
-        padding: Kb.Styles.globalMargins.medium,
-        width: '100%',
-      },
-    }) as const
-)
-
-const headerStyles = Kb.Styles.styleSheetCreate(() => ({
-  container: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    ...Kb.Styles.centered(),
-    height: isMobile ? 64 : 48,
-    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
-    position: 'relative',
-  },
-}))
-
-const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => (
-  <Kb.ClickableBox onClick={onAddDevice}>
-    <Kb.Box2 direction="horizontal" style={paperKeyNudgeStyles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={paperKeyNudgeStyles.border}>
-        <Kb.IconAuto
-          type={isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'}
-        />
-        <Kb.Box2 direction="vertical" flex={1}>
-          <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
-          <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>
-            A paper key can be used to access your account in case you lose all your devices. Keep one in a
-            safe place (like a wallet) to keep your data safe.
-          </Kb.Text>
-        </Kb.Box2>
-        {!isMobile && <Kb.Text type="BodyBigLink">Create a paper key</Kb.Text>}
-      </Kb.Box2>
-    </Kb.Box2>
-  </Kb.ClickableBox>
-)
-const paperKeyNudgeStyles = Kb.Styles.styleSheetCreate(
-  () =>
-    ({
-      border: Kb.Styles.platformStyles({
+      paperKeyNudgeBorder: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.border(Kb.Styles.globalColors.black_05, 1, Kb.Styles.borderRadius),
           flex: 1,
@@ -216,7 +163,7 @@ const paperKeyNudgeStyles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
         },
       }),
-      container: Kb.Styles.platformStyles({
+      paperKeyNudgeContainer: Kb.Styles.platformStyles({
         common: {
           padding: Kb.Styles.globalMargins.small,
         },
@@ -224,11 +171,36 @@ const paperKeyNudgeStyles = Kb.Styles.styleSheetCreate(
           padding: Kb.Styles.globalMargins.tiny,
         },
       }),
-      desc: Kb.Styles.platformStyles({
+      paperKeyNudgeDesc: Kb.Styles.platformStyles({
         isElectron: {
           maxWidth: 450,
         },
       }),
+      progressContainer: {
+        ...Kb.Styles.globalStyles.fillAbsolute,
+      },
+      revokedNote: {
+        padding: Kb.Styles.globalMargins.medium,
+        width: '100%',
+      },
     }) as const
+)
+
+const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => (
+  <Kb.ClickableBox3 onClick={onAddDevice} direction="horizontal" style={styles.paperKeyNudgeContainer} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={styles.paperKeyNudgeBorder}>
+        <Kb.IconAuto
+          type={isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'}
+        />
+        <Kb.Box2 direction="vertical" flex={1}>
+          <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
+          <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={styles.paperKeyNudgeDesc}>
+            A paper key can be used to access your account in case you lose all your devices. Keep one in a
+            safe place (like a wallet) to keep your data safe.
+          </Kb.Text>
+        </Kb.Box2>
+        {!isMobile && <Kb.Text type="BodyBigLink">Create a paper key</Kb.Text>}
+      </Kb.Box2>
+  </Kb.ClickableBox3>
 )
 export default ReloadableDevices

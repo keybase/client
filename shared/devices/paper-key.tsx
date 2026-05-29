@@ -30,15 +30,14 @@ const PaperKey = () => {
   const clearModals = C.Router2.clearModals
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        fullHeight={true}
-        centerChildren={true}
-        style={styles.container}
-        gap="medium"
-      >
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      fullHeight={true}
+      centerChildren={true}
+      style={styles.container}
+      gap="medium"
+    >
         <Kb.Text type="Header">Paper key generated!</Kb.Text>
         <Kb.Text type="Body" style={styles.intro}>
           Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
@@ -66,7 +65,6 @@ const PaperKey = () => {
           waitingKey={C.waitingKeyDevices}
         />
       </Kb.Box2>
-    </Kb.Box2>
   )
 }
 

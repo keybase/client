@@ -12,9 +12,9 @@ type OwnProps = {
   firstItem: boolean
 }
 
-export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
+export const BadgedDeviceIDsContext = React.createContext<ReadonlySet<string>>(new Set())
 
-function Container(ownProps: OwnProps) {
+function DeviceRow(ownProps: OwnProps) {
   const {canRevoke, device, firstItem} = ownProps
   const {deviceID} = device
   const navigateAppend = C.Router2.navigateAppend
@@ -22,42 +22,42 @@ function Container(ownProps: OwnProps) {
     navigateAppend({name: 'devicePage', params: {canRevoke, device}})
   }
 
-  const isNew = React.useContext(NewContext).has(deviceID)
+  const isNew = React.useContext(BadgedDeviceIDsContext).has(deviceID)
   const {currentDevice, name, revokedAt, lastUsed} = device
   const isRevoked = !!device.revokedByName
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} testID={TestIDs.DEVICES_ROW}>
-    <Kb.ListItem
-      type="Small"
-      firstItem={firstItem}
-      onClick={showExistingDevicePage}
-      icon={
-        <DeviceIcon
-          current={currentDevice}
-          device={device}
-          size={32}
-          style={isRevoked ? styles.icon : null}
-        />
-      }
-      body={
-        <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="center">
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <Kb.Text lineClamp={1} style={isRevoked ? styles.text : undefined} type="BodySemibold">
-              {name} {currentDevice && <Kb.Text type="BodySmall">(Current device)</Kb.Text>}
+      <Kb.ListItem
+        type="Small"
+        firstItem={firstItem}
+        onClick={showExistingDevicePage}
+        icon={
+          <DeviceIcon
+            current={currentDevice}
+            device={device}
+            size={32}
+            style={isRevoked ? styles.icon : null}
+          />
+        }
+        body={
+          <Kb.Box2 direction="vertical" fullWidth={true} justifyContent="center">
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              <Kb.Text lineClamp={1} style={isRevoked ? styles.text : undefined} type="BodySemibold">
+                {name} {currentDevice && <Kb.Text type="BodySmall">(Current device)</Kb.Text>}
+              </Kb.Text>
+              {isNew && !currentDevice && (
+                <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
+              )}
+            </Kb.Box2>
+            <Kb.Text type="BodySmall">
+              {isRevoked
+                ? `Revoked ${revokedAt ? formatTimeRelativeToNow(revokedAt) : 'device'}`
+                : `Last used ${formatTimeRelativeToNow(lastUsed)}`}
             </Kb.Text>
-            {isNew && !currentDevice && (
-              <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
-            )}
           </Kb.Box2>
-          <Kb.Text type="BodySmall">
-            {isRevoked
-              ? `Revoked ${revokedAt ? formatTimeRelativeToNow(revokedAt) : 'device'}`
-              : `Last used ${formatTimeRelativeToNow(lastUsed)}`}
-          </Kb.Text>
-        </Kb.Box2>
-      }
-    />
+        }
+      />
     </Kb.Box2>
   )
 }
@@ -78,4 +78,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default DeviceRow

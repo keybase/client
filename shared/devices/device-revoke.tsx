@@ -5,10 +5,12 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {settingsDevicesTab} from '@/constants/settings'
 import {useCurrentUserState} from '@/stores/current-user'
+import {rpcDeviceDetailToDevice} from './common'
+import {getDeviceRevokeIconType} from './device-icon'
 
 type OwnProps = {device?: T.Devices.Device; deviceID?: T.Devices.DeviceID}
 
-const _renderTLFEntry = (index: number, tlf: string) => (
+const renderTLFEntry = (index: number, tlf: string) => (
   <Kb.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
     <Kb.Text type="BodySemibold">•</Kb.Text>
     <Kb.Text type="BodySemibold" selectable={true} style={styles.tlf}>
@@ -24,23 +26,14 @@ const EndangeredTLFList = (props: {endangeredTLFs: Array<string>}) => {
         You may lose access to these folders forever:
       </Kb.Text>
       <Kb.Box2 direction="vertical" style={styles.listContainer}>
-        <Kb.List
-          items={props.endangeredTLFs}
-          renderItem={_renderTLFEntry}
-          indexAsKey={true}
-          itemHeight={{height: 24, type: 'fixed'}}
-        />
+        <Kb.ScrollView>{props.endangeredTLFs.map((tlf, index) => renderTLFEntry(index, tlf))}</Kb.ScrollView>
       </Kb.Box2>
     </>
   )
 }
 
 const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: () => void}) => (
-  <Kb.Box2
-    direction={isMobile ? 'vertical' : 'horizontalReverse'}
-    fullWidth={isMobile}
-    gap="tiny"
-  >
+  <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontalReverse'} fullWidth={isMobile} gap="tiny">
     <Kb.WaitingButton
       fullWidth={isMobile}
       type="Danger"
@@ -51,40 +44,6 @@ const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: ()
     <Kb.Button fullWidth={isMobile} type="Dim" onClick={onCancel} label="Cancel" />
   </Kb.Box2>
 )
-
-const getIcon = (deviceType: T.Devices.DeviceType, iconNumber: T.Devices.IconNumber) => {
-  let iconType: Kb.IconType
-  const size = isMobile ? 64 : 48
-  switch (deviceType) {
-    case 'backup':
-      iconType = `icon-paper-key-revoke-${size}`
-      break
-    case 'mobile':
-      iconType = `icon-phone-revoke-background-${iconNumber}-${size}`
-      break
-    case 'desktop':
-      iconType = `icon-computer-revoke-background-${iconNumber}-${size}`
-      break
-  }
-  if (Kb.isValidIconType(iconType)) {
-    return iconType
-  }
-  return isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
-}
-
-const rpcDeviceToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device => ({
-  created: d.device.cTime,
-  currentDevice: d.currentDevice,
-  deviceID: T.Devices.stringToDeviceID(d.device.deviceID),
-  deviceNumberOfType: d.device.deviceNumberOfType,
-  lastUsed: d.device.lastUsedTime,
-  name: d.device.name,
-  provisionedAt: d.provisionedAt || undefined,
-  provisionerName: d.provisioner ? d.provisioner.name : undefined,
-  revokedAt: d.revokedAt || undefined,
-  revokedByName: d.revokedByDevice ? d.revokedByDevice.name : undefined,
-  type: T.Devices.stringToDeviceType(d.device.type),
-})
 
 const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => {
   if (!actingDevice || !targetDevice) {
@@ -152,7 +111,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
       [undefined, C.waitingKeyDevices],
       results => {
         const hydratedDevice = results
-          ?.map(rpcDeviceToDevice)
+          ?.map(rpcDeviceDetailToDevice)
           .find(candidate => candidate.deviceID === selectedDeviceID)
         if (hydratedDevice) {
           setLoadedDevice(hydratedDevice)
@@ -192,13 +151,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
 
   if (!device) {
     return (
-      <Kb.Box2
-        direction="vertical"
-        fullHeight={true}
-        fullWidth={true}
-        centerChildren={true}
-        style={styles.container}
-      >
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true} padding="small">
         <Kb.ProgressIndicator />
       </Kb.Box2>
     )
@@ -214,10 +167,10 @@ const DeviceRevoke = (ownProps: OwnProps) => {
       fullWidth={true}
       gap="small"
       gapEnd={true}
-      style={styles.container}
+      padding="small"
     >
       <Kb.NameWithIcon
-        icon={getIcon(type, iconNumber)}
+        icon={getDeviceRevokeIconType(type, iconNumber)}
         title={device.name}
         titleStyle={styles.headerName}
         size="small"
@@ -249,7 +202,6 @@ const DeviceRevoke = (ownProps: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {padding: Kb.Styles.globalMargins.small},
       endangeredTLFContainer: Kb.Styles.platformStyles({
         isElectron: {alignSelf: 'center'},
         isMobile: {flexGrow: 1},

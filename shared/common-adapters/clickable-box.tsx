@@ -236,3 +236,4 @@ export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<MeasureRef | null>}) 
     </Pressable>
   )
 }
+

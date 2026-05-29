@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '@/util/timestamp'
+import {getDeviceIconType} from './device-icon'
 
 type OwnProps = {canRevoke: boolean; device: T.Devices.Device}
 
@@ -24,7 +25,7 @@ const TimelineLabel = (p: {
 }) => {
   const {desc, subDesc, subDescIsName, spacerOnBottom} = p
   return (
-    <Kb.Box2 direction="vertical" style={styles.timelineLabel}>
+    <Kb.Box2 direction="vertical" alignItems="flex-start">
       <Kb.Text type="Body">{desc}</Kb.Text>
       {!!subDesc && subDescIsName && (
         <Kb.Text type="BodySmall">
@@ -91,7 +92,6 @@ const Timeline = (p: {device: T.Devices.Device}) => {
 
 const DevicePage = (ownProps: OwnProps) => {
   const {canRevoke, device} = ownProps
-  const iconNumber = T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType)
   const navigateAppend = C.Router2.navigateAppend
   const showRevokeDevicePage = () => {
     navigateAppend({name: 'deviceRevoke', params: {device}})
@@ -104,15 +104,6 @@ const DevicePage = (ownProps: OwnProps) => {
   ) : null
 
   const deviceType = device.type
-
-  const maybeIcon = (
-    {
-      backup: 'icon-paper-key-96',
-      desktop: `icon-computer-background-${iconNumber}-96`,
-      mobile: `icon-phone-background-${iconNumber}-96`,
-    } as const
-  )[deviceType]
-  const icon = Kb.isValidIconType(maybeIcon) ? maybeIcon : 'icon-computer-96'
 
   const revokeName = {
     backup: 'paper key',
@@ -136,7 +127,7 @@ const DevicePage = (ownProps: OwnProps) => {
       fullWidth={true}
       fullHeight={true}
     >
-      <Kb.NameWithIcon icon={icon} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
+      <Kb.NameWithIcon icon={getDeviceIconType(device.type, T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType), 96)} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
       <Timeline device={device} />
       {device.revokedAt ? null : (
         <Kb.Button
@@ -176,7 +167,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: 4,
       },
       subDesc: {color: Kb.Styles.globalColors.black},
-      timelineLabel: {alignItems: 'flex-start'},
       timelineLineBottom: {
         backgroundColor: Kb.Styles.globalColors.grey,
         flex: 1,
