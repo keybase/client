@@ -11,7 +11,7 @@ export type SectionType<Item> = {
   title?: string | React.ReactElement
   data: ReadonlyArray<Item>
   keyExtractor?: (item: Item, index: number) => string
-  renderItem: ({
+  renderItem?: ({
     index,
     item,
     section,
@@ -29,11 +29,17 @@ type Props<ItemT, SectionT> = SectionListProps<ItemT, SectionT> & {
   onSectionChange?: (section: SectionT) => void
 }
 
+function defaultRenderSectionHeader<ItemT, SectionT>({section}: {section: SectionListData<ItemT, SectionT>}) {
+  const s = section as unknown as SectionType<ItemT>
+  // callers relying on this default use SectionType<ItemT> as their section shape
+  return s.renderSectionHeader?.({section: s}) ?? null
+}
+
 function SectionListImpl<ItemT, SectionT>(
   props: Props<ItemT, SectionT> & {ref?: React.Ref<NativeSectionList<ItemT, SectionT>>}
 ) {
   const {ref} = props
-  const {getItemHeight, getSectionHeaderHeight, onSectionChange, ...rest} = props
+  const {getItemHeight, getSectionHeaderHeight, onSectionChange, renderSectionHeader, ...rest} = props
   const getItemLayout = getItemHeight
     ? getGetItemLayout<ItemT, SectionT>({getItemHeight, getSectionHeaderHeight})
     : undefined
@@ -46,6 +52,8 @@ function SectionListImpl<ItemT, SectionT>(
       }
     : undefined
 
+  const resolvedRenderSectionHeader = renderSectionHeader ?? defaultRenderSectionHeader<ItemT, SectionT>
+
   return (
     <NativeSectionList
       overScrollMode="never"
@@ -56,6 +64,7 @@ function SectionListImpl<ItemT, SectionT>(
       keyboardDismissMode="on-drag"
       ref={ref}
       {...rest}
+      renderSectionHeader={resolvedRenderSectionHeader}
     />
   )
 }
