@@ -66,11 +66,83 @@ Read **every file** in scope before forming opinions. Patterns only become visib
 - Repeated style patterns across components that could become a shared style helper or `Kb.Styles` utility call
 - Platform-conditional logic repeated in multiple components instead of being handled once
 - Styles inlined at call sites instead of in the stylesheet
+- Style properties that can be replaced with Box2 props (see **Box2 Props** section below)
 
 ### Shared Helpers and Components
 - Patterns used 2+ times that have no shared abstraction
 - Icon resolution logic duplicated across screens
 - Small display components (badges, labels, markers) defined inline multiple times
+
+## Box2 Props: Replace Style Properties
+
+`Kb.Box2` (and `Box2`) has first-class props for many layout properties. When a Box2's style object contains properties that have a prop equivalent, move them out of the style and into the prop. This shrinks stylesheets and makes intent more readable.
+
+### Pure structural replacements (no visual change — do freely)
+
+These are exact equivalents. Moving them from style to prop changes nothing visible.
+
+| Style property | Box2 prop |
+|---|---|
+| `alignItems: 'center'` | `alignItems="center"` |
+| `alignItems: 'flex-start'` | `alignItems="flex-start"` |
+| `alignItems: 'flex-end'` | `alignItems="flex-end"` |
+| `alignItems: 'stretch'` | `alignItems="stretch"` |
+| `alignSelf: 'center'` | `alignSelf="center"` |
+| `alignSelf: 'flex-start'` | `alignSelf="flex-start"` |
+| `alignSelf: 'flex-end'` | `alignSelf="flex-end"` |
+| `alignSelf: 'stretch'` | `alignSelf="stretch"` |
+| `justifyContent: 'center'` | `justifyContent="center"` |
+| `justifyContent: 'space-between'` | `justifyContent="space-between"` |
+| `justifyContent: 'flex-start'` | `justifyContent="flex-start"` |
+| `justifyContent: 'flex-end'` | `justifyContent="flex-end"` |
+| `justifyContent: 'space-around'` | `justifyContent="space-around"` |
+| `justifyContent: 'space-evenly'` | `justifyContent="space-evenly"` |
+| `alignItems: 'center', justifyContent: 'center'` | `centerChildren` |
+| `width: '100%'` | `fullWidth` |
+| `height: '100%'` | `fullHeight` |
+| `flexShrink: 0` | `noShrink` |
+| `flex: 1` | `flex={1}` |
+| `overflow: 'hidden'` | `overflow="hidden"` |
+| `position: 'relative'` | `relative` |
+| `padding: Styles.globalMargins.small` | `padding="small"` (uniform padding only) |
+
+`padding` accepts any `globalMargins` key: `xxtiny` `xtiny` `tiny` `xsmall` `small` `medium` `mediumLarge` `large` `xlarge`. Only use when padding is uniform on all sides; don't use if sides differ.
+
+After moving props out, if the style object becomes empty (`style={{}}`), remove the style prop entirely.
+
+### Gap prop: replaces per-child margins (validate first)
+
+`gap="small"` on a `Box2` inserts space **between** children using CSS `columnGap`/`rowGap`. This replaces the pattern of putting `marginTop`/`marginLeft`/`marginBottom`/`marginRight` on each child.
+
+`gap` accepts any `globalMargins` key. The spacing value must match a globalMargins token; if the existing margin is a raw number, check against the table above (e.g., `4 → xtiny`, `8 → tiny`, `16 → small`).
+
+**This is a slight visual change:** gap does not add space before the first child or after the last, while per-child margins typically do (at least on one end). Use `gapStart` and/or `gapEnd` to restore leading/trailing padding if needed.
+
+```tsx
+// Before
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  child: {marginBottom: Kb.Styles.globalMargins.small},
+}))
+<Kb.Box2 direction="vertical">
+  <Child style={styles.child} />
+  <Child style={styles.child} />
+</Kb.Box2>
+
+// After
+<Kb.Box2 direction="vertical" gap="small">
+  <Child />
+  <Child />
+</Kb.Box2>
+```
+
+**Always flag gap conversions in the proposed-changes list** and note the visual implication (edge spacing removed). The user decides whether to accept. Don't bundle them silently with structural changes.
+
+### When gap doesn't apply
+
+- Spacing between only *some* siblings (not all) — gap is all-or-nothing
+- Children that individually need different margins from each other
+- Raw pixel values that don't map to any globalMargins token
+- Margins used to push a single element away from something unrelated to sibling spacing
 
 ## Step 3: Ask Before Acting
 
@@ -106,20 +178,21 @@ Wait for the user's response. Do not begin any edits until they reply.
 
 Make all approved changes. Remove unused imports, styles, and variables left behind. Run lint and tsc after.
 
-## The Hard Line: No Behavior Changes
+## The Hard Line: No Unilateral Visual Changes
 
-**This skill is structural only. Zero visual, UX, or behavior changes — ever.**
+**This skill is structural by default. Zero UX or behavior changes without explicit user sign-off.**
 
 This means:
-- No changes to rendered output, layout, spacing, or colors
 - No changes to user-visible text, labels, or copy
 - No changes to interaction flows, navigation, or state logic
 - No "small improvements" to UX while you're in there
 - No refactoring component logic even if it looks equivalent
 
-If a simplification would change any of these things, **stop and discuss it first**. It is not in scope until the user explicitly validates it.
+**Visual changes require validation first.** Flag them clearly in the proposed-changes list with a note like "(slight visual: removes trailing gap between last child and container edge)". The user decides whether to accept. Wait for approval before implementing.
 
-The only exception: if a behavior change is required to fix an outright bug discovered during the review. Raise it separately; do not bundle it with structural changes.
+The one named exception: `gap` conversions (replacing per-child margins with Box2 `gap`). These are small but real visual changes. Always list them separately in the proposal so the user can opt in or out per case.
+
+If a behavior change is required to fix an outright bug discovered during the review, raise it separately — do not bundle it with structural changes.
 
 ## Shared Helpers: Use `common.tsx`
 
