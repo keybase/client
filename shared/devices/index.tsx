@@ -18,7 +18,6 @@ const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   return a.name.localeCompare(b.name)
 }
 
-
 const deviceToItem = (device: T.Devices.Device, canRevoke: boolean) => ({
   canRevoke,
   device,

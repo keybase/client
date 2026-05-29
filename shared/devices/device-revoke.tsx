@@ -54,23 +54,20 @@ const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: ()
 )
 
 const getIcon = (deviceType: T.Devices.DeviceType, iconNumber: T.Devices.IconNumber) => {
-  let iconType: Kb.IconType
   const size = isMobile ? 64 : 48
-  switch (deviceType) {
-    case 'backup':
-      iconType = `icon-paper-key-revoke-${size}`
-      break
-    case 'mobile':
-      iconType = `icon-phone-revoke-background-${iconNumber}-${size}`
-      break
-    case 'desktop':
-      iconType = `icon-computer-revoke-background-${iconNumber}-${size}`
-      break
-  }
-  if (Kb.isValidIconType(iconType)) {
-    return iconType
-  }
-  return isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
+  const maybeIcon = (
+    {
+      backup: `icon-paper-key-revoke-${size}`,
+      desktop: `icon-computer-revoke-background-${iconNumber}-${size}`,
+      mobile: `icon-phone-revoke-background-${iconNumber}-${size}`,
+    } as const
+  )[deviceType]
+  const fallback = ({
+    backup: `icon-paper-key-revoke-${size}`,
+    desktop: `icon-computer-revoke-${size}`,
+    mobile: `icon-phone-revoke-${size}`,
+  } as const)[deviceType]
+  return Kb.isValidIconType(maybeIcon) ? maybeIcon : fallback
 }
 
 const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => {
