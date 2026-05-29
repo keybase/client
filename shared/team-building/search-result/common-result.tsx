@@ -91,61 +91,60 @@ const CommonResult = (props: CommonResultProps) => {
   const onClick = getRowAction(props)
 
   return (
-    <Kb.ClickableBox onClick={onClick}>
-      <Kb.Box2
-        className="hover_background_color_blueLighter2 hover_container"
-        direction="horizontal"
-        fullWidth={true}
-        centerChildren={true}
-        style={Kb.Styles.collapseStyles([
-          styles.rowContainer,
-          props.rowStyle,
-          props.highlight ? styles.highlighted : undefined,
-        ])}
-      >
-        <Avatar
-          resultForService={props.resultForService}
-          keybaseUsername={keybaseUsername}
-          pictureUrl={props.pictureUrl}
-        />
-        <Kb.Box2 direction="vertical" flex={1} style={styles.username}>
-          {serviceUsername ? (
-            <>
-              <Username
+    <Kb.ClickableBox3
+      onClick={onClick}
+      className="hover_background_color_blueLighter2 hover_container"
+      direction="horizontal"
+      fullWidth={true}
+      centerChildren={true}
+      style={Kb.Styles.collapseStyles([
+        styles.rowContainer,
+        props.rowStyle,
+        props.highlight ? styles.highlighted : undefined,
+      ])}
+    >
+      <Avatar
+        resultForService={props.resultForService}
+        keybaseUsername={keybaseUsername}
+        pictureUrl={props.pictureUrl}
+      />
+      <Kb.Box2 direction="vertical" flex={1} style={styles.username}>
+        {serviceUsername ? (
+          <>
+            <Username
+              followingState={props.followingState}
+              isKeybaseResult={isKeybaseResult}
+              keybaseUsername={keybaseUsername}
+              username={serviceUsername}
+            />
+            {props.bottomRow ?? (
+              <BottomRow
+                displayLabel={props.displayLabel}
                 followingState={props.followingState}
                 isKeybaseResult={isKeybaseResult}
+                isPreExistingTeamMember={props.isPreExistingTeamMember}
                 keybaseUsername={keybaseUsername}
+                prettyName={props.prettyName}
+                services={props.services}
                 username={serviceUsername}
               />
-              {props.bottomRow ?? (
-                <BottomRow
-                  displayLabel={props.displayLabel}
-                  followingState={props.followingState}
-                  isKeybaseResult={isKeybaseResult}
-                  isPreExistingTeamMember={props.isPreExistingTeamMember}
-                  keybaseUsername={keybaseUsername}
-                  prettyName={props.prettyName}
-                  services={props.services}
-                  username={serviceUsername}
-                />
-              )}
-            </>
-          ) : (
-            <FallbackResultInfo displayLabel={props.displayLabel} prettyName={props.prettyName} />
-          )}
-        </Kb.Box2>
-        <Kb.Box2
-          gap="tiny"
-          centerChildren={true}
-          direction="horizontal"
-          className="result-actions"
-          style={props.highlight ? styles.actionButtonsHighlighted : undefined}
-        >
-          {/* Renders checkbox for new-chat and team-building, and chat buttons + dropdown for people search */}
-          {props.rightButtons ?? null}
-        </Kb.Box2>
+            )}
+          </>
+        ) : (
+          <FallbackResultInfo displayLabel={props.displayLabel} prettyName={props.prettyName} />
+        )}
       </Kb.Box2>
-    </Kb.ClickableBox>
+      <Kb.Box2
+        gap="tiny"
+        centerChildren={true}
+        direction="horizontal"
+        className="result-actions"
+        style={props.highlight ? styles.actionButtonsHighlighted : undefined}
+      >
+        {/* Renders checkbox for new-chat and team-building, and chat buttons + dropdown for people search */}
+        {props.rightButtons ?? null}
+      </Kb.Box2>
+    </Kb.ClickableBox3>
   )
 }
 

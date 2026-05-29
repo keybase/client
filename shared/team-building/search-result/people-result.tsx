@@ -135,12 +135,13 @@ const DropdownButton = (p: DropdownProps) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox3
       onClick={e => {
-        e.stopPropagation()
+        e?.stopPropagation()
         showPopup()
       }}
       ref={popupAnchor}
+      direction="vertical"
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton} small={true}>
@@ -148,7 +149,7 @@ const DropdownButton = (p: DropdownProps) => {
         </Kb.Button>
       </Kb.Box2>
       {popup}
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 

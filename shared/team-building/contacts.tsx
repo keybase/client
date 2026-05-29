@@ -144,23 +144,15 @@ export const ContactsImportButton = () => {
     return null
 
   return (
-    <Kb.ClickableBox onClick={onImportContacts}>
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        alignItems="center"
-        gap="small"
-        style={styles.importContactsContainer}
-      >
-        <Kb.Box2 direction="vertical" style={styles.iconContactBookContainer}>
-          <Kb.Icon type="iconfont-contact-book" color={Kb.Styles.globalColors.black} />
-        </Kb.Box2>
-        <Kb.Text type="BodyBig" lineClamp={1}>
-          Import phone contacts
-        </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Kb.Styles.globalColors.black} />
+    <Kb.ClickableBox3 onClick={onImportContacts} direction="horizontal" fullWidth={true} alignItems="center" gap="small" style={styles.importContactsContainer}>
+      <Kb.Box2 direction="vertical" style={styles.iconContactBookContainer}>
+        <Kb.Icon type="iconfont-contact-book" color={Kb.Styles.globalColors.black} />
       </Kb.Box2>
-    </Kb.ClickableBox>
+      <Kb.Text type="BodyBig" lineClamp={1}>
+        Import phone contacts
+      </Kb.Text>
+      <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Kb.Styles.globalColors.black} />
+    </Kb.ClickableBox3>
   )
 }
 

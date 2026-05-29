@@ -22,8 +22,8 @@ const UserResult = function UserResult(props: ResultProps) {
         !props.isPreExistingTeamMember && (
           <ActionButton
             inTeam={props.inTeam}
-            onAdd={(e: React.BaseSyntheticEvent) => {
-              e.stopPropagation()
+            onAdd={(e?: React.BaseSyntheticEvent) => {
+              e?.stopPropagation()
               props.onAdd(props.userId)
             }}
             onRemove={() => {
@@ -39,21 +39,20 @@ const actionButtonSize = isMobile ? 22 : Kb.Styles.globalMargins.small
 
 const ActionButton = (props: {
   inTeam: boolean
-  onAdd: (e: React.BaseSyntheticEvent) => void
+  onAdd: (e?: React.BaseSyntheticEvent) => void
   onRemove: () => void
 }) => {
   const Icon = props.inTeam ? AlreadyAddedIconButton : AddButton
 
   return (
-    <Kb.ClickableBox onClick={props.inTeam ? props.onRemove : props.onAdd}>
-      <Kb.Box2
-        direction="vertical"
-        centerChildren={true}
-        style={Kb.Styles.collapseStyles([styles.actionButton, props.inTeam && {backgroundColor: undefined}])}
-      >
-        <Icon />
-      </Kb.Box2>
-    </Kb.ClickableBox>
+    <Kb.ClickableBox3
+      onClick={props.inTeam ? props.onRemove : props.onAdd}
+      direction="vertical"
+      centerChildren={true}
+      style={Kb.Styles.collapseStyles([styles.actionButton, props.inTeam && {backgroundColor: undefined}])}
+    >
+      <Icon />
+    </Kb.ClickableBox3>
   )
 }
 

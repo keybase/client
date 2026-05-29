@@ -120,7 +120,7 @@ const ServiceIconNative = function ServiceIcon(props: IconProps) {
   })
 
   return (
-    <Kb.ClickableBox onClick={() => onClick(service)} style={{position: 'relative'}}>
+    <Kb.ClickableBox3 onClick={() => onClick(service)} direction="vertical" relative={true}>
       <AnimatedBox2 direction="vertical" style={[nativeStyles.serviceIconContainer, animatedWidth]}>
         <Kb.Box2 direction="vertical" relative={true}>
           {serviceIdToBadge(service) && (
@@ -156,7 +156,7 @@ const ServiceIconNative = function ServiceIcon(props: IconProps) {
           Kb.Styles.platformStyles({isMobile: animatedTransform}),
         ])}
       />
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 
@@ -282,11 +282,19 @@ const MoreNetworksButton = (props: {
           ref={popupAnchor}
         >
           <Kb.WithTooltip tooltip="More networks" containerStyle={desktopStyles.moreNetworks2}>
-            <Kb.ClickableBox onClick={showPopup} style={desktopStyles.moreNetworks3}>
+            <Kb.ClickableBox3
+              onClick={showPopup}
+              direction="horizontal"
+              alignItems="center"
+              justifyContent="center"
+              fullWidth={true}
+              fullHeight={true}
+              style={desktopStyles.moreNetworks3}
+            >
               <Kb.Text type="BodyBigExtrabold" style={desktopStyles.moreText}>
                 •••
               </Kb.Text>
-            </Kb.ClickableBox>
+            </Kb.ClickableBox3>
           </Kb.WithTooltip>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={desktopStyles.inactiveTabBar} />
@@ -302,10 +310,12 @@ const ServiceIconDesktop = (props: IconProps) => {
   const color =
     props.isActive || hover ? serviceIdToAccentColor(props.service, isDarkMode) : Kb.Styles.globalColors.black
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox3
       onClick={() => props.onClick(props.service)}
       onMouseOver={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      direction="vertical"
+      flex={1}
       style={desktopStyles.serviceIconFlex}
     >
       <Kb.Box2 direction="horizontal" centerChildren={true} flex={1} style={desktopStyles.serviceIconContainer}>
@@ -343,7 +353,7 @@ const ServiceIconDesktop = (props: IconProps) => {
           props.isActive && {backgroundColor: serviceIdToAccentColor(props.service, isDarkMode)},
         ])}
       />
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 
@@ -435,18 +445,12 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         width: '100%',
       },
       moreNetworks3: {
-        alignItems: 'center',
         borderColor: Kb.Styles.globalColors.black_20,
         borderRadius: Kb.Styles.borderRadius,
         borderStyle: 'solid',
         borderWidth: 1,
-        display: 'flex',
-        flexDirection: 'row',
-        height: '100%',
-        justifyContent: 'center',
         maxHeight: '100%',
         maxWidth: '100%',
-        width: '100%',
       },
       moreText: {color: Kb.Styles.globalColors.black_50},
       serviceIconBox: {marginTop: 14},
@@ -457,7 +461,7 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         maxWidth: 72,
         minWidth: 40,
       },
-      serviceIconFlex: {flex: 1, maxWidth: 90},
+      serviceIconFlex: {maxWidth: 90},
       tabBarContainer: {
         borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: 1,

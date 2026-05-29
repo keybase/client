@@ -50,7 +50,7 @@ const UserBubble = (props: Props) => {
 }
 
 const RemoveBubble = ({onRemove}: {onRemove: () => void}) => (
-  <Kb.ClickableBox onClick={onRemove}>
+  <Kb.ClickableBox3 onClick={onRemove} direction="vertical">
     <Kb.Icon
       type="iconfont-close"
       color={Kb.Styles.globalColors.black_50_on_white}
@@ -58,7 +58,7 @@ const RemoveBubble = ({onRemove}: {onRemove: () => void}) => (
       style={styles.removeIcon}
       className="hover_color_black"
     />
-  </Kb.ClickableBox>
+  </Kb.ClickableBox3>
 )
 
 const styles = Kb.Styles.styleSheetCreate(

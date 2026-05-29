@@ -310,7 +310,7 @@ const nativeStyles = {
 } as const
 
 export type ClickableBox3Props = Box2Props & {
-  onClick?: () => void
+  onClick?: (e?: React.SyntheticEvent) => void
   onLongPress?: () => void
   hitSlop?: number
 }
