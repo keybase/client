@@ -318,31 +318,41 @@ export const ClickableBox3 = (p: ClickableBox3Props & {ref?: React.Ref<MeasureRe
   const {onClick, onLongPress, hitSlop, ref, ...box2p} = p
 
   if (!isMobile) {
-    const {children, style: _style, onMouseOver, testID, flex} = box2p
+    const {children, style: _style, onMouseOver, onMouseDown, onMouseLeave, onMouseMove, onMouseUp, onContextMenu, testID, flex, title, tooltip} = box2p
     const cn = box2ClassNames(box2p, 'clickable-box2')
     const s = Styles.collapseStyles([flex != null && flex !== 1 ? {flex} : undefined, _style]) as React.CSSProperties
     return (
       <div
         ref={ref as React.Ref<HTMLDivElement>}
         className={cn}
-        onClick={onClick}
-        onMouseOver={onMouseOver}
-        style={s}
         data-testid={testID}
+        data-tooltip={tooltip}
+        onClick={onClick}
+        onContextMenu={onContextMenu}
+        onMouseDown={onMouseDown}
+        onMouseLeave={onMouseLeave}
+        onMouseMove={onMouseMove}
+        onMouseOver={onMouseOver}
+        onMouseUp={onMouseUp}
+        style={s}
+        title={title}
       >
         {children}
       </div>
     )
   }
 
-  const {style: s, children: c} = box2SharedProps(box2p)
+  const {style: s, children: c, onLayout, collapsable, pointerEvents} = box2SharedProps(box2p)
   return (
     <Pressable
       ref={ref as React.Ref<View>}
-      onPress={onClick ? () => { onClick() } : undefined}
-      onLongPress={onLongPress}
-      style={s}
+      collapsable={collapsable}
       hitSlop={hitSlop}
+      onLayout={onLayout}
+      onLongPress={onLongPress}
+      onPress={onClick ? () => { onClick() } : undefined}
+      pointerEvents={pointerEvents}
+      style={s}
       testID={box2p.testID}
     >
       {c}
