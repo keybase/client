@@ -17,11 +17,6 @@ appId: keybase.ios
     visible:
       id: "crypto-encrypt-input"
     timeout: 3000
-- takeScreenshot: tests/results/ios-debug/crypto-subtabs-encrypt-keyboard
-- tapOn:
-    point: "5%,5%"
-- waitForAnimationToEnd:
-    timeout: 500
 - takeScreenshot: tests/results/ios-debug/crypto-subtabs-encrypt
 - tapOn:
     id: "backButton"
@@ -32,11 +27,6 @@ appId: keybase.ios
     visible:
       id: "crypto-decrypt-input"
     timeout: 3000
-- takeScreenshot: tests/results/ios-debug/crypto-subtabs-decrypt-keyboard
-- tapOn:
-    point: "5%,5%"
-- waitForAnimationToEnd:
-    timeout: 500
 - takeScreenshot: tests/results/ios-debug/crypto-subtabs-decrypt
 - tapOn:
     id: "backButton"
@@ -47,11 +37,6 @@ appId: keybase.ios
     visible:
       id: "crypto-sign-input"
     timeout: 3000
-- takeScreenshot: tests/results/ios-debug/crypto-subtabs-sign-keyboard
-- tapOn:
-    point: "5%,5%"
-- waitForAnimationToEnd:
-    timeout: 500
 - takeScreenshot: tests/results/ios-debug/crypto-subtabs-sign
 - tapOn:
     id: "backButton"
@@ -62,11 +47,6 @@ appId: keybase.ios
     visible:
       id: "crypto-verify-input"
     timeout: 3000
-- takeScreenshot: tests/results/ios-debug/crypto-subtabs-verify-keyboard
-- tapOn:
-    point: "5%,5%"
-- waitForAnimationToEnd:
-    timeout: 500
 - takeScreenshot: tests/results/ios-debug/crypto-subtabs-verify
 - tapOn:
     id: "backButton"

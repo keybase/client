@@ -68,10 +68,6 @@ function computeDiff(pathA: string, pathB: string): DiffResult | null {
   }
 }
 
-function imageToDataUrl(filePath: string): string {
-  return `data:image/png;base64,${fs.readFileSync(filePath).toString('base64')}`
-}
-
 function parseFlow(name: string): ScreenshotResult[] {
   const commands = readCommandsFile(name)
   const failed = commands?.find(c => c.metadata.status === 'FAILED')
@@ -161,19 +157,20 @@ function buildHtml(results: ScreenshotResult[], timestamp: string, title: string
       : ''
     const durStr = r.durationMs > 0 ? formatDuration(r.durationMs) : ''
 
+    const rel = (p: string) => path.relative(path.dirname(outputPath), p)
     let visual: string
     if (r.screenshotPath && r.prevScreenshotPath) {
       visual = `<div class="compare" id="cmp${i}">
-        <img class="img-after" src="${imageToDataUrl(r.screenshotPath)}" alt="current">
-        <img class="img-before" src="${imageToDataUrl(r.prevScreenshotPath)}" alt="baseline">
+        <img class="img-after" src="${rel(r.screenshotPath)}" alt="current">
+        <img class="img-before" src="${rel(r.prevScreenshotPath)}" alt="baseline">
         <div class="handle"><div class="grip">⇔</div></div>
         <div class="lbl lbl-l">BASELINE</div>
         <div class="lbl lbl-r">NOW</div>
       </div>`
     } else if (r.screenshotPath) {
-      visual = `<div class="solo-wrap"><img class="solo" src="${imageToDataUrl(r.screenshotPath)}" alt="${r.name}"></div>`
+      visual = `<div class="solo-wrap"><img class="solo" src="${rel(r.screenshotPath)}" alt="${r.name}"></div>`
     } else if (r.failureScreenshotPath) {
-      visual = `<div class="solo-wrap"><img class="solo dim" src="${imageToDataUrl(r.failureScreenshotPath)}" alt="failure"></div>`
+      visual = `<div class="solo-wrap"><img class="solo dim" src="${rel(r.failureScreenshotPath)}" alt="failure"></div>`
     } else {
       visual = `<div class="empty">No screenshot</div>`
     }
