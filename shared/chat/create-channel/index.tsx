@@ -29,10 +29,10 @@ const CreateChannel = (p: Props) => {
           </Kb.Banner>
         )}
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={desktopStyles.box}>
-          <Kb.ClickableBox style={desktopStyles.back} onClick={props.onBack}>
+          <Kb.ClickableBox3 direction="horizontal" alignItems="center" style={desktopStyles.back} onClick={props.onBack}>
             <Kb.Icon style={desktopStyles.backIcon} type="iconfont-arrow-left" />
             <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
-          </Kb.ClickableBox>
+          </Kb.ClickableBox3>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true}>
             <Kb.Input3
               autoFocus={true}
@@ -112,8 +112,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       back: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         left: 32,
         position: 'absolute',
         top: 32,

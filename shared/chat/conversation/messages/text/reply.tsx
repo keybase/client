@@ -82,39 +82,31 @@ function ReplyStructure(p: RS) {
   const {showImage, showEdited, isDeleted, onClick} = p
 
   return (
-    <Kb.ClickableBox2 onClick={onClick}>
-      <Kb.Box2
-        direction="horizontal"
-        gap="tiny"
-        fullWidth={true}
-        style={styles.replyContainer}
-        className={Kb.Styles.classNames('ReplyBox')}
-      >
-        <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
-        <Kb.Box2 direction="vertical" gap="xtiny" flex={1}>
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <AvatarHolder />
-          </Kb.Box2>
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-            {showImage && <ReplyImage />}
-            <Kb.Box2 direction="horizontal" flex={1} style={styles.replyTextContainer}>
-              {isDeleted ? (
-                <Kb.Text type="BodyTiny" style={styles.replyEdited} virtualText={true}>
-                  The original message was deleted.
-                </Kb.Text>
-              ) : (
-                <ReplyText />
-              )}
-            </Kb.Box2>
-          </Kb.Box2>
-          {showEdited && (
-            <Kb.Text type="BodyTiny" style={styles.replyEdited} virtualText={true}>
-              EDITED
-            </Kb.Text>
-          )}
+    <Kb.ClickableBox3 direction="horizontal" gap="tiny" fullWidth={true} style={styles.replyContainer} className={Kb.Styles.classNames('ReplyBox')} onClick={onClick}>
+      <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
+      <Kb.Box2 direction="vertical" gap="xtiny" flex={1}>
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <AvatarHolder />
         </Kb.Box2>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+          {showImage && <ReplyImage />}
+          <Kb.Box2 direction="horizontal" flex={1} style={styles.replyTextContainer}>
+            {isDeleted ? (
+              <Kb.Text type="BodyTiny" style={styles.replyEdited} virtualText={true}>
+                The original message was deleted.
+              </Kb.Text>
+            ) : (
+              <ReplyText />
+            )}
+          </Kb.Box2>
+        </Kb.Box2>
+        {showEdited && (
+          <Kb.Text type="BodyTiny" style={styles.replyEdited} virtualText={true}>
+            EDITED
+          </Kb.Text>
+        )}
       </Kb.Box2>
-    </Kb.ClickableBox2>
+    </Kb.ClickableBox3>
   )
 }
 

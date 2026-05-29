@@ -31,12 +31,14 @@ type ArrowProps = {
 const Arrow = (props: ArrowProps) => {
   const {left, onClick} = props
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox3
+      direction="vertical"
+      centerChildren={true}
       className="hover_background_color_black background_color_black_50 fade-background-color"
       onClick={
         onClick
           ? e => {
-              e.stopPropagation()
+              e?.stopPropagation()
               onClick()
             }
           : undefined
@@ -48,7 +50,7 @@ const Arrow = (props: ArrowProps) => {
         color={Kb.Styles.globalColors.white}
         style={Kb.Styles.collapseStyles([styles.arrow, left && styles.arrowLeft, !left && styles.arrowRight])}
       />
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 
@@ -64,7 +66,9 @@ const DesktopFullscreen = (p: Props) => {
 
   const preload = (src: string, onLoad: () => void, onError: () => void) => {
     // Use dynamic require to avoid DOM type dependency
-    const ctor = (globalThis as unknown as {Image?: new () => {src: string; onload: () => void; onerror: () => void}}).Image
+    const ctor = (
+      globalThis as unknown as {Image?: new () => {src: string; onload: () => void; onerror: () => void}}
+    ).Image
     if (!ctor) return
     const img = new ctor()
     img.src = src
@@ -114,7 +118,7 @@ const DesktopFullscreen = (p: Props) => {
       </Kb.Box2>
       {path && (
         <Kb.BoxGrow>
-          <Kb.ClickableBox style={styles.contentsFit} key={path}>
+          <Kb.Box2 direction="horizontal" flex={1} fullWidth={true} fullHeight={true} key={path}>
             {!isZoomed ? <Arrow left={true} onClick={onPreviousAttachment} /> : undefined}
             <Kb.Box2
               direction="vertical"
@@ -142,7 +146,7 @@ const DesktopFullscreen = (p: Props) => {
               )}
             </Kb.Box2>
             {!isZoomed && <Arrow left={false} onClick={onNextAttachment} />}
-          </Kb.ClickableBox>
+          </Kb.Box2>
         </Kb.BoxGrow>
       )}
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerFooter}>
@@ -413,11 +417,8 @@ const styles = Kb.Styles.styleSheetCreate(
       arrowRight: {left: 1},
       circle: Kb.Styles.platformStyles({
         isElectron: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          ...Kb.Styles.centered(),
           alignSelf: 'center',
           borderRadius: 36,
-          cursor: 'pointer',
           flexShrink: 0,
           ...Kb.Styles.size(36),
           margin: Kb.Styles.globalMargins.small,
@@ -429,11 +430,6 @@ const styles = Kb.Styles.styleSheetCreate(
           padding: Kb.Styles.globalMargins.small,
         },
       }),
-      contentsFit: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        flex: 1,
-        ...Kb.Styles.size('100%'),
-      },
       disabled: {opacity: 0.3},
       ellipsisContainer: Kb.Styles.platformStyles({
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,

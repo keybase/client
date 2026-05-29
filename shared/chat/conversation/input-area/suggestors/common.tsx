@@ -61,9 +61,9 @@ export function List<T>(p: ListProps<T>) {
   const [selectedIndex, setSelectedIndex] = React.useState(0)
 
   const renderItem = (idx: number, item: T) => (
-    <Kb.ClickableBox key={keyExtractor(item, idx)} onClick={() => onSelected(item, true)}>
+    <Kb.ClickableBox3 direction="vertical" fullWidth={true} key={keyExtractor(item, idx)} onClick={() => onSelected(item, true)}>
       <ItemRenderer selected={idx === selectedIndex} item={item} />
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 
   const lastSelectedIndex = React.useRef(selectedIndex)

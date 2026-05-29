@@ -30,32 +30,31 @@ const SelectableSmallTeam = (props: Props) => {
 
   if (!props.teamname && props.participants.length === 0) {
     return (
-      <Kb.ClickableBox onClick={props.onSelectConversation}>
-        <Kb.Box2 direction="vertical" style={styles.container} centerChildren={true}>
-          <Kb.ProgressIndicator style={styles.spinner} type="Small" />
-        </Kb.Box2>
-      </Kb.ClickableBox>
+      <Kb.ClickableBox3 direction="vertical" style={styles.container} centerChildren={true} onClick={props.onSelectConversation}>
+        <Kb.ProgressIndicator style={styles.spinner} type="Small" />
+      </Kb.ClickableBox3>
     )
   }
   return (
-    <Kb.ClickableBox onClick={props.onSelectConversation} style={styles.container}>
-      <Kb.Box2
-        alignItems="center"
-        direction="horizontal"
-        fullWidth={true}
-        fullHeight={true}
-        className={Kb.Styles.classNames('hover_background_color_blueGreyDark', {
-          background_color_blue: props.isSelected,
-        })}
-        style={Kb.Styles.collapseStyles([
-          styles.rowContainer,
-          {
-            backgroundColor: props.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
-          },
-        ])}
-        onMouseLeave={_onMouseLeave}
-        onMouseOver={_onMouseOver}
-      >
+    <Kb.ClickableBox3
+      direction="horizontal"
+      alignItems="center"
+      fullWidth={true}
+      fullHeight={true}
+      className={Kb.Styles.classNames('hover_background_color_blueGreyDark', {
+        background_color_blue: props.isSelected,
+      })}
+      onClick={props.onSelectConversation}
+      style={Kb.Styles.collapseStyles([
+        styles.container,
+        styles.rowContainer,
+        {
+          backgroundColor: props.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
+        },
+      ])}
+      onMouseLeave={_onMouseLeave}
+      onMouseOver={_onMouseOver}
+    >
         {props.teamname ? (
           <TeamAvatar
             teamname={props.teamname}
@@ -94,8 +93,7 @@ const SelectableSmallTeam = (props: Props) => {
           )}
         </Kb.Box2>
         {props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}
-      </Kb.Box2>
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 
@@ -114,7 +112,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   rowContainer: Kb.Styles.platformStyles({
     isElectron: {
-      ...Kb.Styles.desktopStyles.clickable,
       ...Kb.Styles.paddingH(Kb.Styles.globalMargins.xsmall),
     },
     isMobile: {

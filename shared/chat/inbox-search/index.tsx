@@ -445,7 +445,11 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   }, [showingDueToSelect, showPopup, hidePopup, showingPopup, isSelected])
 
   return (
-    <Kb.ClickableBox onClick={showPopup} style={{width: '100%'}}>
+    <Kb.ClickableBox3
+      direction="vertical"
+      fullWidth={true}
+      onClick={showPopup}
+    >
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
@@ -485,7 +489,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         </Kb.Box2>
       </Kb.Box2>
       {popup}
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 
