@@ -24,6 +24,7 @@ export type Box2Props = {
   onDrop?: (syntheticDragEvent: React.DragEvent) => void
   onLayout?: (evt: LayoutEvent) => void
   onMouseDown?: (syntheticEvent: React.MouseEvent) => void
+  onMouseEnter?: (syntheticEvent: React.MouseEvent) => void
   onMouseMove?: (syntheticEvent: React.MouseEvent) => void
   onMouseLeave?: (syntheticEvent: React.MouseEvent) => void
   onMouseUp?: (syntheticEvent: React.MouseEvent) => void
@@ -318,7 +319,7 @@ export const ClickableBox3 = (p: ClickableBox3Props & {ref?: React.Ref<MeasureRe
   const {onClick, onLongPress, hitSlop, ref, ...box2p} = p
 
   if (!isMobile) {
-    const {children, style: _style, onMouseOver, onMouseDown, onMouseLeave, onMouseMove, onMouseUp, onContextMenu, testID, flex, title, tooltip} = box2p
+    const {children, style: _style, onMouseOver, onMouseEnter, onMouseDown, onMouseLeave, onMouseMove, onMouseUp, onContextMenu, testID, flex, title, tooltip} = box2p
     const cn = box2ClassNames(box2p, 'clickable-box2')
     const s = Styles.collapseStyles([flex != null && flex !== 1 ? {flex} : undefined, _style]) as React.CSSProperties
     return (
@@ -330,6 +331,7 @@ export const ClickableBox3 = (p: ClickableBox3Props & {ref?: React.Ref<MeasureRe
         onClick={onClick}
         onContextMenu={onContextMenu}
         onMouseDown={onMouseDown}
+        onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onMouseMove={onMouseMove}
         onMouseOver={onMouseOver}

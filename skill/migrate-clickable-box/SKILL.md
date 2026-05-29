@@ -11,7 +11,9 @@ See `plans/clickablebox3.md` for the full migration plan, directory checklist, a
 
 `ClickableBox3` = `ClickableBox2` + all `Box2` layout props (direction optional). On desktop it renders a `<div>` with the Box2 CSS class system plus `clickable-box2` cursor. On mobile it uses `Pressable` + `box2SharedProps` for layout.
 
-Type: `Box2Props & {onClick?, onLongPress?, onMouseOver?, hitSlop?}` — **`direction` is required.**
+Type: `Box2Props & {onClick?, onLongPress?, hitSlop?}` — **`direction` is required.**
+
+`Box2Props` includes desktop mouse events: `onMouseDown`, `onMouseUp`, `onMouseLeave`, `onMouseMove`, `onMouseOver`, `onMouseEnter`, `onContextMenu`. CB3 passes all of these through to the desktop `<div>`. They are **not** forwarded on mobile (Pressable doesn't support them).
 
 `direction` is always required. For Pattern B swaps (plain clickable wrapper, no layout needed), pass the direction that matches how children are stacked — usually `"vertical"` for a single child or vertically-stacked children.
 
@@ -110,10 +112,11 @@ These CB1 props have no CB3 equivalent:
 - `hoverColor`, `underlayColor` → add `hover_background_color_*` CSS className to CB3 instead
 - `feedback={false}` → drop (Pressable doesn't have this)
 - `activeOpacity` → drop
-- `onMouseEnter` / `onMouseLeave` → rare; use a wrapper div if truly needed
 - `onPressIn` / `onPressOut` → not in CB3; leave as CB1 and note it
 - `tooltip` → wrap with `<Kb.WithTooltip>` outside CB3
 - `onLongPress={(e) => ...}` → remove the `e` param (CB3 signature is `() => void`)
+
+Note: `onMouseDown`, `onMouseUp`, `onMouseLeave`, `onMouseMove`, `onMouseOver`, `onMouseEnter` are **fully supported** in CB3 via `Box2Props` — these are NOT Pattern D cases.
 
 ## Step 3: Present Changes Before Touching Anything
 
@@ -133,7 +136,7 @@ From `shared/`:
 ```
 yarn lint && yarn tsc
 ```
-Fix errors before reporting done.
+**Both must pass with zero errors before reporting done.** Fix any failures — including lint errors in files we touched or that were broken in a prior session. Do not skip lint or treat failures as pre-existing without verifying via `git stash`.
 
 ## Step 6: Update Checklist
 
