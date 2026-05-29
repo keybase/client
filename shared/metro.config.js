@@ -29,7 +29,18 @@ config.resolver.blockList = [
   ...(Array.isArray(config.resolver.blockList) ? config.resolver.blockList : config.resolver.blockList ? [config.resolver.blockList] : []),
   /tests\/results\//,
   /\.maestro\//,
-  /desktop\/release\//,
+  /desktop\//,
+  /ios\/build\//,
+  /ios\/Pods\//,
+  /ios\/dist\//,
+  /android\/app\/build\//,
+  /android\/build\//,
+  /android\/\.gradle\//,
+  /docs\//,
+  /coverage-ts\//,
+  /patches\//,
+  /scripts\//,
+  /tools\//,
 ]
 
 module.exports = config
