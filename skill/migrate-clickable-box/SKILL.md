@@ -136,7 +136,7 @@ From `shared/`:
 ```
 yarn lint && yarn tsc
 ```
-Fix errors before reporting done.
+**Both must pass with zero errors before reporting done.** Fix any failures — including lint errors in files we touched or that were broken in a prior session. Do not skip lint or treat failures as pre-existing without verifying via `git stash`.
 
 ## Step 6: Update Checklist
 
