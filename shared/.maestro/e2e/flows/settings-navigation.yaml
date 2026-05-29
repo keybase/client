@@ -13,3 +13,4 @@ appId: keybase.ios
     visible:
       text: "Email & phone"
     timeout: 3000
+- takeScreenshot: tests/results/ios-debug/settings-navigation

@@ -123,8 +123,10 @@ const LogoutContainer = () => {
               {loggingOut ? (
                 <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
               ) : (
-                <Kb.ClickableBox
+                <Kb.ClickableBox3
                   onClick={logOut}
+                  direction="horizontal"
+                  justifyContent="center"
                   style={styles.logoutContainer}
                   className="hover-underline-container"
                 >
@@ -132,7 +134,7 @@ const LogoutContainer = () => {
                   <Kb.Text className="underline" style={styles.logout} type="BodySmallSecondaryLink">
                     Just sign out
                   </Kb.Text>
-                </Kb.ClickableBox>
+                </Kb.ClickableBox3>
               )}
             </Kb.Box2>
           </Kb.ButtonBar>
@@ -175,12 +177,7 @@ const styles = Kb.Styles.styleSheetCreate(
       logout: {paddingLeft: Kb.Styles.globalMargins.xtiny},
       logoutContainer: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
-          justifyContent: 'center',
           paddingTop: Kb.Styles.globalMargins.tiny,
-        },
-        isElectron: {
-          ...Kb.Styles.desktopStyles.clickable,
         },
       }),
       modalFooter: Kb.Styles.platformStyles({

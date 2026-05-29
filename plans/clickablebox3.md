@@ -24,7 +24,7 @@
 ## ✅ Done: ClickableBox3 implemented and devices/ migrated
 
 Committed in `3ac6c14b82`. Key points for future reference:
-- `ClickableBox3Props = Box2Props & {onClick?, onLongPress?, hitSlop?}` — `direction` required
+- `ClickableBox3Props = Box2Props & {onClick?, onLongPress?, hitSlop?}` — `direction` required; desktop mouse events (`onMouseDown/Up/Leave/Move/Over/Enter`, `onContextMenu`) are in `Box2Props` and passed through to the `<div>`
 - `box2ClassNames()` extracted from Box2 and shared; `box2SharedProps` exported from `box.tsx`
 - `devices/` pilot complete: 3 CB2 usages → CB3, inner Box2 wrappers eliminated, `mobileAddHeader` style simplified
 
@@ -38,19 +38,19 @@ Use `migrate-clickable-box` skill for each chunk. Run `yarn lint && yarn tsc` an
 - [x] `shared/devices/` (6 total)
 
 ### Round 1 — small
-- [ ] `shared/git/` (3)
-- [ ] `shared/incoming-share/` (2)
-- [ ] `shared/signup/` (2)
-- [ ] `shared/provision/` (4)
-- [ ] `shared/people/` (2)
-- [ ] `shared/settings/` (4)
-- [ ] `shared/profile/` (10)
+- [x] `shared/git/` (3)
+- [x] `shared/incoming-share/` (2)
+- [x] `shared/signup/` (2)
+- [x] `shared/provision/` (4)
+- [x] `shared/people/` (2)
+- [x] `shared/settings/` (4)
+- [x] `shared/profile/` (10)
 
 ### Round 2 — medium
-- [ ] `shared/tracker/` (4)
-- [ ] `shared/menubar/` (3)
-- [ ] `shared/app/` (4)
-- [ ] `shared/router-v2/` (9)
+- [x] `shared/tracker/` (4)
+- [x] `shared/menubar/` (3)
+- [x] `shared/app/` (4)
+- [x] `shared/router-v2/` (9)
 - [ ] `shared/teams/` (25+)
 - [ ] `shared/team-building/` (9+)
 

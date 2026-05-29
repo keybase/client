@@ -11,10 +11,11 @@ See `plans/clickablebox3.md` for the full migration plan, directory checklist, a
 
 `ClickableBox3` = `ClickableBox2` + all `Box2` layout props (direction optional). On desktop it renders a `<div>` with the Box2 CSS class system plus `clickable-box2` cursor. On mobile it uses `Pressable` + `box2SharedProps` for layout.
 
-Type: `Omit<Box2Props, 'direction'> & {direction?: ..., onClick?, onLongPress?, onMouseOver?, hitSlop?}`
+Type: `Box2Props & {onClick?, onLongPress?, hitSlop?}` — **`direction` is required.**
 
-When `direction` is omitted: no flex layout — behaves like CB2 (plain clickable wrapper).
-When `direction` is provided: Box2 layout is applied — **eliminates the inner Box2**.
+`Box2Props` includes desktop mouse events: `onMouseDown`, `onMouseUp`, `onMouseLeave`, `onMouseMove`, `onMouseOver`, `onMouseEnter`, `onContextMenu`. CB3 passes all of these through to the desktop `<div>`. They are **not** forwarded on mobile (Pressable doesn't support them).
+
+`direction` is always required. For Pattern B swaps (plain clickable wrapper, no layout needed), pass the direction that matches how children are stacked — usually `"vertical"` for a single child or vertically-stacked children.
 
 ## Process
 
@@ -79,13 +80,15 @@ Read each matched file fully before classifying.
 </Kb.ClickableBox>
 ```
 
-**Action:** Simple swap to CB3 with no layout props.
+**Action:** Swap to CB3. Always provide `direction`. Add `fullWidth={true}` if the original CB was filling its parent's width (e.g., list rows, banners, full-width wrappers).
 
 ```tsx
-<Kb.ClickableBox3 onClick={...}>
+<Kb.ClickableBox3 onClick={...} direction="vertical" fullWidth={true}>
   <SomeOtherContent />
 </Kb.ClickableBox3>
 ```
+
+**⚠️ `box2_centered` / `alignSelf: center` gotcha:** CB3 applies `align-self: center` (desktop: `box2_centered` CSS class; mobile: `nativeStyles.centered = {alignSelf: 'center'}`) whenever neither `fullWidth` nor `fullHeight` is set. CB1 did NOT do this. This affects **both platforms**. If the original CB was expected to fill its parent (e.g. list rows, banners, full-width wrappers), omitting `fullWidth={true}` will shrink it to content-width. Always check the parent layout context — when in doubt, add `fullWidth={true}`.
 
 ### Pattern C — CB with style that encodes flex layout
 
@@ -109,10 +112,11 @@ These CB1 props have no CB3 equivalent:
 - `hoverColor`, `underlayColor` → add `hover_background_color_*` CSS className to CB3 instead
 - `feedback={false}` → drop (Pressable doesn't have this)
 - `activeOpacity` → drop
-- `onMouseEnter` / `onMouseLeave` → rare; use a wrapper div if truly needed
 - `onPressIn` / `onPressOut` → not in CB3; leave as CB1 and note it
 - `tooltip` → wrap with `<Kb.WithTooltip>` outside CB3
 - `onLongPress={(e) => ...}` → remove the `e` param (CB3 signature is `() => void`)
+
+Note: `onMouseDown`, `onMouseUp`, `onMouseLeave`, `onMouseMove`, `onMouseOver`, `onMouseEnter` are **fully supported** in CB3 via `Box2Props` — these are NOT Pattern D cases.
 
 ## Step 3: Present Changes Before Touching Anything
 
@@ -132,7 +136,7 @@ From `shared/`:
 ```
 yarn lint && yarn tsc
 ```
-Fix errors before reporting done.
+**Both must pass with zero errors before reporting done.** Fix any failures — including lint errors in files we touched or that were broken in a prior session. Do not skip lint or treat failures as pre-existing without verifying via `git stash`.
 
 ## Step 6: Update Checklist
 
@@ -165,9 +169,9 @@ Keep in the style object: fixed `height`, `width` values, `padding`, `margin`, `
 
 CB3 on RN does NOT add `borderRadius: 3` (CB1's old default). Remove it from styles only if it was purely inherited from CB1, not a design intent.
 
-### Note: CB3 does NOT have a `direction` default
+### Note: `direction` is required in CB3
 
-When `direction` is omitted, CB3 is a block-level clickable wrapper (no flex). If you need flex, always pass `direction`.
+Always pass `direction`. For plain wrapper cases (Pattern B) with no layout need, use `"vertical"` as the default. Remember to add `fullWidth={true}` if the element should fill its parent.
 
 ## What NOT to Do
 

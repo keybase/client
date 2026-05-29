@@ -79,17 +79,19 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
   }
   return (
     <Kb.Box2 direction="horizontal">
-      <Kb.ClickableBox
+      <Kb.ClickableBox3
         className="hover_background_color_black_05  color_black_50 hover_color_black"
         onClick={onMinimize}
         style={styles.appIconBox}
+        direction="vertical"
       >
         <Kb.Icon color="inherit" onClick={onMinimize} style={styles.appIcon} type="iconfont-app-minimize" />
-      </Kb.ClickableBox>
-      <Kb.ClickableBox
+      </Kb.ClickableBox3>
+      <Kb.ClickableBox3
         className="hover_background_color_black_05 color_black_50 hover_color_black"
         onClick={onToggleMaximizeWindow}
         style={styles.appIconBox}
+        direction="vertical"
       >
         <Kb.Icon
           color="inherit"
@@ -97,14 +99,15 @@ const SystemButtons = ({isMaximized}: {isMaximized: boolean}) => {
           style={styles.appIcon}
           type={isMaximized ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
         />
-      </Kb.ClickableBox>
-      <Kb.ClickableBox
+      </Kb.ClickableBox3>
+      <Kb.ClickableBox3
         className="hover_background_color_red hover_color_white color_black_50"
         onClick={onCloseWindow}
         style={styles.appIconBox}
+        direction="vertical"
       >
         <Kb.Icon color="inherit" onClick={onCloseWindow} style={styles.appIcon} type="iconfont-app-close" />
-      </Kb.ClickableBox>
+      </Kb.ClickableBox3>
     </Kb.Box2>
   )
 }
@@ -192,21 +195,20 @@ function DesktopHeader(p: Props) {
         >
           {/* TODO have headerLeft be the back button */}
           {headerLeft !== null && (
-            <Kb.ClickableBox
+            <Kb.ClickableBox3
               className={Kb.Styles.classNames('hover_container', {
                 hover_background_color_black_10: !!back,
               })}
               onClick={pop}
               style={iconContainerStyle}
+              direction="vertical"
             >
-              <Kb.Box2 direction="vertical" style={styles.icon}>
-                <Kb.Icon
-                  type="iconfont-arrow-left"
-                  color={iconColor}
-                  className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}
-                />
-              </Kb.Box2>
-            </Kb.ClickableBox>
+              <Kb.Icon
+                type="iconfont-arrow-left"
+                color={iconColor}
+                className={Kb.Styles.classNames({hover_contained_color_blackOrBlack: back})}
+              />
+            </Kb.ClickableBox3>
           )}
           <Kb.Box2 direction="horizontal" flex={1} justifyContent="flex-end">
             <SyncingFolders
@@ -278,23 +280,17 @@ const styles = Kb.Styles.styleSheetCreate(
           containment: 'layout',
         },
       }),
-      icon: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'inline-block',
-          ...Kb.Styles.size(14),
-        },
-      }),
       iconContainer: Kb.Styles.platformStyles({
         common: {
           // Needed to position blue badge
           position: 'relative',
         },
         isElectron: {
-          ...Kb.Styles.desktopStyles.clickable,
           ...Kb.Styles.desktopStyles.windowDraggingClickable,
-          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
           borderRadius: Kb.Styles.borderRadius,
+          display: 'inline-block',
+          ...Kb.Styles.size(14),
           marginLeft: 4,
           marginRight: 6,
           padding: Kb.Styles.globalMargins.xtiny,

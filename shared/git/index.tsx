@@ -194,7 +194,7 @@ const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true} testID={TestIDs.GIT_REPO_LIST}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {isMobile && (
-          <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={showPopup}>
+          <Kb.ClickableBox3 ref={popupAnchor} direction="horizontal" centerChildren={true} style={styles.header} onClick={showPopup}>
             <Kb.Icon
               type="iconfont-new"
               style={{marginRight: Kb.Styles.globalMargins.tiny}}
@@ -202,7 +202,7 @@ const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
               fontSize={20}
             />
             <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
-          </Kb.ClickableBox>
+          </Kb.ClickableBox3>
         )}
         <NewContext value={badged}>
           <Kb.SectionList
@@ -238,8 +238,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       header: {
-        ...Kb.Styles.globalStyles.flexBoxCenter,
-        ...Kb.Styles.globalStyles.flexBoxRow,
         flexShrink: 0,
         height: 48,
       },

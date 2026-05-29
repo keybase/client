@@ -21,8 +21,12 @@ function SettingsItem(props: SettingsItemProps) {
     _onClick(type)
   }
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox3
       onClick={onClick}
+      direction="horizontal"
+      alignItems="center"
+      relative={true}
+      fullWidth={true}
       style={Kb.Styles.collapseStyles([styles.item, selected && styles.selected] as const)}
     >
       {props.iconComponent ? (
@@ -53,7 +57,7 @@ function SettingsItem(props: SettingsItemProps) {
       {!!props.badgeNumber && props.badgeNumber > 0 && (
         <Kb.Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />
       )}
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 export default SettingsItem
@@ -64,14 +68,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   item: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
       ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
-      position: 'relative',
     },
     isElectron: {
       height: 32,
-      width: '100%',
     },
     isMobile: {
       borderBottomColor: Kb.Styles.globalColors.black_10,

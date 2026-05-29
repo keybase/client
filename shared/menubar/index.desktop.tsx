@@ -118,53 +118,55 @@ const ChatRow = (p: {conv: Conversation; httpSrvAddress: string; httpSrvToken: s
   const timestamp = conv.timestamp ? TimestampUtil.formatTimeForConversationList(conv.timestamp) : ''
 
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox3
       onClick={() => R.remoteDispatch(RemoteGen.createOpenChatFromWidget({conversationIDKey: conv.conversationIDKey}))}
-      style={styles.chatRow}
+      direction="horizontal"
+      fullWidth={true}
+      alignItems="center"
+      gap="tiny"
+      style={styles.chatRowInner}
     >
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny" style={styles.chatRowInner}>
-        <HttpAvatar
-          name={avatarName}
-          isTeam={isTeam}
-          size={48}
-          httpSrvAddress={httpSrvAddress}
-          httpSrvToken={httpSrvToken}
-        />
-        <Kb.Box2 direction="vertical" flex={1} overflow="hidden" style={styles.chatRowText}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" justifyContent="space-between">
-            <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" overflow="hidden" style={styles.chatRowNameLeft}>
-              <Kb.Text type={conv.hasUnread ? 'BodyBold' : 'BodySemibold'} lineClamp={1} style={styles.chatRowName}>
-                {isTeam && conv.channelname ? `${name}#${conv.channelname}` : name}
-              </Kb.Text>
-              {conv.hasBadge && <Kb.Box2 direction="vertical" style={styles.chatBadge} />}
-            </Kb.Box2>
-            {!!timestamp && (
-              <Kb.Text
-                type="BodyTiny"
-                style={Kb.Styles.collapseStyles([
-                  styles.chatTimestamp,
-                  conv.hasUnread && Kb.Styles.globalStyles.fontBold,
-                ])}
-              >
-                {timestamp}
-              </Kb.Text>
-            )}
+      <HttpAvatar
+        name={avatarName}
+        isTeam={isTeam}
+        size={48}
+        httpSrvAddress={httpSrvAddress}
+        httpSrvToken={httpSrvToken}
+      />
+      <Kb.Box2 direction="vertical" flex={1} overflow="hidden" style={styles.chatRowText}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" justifyContent="space-between">
+          <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" overflow="hidden" style={styles.chatRowNameLeft}>
+            <Kb.Text type={conv.hasUnread ? 'BodyBold' : 'BodySemibold'} lineClamp={1} style={styles.chatRowName}>
+              {isTeam && conv.channelname ? `${name}#${conv.channelname}` : name}
+            </Kb.Text>
+            {conv.hasBadge && <Kb.Box2 direction="vertical" style={styles.chatBadge} />}
           </Kb.Box2>
-          {!!conv.snippetDecorated && (
+          {!!timestamp && (
             <Kb.Text
-              type="BodySmall"
-              lineClamp={1}
+              type="BodyTiny"
               style={Kb.Styles.collapseStyles([
-                conv.hasUnread ? styles.chatSnippetUnread : styles.chatSnippet,
+                styles.chatTimestamp,
                 conv.hasUnread && Kb.Styles.globalStyles.fontBold,
               ])}
             >
-              {conv.snippetDecorated}
+              {timestamp}
             </Kb.Text>
           )}
         </Kb.Box2>
+        {!!conv.snippetDecorated && (
+          <Kb.Text
+            type="BodySmall"
+            lineClamp={1}
+            style={Kb.Styles.collapseStyles([
+              conv.hasUnread ? styles.chatSnippetUnread : styles.chatSnippet,
+              conv.hasUnread && Kb.Styles.globalStyles.fontBold,
+            ])}
+          >
+            {conv.snippetDecorated}
+          </Kb.Text>
+        )}
       </Kb.Box2>
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 
@@ -191,17 +193,22 @@ const ChatPreview = (p: {conversationsToSend: ReadonlyArray<Conversation>; convL
 
 // Inline file updates (replaces FilesContainer + files.desktop.tsx with store-connected components)
 const FileUpdate = (p: {path: T.FS.Path; uploading: boolean; onClick: () => void}) => (
-  <Kb.ClickableBox className="hover-underline-container" onClick={p.onClick} style={styles.fileFullWidth}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow} alignItems="flex-start">
-      <Kb.ImageIcon type="icon-file-16" style={styles.fileIcon} />
-      {p.uploading && (
-        <Kb.Box2 direction="vertical" style={styles.fileIconBadgeBox}>
-          <Kb.ImageIcon type="icon-addon-file-uploading" style={styles.fileIconBadge} />
-        </Kb.Box2>
-      )}
-      <Filename type="Body" path={p.path} />
-    </Kb.Box2>
-  </Kb.ClickableBox>
+  <Kb.ClickableBox3
+    className="hover-underline-container"
+    onClick={p.onClick}
+    direction="horizontal"
+    fullWidth={true}
+    alignItems="flex-start"
+    style={styles.fileUpdateRow}
+  >
+    <Kb.ImageIcon type="icon-file-16" style={styles.fileIcon} />
+    {p.uploading && (
+      <Kb.Box2 direction="vertical" style={styles.fileIconBadgeBox}>
+        <Kb.ImageIcon type="icon-addon-file-uploading" style={styles.fileIconBadge} />
+      </Kb.Box2>
+    )}
+    <Filename type="Body" path={p.path} />
+  </Kb.ClickableBox3>
 )
 
 const defaultNumFileOptionsShown = 3
@@ -642,11 +649,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.white,
     color: Kb.Styles.globalColors.black,
   },
-  chatRow: Kb.Styles.platformStyles({
-    isElectron: {
-      ...Kb.Styles.desktopStyles.clickable,
-    },
-  }),
   chatRowInner: Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.xsmall),
   chatRowName: {flexShrink: 1},
 
@@ -655,7 +657,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   chatSnippet: {color: Kb.Styles.globalColors.black_50},
   chatSnippetUnread: {color: Kb.Styles.globalColors.black},
   chatTimestamp: {color: Kb.Styles.globalColors.black_50, flexShrink: 0, marginLeft: Kb.Styles.globalMargins.tiny},
-  fileFullWidth: {width: '100%'},
   fileIcon: {
     flexShrink: 0,
     ...Kb.Styles.size(16),

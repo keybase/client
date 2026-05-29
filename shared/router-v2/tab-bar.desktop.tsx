@@ -85,7 +85,7 @@ const Header = () => {
 
     const menuHeader = (
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox}>
+        <Kb.ClickableBox3 onClick={onClickWrapper} style={styles.headerBox} direction="vertical">
           <Kb.NameWithIcon
             username={username}
             onClick={onClickWrapper}
@@ -95,7 +95,7 @@ const Header = () => {
               </Kb.Text>
             }
           />
-        </Kb.ClickableBox>
+        </Kb.ClickableBox3>
         <Kb.Button
           label="View/Edit profile"
           mode="Secondary"
@@ -124,34 +124,33 @@ const Header = () => {
 
   return (
     <>
-      <Kb.ClickableBox onClick={togglePopup}>
-        <Kb.Box2
-          direction="horizontal"
-          gap="tiny"
-          centerChildren={true}
-          fullWidth={true}
-          style={styles.nameContainer}
-          alignItems="center"
-          ref={popupAnchor}
-        >
-          <Kb.Avatar
-            size={24}
-            username={username}
-            style={Kb.Styles.collapseStyles([styles.avatar, styles.avatarBorder])}
+      <Kb.ClickableBox3
+        onClick={togglePopup}
+        direction="horizontal"
+        gap="tiny"
+        centerChildren={true}
+        fullWidth={true}
+        style={styles.nameContainer}
+        alignItems="center"
+        ref={popupAnchor}
+      >
+        <Kb.Avatar
+          size={24}
+          username={username}
+          style={Kb.Styles.collapseStyles([styles.avatar, styles.avatarBorder])}
+        />
+        <>
+          <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
+            Hi {username}!
+          </Kb.Text>
+          <Kb.Icon
+            type="iconfont-arrow-down"
+            color={Kb.Styles.globalColors.blueLighter}
+            fontSize={12}
+            style={styles.caret}
           />
-          <>
-            <Kb.Text className="username" lineClamp={1} type="BodyTinySemibold" style={styles.username}>
-              Hi {username}!
-            </Kb.Text>
-            <Kb.Icon
-              type="iconfont-arrow-down"
-              color={Kb.Styles.globalColors.blueLighter}
-              fontSize={12}
-              style={styles.caret}
-            />
-          </>
-        </Kb.Box2>
-      </Kb.ClickableBox>
+        </>
+      </Kb.ClickableBox3>
       {popup}
     </>
   )
@@ -267,37 +266,33 @@ function Tab(props: TabProps) {
   }
 
   return (
-    <Kb.ClickableBox
-      feedback={false}
+    <Kb.ClickableBox3
       key={tab}
       onClick={onClick}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
+      direction="horizontal"
+      fullWidth={true}
+      className={Kb.Styles.classNames(
+        isSelected ? 'tab-selected' : 'tab',
+        'tab-tooltip',
+        'tooltip-top-right'
+      )}
+      relative={true}
+      style={styles.tab}
+      tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
     >
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        className={Kb.Styles.classNames(
-          isSelected ? 'tab-selected' : 'tab',
-          'tab-tooltip',
-          'tooltip-top-right'
-        )}
-        relative={true}
-        style={styles.tab}
-        tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
-      >
-        <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-        <Kb.Box2 direction="horizontal" justifyContent="flex-end" relative={true}>
-          <Kb.Icon className="tab-icon" type={Tabs.desktopTabMeta[tab].icon} sizeType="Big" />
-          {tab === Tabs.fsTab && <FilesTabBadge />}
-        </Kb.Box2>
-        <Kb.Text className="tab-label" type="BodySmallSemibold">
-          {label}
-        </Kb.Text>
-        <TabBadge name={tab} />
+      <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
+      <Kb.Box2 direction="horizontal" justifyContent="flex-end" relative={true}>
+        <Kb.Icon className="tab-icon" type={Tabs.desktopTabMeta[tab].icon} sizeType="Big" />
+        {tab === Tabs.fsTab && <FilesTabBadge />}
       </Kb.Box2>
-    </Kb.ClickableBox>
+      <Kb.Text className="tab-label" type="BodySmallSemibold">
+        {label}
+      </Kb.Text>
+      <TabBadge name={tab} />
+    </Kb.ClickableBox3>
   )
 }
 

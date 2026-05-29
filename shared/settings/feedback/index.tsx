@@ -96,14 +96,14 @@ const Feedback = (props: Props) => {
             </Kb.Banner>
           )}
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-            <Kb.ClickableBox onClick={_onLabelClick} style={styles.includeLogs}>
+            <Kb.ClickableBox3 onClick={_onLabelClick} direction="vertical" fullWidth={true}>
               <Kb.Checkbox
                 label="Include your logs"
                 labelSubtitle="This includes some private metadata info (e.g., file sizes, but not names or contents) but it will help the developers fix bugs more quickly."
                 checked={sendLogs}
                 onCheck={_onChangeSendLogs}
               />
-            </Kb.ClickableBox>
+            </Kb.ClickableBox3>
           </Kb.Box2>
           {props.loggedOut && (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -143,9 +143,6 @@ export default Feedback
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      includeLogs: {
-        ...Kb.Styles.globalStyles.fullWidth,
-      },
       input: Kb.Styles.platformStyles({
         isElectron: {padding: Kb.Styles.globalMargins.tiny},
         isMobile: {...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small)},

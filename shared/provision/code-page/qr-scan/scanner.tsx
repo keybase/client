@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {CameraView, useCameraPermissions} from 'expo-camera'
 
 type Props = {
   onBarCodeRead: (code: string) => void
@@ -9,6 +8,9 @@ type Props = {
 }
 
 const QRScannerMobile = (p: Props): React.ReactElement | null => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  const {CameraView, useCameraPermissions} = require('expo-camera') as typeof import('expo-camera')
   const [scanned, setScanned] = React.useState(false)
   const [permission, requestPermission] = useCameraPermissions()
 

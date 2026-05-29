@@ -23,15 +23,20 @@ digraph simplify {
     "Ask: proceed, skip, or adjust?" [shape=box];
     "User approves?" [shape=diamond];
     "Implement changes" [shape=box];
+    "Any meaningful findings?" [shape=diamond];
 
     "Read all files in scope" -> "Analyze across categories";
     "Analyze across categories" -> "Ask clarifying questions";
     "Ask clarifying questions" -> "Present findings by category";
     "Present findings by category" -> "Show flat numbered list of ALL changes";
     "Show flat numbered list of ALL changes" -> "Ask: proceed, skip, or adjust?";
-    "Ask: proceed, skip, or adjust?" -> "User approves?" ;
+    "Ask: proceed, skip, or adjust?" -> "User approves?";
     "User approves?" -> "Implement changes" [label="yes"];
     "User approves?" -> "Present findings by category" [label="revise"];
+    "Implement changes" -> "Read all files in scope" [label="re-read simplified files"];
+    "Analyze across categories" -> "Any meaningful findings?";
+    "Any meaningful findings?" -> "Ask clarifying questions" [label="yes"];
+    "Any meaningful findings?" -> "Done" [label="no"];
 }
 ```
 
@@ -60,6 +65,17 @@ Read **every file** in scope before forming opinions. Patterns only become visib
 - Wrapper components that add no logic — eliminate the layer
 - Components split across files for no structural reason — candidate for collocating
 - Deeply nested JSX that could flatten via composition
+
+### Nested Boxes (high-signal smell)
+
+Two or more `Box2` (or `Kb.Box2`) components nested directly inside each other is a reliable sign something can be simplified. When you see this pattern, investigate:
+
+- **Redundant wrapper**: the outer box exists only to pass a `style` or `direction` that the inner box could absorb — collapse them into one
+- **Props can merge**: both boxes carry layout props (`alignItems`, `gap`, `fullWidth`, etc.) with no conflicting values — merge onto a single box
+- **Composition opportunity**: the nesting reflects a structural concern (header + body) that could be expressed as named sub-components instead of anonymous nested boxes
+- **Unnecessary intermediate container**: an outer box wraps a single child box with no additional siblings or layout purpose — remove the outer layer
+
+A long chain of `<Box2><Box2><Box2>` almost always means something went wrong at the design level. Trace back to why each layer exists before proposing a fix; the root cause is usually one of the above.
 
 ### Props and Styles
 - Components with large prop lists where many props just pass through — consider composition or context
@@ -177,6 +193,16 @@ Wait for the user's response. Do not begin any edits until they reply.
 ## Step 5: Implement
 
 Make all approved changes. Remove unused imports, styles, and variables left behind. Run lint and tsc after.
+
+## Step 6: Iterate
+
+**Simplification is not a single pass.** After implementing changes, the simplified code often reveals new opportunities that were hidden by the original clutter. Always do at least one more pass.
+
+Go back to **Step 1** and re-read all files in scope. Then repeat Steps 2–5 with fresh eyes.
+
+**Stop iterating when:** a full pass produces no meaningful findings — every category comes up empty or yields only borderline cases the user opts to skip.
+
+**Never stop after the first pass.** The first pass removes the obvious problems. The second pass finds what those problems were hiding. The third pass is usually final.
 
 ## The Hard Line: No Unilateral Visual Changes
 

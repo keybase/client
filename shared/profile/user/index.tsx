@@ -227,24 +227,24 @@ const Tabs = (p: TabsProps) => {
   const onClickFollowing = () => p.onSelectTab('following')
   const onClickFollowers = () => p.onSelectTab('followers')
   const tab = (tab: Tab) => (
-    <Kb.ClickableBox
+    <Kb.ClickableBox3
+      direction="horizontal"
+      gap="xtiny"
       onClick={tab === 'following' ? onClickFollowing : onClickFollowers}
       style={Kb.Styles.collapseStyles([styles.followTab, tab === p.selectedTab && styles.followTabSelected])}
     >
-      <Kb.Box2 direction="horizontal" gap="xtiny">
-        <Kb.Text
-          type="BodySmallSemibold"
-          style={tab === p.selectedTab ? styles.followTabTextSelected : styles.followTabText}
-        >
-          {tab === 'following'
-            ? `Following${!p.loadingFollowing ? ` (${p.numFollowing || 0})` : ''}`
-            : `Followers${!p.loadingFollowers ? ` (${p.numFollowers || 0})` : ''}`}
-        </Kb.Text>
-        {((tab === 'following' && p.loadingFollowing) || p.loadingFollowers) && (
-          <Kb.ProgressIndicator style={styles.progress} />
-        )}
-      </Kb.Box2>
-    </Kb.ClickableBox>
+      <Kb.Text
+        type="BodySmallSemibold"
+        style={tab === p.selectedTab ? styles.followTabTextSelected : styles.followTabText}
+      >
+        {tab === 'following'
+          ? `Following${!p.loadingFollowing ? ` (${p.numFollowing || 0})` : ''}`
+          : `Followers${!p.loadingFollowers ? ` (${p.numFollowers || 0})` : ''}`}
+      </Kb.Text>
+      {((tab === 'following' && p.loadingFollowing) || p.loadingFollowers) && (
+        <Kb.ProgressIndicator style={styles.progress} />
+      )}
+    </Kb.ClickableBox3>
   )
 
   return (

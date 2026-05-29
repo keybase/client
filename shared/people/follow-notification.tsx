@@ -49,7 +49,7 @@ const FollowNotification = (props: Props) => {
   }
 
   return (
-    <Kb.ClickableBox onClick={type === 'follow' ? onClick : undefined}>
+    <Kb.ClickableBox3 onClick={type === 'follow' ? onClick : undefined} direction="vertical" fullWidth={true}>
       <PeopleItem
         badged={props.badged}
         buttons={
@@ -74,7 +74,7 @@ const FollowNotification = (props: Props) => {
           </Kb.Text>
         )}
       </PeopleItem>
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 

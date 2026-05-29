@@ -620,7 +620,10 @@ const ProviderPicker = ({
               renderItem={(_: unknown, provider: Provider) => (
                 <React.Fragment key={provider.name}>
                   <Kb.Divider />
-                  <Kb.ClickableBox
+                  <Kb.ClickableBox3
+                    direction="horizontal"
+                    alignItems="center"
+                    justifyContent="flex-start"
                     className="hover_background_color_blueLighter2"
                     onClick={() => onSelect(provider.key)}
                     style={styles.containerBox}
@@ -647,7 +650,7 @@ const ProviderPicker = ({
                       style={styles.iconArrow}
                       type="iconfont-arrow-right"
                     />
-                  </Kb.ClickableBox>
+                  </Kb.ClickableBox3>
                 </React.Fragment>
               )}
             />
@@ -1314,11 +1317,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       containerBox: {
-        alignItems: 'center',
-        display: 'flex',
-        flexDirection: 'row',
         height: isMobile ? 56 : 48,
-        justifyContent: 'flex-start',
       },
       description: {...rightColumnStyle},
       error: {

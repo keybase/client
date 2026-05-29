@@ -8,6 +8,7 @@ const require = createRequire(import.meta.url)
 const {PNG} = require('pngjs') as {PNG: {sync: {read: (buf: Buffer) => {data: Buffer; width: number; height: number}}}}
 
 const resultsPath = 'tests/results/report/results.json'
+const debugDir = 'tests/results/electron-debug'
 const prevDir = 'tests/results/electron-prev'
 const outputPath = 'tests/results/electron-report.html'
 
@@ -25,7 +26,7 @@ type TestCase = {
   label: string
   passed: boolean
   durationMs: number
-  screenshotB64: string | null
+  screenshotPath: string | null
   prevScreenshotPath: string | null
   diff: DiffResult | null
   errorMessage: string | null
@@ -43,9 +44,9 @@ function flattenSpecs(suite: PlaywrightSuite): Array<{suiteName: string; spec: P
   return out
 }
 
-function computeDiff(bufA: Buffer, pathB: string): DiffResult | null {
+function computeDiff(pathA: string, pathB: string): DiffResult | null {
   try {
-    const a = PNG.sync.read(bufA)
+    const a = PNG.sync.read(fs.readFileSync(pathA))
     const b = PNG.sync.read(fs.readFileSync(pathB))
     if (a.width !== b.width || a.height !== b.height) return null
     const total = a.width * a.height
@@ -76,23 +77,29 @@ function parseReport(report: Report): TestCase[] {
         : null
 
       const screenshotAtt = result.attachments.find(a => a.name === 'screenshot' && a.contentType === 'image/png')
-      const screenshotB64 = screenshotAtt?.body
-        ?? (screenshotAtt?.path ? fs.readFileSync(screenshotAtt.path).toString('base64') : null)
+      let screenshotPath: string | null = null
+      if (screenshotAtt) {
+        const buf = screenshotAtt.body
+          ? Buffer.from(screenshotAtt.body, 'base64')
+          : screenshotAtt.path ? fs.readFileSync(screenshotAtt.path) : null
+        if (buf) {
+          fs.mkdirSync(debugDir, {recursive: true})
+          screenshotPath = path.join(debugDir, `${key}.png`)
+          fs.writeFileSync(screenshotPath, buf)
+        }
+      }
 
       const prevPath = path.join(prevDir, `${key}.png`)
       const prevScreenshotPath = fs.existsSync(prevPath) ? prevPath : null
 
-      let diff: DiffResult | null = null
-      if (screenshotB64 && prevScreenshotPath) {
-        diff = computeDiff(Buffer.from(screenshotB64, 'base64'), prevScreenshotPath)
-      }
+      const diff = screenshotPath && prevScreenshotPath ? computeDiff(screenshotPath, prevScreenshotPath) : null
 
       cases.push({
         key,
         label: `${suiteName} · ${spec.title}`,
         passed,
         durationMs,
-        screenshotB64,
+        screenshotPath,
         prevScreenshotPath,
         diff,
         errorMessage,
@@ -123,19 +130,18 @@ function buildHtml(cases: TestCase[], timestamp: string): string {
       ? `<span class="badge ${c.diff.pct < 1 ? 'diff-low' : c.diff.pct < 5 ? 'diff-mid' : 'diff-high'}" title="${c.diff.changed.toLocaleString()} of ${c.diff.total.toLocaleString()} pixels changed">Δ ${c.diff.pct.toFixed(1)}%</span>`
       : ''
 
+    const rel = (p: string) => path.relative(path.dirname(outputPath), p)
     let visual: string
-    if (c.screenshotB64 && c.prevScreenshotPath) {
-      const curUrl = `data:image/png;base64,${c.screenshotB64}`
-      const prevUrl = `data:image/png;base64,${fs.readFileSync(c.prevScreenshotPath).toString('base64')}`
+    if (c.screenshotPath && c.prevScreenshotPath) {
       visual = `<div class="compare" id="cmp${i}">
-  <img class="img-after" src="${curUrl}" alt="current">
-  <img class="img-before" src="${prevUrl}" alt="baseline">
+  <img class="img-after" src="${rel(c.screenshotPath)}" alt="current">
+  <img class="img-before" src="${rel(c.prevScreenshotPath)}" alt="baseline">
   <div class="handle"><div class="grip">⇔</div></div>
   <div class="lbl lbl-l">BASELINE</div>
   <div class="lbl lbl-r">NOW</div>
 </div>`
-    } else if (c.screenshotB64) {
-      visual = `<div class="solo-wrap"><img class="solo" src="data:image/png;base64,${c.screenshotB64}" alt="${c.label}"></div>`
+    } else if (c.screenshotPath) {
+      visual = `<div class="solo-wrap"><img class="solo" src="${rel(c.screenshotPath)}" alt="${c.label}"></div>`
     } else {
       visual = `<div class="empty">No screenshot</div>`
     }
@@ -149,13 +155,12 @@ function buildHtml(cases: TestCase[], timestamp: string): string {
   return buildPage('Keybase Electron E2E Tests', allPassed, totalPassed, totalFailed, cases.length, hasDiff, timestamp, cards)
 }
 
-// Save baseline: write current screenshots as PNGs to prevDir
 function saveBaseline(cases: TestCase[]) {
   fs.mkdirSync(prevDir, {recursive: true})
   let saved = 0
   for (const c of cases) {
-    if (!c.screenshotB64) continue
-    fs.writeFileSync(path.join(prevDir, `${c.key}.png`), Buffer.from(c.screenshotB64, 'base64'))
+    if (!c.screenshotPath || !fs.existsSync(c.screenshotPath)) continue
+    fs.copyFileSync(c.screenshotPath, path.join(prevDir, `${c.key}.png`))
     saved++
   }
   console.log(`Baseline saved: ${saved} screenshots to ${prevDir}/`)

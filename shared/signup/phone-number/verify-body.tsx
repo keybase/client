@@ -36,9 +36,10 @@ const VerifyBody = (props: BodyProps) => {
         containerStyle={styles.inputContainer2}
         inputStyle={styles.inputText2}
       />
-      <Kb.ClickableBox
+      <Kb.ClickableBox3
         onClick={props.resendWaiting || resendDisabled ? undefined : onResend}
-        style={styles.positionRelative}
+        direction="vertical"
+        relative={true}
       >
         <Kb.Box2
           alignItems="center"
@@ -63,7 +64,7 @@ const VerifyBody = (props: BodyProps) => {
             <Kb.ProgressIndicator type="Small" white={true} />
           </Kb.Box2>
         )}
-      </Kb.ClickableBox>
+      </Kb.ClickableBox3>
     </Kb.Box2>
   )
 }
@@ -108,7 +109,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       opacity30: {opacity: 0.3},
-      positionRelative: {position: 'relative'},
       progressContainer: Kb.Styles.platformStyles({
         common: {...Kb.Styles.globalStyles.fillAbsolute},
         isElectron: {paddingTop: Kb.Styles.globalMargins.tiny},
