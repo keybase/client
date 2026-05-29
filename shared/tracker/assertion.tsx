@@ -222,24 +222,29 @@ const Container = (ownProps: OwnProps) => {
             </Kb.Text>
           )}
         </Kb.Text>
-        <Kb.ClickableBox onClick={items ? showPopup : onShowProof} style={styles.statusContainer}>
-          <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" tooltip={tooltip}>
-            <Kb.Icon
-              type={stateToIcon(state)}
-              fontSize={20}
-              hoverColor={assertionColorToColor(color)}
-              color={isSuggestion ? Kb.Styles.globalColors.black_20 : assertionColorToColor(color)}
-            />
-            {items ? (
-              <>
-                <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
-                {popup}
-              </>
-            ) : (
-              <Kb.Box2 direction="vertical" />
-            )}
-          </Kb.Box2>
-        </Kb.ClickableBox>
+        <Kb.ClickableBox3
+          onClick={items ? showPopup : onShowProof}
+          style={styles.statusContainer}
+          direction="horizontal"
+          alignItems="center"
+          gap="tiny"
+          tooltip={tooltip}
+        >
+          <Kb.Icon
+            type={stateToIcon(state)}
+            fontSize={20}
+            hoverColor={assertionColorToColor(color)}
+            color={isSuggestion ? Kb.Styles.globalColors.black_20 : assertionColorToColor(color)}
+          />
+          {items ? (
+            <>
+              <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
+              {popup}
+            </>
+          ) : (
+            <Kb.Box2 direction="vertical" />
+          )}
+        </Kb.ClickableBox3>
       </Kb.Box2>
       {!!metas.length && (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaContainer}>
@@ -482,9 +487,9 @@ const AssertionSiteIcon = (p: SIProps) => {
     child = <HoverOpacity>{child}</HoverOpacity>
   }
   return (
-    <Kb.ClickableBox onClick={onCreateProof || onShowProof} style={isSuggestion ? styles.halfOpacity : null}>
+    <Kb.ClickableBox3 onClick={onCreateProof || onShowProof} style={isSuggestion ? styles.halfOpacity : null} direction="vertical">
       {child}
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 
