@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as TestIDs from '@/tests/e2e/shared/test-ids'
-import DeviceRow, {NewContext} from './row'
+import DeviceRow, {BadgedDeviceIDsContext} from './row'
 import partition from 'lodash/partition'
 import * as T from '@/constants/types'
 import {intersect} from '@/util/set'
@@ -31,7 +31,7 @@ const splitAndSortDevices = (devices: ReadonlyArray<T.Devices.Device>) =>
 const itemHeight = {height: 48, type: 'fixed'} as const
 
 function ReloadableDevices() {
-const navigation = useTypedNavigation('devicesRoot')
+  const navigation = useTypedNavigation('devicesRoot')
   const [devices, setDevices] = React.useState<Array<T.Devices.Device>>([])
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyDevices)
   const loadDevicesRPC = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
@@ -119,7 +119,7 @@ const navigation = useTypedNavigation('devicesRoot')
       reloadOnMount={true}
       title=""
     >
-      <NewContext value={badged}>
+      <BadgedDeviceIDsContext value={badged}>
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true} testID={TestIDs.DEVICES_LIST}>
           {isMobile ? (
             <Kb.ClickableBox onClick={() => onAddDevice()} style={styles.mobileAddHeader}>
@@ -136,7 +136,7 @@ const navigation = useTypedNavigation('devicesRoot')
             <Kb.List bounces={false} items={items} renderItem={renderItem} itemHeight={itemHeight} keyProperty="key" />
           </Kb.BoxGrow2>
         </Kb.Box2>
-      </NewContext>
+      </BadgedDeviceIDsContext>
     </Kb.Reloadable>
   )
 }
@@ -156,6 +156,31 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         position: 'relative',
       },
+      paperKeyNudgeBorder: Kb.Styles.platformStyles({
+        common: {
+          ...Kb.Styles.border(Kb.Styles.globalColors.black_05, 1, Kb.Styles.borderRadius),
+          flex: 1,
+        },
+        isElectron: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
+        },
+        isMobile: {
+          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
+        },
+      }),
+      paperKeyNudgeContainer: Kb.Styles.platformStyles({
+        common: {
+          padding: Kb.Styles.globalMargins.small,
+        },
+        isMobile: {
+          padding: Kb.Styles.globalMargins.tiny,
+        },
+      }),
+      paperKeyNudgeDesc: Kb.Styles.platformStyles({
+        isElectron: {
+          maxWidth: 450,
+        },
+      }),
       progressContainer: {
         ...Kb.Styles.globalStyles.fillAbsolute,
       },
@@ -168,14 +193,14 @@ const styles = Kb.Styles.styleSheetCreate(
 
 const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => (
   <Kb.ClickableBox onClick={onAddDevice}>
-    <Kb.Box2 direction="horizontal" style={paperKeyNudgeStyles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={paperKeyNudgeStyles.border}>
+    <Kb.Box2 direction="horizontal" style={styles.paperKeyNudgeContainer} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={styles.paperKeyNudgeBorder}>
         <Kb.IconAuto
           type={isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'}
         />
         <Kb.Box2 direction="vertical" flex={1}>
           <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
-          <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>
+          <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={styles.paperKeyNudgeDesc}>
             A paper key can be used to access your account in case you lose all your devices. Keep one in a
             safe place (like a wallet) to keep your data safe.
           </Kb.Text>
@@ -184,35 +209,5 @@ const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => (
       </Kb.Box2>
     </Kb.Box2>
   </Kb.ClickableBox>
-)
-const paperKeyNudgeStyles = Kb.Styles.styleSheetCreate(
-  () =>
-    ({
-      border: Kb.Styles.platformStyles({
-        common: {
-          ...Kb.Styles.border(Kb.Styles.globalColors.black_05, 1, Kb.Styles.borderRadius),
-          flex: 1,
-        },
-        isElectron: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
-        },
-        isMobile: {
-          ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
-        },
-      }),
-      container: Kb.Styles.platformStyles({
-        common: {
-          padding: Kb.Styles.globalMargins.small,
-        },
-        isMobile: {
-          padding: Kb.Styles.globalMargins.tiny,
-        },
-      }),
-      desc: Kb.Styles.platformStyles({
-        isElectron: {
-          maxWidth: 450,
-        },
-      }),
-    }) as const
 )
 export default ReloadableDevices

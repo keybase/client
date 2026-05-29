@@ -12,7 +12,7 @@ type OwnProps = {
   firstItem: boolean
 }
 
-export const NewContext = React.createContext<ReadonlySet<string>>(new Set())
+export const BadgedDeviceIDsContext = React.createContext<ReadonlySet<string>>(new Set())
 
 function DeviceRow(ownProps: OwnProps) {
   const {canRevoke, device, firstItem} = ownProps
@@ -22,7 +22,7 @@ function DeviceRow(ownProps: OwnProps) {
     navigateAppend({name: 'devicePage', params: {canRevoke, device}})
   }
 
-  const isNew = React.useContext(NewContext).has(deviceID)
+  const isNew = React.useContext(BadgedDeviceIDsContext).has(deviceID)
   const {currentDevice, name, revokedAt, lastUsed} = device
   const isRevoked = !!device.revokedByName
 
