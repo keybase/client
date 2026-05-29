@@ -88,7 +88,7 @@ const SbsTitle = (p: SbsTitleProps) => (
 )
 const BioLayout = (p: BioTeamProofsProps) => (
   <Kb.Box2 direction="vertical" style={styles.bio}>
-    <Kb.ConnectedNameWithIcon
+    <Kb.NameWithIcon
       onClick={p.title === p.username ? 'profile' : noopOnClick}
       title={
         p.title !== p.username ? <SbsTitle sbsUsername={p.title} serviceIcon={p.serviceIcon} /> : undefined

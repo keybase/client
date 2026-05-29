@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import PlatformIcon from '@/profile/platform-icon'
 import * as C from '@/constants'
 import * as React from 'react'
 import * as T from '@/constants/types'
@@ -186,7 +187,7 @@ export default function Choice() {
         return (
           <>
             <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" flex={1}>
-              <Kb.PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styles.centered} />
+              <PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styles.centered} />
               <Kb.Text type="BodySemibold" style={styles.centered}>
                 Fill in your public info.
               </Kb.Text>
@@ -235,7 +236,7 @@ export default function Choice() {
       case 'generate':
         return (
           <Kb.Box2 direction="vertical" gap="small" alignItems="center">
-            <Kb.PlatformIcon platform="pgp" overlay="icon-proof-unfinished" />
+            <PlatformIcon platform="pgp" overlay="icon-proof-unfinished" />
             <Kb.Text type="Header">Generating your unique key...</Kb.Text>
             <Kb.Text type="Body">
               Math time! You are about to discover a 4096-bit key pair.
@@ -278,7 +279,7 @@ const Finished = (props: {
 
   return (
     <Kb.Box2 direction="vertical" alignItems="center" gap="tiny">
-      <Kb.PlatformIcon platform="pgp" overlay="icon-proof-success" />
+      <PlatformIcon platform="pgp" overlay="icon-proof-success" />
       <Kb.Text type="Header">Here is your unique public key!</Kb.Text>
       <Kb.Text type="Body">
         {'Your private key has been written to Keybase\'s local keychain. You can learn to use it with `keybase pgp help` from your terminal. If you have GPG installed, it has also been written to GPG\'s keychain.'}

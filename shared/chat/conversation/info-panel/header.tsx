@@ -49,7 +49,7 @@ const TeamHeader = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
         {popup}
         {isSmallTeam ? (
           <>
-            <Kb.ConnectedNameWithIcon
+            <Kb.NameWithIcon
               containerStyle={styles.flexOne}
               horizontal={true}
               teamname={teamname}

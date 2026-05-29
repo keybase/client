@@ -20,6 +20,7 @@ import {useConversationSendActions} from '@/chat/conversation/send-actions'
 const {useSharedValue, Extrapolation, useAnimatedStyle} = Reanimated
 const {interpolate, withSequence, withSpring, runOnJS} = Reanimated
 const {useAnimatedReaction, withDelay, withTiming, interpolateColor, default: Animated} = Reanimated
+const AnimatedBox2 = Animated.createAnimatedComponent(Kb.Box2)
 type SVN = Reanimated.SharedValue<number>
 
 type Props = {
@@ -668,18 +669,12 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
   })
   return (
     <>
-      <Kb.Box2Animated
-        direction="vertical"
-        style={[styles.lockHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}
-      >
+      <AnimatedBox2 direction="vertical" style={[styles.lockHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}>
         <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
-      </Kb.Box2Animated>
-      <Kb.Box2Animated
-        direction="vertical"
-        style={[styles.lockHintStyle, lockStyle as Kb.Styles._StylesCrossPlatform]}
-      >
+      </AnimatedBox2>
+      <AnimatedBox2 direction="vertical" style={[styles.lockHintStyle, lockStyle as Kb.Styles._StylesCrossPlatform]}>
         <Kb.Icon type="iconfont-lock" />
-      </Kb.Box2Animated>
+      </AnimatedBox2>
     </>
   )
 }
@@ -749,18 +744,12 @@ const CancelHint = (props: {fadeSV: SVN; dragXSV: SVN; lockedSV: SVN; onCancel: 
 
   return (
     <>
-      <Kb.Box2Animated
-        direction="vertical"
-        style={[styles.cancelHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}
-      >
+      <AnimatedBox2 direction="vertical" style={[styles.cancelHintStyle, arrowStyle as Kb.Styles._StylesCrossPlatform]}>
         <Kb.Icon sizeType="Tiny" type={'iconfont-arrow-left'} />
-      </Kb.Box2Animated>
-      <Kb.Box2Animated
-        direction="vertical"
-        style={[styles.cancelHintStyle, closeStyle as Kb.Styles._StylesCrossPlatform]}
-      >
+      </AnimatedBox2>
+      <AnimatedBox2 direction="vertical" style={[styles.cancelHintStyle, closeStyle as Kb.Styles._StylesCrossPlatform]}>
         <Kb.Icon sizeType="Tiny" type={'iconfont-close'} color={Kb.Styles.globalColors.black_20} />
-      </Kb.Box2Animated>
+      </AnimatedBox2>
       <AnimatedText
         type="BodySmallPrimaryLink"
         onClick={onCancel}

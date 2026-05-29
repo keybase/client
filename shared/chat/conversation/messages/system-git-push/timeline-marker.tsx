@@ -1,10 +1,9 @@
-import {Box2} from './box'
+import {Box2} from '@/common-adapters'
 import * as Styles from '@/styles'
-import {timeline_grey} from './timeline-marker.meta'
 
-const Kb = {
-  Box2,
-}
+const timeline_grey = '#D3DCE2'
+
+const Kb = {Box2}
 
 export type Props = {
   idx: number

@@ -1,8 +1,6 @@
 import type * as T from '@/constants/types'
-import {Box2} from './box'
-import IconAuto from './icon-auto'
-import type {IconType} from './icon.constants-gen'
-import ImageIcon from './image-icon'
+import {Box2, IconAuto, ImageIcon} from '@/common-adapters'
+import type {IconType} from '@/common-adapters'
 
 type Props = {
   platform: T.More.PlatformsExpandedType
@@ -46,7 +44,7 @@ const getSpecForPlatform = (platform: T.More.PlatformsExpandedType): IconSpec =>
   return {...standardOffsets, ...specs[platform]}
 }
 
-const Render = ({platform, overlay, style}: Props) => {
+const PlatformIcon = ({platform, overlay, style}: Props) => {
   const iconSpec = getSpecForPlatform(platform)
   return (
     <Box2 direction="vertical" relative={true} style={style}>
@@ -63,4 +61,4 @@ const Render = ({platform, overlay, style}: Props) => {
   )
 }
 
-export default Render
+export default PlatformIcon

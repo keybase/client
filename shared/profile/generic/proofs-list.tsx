@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import PlatformIcon from '../platform-icon'
 import * as React from 'react'
 import * as T from '@/constants/types'
 import {makeInsertMatcher} from '@/util/string'
@@ -723,7 +724,7 @@ const EnterUsername = ({
             {pt.headerText}
           </Kb.Text>
         )}
-        <Kb.PlatformIcon
+        <PlatformIcon
           style={styles.centered}
           platform={platform}
           overlay="icon-proof-unfinished"
@@ -942,7 +943,7 @@ const PostProof = ({
               </Kb.Text>
             </Kb.Box2>
           )}
-          <Kb.PlatformIcon
+          <PlatformIcon
             platform={step.platform}
             style={styles.center}
             overlay="icon-proof-unfinished"
@@ -1020,7 +1021,7 @@ const ConfirmOrPending = ({
         <Kb.Text negative={true} type="BodySemibold">
           {title}
         </Kb.Text>
-        <Kb.PlatformIcon
+        <PlatformIcon
           style={styles.center}
           platform={step.platform}
           overlay={platformIconOverlay}
