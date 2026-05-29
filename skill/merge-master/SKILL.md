@@ -128,3 +128,4 @@ Use this approach when there are many commits and the conflict markers clearly s
 | 2026-05-04 | nojima/HOTPOT-next-670-clean-2 | 0a255e2f88 (fix race on HUD after a command) |
 | 2026-05-19 | nojima/HOTPOT-next-670-clean-2 | 44af33002554ea4f81d4bca766fe642ad154e883 (fix UI bugs) |
 | 2026-05-26 | nojima/HOTPOT-next-670-clean-2 | ecfd22f61208ab37ec6c48e843f56c39fe128e4b (backport retry fixes) |
+| 2026-05-29 | nojima/HOTPOT-next-670-clean-2 | 7c434a8686d2b6d2e38366b8675f360bbace9f34 (fix additional api retry args) |
