@@ -23,15 +23,20 @@ digraph simplify {
     "Ask: proceed, skip, or adjust?" [shape=box];
     "User approves?" [shape=diamond];
     "Implement changes" [shape=box];
+    "Any meaningful findings?" [shape=diamond];
 
     "Read all files in scope" -> "Analyze across categories";
     "Analyze across categories" -> "Ask clarifying questions";
     "Ask clarifying questions" -> "Present findings by category";
     "Present findings by category" -> "Show flat numbered list of ALL changes";
     "Show flat numbered list of ALL changes" -> "Ask: proceed, skip, or adjust?";
-    "Ask: proceed, skip, or adjust?" -> "User approves?" ;
+    "Ask: proceed, skip, or adjust?" -> "User approves?";
     "User approves?" -> "Implement changes" [label="yes"];
     "User approves?" -> "Present findings by category" [label="revise"];
+    "Implement changes" -> "Read all files in scope" [label="re-read simplified files"];
+    "Analyze across categories" -> "Any meaningful findings?";
+    "Any meaningful findings?" -> "Ask clarifying questions" [label="yes"];
+    "Any meaningful findings?" -> "Done" [label="no"];
 }
 ```
 
@@ -188,6 +193,16 @@ Wait for the user's response. Do not begin any edits until they reply.
 ## Step 5: Implement
 
 Make all approved changes. Remove unused imports, styles, and variables left behind. Run lint and tsc after.
+
+## Step 6: Iterate
+
+**Simplification is not a single pass.** After implementing changes, the simplified code often reveals new opportunities that were hidden by the original clutter. Always do at least one more pass.
+
+Go back to **Step 1** and re-read all files in scope. Then repeat Steps 2–5 with fresh eyes.
+
+**Stop iterating when:** a full pass produces no meaningful findings — every category comes up empty or yields only borderline cases the user opts to skip.
+
+**Never stop after the first pass.** The first pass removes the obvious problems. The second pass finds what those problems were hiding. The third pass is usually final.
 
 ## The Hard Line: No Unilateral Visual Changes
 
