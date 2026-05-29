@@ -73,14 +73,12 @@ const TeamShowcase = (props: TeamShowcaseProps) => {
 
 const ShowcaseTeamsOffer = (p: {onEdit: () => void}) => (
   <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-    <Kb.ClickableBox onClick={p.onEdit}>
-      <Kb.Box2 direction="horizontal" gap="tiny">
-        <Kb.ImageIcon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
-        <Kb.Text style={styles.youFeatureTeam} type="BodyPrimaryLink">
-          {"Feature the teams you're in"}
-        </Kb.Text>
-      </Kb.Box2>
-    </Kb.ClickableBox>
+    <Kb.ClickableBox3 direction="horizontal" gap="tiny" onClick={p.onEdit}>
+      <Kb.ImageIcon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
+      <Kb.Text style={styles.youFeatureTeam} type="BodyPrimaryLink">
+        {"Feature the teams you're in"}
+      </Kb.Text>
+    </Kb.ClickableBox3>
   </Kb.Box2>
 )
 

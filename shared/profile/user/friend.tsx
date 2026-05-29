@@ -25,12 +25,12 @@ const Container = (ownProps: OwnProps) => {
     : followsYou ? ('icon-follow-me-21' as const) : ('icon-following-21' as const)
 
   return (
-    <Kb.ClickableBox onClick={onClick} style={{width: width}}>
-      <Kb.Box2
-        direction="vertical"
-        style={Kb.Styles.collapseStyles([styles.container, {width: width}])}
-        centerChildren={true}
-      >
+    <Kb.ClickableBox3
+      direction="vertical"
+      centerChildren={true}
+      style={Kb.Styles.collapseStyles([styles.container, {width: width}])}
+      onClick={onClick}
+    >
         <Kb.Avatar size={64} username={username} style={styles.avatar}>
           {!!followIconType && <Kb.ImageIcon type={followIconType} style={followSizeToStyle[64]} />}
         </Kb.Avatar>
@@ -45,8 +45,7 @@ const Container = (ownProps: OwnProps) => {
         <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
           {fullname}
         </Kb.Text>
-      </Kb.Box2>
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 

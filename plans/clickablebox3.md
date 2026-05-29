@@ -38,13 +38,13 @@ Use `migrate-clickable-box` skill for each chunk. Run `yarn lint && yarn tsc` an
 - [x] `shared/devices/` (6 total)
 
 ### Round 1 — small
-- [ ] `shared/git/` (3)
-- [ ] `shared/incoming-share/` (2)
-- [ ] `shared/signup/` (2)
-- [ ] `shared/provision/` (4)
-- [ ] `shared/people/` (2)
-- [ ] `shared/settings/` (4)
-- [ ] `shared/profile/` (10)
+- [x] `shared/git/` (3)
+- [x] `shared/incoming-share/` (2)
+- [x] `shared/signup/` (2)
+- [x] `shared/provision/` (4)
+- [x] `shared/people/` (2)
+- [x] `shared/settings/` (4)
+- [x] `shared/profile/` (10)
 
 ### Round 2 — medium
 - [ ] `shared/tracker/` (4)

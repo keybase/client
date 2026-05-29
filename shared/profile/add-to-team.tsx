@@ -341,7 +341,7 @@ type RowProps = {
 
 const TeamRow = (props: RowProps) => {
   return (
-    <Kb.ClickableBox onClick={props.canAddThem ? () => props.onCheck(!props.checked) : undefined}>
+    <Kb.ClickableBox3 direction="vertical" fullWidth={true} onClick={props.canAddThem ? () => props.onCheck(!props.checked) : undefined}>
       <Kb.Box2 direction="horizontal" style={styles.teamRow}>
         <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
         <Kb.Box2 direction="vertical" relative={true} style={{display: 'flex'}}>
@@ -372,7 +372,7 @@ const TeamRow = (props: RowProps) => {
         </Kb.Box2>
       </Kb.Box2>
       {!isMobile && <Kb.Divider style={styles.divider} />}
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 
