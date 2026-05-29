@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '@/styles'
-import {Pressable, View, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
+import {View, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import type {_StylesCrossPlatform} from '@/styles/css'
 import type {MeasureRef} from './measure-ref'
 
@@ -29,18 +29,7 @@ type Props = {
   tooltip?: string
 }
 
-type Props2 = {
-  onLongPress?: () => void
-  hitSlop?: number
-  testID?: string
-  onMouseOver?: (event: React.MouseEvent) => void
-  onClick?: () => void
-  children: React.ReactNode
-  className?: string
-  style?: Styles.StylesCrossPlatform
-}
-
-const ClickableBox = (props: Props & {children: React.ReactNode; ref?: React.Ref<MeasureRef | null>}) => {
+const ClickableBox =(props: Props & {children: React.ReactNode; ref?: React.Ref<MeasureRef | null>}) => {
   const {ref} = props
   const [mouseDown, setMouseDown] = React.useState(false)
   const [mouseIn, setMouseIn] = React.useState(false)
@@ -209,31 +198,4 @@ const nativeStyles = Styles.styleSheetCreate(() => ({
 }))
 
 export default ClickableBox
-
-export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<MeasureRef | null>}) => {
-  if (!isMobile) {
-    const {onClick, children, style, className, onMouseOver, ref, testID} = p
-    return (
-      <div
-        onClick={onClick}
-        onMouseOver={onMouseOver}
-        style={Styles.castStyleDesktop(style)}
-        ref={ref as React.Ref<HTMLDivElement>}
-        className={Styles.classNames('clickable-box2', className)}
-        data-testid={testID}
-      >
-        {children}
-      </div>
-    )
-  }
-  const {onLongPress, onClick, children, hitSlop, style, testID} = p
-  const onPress = () => {
-    onClick?.()
-  }
-  return (
-    <Pressable onLongPress={onLongPress} onPress={onPress} style={style} hitSlop={hitSlop} testID={testID}>
-      {children}
-    </Pressable>
-  )
-}
 

@@ -63,12 +63,6 @@ module.exports = {
   get ChoiceList() {
     return require('./choice-list').default
   },
-  get ClickableBox() {
-    return require('./clickable-box').default
-  },
-  get ClickableBox2() {
-    return require('./clickable-box').ClickableBox2
-  },
   get ConfirmModal() {
     return require('./confirm-modal').default
   },

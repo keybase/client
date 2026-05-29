@@ -62,6 +62,6 @@ Use `migrate-clickable-box` skill for each chunk. Run `yarn lint && yarn tsc` an
 - [x] `shared/common-adapters/` (26) — 2 intentional CB1 survivors: rich-button.tsx and choice-list.tsx (mobile) both use onPressIn/onPressOut
 
 ### Completion criteria
-- [ ] `grep -rn "ClickableBox[^3]" shared/ | grep -v "clickable-box\|Props\|import\|export"` → zero results
-- [ ] `yarn lint && yarn tsc` — zero errors
-- [ ] Remove `ClickableBox` default export, `ClickableBox2`, `Props`, `Props2` from `clickable-box.tsx`
+- [x] `grep -rn "ClickableBox[^3]" shared/ | grep -v "clickable-box\|Props\|import\|export"` → zero results (only intentional CB1 survivors in rich-button.tsx and choice-list.tsx)
+- [x] `yarn lint && yarn tsc` — zero errors
+- [x] Remove `ClickableBox2`, `Props2` from `clickable-box.tsx`; remove `ClickableBox`/`ClickableBox2` from barrel index.tsx (CB1 kept as default export for intentional survivors)
