@@ -61,6 +61,17 @@ Read **every file** in scope before forming opinions. Patterns only become visib
 - Components split across files for no structural reason — candidate for collocating
 - Deeply nested JSX that could flatten via composition
 
+### Nested Boxes (high-signal smell)
+
+Two or more `Box2` (or `Kb.Box2`) components nested directly inside each other is a reliable sign something can be simplified. When you see this pattern, investigate:
+
+- **Redundant wrapper**: the outer box exists only to pass a `style` or `direction` that the inner box could absorb — collapse them into one
+- **Props can merge**: both boxes carry layout props (`alignItems`, `gap`, `fullWidth`, etc.) with no conflicting values — merge onto a single box
+- **Composition opportunity**: the nesting reflects a structural concern (header + body) that could be expressed as named sub-components instead of anonymous nested boxes
+- **Unnecessary intermediate container**: an outer box wraps a single child box with no additional siblings or layout purpose — remove the outer layer
+
+A long chain of `<Box2><Box2><Box2>` almost always means something went wrong at the design level. Trace back to why each layer exists before proposing a fix; the root cause is usually one of the above.
+
 ### Props and Styles
 - Components with large prop lists where many props just pass through — consider composition or context
 - Repeated style patterns across components that could become a shared style helper or `Kb.Styles` utility call
