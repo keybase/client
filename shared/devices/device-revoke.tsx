@@ -26,23 +26,14 @@ const EndangeredTLFList = (props: {endangeredTLFs: Array<string>}) => {
         You may lose access to these folders forever:
       </Kb.Text>
       <Kb.Box2 direction="vertical" style={styles.listContainer}>
-        <Kb.List
-          items={props.endangeredTLFs}
-          renderItem={renderTLFEntry}
-          indexAsKey={true}
-          itemHeight={{height: 24, type: 'fixed'}}
-        />
+        <Kb.ScrollView>{props.endangeredTLFs.map((tlf, index) => renderTLFEntry(index, tlf))}</Kb.ScrollView>
       </Kb.Box2>
     </>
   )
 }
 
 const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: () => void}) => (
-  <Kb.Box2
-    direction={isMobile ? 'vertical' : 'horizontalReverse'}
-    fullWidth={isMobile}
-    gap="tiny"
-  >
+  <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontalReverse'} fullWidth={isMobile} gap="tiny">
     <Kb.WaitingButton
       fullWidth={isMobile}
       type="Danger"
@@ -160,13 +151,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
 
   if (!device) {
     return (
-      <Kb.Box2
-        direction="vertical"
-        fullHeight={true}
-        fullWidth={true}
-        centerChildren={true}
-        padding="small"
-      >
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true} padding="small">
         <Kb.ProgressIndicator />
       </Kb.Box2>
     )
