@@ -7,12 +7,7 @@ import {
   useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated'
-import type {
-  GestureStateManager,
-  GestureTouchEvent,
-  GestureUpdateEvent,
-  PinchGestureHandlerEventPayload,
-} from 'react-native-gesture-handler'
+import type {GestureTouchEvent, GestureUpdateEvent, PinchGestureHandlerEventPayload, LegacyGestureStateManager} from 'react-native-gesture-handler'
 
 import {clamp} from '../utils/clamp'
 import {useVector} from './useVector'
@@ -73,21 +68,21 @@ export const usePinchCommons = (options: PinchOptions) => {
     setGesturesEnabled(value)
   }
 
-  const onTouchesDown = (e: GestureTouchEvent, state: GestureStateManager) => {
+  const onTouchesDown = (_e: GestureTouchEvent, state: LegacyGestureStateManager) => {
     'worklet'
-    if (e.numberOfTouches === 2) {
+    if (_e.numberOfTouches === 2) {
       state.begin()
     }
   }
 
-  const onTouchesUp = (e: GestureTouchEvent, state: GestureStateManager) => {
+  const onTouchesUp = (e: GestureTouchEvent, state: LegacyGestureStateManager) => {
     'worklet'
     if (e.numberOfTouches !== 2) {
       state.end()
     }
   }
 
-  const onTouchesMove = (e: GestureTouchEvent, state: GestureStateManager) => {
+  const onTouchesMove = (e: GestureTouchEvent, state: LegacyGestureStateManager) => {
     'worklet'
     if (e.numberOfTouches !== 2) return
     const touchOne = e.allTouches[0]!

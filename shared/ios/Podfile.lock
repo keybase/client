@@ -1,7 +1,7 @@
 PODS:
   - EXConstants (56.0.16):
     - ExpoModulesCore
-  - Expo (56.0.5):
+  - Expo (56.0.6):
     - ExpoModulesCore
     - ExpoModulesJSI
     - hermes-engine
@@ -2216,7 +2216,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNGestureHandler (2.31.2):
+  - RNGestureHandler (3.0.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2827,7 +2827,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   EXConstants: 1c400bb9969f4c9e5ab324553138b74ae47b9efe
-  Expo: 908c84912a79d1e582ae1d33ef8ec5814309faad
+  Expo: 8c844d69dc6c223ee0ba5f98057a414f0908ad9b
   ExpoAsset: c2e7b5ba1fe75be683282d6264e38fd7cd8defbb
   ExpoAudio: 7774082d316ceecc2b26efeb10480bea2fa4d67e
   ExpoCamera: fc1d2688e9824984e28cf606062da40d2d80b13e
@@ -2943,7 +2943,7 @@ SPEC CHECKSUMS:
   ReactNavigation: ddcf5d9e3383001c1a805f98e7d757a1350a3aab
   RNCMaskedView: 8069b4d4e23b3d28b4fcac70bf266be43ffc3d2e
   RNCPicker: a3921be99ae291e420e3e8940e5b2b53e572c543
-  RNGestureHandler: a97cc64efbfcb7a53969a38310a189a3d5246c65
+  RNGestureHandler: ae4b9960c2e7d0fb3991255345bf424cca8e09e4
   RNReanimated: 6222f4cadf9f534290a494ce1dcc3678d7c1002f
   RNScreens: 8d318eb8905fa1d3439a1ce5d567f82ae8245657
   RNWorklets: a6ebd7b1ae53f150d747986d70bfc34932d7ffb4

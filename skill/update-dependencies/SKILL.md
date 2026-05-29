@@ -61,7 +61,17 @@ This finds packages where a nested `node_modules` contains a **newer** version t
 
 **Why this matters:** Packages that use `React.createContext()` or other module-level singletons break silently when installed twice — the provider uses one instance and the consumer reads a different one. Classic symptom: "Couldn't determine focus state. Is your component inside a screen in a navigator?" (`useIsFocused` from `@react-navigation/core`).
 
-### 5. If updating `electron`
+### 5. Evaluate existing patches
+
+After `yarn`, check whether any `patches/*.patch` files target a package you just updated — the filename encodes the version (e.g. `@legendapp+list+3.0.0-beta.56.patch`). For each such patch:
+
+1. Run `yarn patch-package` to see if it applies cleanly.
+2. If it **fails**: the patch still addresses a real issue, but the upstream source has moved. Fix the source files in `node_modules` directly (re-apply the intent of the patch), then run `yarn patch-package <package>` to regenerate it. Delete the old patch file.
+3. If it **applies**: check whether the fix was merged upstream by searching the updated source for the patched code. If the upstream already has the fix, delete the patch file.
+
+**Never rename patch files or hand-edit the `.patch` file itself.** Let `patch-package` generate the correctly-named file from your source edits.
+
+### 6. If updating `electron`
 
 After bumping the `electron` version in `package.json` and running `yarn`, update the download hashes:
 
