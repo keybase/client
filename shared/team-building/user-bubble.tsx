@@ -28,7 +28,7 @@ const UserBubble = (props: Props) => {
     <Kb.Box2 direction="vertical" className="hover-container" style={styles.bubbleContainer}>
       <Kb.WithTooltip tooltip={props.tooltip} position="top center">
         <Kb.Box2 direction="horizontal" style={styles.bubble}>
-          <Kb.ConnectedNameWithIcon
+          <Kb.NameWithIcon
             colorFollowing={true}
             hideFollowingOverlay={true}
             horizontal={false}

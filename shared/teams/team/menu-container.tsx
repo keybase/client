@@ -32,7 +32,7 @@ const TeamMenu = (props: Props) => {
     return null
   }
   const header = (
-    <Kb.ConnectedNameWithIcon
+    <Kb.NameWithIcon
       teamname={teamname}
       title={teamname}
       metaOne={

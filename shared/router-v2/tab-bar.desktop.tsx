@@ -86,7 +86,7 @@ const Header = () => {
     const menuHeader = (
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.ClickableBox onClick={onClickWrapper} style={styles.headerBox}>
-          <Kb.ConnectedNameWithIcon
+          <Kb.NameWithIcon
             username={username}
             onClick={onClickWrapper}
             metaTwo={

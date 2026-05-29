@@ -50,7 +50,7 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
 
 const smallWidth = serviceMinWidthWhenSmall(Kb.Styles.dimensionWidth)
 const bigWidth = Math.max(smallWidth, 92)
-const AnimatedBox2 = Kb.Box2Animated
+const AnimatedBox2 = createAnimatedComponent(Kb.Box2)
 const AnimatedScrollView = createAnimatedComponent(ScrollView)
 
 const TabletBottomBorderExtension = function TabletBottomBorderExtension(props: {

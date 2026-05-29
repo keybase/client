@@ -8,14 +8,7 @@ export type {AnimationType} from './animation'
 export const LayoutAnimation: typeof NativeLayoutAnimation = isMobile
   ? NativeLayoutAnimation
   : ({} as typeof NativeLayoutAnimation)
-export const ReAnimated = {}
 
-export {
-  BottomSheetModal,
-  BottomSheetBackdrop,
-  BottomSheetScrollView,
-  type BottomSheetBackdropProps,
-} from './popup/bottom-sheet'
 export {default as Animation} from './animation'
 export {default as Avatar} from './avatar/index'
 export {default as AvatarLine} from './avatar/avatar-line'
@@ -23,7 +16,7 @@ export {BottomAccessory} from './bottom-accessory'
 export {default as BackButton} from './back-button'
 export {default as Badge} from './badge'
 export {Banner, BannerParagraph} from './banner'
-export {Box2, Box2Animated} from './box'
+export {Box2} from './box'
 export type {LayoutEvent} from './box'
 export type {MeasureRef} from './measure-ref'
 export {default as ButtonBar} from './button-bar'
@@ -65,12 +58,9 @@ export {default as LoadingLine} from './loading-line'
 export {default as Markdown} from './markdown'
 export {default as Meta} from './meta'
 export {default as NameWithIcon} from './name-with-icon'
-export {default as ConnectedNameWithIcon} from './name-with-icon'
 export {default as Popup, type PopupProps} from './popup/index'
 export {default as PhoneInput} from './phone-input'
 export {default as Placeholder} from './placeholder'
-export {default as PlatformIcon} from './platform-icon'
-export {default as ProfileCard} from './profile-card'
 export {default as ProgressBar} from './progress-bar'
 export {default as ProgressIndicator} from './progress-indicator'
 export {default as ProofBrokenBanner} from './proof-broken-banner'
@@ -86,12 +76,10 @@ export {default as ScrollView, type ScrollViewRef} from './scroll-view'
 export {default as SectionList, type SectionListRef, type SectionType} from './section-list'
 export {default as Switch} from './switch'
 export {default as Tabs} from './tabs'
-export {default as TeamWithPopup} from './team-with-popup'
 export {default as Text} from './text'
 export {useClickURL} from './text-url'
 export {default as Toast} from './toast'
 export {default as SimpleToast} from './simple-toast'
-export {default as TimelineMarker} from './timeline-marker'
 export {default as ConnectedUsernames} from './usernames'
 export {default as WaitingButton} from './waiting-button'
 export {default as WaveButton} from './wave-button'

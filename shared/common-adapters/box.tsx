@@ -1,7 +1,6 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
 import {View} from 'react-native'
-import Reanimated from 'react-native-reanimated'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
 import type {NativeSyntheticEvent} from 'react-native'
 import './box.css'
@@ -251,13 +250,6 @@ export const Box2 = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
   const {ref, testID, ...rest} = p
   const props = box2SharedProps(rest)
   return <View {...props} testID={testID} ref={ref as React.Ref<View>} />
-}
-
-export const Box2Animated = (p: Box2Props & {ref?: React.Ref<MeasureRef>}) => {
-  if (!isMobile) return <Box2 {...p} />
-  const {ref, ...rest} = p
-  const props = box2SharedProps(rest)
-  return <Reanimated.View {...props} ref={ref as React.Ref<View>} />
 }
 
 const common = {

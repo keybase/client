@@ -2,6 +2,7 @@ import * as Chat from '@/constants/chat'
 import type * as React from 'react'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import TimelineMarker from './timeline-marker'
 import UserNotice from '../user-notice'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -122,7 +123,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
       <Kb.Box2 direction="vertical" alignSelf="flex-start">
         {(commitRef.commits || []).map((commit, i) => (
           <Kb.Box2 direction="horizontal" key={commit.commitHash} alignSelf="flex-start">
-            <Kb.TimelineMarker
+            <TimelineMarker
               idx={i}
               max={commitRef.commits ? commitRef.commits.length - 1 : 0}
               style={styles.marker}

@@ -17,7 +17,7 @@ const FollowSuggestions = (props: Props) => (
       contentContainerStyle={styles.scrollViewContainer}
     >
       {props.suggestions.map(suggestion => (
-        <Kb.ConnectedNameWithIcon
+        <Kb.NameWithIcon
           key={suggestion.username}
           username={suggestion.username}
           metaOne={suggestion.fullName}
