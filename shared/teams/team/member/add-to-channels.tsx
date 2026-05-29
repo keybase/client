@@ -495,15 +495,15 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
   }
 
   return isMobile ? (
-    <Kb.ClickableBox onClick={selfMode ? onPreviewChannel : onSelect} style={{height: rowHeight}}>
-      <Kb.Box2
-        direction="horizontal"
-        style={styles.item}
-        alignItems="center"
-        fullWidth={true}
-        gap="tiny"
-        justifyContent="space-between"
-      >
+    <Kb.ClickableBox3
+      onClick={selfMode ? onPreviewChannel : onSelect}
+      direction="horizontal"
+      alignItems="center"
+      fullWidth={true}
+      gap="tiny"
+      justifyContent="space-between"
+      style={Kb.Styles.collapseStyles([{height: rowHeight}, styles.item])}
+    >
         <Kb.Text type="Body" lineClamp={1} style={styles.channelText}>
           #{channelMeta.channelname}
         </Kb.Text>
@@ -531,8 +531,7 @@ const ChannelRow = function ChannelRow(p: ChannelRowProps) {
             }
           />
         )}
-      </Kb.Box2>
-    </Kb.ClickableBox>
+      </Kb.ClickableBox3>
   ) : (
     <Kb.ListItem
       fullDivider={true}

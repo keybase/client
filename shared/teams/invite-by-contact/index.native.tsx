@@ -105,12 +105,12 @@ export const InviteByContact = (props: InviteByContactProps) => {
             position="bottom center"
             disabledRoles={{owner: 'Cannot invite an owner via email.'}}
           />
-          <Kb.ClickableBox onClick={() => setRolePickerOpen(true)} style={styles.rolePickerBox}>
+          <Kb.ClickableBox3 direction="vertical" centerChildren={true} onClick={() => setRolePickerOpen(true)} style={styles.rolePickerBox}>
             <Kb.Text center={true} type="BodySmall">
               Users will be invited to {props.teamName} as
               <Kb.Text type="BodySmallPrimaryLink">{' ' + props.selectedRole + 's'}</Kb.Text>.
             </Kb.Text>
-          </Kb.ClickableBox>
+          </Kb.ClickableBox3>
           <Kb.List
             keyProperty="id"
             items={listItems}
@@ -156,8 +156,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginRight: 16,
       },
       rolePickerBox: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        ...Kb.Styles.centered(),
         borderBottomColor: Kb.Styles.globalColors.black_10,
         borderBottomWidth: Kb.Styles.hairlineWidth,
         marginBottom: Kb.Styles.globalMargins.xtiny,

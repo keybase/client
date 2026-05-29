@@ -51,7 +51,7 @@ Use `migrate-clickable-box` skill for each chunk. Run `yarn lint && yarn tsc` an
 - [x] `shared/menubar/` (3)
 - [x] `shared/app/` (4)
 - [x] `shared/router-v2/` (9)
-- [ ] `shared/teams/` (25+)
+- [x] `shared/teams/` (25+)
 - [ ] `shared/team-building/` (9+)
 
 ### Round 3 — large

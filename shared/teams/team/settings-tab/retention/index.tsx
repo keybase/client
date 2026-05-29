@@ -165,17 +165,18 @@ const RetentionPicker = (p: Props) => {
       <Kb.Box2 direction="horizontal" alignItems="center" style={styles.heading} fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
       </Kb.Box2>
-      <Kb.ClickableBox
+      <Kb.ClickableBox3
         onClick={showPopup}
         ref={popupAnchor}
+        direction="horizontal"
+        alignItems="center"
         style={Kb.Styles.collapseStyles([styles.retentionDropdown, dropdownStyle])}
-        underlayColor={Kb.Styles.globalColors.white_40}
       >
         <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label} justifyContent="flex-start">
           {policyToLabel(policy, teamPolicy)}
         </Kb.Box2>
         <Kb.Icon type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />
-      </Kb.ClickableBox>
+      </Kb.ClickableBox3>
       {policyIsExploding && (
         <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">
           <Kb.Text type="BodySmall">Participants will see their message explode.</Kb.Text>
@@ -238,8 +239,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       retentionDropdown: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
-          alignItems: 'center',
           ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
           marginBottom: Kb.Styles.globalMargins.tiny,
           minWidth: 220,

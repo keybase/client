@@ -81,20 +81,18 @@ const ChannelPopup = (props: Props) => {
             const disabled = disabledChannels?.some(c => c.conversationIDKey === channel.conversationIDKey)
             const onClick = disabled ? undefined : () => onSelect(channel)
             return (
-              <Kb.ClickableBox key={channel.conversationIDKey} onClick={onClick}>
-                <Kb.Box2 direction="horizontal" style={styles.channelContainer} gap="tiny" fullWidth={true} justifyContent="space-between">
-                  <Kb.Text type="Body" lineClamp={1} style={Kb.Styles.globalStyles.flexOne}>
-                    #{channel.channelname}
-                  </Kb.Text>
-                  <Kb.CheckCircle
-                    onCheck={onClick}
-                    checked={
-                      disabled || selected.some(c => c.conversationIDKey === channel.conversationIDKey)
-                    }
-                    disabled={disabled}
-                  />
-                </Kb.Box2>
-              </Kb.ClickableBox>
+              <Kb.ClickableBox3 key={channel.conversationIDKey} onClick={onClick} direction="horizontal" style={styles.channelContainer} gap="tiny" fullWidth={true} justifyContent="space-between">
+                <Kb.Text type="Body" lineClamp={1} style={Kb.Styles.globalStyles.flexOne}>
+                  #{channel.channelname}
+                </Kb.Text>
+                <Kb.CheckCircle
+                  onCheck={onClick}
+                  checked={
+                    disabled || selected.some(c => c.conversationIDKey === channel.conversationIDKey)
+                  }
+                  disabled={disabled}
+                />
+              </Kb.ClickableBox3>
             )
           }}
         />

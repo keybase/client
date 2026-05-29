@@ -117,7 +117,7 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
     ...(isMobile ? {} : {height: selected ? 160 : 42}),
   }
   return (
-    <Kb.ClickableBox onClick={onSelect} style={style}>
+    <Kb.ClickableBox3 direction="vertical" fullWidth={true} onClick={onSelect} style={style}>
       <Kb.Divider />
       <RoleRow
         selected={selected}
@@ -138,7 +138,7 @@ const RoleRowWrapper = (props: RoleRowWrapperProps) => {
         onSelect={onSelect}
         disabledReason={disabledReason}
       />
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 

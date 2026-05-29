@@ -323,9 +323,9 @@ type EmojiToAddOrAddRow =
 const renderRow = (_: number, item: EmojiToAddOrAddRow) =>
   item.type === 'add' ? (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.emojiToAddRow}>
-      <Kb.ClickableBox onClick={item.add} style={styles.addEmojiIconContainer}>
+      <Kb.ClickableBox3 direction="vertical" centerChildren={true} onClick={item.add} style={styles.addEmojiIconContainer}>
         <Kb.Icon type="iconfont-new" color={Kb.Styles.globalColors.blue} />
-      </Kb.ClickableBox>
+      </Kb.ClickableBox3>
     </Kb.Box2>
   ) : (
     <Kb.Box2
@@ -413,8 +413,6 @@ const emojiToAddRowHeightWithError = isMobile ? 70 : 60
 const styles = Kb.Styles.styleSheetCreate(() => ({
   addEmojiIconContainer: Kb.Styles.platformStyles({
     common: {
-      ...Kb.Styles.globalStyles.flexBoxColumn,
-      ...Kb.Styles.centered(),
       ...Kb.Styles.border(Kb.Styles.globalColors.black_20, 1, Kb.Styles.globalMargins.xtiny),
     },
     isElectron: {
