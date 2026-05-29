@@ -5,15 +5,7 @@ import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/he
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
 import {useProvisionState} from '@/stores/provision'
 import {defineRouteMap} from '@/constants/types/router'
-
-export const HeaderTitle = ({activeCount, revokedCount}: {activeCount: number; revokedCount: number}) => (
-  <Kb.Box2 direction="vertical" style={headerStyles.headerTitle}>
-    <Kb.Text type="Header">Devices</Kb.Text>
-    <Kb.Text type="BodySmall">
-      {activeCount} Active • {revokedCount} Revoked
-    </Kb.Text>
-  </Kb.Box2>
-)
+import {HeaderTitle} from './common'
 
 const HeaderRightActions = () => {
   const navigateAppend = C.Router2.navigateAppend
@@ -37,10 +29,6 @@ const headerStyles = Kb.Styles.styleSheetCreate(() => ({
     },
     isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
   }),
-  headerTitle: {
-    paddingBottom: Kb.Styles.globalMargins.xtiny,
-    paddingLeft: Kb.Styles.globalMargins.xsmall,
-  },
 }))
 
 const AddDeviceCancelButton = () => {

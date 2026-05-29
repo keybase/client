@@ -8,9 +8,8 @@ import * as T from '@/constants/types'
 import {intersect} from '@/util/set'
 import {useLocalBadging} from '@/util/use-local-badging'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {HeaderTitle} from './routes'
 import {useTypedNavigation} from '@/util/typed-navigation'
-import {rpcDeviceDetailToDevice} from './common'
+import {rpcDeviceDetailToDevice, HeaderTitle} from './common'
 
 const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   if (a.currentDevice) return -1

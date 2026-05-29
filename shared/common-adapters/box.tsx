@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type * as React from 'react'
 import * as Styles from '@/styles'
 import {Pressable, View} from 'react-native'
 import type {MeasureRef} from '@/common-adapters/measure-ref'

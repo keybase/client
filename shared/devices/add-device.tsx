@@ -64,11 +64,9 @@ export default function AddDevice(ownProps: OwnProps) {
         gapStart={true}
         gapEnd={true}
       >
-        <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
-          <Kb.Text type="Body" center={true}>
-            Protect your account by having more devices and paper keys.
-          </Kb.Text>
-        </Kb.Box2>
+        <Kb.Text type="Body" center={true}>
+          Protect your account by having more devices and paper keys.
+        </Kb.Text>
         <Kb.Box2
           direction={isMobile ? 'vertical' : 'horizontal'}
           gap="mediumLarge"

@@ -1,4 +1,21 @@
+import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+
+export const HeaderTitle = ({activeCount, revokedCount}: {activeCount: number; revokedCount: number}) => (
+  <Kb.Box2 direction="vertical" style={headerStyles.headerTitle}>
+    <Kb.Text type="Header">Devices</Kb.Text>
+    <Kb.Text type="BodySmall">
+      {activeCount} Active • {revokedCount} Revoked
+    </Kb.Text>
+  </Kb.Box2>
+)
+
+const headerStyles = Kb.Styles.styleSheetCreate(() => ({
+  headerTitle: {
+    paddingBottom: Kb.Styles.globalMargins.xtiny,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
+  },
+}))
 
 export const rpcDeviceDetailToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device => ({
   created: d.device.cTime,
