@@ -200,7 +200,7 @@ function DesktopHeader(p: Props) {
                 hover_background_color_black_10: !!back,
               })}
               onClick={pop}
-              style={Kb.Styles.collapseStyles([iconContainerStyle, styles.icon])}
+              style={iconContainerStyle}
               direction="vertical"
             >
               <Kb.Icon
@@ -280,23 +280,17 @@ const styles = Kb.Styles.styleSheetCreate(
           containment: 'layout',
         },
       }),
-      icon: Kb.Styles.platformStyles({
-        isElectron: {
-          display: 'inline-block',
-          ...Kb.Styles.size(14),
-        },
-      }),
       iconContainer: Kb.Styles.platformStyles({
         common: {
           // Needed to position blue badge
           position: 'relative',
         },
         isElectron: {
-          ...Kb.Styles.desktopStyles.clickable,
           ...Kb.Styles.desktopStyles.windowDraggingClickable,
-          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
           borderRadius: Kb.Styles.borderRadius,
+          display: 'inline-block',
+          ...Kb.Styles.size(14),
           marginLeft: 4,
           marginRight: 6,
           padding: Kb.Styles.globalMargins.xtiny,
