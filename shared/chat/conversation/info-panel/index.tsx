@@ -168,6 +168,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       clickableTabStyle: Kb.Styles.platformStyles({
+        isElectron: {width: 'auto'},
         isMobile: {width: undefined},
       }),
       container: Kb.Styles.platformStyles({
@@ -188,12 +189,12 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       containerOuterTablet: {width: infoPanelWidthTablet + tabletContainerBorderSize},
       tab: {
+        justifyContent: 'center',
         paddingLeft: Kb.Styles.globalMargins.xsmall,
         paddingRight: Kb.Styles.globalMargins.xsmall,
       },
       tabContainer: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.white},
-        // TODO: this is less than ideal
         isElectron: {
           overflowX: 'hidden',
           overflowY: 'hidden',

@@ -58,7 +58,7 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
           onClick={() => props.onSelect(tab.title)}
           key={tab.title}
           direction="vertical"
-          style={Styles.collapseStyles([styles.tabContainer, props.clickableBoxStyle])}
+          style={Styles.collapseStyles([styles.tabContainer, props.clickableBoxStyle, props.clickableTabStyle])}
           fullWidth={true}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={Styles.collapseStyles([styles.tab, selected && styles.selected, props.tabStyle])}>
@@ -98,11 +98,13 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxRow,
     backgroundColor: Styles.globalColors.transparent,
     minHeight: 2,
+    width: '100%',
   },
   dividerSelected: {
     ...Styles.globalStyles.flexBoxRow,
     backgroundColor: Styles.globalColors.blue,
     minHeight: 2,
+    width: '100%',
   },
   icon: {
     alignSelf: 'center',
