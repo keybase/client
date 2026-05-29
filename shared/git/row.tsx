@@ -119,13 +119,16 @@ function ConnectedRow(ownProps: OwnProps) {
             expanded && {backgroundColor: Kb.Styles.globalColors.white},
           ])}
         >
-          <Kb.ClickableBox
+          <Kb.ClickableBox3
             onClick={onToggleExpand}
-            style={expanded ? styles.rowClickExpanded : styles.rowClick}
-            hoverColor={isMobile ? undefined : Kb.Styles.globalColors.transparent}
-            underlayColor={Kb.Styles.globalColors.transparent}
+            direction="horizontal"
+            fullWidth={true}
+            alignItems="center"
+            style={Kb.Styles.collapseStyles([
+              expanded ? styles.rowClickExpanded : styles.rowClick,
+              styles.rowTop,
+            ])}
           >
-            <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowTop}>
               <Kb.Icon
                 type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
                 style={styles.iconCaret}
@@ -144,8 +147,7 @@ function ConnectedRow(ownProps: OwnProps) {
               {isNew && (
                 <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
               )}
-            </Kb.Box2>
-          </Kb.ClickableBox>
+          </Kb.ClickableBox3>
           {expanded && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowBottom}>
               <Kb.Box2
@@ -335,16 +337,12 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingLeft: Kb.Styles.globalMargins.medium,
       },
       rowClick: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         paddingBottom: Kb.Styles.globalMargins.tiny,
         paddingTop: Kb.Styles.globalMargins.tiny,
-        width: '100%',
       },
       rowClickExpanded: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
         paddingBottom: 0,
         paddingTop: Kb.Styles.globalMargins.tiny,
-        width: '100%',
       },
 
       rowStyle: {

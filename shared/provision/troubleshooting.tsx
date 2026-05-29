@@ -17,12 +17,12 @@ type BigButtonProps = {
 }
 
 const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) => (
-  <Kb.ClickableBox onClick={waiting ? undefined : onClick}>
-    <Kb.Box2
-      direction={isMobile ? 'horizontal' : 'vertical'}
-      style={styles.bigButton}
-      className="hover_background_color_blueLighter2"
-    >
+  <Kb.ClickableBox3
+    onClick={waiting ? undefined : onClick}
+    direction={isMobile ? 'horizontal' : 'vertical'}
+    style={styles.bigButton}
+    className="hover_background_color_blueLighter2"
+  >
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
@@ -43,8 +43,7 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
           <Kb.ProgressIndicator />
         </Kb.Box2>
       )}
-    </Kb.Box2>
-  </Kb.ClickableBox>
+  </Kb.ClickableBox3>
 )
 
 const Troubleshooting = (props: Props) => {

@@ -157,10 +157,10 @@ const useFooter = (incomingShareItems: ReadonlyArray<T.RPCGen.IncomingShareItem>
     ? undefined
     : {
         content: (
-          <Kb.ClickableBox style={styles.footer} onClick={saveInFiles}>
+          <Kb.ClickableBox3 direction="horizontal" centerChildren={true} fullWidth={true} onClick={saveInFiles}>
             <Kb.Icon type="iconfont-file" color={Kb.Styles.globalColors.blue} style={styles.footerIcon} />
             <Kb.Text type="BodyBigLink">Save in Files</Kb.Text>
-          </Kb.ClickableBox>
+          </Kb.ClickableBox3>
         ),
       }
 }
@@ -335,11 +335,6 @@ const IncomingShareMain = (props: IncomingShareMainProps) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  footer: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    ...Kb.Styles.centered(),
-    width: '100%',
-  },
   footerIcon: {
     marginRight: Kb.Styles.globalMargins.tiny,
   },
