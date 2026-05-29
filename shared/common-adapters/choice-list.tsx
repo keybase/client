@@ -1,4 +1,4 @@
-import {Box2} from './box'
+import {Box2, ClickableBox3} from './box'
 import ClickableBox from './clickable-box'
 import IconAuto from './icon-auto'
 import Text from './text'
@@ -19,7 +19,7 @@ type Props = {
   options: Array<Option>
 }
 
-const Kb = {Box2, ClickableBox, IconAuto, Text}
+const Kb = {Box2, ClickableBox, ClickableBox3, IconAuto, Text}
 
 const makeOptionsKey = (options: Props['options']) =>
   options.map(option => `${option.title}:${option.description}:${String(option.icon)}`).join('|')
@@ -38,8 +38,7 @@ const ChoiceList = (props: Props) => {
         {options.map((op, idx) => {
           const iconType = op.icon
           return (
-            <Kb.ClickableBox key={idx} onClick={() => op.onClick()}>
-              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.entry} className="cl-entry">
+            <Kb.ClickableBox3 key={idx} onClick={() => op.onClick()} direction="horizontal" fullWidth={true} style={styles.entry} className="cl-entry">
                 <Kb.Box2
                   direction="vertical"
                   centerChildren={true}
@@ -64,8 +63,7 @@ const ChoiceList = (props: Props) => {
                   <Text type="BodyBigLink">{op.title}</Text>
                   <Text type="Body">{op.description}</Text>
                 </Kb.Box2>
-              </Kb.Box2>
-            </Kb.ClickableBox>
+            </Kb.ClickableBox3>
           )
         })}
       </Kb.Box2>

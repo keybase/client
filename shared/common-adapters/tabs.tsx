@@ -1,18 +1,17 @@
 import * as Styles from '@/styles'
 import Badge from './badge'
-import ClickableBox from './clickable-box'
 import Divider from './divider'
 import IconAuto from './icon-auto'
 import type {IconType} from './icon.constants-gen'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
-import {Box2} from './box'
+import {Box2, ClickableBox3} from './box'
 import capitalize from 'lodash/capitalize'
 
 const Kb = {
   Badge,
   Box2,
-  ClickableBox,
+  ClickableBox3,
   Divider,
   IconAuto,
   ProgressIndicator,
@@ -55,23 +54,23 @@ const Tabs = <TitleT extends string>(props: Props<TitleT>) => (
     {props.tabs.map((tab: Tab<TitleT>) => {
       const selected = props.selectedTab === tab.title
       return (
-        <Kb.ClickableBox
+        <Kb.ClickableBox3
           onClick={() => props.onSelect(tab.title)}
           key={tab.title}
-          style={props.clickableBoxStyle}
+          direction="vertical"
+          style={Styles.collapseStyles([styles.tabContainer, props.clickableBoxStyle])}
+          fullWidth={true}
         >
-          <Kb.Box2 direction="vertical" style={styles.tabContainer} fullWidth={true}>
-            <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={Styles.collapseStyles([styles.tab, selected && styles.selected, props.tabStyle])}>
-              {tab.icon ? (
-                <Kb.IconAuto type={tab.icon} style={selected ? styles.iconSelected : styles.icon} />
-              ) : (
-                <TabText selected={selected} text={tab.text ?? capitalize(tab.title)} />
-              )}
-              {!!tab.badgeNumber && <Kb.Badge badgeNumber={tab.badgeNumber} badgeStyle={styles.badge} />}
-            </Kb.Box2>
-            <Kb.Divider style={selected ? styles.dividerSelected : styles.divider} />
+          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={Styles.collapseStyles([styles.tab, selected && styles.selected, props.tabStyle])}>
+            {tab.icon ? (
+              <Kb.IconAuto type={tab.icon} style={selected ? styles.iconSelected : styles.icon} />
+            ) : (
+              <TabText selected={selected} text={tab.text ?? capitalize(tab.title)} />
+            )}
+            {!!tab.badgeNumber && <Kb.Badge badgeNumber={tab.badgeNumber} badgeStyle={styles.badge} />}
           </Kb.Box2>
-        </Kb.ClickableBox>
+          <Kb.Divider style={selected ? styles.dividerSelected : styles.divider} />
+        </Kb.ClickableBox3>
       )
     })}
     {props.showProgressIndicator && <Kb.ProgressIndicator style={styles.progressIndicator} />}

@@ -2,14 +2,13 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import NativeEmoji from './emoji/native-emoji'
 import Text from './text'
-import {Box2} from './box'
+import {Box2, ClickableBox3} from './box'
 import FloatingMenu from './floating-menu'
 import SearchFilter from './search-filter'
 import Input3 from './input3'
 import type {Input3Ref} from './input3.shared'
 import FloatingPicker from './floating-picker'
 import ProgressIndicator from './progress-indicator'
-import ClickableBox from './clickable-box'
 import Icon from './icon'
 import {usePopup2, type Popup2Parms} from './popup/use-popup'
 import {
@@ -24,7 +23,7 @@ import type {MeasureRef} from './measure-ref'
 
 const Kb = {
   Box2,
-  ClickableBox,
+  ClickableBox3,
   FloatingMenu,
   FloatingPicker,
   Icon,
@@ -551,21 +550,20 @@ const PhoneInput = (p: Props) => {
           isSmall ? undefined : Styles.collapseStyles([styles.countrySelectorRowBig, styles.fakeInputBig])
         }
       >
-        <Kb.ClickableBox
+        <Kb.ClickableBox3
           onClick={toggleShowingMenu}
-          style={isSmall ? styles.fullWidthDesktopOnly : styles.fullWidth}
+          direction="horizontal"
+          style={Styles.collapseStyles([
+            isSmall ? styles.fullWidthDesktopOnly : styles.fullWidth,
+            styles.countrySelectorContainer,
+          ])}
+          alignItems="center"
+          gap="xtiny"
+          ref={popupAnchor}
         >
-          <Kb.Box2
-            direction="horizontal"
-            style={styles.countrySelectorContainer}
-            alignItems="center"
-            gap="xtiny"
-            ref={popupAnchor}
-          >
-            {renderCountrySelector()}
-            <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
-          </Kb.Box2>
-        </Kb.ClickableBox>
+          {renderCountrySelector()}
+          <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
+        </Kb.ClickableBox3>
       </Kb.Box2>
       <Kb.Box2
         direction="horizontal"

@@ -2,7 +2,7 @@ import type * as React from 'react'
 import type {MenuLayoutProps, MenuItem} from './index.shared'
 export type {MenuItem, MenuItems, MenuLayoutProps, _InnerMenuItem} from './index.shared'
 import {Box2} from '@/common-adapters/box'
-import ClickableBox from '@/common-adapters/clickable-box'
+import {ClickableBox3} from '@/common-adapters/box'
 import Divider from '@/common-adapters/divider'
 import Icon from '@/common-adapters/icon'
 import IconAuto from '@/common-adapters/icon-auto'
@@ -53,8 +53,9 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
     return item.unWrapped ? (
       item.view
     ) : (
-      <ClickableBox
+      <ClickableBox3
         key={index}
+        direction="vertical"
         className={hoverClassName}
         style={Styles.collapseStyles([desktopStyles.itemContainer, styleClickable])}
         onClick={() => {
@@ -107,7 +108,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
           </Text>
         )}
         {!!item.progressIndicator && <ProgressIndicator type="Large" style={desktopStyles.progressIndicator} />}
-      </ClickableBox>
+      </ClickableBox3>
     )
   }
 
@@ -122,32 +123,29 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
   }, [])
 
   return (
-    <ClickableBox
+    <ClickableBox3
       onClick={event => {
-        event.stopPropagation()
+        event?.stopPropagation()
       }}
+      direction="vertical"
+      alignItems="stretch"
+      fullWidth={true}
+      style={Styles.collapseStyles([desktopStyles.menuContainer, props.style])}
     >
-      <Box2
-        direction="vertical"
-        alignItems="stretch"
-        fullWidth={true}
-        style={Styles.collapseStyles([desktopStyles.menuContainer, props.style])}
-      >
-        {props.header}
-        {items.some(item => item !== 'Divider') && (
-          <Box2
-            direction="vertical"
-            fullWidth={true}
-            style={Styles.collapseStyles([desktopStyles.menuItemList, props.listStyle])}
-          >
-            {items.map(
-              (item, index): React.ReactNode =>
-                item === 'Divider' ? renderDivider(index) : renderMenuItem(item, index)
-            )}
-          </Box2>
-        )}
-      </Box2>
-    </ClickableBox>
+      {props.header}
+      {items.some(item => item !== 'Divider') && (
+        <Box2
+          direction="vertical"
+          fullWidth={true}
+          style={Styles.collapseStyles([desktopStyles.menuItemList, props.listStyle])}
+        >
+          {items.map(
+            (item, index): React.ReactNode =>
+              item === 'Divider' ? renderDivider(index) : renderMenuItem(item, index)
+          )}
+        </Box2>
+      )}
+    </ClickableBox3>
   )
 }
 

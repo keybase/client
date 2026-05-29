@@ -1,7 +1,6 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import ClickableBox from './clickable-box'
-import {Box2} from './box'
+import {Box2, ClickableBox3} from './box'
 import BoxGrow from './box-grow'
 import Divider from './divider'
 import './list-item.css'
@@ -9,7 +8,7 @@ import './list-item.css'
 const Kb = {
   Box2,
   BoxGrow,
-  ClickableBox,
+  ClickableBox3,
   Divider,
 }
 
@@ -38,19 +37,21 @@ type Props = {
 }
 
 const ListItem = (props: Props) => (
-  <Kb.ClickableBox
+  <Kb.ClickableBox3
     onClick={props.onClick || (props.onMouseDown ? () => {} : undefined)} // make sure clickable box applies click styles if just onMouseDown is given.
     onMouseDown={props.onMouseDown}
+    direction="horizontal"
+    className={Styles.classNames({
+      listItem2: !props.hideHover,
+    })}
     style={Styles.collapseStyles([
       props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge,
       !!props.height && {minHeight: props.height},
       props.style,
     ])}
+    fullWidth={true}
   >
     <Kb.Box2
-      className={Styles.classNames({
-        listItem2: !props.hideHover,
-      })}
       direction="horizontal"
       style={Styles.collapseStyles([
         props.type === 'Small' ? styles.rowSmall : styles.rowLarge,
@@ -101,7 +102,7 @@ const ListItem = (props: Props) => (
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
-  </Kb.ClickableBox>
+  </Kb.ClickableBox3>
 )
 
 export const smallHeight = isMobile ? 56 : 48

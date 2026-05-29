@@ -2,8 +2,7 @@ import type * as React from 'react'
 import * as Styles from '@/styles'
 import * as C from '@/constants'
 import Avatar from './avatar'
-import {Box2} from './box'
-import ClickableBox from './clickable-box'
+import {Box2, ClickableBox3} from './box'
 import IconAuto from './icon-auto'
 import type {IconType} from './icon.constants-gen'
 import Icon from './icon'
@@ -235,9 +234,14 @@ export const NameWithIcon = (props: NameWithIconProps) => {
   )
 
   return _onClickWrapper ? (
-    <ClickableBox onClick={_onClickWrapper} style={containerStyle}>
+    <ClickableBox3
+      onClick={e => e && _onClickWrapper(e)}
+      direction={props.horizontal ? 'horizontal' : 'vertical'}
+      alignItems="center"
+      style={containerStyle}
+    >
       {children}
-    </ClickableBox>
+    </ClickableBox3>
   ) : (
     <Box2
       direction={props.horizontal ? 'horizontal' : 'vertical'}
@@ -295,10 +299,7 @@ const styles = Styles.styleSheetCreate(() => ({
       marginRight: Styles.globalMargins.small,
     },
   }),
-  hContainerStyle: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center' as const,
-  },
+  hContainerStyle: {},
   hIconStyle: Styles.platformStyles({
     isElectron: {
       ...Styles.size(32),
@@ -314,7 +315,6 @@ const styles = Styles.styleSheetCreate(() => ({
     marginRight: Styles.globalMargins.small,
   },
   hbContainerStyle: {
-    ...Styles.globalStyles.flexBoxRow,
     width: '100%',
   },
   hbIconStyle: Styles.platformStyles({
@@ -343,10 +343,7 @@ const styles = Styles.styleSheetCreate(() => ({
   textContainer: {
     flex: 1,
   },
-  vContainerStyle: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center' as const,
-  },
+  vContainerStyle: {},
   vUsernameContainerStyle: Styles.platformStyles({
     isElectron: {
       textAlign: 'center',

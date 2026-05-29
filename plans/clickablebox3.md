@@ -56,10 +56,10 @@ Use `migrate-clickable-box` skill for each chunk. Run `yarn lint && yarn tsc` an
 
 ### Round 3 — large
 - [x] `shared/fs/` (10+)
-- [ ] `shared/chat/` (60+)
+- [x] `shared/chat/` (60+)
 
 ### Last — shared primitives
-- [ ] `shared/common-adapters/` (26)
+- [x] `shared/common-adapters/` (26) — 2 intentional CB1 survivors: rich-button.tsx and choice-list.tsx (mobile) both use onPressIn/onPressOut
 
 ### Completion criteria
 - [ ] `grep -rn "ClickableBox[^3]" shared/ | grep -v "clickable-box\|Props\|import\|export"` → zero results
