@@ -3,6 +3,8 @@ import * as Styles from '@/styles'
 import {Pressable, View, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import type {_StylesCrossPlatform} from '@/styles/css'
 import type {MeasureRef} from './measure-ref'
+import {box2SharedProps, box2ClassNames} from './box'
+import type {Box2Props} from './box'
 
 type Props = {
   className?: string
@@ -233,6 +235,49 @@ export const ClickableBox2 = (p: Props2 & {ref?: React.Ref<MeasureRef | null>}) 
   return (
     <Pressable onLongPress={onLongPress} onPress={onPress} style={style} hitSlop={hitSlop} testID={testID}>
       {children}
+    </Pressable>
+  )
+}
+
+// Box2Props + CB3's own click/press props (direction required, same as Box2)
+export type ClickableBox3Props = Box2Props & {
+  onClick?: () => void
+  onLongPress?: () => void
+  hitSlop?: number
+}
+
+export const ClickableBox3 = (p: ClickableBox3Props & {ref?: React.Ref<MeasureRef | null>}) => {
+  const {onClick, onLongPress, hitSlop, ref, ...box2p} = p
+
+  if (!isMobile) {
+    const {children, style: _style, onMouseOver, testID, flex} = box2p
+    const cn = box2ClassNames(box2p, 'clickable-box2')
+    const s = Styles.collapseStyles([flex != null && flex !== 1 ? {flex} : undefined, _style]) as React.CSSProperties
+    return (
+      <div
+        ref={ref as React.Ref<HTMLDivElement>}
+        className={cn}
+        onClick={onClick}
+        onMouseOver={onMouseOver}
+        style={s}
+        data-testid={testID}
+      >
+        {children}
+      </div>
+    )
+  }
+
+  const {style: s, children: c} = box2SharedProps(box2p)
+  return (
+    <Pressable
+      ref={ref as React.Ref<View>}
+      onPress={onClick ? () => { onClick() } : undefined}
+      onLongPress={onLongPress}
+      style={s}
+      hitSlop={hitSlop}
+      testID={box2p.testID}
+    >
+      {c}
     </Pressable>
   )
 }

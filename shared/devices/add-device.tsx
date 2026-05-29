@@ -111,24 +111,23 @@ const deviceOptionTypeMap = {
   phone: 'mobile',
 } as const
 const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps) => (
-  <Kb.ClickableBox onClick={onClick}>
-    <Kb.Box2
-      className="hover_background_color_blueLighter2"
-      style={Kb.Styles.collapseStyles([
-        styles.deviceOption,
-        isMobile && highlight && styles.deviceOptionHighlighted,
-      ])}
-      direction="vertical"
-      centerChildren={true}
-      gap="xtiny"
-      gapEnd={!isMobile}
-    >
-      <Kb.ImageIcon type={getDeviceIconType(deviceOptionTypeMap[type], iconNumber ?? (1 as T.Devices.IconNumber), bigIcon ? 96 : 64)} />
-      <Kb.Text type="BodySemibold">
-        {type === 'paper key' ? 'Create' : 'Add'} a {type === 'phone' ? 'phone or tablet' : type}
-      </Kb.Text>
-    </Kb.Box2>
-  </Kb.ClickableBox>
+  <Kb.ClickableBox3
+    onClick={onClick}
+    className="hover_background_color_blueLighter2"
+    style={Kb.Styles.collapseStyles([
+      styles.deviceOption,
+      isMobile && highlight && styles.deviceOptionHighlighted,
+    ])}
+    direction="vertical"
+    centerChildren={true}
+    gap="xtiny"
+    gapEnd={!isMobile}
+  >
+    <Kb.ImageIcon type={getDeviceIconType(deviceOptionTypeMap[type], iconNumber ?? (1 as T.Devices.IconNumber), bigIcon ? 96 : 64)} />
+    <Kb.Text type="BodySemibold">
+      {type === 'paper key' ? 'Create' : 'Add'} a {type === 'phone' ? 'phone or tablet' : type}
+    </Kb.Text>
+  </Kb.ClickableBox3>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
