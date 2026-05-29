@@ -63,7 +63,7 @@ const notFoundHeight = 224
 type Row = {emojis: Array<EmojiData>; key: string}
 type Item = Row
 
-type Section = Omit<Kb.SectionType<Item>, 'renderItem'> & {key: string; title: string}
+type Section = Kb.SectionType<Item> & {key: string; title: string}
 
 type Props = {
   addEmoji: () => void

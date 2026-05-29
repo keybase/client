@@ -4,7 +4,7 @@ import useContacts, {type Contact as _Contact} from './use-contacts.native'
 import {mapGetEnsureValue} from '@/util/map'
 
 type Item = Contact
-type Section = Omit<Kb.SectionType<Item>, 'renderItem'>
+type Section = Kb.SectionType<Item>
 
 const categorize = (contact: Contact): string => {
   if (!contact.name) {
