@@ -13,6 +13,7 @@ const Header = (props: Props) => (
       e => e?.stopPropagation()
     }
     direction="vertical"
+    fullWidth={true}
   >
     <PathItemInfo path={props.path} containerStyle={styles.container} />
     <Kb.Divider />
