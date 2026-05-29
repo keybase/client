@@ -119,7 +119,7 @@ const TextInput = (props: TextProps) => {
       fullWidth={true}
       fullHeight={true}
       onClick={onFocusInput}
-      style={[styles.containerInputFocus, styles.commonContainer]}
+      style={Kb.Styles.collapseStyles([styles.containerInputFocus, styles.commonContainer])}
     >
       <Kb.Box2
         direction={isMobile ? 'vertical' : 'horizontal'}
