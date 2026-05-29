@@ -146,6 +146,6 @@ const startApp = () => {
 }
 
 Electron.app.commandLine.appendSwitch('disk-cache-size', '1')
-// Disable OS keychain prompts — we don't use safeStorage
+// Disable OS keychain prompts — auth state lives in the Go service; we don't use safeStorage, cookie persistence, or any other keychain-backed Chromium feature
 Electron.app.commandLine.appendSwitch('use-mock-keychain')
 startApp()
