@@ -9,6 +9,7 @@ type Props = {
 
 const QRScannerMobile = (p: Props): React.ReactElement | null => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   const {CameraView, useCameraPermissions} = require('expo-camera') as typeof import('expo-camera')
   const [scanned, setScanned] = React.useState(false)
   const [permission, requestPermission] = useCameraPermissions()
