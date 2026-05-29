@@ -280,6 +280,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     <Kb.ClickableBox3
       data-search-filter={true}
       direction="horizontal"
+      alignSelf={props.size === 'full-width' ? 'stretch' : undefined}
       style={Styles.collapseStyles([
         styles.container,
         props.placeholderCentered && styles.containerCenter,

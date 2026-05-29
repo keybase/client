@@ -56,6 +56,7 @@ const DesktopMenuLayout = (props: MenuLayoutProps) => {
       <ClickableBox3
         key={index}
         direction="vertical"
+        fullWidth={true}
         className={hoverClassName}
         style={Styles.collapseStyles([desktopStyles.itemContainer, styleClickable])}
         onClick={() => {
