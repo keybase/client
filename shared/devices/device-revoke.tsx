@@ -5,10 +5,11 @@ import * as React from 'react'
 import * as T from '@/constants/types'
 import {settingsDevicesTab} from '@/constants/settings'
 import {useCurrentUserState} from '@/stores/current-user'
+import {rpcDeviceToDevice} from './rpc'
 
 type OwnProps = {device?: T.Devices.Device; deviceID?: T.Devices.DeviceID}
 
-const _renderTLFEntry = (index: number, tlf: string) => (
+const renderTLFEntry = (index: number, tlf: string) => (
   <Kb.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
     <Kb.Text type="BodySemibold">•</Kb.Text>
     <Kb.Text type="BodySemibold" selectable={true} style={styles.tlf}>
@@ -26,7 +27,7 @@ const EndangeredTLFList = (props: {endangeredTLFs: Array<string>}) => {
       <Kb.Box2 direction="vertical" style={styles.listContainer}>
         <Kb.List
           items={props.endangeredTLFs}
-          renderItem={_renderTLFEntry}
+          renderItem={renderTLFEntry}
           indexAsKey={true}
           itemHeight={{height: 24, type: 'fixed'}}
         />
@@ -71,20 +72,6 @@ const getIcon = (deviceType: T.Devices.DeviceType, iconNumber: T.Devices.IconNum
   }
   return isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
 }
-
-const rpcDeviceToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device => ({
-  created: d.device.cTime,
-  currentDevice: d.currentDevice,
-  deviceID: T.Devices.stringToDeviceID(d.device.deviceID),
-  deviceNumberOfType: d.device.deviceNumberOfType,
-  lastUsed: d.device.lastUsedTime,
-  name: d.device.name,
-  provisionedAt: d.provisionedAt || undefined,
-  provisionerName: d.provisioner ? d.provisioner.name : undefined,
-  revokedAt: d.revokedAt || undefined,
-  revokedByName: d.revokedByDevice ? d.revokedByDevice.name : undefined,
-  type: T.Devices.stringToDeviceType(d.device.type),
-})
 
 const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => {
   if (!actingDevice || !targetDevice) {

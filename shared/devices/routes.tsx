@@ -3,9 +3,45 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import {HeaderLeftButton, type HeaderBackButtonProps} from '@/common-adapters/header-buttons'
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
-import {HeaderTitle, HeaderRightActions} from './nav-header'
 import {useProvisionState} from '@/stores/provision'
 import {defineRouteMap} from '@/constants/types/router'
+
+export const HeaderTitle = ({activeCount, revokedCount}: {activeCount: number; revokedCount: number}) => (
+  <Kb.Box2 direction="vertical" style={headerStyles.headerTitle}>
+    <Kb.Text type="Header">Devices</Kb.Text>
+    <Kb.Text type="BodySmall">
+      {activeCount} Active • {revokedCount} Revoked
+    </Kb.Text>
+  </Kb.Box2>
+)
+
+const HeaderRightActions = () => {
+  const navigateAppend = C.Router2.navigateAppend
+  const onAdd = () => navigateAppend({name: 'deviceAdd', params: {}})
+  return (
+    <Kb.Button
+      small={true}
+      label="Add a device or paper key"
+      onClick={onAdd}
+      style={headerStyles.addDeviceButton}
+    />
+  )
+}
+
+const headerStyles = Kb.Styles.styleSheetCreate(() => ({
+  addDeviceButton: Kb.Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-end',
+      marginBottom: 6,
+      marginRight: Kb.Styles.globalMargins.xsmall,
+    },
+    isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
+  }),
+  headerTitle: {
+    paddingBottom: Kb.Styles.globalMargins.xtiny,
+    paddingLeft: Kb.Styles.globalMargins.xsmall,
+  },
+}))
 
 const AddDeviceCancelButton = () => {
   const cancel = useProvisionState(s => s.dispatch.dynamic.cancel)

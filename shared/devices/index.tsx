@@ -8,7 +8,8 @@ import * as T from '@/constants/types'
 import {intersect} from '@/util/set'
 import {useLocalBadging} from '@/util/use-local-badging'
 import {useModalHeaderState} from '@/stores/modal-header'
-import {HeaderTitle} from './nav-header'
+import {HeaderTitle} from './routes'
+import {rpcDeviceToDevice} from './rpc'
 import {useTypedNavigation} from '@/util/typed-navigation'
 
 const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
@@ -17,19 +18,6 @@ const sortDevices = (a: T.Devices.Device, b: T.Devices.Device) => {
   return a.name.localeCompare(b.name)
 }
 
-const rpcDeviceToDevice = (d: T.RPCGen.DeviceDetail): T.Devices.Device => ({
-  created: d.device.cTime,
-  currentDevice: d.currentDevice,
-  deviceID: T.Devices.stringToDeviceID(d.device.deviceID),
-  deviceNumberOfType: d.device.deviceNumberOfType,
-  lastUsed: d.device.lastUsedTime,
-  name: d.device.name,
-  provisionedAt: d.provisionedAt || undefined,
-  provisionerName: d.provisioner ? d.provisioner.name : undefined,
-  revokedAt: d.revokedAt || undefined,
-  revokedByName: d.revokedByDevice ? d.revokedByDevice.name : undefined,
-  type: T.Devices.stringToDeviceType(d.device.type),
-})
 
 const deviceToItem = (device: T.Devices.Device, canRevoke: boolean) => ({
   canRevoke,
@@ -63,7 +51,6 @@ const navigation = useTypedNavigation('devicesRoot')
 
   const navigateAppend = C.Router2.navigateAppend
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
-    // We don't have navigateAppend in upgraded routes
     navigateAppend({name: 'deviceAdd', params: {highlight}})
   }
   const navigateUp = C.Router2.navigateUp
@@ -135,7 +122,7 @@ const navigation = useTypedNavigation('devicesRoot')
       <NewContext value={badged}>
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} relative={true} testID={TestIDs.DEVICES_LIST}>
           {isMobile ? (
-            <Kb.ClickableBox onClick={() => onAddDevice()} style={headerStyles.container}>
+            <Kb.ClickableBox onClick={() => onAddDevice()} style={styles.mobileAddHeader}>
               <Kb.Button label="Add a device or paper key" fullWidth={true} />
               {waiting ? (
                 <Kb.Box2 direction="vertical" centerChildren={true} style={styles.progressContainer}>
@@ -162,6 +149,13 @@ type Item =
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      mobileAddHeader: {
+        ...Kb.Styles.globalStyles.flexBoxRow,
+        ...Kb.Styles.centered(),
+        height: isMobile ? 64 : 48,
+        ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
+        position: 'relative',
+      },
       progressContainer: {
         ...Kb.Styles.globalStyles.fillAbsolute,
       },
@@ -171,16 +165,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
     }) as const
 )
-
-const headerStyles = Kb.Styles.styleSheetCreate(() => ({
-  container: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    ...Kb.Styles.centered(),
-    height: isMobile ? 64 : 48,
-    ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
-    position: 'relative',
-  },
-}))
 
 const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => (
   <Kb.ClickableBox onClick={onAddDevice}>
