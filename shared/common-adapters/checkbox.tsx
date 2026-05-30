@@ -31,6 +31,7 @@ const Checkbox = (props: Props) => {
       <Kb.ClickableBox3
         direction="horizontal"
         alignItems="flex-start"
+        alignSelf="flex-start"
         style={Kb.Styles.collapseStyles([
           styles.container,
           !props.disabled && styles.clickable,
