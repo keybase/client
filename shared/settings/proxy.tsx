@@ -236,14 +236,12 @@ const ProxySettingsComponent = (props: Props) => {
 
 const ProxySettingsPopup = (props: Props) => {
   return (
-    <>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupBox}>
-        {!isMobile && <Kb.BackButton onClick={props.onBack} />}
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proxySettingPopupBox}>
-          <ProxySettingsComponent {...props} />
-        </Kb.Box2>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupBox}>
+      {!isMobile && <Kb.BackButton onClick={props.onBack} />}
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proxySettingPopupBox}>
+        <ProxySettingsComponent {...props} />
       </Kb.Box2>
-    </>
+    </Kb.Box2>
   )
 }
 

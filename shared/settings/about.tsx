@@ -26,7 +26,7 @@ const About = () => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} justifyContent="center" style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} justifyContent="center" alignItems="center">
       <Kb.ImageIcon type="icon-keybase-logo-64" />
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.version}>
         <Kb.Text center={true} type="Body">
@@ -46,9 +46,6 @@ const About = () => {
   )
 }
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  container: {
-    alignItems: 'center',
-  },
   terms: {
     marginBottom: Kb.Styles.globalMargins.tiny,
   },

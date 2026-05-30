@@ -8,10 +8,11 @@ import logger from '@/logger'
 import {Platform} from 'react-native'
 import {getExtraChatLogsForLogSend, useSendFeedback} from './shared'
 import {version, pprofDir} from '@/constants/platform'
-import type {Props as OwnProps} from './container.shared'
 import {usePushState} from '@/stores/push'
 import {appVersionName, appVersionCode, logSend} from 'react-native-kb'
-export type {Props} from './container.shared'
+
+type OwnProps = {heading?: string; feedback?: string}
+export type Props = OwnProps
 
 const mobileOsVersion = Platform.Version
 

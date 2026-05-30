@@ -15,6 +15,13 @@ type Props = {
   waitingForResponse?: boolean
 }
 
+const errorSavingFunc = (password: string, passwordConfirm: string): string => {
+  if (password && passwordConfirm && password !== passwordConfirm) {
+    return 'Passwords must match.'
+  }
+  return ''
+}
+
 export const UpdatePassword = (props: Props) => {
   const [password, setPassword] = React.useState('')
   const [passwordConfirm, setPasswordConfirm] = React.useState('')
@@ -29,13 +36,6 @@ export const UpdatePassword = (props: Props) => {
   const handlePasswordConfirmChange = (passwordConfirm: string) => {
     setPasswordConfirm(passwordConfirm)
     setErrorSaving(errorSavingFunc(password, passwordConfirm))
-  }
-
-  const errorSavingFunc = (password: string, passwordConfirm: string): string => {
-    if (password && passwordConfirm && password !== passwordConfirm) {
-      return 'Passwords must match.'
-    }
-    return ''
   }
 
   const canSubmit = () => !errorSaving && password.length >= 8 && password === passwordConfirm

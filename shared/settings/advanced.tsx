@@ -108,7 +108,6 @@ const LockdownCheckbox = (p: {
   settingLockdownMode: boolean
 }) => {
   const {hasRandomPW, loaded, lockdownModeEnabled, setLockdownMode, settingLockdownMode} = p
-  const onChangeLockdownMode = setLockdownMode
   const readMoreUrlProps = Kb.useClickURL('https://keybase.io/docs/lockdown/index')
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
   const checked = hasRandomPW || !!lockdownModeEnabled
@@ -117,7 +116,7 @@ const LockdownCheckbox = (p: {
     <Kb.Checkbox
       checked={checked}
       disabled={disabled}
-      onCheck={onChangeLockdownMode}
+      onCheck={setLockdownMode}
       labelComponent={
         <Kb.Box2 direction="vertical" alignItems="flex-start" style={Kb.Styles.globalStyles.flexOne}>
           <Kb.Text type="Body">{label}</Kb.Text>
@@ -234,7 +233,7 @@ const Advanced = () => {
 
   return (
     <Kb.KeyboardAvoidingView2>
-      <Kb.ScrollView style={styles.scrollview}>
+      <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
             {settingLockdownMode && <Kb.ProgressIndicator />}
@@ -440,9 +439,6 @@ const styles = Kb.Styles.styleSheetCreate(
       proxyDivider: {
         marginBottom: Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
-        width: '100%',
-      },
-      scrollview: {
         width: '100%',
       },
       section: Kb.Styles.platformStyles({
