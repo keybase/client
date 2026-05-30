@@ -204,6 +204,14 @@ Go back to **Step 1** and re-read all files in scope. Then repeat Steps 2–5 wi
 
 **Never stop after the first pass.** The first pass removes the obvious problems. The second pass finds what those problems were hiding. The third pass is usually final.
 
+## Revisiting Previously Simplified Directories
+
+**Re-running this skill on already-simplified code is intentional and by design.** Do not skip a directory just because it appears in recent git history as "already simplified."
+
+Each simplification pass changes the landscape. What looked acceptable before may now be a smell. New patterns emerge as nearby code changes. The second run almost always finds something the first missed.
+
+When asked to simplify a directory that was previously touched: proceed without hesitation. Read fresh, analyze fresh.
+
 ## The Hard Line: No Unilateral Visual Changes
 
 **This skill is structural by default. Zero UX or behavior changes without explicit user sign-off.**
