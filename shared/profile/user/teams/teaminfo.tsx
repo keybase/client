@@ -1,24 +1,8 @@
 import * as React from 'react'
-import * as Styles from '@/styles'
+import * as Kb from '@/common-adapters'
 import * as C from '@/constants'
 import OpenMeta from './openmeta'
-import FloatingMenu from '@/common-adapters/floating-menu'
-import ConnectedUsernames from '@/common-adapters/usernames'
-import {NameWithIcon} from '@/common-adapters/name-with-icon'
-import Text from '@/common-adapters/text'
-import {Box2} from '@/common-adapters/box'
-import WaitingButton from '@/common-adapters/waiting-button'
 import type {MeasureRef} from '@/common-adapters/measure-ref'
-
-const Kb = {
-  Box2,
-  ConnectedUsernames,
-  FloatingMenu,
-  NameWithIcon,
-  Styles,
-  Text,
-  WaitingButton,
-}
 
 export type Props = {
   attachTo?: React.RefObject<MeasureRef | null>
@@ -27,7 +11,7 @@ export type Props = {
   isOpen: boolean
   membersCount: number
   name: string
-  position?: Styles.Position
+  position?: Kb.Styles.Position
   onChat?: () => void
   onHidden: () => void
   onJoinTeam: (teamname: string) => void

@@ -1,14 +1,8 @@
-import Meta from '@/common-adapters/meta'
-import * as Styles from '@/styles'
-
-const Kb = {
-  Meta,
-  Styles,
-}
+import * as Kb from '@/common-adapters'
 
 type Props = {
   isOpen: boolean
-  style?: Styles.StylesCrossPlatform
+  style?: Kb.Styles.StylesCrossPlatform
 }
 
 const OpenMeta = ({isOpen}: Props) =>

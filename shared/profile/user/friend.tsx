@@ -28,6 +28,7 @@ const Container = (ownProps: OwnProps) => {
     <Kb.ClickableBox3
       direction="vertical"
       centerChildren={true}
+      noShrink={true}
       style={Kb.Styles.collapseStyles([styles.container, {width: width}])}
       onClick={onClick}
     >
@@ -52,7 +53,6 @@ const Container = (ownProps: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   avatar: {marginBottom: Kb.Styles.globalMargins.xxtiny},
   container: {
-    flexShrink: 0,
     height: 105,
     justifyContent: 'flex-start',
     minWidth: 0,

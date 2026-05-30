@@ -15,7 +15,7 @@ const Modal = ({children, onCancel, skipButton}: Props) => (
         </Kb.Box2>
       </Kb.ScrollView>
       {onCancel && !skipButton && (
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonBar} alignItems="center">
+        <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} alignItems="center" style={styles.buttonBar}>
           <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
         </Kb.Box2>
       )}
@@ -27,7 +27,6 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       buttonBar: {
-        flexShrink: 0,
         padding: isMobile ? undefined : Kb.Styles.globalMargins.medium,
       },
       container: {

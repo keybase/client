@@ -577,7 +577,7 @@ const Container = ({platform, reason = 'profile'}: Props) => {
     }
   })()
 
-  return <>{content}</>
+  return content
 }
 
 const ProviderPicker = ({
@@ -739,7 +739,7 @@ const EnterUsername = ({
           </Kb.Text>
         )}
         <PlatformIcon
-          style={styles.centered}
+          style={styles.center}
           platform={platform}
           overlay="icon-proof-unfinished"
           overlayColor={Kb.Styles.globalColors.greyDark}
@@ -1137,13 +1137,11 @@ const Unreachable = ({
       </Kb.Text>
       <Kb.Meta title="unreachable" backgroundColor={Kb.Styles.globalColors.red} />
     </Kb.Box2>
-    <Kb.Box2 direction="vertical" style={styles.marginLeftAuto}>
-      <Kb.Icon
-        type="iconfont-proof-broken"
-        color={Kb.Styles.globalColors.red}
-        style={styles.inlineIcon}
-      />
-    </Kb.Box2>
+    <Kb.Icon
+      type="iconfont-proof-broken"
+      color={Kb.Styles.globalColors.red}
+      style={Kb.Styles.collapseStyles([styles.inlineIcon, styles.marginLeftAuto])}
+    />
   </Kb.Box2>
 )
 
@@ -1315,7 +1313,6 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBig: {flex: 2.5},
       buttonSmall: {flex: 1},
       center: {alignSelf: 'center'},
-      centered: {alignSelf: 'center'},
       colorRed: {color: Kb.Styles.globalColors.redDark},
       container: Kb.Styles.platformStyles({
         common: {flex: 1},

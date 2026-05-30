@@ -294,7 +294,7 @@ const AddToTeam = (ownProps: OwnProps) => {
             </Kb.Box2>
           </Kb.ScrollView>
         </Kb.BoxGrow>
-        <Kb.Box2 direction="horizontal" style={styles.addToTeam}>
+        <Kb.Box2 direction="horizontal" noShrink={true} alignItems="center" style={styles.addToTeam}>
           <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
             {them} will be added as a
           </Kb.Text>
@@ -384,8 +384,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       addToTeam: Kb.Styles.platformStyles({
         common: {
-          alignItems: 'center',
-          flexShrink: 0,
           flexWrap: 'wrap',
           marginBottom: Kb.Styles.globalMargins.small,
           marginLeft: Kb.Styles.globalMargins.small,

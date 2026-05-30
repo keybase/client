@@ -28,6 +28,17 @@ const makeInitialForm = (): GeneratePgpArgs => ({
   pgpFullName: '',
 })
 
+export const PgpMobileUnsupported = ({onCancel}: {onCancel: () => void}) => (
+  <Modal onCancel={onCancel}>
+    <Kb.Box2 direction="vertical" gap="small" gapEnd={true}>
+      <Kb.Text center={true} type="Header">
+        Add a PGP key
+      </Kb.Text>
+      <Kb.Text type="Body">For now, please use our desktop app to create PGP keys.</Kb.Text>
+    </Kb.Box2>
+  </Modal>
+)
+
 export default function Choice() {
   const {clearModals, navigateAppend, navigateUp} = C.Router2
   const mountedRef = React.useRef(true)
@@ -48,17 +59,7 @@ export default function Choice() {
   }, [])
 
   if (isMobile) {
-    const onCancel = () => navigateUp()
-    return (
-      <Modal onCancel={onCancel}>
-        <Kb.Box2 direction="vertical" gap="small" gapEnd={true}>
-          <Kb.Text center={true} type="Header">
-            Add a PGP key
-          </Kb.Text>
-          <Kb.Text type="Body">For now, please use our desktop app to create PGP keys.</Kb.Text>
-        </Kb.Box2>
-      </Modal>
-    )
+    return <PgpMobileUnsupported onCancel={() => navigateUp()} />
   }
 
   const setStepSafe = (next: Step) => {

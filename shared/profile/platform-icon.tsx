@@ -39,9 +39,10 @@ function _specsForMobileOrDesktop() {
   } as const
 }
 
+const platformSpecs = _specsForMobileOrDesktop()
+
 const getSpecForPlatform = (platform: T.More.PlatformsExpandedType): IconSpec => {
-  const specs = _specsForMobileOrDesktop()
-  return {...standardOffsets, ...specs[platform]}
+  return {...standardOffsets, ...platformSpecs[platform]}
 }
 
 const PlatformIcon = ({platform, overlay, style}: Props) => {
