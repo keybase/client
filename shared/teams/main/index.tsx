@@ -102,8 +102,6 @@ const SortHeader = ({onChangeSort, sortOrder}: {onChangeSort: Props['onChangeSor
 const teamRowHeight = isMobile ? 72 : 48
 const teamRowItemHeight = {height: teamRowHeight, type: 'fixed' as const}
 
-type TeamItem = TeamRowItem
-
 const Teams = function Teams(p: Props) {
 const {deletedTeams, teams, onCreateTeam, onJoinTeam, onChangeSort, sortOrder} = p
 
@@ -124,7 +122,7 @@ const {deletedTeams, teams, onCreateTeam, onJoinTeam, onChangeSort, sortOrder} =
 
   const listFooter = <TeamsFooter empty={teams.length === 0} />
 
-  const renderItem = (_index: number, item: TeamItem) => {
+  const renderItem = (_index: number, item: TeamRowItem) => {
     return (
       <PerfProfiler id="TeamRow">
         <TeamRowNew showChat={!isMobile} {...item} />

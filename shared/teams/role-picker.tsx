@@ -72,7 +72,7 @@ const RoleRow = (p: RoleRowProps) => {
         </Kb.Text>
       </Kb.Box2>
       <Kb.Box2
-        style={Kb.Styles.collapseStyles([styles.rowBody])}
+        style={styles.rowBody}
         direction="vertical"
         gap="xxtiny"
         gapStart={true}

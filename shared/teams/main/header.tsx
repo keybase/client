@@ -1,11 +1,5 @@
 import * as Kb from '@/common-adapters'
 
-export type HeaderButtonProps = {
-  iconType: Kb.IconType
-  label: string
-  onClick: () => void
-}
-
 export type Props = {
   onCreateTeam: () => void
   onJoinTeam: () => void

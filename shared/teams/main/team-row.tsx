@@ -61,14 +61,12 @@ const TeamRow = function TeamRow(props: Props) {
   if (isMobile) {
     return (
       <>
-        <Kb.ClickableBox3 onClick={onViewTeam} direction="horizontal" fullWidth={true} alignItems="center" style={Kb.Styles.collapseStyles([styles.clickableBox, styles.row])}>
+        <Kb.ClickableBox3 onClick={onViewTeam} direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
           <Kb.Divider style={styles.divider} />
-          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.avatarContainer}>
-            <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
-              <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
-              {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
-              {crownIcon}
-            </Kb.Box2>
+          <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
+            <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
+            {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
+            {crownIcon}
           </Kb.Box2>
           <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyMobile}>
             <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
@@ -117,14 +115,12 @@ const TeamRow = function TeamRow(props: Props) {
 
   return (
     <>
-      <Kb.ClickableBox3 onClick={onViewTeam} testID={TestIDs.TEAMS_ROW} className="teamRow" direction="horizontal" fullWidth={true} alignItems="center" style={Kb.Styles.collapseStyles([styles.clickableBox, styles.row])}>
+      <Kb.ClickableBox3 onClick={onViewTeam} testID={TestIDs.TEAMS_ROW} className="teamRow" direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
         <Kb.Divider style={styles.divider} />
-        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.avatarContainer}>
-          <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
-            <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
-            {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
-            {crownIcon}
-          </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
+          <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
+          {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
+          {crownIcon}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" flex={1} alignItems="center" style={styles.bodyDesktop}>
           <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyLeft}>
@@ -192,18 +188,15 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   alignSelfCenter: {
     alignSelf: 'center',
   },
-  avatarContainer: Kb.Styles.platformStyles({
+  avatarInner: Kb.Styles.platformStyles({
     common: {
+      height: 32,
       minHeight: smallHeight,
+      position: 'relative',
       width: smallIconWidth,
     },
     isPhone: {minHeight: 72},
   }),
-  avatarInner: {
-    height: 32,
-    position: 'relative',
-    width: 32,
-  },
   badge: {
     position: 'absolute',
     right: -5,
@@ -226,10 +219,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   bodyRight: {
     flex: 0.7,
   },
-  clickableBox: Kb.Styles.platformStyles({
+  rowStyle: Kb.Styles.platformStyles({
     common: {
       backgroundColor: Kb.Styles.globalColors.white,
       flexShrink: 0,
+      position: 'relative',
     },
     isElectron: {minHeight: smallHeight},
     isPhone: {minHeight: 72},
@@ -241,9 +235,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       borderRadius: 100,
       ...Kb.Styles.size(17),
       position: 'absolute',
+      bottom: -5,
+      right: -5,
     },
-    isElectron: {bottom: -5, right: -5},
-    isMobile: {bottom: -5, right: -5},
   }),
   divider: {
     left: 0,
@@ -251,14 +245,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     right: 0,
     top: 0,
   },
-  row: Kb.Styles.platformStyles({
-    common: {
-      backgroundColor: Kb.Styles.globalColors.white,
-      position: 'relative',
-    },
-    isElectron: {minHeight: smallHeight},
-    isPhone: {minHeight: 72},
-  }),
+
 }) as const)
 
 export default TeamRow

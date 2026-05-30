@@ -35,8 +35,8 @@ const Container = (ownProps: OwnProps) => {
     lastWaitingRef.current = waiting
   }, [waiting, propError, navigateUp])
 
-  const newFullName = () => [prefix, newName].join('.')
-  const disabled = () => newName.length < 2
+  const newFullName = [prefix, newName].join('.')
+  const disabled = newName.length < 2
 
   const validateTeamname = () => {
     if (newName.startsWith('_') || newName.includes('__')) {
@@ -51,16 +51,16 @@ const Container = (ownProps: OwnProps) => {
   }
 
   const handleRename = () => {
-    if (waiting || disabled()) {
+    if (waiting || disabled) {
       return
     }
-    if (teamname === newFullName()) {
+    if (teamname === newFullName) {
       onCancel()
       return
     }
     setError('')
     if (validateTeamname()) {
-      onRename(newFullName())
+      onRename(newFullName)
     }
   }
 
@@ -124,7 +124,7 @@ const Container = (ownProps: OwnProps) => {
           label="Rename"
           onClick={handleRename}
           style={styles.button}
-          disabled={disabled()}
+          disabled={disabled}
           waiting={waiting}
         />
       </Kb.ButtonBar>
