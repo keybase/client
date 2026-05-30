@@ -30,12 +30,16 @@ const AccountSignOutButton = () => {
     <Kb.Text
       type="BodyBigLink"
       onClick={() => navigateAppend({name: settingsLogOutTab, params: {}})}
-      style={{color: Kb.Styles.globalColors.red, padding: 8}}
+      style={styles.signOut}
     >
       Sign out
     </Kb.Text>
   )
 }
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  signOut: {color: Kb.Styles.globalColors.red, padding: 8},
+}))
 
 export const newModalRoutes = defineRouteMap({
   accountSwitcher: {

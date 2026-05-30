@@ -3,6 +3,8 @@ import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import {FollowButton} from '@/settings/contacts-joined'
 
+const horizontalScrollProps = isMobile ? ({alwaysBounceHorizontal: false, horizontal: true} as const) : {}
+
 const connectedUsernamesProps = {
   colorFollowing: true,
   inline: true,
@@ -109,7 +111,7 @@ function MultiFollowNotification(props: Props) {
         </Kb.Text>
       )}
       <Kb.ScrollView
-        {...(isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
+        {...horizontalScrollProps}
         contentContainerStyle={styles.scrollViewContainer}
       >
         {usernames.map(username => (

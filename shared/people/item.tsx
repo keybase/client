@@ -34,6 +34,7 @@ const PeopleItem = (props: Props) => (
 
     <Kb.Box2
       direction="vertical"
+      flex={1}
       gap="xtiny"
       style={Kb.Styles.collapseStyles([styles.childrenContainer, props.contentStyle])}
     >
@@ -78,7 +79,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
   button: {marginBottom: Kb.Styles.globalMargins.xtiny, marginRight: Kb.Styles.globalMargins.tiny},
   childrenContainer: {
-    flex: 1,
     overflow: 'hidden',
     position: 'relative',
     width: 'auto',

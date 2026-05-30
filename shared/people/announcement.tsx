@@ -18,9 +18,9 @@ type OwnProps = {
   url?: string
 }
 
-const Container = (ownProps: OwnProps) => {
+const Announcement = (props: OwnProps) => {
   const {appLink, badged, confirmLabel, dismissAnnouncement, dismissable, getData, iconUrl, id, text, url} =
-    ownProps
+    props
   const {navigateAppend, switchTab, navigateToInbox} = C.Router2
   const onConfirm = () => {
     if (url) {
@@ -104,4 +104,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default Announcement
