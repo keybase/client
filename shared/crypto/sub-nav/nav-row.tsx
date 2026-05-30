@@ -63,18 +63,20 @@ const NavRow = (props: Props) => {
 
   const mobileRow =
     description && illustration ? (
-      <Kb.ListItem
-        type="Card"
-        firstItem={true}
-        icon={<Kb.IconAuto type={illustration} />}
-        body={
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="BodySemibold">{title}</Kb.Text>
-            <Kb.Text type="BodySmall">{description}</Kb.Text>
-          </Kb.Box2>
-        }
-        onClick={onClick}
-      />
+      <Kb.Box2 direction="vertical" fullWidth={true} testID={`crypto-nav-${props.tab}`}>
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type={illustration} />}
+          body={
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="BodySemibold">{title}</Kb.Text>
+              <Kb.Text type="BodySmall">{description}</Kb.Text>
+            </Kb.Box2>
+          }
+          onClick={onClick}
+        />
+      </Kb.Box2>
     ) : null
 
   return isMobile ? mobileRow : desktopRow
