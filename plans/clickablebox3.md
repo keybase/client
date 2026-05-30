@@ -65,7 +65,7 @@ Use `migrate-clickable-box` skill for each chunk. Run `yarn lint && yarn tsc` an
 
 ### Last — shared primitives
 
-- [ ] `shared/common-adapters/` (26)
+- [x] `shared/common-adapters/` (26)
 
 ### Completion criteria
 

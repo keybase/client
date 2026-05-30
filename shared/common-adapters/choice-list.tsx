@@ -1,9 +1,8 @@
 import {Box2, ClickableBox3} from './box'
-import ClickableBox from './clickable-box'
 import IconAuto from './icon-auto'
 import Text from './text'
-import * as React from 'react'
 import * as Styles from '@/styles'
+import {Pressable} from 'react-native'
 import './choice-list.css'
 import type {IconType} from './icon'
 
@@ -19,18 +18,10 @@ type Props = {
   options: Array<Option>
 }
 
-const Kb = {Box2, ClickableBox, ClickableBox3, IconAuto, Text}
-
-const makeOptionsKey = (options: Props['options']) =>
-  options.map(option => `${option.title}:${option.description}:${String(option.icon)}`).join('|')
+const Kb = {Box2, ClickableBox3, IconAuto, Text}
 
 const ChoiceList = (props: Props) => {
   const {options} = props
-  const optionsKey = makeOptionsKey(options)
-  const [active, setActive] = React.useState<{index?: number; optionsKey: string}>(() => ({
-    optionsKey,
-  }))
-  const activeIndex = active.optionsKey === optionsKey ? active.index : undefined
 
   if (!isMobile) {
     return (
@@ -75,31 +66,31 @@ const ChoiceList = (props: Props) => {
       {options.map((op, idx) => {
         const iconType = op.icon
         return (
-          <Kb.ClickableBox
+          <Pressable
             key={idx}
-            underlayColor={Styles.globalColors.blueLighter2}
-            onClick={op.onClick}
-            onPressIn={() => setActive({index: idx, optionsKey})}
-            onPressOut={() => setActive({optionsKey})}
+            onPress={op.onClick}
+            style={({pressed}) => Styles.collapseStyles([styleEntry, pressed && {backgroundColor: Styles.globalColors.blueLighter2}])}
           >
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styleEntry}>
-              <Kb.Box2 direction="vertical" centerChildren={true} style={styleIconContainer(activeIndex === idx)}>
-                {typeof op.icon === 'string' ? (
-                  <IconAuto style={styleIcon} type={iconType} />
-                ) : (
-                  <Kb.Box2 direction="vertical" style={styleIcon}>
-                    {op.icon}
-                  </Kb.Box2>
-                )}
+            {({pressed}) => (
+              <Kb.Box2 direction="horizontal" fullWidth={true}>
+                <Kb.Box2 direction="vertical" centerChildren={true} style={styleIconContainer(pressed)}>
+                  {typeof op.icon === 'string' ? (
+                    <IconAuto style={styleIcon} type={iconType} />
+                  ) : (
+                    <Kb.Box2 direction="vertical" style={styleIcon}>
+                      {op.icon}
+                    </Kb.Box2>
+                  )}
+                </Kb.Box2>
+                <Kb.Box2 direction="vertical" justifyContent="center" flex={1} style={styleInfoContainer}>
+                  <Kb.Text style={styleInfoTitle} type="Header">
+                    {op.title}
+                  </Kb.Text>
+                  <Kb.Text type="Body">{op.description}</Kb.Text>
+                </Kb.Box2>
               </Kb.Box2>
-              <Kb.Box2 direction="vertical" justifyContent="center" flex={1} style={styleInfoContainer}>
-                <Kb.Text style={styleInfoTitle} type="Header">
-                  {op.title}
-                </Kb.Text>
-                <Kb.Text type="Body">{op.description}</Kb.Text>
-              </Kb.Box2>
-            </Kb.Box2>
-          </Kb.ClickableBox>
+            )}
+          </Pressable>
         )
       })}
     </Kb.Box2>
