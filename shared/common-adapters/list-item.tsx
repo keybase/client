@@ -15,7 +15,7 @@ const Kb = {
 // List item following stylesheet specs. TODO deprecate list-item.*.js
 
 type Props = {
-  type: 'Small' | 'Large'
+  type: 'Small' | 'Large' | 'Card'
   icon?: React.ReactNode
   statusIcon?: React.ReactNode
   body: React.ReactNode
@@ -36,7 +36,9 @@ type Props = {
   containerStyleOverride?: Styles.StylesCrossPlatform
 }
 
-const ListItem = (props: Props) => (
+const ListItem = (props: Props) => {
+  if (props.type === 'Card') return <CardListItem {...props} />
+  return (
   <Kb.ClickableBox3
     onClick={props.onClick || (props.onMouseDown ? () => {} : undefined)} // make sure clickable box applies click styles if just onMouseDown is given.
     onMouseDown={props.onMouseDown}
@@ -103,7 +105,8 @@ const ListItem = (props: Props) => (
       </Kb.Box2>
     </Kb.Box2>
   </Kb.ClickableBox3>
-)
+  )
+}
 
 export const smallHeight = isMobile ? 56 : 48
 export const largeHeight = isMobile ? 64 : 56
@@ -336,5 +339,30 @@ const getActionStyle = (props: Props) =>
         : styles.actionLargeNotGrowOnHover,
     !!props.height && {minHeight: props.height},
   ])
+
+const CardListItem = (props: Props) => (
+  <Kb.ClickableBox3
+    onClick={props.onClick}
+    direction="horizontal"
+    alignItems="center"
+    fullWidth={true}
+    style={Styles.collapseStyles([cardStyles.card, props.style])}
+  >
+    {props.icon && <Kb.Box2 direction="vertical" style={cardStyles.icon}>{props.icon}</Kb.Box2>}
+    <Kb.Box2 direction="vertical" flex={1} fullWidth={true}>{props.body}</Kb.Box2>
+  </Kb.ClickableBox3>
+)
+
+const cardStyles = Styles.styleSheetCreate(() => ({
+  card: {
+    ...Styles.border(Styles.globalColors.grey, 1, Styles.borderRadius),
+    backgroundColor: Styles.globalColors.white,
+    overflow: 'hidden',
+    padding: Styles.globalMargins.small,
+  },
+  icon: {
+    marginRight: Styles.globalMargins.small,
+  },
+}))
 
 export default ListItem
