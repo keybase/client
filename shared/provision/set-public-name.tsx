@@ -11,14 +11,8 @@ const SetPublicName = () => {
   const devices = Provision.useProvisionState(s => s.devices)
   const error = Provision.useProvisionState(s => s.error)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const navigateUp = C.Router2.navigateUp
-  const ponBack = useSafeSubmit(navigateUp, !!error)
-  const psetDeviceName = Provision.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
-  const ponSubmit = (name: string) => {
-    if (!waiting) {
-      psetDeviceName?.(name)
-    }
-  }
+  const onBack = useSafeSubmit(C.Router2.navigateUp, !!error)
+  const submitDeviceName = Provision.useProvisionState(s => s.dispatch.dynamic.setDeviceName)
   const iconNumbers = T.Devices.nextDeviceIconNumbers(devices)
   const deviceIconNumber = isMobile ? iconNumbers.mobile : iconNumbers.desktop
 
@@ -34,11 +28,11 @@ const SetPublicName = () => {
     Provision.badDeviceRE.test(cleanDeviceName)
   const showDisabled = disabled && !!cleanDeviceName && readyToShowError
   const onSubmit = () => {
-    ponSubmit(Provision.cleanDeviceName(cleanDeviceName))
+    if (!waiting) submitDeviceName?.(Provision.cleanDeviceName(cleanDeviceName))
   }
-  const _setDeviceName = (deviceName: string) => {
+  const onChangeDeviceName = (name: string) => {
     setReadyToShowError(false)
-    setDeviceName(deviceName.replace(Provision.badDeviceChars, ''))
+    setDeviceName(name.replace(Provision.badDeviceChars, ''))
     debouncedSetReadyToShowError(true)
   }
 
@@ -64,10 +58,10 @@ const SetPublicName = () => {
           label: 'Continue',
           onClick: onSubmit,
           type: 'Success',
-          waiting: waiting,
+          waiting,
         },
       ]}
-      onBack={ponBack}
+      onBack={onBack}
       title={isMobile ? 'Name this device' : 'Name this computer'}
     >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
@@ -79,7 +73,7 @@ const SetPublicName = () => {
             maxLength={64}
             placeholder="Pick a device name"
             onEnterKeyDown={onSubmit}
-            onChangeText={_setDeviceName}
+            onChangeText={onChangeDeviceName}
             value={cleanDeviceName}
             containerStyle={styles.nameInput}
           />

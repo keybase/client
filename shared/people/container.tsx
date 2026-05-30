@@ -470,7 +470,6 @@ const PeopleReloadable = () => {
         signupEmail={signupEmail}
         skipTodo={skipTodo}
         waiting={waiting}
-        // wotUpdates={wotUpdates}
       />
     </Kb.Reloadable>
   )

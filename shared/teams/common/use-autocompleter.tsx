@@ -35,22 +35,18 @@ function useAutocompleter<U>(
           positionFallbacks={positionFallbacks}
         >
           {itemsFiltered.map((item, idx) => (
-            <Kb.ClickableBox
+            <Kb.ClickableBox3
               key={item.label}
               onMouseDown={() => onSelect(item.value)}
               onMouseOver={() => setSelected(idx)}
-              style={styles.optionOuter}
+              direction="horizontal"
+              fullWidth={true}
+              style={Kb.Styles.collapseStyles([styles.optionOuter, styles.option, selected === idx && styles.optionSelected])}
             >
-              <Kb.Box2
-                direction="horizontal"
-                fullWidth={true}
-                style={Kb.Styles.collapseStyles([styles.option, selected === idx && styles.optionSelected])}
-              >
-                <Kb.Text type="BodySemibold" lineClamp={1}>
-                  {item.label}
-                </Kb.Text>
-              </Kb.Box2>
-            </Kb.ClickableBox>
+              <Kb.Text type="BodySemibold" lineClamp={1}>
+                {item.label}
+              </Kb.Text>
+            </Kb.ClickableBox3>
           ))}
         </Kb.Popup>
       )

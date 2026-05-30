@@ -29,14 +29,12 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
       .catch(() => {})
   }
 
-  // If it's original only, set original in store.
   React.useEffect(() => {
     if (originalOnly) {
       setUseOriginalInStore(true)
     }
   }, [originalOnly, setUseOriginalInStore])
 
-  // From service to store, but only if this is not original only.
   const getRPC = C.useRPC(T.RPCGen.incomingShareGetPreferenceRpcPromise)
   React.useEffect(() => {
     if (!originalOnly) {
@@ -250,7 +248,7 @@ const IncomingShare = (props: IncomingShareWithSelectionProps) => {
   return (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={Kb.Styles.globalStyles.flexOne}>
+        <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
           <MobileSendToChat isFromShareExtension={true} sendPaths={sendPaths} text={text} />
         </Kb.Box2>
       </Kb.Box2>
@@ -288,7 +286,6 @@ const useIncomingShareItems = () => {
   >([])
   const [incomingShareError, setIncomingShareError] = React.useState<unknown>(undefined)
 
-  // iOS
   const rpc = C.useRPC(T.RPCGen.incomingShareGetIncomingShareItemsRpcPromise)
   React.useEffect(() => {
     if (!isIOS) {
@@ -302,7 +299,6 @@ const useIncomingShareItems = () => {
     )
   }, [rpc, setIncomingShareError, setIncomingShareItems])
 
-  // Android
   const androidShare = useConfigState(s => s.androidShare)
   const androidShareItems =
     isAndroid && androidShare

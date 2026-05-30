@@ -492,22 +492,32 @@ const Container = ({platform, reason = 'profile'}: Props) => {
               <Kb.Text center={true} type="Header">
                 Prove your website in two ways:
               </Kb.Text>
-              <Kb.ChoiceList
-                options={[
-                  {
-                    description: 'Host a text file on your site, such as yoursite.com/keybase.txt.',
-                    icon: 'icon-file-txt-48',
-                    onClick: () => startProof('web', 'profile'),
-                    title: 'Host a TXT file',
-                  },
-                  {
-                    description: 'Place a Keybase proof in your DNS records.',
-                    icon: 'icon-dns-48',
-                    onClick: () => startProof('dns', 'profile'),
-                    title: 'Set a DNS',
-                  },
-                ]}
-              />
+              <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+                <Kb.ListItem
+                  type="Card"
+                  firstItem={true}
+                  icon={<Kb.IconAuto type="icon-file-txt-48" />}
+                  body={
+                    <Kb.Box2 direction="vertical" fullWidth={true}>
+                      <Kb.Text type="BodyBigLink">Host a TXT file</Kb.Text>
+                      <Kb.Text type="Body">Host a text file on your site, such as yoursite.com/keybase.txt.</Kb.Text>
+                    </Kb.Box2>
+                  }
+                  onClick={() => startProof('web', 'profile')}
+                />
+                <Kb.ListItem
+                  type="Card"
+                  firstItem={true}
+                  icon={<Kb.IconAuto type="icon-dns-48" />}
+                  body={
+                    <Kb.Box2 direction="vertical" fullWidth={true}>
+                      <Kb.Text type="BodyBigLink">Set a DNS</Kb.Text>
+                      <Kb.Text type="Body">Place a Keybase proof in your DNS records.</Kb.Text>
+                    </Kb.Box2>
+                  }
+                  onClick={() => startProof('dns', 'profile')}
+                />
+              </Kb.Box2>
             </Kb.Box2>
           </Modal>
         )
@@ -567,7 +577,7 @@ const Container = ({platform, reason = 'profile'}: Props) => {
     }
   })()
 
-  return <>{content}</>
+  return content
 }
 
 const ProviderPicker = ({
@@ -624,6 +634,7 @@ const ProviderPicker = ({
                     direction="horizontal"
                     alignItems="center"
                     justifyContent="flex-start"
+                    fullWidth={true}
                     className="hover_background_color_blueLighter2"
                     onClick={() => onSelect(provider.key)}
                     style={styles.containerBox}
@@ -728,7 +739,7 @@ const EnterUsername = ({
           </Kb.Text>
         )}
         <PlatformIcon
-          style={styles.centered}
+          style={styles.center}
           platform={platform}
           overlay="icon-proof-unfinished"
           overlayColor={Kb.Styles.globalColors.greyDark}
@@ -1126,13 +1137,11 @@ const Unreachable = ({
       </Kb.Text>
       <Kb.Meta title="unreachable" backgroundColor={Kb.Styles.globalColors.red} />
     </Kb.Box2>
-    <Kb.Box2 direction="vertical" style={styles.marginLeftAuto}>
-      <Kb.Icon
-        type="iconfont-proof-broken"
-        color={Kb.Styles.globalColors.red}
-        style={styles.inlineIcon}
-      />
-    </Kb.Box2>
+    <Kb.Icon
+      type="iconfont-proof-broken"
+      color={Kb.Styles.globalColors.red}
+      style={Kb.Styles.collapseStyles([styles.inlineIcon, styles.marginLeftAuto])}
+    />
   </Kb.Box2>
 )
 
@@ -1304,7 +1313,6 @@ const styles = Kb.Styles.styleSheetCreate(
       buttonBig: {flex: 2.5},
       buttonSmall: {flex: 1},
       center: {alignSelf: 'center'},
-      centered: {alignSelf: 'center'},
       colorRed: {color: Kb.Styles.globalColors.redDark},
       container: Kb.Styles.platformStyles({
         common: {flex: 1},

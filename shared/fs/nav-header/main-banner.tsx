@@ -54,13 +54,13 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
 }))
 
 const ConnectedBanner = () => {
-  const _kbfsDaemonStatus = useKbfsDaemonStatus()
-  const _overallSyncStatus = useFsOverallSyncStatus()
-  const _name = useCurrentUserState(s => s.username)
+  const kbfsDaemonStatus = useKbfsDaemonStatus()
+  const overallSyncStatus = useFsOverallSyncStatus()
+  const name = useCurrentUserState(s => s.username)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   // Stat'ing the path nudges the service to retry sync.
   const onRetry = () => {
-    const path = T.FS.stringToPath('/keybase/private/' + _name)
+    const path = T.FS.stringToPath('/keybase/private/' + name)
     const f = async () => {
       try {
         await T.RPCGen.SimpleFSSimpleFSStatRpcPromise({
@@ -74,11 +74,7 @@ const ConnectedBanner = () => {
     C.ignorePromise(f())
   }
 
-  const props = {
-    bannerType: FS.getMainBannerType(_kbfsDaemonStatus, _overallSyncStatus),
-    onRetry,
-  }
-  return <Banner {...props} />
+  return <Banner bannerType={FS.getMainBannerType(kbfsDaemonStatus, overallSyncStatus)} onRetry={onRetry} />
 }
 
 export default ConnectedBanner

@@ -5,7 +5,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import * as T from '@/constants/types'
 import {useTrackerProfile} from '@/tracker/use-profile'
 
-const Container = () => {
+const EditProfile = () => {
   const username = useCurrentUserState(s => s.username)
   const {details: d, loadProfile} = useTrackerProfile(username)
   const _bio = d.bio || ''
@@ -61,49 +61,47 @@ const Container = () => {
   }
 
   return (
-    <>
-      <Kb.ScrollView>
-        <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
-          <Kb.RoundedBox side="top">
-            <Kb.Input3
-              value={fullname}
-              placeholder="Full name"
-              autoFocus={true}
-              onChangeText={setFullname}
-              hideBorder={true}
-            />
-          </Kb.RoundedBox>
-          <Kb.RoundedBox side="middle">
-            <Kb.Input3
-              value={bio}
-              placeholder="Bio"
-              multiline={true}
-              rowsMin={7}
-              rowsMax={7}
-              onChangeText={setBio}
-              hideBorder={true}
-            />
-          </Kb.RoundedBox>
-          <Kb.RoundedBox side="bottom">
-            <Kb.Input3
-              value={location}
-              placeholder="Location"
-              onChangeText={setLocation}
-              onEnterKeyDown={submit}
-              hideBorder={true}
-            />
-          </Kb.RoundedBox>
-          <Kb.Box2 direction="vertical" flex={1} style={styles.gap} />
-          <Kb.WaitingButton
-            waitingKey={C.waitingKeyTracker}
-            label="Save"
-            disabled={disabled()}
-            onClick={submit}
+    <Kb.ScrollView>
+      <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
+        <Kb.RoundedBox side="top">
+          <Kb.Input3
+            value={fullname}
+            placeholder="Full name"
+            autoFocus={true}
+            onChangeText={setFullname}
+            hideBorder={true}
           />
-          {bio.length > maxBio && <Kb.Text type="BodySmallError">Bio too long, sorry</Kb.Text>}
-        </Kb.Box2>
-      </Kb.ScrollView>
-    </>
+        </Kb.RoundedBox>
+        <Kb.RoundedBox side="middle">
+          <Kb.Input3
+            value={bio}
+            placeholder="Bio"
+            multiline={true}
+            rowsMin={7}
+            rowsMax={7}
+            onChangeText={setBio}
+            hideBorder={true}
+          />
+        </Kb.RoundedBox>
+        <Kb.RoundedBox side="bottom">
+          <Kb.Input3
+            value={location}
+            placeholder="Location"
+            onChangeText={setLocation}
+            onEnterKeyDown={submit}
+            hideBorder={true}
+          />
+        </Kb.RoundedBox>
+        <Kb.Box2 direction="vertical" flex={1} style={styles.gap} />
+        <Kb.WaitingButton
+          waitingKey={C.waitingKeyTracker}
+          label="Save"
+          disabled={disabled()}
+          onClick={submit}
+        />
+        {bio.length > maxBio && <Kb.Text type="BodySmallError">Bio too long, sorry</Kb.Text>}
+      </Kb.Box2>
+    </Kb.ScrollView>
   )
 }
 
@@ -119,4 +117,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   gap: {minHeight: Kb.Styles.globalMargins.small},
 }))
 
-export default Container
+export default EditProfile

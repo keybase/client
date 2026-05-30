@@ -1,14 +1,13 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import {Box2} from './box'
+import {Box2, ClickableBox3} from './box'
 import Text from './text'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
-import ClickableBox from './clickable-box'
 
 const Kb = {
   Box2,
-  ClickableBox,
+  ClickableBox3,
   Icon,
   ProgressIndicator,
   Text,
@@ -41,9 +40,9 @@ const SectionDivider = (props: Props) => {
     </Kb.Box2>
   )
   return collapsible ? (
-    <Kb.ClickableBox onClick={props.onToggleCollapsed} style={styles.fullWidth}>
+    <Kb.ClickableBox3 onClick={props.onToggleCollapsed} direction="horizontal" fullWidth={true}>
       {children}
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   ) : (
     children
   )
@@ -65,9 +64,6 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small),
     },
   }),
-  fullWidth: {
-    width: '100%',
-  },
   progress: {
     ...Styles.size(20),
   },

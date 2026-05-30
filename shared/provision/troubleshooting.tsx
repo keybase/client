@@ -48,9 +48,8 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
 
 const Troubleshooting = (props: Props) => {
   const onBack = props.onCancel
-  const navUpToScreen = C.Router2.navUpToScreen
   const onWayBack = () => {
-    navUpToScreen('login')
+    C.Router2.navUpToScreen('login')
   }
 
   const device = useProvisionState(s => s.codePageOtherDevice)

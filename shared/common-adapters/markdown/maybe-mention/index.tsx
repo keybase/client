@@ -63,21 +63,13 @@ type OwnProps = {
   style?: StylesTextCrossPlatform
 }
 
-const Container = (ownProps: OwnProps) => {
+const MaybeMentionContainer = (ownProps: OwnProps) => {
   const {name, channel} = ownProps
   const info = useMaybeMentionInfo(name, channel)
   const onResolve = () => {
     ignorePromise(T.RPCChat.localResolveMaybeMentionRpcPromise({mention: {channel, name}}))
   }
-  const props = {
-    allowFontScaling: ownProps.allowFontScaling,
-    channel: ownProps.channel,
-    info,
-    name: ownProps.name,
-    onResolve,
-    style: ownProps.style,
-  }
-  return <MaybeMention {...props} />
+  return <MaybeMention {...ownProps} info={info} onResolve={onResolve} />
 }
 
-export default Container
+export default MaybeMentionContainer

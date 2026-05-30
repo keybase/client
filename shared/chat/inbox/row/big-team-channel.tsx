@@ -90,7 +90,7 @@ const BigTeamChannel = (props: Props) => {
   ) : null
 
   return (
-    <Kb.ClickableBox2 onClick={onSelectConversation} style={styles.container}>
+    <Kb.ClickableBox3 direction="vertical" fullWidth={true} onClick={onSelectConversation} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.rowContainer}>
         <Kb.Box2
           className="hover_background_color_blueGreyDark"
@@ -117,7 +117,7 @@ const BigTeamChannel = (props: Props) => {
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.ClickableBox2>
+    </Kb.ClickableBox3>
   )
 }
 
@@ -166,7 +166,6 @@ const styles = Kb.Styles.styleSheetCreate(
           paddingLeft: Kb.Styles.globalMargins.tiny,
           paddingRight: 0,
         },
-        isElectron: Kb.Styles.desktopStyles.clickable,
         isTablet: {alignItems: 'center'},
       }),
       selectedChannelBackground: {backgroundColor: Kb.Styles.globalColors.blue},

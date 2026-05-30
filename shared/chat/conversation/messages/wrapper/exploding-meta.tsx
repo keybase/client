@@ -195,9 +195,9 @@ function ExplodingMetaInner(p: ExplodingMetaInnerProps) {
   }
 
   return (
-    <Kb.ClickableBox onClick={onClick} style={styles.container}>
+    <Kb.ClickableBox3 direction="horizontal" relative={true} onClick={onClick} style={styles.container}>
       {children}
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 
@@ -251,9 +251,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
         height: 20,
-        position: 'relative',
       },
       countdown: Kb.Styles.platformStyles({
         common: {color: Kb.Styles.globalColors.white, fontWeight: 'bold'},

@@ -9,9 +9,7 @@ const SelectOtherDeviceContainer = () => {
   const submitDeviceSelect = useProvisionState(s => s.dispatch.dynamic.submitDeviceSelect)
   const username = useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const navigateUp = C.Router2.navigateUp
-  const _onBack = navigateUp
-  const onBack = useSafeSubmit(_onBack, false)
+  const onBack = useSafeSubmit(C.Router2.navigateUp, false)
 
   const onResetAccount = () => {
     startAccountReset(false, username)

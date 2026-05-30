@@ -1,6 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
-import WalletPopup from './wallet-popup'
+import WalletPopup, {walletModalIconStyle} from './wallet-popup'
 import {makeReallyRemoveAccountRouteParams} from './account-utils'
 
 type OwnProps = {
@@ -9,7 +9,7 @@ type OwnProps = {
   name: string
 }
 
-const Container = (ownProps: OwnProps) => {
+const RemoveAccountPopup = (ownProps: OwnProps) => {
   const {accountID, balanceDescription, name} = ownProps
   const onDelete = () => {
     C.Router2.navigateAppend(
@@ -36,7 +36,7 @@ const Container = (ownProps: OwnProps) => {
       <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
         <Kb.IconAuto
           type={isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
-          style={styles.icon}
+          style={walletModalIconStyle}
         />
         <Kb.Text center={true} style={styles.warningText} type="Header">
           This removes{' '}
@@ -60,11 +60,6 @@ const Container = (ownProps: OwnProps) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  icon: Kb.Styles.platformStyles({
-    common: {marginBottom: Kb.Styles.globalMargins.large},
-    isElectron: {marginTop: Kb.Styles.globalMargins.medium},
-    isMobile: {marginTop: Kb.Styles.globalMargins.xlarge},
-  }),
   marginBottomTiny: {marginBottom: Kb.Styles.globalMargins.tiny},
   warningText: Kb.Styles.platformStyles({
     isElectron: {wordBreak: 'break-word'} as const,
@@ -74,4 +69,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default Container
+export default RemoveAccountPopup

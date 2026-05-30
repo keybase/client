@@ -2,7 +2,7 @@ import type * as React from 'react'
 import {previewConversation} from '@/constants/router'
 import {useTBContext} from '@/stores/team-building'
 import * as Kb from '@/common-adapters'
-import CommonResult, {type ResultProps} from './common-result'
+import CommonResult, {type ResultProps, rowContainerWithLargePadding} from './common-result'
 
 const YouResult = function YouResult(props: ResultProps) {
   const cancelTeamBuilding = useTBContext(s => s.dispatch.cancelTeamBuilding)
@@ -32,18 +32,14 @@ const YouResult = function YouResult(props: ResultProps) {
     default:
   }
 
-  return <CommonResult {...props} {...onAddOverride} rowStyle={styles.rowContainer} bottomRow={bottomRow} />
+  return (
+    <CommonResult
+      {...props}
+      {...onAddOverride}
+      rowStyle={rowContainerWithLargePadding}
+      bottomRow={bottomRow}
+    />
+  )
 }
-
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  rowContainer: {
-    ...Kb.Styles.padding(
-      Kb.Styles.globalMargins.tiny,
-      Kb.Styles.globalMargins.medium,
-      Kb.Styles.globalMargins.tiny,
-      Kb.Styles.globalMargins.xsmall
-    ),
-  },
-}))
 
 export default YouResult

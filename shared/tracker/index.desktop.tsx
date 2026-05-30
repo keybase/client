@@ -2,6 +2,7 @@ import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import {openURL as openUrl} from '@/util/misc'
 import {useColorScheme} from 'react-native'
+import {assertionColorToColor, assertionColorToTextColor, stateToIcon} from './model'
 
 export type Props = {
   assertions?: ReadonlyArray<T.Tracker.Assertion>
@@ -102,7 +103,7 @@ const Bio = (props: {
     followText = 'FOLLOWS YOU'
   }
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioContainer} centerChildren={true} gap="xtiny">
+    <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.bioContainer} centerChildren={true} gap="xtiny">
       <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">
         <Kb.Text center={true} type="BodyBig" lineClamp={1} selectable={true}>
           {fullname}
@@ -168,44 +169,6 @@ const sortAssertions = (a: T.Tracker.Assertion, b: T.Tracker.Assertion) => {
   return _scoreAssertionKey(b.type) - _scoreAssertionKey(a.type)
 }
 
-const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
-  switch (c) {
-    case 'blue': return Kb.Styles.globalColors.blue
-    case 'red': return Kb.Styles.globalColors.red
-    case 'black': return Kb.Styles.globalColors.black
-    case 'green': return Kb.Styles.globalColors.green
-    case 'gray': return Kb.Styles.globalColors.black_50
-    case 'yellow':
-    case 'orange':
-    default: return Kb.Styles.globalColors.red
-  }
-}
-
-const assertionColorToTextColor = (c: T.Tracker.AssertionColor) => {
-  switch (c) {
-    case 'blue': return Kb.Styles.globalColors.blueDark
-    case 'red': return Kb.Styles.globalColors.redDark
-    case 'black': return Kb.Styles.globalColors.black
-    case 'green': return Kb.Styles.globalColors.greenDark
-    case 'gray': return Kb.Styles.globalColors.black_50
-    case 'yellow':
-    case 'orange':
-    default: return Kb.Styles.globalColors.redDark
-  }
-}
-
-const stateToIcon = (state: T.Tracker.AssertionState) => {
-  switch (state) {
-    case 'checking': return 'iconfont-proof-pending'
-    case 'valid': return 'iconfont-proof-good'
-    case 'error':
-    case 'warning':
-    case 'revoked': return 'iconfont-proof-broken'
-    case 'suggestion': return 'iconfont-proof-placeholder'
-    default: return 'iconfont-proof-pending'
-  }
-}
-
 const siteIconToSrcSet = (set: T.Tracker.SiteIconSet) =>
   set.map(i => `url("${i.path}")`).reverse().join(', ')
 
@@ -215,7 +178,7 @@ const AssertionRow = (props: {assertion: T.Tracker.Assertion}) => {
   const isDarkMode = useColorScheme() === 'dark'
   const iconSet = isDarkMode ? a.siteIconDarkmode : a.siteIcon
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.assertionRow}>
+    <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.assertionRow}>
       <Kb.Box2 alignItems="flex-start" direction="horizontal" gap="tiny" fullWidth={true} gapStart={true} gapEnd={true}>
         {iconSet.length > 0 && (
           <Kb.Box2
@@ -302,21 +265,19 @@ const Tracker = (props: Props) => {
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
             {props.reason}
           </Kb.Text>
-          <Kb.Box2 direction="vertical" fullWidth={true} relative={true} style={styles.avatarContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={true} relative={true} noShrink={true}>
             <Kb.Box2 direction="vertical" style={styles.avatarBackground} />
-            <Kb.Box2 direction="vertical" style={styles.nameWithIconContainer}>
-              <Kb.Box2 direction="vertical" centerChildren={true} gap="tiny">
-                <img
-                  src={avatarUrl(props.httpSrvAddress, props.httpSrvToken, props.trackerUsername, isDarkMode)}
-                  width={96}
-                  height={96}
-                  style={styles.avatar}
-                  loading="lazy"
-                />
-                <Kb.Text type="BodyBig" selectable={true}>
-                  {props.trackerUsername}
-                </Kb.Text>
-              </Kb.Box2>
+            <Kb.Box2 direction="vertical" centerChildren={true} gap="tiny" style={styles.nameWithIconContainer}>
+              <img
+                src={avatarUrl(props.httpSrvAddress, props.httpSrvToken, props.trackerUsername, isDarkMode)}
+                width={96}
+                height={96}
+                style={styles.avatar}
+                loading="lazy"
+              />
+              <Kb.Text type="BodyBig" selectable={true}>
+                {props.trackerUsername}
+              </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
           <Bio
@@ -342,7 +303,7 @@ const Tracker = (props: Props) => {
             {sortedAssertions?.map(a => <AssertionRow key={a.assertionKey} assertion={a} />)}
           </Kb.Box2>
           {!!buttons.length && (
-            <Kb.Box2 fullWidth={true} direction="vertical" style={styles.spaceUnderButtons} />
+            <Kb.Box2 fullWidth={true} direction="vertical" noShrink={true} style={styles.spaceUnderButtons} />
           )}
         </Kb.Box2>
       </Kb.ScrollView>
@@ -371,7 +332,7 @@ const reason = {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      assertionRow: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
+      assertionRow: {paddingBottom: 4, paddingTop: 4},
       assertionSite: {color: Kb.Styles.globalColors.black_20},
       assertionTextContainer: Kb.Styles.platformStyles({
         common: {flexGrow: 1, flexShrink: 1, marginTop: -1},
@@ -396,8 +357,7 @@ const styles = Kb.Styles.styleSheetCreate(
         right: 0,
         top: avatarSize / 2,
       },
-      avatarContainer: {flexShrink: 0},
-      bioContainer: {backgroundColor: Kb.Styles.globalColors.white, flexShrink: 0},
+      bioContainer: {backgroundColor: Kb.Styles.globalColors.white},
       bioText: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.mediumLarge),
@@ -446,7 +406,7 @@ const styles = Kb.Styles.styleSheetCreate(
         zIndex: 9,
       },
       metaContainer: {flexShrink: 0, paddingLeft: 20 + Kb.Styles.globalMargins.tiny * 2 - 4},
-      nameWithIconContainer: {alignSelf: 'center'},
+      nameWithIconContainer: {alignSelf: 'center' as const},
       reason: Kb.Styles.platformStyles({
         common: {
           ...reason,
@@ -478,7 +438,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       spaceUnderButtons: {
-        flexShrink: 0,
         height: barHeight,
       },
       strikeThrough: {textDecorationLine: 'line-through'},

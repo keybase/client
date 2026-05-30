@@ -9,40 +9,20 @@ import {usePushState} from '@/stores/push'
 
 const TurnOnNotifications = () => {
   const mobileHasPermissions = usePushState(s => s.hasPermissions)
-  const requestPermissions = usePushState(s => s.dispatch.requestPermissions)
+  const onEnable = usePushState(s => s.dispatch.requestPermissions)
   if (mobileHasPermissions) return null
-  const onEnable = requestPermissions
   return (
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
       relative={true}
       overflow="hidden"
-      style={{backgroundColor: Kb.Styles.globalColors.red, height: 330}}
+      style={styles.turnOnOuter}
     >
-      <Kb.Box2
-        direction="vertical"
-        style={{
-          height: 270,
-          left: Kb.Styles.globalMargins.medium,
-          position: 'absolute',
-          top: -20,
-          width: 250,
-        }}
-      >
+      <Kb.Box2 direction="vertical" style={styles.turnOnIllustration}>
         <Kb.ImageIcon type="illustration-turn-on-notifications" />
       </Kb.Box2>
-      <Kb.Text
-        type="BodySemibold"
-        center={true}
-        negative={true}
-        style={{
-          bottom: Kb.Styles.globalMargins.medium,
-          left: Kb.Styles.globalMargins.small,
-          position: 'absolute',
-          right: Kb.Styles.globalMargins.small,
-        }}
-      >
+      <Kb.Text type="BodySemibold" center={true} negative={true} style={styles.turnOnText}>
         You turned off native notifications for Keybase. It&apos;s{' '}
         <Kb.Text type="BodySemiboldItalic" negative={true}>
           very
@@ -86,12 +66,33 @@ const Notifications = () => {
       onReload={onReload}
       reloadOnMount={true}
     >
-      <Kb.ScrollView style={{...Kb.Styles.globalStyles.flexBoxColumn, flex: 1}}>
+      <Kb.ScrollView style={styles.scrollView}>
         <TurnOnNotifications />
         <Render {...props} />
       </Kb.ScrollView>
     </Reloadable>
   )
 }
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  scrollView: {...Kb.Styles.globalStyles.flexBoxColumn, flex: 1},
+  turnOnIllustration: {
+    height: 270,
+    left: Kb.Styles.globalMargins.medium,
+    position: 'absolute',
+    top: -20,
+    width: 250,
+  },
+  turnOnOuter: {
+    backgroundColor: Kb.Styles.globalColors.red,
+    height: 330,
+  },
+  turnOnText: {
+    bottom: Kb.Styles.globalMargins.medium,
+    left: Kb.Styles.globalMargins.small,
+    position: 'absolute',
+    right: Kb.Styles.globalMargins.small,
+  },
+}))
 
 export default Notifications

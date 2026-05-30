@@ -118,8 +118,8 @@ export const Banner = (props: BannerProps) => (
           padding="xtiny"
           sizeType="Small"
           type="iconfont-close"
-          color={colorToIconColor()[props.color]}
-          hoverColor={colorToIconHoverColor()[props.color]}
+          color={colorToIconColor[props.color]}
+          hoverColor={colorToIconHoverColor[props.color]}
           onClick={props.onClose}
         />
       </Box2>
@@ -217,20 +217,20 @@ const colorToTextColorStyles = Styles.styleSheetCreate(() => ({
   yellow: {color: Styles.globalColors.brown_75},
 }))
 
-const colorToIconColor = () => ({
+const colorToIconColor = {
   blue: Styles.globalColors.white_90,
   green: Styles.globalColors.white_90,
   grey: Styles.globalColors.black_50,
   red: Styles.globalColors.white_90,
   white: Styles.globalColors.black_50,
   yellow: Styles.globalColors.brown_75,
-})
+}
 
-const colorToIconHoverColor = () => ({
+const colorToIconHoverColor = {
   blue: Styles.globalColors.white,
   green: Styles.globalColors.white,
   grey: Styles.globalColors.black,
   red: Styles.globalColors.white,
   white: Styles.globalColors.black,
   yellow: Styles.globalColors.brown,
-})
+}

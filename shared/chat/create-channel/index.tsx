@@ -29,10 +29,10 @@ const CreateChannel = (p: Props) => {
           </Kb.Banner>
         )}
         <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={desktopStyles.box}>
-          <Kb.ClickableBox style={desktopStyles.back} onClick={props.onBack}>
+          <Kb.ClickableBox3 direction="horizontal" alignItems="center" style={desktopStyles.back} onClick={props.onBack}>
             <Kb.Icon style={desktopStyles.backIcon} type="iconfont-arrow-left" />
             <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
-          </Kb.ClickableBox>
+          </Kb.ClickableBox3>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true}>
             <Kb.Input3
               autoFocus={true}
@@ -55,7 +55,7 @@ const CreateChannel = (p: Props) => {
               onChangeText={props.onDescriptionChange}
             />
           </Kb.Box2>
-          <Kb.ButtonBar fullWidth={true} style={desktopStyles.buttonBar}>
+          <Kb.ButtonBar fullWidth={true} style={buttonBarStyle}>
             <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" />
             <Kb.WaitingButton
               waitingKey={C.waitingKeyTeamsCreateChannel(props.teamID)}
@@ -96,7 +96,7 @@ const CreateChannel = (p: Props) => {
             onChangeText={props.onDescriptionChange}
           />
         </Kb.Box2>
-        <Kb.ButtonBar fullWidth={true} style={nativeStyles.buttonBar}>
+        <Kb.ButtonBar fullWidth={true} style={buttonBarStyle}>
           <Kb.WaitingButton
             waitingKey={C.waitingKeyTeamsCreateChannel(props.teamID)}
             onClick={props.onSubmit}
@@ -108,12 +108,12 @@ const CreateChannel = (p: Props) => {
   )
 }
 
+const buttonBarStyle = {alignItems: 'center'} as const
+
 const desktopStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       back: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         left: 32,
         position: 'absolute',
         top: 32,
@@ -128,7 +128,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.large,
         paddingTop: Kb.Styles.globalMargins.medium,
       },
-      buttonBar: {alignItems: 'center'},
     }) as const
 )
 
@@ -136,7 +135,6 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       box: {padding: 16},
-      buttonBar: {alignItems: 'center'},
     }) as const
 )
 

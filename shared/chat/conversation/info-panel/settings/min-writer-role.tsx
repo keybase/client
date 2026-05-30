@@ -140,17 +140,18 @@ const Dropdown = (p: DropdownProps) => {
   ])
   return (
     <>
-      <Kb.ClickableBox
+      <Kb.ClickableBox3
+        direction="horizontal"
+        alignItems="center"
         style={styles.dropdown}
         ref={isMobile ? null : popupAnchor}
         onClick={showPopup}
-        underlayColor={Kb.Styles.globalColors.white_40}
       >
         <Kb.Box2 direction="horizontal" style={styles.label}>
           <Kb.Text type="BodySemibold">{upperFirst(minWriterRole)}</Kb.Text>
         </Kb.Box2>
         <Kb.Icon type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />
-      </Kb.ClickableBox>
+      </Kb.ClickableBox3>
       {popup}
       <Kb.SaveIndicator saving={saving} style={saveIndicatorStyle} />
     </>
@@ -169,8 +170,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       dropdown: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
-          alignItems: 'center',
           ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
           minWidth: 220,
           paddingRight: Kb.Styles.globalMargins.small,

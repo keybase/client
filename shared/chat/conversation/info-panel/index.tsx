@@ -20,13 +20,8 @@ type Props = {
   tab?: 'settings' | 'members' | 'attachments' | 'bots'
 }
 
-const InfoPanelConnector = (ownProps: Props) => {
-  const conversationIDKey = ownProps.conversationIDKey ?? Chat.noConversationIDKey
-  return <InfoPanelConnectorInner {...ownProps} conversationIDKey={conversationIDKey} />
-}
-
-const InfoPanelConnectorInner = (ownProps: Props & {conversationIDKey: T.Chat.ConversationIDKey}) => {
-  const {conversationIDKey} = ownProps
+const InfoPanelConnector = ({conversationIDKey: _conversationIDKey, tab}: Props) => {
+  const conversationIDKey = _conversationIDKey ?? Chat.noConversationIDKey
   const meta = useConversationMeta(conversationIDKey)
   const shouldNavigateOut = meta.conversationIDKey === Chat.noConversationIDKey
   const isPreview = meta.membershipType === 'youArePreviewing'
@@ -34,8 +29,8 @@ const InfoPanelConnectorInner = (ownProps: Props & {conversationIDKey: T.Chat.Co
   const teamname = meta.teamname
   const {role: yourRole} = useChatTeam(meta.teamID, teamname)
 
-  const [uncontrolledSelectedTab, onSelectTab] = React.useState<Panel>(() => ownProps.tab ?? 'members')
-  const selectedTab = ownProps.tab ?? uncontrolledSelectedTab
+  const [uncontrolledSelectedTab, onSelectTab] = React.useState<Panel>(() => tab ?? 'members')
+  const selectedTab = tab ?? uncontrolledSelectedTab
 
   const hideInfoPanel = React.useEffectEvent(() => {
     showConversationInfoPanel(conversationIDKey, false, undefined)
@@ -168,6 +163,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       clickableTabStyle: Kb.Styles.platformStyles({
+        isElectron: {width: 'auto'},
         isMobile: {width: undefined},
       }),
       container: Kb.Styles.platformStyles({
@@ -188,12 +184,12 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       containerOuterTablet: {width: infoPanelWidthTablet + tabletContainerBorderSize},
       tab: {
+        justifyContent: 'center',
         paddingLeft: Kb.Styles.globalMargins.xsmall,
         paddingRight: Kb.Styles.globalMargins.xsmall,
       },
       tabContainer: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.white},
-        // TODO: this is less than ideal
         isElectron: {
           overflowX: 'hidden',
           overflowY: 'hidden',

@@ -4,10 +4,6 @@ import type * as ED from './slow-data'
 import type * as Styles from '@/styles'
 import CustomEmoji from './custom-emoji'
 
-const Kb = {
-  NativeEmoji,
-}
-
 export type RenderableEmoji = {
   aliasForCustom?: string
   unicodeStock?: string
@@ -121,7 +117,7 @@ const Emoji = (props: EmojiProps) => {
 
   if (emoji.renderStock) {
     return (
-      <Kb.NativeEmoji
+      <NativeEmoji
         size={size}
         emojiName={emoji.renderStock}
         disableSelecting={virtualText}

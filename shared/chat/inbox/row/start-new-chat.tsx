@@ -9,12 +9,12 @@ const StartNewChat = (props: Props) => {
   if (isMobile) {
     return (
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} justifyContent="center" style={styles.container} relative={true}>
-        <Kb.ClickableBox2 style={styles.clickableBox} onClick={props.onNewChat}>
+        <Kb.ClickableBox3 direction="horizontal" alignItems="center" onClick={props.onNewChat}>
           <Kb.Icon type="iconfont-compose" style={styles.iconCompose} />
           <Kb.Text type="BodyBigLink" style={{margin: Kb.Styles.globalMargins.tiny}}>
             Start a new chat
           </Kb.Text>
-        </Kb.ClickableBox2>
+        </Kb.ClickableBox3>
       </Kb.Box2>
     )
   }
@@ -35,10 +35,6 @@ const styles = Kb.Styles.styleSheetCreate(
         },
         isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
       }),
-      clickableBox: {
-        alignItems: 'center',
-        flexDirection: 'row',
-      },
       container: {
         backgroundColor: isMobile
           ? undefined

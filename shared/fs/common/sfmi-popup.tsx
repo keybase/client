@@ -25,11 +25,10 @@ const SFMIPopup = (props: Props) => {
 
     return (
       <Kb.Popup style={styles.popup} attachTo={attachTo} onHidden={hidePopup} position="bottom right">
-        <Kb.ClickableBox
-          style={styles.container}
-          onClick={e => {
-            e.stopPropagation()
-          }}
+        <Kb.ClickableBox3
+          direction="vertical"
+          fullWidth={true}
+          onClick={e => e?.stopPropagation()}
         >
           <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.fancyFinderIcon}>
             <Kb.ImageIcon type="icon-fancy-finder-132-96" />
@@ -52,7 +51,7 @@ const SFMIPopup = (props: Props) => {
               onClick={enableDriver}
             />
           </Kb.Box2>
-        </Kb.ClickableBox>
+        </Kb.ClickableBox3>
       </Kb.Popup>
     )
   }
@@ -93,10 +92,6 @@ const SFMIPopup = (props: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   buttonBox: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.tiny),
-  },
-  container: {
-    ...Kb.Styles.globalStyles.flexBoxColumn,
-    width: '100%',
   },
   divider: {
     marginBottom: Kb.Styles.globalMargins.tiny,

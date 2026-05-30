@@ -69,12 +69,6 @@ const useReacji = ({
   }
 }
 
-const useSkinTone = () => {
-  const currentSkinTone = useCurrentSkinTone()
-  const setSkinTone = useSetSkinTone()
-  return {currentSkinTone, setSkinTone}
-}
-
 const useCustomReacji = (
   conversationIDKey: T.Chat.ConversationIDKey,
   onlyInTeam: boolean | undefined,
@@ -107,7 +101,8 @@ const WrapperMobile = (props: Props) => {
   )
   const [width, setWidth] = React.useState(0)
   const onLayout = (evt: LayoutEvent) => setWidth(evt.nativeEvent.layout.width)
-  const {currentSkinTone, setSkinTone} = useSkinTone()
+  const currentSkinTone = useCurrentSkinTone()
+  const setSkinTone = useSetSkinTone()
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const onCancel = C.Router2.navigateUp
   const addEmoji = () =>
@@ -126,9 +121,9 @@ const WrapperMobile = (props: Props) => {
       style={styles.contain}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-        <Kb.ClickableBox onClick={onCancel} style={styles.cancelContainerMobile}>
+        <Kb.ClickableBox3 direction="vertical" onClick={onCancel} style={styles.cancelContainerMobile}>
           <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
-        </Kb.ClickableBox>
+        </Kb.ClickableBox3>
         <Kb.SearchFilter
           focusOnMount={true}
           size="small"
@@ -149,7 +144,7 @@ const WrapperMobile = (props: Props) => {
         skinTone={currentSkinTone}
         hideFrequentEmoji={props.hideFrequentEmoji ?? false}
       />
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.footerContainer}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" noShrink={true} style={styles.footerContainer}>
         <SkinTonePicker
           currentSkinTone={currentSkinTone}
           onExpandChange={setSkinTonePickerExpanded}
@@ -174,7 +169,8 @@ const EmojiPickerDesktopInner = (props: Props) => {
   const {onDidPick} = props
   const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   const {filter, onChoose, setFilter: _setFilter, topReacjis} = useReacji(props)
-  const {currentSkinTone, setSkinTone} = useSkinTone()
+  const currentSkinTone = useCurrentSkinTone()
+  const setSkinTone = useSetSkinTone()
   const [hoveredEmoji, setHoveredEmoji] = React.useState(emojiData.defaultHoverEmoji)
   const {waiting, customEmojiGroups} = useCustomReacji(
     conversationIDKey,
@@ -235,7 +231,7 @@ const EmojiPickerDesktopInner = (props: Props) => {
           direction="horizontal"
           fullWidth={true}
           alignItems="center"
-          style={styles.footerContainer}
+          noShrink={true} style={styles.footerContainer}
           gap="small"
         >
           <Kb.Emoji
@@ -306,7 +302,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       footerContainer: Kb.Styles.platformStyles({
         common: {
-          flexShrink: 0,
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
         },
         isElectron: {

@@ -6,17 +6,19 @@ import PathInfo from '../path-info'
 export type Props = {path: T.FS.Path}
 
 const Header = (props: Props) => (
-  <Kb.ClickableBox
+  <Kb.ClickableBox3
     onClick={
       // This box is necessary as otherwise the click event propagates into
       // the ListItem backed row.
-      event => event.stopPropagation()
+      e => e?.stopPropagation()
     }
+    direction="vertical"
+    fullWidth={true}
   >
     <PathItemInfo path={props.path} containerStyle={styles.container} />
     <Kb.Divider />
     <PathInfo path={props.path} containerStyle={styles.container} />
-  </Kb.ClickableBox>
+  </Kb.ClickableBox3>
 )
 
 export default Header

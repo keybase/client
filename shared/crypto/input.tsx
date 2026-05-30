@@ -114,37 +114,41 @@ const TextInput = (props: TextProps) => {
   ) : null
 
   return (
-    <Kb.ClickableBox onClick={onFocusInput} style={styles.containerInputFocus}>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
-        <Kb.Box2
-          direction={isMobile ? 'vertical' : 'horizontal'}
-          alignItems="flex-start"
-          alignSelf="flex-start"
-          fullWidth={isMobile || !!value}
-          fullHeight={isMobile || !!value}
-          style={styles.inputAndFilePickerContainer}
-        >
-          <Kb.Input3
-            value={value}
-            placeholder={inputPlaceholder}
-            multiline={true}
-            autoFocus={true}
-            hideBorder={true}
-            rowsMax={rowsMax}
-            growAndScroll={growAndScroll}
-            containerStyle={inputContainerStyle}
-            inputStyle={inputStyle}
-            textType={textInputType === 'cipher' ? 'Terminal' : 'Body'}
-            autoCorrect={textInputType !== 'cipher'}
-            spellCheck={textInputType !== 'cipher'}
-            onChangeText={onChangeText}
-            ref={inputRef}
-          />
-          {!isMobile && browseButton}
-        </Kb.Box2>
+    <Kb.ClickableBox3
+      direction="vertical"
+      fullWidth={true}
+      fullHeight={true}
+      onClick={onFocusInput}
+      style={Kb.Styles.collapseStyles([styles.containerInputFocus, styles.commonContainer])}
+    >
+      <Kb.Box2
+        direction={isMobile ? 'vertical' : 'horizontal'}
+        alignItems="flex-start"
+        alignSelf="flex-start"
+        fullWidth={isMobile || !!value}
+        fullHeight={isMobile || !!value}
+        style={styles.inputAndFilePickerContainer}
+      >
+        <Kb.Input3
+          value={value}
+          placeholder={inputPlaceholder}
+          multiline={true}
+          autoFocus={true}
+          hideBorder={true}
+          rowsMax={rowsMax}
+          growAndScroll={growAndScroll}
+          containerStyle={inputContainerStyle}
+          inputStyle={inputStyle}
+          textType={textInputType === 'cipher' ? 'Terminal' : 'Body'}
+          autoCorrect={textInputType !== 'cipher'}
+          spellCheck={textInputType !== 'cipher'}
+          onChangeText={onChangeText}
+          ref={inputRef}
+        />
+        {!isMobile && browseButton}
       </Kb.Box2>
       {!isMobile && clearButton}
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 

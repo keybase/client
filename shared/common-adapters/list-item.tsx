@@ -1,7 +1,6 @@
 import type * as React from 'react'
 import * as Styles from '@/styles'
-import ClickableBox from './clickable-box'
-import {Box2} from './box'
+import {Box2, ClickableBox3} from './box'
 import BoxGrow from './box-grow'
 import Divider from './divider'
 import './list-item.css'
@@ -9,14 +8,14 @@ import './list-item.css'
 const Kb = {
   Box2,
   BoxGrow,
-  ClickableBox,
+  ClickableBox3,
   Divider,
 }
 
 // List item following stylesheet specs. TODO deprecate list-item.*.js
 
 type Props = {
-  type: 'Small' | 'Large'
+  type: 'Small' | 'Large' | 'Card'
   icon?: React.ReactNode
   statusIcon?: React.ReactNode
   body: React.ReactNode
@@ -37,20 +36,24 @@ type Props = {
   containerStyleOverride?: Styles.StylesCrossPlatform
 }
 
-const ListItem = (props: Props) => (
-  <Kb.ClickableBox
+const ListItem = (props: Props) => {
+  if (props.type === 'Card') return <CardListItem {...props} />
+  return (
+  <Kb.ClickableBox3
     onClick={props.onClick || (props.onMouseDown ? () => {} : undefined)} // make sure clickable box applies click styles if just onMouseDown is given.
     onMouseDown={props.onMouseDown}
+    direction="horizontal"
+    className={Styles.classNames({
+      listItem2: !props.hideHover,
+    })}
     style={Styles.collapseStyles([
       props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge,
       !!props.height && {minHeight: props.height},
       props.style,
     ])}
+    fullWidth={true}
   >
     <Kb.Box2
-      className={Styles.classNames({
-        listItem2: !props.hideHover,
-      })}
       direction="horizontal"
       style={Styles.collapseStyles([
         props.type === 'Small' ? styles.rowSmall : styles.rowLarge,
@@ -101,8 +104,9 @@ const ListItem = (props: Props) => (
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
-  </Kb.ClickableBox>
-)
+  </Kb.ClickableBox3>
+  )
+}
 
 export const smallHeight = isMobile ? 56 : 48
 export const largeHeight = isMobile ? 64 : 56
@@ -113,15 +117,7 @@ const afterStatusIconItemLeftDistance = statusIconWidth - (isMobile ? 10 : 14)
 
 const styles = Styles.styleSheetCreate(() => {
   const _styles = {
-    actionLargeContainer: {
-      alignItems: 'center',
-      flexGrow: 0,
-      flexShrink: 0,
-      justifyContent: 'flex-start',
-      marginRight: 8,
-      position: 'relative',
-    } as const,
-    actionSmallContainer: {
+    actionContainer: {
       alignItems: 'center',
       flexGrow: 0,
       flexShrink: 0,
@@ -262,21 +258,21 @@ const styles = Styles.styleSheetCreate(() => {
 
   const _actionStyles = {
     actionLargeIsGrowOnHover: {
-      ..._styles.actionLargeContainer,
+      ..._styles.actionContainer,
       ..._styles.heightLarge,
       justifyContent: 'flex-end',
     } as const,
     actionLargeNotGrowOnHover: {
-      ..._styles.actionLargeContainer,
+      ..._styles.actionContainer,
       ..._styles.heightLarge,
     } as const,
     actionSmallIsGrowOnHover: {
-      ..._styles.actionSmallContainer,
+      ..._styles.actionContainer,
       ..._styles.heightSmall,
       justifyContent: 'flex-end',
     } as const,
     actionSmallNotGrowOnHover: {
-      ..._styles.actionSmallContainer,
+      ..._styles.actionContainer,
       ..._styles.heightSmall,
     } as const,
   }
@@ -335,5 +331,30 @@ const getActionStyle = (props: Props) =>
         : styles.actionLargeNotGrowOnHover,
     !!props.height && {minHeight: props.height},
   ])
+
+const CardListItem = (props: Props) => (
+  <Kb.ClickableBox3
+    onClick={props.onClick}
+    direction="horizontal"
+    alignItems="center"
+    fullWidth={true}
+    style={Styles.collapseStyles([cardStyles.card, props.style])}
+  >
+    {props.icon && <Kb.Box2 direction="vertical" style={cardStyles.icon}>{props.icon}</Kb.Box2>}
+    <Kb.Box2 direction="vertical" flex={1} fullWidth={true}>{props.body}</Kb.Box2>
+  </Kb.ClickableBox3>
+)
+
+const cardStyles = Styles.styleSheetCreate(() => ({
+  card: {
+    ...Styles.border(Styles.globalColors.grey, 1, Styles.borderRadius),
+    backgroundColor: Styles.globalColors.white,
+    overflow: 'hidden',
+    padding: Styles.globalMargins.small,
+  },
+  icon: {
+    marginRight: Styles.globalMargins.small,
+  },
+}))
 
 export default ListItem

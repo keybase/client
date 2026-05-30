@@ -45,20 +45,18 @@ const PaperKey = ({route}: Props) => {
           <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
             <Kb.ImageIcon type="icon-paper-key-96" />
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" style={styles.inputContainer} fullWidth={true}>
-            <Kb.Input3
-              autoFocus={true}
-              multiline={true}
-              rowsMax={3}
-              placeholder="Type your paper key"
-              textType="Header"
-              containerStyle={styles.inputContainer2}
-              inputStyle={styles.inputText}
-              onEnterKeyDown={onSubmit}
-              onChangeText={paperKey => setPaperKey(paperKey)}
-              value={paperKey}
-            />
-          </Kb.Box2>
+          <Kb.Input3
+            autoFocus={true}
+            multiline={true}
+            rowsMax={3}
+            placeholder="Type your paper key"
+            textType="Header"
+            containerStyle={styles.inputContainer2}
+            inputStyle={styles.inputText}
+            onEnterKeyDown={onSubmit}
+            onChangeText={paperKey => setPaperKey(paperKey)}
+            value={paperKey}
+          />
           {!!error && <Kb.Text type="BodySmallError">{error}</Kb.Text>}
         </Kb.Box2>
       </Kb.Box2>
@@ -69,9 +67,6 @@ const PaperKey = ({route}: Props) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   contents: {
     maxWidth: isMobile ? '100%' : 460,
-    width: '100%',
-  },
-  inputContainer: {
     width: '100%',
   },
   inputContainer2: {

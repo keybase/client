@@ -8,7 +8,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {rpcDeviceDetailToDevice} from './common'
 import {getDeviceRevokeIconType} from './device-icon'
 
-type OwnProps = {device?: T.Devices.Device; deviceID?: T.Devices.DeviceID}
+type DeviceRevokeProps = {device?: T.Devices.Device; deviceID?: T.Devices.DeviceID}
 
 const renderTLFEntry = (index: number, tlf: string) => (
   <Kb.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
@@ -25,7 +25,7 @@ const EndangeredTLFList = (props: {endangeredTLFs: Array<string>}) => {
       <Kb.Text center={true} type="Body">
         You may lose access to these folders forever:
       </Kb.Text>
-      <Kb.Box2 direction="vertical" style={styles.listContainer}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
         <Kb.ScrollView>{props.endangeredTLFs.map((tlf, index) => renderTLFEntry(index, tlf))}</Kb.ScrollView>
       </Kb.Box2>
     </>
@@ -89,7 +89,7 @@ const useRevoke = (device: T.Devices.Device) => {
   }
 }
 
-const DeviceRevoke = (ownProps: OwnProps) => {
+const DeviceRevoke = (ownProps: DeviceRevokeProps) => {
   const loadDeviceHistory = C.useRPC(T.RPCGen.deviceDeviceHistoryListRpcPromise)
   const navigateUp = C.Router2.navigateUp
   const selectedDeviceID = ownProps.device?.deviceID ?? ownProps.deviceID ?? T.Devices.stringToDeviceID('')
@@ -213,12 +213,10 @@ const styles = Kb.Styles.styleSheetCreate(
       italicName: {...Kb.Styles.globalStyles.italic},
       listContainer: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
           alignContent: 'center',
           ...Kb.Styles.border(Kb.Styles.globalColors.black_10, 1, Kb.Styles.borderRadius),
           flexGrow: 1,
           ...Kb.Styles.marginV(Kb.Styles.globalMargins.small),
-          width: '100%',
         },
         isElectron: {height: 162, width: 440},
       }),

@@ -2,42 +2,36 @@ import * as Kb from '@/common-adapters'
 import type {Props} from './participant-rekey.types'
 
 const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked: (s: string) => void}) => (
-  <Kb.ClickableBox onClick={() => onUsernameClicked(username)}>
+  <Kb.ClickableBox3 direction="horizontal" alignItems={isMobile ? 'center' : undefined} style={styles.row} onClick={() => onUsernameClicked(username)}>
+    <Kb.Avatar
+      username={username}
+      size={48}
+      style={{marginRight: Kb.Styles.globalMargins.small, padding: 4}}
+    />
     <Kb.Box2
-      direction="horizontal"
-      alignItems={isMobile ? 'center' : undefined}
-      style={styles.row}
+      direction="vertical"
+      justifyContent={isMobile ? 'center' : undefined}
+      flex={isMobile ? 1 : undefined}
+      style={styles.innerRow}
     >
-      <Kb.Avatar
-        username={username}
-        size={48}
-        style={{marginRight: Kb.Styles.globalMargins.small, padding: 4}}
+      <Kb.ConnectedUsernames
+        inline={true}
+        backgroundMode={isMobile ? 'Terminal' : undefined}
+        type="BodyBold"
+        usernames={username}
       />
-      <Kb.Box2
-        direction="vertical"
-        justifyContent={isMobile ? 'center' : undefined}
-        flex={isMobile ? 1 : undefined}
-        style={styles.innerRow}
+      <Kb.Text
+        type="BodySmall"
+        negative={isMobile}
+        style={Kb.Styles.platformStyles({
+          isElectron: {lineHeight: '17px'},
+          isMobile: {color: Kb.Styles.globalColors.blueLighter_40, lineHeight: 17},
+        })}
       >
-        <Kb.ConnectedUsernames
-          inline={true}
-          backgroundMode={isMobile ? 'Terminal' : undefined}
-          type="BodyBold"
-          usernames={username}
-        />
-        <Kb.Text
-          type="BodySmall"
-          negative={isMobile}
-          style={Kb.Styles.platformStyles({
-            isElectron: {lineHeight: '17px'},
-            isMobile: {color: Kb.Styles.globalColors.blueLighter_40, lineHeight: 17},
-          })}
-        >
-          Can rekey this chat by opening the Keybase app.
-        </Kb.Text>
-      </Kb.Box2>
+        Can rekey this chat by opening the Keybase app.
+      </Kb.Text>
     </Kb.Box2>
-  </Kb.ClickableBox>
+  </Kb.ClickableBox3>
 )
 
 const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) => (
@@ -102,9 +96,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   row: Kb.Styles.platformStyles({
     common: {
       minHeight: 48,
-    },
-    isElectron: {
-      ...Kb.Styles.desktopStyles.clickable,
     },
     isMobile: {
       minHeight: 56,

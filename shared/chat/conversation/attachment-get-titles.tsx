@@ -198,38 +198,36 @@ const ContainerInner = (ownProps: OwnProps) => {
   return (
     <>
       <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.ClickableBox2 style={styles.container2} onClick={() => inputRef.current?.blur()}>
-          <Kb.Box2 direction="vertical" style={styles.containerOuter} fullWidth={true}>
-            <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
-            {pathAndInfos.length > 0 && !isMobile && (
-              <Kb.Box2 direction="vertical" style={styles.filename}>
-                <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
-                <Kb.Text type="BodySmall" center={true}>
-                  {info.filename} ({index + 1} of {pathAndInfos.length})
-                </Kb.Text>
-              </Kb.Box2>
-            )}
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
-              <Kb.Input3
-                ref={inputRef}
-                autoFocus={!isMobile}
-                onClick={(e: React.BaseSyntheticEvent) => {
-                  e.stopPropagation()
-                }}
-                autoCorrect={true}
-                placeholder={titleHint}
-                multiline={true}
-                rowsMin={2}
-                value={titles[index]}
-                onEnterKeyDown={onNext}
-                onChangeText={updateTitle}
-                hideBorder={true}
-                containerStyle={styles.inputBare}
-                inputStyle={styles.input}
-              />
+        <Kb.ClickableBox3 direction="vertical" fullWidth={true} alignItems="center" style={styles.container2} onClick={() => inputRef.current?.blur()}>
+          <Kb.BoxGrow style={styles.boxGrow}>{preview}</Kb.BoxGrow>
+          {pathAndInfos.length > 0 && !isMobile && (
+            <Kb.Box2 direction="vertical" style={styles.filename}>
+              <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
+              <Kb.Text type="BodySmall" center={true}>
+                {info.filename} ({index + 1} of {pathAndInfos.length})
+              </Kb.Text>
             </Kb.Box2>
+          )}
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+            <Kb.Input3
+              ref={inputRef}
+              autoFocus={!isMobile}
+              onClick={(e: React.BaseSyntheticEvent) => {
+                e.stopPropagation()
+              }}
+              autoCorrect={true}
+              placeholder={titleHint}
+              multiline={true}
+              rowsMin={2}
+              value={titles[index]}
+              onEnterKeyDown={onNext}
+              onChangeText={updateTitle}
+              hideBorder={true}
+              containerStyle={styles.inputBare}
+              inputStyle={styles.input}
+            />
           </Kb.Box2>
-        </Kb.ClickableBox2>
+        </Kb.ClickableBox3>
         <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
           {!isMobile && <Kb.Button fullWidth={true} type="Dim" onClick={onCancel} label="Cancel" />}
           {isLast ? (
@@ -273,16 +271,9 @@ const styles = Kb.Styles.styleSheetCreate(
         isMobile: {flexShrink: 1},
       }),
       container2: Kb.Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-          flexGrow: 1,
-          width: '100%',
-        },
-        isMobile: {flexShrink: 1},
-      }),
-      containerOuter: Kb.Styles.platformStyles({
+        common: {flexGrow: 1},
         isElectron: {height: '100%', overflow: 'hidden'},
-        isMobile: {flexGrow: 1, flexShrink: 1},
+        isMobile: {flexShrink: 1, flexGrow: 1},
       }),
       filename: Kb.Styles.platformStyles({
         isElectron: {
@@ -323,8 +314,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const Container = (ownProps: OwnProps) => {
-  return <ContainerInner {...ownProps} />
-}
-
-export default Container
+export default ContainerInner

@@ -151,24 +151,16 @@ const styles = Kb.Styles.styleSheetCreate(
         height: isMobile ? 64 : 48,
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
       },
-      paperKeyNudgeBorder: Kb.Styles.platformStyles({
+      paperKeyNudgeContainer: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.border(Kb.Styles.globalColors.black_05, 1, Kb.Styles.borderRadius),
-          flex: 1,
+          padding: Kb.Styles.globalMargins.small,
         },
         isElectron: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         },
         isMobile: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.xsmall),
-        },
-      }),
-      paperKeyNudgeContainer: Kb.Styles.platformStyles({
-        common: {
-          padding: Kb.Styles.globalMargins.small,
-        },
-        isMobile: {
-          padding: Kb.Styles.globalMargins.tiny,
         },
       }),
       paperKeyNudgeDesc: Kb.Styles.platformStyles({
@@ -187,20 +179,25 @@ const styles = Kb.Styles.styleSheetCreate(
 )
 
 const PaperKeyNudge = ({onAddDevice}: {onAddDevice: () => void}) => (
-  <Kb.ClickableBox3 onClick={onAddDevice} direction="horizontal" style={styles.paperKeyNudgeContainer} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={styles.paperKeyNudgeBorder}>
-        <Kb.IconAuto
-          type={isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'}
-        />
-        <Kb.Box2 direction="vertical" flex={1}>
-          <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
-          <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={styles.paperKeyNudgeDesc}>
-            A paper key can be used to access your account in case you lose all your devices. Keep one in a
-            safe place (like a wallet) to keep your data safe.
-          </Kb.Text>
-        </Kb.Box2>
-        {!isMobile && <Kb.Text type="BodyBigLink">Create a paper key</Kb.Text>}
-      </Kb.Box2>
+  <Kb.ClickableBox3
+    onClick={onAddDevice}
+    direction="horizontal"
+    gap="xsmall"
+    alignItems="center"
+    fullWidth={true}
+    style={styles.paperKeyNudgeContainer}
+  >
+    <Kb.IconAuto
+      type={isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'}
+    />
+    <Kb.Box2 direction="vertical" flex={1}>
+      <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
+      <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={styles.paperKeyNudgeDesc}>
+        A paper key can be used to access your account in case you lose all your devices. Keep one in a
+        safe place (like a wallet) to keep your data safe.
+      </Kb.Text>
+    </Kb.Box2>
+    {!isMobile && <Kb.Text type="BodyBigLink">Create a paper key</Kb.Text>}
   </Kb.ClickableBox3>
 )
 export default ReloadableDevices

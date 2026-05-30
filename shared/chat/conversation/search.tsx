@@ -359,7 +359,7 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
 
   const _renderHit = (index: number, item: SearchHit) => {
     return (
-      <Kb.ClickableBox key={index} onClick={() => selectResult(index)} style={styles.hitRow}>
+      <Kb.ClickableBox3 direction="horizontal" alignItems="center" justifyContent="space-between" key={index} onClick={() => selectResult(index)} style={styles.hitRow}>
         <Kb.Avatar username={item.author} size={24} />
         <Kb.Text type="Body" style={styles.hitSummary}>
           {item.summary}
@@ -367,7 +367,7 @@ const ThreadSearchDesktopInner = function ThreadSearchDesktopInner(p: CommonProp
         <Kb.Text type="BodySmall" style={styles.time}>
           {formatTimeForMessages(item.timestamp)}
         </Kb.Text>
-      </Kb.ClickableBox>
+      </Kb.ClickableBox3>
     )
   }
 
@@ -523,10 +523,7 @@ const styles = Kb.Styles.styleSheetCreate(
         },
       }),
       hitRow: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
         height: hitHeight,
-        justifyContent: 'space-between',
         padding: Kb.Styles.globalMargins.tiny,
       },
       hitSummary: Kb.Styles.platformStyles({

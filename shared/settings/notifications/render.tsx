@@ -52,7 +52,7 @@ const Notifications = (props: Props) => {
   const hasLoadedGroups = props.groups.size > 0
   const emailGroup = props.groups.get('email')
   return !hasLoadedGroups ? (
-    <Kb.Box2 direction="vertical" justifyContent="center" flex={1} style={styles.loading}>
+    <Kb.Box2 direction="vertical" justifyContent="center" alignItems="center" flex={1}>
       <Kb.ProgressIndicator type="Small" style={{width: Kb.Styles.globalMargins.medium}} />
     </Kb.Box2>
   ) : (
@@ -89,7 +89,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginLeft: -Kb.Styles.globalMargins.small,
         marginTop: Kb.Styles.globalMargins.small,
       },
-      loading: {alignItems: 'center'},
       main: Kb.Styles.platformStyles({
         common: {flex: 1, padding: Kb.Styles.globalMargins.small, paddingRight: 0},
         isElectron: Kb.Styles.desktopStyles.scrollable,

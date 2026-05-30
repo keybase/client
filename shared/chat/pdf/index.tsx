@@ -1,17 +1,17 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {useNavigation} from '@react-navigation/native'
 import * as T from '@/constants/types'
+import {useNavigation} from '@react-navigation/native'
+import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
+import {attachmentDownloadMessage, takePDFMessage} from '../conversation/attachment-actions'
+import {useConversationMessage} from '../conversation/data-hooks'
 
 type Props = {
   conversationIDKey?: T.Chat.ConversationIDKey
   messageID: T.Chat.MessageID
   url?: string
 }
-import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
-import {attachmentDownloadMessage, takePDFMessage} from '../conversation/attachment-actions'
-import {useConversationMessage} from '../conversation/data-hooks'
 
 const ChatPDF = (props: Props) => {
   const {messageID} = props

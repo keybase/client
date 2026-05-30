@@ -13,9 +13,10 @@ const InfoNote = (props: Props) => (
   <Box2
     direction="vertical"
     gap="xtiny"
-    style={Styles.collapseStyles([styles.alignCenter, props.containerStyle])}
+    alignItems="center"
+    style={props.containerStyle}
   >
-    <Box2 direction="horizontal" gap="tiny" style={styles.alignCenter}>
+    <Box2 direction="horizontal" gap="tiny" alignItems="center">
       <Box2 direction="vertical" style={{backgroundColor: props.color || Styles.globalColors.black_10, height: 1, width: 24}} />
       <Icon
         color={props.color || Styles.globalColors.black_10}
@@ -26,15 +27,6 @@ const InfoNote = (props: Props) => (
     </Box2>
     {props.children}
   </Box2>
-)
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      alignCenter: {
-        alignItems: 'center',
-      },
-    }) as const
 )
 
 export default InfoNote

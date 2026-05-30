@@ -17,7 +17,6 @@ type Props = {
   oldItems: T.Immutable<Array<T.People.PeopleScreenItem>>
   newItems: T.Immutable<Array<T.People.PeopleScreenItem>>
   onClickUser: (username: string) => void
-  onOpenAccountSwitcher?: () => void
   resentEmail: string
   setResentEmail: (email: string) => void
   signupEmail: string
@@ -79,14 +78,6 @@ const renderPeopleItem = (item: T.Immutable<T.People.PeopleScreenItem>, props: P
 const shouldRenderNewItem = (item: T.Immutable<T.People.PeopleScreenItem>, signupEmail: string) =>
   item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !signupEmail
 
-const PeopleItems = ({
-  items,
-  props,
-}: {
-  items: ReadonlyArray<T.Immutable<T.People.PeopleScreenItem>>
-  props: Props
-}): Array<React.ReactNode> => items.map((item): React.ReactNode => renderPeopleItem(item, props))
-
 function EmailVerificationBanner(props: {signupEmail: string}) {
   const {signupEmail} = props
   React.useEffect(
@@ -141,25 +132,15 @@ function ResentEmailVerificationBanner(props: {
 }
 
 function PeoplePageList(props: Props) {
-const visibleNewItems = props.newItems.filter(item => shouldRenderNewItem(item, props.signupEmail))
+  const visibleNewItems = props.newItems.filter(item => shouldRenderNewItem(item, props.signupEmail))
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} relative={true} testID={TestIDs.PEOPLE_FEED}>
       <EmailVerificationBanner signupEmail={props.signupEmail} />
       <ResentEmailVerificationBanner resentEmail={props.resentEmail} setResentEmail={props.setResentEmail} />
-      <PeopleItems items={visibleNewItems} props={props} />
-      {/*Array.from(props.wotUpdates, ([key, item]) => (
-        <WotTask
-          key={key}
-          voucher={item.voucher}
-          vouchee={item.vouchee}
-          status={item.status}
-          onClickUser={props.onClickUser}
-        />
-      ))*/}
-
+      {visibleNewItems.map((item): React.ReactNode => renderPeopleItem(item, props))}
       <FollowSuggestions suggestions={props.followSuggestions} />
-      <PeopleItems items={props.oldItems} props={props} />
+      {props.oldItems.map((item): React.ReactNode => renderPeopleItem(item, props))}
     </Kb.Box2>
   )
 }

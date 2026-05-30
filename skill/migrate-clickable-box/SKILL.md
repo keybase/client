@@ -72,6 +72,18 @@ Read each matched file fully before classifying.
 </Kb.ClickableBox3>
 ```
 
+**⚠️ `fullWidth` content-sizing gotcha (mobile):** When the outer CB1 is **content-sized** (no explicit width, sitting alongside siblings in a `justifyContent: center` row), the inner Box2's `fullWidth` only stretched the Box2 to fill the CB1 — it did NOT make the CB1 itself full-width. Promoting `fullWidth` to CB3 changes this: CB3 gets `width: '100%'` on mobile, making it fill its entire parent and breaking the centered layout.
+
+**Diagnosis:** Look at the CB's parent. If it's a horizontal container with `justifyContent: center` or `centerChildren={true}` that has OTHER siblings alongside this CB, the CB was content-sized. In that case, do NOT add `fullWidth` to CB3.
+
+```tsx
+// ❌ Wrong — CB1 was content-sized, moving fullWidth to CB3 breaks centering
+<Kb.ClickableBox3 direction="horizontal" fullWidth={true} gap="xsmall" onClick={...}>
+
+// ✅ Correct — drop fullWidth since the old CB1 itself had no width
+<Kb.ClickableBox3 direction="horizontal" gap="xsmall" onClick={...}>
+```
+
 ### Pattern B — CB with only click props, no style
 
 ```tsx
@@ -87,6 +99,8 @@ Read each matched file fully before classifying.
   <SomeOtherContent />
 </Kb.ClickableBox3>
 ```
+
+**⚠️ CB1 stretched by parent — CB3 doesn't (mobile):** In RN, the default `alignItems: stretch` on a vertical flex parent made CB1 (TouchableOpacity/WithoutFeedback) fill the full width automatically. CB3 overrides this with `alignSelf: center` when neither `fullWidth` nor `fullHeight` is set. **Any Pattern B or C conversion where the old CB1 filled its parent via the default stretch behavior now needs `fullWidth={true}` added explicitly.** This is most common for rows in vertical lists, popup/menu headers, and full-width banner items.
 
 **⚠️ `box2_centered` / `alignSelf: center` gotcha:** CB3 applies `align-self: center` (desktop: `box2_centered` CSS class; mobile: `nativeStyles.centered = {alignSelf: 'center'}`) whenever neither `fullWidth` nor `fullHeight` is set. CB1 did NOT do this. This affects **both platforms**. If the original CB was expected to fill its parent (e.g. list rows, banners, full-width wrappers), omitting `fullWidth={true}` will shrink it to content-width. Always check the parent layout context — when in doubt, add `fullWidth={true}`.
 

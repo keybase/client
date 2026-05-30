@@ -8,22 +8,17 @@ type KeybaseLinkErrorBodyProps = {
 export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
   const bannerColor = props.isError ? 'red' : 'green'
   return (
-    <>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.Banner color={bannerColor}>
-          <Kb.BannerParagraph bannerColor={bannerColor} content={props.message} selectable={true} />
-        </Kb.Banner>
-      </Kb.Box2>
-    </>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Banner color={bannerColor}>
+        <Kb.BannerParagraph bannerColor={bannerColor} content={props.message} selectable={true} />
+      </Kb.Banner>
+    </Kb.Box2>
   )
 }
 
-const LinkError = (props: {error?: string}) => {
-  const error = props.error ?? 'Invalid page! (sorry)'
-  const message = error
-  const isError = true
-  return <KeybaseLinkErrorBody isError={isError} message={message} />
-}
+const LinkError = (props: {error?: string}) => (
+  <KeybaseLinkErrorBody isError={true} message={props.error ?? 'Invalid page! (sorry)'} />
+)
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   container: Kb.Styles.platformStyles({

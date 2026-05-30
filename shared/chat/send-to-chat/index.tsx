@@ -16,19 +16,6 @@ type Props = {
   sendPaths?: Array<string> // KBFS or incoming share (files)
 }
 
-const MobileSendToChatRoutable = (props: Props) => {
-  const {canBack, isFromShareExtension, sendPaths, text} = props
-
-  return (
-    <MobileSendToChat
-      canBack={canBack}
-      isFromShareExtension={isFromShareExtension}
-      sendPaths={sendPaths}
-      text={text}
-    />
-  )
-}
-
 export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
   const navigateAppend = C.Router2.navigateAppend
@@ -120,43 +107,41 @@ type DesktopSendToChatRenderProps = {
 
 export const DesktopSendToChatRender = (props: DesktopSendToChatRenderProps) => {
   return (
-    <>
-      <Kb.Box2 direction="vertical" style={desktopStyles.container} centerChildren={true}>
-        <Kb.Box2 direction="horizontal" centerChildren={true} style={desktopStyles.header} fullWidth={true}>
-          <Kb.Text type="Header">Attach in conversation</Kb.Text>
-        </Kb.Box2>
-        <Kb.Box2 direction="vertical" style={desktopStyles.belly} fullWidth={true}>
-          <Kb.Box2
-            direction="vertical"
-            centerChildren={true}
-            fullWidth={true}
-            style={desktopStyles.pathItem}
-            gap="tiny"
-          >
-            <Kbfs.ItemIcon size={48} path={props.path} badgeOverride="iconfont-attachment" />
-            <Kb.Text type="BodySmall">{T.FS.getPathName(props.path)}</Kb.Text>
-          </Kb.Box2>
-          <ChooseConversation
-            convName={props.convName}
-            dropdownButtonStyle={desktopStyles.dropdown}
-            onSelect={props.onSelect}
-          />
-          <Kb.Input3
-            placeholder="Title"
-            value={props.title}
-            onChangeText={props.setTitle}
-          />
-        </Kb.Box2>
-        <Kb.ButtonBar fullWidth={true} style={desktopStyles.buttonBar}>
-          <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
-          <Kb.Button label="Send in conversation" onClick={props.onSend} disabled={!props.enabled} />
-        </Kb.ButtonBar>
+    <Kb.Box2 direction="vertical" style={desktopStyles.container} centerChildren={true}>
+      <Kb.Box2 direction="horizontal" centerChildren={true} style={desktopStyles.header} fullWidth={true}>
+        <Kb.Text type="Header">Attach in conversation</Kb.Text>
       </Kb.Box2>
-    </>
+      <Kb.Box2 direction="vertical" alignItems="center" style={desktopStyles.belly} fullWidth={true}>
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          fullWidth={true}
+          style={desktopStyles.pathItem}
+          gap="tiny"
+        >
+          <Kbfs.ItemIcon size={48} path={props.path} badgeOverride="iconfont-attachment" />
+          <Kb.Text type="BodySmall">{T.FS.getPathName(props.path)}</Kb.Text>
+        </Kb.Box2>
+        <ChooseConversation
+          convName={props.convName}
+          dropdownButtonStyle={desktopStyles.dropdown}
+          onSelect={props.onSelect}
+        />
+        <Kb.Input3
+          placeholder="Title"
+          value={props.title}
+          onChangeText={props.setTitle}
+        />
+      </Kb.Box2>
+      <Kb.ButtonBar fullWidth={true} style={desktopStyles.buttonBar}>
+        <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
+        <Kb.Button label="Send in conversation" onClick={props.onSend} disabled={!props.enabled} />
+      </Kb.ButtonBar>
+    </Kb.Box2>
   )
 }
 
-const SendToChat = isMobile ? MobileSendToChatRoutable : DesktopSendToChat
+const SendToChat = isMobile ? MobileSendToChat : DesktopSendToChat
 
 export default SendToChat
 
@@ -165,7 +150,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
     ({
       belly: {
         ...Kb.Styles.globalStyles.flexGrow,
-        alignItems: 'center',
         marginBottom: Kb.Styles.globalMargins.small,
         paddingLeft: Kb.Styles.globalMargins.large,
         paddingRight: Kb.Styles.globalMargins.large,

@@ -5,35 +5,14 @@ import * as FS from '@/constants/fs'
 import {makeUUID} from '@/util/uuid'
 import {useFsErrorActionOrThrow} from '../error-state'
 
-export type Props = {
-  onBack: () => void
-  onDelete: () => void
-  path: T.FS.Path
-  title: string
-}
-
-const ReallyDeleteFile = (props: Props) =>
-  props.path ? (
-    <Kb.ConfirmModal
-      confirmText="Yes, delete"
-      description="It will be deleted for everyone. This cannot be undone."
-      header={<Kb.Icon type="iconfont-trash" sizeType="Big" color={Kb.Styles.globalColors.red} />}
-      onCancel={props.onBack}
-      onConfirm={props.onDelete}
-      prompt={`Are you sure you want to delete "${T.FS.getPathName(props.path)}"?`}
-    />
-  ) : null
-
-type OwnProps = {
+type Props = {
   path: T.FS.Path
   mode: 'row' | 'screen'
 }
 
-const Container = (ownProps: OwnProps) => {
-  const {path, mode} = ownProps
+const ConfirmDelete = ({path, mode}: Props) => {
   const errorToActionOrThrow = useFsErrorActionOrThrow()
   const navigateUp = C.Router2.navigateUp
-  const onBack = navigateUp
   const onDelete = () => {
     if (path !== FS.defaultPath) {
       const f = async () => {
@@ -60,13 +39,16 @@ const Container = (ownProps: OwnProps) => {
       navigateUp()
     }
   }
-  const props = {
-    onBack,
-    onDelete,
-    path,
-    title: 'Confirmation',
-  }
-  return <ReallyDeleteFile {...props} />
+  return path ? (
+    <Kb.ConfirmModal
+      confirmText="Yes, delete"
+      description="It will be deleted for everyone. This cannot be undone."
+      header={<Kb.Icon type="iconfont-trash" sizeType="Big" color={Kb.Styles.globalColors.red} />}
+      onCancel={navigateUp}
+      onConfirm={onDelete}
+      prompt={`Are you sure you want to delete "${T.FS.getPathName(path)}"?`}
+    />
+  ) : null
 }
 
-export default Container
+export default ConfirmDelete

@@ -313,40 +313,40 @@ const useMenuItems = (
   const startingUp = daemonHandshakeState !== 'done'
 
   const common = [
-      {onClick: () => { void openUrl(`https://keybase.io/${username || ''}`) }, title: 'Keybase.io'},
-      {
-        onClick: () => {
-          const version = __VERSION__
-          void openUrl(
-            `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(version)}`
-          )
-        },
-        title: 'Report a bug',
+    {onClick: () => { void openUrl(`https://keybase.io/${username || ''}`) }, title: 'Keybase.io'},
+    {
+      onClick: () => {
+        const version = __VERSION__
+        void openUrl(
+          `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(version)}`
+        )
       },
-      {
-        onClick: () => {
-          void openUrl('https://keybase.io/docs')
-          hideWindow?.()
-        },
-        title: 'Help',
+      title: 'Report a bug',
+    },
+    {
+      onClick: () => {
+        void openUrl('https://keybase.io/docs')
+        hideWindow?.()
       },
-      {
-        onClick: () => {
-          if (!__DEV__) {
-            if (isLinux) {
-              R.remoteDispatch(RemoteGen.createStop({exitCode: T.RPCGen.ExitCode.ok}))
-            } else {
-              R.remoteDispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
-            }
+      title: 'Help',
+    },
+    {
+      onClick: () => {
+        if (!__DEV__) {
+          if (isLinux) {
+            R.remoteDispatch(RemoteGen.createStop({exitCode: T.RPCGen.ExitCode.ok}))
+          } else {
+            R.remoteDispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
           }
-          hideWindow?.()
-          setTimeout(() => {
-            ctlQuit?.()
-          }, 2000)
-        },
-        title: 'Quit Keybase',
+        }
+        hideWindow?.()
+        setTimeout(() => {
+          ctlQuit?.()
+        }, 2000)
       },
-    ]
+      title: 'Quit Keybase',
+    },
+  ]
 
   if (startingUp) {
     return common
@@ -356,36 +356,36 @@ const useMenuItems = (
 
   if (showBadges) {
     return [
-        {
-          onClick: () => openApp(C.Tabs.gitTab),
-          title: 'Git',
-          view: <TabView title="Git" iconType="iconfont-nav-2-git" count={navBadges[C.Tabs.gitTab]} />,
-        },
-        {
-          onClick: () => openApp(C.Tabs.devicesTab),
-          title: 'Devices',
-          view: <TabView title="Devices" iconType="iconfont-nav-2-devices" count={navBadges[C.Tabs.devicesTab]} />,
-        },
-        {
-          onClick: () => openApp(C.Tabs.settingsTab),
-          title: 'Settings',
-          view: <TabView title="Settings" iconType="iconfont-nav-2-settings" count={navBadges[C.Tabs.settingsTab]} />,
-        },
-        'Divider' as const,
-        ...openAppItem,
-        ...(kbfsEnabled
-          ? ([
-              {
-                onClick: () => {
-                  R.remoteDispatch(RemoteGen.createOpenPathInSystemFileManager({path: '/keybase'}))
-                },
-                title: `Open folders in ${Kb.Styles.fileUIName}`,
+      {
+        onClick: () => openApp(C.Tabs.gitTab),
+        title: 'Git',
+        view: <TabView title="Git" iconType="iconfont-nav-2-git" count={navBadges[C.Tabs.gitTab]} />,
+      },
+      {
+        onClick: () => openApp(C.Tabs.devicesTab),
+        title: 'Devices',
+        view: <TabView title="Devices" iconType="iconfont-nav-2-devices" count={navBadges[C.Tabs.devicesTab]} />,
+      },
+      {
+        onClick: () => openApp(C.Tabs.settingsTab),
+        title: 'Settings',
+        view: <TabView title="Settings" iconType="iconfont-nav-2-settings" count={navBadges[C.Tabs.settingsTab]} />,
+      },
+      'Divider' as const,
+      ...openAppItem,
+      ...(kbfsEnabled
+        ? ([
+            {
+              onClick: () => {
+                R.remoteDispatch(RemoteGen.createOpenPathInSystemFileManager({path: '/keybase'}))
               },
-              'Divider',
-            ] as const)
-          : []),
-        ...common,
-      ] as const
+              title: `Open folders in ${Kb.Styles.fileUIName}`,
+            },
+            'Divider',
+          ] as const)
+        : []),
+      ...common,
+    ] as const
   }
   return [...openAppItem, ...common] as const
 }
@@ -435,16 +435,14 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
             ))
           : null}
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={styles.hamburgerContainer}>
-        <Kb.Box2 direction="vertical" ref={popupAnchor}>
-          <Kb.Icon
-            color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
-            hoverColor={Kb.Styles.globalColors.whiteOrWhite}
-            onClick={showPopup}
-            type="iconfont-nav-2-hamburger"
-            sizeType="Big"
-          />
-        </Kb.Box2>
+      <Kb.Box2 direction="vertical" ref={popupAnchor} style={styles.hamburgerContainer}>
+        <Kb.Icon
+          color={isDarkMode ? Kb.Styles.globalColors.black_50OrBlack_60 : Kb.Styles.globalColors.blueDarker}
+          hoverColor={Kb.Styles.globalColors.whiteOrWhite}
+          onClick={showPopup}
+          type="iconfont-nav-2-hamburger"
+          sizeType="Big"
+        />
         {!!badgeCountInMenu && <Kb.Badge badgeNumber={badgeCountInMenu} badgeStyle={styles.badge} />}
       </Kb.Box2>
       {popup}

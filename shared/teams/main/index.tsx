@@ -21,29 +21,31 @@ export type Props = {
 
 const TeamBigButtons = (props: {onCreateTeam: () => void; onJoinTeam: () => void; empty: boolean}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamButtons} gap="tiny" justifyContent="flex-start">
-    <Kb.ClickableBox
+    <Kb.ClickableBox3
       style={styles.bigButton}
       onClick={props.onCreateTeam}
       className="background_color_white hover_background_color_blueLighter2"
+      direction="vertical"
+      gap="tiny"
+      alignItems="center"
     >
-      <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
-        <Kb.Text type="BodyBig">Create a team</Kb.Text>
-        <Kb.Box2 direction="vertical" relative={true}>
-          <Kb.Avatar isTeam={true} size={96} />
-          <Kb.Icon type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
-        </Kb.Box2>
+      <Kb.Text type="BodyBig">Create a team</Kb.Text>
+      <Kb.Box2 direction="vertical" relative={true}>
+        <Kb.Avatar isTeam={true} size={96} />
+        <Kb.Icon type="iconfont-add-solid" sizeType="Default" style={styles.teamPlus} />
       </Kb.Box2>
-    </Kb.ClickableBox>
-    <Kb.ClickableBox
+    </Kb.ClickableBox3>
+    <Kb.ClickableBox3
       style={styles.bigButton}
       onClick={props.onJoinTeam}
       className="background_color_white hover_background_color_blueLighter2"
+      direction="vertical"
+      gap="tiny"
+      alignItems="center"
     >
-      <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
-        <Kb.Text type="BodyBig">Join a team</Kb.Text>
-        <Kb.ImageIcon type="icon-illustration-teams-96" />
-      </Kb.Box2>
-    </Kb.ClickableBox>
+      <Kb.Text type="BodyBig">Join a team</Kb.Text>
+      <Kb.ImageIcon type="icon-illustration-teams-96" />
+    </Kb.ClickableBox3>
     {props.empty && !isMobile && (
       <Kb.Text type="BodySmall" style={styles.emptyNote}>
         Keybase team chats are encrypted – unlike Slack – and work for any size group, from casual friends to
@@ -60,40 +62,38 @@ const sortOrderToTitle = {
 }
 const SortHeader = ({onChangeSort, sortOrder}: {onChangeSort: Props['onChangeSort']; sortOrder: Props['sortOrder']}) => {
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          items={[
-            {icon: 'iconfont-team', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
-            {
-              icon: 'iconfont-campfire',
-              onClick: () => onChangeSort('activity'),
-              title: sortOrderToTitle.activity,
-            },
-            {
-              icon: 'iconfont-sort-alpha',
-              onClick: () => onChangeSort('alphabetical'),
-              title: sortOrderToTitle.alphabetical,
-            },
-          ]}
-          closeOnSelect={true}
-          onHidden={hidePopup}
-          visible={true}
-          position="bottom left"
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        items={[
+          {icon: 'iconfont-team', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
+          {
+            icon: 'iconfont-campfire',
+            onClick: () => onChangeSort('activity'),
+            title: sortOrderToTitle.activity,
+          },
+          {
+            icon: 'iconfont-sort-alpha',
+            onClick: () => onChangeSort('alphabetical'),
+            title: sortOrderToTitle.alphabetical,
+          },
+        ]}
+        closeOnSelect={true}
+        onHidden={hidePopup}
+        visible={true}
+        position="bottom left"
+      />
+    )
+  }
 
   const {popup, showPopup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
-      <Kb.ClickableBox onClick={showPopup} ref={popupAnchor}>
-        <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
-          <Kb.Icon type="iconfont-arrow-full-down" />
-          <Kb.Text type="BodySmallSemibold">{sortOrderToTitle[sortOrder]}</Kb.Text>
-        </Kb.Box2>
-      </Kb.ClickableBox>
+      <Kb.ClickableBox3 onClick={showPopup} ref={popupAnchor} direction="horizontal" gap="tiny" alignItems="center">
+        <Kb.Icon type="iconfont-arrow-full-down" />
+        <Kb.Text type="BodySmallSemibold">{sortOrderToTitle[sortOrder]}</Kb.Text>
+      </Kb.ClickableBox3>
       {popup}
     </Kb.Box2>
   )
@@ -101,8 +101,6 @@ const SortHeader = ({onChangeSort, sortOrder}: {onChangeSort: Props['onChangeSor
 
 const teamRowHeight = isMobile ? 72 : 48
 const teamRowItemHeight = {height: teamRowHeight, type: 'fixed' as const}
-
-type TeamItem = TeamRowItem
 
 const Teams = function Teams(p: Props) {
 const {deletedTeams, teams, onCreateTeam, onJoinTeam, onChangeSort, sortOrder} = p
@@ -124,7 +122,7 @@ const {deletedTeams, teams, onCreateTeam, onJoinTeam, onChangeSort, sortOrder} =
 
   const listFooter = <TeamsFooter empty={teams.length === 0} />
 
-  const renderItem = (_index: number, item: TeamItem) => {
+  const renderItem = (_index: number, item: TeamRowItem) => {
     return (
       <PerfProfiler id="TeamRow">
         <TeamRowNew showChat={!isMobile} {...item} />

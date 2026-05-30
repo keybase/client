@@ -26,10 +26,6 @@ const Pinentry = (props: Props) => {
     }
   }, [_showTyping])
 
-  const handleCheck = (showTyping: boolean) => {
-    setShowTyping(showTyping)
-  }
-
   const handleSubmit = () => {
     onSubmit(password)
     setPassword('')
@@ -40,11 +36,11 @@ const Pinentry = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <DragHeader icon={false} title="" onClose={props.onCancel} windowDragging={true} />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={{...Kb.Styles.paddingH(30)}}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inner}>
         <Kb.Text type="Body" center={true}>
           {props.prompt}
         </Kb.Text>
-        {isPaperKey && <Kb.ImageIcon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
+        {isPaperKey && <Kb.ImageIcon type="icon-paper-key-48" style={styles.paperKeyIcon} />}
         <Kb.Box2
           alignSelf="center"
           direction="vertical"
@@ -72,13 +68,13 @@ const Pinentry = (props: Props) => {
             <Kb.Checkbox
               checked={showTyping}
               label={props.showTyping.label}
-              onCheck={handleCheck}
+              onCheck={setShowTyping}
               style={styles.alignment}
             />
           )}
         </Kb.Box2>
         <Kb.Button
-          style={{alignSelf: 'center'}}
+          style={styles.button}
           label={props.submitLabel ?? 'Continue'}
           onClick={handleSubmit}
           disabled={!password}
@@ -90,11 +86,14 @@ const Pinentry = (props: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   alignment: {marginLeft: Kb.Styles.globalMargins.xsmall},
+  button: {alignSelf: 'center' as const},
   container: {
     backgroundColor: Kb.Styles.globalColors.white,
     paddingBottom: Kb.Styles.globalMargins.medium,
   },
+  inner: {...Kb.Styles.paddingH(30)},
   inputContainer: {maxWidth: 428},
+  paperKeyIcon: {alignSelf: 'center' as const},
 }))
 
 export default Pinentry

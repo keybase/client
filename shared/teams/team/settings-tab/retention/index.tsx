@@ -85,78 +85,78 @@ const RetentionPicker = (p: Props) => {
   const saving = !!pendingPolicy && !policyEquals(policy, pendingPolicy)
 
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
+    const {attachTo, hidePopup} = p
 
-      const makeItems = () => {
-        const policies = Teams.baseRetentionPolicies.slice()
-        if (showInheritOption) {
-          policies.unshift(Teams.retentionPolicies.policyInherit)
-        }
-        return policies.reduce((arr, policy) => {
-          switch (policy.type) {
-            case 'retain':
-            case 'expire':
-              return [
-                ...arr,
-                {
-                  isSelected: isSelected(policy),
-                  onClick: () => selectPolicy(policy),
-                  title: policy.title,
-                } as const,
-              ]
-            case 'inherit':
-              if (teamPolicy) {
-                let title = ''
-                switch (teamPolicy.type) {
-                  case 'retain':
-                    title = 'Team default (Never)'
-                    break
-                  case 'expire':
-                  case 'explode':
-                    title = `Team default (${teamPolicy.title})`
-                    break
-                  default:
-                }
-                return [
-                  {
-                    isSelected: isSelected(policy),
-                    onClick: () => selectPolicy(policy),
-                    title,
-                  } as const,
-                  'Divider' as const,
-                  ...arr,
-                ]
-              } else {
-                throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
-              }
-            case 'explode':
-              return [
-                ...arr,
-                {
-                  icon: 'iconfont-timer',
-                  iconIsVisible: true,
-                  isSelected: isSelected(policy),
-                  onClick: () => selectPolicy(policy),
-                  title: policy.title,
-                } as const,
-              ]
-            default:
-              return arr
-          }
-        }, new Array<Kb.MenuItems[0]>())
+    const makeItems = () => {
+      const policies = Teams.baseRetentionPolicies.slice()
+      if (showInheritOption) {
+        policies.unshift(Teams.retentionPolicies.policyInherit)
       }
-      const items = makeItems()
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          visible={true}
-          onHidden={hidePopup}
-          items={items}
-          position="top center"
-        />
-      )
+      return policies.reduce((arr, policy) => {
+        switch (policy.type) {
+          case 'retain':
+          case 'expire':
+            return [
+              ...arr,
+              {
+                isSelected: isSelected(policy),
+                onClick: () => selectPolicy(policy),
+                title: policy.title,
+              } as const,
+            ]
+          case 'inherit':
+            if (teamPolicy) {
+              let title = ''
+              switch (teamPolicy.type) {
+                case 'retain':
+                  title = 'Team default (Never)'
+                  break
+                case 'expire':
+                case 'explode':
+                  title = `Team default (${teamPolicy.title})`
+                  break
+                default:
+              }
+              return [
+                {
+                  isSelected: isSelected(policy),
+                  onClick: () => selectPolicy(policy),
+                  title,
+                } as const,
+                'Divider' as const,
+                ...arr,
+              ]
+            } else {
+              throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
+            }
+          case 'explode':
+            return [
+              ...arr,
+              {
+                icon: 'iconfont-timer',
+                iconIsVisible: true,
+                isSelected: isSelected(policy),
+                onClick: () => selectPolicy(policy),
+                title: policy.title,
+              } as const,
+            ]
+          default:
+            return arr
+        }
+      }, new Array<Kb.MenuItems[0]>())
     }
+    const items = makeItems()
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        visible={true}
+        onHidden={hidePopup}
+        items={items}
+        position="top center"
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
@@ -165,17 +165,18 @@ const RetentionPicker = (p: Props) => {
       <Kb.Box2 direction="horizontal" alignItems="center" style={styles.heading} fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
       </Kb.Box2>
-      <Kb.ClickableBox
+      <Kb.ClickableBox3
         onClick={showPopup}
         ref={popupAnchor}
+        direction="horizontal"
+        alignItems="center"
         style={Kb.Styles.collapseStyles([styles.retentionDropdown, dropdownStyle])}
-        underlayColor={Kb.Styles.globalColors.white_40}
       >
         <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label} justifyContent="flex-start">
           {policyToLabel(policy, teamPolicy)}
         </Kb.Box2>
         <Kb.Icon type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />
-      </Kb.ClickableBox>
+      </Kb.ClickableBox3>
       {policyIsExploding && (
         <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">
           <Kb.Text type="BodySmall">Participants will see their message explode.</Kb.Text>
@@ -238,8 +239,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       retentionDropdown: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxRow,
-          alignItems: 'center',
           ...Kb.Styles.border(Kb.Styles.globalColors.grey, 1, Kb.Styles.borderRadius),
           marginBottom: Kb.Styles.globalMargins.tiny,
           minWidth: 220,

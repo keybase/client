@@ -44,17 +44,10 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
-  const navigateUp = C.Router2.navigateUp
-  const onBack = useSafeSubmit(navigateUp, hasError)
-  const navigateAppend = C.Router2.navigateAppend
-  const onForgotUsername = () => navigateAppend({name: 'forgotUsername', params: {}})
+  const onBack = useSafeSubmit(C.Router2.navigateUp, hasError)
+  const onForgotUsername = () => C.Router2.navigateAppend({name: 'forgotUsername', params: {}})
   const requestAutoInvite = useRequestAutoInvite()
   const _setUsername = useProvisionState(s => s.dispatch.dynamic.setUsername)
-  const _onSubmit = (username: string) => {
-    if (!waiting) {
-      _setUsername?.(username)
-    }
-  }
   const [username, setUsername] = React.useState(op.username ?? _username)
   React.useEffect(() => {
     if (op.username && op.username !== _username) {
@@ -62,7 +55,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
     }
   }, [op.username, _username, _setUsername])
   const onSubmit = () => {
-    _onSubmit(username)
+    if (!waiting) _setUsername?.(username)
   }
   const onGoToSignup = () => {
     requestAutoInvite(username)

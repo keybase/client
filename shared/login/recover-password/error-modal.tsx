@@ -22,13 +22,11 @@ type Props = {route: {params: {error: string}}}
 const ConnectedErrorModal = ({route}: Props) => {
   const loggedIn = useConfigState(s => s.loggedIn)
   const {error} = route.params
-  const popStack = C.Router2.popStack
-  const navigateUp = C.Router2.navigateUp
   const onBack = () => {
     if (loggedIn) {
-      navigateUp()
+      C.Router2.navigateUp()
     } else {
-      popStack()
+      C.Router2.popStack()
     }
   }
 

@@ -50,7 +50,6 @@ const NativeList = function List<T>({ref, ...p}: Props<T>) {
   )
 }
 
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({

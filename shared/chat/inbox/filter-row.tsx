@@ -81,7 +81,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
     />
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.searchPlaceholderOuter} alignItems="center">
-      <Kb.ClickableBox2 onClick={startSearch} style={styles.searchPlaceholder}>
+      <Kb.ClickableBox3 direction="horizontal" alignItems="center" flex={1} onClick={startSearch} style={styles.searchPlaceholder}>
         <Kb.Icon
           type="iconfont-search"
           sizeType={isMobile ? 'Small' : 'Default'}
@@ -91,7 +91,7 @@ function ConversationFilterInput(ownProps: OwnProps) {
         <Kb.Text type="BodySemibold" style={styles.searchPlaceholderText}>
           {isMobile ? 'Search' : 'Search (\u2318K)'}
         </Kb.Text>
-      </Kb.ClickableBox2>
+      </Kb.ClickableBox3>
     </Kb.Box2>
   )
   return (
@@ -136,12 +136,8 @@ const styles = Kb.Styles.styleSheetCreate(
         isTablet: {maxWidth: 270 - 16 * 2},
       }),
       searchPlaceholder: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        ...Kb.Styles.globalStyles.flexGrow,
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.black_10,
         borderRadius: Kb.Styles.borderRadius,
-        flex: 1,
         flexShrink: 1,
         height: 32,
         paddingLeft: Kb.Styles.globalMargins.xsmall,

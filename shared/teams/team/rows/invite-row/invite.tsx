@@ -41,17 +41,17 @@ export const TeamInviteRow = (props: Props) => {
 const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
   const {onCancelInvite} = props
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          items={[{danger: true, icon: 'iconfont-remove', onClick: onCancelInvite, title: 'Cancel invite'}]}
-          visible={true}
-          onHidden={hidePopup}
-          closeOnSelect={true}
-          attachTo={attachTo}
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        items={[{danger: true, icon: 'iconfont-remove', onClick: onCancelInvite, title: 'Cancel invite'}]}
+        visible={true}
+        onHidden={hidePopup}
+        closeOnSelect={true}
+        attachTo={attachTo}
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>

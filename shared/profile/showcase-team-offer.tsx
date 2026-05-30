@@ -4,7 +4,7 @@ import * as T from '@/constants/types'
 import {useTeamsList} from '@/teams/use-teams-list'
 import {useConfigState} from '@/stores/config'
 
-const Container = () => {
+const ShowcaseTeamOffer = () => {
   const waiting = C.useWaitingState(s => s.counts)
   const {reload, teams} = useTeamsList()
   const setGlobalError = useConfigState(s => s.dispatch.setGlobalError)
@@ -22,29 +22,27 @@ const Container = () => {
   }
 
   return (
-    <>
-      <Kb.Box2 direction="vertical" style={styles.container}>
-        {!isMobile && <ShowcaseTeamOfferHeader />}
-        <Kb.ScrollView>
-          {isMobile && <ShowcaseTeamOfferHeader />}
-          {sortedTeams.map(teamMeta => (
-            <TeamRow
-              key={teamMeta.id}
-              canShowcase={
-                (teamMeta.allowPromote && teamMeta.isMember) || ['admin', 'owner'].includes(teamMeta.role)
-              }
-              isExplicitMember={teamMeta.isMember}
-              name={teamMeta.teamname}
-              isOpen={teamMeta.isOpen}
-              membercount={teamMeta.memberCount}
-              onPromote={promoted => onPromote(teamMeta.id, promoted)}
-              showcased={teamMeta.showcasing}
-              waiting={!!waiting.get(C.waitingKeyTeamsTeam(teamMeta.id))}
-            />
-          ))}
-        </Kb.ScrollView>
-      </Kb.Box2>
-    </>
+    <Kb.Box2 direction="vertical" style={styles.container}>
+      {!isMobile && <ShowcaseTeamOfferHeader />}
+      <Kb.ScrollView>
+        {isMobile && <ShowcaseTeamOfferHeader />}
+        {sortedTeams.map(teamMeta => (
+          <TeamRow
+            key={teamMeta.id}
+            canShowcase={
+              (teamMeta.allowPromote && teamMeta.isMember) || ['admin', 'owner'].includes(teamMeta.role)
+            }
+            isExplicitMember={teamMeta.isMember}
+            name={teamMeta.teamname}
+            isOpen={teamMeta.isOpen}
+            membercount={teamMeta.memberCount}
+            onPromote={promoted => onPromote(teamMeta.id, promoted)}
+            showcased={teamMeta.showcasing}
+            waiting={!!waiting.get(C.waitingKeyTeamsTeam(teamMeta.id))}
+          />
+        ))}
+      </Kb.ScrollView>
+    </Kb.Box2>
   )
 }
 
@@ -63,9 +61,9 @@ const TeamRow = (p: RowProps) => {
   const {canShowcase, name, isOpen, membercount, onPromote, showcased, waiting, isExplicitMember} = p
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowShowcaseTeamOffer}>
         <Kb.Avatar isTeam={true} size={isMobile ? 48 : 32} teamname={name} />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameShowcaseTeamOffer}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
             <Kb.Text type="BodySemibold" lineClamp={1}>
               {name}
@@ -79,18 +77,16 @@ const TeamRow = (p: RowProps) => {
           </Kb.Box2>
         </Kb.Box2>
         {showcased || canShowcase || waiting ? (
-          <Kb.Box2 direction="vertical">
-            <Kb.Button
-              label={showcased ? 'Featured' : 'Feature'}
-              onClick={() => onPromote(!showcased)}
-              small={true}
-              type="Success"
-              mode={showcased ? 'Secondary' : 'Primary'}
-              waiting={waiting}
-            />
-          </Kb.Box2>
+          <Kb.Button
+            label={showcased ? 'Featured' : 'Feature'}
+            onClick={() => onPromote(!showcased)}
+            small={true}
+            type="Success"
+            mode={showcased ? 'Secondary' : 'Primary'}
+            waiting={waiting}
+          />
         ) : (
-          <Kb.Box2 direction="vertical" style={styles.membershipTextContainer}>
+          <Kb.Box2 direction="vertical" style={styles.membershipTextShowcaseTeamOffer}>
             <Kb.Text style={styles.membershipText} type="BodySmall">
               {isExplicitMember
                 ? "Admins aren't allowing members to feature."
@@ -105,8 +101,8 @@ const TeamRow = (p: RowProps) => {
 }
 
 const ShowcaseTeamOfferHeader = () => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
-    <Kb.InfoNote containerStyle={styles.noteContainer}>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerShowcaseTeamOffer}>
+    <Kb.InfoNote containerStyle={styles.noteShowcaseTeamOffer}>
       <Kb.Text center={true} style={styles.noteText} type="BodySmall">
         Featuring a team will encourage others to ask to join. The team&apos;s description and number of
         members will be public.
@@ -119,7 +115,7 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       container: {flex: 1, overflow: 'hidden'},
-      headerContainer: Kb.Styles.platformStyles({
+      headerShowcaseTeamOffer: Kb.Styles.platformStyles({
         isElectron: {
           paddingLeft: Kb.Styles.globalMargins.small,
           paddingRight: Kb.Styles.globalMargins.small,
@@ -131,13 +127,13 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {textAlign: 'right'},
         isMobile: {textAlign: 'center'},
       }),
-      membershipTextContainer: {flexShrink: 1},
+      membershipTextShowcaseTeamOffer: {flexShrink: 1},
       meta: {
         alignSelf: 'center',
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginTop: 2,
       },
-      noteContainer: Kb.Styles.platformStyles({
+      noteShowcaseTeamOffer: Kb.Styles.platformStyles({
         isMobile: {paddingTop: Kb.Styles.globalMargins.small},
       }),
       noteText: {
@@ -146,12 +142,12 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.large,
         paddingTop: Kb.Styles.globalMargins.tiny,
       },
-      teamNameContainer: {
+      teamNameShowcaseTeamOffer: {
         flexShrink: 1,
         marginLeft: Kb.Styles.globalMargins.small,
         marginRight: Kb.Styles.globalMargins.small,
       },
-      teamRowContainer: Kb.Styles.platformStyles({
+      teamRowShowcaseTeamOffer: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.tiny, Kb.Styles.globalMargins.small),
         },
@@ -161,4 +157,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default ShowcaseTeamOffer

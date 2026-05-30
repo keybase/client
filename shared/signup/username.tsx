@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {SignupScreen, errorBanner} from './common'
+import {SignupScreen, errorBanner, desktopInputWidth} from './common'
 import {useProvisionState} from '@/stores/provision'
 import * as T from '@/constants/types'
 import {RPCError} from '@/util/errors'
@@ -88,7 +88,7 @@ const EnterUsername = (props: EnterUsernameProps) => {
     props.onContinue(usernameTrimmed)
   }
   const eulaLabel = (
-    <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={{alignSelf: 'center'}}>
+    <Kb.Text type={isMobile ? 'BodySmall' : 'Body'} style={styles.eulaText}>
       I accept the{' '}
       <Kb.Text
         type={isMobile ? 'BodySmallPrimaryLink' : 'BodyPrimaryLink'}
@@ -125,7 +125,7 @@ const EnterUsername = (props: EnterUsernameProps) => {
       }
       buttons={[
         {
-          disabled: disabled,
+          disabled,
           label: 'Continue',
           onClick: onContinue,
           type: 'Success',
@@ -165,10 +165,8 @@ const EnterUsername = (props: EnterUsernameProps) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  input: Kb.Styles.platformStyles({
-    isElectron: {width: 368},
-    isTablet: {width: 368},
-  }),
+  eulaText: {alignSelf: 'center' as const},
+  input: desktopInputWidth,
 }))
 
 export default ConnectedEnterUsername

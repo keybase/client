@@ -4,6 +4,7 @@ const ignoredModules = require('./ignored-modules')
 const desktopOnlyModules = require('./desktop-only-modules')
 
 const root = path.resolve(__dirname, '.')
+const rootRe = root.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const nullModule = path.join(root, 'null-module.js')
 
 const config = getDefaultConfig(__dirname)
@@ -26,21 +27,25 @@ config.resolver = {
 }
 
 config.resolver.blockList = [
-  ...(Array.isArray(config.resolver.blockList) ? config.resolver.blockList : config.resolver.blockList ? [config.resolver.blockList] : []),
-  /tests\/results\//,
-  /\.maestro\//,
-  /desktop\//,
-  /ios\/build\//,
-  /ios\/Pods\//,
-  /ios\/dist\//,
-  /android\/app\/build\//,
-  /android\/build\//,
-  /android\/\.gradle\//,
-  /docs\//,
-  /coverage-ts\//,
-  /patches\//,
-  /scripts\//,
-  /tools\//,
+  ...(Array.isArray(config.resolver.blockList)
+    ? config.resolver.blockList
+    : config.resolver.blockList
+      ? [config.resolver.blockList]
+      : []),
+  new RegExp(`^${rootRe}/tests/results/`),
+  new RegExp(`^${rootRe}/\\.maestro/`),
+  new RegExp(`^${rootRe}/desktop/`),
+  new RegExp(`^${rootRe}/ios/build/`),
+  new RegExp(`^${rootRe}/ios/Pods/`),
+  new RegExp(`^${rootRe}/ios/dist/`),
+  new RegExp(`^${rootRe}/android/app/build/`),
+  new RegExp(`^${rootRe}/android/build/`),
+  new RegExp(`^${rootRe}/android/\\.gradle/`),
+  new RegExp(`^${rootRe}/docs/`),
+  new RegExp(`^${rootRe}/coverage-ts/`),
+  new RegExp(`^${rootRe}/patches/`),
+  new RegExp(`^${rootRe}/scripts/`),
+  new RegExp(`^${rootRe}/tools/`),
 ]
 
 module.exports = config

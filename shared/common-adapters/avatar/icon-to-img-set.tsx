@@ -30,19 +30,19 @@ function getMultsMap(imgMap: {[size: string]: unknown}, targetSize: number): Mul
   const sizes = ssizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
   const multsMap: MultMap = {1: undefined, 2: undefined, 3: undefined}
 
-  multiKeys.forEach(mult => {
+  for (const mult of multiKeys) {
     const level1 = idealSizeMultMap[String(targetSize)]
     if (level1) {
       const level2 = level1[mult]
       if (level2) {
         multsMap[mult] = level2
-        return
+        continue
       }
     }
     const ideal = mult * targetSize
     const size = sizes.find(size => size >= ideal)
     multsMap[mult] = size || sizes.at(-1)
-  })
+  }
 
   _getMultsMapCache[sizeKey] = multsMap
   return multsMap

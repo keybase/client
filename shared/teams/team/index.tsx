@@ -241,7 +241,6 @@ const TeamBody = (props: Props) => {
           stickySectionHeadersEnabled={isMobile}
           sections={sections}
           contentContainerStyle={styles.listContentContainer}
-          style={styles.list}
           getItemHeight={() => 48}
         />
         <SelectionPopup
@@ -279,7 +278,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Kb.Styles.globalColors.blueGrey,
   },
-  list: Kb.Styles.platformStyles({}),
   listContentContainer: Kb.Styles.platformStyles({
     isMobile: {
       display: 'flex',

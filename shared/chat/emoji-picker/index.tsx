@@ -223,7 +223,8 @@ function EmojiPicker(props: Props) {
   const getEmojiSingle = (emoji: EmojiData, skinTone?: T.Chat.EmojiSkinTone) => {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     return (
-      <Kb.ClickableBox2
+      <Kb.ClickableBox3
+        direction="vertical"
         className="emoji-picker-emoji-box"
         onClick={() => {
           props.onChoose(
@@ -242,7 +243,7 @@ function EmojiPicker(props: Props) {
           showTooltip={false}
           size={singleEmojiWidth}
         />
-      </Kb.ClickableBox2>
+      </Kb.ClickableBox3>
     )
   }
 
@@ -299,7 +300,7 @@ function EmojiPicker(props: Props) {
   }
 
   const getSectionHeader = (title: string) => (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.sectionHeader}>
       <Kb.Text type="BodySmallSemibold">{title}</Kb.Text>
     </Kb.Box2>
   )
@@ -454,7 +455,6 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, 0),
       },
       sectionHeader: {
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.white,
         height: 32,
         paddingLeft: Kb.Styles.globalMargins.tiny,

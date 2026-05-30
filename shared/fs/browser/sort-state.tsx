@@ -27,7 +27,7 @@ export const FsBrowserSortProvider = ({children}: {children: React.ReactNode}) =
   const username = useCurrentUserState(s => s.username)
   const usernameRef = React.useRef(username)
   const [sortSettings, setSortSettings] = React.useState<ReadonlyMap<T.FS.Path, T.FS.SortSetting>>(
-    () => new Map<T.FS.Path, T.FS.SortSetting>()
+    () => new Map()
   )
 
   React.useEffect(() => {
@@ -35,7 +35,7 @@ export const FsBrowserSortProvider = ({children}: {children: React.ReactNode}) =
       return
     }
     usernameRef.current = username
-    setSortSettings(new Map<T.FS.Path, T.FS.SortSetting>())
+    setSortSettings(new Map())
   }, [username])
 
   const setSortSetting = (path: T.FS.Path, sortSetting: T.FS.SortSetting) => {
