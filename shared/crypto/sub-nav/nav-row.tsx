@@ -44,7 +44,7 @@ const NavRow = (props: Props) => {
             direction="vertical"
             fullHeight={true}
             fullWidth={true}
-            style={Kb.Styles.collapseStyles([styles.textContainer])}
+            style={styles.desktopItemBody}
           >
             <Kb.Text
               type="BodySemibold"
@@ -80,7 +80,7 @@ const NavRow = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  textContainer: {
+  desktopItemBody: {
     justifyContent: 'center',
     marginLeft: Kb.Styles.globalMargins.tiny,
   },

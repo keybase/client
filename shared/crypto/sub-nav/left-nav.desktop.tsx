@@ -15,17 +15,12 @@ type Props = {
   children?: React.ReactNode
 }
 
-const SubNav = (props: Props) => {
-const getRows = () =>
-    Crypto.Tabs.map(t => ({
-      ...t,
-      isSelected: props.selected === t.tab,
-      key: t.tab,
-    }))
-
-  const _onClick = (tab: string) => {
-    props.onClick(tab)
-  }
+const LeftNav = (props: Props) => {
+  const rows = Crypto.Tabs.map(t => ({
+    ...t,
+    isSelected: props.selected === t.tab,
+    key: t.tab,
+  }))
 
   const renderItem = (_: number, row: Row) => {
     return (
@@ -35,7 +30,7 @@ const getRows = () =>
         title={row.title}
         tab={row.tab}
         icon={row.icon}
-        onClick={() => _onClick(row.tab)}
+        onClick={() => props.onClick(row.tab)}
       />
     )
   }
@@ -45,7 +40,7 @@ const getRows = () =>
       <Kb.Box2 direction="vertical" fullHeight={true} style={styles.listContainer}>
         <Kb.BoxGrow>
           <Kb.List
-            items={getRows()}
+            items={rows}
             renderItem={renderItem}
             keyProperty="key"
             extraData={props.selected}
@@ -71,4 +66,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default SubNav
+export default LeftNav

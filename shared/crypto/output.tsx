@@ -60,6 +60,7 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
         direction="horizontal"
         fullWidth={true}
         alignItems="center"
+        justifyContent="center"
         style={Kb.Styles.collapseStyles([
           styles.signedContainer,
           isSelfSigned ? styles.signedContainerSelf : styles.signedContainerOther,
@@ -325,22 +326,21 @@ export const CryptoOutput = ({
 
   if (state.outputType === 'file') {
     return (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          alignItems="center"
-          style={styles.fileOutputContainer}
+      <Kb.Box2
+        direction="horizontal"
+        fullHeight={true}
+        fullWidth={true}
+        alignItems="center"
+        style={styles.fileOutputContainer}
+      >
+        {outputFileIcon ? <Kb.ImageIcon type={outputFileIcon} /> : null}
+        <Kb.Text
+          type="BodyPrimaryLink"
+          style={Kb.Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
+          onClick={() => state.output && openLocalPathInSystemFileManagerDesktop(state.output)}
         >
-          {outputFileIcon ? <Kb.ImageIcon type={outputFileIcon} /> : null}
-          <Kb.Text
-            type="BodyPrimaryLink"
-            style={Kb.Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
-            onClick={() => state.output && openLocalPathInSystemFileManagerDesktop(state.output)}
-          >
-            {state.output}
-          </Kb.Text>
-        </Kb.Box2>
+          {state.output}
+        </Kb.Text>
       </Kb.Box2>
     )
   }
@@ -421,7 +421,6 @@ const styles = Kb.Styles.styleSheetCreate(
       signedContainer: Kb.Styles.platformStyles({
         common: {
           flexShrink: 0,
-          justifyContent: 'center',
           minHeight: Kb.Styles.globalMargins.mediumLarge,
         },
         isMobile: {

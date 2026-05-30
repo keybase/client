@@ -10,6 +10,8 @@ import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBann
 import {
   beginRun,
   clearInputState,
+  createCommonState,
+  getStatusCodeMessage,
   maybeAutoRunTextOperation,
   nextInputState,
   nextOpenedFileState,
@@ -17,10 +19,6 @@ import {
   resetWarnings,
   useCommittedState,
   useSeededCryptoInput,
-} from './helpers'
-import {
-  createCommonState,
-  getStatusCodeMessage,
   type CommonOutputRouteParams,
   type CryptoInputRouteParams,
   type CommonState,
@@ -250,23 +248,13 @@ export const SignIO = () => {
             outputFileIcon="icon-file-saltpack-64"
             outputTextType="cipher"
             state={controller.state}
-            onChooseOutputFolder={destinationDir => {
-              const f = async () => {
-                await controller.sign(destinationDir)
-              }
-              C.ignorePromise(f())
-            }}
+            onChooseOutputFolder={destinationDir => C.ignorePromise(controller.sign(destinationDir) as unknown as Promise<void>)}
           />
           <CryptoOutputActionsBar
             canReplyInChat={false}
             canSaveAsText={true}
             state={controller.state}
-            onSaveAsText={() => {
-              const f = async () => {
-                await controller.saveOutputAsText()
-              }
-              C.ignorePromise(f())
-            }}
+            onSaveAsText={() => C.ignorePromise(controller.saveOutputAsText() as unknown as Promise<void>)}
           />
         </Kb.Box2>
       </Kb.Box2>

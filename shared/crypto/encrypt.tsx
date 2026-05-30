@@ -349,8 +349,8 @@ const EncryptOptionsPanel = ({
     setEncryptOptions({includeSelf: newIncludeSelf, sign: newSign})
   }
 
-  const direction = Kb.Styles.isTablet ? 'horizontal' : isMobile ? 'vertical' : 'horizontal'
-  const gap = Kb.Styles.isTablet ? 'medium' : isMobile ? 'xtiny' : 'medium'
+  const direction = isMobile && !Kb.Styles.isTablet ? 'vertical' : 'horizontal'
+  const gap = isMobile && !Kb.Styles.isTablet ? 'xtiny' : 'medium'
 
   return (
     <Kb.Box2
@@ -619,23 +619,13 @@ export const EncryptIO = () => {
             outputFileIcon="icon-file-saltpack-64"
             outputTextType="cipher"
             state={controller.state}
-            onChooseOutputFolder={destinationDir => {
-              const f = async () => {
-                await controller.runEncrypt(destinationDir)
-              }
-              C.ignorePromise(f())
-            }}
+            onChooseOutputFolder={destinationDir => C.ignorePromise(controller.runEncrypt(destinationDir) as unknown as Promise<void>)}
           />
           <CryptoOutputActionsBar
             canReplyInChat={false}
             canSaveAsText={true}
             state={controller.state}
-            onSaveAsText={() => {
-              const f = async () => {
-                await controller.saveOutputAsText()
-              }
-              C.ignorePromise(f())
-            }}
+            onSaveAsText={() => C.ignorePromise(controller.saveOutputAsText() as unknown as Promise<void>)}
           />
         </Kb.Box2>
       </Kb.Box2>
