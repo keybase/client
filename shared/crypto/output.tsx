@@ -71,7 +71,6 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
             direction="horizontal"
             gap={isSelfSigned ? 'xtiny' : 'xsmall'}
             alignItems="center"
-            style={styles.signedSender}
           >
             <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername} />
             {isSelfSigned ? (
@@ -100,7 +99,7 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
             )}
           </Kb.Box2>
         ) : (
-          <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
             <Kb.ImageIcon key="avatar" type="icon-placeholder-secret-user-16" />
             {isSelfSigned ? null : (
               <Kb.Text key="username" type="BodySmallSemibold">
@@ -445,7 +444,6 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
         },
       }),
-      signedSender: {alignItems: 'center'},
       toastText: {color: Kb.Styles.globalColors.white},
     }) as const
 )

@@ -72,17 +72,15 @@ const TeamBox = (props: Props) => {
   }, [prevLastRef, last])
 
   return isMobile ? (
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-        <Kb.ScrollView
-          horizontal={true}
-          alwaysBounceHorizontal={false}
-          ref={scrollViewRef}
-          contentContainerStyle={styles.scrollContent}
-        >
-          <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
-        </Kb.ScrollView>
-      </Kb.Box2>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+      <Kb.ScrollView
+        horizontal={true}
+        alwaysBounceHorizontal={false}
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+      </Kb.ScrollView>
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
@@ -99,7 +97,7 @@ const TeamBox = (props: Props) => {
           </Kb.Box2>
         </Kb.ScrollView>
       </Kb.Box2>
-      <Kb.Box2 direction="horizontal" fullHeight={true} style={{marginLeft: 'auto'}}>
+      <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.goButtonContainer}>
         {!!props.teamSoFar.length && (
           <GoButton
             label={props.goButtonLabel ?? 'Start'}
@@ -120,6 +118,7 @@ const styles = Kb.Styles.styleSheetCreate(
           overflow: 'hidden',
         },
       }),
+      goButtonContainer: {marginLeft: 'auto' as const},
       container: Kb.Styles.platformStyles({
         common: {
           backgroundColor: Kb.Styles.globalColors.blueGrey,

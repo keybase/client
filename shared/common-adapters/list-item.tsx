@@ -117,15 +117,7 @@ const afterStatusIconItemLeftDistance = statusIconWidth - (isMobile ? 10 : 14)
 
 const styles = Styles.styleSheetCreate(() => {
   const _styles = {
-    actionLargeContainer: {
-      alignItems: 'center',
-      flexGrow: 0,
-      flexShrink: 0,
-      justifyContent: 'flex-start',
-      marginRight: 8,
-      position: 'relative',
-    } as const,
-    actionSmallContainer: {
+    actionContainer: {
       alignItems: 'center',
       flexGrow: 0,
       flexShrink: 0,
@@ -266,21 +258,21 @@ const styles = Styles.styleSheetCreate(() => {
 
   const _actionStyles = {
     actionLargeIsGrowOnHover: {
-      ..._styles.actionLargeContainer,
+      ..._styles.actionContainer,
       ..._styles.heightLarge,
       justifyContent: 'flex-end',
     } as const,
     actionLargeNotGrowOnHover: {
-      ..._styles.actionLargeContainer,
+      ..._styles.actionContainer,
       ..._styles.heightLarge,
     } as const,
     actionSmallIsGrowOnHover: {
-      ..._styles.actionSmallContainer,
+      ..._styles.actionContainer,
       ..._styles.heightSmall,
       justifyContent: 'flex-end',
     } as const,
     actionSmallNotGrowOnHover: {
-      ..._styles.actionSmallContainer,
+      ..._styles.actionContainer,
       ..._styles.heightSmall,
     } as const,
   }

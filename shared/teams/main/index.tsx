@@ -62,30 +62,30 @@ const sortOrderToTitle = {
 }
 const SortHeader = ({onChangeSort, sortOrder}: {onChangeSort: Props['onChangeSort']; sortOrder: Props['sortOrder']}) => {
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          items={[
-            {icon: 'iconfont-team', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
-            {
-              icon: 'iconfont-campfire',
-              onClick: () => onChangeSort('activity'),
-              title: sortOrderToTitle.activity,
-            },
-            {
-              icon: 'iconfont-sort-alpha',
-              onClick: () => onChangeSort('alphabetical'),
-              title: sortOrderToTitle.alphabetical,
-            },
-          ]}
-          closeOnSelect={true}
-          onHidden={hidePopup}
-          visible={true}
-          position="bottom left"
-        />
-      )
-    }
+    const {attachTo, hidePopup} = p
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        items={[
+          {icon: 'iconfont-team', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
+          {
+            icon: 'iconfont-campfire',
+            onClick: () => onChangeSort('activity'),
+            title: sortOrderToTitle.activity,
+          },
+          {
+            icon: 'iconfont-sort-alpha',
+            onClick: () => onChangeSort('alphabetical'),
+            title: sortOrderToTitle.alphabetical,
+          },
+        ]}
+        closeOnSelect={true}
+        onHidden={hidePopup}
+        visible={true}
+        position="bottom left"
+      />
+    )
+  }
 
   const {popup, showPopup, popupAnchor} = Kb.usePopup2(makePopup)
   return (

@@ -68,11 +68,12 @@ const Announcement = (props: OwnProps) => {
     dismissAnnouncement(id)
     getData(true, true)
   }
-  const _onDismiss = () => {
-    dismissAnnouncement(id)
-    getData(true, true)
-  }
-  const onDismiss = dismissable ? _onDismiss : undefined
+  const onDismiss = dismissable
+    ? () => {
+        dismissAnnouncement(id)
+        getData(true, true)
+      }
+    : undefined
 
   return (
     <PeopleItem

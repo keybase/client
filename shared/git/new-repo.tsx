@@ -9,7 +9,7 @@ import {useTeamsList} from '@/teams/use-teams-list'
 type OwnProps = {isTeam: boolean}
 const NewTeamSentry = '---NewTeam---'
 
-const Container = (ownProps: OwnProps) => {
+const NewRepo = (ownProps: OwnProps) => {
   const {isTeam} = ownProps
   const [error, setError] = React.useState('')
   const {teams: loadedTeams} = useTeamsList()
@@ -17,31 +17,21 @@ const Container = (ownProps: OwnProps) => {
     () => loadedTeams.map(team => team.teamname).sort(Teams.sortTeamnames),
     [loadedTeams]
   )
-  const waitingKey = C.waitingKeyGitLoading
   const navigateUp = C.Router2.navigateUp
   const createPersonalRepo = C.useRPC(T.RPCGen.gitCreatePersonalRepoRpcPromise)
   const createTeamRepo = C.useRPC(T.RPCGen.gitCreateTeamRepoRpcPromise)
-  const onClose = navigateUp
   const onCreate = (name: string, teamname: string, notifyTeam: boolean) => {
     if (isTeam && teamname) {
       createTeamRepo(
-        [{notifyTeam, repoName: name, teamName: {parts: teamname.split('.')}}, waitingKey],
-        () => {
-          navigateUp()
-        },
-        err => {
-          setError(err.message)
-        }
+        [{notifyTeam, repoName: name, teamName: {parts: teamname.split('.')}}, C.waitingKeyGitLoading],
+        navigateUp,
+        err => setError(err.message)
       )
     } else {
       createPersonalRepo(
-        [{repoName: name}, waitingKey],
-        () => {
-          navigateUp()
-        },
-        err => {
-          setError(err.message)
-        }
+        [{repoName: name}, C.waitingKeyGitLoading],
+        navigateUp,
+        err => setError(err.message)
       )
     }
   }
@@ -61,7 +51,7 @@ const Container = (ownProps: OwnProps) => {
   const makeDropdownItem = (item?: string) => {
     if (!item) {
       return (
-        <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={{paddingLeft: Kb.Styles.globalMargins.xsmall}} justifyContent="flex-start">
+        <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.avatarBox} justifyContent="flex-start">
           <Kb.Text type="BodyBig">Pick a team</Kb.Text>
         </Kb.Box2>
       )
@@ -69,7 +59,7 @@ const Container = (ownProps: OwnProps) => {
 
     if (item === NewTeamSentry) {
       return (
-        <Kb.Text key={NewTeamSentry} type="Header" style={{paddingLeft: Kb.Styles.globalMargins.small}}>
+        <Kb.Text key={NewTeamSentry} type="Header" style={styles.newTeamItem}>
           New team...
         </Kb.Text>
       )
@@ -81,22 +71,9 @@ const Container = (ownProps: OwnProps) => {
           isTeam={true}
           teamname={item}
           size={16}
-          style={{marginRight: Kb.Styles.globalMargins.tiny}}
+          style={styles.teamAvatar}
         />
-        <Kb.Text
-          type="Header"
-          style={Kb.Styles.platformStyles({
-            common: {
-              overflow: 'hidden',
-              width: '100%',
-            },
-            isElectron: {
-              display: 'block',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            },
-          })}
-        >
+        <Kb.Text type="Header" style={styles.teamName}>
           {item}
         </Kb.Text>
       </Kb.Box2>
@@ -124,14 +101,14 @@ const Container = (ownProps: OwnProps) => {
     <Kb.ScrollView>
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
         {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
-        <Kb.Text type="Header" style={{marginBottom: 27}}>
+        <Kb.Text type="Header" style={styles.marginBottom27}>
           New {isTeam ? 'team' : 'personal'} git repository
         </Kb.Text>
         <Kb.IconAuto
           type={isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
-          style={styles.addIcon}
+          style={styles.marginBottom27}
         />
-        <Kb.Text type="Body" style={{marginBottom: 27}}>
+        <Kb.Text type="Body" style={styles.marginBottom27}>
           {isTeam
             ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
             : 'Your repository will be encrypted and only accessible by you.'}
@@ -162,16 +139,16 @@ const Container = (ownProps: OwnProps) => {
         <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
           <Kb.WaitingButton
             type="Dim"
-            onClick={onClose}
+            onClick={navigateUp}
             label="Cancel"
-            waitingKey={waitingKey}
+            waitingKey={C.waitingKeyGitLoading}
             onlyDisable={true}
           />
           <Kb.WaitingButton
             onClick={onSubmit}
             label="Create"
             disabled={!canSubmit()}
-            waitingKey={waitingKey}
+            waitingKey={C.waitingKeyGitLoading}
           />
         </Kb.ButtonBar>
       </Kb.Box2>
@@ -182,7 +159,6 @@ const Container = (ownProps: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      addIcon: {marginBottom: 27},
       avatarBox: {
         paddingLeft: Kb.Styles.globalMargins.xsmall,
         paddingRight: Kb.Styles.globalMargins.small,
@@ -210,7 +186,21 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.small,
         width: '100%',
       },
+      marginBottom27: {marginBottom: 27},
+      newTeamItem: {paddingLeft: Kb.Styles.globalMargins.small},
+      teamAvatar: {marginRight: Kb.Styles.globalMargins.tiny},
+      teamName: Kb.Styles.platformStyles({
+        common: {
+          overflow: 'hidden',
+          width: '100%',
+        },
+        isElectron: {
+          display: 'block',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        },
+      }),
     }) as const
 )
 
-export default Container
+export default NewRepo

@@ -280,19 +280,17 @@ export const Settings = (p: Props) => {
         )}
         {yourOperations.chat && (
           <RetentionPicker
-            containerStyle={{marginTop: Kb.Styles.globalMargins.small}}
+            containerStyle={styles.retentionPicker}
             showSaveIndicator={false}
             teamID={teamID}
             entityType={isBigTeam ? 'big team' : 'small team'}
           />
         )}
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" gapStart={true}>
-          {isBigTeam && (
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <DefaultChannels teamID={teamID} />
-            </Kb.Box2>
-          )}
-        </Kb.Box2>
+        {isBigTeam && (
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" gapStart={true}>
+            <DefaultChannels teamID={teamID} />
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -300,6 +298,7 @@ export const Settings = (p: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   grey: {color: Kb.Styles.globalColors.black_50},
+  retentionPicker: {marginTop: Kb.Styles.globalMargins.small},
   joinAs: Kb.Styles.platformStyles({
     isElectron: {paddingRight: Kb.Styles.globalMargins.xtiny},
   }),

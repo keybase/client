@@ -87,13 +87,6 @@ const ConnectedEnterPhoneNumber = () => {
       navigateAppend({name: 'signupVerifyPhoneNumber', params: {phoneNumber: submittedPhoneNumber}})
     })
   }
-  const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
-    if (error) {
-      clearError()
-    }
-    onChangePhoneNumber(phoneNumber)
-    onChangeValidity(validity)
-  }
   return (
     <SignupScreen
       buttons={[
@@ -114,7 +107,11 @@ const ConnectedEnterPhoneNumber = () => {
       <EnterPhoneNumberBody
         autoFocus={!isMobile}
         defaultCountry={defaultCountry}
-        onChangeNumber={onChangeNumberCb}
+        onChangeNumber={(phoneNumber, validity) => {
+          if (error) clearError()
+          onChangePhoneNumber(phoneNumber)
+          onChangeValidity(validity)
+        }}
         onContinue={onContinue}
         searchable={true}
         iconType={C.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}

@@ -105,7 +105,7 @@ const AudioPlayer = (props: Props) => {
           color={url ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.grey}
         />
       </Kb.ClickableBox3>
-      <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny" fullHeight={true} justifyContent="flex-end">
+      <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.visContainer} gap="xxtiny" fullHeight={true} justifyContent="flex-end">
         <AudioVis height={big ? 32 : 18} amps={visAmps} maxWidth={maxWidth} playedRatio={playedRatio} />
         <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
       </Kb.Box2>
@@ -123,7 +123,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     backgroundColor: Kb.Styles.globalColors.white,
   },
   visContainer: {
-    alignItems: 'flex-start',
     minWidth: 40,
   },
 }))

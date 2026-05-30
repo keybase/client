@@ -12,7 +12,7 @@ const Placeholder = (props: PlaceholderProps) => (
     style={Styles.collapseStyles([
       styles.placeholder,
       props.style,
-      ...(props.width ? [{width: props.width}] : []),
+      props.width ? {width: props.width} : undefined,
     ])}
   />
 )

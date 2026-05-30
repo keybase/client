@@ -88,7 +88,7 @@ const PinnedMessage = function PinnedMessage() {
   const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 30) : undefined
   const pin = (
     <Kb.ClickableBox3 direction="horizontal" fullWidth={true} gap="tiny" className="hover_container" onClick={onClick} style={styles.container}>
-      <Kb.Box2 direction="horizontal" style={styles.blueBar} />
+      <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.blueBar} />
       {!!imageURL && (
         <Kb.Box2 direction="vertical" overflow="hidden" relative={true}>
           <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
@@ -177,7 +177,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       author: {color: Kb.Styles.globalColors.black},
       blueBar: {
-        alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.blue,
         width: Kb.Styles.globalMargins.xtiny,
       },

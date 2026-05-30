@@ -9,6 +9,7 @@ import isEqual from 'lodash/isEqual'
 import {clientID as fsClientID, makeUUID} from './client'
 import {FsDaemonProvider, useFsDaemonActions, useKbfsDaemonStatus} from './daemon'
 import {useFsErrorActionOrThrow} from './error-state'
+import {rpcPathToPath} from './rpc-state'
 
 type FsStatusState = {
   generation: number
@@ -37,8 +38,6 @@ const emptyFsStatusState = makeInitialFsStatusState()
 
 const FsOverallSyncStatusContext = React.createContext<T.FS.OverallSyncStatus | undefined>(undefined)
 const FsUploadStatusContext = React.createContext<T.FS.Uploads | undefined>(undefined)
-
-const rpcPathToPath = (rpcPath: T.RPCGen.KBFSPath) => T.FS.pathConcat(Constants.defaultPath, rpcPath.path)
 
 const unsubscribe = (subscriptionID: string) => {
   C.ignorePromise(

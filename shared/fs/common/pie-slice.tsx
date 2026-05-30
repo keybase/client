@@ -35,18 +35,9 @@ const Slice = (props: Props) => {
   )
 }
 
-const AnimatedPieSlice = (props: Props) => {
-  const {degrees} = props
-  return <Slice degrees={degrees} style={props.style} negative={props.negative} />
-}
-
-const PieSlice = (props: Props) => {
-  return props.animated ? (
-    <AnimatedPieSlice {...props} />
-  ) : (
-    <Slice degrees={props.degrees} style={props.style} negative={props.negative} />
-  )
-}
+const PieSlice = (props: Props) => (
+  <Slice degrees={props.degrees} style={props.style} negative={props.negative} />
+)
 const pieSize = isMobile ? 16 : 12
 const pieHalfSize = isMobile ? 8 : 6
 const stylePieHalf = {

@@ -36,9 +36,9 @@ const TeamRow = function TeamRow(props: Props) {
   const onChat = () => previewConversation({reason: 'teamRow', teamname: teamMeta.teamname})
 
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return <TeamMenu teamID={teamID} attachTo={attachTo} onHidden={hidePopup} visible={true} />
-    }
+    const {attachTo, hidePopup} = p
+    return <TeamMenu teamID={teamID} attachTo={attachTo} onHidden={hidePopup} visible={true} />
+  }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
 
   const crownIconType: Kb.IconType | undefined =

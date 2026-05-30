@@ -12,7 +12,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 
-
 type TodoOwnProps = {
   badged: boolean
   confirmLabel: string
@@ -52,7 +51,6 @@ function makeDefaultButtons(
   }
   return result
 }
-
 
 type BasicTaskProps = TodoOwnProps & {
   dismissLabel?: string

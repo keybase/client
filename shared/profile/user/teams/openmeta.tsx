@@ -1,11 +1,6 @@
 import * as Kb from '@/common-adapters'
 
-type Props = {
-  isOpen: boolean
-  style?: Kb.Styles.StylesCrossPlatform
-}
-
-const OpenMeta = ({isOpen}: Props) =>
+const OpenMeta = ({isOpen}: {isOpen: boolean}) =>
   isOpen ? <Kb.Meta backgroundColor={Kb.Styles.globalColors.green} title="open" style={styles.meta} /> : null
 
 const styles = Kb.Styles.styleSheetCreate(

@@ -31,11 +31,9 @@ const Bio = (props: Props) => {
   } = props
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.container} centerChildren={true} gap="xtiny">
-      <Kb.Box2 direction="horizontal" style={styles.fullNameBio} gap="tiny">
-        <Kb.Text center={true} type="BodyBig" lineClamp={inTracker ? 1 : undefined} selectable={true}>
-          {fullname}
-        </Kb.Text>
-      </Kb.Box2>
+      <Kb.Text center={true} type="BodyBig" lineClamp={inTracker ? 1 : undefined} selectable={true} style={styles.fullNameBio}>
+        {fullname}
+      </Kb.Text>
       <FollowText followThem={followThem} followsYou={followsYou} />
       {followersCount !== undefined && (
         <Kb.Text type="BodySmall">

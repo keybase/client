@@ -93,8 +93,8 @@ type ExpandedState = {
   expandedSet: Set<string>
 }
 
-const Container = (ownProps: OwnProps) => {
-const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
+const GitRoot = (ownProps: OwnProps) => {
+  const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
   const loadGit = C.useRPC(T.RPCGen.gitGetAllGitMetadataRpcPromise)
   const clearGitBadges = C.useRPC(T.RPCGen.gregorDismissCategoryRpcPromise)
   const [error, setError] = React.useState<Error | undefined>()
@@ -197,7 +197,7 @@ const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
           <Kb.ClickableBox3 ref={popupAnchor} direction="horizontal" centerChildren={true} noShrink={true} style={styles.header} onClick={showPopup}>
             <Kb.Icon
               type="iconfont-new"
-              style={{marginRight: Kb.Styles.globalMargins.tiny}}
+              style={styles.newIcon}
               color={Kb.Styles.globalColors.blue}
               fontSize={20}
             />
@@ -240,7 +240,8 @@ const styles = Kb.Styles.styleSheetCreate(
       header: {
         height: 48,
       },
+      newIcon: {marginRight: Kb.Styles.globalMargins.tiny},
     }) as const
 )
 
-export default Container
+export default GitRoot

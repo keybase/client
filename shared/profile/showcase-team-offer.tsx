@@ -77,16 +77,14 @@ const TeamRow = (p: RowProps) => {
           </Kb.Box2>
         </Kb.Box2>
         {showcased || canShowcase || waiting ? (
-          <Kb.Box2 direction="vertical">
-            <Kb.Button
-              label={showcased ? 'Featured' : 'Feature'}
-              onClick={() => onPromote(!showcased)}
-              small={true}
-              type="Success"
-              mode={showcased ? 'Secondary' : 'Primary'}
-              waiting={waiting}
-            />
-          </Kb.Box2>
+          <Kb.Button
+            label={showcased ? 'Featured' : 'Feature'}
+            onClick={() => onPromote(!showcased)}
+            small={true}
+            type="Success"
+            mode={showcased ? 'Secondary' : 'Primary'}
+            waiting={waiting}
+          />
         ) : (
           <Kb.Box2 direction="vertical" style={styles.membershipTextShowcaseTeamOffer}>
             <Kb.Text style={styles.membershipText} type="BodySmall">

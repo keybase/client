@@ -8,7 +8,7 @@ import {usePhoneVerification} from './use-verification'
 
 type Props = {route: {params: {phoneNumber: string}}}
 
-const Container = ({route}: Props) => {
+const VerifyPhoneNumber = ({route}: Props) => {
   const {phoneNumber} = route.params
   const resendWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneResendVerification)
   const verifyWaiting = C.Waiting.useAnyWaiting(C.waitingKeySettingsPhoneVerifyPhoneNumber)
@@ -56,7 +56,7 @@ const Container = ({route}: Props) => {
           <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
             {displayPhone}
           </Kb.Text>
-          <Kb.Box2 direction="horizontal" style={Kb.Styles.globalStyles.flexOne} />
+          <Kb.Box2 direction="horizontal" flex={1} />
         </Kb.Box2>
       }
       negativeHeader={true}
@@ -83,4 +83,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default VerifyPhoneNumber

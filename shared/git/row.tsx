@@ -107,7 +107,7 @@ function ConnectedRow(ownProps: OwnProps) {
 
   const canEdit = canDelete && !!teamname
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
+    <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.containerMobile}>
         <Kb.Box2
           direction="vertical"
@@ -129,24 +129,24 @@ function ConnectedRow(ownProps: OwnProps) {
               styles.rowTop,
             ])}
           >
-              <Kb.Icon
-                type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-                style={styles.iconCaret}
-                sizeType="Tiny"
-              />
-              <Kb.Avatar
-                size={isMobile ? 48 : 32}
-                isTeam={!!teamname}
-                teamname={teamname}
-                username={teamname ? undefined : you}
-                style={styles.iconTiny}
-              />
-              <Kb.Text lineClamp={1} type="BodySemibold" style={{color: Kb.Styles.globalColors.black}}>
-                {teamname ? `${teamname}/${name}` : name}
-              </Kb.Text>
-              {isNew && (
-                <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
-              )}
+            <Kb.Icon
+              type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+              style={styles.iconCaret}
+              sizeType="Tiny"
+            />
+            <Kb.Avatar
+              size={isMobile ? 48 : 32}
+              isTeam={!!teamname}
+              teamname={teamname}
+              username={teamname ? undefined : you}
+              style={styles.iconTiny}
+            />
+            <Kb.Text lineClamp={1} type="BodySemibold" style={styles.repoName}>
+              {teamname ? `${teamname}/${name}` : name}
+            </Kb.Text>
+            {isNew && (
+              <Kb.Meta title="new" style={styles.meta} backgroundColor={Kb.Styles.globalColors.orange} />
+            )}
           </Kb.ClickableBox3>
           {expanded && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowBottom}>
@@ -155,13 +155,11 @@ function ConnectedRow(ownProps: OwnProps) {
                 fullWidth={true}
                 alignItems="center"
                 relative={true}
-                style={{
-                  maxWidth: '100%',
-                }}
+                style={styles.cloneRow}
               >
                 <Kb.Text type="Body">Clone:</Kb.Text>
                 <Kb.Box2 direction="horizontal" style={styles.copyTextContainer}>
-                  <Kb.CopyText text={gitURL} containerStyle={{width: '100%'}} />
+                  <Kb.CopyText text={gitURL} containerStyle={styles.copyTextWidth} />
                 </Kb.Box2>
               </Kb.Box2>
               <Kb.Box2
@@ -169,10 +167,7 @@ function ConnectedRow(ownProps: OwnProps) {
                 fullWidth={true}
                 alignItems="center"
                 alignSelf="flex-start"
-                style={{
-                  flexWrap: 'wrap',
-                  marginTop: Kb.Styles.globalMargins.tiny,
-                }}
+                style={styles.lastPushRow}
               >
                 <Kb.Text type="BodySmall">
                   {`Last push ${lastEditTime}${!!teamname && !!lastEditUser ? ' by ' : ''}`}
@@ -181,7 +176,7 @@ function ConnectedRow(ownProps: OwnProps) {
                   <Kb.Avatar
                     username={lastEditUser}
                     size={16}
-                    style={{marginLeft: isMobile ? 0 : 4}}
+                    style={styles.lastEditAvatar}
                   />
                 )}
                 {!!teamname && !!lastEditUser && (
@@ -191,7 +186,7 @@ function ConnectedRow(ownProps: OwnProps) {
                     colorFollowing={true}
                     usernames={lastEditUser}
                     onUsernameClicked={() => openUserProfile(lastEditUser)}
-                    containerStyle={{marginLeft: 2}}
+                    containerStyle={styles.usernameContainer}
                   />
                 )}
                 {isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
@@ -240,7 +235,7 @@ function ConnectedRow(ownProps: OwnProps) {
               <Kb.Box2
                 direction="horizontal"
                 fullWidth={true}
-                style={{marginTop: Kb.Styles.globalMargins.tiny}}
+                style={styles.actionRow}
                 gap="tiny"
               >
                 <Kb.Button
@@ -290,13 +285,16 @@ function ConnectedRow(ownProps: OwnProps) {
         fullWidth={true}
         style={expanded ? styles.expandedSpacer : undefined}
       />
-    </Kb.Box2>
+    </>
   )
 }
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
+      actionRow: {marginTop: Kb.Styles.globalMargins.tiny},
+      cloneRow: {maxWidth: '100%'},
+      copyTextWidth: {width: '100%'},
       containerMobile: Kb.Styles.platformStyles({
         isMobile: {
           ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
@@ -318,6 +316,14 @@ const styles = Kb.Styles.styleSheetCreate(
         backgroundColor: Kb.Styles.globalColors.blueLighter3,
         height: 6,
       },
+      lastEditAvatar: Kb.Styles.platformStyles({
+        isElectron: {marginLeft: 4},
+      }),
+      lastPushRow: {
+        flexWrap: 'wrap',
+        marginTop: Kb.Styles.globalMargins.tiny,
+      },
+      repoName: {color: Kb.Styles.globalColors.black},
       iconCaret: Kb.Styles.platformStyles({
         common: {
           marginBottom: 2,
@@ -344,6 +350,7 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingTop: Kb.Styles.globalMargins.tiny,
       },
 
+      usernameContainer: {marginLeft: 2},
       rowStyle: {
         minHeight: Kb.Styles.globalMargins.large,
         paddingLeft: 0,

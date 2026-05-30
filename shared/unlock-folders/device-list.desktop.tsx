@@ -16,48 +16,49 @@ const DeviceRow = ({device}: {device: UnlockFolderDevice}) => {
   )[device.type]
 
   return (
-    <div style={{...Kb.Styles.globalStyles.flexBoxRow, marginBottom: 16}}>
-      <div style={styles.iconWrapper}>
+    <Kb.Box2 direction="horizontal" style={styles.deviceRow}>
+      <Kb.Box2 direction="horizontal" alignItems="center" justifyContent="center" style={styles.iconWrapper}>
         <Kb.ImageIcon type={icon} style={{height: 22}} />
-      </div>
-      <Kb.Text type="BodySemibold" style={{marginLeft: 16}}>
+      </Kb.Box2>
+      <Kb.Text type="BodySemibold" style={styles.deviceName}>
         {device.name}
       </Kb.Text>
-    </div>
+    </Kb.Box2>
   )
 }
 
 const DeviceList = (props: Props) => (
-  <div style={{...Kb.Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
+  <Kb.Box2 direction="vertical" alignItems="center">
     <Kb.Text center={true} type="Body" style={styles.infoText}>
       This computer and possibly others are unable to read some of your folders. To avoid losing data forever,
       please turn on one of the devices below:
     </Kb.Text>
-    <div style={Kb.Styles.collapseStylesDesktop([styles.devicesContainer])}>
+    <Kb.Box2 direction="vertical" style={styles.devicesContainer}>
       {props.devices.map(d => (
         <DeviceRow key={d.deviceID} device={d} />
       ))}
-    </div>
-    <div style={styles.buttonsContainer}>
+    </Kb.Box2>
+    <Kb.Box2 direction="horizontal" style={styles.buttonsContainer}>
       <Kb.Button
         type="Dim"
         label="Enter a paper key instead"
         style={styles.enterPaperKey}
         onClick={props.toPaperKeyInput}
       />
-    </div>
-  </div>
+    </Kb.Box2>
+  </Kb.Box2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       buttonsContainer: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
         alignSelf: 'center',
         marginRight: 30,
         marginTop: Kb.Styles.globalMargins.small,
       },
+      deviceName: {marginLeft: 16},
+      deviceRow: {marginBottom: 16},
       devicesContainer: Kb.Styles.platformStyles({
         isElectron: {
           alignSelf: 'center',
@@ -75,8 +76,6 @@ const styles = Kb.Styles.styleSheetCreate(
         width: 236,
       },
       iconWrapper: {
-        display: 'flex',
-        justifyContent: 'center',
         marginLeft: 33,
         width: 24,
       },

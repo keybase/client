@@ -63,11 +63,7 @@ export const ContactRestricted = (props: Props) => {
                 type={isMobile ? 'Large' : 'Small'}
                 icon={<Kb.Avatar size={isMobile ? 48 : 32} username={username} />}
                 firstItem={idx === 0}
-                body={
-                  <Kb.Box2 direction="vertical" fullWidth={true}>
-                    <Kb.Text type="BodySemibold">{username}</Kb.Text>
-                  </Kb.Box2>
-                }
+                body={<Kb.Text type="BodySemibold">{username}</Kb.Text>}
               />
             ))}
           </>
@@ -114,12 +110,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-const ContactContainer = (ownProps: Props) => {
-  const props = {
-    source: ownProps.source,
-    usernames: ownProps.usernames,
-  }
-  return <ContactRestricted {...props} />
-}
-
-export default ContactContainer
+export default ContactRestricted

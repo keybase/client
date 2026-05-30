@@ -7,7 +7,7 @@ type Props = {
   // Desktop only
   icon?: IconType
   isSelected?: boolean
-  // Moible only
+  // Mobile only
   description?: string
   illustration?: IconType
   onClick: () => void
@@ -44,6 +44,7 @@ const NavRow = (props: Props) => {
             direction="vertical"
             fullHeight={true}
             fullWidth={true}
+            justifyContent="center"
             style={styles.desktopItemBody}
           >
             <Kb.Text
@@ -81,7 +82,6 @@ const NavRow = (props: Props) => {
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   desktopItemBody: {
-    justifyContent: 'center',
     marginLeft: Kb.Styles.globalMargins.tiny,
   },
 }))

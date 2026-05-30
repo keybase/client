@@ -300,7 +300,7 @@ function EmojiPicker(props: Props) {
   }
 
   const getSectionHeader = (title: string) => (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.sectionHeader}>
       <Kb.Text type="BodySmallSemibold">{title}</Kb.Text>
     </Kb.Box2>
   )
@@ -455,7 +455,6 @@ const styles = Kb.Styles.styleSheetCreate(
         ...Kb.Styles.padding(Kb.Styles.globalMargins.medium, 0),
       },
       sectionHeader: {
-        alignItems: 'center',
         backgroundColor: Kb.Styles.globalColors.white,
         height: 32,
         paddingLeft: Kb.Styles.globalMargins.tiny,

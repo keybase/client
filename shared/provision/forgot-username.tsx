@@ -71,7 +71,7 @@ const ForgotUsername = () => {
           label: 'Recover username',
           onClick: onSubmit,
           type: 'Default',
-          waiting: waiting,
+          waiting,
         },
       ]}
       onBack={onBack}

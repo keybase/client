@@ -34,10 +34,7 @@ const DeleteHistoryWarning = (props: Props) => {
   return (
     <Kb.Box2
       direction="vertical"
-      style={Kb.Styles.collapseStyles([
-        styles.padding,
-        styles.box,
-      ])}
+      style={Kb.Styles.collapseStyles([styles.padding, styles.box])}
     >
       <Kb.ImageIcon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
       <Kb.Text style={{padding: Kb.Styles.globalMargins.small}} type="Header">

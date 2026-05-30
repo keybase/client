@@ -19,37 +19,24 @@ type OwnProps = {
   username: string
 }
 
-const Container = (ownProps: OwnProps) => {
+const Actions = (ownProps: OwnProps) => {
   const {blocked, followThem, followsYou, guiID, hidFromFollowers, onReload, state, username} = ownProps
   const isBot = !!useFeaturedBot(username)
-  const _you = useCurrentUserState(s => s.username)
+  const you = useCurrentUserState(s => s.username)
 
   const navigateAppend = C.Router2.navigateAppend
-  const _onAddToTeam = (username: string) => navigateAppend({name: 'profileAddToTeam', params: {username}})
-  const _onBrowsePublicFolder = (username: string) =>
-    FS.navToPath(T.FS.stringToPath(`/keybase/public/${username}`))
-  const _onEditProfile = () => navigateAppend({name: 'profileEdit', params: {}})
-
   const followUser = C.useRPC(T.RPCGen.identify3Identify3FollowUserRpcPromise)
-  const _onFollow = (follow: boolean) => {
-    followUser([{follow, guiID}, C.waitingKeyTracker], onReload, () => {})
-  }
-  const _onInstallBot = (username: string) => {
-    navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
-  }
-  const _onManageBlocking = (username: string) =>
-    navigateAppend({name: 'chatBlockingModal', params: {username}})
-  const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
-    FS.navToPath(T.FS.stringToPath(`/keybase/private/${theirUsername},${myUsername}`))
-  const onAccept = () => _onFollow(true)
-  const onAddToTeam = () => _onAddToTeam(username)
-  const onBrowsePublicFolder = () => _onBrowsePublicFolder(username)
-  const onEditProfile = _you === username ? _onEditProfile : undefined
-  const onFollow = () => _onFollow(true)
-  const onInstallBot = () => _onInstallBot(username)
-  const onManageBlocking = () => _onManageBlocking(username)
-  const onOpenPrivateFolder = () => _onOpenPrivateFolder(_you, username)
-  const onUnfollow = () => _onFollow(false)
+  const follow = (f: boolean) => followUser([{follow: f, guiID}, C.waitingKeyTracker], onReload, () => {})
+
+  const onAccept = () => follow(true)
+  const onAddToTeam = () => navigateAppend({name: 'profileAddToTeam', params: {username}})
+  const onBrowsePublicFolder = () => FS.navToPath(T.FS.stringToPath(`/keybase/public/${username}`))
+  const onEditProfile = you === username ? () => navigateAppend({name: 'profileEdit', params: {}}) : undefined
+  const onFollow = () => follow(true)
+  const onInstallBot = () => navigateAppend({name: 'chatInstallBotPick', params: {botUsername: username}})
+  const onManageBlocking = () => navigateAppend({name: 'chatBlockingModal', params: {username}})
+  const onOpenPrivateFolder = () => FS.navToPath(T.FS.stringToPath(`/keybase/private/${username},${you}`))
+  const onUnfollow = () => follow(false)
 
   if (blocked) {
     return (
@@ -221,4 +208,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   dropdownButton: {minWidth: undefined},
 }))
 
-export default Container
+export default Actions

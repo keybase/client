@@ -510,15 +510,13 @@ const TeamRow = (p: {checked: boolean; isOpen: boolean; name: string; onCheck: (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
       <Kb.Checkbox checked={checked} onCheck={checked => onCheck(checked)} style={styles.teamCheckbox} />
       <Kb.Avatar isTeam={true} size={isMobile ? 32 : 24} teamname={name} />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
-          <Kb.Text type="BodySemibold" lineClamp={1}>
-            {name}
-          </Kb.Text>
-          {isOpen && (
-            <Kb.Meta title="open" style={styles.teamMeta} backgroundColor={Kb.Styles.globalColors.green} />
-          )}
-        </Kb.Box2>
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignSelf="center" style={styles.teamNameContainer}>
+        <Kb.Text type="BodySemibold" lineClamp={1}>
+          {name}
+        </Kb.Text>
+        {isOpen && (
+          <Kb.Meta title="open" style={styles.teamMeta} backgroundColor={Kb.Styles.globalColors.green} />
+        )}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -560,16 +558,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginTop: 2,
   },
   teamNameContainer: {
-    alignSelf: 'center',
     flexShrink: 1,
     marginLeft: Kb.Styles.globalMargins.tiny,
     marginRight: Kb.Styles.globalMargins.small,
   },
   teamRowContainer: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.xtiny, isMobile ? Kb.Styles.globalMargins.large : 48),
-  },
-  teamText: {
-    alignSelf: 'flex-start',
   },
   whitelist: Kb.Styles.platformStyles({
     common: {

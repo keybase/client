@@ -344,11 +344,6 @@ const EncryptOptionsPanel = ({
   setEncryptOptions: (options: {includeSelf?: boolean; sign?: boolean}, hideIncludeSelf?: boolean) => void
   sign: boolean
 }) => {
-  const onSetOptions = (opts: {newIncludeSelf: boolean; newSign: boolean}) => {
-    const {newIncludeSelf, newSign} = opts
-    setEncryptOptions({includeSelf: newIncludeSelf, sign: newSign})
-  }
-
   const direction = isMobile && !Kb.Styles.isTablet ? 'vertical' : 'horizontal'
   const gap = isMobile && !Kb.Styles.isTablet ? 'xtiny' : 'medium'
 
@@ -365,14 +360,14 @@ const EncryptOptionsPanel = ({
           label="Include yourself"
           disabled={inProgress || hasSBS || !hasRecipients}
           checked={hasSBS || includeSelf}
-          onCheck={newValue => onSetOptions({newIncludeSelf: newValue, newSign: sign})}
+          onCheck={newValue => setEncryptOptions({includeSelf: newValue, sign})}
         />
       )}
       <Kb.Checkbox
         label="Sign"
         disabled={inProgress || hasSBS}
         checked={sign}
-        onCheck={newValue => onSetOptions({newIncludeSelf: includeSelf, newSign: newValue})}
+        onCheck={newValue => setEncryptOptions({includeSelf, sign: newValue})}
       />
     </Kb.Box2>
   )
@@ -454,9 +449,6 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
   const blurCBRef = React.useRef(() => {})
   const navigateAppend = C.Router2.navigateAppend
   const appendEncryptRecipientsBuilder = C.Router2.appendEncryptRecipientsBuilder
-  const setBlurCB = (cb: () => void) => {
-    blurCBRef.current = cb
-  }
 
   const onRun = () => {
     const f = async () => {
@@ -507,7 +499,7 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
         fileIcon={inputFileIcon}
         inputPlaceholder={inputPlaceholder}
         state={controller.state}
-        setBlurCB={setBlurCB}
+        setBlurCB={(cb: () => void) => { blurCBRef.current = cb }}
         textInputType="plain"
         onSetInput={controller.setInput}
         onClearInput={controller.clearInput}

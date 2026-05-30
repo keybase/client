@@ -6,21 +6,14 @@ import * as FS from '@/constants/fs'
 type Props = {
   onClick: () => void
   path: T.FS.Path
-  pathItem: T.FS.PathItem
   style?: Kb.Styles.StylesCrossPlatform
 }
 
-const FolderViewFilterIcon = (props: Props) =>
-  FS.isFolder(props.path, props.pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
+const FolderViewFilterIcon = (props: Props) => {
+  const pathItem = useFsPathItem(props.path)
+  return FS.isFolder(props.path, pathItem) && T.FS.getPathLevel(props.path) > 1 ? (
     <Kb.Icon type="iconfont-filter" onClick={props.onClick} padding="tiny" style={props.style} />
   ) : null
-
-type OwnProps = Omit<Props, 'pathItem'>
-
-const Container = (ownProps: OwnProps) => {
-  const {path} = ownProps
-  const pathItem = useFsPathItem(path)
-  return <FolderViewFilterIcon {...ownProps} pathItem={pathItem} />
 }
 
-export default Container
+export default FolderViewFilterIcon

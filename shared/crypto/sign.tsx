@@ -147,9 +147,6 @@ export const SignInput = (_props: unknown) => {
   const controller = useSignState(params)
   const blurCBRef = React.useRef(() => {})
   const navigateAppend = C.Router2.navigateAppend
-  const setBlurCB = (cb: () => void) => {
-    blurCBRef.current = cb
-  }
 
   const onRun = () => {
     const f = async () => {
@@ -170,7 +167,7 @@ export const SignInput = (_props: unknown) => {
         fileIcon={inputFileIcon}
         inputPlaceholder={inputPlaceholder}
         state={controller.state}
-        setBlurCB={setBlurCB}
+        setBlurCB={(cb: () => void) => { blurCBRef.current = cb }}
         textInputType="plain"
         onSetInput={controller.setInput}
         onClearInput={controller.clearInput}

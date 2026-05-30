@@ -13,16 +13,11 @@ const ReloginContainer = () => {
   const _users = useConfigState(s => s.configuredAccounts)
   const perror = useConfigState(s => s.loginError)
   const pselectedUser = useConfigState(s => s.defaultUsername)
-  const onForgotPassword = (username: string) => {
-    startRecoverPassword({username})
-  }
-  const navigateAppend = C.Router2.navigateAppend
   const onFeedback = () => {
-    navigateAppend({name: 'signupSendFeedbackLoggedOut', params: {}})
+    C.Router2.navigateAppend({name: 'signupSendFeedbackLoggedOut', params: {}})
   }
   const onLogin = useConfigState(s => s.dispatch.login)
-  const requestAutoInvite = useRequestAutoInvite()
-  const onSignup = () => requestAutoInvite()
+  const onSignup = useRequestAutoInvite()
   const onSomeoneElse = useProvisionState(s => s.dispatch.startProvision)
   const error = perror?.desc || ''
   const loggedInMap = new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret]))
@@ -85,7 +80,7 @@ const ReloginContainer = () => {
       error={error}
       needPassword={!loggedInMap.get(selectedUser) || gotNeedPasswordError}
       onFeedback={onFeedback}
-      onForgotPassword={() => onForgotPassword(selectedUser)}
+      onForgotPassword={() => startRecoverPassword({username: selectedUser})}
       onLogin={onLogin}
       onSignup={onSignup}
       onSomeoneElse={onSomeoneElse}

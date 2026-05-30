@@ -10,9 +10,7 @@ import Header from './header/index'
 
 export const headerDefaultStyle = isMobile
   ? {
-      get backgroundColor() {
-        return isIOS ? Kb.Styles.globalColors.white : Kb.Styles.globalColors.white
-      },
+      backgroundColor: Kb.Styles.globalColors.white,
       borderBottomColor: Kb.Styles.globalColors.black_10,
       borderBottomWidth: Kb.Styles.hairlineWidth,
       height: 44,

@@ -233,74 +233,64 @@ export const createLinkingConfig = (
   _fallbackHandler = handleAppLink
   return {
     getInitialURL: async () => {
-    // Compute the startup URL from saved state, push notifications, and deep links.
-    // This replaces the manual NavigationState construction that was in useInitialState.
-    const {loggedIn, startup, androidShare} = useConfigState.getState()
-    if (!loggedIn) return null
+      const {loggedIn, startup, androidShare} = useConfigState.getState()
+      if (!loggedIn) return null
 
-    const {tab: startupTab, followUser: startupFollowUser} = startup
-    let startupConversation = startup.conversation
-    if (!isValidConversationIDKey(startupConversation)) {
-      startupConversation = ''
-    }
-
-    // Lazy-require to break require cycle: linking.tsx → push.native.tsx → linking.tsx
-     
-    const {usePushState} = require('@/stores/push') as typeof UsePushStateType
-    const pushState = usePushState.getState()
-    const showMonster =
-      !pushState.justSignedUp && pushState.showPushPrompt && !pushState.hasPermissions
-
-    // Check for an incoming deep link URL (native only)
-    let deepLinkUrl: string | null = null
-    if (isMobile) {
-      try {
-        deepLinkUrl = await Linking.getInitialURL()
-      } catch {}
-    }
-
-    const haveSavedTab = !!(startupTab || startupConversation)
-
-    // Deep link URL takes priority
-    if (deepLinkUrl) {
-      const normalized = normalizeUrl(deepLinkUrl)
-      if (normalized) {
-        if (isHandledByLinkingConfig(normalized)) return normalized
-        // URL not handled by linking config; use imperative navigation as fallback
-        setTimeout(() => handleAppLink(normalized), 1)
-        return null
+      const {tab: startupTab, followUser: startupFollowUser} = startup
+      let startupConversation = startup.conversation
+      if (!isValidConversationIDKey(startupConversation)) {
+        startupConversation = ''
       }
-    }
 
-    // Push permission prompt (if no saved state to restore)
-    if (showMonster && !haveSavedTab) {
-      return 'keybase://settingsPushPrompt'
-    }
+      // Lazy-require to break require cycle: linking.tsx → push.native.tsx → linking.tsx
+      const {usePushState} = require('@/stores/push') as typeof UsePushStateType
+      const pushState = usePushState.getState()
+      const showMonster =
+        !pushState.justSignedUp && pushState.showPushPrompt && !pushState.hasPermissions
 
-    // Android share intent (if no saved state to restore)
-    if (androidShare && !haveSavedTab) {
-      return 'keybase://incoming-share'
-    }
+      let deepLinkUrl: string | null = null
+      if (isMobile) {
+        try {
+          deepLinkUrl = await Linking.getInitialURL()
+        } catch {}
+      }
 
-    // Push notification follow user
-    if (startupFollowUser && !startupConversation) {
-      _initialURLOnce = `keybase://profile/show/${startupFollowUser}`
-      return _initialURLOnce
-    }
+      const haveSavedTab = !!(startupTab || startupConversation)
 
-    // Saved conversation from last session
-    if (startupConversation) {
-      _initialURLOnce = `keybase://convid/${startupConversation}`
-      return _initialURLOnce
-    }
+      if (deepLinkUrl) {
+        const normalized = normalizeUrl(deepLinkUrl)
+        if (normalized) {
+          if (isHandledByLinkingConfig(normalized)) return normalized
+          // URL not handled by linking config; use imperative navigation as fallback
+          setTimeout(() => handleAppLink(normalized), 1)
+          return null
+        }
+      }
 
-    // Saved tab from last session
-    if (startupTab) {
-      return `keybase://${startupTab}`
-    }
+      if (showMonster && !haveSavedTab) {
+        return 'keybase://settingsPushPrompt'
+      }
 
-    return null
-  },
+      if (androidShare && !haveSavedTab) {
+        return 'keybase://incoming-share'
+      }
+
+      if (startupFollowUser && !startupConversation) {
+        _initialURLOnce = `keybase://profile/show/${startupFollowUser}`
+        return _initialURLOnce
+      }
+
+      if (startupConversation) {
+        _initialURLOnce = `keybase://convid/${startupConversation}`
+        return _initialURLOnce
+      }
+
+      if (startupTab) {
+        return `keybase://${startupTab}`
+      }
+
+      return null
+    },
 
   // Prevent React Navigation from updating window.location on Electron (file:// protocol).
   // On native this is a no-op since there's no browser URL to update.

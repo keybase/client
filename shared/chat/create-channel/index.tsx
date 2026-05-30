@@ -55,7 +55,7 @@ const CreateChannel = (p: Props) => {
               onChangeText={props.onDescriptionChange}
             />
           </Kb.Box2>
-          <Kb.ButtonBar fullWidth={true} style={desktopStyles.buttonBar}>
+          <Kb.ButtonBar fullWidth={true} style={buttonBarStyle}>
             <Kb.Button type="Dim" onClick={props.onBack} label="Cancel" />
             <Kb.WaitingButton
               waitingKey={C.waitingKeyTeamsCreateChannel(props.teamID)}
@@ -96,7 +96,7 @@ const CreateChannel = (p: Props) => {
             onChangeText={props.onDescriptionChange}
           />
         </Kb.Box2>
-        <Kb.ButtonBar fullWidth={true} style={nativeStyles.buttonBar}>
+        <Kb.ButtonBar fullWidth={true} style={buttonBarStyle}>
           <Kb.WaitingButton
             waitingKey={C.waitingKeyTeamsCreateChannel(props.teamID)}
             onClick={props.onSubmit}
@@ -107,6 +107,8 @@ const CreateChannel = (p: Props) => {
     </>
   )
 }
+
+const buttonBarStyle = {alignItems: 'center'} as const
 
 const desktopStyles = Kb.Styles.styleSheetCreate(
   () =>
@@ -126,7 +128,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
         paddingRight: Kb.Styles.globalMargins.large,
         paddingTop: Kb.Styles.globalMargins.medium,
       },
-      buttonBar: {alignItems: 'center'},
     }) as const
 )
 
@@ -134,7 +135,6 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       box: {padding: 16},
-      buttonBar: {alignItems: 'center'},
     }) as const
 )
 

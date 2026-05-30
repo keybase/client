@@ -52,10 +52,6 @@ const makeAddUserToTeamsResult = (
 }
 
 type OwnProps = {username: string}
-const Container = (ownProps: OwnProps) => {
-  const {username} = ownProps
-  return <AddToTeam key={username} username={username} />
-}
 
 const AddToTeam = (ownProps: OwnProps) => {
   const {username: them} = ownProps
@@ -213,19 +209,12 @@ const AddToTeam = (ownProps: OwnProps) => {
     setRolePickerOpen(false)
     setSelectedRole(role)
   }
-  const footerComponent = (
-    <>
-      {sendNotificationFooter('Announce them in team chats', sendNotification, nextVal =>
-        setSendNotification(nextVal)
-      )}
-    </>
-  )
-
-  const isRolePickerOpen = rolePickerOpen
   const onCancelRolePicker = () => {
     setRolePickerOpen(false)
   }
-  const onToggle = toggleTeamSelected
+  const footerComponent = sendNotificationFooter('Announce them in team chats', sendNotification, nextVal =>
+    setSendNotification(nextVal)
+  )
 
   const selectedTeamCount = selectedTeams.size
 
@@ -246,20 +235,12 @@ const AddToTeam = (ownProps: OwnProps) => {
         )}
         <Kb.Box2 direction="horizontal">
           <Kb.Text type="Header">Add</Kb.Text>
-          <Kb.Avatar
-            isTeam={false}
-            size={16}
-            style={{
-              marginLeft: isMobile ? Kb.Styles.globalMargins.xxtiny : Kb.Styles.globalMargins.tiny,
-              marginRight: Kb.Styles.globalMargins.tiny,
-            }}
-            username={them}
-          />
+          <Kb.Avatar isTeam={false} size={16} style={styles.headerAvatar} username={them} />
           <Kb.Text type="Header">{them} to...</Kb.Text>
         </Kb.Box2>
-        <Kb.BoxGrow style={{width: '100%'}}>
+        <Kb.BoxGrow style={styles.boxGrow}>
           <Kb.ScrollView style={Kb.Styles.size('100%')}>
-            <Kb.Box2 direction="vertical" style={{flexShrink: 1, width: '100%'}}>
+            <Kb.Box2 direction="vertical" style={styles.teamListInner}>
               {!waiting ? (
                 teamProfileAddList.length > 0 ? (
                   teamProfileAddList.map(team => (
@@ -271,7 +252,7 @@ const AddToTeam = (ownProps: OwnProps) => {
                       name={team.teamName}
                       isOpen={team.open}
                       onCheck={selected => {
-                        onToggle(team.teamName, selected)
+                        toggleTeamSelected(team.teamName, selected)
                       }}
                       them={them}
                     />
@@ -288,7 +269,7 @@ const AddToTeam = (ownProps: OwnProps) => {
                 )
               ) : (
                 <Kb.Box2 direction="vertical" centerChildren={true}>
-                  <Kb.ProgressIndicator style={{width: 64}} />
+                  <Kb.ProgressIndicator style={styles.progress} />
                 </Kb.Box2>
               )}
             </Kb.Box2>
@@ -305,7 +286,7 @@ const AddToTeam = (ownProps: OwnProps) => {
             onConfirm={onConfirmRolePicker}
             onCancel={onCancelRolePicker}
             position="top center"
-            open={isRolePickerOpen}
+            open={rolePickerOpen}
             disabledRoles={disabledReasonsForRolePicker}
           >
             <InlineDropdown textWrapperType="BodySmall" label={selectedRole} onPress={onOpenRolePicker} />
@@ -344,20 +325,16 @@ const TeamRow = (props: RowProps) => {
     <Kb.ClickableBox3 direction="vertical" fullWidth={true} onClick={props.canAddThem ? () => props.onCheck(!props.checked) : undefined}>
       <Kb.Box2 direction="horizontal" style={styles.teamRow}>
         <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
-        <Kb.Box2 direction="vertical" relative={true} style={{display: 'flex'}}>
-          <Kb.Avatar
-            isTeam={true}
-            size={isMobile ? 48 : 32}
-            style={{marginRight: Kb.Styles.globalMargins.tiny}}
-            teamname={props.name}
-          />
-        </Kb.Box2>
+        <Kb.Avatar
+          isTeam={true}
+          size={isMobile ? 48 : 32}
+          style={styles.teamRowAvatar}
+          teamname={props.name}
+        />
         <Kb.Box2 direction="vertical">
-          <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
+          <Kb.Box2 direction="horizontal" alignSelf="flex-start">
             <Kb.Text
-              style={{
-                color: props.canAddThem ? Kb.Styles.globalColors.black : Kb.Styles.globalColors.black_50,
-              }}
+              style={props.canAddThem ? styles.teamNameEnabled : styles.teamNameDisabled}
               type="BodySemibold"
             >
               {props.name}
@@ -366,9 +343,7 @@ const TeamRow = (props: RowProps) => {
               <Kb.Meta title="open" style={styles.meta} backgroundColor={Kb.Styles.globalColors.green} />
             )}
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
-            <Kb.Text type="BodySmall">{props.disabledReason}</Kb.Text>
-          </Kb.Box2>
+          <Kb.Text type="BodySmall">{props.disabledReason}</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
       {!isMobile && <Kb.Divider style={styles.divider} />}
@@ -382,6 +357,9 @@ const styles = Kb.Styles.styleSheetCreate(
       addButton: Kb.Styles.platformStyles({
         isMobile: {width: '100%'},
       }),
+      boxGrow: {width: '100%'},
+      progress: {width: 64},
+      teamListInner: {flexShrink: 1, width: '100%'},
       addToTeam: Kb.Styles.platformStyles({
         common: {
           flexWrap: 'wrap',
@@ -422,11 +400,18 @@ const styles = Kb.Styles.styleSheetCreate(
         isElectron: {maxHeight: '100%'},
       }),
       divider: {marginLeft: 69},
+      headerAvatar: Kb.Styles.platformStyles({
+        isElectron: {marginLeft: Kb.Styles.globalMargins.tiny, marginRight: Kb.Styles.globalMargins.tiny},
+        isMobile: {marginLeft: Kb.Styles.globalMargins.xxtiny, marginRight: Kb.Styles.globalMargins.tiny},
+      }),
       meta: {
         alignSelf: 'center',
         marginLeft: Kb.Styles.globalMargins.xtiny,
         marginTop: 2,
       },
+      teamNameDisabled: {color: Kb.Styles.globalColors.black_50},
+      teamNameEnabled: {color: Kb.Styles.globalColors.black},
+      teamRowAvatar: {marginRight: Kb.Styles.globalMargins.tiny},
       modalFooter: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
@@ -455,4 +440,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default AddToTeam

@@ -68,60 +68,59 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.outerContainer}>
-      <Kb.ListItem
-        type="Small"
-        body={
+    <Kb.ListItem
+      type="Small"
+      body={
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          alignItems="center"
+          justifyContent="flex-end"
+          gap="small"
+        >
+          <Kb.Emoji
+            emojiData={RPCToEmojiData(emoji, false)}
+            showTooltip={false}
+            size={isMobile ? 32 : 26}
+          />
+          <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
+          {!isMobile && emoji.creationInfo && (
+            <Kb.Text type="Body" style={styles.date}>
+              {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
+            </Kb.Text>
+          )}
+          {!isMobile && emoji.creationInfo && (
+            <Kb.NameWithIcon
+              colorFollowing={true}
+              colorBroken={true}
+              horizontal={true}
+              username={emoji.creationInfo.username}
+              size="small"
+              avatarSize={16}
+              containerStyle={styles.username}
+            />
+          )}
           <Kb.Box2
             direction="horizontal"
-            fullWidth={true}
-            alignItems="center"
-            justifyContent="flex-end"
-            gap="small"
+            style={Kb.Styles.collapseStyles([!(doAddAlias || doRemove) ? {opacity: 0} : null])}
           >
-            <Kb.Emoji
-              emojiData={RPCToEmojiData(emoji, false)}
-              showTooltip={false}
-              size={isMobile ? 32 : 26}
+            {popup}
+            <Kb.IconButton
+              icon="iconfont-ellipsis"
+              mode="Secondary"
+              type="Dim"
+              onClick={showPopup}
+              ref={popupAnchor}
+              small={true}
             />
-            <Kb.Text type="Body" style={styles.alias}>{`:${emoji.alias}:`}</Kb.Text>
-            {!isMobile && emoji.creationInfo && (
-              <Kb.Text type="Body" style={styles.date}>
-                {dateFns.format(emoji.creationInfo.time, 'EEE d MMM yyyy')}
-              </Kb.Text>
-            )}
-            {!isMobile && emoji.creationInfo && (
-              <Kb.NameWithIcon
-                colorFollowing={true}
-                colorBroken={true}
-                horizontal={true}
-                username={emoji.creationInfo.username}
-                size="small"
-                avatarSize={16}
-                containerStyle={styles.username}
-              />
-            )}
-            <Kb.Box2
-              direction="horizontal"
-              style={Kb.Styles.collapseStyles([!(doAddAlias || doRemove) ? {opacity: 0} : null])}
-            >
-              {popup}
-              <Kb.IconButton
-                icon="iconfont-ellipsis"
-                mode="Secondary"
-                type="Dim"
-                onClick={showPopup}
-                ref={popupAnchor}
-                small={true}
-              />
-            </Kb.Box2>
           </Kb.Box2>
-        }
-        firstItem={firstItem}
-        fullDivider={true}
-        height={isMobile ? 48 : 42}
-      />
-    </Kb.Box2>
+        </Kb.Box2>
+      }
+      firstItem={firstItem}
+      fullDivider={true}
+      height={isMobile ? 48 : 42}
+      style={styles.container}
+    />
   )
 }
 
@@ -143,7 +142,7 @@ const styles = Kb.Styles.styleSheetCreate(
         maxWidth: 130,
         width: 130,
       },
-      outerContainer: Kb.Styles.platformStyles({
+      container: Kb.Styles.platformStyles({
         common: {backgroundColor: Kb.Styles.globalColors.white},
         isElectron: Kb.Styles.padding(0, Kb.Styles.globalMargins.small),
       }),

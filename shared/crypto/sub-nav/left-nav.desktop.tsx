@@ -1,4 +1,3 @@
-import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Crypto from '@/constants/crypto'
 import NavRow from './nav-row'
@@ -12,7 +11,6 @@ type Row = (typeof Crypto.Tabs)[number] & {
 type Props = {
   onClick: (a: string) => void
   selected: string
-  children?: React.ReactNode
 }
 
 const LeftNav = (props: Props) => {
@@ -36,20 +34,17 @@ const LeftNav = (props: Props) => {
   }
 
   return (
-    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} testID={TestIDs.CRYPTO_INPUT}>
-      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.listContainer}>
-        <Kb.BoxGrow>
-          <Kb.List
-            items={rows}
-            renderItem={renderItem}
-            keyProperty="key"
-            extraData={props.selected}
-            style={styles.list}
-            itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
-          />
-        </Kb.BoxGrow>
-      </Kb.Box2>
-      {props.children}
+    <Kb.Box2 direction="vertical" fullHeight={true} style={styles.listContainer} testID={TestIDs.CRYPTO_INPUT}>
+      <Kb.BoxGrow>
+        <Kb.List
+          items={rows}
+          renderItem={renderItem}
+          keyProperty="key"
+          extraData={props.selected}
+          style={styles.list}
+          itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
+        />
+      </Kb.BoxGrow>
     </Kb.Box2>
   )
 }

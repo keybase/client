@@ -11,12 +11,7 @@ const ConnectedEnterEmail = () => {
   const {error, submitEmail, waiting} = useAddEmail()
   const clearModals = C.Router2.clearModals
   const navigateAppend = C.Router2.navigateAppend
-  const _onSkip = () => {
-    setSignupEmail(C.noEmail)
-  }
-
-  const onSkip = () => {
-    _onSkip()
+  const afterEmail = () => {
     if (_showPushPrompt) {
       navigateAppend({name: 'settingsPushPrompt', params: {}}, true)
     } else {
@@ -24,14 +19,15 @@ const ConnectedEnterEmail = () => {
     }
   }
 
+  const onSkip = () => {
+    setSignupEmail(C.noEmail)
+    afterEmail()
+  }
+
   const onCreate = (email: string, searchable: boolean) => {
     submitEmail(email, searchable, addedEmail => {
       setSignupEmail(addedEmail)
-      if (_showPushPrompt) {
-        navigateAppend({name: 'settingsPushPrompt', params: {}}, true)
-      } else {
-        clearModals()
-      }
+      afterEmail()
     })
   }
 

@@ -78,7 +78,7 @@ function PathStatusIcon(props: Props) {
     >
       {typeof props.statusIcon === 'number' ? (
         <Kb.Box2 direction="horizontal" style={{margin: Kb.Styles.globalMargins.xtiny}}>
-          <PieSlice degrees={360 * props.statusIcon} animated={true} />
+          <PieSlice degrees={360 * props.statusIcon} />
         </Kb.Box2>
       ) : props.statusIcon === T.FS.UploadIcon.AwaitingToUpload ||
         props.statusIcon === T.FS.UploadIcon.Uploading ||
