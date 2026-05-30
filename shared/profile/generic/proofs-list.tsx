@@ -624,6 +624,7 @@ const ProviderPicker = ({
                     direction="horizontal"
                     alignItems="center"
                     justifyContent="flex-start"
+                    fullWidth={true}
                     className="hover_background_color_blueLighter2"
                     onClick={() => onSelect(provider.key)}
                     style={styles.containerBox}
