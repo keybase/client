@@ -110,7 +110,7 @@ const Row = (p: {account: Account}) => {
   )
 }
 
-const Container = () => {
+const WalletsScreen = () => {
   const [accounts, setAccounts] = React.useState<Array<Account>>([])
   const [acceptedDisclaimer, setAcceptedDisclaimer] = React.useState(false)
   const checkDisclaimer = C.useRPC(T.RPCStellar.localHasAcceptedDisclaimerLocalRpcPromise)
@@ -144,7 +144,7 @@ const Container = () => {
 
   return (
     <Kb.ScrollView style={styles.scroll}>
-      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} padding="small">
         {loading ? <Kb.ProgressIndicator /> : null}
         <Kb.Text type="BodyBig">Stellar Transactions Are No Longer Supported in the Keybase App</Kb.Text>
         {acceptedDisclaimer ? (
@@ -174,7 +174,6 @@ const styles = Kb.Styles.styleSheetCreate(
       accountID: Kb.Styles.platformStyles({
         isElectron: {wordBreak: 'break-all'},
       }),
-      container: {padding: Kb.Styles.globalMargins.small},
       copyText: Kb.Styles.platformStyles({
         isMobile: {
           flexShrink: 1,
@@ -185,14 +184,12 @@ const styles = Kb.Styles.styleSheetCreate(
         alignSelf: 'flex-start',
         flexGrow: 1,
         maxWidth: isMobile ? undefined : 400,
-        width: '100%',
       },
       idCopy: {height: 40},
       label: {flexShrink: 0},
       remove: {alignSelf: 'flex-end'},
       reveal: {
         maxWidth: isMobile ? undefined : 400,
-        width: isMobile ? undefined : '100%',
       },
       row: Kb.Styles.platformStyles({
         common: {
@@ -215,4 +212,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default WalletsScreen

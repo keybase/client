@@ -161,12 +161,10 @@ export const ModalTitle = ({title, teamID, newTeamWizard}: ModalTitleProps) => {
         imageOverrideUrl={isNewTeamWizard ? avatarFilepath : undefined}
         crop={isNewTeamWizard ? avatarCrop : undefined}
       />
-      <Kb.Box2 direction="vertical" alignItems="center">
-        <Kb.Text type="BodySmall" lineClamp={1}>
-          {displayTeamname}
-        </Kb.Text>
-        <Kb.Text type="Header">{title}</Kb.Text>
-      </Kb.Box2>
+      <Kb.Text type="BodySmall" lineClamp={1}>
+        {displayTeamname}
+      </Kb.Text>
+      <Kb.Text type="Header">{title}</Kb.Text>
     </Kb.Box2>
   )
 }

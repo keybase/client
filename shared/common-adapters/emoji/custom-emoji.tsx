@@ -46,12 +46,7 @@ const CustomEmoji = (props: Props) => {
       <Kb.WithTooltip tooltip={alias ?? null} containerStyle={styles.tooltipContainer}>
         <Kb.Image
           src={src}
-          style={Kb.Styles.collapseStyles([
-            {
-              maxHeight: size,
-              width: size,
-            },
-          ])}
+          style={{maxHeight: size, width: size}}
         />
       </Kb.WithTooltip>
     </Kb.Box2>

@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as TB from '@/stores/team-building'
 import * as React from 'react'
-import * as Kb from '@/common-adapters/index'
+import * as Kb from '@/common-adapters'
 import type * as T from '@/constants/types'
 import ContinueButton from './continue-button'
 import {searchWaitingKey} from '@/constants/strings'

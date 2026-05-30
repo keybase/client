@@ -12,7 +12,7 @@ const followSizeToStyle = {
   64: {bottom: 0, left: 44, position: 'absolute'} as const,
 }
 
-const Container = (ownProps: OwnProps) => {
+const Friend = (ownProps: OwnProps) => {
   const {username: _username, width} = ownProps
   const _fullname = useUsersState(s => s.infoMap.get(ownProps.username)?.fullname ?? '')
   const fullname = _fullname || ''
@@ -28,6 +28,7 @@ const Container = (ownProps: OwnProps) => {
     <Kb.ClickableBox3
       direction="vertical"
       centerChildren={true}
+      noShrink={true}
       style={Kb.Styles.collapseStyles([styles.container, {width: width}])}
       onClick={onClick}
     >
@@ -52,7 +53,6 @@ const Container = (ownProps: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   avatar: {marginBottom: Kb.Styles.globalMargins.xxtiny},
   container: {
-    flexShrink: 0,
     height: 105,
     justifyContent: 'flex-start',
     minWidth: 0,
@@ -66,4 +66,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default Container
+export default Friend

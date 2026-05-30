@@ -75,7 +75,7 @@ const StillContainer = (p: OwnProps) => {
             Upload has failed.{' '}
             <Kb.Text
               type="BodySmallPrimaryLink"
-              style={styles.redDark}
+              style={{color: Kb.Styles.globalColors.redDark}}
               onClick={e => {
                 e.stopPropagation()
                 dismissUploadError()
@@ -97,9 +97,5 @@ const StillContainer = (p: OwnProps) => {
     />
   )
 }
-
-const styles = Kb.Styles.styleSheetCreate(() => ({
-  redDark: {color: Kb.Styles.globalColors.redDark},
-}))
 
 export default StillContainer

@@ -1,4 +1,3 @@
-import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as Crypto from '@/constants/crypto'
 import NavRow from './nav-row'
@@ -12,20 +11,14 @@ type Row = (typeof Crypto.Tabs)[number] & {
 type Props = {
   onClick: (a: string) => void
   selected: string
-  children?: React.ReactNode
 }
 
-const SubNav = (props: Props) => {
-const getRows = () =>
-    Crypto.Tabs.map(t => ({
-      ...t,
-      isSelected: props.selected === t.tab,
-      key: t.tab,
-    }))
-
-  const _onClick = (tab: string) => {
-    props.onClick(tab)
-  }
+const LeftNav = (props: Props) => {
+  const rows = Crypto.Tabs.map(t => ({
+    ...t,
+    isSelected: props.selected === t.tab,
+    key: t.tab,
+  }))
 
   const renderItem = (_: number, row: Row) => {
     return (
@@ -35,26 +28,23 @@ const getRows = () =>
         title={row.title}
         tab={row.tab}
         icon={row.icon}
-        onClick={() => _onClick(row.tab)}
+        onClick={() => props.onClick(row.tab)}
       />
     )
   }
 
   return (
-    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} testID={TestIDs.CRYPTO_INPUT}>
-      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.listContainer}>
-        <Kb.BoxGrow>
-          <Kb.List
-            items={getRows()}
-            renderItem={renderItem}
-            keyProperty="key"
-            extraData={props.selected}
-            style={styles.list}
-            itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
-          />
-        </Kb.BoxGrow>
-      </Kb.Box2>
-      {props.children}
+    <Kb.Box2 direction="vertical" fullHeight={true} style={styles.listContainer} testID={TestIDs.CRYPTO_INPUT}>
+      <Kb.BoxGrow>
+        <Kb.List
+          items={rows}
+          renderItem={renderItem}
+          keyProperty="key"
+          extraData={props.selected}
+          style={styles.list}
+          itemHeight={{sizeType: 'Small', type: 'fixedListItemAuto'}}
+        />
+      </Kb.BoxGrow>
     </Kb.Box2>
   )
 }
@@ -71,4 +61,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default SubNav
+export default LeftNav

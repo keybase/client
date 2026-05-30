@@ -153,22 +153,13 @@ function PopupSheet(props: PopupProps) {
   )
 }
 
-function PopupPortal(props: PopupProps) {
-  const {children} = props
-  return (
-    <Portal hostName="popup-root">
-      {children}
-    </Portal>
-  )
-}
-
 function Popup(props: PopupProps) {
   if (props.attachTo) {
     return <PopupPositioned {...props} />
   }
   if (isMobile) {
     if (!props.onHidden) {
-      return <PopupPortal {...props} />
+      return <Portal hostName="popup-root">{props.children}</Portal>
     }
     return <PopupSheet {...props} />
   }

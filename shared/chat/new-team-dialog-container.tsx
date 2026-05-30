@@ -7,9 +7,8 @@ import {useConversationParticipants} from './conversation/data-hooks'
 
 type Props = {conversationIDKey?: T.Chat.ConversationIDKey}
 
-const NewTeamDialogInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}) => {
-  const {conversationIDKey} = props
-  const baseTeam = ''
+const NewTeamDialog = (props: Props) => {
+  const conversationIDKey = props.conversationIDKey ?? T.Chat.noConversationIDKey
   const navigateUp = C.Router2.navigateUp
   const onCancel = () => {
     navigateUp()
@@ -22,16 +21,7 @@ const NewTeamDialogInner = (props: {conversationIDKey: T.Chat.ConversationIDKey}
       .map(assertion => ({assertion, role: 'writer' as const}))
     void createNewTeamAndNavigate(teamname, false, {fromChat: true, usersToAdd})
   }
-  const newTeamProps = {
-    baseTeam,
-    onCancel,
-    onSubmit,
-  }
-  return <CreateNewTeam {...newTeamProps} />
+  return <CreateNewTeam baseTeam="" onCancel={onCancel} onSubmit={onSubmit} />
 }
-
-const NewTeamDialog = (props: Props) => (
-  <NewTeamDialogInner conversationIDKey={props.conversationIDKey ?? T.Chat.noConversationIDKey} />
-)
 
 export default NewTeamDialog

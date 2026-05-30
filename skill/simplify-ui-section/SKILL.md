@@ -204,6 +204,14 @@ Go back to **Step 1** and re-read all files in scope. Then repeat Steps 2–5 wi
 
 **Never stop after the first pass.** The first pass removes the obvious problems. The second pass finds what those problems were hiding. The third pass is usually final.
 
+## Revisiting Previously Simplified Directories
+
+**Re-running this skill on already-simplified code is intentional and by design.** Do not skip a directory just because it appears in recent git history as "already simplified."
+
+Each simplification pass changes the landscape. What looked acceptable before may now be a smell. New patterns emerge as nearby code changes. The second run almost always finds something the first missed.
+
+When asked to simplify a directory that was previously touched: proceed without hesitation. Read fresh, analyze fresh.
+
 ## The Hard Line: No Unilateral Visual Changes
 
 **This skill is structural by default. Zero UX or behavior changes without explicit user sign-off.**
@@ -245,3 +253,4 @@ This pattern generalises: use `common.tsx` as the name regardless of feature fol
 - Don't rename exports that have external consumers without confirming first
 - Don't collapse files that serve genuinely different concerns just because they're small
 - Don't put shared helpers in `index.tsx` — sub-views importing from the feature index creates backwards dependencies
+- Don't rename `.tsx` files to `.ts` — JSX may be added later and the extension signals component-adjacent code

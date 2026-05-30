@@ -49,29 +49,27 @@ const Spoiler = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => {
-  return {
-    hidden: Styles.platformStyles({
-      common: {
-        backgroundColor: Styles.globalColors.black_on_white,
-        color: Styles.globalColors.black_on_white,
-      },
-      isElectron: {
-        borderRadius: Styles.borderRadius,
-        ...Styles.paddingH(2),
-      },
-    }),
-    shown: Styles.platformStyles({
-      common: {
-        backgroundColor: Styles.globalColors.black_on_white,
-        color: Styles.globalColors.white,
-      },
-      isElectron: {
-        borderRadius: Styles.borderRadius,
-        ...Styles.paddingH(2),
-      },
-    }),
-  } as const
-})
+const styles = Styles.styleSheetCreate(() => ({
+  hidden: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.black_on_white,
+      color: Styles.globalColors.black_on_white,
+    },
+    isElectron: {
+      borderRadius: Styles.borderRadius,
+      ...Styles.paddingH(2),
+    },
+  }),
+  shown: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.black_on_white,
+      color: Styles.globalColors.white,
+    },
+    isElectron: {
+      borderRadius: Styles.borderRadius,
+      ...Styles.paddingH(2),
+    },
+  }),
+} as const))
 
 export default Spoiler

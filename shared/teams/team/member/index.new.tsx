@@ -24,10 +24,6 @@ type Props = {
   teamID: T.Teams.TeamID
   username: string
 }
-type OwnProps = {
-  teamID: T.Teams.TeamID
-  username: string
-}
 
 type TeamTreeRowNotIn = {
   teamID: T.Teams.TeamID
@@ -274,7 +270,7 @@ const useNavUpIfRemovedFromTeam = (teamID: T.Teams.TeamID, username: string) => 
 type Item = {type: 'section-nodes'; tri: TeamTreeRowIn} | {type: 'section-add-nodes'; tni: TeamTreeRowNotIn}
 type Section = Kb.SectionType<Item>
 
-const TeamMember = (props: OwnProps) => {
+const TeamMember = (props: Props) => {
   const username = props.username
   const teamID = props.teamID
   const isMe = username === useCurrentUserState(s => s.username)

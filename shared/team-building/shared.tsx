@@ -98,3 +98,9 @@ export const serviceIdToBadge = (service: T.TB.ServiceIdWithContact): boolean =>
 
 export const serviceMapToArray = (services: T.TB.ServiceMap) =>
   TeamBuilding.allServices.filter(x => x !== 'keybase' && x in services)
+
+export const getSearchResults = (
+  searchResults: T.Immutable<T.TB.SearchResults>,
+  searchString: string,
+  selectedService: T.TB.ServiceIdWithContact
+) => searchResults.get(searchString.trim())?.get(selectedService)

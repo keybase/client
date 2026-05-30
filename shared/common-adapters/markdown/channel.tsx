@@ -10,7 +10,7 @@ type OwnProps = {
   allowFontScaling?: boolean
 }
 
-const Container = (ownProps: OwnProps) => {
+const Channel = (ownProps: OwnProps) => {
   const {name, convID, style, allowFontScaling} = ownProps
   const onClick = () =>
     previewConversation({
@@ -26,4 +26,4 @@ const Container = (ownProps: OwnProps) => {
   )
 }
 
-export default Container
+export default Channel

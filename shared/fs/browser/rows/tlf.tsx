@@ -18,7 +18,7 @@ const TLFContainer = (p: OwnProps) => {
   const {tlfType, name, mixedMode, destinationPickerSource, disabled} = p
   const username = useCurrentUserState(s => s.username)
   const path = FS.tlfTypeAndNameToPath(tlfType, name)
-  const _usernames = FS.getUsernamesFromTlfName(name).filter(name => name !== username)
+  const _usernames = FS.getUsernamesFromTlfName(name).filter(u => u !== username)
   const onOpen = useOpen({destinationPickerSource, path})
   // Only include the user if they're the only one
   const usernames = !_usernames.length ? [username] : _usernames

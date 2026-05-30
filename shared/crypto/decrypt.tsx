@@ -9,6 +9,8 @@ import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender} from './output
 import {
   beginRun,
   clearInputState,
+  createCommonState,
+  getStatusCodeMessage,
   maybeAutoRunTextOperation,
   nextInputState,
   nextOpenedFileState,
@@ -16,10 +18,6 @@ import {
   resetWarnings,
   useCommittedState,
   useSeededCryptoInput,
-} from './helpers'
-import {
-  createCommonState,
-  getStatusCodeMessage,
   type CommonOutputRouteParams,
   type CryptoInputRouteParams,
   type CommonState,
@@ -240,12 +238,7 @@ export const DecryptIO = () => {
             outputFileIcon="icon-file-64"
             outputTextType="plain"
             state={controller.state}
-            onChooseOutputFolder={destinationDir => {
-              const f = async () => {
-                await controller.decrypt(destinationDir)
-              }
-              C.ignorePromise(f())
-            }}
+            onChooseOutputFolder={destinationDir => C.ignorePromise(controller.decrypt(destinationDir) as unknown as Promise<void>)}
           />
           <CryptoOutputActionsBar canReplyInChat={true} canSaveAsText={false} state={controller.state} />
         </Kb.Box2>

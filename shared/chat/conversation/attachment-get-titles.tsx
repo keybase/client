@@ -314,8 +314,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const Container = (ownProps: OwnProps) => {
-  return <ContainerInner {...ownProps} />
-}
-
-export default Container
+export default ContainerInner

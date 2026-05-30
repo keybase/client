@@ -226,9 +226,6 @@ const styles = Styles.styleSheetCreate(
           maxWidth: 460,
           overflow: 'hidden',
         },
-        isMobile: {
-          // minHeight: 40,
-        },
       }),
       containerDisabled: {
         backgroundColor: Styles.globalColors.black_10,
@@ -247,10 +244,6 @@ const styles = Styles.styleSheetCreate(
           marginTop: Styles.globalMargins.xtiny,
           minWidth: 0,
           textAlign: 'left',
-        },
-        isAndroid: {
-          // position: 'relative',
-          // top: 3,
         },
         isElectron: {
           userSelect: 'all',

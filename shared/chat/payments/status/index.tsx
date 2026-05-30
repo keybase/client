@@ -66,12 +66,12 @@ const statusColor = (s: Status) => {
 const PaymentStatus = (props: Props) => {
   const statusRef = React.useRef<MeasureRef | null>(null)
   const [showPopup, setShowPopup] = React.useState(false)
-  const _showPopup = () => {
+  const showPopupIfAllowed = () => {
     if (props.allowPopup) {
       setShowPopup(true)
     }
   }
-  const _hidePopup = () => {
+  const hidePopup = () => {
     setShowPopup(false)
   }
   const text = (
@@ -79,7 +79,7 @@ const PaymentStatus = (props: Props) => {
       textRef={statusRef}
       type="BodyExtrabold"
       allowFontScaling={!!props.allowFontScaling}
-      onClick={_showPopup}
+      onClick={showPopupIfAllowed}
     >
       {' '}
       <Kb.Text type="BodyExtrabold" allowFontScaling={!!props.allowFontScaling} style={styles[props.status]}>
@@ -91,7 +91,7 @@ const PaymentStatus = (props: Props) => {
     <PaymentStatusError
       attachTo={statusRef}
       error={props.errorDetail || ''}
-      onHidden={_hidePopup}
+      onHidden={hidePopup}
       visible={showPopup}
     />
   ) : null
@@ -104,8 +104,8 @@ const PaymentStatus = (props: Props) => {
     <Kb.Box2
       style={styles.container}
       direction="horizontal"
-      onMouseOver={_showPopup}
-      onMouseLeave={_hidePopup}
+      onMouseOver={showPopupIfAllowed}
+      onMouseLeave={hidePopup}
     >
       {text}
       {popups}

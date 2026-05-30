@@ -98,11 +98,7 @@ const Breadcrumb = (props: Props) => {
 }
 
 const MaybePublicTag = ({path}: {path: T.FS.Path}) =>
-  FS.hasPublicTag(path) ? (
-    <Kb.Box2 direction="horizontal">
-      <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} />
-    </Kb.Box2>
-  ) : null
+  FS.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Kb.Styles.globalColors.green} /> : null
 
 const MainTitle = (props: Props) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">

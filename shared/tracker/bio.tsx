@@ -14,7 +14,7 @@ type Props = {
   username: string
 }
 
-const Container = (props: Props) => {
+const Bio = (props: Props) => {
   const {
     bio,
     blocked,
@@ -30,12 +30,10 @@ const Container = (props: Props) => {
     username,
   } = props
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
-      <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">
-        <Kb.Text center={true} type="BodyBig" lineClamp={inTracker ? 1 : undefined} selectable={true}>
-          {fullname}
-        </Kb.Text>
-      </Kb.Box2>
+    <Kb.Box2 direction="vertical" fullWidth={true} noShrink={true} style={styles.container} centerChildren={true} gap="xtiny">
+      <Kb.Text center={true} type="BodyBig" lineClamp={inTracker ? 1 : undefined} selectable={true} style={styles.fullNameBio}>
+        {fullname}
+      </Kb.Text>
       <FollowText followThem={followThem} followsYou={followsYou} />
       {followersCount !== undefined && (
         <Kb.Text type="BodySmall">
@@ -137,8 +135,8 @@ const styles = Kb.Styles.styleSheetCreate(
         paddingTop: Kb.Styles.globalMargins.tiny,
       },
       bold: {...Kb.Styles.globalStyles.fontBold},
-      container: {backgroundColor: Kb.Styles.globalColors.white, flexShrink: 0},
-      fullNameContainer: {
+      container: {backgroundColor: Kb.Styles.globalColors.white},
+      fullNameBio: {
         ...Kb.Styles.paddingH(Kb.Styles.globalMargins.mediumLarge),
       },
       text: Kb.Styles.platformStyles({
@@ -150,4 +148,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default Bio

@@ -827,9 +827,6 @@ export const useFsPathMetadata = (path: T.FS.Path, _options?: FsPathItemOptions)
 export const useFsFolderChildren = (path: T.FS.Path, _options?: {initialLoadRecursive?: boolean}) =>
   FS.getPathItem(useLoadedPathItems(), path)
 
-export const useFsChildren = (path: T.FS.Path, initialLoadRecursive?: boolean) =>
-  useFsFolderChildren(path, {initialLoadRecursive})
-
 export const useFsFolderChildItems = (
   path: T.FS.Path,
   options?: {

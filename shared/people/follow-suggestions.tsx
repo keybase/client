@@ -1,6 +1,8 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 
+const horizontalScrollProps = isMobile ? ({alwaysBounceHorizontal: false, horizontal: true} as const) : {}
+
 export type FollowSuggestion = T.People.FollowSuggestion
 
 export type Props = {
@@ -13,7 +15,7 @@ const FollowSuggestions = (props: Props) => (
       Consider following...
     </Kb.Text>
     <Kb.ScrollView
-      {...(isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
+      {...horizontalScrollProps}
       contentContainerStyle={styles.scrollViewContainer}
     >
       {props.suggestions.map(suggestion => (

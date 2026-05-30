@@ -203,11 +203,7 @@ export const NameWithIcon = (props: NameWithIconProps) => {
   )
 
   const containerStyle = Styles.collapseStyles([
-    props.horizontal
-      ? size === 'big'
-        ? styles.hbContainerStyle
-        : styles.hContainerStyle
-      : styles.vContainerStyle,
+    props.horizontal && size === 'big' ? styles.hbContainerStyle : undefined,
     props.containerStyle,
   ])
 
@@ -299,7 +295,6 @@ const styles = Styles.styleSheetCreate(() => ({
       marginRight: Styles.globalMargins.small,
     },
   }),
-  hContainerStyle: {},
   hIconStyle: Styles.platformStyles({
     isElectron: {
       ...Styles.size(32),
@@ -343,7 +338,6 @@ const styles = Styles.styleSheetCreate(() => ({
   textContainer: {
     flex: 1,
   },
-  vContainerStyle: {},
   vUsernameContainerStyle: Styles.platformStyles({
     isElectron: {
       textAlign: 'center',

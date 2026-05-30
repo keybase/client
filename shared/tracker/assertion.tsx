@@ -9,6 +9,7 @@ import {formatTimeForAssertionPopup} from '@/util/timestamp'
 import {useColorScheme} from 'react-native'
 import {navToProfile} from '@/constants/router'
 import {copyToClipboard} from '@/util/storeless-actions'
+import {assertionColorToColor, assertionColorToTextColor, stateToIcon} from './model'
 
 type OwnProps = {
   assertion: T.Tracker.Assertion
@@ -19,7 +20,7 @@ type OwnProps = {
   username: string
 }
 
-const Container = (ownProps: OwnProps) => {
+const Assertion = (ownProps: OwnProps) => {
   const isYours = useCurrentUserState(s => ownProps.username === s.username)
   const {assertion, isSuggestion = false, notAUser = false, onRefresh, stellarHidden = false} = ownProps
   const {color, metas: _metas, proofURL, sigID, siteIcon} = assertion
@@ -184,6 +185,7 @@ const Container = (ownProps: OwnProps) => {
       className={notAUser ? undefined : 'hover-container'}
       ref={popupAnchor}
       direction="vertical"
+      noShrink={true}
       style={styles.container}
       fullWidth={true}
     >
@@ -205,7 +207,7 @@ const Container = (ownProps: OwnProps) => {
           onShowProof={onShowProof}
           isSuggestion={isSuggestion}
         />
-        <Kb.Text type="Body" style={styles.textContainer}>
+        <Kb.Text type="Body" style={styles.textAssertion}>
           <Value
             isSuggestion={isSuggestion}
             type={type}
@@ -224,7 +226,7 @@ const Container = (ownProps: OwnProps) => {
         </Kb.Text>
         <Kb.ClickableBox3
           onClick={items ? showPopup : onShowProof}
-          style={styles.statusContainer}
+          style={styles.statusAssertion}
           direction="horizontal"
           alignItems="center"
           gap="tiny"
@@ -247,7 +249,7 @@ const Container = (ownProps: OwnProps) => {
         </Kb.ClickableBox3>
       </Kb.Box2>
       {!!metas.length && (
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaAssertion}>
           {metas.map(m => (
             <Kb.Meta key={m.label} backgroundColor={assertionColorToColor(m.color)} title={m.label} />
           ))}
@@ -264,23 +266,6 @@ const proofTypeToDesc = (proofType: string) => {
       return 'signature'
     default:
       return 'proof'
-  }
-}
-
-const stateToIcon = (state: T.Tracker.AssertionState) => {
-  switch (state) {
-    case 'checking':
-      return 'iconfont-proof-pending'
-    case 'valid':
-      return 'iconfont-proof-good'
-    case 'error': // fallthrough
-    case 'warning':
-    case 'revoked':
-      return 'iconfont-proof-broken'
-    case 'suggestion':
-      return 'iconfont-proof-placeholder'
-    default:
-      return 'iconfont-proof-pending'
   }
 }
 
@@ -313,44 +298,6 @@ const stateToValueTextStyle = (state: T.Tracker.AssertionState) => {
     case 'suggestion':
     default:
       return null
-  }
-}
-
-const assertionColorToTextColor = (c: T.Tracker.AssertionColor) => {
-  switch (c) {
-    case 'blue':
-      return Kb.Styles.globalColors.blueDark
-    case 'red':
-      return Kb.Styles.globalColors.redDark
-    case 'black':
-      return Kb.Styles.globalColors.black
-    case 'green':
-      return Kb.Styles.globalColors.greenDark
-    case 'gray':
-      return Kb.Styles.globalColors.black_50
-    case 'yellow': // fallthrough
-    case 'orange':
-    default:
-      return Kb.Styles.globalColors.redDark
-  }
-}
-
-const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
-  switch (c) {
-    case 'blue':
-      return Kb.Styles.globalColors.blue
-    case 'red':
-      return Kb.Styles.globalColors.red
-    case 'black':
-      return Kb.Styles.globalColors.black
-    case 'green':
-      return Kb.Styles.globalColors.green
-    case 'gray':
-      return Kb.Styles.globalColors.black_50
-    case 'yellow': // fallthrough
-    case 'orange':
-    default:
-      return Kb.Styles.globalColors.red
   }
 }
 
@@ -451,7 +398,7 @@ const Value = (p: {
 }
 
 const HoverOpacity = (p: {children: React.ReactNode}) => (
-  <Kb.Box2 direction="vertical" className="hover-opacy inverted">
+  <Kb.Box2 direction="vertical" className="hover-opacity inverted">
     {p.children}
   </Kb.Box2>
 )
@@ -493,10 +440,18 @@ const AssertionSiteIcon = (p: SIProps) => {
   )
 }
 
+const popupHeaderTextBase = {
+  color: Kb.Styles.globalColors.white,
+  paddingBottom: Kb.Styles.globalMargins.tiny,
+  paddingLeft: Kb.Styles.globalMargins.small,
+  paddingRight: Kb.Styles.globalMargins.small,
+  paddingTop: Kb.Styles.globalMargins.tiny,
+} as const
+
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
+      container: {paddingBottom: 4, paddingTop: 4},
       crypto: Kb.Styles.platformStyles({
         isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
       }),
@@ -512,30 +467,22 @@ const styles = Kb.Styles.styleSheetCreate(
         borderStyle: 'solid',
         padding: Kb.Styles.globalMargins.small,
       },
-      metaContainer: {flexShrink: 0, paddingLeft: 20 + Kb.Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
+      metaAssertion: {flexShrink: 0, paddingLeft: 20 + Kb.Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
       popupHeaderTextBlue: {
+        ...popupHeaderTextBase,
         backgroundColor: Kb.Styles.globalColors.blue,
-        color: Kb.Styles.globalColors.white,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       popupHeaderTextRed: {
+        ...popupHeaderTextBase,
         backgroundColor: Kb.Styles.globalColors.red,
-        color: Kb.Styles.globalColors.white,
-        paddingBottom: Kb.Styles.globalMargins.tiny,
-        paddingLeft: Kb.Styles.globalMargins.small,
-        paddingRight: Kb.Styles.globalMargins.small,
-        paddingTop: Kb.Styles.globalMargins.tiny,
       },
       site: {color: Kb.Styles.globalColors.black_20},
       siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
-      statusContainer: Kb.Styles.platformStyles({
+      statusAssertion: Kb.Styles.platformStyles({
         isMobile: {position: 'relative', top: -2},
       }),
       strikeThrough: {textDecorationLine: 'line-through'},
-      textContainer: Kb.Styles.platformStyles({
+      textAssertion: Kb.Styles.platformStyles({
         common: {flexGrow: 1, flexShrink: 1, marginTop: -1},
       }),
       tooltip: Kb.Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
@@ -546,4 +493,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default Assertion

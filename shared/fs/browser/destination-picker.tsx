@@ -116,7 +116,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   FsCommon.useFsOnlineStatus()
 
   return (
-    <Kb.Box2 direction="vertical" style={Kb.Styles.globalStyles.flexOne} fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" flex={1} fullWidth={true} fullHeight={true}>
       {!isMobile && (
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader} justifyContent="space-between">
           <NavHeaderTitle destinationPickerSource={source} inDestinationPicker={true} path={parentPath} />

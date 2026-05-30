@@ -124,18 +124,16 @@ const ConversationListRender = (props: ConversationListRenderProps) => {
           }}
         />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} flex={1}>
-        <Kb.List
-          itemHeight={{height: 65, type: 'fixed'}}
-          items={props.results.map((r, index) => ({
-            isSelected: index === props.selected,
-            item: r,
-            onSelect: () => props.onSelect(T.Chat.conversationIDToKey(r.convID), r.tlfName),
-          }))}
-          renderItem={_itemRenderer}
-          indexAsKey={true}
-        />
-      </Kb.Box2>
+      <Kb.List
+        itemHeight={{height: 65, type: 'fixed'}}
+        items={props.results.map((r, index) => ({
+          isSelected: index === props.selected,
+          item: r,
+          onSelect: () => props.onSelect(T.Chat.conversationIDToKey(r.convID), r.tlfName),
+        }))}
+        renderItem={_itemRenderer}
+        indexAsKey={true}
+      />
     </Kb.Box2>
   )
 }

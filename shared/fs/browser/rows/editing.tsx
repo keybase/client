@@ -10,14 +10,8 @@ type Props = {
 
 function Editing({editSession}: Props) {
   const {commitEdit, discardEdit, edit} = editSession
-  const onCancel = () => {
-    discardEdit()
-  }
-  const onSubmit = () => {
-    commitEdit()
-  }
   const onKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Escape') onCancel()
+    if (event.key === 'Escape') discardEdit()
   }
   return (
     <Kb.ListItem
@@ -42,7 +36,7 @@ function Editing({editSession}: Props) {
             placeholder={edit.originalName}
             selectTextOnFocus={true}
             inputStyle={styles.text}
-            onEnterKeyDown={onSubmit}
+            onEnterKeyDown={commitEdit}
             onChangeText={editSession.setEditName}
             autoFocus={true}
             onKeyDown={onKeyDown}
@@ -63,10 +57,10 @@ function Editing({editSession}: Props) {
             small={true}
             label={edit.error ? 'Retry' : edit.type === T.FS.EditType.NewFolder ? 'Create' : 'Save'}
             waiting={editSession.isSubmitting}
-            onClick={onSubmit}
+            onClick={commitEdit}
           />
           <Kb.Icon
-            onClick={onCancel}
+            onClick={discardEdit}
             type={edit.type === T.FS.EditType.NewFolder ? 'iconfont-trash' : 'iconfont-close'}
             color={Kb.Styles.globalColors.black_50}
             hoverColor={Kb.Styles.globalColors.black}

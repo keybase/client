@@ -372,6 +372,7 @@ const Links = () => {
                   <Kb.Box2
                     fullWidth={true}
                     direction="horizontal"
+                    justifyContent="space-between"
                     style={Kb.Styles.collapseStyles([
                       styles.whitelistRowContainer,
                       wlremoved ? {backgroundColor: Kb.Styles.globalColors.red_20} : undefined,
@@ -491,37 +492,31 @@ const Misc = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
 const Chat = () => {
   const notificationSettings = useNotificationSettings()
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ScrollView>
-        <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
-          <Security {...notificationSettings} />
-          <Kb.Divider style={styles.divider} />
-          <Links />
-          <Sound {...notificationSettings} />
-          <Misc {...notificationSettings} />
-        </Kb.Box2>
-      </Kb.ScrollView>
-    </Kb.Box2>
+    <Kb.ScrollView>
+      <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
+        <Security {...notificationSettings} />
+        <Kb.Divider style={styles.divider} />
+        <Links />
+        <Sound {...notificationSettings} />
+        <Misc {...notificationSettings} />
+      </Kb.Box2>
+    </Kb.ScrollView>
   )
 }
 
 const TeamRow = (p: {checked: boolean; isOpen: boolean; name: string; onCheck: (c: boolean) => void}) => {
   const {checked, isOpen, name, onCheck} = p
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
-        <Kb.Checkbox checked={checked} onCheck={checked => onCheck(checked)} style={styles.teamCheckbox} />
-        <Kb.Avatar isTeam={true} size={isMobile ? 32 : 24} teamname={name} />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>
-            <Kb.Text type="BodySemibold" lineClamp={1}>
-              {name}
-            </Kb.Text>
-            {isOpen && (
-              <Kb.Meta title="open" style={styles.teamMeta} backgroundColor={Kb.Styles.globalColors.green} />
-            )}
-          </Kb.Box2>
-        </Kb.Box2>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
+      <Kb.Checkbox checked={checked} onCheck={checked => onCheck(checked)} style={styles.teamCheckbox} />
+      <Kb.Avatar isTeam={true} size={isMobile ? 32 : 24} teamname={name} />
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignSelf="center" style={styles.teamNameContainer}>
+        <Kb.Text type="BodySemibold" lineClamp={1}>
+          {name}
+        </Kb.Text>
+        {isOpen && (
+          <Kb.Meta title="open" style={styles.teamMeta} backgroundColor={Kb.Styles.globalColors.green} />
+        )}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -536,7 +531,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   container: Kb.Styles.platformStyles({
     common: {
       ...Kb.Styles.paddingV(Kb.Styles.globalMargins.small),
-      width: '100%',
     },
   }),
   divider: {marginBottom: Kb.Styles.globalMargins.small},
@@ -564,16 +558,12 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     marginTop: 2,
   },
   teamNameContainer: {
-    alignSelf: 'center',
     flexShrink: 1,
     marginLeft: Kb.Styles.globalMargins.tiny,
     marginRight: Kb.Styles.globalMargins.small,
   },
   teamRowContainer: {
     ...Kb.Styles.padding(Kb.Styles.globalMargins.xtiny, Kb.Styles.globalMargins.small, Kb.Styles.globalMargins.xtiny, isMobile ? Kb.Styles.globalMargins.large : 48),
-  },
-  teamText: {
-    alignSelf: 'flex-start',
   },
   whitelist: Kb.Styles.platformStyles({
     common: {
@@ -604,7 +594,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       backgroundColor: Kb.Styles.globalColors.white,
       flexShrink: 0,
       height: 40,
-      justifyContent: 'space-between',
       marginLeft: Kb.Styles.globalMargins.tiny,
       padding: Kb.Styles.globalMargins.tiny,
       paddingRight: Kb.Styles.globalMargins.small,

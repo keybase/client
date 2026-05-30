@@ -5,12 +5,12 @@ import {useProvisionState} from '@/stores/provision'
 import * as T from '@/constants/types'
 import {getDeviceIconType} from './device-icon'
 
-type OwnProps = {
+type AddDeviceProps = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
 }
 const noHighlight = new Array<'computer' | 'phone' | 'paper key'>()
 
-export default function AddDevice(ownProps: OwnProps) {
+export default function AddDevice(ownProps: AddDeviceProps) {
   const highlight = ownProps.highlight ?? noHighlight
   const [iconNumbers, setIconNumbers] = React.useState({
     desktop: 1 as T.Devices.IconNumber,

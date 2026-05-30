@@ -33,12 +33,8 @@ const getWaveWaitingKey = (recipient: string) => {
   return `settings:waveButton:${recipient}`
 }
 
-const WaveButton = (props: Props) => {
-  return <WaveButtonImpl {...props} />
-}
-
 // A button that sends a wave emoji into a chat.
-const WaveButtonImpl = (props: Props) => {
+const WaveButton = (props: Props) => {
   const [waved, setWaved] = React.useState(false)
   const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = C.Waiting.useAnyWaiting(waitingKey)
@@ -110,6 +106,8 @@ const WaveButtonImpl = (props: Props) => {
   )
 }
 
+export default WaveButton
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -123,5 +121,3 @@ const styles = Styles.styleSheetCreate(
       },
     }) as const
 )
-
-export default WaveButton

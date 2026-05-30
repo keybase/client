@@ -8,19 +8,16 @@ const Container = () => {
   const error = useProvisionState(s => s.error)
   const hint = useProvisionState(s => `${s.codePageOtherDevice.name || ''}...`)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const navigateUp = C.Router2.navigateUp
-  const onBack = () => {
-    navigateUp()
-  }
   const onSubmit = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
-  const props = {
-    error: error,
-    hint: hint,
-    onBack: onBack,
-    onSubmit: (paperkey: string) => !waiting && onSubmit?.(paperkey),
-    waiting: waiting,
-  }
-  return <PaperKey {...props} />
+  return (
+    <PaperKey
+      error={error}
+      hint={hint}
+      onBack={C.Router2.navigateUp}
+      onSubmit={(paperkey: string) => !waiting && onSubmit?.(paperkey)}
+      waiting={waiting}
+    />
+  )
 }
 
 type Props = {
@@ -33,10 +30,7 @@ type Props = {
 
 export const PaperKey = (props: Props) => {
   const [paperKey, setPaperKey] = React.useState('')
-
-  const _onSubmit = () => {
-    props.onSubmit(paperKey)
-  }
+  const onSubmit = () => props.onSubmit(paperKey)
 
   return (
     <SignupScreen
@@ -46,7 +40,7 @@ export const PaperKey = (props: Props) => {
         {
           disabled: !paperKey,
           label: 'Continue',
-          onClick: _onSubmit,
+          onClick: onSubmit,
           type: 'Success',
           waiting: props.waiting,
         },
@@ -73,7 +67,7 @@ export const PaperKey = (props: Props) => {
           textType="Body"
           containerStyle={styles.container2}
           inputStyle={styles.inputText}
-          onEnterKeyDown={_onSubmit}
+          onEnterKeyDown={onSubmit}
           onChangeText={setPaperKey}
           value={paperKey}
         />

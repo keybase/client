@@ -43,9 +43,7 @@ const FilteredTopLine = (props: Props) => {
 }
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
-  boldOverride: {
-    ...Kb.Styles.globalStyles.fontBold,
-  },
+  boldOverride: Kb.Styles.globalStyles.fontBold,
   selectedText: {
     color: Kb.Styles.globalColors.white,
   },

@@ -68,7 +68,7 @@ const rpcFolderTypeToTlfType = (rpcFolderType: T.RPCGen.FolderType) => {
   }
 }
 
-const rpcPathToPath = (rpcPath: T.RPCGen.KBFSPath) => T.FS.pathConcat(FS.defaultPath, rpcPath.path)
+export const rpcPathToPath = (rpcPath: T.RPCGen.KBFSPath) => T.FS.pathConcat(FS.defaultPath, rpcPath.path)
 
 const rpcConflictStateToConflictState = (rpcConflictState?: T.RPCGen.ConflictState): T.FS.ConflictState => {
   if (rpcConflictState) {

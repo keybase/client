@@ -4,7 +4,9 @@ import * as T from '@/constants/types'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '@/util/timestamp'
 import {getDeviceIconType} from './device-icon'
 
-type OwnProps = {canRevoke: boolean; device: T.Devices.Device}
+type DevicePageProps = {canRevoke: boolean; device: T.Devices.Device}
+
+type TimelineEventType = 'Revoked' | 'LastUsed' | 'Added'
 
 const TimelineMarker = (p: {first: boolean; last: boolean; closedCircle: boolean}) => {
   const {first, last, closedCircle} = p
@@ -36,20 +38,20 @@ const TimelineLabel = (p: {
         </Kb.Text>
       )}
       {!!subDesc && !subDescIsName && <Kb.Text type="BodySmall">{subDesc}</Kb.Text>}
-      {spacerOnBottom && <Kb.Box2 direction="vertical" style={{height: 15}} />}
+      {spacerOnBottom && <Kb.Box2 direction="vertical" style={styles.timelineSpacer} />}
     </Kb.Box2>
   )
 }
 
 const Timeline = (p: {device: T.Devices.Device}) => {
   const {device} = p
-  const timeline = [
+  const timeline: Array<{desc: string; subDesc: string; type: TimelineEventType}> = [
     ...(device.revokedAt
       ? [
           {
             desc: `Revoked ${formatTimeForDeviceTimeline(device.revokedAt)}`,
             subDesc: device.revokedByName || '',
-            type: 'Revoked',
+            type: 'Revoked' as const,
           },
         ]
       : []),
@@ -58,14 +60,14 @@ const Timeline = (p: {device: T.Devices.Device}) => {
           {
             desc: `Last used ${formatTimeForDeviceTimeline(device.lastUsed)}`,
             subDesc: formatTimeRelativeToNow(device.lastUsed),
-            type: 'LastUsed',
+            type: 'LastUsed' as const,
           },
         ]
       : []),
     {
       desc: `Added ${formatTimeForDeviceTimeline(device.created)}`,
       subDesc: device.provisionerName || '',
-      type: 'Added',
+      type: 'Added' as const,
     },
   ]
 
@@ -90,7 +92,7 @@ const Timeline = (p: {device: T.Devices.Device}) => {
   )
 }
 
-const DevicePage = (ownProps: OwnProps) => {
+const DevicePage = (ownProps: DevicePageProps) => {
   const {canRevoke, device} = ownProps
   const navigateAppend = C.Router2.navigateAppend
   const showRevokeDevicePage = () => {
@@ -141,25 +143,27 @@ const DevicePage = (ownProps: OwnProps) => {
     </Kb.Box2>
   )
 }
+const circleSize = 8
+
 const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       circleClosed: {
         backgroundColor: Kb.Styles.globalColors.grey,
         borderColor: Kb.Styles.globalColors.white,
-        borderRadius: 8 / 2,
+        borderRadius: circleSize / 2,
         borderStyle: 'solid',
         borderWidth: 2,
-        height: 8,
-        width: 8,
+        height: circleSize,
+        width: circleSize,
       },
       circleOpen: {
         borderColor: Kb.Styles.globalColors.grey,
-        borderRadius: 8 / 2,
+        borderRadius: circleSize / 2,
         borderStyle: 'solid',
         borderWidth: 2,
-        height: 8,
-        width: 8,
+        height: circleSize,
+        width: circleSize,
       },
       invisible: {opacity: 0},
       meta: {
@@ -177,6 +181,7 @@ const styles = Kb.Styles.styleSheetCreate(
         height: 6,
         width: 2,
       },
+      timelineSpacer: {height: 15},
     }) as const
 )
 

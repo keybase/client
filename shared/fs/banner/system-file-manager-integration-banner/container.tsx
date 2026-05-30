@@ -84,15 +84,11 @@ type BannerProps = {
 const backgroundToTextStyle = (background: Background) => {
   switch (background) {
     case Background.Blue:
-      return styles.textWhite
     case Background.Green:
+    case Background.Black:
       return styles.textWhite
     case Background.Yellow:
       return styles.textBrown
-    case Background.Black:
-      return styles.textWhite
-    default:
-      return styles.textWhite
   }
 }
 
@@ -105,8 +101,6 @@ const backgroundToBackgroundColor = (background: Background) => {
     case Background.Yellow:
       return Kb.Styles.globalColors.yellow
     case Background.Black:
-      return Kb.Styles.globalColors.black
-    default:
       return Kb.Styles.globalColors.black
   }
 }

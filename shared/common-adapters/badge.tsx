@@ -98,11 +98,7 @@ function Badge(p: Badge2Props) {
             type="BodyTinyBold"
             style={Styles.collapseStyles([
               styles.text,
-              {
-                fontSize: fontSize,
-                height: height,
-                lineHeight: isMobile ? height : `${height}px`,
-              } as const,
+              {fontSize, height, lineHeight: isMobile ? height : `${height}px`} as const,
               badgeNumberStyle,
             ])}
           >

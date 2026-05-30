@@ -36,9 +36,9 @@ const TeamRow = function TeamRow(props: Props) {
   const onChat = () => previewConversation({reason: 'teamRow', teamname: teamMeta.teamname})
 
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
-      return <TeamMenu teamID={teamID} attachTo={attachTo} onHidden={hidePopup} visible={true} />
-    }
+    const {attachTo, hidePopup} = p
+    return <TeamMenu teamID={teamID} attachTo={attachTo} onHidden={hidePopup} visible={true} />
+  }
   const {popup, popupAnchor, showPopup} = Kb.usePopup2(makePopup)
 
   const crownIconType: Kb.IconType | undefined =
@@ -61,10 +61,10 @@ const TeamRow = function TeamRow(props: Props) {
   if (isMobile) {
     return (
       <>
-        <Kb.ClickableBox3 onClick={onViewTeam} direction="horizontal" fullWidth={true} alignItems="center" style={Kb.Styles.collapseStyles([styles.clickableBox, styles.row])}>
+        <Kb.ClickableBox3 onClick={onViewTeam} direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
           <Kb.Divider style={styles.divider} />
-          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.avatarContainer}>
-            <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
+          <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>
+            <Kb.Box2 direction="vertical" relative={true} style={styles.avatarRelative}>
               <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
               {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
               {crownIcon}
@@ -117,10 +117,10 @@ const TeamRow = function TeamRow(props: Props) {
 
   return (
     <>
-      <Kb.ClickableBox3 onClick={onViewTeam} testID={TestIDs.TEAMS_ROW} className="teamRow" direction="horizontal" fullWidth={true} alignItems="center" style={Kb.Styles.collapseStyles([styles.clickableBox, styles.row])}>
+      <Kb.ClickableBox3 onClick={onViewTeam} testID={TestIDs.TEAMS_ROW} className="teamRow" direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
         <Kb.Divider style={styles.divider} />
-        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.avatarContainer}>
-          <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
+        <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>
+          <Kb.Box2 direction="vertical" relative={true} style={styles.avatarRelative}>
             <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
             {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
             {crownIcon}
@@ -192,16 +192,15 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   alignSelfCenter: {
     alignSelf: 'center',
   },
-  avatarContainer: Kb.Styles.platformStyles({
+  avatarOuter: Kb.Styles.platformStyles({
     common: {
       minHeight: smallHeight,
       width: smallIconWidth,
     },
     isPhone: {minHeight: 72},
   }),
-  avatarInner: {
+  avatarRelative: {
     height: 32,
-    position: 'relative',
     width: 32,
   },
   badge: {
@@ -226,10 +225,11 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   bodyRight: {
     flex: 0.7,
   },
-  clickableBox: Kb.Styles.platformStyles({
+  rowStyle: Kb.Styles.platformStyles({
     common: {
       backgroundColor: Kb.Styles.globalColors.white,
       flexShrink: 0,
+      position: 'relative',
     },
     isElectron: {minHeight: smallHeight},
     isPhone: {minHeight: 72},
@@ -241,9 +241,9 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       borderRadius: 100,
       ...Kb.Styles.size(17),
       position: 'absolute',
+      bottom: -5,
+      right: -5,
     },
-    isElectron: {bottom: -5, right: -5},
-    isMobile: {bottom: -5, right: -5},
   }),
   divider: {
     left: 0,
@@ -251,14 +251,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     right: 0,
     top: 0,
   },
-  row: Kb.Styles.platformStyles({
-    common: {
-      backgroundColor: Kb.Styles.globalColors.white,
-      position: 'relative',
-    },
-    isElectron: {minHeight: smallHeight},
-    isPhone: {minHeight: 72},
-  }),
+
 }) as const)
 
 export default TeamRow

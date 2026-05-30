@@ -21,11 +21,7 @@ type FileListLike = {length?: number; [key: number]: FileLike; [Symbol.iterator]
 type FileInputRef = {click?: () => void; files?: FileListLike | null; value?: string}
 
 // Desktop helpers
-const validDrag = (e: React.DragEvent) => {
-  return Array.from(e.dataTransfer.types)
-    .map(t => t)
-    .includes('Files')
-}
+const validDrag = (e: React.DragEvent) => Array.from(e.dataTransfer.types).includes('Files')
 
 const getFile = async (fileList: FileListLike | undefined): Promise<string> => {
   const {isDirectory, getPathForFile} = desktopFns

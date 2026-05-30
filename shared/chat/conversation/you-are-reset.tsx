@@ -2,12 +2,7 @@ import * as Kb from '@/common-adapters'
 
 const YouAreReset = () => (
   <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
-    <Kb.Box2
-      direction="vertical"
-      centerChildren={true}
-      fullWidth={true}
-      flex={1}
-    >
+    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} flex={1}>
       <Kb.ImageIcon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.box}>

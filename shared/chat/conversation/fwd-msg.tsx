@@ -304,8 +304,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const TeamPicker = (props: Props) => {
-  return <TeamPickerInner {...props} />
-}
-
-export default TeamPicker
+export default TeamPickerInner

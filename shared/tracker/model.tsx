@@ -1,4 +1,60 @@
 import * as T from '@/constants/types'
+import * as Kb from '@/common-adapters'
+
+export const assertionColorToColor = (c: T.Tracker.AssertionColor) => {
+  switch (c) {
+    case 'blue':
+      return Kb.Styles.globalColors.blue
+    case 'red':
+      return Kb.Styles.globalColors.red
+    case 'black':
+      return Kb.Styles.globalColors.black
+    case 'green':
+      return Kb.Styles.globalColors.green
+    case 'gray':
+      return Kb.Styles.globalColors.black_50
+    case 'yellow': // fallthrough
+    case 'orange':
+    default:
+      return Kb.Styles.globalColors.red
+  }
+}
+
+export const assertionColorToTextColor = (c: T.Tracker.AssertionColor) => {
+  switch (c) {
+    case 'blue':
+      return Kb.Styles.globalColors.blueDark
+    case 'red':
+      return Kb.Styles.globalColors.redDark
+    case 'black':
+      return Kb.Styles.globalColors.black
+    case 'green':
+      return Kb.Styles.globalColors.greenDark
+    case 'gray':
+      return Kb.Styles.globalColors.black_50
+    case 'yellow': // fallthrough
+    case 'orange':
+    default:
+      return Kb.Styles.globalColors.redDark
+  }
+}
+
+export const stateToIcon = (state: T.Tracker.AssertionState) => {
+  switch (state) {
+    case 'checking':
+      return 'iconfont-proof-pending'
+    case 'valid':
+      return 'iconfont-proof-good'
+    case 'error': // fallthrough
+    case 'warning':
+    case 'revoked':
+      return 'iconfont-proof-broken'
+    case 'suggestion':
+      return 'iconfont-proof-placeholder'
+    default:
+      return 'iconfont-proof-pending'
+  }
+}
 
 export const noDetails: T.Tracker.Details = {
   assertions: new Map(),

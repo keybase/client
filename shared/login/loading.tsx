@@ -7,8 +7,6 @@ const SplashContainer = () => {
   const failedReason = useDaemonState(s => s.handshakeFailedReason)
   const retriesLeft = useDaemonState(s => s.handshakeRetriesLeft)
   const startHandshake = useDaemonState(s => s.dispatch.startHandshake)
-  const navigateAppend = C.Router2.navigateAppend
-
   let status = ''
   let failed = ''
 
@@ -25,7 +23,7 @@ const SplashContainer = () => {
 
   const onFeedback = isMobile
     ? () => {
-        navigateAppend({name: 'feedback', params: {}})
+        C.Router2.navigateAppend({name: 'feedback', params: {}})
       }
     : undefined
   const onRetry = retriesLeft === 0 ? startHandshake : undefined
@@ -52,7 +50,7 @@ export const Splash = (p: SplashProps) => {
   }, [])
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} justifyContent="center" style={styles.container} gap="small">
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} justifyContent="center" alignItems="center" gap="small">
       <Kb.ImageIcon type={onRetry ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
       <Kb.ImageIcon type="icon-keybase-wordmark-128-48" />
       {!!status && <Kb.Text type="BodySmall">{status}</Kb.Text>}
@@ -86,12 +84,5 @@ const Feedback = ({onFeedback}: {onFeedback?: () => void}) =>
       from the terminal.
     </Kb.Text>
   )
-
-const styles = Kb.Styles.styleSheetCreate(
-  () =>
-    ({
-      container: {alignItems: 'center'},
-    }) as const
-)
 
 export default SplashContainer

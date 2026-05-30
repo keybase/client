@@ -17,22 +17,15 @@ const Intro = () => {
 
   const isOnline = useConfigState(s => s.isOnline)
   const loadIsOnline = useConfigState(s => s.dispatch.loadIsOnline)
-
-  const navigateAppend = C.Router2.navigateAppend
-  const checkIsOnline = loadIsOnline
   const startProvision = useProvisionState(s => s.dispatch.startProvision)
-  const onLogin = () => {
-    startProvision()
-  }
   const requestAutoInvite = useRequestAutoInvite()
-  const onSignup = () => {
-    requestAutoInvite()
-  }
+  const onLogin = () => startProvision()
+  const onSignup = () => requestAutoInvite()
   const showProxySettings = () => {
-    navigateAppend({name: 'proxySettingsModal', params: {}})
+    C.Router2.navigateAppend({name: 'proxySettingsModal', params: {}})
   }
   const [showing, setShowing] = React.useState(true)
-  Kb.useInterval(checkIsOnline, showing ? 5000 : undefined)
+  Kb.useInterval(loadIsOnline, showing ? 5000 : undefined)
 
   C.Router2.useSafeFocusEffect(() => {
     setShowing(true)

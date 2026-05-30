@@ -15,9 +15,8 @@ const ConnectedExplainDevice = ({route}: Props) => {
       username,
     })
   }
-  const navigateUp = C.Router2.navigateUp
   const onComplete = () => {
-    navigateUp()
+    C.Router2.navigateUp()
   }
 
   const explainingMobile = deviceType === T.RPCGen.DeviceType.mobile

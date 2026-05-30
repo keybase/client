@@ -18,9 +18,9 @@ type OwnProps = {
   url?: string
 }
 
-const Container = (ownProps: OwnProps) => {
+const Announcement = (props: OwnProps) => {
   const {appLink, badged, confirmLabel, dismissAnnouncement, dismissable, getData, iconUrl, id, text, url} =
-    ownProps
+    props
   const {navigateAppend, switchTab, navigateToInbox} = C.Router2
   const onConfirm = () => {
     if (url) {
@@ -68,11 +68,12 @@ const Container = (ownProps: OwnProps) => {
     dismissAnnouncement(id)
     getData(true, true)
   }
-  const _onDismiss = () => {
-    dismissAnnouncement(id)
-    getData(true, true)
-  }
-  const onDismiss = dismissable ? _onDismiss : undefined
+  const onDismiss = dismissable
+    ? () => {
+        dismissAnnouncement(id)
+        getData(true, true)
+      }
+    : undefined
 
   return (
     <PeopleItem
@@ -104,4 +105,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default Announcement

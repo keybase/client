@@ -127,7 +127,7 @@ const ReportOptions = (props: ReportOptionsProps) => {
   )
 }
 
-const Container = function BlockModal(ownProps: OwnProps) {
+const BlockModal = (ownProps: OwnProps) => {
   const {context, conversationIDKey, blockUserByDefault = false, filterUserByDefault = false} = ownProps
   const {flagUserByDefault = false, reportsUserByDefault = false, team: teamname} = ownProps
   let {username: adderUsername, others} = ownProps
@@ -496,7 +496,7 @@ const Container = function BlockModal(ownProps: OwnProps) {
   )
 }
 
-export default Container
+export default BlockModal
 
 const getListHeightStyle = (numOthers: number, expanded: boolean) => ({
   height:

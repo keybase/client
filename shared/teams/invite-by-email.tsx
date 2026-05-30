@@ -69,13 +69,13 @@ const Container = (ownProps: OwnProps) => {
         direction="vertical"
         alignItems="center"
         fullWidth={true}
-        style={{margin: Kb.Styles.globalMargins.medium}}
+        style={styles.outerBox}
       >
         <Kb.Text style={styles.header} type="Header">
           Invite by email
         </Kb.Text>
-        <Kb.Box2 direction="horizontal" alignItems="center" style={{margin: Kb.Styles.globalMargins.tiny}}>
-          <Kb.Text style={{margin: Kb.Styles.globalMargins.tiny}} type="Body">
+        <Kb.Box2 direction="horizontal" alignItems="center" style={styles.roleRow}>
+          <Kb.Text style={styles.addAsText} type="Body">
             Add these team members to {teamname} as:
           </Kb.Text>
           <FloatingRolePicker
@@ -89,7 +89,7 @@ const Container = (ownProps: OwnProps) => {
             <Kb.DropdownButton
               toggleOpen={onOpenRolePicker}
               selected={_makeDropdownItem(role)}
-              style={{width: 100}}
+              style={styles.dropdown}
             />
           </FloatingRolePicker>
         </Kb.Box2>
@@ -105,7 +105,7 @@ const Container = (ownProps: OwnProps) => {
             value={invitees}
           />
           {!!errorMessage && (
-            <Kb.Text type="BodySmall" style={{color: Kb.Styles.globalColors.redDark}}>
+            <Kb.Text type="BodySmall" style={styles.errorText}>
               {errorMessage}
             </Kb.Text>
           )}
@@ -119,20 +119,19 @@ const Container = (ownProps: OwnProps) => {
 }
 
 const _makeDropdownItem = (item: string) => (
-  <Kb.Box2
-    key={item}
-    direction="horizontal"
-    alignItems="center"
-    style={{
-      ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
-    }}
-  >
+  <Kb.Box2 key={item} direction="horizontal" alignItems="center" style={styles.dropdownItem}>
     <Kb.Text type="BodyBig">{capitalize(item)}</Kb.Text>
   </Kb.Box2>
 )
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
+  addAsText: {margin: Kb.Styles.globalMargins.tiny},
+  dropdown: {width: 100},
+  dropdownItem: {...Kb.Styles.paddingH(Kb.Styles.globalMargins.small)},
+  errorText: {color: Kb.Styles.globalColors.redDark},
   header: {padding: Kb.Styles.globalMargins.tiny},
+  outerBox: {margin: Kb.Styles.globalMargins.medium},
+  roleRow: {margin: Kb.Styles.globalMargins.tiny},
 }))
 
 export default Container

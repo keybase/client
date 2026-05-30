@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '@/common-adapters/index'
+import * as Kb from '@/common-adapters'
 
 type Props = {
   onChangeText: (newText: string) => void
@@ -62,15 +62,15 @@ const Input = (props: Props) => {
   }, [focusCounter, prevFocusCounterRef])
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-      handleKeyDown(
-        () => e.preventDefault(),
-        e.ctrlKey,
-        e.key,
-        onUpArrowKeyDown,
-        onDownArrowKeyDown,
-        onEnterKeyDown
-      )
-    }
+    handleKeyDown(
+      () => e.preventDefault(),
+      e.ctrlKey,
+      e.key,
+      onUpArrowKeyDown,
+      onDownArrowKeyDown,
+      onEnterKeyDown
+    )
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>

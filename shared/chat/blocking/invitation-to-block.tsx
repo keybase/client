@@ -141,7 +141,7 @@ const BlockButtons = () => {
       </Kb.Box2>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 direction="horizontal" gap="xsmall" style={styles.container} centerChildren={false}>
+    <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={styles.container}>
       <Kb.Text type="BodySmall">
         {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
       </Kb.Text>
@@ -166,7 +166,6 @@ const styles = Kb.Styles.styleSheetCreate(
       }),
       buttonContainer: {maxWidth: 322},
       container: {
-        alignItems: 'center',
         alignSelf: 'flex-start',
         marginLeft: 57,
       },

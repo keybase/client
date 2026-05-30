@@ -14,19 +14,9 @@ type Props = {
 }
 
 const ButtonBar = (props: Props) => {
-  const _spacing = () => {
-    if ((props.direction ?? 'row') === 'row' && props.small && !isMobile) {
-      return SmallSpacer
-    }
-    return BigSpacer
-  }
-
-  const _surroundSpacing = () => {
-    return (props.direction ?? 'row') === 'column'
-  }
-
-  const Spacing = _spacing()
-  const surroundSpacing = _surroundSpacing()
+  const isColumn = (props.direction ?? 'row') === 'column'
+  const Spacing = (!isColumn && props.small && !isMobile) ? SmallSpacer : BigSpacer
+  const surroundSpacing = isColumn
   const children = React.Children.toArray(props.children)
   const childrenWithSpacing = children.reduce<Array<React.ReactNode>>((arr, c, idx) => {
     if (surroundSpacing || idx > 0) {
@@ -43,7 +33,6 @@ const ButtonBar = (props: Props) => {
     minHeight: isMobile ? (props.small ? 64 : 72) : props.small ? 44 : 64,
   }
 
-  const isColumn = (props.direction ?? 'row') === 'column'
   const style = Styles.collapseStyles([
     {
       ...(Styles.isTablet ? {maxWidth: 460} : {}),

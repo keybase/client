@@ -60,6 +60,7 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
         direction="horizontal"
         fullWidth={true}
         alignItems="center"
+        justifyContent="center"
         style={Kb.Styles.collapseStyles([
           styles.signedContainer,
           isSelfSigned ? styles.signedContainerSelf : styles.signedContainerOther,
@@ -70,7 +71,6 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
             direction="horizontal"
             gap={isSelfSigned ? 'xtiny' : 'xsmall'}
             alignItems="center"
-            style={styles.signedSender}
           >
             <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername} />
             {isSelfSigned ? (
@@ -99,7 +99,7 @@ export const CryptoSignedSender = ({isSelfSigned, state}: SignedSenderProps) => 
             )}
           </Kb.Box2>
         ) : (
-          <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
+          <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
             <Kb.ImageIcon key="avatar" type="icon-placeholder-secret-user-16" />
             {isSelfSigned ? null : (
               <Kb.Text key="username" type="BodySmallSemibold">
@@ -325,22 +325,21 @@ export const CryptoOutput = ({
 
   if (state.outputType === 'file') {
     return (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          alignItems="center"
-          style={styles.fileOutputContainer}
+      <Kb.Box2
+        direction="horizontal"
+        fullHeight={true}
+        fullWidth={true}
+        alignItems="center"
+        style={styles.fileOutputContainer}
+      >
+        {outputFileIcon ? <Kb.ImageIcon type={outputFileIcon} /> : null}
+        <Kb.Text
+          type="BodyPrimaryLink"
+          style={Kb.Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
+          onClick={() => state.output && openLocalPathInSystemFileManagerDesktop(state.output)}
         >
-          {outputFileIcon ? <Kb.ImageIcon type={outputFileIcon} /> : null}
-          <Kb.Text
-            type="BodyPrimaryLink"
-            style={Kb.Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
-            onClick={() => state.output && openLocalPathInSystemFileManagerDesktop(state.output)}
-          >
-            {state.output}
-          </Kb.Text>
-        </Kb.Box2>
+          {state.output}
+        </Kb.Text>
       </Kb.Box2>
     )
   }
@@ -421,7 +420,6 @@ const styles = Kb.Styles.styleSheetCreate(
       signedContainer: Kb.Styles.platformStyles({
         common: {
           flexShrink: 0,
-          justifyContent: 'center',
           minHeight: Kb.Styles.globalMargins.mediumLarge,
         },
         isMobile: {
@@ -446,7 +444,6 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, Kb.Styles.globalMargins.small),
         },
       }),
-      signedSender: {alignItems: 'center'},
       toastText: {color: Kb.Styles.globalColors.white},
     }) as const
 )

@@ -1,11 +1,5 @@
 import * as React from 'react'
-import * as Styles from '@/styles'
-import WaitingButton from '@/common-adapters/waiting-button'
-
-const Kb = {
-  Styles,
-  WaitingButton,
-}
+import * as Kb from '@/common-adapters'
 
 type Props = {
   disabled?: boolean
