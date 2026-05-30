@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {SignupScreen, errorBanner} from './common'
+import {SignupScreen, errorBanner, desktopInputWidth} from './common'
 import {useAddEmail} from '@/settings/account/use-add-email'
 import {usePushState} from '@/stores/push'
 import {setSignupEmail} from '@/people/signup-email'
@@ -54,13 +54,13 @@ const ConnectedEnterEmail = () => {
           label: 'Finish',
           onClick: onContinue,
           type: 'Success',
-          waiting: waiting,
+          waiting,
         },
       ]}
       rightActionLabel="Skip"
       onRightAction={onSkip}
       title="Your email address"
-      showHeaderInfoicon={true}
+      showHeaderInfoIcon={true}
     >
       <EnterEmailBody
         onChangeEmail={onChangeEmail}
@@ -91,7 +91,7 @@ export const EnterEmailBody = (props: BodyProps) => (
       direction="vertical"
       gap={isMobile ? 'small' : 'medium'}
       fullWidth={true}
-      style={Kb.Styles.globalStyles.flexOne}
+      flex={1}
     >
       <Kb.ImageIcon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
@@ -120,13 +120,12 @@ export const EnterEmailBody = (props: BodyProps) => (
 
 const styles = Kb.Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
-  input: Kb.Styles.platformStyles({
-    isElectron: {width: 368},
-  }),
+  input: desktopInputWidth,
   inputBox: Kb.Styles.platformStyles({
     // need to set width so subtext will wrap
     isElectron: {width: 368},
     isMobile: {width: '100%'},
+    isTablet: {width: 368},
   }),
 }))
 

@@ -60,7 +60,7 @@ const Container = ({route}: Props) => {
         </Kb.Box2>
       }
       negativeHeader={true}
-      showHeaderInfoicon={true}
+      showHeaderInfoIcon={true}
     >
       <VerifyBody onChangeCode={onChangeCode} code={code} onResend={onResend} resendWaiting={resendWaiting} />
     </SignupScreen>

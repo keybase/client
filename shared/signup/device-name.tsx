@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
-import {SignupScreen, errorBanner} from './common'
+import {SignupScreen, errorBanner, desktopInputWidth} from './common'
 import * as Provision from '@/stores/provision'
 import {usePushState} from '@/stores/push'
 import * as T from '@/constants/types'
@@ -140,7 +140,7 @@ const EnterDevicename = (props: EnterDevicenameProps) => {
         direction="vertical"
         gap={isMobile ? 'small' : 'medium'}
         fullWidth={true}
-        style={Kb.Styles.globalStyles.flexOne}
+        flex={1}
       >
         <Kb.ImageIcon
           type={
@@ -182,8 +182,5 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     color: Kb.Styles.globalColors.redDark,
     marginLeft: 2,
   },
-  input: Kb.Styles.platformStyles({
-    isElectron: {width: 368},
-    isTablet: {width: 368},
-  }),
+  input: desktopInputWidth,
 }))

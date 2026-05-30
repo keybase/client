@@ -5,6 +5,11 @@ import {type ButtonProps} from '@/common-adapters/button'
 import {openURL} from '@/util/misc'
 import {useConfigState} from '@/stores/config'
 
+export const desktopInputWidth = Kb.Styles.platformStyles({
+  isElectron: {width: 368},
+  isTablet: {width: 368},
+})
+
 type InfoIconProps = {
   invisible?: boolean
   style?: Kb.Styles.StylesCrossPlatform
@@ -60,7 +65,6 @@ type HeaderProps = {
   showInfoIconRow: boolean
   style: Kb.Styles.StylesCrossPlatform
   negative: boolean
-  rightActionComponent?: React.ReactNode
   rightActionLabel?: string
   onRightAction?: () => void
 }
@@ -106,11 +110,6 @@ const Header = (props: HeaderProps) => (
           style={styles.rightActionButton}
         />
       )}
-      {props.rightActionComponent && (
-        <Kb.Box2 direction="horizontal" style={styles.rightAction} justifyContent="center">
-          {props.rightActionComponent}
-        </Kb.Box2>
-      )}
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -138,11 +137,10 @@ type SignupScreenProps = {
   title?: string
   titleComponent?: React.ReactNode
   header?: React.ReactNode
-  rightActionComponent?: React.ReactNode
   rightActionLabel?: string
   onRightAction?: () => void
-  showHeaderInfoicon?: boolean
-  showHeaderInfoiconRow?: boolean
+  showHeaderInfoIcon?: boolean
+  showHeaderInfoIconRow?: boolean
   hideDesktopHeader?: boolean
 }
 
@@ -163,14 +161,13 @@ export const SignupScreen = (props: SignupScreenProps) => {
           onBack={props.onBack}
           title={props.title}
           titleComponent={props.titleComponent}
-          showInfoIcon={!!props.showHeaderInfoicon}
-          showInfoIconRow={!!props.showHeaderInfoiconRow}
+          showInfoIcon={!!props.showHeaderInfoIcon}
+          showInfoIconRow={!!props.showHeaderInfoIconRow}
           style={Kb.Styles.collapseStyles([
             props.noBackground && styles.whiteHeaderContainer,
             props.headerStyle,
           ])}
           negative={!!props.negativeHeader}
-          rightActionComponent={props.rightActionComponent}
           rightActionLabel={props.rightActionLabel}
           onRightAction={props.onRightAction}
         />
@@ -200,7 +197,7 @@ export const SignupScreen = (props: SignupScreenProps) => {
             {props.footer}
           </Kb.Box2>
         )}
-        {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
+        {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners}>{props.banners}</Kb.Box2>}
         {!!props.buttons && (
           <Kb.ButtonBar
             direction="column"
@@ -304,18 +301,6 @@ const styles = Kb.Styles.styleSheetCreate(
       opacityNone: {
         opacity: 0,
       },
-      rightAction: Kb.Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-          alignSelf: 'flex-end',
-          bottom: 0,
-          paddingRight: Kb.Styles.globalMargins.small,
-          position: 'absolute',
-          right: 0,
-          top: 0,
-        },
-        isElectron: Kb.Styles.desktopStyles.windowDraggingClickable,
-      }),
       rightActionButton: Kb.Styles.platformStyles({
         common: {
           position: 'absolute',

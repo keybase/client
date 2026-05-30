@@ -1,7 +1,7 @@
 import * as C from '@/constants'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
-import {SignupScreen, errorBanner} from '../common'
+import {SignupScreen, errorBanner, desktopInputWidth} from '../common'
 import {useAddPhoneNumber} from './use-verification'
 import {useDefaultPhoneCountry} from '@/util/phone-numbers'
 
@@ -21,6 +21,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
     <Kb.Box2
       alignItems="center"
       direction="vertical"
+      flex={1}
       gap={isMobile ? 'small' : 'medium'}
       fullWidth={true}
       style={styles.container}
@@ -52,7 +53,6 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
   container: Kb.Styles.platformStyles({
-    common: Kb.Styles.globalStyles.flexOne,
     isTablet: {maxWidth: 386},
   }),
   input: Kb.Styles.platformStyles({
@@ -65,10 +65,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
-  inputBox: Kb.Styles.platformStyles({
-    // need to set width so subtext will wrap
-    isElectron: {width: 368},
-  }),
+  inputBox: desktopInputWidth,
 }))
 
 const ConnectedEnterPhoneNumber = () => {
@@ -104,15 +101,15 @@ const ConnectedEnterPhoneNumber = () => {
           disabled,
           label: 'Continue',
           onClick: onContinue,
-          type: 'Success' as const,
-          waiting: waiting,
+          type: 'Success',
+          waiting,
         },
       ]}
       banners={errorBanner(error)}
       rightActionLabel="Skip"
       onRightAction={onSkip}
       title="Your phone number"
-      showHeaderInfoicon={true}
+      showHeaderInfoIcon={true}
     >
       <EnterPhoneNumberBody
         autoFocus={!isMobile}
