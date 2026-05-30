@@ -97,4 +97,10 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   scrollViewContentContainer: {...Kb.Styles.globalStyles.flexBoxColumn, flexGrow: 1},
 }))
 
+export const walletModalIconStyle = Kb.Styles.platformStyles({
+  common: {marginBottom: Kb.Styles.globalMargins.large},
+  isElectron: {marginTop: Kb.Styles.globalMargins.medium},
+  isMobile: {marginTop: Kb.Styles.globalMargins.xlarge},
+})
+
 export default WalletPopup

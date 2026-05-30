@@ -2,7 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
-import WalletPopup from './wallet-popup'
+import WalletPopup, {walletModalIconStyle} from './wallet-popup'
 import {loadAccountsWaitingKey} from '@/constants/strings'
 import {copyToClipboard} from '@/util/storeless-actions'
 
@@ -78,22 +78,20 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
       safeAreaViewTopStyle={styles.background}
     >
       <Kb.Box2 centerChildren={true} direction="vertical" flex={1} fullWidth={true}>
-        <Kb.ImageIcon
+        <Kb.IconAuto
           type={isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
-          style={styles.icon}
+          style={walletModalIconStyle}
         />
-        <Kb.Box2 direction="vertical">
-          <Kb.Text center={true} style={styles.warningText} type="Header">
-            One last thing! Make sure you keep a copy of your secret key before removing{' '}
-          </Kb.Text>
-          <Kb.Text
-            center={true}
-            type="HeaderItalic"
-            style={Kb.Styles.collapseStyles([styles.warningText, styles.mainText] as const)}
-          >
-            {name}.
-          </Kb.Text>
-        </Kb.Box2>
+        <Kb.Text center={true} style={styles.warningText} type="Header">
+          One last thing! Make sure you keep a copy of your secret key before removing{' '}
+        </Kb.Text>
+        <Kb.Text
+          center={true}
+          type="HeaderItalic"
+          style={Kb.Styles.collapseStyles([styles.warningText, styles.mainText] as const)}
+        >
+          {name}.
+        </Kb.Text>
         <Kb.Text center={true} type="BodySmall" style={styles.warningText}>
           If you save this secret key, you can use it in other wallets outside Keybase
         </Kb.Text>
@@ -113,11 +111,6 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
 const styles = Kb.Styles.styleSheetCreate(() => ({
   background: Kb.Styles.platformStyles({
     common: {backgroundColor: Kb.Styles.globalColors.yellow},
-  }),
-  icon: Kb.Styles.platformStyles({
-    common: {marginBottom: Kb.Styles.globalMargins.large},
-    isElectron: {marginTop: Kb.Styles.globalMargins.medium},
-    isMobile: {marginTop: Kb.Styles.globalMargins.xlarge},
   }),
   mainText: Kb.Styles.platformStyles({
     common: {paddingBottom: Kb.Styles.globalMargins.small},
