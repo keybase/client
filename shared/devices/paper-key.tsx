@@ -39,7 +39,7 @@ const PaperKey = () => {
       gap="medium"
     >
         <Kb.Text type="Header">Paper key generated!</Kb.Text>
-        <Kb.Text type="Body" style={styles.intro}>
+        <Kb.Text type="Body" center={true}>
           Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
           This is the only time you&apos;ll see this so be sure to write it down.
         </Kb.Text>
@@ -78,7 +78,6 @@ const styles = Kb.Styles.styleSheetCreate(
         maxWidth: isMobile ? undefined : 560,
         padding: Kb.Styles.globalMargins.medium,
       },
-      intro: {textAlign: 'center'},
       keyBox: {
         backgroundColor: Kb.Styles.globalColors.white,
         borderColor: Kb.Styles.globalColors.blueDarker,
