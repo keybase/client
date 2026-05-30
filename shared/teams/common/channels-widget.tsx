@@ -52,21 +52,21 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
 
   const {channelMetas} = useAllChannelMetas(teamID)
   const channelItems = [...channelMetas.values()]
-        .filter(
-          c =>
-            !selected.find(channel => channel.conversationIDKey === c.conversationIDKey) &&
-            (!disableGeneral || c.channelname !== 'general') &&
-            !disabledChannels?.some(dc => dc.conversationIDKey === c.conversationIDKey)
-        )
-        .map(c => ({
-          label: `#${c.channelname}`,
-          value: {channelname: c.channelname, conversationIDKey: c.conversationIDKey},
-        }))
+    .filter(
+      c =>
+        !selected.find(channel => channel.conversationIDKey === c.conversationIDKey) &&
+        (!disableGeneral || c.channelname !== 'general') &&
+        !disabledChannels?.some(dc => dc.conversationIDKey === c.conversationIDKey)
+    )
+    .map(c => ({
+      label: `#${c.channelname}`,
+      value: {channelname: c.channelname, conversationIDKey: c.conversationIDKey},
+    }))
 
   const onSelect = (value: T.Unpacked<typeof channelItems>['value']) => {
-      onAdd([value])
-      setFilter('')
-    }
+    onAdd([value])
+    setFilter('')
+  }
 
   const {popup, popupAnchor, onKeyDown, showPopup, hidePopup} = useAutocompleter(
     channelItems,

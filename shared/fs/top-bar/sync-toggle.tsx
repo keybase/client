@@ -9,7 +9,7 @@ type OwnProps = {
   tlfPath: T.FS.Path
 }
 
-const Container = (ownProps: OwnProps) => {
+const SyncToggle = (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
   const tlfPathItem = useFsFolderChildren(tlfPath)
   const tlf = useFsTlf(tlfPath)
@@ -180,4 +180,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default SyncToggle

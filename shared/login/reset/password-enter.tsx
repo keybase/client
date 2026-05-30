@@ -38,16 +38,14 @@ const EnterPassword = ({route}: Props) => {
       }
       buttons={[{label: 'Continue', onClick: onContinue, waiting}]}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Input3
-          placeholder="Enter your password"
-          containerStyle={styles.input}
-          secureTextEntry={true}
-          onChangeText={setPassword}
-          onEnterKeyDown={onContinue}
-          autoFocus={true}
-        />
-      </Kb.Box2>
+      <Kb.Input3
+        placeholder="Enter your password"
+        containerStyle={styles.input}
+        secureTextEntry={true}
+        onChangeText={setPassword}
+        onEnterKeyDown={onContinue}
+        autoFocus={true}
+      />
     </SignupScreen>
   )
 }

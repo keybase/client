@@ -16,7 +16,7 @@ type OwnProps = {
 
 const noTeams = new Array<T.Tracker.TeamShowcase>()
 
-const Container = (ownProps: OwnProps) => {
+const Teams = (ownProps: OwnProps) => {
   const isYou = useCurrentUserState(s => s.username === ownProps.username)
   const {teams} = useTeamsList()
   const teamNameToID = React.useMemo(() => new Map(teams.map(team => [team.teamname, team.id] as const)), [teams])
@@ -72,14 +72,12 @@ const TeamShowcase = (props: TeamShowcaseProps) => {
 }
 
 const ShowcaseTeamsOffer = (p: {onEdit: () => void}) => (
-  <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-    <Kb.ClickableBox3 direction="horizontal" gap="tiny" onClick={p.onEdit}>
-      <Kb.ImageIcon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
-      <Kb.Text style={styles.youFeatureTeam} type="BodyPrimaryLink">
-        {"Feature the teams you're in"}
-      </Kb.Text>
-    </Kb.ClickableBox3>
-  </Kb.Box2>
+  <Kb.ClickableBox3 direction="horizontal" gap="tiny" fullWidth={true} onClick={p.onEdit}>
+    <Kb.ImageIcon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
+    <Kb.Text style={styles.youFeatureTeam} type="BodyPrimaryLink">
+      {"Feature the teams you're in"}
+    </Kb.Text>
+  </Kb.ClickableBox3>
 )
 
 const styles = Kb.Styles.styleSheetCreate(
@@ -93,4 +91,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default Teams

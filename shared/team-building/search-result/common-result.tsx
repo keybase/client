@@ -353,6 +353,15 @@ const Username = (props: {
 }
 
 export const userResultHeight = isMobile ? Kb.Styles.globalMargins.xlarge : 48
+
+// Shared row padding used by UserResult, YouResult, and HellobotResult
+export const rowContainerWithLargePadding = Kb.Styles.padding(
+  Kb.Styles.globalMargins.tiny,
+  Kb.Styles.globalMargins.medium,
+  Kb.Styles.globalMargins.tiny,
+  Kb.Styles.globalMargins.xsmall
+)
+
 const styles = Kb.Styles.styleSheetCreate(() => ({
   actionButtonsHighlighted: Kb.Styles.platformStyles({
     isElectron: {

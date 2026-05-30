@@ -8,17 +8,15 @@ type Props = {
 }
 
 export const Wrapper = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      fullHeight={true}
-      centerChildren={true}
-      style={styles.wrapper}
-      gap={isMobile ? 'xtiny' : 'small'}
-    >
-      {props.children}
-    </Kb.Box2>
+  <Kb.Box2
+    direction="vertical"
+    fullWidth={true}
+    fullHeight={true}
+    centerChildren={true}
+    style={styles.wrapper}
+    gap={isMobile ? 'xtiny' : 'small'}
+  >
+    {props.children}
   </Kb.Box2>
 )
 

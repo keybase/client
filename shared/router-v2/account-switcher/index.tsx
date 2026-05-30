@@ -14,7 +14,7 @@ const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolea
   myUsername: string
 ): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
-const Container = () => {
+const AccountSwitcher = () => {
   const _fullnames = useUsersState(s => s.infoMap)
   const _accountRows = useConfigState(s => s.configuredAccounts)
   const you = useCurrentUserState(s => s.username)
@@ -202,7 +202,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     common: {flexShrink: 1},
     isElectron: {wordBreak: 'break-all'},
   }),
-  signOut: {color: Kb.Styles.globalColors.red},
   text2: {flexShrink: 0},
   userBox: {
     ...Kb.Styles.paddingH(Kb.Styles.globalMargins.small),
@@ -211,4 +210,4 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   waiting: {opacity: 0.5},
 }))
 
-export default Container
+export default AccountSwitcher

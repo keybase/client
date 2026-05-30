@@ -45,18 +45,6 @@ const Feedback = (props: Props) => {
     lastSendErrorRef.current = sendError
   }, [sending, sendError, onFeedbackDone, feedback, showInternalSuccessBanner])
 
-  const _onChangeFeedback = (feedback: string) => {
-    setFeedback(feedback)
-  }
-
-  const _onChangeSendLogs = (sendLogs: boolean) => {
-    setSendLogs(sendLogs)
-  }
-
-  const _onChangeEmail = (email: string) => {
-    setEmail(email)
-  }
-
   const _sendMaxBytes = () => clickCount >= clickThreshold
 
   const _onSendFeedback = () => {
@@ -83,7 +71,7 @@ const Feedback = (props: Props) => {
               containerStyle={styles.input}
               inputStyle={styles.inputResize}
               multiline={true}
-              onChangeText={_onChangeFeedback}
+              onChangeText={setFeedback}
               placeholder="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
               rowsMin={4}
               rowsMax={isMobile ? 4 : 10}
@@ -101,7 +89,7 @@ const Feedback = (props: Props) => {
                 label="Include your logs"
                 labelSubtitle="This includes some private metadata info (e.g., file sizes, but not names or contents) but it will help the developers fix bugs more quickly."
                 checked={sendLogs}
-                onCheck={_onChangeSendLogs}
+                onCheck={setSendLogs}
               />
             </Kb.ClickableBox3>
           </Kb.Box2>
@@ -110,7 +98,7 @@ const Feedback = (props: Props) => {
               <Kb.Input3
                 containerStyle={styles.input}
                 placeholder="Your email address"
-                onChangeText={_onChangeEmail}
+                onChangeText={setEmail}
               />
             </Kb.Box2>
           )}

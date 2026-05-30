@@ -8,24 +8,26 @@ type Props = {
 }
 
 const UnreadShortcut = (props: Props) => (
-  <Kb.ClickableBox2 onClick={props.onClick} style={props.inlineLayout ? styles.containerInline : styles.container}>
-    <Kb.Box2
-      direction="horizontal"
-      gap="tiny"
-      centerChildren={!props.inlineLayout}
-      justifyContent={props.inlineLayout ? 'flex-start' : undefined}
-      alignItems="center"
-      fullWidth={true}
-      style={props.inlineLayout ? styles.unreadShortcutInline : styles.unreadShortcut}
-    >
-      <Kb.Icon type="iconfont-arrow-down" sizeType="Small" color={Kb.Styles.globalColors.white} />
-      <Kb.Text negative={true} type="BodySmallSemibold">
-        {props.inlineLayout
-          ? `${props.unreadCount} unread`
-          : `${props.unreadCount} unread ${pluralize('message', props.unreadCount)}`}
-      </Kb.Text>
-    </Kb.Box2>
-  </Kb.ClickableBox2>
+  <Kb.ClickableBox3
+    direction="horizontal"
+    gap="tiny"
+    centerChildren={!props.inlineLayout}
+    justifyContent={props.inlineLayout ? 'flex-start' : undefined}
+    alignItems="center"
+    fullWidth={true}
+    onClick={props.onClick}
+    style={Kb.Styles.collapseStyles([
+      props.inlineLayout ? styles.containerInline : styles.container,
+      props.inlineLayout ? styles.unreadShortcutInline : styles.unreadShortcut,
+    ])}
+  >
+    <Kb.Icon type="iconfont-arrow-down" sizeType="Small" color={Kb.Styles.globalColors.white} />
+    <Kb.Text negative={true} type="BodySmallSemibold">
+      {props.inlineLayout
+        ? `${props.unreadCount} unread`
+        : `${props.unreadCount} unread ${pluralize('message', props.unreadCount)}`}
+    </Kb.Text>
+  </Kb.ClickableBox3>
 )
 
 const styles = Kb.Styles.styleSheetCreate(

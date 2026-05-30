@@ -188,7 +188,7 @@ const MediaThumb = (props: MediaThumbProps) => {
   const {sizing, thumb} = props
   return (
     <Kb.Box2 direction="vertical" relative={true} overflow="hidden">
-      <Kb.ClickableBox onClick={thumb.onClick} style={{...sizing.margins}}>
+      <Kb.ClickableBox3 direction="vertical" onClick={thumb.onClick} style={{...sizing.margins}}>
         {thumb.typ === ThumbTyp.AUDIO ? (
           <Kb.Box2 direction="vertical" style={{...sizing.dims}} centerChildren={true} gap="xtiny">
             <Kb.Box2 direction="vertical" centerChildren={true} style={styles.audioBackground}>
@@ -206,7 +206,7 @@ const MediaThumb = (props: MediaThumbProps) => {
         ) : (
           <Kb.Image src={thumb.previewURL} style={{...sizing.dims}} />
         )}
-      </Kb.ClickableBox>
+      </Kb.ClickableBox3>
       {thumb.typ === ThumbTyp.VIDEO && (
         <Kb.Box2 direction="vertical" style={styles.durationContainer}>
           <Kb.ImageIcon type="icon-film-64" style={styles.filmIcon} />
@@ -231,18 +231,16 @@ const DocViewRow = (props: DocViewRowProps) => {
   })
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.ClickableBox onClick={item.onClick} onLongPress={hasMessageID ? showPopup : undefined}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
-          <Kb.ImageIcon type="icon-file-32" style={styles.docIcon} />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
-            <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
-            {item.name !== item.fileName && <Kb.Text type="BodyTiny">{item.fileName}</Kb.Text>}
-            <Kb.Text type="BodySmall">
-              Sent by {item.author} • {formatTimeForMessages(item.ctime)}
-            </Kb.Text>
-          </Kb.Box2>
+      <Kb.ClickableBox3 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny" onClick={item.onClick} onLongPress={hasMessageID ? showPopup : undefined}>
+        <Kb.ImageIcon type="icon-file-32" style={styles.docIcon} />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
+          <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
+          {item.name !== item.fileName && <Kb.Text type="BodyTiny">{item.fileName}</Kb.Text>}
+          <Kb.Text type="BodySmall">
+            Sent by {item.author} • {formatTimeForMessages(item.ctime)}
+          </Kb.Text>
         </Kb.Box2>
-      </Kb.ClickableBox>
+      </Kb.ClickableBox3>
       {item.downloading && (
         <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true} gap="tiny">
           <Kb.Text type="BodySmall">Downloading...</Kb.Text>
@@ -273,7 +271,10 @@ const getColor = (selected: boolean) =>
 
 const AttachmentTypeSelector = (props: SelectorProps) => (
   <Kb.Box2 alignSelf="center" direction="horizontal" style={styles.selectorContainer} fullWidth={true}>
-    <Kb.ClickableBox
+    <Kb.ClickableBox3
+      direction="vertical"
+      centerChildren={true}
+      flex={1}
       onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.media)}
       style={Kb.Styles.collapseStyles([
         styles.selectorItemContainer,
@@ -284,8 +285,11 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
       <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.media)}>
         Media
       </Kb.Text>
-    </Kb.ClickableBox>
-    <Kb.ClickableBox
+    </Kb.ClickableBox3>
+    <Kb.ClickableBox3
+      direction="vertical"
+      centerChildren={true}
+      flex={1}
       onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.doc)}
       style={Kb.Styles.collapseStyles([
         styles.selectorDocContainer,
@@ -296,8 +300,11 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
       <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.doc)}>
         Docs
       </Kb.Text>
-    </Kb.ClickableBox>
-    <Kb.ClickableBox
+    </Kb.ClickableBox3>
+    <Kb.ClickableBox3
+      direction="vertical"
+      centerChildren={true}
+      flex={1}
       onClick={() => props.onSelectView(T.RPCChat.GalleryItemTyp.link)}
       style={Kb.Styles.collapseStyles([
         styles.selectorItemContainer,
@@ -308,7 +315,7 @@ const AttachmentTypeSelector = (props: SelectorProps) => (
       <Kb.Text type="BodySemibold" style={getColor(props.selectedView === T.RPCChat.GalleryItemTyp.link)}>
         Links
       </Kb.Text>
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   </Kb.Box2>
 )
 
@@ -392,13 +399,10 @@ const styles = Kb.Styles.styleSheetCreate(
       },
       selectorItemContainer: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          ...Kb.Styles.globalStyles.flexBoxCenter,
           borderBottomWidth: 1,
           borderColor: Kb.Styles.globalColors.blue,
           borderStyle: 'solid',
           borderTopWidth: 1,
-          flex: 1,
           height: 32,
         },
         isMobile: {paddingTop: Kb.Styles.globalMargins.xxtiny},
@@ -912,39 +916,41 @@ export const useAttachmentSections = (
             key: month.key,
             renderItem: ({item}: {item: Item}) => {
               return item.type === 'link' ? (
-                <Kb.ClickableBox2
+                <Kb.ClickableBox3
+                  direction="vertical"
+                  fullWidth={true}
+                  style={styles.linkContainer}
+                  gap="tiny"
                   onClick={() => {
                     jumpToAttachment(item.id)
                   }}
                 >
-                  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer} gap="tiny">
-                    <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
-                      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-                        <Kb.NameWithIcon
-                          avatarSize={32}
-                          avatarStyle={styles.avatar}
-                          colorFollowing={true}
-                          username={item.author}
-                          horizontal={true}
-                        />
-                        <Kb.Text type="BodyTiny" style={styles.linkTime}>
-                          {formatTimeForMessages(item.ctime)}
-                        </Kb.Text>
-                      </Kb.Box2>
-                      <Kb.Markdown
-                        serviceOnly={true}
-                        smallStandaloneEmoji={true}
-                        selectable={true}
-                        styleOverride={linkStyleOverride}
-                        style={styles.linkStyle}
-                      >
-                        {item.snippet}
-                      </Kb.Markdown>
+                  <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
+                    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+                      <Kb.NameWithIcon
+                        avatarSize={32}
+                        avatarStyle={styles.avatar}
+                        colorFollowing={true}
+                        username={item.author}
+                        horizontal={true}
+                      />
+                      <Kb.Text type="BodyTiny" style={styles.linkTime}>
+                        {formatTimeForMessages(item.ctime)}
+                      </Kb.Text>
                     </Kb.Box2>
-                    {!!item.title && <LinkTitle title={item.title} url={item.url} />}
-                    <Kb.Divider />
+                    <Kb.Markdown
+                      serviceOnly={true}
+                      smallStandaloneEmoji={true}
+                      selectable={true}
+                      styleOverride={linkStyleOverride}
+                      style={styles.linkStyle}
+                    >
+                      {item.snippet}
+                    </Kb.Markdown>
                   </Kb.Box2>
-                </Kb.ClickableBox2>
+                  {!!item.title && <LinkTitle title={item.title} url={item.url} />}
+                  <Kb.Divider />
+                </Kb.ClickableBox3>
               ) : null
             },
             renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,

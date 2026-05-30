@@ -24,12 +24,6 @@ type Options = {
   reloadOnFocus?: boolean
 }
 
-const makeNonUserDetails = (): T.Tracker.NonUserDetails => ({...noNonUserDetails})
-type NonUserDetailsState = {
-  details: T.Tracker.NonUserDetails
-  username: string
-}
-
 export const useTrackerProfile = (username: string, options?: Options) => {
   const currentUser = useCurrentUserState(
     C.useShallow(s => ({
@@ -38,8 +32,8 @@ export const useTrackerProfile = (username: string, options?: Options) => {
     }))
   )
   const [details, setDetails] = React.useState<T.Tracker.Details>(() => makeDetails(username))
-  const [nonUserDetails, setNonUserDetails] = React.useState<NonUserDetailsState>(() => ({
-    details: makeNonUserDetails(),
+  const [nonUserDetails, setNonUserDetails] = React.useState<{details: T.Tracker.NonUserDetails; username: string}>(() => ({
+    details: {...noNonUserDetails},
     username,
   }))
   const requestVersionRef = React.useRef(0)
@@ -73,7 +67,7 @@ export const useTrackerProfile = (username: string, options?: Options) => {
           siteURL: '',
         }
         if (res.service) {
-          setNonUserDetails({details: {...makeNonUserDetails(), ...common, ...res.service}, username})
+          setNonUserDetails({details: {...noNonUserDetails, ...common, ...res.service}, username})
         } else {
           const {formatPhoneNumberInternational} = await import('@/util/phone-numbers')
           const formattedName =
@@ -83,7 +77,7 @@ export const useTrackerProfile = (username: string, options?: Options) => {
             return
           }
           setNonUserDetails({
-            details: {...makeNonUserDetails(), ...common, formattedName, fullName},
+            details: {...noNonUserDetails, ...common, formattedName, fullName},
             username,
           })
         }
@@ -278,7 +272,7 @@ export const useTrackerProfile = (username: string, options?: Options) => {
 
   const detailsForUsername = details.username === username ? details : makeDetails(username)
   const nonUserDetailsForUsername =
-    nonUserDetails.username === username ? nonUserDetails.details : makeNonUserDetails()
+    nonUserDetails.username === username ? nonUserDetails.details : {...noNonUserDetails}
 
   return {
     details: detailsForUsername,

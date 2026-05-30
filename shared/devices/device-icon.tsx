@@ -34,15 +34,14 @@ export const getDeviceRevokeIconType = (
   iconNumber: T.Devices.IconNumber
 ): Kb.IconType => {
   const size = isMobile ? 64 : 48
+  if (type === 'backup') return `icon-paper-key-revoke-${size}` as Kb.IconType
   const maybeIcon = (
     {
-      backup: `icon-paper-key-revoke-${size}`,
       desktop: `icon-computer-revoke-background-${iconNumber}-${size}`,
       mobile: `icon-phone-revoke-background-${iconNumber}-${size}`,
     } as const
   )[type]
   const fallback = ({
-    backup: `icon-paper-key-revoke-${size}`,
     desktop: `icon-computer-revoke-${size}`,
     mobile: `icon-phone-revoke-${size}`,
   } as const)[type]

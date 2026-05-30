@@ -87,7 +87,7 @@ const DeleteConfirm = () => {
       header={
         <>
           <Kb.Avatar username={username} size={64} />
-          <Kb.ImageIcon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+          <Kb.ImageIcon type="icon-team-delete-28" style={styles.deleteIcon} />
         </>
       }
       onCancel={onCancel}
@@ -104,6 +104,7 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       padding: Kb.Styles.globalMargins.mediumLarge,
     },
   }),
+  deleteIcon: {marginRight: -60, marginTop: -20, zIndex: 1},
   randomPWStatus: {
     padding: Kb.Styles.globalMargins.small,
     paddingBottom: 0,

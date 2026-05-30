@@ -215,12 +215,6 @@ const sortAndSplitRecommendations = (
   return sections.filter(section => section.data.length > 0)
 }
 
-const getSearchResults = (
-  searchResults: TB.State['searchResults'],
-  searchString: string,
-  selectedService: T.TB.ServiceIdWithContact
-) => searchResults.get(searchString.trim())?.get(selectedService)
-
 const getSelectableResults = (
   showRecs: boolean,
   recommendations: ReadonlyArray<Types.SearchRecSection> | undefined,
@@ -274,7 +268,7 @@ const useListBodyData = ({
     following,
     preExistingTeamMembers
   )
-  const userResults = getSearchResults(allSearchResults, searchString, selectedService)
+  const userResults = Shared.getSearchResults(allSearchResults, searchString, selectedService)
   const searchResults = deriveSearchResults(
     userResults,
     teamSoFar,

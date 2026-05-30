@@ -12,30 +12,22 @@ const MakeTeam = () => {
         <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
           {"Make it a team? You'll be able to add and delete members as you wish."}
         </Kb.Text>
-        <Kb.ClickableBox onClick={onShowNewTeamDialog}>
-          <Kb.Box2
-            direction="horizontal"
-            alignItems="center"
-            fullWidth={true}
-            className="hover_container"
-            gap="xtiny"
+        <Kb.ClickableBox3 onClick={onShowNewTeamDialog} direction="horizontal" alignItems="center" fullWidth={true} className="hover_container" gap="xtiny">
+          <Kb.Text
+            type="BodySmallSemiboldPrimaryLink"
+            style={styles.link}
+            className="color_greenLightOrWhite hover_contained_color_white"
           >
-            <Kb.Text
-              type="BodySmallSemiboldPrimaryLink"
-              style={styles.link}
-              className="color_greenLightOrWhite hover_contained_color_white"
-            >
-              Enter a team name
-            </Kb.Text>
-            <Kb.Icon
-              color={Kb.Styles.globalColors.greenLight}
-              sizeType="Tiny"
-              type="iconfont-arrow-right"
-              className="hover_contained_color_white"
-              style={styles.icon}
-            />
-          </Kb.Box2>
-        </Kb.ClickableBox>
+            Enter a team name
+          </Kb.Text>
+          <Kb.Icon
+            color={Kb.Styles.globalColors.greenLight}
+            sizeType="Tiny"
+            type="iconfont-arrow-right"
+            className="hover_contained_color_white"
+            style={styles.icon}
+          />
+        </Kb.ClickableBox3>
       </Kb.Box2>
       <Kb.ImageIcon type="icon-illustration-teams-80" style={styles.image} />
     </Kb.Box2>

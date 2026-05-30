@@ -10,18 +10,14 @@ const Password = () => {
   const error = useProvisionState(s => s.error)
   const username = useProvisionState(s => s.username)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
-  const navigateUp = C.Router2.navigateUp
   const [resetEmailSent, setResetEmailSent] = React.useState(false)
-  const _onForgotPassword = () => {
+  const onForgotPassword = () => {
     startRecoverPassword({abortProvisioning: true, onResetEmailSent: () => setResetEmailSent(true), username})
   }
-  const onBack = () => {
-    navigateUp()
-  }
-  const _onSubmit = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
-  const onSubmit = (password: string) => !waiting && _onSubmit?.(password)
+  const onBack = C.Router2.navigateUp
+  const setPassphrase = useProvisionState(s => s.dispatch.dynamic.setPassphrase)
   const [password, setPassword] = React.useState('')
-  const _onSubmitClick = () => onSubmit(password)
+  const onSubmit = () => !waiting && setPassphrase?.(password)
 
   return (
     <SignupScreen
@@ -43,7 +39,7 @@ const Password = () => {
         {
           disabled: !password,
           label: 'Continue',
-          onClick: _onSubmitClick,
+          onClick: onSubmit,
           type: 'Default',
           waiting,
         },
@@ -68,13 +64,13 @@ const Password = () => {
             <Kb.Input3
               autoFocus={true}
               placeholder="Password"
-              onEnterKeyDown={_onSubmitClick}
+              onEnterKeyDown={onSubmit}
               onChangeText={setPassword}
               value={password}
               textType="BodySemibold"
               secureTextEntry={true}
             />
-            <Kb.Text style={styles.forgotPassword} type="BodySmallSecondaryLink" onClick={_onForgotPassword}>
+            <Kb.Text style={styles.forgotPassword} type="BodySmallSecondaryLink" onClick={onForgotPassword}>
               Forgot password?
             </Kb.Text>
           </Kb.Box2>

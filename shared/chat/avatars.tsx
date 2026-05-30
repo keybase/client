@@ -82,10 +82,8 @@ const Avatars = function Avatars(p: Props) {
   if (!participantTwo) {
     return (
       <Kb.Box2 direction="vertical" relative={true} style={containerStyle}>
-        <Kb.Box2 direction="vertical" relative={true}>
-          <Kb.Avatar username={participantOne} size={singleSize} style={{opacity}} />
-          <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
-        </Kb.Box2>
+        <Kb.Avatar username={participantOne} size={singleSize} style={{opacity}} />
+        <OverlayIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
       </Kb.Box2>
     )
   }

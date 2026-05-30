@@ -37,7 +37,11 @@ function ReactionButton({
   text: string
 }) {
   return (
-    <Kb.ClickableBox2
+    <Kb.ClickableBox3
+      direction="horizontal"
+      centerChildren={true}
+      fullHeight={true}
+      gap="xtiny"
       className={Kb.Styles.classNames('react-button', className, {noShadow: active})}
       onLongPress={onLongPress}
       onClick={onClick}
@@ -49,28 +53,26 @@ function ReactionButton({
         style,
       ])}
     >
-      <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny">
-        <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal">
-          <Kb.Markdown
-            serviceOnlyNoWrap={false /* MUST be false to support non-emojis in reactions for bots */}
-            styleOverride={markdownOverride}
-            lineClamp={1}
-            smallStandaloneEmoji={true}
-            disallowAnimation={false}
-            virtualText={true}
-          >
-            {text}
-          </Kb.Markdown>
-        </Kb.Box2>
-        <Kb.Text
-          type="BodyTinyBold"
+      <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal">
+        <Kb.Markdown
+          serviceOnlyNoWrap={false /* MUST be false to support non-emojis in reactions for bots */}
+          styleOverride={markdownOverride}
+          lineClamp={1}
+          smallStandaloneEmoji={true}
+          disallowAnimation={false}
           virtualText={true}
-          style={Kb.Styles.collapseStyles([styles.count, active && styles.countActive])}
         >
-          {count}
-        </Kb.Text>
+          {text}
+        </Kb.Markdown>
       </Kb.Box2>
-    </Kb.ClickableBox2>
+      <Kb.Text
+        type="BodyTinyBold"
+        virtualText={true}
+        style={Kb.Styles.collapseStyles([styles.count, active && styles.countActive])}
+      >
+        {count}
+      </Kb.Text>
+    </Kb.ClickableBox3>
   )
 }
 
@@ -120,7 +122,10 @@ export function NewReactionButton(p: NewReactionButtonProps) {
   }
 
   return (
-    <Kb.ClickableBox2
+    <Kb.ClickableBox3
+      direction="horizontal"
+      centerChildren={true}
+      fullHeight={true}
       onClick={hasMessageID ? onOpenEmojiPicker : undefined}
       style={Kb.Styles.collapseStyles([
         styles.borderBase,
@@ -131,15 +136,13 @@ export function NewReactionButton(p: NewReactionButtonProps) {
         p.style,
       ])}
     >
-      <Kb.Box2 centerChildren={true} fullHeight={true} direction="horizontal">
-        <Kb.Icon
-          type="iconfont-reacji"
-          color={Kb.Styles.globalColors.black_50}
-          fontSize={18}
-          style={styles.emojiIconWrapper}
-        />
-      </Kb.Box2>
-    </Kb.ClickableBox2>
+      <Kb.Icon
+        type="iconfont-reacji"
+        color={Kb.Styles.globalColors.black_50}
+        fontSize={18}
+        style={styles.emojiIconWrapper}
+      />
+    </Kb.ClickableBox3>
   )
 }
 

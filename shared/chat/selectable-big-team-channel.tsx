@@ -89,24 +89,23 @@ const SelectableBigTeamChannel = (props: Props) => {
     </>
   )
   return (
-    <Kb.ClickableBox onClick={props.onSelectConversation}>
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        centerChildren={true}
-        className="hover_background_color_blueGreyDark"
-        style={Kb.Styles.collapseStyles([
-          styles.filteredRow,
-          {
-            backgroundColor: props.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
-          },
-        ])}
-        onMouseLeave={_onMouseLeave}
-        onMouseOver={_onMouseOver}
-      >
-        {props.teamname ? rowLoadedContent : <Kb.ProgressIndicator type="Small" />}
-      </Kb.Box2>
-    </Kb.ClickableBox>
+    <Kb.ClickableBox3
+      direction="horizontal"
+      fullWidth={true}
+      centerChildren={true}
+      className="hover_background_color_blueGreyDark"
+      onClick={props.onSelectConversation}
+      style={Kb.Styles.collapseStyles([
+        styles.filteredRow,
+        {
+          backgroundColor: props.isSelected ? Kb.Styles.globalColors.blue : Kb.Styles.globalColors.white,
+        },
+      ])}
+      onMouseLeave={_onMouseLeave}
+      onMouseOver={_onMouseOver}
+    >
+      {props.teamname ? rowLoadedContent : <Kb.ProgressIndicator type="Small" />}
+    </Kb.ClickableBox3>
   )
 }
 

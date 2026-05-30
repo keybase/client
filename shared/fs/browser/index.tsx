@@ -24,7 +24,7 @@ type OwnProps = {
 }
 
 const Container = (ownProps: OwnProps) => {
-const {path} = ownProps
+  const {path} = ownProps
   const filter = useModalHeaderState(s => s.folderViewFilter)
   const _pathItem = useFsPathItem(path)
   const tlf = useFsTlf(path)

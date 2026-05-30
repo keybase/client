@@ -27,32 +27,33 @@ const TeamPurpose = ({wizard: wizardParam}: Props) => {
         gap={isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.Text type="BodySemibold">What do you need a team for?</Kb.Text>
-        <Kb.RichButton
-          description="A small group of people, with no initial need for channels."
-          icon="icon-teams-type-squad-64"
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type="icon-teams-type-squad-64" />}
+          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">Friends, family, or squad</Kb.Text><Kb.Text type="BodySmall">A small group of people, with no initial need for channels.</Kb.Text></Kb.Box2>}
           onClick={() => onSubmit('friends')}
-          title="Friends, family, or squad"
         />
-
-        <Kb.RichButton
-          description="With multiple roles and channels."
-          icon="icon-teams-type-business-64"
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type="icon-teams-type-business-64" />}
+          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">A project, business or organization</Kb.Text><Kb.Text type="BodySmall">With multiple roles and channels.</Kb.Text></Kb.Box2>}
           onClick={() => onSubmit('project')}
-          title="A project, business or organization"
         />
-
-        <Kb.RichButton
-          description="A forum for people who share an interest or cause."
-          icon="icon-teams-type-community-64"
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type="icon-teams-type-community-64" />}
+          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">A community</Kb.Text><Kb.Text type="BodySmall">A forum for people who share an interest or cause.</Kb.Text></Kb.Box2>}
           onClick={() => onSubmit('community')}
-          title="A community"
         />
-
-        <Kb.RichButton
-          description="Start simple and go from there."
-          icon="icon-teams-type-notsure-64"
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type="icon-teams-type-notsure-64" />}
+          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">{"Other/You're not sure"}</Kb.Text><Kb.Text type="BodySmall">Start simple and go from there.</Kb.Text></Kb.Box2>}
           onClick={() => onSubmit('other')}
-          title="Other/You're not sure"
         />
       </Kb.Box2>
     </>

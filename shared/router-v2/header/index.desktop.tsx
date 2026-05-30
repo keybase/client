@@ -289,8 +289,6 @@ const styles = Kb.Styles.styleSheetCreate(
           ...Kb.Styles.desktopStyles.windowDraggingClickable,
           alignItems: 'center',
           borderRadius: Kb.Styles.borderRadius,
-          display: 'inline-block',
-          ...Kb.Styles.size(14),
           marginLeft: 4,
           marginRight: 6,
           padding: Kb.Styles.globalMargins.xtiny,

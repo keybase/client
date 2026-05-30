@@ -1,9 +1,9 @@
-import {useSafeNavigation} from '@/util/safe-navigation'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import {useAllChannelMetas} from '../teams/common/channel-hooks'
+import {useSafeNavigation} from '@/util/safe-navigation'
 
 type OwnProps = {
   teamID: T.Teams.TeamID
@@ -21,7 +21,7 @@ const SelectChannel = (ownProps: OwnProps) => {
   const channelNames = [...channelMetas.values()].map(info => info.channelname)
   const [selected, setSelected] = React.useState(_selected)
   const [error, setError] = React.useState('')
-  const nav = useSafeNavigation()
+  const {safeNavigateUp} = useSafeNavigation()
   const setTeamRepoSettings = C.useRPC(T.RPCGen.gitSetTeamRepoSettingsRpcPromise)
   const onSubmit = (channelName: string) =>
     setTeamRepoSettings(
@@ -39,20 +39,19 @@ const SelectChannel = (ownProps: OwnProps) => {
         C.waitingKeyGitLoading,
       ],
       () => {
-        nav.safeNavigateUp()
+        safeNavigateUp()
       },
       err => {
         setError(err.message)
       }
     )
-  const onCancel = () => nav.safeNavigateUp()
+  const onCancel = () => C.Router2.navigateUp()
 
   const submit = () => {
     setError('')
     onSubmit(selected)
   }
 
-  // TODO: this modal could use a little bit of love
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
       <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>

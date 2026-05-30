@@ -82,33 +82,36 @@ function EmojiRowContainer(p: OwnProps) {
       </Kb.Box2>
       <Kb.Box2 direction="horizontal">
         <Kb.Divider style={styles.divider} vertical={true} />
-        <Kb.ClickableBox
+        <Kb.ClickableBox3
+          direction="vertical"
           className="hover_container"
           onClick={hasMessageID ? _showPicker : undefined}
           style={Kb.Styles.collapseStyles([styles.iconContainer, !hasMessageID && styles.disabled])}
           tooltip="React"
         >
           <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reacji" />
-        </Kb.ClickableBox>
+        </Kb.ClickableBox3>
         {!!onReply && (
-          <Kb.ClickableBox
+          <Kb.ClickableBox3
+            direction="vertical"
             className="hover_container"
             onClick={onReply}
             style={styles.iconContainer}
             tooltip="Reply"
           >
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-reply" />
-          </Kb.ClickableBox>
+          </Kb.ClickableBox3>
         )}
         {!!onForward && (
-          <Kb.ClickableBox
+          <Kb.ClickableBox3
+            direction="vertical"
             className="hover_container"
             onClick={onForward}
             style={styles.iconContainer}
             tooltip="Forward"
           >
             <Kb.Icon className="hover_contained_color_blue" style={styles.icon} type="iconfont-forward" />
-          </Kb.ClickableBox>
+          </Kb.ClickableBox3>
         )}
       </Kb.Box2>
       {showingPicker && message && hasMessageID && (
@@ -135,12 +138,12 @@ const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) =>
   const _setHovering = () => setHovering(true)
   const _setNotHovering = () => setHovering(false)
   return (
-    <Kb.ClickableBox
+    <Kb.ClickableBox3
+      direction="horizontal"
+      centerChildren={true}
       onClick={props.onClick}
       onMouseOver={_setHovering}
       onMouseLeave={_setNotHovering}
-      underlayColor={Kb.Styles.globalColors.transparent}
-      hoverColor={Kb.Styles.globalColors.transparent}
       style={styles.emojiBox}
     >
       <Kb.Emoji
@@ -151,7 +154,7 @@ const HoverEmoji = (props: {emoji: T.RPCGen.UserReacji; onClick: () => void}) =>
         style={styles.hoverEmoji}
         virtualText={true}
       />
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 }
 
@@ -173,8 +176,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginTop: Kb.Styles.globalMargins.tiny,
       },
       emojiBox: {
-        ...Kb.Styles.globalStyles.flexBoxRow,
-        ...Kb.Styles.centered(),
         height: Kb.Styles.globalMargins.small,
         marginRight: Kb.Styles.globalMargins.xxtiny,
         width: Kb.Styles.globalMargins.small,
@@ -184,10 +185,7 @@ const styles = Kb.Styles.styleSheetCreate(
         position: 'relative',
         top: 1,
       },
-      iconContainer: Kb.Styles.platformStyles({
-        common: {padding: Kb.Styles.globalMargins.tiny},
-        isElectron: {...Kb.Styles.desktopStyles.clickable},
-      }),
+      iconContainer: {padding: Kb.Styles.globalMargins.tiny},
       pickerContainer: Kb.Styles.platformStyles({
         isElectron: {
           ...Kb.Styles.desktopStyles.boxShadow,

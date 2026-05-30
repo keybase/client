@@ -100,9 +100,9 @@ const SmallTeam = (p: Props) => {
           {rowContents}
         </Kb.Box2>
       ) : (
-        <Kb.ClickableBox2 onClick={onSelectConversation} className={className} testID={TestIDs.CHAT_INBOX_ROW} style={containerStyle}>
+        <Kb.ClickableBox3 direction="vertical" fullWidth={true} onClick={onSelectConversation} className={className} testID={TestIDs.CHAT_INBOX_ROW} style={containerStyle}>
           {rowContents}
-        </Kb.ClickableBox2>
+        </Kb.ClickableBox3>
       )}
     </SwipeConvActions>
   )

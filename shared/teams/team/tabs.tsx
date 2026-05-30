@@ -39,20 +39,18 @@ const TeamTabs = (props: TeamTabsProps) => {
     />
   )
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-        {isMobile ? (
-          <Kb.ScrollView
-            horizontal={true}
-            contentContainerStyle={{minWidth: '100%'}}
-            alwaysBounceHorizontal={false}
-          >
-            {tabContent}
-          </Kb.ScrollView>
-        ) : (
-          tabContent
-        )}
-      </Kb.Box2>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+      {isMobile ? (
+        <Kb.ScrollView
+          horizontal={true}
+          contentContainerStyle={{minWidth: '100%'}}
+          alwaysBounceHorizontal={false}
+        >
+          {tabContent}
+        </Kb.ScrollView>
+      ) : (
+        tabContent
+      )}
     </Kb.Box2>
   )
 }

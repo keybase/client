@@ -463,7 +463,10 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
   const {popup, popupAnchor, showingPopup, showPopup} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.ClickableBox2
+    <Kb.ClickableBox3
+      direction="vertical"
+      alignItems="center"
+      justifyContent="flex-end"
       className={Kb.Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
       onClick={showPopup}
       ref={popupAnchor}
@@ -494,7 +497,7 @@ const ExplodingButton = function ExplodingButton(p: ExplodingButtonProps) {
           />
         )}
       </Kb.Box2>
-    </Kb.ClickableBox2>
+    </Kb.ClickableBox3>
   )
 }
 
@@ -853,18 +856,14 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
       },
       explodingIconContainer: Kb.Styles.platformStyles({
         common: {
-          ...Kb.Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
           alignSelf: 'stretch',
           borderBottomLeftRadius: 3,
           borderTopLeftRadius: 3,
-          justifyContent: 'flex-end',
           textAlign: 'center',
           width: 32,
         },
         isElectron: {
           borderRight: `1px solid ${Kb.Styles.globalColors.black_20}`,
-          ...Kb.Styles.desktopStyles.clickable,
         },
       }),
       explodingInsideWrapper: {alignItems: 'center', height: 32},
@@ -987,7 +986,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
   }
 
   const explodingIcon = !isEditing && !cannotWrite && (
-    <Kb.ClickableBox style={nativeStyles.explodingWrapper} onClick={toggleShowingMenu}>
+    <Kb.ClickableBox3 direction="vertical" centerChildren={true} style={nativeStyles.explodingWrapper} onClick={toggleShowingMenu}>
       {isExploding ? (
         <Kb.Box2 direction="horizontal" style={nativeStyles.exploding} centerChildren={true}>
           <Kb.Text type="BodyTinyBold" negative={true} style={nativeStyles.explodingText}>
@@ -997,7 +996,7 @@ const NativeButtons = function NativeButtons(p: NativeButtonsProps) {
       ) : (
         <Kb.Icon color={undefined} type="iconfont-timer" />
       )}
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 
   return (
@@ -1066,14 +1065,14 @@ const NativeAnimatedExpand = (() => {
       }, [expanded, offset])
 
       return (
-        <Kb.ClickableBox onClick={expandInput} style={nativeStyles.iconContainer}>
+        <Kb.ClickableBox3 direction="vertical" relative={true} onClick={expandInput} style={nativeStyles.iconContainer}>
           <Animated.View style={[nativeStyles.iconTop, topStyle]} pointerEvents="none">
             <Kb.Icon type="iconfont-arrow-full-up" fontSize={18} color={Kb.Styles.globalColors.black_35} />
           </Animated.View>
           <Animated.View style={[nativeStyles.iconBottom, bottomStyle]} pointerEvents="none">
             <Kb.Icon type="iconfont-arrow-full-up" fontSize={18} color={Kb.Styles.globalColors.black_35} />
           </Animated.View>
-        </Kb.ClickableBox>
+        </Kb.ClickableBox3>
       )
     }
   }
@@ -1475,8 +1474,6 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
         lineHeight: 16,
       },
       explodingWrapper: {
-        ...Kb.Styles.globalStyles.flexBoxColumn,
-        ...Kb.Styles.centered(),
         height: 38,
         width: 36,
       },
@@ -1489,7 +1486,6 @@ const nativeStyles = Kb.Styles.styleSheetCreate(
         height: 28,
         marginRight: -Kb.Styles.globalMargins.xtiny,
         marginTop: Kb.Styles.globalMargins.tiny,
-        position: 'relative',
         width: 28,
       },
       iconTop: {

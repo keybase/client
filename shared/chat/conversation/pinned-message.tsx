@@ -87,45 +87,43 @@ const PinnedMessage = function PinnedMessage() {
   }
   const sizing = imageWidth && imageHeight ? zoomImage(imageWidth, imageHeight, 30) : undefined
   const pin = (
-    <Kb.ClickableBox className="hover_container" onClick={onClick} style={styles.container}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-        <Kb.Box2 direction="horizontal" style={styles.blueBar} />
-        {!!imageURL && (
-          <Kb.Box2 direction="vertical" overflow="hidden" relative={true}>
-            <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
-              <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
-            </Kb.Box2>
+    <Kb.ClickableBox3 direction="horizontal" fullWidth={true} gap="tiny" className="hover_container" onClick={onClick} style={styles.container}>
+      <Kb.Box2 direction="horizontal" alignSelf="stretch" style={styles.blueBar} />
+      {!!imageURL && (
+        <Kb.Box2 direction="vertical" overflow="hidden" relative={true}>
+          <Kb.Box2 direction="vertical" style={{...(sizing ? sizing.margins : {})}}>
+            <Kb.Image src={imageURL} style={{...(sizing ? sizing.dims : {})}} />
           </Kb.Box2>
-        )}
-        <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
-          <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-            <Kb.Text type="BodyTinyBold" style={styles.author}>
-              {author}
-            </Kb.Text>
-            <Kb.Text type="BodyTinySemibold" style={styles.label}>
-              Pinned
-            </Kb.Text>
-          </Kb.Box2>
-          <Kb.Markdown smallStandaloneEmoji={true} lineClamp={1} style={styles.text} serviceOnly={true}>
-            {text}
-          </Kb.Markdown>
         </Kb.Box2>
-        {unpinning ? (
-          <Kb.Box2 direction="vertical" alignSelf="center">
-            <Kb.ProgressIndicator type="Small" />
-          </Kb.Box2>
-        ) : (
-          <Kb.Box2 direction="vertical" ref={closeref} style={styles.close}>
-            <Kb.Icon
-              onClick={onIconClick}
-              type="iconfont-close"
-              sizeType="Small"
-              color={Kb.Styles.globalColors.black_20}
-            />
-          </Kb.Box2>
-        )}
+      )}
+      <Kb.Box2 direction="vertical" fullWidth={true} flex={1}>
+        <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+          <Kb.Text type="BodyTinyBold" style={styles.author}>
+            {author}
+          </Kb.Text>
+          <Kb.Text type="BodyTinySemibold" style={styles.label}>
+            Pinned
+          </Kb.Text>
+        </Kb.Box2>
+        <Kb.Markdown smallStandaloneEmoji={true} lineClamp={1} style={styles.text} serviceOnly={true}>
+          {text}
+        </Kb.Markdown>
       </Kb.Box2>
-    </Kb.ClickableBox>
+      {unpinning ? (
+        <Kb.Box2 direction="vertical" alignSelf="center">
+          <Kb.ProgressIndicator type="Small" />
+        </Kb.Box2>
+      ) : (
+        <Kb.Box2 direction="vertical" ref={closeref} style={styles.close}>
+          <Kb.Icon
+            onClick={onIconClick}
+            type="iconfont-close"
+            sizeType="Small"
+            color={Kb.Styles.globalColors.black_20}
+          />
+        </Kb.Box2>
+      )}
+    </Kb.ClickableBox3>
   )
   const popup = (
     <UnpinPrompt
@@ -179,7 +177,6 @@ const styles = Kb.Styles.styleSheetCreate(
     ({
       author: {color: Kb.Styles.globalColors.black},
       blueBar: {
-        alignSelf: 'stretch',
         backgroundColor: Kb.Styles.globalColors.blue,
         width: Kb.Styles.globalMargins.xtiny,
       },
@@ -198,7 +195,6 @@ const styles = Kb.Styles.styleSheetCreate(
         borderBottomWidth: 1,
         borderColor: Kb.Styles.globalColors.black_10,
         borderStyle: 'solid',
-        width: '100%',
       },
       label: {color: Kb.Styles.globalColors.blueDark},
       popup: Kb.Styles.platformStyles({

@@ -34,8 +34,7 @@ const CodePageContainer = () => {
   const iconNumber = T.Devices.deviceNumberToIconNumber(otherDevice.deviceNumberOfType)
   const waiting = C.Waiting.useAnyWaiting(C.waitingKeyProvision)
 
-  const navigateUp = C.Router2.navigateUp
-  const onBack = navigateUp
+  const onBack = C.Router2.navigateUp
 
   const _onSubmitTextCode = (code: string) => {
     if (!waiting) {
@@ -75,11 +74,14 @@ const CodePageContainer = () => {
 
   const tab = tabState.defaultTab === defaultTab ? tabState.tab : defaultTab
   const setTab = (tab: Tab) => setTabState(state => ({...state, tab}))
-  const tabBackground = () => (tab === 'QR' ? Kb.Styles.globalColors.blueLight : Kb.Styles.globalColors.green)
-  const buttonType = () => (tab === 'QR' ? 'Default' as const : 'Success' as const)
-  const buttonLabelStyle = () => (tab === 'QR' ? styles.primaryOnBlueLabel : styles.primaryOnGreenLabel)
+  const tabBackground = tab === 'QR' ? Kb.Styles.globalColors.blueLight : Kb.Styles.globalColors.green
+  const buttonType = tab === 'QR' ? ('Default' as const) : ('Success' as const)
+  const buttonLabelStyle = tab === 'QR' ? styles.primaryOnBlueLabel : styles.primaryOnGreenLabel
 
   const onSubmitTextCode = () => _onSubmitTextCode(code)
+
+  // We're in a modal unless this is a desktop being newly provisioned.
+  const inModal = currentDeviceType !== 'desktop' || currentDeviceAlreadyProvisioned
 
   const body = () => {
     let content: React.ReactNode = null
@@ -106,7 +108,7 @@ const CodePageContainer = () => {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
-        style={Kb.Styles.collapseStyles([styles.codePageContainer, {backgroundColor: tabBackground()}])}
+        style={Kb.Styles.collapseStyles([styles.codePageContainer, {backgroundColor: tabBackground}])}
       >
         <Kb.Box2
           direction="vertical"
@@ -148,16 +150,12 @@ const CodePageContainer = () => {
                 otherDevice={otherDevice}
                 currentDeviceAlreadyProvisioned={currentDeviceAlreadyProvisioned}
               />
-              {!inModal() && footer().content}
+              {!inModal && footer().content}
             </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
-        {!inModal() &&
-          currentDeviceType === 'desktop' &&
-          currentDeviceType === otherDevice.type &&
-          !currentDeviceAlreadyProvisioned &&
-          heyWaitBanner()}
-        {!inModal() && troubleshooting && (
+        {!inModal && otherDevice.type === 'desktop' && heyWaitBanner()}
+        {!inModal && troubleshooting && (
           <Kb.Popup onHidden={() => setTroubleshooting(false)} propagateOutsideClicks={true}>
             {troubleshootingContent()}
           </Kb.Popup>
@@ -183,33 +181,33 @@ const CodePageContainer = () => {
           {tab === 'enterText' && (
             <Kb.WaitingButton
               fullWidth={true}
-              type={buttonType()}
+              type={buttonType}
               label="Continue"
               onClick={onSubmitTextCode}
               disabled={!code || waiting}
               style={Kb.Styles.collapseStyles([styles.enterTextButton, styles.primaryOnColor])}
-              labelStyle={buttonLabelStyle()}
+              labelStyle={buttonLabelStyle}
               waitingKey={C.waitingKeyProvision}
             />
           )}
-          {tab !== 'enterText' && inModal() && !isMobile && (
+          {tab !== 'enterText' && inModal && !isMobile && (
             <Kb.WaitingButton
               fullWidth={true}
-              type={buttonType()}
+              type={buttonType}
               label="Close"
               onClick={onBack}
               onlyDisable={true}
               style={Kb.Styles.collapseStyles([styles.closeButton, styles.primaryOnColor])}
-              labelStyle={buttonLabelStyle()}
+              labelStyle={buttonLabelStyle}
               waitingKey={C.waitingKeyProvision}
             />
           )}
           {showHeyWaitInFooter && heyWaitBanner()}
         </Kb.Box2>
       ),
-      hideBorder: !inModal() || currentDeviceType !== 'desktop',
+      hideBorder: !inModal || currentDeviceType !== 'desktop',
       style: {
-        backgroundColor: tabBackground(),
+        backgroundColor: tabBackground,
         ...Kb.Styles.padding(Kb.Styles.globalMargins.xsmall, 0, 0),
       },
     }
@@ -237,16 +235,13 @@ const CodePageContainer = () => {
     />
   )
 
-  // We're in a modal unless this is a desktop being newly provisioned.
-  const inModal = () => currentDeviceType !== 'desktop' || currentDeviceAlreadyProvisioned
-
-  // Workaround for no modals while logged out: display just the troubleshooting modal if we're on mobile and it's open;
-  // When we're on desktop being newly provisioned, it's in this._body()
+  // Workaround for no modals while logged out: display just the troubleshooting content if we're on mobile and it's open;
+  // When we're on desktop being newly provisioned, it's rendered inside body()
   if (isMobile && troubleshooting) {
     return troubleshootingContent()
   }
   const content = body()
-  if (inModal()) {
+  if (inModal) {
     const f = footer()
     return (
       <>
@@ -295,7 +290,7 @@ const SwitchTab = (props: {
   }
 
   return (
-    <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.switchTabContainer}>
+    <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
       <Kb.Text
         type="BodySmallPrimaryLink"
         negative={true}
@@ -614,7 +609,6 @@ const styles = Kb.Styles.styleSheetCreate(
         marginBottom: Kb.Styles.globalMargins.xtiny,
         marginTop: Kb.Styles.globalMargins.tiny,
       },
-      switchTabContainer: {alignItems: 'center'},
       viewTextCode: Kb.Styles.platformStyles({
         common: {
           ...Kb.Styles.globalStyles.fontTerminalSemibold,

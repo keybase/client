@@ -4,8 +4,7 @@ import * as Styles from '@/styles'
 import * as Platforms from '@/util/platforms'
 import * as T from '@/constants/types'
 import capitalize from 'lodash/capitalize'
-import {Box2} from './box'
-import ClickableBox from './clickable-box'
+import {Box2, ClickableBox3} from './box'
 import ConnectedNameWithIcon from './name-with-icon'
 import {_setWithProfileCardPopup} from './usernames'
 import FloatingMenu from './floating-menu'
@@ -28,7 +27,7 @@ const positionFallbacks = ['top center', 'bottom center'] as const
 
 const Kb = {
   Box2,
-  ClickableBox,
+  ClickableBox3,
   ConnectedNameWithIcon,
   FloatingMenu,
   Icon,
@@ -118,9 +117,9 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
         )
       })}
       {!!expandLabel && (
-        <Kb.ClickableBox onClick={() => setExpanded(true)} style={styles.expand}>
+        <Kb.ClickableBox3 onClick={() => setExpanded(true)} direction="vertical" style={styles.expand}>
           <Kb.Meta title={expandLabel} backgroundColor={Styles.globalColors.greyDark} />
-        </Kb.ClickableBox>
+        </Kb.ClickableBox3>
       )}
     </Kb.Box2>
   )

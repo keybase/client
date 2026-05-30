@@ -31,18 +31,19 @@ const MakeBigTeam = ({wizard: initialWizard}: Props) => {
         style={styles.body}
         gap={isMobile ? 'xsmall' : 'tiny'}
       >
-        <Kb.RichButton
-          description="With multiple roles and channels. Big team chats appear in the lower section in the inbox."
-          icon="icon-teams-size-big-64"
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type="icon-teams-size-big-64" />}
+          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">Yes, make it a big team</Kb.Text><Kb.Text type="BodySmall">With multiple roles and channels. Big team chats appear in the lower section in the inbox.</Kb.Text></Kb.Box2>}
           onClick={() => onSubmit(true)}
-          title="Yes, make it a big team"
         />
-
-        <Kb.RichButton
-          description="You can always make it a big team later."
-          icon="icon-teams-size-small-64"
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type="icon-teams-size-small-64" />}
+          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">No, keep it a simple conversation for now</Kb.Text><Kb.Text type="BodySmall">You can always make it a big team later.</Kb.Text></Kb.Box2>}
           onClick={() => onSubmit(false)}
-          title="No, keep it a simple conversation for now"
         />
       </Kb.Box2>
     </>

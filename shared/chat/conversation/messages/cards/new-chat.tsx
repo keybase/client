@@ -43,30 +43,22 @@ function NewCard(outerProps: Props) {
         <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
           {props.text}
         </Kb.Text>
-        <Kb.ClickableBox onClick={props.action}>
-          <Kb.Box2
-            direction="horizontal"
-            alignItems="center"
-            fullWidth={true}
-            className="hover_container"
-            gap="xtiny"
+        <Kb.ClickableBox3 onClick={props.action} direction="horizontal" alignItems="center" fullWidth={true} className="hover_container" gap="xtiny">
+          <Kb.Text
+            type="BodySmallSemiboldPrimaryLink"
+            style={styles.link}
+            className="color_blueLighterOrWhite hover_contained_color_white"
           >
-            <Kb.Text
-              type="BodySmallSemiboldPrimaryLink"
-              style={styles.link}
-              className="color_blueLighterOrWhite hover_contained_color_white"
-            >
-              {props.label}
-            </Kb.Text>
-            <Kb.Icon
-              color={Kb.Styles.globalColors.blueLighter}
-              sizeType="Tiny"
-              type="iconfont-arrow-right"
-              className="hover_contained_color_white"
-              style={styles.icon}
-            />
-          </Kb.Box2>
-        </Kb.ClickableBox>
+            {props.label}
+          </Kb.Text>
+          <Kb.Icon
+            color={Kb.Styles.globalColors.blueLighter}
+            sizeType="Tiny"
+            type="iconfont-arrow-right"
+            className="hover_contained_color_white"
+            style={styles.icon}
+          />
+        </Kb.ClickableBox3>
       </Kb.Box2>
       <Kb.ImageIcon
         type={props.icon}

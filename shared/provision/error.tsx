@@ -8,7 +8,7 @@ import {type ProvisionRouteError, useProvisionState} from '@/stores/provision'
 import {startAccountReset} from '@/login/reset/account-reset'
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
-  <LoginContainer onBack={p.onBack}>
+  <LoginContainer>
     <Kb.ImageIcon type="icon-illustration-zen-240-180" style={styles.icon} />
     <Kb.Text type="Header" style={styles.header}>
       Oops, something went wrong.
@@ -37,24 +37,13 @@ type Props = {
   }
 }
 
-// Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
 const RenderError = ({route}: Props) => {
   const error = route.params.error
   const username = useProvisionState(s => s.username)
-  const _onAccountReset = (username: string) => {
-    startAccountReset(false, username)
-  }
-  const navigateUp = C.Router2.navigateUp
-  const onBack = () => {
-    navigateUp()
-  }
-  const onKBHome = () => {
-    void openURL('https://keybase.io/')
-  }
-  const onPasswordReset = () => {
-    void openURL('https://keybase.io/#password-reset')
-  }
-  const onAccountReset = () => _onAccountReset(username)
+  const onBack = C.Router2.navigateUp
+  const onKBHome = () => void openURL('https://keybase.io/')
+  const onPasswordReset = () => void openURL('https://keybase.io/#password-reset')
+  const onAccountReset = () => startAccountReset(false, username)
 
   if (!error) {
     return (

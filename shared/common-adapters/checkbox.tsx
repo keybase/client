@@ -1,5 +1,4 @@
-import {Box2} from './box'
-import ClickableBox from './clickable-box'
+import {Box2, ClickableBox3} from './box'
 import Icon from './icon'
 import Switch from '@/common-adapters/switch'
 import Text from './text'
@@ -24,19 +23,22 @@ type Props = {
 const CHECKBOX_SIZE = 13
 const CHECKBOX_MARGIN = 8
 
-const Kb = {Box2, ClickableBox, Icon, Styles, Switch, Text}
+const Kb = {Box2, ClickableBox3, Icon, Styles, Switch, Text}
 
 const Checkbox = (props: Props) => {
   if (!isMobile) {
     return (
-      <Kb.ClickableBox
+      <Kb.ClickableBox3
+        direction="horizontal"
+        alignItems="flex-start"
+        alignSelf="flex-start"
         style={Kb.Styles.collapseStyles([
           styles.container,
           !props.disabled && styles.clickable,
           props.style,
         ])}
         onClick={e =>
-          props.disabled || e.defaultPrevented ? undefined : props.onCheck?.(!props.checked)
+          props.disabled || e?.defaultPrevented ? undefined : props.onCheck?.(!props.checked)
         }
       >
         <div
@@ -67,7 +69,7 @@ const Checkbox = (props: Props) => {
             ))}
           {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
         </Kb.Box2>
-      </Kb.ClickableBox>
+      </Kb.ClickableBox3>
     )
   }
 
@@ -114,8 +116,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
     },
   }),
   container: {
-    ...Kb.Styles.globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
     ...Kb.Styles.paddingV(2),
   },
   icon: Kb.Styles.platformStyles({

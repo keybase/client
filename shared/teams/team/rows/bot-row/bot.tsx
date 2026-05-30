@@ -79,8 +79,8 @@ export const TeamBotRow = (props: Props) => {
             onClick={props.onOpenProfile}
           />
           <Kb.Box2 direction="vertical" style={styles.nameContainer}>
-            <Kb.Box2 direction="horizontal" fullWidth={true}>{usernameDisplay}</Kb.Box2>
-            <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">{descriptionLabel}</Kb.Box2>
+            {usernameDisplay}
+            {descriptionLabel}
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.menuIconContainer} ref={popupAnchor}>

@@ -93,8 +93,8 @@ type ExpandedState = {
   expandedSet: Set<string>
 }
 
-const Container = (ownProps: OwnProps) => {
-const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
+const GitRoot = (ownProps: OwnProps) => {
+  const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
   const loadGit = C.useRPC(T.RPCGen.gitGetAllGitMetadataRpcPromise)
   const clearGitBadges = C.useRPC(T.RPCGen.gregorDismissCategoryRpcPromise)
   const [error, setError] = React.useState<Error | undefined>()
@@ -194,10 +194,10 @@ const loading = C.Waiting.useAnyWaiting(C.waitingKeyGitLoading)
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} relative={true} testID={TestIDs.GIT_REPO_LIST}>
         {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
         {isMobile && (
-          <Kb.ClickableBox3 ref={popupAnchor} direction="horizontal" centerChildren={true} style={styles.header} onClick={showPopup}>
+          <Kb.ClickableBox3 ref={popupAnchor} direction="horizontal" centerChildren={true} noShrink={true} style={styles.header} onClick={showPopup}>
             <Kb.Icon
               type="iconfont-new"
-              style={{marginRight: Kb.Styles.globalMargins.tiny}}
+              style={styles.newIcon}
               color={Kb.Styles.globalColors.blue}
               fontSize={20}
             />
@@ -238,10 +238,10 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       header: {
-        flexShrink: 0,
         height: 48,
       },
+      newIcon: {marginRight: Kb.Styles.globalMargins.tiny},
     }) as const
 )
 
-export default Container
+export default GitRoot

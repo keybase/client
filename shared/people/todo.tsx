@@ -12,28 +12,6 @@ import {useCurrentUserState} from '@/stores/current-user'
 import {navToProfile} from '@/constants/router'
 import {makeNewTeamWizard} from '@/teams/new-team/wizard/state'
 
-const todoTypes: {[K in T.People.TodoType]: T.People.TodoType} = {
-  addEmail: 'addEmail',
-  addPhoneNumber: 'addPhoneNumber',
-  annoncementPlaceholder: 'annoncementPlaceholder', // misspelled in protocol
-  avatarTeam: 'avatarTeam',
-  avatarUser: 'avatarUser',
-  bio: 'bio',
-  chat: 'chat',
-  device: 'device',
-  folder: 'folder',
-  follow: 'follow',
-  gitRepo: 'gitRepo',
-  legacyEmailVisibility: 'legacyEmailVisibility',
-  none: 'none',
-  paperkey: 'paperkey',
-  proof: 'proof',
-  team: 'team',
-  teamShowcase: 'teamShowcase',
-  verifyAllEmail: 'verifyAllEmail',
-  verifyAllPhoneNumber: 'verifyAllPhoneNumber',
-}
-
 type TodoOwnProps = {
   badged: boolean
   confirmLabel: string
@@ -74,8 +52,6 @@ function makeDefaultButtons(
   return result
 }
 
-const useRouterNavigation = () => C.Router2
-
 type BasicTaskProps = TodoOwnProps & {
   dismissLabel?: string
   dismissTodoType?: T.People.TodoType
@@ -115,7 +91,7 @@ const SettingsAccountTask = ({
   dismissTodoType,
   ...props
 }: SettingsAccountTaskProps) => {
-  const {navigateAppend, switchTab} = useRouterNavigation()
+  const {navigateAppend, switchTab} = C.Router2
   const onConfirm = () => {
     switchTab(C.Tabs.settingsTab)
     navigateAppend({name: settingsAccountTab, params: {}})
@@ -186,7 +162,7 @@ const TeamTask = (props: TodoOwnProps) => {
 }
 
 const GitRepoTask = (props: TodoOwnProps) => {
-  const {navigateAppend, switchTab} = useRouterNavigation()
+  const {navigateAppend, switchTab} = C.Router2
   const onConfirm = (isTeam: boolean) => {
     if (isMobile) {
       navigateAppend({name: settingsGitTab, params: {}})
@@ -219,7 +195,7 @@ const VerifyAllEmailTask = (props: TodoOwnProps) => {
   const onConfirm = (email: string) => {
     editEmail({email, onSuccess: () => props.setResentEmail(email), verify: true})
   }
-  const {navigateAppend, switchTab} = useRouterNavigation()
+  const {navigateAppend, switchTab} = C.Router2
   const onManage = () => {
     switchTab(C.Tabs.settingsTab)
     navigateAppend({name: settingsAccountTab, params: {}})
@@ -251,7 +227,7 @@ const VerifyAllEmailTask = (props: TodoOwnProps) => {
 }
 
 const VerifyAllPhoneNumberTask = (props: TodoOwnProps) => {
-  const {navigateAppend, switchTab} = useRouterNavigation()
+  const {navigateAppend, switchTab} = C.Router2
   const onConfirm = (phoneNumber: string) => {
     navigateAppend({name: 'settingsVerifyPhone', params: {initialResend: true, phoneNumber}})
   }
@@ -285,7 +261,7 @@ const VerifyAllPhoneNumberTask = (props: TodoOwnProps) => {
 
 const LegacyEmailVisibilityTask = (props: TodoOwnProps) => {
   const editEmail = useSettingsEmailState(s => s.dispatch.editEmail)
-  const {navigateAppend, switchTab} = useRouterNavigation()
+  const {navigateAppend, switchTab} = C.Router2
   const onConfirm = (email: string) => {
     switchTab(C.Tabs.settingsTab)
     navigateAppend({name: settingsAccountTab, params: {}})
@@ -319,41 +295,41 @@ const LegacyEmailVisibilityTask = (props: TodoOwnProps) => {
 
 const TaskChooser = (props: TodoOwnProps) => {
   switch (props.todoType) {
-    case todoTypes.addEmail:
+    case 'addEmail':
       return <SettingsAccountTask {...props} dismissTodoType="addEmail" destination="settingsAddEmail" />
-    case todoTypes.addPhoneNumber:
+    case 'addPhoneNumber':
       return (
         <SettingsAccountTask {...props} dismissTodoType="addPhoneNumber" destination="settingsAddPhone" />
       )
-    case todoTypes.avatarTeam:
+    case 'avatarTeam':
       return <SwitchTabTask {...props} tab={C.Tabs.teamsTab} />
-    case todoTypes.avatarUser:
+    case 'avatarUser':
       return <AvatarUserTask {...props} />
-    case todoTypes.bio:
+    case 'bio':
       return <BioTask {...props} />
-    case todoTypes.proof:
+    case 'proof':
       return <ProofTask {...props} />
-    case todoTypes.device:
+    case 'device':
       return <OpenURLTask {...props} dismissTodoType="device" url={installLinkURL} />
-    case todoTypes.follow:
+    case 'follow':
       return <FollowTask {...props} />
-    case todoTypes.chat:
+    case 'chat':
       return <SwitchTabTask {...props} dismissTodoType="chat" tab={C.Tabs.chatTab} />
-    case todoTypes.paperkey:
+    case 'paperkey':
       return <PaperKeyTask {...props} />
-    case todoTypes.team:
+    case 'team':
       return <TeamTask {...props} />
-    case todoTypes.folder:
+    case 'folder':
       return <SwitchTabTask {...props} dismissTodoType="folder" tab={C.Tabs.fsTab} />
-    case todoTypes.gitRepo:
+    case 'gitRepo':
       return <GitRepoTask {...props} />
-    case todoTypes.legacyEmailVisibility:
+    case 'legacyEmailVisibility':
       return <LegacyEmailVisibilityTask {...props} />
-    case todoTypes.teamShowcase:
+    case 'teamShowcase':
       return <SwitchTabTask {...props} dismissTodoType="teamShowcase" tab={C.Tabs.teamsTab} />
-    case todoTypes.verifyAllEmail:
+    case 'verifyAllEmail':
       return <VerifyAllEmailTask {...props} />
-    case todoTypes.verifyAllPhoneNumber:
+    case 'verifyAllPhoneNumber':
       return <VerifyAllPhoneNumberTask {...props} />
     default:
       return null

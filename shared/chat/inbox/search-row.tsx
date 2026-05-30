@@ -69,10 +69,8 @@ const styles = Kb.Styles.styleSheetCreate(
   () =>
     ({
       row: {
-        alignItems: 'center',
         height: '100%',
         paddingRight: Kb.Styles.globalMargins.tiny,
-        width: '100%',
       },
     }) as const
 )

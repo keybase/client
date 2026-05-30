@@ -24,13 +24,6 @@ const headerBackgroundColorType = (
   }
 }
 
-// const filterWebOfTrustEntries = memoize(
-//   (
-//     webOfTrustEntries: ReadonlyArray<T.Tracker.WebOfTrustEntry> | undefined
-//   ): Array<T.Tracker.WebOfTrustEntry> =>
-//     webOfTrustEntries ? webOfTrustEntries.filter(C.Tracker.showableWotEntry) : []
-// )
-
 const useUserData = (username: string) => {
   const myName = useCurrentUserState(s => s.username)
   const usernameKey = username.toLowerCase()
@@ -120,18 +113,11 @@ const useUserData = (username: string) => {
 
   const followThem = useFollowerState(s => s.following.has(username))
   const followsYou = useFollowerState(s => s.followers.has(username))
-  // const mutualFollow = followThem && followsYou
-
   const isDarkMode = useColorScheme() === 'dark'
   const stateProps = (() => {
     if (!notAUser) {
       // Keybase user
-      const {followersCount, followingCount, followers, following, reason /*, webOfTrustEntries = []*/} = d
-
-      // const filteredWot = filterWebOfTrustEntries(webOfTrustEntries)
-      // const hasAlreadyVouched = filteredWot.some(entry => entry.attestingUser === myName)
-      // const vouchShowButton = mutualFollow && !hasAlreadyVouched
-      // const vouchDisableButton = !vouchShowButton || d.state !== 'valid' || d.resetBrokeTrack
+      const {followersCount, followingCount, followers, following, reason} = d
 
       return {
         ...commonProps,
@@ -153,9 +139,6 @@ const useUserData = (username: string) => {
         sbsAvatarUrl: undefined,
         serviceIcon: undefined,
         title: username,
-        // vouchDisableButton,
-        // vouchShowButton,
-        // webOfTrustEntries: filteredWot,
       }
     } else {
       // SBS profile. But `nonUserDetails` might not have arrived yet,
@@ -178,19 +161,11 @@ const useUserData = (username: string) => {
         service,
         serviceIcon: isDarkMode ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull,
         title,
-        vouchDisableButton: true,
-        vouchShowButton: false,
-        webOfTrustEntries: [],
       }
     }
   })()
 
   const _onEditAvatar = editAvatar
-  // const _onIKnowThem = (username: string, guiID: string) => {
-  //   dispatch(
-  //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
-  //   )
-  // }
   const _onReload = (isYou: boolean, state: T.Tracker.DetailsState) => {
     if (state !== 'valid' && !isYou) {
       // Might be a Keybase user or not, launch non-user profile fetch.
@@ -268,10 +243,6 @@ const useUserData = (username: string) => {
     onAddIdentity: allowOnAddIdentity ? onAddIdentity : undefined,
     onBack: onBack,
     onEditAvatar: stateProps.userIsYou ? _onEditAvatar : undefined,
-    // onIKnowThem:
-    //   stateProps.vouchShowButton && !stateProps.vouchDisableButton
-    //     ? () => _onIKnowThem(stateProps.username, stateProps.guiID)
-    //     : undefined,
     onReload: () => _onReload(stateProps.userIsYou, stateProps.state),
     reason: stateProps.reason,
     sbsAvatarUrl: stateProps.sbsAvatarUrl,
@@ -286,9 +257,6 @@ const useUserData = (username: string) => {
     title: stateProps.title,
     userIsYou: stateProps.userIsYou,
     username: stateProps.username,
-    // vouchDisableButton: stateProps.vouchDisableButton,
-    // vouchShowButton: stateProps.vouchShowButton,
-    // webOfTrustEntries: stateProps.webOfTrustEntries,
   }
 }
 

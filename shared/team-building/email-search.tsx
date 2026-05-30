@@ -23,15 +23,15 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   const canSubmit = !!user && !waiting && isEmailValid
 
   const onChange = (_text: string) => {
-      // Remove leading or trailing whitespace
-      const text = _text.trim()
-      setEmailString(text)
-      const valid = validateEmailAddress(text)
-      setEmailValidity(valid)
-      if (valid) {
-        search(text, 'email')
-      }
+    // Remove leading or trailing whitespace
+    const text = _text.trim()
+    setEmailString(text)
+    const valid = validateEmailAddress(text)
+    setEmailValidity(valid)
+    if (valid) {
+      search(text, 'email')
     }
+  }
 
   const addUsersToTeamSoFar = TB.useTBContext(s => s.dispatch.addUsersToTeamSoFar)
 

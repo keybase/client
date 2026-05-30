@@ -1,30 +1,33 @@
 import type * as T from '@/constants/types'
 
+const msgOnlyOwnersCanChangeOwnerRole = "Only owners can change another owner's role"
+const msgMustBeAdminToChangeRoles = 'You must be at least an admin to make role changes.'
+
 const subteamsCannotHaveOwners = {owner: 'Subteams cannot have owners.'}
 const onlyOwnersCanTurnTeamMembersIntoOwners = {owner: 'Only owners can turn team members into owners.'}
 const roleChangeSub = {
-  admin: 'You must be at least an admin to make role changes.',
+  admin: msgMustBeAdminToChangeRoles,
   owner: 'Subteams cannot have owners.',
-  reader: 'You must be at least an admin to make role changes.',
-  writer: 'You must be at least an admin to make role changes.',
+  reader: msgMustBeAdminToChangeRoles,
+  writer: msgMustBeAdminToChangeRoles,
 }
 const roleChangeNotSub = {
-  admin: 'You must be at least an admin to make role changes.',
-  owner: 'You must be at least an admin to make role changes.',
-  reader: 'You must be at least an admin to make role changes.',
-  writer: 'You must be at least an admin to make role changes.',
+  admin: msgMustBeAdminToChangeRoles,
+  owner: msgMustBeAdminToChangeRoles,
+  reader: msgMustBeAdminToChangeRoles,
+  writer: msgMustBeAdminToChangeRoles,
 }
 const anotherRoleChangeSub = {
-  admin: `Only owners can change another owner's role`,
+  admin: msgOnlyOwnersCanChangeOwnerRole,
   owner: 'Subteams cannot have owners.',
-  reader: `Only owners can change another owner's role`,
-  writer: `Only owners can change another owner's role`,
+  reader: msgOnlyOwnersCanChangeOwnerRole,
+  writer: msgOnlyOwnersCanChangeOwnerRole,
 }
 const anotherRoleChangeNotSub = {
-  admin: `Only owners can change another owner's role`,
-  owner: `Only owners can change another owner's role`,
-  reader: `Only owners can change another owner's role`,
-  writer: `Only owners can change another owner's role`,
+  admin: msgOnlyOwnersCanChangeOwnerRole,
+  owner: msgOnlyOwnersCanChangeOwnerRole,
+  reader: msgOnlyOwnersCanChangeOwnerRole,
+  writer: msgOnlyOwnersCanChangeOwnerRole,
 }
 const notOwnerSub = {owner: 'Subteams cannot have owners.'}
 const notOwnerNotSub = {owner: `Only owners can turn members into owners`}

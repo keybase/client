@@ -85,78 +85,78 @@ const RetentionPicker = (p: Props) => {
   const saving = !!pendingPolicy && !policyEquals(policy, pendingPolicy)
 
   const makePopup = (p: Kb.Popup2Parms) => {
-      const {attachTo, hidePopup} = p
+    const {attachTo, hidePopup} = p
 
-      const makeItems = () => {
-        const policies = Teams.baseRetentionPolicies.slice()
-        if (showInheritOption) {
-          policies.unshift(Teams.retentionPolicies.policyInherit)
-        }
-        return policies.reduce((arr, policy) => {
-          switch (policy.type) {
-            case 'retain':
-            case 'expire':
-              return [
-                ...arr,
-                {
-                  isSelected: isSelected(policy),
-                  onClick: () => selectPolicy(policy),
-                  title: policy.title,
-                } as const,
-              ]
-            case 'inherit':
-              if (teamPolicy) {
-                let title = ''
-                switch (teamPolicy.type) {
-                  case 'retain':
-                    title = 'Team default (Never)'
-                    break
-                  case 'expire':
-                  case 'explode':
-                    title = `Team default (${teamPolicy.title})`
-                    break
-                  default:
-                }
-                return [
-                  {
-                    isSelected: isSelected(policy),
-                    onClick: () => selectPolicy(policy),
-                    title,
-                  } as const,
-                  'Divider' as const,
-                  ...arr,
-                ]
-              } else {
-                throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
-              }
-            case 'explode':
-              return [
-                ...arr,
-                {
-                  icon: 'iconfont-timer',
-                  iconIsVisible: true,
-                  isSelected: isSelected(policy),
-                  onClick: () => selectPolicy(policy),
-                  title: policy.title,
-                } as const,
-              ]
-            default:
-              return arr
-          }
-        }, new Array<Kb.MenuItems[0]>())
+    const makeItems = () => {
+      const policies = Teams.baseRetentionPolicies.slice()
+      if (showInheritOption) {
+        policies.unshift(Teams.retentionPolicies.policyInherit)
       }
-      const items = makeItems()
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          visible={true}
-          onHidden={hidePopup}
-          items={items}
-          position="top center"
-        />
-      )
+      return policies.reduce((arr, policy) => {
+        switch (policy.type) {
+          case 'retain':
+          case 'expire':
+            return [
+              ...arr,
+              {
+                isSelected: isSelected(policy),
+                onClick: () => selectPolicy(policy),
+                title: policy.title,
+              } as const,
+            ]
+          case 'inherit':
+            if (teamPolicy) {
+              let title = ''
+              switch (teamPolicy.type) {
+                case 'retain':
+                  title = 'Team default (Never)'
+                  break
+                case 'expire':
+                case 'explode':
+                  title = `Team default (${teamPolicy.title})`
+                  break
+                default:
+              }
+              return [
+                {
+                  isSelected: isSelected(policy),
+                  onClick: () => selectPolicy(policy),
+                  title,
+                } as const,
+                'Divider' as const,
+                ...arr,
+              ]
+            } else {
+              throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
+            }
+          case 'explode':
+            return [
+              ...arr,
+              {
+                icon: 'iconfont-timer',
+                iconIsVisible: true,
+                isSelected: isSelected(policy),
+                onClick: () => selectPolicy(policy),
+                title: policy.title,
+              } as const,
+            ]
+          default:
+            return arr
+        }
+      }, new Array<Kb.MenuItems[0]>())
     }
+    const items = makeItems()
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        visible={true}
+        onHidden={hidePopup}
+        items={items}
+        position="top center"
+      />
+    )
+  }
   const {showPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (

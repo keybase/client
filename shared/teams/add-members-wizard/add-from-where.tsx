@@ -45,30 +45,34 @@ const AddFromWhere = ({wizard}: Props) => {
         <Kb.Text type="Body">
           {isNewTeam ? 'Where will your first team members come from?' : 'How would you like to add people?'}
         </Kb.Text>
-        <Kb.RichButton
-          icon="icon-teams-add-search-64"
-          title="From Keybase"
-          description="Search users by username."
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type="icon-teams-add-search-64" />}
+          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">From Keybase</Kb.Text><Kb.Text type="BodySmall">Search users by username.</Kb.Text></Kb.Box2>}
           onClick={onContinueKeybase}
         />
-        <Kb.RichButton
-          icon="icon-teams-add-email-list-64"
-          title="A list of email addresses"
-          description="Enter one or multiple email addresses."
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type="icon-teams-add-email-list-64" />}
+          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">A list of email addresses</Kb.Text><Kb.Text type="BodySmall">Enter one or multiple email addresses.</Kb.Text></Kb.Box2>}
           onClick={onContinueEmail}
         />
         {isMobile && (
-          <Kb.RichButton
-            icon="icon-teams-add-phone-contacts-64"
-            title="From your contacts"
-            description="Add your friends, family, or colleagues."
+          <Kb.ListItem
+            type="Card"
+            firstItem={true}
+            icon={<Kb.IconAuto type="icon-teams-add-phone-contacts-64" />}
+            body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">From your contacts</Kb.Text><Kb.Text type="BodySmall">Add your friends, family, or colleagues.</Kb.Text></Kb.Box2>}
             onClick={onContinueContacts}
           />
         )}
-        <Kb.RichButton
-          icon="icon-teams-add-number-list-64"
-          title="A list of phone numbers"
-          description="Enter one or multiple phone numbers"
+        <Kb.ListItem
+          type="Card"
+          firstItem={true}
+          icon={<Kb.IconAuto type="icon-teams-add-number-list-64" />}
+          body={<Kb.Box2 direction="vertical" fullWidth={true}><Kb.Text type="BodySemibold">A list of phone numbers</Kb.Text><Kb.Text type="BodySmall">Enter one or multiple phone numbers</Kb.Text></Kb.Box2>}
           onClick={onContinuePhone}
         />
       </Kb.Box2>

@@ -10,7 +10,7 @@ import TeamBox from './team-box'
 import logger from '@/logger'
 import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
-import {serviceIdToSearchPlaceholder} from './shared'
+import {serviceIdToSearchPlaceholder, getSearchResults} from './shared'
 import {FilteredServiceTabBar} from './filtered-service-tab-bar'
 import {useSharedValue} from '@/common-adapters/reanimated'
 
@@ -41,12 +41,6 @@ const deriveSelectedUsers = (teamSoFar: ReadonlySet<T.TB.User>): Array<T.TB.Sele
     }
   })
 
-const getUserResults = (
-  searchResults: TB.State['searchResults'],
-  searchString: string,
-  selectedService: T.TB.ServiceIdWithContact
-) => searchResults.get(searchString.trim())?.get(selectedService)
-
 const findUserById = (users: ReadonlyArray<T.TB.User> | undefined, userId: string) =>
   users?.find(user => user.id === userId)
 
@@ -69,7 +63,7 @@ const useTeamBuildingData = (searchString: string, selectedService: T.TB.Service
     error,
     teamSoFar: deriveSelectedUsers(rawTeamSoFar),
     userRecs,
-    userResults: getUserResults(searchResults, searchString, selectedService),
+    userResults: getSearchResults(searchResults, searchString, selectedService),
   }
 }
 

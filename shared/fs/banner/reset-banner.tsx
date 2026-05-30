@@ -11,42 +11,35 @@ type OwnProps = {path: T.FS.Path}
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = useFsTlf(path)
+  const tlf = useFsTlf(path)
   const errorToActionOrThrow = useFsErrorActionOrThrow()
-  const _onOpenWithoutResetUsers = (currPath: T.FS.Path, users: {[K in string]: boolean}) => {
-    const pathElems = T.FS.getPathElements(currPath)
+  const onOpenProfile = (username: string) => () => {
+    navToProfile(username)
+  }
+  const onOpenWithoutResetUsers = () => {
+    const pathElems = T.FS.getPathElements(path)
     if (pathElems.length < 3) return
+    const users = tlf.resetParticipants.reduce<Record<string, boolean>>((acc, u) => {
+      acc[u] = true
+      return acc
+    }, {})
     const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
     const filteredPath = T.FS.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
     FS.navToPath(filteredPath)
   }
-  const _onReAddToTeam = (id: T.RPCGen.TeamID, username: string) => {
+  const onReAddToTeam = (username: string) => () => {
+    if (!tlf.teamId) return
+    const {teamId} = tlf
     const f = async () => {
       try {
-        await T.RPCGen.teamsTeamReAddMemberAfterResetRpcPromise({id, username})
+        await T.RPCGen.teamsTeamReAddMemberAfterResetRpcPromise({id: teamId, username})
       } catch (error) {
         errorToActionOrThrow(error)
       }
     }
     C.ignorePromise(f())
   }
-
-  const onOpenProfile = (username: string) => () => {
-    navToProfile(username)
-  }
-  const onOpenWithoutResetUsers = () =>
-    _onOpenWithoutResetUsers(
-      path,
-      _tlf.resetParticipants.reduce<{
-        [x: string]: boolean
-      }>((acc, i: string) => {
-        acc[i] = true
-        return acc
-      }, {})
-    )
-  const onReAddToTeam = (username: string) => () =>
-    _tlf.teamId ? _onReAddToTeam(_tlf.teamId, username) : undefined
-  const resetParticipants = _tlf.resetParticipants
+  const resetParticipants = tlf.resetParticipants
 
   return (
     <Kb.Box2

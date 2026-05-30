@@ -69,7 +69,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
     return (
       <Kb.ConfirmModal
         content={
-          <Kb.Text type="Body" center={true} style={{marginTop: Kb.Styles.globalMargins.medium}}>
+          <Kb.Text type="Body" center={true} style={styles.subteamText}>
             Before you can delete <Kb.Text type="BodySemibold">{teamname}</Kb.Text>, delete its{' '}
             {subteamNames.length} {pluralize('subteam', subteamNames.length)}:{' '}
             <Kb.Text type="BodySemibold">{subteamNames.join(', ')}</Kb.Text>.
@@ -113,7 +113,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
 const Header = (props: {teamname: string}) => (
   <>
     <Kb.Avatar teamname={props.teamname} size={64} />
-    <Kb.ImageIcon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+    <Kb.ImageIcon type="icon-team-delete-28" style={styles.deleteIcon} />
   </>
 )
 
@@ -145,5 +145,10 @@ const Checkboxes = (props: CheckboxesProps) => (
     />
   </Kb.Box2>
 )
+
+const styles = Kb.Styles.styleSheetCreate(() => ({
+  deleteIcon: {marginRight: -60, marginTop: -20, zIndex: 1},
+  subteamText: {marginTop: Kb.Styles.globalMargins.medium},
+}))
 
 export default DeleteTeamContainer

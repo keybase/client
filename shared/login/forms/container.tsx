@@ -2,7 +2,6 @@ import type * as React from 'react'
 import * as Kb from '@/common-adapters'
 
 type Props = {
-  onBack?: () => void
   children?: React.ReactNode
   style?: Kb.Styles.StylesCrossPlatform
   outerStyle?: Kb.Styles.StylesCrossPlatform

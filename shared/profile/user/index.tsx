@@ -373,7 +373,7 @@ const BioTeamProofs = (props: BioTeamProofsProps) => {
         style={styles.bioAndProofs}
       >
         <BioLayout {...props} />
-        <Kb.Box2 direction="vertical" style={styles.proofs}>
+        <Kb.Box2 direction="vertical" noShrink={true} style={styles.proofs}>
           <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
             {props.reason}
           </Kb.Text>
@@ -692,7 +692,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   proofs: Kb.Styles.platformStyles({
     isElectron: {
       alignSelf: 'flex-start',
-      flexShrink: 0,
       width: 350,
     },
     isMobile: {width: '100%'},

@@ -44,12 +44,12 @@ const UnlockFolders = (props: Props) => {
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
+    <Kb.Box2 direction="vertical" style={styles.container}>
+      <Kb.Box2 direction="vertical" style={styles.header}>
         <DragHeader icon={true} type="Default" title="" onClose={props.onClose} />
-      </div>
+      </Kb.Box2>
       {innerComponent}
-    </div>
+    </Kb.Box2>
   )
 }
 

@@ -1,6 +1,6 @@
 import type * as React from 'react'
 import * as Kb from '@/common-adapters'
-import CommonResult, {type ResultProps} from './common-result'
+import CommonResult, {type ResultProps, rowContainerWithLargePadding} from './common-result'
 import YouResult from './you-result'
 import HellobotResult from './hellobot-result'
 
@@ -17,7 +17,7 @@ const UserResult = function UserResult(props: ResultProps) {
   return (
     <CommonResult
       {...props}
-      rowStyle={styles.rowContainer}
+      rowStyle={rowContainerWithLargePadding}
       rightButtons={
         !props.isPreExistingTeamMember && (
           <ActionButton
@@ -82,14 +82,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       marginRight: Kb.Styles.globalMargins.tiny,
     },
   }),
-  rowContainer: {
-    ...Kb.Styles.padding(
-      Kb.Styles.globalMargins.tiny,
-      Kb.Styles.globalMargins.medium,
-      Kb.Styles.globalMargins.tiny,
-      Kb.Styles.globalMargins.xsmall
-    ),
-  },
 }))
 
 export default UserResult

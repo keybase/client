@@ -3,8 +3,7 @@ import * as React from 'react'
 import * as Styles from '@/styles'
 import {Portal} from './portal'
 import {useTimeout} from './use-timers'
-import {Box2} from './box'
-import ClickableBox from './clickable-box'
+import {Box2, ClickableBox3} from './box'
 import Toast from './toast'
 import Text from './text'
 import type {MeasureRef} from './measure-ref'
@@ -31,7 +30,7 @@ const IGNORE_FOR_PROFILING = false as boolean
 
 const Kb = {
   Box2,
-  ClickableBox,
+  ClickableBox3,
   Portal,
   Text,
   Toast,
@@ -163,7 +162,7 @@ function WithTooltip(p: Props) {
   return (
     <>
       <View style={Styles.castStyleNative(containerStyle)} ref={clickableRef} collapsable={false}>
-        <Kb.ClickableBox onClick={_onClick}>{children}</Kb.ClickableBox>
+        <Kb.ClickableBox3 onClick={_onClick} direction="vertical">{children}</Kb.ClickableBox3>
       </View>
       <Kb.Portal hostName="popup-root">
         <Kb.Box2

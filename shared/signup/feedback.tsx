@@ -26,8 +26,7 @@ const SignupFeedback = () => {
       }
       title="Send feedback"
       onBack={C.Router2.navigateUp}
-      showHeaderInfoicon={false}
-      showHeaderInfoiconRow={!loggedOut}
+      showHeaderInfoIconRow={!loggedOut}
     >
       <FeedbackForm
         sendError=""

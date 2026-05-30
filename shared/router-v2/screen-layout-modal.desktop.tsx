@@ -13,7 +13,7 @@ type ModalHeaderProps = {
 
 const ModalHeader = (props: ModalHeaderProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header}>
-    <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} style={Kb.Styles.globalStyles.flexOne}>
+    <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} flex={1}>
       <Kb.Box2 direction="horizontal" style={styles.headerLeft}>
         {!!props.leftButton && props.leftButton}
       </Kb.Box2>

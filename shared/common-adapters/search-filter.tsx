@@ -1,7 +1,6 @@
 import * as React from 'react'
 import Animation from './animation'
-import {Box2} from './box'
-import ClickableBox, {ClickableBox2} from './clickable-box'
+import {Box2, ClickableBox3} from './box'
 import Input3 from './input3'
 import type {Input3Ref} from './input3.shared'
 import Text from './text'
@@ -18,8 +17,7 @@ import type {MeasureRef} from './measure-ref'
 const Kb = {
   Animation,
   Box2,
-  ClickableBox,
-  ClickableBox2,
+  ClickableBox3,
   Icon,
   IconAuto,
   Input3,
@@ -223,20 +221,21 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
     }
     if (isMobile) {
       return (
-        <Kb.ClickableBox2 onClick={props.mobileCancelButton ? clear : cancel} hitSlop={10}>
+        <Kb.ClickableBox3 onClick={props.mobileCancelButton ? clear : cancel} hitSlop={10} direction="vertical">
           <Kb.Icon
             type="iconfont-remove"
             sizeType={iconSizeType()}
             color={iconColor()}
             style={styles.removeIconNonFullWidth}
           />
-        </Kb.ClickableBox2>
+        </Kb.ClickableBox3>
       )
     } else {
       return (
-        <Kb.ClickableBox
+        <Kb.ClickableBox3
           onClick={() => {}}
           onMouseDown={cancel}
+          direction="vertical"
           style={props.size === 'full-width' ? styles.removeIconFullWidth : styles.removeIconNonFullWidth}
         >
           <Kb.Icon
@@ -244,7 +243,7 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
             sizeType={iconSizeType()}
             color={iconColor()}
           />
-        </Kb.ClickableBox>
+        </Kb.ClickableBox3>
       )
     }
   }
@@ -264,8 +263,9 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
   )
 
   const content = isMobile ? (
-    <Kb.ClickableBox2
+    <Kb.ClickableBox3
       data-search-filter={true}
+      direction="horizontal"
       style={Styles.collapseStyles([
         styles.container,
         props.placeholderCentered && styles.containerCenter,
@@ -275,10 +275,12 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       onClick={props.onClick || focus}
     >
       {inside}
-    </Kb.ClickableBox2>
+    </Kb.ClickableBox3>
   ) : (
-    <Kb.ClickableBox
+    <Kb.ClickableBox3
       data-search-filter={true}
+      direction="horizontal"
+      alignSelf={props.size === 'full-width' ? 'stretch' : undefined}
       style={Styles.collapseStyles([
         styles.container,
         props.placeholderCentered && styles.containerCenter,
@@ -290,11 +292,9 @@ function SearchFilter(props: Props & {ref?: React.Ref<SearchFilterRef>}) {
       onMouseOver={mouseOver}
       onMouseLeave={mouseLeave}
       onClick={props.onClick || (!focused ? focus : undefined)}
-      underlayColor={Styles.globalColors.transparent}
-      hoverColor={Styles.globalColors.transparent}
     >
       {inside}
-    </Kb.ClickableBox>
+    </Kb.ClickableBox3>
   )
 
   return isMobile ? (
@@ -321,9 +321,7 @@ export default SearchFilter
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxRow,
       ...Styles.globalStyles.flexGrow,
-      alignItems: 'center',
       borderRadius: Styles.borderRadius,
       flexShrink: 1,
     },

@@ -28,6 +28,17 @@ const makeInitialForm = (): GeneratePgpArgs => ({
   pgpFullName: '',
 })
 
+export const PgpMobileUnsupported = ({onCancel}: {onCancel: () => void}) => (
+  <Modal onCancel={onCancel}>
+    <Kb.Box2 direction="vertical" gap="small" gapEnd={true}>
+      <Kb.Text center={true} type="Header">
+        Add a PGP key
+      </Kb.Text>
+      <Kb.Text type="Body">For now, please use our desktop app to create PGP keys.</Kb.Text>
+    </Kb.Box2>
+  </Modal>
+)
+
 export default function Choice() {
   const {clearModals, navigateAppend, navigateUp} = C.Router2
   const mountedRef = React.useRef(true)
@@ -48,17 +59,7 @@ export default function Choice() {
   }, [])
 
   if (isMobile) {
-    const onCancel = () => navigateUp()
-    return (
-      <Modal onCancel={onCancel}>
-        <Kb.Box2 direction="vertical" gap="small" gapEnd={true}>
-          <Kb.Text center={true} type="Header">
-            Add a PGP key
-          </Kb.Text>
-          <Kb.Text type="Body">For now, please use our desktop app to create PGP keys.</Kb.Text>
-        </Kb.Box2>
-      </Modal>
-    )
+    return <PgpMobileUnsupported onCancel={() => navigateUp()} />
   }
 
   const setStepSafe = (next: Step) => {
@@ -165,22 +166,32 @@ export default function Choice() {
         return (
           <Kb.Box2 direction="vertical" gap="small">
             <Kb.Text type="Header">Add a PGP key</Kb.Text>
-            <Kb.ChoiceList
-              options={[
-                {
-                  description: 'Keybase will generate a new PGP key and add it to your profile.',
-                  icon: 'icon-pgp-key-new-48',
-                  onClick: onShowGetNew,
-                  title: 'Get a new PGP key',
-                },
-                {
-                  description: 'Import an existing PGP key to your Keybase profile.',
-                  icon: 'icon-pgp-key-import-48',
-                  onClick: onShowImport,
-                  title: 'I have one already',
-                },
-              ]}
-            />
+            <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+              <Kb.ListItem
+                type="Card"
+                firstItem={true}
+                icon={<Kb.IconAuto type="icon-pgp-key-new-48" />}
+                body={
+                  <Kb.Box2 direction="vertical" fullWidth={true}>
+                    <Kb.Text type="BodyBigLink">Get a new PGP key</Kb.Text>
+                    <Kb.Text type="Body">Keybase will generate a new PGP key and add it to your profile.</Kb.Text>
+                  </Kb.Box2>
+                }
+                onClick={onShowGetNew}
+              />
+              <Kb.ListItem
+                type="Card"
+                firstItem={true}
+                icon={<Kb.IconAuto type="icon-pgp-key-import-48" />}
+                body={
+                  <Kb.Box2 direction="vertical" fullWidth={true}>
+                    <Kb.Text type="BodyBigLink">I have one already</Kb.Text>
+                    <Kb.Text type="Body">Import an existing PGP key to your Keybase profile.</Kb.Text>
+                  </Kb.Box2>
+                }
+                onClick={onShowImport}
+              />
+            </Kb.Box2>
           </Kb.Box2>
         )
       case 'info':

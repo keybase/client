@@ -13,8 +13,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
   const errorToActionOrThrow = Kbfs.useFsErrorActionOrThrow()
   const openPathInSystemFileManagerDesktop = Kbfs.useOpenPathInSystemFileManagerDesktop()
-  const _tlf = Kbfs.useFsTlf(path)
-  const navigateAppend = C.Router2.navigateAppend
+  const tlf = Kbfs.useFsTlf(path)
   const onFinishResolving = () => {
     const f = async () => {
       try {
@@ -28,7 +27,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     C.ignorePromise(f())
   }
   const onGoToSamePathInDifferentTlf = (tlfPath: T.FS.Path) => {
-    navigateAppend({name: 'fsRoot', params: {path: FS.rebasePathToDifferentTlf(path, tlfPath)}})
+    C.Router2.navigateAppend({name: 'fsRoot', params: {path: FS.rebasePathToDifferentTlf(path, tlfPath)}})
   }
   const onHelp = () => {
     void openUrl('https://book.keybase.io/docs/files/details#conflict-resolution')
@@ -50,7 +49,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     openPathInSystemFileManagerDesktop(path, errorToActionOrThrow)
   }
 
-  const conflictState = _tlf.conflictState
+  const conflictState = tlf.conflictState
   const finishRes = {onClick: onFinishResolving, text: ' Delete this conflict view '}
   const helpAction = {onClick: onHelp, text: ' What does this mean? '}
   const startRes = {onClick: onStartResolving, text: ' Resolve conflict '}

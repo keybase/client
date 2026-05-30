@@ -247,7 +247,6 @@ const NativeNoChats = (props: {onNewChat: () => void}) => (
         onClick={props.onNewChat}
         mode="Primary"
         label="Start a new chat"
-        style={nativeStyles.button}
       />
     </Kb.Box2>
   </>
@@ -421,7 +420,7 @@ function DesktopInboxBody(props: ControlledInboxProps) {
 
 // Native InboxBody
 function NativeInboxBody(p: ControlledInboxProps) {
-const {search} = p
+  const {search} = p
   const inbox = useInboxState(p.conversationIDKey, search.isSearching, p.refreshInbox)
   const {onUntrustedInboxVisible, toggleSmallTeamsExpanded, selectedConversationIDKey} = inbox
   const {unreadIndices, unreadTotal, rows, smallTeamsExpanded, isSearching, allowShowFloatingButton} = inbox
@@ -528,9 +527,7 @@ const {search} = p
         <Kb.Box2 direction="vertical" fullWidth={true} style={nativeStyles.container} testID={TestIDs.CHAT_INBOX_LIST}>
           <NativeLoadingLine />
           {isSearching ? (
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <InboxSearch header={headComponent} search={search} />
-            </Kb.Box2>
+            <InboxSearch header={headComponent} search={search} />
           ) : (
             <Kb.List
               testID="inboxList"
@@ -700,8 +697,6 @@ const desktopStyles = Kb.Styles.styleSheetCreate(
 const nativeStyles = Kb.Styles.styleSheetCreate(
   () =>
     ({
-      accessoryRow: {flex: 1},
-      button: {width: '100%'},
       container: Kb.Styles.platformStyles({
         common: {
           flexGrow: 1,

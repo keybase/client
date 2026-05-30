@@ -27,7 +27,5 @@ export default Kb.Styles.isTablet
       headerTitleContainerStyle: {},
     }
   : {
-      headerTitle: () => {
-        return <InboxAndConvoHeader />
-      },
+      headerTitle: () => <InboxAndConvoHeader />,
     }

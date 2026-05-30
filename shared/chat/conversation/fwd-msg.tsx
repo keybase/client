@@ -159,23 +159,21 @@ const TeamPickerInner = (props: Props) => {
 
   const renderResult = (index: number, item: T.RPCChat.ConvSearchHit) => {
     return (
-      <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
-          {item.isTeam ? (
-            <TeamAvatar
-              isHovered={false}
-              isMuted={false}
-              isSelected={false}
-              teamname={item.name.split('#')[0] ?? ''}
-            />
-          ) : (
-            <Avatars participantOne={item.parts?.[0]} participantTwo={item.parts?.[1]} />
-          )}
-          <Kb.Text type="Body" style={{alignSelf: 'center'}}>
-            {item.name}
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.ClickableBox>
+      <Kb.ClickableBox3 key={index} onClick={() => onSelect(item.convID)} direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
+        {item.isTeam ? (
+          <TeamAvatar
+            isHovered={false}
+            isMuted={false}
+            isSelected={false}
+            teamname={item.name.split('#')[0] ?? ''}
+          />
+        ) : (
+          <Avatars participantOne={item.parts?.[0]} participantTwo={item.parts?.[1]} />
+        )}
+        <Kb.Text type="Body" style={{alignSelf: 'center'}}>
+          {item.name}
+        </Kb.Text>
+      </Kb.ClickableBox3>
     )
   }
 
@@ -306,8 +304,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-const TeamPicker = (props: Props) => {
-  return <TeamPickerInner {...props} />
-}
-
-export default TeamPicker
+export default TeamPickerInner

@@ -28,7 +28,7 @@ const makeSortOptionItem = (sortSetting: T.FS.SortSetting, onClick?: () => void)
   title: getTextFromSortSetting(sortSetting),
 })
 
-const Container = (ownProps: OwnProps) => {
+const Sort = (ownProps: OwnProps) => {
   const {path} = ownProps
   const pathItem = useFsPathItem(path)
   const {setSortSetting, sortSetting} = useFsBrowserSort(path)
@@ -37,30 +37,10 @@ const Container = (ownProps: OwnProps) => {
   const shownSortSetting = FS.showSortSetting(path, pathItem, kbfsDaemonStatus) ? sortSetting : undefined
   const makePopup = (p: Kb.Popup2Parms) => {
     const {attachTo, hidePopup} = p
-    const sortByNameAsc =
-      path === FS.defaultPath
-        ? undefined
-        : () => {
-            setSortSetting(path, T.FS.SortSetting.NameAsc)
-          }
-    const sortByNameDesc =
-      path === FS.defaultPath
-        ? undefined
-        : () => {
-            setSortSetting(path, T.FS.SortSetting.NameDesc)
-          }
-    const sortByTimeAsc =
-      path === FS.defaultPath
-        ? undefined
-        : () => {
-            setSortSetting(path, T.FS.SortSetting.TimeAsc)
-          }
-    const sortByTimeDesc =
-      path === FS.defaultPath
-        ? undefined
-        : () => {
-            setSortSetting(path, T.FS.SortSetting.TimeDesc)
-          }
+    const isRoot = path === FS.defaultPath
+    const sortSettings: Array<T.FS.SortSetting> = isRoot
+      ? []
+      : [T.FS.SortSetting.NameAsc, T.FS.SortSetting.NameDesc, T.FS.SortSetting.TimeAsc, T.FS.SortSetting.TimeDesc]
     return (
       <Kb.FloatingMenu
         attachTo={attachTo}
@@ -68,12 +48,7 @@ const Container = (ownProps: OwnProps) => {
         onHidden={hidePopup}
         position="bottom left"
         closeOnSelect={true}
-        items={[
-          ...(sortByNameAsc ? [makeSortOptionItem(T.FS.SortSetting.NameAsc, sortByNameAsc)] : []),
-          ...(sortByNameDesc ? [makeSortOptionItem(T.FS.SortSetting.NameDesc, sortByNameDesc)] : []),
-          ...(sortByTimeAsc ? [makeSortOptionItem(T.FS.SortSetting.TimeAsc, sortByTimeAsc)] : []),
-          ...(sortByTimeDesc ? [makeSortOptionItem(T.FS.SortSetting.TimeDesc, sortByTimeDesc)] : []),
-        ]}
+        items={sortSettings.map(s => makeSortOptionItem(s, () => setSortSetting(path, s)))}
       />
     )
   }
@@ -98,4 +73,4 @@ const styles = Kb.Styles.styleSheetCreate(
     }) as const
 )
 
-export default Container
+export default Sort
