@@ -68,16 +68,9 @@ const Container = (ownProps: OwnProps) => {
     }
   }
   return (
-    <>
-      <Kb.ScrollView>
-        <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
-          {!!error && (
-            <Kb.Box2 direction="vertical" style={styles.error}>
-              <Kb.Text type="Body" negative={true}>
-                {error}
-              </Kb.Text>
-            </Kb.Box2>
-          )}
+    <Kb.ScrollView>
+      <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
+        {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
           <Kb.Text center={true} type="Header" style={{marginBottom: 27}}>
             Are you sure you want to delete this {teamname ? 'team ' : ''}
             repository?
@@ -139,9 +132,8 @@ const Container = (ownProps: OwnProps) => {
               waitingKey={waitingKey}
             />
           </Kb.ButtonBar>
-        </Kb.Box2>
-      </Kb.ScrollView>
-    </>
+      </Kb.Box2>
+    </Kb.ScrollView>
   )
 }
 
@@ -173,12 +165,6 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
       padding: Kb.Styles.globalMargins.small,
     },
   }),
-  error: {
-    alignSelf: 'stretch',
-    backgroundColor: Kb.Styles.globalColors.red,
-    marginBottom: Kb.Styles.globalMargins.small,
-    padding: Kb.Styles.globalMargins.tiny,
-  },
 }))
 
 export default Container

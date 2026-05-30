@@ -106,7 +106,6 @@ function ConnectedRow(ownProps: OwnProps) {
   }
 
   const canEdit = canDelete && !!teamname
-  // TODO use ListItem
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.containerMobile}>
@@ -114,6 +113,7 @@ function ConnectedRow(ownProps: OwnProps) {
           direction="vertical"
           fullWidth={true}
           alignItems="flex-start"
+          noShrink={true}
           style={Kb.Styles.collapseStyles([
             styles.rowStyle,
             expanded && {backgroundColor: Kb.Styles.globalColors.white},
@@ -185,15 +185,14 @@ function ConnectedRow(ownProps: OwnProps) {
                   />
                 )}
                 {!!teamname && !!lastEditUser && (
-                  <Kb.Box2 direction="vertical" style={{marginLeft: 2}}>
-                    <Kb.ConnectedUsernames
-                      type="BodySmallBold"
-                      underline={true}
-                      colorFollowing={true}
-                      usernames={lastEditUser}
-                      onUsernameClicked={() => openUserProfile(lastEditUser)}
-                    />
-                  </Kb.Box2>
+                  <Kb.ConnectedUsernames
+                    type="BodySmallBold"
+                    underline={true}
+                    colorFollowing={true}
+                    usernames={lastEditUser}
+                    onUsernameClicked={() => openUserProfile(lastEditUser)}
+                    containerStyle={{marginLeft: 2}}
+                  />
                 )}
                 {isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
                 <Kb.Text type="BodySmall">
@@ -346,7 +345,6 @@ const styles = Kb.Styles.styleSheetCreate(
       },
 
       rowStyle: {
-        flexShrink: 0,
         minHeight: Kb.Styles.globalMargins.large,
         paddingLeft: 0,
       },

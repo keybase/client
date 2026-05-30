@@ -61,7 +61,7 @@ const Container = (ownProps: OwnProps) => {
   const makeDropdownItem = (item?: string) => {
     if (!item) {
       return (
-        <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.dropdownItem} justifyContent="flex-start">
+        <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={{paddingLeft: Kb.Styles.globalMargins.xsmall}} justifyContent="flex-start">
           <Kb.Text type="BodyBig">Pick a team</Kb.Text>
         </Kb.Box2>
       )
@@ -69,16 +69,9 @@ const Container = (ownProps: OwnProps) => {
 
     if (item === NewTeamSentry) {
       return (
-        <Kb.Box2
-          key={NewTeamSentry}
-          direction="horizontal"
-          alignItems="center"
-          style={{
-            paddingLeft: Kb.Styles.globalMargins.small,
-          }}
-        >
-          <Kb.Text type="Header">New team...</Kb.Text>
-        </Kb.Box2>
+        <Kb.Text key={NewTeamSentry} type="Header" style={{paddingLeft: Kb.Styles.globalMargins.small}}>
+          New team...
+        </Kb.Text>
       )
     }
 
@@ -128,69 +121,61 @@ const Container = (ownProps: OwnProps) => {
     return name && !(isTeam && !selectedTeam)
   }
   return (
-    <>
-      <Kb.ScrollView>
-        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
-          {!!error && (
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.error}>
-              <Kb.Text type="Body" negative={true}>
-                {error}
-              </Kb.Text>
-            </Kb.Box2>
-          )}
-          <Kb.Text type="Header" style={{marginBottom: 27}}>
-            New {isTeam ? 'team' : 'personal'} git repository
-          </Kb.Text>
-          <Kb.IconAuto
-            type={isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
-            style={styles.addIcon}
+    <Kb.ScrollView>
+      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.container}>
+        {!!error && <Kb.Banner color="red">{error}</Kb.Banner>}
+        <Kb.Text type="Header" style={{marginBottom: 27}}>
+          New {isTeam ? 'team' : 'personal'} git repository
+        </Kb.Text>
+        <Kb.IconAuto
+          type={isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
+          style={styles.addIcon}
+        />
+        <Kb.Text type="Body" style={{marginBottom: 27}}>
+          {isTeam
+            ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
+            : 'Your repository will be encrypted and only accessible by you.'}
+        </Kb.Text>
+        {isTeam && (
+          <Kb.Dropdown
+            items={makeDropdownItems()}
+            selected={makeDropdownItem(selectedTeam)}
+            onChangedIdx={dropdownChanged}
+            style={styles.dropdown}
           />
-          <Kb.Text type="Body" style={{marginBottom: 27}}>
-            {isTeam
-              ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
-              : 'Your repository will be encrypted and only accessible by you.'}
-          </Kb.Text>
-          {isTeam && (
-            <Kb.Dropdown
-              items={makeDropdownItems()}
-              selected={makeDropdownItem(selectedTeam)}
-              onChangedIdx={dropdownChanged}
-              style={styles.dropdown}
-            />
-          )}
-          <Kb.Input3
-            value={name}
-            autoFocus={true}
-            onChangeText={setName}
-            placeholder="Name your repository"
-            onEnterKeyDown={onSubmit}
+        )}
+        <Kb.Input3
+          value={name}
+          autoFocus={true}
+          onChangeText={setName}
+          placeholder="Name your repository"
+          onEnterKeyDown={onSubmit}
+        />
+        {isTeam && (
+          <Kb.Checkbox
+            label="Notify the team"
+            checked={notifyTeam}
+            onCheck={setNotifyTeam}
+            style={styles.checkbox}
           />
-          {isTeam && (
-            <Kb.Checkbox
-              label="Notify the team"
-              checked={notifyTeam}
-              onCheck={setNotifyTeam}
-              style={styles.checkbox}
-            />
-          )}
-          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton
-              type="Dim"
-              onClick={onClose}
-              label="Cancel"
-              waitingKey={waitingKey}
-              onlyDisable={true}
-            />
-            <Kb.WaitingButton
-              onClick={onSubmit}
-              label="Create"
-              disabled={!canSubmit()}
-              waitingKey={waitingKey}
-            />
-          </Kb.ButtonBar>
-        </Kb.Box2>
-      </Kb.ScrollView>
-    </>
+        )}
+        <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+          <Kb.WaitingButton
+            type="Dim"
+            onClick={onClose}
+            label="Cancel"
+            waitingKey={waitingKey}
+            onlyDisable={true}
+          />
+          <Kb.WaitingButton
+            onClick={onSubmit}
+            label="Create"
+            disabled={!canSubmit()}
+            waitingKey={waitingKey}
+          />
+        </Kb.ButtonBar>
+      </Kb.Box2>
+    </Kb.ScrollView>
   )
 }
 
@@ -224,15 +209,6 @@ const styles = Kb.Styles.styleSheetCreate(
       dropdown: {
         marginBottom: Kb.Styles.globalMargins.small,
         width: '100%',
-      },
-      dropdownItem: {
-        paddingLeft: Kb.Styles.globalMargins.xsmall,
-      },
-      error: {
-        alignSelf: 'stretch',
-        backgroundColor: Kb.Styles.globalColors.red,
-        marginBottom: Kb.Styles.globalMargins.small,
-        padding: Kb.Styles.globalMargins.tiny,
       },
     }) as const
 )
