@@ -63,10 +63,12 @@ const TeamRow = function TeamRow(props: Props) {
       <>
         <Kb.ClickableBox3 onClick={onViewTeam} direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
           <Kb.Divider style={styles.divider} />
-          <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
-            <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
-            {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
-            {crownIcon}
+          <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>
+            <Kb.Box2 direction="vertical" relative={true} style={styles.avatarRelative}>
+              <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
+              {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
+              {crownIcon}
+            </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyMobile}>
             <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
@@ -117,10 +119,12 @@ const TeamRow = function TeamRow(props: Props) {
     <>
       <Kb.ClickableBox3 onClick={onViewTeam} testID={TestIDs.TEAMS_ROW} className="teamRow" direction="horizontal" fullWidth={true} alignItems="center" style={styles.rowStyle}>
         <Kb.Divider style={styles.divider} />
-        <Kb.Box2 direction="vertical" style={styles.avatarInner} centerChildren={true}>
-          <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
-          {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
-          {crownIcon}
+        <Kb.Box2 direction="vertical" style={styles.avatarOuter} centerChildren={true}>
+          <Kb.Box2 direction="vertical" relative={true} style={styles.avatarRelative}>
+            <Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />
+            {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
+            {crownIcon}
+          </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" flex={1} alignItems="center" style={styles.bodyDesktop}>
           <Kb.Box2 direction="vertical" flex={1} justifyContent="center" style={styles.bodyLeft}>
@@ -188,15 +192,17 @@ const styles = Kb.Styles.styleSheetCreate(() => ({
   alignSelfCenter: {
     alignSelf: 'center',
   },
-  avatarInner: Kb.Styles.platformStyles({
+  avatarOuter: Kb.Styles.platformStyles({
     common: {
-      height: 32,
       minHeight: smallHeight,
-      position: 'relative',
       width: smallIconWidth,
     },
     isPhone: {minHeight: 72},
   }),
+  avatarRelative: {
+    height: 32,
+    width: 32,
+  },
   badge: {
     position: 'absolute',
     right: -5,

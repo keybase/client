@@ -245,3 +245,4 @@ This pattern generalises: use `common.tsx` as the name regardless of feature fol
 - Don't rename exports that have external consumers without confirming first
 - Don't collapse files that serve genuinely different concerns just because they're small
 - Don't put shared helpers in `index.tsx` — sub-views importing from the feature index creates backwards dependencies
+- Don't rename `.tsx` files to `.ts` — JSX may be added later and the extension signals component-adjacent code
