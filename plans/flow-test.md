@@ -1,5 +1,7 @@
 # E2E Flow Test Coverage — Page Checklist
 
+**Skill:** Use the `keybase-e2e-tests` skill for testID conventions, Playwright gotchas, Maestro command patterns, and iOS navigation structure.
+
 Each bucket is a logical group for one or more PRs. Items are ordered easiest-first within each bucket. Validate after each bucket before moving on.
 
 **Pairing rule:** Do Electron and iOS for each bucket together before moving to the next bucket.
@@ -145,15 +147,18 @@ From within a team.
 
 From the Files root, tap each TLF type then back.
 
-- [ ] Navigate into `public/` → browser renders
-- [ ] Navigate into `private/` → browser renders
-- [ ] Navigate into `team/` → browser renders
+- [x] Navigate into `public/` → browser renders (Electron ✓, iOS written)
+- [x] Navigate into `private/` → browser renders (Electron ✓, iOS written)
+- [x] Navigate into `team/` → browser renders (Electron ✓, iOS written)
+- [ ] Navigate back to files root from subfolder (Electron ✓, iOS written)
 - [ ] Destination picker (`destinationPicker`) — open move/copy flow, cancel
 
 ---
 
 ## Bucket 13 — Git
 
+- [x] Git repo list renders (Electron ✓, iOS written)
+- [x] Git repo row is visible (Electron ✓, iOS written)
 - [ ] Git repo detail (investigate first — clicking a row may open a mutation modal or nothing)
 - [ ] Git select channel (`gitSelectChannel`) — open from a repo to set a notification channel, cancel
 
