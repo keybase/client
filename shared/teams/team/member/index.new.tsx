@@ -5,6 +5,7 @@ import {useCurrentUserState} from '@/stores/current-user'
 import * as Teams from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import * as React from 'react'
 import RoleButton from '../../role-button'
 import logger from '@/logger'
@@ -324,7 +325,7 @@ const TeamMember = (props: Props) => {
 
   const sections: Array<Section> = nodesNotIn.length > 0 ? [nodesInSection, nodesNotInSection] : [nodesInSection]
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container} relative={true}>
+    <Kb.Box2 direction="vertical" fullHeight={true} flex={1} style={styles.container} relative={true} testID={TestIDs.TEAMS_MEMBER_PAGE}>
       {errors.length > 0 && (
         <Kb.Banner color="red">
           {loading ? <Kb.ProgressIndicator type="Small" /> : <></>}

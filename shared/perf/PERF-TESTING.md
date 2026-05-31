@@ -186,13 +186,13 @@ Equivalent to `yarn perf:thread:ios` for desktop. Navigates to chat, opens the f
 
 ```bash
 # Capture (default 3 runs, picks median, saves baseline automatically)
-cd shared && yarn perf:thread:electron
+cd shared && yarn perf:thread:desktop
 
 # Single run (faster)
-cd shared && yarn perf:thread:electron --runs 1
+cd shared && yarn perf:thread:desktop --runs 1
 
 # Skip auto-navigation (if you already have a thread open)
-cd shared && yarn perf:thread:electron --no-navigate
+cd shared && yarn perf:thread:desktop --no-navigate
 
 # Compare two saved baselines (no app connection needed)
 cd shared && yarn perf:compare <hash-a> <hash-b>
@@ -207,13 +207,13 @@ Baselines are saved to `shared/perf/baselines/<short-git-hash>/` (gitignored):
 1. Check out the base branch, run capture:
    ```bash
    git checkout master
-   cd shared && yarn perf:thread:electron
+   cd shared && yarn perf:thread:desktop
    ```
    Note the saved baseline hash from the output.
 2. Switch to your feature branch, run capture again:
    ```bash
    git checkout my-feature-branch
-   cd shared && yarn perf:thread:electron
+   cd shared && yarn perf:thread:desktop
    ```
 3. Compare:
    ```bash

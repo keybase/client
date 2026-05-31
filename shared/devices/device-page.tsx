@@ -1,6 +1,7 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '@/util/timestamp'
 import {getDeviceIconType} from './device-icon'
 
@@ -128,6 +129,7 @@ const DevicePage = (ownProps: DevicePageProps) => {
       gapEnd={true}
       fullWidth={true}
       fullHeight={true}
+      testID={TestIDs.DEVICE_PAGE}
     >
       <Kb.NameWithIcon icon={getDeviceIconType(device.type, T.Devices.deviceNumberToIconNumber(device.deviceNumberOfType), 96)} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
       <Timeline device={device} />

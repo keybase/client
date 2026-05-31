@@ -6,6 +6,7 @@ import * as T from '@/constants/types'
 import Recipients from './recipients'
 import {openURL} from '@/util/misc'
 import {CryptoBanner, DragAndDrop, Input, InputActionsBar} from './input'
+import {KeyboardStickyView} from 'react-native-keyboard-controller'
 import {CryptoOutput, CryptoOutputActionsBar, CryptoSignedSender, OutputInfoBanner} from './output'
 import {
   type CommonOutputRouteParams,
@@ -449,6 +450,8 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
   const blurCBRef = React.useRef(() => {})
   const navigateAppend = C.Router2.navigateAppend
   const appendEncryptRecipientsBuilder = C.Router2.appendEncryptRecipientsBuilder
+  const insets = Kb.useSafeAreaInsets()
+  const stickyOffset = React.useMemo(() => ({closed: -insets.bottom, opened: 0}), [insets.bottom])
 
   const onRun = () => {
     const f = async () => {
@@ -460,32 +463,46 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
     C.ignorePromise(f())
   }
 
-  const options = isMobile ? (
-    <InputActionsBar runLabel="Encrypt" blurCBRef={blurCBRef} onRun={onRun}>
-      <EncryptOptionsPanel
-        hasRecipients={controller.state.meta.hasRecipients}
-        hasSBS={controller.state.meta.hasSBS}
-        hideIncludeSelf={controller.state.meta.hideIncludeSelf}
-        includeSelf={controller.state.options.includeSelf}
-        inProgress={controller.state.inProgress}
-        setEncryptOptions={controller.setEncryptOptions}
-        sign={controller.state.options.sign}
-      />
-    </InputActionsBar>
-  ) : (
-    <EncryptOptionsPanel
-      hasRecipients={controller.state.meta.hasRecipients}
-      hasSBS={controller.state.meta.hasSBS}
-      hideIncludeSelf={controller.state.meta.hideIncludeSelf}
-      includeSelf={controller.state.options.includeSelf}
-      inProgress={controller.state.inProgress}
-      setEncryptOptions={controller.setEncryptOptions}
-      sign={controller.state.options.sign}
-    />
-  )
+  if (!isMobile) {
+    return (
+      <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
+        <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
+        <Recipients
+          recipients={controller.state.recipients}
+          inProgress={controller.state.inProgress}
+          onAddRecipients={appendEncryptRecipientsBuilder}
+          onClearRecipients={controller.clearRecipients}
+        />
+        <Input
+          allowDirectories={true}
+          emptyInputWidth={inputEmptyWidth}
+          fileIcon={inputFileIcon}
+          inputPlaceholder={inputPlaceholder}
+          state={controller.state}
+          textInputType="plain"
+          onSetInput={controller.setInput}
+          onClearInput={controller.clearInput}
+        />
+        <EncryptOptionsPanel
+          hasRecipients={controller.state.meta.hasRecipients}
+          hasSBS={controller.state.meta.hasSBS}
+          hideIncludeSelf={controller.state.meta.hideIncludeSelf}
+          includeSelf={controller.state.options.includeSelf}
+          inProgress={controller.state.inProgress}
+          setEncryptOptions={controller.setEncryptOptions}
+          sign={controller.state.options.sign}
+        />
+      </Kb.Box2>
+    )
+  }
 
-  const content = (
-    <>
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      relative={true}
+      testID={TestIDs.CRYPTO_ENCRYPT_INPUT}
+    >
       <CryptoBanner infoMessage={bannerMessage} state={controller.state} />
       <Recipients
         recipients={controller.state.recipients}
@@ -504,15 +521,19 @@ const EncryptInputBody = ({params}: {params?: EncryptRouteParams}) => {
         onSetInput={controller.setInput}
         onClearInput={controller.clearInput}
       />
-      {options}
-    </>
-  )
-
-  return isMobile ? (
-    <Kb.KeyboardAvoidingView2 testID={TestIDs.CRYPTO_ENCRYPT_INPUT}>{content}</Kb.KeyboardAvoidingView2>
-  ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={Crypto.inputDesktopMaxHeight}>
-      {content}
+      <KeyboardStickyView offset={stickyOffset}>
+        <InputActionsBar runLabel="Encrypt" blurCBRef={blurCBRef} onRun={onRun}>
+          <EncryptOptionsPanel
+            hasRecipients={controller.state.meta.hasRecipients}
+            hasSBS={controller.state.meta.hasSBS}
+            hideIncludeSelf={controller.state.meta.hideIncludeSelf}
+            includeSelf={controller.state.options.includeSelf}
+            inProgress={controller.state.inProgress}
+            setEncryptOptions={controller.setEncryptOptions}
+            sign={controller.state.options.sign}
+          />
+        </InputActionsBar>
+      </KeyboardStickyView>
     </Kb.Box2>
   )
 }

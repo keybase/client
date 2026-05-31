@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {ProxySettings} from './proxy'
 import {processorProfileInProgressKey, traceInProgressKey} from '@/constants/settings'
 import {useConfigState} from '@/stores/config'
@@ -233,7 +234,7 @@ const Advanced = () => {
 
   return (
     <Kb.KeyboardAvoidingView2>
-      <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth}>
+      <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth} testID={TestIDs.SETTINGS_ADVANCED}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
             {settingLockdownMode && <Kb.ProgressIndicator />}

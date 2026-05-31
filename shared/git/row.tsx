@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
 import * as React from 'react'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {openURL} from '@/util/misc'
 import * as FS from '@/constants/fs'
 import {useCurrentUserState} from '@/stores/current-user'
@@ -108,7 +109,7 @@ function ConnectedRow(ownProps: OwnProps) {
   const canEdit = canDelete && !!teamname
   return (
     <>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.containerMobile}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.containerMobile} testID={TestIDs.GIT_REPO_ROW}>
         <Kb.Box2
           direction="vertical"
           fullWidth={true}

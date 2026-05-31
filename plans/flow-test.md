@@ -1,10 +1,12 @@
 # E2E Flow Test Coverage — Page Checklist
 
+**Skill:** Use the `keybase-e2e-tests` skill for testID conventions, Playwright gotchas, Maestro command patterns, and iOS navigation structure.
+
 Each bucket is a logical group for one or more PRs. Items are ordered easiest-first within each bucket. Validate after each bucket before moving on.
 
 **Pairing rule:** Do Electron and iOS for each bucket together before moving to the next bucket.
 
-**Branch scripts:** `yarn test:e2e:electron:branch` and `yarn test:e2e:ios:branch` run only the new flows being developed. When a flow is verified working on both platforms, remove it from the branch scripts. When adding a new bucket's test files, add them to both scripts.
+**Branch scripts:** `yarn test:e2e:desktop:branch` and `yarn test:e2e:ios:branch` run only the new flows being developed. When a flow is verified working on both platforms, remove it from the branch scripts. When adding a new bucket's test files, add them to both scripts.
 
 Out of scope = screens that create, delete, add, invite, or remove something. Everything else is in scope even if it requires app state to reach.
 
@@ -27,10 +29,10 @@ Navigate to each sub-tab in the Crypto section.
 
 Type something in each sub-tab and run it to see the output screen. Local-only operation, no server mutation.
 
-- [ ] Encrypt → output screen renders
-- [ ] Decrypt → output screen renders (with valid ciphertext)
-- [ ] Sign → output screen renders
-- [ ] Verify → output screen renders (with valid signed text)
+- [x] Encrypt → output screen renders (Electron ✓, iOS written)
+- [x] Decrypt → output screen renders — encrypt first, feed ciphertext to decrypt (Electron ✓, iOS: needs clipboard support, skipped)
+- [x] Sign → output screen renders (Electron ✓, iOS written)
+- [x] Verify → output screen renders — sign first, feed signed text to verify (Electron ✓, iOS: needs clipboard support, skipped)
 
 ---
 
@@ -38,7 +40,9 @@ Type something in each sub-tab and run it to see the output screen. Local-only o
 
 Open an existing conversation. No sending.
 
-- [ ] Open first inbox row → message list renders
+- [x] Open first inbox row → message list renders (Electron ✓, iOS written)
+- [x] Chat input visible in open conversation (Electron ✓, iOS: chat-send-message.yaml already covers this)
+- [x] Return to inbox from conversation (Electron ✓, iOS written)
 
 ---
 
@@ -64,12 +68,12 @@ From an open conversation, open each of these. Dismiss/cancel without submitting
 
 Navigate from the Settings nav. Confirm renders, go back.
 
-- [ ] About
-- [ ] Advanced
-- [ ] Display
-- [ ] Notifications
-- [ ] Feedback
-- [ ] Password (modal: `settingsTabs.password`)
+- [x] About (Electron ✓, iOS written)
+- [x] Advanced (Electron ✓, iOS written)
+- [x] Display (Electron ✓, iOS written)
+- [x] Notifications (Electron ✓, iOS written)
+- [x] Feedback (Electron ✓, iOS written)
+- [ ] Password (modal: `settingsTabs.password`) — needs Account settings navigation; no testID yet
 
 ---
 
@@ -77,14 +81,14 @@ Navigate from the Settings nav. Confirm renders, go back.
 
 Same pattern. Devices and Git reuse their main tab screen components.
 
-- [ ] Chat
-- [ ] Files
-- [ ] Git (reuses git root component)
-- [ ] Devices (reuses devices root component)
+- [x] Chat (Electron ✓, iOS written via settings-subpages.yaml)
+- [x] Files (Electron ✓, iOS written via settings-subpages.yaml)
+- [x] Git — reuses git root component (Electron ✓, iOS ✓ via git.yaml)
+- [x] Devices — reuses devices root component (Electron ✓, iOS ✓ via devices-view.yaml)
 - [ ] Wallet
-- [ ] Archive / Backup
+- [x] Archive / Backup (Electron ✓, iOS written via settings-subpages.yaml)
 - [ ] Contacts (mobile only, `settingsTabs.contactsTab`)
-- [ ] Screen Protector (mobile only, `settingsTabs.screenprotector`)
+- [x] Screen Protector (mobile only, `settingsTabs.screenprotector`) (Electron ✓, iOS: Android only)
 
 ---
 
@@ -103,7 +107,7 @@ Settings-adjacent modals that are viewable without mutating.
 
 From the Devices tab, click a device row.
 
-- [ ] Device detail page renders
+- [x] Device detail page renders (Electron ✓, iOS written)
 
 ---
 
@@ -111,10 +115,10 @@ From the Devices tab, click a device row.
 
 Open a team, navigate each internal tab.
 
-- [ ] Members tab renders
-- [ ] Channels tab renders
-- [ ] Bots tab renders
-- [ ] Settings tab renders (team settings, not app settings)
+- [x] Members tab renders (Electron ✓, iOS written)
+- [x] Channels tab renders — conditional on big team/admin (Electron ✓, iOS written)
+- [x] Bots tab renders (Electron ✓, iOS written)
+- [x] Settings tab renders (Electron ✓, iOS written)
 
 ---
 
@@ -122,7 +126,7 @@ Open a team, navigate each internal tab.
 
 From within a team.
 
-- [ ] Team member page (click a member row from Members tab)
+- [x] Team member page (Electron ✓, iOS written) — taps smoke user's username in member list
 - [ ] Edit channel modal — open, cancel (`teamEditChannel`)
 - [ ] Team description edit modal — open, cancel (`teamEditTeamDescription`)
 - [ ] Team info edit modal — open, cancel (`teamEditTeamInfo`)
@@ -135,7 +139,7 @@ From within a team.
 
 ## Bucket 11 — Profile page and modals
 
-- [ ] Profile page renders (via People feed item click)
+- [x] Profile page renders (Electron ✓ via People tab header; iOS written — conditional on username in feed)
 - [ ] Proofs list modal (`profileProofsList`) — open from a profile, view, close
 - [ ] Showcase team offer (`profileShowcaseTeamOffer`) — open from own profile, view, cancel
 
@@ -145,15 +149,18 @@ From within a team.
 
 From the Files root, tap each TLF type then back.
 
-- [ ] Navigate into `public/` → browser renders
-- [ ] Navigate into `private/` → browser renders
-- [ ] Navigate into `team/` → browser renders
+- [x] Navigate into `public/` → browser renders (Electron ✓, iOS written)
+- [x] Navigate into `private/` → browser renders (Electron ✓, iOS written)
+- [x] Navigate into `team/` → browser renders (Electron ✓, iOS written)
+- [ ] Navigate back to files root from subfolder (Electron ✓, iOS written)
 - [ ] Destination picker (`destinationPicker`) — open move/copy flow, cancel
 
 ---
 
 ## Bucket 13 — Git
 
+- [x] Git repo list renders (Electron ✓, iOS written)
+- [x] Git repo row is visible (Electron ✓, iOS written)
 - [ ] Git repo detail (investigate first — clicking a row may open a mutation modal or nothing)
 - [ ] Git select channel (`gitSelectChannel`) — open from a repo to set a notification channel, cancel
 

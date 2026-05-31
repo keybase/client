@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import * as React from 'react'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Group from './group'
 import {loadSettings} from './load-settings'
 import useNotificationSettings from './notifications/use-notification-settings'
@@ -492,7 +493,7 @@ const Misc = ({allowEdit, groups, toggle}: NotificationSettingsState) => {
 const Chat = () => {
   const notificationSettings = useNotificationSettings()
   return (
-    <Kb.ScrollView>
+    <Kb.ScrollView testID={TestIDs.SETTINGS_CHAT}>
       <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
         <Security {...notificationSettings} />
         <Kb.Divider style={styles.divider} />

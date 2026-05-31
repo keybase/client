@@ -3,6 +3,7 @@ import {useOpen} from '@/fs/common/use-open'
 import * as FS from '@/constants/fs'
 import {rowStyles, StillCommon} from './common'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type OwnProps = {
   destinationPickerSource?: T.FS.MoveOrCopySource | T.FS.IncomingShareSource
@@ -16,6 +17,7 @@ const TLFTypeContainer = (p: OwnProps) => {
 
   return (
     <StillCommon
+      testID={TestIDs.FILES_TLF_ROW}
       path={path}
       inDestinationPicker={!!destinationPickerSource}
       onOpen={onOpen}

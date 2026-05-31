@@ -8,6 +8,7 @@ export type StillCommonProps = {
   inDestinationPicker?: boolean
   onOpen?: () => void
   mixedMode?: boolean
+  testID?: string
 }
 
 export const StillCommon = (
@@ -22,6 +23,7 @@ export const StillCommon = (
 ) => (
   <Kb.ListItem
     type="Small"
+    testID={props.testID}
     statusIcon={<PathStatusIcon path={props.path} />}
     icon={
       <ItemIcon

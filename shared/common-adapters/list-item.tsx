@@ -34,6 +34,7 @@ type Props = {
   innerStyle?: Styles.StylesCrossPlatform
   iconStyleOverride?: Styles.StylesCrossPlatform
   containerStyleOverride?: Styles.StylesCrossPlatform
+  testID?: string
 }
 
 const ListItem = (props: Props) => {
@@ -52,6 +53,7 @@ const ListItem = (props: Props) => {
       props.style,
     ])}
     fullWidth={true}
+    testID={props.testID}
   >
     <Kb.Box2
       direction="horizontal"

@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {getSecureFlagSetting, setSecureFlagSetting} from '@/constants/platform'
 
 let disableScreenshotInitialValue: boolean | undefined
@@ -93,7 +94,7 @@ const Screenprotector = () => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} testID={TestIDs.SETTINGS_SCREENPROTECTOR}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.Checkbox
           label={

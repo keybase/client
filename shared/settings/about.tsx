@@ -1,5 +1,6 @@
 import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {openURL as openUrl} from '@/util/misc'
 
 const privacyPolicy = 'https://keybase.io/_/webview/privacypolicy'
@@ -26,7 +27,7 @@ const About = () => {
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} justifyContent="center" alignItems="center">
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} justifyContent="center" alignItems="center" testID={TestIDs.SETTINGS_ABOUT}>
       <Kb.ImageIcon type="icon-keybase-logo-64" />
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.version}>
         <Kb.Text center={true} type="Body">
