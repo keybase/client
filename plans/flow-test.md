@@ -6,7 +6,7 @@ Each bucket is a logical group for one or more PRs. Items are ordered easiest-fi
 
 **Pairing rule:** Do Electron and iOS for each bucket together before moving to the next bucket.
 
-**Branch scripts:** `yarn test:e2e:electron:branch` and `yarn test:e2e:ios:branch` run only the new flows being developed. When a flow is verified working on both platforms, remove it from the branch scripts. When adding a new bucket's test files, add them to both scripts.
+**Branch scripts:** `yarn test:e2e:desktop:branch` and `yarn test:e2e:ios:branch` run only the new flows being developed. When a flow is verified working on both platforms, remove it from the branch scripts. When adding a new bucket's test files, add them to both scripts.
 
 Out of scope = screens that create, delete, add, invite, or remove something. Everything else is in scope even if it requires app state to reach.
 

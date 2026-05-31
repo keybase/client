@@ -1,6 +1,6 @@
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToChat} from '@/tests/e2e/electron/helpers/navigate'
-import {CHAT_INBOX_LIST, CHAT_INBOX_ROW, CHAT_MESSAGE_LIST, CHAT_INPUT} from '@/tests/e2e/shared/test-ids'
+import {CHAT_INBOX_LIST, CHAT_INBOX_ROW, CHAT_MESSAGE_LIST, CHAT_INPUT, NAV_TAB_CHAT} from '@/tests/e2e/shared/test-ids'
 
 test('can open first conversation', async ({page}) => {
   await navigateToChat(page)
@@ -37,6 +37,6 @@ test('can return to inbox from conversation', async ({page}) => {
   }
   await rows.first().click()
   await expect(page.getByTestId(CHAT_MESSAGE_LIST).first()).toBeVisible({timeout: 5_000})
-  await page.click('text=Chat')
+  await page.getByTestId(NAV_TAB_CHAT).click()
   await expect(page.getByTestId(CHAT_INBOX_LIST).first()).toBeVisible({timeout: 5_000})
 })

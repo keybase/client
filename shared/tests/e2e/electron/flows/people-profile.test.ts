@@ -8,7 +8,11 @@ test('people feed renders', async ({page}) => {
 })
 
 test('own profile page renders', async ({page}) => {
-  const smokeUser = process.env['KB_SMOKE_USER']!
+  const smokeUser = process.env['KB_SMOKE_USER']
+  if (!smokeUser) {
+    test.skip()
+    return
+  }
   await navigateToPeople(page)
   await page.click(`text=Hi ${smokeUser}!`)
   await page.click('text=View/Edit profile')
