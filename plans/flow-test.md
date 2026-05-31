@@ -68,12 +68,12 @@ From an open conversation, open each of these. Dismiss/cancel without submitting
 
 Navigate from the Settings nav. Confirm renders, go back.
 
-- [ ] About
-- [ ] Advanced
-- [ ] Display
-- [ ] Notifications
-- [ ] Feedback
-- [ ] Password (modal: `settingsTabs.password`)
+- [x] About (Electron ✓, iOS written)
+- [x] Advanced (Electron ✓, iOS written)
+- [x] Display (Electron ✓, iOS written)
+- [x] Notifications (Electron ✓, iOS written)
+- [x] Feedback (Electron ✓, iOS written)
+- [ ] Password (modal: `settingsTabs.password`) — needs Account settings navigation; no testID yet
 
 ---
 
@@ -81,14 +81,14 @@ Navigate from the Settings nav. Confirm renders, go back.
 
 Same pattern. Devices and Git reuse their main tab screen components.
 
-- [ ] Chat
-- [ ] Files
-- [ ] Git (reuses git root component)
-- [ ] Devices (reuses devices root component)
+- [x] Chat (Electron ✓, iOS TODO)
+- [x] Files (Electron ✓, iOS TODO)
+- [x] Git — reuses git root component (Electron ✓, iOS ✓ via git.yaml)
+- [x] Devices — reuses devices root component (Electron ✓, iOS ✓ via devices-view.yaml)
 - [ ] Wallet
-- [ ] Archive / Backup
+- [x] Archive / Backup (Electron ✓, iOS TODO)
 - [ ] Contacts (mobile only, `settingsTabs.contactsTab`)
-- [ ] Screen Protector (mobile only, `settingsTabs.screenprotector`)
+- [x] Screen Protector (mobile only, `settingsTabs.screenprotector`) (Electron ✓, iOS: Android only)
 
 ---
 

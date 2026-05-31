@@ -1,0 +1,64 @@
+appId: keybase.ios
+---
+- runFlow: ../subflows/escape-to-tabs.yaml
+- tapOn:
+    text: "More"
+- extendedWaitUntil:
+    visible:
+      id: "settings-account"
+    timeout: 3000
+
+# Advanced
+- tapOn:
+    text: "Advanced"
+- extendedWaitUntil:
+    visible:
+      id: "settings-advanced"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/settings-subpages-advanced
+- tapOn:
+    id: "backButton"
+
+# About
+- tapOn:
+    text: "About"
+- extendedWaitUntil:
+    visible:
+      id: "settings-about"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/settings-subpages-about
+- tapOn:
+    id: "backButton"
+
+# Display
+- tapOn:
+    text: "Display"
+- extendedWaitUntil:
+    visible:
+      id: "settings-display"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/settings-subpages-display
+- tapOn:
+    id: "backButton"
+
+# Notifications
+- tapOn:
+    text: "Notifications"
+- extendedWaitUntil:
+    visible:
+      id: "settings-notifications"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/settings-subpages-notifications
+- tapOn:
+    id: "backButton"
+
+# Feedback
+- tapOn:
+    text: "Feedback"
+- extendedWaitUntil:
+    visible:
+      id: "settings-feedback"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/settings-subpages-feedback
+- tapOn:
+    id: "backButton"
