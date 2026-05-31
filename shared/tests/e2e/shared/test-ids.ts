@@ -20,21 +20,40 @@ export const CHAT_SEND_BUTTON  = 'chat-send-button'
 
 // Files
 export const FILES_BROWSER = 'files-browser'
+export const FILES_TLF_ROW = 'files-tlf-row'
 
 // Teams
-export const TEAMS_LIST = 'teams-list'
-export const TEAMS_ROW  = 'teams-row'
+export const TEAMS_LIST         = 'teams-list'
+export const TEAMS_ROW          = 'teams-row'
+export const TEAMS_BODY         = 'teams-body'
+export const TEAMS_TABS         = 'teams-tabs'
+export const TEAMS_MEMBER_LIST  = 'teams-member-list'
+export const TEAMS_CHANNEL_LIST = 'teams-channel-list'
+export const TEAMS_SETTINGS_TAB = 'teams-settings-tab'
+export const TEAMS_BOTS_TAB     = 'teams-bots-tab'
 
 // Devices
 export const DEVICES_LIST = 'devices-list'
 export const DEVICES_ROW  = 'devices-row'
 
 // Settings
-export const SETTINGS_ACCOUNT  = 'settings-account'
-export const SETTINGS_NAV_ITEM = 'settings-nav-item'
+export const SETTINGS_ACCOUNT           = 'settings-account'
+export const SETTINGS_NAV_ITEM          = 'settings-nav-item'
+export const SETTINGS_ADVANCED          = 'settings-advanced'
+export const SETTINGS_ABOUT             = 'settings-about'
+export const SETTINGS_ARCHIVE           = 'settings-archive'
+export const SETTINGS_CHAT              = 'settings-chat'
+export const SETTINGS_DISPLAY           = 'settings-display'
+export const SETTINGS_FEEDBACK          = 'settings-feedback'
+export const SETTINGS_FILES             = 'settings-files'
+export const SETTINGS_NOTIFICATIONS     = 'settings-notifications'
+export const SETTINGS_SCREENPROTECTOR   = 'settings-screenprotector'
 
 // People
 export const PEOPLE_FEED = 'people-feed'
+
+// Profile
+export const PROFILE_PAGE = 'profile-page'
 
 // Git
 export const GIT_REPO_LIST = 'git-repo-list'

@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import logger from '@/logger'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useConfigState} from '@/stores/config'
 import {useShellState} from '@/stores/shell'
 import * as DarkMode from '@/stores/darkmode'
@@ -28,7 +29,7 @@ const Display = () => {
     )
   }
   return (
-    <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth}>
+    <Kb.ScrollView style={Kb.Styles.globalStyles.fullWidth} testID={TestIDs.SETTINGS_DISPLAY}>
       <Kb.Box2 direction="vertical" fullWidth={true} flex={1} style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="medium">
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">

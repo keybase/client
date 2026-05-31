@@ -1,5 +1,6 @@
 import type * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {isBigTeam} from '@/constants/chat/helpers'
 import {useInboxLayoutState} from '@/chat/inbox/layout-state'
 import type {Tab as TabType} from '@/common-adapters/tabs'
@@ -39,7 +40,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     />
   )
   return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container} testID={TestIDs.TEAMS_TABS}>
       {isMobile ? (
         <Kb.ScrollView
           horizontal={true}

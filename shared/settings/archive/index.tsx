@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as C from '@/constants'
 import * as T from '@/constants/types'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {useEngineActionListener} from '@/engine/action-listener'
 import {formatTimeForConversationList, formatTimeForChat} from '@/util/timestamp'
 import * as FS from '@/constants/fs'
@@ -439,7 +440,7 @@ const Archive = () => {
   const kbfsJobsList = [...kbfsJobs.values()]
 
   return (
-    <Kb.ScrollView style={styles.scroll}>
+    <Kb.ScrollView style={styles.scroll} testID={TestIDs.SETTINGS_ARCHIVE}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
           {isMobile ? null : <Kb.Text type="Header">Archive</Kb.Text>}

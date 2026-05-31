@@ -10,6 +10,9 @@ export const test = base.extend<{page: Page}, WorkerFixtures>({
     // eslint-disable-next-line no-empty-pattern
     async ({}, setup) => {
       const {page} = await connectToElectron()
+      // Reload to clear any in-memory state left over from previous test runs
+      await page.reload()
+      await page.waitForSelector('[data-testid="nav-tab-chat"]', {timeout: 30_000})
       await setup(page)
       // Do NOT close — that kills the Electron process
     },

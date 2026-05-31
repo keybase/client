@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   feedback?: string
@@ -55,7 +56,7 @@ const Feedback = (props: Props) => {
   }
 
   return (
-    <Kb.ScrollView alwaysBounceVertical={false}>
+    <Kb.ScrollView alwaysBounceVertical={false} testID={TestIDs.SETTINGS_FEEDBACK}>
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
         {showSuccessBanner && (
           <Kb.Banner color="green">

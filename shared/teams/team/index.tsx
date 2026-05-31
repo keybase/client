@@ -22,6 +22,7 @@ import {
   type Item,
 } from './rows'
 import {teamSeen} from '@/teams/actions'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type Props = {
   teamID: T.Teams.TeamID
@@ -228,6 +229,7 @@ const TeamBody = (props: Props) => {
       onSelectedMembersChange={selectedMembers => navigation.setParams({selectedMembers})}
       onSelectedChannelsChange={selectedChannels => navigation.setParams({selectedChannels})}
     >
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} testID={TestIDs.TEAMS_BODY}>
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -235,6 +237,13 @@ const TeamBody = (props: Props) => {
         flex={1}
         style={styles.container}
         relative={true}
+        testID={
+          selectedTab === 'members' ? TestIDs.TEAMS_MEMBER_LIST :
+          selectedTab === 'channels' ? TestIDs.TEAMS_CHANNEL_LIST :
+          selectedTab === 'settings' ? TestIDs.TEAMS_SETTINGS_TAB :
+          selectedTab === 'bots' ? TestIDs.TEAMS_BOTS_TAB :
+          undefined
+        }
       >
         <Kb.SectionList
           renderSectionHeader={renderSectionHeader}
@@ -249,6 +258,7 @@ const TeamBody = (props: Props) => {
           }
           teamID={teamID}
         />
+      </Kb.Box2>
       </Kb.Box2>
     </TeamSelectionProvider>
   )

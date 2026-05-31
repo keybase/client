@@ -7,6 +7,7 @@ import * as Kbfs from '@/fs/common'
 import RefreshDriverStatusOnMount from '@/fs/common/refresh-driver-status-on-mount'
 import useFiles from './hooks'
 import * as FS from '@/constants/fs'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import {openLocalPathInSystemFileManagerDesktop} from '@/util/fs-storeless-actions'
 type Props = ReturnType<typeof useFiles>
 
@@ -241,7 +242,7 @@ const FilesSettings = () => {
   return (
     <>
       <RefreshDriverStatusOnMount />
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} testID={TestIDs.SETTINGS_FILES}>
         <FinderIntegration />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
           <Kb.Box2 direction="vertical" fullWidth={true}>

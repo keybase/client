@@ -14,6 +14,7 @@ import upperFirst from 'lodash/upperFirst'
 import {SiteIcon} from '../generic/shared'
 import useUserData from './hooks'
 import {LoadedTeamsListProvider} from '@/teams/use-teams-list'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
@@ -587,6 +588,7 @@ const User = (props: {username: string}) => {
         fullWidth={true}
         fullHeight={true}
         style={Kb.Styles.collapseStyles([containerStyle, colorTypeToStyle(p.backgroundColorType)])}
+        testID={TestIDs.PROFILE_PAGE}
       >
         <Kb.Box2 direction="vertical" style={styles.innerContainer} ref={wrapperRef}>
           <Kb.SectionList

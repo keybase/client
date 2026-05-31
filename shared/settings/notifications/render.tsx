@@ -1,4 +1,5 @@
 import * as Kb from '@/common-adapters'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import Group from '../group'
 import {usePushState} from '@/stores/push'
 
@@ -56,7 +57,7 @@ const Notifications = (props: Props) => {
       <Kb.ProgressIndicator type="Small" style={{width: Kb.Styles.globalMargins.medium}} />
     </Kb.Box2>
   ) : (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.main}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.main} testID={TestIDs.SETTINGS_NOTIFICATIONS}>
       {emailGroup ? (
         <EmailSection {...props} />
       ) : !props.showEmailSection ? (
