@@ -115,10 +115,10 @@ From the Devices tab, click a device row.
 
 Open a team, navigate each internal tab.
 
-- [ ] Members tab renders
-- [ ] Channels tab renders
-- [ ] Bots tab renders
-- [ ] Settings tab renders (team settings, not app settings)
+- [x] Members tab renders (Electron ✓, iOS written)
+- [x] Channels tab renders — conditional on big team/admin (Electron ✓, iOS written)
+- [x] Bots tab renders (Electron ✓, iOS written)
+- [x] Settings tab renders (Electron ✓, iOS written)
 
 ---
 
@@ -139,7 +139,7 @@ From within a team.
 
 ## Bucket 11 — Profile page and modals
 
-- [ ] Profile page renders (via People feed item click)
+- [x] Profile page renders (Electron ✓ via People tab header; iOS written — conditional on username in feed)
 - [ ] Proofs list modal (`profileProofsList`) — open from a profile, view, close
 - [ ] Showcase team offer (`profileShowcaseTeamOffer`) — open from own profile, view, cancel
 
