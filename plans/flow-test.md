@@ -29,10 +29,10 @@ Navigate to each sub-tab in the Crypto section.
 
 Type something in each sub-tab and run it to see the output screen. Local-only operation, no server mutation.
 
-- [ ] Encrypt → output screen renders
-- [ ] Decrypt → output screen renders (with valid ciphertext)
-- [ ] Sign → output screen renders
-- [ ] Verify → output screen renders (with valid signed text)
+- [x] Encrypt → output screen renders (Electron ✓, iOS written)
+- [x] Decrypt → output screen renders — encrypt first, feed ciphertext to decrypt (Electron ✓, iOS: needs clipboard support, skipped)
+- [x] Sign → output screen renders (Electron ✓, iOS written)
+- [x] Verify → output screen renders — sign first, feed signed text to verify (Electron ✓, iOS: needs clipboard support, skipped)
 
 ---
 

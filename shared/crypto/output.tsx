@@ -2,6 +2,7 @@ import * as C from '@/constants'
 import * as Kb from '@/common-adapters'
 import * as Path from '@/util/path'
 import * as React from 'react'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import type {CommonState} from './helpers'
 import {pickFiles} from '@/util/misc'
@@ -345,7 +346,7 @@ export const CryptoOutput = ({
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container} testID={TestIDs.CRYPTO_OUTPUT}>
       <MobileScroll>
         <Kb.Text
           type={outputTextType === 'cipher' ? 'Terminal' : 'Body'}
