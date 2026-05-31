@@ -8,6 +8,8 @@ appId: keybase.ios
       id: "settings-account"
     timeout: 3000
 
+# Items tested in top-to-bottom scroll order to avoid needing scroll-up mid-flow
+
 # Advanced
 - tapOn:
     text: "Advanced"
@@ -19,47 +21,14 @@ appId: keybase.ios
 - tapOn:
     id: "backButton"
 
-# About
+# Backup (Archive)
 - tapOn:
-    text: "About"
+    text: "Backup"
 - extendedWaitUntil:
     visible:
-      id: "settings-about"
+      id: "settings-archive"
     timeout: 3000
-- takeScreenshot: tests/results/ios-debug/settings-subpages-about
-- tapOn:
-    id: "backButton"
-
-# Display
-- tapOn:
-    text: "Display"
-- extendedWaitUntil:
-    visible:
-      id: "settings-display"
-    timeout: 3000
-- takeScreenshot: tests/results/ios-debug/settings-subpages-display
-- tapOn:
-    id: "backButton"
-
-# Notifications
-- tapOn:
-    text: "Notifications"
-- extendedWaitUntil:
-    visible:
-      id: "settings-notifications"
-    timeout: 3000
-- takeScreenshot: tests/results/ios-debug/settings-subpages-notifications
-- tapOn:
-    id: "backButton"
-
-# Feedback
-- tapOn:
-    text: "Feedback"
-- extendedWaitUntil:
-    visible:
-      id: "settings-feedback"
-    timeout: 3000
-- takeScreenshot: tests/results/ios-debug/settings-subpages-feedback
+- takeScreenshot: tests/results/ios-debug/settings-subpages-backup
 - tapOn:
     id: "backButton"
 
@@ -74,6 +43,28 @@ appId: keybase.ios
 - tapOn:
     id: "backButton"
 
+# Display
+- tapOn:
+    text: "Display"
+- extendedWaitUntil:
+    visible:
+      id: "settings-display"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/settings-subpages-display
+- tapOn:
+    id: "backButton"
+
+# Feedback
+- tapOn:
+    text: "Feedback"
+- extendedWaitUntil:
+    visible:
+      id: "settings-feedback"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/settings-subpages-feedback
+- tapOn:
+    id: "backButton"
+
 # Files
 - tapOn:
     text: "Files"
@@ -85,13 +76,34 @@ appId: keybase.ios
 - tapOn:
     id: "backButton"
 
-# Backup (Archive)
+# Notifications (below "Import phone contacts" — may need scrolling)
+- scrollUntilVisible:
+    element:
+      text: "Notifications"
+    direction: down
+    timeout: 3000
 - tapOn:
-    text: "Backup"
+    text: "Notifications"
 - extendedWaitUntil:
     visible:
-      id: "settings-archive"
+      id: "settings-notifications"
     timeout: 3000
-- takeScreenshot: tests/results/ios-debug/settings-subpages-backup
+- takeScreenshot: tests/results/ios-debug/settings-subpages-notifications
+- tapOn:
+    id: "backButton"
+
+# About (in the "More" sub-section below Settings — requires scrolling down)
+- scrollUntilVisible:
+    element:
+      text: "About"
+    direction: down
+    timeout: 3000
+- tapOn:
+    text: "About"
+- extendedWaitUntil:
+    visible:
+      id: "settings-about"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/settings-subpages-about
 - tapOn:
     id: "backButton"

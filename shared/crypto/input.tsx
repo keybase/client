@@ -6,6 +6,7 @@ import * as Kb from '@/common-adapters'
 import * as FS from '@/constants/fs'
 import type {IconType} from '@/common-adapters/icon.constants-gen'
 import {pickFiles} from '@/util/misc'
+import * as TestIDs from '@/tests/e2e/shared/test-ids'
 
 type CommonProps = {
   state: CommonState
@@ -273,6 +274,7 @@ export const InputActionsBar = ({blurCBRef, children, onRun, runLabel}: RunActio
         label={runLabel}
         fullWidth={true}
         onClick={onClick}
+        testID={TestIDs.CRYPTO_RUN_BUTTON}
       />
     </Kb.Box2>
   ) : null

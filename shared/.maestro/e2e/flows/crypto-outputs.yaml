@@ -3,6 +3,11 @@ appId: keybase.ios
 - runFlow: ../subflows/escape-to-tabs.yaml
 - tapOn:
     text: "More"
+- scrollUntilVisible:
+    element:
+      text: ".*Crypto"
+    direction: up
+    timeout: 3000
 - tapOn:
     text: ".*Crypto"
     retryTapIfNoChange: false
@@ -22,12 +27,14 @@ appId: keybase.ios
     id: "crypto-encrypt-input"
 - inputText: "hello e2e"
 - tapOn:
-    text: "Encrypt"
+    id: "crypto-run-button"
 - extendedWaitUntil:
     visible:
       id: "crypto-output"
     timeout: 10000
 - takeScreenshot: tests/results/ios-debug/crypto-outputs-encrypt
+- tapOn:
+    text: "Cancel"
 - tapOn:
     id: "backButton"
 
@@ -42,11 +49,13 @@ appId: keybase.ios
     id: "crypto-sign-input"
 - inputText: "hello e2e"
 - tapOn:
-    text: "Sign"
+    id: "crypto-run-button"
 - extendedWaitUntil:
     visible:
       id: "crypto-output"
     timeout: 10000
 - takeScreenshot: tests/results/ios-debug/crypto-outputs-sign
+- tapOn:
+    text: "Cancel"
 - tapOn:
     id: "backButton"

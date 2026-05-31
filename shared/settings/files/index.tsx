@@ -203,6 +203,7 @@ const FilesSettings = () => {
         fullWidth={true}
         alignItems={Kb.Styles.isTablet ? 'flex-start' : 'center'}
         gap="small"
+        testID={TestIDs.SETTINGS_FILES}
       >
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
           <Kb.Text type="Header">Sync</Kb.Text>

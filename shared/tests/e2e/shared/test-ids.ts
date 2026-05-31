@@ -72,6 +72,7 @@ export const CRYPTO_ENCRYPT_INPUT = 'crypto-encrypt-input'
 export const CRYPTO_DECRYPT_INPUT = 'crypto-decrypt-input'
 export const CRYPTO_SIGN_INPUT    = 'crypto-sign-input'
 export const CRYPTO_VERIFY_INPUT  = 'crypto-verify-input'
+export const CRYPTO_RUN_BUTTON    = 'crypto-run-button'
 
 // Common — keep value matching existing testID="backButton" in .maestro subflows
 export const COMMON_BACK_BUTTON = 'backButton'
