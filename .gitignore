@@ -94,3 +94,5 @@ shared/tests/results/
 CLAUDE.md
 .tsOuts
 docs
+.codegraph
+.mcp.json
