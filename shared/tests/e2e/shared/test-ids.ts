@@ -35,6 +35,7 @@ export const TEAMS_BOTS_TAB     = 'teams-bots-tab'
 // Devices
 export const DEVICES_LIST = 'devices-list'
 export const DEVICES_ROW  = 'devices-row'
+export const DEVICE_PAGE  = 'device-page'
 
 // Settings
 export const SETTINGS_ACCOUNT           = 'settings-account'

@@ -81,12 +81,12 @@ Navigate from the Settings nav. Confirm renders, go back.
 
 Same pattern. Devices and Git reuse their main tab screen components.
 
-- [x] Chat (Electron ✓, iOS TODO)
-- [x] Files (Electron ✓, iOS TODO)
+- [x] Chat (Electron ✓, iOS written via settings-subpages.yaml)
+- [x] Files (Electron ✓, iOS written via settings-subpages.yaml)
 - [x] Git — reuses git root component (Electron ✓, iOS ✓ via git.yaml)
 - [x] Devices — reuses devices root component (Electron ✓, iOS ✓ via devices-view.yaml)
 - [ ] Wallet
-- [x] Archive / Backup (Electron ✓, iOS TODO)
+- [x] Archive / Backup (Electron ✓, iOS written via settings-subpages.yaml)
 - [ ] Contacts (mobile only, `settingsTabs.contactsTab`)
 - [x] Screen Protector (mobile only, `settingsTabs.screenprotector`) (Electron ✓, iOS: Android only)
 
@@ -107,7 +107,7 @@ Settings-adjacent modals that are viewable without mutating.
 
 From the Devices tab, click a device row.
 
-- [ ] Device detail page renders
+- [x] Device detail page renders (Electron ✓, iOS written)
 
 ---
 

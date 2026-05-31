@@ -62,3 +62,36 @@ appId: keybase.ios
 - takeScreenshot: tests/results/ios-debug/settings-subpages-feedback
 - tapOn:
     id: "backButton"
+
+# Chat
+- tapOn:
+    text: "Chat"
+- extendedWaitUntil:
+    visible:
+      id: "settings-chat"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/settings-subpages-chat
+- tapOn:
+    id: "backButton"
+
+# Files
+- tapOn:
+    text: "Files"
+- extendedWaitUntil:
+    visible:
+      id: "settings-files"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/settings-subpages-files
+- tapOn:
+    id: "backButton"
+
+# Backup (Archive)
+- tapOn:
+    text: "Backup"
+- extendedWaitUntil:
+    visible:
+      id: "settings-archive"
+    timeout: 3000
+- takeScreenshot: tests/results/ios-debug/settings-subpages-backup
+- tapOn:
+    id: "backButton"
