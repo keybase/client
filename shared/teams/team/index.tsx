@@ -229,7 +229,6 @@ const TeamBody = (props: Props) => {
       onSelectedMembersChange={selectedMembers => navigation.setParams({selectedMembers})}
       onSelectedChannelsChange={selectedChannels => navigation.setParams({selectedChannels})}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} testID={TestIDs.TEAMS_BODY}>
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
@@ -251,6 +250,7 @@ const TeamBody = (props: Props) => {
           sections={sections}
           contentContainerStyle={styles.listContentContainer}
           getItemHeight={() => 48}
+          testID={TestIDs.TEAMS_BODY}
         />
         <SelectionPopup
           selectedTab={
@@ -258,7 +258,6 @@ const TeamBody = (props: Props) => {
           }
           teamID={teamID}
         />
-      </Kb.Box2>
       </Kb.Box2>
     </TeamSelectionProvider>
   )
