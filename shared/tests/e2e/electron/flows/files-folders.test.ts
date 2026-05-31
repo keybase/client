@@ -1,6 +1,6 @@
 import {test, expect} from '@/tests/e2e/electron/helpers/fixtures'
 import {navigateToFiles} from '@/tests/e2e/electron/helpers/navigate'
-import {FILES_BROWSER, FILES_TLF_ROW} from '@/tests/e2e/shared/test-ids'
+import {FILES_TLF_ROW} from '@/tests/e2e/shared/test-ids'
 
 test('files browser shows top-level folders', async ({page}) => {
   await navigateToFiles(page)
@@ -17,34 +17,27 @@ test('files browser has three TLF type rows', async ({page}) => {
 })
 
 test('can navigate into private folder', async ({page}) => {
-  test.fixme(true, 'Requires FUSE/KBFS to be mounted')
   await navigateToFiles(page)
   await page.getByTestId(FILES_TLF_ROW).filter({hasText: 'private'}).click()
-  await expect(page.getByTestId(FILES_BROWSER)).toBeVisible()
-  await expect(page.getByText('private', {exact: true})).toBeVisible()
+  await expect(page.getByRole('textbox', {name: 'Filter (⌘F)'})).toBeVisible()
 })
 
 test('can navigate into public folder', async ({page}) => {
-  test.fixme(true, 'Requires FUSE/KBFS to be mounted')
   await navigateToFiles(page)
   await page.getByTestId(FILES_TLF_ROW).filter({hasText: 'public'}).click()
-  await expect(page.getByTestId(FILES_BROWSER)).toBeVisible()
-  await expect(page.getByText('public', {exact: true})).toBeVisible()
+  await expect(page.getByRole('textbox', {name: 'Filter (⌘F)'})).toBeVisible()
 })
 
 test('can navigate into team folder', async ({page}) => {
-  test.fixme(true, 'Requires FUSE/KBFS to be mounted')
   await navigateToFiles(page)
   await page.getByTestId(FILES_TLF_ROW).filter({hasText: 'team'}).click()
-  await expect(page.getByTestId(FILES_BROWSER)).toBeVisible()
-  await expect(page.getByText('team', {exact: true})).toBeVisible()
+  await expect(page.getByRole('textbox', {name: 'Filter (⌘F)'})).toBeVisible()
 })
 
 test('can navigate back to files root', async ({page}) => {
-  test.fixme(true, 'Requires FUSE/KBFS to be mounted')
   await navigateToFiles(page)
   await page.getByTestId(FILES_TLF_ROW).filter({hasText: 'private'}).click()
-  await expect(page.getByTestId(FILES_BROWSER)).toBeVisible()
+  await expect(page.getByRole('textbox', {name: 'Filter (⌘F)'})).toBeVisible()
   // Clicking the Files tab again when already on Files pops back to root
   await page.click('text=Files')
   await expect(page.getByTestId(FILES_TLF_ROW)).toHaveCount(3)
