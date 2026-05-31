@@ -126,7 +126,7 @@ Open a team, navigate each internal tab.
 
 From within a team.
 
-- [ ] Team member page (click a member row from Members tab)
+- [x] Team member page (Electron ✓, iOS written) — taps smoke user's username in member list
 - [ ] Edit channel modal — open, cancel (`teamEditChannel`)
 - [ ] Team description edit modal — open, cancel (`teamEditTeamDescription`)
 - [ ] Team info edit modal — open, cancel (`teamEditTeamInfo`)
