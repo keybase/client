@@ -40,7 +40,9 @@ Type something in each sub-tab and run it to see the output screen. Local-only o
 
 Open an existing conversation. No sending.
 
-- [ ] Open first inbox row → message list renders
+- [x] Open first inbox row → message list renders (Electron ✓, iOS written)
+- [x] Chat input visible in open conversation (Electron ✓, iOS: chat-send-message.yaml already covers this)
+- [x] Return to inbox from conversation (Electron ✓, iOS written)
 
 ---
 
