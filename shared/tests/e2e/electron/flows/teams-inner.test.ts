@@ -23,8 +23,7 @@ test('members tab renders', async ({page}) => {
     test.skip()
     return
   }
-  // Members is the default tab; verify member-list content loaded
-  await expect(page.getByText('Already in team', {exact: false}).first()).toBeVisible({timeout: 5_000})
+  await expect(page.getByTestId(T.TEAMS_MEMBER_LIST).first()).toBeVisible({timeout: 5_000})
 })
 
 test('settings tab renders', async ({page}) => {
