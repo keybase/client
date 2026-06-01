@@ -535,6 +535,7 @@ protocol chatUi {
   }
   record UICoinFlipStatus {
     FlipGameIDStr gameID;
+    ConvIDStr convID;
     UICoinFlipPhase phase;
     string progressText;
     string resultText;

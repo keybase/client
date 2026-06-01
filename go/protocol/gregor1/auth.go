@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/gregor1/auth.avdl
 
 package gregor1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type AuthResult struct {
@@ -39,11 +38,11 @@ func AuthProtocol(i AuthInterface) rpc.Protocol {
 		Name: "gregor.1.auth",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"authenticateSessionToken": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AuthenticateSessionTokenArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AuthenticateSessionTokenArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AuthenticateSessionTokenArg)(nil), args)
@@ -63,6 +62,6 @@ type AuthClient struct {
 
 func (c AuthClient) AuthenticateSessionToken(ctx context.Context, session SessionToken) (res AuthResult, err error) {
 	__arg := AuthenticateSessionTokenArg{Session: session}
-	err = c.Cli.Call(ctx, "gregor.1.auth.authenticateSessionToken", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "gregor.1.auth.authenticateSessionToken", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

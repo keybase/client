@@ -25,6 +25,8 @@ const CoinFlipParticipants = (props: Props) => {
             colorFollowing={true}
             key={`${p.username}${p.deviceName}`}
             horizontal={true}
+            onClick="profile"
+            withProfileCardPopup={false}
             username={p.username}
             metaOne={p.deviceName}
             containerStyle={styles.participants}

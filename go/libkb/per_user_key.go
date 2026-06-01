@@ -553,15 +553,13 @@ func (s *PerUserKeyring) fetchBoxesLocked(m MetaContext,
 	defer m.Trace("PerUserKeyring#fetchBoxesLocked", &err)()
 
 	var resp perUserKeySyncResp
-	err = m.G().API.GetDecode(m, APIArg{
-		Endpoint: "key/fetch_per_user_key_secrets",
-		Args: HTTPArgs{
-			"generation": I{int(s.currentGenerationLocked())},
-			"device_id":  S{deviceID.String()},
-		},
-		SessionType: APISessionTypeREQUIRED,
-		RetryCount:  5, // It's pretty bad to fail this, so retry.
-	}, &resp)
+	apiArg := NewRetryAPIArg("key/fetch_per_user_key_secrets")
+	apiArg.Args = HTTPArgs{
+		"generation": I{int(s.currentGenerationLocked())},
+		"device_id":  S{deviceID.String()},
+	}
+	apiArg.SessionType = APISessionTypeREQUIRED
+	err = m.G().API.GetDecode(m, apiArg, &resp)
 	if err != nil {
 		return nil, nil, err
 	}

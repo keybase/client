@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/scanproofs.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type ScanProofsArg struct {
@@ -29,11 +28,11 @@ func ScanProofsProtocol(i ScanProofsInterface) rpc.Protocol {
 		Name: "keybase.1.ScanProofs",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"scanProofs": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ScanProofsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ScanProofsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ScanProofsArg)(nil), args)
@@ -52,6 +51,6 @@ type ScanProofsClient struct {
 }
 
 func (c ScanProofsClient) ScanProofs(ctx context.Context, __arg ScanProofsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ScanProofs.scanProofs", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.ScanProofs.scanProofs", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

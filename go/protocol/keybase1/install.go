@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/install.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 // Install status describes state of install for a component or service.
@@ -247,13 +246,17 @@ type FuseStatusArg struct {
 	BundleVersion string `codec:"bundleVersion" json:"bundleVersion"`
 }
 
-type InstallFuseArg struct{}
+type InstallFuseArg struct {
+}
 
-type InstallKBFSArg struct{}
+type InstallKBFSArg struct {
+}
 
-type UninstallKBFSArg struct{}
+type UninstallKBFSArg struct {
+}
 
-type InstallCommandLinePrivilegedArg struct{}
+type InstallCommandLinePrivilegedArg struct {
+}
 
 type InstallInterface interface {
 	FuseStatus(context.Context, FuseStatusArg) (FuseStatus, error)
@@ -268,11 +271,11 @@ func InstallProtocol(i InstallInterface) rpc.Protocol {
 		Name: "keybase.1.install",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"fuseStatus": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FuseStatusArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FuseStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FuseStatusArg)(nil), args)
@@ -283,41 +286,41 @@ func InstallProtocol(i InstallInterface) rpc.Protocol {
 				},
 			},
 			"installFuse": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]InstallFuseArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.InstallFuse(ctx)
 					return
 				},
 			},
 			"installKBFS": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]InstallKBFSArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.InstallKBFS(ctx)
 					return
 				},
 			},
 			"uninstallKBFS": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UninstallKBFSArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.UninstallKBFS(ctx)
 					return
 				},
 			},
 			"installCommandLinePrivileged": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]InstallCommandLinePrivilegedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.InstallCommandLinePrivileged(ctx)
 					return
 				},
@@ -331,26 +334,26 @@ type InstallClient struct {
 }
 
 func (c InstallClient) FuseStatus(ctx context.Context, __arg FuseStatusArg) (res FuseStatus, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.install.fuseStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.install.fuseStatus", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c InstallClient) InstallFuse(ctx context.Context) (res InstallResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.install.installFuse", []interface{}{InstallFuseArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.install.installFuse", []any{InstallFuseArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c InstallClient) InstallKBFS(ctx context.Context) (res InstallResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.install.installKBFS", []interface{}{InstallKBFSArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.install.installKBFS", []any{InstallKBFSArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c InstallClient) UninstallKBFS(ctx context.Context) (res UninstallResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.install.uninstallKBFS", []interface{}{UninstallKBFSArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.install.uninstallKBFS", []any{UninstallKBFSArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c InstallClient) InstallCommandLinePrivileged(ctx context.Context) (res InstallResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.install.installCommandLinePrivileged", []interface{}{InstallCommandLinePrivilegedArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.install.installCommandLinePrivileged", []any{InstallCommandLinePrivilegedArg{}}, &res, 0*time.Millisecond)
 	return
 }

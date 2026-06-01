@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/stellar1/gregor.avdl
 
 package stellar1
@@ -43,7 +43,8 @@ func (o PaymentNotificationMsg) DeepCopy() PaymentNotificationMsg {
 	}
 }
 
-type GregorInterface interface{}
+type GregorInterface interface {
+}
 
 func GregorProtocol(i GregorInterface) rpc.Protocol {
 	return rpc.Protocol{

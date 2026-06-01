@@ -32,7 +32,7 @@ const Login = (props: Props) => {
   }
 
   const userRows = props.users
-    .concat({hasStoredSecret: false, username: other})
+    .concat({hasStoredSecret: false, uid: '', username: other})
     .map(u => <UserRow user={u.username} key={u.username} hasStoredSecret={u.hasStoredSecret} />)
 
   const selectedIdx = props.users.findIndex(u => u.username === props.selectedUser)

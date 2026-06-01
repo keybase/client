@@ -437,6 +437,7 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 			case updates := <-ui0.CoinFlipUpdates:
 				require.Equal(t, 1, len(updates))
 				require.Equal(t, chat1.UICoinFlipPhase_COMPLETE, updates[0].Phase)
+				require.Equal(t, conv.Id.ConvIDStr(), updates[0].ConvID)
 				require.Equal(t, res, updates[0].ResultText)
 			case <-time.After(timeout):
 				require.Fail(t, "no updates")

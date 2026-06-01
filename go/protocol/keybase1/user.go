@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/user.avdl
 
 package keybase1
@@ -6,9 +6,8 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type TrackProof struct {
@@ -794,11 +793,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 		Name: "keybase.1.user",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"listTracking": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ListTrackingArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ListTrackingArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ListTrackingArg)(nil), args)
@@ -809,11 +808,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"listTrackingJSON": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ListTrackingJSONArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ListTrackingJSONArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ListTrackingJSONArg)(nil), args)
@@ -824,11 +823,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"listTrackersUnverified": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ListTrackersUnverifiedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ListTrackersUnverifiedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ListTrackersUnverifiedArg)(nil), args)
@@ -839,11 +838,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"loadUser": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadUserArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadUserArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadUserArg)(nil), args)
@@ -854,11 +853,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"loadUserByName": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadUserByNameArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadUserByNameArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadUserByNameArg)(nil), args)
@@ -869,11 +868,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"loadUserPlusKeys": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadUserPlusKeysArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadUserPlusKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadUserPlusKeysArg)(nil), args)
@@ -884,11 +883,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"loadUserPlusKeysV2": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadUserPlusKeysV2Arg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadUserPlusKeysV2Arg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadUserPlusKeysV2Arg)(nil), args)
@@ -899,11 +898,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"loadPublicKeys": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadPublicKeysArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadPublicKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadPublicKeysArg)(nil), args)
@@ -914,11 +913,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"loadMyPublicKeys": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadMyPublicKeysArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadMyPublicKeysArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadMyPublicKeysArg)(nil), args)
@@ -929,11 +928,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"loadMySettings": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadMySettingsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadMySettingsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadMySettingsArg)(nil), args)
@@ -944,11 +943,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"loadAllPublicKeysUnverified": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadAllPublicKeysUnverifiedArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadAllPublicKeysUnverifiedArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadAllPublicKeysUnverifiedArg)(nil), args)
@@ -959,11 +958,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"profileEdit": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ProfileEditArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ProfileEditArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ProfileEditArg)(nil), args)
@@ -974,11 +973,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"interestingPeople": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]InterestingPeopleArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]InterestingPeopleArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]InterestingPeopleArg)(nil), args)
@@ -989,11 +988,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"meUserVersion": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]MeUserVersionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]MeUserVersionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]MeUserVersionArg)(nil), args)
@@ -1004,11 +1003,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"getUPAK": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetUPAKArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetUPAKArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetUPAKArg)(nil), args)
@@ -1019,11 +1018,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"getUPAKLite": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetUPAKLiteArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetUPAKLiteArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetUPAKLiteArg)(nil), args)
@@ -1034,11 +1033,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"uploadUserAvatar": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UploadUserAvatarArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UploadUserAvatarArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UploadUserAvatarArg)(nil), args)
@@ -1049,11 +1048,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"proofSuggestions": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ProofSuggestionsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ProofSuggestionsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ProofSuggestionsArg)(nil), args)
@@ -1064,11 +1063,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"findNextMerkleRootAfterRevoke": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FindNextMerkleRootAfterRevokeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FindNextMerkleRootAfterRevokeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FindNextMerkleRootAfterRevokeArg)(nil), args)
@@ -1079,11 +1078,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"findNextMerkleRootAfterReset": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FindNextMerkleRootAfterResetArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FindNextMerkleRootAfterResetArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FindNextMerkleRootAfterResetArg)(nil), args)
@@ -1094,11 +1093,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"canLogout": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CanLogoutArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CanLogoutArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CanLogoutArg)(nil), args)
@@ -1109,11 +1108,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"loadPassphraseState": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]LoadPassphraseStateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]LoadPassphraseStateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]LoadPassphraseStateArg)(nil), args)
@@ -1124,11 +1123,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"userCard": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UserCardArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UserCardArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UserCardArg)(nil), args)
@@ -1139,11 +1138,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"setUserBlocks": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetUserBlocksArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetUserBlocksArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetUserBlocksArg)(nil), args)
@@ -1154,11 +1153,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"getUserBlocks": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetUserBlocksArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetUserBlocksArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetUserBlocksArg)(nil), args)
@@ -1169,11 +1168,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"reportUser": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ReportUserArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ReportUserArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ReportUserArg)(nil), args)
@@ -1184,11 +1183,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"dismissBlockButtons": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DismissBlockButtonsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DismissBlockButtonsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DismissBlockButtonsArg)(nil), args)
@@ -1199,11 +1198,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"blockUser": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BlockUserArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]BlockUserArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]BlockUserArg)(nil), args)
@@ -1214,11 +1213,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"unblockUser": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UnblockUserArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UnblockUserArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UnblockUserArg)(nil), args)
@@ -1229,11 +1228,11 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 			},
 			"getTeamBlocks": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetTeamBlocksArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetTeamBlocksArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetTeamBlocksArg)(nil), args)
@@ -1257,107 +1256,107 @@ type UserClient struct {
 //
 // If assertion is empty, it will use the current logged in user.
 func (c UserClient) ListTracking(ctx context.Context, __arg ListTrackingArg) (res UserSummarySet, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTracking", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.listTracking", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) ListTrackingJSON(ctx context.Context, __arg ListTrackingJSONArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingJSON", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // listTrackersUnverified returns the users following the given user, and is unverified
 // and server-trust.
 func (c UserClient) ListTrackersUnverified(ctx context.Context, __arg ListTrackersUnverifiedArg) (res UserSummarySet, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackersUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackersUnverified", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load a user from the server.
 func (c UserClient) LoadUser(ctx context.Context, __arg LoadUserArg) (res User, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUser", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUser", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) LoadUserByName(ctx context.Context, __arg LoadUserByNameArg) (res User, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUserByName", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserByName", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load a user + device keys from the server.
 func (c UserClient) LoadUserPlusKeys(ctx context.Context, __arg LoadUserPlusKeysArg) (res UserPlusKeys, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeys", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) LoadUserPlusKeysV2(ctx context.Context, __arg LoadUserPlusKeysV2Arg) (res UserPlusKeysV2AllIncarnations, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeysV2", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeysV2", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load public keys for a user.
 func (c UserClient) LoadPublicKeys(ctx context.Context, __arg LoadPublicKeysArg) (res []PublicKey, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadPublicKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadPublicKeys", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load my public keys (for logged in user).
 func (c UserClient) LoadMyPublicKeys(ctx context.Context, sessionID int) (res []PublicKey, err error) {
 	__arg := LoadMyPublicKeysArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.loadMyPublicKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadMyPublicKeys", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load user settings (for logged in user).
 func (c UserClient) LoadMySettings(ctx context.Context, sessionID int) (res UserSettings, err error) {
 	__arg := LoadMySettingsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.loadMySettings", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadMySettings", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load all the user's public keys (even those in reset key families)
 // from the server with no verification
 func (c UserClient) LoadAllPublicKeysUnverified(ctx context.Context, __arg LoadAllPublicKeysUnverifiedArg) (res []PublicKey, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadAllPublicKeysUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadAllPublicKeysUnverified", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) ProfileEdit(ctx context.Context, __arg ProfileEditArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.profileEdit", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.profileEdit", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) InterestingPeople(ctx context.Context, __arg InterestingPeopleArg) (res []InterestingPerson, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) MeUserVersion(ctx context.Context, __arg MeUserVersionArg) (res UserVersion, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.meUserVersion", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.meUserVersion", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // getUPAK returns a UPAK. Used mainly for debugging.
 func (c UserClient) GetUPAK(ctx context.Context, __arg GetUPAKArg) (res UPAKVersioned, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.getUPAK", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.getUPAK", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
 func (c UserClient) GetUPAKLite(ctx context.Context, uid UID) (res UPKLiteV1AllIncarnations, err error) {
 	__arg := GetUPAKLiteArg{Uid: uid}
-	err = c.Cli.Call(ctx, "keybase.1.user.getUPAKLite", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.getUPAKLite", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) UploadUserAvatar(ctx context.Context, __arg UploadUserAvatarArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.uploadUserAvatar", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.uploadUserAvatar", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) ProofSuggestions(ctx context.Context, sessionID int) (res ProofSuggestionsRes, err error) {
 	__arg := ProofSuggestionsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.proofSuggestions", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.proofSuggestions", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -1365,7 +1364,7 @@ func (c UserClient) ProofSuggestions(ctx context.Context, sessionID int) (res Pr
 // revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
 // we'll start our search. Usually it's the next one, but not always
 func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg FindNextMerkleRootAfterRevokeArg) (res NextMerkleRootRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterRevoke", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterRevoke", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -1373,62 +1372,62 @@ func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg Fin
 // at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
 // the reset. Usually, we'll just turn up the next Merkle root, but not always.
 func (c UserClient) FindNextMerkleRootAfterReset(ctx context.Context, __arg FindNextMerkleRootAfterResetArg) (res NextMerkleRootRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterReset", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterReset", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) CanLogout(ctx context.Context, sessionID int) (res CanLogoutRes, err error) {
 	__arg := CanLogoutArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.canLogout", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.canLogout", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) LoadPassphraseState(ctx context.Context, sessionID int) (res PassphraseState, err error) {
 	__arg := LoadPassphraseStateArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.loadPassphraseState", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadPassphraseState", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) UserCard(ctx context.Context, __arg UserCardArg) (res *UserCard, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.userCard", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.userCard", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) SetUserBlocks(ctx context.Context, __arg SetUserBlocksArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.setUserBlocks", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.setUserBlocks", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) GetUserBlocks(ctx context.Context, __arg GetUserBlocksArg) (res []UserBlock, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.getUserBlocks", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.getUserBlocks", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) ReportUser(ctx context.Context, __arg ReportUserArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.reportUser", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.reportUser", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) DismissBlockButtons(ctx context.Context, tlfID TLFID) (err error) {
 	__arg := DismissBlockButtonsArg{TlfID: tlfID}
-	err = c.Cli.Call(ctx, "keybase.1.user.dismissBlockButtons", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.dismissBlockButtons", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) BlockUser(ctx context.Context, username string) (err error) {
 	__arg := BlockUserArg{Username: username}
-	err = c.Cli.Call(ctx, "keybase.1.user.blockUser", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.blockUser", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) UnblockUser(ctx context.Context, username string) (err error) {
 	__arg := UnblockUserArg{Username: username}
-	err = c.Cli.Call(ctx, "keybase.1.user.unblockUser", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.unblockUser", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) GetTeamBlocks(ctx context.Context, sessionID int) (res []TeamBlock, err error) {
 	__arg := GetTeamBlocksArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.getTeamBlocks", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.user.getTeamBlocks", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

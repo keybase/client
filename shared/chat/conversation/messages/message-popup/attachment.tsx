@@ -3,7 +3,7 @@ import * as Chat from '@/constants/chat2'
 import * as React from 'react'
 import type * as T from '@/constants/types'
 import {type Position, fileUIName, type StylesCrossPlatform} from '@/styles'
-import {useItems, useHeader} from './hooks'
+import {useItems, useHeader, useModeration} from './hooks'
 import * as Kb from '@/common-adapters'
 import {useFSState} from '@/constants/fs'
 
@@ -25,7 +25,7 @@ const PopAttach = (ownProps: OwnProps) => {
     const message = m?.type === 'attachment' ? m : emptyMessage
     return message
   })
-  const {downloadPath, attachmentType, id} = message
+  const {author, conversationIDKey, downloadPath, attachmentType, id} = message
   const pending = !!message.transferState
   const clearModals = C.useRouterState(s => s.dispatch.clearModals)
 
@@ -53,6 +53,9 @@ const PopAttach = (ownProps: OwnProps) => {
       }
     })
   )
+
+  const {itemBlock, itemFilter, itemFlag, itemReport} = useModeration(author, conversationIDKey)
+  const infoPanelShowing = Chat.useChatState(s => s.infoPanelShowing)
 
   const onJump = React.useCallback(() => {
     loadMessagesCentered(id, 'always')
@@ -116,7 +119,9 @@ const PopAttach = (ownProps: OwnProps) => {
     : []
   const itemMedia = [{icon: 'iconfont-camera', onClick: onAllMedia, title: 'All media'}] as const
 
-  const itemJump = [{icon: 'iconfont-search', onClick: onJump, title: 'Jump to message'}] as const
+  const itemJump = infoPanelShowing
+    ? ([{icon: 'iconfont-search', onClick: onJump, title: 'Jump to message'}] as const)
+    : []
 
   const topSection = [...itemSave, ...itemShare, ...itemDelete, ...itemExplode]
 
@@ -137,6 +142,10 @@ const PopAttach = (ownProps: OwnProps) => {
     ...itemProfile,
     ...itemKick,
     ...itemPin,
+    ...itemBlock,
+    ...itemFilter,
+    ...itemReport,
+    ...itemFlag,
   ]
 
   const header = useHeader(ordinal, onHidden)

@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/notify_teambot.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type NewTeambotKeyArg struct {
@@ -33,11 +32,11 @@ func NotifyTeambotProtocol(i NotifyTeambotInterface) rpc.Protocol {
 		Name: "keybase.1.NotifyTeambot",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"newTeambotKey": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]NewTeambotKeyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]NewTeambotKeyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]NewTeambotKeyArg)(nil), args)
@@ -48,11 +47,11 @@ func NotifyTeambotProtocol(i NotifyTeambotInterface) rpc.Protocol {
 				},
 			},
 			"teambotKeyNeeded": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]TeambotKeyNeededArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]TeambotKeyNeededArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]TeambotKeyNeededArg)(nil), args)
@@ -71,11 +70,11 @@ type NotifyTeambotClient struct {
 }
 
 func (c NotifyTeambotClient) NewTeambotKey(ctx context.Context, __arg NewTeambotKeyArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeambot.newTeambotKey", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeambot.newTeambotKey", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeambotClient) TeambotKeyNeeded(ctx context.Context, __arg TeambotKeyNeededArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifyTeambot.teambotKeyNeeded", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.NotifyTeambot.teambotKeyNeeded", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

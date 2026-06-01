@@ -24,6 +24,7 @@ import androidx.core.graphics.drawable.IconCompat
 import io.keybase.ossifrage.MainActivity
 import keybase.ChatNotification
 import keybase.PushNotifier
+import me.leolin.shortcutbadger.ShortcutBadger
 import java.io.BufferedInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -118,10 +119,14 @@ class KBPushNotifier internal constructor(private val context: Context, private 
             bundle.putBoolean("userInteraction", true)
             bundle.putString("type", "chat.newmessage")
             bundle.putString("convID", chatNotification.convID)
+            if (chatNotification.uid.isNotEmpty()) {
+                bundle.putString("uid", chatNotification.uid)
+            }
             val pending_intent = buildPendingIntent(bundle)
             val convData = ConvData(chatNotification.convID, chatNotification.tlfName ?: "", chatNotification.message.id)
             val builder = NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notif)
+                .setContentTitle(chatNotification.title ?: "")
                 .setContentIntent(pending_intent)
                 .setAutoCancel(true)
         var notificationDefaults = NotificationCompat.DEFAULT_LIGHTS or NotificationCompat.DEFAULT_VIBRATE
@@ -171,6 +176,11 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         }
         val notification = builder.build()
         notificationManager.notify(chatNotification.convID, 0, notification)
+        // Apply badge count now that Go has confirmed this notification is for the
+        // active account (targetUID check passed in HandleBackgroundNotification).
+        if (chatNotification.badgeCount >= 0) {
+            ShortcutBadger.applyCount(context, chatNotification.badgeCount.toInt())
+        }
         } catch (e: Exception) {
             io.keybase.ossifrage.modules.NativeLogger.error("KBPushNotifier.displayChatNotification2 exception: " + e.message)
         }
@@ -228,9 +238,12 @@ class KBPushNotifier internal constructor(private val context: Context, private 
         notificationManager.notify(uniqueTag, 0, builder.build())
     }
 
-    override fun localNotification(ident: String, msg: String, badgeCount: Long, soundName: String, convID: String,
-                                   typ: String) {
-        genericNotification(ident, "", msg, bundle, KeybasePushNotificationListenerService.GENERAL_CHANNEL_ID)
+    override fun localNotification(ident: String, title: String, msg: String, badgeCount: Long, soundName: String, convID: String,
+                                   typ: String, uid: String) {
+        if (uid.isNotEmpty()) {
+            bundle.putString("uid", uid)
+        }
+        genericNotification(ident, title, msg, bundle, KeybasePushNotificationListenerService.GENERAL_CHANNEL_ID)
     }
 
     companion object {

@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/chat1/gregor.avdl
 
 package chat1
@@ -538,7 +538,8 @@ func (o SubteamRenameUpdate) DeepCopy() SubteamRenameUpdate {
 	}
 }
 
-type GregorInterface interface{}
+type GregorInterface interface {
+}
 
 func GregorProtocol(i GregorInterface) rpc.Protocol {
 	return rpc.Protocol{

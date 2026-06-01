@@ -37,6 +37,8 @@ type PreviewRes struct {
 	BaseWidth         int
 	BaseHeight        int
 	BaseDurationMs    int
+	BaseIsAudio       bool
+	AudioAmps         []float64
 	PreviewWidth      int
 	PreviewHeight     int
 	PreviewDurationMs int

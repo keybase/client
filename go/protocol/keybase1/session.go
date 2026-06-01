@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/session.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type Session struct {
@@ -32,7 +31,8 @@ type CurrentSessionArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type SessionPingArg struct{}
+type SessionPingArg struct {
+}
 
 type SessionInterface interface {
 	CurrentSession(context.Context, int) (Session, error)
@@ -44,11 +44,11 @@ func SessionProtocol(i SessionInterface) rpc.Protocol {
 		Name: "keybase.1.session",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"currentSession": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CurrentSessionArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CurrentSessionArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CurrentSessionArg)(nil), args)
@@ -59,11 +59,11 @@ func SessionProtocol(i SessionInterface) rpc.Protocol {
 				},
 			},
 			"sessionPing": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SessionPingArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					err = i.SessionPing(ctx)
 					return
 				},
@@ -78,11 +78,11 @@ type SessionClient struct {
 
 func (c SessionClient) CurrentSession(ctx context.Context, sessionID int) (res Session, err error) {
 	__arg := CurrentSessionArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.session.currentSession", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.session.currentSession", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SessionClient) SessionPing(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.session.sessionPing", []interface{}{SessionPingArg{}}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.session.sessionPing", []any{SessionPingArg{}}, nil, 0*time.Millisecond)
 	return
 }

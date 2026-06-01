@@ -270,6 +270,70 @@ export const useItems = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   }
 }
 
+export const useModeration = (
+  author: string,
+  conversationIDKey: T.Chat.ConversationIDKey
+) => {
+  const you = useCurrentUserState(s => s.username)
+  const yourMessage = author === you
+
+  const {isTeam, numPart} = Chat.useChatContext(
+    C.useShallow(s => {
+      const {teamname} = s.meta
+      const isTeam = !!teamname
+      const numPart = s.participants.all.length
+      return {isTeam, numPart}
+    })
+  )
+  const blockModalSingle = !isTeam && numPart === 2
+  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+
+  type BlockingModalProps = {
+    filterUserByDefault?: boolean
+    flagUserByDefault?: boolean
+    reportsUserByDefault?: boolean
+  }
+  const openBlockingModal = React.useCallback(
+    (extraProps?: BlockingModalProps) => {
+      navigateAppend({
+        props: {
+          blockUserByDefault: true,
+          context: blockModalSingle ? 'message-popup-single' : 'message-popup',
+          conversationIDKey,
+          username: author,
+          ...extraProps,
+        },
+        selected: 'chatBlockingModal',
+      })
+    },
+    [blockModalSingle, conversationIDKey, navigateAppend, author]
+  )
+  const canModerate = author && !yourMessage
+  const onUserBlock = canModerate ? () => openBlockingModal() : undefined
+  const onUserFilter = C.isIOS && canModerate ? () => openBlockingModal({filterUserByDefault: true}) : undefined
+  const onUserReport = C.isIOS && canModerate ? () => openBlockingModal({reportsUserByDefault: true}) : undefined
+  const onUserFlag =
+    C.isIOS && canModerate
+      ? () => openBlockingModal({flagUserByDefault: true, reportsUserByDefault: true})
+      : undefined
+
+  const blockTitle = isTeam ? 'Report user' : 'Block user'
+  const itemBlock = onUserBlock
+    ? ([{danger: true, icon: 'iconfont-user-block', onClick: onUserBlock, title: blockTitle}] as const)
+    : []
+  const itemFilter = onUserFilter
+    ? ([{danger: true, icon: 'iconfont-user-block', onClick: onUserFilter, title: 'Filter user'}] as const)
+    : []
+  const itemReport = !isTeam && onUserReport
+    ? ([{danger: true, icon: 'iconfont-user-block', onClick: onUserReport, title: 'Report user'}] as const)
+    : []
+  const itemFlag = onUserFlag
+    ? ([{danger: true, icon: 'iconfont-user-block', onClick: onUserFlag, title: 'Flag content'}] as const)
+    : []
+
+  return {itemBlock, itemFilter, itemFlag, itemReport}
+}
+
 export const useHeader = (ordinal: T.Chat.Ordinal, onHidden: () => void) => {
   const message = Chat.useChatContext(s => {
     return s.messageMap.get(ordinal) ?? emptyText

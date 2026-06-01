@@ -610,7 +610,7 @@ func (m *FlipManager) formatError(ctx context.Context, rawErr error) chat1.UICoi
 }
 
 func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGameID,
-	update *flip.GameSummary, convID chat1.ConversationID, force bool,
+	update *flip.GameSummary, statusConvID chat1.ConversationID, resultConvID chat1.ConversationID, force bool,
 ) (status chat1.UICoinFlipStatus) {
 	defer m.queueDirtyGameID(ctx, gameID, force)
 	if update.Err != nil {
@@ -622,6 +622,7 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 		formatted := m.formatError(ctx, update.Err)
 		status = chat1.UICoinFlipStatus{
 			GameID:       gameID.FlipGameIDStr(),
+			ConvID:       statusConvID.ConvIDStr(),
 			Phase:        chat1.UICoinFlipPhase_ERROR,
 			ProgressText: fmt.Sprintf("Something went wrong: %s", update.Err),
 			Participants: parts,
@@ -632,9 +633,10 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 	}
 	status = chat1.UICoinFlipStatus{
 		GameID: gameID.FlipGameIDStr(),
+		ConvID: statusConvID.ConvIDStr(),
 		Phase:  chat1.UICoinFlipPhase_COMPLETE,
 	}
-	m.addResult(ctx, &status, update.Result, convID)
+	m.addResult(ctx, &status, update.Result, resultConvID)
 	for _, p := range update.Players {
 		m.addParticipant(ctx, &status, flip.CommitmentUpdate{
 			User:       p.Device,
@@ -667,6 +669,14 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 	} else {
 		status = chat1.UICoinFlipStatus{
 			GameID: gameID.FlipGameIDStr(),
+		}
+	}
+	if len(status.ConvID) == 0 {
+		hmi, hmiErr := m.getHostMessageInfo(ctx, update.Metadata.ConversationID)
+		if hmiErr != nil {
+			m.Debug(ctx, "handleUpdate: failed to get host message info: %s", hmiErr)
+		} else {
+			status.ConvID = hmi.ConvID.ConvIDStr()
 		}
 	}
 
@@ -1371,10 +1381,10 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 				}
 			}
 			m.Debug(ctx, "loadGame: game had no action after pausing, sending error")
-			job.resCh <- m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
+			job.resCh <- m.handleSummaryUpdate(ctx, job.gameID, summary, hmi.ConvID, flipConvID, true)
 		}(globals.BackgroundChatCtx(ctx, m.G()), summary)
 	} else {
-		job.resCh <- m.handleSummaryUpdate(ctx, job.gameID, summary, flipConvID, true)
+		job.resCh <- m.handleSummaryUpdate(ctx, job.gameID, summary, hmi.ConvID, flipConvID, true)
 	}
 	return nil
 }
@@ -1406,7 +1416,9 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID 
 		default:
 			m.queueDirtyGameID(ctx, gameID, true)
 			res = make(chan chat1.UICoinFlipStatus, 1)
-			res <- stored.(chat1.UICoinFlipStatus)
+			status := stored.(chat1.UICoinFlipStatus)
+			status.ConvID = hostConvID.ConvIDStr()
+			res <- status
 			err = make(chan error, 1)
 			return res, err
 		}

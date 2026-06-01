@@ -51,7 +51,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
     maxHeight
   )
 
-  const isVideo = message.fileType.startsWith('video')
+  const isPlayableMedia = message.fileType.startsWith('video') || message.fileType.startsWith('audio')
   const showPreview = !fileType.includes('png')
   const onAllMedia = () => showInfoPanel(true, 'attachments')
   const onClose = () => navigateUp()
@@ -75,7 +75,7 @@ export const useData = (initialOrdinal: T.Chat.Ordinal) => {
   return {
     fullHeight,
     fullWidth,
-    isVideo,
+    isPlayableMedia,
     message,
     onAllMedia,
     onClose,
@@ -101,12 +101,12 @@ const seenPaths = new Set<string>()
 export const usePreviewFallback = (
   path: string,
   previewPath: string,
-  isVideo: boolean,
+  isPlayableMedia: boolean,
   showPreview: boolean,
   preload: (path: string, onLoad: () => void, onError: () => void) => void
 ) => {
   const [imgSrc, setImgSrc] = React.useState('')
-  const canUseFallback = path && previewPath && !isVideo && showPreview
+  const canUseFallback = path && previewPath && !isPlayableMedia && showPreview
 
   React.useEffect(() => {
     const onLoad = () => {
@@ -128,7 +128,7 @@ export const usePreviewFallback = (
     return () => {
       clearTimeout(id)
     }
-  }, [path, previewPath, isVideo, preload])
+  }, [path, previewPath, isPlayableMedia, preload])
 
   if (seenPaths.has(path)) {
     return path

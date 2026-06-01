@@ -1,14 +1,13 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/chat1/blocking.avdl
 
 package chat1
 
 import (
 	"context"
-	"time"
-
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type BlockConversationsArg struct {
@@ -26,11 +25,11 @@ func BlockingProtocol(i BlockingInterface) rpc.Protocol {
 		Name: "chat.1.blocking",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"blockConversations": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BlockConversationsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]BlockConversationsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]BlockConversationsArg)(nil), args)
@@ -49,6 +48,6 @@ type BlockingClient struct {
 }
 
 func (c BlockingClient) BlockConversations(ctx context.Context, __arg BlockConversationsArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.blocking.blockConversations", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.blocking.blockConversations", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

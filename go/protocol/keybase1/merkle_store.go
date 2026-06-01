@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/merkle_store.avdl
 
 package keybase1
@@ -43,7 +43,8 @@ func (o MerkleStoreEntry) DeepCopy() MerkleStoreEntry {
 	}
 }
 
-type Merkle_storeInterface interface{}
+type Merkle_storeInterface interface {
+}
 
 func Merkle_storeProtocol(i Merkle_storeInterface) rpc.Protocol {
 	return rpc.Protocol{

@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/usersearch.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type APIUserServiceID string
@@ -305,11 +304,11 @@ func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
 		Name: "keybase.1.userSearch",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getNonUserDetails": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetNonUserDetailsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetNonUserDetailsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetNonUserDetailsArg)(nil), args)
@@ -320,11 +319,11 @@ func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
 				},
 			},
 			"userSearch": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UserSearchArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UserSearchArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UserSearchArg)(nil), args)
@@ -335,11 +334,11 @@ func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
 				},
 			},
 			"bulkEmailOrPhoneSearch": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]BulkEmailOrPhoneSearchArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]BulkEmailOrPhoneSearchArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]BulkEmailOrPhoneSearchArg)(nil), args)
@@ -358,16 +357,16 @@ type UserSearchClient struct {
 }
 
 func (c UserSearchClient) GetNonUserDetails(ctx context.Context, __arg GetNonUserDetailsArg) (res NonUserDetails, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.userSearch.getNonUserDetails", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.userSearch.getNonUserDetails", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserSearchClient) UserSearch(ctx context.Context, __arg UserSearchArg) (res []APIUserSearchResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearch", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserSearchClient) BulkEmailOrPhoneSearch(ctx context.Context, __arg BulkEmailOrPhoneSearchArg) (res []EmailOrPhoneNumberSearchResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.userSearch.bulkEmailOrPhoneSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.userSearch.bulkEmailOrPhoneSearch", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

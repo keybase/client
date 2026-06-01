@@ -8,7 +8,7 @@ import {useOrdinal} from '@/chat/conversation/messages/ids-context'
 import captialize from 'lodash/capitalize'
 import * as Kb from '@/common-adapters'
 import type {StyleOverride} from '@/common-adapters/markdown'
-import {getEditStyle, ShowToastAfterSaving} from './shared'
+import {getEditStyle, messageAttachmentHasProgress, ShowToastAfterSaving} from './shared'
 import {useFSState} from '@/constants/fs'
 
 type OwnProps = {showPopup: () => void}
@@ -102,8 +102,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
       : transferState === 'downloading'
         ? Kb.Styles.globalColors.blue
         : ''
-  const hasProgress =
-    !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'
+  const hasProgress = messageAttachmentHasProgress(transferState)
 
   const errorMsg = transferErrMsg || ''
   const fileName = _fileName ?? ''

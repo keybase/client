@@ -5,9 +5,11 @@ package keybase
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net"
 	"os"
 	"path/filepath"
@@ -85,14 +87,26 @@ func log(format string, args ...interface{}) {
 	}
 }
 
+// CurrentUID returns the UID of the currently active account, or empty string if not logged in.
+// Used by the Android push listener to gate notification actions on the active account.
+func CurrentUID() string {
+	if kbCtx == nil {
+		return ""
+	}
+	return kbCtx.Env.GetUID().String()
+}
+
 type PushNotifier interface {
-	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
+	LocalNotification(ident string, title string, msg string, badgeCount int, soundName string, convID string, typ string, uid string)
 	DisplayChatNotification(notification *ChatNotification)
 }
 
 type NativeVideoHelper interface {
 	Thumbnail(filename string) []byte
 	Duration(filename string) int
+	// AudioAmps returns IEEE 754 float32 samples encoded as little-endian bytes,
+	// representing RMS amplitude values in [0,1] for waveform visualization.
+	AudioAmps(filename string) []byte
 }
 
 // ShareIntentDonator is implemented by the native iOS layer to donate INSendMessageIntent
@@ -178,6 +192,19 @@ func newVideoHelper(nvh NativeVideoHelper) videoHelper {
 
 func (v videoHelper) ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error) {
 	return v.nvh.Thumbnail(filename), v.nvh.Duration(filename), nil
+}
+
+func (v videoHelper) AudioAmps(ctx context.Context, filename string) ([]float64, error) {
+	data := v.nvh.AudioAmps(filename)
+	if len(data) == 0 || len(data)%4 != 0 {
+		return nil, nil
+	}
+	amps := make([]float64, len(data)/4)
+	for i := range amps {
+		bits := binary.LittleEndian.Uint32(data[i*4:])
+		amps[i] = float64(math.Float32frombits(bits))
+	}
+	return amps, nil
 }
 
 type ExternalDNSNSFetcher interface {
@@ -304,6 +331,8 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	kbCtx = libkb.NewGlobalContext()
 	kbCtx.Init()
 	kbCtx.SetProofServices(externals.NewProofServices(kbCtx))
+	kbCtx.AddLoginHook(accountCacheHook{})
+	kbCtx.AddLogoutHook(accountCacheHook{}, "notifications/accountCache")
 
 	var suffix string
 	if isIPad {
@@ -730,9 +759,9 @@ func pushPendingMessageFailure(obrs []chat1.OutboxRecord, pusher PushNotifier) {
 	for _, obr := range obrs {
 		if topicType := obr.Msg.ClientHeader.Conv.TopicType; obr.Msg.IsBadgableType() && topicType == chat1.TopicType_CHAT {
 			kbCtx.Log.Debug("pushPendingMessageFailure: pushing convID: %s", obr.ConvID)
-			pusher.LocalNotification("failedpending",
+			pusher.LocalNotification("failedpending", "",
 				"Heads up! Your message hasn't sent yet, tap here to retry.",
-				-1, "default", obr.ConvID.String(), "chat.failedpending")
+				-1, "default", obr.ConvID.String(), "chat.failedpending", "")
 			return
 		}
 	}

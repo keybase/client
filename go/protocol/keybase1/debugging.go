@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/debugging.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type FirstStepResult struct {
@@ -52,11 +51,11 @@ func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
 		Name: "keybase.1.debugging",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"firstStep": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]FirstStepArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]FirstStepArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]FirstStepArg)(nil), args)
@@ -67,11 +66,11 @@ func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
 				},
 			},
 			"secondStep": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SecondStepArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SecondStepArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SecondStepArg)(nil), args)
@@ -82,11 +81,11 @@ func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
 				},
 			},
 			"increment": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]IncrementArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]IncrementArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]IncrementArg)(nil), args)
@@ -97,11 +96,11 @@ func DebuggingProtocol(i DebuggingInterface) rpc.Protocol {
 				},
 			},
 			"script": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ScriptArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ScriptArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ScriptArg)(nil), args)
@@ -120,21 +119,21 @@ type DebuggingClient struct {
 }
 
 func (c DebuggingClient) FirstStep(ctx context.Context, __arg FirstStepArg) (res FirstStepResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.debugging.firstStep", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.debugging.firstStep", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c DebuggingClient) SecondStep(ctx context.Context, __arg SecondStepArg) (res int, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.debugging.secondStep", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.debugging.secondStep", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c DebuggingClient) Increment(ctx context.Context, __arg IncrementArg) (res int, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.debugging.increment", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.debugging.increment", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c DebuggingClient) Script(ctx context.Context, __arg ScriptArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.debugging.script", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.debugging.script", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

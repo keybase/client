@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/fs.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type File struct {
@@ -55,11 +54,11 @@ func FsProtocol(i FsInterface) rpc.Protocol {
 		Name: "keybase.1.fs",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"List": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]ListArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]ListArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]ListArg)(nil), args)
@@ -79,6 +78,6 @@ type FsClient struct {
 
 // List files in a path. Implemented by KBFS service.
 func (c FsClient) List(ctx context.Context, __arg ListArg) (res ListResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.fs.List", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.fs.List", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

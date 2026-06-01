@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/incoming-share.avdl
 
 package keybase1
@@ -6,9 +6,8 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type IncomingShareType int
@@ -137,9 +136,11 @@ func (o IncomingSharePreference) DeepCopy() IncomingSharePreference {
 	}
 }
 
-type GetIncomingShareItemsArg struct{}
+type GetIncomingShareItemsArg struct {
+}
 
-type GetPreferenceArg struct{}
+type GetPreferenceArg struct {
+}
 
 type SetPreferenceArg struct {
 	Preference IncomingSharePreference `codec:"preference" json:"preference"`
@@ -156,31 +157,31 @@ func IncomingShareProtocol(i IncomingShareInterface) rpc.Protocol {
 		Name: "keybase.1.incomingShare",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getIncomingShareItems": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetIncomingShareItemsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetIncomingShareItems(ctx)
 					return
 				},
 			},
 			"getPreference": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetPreferenceArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					ret, err = i.GetPreference(ctx)
 					return
 				},
 			},
 			"setPreference": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetPreferenceArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetPreferenceArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetPreferenceArg)(nil), args)
@@ -199,17 +200,17 @@ type IncomingShareClient struct {
 }
 
 func (c IncomingShareClient) GetIncomingShareItems(ctx context.Context) (res []IncomingShareItem, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.incomingShare.getIncomingShareItems", []interface{}{GetIncomingShareItemsArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.incomingShare.getIncomingShareItems", []any{GetIncomingShareItemsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c IncomingShareClient) GetPreference(ctx context.Context) (res IncomingSharePreference, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.incomingShare.getPreference", []interface{}{GetPreferenceArg{}}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.incomingShare.getPreference", []any{GetPreferenceArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c IncomingShareClient) SetPreference(ctx context.Context, preference IncomingSharePreference) (err error) {
 	__arg := SetPreferenceArg{Preference: preference}
-	err = c.Cli.Call(ctx, "keybase.1.incomingShare.setPreference", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.incomingShare.setPreference", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

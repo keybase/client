@@ -1877,6 +1877,7 @@ export const useChatState = Z.createZustand<State>((set, get) => {
         }
       } else {
         // logger.info('Got push state with some exploding modes')
+        const activeConvs = new Set<string>()
         explodingItems.forEach(i => {
           try {
             const {category, body} = i.item
@@ -1888,11 +1889,18 @@ export const useChatState = Z.createZustand<State>((set, get) => {
             }
             const _conversationIDKey = category.substring(Common.explodingModeGregorKeyPrefix.length)
             const conversationIDKey = T.Chat.stringToConversationIDKey(_conversationIDKey)
+            activeConvs.add(conversationIDKey)
             storeRegistry.getConvoState(conversationIDKey).dispatch.setExplodingMode(seconds, true)
           } catch (e) {
             logger.info('Error parsing exploding' + e)
           }
         })
+        // Clear any convos whose exploding mode was removed from gregor state
+        for (const [convKey, s] of chatStores) {
+          if (!activeConvs.has(convKey) && s.getState().explodingMode !== 0) {
+            s.getState().dispatch.setExplodingMode(0, true)
+          }
+        }
       }
 
       set(s => {

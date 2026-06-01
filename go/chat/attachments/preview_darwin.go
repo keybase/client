@@ -12,6 +12,7 @@ package attachments
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>
 #include <ImageIO/ImageIO.h>
+#include <math.h>
 #include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #if TARGET_OS_IPHONE
 #include <MobileCoreServices/MobileCoreServices.h>
@@ -30,6 +31,11 @@ typedef struct {
 	const void* imageData;
 	int imageLength;
 } ImageConversionResult;
+
+typedef struct {
+	float* data;
+	int length;
+} AudioAmpsResult;
 
 VideoPreviewResult MakeVideoThumbnail(const char* inFilename) {
 	VideoPreviewResult result = {NULL, 0, 0};
@@ -68,6 +74,118 @@ VideoPreviewResult MakeVideoThumbnail(const char* inFilename) {
 		CGImageRelease(image);
 	}
 
+	return result;
+}
+
+// GetAudioAmplitudes reads PCM samples from an audio file via AVAssetReader and
+// returns numSamples RMS amplitude values in [0,1]. The caller must free result.data.
+AudioAmpsResult GetAudioAmplitudes(const char* inFilename, int numSamples) {
+	AudioAmpsResult result = {NULL, 0};
+	if (numSamples <= 0) return result;
+
+	NSString* filename = [NSString stringWithUTF8String:inFilename];
+	NSURL* url = [NSURL fileURLWithPath:filename];
+	AVURLAsset* asset = [AVURLAsset URLAssetWithURL:url options:nil];
+
+	NSArray<AVAssetTrack*>* audioTracks = [asset tracksWithMediaType:AVMediaTypeAudio];
+	if (audioTracks.count == 0) return result;
+	AVAssetTrack* audioTrack = audioTracks[0];
+
+	Float64 durationSeconds = CMTimeGetSeconds(asset.duration);
+	if (!(durationSeconds > 0)) return result;
+
+	Float64 sampleRate = 0;
+	for (id formatDescription in audioTrack.formatDescriptions) {
+		CMAudioFormatDescriptionRef desc = (__bridge CMAudioFormatDescriptionRef)formatDescription;
+		const AudioStreamBasicDescription* asbd =
+			CMAudioFormatDescriptionGetStreamBasicDescription(desc);
+		if (asbd && asbd->mSampleRate > 0) {
+			sampleRate = asbd->mSampleRate;
+			break;
+		}
+	}
+	if (sampleRate <= 0) {
+		sampleRate = 44100;
+	}
+	long long totalSamples = llround(durationSeconds * sampleRate);
+	if (totalSamples < numSamples) {
+		totalSamples = numSamples;
+	}
+
+	NSError* error = nil;
+	AVAssetReader* reader = [AVAssetReader assetReaderWithAsset:asset error:&error];
+	if (!reader || error) return result;
+
+	NSDictionary* outputSettings = @{
+		AVFormatIDKey:              @(kAudioFormatLinearPCM),
+		AVLinearPCMBitDepthKey:     @32,
+		AVLinearPCMIsFloatKey:      @YES,
+		AVLinearPCMIsNonInterleaved: @NO,
+		AVNumberOfChannelsKey:      @1,
+	};
+
+	AVAssetReaderTrackOutput* output = [AVAssetReaderTrackOutput
+		assetReaderTrackOutputWithTrack:audioTrack
+		outputSettings:outputSettings];
+	output.alwaysCopiesSampleData = NO;
+
+	if (![reader canAddOutput:output]) return result;
+	[reader addOutput:output];
+	if (![reader startReading]) return result;
+
+	float* sumSq = (float*)calloc(numSamples, sizeof(float));
+	unsigned int* counts = (unsigned int*)calloc(numSamples, sizeof(unsigned int));
+	if (!sumSq || !counts) {
+		free(sumSq);
+		free(counts);
+		return result;
+	}
+
+	long long sampleIndex = 0;
+	while (reader.status == AVAssetReaderStatusReading) {
+		CMSampleBufferRef sampleBuffer = [output copyNextSampleBuffer];
+		if (!sampleBuffer) break;
+		CMBlockBufferRef blockBuffer = CMSampleBufferGetDataBuffer(sampleBuffer);
+		if (blockBuffer) {
+			size_t length = CMBlockBufferGetDataLength(blockBuffer);
+			if (length >= sizeof(float)) {
+				float* chunk = (float*)malloc(length);
+				if (chunk && CMBlockBufferCopyDataBytes(blockBuffer, 0, length, chunk) == kCMBlockBufferNoErr) {
+					size_t floatCount = length / sizeof(float);
+					for (size_t i = 0; i < floatCount; i++) {
+						int bucket = (int)(((sampleIndex + (long long)i) * numSamples) / totalSamples);
+						if (bucket >= numSamples) {
+							bucket = numSamples - 1;
+						}
+						float s = chunk[i];
+						sumSq[bucket] += s * s;
+						counts[bucket]++;
+					}
+					sampleIndex += (long long)floatCount;
+				}
+				free(chunk);
+			}
+		}
+		CFRelease(sampleBuffer);
+	}
+
+	float* amps = (float*)calloc(numSamples, sizeof(float));
+	if (!amps) {
+		free(sumSq);
+		free(counts);
+		return result;
+	}
+
+	for (int i = 0; i < numSamples; i++) {
+		if (counts[i] > 0) {
+			amps[i] = sqrtf(sumSq[i] / (float)counts[i]);
+		}
+	}
+	free(sumSq);
+	free(counts);
+
+	result.data = amps;
+	result.length = numSamples;
 	return result;
 }
 
@@ -121,6 +239,22 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 )
 
+func getAudioAmps(basename string) []float64 {
+	cbasename := C.CString(basename)
+	defer C.free(unsafe.Pointer(cbasename))
+	result := C.GetAudioAmplitudes(cbasename, C.int(audioAmpsCount))
+	if result.length == 0 || result.data == nil {
+		return nil
+	}
+	defer C.free(unsafe.Pointer(result.data))
+	amps := make([]float64, int(result.length))
+	cData := (*[1 << 20]C.float)(unsafe.Pointer(result.data))[:int(result.length):int(result.length)]
+	for i, v := range cData {
+		amps[i] = float64(v)
+	}
+	return amps
+}
+
 func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	basename string, nvh types.NativeVideoHelper,
 ) (res *PreviewRes, err error) {
@@ -137,6 +271,12 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	}
 	log.Debug(ctx, "previewVideo: length: %d duration: %ds", result.imageLength, duration)
 	if result.imageLength == 0 {
+		// Audio-only files (e.g. M4A) have no video track so no thumbnail, but AVFoundation
+		// can still read their duration. Extract amplitude data for the waveform visualization.
+		if duration > 1 && isAudioExtension(basename) {
+			amps := getAudioAmps(basename)
+			return previewAudio(duration, amps)
+		}
 		return res, errors.New("no data returned from native")
 	}
 	localDat := make([]byte, result.imageLength)

@@ -9,6 +9,7 @@ protocol login {
     FullName fullname;
     boolean hasStoredSecret;
     boolean isCurrent;
+    UID uid;
   }
 
   /**

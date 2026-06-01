@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/emails.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type EmailLookupResult struct {
@@ -107,11 +106,11 @@ func EmailsProtocol(i EmailsInterface) rpc.Protocol {
 		Name: "keybase.1.emails",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"addEmail": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]AddEmailArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]AddEmailArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]AddEmailArg)(nil), args)
@@ -122,11 +121,11 @@ func EmailsProtocol(i EmailsInterface) rpc.Protocol {
 				},
 			},
 			"deleteEmail": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeleteEmailArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeleteEmailArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeleteEmailArg)(nil), args)
@@ -137,11 +136,11 @@ func EmailsProtocol(i EmailsInterface) rpc.Protocol {
 				},
 			},
 			"editEmail": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]EditEmailArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]EditEmailArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]EditEmailArg)(nil), args)
@@ -152,11 +151,11 @@ func EmailsProtocol(i EmailsInterface) rpc.Protocol {
 				},
 			},
 			"setPrimaryEmail": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetPrimaryEmailArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetPrimaryEmailArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetPrimaryEmailArg)(nil), args)
@@ -167,11 +166,11 @@ func EmailsProtocol(i EmailsInterface) rpc.Protocol {
 				},
 			},
 			"sendVerificationEmail": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SendVerificationEmailArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SendVerificationEmailArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SendVerificationEmailArg)(nil), args)
@@ -182,11 +181,11 @@ func EmailsProtocol(i EmailsInterface) rpc.Protocol {
 				},
 			},
 			"setVisibilityEmail": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetVisibilityEmailArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetVisibilityEmailArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetVisibilityEmailArg)(nil), args)
@@ -197,11 +196,11 @@ func EmailsProtocol(i EmailsInterface) rpc.Protocol {
 				},
 			},
 			"setVisibilityAllEmail": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SetVisibilityAllEmailArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SetVisibilityAllEmailArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SetVisibilityAllEmailArg)(nil), args)
@@ -212,11 +211,11 @@ func EmailsProtocol(i EmailsInterface) rpc.Protocol {
 				},
 			},
 			"getEmails": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetEmailsArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetEmailsArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetEmailsArg)(nil), args)
@@ -235,42 +234,42 @@ type EmailsClient struct {
 }
 
 func (c EmailsClient) AddEmail(ctx context.Context, __arg AddEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.addEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.emails.addEmail", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) DeleteEmail(ctx context.Context, __arg DeleteEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.deleteEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.emails.deleteEmail", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) EditEmail(ctx context.Context, __arg EditEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.editEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.emails.editEmail", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) SetPrimaryEmail(ctx context.Context, __arg SetPrimaryEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.setPrimaryEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.emails.setPrimaryEmail", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) SendVerificationEmail(ctx context.Context, __arg SendVerificationEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.sendVerificationEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.emails.sendVerificationEmail", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) SetVisibilityEmail(ctx context.Context, __arg SetVisibilityEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.setVisibilityEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.emails.setVisibilityEmail", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) SetVisibilityAllEmail(ctx context.Context, __arg SetVisibilityAllEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.setVisibilityAllEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.emails.setVisibilityAllEmail", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) GetEmails(ctx context.Context, sessionID int) (res []Email, err error) {
 	__arg := GetEmailsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.emails.getEmails", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.emails.getEmails", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

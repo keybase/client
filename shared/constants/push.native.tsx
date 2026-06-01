@@ -22,6 +22,7 @@ export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 
 const initialStore: Store = {
   hasPermissions: true,
   justSignedUp: false,
+  pendingPushNotification: undefined,
   showPushPrompt: false,
   token: '',
 }
@@ -112,6 +113,11 @@ export const usePushState = Z.createZustand<State>((set, get) => {
         return false
       }
     },
+    clearPendingPushNotification: () => {
+      set(s => {
+        s.pendingPushNotification = undefined
+      })
+    },
     deleteToken: version => {
       const f = async () => {
         const waitKey = 'push:deleteToken'
@@ -141,6 +147,60 @@ export const usePushState = Z.createZustand<State>((set, get) => {
     handlePush: notification => {
       const f = async () => {
         try {
+          const forUid = 'forUid' in notification ? notification.forUid : undefined
+
+          if (forUid) {
+            const currentUid = storeRegistry.getState('current-user').uid
+            if (forUid !== currentUid) {
+              // Only switch accounts if the user explicitly tapped the notification.
+              // Background/silent deliveries (userInteraction=false) must not trigger
+              // a switch — that's what was causing spurious account switches when
+              // foregrounding the app or receiving background pushes.
+              const userInteraction =
+                'userInteraction' in notification
+                  ? (notification as {userInteraction?: boolean}).userInteraction
+                  : false
+              if (!userInteraction) {
+                logger.info('[Push] notification for different account but no userInteraction, skipping')
+                return
+              }
+              const {configuredAccounts, dispatch: configDispatch} = storeRegistry.getState('config')
+              const account = configuredAccounts.find(acc => acc.uid === forUid)
+              if (!account) {
+                logger.info('[Push] notification forUid not in configured accounts yet, waiting to retry')
+                set(s => {
+                  s.pendingPushNotification = notification
+                })
+                return
+              }
+              if (!account.hasStoredSecret) {
+                logger.info('[Push] account has no stored secret, cannot switch')
+                return
+              }
+              // Guard against re-triggering a switch that is already in progress.
+              // applicationDidBecomeActive can re-emit the same notification while the
+              // switch is still running; userSwitching=true is the authoritative signal.
+              if (storeRegistry.getState('config').userSwitching) {
+                logger.info('[Push] switch already in progress for this account, skipping duplicate')
+                return
+              }
+              // Store the notification and trigger an account switch. We do NOT
+              // process the notification here — execution continues once the uid
+              // changes, picked up by the subscriber in
+              // constants/platform-specific/push.native.tsx (initPushListener).
+              logger.info('[Push] switching to account for notification tap')
+              // Set userSwitching=true before pendingPushNotification so there is
+              // no window in which the notification is queued but the guard above
+              // would pass for a concurrent delivery.
+              configDispatch.setUserSwitching(true)
+              set(s => {
+                s.pendingPushNotification = notification
+              })
+              configDispatch.login(account.username, '')
+              return
+            }
+          }
+
           switch (notification.type) {
             case 'chat.readmessage':
               if (notification.badges === 0) {
@@ -155,9 +215,20 @@ export const usePushState = Z.createZustand<State>((set, get) => {
             case 'follow':
               // We only care if the user clicked while in session
               if (notification.userInteraction) {
-                const {username} = notification
-                storeRegistry.getState('profile').dispatch.showUserProfile(username)
+                storeRegistry.getState('profile').dispatch.showUserProfile(notification.username)
               }
+              break
+            case 'device.revoked':
+            case 'device.new':
+              if (notification.userInteraction && storeRegistry.getState('config').loggedIn) {
+                switchTab(Tabs.settingsTab)
+                navUpToScreen('devicesRoot')
+              }
+              break
+            case 'autoreset':
+              // The ResetModal is always mounted and self-shows when autoreset.active
+              // is true (driven by Gregor/badge state sync). The account switch above
+              // is sufficient; no explicit navigation needed.
               break
             case 'chat.extension':
               {
@@ -176,8 +247,7 @@ export const usePushState = Z.createZustand<State>((set, get) => {
           if (__DEV__) {
             console.error(e)
           }
-
-          logger.error('[Push] unhandled!!')
+          logger.error('[Push] unhandled', e)
         }
       }
       ignorePromise(f())
@@ -261,6 +331,11 @@ export const usePushState = Z.createZustand<State>((set, get) => {
       ignorePromise(f())
     },
     resetState: 'default',
+    setPendingPushNotification: (notification: T.Push.PushNotification) => {
+      set(s => {
+        s.pendingPushNotification = notification
+      })
+    },
     setPushToken: (token: string) => {
       set(s => {
         s.token = token

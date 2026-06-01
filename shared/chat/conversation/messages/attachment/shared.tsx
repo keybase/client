@@ -19,6 +19,10 @@ export const maxHeight = 320
 
 export const missingMessage = Chat.makeMessageAttachment()
 
+export const messageAttachmentHasProgress = (transferState: T.Chat.MessageAttachmentTransferState) => {
+  return !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'
+}
+
 export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => {
   const [showingToast, setShowingToast] = React.useState(false)
   const lastTransferStateRef = React.useRef(transferState)
@@ -28,7 +32,8 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
     if (transferState !== lastTransferStateRef.current) {
       // was downloading and now not
       if (
-        (lastTransferStateRef.current === 'mobileSaving' || lastTransferStateRef.current === 'downloading') &&
+        (lastTransferStateRef.current === 'mobileSaving' ||
+          (!C.isMobile && lastTransferStateRef.current === 'downloading')) &&
         !transferState
       ) {
         setShowingToast(true)
@@ -67,87 +72,89 @@ export const ShowToastAfterSaving = ({transferState, toastTargetRef}: Props) => 
 export const TransferIcon = (p: {style: Kb.Styles.StylesCrossPlatform}) => {
   const {style} = p
   const ordinal = useOrdinal()
-  const state = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    if (m?.type !== 'attachment') {
-      return 'none'
-    }
+  const {attachmentType, downloadPath, state} = Chat.useChatContext(
+    C.useShallow(s => {
+      const m = s.messageMap.get(ordinal)
+      if (m?.type !== 'attachment') {
+        return {attachmentType: 'file' as const, downloadPath: '', state: 'none' as const}
+      }
 
-    if (m.downloadPath?.length) {
-      return 'doneWithPath'
-    }
-    if (m.transferProgress === 1) {
-      return 'done'
-    }
-    switch (m.transferState) {
-      case 'downloading':
-      case 'mobileSaving':
-        return 'downloading'
-      default:
-        return 'none'
-    }
-  })
+      if (m.downloadPath?.length) {
+        return {attachmentType: m.attachmentType, downloadPath: m.downloadPath, state: 'doneWithPath' as const}
+      }
+      if (m.transferProgress === 1) {
+        return {attachmentType: m.attachmentType, downloadPath: m.downloadPath, state: 'done' as const}
+      }
+      switch (m.transferState) {
+        case 'downloading':
+        case 'mobileSaving':
+          return {attachmentType: m.attachmentType, downloadPath: m.downloadPath, state: 'downloading' as const}
+        default:
+          return {attachmentType: m.attachmentType, downloadPath: m.downloadPath, state: 'none' as const}
+      }
+    })
+  )
 
-  const downloadPath = Chat.useChatContext(s => {
-    const m = s.messageMap.get(ordinal)
-    if (m?.type === 'attachment') {
-      return m.downloadPath
-    }
-    return ''
-  })
-
-  const download = Chat.useChatContext(s =>
-    C.isMobile ? s.dispatch.messageAttachmentNativeSave : s.dispatch.attachmentDownload
+  const {attachmentDownload, messageAttachmentNativeSave, messageAttachmentNativeShare} = Chat.useChatContext(
+    s => s.dispatch
   )
   const onDownload = React.useCallback(() => {
-    download(ordinal)
-  }, [ordinal, download])
+    if (C.isMobile) {
+      if (attachmentType === 'audio') {
+        messageAttachmentNativeShare(ordinal)
+      } else {
+        messageAttachmentNativeSave(ordinal)
+      }
+    } else {
+      attachmentDownload(ordinal)
+    }
+  }, [ordinal, attachmentType, messageAttachmentNativeShare, messageAttachmentNativeSave, attachmentDownload])
 
   const openFinder = useFSState(s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop)
   const onFinder = React.useCallback(() => {
     downloadPath && openFinder?.(downloadPath)
   }, [openFinder, downloadPath])
+  const isMobileAudio = C.isMobile && attachmentType === 'audio'
+  const mobileStyle = Kb.Styles.collapseStyles([style, {left: -48, opacity: 0.6}])
+  const renderIcon = (
+    type: Kb.IconType,
+    color: string,
+    hint?: string,
+    onClick?: () => void,
+    useMobileStyle?: boolean
+  ) => (
+    <Kb.Icon
+      className="hover-opacity-full"
+      type={type}
+      color={color}
+      fontSize={20}
+      hint={hint}
+      onClick={onClick}
+      style={useMobileStyle ? mobileStyle : style}
+      padding={useMobileStyle ? 'small' : undefined}
+    />
+  )
 
   switch (state) {
     case 'doneWithPath':
-      return Kb.Styles.isMobile ? null : (
-        <Kb.Icon
-          className="hover-opacity-full"
-          type="iconfont-finder"
-          color={Kb.Styles.globalColors.blue}
-          fontSize={20}
-          hint="Open folder"
-          onClick={onFinder}
-          style={style}
-        />
-      )
+      if (isMobileAudio) {
+        return renderIcon('iconfont-share', Kb.Styles.globalColors.blue, 'Share', onDownload, true)
+      }
+      if (Kb.Styles.isMobile) {
+        return null
+      }
+      return renderIcon('iconfont-finder', Kb.Styles.globalColors.blue, 'Open folder', onFinder)
     case 'done':
       return null
     case 'downloading':
-      return (
-        <Kb.Icon
-          className="hover-opacity-full"
-          type="iconfont-download"
-          color={Kb.Styles.globalColors.green}
-          fontSize={20}
-          hint="Downloading"
-          style={style}
-        />
-      )
+      return renderIcon('iconfont-download', Kb.Styles.globalColors.green, 'Downloading')
     case 'none':
-      return (
-        <Kb.Icon
-          className="hover-opacity-full"
-          type="iconfont-download"
-          color={Kb.Styles.globalColors.blue}
-          fontSize={20}
-          onClick={onDownload}
-          // violates encapsulation but how this works with padding is annoying currently
-          style={
-            Kb.Styles.isMobile ? Kb.Styles.collapseStyles([style, {left: -48, opacity: 0.6}]) : undefined
-          }
-          padding={Kb.Styles.isMobile ? 'small' : undefined}
-        />
+      return renderIcon(
+        isMobileAudio ? 'iconfont-share' : 'iconfont-download',
+        Kb.Styles.globalColors.blue,
+        undefined,
+        onDownload,
+        Kb.Styles.isMobile
       )
   }
 }
@@ -284,10 +291,10 @@ export const useAttachmentState = () => {
       C.useShallow(s => {
         const m = s.messageMap.get(ordinal)
         const message = m?.type === 'attachment' ? m : missingMessage
-        const {isCollapsed, title, fileName: fileNameRaw, transferProgress} = message
+        const {decoratedText, isCollapsed, title, fileName: fileNameRaw, transferProgress} = message
         const {deviceType, inlineVideoPlayable, transferState, submitState} = message
         const isEditing = s.editing === ordinal
-        const showTitle = !!title
+        const showTitle = !!(decoratedText?.stringValue() ?? title)
         const fileName =
           deviceType === 'desktop' ? fileNameRaw : `${inlineVideoPlayable ? 'Video' : 'Image'} from mobile`
 

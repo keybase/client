@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/appstate.avdl
 
 package keybase1
@@ -6,9 +6,8 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type MobileAppState int
@@ -96,11 +95,11 @@ func AppStateProtocol(i AppStateInterface) rpc.Protocol {
 		Name: "keybase.1.appState",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"updateMobileNetState": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UpdateMobileNetStateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UpdateMobileNetStateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UpdateMobileNetStateArg)(nil), args)
@@ -111,11 +110,11 @@ func AppStateProtocol(i AppStateInterface) rpc.Protocol {
 				},
 			},
 			"powerMonitorEvent": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PowerMonitorEventArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PowerMonitorEventArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PowerMonitorEventArg)(nil), args)
@@ -135,12 +134,12 @@ type AppStateClient struct {
 
 func (c AppStateClient) UpdateMobileNetState(ctx context.Context, state string) (err error) {
 	__arg := UpdateMobileNetStateArg{State: state}
-	err = c.Cli.Call(ctx, "keybase.1.appState.updateMobileNetState", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.appState.updateMobileNetState", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AppStateClient) PowerMonitorEvent(ctx context.Context, event string) (err error) {
 	__arg := PowerMonitorEventArg{Event: event}
-	err = c.Cli.Call(ctx, "keybase.1.appState.powerMonitorEvent", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.appState.powerMonitorEvent", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

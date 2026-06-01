@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/kbgitkbfs1/disk_block_cache.avdl
 
 package kbgitkbfs1
@@ -6,9 +6,8 @@ package kbgitkbfs1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type PrefetchStatus int
@@ -124,11 +123,11 @@ func DiskBlockCacheProtocol(i DiskBlockCacheInterface) rpc.Protocol {
 		Name: "kbgitkbfs.1.DiskBlockCache",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"GetBlock": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetBlockArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetBlockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetBlockArg)(nil), args)
@@ -139,11 +138,11 @@ func DiskBlockCacheProtocol(i DiskBlockCacheInterface) rpc.Protocol {
 				},
 			},
 			"GetPrefetchStatus": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetPrefetchStatusArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetPrefetchStatusArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetPrefetchStatusArg)(nil), args)
@@ -154,11 +153,11 @@ func DiskBlockCacheProtocol(i DiskBlockCacheInterface) rpc.Protocol {
 				},
 			},
 			"PutBlock": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PutBlockArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PutBlockArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PutBlockArg)(nil), args)
@@ -169,11 +168,11 @@ func DiskBlockCacheProtocol(i DiskBlockCacheInterface) rpc.Protocol {
 				},
 			},
 			"DeleteBlocks": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DeleteBlocksArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DeleteBlocksArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DeleteBlocksArg)(nil), args)
@@ -184,11 +183,11 @@ func DiskBlockCacheProtocol(i DiskBlockCacheInterface) rpc.Protocol {
 				},
 			},
 			"UpdateBlockMetadata": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UpdateBlockMetadataArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UpdateBlockMetadataArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UpdateBlockMetadataArg)(nil), args)
@@ -208,31 +207,31 @@ type DiskBlockCacheClient struct {
 
 // GetBlock gets a block from the disk cache.
 func (c DiskBlockCacheClient) GetBlock(ctx context.Context, __arg GetBlockArg) (res GetBlockRes, err error) {
-	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.GetBlock", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.GetBlock", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // GetPrefetchStatus gets the prefetch status from the disk cache.
 func (c DiskBlockCacheClient) GetPrefetchStatus(ctx context.Context, __arg GetPrefetchStatusArg) (res PrefetchStatus, err error) {
-	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.GetPrefetchStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.GetPrefetchStatus", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // PutBlock puts a block into the disk cache.
 func (c DiskBlockCacheClient) PutBlock(ctx context.Context, __arg PutBlockArg) (err error) {
-	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.PutBlock", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.PutBlock", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // DeleteBlocks deletes a set of blocks from the disk cache.
 func (c DiskBlockCacheClient) DeleteBlocks(ctx context.Context, blockIDs [][]byte) (res DeleteBlocksRes, err error) {
 	__arg := DeleteBlocksArg{BlockIDs: blockIDs}
-	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.DeleteBlocks", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.DeleteBlocks", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // UpdateBlockMetadata updates the metadata for a block in the disk cache.
 func (c DiskBlockCacheClient) UpdateBlockMetadata(ctx context.Context, __arg UpdateBlockMetadataArg) (err error) {
-	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.UpdateBlockMetadata", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.UpdateBlockMetadata", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

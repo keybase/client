@@ -78,9 +78,18 @@ const useSyncInput = (p: UseSyncInputProps) => {
     setFilter('')
   }, [setActive, setFilter])
 
+  // activeRef always holds the latest value of active so the debounced checkTrigger
+  // timeout reads the current state rather than a stale closure. Without this, rapid
+  // typing after a slash command can cancel the checkTrigger that would reset active,
+  // leaving active='commands' when the timeout finally fires over new text.
+  const activeRef = React.useRef(active)
+  React.useLayoutEffect(() => {
+    activeRef.current = active
+  }, [active])
+
   const getWordAtCursor = React.useCallback(() => {
     if (inputRef.current) {
-      const useSpaces = active === 'commands'
+      const useSpaces = activeRef.current === 'commands'
       const input = inputRef.current
       const selection = input.getSelection()
       const text = lastTextRef.current
@@ -114,7 +123,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
       return {position, word}
     }
     return null
-  }, [inputRef, active, lastTextRef])
+  }, [inputRef, activeRef, lastTextRef])
 
   const triggerIDRef = React.useRef<NodeJS.Timeout>(undefined)
   const checkTrigger = React.useCallback(() => {
@@ -134,8 +143,8 @@ const useSyncInput = (p: UseSyncInputProps) => {
         setInactive()
         return
       }
-      if (active) {
-        const activeMarker = suggestorToMarker[active]
+      if (activeRef.current) {
+        const activeMarker = suggestorToMarker[activeRef.current]
         const matchInfo = matchesMarker(word, activeMarker)
         if (!matchInfo.matches) {
           // not active anymore
@@ -155,7 +164,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
         }
       }
     }, 1)
-  }, [getWordAtCursor, triggerIDRef, setActive, setFilter, setInactive, active, inputRef])
+  }, [getWordAtCursor, triggerIDRef, setActive, setFilter, setInactive, activeRef, inputRef])
 
   React.useEffect(() => {
     return () => {
@@ -165,6 +174,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
 
   const triggerTransform = React.useCallback(
     function (maybeValue: SelectedType | undefined, final = true) {
+      const active = activeRef.current
       if (!inputRef.current || !active) {
         return
       }
@@ -208,7 +218,7 @@ const useSyncInput = (p: UseSyncInputProps) => {
       setLastText(transformedText.text)
       input.transformText(() => transformedText, final)
     },
-    [active, inputRef, getWordAtCursor, selectedItemRef, setLastText, lastTextRef]
+    [activeRef, inputRef, getWordAtCursor, selectedItemRef, setLastText, lastTextRef]
   )
 
   return {

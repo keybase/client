@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/saltpack_ui.avdl
 
 package keybase1
@@ -6,9 +6,8 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type SaltpackSenderType int
@@ -102,11 +101,11 @@ func SaltpackUiProtocol(i SaltpackUiInterface) rpc.Protocol {
 		Name: "keybase.1.saltpackUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"saltpackPromptForDecrypt": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackPromptForDecryptArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackPromptForDecryptArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackPromptForDecryptArg)(nil), args)
@@ -117,11 +116,11 @@ func SaltpackUiProtocol(i SaltpackUiInterface) rpc.Protocol {
 				},
 			},
 			"saltpackVerifySuccess": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackVerifySuccessArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackVerifySuccessArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackVerifySuccessArg)(nil), args)
@@ -132,11 +131,11 @@ func SaltpackUiProtocol(i SaltpackUiInterface) rpc.Protocol {
 				},
 			},
 			"saltpackVerifyBadSender": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SaltpackVerifyBadSenderArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SaltpackVerifyBadSenderArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SaltpackVerifyBadSenderArg)(nil), args)
@@ -155,16 +154,16 @@ type SaltpackUiClient struct {
 }
 
 func (c SaltpackUiClient) SaltpackPromptForDecrypt(ctx context.Context, __arg SaltpackPromptForDecryptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackPromptForDecrypt", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackPromptForDecrypt", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackUiClient) SaltpackVerifySuccess(ctx context.Context, __arg SaltpackVerifySuccessArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackVerifySuccess", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackVerifySuccess", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackUiClient) SaltpackVerifyBadSender(ctx context.Context, __arg SaltpackVerifyBadSenderArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackVerifyBadSender", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackVerifyBadSender", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

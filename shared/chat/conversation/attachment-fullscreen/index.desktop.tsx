@@ -34,7 +34,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const data = useData(p.ordinal)
   const {message, ordinal, path, title, progress, previewPath} = data
   const {progressLabel, onNextAttachment, onPreviousAttachment, onClose} = data
-  const {onDownloadAttachment, onShowInFinder, isVideo} = data
+  const {onDownloadAttachment, onShowInFinder, isPlayableMedia} = data
   const {fullWidth, fullHeight} = data
 
   const [isZoomed, setIsZoomed] = React.useState(false)
@@ -49,7 +49,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
     img.onerror = onError
   }, [])
 
-  const imgSrc = usePreviewFallback(path, previewPath, isVideo, data.showPreview, preload)
+  const imgSrc = usePreviewFallback(path, previewPath, isPlayableMedia, data.showPreview, preload)
 
   const forceDims = React.useMemo(() => {
     return fullHeight && fullWidth ? {height: fullHeight, width: fullWidth} : undefined
@@ -108,7 +108,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
                 style={Kb.Styles.globalStyles.flexGrow}
                 key={path}
               >
-                {isVideo ? (
+                {isPlayableMedia ? (
                   <video
                     autoPlay={true}
                     style={Kb.Styles.castStyleDesktop(styles.videoFit)}

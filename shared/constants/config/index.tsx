@@ -245,8 +245,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     set(s => {
       s.gregorReachable = r
     })
-    // Re-get info about our account if you log in/we're done handshaking/became reachable
-    if (r === T.RPCGen.Reachable.yes) {
+    // Re-get info about our account if you log in/we're done handshaking/became reachable.
+    // Skip during an account switch — the in-flight login will trigger its own bootstrap once
+    // it completes, and a reachability bootstrap here could return loggedIn=true with an empty
+    // uid (service session not yet established), which would prematurely clear userSwitching and
+    // unblock the configuredAccounts subscriber into firing a spurious second switch.
+    if (r === T.RPCGen.Reachable.yes && !get().userSwitching) {
       // not in waiting state
       if (storeRegistry.getState('daemon').handshakeWaiters.size === 0) {
         ignorePromise(storeRegistry.getState('daemon').dispatch.loadDaemonBootstrapStatus())
@@ -1026,7 +1030,21 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           ignorePromise(f())
         }
       } else {
+        // During an account switch the pending push notification must survive the
+        // store reset so that it can be replayed once the new account's uid is set.
+        const {userSwitching} = get()
+        const pendingPush = userSwitching
+          ? storeRegistry.getState('push').pendingPushNotification
+          : undefined
         Z.resetAllStores()
+        if (pendingPush) {
+          storeRegistry.getState('push').dispatch.setPendingPushNotification(pendingPush)
+          // Restore userSwitching=true so the configuredAccounts subscriber in
+          // push.native.tsx doesn't fire and trigger a second login() call before
+          // the new account's uid is set. Cleared in the current-user subscriber
+          // once navigation completes.
+          storeRegistry.getState('config').dispatch.setUserSwitching(true)
+        }
       }
 
       if (loggedIn) {
@@ -1041,9 +1059,16 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.loginError = error
       })
-      // On login error, turn off the user switching flag, so that the login screen is not
-      // hidden and the user can see and respond to the error.
-      get().dispatch.setUserSwitching(false)
+      // On login error, turn off the user switching flag so the login screen is not hidden,
+      // and clear any pending push notification — the switch failed so there's nothing to replay.
+      // Only do this when there is an actual error; login() calls setLoginError() with no
+      // argument at the start to clear a previous error, and those side effects must not fire
+      // then — they would clobber the userSwitching flag and pendingPushNotification that
+      // were set just before login() was called for a push-notification account switch.
+      if (error) {
+        get().dispatch.setUserSwitching(false)
+        storeRegistry.getState('push').dispatch.clearPendingPushNotification()
+      }
     },
     setMobileAppState: nextAppState => {
       if (get().mobileAppState === nextAppState) return

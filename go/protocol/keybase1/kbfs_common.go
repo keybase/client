@@ -1,11 +1,10 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/kbfs_common.avdl
 
 package keybase1
 
 import (
 	"fmt"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -367,7 +366,8 @@ func (o FolderSyncStatus) DeepCopy() FolderSyncStatus {
 	}
 }
 
-type KbfsCommonInterface interface{}
+type KbfsCommonInterface interface {
+}
 
 func KbfsCommonProtocol(i KbfsCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

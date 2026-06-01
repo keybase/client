@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/kex2provisionee.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type PassphraseStream struct {
@@ -67,11 +66,11 @@ func Kex2ProvisioneeProtocol(i Kex2ProvisioneeInterface) rpc.Protocol {
 		Name: "keybase.1.Kex2Provisionee",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"hello": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]HelloArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]HelloArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]HelloArg)(nil), args)
@@ -82,11 +81,11 @@ func Kex2ProvisioneeProtocol(i Kex2ProvisioneeInterface) rpc.Protocol {
 				},
 			},
 			"didCounterSign": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]DidCounterSignArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]DidCounterSignArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]DidCounterSignArg)(nil), args)
@@ -105,12 +104,12 @@ type Kex2ProvisioneeClient struct {
 }
 
 func (c Kex2ProvisioneeClient) Hello(ctx context.Context, __arg HelloArg) (res HelloRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.Kex2Provisionee.hello", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.Kex2Provisionee.hello", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c Kex2ProvisioneeClient) DidCounterSign(ctx context.Context, sig []byte) (err error) {
 	__arg := DidCounterSignArg{Sig: sig}
-	err = c.Cli.Call(ctx, "keybase.1.Kex2Provisionee.didCounterSign", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.Kex2Provisionee.didCounterSign", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }

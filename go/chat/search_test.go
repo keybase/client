@@ -243,7 +243,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 
 		// drain the cbs, 8 hits and 4 dones
 		timeout := 20 * time.Second
-		for i := 0; i < 8+4; i++ {
+		for range 8 + 4 {
 			select {
 			case <-chatUI.SearchHitCb:
 			case <-chatUI.SearchDoneCb:
@@ -316,7 +316,7 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		query = "hi"
 		matches := []chat1.ChatSearchMatch{}
 		startIndex := 0
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			matches = append(matches, chat1.ChatSearchMatch{
 				StartIndex: startIndex,
 				EndIndex:   startIndex + 2,
@@ -958,7 +958,7 @@ func TestChatSearchInbox(t *testing.T) {
 		indexer1.SetSyncLoopCh(syncLoopCh)
 		indexer1.StartSyncLoop()
 		waitForFail := func() bool {
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				indexer1.CancelSync(ctx)
 				select {
 				case <-time.After(2 * time.Second):

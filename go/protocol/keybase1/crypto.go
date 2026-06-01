@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/crypto.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type ED25519PublicKey [32]byte
@@ -149,11 +148,11 @@ func CryptoProtocol(i CryptoInterface) rpc.Protocol {
 		Name: "keybase.1.crypto",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"signED25519": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SignED25519Arg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SignED25519Arg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SignED25519Arg)(nil), args)
@@ -164,11 +163,11 @@ func CryptoProtocol(i CryptoInterface) rpc.Protocol {
 				},
 			},
 			"signED25519ForKBFS": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SignED25519ForKBFSArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SignED25519ForKBFSArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SignED25519ForKBFSArg)(nil), args)
@@ -179,11 +178,11 @@ func CryptoProtocol(i CryptoInterface) rpc.Protocol {
 				},
 			},
 			"signToString": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SignToStringArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SignToStringArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SignToStringArg)(nil), args)
@@ -194,11 +193,11 @@ func CryptoProtocol(i CryptoInterface) rpc.Protocol {
 				},
 			},
 			"unboxBytes32": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UnboxBytes32Arg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UnboxBytes32Arg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UnboxBytes32Arg)(nil), args)
@@ -209,11 +208,11 @@ func CryptoProtocol(i CryptoInterface) rpc.Protocol {
 				},
 			},
 			"unboxBytes32Any": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]UnboxBytes32AnyArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]UnboxBytes32AnyArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]UnboxBytes32AnyArg)(nil), args)
@@ -237,19 +236,19 @@ type CryptoClient struct {
 // is used as part of the SecretEntryArg object passed into
 // secretUi.getSecret().
 func (c CryptoClient) SignED25519(ctx context.Context, __arg SignED25519Arg) (res ED25519SignatureInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.crypto.signED25519", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.crypto.signED25519", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Same as the above except a KBFS-specific prefix is added to the payload to be signed.
 func (c CryptoClient) SignED25519ForKBFS(ctx context.Context, __arg SignED25519ForKBFSArg) (res ED25519SignatureInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.crypto.signED25519ForKBFS", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.crypto.signED25519ForKBFS", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Same as the above except the full marshaled and encoded NaclSigInfo.
 func (c CryptoClient) SignToString(ctx context.Context, __arg SignToStringArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.crypto.signToString", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.crypto.signToString", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -258,11 +257,11 @@ func (c CryptoClient) SignToString(ctx context.Context, __arg SignToStringArg) (
 // decrypted data. The 'reason' parameter is used as part of the
 // SecretEntryArg object passed into secretUi.getSecret().
 func (c CryptoClient) UnboxBytes32(ctx context.Context, __arg UnboxBytes32Arg) (res Bytes32, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.crypto.unboxBytes32", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.crypto.unboxBytes32", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c CryptoClient) UnboxBytes32Any(ctx context.Context, __arg UnboxBytes32AnyArg) (res UnboxAnyRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.crypto.unboxBytes32Any", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.crypto.unboxBytes32Any", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

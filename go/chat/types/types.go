@@ -563,6 +563,10 @@ func (d DummyNativeVideoHelper) ThumbnailAndDuration(ctx context.Context, filena
 	return nil, 0, nil
 }
 
+func (d DummyNativeVideoHelper) AudioAmps(ctx context.Context, filename string) ([]float64, error) {
+	return nil, nil
+}
+
 type UnfurlerTaskStatus int
 
 const (

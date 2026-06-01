@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/gpg_common.avdl
 
 package keybase1
@@ -35,7 +35,8 @@ func (o GPGKey) DeepCopy() GPGKey {
 	}
 }
 
-type GpgCommonInterface interface{}
+type GpgCommonInterface interface {
+}
 
 func GpgCommonProtocol(i GpgCommonInterface) rpc.Protocol {
 	return rpc.Protocol{

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as C from '@/constants'
 import {useTeamsState} from '@/constants/teams'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
@@ -22,6 +23,7 @@ const CreateChannel = () => {
 export const CreateChannelsModal = (props: Props) => {
   const {onSubmitChannels, waiting} = props
   const nav = useSafeNavigation()
+  const clearModals = C.useRouterState(s => s.dispatch.clearModals)
   const teamID = props.teamID || T.Teams.newTeamWizardTeamID
   const initialChannels = useTeamsState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
 
@@ -43,6 +45,7 @@ export const CreateChannelsModal = (props: Props) => {
   const onContinue = () =>
     onSubmitChannels ? onSubmitChannels(filteredChannels) : setTeamWizardChannels(filteredChannels)
   const onBack = () => nav.safeNavigateUp()
+  const onClose = () => clearModals()
   const numChannels = filteredChannels.length
   // numChannels does not include the #general channel, so take it into account for tha label.
   const continueLabel = onSubmitChannels
@@ -64,6 +67,7 @@ export const CreateChannelsModal = (props: Props) => {
     <Kb.Modal
       banners={props.banners}
       backgroundStyle={styles.background}
+      onClose={onClose}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamID={teamID} title="Create channels" />,

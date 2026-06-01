@@ -1,13 +1,12 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/signup.avdl
 
 package keybase1
 
 import (
 	"context"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type SignupRes struct {
@@ -78,11 +77,11 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 		Name: "keybase.1.signup",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"checkUsernameAvailable": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CheckUsernameAvailableArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CheckUsernameAvailableArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CheckUsernameAvailableArg)(nil), args)
@@ -93,11 +92,11 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 				},
 			},
 			"signup": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]SignupArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]SignupArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]SignupArg)(nil), args)
@@ -108,11 +107,11 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 				},
 			},
 			"inviteRequest": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]InviteRequestArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]InviteRequestArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]InviteRequestArg)(nil), args)
@@ -123,11 +122,11 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 				},
 			},
 			"checkInvitationCode": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]CheckInvitationCodeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]CheckInvitationCodeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]CheckInvitationCodeArg)(nil), args)
@@ -138,11 +137,11 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 				},
 			},
 			"getInvitationCode": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]GetInvitationCodeArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]GetInvitationCodeArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]GetInvitationCodeArg)(nil), args)
@@ -161,27 +160,27 @@ type SignupClient struct {
 }
 
 func (c SignupClient) CheckUsernameAvailable(ctx context.Context, __arg CheckUsernameAvailableArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.signup.checkUsernameAvailable", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.signup.checkUsernameAvailable", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SignupClient) Signup(ctx context.Context, __arg SignupArg) (res SignupRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.signup.signup", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.signup.signup", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SignupClient) InviteRequest(ctx context.Context, __arg InviteRequestArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.signup.inviteRequest", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.signup.inviteRequest", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SignupClient) CheckInvitationCode(ctx context.Context, __arg CheckInvitationCodeArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.signup.checkInvitationCode", []interface{}{__arg}, nil, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.signup.checkInvitationCode", []any{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SignupClient) GetInvitationCode(ctx context.Context, sessionID int) (res string, err error) {
 	__arg := GetInvitationCodeArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.signup.getInvitationCode", []interface{}{__arg}, &res, 0*time.Millisecond)
+	err = c.Cli.Call(ctx, "keybase.1.signup.getInvitationCode", []any{__arg}, &res, 0*time.Millisecond)
 	return
 }

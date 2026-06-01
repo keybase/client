@@ -1,13 +1,13 @@
 import * as C from '@/constants'
 import * as Chat from '@/constants/chat2'
 import {useConfigState} from '@/constants/config'
+import {useCurrentUserState} from '@/constants/current-user'
 import * as React from 'react'
 import * as Kb from '@/common-adapters'
 import * as T from '@/constants/types'
 import type {Position, StylesCrossPlatform} from '@/styles'
-import {useItems, useHeader} from './hooks'
+import {useItems, useHeader, useModeration} from './hooks'
 import openURL from '@/util/open-url'
-import {useCurrentUserState} from '@/constants/current-user'
 
 type OwnProps = {
   attachTo?: React.RefObject<Kb.MeasureRef | null>
@@ -28,11 +28,12 @@ const PopText = (ownProps: OwnProps) => {
     return message
   })
   const you = useCurrentUserState(s => s.username)
-  const {conversationIDKey, author} = message
   const text = React.useMemo(() => {
     switch (message.type) {
       case 'text':
         return message.text.stringValue()
+      case 'setDescription':
+        return message.newDescription.stringValue() || undefined
       case 'systemGitPush':
         switch (message.pushType) {
           case T.RPCGen.GitPushType.createrepo:
@@ -62,24 +63,23 @@ const PopText = (ownProps: OwnProps) => {
     }
   }, [message])
 
+  const {author, conversationIDKey} = message
   const yourMessage = author === you
-  const {isTeam, messageReplyPrivately, numPart, teamType} = Chat.useChatContext(
+  const {messageReplyPrivately, numPart, teamType} = Chat.useChatContext(
     C.useShallow(s => {
-      const {teamType, teamname} = s.meta
-      const isTeam = !!teamname
-      const numPart = s.participants.all.length
       const {messageReplyPrivately} = s.dispatch
-      return {isTeam, messageReplyPrivately, numPart, teamType}
+      const numPart = s.participants.all.length
+      const {teamType} = s.meta
+      return {messageReplyPrivately, numPart, teamType}
     })
   )
-  // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
-  const canReplyPrivately = ['small', 'big'].includes(teamType) || numPart > 2
-  const navigateAppend = C.useRouterState(s => s.dispatch.navigateAppend)
+  const {itemBlock, itemFilter, itemFlag, itemReport} = useModeration(author, conversationIDKey)
   const copyToClipboard = useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopy = React.useCallback(() => {
     text && copyToClipboard(text)
   }, [copyToClipboard, text])
-
+  // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
+  const canReplyPrivately = teamType === 'small' || teamType === 'big' || numPart > 2
   const _onReplyPrivately = React.useCallback(() => {
     messageReplyPrivately(ordinal)
   }, [messageReplyPrivately, ordinal])
@@ -88,63 +88,6 @@ const PopText = (ownProps: OwnProps) => {
   // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
   const onViewMap =
     mapUnfurl?.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone ? () => openURL(mapUnfurl.url) : undefined
-  const blockModalSingle = !isTeam && numPart === 2
-
-  const _onUserReport = React.useCallback(() => {
-    navigateAppend({
-      props: {
-        blockUserByDefault: true,
-        context: blockModalSingle ? 'message-popup-single' : 'message-popup',
-        conversationIDKey,
-        reportsUserByDefault: true,
-        username: author,
-      },
-      selected: 'chatBlockingModal',
-    })
-  }, [conversationIDKey, blockModalSingle, navigateAppend, author])
-  const onUserReport = C.isIOS && author && !yourMessage ? () => _onUserReport : undefined
-
-  const _onUserFlag = React.useCallback(() => {
-    navigateAppend({
-      props: {
-        blockUserByDefault: true,
-        context: blockModalSingle ? 'message-popup-single' : 'message-popup',
-        conversationIDKey,
-        flagUserByDefault: true,
-        reportsUserByDefault: true,
-        username: author,
-      },
-      selected: 'chatBlockingModal',
-    })
-  }, [conversationIDKey, blockModalSingle, navigateAppend, author])
-  const onUserFlag = C.isIOS && author && !yourMessage ? _onUserFlag : undefined
-
-  const _onUserBlock = React.useCallback(() => {
-    navigateAppend({
-      props: {
-        blockUserByDefault: true,
-        context: blockModalSingle ? 'message-popup-single' : 'message-popup',
-        conversationIDKey,
-        username: author,
-      },
-      selected: 'chatBlockingModal',
-    })
-  }, [conversationIDKey, blockModalSingle, navigateAppend, author])
-  const onUserBlock = author && !yourMessage ? _onUserBlock : undefined
-
-  const _onUserFilter = React.useCallback(() => {
-    navigateAppend({
-      props: {
-        blockUserByDefault: true,
-        context: blockModalSingle ? 'message-popup-single' : 'message-popup',
-        conversationIDKey,
-        filterUserByDefault: true,
-        username: author,
-      },
-      selected: 'chatBlockingModal',
-    })
-  }, [conversationIDKey, blockModalSingle, navigateAppend, author])
-  const onUserFilter = C.isIOS && author && !yourMessage ? () => _onUserFilter : undefined
 
   const i = useItems(ordinal, onHidden)
   const {itemReaction, itemBot, itemCopyLink, itemReply, itemEdit, itemForward, itemPin, itemUnread} = i
@@ -159,50 +102,6 @@ const PopText = (ownProps: OwnProps) => {
   const itemReplyPrivately = onReplyPrivately
     ? ([{icon: 'iconfont-reply', onClick: onReplyPrivately, title: 'Reply privately'}] as const)
     : []
-
-  const itemBlock = !yourMessage
-    ? ([
-        {
-          danger: true,
-          icon: 'iconfont-user-block',
-          onClick: onUserBlock,
-          title: isTeam ? 'Report user' : 'Block user',
-        },
-      ] as const)
-    : []
-  const itemFilter =
-    !yourMessage && onUserFilter
-      ? ([
-          {
-            danger: true,
-            icon: 'iconfont-user-block',
-            onClick: onUserFilter,
-            title: 'Filter user',
-          },
-        ] as const)
-      : []
-  const itemReport =
-    !yourMessage && !isTeam && onUserReport
-      ? ([
-          {
-            danger: true,
-            icon: 'iconfont-user-block',
-            onClick: onUserReport,
-            title: 'Report user',
-          },
-        ] as const)
-      : []
-  const itemFlag =
-    !yourMessage && onUserFlag
-      ? ([
-          {
-            danger: true,
-            icon: 'iconfont-user-block',
-            onClick: onUserFlag,
-            title: 'Flag content',
-          },
-        ] as const)
-      : []
 
   const items = [
     ...itemReaction,

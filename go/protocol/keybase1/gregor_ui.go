@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler)
+// Code generated to Go types and interfaces using avdl-compiler v1.4.10 (https://github.com/keybase/node-avdl-compiler). DO NOT EDIT.
 //   Input file: avdl/keybase1/gregor_ui.avdl
 
 package keybase1
@@ -6,10 +6,9 @@ package keybase1
 import (
 	"context"
 	"fmt"
-	"time"
-
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"time"
 )
 
 type PushReason int
@@ -60,11 +59,11 @@ func GregorUIProtocol(i GregorUIInterface) rpc.Protocol {
 		Name: "keybase.1.gregorUI",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"pushState": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PushStateArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PushStateArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PushStateArg)(nil), args)
@@ -75,11 +74,11 @@ func GregorUIProtocol(i GregorUIInterface) rpc.Protocol {
 				},
 			},
 			"pushOutOfBandMessages": {
-				MakeArg: func() interface{} {
+				MakeArg: func() any {
 					var ret [1]PushOutOfBandMessagesArg
 					return &ret
 				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+				Handler: func(ctx context.Context, args any) (ret any, err error) {
 					typedArgs, ok := args.(*[1]PushOutOfBandMessagesArg)
 					if !ok {
 						err = rpc.NewTypeError((*[1]PushOutOfBandMessagesArg)(nil), args)
@@ -98,12 +97,12 @@ type GregorUIClient struct {
 }
 
 func (c GregorUIClient) PushState(ctx context.Context, __arg PushStateArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.pushState", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.pushState", []any{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c GregorUIClient) PushOutOfBandMessages(ctx context.Context, oobm []gregor1.OutOfBandMessage) (err error) {
 	__arg := PushOutOfBandMessagesArg{Oobm: oobm}
-	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.pushOutOfBandMessages", []interface{}{__arg}, 0*time.Millisecond)
+	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.pushOutOfBandMessages", []any{__arg}, 0*time.Millisecond)
 	return
 }
