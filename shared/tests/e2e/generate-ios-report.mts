@@ -244,6 +244,7 @@ h1{font-size:20px;font-weight:600}
 .grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .lbl{position:absolute;bottom:8px;font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:3px;background:rgba(0,0,0,.55);color:#fff;pointer-events:none}
 .lbl-l{left:8px}.lbl-r{right:8px}
+.section-hdr{grid-column:1/-1;font-size:15px;font-weight:600;padding:10px 0 4px;border-bottom:2px solid #ddd;margin-top:8px;color:#444}
 .expand-btn{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:5px;padding:5px 8px;font-size:15px;line-height:1;cursor:pointer;opacity:0;transition:opacity .15s;z-index:5}
 .compare:hover .expand-btn,.solo-wrap:hover .expand-btn{opacity:1}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:1000;align-items:center;justify-content:center}

@@ -65,6 +65,7 @@
     "rn:start:log": "npx expo start --clear 2>&1 | tee /tmp/metro.log",
     "rn:start:legacy": "./react-native/packageAndBuild.sh",
     "storybook": "storybook dev -p 6006 --config-dir .storybook",
+    "storybook:screenshot": "node --experimental-strip-types scripts/screenshot-storybook.mts",
     "sync:kb-modules": "yarn run _helper sync-local-rnmodules",
     "test:e2e:desktop": "playwright test --config tests/e2e/electron/playwright.config.ts",
     "test:e2e:desktop:branch": "playwright test --config tests/e2e/electron/playwright.config.ts tests/e2e/electron/flows/team-member.test.ts && yarn test:e2e:desktop:report",
